@@ -1,0 +1,1611 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-packet-v1",
+  "order": "B/A",
+  "generatedAt": "2026-07-19T21:41:00.000Z",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "prompt": {
+    "path": "evaluation/scion-adapters/lesson-kernel-judge-prompt-v0.16.54.md",
+    "sha256": "37844b86736335db54b561d8c031660ef71679c55ae1108e2e999e746f2a1c96"
+  },
+  "dimensions": [
+    "sourceFidelity",
+    "knowledgePrecision",
+    "scenarioReadiness",
+    "assessmentCorrectness",
+    "choiceDiscriminability",
+    "feedbackInstructionality",
+    "internalCoherence"
+  ],
+  "cases": [
+    {
+      "caseId": "scion-kernel-ceb1860bbd3c22db7ce0ada4",
+      "pairId": "scion-kernel-pair-5c60ba612b0c1827159dea51",
+      "domain": "physics",
+      "failureFamilies": [
+        "answer-key-correctness"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-1",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Electric charge",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: Electric charge is a conserved property of matter that comes in positive and negative forms and determines electric interactions. Claim 1: Like charges repel and unlike charges attract. Claim 2: Net charge is conserved in an isolated system.",
+        "readings": "OpenStax University Physics Volume 2, Ch. 5"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "3b263333e49bb33f83e6d019fd7e157fd10c684598ac03a65955ba0733dc0e6f",
+        "kernelId": "physics/electric-charge",
+        "term": "Electric charge",
+        "claims": [
+          "Electric charge is a conserved property of matter that comes in positive and negative forms and determines electric interactions.",
+          "Like charges repel and unlike charges attract.",
+          "Net charge is conserved in an isolated system."
+        ],
+        "anchors": [
+          {
+            "src": "openstax:university-physics-volume-2#5",
+            "loc": "5.1",
+            "quote": "Electric charge is a conserved property of matter."
+          },
+          {
+            "src": "openstax:university-physics-volume-2#5",
+            "loc": "5.1",
+            "quote": "Like charges repel and unlike charges attract."
+          },
+          {
+            "src": "openstax:university-physics-volume-2#5",
+            "loc": "5.1",
+            "quote": "charge is conserved"
+          }
+        ],
+        "attribution": [
+          "OpenStax University Physics Volume 2, Ch. 5"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "e76def0e4519ca2b114e5472f22d3863e57ec8e1bc5d5b3e13ec0bcdb1d9f027",
+          "lessonKernel": {
+            "lessonId": "lesson-1",
+            "facts": [
+              "Electric charge is a conserved property of matter that comes in positive and negative forms and determines electric interactions.",
+              "Like charges repel and unlike charges attract.",
+              "Net charge is conserved in an isolated system."
+            ],
+            "keyTerms": [
+              {
+                "tr": "Electric charge",
+                "df": "Electric charge is a conserved property of matter that comes in positive and negative forms.",
+                "eg": "Positive and negative forms are forms of electric charge.",
+                "mi": "Electric charge is a property of matter that is not conserved.",
+                "cx": "Conservation applies to electric charge as a property of matter."
+              },
+              {
+                "tr": "Like charges",
+                "df": "Like charges are charges whose stated electric interaction is repulsion.",
+                "eg": "Like charges repel, while unlike charges attract.",
+                "mi": "Like charges attract while unlike charges repel.",
+                "cx": "Repulsion belongs to like charges, and attraction belongs to unlike charges."
+              },
+              {
+                "tr": "Net charge",
+                "df": "Net charge is charge distinguished by conservation in an isolated system.",
+                "eg": "In an isolated system, net charge is conserved.",
+                "mi": "Net charge is conserved in positive and negative forms.",
+                "cx": "Positive and negative are forms of electric charge; the isolated-system relation concerns net-charge conservation."
+              }
+            ],
+            "scenario": {
+              "su": "A student must classify statements as describing a property of matter, an electric interaction, or conservation in an isolated system. The classification must resolve overlapping uses of charge while relying solely on the recorded wording.",
+              "ma": "the positive-and-negative-forms passage, the like-charges-repel observation, the unlike-charges-attract observation, the isolated-system net-charge notation"
+            },
+            "mc": [
+              {
+                "q": "A worksheet states that electric charge is conserved and that like charges repel. Which comparison preserves the distinct supplied relations between the property and the interaction?",
+                "op": [
+                  "Electric charge is conserved; like charges repel",
+                  "Electric charge repels; like charges are conserved",
+                  "Electric charge is conserved; like charges attract",
+                  "Electric charge determines interactions; unlike charges repel"
+                ],
+                "ai": 0,
+                "fi": [
+                  0,
+                  1
+                ],
+                "ex": "Electric charge is a conserved property, while like charges repel. Attraction describes unlike charges, not like charges."
+              },
+              {
+                "q": "The record shows like charges beside “repel” and unlike charges beside “attract.” Under the stated labeling constraint, which conclusion is supported?",
+                "op": [
+                  "Like charges repel; unlike charges attract",
+                  "Like charges attract; unlike charges repel",
+                  "Like charges repel; unlike charges repel",
+                  "Like charges attract; unlike charges attract"
+                ],
+                "ai": 0,
+                "fi": [
+                  1
+                ],
+                "ex": "The recorded relations pair like charges with repulsion and unlike charges with attraction. Reversing those pairings contradicts the stated interactions."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "5796fadd370020e47bbe026eb42015a1434a070c3138b7b10f6b5737bae18b4a",
+          "lessonKernel": {
+            "lessonId": "lesson-1",
+            "facts": [
+              "Electric charge is a conserved property of matter that comes in positive and negative forms and determines electric interactions. ",
+              "Like charges repel and unlike charges attract. ",
+              "Net charge is conserved in an isolated system."
+            ],
+            "keyTerms": [
+              {
+                "tr": "Electric charge",
+                "df": "Electric charge is a conserved property of matter that comes in positive and negative forms and determines electric interactions.",
+                "eg": "A positive charge on a proton and a negative charge on an electron.",
+                "mi": "Electric charge is only positive or negative and does not change during interactions.",
+                "cx": "Electric charge is a conserved property of matter that comes in positive and negative forms and determines electric interactions."
+              },
+              {
+                "tr": "Like charges repel",
+                "df": "Like charges repel is a fundamental rule governing the interaction between particles possessing the same type of electric charge.",
+                "eg": "Two electrons both exhibiting negative electric charge moving away from each other.",
+                "mi": "Like charges attract each other because they are both negative.",
+                "cx": "Like charges repel and unlike charges attract."
+              },
+              {
+                "tr": "Net charge conserved",
+                "df": "Net charge is conserved in an isolated system, meaning the total electric charge remains constant within that system.",
+                "eg": "The total charge of a closed circuit remains the same regardless of the path taken.",
+                "mi": "Net charge is only conserved if the system is completely isolated from all external influences.",
+                "cx": "Net charge is conserved in an isolated system."
+              }
+            ],
+            "scenario": {
+              "su": "A metal sphere has a net charge of +5.0 $\\mu$C, and a second identical sphere is brought near it. The spheres are placed in a vacuum chamber where no external charges are introduced. Determine the force between the two spheres.",
+              "ma": "Sphere A charge +5.0 $\\mu$C, Sphere B charge +5.0 $\\mu$C, vacuum chamber"
+            },
+            "mc": [
+              {
+                "q": "Which statement correctly distinguishes between the behavior of like charges and unlike charges based on the supplied claims?",
+                "op": [
+                  "Like charges attract while unlike charges repel.",
+                  "Like charges repel while unlike charges attract.",
+                  "Like charges attract while unlike charges attract.",
+                  "Like charges repel while unlike charges repel."
+                ],
+                "ai": 0,
+                "fi": [
+                  1,
+                  2
+                ],
+                "ex": "Like charges repel and unlike charges attract. Net charge is conserved in an isolated system."
+              },
+              {
+                "q": "A technician observes two charged particles, one positive and one negative, moving toward each other in a closed system. What is the expected interaction?",
+                "op": [
+                  "The particles will repel because they have the same charge.",
+                  "The particles will attract because they have opposite charges.",
+                  "The particles will repel because the net charge is not conserved.",
+                  "The particles will attract because the net charge is conserved."
+                ],
+                "ai": 0,
+                "fi": [
+                  0,
+                  1
+                ],
+                "ex": "Like charges repel and unlike charges attract. Net charge is conserved in an isolated system."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-ceb1860bbd3c22db7ce0ada4",
+        "pairId": "scion-kernel-pair-5c60ba612b0c1827159dea51",
+        "artifactSha256": {
+          "A": "e76def0e4519ca2b114e5472f22d3863e57ec8e1bc5d5b3e13ec0bcdb1d9f027",
+          "B": "5796fadd370020e47bbe026eb42015a1434a070c3138b7b10f6b5737bae18b4a"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    },
+    {
+      "caseId": "scion-kernel-d1245491192ed0aa2a63c297",
+      "pairId": "scion-kernel-pair-36744b7c5dda20ebcb150a2f",
+      "domain": "economics",
+      "failureFamilies": [
+        "choice-discriminability",
+        "source-fidelity"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-3",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Market equilibrium",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: Market equilibrium occurs at the price where the quantity demanded by buyers equals the quantity supplied by sellers. Claim 1: At the equilibrium price the opposing pressures of demand and supply are balanced and the price has no tendency to change. Claim 2: A price above equilibrium creates a surplus that pushes it down; a price below creates a shortage that pushes it up.",
+        "readings": "OpenStax Principles of Microeconomics 3e, Ch. 4"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "13a691e562b5c8e8cd8780917c95852a4fc9041b68384de9a7efc063d90a6f05",
+        "kernelId": "econ/market-equilibrium",
+        "term": "Market equilibrium",
+        "claims": [
+          "Market equilibrium occurs at the price where the quantity demanded by buyers equals the quantity supplied by sellers.",
+          "At the equilibrium price the opposing pressures of demand and supply are balanced and the price has no tendency to change.",
+          "A price above equilibrium creates a surplus that pushes it down; a price below creates a shortage that pushes it up."
+        ],
+        "anchors": [
+          {
+            "src": "openstax:microeconomics-3e#4",
+            "loc": "4.1",
+            "quote": "the price where the quantity demanded by buyers equals the quantity supplied by sellers"
+          },
+          {
+            "src": "openstax:microeconomics-3e#4",
+            "loc": "4.1",
+            "quote": "the opposing pressures of demand and supply are balanced and there is no tendency for the price to change"
+          },
+          {
+            "src": "openstax:microeconomics-3e#4",
+            "loc": "4.2",
+            "quote": "a surplus pushes it down, and when the price is below equilibrium a shortage pushes it up"
+          }
+        ],
+        "attribution": [
+          "OpenStax Principles of Microeconomics 3e, Ch. 4"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "69a8483dda150bac03821fb73af0c0748c9d2051e650da534b9e0cf23cbd7091",
+          "lessonKernel": {
+            "lessonId": "lesson-3",
+            "facts": [
+              "Market equilibrium occurs at the price where the quantity demanded by buyers equals the quantity supplied by sellers.",
+              "At the equilibrium price the opposing pressures of demand and supply are balanced and the price has no tendency to change.",
+              "A price above equilibrium creates a surplus that pushes it down; a price below creates a shortage that pushes it up."
+            ],
+            "keyTerms": [
+              {
+                "tr": "equilibrium price",
+                "df": "The equilibrium price is the market price where buyer and seller quantities are equal.",
+                "eg": "At the equilibrium price, opposing demand and supply pressures are balanced.",
+                "mi": "The equilibrium price is the price above equilibrium that creates a surplus.",
+                "cx": "A surplus corresponds to a price above equilibrium, not to equilibrium itself."
+              },
+              {
+                "tr": "surplus",
+                "df": "A surplus is the condition created when a price is above equilibrium.",
+                "eg": "A surplus pushes the price down toward equilibrium.",
+                "mi": "A surplus is created when the price is below equilibrium.",
+                "cx": "Below-equilibrium pricing produces a shortage; surplus corresponds to above-equilibrium pricing."
+              },
+              {
+                "tr": "shortage",
+                "df": "A shortage is the condition created when a price is below equilibrium.",
+                "eg": "A shortage pushes the price up toward equilibrium.",
+                "mi": "A shortage is created when the price is above equilibrium.",
+                "cx": "Above-equilibrium pricing produces a surplus; shortage corresponds to below-equilibrium pricing."
+              }
+            ],
+            "scenario": {
+              "su": "Buyers and sellers report quantities at a recorded price, and the quantities are equal while demand and supply pressures are balanced. A reviewer must classify the market condition before a deadline, but the label must fit the quantity comparison and pressure observation.",
+              "ma": "quantity demanded by buyers record, quantity supplied by sellers record, demand and supply pressure observation"
+            },
+            "mc": [
+              {
+                "q": "A record shows equal quantities demanded and supplied, while a comparison shows balanced demand and supply pressures; what distinction connects market equilibrium with the equilibrium price?",
+                "op": [
+                  "Unequal quantities mark equilibrium; balanced pressures stabilize price",
+                  "Balanced pressures mark equilibrium; equal quantities change price",
+                  "Equal quantities mark equilibrium; balanced pressures change price",
+                  "Equal quantities mark equilibrium; balanced pressures stabilize price"
+                ],
+                "ai": 3,
+                "fi": [
+                  0,
+                  1
+                ],
+                "ex": "Equal buyer and seller quantities mark market equilibrium, while balanced demand and supply pressures mean the price has no tendency to change. Balanced pressures do not make the price tend to change."
+              },
+              {
+                "q": "A reviewer observes a price above equilibrium and must classify the resulting condition and direction of pressure before a deadline; which conclusion fits the observation?",
+                "op": [
+                  "Classify a shortage pushing price up",
+                  "Classify a shortage pushing price down",
+                  "Classify a surplus pushing price down",
+                  "Classify a surplus pushing price up"
+                ],
+                "ai": 2,
+                "fi": [
+                  2
+                ],
+                "ex": "A price above equilibrium creates a surplus that pushes the price down. A shortage pushing price up corresponds to a price below equilibrium."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "9f607d2c80c6c8f069ec336d1ad5e01894ef3bd7f259f19a73a6dabf098adc41",
+          "lessonKernel": {
+            "lessonId": "lesson-3",
+            "facts": [
+              "Market equilibrium occurs at the price where the quantity demanded by buyers equals the quantity supplied by sellers. ",
+              "At the equilibrium price the opposing pressures of demand and supply are balanced and the price has no tendency to change. ",
+              "A price above equilibrium creates a surplus that pushes it down; a price below creates a shortage that pushes it up."
+            ],
+            "keyTerms": [
+              {
+                "tr": "Market equilibrium",
+                "df": "Market equilibrium is the specific price point where the quantity demanded by buyers exactly matches the quantity supplied by sellers.",
+                "eg": "The price where the number of smartphones consumers want to buy equals the number manufacturers want to sell.",
+                "mi": "Market equilibrium is simply the highest price a seller can charge before demand drops.",
+                "cx": "Market equilibrium is where the quantity demanded equals the quantity supplied, not just the highest price a seller can charge."
+              },
+              {
+                "tr": "Quantity demanded",
+                "df": "Quantity demanded represents the specific amount of a good that buyers are willing and able to purchase at a given price.",
+                "eg": "If the price of gasoline is $4.00, the quantity demanded is the number of gallons consumers purchase.",
+                "mi": "Quantity demanded is the total amount of a good that sellers are willing to provide at a specific price.",
+                "cx": "Quantity demanded is what buyers want to purchase, whereas quantity supplied is what sellers offer at that price."
+              },
+              {
+                "tr": "Quantity supplied",
+                "df": "Quantity supplied is the specific amount of a good that sellers are willing and able to offer for sale at a particular price.",
+                "eg": "At a price of $4.00, the quantity supplied is the number of gallons sellers are ready to deliver.",
+                "mi": "Quantity supplied is the total amount of a good that buyers are willing to purchase at a specific price.",
+                "cx": "Quantity supplied is what sellers offer, while quantity demanded is what buyers want to purchase at that price."
+              }
+            ],
+            "scenario": {
+              "su": "A local bakery observes that when they set the price of a loaf of bread at $5.00, they have 50 loaves left over, but when they lower the price to $3.00, they have 100 loaves left over.",
+              "ma": "Compare the situation at $5.00 and $3.00 to determine the market condition at each price point."
+            },
+            "mc": [
+              {
+                "q": "If the price of a product is set above the market equilibrium, what happens to the quantity demanded and quantity supplied?",
+                "op": [
+                  "Quantity demanded decreases while quantity supplied decreases.",
+                  "Quantity demanded decreases while quantity supplied increases.",
+                  "Quantity demanded increases while quantity supplied decreases.",
+                  "Quantity demanded increases while quantity supplied increases."
+                ],
+                "ai": 2,
+                "fi": [
+                  2
+                ],
+                "ex": "A price above equilibrium creates a surplus that pushes it down, which means quantity supplied exceeds quantity demanded, correcting the option suggesting demand increases while supply decreases."
+              },
+              {
+                "q": "A market is currently experiencing a shortage because the price is set below equilibrium; what is the immediate pressure on the price?",
+                "op": [
+                  "The price will fall because quantity supplied exceeds quantity demanded.",
+                  "The price will rise because quantity supplied exceeds quantity demanded.",
+                  "The price will rise because quantity demanded exceeds quantity supplied.",
+                  "The price will fall because quantity demanded exceeds quantity supplied."
+                ],
+                "ai": 1,
+                "fi": [
+                  2
+                ],
+                "ex": "A price below equilibrium creates a shortage that pushes it up, meaning quantity demanded exceeds quantity supplied, which supports the option that the price will rise."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-d1245491192ed0aa2a63c297",
+        "pairId": "scion-kernel-pair-36744b7c5dda20ebcb150a2f",
+        "artifactSha256": {
+          "A": "69a8483dda150bac03821fb73af0c0748c9d2051e650da534b9e0cf23cbd7091",
+          "B": "9f607d2c80c6c8f069ec336d1ad5e01894ef3bd7f259f19a73a6dabf098adc41"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    },
+    {
+      "caseId": "scion-kernel-d2f92eae076f0514d6a7dcf4",
+      "pairId": "scion-kernel-pair-30829b672de42dd4f9bd4adc",
+      "domain": "physics",
+      "failureFamilies": [
+        "source-coverage"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-2",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Electric field",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: An electric field describes the electric force per unit positive test charge at each point in space. Claim 1: The direction of the electric field is the direction a positive test charge would accelerate. Claim 2: Field-line density indicates relative field strength.",
+        "readings": "OpenStax University Physics Volume 2, Ch. 5"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "bde05b7b9582176e048e9e0ae8a40e052a003910ab430c42b50031727a58cd48",
+        "kernelId": "physics/electric-field",
+        "term": "Electric field",
+        "claims": [
+          "An electric field describes the electric force per unit positive test charge at each point in space.",
+          "The direction of the electric field is the direction a positive test charge would accelerate.",
+          "Field-line density indicates relative field strength."
+        ],
+        "anchors": [
+          {
+            "src": "openstax:university-physics-volume-2#5",
+            "loc": "5.5",
+            "quote": "The electric field is the electric force per unit charge."
+          },
+          {
+            "src": "openstax:university-physics-volume-2#5",
+            "loc": "5.5",
+            "quote": "the direction of the force on a positive test charge"
+          },
+          {
+            "src": "openstax:university-physics-volume-2#5",
+            "loc": "5.6",
+            "quote": "closer field lines indicate a stronger field"
+          }
+        ],
+        "attribution": [
+          "OpenStax University Physics Volume 2, Ch. 5"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "aa8dbf8343ad2edb01e3ebdedc46a5634bd6e0a55629b4d1eb8cc44f4a685ada",
+          "lessonKernel": {
+            "lessonId": "lesson-2",
+            "facts": [
+              "An electric field describes the electric force per unit positive test charge at each point in space.",
+              "The direction of the electric field is the direction a positive test charge would accelerate.",
+              "Field-line density indicates relative field strength."
+            ],
+            "keyTerms": [
+              {
+                "tr": "electric field",
+                "df": "An electric field is a description of electric force per unit positive test charge at each point in space.",
+                "eg": "At each point in space, electric force per unit positive test charge specifies the electric field.",
+                "mi": "The electric field points opposite the direction a positive test charge would accelerate.",
+                "cx": "Its direction agrees with the positive test charge's acceleration direction, rather than opposing it."
+              },
+              {
+                "tr": "positive test charge",
+                "df": "A positive test charge is the charge for which electric force per unit charge describes the electric field.",
+                "eg": "The charge's acceleration direction identifies the direction of the electric field at a point in space.",
+                "mi": "Field-line density gives the direction a positive test charge would accelerate.",
+                "cx": "Acceleration direction establishes field direction; density instead indicates relative field strength."
+              },
+              {
+                "tr": "field-line density",
+                "df": "Field-line density is the field-line property that indicates relative field strength.",
+                "eg": "Comparing density at two points in space provides a comparison of relative field strength.",
+                "mi": "Relative field strength indicates field-line density.",
+                "cx": "The stated relation runs from the density of field lines to comparative strength, not in reverse."
+              }
+            ],
+            "scenario": {
+              "su": "A student must label two electric-field descriptions before a deadline, using a direction record and a field-line-density comparison. One description records where a positive test charge would accelerate, while the other compares denser and less dense field lines, so each label must follow the relevant relation.",
+              "ma": "positive-test-charge acceleration direction record, denser-versus-less-dense field-line comparison, electric-force-per-unit-positive-test-charge passage"
+            },
+            "mc": [
+              {
+                "q": "At one point in space, a record gives electric force per unit positive test charge and an arrow gives the positive test charge's acceleration direction; what distinction is supported?",
+                "op": [
+                  "Field describes force per charge; direction follows acceleration",
+                  "Field describes acceleration; direction follows force per charge",
+                  "Direction describes force per charge; field follows acceleration",
+                  "Field describes force per charge; direction omitted"
+                ],
+                "ai": 0,
+                "fi": [
+                  0,
+                  1
+                ],
+                "ex": "The electric field describes electric force per unit positive test charge, while its direction follows the positive test charge's acceleration direction. Swapping those relations incorrectly makes acceleration describe the field itself."
+              },
+              {
+                "q": "Two field-line displays differ in density, with the first visibly denser than the second; under a deadline, which comparison should the student record from that observation?",
+                "op": [
+                  "First has greater relative field strength",
+                  "Second has greater relative field strength",
+                  "First has the positive charge direction",
+                  "Second describes force per positive charge"
+                ],
+                "ai": 0,
+                "fi": [
+                  2
+                ],
+                "ex": "Field-line density indicates relative field strength, so the denser first display supports greater relative strength. Assigning greater strength to the less dense second display reverses the supplied relation."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "f63343b3455f6e34fc339df4ef7cc0d84c82b1014c1cb5bb1444c00d6af1805b",
+          "lessonKernel": {
+            "lessonId": "lesson-2",
+            "facts": [
+              "An electric field describes the electric force per unit positive test charge at each point in space.",
+              "The direction of the electric field is the direction a positive test charge would accelerate.",
+              "Field-line density indicates relative field strength."
+            ],
+            "keyTerms": [
+              {
+                "tr": "electric field",
+                "df": "An electric field is defined as the electric force per unit positive test charge measured at every point in space.",
+                "eg": "The electric field at a specific location determines the force experienced by a positive test charge placed there.",
+                "mi": "The electric field is the total electric force acting on a charge at a specific point in space.",
+                "cx": "The electric field is specifically the force per unit positive test charge at each point in space."
+              },
+              {
+                "tr": "electric force",
+                "df": "The electric force is the interaction between a charge and the electric field at a given location.",
+                "eg": "If a positive test charge is placed in a region with a non-zero electric field, it will experience a resultant electric force.",
+                "mi": "The electric force is the magnitude of the electric field multiplied by the charge of the test particle.",
+                "cx": "The electric force is the electric field per unit positive test charge at each point in space."
+              },
+              {
+                "tr": "field-line density",
+                "df": "Field-line density is a measure used to indicate the relative field strength at a particular location.",
+                "eg": "A region with a higher field-line density suggests a stronger electric field exists in that area.",
+                "mi": "Field-line density is the total electric force exerted on a charge within a specific volume of space.",
+                "cx": "Field-line density indicates relative field strength."
+              }
+            ],
+            "scenario": {
+              "su": "A positive test charge is placed near a region where the electric field is non-zero, and a second test charge is placed further away. The constraint is that the field direction must be consistent for both charges.",
+              "ma": "The electric field at point A is 5 N/C, and the electric field at point B is 2 N/C. Compare the field-line density at point A with the field-line density at point B."
+            },
+            "mc": [
+              {
+                "q": "Which statement correctly distinguishes the electric field from the electric force?",
+                "op": [
+                  "The electric field is the total force acting on a charge.",
+                  "The electric field is the electric force per unit positive test charge.",
+                  "The electric field is the direction a charge would accelerate.",
+                  "The electric field is the total force exerted by surrounding charges."
+                ],
+                "ai": 1,
+                "fi": [
+                  0,
+                  1
+                ],
+                "ex": "The electric field is the electric force per unit positive test charge at each point in space, while the electric force is the electric force per unit positive test charge at each point in space."
+              },
+              {
+                "q": "A circuit has two points, A and B, where the electric field is measured. Point A shows a field-line density of 5, and Point B shows a field-line density of 10. What is the relationship between these two points?",
+                "op": [
+                  "Point A has a stronger electric field than Point B.",
+                  "Point B has a stronger electric field than Point A.",
+                  "Point A has a weaker electric field than Point B.",
+                  "The field-line density is the same at both points."
+                ],
+                "ai": 0,
+                "fi": [
+                  2
+                ],
+                "ex": "Field-line density indicates relative field strength, so Point B has a stronger electric field than Point A."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-d2f92eae076f0514d6a7dcf4",
+        "pairId": "scion-kernel-pair-30829b672de42dd4f9bd4adc",
+        "artifactSha256": {
+          "A": "aa8dbf8343ad2edb01e3ebdedc46a5634bd6e0a55629b4d1eb8cc44f4a685ada",
+          "B": "f63343b3455f6e34fc339df4ef7cc0d84c82b1014c1cb5bb1444c00d6af1805b"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    },
+    {
+      "caseId": "scion-kernel-da733789c838f18a3d00f6d2",
+      "pairId": "scion-kernel-pair-7a4a74c4233a71915009895e",
+      "domain": "economics",
+      "failureFamilies": [
+        "choice-discriminability",
+        "source-fidelity"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-11",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Labor force classification",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: People who have given up looking for work are classified as out of the labor force, not unemployed. Claim 1: Discouraged workers who are excluded make unemployment look lower than the felt experience of joblessness. Claim 2: Where this boundary is drawn changes the measured unemployment rate.",
+        "readings": "OpenStax Principles of Macroeconomics 2e, Ch. 8"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "13a691e562b5c8e8cd8780917c95852a4fc9041b68384de9a7efc063d90a6f05",
+        "kernelId": "econ/labor-force-classification",
+        "term": "Labor force classification",
+        "claims": [
+          "People who have given up looking for work are classified as out of the labor force, not unemployed.",
+          "Discouraged workers who are excluded make unemployment look lower than the felt experience of joblessness.",
+          "Where this boundary is drawn changes the measured unemployment rate."
+        ],
+        "anchors": [
+          {
+            "src": "openstax:macroeconomics-2e#8",
+            "loc": "8.1",
+            "quote": "people who have given up looking are classified as out of the labor force, not unemployed"
+          },
+          {
+            "src": "openstax:macroeconomics-2e#8",
+            "loc": "8.1",
+            "quote": "discouraged workers who are excluded make unemployment look lower than the felt experience of joblessness"
+          },
+          {
+            "src": "openstax:macroeconomics-2e#8",
+            "loc": "8.1",
+            "quote": "Where this boundary is drawn changes the measured unemployment rate"
+          }
+        ],
+        "attribution": [
+          "OpenStax Principles of Macroeconomics 2e, Ch. 8"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "f990f21a26452dc6e80877613d025b95df080bfdd303865d12dcc5fa4c9ae101",
+          "lessonKernel": {
+            "lessonId": "lesson-11",
+            "facts": [
+              "People who have given up looking for work are classified as out of the labor force, not unemployed.",
+              "Discouraged workers who are excluded make unemployment look lower than the felt experience of joblessness.",
+              "Where this boundary is drawn changes the measured unemployment rate."
+            ],
+            "keyTerms": [
+              {
+                "tr": "labor force",
+                "df": "The labor force is a classification category that excludes people who have given up looking for work.",
+                "eg": "People who have given up looking for work are placed out of the labor force.",
+                "mi": "Giving up looking for work places people among the unemployed.",
+                "cx": "Those people belong outside the labor force classification rather than among the unemployed."
+              },
+              {
+                "tr": "Discouraged workers",
+                "df": "Discouraged workers are excluded workers whose exclusion makes unemployment look lower than felt joblessness.",
+                "eg": "Excluded discouraged workers make unemployment look lower than the felt experience of joblessness.",
+                "mi": "Excluding discouraged workers makes unemployment look higher than felt joblessness.",
+                "cx": "Their exclusion lowers how unemployment looks relative to the experience of joblessness."
+              },
+              {
+                "tr": "unemployment rate",
+                "df": "The unemployment rate is a measured rate that changes according to where the classification boundary is drawn.",
+                "eg": "Drawing the boundary differently changes the measured unemployment rate.",
+                "mi": "The measured unemployment rate determines where the boundary is drawn.",
+                "cx": "Boundary placement affects the measured rate, rather than the measured rate setting the boundary."
+              }
+            ],
+            "scenario": {
+              "su": "An analyst must classify people whose record says they have given up looking for work before approving a measured unemployment rate. A draft labels them unemployed, but the classification record places them out of the labor force, creating a boundary dispute that must be resolved.",
+              "ma": "classification record stating that people have given up looking for work, draft unemployment-rate notation labeling them unemployed, boundary notation excluding discouraged workers"
+            },
+            "mc": [
+              {
+                "q": "A classification record identifies people who have given up looking for work, while a draft labels them unemployed. Which distinction matches the labor force boundary?",
+                "op": [
+                  "Out of the labor force, not unemployed",
+                  "Out of the labor force and unemployed",
+                  "Unemployed, not out of the labor force",
+                  "Discouraged workers make unemployment look lower"
+                ],
+                "ai": 0,
+                "fi": [
+                  0
+                ],
+                "ex": "People who have given up looking for work are classified as out of the labor force and not unemployed. Labeling them unemployed reverses the supplied classification."
+              },
+              {
+                "q": "An analyst compares a classification record with an unemployment-rate notation and finds the boundary for excluded discouraged workers drawn differently. What conclusion follows from that comparison?",
+                "op": [
+                  "Excluded workers make unemployment look higher",
+                  "Measured unemployment rate changes boundary placement",
+                  "Boundary placement changes the measured unemployment rate",
+                  "Boundary placement changes felt joblessness"
+                ],
+                "ai": 2,
+                "fi": [
+                  2
+                ],
+                "ex": "The measured unemployment rate changes when the boundary is drawn differently. The rate does not determine where the boundary is placed."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "83d41d983926e84d58826e49a2ba6012764935b2f3a679507daa02fcb814ce02",
+          "lessonKernel": {
+            "lessonId": "lesson-11",
+            "facts": [
+              "People who have given up looking for work are classified as out of the labor force, not unemployed.",
+              "Discouraged workers who are excluded make unemployment look lower than the felt experience of joblessness.",
+              "Where this boundary is drawn changes the measured unemployment rate."
+            ],
+            "keyTerms": [
+              {
+                "tr": "out of the labor force",
+                "df": "Individuals who have stopped seeking employment are categorized outside the labor force rather than as unemployed.",
+                "eg": "A person who has actively stopped searching for a job is classified as out of the labor force.",
+                "mi": "People who have given up looking for work are considered unemployed.",
+                "cx": "The classification of people who have given up looking for work is out of the labor force, not unemployed."
+              },
+              {
+                "tr": "discouraged workers",
+                "df": "Workers who are excluded from the labor force due to discouragement have a felt experience of joblessness that is not reflected in unemployment statistics.",
+                "eg": "A worker who is discouraged because they cannot find a job is a discouraged worker.",
+                "mi": "Discouraged workers are included in the labor force statistics.",
+                "cx": "Discouraged workers are excluded from the labor force, making unemployment look lower than the felt experience of joblessness."
+              },
+              {
+                "tr": "measured unemployment rate",
+                "df": "The unemployment rate is a statistical measure that is directly affected by the specific boundary used to define the labor force.",
+                "eg": "The measured unemployment rate changes depending on where the labor force boundary is drawn.",
+                "mi": "The measured unemployment rate is a fixed value regardless of the labor force boundary.",
+                "cx": "The measured unemployment rate is directly affected by where the boundary is drawn, meaning it is not fixed."
+              }
+            ],
+            "scenario": {
+              "su": "A local economic survey shows a group of individuals who have stopped looking for work and are excluded from the labor force. A policymaker must decide whether to include these individuals in the unemployment count to reflect the true joblessness experienced by the population.",
+              "ma": "Inspectable Detail 1: A survey record shows an individual has stopped looking for work. Inspectable Detail 2: A calculation shows the unemployment rate is artificially low if this group is excluded."
+            },
+            "mc": [
+              {
+                "q": "When classifying individuals who have stopped looking for work, what is the correct classification regarding their status in the labor force?",
+                "op": [
+                  "They are counted as unemployed because they are currently without a job.",
+                  "They are classified as out of the labor force because they have given up looking for work.",
+                  "They are classified as discouraged workers because they are excluded from the labor force.",
+                  "They are counted as unemployed because they are actively seeking work."
+                ],
+                "ai": 1,
+                "fi": [
+                  0
+                ],
+                "ex": "The subject evidence supporting the answer is that people who have given up looking for work are classified as out of the labor force, not unemployed, which corrects the misconception that they are counted as unemployed."
+              },
+              {
+                "q": "A regional unemployment calculation shows a low rate, but the actual joblessness is higher; what is the correct application of the boundary drawn between the labor force and the unemployed?",
+                "op": [
+                  "Including discouraged workers increases the measured unemployment rate.",
+                  "Excluding discouraged workers makes unemployment look lower than the felt experience of joblessness.",
+                  "Including discouraged workers changes the measured unemployment rate.",
+                  "Excluding discouraged workers does not change the measured unemployment rate."
+                ],
+                "ai": 1,
+                "fi": [
+                  1
+                ],
+                "ex": "The subject evidence supporting the answer is that discouraged workers who are excluded make unemployment look lower than the felt experience of joblessness, which is the correct distinction."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-da733789c838f18a3d00f6d2",
+        "pairId": "scion-kernel-pair-7a4a74c4233a71915009895e",
+        "artifactSha256": {
+          "A": "f990f21a26452dc6e80877613d025b95df080bfdd303865d12dcc5fa4c9ae101",
+          "B": "83d41d983926e84d58826e49a2ba6012764935b2f3a679507daa02fcb814ce02"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    },
+    {
+      "caseId": "scion-kernel-db7d12824fbd8fea94861592",
+      "pairId": "scion-kernel-pair-98650de512514bbb102c9f15",
+      "domain": "anatomy",
+      "failureFamilies": [
+        "feedback-instructionality",
+        "misconception-validity",
+        "source-fidelity"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-3",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Four primary tissue types",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: The four broad tissue categories are epithelial, connective, muscle, and nervous tissue, each with structures and functions that support body organization. Claim 1: Histology studies tissue appearance, organization, and function under the microscope. Claim 2: Tissue cells share morphological features and an orderly arrangement that supports tissue function.",
+        "readings": "OpenStax Anatomy and Physiology 2e"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "c7c91fd6e67090a9c77348bed5c1ef57a5d982ad0def5beb8851dcf171faef66",
+        "kernelId": "anatomy/tissue-types",
+        "term": "Four primary tissue types",
+        "claims": [
+          "The four broad tissue categories are epithelial, connective, muscle, and nervous tissue, each with structures and functions that support body organization.",
+          "Histology studies tissue appearance, organization, and function under the microscope.",
+          "Tissue cells share morphological features and an orderly arrangement that supports tissue function."
+        ],
+        "anchors": [
+          {
+            "src": "openstax:anatomy-and-physiology-2e#4-1",
+            "loc": "4.1",
+            "quote": "they are organized into four broad categories of tissues: epithelial, connective, muscle, and nervous"
+          },
+          {
+            "src": "openstax:anatomy-and-physiology-2e#4-1",
+            "loc": "4.1",
+            "quote": "histology, the microscopic study of tissue appearance, organization, and function"
+          },
+          {
+            "src": "openstax:anatomy-and-physiology-2e#4-1",
+            "loc": "4.1",
+            "quote": "share morphological features and are arranged in an orderly pattern that achieves the tissue's functions"
+          }
+        ],
+        "attribution": [
+          "OpenStax Anatomy and Physiology 2e"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "0e53cb690c249f6448188841cf6ec69c751981baba598ad38f7461960f6123ac",
+          "lessonKernel": {
+            "lessonId": "lesson-3",
+            "facts": [
+              "The four broad tissue categories are epithelial, connective, muscle, and nervous tissue, each with structures and functions that support body organization.",
+              "Histology studies tissue appearance, organization, and function under the microscope.",
+              "Tissue cells share morphological features and an orderly arrangement that supports tissue function."
+            ],
+            "keyTerms": [
+              {
+                "tr": "tissue categories",
+                "df": "Tissue categories are broad groupings distinguished by structures and functions that support body organization.",
+                "eg": "Epithelial, connective, muscle, and nervous tissue are tissue categories.",
+                "mi": "Tissue categories describe the appearance studied under the microscope.",
+                "cx": "Appearance under the microscope belongs to what histology studies, rather than what defines the four broad groupings."
+              },
+              {
+                "tr": "Histology",
+                "df": "Histology is the study of tissue appearance, organization, and function under the microscope.",
+                "eg": "Histology compares tissue appearance with tissue organization under the microscope.",
+                "mi": "Histology is one of the four broad tissue categories.",
+                "cx": "The four broad groupings are epithelial, connective, muscle, and nervous tissue; histology studies tissues."
+              },
+              {
+                "tr": "morphological features",
+                "df": "Morphological features are shared features of tissue cells associated with their orderly arrangement and tissue function.",
+                "eg": "Tissue cells can share morphological features within an orderly arrangement.",
+                "mi": "Morphological features are the four broad categories of tissue.",
+                "cx": "Epithelial, connective, muscle, and nervous name the categories, whereas morphological features are shared by tissue cells."
+              }
+            ],
+            "scenario": {
+              "su": "A student must label a comparison as tissue-category evidence or histology evidence before a deadline. The comparison lists epithelial, connective, muscle, and nervous tissue and also records appearance and organization under the microscope, so the student must distinguish the two kinds of information.",
+              "ma": "category list notation, microscope appearance observations, tissue organization observations"
+            },
+            "mc": [
+              {
+                "q": "A comparison names epithelial, connective, muscle, and nervous tissue, while a microscope record describes tissue appearance and organization. Which distinction matches these concrete observations?",
+                "op": [
+                  "Categories group tissues; histology studies microscope features",
+                  "Histology groups tissues; categories study microscope features",
+                  "Histology omits function; categories omit organization",
+                  "Categories study appearance; histology lists four tissues"
+                ],
+                "ai": 0,
+                "fi": [
+                  0,
+                  1
+                ],
+                "ex": "The four names are broad tissue categories, while histology studies tissue appearance, organization, and function under the microscope. Histology does not group the four tissues; it studies tissues microscopically."
+              },
+              {
+                "q": "Under a deadline, a student sees shared morphological features and an orderly arrangement in tissue cells. Which notation is supported by those observations?",
+                "op": [
+                  "Tissue function supports shared cell features",
+                  "Cell appearance and function define histology",
+                  "Cell features and arrangement support tissue function",
+                  "Orderly arrangement names four tissue categories"
+                ],
+                "ai": 2,
+                "fi": [
+                  2
+                ],
+                "ex": "Shared morphological features and an orderly arrangement of tissue cells support tissue function. The supplied relation runs from those cellular properties to tissue function, not from function to shared features."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "fcc454902c25d0f57dbd2704063e8bcfad5fe5cdca01b86e8da018e9af69701a",
+          "lessonKernel": {
+            "lessonId": "lesson-3",
+            "facts": [
+              "The four broad tissue categories are epithelial, connective, muscle, and nervous tissue, each with structures and functions that support body organization. ",
+              "Histology studies tissue appearance, organization, and function under the microscope. ",
+              "Tissue cells share morphological features and an orderly arrangement that supports tissue function."
+            ],
+            "keyTerms": [
+              {
+                "tr": "epithelial tissue",
+                "df": "Epithelial tissue is one of the four broad tissue categories that possesses specific structures and functions supporting body organization. ",
+                "eg": "Skin cells form a protective layer that exemplifies the structure and function of epithelial tissue. ",
+                "mi": "Epithelial tissue is only found in the circulatory system because it has specialized structures.",
+                "cx": "Epithelial tissue is a broad category that includes various structures and functions supporting body organization, not just the circulatory system."
+              },
+              {
+                "tr": "connective tissue",
+                "df": "Connective tissue is one of the four broad tissue categories that possesses specific structures and functions supporting body organization. ",
+                "eg": "Bone provides structural support and is a primary example of connective tissue in the body. ",
+                "mi": "Connective tissue is exclusively composed of cells that are highly specialized for rapid communication.",
+                "cx": "Connective tissue is a broad category that includes various structures and functions supporting body organization, not just cells specialized for rapid communication."
+              },
+              {
+                "tr": "histology studies",
+                "df": "Histology studies tissue appearance, organization, and function under the microscope. ",
+                "eg": "Examining the microscopic arrangement of muscle fibers allows for the study of tissue function through histology. ",
+                "mi": "Histology is the process of identifying the specific chemical composition of tissue samples.",
+                "cx": "Histology is the study of tissue appearance, organization, and function under the microscope, not the chemical composition of samples."
+              }
+            ],
+            "scenario": {
+              "su": "A pathologist is examining a biopsy from a patient presenting with a localized inflammatory response. The constraint is that the pathologist must quickly identify the tissue type to determine the appropriate staining protocol for further analysis. The pathologist must distinguish between the tissue's microscopic organization and its overall role in body organization. ",
+              "ma": "Passage A describes cells tightly packed with minimal extracellular matrix, while Passage B shows cells embedded in a dense, fibrous network."
+            },
+            "mc": [
+              {
+                "q": "When examining a tissue sample, a student observes cells sharing morphological features and an orderly arrangement that supports tissue function. Which broad tissue category is being described? ",
+                "op": [
+                  "Epithelial tissue",
+                  "Muscle tissue",
+                  "Connective tissue",
+                  "Nervous tissue"
+                ],
+                "ai": 0,
+                "fi": [
+                  2
+                ],
+                "ex": "Tissue cells share morphological features and an orderly arrangement that supports tissue function, which describes epithelial tissue, while connective tissue is defined by its structures and functions supporting body organization."
+              },
+              {
+                "q": "A researcher is studying the microscopic appearance of tissue to determine its organization and function. Which field of study is the researcher utilizing? ",
+                "op": [
+                  "Muscle tissue",
+                  "Histology",
+                  "Connective tissue",
+                  "Epithelial tissue"
+                ],
+                "ai": 1,
+                "fi": [
+                  1
+                ],
+                "ex": "Histology studies tissue appearance, organization, and function under the microscope, which is the correct field of study."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-db7d12824fbd8fea94861592",
+        "pairId": "scion-kernel-pair-98650de512514bbb102c9f15",
+        "artifactSha256": {
+          "A": "0e53cb690c249f6448188841cf6ec69c751981baba598ad38f7461960f6123ac",
+          "B": "fcc454902c25d0f57dbd2704063e8bcfad5fe5cdca01b86e8da018e9af69701a"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    },
+    {
+      "caseId": "scion-kernel-e8a4f4e4941f1b6583b661ed",
+      "pairId": "scion-kernel-pair-0889f4ae4482ae31c4adbfa5",
+      "domain": "geology",
+      "failureFamilies": [
+        "answer-key-correctness",
+        "scenario-evidence-sufficiency",
+        "source-fidelity"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-5",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Rock-cycle drivers",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: The rock cycle describes the continuing transformation of crustal materials and is driven by Earth's internal heat engine and the solar-powered hydrological cycle. Claim 1: Earth's internal heat moves material through the core and mantle and contributes to changes within the crust. Claim 2: The hydrological cycle moves water, ice, and air at the surface and is powered by the Sun.",
+        "readings": "Steven Earle, Physical Geology – 2nd Edition (2019), section 3.1, BCcampus Open Education"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "aeedbbcef83043f47b006db4d034b5591399c3a71f983732fa1deb16f02e204a",
+        "kernelId": "geology-ccby/rock-cycle-drivers",
+        "term": "Rock-cycle drivers",
+        "claims": [
+          "The rock cycle describes the continuing transformation of crustal materials and is driven by Earth's internal heat engine and the solar-powered hydrological cycle.",
+          "Earth's internal heat moves material through the core and mantle and contributes to changes within the crust.",
+          "The hydrological cycle moves water, ice, and air at the surface and is powered by the Sun."
+        ],
+        "anchors": [
+          {
+            "src": "https://opentextbc.ca/physicalgeology2ed/chapter/3-1-the-rock-cycle/",
+            "loc": "3.1 The Rock Cycle, paragraph 1",
+            "quote": "constantly being changed from one form to another"
+          },
+          {
+            "src": "https://opentextbc.ca/physicalgeology2ed/chapter/3-1-the-rock-cycle/",
+            "loc": "3.1 The Rock Cycle, paragraph 1",
+            "quote": "Earth’s internal heat engine, which moves material around in the core and the mantle"
+          },
+          {
+            "src": "https://opentextbc.ca/physicalgeology2ed/chapter/3-1-the-rock-cycle/",
+            "loc": "3.1 The Rock Cycle, paragraph 1",
+            "quote": "the movement of water, ice, and air at the surface, and is powered by the sun"
+          }
+        ],
+        "attribution": [
+          "Steven Earle, Physical Geology – 2nd Edition (2019), section 3.1, BCcampus Open Education"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "8321372f7c9f0c554105332243666a615db4e40cb8561c8f0712caa6de72b137",
+          "lessonKernel": {
+            "lessonId": "lesson-5",
+            "facts": [
+              "The rock cycle describes the continuing transformation of crustal materials and is driven by Earth's internal heat engine and the solar-powered hydrological cycle.",
+              "Earth's internal heat moves material through the core and mantle and contributes to changes within the crust.",
+              "The hydrological cycle moves water, ice, and air at the surface and is powered by the Sun."
+            ],
+            "keyTerms": [
+              {
+                "tr": "rock cycle",
+                "df": "The rock cycle is the continuing transformation of crustal materials.",
+                "eg": "Earth's internal heat engine and the hydrological cycle drive the rock cycle.",
+                "mi": "The rock cycle describes the movement of water, ice, and air at the surface.",
+                "cx": "Movement of water, ice, and air at the surface belongs to the hydrological cycle, while the rock cycle concerns crustal materials."
+              },
+              {
+                "tr": "internal heat",
+                "df": "Earth's internal heat is a driver that moves material through the core and mantle.",
+                "eg": "Within Earth, internal heat contributes to changes in the crust.",
+                "mi": "Earth's internal heat moves water, ice, and air at the surface.",
+                "cx": "Water, ice, and air are moved at the surface by the hydrological cycle, not by Earth's internal heat."
+              },
+              {
+                "tr": "hydrological cycle",
+                "df": "The hydrological cycle is a solar-powered driver that moves water, ice, and air at the surface.",
+                "eg": "The Sun powers the hydrological cycle at Earth's surface.",
+                "mi": "The hydrological cycle moves material through the core and mantle.",
+                "cx": "Movement through the core and mantle is associated with Earth's internal heat, whereas the hydrological cycle operates at the surface."
+              }
+            ],
+            "scenario": {
+              "su": "A geology team must classify two passages as describing Earth's internal heat or the hydrological cycle before a deadline. One passage records movement through the core and mantle, while another records water, ice, and air moving at the surface.",
+              "ma": "the passage recording movement through the core and mantle, the passage recording water, ice, and air moving at the surface, the notation that the Sun powers the hydrological cycle"
+            },
+            "mc": [
+              {
+                "q": "A comparison records material moving through the core and mantle and water, ice, and air moving at the surface; which proposition correctly distinguishes internal heat from the hydrological cycle?",
+                "op": [
+                  "Internal heat moves core and mantle material",
+                  "Hydrological cycle moves core and mantle material",
+                  "Internal heat moves water, ice, and air",
+                  "Sun is powered by the hydrological cycle"
+                ],
+                "ai": 0,
+                "fi": [
+                  1,
+                  2
+                ],
+                "ex": "Earth's internal heat moves material through the core and mantle, while the hydrological cycle moves water, ice, and air at the surface. The hydrological cycle does not move core and mantle material; that relation belongs to internal heat."
+              },
+              {
+                "q": "Before a deadline, a team observes water, ice, and air moving at the surface and must choose one evidence-bound label; which proposition correctly classifies the observed movement?",
+                "op": [
+                  "Hydrological cycle moves surface water, ice, air",
+                  "Internal heat moves surface water, ice, air",
+                  "Hydrological cycle moves core and mantle material",
+                  "Sun is powered by the hydrological cycle"
+                ],
+                "ai": 0,
+                "fi": [
+                  2
+                ],
+                "ex": "The hydrological cycle moves water, ice, and air at the surface, so it directly matches the observation. Internal heat instead moves material through the core and mantle and contributes to crustal changes."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "1307e87ac88f3777fe6f983b8bea2fcbd95250fd8243153fdeddb158f0508050",
+          "lessonKernel": {
+            "lessonId": "lesson-5",
+            "facts": [
+              "The rock cycle describes the continuing transformation of crustal materials and is driven by Earth's internal heat engine and the solar-powered hydrological cycle.",
+              "Earth's internal heat moves material through the core and mantle and contributes to changes within the crust.",
+              "The hydrological cycle moves water, ice, and air at the surface and is powered by the Sun."
+            ],
+            "keyTerms": [
+              {
+                "tr": "rock cycle",
+                "df": "The rock cycle describes the continuing transformation of crustal materials and is driven by Earth's internal heat engine and the solar-powered hydrological cycle.",
+                "eg": "The transformation of crustal materials is driven by Earth's internal heat engine and the solar-powered hydrological cycle.",
+                "mi": "The rock cycle is solely driven by the solar-powered hydrological cycle.",
+                "cx": "The rock cycle is driven by Earth's internal heat engine and the solar-powered hydrological cycle."
+              },
+              {
+                "tr": "internal heat engine",
+                "df": "Earth's internal heat moves material through the core and mantle and contributes to changes within the crust.",
+                "eg": "Earth's internal heat moves material through the core and mantle and contributes to changes within the crust.",
+                "mi": "The internal heat engine only moves material within the core.",
+                "cx": "The internal heat engine moves material through the core and mantle and contributes to changes within the crust."
+              },
+              {
+                "tr": "hydrological cycle",
+                "df": "The hydrological cycle moves water, ice, and air at the surface and is powered by the Sun.",
+                "eg": "The hydrological cycle moves water, ice, and air at the surface and is powered by the Sun.",
+                "mi": "The hydrological cycle is powered by Earth's internal heat engine.",
+                "cx": "The hydrological cycle is powered by the Sun."
+              }
+            ],
+            "scenario": {
+              "su": "A geologist is analyzing a region where volcanic activity is high, noting that the rock cycle describes the continuing transformation of crustal materials and is driven by Earth's internal heat engine and the solar-powered hydrological cycle. The constraint is that the analysis must focus only on the drivers of transformation, not surface processes.",
+              "ma": "Compare the driving forces for rock cycle transformation: (1) Earth's internal heat engine, (2) the solar-powered hydrological cycle."
+            },
+            "mc": [
+              {
+                "q": "Which process is responsible for driving the transformation of crustal materials, and which process is powered by the Sun?",
+                "op": [
+                  "Earth's internal heat engine drives transformation; hydrological cycle is solar-powered.",
+                  "The hydrological cycle drives transformation; internal heat engine is solar-powered.",
+                  "Internal heat engine is solar-powered; hydrological cycle drives transformation.",
+                  "Both processes drive transformation and are solar-powered."
+                ],
+                "ai": 0,
+                "fi": [
+                  0,
+                  2
+                ],
+                "ex": "The rock cycle describes the continuing transformation of crustal materials and is driven by Earth's internal heat engine and the solar-powered hydrological cycle, while the hydrological cycle moves water, ice, and air at the surface and is powered by the Sun, so the internal heat engine drives transformation and the hydrological cycle is solar-powered, correcting the option that incorrectly swaps"
+              },
+              {
+                "q": "A field observation shows significant surface water movement and ice formation, while deep crustal changes are occurring; which driver is responsible for the surface movement and which for deep changes?",
+                "op": [
+                  "Hydrological cycle drives surface movement; internal heat engine drives deep changes.",
+                  "Internal heat engine drives surface movement; hydrological cycle drives deep changes.",
+                  "Both drivers equally power surface movement and deep changes.",
+                  "Hydrological cycle is solar-powered; internal heat engine is solar-powered."
+                ],
+                "ai": 0,
+                "fi": [
+                  2
+                ],
+                "ex": "The hydrological cycle moves water, ice, and air at the surface and is powered by the Sun, while Earth's internal heat moves material through the core and mantle and contributes to changes within the crust, so the hydrological cycle drives surface movement and the internal heat engine drives deep changes, correcting the option that incorrectly assigns the internal heat engine to surface movement."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-e8a4f4e4941f1b6583b661ed",
+        "pairId": "scion-kernel-pair-0889f4ae4482ae31c4adbfa5",
+        "artifactSha256": {
+          "A": "8321372f7c9f0c554105332243666a615db4e40cb8561c8f0712caa6de72b137",
+          "B": "1307e87ac88f3777fe6f983b8bea2fcbd95250fd8243153fdeddb158f0508050"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    }
+  ],
+  "claimBoundary": "This packet contains anonymous source-bound artifacts only. It contains no provider identity, model identity, route, admission outcome, retry history, compiler receipt, preference, or training authorization.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "a949808759c56cdf94be86fe4c9d2520a09ee7afa11b617ac185a3e8f40f046d"
+  }
+}

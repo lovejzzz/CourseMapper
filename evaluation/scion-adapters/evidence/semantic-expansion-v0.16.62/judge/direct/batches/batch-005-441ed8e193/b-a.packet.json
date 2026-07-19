@@ -1,0 +1,1628 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-packet-v1",
+  "order": "B/A",
+  "generatedAt": "2026-07-19T21:41:00.000Z",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "prompt": {
+    "path": "evaluation/scion-adapters/lesson-kernel-judge-prompt-v0.16.54.md",
+    "sha256": "37844b86736335db54b561d8c031660ef71679c55ae1108e2e999e746f2a1c96"
+  },
+  "dimensions": [
+    "sourceFidelity",
+    "knowledgePrecision",
+    "scenarioReadiness",
+    "assessmentCorrectness",
+    "choiceDiscriminability",
+    "feedbackInstructionality",
+    "internalCoherence"
+  ],
+  "cases": [
+    {
+      "caseId": "scion-kernel-70f8f63dff436c643849d6d7",
+      "pairId": "scion-kernel-pair-14d6f95c52b38743049d6822",
+      "domain": "anatomy",
+      "failureFamilies": [
+        "feedback-instructionality",
+        "misconception-validity"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-5",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Endocrine hormone signaling",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: Hormones circulate through the bloodstream but affect only target cells with the appropriate receptors, triggering target-cell responses that regulate physiological processes. Claim 1: Hormone binding initiates a chain of events that leads to a target-cell response. Claim 2: Hormones regulate processes including growth, metabolism, fluid balance, electrolyte balance, and sleep.",
+        "readings": "OpenStax Anatomy and Physiology 2e"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "99b636e83ccce56ab48e09397a5c61aecef640f11ce7bc0c3e5c4ff34d84f634",
+        "kernelId": "anatomy/endocrine-hormone-signaling",
+        "term": "Endocrine hormone signaling",
+        "claims": [
+          "Hormones circulate through the bloodstream but affect only target cells with the appropriate receptors, triggering target-cell responses that regulate physiological processes.",
+          "Hormone binding initiates a chain of events that leads to a target-cell response.",
+          "Hormones regulate processes including growth, metabolism, fluid balance, electrolyte balance, and sleep."
+        ],
+        "anchors": [
+          {
+            "src": "openstax:anatomy-and-physiology-2e#17-2",
+            "loc": "17.2",
+            "quote": "it will affect the activity only of its target cells; that is, cells with receptors for that particular hormone"
+          },
+          {
+            "src": "openstax:anatomy-and-physiology-2e#17-2",
+            "loc": "17.2",
+            "quote": "Once the hormone binds to the receptor, a chain of events is initiated that leads to the target cell's response"
+          },
+          {
+            "src": "openstax:anatomy-and-physiology-2e#17-2",
+            "loc": "17.2",
+            "quote": "metabolism, fluid, and electrolyte balance, sleep, and many other body functions"
+          }
+        ],
+        "attribution": [
+          "OpenStax Anatomy and Physiology 2e"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "35856d2c02610e5ecb22586e41454adaa5266b7146cdff30eed56f12e033b28b",
+          "lessonKernel": {
+            "lessonId": "lesson-5",
+            "facts": [
+              "Hormones circulate through the bloodstream but affect only target cells with the appropriate receptors, triggering target-cell responses that regulate physiological processes.",
+              "Hormone binding initiates a chain of events that leads to a target-cell response.",
+              "Hormones regulate processes including growth, metabolism, fluid balance, electrolyte balance, and sleep."
+            ],
+            "keyTerms": [
+              {
+                "tr": "Hormones",
+                "df": "Hormones circulate through the bloodstream and regulate physiological processes through target-cell responses.",
+                "eg": "Hormones regulate growth, metabolism, fluid balance, electrolyte balance, and sleep.",
+                "mi": "Hormones affect target cells that lack the appropriate receptors.",
+                "cx": "Hormone effects occur in target cells with the appropriate receptors."
+              },
+              {
+                "tr": "Hormone binding",
+                "df": "Hormone binding is the initiating event in a chain leading to a target-cell response.",
+                "eg": "Hormone binding initiates a chain of events that leads to a target-cell response.",
+                "mi": "Hormone binding occurs after the target-cell response.",
+                "cx": "The binding event initiates the chain that leads to the response."
+              },
+              {
+                "tr": "target cells",
+                "df": "Target cells are cells with appropriate receptors that hormones affect after circulating through the bloodstream.",
+                "eg": "Target cells with appropriate receptors produce target-cell responses.",
+                "mi": "Target cells initiate hormone circulation through the bloodstream.",
+                "cx": "Hormones circulate through the bloodstream and affect receptive target cells."
+              }
+            ],
+            "scenario": {
+              "su": "A student must classify two recorded hormone-signaling observations before a deadline. The student must distinguish bloodstream-and-receptor signaling from the hormone-binding sequence while using only the recorded relations.",
+              "ma": "bloodstream circulation and appropriate-receptor notation, hormone-binding and target-cell-response sequence, growth and metabolism process list"
+            },
+            "mc": [
+              {
+                "q": "A comparison notes that hormones circulate through the bloodstream, while hormone binding initiates a chain of events. Which distinction matches these two recorded observations?",
+                "op": [
+                  "Hormones circulate; binding initiates response events",
+                  "Hormones regulate processes; binding circulates through bloodstream",
+                  "Binding circulates; hormones initiate response events",
+                  "Hormones initiate binding; events circulate through bloodstream"
+                ],
+                "ai": 0,
+                "fi": [
+                  0,
+                  1
+                ],
+                "ex": "Hormones circulate through the bloodstream, whereas hormone binding initiates events leading to a target-cell response. Binding does not circulate while hormones initiate response events."
+              },
+              {
+                "q": "A case record shows bloodstream circulation and appropriate receptors in target cells. Under a receptor-based classification constraint, which label is supported for the observed hormone-cell relation?",
+                "op": [
+                  "Hormones affect target cells through bloodstream circulation",
+                  "Appropriate receptors affect hormones through target cells",
+                  "Target cells affect hormones with appropriate receptors",
+                  "Hormones affect target cells with appropriate receptors"
+                ],
+                "ai": 3,
+                "fi": [
+                  0
+                ],
+                "ex": "Hormones circulating through the bloodstream affect target cells with the appropriate receptors. Target cells do not reverse this relation by affecting hormones."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "c85a93c4a237fdb42dbb87254ab89dfde8c6f37dbe1645f251e80c736bb622c3",
+          "lessonKernel": {
+            "lessonId": "lesson-5",
+            "facts": [
+              "Hormones circulate through the bloodstream but affect only target cells with the appropriate receptors, triggering target-cell responses that regulate physiological processes.",
+              "Hormone binding initiates a chain of events that leads to a target-cell response.",
+              "Hormones regulate processes including growth, metabolism, fluid balance, electrolyte balance, and sleep."
+            ],
+            "keyTerms": [
+              {
+                "tr": "Hormones circulate",
+                "df": "Hormones circulate through the bloodstream but affect only target cells with the appropriate receptors, triggering target-cell responses that regulate physiological processes.",
+                "eg": "Hormones circulate through the bloodstream but affect only target cells with the appropriate receptors, triggering target-cell responses that regulate physiological processes.",
+                "mi": "Hormones affect all cells in the body directly through their receptors.",
+                "cx": "Hormones affect only target cells with the appropriate receptors, triggering target-cell responses that regulate physiological processes."
+              },
+              {
+                "tr": "Hormone binding",
+                "df": "Hormone binding initiates a chain of events that leads to a target-cell response.",
+                "eg": "Hormone binding initiates a chain of events that leads to a target-cell response.",
+                "mi": "Hormone binding is the final step in a signaling pathway.",
+                "cx": "Hormone binding initiates a chain of events that leads to a target-cell response."
+              },
+              {
+                "tr": "Hormones regulate",
+                "df": "Hormones regulate processes including growth, metabolism, fluid balance, electrolyte balance, and sleep.",
+                "eg": "Hormones regulate processes including growth, metabolism, fluid balance, electrolyte balance, and sleep.",
+                "mi": "Hormones only regulate growth and metabolism.",
+                "cx": "Hormones regulate processes including growth, metabolism, fluid balance, electrolyte balance, and sleep."
+              }
+            ],
+            "scenario": {
+              "su": "A patient exhibits severe electrolyte imbalance and altered sleep patterns, suggesting a systemic regulatory issue. The clinical team must determine the appropriate signaling mechanism to address these physiological disturbances while considering the constraint of only using supplied claims.",
+              "ma": "Patient A shows high blood sugar and poor fluid balance; Patient B shows altered sleep cycles and metabolic rate."
+            },
+            "mc": [
+              {
+                "q": "Which statement correctly distinguishes the mechanism of hormone action from the initiation of the response?",
+                "op": [
+                  "Hormone binding initiates a chain of events that leads to a target-cell response.",
+                  "Hormones circulate through the bloodstream but affect only target cells with the appropriate receptors.",
+                  "Hormones regulate processes including growth, metabolism, fluid balance, electrolyte balance, and sleep.",
+                  "Hormone binding initiates a chain of events that leads to a target-cell response."
+                ],
+                "ai": 0,
+                "fi": [
+                  0,
+                  1
+                ],
+                "ex": "Hormone binding initiates a chain of events that leads to a target-cell response. Hormones circulate through the bloodstream but affect only target cells with the appropriate receptors."
+              },
+              {
+                "q": "A physician observes a patient with metabolic issues and fluid imbalance; which claim best describes the function of hormones in this context?",
+                "op": [
+                  "Hormones regulate processes including growth, metabolism, fluid balance, electrolyte balance, and sleep.",
+                  "Hormones circulate through the bloodstream but affect only target cells with the appropriate receptors.",
+                  "Hormone binding initiates a chain of events that leads to a target-cell response.",
+                  "Hormones regulate processes including growth, metabolism, fluid balance, electrolyte balance, and sleep."
+                ],
+                "ai": 0,
+                "fi": [
+                  2
+                ],
+                "ex": "Hormones regulate processes including growth, metabolism, fluid balance, electrolyte balance, and sleep. Hormones circulate through the bloodstream but affect only target cells with the appropriate receptors."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-70f8f63dff436c643849d6d7",
+        "pairId": "scion-kernel-pair-14d6f95c52b38743049d6822",
+        "artifactSha256": {
+          "A": "35856d2c02610e5ecb22586e41454adaa5266b7146cdff30eed56f12e033b28b",
+          "B": "c85a93c4a237fdb42dbb87254ab89dfde8c6f37dbe1645f251e80c736bb622c3"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    },
+    {
+      "caseId": "scion-kernel-7bc6165bbce8b949fcce5885",
+      "pairId": "scion-kernel-pair-e80037851ddeb88c43d056e5",
+      "domain": "user-experience-design",
+      "failureFamilies": [
+        "source-coverage"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-2",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Personas",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: A research-based persona is a shareable profile of a user group with similar behavior and needs, used to keep design choices connected to evidence. Claim 1: Personas are one way to present research findings so other people can understand and share them. Claim 2: User needs are generally higher-level and more stable over time than individual interface requests. Claim 3: Teams turn user needs into user stories that describe features and content intended to meet those needs. Claim 4: Keeping each user story linked to its source need enables evaluation of whether the need is being met.",
+        "readings": "UK Government Service Manual"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "55810138f44b132a506c48e324abae61faab42bb035796fd7728e36106eaf51e",
+        "kernelId": "ux/evidence-based-personas",
+        "term": "Personas",
+        "claims": [
+          "A research-based persona is a shareable profile of a user group with similar behavior and needs, used to keep design choices connected to evidence.",
+          "Personas are one way to present research findings so other people can understand and share them.",
+          "User needs are generally higher-level and more stable over time than individual interface requests.",
+          "Teams turn user needs into user stories that describe features and content intended to meet those needs.",
+          "Keeping each user story linked to its source need enables evaluation of whether the need is being met."
+        ],
+        "anchors": [
+          {
+            "src": "govuk:user-needs",
+            "loc": "Share your user needs",
+            "quote": "user profiles or personas that describe groups of users with similar behaviour and needs"
+          },
+          {
+            "src": "govuk:user-needs",
+            "loc": "Share your user needs",
+            "quote": "Present what you've learned in a way that's easy for others to understand and share."
+          },
+          {
+            "src": "govuk:user-needs",
+            "loc": "Linking user needs",
+            "quote": "User needs tend to be high-level, broad in scope and stable over time."
+          },
+          {
+            "src": "govuk:user-needs",
+            "loc": "Linking user needs",
+            "quote": "These describe the specific features and content you need to create for your service to meet your users' needs."
+          },
+          {
+            "src": "govuk:user-needs",
+            "loc": "Linking user needs",
+            "quote": "This traceability allows you to track related activities and determine how well you're meeting a particular user need."
+          }
+        ],
+        "attribution": [
+          "UK Government Service Manual"
+        ],
+        "license": "Open Government Licence v3.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "fddcb3b7cc4d50b0759e76d1ef2425d170defff560602f9745068b6f11f9de57",
+          "lessonKernel": {
+            "lessonId": "lesson-2",
+            "facts": [
+              "A research-based persona is a shareable profile of a user group with similar behavior and needs, used to keep design choices connected to evidence.",
+              "Personas are one way to present research findings so other people can understand and share them.",
+              "User needs are generally higher-level and more stable over time than individual interface requests.",
+              "Teams turn user needs into user stories that describe features and content intended to meet those needs.",
+              "Keeping each user story linked to its source need enables evaluation of whether the need is being met."
+            ],
+            "keyTerms": [
+              {
+                "tr": "research-based persona",
+                "df": "A research-based persona is a shareable profile of a user group with similar behavior and needs.",
+                "eg": "A research-based persona keeps design choices connected to evidence about a user group.",
+                "mi": "A research-based persona describes individual interface requests.",
+                "cx": "It profiles a user group with similar behavior and needs rather than individual interface requests."
+              },
+              {
+                "tr": "user needs",
+                "df": "User needs are higher-level and more stable over time than individual interface requests.",
+                "eg": "Teams turn user needs into user stories describing features and content intended to meet them.",
+                "mi": "User needs are the features and content described by user stories.",
+                "cx": "Features and content belong in user stories intended to meet the needs from which teams begin."
+              },
+              {
+                "tr": "user stories",
+                "df": "User stories describe features and content intended to meet user needs.",
+                "eg": "A team links each user story to its source need when evaluating whether that need is met.",
+                "mi": "User stories present research findings so other people can understand and share them.",
+                "cx": "Personas present research findings, while stories specify features and content intended to meet needs."
+              }
+            ],
+            "scenario": {
+              "su": "A team must classify passages as user needs or individual interface requests while keeping design choices connected to evidence. A deadline constrains review, and the classification must follow wording about level and stability over time.",
+              "ma": "passage describing a higher-level need stable over time, passage stating an individual interface request, notation linking a user story to its source need"
+            },
+            "mc": [
+              {
+                "q": "A team compares a shareable profile of a user group with a statement that is higher-level and more stable over time. Which distinction between a research-based persona and user needs fits those observations?",
+                "op": [
+                  "Persona is higher-level; needs profile a user group",
+                  "Persona describes features; needs present research findings",
+                  "Persona profiles a user group; needs are higher-level",
+                  "Persona presents research findings; needs profile user groups"
+                ],
+                "ai": 2,
+                "fi": [
+                  0,
+                  2
+                ],
+                "ex": "A research-based persona profiles a user group, while user needs are higher-level and more stable than interface requests. Higher-level describes user needs, not the persona."
+              },
+              {
+                "q": "Under a deadline, a team reviews a user story, its source need, and a notation connecting them before evaluating whether the need is met. Which action matches the records?",
+                "op": [
+                  "Keep the story linked to its source need",
+                  "Use the need to describe features and content",
+                  "Use the story to present research findings",
+                  "Keep the need linked to its source story"
+                ],
+                "ai": 0,
+                "fi": [
+                  4
+                ],
+                "ex": "Keeping the user story linked to its source need enables evaluation of whether the need is met. The specified direction connects the story to its source need, not the need to a source story."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "5461073c114d73fff4c46434c446420f0db92e43096bb98713efea2f5563e57c",
+          "lessonKernel": {
+            "lessonId": "lesson-2",
+            "facts": [
+              "A research-based persona is a shareable profile of a user group with similar behavior and needs, used to keep design choices connected to evidence.",
+              "Personas are one way to present research findings so other people can understand and share them.",
+              "User needs are generally higher-level and more stable over time than individual interface requests.",
+              "Teams turn user needs into user stories that describe features and content intended to meet those needs.",
+              "Keeping each user story linked to its source need enables evaluation of whether the need is being met."
+            ],
+            "keyTerms": [
+              {
+                "tr": "research-based persona",
+                "df": "A shareable profile of a user group with similar behavior and needs, used to keep design choices connected to evidence.",
+                "eg": "A profile detailing the needs of a group of users who exhibit similar behavior.",
+                "mi": "A research-based persona is just a list of individual user interface requests.",
+                "cx": "A research-based persona is a shareable profile of a user group with similar behavior and needs, used to keep design choices connected to evidence."
+              },
+              {
+                "tr": "user needs",
+                "df": "Higher-level and more stable requirements that exist over time, distinct from individual interface requests.",
+                "eg": "A need for a system to be accessible to all users.",
+                "mi": "User needs are the same as individual interface requests made by a single user.",
+                "cx": "User needs are generally higher-level and more stable over time than individual interface requests."
+              },
+              {
+                "tr": "user stories",
+                "df": "Descriptions of features and content intended to meet user needs, which are derived from user needs.",
+                "eg": "A user story describing a feature that allows users to complete a task.",
+                "mi": "User stories are the same as the high-level user needs themselves.",
+                "cx": "Teams turn user needs into user stories that describe features and content intended to meet those needs."
+              }
+            ],
+            "scenario": {
+              "su": "A design team is developing a new application and needs to prioritize features based on user research findings. The team has identified a core user need for improved navigation, but they are struggling to connect specific interface requirements to the broader research findings. The constraint is that the team must ensure every feature developed can be traced back to a validated user need.",
+              "ma": "Compare the user needs and user stories for the navigation feature, the accessibility feature, and the content update feature."
+            },
+            "mc": [
+              {
+                "q": "When a team translates user needs into user stories, what is the primary function of this process in relation to the original needs?",
+                "op": [
+                  "User stories define individual interface requests",
+                  "User stories are a way to present research findings",
+                  "User stories describe features intended to meet needs",
+                  "User stories are stable over time"
+                ],
+                "ai": 2,
+                "fi": [
+                  3
+                ],
+                "ex": "Teams turn user needs into user stories that describe features and content intended to meet those needs. User stories describe features intended to meet needs, which is the correct application of the process."
+              },
+              {
+                "q": "A stakeholder asks how to evaluate if a specific design choice is valid based on the research conducted, and what element connects the design to the research?",
+                "op": [
+                  "The design choice must match individual interface requests",
+                  "The design choice must be stable over time",
+                  "The design choice must be linked to the source need",
+                  "The design choice must be a high-level need"
+                ],
+                "ai": 0,
+                "fi": [
+                  4
+                ],
+                "ex": "Keeping each user story linked to its source need enables evaluation of whether the need is being met, which is the mechanism connecting design to research."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-7bc6165bbce8b949fcce5885",
+        "pairId": "scion-kernel-pair-e80037851ddeb88c43d056e5",
+        "artifactSha256": {
+          "A": "fddcb3b7cc4d50b0759e76d1ef2425d170defff560602f9745068b6f11f9de57",
+          "B": "5461073c114d73fff4c46434c446420f0db92e43096bb98713efea2f5563e57c"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    },
+    {
+      "caseId": "scion-kernel-813b7ee41741357e1c13a56a",
+      "pairId": "scion-kernel-pair-606b54fdc85b280cf8d987e5",
+      "domain": "music-theory",
+      "failureFamilies": [
+        "feedback-instructionality",
+        "scenario-evidence-sufficiency",
+        "source-coverage",
+        "source-fidelity"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-4",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Interval number and quality",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: A written interval is identified by its diatonic span and semitone distance, which together determine labels such as major, minor, augmented, or diminished. Claim 1: Four semitones form a major third, while three semitones form a minor third when each spans three scale steps. Claim 2: A tritone can be spelled as an augmented fourth or diminished fifth, and the spelling can imply different resolutions.",
+        "readings": "Justin Rubin, Music Composition & Theory (2024), chapter 25, University of Minnesota Libraries Publishing"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "ffabcbcf6dc1ecf2545741964b1895f8405b48fa982afc1b44b4166d1a25d025",
+        "kernelId": "music-ccby/interval-number-quality",
+        "term": "Interval number and quality",
+        "claims": [
+          "A written interval is identified by its diatonic span and semitone distance, which together determine labels such as major, minor, augmented, or diminished.",
+          "Four semitones form a major third, while three semitones form a minor third when each spans three scale steps.",
+          "A tritone can be spelled as an augmented fourth or diminished fifth, and the spelling can imply different resolutions."
+        ],
+        "anchors": [
+          {
+            "src": "https://open.lib.umn.edu/musiccomposition/chapter/common-practice-era-scales-intervals-and-chord-functions/",
+            "loc": "25 Common Practice Era Scales, Intervals",
+            "quote": "Intervals were assigned labels based on the scale from which they arose."
+          },
+          {
+            "src": "https://open.lib.umn.edu/musiccomposition/chapter/common-practice-era-scales-intervals-and-chord-functions/",
+            "loc": "25 Common Practice Era Scales, Intervals",
+            "quote": "four diatonic half-steps is referred to as a major third, while that of three half-steps is a minor third"
+          },
+          {
+            "src": "https://open.lib.umn.edu/musiccomposition/chapter/common-practice-era-scales-intervals-and-chord-functions/",
+            "loc": "25 Common Practice Era Scales, Other Interval Names",
+            "quote": "their specific spellings can indicate different contexts and possible resolutions"
+          }
+        ],
+        "attribution": [
+          "Justin Rubin, Music Composition & Theory (2024), chapter 25, University of Minnesota Libraries Publishing"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "dd28cf939a41efd0fbdc89ebdc15f1280fe3bd762b0ae0c24ac1bce1650bc709",
+          "lessonKernel": {
+            "lessonId": "lesson-4",
+            "facts": [
+              "A written interval is identified by its diatonic span and semitone distance, which together determine labels such as major, minor, augmented, or diminished.",
+              "Four semitones form a major third, while three semitones form a minor third when each spans three scale steps.",
+              "A tritone can be spelled as an augmented fourth or diminished fifth, and the spelling can imply different resolutions."
+            ],
+            "keyTerms": [
+              {
+                "tr": "written interval",
+                "df": "A written interval belongs to a category identified through its diatonic span and semitone distance.",
+                "eg": "A written interval spanning three scale steps and four semitones is a major third.",
+                "mi": "The label of a written interval determines its diatonic span and semitone distance.",
+                "cx": "Its recorded span and semitone count establish whether the label is major, minor, augmented, or diminished."
+              },
+              {
+                "tr": "major third",
+                "df": "A major third is an interval formed by four semitones across three scale steps.",
+                "eg": "Four semitones spanning three scale steps provide a concrete major third.",
+                "mi": "Three semitones across three scale steps identify a major third.",
+                "cx": "With that three-step span, a three-semitone distance produces a minor third."
+              },
+              {
+                "tr": "tritone",
+                "df": "A tritone is an interval that can carry the spelling augmented fourth or diminished fifth.",
+                "eg": "A tritone appears once as an augmented fourth and once as a diminished fifth.",
+                "mi": "A tritone must receive a major or minor label.",
+                "cx": "Augmented fourth and diminished fifth are the supplied spellings for this interval."
+              }
+            ],
+            "scenario": {
+              "su": "A student must label two written intervals before a deadline using the recorded spans, semitone counts, and spellings. One notation spans three scale steps and measures four semitones; the other is a tritone spelled as a diminished fifth, and the student must distinguish their labels.",
+              "ma": "the three-scale-step notation with its four-semitone measurement, the tritone passage bearing the diminished-fifth spelling"
+            },
+            "mc": [
+              {
+                "q": "Two written intervals display different diatonic spans and semitone distances, yet a student proposes assigning labels from the spans alone. Which distinction matches the recorded evidence?",
+                "op": [
+                  "Diatonic span and semitone distance determine labels",
+                  "Labels determine diatonic span and semitone distance",
+                  "Diatonic span determines labels and semitone distance",
+                  "Semitone distance determines labels and diatonic span"
+                ],
+                "ai": 0,
+                "fi": [
+                  0
+                ],
+                "ex": "A written interval's diatonic span and semitone distance together determine labels such as major, minor, augmented, or diminished. Reversing that relationship incorrectly treats the label as determining the recorded properties."
+              },
+              {
+                "q": "A written interval spans three scale steps and measures four semitones; with the label due immediately, which classification is supported by the recorded span and distance?",
+                "op": [
+                  "Four semitones form a major third",
+                  "Three semitones form a major third",
+                  "Four semitones form a minor third",
+                  "Three scale steps form a minor third"
+                ],
+                "ai": 0,
+                "fi": [
+                  1
+                ],
+                "ex": "Four semitones across three scale steps form a major third. A minor third instead uses three semitones across that three-step span."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "15eb8655e9de60c4b4ea82f01e3015c919566e24c63e8efe70f977c7af5a4d63",
+          "lessonKernel": {
+            "lessonId": "lesson-4",
+            "facts": [
+              "A written interval is identified by its diatonic span and semitone distance, which together determine labels such as major, minor, augmented, or diminished. ",
+              "Four semitones form a major third, while three semitones form a minor third when each spans three scale steps. ",
+              "A tritone can be spelled as an augmented fourth or diminished fifth, and the spelling can imply different resolutions."
+            ],
+            "keyTerms": [
+              {
+                "tr": "diatonic span",
+                "df": "The diatonic span is a written interval identified by its semitone distance and scale steps which collectively determine its label. ",
+                "eg": "A written interval is identified by its diatonic span and semitone distance, which together determine labels such as major, minor, augmented, or diminished. ",
+                "mi": "The diatonic span is solely determined by the number of semitones without considering the scale steps. ",
+                "cx": "The diatonic span is determined by the diatonic span and semitone distance together which determine labels such as major, minor, augmented, or diminished."
+              },
+              {
+                "tr": "semitone distance",
+                "df": "The semitone distance is a written interval identified by its semitone distance and diatonic span which together determine labels such as major, minor, augmented, or diminished. ",
+                "eg": "A written interval is identified by its diatonic span and semitone distance, which together determine labels such as major, minor, augmented, or diminished. ",
+                "mi": "The semitone distance is the number of scale steps used to define the interval's quality. ",
+                "cx": "The semitone distance is the semitone distance and diatonic span together which determine labels such as major, minor, augmented, or diminished."
+              },
+              {
+                "tr": "tritone spelling",
+                "df": "The tritone spelling is a way a tritone can be spelled as an augmented fourth or diminished fifth, and the spelling can imply different resolutions. ",
+                "eg": "A tritone can be spelled as an augmented fourth or diminished fifth, and the spelling can imply different resolutions. ",
+                "mi": "The tritone spelling only refers to the semitone distance used to spell the interval. ",
+                "cx": "The tritone spelling refers to a tritone can be spelled as an augmented fourth or diminished fifth, and the spelling can imply different resolutions."
+              }
+            ],
+            "scenario": {
+              "su": "A composer is analyzing a written interval in a piece of music and needs to determine its quality based on its structure. The composer observes an interval spanning four semitones and notes that it is written using three scale steps. The constraint is that the analysis must rely only on the provided claims to distinguish between major and minor thirds.",
+              "ma": "The composer compares the interval spanning four semitones to the interval spanning three scale steps to determine the correct label."
+            },
+            "mc": [
+              {
+                "q": "When analyzing an interval spanning three scale steps, what is the resulting quality based on the provided claims?",
+                "op": [
+                  "Three scale steps form a major third",
+                  "Three scale steps form a minor third",
+                  "Three scale steps form an augmented fourth",
+                  "Three scale steps form a diminished fifth"
+                ],
+                "ai": 0,
+                "fi": [
+                  1
+                ],
+                "ex": "Four semitones form a major third, while three semitones form a minor third when each spans three scale steps."
+              },
+              {
+                "q": "A musician hears a tritone spelled as a diminished fifth; what does this spelling imply regarding the interval's resolution?",
+                "op": [
+                  "Diminished fifth implies a major third",
+                  "Diminished fifth implies an augmented fourth",
+                  "Diminished fifth implies a tritone",
+                  "Diminished fifth implies a minor third"
+                ],
+                "ai": 0,
+                "fi": [
+                  2
+                ],
+                "ex": "A tritone can be spelled as an augmented fourth or diminished fifth, and the spelling can imply different resolutions."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-813b7ee41741357e1c13a56a",
+        "pairId": "scion-kernel-pair-606b54fdc85b280cf8d987e5",
+        "artifactSha256": {
+          "A": "dd28cf939a41efd0fbdc89ebdc15f1280fe3bd762b0ae0c24ac1bce1650bc709",
+          "B": "15eb8655e9de60c4b4ea82f01e3015c919566e24c63e8efe70f977c7af5a4d63"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    },
+    {
+      "caseId": "scion-kernel-81d331b0407433133e3b4bac",
+      "pairId": "scion-kernel-pair-18c43e84a426ecda12d803b4",
+      "domain": "physics",
+      "failureFamilies": [
+        "answer-key-correctness"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-2",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Electric field",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: An electric field describes the electric force per unit positive test charge at each point in space. Claim 1: The direction of the electric field is the direction a positive test charge would accelerate. Claim 2: Field-line density indicates relative field strength.",
+        "readings": "OpenStax University Physics Volume 2, Ch. 5"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "3b263333e49bb33f83e6d019fd7e157fd10c684598ac03a65955ba0733dc0e6f",
+        "kernelId": "physics/electric-field",
+        "term": "Electric field",
+        "claims": [
+          "An electric field describes the electric force per unit positive test charge at each point in space.",
+          "The direction of the electric field is the direction a positive test charge would accelerate.",
+          "Field-line density indicates relative field strength."
+        ],
+        "anchors": [
+          {
+            "src": "openstax:university-physics-volume-2#5",
+            "loc": "5.5",
+            "quote": "The electric field is the electric force per unit charge."
+          },
+          {
+            "src": "openstax:university-physics-volume-2#5",
+            "loc": "5.5",
+            "quote": "the direction of the force on a positive test charge"
+          },
+          {
+            "src": "openstax:university-physics-volume-2#5",
+            "loc": "5.6",
+            "quote": "closer field lines indicate a stronger field"
+          }
+        ],
+        "attribution": [
+          "OpenStax University Physics Volume 2, Ch. 5"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "6d0f015768ea1341ee8254b53dc7c53b7201d090f4235c25f4a56d7baa11fdae",
+          "lessonKernel": {
+            "lessonId": "lesson-2",
+            "facts": [
+              "An electric field describes the electric force per unit positive test charge at each point in space.",
+              "The direction of the electric field is the direction a positive test charge would accelerate.",
+              "Field-line density indicates relative field strength."
+            ],
+            "keyTerms": [
+              {
+                "tr": "electric field",
+                "df": "An electric field is a description of electric force per unit positive test charge at each point in space.",
+                "eg": "A positive test charge would accelerate in the direction of the electric field.",
+                "mi": "Electric field direction is indicated by field-line density.",
+                "cx": "A positive test charge's acceleration supplies the stated direction, while field-line density concerns relative strength."
+              },
+              {
+                "tr": "positive test charge",
+                "df": "A positive test charge is the charge referenced per unit when electric force describes an electric field.",
+                "eg": "Its acceleration direction can be compared with the direction of the electric field.",
+                "mi": "A positive test charge would accelerate in the direction indicated by field-line density.",
+                "cx": "Its acceleration follows the electric field direction; density indicates relative field strength."
+              },
+              {
+                "tr": "Field-line density",
+                "df": "Field-line density is a field-line property distinguished by its indication of relative field strength.",
+                "eg": "One notation names Field-line density, while another names electric field direction.",
+                "mi": "Field-line density indicates the direction a positive test charge would accelerate.",
+                "cx": "Density indicates relative strength; positive test charge acceleration provides the field-direction relation."
+              }
+            ],
+            "scenario": {
+              "su": "A workshop group must classify three notations as describing electric field, electric field direction, or relative field strength. Two proposed labels swap direction and relative strength, and the group must resolve the disagreement before the workshop ends.",
+              "ma": "electric force per unit positive test charge notation, positive test charge acceleration-direction observation, Field-line density comparison"
+            },
+            "mc": [
+              {
+                "q": "At a point in space, a notation reports electric force per unit positive test charge, while an arrow reports positive test charge acceleration. Which comparison correctly distinguishes electric field description from direction?",
+                "op": [
+                  "Field: electric force per unit positive test charge; direction: acceleration.",
+                  "Field: acceleration direction; direction: force per positive test charge.",
+                  "Field: field-line density; direction: relative field strength.",
+                  "Field: relative field strength; direction: field-line density."
+                ],
+                "ai": 0,
+                "fi": [
+                  0,
+                  1
+                ],
+                "ex": "Electric force per unit positive test charge describes the electric field, while positive test charge acceleration gives its direction. Field-line density instead indicates relative field strength, not field direction."
+              },
+              {
+                "q": "A field-line sketch shows greater density in region A than region B, and the group must choose a supported label despite competing annotations. Which label follows from the density comparison?",
+                "op": [
+                  "Field-line density indicates relative field strength.",
+                  "Acceleration direction indicates relative field strength.",
+                  "Field-line density indicates positive test charge direction.",
+                  "Electric force per unit charge indicates field-line density."
+                ],
+                "ai": 0,
+                "fi": [
+                  2
+                ],
+                "ex": "Field-line density indicates relative field strength. Positive test charge acceleration indicates electric field direction; it does not indicate relative field strength."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "74463416a57f96227806af29149f98e490500ec025d1b8b4d73dc4c9af1d1ccf",
+          "lessonKernel": {
+            "lessonId": "lesson-2",
+            "facts": [
+              "An electric field describes the electric force per unit positive test charge at each point in space.",
+              "The direction of the electric field is the direction a positive test charge would accelerate.",
+              "Field-line density indicates relative field strength."
+            ],
+            "keyTerms": [
+              {
+                "tr": "electric field",
+                "df": "An electric field is defined as the electric force per unit positive test charge existing at every point in space.",
+                "eg": "The electric field at a specific location dictates the force a positive test charge would experience there.",
+                "mi": "The electric field is the total electric force acting on a charge at a given point.",
+                "cx": "The electric field is specifically the force per unit positive test charge, not the total force acting on a charge."
+              },
+              {
+                "tr": "electric force",
+                "df": "The electric force per unit positive test charge is what an electric field fundamentally describes at any location.",
+                "eg": "If a positive test charge is placed in a region, the electric force it experiences is described by the electric field.",
+                "mi": "The electric force is the total interaction between two charges in space.",
+                "cx": "The electric force per unit positive test charge is the specific quantity that defines the electric field."
+              },
+              {
+                "tr": "field-line density",
+                "df": "The density of field lines serves as a measure of the relative field strength at a particular point.",
+                "eg": "A region with closely packed field lines shows a higher field-line density, indicating a stronger field.",
+                "mi": "Field-line density is a measure of the total electric field magnitude at a location.",
+                "cx": "Field-line density specifically indicates the relative field strength, not the total electric field magnitude."
+              }
+            ],
+            "scenario": {
+              "su": "A positive test charge is placed near a region where the electric field is known to be non-zero. The goal is to determine the direction of the resulting acceleration for this charge. The constraint is that the analysis must rely solely on the properties of the electric field.",
+              "ma": "The positive test charge is placed at point A, and the electric field vector at point A is measured as pointing toward the positive x-axis. The second inspectable detail is the observation that the field-line density at point B is significantly higher than at point C."
+            },
+            "mc": [
+              {
+                "q": "When comparing the electric field at two points, how does the field-line density relate to the electric force per unit positive test charge?",
+                "op": [
+                  "Field-line density indicates relative field strength.",
+                  "Field-line density is the direction of acceleration.",
+                  "Field-line density describes the total electric force.",
+                  "Field-line density is the electric force per unit charge."
+                ],
+                "ai": 0,
+                "fi": [
+                  2
+                ],
+                "ex": "Field-line density indicates relative field strength, then correct the closest distractor which describes the electric force per unit charge."
+              },
+              {
+                "q": "A positive test charge is observed accelerating in a specific direction; what property of the electric field describes this observed acceleration?",
+                "op": [
+                  "The electric field is the direction of acceleration.",
+                  "The electric field is the force per unit charge.",
+                  "The electric field is the total electric force.",
+                  "The electric field is the field-line density."
+                ],
+                "ai": 0,
+                "fi": [
+                  1
+                ],
+                "ex": "The direction of the electric field is the direction a positive test charge would accelerate, then correct the closest distractor which describes the field-line density."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-81d331b0407433133e3b4bac",
+        "pairId": "scion-kernel-pair-18c43e84a426ecda12d803b4",
+        "artifactSha256": {
+          "A": "6d0f015768ea1341ee8254b53dc7c53b7201d090f4235c25f4a56d7baa11fdae",
+          "B": "74463416a57f96227806af29149f98e490500ec025d1b8b4d73dc4c9af1d1ccf"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    },
+    {
+      "caseId": "scion-kernel-8c1eab51ddaf54ae4781c812",
+      "pairId": "scion-kernel-pair-da4c48be026a4f1d2a378ede",
+      "domain": "music-theory",
+      "failureFamilies": [
+        "answer-feedback-consistency",
+        "answer-key-correctness",
+        "choice-discriminability",
+        "feedback-instructionality",
+        "misconception-validity"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-3",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Minor-scale variants",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: The minor key system has natural, harmonic, and melodic variants that differ through alterations to the sixth and seventh scale degrees. Claim 1: Harmonic minor raises the seventh scale degree so it can function as a leading tone. Claim 2: Melodic minor raises both the sixth and seventh scale degrees.",
+        "readings": "Justin Rubin, Music Composition & Theory (2024), chapter 25, University of Minnesota Libraries Publishing"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "ffabcbcf6dc1ecf2545741964b1895f8405b48fa982afc1b44b4166d1a25d025",
+        "kernelId": "music-ccby/minor-scale-variants",
+        "term": "Minor-scale variants",
+        "claims": [
+          "The minor key system has natural, harmonic, and melodic variants that differ through alterations to the sixth and seventh scale degrees.",
+          "Harmonic minor raises the seventh scale degree so it can function as a leading tone.",
+          "Melodic minor raises both the sixth and seventh scale degrees."
+        ],
+        "anchors": [
+          {
+            "src": "https://open.lib.umn.edu/musiccomposition/chapter/common-practice-era-scales-intervals-and-chord-functions/",
+            "loc": "25 Common Practice Era Scales, Minor",
+            "quote": "The minor key system has three variants: a) Natural, b) Harmonic, and c) Melodic."
+          },
+          {
+            "src": "https://open.lib.umn.edu/musiccomposition/chapter/common-practice-era-scales-intervals-and-chord-functions/",
+            "loc": "25 Common Practice Era Scales, Minor",
+            "quote": "The harmonic minor scale includes a raised seventh scale degree"
+          },
+          {
+            "src": "https://open.lib.umn.edu/musiccomposition/chapter/common-practice-era-scales-intervals-and-chord-functions/",
+            "loc": "25 Common Practice Era Scales, Minor",
+            "quote": "The melodic minor scale includes a raised sixth as well as seventh scale degree."
+          }
+        ],
+        "attribution": [
+          "Justin Rubin, Music Composition & Theory (2024), chapter 25, University of Minnesota Libraries Publishing"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "8c695e25661b42a2794d370ec253ca6d8b7da0cad51ee8b13d8d07bc08bf91a1",
+          "lessonKernel": {
+            "lessonId": "lesson-3",
+            "facts": [
+              "The minor key system has natural, harmonic, and melodic variants that differ through alterations to the sixth and seventh scale degrees.",
+              "Harmonic minor raises the seventh scale degree so it can function as a leading tone.",
+              "Melodic minor raises both the sixth and seventh scale degrees."
+            ],
+            "keyTerms": [
+              {
+                "tr": "minor key system",
+                "df": "The minor key system includes variants distinguished through alterations to the sixth and seventh scale degrees.",
+                "eg": "Harmonic minor and melodic minor both involve the seventh scale degree.",
+                "mi": "The variants differ through alterations to the sixth scale degree rather than the seventh scale degree.",
+                "cx": "Differences among the variants involve alterations to both the sixth and seventh scale degrees."
+              },
+              {
+                "tr": "harmonic minor",
+                "df": "Harmonic minor is a minor-scale variant distinguished by a raised seventh scale degree.",
+                "eg": "A raised seventh scale degree in harmonic minor can function as a leading tone.",
+                "mi": "Harmonic minor raises the sixth and seventh scale degrees as its distinguishing alteration.",
+                "cx": "The paired raising of the sixth and seventh identifies melodic minor; harmonic minor raises the seventh."
+              },
+              {
+                "tr": "melodic minor",
+                "df": "Melodic minor belongs to the natural, harmonic, and melodic variants of the minor key system.",
+                "eg": "A passage with raised sixth and seventh scale degrees exemplifies melodic minor.",
+                "mi": "Melodic minor raises the seventh scale degree in place of raising the sixth and seventh scale degrees.",
+                "cx": "Melodic minor requires the stated raising of both the sixth and seventh scale degrees."
+              }
+            ],
+            "scenario": {
+              "su": "An analyst must classify the provided notations as harmonic minor or melodic minor before a deadline. The labels must be based strictly on the displayed alterations to the sixth and seventh scale degrees.",
+              "ma": "a passage notation showing a raised seventh scale degree, a comparison notation showing raised sixth and seventh scale degrees"
+            },
+            "mc": [
+              {
+                "q": "A comparison notation shows harmonic minor with a raised seventh scale degree and melodic minor with raised sixth and seventh scale degrees. Which statement defensibly distinguishes these variants?",
+                "op": [
+                  "Harmonic raises seventh; melodic raises sixth and seventh",
+                  "Harmonic raises sixth and seventh; melodic raises seventh",
+                  "Both raise the sixth and seventh scale degrees",
+                  "Harmonic raises seventh; melodic raises the sixth"
+                ],
+                "ai": 0,
+                "fi": [
+                  1,
+                  2
+                ],
+                "ex": "Harmonic minor raises the seventh scale degree, while melodic minor raises both the sixth and seventh. Assigning the paired alterations to harmonic minor reverses the supplied distinctions."
+              },
+              {
+                "q": "A notation displays raised sixth and seventh scale degrees, and a deadline requires a label based strictly on those alterations. Which classification is supported by the observation?",
+                "op": [
+                  "Classify raised sixth and seventh as melodic minor",
+                  "Classify raised sixth and seventh as harmonic minor",
+                  "Classify raised seventh as melodic minor",
+                  "Classify raised sixth as melodic minor"
+                ],
+                "ai": 0,
+                "fi": [
+                  2
+                ],
+                "ex": "Raised sixth and seventh scale degrees support classification as melodic minor. Harmonic minor is associated with raising the seventh scale degree so it can function as a leading tone."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "fc436615c6355bfaa5e05ec9d1146b860a3278f680a82dcdaefa1449b918e6ee",
+          "lessonKernel": {
+            "lessonId": "lesson-3",
+            "facts": [
+              "The minor key system has natural, harmonic, and melodic variants that differ through alterations to the sixth and seventh scale degrees.",
+              "Harmonic minor raises the seventh scale degree so it can function as a leading tone.",
+              "Melodic minor raises both the sixth and seventh scale degrees."
+            ],
+            "keyTerms": [
+              {
+                "tr": "minor key system",
+                "df": "The minor key system encompasses natural, harmonic, and melodic variants that are distinguished by alterations to the sixth and seventh scale degrees.",
+                "eg": "A composer uses the natural minor scale for a piece.",
+                "mi": "The minor key system only has one type of alteration.",
+                "cx": "The minor key system has natural, harmonic, and melodic variants that differ through alterations to the sixth and seventh scale degrees."
+              },
+              {
+                "tr": "harmonic minor",
+                "df": "Harmonic minor is a variant where the seventh scale degree is raised specifically to function as a leading tone.",
+                "eg": "A piece uses harmonic minor to emphasize a strong leading tone.",
+                "mi": "Harmonic minor raises only the sixth scale degree.",
+                "cx": "Harmonic minor raises the seventh scale degree so it can function as a leading tone."
+              },
+              {
+                "tr": "melodic minor",
+                "df": "Melodic minor is a variant where both the sixth and seventh scale degrees are raised in the scale.",
+                "eg": "A melody employs melodic minor to create a specific emotional contour.",
+                "mi": "Melodic minor only raises the seventh scale degree.",
+                "cx": "Melodic minor raises both the sixth and seventh scale degrees."
+              }
+            ],
+            "scenario": {
+              "su": "A composer is writing a piece in a minor tonality and must decide which scale variant to use for the melodic line. The composer observes that the melody requires a specific leading tone function, and the piece must maintain a specific melodic contour. The constraint is that the composer must choose between the harmonic minor and melodic minor scales.",
+              "ma": "Compare the harmonic minor and melodic minor scale structures when analyzing the alterations to the sixth and seventh scale degrees."
+            },
+            "mc": [
+              {
+                "q": "When analyzing a piece that utilizes a leading tone function, which scale variant is characterized by raising only the seventh scale degree?",
+                "op": [
+                  "The melodic minor scale raises both the sixth and seventh scale degrees.",
+                  "The harmonic minor scale raises the seventh scale degree.",
+                  "The natural minor scale has no alterations to the sixth and seventh scale degrees.",
+                  "The harmonic minor scale raises the sixth scale degree only."
+                ],
+                "ai": 0,
+                "fi": [
+                  1
+                ],
+                "ex": "Harmonic minor raises the seventh scale degree so it can function as a leading tone, then correct the closest distractor."
+              },
+              {
+                "q": "A composer is writing a melody that requires both the sixth and seventh scale degrees to be raised; which scale variant must be employed?",
+                "op": [
+                  "The harmonic minor scale raises the seventh scale degree.",
+                  "The natural minor scale has no alterations to the sixth and seventh scale degrees.",
+                  "The melodic minor scale raises both the sixth and seventh scale degrees.",
+                  "The harmonic minor scale raises the sixth scale degree only."
+                ],
+                "ai": 2,
+                "fi": [
+                  2
+                ],
+                "ex": "Melodic minor raises both the sixth and seventh scale degrees, then correct the closest distractor."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-8c1eab51ddaf54ae4781c812",
+        "pairId": "scion-kernel-pair-da4c48be026a4f1d2a378ede",
+        "artifactSha256": {
+          "A": "8c695e25661b42a2794d370ec253ca6d8b7da0cad51ee8b13d8d07bc08bf91a1",
+          "B": "fc436615c6355bfaa5e05ec9d1146b860a3278f680a82dcdaefa1449b918e6ee"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    },
+    {
+      "caseId": "scion-kernel-8ec5d77e57967fbe1a2f074b",
+      "pairId": "scion-kernel-pair-8b76905888ded529dbd8f770",
+      "domain": "physics",
+      "failureFamilies": [
+        "feedback-instructionality",
+        "misconception-validity"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-5",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Faraday's law of induction",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: Faraday's law states that a changing magnetic flux through a circuit induces an emf, with direction constrained by Lenz's law. Claim 1: Induced current direction opposes the change in magnetic flux that produced it. Claim 2: Changing field strength, area, or orientation can change magnetic flux.",
+        "readings": "OpenStax University Physics Volume 2, Ch. 13"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "5bd90d3a1de6b690adc800823ec5104c3215db8fc404f6ac8578ebf71d8928dd",
+        "kernelId": "physics/faradays-law",
+        "term": "Faraday's law of induction",
+        "claims": [
+          "Faraday's law states that a changing magnetic flux through a circuit induces an emf, with direction constrained by Lenz's law.",
+          "Induced current direction opposes the change in magnetic flux that produced it.",
+          "Changing field strength, area, or orientation can change magnetic flux."
+        ],
+        "anchors": [
+          {
+            "src": "openstax:university-physics-volume-2#13",
+            "loc": "13.2",
+            "quote": "changing magnetic flux induces an emf"
+          },
+          {
+            "src": "openstax:university-physics-volume-2#13",
+            "loc": "13.3",
+            "quote": "opposes the change in flux"
+          },
+          {
+            "src": "openstax:university-physics-volume-2#13",
+            "loc": "13.2",
+            "quote": "magnetic flux"
+          }
+        ],
+        "attribution": [
+          "OpenStax University Physics Volume 2, Ch. 13"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "cbc16bc0541849b0784da08681f618a0cb2c3fd263d3b6982d5ca16d2412f861",
+          "lessonKernel": {
+            "lessonId": "lesson-5",
+            "facts": [
+              "Faraday's law states that a changing magnetic flux through a circuit induces an emf, with direction constrained by Lenz's law.",
+              "Induced current direction opposes the change in magnetic flux that produced it.",
+              "Changing field strength, area, or orientation can change magnetic flux."
+            ],
+            "keyTerms": [
+              {
+                "tr": "magnetic flux",
+                "df": "Magnetic flux is the circuit-related quantity that can change when field strength, area, or orientation changes.",
+                "eg": "Changing orientation can change magnetic flux through a circuit.",
+                "mi": "Magnetic flux constrains the direction of Lenz's law.",
+                "cx": "Lenz's law supplies the direction constraint, rather than magnetic flux."
+              },
+              {
+                "tr": "field strength",
+                "df": "Field strength is one of the listed quantities whose change can change magnetic flux.",
+                "eg": "A change in field strength can accompany a change in magnetic flux.",
+                "mi": "Field strength is constrained by Lenz's law.",
+                "cx": "The constraint from Lenz's law applies to direction, rather than field strength."
+              },
+              {
+                "tr": "Induced current direction",
+                "df": "Induced current direction is a directional property governed by opposition to the change in magnetic flux that produced it.",
+                "eg": "For changing magnetic flux through a circuit, the current direction opposes the producing change.",
+                "mi": "Induced current direction produces the change in magnetic flux.",
+                "cx": "The magnetic-flux change produces the opposed current direction, reversing that proposed relation."
+              }
+            ],
+            "scenario": {
+              "su": "A lab reviewer examines a circuit record showing changing field strength alongside recorded area and orientation, with magnetic flux marked as changing. The reviewer must classify which recorded change can support the magnetic-flux change while staying within the supplied relations.",
+              "ma": "field-strength change notation, area record, orientation record, magnetic-flux change notation"
+            },
+            "mc": [
+              {
+                "q": "A circuit shows changing magnetic flux, an induced emf, and induced current direction opposing the flux change. Which comparison correctly distinguishes Faraday's law from Lenz's law?",
+                "op": [
+                  "Faraday links changing flux to emf; Lenz opposes change",
+                  "Faraday constrains direction; Lenz induces an emf",
+                  "Faraday opposes change; Lenz links flux to emf",
+                  "Faraday links changing flux to emf; Lenz supports change"
+                ],
+                "ai": 0,
+                "fi": [
+                  0,
+                  1
+                ],
+                "ex": "Faraday's law connects changing magnetic flux through a circuit with induced emf, while the induced current direction associated with Lenz's law opposes the producing flux change. Assigning opposition to Faraday and the emf relation to Lenz swaps the supplied relations."
+              },
+              {
+                "q": "A circuit record marks changing field strength while area and orientation are also recorded; the reviewer must select the statement directly supported by these observations. Which classification is warranted?",
+                "op": [
+                  "Changing field strength can change magnetic flux",
+                  "Changing orientation can induce current direction",
+                  "Changing area can constrain induced current direction",
+                  "Changing magnetic flux can change field strength"
+                ],
+                "ai": 0,
+                "fi": [
+                  2
+                ],
+                "ex": "Changing field strength is listed as able to change magnetic flux. The reversed statement that magnetic flux can change field strength is not supported by the supplied relation."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "f45595c519dbfb00673487fea840e5bfec281050ffa3d9aef28cb7c9a8ba6b04",
+          "lessonKernel": {
+            "lessonId": "lesson-5",
+            "facts": [
+              "Faraday's law states that a changing magnetic flux through a circuit induces an emf, with direction constrained by Lenz's law.",
+              "Induced current direction opposes the change in magnetic flux that produced it.",
+              "Changing field strength, area, or orientation can change magnetic flux."
+            ],
+            "keyTerms": [
+              {
+                "tr": "changing magnetic flux",
+                "df": "A property where the magnetic flux through a circuit is altered by a change in field strength, area, or orientation.",
+                "eg": "A solenoid whose current is ramped up over time.",
+                "mi": "Changing magnetic flux only induces an emf if the circuit is closed.",
+                "cx": "Changing magnetic flux through a circuit induces an emf, with direction constrained by Lenz's law."
+              },
+              {
+                "tr": "induced current direction",
+                "df": "The direction of the current generated in a circuit is determined by the opposition to the change in magnetic flux.",
+                "eg": "A loop moving through a stationary magnetic field generates a current.",
+                "mi": "Induced current direction is always in the same direction as the change in magnetic flux.",
+                "cx": "Induced current direction opposes the change in magnetic flux that produced it."
+              },
+              {
+                "tr": "magnetic flux",
+                "df": "Magnetic flux is a measure of the total magnetic field passing through a given area.",
+                "eg": "The total magnetic field lines passing through a rectangular loop.",
+                "mi": "Magnetic flux is only affected by the field strength, not the area.",
+                "cx": "Changing field strength, area, or orientation can change magnetic flux."
+              }
+            ],
+            "scenario": {
+              "su": "A coil of wire is moved rapidly through a uniform magnetic field, causing the magnetic flux through the coil to change. The resulting induced current creates a magnetic field that opposes this initial change. The constraint is that the induced current must oppose the change in magnetic flux that produced it.",
+              "ma": "Coil movement records, magnetic field strength measurements, flux change notations"
+            },
+            "mc": [
+              {
+                "q": "When a magnetic field strength increases, how does this affect the induced current direction relative to the flux change?",
+                "op": [
+                  "The induced current direction increases with the magnetic field strength.",
+                  "The induced current direction decreases with the magnetic field strength.",
+                  "The induced current direction opposes the change in magnetic flux that produced it.",
+                  "The induced current direction is determined by the area of the coil."
+                ],
+                "ai": 2,
+                "fi": [
+                  1
+                ],
+                "ex": "Induced current direction opposes the change in magnetic flux that produced it, then correct the closest distractor."
+              },
+              {
+                "q": "A circuit experiences a change in magnetic flux due to a changing field orientation; what is the primary constraint on the resulting induced current?",
+                "op": [
+                  "The induced current direction is determined by the area of the coil.",
+                  "The induced current direction opposes the change in magnetic flux that produced it.",
+                  "The induced current direction increases with the magnetic field strength.",
+                  "The induced current direction is always in the same direction as the change in magnetic flux."
+                ],
+                "ai": 1,
+                "fi": [
+                  0,
+                  1
+                ],
+                "ex": "Faraday's law states that a changing magnetic flux through a circuit induces an emf, with direction constrained by Lenz's law, then correct the closest distractor."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-8ec5d77e57967fbe1a2f074b",
+        "pairId": "scion-kernel-pair-8b76905888ded529dbd8f770",
+        "artifactSha256": {
+          "A": "cbc16bc0541849b0784da08681f618a0cb2c3fd263d3b6982d5ca16d2412f861",
+          "B": "f45595c519dbfb00673487fea840e5bfec281050ffa3d9aef28cb7c9a8ba6b04"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    }
+  ],
+  "claimBoundary": "This packet contains anonymous source-bound artifacts only. It contains no provider identity, model identity, route, admission outcome, retry history, compiler receipt, preference, or training authorization.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "bb439a6f92a2f1a8d46e3ae6fd994535345dd5925348567186214d8a16934bd5"
+  }
+}

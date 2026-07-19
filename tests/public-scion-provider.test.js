@@ -384,6 +384,47 @@ describe('Scion Public provider', () => {
     expect(assessment.issues).not.toContain('lesson-9:mc-0:absolute-option');
   });
 
+  it('treats Within as a sentence lead instead of an invented proper name', () => {
+    const prompt = `Course: Earth Systems\nLessons:\n${JSON.stringify([
+      {
+        lessonId: 'lesson-9',
+        title: 'Internal Earth processes',
+        objectives: 'Distinguish internal and surface processes using the supplied claims.',
+        topics: 'Earth internal heat moves mantle material, while solar energy powers surface water movement.',
+        readings: 'Supplied Earth systems packet',
+      },
+    ])}\nReturn ONLY valid JSON.`;
+    const lesson = completeLesson({
+      scenario: {
+        su: 'Within Earth, a team compares mantle material movement with water movement at the surface.',
+        ma: 'The supplied internal-process and surface-process descriptions.',
+      },
+    });
+
+    expect(
+      assessPublicScionKernelResponse(JSON.stringify({ lessons: [lesson] }), prompt, 'blueprintEnrichment').issues,
+    ).not.toContain('lesson-9:scenario:unanchored-named-detail');
+  });
+
+  it('allows a bounded structural observation count in a question setup', () => {
+    const prompt = `Course: Interaction Design\nLessons:\n${JSON.stringify([
+      {
+        lessonId: 'lesson-9',
+        title: 'Evidence comparison',
+        objectives: 'Compare supplied observations without inventing a participant count.',
+        topics: 'Task failures and interview comments supply two different kinds of evidence.',
+        readings: 'Supplied evidence packet',
+      },
+    ])}\nReturn ONLY valid JSON.`;
+    const lesson = completeLesson();
+    lesson.mc[0].q =
+      'Two observations show a repeated checkout failure and a favorable color comment; which observation more directly supports revising the tested flow before release?';
+
+    expect(
+      assessPublicScionKernelResponse(JSON.stringify({ lessons: [lesson] }), prompt, 'blueprintEnrichment').issues,
+    ).not.toContain('lesson-9:mc-0:source-unsupported-quantity');
+  });
+
   it('rejects an explanation that moves a source predicate onto the wrong grammatical head', () => {
     const claims = [
       'A magnetic field describes magnetic influence in space and determines magnetic forces on moving charges and currents.',
@@ -460,6 +501,89 @@ describe('Scion Public provider', () => {
     ).not.toContain('lesson-9:mc-0:source-role-conflict');
   });
 
+  it('keeps a prepositional subject tail from changing the grammatical head', () => {
+    const facts = [
+      'Four semitones form a major third when the spelling spans three letter-name steps.',
+      'Three semitones form a minor third with the same generic interval number.',
+      'Generic interval number counts both endpoint letter names.',
+      'Accidentals can change chromatic size without changing generic number.',
+      'Semitone counting verifies quality after the generic number is known.',
+    ];
+    const prompt = `Course: Music Theory\nLessons:\n${JSON.stringify([
+      {
+        lessonId: 'lesson-9',
+        title: 'Interval quality',
+        objectives: 'Classify thirds using the supplied semitone and spelling evidence.',
+        topics: facts.join(' '),
+        readings: 'Supplied interval packet',
+      },
+    ])}\nReturn ONLY valid JSON.`;
+    const lesson = completeLesson({ facts });
+    lesson.mc[0] = {
+      q: 'A written interval spans three letter-name steps and measures four semitones; which classification follows from both supplied observations?',
+      op: ['Major third', 'Minor third', 'Perfect third', 'Augmented second'],
+      ai: 0,
+      fi: [0],
+      ex: 'Four semitones across three letter-name steps form a major third.',
+    };
+
+    expect(
+      assessPublicScionKernelResponse(JSON.stringify({ lessons: [lesson] }), prompt, 'blueprintEnrichment').issues,
+    ).not.toContain('lesson-9:mc-0:source-role-conflict');
+  });
+
+  it('does not mistake a relation helper or a definitional paraphrase for a changed source role', () => {
+    const facts = [
+      'Upward mantle flow at ocean ridges helps form new lithosphere while plates diverge.',
+      'An electric field describes electric force per unit positive test charge at each point in space.',
+      'The direction of the electric field is the direction a positive test charge would accelerate.',
+      'Field-line density indicates relative field strength.',
+      'At convergent boundaries, one plate can be subducted beneath another.',
+    ];
+    const prompt = `Course: Earth and Electric Fields\nLessons:\n${JSON.stringify([
+      {
+        lessonId: 'lesson-9',
+        title: 'Source relation paraphrases',
+        objectives: 'Classify only the supplied relations.',
+        topics: facts.join(' '),
+        readings: 'Supplied relation packet',
+      },
+    ])}\nReturn ONLY valid JSON.`;
+    const lesson = completeLesson({ facts });
+    lesson.mc[0] = {
+      q: 'At an ocean ridge, upward mantle flow and diverging plates are recorded; which interpretation matches the supplied lithosphere relation?',
+      op: [
+        'Upward mantle flow helps form new lithosphere',
+        'Diverging plates subduct beneath one another',
+        'Ocean ridges mark convergent plate motion',
+        'New lithosphere causes upward mantle flow',
+      ],
+      ai: 0,
+      fi: [0],
+      ex: 'At ocean ridges, upward mantle flow helps form new lithosphere while plates diverge.',
+    };
+    lesson.mc[1] = {
+      q: 'At a point in space, a notation reports force per unit positive test charge; which description matches the supplied electric-field relation?',
+      op: [
+        'Force per unit positive test charge describes the field',
+        'Field-line density gives the field direction',
+        'Test-charge acceleration gives relative strength',
+        'The electric field removes all force',
+      ],
+      ai: 0,
+      fi: [1],
+      ex: 'Electric force per unit positive test charge describes the electric field.',
+    };
+
+    const issues = assessPublicScionKernelResponse(
+      JSON.stringify({ lessons: [lesson] }),
+      prompt,
+      'blueprintEnrichment',
+    ).issues;
+    expect(issues).not.toContain('lesson-9:mc-0:source-role-conflict');
+    expect(issues).not.toContain('lesson-9:mc-1:source-role-conflict');
+  });
+
   it('rejects a punctuated fact that ends with a dangling learner-description adjective', () => {
     const prompt = `Course: Interface Design\nLessons:\n[{"lessonId":"lesson-9","title":"Wireframes"}]\nReturn ONLY valid JSON.`;
     const lesson = completeLesson();
@@ -486,6 +610,24 @@ describe('Scion Public provider', () => {
     expect(issues).not.toContain('lesson-9:fact-1:truncated-fact');
     expect(issues).not.toContain('lesson-9:fact-2:truncated-fact');
     expect(issues).not.toContain('lesson-9:fact-3:truncated-fact');
+  });
+
+  it('accepts a code boolean operator as the grammatical subject of a fact', () => {
+    const prompt = `Course: Python\nLessons:\n${JSON.stringify([
+      {
+        lessonId: 'lesson-9',
+        title: 'Boolean operators',
+        objectives: 'Explain the supplied behavior of and, or, and not.',
+        topics: 'and returns True only when both operands are true.',
+        readings: 'Supplied Python operator packet',
+      },
+    ])}\nReturn ONLY valid JSON.`;
+    const lesson = completeLesson();
+    lesson.facts[0] = 'and returns True only when both operands evaluate to true.';
+
+    expect(
+      assessPublicScionKernelResponse(JSON.stringify({ lessons: [lesson] }), prompt, 'blueprintEnrichment').issues,
+    ).not.toContain('lesson-9:fact-0:truncated-fact');
   });
 
   it('rejects repeated facts and punctuated lowercase sentence fragments', () => {
@@ -1369,6 +1511,19 @@ Return ONLY valid JSON.`;
     const assessment = assessPublicScionKernelResponse(JSON.stringify(response), prompt, 'blueprintEnrichment');
     expect(assessment.issues).toContain('lesson-intervals:mc-0:template-residue');
     expect(buildPublicScionRetryFeedback(assessment)).toContain('Each q must name exact lesson concepts');
+  });
+
+  it('retries when a local explanation leaks the compact-prompt correction suffix', () => {
+    const prompt = `Course: Interface Design\nLessons:\n[{"lessonId":"lesson-9","title":"Checkout Evidence"}]\nReturn ONLY valid JSON.`;
+    const lesson = completeLesson();
+    lesson.mc[0].ex = 'Repeated task failure directly supports revising the flow, then correct the closest distractor.';
+
+    const assessment = assessPublicScionKernelResponse(
+      JSON.stringify({ lessons: [lesson] }),
+      prompt,
+      'blueprintEnrichment',
+    );
+    expect(assessment.issues).toContain('lesson-9:mc-0:template-residue');
   });
 
   it('removes only an unfinished explanation tail before browser-local admission', () => {

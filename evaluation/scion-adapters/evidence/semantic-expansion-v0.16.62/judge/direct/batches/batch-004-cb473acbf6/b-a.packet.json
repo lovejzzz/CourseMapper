@@ -1,0 +1,1613 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-packet-v1",
+  "order": "B/A",
+  "generatedAt": "2026-07-19T21:41:00.000Z",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "prompt": {
+    "path": "evaluation/scion-adapters/lesson-kernel-judge-prompt-v0.16.54.md",
+    "sha256": "37844b86736335db54b561d8c031660ef71679c55ae1108e2e999e746f2a1c96"
+  },
+  "dimensions": [
+    "sourceFidelity",
+    "knowledgePrecision",
+    "scenarioReadiness",
+    "assessmentCorrectness",
+    "choiceDiscriminability",
+    "feedbackInstructionality",
+    "internalCoherence"
+  ],
+  "cases": [
+    {
+      "caseId": "scion-kernel-5edc63b53c12793b089d95e4",
+      "pairId": "scion-kernel-pair-2413e60de13e9226b8645ae4",
+      "domain": "economics",
+      "failureFamilies": [
+        "choice-discriminability",
+        "source-fidelity"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-8",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Circular flow of income",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: In the circular flow of income, money that households earn returns to firms as spending unless it leaks out of the flow as saving, taxes, or spending on imports. Claim 1: Leakages are balanced by injections such as investment, government spending, and exports that add spending back into the flow. Claim 2: When total leakages equal total injections, the circular flow is in balance and national income neither rises nor falls.",
+        "readings": "OpenStax Principles of Macroeconomics 2e, Ch. 1"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "13a691e562b5c8e8cd8780917c95852a4fc9041b68384de9a7efc063d90a6f05",
+        "kernelId": "econ/circular-flow-of-income",
+        "term": "Circular flow of income",
+        "claims": [
+          "In the circular flow of income, money that households earn returns to firms as spending unless it leaks out of the flow as saving, taxes, or spending on imports.",
+          "Leakages are balanced by injections such as investment, government spending, and exports that add spending back into the flow.",
+          "When total leakages equal total injections, the circular flow is in balance and national income neither rises nor falls."
+        ],
+        "anchors": [
+          {
+            "src": "openstax:macroeconomics-2e#1",
+            "loc": "1.2",
+            "quote": "money that households earn returns to firms as spending unless it leaks out of the flow as saving, taxes, or spending on imports"
+          },
+          {
+            "src": "openstax:macroeconomics-2e#1",
+            "loc": "1.2",
+            "quote": "Leakages are balanced by injections such as investment, government spending, and exports that add spending back into the flow"
+          },
+          {
+            "src": "openstax:macroeconomics-2e#1",
+            "loc": "1.2",
+            "quote": "When total leakages equal total injections, the circular flow is in balance and national income neither rises nor falls"
+          }
+        ],
+        "attribution": [
+          "OpenStax Principles of Macroeconomics 2e, Ch. 1"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "b90c939c820a088da7b4bd6da5f7920967ba2cb73273567d80fcb9d8db751358",
+          "lessonKernel": {
+            "lessonId": "lesson-8",
+            "facts": [
+              "In the circular flow of income, money that households earn returns to firms as spending unless it leaks out of the flow as saving, taxes, or spending on imports.",
+              "Leakages are balanced by injections such as investment, government spending, and exports that add spending back into the flow.",
+              "When total leakages equal total injections, the circular flow is in balance and national income neither rises nor falls."
+            ],
+            "keyTerms": [
+              {
+                "tr": "circular flow",
+                "df": "The circular flow describes household earnings returning to firms as spending unless they leak out.",
+                "eg": "Money that households earn returns to firms as spending in the circular flow.",
+                "mi": "The circular flow requires household earnings to become saving, taxes, or spending on imports.",
+                "cx": "Household earnings return to firms as spending unless they leak out through those categories."
+              },
+              {
+                "tr": "leakages",
+                "df": "Leakages are saving, taxes, or spending on imports that leave the circular flow.",
+                "eg": "Saving, taxes, and spending on imports are leakages.",
+                "mi": "Investment, government spending, and exports are leakages from the circular flow.",
+                "cx": "Those categories are injections that add spending back into the flow."
+              },
+              {
+                "tr": "injections",
+                "df": "Injections are investment, government spending, and exports that add spending back into the flow.",
+                "eg": "Investment, government spending, and exports are injections.",
+                "mi": "Injections consist of saving, taxes, and spending on imports.",
+                "cx": "Saving, taxes, and spending on imports are leakages rather than injections."
+              }
+            ],
+            "scenario": {
+              "su": "An analyst must classify whether the circular flow is in balance while relying on recorded totals that show total leakages equal total injections. The analyst must also account for a household spending record showing earnings returning to firms and category records listing saving, taxes, imports, investment, government spending, and exports.",
+              "ma": "household spending record, leakage category record, injection category record, equal-totals notation"
+            },
+            "mc": [
+              {
+                "q": "A comparison shows saving, taxes, and imports in one group and investment, government spending, and exports in another; which distinction between leakages and injections matches these observations?",
+                "op": [
+                  "Leakages include investment; injections include saving",
+                  "Leakages include exports; injections include spending on imports",
+                  "Leakages add spending back; injections leave the flow",
+                  "Leakages leave the flow; injections add spending back"
+                ],
+                "ai": 3,
+                "fi": [
+                  0,
+                  1
+                ],
+                "ex": "Saving, taxes, and spending on imports leak out, while investment, government spending, and exports add spending back. Exports belong with injections, not leakages."
+              },
+              {
+                "q": "An analyst observes that total leakages equal total injections and must classify the circular flow while also reporting the direction of national income; which conclusion fits the observation?",
+                "op": [
+                  "Flow balances; national income rises",
+                  "Flow balances; national income neither rises nor falls",
+                  "Flow balances; national income falls",
+                  "National income rises; total leakages equal injections"
+                ],
+                "ai": 1,
+                "fi": [
+                  2
+                ],
+                "ex": "Equal total leakages and total injections indicate a balanced circular flow in which national income neither rises nor falls. Balance therefore does not imply that national income rises."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "e271272fe4a4f78c3b6232efbbbbe66ec29a8a09b98a9f91c023bac95615b619",
+          "lessonKernel": {
+            "lessonId": "lesson-8",
+            "facts": [
+              "In the circular flow of income, money that households earn returns to firms as spending unless it leaks out of the flow as saving, taxes, or spending on imports. ",
+              "Leakages are balanced by injections such as investment, government spending, and exports that add spending back into the flow. ",
+              "When total leakages equal total injections, the circular flow is in balance and national income neither rises nor falls."
+            ],
+            "keyTerms": [
+              {
+                "tr": "money that households earn returns to firms as spending",
+                "df": "This describes the flow of income from households to firms as spending unless it leaks out of the flow as saving, taxes, or spending on imports.",
+                "eg": "Households earning wages spend that income on goods and services purchased from firms.",
+                "mi": "Households spend all earned income on firms because there are no other ways to use the money.",
+                "cx": "Households spend income on firms only if it does not leak out as saving, taxes, or spending on imports."
+              },
+              {
+                "tr": "leakages are balanced by injections",
+                "df": "Leakages are balanced by injections such as investment, government spending, and exports that add spending back into the flow.",
+                "eg": "Government spending is an injection that adds spending back into the circular flow of income.",
+                "mi": "Injections are always larger than leakages because the economy always grows when spending is high.",
+                "cx": "Leakages are balanced by injections because the circular flow is in balance when total leakages equal total injections."
+              },
+              {
+                "tr": "circular flow is in balance",
+                "df": "When total leakages equal total injections, the circular flow is in balance and national income neither rises nor falls.",
+                "eg": "If total leakages equal total injections, national income remains constant.",
+                "mi": "National income always rises when injections exceed leakages because spending is always increasing.",
+                "cx": "National income neither rises nor falls when total leakages equal total injections because the circular flow is in balance."
+              }
+            ],
+            "scenario": {
+              "su": "A nation observes that household spending on imported goods is increasing by 15% while investment in new machinery remains flat. The constraint is that the government cannot increase its spending on infrastructure due to a fixed budget.",
+              "ma": "Compare the observation that money that households earn returns to firms as spending unless it leaks out of the flow as saving, taxes, or spending on imports with the observation that leakages are balanced by injections such as investment, government spending, and exports that add spending back into the flow."
+            },
+            "mc": [
+              {
+                "q": "Distinguish between the flow of income from households to firms and the balancing mechanism involving leakages and injections.",
+                "op": [
+                  "Spending is the flow, leakages balance injections.",
+                  "Injections are the flow, leakages balance spending.",
+                  "Leakages are the flow, injections balance saving.",
+                  "Spending is the balancing mechanism, leakages are the flow."
+                ],
+                "ai": 0,
+                "fi": [
+                  0,
+                  1
+                ],
+                "ex": "The subject evidence supporting the answer is that money that households earn returns to firms as spending unless it leaks out of the flow as saving, taxes, or spending on imports, and leakages are balanced by injections such as investment, government spending, and exports that add spending back into the flow, which shows spending is the flow and leakages balance injections."
+              },
+              {
+                "q": "Given that government spending is an injection, which statement correctly describes the condition for the circular flow to be in balance?",
+                "op": [
+                  "Total leakages must exceed total injections.",
+                  "Total injections must exceed total leakages.",
+                  "Total leakages must equal total injections.",
+                  "Total injections must be zero."
+                ],
+                "ai": 0,
+                "fi": [
+                  1
+                ],
+                "ex": "The subject evidence supporting the answer is that when total leakages equal total injections, the circular flow is in balance and national income neither rises nor falls, which means total leakages must equal total injections."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-5edc63b53c12793b089d95e4",
+        "pairId": "scion-kernel-pair-2413e60de13e9226b8645ae4",
+        "artifactSha256": {
+          "A": "b90c939c820a088da7b4bd6da5f7920967ba2cb73273567d80fcb9d8db751358",
+          "B": "e271272fe4a4f78c3b6232efbbbbe66ec29a8a09b98a9f91c023bac95615b619"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    },
+    {
+      "caseId": "scion-kernel-5f85ffd8a7974edbf0c93b74",
+      "pairId": "scion-kernel-pair-f81e039f482759426c8cbc38",
+      "domain": "anatomy",
+      "failureFamilies": [
+        "feedback-instructionality",
+        "misconception-validity",
+        "source-fidelity"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-5",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Skeletal system functions",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: The skeletal system is made of bones and cartilage and supports the body, enables movement, protects organs, produces blood cells, and stores minerals and fat. Claim 1: Bone is hard, dense connective tissue that forms most of the adult skeleton. Claim 2: Bones facilitate movement by providing attachment points for muscles.",
+        "readings": "OpenStax Anatomy and Physiology 2e"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "c7c91fd6e67090a9c77348bed5c1ef57a5d982ad0def5beb8851dcf171faef66",
+        "kernelId": "anatomy/skeletal-system-functions",
+        "term": "Skeletal system functions",
+        "claims": [
+          "The skeletal system is made of bones and cartilage and supports the body, enables movement, protects organs, produces blood cells, and stores minerals and fat.",
+          "Bone is hard, dense connective tissue that forms most of the adult skeleton.",
+          "Bones facilitate movement by providing attachment points for muscles."
+        ],
+        "anchors": [
+          {
+            "src": "openstax:anatomy-and-physiology-2e#6-1",
+            "loc": "6.1",
+            "quote": "supports the body, facilitates movement, protects internal organs, produces blood cells, stores and releases minerals and fat"
+          },
+          {
+            "src": "openstax:anatomy-and-physiology-2e#6-1",
+            "loc": "6.1",
+            "quote": "Bone, or osseous tissue, is a hard, dense connective tissue"
+          },
+          {
+            "src": "openstax:anatomy-and-physiology-2e#6-1",
+            "loc": "6.1",
+            "quote": "Bones also facilitate movement by serving as points of attachment for your muscles"
+          }
+        ],
+        "attribution": [
+          "OpenStax Anatomy and Physiology 2e"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "b03aab19e31a199f2e80392b5da6a773a8e62ee873244298d7bad60cdb38aaa3",
+          "lessonKernel": {
+            "lessonId": "lesson-5",
+            "facts": [
+              "The skeletal system is made of bones and cartilage and supports the body, enables movement, protects organs, produces blood cells, and stores minerals and fat.",
+              "Bone is hard, dense connective tissue that forms most of the adult skeleton.",
+              "Bones facilitate movement by providing attachment points for muscles."
+            ],
+            "keyTerms": [
+              {
+                "tr": "skeletal system",
+                "df": "The skeletal system consists of bones and cartilage and performs several listed body functions.",
+                "eg": "Bones and cartilage together make up the skeletal system.",
+                "mi": "The skeletal system stores organs and protects minerals and fat.",
+                "cx": "Organs receive protection, whereas minerals and fat are stored."
+              },
+              {
+                "tr": "Bone",
+                "df": "Bone is connective tissue distinguished by being hard and dense.",
+                "eg": "Most of the adult skeleton is formed from bone.",
+                "mi": "Bone provides cartilage with attachment points.",
+                "cx": "The attachment relationship concerns muscles and bones, not cartilage."
+              },
+              {
+                "tr": "attachment points",
+                "df": "Attachment points are features of bones associated with muscles.",
+                "eg": "Bones facilitate movement through attachment points for muscles.",
+                "mi": "Muscles furnish attachment points to bones.",
+                "cx": "The locations come from bones and receive muscle attachment."
+              }
+            ],
+            "scenario": {
+              "su": "Under a deadline, a student must classify a composition notation listing bones and cartilage and a tissue observation describing hard, dense connective tissue. Each statement can receive one label, creating tension between the skeletal system label and the bone label.",
+              "ma": "composition notation listing bones and cartilage, tissue observation describing hard and dense connective tissue, movement passage linking bones with attachment points for muscles"
+            },
+            "mc": [
+              {
+                "q": "An editor compares a skeletal system notation listing bones and cartilage with a connective tissue observation described as hard and dense; which distinction fits these details?",
+                "op": [
+                  "Skeletal system composition; bone tissue property",
+                  "Skeletal system function; bone tissue property",
+                  "Bone composition; skeletal system tissue property",
+                  "Skeletal system composition; bone movement relation"
+                ],
+                "ai": 0,
+                "fi": [
+                  0,
+                  1
+                ],
+                "ex": "The skeletal system is made of bones and cartilage, while bone is hard, dense connective tissue forming most of the adult skeleton. Bone does not take the system-level composition relationship."
+              },
+              {
+                "q": "A movement passage says bones provide attachment points for muscles, and a student must choose one evidence-bound label before a deadline; which label fits the passage?",
+                "op": [
+                  "Attachment points facilitate muscles through bones",
+                  "Muscles facilitate bones through movement attachment points",
+                  "Bones provide movement as muscle attachment points",
+                  "Bones facilitate movement through muscle attachment points"
+                ],
+                "ai": 3,
+                "fi": [
+                  2
+                ],
+                "ex": "Bones facilitate movement by providing attachment points for muscles. The relationship is not reversed: muscles are associated with the attachment points that bones provide."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "7073ca8b2cfaa4e72cb30a285c086283e5272810e93ae4a164d99b485345b1da",
+          "lessonKernel": {
+            "lessonId": "lesson-5",
+            "facts": [
+              "The skeletal system is made of bones and cartilage and supports the body, enables movement, protects organs, produces blood cells, and stores minerals and fat. ",
+              "Bone is hard, dense connective tissue that forms most of the adult skeleton. ",
+              "Bones facilitate movement by providing attachment points for muscles."
+            ],
+            "keyTerms": [
+              {
+                "tr": "skeletal system",
+                "df": "The skeletal system is composed of bones and cartilage which serve multiple vital functions for the body. ",
+                "eg": "The skeletal system supports the body and enables movement. ",
+                "mi": "The skeletal system is only made of hard bones that provide rigid support for the body. ",
+                "cx": "The skeletal system is made of bones and cartilage, not only hard bones."
+              },
+              {
+                "tr": "bone",
+                "df": "Bone is defined as hard, dense connective tissue that constitutes the majority of the adult skeleton. ",
+                "eg": "Bone is hard, dense connective tissue that forms most of the adult skeleton. ",
+                "mi": "Bone is soft tissue that allows for flexible movement and does not form the adult skeleton. ",
+                "cx": "Bone is hard, dense connective tissue that forms most of the adult skeleton."
+              },
+              {
+                "tr": "facilitate movement",
+                "df": "Bones facilitate movement by offering specific attachment points where muscles can connect. ",
+                "eg": "Bones facilitate movement by providing attachment points for muscles. ",
+                "mi": "Movement is facilitated by the cartilage in the skeletal system rather than bone attachment points. ",
+                "cx": "Bones facilitate movement by providing attachment points for muscles."
+              }
+            ],
+            "scenario": {
+              "su": "A patient presents with a fracture in the femur, indicating a failure of the skeletal system to provide adequate support. The physician must determine the primary structural component involved in this injury. ",
+              "ma": "Fracture site X, X-ray notation Y, and muscle attachment record Z"
+            },
+            "mc": [
+              {
+                "q": "When analyzing the structural composition, which statement correctly distinguishes the role of bone from cartilage in the skeletal system? ",
+                "op": [
+                  "Bone is the primary component that enables movement.",
+                  "Cartilage is the primary component that enables movement.",
+                  "Cartilage is the primary component that forms most of the adult skeleton.",
+                  "Bone is the primary component that stores minerals and fat."
+                ],
+                "ai": 0,
+                "fi": [
+                  0,
+                  1
+                ],
+                "ex": "Bone is hard, dense connective tissue that forms most of the adult skeleton. Cartilage is made of cartilage and bones, but bone is the hard, dense tissue that forms most of the adult skeleton."
+              },
+              {
+                "q": "A physical therapist observes a patient attempting to lift a weight, noting that the movement is restricted because the attachment points are inadequate. Which observation best relates to the function of bones? ",
+                "op": [
+                  "The patient is relying on cartilage for movement attachment points.",
+                  "The patient is using bone attachment points for muscle connection.",
+                  "The patient is relying on cartilage to store minerals and fat.",
+                  "The patient is using bone structure to protect organs."
+                ],
+                "ai": 0,
+                "fi": [
+                  2
+                ],
+                "ex": "Bones facilitate movement by providing attachment points for muscles. The patient is using bone attachment points for muscle connection."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-5f85ffd8a7974edbf0c93b74",
+        "pairId": "scion-kernel-pair-f81e039f482759426c8cbc38",
+        "artifactSha256": {
+          "A": "b03aab19e31a199f2e80392b5da6a773a8e62ee873244298d7bad60cdb38aaa3",
+          "B": "7073ca8b2cfaa4e72cb30a285c086283e5272810e93ae4a164d99b485345b1da"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    },
+    {
+      "caseId": "scion-kernel-607a3e5c7e4b02c69a4acb1c",
+      "pairId": "scion-kernel-pair-a0ff221cfc1bde70f9e2df57",
+      "domain": "geology",
+      "failureFamilies": [
+        "answer-feedback-consistency",
+        "choice-discriminability",
+        "feedback-instructionality",
+        "misconception-validity",
+        "scenario-evidence-sufficiency",
+        "source-coverage",
+        "source-fidelity"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-4",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Tectonic settings of volcanism",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: Volcanic magma forms chiefly at divergent boundaries, convergent boundaries, and mantle plumes through decompression or flux melting. Claim 1: Divergent boundaries and mantle plumes generate magma by decompression melting, while convergent boundaries use flux melting. Claim 2: At a spreading ridge, upward-moving mantle begins partial melting because pressure decreases near the surface.",
+        "readings": "Steven Earle, Physical Geology – 2nd Edition (2019), section 4.1, BCcampus Open Education"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "aeedbbcef83043f47b006db4d034b5591399c3a71f983732fa1deb16f02e204a",
+        "kernelId": "geology-ccby/tectonic-volcanism-settings",
+        "term": "Tectonic settings of volcanism",
+        "claims": [
+          "Volcanic magma forms chiefly at divergent boundaries, convergent boundaries, and mantle plumes through decompression or flux melting.",
+          "Divergent boundaries and mantle plumes generate magma by decompression melting, while convergent boundaries use flux melting.",
+          "At a spreading ridge, upward-moving mantle begins partial melting because pressure decreases near the surface."
+        ],
+        "anchors": [
+          {
+            "src": "https://opentextbc.ca/physicalgeology2ed/chapter/4-1-plate-tectonics-and-volcanism/",
+            "loc": "4.1 Plate Tectonics and Volcanism, paragraph 1",
+            "quote": "magma is formed at three main plate-tectonic settings"
+          },
+          {
+            "src": "https://opentextbc.ca/physicalgeology2ed/chapter/4-1-plate-tectonics-and-volcanism/",
+            "loc": "4.1 Plate Tectonics and Volcanism, paragraph 1",
+            "quote": "divergent boundaries (decompression melting), convergent boundaries (flux melting), and mantle plumes (decompression melting)"
+          },
+          {
+            "src": "https://opentextbc.ca/physicalgeology2ed/chapter/4-1-plate-tectonics-and-volcanism/",
+            "loc": "4.1 Plate Tectonics and Volcanism, paragraph 3",
+            "quote": "partial melting starts because of decompression"
+          }
+        ],
+        "attribution": [
+          "Steven Earle, Physical Geology – 2nd Edition (2019), section 4.1, BCcampus Open Education"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "5bad205f898c3bc2d37f5c4d486e0c551e8c860aa67a1b7cb1e20db11f3b437f",
+          "lessonKernel": {
+            "lessonId": "lesson-4",
+            "facts": [
+              "Volcanic magma forms chiefly at divergent boundaries, convergent boundaries, and mantle plumes through decompression or flux melting.",
+              "Divergent boundaries and mantle plumes generate magma by decompression melting, while convergent boundaries use flux melting.",
+              "At a spreading ridge, upward-moving mantle begins partial melting because pressure decreases near the surface."
+            ],
+            "keyTerms": [
+              {
+                "tr": "divergent boundaries",
+                "df": "Divergent boundaries are a tectonic setting where magma is generated by decompression melting.",
+                "eg": "Divergent boundaries generate magma through decompression melting.",
+                "mi": "Divergent boundaries generate magma through flux melting.",
+                "cx": "Their magma generation involves decompression melting, whereas flux melting applies to convergent boundaries."
+              },
+              {
+                "tr": "flux melting",
+                "df": "Flux melting is the magma-generating melting process used at convergent boundaries.",
+                "eg": "Convergent boundaries provide the concrete setting for flux melting.",
+                "mi": "Mantle plumes use flux melting to generate magma.",
+                "cx": "Mantle plumes generate magma by decompression melting, while the other process applies to convergent boundaries."
+              },
+              {
+                "tr": "spreading ridge",
+                "df": "A spreading ridge is a setting where upward-moving mantle begins partial melting as pressure decreases near the surface.",
+                "eg": "Near a spreading ridge surface, decreasing pressure accompanies partial melting in upward-moving mantle.",
+                "mi": "At a spreading ridge, partial melting causes pressure to decrease near the surface.",
+                "cx": "The stated direction runs from decreasing pressure to the beginning of partial melting in upward-moving mantle."
+              }
+            ],
+            "scenario": {
+              "su": "A geology editor must classify two magma-generation descriptions before a deadline. One description names a convergent boundary, while the other records upward-moving mantle and decreasing pressure near the surface at a spreading ridge; each must receive a supported melting label.",
+              "ma": "the convergent-boundary description, the spreading-ridge mantle observation, the near-surface pressure notation"
+            },
+            "mc": [
+              {
+                "q": "An editor compares a divergent boundary with a convergent boundary and must distinguish their magma-generating processes. Which paired classification matches the supplied descriptions?",
+                "op": [
+                  "Both boundaries use decompression melting",
+                  "Divergent: decompression; convergent: flux melting",
+                  "Both boundaries use flux melting",
+                  "Divergent: flux; convergent: decompression melting"
+                ],
+                "ai": 1,
+                "fi": [
+                  1
+                ],
+                "ex": "Divergent boundaries generate magma by decompression melting, whereas convergent boundaries use flux melting. Assigning flux melting to divergent boundaries and decompression melting to convergent boundaries reverses the stated relations."
+              },
+              {
+                "q": "At a spreading ridge, an observer records upward-moving mantle and decreasing pressure near the surface. Which interpretation applies these observations while preserving their stated causal relation?",
+                "op": [
+                  "Partial melting causes pressure to decrease",
+                  "Increasing pressure begins partial melting",
+                  "Pressure decreases after partial melting begins",
+                  "Decreasing pressure begins partial melting"
+                ],
+                "ai": 3,
+                "fi": [
+                  2
+                ],
+                "ex": "Upward-moving mantle begins partial melting because pressure decreases near the surface. Treating partial melting as the cause of decreasing pressure reverses the stated causal relation."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "44465300812fd23d941310ee804e70aa177dce22cffb4ea708990643e0a48f22",
+          "lessonKernel": {
+            "lessonId": "lesson-4",
+            "facts": [
+              "Volcanic magma forms chiefly at divergent boundaries, convergent boundaries, and mantle plumes through decompression or flux melting.",
+              "Divergent boundaries and mantle plumes generate magma by decompression melting, while convergent boundaries use flux melting.",
+              "At a spreading ridge, upward-moving mantle begins partial melting because pressure decreases near the surface."
+            ],
+            "keyTerms": [
+              {
+                "tr": "divergent boundaries",
+                "df": "Divergent boundaries are locations where volcanic magma forms through decompression melting.",
+                "eg": "Magma forms at divergent boundaries via decompression melting.",
+                "mi": "Divergent boundaries are the only places where magma forms.",
+                "cx": "Convergent boundaries also generate magma through flux melting."
+              },
+              {
+                "tr": "flux melting",
+                "df": "Flux melting is the process by which magma is generated at convergent boundaries.",
+                "eg": "Convergent boundaries use flux melting to generate magma.",
+                "mi": "Flux melting only occurs at divergent boundaries.",
+                "cx": "Flux melting is used at convergent boundaries."
+              },
+              {
+                "tr": "decompression melting",
+                "df": "Decompression melting is the mechanism by which magma is generated at divergent boundaries and mantle plumes.",
+                "eg": "Mantle plumes generate magma by decompression melting.",
+                "mi": "Decompression melting only happens at spreading ridges.",
+                "cx": "Decompression melting occurs at divergent boundaries and mantle plumes."
+              }
+            ],
+            "scenario": {
+              "su": "A geologist is analyzing a volcanic system where magma is observed at a spreading ridge and at a convergent boundary. The problem is to determine the primary melting mechanism at each location, constrained by the fact that magma forms at all three settings.",
+              "ma": "Compare the melting mechanism at the spreading ridge and the convergent boundary."
+            },
+            "mc": [
+              {
+                "q": "Which melting mechanism is responsible for magma generation at a spreading ridge versus a convergent boundary?",
+                "op": [
+                  "Decompression melting at spreading ridge, flux melting at convergent boundary, decompression melting at convergent boundary, flux melting at spreading ridge",
+                  "Decompression melting at spreading ridge, flux melting at convergent boundary, flux melting at spreading ridge, decompression melting at convergent boundary",
+                  "Flux melting at spreading ridge, decompression melting at convergent boundary, decompression melting at spreading ridge, flux melting at convergent boundary",
+                  "Decompression melting at spreading ridge, decompression melting at convergent boundary, flux melting at spreading ridge, flux melting at convergent boundary"
+                ],
+                "ai": 0,
+                "fi": [
+                  0,
+                  1
+                ],
+                "ex": "Divergent boundaries and mantle plumes generate magma by decompression melting, while convergent boundaries use flux melting."
+              },
+              {
+                "q": "A researcher observes magma formation at a spreading ridge and at a convergent boundary; what is the correct application of the melting processes?",
+                "op": [
+                  "Decompression melting at spreading ridge, flux melting at convergent boundary, decompression melting at convergent boundary, flux melting at spreading ridge",
+                  "Flux melting at spreading ridge, decompression melting at convergent boundary, decompression melting at spreading ridge, flux melting at convergent boundary",
+                  "Decompression melting at spreading ridge, flux melting at spreading ridge, flux melting at convergent boundary, decompression melting at convergent boundary",
+                  "Flux melting at spreading ridge, decompression melting at spreading ridge, decompression melting at convergent boundary, flux melting at convergent boundary"
+                ],
+                "ai": 0,
+                "fi": [
+                  1
+                ],
+                "ex": "Divergent boundaries and mantle plumes generate magma by decompression melting, while convergent boundaries use flux melting."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-607a3e5c7e4b02c69a4acb1c",
+        "pairId": "scion-kernel-pair-a0ff221cfc1bde70f9e2df57",
+        "artifactSha256": {
+          "A": "5bad205f898c3bc2d37f5c4d486e0c551e8c860aa67a1b7cb1e20db11f3b437f",
+          "B": "44465300812fd23d941310ee804e70aa177dce22cffb4ea708990643e0a48f22"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    },
+    {
+      "caseId": "scion-kernel-67ca460c3b0548ca4682b2c9",
+      "pairId": "scion-kernel-pair-bc83e79b98bf5f93d081df26",
+      "domain": "economics",
+      "failureFamilies": [
+        "choice-discriminability",
+        "source-fidelity"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-12",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Opportunity cost",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: The opportunity cost of a choice is the value of the next best alternative that must be given up. Claim 1: A decision that looks free still has an opportunity cost if it uses time or resources that could have produced something else. Claim 2: Rational decision-makers weigh the opportunity cost, not just the out-of-pocket price.",
+        "readings": "OpenStax Principles of Microeconomics 3e, Ch. 2"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "13a691e562b5c8e8cd8780917c95852a4fc9041b68384de9a7efc063d90a6f05",
+        "kernelId": "econ/opportunity-cost",
+        "term": "Opportunity cost",
+        "claims": [
+          "The opportunity cost of a choice is the value of the next best alternative that must be given up.",
+          "A decision that looks free still has an opportunity cost if it uses time or resources that could have produced something else.",
+          "Rational decision-makers weigh the opportunity cost, not just the out-of-pocket price."
+        ],
+        "anchors": [
+          {
+            "src": "openstax:microeconomics-3e#2",
+            "loc": "2.1",
+            "quote": "the opportunity cost of a choice is the value of the next best alternative that must be given up"
+          },
+          {
+            "src": "openstax:microeconomics-3e#2",
+            "loc": "2.1",
+            "quote": "A decision that looks free still has an opportunity cost if it uses time or resources that could have produced something else"
+          },
+          {
+            "src": "openstax:microeconomics-3e#2",
+            "loc": "2.1",
+            "quote": "Rational decision-makers weigh the opportunity cost, not just the out-of-pocket price"
+          }
+        ],
+        "attribution": [
+          "OpenStax Principles of Microeconomics 3e, Ch. 2"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "244eceb247787362d7bc50480644bc0b2cd6a10869ef5b5919c79fc61cc7d069",
+          "lessonKernel": {
+            "lessonId": "lesson-12",
+            "facts": [
+              "The opportunity cost of a choice is the value of the next best alternative that must be given up.",
+              "A decision that looks free still has an opportunity cost if it uses time or resources that could have produced something else.",
+              "Rational decision-makers weigh the opportunity cost, not just the out-of-pocket price."
+            ],
+            "keyTerms": [
+              {
+                "tr": "opportunity cost",
+                "df": "Opportunity cost is the value of the next best alternative given up by a choice.",
+                "eg": "A choice that uses time that could have produced something else has an opportunity cost.",
+                "mi": "Opportunity cost is the value of the choice itself.",
+                "cx": "It is the value of the alternative given up, rather than the chosen option."
+              },
+              {
+                "tr": "next best alternative",
+                "df": "The next best alternative is the alternative whose value must be given up when a choice is made.",
+                "eg": "When a choice uses resources, the next best alternative is what those resources could have produced instead.",
+                "mi": "The next best alternative is the choice that was selected.",
+                "cx": "It is the alternative surrendered when the decision-maker makes the choice."
+              },
+              {
+                "tr": "out-of-pocket price",
+                "df": "The out-of-pocket price is an amount considered alongside, but not in place of, opportunity cost.",
+                "eg": "Rational decision-makers weigh both the out-of-pocket price and the opportunity cost.",
+                "mi": "The out-of-pocket price completely determines what rational decision-makers weigh.",
+                "cx": "Rational decision-makers also weigh the value of the next best alternative given up."
+              }
+            ],
+            "scenario": {
+              "su": "A decision-maker must classify a choice before a deadline: it looks free but uses recorded time and resources that could have produced something else. The decision-maker must weigh the recorded next-best-alternative value against the recorded out-of-pocket price, creating tension between the free appearance and the resources given up.",
+              "ma": "time-use notation, resource-use notation, next-best-alternative value record, out-of-pocket price record"
+            },
+            "mc": [
+              {
+                "q": "A choice looks free, yet records show that it uses time that could have produced something else; which distinction correctly identifies what the free appearance leaves out?",
+                "op": [
+                  "Free appearance eliminates the opportunity cost",
+                  "Time use is the next best alternative",
+                  "Opportunity cost remains despite the free appearance",
+                  "Opportunity cost is the out-of-pocket price"
+                ],
+                "ai": 2,
+                "fi": [
+                  1
+                ],
+                "ex": "Using time that could have produced something else gives the free-looking choice an opportunity cost. The free appearance therefore does not eliminate that cost."
+              },
+              {
+                "q": "A decision-maker records a zero out-of-pocket price, used resources, and a valued next best alternative given up; what should rational evaluation weigh under this constraint?",
+                "op": [
+                  "Resources, not their possible alternative production",
+                  "The choice, not the alternative given up",
+                  "Out-of-pocket price, not the opportunity cost",
+                  "Opportunity cost, not just out-of-pocket price"
+                ],
+                "ai": 3,
+                "fi": [
+                  0,
+                  2
+                ],
+                "ex": "The valued next best alternative given up establishes the opportunity cost, which rational decision-makers weigh rather than considering just the out-of-pocket price. A zero price does not replace that sacrificed alternative value."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "61f94b9ad3d39f5c829e1c5cf15452f53cd24210b273b65839451a36c081abd9",
+          "lessonKernel": {
+            "lessonId": "lesson-12",
+            "facts": [
+              "The opportunity cost of a choice is the value of the next best alternative that must be given up. ",
+              "A decision that looks free still has an opportunity cost if it uses time or resources that could have produced something else. ",
+              "Rational decision-makers weigh the opportunity cost, not just the out-of-pocket price."
+            ],
+            "keyTerms": [
+              {
+                "tr": "opportunity cost",
+                "df": "The value of the next best alternative that must be given up when making a choice.",
+                "eg": "Choosing to study economics means giving up the next best alternative activity.",
+                "mi": "Opportunity cost is simply the monetary price paid for a decision.",
+                "cx": "Opportunity cost is the value of the next best alternative that must be given up."
+              },
+              {
+                "tr": "next best alternative",
+                "df": "The specific alternative that must be sacrificed when a particular choice is made.",
+                "eg": "If you choose option A, the next best alternative is option B.",
+                "mi": "The next best alternative is any option that is not the most expensive one.",
+                "cx": "The next best alternative is the specific alternative that must be given up when a particular choice is made."
+              },
+              {
+                "tr": "rational decision-makers",
+                "df": "Individuals who evaluate choices by weighing the opportunity cost rather than just the out-of-pocket price.",
+                "eg": "A rational decision-maker considers the value of what is lost when making a choice.",
+                "mi": "Rational decision-makers only consider the immediate financial cost of a decision.",
+                "cx": "Rational decision-makers weigh the opportunity cost, not just the out-of-pocket price."
+              }
+            ],
+            "scenario": {
+              "su": "A student has three hours free on a Tuesday and must choose between studying for an exam or working a part-time shift. The student is constrained by the fact that they cannot work more than four hours.",
+              "ma": "Compare the value of the exam grade versus the wages earned from the part-time shift."
+            },
+            "mc": [
+              {
+                "q": "Which statement correctly distinguishes the concept of opportunity cost from the out-of-pocket price of a choice?",
+                "op": [
+                  "Opportunity cost is the immediate monetary price paid for a decision.",
+                  "Opportunity cost is the value of the next best alternative that must be given up.",
+                  "Opportunity cost is only relevant when the decision looks free.",
+                  "Opportunity cost is the total value of all resources used in a choice."
+                ],
+                "ai": 1,
+                "fi": [
+                  0,
+                  1
+                ],
+                "ex": "The subject evidence supporting the answer is that the opportunity cost is the value of the next best alternative that must be given up, while the out-of-pocket price is not mentioned as the defining characteristic of opportunity cost."
+              },
+              {
+                "q": "A student has three hours free on a Tuesday and must choose between studying for an exam or working a part-time shift. The student is constrained by the fact that they cannot work more than four hours. If the student chooses to study for the exam, what is the opportunity cost?",
+                "op": [
+                  "The opportunity cost is the wages earned from the part-time shift.",
+                  "The opportunity cost is the time spent studying for the exam.",
+                  "The opportunity cost is the value of the next best alternative that must be given up.",
+                  "The opportunity cost is the total time available on Tuesday."
+                ],
+                "ai": 2,
+                "fi": [
+                  0
+                ],
+                "ex": "Apply the case evidence to support the answer, then correct the closest distractor."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-67ca460c3b0548ca4682b2c9",
+        "pairId": "scion-kernel-pair-bc83e79b98bf5f93d081df26",
+        "artifactSha256": {
+          "A": "244eceb247787362d7bc50480644bc0b2cd6a10869ef5b5919c79fc61cc7d069",
+          "B": "61f94b9ad3d39f5c829e1c5cf15452f53cd24210b273b65839451a36c081abd9"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    },
+    {
+      "caseId": "scion-kernel-68ae8262b2c665df3114f898",
+      "pairId": "scion-kernel-pair-9232649a131fe9920a17f36e",
+      "domain": "computer-science",
+      "failureFamilies": [
+        "answer-feedback-consistency",
+        "answer-key-correctness",
+        "feedback-instructionality",
+        "source-fidelity"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-2",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Dictionaries",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: A dictionary stores key-value pairs and looks up each value by its key rather than by a numeric position. Claim 1: Because a dictionary looks up values using keys, it cannot hold duplicate keys. Claim 2: Dictionaries are written with curly braces in key: value form and are ideal when data is naturally labeled rather than ordered.",
+        "readings": "OpenStax Introduction to Python Programming, §10.1 Dictionary basics"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "2735bbd307dd162ce4336e81a60168cee98878533740af1ebd8430e0efec45ea",
+        "kernelId": "cs/dictionaries",
+        "term": "Dictionaries",
+        "claims": [
+          "A dictionary stores key-value pairs and looks up each value by its key rather than by a numeric position.",
+          "Because a dictionary looks up values using keys, it cannot hold duplicate keys.",
+          "Dictionaries are written with curly braces in key: value form and are ideal when data is naturally labeled rather than ordered."
+        ],
+        "anchors": [
+          {
+            "src": "openstax:introduction-python-programming#10.1",
+            "loc": "10.1",
+            "quote": "A dictionary in Python is a container object including key-value pairs"
+          },
+          {
+            "src": "openstax:introduction-python-programming#10.1",
+            "loc": "10.1",
+            "quote": "a dictionary object cannot hold duplicate key values"
+          }
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §10.1 Dictionary basics"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "ebf8589856791d46c803608412c52714f4d4b78506dc45c0282aa4bcdaf07973",
+          "lessonKernel": {
+            "lessonId": "lesson-2",
+            "facts": [
+              "A dictionary stores key-value pairs and looks up each value by its key rather than by a numeric position.",
+              "Because a dictionary looks up values using keys, it cannot hold duplicate keys.",
+              "Dictionaries are written with curly braces in key: value form and are ideal when data is naturally labeled rather than ordered."
+            ],
+            "keyTerms": [
+              {
+                "tr": "dictionary",
+                "df": "A dictionary is a structure that stores key-value pairs and looks up values using keys.",
+                "eg": "A Python dictionary is written with curly braces in key: value form.",
+                "mi": "A dictionary looks up each key by its value.",
+                "cx": "Dictionary lookup uses a key to find its associated value."
+              },
+              {
+                "tr": "key-value pairs",
+                "df": "Key-value pairs associate stored values with keys used to look up those values.",
+                "eg": "Dictionaries store key-value pairs for naturally labeled data.",
+                "mi": "Key-value pairs require values to be found by numeric position.",
+                "cx": "Values in key-value pairs are found using their associated keys."
+              },
+              {
+                "tr": "curly braces",
+                "df": "Curly braces are the notation used to write dictionaries in key: value form.",
+                "eg": "Dictionaries use curly braces around key: value form.",
+                "mi": "Curly braces show that data is naturally ordered.",
+                "cx": "Naturally labeled data makes dictionaries ideal, while curly braces provide their written form."
+              }
+            ],
+            "scenario": {
+              "su": "A Python Data Boundary Design Lab team must classify a notation before a deadline. They observe curly braces and key: value form, but must distinguish lookup by key from lookup by numeric position.",
+              "ma": "curly-brace key: value notation, lookup-by-key design, numeric-position lookup design"
+            },
+            "mc": [
+              {
+                "q": "A dictionary stores key-value pairs, and an observation contrasts lookup by a key with lookup by a numeric position; which proposition captures the supported distinction?",
+                "op": [
+                  "Values are looked up using keys",
+                  "Values are looked up using numeric positions",
+                  "Keys are looked up using values",
+                  "Numeric positions are looked up using values"
+                ],
+                "ai": 0,
+                "fi": [
+                  0
+                ],
+                "ex": "A dictionary finds each value using its associated key rather than a numeric position. Looking up keys using values reverses the stated relationship."
+              },
+              {
+                "q": "A Python design uses curly braces in key: value form but presents duplicate keys; under a deadline, how should students classify it while respecting both observed details?",
+                "op": [
+                  "It cannot be a dictionary as presented",
+                  "It is a dictionary with duplicate keys",
+                  "It is ideal for naturally ordered data",
+                  "It looks up keys by each value"
+                ],
+                "ai": 0,
+                "fi": [
+                  1
+                ],
+                "ex": "A dictionary cannot hold duplicate keys because it looks up values using keys. Curly-brace key: value form does not make duplicate keys compatible with a dictionary."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "13875a94fa9d16b37ceea3ba3068c2bd0fd2a99cfb359564bbea9819642c68f7",
+          "lessonKernel": {
+            "lessonId": "lesson-2",
+            "facts": [
+              "A dictionary stores key-value pairs and looks up each value by its key rather than by a numeric position.",
+              "Because a dictionary looks up values using keys, it cannot hold duplicate keys.",
+              "Dictionaries are written with curly braces in key: value form and are ideal when data is naturally labeled rather than ordered."
+            ],
+            "keyTerms": [
+              {
+                "tr": "key-value pairs",
+                "df": "A dictionary stores key-value pairs and looks up each value by its key rather than by a numeric position.",
+                "eg": "A dictionary stores key-value pairs and looks up each value by its key rather than by a numeric position.",
+                "mi": "A dictionary stores data in a sequence where the position determines the retrieval method.",
+                "cx": "A dictionary stores key-value pairs and looks up each value by its key rather than by a numeric position."
+              },
+              {
+                "tr": "key",
+                "df": "Because a dictionary looks up values using keys, it cannot hold duplicate keys.",
+                "eg": "Because a dictionary looks up values using keys, it cannot hold duplicate keys.",
+                "mi": "A key in a dictionary can be repeated multiple times to store different values.",
+                "cx": "Because a dictionary looks up values using keys, it cannot hold duplicate keys."
+              },
+              {
+                "tr": "curly braces",
+                "df": "Dictionaries are written with curly braces in key: value form and are ideal when data is naturally labeled rather than ordered.",
+                "eg": "Dictionaries are written with curly braces in key: value form and are ideal when data is naturally labeled rather than ordered.",
+                "mi": "Curly braces are only used for defining function parameters in Python code.",
+                "cx": "Dictionaries are written with curly braces in key: value form and are ideal when data is naturally labeled rather than ordered."
+              }
+            ],
+            "scenario": {
+              "su": "A data structure is being used to store user preferences for a system, and the system requires fast retrieval based on a specific user ID. The developer must decide how to structure the data to ensure unique identification for each user profile.",
+              "ma": "Compare the structure {'user_id': 101, 'name': 'Alice'} and {'user_id': 101, 'name': 'Bob'} to determine which structure is valid for the system's requirements."
+            },
+            "mc": [
+              {
+                "q": "Which characteristic distinguishes a dictionary from a structure that relies on numeric position for data retrieval?",
+                "op": [
+                  "A structure uses numeric position for retrieval.",
+                  "A structure stores data in key-value pairs.",
+                  "A structure cannot hold duplicate keys.",
+                  "A structure is ideal for ordered data."
+                ],
+                "ai": 0,
+                "fi": [
+                  0,
+                  1
+                ],
+                "ex": "A dictionary stores key-value pairs and looks up each value by its key rather than by a numeric position, which is the subject evidence supporting the answer, then correct the closest distractor."
+              },
+              {
+                "q": "Given the constraint that a dictionary cannot hold duplicate keys, which data structure is appropriate for storing unique user IDs?",
+                "op": [
+                  "A list where IDs can be repeated.",
+                  "A dictionary using user IDs as keys.",
+                  "A tuple with unique numeric indices.",
+                  "A sequence ordered by numeric position."
+                ],
+                "ai": 1,
+                "fi": [
+                  1
+                ],
+                "ex": "Because a dictionary looks up values using keys, it cannot hold duplicate keys, which is the subject evidence supporting the answer, then correct the closest distractor."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-68ae8262b2c665df3114f898",
+        "pairId": "scion-kernel-pair-9232649a131fe9920a17f36e",
+        "artifactSha256": {
+          "A": "ebf8589856791d46c803608412c52714f4d4b78506dc45c0282aa4bcdaf07973",
+          "B": "13875a94fa9d16b37ceea3ba3068c2bd0fd2a99cfb359564bbea9819642c68f7"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    },
+    {
+      "caseId": "scion-kernel-6e77e847080e897993e68860",
+      "pairId": "scion-kernel-pair-7525a956ffd172173138de3b",
+      "domain": "anatomy",
+      "failureFamilies": [
+        "feedback-instructionality",
+        "misconception-validity"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-2",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Muscle tissue types and contraction",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: Muscle tissue includes skeletal, cardiac, and smooth muscle; all are excitable, and contractility lets muscle pull on attachment points and shorten with force. Claim 1: All three muscle tissue types share excitability. Claim 2: Skeletal muscle depends on nervous-system signaling to work properly.",
+        "readings": "OpenStax Anatomy and Physiology 2e"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "99b636e83ccce56ab48e09397a5c61aecef640f11ce7bc0c3e5c4ff34d84f634",
+        "kernelId": "anatomy/muscle-tissue-types",
+        "term": "Muscle tissue types and contraction",
+        "claims": [
+          "Muscle tissue includes skeletal, cardiac, and smooth muscle; all are excitable, and contractility lets muscle pull on attachment points and shorten with force.",
+          "All three muscle tissue types share excitability.",
+          "Skeletal muscle depends on nervous-system signaling to work properly."
+        ],
+        "anchors": [
+          {
+            "src": "openstax:anatomy-and-physiology-2e#10-1",
+            "loc": "10.1",
+            "quote": "the body contains three types of muscle tissue: skeletal muscle, cardiac muscle, and smooth muscle"
+          },
+          {
+            "src": "openstax:anatomy-and-physiology-2e#10-1",
+            "loc": "10.1",
+            "quote": "they all exhibit a quality called excitability"
+          },
+          {
+            "src": "openstax:anatomy-and-physiology-2e#10-1",
+            "loc": "10.1",
+            "quote": "skeletal muscle completely depends on signaling from the nervous system to work properly"
+          }
+        ],
+        "attribution": [
+          "OpenStax Anatomy and Physiology 2e"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "22235b1e45b4189899162b4fb2e54f7d2abcf28e122ef56d9c695a7fa8f8d28d",
+          "lessonKernel": {
+            "lessonId": "lesson-2",
+            "facts": [
+              "Muscle tissue includes skeletal, cardiac, and smooth muscle; all are excitable, and contractility lets muscle pull on attachment points and shorten with force.",
+              "All three muscle tissue types share excitability.",
+              "Skeletal muscle depends on nervous-system signaling to work properly."
+            ],
+            "keyTerms": [
+              {
+                "tr": "Muscle tissue",
+                "df": "Muscle tissue is a broader category that includes skeletal, cardiac, and smooth muscle.",
+                "eg": "Skeletal muscle is one included type of muscle tissue.",
+                "mi": "Muscle tissue is included within skeletal muscle.",
+                "cx": "Skeletal muscle is a type within the broader muscle tissue category."
+              },
+              {
+                "tr": "excitability",
+                "df": "Excitability is a property shared by all three muscle tissue types.",
+                "eg": "Skeletal, cardiac, and smooth muscle all share excitability.",
+                "mi": "Excitability depends on nervous-system signaling to work properly.",
+                "cx": "The signaling dependency applies to skeletal muscle, while excitability is shared across all three types."
+              },
+              {
+                "tr": "contractility",
+                "df": "Contractility is the property that lets muscle pull on attachment points and shorten with force.",
+                "eg": "Contractility lets muscle shorten with force.",
+                "mi": "Attachment points pull on muscle through contractility.",
+                "cx": "Muscle pulls on attachment points and shortens with force through contractility."
+              }
+            ],
+            "scenario": {
+              "su": "A reviewer must label a shared property and a specific dependency before a deadline. One note says skeletal, cardiac, and smooth muscle are excitable, while another says skeletal muscle depends on nervous-system signaling to work properly; the labels must preserve that distinction.",
+              "ma": "Compare the three-type excitability note, the skeletal-muscle nervous-system dependency note, and the proposed shared-property and specific-dependency labels."
+            },
+            "mc": [
+              {
+                "q": "A comparison chart marks skeletal, cardiac, and smooth muscle as excitable, while a second row highlights skeletal muscle. Which statement preserves the chart’s concept distinction?",
+                "op": [
+                  "Excitability depends on nervous-system signaling",
+                  "Contractility means shortening with excitability",
+                  "Nervous-system signaling depends on skeletal muscle",
+                  "Excitability spans all three muscle types"
+                ],
+                "ai": 3,
+                "fi": [
+                  1
+                ],
+                "ex": "All three muscle tissue types share excitability, so the annotation applies across skeletal, cardiac, and smooth muscle. The dependency runs from skeletal muscle to nervous-system signaling, rather than from signaling to skeletal muscle."
+              },
+              {
+                "q": "Under a deadline, a reviewer sees a record naming skeletal muscle and nervous-system signaling as necessary for proper work. Which label is supported while preserving the stated direction of dependence?",
+                "op": [
+                  "Nervous-system signaling depends on skeletal muscle",
+                  "Excitability depends on nervous-system signaling",
+                  "Contractility depends on nervous-system signaling",
+                  "Skeletal muscle depends on nervous-system signaling"
+                ],
+                "ai": 3,
+                "fi": [
+                  2
+                ],
+                "ex": "The record directly supports that skeletal muscle depends on nervous-system signaling to work properly. Reversing the dependency would make signaling depend on skeletal muscle, which the record does not state."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "034fd1165d9459eb6953ac24f2fd9e4fac07c368c6aebe09852bac2b5995fd58",
+          "lessonKernel": {
+            "lessonId": "lesson-2",
+            "facts": [
+              "Muscle tissue includes skeletal, cardiac, and smooth muscle; all are excitable, and contractility lets muscle pull on attachment points and shorten with force.",
+              "All three muscle tissue types share excitability.",
+              "Skeletal muscle depends on nervous-system signaling to work properly."
+            ],
+            "keyTerms": [
+              {
+                "tr": "Muscle tissue types",
+                "df": "Muscle tissue types encompass skeletal, cardiac, and smooth muscle, all of which possess the capacity to be excited.",
+                "eg": "Skeletal muscle is one type of muscle tissue.",
+                "mi": "All muscle tissue types are non-excitable and cannot contract with force.",
+                "cx": "Muscle tissue types are excitable, meaning they can be excited to contract with force."
+              },
+              {
+                "tr": "Excitable",
+                "df": "Excitable refers to the property shared by all muscle tissue types, allowing them to be stimulated.",
+                "eg": "Cardiac muscle is an excitable tissue.",
+                "mi": "Only skeletal muscle tissue is excitable and can be stimulated by nerves.",
+                "cx": "Excitable is a shared property of all muscle tissue types, not exclusive to skeletal muscle."
+              },
+              {
+                "tr": "Skeletal muscle",
+                "df": "Skeletal muscle requires nervous-system signaling to function correctly in its operation.",
+                "eg": "Nervous-system signaling is necessary for skeletal muscle to work.",
+                "mi": "Skeletal muscle functions independently of nervous-system signaling for contraction.",
+                "cx": "Skeletal muscle depends on nervous-system signaling to work properly, meaning it requires that input."
+              }
+            ],
+            "scenario": {
+              "su": "A patient presents with a condition affecting the smooth muscle of the digestive tract, and the physician observes that the tissue exhibits a response to external stimuli. The constraint is that the physician must determine if this tissue type shares the same excitability as skeletal muscle.",
+              "ma": "Compare the smooth muscle tissue's response to a chemical stimulus with the skeletal muscle's response to a motor neuron signal."
+            },
+            "mc": [
+              {
+                "q": "When analyzing muscle tissue types, how does the shared property of excitability apply to the skeletal muscle compared to cardiac muscle?",
+                "op": [
+                  "Both skeletal and cardiac muscle share excitability.",
+                  "Both skeletal and cardiac muscle lack excitability.",
+                  "Cardiac muscle lacks excitability while skeletal muscle possesses it.",
+                  "Skeletal muscle lacks excitability while cardiac muscle possesses it."
+                ],
+                "ai": 3,
+                "fi": [
+                  1
+                ],
+                "ex": "All three muscle tissue types share excitability."
+              },
+              {
+                "q": "A researcher observes that a specific muscle requires nervous-system signaling to function correctly; which muscle tissue type is this observation primarily describing?",
+                "op": [
+                  "Smooth muscle requires nervous-system signaling for proper function.",
+                  "All muscle tissue types share excitability.",
+                  "Skeletal muscle depends on nervous-system signaling to work properly.",
+                  "Cardiac muscle requires nervous-system signaling for proper function."
+                ],
+                "ai": 2,
+                "fi": [
+                  2
+                ],
+                "ex": "Skeletal muscle depends on nervous-system signaling to work properly."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-6e77e847080e897993e68860",
+        "pairId": "scion-kernel-pair-7525a956ffd172173138de3b",
+        "artifactSha256": {
+          "A": "22235b1e45b4189899162b4fb2e54f7d2abcf28e122ef56d9c695a7fa8f8d28d",
+          "B": "034fd1165d9459eb6953ac24f2fd9e4fac07c368c6aebe09852bac2b5995fd58"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    }
+  ],
+  "claimBoundary": "This packet contains anonymous source-bound artifacts only. It contains no provider identity, model identity, route, admission outcome, retry history, compiler receipt, preference, or training authorization.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "8d5fe64bd785f2439935982b87357fee6b58ee45bfde38ef9080529c91aaa084"
+  }
+}

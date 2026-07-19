@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-workbook-v1",
+  "generatedAt": "2026-07-19T22:25:00.000Z",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "prompt": {
+    "path": "evaluation/scion-adapters/lesson-kernel-judge-prompt-v0.16.54.md",
+    "sha256": "37844b86736335db54b561d8c031660ef71679c55ae1108e2e999e746f2a1c96"
+  },
+  "chunkSize": 6,
+  "campaignCaseCount": 148,
+  "caseCount": 7,
+  "captureComplete": false,
+  "sparseComplete": true,
+  "batches": [
+    {
+      "batchId": "batch-001-db166cabbb",
+      "index": 1,
+      "caseIds": [
+        "scion-kernel-1ed0d7927b7ef600197320d3",
+        "scion-kernel-2da6ae5908cc12b0c12cf8e1",
+        "scion-kernel-68ae8262b2c665df3114f898",
+        "scion-kernel-8ef23dcb95e41dcdbb4e1f9b",
+        "scion-kernel-91d57c49e68873ad738edc77",
+        "scion-kernel-d2f92eae076f0514d6a7dcf4"
+      ],
+      "sealed": true,
+      "packetSha256": {
+        "A/B": "8265331e73d9b578f93cc6fd0348a9a671038cb327f86652661bdb32f9d88b11",
+        "B/A": "29e88719f18b5407ab4cc450182143dbd5f5a4e17d8f0c8baf37856c11094deb"
+      }
+    },
+    {
+      "batchId": "batch-002-abbea339d5",
+      "index": 2,
+      "caseIds": [
+        "scion-kernel-f6694acc8a391b1aa629bdee"
+      ],
+      "sealed": true,
+      "packetSha256": {
+        "A/B": "e97eab11a281ce29dead1ced88004ff3e533836fb7e56db1b47c7203fd16ee31",
+        "B/A": "8d75c296d2b249e4d1fb16c0749bb550a41f37f2d8d6c493a3fa80374d6a053f"
+      }
+    }
+  ],
+  "claimBoundary": "Each batch is judged in two isolated sessions with exact reversed artifact order. The workbook contains no organizer mapping, provider identity, model route, preference, or training authorization.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "5a4a2cb37669b58d109a2f50f6fc66468c0701d41422d72831ed87888696a2fb"
+  }
+}

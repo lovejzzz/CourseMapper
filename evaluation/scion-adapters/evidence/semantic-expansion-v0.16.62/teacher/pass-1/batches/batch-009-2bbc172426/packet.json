@@ -1,0 +1,168 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-teacher-revision-packet-v1",
+  "generatedAt": "2026-07-19T22:01:25.000Z",
+  "batchId": "batch-009-2bbc172426",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "aggregateSha256": "513939271cfcdf3827a5dac475c682a944440696ba1253c2bb0b978995c13cfb",
+  "prompt": {
+    "path": "evaluation/scion-adapters/lesson-kernel-teacher-revision-prompt-v8-v0.16.60.md",
+    "sha256": "505aff4b87a07aa0d7d9d7d7b6d40bb268f654439a4b8e06f1d1efda53327eb1"
+  },
+  "cases": [
+    {
+      "caseId": "scion-kernel-d2f92eae076f0514d6a7dcf4",
+      "caseSha256": "d2f92eae076f0514d6a7dcf48a1b4cabe80f11fea14949a3566df496e8d9f763",
+      "lessonInput": {
+        "lessonId": "lesson-2",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Electric field",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: An electric field describes the electric force per unit positive test charge at each point in space. Claim 1: The direction of the electric field is the direction a positive test charge would accelerate. Claim 2: Field-line density indicates relative field strength.",
+        "readings": "OpenStax University Physics Volume 2, Ch. 5"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "bde05b7b9582176e048e9e0ae8a40e052a003910ab430c42b50031727a58cd48",
+        "kernelId": "physics/electric-field",
+        "term": "Electric field",
+        "claims": [
+          "An electric field describes the electric force per unit positive test charge at each point in space.",
+          "The direction of the electric field is the direction a positive test charge would accelerate.",
+          "Field-line density indicates relative field strength."
+        ],
+        "anchors": [
+          {
+            "src": "openstax:university-physics-volume-2#5",
+            "loc": "5.5",
+            "quote": "The electric field is the electric force per unit charge."
+          },
+          {
+            "src": "openstax:university-physics-volume-2#5",
+            "loc": "5.5",
+            "quote": "the direction of the force on a positive test charge"
+          },
+          {
+            "src": "openstax:university-physics-volume-2#5",
+            "loc": "5.6",
+            "quote": "closer field lines indicate a stronger field"
+          }
+        ],
+        "attribution": [
+          "OpenStax University Physics Volume 2, Ch. 5"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "originalArtifact": {
+        "lessonId": "lesson-2",
+        "facts": [
+          "An electric field describes the electric force per unit positive test charge at each point in space.",
+          "The direction of the electric field is the direction a positive test charge would accelerate.",
+          "Field-line density indicates relative field strength."
+        ],
+        "keyTerms": [
+          {
+            "tr": "electric field",
+            "df": "An electric field is a description of electric force per unit positive test charge at each point in space.",
+            "eg": "At each point in space, electric force per unit positive test charge specifies the electric field.",
+            "mi": "The electric field points opposite the direction a positive test charge would accelerate.",
+            "cx": "Its direction agrees with the positive test charge's acceleration direction, rather than opposing it."
+          },
+          {
+            "tr": "positive test charge",
+            "df": "A positive test charge is the charge for which electric force per unit charge describes the electric field.",
+            "eg": "The charge's acceleration direction identifies the direction of the electric field at a point in space.",
+            "mi": "Field-line density gives the direction a positive test charge would accelerate.",
+            "cx": "Acceleration direction establishes field direction; density instead indicates relative field strength."
+          },
+          {
+            "tr": "field-line density",
+            "df": "Field-line density is the field-line property that indicates relative field strength.",
+            "eg": "Comparing density at two points in space provides a comparison of relative field strength.",
+            "mi": "Relative field strength indicates field-line density.",
+            "cx": "The stated relation runs from the density of field lines to comparative strength, not in reverse."
+          }
+        ],
+        "scenario": {
+          "su": "A student must label two electric-field descriptions before a deadline, using a direction record and a field-line-density comparison. One description records where a positive test charge would accelerate, while the other compares denser and less dense field lines, so each label must follow the relevant relation.",
+          "ma": "positive-test-charge acceleration direction record, denser-versus-less-dense field-line comparison, electric-force-per-unit-positive-test-charge passage"
+        },
+        "mc": [
+          {
+            "q": "At one point in space, a record gives electric force per unit positive test charge and an arrow gives the positive test charge's acceleration direction; what distinction is supported?",
+            "op": [
+              "Field describes force per charge; direction follows acceleration",
+              "Field describes acceleration; direction follows force per charge",
+              "Direction describes force per charge; field follows acceleration",
+              "Field describes force per charge; direction omitted"
+            ],
+            "ai": 0,
+            "fi": [
+              0,
+              1
+            ],
+            "ex": "The electric field describes electric force per unit positive test charge, while its direction follows the positive test charge's acceleration direction. Swapping those relations incorrectly makes acceleration describe the field itself."
+          },
+          {
+            "q": "Two field-line displays differ in density, with the first visibly denser than the second; under a deadline, which comparison should the student record from that observation?",
+            "op": [
+              "First has greater relative field strength",
+              "Second has greater relative field strength",
+              "First has the positive charge direction",
+              "Second describes force per positive charge"
+            ],
+            "ai": 0,
+            "fi": [
+              2
+            ],
+            "ex": "Field-line density indicates relative field strength, so the denser first display supports greater relative strength. Assigning greater strength to the less dense second display reverses the supplied relation."
+          }
+        ]
+      },
+      "originalArtifactSha256": "aa8dbf8343ad2edb01e3ebdedc46a5634bd6e0a55629b4d1eb8cc44f4a685ada",
+      "compilerAdmission": {
+        "needsRetry": true,
+        "issues": [
+          "lesson-2:key-term-0:example-repeats-definition"
+        ]
+      },
+      "diagnoses": [
+        {
+          "winnerScores": {
+            "sourceFidelity": 4,
+            "knowledgePrecision": 3,
+            "scenarioReadiness": 4,
+            "assessmentCorrectness": 4,
+            "choiceDiscriminability": 3,
+            "feedbackInstructionality": 4,
+            "internalCoherence": 4
+          },
+          "criticalDefects": [],
+          "rationale": "B covers all three source relations with correct keys and coherent feedback. A contains a reversed definition, a wrong key, duplicate alternatives, and an answer-explanation contradiction.",
+          "decisionSha256": "49c30b55b81728972c527e1e6f936ec9a023aeb090a0549f69b342009e9949ad"
+        },
+        {
+          "winnerScores": {
+            "sourceFidelity": 4,
+            "knowledgePrecision": 4,
+            "scenarioReadiness": 4,
+            "assessmentCorrectness": 4,
+            "choiceDiscriminability": 3,
+            "feedbackInstructionality": 4,
+            "internalCoherence": 4
+          },
+          "criticalDefects": [],
+          "rationale": "A covers all supplied electric-field claims with a usable evidence-based decision and correct assessments. B introduces unsupported physics, gives an incorrect electric-force correction, and has an erroneous, contradictory, and ambiguous second assessment.",
+          "decisionSha256": "c038fa9656682bf9e68455e4e1581e91774a8a5628ba9dbcd7d2a329e6472e00"
+        }
+      ]
+    }
+  ],
+  "claimBoundary": "These are source packets, diagnosed reference artifacts, and compiler outcomes only. No local artifact, provider route, organizer preference, or training authorization is included.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "838aa816e96603e04e54a6a339e80570b8b818221320ecab436538c8b70e8540"
+  }
+}

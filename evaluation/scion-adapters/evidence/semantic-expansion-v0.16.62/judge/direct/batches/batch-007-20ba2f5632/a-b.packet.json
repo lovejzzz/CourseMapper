@@ -1,0 +1,1651 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-packet-v1",
+  "order": "A/B",
+  "generatedAt": "2026-07-19T21:41:00.000Z",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "prompt": {
+    "path": "evaluation/scion-adapters/lesson-kernel-judge-prompt-v0.16.54.md",
+    "sha256": "37844b86736335db54b561d8c031660ef71679c55ae1108e2e999e746f2a1c96"
+  },
+  "dimensions": [
+    "sourceFidelity",
+    "knowledgePrecision",
+    "scenarioReadiness",
+    "assessmentCorrectness",
+    "choiceDiscriminability",
+    "feedbackInstructionality",
+    "internalCoherence"
+  ],
+  "cases": [
+    {
+      "caseId": "scion-kernel-9cf66f744feb86fe5b238dfb",
+      "pairId": "scion-kernel-pair-64589f39232035506f4600ff",
+      "domain": "physics",
+      "failureFamilies": [
+        "answer-key-correctness"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-3",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Gauss's law",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: Gauss's law relates the net electric flux through a closed surface to the net charge enclosed by that surface. Claim 1: A Gaussian surface is useful for calculating fields when symmetry makes the field magnitude or direction simple on the surface. Claim 2: Zero enclosed charge implies zero net flux, not necessarily zero electric field everywhere on the surface.",
+        "readings": "OpenStax University Physics Volume 2, Ch. 6"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "3b263333e49bb33f83e6d019fd7e157fd10c684598ac03a65955ba0733dc0e6f",
+        "kernelId": "physics/gausss-law",
+        "term": "Gauss's law",
+        "claims": [
+          "Gauss's law relates the net electric flux through a closed surface to the net charge enclosed by that surface.",
+          "A Gaussian surface is useful for calculating fields when symmetry makes the field magnitude or direction simple on the surface.",
+          "Zero enclosed charge implies zero net flux, not necessarily zero electric field everywhere on the surface."
+        ],
+        "anchors": [
+          {
+            "src": "openstax:university-physics-volume-2#6",
+            "loc": "6.3",
+            "quote": "electric flux through any closed surface is proportional to the enclosed electric charge"
+          },
+          {
+            "src": "openstax:university-physics-volume-2#6",
+            "loc": "6.4",
+            "quote": "Use symmetry to determine the electric field"
+          },
+          {
+            "src": "openstax:university-physics-volume-2#6",
+            "loc": "6.3",
+            "quote": "the net flux depends only on the charge enclosed"
+          }
+        ],
+        "attribution": [
+          "OpenStax University Physics Volume 2, Ch. 6"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "095eb7c6553df30609d1ea37529396de0e0f93711baa28774750fc3e02747761",
+          "lessonKernel": {
+            "lessonId": "lesson-3",
+            "facts": [
+              "Gauss's law relates the net electric flux through a closed surface to the net charge enclosed by that surface. ",
+              "A Gaussian surface is useful for calculating fields when symmetry makes the field magnitude or direction simple on the surface. ",
+              "Zero enclosed charge implies zero net flux, not necessarily zero electric field everywhere on the surface."
+            ],
+            "keyTerms": [
+              {
+                "tr": "net electric flux",
+                "df": "The net electric flux through a closed surface is related to the net charge enclosed by that surface. ",
+                "eg": "Calculating the total electric flux passing through a sphere requires knowing the total charge inside it. ",
+                "mi": "Net electric flux is always zero if the enclosed charge is zero, regardless of the field distribution. ",
+                "cx": "Zero enclosed charge implies zero net flux, not necessarily zero electric field everywhere on the surface."
+              },
+              {
+                "tr": "Gaussian surface",
+                "df": "A Gaussian surface is a specific type of closed surface that simplifies field calculations when symmetry is present. ",
+                "eg": "Using a spherical Gaussian surface simplifies finding the electric field magnitude due to symmetry. ",
+                "mi": "A Gaussian surface is only useful when the electric field magnitude is constant across the entire surface. ",
+                "cx": "A Gaussian surface is useful for calculating fields when symmetry makes the field magnitude or direction simple on the surface."
+              },
+              {
+                "tr": "enclosed charge",
+                "df": "The net charge enclosed by a closed surface is the quantity that determines the net electric flux through it. ",
+                "eg": "Determining the net charge enclosed by a surface is necessary to apply Gauss's law correctly. ",
+                "mi": "The enclosed charge dictates the electric field everywhere on the surface, not just the net flux. ",
+                "cx": "Zero enclosed charge implies zero net flux, not necessarily zero electric field everywhere on the surface."
+              }
+            ],
+            "scenario": {
+              "su": "A spherical Gaussian surface encloses a point charge $Q$ and a region of zero charge. Calculate the net electric flux through this surface. The constraint is that the surface is perfectly spherical, ensuring symmetry.",
+              "ma": "Compare the net electric flux calculated using the Gauss's law relationship to the observation that zero enclosed charge implies zero net flux, not necessarily zero electric field everywhere on the surface."
+            },
+            "mc": [
+              {
+                "q": "When a Gaussian surface encloses zero net charge, what is the direct relationship between the net electric flux and the field distribution on the surface? ",
+                "op": [
+                  "The net electric flux is zero because the field magnitude is zero everywhere.",
+                  "The net electric flux is zero because the enclosed charge is zero.",
+                  "The net electric flux is zero because the surface is spherical.",
+                  "The net electric flux is zero because the field direction is uniform."
+                ],
+                "ai": 0,
+                "fi": [
+                  0,
+                  2
+                ],
+                "ex": "Gauss's law relates the net electric flux through a closed surface to the net charge enclosed by that surface, and zero enclosed charge implies zero net flux."
+              },
+              {
+                "q": "Given a Gaussian surface with zero enclosed charge, which statement accurately describes the resulting electric field on the surface? ",
+                "op": [
+                  "The electric field magnitude must be zero at every point on the surface.",
+                  "The electric field direction must be uniform across the entire surface.",
+                  "The electric field magnitude is not necessarily zero everywhere on the surface.",
+                  "The electric field must point directly away from the enclosed charge."
+                ],
+                "ai": 2,
+                "fi": [
+                  2
+                ],
+                "ex": "Zero enclosed charge implies zero net flux, not necessarily zero electric field everywhere on the surface."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "d20e8714013ae355d83f89a3cdddb8e4454ddac208159fe3d800ff461723a772",
+          "lessonKernel": {
+            "lessonId": "lesson-3",
+            "facts": [
+              "Gauss's law relates the net electric flux through a closed surface to the net charge enclosed by that surface.",
+              "A Gaussian surface is useful for calculating fields when symmetry makes the field magnitude or direction simple on the surface.",
+              "Zero enclosed charge implies zero net flux, not necessarily zero electric field everywhere on the surface."
+            ],
+            "keyTerms": [
+              {
+                "tr": "net electric flux",
+                "df": "Net electric flux is the quantity related by Gauss's law to net charge enclosed by a closed surface.",
+                "eg": "A closed surface with zero enclosed charge has zero net electric flux.",
+                "mi": "Zero net electric flux means the electric field is zero everywhere on the surface.",
+                "cx": "The field can remain nonzero at places on the surface even when its net flux is zero."
+              },
+              {
+                "tr": "Gaussian surface",
+                "df": "A Gaussian surface is useful for field calculations when symmetry simplifies field magnitude or direction on the surface.",
+                "eg": "Symmetry that makes the field direction simple provides a useful Gaussian surface for calculating fields.",
+                "mi": "A Gaussian surface is useful whenever the enclosed charge is zero.",
+                "cx": "Its stated usefulness depends on symmetry simplifying the field on the surface, rather than on zero enclosed charge."
+              },
+              {
+                "tr": "zero enclosed charge",
+                "df": "Zero enclosed charge is a condition that implies zero net flux through the closed surface.",
+                "eg": "Gauss's law connects zero enclosed charge with zero net electric flux through a closed surface.",
+                "mi": "Zero enclosed charge requires the electric field to vanish at every point on the surface.",
+                "cx": "That charge condition determines the net flux but does not require every surface field value to be zero."
+              }
+            ],
+            "scenario": {
+              "su": "A closed surface record shows zero enclosed charge and zero net flux, while electric field observations are listed at points on the surface. Students must decide whether the observations require zero electric field everywhere, despite the constraint that the decision must follow only from the stated charge–flux relation.",
+              "ma": "enclosed-charge notation showing zero, net-flux notation showing zero, electric-field observations at surface points"
+            },
+            "mc": [
+              {
+                "q": "A closed surface has zero enclosed charge and zero net flux; which distinction between zero net flux and electric field everywhere is supported by these observations?",
+                "op": [
+                  "Enclosed charge need not be zero",
+                  "Flux need not be zero overall",
+                  "Field is zero everywhere on surface",
+                  "Field need not be zero everywhere"
+                ],
+                "ai": 3,
+                "fi": [
+                  2
+                ],
+                "ex": "Zero enclosed charge supports zero net flux, while the electric field is not necessarily zero everywhere on the surface. Therefore, an everywhere-zero field does not follow from the flux observation."
+              },
+              {
+                "q": "A Gaussian surface has symmetry that makes field direction simple, while a deadline permits one calculation choice; which assessment of the surface is supported?",
+                "op": [
+                  "Field direction makes symmetry unnecessary",
+                  "Useful because enclosed charge is zero",
+                  "Useful for calculating fields with symmetry",
+                  "Symmetry follows from calculating fields"
+                ],
+                "ai": 2,
+                "fi": [
+                  1
+                ],
+                "ex": "Symmetry makes the field direction simple on the Gaussian surface, supporting its use for calculating fields. Zero enclosed charge is not the stated basis for that usefulness."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-9cf66f744feb86fe5b238dfb",
+        "pairId": "scion-kernel-pair-64589f39232035506f4600ff",
+        "artifactSha256": {
+          "A": "095eb7c6553df30609d1ea37529396de0e0f93711baa28774750fc3e02747761",
+          "B": "d20e8714013ae355d83f89a3cdddb8e4454ddac208159fe3d800ff461723a772"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    },
+    {
+      "caseId": "scion-kernel-a0ec1501fb4ae28c55cd25b4",
+      "pairId": "scion-kernel-pair-f5ca71e258b5f9795e9d98a9",
+      "domain": "anatomy",
+      "failureFamilies": [
+        "feedback-instructionality",
+        "source-fidelity"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-2",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Homeostasis and feedback regulation",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: Homeostasis is the maintenance of stable internal conditions, usually through negative-feedback loops that detect a deviation from a set point and activate a response that reverses it. Claim 1: A set point is the physiological value around which the normal range fluctuates. Claim 2: A feedback loop includes a sensor, a control center, and an effector.",
+        "readings": "OpenStax Anatomy and Physiology 2e"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "5de1767fd84c6475a8dd2cfc2ac561e6c1c4968635c80e4858b0321d4163e8ce",
+        "kernelId": "anatomy/homeostasis-feedback",
+        "term": "Homeostasis and feedback regulation",
+        "claims": [
+          "Homeostasis is the maintenance of stable internal conditions, usually through negative-feedback loops that detect a deviation from a set point and activate a response that reverses it.",
+          "A set point is the physiological value around which the normal range fluctuates.",
+          "A feedback loop includes a sensor, a control center, and an effector."
+        ],
+        "anchors": [
+          {
+            "src": "openstax:anatomy-and-physiology-2e#1-homeostasis",
+            "loc": "1.5",
+            "quote": "Negative feedback is a mechanism that reverses a deviation from the set point"
+          },
+          {
+            "src": "openstax:anatomy-and-physiology-2e#1-homeostasis",
+            "loc": "1.5",
+            "quote": "A set point is the physiological value around which the normal range fluctuates"
+          },
+          {
+            "src": "openstax:anatomy-and-physiology-2e#1-homeostasis",
+            "loc": "1.5",
+            "quote": "An effector is the component in a feedback system that causes a change to reverse the situation and return the value to the normal range"
+          }
+        ],
+        "attribution": [
+          "OpenStax Anatomy and Physiology 2e"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "48f25a32ef8a45ebe898ae6439dedf4ab278eb1315d4d9fe25d642293273f4d4",
+          "lessonKernel": {
+            "lessonId": "lesson-2",
+            "facts": [
+              "Homeostasis is the maintenance of stable internal conditions, usually through negative-feedback loops that detect a deviation from a set point and activate a response that reverses it.",
+              "A set point is the physiological value around which the normal range fluctuates.",
+              "A feedback loop includes a sensor, a control center, and an effector."
+            ],
+            "keyTerms": [
+              {
+                "tr": "Homeostasis",
+                "df": "Homeostasis is the maintenance of stable internal conditions, usually through negative-feedback loops that detect a deviation from a set point and activate a response that reverses it.",
+                "eg": "Maintaining stable internal conditions through negative-feedback loops that detect a deviation from a set point and activate a response that reverses it.",
+                "mi": "Homeostasis is simply the process of constantly adjusting body temperature to stay within a narrow range.",
+                "cx": "Homeostasis is defined by the mechanism of negative-feedback loops that detect deviation from a set point and activate a response that reverses it."
+              },
+              {
+                "tr": "Set point",
+                "df": "A set point is the physiological value around which the normal range fluctuates.",
+                "eg": "The physiological value around which the normal range fluctuates is the set point.",
+                "mi": "A set point is the exact, unchanging physiological value that the body must maintain without any fluctuation.",
+                "cx": "A set point is the physiological value around which the normal range fluctuates, allowing for fluctuation within a normal range."
+              },
+              {
+                "tr": "Feedback loop",
+                "df": "A feedback loop includes a sensor, a control center, and an effector.",
+                "eg": "A feedback loop includes a sensor, a control center, and an effector.",
+                "mi": "A feedback loop is just a simple chain where a signal goes from one part of the body to another part.",
+                "cx": "A feedback loop is a structure comprising a sensor, a control center, and an effector that operates to reverse a deviation."
+              }
+            ],
+            "scenario": {
+              "su": "A patient's body temperature rises above the normal range, triggering a regulatory response to bring it back down. The constraint is that the response must be initiated by a sensor detecting the deviation.",
+              "ma": "Compare the following records: Record A shows a sensor detecting a high temperature, Record B shows a control center initiating a cooling response."
+            },
+            "mc": [
+              {
+                "q": "When a deviation occurs, what is the primary function of the negative-feedback loop in maintaining homeostasis?",
+                "op": [
+                  "The loop ensures the set point remains static without any fluctuation.",
+                  "The loop activates a response that reverses the deviation from the set point.",
+                  "The loop only involves a sensor and an effector to maintain stability.",
+                  "The loop ignores the set point and only focuses on the sensor's reading."
+                ],
+                "ai": 1,
+                "fi": [
+                  0
+                ],
+                "ex": "The loop activates a response that reverses the deviation from the set point, as stated in the fact ledger, which is the subject evidence supporting the answer, then correct the closest distractor."
+              },
+              {
+                "q": "If a physiological value fluctuates around a specific range, what is the precise term describing that specific value?",
+                "op": [
+                  "The physiological value around which the normal range fluctuates.",
+                  "The physiological value that is exactly the set point.",
+                  "The internal condition that is maintained by the body.",
+                  "The response activated by the control center."
+                ],
+                "ai": 0,
+                "fi": [
+                  1
+                ],
+                "ex": "The physiological value around which the normal range fluctuates is the set point, as stated in the fact ledger, which is the subject evidence supporting the answer, then correct the closest distractor."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "d96b91e5a6ec3dd1501e3d97c150f86100cba5629ff46f6fb4eb8e8946b22606",
+          "lessonKernel": {
+            "lessonId": "lesson-2",
+            "facts": [
+              "Homeostasis is the maintenance of stable internal conditions, usually through negative-feedback loops that detect a deviation from a set point and activate a response that reverses it.",
+              "A set point is the physiological value around which the normal range fluctuates.",
+              "A feedback loop includes a sensor, a control center, and an effector."
+            ],
+            "keyTerms": [
+              {
+                "tr": "Homeostasis",
+                "df": "Homeostasis is the maintenance of stable internal conditions through regulation.",
+                "eg": "In homeostasis, negative-feedback loops detect a deviation from a set point.",
+                "mi": "Homeostasis is the physiological value around which the normal range fluctuates.",
+                "cx": "The physiological value is the set point, while homeostasis maintains stable internal conditions."
+              },
+              {
+                "tr": "set point",
+                "df": "A set point is a physiological value associated with fluctuations of the normal range.",
+                "eg": "A negative-feedback loop detects a deviation from a set point.",
+                "mi": "A set point is the normal range that fluctuates around a physiological value.",
+                "cx": "The normal range does the fluctuating around the physiological value called the set point."
+              },
+              {
+                "tr": "feedback loop",
+                "df": "A feedback loop is a regulatory structure that includes a sensor, a control center, and an effector.",
+                "eg": "Homeostasis usually proceeds through negative-feedback loops that reverse a detected deviation.",
+                "mi": "An effector is a feedback loop that includes a sensor and a control center.",
+                "cx": "The effector is a member alongside the sensor and control center within the feedback loop."
+              }
+            ],
+            "scenario": {
+              "su": "A student must classify two descriptions before a deadline: one describes a physiological value with a normal range fluctuating around it, and the other lists a sensor, a control center, and an effector. The deadline permits no added assumptions, so each label must rest on the written details.",
+              "ma": "physiological-value notation showing a normal range fluctuating around it, component record listing a sensor, a control center, and an effector"
+            },
+            "mc": [
+              {
+                "q": "A comparison notes that stable internal conditions are maintained, while a physiological value has a normal range fluctuating around it. Which option correctly distinguishes homeostasis from a set point?",
+                "op": [
+                  "Homeostasis maintains stable conditions; range fluctuates around set point",
+                  "Set point maintains stable conditions; range fluctuates around homeostasis",
+                  "Homeostasis fluctuates around range; set point maintains conditions",
+                  "Homeostasis detects deviation; set point reverses response"
+                ],
+                "ai": 0,
+                "fi": [
+                  0,
+                  1
+                ],
+                "ex": "Homeostasis maintains stable internal conditions, whereas the normal range fluctuates around a physiological value called a set point. A set point does not maintain stable conditions; it is the value around which the range fluctuates."
+              },
+              {
+                "q": "A case record lists a sensor and control center, then identifies an effector; under a deadline, how should the record be classified against the supplied feedback-loop description?",
+                "op": [
+                  "It includes sensor, control center, and effector",
+                  "It includes sensor and control center",
+                  "It includes control center and effector",
+                  "It includes sensor and effector"
+                ],
+                "ai": 0,
+                "fi": [
+                  2
+                ],
+                "ex": "The record matches the feedback-loop description because it includes a sensor, a control center, and an effector. Listing the sensor and control center while omitting the effector leaves out a stated member."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-a0ec1501fb4ae28c55cd25b4",
+        "pairId": "scion-kernel-pair-f5ca71e258b5f9795e9d98a9",
+        "artifactSha256": {
+          "A": "48f25a32ef8a45ebe898ae6439dedf4ab278eb1315d4d9fe25d642293273f4d4",
+          "B": "d96b91e5a6ec3dd1501e3d97c150f86100cba5629ff46f6fb4eb8e8946b22606"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    },
+    {
+      "caseId": "scion-kernel-a2c0b5c5451d366d5635d6ba",
+      "pairId": "scion-kernel-pair-1322822493e45ddcab9d3169",
+      "domain": "user-experience-design",
+      "failureFamilies": [
+        "answer-feedback-consistency",
+        "choice-discriminability",
+        "feedback-instructionality",
+        "source-fidelity"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-1",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Research planning",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: A UX research plan turns a decision need into actionable learning objectives, participants, tasks, evidence-capture roles, and a rehearsal-ready study setup. Claim 1: The team should agree what it wants to learn from the research round before selecting study details. Claim 2: A prototype used in research should work end-to-end and be usable and accessible in the research venue. Claim 3: Researchers should run through test tasks on the day before the research session. Claim 4: A practice session with a team member can expose procedure problems before participants arrive.",
+        "readings": "UK Government Service Manual"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "55810138f44b132a506c48e324abae61faab42bb035796fd7728e36106eaf51e",
+        "kernelId": "ux/research-planning",
+        "term": "Research planning",
+        "claims": [
+          "A UX research plan turns a decision need into actionable learning objectives, participants, tasks, evidence-capture roles, and a rehearsal-ready study setup.",
+          "The team should agree what it wants to learn from the research round before selecting study details.",
+          "A prototype used in research should work end-to-end and be usable and accessible in the research venue.",
+          "Researchers should run through test tasks on the day before the research session.",
+          "A practice session with a team member can expose procedure problems before participants arrive."
+        ],
+        "anchors": [
+          {
+            "src": "govuk:plan-user-research",
+            "loc": "Set your research objectives",
+            "quote": "Each round of user research should have clear objectives. Keep your objectives actionable and to the point."
+          },
+          {
+            "src": "govuk:plan-user-research",
+            "loc": "Set your research objectives",
+            "quote": "Work with your team to agree what you want to learn from a round of research."
+          },
+          {
+            "src": "govuk:plan-user-research",
+            "loc": "Prepare the prototype",
+            "quote": "Your prototype or beta service needs to work from end-to-end and be usable and accessible from the research venue."
+          },
+          {
+            "src": "govuk:plan-user-research",
+            "loc": "Prepare the prototype",
+            "quote": "Run through the test tasks on the day before the research."
+          },
+          {
+            "src": "govuk:plan-user-research",
+            "loc": "Run a practice session",
+            "quote": "To make sure your research goes smoothly, consider running through the session with a team member."
+          }
+        ],
+        "attribution": [
+          "UK Government Service Manual"
+        ],
+        "license": "Open Government Licence v3.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "e646f8afdffd3f5cb2dd59eb1afa333c8550ed26cc2a239ef1dbf95d2698b6aa",
+          "lessonKernel": {
+            "lessonId": "lesson-1",
+            "facts": [
+              "A UX research plan turns a decision need into actionable learning objectives, participants, tasks, evidence-capture roles, and a rehearsal-ready study setup.",
+              "The team should agree what it wants to learn from the research round before selecting study details.",
+              "A prototype used in research should work end-to-end and be usable and accessible in the research venue.",
+              "Researchers should run through test tasks on the day before the research session.",
+              "A practice session with a team member can expose procedure problems before participants arrive."
+            ],
+            "keyTerms": [
+              {
+                "tr": "actionable learning objectives",
+                "df": "A UX research plan transforms a decision need into specific learning objectives, participants, tasks, evidence-capture roles, and a rehearsal-ready study setup.",
+                "eg": "Defining specific learning objectives for a usability test session.",
+                "mi": "Learning objectives are simply the general goals of the entire research project.",
+                "cx": "Learning objectives are specific outcomes derived from the research plan that guide the session's execution."
+              },
+              {
+                "tr": "rehearsal-ready study setup",
+                "df": "A rehearsal-ready study setup involves preparing a study environment where researchers run through test tasks the day before the research session.",
+                "eg": "Researchers running through test tasks on the day before the research session.",
+                "mi": "A rehearsal-ready setup is just having all materials ready in a room before participants arrive.",
+                "cx": "A rehearsal-ready setup specifically requires researchers to run through test tasks the day before the research session."
+              },
+              {
+                "tr": "prototype used in research",
+                "df": "A prototype used in research must function end-to-end and maintain usability and accessibility within the specific research venue.",
+                "eg": "A prototype used in research that works end-to-end and is accessible in the research venue.",
+                "mi": "Any prototype used in research is sufficient as long as it looks good for the participants.",
+                "cx": "A prototype used in research must work end-to-end and be usable and accessible in the research venue."
+              }
+            ],
+            "scenario": {
+              "su": "A team needs to understand user flow for a new checkout process, but they are struggling to define what success looks like. The constraint is that the research venue is a small, shared office space with limited setup time.",
+              "ma": "The team compares the initial decision need document against the agreed-upon learning objectives, and they review the prototype's end-to-end functionality against the venue's accessibility requirements."
+            },
+            "mc": [
+              {
+                "q": "When selecting study details, what must the team agree upon first according to the research planning process?",
+                "op": [
+                  "The specific evidence-capture roles",
+                  "The rehearsal-ready study setup",
+                  "What it wants to learn from the research round",
+                  "The end-to-end prototype functionality"
+                ],
+                "ai": 2,
+                "fi": [
+                  1
+                ],
+                "ex": "The team should agree what it wants to learn from the research round, then the rehearsal-ready study setup is incorrect because the agreement on learning goals precedes the selection of study details."
+              },
+              {
+                "q": "A researcher is preparing for a usability test and needs to ensure the environment is ready for the session; which action addresses this requirement?",
+                "op": [
+                  "Running through test tasks on the day before the session",
+                  "Ensuring the prototype works end-to-end and is accessible",
+                  "Agreeing on the desired learning objectives beforehand",
+                  "Having a practice session with a team member"
+                ],
+                "ai": 0,
+                "fi": [
+                  3
+                ],
+                "ex": "Researchers should run through test tasks on the day before the research session, then ensuring the prototype works end-to-end and is accessible is incorrect because rehearsal-ready study setup is not the same as running through tasks."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "7100cec618e244a83bd101a8a03f3fa66e621abc1e7f9b7ca03554ca34c91fb7",
+          "lessonKernel": {
+            "lessonId": "lesson-1",
+            "facts": [
+              "A UX research plan turns a decision need into actionable learning objectives, participants, tasks, evidence-capture roles, and a rehearsal-ready study setup.",
+              "The team should agree what it wants to learn from the research round before selecting study details.",
+              "A prototype used in research should work end-to-end and be usable and accessible in the research venue.",
+              "Researchers should run through test tasks on the day before the research session.",
+              "A practice session with a team member can expose procedure problems before participants arrive."
+            ],
+            "keyTerms": [
+              {
+                "tr": "research plan",
+                "df": "A research plan connects a decision need with learning objectives, participants, tasks, evidence-capture roles, and a rehearsal-ready study setup.",
+                "eg": "The team lists participants, test tasks, and evidence-capture roles for its research round.",
+                "mi": "The team should select study details before agreeing what it wants to learn.",
+                "cx": "Agreement about the intended learning comes before the choice of study details."
+              },
+              {
+                "tr": "prototype",
+                "df": "A research prototype has the distinguishing properties of working end-to-end and being usable and accessible in the research venue.",
+                "eg": "Researchers check the prototype end-to-end in the research venue.",
+                "mi": "Working end-to-end makes a prototype suitable even when it is inaccessible in the research venue.",
+                "cx": "Research use requires venue accessibility and usability as well as end-to-end operation."
+              },
+              {
+                "tr": "practice session",
+                "df": "A practice session is a rehearsal with a team member that can expose procedure problems before participants arrive.",
+                "eg": "A team member joins the practice session before the participants arrive.",
+                "mi": "Procedure problems should first be exposed after participants arrive.",
+                "cx": "The earlier team-member rehearsal can reveal those problems ahead of participant arrival."
+              }
+            ],
+            "scenario": {
+              "su": "A team is preparing a research session and must decide whether its study setup is rehearsal-ready before participants arrive. Its final preparation window is the day before the session, creating tension between selecting study details and completing the required checks.",
+              "ma": "agreed-learning-objectives notation, selected-study-details list, prototype end-to-end run record, research-venue usability and accessibility observations, day-before test-task run-through notes, team-member practice-session procedure-problem notes"
+            },
+            "mc": [
+              {
+                "q": "A team has listed participants and tasks but has not agreed what it wants to learn. Which distinction between a research plan and study details supports its next decision?",
+                "op": [
+                  "Agree participants before selecting learning aims",
+                  "Select study details before agreeing learning aims",
+                  "Select tasks before identifying the decision need",
+                  "Agree learning aims before selecting study details"
+                ],
+                "ai": 3,
+                "fi": [
+                  0,
+                  1
+                ],
+                "ex": "The team should agree what it wants to learn before selecting study details, while the research plan connects the decision need to objectives and setup elements. Listing participants first reverses that planning relationship."
+              },
+              {
+                "q": "During the day-before task run-through, a team member identifies procedure problems, and participants arrive next. Which action applies the observed evidence under this timing constraint?",
+                "op": [
+                  "Complete the practice session before participants arrive",
+                  "Run the practice session after participants arrive",
+                  "Use participants before involving the team member",
+                  "Complete participant research before the practice session"
+                ],
+                "ai": 0,
+                "fi": [
+                  3,
+                  4
+                ],
+                "ex": "Researchers should run through test tasks the day before, and a team-member practice session can expose procedure problems before participants arrive. Waiting until after their arrival reverses the stated timing."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-a2c0b5c5451d366d5635d6ba",
+        "pairId": "scion-kernel-pair-1322822493e45ddcab9d3169",
+        "artifactSha256": {
+          "A": "e646f8afdffd3f5cb2dd59eb1afa333c8550ed26cc2a239ef1dbf95d2698b6aa",
+          "B": "7100cec618e244a83bd101a8a03f3fa66e621abc1e7f9b7ca03554ca34c91fb7"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    },
+    {
+      "caseId": "scion-kernel-a59f5ba5983f07cae64e4baa",
+      "pairId": "scion-kernel-pair-1253b20523f3166b7e945a71",
+      "domain": "anatomy",
+      "failureFamilies": [
+        "feedback-instructionality",
+        "misconception-validity",
+        "source-fidelity"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-8",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Nervous tissue",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: Nervous tissue is excitable tissue made mainly of neurons and neuroglia; neurons propagate information through electrochemical impulses called action potentials. Claim 1: Nervous tissue sends and receives electrochemical signals that provide the body with information. Claim 2: Neuroglia support neurons and modulate information propagation.",
+        "readings": "OpenStax Anatomy and Physiology 2e"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "c7c91fd6e67090a9c77348bed5c1ef57a5d982ad0def5beb8851dcf171faef66",
+        "kernelId": "anatomy/nervous-tissue",
+        "term": "Nervous tissue",
+        "claims": [
+          "Nervous tissue is excitable tissue made mainly of neurons and neuroglia; neurons propagate information through electrochemical impulses called action potentials.",
+          "Nervous tissue sends and receives electrochemical signals that provide the body with information.",
+          "Neuroglia support neurons and modulate information propagation."
+        ],
+        "anchors": [
+          {
+            "src": "openstax:anatomy-and-physiology-2e#4-5",
+            "loc": "4.5",
+            "quote": "Two main classes of cells make up nervous tissue: the neuron and neuroglia"
+          },
+          {
+            "src": "openstax:anatomy-and-physiology-2e#4-5",
+            "loc": "4.5",
+            "quote": "capable of sending and receiving electrochemical signals that provide the body with information"
+          },
+          {
+            "src": "openstax:anatomy-and-physiology-2e#4-5",
+            "loc": "4.5",
+            "quote": "Neuroglia play an essential role in supporting neurons and modulating their information propagation"
+          }
+        ],
+        "attribution": [
+          "OpenStax Anatomy and Physiology 2e"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "8aed6defc118a9b5a160f2d22f4cf6226e2542856379d528d89a800c97427e41",
+          "lessonKernel": {
+            "lessonId": "lesson-8",
+            "facts": [
+              "Nervous tissue is excitable tissue made mainly of neurons and neuroglia; neurons propagate information through electrochemical impulses called action potentials.",
+              "Nervous tissue sends and receives electrochemical signals that provide the body with information.",
+              "Neuroglia support neurons and modulate information propagation."
+            ],
+            "keyTerms": [
+              {
+                "tr": "Nervous tissue",
+                "df": "Nervous tissue is defined as excitable tissue composed primarily of neurons and neuroglia.",
+                "eg": "Neurons propagate information through electrochemical impulses called action potentials.",
+                "mi": "Nervous tissue is only made of neurons because neurons are the only cells that can send signals.",
+                "cx": "Nervous tissue is made mainly of neurons and neuroglia because neuroglia support neurons and modulate information propagation."
+              },
+              {
+                "tr": "Neurons",
+                "df": "Neurons are the primary cells within nervous tissue responsible for propagating information via action potentials.",
+                "eg": "Neurons propagate information through electrochemical impulses called action potentials.",
+                "mi": "Neurons are the only cells that send and receive electrochemical signals to provide the body with information.",
+                "cx": "Neurons propagate information through electrochemical impulses called action potentials because they are the cells that send and receive electrochemical signals."
+              },
+              {
+                "tr": "Neuroglia",
+                "df": "Neuroglia are cells within nervous tissue that provide support and modulate the propagation of information.",
+                "eg": "Neuroglia support neurons and modulate information propagation.",
+                "mi": "Neuroglia are only involved in supporting neurons and have no role in modulating information propagation.",
+                "cx": "Neuroglia support neurons and modulate information propagation because they are involved in modulating information propagation."
+              }
+            ],
+            "scenario": {
+              "su": "A patient presents with impaired sensory input, and a technician observes that a specific cluster of cells is actively receiving signals while another cluster is passively supporting the primary signaling cells. The technician must determine the functional role of the cells based on their observed activity and structural relationship.",
+              "ma": "Compare the observation that a specific cluster of cells is actively receiving signals with the observation that another cluster is passively supporting the primary signaling cells."
+            },
+            "mc": [
+              {
+                "q": "When analyzing tissue function, how does the role of neurons differ from neuroglia in the context of information transfer?",
+                "op": [
+                  "Neurons propagate information through electrochemical impulses called action potentials.",
+                  "Neuroglia support neurons and modulate information propagation.",
+                  "Neurons send and receive electrochemical signals that provide the body with information.",
+                  "Neuroglia are the primary cells that propagate information through electrochemical impulses."
+                ],
+                "ai": 0,
+                "fi": [
+                  0,
+                  2
+                ],
+                "ex": "Neurons propagate information through electrochemical impulses called action potentials, while neuroglia support neurons and modulate information propagation, which distinguishes their primary roles in signaling and support."
+              },
+              {
+                "q": "A researcher notes that a specific region of nervous tissue is actively sending signals, while an adjacent region is observed to be modulating the flow of those signals. Which statement accurately reflects this interaction?",
+                "op": [
+                  "Neurons send and receive electrochemical signals that provide the body with information.",
+                  "Neuroglia support neurons and modulate information propagation.",
+                  "Neurons propagate information through electrochemical impulses called action potentials.",
+                  "Neuroglia are the primary cells that propagate information through electrochemical impulses."
+                ],
+                "ai": 0,
+                "fi": [
+                  1
+                ],
+                "ex": "Neuroglia support neurons and modulate information propagation, which correctly identifies the role of the adjacent region in modulating the flow of signals."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "8f4eee2d87563cc98c08489f0a9061672870c70690ecfa5c0cce35f707c562bd",
+          "lessonKernel": {
+            "lessonId": "lesson-8",
+            "facts": [
+              "Nervous tissue is excitable tissue made mainly of neurons and neuroglia; neurons propagate information through electrochemical impulses called action potentials.",
+              "Nervous tissue sends and receives electrochemical signals that provide the body with information.",
+              "Neuroglia support neurons and modulate information propagation."
+            ],
+            "keyTerms": [
+              {
+                "tr": "Nervous tissue",
+                "df": "Nervous tissue is excitable tissue made mainly of neurons and neuroglia.",
+                "eg": "Nervous tissue sends and receives electrochemical signals that provide the body with information.",
+                "mi": "Nervous tissue supports neurons and modulates information propagation.",
+                "cx": "Supporting neurons and modulating propagation describe neuroglia, whereas nervous tissue sends and receives electrochemical signals."
+              },
+              {
+                "tr": "neurons",
+                "df": "Neurons are the main nervous-tissue components that propagate information through action potentials.",
+                "eg": "Neurons propagate information through electrochemical impulses called action potentials.",
+                "mi": "Neurons receive support by supporting neuroglia.",
+                "cx": "The supporting role belongs to neuroglia, and neurons are the recipients of that support."
+              },
+              {
+                "tr": "Neuroglia",
+                "df": "Neuroglia are main components of nervous tissue distinguished by supporting neurons and modulating information propagation.",
+                "eg": "Neuroglia support neurons as information propagation occurs.",
+                "mi": "Neuroglia propagate information through action potentials.",
+                "cx": "Action-potential propagation is assigned to neurons; neuroglia influence information propagation through modulation."
+              }
+            ],
+            "scenario": {
+              "su": "A student must assign the labels nervous tissue and neuroglia to a signal record and a support notation before a deadline. The signal record describes sending and receiving electrochemical signals, while the support notation describes supporting neurons and modulating information propagation.",
+              "ma": "Compare the signal record stating that nervous tissue sends and receives electrochemical signals, the support notation stating that neuroglia support neurons and modulate information propagation."
+            },
+            "mc": [
+              {
+                "q": "A passage describes excitable tissue made mainly of neurons and neuroglia, while a notation says neurons propagate information through action potentials. Which distinction matches these observations?",
+                "op": [
+                  "Neurons comprise tissue; nervous tissue propagates information",
+                  "Nervous tissue supports neurons; neuroglia sends signals",
+                  "Nervous tissue comprises; neurons propagate information",
+                  "Neuroglia propagate information; neurons provide support"
+                ],
+                "ai": 2,
+                "fi": [
+                  0
+                ],
+                "ex": "Nervous tissue is made mainly of neurons and neuroglia, and neurons propagate information through action potentials. Neuroglia provide neuronal support rather than taking the action-potential role."
+              },
+              {
+                "q": "Under a labeling deadline, a record says an observed tissue sends and receives electrochemical signals that provide the body information. Which label is warranted by the recorded observation?",
+                "op": [
+                  "The observation describes neurons supporting neuroglia",
+                  "The observation describes neuroglia supporting neurons",
+                  "The observation describes neuroglia modulating propagation",
+                  "The observation describes nervous tissue signaling"
+                ],
+                "ai": 3,
+                "fi": [
+                  1
+                ],
+                "ex": "Sending and receiving electrochemical signals that provide bodily information identifies nervous tissue signaling. Neuroglial support concerns neurons and does not match the recorded activity."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-a59f5ba5983f07cae64e4baa",
+        "pairId": "scion-kernel-pair-1253b20523f3166b7e945a71",
+        "artifactSha256": {
+          "A": "8aed6defc118a9b5a160f2d22f4cf6226e2542856379d528d89a800c97427e41",
+          "B": "8f4eee2d87563cc98c08489f0a9061672870c70690ecfa5c0cce35f707c562bd"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    },
+    {
+      "caseId": "scion-kernel-a62335bce70872832c407eb3",
+      "pairId": "scion-kernel-pair-cfb1819715aff8d7b95ba8b0",
+      "domain": "geology",
+      "failureFamilies": [
+        "answer-feedback-consistency",
+        "choice-discriminability",
+        "feedback-instructionality",
+        "misconception-validity",
+        "scenario-evidence-sufficiency",
+        "source-coverage",
+        "source-fidelity"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-1",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Plate tectonics as an Earth-system model",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: Plate tectonics is the model that connects moving lithospheric plates with the origins of continents, oceans, mountains, earthquakes, volcanoes, and continental drift. Claim 1: The model explains features including folded rocks, mountain ranges, earthquakes, volcanoes, and continental drift. Claim 2: Earth's lithosphere consists of the crust and rigid outermost mantle and is divided into moving tectonic plates.",
+        "readings": "Steven Earle, Physical Geology – 2nd Edition (2019), section 1.5, BCcampus Open Education"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "aeedbbcef83043f47b006db4d034b5591399c3a71f983732fa1deb16f02e204a",
+        "kernelId": "geology-ccby/plate-tectonics-model",
+        "term": "Plate tectonics as an Earth-system model",
+        "claims": [
+          "Plate tectonics is the model that connects moving lithospheric plates with the origins of continents, oceans, mountains, earthquakes, volcanoes, and continental drift.",
+          "The model explains features including folded rocks, mountain ranges, earthquakes, volcanoes, and continental drift.",
+          "Earth's lithosphere consists of the crust and rigid outermost mantle and is divided into moving tectonic plates."
+        ],
+        "anchors": [
+          {
+            "src": "https://opentextbc.ca/physicalgeology2ed/chapter/1-5-fundamentals-of-plate-tectonics/",
+            "loc": "1.5 Fundamentals of Plate Tectonics, paragraph 1",
+            "quote": "Plate tectonics is the model or theory"
+          },
+          {
+            "src": "https://opentextbc.ca/physicalgeology2ed/chapter/1-5-fundamentals-of-plate-tectonics/",
+            "loc": "1.5 Fundamentals of Plate Tectonics, paragraph 1",
+            "quote": "folded rocks and mountain ranges, of earthquakes and volcanoes, and of continental drift"
+          },
+          {
+            "src": "https://opentextbc.ca/physicalgeology2ed/chapter/1-5-fundamentals-of-plate-tectonics/",
+            "loc": "1.5 Fundamentals of Plate Tectonics, paragraph 3",
+            "quote": "The crust and outermost rigid mantle together make up the lithosphere."
+          }
+        ],
+        "attribution": [
+          "Steven Earle, Physical Geology – 2nd Edition (2019), section 1.5, BCcampus Open Education"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "047f514ff74e5f87f3b44bdada7c4179b466e3f9bc200ab5d1dee0862ab3de4a",
+          "lessonKernel": {
+            "lessonId": "lesson-1",
+            "facts": [
+              "Plate tectonics is the model that connects moving lithospheric plates with the origins of continents, oceans, mountains, earthquakes, volcanoes, and continental drift.",
+              "The model explains features including folded rocks, mountain ranges, earthquakes, volcanoes, and continental drift.",
+              "Earth's lithosphere consists of the crust and rigid outermost mantle and is divided into moving tectonic plates."
+            ],
+            "keyTerms": [
+              {
+                "tr": "moving lithospheric plates",
+                "df": "Moving tectonic plates are the rigid divisions that constitute Earth's lithosphere.",
+                "eg": "The model connects moving lithospheric plates with the origins of continents.",
+                "mi": "Moving lithospheric plates are the only part of Earth that moves.",
+                "cx": "Moving lithospheric plates are divided into the crust and rigid outermost mantle."
+              },
+              {
+                "tr": "plate tectonics",
+                "df": "Plate tectonics is the model that connects moving lithospheric plates with various Earth features.",
+                "eg": "Plate tectonics explains features including folded rocks, mountain ranges, earthquakes, volcanoes, and continental drift.",
+                "mi": "Plate tectonics only explains the movement of the crust.",
+                "cx": "Plate tectonics is the model that connects moving lithospheric plates with the origins of continents, oceans, mountains, earthquakes, volcanoes, and continental drift."
+              },
+              {
+                "tr": "lithosphere",
+                "df": "The lithosphere is defined as the crust and rigid outermost mantle which is divided into moving tectonic plates.",
+                "eg": "Earth's lithosphere consists of the crust and rigid outermost mantle and is divided into moving tectonic plates.",
+                "mi": "The lithosphere is only the crust of the Earth.",
+                "cx": "The lithosphere consists of the crust and rigid outermost mantle and is divided into moving tectonic plates."
+              }
+            ],
+            "scenario": {
+              "su": "A geologist observes a region exhibiting folded rocks and mountain ranges, noting that these features are associated with continental drift. The constraint is that the explanation must rely solely on the model connecting moving lithospheric plates to these features.",
+              "ma": "Compare the observation of folded rocks and mountain ranges to the model's explanation of features."
+            },
+            "mc": [
+              {
+                "q": "Which statement correctly distinguishes the scope of plate tectonics from a simpler model focusing only on crustal movement?",
+                "op": [
+                  "Plate tectonics only explains crustal movement.",
+                  "Plate tectonics connects plates to continental drift.",
+                  "Plate tectonics explains folded rocks and mountain ranges.",
+                  "Plate tectonics is limited to ocean floor features."
+                ],
+                "ai": 1,
+                "fi": [
+                  0,
+                  1
+                ],
+                "ex": "Plate tectonics connects moving lithospheric plates with the origins of continents, oceans, mountains, earthquakes, volcanoes, and continental drift, while a simpler model only explains the movement of the crust."
+              },
+              {
+                "q": "A seismic survey reveals a deep-sea trench and a volcanic arc, and the constraint is that the explanation must use the model connecting moving lithospheric plates to these features.",
+                "op": [
+                  "The trench and arc are caused by continental drift.",
+                  "The trench and arc are features explained by plate tectonics.",
+                  "The trench and arc are features explained by folded rocks.",
+                  "The trench and arc are features explained by the rigid mantle."
+                ],
+                "ai": 0,
+                "fi": [
+                  1
+                ],
+                "ex": "The model explains features including folded rocks, mountain ranges, earthquakes, volcanoes, and continental drift, which includes the trench and arc."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "ce51ce3ee750ea4d57a36590cdf28c9cbc77d7d7649024cbe5d853ebdd0d45ef",
+          "lessonKernel": {
+            "lessonId": "lesson-1",
+            "facts": [
+              "Plate tectonics is the model that connects moving lithospheric plates with the origins of continents, oceans, mountains, earthquakes, volcanoes, and continental drift.",
+              "The model explains features including folded rocks, mountain ranges, earthquakes, volcanoes, and continental drift.",
+              "Earth's lithosphere consists of the crust and rigid outermost mantle and is divided into moving tectonic plates."
+            ],
+            "keyTerms": [
+              {
+                "tr": "Plate tectonics",
+                "df": "Plate tectonics is the model connecting moving lithospheric plates with the origins of listed Earth features.",
+                "eg": "Plate tectonics connects moving lithospheric plates with mountains, earthquakes, and volcanoes.",
+                "mi": "Plate tectonics is divided into moving tectonic plates.",
+                "cx": "Earth's lithosphere, rather than the model, is divided into moving tectonic plates."
+              },
+              {
+                "tr": "lithosphere",
+                "df": "Earth's lithosphere consists of the crust and rigid outermost mantle and is divided into moving tectonic plates.",
+                "eg": "Earth's lithosphere includes the crust and rigid outermost mantle.",
+                "mi": "The lithosphere explains folded rocks and mountain ranges.",
+                "cx": "Explaining folded rocks and mountain ranges is attributed to the model, not to the lithosphere."
+              },
+              {
+                "tr": "continental drift",
+                "df": "Continental drift is a feature explained by the model and connected with moving lithospheric plates through plate tectonics.",
+                "eg": "Continental drift appears with earthquakes and volcanoes among features the model explains.",
+                "mi": "Continental drift divides Earth's lithosphere into moving tectonic plates.",
+                "cx": "Division into moving tectonic plates describes Earth's lithosphere, while the model explains continental drift."
+              }
+            ],
+            "scenario": {
+              "su": "An editor must decide whether a draft passage describes Earth's lithosphere or the plate tectonics model before a publication deadline. The draft records the crust and rigid outermost mantle, moving tectonic plates, folded rocks, and mountain ranges, but its current labels conflate composition with explained features.",
+              "ma": "lithosphere composition passage, tectonic-plate division notation, folded-rock observation, mountain-range observation"
+            },
+            "mc": [
+              {
+                "q": "A reviewer compares a passage naming the crust and rigid outermost mantle with observations of folded rocks and mountain ranges. Which distinction between lithosphere and model matches the supplied descriptions?",
+                "op": [
+                  "Crust and mantle compose lithosphere; model explains features",
+                  "Crust and mantle explain features; model composes lithosphere",
+                  "Crust composes lithosphere; model explains features",
+                  "Crust and mantle compose lithosphere; features explain model"
+                ],
+                "ai": 0,
+                "fi": [
+                  1,
+                  2
+                ],
+                "ex": "The crust and rigid outermost mantle compose Earth's lithosphere, while the model explains folded rocks and mountain ranges. The features do not explain the model; the model explains the features."
+              },
+              {
+                "q": "Facing a deadline, a reviewer reads a passage naming the crust and rigid outermost mantle and stating division into moving tectonic plates. Which notation should the reviewer apply?",
+                "op": [
+                  "Earth's lithosphere divided into moving tectonic plates",
+                  "Moving tectonic plates divided into Earth's lithosphere",
+                  "The model divided into moving tectonic plates",
+                  "Earth's lithosphere explains moving tectonic plates"
+                ],
+                "ai": 0,
+                "fi": [
+                  2
+                ],
+                "ex": "Earth's lithosphere consists of the crust and rigid outermost mantle and is divided into moving tectonic plates. Moving tectonic plates do not divide into the lithosphere; the lithosphere is divided into plates."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-a62335bce70872832c407eb3",
+        "pairId": "scion-kernel-pair-cfb1819715aff8d7b95ba8b0",
+        "artifactSha256": {
+          "A": "047f514ff74e5f87f3b44bdada7c4179b466e3f9bc200ab5d1dee0862ab3de4a",
+          "B": "ce51ce3ee750ea4d57a36590cdf28c9cbc77d7d7649024cbe5d853ebdd0d45ef"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    },
+    {
+      "caseId": "scion-kernel-a97c812f0a6e2be5fe5a73f5",
+      "pairId": "scion-kernel-pair-2002f85af6d888bcd9f4f6d5",
+      "domain": "user-experience-design",
+      "failureFamilies": [
+        "feedback-instructionality",
+        "key-term-precision",
+        "misconception-validity",
+        "scenario-evidence-sufficiency",
+        "source-coverage"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-4",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Interactive prototyping",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: Interactive prototyping builds a testable representation of how a planned experience looks and works without requiring every production detail. Claim 1: Prototypes can be combined with usability testing or a cognitive walkthrough to test whether a design concept works. Claim 2: Functional prototypes allow a team to observe how users interact with a product. Claim 3: A prototype should show the major interactions even when not every interaction is functional. Claim 4: Prototypes should support fast iteration and be inexpensive enough to discard after learning from them.",
+        "readings": "Digital.gov, U.S. General Services Administration"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "f0261b4e9d65d69eb1fd27b6e93e9702910c6f23322aeb3fcf3b799bb742fa6d",
+        "kernelId": "ux/interactive-prototyping",
+        "term": "Interactive prototyping",
+        "claims": [
+          "Interactive prototyping builds a testable representation of how a planned experience looks and works without requiring every production detail.",
+          "Prototypes can be combined with usability testing or a cognitive walkthrough to test whether a design concept works.",
+          "Functional prototypes allow a team to observe how users interact with a product.",
+          "A prototype should show the major interactions even when not every interaction is functional.",
+          "Prototypes should support fast iteration and be inexpensive enough to discard after learning from them."
+        ],
+        "anchors": [
+          {
+            "src": "digitalgov:prototypes",
+            "loc": "What",
+            "quote": "A prototype is an interactive (high-fidelity) version of the experience you are planning to build. It shows how the design will look and work, without full detail."
+          },
+          {
+            "src": "digitalgov:prototypes",
+            "loc": "Why",
+            "quote": "Combined with other methods like usability testing or a cognitive walkthrough, prototypes help you test whether a design concept will work."
+          },
+          {
+            "src": "digitalgov:prototypes",
+            "loc": "Why",
+            "quote": "Functional prototypes help you observe how users interact with the product."
+          },
+          {
+            "src": "digitalgov:prototypes",
+            "loc": "How to do it",
+            "quote": "Show the major interactions. Not all interactions need to be functional."
+          },
+          {
+            "src": "digitalgov:prototypes",
+            "loc": "How to do it",
+            "quote": "Iterate. Prototypes should be quick to create and even quicker to discard."
+          }
+        ],
+        "attribution": [
+          "Digital.gov, U.S. General Services Administration"
+        ],
+        "license": "U.S. Government Work"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "af1be0d8291780796fb0278e35f1bb6c11f1089ce043d8be83dc1dc0e761d778",
+          "lessonKernel": {
+            "lessonId": "lesson-4",
+            "facts": [
+              "Interactive prototyping builds a testable representation of how a planned experience looks and works without requiring every production detail.",
+              "Prototypes can be combined with usability testing or a cognitive walkthrough to test whether a design concept works.",
+              "Functional prototypes allow a team to observe how users interact with a product.",
+              "A prototype should show the major interactions even when not every interaction is functional.",
+              "Prototypes should support fast iteration and be inexpensive enough to discard after learning from them."
+            ],
+            "keyTerms": [
+              {
+                "tr": "Interactive prototyping",
+                "df": "Interactive prototyping builds a testable representation of how a planned experience looks and works without requiring every production detail.",
+                "eg": "A prototype showing the main navigation flow of a new application.",
+                "mi": "Interactive prototyping requires every single production detail to be fully realized before testing can begin.",
+                "cx": "This misunderstands the concept because interactive prototyping explicitly avoids requiring every production detail."
+              },
+              {
+                "tr": "Usability testing",
+                "df": "Prototypes can be combined with usability testing or a cognitive walkthrough to test whether a design concept works.",
+                "eg": "Using a prototype during a cognitive walkthrough to check if users understand the interface.",
+                "mi": "Usability testing is only useful for final production versions of a product.",
+                "cx": "This is incorrect because prototypes can be combined with usability testing to test design concepts."
+              },
+              {
+                "tr": "Fast iteration",
+                "df": "Prototypes should support fast iteration and be inexpensive enough to discard after learning from them.",
+                "eg": "Rapidly changing a prototype's layout based on initial user feedback.",
+                "mi": "Fast iteration means making changes that are expensive and permanent.",
+                "cx": "This is wrong because fast iteration implies the prototype must be inexpensive enough to discard."
+              }
+            ],
+            "scenario": {
+              "su": "A design team is developing a new mobile app feature and needs to validate the core interaction flow before committing to high-fidelity coding. The team is constrained by a tight deadline for initial concept validation.",
+              "ma": "The team must compare the low-fidelity wireframe sketch and the clickable prototype flow to decide which representation best supports fast iteration."
+            },
+            "mc": [
+              {
+                "q": "When testing a design concept, which method allows combining prototypes with a cognitive walkthrough to determine if the design works?",
+                "op": [
+                  "Using functional prototypes for user observation",
+                  "Combining prototypes with a cognitive walkthrough",
+                  "Discarding prototypes after learning from them",
+                  "Combining prototypes with usability testing"
+                ],
+                "ai": 3,
+                "fi": [
+                  1
+                ],
+                "ex": "Prototypes can be combined with a cognitive walkthrough to test whether a design concept works, while usability testing is a separate combination."
+              },
+              {
+                "q": "A team has a limited budget and needs to quickly discard a design idea; which prototype characteristic supports this need?",
+                "op": [
+                  "Supporting fast iteration and being inexpensive",
+                  "Showing every interaction is functional",
+                  "Combining testing with a cognitive walkthrough",
+                  "Requiring every production detail to be present"
+                ],
+                "ai": 0,
+                "fi": [
+                  4
+                ],
+                "ex": "Prototypes should support fast iteration and be inexpensive enough to discard after learning from them, which is the correct choice."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "79d3c446b0b33351c1b53383448a78c9b16f551c1c5d1ba936543701f49cf135",
+          "lessonKernel": {
+            "lessonId": "lesson-4",
+            "facts": [
+              "Interactive prototyping builds a testable representation of how a planned experience looks and works without requiring every production detail.",
+              "Prototypes can be combined with usability testing or a cognitive walkthrough to test whether a design concept works.",
+              "Functional prototypes allow a team to observe how users interact with a product.",
+              "A prototype should show the major interactions even when not every interaction is functional.",
+              "Prototypes should support fast iteration and be inexpensive enough to discard after learning from them."
+            ],
+            "keyTerms": [
+              {
+                "tr": "Interactive prototyping",
+                "df": "Interactive prototyping is the building of a testable representation of how a planned experience looks and works.",
+                "eg": "A testable representation presents a planned experience before every production detail is included.",
+                "mi": "Interactive prototyping requires every production detail before the representation can be tested.",
+                "cx": "The representation can be testable without requiring all production details."
+              },
+              {
+                "tr": "Functional prototypes",
+                "df": "Functional prototypes are prototypes distinguished by enabling observation of how users interact with a product.",
+                "eg": "During usability testing, a team uses functional prototypes and observes users interacting with a product.",
+                "mi": "Functional prototypes prevent a team from observing users interact with a product.",
+                "cx": "These prototypes permit the team to watch user interaction with the product."
+              },
+              {
+                "tr": "major interactions",
+                "df": "Major interactions are the prototype interactions that should be shown despite incomplete interaction functionality.",
+                "eg": "During a cognitive walkthrough, a prototype shows the major interactions although not every interaction is functional.",
+                "mi": "A prototype must make every interaction functional before showing its major interactions.",
+                "cx": "The major interactions should appear even when some interaction functionality is incomplete."
+              }
+            ],
+            "scenario": {
+              "su": "A team must label two prototype designs before a deadline. One design shows the major interactions while not every interaction is functional; the other includes observations of how users interact with a product, and each design must receive one evidence-supported label.",
+              "ma": "major-interaction design notation, nonfunctional-interaction notation, user-interaction observation record"
+            },
+            "mc": [
+              {
+                "q": "A team compares a functional prototype that records user interaction with a prototype that displays major interactions despite incomplete functionality; which observation specifically distinguishes the functional prototype?",
+                "op": [
+                  "It enables observation of users interacting",
+                  "It supports fast iteration and inexpensive discard",
+                  "It makes every displayed interaction functional",
+                  "It tests concepts through a cognitive walkthrough"
+                ],
+                "ai": 0,
+                "fi": [
+                  2
+                ],
+                "ex": "Functional prototypes allow a team to observe how users interact with a product. Displaying major interactions despite incomplete functionality describes what a prototype should show, not the distinguishing observation here."
+              },
+              {
+                "q": "After repeated revisions, a team can quickly change a prototype and afford to discard it after learning from it; which description matches these recorded details?",
+                "op": [
+                  "Supports fast iteration and inexpensive discard",
+                  "Requires expensive iteration before learning",
+                  "Supports fast iteration after learning",
+                  "Supports inexpensive discard after learning"
+                ],
+                "ai": 0,
+                "fi": [
+                  4
+                ],
+                "ex": "Prototypes should support fast iteration and be inexpensive enough to discard after learning from them. Fast iteration alone omits the separately recorded requirement that discard remain inexpensive."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-a97c812f0a6e2be5fe5a73f5",
+        "pairId": "scion-kernel-pair-2002f85af6d888bcd9f4f6d5",
+        "artifactSha256": {
+          "A": "af1be0d8291780796fb0278e35f1bb6c11f1089ce043d8be83dc1dc0e761d778",
+          "B": "79d3c446b0b33351c1b53383448a78c9b16f551c1c5d1ba936543701f49cf135"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    }
+  ],
+  "claimBoundary": "This packet contains anonymous source-bound artifacts only. It contains no provider identity, model identity, route, admission outcome, retry history, compiler receipt, preference, or training authorization.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "1bee0be8e73b9978b9dc3d9257f1f7bfbcefed177c39ebf59715e2d8bbdf7bb7"
+  }
+}

@@ -1,0 +1,191 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-workbook-v1",
+  "generatedAt": "2026-07-19T21:41:00.000Z",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "prompt": {
+    "path": "evaluation/scion-adapters/lesson-kernel-judge-prompt-v0.16.54.md",
+    "sha256": "37844b86736335db54b561d8c031660ef71679c55ae1108e2e999e746f2a1c96"
+  },
+  "chunkSize": 6,
+  "campaignCaseCount": 148,
+  "caseCount": 56,
+  "captureComplete": false,
+  "sparseComplete": true,
+  "batches": [
+    {
+      "batchId": "batch-001-2b9cebbe29",
+      "index": 1,
+      "caseIds": [
+        "scion-kernel-0a92339d7bee7ab5ab92d162",
+        "scion-kernel-12d446f8939aa0d8bec00af4",
+        "scion-kernel-1ed0d7927b7ef600197320d3",
+        "scion-kernel-22c0ae8a98ed18c07507cac3",
+        "scion-kernel-2b7ddad0e907f576e8e360b0",
+        "scion-kernel-2bde2866d23cda975df9ea32"
+      ],
+      "sealed": true,
+      "packetSha256": {
+        "A/B": "2d5e7c542ef30e6768e238f0a028ad8d3f296e7233b980576cc8edcda466c51d",
+        "B/A": "981dd7bf7506643e76d53bdacc728250483fccb89f719bc7496d890bc716d777"
+      }
+    },
+    {
+      "batchId": "batch-002-18c6138295",
+      "index": 2,
+      "caseIds": [
+        "scion-kernel-2d8329dadc5f63162d060330",
+        "scion-kernel-2da6ae5908cc12b0c12cf8e1",
+        "scion-kernel-3a51fe869568b2b6be84c405",
+        "scion-kernel-420a6b2a9d27149e5263411f",
+        "scion-kernel-424b4289100cc16011ad7cd8",
+        "scion-kernel-43e76f2d069ef8c68f9a8fbf"
+      ],
+      "sealed": true,
+      "packetSha256": {
+        "A/B": "cad0b4c3872cbd2352db0a9698cdb6eaa863e48a67205aebb63dad022abbf005",
+        "B/A": "46e8b05fbe88a4a6ba178e8a790bb922af76909e0b77bba97af65302e4f03986"
+      }
+    },
+    {
+      "batchId": "batch-003-b741b36a72",
+      "index": 3,
+      "caseIds": [
+        "scion-kernel-469cae031b9e2cc9d18a7ad7",
+        "scion-kernel-4bf5c84b6335f81e9c0eb777",
+        "scion-kernel-4d4159fe0d91fa8538d63235",
+        "scion-kernel-52964fc20ca887179f1a8f82",
+        "scion-kernel-59a07c63e1457ae09f1974c7",
+        "scion-kernel-5af741177e6cf537a280f948"
+      ],
+      "sealed": true,
+      "packetSha256": {
+        "A/B": "eef620eddbf1404482f2c5fe6ad4806969964981112cf61d028b45b13374075e",
+        "B/A": "ee65dd0399a860ce34973e721df6ad63fbfa59b25dc5bb4b3a79724197b53543"
+      }
+    },
+    {
+      "batchId": "batch-004-cb473acbf6",
+      "index": 4,
+      "caseIds": [
+        "scion-kernel-5edc63b53c12793b089d95e4",
+        "scion-kernel-5f85ffd8a7974edbf0c93b74",
+        "scion-kernel-607a3e5c7e4b02c69a4acb1c",
+        "scion-kernel-67ca460c3b0548ca4682b2c9",
+        "scion-kernel-68ae8262b2c665df3114f898",
+        "scion-kernel-6e77e847080e897993e68860"
+      ],
+      "sealed": true,
+      "packetSha256": {
+        "A/B": "880a6dfa8c8aa069bb0812de21fe17a206d8082a96ab42803954c79af2459890",
+        "B/A": "8d5fe64bd785f2439935982b87357fee6b58ee45bfde38ef9080529c91aaa084"
+      }
+    },
+    {
+      "batchId": "batch-005-441ed8e193",
+      "index": 5,
+      "caseIds": [
+        "scion-kernel-70f8f63dff436c643849d6d7",
+        "scion-kernel-7bc6165bbce8b949fcce5885",
+        "scion-kernel-813b7ee41741357e1c13a56a",
+        "scion-kernel-81d331b0407433133e3b4bac",
+        "scion-kernel-8c1eab51ddaf54ae4781c812",
+        "scion-kernel-8ec5d77e57967fbe1a2f074b"
+      ],
+      "sealed": true,
+      "packetSha256": {
+        "A/B": "c6c7e3089b28b1e3a106b10e793e3c57aba2355d41d7bf53770c1b495ed53a31",
+        "B/A": "bb439a6f92a2f1a8d46e3ae6fd994535345dd5925348567186214d8a16934bd5"
+      }
+    },
+    {
+      "batchId": "batch-006-1796d98e82",
+      "index": 6,
+      "caseIds": [
+        "scion-kernel-8ef23dcb95e41dcdbb4e1f9b",
+        "scion-kernel-8f8fe3056acd54a1003b7a52",
+        "scion-kernel-8fed8eae15665ac533576b47",
+        "scion-kernel-901bcdec12e941126815530a",
+        "scion-kernel-91d57c49e68873ad738edc77",
+        "scion-kernel-987da285da5f74ba181cfa92"
+      ],
+      "sealed": true,
+      "packetSha256": {
+        "A/B": "90b23099f2ae68db70ec7a113cb2ca8e5532d890626752f2d7cd2c59f16e638a",
+        "B/A": "6c8eb8fcc2681f2f127cd8b834c7353f3d19b74fc636ba7bb0fd6eb7caa2851c"
+      }
+    },
+    {
+      "batchId": "batch-007-20ba2f5632",
+      "index": 7,
+      "caseIds": [
+        "scion-kernel-9cf66f744feb86fe5b238dfb",
+        "scion-kernel-a0ec1501fb4ae28c55cd25b4",
+        "scion-kernel-a2c0b5c5451d366d5635d6ba",
+        "scion-kernel-a59f5ba5983f07cae64e4baa",
+        "scion-kernel-a62335bce70872832c407eb3",
+        "scion-kernel-a97c812f0a6e2be5fe5a73f5"
+      ],
+      "sealed": true,
+      "packetSha256": {
+        "A/B": "1bee0be8e73b9978b9dc3d9257f1f7bfbcefed177c39ebf59715e2d8bbdf7bb7",
+        "B/A": "93f96cd54cd4a8da5e6b302a6d50dd6d633e9e116876b70319ea0af8a2b25d72"
+      }
+    },
+    {
+      "batchId": "batch-008-10005ed763",
+      "index": 8,
+      "caseIds": [
+        "scion-kernel-abc461d2ef662fa9332b2800",
+        "scion-kernel-b379d50b14fb4e12972e8ffc",
+        "scion-kernel-b7e4bf020386d467ba1c05ab",
+        "scion-kernel-be8328bd9773b2d904c70e66",
+        "scion-kernel-c2b4a131f0c15ff7e7cc5bed",
+        "scion-kernel-cdbb565ace8382187298babf"
+      ],
+      "sealed": true,
+      "packetSha256": {
+        "A/B": "d78995c6768e1eab1bd4cddb76ad51c2ce8f53b761f5ebc67898058ae3ff3fd9",
+        "B/A": "0a9f41b51267b62fed867055b71e87f6b3e7256ad1defe9e68d2367cfc12dea8"
+      }
+    },
+    {
+      "batchId": "batch-009-2bbc172426",
+      "index": 9,
+      "caseIds": [
+        "scion-kernel-ceb1860bbd3c22db7ce0ada4",
+        "scion-kernel-d1245491192ed0aa2a63c297",
+        "scion-kernel-d2f92eae076f0514d6a7dcf4",
+        "scion-kernel-da733789c838f18a3d00f6d2",
+        "scion-kernel-db7d12824fbd8fea94861592",
+        "scion-kernel-e8a4f4e4941f1b6583b661ed"
+      ],
+      "sealed": true,
+      "packetSha256": {
+        "A/B": "f4b58f6f22adc4a5697f825b36507333b92eeeb04bf49bfd3c48f4de35dc3c52",
+        "B/A": "a949808759c56cdf94be86fe4c9d2520a09ee7afa11b617ac185a3e8f40f046d"
+      }
+    },
+    {
+      "batchId": "batch-010-69df4a77db",
+      "index": 10,
+      "caseIds": [
+        "scion-kernel-f6694acc8a391b1aa629bdee",
+        "scion-kernel-fb9da96bbe4e44f5ef726a96"
+      ],
+      "sealed": true,
+      "packetSha256": {
+        "A/B": "c8156038ecb65e1e8c3f8f1a98ccb06e6a8e0eecc64ed65c38d830e3a22b1a90",
+        "B/A": "4077c3a13e54c1ee234244b31472c94fde88b17909f6136101529c24c166b8ba"
+      }
+    }
+  ],
+  "claimBoundary": "Each batch is judged in two isolated sessions with exact reversed artifact order. The workbook contains no organizer mapping, provider identity, model route, preference, or training authorization.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "9c0aec77318c8ca29de8813fddc03c90821c631cacdd96d67297d0bd10ffe3c6"
+  }
+}

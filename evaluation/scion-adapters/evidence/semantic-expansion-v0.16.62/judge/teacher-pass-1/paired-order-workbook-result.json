@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-paired-order-workbook-result-v1",
+  "generatedAt": "2026-07-19T22:25:00.000Z",
+  "status": "paired-orders-complete",
+  "workbookSha256": "5a4a2cb37669b58d109a2f50f6fc66468c0701d41422d72831ed87888696a2fb",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "batchResults": [
+    {
+      "batchId": "batch-001-db166cabbb",
+      "aggregateSha256": "437dc4394c387fd074d014f79786dc256c0340ee46c7fedc1e4cca54c417326b",
+      "sessions": {
+        "A/B": "scion-v01662-teacher-judge-pass1-batch-001-db166cabbb-a-b-08d371eb-d583-474e-8cc5-4618687bd355",
+        "B/A": "scion-v01662-teacher-judge-pass1-batch-001-db166cabbb-b-a-219db8ba-7a60-4c35-b17e-2c61fa18a598"
+      },
+      "summary": {
+        "pairs": 6,
+        "stablePreferences": 6,
+        "localWins": 0,
+        "referenceWins": 6,
+        "unstable": 0,
+        "scoreRejected": 0,
+        "compilerRejected": 0
+      }
+    },
+    {
+      "batchId": "batch-002-abbea339d5",
+      "aggregateSha256": "623ada12c91062fe78d3242137eb64e9f5779367e22681686dbf3ea88370b755",
+      "sessions": {
+        "A/B": "scion-v01662-teacher-judge-pass1-batch-002-abbea339d5-a-b-f8d81d83-3826-478d-b8a8-fad5dbcd71be",
+        "B/A": "scion-v01662-teacher-judge-pass1-batch-002-abbea339d5-b-a-d8490a8c-4d00-4f07-8a80-f5b629d932a1"
+      },
+      "summary": {
+        "pairs": 1,
+        "stablePreferences": 1,
+        "localWins": 0,
+        "referenceWins": 1,
+        "unstable": 0,
+        "scoreRejected": 0,
+        "compilerRejected": 0
+      }
+    }
+  ],
+  "reviewedBatches": 2,
+  "pendingBatches": 0,
+  "sealedBatches": 2,
+  "evaluatedCases": 7,
+  "availableCases": 7,
+  "campaignCases": 148,
+  "summary": {
+    "pairs": 7,
+    "stablePreferences": 7,
+    "localWins": 0,
+    "referenceWins": 7,
+    "unstable": 0,
+    "scoreRejected": 0,
+    "compilerRejected": 0
+  },
+  "claimBoundary": "These are same-identity model-judge preferences from isolated bounded A/B and B/A sessions. They are not human, instructor, independent, classroom, heldout-adapter, or production-win evidence.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "34f377521826788dd4e8d346e238de45241d439c497411c7232a2c9e8d133fb6"
+  }
+}

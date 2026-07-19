@@ -25,7 +25,7 @@ import { scionFactContractForLesson } from './scionEvidenceContract.js';
 import { analyzeDecisionScenario } from './scenarioContract.js';
 
 const PUBLIC_SCION_TEMPLATE_RESIDUE_RE =
-  /\b(?:two lesson concepts?|lesson concept to this concrete case|replace with (?:one complete distinction question|one concrete case question|a plausible subject-specific|a plausible case-specific)|plausible methodological claim or action|plausible case interpretation or action|state the subject evidence supporting the answer,? then correct the closest distractor)\b/i;
+  /\b(?:two lesson concepts?|lesson concept to this concrete case|replace with (?:one complete distinction question|one concrete case question|a plausible subject-specific|a plausible case-specific)|plausible methodological claim or action|plausible case interpretation or action|state the subject evidence supporting the answer,? then correct the closest distractor|then correct the closest distractor)\b/i;
 const PUBLIC_SCION_TEMPLATE_RESIDUE_V01658_RE =
   /\b(?:two lesson concepts?|lesson concept to this concrete case|replace with (?:one complete distinction question|one concrete case question|a plausible subject-specific|a plausible case-specific)|plausible methodological claim or action|plausible case interpretation or action)\b/i;
 const PUBLIC_SCION_TRUNCATED_CLAIM_RE =
@@ -33,6 +33,8 @@ const PUBLIC_SCION_TRUNCATED_CLAIM_RE =
 const PUBLIC_SCION_TRUNCATED_OPTION_RE =
   /(?:-[a-z]{1,3}|\b(?:a|an|and|any|as|by|each|every|for|from|in|of|on|or|the|to|with|without))$/i;
 const PUBLIC_SCION_CODE_IDENTIFIER_SENTENCE_RE = /^[\s“"'([{]*[a-z_][a-z0-9_.]*\([^)]*\)\s+\p{L}/iu;
+const PUBLIC_SCION_CODE_OPERATOR_SENTENCE_RE =
+  /^[\s“"'([{]*(?:and|or|not|in|is)\b\s+(?:returns?|evaluates?|checks?|tests?|inverts?|compares?)\b/iu;
 const PUBLIC_SCION_RELATIVE_PREPOSITION_END_RE = /\b(?:that|which|whom)\b[^.!?]*\b(?:from|to|with)\s*[.!?][\])}"']?$/i;
 const PUBLIC_SCION_ANSWER_POSITION_RE =
   /\b(?:the\s+)?key\s+(?:wins?|fits?|is|because)|\b(?:zero(?:th)?|first|second|third|fourth)(?:\s+(?:and|or)\s+(?:zero(?:th)?|first|second|third|fourth))?\s+(?:options?|choices?|answers?)\b|\b(?:option|choice|answer)\s*(?:[A-D0-4]|zero|one|two|three|four|zeroth|first|second|third|fourth)\b/i;
@@ -61,6 +63,7 @@ const PUBLIC_SCION_SENTENCE_LEAD_WORDS = new Set([
   'where',
   'which',
   'while',
+  'within',
 ]);
 const PUBLIC_SCION_SCRIPT_RE = /[\p{Script=Han}\p{Script=Cyrillic}\p{Script=Arabic}\p{Script=Devanagari}]/u;
 const PUBLIC_SCION_QUANTITY_RE =
@@ -595,7 +598,12 @@ function publicScionRoleRelations(value) {
     ) {
       continue;
     }
-    const subjectTokens = publicScionRoleTokenSequence(subject.replace(/^(?:and|but|whereas|while)\s+/i, ''));
+    const grammaticalSubject = subject
+      .replace(/^(?:and|but|whereas|while)\s+/i, '')
+      .replace(/\s+\b(?:across|along|among|at|between|from|in|near|of|on|over|through|under|within|with)\b.*$/i, '')
+      .replace(/\s+\b(?:can|does?|helps?|may|will)\s*$/i, '')
+      .trim();
+    const subjectTokens = publicScionRoleTokenSequence(grammaticalSubject);
     const objectTokens = publicScionRelationTokens(object);
     if (subjectTokens.length === 0 || objectTokens.size === 0) continue;
     // A pronoun-headed continuation ("the cycle matches because it moves")
@@ -616,6 +624,10 @@ function publicScionHasSourceRoleConflict(value, sourceClaims) {
   const candidateRelations = publicScionRoleRelations(value);
   const sourceRelations = publicScionRoleRelations(sourceClaims);
   return candidateRelations.some((candidate) => {
+    // “Force per charge describes the field” is a normal definitional
+    // paraphrase of “the field describes force per charge.” Unlike causal or
+    // action predicates, `describes` does not provide a reliable role arrow.
+    if (candidate.verb.startsWith('describ')) return false;
     const predicateMatches = sourceRelations.filter((source) => {
       if (source.verb !== candidate.verb) return false;
       const objectOverlap = [...candidate.objectTokens].filter((token) => source.objectTokens.has(token)).length;
@@ -667,9 +679,12 @@ function publicScionUnsupportedQuantities(value, sourceText) {
     // one-to-four count used only to identify the compared task artifacts.
     if (
       /^(?:one|two|three|four) (?:items|observations|records)$/.test(quantity) &&
-      /\b(?:compare|distinguish|label|match)\w*\b[^.!?]{0,100}\b(?:the\s+)?(?:one|two|three|four)\s+(?:items|observations|records)\b/i.test(
+      (/\b(?:compare|distinguish|label|match)\w*\b[^.!?]{0,100}\b(?:the\s+)?(?:one|two|three|four)\s+(?:items|observations|records)\b/i.test(
         candidateText,
-      )
+      ) ||
+        /(?:^|[.!?]\s+)(?:one|two|three|four)\s+(?:items|observations|records)\s+(?:describe|present|record|show)\w*\b[^.!?]{0,180}\b(?:how|what|which)\b/i.test(
+          candidateText,
+        ))
     ) {
       return false;
     }
@@ -695,7 +710,11 @@ function publicScionLooksTruncatedClaim(value) {
 
 function publicScionStartsWithLowercaseFragment(value) {
   const text = String(value || '').trim();
-  return /^[\s“"'([{]*[a-z]/.test(text) && !PUBLIC_SCION_CODE_IDENTIFIER_SENTENCE_RE.test(text);
+  return (
+    /^[\s“"'([{]*[a-z]/.test(text) &&
+    !PUBLIC_SCION_CODE_IDENTIFIER_SENTENCE_RE.test(text) &&
+    !PUBLIC_SCION_CODE_OPERATOR_SENTENCE_RE.test(text)
+  );
 }
 
 export function assessPublicScionKernelResponse(

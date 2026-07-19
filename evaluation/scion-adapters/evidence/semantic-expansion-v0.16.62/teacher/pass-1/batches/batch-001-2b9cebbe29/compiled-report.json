@@ -1,0 +1,150 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-teacher-capture-v1",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "packetSha256": "9236ea65b411223a4ad482d7fb9d4e80584fca1639f6d882113139bc9a3837f3",
+  "resultSha256": "b4b223a4079f288a0e9f4abb571ab1ea439444a32a870d96e3cfe82c27b1cacf",
+  "reviser": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-source-cleanroom"
+  },
+  "calls": [
+    {
+      "caseId": "scion-kernel-1ed0d7927b7ef600197320d3",
+      "caseSha256": "1ed0d7927b7ef600197320d3aa9e2e8bb1b81aa592d139efaa729440180bbf03",
+      "arm": "teacher-revision",
+      "model": {
+        "model": "gpt-5.6-sol",
+        "revision": "codex-cli 0.144.5",
+        "runtime": "codex-cli-ephemeral-source-cleanroom"
+      },
+      "sourceContextSha256": "182459ab6217eb1aa15f98ed57dca24636d67a58b5f8434ecf31d03b6abd4e21",
+      "originalArtifactSha256": "72983e37fab046247d100c7fc5f95b49853e944f7860546d8727117a2f8eed9a",
+      "artifact": {
+        "lessonId": "lesson-6",
+        "facts": [
+          "A class defines a type of object with attributes (data) and methods (behavior); it is a blueprint, and each object built from it is an instance.",
+          "A class is a blueprint for creating objects.",
+          "Individual objects created from a class are called instances.",
+          "Each instance carries its own copy of the attributes, while the methods defined by the class are shared by every instance."
+        ],
+        "keyTerms": [
+          {
+            "tr": "class",
+            "df": "A class defines a type of object and serves as its blueprint.",
+            "eg": "A class is used as the blueprint for creating objects.",
+            "mi": "A class is an individual object created from a blueprint.",
+            "cx": "The created individual is an instance; the class supplies the blueprint."
+          },
+          {
+            "tr": "objects",
+            "df": "Objects are entities built from a class, with each one called an instance.",
+            "eg": "Objects created from a class are individual instances.",
+            "mi": "Objects define the methods shared by every instance.",
+            "cx": "The class defines the shared methods, while objects are built from that class."
+          },
+          {
+            "tr": "instances",
+            "df": "Instances are individual objects whose attributes are carried as their own copies.",
+            "eg": "Each instance carries its own copy of the attributes.",
+            "mi": "Instances define the methods that the class shares.",
+            "cx": "Methods come from the class and are shared by its instances."
+          }
+        ],
+        "scenario": {
+          "su": "Students must classify a class and two objects as either a blueprint or instances before a deadline. They must also distinguish the separate attribute copies from the methods shared by both objects.",
+          "ma": "class passage stating that it is a blueprint for creating objects, object passages identifying two individual objects created from the class, attribute observation showing each instance carrying its own copy, method observation showing class-defined methods shared by both instances"
+        },
+        "mc": [
+          {
+            "q": "An object is observed being built from a class, and the task is to label the class and the built object. Which comparison uses the source terms correctly?",
+            "op": [
+              "Class is method; built object is class",
+              "Class is attribute; built object is blueprint",
+              "Class is blueprint; built object is instance",
+              "Class is instance; built object is method"
+            ],
+            "ai": 2,
+            "fi": [
+              0
+            ],
+            "ex": "The class serves as the blueprint, and an object built from it is an instance. Describing the class as an instance confuses the blueprint with the individual object built from it."
+          },
+          {
+            "q": "Two objects have separate attribute copies and use methods defined by their class. Which account correctly connects the observed objects, attributes, methods, and class?",
+            "op": [
+              "Instances define attribute copies and carry class methods",
+              "Instances create class methods and share blueprints",
+              "Instances share attribute copies and define class methods",
+              "Instances carry attribute copies and share class methods"
+            ],
+            "ai": 3,
+            "fi": [
+              3
+            ],
+            "ex": "Each instance carries its own attribute copy, while methods defined by the class are shared by the instances. Saying instances share attribute copies and define class methods reverses both stated relationships."
+          }
+        ]
+      },
+      "artifactSha256": "1077fbf80bce7e4804efcdbaaa50b63c97b32f05712e4bde211b6627b1e10174",
+      "admission": {
+        "needsRetry": false,
+        "issues": []
+      },
+      "compilerRepairs": [
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-6",
+          "item": 0,
+          "permutation": [
+            3,
+            2,
+            0,
+            1
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 2,
+          "trainingEligible": false
+        },
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-6",
+          "item": 1,
+          "permutation": [
+            2,
+            3,
+            1,
+            0
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 3,
+          "trainingEligible": false
+        }
+      ],
+      "revisionEvidence": {
+        "packetSha256": "9236ea65b411223a4ad482d7fb9d4e80584fca1639f6d882113139bc9a3837f3",
+        "sessionId": "scion-v01662-teacher-pass1-batch-001-2b9cebbe29-b9d5cd80-f699-4b10-815b-208c3a33a8d2",
+        "changeSummary": [
+          "Re-authored both multiple-choice items to remove equivalent or partially supported distractors while preserving the source-grounded distinctions."
+        ],
+        "addressedDiagnoses": [
+          "Addressed the diagnosed weak choice discriminability by making each distractor distinct and inapplicable under the cited claims."
+        ]
+      }
+    }
+  ],
+  "summary": {
+    "cases": 1,
+    "compilerAdmitted": 1,
+    "compilerRejected": 0
+  },
+  "claimBoundary": "These source-constrained model revisions cleared only deterministic compiler admission where stated. They are not judge preferences, human evidence, adapter wins, or training authorization.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "33f5ed30edc39549d2e74cdc6d9d420f60a4f758662de7c44eef0ccdd676daf1"
+  }
+}

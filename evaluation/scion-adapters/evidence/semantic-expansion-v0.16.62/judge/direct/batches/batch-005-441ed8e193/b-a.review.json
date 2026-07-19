@@ -1,0 +1,499 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-review-v1",
+  "order": "B/A",
+  "packetSha256": "bb439a6f92a2f1a8d46e3ae6fd994535345dd5925348567186214d8a16934bd5",
+  "sessionId": "scion-v01662-batch-005-441ed8e193-b-a-d676a09e-c6a0-4278-af7c-1f4af64ac64d",
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "completedAt": "2026-07-19T21:49:44Z",
+  "attestations": {
+    "anonymousArtifactsOnly": true,
+    "otherOrderUnavailable": true,
+    "organizerMappingUnavailable": true
+  },
+  "decisions": [
+    {
+      "caseId": "scion-kernel-70f8f63dff436c643849d6d7",
+      "pairId": "scion-kernel-pair-14d6f95c52b38743049d6822",
+      "artifactSha256": {
+        "A": "35856d2c02610e5ecb22586e41454adaa5266b7146cdff30eed56f12e033b28b",
+        "B": "c85a93c4a237fdb42dbb87254ab89dfde8c6f37dbe1645f251e80c736bb622c3"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "The facts, receptor condition, binding sequence, and regulated-process examples all track the three supplied claims."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "Each term distinguishes circulation, receptor-qualified target cells, and the binding-to-response sequence accurately."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The student must classify recorded observations before a deadline using receptor, circulation, and sequence evidence."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both declared answers match their cited claims and the receptor-focused wording makes the second key defensible."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "The options are distinct, though the second question's bloodstream alternative is also partly supported by the record."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation states the supported relation and directly repairs the closest reversal of that relation."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "Facts, terms, scenario records, keys, citations, and explanations maintain the same signaling relationships."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "The copied facts are faithful, but high blood sugar and a systemic clinical issue are not in the supplied claims."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "The term definitions are accurate, but they mostly repeat source sentences rather than sharpening the distinctions."
+          },
+          "scenarioReadiness": {
+            "score": 1,
+            "evidence": "The clinical team is asked to address disturbances without evidence that supports a particular signaling intervention."
+          },
+          "assessmentCorrectness": {
+            "score": 1,
+            "evidence": "Each declared answer states a supplied fact, but an identical alternative makes neither answer uniquely correct."
+          },
+          "choiceDiscriminability": {
+            "score": 0,
+            "evidence": "Option zero is repeated verbatim as option three in both multiple-choice questions."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "The explanations repeat two source claims but do not explain the duplicated choices or why the closest misconception fails."
+          },
+          "internalCoherence": {
+            "score": 1,
+            "evidence": "Duplicated correct alternatives conflict with unique answer keys, and the clinical scenario adds unsupported evidence."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [],
+        "B": [
+          "Both questions duplicate the declared correct alternative verbatim, making each assessment ambiguous.",
+          "The scenario adds high blood sugar and a systemic clinical mechanism that are unsupported by the supplied claims."
+        ]
+      },
+      "decision": "A",
+      "rationale": "Artifact A stays within the source, supplies an actionable evidence-based classification, and has coherent assessments; B introduces unsupported clinical details and duplicates both correct alternatives."
+    },
+    {
+      "caseId": "scion-kernel-7bc6165bbce8b949fcce5885",
+      "pairId": "scion-kernel-pair-e80037851ddeb88c43d056e5",
+      "artifactSha256": {
+        "A": "fddcb3b7cc4d50b0759e76d1ef2425d170defff560602f9745068b6f11f9de57",
+        "B": "5461073c114d73fff4c46434c446420f0db92e43096bb98713efea2f5563e57c"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "All five facts and the persona, need, story, and traceability examples remain within the supplied claims."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "The terms clearly separate group profiles, stable higher-level needs, and stories describing features and content."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The team must classify passages under a deadline using stability, level, evidence, and source-link notations."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both declared answers are unique, supported by the cited claims, and correctly explained."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "Each question provides four distinct, parallel alternatives built from plausible reversals of the supplied relationships."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "The explanations justify the correct distinctions and explicitly repair the higher-level and traceability reversals."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "The facts, term corrections, scenario evidence, questions, keys, citations, and explanations agree throughout."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "The source facts are retained, but accessibility, navigation, content-update, and validated-need examples are newly invented."
+          },
+          "knowledgePrecision": {
+            "score": 2,
+            "evidence": "Core definitions are mostly accurate, but unsupported examples and the label of needs as requirements reduce precision."
+          },
+          "scenarioReadiness": {
+            "score": 2,
+            "evidence": "The traceability constraint is actionable, but no actual needs or stories are supplied for the named features."
+          },
+          "assessmentCorrectness": {
+            "score": 1,
+            "evidence": "The first key is correct, but the second declares interface-request matching while its cited claim supports source-need linkage."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "Both questions contain four distinct and reasonably parallel alternatives despite the incorrect second key."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "The first explanation mainly restates the answer, while the second teaches a different option from the declared answer."
+          },
+          "internalCoherence": {
+            "score": 1,
+            "evidence": "The second answer key contradicts its citation and explanation, and scenario details exceed the source."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [],
+        "B": [
+          "The second question declares option 0, but the supplied traceability claim uniquely supports option 2.",
+          "The second explanation supports linkage to the source need and therefore contradicts the declared option 0 answer.",
+          "The scenario and examples invent named navigation, accessibility, and content-update features absent from the source."
+        ]
+      },
+      "decision": "A",
+      "rationale": "Artifact A gives complete source coverage and two coherent, uniquely keyed applications; B adds unsupported feature examples and contains a clear answer-key and explanation contradiction."
+    },
+    {
+      "caseId": "scion-kernel-813b7ee41741357e1c13a56a",
+      "pairId": "scion-kernel-pair-606b54fdc85b280cf8d987e5",
+      "artifactSha256": {
+        "A": "dd28cf939a41efd0fbdc89ebdc15f1280fe3bd762b0ae0c24ac1bce1650bc709",
+        "B": "15eb8655e9de60c4b4ea82f01e3015c919566e24c63e8efe70f977c7af5a4d63"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "All interval properties, third classifications, and tritone spellings reproduce or directly apply the supplied claims."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "The terms correctly distinguish span from semitone count and state both conditions for major and minor thirds."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The student must label two intervals before a deadline from explicit span, semitone, and spelling evidence."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both keys are uniquely supported by the cited interval-identification and major-third claims."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "The alternatives are parallel and distinguish the joint-property rule from plausible causal reversals and count swaps."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation supplies the required span and distance and directly contrasts the closest erroneous rule or minor-third count."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "Definitions, scenario measurements, keys, citations, and explanations consistently use span and semitone distance together."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 1,
+            "evidence": "Although the facts are copied, term definitions make category errors and both declared answers exceed or contradict the claims."
+          },
+          "knowledgePrecision": {
+            "score": 1,
+            "evidence": "Diatonic span and semitone distance are each incorrectly defined as written intervals, with circular corrections."
+          },
+          "scenarioReadiness": {
+            "score": 2,
+            "evidence": "The composer has a labeling decision and measured evidence, but the materials incoherently treat one interval's properties as separate intervals."
+          },
+          "assessmentCorrectness": {
+            "score": 0,
+            "evidence": "Three scale steps alone do not determine major quality, and diminished-fifth spelling does not imply a major third."
+          },
+          "choiceDiscriminability": {
+            "score": 1,
+            "evidence": "The first options omit the required semitone evidence, while the second set does not offer alternative resolutions."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "The explanations merely repeat source claims and neither justify nor repair the incorrect declared answers."
+          },
+          "internalCoherence": {
+            "score": 0,
+            "evidence": "Both keys conflict with the source, the term definitions are circular, and the scenario materials contradict the setup."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [],
+        "B": [
+          "The first question incorrectly declares that three scale steps alone form a major third; the source also requires four semitones.",
+          "The second question declares that diminished-fifth spelling implies a major third, while the source identifies it as a tritone spelling and supplies no specific resolution.",
+          "The definitions of diatonic span and semitone distance incorrectly identify each property as a written interval."
+        ]
+      },
+      "decision": "A",
+      "rationale": "Artifact A accurately coordinates span, semitone distance, and interval labels in usable assessments; B contains category errors and two incorrect declared answers."
+    },
+    {
+      "caseId": "scion-kernel-81d331b0407433133e3b4bac",
+      "pairId": "scion-kernel-pair-18c43e84a426ecda12d803b4",
+      "artifactSha256": {
+        "A": "6d0f015768ea1341ee8254b53dc7c53b7201d090f4235c25f4a56d7baa11fdae",
+        "B": "74463416a57f96227806af29149f98e490500ec025d1b8b4d73dc4c9af1d1ccf"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "Every fact, term example, scenario notation, and answer stays within force-per-charge, direction, and density claims."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "The terms consistently separate electric-field description, positive-charge acceleration direction, and relative strength."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The group must resolve swapped labels using three explicit, inspectable notations before the workshop ends."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both declared answers are unique, supported by their cited claims, and consistent with the explanations."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "The choices are parallel and meaningfully test swaps among field definition, direction, and relative strength."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation states the supported mapping and explains why acceleration or density belongs to a different property."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "The same three-way distinction is maintained across facts, terms, scenario, questions, keys, and feedback."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 3,
+            "evidence": "The core content follows the claims, but some force examples and misconceptions introduce unsupplied two-charge and magnitude language."
+          },
+          "knowledgePrecision": {
+            "score": 2,
+            "evidence": "The electric-force term restates the field definition, and its two-charge misconception is not directly refuted by the source."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The task gives a directional decision, a measured field vector, a density comparison, and a source-limited constraint."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both declared answers match the supplied density and positive-test-charge direction claims."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "The alternatives are distinct, though the second question's field-definition option is also a true statement in isolation."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "Both explanations end with an instruction to correct a distractor instead of actually explaining why it fails."
+          },
+          "internalCoherence": {
+            "score": 3,
+            "evidence": "The keys align with the facts and scenario, but unfinished feedback and imprecise term material weaken consistency."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [],
+        "B": [
+          "Both explanations contain unfinished 'then correct the closest distractor' instructions rather than completed instructional feedback."
+        ]
+      },
+      "decision": "A",
+      "rationale": "Both artifacts key the assessments correctly, but A is more precise and fully instructional, while B uses an invalid misconception and leaves both feedback corrections unfinished."
+    },
+    {
+      "caseId": "scion-kernel-8c1eab51ddaf54ae4781c812",
+      "pairId": "scion-kernel-pair-da4c48be026a4f1d2a378ede",
+      "artifactSha256": {
+        "A": "8c695e25661b42a2794d370ec253ca6d8b7da0cad51ee8b13d8d07bc08bf91a1",
+        "B": "fc436615c6355bfaa5e05ec9d1146b860a3278f680a82dcdaefa1449b918e6ee"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "The facts, definitions, examples, scenario notations, and answers use only the stated sixth- and seventh-degree alterations."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "Harmonic minor is tied to raised seventh and leading-tone function, while melodic minor is tied to both raised degrees."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The analyst must choose between variants before a deadline from two explicit alteration patterns."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both declared answers uniquely follow from the cited harmonic- and melodic-minor claims."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "The alternatives distinctly test reversals, omissions, and overgeneralizations of the two alteration patterns."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation gives the supported pattern and contrasts it with the closest harmonic-versus-melodic confusion."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "The variant definitions, scenario evidence, answer keys, citations, and explanations agree throughout."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "The source facts are present, but emotional contour and natural-minor alteration details are not supplied."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "Definitions of harmonic and melodic minor are accurate, but examples introduce unsupported compositional effects."
+          },
+          "scenarioReadiness": {
+            "score": 2,
+            "evidence": "A variant choice is required, but the scenario supplies no concrete alteration record and relies on an undefined melodic contour."
+          },
+          "assessmentCorrectness": {
+            "score": 1,
+            "evidence": "The first key selects melodic minor even though the question asks for raised seventh only; the second key is correct."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "Both sets contain four distinct alternatives that cleanly contrast the variants and alteration patterns."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "The first explanation contradicts its key, and both explanations leave the requested distractor correction unfinished."
+          },
+          "internalCoherence": {
+            "score": 1,
+            "evidence": "The first key conflicts with its question, citation, and explanation, while the scenario adds unsupported criteria."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [],
+        "B": [
+          "The first question declares option 0, but raised seventh only identifies option 1, harmonic minor.",
+          "The first explanation states that harmonic minor raises the seventh and therefore contradicts the declared melodic-minor answer.",
+          "Both explanations contain unfinished instructions to correct a closest distractor rather than providing that correction.",
+          "The melodic-minor example claims a specific emotional contour not supported by the source."
+        ]
+      },
+      "decision": "A",
+      "rationale": "Artifact A gives a precise, actionable, and consistently keyed distinction between the variants; B has an incorrect first key, contradictory feedback, and unsupported compositional details."
+    },
+    {
+      "caseId": "scion-kernel-8ec5d77e57967fbe1a2f074b",
+      "pairId": "scion-kernel-pair-8b76905888ded529dbd8f770",
+      "artifactSha256": {
+        "A": "cbc16bc0541849b0784da08681f618a0cb2c3fd263d3b6982d5ca16d2412f861",
+        "B": "f45595c519dbfb00673487fea840e5bfec281050ffa3d9aef28cb7c9a8ba6b04"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "All facts, examples, scenario records, and answers stay within flux change, induced emf, opposition, and listed causes."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "The terms accurately distinguish causes of flux change from the Lenz-law direction constraint."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The reviewer must classify which recorded change supports the flux change using explicit strength, area, and orientation records."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both declared answers are unique, supported by their cited claims, and fully consistent with the explanations."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "The options distinctly test swapped laws, reversed causality, and confusion between flux causes and current direction."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "The explanations teach the Faraday-Lenz distinction and directly repair the closest swap or causal reversal."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "Facts, term corrections, scenario evidence, keys, citations, and feedback preserve the supplied causal relationships."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 1,
+            "evidence": "Solenoid, moving-loop, field-line, and translated-coil examples introduce mechanisms and details absent from the claims."
+          },
+          "knowledgePrecision": {
+            "score": 1,
+            "evidence": "Magnetic flux is given an unsupplied definition, and several examples assert induction without establishing a listed flux-changing factor."
+          },
+          "scenarioReadiness": {
+            "score": 0,
+            "evidence": "The scenario narrates an outcome but gives no actor a usable disciplinary decision to make."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both declared answers correctly state that induced current direction opposes the producing flux change."
+          },
+          "choiceDiscriminability": {
+            "score": 2,
+            "evidence": "The answers are distinct, but increase-or-decrease descriptions of a direction are implausible category errors."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "Both explanations repeat a source claim and leave an instruction to correct the closest distractor unfinished."
+          },
+          "internalCoherence": {
+            "score": 2,
+            "evidence": "The assessment keys follow the facts, but unsupported examples, the decisionless scenario, and unfinished feedback do not."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [],
+        "B": [
+          "The scenario claims that rapidly translating a coil through a uniform magnetic field changes flux, although no change in field strength, area, or orientation is established.",
+          "The solenoid, moving-loop, magnetic-field-line, and closed-circuit examples add unsupported factual mechanisms beyond the supplied claims.",
+          "The scenario presents no usable decision for a learner or practitioner.",
+          "Both explanations contain unfinished 'then correct the closest distractor' instructions instead of completed feedback."
+        ]
+      },
+      "decision": "A",
+      "rationale": "Artifact A remains source-bounded and turns the claims into coherent decisions and feedback; B adds unsupported induction mechanisms, lacks a usable scenario decision, and leaves feedback unfinished."
+    }
+  ]
+}

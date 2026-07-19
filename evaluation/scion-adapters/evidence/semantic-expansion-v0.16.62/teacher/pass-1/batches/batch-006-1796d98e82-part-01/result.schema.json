@@ -1,0 +1,488 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "const": 1
+    },
+    "protocol": {
+      "type": "string",
+      "const": "scion-lesson-kernel-teacher-revision-result-v1"
+    },
+    "packetSha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "sessionId": {
+      "type": "string",
+      "minLength": 8
+    },
+    "reviser": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "model": {
+          "type": "string",
+          "minLength": 1
+        },
+        "revision": {
+          "type": "string",
+          "minLength": 1
+        },
+        "runtime": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "model",
+        "revision",
+        "runtime"
+      ]
+    },
+    "completedAt": {
+      "type": "string",
+      "minLength": 10
+    },
+    "attestations": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "suppliedClaimsOnly": {
+          "type": "boolean",
+          "const": true
+        },
+        "noExternalFacts": {
+          "type": "boolean",
+          "const": true
+        },
+        "noTrainingAuthorization": {
+          "type": "boolean",
+          "const": true
+        }
+      },
+      "required": [
+        "suppliedClaimsOnly",
+        "noExternalFacts",
+        "noTrainingAuthorization"
+      ]
+    },
+    "revisions": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1,
+      "prefixItems": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "caseId": {
+              "type": "string",
+              "const": "scion-kernel-8ef23dcb95e41dcdbb4e1f9b"
+            },
+            "originalArtifactSha256": {
+              "type": "string",
+              "const": "15f532454445509df1c7deee0964bc783aa816fa1b9b47e4c1f62455419a7f94"
+            },
+            "lessonKernel": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "lessonId": {
+                  "type": "string",
+                  "const": "lesson-3"
+                },
+                "facts": {
+                  "type": "array",
+                  "prefixItems": [
+                    {
+                      "type": "string",
+                      "const": "A conditional statement chooses which block of code to run based on whether a condition is true; if-else takes exactly one branch, and boolean operators (and, or, not) build compound conditions."
+                    },
+                    {
+                      "type": "string",
+                      "const": "An if statement runs its body only when the condition is true, and skips it when the condition is false."
+                    },
+                    {
+                      "type": "string",
+                      "const": "An else clause holds statements that run when the if condition is false."
+                    },
+                    {
+                      "type": "string",
+                      "const": "and returns True only if both conditions are true; or returns True if either is true; not inverts a single condition."
+                    }
+                  ],
+                  "items": {
+                    "type": "string"
+                  },
+                  "minItems": 4,
+                  "maxItems": 4
+                },
+                "keyTerms": {
+                  "type": "array",
+                  "minItems": 3,
+                  "maxItems": 3,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "tr": {
+                        "type": "string",
+                        "minLength": 3,
+                        "maxLength": 60
+                      },
+                      "df": {
+                        "type": "string",
+                        "minLength": 40,
+                        "maxLength": 380
+                      },
+                      "eg": {
+                        "type": "string",
+                        "minLength": 12,
+                        "maxLength": 300
+                      },
+                      "mi": {
+                        "type": "string",
+                        "minLength": 12,
+                        "maxLength": 300
+                      },
+                      "cx": {
+                        "type": "string",
+                        "minLength": 12,
+                        "maxLength": 300
+                      }
+                    },
+                    "required": [
+                      "tr",
+                      "df",
+                      "eg",
+                      "mi",
+                      "cx"
+                    ]
+                  }
+                },
+                "scenario": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "su": {
+                      "type": "string",
+                      "minLength": 45,
+                      "maxLength": 600
+                    },
+                    "ma": {
+                      "type": "string",
+                      "minLength": 10,
+                      "maxLength": 360
+                    }
+                  },
+                  "required": [
+                    "su",
+                    "ma"
+                  ]
+                },
+                "mc": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "q": {
+                        "type": "string",
+                        "minLength": 20,
+                        "maxLength": 300
+                      },
+                      "op": {
+                        "type": "array",
+                        "minItems": 4,
+                        "maxItems": 4,
+                        "items": {
+                          "type": "string",
+                          "minLength": 5,
+                          "maxLength": 180
+                        }
+                      },
+                      "ai": {
+                        "type": "integer",
+                        "enum": [
+                          0
+                        ]
+                      },
+                      "fi": {
+                        "type": "array",
+                        "minItems": 1,
+                        "maxItems": 2,
+                        "items": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 3
+                        }
+                      },
+                      "ex": {
+                        "type": "string",
+                        "minLength": 20,
+                        "maxLength": 400
+                      }
+                    },
+                    "required": [
+                      "q",
+                      "op",
+                      "ai",
+                      "fi",
+                      "ex"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "lessonId",
+                "facts",
+                "keyTerms",
+                "scenario",
+                "mc"
+              ]
+            },
+            "changeSummary": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "minLength": 12
+              }
+            },
+            "addressedDiagnoses": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "minLength": 12
+              }
+            }
+          },
+          "required": [
+            "caseId",
+            "originalArtifactSha256",
+            "lessonKernel",
+            "changeSummary",
+            "addressedDiagnoses"
+          ]
+        }
+      ],
+      "items": {
+        "anyOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "caseId": {
+                "type": "string",
+                "const": "scion-kernel-8ef23dcb95e41dcdbb4e1f9b"
+              },
+              "originalArtifactSha256": {
+                "type": "string",
+                "const": "15f532454445509df1c7deee0964bc783aa816fa1b9b47e4c1f62455419a7f94"
+              },
+              "lessonKernel": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "lessonId": {
+                    "type": "string",
+                    "const": "lesson-3"
+                  },
+                  "facts": {
+                    "type": "array",
+                    "prefixItems": [
+                      {
+                        "type": "string",
+                        "const": "A conditional statement chooses which block of code to run based on whether a condition is true; if-else takes exactly one branch, and boolean operators (and, or, not) build compound conditions."
+                      },
+                      {
+                        "type": "string",
+                        "const": "An if statement runs its body only when the condition is true, and skips it when the condition is false."
+                      },
+                      {
+                        "type": "string",
+                        "const": "An else clause holds statements that run when the if condition is false."
+                      },
+                      {
+                        "type": "string",
+                        "const": "and returns True only if both conditions are true; or returns True if either is true; not inverts a single condition."
+                      }
+                    ],
+                    "items": {
+                      "type": "string"
+                    },
+                    "minItems": 4,
+                    "maxItems": 4
+                  },
+                  "keyTerms": {
+                    "type": "array",
+                    "minItems": 3,
+                    "maxItems": 3,
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "tr": {
+                          "type": "string",
+                          "minLength": 3,
+                          "maxLength": 60
+                        },
+                        "df": {
+                          "type": "string",
+                          "minLength": 40,
+                          "maxLength": 380
+                        },
+                        "eg": {
+                          "type": "string",
+                          "minLength": 12,
+                          "maxLength": 300
+                        },
+                        "mi": {
+                          "type": "string",
+                          "minLength": 12,
+                          "maxLength": 300
+                        },
+                        "cx": {
+                          "type": "string",
+                          "minLength": 12,
+                          "maxLength": 300
+                        }
+                      },
+                      "required": [
+                        "tr",
+                        "df",
+                        "eg",
+                        "mi",
+                        "cx"
+                      ]
+                    }
+                  },
+                  "scenario": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "su": {
+                        "type": "string",
+                        "minLength": 45,
+                        "maxLength": 600
+                      },
+                      "ma": {
+                        "type": "string",
+                        "minLength": 10,
+                        "maxLength": 360
+                      }
+                    },
+                    "required": [
+                      "su",
+                      "ma"
+                    ]
+                  },
+                  "mc": {
+                    "type": "array",
+                    "minItems": 2,
+                    "maxItems": 2,
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "q": {
+                          "type": "string",
+                          "minLength": 20,
+                          "maxLength": 300
+                        },
+                        "op": {
+                          "type": "array",
+                          "minItems": 4,
+                          "maxItems": 4,
+                          "items": {
+                            "type": "string",
+                            "minLength": 5,
+                            "maxLength": 180
+                          }
+                        },
+                        "ai": {
+                          "type": "integer",
+                          "enum": [
+                            0
+                          ]
+                        },
+                        "fi": {
+                          "type": "array",
+                          "minItems": 1,
+                          "maxItems": 2,
+                          "items": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 3
+                          }
+                        },
+                        "ex": {
+                          "type": "string",
+                          "minLength": 20,
+                          "maxLength": 400
+                        }
+                      },
+                      "required": [
+                        "q",
+                        "op",
+                        "ai",
+                        "fi",
+                        "ex"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "lessonId",
+                  "facts",
+                  "keyTerms",
+                  "scenario",
+                  "mc"
+                ]
+              },
+              "changeSummary": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string",
+                  "minLength": 12
+                }
+              },
+              "addressedDiagnoses": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string",
+                  "minLength": 12
+                }
+              }
+            },
+            "required": [
+              "caseId",
+              "originalArtifactSha256",
+              "lessonKernel",
+              "changeSummary",
+              "addressedDiagnoses"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "protocol",
+    "packetSha256",
+    "sessionId",
+    "reviser",
+    "completedAt",
+    "attestations",
+    "revisions"
+  ]
+}

@@ -1,0 +1,480 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "const": 1
+    },
+    "protocol": {
+      "type": "string",
+      "const": "scion-lesson-kernel-teacher-revision-result-v1"
+    },
+    "packetSha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "sessionId": {
+      "type": "string",
+      "minLength": 8
+    },
+    "reviser": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "model": {
+          "type": "string",
+          "minLength": 1
+        },
+        "revision": {
+          "type": "string",
+          "minLength": 1
+        },
+        "runtime": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "model",
+        "revision",
+        "runtime"
+      ]
+    },
+    "completedAt": {
+      "type": "string",
+      "minLength": 10
+    },
+    "attestations": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "suppliedClaimsOnly": {
+          "type": "boolean",
+          "const": true
+        },
+        "noExternalFacts": {
+          "type": "boolean",
+          "const": true
+        },
+        "noTrainingAuthorization": {
+          "type": "boolean",
+          "const": true
+        }
+      },
+      "required": [
+        "suppliedClaimsOnly",
+        "noExternalFacts",
+        "noTrainingAuthorization"
+      ]
+    },
+    "revisions": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1,
+      "prefixItems": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "caseId": {
+              "type": "string",
+              "const": "scion-kernel-b379d50b14fb4e12972e8ffc"
+            },
+            "originalArtifactSha256": {
+              "type": "string",
+              "const": "b727d9133bb0c5cae7395094563435cd5f78a8453606e56da8c0f52852a8d2b2"
+            },
+            "lessonKernel": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "lessonId": {
+                  "type": "string",
+                  "const": "lesson-6"
+                },
+                "facts": {
+                  "type": "array",
+                  "prefixItems": [
+                    {
+                      "type": "string",
+                      "const": "Electric current is the rate at which charge passes through a surface."
+                    },
+                    {
+                      "type": "string",
+                      "const": "Conventional current direction is the direction positive charge would move."
+                    },
+                    {
+                      "type": "string",
+                      "const": "Microscopic drift speed is slow even though the electric signal through a circuit propagates rapidly."
+                    }
+                  ],
+                  "items": {
+                    "type": "string"
+                  },
+                  "minItems": 3,
+                  "maxItems": 3
+                },
+                "keyTerms": {
+                  "type": "array",
+                  "minItems": 3,
+                  "maxItems": 3,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "tr": {
+                        "type": "string",
+                        "minLength": 3,
+                        "maxLength": 60
+                      },
+                      "df": {
+                        "type": "string",
+                        "minLength": 40,
+                        "maxLength": 380
+                      },
+                      "eg": {
+                        "type": "string",
+                        "minLength": 12,
+                        "maxLength": 300
+                      },
+                      "mi": {
+                        "type": "string",
+                        "minLength": 12,
+                        "maxLength": 300
+                      },
+                      "cx": {
+                        "type": "string",
+                        "minLength": 12,
+                        "maxLength": 300
+                      }
+                    },
+                    "required": [
+                      "tr",
+                      "df",
+                      "eg",
+                      "mi",
+                      "cx"
+                    ]
+                  }
+                },
+                "scenario": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "su": {
+                      "type": "string",
+                      "minLength": 45,
+                      "maxLength": 600
+                    },
+                    "ma": {
+                      "type": "string",
+                      "minLength": 10,
+                      "maxLength": 360
+                    }
+                  },
+                  "required": [
+                    "su",
+                    "ma"
+                  ]
+                },
+                "mc": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "q": {
+                        "type": "string",
+                        "minLength": 20,
+                        "maxLength": 300
+                      },
+                      "op": {
+                        "type": "array",
+                        "minItems": 4,
+                        "maxItems": 4,
+                        "items": {
+                          "type": "string",
+                          "minLength": 5,
+                          "maxLength": 180
+                        }
+                      },
+                      "ai": {
+                        "type": "integer",
+                        "enum": [
+                          0
+                        ]
+                      },
+                      "fi": {
+                        "type": "array",
+                        "minItems": 1,
+                        "maxItems": 2,
+                        "items": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 2
+                        }
+                      },
+                      "ex": {
+                        "type": "string",
+                        "minLength": 20,
+                        "maxLength": 400
+                      }
+                    },
+                    "required": [
+                      "q",
+                      "op",
+                      "ai",
+                      "fi",
+                      "ex"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "lessonId",
+                "facts",
+                "keyTerms",
+                "scenario",
+                "mc"
+              ]
+            },
+            "changeSummary": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "minLength": 12
+              }
+            },
+            "addressedDiagnoses": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "minLength": 12
+              }
+            }
+          },
+          "required": [
+            "caseId",
+            "originalArtifactSha256",
+            "lessonKernel",
+            "changeSummary",
+            "addressedDiagnoses"
+          ]
+        }
+      ],
+      "items": {
+        "anyOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "caseId": {
+                "type": "string",
+                "const": "scion-kernel-b379d50b14fb4e12972e8ffc"
+              },
+              "originalArtifactSha256": {
+                "type": "string",
+                "const": "b727d9133bb0c5cae7395094563435cd5f78a8453606e56da8c0f52852a8d2b2"
+              },
+              "lessonKernel": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "lessonId": {
+                    "type": "string",
+                    "const": "lesson-6"
+                  },
+                  "facts": {
+                    "type": "array",
+                    "prefixItems": [
+                      {
+                        "type": "string",
+                        "const": "Electric current is the rate at which charge passes through a surface."
+                      },
+                      {
+                        "type": "string",
+                        "const": "Conventional current direction is the direction positive charge would move."
+                      },
+                      {
+                        "type": "string",
+                        "const": "Microscopic drift speed is slow even though the electric signal through a circuit propagates rapidly."
+                      }
+                    ],
+                    "items": {
+                      "type": "string"
+                    },
+                    "minItems": 3,
+                    "maxItems": 3
+                  },
+                  "keyTerms": {
+                    "type": "array",
+                    "minItems": 3,
+                    "maxItems": 3,
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "tr": {
+                          "type": "string",
+                          "minLength": 3,
+                          "maxLength": 60
+                        },
+                        "df": {
+                          "type": "string",
+                          "minLength": 40,
+                          "maxLength": 380
+                        },
+                        "eg": {
+                          "type": "string",
+                          "minLength": 12,
+                          "maxLength": 300
+                        },
+                        "mi": {
+                          "type": "string",
+                          "minLength": 12,
+                          "maxLength": 300
+                        },
+                        "cx": {
+                          "type": "string",
+                          "minLength": 12,
+                          "maxLength": 300
+                        }
+                      },
+                      "required": [
+                        "tr",
+                        "df",
+                        "eg",
+                        "mi",
+                        "cx"
+                      ]
+                    }
+                  },
+                  "scenario": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "su": {
+                        "type": "string",
+                        "minLength": 45,
+                        "maxLength": 600
+                      },
+                      "ma": {
+                        "type": "string",
+                        "minLength": 10,
+                        "maxLength": 360
+                      }
+                    },
+                    "required": [
+                      "su",
+                      "ma"
+                    ]
+                  },
+                  "mc": {
+                    "type": "array",
+                    "minItems": 2,
+                    "maxItems": 2,
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "q": {
+                          "type": "string",
+                          "minLength": 20,
+                          "maxLength": 300
+                        },
+                        "op": {
+                          "type": "array",
+                          "minItems": 4,
+                          "maxItems": 4,
+                          "items": {
+                            "type": "string",
+                            "minLength": 5,
+                            "maxLength": 180
+                          }
+                        },
+                        "ai": {
+                          "type": "integer",
+                          "enum": [
+                            0
+                          ]
+                        },
+                        "fi": {
+                          "type": "array",
+                          "minItems": 1,
+                          "maxItems": 2,
+                          "items": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 2
+                          }
+                        },
+                        "ex": {
+                          "type": "string",
+                          "minLength": 20,
+                          "maxLength": 400
+                        }
+                      },
+                      "required": [
+                        "q",
+                        "op",
+                        "ai",
+                        "fi",
+                        "ex"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "lessonId",
+                  "facts",
+                  "keyTerms",
+                  "scenario",
+                  "mc"
+                ]
+              },
+              "changeSummary": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string",
+                  "minLength": 12
+                }
+              },
+              "addressedDiagnoses": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string",
+                  "minLength": 12
+                }
+              }
+            },
+            "required": [
+              "caseId",
+              "originalArtifactSha256",
+              "lessonKernel",
+              "changeSummary",
+              "addressedDiagnoses"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "protocol",
+    "packetSha256",
+    "sessionId",
+    "reviser",
+    "completedAt",
+    "attestations",
+    "revisions"
+  ]
+}

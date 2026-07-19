@@ -30,18 +30,18 @@
     "implementation": [
       {
         "path": "src/lib/scionAnswerKeyAlignment.js",
-        "bytes": 62003,
-        "sha256": "c5aff075c25ee6f1bf6de87d52991d1b354e741c188e1290f3fa3c4282750423"
+        "bytes": 68304,
+        "sha256": "a6e48a2d3ecd5172f1c2b1fc4fed853c172d92ce8dad799f7a022015cff6fb0b"
       },
       {
         "path": "src/lib/scionPreferenceGate.js",
-        "bytes": 24245,
-        "sha256": "ddbf8bd03e9f111c82c2ad2c4e8b4ce3c1acb1c20112a386642a809640c4bcb7"
+        "bytes": 24360,
+        "sha256": "e60b8f420ed72e8a12d523c36d069e70b0e0e2d12b29b27155ea23d25db3c331"
       },
       {
         "path": "src/lib/scionKeyTermContract.js",
-        "bytes": 34178,
-        "sha256": "995c0f357e0b35785090a85f79d7c6c56931aea8a450bd8536583c5982aadcd5"
+        "bytes": 38391,
+        "sha256": "3de1724d28b6d94fb99b7ffa48bdf2cf30b8f50705715979d6957b386339c438"
       },
       {
         "path": "src/lib/itemAdmissionLint.js",
@@ -55,8 +55,8 @@
       },
       {
         "path": "src/lib/publicScionProvider.js",
-        "bytes": 80372,
-        "sha256": "eecc83c41a7b58f6a6397f257d9952250a9e611ef0979aa86ba4b5f109a6e8d8"
+        "bytes": 81393,
+        "sha256": "65887825ee8e3035736d79a61680b7e7b097675937e23637db5bebc2b80a13db"
       },
       {
         "path": "src/lib/blueprintEnrichmentPass.js",
@@ -131,7 +131,7 @@
       "explanation-omits-key-support": 1,
       "explanation-repeats-answer": 4,
       "misconception-repeats-known-fact": 5,
-      "multiple-source-supported-options": 15,
+      "multiple-source-supported-options": 14,
       "option-label-prefixes": 16,
       "option-label-suffixes": 1,
       "source-answer-conflict": 4,
@@ -263,7 +263,7 @@
       "explanation-negates-key": 1,
       "explanation-omits-key-support": 1,
       "misconception-repeats-known-fact": 2,
-      "multiple-source-supported-options": 7,
+      "multiple-source-supported-options": 6,
       "option-label-prefixes": 7,
       "source-answer-conflict": 2,
       "term-not-source-anchored": 4,

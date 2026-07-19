@@ -1,0 +1,170 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-teacher-revision-packet-v1",
+  "generatedAt": "2026-07-19T22:26:00.000Z",
+  "batchId": "batch-003-b741b36a72",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "aggregateSha256": "15911dd5272e1468b61352616a354826bd9ef2c4d267ea9f4ea3509581c3de55",
+  "prompt": {
+    "path": "evaluation/scion-adapters/lesson-kernel-teacher-revision-prompt-v8-v0.16.60.md",
+    "sha256": "505aff4b87a07aa0d7d9d7d7b6d40bb268f654439a4b8e06f1d1efda53327eb1"
+  },
+  "cases": [
+    {
+      "caseId": "scion-kernel-59a07c63e1457ae09f1974c7",
+      "caseSha256": "59a07c63e1457ae09f1974c7c1334db9f4e6d26a59df46a664d6da72d88a82f4",
+      "lessonInput": {
+        "lessonId": "lesson-2",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Demand curve",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: A demand curve shows the quantity of a good consumers are willing and able to purchase at each price, holding other factors constant. Claim 1: Demand curves typically slope downward, reflecting the law of demand. Claim 2: A change in price causes a movement along the demand curve, while a change in income or tastes shifts the curve.",
+        "readings": "OpenStax Principles of Microeconomics 3e, Ch. 3"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "13a691e562b5c8e8cd8780917c95852a4fc9041b68384de9a7efc063d90a6f05",
+        "kernelId": "econ/demand-curve",
+        "term": "Demand curve",
+        "claims": [
+          "A demand curve shows the quantity of a good consumers are willing and able to purchase at each price, holding other factors constant.",
+          "Demand curves typically slope downward, reflecting the law of demand.",
+          "A change in price causes a movement along the demand curve, while a change in income or tastes shifts the curve."
+        ],
+        "anchors": [
+          {
+            "src": "openstax:microeconomics-3e#3",
+            "loc": "3.1",
+            "quote": "the quantity of a good that consumers are willing and able to purchase at each price, holding all other factors constant"
+          },
+          {
+            "src": "openstax:microeconomics-3e#3",
+            "loc": "3.1",
+            "quote": "Demand curves typically slope downward, reflecting the law of demand"
+          },
+          {
+            "src": "openstax:microeconomics-3e#3",
+            "loc": "3.2",
+            "quote": "A change in price causes a movement along the demand curve"
+          }
+        ],
+        "attribution": [
+          "OpenStax Principles of Microeconomics 3e, Ch. 3"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "originalArtifact": {
+        "lessonId": "lesson-2",
+        "facts": [
+          "A demand curve shows the quantity of a good consumers are willing and able to purchase at each price, holding other factors constant.",
+          "Demand curves typically slope downward, reflecting the law of demand.",
+          "A change in price causes a movement along the demand curve, while a change in income or tastes shifts the curve."
+        ],
+        "keyTerms": [
+          {
+            "tr": "demand curve",
+            "df": "A demand curve represents quantity consumers are willing and able to purchase at each price, holding other factors constant.",
+            "eg": "For a good, consumers compare quantity at each price on a curve that typically slopes downward.",
+            "mi": "A demand curve shows price at each quantity consumers purchase.",
+            "cx": "The curve associates each price with the quantity consumers are willing and able to purchase."
+          },
+          {
+            "tr": "law of demand",
+            "df": "The law of demand is the relationship reflected by the typical downward slope of demand curves.",
+            "eg": "A demand curve that slopes downward reflects the law of demand.",
+            "mi": "The law of demand is reflected when income shifts the demand curve.",
+            "cx": "Income changes shift the curve; its typical downward slope reflects the law of demand."
+          },
+          {
+            "tr": "price",
+            "df": "Price is a value at which the demand curve shows a quantity consumers are willing and able to purchase.",
+            "eg": "A change in price produces movement along a downward-sloping demand curve.",
+            "mi": "A price change shifts the demand curve in the way a change in tastes does.",
+            "cx": "Price changes produce movement along the curve, while changes in tastes shift it."
+          }
+        ],
+        "scenario": {
+          "su": "A reviewer receives a demand-curve sketch with a price-change annotation and a separate passage describing a change in income. Before review closes, the reviewer must label each as movement or shift despite their shared reference to the demand curve.",
+          "ma": "price-change annotation beside movement along the demand curve, income-change passage beside a shifted curve, tastes-change notation beside a shifted curve"
+        },
+        "mc": [
+          {
+            "q": "A curve record shows a price change beside movement along the demand curve, while an income note accompanies a shifted curve; which distinction matches these observations?",
+            "op": [
+              "Price moves along; income shifts the curve",
+              "Income moves along; price shifts the curve",
+              "Price and income move along the curve",
+              "Price and income shift the demand curve"
+            ],
+            "ai": 0,
+            "fi": [
+              2
+            ],
+            "ex": "A change in price causes movement along the demand curve, while a change in income shifts the curve. Treating income as movement and price as a shift reverses that distinction."
+          },
+          {
+            "q": "A demand curve shows the quantity consumers are willing and able to purchase at each price while other factors are held constant, and it typically slopes downward. Which statement matches both features?",
+            "op": [
+              "Shows quantity at each price; typically slopes downward",
+              "Shows income at each price; tastes cause movement",
+              "Shows price at each taste; income causes movement",
+              "Shows quantity at each income; price shifts curve"
+            ],
+            "ai": 0,
+            "fi": [
+              0,
+              1
+            ],
+            "ex": "The demand curve shows quantity at each price while other factors are held constant, and it typically slopes downward. The income-at-each-price option also misclassifies a change in tastes as movement rather than a shift."
+          }
+        ]
+      },
+      "originalArtifactSha256": "6fde67ee0547facfc768f700587283236c19826ed778d2cb6ef85f95355d8ced",
+      "compilerAdmission": {
+        "needsRetry": true,
+        "issues": [
+          "lesson-2:mc-1:source-fact-key-mismatch"
+        ]
+      },
+      "diagnoses": [
+        {
+          "winnerScores": {
+            "sourceFidelity": 4,
+            "knowledgePrecision": 3,
+            "scenarioReadiness": 4,
+            "assessmentCorrectness": 4,
+            "choiceDiscriminability": 3,
+            "feedbackInstructionality": 3,
+            "internalCoherence": 4
+          },
+          "criticalDefects": [],
+          "rationale": "B is consistently keyed and instructionally coherent despite a few partially true distractors. A's second answer is critically wrong and directly contradicted by its own explanation.",
+          "decisionSha256": "0155f3f2b1356df2617834b7fa0dfbfad9adef18912a5b06eff2514bec4605e1"
+        },
+        {
+          "winnerScores": {
+            "sourceFidelity": 4,
+            "knowledgePrecision": 4,
+            "scenarioReadiness": 4,
+            "assessmentCorrectness": 2,
+            "choiceDiscriminability": 1,
+            "feedbackInstructionality": 3,
+            "internalCoherence": 3
+          },
+          "criticalDefects": [
+            "The second item is ambiguous because options 0, 2, and 3 are all supported descriptions of the stated record."
+          ],
+          "rationale": "A has one materially ambiguous item but remains source-faithful and otherwise coherent. B's second answer is plainly incorrect and contradicts its explanation, making A the stronger artifact overall.",
+          "decisionSha256": "78aad184ce5a7a4271992f0f41ad693d88f44bc5c9c668df68faa2ad1193109e"
+        }
+      ]
+    }
+  ],
+  "claimBoundary": "These are source packets, diagnosed reference artifacts, and compiler outcomes only. No local artifact, provider route, organizer preference, or training authorization is included.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "8882a751b27967dc605b7b7f7e6af5d6ad449498885f549294ad78ad431dcf1f"
+  }
+}

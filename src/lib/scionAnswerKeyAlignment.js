@@ -75,6 +75,8 @@ const CITED_KEY_SCOPE_TOKENS = new Set([
   'unmodified',
   'without',
 ]);
+const ABSENCE_SCOPE_RE = /\b(?:no|none|never|without|lacks?|cannot|can't)\b/i;
+const DIRECTION_TOKEN_RE = /^(?:higher|lower|more|less|increase|decrease|increases|decreases|increased|decreased)$/;
 
 function clean(value) {
   return String(value ?? '')
@@ -136,6 +138,45 @@ function sourceAlignmentTokens(value) {
 
 function tokenOverlap(left, right) {
   return [...left].filter((token) => right.has(token)).length;
+}
+
+function directionalRelations(value) {
+  const tokens = clean(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9-]+/g, ' ')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  const relations = new Map();
+  tokens.forEach((token, index) => {
+    if (!DIRECTION_TOKEN_RE.test(token) || index === 0) return;
+    const predicate =
+      sourceAlignmentTokens(tokens[index - 1])
+        .values()
+        .next().value || tokens[index - 1];
+    const values = relations.get(predicate) || new Set();
+    values.add(token.replace(/(?:s|d)$/, ''));
+    relations.set(predicate, values);
+  });
+  return relations;
+}
+
+function hasConflictingDirectionalRelation(supportedOption, declaredOption, evidence) {
+  const supported = directionalRelations(supportedOption);
+  const declared = directionalRelations(declaredOption);
+  const observed = directionalRelations(evidence);
+  for (const [predicate, supportedDirections] of supported) {
+    const declaredDirections = declared.get(predicate);
+    const observedDirections = observed.get(predicate);
+    if (!declaredDirections || !observedDirections) continue;
+    if (
+      [...supportedDirections].some((direction) => observedDirections.has(direction)) &&
+      [...declaredDirections].some((direction) => !supportedDirections.has(direction))
+    ) {
+      return true;
+    }
+  }
+  return false;
 }
 
 function normalizedRelationEntity(value) {
@@ -291,6 +332,18 @@ function citedKeyAlignmentBigrams(value) {
   return new Set(sequence.slice(0, -1).map((token, index) => `${token} ${sequence[index + 1]}`));
 }
 
+function citedScopeTokens(value) {
+  const tokens = citedKeyAlignmentTokens(value);
+  if (
+    /\bboth\s+(?:observed\s+|supplied\s+)?(?:accounts?|changes?|claims?|details?|facts?|labels?|observations?|passages?|records?)\b/i.test(
+      clean(value),
+    )
+  ) {
+    tokens.delete('both');
+  }
+  return tokens;
+}
+
 /**
  * Reject an explicit fact citation that has no semantic anchor in the keyed
  * option or the explanation's affirmative lead sentence. This is narrower
@@ -319,10 +372,10 @@ export function findScionCitedSourceKeyMismatch(
       ?.trim() || clean(normalized.explanation);
   const claimSurface = claims.join(' ');
   const claimOptionTokens = citedKeyAlignmentTokens(claimSurface);
-  const claimBigrams = citedKeyAlignmentBigrams(claimSurface);
   const declaredOptionTokens = citedKeyAlignmentTokens(normalized.options[normalized.answerIndex]);
+  const declaredScopeTokens = citedScopeTokens(normalized.options[normalized.answerIndex]);
   const unsupportedScopeTokens = [...declaredOptionTokens].filter(
-    (token) => CITED_KEY_SCOPE_TOKENS.has(token) && !claimOptionTokens.has(token),
+    (token) => declaredScopeTokens.has(token) && CITED_KEY_SCOPE_TOKENS.has(token) && !claimOptionTokens.has(token),
   );
   if (matchingProfile !== 'v0.16.58' && strict && unsupportedScopeTokens.length > 0) {
     return {
@@ -332,46 +385,62 @@ export function findScionCitedSourceKeyMismatch(
       supportMethod: 'cited-fact-key-unsupported-scope',
     };
   }
-  const warrantTokens = citedKeyAlignmentTokens(`${normalized.question} ${affirmativeLead}`);
+  const warrantTokens = citedScopeTokens(`${normalized.question} ${affirmativeLead}`);
   const unsupportedWarrantScopeTokens = [...warrantTokens].filter(
     (token) => CITED_KEY_SCOPE_TOKENS.has(token) && !claimOptionTokens.has(token),
   );
-  const sourceUsesNo = /\bno\b/i.test(claimSurface);
+  const sourceUsesAbsence = ABSENCE_SCOPE_RE.test(claimSurface);
   const warrantUsesNo = /\bno\b/i.test(`${normalized.question} ${affirmativeLead}`);
   if (
     matchingProfile !== 'v0.16.58' &&
     strict &&
-    (unsupportedWarrantScopeTokens.length > 0 || (warrantUsesNo && !sourceUsesNo))
+    (unsupportedWarrantScopeTokens.length > 0 || (warrantUsesNo && !sourceUsesAbsence))
   ) {
     return {
       declaredIndex: normalized.answerIndex,
-      unsupportedScopeTokens: [...unsupportedWarrantScopeTokens, ...(warrantUsesNo && !sourceUsesNo ? ['no'] : [])],
+      unsupportedScopeTokens: [
+        ...unsupportedWarrantScopeTokens,
+        ...(warrantUsesNo && !sourceUsesAbsence ? ['no'] : []),
+      ],
       citedClaimCount: claims.length,
       supportMethod: 'cited-fact-context-unsupported-scope',
     };
   }
+  const claimPhraseTokens = claims.map(citedKeyAlignmentTokens);
+  const claimPhraseBigrams = claims.map(citedKeyAlignmentBigrams);
   const optionPhraseScores = normalized.options.map((option, index) => {
     const optionTokens = citedKeyAlignmentTokens(option);
     const optionBigrams = citedKeyAlignmentBigrams(option);
-    const tokenScore = tokenOverlap(optionTokens, claimOptionTokens);
-    const bigramScore = tokenOverlap(optionBigrams, claimBigrams);
-    const score = tokenScore + bigramScore * 2;
+    const best = claims
+      .map((_, claimIndex) => {
+        const tokenScore = tokenOverlap(optionTokens, claimPhraseTokens[claimIndex]);
+        const bigramScore = tokenOverlap(optionBigrams, claimPhraseBigrams[claimIndex]);
+        const score = tokenScore + bigramScore * 2;
+        return {
+          score,
+          tokenScore,
+          bigramScore,
+          containment: Number((score / Math.max(1, optionTokens.size + optionBigrams.size * 2)).toFixed(6)),
+        };
+      })
+      .sort((left, right) => right.score - left.score || right.containment - left.containment)[0];
     return {
       index,
-      score,
-      tokenScore,
-      bigramScore,
-      containment: Number((score / Math.max(1, optionTokens.size + optionBigrams.size * 2)).toFixed(6)),
+      ...best,
     };
   });
   const bestPhraseScore = Math.max(...optionPhraseScores.map(({ score }) => score));
   const phraseWinners = optionPhraseScores.filter(({ score }) => score === bestPhraseScore);
   const declaredPhrase = optionPhraseScores[normalized.answerIndex];
   const phraseWinner = phraseWinners[0];
+  const affirmativeConflict = findScionAffirmativeOptionConflict(normalized);
   if (
     matchingProfile !== 'v0.16.58' &&
     phraseWinners.length === 1 &&
     phraseWinner.index !== normalized.answerIndex &&
+    affirmativeConflict?.supportedIndex === phraseWinner.index &&
+    Number(affirmativeConflict.scores?.[phraseWinner.index] || 0) >=
+      Number(affirmativeConflict.scores?.[normalized.answerIndex] || 0) + 2 &&
     phraseWinner.score >= 6 &&
     phraseWinner.bigramScore >= 1 &&
     phraseWinner.containment >= 0.6 &&
@@ -568,6 +637,23 @@ const NEAR_DUPLICATE_OPTION_STOP_WORDS = new Set([
   'to',
   'with',
 ]);
+const NEAR_DUPLICATE_OPTION_FILLER_TOKENS = new Set([
+  'additional',
+  'also',
+  'answer',
+  'choice',
+  'directly',
+  'exactly',
+  'just',
+  'merely',
+  'next',
+  'note',
+  'noted',
+  'option',
+  'same',
+  'simply',
+  'stated',
+]);
 const NEAR_DUPLICATE_POLARITY_GROUPS = [
   ['not', 'never', 'no'],
   ['major', 'minor'],
@@ -654,13 +740,21 @@ export function findScionNearDuplicateOptionPair(options = []) {
       const shared = [...left].filter((token) => right.has(token)).length;
       const smallerSequence = left.size < right.size ? sequences[leftIndex] : sequences[rightIndex];
       const largerSequence = left.size < right.size ? sequences[rightIndex] : sequences[leftIndex];
+      const smallerSet = left.size < right.size ? left : right;
+      const largerSet = left.size < right.size ? right : left;
+      const addedTokens = [...largerSet].filter((token) => !smallerSet.has(token));
       // Token-set containment alone collapses relation swaps and partial
       // contrasts. For example, “analysis surfaces obstacles; diagram may
       // include decisions” is not the same answer as assigning those verbs to
       // the opposite subject, and “modulation: accidentals” is not duplicated
       // by “modulation: key signature.” A filler-expanded duplicate preserves
       // the smaller option's semantic token order.
-      if (shared === smaller && isOrderedTokenSubsequence(smallerSequence, largerSequence)) {
+      if (
+        shared === smaller &&
+        addedTokens.length > 0 &&
+        addedTokens.every((token) => NEAR_DUPLICATE_OPTION_FILLER_TOKENS.has(token)) &&
+        isOrderedTokenSubsequence(smallerSequence, largerSequence)
+      ) {
         return { leftIndex, rightIndex, shared, smaller };
       }
     }
@@ -840,6 +934,13 @@ function orderedSemanticTokenCoverage(optionTokens, clause) {
   return expectedIndex / expected.length;
 }
 
+function relationDestinationTokens(value) {
+  const match = clean(value).match(
+    /\b(?:pull(?:s|ed|ing)?|move(?:s|d|ing)?|lead(?:s|ing)?|point(?:s|ed|ing)?|flow(?:s|ed|ing)?)\b[^.;]{0,24}?\b(?:toward|towards|to|into|above|below|through)\s+(?:the\s+|an?\s+)?([a-z][a-z-]*)/i,
+  );
+  return match ? sourceAlignmentTokens(match[1]) : new Set();
+}
+
 /**
  * Detect when the affirmative first sentence clearly supports a different
  * displayed option. This is deliberately narrower than open-ended semantic
@@ -993,16 +1094,31 @@ export function findScionMultipleSourceSupportedOptions(
     score: tokenOverlap(questionTokens, sourceAlignmentTokens(claim)),
   }));
   const bestQuestionScore = Math.max(0, ...claimScores.map(({ score }) => score));
+  const answerSurfaceTokens = sourceAlignmentTokens(`${normalized.options.join(' ')} ${normalized.explanation}`);
+  const uniqueAnchorClaimIndexes = new Set();
+  for (const token of questionTokens) {
+    // A unique token is a relation anchor only when the answer surface also
+    // uses it. Incidental stem context such as “Western notation” must not
+    // narrow a clef question to the generic staff-definition claim.
+    if (!answerSurfaceTokens.has(token)) continue;
+    const matchingClaims = claims
+      .map((claim, index) => (sourceAlignmentTokens(claim).has(token) ? index : -1))
+      .filter((index) => index >= 0);
+    if (matchingClaims.length === 1) uniqueAnchorClaimIndexes.add(matchingClaims[0]);
+  }
   if (!allowBroadSourceContext) {
     if (bestQuestionScore < 2) return null;
-    const relevantClaimIndexes = claimScores
-      .filter(({ score }) => score >= Math.max(2, bestQuestionScore - 1))
-      .map(({ index }) => index);
+    const relevantClaimIndexes =
+      matchingProfile !== 'v0.16.58' && uniqueAnchorClaimIndexes.size === 1
+        ? [...uniqueAnchorClaimIndexes]
+        : claimScores.filter(({ score }) => score >= Math.max(2, bestQuestionScore - 1)).map(({ index }) => index);
     if (relevantClaimIndexes.length === 0 || relevantClaimIndexes.length > 3) return null;
     return findSupportedOptions(relevantClaimIndexes);
   }
   let relevantClaimIndexes;
-  if (bestQuestionScore >= 2) {
+  if (matchingProfile !== 'v0.16.58' && uniqueAnchorClaimIndexes.size === 1) {
+    relevantClaimIndexes = [...uniqueAnchorClaimIndexes];
+  } else if (bestQuestionScore >= 2) {
     // Broad definition/function stems often name a source concept repeated in
     // four or more claims. Limiting this set to three hid exactly the ambiguity
     // the rule is meant to expose, so retain every near-best relevant claim.
@@ -1051,11 +1167,20 @@ export function findScionMultipleSourceSupportedOptions(
       .map((option, index) => {
         const surface = stripOptionLabel(option).toLowerCase();
         const tokens = semanticOptionTokens(option);
+        const optionDestinations = relationDestinationTokens(option);
         let best = { score: 0, containment: 0, orderedCoverage: 0, claimIndex: -1, exactPhrase: false };
         candidateClaimIndexes.forEach((claimIndex) => {
           const claim = claims[claimIndex];
           const claimSurface = claim.toLowerCase();
           if (/\b(?:false|never|not|only)\b/i.test(surface) && !/\b(?:false|never|not|only)\b/i.test(claimSurface)) {
+            return;
+          }
+          const claimDestinations = relationDestinationTokens(claim);
+          if (
+            optionDestinations.size > 0 &&
+            claimDestinations.size > 0 &&
+            tokenOverlap(optionDestinations, claimDestinations) === 0
+          ) {
             return;
           }
           const score = tokenOverlap(tokens, claimTokens[claimIndex]);
@@ -1073,7 +1198,7 @@ export function findScionMultipleSourceSupportedOptions(
           }
         });
         const relationOrderRequired =
-          /\b(?:affect\w*|creat(?:e|es|ed|ing)|depend\w*|determin\w*|drive\w*|induc\w*|lead\w*|link\w*|measur\w*|move\w*|power\w*|produc(?:e|es|ed|ing)|rais\w*|relat(?:e|es|ed|ing)|resist\w*|stor(?:e|es|ed|ing))\b/i.test(
+          /\b(?:affect\w*|creat(?:e|es|ed|ing)|depend\w*|determin\w*|drive\w*|induc\w*|lead\w*|link\w*|measur\w*|move\w*|power\w*|produc(?:e|es|ed|ing)|pull\w*|rais\w*|relat(?:e|es|ed|ing)|resist\w*|stor(?:e|es|ed|ing))\b/i.test(
             surface,
           );
         const orderIsSupported = !relationOrderRequired || best.orderedCoverage >= 0.8;
@@ -1253,6 +1378,7 @@ export function findScionExplanationKeyConflict(
     stripTerminalPunctuation = true,
     allowFirstSentenceLexicalCue = true,
     rejectNegativeEvidence = true,
+    allowDirectionalRelationConflict = true,
   } = {},
 ) {
   const normalized = normalizeScionMcItem(item);
@@ -1291,6 +1417,41 @@ export function findScionExplanationKeyConflict(
   // that narrower cue may still qualify; otherwise refuse the repair.
   if (rejectNegativeEvidence && EXPLANATION_NEGATIVE_EVIDENCE_RE.test(affirmativeLead)) {
     return allowFirstSentenceLexicalCue ? findFirstSentenceLexicalCue(normalized) : null;
+  }
+  if (allowDirectionalRelationConflict) {
+    const evidenceRelations = directionalRelations(affirmativeLead);
+    const relationScores = normalized.options.map((option) => {
+      let score = 0;
+      for (const [predicate, directions] of directionalRelations(option)) {
+        const observed = evidenceRelations.get(predicate);
+        if (!observed) continue;
+        score += [...directions].filter((direction) => observed.has(direction)).length;
+      }
+      return score;
+    });
+    const bestRelationScore = Math.max(...relationScores);
+    const bestRelationIndices = relationScores
+      .map((score, index) => (score === bestRelationScore ? index : -1))
+      .filter((index) => index >= 0);
+    if (
+      bestRelationScore > 0 &&
+      bestRelationIndices.length === 1 &&
+      bestRelationIndices[0] !== normalized.answerIndex &&
+      hasConflictingDirectionalRelation(
+        normalized.options[bestRelationIndices[0]],
+        normalized.options[normalized.answerIndex],
+        affirmativeLead,
+      )
+    ) {
+      return {
+        declaredIndex: normalized.answerIndex,
+        supportedIndex: bestRelationIndices[0],
+        scores: relationScores,
+        supportMethod: 'affirmative-directional-relation-conflict',
+        explicitCues: [],
+        evidenceSentence: affirmativeLead,
+      };
+    }
   }
   const explanationTokens = alignmentTokens(affirmativeLead);
   const scores = normalized.options.map((option) => {

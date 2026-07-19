@@ -60,6 +60,28 @@ export const SCION_ADAPTER_DATASET_PROFILES = Object.freeze({
     researchMinimumModelJudgePairsPerDomain: 8,
     semanticProfile: 'source-strict-v6',
   }),
+  'lesson-kernel-v0.16.62': Object.freeze({
+    sources: Object.freeze([
+      'evaluation/scion-adapters/evidence/semantic-expansion-v0.16.62/cumulative-training-preferences.jsonl',
+    ]),
+    minimumPairs: 100,
+    minimumDomains: 7,
+    minimumGroupsPerDomain: 2,
+    minimumTaskGroupsPerDomain: 6,
+    minimumSourceKernelsPerDomain: 6,
+    minimumModelJudgePairs: 100,
+    minimumModelJudgeDomains: 7,
+    minimumModelJudgePairsPerDomain: 8,
+    researchMinimumPairs: 100,
+    researchMinimumDomains: 7,
+    researchMinimumGroupsPerDomain: 2,
+    researchMinimumTaskGroupsPerDomain: 6,
+    researchMinimumSourceKernelsPerDomain: 6,
+    researchMinimumModelJudgePairs: 100,
+    researchMinimumModelJudgeDomains: 7,
+    researchMinimumModelJudgePairsPerDomain: 8,
+    semanticProfile: 'source-strict-v6',
+  }),
 });
 export const SCION_ADAPTER_SEMANTIC_PROFILES = Object.freeze([
   'legacy',

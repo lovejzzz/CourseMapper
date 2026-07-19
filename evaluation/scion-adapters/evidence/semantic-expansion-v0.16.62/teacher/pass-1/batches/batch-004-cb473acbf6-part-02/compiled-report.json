@@ -1,0 +1,150 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-teacher-capture-v1",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "packetSha256": "26e977d535af9830103a2a40a57ee475677406b85e3f422dc32ac4353554874f",
+  "resultSha256": "b8b44c81e12f98f4b2a4b2745462ba7a2cb70d0bf150a06da3d217382567c4ea",
+  "reviser": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-source-cleanroom"
+  },
+  "calls": [
+    {
+      "caseId": "scion-kernel-68ae8262b2c665df3114f898",
+      "caseSha256": "68ae8262b2c665df3114f8982d1abe357f1672fdd19d3f8b0ffa2d287d4a42e4",
+      "arm": "teacher-revision",
+      "model": {
+        "model": "gpt-5.6-sol",
+        "revision": "codex-cli 0.144.5",
+        "runtime": "codex-cli-ephemeral-source-cleanroom"
+      },
+      "sourceContextSha256": "e565fb547922a421c50656ef30bbed81c30bc1f826207f046dfca333bd296ebd",
+      "originalArtifactSha256": "ebf8589856791d46c803608412c52714f4d4b78506dc45c0282aa4bcdaf07973",
+      "artifact": {
+        "lessonId": "lesson-2",
+        "facts": [
+          "A dictionary stores key-value pairs and looks up each value by its key rather than by a numeric position.",
+          "Because a dictionary looks up values using keys, it cannot hold duplicate keys.",
+          "Dictionaries are written with curly braces in key: value form and are ideal when data is naturally labeled rather than ordered."
+        ],
+        "keyTerms": [
+          {
+            "tr": "dictionary",
+            "df": "A dictionary is a structure that stores key-value pairs and looks up values using keys.",
+            "eg": "A Python dictionary is written with curly braces in key: value form.",
+            "mi": "A dictionary looks up each key by its value.",
+            "cx": "Dictionary lookup uses a key to find its associated value."
+          },
+          {
+            "tr": "key-value pairs",
+            "df": "Key-value pairs associate stored values with keys used to look up those values.",
+            "eg": "Dictionaries store key-value pairs for naturally labeled data.",
+            "mi": "Key-value pairs require values to be found by numeric position.",
+            "cx": "Values in key-value pairs are found using their associated keys."
+          },
+          {
+            "tr": "curly braces",
+            "df": "Curly braces are the notation used to write dictionaries in key: value form.",
+            "eg": "Dictionaries use curly braces around key: value form.",
+            "mi": "Curly braces show that data is naturally ordered.",
+            "cx": "Naturally labeled data makes dictionaries ideal, while curly braces provide their written form."
+          }
+        ],
+        "scenario": {
+          "su": "A dictionary is written with curly braces in key: value form, and the data is naturally labeled rather than ordered. Decide whether lookup uses a key or a numeric position, under the constraint that the dictionary cannot hold duplicate keys.",
+          "ma": "curly braces in key: value form observation, naturally labeled rather than ordered data observation, lookup-by-key design"
+        },
+        "mc": [
+          {
+            "q": "A dictionary stores key-value pairs, and an observation contrasts lookup by a key with lookup by a numeric position; which proposition captures the supported distinction?",
+            "op": [
+              "Keys are looked up using values",
+              "Numeric positions are looked up using values",
+              "Values are looked up using numeric positions",
+              "Values are looked up using keys"
+            ],
+            "ai": 3,
+            "fi": [
+              0
+            ],
+            "ex": "A dictionary finds each value using its associated key rather than a numeric position. Looking up keys using values reverses the stated relationship."
+          },
+          {
+            "q": "A Python design uses curly braces in key: value form but presents duplicate keys; under a deadline, how should students classify it while respecting both observed details?",
+            "op": [
+              "It is ideal for naturally ordered data",
+              "It is a dictionary with duplicate keys",
+              "It looks up keys by each value",
+              "It cannot be a dictionary as presented"
+            ],
+            "ai": 3,
+            "fi": [
+              1
+            ],
+            "ex": "A dictionary cannot hold duplicate keys because it looks up values using keys. Curly-brace key: value form does not make duplicate keys compatible with a dictionary."
+          }
+        ]
+      },
+      "artifactSha256": "d54ab3d1a15d06d5ed3d8e49390dc0f504eac4711209908529d072ac1c52be42",
+      "admission": {
+        "needsRetry": false,
+        "issues": []
+      },
+      "compilerRepairs": [
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-2",
+          "item": 0,
+          "permutation": [
+            2,
+            3,
+            1,
+            0
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 3,
+          "trainingEligible": false
+        },
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-2",
+          "item": 1,
+          "permutation": [
+            2,
+            1,
+            3,
+            0
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 3,
+          "trainingEligible": false
+        }
+      ],
+      "revisionEvidence": {
+        "packetSha256": "26e977d535af9830103a2a40a57ee475677406b85e3f422dc32ac4353554874f",
+        "sessionId": "scion-v01654-teacher-batch-004-cb473acbf6-part-02-dee869d9-fe58-480e-a428-4523344cd4d2",
+        "changeSummary": [
+          "Replaced only the diagnosed scenario with a two-sentence, source-grounded decision that removes the invented named example and states the duplicate-key constraint.",
+          "Revised the scenario materials to name multiple source-grounded observations and a lookup design for inspection."
+        ],
+        "addressedDiagnoses": [
+          "Removed the invented named example \"Python Data Boundary Design Lab\" from the scenario while preserving all fields not implicated by the diagnosis."
+        ]
+      }
+    }
+  ],
+  "summary": {
+    "cases": 1,
+    "compilerAdmitted": 1,
+    "compilerRejected": 0
+  },
+  "claimBoundary": "These source-constrained model revisions cleared only deterministic compiler admission where stated. They are not judge preferences, human evidence, adapter wins, or training authorization.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "1210a6b2a8da61f08709b30a1c4d881216de954687caee5fa78514eaaa377247"
+  }
+}

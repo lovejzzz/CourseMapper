@@ -186,6 +186,17 @@ describe('Scion adapter tooling', () => {
       semanticProfile: 'source-strict-v6',
     });
     expect(SCION_ADAPTER_DATASET_PROFILES['lesson-kernel-v0.16.54'].sources).toHaveLength(2);
+    expect(SCION_ADAPTER_DATASET_PROFILES['lesson-kernel-v0.16.62']).toMatchObject({
+      sources: ['evaluation/scion-adapters/evidence/semantic-expansion-v0.16.62/cumulative-training-preferences.jsonl'],
+      minimumPairs: 100,
+      minimumDomains: 7,
+      minimumGroupsPerDomain: 2,
+      minimumSourceKernelsPerDomain: 6,
+      minimumModelJudgePairs: 100,
+      minimumModelJudgeDomains: 7,
+      minimumModelJudgePairsPerDomain: 8,
+      semanticProfile: 'source-strict-v6',
+    });
   });
 
   it('refuses to inflate the lesson-kernel target with two preferences for one campaign case', () => {
@@ -1088,6 +1099,9 @@ describe('Scion adapter tooling', () => {
     expect(launcher).toContain('--mlx-self-test');
     expect(launcher).toContain('$LESSON_KERNEL_V01654 && MAX_SEQUENCE_LENGTH=2580');
     expect(launcher).toContain('$LESSON_KERNEL_V01654 && DEFAULT_ITERS=200');
+    expect(launcher).toContain('--profile lesson-kernel-v0.16.62');
+    expect(launcher).toContain('$LESSON_KERNEL_V01662 && MAX_SEQUENCE_LENGTH=2875');
+    expect(launcher).toContain('$LESSON_KERNEL_V01662 && DEFAULT_ITERS=200');
     expect(launcher).toContain('mktemp "${TMPDIR:-/tmp}/scion-toolchain.XXXXXX"');
     expect(launcher).toContain('--max-sequence-length "$MAX_SEQUENCE_LENGTH"');
     expect(launcher).toContain('--max-seq-length "$MAX_SEQUENCE_LENGTH"');

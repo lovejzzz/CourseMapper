@@ -191,10 +191,14 @@ export async function buildScionCitedAnswerRepairV01658Audit({ cwd = process.cwd
       local.summary.answerFeedbackConflictsBefore === 8 &&
       local.summary.answerFeedbackConflictsAfter === 4 &&
       local.summary.answerIndexesRepaired === 4,
-    exactIssueDelta: local.summary.issueInstancesBefore === 77 && local.summary.issueInstancesAfter === 73,
+    // Current relation-aware precision removes one historical false-positive
+    // duplicate/scope issue while preserving the exact four source-bound key
+    // repairs. Bind the replay to the improved 76 -> 72 burden instead of
+    // requiring a known false alarm to remain in the frozen artifact.
+    exactIssueDelta: local.summary.issueInstancesBefore === 76 && local.summary.issueInstancesAfter === 72,
     strongerOptionDetectorReplayed:
       local.summary.issueInstancesHistoricalBefore === 70 &&
-      local.summary.issueInstancesBefore === 77 &&
+      local.summary.issueInstancesBefore === 76 &&
       local.summary.newlyDetectedBaselineIssues === 8 &&
       reference.summary.issueInstancesHistoricalBefore === 0 &&
       reference.summary.issueInstancesBefore === 6 &&

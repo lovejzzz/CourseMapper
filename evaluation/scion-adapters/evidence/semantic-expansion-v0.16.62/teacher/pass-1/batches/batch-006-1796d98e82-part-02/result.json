@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-teacher-revision-result-v1",
+  "packetSha256": "629172456cc5501daaa791ddaa412bbcf43b2f79533fc2be1f79f00fe5e18a8e",
+  "sessionId": "scion-v01654-teacher-batch-006-1796d98e82-part-02-4d09ff18-730a-4a5e-bcaf-544e1c9087dc",
+  "reviser": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-source-cleanroom"
+  },
+  "completedAt": "2026-07-19T22:01:25.000Z",
+  "attestations": {
+    "suppliedClaimsOnly": true,
+    "noExternalFacts": true,
+    "noTrainingAuthorization": true
+  },
+  "revisions": [
+    {
+      "caseId": "scion-kernel-91d57c49e68873ad738edc77",
+      "originalArtifactSha256": "5bdb6884a17b6c39604fa626e2f5fd3a1d16fed31cbdeed158fe5076ae8dffc1",
+      "lessonKernel": {
+        "lessonId": "lesson-8",
+        "facts": [
+          "A DC circuit is a conducting path with steady current, sources, and components whose voltages and currents obey conservation rules.",
+          "Series components share the same current; parallel branches share the same voltage.",
+          "Kirchhoff's junction rule expresses charge conservation, and the loop rule expresses energy conservation."
+        ],
+        "keyTerms": [
+          {
+            "tr": "DC circuit",
+            "df": "A DC circuit is a conducting path distinguished by steady current, sources, components, and conservation rules.",
+            "eg": "Use the term DC circuit while comparing series components that share the same current with parallel branches that share the same voltage.",
+            "mi": "A DC circuit has component voltages and currents that oppose conservation rules.",
+            "cx": "Its component voltages and currents obey conservation rules along the conducting path."
+          },
+          {
+            "tr": "Series components",
+            "df": "Series components are circuit components distinguished by sharing the same current.",
+            "eg": "Two series components in a DC circuit carry the same current.",
+            "mi": "Series components are identified by sharing the same voltage.",
+            "cx": "Shared current characterizes series components, while shared voltage characterizes parallel branches."
+          },
+          {
+            "tr": "junction rule",
+            "df": "The junction rule is a Kirchhoff rule that expresses charge conservation.",
+            "eg": "Kirchhoff's junction rule and loop rule express charge and energy conservation, respectively.",
+            "mi": "The junction rule expresses energy conservation rather than charge conservation.",
+            "cx": "Charge conservation corresponds to the junction rule; energy conservation corresponds to the loop rule."
+          }
+        ],
+        "scenario": {
+          "su": "Students must label a conducting path as a DC circuit and distinguish its series components from its parallel branches before a deadline. The steady-current notation, component current comparison, and branch voltage comparison must support one defensible classification despite the time constraint.",
+          "ma": "steady-current path diagram, component current comparison, branch voltage comparison"
+        },
+        "mc": [
+          {
+            "q": "A circuit notation shows equal current through series components and equal voltage across parallel branches; which comparison correctly distinguishes the two observed component relations?",
+            "op": [
+              "Series share current; parallel branches share voltage",
+              "Series share voltage; parallel branches share current",
+              "Series and parallel branches share current",
+              "Series and parallel components share voltage"
+            ],
+            "ai": 0,
+            "fi": [
+              1
+            ],
+            "ex": "Series components share the same current, whereas parallel branches share the same voltage. The reversed comparison incorrectly exchanges these two relations."
+          },
+          {
+            "q": "A student compares junction notation tied to charge conservation with loop notation tied to energy conservation; which labels fit the records before the workshop deadline?",
+            "op": [
+              "Junction: charge conservation; loop: energy conservation",
+              "Junction: energy conservation; loop: charge conservation",
+              "Junction and loop: charge conservation",
+              "Junction and loop: energy conservation"
+            ],
+            "ai": 0,
+            "fi": [
+              2
+            ],
+            "ex": "The junction rule expresses charge conservation, and the loop rule expresses energy conservation. Assigning energy to the junction and charge to the loop reverses the supported labels."
+          }
+        ]
+      },
+      "changeSummary": [
+        "Rewrote only the first key-term example as a bounded application grounded in the supplied claims."
+      ],
+      "addressedDiagnoses": [
+        "Resolved the compiler finding that the first key-term example repeated its definition."
+      ]
+    }
+  ]
+}

@@ -1,0 +1,496 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-review-v1",
+  "order": "B/A",
+  "packetSha256": "0a9f41b51267b62fed867055b71e87f6b3e7256ad1defe9e68d2367cfc12dea8",
+  "sessionId": "scion-v01662-batch-008-10005ed763-b-a-8ecf4b5d-a08e-4d6c-b186-01d9b30924ca",
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "completedAt": "2026-07-19T21:56:05.112Z",
+  "attestations": {
+    "anonymousArtifactsOnly": true,
+    "otherOrderUnavailable": true,
+    "organizerMappingUnavailable": true
+  },
+  "decisions": [
+    {
+      "caseId": "scion-kernel-abc461d2ef662fa9332b2800",
+      "pairId": "scion-kernel-pair-971659dd12f89cf9de4c7df3",
+      "artifactSha256": {
+        "A": "b209e882b68a5ee5065e2a513494d4eb94fda80c42779b5504c5246fcf78d928",
+        "B": "a8c1e4c715f1927890acc7f2b8787dfd1074c4693d921df1a8524f6bf4591a0e"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "All five facts and every example stay within the supplied bracket, index, and iteration claims."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "The list, index, and for-loop definitions remain distinct, and each misconception is directly corrected."
+          },
+          "scenarioReadiness": {
+            "score": 3,
+            "evidence": "The student must classify observed notation, access, or iteration under a competing-label constraint, though the setting is abstract."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both items declare option 0, which uniquely states the supplied distinctions and agrees with each explanation."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "Each item has four distinct alternatives, but several role-reversal distractors are grammatically awkward and implausible."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation states the governing relation and explains how the closest reversal swaps the supplied roles."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "Facts, terms, scenario evidence, answer keys, fact indexes, and explanations consistently reinforce the same distinctions."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 3,
+            "evidence": "The core facts are reproduced, but the scenario adds an exactly-once score-processing requirement not stated in the claims."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "The definitions are accurate, though the random-collection misconception and its correction are less precise than Artifact A's contrasts."
+          },
+          "scenarioReadiness": {
+            "score": 3,
+            "evidence": "The score list, entry order, and examination constraint are inspectable, but the scenario does not clearly frame the method choice."
+          },
+          "assessmentCorrectness": {
+            "score": 0,
+            "evidence": "Both items declare option 0 even though option 1 is correct, and both explanations explicitly support the second option."
+          },
+          "choiceDiscriminability": {
+            "score": 2,
+            "evidence": "The options are distinct, but one calls the forward sequence 10, 20, 30 reverse order and several distractors are giveaways."
+          },
+          "feedbackInstructionality": {
+            "score": 3,
+            "evidence": "The explanations accurately teach zero-based indexing and ordered iteration, despite contradicting their declared answer keys."
+          },
+          "internalCoherence": {
+            "score": 0,
+            "evidence": "Each declared answer directly conflicts with the option supported by its question, cited fact, and explanation."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [],
+        "B": [
+          "The first item declares option 0, but zero-based indexing makes option 1 correct and the explanation says so.",
+          "The second item declares option 0, but ordered iteration makes option 1 correct and the explanation says so."
+        ]
+      },
+      "decision": "A",
+      "rationale": "Artifact A is consistently source-bound and has two correct, well-explained assessments. Artifact B teaches the core material reasonably well but assigns the wrong answer to both questions, producing decisive answer-feedback contradictions."
+    },
+    {
+      "caseId": "scion-kernel-b379d50b14fb4e12972e8ffc",
+      "pairId": "scion-kernel-pair-cdc8719c85f640c77e5eed13",
+      "artifactSha256": {
+        "A": "b727d9133bb0c5cae7395094563435cd5f78a8453606e56da8c0f52852a8d2b2",
+        "B": "24d8e91bfca51785e3a3ad2ff214d97fcbde11f1f3fc9adc12f9e6940e2b4da8"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "The facts, term examples, scenario observations, and questions use only rate, direction, drift, and signal claims supplied."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "Rate, conventional direction, slow microscopic drift, and rapid signal propagation are accurately separated and repaired."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The group must assign labels from four inspectable notations under a deadline without interchanging paired properties."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Option 0 is uniquely correct in both items and is supported by the cited facts and matching explanations."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "Both four-option sets are parallel and systematically distinguish rate from direction or slow from rapid."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation states why the keyed pairing is supported and why exchanging the paired properties fails."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "Every component consistently distinguishes charge-passage rate, positive-charge direction, drift speed, and signal propagation."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "Definitions track the claims, but copper wire, battery terminals, electron movement, and cross-section measurement are added without support."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "The core definitions are accurate, but examples introduce unsupplied carrier and circuit details and occasionally imprecise wording."
+          },
+          "scenarioReadiness": {
+            "score": 3,
+            "evidence": "The technician has a direction decision, observations, and a definition constraint, although much of the evidence is unsourced."
+          },
+          "assessmentCorrectness": {
+            "score": 2,
+            "evidence": "The conventional-direction item correctly declares option 1, but the drift item declares option 0 when option 1 is correct."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "Each item supplies four distinct, parallel alternatives that isolate the relevant direction or speed relationship."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "The explanations mostly repeat the correct claim, do not repair a distractor, and the second supports an option different from its key."
+          },
+          "internalCoherence": {
+            "score": 2,
+            "evidence": "The first item is coherent, but the second answer key contradicts its question and explanation, while the scenario adds external details."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [],
+        "B": [
+          "The copper-wire, battery-terminal, and electron-movement scenario introduces factual details outside the supplied claims.",
+          "The second item declares option 0 although option 1 and its explanation state the supplied slow-drift, rapid-signal relationship."
+        ]
+      },
+      "decision": "A",
+      "rationale": "Artifact A remains fully source-bound and coherent across both assessments. Artifact B adds unsupported circuit details and contains a decisive wrong key in its second item, so A is the clear instructional winner."
+    },
+    {
+      "caseId": "scion-kernel-b7e4bf020386d467ba1c05ab",
+      "pairId": "scion-kernel-pair-67ce4d4f4b1b58df69487998",
+      "artifactSha256": {
+        "A": "f1646abf02441c44528e5e5ce6cd5ced07376c9414c4166be01a7149b2a4f560",
+        "B": "2bc1eb21c01630c510b83939821ccac1346037f0ed0c62ae8b3f3d6cba1dfac9"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "All facts, examples, scenario observations, and assessment statements directly restate the four supplied while-loop claims."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "True and false conditions, repeated evaluation, nonprogress, and infinite execution are accurately distinguished and corrected."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The student must decide whether a traced loop terminates, using explicit condition and progress evidence under a deadline."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both declared option-0 answers are uniquely supported by the cited claims and agree with their explanations."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "The alternatives are parallel and distinctly vary truth-state outcomes or the consequences of a nonprogressing body."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation gives the supporting rule and directly rejects the closest termination misconception."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "The definitions, trace, questions, keys, citations, and explanations all apply the same continuation and termination logic."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "Most text restates the claims, but the infinite-loop correction asserts a requirement that contradicts the supplied definition."
+          },
+          "knowledgePrecision": {
+            "score": 1,
+            "evidence": "A purported misconception correctly describes an infinite loop, while its correction incorrectly says an infinite loop requires eventual falsity."
+          },
+          "scenarioReadiness": {
+            "score": 3,
+            "evidence": "The input flag, invalid-input constraint, and two execution traces permit a decision, though they add context beyond the ledger."
+          },
+          "assessmentCorrectness": {
+            "score": 2,
+            "evidence": "The first key is correct, but the second asks how an always-true condition can terminate and offers overlapping progress answers."
+          },
+          "choiceDiscriminability": {
+            "score": 2,
+            "evidence": "The first options are distinct, but in the second item explicitly setting false is a specific form of making progress toward ending."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "Both explanations retain the literal instruction 'then correct the closest distractor' instead of supplying the promised correction."
+          },
+          "internalCoherence": {
+            "score": 2,
+            "evidence": "Accurate facts and the first item coexist with a contradictory infinite-loop correction and an internally inconsistent second stem."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [],
+        "B": [
+          "The infinite-loop correction says an infinite loop requires progress until the condition becomes false, contradicting its definition as a condition that never becomes false.",
+          "The second stem assumes the condition is always true while asking how the loop can terminate, and two alternatives overlap as ways to end the condition.",
+          "Both explanations end with an unfulfilled instruction to correct a distractor rather than completed instructional feedback."
+        ]
+      },
+      "decision": "A",
+      "rationale": "Artifact A accurately and coherently teaches while-loop continuation and infinite-loop prevention. Artifact B confuses the definition of an infinite loop, makes its second assessment ambiguous, and leaves generator-like instructions in both explanations."
+    },
+    {
+      "caseId": "scion-kernel-be8328bd9773b2d904c70e66",
+      "pairId": "scion-kernel-pair-0a908fbab41ba15d87e7e6fc",
+      "artifactSha256": {
+        "A": "62455f1e004929d469ee13718787d588ce482fce1ed08d22588db35b7f9c7cce",
+        "B": "c0332f74c9de34a42c695b5a1b3eaf2c45159522908b00d47849eb2cb25120da"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "Facts, term examples, annotation evidence, questions, and explanations stay within the four supplied indexing and slicing claims."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "Left-to-right zero indexing, right-to-left negative indexing, and inclusive-exclusive slicing are precise and distinctly repaired."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The student must classify concrete annotations and boundaries under a deadline while preserving both indexing directions."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Option 2 and option 3 are uniquely correct for the respective items and agree with their cited facts and explanations."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "The boundary alternatives are strongly parallel, though several first-item phrases such as 'starts left' are somewhat awkward."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Both explanations state the supported boundary rule and directly reject the closest reversal of sides or inclusivity."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "Terms, annotations, answer keys, fact indexes, and explanations consistently apply zero, negative, and slice-boundary rules."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 1,
+            "evidence": "The artifact invents named strings and a non-mutating claim, and its Python example assigns the final character an unsupported wrong index."
+          },
+          "knowledgePrecision": {
+            "score": 1,
+            "evidence": "It says the final 'n' in 'Python' is at index 1 and computes s[1:4] from 'BoundaryTest' as four characters."
+          },
+          "scenarioReadiness": {
+            "score": 3,
+            "evidence": "The pipeline supplies a concrete string, two expressions, and a slicing-only constraint, although the desired middle segment is undefined."
+          },
+          "assessmentCorrectness": {
+            "score": 0,
+            "evidence": "The first key conflicts with its explanation, and every second-item option gives 'ound' although s[1:4] is 'oun'."
+          },
+          "choiceDiscriminability": {
+            "score": 0,
+            "evidence": "The first item lacks a clear inclusive-start answer, while all four second-item alternatives duplicate the same incorrect result."
+          },
+          "feedbackInstructionality": {
+            "score": 0,
+            "evidence": "The first explanation endorses a different option than the key, and the second teaches the incorrect substring 'ound'."
+          },
+          "internalCoherence": {
+            "score": 0,
+            "evidence": "Examples, declared answers, alternatives, and explanations contradict the supplied inclusive-exclusive slicing rule and one another."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [],
+        "B": [
+          "The invented 'Python' example incorrectly places its final character 'n' at index 1.",
+          "The first item declares option 0 while its explanation supports option 3, and no option clearly states that index a is the first included character.",
+          "All second-item alternatives and the explanation give 'ound', but the stated inclusive-exclusive rule makes s[1:4] equal 'oun'."
+        ]
+      },
+      "decision": "A",
+      "rationale": "Artifact A is accurate, source-bound, and coherent. Artifact B contains a false named example, an answer-explanation contradiction, and an assessment with four copies of the same incorrect slice result, making A decisively superior."
+    },
+    {
+      "caseId": "scion-kernel-c2b4a131f0c15ff7e7cc5bed",
+      "pairId": "scion-kernel-pair-49281e9cd2b218460390bdb5",
+      "artifactSha256": {
+        "A": "21578689f432c3319a60df168be62343ffa98a5f5c589a74c0dc1ffc52555ed8",
+        "B": "4597570eb8e2e69ecee736d8ecb8edffa894ba3d4ee0b60ee500f3226608f66e"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "The artifact confines every fact, example, observation, and explanation to the three supplied plate-boundary relations."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "Divergent, convergent, and transform motion and crust outcomes are accurately distinguished with direct misconception repairs."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The geologist must resolve disputed labels using side-by-side motion and absence of creation or subduction under a deadline."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both items correctly declare option 3, supported by their cited facts and fully consistent explanations."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "Each four-option set distinctly contrasts separation, approach, side-by-side movement, creation, and subduction."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation connects the observed motion to the supported class and explains why the competing class fails."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "The terms, scenario record, questions, answer keys, fact citations, and explanations use the same boundary distinctions."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 3,
+            "evidence": "The core lesson is source-bound, but the fault-line and seismic-study framing adds details absent from the supplied claims."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "The three boundary types and their motion and crust relations are stated accurately in the facts and terms."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "Approach, downward crust motion, side-by-side comparison, and a no-new-crust constraint support an actionable classification."
+          },
+          "assessmentCorrectness": {
+            "score": 0,
+            "evidence": "Both items declare option 0 even though their explanations identify option 1 and option 2 respectively as correct."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "Within each question, the four alternatives are distinct and clearly contrast all three supplied boundary classes."
+          },
+          "feedbackInstructionality": {
+            "score": 2,
+            "evidence": "The explanations accurately state the governing facts but refer to answer positions and directly contradict the declared keys."
+          },
+          "internalCoherence": {
+            "score": 0,
+            "evidence": "Both answer keys conflict with the supported classification explicitly named in the corresponding explanation."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [],
+        "B": [
+          "The first item declares divergent option 0 although the observation, cited fact, and explanation support convergent option 1.",
+          "The second item declares divergent option 0 although the observation, cited fact, and explanation support transform option 2."
+        ]
+      },
+      "decision": "A",
+      "rationale": "Artifact A provides accurate, source-bound classification tasks with consistent keys. Artifact B explains the geology correctly but assigns the wrong option in both assessments, creating two decisive answer-feedback contradictions."
+    },
+    {
+      "caseId": "scion-kernel-cdbb565ace8382187298babf",
+      "pairId": "scion-kernel-pair-3b526c8f8e3674bfa77f8bf5",
+      "artifactSha256": {
+        "A": "93d05f639e1045eeb51f7861627540d489b762df35515bfe13a956ac5c4d1e82",
+        "B": "e74bacfd42a7c9c34feff154a6ad76b71dc35f3667bfd369b4edea1e814e7cce"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "All facts, term examples, scenario evidence, questions, and explanations remain within the three supplied notation claims."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "Normal sharps or flats, repeated key signatures, and accidentals for temporary modulation are accurately distinguished and corrected."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The student must choose notation for a concrete multi-staff, two-system passage with a temporary-modulation constraint."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both items correctly declare option 2, with direct support from the cited claims and consistent explanations."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "The alternatives distinctly vary the roles of key signatures and accidentals or the required scope of repetition."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation gives the applicable notation rule and directly identifies the omitted or reversed requirement."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "Facts, terminology, passage evidence, keys, citations, and explanations consistently apply all three notation rules."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 3,
+            "evidence": "Most content reproduces the claims, but performance efficiency and eliminating all repetition overstate or add to the source."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "The key terms are accurate, but the first answer changes 'reducing the need' into the stronger claim 'eliminates the need.'"
+          },
+          "scenarioReadiness": {
+            "score": 1,
+            "evidence": "The scenario asks for efficient notation but its material only says to compare three unspecified passages with no inspectable differences."
+          },
+          "assessmentCorrectness": {
+            "score": 2,
+            "evidence": "The temporary-modulation item is correct, but the first item keys an absolute elimination claim unsupported by the cited reduction claim."
+          },
+          "choiceDiscriminability": {
+            "score": 2,
+            "evidence": "The first alternatives mix a benefit with unrelated placement requirements and lack an exactly supported answer; the second set is clearer."
+          },
+          "feedbackInstructionality": {
+            "score": 2,
+            "evidence": "The explanations repeat source statements but do not explain why close misconceptions fail, and the first exposes its answer's overstatement."
+          },
+          "internalCoherence": {
+            "score": 2,
+            "evidence": "The facts and second item align, but the first answer conflicts with its explanation and the scenario lacks usable comparative evidence."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [],
+        "B": [
+          "The scenario has no usable decision evidence because its three passages are named but never described or contrasted.",
+          "The first item declares that a key signature eliminates repeated accidentals, while the source and explanation only say it reduces the need."
+        ]
+      },
+      "decision": "A",
+      "rationale": "Artifact A turns all three supplied claims into a concrete, coherent notation decision and two correct assessments. Artifact B has an unusable scenario and overstates reduction as complete elimination in its first keyed answer."
+    }
+  ]
+}
