@@ -62,7 +62,10 @@ const lazyChunkBudgets = [
   // silently red before this release. The materialized source-lesson boundary
   // adds 1.7 KiB raw / 0.3 gzip while replacing duplicated scope-numbering
   // logic; 274/83 is the measured 273.1/82.3 result with narrow CI margin.
-  { prefix: 'AppFlow-', rawKiB: 274, gzipKiB: 83, gzipSlackBytes: 256 },
+  // v0.16.59: +0.6 KiB raw carries the exact source ledger into the workspace
+  // and suppresses futile outer recovery. Gzip remains below the V0.16.55
+  // ceiling; 275 KiB keeps less than 0.5 KiB raw headroom.
+  { prefix: 'AppFlow-', rawKiB: 275, gzipKiB: 83, gzipSlackBytes: 256 },
   // v0.16.47: the Living Course Compiler component and pure selector gained
   // an independently cacheable route boundary instead of raising AppFlow's
   // long-standing ratchet. Clean measurement: AppFlow 251.6/75.9; ribbon
@@ -82,7 +85,10 @@ const lazyChunkBudgets = [
   // v0.16.55: calm completed-with-notes semantics and material-scoped timing
   // checks add 0.9 KiB raw / 0.2 gzip over the 351.9/96.8 clean parent.
   // Preserve the generous existing gzip cap but keep raw close to 352.8.
-  { prefix: 'ChatPanel-', rawKiB: 354, gzipKiB: 105 },
+  // v0.16.59: the read-only Scion Agent receives compact live workspace
+  // context and rejects tool envelopes. The measured raw delta is below
+  // 1 KiB and gzip stays far under the existing ceiling.
+  { prefix: 'ChatPanel-', rawKiB: 355, gzipKiB: 105 },
   // v0.15.187: the compiler chunk was the LARGEST in dist (measured 711 KiB
   // raw / 192 KiB gzip on July 1) and the only large chunk with no ratchet —
   // which is how it grew 31× in 5.5 weeks unnoticed. Budget set just above
@@ -112,7 +118,10 @@ const lazyChunkBudgets = [
   // v0.16.55 remeasurement: the unchanged clean parent is 795.4/219.7 under
   // the locked bundler. This release adds no bytes to this chunk; 796/220
   // records the real inherited floor with less than 0.6/0.3 KiB headroom.
-  { prefix: 'courseBlueprintCompiler-', rawKiB: 796, gzipKiB: 220 },
+  // v0.16.59: +1.6 KiB raw / +0.5 KiB gzip for the source-ledger recovery
+  // contract and its canonical admission checks. This remains workspace-only
+  // compiler behavior; the 798/221 ceiling leaves less than 1 KiB headroom.
+  { prefix: 'courseBlueprintCompiler-', rawKiB: 798, gzipKiB: 221 },
   // v0.16.49: Bayesian and music-interval assessment frames are workspace-only
   // data and independently cacheable. The same boundary now owns the music
   // interval admission, discussion, FAQ, quiz, and study-guide rules so the

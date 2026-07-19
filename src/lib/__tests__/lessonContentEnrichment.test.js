@@ -3,6 +3,7 @@ import {
   buildLessonContentEnrichmentPrompt,
   lintEnrichedQuizItem,
   lintEnrichedKeyTerm,
+  parseLessonKernelResponse,
   parseLessonContentEnrichmentResponse,
 } from '../blueprintEnrichmentPass.js';
 import { buildCourseBlueprint, compileBlueprintDeliverables } from '../courseBlueprintCompiler.js';
@@ -103,6 +104,64 @@ describe('lesson content enrichment contracts', () => {
       explanation: `${GOOD_ITEM.options[GOOD_ITEM.answerIndex]}.`,
     };
     expect(lintEnrichedQuizItem(answerOnly, { groundingText: '' })).toContain('explanation-repeats-answer');
+
+    const sourceClaims = [
+      'A test script gives each session a repeatable structure without turning the moderator into a teacher.',
+    ];
+    const sourceAbsolute = {
+      ...GOOD_ITEM,
+      options: [
+        'A script gives the session repeatable structure',
+        'The moderator always teaches each realistic task',
+        'The script replaces representative user observation',
+        'The service conducts recruitment before consent',
+      ],
+      explanation: 'The script gives the session a repeatable structure while preserving the moderator role.',
+    };
+    expect(lintEnrichedQuizItem(sourceAbsolute, { groundingText: '', sourceClaims })).toContain(
+      'unsupported-scope-option',
+    );
+
+    const equivalentEquations = {
+      ...GOOD_ITEM,
+      options: [
+        'Gross investment equals capital stock minus depreciation',
+        'Capital stock equals gross investment minus depreciation',
+        'Net investment equals gross investment minus depreciation',
+        'Depreciation equals gross investment minus net investment',
+      ],
+      explanation: 'The source relationship distinguishes net investment from capital stock.',
+    };
+    expect(lintEnrichedQuizItem(equivalentEquations, { groundingText: '' })).toContain('equivalent-equation-options');
+  });
+
+  it('retains an exact source ledger when every generated teaching atom is quarantined', () => {
+    const sourceFacts = [
+      'A usability test observes representative users attempting realistic tasks with a product or service.',
+      'A test script gives each session a repeatable structure without turning the moderator into a teacher.',
+      'Recruitment identifies appropriate users and obtains consent before the session.',
+    ];
+    const prompt = {
+      userPrompt: 'SOURCE FACT LEDGER',
+      lessons: [
+        {
+          lessonId: 'lesson-1',
+          title: 'Usability Test Observation',
+          sourceFactPolicy: 'numbered-source-ledger-v1',
+          sourceFacts,
+        },
+      ],
+      itemPlan: [],
+    };
+    const parsed = parseLessonKernelResponse(
+      JSON.stringify({ lessons: [{ lessonId: 'lesson-1', facts: sourceFacts, keyTerms: [], mc: [] }] }),
+      { prompt, expectedLessonIds: ['lesson-1'] },
+    );
+
+    expect(parsed.lessons['lesson-1'].kernel.facts).toEqual(sourceFacts);
+    expect(parsed.issues).toEqual(
+      expect.arrayContaining([expect.objectContaining({ reason: 'source-ledger-facts-only' })]),
+    );
   });
 
   it('lint distinguishes a meta definition from a true circular definition', () => {

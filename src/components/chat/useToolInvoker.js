@@ -1964,8 +1964,14 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
       ),
       executionMode,
     );
+    // Browser-local Scion has no native tool surface. Preserve the structured
+    // prompt parts so its advisory route can keep the changing workspace
+    // context without pre-filling thousands of tokens of tool protocol that
+    // it cannot execute. Anthropic keeps the same shape for cache breakpoints.
     const systemPrompt =
-      provider === 'anthropic' ? systemParts : [systemParts.staticPart, systemParts.dynamicPart].join('\n\n');
+      provider === 'anthropic' || provider === 'public'
+        ? systemParts
+        : [systemParts.staticPart, systemParts.dynamicPart].join('\n\n');
     const systemPromptForTokens = (systemParts.staticPart || '') + (systemParts.dynamicPart || '');
 
     // ── Context window awareness: smart trim if approaching limit ──

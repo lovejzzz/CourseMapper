@@ -1,0 +1,262 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-review-v1",
+  "order": "B/A",
+  "packetSha256": "9918b091de3c3f280555a6d7a1ab1a5b092d72123b483c948d991599e52fc885",
+  "sessionId": "scion-v01654-batch-001-bf5ef77abb-b-a-869614f6-4fdf-46e6-adf6-5419bb72ed56",
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "completedAt": "2026-07-19T15:00:00.000Z",
+  "attestations": {
+    "anonymousArtifactsOnly": true,
+    "otherOrderUnavailable": true,
+    "organizerMappingUnavailable": true
+  },
+  "decisions": [
+    {
+      "caseId": "scion-kernel-089f3bd62b1608632e6b4a56",
+      "pairId": "scion-kernel-pair-90c6884482f4d3ad39d42142",
+      "artifactSha256": {
+        "A": "52ab622a9fed9c7f1c4224e51369a7af4d0b1f3e8ccafbad99871743144016c8",
+        "B": "476ed6ac20df8dc38d9f2ac64afc6da8967df7fed62352bc5f991ddf1d2a129a"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "The five facts reproduce the supplied claims, and the examples remain within testing sketches, prototypes, scripts, and recruitment."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "The terms clearly distinguish participant thinking aloud, a repeatable test script, and pre-session recruitment and consent."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The team must choose between an inspectable sketch and prototype under a one-afternoon limit, with recruitment evidence also identified."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both keyed answers uniquely apply the cited distinctions: script versus plan, and test artifact versus recruitment material."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "Each question supplies four distinct alternatives that separate session structure, planning, recruitment, and the artifact under examination."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation states the supporting rule and directly repairs the closest role-swap or artifact-category misconception."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "Facts, terms, scenario evidence, keys, cited fact indices, and explanations consistently assign each testing component its stated role."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "Most content tracks the ledger, but the usability-test definition changes 'often while thinking aloud' into an unconditional feature."
+          },
+          "knowledgePrecision": {
+            "score": 2,
+            "evidence": "The test-script misconception about dictating every word is not directly repaired, and thinking aloud is overstated as mandatory."
+          },
+          "scenarioReadiness": {
+            "score": 2,
+            "evidence": "A one-hour constraint is present, but the proposed evidence merely compares abstract plans and supplies no concrete task, participant, or artifact."
+          },
+          "assessmentCorrectness": {
+            "score": 1,
+            "evidence": "The second question keys the sketch even though the competitor product is the direct contextual answer and both are ledger-approved artifacts."
+          },
+          "choiceDiscriminability": {
+            "score": 1,
+            "evidence": "Question two includes both a sketch and competitor product, two alternatives explicitly permitted for examination by the same supplied claim."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "The second explanation cites both competing artifact choices and never establishes why keyed option zero should prevail over option one."
+          },
+          "internalCoherence": {
+            "score": 1,
+            "evidence": "The second key conflicts with its competitor-product stem and with an explanation that acknowledges both sketch and competitor product as valid."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [],
+        "B": [
+          "The usability-test definition turns the source's optional phrase 'often while thinking aloud' into an unconditional requirement.",
+          "Question two declares the sketch, although the competitor product is the direct answer in context and Claim 1 makes both options valid.",
+          "Question two's explanation expressly permits both the sketch and competitor product, so it cannot justify the declared answer."
+        ]
+      },
+      "decision": "A",
+      "rationale": "A remains source-bound, presents a concrete constrained testing decision, and has uniquely supported keys with instructional explanations. B materially distorts one definition and contains an ambiguous, contextually incorrect second answer."
+    },
+    {
+      "caseId": "scion-kernel-08c18044f316721811371af4",
+      "pairId": "scion-kernel-pair-cb6403ddd3f68b4fc066a328",
+      "artifactSha256": {
+        "A": "741580865ef030475051ac9277f58aa0bd12e4583ba2475b630c5aa7d521637d",
+        "B": "f05d1490f012801d1ad88d3a101e137a225c3d25ea0affa05f3e5e9c5ea0a061"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "The facts, definitions, examples, and corrections stay within assignment direction, naming syntax, and case sensitivity from the ledger."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "Assignment is accurately separated from equality, stored value from variable name, and capitalization-sensitive names from one another."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The student must inspect concrete notebook lines before submission and decide name validity and whether differently capitalized names are distinct."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "The keys correctly identify total and Total as different variables and grade_total as valid while the digit-leading name is invalid."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "Both questions use four nonduplicate alternatives that test distinct assignment, capitalization, digit-position, and underscore misconceptions."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "The explanations state each governing rule and explicitly correct equality confusion and the invalid digit-leading alternative."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "The notebook evidence, naming rules, answer indices, cited facts, and explanations agree throughout both questions."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "The artifact adds an object's 'location' and an 'independent duplicate of the data,' neither of which appears in the supplied reference-binding claim."
+          },
+          "knowledgePrecision": {
+            "score": 1,
+            "evidence": "The object-reference explanation introduces an unsupported location model, while the variable-name correction does not directly establish its lowercase misconception."
+          },
+          "scenarioReadiness": {
+            "score": 1,
+            "evidence": "The scenario says score was intended yet calls writing score accidental, and comparing score with Total does not yield a coherent disciplinary decision."
+          },
+          "assessmentCorrectness": {
+            "score": 0,
+            "evidence": "Question two declares option zero, which calls Total a mathematical operation, while its explanation instead states the substance of option one."
+          },
+          "choiceDiscriminability": {
+            "score": 1,
+            "evidence": "Question one's explanation validates both the reference-binding and independent-copy alternatives, and question two lacks a fully parallel correct statement."
+          },
+          "feedbackInstructionality": {
+            "score": 0,
+            "evidence": "The first explanation supports multiple options, and the second directly contradicts its declared answer rather than correcting a misconception."
+          },
+          "internalCoherence": {
+            "score": 0,
+            "evidence": "The scenario contradicts its own naming intention, question one conflicts with its key, and question two's explanation contradicts answer index zero."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [],
+        "B": [
+          "The scenario says the programmer intends to use score but then describes writing score as the mistake, leaving no coherent usable decision.",
+          "Question one keys only the reference alternative while its explanation also endorses the independent-copy alternative as part of the requested distinction.",
+          "Question two keys the claim that Total is a mathematical operation, but its explanation identifies total and Total as two case-sensitive variables.",
+          "The object-location and independent-data-duplicate claims add a memory model not supplied by the source packet."
+        ]
+      },
+      "decision": "A",
+      "rationale": "A accurately teaches and assesses assignment direction, valid naming, and case sensitivity. B has an incoherent scenario, unsupported reference semantics, a multiple-answer first item, and a plainly incorrect second key contradicted by its own explanation."
+    },
+    {
+      "caseId": "scion-kernel-233f463069b39ef1df0a8f93",
+      "pairId": "scion-kernel-pair-d861530ab9cb23449eb5bd36",
+      "artifactSha256": {
+        "A": "ff5c1cc7dc5bf49f5742950267a76f40f1644a16ca1a53fd74bfb1de3390fe87",
+        "B": "2533989e0be0533caf82b7d376d73853de9e0a5f938def05cc4a880acda23deb"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "Every fact, term, example, and answer stays within diatonic span, semitone count, third quality, and the two tritone spellings."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "The artifact correctly combines scale-step span with semitone distance and cleanly distinguishes major third, minor third, and tritone spelling."
+          },
+          "scenarioReadiness": {
+            "score": 3,
+            "evidence": "The worksheet provides exact inspectable spans and semitone counts for a labeling decision, though the before-class constraint creates only mild tension."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Four versus three semitones is keyed as major versus minor third, and the augmented-fourth/diminished-fifth pair is correctly keyed as a tritone."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "The alternatives distinctly test reversed third qualities, unrelated tritone labels, and incorrect interval descriptions without duplicating the keyed answers."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Both explanations cite the relevant span, distance, or spelling relation and explain why the reversed or category-breaking alternatives fail."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "The terms, worksheet observations, answer indices, fact citations, and explanations consistently apply the same interval-labeling rules."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "The copied facts are faithful, but the scenario gives both comparison intervals four semitones and a correction misclassifies spellings as resolutions."
+          },
+          "knowledgePrecision": {
+            "score": 1,
+            "evidence": "The diatonic-span misconception is not genuinely false, its correction conflates span with full interval identification, and tritone spellings are called resolutions."
+          },
+          "scenarioReadiness": {
+            "score": 1,
+            "evidence": "The scenario asks for a major/minor distinction between two four-semitone intervals and provides no concrete notation or coherent decision evidence."
+          },
+          "assessmentCorrectness": {
+            "score": 2,
+            "evidence": "Question one is correctly keyed, but question two's keyed option incorrectly presents augmented fourth and diminished fifth as examples of resolutions."
+          },
+          "choiceDiscriminability": {
+            "score": 2,
+            "evidence": "Question one is distinct, but question two repeats shallow 'solely determined' distractors and embeds a category error in the intended answer."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "Both explanations end with the unfulfilled instruction to state evidence and correct a distractor instead of actually providing that correction."
+          },
+          "internalCoherence": {
+            "score": 1,
+            "evidence": "The four-semitone scenario conflicts with the three-semitone minor-third fact, and the tritone answer confuses spellings with their implied resolutions."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [],
+        "B": [
+          "The scenario says both intervals span four semitones while proposing a major-third versus minor-third comparison, contradicting the supplied three-semitone minor-third rule.",
+          "The diatonic-span misconception is effectively a valid definition, while its correction incorrectly makes semitone distance determine the span itself.",
+          "Question two's keyed option treats augmented fourth and diminished fifth as examples of resolutions rather than as the two spellings.",
+          "Both explanations retain the unfinished meta-instruction 'State the subject evidence supporting the answer, then correct the closest distractor.'"
+        ]
+      },
+      "decision": "A",
+      "rationale": "A precisely applies span, semitone count, and tritone spelling to concrete observations with correct keys and explanations. B contains a source-conflicting scenario, invalid term instruction, a malformed keyed answer, and unfinished feedback text."
+    }
+  ]
+}

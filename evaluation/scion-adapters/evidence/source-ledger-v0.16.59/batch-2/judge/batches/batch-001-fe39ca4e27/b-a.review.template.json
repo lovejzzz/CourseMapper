@@ -1,0 +1,324 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-review-v1",
+  "order": "B/A",
+  "packetSha256": "75d3531f17129754ec8c7351946b1028a43e647318b1ef4c031229087d56b57a",
+  "sessionId": "",
+  "judge": {
+    "model": "",
+    "revision": "",
+    "runtime": ""
+  },
+  "completedAt": "",
+  "attestations": {
+    "anonymousArtifactsOnly": false,
+    "otherOrderUnavailable": false,
+    "organizerMappingUnavailable": false
+  },
+  "decisions": [
+    {
+      "caseId": "scion-kernel-018581469357c98b43195802",
+      "pairId": "scion-kernel-pair-ad98c2645011500a9280be25",
+      "artifactSha256": {
+        "A": "64e8c11a8cc40730b74e7942202f205a97c152bfe036944187424937bb8defed",
+        "B": "a6b085731aec31e67977ac00ac8feb3f77d8c15ed24238a3045709f3401013e5"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": null,
+            "evidence": ""
+          },
+          "knowledgePrecision": {
+            "score": null,
+            "evidence": ""
+          },
+          "scenarioReadiness": {
+            "score": null,
+            "evidence": ""
+          },
+          "assessmentCorrectness": {
+            "score": null,
+            "evidence": ""
+          },
+          "choiceDiscriminability": {
+            "score": null,
+            "evidence": ""
+          },
+          "feedbackInstructionality": {
+            "score": null,
+            "evidence": ""
+          },
+          "internalCoherence": {
+            "score": null,
+            "evidence": ""
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": null,
+            "evidence": ""
+          },
+          "knowledgePrecision": {
+            "score": null,
+            "evidence": ""
+          },
+          "scenarioReadiness": {
+            "score": null,
+            "evidence": ""
+          },
+          "assessmentCorrectness": {
+            "score": null,
+            "evidence": ""
+          },
+          "choiceDiscriminability": {
+            "score": null,
+            "evidence": ""
+          },
+          "feedbackInstructionality": {
+            "score": null,
+            "evidence": ""
+          },
+          "internalCoherence": {
+            "score": null,
+            "evidence": ""
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [],
+        "B": []
+      },
+      "decision": null,
+      "rationale": ""
+    },
+    {
+      "caseId": "scion-kernel-026cdf7c7d8f6f200d68e4d5",
+      "pairId": "scion-kernel-pair-bc0adf99a09bed36eecf9598",
+      "artifactSha256": {
+        "A": "bb90993335f554731ccff84e4b1a416d8b085ca16f7e151b46b5a6a12bc9a7f8",
+        "B": "02650ec2f7a9247e36a8ee37447c655849997d8d70264863b09833fefe8880d3"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": null,
+            "evidence": ""
+          },
+          "knowledgePrecision": {
+            "score": null,
+            "evidence": ""
+          },
+          "scenarioReadiness": {
+            "score": null,
+            "evidence": ""
+          },
+          "assessmentCorrectness": {
+            "score": null,
+            "evidence": ""
+          },
+          "choiceDiscriminability": {
+            "score": null,
+            "evidence": ""
+          },
+          "feedbackInstructionality": {
+            "score": null,
+            "evidence": ""
+          },
+          "internalCoherence": {
+            "score": null,
+            "evidence": ""
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": null,
+            "evidence": ""
+          },
+          "knowledgePrecision": {
+            "score": null,
+            "evidence": ""
+          },
+          "scenarioReadiness": {
+            "score": null,
+            "evidence": ""
+          },
+          "assessmentCorrectness": {
+            "score": null,
+            "evidence": ""
+          },
+          "choiceDiscriminability": {
+            "score": null,
+            "evidence": ""
+          },
+          "feedbackInstructionality": {
+            "score": null,
+            "evidence": ""
+          },
+          "internalCoherence": {
+            "score": null,
+            "evidence": ""
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [],
+        "B": []
+      },
+      "decision": null,
+      "rationale": ""
+    },
+    {
+      "caseId": "scion-kernel-028dfdedf45bc1b561d64193",
+      "pairId": "scion-kernel-pair-a6ac1ed7fad1cec944254569",
+      "artifactSha256": {
+        "A": "c128bc3f34f1b52d484089585c1d39a7a71f12d586960bfa53a11ae2ee8c968e",
+        "B": "dc3bd358dd2c425fa1aef37bb41a0b94f4d5bb123538b0e49f4330420270ae97"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": null,
+            "evidence": ""
+          },
+          "knowledgePrecision": {
+            "score": null,
+            "evidence": ""
+          },
+          "scenarioReadiness": {
+            "score": null,
+            "evidence": ""
+          },
+          "assessmentCorrectness": {
+            "score": null,
+            "evidence": ""
+          },
+          "choiceDiscriminability": {
+            "score": null,
+            "evidence": ""
+          },
+          "feedbackInstructionality": {
+            "score": null,
+            "evidence": ""
+          },
+          "internalCoherence": {
+            "score": null,
+            "evidence": ""
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": null,
+            "evidence": ""
+          },
+          "knowledgePrecision": {
+            "score": null,
+            "evidence": ""
+          },
+          "scenarioReadiness": {
+            "score": null,
+            "evidence": ""
+          },
+          "assessmentCorrectness": {
+            "score": null,
+            "evidence": ""
+          },
+          "choiceDiscriminability": {
+            "score": null,
+            "evidence": ""
+          },
+          "feedbackInstructionality": {
+            "score": null,
+            "evidence": ""
+          },
+          "internalCoherence": {
+            "score": null,
+            "evidence": ""
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [],
+        "B": []
+      },
+      "decision": null,
+      "rationale": ""
+    },
+    {
+      "caseId": "scion-kernel-0494c3fad7926b80669d4d22",
+      "pairId": "scion-kernel-pair-8d85ec642868af27ece1f369",
+      "artifactSha256": {
+        "A": "2e6fa2839c8db4690b460d3520f0cee38efd5aa52310400a145545e6d96be2ab",
+        "B": "4838b8fa3fed3465004e596bcaa25338763be2867496b42af517f309b28b3351"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": null,
+            "evidence": ""
+          },
+          "knowledgePrecision": {
+            "score": null,
+            "evidence": ""
+          },
+          "scenarioReadiness": {
+            "score": null,
+            "evidence": ""
+          },
+          "assessmentCorrectness": {
+            "score": null,
+            "evidence": ""
+          },
+          "choiceDiscriminability": {
+            "score": null,
+            "evidence": ""
+          },
+          "feedbackInstructionality": {
+            "score": null,
+            "evidence": ""
+          },
+          "internalCoherence": {
+            "score": null,
+            "evidence": ""
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": null,
+            "evidence": ""
+          },
+          "knowledgePrecision": {
+            "score": null,
+            "evidence": ""
+          },
+          "scenarioReadiness": {
+            "score": null,
+            "evidence": ""
+          },
+          "assessmentCorrectness": {
+            "score": null,
+            "evidence": ""
+          },
+          "choiceDiscriminability": {
+            "score": null,
+            "evidence": ""
+          },
+          "feedbackInstructionality": {
+            "score": null,
+            "evidence": ""
+          },
+          "internalCoherence": {
+            "score": null,
+            "evidence": ""
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [],
+        "B": []
+      },
+      "decision": null,
+      "rationale": ""
+    }
+  ]
+}

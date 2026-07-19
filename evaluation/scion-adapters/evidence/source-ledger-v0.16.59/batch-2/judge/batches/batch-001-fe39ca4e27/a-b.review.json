@@ -1,0 +1,341 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-review-v1",
+  "order": "A/B",
+  "packetSha256": "f73ff2f9fb086b9d13bd4463c1ecbc4627f191e2567e3af01d2ac5d52c170311",
+  "sessionId": "scion-v01654-batch-001-fe39ca4e27-a-b-f34046df-4f0c-4a38-9ddc-460740db482b",
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "completedAt": "2026-07-19T14:38:13Z",
+  "attestations": {
+    "anonymousArtifactsOnly": true,
+    "otherOrderUnavailable": true,
+    "organizerMappingUnavailable": true
+  },
+  "decisions": [
+    {
+      "caseId": "scion-kernel-018581469357c98b43195802",
+      "pairId": "scion-kernel-pair-ad98c2645011500a9280be25",
+      "artifactSha256": {
+        "A": "a6b085731aec31e67977ac00ac8feb3f77d8c15ed24238a3045709f3401013e5",
+        "B": "64e8c11a8cc40730b74e7942202f205a97c152bfe036944187424937bb8defed"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 3,
+            "evidence": "The facts reproduce the ledger, but the inclusions material adds a containment interpretation and specific rock examples not established by the supplied claims."
+          },
+          "knowledgePrecision": {
+            "score": 2,
+            "evidence": "Superposition and cross-cutting are defined accurately, while inclusions are described vaguely without stating a supported ordering rule."
+          },
+          "scenarioReadiness": {
+            "score": 2,
+            "evidence": "The outcrop and undisturbed-sequence constraint are inspectable, but the scenario asks only for a comparison and never states a concrete dating decision."
+          },
+          "assessmentCorrectness": {
+            "score": 0,
+            "evidence": "Both declared indices are wrong: older-below-younger is index 2, and the cutting feature being younger is index 1."
+          },
+          "choiceDiscriminability": {
+            "score": 2,
+            "evidence": "The alternatives express recognizable age relations, but repeated absolutes and visibly reversed rules make several distractors easy to eliminate."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "Each explanation recites the correct rule but supports an option different from the declared key, and one relies on positional wording."
+          },
+          "internalCoherence": {
+            "score": 0,
+            "evidence": "Both answer keys conflict directly with their explanations and with the artifact's own facts."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "Definitions, examples, scenario evidence, and conclusions remain within superposition, cross-cutting, and nonnumerical relative ordering."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "Relative dating, superposition, and cross-cutting are accurately distinguished, with false misconceptions repaired by the applicable rule."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The team must decide whether a mapped break predates or postdates the beds using an undisturbed stack and an inspectable cross-cutting trace."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both declared answers uniquely apply the cited rule: a cutting vein is younger, and the lowest undisturbed bed is oldest."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "The options are concise and plausible, although 'vein older than beds' and 'beds younger than vein' are semantically duplicate distractors."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation connects the observation to the governing rule and explicitly repairs the closest reversed-age misconception."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "Facts, terms, field scenario, cited facts, declared answers, and explanations consistently express the same relative-age rules."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "Both questions declare incorrect answers.",
+          "Both explanations contradict their declared answer keys."
+        ],
+        "B": []
+      },
+      "decision": "B",
+      "rationale": "B is decisively stronger because its keys, explanations, scenario evidence, and relative-dating rules agree. A declares the wrong answer in both questions and then explains different answers."
+    },
+    {
+      "caseId": "scion-kernel-026cdf7c7d8f6f200d68e4d5",
+      "pairId": "scion-kernel-pair-bc0adf99a09bed36eecf9598",
+      "artifactSha256": {
+        "A": "02650ec2f7a9247e36a8ee37447c655849997d8d70264863b09833fefe8880d3",
+        "B": "bb90993335f554731ccff84e4b1a416d8b085ca16f7e151b46b5a6a12bc9a7f8"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "The copied facts are source-bound, but the magnetic-field correction makes an unsupported claim covering a charge whether stationary or moving."
+          },
+          "knowledgePrecision": {
+            "score": 2,
+            "evidence": "The main dependencies are listed correctly, but the magnetic-field correction is self-contradictory and the velocity treatment is largely circular."
+          },
+          "scenarioReadiness": {
+            "score": 2,
+            "evidence": "The zero-degree setup supports a force decision, but positive charge is not a meaningful constraint and the 30-degree comparison lacks enough information for calculation."
+          },
+          "assessmentCorrectness": {
+            "score": 3,
+            "evidence": "The parallel-motion item is correct, while the 30-degree item asks about the velocity-field relationship but keys a broader statement about force dependence."
+          },
+          "choiceDiscriminability": {
+            "score": 2,
+            "evidence": "Several alternatives are generally true copied facts rather than parallel answers to the stems, making the intended response depend on wording cues."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "Both explanations merely repeat the keyed claim and do not explain why the nearest competing misconception fails."
+          },
+          "internalCoherence": {
+            "score": 2,
+            "evidence": "The questions mostly follow the facts, but the stationary-or-moving correction contradicts its own moving-charge framing and the second stem mismatches its answer."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "All definitions, examples, scenario records, and assessment claims stay within force dependence, perpendicularity, and the parallel zero-force condition."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "The artifact clearly distinguishes force dependencies, perpendicular direction, and the special parallel case, with direct misconception repairs."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The student must decide whether force is present from same-direction arrows and a parallel-field notebook entry before the next run."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "The right-angle item correctly keys perpendicularity to both vectors, and the parallel item correctly keys no magnetic force."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "The alternatives are distinct and plausible, though some mix direction claims with dependency claims rather than maintaining perfect parallelism."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation cites the controlling relation and explains why the closest direction-based distractor fails in that setup."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "Terms, scenario evidence, answer keys, fact citations, and explanations consistently distinguish perpendicular and parallel configurations."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "The magnetic-field correction claims influence on a moving charge 'regardless of whether the charge is stationary or moving,' an unsupported and self-contradictory factual statement."
+        ],
+        "B": []
+      },
+      "decision": "B",
+      "rationale": "B provides precise distinctions, usable evidence, correct assessments, and misconception-focused feedback. A contains an unsupported contradictory correction, a mismatched assessment stem, and largely tautological feedback."
+    },
+    {
+      "caseId": "scion-kernel-028dfdedf45bc1b561d64193",
+      "pairId": "scion-kernel-pair-a6ac1ed7fad1cec944254569",
+      "artifactSha256": {
+        "A": "dc3bd358dd2c425fa1aef37bb41a0b94f4d5bb123538b0e49f4330420270ae97",
+        "B": "c128bc3f34f1b52d484089585c1d39a7a71f12d586960bfa53a11ae2ee8c968e"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "The economic relations are copied accurately, but the scenario invents a regulatory requirement tying compliance to positive capital-stock growth."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "Capital stock and net investment are defined accurately, though gross investment is imprecisely framed as a component of growth rather than one side of stock change."
+          },
+          "scenarioReadiness": {
+            "score": 3,
+            "evidence": "The numerical investment and depreciation entries permit a decision, but the asserted regulatory constraint is unsupported and the observed result makes the task nearly pre-solved."
+          },
+          "assessmentCorrectness": {
+            "score": 0,
+            "evidence": "Both declared answers are incorrect: the change is 6 minus 1, and growth is supported by positive net investment rather than gross investment alone."
+          },
+          "choiceDiscriminability": {
+            "score": 1,
+            "evidence": "The second item includes two equivalent supported reasons—positive net investment and depreciation below gross investment—while the declared answer is a weaker unsupported reason."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "The explanations correctly teach subtraction and positive net investment, but each supports a different option from the declared answer."
+          },
+          "internalCoherence": {
+            "score": 0,
+            "evidence": "Both keys contradict the explanations and source facts, and the second question also contains equivalent correct alternatives."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "The definitions, worksheet language, and decisions remain tightly bounded to capital stock, gross investment, depreciation, and net investment."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "The three terms are accurately separated, and each misconception is directly repaired using the gross-minus-depreciation relation."
+          },
+          "scenarioReadiness": {
+            "score": 2,
+            "evidence": "A manager has a relevant growth decision and records to inspect, but no values or ordering between gross investment and depreciation are supplied to resolve it."
+          },
+          "assessmentCorrectness": {
+            "score": 2,
+            "evidence": "The growth item is uniquely correct, but the first item has two algebraically correct relations despite declaring only the net-investment equation."
+          },
+          "choiceDiscriminability": {
+            "score": 2,
+            "evidence": "The second set is well differentiated, but the first includes the equivalent equations net equals gross minus depreciation and depreciation equals gross minus net."
+          },
+          "feedbackInstructionality": {
+            "score": 3,
+            "evidence": "Both explanations teach the controlling relations and address a misconception, but the first fails to acknowledge its second algebraically valid alternative."
+          },
+          "internalCoherence": {
+            "score": 2,
+            "evidence": "The instructional content agrees with the ledger, but the first assessment is ambiguous and the scenario lacks evidence needed for its stated decision."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "Both questions declare incorrect answers.",
+          "Both explanations contradict their declared answer keys.",
+          "The regulatory-growth requirement is an unsupported factual claim.",
+          "The second question contains equivalent supported alternatives for positive net investment."
+        ],
+        "B": [
+          "The first question is ambiguous because 'net investment equals gross investment minus depreciation' and 'depreciation equals gross investment minus net investment' are algebraically equivalent.",
+          "The scenario asks for a growth decision without supplying values or a sign comparison for gross investment and depreciation."
+        ]
+      },
+      "decision": "B",
+      "rationale": "B wins despite a serious algebraic ambiguity and an underdetermined scenario because its knowledge content and second assessment are coherent. A has two incorrect keys, two answer-explanation contradictions, an ambiguous item, and an unsupported regulatory claim."
+    },
+    {
+      "caseId": "scion-kernel-0494c3fad7926b80669d4d22",
+      "pairId": "scion-kernel-pair-8d85ec642868af27ece1f369",
+      "artifactSha256": {
+        "A": "4838b8fa3fed3465004e596bcaa25338763be2867496b42af517f309b28b3351",
+        "B": "2e6fa2839c8db4690b460d3520f0cee38efd5aa52310400a145545e6d96be2ab"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 3,
+            "evidence": "The core statements follow the ledger, but heat, pain, a patient, and a specific nerve ending add concrete details not supplied by it."
+          },
+          "knowledgePrecision": {
+            "score": 2,
+            "evidence": "Receptors and perception are distinguished correctly, but the electrochemical-signal misconception is implausible and one explanation reverses detection and conversion."
+          },
+          "scenarioReadiness": {
+            "score": 3,
+            "evidence": "The student has observable receptor evidence and a detection-versus-processing distinction to make, although the educational constraint supplies little real tension."
+          },
+          "assessmentCorrectness": {
+            "score": 0,
+            "evidence": "Both declared indices are wrong: signal conversion is index 2 in the first item, and receptor detection plus conversion is index 1 in the second."
+          },
+          "choiceDiscriminability": {
+            "score": 2,
+            "evidence": "The role-swapping alternatives are distinct, but the first stem makes both detection and signal conversion sound like possible immediate results."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "The first explanation asserts an incorrect conversion-before-detection sequence, and the second supports an option different from its key without analyzing a misconception."
+          },
+          "internalCoherence": {
+            "score": 0,
+            "evidence": "Both keys conflict with the source-backed options and explanations, while the first explanation also reverses the stated receptor process."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "Definitions, sorting passages, questions, and conclusions instantiate only receptor detection, signal conversion, and central processing into meaningful patterns."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "Sensory receptors, perception, and electrochemical signals are accurately separated, with plausible category confusions directly corrected."
+          },
+          "scenarioReadiness": {
+            "score": 3,
+            "evidence": "The student must classify two exact notebook passages using inspectable evidence before a check-in, though the constraint and tension are modest."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both declared answers uniquely match the cited claims: receptors detect while perception processes, and stimulus conversion produces electrochemical signals."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "Each item offers four concise, parallel, meaningfully different alternatives built around plausible swaps among detection, conversion, and processing."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation identifies the governing distinction and explicitly explains why the closest role-confusion distractor fails."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "Facts, term definitions, notebook passages, answer keys, citations, and explanations consistently preserve the three-stage distinctions."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "Both questions declare incorrect answers.",
+          "Both explanations conflict with their declared answer keys.",
+          "The first explanation incorrectly places signal conversion before receptor detection."
+        ],
+        "B": []
+      },
+      "decision": "B",
+      "rationale": "B cleanly and coherently distinguishes detection, conversion, and perception with correct keys and instructive feedback. A declares both answers incorrectly and includes an explanation that reverses its own stated process."
+    }
+  ]
+}

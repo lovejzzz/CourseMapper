@@ -87,9 +87,7 @@
         "tests/v0144-build-ribbon.test.jsx",
         "tests/scion-user-facing-error.test.js"
       ],
-      "proofCommands": [
-        "npx vitest run tests/v0144-build-ribbon.test.jsx tests/scion-user-facing-error.test.js"
-      ],
+      "proofCommands": ["npx vitest run tests/v0144-build-ribbon.test.jsx tests/scion-user-facing-error.test.js"],
       "proofScopes": ["unit", "browser-live"]
     },
     {
@@ -168,11 +166,7 @@
       "status": "verified-current",
       "changelogHighlightIndex": 8,
       "summary": "No adapter or Gemma weight changed; shared compiler safety improves every routed model while local worker recovery remains Scion-specific.",
-      "anchors": [
-        "README.md",
-        "docs/SCION_ADAPTER_ROADMAP.md",
-        "src/lib/scionBrowserWllama.js"
-      ],
+      "anchors": ["README.md", "docs/SCION_ADAPTER_ROADMAP.md", "src/lib/scionBrowserWllama.js"],
       "proofCommands": ["npm run audit:release-history"],
       "proofScopes": ["doc", "static-audit"]
     }

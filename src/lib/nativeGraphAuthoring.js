@@ -984,6 +984,8 @@ export function buildNativePassBPrompt(wireMap, lessonIndices, options = {}) {
   const base = buildLessonKernelPrompt(wireMap, lessonIndices, {
     questionsPerLesson: options.questionsPerLesson,
     includeCourseLevel: options.includeCourseLevel === true,
+    sourceBrief: options.sourceBrief,
+    instructorProvidedFacts: options.instructorProvidedFacts,
   });
   const contentSourced = asArray(options.contentSourcedLessonIds).filter(Boolean);
   const recoveryAttempt = Number(options.recoveryAttempt || 0);

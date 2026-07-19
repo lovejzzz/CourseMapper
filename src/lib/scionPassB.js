@@ -8,6 +8,7 @@
 //   runScionPasses           — the D3 quality passes + D4 flywheel on the raw
 //                              batch JSON, returning the processed text
 import { compactLessonKernelSchemaProfile, scionPassesEnabled } from './scionContracts';
+import { scionFactCountForPrompt, scionPromptUsesSourceLedger } from './scionEvidenceContract';
 import { applyScionKernelPasses } from './scionPasses';
 import { postFlywheelEvents } from './scionFlywheel';
 import { SCION_LESSON_KERNEL_PROMPT_PROTOCOL } from './scionAdapterTaskScope';
@@ -16,11 +17,19 @@ import { SCION_LESSON_KERNEL_PROMPT_PROTOCOL } from './scionAdapterTaskScope';
  * The D1/D2 request options for the main Pass B call: the declared
  * json_schema contract + greedy-default temperature (recovery retries sample).
  */
-export function scionCallOpts({ expectedLessonIds, recoveryAttempt }) {
+export function scionCallOpts({ prompt, expectedLessonIds, recoveryAttempt }) {
+  const factCount = scionFactCountForPrompt(prompt, expectedLessonIds);
+  const sourceLedger = scionPromptUsesSourceLedger(prompt, expectedLessonIds);
   return {
-    schema: compactLessonKernelSchemaProfile({ expectedLessonIds }),
+    schema: compactLessonKernelSchemaProfile({ expectedLessonIds, factCount }),
     promptProtocol: SCION_LESSON_KERNEL_PROMPT_PROTOCOL,
     temperature: recoveryAttempt > 0 ? 0.7 : 0,
+    // Seven fresh cross-domain captures produced zero admitted base-model
+    // source-ledger kernels. Repeating the same strict request did not add a
+    // usable atom, but made a three-lesson browser build take 441 seconds.
+    // Keep one honest model attempt; the compiler then preserves only admitted
+    // atoms and exposes review notes instead of spending a futile retry storm.
+    ...(sourceLedger ? { maxRetries: 0 } : {}),
   };
 }
 

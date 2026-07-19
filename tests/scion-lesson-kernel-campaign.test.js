@@ -13,7 +13,7 @@ import {
 } from '../scripts/lib/scionLessonKernelCampaign.mjs';
 
 const CAMPAIGN_PATH = 'evaluation/scion-adapters/lesson-kernel-campaign-v0.16.54.json';
-const CURRENT_CAMPAIGN_PATH = 'evaluation/scion-adapters/lesson-kernel-campaign-v0.16.58.json';
+const CURRENT_CAMPAIGN_PATH = 'evaluation/scion-adapters/lesson-kernel-campaign-v0.16.59.json';
 
 async function trackedCampaign() {
   return JSON.parse(await fs.readFile(CAMPAIGN_PATH, 'utf8'));
@@ -85,6 +85,7 @@ describe('Scion production lesson-kernel campaign', () => {
 
     expect(stableScionLessonKernelJson(rebuilt)).toBe(stableScionLessonKernelJson(campaign));
     expect(campaign.promptPolicy).toMatchObject({
+      protocol: 'scion-lesson-kernel-prompt-policy-v3',
       evaluatorMetadata: 'excluded',
       freshRebuildRequired: true,
     });
@@ -92,6 +93,17 @@ describe('Scion production lesson-kernel campaign', () => {
       expect(entry.qualityFocus.length).toBeGreaterThan(0);
       expect(entry.lessonInput.objectives).not.toContain('Quality focus:');
       expect(entry.userPrompt).not.toContain('Quality focus:');
+      expect(entry.lessonInput.sourceFactPolicy).toBe('numbered-source-ledger-v1');
+      expect(entry.messages[1].content).toContain('SOURCE FACT LEDGER');
+      const template = JSON.parse(entry.messages[1].content.split('TEMPLATE TO FILL:\n')[1]);
+      expect(template.lessons[0].facts).toEqual(entry.sourceContext.claims);
+      const schema = buildScionLessonKernelResponseSchema(entry.lessonInput.lessonId, {
+        factCount: entry.sourceContext.claims.length,
+      });
+      expect(schema.properties.lessons.items.properties.facts).toMatchObject({
+        minItems: entry.sourceContext.claims.length,
+        maxItems: entry.sourceContext.claims.length,
+      });
       for (const claim of entry.sourceContext.claims) expect(entry.userPrompt).toContain(claim);
     }
   });

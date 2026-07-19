@@ -89,7 +89,7 @@ function wordCount(text) {
 
 const GENERATION_MARKER_RE = /(?:^|\s)(?:ex[_-]?reason|reasoning)(?:[_-][a-z0-9]+){2,}/i;
 const ANSWER_POSITION_RE =
-  /\b(?:the\s+)?key\s+(?:wins?|fits?|is|because)|\b(?:zero(?:th)?|first|second|third|fourth)\s+(?:option|choice|answer)\b|\b(?:option|choice|answer)\s*(?:[A-D0-4]|zero|one|two|three|four|zeroth|first|second|third|fourth)\b/i;
+  /\b(?:the\s+)?key\s+(?:wins?|fits?|is|because)|\b(?:zero(?:th)?|first|second|third|fourth)(?:\s+(?:and|or)\s+(?:zero(?:th)?|first|second|third|fourth))?\s+(?:options?|choices?|answers?)\b|\b(?:option|choice|answer)\s*(?:[A-D0-4]|zero|one|two|three|four|zeroth|first|second|third|fourth)\b/i;
 const INTERNAL_SOURCE_INDEX_RE = /\b(?:fact|claim|source(?:Fact)?Index)\s*#?\s*\d+\b/i;
 
 /**

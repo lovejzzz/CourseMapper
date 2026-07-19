@@ -203,6 +203,17 @@ export function assessScionMcItem(
     findScionMultipleSourceSupportedOptions(normalized, {
       sourceClaims,
       allowBroadSourceContext: judgeInformedSemanticAdmission,
+      matchingProfile:
+        semanticProfile === 'strict-v3' ||
+        semanticProfile === 'source-strict-v3' ||
+        semanticProfile === 'strict-v4' ||
+        semanticProfile === 'source-strict-v4' ||
+        semanticProfile === 'strict-v5' ||
+        semanticProfile === 'source-strict-v5' ||
+        semanticProfile === 'strict' ||
+        semanticProfile === 'source-strict'
+          ? 'v0.16.58'
+          : 'current',
     })
   ) {
     issues.push('multiple-source-supported-options');

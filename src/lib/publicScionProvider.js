@@ -9,17 +9,24 @@ import { APP_VERSION } from './appVersion.js';
 import {
   findScionExplanationKeyConflict,
   findScionCitedSourceKeyMismatch,
+  findScionEquivalentComparisonOptionPair,
+  findScionEquivalentEquationOptionPair,
   findScionMissingKeyExplanationSupport,
+  findScionMultipleExplanationSupportedOptions,
   findScionMultipleSourceSupportedOptions,
   findScionNearDuplicateOptionPair,
+  findScionUnsupportedScopeOption,
   normalizeScionOptionIdentity,
   repairScionMcItem,
 } from './scionAnswerKeyAlignment.js';
 import { SCION_BROWSER_GEMMA4_GGUF } from './scionBrowserConstants.js';
 import { assessScionKeyTermContract } from './scionKeyTermContract.js';
+import { scionFactContractForLesson } from './scionEvidenceContract.js';
 import { analyzeDecisionScenario } from './scenarioContract.js';
 
 const PUBLIC_SCION_TEMPLATE_RESIDUE_RE =
+  /\b(?:two lesson concepts?|lesson concept to this concrete case|replace with (?:one complete distinction question|one concrete case question|a plausible subject-specific|a plausible case-specific)|plausible methodological claim or action|plausible case interpretation or action|state the subject evidence supporting the answer,? then correct the closest distractor)\b/i;
+const PUBLIC_SCION_TEMPLATE_RESIDUE_V01658_RE =
   /\b(?:two lesson concepts?|lesson concept to this concrete case|replace with (?:one complete distinction question|one concrete case question|a plausible subject-specific|a plausible case-specific)|plausible methodological claim or action|plausible case interpretation or action)\b/i;
 const PUBLIC_SCION_TRUNCATED_CLAIM_RE =
   /(?:-[a-z]{1,3}|\b(?:a|an|and|any|as|at|by|each|every|for|from|in|of|on|or|the|to|with|without)|\b(?:users?|students?|participants?|customers?|people)\s+(?:actual|specific|respective|relevant|related))\s*[.!?]?$/i;
@@ -28,6 +35,8 @@ const PUBLIC_SCION_TRUNCATED_OPTION_RE =
 const PUBLIC_SCION_CODE_IDENTIFIER_SENTENCE_RE = /^[\s“"'([{]*[a-z_][a-z0-9_.]*\([^)]*\)\s+\p{L}/iu;
 const PUBLIC_SCION_RELATIVE_PREPOSITION_END_RE = /\b(?:that|which|whom)\b[^.!?]*\b(?:from|to|with)\s*[.!?][\])}"']?$/i;
 const PUBLIC_SCION_ANSWER_POSITION_RE =
+  /\b(?:the\s+)?key\s+(?:wins?|fits?|is|because)|\b(?:zero(?:th)?|first|second|third|fourth)(?:\s+(?:and|or)\s+(?:zero(?:th)?|first|second|third|fourth))?\s+(?:options?|choices?|answers?)\b|\b(?:option|choice|answer)\s*(?:[A-D0-4]|zero|one|two|three|four|zeroth|first|second|third|fourth)\b/i;
+const PUBLIC_SCION_ANSWER_POSITION_V01658_RE =
   /\b(?:the\s+)?key\s+(?:wins?|fits?|is|because)|\b(?:zero(?:th)?|first|second|third|fourth)\s+(?:option|choice|answer)\b|\b(?:option|choice|answer)\s*(?:[A-D0-4]|zero|one|two|three|four|zeroth|first|second|third|fourth)\b/i;
 const PUBLIC_SCION_INTERNAL_INDEX_RE = /\b(?:fact|claim|source(?:Fact)?Index)\s*#?\s*\d+\b/i;
 const PUBLIC_SCION_ABSOLUTE_OPTION_RE = /\b(?:always|never|all|none)\b/i;
@@ -56,10 +65,14 @@ const PUBLIC_SCION_HIGH_RISK_ISSUE_MARKERS = Object.freeze([
   'option-length',
   'truncated-option',
   'duplicate-options',
+  'equivalent-equation-options',
+  'equivalent-comparison-options',
   'absolute-option',
+  'unsupported-scope-option',
   'answer-position-residue',
   'claim-marker-residue',
   'explanation-key-conflict',
+  'explanation-supports-multiple-options',
   'explanation-omits-key-support',
   'multiple-source-supported-options',
   'source-fact-index',
@@ -79,15 +92,20 @@ const PUBLIC_SCION_CRITICAL_ISSUE_MARKERS = Object.freeze([
   'scenario-template-residue',
   'truncated-option',
   'duplicate-options',
+  'equivalent-equation-options',
+  'equivalent-comparison-options',
   'absolute-option',
+  'unsupported-scope-option',
   'answer-position-residue',
   'claim-marker-residue',
   'explanation-key-conflict',
+  'explanation-supports-multiple-options',
   'explanation-omits-key-support',
   'multiple-source-supported-options',
   'source-fact-index',
   'source-fact-key-mismatch',
   'source-direction-conflict',
+  'source-fact-ledger-mismatch',
 ]);
 const PUBLIC_SCION_RELATION_STOP_WORDS = new Set([
   'between',
@@ -550,7 +568,12 @@ function publicScionStartsWithLowercaseFragment(value) {
   return /^[\s“"'([{]*[a-z]/.test(text) && !PUBLIC_SCION_CODE_IDENTIFIER_SENTENCE_RE.test(text);
 }
 
-export function assessPublicScionKernelResponse(responseText, userPrompt, task, { applyCompilerRepairs = true } = {}) {
+export function assessPublicScionKernelResponse(
+  responseText,
+  userPrompt,
+  task,
+  { applyCompilerRepairs = true, admissionProfile = 'current' } = {},
+) {
   if (task !== 'blueprintEnrichment') return { needsRetry: false, issues: [] };
   const expectedLessons = extractPublicScionKernelLessons(userPrompt).filter((lesson) => lesson?.lessonId);
   if (expectedLessons.length === 0) return { needsRetry: false, issues: [] };
@@ -574,20 +597,28 @@ export function assessPublicScionKernelResponse(responseText, userPrompt, task, 
         continue;
       }
       const facts = Array.isArray(lesson.facts) ? lesson.facts : [];
+      const factContract = scionFactContractForLesson(expected, { userPrompt });
       const sourceText = publicScionSourceText(expected);
       const hasRichSourceEvidence = publicScionHasRichSourceEvidence(expected);
       const sourceFacts = hasRichSourceEvidence ? [sourceText] : facts;
       if (!PUBLIC_SCION_SCRIPT_RE.test(sourceText) && PUBLIC_SCION_SCRIPT_RE.test(JSON.stringify(lesson))) {
         issues.push(`${expected.lessonId}:unexpected-script`);
       }
-      if (facts.length !== 5) issues.push(`${expected.lessonId}:facts-count:${facts.length}/5`);
+      if (facts.length !== factContract.factCount) {
+        issues.push(`${expected.lessonId}:facts-count:${facts.length}/${factContract.factCount}`);
+      }
       const factIdentities = facts.map(publicScionFactIdentity);
       if (new Set(factIdentities.filter(Boolean)).size !== factIdentities.filter(Boolean).length) {
         issues.push(`${expected.lessonId}:duplicate-facts`);
       }
       facts.forEach((fact, index) => {
         const wordCount = publicScionWordCount(fact);
-        if (String(fact || '').trim().length < 20 || wordCount < 8 || wordCount > 20) {
+        const sourceLedgerFact = factContract.mode === 'numbered-source-ledger-v1';
+        if (
+          String(fact || '').trim().length < 20 ||
+          wordCount < (sourceLedgerFact ? 4 : 8) ||
+          wordCount > (sourceLedgerFact ? 40 : 20)
+        ) {
           issues.push(`${expected.lessonId}:fact-${index}:fact-length`);
         }
         if (
@@ -602,6 +633,17 @@ export function assessPublicScionKernelResponse(responseText, userPrompt, task, 
         }
         if (hasRichSourceEvidence && publicScionHasSourceDirectionConflict(fact, expected.topics)) {
           issues.push(`${expected.lessonId}:fact-${index}:source-direction-conflict`);
+        }
+        if (
+          sourceLedgerFact &&
+          String(fact || '')
+            .replace(/\s+/g, ' ')
+            .trim() !==
+            String(factContract.claims[index] || '')
+              .replace(/\s+/g, ' ')
+              .trim()
+        ) {
+          issues.push(`${expected.lessonId}:fact-${index}:source-fact-ledger-mismatch`);
         }
       });
       const keyTerms = Array.isArray(lesson.keyTerms) ? lesson.keyTerms : [];
@@ -623,7 +665,9 @@ export function assessPublicScionKernelResponse(responseText, userPrompt, task, 
           issues.push(`${expected.lessonId}:key-term-${index}:source-unsupported-quantity`);
         }
       });
-      const scenario = analyzeDecisionScenario(lesson.scenario || {});
+      const scenario = analyzeDecisionScenario(lesson.scenario || {}, {
+        evaluationProfile: admissionProfile === 'v0.16.58' ? 'v0.16.58' : 'current',
+      });
       for (const issue of scenario.issues) issues.push(`${expected.lessonId}:scenario:${issue}`);
       if (publicScionUnanchoredNamedPhrases(`${scenario.setup} ${scenario.materials}`, sourceText).length > 0) {
         issues.push(`${expected.lessonId}:scenario:unanchored-named-detail`);
@@ -671,26 +715,55 @@ export function assessPublicScionKernelResponse(responseText, userPrompt, task, 
         ) {
           issues.push(`${expected.lessonId}:mc-${index}:duplicate-options`);
         }
+        if (admissionProfile !== 'v0.16.58' && findScionEquivalentEquationOptionPair(options)) {
+          issues.push(`${expected.lessonId}:mc-${index}:equivalent-equation-options`);
+        }
+        if (admissionProfile !== 'v0.16.58' && findScionEquivalentComparisonOptionPair(options)) {
+          issues.push(`${expected.lessonId}:mc-${index}:equivalent-comparison-options`);
+        }
         if ((Array.isArray(options) ? options : []).some((option) => PUBLIC_SCION_ABSOLUTE_OPTION_RE.test(option))) {
           issues.push(`${expected.lessonId}:mc-${index}:absolute-option`);
         }
-        if (PUBLIC_SCION_ANSWER_POSITION_RE.test(explanation)) {
+        if (admissionProfile !== 'v0.16.58' && findScionUnsupportedScopeOption(options, { sourceClaims: facts })) {
+          issues.push(`${expected.lessonId}:mc-${index}:unsupported-scope-option`);
+        }
+        const answerPositionPattern =
+          admissionProfile === 'v0.16.58' ? PUBLIC_SCION_ANSWER_POSITION_V01658_RE : PUBLIC_SCION_ANSWER_POSITION_RE;
+        if (answerPositionPattern.test(explanation)) {
           issues.push(`${expected.lessonId}:mc-${index}:answer-position-residue`);
         }
         if (PUBLIC_SCION_INTERNAL_INDEX_RE.test([question, ...options, explanation].join(' '))) {
           issues.push(`${expected.lessonId}:mc-${index}:claim-marker-residue`);
         }
-        if (
-          findScionExplanationKeyConflict(item, {
-            allowAffirmativeLead: true,
-            stripTerminalPunctuation: true,
-            allowFirstSentenceLexicalCue: true,
-            rejectNegativeEvidence: true,
-          })
-        ) {
+        const explanationConflict = findScionExplanationKeyConflict(item, {
+          allowAffirmativeLead: true,
+          stripTerminalPunctuation: true,
+          allowFirstSentenceLexicalCue: true,
+          rejectNegativeEvidence: true,
+        });
+        // A compound comparison can make a wrong option share one more token
+        // with the explanation than the correct composite option. For an
+        // explicitly source-ledger-backed item, the cited-source check below
+        // is the stronger ruler; retain explicit cues but do not let a weak
+        // one-token lexical margin overrule verified source lineage.
+        const lexicalScores = explanationConflict?.scores || [];
+        const lexicalMargin = explanationConflict
+          ? Number(lexicalScores[explanationConflict.supportedIndex] || 0) -
+            Number(lexicalScores[explanationConflict.declaredIndex] || 0)
+          : 0;
+        const weakLedgerLexicalConflict =
+          factContract.mode === 'numbered-source-ledger-v1' &&
+          explanationConflict?.supportMethod === 'first-sentence-lexical-margin' &&
+          lexicalMargin < 2;
+        if (explanationConflict && !weakLedgerLexicalConflict) {
           issues.push(`${expected.lessonId}:mc-${index}:explanation-key-conflict`);
         }
-        if (PUBLIC_SCION_TEMPLATE_RESIDUE_RE.test([question, ...options, explanation].filter(Boolean).join(' '))) {
+        if (admissionProfile !== 'v0.16.58' && findScionMultipleExplanationSupportedOptions(item)) {
+          issues.push(`${expected.lessonId}:mc-${index}:explanation-supports-multiple-options`);
+        }
+        const templateResiduePattern =
+          admissionProfile === 'v0.16.58' ? PUBLIC_SCION_TEMPLATE_RESIDUE_V01658_RE : PUBLIC_SCION_TEMPLATE_RESIDUE_RE;
+        if (templateResiduePattern.test([question, ...options, explanation].filter(Boolean).join(' '))) {
           issues.push(`${expected.lessonId}:mc-${index}:template-residue`);
         }
         const sourceFactIndexes = item?.sourceFactIndexes ?? item?.fi;
@@ -717,6 +790,8 @@ export function assessPublicScionKernelResponse(responseText, userPrompt, task, 
           sourceFactIndexesValid &&
           findScionCitedSourceKeyMismatch(item, {
             sourceClaims: sourceFactIndexes.map((factIndex) => facts[factIndex]),
+            strict: factContract.mode === 'numbered-source-ledger-v1',
+            matchingProfile: admissionProfile === 'v0.16.58' ? 'v0.16.58' : 'current',
           })
         ) {
           issues.push(`${expected.lessonId}:mc-${index}:source-fact-key-mismatch`);
@@ -728,6 +803,7 @@ export function assessPublicScionKernelResponse(responseText, userPrompt, task, 
           findScionMultipleSourceSupportedOptions(item, {
             sourceClaims: facts,
             allowBroadSourceContext: true,
+            matchingProfile: admissionProfile === 'v0.16.58' ? 'v0.16.58' : 'current',
           })
         ) {
           issues.push(`${expected.lessonId}:mc-${index}:multiple-source-supported-options`);
@@ -858,7 +934,9 @@ export function buildPublicScionRetryFeedback(assessment = {}) {
       ? ['sourceFactIndexes is required and may cite only supplied zero-based claim indexes.']
       : []),
     ...(allIssues.some((issue) => issue.includes('source-fact-key-mismatch'))
-      ? ["Each fi must cite the one fact that directly supports the keyed option and the explanation's first sentence."]
+      ? [
+          "Each fi must cite the one or two facts that directly support the keyed option and the explanation's first sentence. Never add an unsupported scope word such as only, both, or unchanged.",
+        ]
       : []),
     ...(allIssues.some((issue) => issue.includes('explanation-omits-key-support'))
       ? ['Every ex must state why the keyed option is correct; eliminating distractors alone is incomplete feedback.']
@@ -902,13 +980,38 @@ export function buildPublicScionRetryFeedback(assessment = {}) {
           'A comparative fact reverses a supplied increase/decrease relationship. Re-author it from the exact source claim without guessing.',
         ]
       : []),
+    ...(allIssues.some((issue) => issue.includes('source-fact-ledger-mismatch'))
+      ? [
+          'The facts array is a compiler-owned source ledger. Copy every supplied numbered claim exactly, in order, without changing or adding any word.',
+        ]
+      : []),
     ...(allIssues.some((issue) => issue.includes('scenario-'))
       ? [
           'Give the scenario an actionable decision and a concrete evidence packet with at least two inspectable details.',
         ]
       : []),
+    ...(allIssues.some((issue) => issue.includes('scenario-missing-evidence-packet'))
+      ? [
+          'In scenario.ma, name at least two comma-separated inspectable lesson items using concrete nouns such as passages, notations, records, observations, measurements, or designs. Never return one generic structure or source label.',
+        ]
+      : []),
+    ...(allIssues.some((issue) => issue.includes('stem-length'))
+      ? [
+          'Every q must contain 20-45 words. Expand a short stem with one source-grounded observation or comparison, not filler or outside facts.',
+        ]
+      : []),
     ...(allIssues.some((issue) => issue.includes('duplicate-options'))
       ? ['Every MC item needs four meaningfully distinct options; never repeat or pad the same alternative.']
+      : []),
+    ...(allIssues.some((issue) => issue.includes('equivalent-equation-options'))
+      ? [
+          'Two options state the same equation in rearranged form. Keep only one algebraic relation and replace the other with a genuinely different misconception.',
+        ]
+      : []),
+    ...(allIssues.some((issue) => issue.includes('equivalent-comparison-options'))
+      ? [
+          'Two options state the same comparison by swapping subjects and inverse words. Replace one so all four propositions are logically distinct.',
+        ]
       : []),
     ...(allIssues.some((issue) => issue.includes('option-length') || issue.includes('truncated-option'))
       ? [
@@ -918,6 +1021,11 @@ export function buildPublicScionRetryFeedback(assessment = {}) {
     ...(allIssues.some((issue) => issue.includes('explanation-key-conflict'))
       ? [
           'Make ai point to the one option supported by ex and the cited fact. The explanation must never support another option.',
+        ]
+      : []),
+    ...(allIssues.some((issue) => issue.includes('explanation-supports-multiple-options'))
+      ? [
+          'The explanation affirmatively supports more than one option. Keep exactly one supported proposition and explicitly reject the closest distractor.',
         ]
       : []),
     ...(allIssues.some((issue) => issue.includes('unexpected-script'))
@@ -1137,73 +1245,83 @@ function buildPublicScionKernelPrompt(userPrompt) {
   const course = text.match(/^Course:\s*(.+)$/im)?.[1]?.trim() || 'Untitled Course';
   const recoveryAttempt = Math.max(0, Number(text.match(/Recovery attempt\s+(\d+)/i)?.[1]) || 0);
   const requiredLessonIds = lessons.map((lesson) => lesson.lessonId || 'lesson-1');
+  const factContracts = new Map(
+    lessons.map((lesson) => [lesson.lessonId || 'lesson-1', scionFactContractForLesson(lesson)]),
+  );
+  const sourceLedgerContract = lessons.length === 1 ? factContracts.get(requiredLessonIds[0]) : null;
   // Public Scion is a 2B browser model. Course-level voice and the remaining
   // teaching surfaces are compiler work; asking for them here made one
   // lesson response larger than the reliable decode band and repeatedly
   // truncated the irreplaceable facts/terms/assessment atoms at the tail.
-  const lessonTemplates = lessons.map((lesson) => ({
-    lessonId: lesson.lessonId || 'lesson-1',
-    facts: [
-      'First specific subject claim of twenty or more characters.',
-      'Second distinct subject claim of twenty or more characters.',
-      'Third distinct subject claim of twenty or more characters.',
-      'Fourth distinct subject claim of twenty or more characters.',
-      'Fifth distinct subject claim of twenty or more characters.',
-    ],
-    mc: [
-      {
-        q: 'REPLACE with a 20-45 word distinction question using a concrete observation and two exact lesson terms.',
-        op: [
-          'REPLACE with a plausible subject-specific option A.',
-          'REPLACE with a plausible subject-specific option B.',
-          'REPLACE with a plausible subject-specific option C.',
-          'REPLACE with a plausible subject-specific option D.',
-        ],
-        ai: 0,
-        fi: [0],
-        ex: 'State the subject evidence supporting the answer, then correct the closest distractor.',
+  const lessonTemplates = lessons.map((lesson) => {
+    const factContract = factContracts.get(lesson.lessonId || 'lesson-1');
+    return {
+      lessonId: lesson.lessonId || 'lesson-1',
+      facts:
+        factContract.mode === 'numbered-source-ledger-v1'
+          ? factContract.claims
+          : [
+              'First specific subject claim of twenty or more characters.',
+              'Second distinct subject claim of twenty or more characters.',
+              'Third distinct subject claim of twenty or more characters.',
+              'Fourth distinct subject claim of twenty or more characters.',
+              'Fifth distinct subject claim of twenty or more characters.',
+            ],
+      mc: [
+        {
+          q: 'REPLACE with a 20-45 word distinction question using a concrete observation and two exact lesson terms.',
+          op: [
+            'REPLACE with a plausible subject-specific option A.',
+            'REPLACE with a plausible subject-specific option B.',
+            'REPLACE with a plausible subject-specific option C.',
+            'REPLACE with a plausible subject-specific option D.',
+          ],
+          ai: 0,
+          fi: factContract.factCount > 1 ? [0, 1] : [0],
+          ex: 'State the subject evidence supporting the answer, then correct the closest distractor.',
+        },
+        {
+          q: 'REPLACE with a 20-45 word case question naming exact evidence, a real constraint, and one decision.',
+          op: [
+            'REPLACE with a plausible case-specific option A.',
+            'REPLACE with a plausible case-specific option B.',
+            'REPLACE with a plausible case-specific option C.',
+            'REPLACE with a plausible case-specific option D.',
+          ],
+          ai: 0,
+          fi: [Math.min(1, factContract.factCount - 1)],
+          ex: 'Apply the case evidence to support the answer, then correct the closest distractor.',
+        },
+      ],
+      keyTerms: [
+        {
+          tr: 'first source-anchored term',
+          df: 'A precise subject definition with at least forty characters.',
+          eg: 'A concrete example grounded in this lesson topic.',
+          mi: 'A plausible student misunderstanding about the term.',
+          cx: 'A direct correction that explains why that misunderstanding fails.',
+        },
+        {
+          tr: 'second distinct source term',
+          df: 'A different precise subject definition with at least forty characters.',
+          eg: 'A different concrete example grounded in this lesson topic.',
+          mi: 'A different plausible student misunderstanding about the term.',
+          cx: 'A different direct correction that refutes that misunderstanding.',
+        },
+        {
+          tr: 'third distinct source term',
+          df: 'A third precise subject definition with at least forty characters.',
+          eg: 'A third concrete example grounded in this lesson topic.',
+          mi: 'A third plausible student misunderstanding about the term.',
+          cx: 'A third direct correction that refutes that misunderstanding.',
+        },
+      ],
+      scenario: {
+        su: 'A concrete two-sentence subject context with an actionable problem and one real constraint.',
+        ma: 'REPLACE',
       },
-      {
-        q: 'REPLACE with a 20-45 word case question naming exact evidence, a real constraint, and one decision.',
-        op: [
-          'REPLACE with a plausible case-specific option A.',
-          'REPLACE with a plausible case-specific option B.',
-          'REPLACE with a plausible case-specific option C.',
-          'REPLACE with a plausible case-specific option D.',
-        ],
-        ai: 0,
-        fi: [1],
-        ex: 'Apply the case evidence to support the answer, then correct the closest distractor.',
-      },
-    ],
-    keyTerms: [
-      {
-        tr: 'first source-anchored term',
-        df: 'A precise subject definition with at least forty characters.',
-        eg: 'A concrete example grounded in this lesson topic.',
-        mi: 'A plausible student misunderstanding about the term.',
-        cx: 'A direct correction that explains why that misunderstanding fails.',
-      },
-      {
-        tr: 'second distinct source term',
-        df: 'A different precise subject definition with at least forty characters.',
-        eg: 'A different concrete example grounded in this lesson topic.',
-        mi: 'A different plausible student misunderstanding about the term.',
-        cx: 'A different direct correction that refutes that misunderstanding.',
-      },
-      {
-        tr: 'third distinct source term',
-        df: 'A third precise subject definition with at least forty characters.',
-        eg: 'A third concrete example grounded in this lesson topic.',
-        mi: 'A third plausible student misunderstanding about the term.',
-        cx: 'A third direct correction that refutes that misunderstanding.',
-      },
-    ],
-    scenario: {
-      su: 'A concrete two-sentence subject context with an actionable problem and one real constraint.',
-      ma: 'REPLACE',
-    },
-  }));
+    };
+  });
   const template = { lessons: lessonTemplates };
 
   return `COURSE: ${clip(course, 160)}
@@ -1221,13 +1339,23 @@ ${
   recoveryAttempt > 0
     ? `- RECOVERY ${recoveryAttempt}: a previous response was incomplete. Re-author the full requested lesson now; do not summarize, apologize, or repeat an empty response.\n`
     : ''
-}- Write 5 facts per lesson. Each fact is 8-20 words, at least 20 characters, and states subject knowledge rather than course process.
-- Write 3 keyTerms per lesson. Each tr is a distinct 1-4 word subject term that reuses specific words from that lesson's title, topics, or objectives AND appears verbatim in at least one of that lesson's facts; never copy the full lesson title. Every df is exactly one complete sentence of at least 40 characters and states a broader category or distinguishing property; a term-led definition is acceptable only when it adds a real distinction. eg is concrete and uses only names already present in the lesson input; mi is a genuinely false learner belief and never restates a lesson fact; cx directly refutes mi in different wording and never repeats df or eg. Every field makes a different instructional move. Never invent a named place, person, study, product, organization, or event. Never embed field labels or internal claim numbers.
-- Write one decision-ready scenario. Across su and ma, include a concrete context, an actionable subject problem, at least 2 inspectable details, and a real tension or constraint. su has exactly 2 specific sentences. ma directly names the concrete records, observations, passages, notations, measurements, or designs students compare; never call them "source detail one/two", "inspectable details", "evidence packet", "scenario evidence", or "course materials".
+}${
+    sourceLedgerContract?.mode === 'numbered-source-ledger-v1'
+      ? `- SOURCE FACT LEDGER: the template facts array contains the ${sourceLedgerContract.factCount} supplied numbered claims in source order. Copy that facts array exactly, including every word and punctuation mark. Do not paraphrase, split, merge, omit, or add a fact. The compiler rejects any change.\n`
+      : '- Write 5 facts per lesson. Each fact is 8-20 words, at least 20 characters, and states subject knowledge rather than course process.\n'
+  }- Write 3 keyTerms per lesson. Each tr is a distinct 1-4 word subject term that reuses specific words from that lesson's title, topics, or objectives AND appears verbatim in at least one of that lesson's facts; never copy the full lesson title. Every df is exactly one complete sentence of at least 40 characters and states a broader category or distinguishing property; a term-led definition is acceptable only when it adds a real distinction. eg is concrete and uses only names already present in the lesson input; mi is a genuinely false learner belief and never restates a lesson fact; cx directly refutes mi in different wording and never repeats df or eg. Every field makes a different instructional move. Never invent a named place, person, study, product, organization, or event. Never embed field labels or internal claim numbers.
+- Write one decision-ready scenario. Across su and ma, include a concrete context, an actionable subject problem, at least 2 inspectable details, and a real tension or constraint. su has exactly 2 specific sentences. ma names at least two comma-separated concrete records, observations, passages, notations, measurements, or designs students compare; never return one generic structure and never call them "source detail one/two", "inspectable details", "evidence packet", "scenario evidence", or "course materials".
 - Write exactly 2 mc items: one concept distinction and one concrete case application.
-- Every mc item includes fi=sourceFactIndexes as exactly [n]: one zero-based integer from 0 through 4 pointing to the single fact that directly supports the first option. Never write a string, more than one index, or an out-of-range index.
+- Every mc item includes fi=sourceFactIndexes as [n] or [n,m]: one or two distinct zero-based integers from 0 through ${
+    (sourceLedgerContract?.factCount || 5) - 1
+  } pointing to every fact directly needed to support the first option. Use two indexes when the answer compares two supplied claims; otherwise use one. Never write a string, duplicate index, irrelevant index, or out-of-range index.
 - Options are parallel and plausible; distractors reflect real misconceptions. Every q is 20-45 words and includes a concrete observation or comparison, not a short definition prompt; op has exactly 4 meaningfully distinct 4-10 word options, each under 80 characters. Options are compact propositions, not explanations, and never end mid-thought or on a function word. Put the single supported option first in op and set ai=0; the compiler shuffles answer positions after admission. ex states the subject evidence supporting the answer and then corrects the closest distractor without referring to any position.
 - Never mention "the key", answer positions, option letters or numbers, fact numbers, claim numbers, or source indexes in q, op, or ex.
+- Treat the fact ledger as the exclusive factual warrant for every key term, scenario observation, option, and explanation. A hypothetical role or deadline may frame a decision, but it must not add a new subject mechanism, consequence, example, or relation. Readings provide attribution only and are never content examples.
+- Build distractors only by swapping two supplied subject-relation pairs, reversing one supplied relation, or omitting one member of a supplied composite. Never introduce an unlisted category, mode, method, entity, or property. Never assign a new property to a source entity whose behavior the ledger does not define, even as a distractor.
+- Absence is not evidence: never add only, unchanged, unmodified, no other, or without unless that exact restriction appears in the ledger. When two claims overlap, distinguish them with an explicit positive property unique to one supplied claim, not an inferred absence.
+- Every scenario decision must be resolvable from the fact ledger and the named inspectable details. Prefer a classification, label, or evidence-bound distinction; never ask what best serves an invented aesthetic, causal, functional, or strategic goal.
+- In keyTerms, df, eg, and cx may restate or instantiate only an explicit ledger relation. Do not add a purpose, effect, mechanism, or consequence merely to make the prose sound richer.
 - Never infer motive or cause from one ambiguous observation. Include enough context that exactly one option is supported.
 - Never write pure vocabulary recall, tool trivia, NOT/EXCEPT questions, always/never options, or all/none of the above.
 - Never mention artifacts, evidence moves, success criteria, rubrics, submissions, "the lesson", "this lesson", or "this course".
@@ -1291,7 +1419,7 @@ export function buildPublicScionMessages(systemPrompt, userPrompt, { schema = nu
           'Answer the user directly in concise Markdown.',
           'Ground the answer in the supplied workspace context. Never invent sources, citations, or completed edits.',
           task === 'agent'
-            ? 'You are advisory in this local mode: explain what you recommend, but never claim that you changed the workspace.'
+            ? 'You are advisory in this local mode: explain what you recommend, but never claim that you changed the workspace. Return only the reply text; never emit JSON, respond(...), function calls, tool_calls, or analysis.'
             : '',
           clip(systemPrompt, 5200),
         ]

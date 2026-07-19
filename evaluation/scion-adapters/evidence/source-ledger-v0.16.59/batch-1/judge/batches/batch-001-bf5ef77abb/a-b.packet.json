@@ -1,0 +1,858 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-packet-v1",
+  "order": "A/B",
+  "generatedAt": "2026-07-19T15:00:00.000Z",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "prompt": {
+    "path": "evaluation/scion-adapters/lesson-kernel-judge-prompt-v0.16.54.md",
+    "sha256": "37844b86736335db54b561d8c031660ef71679c55ae1108e2e999e746f2a1c96"
+  },
+  "dimensions": [
+    "sourceFidelity",
+    "knowledgePrecision",
+    "scenarioReadiness",
+    "assessmentCorrectness",
+    "choiceDiscriminability",
+    "feedbackInstructionality",
+    "internalCoherence"
+  ],
+  "cases": [
+    {
+      "caseId": "scion-kernel-089f3bd62b1608632e6b4a56",
+      "pairId": "scion-kernel-pair-90c6884482f4d3ad39d42142",
+      "domain": "user-experience-design",
+      "failureFamilies": [
+        "misconception-validity",
+        "scenario-evidence-sufficiency"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-3",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Usability testing",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: A usability test observes representative users attempting realistic tasks with a product or service, often while thinking aloud. Claim 1: A usability test can examine a sketch, prototype, competitor product, or other artifact relevant to a user goal. Claim 2: The plan should align the team on scenarios, participants, recruitment, moderation, and observation roles. Claim 3: A test script gives the session a repeatable structure without turning the moderator into a teacher. Claim 4: Recruitment should identify appropriate users and obtain their consent before the session.",
+        "readings": "Digital.gov, U.S. General Services Administration"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "91025e358b91265f110903e864438a936557a07bce01795345fa49826e0ca607",
+        "kernelId": "ux/usability-testing",
+        "term": "Usability testing",
+        "claims": [
+          "A usability test observes representative users attempting realistic tasks with a product or service, often while thinking aloud.",
+          "A usability test can examine a sketch, prototype, competitor product, or other artifact relevant to a user goal.",
+          "The plan should align the team on scenarios, participants, recruitment, moderation, and observation roles.",
+          "A test script gives the session a repeatable structure without turning the moderator into a teacher.",
+          "Recruitment should identify appropriate users and obtain their consent before the session."
+        ],
+        "anchors": [
+          {
+            "src": "digitalgov:usability-testing",
+            "loc": "What",
+            "quote": "observes users as they attempt to use"
+          },
+          {
+            "src": "digitalgov:usability-testing",
+            "loc": "How to do it",
+            "quote": "Choose what you will test"
+          },
+          {
+            "src": "digitalgov:usability-testing",
+            "loc": "How to do it",
+            "quote": "Plan the test"
+          },
+          {
+            "src": "digitalgov:usability-testing",
+            "loc": "How to do it",
+            "quote": "Prepare a usability test script"
+          },
+          {
+            "src": "digitalgov:usability-testing",
+            "loc": "How to do it",
+            "quote": "Recruit users and get their consent"
+          }
+        ],
+        "attribution": [
+          "Digital.gov, U.S. General Services Administration"
+        ],
+        "license": "U.S. Government Work"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "476ed6ac20df8dc38d9f2ac64afc6da8967df7fed62352bc5f991ddf1d2a129a",
+          "lessonKernel": {
+            "lessonId": "lesson-3",
+            "facts": [
+              "A usability test observes representative users attempting realistic tasks with a product or service, often while thinking aloud.",
+              "A usability test can examine a sketch, prototype, competitor product, or other artifact relevant to a user goal.",
+              "The plan should align the team on scenarios, participants, recruitment, moderation, and observation roles.",
+              "A test script gives the session a repeatable structure without turning the moderator into a teacher.",
+              "Recruitment should identify appropriate users and obtain their consent before the session."
+            ],
+            "keyTerms": [
+              {
+                "tr": "usability test",
+                "df": "A usability test involves observing representative users attempting realistic tasks with a product or service while thinking aloud.",
+                "eg": "A usability test observes representative users attempting realistic tasks with a product or service, often while thinking aloud.",
+                "mi": "A usability test is simply watching users click buttons without any structured observation or task realism.",
+                "cx": "A usability test requires observing representative users attempting realistic tasks with a product or service, often while thinking aloud."
+              },
+              {
+                "tr": "test script",
+                "df": "A test script provides a repeatable structure for a session without requiring the moderator to act as a teacher.",
+                "eg": "A test script gives the session a repeatable structure without turning the moderator into a teacher.",
+                "mi": "A test script is a detailed manual that dictates every single word the moderator must say during the session.",
+                "cx": "A test script gives the session a repeatable structure without turning the moderator into a teacher."
+              },
+              {
+                "tr": "recruitment",
+                "df": "Recruitment involves identifying appropriate users and obtaining their consent prior to the session.",
+                "eg": "Recruitment should identify appropriate users and obtain their consent before the session.",
+                "mi": "Recruitment is the process of simply inviting any available person to participate in the testing session.",
+                "cx": "Recruitment involves identifying appropriate users and obtaining their consent before the session."
+              }
+            ],
+            "scenario": {
+              "su": "A team is preparing to evaluate a new mobile application interface for accessibility. The primary problem is determining how to structure the testing session effectively. The constraint is that the team only has one hour available for the entire testing process.",
+              "ma": "Compare the plan that aligns the team on scenarios, participants, recruitment, moderation, and observation roles with the plan that uses a test script to give the session a repeatable structure without turning the moderator into a teacher."
+            },
+            "mc": [
+              {
+                "q": "Which element is essential for ensuring the plan aligns the team on necessary roles for a usability test?",
+                "op": [
+                  "Aligning scenarios and participants",
+                  "Creating a repeatable test script",
+                  "Obtaining user consent beforehand",
+                  "Observing users while thinking aloud"
+                ],
+                "ai": 0,
+                "fi": [
+                  2
+                ],
+                "ex": "The plan should align the team on scenarios, participants, recruitment, moderation, and observation roles, while creating a repeatable test script is not the primary alignment focus."
+              },
+              {
+                "q": "When evaluating a competitor product, which artifact is relevant for examination during a usability test?",
+                "op": [
+                  "A sketch of the product design",
+                  "A competitor product",
+                  "A detailed test script",
+                  "The team's observation roles"
+                ],
+                "ai": 0,
+                "fi": [
+                  1
+                ],
+                "ex": "A usability test can examine a sketch, prototype, competitor product, or other artifact relevant to a user goal, while a detailed test script is a session structure."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "52ab622a9fed9c7f1c4224e51369a7af4d0b1f3e8ccafbad99871743144016c8",
+          "lessonKernel": {
+            "lessonId": "lesson-3",
+            "facts": [
+              "A usability test observes representative users attempting realistic tasks with a product or service, often while thinking aloud.",
+              "A usability test can examine a sketch, prototype, competitor product, or other artifact relevant to a user goal.",
+              "The plan should align the team on scenarios, participants, recruitment, moderation, and observation roles.",
+              "A test script gives the session a repeatable structure without turning the moderator into a teacher.",
+              "Recruitment should identify appropriate users and obtain their consent before the session."
+            ],
+            "keyTerms": [
+              {
+                "tr": "thinking aloud",
+                "df": "A usability-testing behavior in which representative users describe their thoughts while attempting realistic tasks.",
+                "eg": "During the session, a participant narrates what feels confusing while using the prototype.",
+                "mi": "Thinking aloud means the moderator explains every step and answers the task for the participant.",
+                "cx": "The participant is the one voicing thoughts during the task, while the moderator keeps the session structured rather than teaching."
+              },
+              {
+                "tr": "test script",
+                "df": "A session guide that keeps the sequence of prompts and tasks repeatable across users in a usability test.",
+                "eg": "The moderator follows the same opening, task prompts, and wrap-up for each participant.",
+                "mi": "A test script is a fixed lecture that tells participants the correct answers to every task.",
+                "cx": "The script structures the session, but it does not turn the moderator into a teacher or supply answers to the tasks."
+              },
+              {
+                "tr": "recruitment",
+                "df": "The process of identifying appropriate users and securing their consent before the usability session begins.",
+                "eg": "The team screens for appropriate users and confirms consent before scheduling the session.",
+                "mi": "Recruitment happens after the session starts, once the moderator has already begun observing tasks.",
+                "cx": "Recruitment comes before the session because the users must be identified and give consent in advance."
+              }
+            ],
+            "scenario": {
+              "su": "A service team must choose whether to test a sketch or a prototype for a checkout flow, and the session has to stay within one afternoon. The moderator also needs a clear script because the team wants comparable observations from each participant.",
+              "ma": "Compare the checkout sketch, the prototype screen with the task prompt, and the recruitment sheet naming appropriate users and consent before the session."
+            },
+            "mc": [
+              {
+                "q": "A moderator asks each participant the same checkout prompts while users describe their thoughts aloud. Which statement best matches the difference between the session guide and the team plan here?",
+                "op": [
+                  "The plan replaces observation with teaching.",
+                  "The script structures prompts; the plan aligns roles.",
+                  "The plan structures prompts; the script aligns roles.",
+                  "The script recruits users and gets consent."
+                ],
+                "ai": 1,
+                "fi": [
+                  2,
+                  3
+                ],
+                "ex": "The guide for the session is what gives repeatable prompts, while the plan is what aligns scenarios, participants, recruitment, moderation, and observation roles. The distractor swaps those responsibilities and treats the plan as the prompt list."
+              },
+              {
+                "q": "A team has a sketch for a booking flow, a prototype for the same goal, and a consent form ready before scheduling. Which choice fits the evidence they can use in the usability test?",
+                "op": [
+                  "Use the consent form as the artifact.",
+                  "Use the recruitment sheet as the artifact.",
+                  "Use the prototype and obtain consent.",
+                  "Use the moderator notes as the artifact."
+                ],
+                "ai": 2,
+                "fi": [
+                  1,
+                  4
+                ],
+                "ex": "A usability test can examine a sketch or prototype relevant to a user goal, and recruitment should identify appropriate users and obtain their consent before the session. The distractors swap in materials that belong to planning or recruitment instead of the artifact being examined."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-089f3bd62b1608632e6b4a56",
+        "pairId": "scion-kernel-pair-90c6884482f4d3ad39d42142",
+        "artifactSha256": {
+          "A": "476ed6ac20df8dc38d9f2ac64afc6da8967df7fed62352bc5f991ddf1d2a129a",
+          "B": "52ab622a9fed9c7f1c4224e51369a7af4d0b1f3e8ccafbad99871743144016c8"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    },
+    {
+      "caseId": "scion-kernel-08c18044f316721811371af4",
+      "pairId": "scion-kernel-pair-cb6403ddd3f68b4fc066a328",
+      "domain": "computer-science",
+      "failureFamilies": [
+        "answer-key-correctness",
+        "choice-discriminability",
+        "feedback-instructionality"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-1",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Variables and assignment",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: A variable is a name that refers to a stored value; the assignment operator = binds the name on the left to the value produced on the right (for objects it binds the reference, so no copy is made). Claim 1: A statement sets a variable to a value using the assignment operator (=), with the name on the left and the value on the right. Claim 2: Assignment is not mathematical equality — = copies a value into a variable rather than asserting two sides are equal. Claim 3: A variable name may contain letters, digits, and underscores and be any length, but cannot start with a digit. Claim 4: Variable names are case-sensitive, so total and Total are two different variables.",
+        "readings": "OpenStax Introduction to Python Programming, §1.3 Variables"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "5e7862a012e6583051c6d8a7f6dc305cc23e0ba165daf802984ba9ee852ede90",
+        "kernelId": "cs/variables",
+        "term": "Variables and assignment",
+        "claims": [
+          "A variable is a name that refers to a stored value; the assignment operator = binds the name on the left to the value produced on the right (for objects it binds the reference, so no copy is made).",
+          "A statement sets a variable to a value using the assignment operator (=), with the name on the left and the value on the right.",
+          "Assignment is not mathematical equality — = copies a value into a variable rather than asserting two sides are equal.",
+          "A variable name may contain letters, digits, and underscores and be any length, but cannot start with a digit.",
+          "Variable names are case-sensitive, so total and Total are two different variables."
+        ],
+        "anchors": [
+          {
+            "src": "openstax:introduction-python-programming#1.3",
+            "loc": "1.3",
+            "quote": "Variables allow programs to refer to values using names rather than memory locations"
+          },
+          {
+            "src": "openstax:introduction-python-programming#1.3",
+            "loc": "1.3",
+            "quote": "A statement can set a variable to a value using the assignment operator (=)"
+          },
+          {
+            "src": "openstax:introduction-python-programming#1.3",
+            "loc": "1.3",
+            "quote": "Note that this is different from the equal sign of mathematics"
+          },
+          {
+            "src": "openstax:introduction-python-programming#1.3",
+            "loc": "1.3",
+            "quote": "A variable name can consist of letters, digits, and underscores and be of any length"
+          },
+          {
+            "src": "openstax:introduction-python-programming#1.3",
+            "loc": "1.3",
+            "quote": "Also, letter case matters"
+          }
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §1.3 Variables"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "f05d1490f012801d1ad88d3a101e137a225c3d25ea0affa05f3e5e9c5ea0a061",
+          "lessonKernel": {
+            "lessonId": "lesson-1",
+            "facts": [
+              "A variable is a name that refers to a stored value; the assignment operator = binds the name on the left to the value produced on the right (for objects it binds the reference, so no copy is made).",
+              "A statement sets a variable to a value using the assignment operator (=), with the name on the left and the value on the right.",
+              "Assignment is not mathematical equality — = copies a value into a variable rather than asserting two sides are equal.",
+              "A variable name may contain letters, digits, and underscores and be any length, but cannot start with a digit.",
+              "Variable names are case-sensitive, so total and Total are two different variables."
+            ],
+            "keyTerms": [
+              {
+                "tr": "variable",
+                "df": "A name that refers to a stored value within a program structure.",
+                "eg": "A variable is a name that refers to a stored value.",
+                "mi": "A variable is a physical box that holds a value, and assignment puts the value inside the box.",
+                "cx": "A variable is a name that refers to a stored value; assignment binds the name on the left to the value produced on the right."
+              },
+              {
+                "tr": "assignment operator",
+                "df": "The operator used to bind a variable name on the left to a value produced on the right.",
+                "eg": "The assignment operator = binds the name on the left to the value produced on the right.",
+                "mi": "The assignment operator is used to check if two sides of an equation are mathematically equal.",
+                "cx": "Assignment is not mathematical equality — = copies a value into a variable rather than asserting two sides are equal."
+              },
+              {
+                "tr": "variable name",
+                "df": "A sequence of letters, digits, and underscores that identifies a stored value.",
+                "eg": "A variable name may contain letters, digits, and underscores and be any length.",
+                "mi": "A variable name must be written in all lowercase letters to be valid in Python code.",
+                "cx": "Variable names are case-sensitive, so total and Total are two different variables."
+              }
+            ],
+            "scenario": {
+              "su": "A programmer intends to store a user's score in a variable named score, but they accidentally write 'score = 100' instead of 'Total = 100'. The constraint is that the system must distinguish between the two variables if they are used later in different contexts.",
+              "ma": "Compare the following notations: score = 100 and Total = 100."
+            },
+            "mc": [
+              {
+                "q": "When assigning a value using the assignment operator, what is the fundamental distinction between binding a reference and copying a value?",
+                "op": [
+                  "Binding a reference means the variable name points to the object's location.",
+                  "Copying a value means the variable name creates an independent duplicate of the data.",
+                  "Binding a reference means the variable name stores the exact data content.",
+                  "Copying a value means the assignment operator checks for mathematical equality first."
+                ],
+                "ai": 0,
+                "fi": [
+                  0,
+                  1
+                ],
+                "ex": "A variable is a name that refers to a stored value; the assignment operator = binds the name on the left to the value produced on the right. Binding a reference means the variable name points to the object's location, while copying a value means the variable name creates an independent duplicate of the data."
+              },
+              {
+                "q": "A developer is creating a variable to hold a user's total score, and they observe that the variable 'total' and 'Total' behave differently in the code.",
+                "op": [
+                  "The difference is that 'total' is a variable name, while 'Total' is a mathematical operation.",
+                  "The difference is that 'total' is a variable name, while 'Total' is a case-sensitive variable name.",
+                  "The difference is that 'total' is a stored value, while 'Total' is a reference to the same value.",
+                  "The difference is that 'total' is a mathematical equality, while 'Total' is a simple assignment statement."
+                ],
+                "ai": 0,
+                "fi": [
+                  4
+                ],
+                "ex": "Variable names are case-sensitive, so total and Total are two different variables. The difference is that 'total' is a variable name, while 'Total' is a case-sensitive variable name."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "741580865ef030475051ac9277f58aa0bd12e4583ba2475b630c5aa7d521637d",
+          "lessonKernel": {
+            "lessonId": "lesson-1",
+            "facts": [
+              "A variable is a name that refers to a stored value; the assignment operator = binds the name on the left to the value produced on the right (for objects it binds the reference, so no copy is made).",
+              "A statement sets a variable to a value using the assignment operator (=), with the name on the left and the value on the right.",
+              "Assignment is not mathematical equality — = copies a value into a variable rather than asserting two sides are equal.",
+              "A variable name may contain letters, digits, and underscores and be any length, but cannot start with a digit.",
+              "Variable names are case-sensitive, so total and Total are two different variables."
+            ],
+            "keyTerms": [
+              {
+                "tr": "assignment operator",
+                "df": "The assignment operator is the symbol used in a statement to connect a name on the left with the value produced on the right.",
+                "eg": "total = 7 binds total to 7.",
+                "mi": "It means both sides must already be equal.",
+                "cx": "That confuses binding with equality; the operator sets a name to a value instead of testing whether two sides match."
+              },
+              {
+                "tr": "stored value",
+                "df": "A stored value is the value a variable name refers to after a statement assigns it with the name placed on the left.",
+                "eg": "After total = 7, total refers to 7.",
+                "mi": "It is the written name itself.",
+                "cx": "The name is separate from what it refers to; the variable points to the stored value rather than being the value text."
+              },
+              {
+                "tr": "case-sensitive",
+                "df": "Case-sensitive names are treated as different when their letter forms differ, so matching must include the exact capitalization used.",
+                "eg": "total and Total are different variables.",
+                "mi": "Letter case does not matter here.",
+                "cx": "The capitalization matters, so those names are not the same variable and do not collapse into one label."
+              }
+            ],
+            "scenario": {
+              "su": "A student reviews a short notebook before handing it in. The notebook shows `total = 7`, `Total = 7`, and a note that a name cannot start with a digit.",
+              "ma": "The student compares `total = 7` with `Total = 7`, and also checks the line `7name = 3` against the naming rule before deciding which notation is valid and which names are different."
+            },
+            "mc": [
+              {
+                "q": "A notebook shows `total = 7` and `Total = 7` on separate lines. Which observation best matches the assignment operator and case-sensitive names in those lines?",
+                "op": [
+                  "They state that both sides are equal.",
+                  "They create two different variables.",
+                  "They require a name starting with digit.",
+                  "They copy one name into another name."
+                ],
+                "ai": 1,
+                "fi": [
+                  0,
+                  4
+                ],
+                "ex": "The lines use assignment on the left with a value on the right, and the capitalized forms are different names. The equality claim is the closest distractor, but assignment is not mathematical equality."
+              },
+              {
+                "q": "A student wants to write a variable name for a grade total and compares `grade_total` with `3grade_total`. Which name fits the naming rule while keeping the same letters, digits, and underscores pattern?",
+                "op": [
+                  "`3grade_total` fits the naming rule.",
+                  "Both names refer to one variable.",
+                  "Neither name can use underscores.",
+                  "`grade_total` fits the naming rule."
+                ],
+                "ai": 3,
+                "fi": [
+                  3
+                ],
+                "ex": "The rule allows letters, digits, and underscores, but a name cannot start with a digit. The digit-starting option is the closest distractor, yet it breaks the stated naming rule."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-08c18044f316721811371af4",
+        "pairId": "scion-kernel-pair-cb6403ddd3f68b4fc066a328",
+        "artifactSha256": {
+          "A": "f05d1490f012801d1ad88d3a101e137a225c3d25ea0affa05f3e5e9c5ea0a061",
+          "B": "741580865ef030475051ac9277f58aa0bd12e4583ba2475b630c5aa7d521637d"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    },
+    {
+      "caseId": "scion-kernel-233f463069b39ef1df0a8f93",
+      "pairId": "scion-kernel-pair-d861530ab9cb23449eb5bd36",
+      "domain": "music-theory",
+      "failureFamilies": [
+        "answer-feedback-consistency",
+        "answer-key-correctness",
+        "choice-discriminability",
+        "feedback-instructionality",
+        "misconception-validity"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-4",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Interval number and quality",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: A written interval is identified by its diatonic span and semitone distance, which together determine labels such as major, minor, augmented, or diminished. Claim 1: Four semitones form a major third, while three semitones form a minor third when each spans three scale steps. Claim 2: A tritone can be spelled as an augmented fourth or diminished fifth, and the spelling can imply different resolutions.",
+        "readings": "Justin Rubin, Music Composition & Theory (2024), chapter 25, University of Minnesota Libraries Publishing"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "ffabcbcf6dc1ecf2545741964b1895f8405b48fa982afc1b44b4166d1a25d025",
+        "kernelId": "music-ccby/interval-number-quality",
+        "term": "Interval number and quality",
+        "claims": [
+          "A written interval is identified by its diatonic span and semitone distance, which together determine labels such as major, minor, augmented, or diminished.",
+          "Four semitones form a major third, while three semitones form a minor third when each spans three scale steps.",
+          "A tritone can be spelled as an augmented fourth or diminished fifth, and the spelling can imply different resolutions."
+        ],
+        "anchors": [
+          {
+            "src": "https://open.lib.umn.edu/musiccomposition/chapter/common-practice-era-scales-intervals-and-chord-functions/",
+            "loc": "25 Common Practice Era Scales, Intervals",
+            "quote": "Intervals were assigned labels based on the scale from which they arose."
+          },
+          {
+            "src": "https://open.lib.umn.edu/musiccomposition/chapter/common-practice-era-scales-intervals-and-chord-functions/",
+            "loc": "25 Common Practice Era Scales, Intervals",
+            "quote": "four diatonic half-steps is referred to as a major third, while that of three half-steps is a minor third"
+          },
+          {
+            "src": "https://open.lib.umn.edu/musiccomposition/chapter/common-practice-era-scales-intervals-and-chord-functions/",
+            "loc": "25 Common Practice Era Scales, Other Interval Names",
+            "quote": "their specific spellings can indicate different contexts and possible resolutions"
+          }
+        ],
+        "attribution": [
+          "Justin Rubin, Music Composition & Theory (2024), chapter 25, University of Minnesota Libraries Publishing"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "2533989e0be0533caf82b7d376d73853de9e0a5f938def05cc4a880acda23deb",
+          "lessonKernel": {
+            "lessonId": "lesson-4",
+            "facts": [
+              "A written interval is identified by its diatonic span and semitone distance, which together determine labels such as major, minor, augmented, or diminished.",
+              "Four semitones form a major third, while three semitones form a minor third when each spans three scale steps.",
+              "A tritone can be spelled as an augmented fourth or diminished fifth, and the spelling can imply different resolutions."
+            ],
+            "keyTerms": [
+              {
+                "tr": "diatonic span",
+                "df": "A written interval is identified by its diatonic span and semitone distance, which together determine labels such as major, minor, augmented, or diminished.",
+                "eg": "Identifying an interval by its diatonic span and semitone distance.",
+                "mi": "The diatonic span is only determined by the number of scale steps involved.",
+                "cx": "The diatonic span is determined by the written interval's span and distance, which together determine labels such as major, minor, augmented, or diminished."
+              },
+              {
+                "tr": "semitone distance",
+                "df": "A written interval is identified by its diatonic span and semitone distance, which together determine labels such as major, minor, augmented, or diminished.",
+                "eg": "Determining the semitone distance to label an interval.",
+                "mi": "The semitone distance is solely determined by the scale steps involved in the interval.",
+                "cx": "The semitone distance is a component of the written interval that, when combined with diatonic span, determines labels such as major, minor, augmented, or diminished."
+              },
+              {
+                "tr": "tritone spelling",
+                "df": "A tritone can be spelled as an augmented fourth or diminished fifth, and the spelling can imply different resolutions.",
+                "eg": "A tritone being spelled as an augmented fourth or diminished fifth.",
+                "mi": "The spelling of a tritone only implies one specific resolution regardless of the spelling used.",
+                "cx": "The spelling of a tritone can imply different resolutions, such as an augmented fourth or a diminished fifth."
+              }
+            ],
+            "scenario": {
+              "su": "A composer is writing a passage and needs to distinguish between two intervals that both span four semitones. The constraint is that the notation must clearly indicate the specific quality of the interval being used.",
+              "ma": "Compare the notation for a major third and a minor third, and the notation for a tritone spelled as an augmented fourth and a diminished fifth."
+            },
+            "mc": [
+              {
+                "q": "When distinguishing between a major third and a minor third, what is the primary difference in their definition based on scale steps and semitones?",
+                "op": [
+                  "A major third spans four semitones, while a minor third spans three semitones.",
+                  "A major third spans three semitones, while a minor third spans four semitones.",
+                  "A major third spans three scale steps, while a minor third spans four scale steps.",
+                  "A major third spans four scale steps, while a minor third spans three scale steps."
+                ],
+                "ai": 0,
+                "fi": [
+                  0,
+                  1
+                ],
+                "ex": "A written interval is identified by its diatonic span and semitone distance, which together determine labels such as major, minor, augmented, or diminished. Four semitones form a major third, while three semitones form a minor third when each spans three scale steps. State the subject evidence supporting the answer, then correct the closest distractor."
+              },
+              {
+                "q": "A musician encounters a tritone spelled as an augmented fourth in one context and a diminished fifth in another; what is the implication of this spelling variation?",
+                "op": [
+                  "The spelling of a tritone only implies one specific resolution regardless of the spelling used.",
+                  "The spelling of a tritone is determined solely by the semitone distance used.",
+                  "The spelling of a tritone implies different resolutions, such as an augmented fourth or a diminished fifth.",
+                  "The spelling of a tritone is only determined by the diatonic span used."
+                ],
+                "ai": 2,
+                "fi": [
+                  2
+                ],
+                "ex": "A tritone can be spelled as an augmented fourth or diminished fifth, and the spelling can imply different resolutions. State the subject evidence supporting the answer, then correct the closest distractor."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "ff5c1cc7dc5bf49f5742950267a76f40f1644a16ca1a53fd74bfb1de3390fe87",
+          "lessonKernel": {
+            "lessonId": "lesson-4",
+            "facts": [
+              "A written interval is identified by its diatonic span and semitone distance, which together determine labels such as major, minor, augmented, or diminished.",
+              "Four semitones form a major third, while three semitones form a minor third when each spans three scale steps.",
+              "A tritone can be spelled as an augmented fourth or diminished fifth, and the spelling can imply different resolutions."
+            ],
+            "keyTerms": [
+              {
+                "tr": "diatonic span",
+                "df": "The diatonic span is the written scale-step count that helps identify an interval together with its semitone distance.",
+                "eg": "A written interval with three scale steps uses its diatonic span in the label.",
+                "mi": "A written interval is identified by semitone distance alone.",
+                "cx": "The written span and the semitone count work together, so the label cannot come from pitch distance by itself."
+              },
+              {
+                "tr": "major third",
+                "df": "A major third is a written interval class tied to four semitones when the span covers three scale steps.",
+                "eg": "Four semitones and three scale steps name a major third.",
+                "mi": "Any interval with three scale steps must be minor.",
+                "cx": "Three scale steps can match either four semitones or three semitones, so the label depends on the semitone count too."
+              },
+              {
+                "tr": "tritone",
+                "df": "A tritone is a written interval that can appear as augmented fourth or diminished fifth, with spelling affecting the implied resolution.",
+                "eg": "An augmented fourth spelling and a diminished fifth spelling both name a tritone.",
+                "mi": "A tritone has only one spelling and one resolution.",
+                "cx": "The same tritone may be spelled two ways, and the spelling can imply different resolutions."
+              }
+            ],
+            "scenario": {
+              "su": "A student is labeling two written intervals from a harmony worksheet before class starts. One entry shows three scale steps with four semitones, and another shows three scale steps with three semitones.",
+              "ma": "the interval marked three scale steps with four semitones, the interval marked three scale steps with three semitones"
+            },
+            "mc": [
+              {
+                "q": "A worksheet shows two written intervals with three scale steps each. One has four semitones and the other has three semitones. Which labels match those observations?",
+                "op": [
+                  "major third and minor third",
+                  "minor third and major third",
+                  "augmented fourth and diminished fifth",
+                  "diminished fifth and augmented fourth"
+                ],
+                "ai": 0,
+                "fi": [
+                  0,
+                  1
+                ],
+                "ex": "The span and semitone count together identify the labels: four semitones with three scale steps is a major third, and three semitones with three scale steps is a minor third. Swapping the labels reverses that relation."
+              },
+              {
+                "q": "Two notations are compared in a grading key: one is written as an augmented fourth, the other as a diminished fifth. Which description fits the shared interval and its spelling?",
+                "op": [
+                  "a tritone with different implied resolutions",
+                  "a major third with different scale steps",
+                  "a minor third with identical spellings",
+                  "a written interval with no semitone distance"
+                ],
+                "ai": 0,
+                "fi": [
+                  2
+                ],
+                "ex": "The same interval can be spelled as an augmented fourth or diminished fifth, and that spelling can imply different resolutions. The third and fourth options break the ledger relation between spelling and interval class."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-233f463069b39ef1df0a8f93",
+        "pairId": "scion-kernel-pair-d861530ab9cb23449eb5bd36",
+        "artifactSha256": {
+          "A": "2533989e0be0533caf82b7d376d73853de9e0a5f938def05cc4a880acda23deb",
+          "B": "ff5c1cc7dc5bf49f5742950267a76f40f1644a16ca1a53fd74bfb1de3390fe87"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    }
+  ],
+  "claimBoundary": "This packet contains anonymous source-bound artifacts only. It contains no provider identity, model identity, route, admission outcome, retry history, compiler receipt, preference, or training authorization.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "e316b601ea896f8f6d6af8e58618ef9cefd5155d02c71bfc9903fd4a7caade23"
+  }
+}

@@ -11,13 +11,19 @@ import { lintDecisionScenario } from './scenarioContract';
 import {
   findScionExplanationKeyConflict,
   findScionCitedSourceKeyMismatch,
+  findScionEquivalentComparisonOptionPair,
+  findScionEquivalentEquationOptionPair,
   findScionMissingKeyExplanationSupport,
+  findScionMultipleExplanationSupportedOptions,
   findScionMultipleSourceSupportedOptions,
+  findScionNearDuplicateOptionPair,
   findScionSourceAnswerSupport,
+  findScionUnsupportedScopeOption,
   normalizeScionOptionIdentity,
   repairScionMcItem,
 } from './scionAnswerKeyAlignment';
 import { assessScionKeyTermContract } from './scionKeyTermContract';
+import { scionFactContractForLesson } from './scionEvidenceContract';
 
 const DEFAULT_MAX_LESSONS = 12;
 const MAX_TEXT_CHARS = 320;
@@ -803,7 +809,39 @@ function cumulativeReviewAnchors(courseMap, lessonIndex) {
   return anchors;
 }
 
-function summarizeLessonsForContent(courseMap, lessonIndices, sourceBrief = '') {
+function selectInstructorFactsForLesson(instructorProvidedFacts, lesson) {
+  const facts = [
+    ...new Set(
+      asArray(instructorProvidedFacts)
+        .map(cleanText)
+        .filter((fact) => fact.length >= 12 && fact.length <= 400),
+    ),
+  ];
+  if (facts.length < 3) return [];
+  if (facts.length <= 5) return facts;
+  const lessonTokens = new Set(
+    [
+      lesson?.title,
+      ...asArray(lesson?.sections).flatMap((section) => [section?.learningObjectives, section?.topicSection]),
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase()
+      .match(/[a-z0-9]{4,}/g) || [],
+  );
+  return facts
+    .map((fact, index) => ({
+      fact,
+      index,
+      score: (fact.toLowerCase().match(/[a-z0-9]{4,}/g) || []).filter((token) => lessonTokens.has(token)).length,
+    }))
+    .sort((left, right) => right.score - left.score || left.index - right.index)
+    .slice(0, 5)
+    .sort((left, right) => left.index - right.index)
+    .map(({ fact }) => fact);
+}
+
+function summarizeLessonsForContent(courseMap, lessonIndices, sourceBrief = '', instructorProvidedFacts = []) {
   const privateSourceBrief = truncateText(cleanText(sourceBrief), 900);
   return asArray(lessonIndices)
     .map((lessonIndex) => {
@@ -811,8 +849,10 @@ function summarizeLessonsForContent(courseMap, lessonIndices, sourceBrief = '') 
       if (!lesson) return null;
       const section = lesson.sections?.[0] || {};
       const reviewAnchors = cumulativeReviewAnchors(courseMap, lessonIndex);
+      const sourceFacts = selectInstructorFactsForLesson(instructorProvidedFacts, lesson);
       return {
         lessonId: `lesson-${lessonIndex + 1}`,
+        ...(sourceFacts.length >= 3 ? { sourceFactPolicy: 'numbered-source-ledger-v1', sourceFacts } : {}),
         title: truncateText(lesson.title || `Lesson ${lessonIndex + 1}`, 140),
         objectives: truncateText(String(section.learningObjectives || ''), 700),
         topics: truncateText(
@@ -931,7 +971,12 @@ export function assessProjectedKernelCoverage(payload, { requiredMcCount = 4 } =
 export function buildLessonContentEnrichmentPrompt(courseMap, lessonIndices, options = {}) {
   const questionsPerLesson = Math.max(5, Math.min(7, Number(options.questionsPerLesson) || 6));
   const keyTermsPerLesson = Math.max(3, Math.min(6, Number(options.keyTermsPerLesson) || 4));
-  const lessons = summarizeLessonsForContent(courseMap, lessonIndices, options.sourceBrief);
+  const lessons = summarizeLessonsForContent(
+    courseMap,
+    lessonIndices,
+    options.sourceBrief,
+    options.instructorProvidedFacts,
+  );
 
   const itemPlan = buildQuizItemPlan(questionsPerLesson);
 
@@ -1032,7 +1077,17 @@ export function lintEnrichedQuizItem(item, { groundingText = '', sourceClaims = 
     }
     const lengths = options.map((option) => option.length);
     if (lengths.length === 4 && Math.max(...lengths) > Math.min(...lengths) * 3 + 20) issues.push('option-homogeneity');
-    if (new Set(options.map(normalizeScionOptionIdentity)).size !== options.length) issues.push('duplicate-options');
+    if (
+      new Set(options.map(normalizeScionOptionIdentity)).size !== options.length ||
+      findScionNearDuplicateOptionPair(options)
+    ) {
+      issues.push('duplicate-options');
+    }
+    if (findScionEquivalentEquationOptionPair(options)) issues.push('equivalent-equation-options');
+    if (findScionEquivalentComparisonOptionPair(options)) issues.push('equivalent-comparison-options');
+    if (sourceClaims.length > 0 && findScionUnsupportedScopeOption(options, { sourceClaims })) {
+      issues.push('unsupported-scope-option');
+    }
     if (
       Number.isInteger(answerIndex) &&
       answerIndex >= 0 &&
@@ -1044,6 +1099,7 @@ export function lintEnrichedQuizItem(item, { groundingText = '', sourceClaims = 
     const sourceSupport = findScionSourceAnswerSupport(item, { sourceClaims });
     if (findScionCitedSourceKeyMismatch(item, { sourceClaims })) issues.push('source-fact-key-mismatch');
     if (!sourceSupport && findScionExplanationKeyConflict(item)) issues.push('explanation-key-conflict');
+    if (findScionMultipleExplanationSupportedOptions(item)) issues.push('explanation-supports-multiple-options');
     if (findScionMissingKeyExplanationSupport(item)) issues.push('explanation-omits-key-support');
     if (
       findScionMultipleSourceSupportedOptions(item, {
@@ -1353,7 +1409,12 @@ export function buildLessonKernelPrompt(courseMap, lessonIndices, options = {}) 
   const mcCount = itemPlan.filter((slot) => slot.type === 'multiple_choice').length;
   const includeCourseLevel = options.includeCourseLevel === true;
   const recoveryAttempt = Math.max(0, Number(options.recoveryAttempt) || 0);
-  const lessons = summarizeLessonsForContent(courseMap, lessonIndices, options.sourceBrief);
+  const lessons = summarizeLessonsForContent(
+    courseMap,
+    lessonIndices,
+    options.sourceBrief,
+    options.instructorProvidedFacts,
+  );
   const mandarinRequirement = mandarinTargetLanguageRequirements({
     courseIdentity: courseMap?.courseName,
     sourceText: JSON.stringify(lessons),
@@ -1761,7 +1822,12 @@ export function parseLessonKernelResponse(text, { prompt, expectedLessonIds } = 
       }
     });
 
-    if (keyTerms.length === 0 && mc.length === 0) {
+    const factContract = scionFactContractForLesson(promptLesson || {}, { userPrompt: prompt?.userPrompt });
+    const exactSourceLedgerFacts =
+      factContract.mode === 'numbered-source-ledger-v1' &&
+      facts.length === factContract.factCount &&
+      facts.every((fact, index) => cleanText(fact) === cleanText(factContract.claims[index]));
+    if (keyTerms.length === 0 && mc.length === 0 && !exactSourceLedgerFacts) {
       // The whole lesson falls back to template — say so with a row of its
       // own, not just the per-atom rows above (which only count atoms).
       issues.push({
@@ -1773,6 +1839,17 @@ export function parseLessonKernelResponse(text, { prompt, expectedLessonIds } = 
         problems: ['all-atoms-linted-out'],
       });
       continue;
+    }
+
+    if (exactSourceLedgerFacts && keyTerms.length === 0 && mc.length === 0) {
+      issues.push({
+        lessonId,
+        surface: 'lesson',
+        index: entryIndex,
+        reason: 'source-ledger-facts-only',
+        atomIssueCount: issues.length - issueCountAtEntryStart,
+        problems: ['source-ledger-facts-only'],
+      });
     }
 
     const payload = projectKernelToSurfaces(

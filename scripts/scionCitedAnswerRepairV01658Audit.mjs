@@ -66,7 +66,7 @@ function summarizeArm({ replay, campaignById, arm }) {
       beforeText,
       campaignCase.userPrompt,
       'blueprintEnrichment',
-      { applyCompilerRepairs: false },
+      { applyCompilerRepairs: false, admissionProfile: 'v0.16.58' },
     );
     const repaired = repairPublicScionJson(beforeText, {
       userPrompt: campaignCase.userPrompt,
@@ -76,6 +76,7 @@ function summarizeArm({ replay, campaignById, arm }) {
       repaired.text,
       campaignCase.userPrompt,
       'blueprintEnrichment',
+      { admissionProfile: 'v0.16.58' },
     );
     const answerRepairs = repaired.repairs.filter((entry) => entry.pass === 'sourceAnswerAlignment');
     const historicalBeforeIssues = before.admission?.issues || [];

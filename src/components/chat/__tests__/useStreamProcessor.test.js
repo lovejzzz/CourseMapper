@@ -127,8 +127,16 @@ describe('chat system prompt', () => {
 
     expect(result).toEqual({ toolCalls: null, textContent: 'Scion agent advice.', stopReason: 'stop' });
     expect(runScionLocalCompletion).toHaveBeenCalledWith(
-      expect.objectContaining({ task: 'agent', systemPrompt: 'Workspace context', maxRetries: 0 }),
+      expect.objectContaining({
+        task: 'agent',
+        systemPrompt: expect.stringContaining('Workspace context'),
+        maxOutputTokens: 240,
+        maxRetries: 0,
+      }),
     );
+    const call = runScionLocalCompletion.mock.calls.at(-1)[0];
+    expect(call.systemPrompt).toContain('Return only the user-facing Markdown reply');
+    expect(call.systemPrompt).toContain('never emit JSON');
   });
 
   it('connects Agent advisory turns to the local Scion server without a key', async () => {

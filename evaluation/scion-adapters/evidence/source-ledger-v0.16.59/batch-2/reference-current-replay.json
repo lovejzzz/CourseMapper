@@ -1,0 +1,560 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-admission-replay-v1",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "upstreamCapture": {
+    "protocol": "scion-lesson-kernel-capture-v1",
+    "identitySha256": "5d8b24054c0b771b5dd4eeaae1f2f415e568270fcac2efad54b93a8272c85de7",
+    "compilerIdentitySha256": "e9abcb37dd70539364506d4ad9eb3a4ec4ec3ba111f7009d72586e88c52a2ea7"
+  },
+  "arm": "reference",
+  "model": {
+    "provider": "openai-codex-cli",
+    "id": "gpt-5.4-mini",
+    "route": "codex-cli-ephemeral-json-schema",
+    "reasoningEffort": "low",
+    "runtime": {
+      "cli": "codex",
+      "version": "codex-cli 0.144.5"
+    },
+    "isolation": {
+      "ephemeral": true,
+      "sandbox": "read-only",
+      "workingDirectory": "empty-temporary-directory",
+      "userConfig": "ignored",
+      "projectRules": "ignored",
+      "toolCallsAllowed": false
+    }
+  },
+  "compiler": {
+    "protocol": "scion-lesson-kernel-compiler-replay-v1",
+    "policy": {
+      "keyTermSemanticProfile": "source-strict-v6",
+      "artifactPolicy": "frozen-artifact-replay-only",
+      "answerPosition": "preserve-upstream-compiler-repairs"
+    },
+    "files": {
+      "src/lib/publicScionProvider.js": "9ea298750a81be766b77664b45beb81938d77b07d38b1ddf205fb5cedf637692",
+      "src/lib/scionAnswerKeyAlignment.js": "18f318acb487acd3b32b449ee25833947d39fa732308698c2d4867c17197ca24",
+      "src/lib/scionKeyTermContract.js": "995c0f357e0b35785090a85f79d7c6c56931aea8a450bd8536583c5982aadcd5",
+      "src/lib/scionEvidenceContract.js": "cd516f6eaaf961459c1e0bfd770f7cfa2ae11c3f6ab112c845a6ce30dab99ae5",
+      "src/lib/scionContracts.js": "b351badc1a6b7d8d6dd4ee9261e5cde3d71aedccf2e9a040d471430cf227396b",
+      "src/lib/scenarioContract.js": "03e320ab6f7d501585f832e280e1268482c77d20f4c2313a09415c82f9b54304"
+    },
+    "identitySha256": "3a5a74e42096f98d89698c891b800229413406460473e68ec6dbf9e08439de61"
+  },
+  "generatedAt": "2026-07-19T16:30:00.000Z",
+  "calls": [
+    {
+      "caseId": "scion-kernel-018581469357c98b43195802",
+      "caseSha256": "018581469357c98b4319580225f39bcff8ad039b7766a446b0b6df24945d0f99",
+      "messagesSha256": "95f8765b9346ab75391e0c4e0a0d7556ccd7396db96991dbcbdec284e90fb850",
+      "sourceContextSha256": "939d9ca6f5316a34fc05843cc19b3240b0b6a8f68607f0b4adaf1b5f58ec25d2",
+      "arm": "reference",
+      "model": {
+        "provider": "openai-codex-cli",
+        "id": "gpt-5.4-mini",
+        "route": "codex-cli-ephemeral-json-schema",
+        "reasoningEffort": "low",
+        "runtime": {
+          "cli": "codex",
+          "version": "codex-cli 0.144.5"
+        },
+        "isolation": {
+          "ephemeral": true,
+          "sandbox": "read-only",
+          "workingDirectory": "empty-temporary-directory",
+          "userConfig": "ignored",
+          "projectRules": "ignored",
+          "toolCallsAllowed": false
+        }
+      },
+      "artifact": {
+        "lessonId": "lesson-6",
+        "facts": [
+          "Relative dating orders geological events by interpreting relationships such as superposition, inclusions, and cross-cutting without assigning numerical ages.",
+          "In an undisturbed sedimentary sequence, superposition places older layers below younger layers.",
+          "A feature that cuts across or disrupts another geological feature must be younger than the feature it disrupts."
+        ],
+        "keyTerms": [
+          {
+            "tr": "relative dating",
+            "df": "Relative dating is a way to place geological events in sequence by comparing how features relate to one another.",
+            "eg": "A geologist orders two rock units by their relationship instead of a number.",
+            "mi": "Relative dating gives each rock a numerical age.",
+            "cx": "It compares event order from relationships and does not supply numerical ages."
+          },
+          {
+            "tr": "superposition",
+            "df": "Superposition is the rule for an undisturbed sedimentary sequence in which lower layers are older than layers above them.",
+            "eg": "A lower sedimentary bed is matched with the older part of the stack.",
+            "mi": "Superposition makes upper layers older in a layered sequence.",
+            "cx": "The rule places older layers below younger layers in an undisturbed sequence."
+          },
+          {
+            "tr": "cross-cutting",
+            "df": "Cross-cutting is a relationship in which a feature that cuts or disrupts another feature is placed later in time than the feature it affects.",
+            "eg": "A fault that slices through a rock layer is younger than that layer.",
+            "mi": "A cutting feature must be older than the rocks it crosses.",
+            "cx": "A feature that disrupts another feature is younger than the feature disrupted."
+          }
+        ],
+        "scenario": {
+          "su": "A field team is mapping a cliff face where a narrow break slices through several sedimentary layers. They must decide whether the break formed before or after the layered sequence was deposited.",
+          "ma": "The layered outcrop shows lower beds beneath higher beds, a narrow break that crosses multiple layers, and a note that the sequence is undisturbed; the cross-cutting trace and the bed order are the records to compare."
+        },
+        "mc": [
+          {
+            "q": "In the roadcut, one thin vein slices across three layered beds, while the beds themselves remain stacked in place. Which statement best matches the relationship between the vein and the beds?",
+            "op": [
+              "The vein is younger than the beds",
+              "The vein is older than the beds",
+              "The beds are younger than the vein",
+              "The vein and beds formed together"
+            ],
+            "ai": 0,
+            "fi": [
+              2
+            ],
+            "ex": "The cut across the beds is direct evidence that the vein formed after the beds it disrupts. The same observation does not support the idea that the vein is older than the rocks it crosses."
+          },
+          {
+            "q": "A second outcrop shows a sedimentary stack that has not been disturbed, with the lowest bed under two higher beds. Which ordering fits that arrangement best?",
+            "op": [
+              "Lowest bed is oldest here",
+              "Highest bed is oldest here",
+              "All beds are same age",
+              "Middle bed is oldest here"
+            ],
+            "ai": 0,
+            "fi": [
+              1
+            ],
+            "ex": "The undisturbed stack matches superposition, which places older layers below younger layers. The highest-bed choice reverses that vertical order."
+          }
+        ]
+      },
+      "artifactSha256": "64e8c11a8cc40730b74e7942202f205a97c152bfe036944187424937bb8defed",
+      "admission": {
+        "needsRetry": true,
+        "issues": [
+          "lesson-6:mc-0:equivalent-comparison-options",
+          "lesson-6:mc-1:absolute-option",
+          "lesson-6:mc-1:unsupported-scope-option"
+        ]
+      },
+      "compilerRepairs": [
+        {
+          "pass": "crossAttemptAtomicRetention",
+          "lessonId": "lesson-6",
+          "field": "scenario",
+          "issueCountBefore": 2,
+          "issueCountAfter": 1,
+          "resolvedIssues": [
+            "lesson-6:scenario:scenario-missing-decision"
+          ],
+          "trainingEligible": false,
+          "preferenceEvidence": {
+            "evidenceScope": "deterministic-contract-only",
+            "verified": false
+          }
+        }
+      ],
+      "upstreamAdmission": {
+        "needsRetry": true,
+        "issues": [
+          "lesson-6:mc-1:absolute-option"
+        ]
+      },
+      "upstreamCaptureCallSha256": "48668ebca86e2c8735f7fcb230806fd51f75c58b8e05cdff2f83b200d855767b"
+    },
+    {
+      "caseId": "scion-kernel-026cdf7c7d8f6f200d68e4d5",
+      "caseSha256": "026cdf7c7d8f6f200d68e4d591ecdcd103f1d07b058d631c83f9e8b79be801b2",
+      "messagesSha256": "cffd1ca3731650c38dec20203016f9ee3ad4e6a765a903d5e36d4c5d5e806afa",
+      "sourceContextSha256": "5fba521c7cbe23b35ba980d76c782492fcf331f994650e80bf8d11ae66101024",
+      "arm": "reference",
+      "model": {
+        "provider": "openai-codex-cli",
+        "id": "gpt-5.4-mini",
+        "route": "codex-cli-ephemeral-json-schema",
+        "reasoningEffort": "low",
+        "runtime": {
+          "cli": "codex",
+          "version": "codex-cli 0.144.5"
+        },
+        "isolation": {
+          "ephemeral": true,
+          "sandbox": "read-only",
+          "workingDirectory": "empty-temporary-directory",
+          "userConfig": "ignored",
+          "projectRules": "ignored",
+          "toolCallsAllowed": false
+        }
+      },
+      "artifact": {
+        "lessonId": "lesson-4",
+        "facts": [
+          "Magnetic force on a moving charge depends on charge, velocity, magnetic field, and the angle between velocity and field.",
+          "The magnetic force is perpendicular to both the velocity and the magnetic field.",
+          "A charge moving parallel to a magnetic field experiences no magnetic force."
+        ],
+        "keyTerms": [
+          {
+            "tr": "magnetic force",
+            "df": "Magnetic force is the interaction on a moving charge that varies with charge, velocity, magnetic field, and the angle between velocity and field.",
+            "eg": "A charge crossing a magnetic field can have a magnetic force that changes when its velocity direction changes.",
+            "mi": "Magnetic force points along the velocity of the charge.",
+            "cx": "The force is not along the velocity; it is perpendicular to both the velocity and the magnetic field."
+          },
+          {
+            "tr": "moving charge",
+            "df": "A moving charge is a charged object with velocity, so its magnetic force depends on that velocity and its direction relative to the magnetic field.",
+            "eg": "A moving charge with velocity parallel to the field is a case with no magnetic force.",
+            "mi": "Any charge must feel magnetic force whether it is moving or not.",
+            "cx": "The dependence is on a moving charge, so the velocity and its angle to the field matter."
+          },
+          {
+            "tr": "magnetic field",
+            "df": "A magnetic field is the field in this relation that sets the direction and orientation used to determine the magnetic force on a moving charge.",
+            "eg": "A magnetic field compared with a charge's velocity helps determine whether the force is present and how it is oriented.",
+            "mi": "A magnetic field can only be compared by its strength, not by its direction.",
+            "cx": "Direction matters because the force depends on the angle between velocity and field and is perpendicular to both."
+          }
+        ],
+        "scenario": {
+          "su": "A student records a charge moving through a magnetic field and needs to decide whether the magnetic force is present. The lab note says the velocity is parallel to the magnetic field, and the setup must be judged before the next run.",
+          "ma": "Notebook entry: velocity parallel to magnetic field; diagram sketch: arrows drawn in the same direction; observation log: no magnetic force marker; comparison card: a perpendicular setup shown beside the parallel setup."
+        },
+        "mc": [
+          {
+            "q": "A lab sketch shows a moving charge with its velocity drawn at right angles to the magnetic field. Which statement matches the magnetic force and magnetic field relation?",
+            "op": [
+              "Force follows the velocity direction",
+              "Force depends on angle only",
+              "Force aligns with the magnetic field",
+              "Force is perpendicular to both vectors"
+            ],
+            "ai": 3,
+            "fi": [
+              0,
+              1
+            ],
+            "ex": "The force depends on charge, velocity, magnetic field, and angle, and it is perpendicular to both the velocity and the magnetic field. The closest distractor reverses the direction relation by making the force follow the velocity."
+          },
+          {
+            "q": "In a test run, the charge moves parallel to the magnetic field line marked on the diagram. Which interpretation fits the observation and the recorded setup?",
+            "op": [
+              "Force depends on charge only",
+              "No magnetic force is experienced",
+              "Force points with the velocity",
+              "Force is perpendicular to field"
+            ],
+            "ai": 1,
+            "fi": [
+              2
+            ],
+            "ex": "A charge moving parallel to a magnetic field experiences no magnetic force. The closest distractor uses the perpendicular relation, but that relation does not apply to the parallel setup."
+          }
+        ]
+      },
+      "artifactSha256": "bb90993335f554731ccff84e4b1a416d8b085ca16f7e151b46b5a6a12bc9a7f8",
+      "admission": {
+        "needsRetry": true,
+        "issues": [
+          "lesson-4:mc-0:unsupported-scope-option",
+          "lesson-4:mc-1:unsupported-scope-option"
+        ]
+      },
+      "compilerRepairs": [
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-4",
+          "item": 0,
+          "permutation": [
+            1,
+            3,
+            2,
+            0
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 3,
+          "trainingEligible": false
+        },
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-4",
+          "item": 1,
+          "permutation": [
+            2,
+            0,
+            3,
+            1
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 1,
+          "trainingEligible": false
+        }
+      ],
+      "upstreamAdmission": {
+        "needsRetry": false,
+        "issues": []
+      },
+      "upstreamCaptureCallSha256": "422cf4c23f66fd60d46d50e91c6e18501258bb983f2d6dd1ac0a7c7e86e34aef"
+    },
+    {
+      "caseId": "scion-kernel-028dfdedf45bc1b561d64193",
+      "caseSha256": "028dfdedf45bc1b561d64193ffbaec7476f34518bd660945040371cd7ea3abf3",
+      "messagesSha256": "537c5c68a1f3d76d2ebee27d2b53fdf1d1ad6838f6d76ed4dd23d9dd6699f66d",
+      "sourceContextSha256": "bc3216bf84fcf09a882445b95bec5ddd3642a2f5835b1fe70624b0c9ef8da5cb",
+      "arm": "reference",
+      "model": {
+        "provider": "openai-codex-cli",
+        "id": "gpt-5.4-mini",
+        "route": "codex-cli-ephemeral-json-schema",
+        "reasoningEffort": "low",
+        "runtime": {
+          "cli": "codex",
+          "version": "codex-cli 0.144.5"
+        },
+        "isolation": {
+          "ephemeral": true,
+          "sandbox": "read-only",
+          "workingDirectory": "empty-temporary-directory",
+          "userConfig": "ignored",
+          "projectRules": "ignored",
+          "toolCallsAllowed": false
+        }
+      },
+      "artifact": {
+        "lessonId": "lesson-3",
+        "facts": [
+          "The capital stock is the total quantity of equipment, structures, and tools available for production; it rises through gross investment and falls through depreciation.",
+          "Net investment, which is gross investment minus depreciation, is the change in the capital stock over a period.",
+          "The capital stock grows only when net investment is positive."
+        ],
+        "keyTerms": [
+          {
+            "tr": "capital stock",
+            "df": "The capital stock is the production-side collection of equipment, structures, and tools described by the ledger.",
+            "eg": "An inventory of equipment, structures, and tools is the capital stock in this context.",
+            "mi": "The capital stock means only money held for production decisions.",
+            "cx": "That reading fails because the ledger defines it as equipment, structures, and tools available for production."
+          },
+          {
+            "tr": "gross investment",
+            "df": "Gross investment is the addition-side flow paired with depreciation when describing how the capital stock changes.",
+            "eg": "A record showing gross investment beside depreciation uses the term in the ledger's setup.",
+            "mi": "Gross investment is the same thing as the net change in capital stock.",
+            "cx": "That is incorrect because the ledger separates gross investment from net investment and defines the latter as the change."
+          },
+          {
+            "tr": "net investment",
+            "df": "Net investment is the difference between gross investment and depreciation, and it tracks the change in capital stock over a period.",
+            "eg": "A worksheet that subtracts depreciation from gross investment is using net investment exactly as stated.",
+            "mi": "Net investment is simply another name for gross investment.",
+            "cx": "That does not fit because the ledger defines net investment as gross investment minus depreciation."
+          }
+        ],
+        "scenario": {
+          "su": "A production manager reviews a sheet listing equipment, structures, and tools for production, plus separate lines for gross investment and depreciation. The manager must decide whether the capital stock can be said to grow in the period while keeping the record consistent.",
+          "ma": "Compare the equipment, structures, and tools entry, the gross investment line, and the depreciation line; then compare the net investment notation with the statement that growth occurs only when net investment is positive."
+        },
+        "mc": [
+          {
+            "q": "A record lists gross investment and depreciation beside a change statement. Which relation matches the listed terms when the change is computed from the two flow entries?",
+            "op": [
+              "Gross investment equals capital stock minus depreciation.",
+              "Capital stock equals gross investment minus depreciation.",
+              "Net investment equals gross investment minus depreciation.",
+              "Depreciation equals gross investment minus net investment."
+            ],
+            "ai": 2,
+            "fi": [
+              0,
+              1
+            ],
+            "ex": "The ledger says net investment is gross investment minus depreciation, and that is the change in capital stock over a period. The tempting reversal treats capital stock as if it were the subtraction result, but that relation is not what the ledger states."
+          },
+          {
+            "q": "A worksheet shows gross investment of 18 and depreciation of 11 for the period. Based on the recorded relation, which statement about the capital stock is supported?",
+            "op": [
+              "The capital stock stays fixed because depreciation is present.",
+              "The capital stock grows because net investment is positive.",
+              "The capital stock grows because gross investment is positive.",
+              "The capital stock falls because gross investment is positive."
+            ],
+            "ai": 1,
+            "fi": [
+              1,
+              2
+            ],
+            "ex": "Gross investment exceeds depreciation here, so net investment is positive, and the capital stock grows. The closest distractor mistakes gross investment for the condition that alone determines growth, but the ledger ties growth to positive net investment."
+          }
+        ]
+      },
+      "artifactSha256": "c128bc3f34f1b52d484089585c1d39a7a71f12d586960bfa53a11ae2ee8c968e",
+      "admission": {
+        "needsRetry": true,
+        "issues": [
+          "lesson-3:mc-0:equivalent-equation-options"
+        ]
+      },
+      "compilerRepairs": [
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-3",
+          "item": 0,
+          "permutation": [
+            3,
+            1,
+            0,
+            2
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 2,
+          "trainingEligible": false
+        },
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-3",
+          "item": 1,
+          "permutation": [
+            3,
+            0,
+            2,
+            1
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 1,
+          "trainingEligible": false
+        }
+      ],
+      "upstreamAdmission": {
+        "needsRetry": false,
+        "issues": []
+      },
+      "upstreamCaptureCallSha256": "7b02a4ceefc7144663728295ab146a44f126bd6e642dff4f74476baad3146331"
+    },
+    {
+      "caseId": "scion-kernel-0494c3fad7926b80669d4d22",
+      "caseSha256": "0494c3fad7926b80669d4d22ea7dac239ffbf21c80991dccf68bf4396dd6a7e7",
+      "messagesSha256": "8c909ce8857d293c28b0ba79cd2206613276ed4a87cf87982219ae7277abfaae",
+      "sourceContextSha256": "d0e48c8e37b8cca9d7c43f63d86949a2038ef4858375a7e47c86f23837837a19",
+      "arm": "reference",
+      "model": {
+        "provider": "openai-codex-cli",
+        "id": "gpt-5.4-mini",
+        "route": "codex-cli-ephemeral-json-schema",
+        "reasoningEffort": "low",
+        "runtime": {
+          "cli": "codex",
+          "version": "codex-cli 0.144.5"
+        },
+        "isolation": {
+          "ephemeral": true,
+          "sandbox": "read-only",
+          "workingDirectory": "empty-temporary-directory",
+          "userConfig": "ignored",
+          "projectRules": "ignored",
+          "toolCallsAllowed": false
+        }
+      },
+      "artifact": {
+        "lessonId": "lesson-4",
+        "facts": [
+          "Sensory receptors detect internal or external stimuli and convert them into nervous-system signals; perception is the central processing of those signals into meaningful patterns.",
+          "Receptors are cells or structures that detect sensations.",
+          "Stimuli are changed into electrochemical signals of the nervous system."
+        ],
+        "keyTerms": [
+          {
+            "tr": "sensory receptors",
+            "df": "Sensory receptors are structures or cells that detect stimuli and pass them into nervous-system signaling.",
+            "eg": "A handout labels a skin sensor as a sensory receptor when it detects a touch stimulus.",
+            "mi": "A student thinks sensory receptors are the same thing as the meaning made from signals.",
+            "cx": "That is not correct because sensory receptors detect stimuli, while perception is the central processing of those signals into meaningful patterns."
+          },
+          {
+            "tr": "perception",
+            "df": "Perception is the central processing step that organizes nervous-system signals into meaningful patterns.",
+            "eg": "A worksheet note says the brain step that makes patterns from signals is perception.",
+            "mi": "A student thinks perception is the structure that detects sensations at the body surface.",
+            "cx": "That is not correct because perception is processing of signals, while receptors are the cells or structures that detect sensations."
+          },
+          {
+            "tr": "electrochemical signals",
+            "df": "Electrochemical signals are the nervous-system signals produced when stimuli are changed into a signal form.",
+            "eg": "A margin note says stimuli are changed into electrochemical signals before later processing.",
+            "mi": "A student thinks electrochemical signals are the original stimuli arriving unchanged.",
+            "cx": "That is not correct because the ledger says stimuli are changed into electrochemical signals of the nervous system."
+          }
+        ],
+        "scenario": {
+          "su": "A student is sorting two notebook passages before a short check-in on body signaling. One passage says a structure detects a stimulus, and the other says signals are processed into meaningful patterns.",
+          "ma": "Passage A: \"detect internal or external stimuli and convert them into nervous-system signals\"; Passage B: \"central processing of those signals into meaningful patterns\"."
+        },
+        "mc": [
+          {
+            "q": "A diagram points to a body structure that detects touch, while a margin note describes the nervous system making meaning from signals. Which pairing matches sensory receptors and perception?",
+            "op": [
+              "Detection by receptors, processing by perception",
+              "Processing by receptors, detection by perception",
+              "Signals become receptors, stimuli become perception",
+              "Meaning-making by receptors, sensation by perception"
+            ],
+            "ai": 0,
+            "fi": [
+              0,
+              1
+            ],
+            "ex": "The ledger says sensory receptors detect stimuli, and perception is the central processing of those signals into meaningful patterns. The closest distractor swaps those roles, but processing belongs to perception, not receptors."
+          },
+          {
+            "q": "A worksheet shows one line saying sensations are detected by cells or structures, and another saying stimuli are changed into electrochemical signals. Which line should be classified as the signal-conversion step?",
+            "op": [
+              "Stimuli changed into electrochemical signals",
+              "Cells or structures detect sensations",
+              "Meaningful patterns from nervous-system signals",
+              "Internal or external stimuli detected by receptors"
+            ],
+            "ai": 0,
+            "fi": [
+              2
+            ],
+            "ex": "The ledger explicitly states that stimuli are changed into electrochemical signals of the nervous system. The closest distractor names receptor detection, which is a different ledger relation from signal conversion."
+          }
+        ]
+      },
+      "artifactSha256": "2e6fa2839c8db4690b460d3520f0cee38efd5aa52310400a145545e6d96be2ab",
+      "admission": {
+        "needsRetry": true,
+        "issues": [
+          "lesson-4:scenario:scenario-missing-decision"
+        ]
+      },
+      "compilerRepairs": [],
+      "upstreamAdmission": {
+        "needsRetry": true,
+        "issues": [
+          "lesson-4:scenario:scenario-missing-decision",
+          "lesson-4:mc-0:multiple-source-supported-options"
+        ]
+      },
+      "upstreamCaptureCallSha256": "e537c7c1403eebeac81438fcc1b7907ea5079bd689331e7c797b253b2542a3e1"
+    }
+  ],
+  "summary": {
+    "cases": 4,
+    "upstreamAdmitted": 2,
+    "replayAdmitted": 0,
+    "replayRejected": 4,
+    "addedIssueCases": 3,
+    "removedIssueCases": 1
+  },
+  "claimBoundary": "This report replays frozen artifacts through a newer deterministic compiler only. It contains no new model generation, judgment, human evidence, adapter win, or production activation claim.",
+  "identitySha256": "69c0bc50d19c5f33c9fa471655b6719fbbb6190c847d9bc8eaf53384aaa8ed3f"
+}

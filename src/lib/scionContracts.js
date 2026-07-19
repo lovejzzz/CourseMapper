@@ -115,8 +115,9 @@ function kernelFieldSchemas({ mcCount = 4, keyTermCount = 4, requiresTargetLangu
  * richer paid-model Pass B schema prevents a family label from silently
  * widening the task the adapter is asked to perform.
  */
-export function compactLessonKernelSchemaProfile({ expectedLessonIds = [] } = {}) {
+export function compactLessonKernelSchemaProfile({ expectedLessonIds = [], factCount = 5 } = {}) {
   const lessonIds = expectedLessonIds.filter(Boolean);
+  const requiredFactCount = Math.max(3, Math.min(5, Number(factCount) || 5));
   const schema = {
     type: 'object',
     properties: {
@@ -125,7 +126,7 @@ export function compactLessonKernelSchemaProfile({ expectedLessonIds = [] } = {}
           type: 'object',
           properties: {
             lessonId: lessonIds.length > 0 ? { type: 'string', enum: lessonIds } : str(3, 32),
-            facts: arr(str(20, 180), 5, 5),
+            facts: arr(str(20, 260), requiredFactCount, requiredFactCount),
             keyTerms: arr(
               {
                 type: 'object',
@@ -153,7 +154,7 @@ export function compactLessonKernelSchemaProfile({ expectedLessonIds = [] } = {}
                   q: str(25, 300),
                   op: arr(str(5, 140), 4, 4),
                   ai: { type: 'integer', enum: [0] },
-                  fi: arr({ type: 'integer', minimum: 0, maximum: 4 }, 1, 1),
+                  fi: arr({ type: 'integer', minimum: 0, maximum: requiredFactCount - 1 }, 1, 2),
                   ex: str(40, 380),
                 },
                 required: ['q', 'op', 'ai', 'fi', 'ex'],

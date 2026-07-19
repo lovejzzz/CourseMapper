@@ -613,8 +613,7 @@ export default function useChatRouter({
       const assistantReply = result?.chatReply || 'Updated! Review the changes in the workspace.';
       setMessages((prev) => [...prev, { role: 'assistant', text: assistantReply }]);
     } catch (err) {
-      const message =
-        provider === 'public' ? getScionAgentFailureMessage(err) : `Failed: ${err.message}`;
+      const message = provider === 'public' ? getScionAgentFailureMessage(err) : `Failed: ${err.message}`;
       setMessages((prev) => [...prev, { role: 'error', text: message }]);
     }
   }

@@ -64,6 +64,12 @@ describe('itemAdmissionLint (test-wiseness battery)', () => {
     expect(
       hasAnswerPositionResidue({ ...CLEAN_ITEM, explanation: 'Option 0 is correct because the aperture is wider.' }),
     ).toBe(true);
+    expect(
+      hasAnswerPositionResidue({
+        ...CLEAN_ITEM,
+        explanation: 'The third and fourth options both restate the same relationship.',
+      }),
+    ).toBe(true);
 
     const sourceIndexLeak = {
       ...CLEAN_ITEM,

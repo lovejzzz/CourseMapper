@@ -1,0 +1,167 @@
+{
+  "version": "0.16.59",
+  "date": "July 19, 2026",
+  "title": "Keep the Instructor’s Facts in Charge",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test",
+      "npm run lint",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history",
+      "npm run audit:scion:source-ledger-evidence:v0.16.59",
+      "npm run audit:scion:lesson-kernel-campaign:v0.16.59"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification will rerun the release ledger, suite, lint, and production build after push."
+    },
+    "ciDeep": {
+      "status": "not-current",
+      "note": "No adapter-versus-base promotion run is claimed because no task-matched adapter candidate has earned evaluation."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Deployment remains downstream of push and remote verification."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "The browser proof used the exact pinned public Gemma base through the packaged Scion WebGPU route."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No human, instructor, classroom, or independent multi-judge validation is claimed."
+    },
+    "manualBrowser": {
+      "status": "success",
+      "url": "http://127.0.0.1:5174/",
+      "note": "Real cached-base runs covered every Living Course Compiler stage, unsafe-item quarantine, exact fact retention, constructed recovery questions, local Agent response, desktop, phone, and export frames."
+    },
+    "strictLayeredEvaluation": {
+      "status": "success",
+      "claimStatus": "first-two-score-qualified-full-lesson-preferences",
+      "note": "Seven reversed-order domain pairs yield seven stable paid-reference wins and two full lesson-kernel preference rows under the final current replay; local base admits zero of seven."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01659-exact-source-ledger",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "Exact instructor-only facts remain authoritative through local prompting and canonical compilation, including a facts-only retained state when unsafe teaching atoms are quarantined.",
+      "anchors": [
+        "src/lib/scionEvidenceContract.js",
+        "src/lib/blueprintEnrichmentPass.js",
+        "src/hooks/useDeliverables.js",
+        "src/lib/scionLocalProvider.js",
+        "docs/evidence/SCION_V01659_EXPERIENCE_AUDIT.json"
+      ],
+      "proofCommands": [
+        "npx vitest run src/lib/__tests__/scionEvidenceContract.test.js src/lib/__tests__/lessonContentEnrichment.test.js tests/scion-local-provider.test.js"
+      ],
+      "proofScopes": ["unit", "browser-live"]
+    },
+    {
+      "id": "v01659-shared-semantic-choice-gate",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Early and canonical admission agree on ambiguous, equivalent, multi-supported, ordinal-leaking, and unsupported-scope choices.",
+      "anchors": [
+        "src/lib/scionAnswerKeyAlignment.js",
+        "src/lib/itemAdmissionLint.js",
+        "src/lib/publicScionProvider.js",
+        "src/lib/blueprintEnrichmentPass.js",
+        "tests/scion-answer-key-alignment.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run tests/scion-answer-key-alignment.test.js src/lib/__tests__/itemAdmissionLint.test.js src/lib/__tests__/lessonContentEnrichment.test.js"
+      ],
+      "proofScopes": ["unit", "browser-live"]
+    },
+    {
+      "id": "v01659-fact-list-recovery",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Deterministic fallback assessment prompts use only the supplied fact list and explicitly separate source evidence from assumptions.",
+      "anchors": [
+        "src/lib/courseBlueprintCompiler.js",
+        "src/lib/__tests__/quizConstructedDepthCompiler.test.js",
+        "docs/evidence/SCION_V01659_EXPERIENCE_AUDIT.json"
+      ],
+      "proofCommands": ["npx vitest run src/lib/__tests__/quizConstructedDepthCompiler.test.js"],
+      "proofScopes": ["unit", "browser-live"]
+    },
+    {
+      "id": "v01659-source-ledger-retry-budget",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Exact-ledger builds avoid futile outer recovery and preserve compiler-owned facts after bounded local attempts.",
+      "anchors": [
+        "src/lib/scionPassB.js",
+        "src/hooks/useDeliverables.js",
+        "tests/scion-compiler.test.js",
+        "docs/evidence/SCION_V01659_EXPERIENCE_AUDIT.json"
+      ],
+      "proofCommands": ["npx vitest run tests/scion-compiler.test.js"],
+      "proofScopes": ["unit", "browser-live"]
+    },
+    {
+      "id": "v01659-plain-local-agent",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The connected public Scion Agent uses compact dynamic workspace context and returns bounded plain Markdown without a tool-call envelope.",
+      "anchors": [
+        "src/components/chat/useToolInvoker.js",
+        "src/components/chat/useStreamProcessor.js",
+        "src/lib/publicScionProvider.js",
+        "src/components/chat/__tests__/useStreamProcessor.test.js",
+        "docs/evidence/SCION_V01659_EXPERIENCE_AUDIT.json"
+      ],
+      "proofCommands": [
+        "npx vitest run src/components/chat/__tests__/useStreamProcessor.test.js tests/public-scion-provider.test.js"
+      ],
+      "proofScopes": ["unit", "browser-live"]
+    },
+    {
+      "id": "v01659-seven-domain-gap-and-first-rows",
+      "status": "verified-current",
+      "changelogHighlightIndex": 5,
+      "summary": "Seven fresh reversed-order pairs produce seven paid-reference wins and two score-qualified full lesson-kernel preference rows under the final current replay while local base admits zero.",
+      "anchors": [
+        "evaluation/scion-adapters/evidence/source-ledger-v0.16.59/receipt.json",
+        "evaluation/scion-adapters/evidence/source-ledger-v0.16.59/training-preferences.jsonl",
+        "scripts/scionSourceLedgerV01659Audit.mjs"
+      ],
+      "proofCommands": ["npm run audit:scion:source-ledger-evidence:v0.16.59"],
+      "proofScopes": ["gold-audit"]
+    },
+    {
+      "id": "v01659-reproducible-evidence-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 6,
+      "summary": "The receipt binds campaign breadth, captures, current replays, paired judgments, admitted rows, implementation hashes, and unchanged frozen semantic replay results; the new V9 held-out ruler binds the changed transitive grader before any adapter run.",
+      "anchors": [
+        "evaluation/scion-adapters/lesson-kernel-campaign-v0.16.59.json",
+        "evaluation/scion-adapters/evidence/source-ledger-v0.16.59/receipt.json",
+        "evaluation/scion-adapters/held-out-course-benchmark-v9.json",
+        "scripts/scionLessonKernelCapture.mjs",
+        "scripts/scionSourceLedgerV01659Audit.mjs"
+      ],
+      "proofCommands": [
+        "npm run audit:scion:lesson-kernel-campaign:v0.16.59",
+        "npm run audit:scion:source-ledger-evidence:v0.16.59"
+      ],
+      "proofScopes": ["gold-audit", "static-audit"]
+    },
+    {
+      "id": "v01659-model-and-paid-route-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 7,
+      "summary": "Gemma weights and adapter activation remain unchanged; shared semantic and compiler improvements apply to compatible paid routes while local runtime policy remains Scion-specific.",
+      "anchors": ["README.md", "docs/SCION_ADAPTER_ROADMAP.md", "src/lib/scionPasses.js"],
+      "proofCommands": ["npm run audit:release-history"],
+      "proofScopes": ["doc", "static-audit"]
+    }
+  ]
+}

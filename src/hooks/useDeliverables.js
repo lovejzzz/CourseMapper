@@ -534,6 +534,10 @@ export default function useDeliverables({
       const requestedFeatures = features.filter((f) => f && f !== 'courseMap');
       if (requestedFeatures.length === 0 || !courseMap) return;
       const sourceBriefConstraints = analyzeSourceBriefConstraints(sourceBrief);
+      const scionSourceLedgerRequested =
+        (provider === 'local' || provider === PUBLIC_SCION_PROVIDER_ID) &&
+        sourceBriefConstraints.instructorSourcesOnly &&
+        sourceBriefConstraints.instructorProvidedFacts.length >= 3;
       const requestedSessionMinutes = resolveRequestedClassSessionMinutes({
         sourceBrief,
         explicitSessionLength: deliverableConfigRef.current?.lessonPlans?.sessionLength,
@@ -631,8 +635,11 @@ export default function useDeliverables({
         : generationOptions.lessonContentEnrichment !== false
           ? Math.max(1, Math.ceil(enrichmentLessonCount / Math.max(1, plannedEnrichmentBatchSize)))
           : 1;
-      const enrichmentRecoveryCallLimit =
-        provider === PUBLIC_SCION_PROVIDER_ID ? publicScionEnrichmentRecoveryCallLimit(enrichmentLessonCount) : 2;
+      const enrichmentRecoveryCallLimit = scionSourceLedgerRequested
+        ? 0
+        : provider === PUBLIC_SCION_PROVIDER_ID
+          ? publicScionEnrichmentRecoveryCallLimit(enrichmentLessonCount)
+          : 2;
       const plannedEnrichmentRecoveryReserve =
         blueprintEnrichmentRequested && generationOptions.lessonContentEnrichment !== false
           ? enrichmentRecoveryCallLimit
@@ -1374,6 +1381,10 @@ export default function useDeliverables({
               const prompt = buildNativePassBPrompt(blueprintCourseMap, modelChunk, {
                 questionsPerLesson: getGenerationConfig('quizBank')?.questionsPerLesson,
                 includeCourseLevel,
+                sourceBrief,
+                ...(scionProvider && scionSourceLedgerRequested
+                  ? { instructorProvidedFacts: sourceBriefConstraints.instructorProvidedFacts }
+                  : {}),
                 contentSourcedLessonIds: scionProvider ? [] : contentSourcedLessonIds,
                 recoveryAttempt,
                 expectedLessonIds,
@@ -1790,6 +1801,9 @@ export default function useDeliverables({
               questionsPerLesson: getGenerationConfig('quizBank')?.questionsPerLesson,
               includeCourseLevel: isFirstChunk,
               sourceBrief,
+              ...((provider === 'local' || provider === PUBLIC_SCION_PROVIDER_ID) && scionSourceLedgerRequested
+                ? { instructorProvidedFacts: sourceBriefConstraints.instructorProvidedFacts }
+                : {}),
             });
             const scionMod =
               provider === 'local' || provider === PUBLIC_SCION_PROVIDER_ID ? await import('../lib/scionPassB') : null;
@@ -1942,6 +1956,9 @@ export default function useDeliverables({
               includeCourseLevel: false,
               recoveryAttempt: enrichmentRecoveryCalls,
               sourceBrief,
+              ...((provider === 'local' || provider === PUBLIC_SCION_PROVIDER_ID) && scionSourceLedgerRequested
+                ? { instructorProvidedFacts: sourceBriefConstraints.instructorProvidedFacts }
+                : {}),
               ...(romanizationChunk.length > 0 ? { romanizationFocus } : {}),
             });
             const scionMod =
@@ -4959,6 +4976,11 @@ export default function useDeliverables({
     async (featureId, courseMap, lessonIndex, syncGenOrOptions = null) => {
       const regenerationOptions =
         syncGenOrOptions && typeof syncGenOrOptions === 'object' ? syncGenOrOptions : { syncGenId: syncGenOrOptions };
+      const sourceBriefConstraints = analyzeSourceBriefConstraints(sourceBrief);
+      const scionSourceLedgerRequested =
+        (provider === 'local' || provider === PUBLIC_SCION_PROVIDER_ID) &&
+        sourceBriefConstraints.instructorSourcesOnly &&
+        sourceBriefConstraints.instructorProvidedFacts.length >= 3;
       const syncGenId = regenerationOptions.syncGenId ?? null;
       const deliverableItemIndex = Number.isInteger(regenerationOptions.deliverableItemIndex)
         ? regenerationOptions.deliverableItemIndex
@@ -5114,6 +5136,9 @@ export default function useDeliverables({
                   questionsPerLesson: getGenerationConfig('quizBank')?.questionsPerLesson,
                   includeCourseLevel: false,
                   sourceBrief,
+                  ...((provider === 'local' || provider === PUBLIC_SCION_PROVIDER_ID) && scionSourceLedgerRequested
+                    ? { instructorProvidedFacts: sourceBriefConstraints.instructorProvidedFacts }
+                    : {}),
                 });
                 const scionMod =
                   provider === 'local' || provider === PUBLIC_SCION_PROVIDER_ID

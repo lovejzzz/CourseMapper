@@ -23,9 +23,9 @@ function issueCount(quality) {
   return countQualityFindings(quality);
 }
 
-// ≥32px click/read target (min-h) while keeping the trust-chip visual scale.
+// Keep the compact desktop seal while giving touch layouts a full 44px target.
 const CHIP_BASE =
-  'inline-flex min-h-[32px] shrink-0 items-center gap-1 rounded-full border px-2.5 text-[10px] font-bold';
+  'inline-flex min-h-11 shrink-0 items-center gap-1 rounded-full border px-2.5 text-[10px] font-bold sm:min-h-[32px]';
 
 export default function WorkspaceQualityChip({ packageQualityPass, onOpenReport }) {
   const status = finishStatusOf(packageQualityPass);

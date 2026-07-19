@@ -373,6 +373,77 @@ Return ONLY valid JSON.`;
     expect(runtime.completeScionBrowserWllama).toHaveBeenCalledTimes(3);
   });
 
+  it('forwards a complete three-fact source ledger to atomic admission after one bounded attempt', async () => {
+    const sourceFacts = [
+      'A usability test observes representative users attempting realistic tasks with a product or service.',
+      'A test script gives each session a repeatable structure without turning the moderator into a teacher.',
+      'Recruitment identifies appropriate users and obtains consent before the session.',
+    ];
+    const response = JSON.stringify({
+      lessons: [
+        {
+          lessonId: 'lesson-1',
+          facts: sourceFacts,
+          keyTerms: [
+            {
+              tr: 'usability test',
+              df: 'A usability test observes representative users attempting realistic tasks.',
+              eg: 'Representative users attempt realistic tasks with a product or service.',
+              mi: 'A usability test replaces observation with moderator instruction.',
+              cx: 'The moderator observes task attempts instead of teaching the user.',
+            },
+          ],
+          mc: [
+            {
+              q: 'Which supplied relationship describes what happens during the planned session?',
+              op: [
+                'Representative users attempt realistic tasks',
+                'The moderator teaches every task',
+                'Recruitment writes the script',
+                'The service grants consent',
+              ],
+              ai: 0,
+              fi: [0],
+              ex: 'Representative users attempt realistic tasks while the test observes them.',
+            },
+            {
+              q: 'Which source-backed activity gives the session a repeatable structure?',
+              op: [
+                'Use the test script',
+                'Replace users with teachers',
+                'Skip recruitment and consent',
+                'Observe without realistic tasks',
+              ],
+              ai: 0,
+              fi: [1],
+              ex: 'The test script gives each session a repeatable structure.',
+            },
+          ],
+        },
+      ],
+    });
+    const prompt = `Course: Design\nLessons:\n${JSON.stringify([
+      {
+        lessonId: 'lesson-1',
+        title: 'Usability Testing',
+        sourceFactPolicy: 'numbered-source-ledger-v1',
+        sourceFacts,
+      },
+    ])}\nReturn ONLY valid JSON.`;
+    const runtime = runtimeWith([response]);
+
+    const result = await runScionLocalCompletion({
+      userPrompt: prompt,
+      task: 'blueprintEnrichment',
+      maxRetries: 0,
+      runtimeLoader: async () => runtime,
+    });
+
+    expect(result).toMatchObject({ attempt: 1, retryCount: 0, contractIncomplete: true });
+    expect(JSON.parse(result.fullText).lessons[0].facts).toEqual(sourceFacts);
+    expect(runtime.completeScionBrowserWllama).toHaveBeenCalledTimes(1);
+  });
+
   it('returns compiler repair provenance with the repaired browser-local text', async () => {
     const response = JSON.stringify({
       lessons: [

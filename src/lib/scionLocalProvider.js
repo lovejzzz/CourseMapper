@@ -12,6 +12,7 @@ import {
   shufflePublicScionKernelOptions,
 } from './publicScionProvider';
 import { scionAdapterTaskFamilyForProviderTask } from './scionAdapterTaskScope';
+import { scionFactContractForLesson } from './scionEvidenceContract';
 
 export const SCION_LOCAL_MAX_GENERATION_RETRIES = PUBLIC_SCION_MIN_RETRIES;
 
@@ -84,10 +85,12 @@ function canDeferKernelAdmission(text, userPrompt, task, assessment = {}) {
       expected.length > 0 &&
       expected.every((row) => {
         const lesson = byId.get(row.lessonId);
+        const factContract = scionFactContractForLesson(row, { userPrompt });
+        const minimumFacts = factContract.mode === 'numbered-source-ledger-v1' ? factContract.factCount : 4;
         return (
           lesson &&
           Array.isArray(lesson.facts) &&
-          lesson.facts.length >= 4 &&
+          lesson.facts.length >= minimumFacts &&
           ((Array.isArray(lesson.keyTerms) && lesson.keyTerms.length >= 1) ||
             (Array.isArray(lesson.mc) && lesson.mc.length >= 2))
         );

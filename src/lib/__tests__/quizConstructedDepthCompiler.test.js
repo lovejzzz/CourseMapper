@@ -83,6 +83,26 @@ describe('constructed-response compiler depth', () => {
     );
   });
 
+  it('does not invent worked examples when the instructor supplied only exact fact statements', () => {
+    const blueprint = evidenceCourseBlueprint();
+    blueprint.instructorSourceFactsByLesson = {
+      [blueprint.lessons[0].id]: [
+        'A usability test observes representative users attempting realistic tasks with a product or service.',
+        'A test script gives each session a repeatable structure without turning the moderator into a teacher.',
+        'Recruitment identifies appropriate users and obtains consent before the session.',
+      ],
+    };
+    blueprint.enrichment = {
+      coverage: { missingLessons: [1], requestedLessons: 1 },
+      stageDecisions: { modelStage: 'failed: assessment atoms quarantined' },
+    };
+    const items = buildQuizAtomsForLesson(blueprint.lessons[0], blueprint, { assessment: {} });
+
+    expect(items.some((item) => /instructor-provided fact list/i.test(item.question))).toBe(true);
+    expect(items.every((item) => !/worked example|worked solution|source example/i.test(item.question))).toBe(true);
+    expect(items.some((item) => /supplied wording does not establish/i.test(item.question))).toBe(true);
+  });
+
   it('uses two distinct admitted concepts for a one-lesson exam and removes doubled decision language', () => {
     const blueprint = evidenceCourseBlueprint();
     blueprint.lessons[0].enrichment = {

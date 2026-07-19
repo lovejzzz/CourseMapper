@@ -18858,45 +18858,86 @@ function buildEssayQuestion({ lesson, index, bloom, objective, concept, lens, pl
 }
 
 function buildSourceBoundRecoveryQuizAtoms({ lesson, blueprint, quizPlan, concept, targetCount }) {
+  const instructorSourceFacts = Array.isArray(blueprint?.instructorSourceFactsByLesson?.[lesson.id])
+    ? blueprint.instructorSourceFactsByLesson[lesson.id].map(cleanText).filter(Boolean)
+    : [];
+  const sourceFactsOnly = instructorSourceFacts.length >= 3;
   const evidenceCue = humanizeClassroomSourceCue(
     lesson.evidencePlan?.sourceCue,
     safeLessonEvidenceCue(lesson, blueprintLens(blueprint)),
   );
-  const sourceLabel = /^(?:the|assigned)\b/i.test(evidenceCue) ? evidenceCue : `the assigned source "${evidenceCue}"`;
+  const sourceLabel = sourceFactsOnly
+    ? 'the instructor-provided fact list'
+    : /^(?:the|assigned)\b/i.test(evidenceCue)
+      ? evidenceCue
+      : `the assigned source "${evidenceCue}"`;
   const compositeConcept = /\b(?:and|versus|vs\.?)\b/i.test(concept);
   const conceptLensCue = compositeConcept ? `${concept} as contrasting lenses` : concept;
-  const prompts = [
-    {
-      bloom: 'Apply',
-      make: (objective) =>
-        `Use ${sourceLabel} to complete the objective "${objective}." Identify the relevant concept, method, or rule independently; cite one exact source detail; apply it to one worked example; then state what the source does not establish.`,
-    },
-    {
-      bloom: 'Analyze',
-      make: (objective) =>
-        `Analyze two worked examples from ${sourceLabel} that address "${objective}." Compare them using ${conceptLensCue}; name one meaningful similarity, one difference, and the exact evidence for each.`,
-    },
-    {
-      bloom: 'Analyze',
-      make: (objective) =>
-        `Analyze one worked solution or explanation in ${sourceLabel} related to "${objective}." Identify the course principle you would use to test it. Cite one decisive source detail, then state one limitation or next piece of evidence.`,
-    },
-    {
-      bloom: 'Analyze',
-      make: (objective) =>
-        `Analyze one plausible error in a worked example from ${sourceLabel} related to "${objective}." Identify the course rule that exposes the error. Cite the contradictory source detail, explain the correction, and state one limitation or next piece of evidence.`,
-    },
-    {
-      bloom: 'Evaluate',
-      make: (objective) =>
-        `Evaluate two explanations or solution paths from ${sourceLabel} that bear on "${objective}." Choose the course framework that best distinguishes them. Cite the detail supporting the stronger path, then name one limitation or additional piece of evidence.`,
-    },
-    {
-      bloom: 'Create',
-      make: (objective) =>
-        `Create a new worked example for "${objective}" using only a relationship, rule, or method stated in ${sourceLabel}. Show the inputs, reasoning, and result; mark every assumption the source does not supply; then compare your example with one source example.`,
-    },
-  ];
+  const prompts = sourceFactsOnly
+    ? [
+        {
+          bloom: 'Apply',
+          make: (objective) =>
+            `Use ${sourceLabel} to address "${objective}." Select one exact statement, explain the relationship it supports, and state one conclusion that the supplied wording does not establish.`,
+        },
+        {
+          bloom: 'Analyze',
+          make: (objective) =>
+            `Compare two statements in ${sourceLabel} that bear on "${objective}." Name one meaningful connection, one difference, and the exact words supporting each part of your comparison.`,
+        },
+        {
+          bloom: 'Analyze',
+          make: (objective) =>
+            `Analyze one statement in ${sourceLabel} related to "${objective}." Identify its subject and stated relationship, then name one limitation or additional detail needed before extending the claim.`,
+        },
+        {
+          bloom: 'Analyze',
+          make: (objective) =>
+            `Write one plausible overclaim about "${objective}," then correct it using exact wording from ${sourceLabel}. Explain which unsupported scope, cause, or consequence you removed.`,
+        },
+        {
+          bloom: 'Evaluate',
+          make: (objective) =>
+            `Evaluate whether ${sourceLabel} are sufficient to support "${objective}." Cite the strongest statement, justify your judgment, and identify the most important missing evidence.`,
+        },
+        {
+          bloom: 'Create',
+          make: (objective) =>
+            `Create a brief case for "${objective}" using only a relationship stated in ${sourceLabel}. Separate supplied details from your assumptions, explain the decision, and mark what still requires evidence.`,
+        },
+      ]
+    : [
+        {
+          bloom: 'Apply',
+          make: (objective) =>
+            `Use ${sourceLabel} to complete the objective "${objective}." Identify the relevant concept, method, or rule independently; cite one exact source detail; apply it to one worked example; then state what the source does not establish.`,
+        },
+        {
+          bloom: 'Analyze',
+          make: (objective) =>
+            `Analyze two worked examples from ${sourceLabel} that address "${objective}." Compare them using ${conceptLensCue}; name one meaningful similarity, one difference, and the exact evidence for each.`,
+        },
+        {
+          bloom: 'Analyze',
+          make: (objective) =>
+            `Analyze one worked solution or explanation in ${sourceLabel} related to "${objective}." Identify the course principle you would use to test it. Cite one decisive source detail, then state one limitation or next piece of evidence.`,
+        },
+        {
+          bloom: 'Analyze',
+          make: (objective) =>
+            `Analyze one plausible error in a worked example from ${sourceLabel} related to "${objective}." Identify the course rule that exposes the error. Cite the contradictory source detail, explain the correction, and state one limitation or next piece of evidence.`,
+        },
+        {
+          bloom: 'Evaluate',
+          make: (objective) =>
+            `Evaluate two explanations or solution paths from ${sourceLabel} that bear on "${objective}." Choose the course framework that best distinguishes them. Cite the detail supporting the stronger path, then name one limitation or additional piece of evidence.`,
+        },
+        {
+          bloom: 'Create',
+          make: (objective) =>
+            `Create a new worked example for "${objective}" using only a relationship, rule, or method stated in ${sourceLabel}. Show the inputs, reasoning, and result; mark every assumption the source does not supply; then compare your example with one source example.`,
+        },
+      ];
 
   return quizPlan.slice(0, Math.min(targetCount, prompts.length)).map((plan, index) => {
     const type = index === prompts.length - 1 ? 'essay' : 'short_answer';
@@ -18908,7 +18949,9 @@ function buildSourceBoundRecoveryQuizAtoms({ lesson, blueprint, quizPlan, concep
       role: `source-bound-${promptPlan.bloom.toLowerCase()}`,
       bloomSource: 'source-bound recovery task demand',
     };
-    const scoringGuidance = `Award full credit only when the response uses ${concept} accurately, names or creates a specific example, points to an observable feature, and keeps the conclusion within that evidence. Verify factual claims against ${evidenceCue}.`;
+    const scoringGuidance = sourceFactsOnly
+      ? `Award full credit only when the response quotes or identifies a supplied statement accurately, explains its relationship, and keeps the conclusion within that wording. Verify every factual claim against the instructor-provided fact list.`
+      : `Award full credit only when the response uses ${concept} accurately, names or creates a specific example, points to an observable feature, and keeps the conclusion within that evidence. Verify factual claims against ${evidenceCue}.`;
     return withQuizPlan(
       {
         id: quizQuestionId(lesson, index),

@@ -74,7 +74,32 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     expect(lesson.properties.keyTerms).toMatchObject({ minItems: 3, maxItems: 3 });
     expect(lesson.properties.mc).toMatchObject({ minItems: 2, maxItems: 2 });
     expect(lesson.properties.mc.items.required).toContain('fi');
-    expect(lesson.properties.mc.items.properties.fi).toMatchObject({ minItems: 1, maxItems: 1 });
+    expect(lesson.properties.mc.items.properties.fi).toMatchObject({ minItems: 1, maxItems: 2 });
+  });
+
+  it('D1: exact source ledgers get one honest base attempt instead of a futile retry storm', () => {
+    const sourceFacts = [
+      'Currents produce magnetic fields around a conducting path.',
+      'Field lines form closed loops around an electrical current.',
+      'Moving charges experience magnetic influence inside a field.',
+    ];
+    const options = scionCallOpts({
+      prompt: {
+        userPrompt: 'SOURCE FACT LEDGER',
+        lessons: [
+          {
+            lessonId: 'lesson-1',
+            sourceFactPolicy: 'numbered-source-ledger-v1',
+            sourceFacts,
+          },
+        ],
+      },
+      expectedLessonIds: ['lesson-1'],
+      recoveryAttempt: 0,
+    });
+
+    expect(options.maxRetries).toBe(0);
+    expect(options.schema.schema.properties.lessons.items.properties.facts).toMatchObject({ minItems: 3, maxItems: 3 });
   });
 
   it('D1: content-sourced lessons get the session-only variant', () => {

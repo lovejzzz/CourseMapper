@@ -1,0 +1,1194 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-capture-v1",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "identitySha256": "725972997a50971bef564d19df47014c4319d302a5246d83afa92084259af0f4",
+  "arm": "local",
+  "model": {
+    "provider": "local",
+    "id": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+    "revision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
+    "route": "mlx-vlm-base-only",
+    "decoding": "greedy-json-schema",
+    "maxOutputTokens": 2400,
+    "runtime": {
+      "python": "/Users/tianxing/.cache/coursemapper/venv-g4/bin/python",
+      "script": "/Users/tianxing/Documents/NYU/NYUsliver/CourseMapper-scion-v01654/trellis/tendril/distill/serve_g4.py"
+    }
+  },
+  "compiler": {
+    "policy": {
+      "keyTermSemanticProfile": "source-strict-v6",
+      "campaignPromptPolicy": "frozen-messages-by-campaign-identity",
+      "maxAttempts": 3,
+      "answerPosition": "compiler-deterministic-shuffle-after-admission",
+      "crossAttemptRetention": "citation-coupled-assessment-plus-independent-keyterms"
+    },
+    "files": {
+      "scripts/scionLessonKernelCapture.mjs": "f117e244626778d3a60049926b06f357d127ab0d99023d85f109d329acb4f147",
+      "scripts/lib/scionLessonKernelCampaign.mjs": "3d6858d4a9a204d9bd1f09cde237438d3bee91462b17820f87ffc4be4c9ff9cc",
+      "src/lib/scionContracts.js": "b351badc1a6b7d8d6dd4ee9261e5cde3d71aedccf2e9a040d471430cf227396b",
+      "src/lib/scionEvidenceContract.js": "93e91bb2d084d3a784300f8e4a778da0555cf179472d49d80274c553c3b57b17",
+      "src/lib/publicScionProvider.js": "bf57abcfe726483c0f4a58627b4a5957243d8efb29ca75dba467699a891ea52e",
+      "src/lib/scionAnswerKeyAlignment.js": "b111e7b86cb364bc5abf287d2a9c0dd70d2c6572cd7200bca56c57675b7a0fd8",
+      "src/lib/scionKeyTermContract.js": "995c0f357e0b35785090a85f79d7c6c56931aea8a450bd8536583c5982aadcd5",
+      "src/lib/scenarioContract.js": "5f3c761f881c991f8e855fabd7ea8202a2b4acf7f47977138423fe48e0afaf1c"
+    },
+    "identitySha256": "1c0222eebff94fce919e02388eb1be06db5c8bd7c9d8d14b5dfc8d48bce2946b"
+  },
+  "calls": [
+    {
+      "caseId": "scion-kernel-089f3bd62b1608632e6b4a56",
+      "caseSha256": "089f3bd62b1608632e6b4a5628e57d8fbba912ce034f2998c3f1af44fa2505d8",
+      "messagesSha256": "1433aa73908569e847761afdb7215655edb8c339f3cc0c437ee82201cd2a52d8",
+      "sourceContextSha256": "2bbf1b749b8b4548f8bd9a2ae81c7667ee72013d71d0d8b304c4657acdd0d536",
+      "arm": "local",
+      "model": {
+        "provider": "local",
+        "id": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+        "revision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
+        "route": "mlx-vlm-base-only",
+        "decoding": "greedy-json-schema",
+        "maxOutputTokens": 2400,
+        "runtime": {
+          "python": "/Users/tianxing/.cache/coursemapper/venv-g4/bin/python",
+          "script": "/Users/tianxing/Documents/NYU/NYUsliver/CourseMapper-scion-v01654/trellis/tendril/distill/serve_g4.py"
+        }
+      },
+      "attempts": [
+        {
+          "attempt": 1,
+          "messagesSha256": "1433aa73908569e847761afdb7215655edb8c339f3cc0c437ee82201cd2a52d8",
+          "rawResponseSha256": "151c0c0c8577879154461517557254b4796f0395850fb79bfc309b1f6c006c7a",
+          "responseSha256": "f69e7420d493116ea9fcd220b18bb2be8f0a8d74692d73aad62b57b4f897a6ac",
+          "artifactSha256": "35f65e4f2b2917fea8f212cfdc772a1ca24f01932f4a67ff0abc60b1cb973001",
+          "assessment": {
+            "needsRetry": true,
+            "issues": [
+              "lesson-3:key-term-0:example-repeats-definition",
+              "lesson-3:key-term-0:correction-repeats-definition",
+              "lesson-3:key-term-0:correction-repeats-example",
+              "lesson-3:key-term-1:example-repeats-definition",
+              "lesson-3:key-term-1:correction-repeats-definition",
+              "lesson-3:key-term-1:correction-repeats-example",
+              "lesson-3:key-term-2:example-repeats-definition",
+              "lesson-3:key-term-2:correction-repeats-definition",
+              "lesson-3:key-term-2:correction-repeats-example",
+              "lesson-3:scenario:source-unsupported-quantity",
+              "lesson-3:mc-0:option-length",
+              "lesson-3:mc-0:duplicate-options",
+              "lesson-3:mc-1:option-length"
+            ]
+          },
+          "repairs": [
+            {
+              "kind": "mc-item",
+              "pass": "sourceAnswerAlignment",
+              "lessonId": "lesson-3",
+              "item": 0,
+              "action": "realigned",
+              "prompt": "Choose the answer index uniquely supported by the source claim most relevant to the question.",
+              "rejected": {
+                "question": "When planning a usability test, what is the primary function of a test script in relation to the session structure?",
+                "options": [
+                  "A test script dictates every word the moderator must say during the session.",
+                  "A test script is a detailed manual that dictates every word the moderator must say during the session.",
+                  "A test script gives the session a repeatable structure without turning the moderator into a teacher.",
+                  "A test script is a detailed manual that dictates every word the moderator must say during the session."
+                ],
+                "answerIndex": 0,
+                "explanation": "A test script gives the session a repeatable structure without turning the moderator into a teacher, then correct the closest distractor."
+              },
+              "chosen": {
+                "question": "When planning a usability test, what is the primary function of a test script in relation to the session structure?",
+                "options": [
+                  "A test script dictates every word the moderator must say during the session.",
+                  "A test script is a detailed manual that dictates every word the moderator must say during the session.",
+                  "A test script gives the session a repeatable structure without turning the moderator into a teacher.",
+                  "A test script is a detailed manual that dictates every word the moderator must say during the session."
+                ],
+                "answerIndex": 2,
+                "explanation": "A test script gives the session a repeatable structure without turning the moderator into a teacher, then correct the closest distractor."
+              },
+              "trainingEligible": false,
+              "preferenceEvidence": {
+                "kind": "deterministic-source-answer-conflict",
+                "verified": true,
+                "declaredIndex": 0,
+                "supportedIndex": 2,
+                "scores": [
+                  4,
+                  4,
+                  10,
+                  4
+                ],
+                "containment": [
+                  0.4,
+                  0.333333,
+                  1,
+                  0.333333
+                ],
+                "supportMethod": "source-question-option-alignment",
+                "sourceAlignmentProfile": "strict-cited-source",
+                "relevantSourceClaimIndexes": [
+                  0
+                ],
+                "questionClaimScore": 4,
+                "minimumQuestionClaimScore": 2,
+                "minimumOptionScore": 3,
+                "minimumOptionContainment": 0.6,
+                "minimumMargin": 3
+              }
+            }
+          ],
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "durationMs": 17623
+        },
+        {
+          "attempt": 2,
+          "messagesSha256": "e4bfc475eb74f524aca87f658bd7617f0577b6098ba4419135f79b17090f6ffe",
+          "rawResponseSha256": "8492a640b8a3cc424b812d1884580eb7e17c68aa33c34f6bc5d3ec46445312e0",
+          "responseSha256": "a687904e9d2a92759fccc8f1fcf2d27d20eeabc714d3bc1b6a4ad82280718616",
+          "artifactSha256": "476ed6ac20df8dc38d9f2ac64afc6da8967df7fed62352bc5f991ddf1d2a129a",
+          "assessment": {
+            "needsRetry": true,
+            "issues": [
+              "lesson-3:key-term-0:example-repeats-definition",
+              "lesson-3:key-term-0:correction-repeats-definition",
+              "lesson-3:key-term-0:correction-repeats-example",
+              "lesson-3:key-term-1:correction-repeats-example",
+              "lesson-3:key-term-2:correction-repeats-definition",
+              "lesson-3:scenario:source-unsupported-quantity",
+              "lesson-3:mc-0:stem-length",
+              "lesson-3:mc-1:stem-length"
+            ]
+          },
+          "repairs": [],
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "durationMs": 9653
+        },
+        {
+          "attempt": 3,
+          "messagesSha256": "2ced4c1efe4b08425cb15516a9c7f68df14a097648ac20635660d4e3179bcb0b",
+          "rawResponseSha256": "3baf3f29b92e7e8d709625dceb3de11a196311c1e2d30b2a75a835a5c87d1e31",
+          "responseSha256": "d8e5c31525739ec5047baa0b7acc8938b5b61b632c74ba5cc71184b7dba65753",
+          "artifactSha256": "bf175bce0514752fea84e15d4d6e43a30565339809aa15af6ec844ec0e141c1f",
+          "assessment": {
+            "needsRetry": true,
+            "issues": [
+              "lesson-3:key-term-0:example-repeats-definition",
+              "lesson-3:key-term-0:correction-repeats-definition",
+              "lesson-3:key-term-0:correction-repeats-example",
+              "lesson-3:key-term-1:correction-repeats-example",
+              "lesson-3:key-term-2:correction-repeats-definition",
+              "lesson-3:scenario:source-unsupported-quantity",
+              "lesson-3:mc-0:option-length",
+              "lesson-3:mc-0:duplicate-options",
+              "lesson-3:mc-1:source-fact-key-mismatch"
+            ]
+          },
+          "repairs": [
+            {
+              "kind": "mc-item",
+              "pass": "sourceAnswerAlignment",
+              "lessonId": "lesson-3",
+              "item": 0,
+              "action": "realigned",
+              "prompt": "Choose the answer index uniquely supported by the source claim most relevant to the question.",
+              "rejected": {
+                "question": "When planning a usability test, what is the primary function of a test script in relation to the session structure?",
+                "options": [
+                  "A test script dictates every single word the moderator must say during the session.",
+                  "A test script provides a repeatable structure for a session without turning the moderator into a teacher.",
+                  "A test script is a detailed manual that dictates every single word the moderator must say during the session.",
+                  "A test script is a detailed manual that dictates every single word the moderator must say during the session."
+                ],
+                "answerIndex": 0,
+                "explanation": "A test script provides a repeatable structure for a session without turning the moderator into a teacher, then correct the detailed manual dictating every word."
+              },
+              "chosen": {
+                "question": "When planning a usability test, what is the primary function of a test script in relation to the session structure?",
+                "options": [
+                  "A test script dictates every single word the moderator must say during the session.",
+                  "A test script provides a repeatable structure for a session without turning the moderator into a teacher.",
+                  "A test script is a detailed manual that dictates every single word the moderator must say during the session.",
+                  "A test script is a detailed manual that dictates every single word the moderator must say during the session."
+                ],
+                "answerIndex": 1,
+                "explanation": "A test script provides a repeatable structure for a session without turning the moderator into a teacher, then correct the detailed manual dictating every word."
+              },
+              "trainingEligible": false,
+              "preferenceEvidence": {
+                "kind": "deterministic-source-answer-conflict",
+                "verified": true,
+                "declaredIndex": 0,
+                "supportedIndex": 1,
+                "scores": [
+                  4,
+                  9,
+                  4,
+                  4
+                ],
+                "containment": [
+                  0.363636,
+                  0.9,
+                  0.307692,
+                  0.307692
+                ],
+                "supportMethod": "source-question-option-alignment",
+                "sourceAlignmentProfile": "strict-cited-source",
+                "relevantSourceClaimIndexes": [
+                  0
+                ],
+                "questionClaimScore": 4,
+                "minimumQuestionClaimScore": 2,
+                "minimumOptionScore": 3,
+                "minimumOptionContainment": 0.6,
+                "minimumMargin": 3
+              }
+            },
+            {
+              "pass": "crossAttemptAtomicRetention",
+              "lessonId": "lesson-3",
+              "field": "keyTerms",
+              "issueCountBefore": 11,
+              "issueCountAfter": 9,
+              "resolvedIssues": [
+                "lesson-3:key-term-1:example-repeats-definition",
+                "lesson-3:key-term-1:correction-repeats-definition"
+              ],
+              "trainingEligible": false,
+              "preferenceEvidence": {
+                "evidenceScope": "deterministic-contract-only",
+                "verified": false
+              }
+            }
+          ],
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "durationMs": 11003
+        }
+      ],
+      "selectedAttempt": 2,
+      "artifact": {
+        "lessonId": "lesson-3",
+        "facts": [
+          "A usability test observes representative users attempting realistic tasks with a product or service, often while thinking aloud.",
+          "A usability test can examine a sketch, prototype, competitor product, or other artifact relevant to a user goal.",
+          "The plan should align the team on scenarios, participants, recruitment, moderation, and observation roles.",
+          "A test script gives the session a repeatable structure without turning the moderator into a teacher.",
+          "Recruitment should identify appropriate users and obtain their consent before the session."
+        ],
+        "keyTerms": [
+          {
+            "tr": "usability test",
+            "df": "A usability test involves observing representative users attempting realistic tasks with a product or service while thinking aloud.",
+            "eg": "A usability test observes representative users attempting realistic tasks with a product or service, often while thinking aloud.",
+            "mi": "A usability test is simply watching users click buttons without any structured observation or task realism.",
+            "cx": "A usability test requires observing representative users attempting realistic tasks with a product or service, often while thinking aloud."
+          },
+          {
+            "tr": "test script",
+            "df": "A test script provides a repeatable structure for a session without requiring the moderator to act as a teacher.",
+            "eg": "A test script gives the session a repeatable structure without turning the moderator into a teacher.",
+            "mi": "A test script is a detailed manual that dictates every single word the moderator must say during the session.",
+            "cx": "A test script gives the session a repeatable structure without turning the moderator into a teacher."
+          },
+          {
+            "tr": "recruitment",
+            "df": "Recruitment involves identifying appropriate users and obtaining their consent prior to the session.",
+            "eg": "Recruitment should identify appropriate users and obtain their consent before the session.",
+            "mi": "Recruitment is the process of simply inviting any available person to participate in the testing session.",
+            "cx": "Recruitment involves identifying appropriate users and obtaining their consent before the session."
+          }
+        ],
+        "scenario": {
+          "su": "A team is preparing to evaluate a new mobile application interface for accessibility. The primary problem is determining how to structure the testing session effectively. The constraint is that the team only has one hour available for the entire testing process.",
+          "ma": "Compare the plan that aligns the team on scenarios, participants, recruitment, moderation, and observation roles with the plan that uses a test script to give the session a repeatable structure without turning the moderator into a teacher."
+        },
+        "mc": [
+          {
+            "q": "Which element is essential for ensuring the plan aligns the team on necessary roles for a usability test?",
+            "op": [
+              "Aligning scenarios and participants",
+              "Creating a repeatable test script",
+              "Obtaining user consent beforehand",
+              "Observing users while thinking aloud"
+            ],
+            "ai": 0,
+            "fi": [
+              2
+            ],
+            "ex": "The plan should align the team on scenarios, participants, recruitment, moderation, and observation roles, while creating a repeatable test script is not the primary alignment focus."
+          },
+          {
+            "q": "When evaluating a competitor product, which artifact is relevant for examination during a usability test?",
+            "op": [
+              "A sketch of the product design",
+              "A competitor product",
+              "A detailed test script",
+              "The team's observation roles"
+            ],
+            "ai": 0,
+            "fi": [
+              1
+            ],
+            "ex": "A usability test can examine a sketch, prototype, competitor product, or other artifact relevant to a user goal, while a detailed test script is a session structure."
+          }
+        ]
+      },
+      "artifactSha256": "476ed6ac20df8dc38d9f2ac64afc6da8967df7fed62352bc5f991ddf1d2a129a",
+      "response": {
+        "lessons": [
+          {
+            "lessonId": "lesson-3",
+            "facts": [
+              "A usability test observes representative users attempting realistic tasks with a product or service, often while thinking aloud.",
+              "A usability test can examine a sketch, prototype, competitor product, or other artifact relevant to a user goal.",
+              "The plan should align the team on scenarios, participants, recruitment, moderation, and observation roles.",
+              "A test script gives the session a repeatable structure without turning the moderator into a teacher.",
+              "Recruitment should identify appropriate users and obtain their consent before the session."
+            ],
+            "keyTerms": [
+              {
+                "tr": "usability test",
+                "df": "A usability test involves observing representative users attempting realistic tasks with a product or service while thinking aloud.",
+                "eg": "A usability test observes representative users attempting realistic tasks with a product or service, often while thinking aloud.",
+                "mi": "A usability test is simply watching users click buttons without any structured observation or task realism.",
+                "cx": "A usability test requires observing representative users attempting realistic tasks with a product or service, often while thinking aloud."
+              },
+              {
+                "tr": "test script",
+                "df": "A test script provides a repeatable structure for a session without requiring the moderator to act as a teacher.",
+                "eg": "A test script gives the session a repeatable structure without turning the moderator into a teacher.",
+                "mi": "A test script is a detailed manual that dictates every single word the moderator must say during the session.",
+                "cx": "A test script gives the session a repeatable structure without turning the moderator into a teacher."
+              },
+              {
+                "tr": "recruitment",
+                "df": "Recruitment involves identifying appropriate users and obtaining their consent prior to the session.",
+                "eg": "Recruitment should identify appropriate users and obtain their consent before the session.",
+                "mi": "Recruitment is the process of simply inviting any available person to participate in the testing session.",
+                "cx": "Recruitment involves identifying appropriate users and obtaining their consent before the session."
+              }
+            ],
+            "scenario": {
+              "su": "A team is preparing to evaluate a new mobile application interface for accessibility. The primary problem is determining how to structure the testing session effectively. The constraint is that the team only has one hour available for the entire testing process.",
+              "ma": "Compare the plan that aligns the team on scenarios, participants, recruitment, moderation, and observation roles with the plan that uses a test script to give the session a repeatable structure without turning the moderator into a teacher."
+            },
+            "mc": [
+              {
+                "q": "Which element is essential for ensuring the plan aligns the team on necessary roles for a usability test?",
+                "op": [
+                  "Aligning scenarios and participants",
+                  "Creating a repeatable test script",
+                  "Obtaining user consent beforehand",
+                  "Observing users while thinking aloud"
+                ],
+                "ai": 0,
+                "fi": [
+                  2
+                ],
+                "ex": "The plan should align the team on scenarios, participants, recruitment, moderation, and observation roles, while creating a repeatable test script is not the primary alignment focus."
+              },
+              {
+                "q": "When evaluating a competitor product, which artifact is relevant for examination during a usability test?",
+                "op": [
+                  "A sketch of the product design",
+                  "A competitor product",
+                  "A detailed test script",
+                  "The team's observation roles"
+                ],
+                "ai": 0,
+                "fi": [
+                  1
+                ],
+                "ex": "A usability test can examine a sketch, prototype, competitor product, or other artifact relevant to a user goal, while a detailed test script is a session structure."
+              }
+            ]
+          }
+        ]
+      },
+      "responseSha256": "a687904e9d2a92759fccc8f1fcf2d27d20eeabc714d3bc1b6a4ad82280718616",
+      "admission": {
+        "needsRetry": true,
+        "issues": [
+          "lesson-3:key-term-0:example-repeats-definition",
+          "lesson-3:key-term-0:correction-repeats-definition",
+          "lesson-3:key-term-0:correction-repeats-example",
+          "lesson-3:key-term-1:correction-repeats-example",
+          "lesson-3:key-term-2:correction-repeats-definition",
+          "lesson-3:scenario:source-unsupported-quantity",
+          "lesson-3:mc-0:stem-length",
+          "lesson-3:mc-1:stem-length"
+        ]
+      },
+      "compilerRepairs": [],
+      "startedAt": "2026-07-19T14:17:47.423Z",
+      "completedAt": "2026-07-19T14:18:25.703Z",
+      "durationMs": 38280
+    },
+    {
+      "caseId": "scion-kernel-08c18044f316721811371af4",
+      "caseSha256": "08c18044f316721811371af4f895715fa67efbe01e5cb443c099282c52b18bfc",
+      "messagesSha256": "176147ec073ed1dda93b36a631130bbad2039871c5dbbdbede2c81295a4306e4",
+      "sourceContextSha256": "a78b1cb41ac7cf84658b13670e6c38ea82883da13aacfcab04088996e26a68ec",
+      "arm": "local",
+      "model": {
+        "provider": "local",
+        "id": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+        "revision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
+        "route": "mlx-vlm-base-only",
+        "decoding": "greedy-json-schema",
+        "maxOutputTokens": 2400,
+        "runtime": {
+          "python": "/Users/tianxing/.cache/coursemapper/venv-g4/bin/python",
+          "script": "/Users/tianxing/Documents/NYU/NYUsliver/CourseMapper-scion-v01654/trellis/tendril/distill/serve_g4.py"
+        }
+      },
+      "attempts": [
+        {
+          "attempt": 1,
+          "messagesSha256": "176147ec073ed1dda93b36a631130bbad2039871c5dbbdbede2c81295a4306e4",
+          "rawResponseSha256": "ba14816b98e43164bd777269920accfc6515925a27993c8901aec6702dd35e89",
+          "responseSha256": "188e7c969607dfbc330ceac28402af539ad20a51ad275527e75f8206dc1b3f17",
+          "artifactSha256": "550e5cecc046b635a6793a1534f3ea3c431b462e03e1500cd24915bd2d23d081",
+          "assessment": {
+            "needsRetry": true,
+            "issues": [
+              "lesson-1:key-term-0:correction-drops-defining-identity",
+              "lesson-1:key-term-1:correction-drops-defining-identity",
+              "lesson-1:mc-0:stem-length",
+              "lesson-1:mc-0:duplicate-options"
+            ]
+          },
+          "repairs": [
+            {
+              "kind": "mc-item",
+              "pass": "sourceAnswerAlignment",
+              "lessonId": "lesson-1",
+              "item": 1,
+              "action": "realigned",
+              "prompt": "Choose the answer index uniquely supported by the source claim most relevant to the question.",
+              "rejected": {
+                "question": "A developer is writing code and uses the assignment operator to set a variable, but they mistakenly use a digit as the first character of the variable name. Which statement accurately describes the rule for variable names?",
+                "options": [
+                  "Variable names are case-sensitive and can start with a digit",
+                  "Variable names cannot start with a digit",
+                  "Variable names must be mathematical equalities",
+                  "Variable names can be any length but must start with a letter"
+                ],
+                "answerIndex": 0,
+                "explanation": "A variable name may contain letters, digits, and underscores and be any length, but cannot start with a digit. The closest distractor is 'Variable names are case-sensitive and can start with a digit' because the facts explicitly state the restriction on starting with a digit."
+              },
+              "chosen": {
+                "question": "A developer is writing code and uses the assignment operator to set a variable, but they mistakenly use a digit as the first character of the variable name. Which statement accurately describes the rule for variable names?",
+                "options": [
+                  "Variable names are case-sensitive and can start with a digit",
+                  "Variable names cannot start with a digit",
+                  "Variable names must be mathematical equalities",
+                  "Variable names can be any length but must start with a letter"
+                ],
+                "answerIndex": 3,
+                "explanation": "A variable name may contain letters, digits, and underscores and be any length, but cannot start with a digit. The closest distractor is 'Variable names are case-sensitive and can start with a digit' because the facts explicitly state the restriction on starting with a digit."
+              },
+              "trainingEligible": false,
+              "preferenceEvidence": {
+                "kind": "deterministic-source-answer-conflict",
+                "verified": true,
+                "declaredIndex": 0,
+                "supportedIndex": 3,
+                "scores": [
+                  4,
+                  5,
+                  2,
+                  7
+                ],
+                "containment": [
+                  0.666667,
+                  1,
+                  0.4,
+                  0.875
+                ],
+                "supportMethod": "source-question-option-alignment",
+                "sourceAlignmentProfile": "strict-cited-source",
+                "relevantSourceClaimIndexes": [
+                  0
+                ],
+                "questionClaimScore": 4,
+                "minimumQuestionClaimScore": 2,
+                "minimumOptionScore": 3,
+                "minimumOptionContainment": 0.6,
+                "minimumMargin": 3
+              }
+            }
+          ],
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "durationMs": 12650
+        },
+        {
+          "attempt": 2,
+          "messagesSha256": "78f704db8e5dc698bd9921aa7f3600f49d57537183a2d287da7ddda42cb76b6d",
+          "rawResponseSha256": "f24db3069c2858db6ecac8ddbf22ae1192004921a12a6ea37fcd0fd8e08ed6b7",
+          "responseSha256": "5a9f3b4e718eeded283efac1d8090dba58c11fa0d6c9c7e99c3722ca6d4e21a4",
+          "artifactSha256": "f05d1490f012801d1ad88d3a101e137a225c3d25ea0affa05f3e5e9c5ea0a061",
+          "assessment": {
+            "needsRetry": true,
+            "issues": [
+              "lesson-1:key-term-0:correction-repeats-example",
+              "lesson-1:key-term-1:correction-drops-defining-identity",
+              "lesson-1:mc-1:option-length"
+            ]
+          },
+          "repairs": [
+            {
+              "pass": "crossAttemptAtomicRetention",
+              "lessonId": "lesson-1",
+              "field": "scenario",
+              "issueCountBefore": 4,
+              "issueCountAfter": 3,
+              "resolvedIssues": [
+                "lesson-1:scenario:scenario-missing-evidence-packet"
+              ],
+              "trainingEligible": false,
+              "preferenceEvidence": {
+                "evidenceScope": "deterministic-contract-only",
+                "verified": false
+              }
+            }
+          ],
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "durationMs": 11883
+        },
+        {
+          "attempt": 3,
+          "messagesSha256": "d6a7a31670ff045f0336d7d801a32ff3e92e3271e7f391f9f50693c247057e29",
+          "rawResponseSha256": "c6645539d93727aacf885c13721419b487aa9e9e163349c619d991a1c68c0200",
+          "responseSha256": "431c0e293e9ea1857b01e0fbe9352fb6ff38013360e2e036e7fcace8c90d05c0",
+          "artifactSha256": "688365412c239f600c736283efa6c76854105387a395b4b6daba66ff743aa215",
+          "assessment": {
+            "needsRetry": true,
+            "issues": [
+              "lesson-1:key-term-0:correction-repeats-definition",
+              "lesson-1:key-term-1:correction-drops-defining-identity",
+              "lesson-1:mc-0:stem-length",
+              "lesson-1:mc-1:stem-length",
+              "lesson-1:mc-1:duplicate-options"
+            ]
+          },
+          "repairs": [],
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "durationMs": 10187
+        }
+      ],
+      "selectedAttempt": 2,
+      "artifact": {
+        "lessonId": "lesson-1",
+        "facts": [
+          "A variable is a name that refers to a stored value; the assignment operator = binds the name on the left to the value produced on the right (for objects it binds the reference, so no copy is made).",
+          "A statement sets a variable to a value using the assignment operator (=), with the name on the left and the value on the right.",
+          "Assignment is not mathematical equality — = copies a value into a variable rather than asserting two sides are equal.",
+          "A variable name may contain letters, digits, and underscores and be any length, but cannot start with a digit.",
+          "Variable names are case-sensitive, so total and Total are two different variables."
+        ],
+        "keyTerms": [
+          {
+            "tr": "variable",
+            "df": "A name that refers to a stored value within a program structure.",
+            "eg": "A variable is a name that refers to a stored value.",
+            "mi": "A variable is a physical box that holds a value, and assignment puts the value inside the box.",
+            "cx": "A variable is a name that refers to a stored value; assignment binds the name on the left to the value produced on the right."
+          },
+          {
+            "tr": "assignment operator",
+            "df": "The operator used to bind a variable name on the left to a value produced on the right.",
+            "eg": "The assignment operator = binds the name on the left to the value produced on the right.",
+            "mi": "The assignment operator is used to check if two sides of an equation are mathematically equal.",
+            "cx": "Assignment is not mathematical equality — = copies a value into a variable rather than asserting two sides are equal."
+          },
+          {
+            "tr": "variable name",
+            "df": "A sequence of letters, digits, and underscores that identifies a stored value.",
+            "eg": "A variable name may contain letters, digits, and underscores and be any length.",
+            "mi": "A variable name must be written in all lowercase letters to be valid in Python code.",
+            "cx": "Variable names are case-sensitive, so total and Total are two different variables."
+          }
+        ],
+        "scenario": {
+          "su": "A programmer intends to store a user's score in a variable named score, but they accidentally write 'score = 100' instead of 'Total = 100'. The constraint is that the system must distinguish between the two variables if they are used later in different contexts.",
+          "ma": "Compare the following notations: score = 100 and Total = 100."
+        },
+        "mc": [
+          {
+            "q": "When assigning a value using the assignment operator, what is the fundamental distinction between binding a reference and copying a value?",
+            "op": [
+              "Binding a reference means the variable name points to the object's location.",
+              "Copying a value means the variable name creates an independent duplicate of the data.",
+              "Binding a reference means the variable name stores the exact data content.",
+              "Copying a value means the assignment operator checks for mathematical equality first."
+            ],
+            "ai": 0,
+            "fi": [
+              0,
+              1
+            ],
+            "ex": "A variable is a name that refers to a stored value; the assignment operator = binds the name on the left to the value produced on the right. Binding a reference means the variable name points to the object's location, while copying a value means the variable name creates an independent duplicate of the data."
+          },
+          {
+            "q": "A developer is creating a variable to hold a user's total score, and they observe that the variable 'total' and 'Total' behave differently in the code.",
+            "op": [
+              "The difference is that 'total' is a variable name, while 'Total' is a mathematical operation.",
+              "The difference is that 'total' is a variable name, while 'Total' is a case-sensitive variable name.",
+              "The difference is that 'total' is a stored value, while 'Total' is a reference to the same value.",
+              "The difference is that 'total' is a mathematical equality, while 'Total' is a simple assignment statement."
+            ],
+            "ai": 0,
+            "fi": [
+              4
+            ],
+            "ex": "Variable names are case-sensitive, so total and Total are two different variables. The difference is that 'total' is a variable name, while 'Total' is a case-sensitive variable name."
+          }
+        ]
+      },
+      "artifactSha256": "f05d1490f012801d1ad88d3a101e137a225c3d25ea0affa05f3e5e9c5ea0a061",
+      "response": {
+        "lessons": [
+          {
+            "lessonId": "lesson-1",
+            "facts": [
+              "A variable is a name that refers to a stored value; the assignment operator = binds the name on the left to the value produced on the right (for objects it binds the reference, so no copy is made).",
+              "A statement sets a variable to a value using the assignment operator (=), with the name on the left and the value on the right.",
+              "Assignment is not mathematical equality — = copies a value into a variable rather than asserting two sides are equal.",
+              "A variable name may contain letters, digits, and underscores and be any length, but cannot start with a digit.",
+              "Variable names are case-sensitive, so total and Total are two different variables."
+            ],
+            "keyTerms": [
+              {
+                "tr": "variable",
+                "df": "A name that refers to a stored value within a program structure.",
+                "eg": "A variable is a name that refers to a stored value.",
+                "mi": "A variable is a physical box that holds a value, and assignment puts the value inside the box.",
+                "cx": "A variable is a name that refers to a stored value; assignment binds the name on the left to the value produced on the right."
+              },
+              {
+                "tr": "assignment operator",
+                "df": "The operator used to bind a variable name on the left to a value produced on the right.",
+                "eg": "The assignment operator = binds the name on the left to the value produced on the right.",
+                "mi": "The assignment operator is used to check if two sides of an equation are mathematically equal.",
+                "cx": "Assignment is not mathematical equality — = copies a value into a variable rather than asserting two sides are equal."
+              },
+              {
+                "tr": "variable name",
+                "df": "A sequence of letters, digits, and underscores that identifies a stored value.",
+                "eg": "A variable name may contain letters, digits, and underscores and be any length.",
+                "mi": "A variable name must be written in all lowercase letters to be valid in Python code.",
+                "cx": "Variable names are case-sensitive, so total and Total are two different variables."
+              }
+            ],
+            "scenario": {
+              "su": "A programmer intends to store a user's score in a variable named score, but they accidentally write 'score = 100' instead of 'Total = 100'. The constraint is that the system must distinguish between the two variables if they are used later in different contexts.",
+              "ma": "Compare the following notations: score = 100 and Total = 100."
+            },
+            "mc": [
+              {
+                "q": "When assigning a value using the assignment operator, what is the fundamental distinction between binding a reference and copying a value?",
+                "op": [
+                  "Binding a reference means the variable name points to the object's location.",
+                  "Copying a value means the variable name creates an independent duplicate of the data.",
+                  "Binding a reference means the variable name stores the exact data content.",
+                  "Copying a value means the assignment operator checks for mathematical equality first."
+                ],
+                "ai": 0,
+                "fi": [
+                  0,
+                  1
+                ],
+                "ex": "A variable is a name that refers to a stored value; the assignment operator = binds the name on the left to the value produced on the right. Binding a reference means the variable name points to the object's location, while copying a value means the variable name creates an independent duplicate of the data."
+              },
+              {
+                "q": "A developer is creating a variable to hold a user's total score, and they observe that the variable 'total' and 'Total' behave differently in the code.",
+                "op": [
+                  "The difference is that 'total' is a variable name, while 'Total' is a mathematical operation.",
+                  "The difference is that 'total' is a variable name, while 'Total' is a case-sensitive variable name.",
+                  "The difference is that 'total' is a stored value, while 'Total' is a reference to the same value.",
+                  "The difference is that 'total' is a mathematical equality, while 'Total' is a simple assignment statement."
+                ],
+                "ai": 0,
+                "fi": [
+                  4
+                ],
+                "ex": "Variable names are case-sensitive, so total and Total are two different variables. The difference is that 'total' is a variable name, while 'Total' is a case-sensitive variable name."
+              }
+            ]
+          }
+        ]
+      },
+      "responseSha256": "5a9f3b4e718eeded283efac1d8090dba58c11fa0d6c9c7e99c3722ca6d4e21a4",
+      "admission": {
+        "needsRetry": true,
+        "issues": [
+          "lesson-1:key-term-0:correction-repeats-example",
+          "lesson-1:key-term-1:correction-drops-defining-identity",
+          "lesson-1:mc-1:option-length"
+        ]
+      },
+      "compilerRepairs": [
+        {
+          "pass": "crossAttemptAtomicRetention",
+          "lessonId": "lesson-1",
+          "field": "scenario",
+          "issueCountBefore": 4,
+          "issueCountAfter": 3,
+          "resolvedIssues": [
+            "lesson-1:scenario:scenario-missing-evidence-packet"
+          ],
+          "trainingEligible": false,
+          "preferenceEvidence": {
+            "evidenceScope": "deterministic-contract-only",
+            "verified": false
+          }
+        }
+      ],
+      "startedAt": "2026-07-19T14:18:25.704Z",
+      "completedAt": "2026-07-19T14:19:00.424Z",
+      "durationMs": 34720
+    },
+    {
+      "caseId": "scion-kernel-233f463069b39ef1df0a8f93",
+      "caseSha256": "233f463069b39ef1df0a8f9383d0df0553a4591c393a62bc7e8ed0ca56d6ba4e",
+      "messagesSha256": "cda6f37ec9206a877c1a959aaa0393e4b002c5102de69612f6d8cda1f8545193",
+      "sourceContextSha256": "0f89398e62592cf92b2f3eab525244a85903707daea0a2a5856963e2eaa6afc4",
+      "arm": "local",
+      "model": {
+        "provider": "local",
+        "id": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+        "revision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
+        "route": "mlx-vlm-base-only",
+        "decoding": "greedy-json-schema",
+        "maxOutputTokens": 2400,
+        "runtime": {
+          "python": "/Users/tianxing/.cache/coursemapper/venv-g4/bin/python",
+          "script": "/Users/tianxing/Documents/NYU/NYUsliver/CourseMapper-scion-v01654/trellis/tendril/distill/serve_g4.py"
+        }
+      },
+      "attempts": [
+        {
+          "attempt": 1,
+          "messagesSha256": "cda6f37ec9206a877c1a959aaa0393e4b002c5102de69612f6d8cda1f8545193",
+          "rawResponseSha256": "8b1fb4563ac69065294aed2d496504b66912d0b56f73cb684861b2bc32574914",
+          "responseSha256": "1461f40f61a72ed40a7ded53d4d942b7477ae0ef1da18a25a64412ae3fc74121",
+          "artifactSha256": "2533989e0be0533caf82b7d376d73853de9e0a5f938def05cc4a880acda23deb",
+          "assessment": {
+            "needsRetry": true,
+            "issues": [
+              "lesson-4:key-term-0:correction-repeats-definition",
+              "lesson-4:key-term-2:correction-repeats-definition",
+              "lesson-4:mc-0:multiple-source-supported-options",
+              "lesson-4:mc-1:option-length"
+            ]
+          },
+          "repairs": [
+            {
+              "kind": "mc-item",
+              "pass": "sourceAnswerAlignment",
+              "lessonId": "lesson-4",
+              "item": 1,
+              "action": "realigned",
+              "prompt": "Choose the answer index uniquely supported by the source claim most relevant to the question.",
+              "rejected": {
+                "question": "A musician encounters a tritone spelled as an augmented fourth in one context and a diminished fifth in another; what is the implication of this spelling variation?",
+                "options": [
+                  "The spelling of a tritone only implies one specific resolution regardless of the spelling used.",
+                  "The spelling of a tritone is determined solely by the semitone distance used.",
+                  "The spelling of a tritone implies different resolutions, such as an augmented fourth or a diminished fifth.",
+                  "The spelling of a tritone is only determined by the diatonic span used."
+                ],
+                "answerIndex": 0,
+                "explanation": "A tritone can be spelled as an augmented fourth or diminished fifth, and the spelling can imply different resolutions. State the subject evidence supporting the answer, then correct the closest distractor."
+              },
+              "chosen": {
+                "question": "A musician encounters a tritone spelled as an augmented fourth in one context and a diminished fifth in another; what is the implication of this spelling variation?",
+                "options": [
+                  "The spelling of a tritone only implies one specific resolution regardless of the spelling used.",
+                  "The spelling of a tritone is determined solely by the semitone distance used.",
+                  "The spelling of a tritone implies different resolutions, such as an augmented fourth or a diminished fifth.",
+                  "The spelling of a tritone is only determined by the diatonic span used."
+                ],
+                "answerIndex": 2,
+                "explanation": "A tritone can be spelled as an augmented fourth or diminished fifth, and the spelling can imply different resolutions. State the subject evidence supporting the answer, then correct the closest distractor."
+              },
+              "trainingEligible": false,
+              "preferenceEvidence": {
+                "kind": "deterministic-source-answer-conflict",
+                "verified": true,
+                "declaredIndex": 0,
+                "supportedIndex": 2,
+                "scores": [
+                  4,
+                  2,
+                  9,
+                  2
+                ],
+                "containment": [
+                  0.444444,
+                  0.285714,
+                  0.9,
+                  0.285714
+                ],
+                "supportMethod": "source-question-option-alignment",
+                "sourceAlignmentProfile": "strict-cited-source",
+                "relevantSourceClaimIndexes": [
+                  0
+                ],
+                "questionClaimScore": 6,
+                "minimumQuestionClaimScore": 2,
+                "minimumOptionScore": 3,
+                "minimumOptionContainment": 0.6,
+                "minimumMargin": 3
+              }
+            }
+          ],
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "durationMs": 12349
+        },
+        {
+          "attempt": 2,
+          "messagesSha256": "e3d98f4834f041770a04b8cdeaa61b398d68e04f5af7c141b7b511b32b983db4",
+          "rawResponseSha256": "facefae6dcc57a64d4d4d11dc56517f1bd391dba860fc3c117fb21d4814e86ce",
+          "responseSha256": "81b13f7babe61ae58fefd10065a6ea100e0fe00ea78bf742825fa55aa94cc7f6",
+          "artifactSha256": "3436b13e84cb8462e23db16e23c1dbc38633ff4b341ef4160589e12c243c8531",
+          "assessment": {
+            "needsRetry": true,
+            "issues": [
+              "lesson-4:key-term-0:example-repeats-definition",
+              "lesson-4:key-term-1:example-repeats-definition",
+              "lesson-4:key-term-2:example-repeats-definition",
+              "lesson-4:key-term-2:correction-repeats-definition",
+              "lesson-4:key-term-2:correction-repeats-example",
+              "lesson-4:mc-0:stem-length",
+              "lesson-4:mc-0:answer-position-residue",
+              "lesson-4:mc-1:stem-length",
+              "lesson-4:mc-1:answer-position-residue",
+              "lesson-4:mc-1:source-fact-key-mismatch"
+            ]
+          },
+          "repairs": [
+            {
+              "pass": "crossAttemptAtomicRetention",
+              "lessonId": "lesson-4",
+              "field": "scenario",
+              "issueCountBefore": 11,
+              "issueCountAfter": 10,
+              "resolvedIssues": [
+                "lesson-4:scenario:scenario-missing-evidence-packet"
+              ],
+              "trainingEligible": false,
+              "preferenceEvidence": {
+                "evidenceScope": "deterministic-contract-only",
+                "verified": false
+              }
+            }
+          ],
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "durationMs": 10005
+        },
+        {
+          "attempt": 3,
+          "messagesSha256": "6ec7385896545d6e39112270aabecadf57f8ce7f82771d59e30ecb61e166397b",
+          "rawResponseSha256": "19c2d55a493791c81a6866fa2c2ada8c02cf7c417df2aacae40df572769c345a",
+          "responseSha256": "39a794526c017eceda3dac0d2e78baa4080bf241f58dd64db4362f57b05c5d6d",
+          "artifactSha256": "052188a51ed0ff0a9cd5c2ac26859b6c04b04e5f17777428b8f0a1736291d1c4",
+          "assessment": {
+            "needsRetry": true,
+            "issues": [
+              "lesson-4:key-term-0:example-repeats-definition",
+              "lesson-4:key-term-1:example-repeats-definition",
+              "lesson-4:key-term-2:example-repeats-definition",
+              "lesson-4:key-term-2:correction-repeats-definition",
+              "lesson-4:key-term-2:correction-repeats-example",
+              "lesson-4:mc-0:stem-length",
+              "lesson-4:mc-0:duplicate-options",
+              "lesson-4:mc-0:answer-position-residue",
+              "lesson-4:mc-1:duplicate-options",
+              "lesson-4:mc-1:answer-position-residue",
+              "lesson-4:mc-1:multiple-source-supported-options"
+            ]
+          },
+          "repairs": [
+            {
+              "pass": "crossAttemptAtomicRetention",
+              "lessonId": "lesson-4",
+              "field": "keyTerms",
+              "issueCountBefore": 15,
+              "issueCountAfter": 11,
+              "resolvedIssues": [
+                "lesson-4:key-term-0:correction-repeats-definition",
+                "lesson-4:key-term-0:correction-repeats-example",
+                "lesson-4:key-term-1:correction-repeats-definition",
+                "lesson-4:key-term-1:correction-repeats-example"
+              ],
+              "trainingEligible": false,
+              "preferenceEvidence": {
+                "evidenceScope": "deterministic-contract-only",
+                "verified": false
+              }
+            }
+          ],
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "durationMs": 10970
+        }
+      ],
+      "selectedAttempt": 1,
+      "artifact": {
+        "lessonId": "lesson-4",
+        "facts": [
+          "A written interval is identified by its diatonic span and semitone distance, which together determine labels such as major, minor, augmented, or diminished.",
+          "Four semitones form a major third, while three semitones form a minor third when each spans three scale steps.",
+          "A tritone can be spelled as an augmented fourth or diminished fifth, and the spelling can imply different resolutions."
+        ],
+        "keyTerms": [
+          {
+            "tr": "diatonic span",
+            "df": "A written interval is identified by its diatonic span and semitone distance, which together determine labels such as major, minor, augmented, or diminished.",
+            "eg": "Identifying an interval by its diatonic span and semitone distance.",
+            "mi": "The diatonic span is only determined by the number of scale steps involved.",
+            "cx": "The diatonic span is determined by the written interval's span and distance, which together determine labels such as major, minor, augmented, or diminished."
+          },
+          {
+            "tr": "semitone distance",
+            "df": "A written interval is identified by its diatonic span and semitone distance, which together determine labels such as major, minor, augmented, or diminished.",
+            "eg": "Determining the semitone distance to label an interval.",
+            "mi": "The semitone distance is solely determined by the scale steps involved in the interval.",
+            "cx": "The semitone distance is a component of the written interval that, when combined with diatonic span, determines labels such as major, minor, augmented, or diminished."
+          },
+          {
+            "tr": "tritone spelling",
+            "df": "A tritone can be spelled as an augmented fourth or diminished fifth, and the spelling can imply different resolutions.",
+            "eg": "A tritone being spelled as an augmented fourth or diminished fifth.",
+            "mi": "The spelling of a tritone only implies one specific resolution regardless of the spelling used.",
+            "cx": "The spelling of a tritone can imply different resolutions, such as an augmented fourth or a diminished fifth."
+          }
+        ],
+        "scenario": {
+          "su": "A composer is writing a passage and needs to distinguish between two intervals that both span four semitones. The constraint is that the notation must clearly indicate the specific quality of the interval being used.",
+          "ma": "Compare the notation for a major third and a minor third, and the notation for a tritone spelled as an augmented fourth and a diminished fifth."
+        },
+        "mc": [
+          {
+            "q": "When distinguishing between a major third and a minor third, what is the primary difference in their definition based on scale steps and semitones?",
+            "op": [
+              "A major third spans four semitones, while a minor third spans three semitones.",
+              "A major third spans three semitones, while a minor third spans four semitones.",
+              "A major third spans three scale steps, while a minor third spans four scale steps.",
+              "A major third spans four scale steps, while a minor third spans three scale steps."
+            ],
+            "ai": 0,
+            "fi": [
+              0,
+              1
+            ],
+            "ex": "A written interval is identified by its diatonic span and semitone distance, which together determine labels such as major, minor, augmented, or diminished. Four semitones form a major third, while three semitones form a minor third when each spans three scale steps. State the subject evidence supporting the answer, then correct the closest distractor."
+          },
+          {
+            "q": "A musician encounters a tritone spelled as an augmented fourth in one context and a diminished fifth in another; what is the implication of this spelling variation?",
+            "op": [
+              "The spelling of a tritone only implies one specific resolution regardless of the spelling used.",
+              "The spelling of a tritone is determined solely by the semitone distance used.",
+              "The spelling of a tritone implies different resolutions, such as an augmented fourth or a diminished fifth.",
+              "The spelling of a tritone is only determined by the diatonic span used."
+            ],
+            "ai": 2,
+            "fi": [
+              2
+            ],
+            "ex": "A tritone can be spelled as an augmented fourth or diminished fifth, and the spelling can imply different resolutions. State the subject evidence supporting the answer, then correct the closest distractor."
+          }
+        ]
+      },
+      "artifactSha256": "2533989e0be0533caf82b7d376d73853de9e0a5f938def05cc4a880acda23deb",
+      "response": {
+        "lessons": [
+          {
+            "lessonId": "lesson-4",
+            "facts": [
+              "A written interval is identified by its diatonic span and semitone distance, which together determine labels such as major, minor, augmented, or diminished.",
+              "Four semitones form a major third, while three semitones form a minor third when each spans three scale steps.",
+              "A tritone can be spelled as an augmented fourth or diminished fifth, and the spelling can imply different resolutions."
+            ],
+            "keyTerms": [
+              {
+                "tr": "diatonic span",
+                "df": "A written interval is identified by its diatonic span and semitone distance, which together determine labels such as major, minor, augmented, or diminished.",
+                "eg": "Identifying an interval by its diatonic span and semitone distance.",
+                "mi": "The diatonic span is only determined by the number of scale steps involved.",
+                "cx": "The diatonic span is determined by the written interval's span and distance, which together determine labels such as major, minor, augmented, or diminished."
+              },
+              {
+                "tr": "semitone distance",
+                "df": "A written interval is identified by its diatonic span and semitone distance, which together determine labels such as major, minor, augmented, or diminished.",
+                "eg": "Determining the semitone distance to label an interval.",
+                "mi": "The semitone distance is solely determined by the scale steps involved in the interval.",
+                "cx": "The semitone distance is a component of the written interval that, when combined with diatonic span, determines labels such as major, minor, augmented, or diminished."
+              },
+              {
+                "tr": "tritone spelling",
+                "df": "A tritone can be spelled as an augmented fourth or diminished fifth, and the spelling can imply different resolutions.",
+                "eg": "A tritone being spelled as an augmented fourth or diminished fifth.",
+                "mi": "The spelling of a tritone only implies one specific resolution regardless of the spelling used.",
+                "cx": "The spelling of a tritone can imply different resolutions, such as an augmented fourth or a diminished fifth."
+              }
+            ],
+            "scenario": {
+              "su": "A composer is writing a passage and needs to distinguish between two intervals that both span four semitones. The constraint is that the notation must clearly indicate the specific quality of the interval being used.",
+              "ma": "Compare the notation for a major third and a minor third, and the notation for a tritone spelled as an augmented fourth and a diminished fifth."
+            },
+            "mc": [
+              {
+                "q": "When distinguishing between a major third and a minor third, what is the primary difference in their definition based on scale steps and semitones?",
+                "op": [
+                  "A major third spans four semitones, while a minor third spans three semitones.",
+                  "A major third spans three semitones, while a minor third spans four semitones.",
+                  "A major third spans three scale steps, while a minor third spans four scale steps.",
+                  "A major third spans four scale steps, while a minor third spans three scale steps."
+                ],
+                "ai": 0,
+                "fi": [
+                  0,
+                  1
+                ],
+                "ex": "A written interval is identified by its diatonic span and semitone distance, which together determine labels such as major, minor, augmented, or diminished. Four semitones form a major third, while three semitones form a minor third when each spans three scale steps. State the subject evidence supporting the answer, then correct the closest distractor."
+              },
+              {
+                "q": "A musician encounters a tritone spelled as an augmented fourth in one context and a diminished fifth in another; what is the implication of this spelling variation?",
+                "op": [
+                  "The spelling of a tritone only implies one specific resolution regardless of the spelling used.",
+                  "The spelling of a tritone is determined solely by the semitone distance used.",
+                  "The spelling of a tritone implies different resolutions, such as an augmented fourth or a diminished fifth.",
+                  "The spelling of a tritone is only determined by the diatonic span used."
+                ],
+                "ai": 2,
+                "fi": [
+                  2
+                ],
+                "ex": "A tritone can be spelled as an augmented fourth or diminished fifth, and the spelling can imply different resolutions. State the subject evidence supporting the answer, then correct the closest distractor."
+              }
+            ]
+          }
+        ]
+      },
+      "responseSha256": "1461f40f61a72ed40a7ded53d4d942b7477ae0ef1da18a25a64412ae3fc74121",
+      "admission": {
+        "needsRetry": true,
+        "issues": [
+          "lesson-4:key-term-0:correction-repeats-definition",
+          "lesson-4:key-term-2:correction-repeats-definition",
+          "lesson-4:mc-0:multiple-source-supported-options",
+          "lesson-4:mc-1:option-length"
+        ]
+      },
+      "compilerRepairs": [
+        {
+          "kind": "mc-item",
+          "pass": "sourceAnswerAlignment",
+          "lessonId": "lesson-4",
+          "item": 1,
+          "action": "realigned",
+          "prompt": "Choose the answer index uniquely supported by the source claim most relevant to the question.",
+          "rejected": {
+            "question": "A musician encounters a tritone spelled as an augmented fourth in one context and a diminished fifth in another; what is the implication of this spelling variation?",
+            "options": [
+              "The spelling of a tritone only implies one specific resolution regardless of the spelling used.",
+              "The spelling of a tritone is determined solely by the semitone distance used.",
+              "The spelling of a tritone implies different resolutions, such as an augmented fourth or a diminished fifth.",
+              "The spelling of a tritone is only determined by the diatonic span used."
+            ],
+            "answerIndex": 0,
+            "explanation": "A tritone can be spelled as an augmented fourth or diminished fifth, and the spelling can imply different resolutions. State the subject evidence supporting the answer, then correct the closest distractor."
+          },
+          "chosen": {
+            "question": "A musician encounters a tritone spelled as an augmented fourth in one context and a diminished fifth in another; what is the implication of this spelling variation?",
+            "options": [
+              "The spelling of a tritone only implies one specific resolution regardless of the spelling used.",
+              "The spelling of a tritone is determined solely by the semitone distance used.",
+              "The spelling of a tritone implies different resolutions, such as an augmented fourth or a diminished fifth.",
+              "The spelling of a tritone is only determined by the diatonic span used."
+            ],
+            "answerIndex": 2,
+            "explanation": "A tritone can be spelled as an augmented fourth or diminished fifth, and the spelling can imply different resolutions. State the subject evidence supporting the answer, then correct the closest distractor."
+          },
+          "trainingEligible": false,
+          "preferenceEvidence": {
+            "kind": "deterministic-source-answer-conflict",
+            "verified": true,
+            "declaredIndex": 0,
+            "supportedIndex": 2,
+            "scores": [
+              4,
+              2,
+              9,
+              2
+            ],
+            "containment": [
+              0.444444,
+              0.285714,
+              0.9,
+              0.285714
+            ],
+            "supportMethod": "source-question-option-alignment",
+            "sourceAlignmentProfile": "strict-cited-source",
+            "relevantSourceClaimIndexes": [
+              0
+            ],
+            "questionClaimScore": 6,
+            "minimumQuestionClaimScore": 2,
+            "minimumOptionScore": 3,
+            "minimumOptionContainment": 0.6,
+            "minimumMargin": 3
+          }
+        }
+      ],
+      "startedAt": "2026-07-19T14:19:00.425Z",
+      "completedAt": "2026-07-19T14:19:33.749Z",
+      "durationMs": 33324
+    }
+  ],
+  "updatedAt": "2026-07-19T14:19:33.749Z"
+}

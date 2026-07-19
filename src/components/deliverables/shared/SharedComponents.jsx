@@ -545,7 +545,8 @@ export function CollapsibleCard({
         {/* Chevron toggle — only this controls collapse/expand */}
         <button
           onClick={() => setOpen(!open)}
-          className={`flex-shrink-0 flex items-center justify-center w-10 h-10 ml-2 rounded-md hover:bg-white/40 transition-colors`}
+          className="ml-2 flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-md transition-colors hover:bg-white/40 sm:h-10 sm:w-10"
+          aria-label={open ? `Collapse ${title}` : `Expand ${title}`}
           title={open ? 'Collapse' : 'Expand'}
         >
           <svg

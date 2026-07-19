@@ -7,7 +7,7 @@ const SCENARIO_TEMPLATE_RESIDUE = new Set([
 ]);
 
 const DECISION_RE =
-  /\b(?:decid(?:e|es|ed|ing)|choos(?:e|es|ing)|select(?:s|ed|ing)?|recommend(?:s|ed|ing|ation)?|prioriti[sz](?:e|es|ed|ing)|determin(?:e|es|ed|ing)|classif(?:y|ies|ied|ying|ication)|label(?:s|ed|ing)?|identif(?:y|ies|ied|ying)|infer(?:s|red|ring|ence)?|revise|revision|next step|respond|resolve|which\b[^?.]{0,60}\b(?:best|next|remains?|requires?|should|warrants?)|whether)\b/i;
+  /\b(?:decid(?:e|es|ed|ing)|choos(?:e|es|ing)|select(?:s|ed|ing)?|recommend(?:s|ed|ing|ation)?|prioriti[sz](?:e|es|ed|ing)|determin(?:e|es|ed|ing)|classif(?:y|ies|ied|ying|ication)|label(?:s|ed|ing)?|nam(?:e|es|ed|ing)|identif(?:y|ies|ied|ying)|infer(?:s|red|ring|ence)?|revise|revision|next step|respond|resolve|which\b[^?.]{0,60}\b(?:best|next|remains?|requires?|should|warrants?)|whether)\b/i;
 const ACTIONABLE_PROBLEM_RE =
   /\b(?:bottleneck|complaint|conflict|constraint|delay(?:s|ed)?|difficult(?:y|ies)?|error|fail(?:s|ed|ure)?|missing|unclear|confus(?:e|ed|ing|ion)|cannot|unable|low[- ]contrast|misread(?:ing)?|skip(?:s|ped|ping)?|slow(?:er|down)?|wait(?:s|ed|ing)?|risk|problem|trade-?off|uncertain|unsure)\b/i;
 const TENSION_RE =
@@ -20,7 +20,7 @@ const EVIDENCE_KINDS = [
   ],
   ['quote', /["“”][^"“”]{3,}["“”]/],
   ['observation', /\b(?:observ(?:e|es|ed|ation|ations)|behavior|behaviour|field notes?)\b/i],
-  ['data', /\b(?:data|dataset|metric|rate|tim(?:e|es|ing)|score|measurement)\b/i],
+  ['data', /\b(?:data|dataset|metric|rate|tim(?:e|es|ing)|score|measurements?|counts?|distances?|steps?)\b/i],
   ['record', /\b(?:record|log|transcript|interview|survey|report|result|finding|comment|response|quote|note)s?\b/i],
   [
     'design',
@@ -97,20 +97,25 @@ export function isConcreteScenarioMaterials(value) {
   );
 }
 
-export function analyzeDecisionScenario(scenario) {
+export function analyzeDecisionScenario(scenario, { evaluationProfile = 'current' } = {}) {
   const setup = text(scenario?.setup || scenario?.su);
   const materials = text(scenario?.materials || scenario?.ma);
   const combined = `${setup} ${materials}`.trim();
   const evidenceKinds = EVIDENCE_KINDS.filter(([, pattern]) => pattern.test(combined)).map(([kind]) => kind);
   const segments = materialSegments(materials);
-  const explicitDecision = DECISION_RE.test(setup);
-  const actionableProblem = ACTIONABLE_PROBLEM_RE.test(setup);
+  // The public prompt deliberately allows the decision, evidence, and
+  // constraint to be distributed across su and ma. Validate that combined
+  // contract instead of falsely rejecting a concrete labeling/selection ask
+  // merely because it appears in the materials sentence.
+  const decisionSurface = evaluationProfile === 'v0.16.58' ? setup : combined;
+  const explicitDecision = DECISION_RE.test(decisionSurface);
+  const actionableProblem = ACTIONABLE_PROBLEM_RE.test(decisionSurface);
   const templateResidue = hasScenarioTemplateResidue(setup, materials);
   const checks = {
     context: wordCount(setup) >= 20,
     decision: explicitDecision || actionableProblem,
     evidencePacket: evidenceKinds.length >= 2 || (evidenceKinds.length >= 1 && segments.length >= 2),
-    tension: TENSION_RE.test(setup) || actionableProblem || explicitDecision,
+    tension: TENSION_RE.test(decisionSurface) || actionableProblem || explicitDecision,
     materials: isConcreteScenarioMaterials(materials),
   };
   const issueByCheck = {

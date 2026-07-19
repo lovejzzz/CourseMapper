@@ -1,0 +1,372 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-capture-v1",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "66e7beee6c087c79f5b26a65abdf9abd124b26a1869d669c5afd570252ab29d1"
+  },
+  "identitySha256": "0b5e22cc637e1a3b8dd14ab01bb377f5ac8ebc2a0998fee0577f06698c7e5162",
+  "arm": "reference",
+  "model": {
+    "provider": "openai-codex-cli",
+    "id": "gpt-5.4-mini",
+    "route": "codex-cli-ephemeral-json-schema",
+    "reasoningEffort": "low",
+    "runtime": {
+      "cli": "codex",
+      "version": "codex-cli 0.144.5"
+    },
+    "isolation": {
+      "ephemeral": true,
+      "sandbox": "read-only",
+      "workingDirectory": "empty-temporary-directory",
+      "userConfig": "ignored",
+      "projectRules": "ignored",
+      "toolCallsAllowed": false
+    }
+  },
+  "compiler": {
+    "policy": {
+      "keyTermSemanticProfile": "source-strict-v6",
+      "campaignPromptPolicy": "frozen-messages-by-campaign-identity",
+      "maxAttempts": 3,
+      "answerPosition": "compiler-deterministic-shuffle-after-admission",
+      "crossAttemptRetention": "citation-coupled-assessment-plus-independent-keyterms"
+    },
+    "files": {
+      "scripts/scionLessonKernelCapture.mjs": "21aa78279d049d5d343cd49507c705bcac4913e081c7521c87692eb84980acdc",
+      "scripts/lib/scionLessonKernelCampaign.mjs": "afeada7fdba7393ab9bd94e56a12c6c219d45f6f9ef7d1feb8ae9eeb41b75bd3",
+      "src/lib/publicScionProvider.js": "4e8f52906331b516a18548622d30b9ebc5aa80b70ce8da736350f9f05352bb8b",
+      "src/lib/scionAnswerKeyAlignment.js": "063b473e4cdac3ba4ded1e82bedecbd4b44ed4ca52141b02f4f05681c017732f",
+      "src/lib/scionKeyTermContract.js": "995c0f357e0b35785090a85f79d7c6c56931aea8a450bd8536583c5982aadcd5",
+      "src/lib/scenarioContract.js": "176daf6d9ef0b98368ccac05c839cb9b255a0e3499969f994e16881e42d0168e"
+    },
+    "identitySha256": "020c309371bae7766169dbbed59368ebc2eee5b83bfb49ce72babce055b37dfa"
+  },
+  "calls": [
+    {
+      "caseId": "scion-kernel-144e8ece1099a24c27fc2344",
+      "caseSha256": "144e8ece1099a24c27fc234412d7e10f9a235d0852790cd808a3ddfd75bd29c5",
+      "messagesSha256": "71d9afc3e65a1a0a40f86f340da0e9412ad4f47fc459bf73be898a2fff368fcf",
+      "sourceContextSha256": "4fb22bcb5552beda1fca8748ba9ed0740ca3d0de8b9cf8ba3efe05b0a4586b68",
+      "arm": "reference",
+      "model": {
+        "provider": "openai-codex-cli",
+        "id": "gpt-5.4-mini",
+        "route": "codex-cli-ephemeral-json-schema",
+        "reasoningEffort": "low",
+        "runtime": {
+          "cli": "codex",
+          "version": "codex-cli 0.144.5"
+        },
+        "isolation": {
+          "ephemeral": true,
+          "sandbox": "read-only",
+          "workingDirectory": "empty-temporary-directory",
+          "userConfig": "ignored",
+          "projectRules": "ignored",
+          "toolCallsAllowed": false
+        }
+      },
+      "attempts": [
+        {
+          "attempt": 1,
+          "messagesSha256": "71d9afc3e65a1a0a40f86f340da0e9412ad4f47fc459bf73be898a2fff368fcf",
+          "rawResponseSha256": "a9eadfd456efc41548f728c3c27d456c371993c1d7d1a227676003a151b3a07d",
+          "responseSha256": "f81d28cea2761f2025963c3c60ea91380596539acea346f0aca3936e41ddce7e",
+          "artifactSha256": "997d7afef166f5e279f3ffc2b80a053b6f0b418538adf4c99c5f4d2c2b3a76b4",
+          "assessment": {
+            "needsRetry": true,
+            "issues": [
+              "lesson-3:key-term-2:example-repeats-definition",
+              "lesson-3:scenario:scenario-missing-decision",
+              "lesson-3:scenario:scenario-missing-evidence-packet",
+              "lesson-3:scenario:scenario-missing-tension"
+            ]
+          },
+          "repairs": [],
+          "receipt": {
+            "provider": "openai-codex-cli",
+            "model": "gpt-5.4-mini",
+            "route": "codex-cli-ephemeral-json-schema",
+            "runtime": {
+              "cli": "codex",
+              "version": "codex-cli 0.144.5"
+            },
+            "threadId": "019f7a96-739f-7a11-8294-6050c5627a7c",
+            "usage": {
+              "input_tokens": 12093,
+              "cached_input_tokens": 1408,
+              "output_tokens": 836,
+              "reasoning_output_tokens": 226
+            },
+            "eventTypes": [
+              "item.completed",
+              "thread.started",
+              "turn.completed",
+              "turn.started"
+            ],
+            "itemTypes": [
+              "agent_message"
+            ],
+            "forbiddenToolEvents": 0
+          },
+          "durationMs": 14194
+        },
+        {
+          "attempt": 2,
+          "messagesSha256": "97b4b61c027fe0641dfaf53abed37c5ad358e899bad73ad682090638f071ef58",
+          "rawResponseSha256": "72c298b1f110fb783671d9df397c9f59030f1becdd4962e54d24e3d28318d419",
+          "responseSha256": "85dae11dce9b81d73f5d75bdb033e3f7282804d0761b6fde21c5a07e4af529af",
+          "artifactSha256": "46e95d74c1150dc12750a661e6074228eefa581d7c76f5fa832a5e6fa30340d7",
+          "assessment": {
+            "needsRetry": true,
+            "issues": [
+              "lesson-3:scenario:scenario-missing-decision",
+              "lesson-3:scenario:scenario-missing-tension"
+            ]
+          },
+          "repairs": [],
+          "receipt": {
+            "provider": "openai-codex-cli",
+            "model": "gpt-5.4-mini",
+            "route": "codex-cli-ephemeral-json-schema",
+            "runtime": {
+              "cli": "codex",
+              "version": "codex-cli 0.144.5"
+            },
+            "threadId": "019f7a96-abeb-7e31-bfe2-73a644d2eacd",
+            "usage": {
+              "input_tokens": 13635,
+              "cached_input_tokens": 1920,
+              "output_tokens": 697,
+              "reasoning_output_tokens": 93
+            },
+            "eventTypes": [
+              "item.completed",
+              "thread.started",
+              "turn.completed",
+              "turn.started"
+            ],
+            "itemTypes": [
+              "agent_message"
+            ],
+            "forbiddenToolEvents": 0
+          },
+          "durationMs": 12620
+        },
+        {
+          "attempt": 3,
+          "messagesSha256": "5d903d5ea190aeda4c14fce7660a912e93bf15950a47e4eb8c881bb475f029c8",
+          "rawResponseSha256": "7c4ef657e9d38c0abba57bbee1f6b95badbaaa2f9bd7f91ee05e85551196b7cf",
+          "responseSha256": "3ba0d654d3cdc4e308ccf3059ed9212d8f61dd768eb8421a0f8b26409e747290",
+          "artifactSha256": "7719b2f7bf5d0d7b4ea1d73190ce203ac1f2a2ff9215290c3031666c9bf52af9",
+          "assessment": {
+            "needsRetry": true,
+            "issues": [
+              "lesson-3:scenario:scenario-missing-decision",
+              "lesson-3:scenario:scenario-missing-tension"
+            ]
+          },
+          "repairs": [
+            {
+              "pass": "crossAttemptAtomicRetention",
+              "lessonId": "lesson-3",
+              "field": "assessmentCore",
+              "issueCountBefore": 3,
+              "issueCountAfter": 2,
+              "resolvedIssues": [
+                "lesson-3:mc-1:explanation-key-conflict"
+              ],
+              "trainingEligible": false,
+              "preferenceEvidence": {
+                "evidenceScope": "deterministic-contract-only",
+                "verified": false
+              }
+            }
+          ],
+          "receipt": {
+            "provider": "openai-codex-cli",
+            "model": "gpt-5.4-mini",
+            "route": "codex-cli-ephemeral-json-schema",
+            "runtime": {
+              "cli": "codex",
+              "version": "codex-cli 0.144.5"
+            },
+            "threadId": "019f7a96-db39-7c02-9dc0-401360474bfe",
+            "usage": {
+              "input_tokens": 12194,
+              "cached_input_tokens": 1920,
+              "output_tokens": 804,
+              "reasoning_output_tokens": 186
+            },
+            "eventTypes": [
+              "item.completed",
+              "thread.started",
+              "turn.completed",
+              "turn.started"
+            ],
+            "itemTypes": [
+              "agent_message"
+            ],
+            "forbiddenToolEvents": 0
+          },
+          "durationMs": 13857
+        }
+      ],
+      "selectedAttempt": 2,
+      "artifact": {
+        "lessonId": "lesson-3",
+        "facts": [
+          "Minor key systems include natural, harmonic, and melodic variants with different scale-degree alterations.",
+          "Natural minor preserves the unaltered sixth and seventh scale degrees.",
+          "Harmonic minor raises the seventh scale degree to create stronger directional pull.",
+          "Melodic minor raises both the sixth and seventh scale degrees upward.",
+          "These variants change pitch spelling and melodic motion without changing the minor framework."
+        ],
+        "keyTerms": [
+          {
+            "tr": "natural minor",
+            "df": "Natural minor is the variant that keeps the sixth and seventh scale degrees unraised.",
+            "eg": "A passage in minor that leaves both upper scale degrees unchanged.",
+            "mi": "Natural minor must raise the seventh for harmonic strength.",
+            "cx": "That description fits harmonic minor instead; natural minor leaves both degrees unaltered."
+          },
+          {
+            "tr": "harmonic minor",
+            "df": "Harmonic minor is the minor variant that raises the seventh scale degree.",
+            "eg": "A minor line written with a raised seventh before the tonic.",
+            "mi": "Harmonic minor raises the sixth and seventh together.",
+            "cx": "Raising both upper degrees describes melodic minor, not harmonic minor."
+          },
+          {
+            "tr": "melodic minor",
+            "df": "Melodic minor is the minor variant that raises both the sixth and seventh scale degrees.",
+            "eg": "An ascending minor passage marked with raised sixth and seventh degrees.",
+            "mi": "Melodic minor raises only the seventh like harmonic minor.",
+            "cx": "Raising only the seventh identifies harmonic minor; melodic minor alters both upper degrees."
+          }
+        ],
+        "scenario": {
+          "su": "A student is comparing three annotated minor passages for a written analysis. One passage shows altered upper scale degrees, and the instructor wants the variant named before rehearsal starts.",
+          "ma": "Compare the marked scale degrees in the notation, the written pitch labels above the staff, and the cadence that depends on a raised seventh to point back toward the tonic."
+        },
+        "mc": [
+          {
+            "q": "One passage keeps both upper scale degrees unchanged, while another raises only the seventh before the cadence. Which comparison best distinguishes the two minor variants from the annotations?",
+            "op": [
+              "Natural minor versus harmonic minor",
+              "Harmonic minor versus melodic minor",
+              "Melodic minor versus natural minor",
+              "Major mode versus natural minor"
+            ],
+            "ai": 0,
+            "fi": [
+              1
+            ],
+            "ex": "The unchanged sixth and seventh identify natural minor, while the raised seventh identifies harmonic minor. Melodic minor would raise both upper degrees, so that distractor does not fit the annotations."
+          },
+          {
+            "q": "A rehearsal score shows an ascending line with both the sixth and seventh sharpened, but the conductor can change only one label before class. Which minor variant matches the written pitches?",
+            "op": [
+              "Melodic minor",
+              "Natural minor",
+              "Harmonic minor",
+              "Dorian mode"
+            ],
+            "ai": 0,
+            "fi": [
+              3
+            ],
+            "ex": "The raised sixth and seventh match melodic minor. Natural minor leaves both unchanged, and harmonic minor raises only the seventh, so it does not match the written pitches."
+          }
+        ]
+      },
+      "artifactSha256": "46e95d74c1150dc12750a661e6074228eefa581d7c76f5fa832a5e6fa30340d7",
+      "response": {
+        "lessons": [
+          {
+            "lessonId": "lesson-3",
+            "facts": [
+              "Minor key systems include natural, harmonic, and melodic variants with different scale-degree alterations.",
+              "Natural minor preserves the unaltered sixth and seventh scale degrees.",
+              "Harmonic minor raises the seventh scale degree to create stronger directional pull.",
+              "Melodic minor raises both the sixth and seventh scale degrees upward.",
+              "These variants change pitch spelling and melodic motion without changing the minor framework."
+            ],
+            "keyTerms": [
+              {
+                "tr": "natural minor",
+                "df": "Natural minor is the variant that keeps the sixth and seventh scale degrees unraised.",
+                "eg": "A passage in minor that leaves both upper scale degrees unchanged.",
+                "mi": "Natural minor must raise the seventh for harmonic strength.",
+                "cx": "That description fits harmonic minor instead; natural minor leaves both degrees unaltered."
+              },
+              {
+                "tr": "harmonic minor",
+                "df": "Harmonic minor is the minor variant that raises the seventh scale degree.",
+                "eg": "A minor line written with a raised seventh before the tonic.",
+                "mi": "Harmonic minor raises the sixth and seventh together.",
+                "cx": "Raising both upper degrees describes melodic minor, not harmonic minor."
+              },
+              {
+                "tr": "melodic minor",
+                "df": "Melodic minor is the minor variant that raises both the sixth and seventh scale degrees.",
+                "eg": "An ascending minor passage marked with raised sixth and seventh degrees.",
+                "mi": "Melodic minor raises only the seventh like harmonic minor.",
+                "cx": "Raising only the seventh identifies harmonic minor; melodic minor alters both upper degrees."
+              }
+            ],
+            "scenario": {
+              "su": "A student is comparing three annotated minor passages for a written analysis. One passage shows altered upper scale degrees, and the instructor wants the variant named before rehearsal starts.",
+              "ma": "Compare the marked scale degrees in the notation, the written pitch labels above the staff, and the cadence that depends on a raised seventh to point back toward the tonic."
+            },
+            "mc": [
+              {
+                "q": "One passage keeps both upper scale degrees unchanged, while another raises only the seventh before the cadence. Which comparison best distinguishes the two minor variants from the annotations?",
+                "op": [
+                  "Natural minor versus harmonic minor",
+                  "Harmonic minor versus melodic minor",
+                  "Melodic minor versus natural minor",
+                  "Major mode versus natural minor"
+                ],
+                "ai": 0,
+                "fi": [
+                  1
+                ],
+                "ex": "The unchanged sixth and seventh identify natural minor, while the raised seventh identifies harmonic minor. Melodic minor would raise both upper degrees, so that distractor does not fit the annotations."
+              },
+              {
+                "q": "A rehearsal score shows an ascending line with both the sixth and seventh sharpened, but the conductor can change only one label before class. Which minor variant matches the written pitches?",
+                "op": [
+                  "Melodic minor",
+                  "Natural minor",
+                  "Harmonic minor",
+                  "Dorian mode"
+                ],
+                "ai": 0,
+                "fi": [
+                  3
+                ],
+                "ex": "The raised sixth and seventh match melodic minor. Natural minor leaves both unchanged, and harmonic minor raises only the seventh, so it does not match the written pitches."
+              }
+            ]
+          }
+        ]
+      },
+      "responseSha256": "85dae11dce9b81d73f5d75bdb033e3f7282804d0761b6fde21c5a07e4af529af",
+      "admission": {
+        "needsRetry": true,
+        "issues": [
+          "lesson-3:scenario:scenario-missing-decision",
+          "lesson-3:scenario:scenario-missing-tension"
+        ]
+      },
+      "compilerRepairs": [],
+      "startedAt": "2026-07-19T13:35:07.851Z",
+      "completedAt": "2026-07-19T13:35:48.522Z",
+      "durationMs": 40671
+    }
+  ],
+  "updatedAt": "2026-07-19T13:35:48.522Z"
+}

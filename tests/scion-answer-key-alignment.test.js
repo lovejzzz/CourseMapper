@@ -2,7 +2,12 @@ import { describe, expect, it } from 'vitest';
 
 import {
   findScionCitedSourceKeyMismatch,
+  findScionEquivalentComparisonOptionPair,
+  findScionEquivalentEquationOptionPair,
   findScionIncompleteExplanationTail,
+  findScionMultipleExplanationSupportedOptions,
+  findScionMultipleSourceSupportedOptions,
+  findScionUnsupportedScopeOption,
   repairScionEnrichmentAnswerKeys,
   repairScionMcItem,
 } from '../src/lib/scionAnswerKeyAlignment.js';
@@ -40,6 +45,227 @@ describe('Scion MC contract recovery', () => {
     expect(
       findScionCitedSourceKeyMismatch(item, {
         sourceClaims: ['你好 is a spoken Mandarin greeting whose meaning is hello.'],
+      }),
+    ).toBeNull();
+  });
+
+  it('rejects a wrong subject that copies the cited relation words', () => {
+    const item = {
+      q: 'Which minor variant raises both the sixth and seventh scale degrees?',
+      op: [
+        'Natural minor alters sixth and seventh degrees',
+        'Harmonic minor raises only the seventh degree',
+        'Melodic minor raises both sixth and seventh degrees',
+        'Natural minor leaves both degrees unchanged',
+      ],
+      ai: 0,
+      fi: [2],
+      ex: 'Melodic minor raises both the sixth and seventh scale degrees.',
+    };
+
+    expect(
+      findScionCitedSourceKeyMismatch(item, {
+        sourceClaims: ['Melodic minor raises both the sixth and seventh scale degrees.'],
+      }),
+    ).toMatchObject({
+      declaredIndex: 0,
+      supportedIndex: 2,
+      supportMethod: 'cited-fact-option-phrase-alignment',
+    });
+  });
+
+  it('rejects an unsupported scope qualifier under the strict ledger contract', () => {
+    expect(
+      findScionCitedSourceKeyMismatch(
+        {
+          q: 'Which system fits?',
+          op: [
+            'The system raises both sixth and seventh degrees',
+            'The system raises the seventh scale degree',
+            'The system lowers the seventh scale degree',
+            'The system changes the third scale degree',
+          ],
+          ai: 0,
+          ex: 'The system raises the seventh scale degree.',
+        },
+        {
+          sourceClaims: ['Harmonic minor raises the seventh scale degree so it can function as a leading tone.'],
+          strict: true,
+        },
+      ),
+    ).toMatchObject({
+      unsupportedScopeTokens: ['both'],
+      supportMethod: 'cited-fact-key-unsupported-scope',
+    });
+  });
+
+  it('rejects an unsupported exclusivity claim in the question or explanation', () => {
+    expect(
+      findScionCitedSourceKeyMismatch(
+        {
+          q: 'A passage raises only the seventh scale degree. Which variant fits?',
+          op: ['Harmonic minor', 'Melodic minor', 'Natural minor', 'Minor key system'],
+          ai: 0,
+          ex: 'Harmonic minor raises the seventh scale degree, while the sixth remains unchanged.',
+        },
+        {
+          sourceClaims: ['Harmonic minor raises the seventh scale degree so it can function as a leading tone.'],
+          strict: true,
+        },
+      ),
+    ).toMatchObject({
+      unsupportedScopeTokens: expect.arrayContaining(['only', 'unchang']),
+      supportMethod: 'cited-fact-context-unsupported-scope',
+    });
+  });
+
+  it('detects two source-supported labels in a broad fits question', () => {
+    expect(
+      findScionMultipleSourceSupportedOptions(
+        {
+          q: 'A score marks a raised seventh. Which entry fits the first excerpt?',
+          op: ['Leading tone', 'Natural minor', 'Harmonic minor', 'Melodic minor'],
+          ai: 2,
+          ex: 'Harmonic minor raises the seventh scale degree.',
+        },
+        {
+          sourceClaims: [
+            'Harmonic minor raises the seventh scale degree so it can function as a leading tone.',
+            'Melodic minor raises both the sixth and seventh scale degrees.',
+          ],
+          allowBroadSourceContext: true,
+        },
+      ),
+    ).toMatchObject({
+      supportMethod: 'question-relevant-source-option-support',
+      supported: expect.arrayContaining([expect.objectContaining({ index: 2 }), expect.objectContaining({ index: 3 })]),
+    });
+  });
+
+  it('detects two source-supported artifacts in a relevant-artifact question', () => {
+    expect(
+      findScionMultipleSourceSupportedOptions(
+        {
+          q: 'When evaluating a competitor product, which artifact is relevant for examination during a usability test?',
+          op: ['A sketch of the product design', 'A competitor product', 'A detailed test script', 'Observation roles'],
+          ai: 0,
+          ex: 'A usability test can examine a sketch, prototype, or competitor product.',
+        },
+        {
+          sourceClaims: [
+            'A usability test can examine a sketch, prototype, competitor product, or other artifact relevant to a user goal.',
+          ],
+          allowBroadSourceContext: true,
+        },
+      ),
+    ).toMatchObject({
+      supportMethod: 'question-relevant-source-option-support',
+      supported: expect.arrayContaining([expect.objectContaining({ index: 0 }), expect.objectContaining({ index: 1 })]),
+    });
+  });
+
+  it('does not confuse source-supported distractor facts with answers to a narrower subject match', () => {
+    expect(
+      findScionMultipleSourceSupportedOptions(
+        {
+          q: 'Which description matches simple meter?',
+          op: [
+            'Each beat divides into two equal parts',
+            'Each beat divides into three equal parts',
+            'Beats are grouped in threes',
+            'Measures are marked by recurring pulse',
+          ],
+          ai: 0,
+          ex: 'Each beat divides into two equal parts in simple meter.',
+        },
+        {
+          sourceClaims: [
+            'A beat is a regularly recurring pulse, and meter organizes recurring beats into groups.',
+            'Duple meter groups beats in twos, and triple meter groups them in threes.',
+            'In simple meter, each beat divides into two equal parts; in compound meter, each beat divides into three equal parts.',
+            'A measure contains one recurring beat group.',
+          ],
+          allowBroadSourceContext: true,
+        },
+      ),
+    ).toBeNull();
+  });
+
+  it('detects an explanation that affirmatively endorses two separate options', () => {
+    expect(
+      findScionMultipleExplanationSupportedOptions({
+        q: 'What is the distinction between binding a reference and copying a value?',
+        op: [
+          "Binding a reference points to the object's location.",
+          'Copying a value creates an independent duplicate.',
+          'Binding a reference tests mathematical equality.',
+          'Copying a value changes the variable name.',
+        ],
+        ai: 0,
+        ex: "Binding a reference points to the object's location, while copying a value creates an independent duplicate.",
+      }),
+    ).toMatchObject({
+      supportMethod: 'multiple-affirmative-explanation-options',
+      supported: expect.arrayContaining([expect.objectContaining({ index: 0 }), expect.objectContaining({ index: 1 })]),
+    });
+  });
+
+  it('detects algebraically equivalent equation choices', () => {
+    expect(
+      findScionEquivalentEquationOptionPair([
+        'Gross investment equals capital stock minus depreciation.',
+        'Capital stock equals gross investment minus depreciation.',
+        'Net investment equals gross investment minus depreciation.',
+        'Depreciation equals gross investment minus net investment.',
+      ]),
+    ).toMatchObject({ left: 2, right: 3 });
+  });
+
+  it('detects inverse-worded duplicate comparisons', () => {
+    expect(
+      findScionEquivalentComparisonOptionPair([
+        'The vein is younger than the beds',
+        'The vein is older than the beds',
+        'The beds are younger than the vein',
+        'The vein and beds formed together',
+      ]),
+    ).toMatchObject({ left: 1, right: 2 });
+  });
+
+  it('rejects exclusivity and absence markers that the source never states', () => {
+    const sourceClaims = [
+      'A test script gives each session a repeatable structure without turning the moderator into a teacher.',
+    ];
+    expect(
+      findScionUnsupportedScopeOption(
+        [
+          'A script gives the session repeatable structure',
+          'The moderator always teaches every realistic task',
+          'The script is only used for recruitment',
+          'The script works without moderator teaching',
+        ],
+        { sourceClaims },
+      ),
+    ).toEqual({ index: 1, marker: 'always' });
+    expect(
+      findScionUnsupportedScopeOption(['A script works without turning the moderator into a teacher'], {
+        sourceClaims,
+      }),
+    ).toBeNull();
+  });
+
+  it('does not treat an explicitly rejected distractor as explanation support', () => {
+    expect(
+      findScionMultipleExplanationSupportedOptions({
+        q: 'Which name follows the supplied rule?',
+        op: [
+          'grade_total follows the naming rule',
+          '3grade_total follows the naming rule',
+          'Underscores are forbidden',
+          'Case never matters',
+        ],
+        ai: 0,
+        ex: 'grade_total follows the naming rule. The 3grade_total option is wrong because a name cannot start with a digit.',
       }),
     ).toBeNull();
   });

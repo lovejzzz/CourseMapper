@@ -23,18 +23,18 @@
     "implementation": [
       {
         "path": "src/lib/scionAnswerKeyAlignment.js",
-        "bytes": 44285,
-        "sha256": "063b473e4cdac3ba4ded1e82bedecbd4b44ed4ca52141b02f4f05681c017732f"
+        "bytes": 55772,
+        "sha256": "18f318acb487acd3b32b449ee25833947d39fa732308698c2d4867c17197ca24"
       },
       {
         "path": "src/lib/publicScionProvider.js",
-        "bytes": 64884,
-        "sha256": "4e8f52906331b516a18548622d30b9ebc5aa80b70ce8da736350f9f05352bb8b"
+        "bytes": 73842,
+        "sha256": "9ea298750a81be766b77664b45beb81938d77b07d38b1ddf205fb5cedf637692"
       },
       {
         "path": "src/lib/scionLocalProvider.js",
-        "bytes": 10160,
-        "sha256": "224393575ee4bdfe4326bcb67f3ee719e21426ab96d06dc495de60df1dbd367f"
+        "bytes": 10428,
+        "sha256": "007922aa2aff7af65fc7483bd57daec1670044815229c78202b2a56e899a4f90"
       }
     ]
   },

@@ -39,6 +39,42 @@ describe('evidence-to-decision scenario contract', () => {
     });
   });
 
+  it('counts explicit measurements as an inspectable evidence packet', () => {
+    const result = analyzeDecisionScenario({
+      setup:
+        'A student is labeling two written intervals from a harmony worksheet before class starts. The student must decide which label fits each written interval.',
+      materials:
+        'the interval marked three scale steps with four semitones, the interval marked three scale steps with three semitones',
+    });
+
+    expect(result.ready).toBe(true);
+    expect(result.checks).toMatchObject({ evidencePacket: true, materials: true });
+    expect(result.evidenceKinds).toContain('data');
+  });
+
+  it('recognizes naming a supported classification under a time constraint as a decision', () => {
+    const result = analyzeDecisionScenario({
+      setup:
+        'A student compares three annotated passages with altered upper scale degrees. The instructor wants the variant named before rehearsal starts.',
+      materials: 'the marked scale degrees, written pitch labels, and the annotated cadence passage',
+    });
+
+    expect(result.ready).toBe(true);
+    expect(result.checks.decision).toBe(true);
+  });
+
+  it('accepts a decision and constraint in concrete materials when setup carries the context', () => {
+    const result = analyzeDecisionScenario({
+      setup:
+        'A composer revises two short minor passages for engraving. One passage marks a raised seventh and the other marks a raised sixth and seventh.',
+      materials:
+        'the marked pitch in Passage A, the two marked pitches in Passage B, and the labeling note that asks for a variant name before engraving proceeds',
+    });
+
+    expect(result.ready).toBe(true);
+    expect(result.checks).toMatchObject({ decision: true, tension: true, evidencePacket: true });
+  });
+
   it.each([
     ['missing', null, 'scenario-missing'],
     [

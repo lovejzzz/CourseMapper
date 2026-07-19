@@ -111,6 +111,19 @@ evaluation/scion-source-capture-*-evidence
 # byte-for-byte by their dedicated audits; preserve that canonical encoding.
 evaluation/scion-adapters/evidence/semantic-admission-v2-v0.16.48.json
 evaluation/scion-adapters/evidence/source-grounding-burden-v0.16.48.json
+# Later lesson-kernel captures, judge packets, and replay receipts are also
+# machine-generated and byte-bound by their dedicated semantic auditors.
+evaluation/scion-adapters/evidence/cited-answer-repair-v0.16.58.json
+evaluation/scion-adapters/evidence/semantic-admission-burden-v0.16.50.json
+evaluation/scion-adapters/evidence/lesson-kernel-expansion-v0.16.57
+evaluation/scion-adapters/evidence/source-ledger-v0.16.59
+evaluation/scion-adapters/lesson-kernel-campaign-v0.16.58.json
+evaluation/scion-adapters/lesson-kernel-campaign-v0.16.59.json
+evaluation/scion-adapters/lesson-kernel-expansion-batch-v0.16.57.json
+# These frozen evidence builders retain canonical output and implementation
+# identities; their focused tests and auditors own their formatting.
+scripts/scionLessonKernelExpansionEvidenceV01657.mjs
+scripts/scionLessonKernelJudgeBatches.mjs
 # Later browser, campaign, and lesson-kernel receipts are byte-sealed by their
 # dedicated audits. Prettier must not rewrite captured model/judge evidence or
 # historical release contracts after their hashes and identities are frozen.

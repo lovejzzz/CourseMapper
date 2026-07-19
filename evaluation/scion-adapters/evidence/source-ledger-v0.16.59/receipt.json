@@ -1,0 +1,147 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-source-ledger-and-semantic-admission-v1",
+  "release": "v0.16.59",
+  "generatedAt": "2026-07-19T16:30:00.000Z",
+  "status": "first-score-qualified-lesson-preferences",
+  "implementation": {
+    "scripts/lib/scionLessonKernelCampaign.mjs": "3d6858d4a9a204d9bd1f09cde237438d3bee91462b17820f87ffc4be4c9ff9cc",
+    "scripts/scionLessonKernelCapture.mjs": "f117e244626778d3a60049926b06f357d127ab0d99023d85f109d329acb4f147",
+    "scripts/scionLessonKernelAdmissionReplay.mjs": "fb55089d7393b3bdd119a6ec703edda2e132b01af00c6d01239f1d6c805c512a",
+    "src/lib/scionEvidenceContract.js": "cd516f6eaaf961459c1e0bfd770f7cfa2ae11c3f6ab112c845a6ce30dab99ae5",
+    "src/lib/scionContracts.js": "b351badc1a6b7d8d6dd4ee9261e5cde3d71aedccf2e9a040d471430cf227396b",
+    "src/lib/scionLocalProvider.js": "007922aa2aff7af65fc7483bd57daec1670044815229c78202b2a56e899a4f90",
+    "src/lib/scionPassB.js": "5fea034c0e1cacb88a11a36617ea8608ebe45369a4d015c653155672d63186df",
+    "src/lib/publicScionProvider.js": "9ea298750a81be766b77664b45beb81938d77b07d38b1ddf205fb5cedf637692",
+    "src/lib/scionAnswerKeyAlignment.js": "18f318acb487acd3b32b449ee25833947d39fa732308698c2d4867c17197ca24",
+    "src/lib/scionKeyTermContract.js": "995c0f357e0b35785090a85f79d7c6c56931aea8a450bd8536583c5982aadcd5",
+    "src/lib/scenarioContract.js": "03e320ab6f7d501585f832e280e1268482c77d20f4c2313a09415c82f9b54304",
+    "src/lib/itemAdmissionLint.js": "b8267ee39ac97e5b7a5963628d18358b70a37bb34033e6af0f00f3b150c5dff6",
+    "src/lib/blueprintEnrichmentPass.js": "b568470b202f5c76c74b78516e32f5422c1e0b08f567fa6feaaca076f5bc631a",
+    "src/lib/courseBlueprintCompiler.js": "8aeb322022c18814f8e4b81bbc6c7ffa12b9f8280b32d239477d4a77c7298f05",
+    "src/hooks/useDeliverables.js": "13134fcd5bac5ac11b959f684447683753d55cd4cd9132c4e97d829d79040444"
+  },
+  "evidenceFiles": {
+    "batch-1/judge/batches/batch-001-bf5ef77abb/a-b.packet.json": "f0bf2206f03ba2b7a57ed38159a1e6ad52c3828a5d4814198b36ca37a604886d",
+    "batch-1/judge/batches/batch-001-bf5ef77abb/a-b.review.json": "259efba8a927be61db2507e9ad2b21eb2c0fdb3988af60e415de4ddc5c313727",
+    "batch-1/judge/batches/batch-001-bf5ef77abb/a-b.review.template.json": "222a416eee73860086b187bf50c91fb17f58b0afb3847506ddd5769effcf2a81",
+    "batch-1/judge/batches/batch-001-bf5ef77abb/b-a.packet.json": "e3a5addd2c86d7d4f64f107e3af673d8ffbebf986f048ff118faf7d406d9c2b8",
+    "batch-1/judge/batches/batch-001-bf5ef77abb/b-a.review.json": "2728b29f9f44b3d90db39144f09533171ef4d7d8e212c73db128cc16e16d9b76",
+    "batch-1/judge/batches/batch-001-bf5ef77abb/b-a.review.template.json": "bb0fed09d22e7dba243d8a03162b0c796ee04d07924aed1faeb2d24a043b14f1",
+    "batch-1/judge/batches/batch-001-bf5ef77abb/judge-prompt.md": "37844b86736335db54b561d8c031660ef71679c55ae1108e2e999e746f2a1c96",
+    "batch-1/judge/batches/batch-001-bf5ef77abb/paired-order-result.json": "e30a02c2e0408d1fad4299792233d93728e72d4a0779572d26ca96ff6d310af3",
+    "batch-1/judge/batches/batch-001-bf5ef77abb/review.schema.json": "784b761afc3f7b6f54a0482d13497be50c04176322038aba24f28532ca292828",
+    "batch-1/judge/batches/batch-001-bf5ef77abb/training-preferences.jsonl": "c7a2b5c8b10b7e3719f92e03a5d1a4b9eac55aff7c1ef785da7505f0487b3b5e",
+    "batch-1/judge/paired-order-workbook-result.json": "9ac8f28413e7df447512174879a7dbfdb5ed2dbfc43cfc9275cb6dd115804af5",
+    "batch-1/judge/training-preferences.jsonl": "c7a2b5c8b10b7e3719f92e03a5d1a4b9eac55aff7c1ef785da7505f0487b3b5e",
+    "batch-1/judge/workbook.json": "1992ce5da16122215e3a21af7a15012a00d3912be4f0c7f2f35b946230e51a8c",
+    "batch-1/local-capture.json": "0de38f37582addfe71391232276d2beefceed89f665ad024f71183e696472843",
+    "batch-1/local-current-replay.json": "82b8b5d0314b6ff9a70d6ceb998a301e37758ddaf87c4ed2bb7d86eb2f5c65f9",
+    "batch-1/reference-capture.json": "73b805b4f274c86e8f03114a4e9fdb2c4f546a55f1d3a79ed6d064110f27a3ae",
+    "batch-1/reference-current-replay.json": "52f51439a0d27a8661e2ffd474f1eeb4bbcca78f32980f05fafce95dfeeb83f4",
+    "batch-2/judge/batches/batch-001-fe39ca4e27/a-b.packet.json": "c4ce0e52d1edb58e982810a8848497728b43e70caa3867b6a3f10fde7394f6b2",
+    "batch-2/judge/batches/batch-001-fe39ca4e27/a-b.review.json": "b17c2c9da6e907fa4212c4f291351826588293a894356873efaacfa02f3d9aeb",
+    "batch-2/judge/batches/batch-001-fe39ca4e27/a-b.review.template.json": "13396e7c3d9f7bebb5cae4e02b81ca2ed83afb64f6c644bb311e85843816860b",
+    "batch-2/judge/batches/batch-001-fe39ca4e27/b-a.packet.json": "d9c1172c7331870e2b8d7f3cccde2aaa368b01d849aa586223f764af7dd61401",
+    "batch-2/judge/batches/batch-001-fe39ca4e27/b-a.review.json": "58268d09f2f60c4fb044d8448322c66b9010d72e35d06fe059f14ded15948865",
+    "batch-2/judge/batches/batch-001-fe39ca4e27/b-a.review.template.json": "853a63d49f48a9ef769198133f6867210a5cea1953b480f52674753ac2043d6a",
+    "batch-2/judge/batches/batch-001-fe39ca4e27/judge-prompt.md": "37844b86736335db54b561d8c031660ef71679c55ae1108e2e999e746f2a1c96",
+    "batch-2/judge/batches/batch-001-fe39ca4e27/paired-order-result.json": "c306e2e2e1bdd0044169311cad5db1eb1f326afa7d8c1f3ec7628c45b98139e7",
+    "batch-2/judge/batches/batch-001-fe39ca4e27/review.schema.json": "784b761afc3f7b6f54a0482d13497be50c04176322038aba24f28532ca292828",
+    "batch-2/judge/batches/batch-001-fe39ca4e27/training-preferences.jsonl": "777812b92dc70d6eb05c61200cf4c53a0f7480fb47f43161151339a13306f39c",
+    "batch-2/judge/paired-order-workbook-result.json": "64982927cffe3655b138609c892b896f059facf2c8d919c9eab6f17c610e8a54",
+    "batch-2/judge/training-preferences.jsonl": "777812b92dc70d6eb05c61200cf4c53a0f7480fb47f43161151339a13306f39c",
+    "batch-2/judge/workbook.json": "c540bed6f4ccfa0ac86e0a6dfd93a89dd987f430dee1bc51158c3683f4d6080c",
+    "batch-2/local-capture.json": "660bfbc0b42a672f89e808009b785e21f96ad2acb126136f4c61933305f3416c",
+    "batch-2/local-current-replay.json": "27658b05b1fda3b7d3096bb82fc9713b0a71943afe7468381c68b237c8b6c586",
+    "batch-2/reference-capture.json": "0295a184161c10d4dff78725d7db593042c50eed8034d2049f9cc97f44313888",
+    "batch-2/reference-current-replay.json": "b43a262a9cc21444642686fa44cc1560298caa0bbadd41b0023b59b2a06faec0",
+    "pilot/legacy-reference.json": "cc4362080c1987a9a2d738a437fa96f3deaf14223da620df9fbeb8230392bb0f",
+    "pilot/source-ledger-reference.json": "fb51ae36d5d876b3e9435a4dda54a6dc27eae6710ac772bd5f36d319e6603266",
+    "training-preferences.jsonl": "c7a2b5c8b10b7e3719f92e03a5d1a4b9eac55aff7c1ef785da7505f0487b3b5e"
+  },
+  "campaign": {
+    "path": "evaluation/scion-adapters/lesson-kernel-campaign-v0.16.59.json",
+    "identitySha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0",
+    "cases": 148,
+    "courseGroups": 25,
+    "domains": 7,
+    "promptPolicy": {
+      "protocol": "scion-lesson-kernel-prompt-policy-v3",
+      "productionPromptBuilder": "buildPublicScionMessages",
+      "evaluatorMetadata": "excluded",
+      "freshRebuildRequired": true
+    }
+  },
+  "sourceLedgerPilot": {
+    "before": {
+      "calls": 1,
+      "attempts": 3,
+      "admitted": 0,
+      "retained": 1,
+      "durationMs": 40671
+    },
+    "after": {
+      "calls": 1,
+      "attempts": 1,
+      "admitted": 1,
+      "retained": 0,
+      "durationMs": 15699
+    },
+    "interpretation": "On the bounded minor-scale source pilot, compiler-owned exact source facts reduced the paid reference from three retained attempts to one admitted attempt while removing invented filler facts."
+  },
+  "crossDomain": {
+    "pairs": 7,
+    "domains": 7,
+    "localCurrentAdmission": {
+      "admitted": 0,
+      "rejected": 7
+    },
+    "referenceCurrentAdmission": {
+      "admitted": 2,
+      "rejected": 5
+    },
+    "pairedJudge": {
+      "referenceWins": 7,
+      "scoreQualifiedBeforeCurrentReplay": 3,
+      "model": {
+        "model": "gpt-5.6-sol",
+        "revision": "codex-cli 0.144.5",
+        "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+      },
+      "reversedOrderSessions": 4
+    },
+    "trainingPreferences": {
+      "rows": 2,
+      "domains": [
+        "computer-science",
+        "user-experience-design"
+      ],
+      "caseIds": [
+        "scion-kernel-089f3bd62b1608632e6b4a56",
+        "scion-kernel-08c18044f316721811371af4"
+      ],
+      "currentCompilerAdmitted": true
+    }
+  },
+  "frozenRegression": {
+    "stableLossesDetected": 78,
+    "historicalCoreDetected": 46,
+    "preferredRegressions": 0
+  },
+  "assertions": {
+    "campaignBreadth": true,
+    "pilotFactLedgerDelta": true,
+    "sevenDomainPairedCoverage": true,
+    "exactSourceLedgerPreserved": true,
+    "currentCompilerSelectivity": true,
+    "pairedJudgeResult": true,
+    "firstQualifiedLessonRows": true,
+    "frozenLossReplay": true
+  },
+  "claimBoundary": "This is deterministic current-compiler replay plus same-identity model-judge evidence from seven bounded source-ledger pairs. Three judged winners cleared the earlier score and admission boundary; the stricter current replay retains two as training-eligible full-lesson preferences. This is not human, instructor, classroom, independent-judge, adapter-improvement, held-out, or production-win evidence.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6aecb27a1abcc8cebd732c263c5b0c4218fd8eb2503b1235413dda0acc8394ef"
+  }
+}

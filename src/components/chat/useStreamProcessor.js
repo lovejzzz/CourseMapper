@@ -394,19 +394,27 @@ export async function fetchAgentResponseNative(
   // text-only branch renders the answer without pretending workspace edits
   // occurred.
   if (provider === 'public') {
-    const flattenedSystem =
+    const workspaceContext =
       systemPrompt && typeof systemPrompt === 'object'
-        ? [systemPrompt.staticPart, systemPrompt.dynamicPart].filter(Boolean).join('\n\n')
+        ? String(systemPrompt.dynamicPart || '')
         : String(systemPrompt || '');
+    const advisorySystem = [
+      'Answer as a concise read-only course workspace adviser.',
+      'Return only the user-facing Markdown reply in at most 90 words.',
+      'Do not call tools and never emit JSON, function calls, respond(...), tool_calls, analysis, or claims that you changed the workspace.',
+      workspaceContext,
+    ]
+      .filter(Boolean)
+      .join('\n\n');
     const conversation = loopMessages
       .slice(-8)
       .map((message) => `${message.role === 'assistant' ? 'Assistant' : 'User'}: ${message.content || ''}`)
       .join('\n\n');
     const result = await runScionLocalCompletion({
-      systemPrompt: flattenedSystem,
+      systemPrompt: advisorySystem,
       userPrompt: conversation,
       task: 'agent',
-      maxOutputTokens: 900,
+      maxOutputTokens: 240,
       maxRetries: 0,
       temperature: tempOverride ?? 0.25,
       signal,

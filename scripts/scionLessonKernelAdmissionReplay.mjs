@@ -17,6 +17,8 @@ const COMPILER_FILES = [
   'src/lib/publicScionProvider.js',
   'src/lib/scionAnswerKeyAlignment.js',
   'src/lib/scionKeyTermContract.js',
+  'src/lib/scionEvidenceContract.js',
+  'src/lib/scionContracts.js',
   'src/lib/scenarioContract.js',
 ];
 

@@ -42,7 +42,8 @@ function schemaString(minLength, maxLength) {
   return { type: 'string', minLength, maxLength };
 }
 
-export function buildScionLessonKernelResponseSchema(lessonId) {
+export function buildScionLessonKernelResponseSchema(lessonId, { factCount = 5 } = {}) {
+  const requiredFactCount = Math.max(3, Math.min(5, Number(factCount) || 5));
   const keyTerm = {
     type: 'object',
     additionalProperties: false,
@@ -65,8 +66,8 @@ export function buildScionLessonKernelResponseSchema(lessonId) {
       fi: {
         type: 'array',
         minItems: 1,
-        maxItems: 1,
-        items: { type: 'integer', minimum: 0, maximum: 4 },
+        maxItems: 2,
+        items: { type: 'integer', minimum: 0, maximum: requiredFactCount - 1 },
       },
       ex: schemaString(20, 400),
     },
@@ -85,7 +86,12 @@ export function buildScionLessonKernelResponseSchema(lessonId) {
           additionalProperties: false,
           properties: {
             lessonId: { type: 'string', enum: [lessonId] },
-            facts: { type: 'array', minItems: 5, maxItems: 5, items: schemaString(20, 260) },
+            facts: {
+              type: 'array',
+              minItems: requiredFactCount,
+              maxItems: requiredFactCount,
+              items: schemaString(20, 260),
+            },
             keyTerms: { type: 'array', minItems: 3, maxItems: 3, items: keyTerm },
             scenario: {
               type: 'object',
@@ -166,6 +172,7 @@ function buildLessonInput({ kernel, lessonNumber, qualityFocus, includeQualityFo
   const sourceSummary = claims.map((claim, index) => `Claim ${index}: ${claim}`).join(' ');
   return {
     lessonId: `lesson-${lessonNumber}`,
+    sourceFactPolicy: 'numbered-source-ledger-v1',
     title: clean(kernel.term),
     // Failure-family / quality-focus text is evaluator metadata, not source
     // material. Putting it here teaches both arms the very concepts the judge
@@ -345,7 +352,7 @@ export async function buildScionLessonKernelCampaign({
   const identityPayload = {
     protocol: SCION_LESSON_KERNEL_CAMPAIGN_PROTOCOL,
     promptPolicy: {
-      protocol: 'scion-lesson-kernel-prompt-policy-v2',
+      protocol: 'scion-lesson-kernel-prompt-policy-v3',
       productionPromptBuilder: 'buildPublicScionMessages',
       evaluatorMetadata: includeQualityFocusInObjectives ? 'included-legacy' : 'excluded',
       freshRebuildRequired: !includeQualityFocusInObjectives,

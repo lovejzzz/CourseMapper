@@ -656,7 +656,7 @@ Return ONLY valid JSON matching the kernel shape from the instructions.`;
     expect(messages[1].content).toContain('LESSONS TO AUTHOR');
     expect(messages[1].content).toContain('Lesson 4: Affinity Mapping');
     expect(messages[1].content).toContain('Write exactly 2 mc items');
-    expect(messages[1].content).toContain('Every mc item includes fi=sourceFactIndexes as exactly [n]');
+    expect(messages[1].content).toContain('Every mc item includes fi=sourceFactIndexes as [n] or [n,m]');
     expect(messages[1].content).toContain('set ai=0; the compiler shuffles answer positions after admission');
     expect(messages[1].content).toContain('without referring to any position');
     expect(messages[1].content).toContain('mi is a genuinely false learner belief');
@@ -1130,7 +1130,7 @@ Return ONLY valid JSON.`;
     );
     expect(assessment.issues).toContain('lesson-citation-mismatch:mc-0:source-fact-key-mismatch');
     expect(buildPublicScionRetryFeedback(assessment)).toContain(
-      "Each fi must cite the one fact that directly supports the keyed option and the explanation's first sentence.",
+      "Each fi must cite the one or two facts that directly support the keyed option and the explanation's first sentence.",
     );
   });
 
@@ -1350,7 +1350,7 @@ Return ONLY valid JSON.`;
     const text = messages.map((message) => message.content).join('\n');
 
     expect(text).toMatch(/fi=sourceFactIndexes/);
-    expect(text).toMatch(/exactly \[n\]: one zero-based integer from 0 through 4/);
+    expect(text).toMatch(/\[n\] or \[n,m\]: one or two distinct zero-based integers from 0 through 4/);
     expect(text).toMatch(/appears verbatim in at least one of that lesson's facts/);
   });
 
@@ -1380,5 +1380,37 @@ Return ONLY valid JSON.`;
     expect(extracted[0].readings).toContain(`Instructor source brief: ${sourceBrief}`);
     expect(messages[1].content).toContain(sourceBrief);
     expect(courseMap.lessons[0].sections[0].supportingResources).toBe('Tone recording set.');
+  });
+
+  it('activates the exact fact ledger for explicit instructor-only facts in the production prompt', () => {
+    const facts = [
+      'A usability test observes representative users attempting realistic tasks.',
+      'A test script gives each session a repeatable structure.',
+      'Recruitment identifies appropriate users before the session.',
+    ];
+    const prompt = buildLessonKernelPrompt(
+      {
+        courseName: 'Usability Testing',
+        lessons: [
+          {
+            title: 'Lesson 1: Test planning',
+            sections: [{ topicSection: 'Usability test scripts and recruitment', learningObjectives: 'Plan a test.' }],
+          },
+        ],
+      },
+      [0],
+      { questionsPerLesson: 6, instructorProvidedFacts: facts },
+    );
+    const extracted = extractPublicScionKernelLessons(prompt.userPrompt);
+    const messages = buildPublicScionMessages(prompt.systemPrompt, prompt.userPrompt, {
+      task: 'blueprintEnrichment',
+    });
+
+    expect(extracted[0]).toMatchObject({
+      sourceFactPolicy: 'numbered-source-ledger-v1',
+      sourceFacts: facts,
+    });
+    expect(messages[1].content).toContain('SOURCE FACT LEDGER');
+    expect(messages[1].content).toContain('Copy that facts array exactly');
   });
 });

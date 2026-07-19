@@ -1,0 +1,320 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-capture-v1",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "e12d95f082d803d9a79dae400bb2bffa7c96bcdbeaa7c58fde957da1bd12ed75"
+  },
+  "identitySha256": "45561302eebafb5adb5b377b47bb7de6ebaf08500abe53cfe8e09ddd0ddaba4a",
+  "arm": "reference",
+  "model": {
+    "provider": "openai-codex-cli",
+    "id": "gpt-5.4-mini",
+    "route": "codex-cli-ephemeral-json-schema",
+    "reasoningEffort": "low",
+    "runtime": {
+      "cli": "codex",
+      "version": "codex-cli 0.144.5"
+    },
+    "isolation": {
+      "ephemeral": true,
+      "sandbox": "read-only",
+      "workingDirectory": "empty-temporary-directory",
+      "userConfig": "ignored",
+      "projectRules": "ignored",
+      "toolCallsAllowed": false
+    }
+  },
+  "compiler": {
+    "policy": {
+      "keyTermSemanticProfile": "source-strict-v6",
+      "campaignPromptPolicy": "frozen-messages-by-campaign-identity",
+      "maxAttempts": 3,
+      "answerPosition": "compiler-deterministic-shuffle-after-admission",
+      "crossAttemptRetention": "citation-coupled-assessment-plus-independent-keyterms"
+    },
+    "files": {
+      "scripts/scionLessonKernelCapture.mjs": "f117e244626778d3a60049926b06f357d127ab0d99023d85f109d329acb4f147",
+      "scripts/lib/scionLessonKernelCampaign.mjs": "af8aa554d136d1e1b276f3b9ff07a88b579b07ecad6dc1037f132f11bd409e4f",
+      "src/lib/scionContracts.js": "96829f9a97343eedb068c07bf36467d3b0a7fba2fee2c1f6108647aeccb3c423",
+      "src/lib/scionEvidenceContract.js": "93e91bb2d084d3a784300f8e4a778da0555cf179472d49d80274c553c3b57b17",
+      "src/lib/publicScionProvider.js": "81f106530ed780cdbd2422b3608e5196e9e960219d6a18f2d98cb054f0adbca5",
+      "src/lib/scionAnswerKeyAlignment.js": "063b473e4cdac3ba4ded1e82bedecbd4b44ed4ca52141b02f4f05681c017732f",
+      "src/lib/scionKeyTermContract.js": "995c0f357e0b35785090a85f79d7c6c56931aea8a450bd8536583c5982aadcd5",
+      "src/lib/scenarioContract.js": "49863888d55f0396c4b210605b5667751d0d09765f5afc25146fbcfe4e20dbfe"
+    },
+    "identitySha256": "b8e100b8d38c4981b7b5d454b8d691eb44b7986f969ae2e5fb65d7c5f018a8f7"
+  },
+  "calls": [
+    {
+      "caseId": "scion-kernel-81855d9f9c00f071332a4cfb",
+      "caseSha256": "81855d9f9c00f071332a4cfb9b7c5d590a946167b58bfc97170ded4847fa5ad6",
+      "messagesSha256": "96fd41af173af0628da1904f1bec04e52dd0056d6a2b003da05440d3d9545abc",
+      "sourceContextSha256": "4fb22bcb5552beda1fca8748ba9ed0740ca3d0de8b9cf8ba3efe05b0a4586b68",
+      "arm": "reference",
+      "model": {
+        "provider": "openai-codex-cli",
+        "id": "gpt-5.4-mini",
+        "route": "codex-cli-ephemeral-json-schema",
+        "reasoningEffort": "low",
+        "runtime": {
+          "cli": "codex",
+          "version": "codex-cli 0.144.5"
+        },
+        "isolation": {
+          "ephemeral": true,
+          "sandbox": "read-only",
+          "workingDirectory": "empty-temporary-directory",
+          "userConfig": "ignored",
+          "projectRules": "ignored",
+          "toolCallsAllowed": false
+        }
+      },
+      "attempts": [
+        {
+          "attempt": 1,
+          "messagesSha256": "96fd41af173af0628da1904f1bec04e52dd0056d6a2b003da05440d3d9545abc",
+          "rawResponseSha256": "a2242b8b74aa885601f08886d5754f5ac430d78e0d39204722efd91654bb3650",
+          "responseSha256": "c8b5beed2a6d03a2cb0b1e17a96a26c3696de7380bf591ec06335c3aed9dc6bb",
+          "artifactSha256": "9aaae028cd5410feb0a1162d707a35a372bc42165d4d0d6140fca05eabf2fc14",
+          "assessment": {
+            "needsRetry": false,
+            "issues": []
+          },
+          "repairs": [
+            {
+              "pass": "deterministicOptionShuffle",
+              "lessonId": "lesson-3",
+              "item": 0,
+              "permutation": [
+                3,
+                2,
+                0,
+                1
+              ],
+              "answerIndexBefore": 0,
+              "answerIndexAfter": 2,
+              "trainingEligible": false
+            },
+            {
+              "pass": "deterministicOptionShuffle",
+              "lessonId": "lesson-3",
+              "item": 1,
+              "permutation": [
+                3,
+                0,
+                2,
+                1
+              ],
+              "answerIndexBefore": 0,
+              "answerIndexAfter": 1,
+              "trainingEligible": false
+            }
+          ],
+          "receipt": {
+            "provider": "openai-codex-cli",
+            "model": "gpt-5.4-mini",
+            "route": "codex-cli-ephemeral-json-schema",
+            "runtime": {
+              "cli": "codex",
+              "version": "codex-cli 0.144.5"
+            },
+            "threadId": "019f7a9f-59ba-7cb2-b91b-371bec00dbb9",
+            "usage": {
+              "input_tokens": 12131,
+              "cached_input_tokens": 1408,
+              "output_tokens": 886,
+              "reasoning_output_tokens": 259
+            },
+            "eventTypes": [
+              "item.completed",
+              "thread.started",
+              "turn.completed",
+              "turn.started"
+            ],
+            "itemTypes": [
+              "agent_message"
+            ],
+            "forbiddenToolEvents": 0
+          },
+          "durationMs": 15699
+        }
+      ],
+      "selectedAttempt": 1,
+      "artifact": {
+        "lessonId": "lesson-3",
+        "facts": [
+          "The minor key system has natural, harmonic, and melodic variants that differ through alterations to the sixth and seventh scale degrees.",
+          "Harmonic minor raises the seventh scale degree so it can function as a leading tone.",
+          "Melodic minor raises both the sixth and seventh scale degrees."
+        ],
+        "keyTerms": [
+          {
+            "tr": "harmonic minor",
+            "df": "Harmonic minor is a minor variant distinguished by raising the seventh scale degree to create a leading-tone function.",
+            "eg": "Justin Rubin describes harmonic minor in chapter 25.",
+            "mi": "Harmonic minor only changes the sixth scale degree.",
+            "cx": "The defining alteration is the raised seventh, not a changed sixth alone."
+          },
+          {
+            "tr": "melodic minor",
+            "df": "Melodic minor is a minor variant that raises both the sixth and seventh scale degrees to change the scale's upper motion.",
+            "eg": "Justin Rubin discusses melodic minor in chapter 25.",
+            "mi": "Melodic minor raises only the seventh scale degree.",
+            "cx": "That leaves out the sixth, which also changes in melodic minor."
+          },
+          {
+            "tr": "seventh scale degree",
+            "df": "The seventh scale degree is the note level that can be altered in minor variants, and it is especially important when a leading tone is needed.",
+            "eg": "A line in harmonic minor raises the seventh scale degree.",
+            "mi": "The seventh scale degree never changes across minor forms.",
+            "cx": "Minor variants are distinguished partly by changing that degree."
+          }
+        ],
+        "scenario": {
+          "su": "A composer compares two short minor passages for a class exercise. One passage must sound like it wants to resolve upward, and the other has a smooth ascending line that includes altered upper notes.",
+          "ma": "The passage labeled for resolution raises the seventh scale degree, while the ascending line raises both the sixth and seventh scale degrees. The score must match those written alterations without adding any other changed notes."
+        },
+        "mc": [
+          {
+            "q": "A score shows one minor passage with only the seventh scale degree raised, while another raises both the sixth and seventh. Which comparison best matches the written alterations?",
+            "op": [
+              "Harmonic minor versus natural minor",
+              "Melodic minor versus natural minor",
+              "Harmonic minor versus melodic minor",
+              "Natural minor versus harmonic minor"
+            ],
+            "ai": 2,
+            "fi": [
+              0
+            ],
+            "ex": "The first passage fits harmonic minor because it raises only the seventh scale degree, while the second fits melodic minor because both the sixth and seventh are altered. Natural minor would leave those degrees unchanged, so that distractor does not fit."
+          },
+          {
+            "q": "A student points to a minor line that raises the seventh scale degree so the pitch can lead upward. With that notation and no other altered notes, which variant fits the passage?",
+            "op": [
+              "Major scale",
+              "Harmonic minor",
+              "Natural minor",
+              "Melodic minor"
+            ],
+            "ai": 1,
+            "fi": [
+              1
+            ],
+            "ex": "The raised seventh is the defining feature here, and it creates a leading-tone function. Melodic minor would also raise the sixth, so that closest distractor does not match the written passage."
+          }
+        ]
+      },
+      "artifactSha256": "9aaae028cd5410feb0a1162d707a35a372bc42165d4d0d6140fca05eabf2fc14",
+      "response": {
+        "lessons": [
+          {
+            "lessonId": "lesson-3",
+            "facts": [
+              "The minor key system has natural, harmonic, and melodic variants that differ through alterations to the sixth and seventh scale degrees.",
+              "Harmonic minor raises the seventh scale degree so it can function as a leading tone.",
+              "Melodic minor raises both the sixth and seventh scale degrees."
+            ],
+            "keyTerms": [
+              {
+                "tr": "harmonic minor",
+                "df": "Harmonic minor is a minor variant distinguished by raising the seventh scale degree to create a leading-tone function.",
+                "eg": "Justin Rubin describes harmonic minor in chapter 25.",
+                "mi": "Harmonic minor only changes the sixth scale degree.",
+                "cx": "The defining alteration is the raised seventh, not a changed sixth alone."
+              },
+              {
+                "tr": "melodic minor",
+                "df": "Melodic minor is a minor variant that raises both the sixth and seventh scale degrees to change the scale's upper motion.",
+                "eg": "Justin Rubin discusses melodic minor in chapter 25.",
+                "mi": "Melodic minor raises only the seventh scale degree.",
+                "cx": "That leaves out the sixth, which also changes in melodic minor."
+              },
+              {
+                "tr": "seventh scale degree",
+                "df": "The seventh scale degree is the note level that can be altered in minor variants, and it is especially important when a leading tone is needed.",
+                "eg": "A line in harmonic minor raises the seventh scale degree.",
+                "mi": "The seventh scale degree never changes across minor forms.",
+                "cx": "Minor variants are distinguished partly by changing that degree."
+              }
+            ],
+            "scenario": {
+              "su": "A composer compares two short minor passages for a class exercise. One passage must sound like it wants to resolve upward, and the other has a smooth ascending line that includes altered upper notes.",
+              "ma": "The passage labeled for resolution raises the seventh scale degree, while the ascending line raises both the sixth and seventh scale degrees. The score must match those written alterations without adding any other changed notes."
+            },
+            "mc": [
+              {
+                "q": "A score shows one minor passage with only the seventh scale degree raised, while another raises both the sixth and seventh. Which comparison best matches the written alterations?",
+                "op": [
+                  "Harmonic minor versus natural minor",
+                  "Melodic minor versus natural minor",
+                  "Harmonic minor versus melodic minor",
+                  "Natural minor versus harmonic minor"
+                ],
+                "ai": 2,
+                "fi": [
+                  0
+                ],
+                "ex": "The first passage fits harmonic minor because it raises only the seventh scale degree, while the second fits melodic minor because both the sixth and seventh are altered. Natural minor would leave those degrees unchanged, so that distractor does not fit."
+              },
+              {
+                "q": "A student points to a minor line that raises the seventh scale degree so the pitch can lead upward. With that notation and no other altered notes, which variant fits the passage?",
+                "op": [
+                  "Major scale",
+                  "Harmonic minor",
+                  "Natural minor",
+                  "Melodic minor"
+                ],
+                "ai": 1,
+                "fi": [
+                  1
+                ],
+                "ex": "The raised seventh is the defining feature here, and it creates a leading-tone function. Melodic minor would also raise the sixth, so that closest distractor does not match the written passage."
+              }
+            ]
+          }
+        ]
+      },
+      "responseSha256": "c8b5beed2a6d03a2cb0b1e17a96a26c3696de7380bf591ec06335c3aed9dc6bb",
+      "admission": {
+        "needsRetry": false,
+        "issues": []
+      },
+      "compilerRepairs": [
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-3",
+          "item": 0,
+          "permutation": [
+            3,
+            2,
+            0,
+            1
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 2,
+          "trainingEligible": false
+        },
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-3",
+          "item": 1,
+          "permutation": [
+            3,
+            0,
+            2,
+            1
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 1,
+          "trainingEligible": false
+        }
+      ],
+      "startedAt": "2026-07-19T13:44:50.857Z",
+      "completedAt": "2026-07-19T13:45:06.556Z",
+      "durationMs": 15699
+    }
+  ],
+  "updatedAt": "2026-07-19T13:45:06.556Z"
+}

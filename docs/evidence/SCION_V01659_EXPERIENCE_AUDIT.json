@@ -1,0 +1,112 @@
+{
+  "schemaVersion": 1,
+  "release": "0.16.59",
+  "date": "2026-07-19",
+  "status": "local-browser-verified",
+  "environment": {
+    "url": "http://127.0.0.1:5174/",
+    "browser": "Codex in-app Chromium",
+    "provider": "Scion",
+    "model": "Scion V0.16.59 release candidate",
+    "baseCache": "warm",
+    "desktopViewport": { "width": 1280 },
+    "phoneViewport": { "width": 390, "height": 844 }
+  },
+  "sourceOnlyRuns": [
+    {
+      "name": "three-lesson-usability-test-planning-before-retry-budget",
+      "purpose": "Expose the complete local retry and outer-recovery experience under an exact three-fact source contract.",
+      "durationSeconds": 441,
+      "lessonCount": 3,
+      "knowledgeReady": 0,
+      "knowledgeRequested": 3,
+      "quality": 89,
+      "grade": "B",
+      "reviewIssueCount": 3,
+      "finding": "Repeated local and outer recovery consumed substantial time without admitting a lesson kernel. This run motivated the exact-ledger retry budget; it is not a speed baseline for the later one-lesson run."
+    },
+    {
+      "name": "one-lesson-usability-evidence-basics-after-repairs",
+      "purpose": "Verify exact fact retention, unsafe-atom quarantine, fact-list recovery, complete compiler progress, Agent connection, and responsive export.",
+      "durationSeconds": 22,
+      "lessonCount": 1,
+      "knowledgeReady": 1,
+      "knowledgeRequested": 1,
+      "materialFamiliesReady": 9,
+      "materialFamiliesRequested": 9,
+      "quality": 89,
+      "grade": "B",
+      "texture": 89,
+      "reviewIssueCount": 2,
+      "terminalState": "Ready to export",
+      "observedStages": ["Model", "Map", "Enrich", "Compile", "Verify", "Grade"],
+      "unsafeMultipleChoiceItemRetained": false,
+      "exactInstructorFactsRetained": true,
+      "sourceBoundConstructedQuestionsReady": 6
+    }
+  ],
+  "agent": {
+    "route": "scion-public",
+    "workspaceConnected": true,
+    "readOnlyPromptUsesDynamicWorkspaceContext": true,
+    "maxOutputTokens": 240,
+    "testedQuestion": "What is the second supplied fact?",
+    "responseSecondsApproximate": 70,
+    "responseWasGrounded": true,
+    "responseContainedToolEnvelope": false,
+    "comparisonObservation": "The preceding longer Agent turn took more than two minutes and continued into a malformed respond/tool_calls envelope after useful prose. The repaired route returned plain prose. These two questions differ, so this is interaction evidence rather than a controlled speed benchmark."
+  },
+  "frameFindings": [
+    {
+      "finding": "Generated distractors introduced unsupported exclusive claims even though the early Scion preflight warned about them.",
+      "repair": "The canonical compiler now applies the same unsupported-scope and semantic-choice checks and quarantines the item."
+    },
+    {
+      "finding": "When all model-authored teaching atoms were quarantined, exact instructor facts were also discarded.",
+      "repair": "A fully matching numbered source ledger now survives as a facts-only knowledge set with an explicit review issue."
+    },
+    {
+      "finding": "The deterministic source-bound fallback referred to a worked example that the fact-only source did not contain.",
+      "repair": "Fact-list-specific Apply, Analyze, Evaluate, and Create prompts use exact supplied statements, identify unsupported conclusions, and label assumptions."
+    },
+    {
+      "finding": "The local Agent received the full mutation-tool protocol and could emit internal JSON/function-call syntax.",
+      "repair": "The public route now receives compact changing context plus a plain-Markdown read-only contract and a 240-token cap."
+    }
+  ],
+  "responsive": {
+    "desktopInnerWidth": 1280,
+    "desktopDocumentScrollWidth": 1275,
+    "phoneInnerWidth": 390,
+    "phoneDocumentScrollWidth": 385,
+    "documentHorizontalOverflow": false,
+    "verifiedPanels": ["Content", "Agent", "Export"],
+    "singleExportOwner": true,
+    "readyWithNotesUsesInformationColor": true,
+    "tablesUseInternalHorizontalScrolling": true,
+    "phoneQualityChipTarget": { "width": 131, "height": 44 },
+    "phoneLessonCollapseTarget": { "width": 44, "height": 44 }
+  },
+  "consoleBoundary": {
+    "finalFrameFunctional": true,
+    "historicalDevelopmentOnlyErrors": "Vite hot replacement briefly loaded useAIConfig and AIConfigProvider from different timestamped module instances while source files were changing. The error boundary recovered the workspace; this development-only transition is absent from the production build and is not presented as a production runtime failure."
+  },
+  "releaseUi": {
+    "workspaceModelLabel": "Scion V0.16.59",
+    "footerVersion": "v0.16.59",
+    "livingCompilerStatus": "Ready to export",
+    "progressPercent": 100,
+    "desktopDownloadZipButtonCount": 1,
+    "phoneExportPanelDownloadZipButtonCount": 1
+  },
+  "regressionCommands": [
+    "npx vitest run src/lib/__tests__/quizConstructedDepthCompiler.test.js src/lib/__tests__/lessonContentEnrichment.test.js tests/scion-local-provider.test.js tests/scion-answer-key-alignment.test.js tests/public-scion-provider.test.js",
+    "npm run audit:scion:source-ledger-evidence:v0.16.59",
+    "npm run audit:scion:lesson-kernel-campaign:v0.16.59",
+    "npm test",
+    "npm run lint",
+    "npm run build",
+    "npm run bundle:check"
+  ],
+  "claimBoundary": "This is local browser evidence for the named prompts, cached pinned public base, release-candidate code, and viewports. The 441-second three-lesson run and 22-second one-lesson run have different scopes and are not a controlled speed comparison. This is not universal latency, human review, accessibility conformance, classroom validation, paid-reference parity, or adapter-win evidence."
+}

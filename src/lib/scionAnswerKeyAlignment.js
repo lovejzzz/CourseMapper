@@ -62,6 +62,19 @@ const CITED_KEY_ALIGNMENT_STOP_WORDS = new Set([
   'support',
   'supports',
 ]);
+const CITED_KEY_SCOPE_TOKENS = new Set([
+  'all',
+  'both',
+  'neither',
+  'never',
+  'none',
+  'only',
+  'unchang',
+  'unchanged',
+  'unmodifi',
+  'unmodified',
+  'without',
+]);
 
 function clean(value) {
   return String(value ?? '')
@@ -125,6 +138,96 @@ function tokenOverlap(left, right) {
   return [...left].filter((token) => right.has(token)).length;
 }
 
+function normalizedRelationEntity(value) {
+  return clean(value)
+    .toLowerCase()
+    .replace(/[.!?]+$/g, '')
+    .replace(/^(?:a|an|the)\s+/, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function canonicalLinearEquation(value) {
+  const match = clean(stripOptionLabel(value)).match(
+    /^(.+?)\s+(?:equals|=)\s+(.+?)\s+(plus|minus|\+|-)\s+(.+?)[.!?]?$/i,
+  );
+  if (!match) return '';
+  const terms = [
+    normalizedRelationEntity(match[1]),
+    normalizedRelationEntity(match[2]),
+    normalizedRelationEntity(match[4]),
+  ];
+  if (terms.some((term) => !term || term.length > 60)) return '';
+  const coefficients = new Map();
+  const add = (term, amount) => coefficients.set(term, (coefficients.get(term) || 0) + amount);
+  add(terms[0], 1);
+  add(terms[1], -1);
+  add(terms[2], /^(?:minus|-)$/i.test(match[3]) ? 1 : -1);
+  const entries = [...coefficients.entries()]
+    .filter(([, amount]) => amount !== 0)
+    .sort(([left], [right]) => left.localeCompare(right));
+  if (entries.length < 2) return '';
+  const direction = entries[0][1] < 0 ? -1 : 1;
+  return entries.map(([term, amount]) => `${term}:${amount * direction}`).join('|');
+}
+
+function canonicalComparativeRelation(value) {
+  const match = clean(stripOptionLabel(value)).match(
+    /^(.+?)\s+(?:is|are|was|were)\s+(older|younger|greater|larger|higher|more|less|smaller|lower|fewer|earlier|later|before|after)\s+(?:than\s+)?(.+?)[.!?]?$/i,
+  );
+  if (!match) return '';
+  const left = normalizedRelationEntity(match[1]);
+  const right = normalizedRelationEntity(match[3]);
+  if (!left || !right || left === right || left.length > 60 || right.length > 60) return '';
+  const relation = match[2].toLowerCase();
+  if (['older', 'greater', 'larger', 'higher', 'more'].includes(relation)) return `greater|${left}|${right}`;
+  if (['younger', 'less', 'smaller', 'lower', 'fewer'].includes(relation)) return `greater|${right}|${left}`;
+  if (['earlier', 'before'].includes(relation)) return `before|${left}|${right}`;
+  return `before|${right}|${left}`;
+}
+
+function firstDuplicateCanonicalPair(options, canonicalize) {
+  const seen = new Map();
+  for (let index = 0; index < options.length; index += 1) {
+    const canonical = canonicalize(options[index]);
+    if (!canonical) continue;
+    if (seen.has(canonical)) return { left: seen.get(canonical), right: index, canonical };
+    seen.set(canonical, index);
+  }
+  return null;
+}
+
+const SCION_SCOPE_MARKER_RE = /\b(?:always|never|all|none|only|unchanged|unmodified|no other|without)\b/gi;
+
+/**
+ * Find an option that adds an exclusivity or absence marker the source never
+ * states. This one-way check can reject an invented "only"; it never certifies
+ * the remaining option text as factually correct.
+ */
+export function findScionUnsupportedScopeOption(options = [], { sourceClaims = [] } = {}) {
+  const sourceText = (Array.isArray(sourceClaims) ? sourceClaims : []).map(sourceClaimText).join(' ').toLowerCase();
+  if (!sourceText) return null;
+  for (let index = 0; index < (Array.isArray(options) ? options : []).length; index += 1) {
+    const markers = [...new Set(clean(options[index]).toLowerCase().match(SCION_SCOPE_MARKER_RE) || [])];
+    const unsupported = markers.find((marker) => {
+      const escaped = marker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+');
+      return !new RegExp(`\\b${escaped}\\b`, 'i').test(sourceText);
+    });
+    if (unsupported) return { index, marker: unsupported };
+  }
+  return null;
+}
+
+/** Detect algebraically equivalent additive equations presented as separate choices. */
+export function findScionEquivalentEquationOptionPair(options = []) {
+  return firstDuplicateCanonicalPair(Array.isArray(options) ? options : [], canonicalLinearEquation);
+}
+
+/** Detect the same comparison restated by swapping subjects and inverse adjectives. */
+export function findScionEquivalentComparisonOptionPair(options = []) {
+  return firstDuplicateCanonicalPair(Array.isArray(options) ? options : [], canonicalComparativeRelation);
+}
+
 function sourceClaimText(value) {
   if (value && typeof value === 'object') return clean(value.text ?? value.claim ?? value.value);
   return clean(value);
@@ -153,6 +256,34 @@ function citedKeyAlignmentTokens(value) {
   );
 }
 
+function citedKeyAlignmentSequence(value) {
+  return (
+    clean(value)
+      .normalize('NFKC')
+      .toLowerCase()
+      .match(/[\p{L}\p{N}]+/gu)
+      ?.map((token) => {
+        let next = token;
+        if (/^[a-z0-9]+$/.test(next)) {
+          if (next.length > 5 && next.endsWith('ing')) next = next.slice(0, -3);
+          else if (next.length > 4 && next.endsWith('ed')) next = next.slice(0, -2);
+          else if (next.length > 3 && next.endsWith('s') && !/(?:ss|ous|ius|is|us)$/.test(next)) {
+            next = next.slice(0, -1);
+          }
+        }
+        return next;
+      })
+      .filter(
+        (token) => (token.length >= 3 || /[^a-z0-9]/i.test(token)) && !CITED_KEY_ALIGNMENT_STOP_WORDS.has(token),
+      ) || []
+  );
+}
+
+function citedKeyAlignmentBigrams(value) {
+  const sequence = citedKeyAlignmentSequence(value);
+  return new Set(sequence.slice(0, -1).map((token, index) => `${token} ${sequence[index + 1]}`));
+}
+
 /**
  * Reject an explicit fact citation that has no semantic anchor in the keyed
  * option or the explanation's affirmative lead sentence. This is narrower
@@ -160,7 +291,10 @@ function citedKeyAlignmentTokens(value) {
  * cited fact cannot be the support promised by `fi`. One-token paraphrases
  * remain admissible rather than being guessed at or rewritten.
  */
-export function findScionCitedSourceKeyMismatch(item = {}, { sourceClaims = [] } = {}) {
+export function findScionCitedSourceKeyMismatch(
+  item = {},
+  { sourceClaims = [], strict = false, matchingProfile = 'current' } = {},
+) {
   const normalized = normalizeScionMcItem(item);
   const claims = (Array.isArray(sourceClaims) ? sourceClaims : []).map(sourceClaimText).filter(Boolean);
   if (
@@ -176,6 +310,76 @@ export function findScionCitedSourceKeyMismatch(item = {}, { sourceClaims = [] }
     clean(normalized.explanation)
       .match(/^.*?[.!?](?=\s|$)/)?.[0]
       ?.trim() || clean(normalized.explanation);
+  const claimSurface = claims.join(' ');
+  const claimOptionTokens = citedKeyAlignmentTokens(claimSurface);
+  const claimBigrams = citedKeyAlignmentBigrams(claimSurface);
+  const declaredOptionTokens = citedKeyAlignmentTokens(normalized.options[normalized.answerIndex]);
+  const unsupportedScopeTokens = [...declaredOptionTokens].filter(
+    (token) => CITED_KEY_SCOPE_TOKENS.has(token) && !claimOptionTokens.has(token),
+  );
+  if (matchingProfile !== 'v0.16.58' && strict && unsupportedScopeTokens.length > 0) {
+    return {
+      declaredIndex: normalized.answerIndex,
+      unsupportedScopeTokens,
+      citedClaimCount: claims.length,
+      supportMethod: 'cited-fact-key-unsupported-scope',
+    };
+  }
+  const warrantTokens = citedKeyAlignmentTokens(`${normalized.question} ${affirmativeLead}`);
+  const unsupportedWarrantScopeTokens = [...warrantTokens].filter(
+    (token) => CITED_KEY_SCOPE_TOKENS.has(token) && !claimOptionTokens.has(token),
+  );
+  const sourceUsesNo = /\bno\b/i.test(claimSurface);
+  const warrantUsesNo = /\bno\b/i.test(`${normalized.question} ${affirmativeLead}`);
+  if (
+    matchingProfile !== 'v0.16.58' &&
+    strict &&
+    (unsupportedWarrantScopeTokens.length > 0 || (warrantUsesNo && !sourceUsesNo))
+  ) {
+    return {
+      declaredIndex: normalized.answerIndex,
+      unsupportedScopeTokens: [...unsupportedWarrantScopeTokens, ...(warrantUsesNo && !sourceUsesNo ? ['no'] : [])],
+      citedClaimCount: claims.length,
+      supportMethod: 'cited-fact-context-unsupported-scope',
+    };
+  }
+  const optionPhraseScores = normalized.options.map((option, index) => {
+    const optionTokens = citedKeyAlignmentTokens(option);
+    const optionBigrams = citedKeyAlignmentBigrams(option);
+    const tokenScore = tokenOverlap(optionTokens, claimOptionTokens);
+    const bigramScore = tokenOverlap(optionBigrams, claimBigrams);
+    const score = tokenScore + bigramScore * 2;
+    return {
+      index,
+      score,
+      tokenScore,
+      bigramScore,
+      containment: Number((score / Math.max(1, optionTokens.size + optionBigrams.size * 2)).toFixed(6)),
+    };
+  });
+  const bestPhraseScore = Math.max(...optionPhraseScores.map(({ score }) => score));
+  const phraseWinners = optionPhraseScores.filter(({ score }) => score === bestPhraseScore);
+  const declaredPhrase = optionPhraseScores[normalized.answerIndex];
+  const phraseWinner = phraseWinners[0];
+  if (
+    matchingProfile !== 'v0.16.58' &&
+    phraseWinners.length === 1 &&
+    phraseWinner.index !== normalized.answerIndex &&
+    phraseWinner.score >= 6 &&
+    phraseWinner.bigramScore >= 1 &&
+    phraseWinner.containment >= 0.6 &&
+    phraseWinner.score >= declaredPhrase.score + 4
+  ) {
+    return {
+      declaredIndex: normalized.answerIndex,
+      supportedIndex: phraseWinner.index,
+      scores: optionPhraseScores.map(({ score }) => score),
+      bigramScores: optionPhraseScores.map(({ bigramScore }) => bigramScore),
+      containment: optionPhraseScores.map(({ containment }) => containment),
+      citedClaimCount: claims.length,
+      supportMethod: 'cited-fact-option-phrase-alignment',
+    };
+  }
   const keyTokens = citedKeyAlignmentTokens(`${normalized.options[normalized.answerIndex]} ${affirmativeLead}`);
   const claimTokens = new Set(claims.flatMap((claim) => [...citedKeyAlignmentTokens(claim)]));
   if (keyTokens.size < 2 || claimTokens.size < 2) return null;
@@ -712,16 +916,16 @@ export function findScionMissingKeyExplanationSupport(item = {}) {
  */
 export function findScionMultipleSourceSupportedOptions(
   item = {},
-  { sourceClaims = [], allowBroadSourceContext = false } = {},
+  { sourceClaims = [], allowBroadSourceContext = false, matchingProfile = 'current' } = {},
 ) {
   const normalized = normalizeScionMcItem(item);
   const claims = (Array.isArray(sourceClaims) ? sourceClaims : []).map(sourceClaimText).filter(Boolean);
   if (normalized.options.length !== 4 || claims.length === 0) return null;
-  if (
-    !/\b(?:what (?:is|are)(?:\s+the\s+primary)?|how (?:is|are)[^?]{0,100}(?:defined|structured|referred|represented)|which (?:statement|description|characteristic|function|role)[^?]{0,100}(?:best|primary|describes|defines))\b/i.test(
-      normalized.question,
-    )
-  ) {
+  const broadQuestionPattern =
+    matchingProfile === 'v0.16.58'
+      ? /\b(?:what (?:is|are)(?:\s+the\s+primary)?|how (?:is|are)[^?]{0,100}(?:defined|structured|referred|represented)|which (?:statement|description|characteristic|function|role)[^?]{0,100}(?:best|primary|describes|defines))\b/i
+      : /\b(?:what (?:is|are)(?:\s+the\s+primary)?|how (?:is|are)[^?]{0,100}(?:defined|structured|referred|represented)|which (?:statement|description|characteristic|function|role|label|entry|pairing|system|variant|artifact|example|choice|option|item)[^?]{0,100}(?:best|primary|describes|defines|fits|is|are|relevant|valid|eligible|appropriate|supported))\b/i;
+  if (!broadQuestionPattern.test(normalized.question)) {
     return null;
   }
   const questionTokens = sourceAlignmentTokens(normalized.question);
@@ -783,7 +987,9 @@ export function findScionMultipleSourceSupportedOptions(
             best = { score, containment, claimIndex, exactPhrase };
           }
         });
-        const eligible = best.exactPhrase || (best.score >= 3 && best.containment >= 0.72);
+        const compactSourcePhrase =
+          matchingProfile !== 'v0.16.58' && tokens.size <= 4 && best.score >= 2 && best.containment >= 0.6;
+        const eligible = best.exactPhrase || compactSourcePhrase || (best.score >= 3 && best.containment >= 0.72);
         return { index, ...best, eligible };
       })
       .filter((entry) => entry.eligible);
@@ -795,6 +1001,65 @@ export function findScionMultipleSourceSupportedOptions(
         }
       : null;
   }
+}
+
+/**
+ * Detect feedback that affirmatively restates two answer options.
+ *
+ * A pedagogical explanation may name a distractor while rejecting it, so the
+ * rule deliberately requires strong phrase/token containment and ignores a
+ * clause carrying an explicit negative cue. When two alternatives are both
+ * described as true, a single declared key cannot be trusted.
+ */
+export function findScionMultipleExplanationSupportedOptions(item = {}) {
+  const normalized = normalizeScionMcItem(item);
+  if (normalized.options.length !== 4 || !normalized.explanation) return null;
+  const explanation = clean(normalized.explanation);
+  const allOptionTokens = normalized.options.map(semanticOptionTokens);
+  const clauses = explanation
+    .split(/(?<=[.!?;])\s+|\s*,\s*(?=(?:while|whereas)\b)/i)
+    .map(clean)
+    .filter(Boolean);
+  const supported = normalized.options
+    .map((option, index) => {
+      const optionSurface = clean(stripOptionLabel(option))
+        .toLowerCase()
+        .replace(/[.!?]+$/, '');
+      const optionTokens = allOptionTokens[index];
+      const distinctTokens = [...optionTokens].filter((token) =>
+        allOptionTokens.every((otherTokens, otherIndex) => otherIndex === index || !otherTokens.has(token)),
+      );
+      let best = { score: 0, containment: 0, clause: '', exactPhrase: false };
+      for (const clause of clauses) {
+        if (
+          /\b(?:incorrect|wrong|distractor|does not|do not|cannot|can't|fails?|breaks?|rather than)\b/i.test(clause)
+        ) {
+          continue;
+        }
+        const clauseSurface = clause.toLowerCase();
+        const score = tokenOverlap(optionTokens, semanticOptionTokens(clause));
+        const containment = score / Math.max(1, optionTokens.size);
+        const exactPhrase = optionSurface.length >= 18 && clauseSurface.includes(optionSurface);
+        if (
+          Number(exactPhrase) > Number(best.exactPhrase) ||
+          (exactPhrase === best.exactPhrase &&
+            (containment > best.containment || (containment === best.containment && score > best.score)))
+        ) {
+          best = { score, containment, clause, exactPhrase };
+        }
+      }
+      return {
+        index,
+        ...best,
+        eligible:
+          best.exactPhrase ||
+          (best.score >= 4 &&
+            best.containment >= 0.8 &&
+            distinctTokens.some((token) => semanticOptionTokens(best.clause).has(token))),
+      };
+    })
+    .filter((entry) => entry.eligible);
+  return supported.length >= 2 ? { supported, supportMethod: 'multiple-affirmative-explanation-options' } : null;
 }
 
 /**
