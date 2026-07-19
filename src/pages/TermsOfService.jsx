@@ -8,7 +8,7 @@ export default function TermsOfService() {
     <div className="min-h-screen mesh-bg noise-overlay">
       <Header compact />
 
-      <main className="max-w-3xl mx-auto px-8 pb-16">
+      <main className="mx-auto max-w-3xl px-4 pb-16 sm:px-8">
         <div className="mb-6">
           <h1 className="text-2xl font-extrabold tracking-tight text-slate-800">
             Terms of <span className="text-gradient">Service</span>
@@ -16,7 +16,7 @@ export default function TermsOfService() {
           <p className="text-slate-600 text-xs font-medium mt-1">Last updated: {LAST_UPDATED}</p>
         </div>
 
-        <div className="glass panel-glow rounded-squircle shadow-glass p-8 space-y-6 text-sm text-slate-700 leading-relaxed">
+        <div className="glass panel-glow space-y-6 rounded-squircle p-5 text-sm leading-relaxed text-slate-700 shadow-glass sm:p-8">
           <Section title="Acceptance of Terms">
             <p>
               By using Course Mapper, you agree to these Terms of Service. If you do not agree, please do not use the
