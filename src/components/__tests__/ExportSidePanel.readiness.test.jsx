@@ -170,6 +170,15 @@ describe('ExportSidePanel readiness repair timing', () => {
     });
   });
 
+  it('names download formats for people while retaining the exact extensions', async () => {
+    await renderPanel({ courseMapInput: cleanCourseMap });
+
+    expect(container.querySelector('[data-testid="export-format-xlsx"]')?.textContent).toContain('Excel (.xlsx)');
+    expect(container.querySelector('[data-testid="export-format-docx"]')?.textContent).toContain('Word (.docx)');
+    expect(container.querySelector('[data-testid="export-format-pdf"]')?.textContent).toContain('PDF (.pdf)');
+    expect(container.querySelector('[data-testid="export-format-csv"]')?.textContent).toContain('CSV (.csv)');
+  });
+
   it('uses a neutral information state when a downloadable package has quality and export caveats', async () => {
     await renderPanel({
       courseMapInput: cleanCourseMap,

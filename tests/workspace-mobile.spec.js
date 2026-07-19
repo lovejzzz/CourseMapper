@@ -346,6 +346,23 @@ test.describe('Generated workspace mobile layout', () => {
       await expect(page.getByTestId('workspace-export-panel')).toBeVisible();
       await expect(page.getByTestId('workspace-agent-panel')).toBeHidden();
       await expectNoHorizontalOverflow(page);
+
+      if (viewport.label === 'phone') {
+        await page.getByRole('button', { name: 'Switch to dark mode' }).click();
+        const cloudButtonStyle = await page.getByTestId('export-format-gdocs').evaluate((button) => {
+          const style = getComputedStyle(button);
+          const channels = (style.backgroundColor.match(/[\d.]+/g) || []).slice(0, 3).map(Number);
+          const luminance = channels.reduce((sum, channel, index) => {
+            const normalized = channel / 255;
+            const linear = normalized <= 0.04045 ? normalized / 12.92 : ((normalized + 0.055) / 1.055) ** 2.4;
+            return sum + linear * [0.2126, 0.7152, 0.0722][index];
+          }, 0);
+          return { backgroundColor: style.backgroundColor, luminance };
+        });
+        expect(cloudButtonStyle.backgroundColor).not.toBe('rgba(0, 0, 0, 0)');
+        expect(cloudButtonStyle.luminance).toBeLessThan(0.2);
+        await page.getByRole('button', { name: 'Switch to light mode' }).click();
+      }
     });
   }
 });

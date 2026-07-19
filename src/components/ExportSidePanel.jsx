@@ -102,10 +102,10 @@ const FORMAT_SUPPORT = {
 
 // Formats for non-slideDecks current tab
 const DOWNLOAD_FORMATS = [
-  { id: 'xlsx', label: '.xlsx', color: 'emerald' },
-  { id: 'docx', label: '.docx', color: 'blue' },
-  { id: 'pdf', label: '.pdf', color: 'red' },
-  { id: 'csv', label: '.csv', color: 'slate' },
+  { id: 'xlsx', label: 'Excel (.xlsx)', color: 'emerald' },
+  { id: 'docx', label: 'Word (.docx)', color: 'blue' },
+  { id: 'pdf', label: 'PDF (.pdf)', color: 'red' },
+  { id: 'csv', label: 'CSV (.csv)', color: 'slate' },
 ];
 const CLOUD_FORMATS = [
   { id: 'gdocs', label: 'Google Docs', color: 'gdocs' },
@@ -133,12 +133,13 @@ function FmtBtn({ fmt, label, disabled, busy, onClick }) {
     blue: 'text-slate-600 bg-white/60 border border-slate-200/50 hover:bg-white/80',
     red: 'text-slate-600 bg-white/60 border border-slate-200/50 hover:bg-white/80',
     slate: 'text-slate-600 bg-white/60 border border-slate-200/50 hover:bg-white/80',
-    gdocs: 'text-gbrand-docs bg-gbrand-docs-soft/80 border border-gbrand-docs-accent/20 hover:bg-gbrand-docs-hover',
+    gdocs:
+      'text-gbrand-docs bg-gbrand-docs-soft/80 border border-gbrand-docs-accent/20 hover:bg-gbrand-docs-hover dark:bg-blue-950/45 dark:border-blue-800/60 dark:text-blue-300 dark:hover:bg-blue-900/55',
     gsheets:
-      'text-gbrand-sheets bg-gbrand-sheets-soft/80 border border-gbrand-sheets-accent/20 hover:bg-gbrand-sheets-hover',
+      'text-gbrand-sheets bg-gbrand-sheets-soft/80 border border-gbrand-sheets-accent/20 hover:bg-gbrand-sheets-hover dark:bg-emerald-950/45 dark:border-emerald-800/60 dark:text-emerald-300 dark:hover:bg-emerald-900/55',
     pptx: 'text-slate-600 bg-white/60 border border-slate-200/50 hover:bg-white/80',
     gslides:
-      'text-gbrand-slides-accent bg-gbrand-slides-soft/80 border border-gbrand-slides-accent/30 hover:bg-gbrand-slides-hover',
+      'text-gbrand-slides-accent bg-gbrand-slides-soft/80 border border-gbrand-slides-accent/30 hover:bg-gbrand-slides-hover dark:bg-amber-950/45 dark:border-amber-800/60 dark:text-amber-300 dark:hover:bg-amber-900/55',
     slidepdf: 'text-slate-600 bg-white/60 border border-slate-200/50 hover:bg-white/80',
   };
   const displayLabel = label || fmt.label;
@@ -163,10 +164,10 @@ function GDriveBtn({ fmt, label, disabled, busy, onClick }) {
   const isSlides = fmt.id === 'gslides';
   const displayLabel = label || fmt.label;
   const btnClass = isSlides
-    ? 'text-gbrand-slides-accent bg-gbrand-slides-soft/80 border border-gbrand-slides-accent/30 hover:bg-gbrand-slides-hover'
+    ? 'text-gbrand-slides-accent bg-gbrand-slides-soft/80 border border-gbrand-slides-accent/30 hover:bg-gbrand-slides-hover dark:bg-amber-950/45 dark:border-amber-800/60 dark:text-amber-300 dark:hover:bg-amber-900/55'
     : isSheets
-      ? 'text-gbrand-sheets bg-gbrand-sheets-soft/80 border border-gbrand-sheets-accent/20 hover:bg-gbrand-sheets-hover'
-      : 'text-gbrand-docs bg-gbrand-docs-soft/80 border border-gbrand-docs-accent/20 hover:bg-gbrand-docs-hover';
+      ? 'text-gbrand-sheets bg-gbrand-sheets-soft/80 border border-gbrand-sheets-accent/20 hover:bg-gbrand-sheets-hover dark:bg-emerald-950/45 dark:border-emerald-800/60 dark:text-emerald-300 dark:hover:bg-emerald-900/55'
+      : 'text-gbrand-docs bg-gbrand-docs-soft/80 border border-gbrand-docs-accent/20 hover:bg-gbrand-docs-hover dark:bg-blue-950/45 dark:border-blue-800/60 dark:text-blue-300 dark:hover:bg-blue-900/55';
   return (
     <button
       data-testid={`export-format-${fmt.id}`}
@@ -1555,13 +1556,13 @@ export default function ExportSidePanel({
             <div className="space-y-2">
               <p className="text-xs font-semibold text-slate-500">Download</p>
               <FmtBtn
-                fmt={{ id: 'pptx', label: '.pptx', color: 'pptx' }}
+                fmt={{ id: 'pptx', label: 'PowerPoint (.pptx)', color: 'pptx' }}
                 disabled={isPackageQualityRunning || isDisabled('pptx')}
                 busy={busy === 'pptx'}
                 onClick={() => doExport('pptx')}
               />
               <FmtBtn
-                fmt={{ id: 'slidepdf', label: '.pdf', color: 'slidepdf' }}
+                fmt={{ id: 'slidepdf', label: 'PDF (.pdf)', color: 'slidepdf' }}
                 disabled={isPackageQualityRunning || isDisabled('slidepdf')}
                 busy={busy === 'slidepdf'}
                 onClick={() => doExport('slidepdf')}
