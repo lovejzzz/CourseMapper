@@ -144,6 +144,8 @@ describe('WS-A (2) — the rewritten loop keeps its contract (source pins)', () 
       .split('// v0.14.1 P4.5: fold genome partials back in')[0];
 
     expect(nativeRecoverySource).toContain('recoveryAttempt: nativeRecoveryCalls');
+    expect(nativeRecoverySource).toContain('nativeRecoveryCalls < enrichmentRecoveryCallLimit');
+    expect(nativeRecoverySource).toContain('${nativeRecoveryCalls}/${enrichmentRecoveryCallLimit}');
     expect(nativeRecoverySource).toContain('retrying with stricter instructions');
     expect(hookSource).toContain(
       'allLessonIndices.filter((lessonIdx) => !kernelIsUsable(lessonContent[lessonIdOf(lessonIdx)]))',

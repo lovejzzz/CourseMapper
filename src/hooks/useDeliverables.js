@@ -1499,7 +1499,7 @@ export default function useDeliverables({
             let nativeRecoveryCalls = 0;
             const attemptedNativeRecoveryIndices = [];
             while (
-              nativeRecoveryCalls < 2 &&
+              nativeRecoveryCalls < enrichmentRecoveryCallLimit &&
               (listMissingKernelIndices().length > 0 || listMissingAuthoredIndices().length > 0) &&
               hasProviderCallBudget()
             ) {
@@ -1521,7 +1521,7 @@ export default function useDeliverables({
               try {
                 await runPassBBatch(retryChunk, {
                   includeCourseLevel: false,
-                  recoveryLabel: `Author lesson batch (native recovery ${nativeRecoveryCalls}/2)`,
+                  recoveryLabel: `Author lesson batch (native recovery ${nativeRecoveryCalls}/${enrichmentRecoveryCallLimit})`,
                   recoveryAttempt: nativeRecoveryCalls,
                 });
               } catch (recoveryErr) {
@@ -1533,7 +1533,7 @@ export default function useDeliverables({
                 authored: listMissingAuthoredIndices(),
               });
               if (afterSignature === beforeSignature) {
-                if (nativeRecoveryCalls >= 2 || !hasProviderCallBudget()) {
+                if (nativeRecoveryCalls >= enrichmentRecoveryCallLimit || !hasProviderCallBudget()) {
                   appendLog('⚠ Native Pass B stalled; template kept', 'warn');
                   break;
                 }
