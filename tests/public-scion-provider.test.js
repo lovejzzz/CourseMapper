@@ -343,25 +343,20 @@ describe('Scion Public provider', () => {
     };
     const prompt = `Course: Physics\nLessons:\n${JSON.stringify([sourceLesson])}\nReturn ONLY valid JSON.`;
     const wrong = completeLesson();
-    wrong.facts[0] =
-      'Decreasing the separation between capacitor plates leads to a decrease in capacitance.';
+    wrong.facts[0] = 'Decreasing the separation between capacitor plates leads to a decrease in capacitance.';
     const correct = structuredClone(wrong);
-    correct.facts[0] =
-      'Decreasing the separation between capacitor plates leads to an increase in capacitance.';
+    correct.facts[0] = 'Decreasing the separation between capacitor plates leads to an increase in capacitance.';
     const unrelated = structuredClone(wrong);
     unrelated.facts[0] = 'Increasing practice time decreases the number of avoidable calculation errors.';
 
     expect(
-      assessPublicScionKernelResponse(JSON.stringify({ lessons: [wrong] }), prompt, 'blueprintEnrichment')
-        .issues,
+      assessPublicScionKernelResponse(JSON.stringify({ lessons: [wrong] }), prompt, 'blueprintEnrichment').issues,
     ).toContain('lesson-9:fact-0:source-direction-conflict');
     expect(
-      assessPublicScionKernelResponse(JSON.stringify({ lessons: [correct] }), prompt, 'blueprintEnrichment')
-        .issues,
+      assessPublicScionKernelResponse(JSON.stringify({ lessons: [correct] }), prompt, 'blueprintEnrichment').issues,
     ).not.toContain('lesson-9:fact-0:source-direction-conflict');
     expect(
-      assessPublicScionKernelResponse(JSON.stringify({ lessons: [unrelated] }), prompt, 'blueprintEnrichment')
-        .issues,
+      assessPublicScionKernelResponse(JSON.stringify({ lessons: [unrelated] }), prompt, 'blueprintEnrichment').issues,
     ).not.toContain('lesson-9:fact-0:source-direction-conflict');
   });
 

@@ -58,7 +58,7 @@ describe('prompt-aware setup previews', () => {
 
     expect(
       resolveWorkspaceCourseTitle({
-        courseMapTitle: "s law of induction, inductance, and Maxwell",
+        courseMapTitle: 's law of induction, inductance, and Maxwell',
         promptText,
         mappingInProgress: true,
       }),

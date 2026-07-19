@@ -26,7 +26,8 @@ export function valueConformsToSchema(value, schema) {
 
   if ('const' in schema && !sameJsonValue(value, schema.const)) return false;
   if (Array.isArray(schema.enum) && !schema.enum.some((candidate) => sameJsonValue(value, candidate))) return false;
-  if (Array.isArray(schema.allOf) && !schema.allOf.every((branch) => valueConformsToSchema(value, branch))) return false;
+  if (Array.isArray(schema.allOf) && !schema.allOf.every((branch) => valueConformsToSchema(value, branch)))
+    return false;
   if (Array.isArray(schema.anyOf) && !schema.anyOf.some((branch) => valueConformsToSchema(value, branch))) return false;
   if (
     Array.isArray(schema.oneOf) &&

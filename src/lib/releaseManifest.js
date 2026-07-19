@@ -102,7 +102,7 @@ export const CURRENT_RELEASE_CHANGELOG = {
       color: 'blue',
       items: [
         'The browser audit used two real production-bundle Scion builds rather than mocked fixtures. The final cached-base, one-lesson Physics build completed in 61 seconds with all five selected materials and an honest 89/B result.',
-        'Straight apostrophes in names such as Faraday\'s and Maxwell\'s no longer act as accidental title delimiters. While Map is active, the workspace keeps the prompt-derived title until the streamed map title is trustworthy.',
+        "Straight apostrophes in names such as Faraday's and Maxwell's no longer act as accidental title delimiters. While Map is active, the workspace keeps the prompt-derived title until the streamed map title is trustworthy.",
         'Desktop and 390×844 phone checks covered light and dark workspace states with zero document-level horizontal overflow. A free-form Agent turn in the first run reached the same local Scion route and returned a lesson-grounded answer in about 11 seconds.',
       ],
     },

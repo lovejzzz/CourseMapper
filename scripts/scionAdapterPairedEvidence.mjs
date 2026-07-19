@@ -561,7 +561,9 @@ function selectCourseArtifactSet({ courseId, fileNames, report }) {
     zipNames.length === 0 &&
     !fileNames.includes('extracted');
   if (!deterministicQualityBlock) {
-    throw new Error(`Course ${courseId} has neither a publishable package nor a deterministic quality-block artifact set.`);
+    throw new Error(
+      `Course ${courseId} has neither a publishable package nor a deterministic quality-block artifact set.`,
+    );
   }
   const projectName = exactlyOneMatchingFile(
     fileNames,
@@ -569,7 +571,12 @@ function selectCourseArtifactSet({ courseId, fileNames, report }) {
     'quality-block project dump',
     courseId,
   );
-  const digestName = exactlyOneMatchingFile(fileNames, /^digest(?:-attempt\d+)?\.json$/, 'quality-block digest', courseId);
+  const digestName = exactlyOneMatchingFile(
+    fileNames,
+    /^digest(?:-attempt\d+)?\.json$/,
+    'quality-block digest',
+    courseId,
+  );
   const consoleName = exactlyOneMatchingFile(
     fileNames,
     /^console(?:-attempt\d+)?\.log$/,
@@ -596,10 +603,7 @@ async function buildCourseEvidence({
   graderImplementationSha256,
   runtimeTaskPolicy,
 }) {
-  const [report, fileNames] = await Promise.all([
-    readJson(path.join(courseDir, 'report.json')),
-    fs.readdir(courseDir),
-  ]);
+  const [report, fileNames] = await Promise.all([readJson(path.join(courseDir, 'report.json')), fs.readdir(courseDir)]);
   const artifactSet = selectCourseArtifactSet({
     courseId: benchmarkCourse.courseId,
     fileNames,
@@ -724,9 +728,7 @@ async function buildCourseEvidence({
     artifactSet.kind === 'publishable-package'
       ? Number(quality?.findingCounts?.p2) || 0
       : Number(qualityGates?.qualityP2);
-  const zipReceipt = artifactSet.zipName
-    ? receipts.find((entry) => entry.path.endsWith(artifactSet.zipName))
-    : null;
+  const zipReceipt = artifactSet.zipName ? receipts.find((entry) => entry.path.endsWith(artifactSet.zipName)) : null;
   const publishableEvaluationValid =
     artifactSet.kind === 'publishable-package' &&
     report?.run?.status === 'passed' &&

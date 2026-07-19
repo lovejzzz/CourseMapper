@@ -484,9 +484,9 @@ describe('Scion strict-v6 canonical lesson-title admission', () => {
     expect(
       assessScionKeyTerm(legitimate, { lessonTitle: 'Capacitance', semanticProfile: 'strict-v5' }).issues,
     ).toContain('term-is-lesson-title');
-    expect(
-      assessScionKeyTerm(tautology, { lessonTitle: 'Capacitance', semanticProfile: 'strict-v6' }).issues,
-    ).toEqual(expect.arrayContaining(['term-is-lesson-title', 'circular-definition']));
+    expect(assessScionKeyTerm(tautology, { lessonTitle: 'Capacitance', semanticProfile: 'strict-v6' }).issues).toEqual(
+      expect.arrayContaining(['term-is-lesson-title', 'circular-definition']),
+    );
   });
 });
 

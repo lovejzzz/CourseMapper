@@ -181,7 +181,7 @@ describe('Scion lesson-kernel teacher revision', () => {
     );
     expect(promptV5).toContain('smallest possible repair');
     expect(promptV5).toContain('Copy every field not named by `compilerAdmission.issues` unchanged');
-    expect(promptV5).toContain('change only key term N\'s `cx`');
+    expect(promptV5).toContain("change only key term N's `cx`");
     expect(promptV5).toContain('keep `q`, `op`, `ai`, and `fi` unchanged');
     expect(promptV5).toContain('recognized evidence types');
     const promptV6 = fs.readFileSync(

@@ -285,9 +285,7 @@ describe('Scion lesson-kernel paired-order judge', () => {
     expect(chosen.ai).toBe(0);
     expect(assessCorpusRow(preferences[0], 'lesson-kernel-fixture')).toMatchObject({ eligible: true, issues: [] });
     const trainingRow = toScionOrpoTrainingRow(preferences[0]);
-    expect(trainingRow.chosen[0].content).toBe(
-      `${preferences[0].systemPrompt}\n\n${preferences[0].prompt}`,
-    );
+    expect(trainingRow.chosen[0].content).toBe(`${preferences[0].systemPrompt}\n\n${preferences[0].prompt}`);
     expect(trainingRow.rejected[0].content).toBe(trainingRow.chosen[0].content);
     expect(trainingRow.provenance).toMatchObject({
       pairKind: 'lesson-kernel',
@@ -356,9 +354,7 @@ describe('Scion lesson-kernel paired-order judge', () => {
           revisionResultSha256: '4'.repeat(64),
           compiledReportSha256: '5'.repeat(64),
           originalArtifactSha256: 'e'.repeat(64),
-          authoredArtifactSha256: scionLessonKernelSha256(
-            JSON.stringify(JSON.parse(preference.chosen).lessons[0]),
-          ),
+          authoredArtifactSha256: scionLessonKernelSha256(JSON.stringify(JSON.parse(preference.chosen).lessons[0])),
           lineageSha256: expect.stringMatching(/^[a-f0-9]{64}$/),
         },
       },
@@ -371,8 +367,7 @@ describe('Scion lesson-kernel paired-order judge', () => {
     expect(toScionOrpoTrainingRow(preference).provenance).toMatchObject({
       winnerRole: 'teacher-revision',
       rejectedRole: 'local',
-      teacherRevisionLineageSha256:
-        preference.preferenceEvidence.teacherRevisionLineage.lineageSha256,
+      teacherRevisionLineageSha256: preference.preferenceEvidence.teacherRevisionLineage.lineageSha256,
     });
 
     const mergedReferenceReport = structuredClone(inputs.referenceReport);

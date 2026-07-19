@@ -5,8 +5,7 @@ export const SCION_LESSON_KERNEL_JUDGE_WORKBOOK_PROTOCOL = 'scion-lesson-kernel-
 export const SCION_LESSON_KERNEL_JUDGE_REVIEW_PROTOCOL = 'scion-lesson-kernel-blind-review-v1';
 export const SCION_LESSON_KERNEL_JUDGE_AGGREGATE_PROTOCOL = 'scion-lesson-kernel-paired-order-result-v1';
 export const SCION_LESSON_KERNEL_TRAINING_EVIDENCE_PROTOCOL = 'scion-lesson-kernel-training-preference-v1';
-export const SCION_LESSON_KERNEL_TEACHER_LINEAGE_PROTOCOL =
-  'scion-lesson-kernel-teacher-revision-lineage-v1';
+export const SCION_LESSON_KERNEL_TEACHER_LINEAGE_PROTOCOL = 'scion-lesson-kernel-teacher-revision-lineage-v1';
 export const SCION_LESSON_KERNEL_JUDGE_DIMENSIONS = Object.freeze([
   'sourceFidelity',
   'knowledgePrecision',
@@ -554,9 +553,7 @@ function buildTeacherRevisionLineage({ report, call, authoredArtifact } = {}) {
   const sourceTeacherReportSha256 = batch?.sourceReportSha256 || report?.identity?.sha256;
   const sourceWorkbookSha256 = batch?.sourceWorkbookSha256 || report?.workbookSha256;
   const mergeReportSha256 =
-    batch?.sourceReportSha256 && report?.identity?.sha256 !== batch.sourceReportSha256
-      ? report.identity.sha256
-      : null;
+    batch?.sourceReportSha256 && report?.identity?.sha256 !== batch.sourceReportSha256 ? report.identity.sha256 : null;
   const lineage = {
     protocol: SCION_LESSON_KERNEL_TEACHER_LINEAGE_PROTOCOL,
     packetSha256: call?.revisionEvidence?.packetSha256,

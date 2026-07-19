@@ -42,8 +42,7 @@ describe('named reading compiler projection', () => {
     // Simulate a project saved by the older six-word cue compressor. A
     // recompile must repair it from the canonical top-level registry.
     blueprint.lessons[0].evidencePlan.sourceCue = 'selected poems of Li Bai Du';
-    blueprint.lessons[0].sourceUsePlan.sourceEvaluationPrompt =
-      'Ask what makes selected poems of Li Bai Du relevant.';
+    blueprint.lessons[0].sourceUsePlan.sourceEvaluationPrompt = 'Ask what makes selected poems of Li Bai Du relevant.';
 
     const compiled = compileBlueprintDeliverables(
       blueprint,

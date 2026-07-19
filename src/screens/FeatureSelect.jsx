@@ -384,7 +384,9 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef }) {
                 </p>
                 {/* Tone */}
                 <div>
-                  <span className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-slate-200">Default Tone</span>
+                  <span className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-slate-200">
+                    Default Tone
+                  </span>
                   <div className="flex flex-wrap gap-1.5">
                     {TONE_OPTS.map((opt) => (
                       <button
@@ -473,11 +475,15 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef }) {
                     htmlFor="custom-deliverable-user-prompt"
                     className="mb-1 block text-xs font-semibold text-slate-700 dark:text-slate-200"
                   >
-                    User Prompt Template <span className="font-normal text-slate-400 dark:text-slate-500">(optional)</span>
+                    User Prompt Template{' '}
+                    <span className="font-normal text-slate-400 dark:text-slate-500">(optional)</span>
                   </label>
                   <p className="mb-1 text-xs text-slate-400 dark:text-slate-500">
-                    Use <code className="rounded bg-slate-100 px-1 py-0.5 text-[10px] dark:bg-slate-800">{'{{courseMap}}'}</code> where
-                    course data should be inserted.
+                    Use{' '}
+                    <code className="rounded bg-slate-100 px-1 py-0.5 text-[10px] dark:bg-slate-800">
+                      {'{{courseMap}}'}
+                    </code>{' '}
+                    where course data should be inserted.
                   </p>
                   <textarea
                     id="custom-deliverable-user-prompt"

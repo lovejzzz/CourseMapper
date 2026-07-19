@@ -15,8 +15,7 @@ export const SCION_CODEX_TRAINING_SCORE_DIMENSIONS = Object.freeze([
 export const SCION_CODEX_TRAINING_REQUIRED_ORDERS = Object.freeze(['A/B', 'B/A']);
 export const SCION_CODEX_TRAINING_MINIMUM_WINNER_SCORE = 4;
 export const SCION_LESSON_KERNEL_TRAINING_REVIEW_PROTOCOL = 'scion-lesson-kernel-training-preference-v1';
-export const SCION_LESSON_KERNEL_TEACHER_LINEAGE_PROTOCOL =
-  'scion-lesson-kernel-teacher-revision-lineage-v1';
+export const SCION_LESSON_KERNEL_TEACHER_LINEAGE_PROTOCOL = 'scion-lesson-kernel-teacher-revision-lineage-v1';
 export const SCION_LESSON_KERNEL_JUDGE_PROMPT_PATH = 'evaluation/scion-adapters/lesson-kernel-judge-prompt-v0.16.54.md';
 export const SCION_LESSON_KERNEL_JUDGE_PROMPT_SHA256 =
   '37844b86736335db54b561d8c031660ef71679c55ae1108e2e999e746f2a1c96';
@@ -226,10 +225,7 @@ export function validateScionLessonKernelTrainingPreferenceEvidence(evidence) {
     ]) {
       if (!SHA256_RE.test(clean(lineage?.[field]))) issues.push(`lesson-kernel-teacher-lineage-${field}`);
     }
-    if (
-      lineage?.teacherMergeReportSha256 != null &&
-      !SHA256_RE.test(clean(lineage.teacherMergeReportSha256))
-    ) {
+    if (lineage?.teacherMergeReportSha256 != null && !SHA256_RE.test(clean(lineage.teacherMergeReportSha256))) {
       issues.push('lesson-kernel-teacher-lineage-teacherMergeReportSha256');
     }
     if (!validIdentity(lineage?.sessionId)) issues.push('lesson-kernel-teacher-lineage-session');

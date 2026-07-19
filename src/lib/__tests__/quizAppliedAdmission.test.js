@@ -54,12 +54,7 @@ describe('applied multiple-choice admission', () => {
       coverage: { requestedLessons: 1, admittedLessons: 1 },
       lessonContent: {
         'lesson-1': {
-          quizItems: [
-            mc(0, recallDiagnostic),
-            mc(1, recallAnalysis),
-            mc(2, appliedAnalysis),
-            mc(4, recallEvaluation),
-          ],
+          quizItems: [mc(0, recallDiagnostic), mc(1, recallAnalysis), mc(2, appliedAnalysis), mc(4, recallEvaluation)],
         },
       },
     };

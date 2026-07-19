@@ -7,9 +7,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { buildBlueprintFromGraph } from '../src/lib/courseGraph/blueprintFromGraph.js';
 import { compileBlueprintDeliverables } from '../src/lib/courseBlueprintCompiler.js';
-import {
-  lintItemAdmission,
-} from '../src/lib/itemAdmissionLint.js';
+import { lintItemAdmission } from '../src/lib/itemAdmissionLint.js';
 
 const FEEDBACK_ISSUES = new Set([
   'generation-marker-residue',
@@ -38,9 +36,7 @@ function collectCompiledFeedbackDefects(value, currentPath = [], rows = []) {
   if (Array.isArray(value)) {
     value.forEach((entry, index) => collectCompiledFeedbackDefects(entry, [...currentPath, index], rows));
   } else {
-    Object.entries(value).forEach(([key, entry]) =>
-      collectCompiledFeedbackDefects(entry, [...currentPath, key], rows),
-    );
+    Object.entries(value).forEach(([key, entry]) => collectCompiledFeedbackDefects(entry, [...currentPath, key], rows));
   }
   return rows;
 }

@@ -73,8 +73,7 @@ function parseArgs(argv) {
           .map((value) => value.trim())
           .filter(Boolean),
       );
-    }
-    else if (token === '--campaign') args.campaign = argv[++index] || args.campaign;
+    } else if (token === '--campaign') args.campaign = argv[++index] || args.campaign;
     else if (token === '--checkpoints') args.checkpointDir = argv[++index] || args.checkpointDir;
     else if (token === '--report') args.report = argv[++index] || args.report;
     else if (token === '--generated-at') args.generatedAt = argv[++index] || args.generatedAt;
@@ -310,10 +309,7 @@ async function captureCase(entry, arm, model) {
         durationMs: Date.now() - callStart,
       });
       final = parsed;
-      if (
-        parsed.artifact &&
-        (!best || publicScionAdmissionRisk(parsed.assessment).score < best.risk.score)
-      ) {
+      if (parsed.artifact && (!best || publicScionAdmissionRisk(parsed.assessment).score < best.risk.score)) {
         best = { parsed, attempt, risk: publicScionAdmissionRisk(parsed.assessment) };
       }
       priorText = parsed.text;

@@ -18,9 +18,7 @@ function renderBuilder(props = {}) {
   const container = document.createElement('div');
   document.body.appendChild(container);
   const root = createRoot(container);
-  act(() =>
-    root.render(<CustomDeliverableBuilder isOpen onClose={() => {}} onSave={() => {}} {...props} />),
-  );
+  act(() => root.render(<CustomDeliverableBuilder isOpen onClose={() => {}} onSave={() => {}} {...props} />));
   mounted.push({ root, container });
   return { container, root };
 }

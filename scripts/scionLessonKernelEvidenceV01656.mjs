@@ -70,7 +70,10 @@ async function readJson(file) {
 }
 
 async function sha256File(file) {
-  return crypto.createHash('sha256').update(await fs.readFile(file)).digest('hex');
+  return crypto
+    .createHash('sha256')
+    .update(await fs.readFile(file))
+    .digest('hex');
 }
 
 async function atomicWriteJson(file, value) {
@@ -106,7 +109,10 @@ async function promoteBundle(name, source) {
     copyFile(path.join(batchSource, 'a-b.review.json'), path.join(judgeTarget, 'a-b.review.json')),
     copyFile(path.join(batchSource, 'b-a.review.json'), path.join(judgeTarget, 'b-a.review.json')),
     copyFile(path.join(batchSource, 'paired-order-result.json'), path.join(judgeTarget, 'paired-order-result.json')),
-    copyFile(path.join(batchSource, 'training-preferences.jsonl'), path.join(judgeTarget, 'training-preferences.jsonl')),
+    copyFile(
+      path.join(batchSource, 'training-preferences.jsonl'),
+      path.join(judgeTarget, 'training-preferences.jsonl'),
+    ),
   ]);
 }
 
@@ -139,20 +145,31 @@ function replayMetrics(report) {
 
 async function loadEvidenceBundle(name, source) {
   const root = path.join(OUTPUT, name);
-  const [campaign, localCapture, localReplay, referenceCapture, referenceReplay, workbook, abPacket, baPacket, abReview, baReview, pairedResult] =
-    await Promise.all([
-      readJson(source.campaign),
-      readJson(path.join(root, 'local-capture.json')),
-      readJson(path.join(root, 'local-admission-replay.json')),
-      readJson(path.join(root, 'reference-capture.json')),
-      readJson(path.join(root, 'reference-admission-replay.json')),
-      readJson(path.join(root, 'judge', 'workbook.json')),
-      readJson(path.join(root, 'judge', 'a-b.packet.json')),
-      readJson(path.join(root, 'judge', 'b-a.packet.json')),
-      readJson(path.join(root, 'judge', 'a-b.review.json')),
-      readJson(path.join(root, 'judge', 'b-a.review.json')),
-      readJson(path.join(root, 'judge', 'paired-order-result.json')),
-    ]);
+  const [
+    campaign,
+    localCapture,
+    localReplay,
+    referenceCapture,
+    referenceReplay,
+    workbook,
+    abPacket,
+    baPacket,
+    abReview,
+    baReview,
+    pairedResult,
+  ] = await Promise.all([
+    readJson(source.campaign),
+    readJson(path.join(root, 'local-capture.json')),
+    readJson(path.join(root, 'local-admission-replay.json')),
+    readJson(path.join(root, 'reference-capture.json')),
+    readJson(path.join(root, 'reference-admission-replay.json')),
+    readJson(path.join(root, 'judge', 'workbook.json')),
+    readJson(path.join(root, 'judge', 'a-b.packet.json')),
+    readJson(path.join(root, 'judge', 'b-a.packet.json')),
+    readJson(path.join(root, 'judge', 'a-b.review.json')),
+    readJson(path.join(root, 'judge', 'b-a.review.json')),
+    readJson(path.join(root, 'judge', 'paired-order-result.json')),
+  ]);
   const validation = validateScionLessonKernelCampaign(campaign);
   if (!validation.valid) throw new Error(`${name} campaign invalid: ${validation.issues.join(', ')}`);
   for (const [label, report] of [
@@ -168,14 +185,16 @@ async function loadEvidenceBundle(name, source) {
     ['reference', referenceReplay],
   ]) {
     const replayValidation = validateScionLessonKernelAdmissionReplay(report);
-    if (!replayValidation.valid) throw new Error(`${name} ${label} replay invalid: ${replayValidation.issues.join(', ')}`);
+    if (!replayValidation.valid)
+      throw new Error(`${name} ${label} replay invalid: ${replayValidation.issues.join(', ')}`);
   }
   for (const [label, review, packet] of [
     ['A/B', abReview, abPacket],
     ['B/A', baReview, baPacket],
   ]) {
     const reviewValidation = validateScionLessonKernelJudgeReview(review, packet);
-    if (!reviewValidation.valid) throw new Error(`${name} ${label} review invalid: ${reviewValidation.issues.join(', ')}`);
+    if (!reviewValidation.valid)
+      throw new Error(`${name} ${label} review invalid: ${reviewValidation.issues.join(', ')}`);
   }
   if (abReview.sessionId === baReview.sessionId) throw new Error(`${name} judge sessions were reused`);
   if (workbook.campaignIdentity?.sha256 !== campaign.identity.sha256) {

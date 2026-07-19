@@ -315,12 +315,8 @@ describe('chooseAgentFallbackText', () => {
 
   it('removes a malformed browser-local chatReply field prefix before rendering', () => {
     const raw = 'chatReply:, Reviewing the tone contours is the highest-priority check.';
-    expect(stripInternalAgentMarkers(raw)).toBe(
-      'Reviewing the tone contours is the highest-priority check.',
-    );
-    expect(chooseAgentFallbackText(raw, [])).toBe(
-      'Reviewing the tone contours is the highest-priority check.',
-    );
+    expect(stripInternalAgentMarkers(raw)).toBe('Reviewing the tone contours is the highest-priority check.');
+    expect(chooseAgentFallbackText(raw, [])).toBe('Reviewing the tone contours is the highest-priority check.');
   });
 
   it('replaces raw tool trace text with a concise user-facing receipt', () => {

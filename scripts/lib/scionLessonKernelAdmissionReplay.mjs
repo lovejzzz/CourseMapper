@@ -1,8 +1,7 @@
 import { assessPublicScionKernelResponse } from '../../src/lib/publicScionProvider.js';
 import { scionLessonKernelSha256 } from './scionLessonKernelCampaign.mjs';
 
-export const SCION_LESSON_KERNEL_ADMISSION_REPLAY_PROTOCOL =
-  'scion-lesson-kernel-admission-replay-v1';
+export const SCION_LESSON_KERNEL_ADMISSION_REPLAY_PROTOCOL = 'scion-lesson-kernel-admission-replay-v1';
 
 function withoutIdentity(value = {}) {
   const copy = structuredClone(value);

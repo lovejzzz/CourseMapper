@@ -200,9 +200,7 @@ describe('constructed-response compiler depth', () => {
       .find((quiz) => quiz.kind === 'exam')
       .questions.find((item) => item.type === 'short_answer');
 
-    expect(defensiveShortAnswer.question).toMatch(
-      /compare Realism and Liberalism as contrasting explanatory lenses/i,
-    );
+    expect(defensiveShortAnswer.question).toMatch(/compare Realism and Liberalism as contrasting explanatory lenses/i);
     expect(defensiveShortAnswer.answer).toMatch(/defines both concepts accurately/i);
     expect(defensiveShortAnswer.answer).not.toMatch(/Liberalism:\s*The anarchic structure/i);
   });

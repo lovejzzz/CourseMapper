@@ -18862,9 +18862,7 @@ function buildSourceBoundRecoveryQuizAtoms({ lesson, blueprint, quizPlan, concep
     lesson.evidencePlan?.sourceCue,
     safeLessonEvidenceCue(lesson, blueprintLens(blueprint)),
   );
-  const sourceLabel = /^(?:the|assigned)\b/i.test(evidenceCue)
-    ? evidenceCue
-    : `the assigned source "${evidenceCue}"`;
+  const sourceLabel = /^(?:the|assigned)\b/i.test(evidenceCue) ? evidenceCue : `the assigned source "${evidenceCue}"`;
   const compositeConcept = /\b(?:and|versus|vs\.?)\b/i.test(concept);
   const conceptLensCue = compositeConcept ? `${concept} as contrasting lenses` : concept;
   const prompts = [
@@ -19483,12 +19481,10 @@ function buildExamShortAnswerItem({ blueprint, assessment, covered, lens, examSl
   const compositeDefinition = cleanText(termA?.definition);
   const compositeGrounded = Boolean(
     usesCompositePair &&
-      compositeDefinition &&
-      compositePair.every((member) => compositeDefinition.toLowerCase().includes(member.toLowerCase())),
+    compositeDefinition &&
+    compositePair.every((member) => compositeDefinition.toLowerCase().includes(member.toLowerCase())),
   );
-  const grounded = Boolean(
-    distinctConcepts && (compositeGrounded || (!usesCompositePair && termA && termB)),
-  );
+  const grounded = Boolean(distinctConcepts && (compositeGrounded || (!usesCompositePair && termA && termB)));
   const anchorFact = examLessonFact(last) || examLessonFact(first);
   const firstTitle = stripLessonPrefix(first.title);
   const normalizedPairTitle = cleanText(firstTitle).toLowerCase();
@@ -24370,10 +24366,9 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
     ? blueprint.instructorSourceFactsByLesson[lesson.id]
     : [];
   const kernelFacts = unique(
-    [
-      ...instructorFacts,
-      ...(Array.isArray(kernelPayload?.kernel?.facts) ? kernelPayload.kernel.facts : []),
-    ].map(cleanText),
+    [...instructorFacts, ...(Array.isArray(kernelPayload?.kernel?.facts) ? kernelPayload.kernel.facts : [])].map(
+      cleanText,
+    ),
     8,
   ).slice(0, 5);
   const kernelFact = kernelFacts[0] || '';
@@ -24470,13 +24465,15 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
         : kernelFacts.length > 0
           ? `Teach from the admitted source-grounded fact set: ${kernelFacts
               .map((fact, index) => `${index + 1}) ${ensureSentenceCompiler(stripTerminalPunctuation(fact))}`)
-              .join(' ')} Keep these claims visible during the model, then ask students to identify which fact supports each practice decision.`
-        : lessonVariant(lesson, [
-            `Keep the model concrete: point to ${evidencePlan?.sourceCue || 'one source cue'}, then model the reasoning move students will transfer into ${artifact}.`,
-            `Use ${evidencePlan?.sourceCue || 'one source cue'} as the worked anchor and name the inference students should carry into ${artifact}.`,
-            `Tie the example to ${evidencePlan?.sourceCue || 'one source cue'} and ask students to write the reasoning move in ${artifact} language.`,
-            `Make ${evidencePlan?.sourceCue || 'one source cue'} visible, then mark the inference students can reuse when drafting ${artifact}.`,
-          ]),
+              .join(
+                ' ',
+              )} Keep these claims visible during the model, then ask students to identify which fact supports each practice decision.`
+          : lessonVariant(lesson, [
+              `Keep the model concrete: point to ${evidencePlan?.sourceCue || 'one source cue'}, then model the reasoning move students will transfer into ${artifact}.`,
+              `Use ${evidencePlan?.sourceCue || 'one source cue'} as the worked anchor and name the inference students should carry into ${artifact}.`,
+              `Tie the example to ${evidencePlan?.sourceCue || 'one source cue'} and ask students to write the reasoning move in ${artifact} language.`,
+              `Make ${evidencePlan?.sourceCue || 'one source cue'} visible, then mark the inference students can reuse when drafting ${artifact}.`,
+            ]),
       // v0.16 C2 (Prof classroom catch — realistic reading compliance cost
       // the cohort 25-36% of mastery): the mini-lesson explicitly re-teaches
       // the reading's core idea in class, so students who arrived without

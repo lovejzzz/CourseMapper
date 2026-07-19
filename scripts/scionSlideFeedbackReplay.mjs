@@ -6,8 +6,7 @@ import { buildBlueprintFromGraph } from '../src/lib/courseGraph/blueprintFromGra
 import { compileBlueprintDeliverables } from '../src/lib/courseBlueprintCompiler.js';
 
 const BROKEN_DETERMINER_PROMPT_RE = /\bname one (?:the|a|an|this|that|these|those)\b/i;
-const BROKEN_SOURCE_DETAIL_PROMPT_RE =
-  /\bname one (?:the|a|an|this|that|these|those)\b[^.]{0,160}\bsource detail\b/i;
+const BROKEN_SOURCE_DETAIL_PROMPT_RE = /\bname one (?:the|a|an|this|that|these|those)\b[^.]{0,160}\bsource detail\b/i;
 
 function valueAfter(flag) {
   const index = process.argv.indexOf(flag);
@@ -24,7 +23,9 @@ function collectBrokenPrompts(value, currentPath = '$', findings = [], pattern =
     return findings;
   }
   if (value && typeof value === 'object') {
-    Object.entries(value).forEach(([key, item]) => collectBrokenPrompts(item, `${currentPath}.${key}`, findings, pattern));
+    Object.entries(value).forEach(([key, item]) =>
+      collectBrokenPrompts(item, `${currentPath}.${key}`, findings, pattern),
+    );
   }
   return findings;
 }
@@ -58,7 +59,12 @@ if (!projectPath) {
   const sourceReportPath = path.join(path.dirname(absolutePath), 'report.json');
   const sourceArtifactDefects = fs.existsSync(sourceReportPath)
     ? uniqueFindings(
-        collectBrokenPrompts(JSON.parse(fs.readFileSync(sourceReportPath, 'utf8')), '$', [], BROKEN_SOURCE_DETAIL_PROMPT_RE),
+        collectBrokenPrompts(
+          JSON.parse(fs.readFileSync(sourceReportPath, 'utf8')),
+          '$',
+          [],
+          BROKEN_SOURCE_DETAIL_PROMPT_RE,
+        ),
       )
     : [];
   const report = {

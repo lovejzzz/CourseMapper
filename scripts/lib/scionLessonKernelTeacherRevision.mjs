@@ -1,7 +1,4 @@
-import {
-  assessPublicScionKernelResponse,
-  shufflePublicScionKernelOptions,
-} from '../../src/lib/publicScionProvider.js';
+import { assessPublicScionKernelResponse, shufflePublicScionKernelOptions } from '../../src/lib/publicScionProvider.js';
 import {
   buildScionLessonKernelResponseSchema,
   scionLessonKernelSha256,
@@ -100,7 +97,8 @@ export function validateScionLessonKernelTeacherRevisionPacket(packet = {}) {
 
 export function buildScionLessonKernelTeacherRevisionSchema(packet = {}) {
   const lessonSchema = structuredClone(
-    buildScionLessonKernelResponseSchema(packet?.cases?.[0]?.lessonInput?.lessonId || 'lesson').properties.lessons.items,
+    buildScionLessonKernelResponseSchema(packet?.cases?.[0]?.lessonInput?.lessonId || 'lesson').properties.lessons
+      .items,
   );
   lessonSchema.properties.lessonId = { type: 'string', minLength: 1 };
   const schema = {
@@ -151,7 +149,16 @@ export function buildScionLessonKernelTeacherRevisionSchema(packet = {}) {
         },
       },
     },
-    required: ['schemaVersion', 'protocol', 'packetSha256', 'sessionId', 'reviser', 'completedAt', 'attestations', 'revisions'],
+    required: [
+      'schemaVersion',
+      'protocol',
+      'packetSha256',
+      'sessionId',
+      'reviser',
+      'completedAt',
+      'attestations',
+      'revisions',
+    ],
   };
   return schema;
 }
@@ -161,7 +168,8 @@ export function validateScionLessonKernelTeacherRevisionResult(result = {}, pack
   if (result.protocol !== SCION_LESSON_KERNEL_TEACHER_RESULT_PROTOCOL) issues.push('protocol');
   if (result.packetSha256 !== packet.identity?.sha256) issues.push('packet-sha256');
   if (!String(result.sessionId || '').trim()) issues.push('session-id');
-  if (!String(result.reviser?.model || '').trim() || !String(result.reviser?.revision || '').trim()) issues.push('reviser');
+  if (!String(result.reviser?.model || '').trim() || !String(result.reviser?.revision || '').trim())
+    issues.push('reviser');
   for (const key of ['suppliedClaimsOnly', 'noExternalFacts', 'noTrainingAuthorization']) {
     if (result.attestations?.[key] !== true) issues.push(`attestation:${key}`);
   }
@@ -175,7 +183,8 @@ export function validateScionLessonKernelTeacherRevisionResult(result = {}, pack
     }
     if (revision.originalArtifactSha256 !== entry.originalArtifactSha256) issues.push(`original:${entry.caseId}`);
     if (revision.lessonKernel?.lessonId !== entry.lessonInput?.lessonId) issues.push(`lesson-id:${entry.caseId}`);
-    if (!Array.isArray(revision.changeSummary) || revision.changeSummary.length === 0) issues.push(`changes:${entry.caseId}`);
+    if (!Array.isArray(revision.changeSummary) || revision.changeSummary.length === 0)
+      issues.push(`changes:${entry.caseId}`);
     if (!Array.isArray(revision.addressedDiagnoses) || revision.addressedDiagnoses.length === 0) {
       issues.push(`diagnoses:${entry.caseId}`);
     }

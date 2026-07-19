@@ -41,7 +41,10 @@ function parseArgs(argv) {
 }
 
 async function sha256File(file) {
-  return crypto.createHash('sha256').update(await fs.readFile(file)).digest('hex');
+  return crypto
+    .createHash('sha256')
+    .update(await fs.readFile(file))
+    .digest('hex');
 }
 
 async function atomicWriteJson(file, value) {
@@ -55,9 +58,7 @@ async function atomicWriteJson(file, value) {
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   if (args.help) {
-    console.log(
-      'Usage: node scripts/scionLessonKernelAdmissionReplay.mjs --arm local|reference [--generated-at ISO]',
-    );
+    console.log('Usage: node scripts/scionLessonKernelAdmissionReplay.mjs --arm local|reference [--generated-at ISO]');
     return;
   }
   if (!args.input || !args.output) throw new Error('Admission replay requires --arm or both --input and --output');

@@ -554,8 +554,7 @@ export async function createScionAdapterTrainingPlan({
   const hyperparameters = {
     ...SCION_ORPO_DEFAULTS,
     iterations: iterations == null ? (lane === 'smoke' ? 10 : SCION_ORPO_DEFAULTS.iterations) : Number(iterations),
-    maxSequenceLength:
-      maxSequenceLength == null ? SCION_ORPO_DEFAULTS.maxSequenceLength : Number(maxSequenceLength),
+    maxSequenceLength: maxSequenceLength == null ? SCION_ORPO_DEFAULTS.maxSequenceLength : Number(maxSequenceLength),
   };
   const hyperparameterIssues = validateHyperparameters(hyperparameters, lane, Number(seed));
   if (hyperparameterIssues.length > 0)

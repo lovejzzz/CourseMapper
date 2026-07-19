@@ -340,8 +340,7 @@ export function assessScionAdapterPromotion({
   );
   const gates = {
     manifest: manifestValidation.valid,
-    dataset:
-      manifestValidation.valid && manifest?.training?.datasetStatus === 'ready',
+    dataset: manifestValidation.valid && manifest?.training?.datasetStatus === 'ready',
     matchedDomains: domains.length >= minimumDomains,
     pairedEvidence:
       courseChecks.length >= minimumDomains &&

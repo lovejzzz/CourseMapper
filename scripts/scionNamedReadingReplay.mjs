@@ -38,7 +38,12 @@ if (!projectPath) {
   const blueprint = buildBlueprintFromGraph(graph);
   const title =
     requestedTitle ||
-    blueprint.readingsRegistry?.find((entry) => String(entry?.title || '').trim().split(/\s+/).length >= 5)?.title;
+    blueprint.readingsRegistry?.find(
+      (entry) =>
+        String(entry?.title || '')
+          .trim()
+          .split(/\s+/).length >= 5,
+    )?.title;
   if (!title) throw new Error('No named reading was found; pass one with --title.');
 
   const compiled = compileBlueprintDeliverables(blueprint, FEATURES, { skipLanguageFinalizer: true });

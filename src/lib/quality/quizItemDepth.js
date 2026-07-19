@@ -161,7 +161,8 @@ export function summarizeUnsupportedQuizInferences(files = []) {
 export function buildQuizDepthFindings(files = []) {
   const findings = [];
   const sourceBoundRecoveryCount = files.reduce(
-    (count, file) => count + (String(file?.text || file?.paragraphs?.join('\n') || '').match(SOURCE_BOUND_RECOVERY_RE)?.length || 0),
+    (count, file) =>
+      count + (String(file?.text || file?.paragraphs?.join('\n') || '').match(SOURCE_BOUND_RECOVERY_RE)?.length || 0),
     0,
   );
   if (sourceBoundRecoveryCount > 0) {

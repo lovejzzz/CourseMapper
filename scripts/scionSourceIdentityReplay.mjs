@@ -20,9 +20,7 @@ function valueAfter(flag) {
 }
 
 function resourceText(resource) {
-  return `${resource?.title || ''} ${resource?.citation || ''} ${resource?.snippet || ''} ${
-    resource?.evidence || ''
-  }`;
+  return `${resource?.title || ''} ${resource?.citation || ''} ${resource?.snippet || ''} ${resource?.evidence || ''}`;
 }
 
 const projectPath = valueAfter('--project') || process.argv[2];

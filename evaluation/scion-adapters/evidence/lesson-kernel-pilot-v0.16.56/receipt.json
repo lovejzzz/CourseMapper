@@ -3,11 +3,11 @@
   "protocol": "scion-lesson-kernel-pilot-evidence-v1",
   "generatedAt": "2026-07-19T05:30:00.000Z",
   "implementation": {
-    "scripts/scionLessonKernelCapture.mjs": "fd7809527bbff14b5c879efa5b76387e45e12e73a69ed0e57c21140aad1847c0",
-    "scripts/scionLessonKernelEvidenceV01656.mjs": "600c549c1b0ef8926576562b1bae010879120f69da7bde815be3b02fc9859e4f",
+    "scripts/scionLessonKernelCapture.mjs": "7ace86adf5c76362f351e12277f1268cb968df2abfaf9c81de2361a5f2823e14",
+    "scripts/scionLessonKernelEvidenceV01656.mjs": "daa7e87afb40be670043369a1c9808d8816a1a47d774b5a3b484accf10c40d00",
     "scripts/lib/scionLessonKernelCampaign.mjs": "afeada7fdba7393ab9bd94e56a12c6c219d45f6f9ef7d1feb8ae9eeb41b75bd3",
-    "scripts/lib/scionLessonKernelJudge.mjs": "ec59ffd40780b6dabe2a494c290185056adb1518bb333687c59619d9f6992092",
-    "scripts/lib/scionLessonKernelAdmissionReplay.mjs": "40ccb0cec6ec8e22ff8c0458c0999572ea0d84653fee0224cfa23005ce72443e",
+    "scripts/lib/scionLessonKernelJudge.mjs": "c65e415cf3ca33750d31992468bbf9e7060f5acf7fbf95b012d5047c4a91fedf",
+    "scripts/lib/scionLessonKernelAdmissionReplay.mjs": "abc17778caeac0a46caafc39b847a5262f3817abe992f1f2d952d9d1dd88fd0b",
     "src/lib/publicScionProvider.js": "3dd3ae194b3042b20e982a77b34e32cdb98d465c1fbb9c9383d831cdca9e0317",
     "src/lib/scionLocalProvider.js": "0ec507afea4f6a8cfc37f7dd89b7aa2bad6892bc539819826dcb2c83a34fdce3",
     "src/lib/scionAnswerKeyAlignment.js": "2c6875437268444536de651f3ffbddf6368e2667c823ad0827a4245f86ebefa7",
@@ -168,6 +168,6 @@
   "claimBoundary": "This is three-case, single-model-judge pilot evidence. It proves deterministic detector and orchestration behavior on the captured artifacts only. It does not prove aggregate Scion quality, unseen precision, human preference, statistical significance, adapter improvement, or adapter activation.",
   "identity": {
     "algorithm": "sha256-canonical-json",
-    "sha256": "1a20affa1e5c0dd32227a63fb3a61a5091e7e4760bdf3fef69b19780aadf7351"
+    "sha256": "b0bae31f52b0dd2814f6bb07c06349bedfd3dc1216c00ff3fdbc059b3eab2ade"
   }
 }

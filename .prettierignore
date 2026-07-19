@@ -111,6 +111,16 @@ evaluation/scion-source-capture-*-evidence
 # byte-for-byte by their dedicated audits; preserve that canonical encoding.
 evaluation/scion-adapters/evidence/semantic-admission-v2-v0.16.48.json
 evaluation/scion-adapters/evidence/source-grounding-burden-v0.16.48.json
+# Later browser, campaign, and lesson-kernel receipts are byte-sealed by their
+# dedicated audits. Prettier must not rewrite captured model/judge evidence or
+# historical release contracts after their hashes and identities are frozen.
+docs/evidence/SCION_V01656_EXPERIENCE_AUDIT.json
+evaluation/scion-adapters/evidence/browser-scion-v0.16.54.json
+evaluation/scion-adapters/evidence/lesson-kernel-pilot-v0.16.56
+evaluation/scion-adapters/lesson-kernel-campaign-v0.16.54.json
+evaluation/scion-adapters/lesson-kernel-campaign-v0.16.56.json
+release-contracts/v0.16.54.json
+release-contracts/v0.16.56.json
 .firebase
 .claude
 **/.venv*/

@@ -305,9 +305,7 @@ describe('Scion adapter training receipts', () => {
     });
 
     expect(result.plan.trainer.hyperparameters.maxSequenceLength).toBe(2580);
-    expect(result.plan.trainer.command).toEqual(
-      expect.arrayContaining(['--max-seq-length', '2580']),
-    );
+    expect(result.plan.trainer.command).toEqual(expect.arrayContaining(['--max-seq-length', '2580']));
   });
 
   it('completes and verifies a byte-bound run, then rejects weight or dataset mutation', async () => {

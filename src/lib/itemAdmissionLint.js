@@ -128,9 +128,10 @@ export function hasInternalSourceIndexResidue(item) {
  * the bounded local-model degeneration seen in real package output.
  */
 export function hasRepetitiveExplanation(item) {
-  const words = String(item?.explanation ?? '')
-    .toLowerCase()
-    .match(/[\p{L}\p{N}]+/gu) || [];
+  const words =
+    String(item?.explanation ?? '')
+      .toLowerCase()
+      .match(/[\p{L}\p{N}]+/gu) || [];
   for (let width = 2; width <= 8; width += 1) {
     const span = width * 4;
     for (let start = 0; start + span <= words.length; start += 1) {

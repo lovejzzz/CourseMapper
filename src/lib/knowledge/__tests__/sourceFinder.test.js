@@ -630,8 +630,7 @@ describe('source finder mini-shard', () => {
         ]),
         searchWikipediaPages: vi.fn(async () => [
           source('wikipedia', 'Kanji', {
-            abstract:
-              'Kanji are logographic characters used in Japanese writing alongside hiragana and katakana.',
+            abstract: 'Kanji are logographic characters used in Japanese writing alongside hiragana and katakana.',
           }),
         ]),
       },
@@ -650,8 +649,7 @@ describe('source finder mini-shard', () => {
           ...miniShard.topics[0],
           sources: [
             source('wikipedia', 'Kanji', {
-              abstract:
-                'Kanji are logographic characters used in Japanese writing alongside hiragana and katakana.',
+              abstract: 'Kanji are logographic characters used in Japanese writing alongside hiragana and katakana.',
             }),
             ...miniShard.topics[0].sources,
           ],

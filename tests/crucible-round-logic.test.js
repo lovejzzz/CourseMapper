@@ -117,9 +117,9 @@ describe('E3 — retry bookkeeping', () => {
         error: 'Error: Package was not ready to download after finalization.\nFinish package',
       }),
     ).toBe(false);
-    expect(
-      shouldRetryCourseAttempt({ status: 'failed', phase: 'generating-workspace', error: 'Page crashed' }),
-    ).toBe(true);
+    expect(shouldRetryCourseAttempt({ status: 'failed', phase: 'generating-workspace', error: 'Page crashed' })).toBe(
+      true,
+    );
   });
 
   it('single passing attempt: plain "passed", no retry', () => {

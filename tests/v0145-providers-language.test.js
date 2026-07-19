@@ -499,8 +499,7 @@ describe('F2 — compiled render sites (lesson plan practice block + study guide
       },
     });
 
-    const guide = compileBlueprintDeliverable('studyGuides', blueprint, { skipLanguageFinalizer: true })
-      .studyGuides[0];
+    const guide = compileBlueprintDeliverable('studyGuides', blueprint, { skipLanguageFinalizer: true }).studyGuides[0];
     expect(guide.keyTerms).toContainEqual(
       expect.objectContaining({
         term: '妈 (mā)',

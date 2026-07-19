@@ -164,8 +164,7 @@ export function getPackageTrustStatus({
   // Summing them made one P0 read as five blockers in the workspace crown.
   // Count the largest content view once, then add truly separate export
   // failures.
-  const blockerCount =
-    Math.max(packageBlockerCount, readinessBlockers.length, qualityBlockerCount) + exportFailedCount;
+  const blockerCount = Math.max(packageBlockerCount, readinessBlockers.length, qualityBlockerCount) + exportFailedCount;
   const warningCount =
     packageWarningCount + readinessWarnings.length + qualityWarningCount + exportIssues.length + sourceIssues.length;
   const hasNotGradedQuality = Boolean(qualityProofIssue || (packageQuality && packageQuality.status !== 'graded'));

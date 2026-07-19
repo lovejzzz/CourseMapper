@@ -827,7 +827,10 @@ function summarizeLessonsForContent(courseMap, lessonIndices, sourceBrief = '') 
         // so source facts survive the Course Map compression without leaking
         // into the visible Supporting resources cell.
         readings: truncateText(
-          [String(section.supportingResources || ''), privateSourceBrief && `Instructor source brief: ${privateSourceBrief}`]
+          [
+            String(section.supportingResources || ''),
+            privateSourceBrief && `Instructor source brief: ${privateSourceBrief}`,
+          ]
             .filter(Boolean)
             .join('\n'),
           1200,
@@ -1377,11 +1380,7 @@ export function buildLessonKernelPrompt(courseMap, lessonIndices, options = {}) 
           ROMANIZATION_PROMPT_LINE,
           DIALOGUE_PROMPT_LINE,
           ...(mandarinRequirement.required
-            ? [
-                mandarinRequirement.pinyinOnly
-                  ? MANDARIN_PINYIN_ONLY_PROMPT_LINE
-                  : MANDARIN_TARGET_LANGUAGE_PROMPT_LINE,
-              ]
+            ? [mandarinRequirement.pinyinOnly ? MANDARIN_PINYIN_ONLY_PROMPT_LINE : MANDARIN_TARGET_LANGUAGE_PROMPT_LINE]
             : []),
         ]
       : []),

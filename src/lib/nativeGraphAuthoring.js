@@ -354,8 +354,7 @@ function recoverExplicitLessonSequence(sourceText, expectedCount) {
 
 const EXPLICIT_READING_LIST_HEADER_RE =
   /\b(?:required|assigned)\s+(?:readings?|texts?)(?:\s+as\s+named\s+on\s+the\s+syllabus)?\s*:\s*/i;
-const EXPLICIT_READING_ENTRY_RE =
-  /^(?:week|lesson|session)\s+(\d{1,2})\s+(?:reads?|assigns?|uses?)\s+(.+?)\s*[.!?]?$/i;
+const EXPLICIT_READING_ENTRY_RE = /^(?:week|lesson|session)\s+(\d{1,2})\s+(?:reads?|assigns?|uses?)\s+(.+?)\s*[.!?]?$/i;
 
 /**
  * Recover only instructor-explicit named readings from a compact source list.
@@ -379,7 +378,9 @@ export function recoverExplicitNamedReadings(sourceText, sessionCount) {
     const match = EXPLICIT_READING_ENTRY_RE.exec(segment.trim());
     if (!match) return [];
     const dueSession = Number(match[1]);
-    const title = cleanText(match[2], 240).replace(/[.!?]+$/, '').trim();
+    const title = cleanText(match[2], 240)
+      .replace(/[.!?]+$/, '')
+      .trim();
     if (
       !Number.isSafeInteger(dueSession) ||
       dueSession < 1 ||

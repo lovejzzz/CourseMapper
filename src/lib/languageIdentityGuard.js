@@ -137,8 +137,8 @@ export function assessTargetLanguagePresence({ courseIdentity, sourceText, text 
   }
   const cjkCount = (content.match(CJK_RE) || []).length;
   const pinyinCount = (content.match(TONE_MARKED_PINYIN_RE) || []).length;
-  const missing = requirement.elements.filter(
-    (element) => (element === 'hanzi' ? cjkCount === 0 : element === 'tone-marked-pinyin' ? pinyinCount === 0 : true),
+  const missing = requirement.elements.filter((element) =>
+    element === 'hanzi' ? cjkCount === 0 : element === 'tone-marked-pinyin' ? pinyinCount === 0 : true,
   );
   return {
     ...requirement,
