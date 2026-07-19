@@ -109,7 +109,7 @@ import { getChunkCount, pLimit } from './lib/parallelGenerator';
 import { buildHumanReviewRecommendation, summarizeRepairEvidence } from './lib/packageTrust';
 import { traceLog } from './lib/traceLog';
 import { getPackageTrustStatus } from './lib/packageTrustStatus';
-import { derivePromptPreviewTitle } from './lib/promptAwarePreview';
+import { resolveWorkspaceCourseTitle } from './lib/promptAwarePreview';
 import {
   attachEnrichmentToGraph,
   courseGraphStats,
@@ -2998,12 +2998,15 @@ export default function AppFlow({
   });
   const packageTrustStatus = getPackageTrustStatus({ packageQualityPass });
   const packageReady = packageTrustStatus.canDownload;
-  const workspaceCourseTitle =
-    String(courseMap?.courseName || '').trim() || derivePromptPreviewTitle(promptText) || 'Untitled course';
   const workspaceLessonCount = Array.isArray(courseMap?.lessons) ? courseMap.lessons.length : 0;
   const workspaceMappingInProgress = buildRibbonModel?.steps?.some(
     (step) => step.id === 'map' && step.status === 'active',
   );
+  const workspaceCourseTitle = resolveWorkspaceCourseTitle({
+    courseMapTitle: courseMap?.courseName,
+    promptText,
+    mappingInProgress: workspaceMappingInProgress,
+  });
   const workspaceLessonCountLabel = workspaceMappingInProgress
     ? `${workspaceLessonCount} lesson${workspaceLessonCount === 1 ? '' : 's'} mapped so far`
     : `${workspaceLessonCount} lesson${workspaceLessonCount === 1 ? '' : 's'}`;

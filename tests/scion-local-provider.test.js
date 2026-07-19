@@ -198,9 +198,8 @@ describe('Scion browser-local provider', () => {
     });
 
     expect(result).toMatchObject({ attempt: 2, contractIncomplete: true });
-    expect(JSON.parse(result.fullText).lessons[0].keyTerms[0].tr).toBe(
-      'A term name accidentally expanded into a complete sentence that exceeds the compact field limit',
-    );
+    expect(result.selectedAttempt).toBe(1);
+    expect(JSON.parse(result.fullText).lessons[0].keyTerms[0]).toEqual(repeated.lessons[0].keyTerms[0]);
     expect(result.repairs).not.toEqual(
       expect.arrayContaining([expect.objectContaining({ pass: 'crossAttemptContractMerge' })]),
     );
@@ -236,6 +235,39 @@ Return ONLY valid JSON.`;
 
     expect(result).toMatchObject({ attempt: 3, retryCount: 2, contractIncomplete: true });
     expect(result.admissionIssues).toContain('lesson-4:mc-0:explanation-key-conflict');
+    expect(runtime.completeScionBrowserWllama).toHaveBeenCalledTimes(3);
+  });
+
+  it('returns the lowest-risk complete attempt when a later corrective retry regresses', async () => {
+    const first = JSON.parse(completeKernelResponse());
+    first.lessons[0].mc[0].op[2] = first.lessons[0].mc[0].op[1];
+    const best = JSON.parse(completeKernelResponse());
+    best.lessons[0].facts[0] =
+      'Repeated task failures provide direct evidence for revising a tested interface flow before a fixed release deadline requires one carefully prioritized change.';
+    const regressed = JSON.parse(completeKernelResponse());
+    regressed.lessons[0].mc[0].op[2] = regressed.lessons[0].mc[0].op[1];
+    regressed.lessons[0].mc[1].ai = 1;
+    const runtime = runtimeWith([JSON.stringify(first), JSON.stringify(best), JSON.stringify(regressed)]);
+    const prompt = `Course: Design
+Lessons:
+[{"lessonId":"lesson-4","title":"Affinity Mapping"}]
+Return ONLY valid JSON.`;
+
+    const result = await runScionLocalCompletion({
+      userPrompt: prompt,
+      task: 'blueprintEnrichment',
+      runtimeLoader: async () => runtime,
+      sleep: async () => {},
+    });
+
+    expect(result).toMatchObject({
+      attempt: 3,
+      selectedAttempt: 2,
+      retryCount: 2,
+      contractIncomplete: true,
+      admissionIssues: ['lesson-4:fact-0:fact-length'],
+    });
+    expect(JSON.parse(result.fullText).lessons[0].facts[0]).toBe(best.lessons[0].facts[0]);
     expect(runtime.completeScionBrowserWllama).toHaveBeenCalledTimes(3);
   });
 

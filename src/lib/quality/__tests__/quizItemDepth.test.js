@@ -179,4 +179,23 @@ describe('quiz item depth', () => {
       expect.objectContaining({ severity: 'P1', dimension: 'substance', file: 'quizBank' }),
     ]);
   });
+
+  it('reports source-bound recovery as a subject-matter review requirement even for one lesson', () => {
+    const files = [
+      {
+        text:
+          'This recovery item assesses source use without fabricating a disciplinary answer key after the local knowledge kernel failed admission. '.repeat(
+            6,
+          ),
+      },
+    ];
+    expect(buildQuizDepthFindings(files)).toEqual([
+      expect.objectContaining({
+        severity: 'P1',
+        dimension: 'substance',
+        file: 'quizBank',
+        detail: expect.stringContaining('6 quiz items use source-bound recovery'),
+      }),
+    ]);
+  });
 });

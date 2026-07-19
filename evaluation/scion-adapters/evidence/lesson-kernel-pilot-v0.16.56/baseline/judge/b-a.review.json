@@ -1,0 +1,263 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-review-v1",
+  "order": "B/A",
+  "packetSha256": "92942b29e61d6463a9b7bdd4cda8c606cbfda94a0f5c8929bf376064f9870113",
+  "sessionId": "scion-v01654-batch-001-4d29ad3369-b-a-a58e78b9-9f40-47f2-b682-7da02f7979a3",
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "completedAt": "2026-07-19T04:42:23-04:00",
+  "attestations": {
+    "anonymousArtifactsOnly": true,
+    "otherOrderUnavailable": true,
+    "organizerMappingUnavailable": true
+  },
+  "decisions": [
+    {
+      "caseId": "scion-kernel-03b7494a8f9a582c91f5f9bd",
+      "pairId": "scion-kernel-pair-ce661f0bd5596b6ae792e2b9",
+      "artifactSha256": {
+        "A": "09cf5b63ae3ae5984a56d091061adda20a4e112715ca337684feb99b024c530b",
+        "B": "0e1047827b837e7d4322ae98bb3b6914647b296f360fa5744ea080822174564f"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "Core capacitance claims are retained, but material dependence, equal-and-opposite plate charge, current, and test-charge facts exceed the supplied claims."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "The ratio, area, separation, and field-energy distinctions are accurate, though “proportional link” and “net” stored charge are less precise than the source."
+          },
+          "scenarioReadiness": {
+            "score": 3,
+            "evidence": "The lab must predict a design effect using area and spacing measurements under a fixed-housing constraint."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both declared answers uniquely follow from the cited area and separation facts."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "Both questions provide four distinct directional or conceptual alternatives without duplicated answers."
+          },
+          "feedbackInstructionality": {
+            "score": 3,
+            "evidence": "Both explanations justify the correct effect, but the first calls a charge-only distractor “geometry-only.”"
+          },
+          "internalCoherence": {
+            "score": 3,
+            "evidence": "Facts, keys, and citations align overall; the first distractor description and several unsourced elaborations reduce coherence."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 1,
+            "evidence": "It invents 10-coulomb, 10-volt, 0.5-square-meter, and 2-millimeter details and adds several claims absent from the packet."
+          },
+          "knowledgePrecision": {
+            "score": 2,
+            "evidence": "The core ratio and geometry effects are present, but stored charge is ambiguously called the total on both plates and uniform spacing is overstated as definitional."
+          },
+          "scenarioReadiness": {
+            "score": 1,
+            "evidence": "The setup supplies a prediction and fixed-spacing condition, but its materials field is generic placeholder text rather than inspectable evidence."
+          },
+          "assessmentCorrectness": {
+            "score": 2,
+            "evidence": "The doubling item follows direct proportionality, but the first key assumes constant potential difference even though the stem fixes only separation."
+          },
+          "choiceDiscriminability": {
+            "score": 2,
+            "evidence": "The second set is distinct, while the first offers no clean ratio answer and embeds unsupported charge-versus-voltage assumptions."
+          },
+          "feedbackInstructionality": {
+            "score": 2,
+            "evidence": "The doubling explanation is useful, but the first explanation asserts that area directly increases charge without establishing fixed voltage."
+          },
+          "internalCoherence": {
+            "score": 1,
+            "evidence": "The first key and explanation add an unstated voltage condition, while the evidence field remains a placeholder."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "Unsupported factual claims introduce material dependence, equal-and-opposite conductor charge, current behavior, and test-charge/force distinctions not supplied by the source."
+        ],
+        "B": [
+          "Invented numerical examples and scenario quantities include 10 coulombs, 10 volts, 0.5 square meters, and 2 millimeters.",
+          "The first declared answer is not uniquely supported because fixed separation does not establish constant potential difference or a specific charge change."
+        ]
+      },
+      "decision": "A",
+      "rationale": "A preserves the supplied capacitance relationships, provides usable evidence, and has two uniquely correct assessments. B adds extensive unsupported detail and makes an unstated constant-voltage assumption in its first keyed answer."
+    },
+    {
+      "caseId": "scion-kernel-0401078f20f08056c3f93c23",
+      "pairId": "scion-kernel-pair-d1478e64f2a151a545af676e",
+      "artifactSha256": {
+        "A": "a83c7ab0ed838cb1b52a40675e880290c4092d804916659cb041e9bc83bc05a2",
+        "B": "947f567d7183d4226fe748450396a99594edbd2dfc9b907fa679cb3b9d31c220"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "The demand, movement, and shift claims are faithful, but the elasticity-versus-slope fact and attributed stipend note are outside the supplied source."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "The artifact accurately separates quantity demanded, own-price movement, and income-or-taste shifts, with one unsupported elasticity extension."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The manager must distinguish a price effect from an income shift using prices, sales, and stipend timing under competing explanations."
+          },
+          "assessmentCorrectness": {
+            "score": 2,
+            "evidence": "Both keys are substantively correct, but fact citations 0 and 1 do not directly support the movement and income-shift answers."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "Each item has four distinct, parallel interpretations spanning movement, shift, and nearby misconceptions."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation states the governing price-versus-nonprice rule and directly repairs the closest shift misconception."
+          },
+          "internalCoherence": {
+            "score": 3,
+            "evidence": "Questions, keys, and explanations agree, but their fact-index citations do not match the specific supporting facts."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 1,
+            "evidence": "Equilibrium, natural-experiment causality, a ten-percent change, and a highly price-sensitive market are unsupported additions."
+          },
+          "knowledgePrecision": {
+            "score": 2,
+            "evidence": "The key terms correctly distinguish movement from shift, but unsupported facts and erroneous assessment keys undermine precision."
+          },
+          "scenarioReadiness": {
+            "score": 2,
+            "evidence": "The retailer has a classification task and observed price-sales change, but the materials field names only a reading and gives no inspectable record."
+          },
+          "assessmentCorrectness": {
+            "score": 0,
+            "evidence": "Both answer indices select option 0 while both explanations state that option 1 is correct; the income item also lacks a sourced shift direction."
+          },
+          "choiceDiscriminability": {
+            "score": 2,
+            "evidence": "The second options are distinct, but the first question cannot determine left versus right from an income increase without an additional assumption."
+          },
+          "feedbackInstructionality": {
+            "score": 0,
+            "evidence": "Each explanation explicitly teaches an answer different from its declared key, making the feedback operationally misleading."
+          },
+          "internalCoherence": {
+            "score": 0,
+            "evidence": "Both declared keys contradict their explanations, and unsupported equilibrium and causality facts depart from the lesson focus."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "The elasticity-versus-slope fact is unsupported, and the materials field invents an OpenStax-attributed note about stipend timing."
+        ],
+        "B": [
+          "Unsupported factual claims introduce equilibrium and natural-experiment causality, plus invented price-sensitivity and ten-percent details.",
+          "Question 1 declares the left-shift option while its explanation says right shift, and the source does not establish either direction.",
+          "Question 2 declares a demand shift while its explanation correctly identifies movement along the curve."
+        ]
+      },
+      "decision": "A",
+      "rationale": "A gives accurate movement-versus-shift instruction, a strong decision scenario, and correct keys despite mismatched fact citations. B has two explanation-key contradictions, an underdetermined income question, and substantial unsupported content."
+    },
+    {
+      "caseId": "scion-kernel-05658ae0127b2174e4d050d0",
+      "pairId": "scion-kernel-pair-a26115749780ef4d9c60d45b",
+      "artifactSha256": {
+        "A": "da939a320ec591453627d72b252071652873d919dcfe709a90f70d836e723a5e",
+        "B": "0d969e80d6bc9f7d131b677763a59d39481333d4b7e30ca49fb021b11e50a212"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "All five source claims appear accurately, and the cross-channel and dead-end examples apply those claims without unsupported named details."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "Journey mapping, experience maps, and dead ends are clearly distinguished with accurate misconceptions and direct corrections."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The team must decide whether to retain offline handoffs using interview notes, a service trace, and transition logs before redesign."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both declared answers uniquely match their cited end-to-end and dead-end facts and agree with their explanations."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "The alternatives are distinct and parallel, though several “ignore” or “only” distractors are comparatively easy to reject."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation connects observed cross-channel evidence to the source and explains why the closest interface-only view fails."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "Facts, terms, scenario evidence, answer keys, citations, and explanations consistently reinforce the same whole-journey analysis."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "Most core claims are retained, but one fact is truncated and the journey-analysis distinction and regulatory scenario detail are unsupported."
+          },
+          "knowledgePrecision": {
+            "score": 2,
+            "evidence": "Journey and experience map definitions are serviceable, but “steps users actual” is incomplete and journey analysis is given an unsourced exclusive definition."
+          },
+          "scenarioReadiness": {
+            "score": 2,
+            "evidence": "The drop-off and offline-verification constraint create a problem, but the materials field is placeholder text and no concrete evidence is identified."
+          },
+          "assessmentCorrectness": {
+            "score": 2,
+            "evidence": "The first key follows the artifact’s definitions, but the abandonment item also supports the experience-map struggle-point option, so its key is not unique."
+          },
+          "choiceDiscriminability": {
+            "score": 2,
+            "evidence": "Question 1 contrasts the concepts, but question 2 offers two source-supported techniques for revealing the same abandonment problem."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "The explanations mostly repeat selected claims and never resolve why the competing experience-map answer should be rejected."
+          },
+          "internalCoherence": {
+            "score": 2,
+            "evidence": "Core terms generally align, but the truncated fact, unsupported analysis distinction, placeholder evidence, and ambiguous second item weaken agreement."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [],
+        "B": [
+          "The fact “A journey map should start from research about the steps users actual” is truncated instructional text.",
+          "The claimed distinction that journey analysis is analyzing a map rather than drawing it is unsupported by the supplied source.",
+          "Question 2 is ambiguous because both a journey-map dead end and an experience-map struggle point are directly supported alternatives."
+        ]
+      },
+      "decision": "A",
+      "rationale": "A covers every supplied claim, supplies inspectable cross-channel evidence, and has coherent, uniquely supported assessments. B contains truncated text, unsupported distinctions, placeholder evidence, and an assessment with two defensible answers."
+    }
+  ]
+}

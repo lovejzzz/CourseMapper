@@ -2,7 +2,33 @@
 
 **Architecture:** public Gemma 4 E2B base + small Scion adapter + Scion compiler = Scion Vx
 
-**Status:** the exact-QAT base, hash-bound training and conversion chain, browser adapter lifecycle, source-strict semantic compiler gates, frozen holdout firewall, and paired-order preference protocol are implemented. V0.16.55 preserves selected lesson identity and the instructor's class clock through the full compiler and export pipeline, stabilizes completed progress timing, and verifies responsive recovery and export in a real desktop and phone browser. V0.16.54 remains the current 148-case production-compatible lesson-kernel campaign and is a ruler and corpus target, not training evidence. A quality adapter, held-out adapter win, admitted lesson-kernel preference corpus, production-compatible training corpus, the remaining device-performance profiles, and any production promotion still do not exist.
+**Status:** the exact-QAT base, hash-bound training and conversion chain, browser adapter lifecycle, source-strict semantic compiler gates, frozen holdout firewall, and paired-order preference protocol are implemented. V0.16.56 rebuilds the 148-case production-compatible lesson-kernel campaign without evaluator metadata, adds a reproducible three-case base/reference pilot, and strengthens current admission and retry selection from the observed failures. The clean pilot produces zero training-qualified preferences; it is a ruler and compiler audit, not an adapter corpus or model win. A quality adapter, held-out adapter win, admitted lesson-kernel preference corpus, production-compatible training corpus, the remaining device-performance profiles, and any production promotion still do not exist.
+
+## v0.16.56 — Make Every Lesson Earn Admission
+
+**Goal:** turn clean, task-matched base/reference differences into stricter source admission and reproducible evidence without allowing a merely better artifact to become training data unless it is also good enough.
+
+**Current semantic ruler:** the source-strict V6 receipt replays all 78 frozen stable losing artifacts and detects 78/78 while preserving all 78 preferred counterparts. It binds the current provider, answer-alignment, key-term, and scenario implementation hashes instead of borrowing a historical result.
+
+**Judge-informed admission:** supplied quantities remain authoritative across numeric, malformed-LaTeX, spelled-out, and relative forms. Duplicate facts, lowercase or dangling fragments, copied scenario scaffolds, and opposite signed increase/decrease relationships enter bounded retry. The compiler rejects or retries these failures and does not author factual replacements.
+
+**Best-attempt recovery:** the local browser path and capture harness retain the lowest-risk complete model-authored attempt when retries are exhausted, with selected-attempt provenance. This prevents a worse final retry from erasing a stronger earlier draft while keeping unresolved issues visible.
+
+**Clean campaign:** all 148 cases across 25 course groups, 72 source kernels, seven domains, and production-compatible licenses rebuild under `scion-lesson-kernel-prompt-policy-v2`. Evaluator-only quality-focus text is excluded from model objectives and cannot leak error-probe language into the generated lesson.
+
+**Measured gap:** the clean Physics, Economics, and UX pilot records base Scion at 0/3 current admissions and GPT-5.4-mini at 2/3. The reference wins all three isolated A/B and B/A comparisons, but zero pairs become training rows: two winners retain critical judge defects and one fails compiler admission. The local capture uses six retries and 112,979 ms, 18,614 ms below the earlier contaminated-prompt pilot, but three non-equivalent cases cannot establish aggregate speed or quality.
+
+**Live browser audit:** two real production-bundle builds tested the complete user path. The final cached-base, one-lesson Physics run completed in 61 seconds with five of five selected materials and an honest 89/B result. The workspace kept the complete Physics title from its first Map frame after repairing apostrophe-sensitive preview parsing; desktop and 390×844 phone layouts retained zero document-level horizontal overflow. A free-form Agent turn in the first run reached local Scion and answered in about 11 seconds.
+
+**Recovery honesty:** the live quiz exposed generic fallback prompts where lesson knowledge failed admission. Recovery now derives explicit application, analysis, evaluation, and creation tasks from the exact objective and assigned source boundary. The grader counts those seats as a P1 knowledge limitation and asks for a verified subject source before regeneration. This improves the usefulness and truthfulness of the compiled package; it is not evidence that the base model supplied the missing disciplinary answer key.
+
+**Frozen ruler V8:** adding that P1 changes the transitive grader and invalidates V7 for new comparisons. V8 preserves the same five held-out courses and runtime route boundary, then binds grader 1.10.18 and all 12 implementation files before any candidate-versus-base run. It inherits no earlier score, adapter result, or promotion decision.
+
+**Lane:** V0.16.56 improves the shared source-semantic compiler, prompt hygiene, retry selection, objective-specific recovery, grading truth, workflow UX, evaluation validity, and evidence chain. Paid providers benefit from shared admission, compilation, recovery, and grading; the browser-local attempt loop remains Scion-specific.
+
+**Next gates:** expand clean task-matched capture across the frozen campaign, require at least 100 stable and training-qualified source-grounded preferences with domain, task, defect, and license diversity, train a validation-selected lesson-kernel adapter, then compare exact adapter with exact base-only Scion on the frozen held-out domains without higher compiler burden or unacceptable device cost.
+
+**Release Boundary:** no adapter is active, no Gemma weight changed, no lesson-kernel preference was added by this pilot, and no paid-reference parity, human preference, instructor approval, classroom outcome, universal quality, statistical significance, or trained-model win is claimed.
 
 ## v0.16.55 — Keep Scope, Time, and Readiness Honest
 

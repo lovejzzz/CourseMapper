@@ -10,6 +10,7 @@ import {
   assessPublicScionKernelResponse,
   buildPublicScionRetryFeedback,
   mergePublicScionKernelAttempts,
+  publicScionAdmissionRisk,
   repairPublicScionJson,
   shufflePublicScionKernelOptions,
 } from '../src/lib/publicScionProvider.js';
@@ -49,7 +50,7 @@ function parseArgs(argv) {
     fresh: false,
     arm: '',
     limit: 0,
-    caseId: '',
+    caseIds: [],
     campaign: DEFAULT_CAMPAIGN,
     checkpointDir: DEFAULT_CHECKPOINT_DIR,
     report: DEFAULT_REPORT,
@@ -65,7 +66,14 @@ function parseArgs(argv) {
     else if (token === '--fresh') args.fresh = true;
     else if (token === '--arm') args.arm = argv[++index] || '';
     else if (token === '--limit') args.limit = Number(argv[++index] || 0);
-    else if (token === '--case-id') args.caseId = argv[++index] || '';
+    else if (token === '--case-id') {
+      args.caseIds.push(
+        ...(argv[++index] || '')
+          .split(',')
+          .map((value) => value.trim())
+          .filter(Boolean),
+      );
+    }
     else if (token === '--campaign') args.campaign = argv[++index] || args.campaign;
     else if (token === '--checkpoints') args.checkpointDir = argv[++index] || args.checkpointDir;
     else if (token === '--report') args.report = argv[++index] || args.report;
@@ -99,7 +107,10 @@ async function readJson(filePath, fallback = null) {
 }
 
 async function buildCampaign(args) {
-  const campaign = await buildScionLessonKernelCampaign({ generatedAt: args.generatedAt });
+  const campaign = await buildScionLessonKernelCampaign({
+    generatedAt: args.generatedAt,
+    includeQualityFocusInObjectives: false,
+  });
   const validation = validateScionLessonKernelCampaign(campaign);
   if (!validation.valid) throw new Error(`Built lesson-kernel campaign is invalid: ${validation.issues.join(', ')}`);
   await atomicWrite(args.campaign, campaign);
@@ -111,9 +122,14 @@ async function auditCampaign(args) {
   if (!tracked) throw new Error(`Missing lesson-kernel campaign: ${args.campaign}`);
   const validation = validateScionLessonKernelCampaign(tracked);
   if (!validation.valid) throw new Error(`Lesson-kernel campaign is invalid: ${validation.issues.join(', ')}`);
-  const rebuilt = await buildScionLessonKernelCampaign({ generatedAt: tracked.generatedAt });
-  if (stableScionLessonKernelJson(rebuilt) !== stableScionLessonKernelJson(tracked)) {
-    throw new Error('Tracked lesson-kernel campaign does not match a fresh deterministic rebuild');
+  if (tracked.promptPolicy?.freshRebuildRequired === true) {
+    const rebuilt = await buildScionLessonKernelCampaign({
+      generatedAt: tracked.generatedAt,
+      includeQualityFocusInObjectives: tracked.promptPolicy.evaluatorMetadata !== 'excluded',
+    });
+    if (stableScionLessonKernelJson(rebuilt) !== stableScionLessonKernelJson(tracked)) {
+      throw new Error('Tracked lesson-kernel campaign does not match a fresh deterministic rebuild');
+    }
   }
   return tracked;
 }
@@ -265,6 +281,7 @@ async function captureCase(entry, arm, model) {
   const attempts = [];
   let priorText = '';
   let final = null;
+  let best = null;
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
     const messages =
       attempt === 1 || !final?.assessment?.needsRetry
@@ -293,6 +310,12 @@ async function captureCase(entry, arm, model) {
         durationMs: Date.now() - callStart,
       });
       final = parsed;
+      if (
+        parsed.artifact &&
+        (!best || publicScionAdmissionRisk(parsed.assessment).score < best.risk.score)
+      ) {
+        best = { parsed, attempt, risk: publicScionAdmissionRisk(parsed.assessment) };
+      }
       priorText = parsed.text;
       if (!parsed.assessment.needsRetry) break;
     } catch (error) {
@@ -305,6 +328,7 @@ async function captureCase(entry, arm, model) {
       final = null;
     }
   }
+  const selected = best?.parsed || final;
   return {
     caseId: entry.caseId,
     caseSha256: entry.caseSha256,
@@ -313,12 +337,13 @@ async function captureCase(entry, arm, model) {
     arm,
     model,
     attempts,
-    artifact: final?.artifact || null,
-    artifactSha256: final?.artifact ? scionLessonKernelSha256(final.artifact) : null,
-    response: final?.response || null,
-    responseSha256: final?.response ? scionLessonKernelSha256(final.response) : null,
-    admission: final?.assessment || { needsRetry: true, issues: ['model-call-failed'] },
-    compilerRepairs: final?.repairs || [],
+    selectedAttempt: best?.attempt || null,
+    artifact: selected?.artifact || null,
+    artifactSha256: selected?.artifact ? scionLessonKernelSha256(selected.artifact) : null,
+    response: selected?.response || null,
+    responseSha256: selected?.response ? scionLessonKernelSha256(selected.response) : null,
+    admission: selected?.assessment || { needsRetry: true, issues: ['model-call-failed'] },
+    compilerRepairs: selected?.repairs || [],
     startedAt,
     completedAt: new Date().toISOString(),
     durationMs: Date.now() - start,
@@ -332,9 +357,10 @@ async function captureCompilerIdentity() {
     ),
   );
   const policy = {
-    // The v0.16.54 campaign is a frozen V5 evidence artifact. Runtime V6
-    // replays it separately instead of mutating its case/message identities.
-    keyTermSemanticProfile: 'source-strict-v5',
+    // Prompt bytes remain campaign-bound, while every new capture records the
+    // semantic compiler that actually judges the returned artifact.
+    keyTermSemanticProfile: 'source-strict-v6',
+    campaignPromptPolicy: 'frozen-messages-by-campaign-identity',
     maxAttempts: MAX_ATTEMPTS,
     answerPosition: 'compiler-deterministic-shuffle-after-admission',
     crossAttemptRetention: 'atomic-groups-only',
@@ -394,8 +420,15 @@ async function captureArm(args, campaign) {
     throw new Error(`Lesson-kernel ${args.arm} checkpoint identity mismatch; use --fresh only for a new campaign`);
   }
   let newCalls = 0;
-  const selectedCases = args.caseId ? campaign.cases.filter((entry) => entry.caseId === args.caseId) : campaign.cases;
-  if (args.caseId && selectedCases.length !== 1) throw new Error(`Unknown lesson-kernel case: ${args.caseId}`);
+  const requestedCaseIds = new Set(args.caseIds);
+  const selectedCases = requestedCaseIds.size
+    ? campaign.cases.filter((entry) => requestedCaseIds.has(entry.caseId))
+    : campaign.cases;
+  if (requestedCaseIds.size && selectedCases.length !== requestedCaseIds.size) {
+    const found = new Set(selectedCases.map((entry) => entry.caseId));
+    const missing = [...requestedCaseIds].filter((caseId) => !found.has(caseId));
+    throw new Error(`Unknown lesson-kernel case${missing.length === 1 ? '' : 's'}: ${missing.join(', ')}`);
+  }
   for (const entry of selectedCases) {
     const existing = checkpoint.calls.find((call) => call.caseId === entry.caseId);
     if (existing && verifyCapturedCall(existing, entry, args.arm, model).valid) continue;

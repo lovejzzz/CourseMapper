@@ -52,13 +52,13 @@ function assess(row, side, semanticProfile) {
   });
 }
 
-function summarize(rows) {
+export function summarizeScionSemanticAdmissionRows(rows, semanticProfile = 'source-strict-v4') {
   const evaluated = rows.map((row) => ({
     row,
     legacyChosen: assess(row, 'chosen', 'legacy'),
     legacyRejected: assess(row, 'rejected', 'legacy'),
-    strictChosen: assess(row, 'chosen', 'source-strict-v4'),
-    strictRejected: assess(row, 'rejected', 'source-strict-v4'),
+    strictChosen: assess(row, 'chosen', semanticProfile),
+    strictRejected: assess(row, 'rejected', semanticProfile),
   }));
   const caught = evaluated.filter((entry) => !entry.strictRejected.eligible);
   const preferredRegressions = evaluated.filter((entry) => !entry.strictChosen.eligible);
@@ -129,9 +129,9 @@ export async function buildScionSemanticAdmissionV2Audit({ cwd = process.cwd() }
     .map(JSON.parse);
   const currentRows = rows.filter((row) => row.reviewPacketId === campaign.packet.packetId);
   const historicalRows = rows.filter((row) => row.reviewPacketId !== campaign.packet.packetId);
-  const all = summarize(rows);
-  const currentCampaign = summarize(currentRows);
-  const historicalCore = summarize(historicalRows);
+  const all = summarizeScionSemanticAdmissionRows(rows);
+  const currentCampaign = summarizeScionSemanticAdmissionRows(currentRows);
+  const historicalCore = summarizeScionSemanticAdmissionRows(historicalRows);
   const detectionDelta = all.strict.rejectedDetected - previous.allStablePreferences.strict.rejectedDetected;
   const assertions = {
     corpusBound:

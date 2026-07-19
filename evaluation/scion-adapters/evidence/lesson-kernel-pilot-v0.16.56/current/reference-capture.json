@@ -1,0 +1,964 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-capture-v1",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "fe3741c97241d3d2a1dcc5151fa204ea17538afd9ec39e54cdd1cc890bde8edc"
+  },
+  "identitySha256": "8cc739f7c46e49b622ea54e25fac6efd1520362a7375fb35e6203493625200e8",
+  "arm": "reference",
+  "model": {
+    "provider": "openai",
+    "id": "gpt-5.4-mini",
+    "route": "responses-api-json-schema",
+    "reasoningEffort": "low",
+    "maxOutputTokens": 3000
+  },
+  "compiler": {
+    "policy": {
+      "keyTermSemanticProfile": "source-strict-v6",
+      "campaignPromptPolicy": "frozen-messages-by-campaign-identity",
+      "maxAttempts": 3,
+      "answerPosition": "compiler-deterministic-shuffle-after-admission",
+      "crossAttemptRetention": "atomic-groups-only"
+    },
+    "files": {
+      "scripts/scionLessonKernelCapture.mjs": "fd7809527bbff14b5c879efa5b76387e45e12e73a69ed0e57c21140aad1847c0",
+      "scripts/lib/scionLessonKernelCampaign.mjs": "afeada7fdba7393ab9bd94e56a12c6c219d45f6f9ef7d1feb8ae9eeb41b75bd3",
+      "src/lib/publicScionProvider.js": "8c4c9989aaead3590b27e2f015adfb109f066561ba551f58e8cfec1741c2aa48",
+      "src/lib/scionAnswerKeyAlignment.js": "2c6875437268444536de651f3ffbddf6368e2667c823ad0827a4245f86ebefa7",
+      "src/lib/scionKeyTermContract.js": "db9d3c7922b4d0c10790e5a9ea461dceed968e2008ba3b17ed61cb5ac16613cc",
+      "src/lib/scenarioContract.js": "176daf6d9ef0b98368ccac05c839cb9b255a0e3499969f994e16881e42d0168e"
+    },
+    "identitySha256": "e1797a35f30e19b2e38eea41cc26bb41b3cf521452909be4da8262263119d22c"
+  },
+  "calls": [
+    {
+      "caseId": "scion-kernel-5b8e35ceea940785ee50820d",
+      "caseSha256": "5b8e35ceea940785ee50820dcb0d3a619db901eac6a6b90e2e305c5461da0c62",
+      "messagesSha256": "bce9b84591d3631f04576b68aadeb20613db9b786eaa2b28f342daed5eebf983",
+      "sourceContextSha256": "6e282d4560779e64fc2bad37373408377e0642194f150e5ceb4a379afc3f4388",
+      "arm": "reference",
+      "model": {
+        "provider": "openai",
+        "id": "gpt-5.4-mini",
+        "route": "responses-api-json-schema",
+        "reasoningEffort": "low",
+        "maxOutputTokens": 3000
+      },
+      "attempts": [
+        {
+          "attempt": 1,
+          "messagesSha256": "bce9b84591d3631f04576b68aadeb20613db9b786eaa2b28f342daed5eebf983",
+          "rawResponseSha256": "6231d7ff3279d4425bf47cff38fd692dce74132940265a796bb4ecf6b298f558",
+          "responseSha256": "767a9b2234273586dd8816c3fbfb4e1e88abd7c519ab5edab091387c7fbf18bd",
+          "artifactSha256": "62bb8adabcfef0703cd56923342c290e4b14c2d5162176a2f92b63d7e141591d",
+          "assessment": {
+            "needsRetry": true,
+            "issues": [
+              "lesson-3:scenario:scenario-missing-decision"
+            ]
+          },
+          "repairs": [],
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_01b7cf571109018e006a5c9688cf508195b724c77f37a6f41d",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 1650,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 687,
+              "output_tokens_details": {
+                "reasoning_tokens": 22
+              },
+              "total_tokens": 2337
+            }
+          },
+          "durationMs": 6617
+        },
+        {
+          "attempt": 2,
+          "messagesSha256": "1d7ee711ca85a3ed2b7329c4b018afee4dd7d52c8c527a1736e530ed3c607a58",
+          "rawResponseSha256": "189fae09db517d856102aaeb1a7e53c01d19887076902a47f27d5f98f9226335",
+          "responseSha256": "cf54ecf6839879706651b8638bc591f7d3bfb1e1516b2b9f1ed09bca9887babb",
+          "artifactSha256": "cef188603a57950e663ed3634aac60fb1bf97af3c5e67bcc26f9dd7dbd68a72a",
+          "assessment": {
+            "needsRetry": true,
+            "issues": [
+              "lesson-3:scenario:source-unsupported-quantity"
+            ]
+          },
+          "repairs": [],
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_0ca26b78e1060c15006a5c968ed1b48190a9c5180cb4a3df2a",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 1733,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 1280
+              },
+              "output_tokens": 907,
+              "output_tokens_details": {
+                "reasoning_tokens": 149
+              },
+              "total_tokens": 2640
+            }
+          },
+          "durationMs": 7385
+        },
+        {
+          "attempt": 3,
+          "messagesSha256": "bd6e9719d20ad186f40711b352dcef98c399a3a0497f5ed24d5eeeb40b5edf66",
+          "rawResponseSha256": "fc5bb45f482ff68155ab58bb00c469c3615667bc4df0896367d8d714c86b7e69",
+          "responseSha256": "8fb65b0351e8ae6f863c4150790ff0e3917afd3a49d31b05748e1130e639626e",
+          "artifactSha256": "c5c998d1f29b8e0bb57ef2de5b9d3587ca18fd49e9d2d1b0be3c74d6db73b313",
+          "assessment": {
+            "needsRetry": true,
+            "issues": [
+              "lesson-3:scenario:scenario-missing-decision"
+            ]
+          },
+          "repairs": [],
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_0481a87650edd6ad006a5c96961e7481968e61f58672e11cbf",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 1735,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 1280
+              },
+              "output_tokens": 847,
+              "output_tokens_details": {
+                "reasoning_tokens": 126
+              },
+              "total_tokens": 2582
+            }
+          },
+          "durationMs": 7107
+        }
+      ],
+      "selectedAttempt": 1,
+      "artifact": {
+        "lessonId": "lesson-3",
+        "facts": [
+          "Journey mapping shows the end-to-end experience from the user's perspective.",
+          "A journey map should begin with research about actual steps and transactions.",
+          "An experience map can expose struggle points and candidate improvement areas.",
+          "Journey analysis should include gaps between online and offline service parts.",
+          "A map can reveal dead ends where users cannot continue toward the larger goal."
+        ],
+        "keyTerms": [
+          {
+            "tr": "journey mapping",
+            "df": "Journey mapping is a user-centered view of a service across connected steps, boundaries, and breakdowns.",
+            "eg": "A team traces signup, checkout, and support in one connected journey mapping view.",
+            "mi": "Journey mapping only lists interface screens in the order they appear.",
+            "cx": "It must include the user's full experience, not just screen order, so service boundaries and gaps stay visible."
+          },
+          {
+            "tr": "experience map",
+            "df": "An experience map is a structured view of user struggles and improvement opportunities across an experience.",
+            "eg": "A team marks confusing steps and delays on an experience map for a booking flow.",
+            "mi": "An experience map is only a diagram of happy-path tasks.",
+            "cx": "It must surface struggle points and possible improvements, not merely successful steps."
+          },
+          {
+            "tr": "dead ends",
+            "df": "Dead ends are points in a journey where the user cannot proceed toward the larger goal.",
+            "eg": "A refund page with no next step creates dead ends for a customer.",
+            "mi": "Dead ends are minor delays that users can easily work around.",
+            "cx": "A dead end stops progress entirely, so it is more than a small delay."
+          }
+        ],
+        "scenario": {
+          "su": "A service team is reviewing notes from mobile sign-up, a help desk log, and paper forms used at pickup. They need one map before release, but the online flow and offline handoff do not line up.",
+          "ma": "Compare the field notes showing users dropping at ID upload, the call-center transcripts about missing confirmations, the paper pickup sheet, and the navigation sketch with no return path after failure."
+        },
+        "mc": [
+          {
+            "q": "A team compares a screen flow, a service desk note, and a pickup form. Which view best connects the user's steps, boundaries, and breaks across the whole service?",
+            "op": [
+              "Journey mapping across the user's end-to-end experience.",
+              "A narrow screen inventory of interface pages only.",
+              "A task list of isolated actions with no service boundaries.",
+              "A satisfaction chart that records only final ratings."
+            ],
+            "ai": 0,
+            "fi": [
+              0
+            ],
+            "ex": "The connected steps, boundaries, and breakdowns point to journey mapping across the full experience. A screen inventory misses the service relationship between online and offline parts."
+          },
+          {
+            "q": "A checkout map shows users can submit payment online, then must print a receipt for in-person pickup, and several stop after a failed upload. What should the map emphasize?",
+            "op": [
+              "The dead end after failure and the online-offline gap.",
+              "Only the visual style of the receipt page.",
+              "A label for every button on the checkout page.",
+              "The fastest keyboard route through the form."
+            ],
+            "ai": 0,
+            "fi": [
+              3
+            ],
+            "ex": "The failed upload stop and the print-to-pickup handoff show a dead end and an online-offline gap. Button labels or keyboard routes do not address that service break."
+          }
+        ]
+      },
+      "artifactSha256": "62bb8adabcfef0703cd56923342c290e4b14c2d5162176a2f92b63d7e141591d",
+      "response": {
+        "lessons": [
+          {
+            "lessonId": "lesson-3",
+            "facts": [
+              "Journey mapping shows the end-to-end experience from the user's perspective.",
+              "A journey map should begin with research about actual steps and transactions.",
+              "An experience map can expose struggle points and candidate improvement areas.",
+              "Journey analysis should include gaps between online and offline service parts.",
+              "A map can reveal dead ends where users cannot continue toward the larger goal."
+            ],
+            "keyTerms": [
+              {
+                "tr": "journey mapping",
+                "df": "Journey mapping is a user-centered view of a service across connected steps, boundaries, and breakdowns.",
+                "eg": "A team traces signup, checkout, and support in one connected journey mapping view.",
+                "mi": "Journey mapping only lists interface screens in the order they appear.",
+                "cx": "It must include the user's full experience, not just screen order, so service boundaries and gaps stay visible."
+              },
+              {
+                "tr": "experience map",
+                "df": "An experience map is a structured view of user struggles and improvement opportunities across an experience.",
+                "eg": "A team marks confusing steps and delays on an experience map for a booking flow.",
+                "mi": "An experience map is only a diagram of happy-path tasks.",
+                "cx": "It must surface struggle points and possible improvements, not merely successful steps."
+              },
+              {
+                "tr": "dead ends",
+                "df": "Dead ends are points in a journey where the user cannot proceed toward the larger goal.",
+                "eg": "A refund page with no next step creates dead ends for a customer.",
+                "mi": "Dead ends are minor delays that users can easily work around.",
+                "cx": "A dead end stops progress entirely, so it is more than a small delay."
+              }
+            ],
+            "scenario": {
+              "su": "A service team is reviewing notes from mobile sign-up, a help desk log, and paper forms used at pickup. They need one map before release, but the online flow and offline handoff do not line up.",
+              "ma": "Compare the field notes showing users dropping at ID upload, the call-center transcripts about missing confirmations, the paper pickup sheet, and the navigation sketch with no return path after failure."
+            },
+            "mc": [
+              {
+                "q": "A team compares a screen flow, a service desk note, and a pickup form. Which view best connects the user's steps, boundaries, and breaks across the whole service?",
+                "op": [
+                  "Journey mapping across the user's end-to-end experience.",
+                  "A narrow screen inventory of interface pages only.",
+                  "A task list of isolated actions with no service boundaries.",
+                  "A satisfaction chart that records only final ratings."
+                ],
+                "ai": 0,
+                "fi": [
+                  0
+                ],
+                "ex": "The connected steps, boundaries, and breakdowns point to journey mapping across the full experience. A screen inventory misses the service relationship between online and offline parts."
+              },
+              {
+                "q": "A checkout map shows users can submit payment online, then must print a receipt for in-person pickup, and several stop after a failed upload. What should the map emphasize?",
+                "op": [
+                  "The dead end after failure and the online-offline gap.",
+                  "Only the visual style of the receipt page.",
+                  "A label for every button on the checkout page.",
+                  "The fastest keyboard route through the form."
+                ],
+                "ai": 0,
+                "fi": [
+                  3
+                ],
+                "ex": "The failed upload stop and the print-to-pickup handoff show a dead end and an online-offline gap. Button labels or keyboard routes do not address that service break."
+              }
+            ]
+          }
+        ]
+      },
+      "responseSha256": "767a9b2234273586dd8816c3fbfb4e1e88abd7c519ab5edab091387c7fbf18bd",
+      "admission": {
+        "needsRetry": true,
+        "issues": [
+          "lesson-3:scenario:scenario-missing-decision"
+        ]
+      },
+      "compilerRepairs": [],
+      "startedAt": "2026-07-19T09:19:04.013Z",
+      "completedAt": "2026-07-19T09:19:25.122Z",
+      "durationMs": 21109
+    },
+    {
+      "caseId": "scion-kernel-870455b05f9328a256598934",
+      "caseSha256": "870455b05f9328a2565989344002ee026bc477ab127867fa4c0f1269ec922f3f",
+      "messagesSha256": "b229667c260f08500f3d0980f16535ceee6caa5669c50fcfa04d6e201908592f",
+      "sourceContextSha256": "6d8fe6057ef4179cc652ac3cf7b70a3be4c83ef727ae64f55d3b5901a333d8e5",
+      "arm": "reference",
+      "model": {
+        "provider": "openai",
+        "id": "gpt-5.4-mini",
+        "route": "responses-api-json-schema",
+        "reasoningEffort": "low",
+        "maxOutputTokens": 3000
+      },
+      "attempts": [
+        {
+          "attempt": 1,
+          "messagesSha256": "b229667c260f08500f3d0980f16535ceee6caa5669c50fcfa04d6e201908592f",
+          "rawResponseSha256": "6cd5947b9c38b27f09d8e0cd9ebd3c5bc5efd91f29f8c79638ce2eecb582ca0a",
+          "responseSha256": "764cfed51f2dfd2e119cf1e9830b50a605509027480815acd55cd2474337b718",
+          "artifactSha256": "cb14fb421c183426106d2334a6c71e1b9ed3c6d6fb4192df55ea85ee5b75b69e",
+          "assessment": {
+            "needsRetry": true,
+            "issues": [
+              "lesson-2:mc-1:source-unsupported-quantity"
+            ]
+          },
+          "repairs": [],
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_0008c3ca2415d687006a5c969d3db48190939c5994f99ef939",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 1626,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 787,
+              "output_tokens_details": {
+                "reasoning_tokens": 89
+              },
+              "total_tokens": 2413
+            }
+          },
+          "durationMs": 5397
+        },
+        {
+          "attempt": 2,
+          "messagesSha256": "e42b0caf4abee5a71244d4f6c9539f941a2ca3147887ed797b58869175ddf1e1",
+          "rawResponseSha256": "894a0592e9161205fea5812db6df6d63556c6387aaf60e821bd045c3e57c0e43",
+          "responseSha256": "764cfed51f2dfd2e119cf1e9830b50a605509027480815acd55cd2474337b718",
+          "artifactSha256": "cb14fb421c183426106d2334a6c71e1b9ed3c6d6fb4192df55ea85ee5b75b69e",
+          "assessment": {
+            "needsRetry": true,
+            "issues": [
+              "lesson-2:mc-1:source-unsupported-quantity"
+            ]
+          },
+          "repairs": [
+            {
+              "pass": "crossAttemptAtomicRetention",
+              "lessonId": "lesson-2",
+              "field": "scenario",
+              "issueCountBefore": 3,
+              "issueCountAfter": 2,
+              "resolvedIssues": [
+                "lesson-2:scenario:scenario-missing-decision"
+              ],
+              "trainingEligible": false,
+              "preferenceEvidence": {
+                "evidenceScope": "deterministic-contract-only",
+                "verified": false
+              }
+            },
+            {
+              "pass": "crossAttemptAtomicRetention",
+              "lessonId": "lesson-2",
+              "field": "knowledgeCore",
+              "issueCountBefore": 2,
+              "issueCountAfter": 1,
+              "resolvedIssues": [
+                "lesson-2:mc-0:absolute-option"
+              ],
+              "trainingEligible": false,
+              "preferenceEvidence": {
+                "evidenceScope": "deterministic-contract-only",
+                "verified": false
+              }
+            }
+          ],
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_0349e52811c7b4f0006a5c96a2aac48193aec5104fb8790c13",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 1713,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 1280
+              },
+              "output_tokens": 879,
+              "output_tokens_details": {
+                "reasoning_tokens": 167
+              },
+              "total_tokens": 2592
+            }
+          },
+          "durationMs": 6250
+        },
+        {
+          "attempt": 3,
+          "messagesSha256": "e42b0caf4abee5a71244d4f6c9539f941a2ca3147887ed797b58869175ddf1e1",
+          "rawResponseSha256": "43af2ec41f7efdf9ec0f5e79c779d88911b2602c81b177f06212833adc5466ad",
+          "responseSha256": "b416ff87b47b79232b1ca049410a4f5ae657f1646c699b6258c33156153e9703",
+          "artifactSha256": "09856b9472f864d84e001e0955e1f587eb66a68903a42a9d7b6e01b9834a981c",
+          "assessment": {
+            "needsRetry": false,
+            "issues": []
+          },
+          "repairs": [
+            {
+              "pass": "crossAttemptAtomicRetention",
+              "lessonId": "lesson-2",
+              "field": "scenario",
+              "issueCountBefore": 1,
+              "issueCountAfter": 0,
+              "resolvedIssues": [
+                "lesson-2:scenario:scenario-missing-decision"
+              ],
+              "trainingEligible": false,
+              "preferenceEvidence": {
+                "evidenceScope": "deterministic-contract-only",
+                "verified": false
+              }
+            },
+            {
+              "pass": "deterministicOptionShuffle",
+              "lessonId": "lesson-2",
+              "item": 0,
+              "permutation": [
+                1,
+                2,
+                3,
+                0
+              ],
+              "answerIndexBefore": 0,
+              "answerIndexAfter": 3,
+              "trainingEligible": false
+            },
+            {
+              "pass": "deterministicOptionShuffle",
+              "lessonId": "lesson-2",
+              "item": 1,
+              "permutation": [
+                0,
+                2,
+                1,
+                3
+              ],
+              "answerIndexBefore": 0,
+              "answerIndexAfter": 0,
+              "trainingEligible": false
+            }
+          ],
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_0c0cf50a4ba7ff71006a5c96a8f1e881959b0768323f5bd2d8",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 1713,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 859,
+              "output_tokens_details": {
+                "reasoning_tokens": 199
+              },
+              "total_tokens": 2572
+            }
+          },
+          "durationMs": 7047
+        }
+      ],
+      "selectedAttempt": 3,
+      "artifact": {
+        "lessonId": "lesson-2",
+        "facts": [
+          "A demand curve shows quantity consumers are willing and able to purchase at each price.",
+          "Demand curves typically slope downward, reflecting the law of demand.",
+          "A price change causes movement along the demand curve, not a new curve.",
+          "Changes in income or tastes shift the demand curve to a different position.",
+          "Holding other factors constant isolates how price relates to quantity demanded."
+        ],
+        "keyTerms": [
+          {
+            "tr": "demand curve",
+            "df": "A demand curve is a relationship that traces quantity demanded across prices while other influences are held constant.",
+            "eg": "A chart of apples showing higher quantities at lower prices illustrates a demand curve.",
+            "mi": "A demand curve must stay fixed whenever buyers want more of a product.",
+            "cx": "Buyer interest can shift the whole curve when income or tastes change, so the curve is not fixed."
+          },
+          {
+            "tr": "law of demand",
+            "df": "The law of demand is the usual inverse relationship between price and quantity demanded.",
+            "eg": "When a higher posted price is paired with lower planned purchases, the pattern fits this rule.",
+            "mi": "The law of demand says quantity demanded rises whenever price rises.",
+            "cx": "That reverses the usual pattern, because higher prices are associated with lower quantity demanded."
+          },
+          {
+            "tr": "shift the curve",
+            "df": "To shift the curve means a nonprice factor changes demand at every price level.",
+            "eg": "A new taste for a product can place the whole demand curve in a new position.",
+            "mi": "Shifting the curve means the same price now sits at a different point only.",
+            "cx": "A different point at one price is movement along the curve; a shift changes the entire relationship."
+          }
+        ],
+        "scenario": {
+          "su": "A market chart shows one demand curve with price marked on the vertical axis and quantity on the horizontal axis. The price is higher in one period, and the buyer's income changed in the same period, so the manager must decide which movement the chart shows.",
+          "ma": "The graph keeps the same curve position while the plotted point moves to a lower quantity at the higher price. A separate note records an income increase and a later change in tastes, but the immediate chart change is only the point's location on the existing curve."
+        },
+        "mc": [
+          {
+            "q": "A chart shows fewer units planned when the posted price is higher, while the income note stays unchanged. Which interpretation best matches the pattern on the chart?",
+            "op": [
+              "A shift of the demand curve caused by income change.",
+              "A supply increase that leaves demand unchanged.",
+              "A change in tastes that keeps the same curve position.",
+              "Movement along the demand curve caused by the price change."
+            ],
+            "ai": 3,
+            "fi": [
+              2
+            ],
+            "ex": "The price change alters quantity demanded at the same demand relationship, which is movement along the curve. Income is unchanged, so the curve itself is not shifted; the taste-change option conflicts with the record."
+          },
+          {
+            "q": "A price list stays fixed, but the quantity plan rises after a taste survey turns more favorable and the income note also changes. Which adjustment is supported by the records?",
+            "op": [
+              "A shift of the demand curve.",
+              "No change in demand or quantity.",
+              "A movement along the demand curve.",
+              "A change in price alone."
+            ],
+            "ai": 0,
+            "fi": [
+              3
+            ],
+            "ex": "The records show nonprice influences changing while the posted price remains fixed, which supports a shift of the demand curve. The movement-only option does not fit because quantity changed without a price change."
+          }
+        ]
+      },
+      "artifactSha256": "09856b9472f864d84e001e0955e1f587eb66a68903a42a9d7b6e01b9834a981c",
+      "response": {
+        "lessons": [
+          {
+            "lessonId": "lesson-2",
+            "facts": [
+              "A demand curve shows quantity consumers are willing and able to purchase at each price.",
+              "Demand curves typically slope downward, reflecting the law of demand.",
+              "A price change causes movement along the demand curve, not a new curve.",
+              "Changes in income or tastes shift the demand curve to a different position.",
+              "Holding other factors constant isolates how price relates to quantity demanded."
+            ],
+            "keyTerms": [
+              {
+                "tr": "demand curve",
+                "df": "A demand curve is a relationship that traces quantity demanded across prices while other influences are held constant.",
+                "eg": "A chart of apples showing higher quantities at lower prices illustrates a demand curve.",
+                "mi": "A demand curve must stay fixed whenever buyers want more of a product.",
+                "cx": "Buyer interest can shift the whole curve when income or tastes change, so the curve is not fixed."
+              },
+              {
+                "tr": "law of demand",
+                "df": "The law of demand is the usual inverse relationship between price and quantity demanded.",
+                "eg": "When a higher posted price is paired with lower planned purchases, the pattern fits this rule.",
+                "mi": "The law of demand says quantity demanded rises whenever price rises.",
+                "cx": "That reverses the usual pattern, because higher prices are associated with lower quantity demanded."
+              },
+              {
+                "tr": "shift the curve",
+                "df": "To shift the curve means a nonprice factor changes demand at every price level.",
+                "eg": "A new taste for a product can place the whole demand curve in a new position.",
+                "mi": "Shifting the curve means the same price now sits at a different point only.",
+                "cx": "A different point at one price is movement along the curve; a shift changes the entire relationship."
+              }
+            ],
+            "scenario": {
+              "su": "A market chart shows one demand curve with price marked on the vertical axis and quantity on the horizontal axis. The price is higher in one period, and the buyer's income changed in the same period, so the manager must decide which movement the chart shows.",
+              "ma": "The graph keeps the same curve position while the plotted point moves to a lower quantity at the higher price. A separate note records an income increase and a later change in tastes, but the immediate chart change is only the point's location on the existing curve."
+            },
+            "mc": [
+              {
+                "q": "A chart shows fewer units planned when the posted price is higher, while the income note stays unchanged. Which interpretation best matches the pattern on the chart?",
+                "op": [
+                  "A shift of the demand curve caused by income change.",
+                  "A supply increase that leaves demand unchanged.",
+                  "A change in tastes that keeps the same curve position.",
+                  "Movement along the demand curve caused by the price change."
+                ],
+                "ai": 3,
+                "fi": [
+                  2
+                ],
+                "ex": "The price change alters quantity demanded at the same demand relationship, which is movement along the curve. Income is unchanged, so the curve itself is not shifted; the taste-change option conflicts with the record."
+              },
+              {
+                "q": "A price list stays fixed, but the quantity plan rises after a taste survey turns more favorable and the income note also changes. Which adjustment is supported by the records?",
+                "op": [
+                  "A shift of the demand curve.",
+                  "No change in demand or quantity.",
+                  "A movement along the demand curve.",
+                  "A change in price alone."
+                ],
+                "ai": 0,
+                "fi": [
+                  3
+                ],
+                "ex": "The records show nonprice influences changing while the posted price remains fixed, which supports a shift of the demand curve. The movement-only option does not fit because quantity changed without a price change."
+              }
+            ]
+          }
+        ]
+      },
+      "responseSha256": "b416ff87b47b79232b1ca049410a4f5ae657f1646c699b6258c33156153e9703",
+      "admission": {
+        "needsRetry": false,
+        "issues": []
+      },
+      "compilerRepairs": [
+        {
+          "pass": "crossAttemptAtomicRetention",
+          "lessonId": "lesson-2",
+          "field": "scenario",
+          "issueCountBefore": 1,
+          "issueCountAfter": 0,
+          "resolvedIssues": [
+            "lesson-2:scenario:scenario-missing-decision"
+          ],
+          "trainingEligible": false,
+          "preferenceEvidence": {
+            "evidenceScope": "deterministic-contract-only",
+            "verified": false
+          }
+        },
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-2",
+          "item": 0,
+          "permutation": [
+            1,
+            2,
+            3,
+            0
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 3,
+          "trainingEligible": false
+        },
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-2",
+          "item": 1,
+          "permutation": [
+            0,
+            2,
+            1,
+            3
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 0,
+          "trainingEligible": false
+        }
+      ],
+      "startedAt": "2026-07-19T09:19:25.132Z",
+      "completedAt": "2026-07-19T09:19:43.826Z",
+      "durationMs": 18694
+    },
+    {
+      "caseId": "scion-kernel-c543fc4eb1b368a67de008db",
+      "caseSha256": "c543fc4eb1b368a67de008dbe8a086487806737ce65a42e26b1cf2ba2a4b7057",
+      "messagesSha256": "640680bb9e5a7e412cdcf60128d8e7a9dc8325c846360cfa8d6cad967021b20c",
+      "sourceContextSha256": "291b137dc12ad92479a809b60fa2fcff63937923c6bd62cd77f67bd32d48e3a0",
+      "arm": "reference",
+      "model": {
+        "provider": "openai",
+        "id": "gpt-5.4-mini",
+        "route": "responses-api-json-schema",
+        "reasoningEffort": "low",
+        "maxOutputTokens": 3000
+      },
+      "attempts": [
+        {
+          "attempt": 1,
+          "messagesSha256": "640680bb9e5a7e412cdcf60128d8e7a9dc8325c846360cfa8d6cad967021b20c",
+          "rawResponseSha256": "31cda037e41c1e2d2f4554dc2eb3b0913a622da98afaa913a1e5be60f7dc385c",
+          "responseSha256": "86a5e0c4f37cc63733fa73e05f2a9e0e329507231ec9c0738ba364898abdce09",
+          "artifactSha256": "f3b683f7b44062cd05c42d9735f79e9fd28a24cfe578173df91e36e1cf84fb0e",
+          "assessment": {
+            "needsRetry": true,
+            "issues": [
+              "lesson-5:fact-3:fact-length"
+            ]
+          },
+          "repairs": [],
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_07f5619c0c8699e5006a5c96afee2c819493a67a0a250bec56",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 1617,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 714,
+              "output_tokens_details": {
+                "reasoning_tokens": 25
+              },
+              "total_tokens": 2331
+            }
+          },
+          "durationMs": 5056
+        },
+        {
+          "attempt": 2,
+          "messagesSha256": "ba06d5a9a48035c573d61a797c1e96906e4169c67d6f5a1f5b6c10fb60c24f22",
+          "rawResponseSha256": "50a79dd16435516b0c78c0e4189c91eddc60310bdee4621179266c29db74fe3b",
+          "responseSha256": "cbb534cd4f56d261abf23a382cbcbe21e2706561a623f319098abffba08a8378",
+          "artifactSha256": "e43a510caf44830c7948eac69549519cc543ac3924ada540cd1dd5edbe40c107",
+          "assessment": {
+            "needsRetry": false,
+            "issues": []
+          },
+          "repairs": [
+            {
+              "pass": "deterministicOptionShuffle",
+              "lessonId": "lesson-5",
+              "item": 0,
+              "permutation": [
+                1,
+                2,
+                3,
+                0
+              ],
+              "answerIndexBefore": 0,
+              "answerIndexAfter": 3,
+              "trainingEligible": false
+            },
+            {
+              "pass": "deterministicOptionShuffle",
+              "lessonId": "lesson-5",
+              "item": 1,
+              "permutation": [
+                2,
+                0,
+                1,
+                3
+              ],
+              "answerIndexBefore": 0,
+              "answerIndexAfter": 1,
+              "trainingEligible": false
+            }
+          ],
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_0c56827d408f6bae006a5c96b50340819398697d2f333d2731",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 1705,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 1280
+              },
+              "output_tokens": 686,
+              "output_tokens_details": {
+                "reasoning_tokens": 23
+              },
+              "total_tokens": 2391
+            }
+          },
+          "durationMs": 5147
+        }
+      ],
+      "selectedAttempt": 2,
+      "artifact": {
+        "lessonId": "lesson-5",
+        "facts": [
+          "Capacitance is stored charge divided by potential difference for a conductor or capacitor.",
+          "A capacitor stores energy in the electric field between its conductors.",
+          "For a parallel-plate capacitor, larger plate area increases capacitance.",
+          "For a parallel-plate capacitor, greater separation decreases capacitance.",
+          "Capacitance changes when charge and potential difference change together."
+        ],
+        "keyTerms": [
+          {
+            "tr": "Capacitance",
+            "df": "Capacitance is a property that compares stored charge with potential difference.",
+            "eg": "A capacitor holding more charge at the same potential difference has greater capacitance.",
+            "mi": "Capacitance means the total charge on an object by itself.",
+            "cx": "The quantity depends on charge together with potential difference, not charge alone."
+          },
+          {
+            "tr": "capacitor",
+            "df": "A capacitor is a two-conductor system that can store energy in its electric field.",
+            "eg": "Two conductors separated by a gap can hold energy between them.",
+            "mi": "A capacitor stores energy inside the metal plates themselves.",
+            "cx": "The stored energy is associated with the electric field between the conductors, not the metal."
+          },
+          {
+            "tr": "parallel-plate capacitor",
+            "df": "A parallel-plate capacitor is a capacitor whose geometry links capacitance to plate area and separation.",
+            "eg": "Wider plates with the same gap fit the parallel-plate pattern in this topic.",
+            "mi": "Only the plate separation matters, so area has no effect.",
+            "cx": "Plate area also changes capacitance, and larger area increases it while wider separation lowers it."
+          }
+        ],
+        "scenario": {
+          "su": "A lab team compares two flat-plate designs that use the same gap but different plate sizes. They must choose which design better increases capacitance while keeping the spacing unchanged.",
+          "ma": "The design notes list one pair of plates with a larger area, another pair with the same area but a wider separation, and both use the same conductor material."
+        },
+        "mc": [
+          {
+            "q": "A technician compares two flat-plate setups with the same separation but different plate areas. Which setup should have the larger capacitance, assuming the conductors otherwise match?",
+            "op": [
+              "The setup with the smaller plate area.",
+              "The setup with the wider separation.",
+              "The setup with no electric field between plates.",
+              "The setup with the larger plate area."
+            ],
+            "ai": 3,
+            "fi": [
+              2
+            ],
+            "ex": "The relationship states that increasing plate area increases capacitance when the separation is unchanged. The wider-separation choice conflicts with that pattern because greater separation decreases capacitance."
+          },
+          {
+            "q": "A storage device is described as holding energy between its conductors while a second device keeps the same separation but shrinks the plate area. Which statement best fits the second device?",
+            "op": [
+              "Its stored energy must disappear because the conductors are still present.",
+              "Its capacitance should decrease because the plate area is smaller.",
+              "Its capacitance should increase because the separation is unchanged.",
+              "Its capacitance depends only on the amount of charge placed on it."
+            ],
+            "ai": 1,
+            "fi": [
+              1
+            ],
+            "ex": "Smaller plate area lowers capacitance for a parallel-plate capacitor, even when the gap stays the same. The unchanged-separation choice is the closest distractor, but separation alone does not guarantee increased capacitance."
+          }
+        ]
+      },
+      "artifactSha256": "e43a510caf44830c7948eac69549519cc543ac3924ada540cd1dd5edbe40c107",
+      "response": {
+        "lessons": [
+          {
+            "lessonId": "lesson-5",
+            "facts": [
+              "Capacitance is stored charge divided by potential difference for a conductor or capacitor.",
+              "A capacitor stores energy in the electric field between its conductors.",
+              "For a parallel-plate capacitor, larger plate area increases capacitance.",
+              "For a parallel-plate capacitor, greater separation decreases capacitance.",
+              "Capacitance changes when charge and potential difference change together."
+            ],
+            "keyTerms": [
+              {
+                "tr": "Capacitance",
+                "df": "Capacitance is a property that compares stored charge with potential difference.",
+                "eg": "A capacitor holding more charge at the same potential difference has greater capacitance.",
+                "mi": "Capacitance means the total charge on an object by itself.",
+                "cx": "The quantity depends on charge together with potential difference, not charge alone."
+              },
+              {
+                "tr": "capacitor",
+                "df": "A capacitor is a two-conductor system that can store energy in its electric field.",
+                "eg": "Two conductors separated by a gap can hold energy between them.",
+                "mi": "A capacitor stores energy inside the metal plates themselves.",
+                "cx": "The stored energy is associated with the electric field between the conductors, not the metal."
+              },
+              {
+                "tr": "parallel-plate capacitor",
+                "df": "A parallel-plate capacitor is a capacitor whose geometry links capacitance to plate area and separation.",
+                "eg": "Wider plates with the same gap fit the parallel-plate pattern in this topic.",
+                "mi": "Only the plate separation matters, so area has no effect.",
+                "cx": "Plate area also changes capacitance, and larger area increases it while wider separation lowers it."
+              }
+            ],
+            "scenario": {
+              "su": "A lab team compares two flat-plate designs that use the same gap but different plate sizes. They must choose which design better increases capacitance while keeping the spacing unchanged.",
+              "ma": "The design notes list one pair of plates with a larger area, another pair with the same area but a wider separation, and both use the same conductor material."
+            },
+            "mc": [
+              {
+                "q": "A technician compares two flat-plate setups with the same separation but different plate areas. Which setup should have the larger capacitance, assuming the conductors otherwise match?",
+                "op": [
+                  "The setup with the smaller plate area.",
+                  "The setup with the wider separation.",
+                  "The setup with no electric field between plates.",
+                  "The setup with the larger plate area."
+                ],
+                "ai": 3,
+                "fi": [
+                  2
+                ],
+                "ex": "The relationship states that increasing plate area increases capacitance when the separation is unchanged. The wider-separation choice conflicts with that pattern because greater separation decreases capacitance."
+              },
+              {
+                "q": "A storage device is described as holding energy between its conductors while a second device keeps the same separation but shrinks the plate area. Which statement best fits the second device?",
+                "op": [
+                  "Its stored energy must disappear because the conductors are still present.",
+                  "Its capacitance should decrease because the plate area is smaller.",
+                  "Its capacitance should increase because the separation is unchanged.",
+                  "Its capacitance depends only on the amount of charge placed on it."
+                ],
+                "ai": 1,
+                "fi": [
+                  1
+                ],
+                "ex": "Smaller plate area lowers capacitance for a parallel-plate capacitor, even when the gap stays the same. The unchanged-separation choice is the closest distractor, but separation alone does not guarantee increased capacitance."
+              }
+            ]
+          }
+        ]
+      },
+      "responseSha256": "cbb534cd4f56d261abf23a382cbcbe21e2706561a623f319098abffba08a8378",
+      "admission": {
+        "needsRetry": false,
+        "issues": []
+      },
+      "compilerRepairs": [
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-5",
+          "item": 0,
+          "permutation": [
+            1,
+            2,
+            3,
+            0
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 3,
+          "trainingEligible": false
+        },
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-5",
+          "item": 1,
+          "permutation": [
+            2,
+            0,
+            1,
+            3
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 1,
+          "trainingEligible": false
+        }
+      ],
+      "startedAt": "2026-07-19T09:19:43.827Z",
+      "completedAt": "2026-07-19T09:19:54.030Z",
+      "durationMs": 10203
+    }
+  ],
+  "updatedAt": "2026-07-19T09:19:54.030Z"
+}

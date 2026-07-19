@@ -71,6 +71,9 @@ describe('constructed-response compiler depth', () => {
     expect(items.every((item) => item.quizPlan?.bloom === item.bloomsLevel)).toBe(true);
     expect(items.every((item) => item.sourceReviewRequired === true)).toBe(true);
     expect(items.every((item) => !isConceptCuedCompilerShortAnswer(item.question))).toBe(true);
+    expect(items.every((item) => !/one named example from/i.test(item.question))).toBe(true);
+    expect(items.some((item) => /Evaluate an observed usability issue/i.test(item.question))).toBe(true);
+    expect(items.some((item) => /assigned source/i.test(item.question))).toBe(true);
     expect(items.some((item) => /evidence triangulation/i.test(item.question))).toBe(true);
     expect(
       items.every((item) => !/using usability evidence|demonstrates usability evidence/i.test(item.question)),

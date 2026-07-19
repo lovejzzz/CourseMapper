@@ -1,0 +1,175 @@
+{
+  "version": "0.16.56",
+  "date": "July 19, 2026",
+  "title": "Make Every Lesson Earn Admission",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test",
+      "npm run lint",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history",
+      "npm run audit:scion:semantic-admission:v2",
+      "npm run audit:scion:lesson-kernel-evidence:v0.16.56"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification will rerun the release ledger, complete suite, lint, and production build after push."
+    },
+    "ciDeep": {
+      "status": "not-current",
+      "note": "No adapter-versus-base promotion result is claimed; the clean pilot produced zero training-qualified lesson-kernel rows."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Deployment remains downstream of merge and remote verification."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "The evidence package contains exact browser-base Scion and GPT-5.4-mini captures under the production lesson-kernel protocol."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No human, instructor, classroom, or independent multi-judge validation is claimed."
+    },
+    "manualBrowser": {
+      "status": "success",
+      "url": "http://127.0.0.1:4176/",
+      "note": "Two production-bundle Scion builds covered live progress, title repair, content, quality notes, Agent, export UI, light and dark themes, and desktop plus 390×844 phone layouts. The final repaired build completed in 61 seconds with zero phone-width document overflow."
+    },
+    "strictLayeredEvaluation": {
+      "status": "success",
+      "claimStatus": "compiler-and-evaluation-integrity-only",
+      "note": "All 78 frozen stable losses are detected with zero preferred regressions; the clean three-case paired pilot keeps zero training rows because every winning pair fails either the score or compiler gate."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01656-current-semantic-ruler",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The current implementation detects all 78 frozen stable losses and preserves all 78 preferred counterparts.",
+      "anchors": [
+        "evaluation/scion-adapters/evidence/semantic-admission-v2-v0.16.55.json",
+        "scripts/scionSemanticAdmissionV01655Audit.mjs",
+        "tests/scion-semantic-admission-v0.16.55.test.js"
+      ],
+      "proofCommands": ["npm run audit:scion:semantic-admission:v2"],
+      "proofScopes": ["gold-audit", "static-audit"]
+    },
+    {
+      "id": "v01656-source-semantic-admission",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Bounded source checks reject unsupported quantities, scenario residue, duplicate or fragmentary facts, and reversed comparative relationships.",
+      "anchors": [
+        "src/lib/publicScionProvider.js",
+        "src/lib/scenarioContract.js",
+        "tests/public-scion-provider.test.js",
+        "src/lib/__tests__/scenarioContract.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run tests/public-scion-provider.test.js src/lib/__tests__/scenarioContract.test.js"
+      ],
+      "proofScopes": ["unit", "gold-audit"]
+    },
+    {
+      "id": "v01656-lowest-risk-retry",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Exhausted local retries retain the lowest-risk complete authored attempt with selected-attempt provenance.",
+      "anchors": [
+        "src/lib/scionLocalProvider.js",
+        "scripts/scionLessonKernelCapture.mjs",
+        "tests/scion-local-provider.test.js"
+      ],
+      "proofCommands": ["npx vitest run tests/scion-local-provider.test.js"],
+      "proofScopes": ["unit", "gold-audit"]
+    },
+    {
+      "id": "v01656-clean-lesson-kernel-campaign",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "The 148-case campaign excludes evaluator metadata from current production prompts and requires an exact fresh rebuild.",
+      "anchors": [
+        "evaluation/scion-adapters/lesson-kernel-campaign-v0.16.56.json",
+        "scripts/lib/scionLessonKernelCampaign.mjs",
+        "tests/scion-lesson-kernel-campaign.test.js"
+      ],
+      "proofCommands": ["npx vitest run tests/scion-lesson-kernel-campaign.test.js"],
+      "proofScopes": ["gold-audit", "unit"]
+    },
+    {
+      "id": "v01656-clean-paired-gap",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The reference wins all three clean paired comparisons, but two score rejections and one compiler rejection produce zero training rows.",
+      "anchors": [
+        "evaluation/scion-adapters/evidence/lesson-kernel-pilot-v0.16.56/receipt.json",
+        "evaluation/scion-adapters/evidence/lesson-kernel-pilot-v0.16.56/current/judge/paired-order-result.json",
+        "docs/SCION_ADAPTER_ROADMAP.md"
+      ],
+      "proofCommands": ["npm run audit:scion:lesson-kernel-evidence:v0.16.56"],
+      "proofScopes": ["gold-audit", "static-audit"]
+    },
+    {
+      "id": "v01656-hash-bound-pilot-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 5,
+      "summary": "One receipt binds campaigns, captures, current replays, isolated judgments, paired classifications, implementation files, and preference output.",
+      "anchors": [
+        "scripts/scionLessonKernelEvidenceV01656.mjs",
+        "evaluation/scion-adapters/evidence/lesson-kernel-pilot-v0.16.56/receipt.json"
+      ],
+      "proofCommands": ["npm run audit:scion:lesson-kernel-evidence:v0.16.56"],
+      "proofScopes": ["gold-audit", "static-audit"]
+    },
+    {
+      "id": "v01656-live-workflow-proof",
+      "status": "verified-current",
+      "changelogHighlightIndex": 6,
+      "summary": "Real production-bundle builds preserve the full first-frame title and remain usable without phone-width document overflow.",
+      "anchors": [
+        "docs/evidence/SCION_V01656_EXPERIENCE_AUDIT.json",
+        "src/AppFlow.jsx",
+        "src/lib/promptAwarePreview.js",
+        "src/lib/__tests__/promptAwarePreview.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run src/lib/__tests__/promptAwarePreview.test.js"
+      ],
+      "proofScopes": ["unit", "browser-live"]
+    },
+    {
+      "id": "v01656-honest-quiz-recovery",
+      "status": "verified-current",
+      "changelogHighlightIndex": 7,
+      "summary": "Source-bound quiz recovery is objective-specific and the grader exposes recovered seats as a P1 knowledge limitation.",
+      "anchors": [
+        "src/lib/courseBlueprintCompiler.js",
+        "src/lib/quality/quizItemDepth.js",
+        "evaluation/scion-adapters/held-out-course-benchmark-v8.json",
+        "src/lib/__tests__/quizConstructedDepthCompiler.test.js",
+        "src/lib/quality/__tests__/quizItemDepth.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run src/lib/__tests__/quizConstructedDepthCompiler.test.js src/lib/quality/__tests__/quizItemDepth.test.js"
+      ],
+      "proofScopes": ["unit", "compiled-output", "browser-live"]
+    },
+    {
+      "id": "v01656-model-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 8,
+      "summary": "No adapter or Gemma weight changed; the release improves compiler and evaluation infrastructure without claiming model-quality victory.",
+      "anchors": [
+        "README.md",
+        "docs/SCION_ADAPTER_ROADMAP.md",
+        "src/lib/scionBrowserWllama.js"
+      ],
+      "proofCommands": ["npm run audit:release-history"],
+      "proofScopes": ["doc", "static-audit"]
+    }
+  ]
+}

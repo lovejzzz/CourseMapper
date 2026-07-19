@@ -3,6 +3,7 @@ import {
   buildPromptAwarePreview,
   derivePromptPreviewTitle,
   resolvePreviewLessonCount,
+  resolveWorkspaceCourseTitle,
   scopePromptAwarePreviewItems,
 } from '../promptAwarePreview';
 
@@ -49,6 +50,26 @@ describe('prompt-aware setup previews', () => {
       expect(preview.courseTitle).toBe('User Experience Design Studio');
       expect(JSON.stringify(preview)).not.toMatch(/machine learning|random forest|scikit|kaggle|iris/i);
     }
+  });
+
+  it('keeps the prompt-derived title while streamed course-map metadata is incomplete', () => {
+    const promptText =
+      "Introductory Physics II: Electricity and Magnetism, 15-week calculus-based course with circuit labs. Covers Faraday's law of induction, inductance, and Maxwell's equations.";
+
+    expect(
+      resolveWorkspaceCourseTitle({
+        courseMapTitle: "s law of induction, inductance, and Maxwell",
+        promptText,
+        mappingInProgress: true,
+      }),
+    ).toBe('Introductory Physics II: Electricity and Magnetism');
+    expect(
+      resolveWorkspaceCourseTitle({
+        courseMapTitle: 'Physics II: Electricity and Magnetism',
+        promptText,
+        mappingInProgress: false,
+      }),
+    ).toBe('Physics II: Electricity and Magnetism');
   });
 
   it('preserves requested course-map columns and the visible lesson count', () => {

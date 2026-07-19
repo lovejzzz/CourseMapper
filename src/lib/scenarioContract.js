@@ -1,6 +1,11 @@
 const GENERIC_MATERIALS_RE =
   /^(?:the\s+)?(?:scenario|case|lesson|course|source)?\s*(?:evidence|materials?|example|data|text|artifact)s?\.?$/i;
 
+const SCENARIO_TEMPLATE_RESIDUE = new Set([
+  'a concrete two sentence subject context with an actionable problem and one real constraint',
+  'the specific notation recording data records design or passage students inspect',
+]);
+
 const DECISION_RE =
   /\b(?:decid(?:e|es|ed|ing)|choos(?:e|es|ing)|select(?:s|ed|ing)?|recommend(?:s|ed|ing|ation)?|prioriti[sz](?:e|es|ed|ing)|determin(?:e|es|ed|ing)|classif(?:y|ies|ied|ying|ication)|label(?:s|ed|ing)?|identif(?:y|ies|ied|ying)|infer(?:s|red|ring|ence)?|revise|revision|next step|respond|resolve|which\b[^?.]{0,60}\b(?:best|next|remains?|requires?|should|warrants?)|whether)\b/i;
 const ACTIONABLE_PROBLEM_RE =
@@ -28,6 +33,25 @@ function text(value) {
   return String(value || '')
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+function scenarioTemplateIdentity(value) {
+  return text(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function hasScenarioTemplateResidue(setup, materials) {
+  return [setup, materials].some((value) => {
+    const identity = scenarioTemplateIdentity(value);
+    return (
+      /^replace\b/.test(identity) ||
+      /\b(?:inspectable\s+)?source\s+detail\s+(?:one|two)\b/.test(identity) ||
+      SCENARIO_TEMPLATE_RESIDUE.has(identity)
+    );
+  });
 }
 
 function wordCount(value) {
@@ -66,7 +90,11 @@ function materialSegments(value) {
 
 export function isConcreteScenarioMaterials(value) {
   const materialText = text(value);
-  return wordCount(materialText) >= 4 && !GENERIC_MATERIALS_RE.test(materialText);
+  return (
+    wordCount(materialText) >= 4 &&
+    !GENERIC_MATERIALS_RE.test(materialText) &&
+    !hasScenarioTemplateResidue('', materialText)
+  );
 }
 
 export function analyzeDecisionScenario(scenario) {
@@ -77,6 +105,7 @@ export function analyzeDecisionScenario(scenario) {
   const segments = materialSegments(materials);
   const explicitDecision = DECISION_RE.test(setup);
   const actionableProblem = ACTIONABLE_PROBLEM_RE.test(setup);
+  const templateResidue = hasScenarioTemplateResidue(setup, materials);
   const checks = {
     context: wordCount(setup) >= 20,
     decision: explicitDecision || actionableProblem,
@@ -89,7 +118,7 @@ export function analyzeDecisionScenario(scenario) {
     decision: 'scenario-missing-decision',
     evidencePacket: 'scenario-missing-evidence-packet',
     tension: 'scenario-missing-tension',
-    materials: 'scenario-materials-not-concrete',
+    materials: templateResidue ? 'scenario-template-residue' : 'scenario-materials-not-concrete',
   };
   const issues = Object.entries(checks)
     .filter(([, passed]) => !passed)
@@ -102,6 +131,7 @@ export function analyzeDecisionScenario(scenario) {
     issues,
     evidenceKinds,
     materialSegmentCount: segments.length,
+    templateResidue,
     source: text(scenario?.source) || 'authored',
   };
 }

@@ -4,6 +4,8 @@ const APPLIED_MCQ_P1_FLOOR = 0.15;
 const APPLIED_MCQ_P2_FLOOR = 0.35;
 const UNSUPPORTED_INFERENCE_P1_COUNT = 4;
 const CONSTRUCTED_RESPONSE_TARGET = 0.5;
+const SOURCE_BOUND_RECOVERY_RE =
+  /This recovery item assesses source use without fabricating a disciplinary answer key after the local knowledge kernel failed admission\./gi;
 
 /**
  * Small, browser-safe heuristics for detecting whether a multiple-choice stem
@@ -158,6 +160,20 @@ export function summarizeUnsupportedQuizInferences(files = []) {
 
 export function buildQuizDepthFindings(files = []) {
   const findings = [];
+  const sourceBoundRecoveryCount = files.reduce(
+    (count, file) => count + (String(file?.text || file?.paragraphs?.join('\n') || '').match(SOURCE_BOUND_RECOVERY_RE)?.length || 0),
+    0,
+  );
+  if (sourceBoundRecoveryCount > 0) {
+    findings.push({
+      severity: 'P1',
+      dimension: 'substance',
+      file: 'quizBank',
+      detail: `${sourceBoundRecoveryCount} quiz item${sourceBoundRecoveryCount === 1 ? '' : 's'} use source-bound recovery because the lesson knowledge kernel did not clear admission`,
+      evidence:
+        'Attach or verify the assigned subject source and regenerate before publishing; the recovery prompts intentionally do not invent a disciplinary answer key.',
+    });
+  }
   const depth = summarizeAppliedQuizDepth(files);
   const sample = String(depth.stems[0] || '').slice(0, 180);
   if (depth.total >= 12 && depth.share < APPLIED_MCQ_P1_FLOOR) {

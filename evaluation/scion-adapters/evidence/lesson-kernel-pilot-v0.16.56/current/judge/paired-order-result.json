@@ -1,0 +1,308 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-paired-order-result-v1",
+  "generatedAt": "2026-07-19T05:21:00.000Z",
+  "status": "paired-orders-complete",
+  "requiredOrders": [
+    "A/B",
+    "B/A"
+  ],
+  "sessions": {
+    "A/B": "scion-v01654-batch-001-9f5be7242d-a-b-d4f2fb20-f807-49aa-92ff-4bfc2ba85a19",
+    "B/A": "scion-v01654-batch-001-9f5be7242d-b-a-c9798501-1f2d-4cc9-9861-97427aab5cab"
+  },
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "evidence": {
+    "prompt": {
+      "path": "evaluation/scion-adapters/lesson-kernel-judge-prompt-v0.16.54.md",
+      "sha256": "37844b86736335db54b561d8c031660ef71679c55ae1108e2e999e746f2a1c96"
+    },
+    "packets": {
+      "A/B": "77bfaec1fe64ea235bbdbef19ba6765837bd4b0b9f662a9f28f6e3b116bafc2d",
+      "B/A": "55bd4e2c350e928b00122c34d340d1a52e8441b8be40758fb5d28797d4e4c7da"
+    },
+    "reviews": {
+      "A/B": "0fec11b7648e9ee8f172fbdf51bb94dda5bc7cc1aaadfc8fa5af3390677d904e",
+      "B/A": "02f8502d9c95dda03670a401549b963448069bd8f92461774ddc00fd9043fab6"
+    }
+  },
+  "issues": [],
+  "results": [
+    {
+      "caseId": "scion-kernel-5b8e35ceea940785ee50820d",
+      "pairId": "scion-kernel-pair-7c7367c429dd9db80d5bfec7",
+      "winners": {
+        "A/B": "62bb8adabcfef0703cd56923342c290e4b14c2d5162176a2f92b63d7e141591d",
+        "B/A": "62bb8adabcfef0703cd56923342c290e4b14c2d5162176a2f92b63d7e141591d"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": false,
+      "scoreQualification": {
+        "qualified": true,
+        "winnerMinimumScore": 3,
+        "minimumTotalScoreMargin": 15,
+        "winnerCriticalDefects": [],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 3,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 3
+            },
+            "loserScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 1,
+              "assessmentCorrectness": 1,
+              "choiceDiscriminability": 1,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 1
+            },
+            "winnerMinimumScore": 3,
+            "totalScoreMargin": 16,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The first question declares option 0, although the cited fact and explanation identify option 2 as correct.",
+              "The first explanation rejects the declared answer, creating an answer-explanation contradiction.",
+              "The second question contains duplicate online-booking alternatives."
+            ],
+            "rationale": "B is substantially stronger: it is source-bound, scenario-ready, and correctly keyed with discriminable choices and instructional feedback. A has a wrong key, a contradictory explanation, duplicated alternatives, and scenario evidence unavailable under its own constraint.",
+            "decisionSha256": "55ebd64be253e7477fc54558b574eca8b6371ab5a8bc1ac6135150a49486a5b8"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 3,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 3
+            },
+            "loserScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 2,
+              "assessmentCorrectness": 1,
+              "choiceDiscriminability": 1,
+              "feedbackInstructionality": 2,
+              "internalCoherence": 1
+            },
+            "winnerMinimumScore": 3,
+            "totalScoreMargin": 15,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The first question declares option 0 correct even though the supplied dead-end claim supports option 2.",
+              "The first question's explanation supports option 2 and therefore contradicts the declared answer index 0."
+            ],
+            "rationale": "A faithfully covers every supplied claim, provides an evidence-rich actionable scenario, and has two uniquely correct assessments. B contains a wrong answer key and explanation-key contradiction, duplicate alternatives, and an internally inconsistent evidence constraint.",
+            "decisionSha256": "3c2cf0f70588d0c9888591c03f002bf72d18a52442ecaecd6c810bd92f45f117"
+          }
+        ]
+      },
+      "trainingEligible": false
+    },
+    {
+      "caseId": "scion-kernel-870455b05f9328a256598934",
+      "pairId": "scion-kernel-pair-f7363fe70d31337d61657deb",
+      "winners": {
+        "A/B": "09856b9472f864d84e001e0955e1f587eb66a68903a42a9d7b6e01b9834a981c",
+        "B/A": "09856b9472f864d84e001e0955e1f587eb66a68903a42a9d7b6e01b9834a981c"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": true,
+      "scoreQualification": {
+        "qualified": false,
+        "winnerMinimumScore": 3,
+        "minimumTotalScoreMargin": 15,
+        "winnerCriticalDefects": [
+          "The first question introduces a supply-increase explanation that is absent from the supplied demand-curve claims."
+        ],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 3,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 3,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 1,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 3,
+            "totalScoreMargin": 15,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The first question's declared rightward shift and increased purchases at every price are unsupported factual claims.",
+              "The second question declares option 0 even though option 1 is correct and the explanation explicitly describes option 1.",
+              "The second explanation contradicts the declared answer key."
+            ],
+            "rationale": "B accurately and coherently assesses movement along a demand curve versus a shift. A has two defective keys, including an unsupported income-shift direction and a direct answer-explanation contradiction, despite its otherwise usable scenario.",
+            "decisionSha256": "a5a7cbbe1e81ba06d4c40e1ba0e51bc8b9e000432b54865f4eabbf190091af37"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 3,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 1,
+              "knowledgePrecision": 1,
+              "scenarioReadiness": 3,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 2,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 3,
+            "totalScoreMargin": 18,
+            "winnerCriticalDefects": [
+              "The first question introduces a supply-increase explanation that is absent from the supplied demand-curve claims."
+            ],
+            "loserCriticalDefects": [
+              "The facts beginning \"movement along the demand curve\" and \"reflecting the law of demand\" are truncated instructional text.",
+              "Question 1 declares a rightward income-driven shift and greater purchases at every price, neither of which is supported by the supplied claim that income changes shift the curve.",
+              "Question 2 declares option 0, but option 1 is correct and the explanation explicitly supports option 1."
+            ],
+            "rationale": "A accurately teaches and assesses the movement-versus-shift distinction with coherent evidence, despite one out-of-scope supply distractor. B has truncated content, an unsupported directional income claim, and a plainly incorrect second answer key that contradicts its explanation.",
+            "decisionSha256": "d4bcb797d9fd8ffa5f08837bb01447af9ff0d8e21c1b506fdf0370aa8406222e"
+          }
+        ]
+      },
+      "trainingEligible": false
+    },
+    {
+      "caseId": "scion-kernel-c543fc4eb1b368a67de008db",
+      "pairId": "scion-kernel-pair-222b9ab19c890e914e3d32c6",
+      "winners": {
+        "A/B": "e43a510caf44830c7948eac69549519cc543ac3924ada540cd1dd5edbe40c107",
+        "B/A": "e43a510caf44830c7948eac69549519cc543ac3924ada540cd1dd5edbe40c107"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": true,
+      "scoreQualification": {
+        "qualified": false,
+        "winnerMinimumScore": 2,
+        "minimumTotalScoreMargin": 12,
+        "winnerCriticalDefects": [
+          "The statement that capacitance changes when charge and potential difference change together is unsupported and not generally true.",
+          "The fact \"Capacitance changes when charge and potential difference change together\" is unsupported and can be false when the ratio remains constant."
+        ],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 2,
+              "assessmentCorrectness": 3,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 2
+            },
+            "loserScores": {
+              "sourceFidelity": 0,
+              "knowledgePrecision": 1,
+              "scenarioReadiness": 1,
+              "assessmentCorrectness": 1,
+              "choiceDiscriminability": 1,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 2,
+            "totalScoreMargin": 14,
+            "winnerCriticalDefects": [
+              "The statement that capacitance changes when charge and potential difference change together is unsupported and not generally true."
+            ],
+            "loserCriticalDefects": [
+              "The fact claiming that decreasing plate separation decreases capacitance directly contradicts the supplied relationship.",
+              "The capacitance example says charge is stored in the electric field, whereas the source assigns stored energy to the field.",
+              "The scenario has no usable exclusive decision because both proposed dimensional changes increase capacitance.",
+              "The first question permits both decreasing separation and increasing separation as correct directional statements, and its explanation contradicts the selected answer."
+            ],
+            "rationale": "B is the relative winner because its core concepts and both answers are correct, despite one unsupported fact, a scenario inconsistency, and a mismatched citation. A reverses a governing relationship, introduces unsupported physics, presents a nonexclusive scenario decision, and has an ambiguous first assessment.",
+            "decisionSha256": "ffec465603efc5ce9364038b5c938f2c60872e09a2fba19686392f19590886e9"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 3,
+              "assessmentCorrectness": 3,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 2
+            },
+            "loserScores": {
+              "sourceFidelity": 1,
+              "knowledgePrecision": 1,
+              "scenarioReadiness": 3,
+              "assessmentCorrectness": 1,
+              "choiceDiscriminability": 1,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 2,
+            "totalScoreMargin": 12,
+            "winnerCriticalDefects": [
+              "The fact \"Capacitance changes when charge and potential difference change together\" is unsupported and can be false when the ratio remains constant."
+            ],
+            "loserCriticalDefects": [
+              "The fact claiming that decreasing plate separation decreases capacitance reverses the supplied relationship.",
+              "Question 1 contains two correct alternatives, making the declared answer non-unique.",
+              "Question 1 declares option 0, while its explanation states the content of option 1.",
+              "The capacitance example says charge is stored in the electric field, whereas the supplied claim places stored energy there."
+            ],
+            "rationale": "A has one unsupported fact and some citation/scenario inconsistencies, but its core instruction and both answers remain correct. B reverses the separation relationship, confuses charge with field-stored energy, and makes its first question ambiguous while contradicting the declared key.",
+            "decisionSha256": "d2855645d0e5e1a75405c078d408bcbe203de87500a6ce725cf163cda3ab467b"
+          }
+        ]
+      },
+      "trainingEligible": false
+    }
+  ],
+  "summary": {
+    "pairs": 3,
+    "stablePreferences": 0,
+    "localWins": 0,
+    "referenceWins": 3,
+    "unstable": 0,
+    "scoreRejected": 2,
+    "compilerRejected": 1
+  },
+  "claimBoundary": "These are same-identity model-judge preferences from isolated A/B and B/A orders. They are not human, instructor, independent, classroom, heldout-adapter, or production-win evidence.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "a9ff0a97e1730e1dd6bf989f99b20798e96b3bca27ac63b5d6de1f1a266bea07"
+  }
+}

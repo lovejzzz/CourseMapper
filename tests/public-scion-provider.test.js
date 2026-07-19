@@ -214,6 +214,157 @@ describe('Scion Public provider', () => {
     );
   });
 
+  it('rejects invented quantities on source-rich kernels while preserving quantities supplied by the source', () => {
+    const sourceLesson = {
+      lessonId: 'lesson-9',
+      title: 'Checkout evidence',
+      objectives: 'Use observed task failures to choose a defensible interface revision.',
+      topics: 'Ten participants are not stated; the supplied evidence names task failures and interview comments only.',
+      readings: 'Supplied checkout research packet',
+    };
+    const unsupportedPrompt = `Course: Interface Design\nLessons:\n${JSON.stringify([sourceLesson])}\nReturn ONLY valid JSON.`;
+    const unsupported = completeLesson({
+      scenario: {
+        su: 'A design team must choose a checkout revision after 10 users encounter repeated payment errors. The release deadline remains fixed.',
+        ma: 'Interview transcript, task-failure log, and annotated prototype screen.',
+      },
+    });
+    const unsupportedAssessment = assessPublicScionKernelResponse(
+      JSON.stringify({ lessons: [unsupported] }),
+      unsupportedPrompt,
+      'blueprintEnrichment',
+    );
+
+    expect(unsupportedAssessment.issues).toContain('lesson-9:scenario:source-unsupported-quantity');
+    expect(buildPublicScionRetryFeedback(unsupportedAssessment)).toContain('not explicitly present');
+
+    const latexArtifact = completeLesson({
+      scenario: {
+        su: 'A design team must choose between a $0.5 \\text{ m}^2$ prototype and the current checkout flow. The release deadline remains fixed.',
+        ma: 'Interview transcript, task-failure log, and annotated prototype screen.',
+      },
+    });
+    expect(
+      assessPublicScionKernelResponse(
+        JSON.stringify({ lessons: [latexArtifact] }),
+        unsupportedPrompt,
+        'blueprintEnrichment',
+      ).issues,
+    ).toContain('lesson-9:scenario:source-unsupported-quantity');
+
+    const currencyArtifact = completeLesson({
+      scenario: {
+        su: 'A design team must choose between a 2 dollar prototype and the current checkout flow. The release deadline remains fixed.',
+        ma: 'Interview transcript, task-failure log, and annotated prototype screen.',
+      },
+    });
+    expect(
+      assessPublicScionKernelResponse(
+        JSON.stringify({ lessons: [currencyArtifact] }),
+        unsupportedPrompt,
+        'blueprintEnrichment',
+      ).issues,
+    ).toContain('lesson-9:scenario:source-unsupported-quantity');
+
+    const spelledArtifact = completeLesson({
+      scenario: {
+        su: 'A design team must choose a revision after ten users encounter the same error. The release deadline remains fixed.',
+        ma: 'Interview transcript, task-failure log, and annotated prototype screen.',
+      },
+    });
+    expect(
+      assessPublicScionKernelResponse(
+        JSON.stringify({ lessons: [spelledArtifact] }),
+        unsupportedPrompt,
+        'blueprintEnrichment',
+      ).issues,
+    ).toContain('lesson-9:scenario:source-unsupported-quantity');
+
+    const proportionalArtifact = completeLesson({
+      scenario: {
+        su: 'A design team must decide whether doubled task time warrants a checkout revision. The release deadline remains fixed.',
+        ma: 'Interview transcript, task-failure log, and annotated prototype screen.',
+      },
+    });
+    expect(
+      assessPublicScionKernelResponse(
+        JSON.stringify({ lessons: [proportionalArtifact] }),
+        unsupportedPrompt,
+        'blueprintEnrichment',
+      ).issues,
+    ).toContain('lesson-9:scenario:source-unsupported-quantity');
+
+    const supportedPrompt = `Course: Interface Design\nLessons:\n${JSON.stringify([
+      { ...sourceLesson, topics: 'Task logs record the same checkout failure across 10 users.' },
+    ])}\nReturn ONLY valid JSON.`;
+    const supportedAssessment = assessPublicScionKernelResponse(
+      JSON.stringify({ lessons: [unsupported] }),
+      supportedPrompt,
+      'blueprintEnrichment',
+    );
+    expect(supportedAssessment.issues).not.toContain('lesson-9:scenario:source-unsupported-quantity');
+  });
+
+  it('rejects a punctuated fact that ends with a dangling learner-description adjective', () => {
+    const prompt = `Course: Interface Design\nLessons:\n[{"lessonId":"lesson-9","title":"Wireframes"}]\nReturn ONLY valid JSON.`;
+    const lesson = completeLesson();
+    lesson.facts[1] = 'A journey map should start from research about the steps users actual.';
+
+    expect(
+      assessPublicScionKernelResponse(JSON.stringify({ lessons: [lesson] }), prompt, 'blueprintEnrichment').issues,
+    ).toContain('lesson-9:fact-1:truncated-fact');
+  });
+
+  it('rejects repeated facts and punctuated lowercase sentence fragments', () => {
+    const prompt = `Course: Interface Design\nLessons:\n[{"lessonId":"lesson-9","title":"Wireframes"}]\nReturn ONLY valid JSON.`;
+    const lesson = completeLesson();
+    lesson.facts[1] = 'movement along the task flow reveals where users abandon the current checkout process.';
+    lesson.facts[4] = lesson.facts[3];
+    const assessment = assessPublicScionKernelResponse(
+      JSON.stringify({ lessons: [lesson] }),
+      prompt,
+      'blueprintEnrichment',
+    );
+
+    expect(assessment.issues).toEqual(
+      expect.arrayContaining(['lesson-9:duplicate-facts', 'lesson-9:fact-1:truncated-fact']),
+    );
+    expect(buildPublicScionRetryFeedback(assessment)).toContain('five distinct facts');
+  });
+
+  it('rejects a generated comparative relationship that reverses the supplied direction', () => {
+    const sourceLesson = {
+      lessonId: 'lesson-9',
+      title: 'Capacitance',
+      objectives: 'Use only the supplied claims without adding outside facts.',
+      topics:
+        'Claim 0: Increasing plate area increases capacitance. Claim 1: Increasing plate separation decreases capacitance.',
+      readings: 'Supplied physics packet',
+    };
+    const prompt = `Course: Physics\nLessons:\n${JSON.stringify([sourceLesson])}\nReturn ONLY valid JSON.`;
+    const wrong = completeLesson();
+    wrong.facts[0] =
+      'Decreasing the separation between capacitor plates leads to a decrease in capacitance.';
+    const correct = structuredClone(wrong);
+    correct.facts[0] =
+      'Decreasing the separation between capacitor plates leads to an increase in capacitance.';
+    const unrelated = structuredClone(wrong);
+    unrelated.facts[0] = 'Increasing practice time decreases the number of avoidable calculation errors.';
+
+    expect(
+      assessPublicScionKernelResponse(JSON.stringify({ lessons: [wrong] }), prompt, 'blueprintEnrichment')
+        .issues,
+    ).toContain('lesson-9:fact-0:source-direction-conflict');
+    expect(
+      assessPublicScionKernelResponse(JSON.stringify({ lessons: [correct] }), prompt, 'blueprintEnrichment')
+        .issues,
+    ).not.toContain('lesson-9:fact-0:source-direction-conflict');
+    expect(
+      assessPublicScionKernelResponse(JSON.stringify({ lessons: [unrelated] }), prompt, 'blueprintEnrichment')
+        .issues,
+    ).not.toContain('lesson-9:fact-0:source-direction-conflict');
+  });
+
   it('retries judged key-term leakage and cross-field paraphrase instead of compiling it', () => {
     const prompt = `Course: Interface Design\nLessons:\n[{"lessonId":"lesson-9","title":"Wireframes"}]\nReturn ONLY valid JSON.`;
     const contaminatedTerms = completeTerms.map((term, index) => {
@@ -445,6 +596,8 @@ Return ONLY valid JSON matching the kernel shape from the instructions.`;
     expect(lessonTemplate.keyTerms).toHaveLength(3);
     expect(lessonTemplate.mc).toHaveLength(2);
     expect(lessonTemplate.mc.every((item) => item.ai === 0)).toBe(true);
+    expect(lessonTemplate.scenario.ma).toBe('REPLACE');
+    expect(messages[1].content).toContain('never call them "source detail one/two"');
     expect(messages[1].content).toContain('distinct 1-4 word subject term');
     expect(messages[1].content).toContain('never copy the full lesson title');
     expect(templateJson).not.toContain('discussionPrompt');

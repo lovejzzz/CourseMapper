@@ -6,6 +6,7 @@ import {
   buildPublicScionRetryFeedback,
   extractPublicScionKernelLessons,
   mergePublicScionKernelAttempts,
+  publicScionAdmissionRisk,
   publicScionRetryDelay,
   repairPublicScionJson,
   shufflePublicScionKernelOptions,
@@ -97,25 +98,6 @@ function canDeferKernelAdmission(text, userPrompt, task, assessment = {}) {
   }
 }
 
-function hasHighRiskKernelIssues(assessment = {}) {
-  return (assessment.issues || []).some((issue) =>
-    [
-      'unexpected-script',
-      'truncated-fact',
-      'truncated-definition',
-      'unanchored-named',
-      'duplicate-options',
-      'absolute-option',
-      'answer-position-residue',
-      'claim-marker-residue',
-      'explanation-key-conflict',
-      'explanation-omits-key-support',
-      'multiple-source-supported-options',
-      'source-fact-index',
-    ].some((marker) => String(issue).includes(marker)),
-  );
-}
-
 /**
  * Run the compact Scion authoring contract entirely in the browser.
  *
@@ -166,6 +148,7 @@ export async function runScionLocalCompletion({
   let retryAssessment = null;
   const observedRetryIssues = new Set();
   let retainedIncompleteText = null;
+  let bestIncomplete = null;
   for (let attempt = 0; attempt <= retryLimit; attempt += 1) {
     if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
     const attemptTemperature = completionTemperature(attempt, temperature);
@@ -231,25 +214,53 @@ export async function runScionLocalCompletion({
         });
     failure.admissionIssues = assessment.issues || [];
     failure.kernelShape = summarizeKernelShape(fullText, userPrompt);
+    const deferable = canDeferKernelAdmission(fullText, userPrompt, task, assessment);
+    if (incomplete && deferable) {
+      const candidate = {
+        fullText,
+        rawText,
+        repairs: [...repaired.repairs, ...merged.repairs],
+        messages: attemptMessages,
+        assessment,
+        kernelShape: failure.kernelShape,
+        attempt: attempt + 1,
+        tokenCount,
+      };
+      if (!bestIncomplete || publicScionAdmissionRisk(assessment).score < bestIncomplete.risk.score) {
+        bestIncomplete = { ...candidate, risk: publicScionAdmissionRisk(assessment) };
+      }
+    }
     // The browser transport owns syntax and envelope integrity. The canonical
     // compiler owns per-atom semantic admission. After one real corrective
     // retry, forward a structurally usable kernel with its unresolved issue
     // receipt instead of regenerating the whole lesson repeatedly; the parser
     // can then keep safe facts/items and reject only the defective atoms.
-    const deferAfterAttempt = hasHighRiskKernelIssues(assessment) ? retryLimit : Math.min(1, retryLimit);
-    if (attempt >= deferAfterAttempt && canDeferKernelAdmission(fullText, userPrompt, task, assessment)) {
-      return {
+    const deferAfterAttempt =
+      publicScionAdmissionRisk(assessment).highRiskIssues > 0 ? retryLimit : Math.min(1, retryLimit);
+    if (attempt >= deferAfterAttempt && deferable) {
+      const selected = bestIncomplete || {
         fullText,
         rawText,
         repairs: [...repaired.repairs, ...merged.repairs],
         messages: attemptMessages,
+        assessment,
+        kernelShape: failure.kernelShape,
         attempt: attempt + 1,
+        tokenCount,
+      };
+      return {
+        fullText: selected.fullText,
+        rawText: selected.rawText,
+        repairs: selected.repairs,
+        messages: selected.messages,
+        attempt: attempt + 1,
+        selectedAttempt: selected.attempt,
         retryCount: attempt,
         maxRetries: retryLimit,
-        tokenCount,
+        tokenCount: selected.tokenCount,
         contractIncomplete: true,
-        admissionIssues: assessment.issues || [],
-        kernelShape: failure.kernelShape,
+        admissionIssues: selected.assessment.issues || [],
+        kernelShape: selected.kernelShape,
       };
     }
     if (attempt >= retryLimit) throw failure;

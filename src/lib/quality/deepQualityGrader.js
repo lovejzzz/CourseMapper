@@ -151,7 +151,9 @@ import { parseClassSessionMinutes } from '../sourceBriefConstraints.js';
 // merely because its evidence is musical rather than prose/data.
 // 1.10.17 — the package's requested classroom clock is now auditable. A
 // lesson plan whose declared/outlined minutes violate that constraint is a P0.
-export const GRADER_VERSION = '1.10.17';
+// 1.10.18 — source-bound quiz recovery is an explicit substance P1. A
+// structurally useful recovery seat cannot masquerade as verified knowledge.
+export const GRADER_VERSION = '1.10.18';
 
 // ── Dimension weights & letter bands (documented in the module header) ──────
 // v0.15.186: texture weight 10 → 25. At 10/120 a fully templated package

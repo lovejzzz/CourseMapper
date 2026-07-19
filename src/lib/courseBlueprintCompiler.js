@@ -18862,44 +18862,48 @@ function buildSourceBoundRecoveryQuizAtoms({ lesson, blueprint, quizPlan, concep
     lesson.evidencePlan?.sourceCue,
     safeLessonEvidenceCue(lesson, blueprintLens(blueprint)),
   );
+  const sourceLabel = /^(?:the|assigned)\b/i.test(evidenceCue)
+    ? evidenceCue
+    : `the assigned source "${evidenceCue}"`;
   const compositeConcept = /\b(?:and|versus|vs\.?)\b/i.test(concept);
   const conceptLensCue = compositeConcept ? `${concept} as contrasting lenses` : concept;
   const prompts = [
     {
       bloom: 'Apply',
-      make: () =>
-        `Apply the course concept, method, or rule that best explains one named example from ${evidenceCue}. Identify that concept independently, cite the observable detail supporting your claim, then state one limitation or next piece of evidence.`,
+      make: (objective) =>
+        `Use ${sourceLabel} to complete the objective "${objective}." Identify the relevant concept, method, or rule independently; cite one exact source detail; apply it to one worked example; then state what the source does not establish.`,
     },
     {
       bloom: 'Analyze',
-      make: () =>
-        `Compare two examples from ${evidenceCue} using ${conceptLensCue}. Name one meaningful similarity, one difference, and the evidence for each.`,
+      make: (objective) =>
+        `Analyze two worked examples from ${sourceLabel} that address "${objective}." Compare them using ${conceptLensCue}; name one meaningful similarity, one difference, and the exact evidence for each.`,
     },
     {
       bloom: 'Analyze',
-      make: () =>
-        `Analyze a classmate's interpretation of one named example from ${evidenceCue}. Select the course principle or lens you would use to test that interpretation, point to the decisive case detail, and state what the example does not prove.`,
+      make: (objective) =>
+        `Analyze one worked solution or explanation in ${sourceLabel} related to "${objective}." Identify the course principle you would use to test it. Cite one decisive source detail, then state one limitation or next piece of evidence.`,
     },
     {
       bloom: 'Analyze',
-      make: () =>
-        `Analyze and diagnose a plausible error in one named example from ${evidenceCue}. Name the course concept or method that exposes the error, cite the case detail that contradicts it, explain the correction, and state one limitation or next evidence need.`,
+      make: (objective) =>
+        `Analyze one plausible error in a worked example from ${sourceLabel} related to "${objective}." Identify the course rule that exposes the error. Cite the contradictory source detail, explain the correction, and state one limitation or next piece of evidence.`,
     },
     {
       bloom: 'Evaluate',
-      make: () =>
-        `Evaluate two plausible explanations of one named example from ${evidenceCue}. Choose the course framework that best distinguishes them, cite the detail supporting the stronger claim, name an alternative, and identify additional evidence that would resolve it.`,
+      make: (objective) =>
+        `Evaluate two explanations or solution paths from ${sourceLabel} that bear on "${objective}." Choose the course framework that best distinguishes them. Cite the detail supporting the stronger path, then name one limitation or additional piece of evidence.`,
     },
     {
       bloom: 'Create',
-      make: () =>
-        `Create a new example that ${compositeConcept ? `distinguishes ${concept}` : `demonstrates ${concept}`}. Annotate the feature another learner should inspect, then explain how the example differs from one in ${evidenceCue}.`,
+      make: (objective) =>
+        `Create a new worked example for "${objective}" using only a relationship, rule, or method stated in ${sourceLabel}. Show the inputs, reasoning, and result; mark every assumption the source does not supply; then compare your example with one source example.`,
     },
   ];
 
   return quizPlan.slice(0, Math.min(targetCount, prompts.length)).map((plan, index) => {
     const type = index === prompts.length - 1 ? 'essay' : 'short_answer';
     const promptPlan = prompts[index];
+    const objective = stripTerminalPunctuation(cleanText(plan?.objective || concept, concept));
     const alignedPlan = {
       ...plan,
       bloom: promptPlan.bloom,
@@ -18917,7 +18921,7 @@ function buildSourceBoundRecoveryQuizAtoms({ lesson, blueprint, quizPlan, concep
         points: type === 'essay' ? 8 : 4,
         objectiveAligned: plan.objective,
         intendedUse: `Instructor-scored source application for ${lesson.title}; factual claims require confirmation against ${evidenceCue}.`,
-        question: humanizeQuizText(promptPlan.make()),
+        question: humanizeQuizText(promptPlan.make(objective)),
         answer:
           'Responses vary. Accept only a response whose claim is supported by a named or created example and an inspectable feature.',
         sampleAnswer:

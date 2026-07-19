@@ -1,0 +1,835 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-packet-v1",
+  "order": "B/A",
+  "generatedAt": "2026-07-19T05:21:00.000Z",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "fe3741c97241d3d2a1dcc5151fa204ea17538afd9ec39e54cdd1cc890bde8edc"
+  },
+  "prompt": {
+    "path": "evaluation/scion-adapters/lesson-kernel-judge-prompt-v0.16.54.md",
+    "sha256": "37844b86736335db54b561d8c031660ef71679c55ae1108e2e999e746f2a1c96"
+  },
+  "dimensions": [
+    "sourceFidelity",
+    "knowledgePrecision",
+    "scenarioReadiness",
+    "assessmentCorrectness",
+    "choiceDiscriminability",
+    "feedbackInstructionality",
+    "internalCoherence"
+  ],
+  "cases": [
+    {
+      "caseId": "scion-kernel-5b8e35ceea940785ee50820d",
+      "pairId": "scion-kernel-pair-7c7367c429dd9db80d5bfec7",
+      "domain": "user-experience-design",
+      "failureFamilies": [
+        "source-coverage"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-3",
+        "title": "Journey mapping",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: Journey mapping represents an end-to-end experience from the user's perspective so a team can see connected steps, boundaries, breakdowns, and opportunities. Claim 1: A journey map should start from research about the steps users actually take and the transactions involved. Claim 2: An experience map should make struggle points and candidate improvement areas visible. Claim 3: A map can reveal dead ends where the user cannot continue toward the larger goal. Claim 4: Journey analysis should include gaps between online and offline parts of a service.",
+        "readings": "UK Government Service Manual"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "55810138f44b132a506c48e324abae61faab42bb035796fd7728e36106eaf51e",
+        "kernelId": "ux/journey-mapping",
+        "term": "Journey mapping",
+        "claims": [
+          "Journey mapping represents an end-to-end experience from the user's perspective so a team can see connected steps, boundaries, breakdowns, and opportunities.",
+          "A journey map should start from research about the steps users actually take and the transactions involved.",
+          "An experience map should make struggle points and candidate improvement areas visible.",
+          "A map can reveal dead ends where the user cannot continue toward the larger goal.",
+          "Journey analysis should include gaps between online and offline parts of a service."
+        ],
+        "anchors": [
+          {
+            "src": "govuk:whole-journey",
+            "loc": "Whole problem",
+            "quote": "It's important for teams to make sure the thing they're building forms a coherent part of a user's wider journey."
+          },
+          {
+            "src": "govuk:whole-journey",
+            "loc": "User point of view",
+            "quote": "Start by talking to your users to learn more about the steps they have to take and the transactions involved."
+          },
+          {
+            "src": "govuk:whole-journey",
+            "loc": "User point of view",
+            "quote": "The map should show which bits of the journey users are struggling with and the areas you might want to focus on improving."
+          },
+          {
+            "src": "govuk:whole-journey",
+            "loc": "What to change",
+            "quote": "dead ends in the user journey"
+          },
+          {
+            "src": "govuk:whole-journey",
+            "loc": "What to change",
+            "quote": "online and offline elements of the transaction not joining up in an intuitive way"
+          }
+        ],
+        "attribution": [
+          "UK Government Service Manual"
+        ],
+        "license": "Open Government Licence v3.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "62bb8adabcfef0703cd56923342c290e4b14c2d5162176a2f92b63d7e141591d",
+          "lessonKernel": {
+            "lessonId": "lesson-3",
+            "facts": [
+              "Journey mapping shows the end-to-end experience from the user's perspective.",
+              "A journey map should begin with research about actual steps and transactions.",
+              "An experience map can expose struggle points and candidate improvement areas.",
+              "Journey analysis should include gaps between online and offline service parts.",
+              "A map can reveal dead ends where users cannot continue toward the larger goal."
+            ],
+            "keyTerms": [
+              {
+                "tr": "journey mapping",
+                "df": "Journey mapping is a user-centered view of a service across connected steps, boundaries, and breakdowns.",
+                "eg": "A team traces signup, checkout, and support in one connected journey mapping view.",
+                "mi": "Journey mapping only lists interface screens in the order they appear.",
+                "cx": "It must include the user's full experience, not just screen order, so service boundaries and gaps stay visible."
+              },
+              {
+                "tr": "experience map",
+                "df": "An experience map is a structured view of user struggles and improvement opportunities across an experience.",
+                "eg": "A team marks confusing steps and delays on an experience map for a booking flow.",
+                "mi": "An experience map is only a diagram of happy-path tasks.",
+                "cx": "It must surface struggle points and possible improvements, not merely successful steps."
+              },
+              {
+                "tr": "dead ends",
+                "df": "Dead ends are points in a journey where the user cannot proceed toward the larger goal.",
+                "eg": "A refund page with no next step creates dead ends for a customer.",
+                "mi": "Dead ends are minor delays that users can easily work around.",
+                "cx": "A dead end stops progress entirely, so it is more than a small delay."
+              }
+            ],
+            "scenario": {
+              "su": "A service team is reviewing notes from mobile sign-up, a help desk log, and paper forms used at pickup. They need one map before release, but the online flow and offline handoff do not line up.",
+              "ma": "Compare the field notes showing users dropping at ID upload, the call-center transcripts about missing confirmations, the paper pickup sheet, and the navigation sketch with no return path after failure."
+            },
+            "mc": [
+              {
+                "q": "A team compares a screen flow, a service desk note, and a pickup form. Which view best connects the user's steps, boundaries, and breaks across the whole service?",
+                "op": [
+                  "Journey mapping across the user's end-to-end experience.",
+                  "A narrow screen inventory of interface pages only.",
+                  "A task list of isolated actions with no service boundaries.",
+                  "A satisfaction chart that records only final ratings."
+                ],
+                "ai": 0,
+                "fi": [
+                  0
+                ],
+                "ex": "The connected steps, boundaries, and breakdowns point to journey mapping across the full experience. A screen inventory misses the service relationship between online and offline parts."
+              },
+              {
+                "q": "A checkout map shows users can submit payment online, then must print a receipt for in-person pickup, and several stop after a failed upload. What should the map emphasize?",
+                "op": [
+                  "The dead end after failure and the online-offline gap.",
+                  "Only the visual style of the receipt page.",
+                  "A label for every button on the checkout page.",
+                  "The fastest keyboard route through the form."
+                ],
+                "ai": 0,
+                "fi": [
+                  3
+                ],
+                "ex": "The failed upload stop and the print-to-pickup handoff show a dead end and an online-offline gap. Button labels or keyboard routes do not address that service break."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "5d5cf8841526e1f36b800a5d6c9059c91988ca3840895f16855c8c7fa7eb6228",
+          "lessonKernel": {
+            "lessonId": "lesson-3",
+            "facts": [
+              "Journey mapping represents an end-to-end experience from the user's perspective so a team can see connected steps, boundaries, breakdowns, and opportunities.",
+              "A journey map should start from research about the steps users actually take and the transactions involved.",
+              "An experience map should make struggle points and candidate improvement areas visible.",
+              "A map can reveal dead ends where the user cannot continue toward the larger goal.",
+              "Journey analysis should include gaps between online and offline parts of a service."
+            ],
+            "keyTerms": [
+              {
+                "tr": "Journey mapping",
+                "df": "Journey mapping represents an end-to-end experience from the user's perspective so a team can see connected steps, boundaries, breakdowns, and opportunities.",
+                "eg": "A team uses a journey map to visualize the entire user experience from start to finish.",
+                "mi": "Journey mapping is just a simple list of steps a user takes through a service.",
+                "cx": "Journey mapping is a comprehensive view showing connected steps, boundaries, and opportunities."
+              },
+              {
+                "tr": "Experience map",
+                "df": "An experience map should make struggle points and candidate improvement areas visible.",
+                "eg": "The experience map highlights specific moments where users encounter difficulty or need help.",
+                "mi": "An experience map is only about the final outcome of a user's interaction.",
+                "cx": "An experience map focuses on making struggle points and improvement areas visible throughout the process."
+              },
+              {
+                "tr": "Journey analysis",
+                "df": "Journey analysis should include gaps between online and offline parts of a service.",
+                "eg": "Journey analysis identifies where the digital service meets physical service and where they disconnect.",
+                "mi": "Journey analysis is the same as journey mapping, just a different name for the same process.",
+                "cx": "Journey analysis specifically includes gaps between online and offline parts of a service."
+              }
+            ],
+            "scenario": {
+              "su": "A team is mapping the process for a customer to return a faulty product online. The actionable problem is identifying where the customer might get stuck during the return process. The constraint is that the team only has access to the online return portal data.",
+              "ma": "The team compares the documented online return steps against the observed offline steps taken by customers at the physical store location."
+            },
+            "mc": [
+              {
+                "q": "When creating a journey map, what is the primary purpose of identifying dead ends in the experience?",
+                "op": [
+                  "Dead ends reveal opportunities for adding new features to the service.",
+                  "Dead ends show where the user can successfully complete the entire desired goal.",
+                  "Dead ends highlight points where the user cannot continue toward the larger goal.",
+                  "Dead ends indicate successful completion of the entire user experience."
+                ],
+                "ai": 0,
+                "fi": [
+                  3
+                ],
+                "ex": "A map can reveal dead ends where the user cannot continue toward the larger goal, which supports the correct option, while dead ends reveal opportunities for adding new features to the service, which is incorrect."
+              },
+              {
+                "q": "A team is developing a map for a service and notices a significant disconnect between the online booking system and the in-person check-in process. What should the team focus on?",
+                "op": [
+                  "Focusing only on the online booking steps to ensure they are perfectly optimized.",
+                  "Focusing on the online booking steps to ensure they are perfectly optimized.",
+                  "Focusing on gaps between online and offline parts of a service.",
+                  "Focusing on the final successful outcome of the entire user experience."
+                ],
+                "ai": 2,
+                "fi": [
+                  4
+                ],
+                "ex": "Journey analysis should include gaps between online and offline parts of a service, which supports the correct option, while focusing only on the online booking steps to ensure they are perfectly optimized is incorrect."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-5b8e35ceea940785ee50820d",
+        "pairId": "scion-kernel-pair-7c7367c429dd9db80d5bfec7",
+        "artifactSha256": {
+          "A": "62bb8adabcfef0703cd56923342c290e4b14c2d5162176a2f92b63d7e141591d",
+          "B": "5d5cf8841526e1f36b800a5d6c9059c91988ca3840895f16855c8c7fa7eb6228"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    },
+    {
+      "caseId": "scion-kernel-870455b05f9328a256598934",
+      "pairId": "scion-kernel-pair-f7363fe70d31337d61657deb",
+      "domain": "economics",
+      "failureFamilies": [
+        "choice-discriminability",
+        "source-fidelity"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-2",
+        "title": "Demand curve",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: A demand curve shows the quantity of a good consumers are willing and able to purchase at each price, holding other factors constant. Claim 1: Demand curves typically slope downward, reflecting the law of demand. Claim 2: A change in price causes a movement along the demand curve, while a change in income or tastes shifts the curve.",
+        "readings": "OpenStax Principles of Microeconomics 3e, Ch. 3"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "13a691e562b5c8e8cd8780917c95852a4fc9041b68384de9a7efc063d90a6f05",
+        "kernelId": "econ/demand-curve",
+        "term": "Demand curve",
+        "claims": [
+          "A demand curve shows the quantity of a good consumers are willing and able to purchase at each price, holding other factors constant.",
+          "Demand curves typically slope downward, reflecting the law of demand.",
+          "A change in price causes a movement along the demand curve, while a change in income or tastes shifts the curve."
+        ],
+        "anchors": [
+          {
+            "src": "openstax:microeconomics-3e#3",
+            "loc": "3.1",
+            "quote": "the quantity of a good that consumers are willing and able to purchase at each price, holding all other factors constant"
+          },
+          {
+            "src": "openstax:microeconomics-3e#3",
+            "loc": "3.1",
+            "quote": "Demand curves typically slope downward, reflecting the law of demand"
+          },
+          {
+            "src": "openstax:microeconomics-3e#3",
+            "loc": "3.2",
+            "quote": "A change in price causes a movement along the demand curve"
+          }
+        ],
+        "attribution": [
+          "OpenStax Principles of Microeconomics 3e, Ch. 3"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "09856b9472f864d84e001e0955e1f587eb66a68903a42a9d7b6e01b9834a981c",
+          "lessonKernel": {
+            "lessonId": "lesson-2",
+            "facts": [
+              "A demand curve shows quantity consumers are willing and able to purchase at each price.",
+              "Demand curves typically slope downward, reflecting the law of demand.",
+              "A price change causes movement along the demand curve, not a new curve.",
+              "Changes in income or tastes shift the demand curve to a different position.",
+              "Holding other factors constant isolates how price relates to quantity demanded."
+            ],
+            "keyTerms": [
+              {
+                "tr": "demand curve",
+                "df": "A demand curve is a relationship that traces quantity demanded across prices while other influences are held constant.",
+                "eg": "A chart of apples showing higher quantities at lower prices illustrates a demand curve.",
+                "mi": "A demand curve must stay fixed whenever buyers want more of a product.",
+                "cx": "Buyer interest can shift the whole curve when income or tastes change, so the curve is not fixed."
+              },
+              {
+                "tr": "law of demand",
+                "df": "The law of demand is the usual inverse relationship between price and quantity demanded.",
+                "eg": "When a higher posted price is paired with lower planned purchases, the pattern fits this rule.",
+                "mi": "The law of demand says quantity demanded rises whenever price rises.",
+                "cx": "That reverses the usual pattern, because higher prices are associated with lower quantity demanded."
+              },
+              {
+                "tr": "shift the curve",
+                "df": "To shift the curve means a nonprice factor changes demand at every price level.",
+                "eg": "A new taste for a product can place the whole demand curve in a new position.",
+                "mi": "Shifting the curve means the same price now sits at a different point only.",
+                "cx": "A different point at one price is movement along the curve; a shift changes the entire relationship."
+              }
+            ],
+            "scenario": {
+              "su": "A market chart shows one demand curve with price marked on the vertical axis and quantity on the horizontal axis. The price is higher in one period, and the buyer's income changed in the same period, so the manager must decide which movement the chart shows.",
+              "ma": "The graph keeps the same curve position while the plotted point moves to a lower quantity at the higher price. A separate note records an income increase and a later change in tastes, but the immediate chart change is only the point's location on the existing curve."
+            },
+            "mc": [
+              {
+                "q": "A chart shows fewer units planned when the posted price is higher, while the income note stays unchanged. Which interpretation best matches the pattern on the chart?",
+                "op": [
+                  "A shift of the demand curve caused by income change.",
+                  "A supply increase that leaves demand unchanged.",
+                  "A change in tastes that keeps the same curve position.",
+                  "Movement along the demand curve caused by the price change."
+                ],
+                "ai": 3,
+                "fi": [
+                  2
+                ],
+                "ex": "The price change alters quantity demanded at the same demand relationship, which is movement along the curve. Income is unchanged, so the curve itself is not shifted; the taste-change option conflicts with the record."
+              },
+              {
+                "q": "A price list stays fixed, but the quantity plan rises after a taste survey turns more favorable and the income note also changes. Which adjustment is supported by the records?",
+                "op": [
+                  "A shift of the demand curve.",
+                  "No change in demand or quantity.",
+                  "A movement along the demand curve.",
+                  "A change in price alone."
+                ],
+                "ai": 0,
+                "fi": [
+                  3
+                ],
+                "ex": "The records show nonprice influences changing while the posted price remains fixed, which supports a shift of the demand curve. The movement-only option does not fit because quantity changed without a price change."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "e18509761223698b34089d42291b62eca3ba74ea389b13038f0417147f1487e3",
+          "lessonKernel": {
+            "lessonId": "lesson-2",
+            "facts": [
+              "A demand curve illustrates the quantity consumers are willing and able to purchase at various prices.",
+              "movement along the demand curve, whereas changes in income or tastes cause a shift.",
+              "reflecting the law of demand, which dictates the relationship between price and quantity demanded.",
+              "Demand curves typically slope downward, reflecting the law of demand.",
+              "Demand curves typically slope downward, reflecting the law of demand."
+            ],
+            "keyTerms": [
+              {
+                "tr": "demand curve",
+                "df": "A demand curve graphically represents the quantity of a good consumers are willing and able to purchase at each price.",
+                "eg": "If the price of a good increases, the quantity demanded decreases, which is shown by a movement along the demand curve.",
+                "mi": "A demand curve shows the quantity consumers are willing and able to purchase at a specific price point only.",
+                "cx": "A demand curve shows the quantity consumers are willing and able to purchase at *each* price, holding other factors constant, not just one point."
+              },
+              {
+                "tr": "slope downward",
+                "df": "The downward slope of a demand curve is a direct reflection of the law of demand, indicating an inverse relationship between price and quantity demanded.",
+                "eg": "When the price of a good rises, the quantity demanded falls, resulting in a downward sloping demand curve.",
+                "mi": "A downward slope means that as the price increases, the quantity demanded increases, which is the opposite of the law of demand.",
+                "cx": "A downward slope means that as the price increases, the quantity demanded decreases, which is the correct reflection of the law of demand."
+              },
+              {
+                "tr": "change in price",
+                "df": "A change in the price of a good results in a movement along the existing demand curve, representing a change in quantity demanded.",
+                "eg": "If the market price of a product drops, consumers will move to a higher quantity demanded along the demand curve.",
+                "mi": "A change in price causes the entire demand curve to shift to a new position, which is incorrect.",
+                "cx": "A change in price causes a movement along the demand curve, not a shift of the entire curve, which is the correct behavior."
+              }
+            ],
+            "scenario": {
+              "su": "A retailer observes that when the price of a specific electronic gadget increases by ten percent, the quantity sold decreases by twenty percent. The store manager must determine if this is a movement along the demand curve or a shift of the demand curve. The constraint is that the store cannot change the consumer income or tastes during this observation period.",
+              "ma": "The retailer compares the recorded sales data showing a price increase of ten percent leading to a twenty percent decrease in quantity sold against the theoretical representation of the demand curve."
+            },
+            "mc": [
+              {
+                "q": "When a consumer's income increases, how does the demand curve for a good typically respond, based on the principles of demand curves and shifts?",
+                "op": [
+                  "The demand curve shifts to the right because consumers buy more of the good at every price point.",
+                  "The demand curve shifts to the left because consumers buy less of the good at every price point.",
+                  "The demand curve moves downward along the existing curve because the price has changed.",
+                  "The demand curve remains stationary because income changes do not affect the quantity demanded."
+                ],
+                "ai": 0,
+                "fi": [
+                  1
+                ],
+                "ex": "The demand curve shifts to the right because consumers buy more of the good at every price point, which is supported by the claim that a change in income shifts the curve."
+              },
+              {
+                "q": "A market analyst observes that the price of a good changes, and the quantity demanded changes, but the demand curve itself does not move. Which statement accurately describes this situation?",
+                "op": [
+                  "The change in price caused a shift in the demand curve because the law of demand was violated.",
+                  "The change in price caused a movement along the demand curve because quantity demanded changed.",
+                  "The change in price caused a shift in the demand curve because consumer tastes changed.",
+                  "The change in price caused a shift in the demand curve because income changed."
+                ],
+                "ai": 0,
+                "fi": [
+                  2
+                ],
+                "ex": "The change in price caused a movement along the demand curve because quantity demanded changed, which is supported by the claim that a change in price causes a movement along the demand curve."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-870455b05f9328a256598934",
+        "pairId": "scion-kernel-pair-f7363fe70d31337d61657deb",
+        "artifactSha256": {
+          "A": "09856b9472f864d84e001e0955e1f587eb66a68903a42a9d7b6e01b9834a981c",
+          "B": "e18509761223698b34089d42291b62eca3ba74ea389b13038f0417147f1487e3"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    },
+    {
+      "caseId": "scion-kernel-c543fc4eb1b368a67de008db",
+      "pairId": "scion-kernel-pair-222b9ab19c890e914e3d32c6",
+      "domain": "physics",
+      "failureFamilies": [
+        "source-coverage"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-5",
+        "title": "Capacitance",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: Capacitance is the ratio of stored charge to potential difference for a conductor or capacitor. Claim 1: A capacitor stores energy in the electric field between its conductors. Claim 2: For a parallel-plate capacitor, increasing plate area increases capacitance and increasing separation decreases capacitance.",
+        "readings": "OpenStax University Physics Volume 2, Ch. 8"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "bde05b7b9582176e048e9e0ae8a40e052a003910ab430c42b50031727a58cd48",
+        "kernelId": "physics/capacitance",
+        "term": "Capacitance",
+        "claims": [
+          "Capacitance is the ratio of stored charge to potential difference for a conductor or capacitor.",
+          "A capacitor stores energy in the electric field between its conductors.",
+          "For a parallel-plate capacitor, increasing plate area increases capacitance and increasing separation decreases capacitance."
+        ],
+        "anchors": [
+          {
+            "src": "openstax:university-physics-volume-2#8",
+            "loc": "8.1",
+            "quote": "capacitance is the amount of charge stored per volt"
+          },
+          {
+            "src": "openstax:university-physics-volume-2#8",
+            "loc": "8.3",
+            "quote": "energy stored in a capacitor"
+          },
+          {
+            "src": "openstax:university-physics-volume-2#8",
+            "loc": "8.2",
+            "quote": "capacitance is directly proportional to the area and inversely proportional to the separation"
+          }
+        ],
+        "attribution": [
+          "OpenStax University Physics Volume 2, Ch. 8"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "e43a510caf44830c7948eac69549519cc543ac3924ada540cd1dd5edbe40c107",
+          "lessonKernel": {
+            "lessonId": "lesson-5",
+            "facts": [
+              "Capacitance is stored charge divided by potential difference for a conductor or capacitor.",
+              "A capacitor stores energy in the electric field between its conductors.",
+              "For a parallel-plate capacitor, larger plate area increases capacitance.",
+              "For a parallel-plate capacitor, greater separation decreases capacitance.",
+              "Capacitance changes when charge and potential difference change together."
+            ],
+            "keyTerms": [
+              {
+                "tr": "Capacitance",
+                "df": "Capacitance is a property that compares stored charge with potential difference.",
+                "eg": "A capacitor holding more charge at the same potential difference has greater capacitance.",
+                "mi": "Capacitance means the total charge on an object by itself.",
+                "cx": "The quantity depends on charge together with potential difference, not charge alone."
+              },
+              {
+                "tr": "capacitor",
+                "df": "A capacitor is a two-conductor system that can store energy in its electric field.",
+                "eg": "Two conductors separated by a gap can hold energy between them.",
+                "mi": "A capacitor stores energy inside the metal plates themselves.",
+                "cx": "The stored energy is associated with the electric field between the conductors, not the metal."
+              },
+              {
+                "tr": "parallel-plate capacitor",
+                "df": "A parallel-plate capacitor is a capacitor whose geometry links capacitance to plate area and separation.",
+                "eg": "Wider plates with the same gap fit the parallel-plate pattern in this topic.",
+                "mi": "Only the plate separation matters, so area has no effect.",
+                "cx": "Plate area also changes capacitance, and larger area increases it while wider separation lowers it."
+              }
+            ],
+            "scenario": {
+              "su": "A lab team compares two flat-plate designs that use the same gap but different plate sizes. They must choose which design better increases capacitance while keeping the spacing unchanged.",
+              "ma": "The design notes list one pair of plates with a larger area, another pair with the same area but a wider separation, and both use the same conductor material."
+            },
+            "mc": [
+              {
+                "q": "A technician compares two flat-plate setups with the same separation but different plate areas. Which setup should have the larger capacitance, assuming the conductors otherwise match?",
+                "op": [
+                  "The setup with the smaller plate area.",
+                  "The setup with the wider separation.",
+                  "The setup with no electric field between plates.",
+                  "The setup with the larger plate area."
+                ],
+                "ai": 3,
+                "fi": [
+                  2
+                ],
+                "ex": "The relationship states that increasing plate area increases capacitance when the separation is unchanged. The wider-separation choice conflicts with that pattern because greater separation decreases capacitance."
+              },
+              {
+                "q": "A storage device is described as holding energy between its conductors while a second device keeps the same separation but shrinks the plate area. Which statement best fits the second device?",
+                "op": [
+                  "Its stored energy must disappear because the conductors are still present.",
+                  "Its capacitance should decrease because the plate area is smaller.",
+                  "Its capacitance should increase because the separation is unchanged.",
+                  "Its capacitance depends only on the amount of charge placed on it."
+                ],
+                "ai": 1,
+                "fi": [
+                  1
+                ],
+                "ex": "Smaller plate area lowers capacitance for a parallel-plate capacitor, even when the gap stays the same. The unchanged-separation choice is the closest distractor, but separation alone does not guarantee increased capacitance."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "ff28cf390ddd9871f2715d22998dd82ec6711b813fee6d881758a8ce1c65d153",
+          "lessonKernel": {
+            "lessonId": "lesson-5",
+            "facts": [
+              "Capacitance is defined as the ratio of stored charge to potential difference for a conductor or capacitor.",
+              "A capacitor stores energy specifically within the electric field existing between its two conductors.",
+              "Increasing the plate area of a parallel-plate capacitor results in an increase in capacitance.",
+              "Decreasing the separation between the plates of a parallel-plate capacitor leads to a decrease in capacitance.",
+              "The relationship between stored charge, potential difference, and capacitance is fundamental to this concept."
+            ],
+            "keyTerms": [
+              {
+                "tr": "Capacitance",
+                "df": "Capacitance is the ratio of stored charge to potential difference for a conductor or capacitor.",
+                "eg": "A capacitor stores charge in the electric field between its two conductive plates.",
+                "mi": "Capacitance is simply the amount of charge that can be stored on a capacitor.",
+                "cx": "Capacitance is a ratio involving charge and potential difference, not just the stored charge itself."
+              },
+              {
+                "tr": "Stored Charge",
+                "df": "Stored charge is the amount of electric charge that is held on the plates of a capacitor.",
+                "eg": "The amount of charge on the plates determines the stored energy in the electric field.",
+                "mi": "Stored charge is the total charge that flows through the capacitor during charging.",
+                "cx": "Stored charge is the charge held on the plates, which is a property used to calculate capacitance."
+              },
+              {
+                "tr": "Potential Difference",
+                "df": "Potential difference is the difference in electric potential between the two conductors of a capacitor.",
+                "eg": "The potential difference is the voltage applied across the capacitor plates.",
+                "mi": "Potential difference is the total energy stored in the electric field of the capacitor.",
+                "cx": "Potential difference is the difference in electric potential between the plates, not the total energy stored."
+              }
+            ],
+            "scenario": {
+              "su": "A parallel-plate capacitor has plates with a fixed area and a fixed separation distance. A student wants to increase the capacitance by changing the physical dimensions of the capacitor. The student must decide whether to increase the plate area or decrease the plate separation.",
+              "ma": "The student observes that the capacitance is halved when the plate separation is doubled, and the student notes that the plate area remains unchanged during the test."
+            },
+            "mc": [
+              {
+                "q": "If a capacitor has a fixed amount of stored charge, how does changing the plate separation affect the capacitance value?",
+                "op": [
+                  "Decreasing the plate separation increases the capacitance because the electric field becomes stronger.",
+                  "Increasing the plate separation decreases the capacitance because the electric field weakens.",
+                  "The capacitance remains unchanged because the stored charge is constant regardless of separation.",
+                  "The capacitance increases because the stored charge is directly proportional to the separation distance."
+                ],
+                "ai": 0,
+                "fi": [
+                  2
+                ],
+                "ex": "Increasing the plate separation decreases the capacitance because the electric field weakens."
+              },
+              {
+                "q": "A parallel-plate capacitor is charged to a specific potential difference. If the plate area is increased by a factor of four, what is the resulting change in capacitance?",
+                "op": [
+                  "The capacitance is multiplied by four because the stored charge is directly proportional to the area.",
+                  "The capacitance is multiplied by one-fourth because the potential difference remains constant.",
+                  "The capacitance is multiplied by two because the area and separation are both changing.",
+                  "The capacitance remains the same because the stored charge is independent of the plate area."
+                ],
+                "ai": 0,
+                "fi": [
+                  2
+                ],
+                "ex": "The capacitance is multiplied by four because increasing the plate area results in an increase in capacitance."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-c543fc4eb1b368a67de008db",
+        "pairId": "scion-kernel-pair-222b9ab19c890e914e3d32c6",
+        "artifactSha256": {
+          "A": "e43a510caf44830c7948eac69549519cc543ac3924ada540cd1dd5edbe40c107",
+          "B": "ff28cf390ddd9871f2715d22998dd82ec6711b813fee6d881758a8ce1c65d153"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    }
+  ],
+  "claimBoundary": "This packet contains anonymous source-bound artifacts only. It contains no provider identity, model identity, route, admission outcome, retry history, compiler receipt, preference, or training authorization.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "55bd4e2c350e928b00122c34d340d1a52e8441b8be40758fb5d28797d4e4c7da"
+  }
+}

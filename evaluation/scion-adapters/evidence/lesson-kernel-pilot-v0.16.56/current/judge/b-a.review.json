@@ -1,0 +1,264 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-review-v1",
+  "order": "B/A",
+  "packetSha256": "55bd4e2c350e928b00122c34d340d1a52e8441b8be40758fb5d28797d4e4c7da",
+  "sessionId": "scion-v01654-batch-001-9f5be7242d-b-a-c9798501-1f2d-4cc9-9861-97427aab5cab",
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "completedAt": "2026-07-19T05:30:00.000Z",
+  "attestations": {
+    "anonymousArtifactsOnly": true,
+    "otherOrderUnavailable": true,
+    "organizerMappingUnavailable": true
+  },
+  "decisions": [
+    {
+      "caseId": "scion-kernel-5b8e35ceea940785ee50820d",
+      "pairId": "scion-kernel-pair-7c7367c429dd9db80d5bfec7",
+      "artifactSha256": {
+        "A": "62bb8adabcfef0703cd56923342c290e4b14c2d5162176a2f92b63d7e141591d",
+        "B": "5d5cf8841526e1f36b800a5d6c9059c91988ca3840895f16855c8c7fa7eb6228"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "All five facts track the supplied claims, and the examples instantiate connected journeys, struggle points, and dead ends without named additions."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "The three terms distinguish whole-journey mapping, struggle-focused experience maps, and progress-stopping dead ends with direct misconception repairs."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The team must produce one map before release using field notes, call transcripts, a pickup sheet, and a failed-path sketch amid an online-offline mismatch."
+          },
+          "assessmentCorrectness": {
+            "score": 3,
+            "evidence": "Both declared answers are uniquely correct, but the second question cites only fact 3 even though its combined answer also depends on the dead-end fact 4."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "Each question offers four distinct views or priorities, with one source-supported whole-service answer and three clearly different narrow alternatives."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "The explanations connect observable service breaks to the answers and contrast screen-only, button-level, or keyboard-level interpretations."
+          },
+          "internalCoherence": {
+            "score": 3,
+            "evidence": "Facts, terms, scenario, keys, and explanations agree; only the second question's citation omits one of the two facts used by its answer."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "Facts and terms closely reproduce the source, but the first declared answer asserts that dead ends reveal feature opportunities, which the source does not support."
+          },
+          "knowledgePrecision": {
+            "score": 2,
+            "evidence": "Core definitions are accurate, yet the first question's key reverses the precise meaning of a dead end and weakens the otherwise sound distinctions."
+          },
+          "scenarioReadiness": {
+            "score": 2,
+            "evidence": "The return-process decision is usable, but the stated online-data-only constraint conflicts with material claiming observed offline store steps."
+          },
+          "assessmentCorrectness": {
+            "score": 1,
+            "evidence": "The first key selects option 0 although option 2 states the supplied definition; the second key correctly selects the online-offline gap."
+          },
+          "choiceDiscriminability": {
+            "score": 1,
+            "evidence": "The first question has two near-equivalent successful-completion distractors, and the second repeats its first two options verbatim."
+          },
+          "feedbackInstructionality": {
+            "score": 2,
+            "evidence": "Both explanations restate the relevant claims, but the first explanation teaches option 2 while the declared key points to option 0."
+          },
+          "internalCoherence": {
+            "score": 1,
+            "evidence": "The first key contradicts its explanation and cited dead-end fact, while the scenario's available-data constraint contradicts its stated evidence."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [],
+        "B": [
+          "The first question declares option 0 correct even though the supplied dead-end claim supports option 2.",
+          "The first question's explanation supports option 2 and therefore contradicts the declared answer index 0."
+        ]
+      },
+      "decision": "A",
+      "rationale": "A faithfully covers every supplied claim, provides an evidence-rich actionable scenario, and has two uniquely correct assessments. B contains a wrong answer key and explanation-key contradiction, duplicate alternatives, and an internally inconsistent evidence constraint."
+    },
+    {
+      "caseId": "scion-kernel-870455b05f9328a256598934",
+      "pairId": "scion-kernel-pair-f7363fe70d31337d61657deb",
+      "artifactSha256": {
+        "A": "09856b9472f864d84e001e0955e1f587eb66a68903a42a9d7b6e01b9834a981c",
+        "B": "e18509761223698b34089d42291b62eca3ba74ea389b13038f0417147f1487e3"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 3,
+            "evidence": "The facts and correct answers stay within the three demand claims, but the first question introduces an unsupported supply-increase alternative."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "The artifact accurately distinguishes a price-driven movement along a curve from income- or taste-driven shifts and explains the downward slope."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The manager must interpret a plotted point using a fixed curve plus separate price, income, and taste records that create a genuine attribution tension."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both keys are uniquely supported: a price change moves along the curve, whereas changed tastes or income at fixed price shift the curve."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "The options are distinct and parallel enough to separate movement from shift, though the supply alternative falls outside the supplied conceptual boundary."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation identifies the changing factor, applies the movement-versus-shift rule, and rejects the closest competing interpretation."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "The facts, term corrections, scenario evidence, answer indices, fact citations, and explanations consistently apply the same movement-shift distinction."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 1,
+            "evidence": "The artifact adds an unsupported claim that higher income shifts demand right and increases purchases at every price, while several facts are incomplete fragments."
+          },
+          "knowledgePrecision": {
+            "score": 1,
+            "evidence": "Two facts are sentence fragments, the downward-slope fact is duplicated, and the income question asserts a shift direction absent from the source."
+          },
+          "scenarioReadiness": {
+            "score": 3,
+            "evidence": "The retailer has an actionable movement-versus-shift decision, numerical sales evidence, and fixed income and tastes, although the evidence is narrowly framed."
+          },
+          "assessmentCorrectness": {
+            "score": 0,
+            "evidence": "Question 1 cannot support a rightward shift from the supplied claims, and question 2 declares option 0 even though option 1 and the explanation describe movement."
+          },
+          "choiceDiscriminability": {
+            "score": 2,
+            "evidence": "Question 1 presents unsupported left-versus-right directions, while question 2 has distinct choices but its declared key selects the wrong one."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "The first explanation merely asserts an unsupported direction, and the second correctly states movement along the curve while contradicting its key."
+          },
+          "internalCoherence": {
+            "score": 0,
+            "evidence": "Truncated and duplicated facts undermine coverage, question 1 exceeds the source, and question 2's answer index directly conflicts with its explanation."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "The first question introduces a supply-increase explanation that is absent from the supplied demand-curve claims."
+        ],
+        "B": [
+          "The facts beginning \"movement along the demand curve\" and \"reflecting the law of demand\" are truncated instructional text.",
+          "Question 1 declares a rightward income-driven shift and greater purchases at every price, neither of which is supported by the supplied claim that income changes shift the curve.",
+          "Question 2 declares option 0, but option 1 is correct and the explanation explicitly supports option 1."
+        ]
+      },
+      "decision": "A",
+      "rationale": "A accurately teaches and assesses the movement-versus-shift distinction with coherent evidence, despite one out-of-scope supply distractor. B has truncated content, an unsupported directional income claim, and a plainly incorrect second answer key that contradicts its explanation."
+    },
+    {
+      "caseId": "scion-kernel-c543fc4eb1b368a67de008db",
+      "pairId": "scion-kernel-pair-222b9ab19c890e914e3d32c6",
+      "artifactSha256": {
+        "A": "e43a510caf44830c7948eac69549519cc543ac3924ada540cd1dd5edbe40c107",
+        "B": "ff28cf390ddd9871f2715d22998dd82ec6711b813fee6d881758a8ce1c65d153"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "Four facts and the geometry examples follow the source, but the claim that capacitance changes whenever charge and potential difference change together is unsupported."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "The terms correctly distinguish capacitance, field-stored energy, and area/separation effects, but the final fact misstates what follows from the charge-voltage ratio."
+          },
+          "scenarioReadiness": {
+            "score": 3,
+            "evidence": "The team has a clear design choice and inspectable area and spacing notes, though the material introduces a wider-gap design after the setup says the designs share a gap."
+          },
+          "assessmentCorrectness": {
+            "score": 3,
+            "evidence": "Both declared answers are correct, but question 2 cites the energy-storage fact rather than the plate-area fact needed to support decreasing capacitance."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "Each item has a unique correct answer, though the first includes wider-separation and no-field alternatives that do not fit its same-separation comparison."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Both explanations state how smaller or larger area changes capacitance and directly reject the closest separation-based misconception."
+          },
+          "internalCoherence": {
+            "score": 2,
+            "evidence": "The keys and explanations agree, but the unsupported final fact, mismatched scenario evidence, and question 2's irrelevant fact citation create several inconsistencies."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 1,
+            "evidence": "The artifact reverses the supplied separation relationship and adds unsupported claims about field strength, charge residing in the field, and charge determining stored energy."
+          },
+          "knowledgePrecision": {
+            "score": 1,
+            "evidence": "One fact incorrectly says decreasing separation decreases capacitance, and the key-term examples confuse stored charge with energy stored in the electric field."
+          },
+          "scenarioReadiness": {
+            "score": 3,
+            "evidence": "The student has a physical design decision and measured doubling evidence, but the setup calls area and separation fixed immediately before proposing to change them."
+          },
+          "assessmentCorrectness": {
+            "score": 1,
+            "evidence": "Question 1 has two correct separation statements and an explanation matching option 1 rather than key 0; question 2 is correct but inadequately cited for fourfold scaling."
+          },
+          "choiceDiscriminability": {
+            "score": 1,
+            "evidence": "Question 1 makes both decreasing separation increases capacitance and increasing separation decreases capacitance valid, so its answer is not unique."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "The first explanation contradicts the declared answer and relies on unsupported field weakening, while the second states increase without teaching why it is fourfold."
+          },
+          "internalCoherence": {
+            "score": 0,
+            "evidence": "The reversed separation fact conflicts with the scenario and question options, and question 1's key, citation, and explanation point in incompatible directions."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "The fact \"Capacitance changes when charge and potential difference change together\" is unsupported and can be false when the ratio remains constant."
+        ],
+        "B": [
+          "The fact claiming that decreasing plate separation decreases capacitance reverses the supplied relationship.",
+          "Question 1 contains two correct alternatives, making the declared answer non-unique.",
+          "Question 1 declares option 0, while its explanation states the content of option 1.",
+          "The capacitance example says charge is stored in the electric field, whereas the supplied claim places stored energy there."
+        ]
+      },
+      "decision": "A",
+      "rationale": "A has one unsupported fact and some citation/scenario inconsistencies, but its core instruction and both answers remain correct. B reverses the separation relationship, confuses charge with field-stored energy, and makes its first question ambiguous while contradicting the declared key."
+    }
+  ]
+}

@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.55
+**Current release:** v0.16.56
 
 ---
 
@@ -31,9 +31,23 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.55**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts a new foundation model. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
+The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.56**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts a new foundation model. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
 
 ### Living Course Compiler
+
+V0.16.56 makes weak lesson knowledge harder to mistake for usable training evidence. The current source-strict compiler replay detects all 78 frozen judged losing artifacts while preserving all 78 preferred counterparts. New bounded checks reject unsupported quantities, copied scenario scaffolds, duplicate or sentence-fragment facts, and an increase/decrease relationship that reverses the supplied source. These checks refuse or retry model text; they do not silently rewrite factual content.
+
+The release was also replayed through two real production-bundle browser builds. The final cached-base, one-lesson Physics build completed in 61 seconds with five of five selected materials, an honest 89/B grade, and zero document-level horizontal overflow at 390×844. A title parser that confused the apostrophes in “Faraday's” and “Maxwell's” with a quoted title is repaired, so the full course title survives from the first live Map frame. The first run also proved that the built-in Agent reaches the same local Scion route and returned a lesson-grounded response in about 11 seconds.
+
+The browser audit exposed a deeper quality gap in recovered quiz items. Missing admitted knowledge no longer produces generic “named example from Course Title” prompts. Recovery now builds objective-specific application, analysis, evaluation, and creation tasks from the exact lesson objective and assigned source boundary. The grader counts those seats and emits a P1 knowledge-limitation note, because a useful source-bound question is not the same thing as a verified disciplinary answer key. In the repaired live package, four recovery seats remained visible beside two admitted model-authored questions rather than being hidden inside the 89/B score.
+
+Because that finding changes the transitive grader implementation, V0.16.56 does not reuse the V7 held-out ruler. The new frozen V8 benchmark preserves the same five disjoint course fixtures and request-route policy while binding grader 1.10.18 and its complete 12-file implementation receipt. No historical score or adapter result is carried across that measurement change.
+
+When all local attempts remain imperfect, Scion now retains the complete model-authored attempt with the lowest measured admission risk instead of blindly returning the last attempt. The selected attempt and its issues remain visible in the capture evidence. This is a recovery improvement, not permission to call a rejected artifact correct.
+
+The 148-case lesson-kernel campaign was rebuilt under a clean prompt policy that excludes evaluator-only quality-focus text from model objectives. A fresh three-case Physics, Economics, and UX pilot then compared exact browser-base Scion with GPT-5.4-mini in both anonymous presentation orders. The paid reference won all three comparisons, but the gate admitted **zero** training preferences: two winning artifacts still had judge-identified critical defects and one failed compiler admission. Base Scion admitted 0/3 current artifacts; the paid reference admitted 2/3. The local run took 112,979 ms versus 131,593 ms in the earlier contaminated-prompt pilot, but this small non-equivalent pilot is not a speed or aggregate-quality claim.
+
+The complete pilot—campaign identities, raw captures, current-compiler replays, reversed-order judge records, result classifications, empty preference output, implementation hashes, and claim boundary—is published as a reproducible evidence receipt. Its central result is the gap: the public base still needs better task-matched lesson kernels, and even a stronger paid draft must earn compiler admission before it can teach a future adapter. No adapter is active, no Gemma weight changed, and no model-quality win is claimed.
 
 V0.16.55 makes the visible build contract survive the entire workflow. A focused Lesson 5 build stays Lesson 5 through preview, deterministic finishing, targeted retry, grading, filenames, manifest scope, and ZIP export even though the compact compiler still works on one local item. The selected class duration is likewise authoritative: a 50-minute UI request now reaches compilation, finalization, deep grading, and export as one typed constraint, and the audited lesson phases sum to exactly 50 minutes.
 

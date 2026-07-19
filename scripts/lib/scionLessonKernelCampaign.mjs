@@ -161,13 +161,18 @@ export function classifyScionLessonKernelFailureFamilies(qualityFocus = '', case
   return [SCION_LESSON_KERNEL_FAILURE_FAMILIES[offset % SCION_LESSON_KERNEL_FAILURE_FAMILIES.length]];
 }
 
-function buildLessonInput({ kernel, lessonNumber, qualityFocus }) {
+function buildLessonInput({ kernel, lessonNumber, qualityFocus, includeQualityFocusInObjectives }) {
   const claims = sourceClaims(kernel);
   const sourceSummary = claims.map((claim, index) => `Claim ${index}: ${claim}`).join(' ');
   return {
     lessonId: `lesson-${lessonNumber}`,
     title: clean(kernel.term),
-    objectives: `Use supplied claims to make a defensible distinction. Quality focus: ${clean(qualityFocus)}`,
+    // Failure-family / quality-focus text is evaluator metadata, not source
+    // material. Putting it here teaches both arms the very concepts the judge
+    // is meant to test and can turn a negative constraint into a false fact.
+    objectives: includeQualityFocusInObjectives
+      ? `Use supplied claims to make a defensible distinction. Quality focus: ${clean(qualityFocus)}`
+      : 'Use only the supplied claims to make a defensible distinction without adding outside facts.',
     topics: sourceSummary,
     readings: (kernel.attribution || []).map(clean).filter(Boolean).join('; '),
   };
@@ -230,6 +235,7 @@ export async function buildScionLessonKernelCampaign({
   sourceManifests = SCION_LESSON_KERNEL_SOURCE_MANIFESTS,
   generatedAt = '2026-07-18T07:30:00.000Z',
   heldoutBenchmarkPath = 'evaluation/scion-adapters/held-out-course-benchmark-v5.json',
+  includeQualityFocusInObjectives = false,
 } = {}) {
   const allowedLicenses = new Set(SCION_LESSON_KERNEL_PRODUCTION_LICENSES);
   const heldoutBytes = await fs.readFile(heldoutBenchmarkPath, 'utf8');
@@ -255,7 +261,12 @@ export async function buildScionLessonKernelCampaign({
         const kernel = group.sourcePacket.kernels[index];
         const qualityFocus = clean(group.qualityFocus || group.courseBrief);
         const failureFamilies = classifyScionLessonKernelFailureFamilies(qualityFocus, `${group.id}:${kernel.id}`);
-        const lessonInput = buildLessonInput({ kernel, lessonNumber: index + 1, qualityFocus });
+        const lessonInput = buildLessonInput({
+          kernel,
+          lessonNumber: index + 1,
+          qualityFocus,
+          includeQualityFocusInObjectives,
+        });
         const userPrompt = buildUserPrompt({ group, lessonInput });
         const messages = buildPublicScionMessages('', userPrompt, { task: 'blueprintEnrichment' });
         const sourceContext = {
@@ -333,6 +344,12 @@ export async function buildScionLessonKernelCampaign({
 
   const identityPayload = {
     protocol: SCION_LESSON_KERNEL_CAMPAIGN_PROTOCOL,
+    promptPolicy: {
+      protocol: 'scion-lesson-kernel-prompt-policy-v2',
+      productionPromptBuilder: 'buildPublicScionMessages',
+      evaluatorMetadata: includeQualityFocusInObjectives ? 'included-legacy' : 'excluded',
+      freshRebuildRequired: !includeQualityFocusInObjectives,
+    },
     sourceManifests: receipts,
     heldoutBenchmark: {
       path: heldoutBenchmarkPath,
@@ -394,6 +411,7 @@ export function validateScionLessonKernelCampaign(campaign) {
   }
   const identityPayload = {
     protocol: campaign?.protocol,
+    ...(campaign?.promptPolicy ? { promptPolicy: campaign.promptPolicy } : {}),
     sourceManifests: campaign?.sourceManifests,
     heldoutBenchmark: campaign?.heldoutBenchmark,
     licensePolicy: campaign?.licensePolicy,

@@ -22,7 +22,7 @@ import { analyzeDecisionScenario } from './scenarioContract.js';
 const PUBLIC_SCION_TEMPLATE_RESIDUE_RE =
   /\b(?:two lesson concepts?|lesson concept to this concrete case|replace with (?:one complete distinction question|one concrete case question|a plausible subject-specific|a plausible case-specific)|plausible methodological claim or action|plausible case interpretation or action)\b/i;
 const PUBLIC_SCION_TRUNCATED_CLAIM_RE =
-  /(?:-[a-z]{1,3}|\b(?:a|an|and|any|as|at|by|each|every|for|from|in|of|on|or|the|to|with|without))$/i;
+  /(?:-[a-z]{1,3}|\b(?:a|an|and|any|as|at|by|each|every|for|from|in|of|on|or|the|to|with|without)|\b(?:users?|students?|participants?|customers?|people)\s+(?:actual|specific|respective|relevant|related))\s*[.!?]?$/i;
 const PUBLIC_SCION_ANSWER_POSITION_RE =
   /\b(?:the\s+)?key\s+(?:wins?|fits?|is|because)|\b(?:zero(?:th)?|first|second|third|fourth)\s+(?:option|choice|answer)\b|\b(?:option|choice|answer)\s*(?:[A-D0-4]|zero|one|two|three|four|zeroth|first|second|third|fourth)\b/i;
 const PUBLIC_SCION_INTERNAL_INDEX_RE = /\b(?:fact|claim|source(?:Fact)?Index)\s*#?\s*\d+\b/i;
@@ -30,6 +30,61 @@ const PUBLIC_SCION_ABSOLUTE_OPTION_RE = /\b(?:always|never|all|none)\b/i;
 const PUBLIC_SCION_NAMED_PHRASE_RE =
   /\b(?:[A-Z][a-z]+(?:-[A-Z][a-z]+)?)(?:\s+[A-Z][A-Za-z]+(?:-[A-Z][A-Za-z]+)?){1,4}\b/g;
 const PUBLIC_SCION_SCRIPT_RE = /[\p{Script=Han}\p{Script=Cyrillic}\p{Script=Arabic}\p{Script=Devanagari}]/u;
+const PUBLIC_SCION_QUANTITY_RE =
+  /\b(?:\d+(?:\.\d+)?|zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred)\s*(?:-|\s)?(?:%|percent(?:age)?(?:\s+points?)?|dollars?|euros?|pounds?|cents?|usd|eur|gbp|coulombs?|volts?|amperes?|amps?|watts?|joules?|ohms?|farads?|hertz|hz|millimeters?|centimeters?|kilometers?|meters?|millimetres?|centimetres?|kilometres?|metres?|mm|cm|km|m|milligrams?|grams?|kilograms?|mg|kg|seconds?|minutes?|hours?|days?|weeks?|months?|years?|participants?|users?|students?|respondents?|records?|items?|units?|samples?|observations?|degrees?)\b/gi;
+const PUBLIC_SCION_RELATIVE_QUANTITY_RE =
+  /\b(?:double(?:d|s|ing)?|triple(?:d|s|ing)?|quadruple(?:d|s|ing)?|halve[ds]?|halving|half|twice|three\s+times|four\s+times)\b/gi;
+const PUBLIC_SCION_HIGH_RISK_ISSUE_MARKERS = Object.freeze([
+  'invalid-json',
+  'empty-response',
+  'missing-lesson',
+  'unexpected-script',
+  'fact-length',
+  'truncated-fact',
+  'truncated-definition',
+  'unanchored-named',
+  'source-unsupported-quantity',
+  'scenario-template-residue',
+  'duplicate-options',
+  'absolute-option',
+  'answer-position-residue',
+  'claim-marker-residue',
+  'explanation-key-conflict',
+  'explanation-omits-key-support',
+  'multiple-source-supported-options',
+  'source-fact-index',
+  'source-fact-key-mismatch',
+]);
+const PUBLIC_SCION_CRITICAL_ISSUE_MARKERS = Object.freeze([
+  'invalid-json',
+  'empty-response',
+  'missing-lesson',
+  'unexpected-script',
+  'unanchored-named',
+  'source-unsupported-quantity',
+  'scenario-template-residue',
+  'duplicate-options',
+  'absolute-option',
+  'answer-position-residue',
+  'claim-marker-residue',
+  'explanation-key-conflict',
+  'explanation-omits-key-support',
+  'multiple-source-supported-options',
+  'source-fact-index',
+  'source-fact-key-mismatch',
+  'source-direction-conflict',
+]);
+const PUBLIC_SCION_RELATION_STOP_WORDS = new Set([
+  'between',
+  'from',
+  'into',
+  'of',
+  'the',
+  'their',
+  'through',
+  'to',
+  'with',
+]);
 
 export const PUBLIC_SCION_PROVIDER_ID = 'public';
 export const PUBLIC_SCION_MODEL_ID = 'scion-public';
@@ -351,6 +406,94 @@ function publicScionUnanchoredNamedPhrases(value, sourceText) {
     .filter((phrase) => phrase.split(/\s+/).length >= 2 && !source.includes(phrase.toLowerCase()));
 }
 
+function publicScionQuantitySignatures(value) {
+  const normalized = String(value || '')
+    .replace(/\\text\s*\{([^}]+)\}/g, ' $1 ')
+    // Some model JSON encodes LaTeX `\\text{...}` with a single slash. JSON
+    // consequently decodes `\\t` as a tab and leaves `ext{...}` behind.
+    .replace(/\u0009ext\s*\{([^}]+)\}/g, ' $1 ')
+    // Scenario analysis normalizes whitespace before this check, so retain the
+    // same recovery after that tab has already collapsed to a plain space.
+    .replace(/\bext\s*\{([^}]+)\}/g, ' $1 ')
+    .replace(/[${}]/g, ' ')
+    .replace(/\s+/g, ' ');
+  return [
+    ...[...normalized.matchAll(PUBLIC_SCION_QUANTITY_RE)].map((match) => match[0]),
+    ...[...normalized.matchAll(PUBLIC_SCION_RELATIVE_QUANTITY_RE)].map((match) => match[0]),
+  ].map((quantity) =>
+    quantity
+      .toLowerCase()
+      .replace(/\s*-\s*/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim(),
+  );
+}
+
+function publicScionFactIdentity(value) {
+  return String(value || '')
+    .normalize('NFKC')
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .trim();
+}
+
+function publicScionRelationTokens(value) {
+  return new Set(
+    String(value || '')
+      .normalize('NFKC')
+      .toLowerCase()
+      .match(/[a-z0-9]+(?:-[a-z0-9]+)*/g)
+      ?.map((token) => (token.length > 4 && token.endsWith('s') ? token.slice(0, -1) : token))
+      .filter((token) => token.length >= 3 && !PUBLIC_SCION_RELATION_STOP_WORDS.has(token)) || [],
+  );
+}
+
+function publicScionComparativeRelations(value) {
+  const clauses = String(value || '').split(/\band\b(?=\s+(?:increas|decreas))/gi);
+  const relations = [];
+  for (const clause of clauses) {
+    for (const match of clause.matchAll(
+      /\b(?<inputDirection>increas\w*|decreas\w*)\s+(?<input>[\p{L}\d\s-]{2,100}?)\s+(?:directly\s+)?(?:(?<outputVerb>increas\w*|decreas\w*)|(?:results?|leads?)\s+to\s+(?:an?\s+)?(?<outputNoun>increase|decrease))\s+(?:in\s+|of\s+)?(?<output>[\p{L}\d\s-]{2,100}?)(?=[,.;]|$)/giu,
+    )) {
+      const inputDirection = /^increas/i.test(match.groups.inputDirection) ? 1 : -1;
+      const outputSurface = match.groups.outputVerb || match.groups.outputNoun;
+      const outputDirection = /^increas/i.test(outputSurface) ? 1 : -1;
+      relations.push({
+        sign: inputDirection * outputDirection,
+        inputTokens: publicScionRelationTokens(match.groups.input),
+        outputTokens: publicScionRelationTokens(match.groups.output),
+      });
+    }
+  }
+  return relations;
+}
+
+function publicScionHasSourceDirectionConflict(value, sourceClaims) {
+  const candidateRelations = publicScionComparativeRelations(value);
+  const sourceRelations = publicScionComparativeRelations(sourceClaims);
+  return candidateRelations.some((candidate) => {
+    const matches = sourceRelations
+      .map((source) => ({
+        source,
+        inputOverlap: [...candidate.inputTokens].filter((token) => source.inputTokens.has(token)).length,
+        outputOverlap: [...candidate.outputTokens].filter((token) => source.outputTokens.has(token)).length,
+      }))
+      .filter((match) => match.inputOverlap > 0 && match.outputOverlap > 0);
+    if (matches.length === 0) return false;
+    const bestInputOverlap = Math.max(...matches.map((match) => match.inputOverlap));
+    const bestMatches = matches.filter((match) => match.inputOverlap === bestInputOverlap);
+    const bestOutputOverlap = Math.max(...bestMatches.map((match) => match.outputOverlap));
+    return bestMatches
+      .filter((match) => match.outputOverlap === bestOutputOverlap)
+      .every((match) => match.source.sign !== candidate.sign);
+  });
+}
+
+function publicScionUnsupportedQuantities(value, sourceText) {
+  const sourceQuantities = new Set(publicScionQuantitySignatures(sourceText));
+  return [...new Set(publicScionQuantitySignatures(value))].filter((quantity) => !sourceQuantities.has(quantity));
+}
+
 export function assessPublicScionKernelResponse(responseText, userPrompt, task) {
   if (task !== 'blueprintEnrichment') return { needsRetry: false, issues: [] };
   const expectedLessons = extractPublicScionKernelLessons(userPrompt).filter((lesson) => lesson?.lessonId);
@@ -377,13 +520,27 @@ export function assessPublicScionKernelResponse(responseText, userPrompt, task) 
         issues.push(`${expected.lessonId}:unexpected-script`);
       }
       if (facts.length !== 5) issues.push(`${expected.lessonId}:facts-count:${facts.length}/5`);
+      const factIdentities = facts.map(publicScionFactIdentity);
+      if (new Set(factIdentities.filter(Boolean)).size !== factIdentities.filter(Boolean).length) {
+        issues.push(`${expected.lessonId}:duplicate-facts`);
+      }
       facts.forEach((fact, index) => {
         const wordCount = publicScionWordCount(fact);
         if (String(fact || '').trim().length < 20 || wordCount < 8 || wordCount > 20) {
           issues.push(`${expected.lessonId}:fact-${index}:fact-length`);
         }
-        if (!/[.!?][\])}"']?$/.test(String(fact || '').trim()) || PUBLIC_SCION_TRUNCATED_CLAIM_RE.test(fact)) {
+        if (
+          !/[.!?][\])}"']?$/.test(String(fact || '').trim()) ||
+          /^[\s“"'([{]*[a-z]/.test(String(fact || '')) ||
+          PUBLIC_SCION_TRUNCATED_CLAIM_RE.test(fact)
+        ) {
           issues.push(`${expected.lessonId}:fact-${index}:truncated-fact`);
+        }
+        if (hasRichSourceEvidence && publicScionUnsupportedQuantities(fact, sourceText).length > 0) {
+          issues.push(`${expected.lessonId}:fact-${index}:source-unsupported-quantity`);
+        }
+        if (hasRichSourceEvidence && publicScionHasSourceDirectionConflict(fact, expected.topics)) {
+          issues.push(`${expected.lessonId}:fact-${index}:source-direction-conflict`);
         }
       });
       const keyTerms = Array.isArray(lesson.keyTerms) ? lesson.keyTerms : [];
@@ -401,11 +558,20 @@ export function assessPublicScionKernelResponse(responseText, userPrompt, task) 
         if (namedPhrases.length > 0) {
           issues.push(`${expected.lessonId}:key-term-${index}:unanchored-named-example`);
         }
+        if (hasRichSourceEvidence && publicScionUnsupportedQuantities(JSON.stringify(term), sourceText).length > 0) {
+          issues.push(`${expected.lessonId}:key-term-${index}:source-unsupported-quantity`);
+        }
       });
       const scenario = analyzeDecisionScenario(lesson.scenario || {});
       for (const issue of scenario.issues) issues.push(`${expected.lessonId}:scenario:${issue}`);
       if (publicScionUnanchoredNamedPhrases(`${scenario.setup} ${scenario.materials}`, sourceText).length > 0) {
         issues.push(`${expected.lessonId}:scenario:unanchored-named-detail`);
+      }
+      if (
+        hasRichSourceEvidence &&
+        publicScionUnsupportedQuantities(`${scenario.setup} ${scenario.materials}`, sourceText).length > 0
+      ) {
+        issues.push(`${expected.lessonId}:scenario:source-unsupported-quantity`);
       }
       const mcItems = Array.isArray(lesson.mc) ? lesson.mc : [];
       if (mcItems.length !== 2) issues.push(`${expected.lessonId}:mc-count:${mcItems.length}/2`);
@@ -491,6 +657,12 @@ export function assessPublicScionKernelResponse(responseText, userPrompt, task) 
         if (publicScionUnanchoredNamedPhrases([question, ...options, explanation].join(' '), sourceText).length > 0) {
           issues.push(`${expected.lessonId}:mc-${index}:unanchored-named-detail`);
         }
+        if (
+          hasRichSourceEvidence &&
+          publicScionUnsupportedQuantities([question, ...options, explanation].join(' '), sourceText).length > 0
+        ) {
+          issues.push(`${expected.lessonId}:mc-${index}:source-unsupported-quantity`);
+        }
       });
     }
     return { needsRetry: issues.length > 0, issues };
@@ -501,6 +673,22 @@ export function assessPublicScionKernelResponse(responseText, userPrompt, task) 
 
 export function publicScionKernelResponseNeedsRetry(responseText, userPrompt, task) {
   return assessPublicScionKernelResponse(responseText, userPrompt, task).needsRetry;
+}
+
+export function publicScionAdmissionRisk(assessment = {}) {
+  const issues = Array.isArray(assessment?.issues) ? assessment.issues : [];
+  const highRiskIssues = issues.filter((issue) =>
+    PUBLIC_SCION_HIGH_RISK_ISSUE_MARKERS.some((marker) => String(issue).includes(marker)),
+  );
+  const criticalIssues = issues.filter((issue) =>
+    PUBLIC_SCION_CRITICAL_ISSUE_MARKERS.some((marker) => String(issue).includes(marker)),
+  );
+  return {
+    criticalIssues: criticalIssues.length,
+    highRiskIssues: highRiskIssues.length,
+    issueCount: issues.length,
+    score: criticalIssues.length * 10_000 + highRiskIssues.length * 100 + issues.length,
+  };
 }
 
 export function mergePublicScionKernelAttempts(previousText, currentText, userPrompt = '') {
@@ -605,6 +793,9 @@ export function buildPublicScionRetryFeedback(assessment = {}) {
           'Write each fact as one complete 8-20 word sentence. Never continue a second sentence or end on a function word.',
         ]
       : []),
+    ...(allIssues.some((issue) => issue.includes('duplicate-facts'))
+      ? ['Write five distinct facts; never repeat or lightly reformat the same claim.']
+      : []),
     ...(allIssues.some((issue) => issue.includes('answer-position-residue'))
       ? [
           'Explain the subject reasoning directly. Never mention the key, answer position, option letter, or option number.',
@@ -616,6 +807,16 @@ export function buildPublicScionRetryFeedback(assessment = {}) {
     ...(allIssues.some((issue) => issue.includes('unanchored-named'))
       ? [
           'Remove named places, studies, people, products, and examples that do not appear in the supplied lesson input.',
+        ]
+      : []),
+    ...(allIssues.some((issue) => issue.includes('source-unsupported-quantity'))
+      ? [
+          'Remove every number, measurement, percentage, count, and duration not explicitly present in the supplied lesson input.',
+        ]
+      : []),
+    ...(allIssues.some((issue) => issue.includes('source-direction-conflict'))
+      ? [
+          'A comparative fact reverses a supplied increase/decrease relationship. Re-author it from the exact source claim without guessing.',
         ]
       : []),
     ...(allIssues.some((issue) => issue.includes('scenario-'))
@@ -882,7 +1083,7 @@ function buildPublicScionKernelPrompt(userPrompt) {
     ],
     scenario: {
       su: 'A concrete two-sentence subject context with an actionable problem and one real constraint.',
-      ma: 'The specific notation, recording, data, records, design, or passage students inspect.',
+      ma: 'REPLACE',
     },
   }));
   const template = { lessons: lessonTemplates };
@@ -904,7 +1105,7 @@ ${
     : ''
 }- Write 5 facts per lesson. Each fact is 8-20 words, at least 20 characters, and states subject knowledge rather than course process.
 - Write 3 keyTerms per lesson. Each tr is a distinct 1-4 word subject term that reuses specific words from that lesson's title, topics, or objectives AND appears verbatim in at least one of that lesson's facts; never copy the full lesson title. Every df is exactly one complete sentence of at least 40 characters and states a broader category or distinguishing property; a term-led definition is acceptable only when it adds a real distinction. eg is concrete and uses only names already present in the lesson input; mi is a genuinely false learner belief and never restates a lesson fact; cx directly refutes mi in different wording and never repeats df or eg. Every field makes a different instructional move. Never invent a named place, person, study, product, organization, or event. Never embed field labels or internal claim numbers.
-- Write one decision-ready scenario. Across su and ma, include a concrete context, an actionable subject problem, at least 2 inspectable details, and a real tension or constraint. su has exactly 2 specific sentences; ma names the evidence packet rather than saying "scenario evidence" or "course materials".
+- Write one decision-ready scenario. Across su and ma, include a concrete context, an actionable subject problem, at least 2 inspectable details, and a real tension or constraint. su has exactly 2 specific sentences. ma directly names the concrete records, observations, passages, notations, measurements, or designs students compare; never call them "source detail one/two", "inspectable details", "evidence packet", "scenario evidence", or "course materials".
 - Write exactly 2 mc items: one concept distinction and one concrete case application.
 - Every mc item includes fi=sourceFactIndexes as exactly [n]: one zero-based integer from 0 through 4 pointing to the single fact that directly supports the first option. Never write a string, more than one index, or an out-of-range index.
 - Options are parallel and plausible; distractors reflect real misconceptions. Every q is 20-45 words and includes a concrete observation or comparison, not a short definition prompt; op has exactly 4 meaningfully distinct options. Put the single supported option first in op and set ai=0; the compiler shuffles answer positions after admission. ex states the subject evidence supporting the answer and then corrects the closest distractor without referring to any position.

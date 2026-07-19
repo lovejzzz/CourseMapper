@@ -77,6 +77,33 @@ describe('evidence-to-decision scenario contract', () => {
     expect(isConcreteScenarioMaterials('interview transcript, task logs, and checkout prototype')).toBe(true);
   });
 
+  it.each([
+    'The specific notation, recording, data, records, design, or passage students inspect.',
+    'REPLACE with two named, inspectable source details students compare.',
+    'Inspectable source detail one is the online form, and source detail two is the desk visit.',
+  ])('rejects copied scenario scaffolding instead of counting its nouns as evidence: %s', (materials) => {
+    const result = analyzeDecisionScenario({
+      setup:
+        'A checkout team must decide whether to preserve a short flow or add a recovery step after repeated payment errors. The choice trades speed against successful recovery.',
+      materials,
+    });
+
+    expect(result.ready).toBe(false);
+    expect(result.templateResidue).toBe(true);
+    expect(result.issues).toContain('scenario-template-residue');
+  });
+
+  it('does not reject authored materials that use similar subject vocabulary', () => {
+    const result = analyzeDecisionScenario({
+      setup:
+        'A research team must decide which checkout revision should proceed after users misread the payment recovery step. The choice trades a shorter flow against clearer recovery.',
+      materials: 'the screen recording, error records, and revised checkout design students inspect',
+    });
+
+    expect(result.ready).toBe(true);
+    expect(result.templateResidue).toBe(false);
+  });
+
   it('derives a grounded zero-call fallback only from admitted kernel atoms', () => {
     const scenario = deriveDecisionScenario(KERNEL);
     expect(scenario.source).toBe('derived-kernel-fallback');

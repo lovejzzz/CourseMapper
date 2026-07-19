@@ -13,19 +13,19 @@ import {
 } from '../scripts/lib/scionLessonKernelCampaign.mjs';
 
 const CAMPAIGN_PATH = 'evaluation/scion-adapters/lesson-kernel-campaign-v0.16.54.json';
+const CURRENT_CAMPAIGN_PATH = 'evaluation/scion-adapters/lesson-kernel-campaign-v0.16.56.json';
 
 async function trackedCampaign() {
   return JSON.parse(await fs.readFile(CAMPAIGN_PATH, 'utf8'));
 }
 
 describe('Scion production lesson-kernel campaign', () => {
-  it('rebuilds the tracked hash-bound campaign exactly', async () => {
+  it('preserves the archived hash-bound campaign as internally verifiable evidence', async () => {
     const tracked = await trackedCampaign();
-    const rebuilt = await buildScionLessonKernelCampaign({ generatedAt: tracked.generatedAt });
 
-    expect(stableScionLessonKernelJson(rebuilt)).toBe(stableScionLessonKernelJson(tracked));
     expect(validateScionLessonKernelCampaign(tracked)).toEqual({ valid: true, issues: [] });
     expect(tracked).toMatchObject({ status: 'capture-ready', issues: [] });
+    expect(tracked.promptPolicy).toBeUndefined();
   });
 
   it('freezes enough licensed, training-only breadth for a real preference campaign', async () => {
@@ -73,6 +73,26 @@ describe('Scion production lesson-kernel campaign', () => {
         type: 'integer',
         enum: [0],
       });
+    }
+  });
+
+  it('keeps evaluator failure-focus metadata out of the current model prompt', async () => {
+    const campaign = JSON.parse(await fs.readFile(CURRENT_CAMPAIGN_PATH, 'utf8'));
+    const rebuilt = await buildScionLessonKernelCampaign({
+      generatedAt: campaign.generatedAt,
+      includeQualityFocusInObjectives: false,
+    });
+
+    expect(stableScionLessonKernelJson(rebuilt)).toBe(stableScionLessonKernelJson(campaign));
+    expect(campaign.promptPolicy).toMatchObject({
+      evaluatorMetadata: 'excluded',
+      freshRebuildRequired: true,
+    });
+    for (const entry of campaign.cases) {
+      expect(entry.qualityFocus.length).toBeGreaterThan(0);
+      expect(entry.lessonInput.objectives).not.toContain('Quality focus:');
+      expect(entry.userPrompt).not.toContain('Quality focus:');
+      for (const claim of entry.sourceContext.claims) expect(entry.userPrompt).toContain(claim);
     }
   });
 

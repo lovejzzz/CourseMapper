@@ -9,7 +9,10 @@ export function derivePromptPreviewTitle(promptText) {
   const text = clean(promptText);
   if (!text) return 'Your course';
 
-  const quoted = text.match(/["“']([^"”']{4,90})["”']/);
+  // Straight apostrophes are word punctuation, not a safe title delimiter:
+  // “Faraday's law … Maxwell's equations” otherwise looks like one quoted
+  // course title while a streaming workspace is still mapping.
+  const quoted = text.match(/["“]([^"”]{4,90})["”]/);
   if (quoted?.[1]) return quoted[1].trim();
 
   const namedCourse = text.match(
@@ -49,6 +52,13 @@ export function derivePromptPreviewTitle(promptText) {
 
   if (!cleaned) return 'Your course';
   return cleaned.length > 72 ? `${cleaned.slice(0, 69).trim()}...` : cleaned;
+}
+
+export function resolveWorkspaceCourseTitle({ courseMapTitle, promptText, mappingInProgress } = {}) {
+  const mappedTitle = clean(courseMapTitle);
+  const promptTitle = clean(promptText) ? derivePromptPreviewTitle(promptText) : '';
+  if (mappingInProgress && promptTitle) return promptTitle;
+  return mappedTitle || promptTitle || 'Untitled course';
 }
 
 export function resolvePreviewLessonCount({ lessonScope, courseMap, lessonCount } = {}) {

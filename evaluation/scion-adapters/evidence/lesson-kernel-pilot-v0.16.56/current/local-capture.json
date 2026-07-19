@@ -1,0 +1,1195 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-capture-v1",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "fe3741c97241d3d2a1dcc5151fa204ea17538afd9ec39e54cdd1cc890bde8edc"
+  },
+  "identitySha256": "2888e9a4a78874a35b099b329fc54f18b58a9ca9e55c35c09dbe1b89613ab097",
+  "arm": "local",
+  "model": {
+    "provider": "local",
+    "id": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+    "revision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
+    "route": "mlx-vlm-base-only",
+    "decoding": "greedy-json-schema",
+    "maxOutputTokens": 2400,
+    "runtime": {
+      "python": "/Users/tianxing/.cache/coursemapper/venv-g4/bin/python",
+      "script": "/Users/tianxing/Documents/NYU/NYUsliver/CourseMapper-scion-v01654/trellis/tendril/distill/serve_g4.py"
+    }
+  },
+  "compiler": {
+    "policy": {
+      "keyTermSemanticProfile": "source-strict-v6",
+      "campaignPromptPolicy": "frozen-messages-by-campaign-identity",
+      "maxAttempts": 3,
+      "answerPosition": "compiler-deterministic-shuffle-after-admission",
+      "crossAttemptRetention": "atomic-groups-only"
+    },
+    "files": {
+      "scripts/scionLessonKernelCapture.mjs": "fd7809527bbff14b5c879efa5b76387e45e12e73a69ed0e57c21140aad1847c0",
+      "scripts/lib/scionLessonKernelCampaign.mjs": "afeada7fdba7393ab9bd94e56a12c6c219d45f6f9ef7d1feb8ae9eeb41b75bd3",
+      "src/lib/publicScionProvider.js": "aa0570ed73b1432fd7c21c33046f785a092134522b942c3d71a44e8abb23b239",
+      "src/lib/scionAnswerKeyAlignment.js": "2c6875437268444536de651f3ffbddf6368e2667c823ad0827a4245f86ebefa7",
+      "src/lib/scionKeyTermContract.js": "db9d3c7922b4d0c10790e5a9ea461dceed968e2008ba3b17ed61cb5ac16613cc",
+      "src/lib/scenarioContract.js": "176daf6d9ef0b98368ccac05c839cb9b255a0e3499969f994e16881e42d0168e"
+    },
+    "identitySha256": "5e4c727fdd243f5c12bc1772221d5e267561aef84a18299389946edd56454de2"
+  },
+  "calls": [
+    {
+      "caseId": "scion-kernel-5b8e35ceea940785ee50820d",
+      "caseSha256": "5b8e35ceea940785ee50820dcb0d3a619db901eac6a6b90e2e305c5461da0c62",
+      "messagesSha256": "bce9b84591d3631f04576b68aadeb20613db9b786eaa2b28f342daed5eebf983",
+      "sourceContextSha256": "6e282d4560779e64fc2bad37373408377e0642194f150e5ceb4a379afc3f4388",
+      "arm": "local",
+      "model": {
+        "provider": "local",
+        "id": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+        "revision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
+        "route": "mlx-vlm-base-only",
+        "decoding": "greedy-json-schema",
+        "maxOutputTokens": 2400,
+        "runtime": {
+          "python": "/Users/tianxing/.cache/coursemapper/venv-g4/bin/python",
+          "script": "/Users/tianxing/Documents/NYU/NYUsliver/CourseMapper-scion-v01654/trellis/tendril/distill/serve_g4.py"
+        }
+      },
+      "attempts": [
+        {
+          "attempt": 1,
+          "messagesSha256": "bce9b84591d3631f04576b68aadeb20613db9b786eaa2b28f342daed5eebf983",
+          "rawResponseSha256": "78ced304e8f3b532b9edbcaaab29938a347250c26a00dc912e93ebece1b0927e",
+          "responseSha256": "47a35e93fe4bf0b690e79f8f9bdeb503a2685f87c8c7c5181c587b9d99486d97",
+          "artifactSha256": "b4bd0e56e1006eafe8d3859f0ab4d8ad908ecb4863adb7202fa571404283e75b",
+          "assessment": {
+            "needsRetry": true,
+            "issues": [
+              "lesson-3:fact-0:fact-length",
+              "lesson-3:mc-0:explanation-key-conflict",
+              "lesson-3:mc-1:explanation-key-conflict"
+            ]
+          },
+          "repairs": [],
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "durationMs": 16285
+        },
+        {
+          "attempt": 2,
+          "messagesSha256": "d357b01eb91214ceacace45b55c0a5fdfda3d90cee1145af0114bbe84fae78cd",
+          "rawResponseSha256": "dc6073452d52bda440b8e9a94b6c0d1f165ceaa5bc61a04bbc5a080a50bc5d82",
+          "responseSha256": "a565309437824f6898165b6a9ac9ea6c5592027593d34cb6c272355a61a38831",
+          "artifactSha256": "5d5cf8841526e1f36b800a5d6c9059c91988ca3840895f16855c8c7fa7eb6228",
+          "assessment": {
+            "needsRetry": true,
+            "issues": [
+              "lesson-3:fact-0:fact-length",
+              "lesson-3:key-term-2:correction-repeats-definition",
+              "lesson-3:mc-0:stem-length",
+              "lesson-3:mc-0:explanation-key-conflict"
+            ]
+          },
+          "repairs": [
+            {
+              "kind": "mc-item",
+              "pass": "sourceAnswerAlignment",
+              "lessonId": "lesson-3",
+              "item": 1,
+              "action": "realigned",
+              "prompt": "Choose the answer index uniquely supported by the source claim most relevant to the question.",
+              "rejected": {
+                "question": "A team is developing a map for a service and notices a significant disconnect between the online booking system and the in-person check-in process. What should the team focus on?",
+                "options": [
+                  "Focusing only on the online booking steps to ensure they are perfectly optimized.",
+                  "Focusing on the online booking steps to ensure they are perfectly optimized.",
+                  "Focusing on gaps between online and offline parts of a service.",
+                  "Focusing on the final successful outcome of the entire user experience."
+                ],
+                "answerIndex": 0,
+                "explanation": "Journey analysis should include gaps between online and offline parts of a service, which supports the correct option, while focusing only on the online booking steps to ensure they are perfectly optimized is incorrect."
+              },
+              "chosen": {
+                "question": "A team is developing a map for a service and notices a significant disconnect between the online booking system and the in-person check-in process. What should the team focus on?",
+                "options": [
+                  "Focusing only on the online booking steps to ensure they are perfectly optimized.",
+                  "Focusing on the online booking steps to ensure they are perfectly optimized.",
+                  "Focusing on gaps between online and offline parts of a service.",
+                  "Focusing on the final successful outcome of the entire user experience."
+                ],
+                "answerIndex": 2,
+                "explanation": "Journey analysis should include gaps between online and offline parts of a service, which supports the correct option, while focusing only on the online booking steps to ensure they are perfectly optimized is incorrect."
+              },
+              "trainingEligible": true,
+              "preferenceEvidence": {
+                "kind": "deterministic-source-answer-conflict",
+                "verified": true,
+                "declaredIndex": 0,
+                "supportedIndex": 2,
+                "scores": [
+                  1,
+                  1,
+                  6,
+                  0
+                ],
+                "containment": [
+                  0.111111,
+                  0.125,
+                  0.857143,
+                  0
+                ],
+                "supportMethod": "source-question-option-alignment",
+                "relevantSourceClaimIndexes": [
+                  0
+                ],
+                "questionClaimScore": 3,
+                "minimumQuestionClaimScore": 3,
+                "minimumOptionScore": 3,
+                "minimumOptionContainment": 0.6,
+                "maximumDeclaredOptionScore": 1,
+                "minimumMargin": 2
+              }
+            }
+          ],
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "durationMs": 10615
+        },
+        {
+          "attempt": 3,
+          "messagesSha256": "975102d361541af71698fc46a84a0663db111ce9b206d9e531fcc0d162a6cd39",
+          "rawResponseSha256": "04d57b06f23c3ebf99091b140db5e739810359577661e20965e07f91e789a5f0",
+          "responseSha256": "54d887a1533a2f24ca1d4c0a0749210dcaebd148c1284d03cff46d780e5d2ffb",
+          "artifactSha256": "8f48baff9df5623a527558496c2580ab9f7e46ee92cac14c3d6bbec628a764d8",
+          "assessment": {
+            "needsRetry": true,
+            "issues": [
+              "lesson-3:fact-0:fact-length",
+              "lesson-3:mc-0:stem-length",
+              "lesson-3:mc-0:absolute-option",
+              "lesson-3:mc-1:absolute-option"
+            ]
+          },
+          "repairs": [],
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "durationMs": 10652
+        }
+      ],
+      "selectedAttempt": 2,
+      "artifact": {
+        "lessonId": "lesson-3",
+        "facts": [
+          "Journey mapping represents an end-to-end experience from the user's perspective so a team can see connected steps, boundaries, breakdowns, and opportunities.",
+          "A journey map should start from research about the steps users actually take and the transactions involved.",
+          "An experience map should make struggle points and candidate improvement areas visible.",
+          "A map can reveal dead ends where the user cannot continue toward the larger goal.",
+          "Journey analysis should include gaps between online and offline parts of a service."
+        ],
+        "keyTerms": [
+          {
+            "tr": "Journey mapping",
+            "df": "Journey mapping represents an end-to-end experience from the user's perspective so a team can see connected steps, boundaries, breakdowns, and opportunities.",
+            "eg": "A team uses a journey map to visualize the entire user experience from start to finish.",
+            "mi": "Journey mapping is just a simple list of steps a user takes through a service.",
+            "cx": "Journey mapping is a comprehensive view showing connected steps, boundaries, and opportunities."
+          },
+          {
+            "tr": "Experience map",
+            "df": "An experience map should make struggle points and candidate improvement areas visible.",
+            "eg": "The experience map highlights specific moments where users encounter difficulty or need help.",
+            "mi": "An experience map is only about the final outcome of a user's interaction.",
+            "cx": "An experience map focuses on making struggle points and improvement areas visible throughout the process."
+          },
+          {
+            "tr": "Journey analysis",
+            "df": "Journey analysis should include gaps between online and offline parts of a service.",
+            "eg": "Journey analysis identifies where the digital service meets physical service and where they disconnect.",
+            "mi": "Journey analysis is the same as journey mapping, just a different name for the same process.",
+            "cx": "Journey analysis specifically includes gaps between online and offline parts of a service."
+          }
+        ],
+        "scenario": {
+          "su": "A team is mapping the process for a customer to return a faulty product online. The actionable problem is identifying where the customer might get stuck during the return process. The constraint is that the team only has access to the online return portal data.",
+          "ma": "The team compares the documented online return steps against the observed offline steps taken by customers at the physical store location."
+        },
+        "mc": [
+          {
+            "q": "When creating a journey map, what is the primary purpose of identifying dead ends in the experience?",
+            "op": [
+              "Dead ends reveal opportunities for adding new features to the service.",
+              "Dead ends show where the user can successfully complete the entire desired goal.",
+              "Dead ends highlight points where the user cannot continue toward the larger goal.",
+              "Dead ends indicate successful completion of the entire user experience."
+            ],
+            "ai": 0,
+            "fi": [
+              3
+            ],
+            "ex": "A map can reveal dead ends where the user cannot continue toward the larger goal, which supports the correct option, while dead ends reveal opportunities for adding new features to the service, which is incorrect."
+          },
+          {
+            "q": "A team is developing a map for a service and notices a significant disconnect between the online booking system and the in-person check-in process. What should the team focus on?",
+            "op": [
+              "Focusing only on the online booking steps to ensure they are perfectly optimized.",
+              "Focusing on the online booking steps to ensure they are perfectly optimized.",
+              "Focusing on gaps between online and offline parts of a service.",
+              "Focusing on the final successful outcome of the entire user experience."
+            ],
+            "ai": 2,
+            "fi": [
+              4
+            ],
+            "ex": "Journey analysis should include gaps between online and offline parts of a service, which supports the correct option, while focusing only on the online booking steps to ensure they are perfectly optimized is incorrect."
+          }
+        ]
+      },
+      "artifactSha256": "5d5cf8841526e1f36b800a5d6c9059c91988ca3840895f16855c8c7fa7eb6228",
+      "response": {
+        "lessons": [
+          {
+            "lessonId": "lesson-3",
+            "facts": [
+              "Journey mapping represents an end-to-end experience from the user's perspective so a team can see connected steps, boundaries, breakdowns, and opportunities.",
+              "A journey map should start from research about the steps users actually take and the transactions involved.",
+              "An experience map should make struggle points and candidate improvement areas visible.",
+              "A map can reveal dead ends where the user cannot continue toward the larger goal.",
+              "Journey analysis should include gaps between online and offline parts of a service."
+            ],
+            "keyTerms": [
+              {
+                "tr": "Journey mapping",
+                "df": "Journey mapping represents an end-to-end experience from the user's perspective so a team can see connected steps, boundaries, breakdowns, and opportunities.",
+                "eg": "A team uses a journey map to visualize the entire user experience from start to finish.",
+                "mi": "Journey mapping is just a simple list of steps a user takes through a service.",
+                "cx": "Journey mapping is a comprehensive view showing connected steps, boundaries, and opportunities."
+              },
+              {
+                "tr": "Experience map",
+                "df": "An experience map should make struggle points and candidate improvement areas visible.",
+                "eg": "The experience map highlights specific moments where users encounter difficulty or need help.",
+                "mi": "An experience map is only about the final outcome of a user's interaction.",
+                "cx": "An experience map focuses on making struggle points and improvement areas visible throughout the process."
+              },
+              {
+                "tr": "Journey analysis",
+                "df": "Journey analysis should include gaps between online and offline parts of a service.",
+                "eg": "Journey analysis identifies where the digital service meets physical service and where they disconnect.",
+                "mi": "Journey analysis is the same as journey mapping, just a different name for the same process.",
+                "cx": "Journey analysis specifically includes gaps between online and offline parts of a service."
+              }
+            ],
+            "scenario": {
+              "su": "A team is mapping the process for a customer to return a faulty product online. The actionable problem is identifying where the customer might get stuck during the return process. The constraint is that the team only has access to the online return portal data.",
+              "ma": "The team compares the documented online return steps against the observed offline steps taken by customers at the physical store location."
+            },
+            "mc": [
+              {
+                "q": "When creating a journey map, what is the primary purpose of identifying dead ends in the experience?",
+                "op": [
+                  "Dead ends reveal opportunities for adding new features to the service.",
+                  "Dead ends show where the user can successfully complete the entire desired goal.",
+                  "Dead ends highlight points where the user cannot continue toward the larger goal.",
+                  "Dead ends indicate successful completion of the entire user experience."
+                ],
+                "ai": 0,
+                "fi": [
+                  3
+                ],
+                "ex": "A map can reveal dead ends where the user cannot continue toward the larger goal, which supports the correct option, while dead ends reveal opportunities for adding new features to the service, which is incorrect."
+              },
+              {
+                "q": "A team is developing a map for a service and notices a significant disconnect between the online booking system and the in-person check-in process. What should the team focus on?",
+                "op": [
+                  "Focusing only on the online booking steps to ensure they are perfectly optimized.",
+                  "Focusing on the online booking steps to ensure they are perfectly optimized.",
+                  "Focusing on gaps between online and offline parts of a service.",
+                  "Focusing on the final successful outcome of the entire user experience."
+                ],
+                "ai": 2,
+                "fi": [
+                  4
+                ],
+                "ex": "Journey analysis should include gaps between online and offline parts of a service, which supports the correct option, while focusing only on the online booking steps to ensure they are perfectly optimized is incorrect."
+              }
+            ]
+          }
+        ]
+      },
+      "responseSha256": "a565309437824f6898165b6a9ac9ea6c5592027593d34cb6c272355a61a38831",
+      "admission": {
+        "needsRetry": true,
+        "issues": [
+          "lesson-3:fact-0:fact-length",
+          "lesson-3:key-term-2:correction-repeats-definition",
+          "lesson-3:mc-0:stem-length",
+          "lesson-3:mc-0:explanation-key-conflict"
+        ]
+      },
+      "compilerRepairs": [
+        {
+          "kind": "mc-item",
+          "pass": "sourceAnswerAlignment",
+          "lessonId": "lesson-3",
+          "item": 1,
+          "action": "realigned",
+          "prompt": "Choose the answer index uniquely supported by the source claim most relevant to the question.",
+          "rejected": {
+            "question": "A team is developing a map for a service and notices a significant disconnect between the online booking system and the in-person check-in process. What should the team focus on?",
+            "options": [
+              "Focusing only on the online booking steps to ensure they are perfectly optimized.",
+              "Focusing on the online booking steps to ensure they are perfectly optimized.",
+              "Focusing on gaps between online and offline parts of a service.",
+              "Focusing on the final successful outcome of the entire user experience."
+            ],
+            "answerIndex": 0,
+            "explanation": "Journey analysis should include gaps between online and offline parts of a service, which supports the correct option, while focusing only on the online booking steps to ensure they are perfectly optimized is incorrect."
+          },
+          "chosen": {
+            "question": "A team is developing a map for a service and notices a significant disconnect between the online booking system and the in-person check-in process. What should the team focus on?",
+            "options": [
+              "Focusing only on the online booking steps to ensure they are perfectly optimized.",
+              "Focusing on the online booking steps to ensure they are perfectly optimized.",
+              "Focusing on gaps between online and offline parts of a service.",
+              "Focusing on the final successful outcome of the entire user experience."
+            ],
+            "answerIndex": 2,
+            "explanation": "Journey analysis should include gaps between online and offline parts of a service, which supports the correct option, while focusing only on the online booking steps to ensure they are perfectly optimized is incorrect."
+          },
+          "trainingEligible": true,
+          "preferenceEvidence": {
+            "kind": "deterministic-source-answer-conflict",
+            "verified": true,
+            "declaredIndex": 0,
+            "supportedIndex": 2,
+            "scores": [
+              1,
+              1,
+              6,
+              0
+            ],
+            "containment": [
+              0.111111,
+              0.125,
+              0.857143,
+              0
+            ],
+            "supportMethod": "source-question-option-alignment",
+            "relevantSourceClaimIndexes": [
+              0
+            ],
+            "questionClaimScore": 3,
+            "minimumQuestionClaimScore": 3,
+            "minimumOptionScore": 3,
+            "minimumOptionContainment": 0.6,
+            "maximumDeclaredOptionScore": 1,
+            "minimumMargin": 2
+          }
+        }
+      ],
+      "startedAt": "2026-07-19T09:14:46.741Z",
+      "completedAt": "2026-07-19T09:15:24.294Z",
+      "durationMs": 37553
+    },
+    {
+      "caseId": "scion-kernel-870455b05f9328a256598934",
+      "caseSha256": "870455b05f9328a2565989344002ee026bc477ab127867fa4c0f1269ec922f3f",
+      "messagesSha256": "b229667c260f08500f3d0980f16535ceee6caa5669c50fcfa04d6e201908592f",
+      "sourceContextSha256": "6d8fe6057ef4179cc652ac3cf7b70a3be4c83ef727ae64f55d3b5901a333d8e5",
+      "arm": "local",
+      "model": {
+        "provider": "local",
+        "id": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+        "revision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
+        "route": "mlx-vlm-base-only",
+        "decoding": "greedy-json-schema",
+        "maxOutputTokens": 2400,
+        "runtime": {
+          "python": "/Users/tianxing/.cache/coursemapper/venv-g4/bin/python",
+          "script": "/Users/tianxing/Documents/NYU/NYUsliver/CourseMapper-scion-v01654/trellis/tendril/distill/serve_g4.py"
+        }
+      },
+      "attempts": [
+        {
+          "attempt": 1,
+          "messagesSha256": "b229667c260f08500f3d0980f16535ceee6caa5669c50fcfa04d6e201908592f",
+          "rawResponseSha256": "3e527387031a725c07c7c09f768cab08d8f768621b1142841f5424e29c33e221",
+          "responseSha256": "22c0ff2591ce66aaca998f16dcb77bf38175b19b92329644840e1f3266210408",
+          "artifactSha256": "097a51ef52fb8b3a152598aaece1b2eb1e596e73d14badcddec07bce8e3d9124",
+          "assessment": {
+            "needsRetry": true,
+            "issues": [
+              "lesson-2:key-term-0:misconception-repeats-definition",
+              "lesson-2:key-term-0:correction-repeats-definition",
+              "lesson-2:key-term-1:correction-repeats-misconception",
+              "lesson-2:key-term-2:correction-repeats-definition",
+              "lesson-2:mc-1:explanation-key-conflict"
+            ]
+          },
+          "repairs": [
+            {
+              "pass": "completeFactSentence",
+              "lessonId": "lesson-2",
+              "item": 0,
+              "before": "A demand curve illustrates the quantity consumers are willing and able to purchase at each price. This relationship holds when other factors remain constant. This concept defines the relationship between price and quantity demanded. The demand curve typically,",
+              "after": "A demand curve illustrates the quantity consumers are willing and able to purchase at each price.",
+              "trainingEligible": false
+            },
+            {
+              "pass": "completeFactSentence",
+              "lessonId": "lesson-2",
+              "item": 1,
+              "before": "Demand curves typically slope downward, which is a direct reflection of the law of demand. This downward slope shows the inverse relationship between price and quantity demanded. This characteristic is fundamental to understanding consumer behavior. A change",
+              "after": "Demand curves typically slope downward, which is a direct reflection of the law of demand.",
+              "trainingEligible": false
+            },
+            {
+              "pass": "completeFactSentence",
+              "lessonId": "lesson-2",
+              "item": 2,
+              "before": "A change in price causes a movement along the demand curve, whereas a change in income or tastes shifts the curve. This distinction separates movement from shifts in the demand curve. This shows how different variables affect the demand relationship. This is a",
+              "after": "This distinction separates movement from shifts in the demand curve.",
+              "trainingEligible": false
+            },
+            {
+              "pass": "completeFactSentence",
+              "lessonId": "lesson-2",
+              "item": 3,
+              "before": "A change in income or tastes causes a shift in the demand curve, not a movement along it. This shift indicates a change in demand itself. This demonstrates the difference between movement and shift. This is a",
+              "after": "A change in income or tastes causes a shift in the demand curve, not a movement along it.",
+              "trainingEligible": false
+            },
+            {
+              "pass": "completeFactSentence",
+              "lessonId": "lesson-2",
+              "item": 4,
+              "before": "The demand curve shows the quantity of a good consumers are willing and able to purchase at each price. This relationship holds when other factors remain constant. This concept defines the relationship between price and quantity demanded. The demand curve is a",
+              "after": "The demand curve shows the quantity of a good consumers are willing and able to purchase at each price.",
+              "trainingEligible": false
+            },
+            {
+              "pass": "completeDefinitionSentence",
+              "lessonId": "lesson-2",
+              "item": 0,
+              "field": "df",
+              "before": "A demand curve shows the quantity of a good consumers are willing and able to purchase at each price. This relationship holds when other factors remain constant.",
+              "after": "A demand curve shows the quantity of a good consumers are willing and able to purchase at each price.",
+              "trainingEligible": false
+            },
+            {
+              "pass": "completeDefinitionSentence",
+              "lessonId": "lesson-2",
+              "item": 1,
+              "field": "df",
+              "before": "The law of demand describes the inverse relationship between the price of a good and the quantity consumers demand. This relationship is typically represented by a downward sloping demand curve.",
+              "after": "The law of demand describes the inverse relationship between the price of a good and the quantity consumers demand.",
+              "trainingEligible": false
+            },
+            {
+              "pass": "completeDefinitionSentence",
+              "lessonId": "lesson-2",
+              "item": 2,
+              "field": "df",
+              "before": "A movement along the demand curve occurs when only the price of the good changes, causing a change in the quantity demanded. This represents a change in the quantity demanded at a specific price point.",
+              "after": "A movement along the demand curve occurs when only the price of the good changes, causing a change in the quantity demanded.",
+              "trainingEligible": false
+            }
+          ],
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "durationMs": 13551
+        },
+        {
+          "attempt": 2,
+          "messagesSha256": "fdb283fc33a556cfd89fa843e123e07d916b10f11290b7928d77c8e8745d155e",
+          "rawResponseSha256": "e7d910e4ed0875260d6dfcea666bf03f96f2d35fa79e5de3db27d6c6a4271a62",
+          "responseSha256": "7cfdc264ca506264041a5272e762f75c0752c1a6cea43a91f779e2a9ad279436",
+          "artifactSha256": "08c53d9a5822a684facea253fa75b4ba38c3444d4d83defc5f966ab549e00303",
+          "assessment": {
+            "needsRetry": true,
+            "issues": [
+              "lesson-2:key-term-0:correction-repeats-misconception",
+              "lesson-2:key-term-1:correction-repeats-definition",
+              "lesson-2:key-term-2:cx-repeats-itself",
+              "lesson-2:key-term-2:correction-repeats-misconception",
+              "lesson-2:mc-1:stem-length",
+              "lesson-2:mc-1:explanation-key-conflict",
+              "lesson-2:mc-1:source-fact-key-mismatch"
+            ]
+          },
+          "repairs": [
+            {
+              "pass": "completeFactSentence",
+              "lessonId": "lesson-2",
+              "item": 0,
+              "before": "A demand curve illustrates the quantity consumers are willing and able to purchase at various prices. This relationship holds when other factors remain constant. Demand curves typically slope downward, which is known as the law of demand. A change in price on-",
+              "after": "A demand curve illustrates the quantity consumers are willing and able to purchase at various prices.",
+              "trainingEligible": false
+            },
+            {
+              "pass": "completeFactSentence",
+              "lessonId": "lesson-2",
+              "item": 1,
+              "before": "A change in income or tastes causes the entire demand curve to shift. This shift represents a change in demand, not a movement along the curve. A movement along the demand curve occurs only when the price changes. This movement reflects the law of demand in a",
+              "after": "A change in income or tastes causes the entire demand curve to shift.",
+              "trainingEligible": false
+            },
+            {
+              "pass": "completeFactSentence",
+              "lessonId": "lesson-2",
+              "item": 2,
+              "before": "A demand curve shows the quantity of a good consumers are willing and able to purchase at each price, holding other factors constant. This relationship holds when other factors remain constant. Demand curves typically slope downward, which is known as the law",
+              "after": "This relationship holds when other factors remain constant.",
+              "trainingEligible": false
+            },
+            {
+              "pass": "completeFactSentence",
+              "lessonId": "lesson-2",
+              "item": 3,
+              "before": "A change in price causes a movement along the demand curve, while a change in income or tastes shifts the curve. This shift represents a change in demand, not a movement along the curve. A movement along the demand curve occurs only when the price changes. A",
+              "after": "This shift represents a change in demand, not a movement along the curve.",
+              "trainingEligible": false
+            },
+            {
+              "pass": "completeFactSentence",
+              "lessonId": "lesson-2",
+              "item": 4,
+              "before": "A demand curve shows the quantity of a good consumers are willing and able to purchase at each price, holding other factors constant. This relationship holds when other factors remain constant. Demand curves typically slope downward, which is known as the law,",
+              "after": "This relationship holds when other factors remain constant.",
+              "trainingEligible": false
+            },
+            {
+              "pass": "completeDefinitionSentence",
+              "lessonId": "lesson-2",
+              "item": 0,
+              "field": "df",
+              "before": "A demand curve graphically represents the quantity of a good consumers are willing and able to purchase at each price. This relationship holds when other factors remain constant.",
+              "after": "A demand curve graphically represents the quantity of a good consumers are willing and able to purchase at each price.",
+              "trainingEligible": false
+            },
+            {
+              "pass": "completeDefinitionSentence",
+              "lessonId": "lesson-2",
+              "item": 1,
+              "field": "df",
+              "before": "The law of demand describes the inverse relationship between the price of a good and the quantity demanded. This relationship is visually represented by a downward sloping demand curve.",
+              "after": "The law of demand describes the inverse relationship between the price of a good and the quantity demanded.",
+              "trainingEligible": false
+            },
+            {
+              "pass": "completeDefinitionSentence",
+              "lessonId": "lesson-2",
+              "item": 2,
+              "field": "df",
+              "before": "A change in the price of a good results in a movement along the existing demand curve. This movement is a change in the quantity demanded.",
+              "after": "A change in the price of a good results in a movement along the existing demand curve.",
+              "trainingEligible": false
+            }
+          ],
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "durationMs": 14189
+        },
+        {
+          "attempt": 3,
+          "messagesSha256": "1f1b20dc519341e80959944bdf326e4f5a4640286a92c8ff39b86cc8947d7813",
+          "rawResponseSha256": "b168ebf40e24512b62710eed08fcf03aefd308f29a2a699d4bf5d0c6d18e2c3f",
+          "responseSha256": "de82c199267328c55baf1d4110b3c660467576abdba28ba38317e368da79cb9d",
+          "artifactSha256": "e18509761223698b34089d42291b62eca3ba74ea389b13038f0417147f1487e3",
+          "assessment": {
+            "needsRetry": true,
+            "issues": [
+              "lesson-2:key-term-1:correction-repeats-misconception",
+              "lesson-2:mc-1:explanation-key-conflict"
+            ]
+          },
+          "repairs": [
+            {
+              "pass": "completeFactSentence",
+              "lessonId": "lesson-2",
+              "item": 0,
+              "before": "A demand curve illustrates the quantity consumers are willing and able to purchase at various prices. This relationship holds when other factors remain constant. Demand curves typically slope downward, which is the law of demand. A change in price causes a one",
+              "after": "A demand curve illustrates the quantity consumers are willing and able to purchase at various prices.",
+              "trainingEligible": false
+            },
+            {
+              "pass": "completeFactSentence",
+              "lessonId": "lesson-2",
+              "item": 1,
+              "before": "movement along the demand curve, whereas changes in income or tastes cause a shift. A demand curve shows the quantity of a good consumers are willing and able to purchase at each price, holding other factors constant. Demand curves typically slope downward, a",
+              "after": "movement along the demand curve, whereas changes in income or tastes cause a shift.",
+              "trainingEligible": false
+            },
+            {
+              "pass": "completeFactSentence",
+              "lessonId": "lesson-2",
+              "item": 2,
+              "before": "reflecting the law of demand, which dictates the relationship between price and quantity demanded. A change in price causes a movement along the demand curve, while a change in income or tastes shifts the curve. Demand curves typically slope downward, which is",
+              "after": "reflecting the law of demand, which dictates the relationship between price and quantity demanded.",
+              "trainingEligible": false
+            },
+            {
+              "pass": "completeFactSentence",
+              "lessonId": "lesson-2",
+              "item": 3,
+              "before": "a change in price causes a movement along the demand curve, while a change in income or tastes shifts the curve. Demand curves typically slope downward, reflecting the law of demand. A change in price causes a movement along the demand curve, while a change in",
+              "after": "Demand curves typically slope downward, reflecting the law of demand.",
+              "trainingEligible": false
+            },
+            {
+              "pass": "completeFactSentence",
+              "lessonId": "lesson-2",
+              "item": 4,
+              "before": "a change in price causes a movement along the demand curve, while a change in income or tastes shifts the curve. Demand curves typically slope downward, reflecting the law of demand. A change in price causes a movement along the demand curve, while a change in",
+              "after": "Demand curves typically slope downward, reflecting the law of demand.",
+              "trainingEligible": false
+            },
+            {
+              "pass": "completeDefinitionSentence",
+              "lessonId": "lesson-2",
+              "item": 0,
+              "field": "df",
+              "before": "A demand curve graphically represents the quantity of a good consumers are willing and able to purchase at each price. This relationship is established by holding other factors constant. A demand curve shows the quantity of a good consumers are willing and able to purchase at each price, holding other factors constant.",
+              "after": "A demand curve graphically represents the quantity of a good consumers are willing and able to purchase at each price.",
+              "trainingEligible": false
+            },
+            {
+              "pass": "completeDefinitionSentence",
+              "lessonId": "lesson-2",
+              "item": 1,
+              "field": "df",
+              "before": "The downward slope of a demand curve is a direct reflection of the law of demand, indicating an inverse relationship between price and quantity demanded. Demand curves typically slope downward, reflecting the law of demand.",
+              "after": "The downward slope of a demand curve is a direct reflection of the law of demand, indicating an inverse relationship between price and quantity demanded.",
+              "trainingEligible": false
+            },
+            {
+              "pass": "completeDefinitionSentence",
+              "lessonId": "lesson-2",
+              "item": 2,
+              "field": "df",
+              "before": "A change in the price of a good results in a movement along the existing demand curve, representing a change in quantity demanded. A change in price causes a movement along the demand curve.",
+              "after": "A change in the price of a good results in a movement along the existing demand curve, representing a change in quantity demanded.",
+              "trainingEligible": false
+            }
+          ],
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "durationMs": 15511
+        }
+      ],
+      "selectedAttempt": 3,
+      "artifact": {
+        "lessonId": "lesson-2",
+        "facts": [
+          "A demand curve illustrates the quantity consumers are willing and able to purchase at various prices.",
+          "movement along the demand curve, whereas changes in income or tastes cause a shift.",
+          "reflecting the law of demand, which dictates the relationship between price and quantity demanded.",
+          "Demand curves typically slope downward, reflecting the law of demand.",
+          "Demand curves typically slope downward, reflecting the law of demand."
+        ],
+        "keyTerms": [
+          {
+            "tr": "demand curve",
+            "df": "A demand curve graphically represents the quantity of a good consumers are willing and able to purchase at each price.",
+            "eg": "If the price of a good increases, the quantity demanded decreases, which is shown by a movement along the demand curve.",
+            "mi": "A demand curve shows the quantity consumers are willing and able to purchase at a specific price point only.",
+            "cx": "A demand curve shows the quantity consumers are willing and able to purchase at *each* price, holding other factors constant, not just one point."
+          },
+          {
+            "tr": "slope downward",
+            "df": "The downward slope of a demand curve is a direct reflection of the law of demand, indicating an inverse relationship between price and quantity demanded.",
+            "eg": "When the price of a good rises, the quantity demanded falls, resulting in a downward sloping demand curve.",
+            "mi": "A downward slope means that as the price increases, the quantity demanded increases, which is the opposite of the law of demand.",
+            "cx": "A downward slope means that as the price increases, the quantity demanded decreases, which is the correct reflection of the law of demand."
+          },
+          {
+            "tr": "change in price",
+            "df": "A change in the price of a good results in a movement along the existing demand curve, representing a change in quantity demanded.",
+            "eg": "If the market price of a product drops, consumers will move to a higher quantity demanded along the demand curve.",
+            "mi": "A change in price causes the entire demand curve to shift to a new position, which is incorrect.",
+            "cx": "A change in price causes a movement along the demand curve, not a shift of the entire curve, which is the correct behavior."
+          }
+        ],
+        "scenario": {
+          "su": "A retailer observes that when the price of a specific electronic gadget increases by ten percent, the quantity sold decreases by twenty percent. The store manager must determine if this is a movement along the demand curve or a shift of the demand curve. The constraint is that the store cannot change the consumer income or tastes during this observation period.",
+          "ma": "The retailer compares the recorded sales data showing a price increase of ten percent leading to a twenty percent decrease in quantity sold against the theoretical representation of the demand curve."
+        },
+        "mc": [
+          {
+            "q": "When a consumer's income increases, how does the demand curve for a good typically respond, based on the principles of demand curves and shifts?",
+            "op": [
+              "The demand curve shifts to the right because consumers buy more of the good at every price point.",
+              "The demand curve shifts to the left because consumers buy less of the good at every price point.",
+              "The demand curve moves downward along the existing curve because the price has changed.",
+              "The demand curve remains stationary because income changes do not affect the quantity demanded."
+            ],
+            "ai": 0,
+            "fi": [
+              1
+            ],
+            "ex": "The demand curve shifts to the right because consumers buy more of the good at every price point, which is supported by the claim that a change in income shifts the curve."
+          },
+          {
+            "q": "A market analyst observes that the price of a good changes, and the quantity demanded changes, but the demand curve itself does not move. Which statement accurately describes this situation?",
+            "op": [
+              "The change in price caused a shift in the demand curve because the law of demand was violated.",
+              "The change in price caused a movement along the demand curve because quantity demanded changed.",
+              "The change in price caused a shift in the demand curve because consumer tastes changed.",
+              "The change in price caused a shift in the demand curve because income changed."
+            ],
+            "ai": 0,
+            "fi": [
+              2
+            ],
+            "ex": "The change in price caused a movement along the demand curve because quantity demanded changed, which is supported by the claim that a change in price causes a movement along the demand curve."
+          }
+        ]
+      },
+      "artifactSha256": "e18509761223698b34089d42291b62eca3ba74ea389b13038f0417147f1487e3",
+      "response": {
+        "lessons": [
+          {
+            "lessonId": "lesson-2",
+            "facts": [
+              "A demand curve illustrates the quantity consumers are willing and able to purchase at various prices.",
+              "movement along the demand curve, whereas changes in income or tastes cause a shift.",
+              "reflecting the law of demand, which dictates the relationship between price and quantity demanded.",
+              "Demand curves typically slope downward, reflecting the law of demand.",
+              "Demand curves typically slope downward, reflecting the law of demand."
+            ],
+            "keyTerms": [
+              {
+                "tr": "demand curve",
+                "df": "A demand curve graphically represents the quantity of a good consumers are willing and able to purchase at each price.",
+                "eg": "If the price of a good increases, the quantity demanded decreases, which is shown by a movement along the demand curve.",
+                "mi": "A demand curve shows the quantity consumers are willing and able to purchase at a specific price point only.",
+                "cx": "A demand curve shows the quantity consumers are willing and able to purchase at *each* price, holding other factors constant, not just one point."
+              },
+              {
+                "tr": "slope downward",
+                "df": "The downward slope of a demand curve is a direct reflection of the law of demand, indicating an inverse relationship between price and quantity demanded.",
+                "eg": "When the price of a good rises, the quantity demanded falls, resulting in a downward sloping demand curve.",
+                "mi": "A downward slope means that as the price increases, the quantity demanded increases, which is the opposite of the law of demand.",
+                "cx": "A downward slope means that as the price increases, the quantity demanded decreases, which is the correct reflection of the law of demand."
+              },
+              {
+                "tr": "change in price",
+                "df": "A change in the price of a good results in a movement along the existing demand curve, representing a change in quantity demanded.",
+                "eg": "If the market price of a product drops, consumers will move to a higher quantity demanded along the demand curve.",
+                "mi": "A change in price causes the entire demand curve to shift to a new position, which is incorrect.",
+                "cx": "A change in price causes a movement along the demand curve, not a shift of the entire curve, which is the correct behavior."
+              }
+            ],
+            "scenario": {
+              "su": "A retailer observes that when the price of a specific electronic gadget increases by ten percent, the quantity sold decreases by twenty percent. The store manager must determine if this is a movement along the demand curve or a shift of the demand curve. The constraint is that the store cannot change the consumer income or tastes during this observation period.",
+              "ma": "The retailer compares the recorded sales data showing a price increase of ten percent leading to a twenty percent decrease in quantity sold against the theoretical representation of the demand curve."
+            },
+            "mc": [
+              {
+                "q": "When a consumer's income increases, how does the demand curve for a good typically respond, based on the principles of demand curves and shifts?",
+                "op": [
+                  "The demand curve shifts to the right because consumers buy more of the good at every price point.",
+                  "The demand curve shifts to the left because consumers buy less of the good at every price point.",
+                  "The demand curve moves downward along the existing curve because the price has changed.",
+                  "The demand curve remains stationary because income changes do not affect the quantity demanded."
+                ],
+                "ai": 0,
+                "fi": [
+                  1
+                ],
+                "ex": "The demand curve shifts to the right because consumers buy more of the good at every price point, which is supported by the claim that a change in income shifts the curve."
+              },
+              {
+                "q": "A market analyst observes that the price of a good changes, and the quantity demanded changes, but the demand curve itself does not move. Which statement accurately describes this situation?",
+                "op": [
+                  "The change in price caused a shift in the demand curve because the law of demand was violated.",
+                  "The change in price caused a movement along the demand curve because quantity demanded changed.",
+                  "The change in price caused a shift in the demand curve because consumer tastes changed.",
+                  "The change in price caused a shift in the demand curve because income changed."
+                ],
+                "ai": 0,
+                "fi": [
+                  2
+                ],
+                "ex": "The change in price caused a movement along the demand curve because quantity demanded changed, which is supported by the claim that a change in price causes a movement along the demand curve."
+              }
+            ]
+          }
+        ]
+      },
+      "responseSha256": "de82c199267328c55baf1d4110b3c660467576abdba28ba38317e368da79cb9d",
+      "admission": {
+        "needsRetry": true,
+        "issues": [
+          "lesson-2:key-term-1:correction-repeats-misconception",
+          "lesson-2:mc-1:explanation-key-conflict"
+        ]
+      },
+      "compilerRepairs": [
+        {
+          "pass": "completeFactSentence",
+          "lessonId": "lesson-2",
+          "item": 0,
+          "before": "A demand curve illustrates the quantity consumers are willing and able to purchase at various prices. This relationship holds when other factors remain constant. Demand curves typically slope downward, which is the law of demand. A change in price causes a one",
+          "after": "A demand curve illustrates the quantity consumers are willing and able to purchase at various prices.",
+          "trainingEligible": false
+        },
+        {
+          "pass": "completeFactSentence",
+          "lessonId": "lesson-2",
+          "item": 1,
+          "before": "movement along the demand curve, whereas changes in income or tastes cause a shift. A demand curve shows the quantity of a good consumers are willing and able to purchase at each price, holding other factors constant. Demand curves typically slope downward, a",
+          "after": "movement along the demand curve, whereas changes in income or tastes cause a shift.",
+          "trainingEligible": false
+        },
+        {
+          "pass": "completeFactSentence",
+          "lessonId": "lesson-2",
+          "item": 2,
+          "before": "reflecting the law of demand, which dictates the relationship between price and quantity demanded. A change in price causes a movement along the demand curve, while a change in income or tastes shifts the curve. Demand curves typically slope downward, which is",
+          "after": "reflecting the law of demand, which dictates the relationship between price and quantity demanded.",
+          "trainingEligible": false
+        },
+        {
+          "pass": "completeFactSentence",
+          "lessonId": "lesson-2",
+          "item": 3,
+          "before": "a change in price causes a movement along the demand curve, while a change in income or tastes shifts the curve. Demand curves typically slope downward, reflecting the law of demand. A change in price causes a movement along the demand curve, while a change in",
+          "after": "Demand curves typically slope downward, reflecting the law of demand.",
+          "trainingEligible": false
+        },
+        {
+          "pass": "completeFactSentence",
+          "lessonId": "lesson-2",
+          "item": 4,
+          "before": "a change in price causes a movement along the demand curve, while a change in income or tastes shifts the curve. Demand curves typically slope downward, reflecting the law of demand. A change in price causes a movement along the demand curve, while a change in",
+          "after": "Demand curves typically slope downward, reflecting the law of demand.",
+          "trainingEligible": false
+        },
+        {
+          "pass": "completeDefinitionSentence",
+          "lessonId": "lesson-2",
+          "item": 0,
+          "field": "df",
+          "before": "A demand curve graphically represents the quantity of a good consumers are willing and able to purchase at each price. This relationship is established by holding other factors constant. A demand curve shows the quantity of a good consumers are willing and able to purchase at each price, holding other factors constant.",
+          "after": "A demand curve graphically represents the quantity of a good consumers are willing and able to purchase at each price.",
+          "trainingEligible": false
+        },
+        {
+          "pass": "completeDefinitionSentence",
+          "lessonId": "lesson-2",
+          "item": 1,
+          "field": "df",
+          "before": "The downward slope of a demand curve is a direct reflection of the law of demand, indicating an inverse relationship between price and quantity demanded. Demand curves typically slope downward, reflecting the law of demand.",
+          "after": "The downward slope of a demand curve is a direct reflection of the law of demand, indicating an inverse relationship between price and quantity demanded.",
+          "trainingEligible": false
+        },
+        {
+          "pass": "completeDefinitionSentence",
+          "lessonId": "lesson-2",
+          "item": 2,
+          "field": "df",
+          "before": "A change in the price of a good results in a movement along the existing demand curve, representing a change in quantity demanded. A change in price causes a movement along the demand curve.",
+          "after": "A change in the price of a good results in a movement along the existing demand curve, representing a change in quantity demanded.",
+          "trainingEligible": false
+        }
+      ],
+      "startedAt": "2026-07-19T09:15:24.295Z",
+      "completedAt": "2026-07-19T09:16:07.547Z",
+      "durationMs": 43252
+    },
+    {
+      "caseId": "scion-kernel-c543fc4eb1b368a67de008db",
+      "caseSha256": "c543fc4eb1b368a67de008dbe8a086487806737ce65a42e26b1cf2ba2a4b7057",
+      "messagesSha256": "640680bb9e5a7e412cdcf60128d8e7a9dc8325c846360cfa8d6cad967021b20c",
+      "sourceContextSha256": "291b137dc12ad92479a809b60fa2fcff63937923c6bd62cd77f67bd32d48e3a0",
+      "arm": "local",
+      "model": {
+        "provider": "local",
+        "id": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+        "revision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
+        "route": "mlx-vlm-base-only",
+        "decoding": "greedy-json-schema",
+        "maxOutputTokens": 2400,
+        "runtime": {
+          "python": "/Users/tianxing/.cache/coursemapper/venv-g4/bin/python",
+          "script": "/Users/tianxing/Documents/NYU/NYUsliver/CourseMapper-scion-v01654/trellis/tendril/distill/serve_g4.py"
+        }
+      },
+      "attempts": [
+        {
+          "attempt": 1,
+          "messagesSha256": "640680bb9e5a7e412cdcf60128d8e7a9dc8325c846360cfa8d6cad967021b20c",
+          "rawResponseSha256": "92e02bf26022fbc4e90146ccb78bcb83d2006caaabdc658eb8055da222fb10f0",
+          "responseSha256": "b2f6b9db1d1cd3b11689a08645402233373383e89bf7d0b9d13d6ff5f868075d",
+          "artifactSha256": "1100dc07cd5d101a81c5f6c9041427c89e2dc30cb2cad0cd563cd50ade119a32",
+          "assessment": {
+            "needsRetry": true,
+            "issues": [
+              "lesson-5:scenario:scenario-missing-decision",
+              "lesson-5:scenario:source-unsupported-quantity",
+              "lesson-5:mc-0:stem-length",
+              "lesson-5:mc-0:duplicate-options",
+              "lesson-5:mc-0:claim-marker-residue",
+              "lesson-5:mc-1:claim-marker-residue"
+            ]
+          },
+          "repairs": [],
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "durationMs": 10890
+        },
+        {
+          "attempt": 2,
+          "messagesSha256": "e9c936cbcaac81dc76cd68b0de13099d8c28ef19f0ef63a88bd5da570d6e7f8d",
+          "rawResponseSha256": "5327a2de67fa7be1532f4c6a4e7a8ba4805678d1ddabd8e873e0aeebf74a6063",
+          "responseSha256": "e9bcab6ff1614789bc60476a849eb049b072c40e5d263648b77e1c4c44eb85ad",
+          "artifactSha256": "c297690efdea1206cd95fb0f7e334168a09981e64fdad362bf7d261d69708013",
+          "assessment": {
+            "needsRetry": true,
+            "issues": [
+              "lesson-5:mc-0:stem-length",
+              "lesson-5:mc-0:duplicate-options",
+              "lesson-5:mc-1:explanation-key-conflict"
+            ]
+          },
+          "repairs": [],
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "durationMs": 10573
+        },
+        {
+          "attempt": 3,
+          "messagesSha256": "cb0cb9dcd2cc6747f88f4f56b5e44a3a4d2d5248156318f954df4130d223ea6b",
+          "rawResponseSha256": "280b9360680c67c4f6346d051b4056bb2949c44011e99bbd0e540fe35cf275ef",
+          "responseSha256": "1000009ee8fd1b3f4dc277f0d74214744eeb2d6b164dfc07c8778f009f662174",
+          "artifactSha256": "ff28cf390ddd9871f2715d22998dd82ec6711b813fee6d881758a8ce1c65d153",
+          "assessment": {
+            "needsRetry": true,
+            "issues": [
+              "lesson-5:mc-0:explanation-key-conflict"
+            ]
+          },
+          "repairs": [
+            {
+              "pass": "crossAttemptAtomicRetention",
+              "lessonId": "lesson-5",
+              "field": "scenario",
+              "issueCountBefore": 3,
+              "issueCountAfter": 1,
+              "resolvedIssues": [
+                "lesson-5:scenario:scenario-missing-decision",
+                "lesson-5:scenario:source-unsupported-quantity"
+              ],
+              "trainingEligible": false,
+              "preferenceEvidence": {
+                "evidenceScope": "deterministic-contract-only",
+                "verified": false
+              }
+            }
+          ],
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "durationMs": 10711
+        }
+      ],
+      "selectedAttempt": 3,
+      "artifact": {
+        "lessonId": "lesson-5",
+        "facts": [
+          "Capacitance is defined as the ratio of stored charge to potential difference for a conductor or capacitor.",
+          "A capacitor stores energy specifically within the electric field existing between its two conductors.",
+          "Increasing the plate area of a parallel-plate capacitor results in an increase in capacitance.",
+          "Decreasing the separation between the plates of a parallel-plate capacitor leads to a decrease in capacitance.",
+          "The relationship between stored charge, potential difference, and capacitance is fundamental to this concept."
+        ],
+        "keyTerms": [
+          {
+            "tr": "Capacitance",
+            "df": "Capacitance is the ratio of stored charge to potential difference for a conductor or capacitor.",
+            "eg": "A capacitor stores charge in the electric field between its two conductive plates.",
+            "mi": "Capacitance is simply the amount of charge that can be stored on a capacitor.",
+            "cx": "Capacitance is a ratio involving charge and potential difference, not just the stored charge itself."
+          },
+          {
+            "tr": "Stored Charge",
+            "df": "Stored charge is the amount of electric charge that is held on the plates of a capacitor.",
+            "eg": "The amount of charge on the plates determines the stored energy in the electric field.",
+            "mi": "Stored charge is the total charge that flows through the capacitor during charging.",
+            "cx": "Stored charge is the charge held on the plates, which is a property used to calculate capacitance."
+          },
+          {
+            "tr": "Potential Difference",
+            "df": "Potential difference is the difference in electric potential between the two conductors of a capacitor.",
+            "eg": "The potential difference is the voltage applied across the capacitor plates.",
+            "mi": "Potential difference is the total energy stored in the electric field of the capacitor.",
+            "cx": "Potential difference is the difference in electric potential between the plates, not the total energy stored."
+          }
+        ],
+        "scenario": {
+          "su": "A parallel-plate capacitor has plates with a fixed area and a fixed separation distance. A student wants to increase the capacitance by changing the physical dimensions of the capacitor. The student must decide whether to increase the plate area or decrease the plate separation.",
+          "ma": "The student observes that the capacitance is halved when the plate separation is doubled, and the student notes that the plate area remains unchanged during the test."
+        },
+        "mc": [
+          {
+            "q": "If a capacitor has a fixed amount of stored charge, how does changing the plate separation affect the capacitance value?",
+            "op": [
+              "Decreasing the plate separation increases the capacitance because the electric field becomes stronger.",
+              "Increasing the plate separation decreases the capacitance because the electric field weakens.",
+              "The capacitance remains unchanged because the stored charge is constant regardless of separation.",
+              "The capacitance increases because the stored charge is directly proportional to the separation distance."
+            ],
+            "ai": 0,
+            "fi": [
+              2
+            ],
+            "ex": "Increasing the plate separation decreases the capacitance because the electric field weakens."
+          },
+          {
+            "q": "A parallel-plate capacitor is charged to a specific potential difference. If the plate area is increased by a factor of four, what is the resulting change in capacitance?",
+            "op": [
+              "The capacitance is multiplied by four because the stored charge is directly proportional to the area.",
+              "The capacitance is multiplied by one-fourth because the potential difference remains constant.",
+              "The capacitance is multiplied by two because the area and separation are both changing.",
+              "The capacitance remains the same because the stored charge is independent of the plate area."
+            ],
+            "ai": 0,
+            "fi": [
+              2
+            ],
+            "ex": "The capacitance is multiplied by four because increasing the plate area results in an increase in capacitance."
+          }
+        ]
+      },
+      "artifactSha256": "ff28cf390ddd9871f2715d22998dd82ec6711b813fee6d881758a8ce1c65d153",
+      "response": {
+        "lessons": [
+          {
+            "lessonId": "lesson-5",
+            "facts": [
+              "Capacitance is defined as the ratio of stored charge to potential difference for a conductor or capacitor.",
+              "A capacitor stores energy specifically within the electric field existing between its two conductors.",
+              "Increasing the plate area of a parallel-plate capacitor results in an increase in capacitance.",
+              "Decreasing the separation between the plates of a parallel-plate capacitor leads to a decrease in capacitance.",
+              "The relationship between stored charge, potential difference, and capacitance is fundamental to this concept."
+            ],
+            "keyTerms": [
+              {
+                "tr": "Capacitance",
+                "df": "Capacitance is the ratio of stored charge to potential difference for a conductor or capacitor.",
+                "eg": "A capacitor stores charge in the electric field between its two conductive plates.",
+                "mi": "Capacitance is simply the amount of charge that can be stored on a capacitor.",
+                "cx": "Capacitance is a ratio involving charge and potential difference, not just the stored charge itself."
+              },
+              {
+                "tr": "Stored Charge",
+                "df": "Stored charge is the amount of electric charge that is held on the plates of a capacitor.",
+                "eg": "The amount of charge on the plates determines the stored energy in the electric field.",
+                "mi": "Stored charge is the total charge that flows through the capacitor during charging.",
+                "cx": "Stored charge is the charge held on the plates, which is a property used to calculate capacitance."
+              },
+              {
+                "tr": "Potential Difference",
+                "df": "Potential difference is the difference in electric potential between the two conductors of a capacitor.",
+                "eg": "The potential difference is the voltage applied across the capacitor plates.",
+                "mi": "Potential difference is the total energy stored in the electric field of the capacitor.",
+                "cx": "Potential difference is the difference in electric potential between the plates, not the total energy stored."
+              }
+            ],
+            "scenario": {
+              "su": "A parallel-plate capacitor has plates with a fixed area and a fixed separation distance. A student wants to increase the capacitance by changing the physical dimensions of the capacitor. The student must decide whether to increase the plate area or decrease the plate separation.",
+              "ma": "The student observes that the capacitance is halved when the plate separation is doubled, and the student notes that the plate area remains unchanged during the test."
+            },
+            "mc": [
+              {
+                "q": "If a capacitor has a fixed amount of stored charge, how does changing the plate separation affect the capacitance value?",
+                "op": [
+                  "Decreasing the plate separation increases the capacitance because the electric field becomes stronger.",
+                  "Increasing the plate separation decreases the capacitance because the electric field weakens.",
+                  "The capacitance remains unchanged because the stored charge is constant regardless of separation.",
+                  "The capacitance increases because the stored charge is directly proportional to the separation distance."
+                ],
+                "ai": 0,
+                "fi": [
+                  2
+                ],
+                "ex": "Increasing the plate separation decreases the capacitance because the electric field weakens."
+              },
+              {
+                "q": "A parallel-plate capacitor is charged to a specific potential difference. If the plate area is increased by a factor of four, what is the resulting change in capacitance?",
+                "op": [
+                  "The capacitance is multiplied by four because the stored charge is directly proportional to the area.",
+                  "The capacitance is multiplied by one-fourth because the potential difference remains constant.",
+                  "The capacitance is multiplied by two because the area and separation are both changing.",
+                  "The capacitance remains the same because the stored charge is independent of the plate area."
+                ],
+                "ai": 0,
+                "fi": [
+                  2
+                ],
+                "ex": "The capacitance is multiplied by four because increasing the plate area results in an increase in capacitance."
+              }
+            ]
+          }
+        ]
+      },
+      "responseSha256": "1000009ee8fd1b3f4dc277f0d74214744eeb2d6b164dfc07c8778f009f662174",
+      "admission": {
+        "needsRetry": true,
+        "issues": [
+          "lesson-5:mc-0:explanation-key-conflict"
+        ]
+      },
+      "compilerRepairs": [
+        {
+          "pass": "crossAttemptAtomicRetention",
+          "lessonId": "lesson-5",
+          "field": "scenario",
+          "issueCountBefore": 3,
+          "issueCountAfter": 1,
+          "resolvedIssues": [
+            "lesson-5:scenario:scenario-missing-decision",
+            "lesson-5:scenario:source-unsupported-quantity"
+          ],
+          "trainingEligible": false,
+          "preferenceEvidence": {
+            "evidenceScope": "deterministic-contract-only",
+            "verified": false
+          }
+        }
+      ],
+      "startedAt": "2026-07-19T09:16:07.547Z",
+      "completedAt": "2026-07-19T09:16:39.721Z",
+      "durationMs": 32174
+    }
+  ],
+  "updatedAt": "2026-07-19T09:16:39.721Z"
+}

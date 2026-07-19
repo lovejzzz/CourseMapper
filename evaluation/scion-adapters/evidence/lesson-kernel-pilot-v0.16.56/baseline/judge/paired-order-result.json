@@ -1,0 +1,307 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-paired-order-result-v1",
+  "generatedAt": "2026-07-19T00:00:00.000Z",
+  "status": "paired-orders-complete",
+  "requiredOrders": [
+    "A/B",
+    "B/A"
+  ],
+  "sessions": {
+    "A/B": "scion-v01654-batch-001-4d29ad3369-a-b-5d09d51e-ba2d-43a0-8582-1061c7344bef",
+    "B/A": "scion-v01654-batch-001-4d29ad3369-b-a-a58e78b9-9f40-47f2-b682-7da02f7979a3"
+  },
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "evidence": {
+    "prompt": {
+      "path": "evaluation/scion-adapters/lesson-kernel-judge-prompt-v0.16.54.md",
+      "sha256": "37844b86736335db54b561d8c031660ef71679c55ae1108e2e999e746f2a1c96"
+    },
+    "packets": {
+      "A/B": "67bfb12bfe0dd6db3097560b6af6e7609b819fff785216324a928a96156bee6e",
+      "B/A": "92942b29e61d6463a9b7bdd4cda8c606cbfda94a0f5c8929bf376064f9870113"
+    },
+    "reviews": {
+      "A/B": "591eb7cdeee7e0be6ffde2f52c76a252c6f2e79f12d39fedd666d1b7dfadd11e",
+      "B/A": "175538e08229f9cd236e9573d7cea0b4078b77065d499ca1aebf2ce007946d96"
+    }
+  },
+  "issues": [],
+  "results": [
+    {
+      "caseId": "scion-kernel-03b7494a8f9a582c91f5f9bd",
+      "pairId": "scion-kernel-pair-ce661f0bd5596b6ae792e2b9",
+      "winners": {
+        "A/B": "09cf5b63ae3ae5984a56d091061adda20a4e112715ca337684feb99b024c530b",
+        "B/A": "09cf5b63ae3ae5984a56d091061adda20a4e112715ca337684feb99b024c530b"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": false,
+      "scoreQualification": {
+        "qualified": false,
+        "winnerMinimumScore": 2,
+        "minimumTotalScoreMargin": 11,
+        "winnerCriticalDefects": [
+          "The material-arrangement dependency and equal-and-opposite stored-charge example are unsupported by the supplied claims.",
+          "Unsupported factual claims introduce material dependence, equal-and-opposite conductor charge, current behavior, and test-charge/force distinctions not supplied by the source."
+        ],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 3,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 3,
+              "internalCoherence": 3
+            },
+            "loserScores": {
+              "sourceFidelity": 1,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 2,
+              "assessmentCorrectness": 1,
+              "choiceDiscriminability": 2,
+              "feedbackInstructionality": 2,
+              "internalCoherence": 1
+            },
+            "winnerMinimumScore": 3,
+            "totalScoreMargin": 13,
+            "winnerCriticalDefects": [
+              "The material-arrangement dependency and equal-and-opposite stored-charge example are unsupported by the supplied claims."
+            ],
+            "loserCriticalDefects": [
+              "The first declared answer is not entailed: fixed separation alone does not require stored charge to increase while potential difference remains constant.",
+              "The invented 10-coulomb and 10-volt examples and the asserted uniform-separation requirement introduce unsupported instructional content."
+            ],
+            "rationale": "B is decisively stronger: both assessments are uniquely correct, its scenario provides inspectable evidence and a real constraint, and its choices and feedback are substantially more coherent. A contains a conditionally incorrect first key, unsupported quantitative examples, and placeholder inspection material.",
+            "decisionSha256": "ffcbaab8d12d9f10c58091648fa642d6c34f2501306db8b516f8bcf347a05543"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 3,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 3,
+              "internalCoherence": 3
+            },
+            "loserScores": {
+              "sourceFidelity": 1,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 1,
+              "assessmentCorrectness": 2,
+              "choiceDiscriminability": 2,
+              "feedbackInstructionality": 2,
+              "internalCoherence": 1
+            },
+            "winnerMinimumScore": 2,
+            "totalScoreMargin": 11,
+            "winnerCriticalDefects": [
+              "Unsupported factual claims introduce material dependence, equal-and-opposite conductor charge, current behavior, and test-charge/force distinctions not supplied by the source."
+            ],
+            "loserCriticalDefects": [
+              "Invented numerical examples and scenario quantities include 10 coulombs, 10 volts, 0.5 square meters, and 2 millimeters.",
+              "The first declared answer is not uniquely supported because fixed separation does not establish constant potential difference or a specific charge change."
+            ],
+            "rationale": "A preserves the supplied capacitance relationships, provides usable evidence, and has two uniquely correct assessments. B adds extensive unsupported detail and makes an unstated constant-voltage assumption in its first keyed answer.",
+            "decisionSha256": "73e379693b58560e5250c22ba88376f5218870490c9acd06de5063bb366e1b86"
+          }
+        ]
+      },
+      "trainingEligible": false
+    },
+    {
+      "caseId": "scion-kernel-0401078f20f08056c3f93c23",
+      "pairId": "scion-kernel-pair-d1478e64f2a151a545af676e",
+      "winners": {
+        "A/B": "a83c7ab0ed838cb1b52a40675e880290c4092d804916659cb041e9bc83bc05a2",
+        "B/A": "a83c7ab0ed838cb1b52a40675e880290c4092d804916659cb041e9bc83bc05a2"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": true,
+      "scoreQualification": {
+        "qualified": false,
+        "winnerMinimumScore": 2,
+        "minimumTotalScoreMargin": 15,
+        "winnerCriticalDefects": [
+          "The elasticity-versus-slope factual statement is not supported by the supplied source claims.",
+          "The elasticity-versus-slope fact is unsupported, and the materials field invents an OpenStax-attributed note about stipend timing."
+        ],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 3,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 1,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 2,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 2,
+              "feedbackInstructionality": 0,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 3,
+            "totalScoreMargin": 18,
+            "winnerCriticalDefects": [
+              "The elasticity-versus-slope factual statement is not supported by the supplied source claims."
+            ],
+            "loserCriticalDefects": [
+              "Both declared answer indices are incorrect and directly contradict their respective explanations.",
+              "The direction of an income-driven shift is not determined by the supplied claims, so the first question has no uniquely supported directional answer.",
+              "The equilibrium and natural-experiment causality facts are unsupported additions."
+            ],
+            "rationale": "B supplies two correct, source-supported keys, an evidence-bearing scenario with a real causal ambiguity, and coherent instructional feedback. A fails both assessments at the key level, contradicts itself in both explanations, and introduces unsupported equilibrium and causality content.",
+            "decisionSha256": "6ad4fbc2937ef3f3add2c0a6dbd0b0cda022b53cc73092d1f4eac301bccdf5e1"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 2,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 3
+            },
+            "loserScores": {
+              "sourceFidelity": 1,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 2,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 2,
+              "feedbackInstructionality": 0,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 2,
+            "totalScoreMargin": 15,
+            "winnerCriticalDefects": [
+              "The elasticity-versus-slope fact is unsupported, and the materials field invents an OpenStax-attributed note about stipend timing."
+            ],
+            "loserCriticalDefects": [
+              "Unsupported factual claims introduce equilibrium and natural-experiment causality, plus invented price-sensitivity and ten-percent details.",
+              "Question 1 declares the left-shift option while its explanation says right shift, and the source does not establish either direction.",
+              "Question 2 declares a demand shift while its explanation correctly identifies movement along the curve."
+            ],
+            "rationale": "A gives accurate movement-versus-shift instruction, a strong decision scenario, and correct keys despite mismatched fact citations. B has two explanation-key contradictions, an underdetermined income question, and substantial unsupported content.",
+            "decisionSha256": "be4e8bf4ded1989787687193e9d95b9e07e45bc3e5e183bd97edcdf38fc39810"
+          }
+        ]
+      },
+      "trainingEligible": false
+    },
+    {
+      "caseId": "scion-kernel-05658ae0127b2174e4d050d0",
+      "pairId": "scion-kernel-pair-a26115749780ef4d9c60d45b",
+      "winners": {
+        "A/B": "da939a320ec591453627d72b252071652873d919dcfe709a90f70d836e723a5e",
+        "B/A": "da939a320ec591453627d72b252071652873d919dcfe709a90f70d836e723a5e"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": true,
+      "scoreQualification": {
+        "qualified": true,
+        "winnerMinimumScore": 3,
+        "minimumTotalScoreMargin": 14,
+        "winnerCriticalDefects": [],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 2,
+              "assessmentCorrectness": 2,
+              "choiceDiscriminability": 1,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 2
+            },
+            "winnerMinimumScore": 3,
+            "totalScoreMargin": 15,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The fact 'A journey map should start from research about the steps users actual.' is truncated instructional text.",
+              "The second question has two source-supported alternatives—dead-end detection and struggle-point detection—so its declared answer is not unique."
+            ],
+            "rationale": "B is the clear winner because it converts the source claims into an inspectable cross-channel decision, keeps both keys unique, and explains the closest misconceptions. A contains truncated text, placeholder evidence, and a critically ambiguous second question with two defensible answers.",
+            "decisionSha256": "23def25367ac5dbcf2ba3d925578cd1ae2ad33aff82bfdc530a1e32651bf13c2"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 2,
+              "assessmentCorrectness": 2,
+              "choiceDiscriminability": 2,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 2
+            },
+            "winnerMinimumScore": 3,
+            "totalScoreMargin": 14,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The fact “A journey map should start from research about the steps users actual” is truncated instructional text.",
+              "The claimed distinction that journey analysis is analyzing a map rather than drawing it is unsupported by the supplied source.",
+              "Question 2 is ambiguous because both a journey-map dead end and an experience-map struggle point are directly supported alternatives."
+            ],
+            "rationale": "A covers every supplied claim, supplies inspectable cross-channel evidence, and has coherent, uniquely supported assessments. B contains truncated text, unsupported distinctions, placeholder evidence, and an assessment with two defensible answers.",
+            "decisionSha256": "4df3c63527972300007d6f882bc604ac8c8659d8587187df5cf83543f0c0e7b2"
+          }
+        ]
+      },
+      "trainingEligible": true
+    }
+  ],
+  "summary": {
+    "pairs": 3,
+    "stablePreferences": 1,
+    "localWins": 0,
+    "referenceWins": 3,
+    "unstable": 0,
+    "scoreRejected": 2,
+    "compilerRejected": 0
+  },
+  "claimBoundary": "These are same-identity model-judge preferences from isolated A/B and B/A orders. They are not human, instructor, independent, classroom, heldout-adapter, or production-win evidence.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "85c5bd5b8ef2e7bdb42d92d60589e908c2a9d425863134b621c50944618a9e23"
+  }
+}

@@ -1,6 +1,6 @@
 {
   "name": "course-mapper",
-  "version": "0.16.55",
+  "version": "0.16.56",
   "type": "module",
   "description": "AI-powered course syllabus to course map generator",
   "scripts": {
@@ -125,7 +125,9 @@
     "build:scion:semantic-admission": "node scripts/scionSemanticAdmissionAudit.mjs --write --generated-at 2026-07-16T18:45:00.000Z",
     "audit:scion:semantic-admission": "node scripts/scionSemanticAdmissionAudit.mjs --verify",
     "build:scion:semantic-admission:v2": "node scripts/scionSemanticAdmissionV2Audit.mjs --write",
-    "audit:scion:semantic-admission:v2": "node scripts/scionSemanticAdmissionV2Audit.mjs",
+    "audit:scion:semantic-admission:v2": "node scripts/scionSemanticAdmissionV01655Audit.mjs",
+    "build:scion:semantic-admission:v0.16.55": "node scripts/scionSemanticAdmissionV01655Audit.mjs --write",
+    "audit:scion:semantic-admission:v0.16.55": "node scripts/scionSemanticAdmissionV01655Audit.mjs",
     "audit:scion:semantic-admission:v0.16.48": "node scripts/scionSemanticAdmissionV2Audit.mjs",
     "audit:scion:semantic-admission:v0.16.49": "node scripts/scionSemanticAdmissionV2Audit.mjs",
     "audit:scion:semantic-admission:v0.16.50": "node scripts/scionSemanticAdmissionV2Audit.mjs",
@@ -139,6 +141,8 @@
     "ingest:scion:lesson-kernel-judge:v0.16.54": "node scripts/scionLessonKernelJudgeBatches.mjs --ingest",
     "run:scion:lesson-kernel-judge:v0.16.54": "node scripts/scionLessonKernelJudgeRunner.mjs",
     "replay:scion:lesson-kernel-admission:v0.16.54": "node scripts/scionLessonKernelAdmissionReplay.mjs",
+    "build:scion:lesson-kernel-evidence:v0.16.56": "node scripts/scionLessonKernelEvidenceV01656.mjs --build",
+    "audit:scion:lesson-kernel-evidence:v0.16.56": "node scripts/scionLessonKernelEvidenceV01656.mjs --audit",
     "build:scion:lesson-kernel-teacher:v0.16.54": "node scripts/scionLessonKernelTeacherRevisionBatches.mjs --build",
     "run:scion:lesson-kernel-teacher:v0.16.54": "node scripts/scionLessonKernelTeacherRevisionRunner.mjs",
     "ingest:scion:lesson-kernel-teacher:v0.16.54": "node scripts/scionLessonKernelTeacherRevisionBatches.mjs --ingest",
