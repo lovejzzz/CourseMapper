@@ -1,7 +1,7 @@
 import React from 'react';
 import Header from '../components/Header';
 
-const LAST_UPDATED = 'July 13, 2026';
+const LAST_UPDATED = 'July 18, 2026';
 
 export default function PrivacyPolicy() {
   return (
@@ -19,9 +19,9 @@ export default function PrivacyPolicy() {
         <div className="glass panel-glow rounded-squircle shadow-glass p-8 space-y-6 text-sm text-slate-700 leading-relaxed">
           <Section title="Overview">
             <p>
-              Course Mapper is a free, browser-based tool built by Tian Xing. It uses AI to transform course syllabi
-              into structured Course Map spreadsheets. This privacy policy explains how your data is handled when you
-              use Course Mapper.
+              Course Mapper is a free, browser-based tool built by Tian Xing. It uses AI to turn a course brief or
+              syllabus into an aligned workspace with a course map, instructor materials, and student resources. This
+              privacy policy explains how your data is handled when you use Course Mapper.
             </p>
           </Section>
 
@@ -47,9 +47,10 @@ export default function PrivacyPolicy() {
                 your key on any server.
               </li>
               <li>
-                <strong>Course map data</strong> — generated course maps are stored in your browser's local storage for
-                auto-save. If you sign in, project data and profile settings may also sync to Firebase for your account.
-                They are otherwise not transmitted except when you explicitly export.
+                <strong>Course workspace data</strong> — the course map, generated materials, and workspace history are
+                stored in your browser's local storage for auto-save. If you sign in, project data and profile settings
+                may also sync to Firebase for your account. They are otherwise not transmitted except when you
+                explicitly export.
               </li>
               <li>
                 <strong>Institution profile defaults</strong> — optional instructor, classroom logistics, and reusable
@@ -152,9 +153,10 @@ export default function PrivacyPolicy() {
           <Section title="Local Storage">
             <p>
               Course Mapper uses your browser's local storage to save your work automatically. This includes your course
-              map, chat history, version history, column configuration, institution profile defaults, and selected AI
-              provider. This data stays on your device unless you choose sign-in cloud sync or export. You can clear
-              local data at any time by clicking "New Project" or clearing your browser data.
+              workspace, generated materials, chat history, version history, configuration, institution profile
+              defaults, and selected AI provider. This data stays on your device unless you choose sign-in cloud sync or
+              export. You can clear local project data by starting a new project, or remove all locally stored data
+              through your browser settings.
             </p>
           </Section>
 
