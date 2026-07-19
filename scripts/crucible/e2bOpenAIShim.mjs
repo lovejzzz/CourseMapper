@@ -44,6 +44,9 @@ let calls = 0;
 let completedCalls = 0;
 let failedModelCalls = 0;
 let inFlightCalls = 0;
+let activeGenerationCalls = 0;
+let maxConcurrentGenerationCalls = 0;
+let generationQueueTail = Promise.resolve();
 let failures = 0;
 let lastGenerationError = '';
 let modelState = 'loading';
@@ -148,19 +151,38 @@ async function generate({ system, user, maxTokens, schema, jsonMode, temperature
   // is serial; the compiler batches parallel calls) — 20min so a deep queue
   // is slow, not a fake failure.
   try {
-    const result = await sGenerate(
-      {
-        system,
-        user,
-        task: 'items',
-        maxTokens,
-        schema,
-        jsonMode,
-        temperature,
-        adapterMode: requestContext?.adapterRoute?.mode || 'base-only',
-      },
-      { timeoutMs: 1_200_000, includeMetadata: true },
-    );
+    // sModel's items transport is logically serial, but concurrent HTTP
+    // requests previously reached the MLX worker together and pushed the
+    // adapter benchmark above 11 GB before tendril-s exited. Make the shim's
+    // execution boundary explicit: callers may fan out, while exactly one
+    // generation owns the local model at a time (matching browser Scion).
+    const previous = generationQueueTail;
+    let releaseQueue;
+    generationQueueTail = new Promise((resolve) => {
+      releaseQueue = resolve;
+    });
+    await previous.catch(() => {});
+    activeGenerationCalls += 1;
+    maxConcurrentGenerationCalls = Math.max(maxConcurrentGenerationCalls, activeGenerationCalls);
+    let result;
+    try {
+      result = await sGenerate(
+        {
+          system,
+          user,
+          task: 'items',
+          maxTokens,
+          schema,
+          jsonMode,
+          temperature,
+          adapterMode: requestContext?.adapterRoute?.mode || 'base-only',
+        },
+        { timeoutMs: 1_200_000, includeMetadata: true },
+      );
+    } finally {
+      activeGenerationCalls -= 1;
+      releaseQueue();
+    }
     const requestedMode = requestContext?.adapterRoute?.mode || 'base-only';
     if (
       !result ||
@@ -1190,6 +1212,9 @@ const server = http.createServer(async (req, res) => {
           completedCalls,
           failedModelCalls,
           inFlightCalls,
+          queuedGenerationCalls: Math.max(0, inFlightCalls - activeGenerationCalls),
+          activeGenerationCalls,
+          maxConcurrentGenerationCalls,
           failures,
           lastGenerationError,
           bodyLogEnabled: Boolean(BODY_LOG),
