@@ -23,6 +23,8 @@ const PUBLIC_SCION_TEMPLATE_RESIDUE_RE =
   /\b(?:two lesson concepts?|lesson concept to this concrete case|replace with (?:one complete distinction question|one concrete case question|a plausible subject-specific|a plausible case-specific)|plausible methodological claim or action|plausible case interpretation or action)\b/i;
 const PUBLIC_SCION_TRUNCATED_CLAIM_RE =
   /(?:-[a-z]{1,3}|\b(?:a|an|and|any|as|at|by|each|every|for|from|in|of|on|or|the|to|with|without)|\b(?:users?|students?|participants?|customers?|people)\s+(?:actual|specific|respective|relevant|related))\s*[.!?]?$/i;
+const PUBLIC_SCION_CODE_IDENTIFIER_SENTENCE_RE = /^[\s“"'([{]*[a-z_][a-z0-9_.]*\([^)]*\)\s+\p{L}/iu;
+const PUBLIC_SCION_RELATIVE_PREPOSITION_END_RE = /\b(?:that|which|whom)\b[^.!?]*\b(?:from|to|with)\s*[.!?][\])}"']?$/i;
 const PUBLIC_SCION_ANSWER_POSITION_RE =
   /\b(?:the\s+)?key\s+(?:wins?|fits?|is|because)|\b(?:zero(?:th)?|first|second|third|fourth)\s+(?:option|choice|answer)\b|\b(?:option|choice|answer)\s*(?:[A-D0-4]|zero|one|two|three|four|zeroth|first|second|third|fourth)\b/i;
 const PUBLIC_SCION_INTERNAL_INDEX_RE = /\b(?:fact|claim|source(?:Fact)?Index)\s*#?\s*\d+\b/i;
@@ -200,7 +202,7 @@ function repairPublicScionFactSentences(parsed) {
         publicScionWordCount(value) >= 8 &&
         publicScionWordCount(value) <= 20 &&
         /[.!?][\])}"']?$/.test(value) &&
-        !PUBLIC_SCION_TRUNCATED_CLAIM_RE.test(value);
+        !publicScionLooksTruncatedClaim(value);
       if (alreadyValid) return fact;
       const replacement = (value.match(/[^.!?]+[.!?]+/g) || [])
         .map((sentence) => sentence.trim())
@@ -494,6 +496,17 @@ function publicScionUnsupportedQuantities(value, sourceText) {
   return [...new Set(publicScionQuantitySignatures(value))].filter((quantity) => !sourceQuantities.has(quantity));
 }
 
+function publicScionLooksTruncatedClaim(value) {
+  const text = String(value || '').trim();
+  if (!PUBLIC_SCION_TRUNCATED_CLAIM_RE.test(text)) return false;
+  return !PUBLIC_SCION_RELATIVE_PREPOSITION_END_RE.test(text);
+}
+
+function publicScionStartsWithLowercaseFragment(value) {
+  const text = String(value || '').trim();
+  return /^[\s“"'([{]*[a-z]/.test(text) && !PUBLIC_SCION_CODE_IDENTIFIER_SENTENCE_RE.test(text);
+}
+
 export function assessPublicScionKernelResponse(responseText, userPrompt, task) {
   if (task !== 'blueprintEnrichment') return { needsRetry: false, issues: [] };
   const expectedLessons = extractPublicScionKernelLessons(userPrompt).filter((lesson) => lesson?.lessonId);
@@ -531,8 +544,8 @@ export function assessPublicScionKernelResponse(responseText, userPrompt, task) 
         }
         if (
           !/[.!?][\])}"']?$/.test(String(fact || '').trim()) ||
-          /^[\s“"'([{]*[a-z]/.test(String(fact || '')) ||
-          PUBLIC_SCION_TRUNCATED_CLAIM_RE.test(fact)
+          publicScionStartsWithLowercaseFragment(fact) ||
+          publicScionLooksTruncatedClaim(fact)
         ) {
           issues.push(`${expected.lessonId}:fact-${index}:truncated-fact`);
         }
@@ -925,12 +938,40 @@ export function extractPublicScionPriorLessonTitles(userPrompt = '') {
     .slice(0, 24);
 }
 
+function cleanPublicScionTopicItem(value) {
+  return String(value || '')
+    .replace(/^\s*(?:(?:lesson|week|module)\s*)?\d{1,2}\s*[:.)\-–—]\s*/i, '')
+    .replace(/\s+/g, ' ')
+    .replace(/[.;:,]+$/g, '')
+    .trim();
+}
+
+export function extractPublicScionExplicitTopicSequence(source = '') {
+  const text = String(source || '');
+  const labeledList = text.match(
+    /\b(?:(?:use|cover|include)\s+\w+\s+)?(?:distinct\s+)?(?:weekly\s+)?(?:focus(?:es)?|topics?|modules?)\s*:\s*([^\n.]+)/i,
+  );
+  if (labeledList?.[1]?.includes(';')) {
+    const items = labeledList[1].split(';').map(cleanPublicScionTopicItem).filter(Boolean);
+    if (items.length >= 2) return items.slice(0, 24);
+  }
+
+  const numbered = text
+    .split('\n')
+    .map((line) => line.match(/^\s*(?:(?:lesson|week|module)\s*)?\d{1,2}\s*[:.)\-–—]\s*(.+)$/i)?.[1])
+    .map(cleanPublicScionTopicItem)
+    .filter(Boolean);
+  return numbered.length >= 2 ? numbered.slice(0, 24) : [];
+}
+
 function buildCompactPublicScionPrompt(userPrompt) {
   const source = extractPublicScionSource(userPrompt);
   const { start, count, continuation } = extractPublicScionLessonWindow(userPrompt);
   const totalLessonCount = extractPublicScionTotalLessonCount(userPrompt);
   const isFinalWindow = continuation && totalLessonCount && start + count - 1 >= totalLessonCount;
   const priorLessonTitles = continuation ? extractPublicScionPriorLessonTitles(userPrompt) : [];
+  const explicitTopicSequence = extractPublicScionExplicitTopicSequence(source);
+  const requiredTopicPlan = explicitTopicSequence.slice(start - 1, start - 1 + count);
   const lessonsLabel = count === 1 ? `Lesson ${start}` : `Lesson ${start} through Lesson ${start + count - 1}`;
   const wrapper = continuation
     ? 'Return this JSON shape: {"lessons":[...new lesson objects only...]}.'
@@ -957,6 +998,7 @@ function buildCompactPublicScionPrompt(userPrompt) {
 ${source}
 
 ${priorLessonTitles.length > 0 ? `PRIOR LESSONS (do not repeat):\n${priorLessonTitles.map((title) => `- ${title}`).join('\n')}\n` : ''}
+${requiredTopicPlan.length === count ? `REQUIRED TOPIC PLAN (one exact focus per lesson):\n${requiredTopicPlan.map((topic, index) => `- Lesson ${start + index}: ${topic}`).join('\n')}\n` : ''}
 ${isFinalWindow ? `FINAL WINDOW: Lessons ${start}-${start + count - 1} of ${totalLessonCount}. Work backward from the end of SOURCE so Lesson ${totalLessonCount} names the final source outline item.\n` : ''}
 
 TASK:
@@ -980,6 +1022,7 @@ Rules:
 - Make every topic, assessment, and activity specific to the source.
 - If SOURCE names a reading, handout, example, recording, dataset, case, or evidence packet, copy its exact name into supportingResources. Never replace a named source with a generic handout.
 - Every new lesson must introduce a distinct topic not used in PRIOR LESSONS.
+- When REQUIRED TOPIC PLAN is present, follow its lesson-to-focus mapping exactly; title case is allowed, substitution is not.
 - Advance through later source concepts; never recycle an earlier topic as a new lesson title.
 - Treat concepts joined by "and" inside one source outline item as one combined lesson and name both concepts in its title.
 - In continuation windows, prioritize the later unused SOURCE items.

@@ -95,6 +95,25 @@ describe('buildAgentSystemPrompt', () => {
     expect(prompt).toContain('toolIndex=2');
   });
 
+  it('gives the Agent authoritative duplicate-title conflicts from the compiler', () => {
+    const courseMap = {
+      courseName: 'Macroeconomics',
+      semester: 'Fall 2026',
+      lessons: [
+        { title: 'Lesson 2: Supply and Demand', sections: [] },
+        { title: 'Lesson 4: Supply & Demand', sections: [] },
+        { title: 'Lesson 3: Measuring Inflation with CPI', sections: [] },
+        { title: 'Lesson 5: Measuring Inflation with Consumer Price Index', sections: [] },
+      ],
+    };
+
+    const prompt = buildAgentSystemPrompt(courseMap, 'courseMap', {});
+
+    expect(prompt).toContain('Deterministic title conflicts (authoritative)');
+    expect(prompt).toContain('Lessons 1 and 2 repeat the same topic identity');
+    expect(prompt).toContain('Lessons 3 and 4 repeat the same topic identity');
+  });
+
   it('shows active tab name "Quiz & Exam Bank" for quizBank', () => {
     const prompt = buildAgentSystemPrompt(baseCourseMap, 'quizBank', baseDeliverables);
     expect(prompt).toContain('Quiz & Exam Bank');

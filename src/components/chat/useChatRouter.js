@@ -14,6 +14,7 @@ import { createCustomToolRegistry, mergeCloudCustomTools, parseExportedTool } fr
 import { saveCustomTool, deleteCustomTool } from '../../lib/cloudStorage';
 import { AGENT_EXECUTION_MODES, AGENT_EXECUTION_MODE_STORAGE_KEY } from '../../lib/agentExecutionMode';
 import { buildAgentSourceContextMessage } from '../../lib/agentSourceContext';
+import { getScionAgentFailureMessage } from '../../lib/scionUserFacingError';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // useChatRouter — Unified hook for Ask (help AI) + Revise (agent/revision)
@@ -38,6 +39,13 @@ export function prepareAutoReviewSend(text) {
     agentPromptOverride: trimmed,
     silent: true,
   };
+}
+
+export function resolveChatRoute({ courseMap, hasDeliverables, isGenerating, hasExecutor } = {}) {
+  if (isGenerating) return 'help';
+  if ((hasDeliverables || courseMap) && hasExecutor) return 'agent';
+  if (courseMap) return 'revision';
+  return 'help';
 }
 
 export function buildRetryFailedPrompt(failedItems, toolName) {
@@ -343,7 +351,14 @@ export default function useChatRouter({
       return;
     }
 
-    if (hasDeliverables && !isGenerating && executeActionRef.current) {
+    const chatRoute = resolveChatRoute({
+      courseMap,
+      hasDeliverables,
+      isGenerating,
+      hasExecutor: Boolean(executeActionRef.current),
+    });
+
+    if (chatRoute === 'agent') {
       if (!agentProviderReady) {
         if (!preparedSend.silent) appendAgentUnavailableMessage(displayTextOverride || trimmed);
         return;
@@ -354,13 +369,11 @@ export default function useChatRouter({
         silent: preparedSend.silent,
         dryRunOverride: options.forceApplyMode ? false : options.dryRunOverride,
       });
-    } else if (isGenerating) {
+    } else if (chatRoute === 'help') {
       // Deliverables are being generated — use help mode only (no edits)
       await sendHelpMessage(trimmed);
-    } else if (courseMap) {
-      await sendRevision(trimmed);
     } else {
-      await sendHelpMessage(trimmed);
+      await sendRevision(trimmed);
     }
   }
 
@@ -600,7 +613,9 @@ export default function useChatRouter({
       const assistantReply = result?.chatReply || 'Updated! Review the changes in the workspace.';
       setMessages((prev) => [...prev, { role: 'assistant', text: assistantReply }]);
     } catch (err) {
-      setMessages((prev) => [...prev, { role: 'error', text: `Failed: ${err.message}` }]);
+      const message =
+        provider === 'public' ? getScionAgentFailureMessage(err) : `Failed: ${err.message}`;
+      setMessages((prev) => [...prev, { role: 'error', text: message }]);
     }
   }
 

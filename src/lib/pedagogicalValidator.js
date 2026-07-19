@@ -13,6 +13,7 @@
 import { getArrayKey } from './syncDependencies';
 import { isProvenanceMirrorKey } from './compiledLanguageFinalizer';
 import { parseClassSessionMinutes } from './sourceBriefConstraints';
+import { findDuplicateLessonTitleGroups } from './lessonTitleIdentity';
 import readability from 'text-readability';
 
 // ── Bloom's Taxonomy ─────────────────────────────────────────────────────────
@@ -792,6 +793,19 @@ function validateCourseMapSemanticQuality(courseMap) {
   const findings = [];
   const lessons = courseMap?.lessons || [];
   const lessonCount = lessons.length;
+
+  for (const group of findDuplicateLessonTitleGroups(lessons)) {
+    const lessonNumbers = group.lessonIndices.map((index) => index + 1);
+    findings.push({
+      id: `semantic-duplicate-lesson-topic-${group.identity.replace(/\s+/g, '-')}`,
+      severity: 'error',
+      category: 'semanticQuality',
+      message: `Lessons ${lessonNumbers.join(', ')} repeat the same topic identity: ${group.titles.join(' / ')}`,
+      lessonIndex: lessonNumbers[1] - 1,
+      featureId: 'courseMap',
+      suggestedPrompt: `Give Lessons ${lessonNumbers.join(' and ')} distinct conceptual focuses, objectives, and titles before publishing.`,
+    });
+  }
 
   lessons.forEach((lesson, li) => {
     const title = String(lesson?.title || lesson?.lessonTitle || '');

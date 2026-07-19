@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-review-v1",
+  "order": "B/A",
+  "packetSha256": "6a69b0c8d5c3ca5c1cd4dac84ddc9a7641dd11bc661ac1167a034b83fb3bad33",
+  "sessionId": "scion-v01654-batch-007-6ee2361097-b-a-e90ba156-9b6a-48c9-ae11-a11c12e581d7",
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "completedAt": "2026-07-19T11:17:39Z",
+  "attestations": {
+    "anonymousArtifactsOnly": true,
+    "otherOrderUnavailable": true,
+    "organizerMappingUnavailable": true
+  },
+  "decisions": [
+    {
+      "caseId": "scion-kernel-57b7148eae73e0ce43d21a78",
+      "pairId": "scion-kernel-pair-0e48e4c71bb98b4570abcc7f",
+      "artifactSha256": {
+        "A": "b289c4e9e7e27d33da388dbbaa179f61102d2d26c729ba883d57cbb9e32ac57e",
+        "B": "d34583d308b1821ea228bb1ee0a617849db2cdde508c5d3e64edb2950c32ba13"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "The superposition and cross-cutting content follows the packet, but A adds the unsupplied rule that inclusions are older than their containing rock and makes that rule central to its second question."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "Definitions of relative dating, superposition, and cross-cutting are accurate and distinct, though the inclusion rule extends beyond the supplied claims and the inserted basalt detail is left geologically unresolved."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The team must identify which feature formed first using an inspectable fault trace, explicitly undisturbed strata, vertical bed order, and the constraint that no numerical ages are available."
+          },
+          "assessmentCorrectness": {
+            "score": 2,
+            "evidence": "Question 1 keys the supported compound conclusion, but its fi citation names only fact 0; question 2 keys a conclusion that depends on the unsupplied inclusion rule, and fi [3] does not support the fracture half of the answer."
+          },
+          "choiceDiscriminability": {
+            "score": 2,
+            "evidence": "The alternatives are distinct, but both correct choices are long compound statements while distractors rely on conspicuous cues such as surface position, thinness, or narrowness."
+          },
+          "feedbackInstructionality": {
+            "score": 3,
+            "evidence": "The explanations state the lower-is-older and cutter-is-younger logic and directly reject thinness or narrowness as age evidence, but the second explanation teaches an inclusion rule absent from the source packet."
+          },
+          "internalCoherence": {
+            "score": 3,
+            "evidence": "Facts, keys, and explanations mostly agree internally, but each fi array omits at least one fact needed for its compound answer, weakening citation-to-answer coherence."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "Its substantive statements reproduce the supplied rules: relative dating avoids numerical ages, undisturbed lower layers are older, and a cutting feature is younger than what it disrupts."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "The three key-term definitions and examples are accurate, but the facts list repeats the superposition statement twice and the cross-cutting statement twice instead of providing distinct instructional coverage."
+          },
+          "scenarioReadiness": {
+            "score": 1,
+            "evidence": "The scenario already states that the dike is clearly younger, never poses a concrete choice, and describes clear layering without explicitly establishing the undisturbed condition needed for superposition."
+          },
+          "assessmentCorrectness": {
+            "score": 0,
+            "evidence": "Both declared keys are wrong: question 1 sets ai to the older-than option, and question 2 sets ai to the youngest-at-bottom option, while their cited facts and explanations support option 1 in each question."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "Each item offers four distinct age or rule interpretations in broadly parallel form, although several distractors such as same age, unrelated, or igneous-only are easy eliminations."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "The explanation text states the correct younger-than and older-below rules, but it contradicts each declared answer and only says the remaining options suggest errors without diagnosing the closest misconception."
+          },
+          "internalCoherence": {
+            "score": 0,
+            "evidence": "In both questions ai is 0 while fi and ex support option index 1, producing direct answer-citation-explanation contradictions throughout the assessment."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "A introduces the unsupported factual claim that inclusions are older than the containing rock and uses it to determine the declared answer to question 2."
+        ],
+        "B": [
+          "Question 1 declares option 0, saying the cutting feature is older, while the cited fact and explanation say the cutting feature is younger and support option 1.",
+          "Question 2 declares option 0, saying the youngest layer is at the bottom, while the cited fact and explanation say older layers are below younger layers and support option 1.",
+          "The scenario supplies its own dike-age conclusion and provides no concrete unresolved decision; it also does not explicitly establish an undisturbed sequence for applying superposition."
+        ]
+      },
+      "decision": "A",
+      "rationale": "A is the relative winner because it provides an actionable, evidence-based scenario and at least one correctly keyed assessment item with coherent explanations. Its unsupported inclusion rule is a material source-fidelity defect, but B is substantially less usable: both declared answers contradict their options, cited facts, and explanations, and its scenario states the conclusion without presenting a genuine decision."
+    }
+  ]
+}

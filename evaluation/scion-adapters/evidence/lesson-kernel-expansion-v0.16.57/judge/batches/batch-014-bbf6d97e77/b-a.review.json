@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-review-v1",
+  "order": "B/A",
+  "packetSha256": "e02bfcc3a2341f862d83294612229a24abade3fdcc2aeacda3a968f2069029ee",
+  "sessionId": "scion-v01654-batch-014-bbf6d97e77-b-a-9477eeb2-d235-4b72-aaa9-84f7b37274fd",
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "completedAt": "2026-07-19T11:25:06Z",
+  "attestations": {
+    "anonymousArtifactsOnly": true,
+    "otherOrderUnavailable": true,
+    "organizerMappingUnavailable": true
+  },
+  "decisions": [
+    {
+      "caseId": "scion-kernel-e0d838f04c63f6ab675e76f9",
+      "pairId": "scion-kernel-pair-03bf94e5eb3bb71f79805475",
+      "artifactSha256": {
+        "A": "663808e18db23a3aa1d8b85e9a3bf75ebeb32ac81957c39f637476e9a9e65d36",
+        "B": "d6d108cd831c441af5c172eea5b09a4dc355411d374d5a9aa04fc6fc69714f44"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "Most content tracks the supplied claims, but the fact calling natural minor's seventh degree \"raised\" is unsupported and conflicts with its whole-step subtonic treatment."
+          },
+          "knowledgePrecision": {
+            "score": 2,
+            "evidence": "The major pattern and subtonic definition are useful, but \"raised seventh degree\" materially confuses the otherwise precise whole-step-below-tonic distinction."
+          },
+          "scenarioReadiness": {
+            "score": 3,
+            "evidence": "The learner must label two inspectable step patterns using their adjacent steps and final tonic approach, though the scenario supplies little genuine constraint beyond the classification task."
+          },
+          "assessmentCorrectness": {
+            "score": 3,
+            "evidence": "Both declared answers are unique and source-supported overall, but the second question cites fact index 2, which gives the interval without establishing the requested term \"subtonic.\""
+          },
+          "choiceDiscriminability": {
+            "score": 2,
+            "evidence": "The alternatives are distinct, but both questions mix scale types, scale-degree names, and interval labels, making the sets nonparallel and several distractors weak."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation states the supporting pattern or degree relationship and directly distinguishes the closest misconception without referring to answer position."
+          },
+          "internalCoherence": {
+            "score": 2,
+            "evidence": "Questions, keys, and explanations mostly agree, but \"raised seventh\" conflicts with the whole-step subtonic definition and the second fact citation omits the answer's term."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 1,
+            "evidence": "The facts mostly paraphrase the packet, but the scenario invents C minor and a major-or-minor sound choice, while the second declared answer contradicts the supplied whole-step claim."
+          },
+          "knowledgePrecision": {
+            "score": 2,
+            "evidence": "Core definitions are accurate but repetitive, and the alleged misconception that the major pattern \"always begins with a whole step\" is actually true rather than genuinely false."
+          },
+          "scenarioReadiness": {
+            "score": 2,
+            "evidence": "The composer has evidence and a stated scale-structure constraint, but deciding between major and natural minor after the piece is already specified as C minor is poorly framed."
+          },
+          "assessmentCorrectness": {
+            "score": 0,
+            "evidence": "The first item has two source-supported alternatives and an explanation opposing its key; the second keys \"half step\" even though its citation and explanation say \"whole step.\""
+          },
+          "choiceDiscriminability": {
+            "score": 2,
+            "evidence": "The second option set is parallel and distinct, but the first includes both the major half-step fact and natural-minor whole-step fact as simultaneously valid responses."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "The explanations repeat the correct whole-step claim, but both conflict with their declared keys and the first incorrectly rejects the source-supported major half step."
+          },
+          "internalCoherence": {
+            "score": 1,
+            "evidence": "Both assessment keys conflict with their explanations and cited natural-minor fact, and the scenario's C-minor premise clashes with its major-versus-natural-minor decision."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "Unsupported factual claim: a fact calls the natural-minor seventh degree \"raised\" while identifying it as the whole-step subtonic."
+        ],
+        "B": [
+          "Invented named example: the scenario introduces C minor despite no named key appearing in the supplied source.",
+          "The first assessment is ambiguous because both the major half-step statement and the natural-minor whole-step statement are source-supported; its explanation also contradicts the declared answer.",
+          "The second assessment declares the half-step option correct even though the supplied claim, cited fact, and explanation all specify a whole step."
+        ]
+      },
+      "decision": "A",
+      "rationale": "Artifact A has one serious unsupported term and weaker option parallelism, but its answers and feedback remain substantially usable. Artifact B has pervasive assessment failure: one ambiguous item, one incorrect key, and explanations that contradict both declared answers, plus an invented named scenario detail."
+    }
+  ]
+}

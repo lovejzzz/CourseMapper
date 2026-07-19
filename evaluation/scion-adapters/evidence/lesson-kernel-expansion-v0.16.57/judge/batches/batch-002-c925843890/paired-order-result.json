@@ -1,0 +1,138 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-paired-order-result-v1",
+  "generatedAt": "2026-07-19T19:00:00.000Z",
+  "status": "paired-orders-complete",
+  "requiredOrders": [
+    "A/B",
+    "B/A"
+  ],
+  "sessions": {
+    "A/B": "scion-v01654-batch-002-c925843890-a-b-0b8e9875-ad90-4988-baf1-8e316bec8adb",
+    "B/A": "scion-v01654-batch-002-c925843890-b-a-5a9192b8-b711-4013-8046-87bc8e666de9"
+  },
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "evidence": {
+    "prompt": {
+      "path": "evaluation/scion-adapters/lesson-kernel-judge-prompt-v0.16.54.md",
+      "sha256": "37844b86736335db54b561d8c031660ef71679c55ae1108e2e999e746f2a1c96"
+    },
+    "packets": {
+      "A/B": "2f5a521217d2e9996aa0a373dcef2aa5c5f46d149eec3b29477ca6c96632882c",
+      "B/A": "abd626c3b4065bc14979c2e741d09be3e5a8bcc700d35994c4cc5a3fee1ad04f"
+    },
+    "reviews": {
+      "A/B": "009116db9b66510c1ea4df4edac2797a560ddc17db166e2d80ed2d571d7be682",
+      "B/A": "5a845f164066356a715b45108b63d23b822aa1f6787224ff648d026da0602739"
+    }
+  },
+  "issues": [],
+  "results": [
+    {
+      "caseId": "scion-kernel-027513236e6245031d2ac0f2",
+      "pairId": "scion-kernel-pair-f046f7cd790d85e5fd59dc5f",
+      "winners": {
+        "A/B": "d2e7e20851969cc04de32adedafedae9847512164801dbcfb05654a46a5ad26e",
+        "B/A": "d2e7e20851969cc04de32adedafedae9847512164801dbcfb05654a46a5ad26e"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": true,
+      "scoreQualification": {
+        "qualified": false,
+        "winnerMinimumScore": 2,
+        "minimumTotalScoreMargin": 10,
+        "winnerCriticalDefects": [
+          "The scalar/vector classifications and charged-plate distance example are unsupported factual additions beyond the supplied claims.",
+          "Unsupported factual additions include scalar/vector classifications, positive-test-charge behavior, and an unsigned charged-plate example that asserts higher potential nearby."
+        ],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 3,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 3
+            },
+            "loserScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 2,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 0,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 2,
+            "totalScoreMargin": 10,
+            "winnerCriticalDefects": [
+              "The scalar/vector classifications and charged-plate distance example are unsupported factual additions beyond the supplied claims."
+            ],
+            "loserCriticalDefects": [
+              "Question one declares option 0, but the supplied claim makes option 2, potential difference, uniquely correct; its explanation also fails to support option 0.",
+              "Question two declares option 0, while its cited fact and explanation establish option 2; this is both an incorrect answer and an answer-explanation contradiction."
+            ],
+            "rationale": "B is the clear relative winner because both answer keys are correct, its explanations explicitly teach the governing distinctions, and its scenario presents a usable evidence-based decision. A preserves the source concepts but has incorrect declared answers and direct answer-explanation contradictions in both assessments. B's unsupported scalar/vector and charged-plate additions prevent a top source-fidelity rating but do not outweigh A's critical assessment failures.",
+            "decisionSha256": "b6e8b4a91464e40c2fcc3abe9bdf0611d341baf8f98d732857b3ae6d2ac07d3f"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 3,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 2,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 2,
+              "feedbackInstructionality": 0,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 2,
+            "totalScoreMargin": 14,
+            "winnerCriticalDefects": [
+              "Unsupported factual additions include scalar/vector classifications, positive-test-charge behavior, and an unsigned charged-plate example that asserts higher potential nearby."
+            ],
+            "loserCriticalDefects": [
+              "The first question incorrectly declares option 0 even though the supplied claim and stem support option 2, potential difference.",
+              "The second question incorrectly declares option 0 while its premise, cited fact, and explanation support option 2, producing an answer-explanation contradiction.",
+              "The potential-difference example overstates the quantity as determining total work without specifying the charge magnitude or retaining the per-unit-charge qualification."
+            ],
+            "rationale": "Artifact A has coherent, correctly keyed assessments and substantially stronger scenario and feedback design. Its unsupported extensions reduce source fidelity, but artifact B has incorrect declared answers and answer-explanation contradictions in both questions, which are decisive critical defects.",
+            "decisionSha256": "d9ea7e1b8fc0fea6c9b2cbb21ac59bc75b5c0525f35fe4639386748221f04949"
+          }
+        ]
+      },
+      "trainingEligible": false
+    }
+  ],
+  "summary": {
+    "pairs": 1,
+    "stablePreferences": 0,
+    "localWins": 0,
+    "referenceWins": 1,
+    "unstable": 0,
+    "scoreRejected": 1,
+    "compilerRejected": 0
+  },
+  "claimBoundary": "These are same-identity model-judge preferences from isolated A/B and B/A orders. They are not human, instructor, independent, classroom, heldout-adapter, or production-win evidence.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "be854a3fbb532d3b3f8073d87869b77ec57fbf9fc206a417e728e1432c07ad43"
+  }
+}

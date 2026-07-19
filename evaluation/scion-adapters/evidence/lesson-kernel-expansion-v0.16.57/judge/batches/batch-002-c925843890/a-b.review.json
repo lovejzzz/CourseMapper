@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-review-v1",
+  "order": "A/B",
+  "packetSha256": "2f5a521217d2e9996aa0a373dcef2aa5c5f46d149eec3b29477ca6c96632882c",
+  "sessionId": "scion-v01654-batch-002-c925843890-a-b-0b8e9875-ad90-4988-baf1-8e316bec8adb",
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "completedAt": "2026-07-19T11:09:20Z",
+  "attestations": {
+    "anonymousArtifactsOnly": true,
+    "otherOrderUnavailable": true,
+    "organizerMappingUnavailable": true
+  },
+  "decisions": [
+    {
+      "caseId": "scion-kernel-027513236e6245031d2ac0f2",
+      "pairId": "scion-kernel-pair-f046f7cd790d85e5fd59dc5f",
+      "artifactSha256": {
+        "A": "c2273ef7a2d47902c56c0dbeffe9a138cfd5afee728f15926c1a0d49f3e57b20",
+        "B": "d2e7e20851969cc04de32adedafedae9847512164801dbcfb05654a46a5ad26e"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "The facts, term definitions, and examples consistently restate energy per charge, potential difference, and decreasing potential."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "All three key terms are accurately distinguished, but the facts redundantly repeat the potential and field claims."
+          },
+          "scenarioReadiness": {
+            "score": 2,
+            "evidence": "The field arrow supports deciding whether A or B has higher potential, but no real constraint or tension is supplied."
+          },
+          "assessmentCorrectness": {
+            "score": 0,
+            "evidence": "Both declared ai values are wrong: question one requires option 2, and question two also requires option 2."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "Both sets contain four distinct alternatives, though the first question mixes quantities at different locations and along the path."
+          },
+          "feedbackInstructionality": {
+            "score": 0,
+            "evidence": "Each explanation supports an option other than the declared answer and neither addresses the closest misconception."
+          },
+          "internalCoherence": {
+            "score": 0,
+            "evidence": "Question two declares greater potential while its citation and explanation explicitly conclude less potential; question one is similarly contradictory."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "The artifact adds unsupplied scalar/vector classifications, positive-test-charge behavior, and a charged-plate distance example."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "The potential, potential-difference, and field distinctions are useful, but saying comparisons predict how charges change is imprecise."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The learner must choose a field direction from inspectable 12 V and 7 V labels while preserving the stated energy-per-charge relationship."
+          },
+          "assessmentCorrectness": {
+            "score": 3,
+            "evidence": "Both declared answers are correct, but question one cites only fact 0 even though its answer also depends on the potential-difference definition in fact 1."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "The options are distinct and nonduplicative, though question one's field-strength-and-charge distractor is conspicuously implausible."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation states the supporting relationship and directly repairs the closest total-energy or reversed-field misconception."
+          },
+          "internalCoherence": {
+            "score": 3,
+            "evidence": "Answers and explanations agree throughout, with only the incomplete fact citation on the first question weakening alignment."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "Question one declares option 0, but the supplied claim makes option 2, potential difference, uniquely correct; its explanation also fails to support option 0.",
+          "Question two declares option 0, while its cited fact and explanation establish option 2; this is both an incorrect answer and an answer-explanation contradiction."
+        ],
+        "B": [
+          "The scalar/vector classifications and charged-plate distance example are unsupported factual additions beyond the supplied claims."
+        ]
+      },
+      "decision": "B",
+      "rationale": "B is the clear relative winner because both answer keys are correct, its explanations explicitly teach the governing distinctions, and its scenario presents a usable evidence-based decision. A preserves the source concepts but has incorrect declared answers and direct answer-explanation contradictions in both assessments. B's unsupported scalar/vector and charged-plate additions prevent a top source-fidelity rating but do not outweigh A's critical assessment failures."
+    }
+  ]
+}

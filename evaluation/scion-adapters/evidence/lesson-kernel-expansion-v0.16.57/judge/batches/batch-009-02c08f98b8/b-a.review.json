@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-review-v1",
+  "order": "B/A",
+  "packetSha256": "fa3edb4c444554adffc4f3a6badf9c6853aad5cd7d95c758be87b50b4da821f2",
+  "sessionId": "scion-v01654-batch-009-02c08f98b8-b-a-507ea589-c26d-480f-a924-a4352f7cc198",
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "completedAt": "2026-07-19T11:18:52Z",
+  "attestations": {
+    "anonymousArtifactsOnly": true,
+    "otherOrderUnavailable": true,
+    "organizerMappingUnavailable": true
+  },
+  "decisions": [
+    {
+      "caseId": "scion-kernel-60e90ca7ff0ef53a48cde334",
+      "pairId": "scion-kernel-pair-90b7ef955c56991140a2dd3b",
+      "artifactSha256": {
+        "A": "f88691c5397515ac053ae6af13f725d74f9d79655c0a0948616db610a6366651",
+        "B": "533c5c62c6f6ec4cd89246b34e3b2e564cab8fe89238bfbff748f090af1043ea"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "Core claims track the source, but “helps drive plate motion,” cooler material sinking, weaker deeper material, and a trench add unsupported details."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "The three terms are clearly distinguished and misconceptions are repaired, although several definitions and examples extend beyond the supplied claims."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "Students must classify two boundary sketches using inspectable motion, ridge, mantle-flow, and new-lithosphere evidence under an explicit no-outside-descriptions constraint."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both declared answers are uniquely supported by the cited facts, and each explanation agrees with its answer."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "Each question presents four distinct processes or material relationships without duplicated alternatives or answer-position giveaways."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation states the supported relationship and directly contrasts it with a plausible molten-mantle or divergent-boundary misconception."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "The scenarios, questions, answer indices, fact citations, and explanations consistently distinguish slow solid-mantle flow, divergence, and subduction."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 0,
+            "evidence": "The artifact adds asthenosphere, crustal segments, mantle as an engine, lithosphere recycling, measured flow rates, theoretical models, and an unsupported expected-rate comparison."
+          },
+          "knowledgePrecision": {
+            "score": 1,
+            "evidence": "Some definitions repeat the supplied claims, but facts are duplicated and examples conflate or embellish mantle convection, plate movement, crust formation, and recycling."
+          },
+          "scenarioReadiness": {
+            "score": 1,
+            "evidence": "A measured flow rate supplies nominal evidence and tension, but no supported benchmark or usable disciplinary decision is provided."
+          },
+          "assessmentCorrectness": {
+            "score": 0,
+            "evidence": "Question one keys a self-contradictory option claiming flow is both irrelevant and primary; question two keys one of four identical, unsupported claims."
+          },
+          "choiceDiscriminability": {
+            "score": 0,
+            "evidence": "Question one has incomplete and internally tangled alternatives, while all four alternatives in question two are effectively identical."
+          },
+          "feedbackInstructionality": {
+            "score": 0,
+            "evidence": "Both explanations end with the placeholder “then correct the closest distractor” and never actually diagnose a misconception."
+          },
+          "internalCoherence": {
+            "score": 0,
+            "evidence": "Contradictory keyed wording, four duplicate false alternatives, truncated examples, and placeholder feedback prevent agreement among content, keys, and explanations."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "Unsupported factual claims and examples add causal or geological details absent from the packet, including convection helping drive plate motion, cooler material sinking, and weaker deeper material.",
+          "The second assessment invents a trench as named geological evidence not supplied by the source claims."
+        ],
+        "B": [
+          "Multiple unsupported factual claims and invented details appear, including asthenosphere, mantle as the engine of plate movement, lithosphere recycling, and theoretical faster-convection models.",
+          "Instructional text is truncated or unfinished, including the first key-term example, several assessment options, and both placeholder feedback statements.",
+          "The first declared answer is incorrect and internally contradictory: it calls upward mantle flow irrelevant and also the primary mechanism.",
+          "All four alternatives in the second assessment are duplicates, making the item non-discriminating and ambiguous.",
+          "The second declared answer is unsupported and incorrect because every option claims subduction is the only way to form new lithosphere at convergent boundaries.",
+          "The scenario supplies no usable disciplinary decision and depends on an unsupported expected flow-rate benchmark."
+        ]
+      },
+      "decision": "A",
+      "rationale": "Artifact A is a coherent, actionable lesson with two uniquely correct assessments and instructional feedback. It has source-fidelity defects from added geological details, but Artifact B has pervasive unsupported content, truncation, contradictory and incorrect keys, duplicate alternatives, placeholder feedback, and no usable scenario decision."
+    }
+  ]
+}

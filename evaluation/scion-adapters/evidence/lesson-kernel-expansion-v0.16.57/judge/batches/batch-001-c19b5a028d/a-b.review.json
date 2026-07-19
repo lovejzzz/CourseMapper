@@ -1,0 +1,100 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-review-v1",
+  "order": "A/B",
+  "packetSha256": "bd4f0657bb0e81649209858e178f0a81fe57d4847c67c2282d201369b7c4d57f",
+  "sessionId": "scion-v01654-batch-001-c19b5a028d-a-b-af9a755d-ff96-4ec7-a14f-8786eeeb45a4",
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "completedAt": "2026-07-19T11:10:09Z",
+  "attestations": {
+    "anonymousArtifactsOnly": true,
+    "otherOrderUnavailable": true,
+    "organizerMappingUnavailable": true
+  },
+  "decisions": [
+    {
+      "caseId": "scion-kernel-008bab43da5c7cb7977b1891",
+      "pairId": "scion-kernel-pair-1dbded9472ff4c011d739feb",
+      "artifactSha256": {
+        "A": "8b121408061f04c82be46185c0fec45324a3785054a25365ca5d549bb7c6c3d7",
+        "B": "20fea4aa722dd02128945a6dd9f79e7ef8610ac6709f0675499c27f18638492d"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 3,
+            "evidence": "The five facts closely track the supplied claims, but phrases such as “abstract” needs, “concrete” stories, and “task completion efficiency” extend beyond them."
+          },
+          "knowledgePrecision": {
+            "score": 2,
+            "evidence": "The terms are mostly accurate, but every example merely repeats its definition and the persona entry omits its evidence-connection function."
+          },
+          "scenarioReadiness": {
+            "score": 1,
+            "evidence": "The scenario names an alignment task and a source-only constraint but supplies no actual persona, need, story, or feature evidence to inspect."
+          },
+          "assessmentCorrectness": {
+            "score": 1,
+            "evidence": "Question 1 selects the source-backed linkage answer but cites fact 3 instead of the traceability fact; question 2’s selected persona answer conflicts with its specific-request premise."
+          },
+          "choiceDiscriminability": {
+            "score": 2,
+            "evidence": "Options are distinct, but “always” and “only” make two distractors easy giveaways, while question 2 offers no clean request-versus-need distinction."
+          },
+          "feedbackInstructionality": {
+            "score": 0,
+            "evidence": "Both explanations end with the unresolved instruction “then correct the closest distractor” and never perform that correction."
+          },
+          "internalCoherence": {
+            "score": 1,
+            "evidence": "Question 2’s premise conflicts with its key, question 1 cites the wrong supporting fact, and both explanations retain template instructions."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 3,
+            "evidence": "The principles remain source-aligned, although support groups, account details, service pages, and quick filters are added as generic hypothetical details."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "Definitions, examples, misconceptions, and corrections clearly distinguish personas, needs, and stories, but the facts list omits the explicit traceability claim."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The team must decide whether a quick-filter story belongs with an account-information need using an inspectable persona, needs list, story, and visible-linkage constraint."
+          },
+          "assessmentCorrectness": {
+            "score": 2,
+            "evidence": "Both selected answers are uniquely correct from the source, but question 1 cites only persona fact 0 and question 2 cites stability fact 3 rather than traceability support."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "Each question has four distinct, parallel choices, though visual-mockup and visual-style distractors are noticeably less plausible than the keyed choices."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation states the supporting distinction and directly explains why the narrower request, detachment, or visual-style misconception fails."
+          },
+          "internalCoherence": {
+            "score": 3,
+            "evidence": "Terms, scenario, keys, and explanations agree, but the cited fact indices do not fully support either answer and the traceability fact is absent from the facts list."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "Question 2 has an incorrect declared answer: a profile described as specific interface requests does not thereby satisfy the research-based persona definition, and no option states the source-backed request-versus-need distinction.",
+          "Both assessment explanations contain the unresolved instruction “then correct the closest distractor,” leaving the instructional text truncated.",
+          "The scenario provides no inspectable persona, need, user story, or feature evidence, so its proposed alignment decision cannot actually be made."
+        ],
+        "B": []
+      },
+      "decision": "B",
+      "rationale": "B is the clear winner because it supplies a usable evidence-based decision, accurate and discriminable answer keys, and genuinely instructional explanations. Its main weakness is systematic citation imprecision. A retains truncated feedback, an unusable evidence-free scenario, and an incorrect second answer."
+    }
+  ]
+}

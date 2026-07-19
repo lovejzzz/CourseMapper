@@ -1,0 +1,296 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-packet-v1",
+  "order": "B/A",
+  "generatedAt": "2026-07-19T19:00:00.000Z",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "fe3741c97241d3d2a1dcc5151fa204ea17538afd9ec39e54cdd1cc890bde8edc"
+  },
+  "prompt": {
+    "path": "evaluation/scion-adapters/lesson-kernel-judge-prompt-v0.16.54.md",
+    "sha256": "37844b86736335db54b561d8c031660ef71679c55ae1108e2e999e746f2a1c96"
+  },
+  "dimensions": [
+    "sourceFidelity",
+    "knowledgePrecision",
+    "scenarioReadiness",
+    "assessmentCorrectness",
+    "choiceDiscriminability",
+    "feedbackInstructionality",
+    "internalCoherence"
+  ],
+  "cases": [
+    {
+      "caseId": "scion-kernel-60e90ca7ff0ef53a48cde334",
+      "pairId": "scion-kernel-pair-90b7ef955c56991140a2dd3b",
+      "domain": "geology",
+      "failureFamilies": [
+        "answer-key-correctness",
+        "scenario-evidence-sufficiency",
+        "source-fidelity"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-2",
+        "title": "Lithosphere and mantle convection",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: Rigid lithospheric plates move above mantle rock that remains solid yet can flow slowly, while heat transfer sustains mantle convection. Claim 1: Upward mantle flow at ocean ridges helps form new lithosphere while plates diverge. Claim 2: At convergent boundaries, one plate can be subducted into the mantle beneath another.",
+        "readings": "Steven Earle, Physical Geology – 2nd Edition (2019), section 1.5, BCcampus Open Education"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "aeedbbcef83043f47b006db4d034b5591399c3a71f983732fa1deb16f02e204a",
+        "kernelId": "geology-ccby/lithosphere-and-convection",
+        "term": "Lithosphere and mantle convection",
+        "claims": [
+          "Rigid lithospheric plates move above mantle rock that remains solid yet can flow slowly, while heat transfer sustains mantle convection.",
+          "Upward mantle flow at ocean ridges helps form new lithosphere while plates diverge.",
+          "At convergent boundaries, one plate can be subducted into the mantle beneath another."
+        ],
+        "anchors": [
+          {
+            "src": "https://opentextbc.ca/physicalgeology2ed/chapter/1-5-fundamentals-of-plate-tectonics/",
+            "loc": "1.5 Fundamentals of Plate Tectonics, paragraphs 2-5",
+            "quote": "solid rock, but is plastic enough to be able to flow slowly"
+          },
+          {
+            "src": "https://opentextbc.ca/physicalgeology2ed/chapter/1-5-fundamentals-of-plate-tectonics/",
+            "loc": "1.5 Fundamentals of Plate Tectonics, paragraph 5",
+            "quote": "new lithosphere forms (at ocean ridges), and the plates move apart"
+          },
+          {
+            "src": "https://opentextbc.ca/physicalgeology2ed/chapter/1-5-fundamentals-of-plate-tectonics/",
+            "loc": "1.5 Fundamentals of Plate Tectonics, paragraph 6",
+            "quote": "one plate will be subducted (pushed down) into the mantle beneath the other"
+          }
+        ],
+        "attribution": [
+          "Steven Earle, Physical Geology – 2nd Edition (2019), section 1.5, BCcampus Open Education"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "f88691c5397515ac053ae6af13f725d74f9d79655c0a0948616db610a6366651",
+          "lessonKernel": {
+            "lessonId": "lesson-2",
+            "facts": [
+              "Rigid lithospheric plates move above mantle rock that remains solid yet flows slowly.",
+              "Heat transfer within the mantle sustains convection and helps drive plate motion.",
+              "Upward mantle flow at ocean ridges helps form new lithosphere.",
+              "At convergent boundaries, one plate can be subducted beneath another plate.",
+              "Lithosphere and mantle convection together explain how plates diverge and collide."
+            ],
+            "keyTerms": [
+              {
+                "tr": "lithospheric plates",
+                "df": "Lithospheric plates are the rigid outer pieces of Earth that move as surface units above weaker deeper material.",
+                "eg": "A diverging ridge shows lithospheric plates separating while new rock forms below.",
+                "mi": "Lithospheric plates are soft layers that melt and drift with the mantle.",
+                "cx": "They are stiff outer slabs, not melted material, and they move over deeper rock that can deform slowly."
+              },
+              {
+                "tr": "mantle convection",
+                "df": "Mantle convection is slow circulation in heated mantle rock that transfers heat and helps move the outer plates.",
+                "eg": "Warm mantle rises beneath an ocean ridge while cooler material sinks elsewhere.",
+                "mi": "Mantle convection means the mantle is liquid and bubbles upward like water.",
+                "cx": "The mantle remains solid, yet it can flow gradually enough for circulation to continue."
+              },
+              {
+                "tr": "subducted",
+                "df": "Subducted describes a plate descending into the mantle beneath another plate at a convergent boundary.",
+                "eg": "A convergent margin can show one plate bending downward beneath its neighbor.",
+                "mi": "Subducted means the two plates scrape sideways and stay at the same depth.",
+                "cx": "The descending plate moves downward into the mantle rather than sliding past at one level."
+              }
+            ],
+            "scenario": {
+              "su": "Two boundary sketches come from the same map, but the labels are incomplete. One sketch shows plates moving apart above a ridge with upward mantle flow, and the other shows one plate bending beneath another at a margin.",
+              "ma": "Students compare the ridge sketch, the bent-down plate sketch, the note that heat transfer sustains mantle convection, and the label that new lithosphere forms where plates diverge; they must match each drawing to the correct boundary process without using outside descriptions."
+            },
+            "mc": [
+              {
+                "q": "A diagram shows rigid surface plates moving apart above rising mantle rock, while deeper material remains solid but slowly flows. Which description fits that relationship best?",
+                "op": [
+                  "The plates are fixed, and only surface erosion makes them appear to move.",
+                  "The entire mantle is molten, so plates ride on a liquid layer.",
+                  "Rigid lithospheric plates move above mantle rock that remains solid yet can flow slowly.",
+                  "The deep rock is rigid, while the surface layer flows like soft clay."
+                ],
+                "ai": 2,
+                "fi": [
+                  0
+                ],
+                "ex": "The supported description matches rigid lithospheric plates above solid mantle rock that can still flow slowly. The molten-mantle idea is the closest distractor, but the mantle is described as solid rather than liquid."
+              },
+              {
+                "q": "A cross-section at a convergent boundary shows one plate dipping beneath another, and the map notes a trench beside the contact. Which interpretation best matches that arrangement?",
+                "op": [
+                  "One plate is subducted into the mantle beneath another plate.",
+                  "The crust is thickening only from surface folding, with no downward motion.",
+                  "Both plates are spreading apart while new lithosphere forms between them.",
+                  "The plates are sliding past each other at equal depth."
+                ],
+                "ai": 0,
+                "fi": [
+                  3
+                ],
+                "ex": "The dipping plate beneath another at a convergent boundary indicates subduction into the mantle. The spreading-apart choice is the closest distractor, but divergence fits ridges, not a descending plate at a convergent margin."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "533c5c62c6f6ec4cd89246b34e3b2e564cab8fe89238bfbff748f090af1043ea",
+          "lessonKernel": {
+            "lessonId": "lesson-2",
+            "facts": [
+              "Rigid lithospheric plates move above mantle rock that remains solid yet can flow slowly.",
+              "Upward mantle flow at ocean ridges helps form new lithosphere while plates diverge.",
+              "The slow flow of mantle rock is sustained by heat transfer mechanisms within the Earth.",
+              "One plate can be subducted into the mantle beneath another at convergent boundaries.",
+              "The rigid lithospheric plates move above mantle rock that remains solid yet can flow slowly."
+            ],
+            "keyTerms": [
+              {
+                "tr": "rigid lithospheric plates",
+                "df": "These are the rigid plates that move above the mantle, which remains solid yet can flow slowly.",
+                "eg": "Oceanic plates move slowly over the underlying asthenosphere, which is a solid yet flowing mantle layer. Rigid lithospheric plates are the tectonic plates that move across the Earth's surface. Rigid lithospheric plates are the crustal segments that move independently. Rigid lithospheric plates are a",
+                "mi": "Rigid lithospheric plates are entirely static and do not move relative to the mantle at all.",
+                "cx": "The rigid lithospheric plates move above mantle rock that remains solid yet can flow slowly, indicating movement is possible."
+              },
+              {
+                "tr": "mantle convection",
+                "df": "This is the process where heat transfer sustains the slow flow of mantle rock.",
+                "eg": "Heat transfer within the mantle causes slow flow, which is the process known as mantle convection. Mantle convection is the engine behind plate movement. Mantle convection is the mechanism that sustains the slow flow of mantle rock. Mantle convection is the heat transfer that sustains the slow flow.",
+                "mi": "Mantle convection is a process where the entire mantle moves as one single, unified body.",
+                "cx": "Mantle convection is the process where heat transfer sustains the slow flow of mantle rock, which is a specific mechanism."
+              },
+              {
+                "tr": "subduction",
+                "df": "Subduction is the process where one plate can be subducted into the mantle beneath another.",
+                "eg": "At convergent boundaries, one plate can be subducted into the mantle beneath another plate. Subduction is the process where one plate is forced beneath another. Subduction is the downward movement of lithosphere into the mantle. Subduction is the mechanism for recycling lithosphere into the mantle. ",
+                "mi": "Subduction only occurs at divergent boundaries where plates move apart and create new crust.",
+                "cx": "Subduction occurs at convergent boundaries where one plate can be subducted into the mantle beneath another."
+              }
+            ],
+            "scenario": {
+              "su": "A geologist observes a divergent boundary where new oceanic crust is forming, noting that the underlying mantle rock exhibits slow flow. The constraint is that the observed flow rate is significantly slower than expected for a typical convection scenario.",
+              "ma": "The geologist compares the measured slow flow rate of the mantle rock against theoretical models predicting faster convection rates at this divergent boundary."
+            },
+            "mc": [
+              {
+                "q": "When observing a divergent boundary, how does the upward mantle flow relate to the formation of new lithosphere?",
+                "op": [
+                  "Upward mantle flow is irrelevant because the rigid lithospheric plates move independently. Upward mantle flow is the primary mechanism that helps form new lithosphere at spreading",
+                  "Upward mantle flow is a result of subduction, which is the process that forms new lithosphere at convergent",
+                  "Upward mantle flow is sustained by heat transfer, which is the process that forms new lithosphere at divergent",
+                  "Upward mantle flow is a feature of convergent boundaries, which is the process that forms new lithosphere at divergent"
+                ],
+                "ai": 0,
+                "fi": [
+                  1
+                ],
+                "ex": "Upward mantle flow at ocean ridges helps form new lithosphere while plates diverge, which is the process that forms new lithosphere at spreading, then correct the closest distractor."
+              },
+              {
+                "q": "A researcher notes that at a convergent boundary, one plate is being forced beneath another, and the constraint is that the observed movement is not purely vertical.",
+                "op": [
+                  "The downward movement of lithosphere into the mantle is the only way to form new lithosphere at convergent boundaries.",
+                  "The downward movement of lithosphere into the mantle is the only way to form new lithosphere at convergent boundaries.",
+                  "The downward movement of lithosphere into the mantle is the only way to form new lithosphere at convergent boundaries.",
+                  "The downward movement of lithosphere into the mantle is the only way to form new lithosphere at convergent boundaries"
+                ],
+                "ai": 0,
+                "fi": [
+                  2
+                ],
+                "ex": "At convergent boundaries, one plate can be subducted into the mantle beneath another, which is the downward movement of lithosphere into the mantle, then correct the closest distractor."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-60e90ca7ff0ef53a48cde334",
+        "pairId": "scion-kernel-pair-90b7ef955c56991140a2dd3b",
+        "artifactSha256": {
+          "A": "f88691c5397515ac053ae6af13f725d74f9d79655c0a0948616db610a6366651",
+          "B": "533c5c62c6f6ec4cd89246b34e3b2e564cab8fe89238bfbff748f090af1043ea"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    }
+  ],
+  "claimBoundary": "This packet contains anonymous source-bound artifacts only. It contains no provider identity, model identity, route, admission outcome, retry history, compiler receipt, preference, or training authorization.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "fa3edb4c444554adffc4f3a6badf9c6853aad5cd7d95c758be87b50b4da821f2"
+  }
+}

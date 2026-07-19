@@ -636,6 +636,28 @@ describe('validateReadability', () => {
 // ── validateSemanticContentQuality ──────────────────────────────────────────
 
 describe('validateSemanticContentQuality', () => {
+  it('blocks repeated lesson topics even when an acronym hides the duplicate title', () => {
+    const courseMap = {
+      courseName: 'Macroeconomics',
+      lessons: [
+        { title: 'Lesson 3: Inflation and CPI', sections: [] },
+        { title: 'Lesson 4: Inflation and Consumer Price Index', sections: [] },
+      ],
+    };
+
+    const findings = validateSemanticContentQuality(courseMap, {});
+
+    expect(findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'semantic-duplicate-lesson-topic-inflation-consumer-price-index',
+          severity: 'error',
+          featureId: 'courseMap',
+        }),
+      ]),
+    );
+  });
+
   it('flags objective stem leakage, out-of-range lesson references, generic quiz templates, and all-same answer keys', () => {
     const courseMap = {
       courseName: 'Introduction to Psychology',

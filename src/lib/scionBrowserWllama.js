@@ -19,6 +19,8 @@ let loadingRuntime = null;
 let loadPromise = null;
 let activeAdapter = null;
 let pendingProbe = null;
+let completionTail = Promise.resolve();
+let runtimeLoadOptions = null;
 const statusListeners = new Set();
 
 function initialStatus() {
@@ -69,6 +71,39 @@ function runtimeError(code, message, cause) {
   const error = new Error(message, cause ? { cause } : undefined);
   error.code = code;
   return error;
+}
+
+function isFatalWllamaError(error, signal) {
+  if (signal?.aborted || error?.name === 'AbortError') return false;
+  return /(?:received abort signal from llama\.cpp|cannot find waiting task with callbackid|null function|runtimeerror:\s*unreachable)/i.test(
+    String(error?.message || error || ''),
+  );
+}
+
+function enqueueCompletion(task, signal) {
+  const previous = completionTail.catch(() => {});
+  let release;
+  completionTail = new Promise((resolve) => {
+    release = resolve;
+  });
+  return (async () => {
+    await previous;
+    if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
+    try {
+      return await task();
+    } finally {
+      release();
+    }
+  })();
+}
+
+async function exitRuntime(candidate) {
+  try {
+    await candidate?.exit?.();
+  } catch {
+    // A dead llama.cpp worker may reject its own exit request. State is still
+    // cleared below so later calls cannot reuse it.
+  }
 }
 
 function requireBrowserCapabilities({ navigatorLike, globalLike }) {
@@ -134,6 +169,7 @@ export async function loadScionBrowserWllama({
   contextSize = 8192,
 } = {}) {
   requireBrowserCapabilities({ navigatorLike, globalLike });
+  runtimeLoadOptions = { runtimeLoader, navigatorLike, globalLike, locationLike, modelUrl, contextSize };
   if (status.phase === 'recovery-required') {
     throw runtimeError(
       'SCION_WLLAMA_RECOVERY_REQUIRED',
@@ -250,15 +286,70 @@ export async function completeScionBrowserWllama(
     onAdapterRoute,
   } = {},
 ) {
-  const route = await prepareAdapterRoute(taskFamily, promptProtocol);
-  if (typeof onAdapterRoute === 'function') {
-    try {
-      onAdapterRoute(route);
-    } catch {
-      // Route telemetry cannot alter inference state.
+  const completeRouted = async () => {
+    const route = await prepareAdapterRoute(taskFamily, promptProtocol);
+    if (typeof onAdapterRoute === 'function') {
+      try {
+        onAdapterRoute(route);
+      } catch {
+        // Route telemetry cannot alter inference state.
+      }
     }
-  }
-  return completeRaw(messages, { maxNewTokens, temperature, topK, topP, seed, signal, onToken });
+    return completeRaw(messages, { maxNewTokens, temperature, topK, topP, seed, signal, onToken });
+  };
+
+  return enqueueCompletion(async () => {
+    try {
+      return await completeRouted();
+    } catch (error) {
+      if (!isFatalWllamaError(error, signal)) throw error;
+      if (activeAdapter) {
+        return quarantineAdapterRuntime(
+          runtimeError(
+            'SCION_WLLAMA_ADAPTER_RUNTIME_STOPPED',
+            'Scion stopped while an adapter was active. Reload before using the adapter again.',
+            error,
+          ),
+        );
+      }
+
+      const failedRuntime = runtime;
+      runtime = null;
+      loadingRuntime = null;
+      loadPromise = null;
+      pendingProbe = null;
+      publish({
+        phase: 'recovering',
+        progress: 0,
+        message: 'Scion stopped locally · restarting from the cached model…',
+        error: null,
+      });
+      await exitRuntime(failedRuntime);
+      await loadScionBrowserWllama({ ...(runtimeLoadOptions || {}), signal });
+
+      try {
+        return await completeRouted();
+      } catch (retryError) {
+        if (!isFatalWllamaError(retryError, signal)) throw retryError;
+        await exitRuntime(runtime);
+        runtime = null;
+        activeAdapter = null;
+        pendingProbe = null;
+        publish({
+          phase: 'recovery-required',
+          progress: 0,
+          message: 'Scion paused after two local model stops. Reload the page to restart safely.',
+          error: null,
+          adapter: { mode: 'base-only', active: false, id: null, manifestSha256: null },
+        });
+        throw runtimeError(
+          'SCION_WLLAMA_RUNTIME_UNSTABLE',
+          'Scion paused after two local model stops. Reload the page to restart safely.',
+          retryError,
+        );
+      }
+    }
+  }, signal);
 }
 
 async function completeRaw(
@@ -321,6 +412,7 @@ function routeReceipt(route, nativeAdapterActive) {
 async function quarantineAdapterRuntime(error, failedIdentity = activeAdapter || pendingProbe) {
   activeAdapter = null;
   pendingProbe = null;
+  runtimeLoadOptions = null;
   publish({
     phase: 'recovery-required',
     progress: 0,
@@ -485,14 +577,15 @@ export async function rollbackScionBrowserWllamaAdapter() {
 }
 
 export async function unloadScionBrowserWllama() {
-  if (loadingRuntime?.exit) await loadingRuntime.exit();
-  if (runtime?.exit) await runtime.exit();
+  await exitRuntime(loadingRuntime);
+  if (runtime !== loadingRuntime) await exitRuntime(runtime);
   loadingRuntime = null;
   runtime = null;
   runtimeModule = null;
   loadPromise = null;
   activeAdapter = null;
   pendingProbe = null;
+  runtimeLoadOptions = null;
   status = initialStatus();
   const snapshot = cloneStatus();
   for (const listener of statusListeners) {

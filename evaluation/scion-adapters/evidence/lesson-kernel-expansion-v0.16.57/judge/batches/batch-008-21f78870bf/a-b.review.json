@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-review-v1",
+  "order": "A/B",
+  "packetSha256": "606380f725f2b60e2f720be83d8d98dac3fa6b79a2bb1e9f4ae09945a64b9ac5",
+  "sessionId": "scion-v01654-batch-008-21f78870bf-a-b-06c32e56-6550-4a80-a0e2-c51a89634291",
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "completedAt": "2026-07-19T19:00:00.000Z",
+  "attestations": {
+    "anonymousArtifactsOnly": true,
+    "otherOrderUnavailable": true,
+    "organizerMappingUnavailable": true
+  },
+  "decisions": [
+    {
+      "caseId": "scion-kernel-5927960b1d8e077b7f49f8d4",
+      "pairId": "scion-kernel-pair-b0468085a2d735a1dce11a89",
+      "artifactSha256": {
+        "A": "397a83e1852b3a8ae21f66085bb52d09c36b4341faadbd40406151038c32e13a",
+        "B": "7d96923d9e4a6577b7a3ca778b266802c030c566cb9fbb812ecc6c6e96e54622"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "The three supplied claims appear, but the artifact adds a conducting shell, a constant-field requirement, and a Q/constant flux expression."
+          },
+          "knowledgePrecision": {
+            "score": 2,
+            "evidence": "Most definitions retain the flux-charge distinction, but the Gaussian-surface correction overstates that such a surface must possess simplifying symmetry."
+          },
+          "scenarioReadiness": {
+            "score": 2,
+            "evidence": "The scenario names a decision, geometry, observation, and constraint, but its vague Q/constant result and unsupported shell details weaken usability."
+          },
+          "assessmentCorrectness": {
+            "score": 0,
+            "evidence": "The first item keys the claim that the field must vanish everywhere even though its explanation explicitly says that conclusion is unnecessary."
+          },
+          "choiceDiscriminability": {
+            "score": 1,
+            "evidence": "The first item has no option stating the required zero-net-flux conclusion, while the second includes the giveaway assertion that a calculation is always correct."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "The first explanation teaches the correct distinction but opposes its key; the second merely restates the law without defending its keyed option."
+          },
+          "internalCoherence": {
+            "score": 0,
+            "evidence": "The first answer and explanation directly contradict each other, and the second key does not resolve the nonzero-charge versus zero-flux premise coherently."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "Its facts, examples, scenario conclusions, and answers remain within the supplied flux, enclosed-charge, closed-surface, and symmetry claims."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "It cleanly distinguishes net flux from pointwise field strength and explains symmetry as a calculation aid rather than a condition of the law."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The student must choose between two conclusions using an inspectable zero-charge tally, varying field arrows, and the constraint that the surface remain closed."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both keyed answers are uniquely supported by their cited facts: zero charge fixes net flux, and symmetry motivates the Gaussian-surface choice."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "Each item has four distinct and parallel interpretations, with plausible misconceptions about zero field, nonuniform arrows, physical causation, and arbitrary closure."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Both explanations state the supporting rule and explicitly repair the nearest misconception without referring to answer position."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "The facts, terms, scenario evidence, cited fact indices, answer keys, and explanations consistently preserve the same two source distinctions."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "The first MCQ declares that zero enclosed charge requires zero electric field everywhere, an incorrect answer under the supplied claim.",
+          "The first MCQ explanation directly contradicts its declared answer by saying the field need not be zero everywhere.",
+          "The second MCQ keys an option asserting that the flux calculation is always correct, which is unsupported and does not coherently address its nonzero-charge premise.",
+          "The scenario introduces unsupported conducting-shell details, requires constant field magnitude, and states an unsupported Q/constant flux expression."
+        ],
+        "B": []
+      },
+      "decision": "B",
+      "rationale": "Artifact B is source-bound, precise, scenario-ready, and fully coherent across both assessments. Artifact A contains an explicit answer-explanation contradiction, another defective key, and unsupported scenario claims."
+    }
+  ]
+}

@@ -90,7 +90,7 @@ export function parseJudgmentDetail(detail = '', genome = null) {
     const linked = Number(genome?.linked) || 0;
     const total = Number(genome?.total) || 0;
     if (total > 0 && (linked < 2 || linked / total < 0.4)) return 'Limited knowledge check';
-    return 'Judgment clean';
+    return 'Sequence check passed';
   }
   const gaps = text.match(/(\d+) prerequisite gap/);
   const outOfOrder = text.match(/(\d+) out-of-order/);
@@ -347,7 +347,15 @@ export function latestKnowledgeActivity(events = []) {
     const nextAttempt = Math.min(total, attempt + 1);
     const recoveryPrefix = recovery ? `Recovery ${recovery.attempt}/${recovery.total} · ` : '';
     const retryLabel = recovery ? 'retrying' : 'Retrying';
-    return `${recoveryPrefix}${retryLabel} local lesson kernel · attempt ${nextAttempt}/${total}`;
+    const lessonEvent = recent.find(
+      (event) =>
+        event !== activity &&
+        ['blueprintEnrichmentCall', 'repairRetryCall'].includes(event?.type) &&
+        lessonNumbersFromEvent(event).length > 0,
+    );
+    const range = formatLessonRange(lessonNumbersFromEvent(lessonEvent).join(','));
+    const lessonLabel = range ? ` · lesson${range.includes('–') || range.includes(',') ? 's' : ''} ${range}` : '';
+    return `${recoveryPrefix}${retryLabel} local lesson kernel${lessonLabel} · attempt ${nextAttempt}/${total}`;
   }
   if (['blueprintEnrichmentCall', 'repairRetryCall'].includes(activity?.type)) {
     return enrichmentLabelFromEvent(activity);

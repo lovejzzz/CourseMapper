@@ -20,6 +20,7 @@ import {
   extractPublicScionKernelLessons,
   extractPublicScionLessonWindow,
   extractPublicScionPriorLessonTitles,
+  extractPublicScionExplicitTopicSequence,
   extractPublicScionTotalLessonCount,
   extractPublicScionVoiceSurfaces,
   mergePublicScionKernelAttempts,
@@ -313,6 +314,24 @@ describe('Scion Public provider', () => {
     expect(
       assessPublicScionKernelResponse(JSON.stringify({ lessons: [lesson] }), prompt, 'blueprintEnrichment').issues,
     ).toContain('lesson-9:fact-1:truncated-fact');
+  });
+
+  it('accepts code identifiers as sentence subjects and grammatical relative-clause preposition endings', () => {
+    const prompt = `Course: Python\nLessons:\n[{"lessonId":"lesson-9","title":"File input and output"}]\nReturn ONLY valid JSON.`;
+    const lesson = completeLesson();
+    lesson.facts[1] = 'open() returns a file object that the program then reads from or writes to.';
+    lesson.facts[2] = 'read() reads the entire contents of a file and returns one single string.';
+    lesson.facts[3] = 'readlines() returns a list that keeps every file line available for later work.';
+
+    const issues = assessPublicScionKernelResponse(
+      JSON.stringify({ lessons: [lesson] }),
+      prompt,
+      'blueprintEnrichment',
+    ).issues;
+
+    expect(issues).not.toContain('lesson-9:fact-1:truncated-fact');
+    expect(issues).not.toContain('lesson-9:fact-2:truncated-fact');
+    expect(issues).not.toContain('lesson-9:fact-3:truncated-fact');
   });
 
   it('rejects repeated facts and punctuated lowercase sentence fragments', () => {
@@ -687,6 +706,38 @@ Continue generating the REMAINING lessons (Lesson 4 through Lesson 12).`;
     expect(messages[1].content).toContain('must introduce a distinct topic');
     expect(messages[1].content).toContain('one combined lesson and name both concepts in its title');
     expect(messages[1].content).toContain('normal spaced words');
+  });
+
+  it('turns an explicit source topic list into an indexed plan for each bounded window', () => {
+    const source =
+      'Create a 6-week course. Use six distinct weekly focuses: scarcity and choice; supply and demand; measuring inflation with CPI; unemployment and labor markets; aggregate demand and aggregate supply; fiscal and monetary policy comparison.';
+    expect(extractPublicScionExplicitTopicSequence(source)).toEqual([
+      'scarcity and choice',
+      'supply and demand',
+      'measuring inflation with CPI',
+      'unemployment and labor markets',
+      'aggregate demand and aggregate supply',
+      'fiscal and monetary policy comparison',
+    ]);
+
+    const continuation = `You previously generated a partial Course Map with 3 lessons, but the syllabus has 6 lessons/weeks total.
+
+Here are the lessons already generated:
+1. Lesson 1: Scarcity and Choice
+2. Lesson 2: Supply and Demand
+3. Lesson 3: Measuring Inflation with CPI
+
+Continue generating the REMAINING lessons (Lesson 4 through Lesson 6).
+
+SYLLABUS CONTENT (for reference — focusing on later content for remaining lessons):
+${source}
+
+Generate lessons 4 through 6 now as JSON:`;
+    const messages = buildPublicScionMessages('system', continuation);
+    expect(messages[1].content).toContain('REQUIRED TOPIC PLAN (one exact focus per lesson)');
+    expect(messages[1].content).toContain('- Lesson 4: unemployment and labor markets');
+    expect(messages[1].content).toContain('- Lesson 6: fiscal and monetary policy comparison');
+    expect(messages[1].content).toContain('substitution is not');
   });
 
   it('marks the last continuation as a final window and pins the final source item', () => {

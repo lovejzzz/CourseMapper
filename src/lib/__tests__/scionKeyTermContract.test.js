@@ -73,4 +73,25 @@ describe('Scion key-term composite integrity', () => {
 
     expect(assessment.issues).not.toContain('definition-omits-composite-member');
   });
+
+  it('accepts a repeated definition only when the correction adds misconception-specific contrast', () => {
+    const base = {
+      tr: 'Learning objectives',
+      df: 'Learning objectives are specific, actionable goals derived from the research plan.',
+      eg: 'A team states what it must learn before selecting the study details.',
+      mi: 'Learning objectives are vague hopes that should remain open to interpretation.',
+      cx: 'Learning objectives must be specific, actionable goals derived from the research plan, not vague hopes.',
+    };
+    const options = {
+      lessonTitle: 'Research planning',
+      knownFacts: ['Team agreement on learning goals must precede the selection of specific study details.'],
+      sourceTerm: 'Learning objectives',
+      semanticProfile: 'source-strict-v6',
+    };
+
+    expect(assessScionKeyTermContract(base, options).issues).not.toContain('correction-repeats-definition');
+    expect(
+      assessScionKeyTermContract({ ...base, cx: `${base.df} This statement is not incorrect.` }, options).issues,
+    ).toContain('correction-repeats-definition');
+  });
 });

@@ -21,6 +21,13 @@ const OUTPUT_DIR = 'verification-output/scion-lesson-kernel-judge-batches-v0.16.
 const PROMPT = 'evaluation/scion-adapters/lesson-kernel-judge-prompt-v0.16.54.md';
 const RESULT_PROTOCOL = 'scion-lesson-kernel-paired-order-workbook-result-v1';
 
+export function resolvePairedOrderWorkbookStatus(manifest = {}, pendingBatches = 0) {
+  const boundedCaptureIsComplete = manifest.captureComplete === true || manifest.sparseComplete === true;
+  return boundedCaptureIsComplete && pendingBatches === 0
+    ? 'paired-orders-complete'
+    : 'paired-orders-progressive';
+}
+
 function parseArgs(argv) {
   const args = {
     build: false,
@@ -271,10 +278,7 @@ async function ingest(args) {
     schemaVersion: 1,
     protocol: RESULT_PROTOCOL,
     generatedAt: args.generatedAt,
-    status:
-      workbook.manifest.captureComplete && pendingBatches === 0
-        ? 'paired-orders-complete'
-        : 'paired-orders-progressive',
+    status: resolvePairedOrderWorkbookStatus(workbook.manifest, pendingBatches),
     workbookSha256: workbook.manifest.identity.sha256,
     campaignIdentity: inputs.campaign.identity,
     judge: judgeIdentity ? JSON.parse(judgeIdentity) : null,

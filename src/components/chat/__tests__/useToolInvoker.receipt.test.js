@@ -319,6 +319,12 @@ describe('chooseAgentFallbackText', () => {
     expect(chooseAgentFallbackText(raw, [])).toBe('Reviewing the tone contours is the highest-priority check.');
   });
 
+  it('repairs the constrained-decoder possessive punctuation artifact', () => {
+    expect(stripInternalAgentMarkers('Labor conditions influence the economy, s demand and supply dynamics.')).toBe(
+      'Labor conditions influence the economy’s demand and supply dynamics.',
+    );
+  });
+
   it('replaces raw tool trace text with a concise user-facing receipt', () => {
     const reply = chooseAgentFallbackText(
       '[Agent used 2 tools: readdeliverable: Data loaded, editdeliverables: 1 applied, 0 failed]',
@@ -367,6 +373,31 @@ describe('chooseAgentFallbackText', () => {
 });
 
 describe('buildLocalReadOnlyFallback — verified course facts', () => {
+  it('answers duplicate-topic checks from compiler-owned normalized identities', () => {
+    const cleanReply = buildLocalReadOnlyFallback('Check for duplicate or renamed lesson topics.', {
+      courseMap: {
+        lessons: [
+          { title: 'Lesson 1: Supply and Demand' },
+          { title: 'Lesson 2: Measuring Inflation with CPI' },
+          { title: 'Lesson 3: Unemployment and Labor Markets' },
+        ],
+      },
+    });
+    expect(cleanReply).toContain('No duplicate or renamed lesson topics');
+    expect(cleanReply).toContain('across 3 lessons');
+
+    const conflictReply = buildLocalReadOnlyFallback('List any duplicate or renamed lesson topics.', {
+      courseMap: {
+        lessons: [
+          { title: 'Lesson 1: Measuring Inflation with CPI' },
+          { title: 'Week 2 — Measuring Inflation with Consumer Price Index' },
+        ],
+      },
+    });
+    expect(conflictReply).toContain('Lessons 1 and 2');
+    expect(conflictReply).toContain('1 duplicate or renamed topic conflict');
+  });
+
   it('answers the music-interval inversion rule from the compiler-owned frame', () => {
     const reply = buildLocalReadOnlyFallback('In one sentence, why does a major third invert to a minor sixth?', {
       courseMap: {

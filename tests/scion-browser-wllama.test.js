@@ -23,6 +23,9 @@ class FakeWllama {
     this.adapter = null;
     this.prompts = [];
     this.baseOutput = 'Base general answer.';
+    this.activeCompletions = 0;
+    this.maxActiveCompletions = 0;
+    this.completionDelay = 0;
     FakeWllama.last = this;
   }
 
@@ -72,8 +75,17 @@ class FakeWllama {
   }
 
   async createCompletion(prompt) {
+    this.activeCompletions += 1;
+    this.maxActiveCompletions = Math.max(this.maxActiveCompletions, this.activeCompletions);
     this.prompts.push(prompt);
-    return this.adapter ? 'Adapter decision-focused answer.' : this.baseOutput;
+    try {
+      if (this.completionDelay > 0) {
+        await new Promise((resolve) => setTimeout(resolve, this.completionDelay));
+      }
+      return this.adapter ? 'Adapter decision-focused answer.' : this.baseOutput;
+    } finally {
+      this.activeCompletions -= 1;
+    }
   }
 
   async exit() {
@@ -90,6 +102,7 @@ const browser = {
 
 afterEach(async () => {
   await unloadScionBrowserWllama();
+  vi.restoreAllMocks();
   vi.clearAllMocks();
 });
 
@@ -130,6 +143,37 @@ describe('Scion WebGPU GGUF runtime', () => {
     expect(published.some((entry) => entry.phase === 'loading-model' && entry.progress === 0.5)).toBe(true);
     expect(published.at(-1).phase).toBe('ready');
     unsubscribe();
+  });
+
+  it('serializes concurrent browser completions against the single local model instance', async () => {
+    await loadScionBrowserWllama(browser);
+    FakeWllama.last.completionDelay = 5;
+
+    await expect(
+      Promise.all([
+        completeScionBrowserWllama('First request.'),
+        completeScionBrowserWllama('Second request.'),
+        completeScionBrowserWllama('Third request.'),
+      ]),
+    ).resolves.toEqual(['Base general answer.', 'Base general answer.', 'Base general answer.']);
+    expect(FakeWllama.last.maxActiveCompletions).toBe(1);
+    expect(FakeWllama.last.prompts).toHaveLength(3);
+  });
+
+  it('restarts once from cached model state after a fatal llama.cpp worker stop', async () => {
+    const completion = vi
+      .spyOn(FakeWllama.prototype, 'createCompletion')
+      .mockRejectedValueOnce(new Error('Received abort signal from llama.cpp; Message: (empty)'))
+      .mockResolvedValueOnce('Recovered base answer.');
+    await loadScionBrowserWllama(browser);
+
+    await expect(completeScionBrowserWllama('Recover this request.')).resolves.toBe('Recovered base answer.');
+    expect(completion).toHaveBeenCalledTimes(2);
+    expect(browser.runtimeLoader).toHaveBeenCalledTimes(1);
+    expect(getScionBrowserWllamaStatus()).toMatchObject({
+      phase: 'ready',
+      adapter: { mode: 'base-only', active: false },
+    });
   });
 
   it('requires native metadata plus changed inference before reporting an adapter active', async () => {

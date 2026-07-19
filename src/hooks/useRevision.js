@@ -4,6 +4,25 @@ import applyPatches from '../lib/applyPatches';
 import { REVISION_SYSTEM_PROMPT, buildRevisionUserPrompt } from '../lib/prompts';
 import { getProfile } from '../lib/professorProfile';
 
+function explicitlyRequestsLessonRemoval(message = '') {
+  const text = String(message || '');
+  return (
+    /\b(remove|delete|drop|trim|cut|reduce|shorten)\b[\s\S]{0,48}\b(lessons?|weeks?|modules?|units?)\b/i.test(text) ||
+    /\b(make|change|reduce|shorten)\b[\s\S]{0,48}\b(?:to\s+)?\d+\s+(lessons?|weeks?|modules?|units?)\b/i.test(text)
+  );
+}
+
+export function assertRevisionPreservesLessonSet(previousMap, nextMap, userMessage = '') {
+  const previousCount = Array.isArray(previousMap?.lessons) ? previousMap.lessons.length : 0;
+  const nextCount = Array.isArray(nextMap?.lessons) ? nextMap.lessons.length : 0;
+  if (nextCount < previousCount && !explicitlyRequestsLessonRemoval(userMessage)) {
+    throw new Error(
+      `Scion returned only ${nextCount} of ${previousCount} lessons, so the incomplete revision was discarded.`,
+    );
+  }
+  return nextMap;
+}
+
 /**
  * Handles course map revision with patch-based edits, stop/resume, and retry.
  */
@@ -26,7 +45,7 @@ export default function useRevision({
   setIsStopped,
   setStatus,
   setError,
-  setRetryInfo,
+  setRetryInfo = () => {},
   lockedLessons, // Feature 1.3: Set<number>
 }) {
   const [isRevising, setIsRevising] = useState(false);
@@ -101,8 +120,8 @@ export default function useRevision({
                 /* partial patches, keep going */
               }
             } else if (partial && partial.lessons) {
-              // Full map mode (fallback)
-              setCourseMap({ ...partial });
+              // Full-map fallback output is only previewed as progress. Applying
+              // a partial JSON parse here can temporarily delete later lessons.
               const lessons = partial.lessons;
               const lastLesson = lessons[lessons.length - 1];
               if (lastLesson) {
@@ -173,16 +192,17 @@ export default function useRevision({
           throw new Error('Invalid revision response from AI.');
         }
 
-        setCourseMap(finalResult);
+        const safeFinalResult = assertRevisionPreservesLessonSet(oldMap, finalResult, userMessage);
+        setCourseMap(safeFinalResult);
         setIsStreaming(false);
         setStreamDetail('');
         setStreamProgress(100);
         setProgressStep('done');
         setStatus('done');
         setIsStopped(false);
-        pushVersion(finalResult, 'Revision');
+        pushVersion(safeFinalResult, 'Revision');
         setUserEdits([]);
-        return finalResult;
+        return safeFinalResult;
       } catch (err) {
         setRetryInfo(null);
         if (err.name === 'AbortError') {
@@ -198,6 +218,7 @@ export default function useRevision({
           setStatus('stopped');
           return;
         }
+        setCourseMap(oldMap);
         setError('Revision failed: ' + err.message);
         setOldCourseMap(null);
         setProgressStep('done');

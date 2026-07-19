@@ -1,0 +1,139 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-paired-order-result-v1",
+  "generatedAt": "2026-07-19T19:00:00.000Z",
+  "status": "paired-orders-complete",
+  "requiredOrders": [
+    "A/B",
+    "B/A"
+  ],
+  "sessions": {
+    "A/B": "scion-v01654-batch-014-bbf6d97e77-a-b-cf791a0e-a48f-4419-9976-b95f39ba9fc3",
+    "B/A": "scion-v01654-batch-014-bbf6d97e77-b-a-9477eeb2-d235-4b72-aaa9-84f7b37274fd"
+  },
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "evidence": {
+    "prompt": {
+      "path": "evaluation/scion-adapters/lesson-kernel-judge-prompt-v0.16.54.md",
+      "sha256": "37844b86736335db54b561d8c031660ef71679c55ae1108e2e999e746f2a1c96"
+    },
+    "packets": {
+      "A/B": "5a50277fe05cc3d2a3c0d31bb002f0501265f355822d3fdd8f0c09fca03e5c25",
+      "B/A": "e02bfcc3a2341f862d83294612229a24abade3fdcc2aeacda3a968f2069029ee"
+    },
+    "reviews": {
+      "A/B": "94401c51e096a501a557b6dc0d5bd00799862bdfcdd6e97d036c8b1015207361",
+      "B/A": "5d4750410426b59fabb7de82565a6e808aeac582b1b422e7ac93665b783f08bd"
+    }
+  },
+  "issues": [],
+  "results": [
+    {
+      "caseId": "scion-kernel-e0d838f04c63f6ab675e76f9",
+      "pairId": "scion-kernel-pair-03bf94e5eb3bb71f79805475",
+      "winners": {
+        "A/B": "663808e18db23a3aa1d8b85e9a3bf75ebeb32ac81957c39f637476e9a9e65d36",
+        "B/A": "663808e18db23a3aa1d8b85e9a3bf75ebeb32ac81957c39f637476e9a9e65d36"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": true,
+      "scoreQualification": {
+        "qualified": false,
+        "winnerMinimumScore": 2,
+        "minimumTotalScoreMargin": 9,
+        "winnerCriticalDefects": [
+          "The fact stating that the natural-minor subtonic is a raised seventh degree is an unsupported factual claim that conflicts with the artifact's whole-step-below-tonic definition.",
+          "Unsupported factual claim: a fact calls the natural-minor seventh degree \"raised\" while identifying it as the whole-step subtonic."
+        ],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 3,
+              "assessmentCorrectness": 3,
+              "choiceDiscriminability": 2,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 2
+            },
+            "loserScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 2,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 2,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 2,
+            "totalScoreMargin": 9,
+            "winnerCriticalDefects": [
+              "The fact stating that the natural-minor subtonic is a raised seventh degree is an unsupported factual claim that conflicts with the artifact's whole-step-below-tonic definition."
+            ],
+            "loserCriticalDefects": [
+              "Both multiple-choice items declare answer index 0 even though their explanations and cited facts support option 1, creating incorrect declared answers and answer-explanation contradictions.",
+              "The first question is ambiguous because both the major-scale half-step statement and the natural-minor whole-step statement are source-supported answers to the requested structural difference.",
+              "The scenario invents the named C-minor example and then asks for a major-versus-natural-minor decision despite already specifying minor."
+            ],
+            "rationale": "B is the clear relative winner because both assessments have correct, unique keys, aligned explanations, and a usable evidence-based scenario. Its raised-seventh error is critical and its choices are not parallel, but A has two incorrect answer keys, direct answer-feedback contradictions, an ambiguous first item, and an incoherent invented scenario detail.",
+            "decisionSha256": "c53f0f634f0f8221f7e701aec64db2d9b44107f2a8fe059ec89c15e9af2cc536"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 3,
+              "assessmentCorrectness": 3,
+              "choiceDiscriminability": 2,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 2
+            },
+            "loserScores": {
+              "sourceFidelity": 1,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 2,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 2,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 1
+            },
+            "winnerMinimumScore": 2,
+            "totalScoreMargin": 9,
+            "winnerCriticalDefects": [
+              "Unsupported factual claim: a fact calls the natural-minor seventh degree \"raised\" while identifying it as the whole-step subtonic."
+            ],
+            "loserCriticalDefects": [
+              "Invented named example: the scenario introduces C minor despite no named key appearing in the supplied source.",
+              "The first assessment is ambiguous because both the major half-step statement and the natural-minor whole-step statement are source-supported; its explanation also contradicts the declared answer.",
+              "The second assessment declares the half-step option correct even though the supplied claim, cited fact, and explanation all specify a whole step."
+            ],
+            "rationale": "Artifact A has one serious unsupported term and weaker option parallelism, but its answers and feedback remain substantially usable. Artifact B has pervasive assessment failure: one ambiguous item, one incorrect key, and explanations that contradict both declared answers, plus an invented named scenario detail.",
+            "decisionSha256": "65fcc43991eb5d45c4f0c47c62b7a270d1d63261eef7194abc37b87e66aed2c8"
+          }
+        ]
+      },
+      "trainingEligible": false
+    }
+  ],
+  "summary": {
+    "pairs": 1,
+    "stablePreferences": 0,
+    "localWins": 0,
+    "referenceWins": 1,
+    "unstable": 0,
+    "scoreRejected": 1,
+    "compilerRejected": 0
+  },
+  "claimBoundary": "These are same-identity model-judge preferences from isolated A/B and B/A orders. They are not human, instructor, independent, classroom, heldout-adapter, or production-win evidence.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "e3bf18d0c31cfd53536b5cddbf857e030069a161cb700d88959d958a66d7fbe2"
+  }
+}

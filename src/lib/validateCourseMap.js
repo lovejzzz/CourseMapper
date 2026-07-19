@@ -10,6 +10,8 @@
  * @returns {{ valid: boolean, warnings: string[] }}
  */
 
+import { findDuplicateLessonTitleGroups } from './lessonTitleIdentity';
+
 function isBlank(value) {
   return value == null || (typeof value === 'string' && value.trim() === '');
 }
@@ -110,6 +112,11 @@ export function validateCourseMap(courseMap, columns) {
         }
       }
     }
+  }
+
+  for (const group of findDuplicateLessonTitleGroups(courseMap.lessons)) {
+    const lessonNumbers = group.lessonIndices.map((index) => index + 1).join(', ');
+    warnings.push(`Lessons ${lessonNumbers}: duplicate topic identity "${group.identity}" requires a distinct focus`);
   }
 
   return { valid: true, warnings };

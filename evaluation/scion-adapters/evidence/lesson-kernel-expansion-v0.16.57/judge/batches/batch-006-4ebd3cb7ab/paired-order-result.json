@@ -1,0 +1,130 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-paired-order-result-v1",
+  "generatedAt": "2026-07-19T19:00:00.000Z",
+  "status": "paired-orders-complete",
+  "requiredOrders": [
+    "A/B",
+    "B/A"
+  ],
+  "sessions": {
+    "A/B": "scion-v01654-batch-006-4ebd3cb7ab-a-b-9b4a478b-d749-4f47-8197-22858c6ea8f9",
+    "B/A": "scion-v01654-batch-006-4ebd3cb7ab-b-a-5c4037b6-5c62-4192-a48c-a46370da0cf9"
+  },
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "evidence": {
+    "prompt": {
+      "path": "evaluation/scion-adapters/lesson-kernel-judge-prompt-v0.16.54.md",
+      "sha256": "37844b86736335db54b561d8c031660ef71679c55ae1108e2e999e746f2a1c96"
+    },
+    "packets": {
+      "A/B": "60534146b79853e6c96f53a9ac9ccbe10a26474e8756dccc8c5ccb30093e4154",
+      "B/A": "a8b41eb91e23b1003c05136116a8561c4aeabd6d61adce22dbe0a3b5b974d455"
+    },
+    "reviews": {
+      "A/B": "ce6ffe76cc2580e4f636762087af0c5f7060582883bbd87755e5fb2e7b33c98c",
+      "B/A": "8b9761bc088392e7672d8440e3f112128a1c5f62bd355d02b70c186f90dac1f4"
+    }
+  },
+  "issues": [],
+  "results": [
+    {
+      "caseId": "scion-kernel-560fc51a1b084a9a84a854e1",
+      "pairId": "scion-kernel-pair-858f18f7ea738a52b3832dc1",
+      "winners": {
+        "A/B": "27420efbd10fbf5d79eef44c71a0da8a984a4a89d897fca808bbd18726361afc",
+        "B/A": "27420efbd10fbf5d79eef44c71a0da8a984a4a89d897fca808bbd18726361afc"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": true,
+      "scoreQualification": {
+        "qualified": false,
+        "winnerMinimumScore": 3,
+        "minimumTotalScoreMargin": 14,
+        "winnerCriticalDefects": [
+          "The function key-term correction says that a defining marker and a later call are both required to make a function; a call is required to run the function, not to define it."
+        ],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 3,
+              "internalCoherence": 3
+            },
+            "loserScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 2,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 0,
+              "feedbackInstructionality": 0,
+              "internalCoherence": 2
+            },
+            "winnerMinimumScore": 3,
+            "totalScoreMargin": 14,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [],
+            "rationale": "B is substantially more instructionally complete: it covers all supplied claims, presents a constrained evidence-based scope decision, and includes two correctly keyed assessments with distinct choices and explanatory feedback. A is source-consistent but too sparse to establish assessment correctness, choice quality, or feedback instructionality.",
+            "decisionSha256": "f5e9c20474ad519c9283b3454b5a753e2599513545e780ef0e05aecd9b038859"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 3,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 3
+            },
+            "loserScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 1,
+              "scenarioReadiness": 3,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 0,
+              "feedbackInstructionality": 0,
+              "internalCoherence": 2
+            },
+            "winnerMinimumScore": 3,
+            "totalScoreMargin": 15,
+            "winnerCriticalDefects": [
+              "The function key-term correction says that a defining marker and a later call are both required to make a function; a call is required to run the function, not to define it."
+            ],
+            "loserCriticalDefects": [
+              "The instructional kernel stops after one fact and a scenario, omitting all assessment questions, four-option alternatives, answer keys, citations, and feedback."
+            ],
+            "rationale": "A is the clear winner because it covers the supplied concepts, presents an actionable evidence-based scenario, and includes two correct, discriminating assessments with instructional explanations. Its localized definition-versus-execution error warrants a precision penalty and a critical defect, but B is substantially incomplete and provides no assessable questions, choices, keys, citations, or feedback.",
+            "decisionSha256": "e49c6f3c49721dc591e16ae25aa1f4869cdde16039ea8e50eda1616229c9050b"
+          }
+        ]
+      },
+      "trainingEligible": false
+    }
+  ],
+  "summary": {
+    "pairs": 1,
+    "stablePreferences": 0,
+    "localWins": 0,
+    "referenceWins": 1,
+    "unstable": 0,
+    "scoreRejected": 1,
+    "compilerRejected": 0
+  },
+  "claimBoundary": "These are same-identity model-judge preferences from isolated A/B and B/A orders. They are not human, instructor, independent, classroom, heldout-adapter, or production-win evidence.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "498cebe6996405666e83f403f4815d08a72b6300ed6fb11a4dc584624c596cea"
+  }
+}

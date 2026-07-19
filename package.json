@@ -1,6 +1,6 @@
 {
   "name": "course-mapper",
-  "version": "0.16.56",
+  "version": "0.16.57",
   "type": "module",
   "description": "AI-powered course syllabus to course map generator",
   "scripts": {
@@ -143,6 +143,10 @@
     "replay:scion:lesson-kernel-admission:v0.16.54": "node scripts/scionLessonKernelAdmissionReplay.mjs",
     "build:scion:lesson-kernel-evidence:v0.16.56": "node scripts/scionLessonKernelEvidenceV01656.mjs --build",
     "audit:scion:lesson-kernel-evidence:v0.16.56": "node scripts/scionLessonKernelEvidenceV01656.mjs --audit",
+    "build:scion:lesson-kernel-expansion:v0.16.57": "node scripts/scionLessonKernelExpansionBatchV01657.mjs --write",
+    "audit:scion:lesson-kernel-expansion:v0.16.57": "node scripts/scionLessonKernelExpansionBatchV01657.mjs --audit",
+    "build:scion:lesson-kernel-expansion-evidence:v0.16.57": "node scripts/scionLessonKernelExpansionEvidenceV01657.mjs --build",
+    "audit:scion:lesson-kernel-expansion-evidence:v0.16.57": "node scripts/scionLessonKernelExpansionEvidenceV01657.mjs --audit",
     "build:scion:lesson-kernel-teacher:v0.16.54": "node scripts/scionLessonKernelTeacherRevisionBatches.mjs --build",
     "run:scion:lesson-kernel-teacher:v0.16.54": "node scripts/scionLessonKernelTeacherRevisionRunner.mjs",
     "ingest:scion:lesson-kernel-teacher:v0.16.54": "node scripts/scionLessonKernelTeacherRevisionBatches.mjs --ingest",

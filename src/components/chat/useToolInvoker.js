@@ -36,6 +36,8 @@ import {
 } from '../../lib/agentConfirmationPolicy';
 import { buildAgentQualityScorecard } from '../../lib/agentQualityScorecard';
 import { stripInternalAgentMarkers } from './agentResponseText';
+import { getScionAgentFailureMessage } from '../../lib/scionUserFacingError';
+import { findDuplicateLessonTitleGroups } from '../../lib/lessonTitleIdentity';
 
 export { stripInternalAgentMarkers } from './agentResponseText';
 
@@ -327,6 +329,25 @@ export function buildLocalReadOnlyFallback(fullMessage = '', { courseMap = null,
   const text = String(fullMessage || '');
   const verifiedMusicReply = verifiedMusicIntervalAgentReply(text, courseMap);
   if (verifiedMusicReply) return verifiedMusicReply;
+  const asksForDuplicateTopicCheck =
+    /\b(check|find|identify|list|show|are there|which|any)\b/i.test(text) &&
+    /\b(duplicate|duplicated|repeat(?:ed|ing)?|renamed)\b/i.test(text) &&
+    /\b(lessons?|topics?|titles?|course map)\b/i.test(text) &&
+    !/\b(remove|delete|merge|rename|rewrite|fix|change)\b/i.test(text);
+  if (asksForDuplicateTopicCheck) {
+    const lessons = Array.isArray(courseMap?.lessons) ? courseMap.lessons : [];
+    const groups = findDuplicateLessonTitleGroups(lessons);
+    if (groups.length === 0) {
+      return `No duplicate or renamed lesson topics were found across ${lessons.length} lesson${lessons.length === 1 ? '' : 's'}. I compared normalized title identities after removing lesson numbers, punctuation, conjunctions, and aliases such as CPI.`;
+    }
+    const conflicts = groups
+      .map(
+        (group) =>
+          `Lessons ${group.lessonIndices.map((index) => index + 1).join(' and ')} (${group.titles.join(' / ')})`,
+      )
+      .join('; ');
+    return `I found ${groups.length} duplicate or renamed topic conflict${groups.length === 1 ? '' : 's'}: ${conflicts}.`;
+  }
   if (isReadOnlyQuizCountRequest(text)) {
     const quizCount = countQuizQuestions(deliverables);
     if (quizCount) {
@@ -2699,7 +2720,6 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
         return updated;
       });
     } else {
-      const detail = !isNoKey && !isNoModel && err.message ? ` (${err.message})` : '';
       setMessages((prev) => {
         const updated = [...prev];
         const progressIdx = updated.findLastIndex((m) => m.role === 'agentProgress');
@@ -2709,7 +2729,7 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
             ? 'To use the agent, please configure your AI provider and API key first.'
             : isNoModel
               ? 'No AI model selected. Please select a model on the landing page first.'
-              : `Sorry, I couldn't process that request.${detail}`,
+              : getScionAgentFailureMessage(err),
         };
         if (progressIdx >= 0) updated[progressIdx] = errMsg;
         else updated.push(errMsg);

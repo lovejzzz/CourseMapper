@@ -1,0 +1,294 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-packet-v1",
+  "order": "B/A",
+  "generatedAt": "2026-07-19T19:00:00.000Z",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "fe3741c97241d3d2a1dcc5151fa204ea17538afd9ec39e54cdd1cc890bde8edc"
+  },
+  "prompt": {
+    "path": "evaluation/scion-adapters/lesson-kernel-judge-prompt-v0.16.54.md",
+    "sha256": "37844b86736335db54b561d8c031660ef71679c55ae1108e2e999e746f2a1c96"
+  },
+  "dimensions": [
+    "sourceFidelity",
+    "knowledgePrecision",
+    "scenarioReadiness",
+    "assessmentCorrectness",
+    "choiceDiscriminability",
+    "feedbackInstructionality",
+    "internalCoherence"
+  ],
+  "cases": [
+    {
+      "caseId": "scion-kernel-027513236e6245031d2ac0f2",
+      "pairId": "scion-kernel-pair-f046f7cd790d85e5fd59dc5f",
+      "domain": "physics",
+      "failureFamilies": [
+        "answer-key-correctness"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-4",
+        "title": "Electric potential",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: Electric potential is electric potential energy per unit charge; potential difference is the work per unit charge required to move between two points. Claim 1: Only potential differences affect work and energy changes in electrostatics. Claim 2: Electric field points in the direction of decreasing electric potential.",
+        "readings": "OpenStax University Physics Volume 2, Ch. 7"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "3b263333e49bb33f83e6d019fd7e157fd10c684598ac03a65955ba0733dc0e6f",
+        "kernelId": "physics/electric-potential",
+        "term": "Electric potential",
+        "claims": [
+          "Electric potential is electric potential energy per unit charge; potential difference is the work per unit charge required to move between two points.",
+          "Only potential differences affect work and energy changes in electrostatics.",
+          "Electric field points in the direction of decreasing electric potential."
+        ],
+        "anchors": [
+          {
+            "src": "openstax:university-physics-volume-2#7",
+            "loc": "7.1",
+            "quote": "electric potential energy per unit charge"
+          },
+          {
+            "src": "openstax:university-physics-volume-2#7",
+            "loc": "7.1",
+            "quote": "only differences in potential energy are physically meaningful"
+          },
+          {
+            "src": "openstax:university-physics-volume-2#7",
+            "loc": "7.5",
+            "quote": "electric field points in the direction of decreasing potential"
+          }
+        ],
+        "attribution": [
+          "OpenStax University Physics Volume 2, Ch. 7"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "d2e7e20851969cc04de32adedafedae9847512164801dbcfb05654a46a5ad26e",
+          "lessonKernel": {
+            "lessonId": "lesson-4",
+            "facts": [
+              "Electric potential is electric potential energy per unit charge at a point.",
+              "Potential difference is the work per unit charge required between two points.",
+              "Only potential differences change electrostatic work and energy, not an absolute value.",
+              "An electric field points toward decreasing electric potential in space.",
+              "Comparing potential values helps predict how charges and energy will change."
+            ],
+            "keyTerms": [
+              {
+                "tr": "electric potential",
+                "df": "Electric potential is a scalar quantity describing potential energy available per unit charge at a point.",
+                "eg": "A point beside a charged plate can have a higher electric potential than a point farther away.",
+                "mi": "Electric potential is the total energy stored in the entire charged object.",
+                "cx": "That confuses a per-charge quantity with a total quantity; electric potential describes energy per unit charge, not the whole system."
+              },
+              {
+                "tr": "potential difference",
+                "df": "Potential difference is the change in electric potential between two points and describes work per unit charge.",
+                "eg": "Moving a charge from one marked point to another across a gap involves a specific potential difference.",
+                "mi": "Potential difference is the same as the electric potential at a single point.",
+                "cx": "A single-point value is not a difference; the quantity here compares two locations and ties directly to work per unit charge."
+              },
+              {
+                "tr": "electric field",
+                "df": "An electric field is a vector quantity that indicates the direction a positive test charge would experience decreasing electric potential.",
+                "eg": "On a sketch, field arrows point from the higher-potential region toward the lower-potential region.",
+                "mi": "The electric field points toward increasing electric potential because charges move where potential is larger.",
+                "cx": "That reverses the relationship; the field direction matches decreasing potential, not increasing potential."
+              }
+            ],
+            "scenario": {
+              "su": "A diagram shows two nearby points labeled 12 V and 7 V, with an arrow drawn between them and a note about a positive charge. A student must decide which way the electric field points while keeping the energy change per charge consistent with the labels.",
+              "ma": "Compare the 12 V and 7 V labels, the arrow between the points, and the note about a positive charge moving through the gap."
+            },
+            "mc": [
+              {
+                "q": "On a sketch, one point is labeled 9 V and a nearby point is labeled 4 V. Which statement best distinguishes the two quantities by what each compares?",
+                "op": [
+                  "Electric potential and potential difference both mean the same total energy stored in the region.",
+                  "Electric potential is only meaningful when two points are compared, while potential difference is a single-point value.",
+                  "Potential difference is the field strength at the lower-numbered point, while electric potential is the charge itself.",
+                  "Electric potential is energy per unit charge at one point, while potential difference compares work per unit charge between two points."
+                ],
+                "ai": 3,
+                "fi": [
+                  0
+                ],
+                "ex": "The labels show a single-point value and a two-point comparison, so energy per unit charge matches electric potential and the work-per-charge change matches potential difference. The closest distractor collapses them into one total energy idea, which ignores the distinction between a point value and a difference."
+              },
+              {
+                "q": "A positive charge is moved from a point marked 15 V to a point marked 6 V, and the path is otherwise unspecified. What direction should the electric field be drawn between the points?",
+                "op": [
+                  "Perpendicular to the line connecting the two points.",
+                  "No direction can be determined from the voltage labels.",
+                  "From the 15 V point toward the 6 V point.",
+                  "From the 6 V point toward the 15 V point."
+                ],
+                "ai": 2,
+                "fi": [
+                  3
+                ],
+                "ex": "The field points in the direction of decreasing electric potential, so the arrow goes from 15 V toward 6 V. The closest distractor reverses that relationship, but increasing potential is the wrong direction for the field here."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "c2273ef7a2d47902c56c0dbeffe9a138cfd5afee728f15926c1a0d49f3e57b20",
+          "lessonKernel": {
+            "lessonId": "lesson-4",
+            "facts": [
+              "Electric potential is defined as electric potential energy per unit charge.",
+              "Electric field points in the direction of decreasing electric potential.",
+              "Electric potential is electric potential energy per unit charge.",
+              "Electric field points in the direction of decreasing electric potential.",
+              "Only potential differences affect work and energy changes in electrostatics."
+            ],
+            "keyTerms": [
+              {
+                "tr": "Electric potential",
+                "df": "Electric potential is defined as electric potential energy per unit charge.",
+                "eg": "The electric potential at a point is calculated by dividing the stored energy by the charge.",
+                "mi": "Electric potential is the total energy stored in a charge, regardless of the charge quantity.",
+                "cx": "Electric potential is specifically the energy per unit charge, not the total energy stored in a charge."
+              },
+              {
+                "tr": "Potential difference",
+                "df": "Potential difference is the work per unit charge required to move between two points.",
+                "eg": "The potential difference between two points determines the work needed to move a test charge.",
+                "mi": "Potential difference is the total work done to move a charge between two locations.",
+                "cx": "Potential difference is specifically the work done per unit charge, not the total work done."
+              },
+              {
+                "tr": "Electric field",
+                "df": "Electric field points in the direction of decreasing electric potential.",
+                "eg": "Field lines always point from higher potential to lower potential regions.",
+                "mi": "Electric field lines point in the direction of increasing electric potential.",
+                "cx": "Electric field lines point in the direction of decreasing electric potential, which is the correct direction."
+              }
+            ],
+            "scenario": {
+              "su": "A positive charge is placed at point A, and a second positive charge is placed at point B. The electric field lines are observed to point from A toward B. Determine the relationship between the electric potential at A and point B.",
+              "ma": "The observation shows electric field lines point from A to B, and the potential at A is 10 V while the potential at B is 5 V."
+            },
+            "mc": [
+              {
+                "q": "When calculating the work required to move a charge between two points, which quantity is fundamentally being measured according to the supplied claims?",
+                "op": [
+                  "The total electric potential energy of the charge at the final location.",
+                  "The electric potential energy per unit charge at the starting location.",
+                  "The potential difference between the two specified points.",
+                  "The electric field strength at the midpoint of the path."
+                ],
+                "ai": 0,
+                "fi": [
+                  0
+                ],
+                "ex": "Electric potential is defined as electric potential energy per unit charge. This definition relates potential energy to the charge quantity present, supporting the choice of electric potential energy per unit charge."
+              },
+              {
+                "q": "If the electric field points toward a region of lower electric potential, what does this imply about the electric potential at that lower point compared to the starting point?",
+                "op": [
+                  "The electric potential at the lower point is greater than the starting point.",
+                  "The electric potential at the lower point is equal to the starting point.",
+                  "The electric potential at the lower point is less than the starting point.",
+                  "The electric potential at the lower point is undefined."
+                ],
+                "ai": 0,
+                "fi": [
+                  2
+                ],
+                "ex": "Electric field points in the direction of decreasing electric potential, supporting the conclusion that the electric potential at the lower point is less than the starting point."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-027513236e6245031d2ac0f2",
+        "pairId": "scion-kernel-pair-f046f7cd790d85e5fd59dc5f",
+        "artifactSha256": {
+          "A": "d2e7e20851969cc04de32adedafedae9847512164801dbcfb05654a46a5ad26e",
+          "B": "c2273ef7a2d47902c56c0dbeffe9a138cfd5afee728f15926c1a0d49f3e57b20"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    }
+  ],
+  "claimBoundary": "This packet contains anonymous source-bound artifacts only. It contains no provider identity, model identity, route, admission outcome, retry history, compiler receipt, preference, or training authorization.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "abd626c3b4065bc14979c2e741d09be3e5a8bcc700d35994c4cc5a3fee1ad04f"
+  }
+}

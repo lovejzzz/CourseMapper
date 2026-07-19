@@ -16,9 +16,21 @@ import {
 } from '../scripts/lib/scionLessonKernelJudge.mjs';
 import { scionLessonKernelSha256 } from '../scripts/lib/scionLessonKernelCampaign.mjs';
 import { buildScionAdapterDataset, toScionOrpoTrainingRow } from '../scripts/scionAdapterDataset.mjs';
+import { resolvePairedOrderWorkbookStatus } from '../scripts/scionLessonKernelJudgeBatches.mjs';
 import { assessCorpusRow } from '../scripts/scionPreferenceCorpusAudit.mjs';
 import { validateScionTrainingPreferenceEvidence } from '../src/lib/scionCodexTrainingEvidence.js';
 import { SCION_LESSON_KERNEL_REFERENCE_PILOT_RESPONSE } from './fixtures/scionLessonKernelAdmissionV01654.js';
+
+describe('paired-order workbook completion status', () => {
+  it('treats an explicitly sparse-complete selection as complete after every sealed batch is reviewed', () => {
+    expect(resolvePairedOrderWorkbookStatus({ captureComplete: false, sparseComplete: true }, 0)).toBe(
+      'paired-orders-complete',
+    );
+    expect(resolvePairedOrderWorkbookStatus({ captureComplete: false, sparseComplete: true }, 1)).toBe(
+      'paired-orders-progressive',
+    );
+  });
+});
 
 function fixture() {
   const localArtifact = {

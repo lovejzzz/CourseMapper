@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-review-v1",
+  "order": "B/A",
+  "packetSha256": "47c82d3806e0e448e36a3503e9ef07f61947824e8517adf725449c80e451ba85",
+  "sessionId": "scion-v01654-batch-004-2c461cec02-b-a-e4035b67-80b7-40e5-96e5-8a9fb18d06cb",
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "completedAt": "2026-07-19T11:12:30.604Z",
+  "attestations": {
+    "anonymousArtifactsOnly": true,
+    "otherOrderUnavailable": true,
+    "organizerMappingUnavailable": true
+  },
+  "decisions": [
+    {
+      "caseId": "scion-kernel-3c7d751e58b0007e18cd5b80",
+      "pairId": "scion-kernel-pair-7214fba6df783e592bbb536d",
+      "artifactSha256": {
+        "A": "e69ed884c2d8543d7735a3e155ebe7e58d967c3ce7e4afb8c2dcb5e4bfe5bc33",
+        "B": "4200a36fb2efb398956f90423c9df05a5255b87d678a5065b1b27fb996fb85a5"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 3,
+            "evidence": "The core content tracks all three claims, but the fact that a sensor sends information to the control center is not explicitly supplied."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "The terms and misconceptions distinguish process, target, and loop components well, though the first fact omits the source qualifier \"usually.\""
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The student must classify a control pattern under time pressure using notes that expose a deviation, corrective response, and three labeled components."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both declared answers are unique and match the cited facts: reversal toward a target and the sensor-control center-effector sequence."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "Both items provide four distinct alternatives, although several first-item distractors use conspicuous category errors and are less plausible."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation links the answer to the relevant mechanism and explicitly repairs the closest role or ordering confusion."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "The facts, terminology, scenario evidence, answer keys, citations, and explanations consistently distinguish homeostasis from a set point and component roles."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 1,
+            "evidence": "The artifact adds 37 degrees Celsius, blood glucose, a thermometer, the brain, muscles, and external temperature changes absent from the source."
+          },
+          "knowledgePrecision": {
+            "score": 2,
+            "evidence": "Several definitions restate the claims, but the correction calling the set point a dynamic value kept within a range reverses the supplied relationship."
+          },
+          "scenarioReadiness": {
+            "score": 1,
+            "evidence": "The scenario asks which component detects deviation but supplies no inspectable component evidence and presents no genuine constraint or tension."
+          },
+          "assessmentCorrectness": {
+            "score": 0,
+            "evidence": "The first item declares the effector option even though the question and explanation identify the sensor; the second also permits a broad homeostasis answer."
+          },
+          "choiceDiscriminability": {
+            "score": 2,
+            "evidence": "The first options distinguish component roles, but the second item's negative-feedback and homeostasis alternatives are both defensible descriptions of the failure."
+          },
+          "feedbackInstructionality": {
+            "score": 0,
+            "evidence": "The first explanation contradicts its declared answer, and both explanations retain the unfinished directive \"then correct the closest distractor\" instead of teaching it."
+          },
+          "internalCoherence": {
+            "score": 0,
+            "evidence": "The first answer key directly contradicts its explanation, while the set-point definition and correction disagree about whether the point or range fluctuates."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "Unsupported causal detail: the artifact states that the sensor sends information to the control center, which the supplied claims do not state."
+        ],
+        "B": [
+          "Incorrect declared answer: the first item keys the effector option even though the sensor option answers which component detects the deviation.",
+          "Explanation/answer contradiction: the first explanation identifies the sensor while the declared answer identifies the effector.",
+          "Invented named examples and details include 37 degrees Celsius, blood glucose, a thermometer, the brain, and muscles.",
+          "Unsupported and internally conflicting claim: the set point is described as a dynamic value kept within a fluctuating range.",
+          "Truncated instructional text: both explanations end with the unfulfilled directive to correct the closest distractor.",
+          "Ambiguous alternatives: negative feedback and homeostasis are both defensible answers to the second question's broadly worded regulatory-failure prompt."
+        ]
+      },
+      "decision": "A",
+      "rationale": "Artifact A is substantially more teachable and coherent: its decisions are evidence-based, both keys are correct, and its feedback repairs misconceptions. Artifact B has a wrong key, a direct answer-explanation contradiction, unsupported named physiology, ambiguous assessment wording, and unfinished feedback."
+    }
+  ]
+}

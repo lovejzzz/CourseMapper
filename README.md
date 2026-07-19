@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.56
+**Current release:** v0.16.57
 
 ---
 
@@ -31,9 +31,19 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.56**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts a new foundation model. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
+The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.57**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts a new foundation model. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
 
 ### Living Course Compiler
+
+V0.16.57 turns the live compiler into a safer orchestration layer, not just a progress display. Browser-local completions are serialized; a fatal worker is unloaded, reloaded from the cached pinned base, and retried once; repeated runtime death enters a recovery-required state instead of poisoning later calls. In the real six-lesson replay, all six lesson kernels completed in one browser session without fatal worker, callback-ID, abort-signal, or unreachable errors.
+
+An explicit lesson sequence in the instructor brief is now authoritative. Semicolon-delimited and numbered focus lists become an indexed lesson plan for the initial and continuation prompts. A shared identity check removes lesson numbering, normalizes punctuation and conjunctions, and expands aliases such as CPI before comparing titles. Exact or renamed duplicates become visible review findings and export-blocking pedagogical errors. A live six-week Macroeconomics map completed in 37 seconds with scarcity, supply and demand, CPI, unemployment, aggregate demand/supply, and fiscal-versus-monetary policy in the requested order.
+
+The built-in Agent now treats a course map as a real Agent workspace even before another deliverable exists. The live audit found and repaired a missing retry-state callback, then found a more serious failure: a read-only question sent through the legacy revision path could accept partial three-lesson JSON and truncate a six-lesson map. Map-only chat now uses the Scion Agent loop, partial full-map JSON is never painted into the workspace, and an unrequested lesson-count reduction is discarded with the previous map restored. Exact duplicate-topic questions are answered from compiler-owned evidence; free-form explanations still use the local model.
+
+The responsive pass covered desktop and a 390×844 phone. The phone retained zero document-level horizontal overflow, all 16 visible controls met at least 40×40 pixels, and Content, Agent, and Export remained distinct. Retry narration names the active lesson and attempt, internal runtime text is replaced with calm Scion copy, Course FAQ search occupies a full row, and export remains owned by one panel.
+
+The evaluation ruler also expanded honestly. A deterministic selector chose 14 uncaptured cases—two per training domain, 14 distinct course groups and source kernels, and all nine failure families—without crossing the held-out firewall. Exact local and paid-reference captures were replayed through the current compiler and judged in 28 isolated A/B and B/A sessions. The paid reference won all 14 stable pairs, but every winner failed strict score qualification; the training preference file therefore contains **zero rows**. The retained evidence binds selection, captures, replays, packets, reviews, paired results, empty preferences, and implementation hashes. No adapter is active and no Gemma weight changed.
 
 V0.16.56 makes weak lesson knowledge harder to mistake for usable training evidence. The current source-strict compiler replay detects all 78 frozen judged losing artifacts while preserving all 78 preferred counterparts. New bounded checks reject unsupported quantities, copied scenario scaffolds, duplicate or sentence-fragment facts, and an increase/decrease relationship that reverses the supplied source. These checks refuse or retry model text; they do not silently rewrite factual content.
 

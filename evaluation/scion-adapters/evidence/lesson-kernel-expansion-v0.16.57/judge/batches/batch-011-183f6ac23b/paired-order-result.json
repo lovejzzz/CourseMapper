@@ -1,0 +1,140 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-paired-order-result-v1",
+  "generatedAt": "2026-07-19T19:00:00.000Z",
+  "status": "paired-orders-complete",
+  "requiredOrders": [
+    "A/B",
+    "B/A"
+  ],
+  "sessions": {
+    "A/B": "scion-v01654-batch-011-183f6ac23b-a-b-752b63af-25fe-485a-8f7c-4880d1071cf5",
+    "B/A": "scion-v01654-batch-011-183f6ac23b-b-a-ec864156-252c-44cc-a092-f029aee3471b"
+  },
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "evidence": {
+    "prompt": {
+      "path": "evaluation/scion-adapters/lesson-kernel-judge-prompt-v0.16.54.md",
+      "sha256": "37844b86736335db54b561d8c031660ef71679c55ae1108e2e999e746f2a1c96"
+    },
+    "packets": {
+      "A/B": "f1483f0cb640fc85a3f8954d73f5b39fbb26b11f39d46bb877bbc78c7208e326",
+      "B/A": "9a3d898785cda5d2f00eb33e0959ce565f084bf36d5d1957ceb05038a8b0ddcd"
+    },
+    "reviews": {
+      "A/B": "68ad88587ea2dcb68e1eafdc8261d542974ee1a76f96545c8de49e9bbf30c697",
+      "B/A": "ac8b772bd4759c65470b75d7770cfed536eec359796c785927d25f4068d6ea32"
+    }
+  },
+  "issues": [],
+  "results": [
+    {
+      "caseId": "scion-kernel-ae909cd60605841ba0aa3ff6",
+      "pairId": "scion-kernel-pair-e7a24d5369259d5e3acb0970",
+      "winners": {
+        "A/B": "2488ce7dfdcda93643faec013e9f27e39943b4621fe11477a4a9225a2409bbf3",
+        "B/A": "2488ce7dfdcda93643faec013e9f27e39943b4621fe11477a4a9225a2409bbf3"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": true,
+      "scoreQualification": {
+        "qualified": false,
+        "winnerMinimumScore": 2,
+        "minimumTotalScoreMargin": 5,
+        "winnerCriticalDefects": [
+          "The factual claim that easier switching reduces response to price changes reverses the supported relationship and contradicts later instruction.",
+          "The factual claim that easier switching reduces response to price changes is unsupported, reverses the supplied relationship, and contradicts the artifact's own close-substitutes instruction.",
+          "The first assessment's declared answer labels the second product more inelastic without supplying its percentage price change, so the full keyed answer is not supported."
+        ],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 3,
+              "assessmentCorrectness": 3,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 2
+            },
+            "loserScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 1,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 3,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 2,
+            "totalScoreMargin": 5,
+            "winnerCriticalDefects": [
+              "The factual claim that easier switching reduces response to price changes reverses the supported relationship and contradicts later instruction."
+            ],
+            "loserCriticalDefects": [
+              "Both assessments declare option 0 although option 1 is correct and explicitly supported by each explanation.",
+              "The purchase-now-versus-wait scenario decision cannot be made from the supplied elasticity claims or presented evidence."
+            ],
+            "rationale": "B is the stronger artifact because it supplies a usable disciplinary scenario, correct declared answers, discriminating choices, and instructional feedback. Its reversed causal sentence about switching is a serious defect, but A has two incorrect answer declarations plus a scenario decision that the supplied knowledge cannot resolve.",
+            "decisionSha256": "a7237042b9f766115acea3698ef0292116f0688091ab16f12ca8af8fa9412ae2"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 3,
+              "assessmentCorrectness": 2,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 3,
+              "internalCoherence": 2
+            },
+            "loserScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 1,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 2,
+            "totalScoreMargin": 5,
+            "winnerCriticalDefects": [
+              "The factual claim that easier switching reduces response to price changes is unsupported, reverses the supplied relationship, and contradicts the artifact's own close-substitutes instruction.",
+              "The first assessment's declared answer labels the second product more inelastic without supplying its percentage price change, so the full keyed answer is not supported."
+            ],
+            "loserCriticalDefects": [
+              "Question one declares the less-than-one option correct even though the explanation and source define elastic demand as having an absolute elasticity greater than one.",
+              "Question two declares the quantity-increased option correct even though the scenario and explanation state that quantity decreased by 15%.",
+              "The scenario offers no source-supported way to decide whether the consumer should buy now or wait for a possible future price decrease."
+            ],
+            "rationale": "A has a serious reversed claim about substitutes and one underdetermined assessment comparison, but its declared answers otherwise track its instructional purpose and its scenario supports an elasticity analysis. B reproduces the source facts more faithfully, yet both answer keys are incorrect and contradict their explanations, while its stated purchase-timing decision cannot be resolved from the supplied elasticity claims. Those defects make A the stronger artifact overall.",
+            "decisionSha256": "7d4eb84600148d88638c1e386b0b984cba2510d17fc7399f8868bb992e2677cf"
+          }
+        ]
+      },
+      "trainingEligible": false
+    }
+  ],
+  "summary": {
+    "pairs": 1,
+    "stablePreferences": 0,
+    "localWins": 0,
+    "referenceWins": 1,
+    "unstable": 0,
+    "scoreRejected": 1,
+    "compilerRejected": 0
+  },
+  "claimBoundary": "These are same-identity model-judge preferences from isolated A/B and B/A orders. They are not human, instructor, independent, classroom, heldout-adapter, or production-win evidence.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "b8cf24f9b511e5841e8a8d24aa05af0af9e68651c805b2324c66fd3f03273658"
+  }
+}

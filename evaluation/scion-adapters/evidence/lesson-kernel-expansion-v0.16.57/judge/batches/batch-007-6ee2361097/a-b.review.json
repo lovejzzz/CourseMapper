@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-review-v1",
+  "order": "A/B",
+  "packetSha256": "94575301cfa722b3a64c869e1c06d3d2f6fa76e2d0249376676e3f5fb5156825",
+  "sessionId": "scion-v01654-batch-007-6ee2361097-a-b-c9839f1c-db9b-49f1-80b1-824c7ab48d2a",
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "completedAt": "2026-07-19T11:15:24Z",
+  "attestations": {
+    "anonymousArtifactsOnly": true,
+    "otherOrderUnavailable": true,
+    "organizerMappingUnavailable": true
+  },
+  "decisions": [
+    {
+      "caseId": "scion-kernel-57b7148eae73e0ce43d21a78",
+      "pairId": "scion-kernel-pair-0e48e4c71bb98b4570abcc7f",
+      "artifactSha256": {
+        "A": "d34583d308b1821ea228bb1ee0a617849db2cdde508c5d3e64edb2950c32ba13",
+        "B": "b289c4e9e7e27d33da388dbbaa179f61102d2d26c729ba883d57cbb9e32ac57e"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "Its substantive claims about relative dating, superposition, and cross-cutting remain within the three supplied claims."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "The definitions and misconception corrections are accurate, but the five-item fact list repeats the same superposition and cross-cutting claims instead of adding distinct coverage."
+          },
+          "scenarioReadiness": {
+            "score": 2,
+            "evidence": "The outcrop supplies observable cutting and layering plus a source-use constraint, but it states that the dike is already younger and leaves little actual decision to make."
+          },
+          "assessmentCorrectness": {
+            "score": 0,
+            "evidence": "Both declared indices select option 0, although option 1 is uniquely correct in each question and each explanation supports option 1."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "Each question has four distinct, parallel age interpretations, though alternatives such as being completely unrelated are comparatively easy to dismiss."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "The explanations restate the correct principles but contradict the declared answers and only dismiss the remaining options generically."
+          },
+          "internalCoherence": {
+            "score": 1,
+            "evidence": "Facts, terms, and explanations agree, but both answer keys conflict with their question options and with their own explanations."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "Most content tracks the supplied rules, but it adds the unsupported rule that inclusions are older than their containing rock and builds the second assessment around it."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "The geological definitions are distinct and accurate, and each misconception correction directly identifies why the proposed age inference fails."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The field-notebook scenario asks which feature formed first, identifies inspectable fault and layer evidence, and imposes the real constraint that numerical ages are unavailable."
+          },
+          "assessmentCorrectness": {
+            "score": 2,
+            "evidence": "Both declared answers are uniquely correct internally, but question one cites only the general relative-dating fact and question two cites only the inclusion fact, omitting the specific additional rules each compound answer requires."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "The options test distinct surface-position, thickness, cutting, and inclusion misconceptions, although both correct choices are conspicuously longer compound statements."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation states the governing age relationships and directly rejects nearby thickness or narrowness misconceptions without referring to answer position."
+          },
+          "internalCoherence": {
+            "score": 3,
+            "evidence": "The facts, terms, keys, and explanations agree internally, but the cited fact indices incompletely support the compound conclusions in both questions."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "Both declared answers are incorrect: each ai value is 0 while the uniquely correct option is at index 1.",
+          "Both explanations contradict their declared answers by supporting the option at index 1 rather than the keyed option at index 0."
+        ],
+        "B": [
+          "The rule that inclusions are older than the rock containing them is not supplied by the source claims, yet it appears as a fact and controls the second question and explanation."
+        ]
+      },
+      "decision": "B",
+      "rationale": "B is the relative winner because its declared answers and explanations are internally correct and its scenario is decision-ready. Its unsupported inclusion rule is a serious source-fidelity defect, but A has incorrect answer keys and answer-explanation contradictions in every assessment item."
+    }
+  ]
+}

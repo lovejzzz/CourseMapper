@@ -1,0 +1,294 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-packet-v1",
+  "order": "B/A",
+  "generatedAt": "2026-07-19T19:00:00.000Z",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "fe3741c97241d3d2a1dcc5151fa204ea17538afd9ec39e54cdd1cc890bde8edc"
+  },
+  "prompt": {
+    "path": "evaluation/scion-adapters/lesson-kernel-judge-prompt-v0.16.54.md",
+    "sha256": "37844b86736335db54b561d8c031660ef71679c55ae1108e2e999e746f2a1c96"
+  },
+  "dimensions": [
+    "sourceFidelity",
+    "knowledgePrecision",
+    "scenarioReadiness",
+    "assessmentCorrectness",
+    "choiceDiscriminability",
+    "feedbackInstructionality",
+    "internalCoherence"
+  ],
+  "cases": [
+    {
+      "caseId": "scion-kernel-b279df5c81b1997d1067aa07",
+      "pairId": "scion-kernel-pair-9f8ca06670f5261c8653071f",
+      "domain": "economics",
+      "failureFamilies": [
+        "source-coverage"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-1",
+        "title": "Supply curve",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: By the law of supply, a higher price raises the quantity producers are willing to supply, so the supply curve slopes upward. Claim 1: A change in the good's own price moves along the supply curve, while a change in input costs or technology shifts the whole curve. Claim 2: Quantity supplied is a flow per period, not a fixed stock.",
+        "readings": "OpenStax Principles of Microeconomics 3e, Ch. 3"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "878d3d2aa608ca0d7f2fa0a79df36f89c18c30475c9e6430bade711746575cbd",
+        "kernelId": "econ/supply-curve",
+        "term": "Supply curve",
+        "claims": [
+          "By the law of supply, a higher price raises the quantity producers are willing to supply, so the supply curve slopes upward.",
+          "A change in the good's own price moves along the supply curve, while a change in input costs or technology shifts the whole curve.",
+          "Quantity supplied is a flow per period, not a fixed stock."
+        ],
+        "anchors": [
+          {
+            "src": "openstax:microeconomics-3e#7",
+            "loc": "3.2",
+            "quote": "a higher price raises the quantity that producers are willing to supply, so the supply curve slopes upward"
+          },
+          {
+            "src": "openstax:microeconomics-3e#7",
+            "loc": "3.2",
+            "quote": "A change in the good's own price moves along the supply curve, while a change in input costs or technology shifts the whole curve"
+          },
+          {
+            "src": "openstax:microeconomics-3e#7",
+            "loc": "3.2",
+            "quote": "Quantity supplied is a flow per period, not a fixed stock"
+          }
+        ],
+        "attribution": [
+          "OpenStax Principles of Microeconomics 3e, Ch. 3"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "516c98f6955c47b1813484130ac3549471bc8cdcdcbf63575508f46afb43be37",
+          "lessonKernel": {
+            "lessonId": "lesson-1",
+            "facts": [
+              "A higher price raises the quantity producers are willing to supply.",
+              "Supply curves slope upward when price and quantity supplied move together.",
+              "A change in own price causes movement along the supply curve.",
+              "Changes in input costs or technology shift the entire supply curve.",
+              "Quantity supplied is a flow measured per period, not a fixed stock."
+            ],
+            "keyTerms": [
+              {
+                "tr": "supply curve",
+                "df": "A supply curve shows how quantity supplied changes as the good's own price changes.",
+                "eg": "A product sheet showing more units offered at a higher price traces a supply curve.",
+                "mi": "A student may think the supply curve stays fixed whenever price changes.",
+                "cx": "Price changes alter quantity supplied along the curve, while other changes can move the curve itself."
+              },
+              {
+                "tr": "quantity supplied",
+                "df": "Quantity supplied is the amount producers offer during a specific period at a given price.",
+                "eg": "A seller plans units offered for one market period at one price.",
+                "mi": "A student may treat quantity supplied as the total number of goods ever available.",
+                "cx": "The term refers to a per-period flow, not a permanent stock of goods."
+              },
+              {
+                "tr": "input costs",
+                "df": "Input costs are production expenses that can shift supply by changing the conditions for offering goods.",
+                "eg": "If materials become more expensive, the supply relationship can move rather than slide.",
+                "mi": "A student may think input costs only change the price on the same curve.",
+                "cx": "When input costs change, the whole supply curve can shift instead of only one point moving."
+              }
+            ],
+            "scenario": {
+              "su": "A bakery tracks weekly bread sales and notices the posted loaf price rose while the amount offered increased. The manager also has a supplier memo showing flour costs changed and a production note about a new oven setting, and must decide whether to describe the change as movement along the supply curve or a shift. ",
+              "ma": "Compare the price sheet listing a higher loaf price with larger weekly quantity supplied, the supplier memo noting flour costs rose, and the production note describing a new oven setting."
+            },
+            "mc": [
+              {
+                "q": "A chart shows more units offered when price rises, while the production note stays unchanged. Which interpretation best matches the relationship between supply curve and quantity supplied?",
+                "op": [
+                  "Input costs must have shifted the entire supply curve.",
+                  "Technology changed, so the curve shifted right.",
+                  "Quantity supplied is a fixed stock and cannot vary.",
+                  "The higher price caused movement along the supply curve."
+                ],
+                "ai": 3,
+                "fi": [
+                  0
+                ],
+                "ex": "The upward relationship means a higher price raises quantity supplied along the same curve. The closest distractor is the cost-shift idea, but no input-cost change is described here."
+              },
+              {
+                "q": "A manager sees unchanged price tags but hears that input costs changed and new technology was introduced before output plans were revised. What adjustment best fits the evidence?",
+                "op": [
+                  "The supply curve shifted because conditions other than own price changed.",
+                  "Quantity supplied is a stock, so no supply adjustment is needed.",
+                  "The situation describes demand, not supply, so nothing can be inferred.",
+                  "Only movement along the supply curve occurred because price changed."
+                ],
+                "ai": 0,
+                "fi": [
+                  1
+                ],
+                "ex": "The evidence points to changes in input costs or technology, which shift supply. The closest distractor is the price-change idea, but price is unchanged, so movement along the curve is not the fit."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "4a4be6728276d324a71ad76229dcba0efe314b9443d14c6f3c543a08a6ac83ce",
+          "lessonKernel": {
+            "lessonId": "lesson-1",
+            "facts": [
+              "A higher price raises the quantity producers are willing to supply according to the law of supply.",
+              "A change in the good's own price moves along the supply curve.",
+              "A change in input costs or technology shifts the whole supply curve.",
+              "Quantity supplied is a flow per period, not a fixed stock.",
+              "The law of supply dictates the relationship between price and quantity supplied."
+            ],
+            "keyTerms": [
+              {
+                "tr": "supply curve",
+                "df": "The supply curve illustrates the relationship between the price of a good and the quantity producers are willing to supply.",
+                "eg": "A higher price raises the quantity producers are willing to supply.",
+                "mi": "The supply curve shows how much producers want to sell at different prices.",
+                "cx": "The supply curve shows the quantity producers are willing to supply at different prices."
+              },
+              {
+                "tr": "law of supply",
+                "df": "The law of supply describes how the price of a good influences the quantity producers are willing to supply.",
+                "eg": "A higher price raises the quantity producers are willing to supply.",
+                "mi": "The law of supply means that producers always want to supply more when the price is high.",
+                "cx": "The law of supply means that a higher price raises the quantity producers are willing to supply."
+              },
+              {
+                "tr": "quantity supplied",
+                "df": "Quantity supplied represents the total amount of a good that producers are willing to offer for sale.",
+                "eg": "Quantity supplied is a flow per period, not a fixed stock.",
+                "mi": "Quantity supplied is a fixed amount of goods that producers must deliver every period.",
+                "cx": "Quantity supplied is a flow per period, not a fixed stock."
+              }
+            ],
+            "scenario": {
+              "su": "A producer observes that increasing the price of their product leads to a greater quantity offered. They must decide whether this change is due to a movement along the supply curve or a shift of the entire curve. The constraint is that the current input costs remain unchanged during this observation period.",
+              "ma": "Compare the observation that a higher price raises the quantity supplied with the observation that a change in input costs shifts the whole curve."
+            },
+            "mc": [
+              {
+                "q": "When a change in input costs occurs, which action correctly describes the resulting effect on the supply curve?",
+                "op": [
+                  "A movement along the supply curve due to a change in the good's own price.",
+                  "A shift of the whole curve due to a change in input costs or technology.",
+                  "A movement along the supply curve because quantity supplied is a fixed stock.",
+                  "A movement along the supply curve because quantity supplied is a flow per period."
+                ],
+                "ai": 0,
+                "fi": [
+                  2
+                ],
+                "ex": "A change in input costs or technology shifts the whole curve, which is the correct description of the effect."
+              },
+              {
+                "q": "If a producer observes that the quantity supplied changes while the good's own price remains constant, what is the correct interpretation regarding the supply curve?",
+                "op": [
+                  "This indicates a shift of the whole curve due to a change in input costs.",
+                  "This indicates a movement along the supply curve because quantity supplied is a flow per period.",
+                  "This indicates a movement along the supply curve because a higher price raises the quantity supplied.",
+                  "This indicates a shift of the whole curve because quantity supplied is a fixed stock."
+                ],
+                "ai": 0,
+                "fi": [
+                  1
+                ],
+                "ex": "A change in the good's own price moves along the supply curve, which correctly explains the change in quantity supplied."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-b279df5c81b1997d1067aa07",
+        "pairId": "scion-kernel-pair-9f8ca06670f5261c8653071f",
+        "artifactSha256": {
+          "A": "516c98f6955c47b1813484130ac3549471bc8cdcdcbf63575508f46afb43be37",
+          "B": "4a4be6728276d324a71ad76229dcba0efe314b9443d14c6f3c543a08a6ac83ce"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    }
+  ],
+  "claimBoundary": "This packet contains anonymous source-bound artifacts only. It contains no provider identity, model identity, route, admission outcome, retry history, compiler receipt, preference, or training authorization.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "1a3967a0cc614ce3636e857f79a58722978d03f84445244faf11dd636f6f3c0c"
+  }
+}

@@ -2,7 +2,25 @@
 
 **Architecture:** public Gemma 4 E2B base + small Scion adapter + Scion compiler = Scion Vx
 
-**Status:** the exact-QAT base, hash-bound training and conversion chain, browser adapter lifecycle, source-strict semantic compiler gates, frozen holdout firewall, and paired-order preference protocol are implemented. V0.16.56 rebuilds the 148-case production-compatible lesson-kernel campaign without evaluator metadata, adds a reproducible three-case base/reference pilot, and strengthens current admission and retry selection from the observed failures. The clean pilot produces zero training-qualified preferences; it is a ruler and compiler audit, not an adapter corpus or model win. A quality adapter, held-out adapter win, admitted lesson-kernel preference corpus, production-compatible training corpus, the remaining device-performance profiles, and any production promotion still do not exist.
+**Status:** the exact-QAT base, hash-bound training and conversion chain, browser adapter lifecycle, source-strict semantic compiler gates, frozen holdout firewall, and paired-order preference protocol are implemented. V0.16.57 adds browser-runtime recovery, exact lesson-sequence contracts, duplicate-topic blocking, fail-closed Agent revision safety, and a 14-case seven-domain base/reference diagnostic. The paid reference wins all 14 paired-order comparisons, but every winner fails strict score qualification and zero rows enter training. This is a ruler, compiler, runtime, and workflow audit—not an adapter corpus or model win. A quality adapter, held-out adapter win, at least 100 admitted lesson-kernel preferences, production-compatible training corpus, the remaining device-performance profiles, and production promotion still do not exist.
+
+## v0.16.57 — Keep Every Build Alive and Intact
+
+**Goal:** make long browser-local builds recoverable, make the instructor's requested lesson sequence authoritative, and make Agent inspection incapable of silently damaging a completed course while expanding the evaluation sample without lowering the admission gate.
+
+**Runtime recovery:** browser completions are serialized. Fatal worker signatures unload the poisoned runtime, reload the pinned base from its browser cache, and retry once; repeated death enters recovery-required. A real six-lesson package completed all six local lesson kernels without fatal callback, abort, or unreachable errors in the final console audit.
+
+**Sequence contract:** explicit semicolon-delimited or numbered lesson focuses become an indexed plan for initial and continuation generation. Shared title identities remove numbering, normalize punctuation and conjunctions, and expand CPI before comparison. Exact or renamed duplicates become review findings and export blockers. The 37-second map-only Macroeconomics replay followed all six requested focuses in order.
+
+**Agent safety:** map-only workspaces use the real Scion Agent loop instead of the legacy full-map revision path. The missing retry-state bridge is restored. Partial full-map JSON is not painted into the workspace, and any unrequested lesson-count reduction is discarded with the previous map restored. Deterministic duplicate checks use compiler evidence; open-ended explanations still use local Scion.
+
+**Living UI:** retry narration names the active lesson and attempt, local runtime internals are replaced with calm user copy, Course FAQ search gets a full row, and the single export panel remains the owner of downloads. At 390×844 there is zero document-level overflow and all 16 visible controls meet at least 40×40 pixels.
+
+**Expanded diagnostic:** a deterministic selector chooses 14 uncaptured cases—two from each of seven training domains, 14 distinct course groups and kernels, and all nine failure families—while excluding the pilot and held-out firewall. Exact local and reference captures are replayed through the current compiler and judged in 28 isolated A/B and B/A sessions. The reference wins 14/14, local wins 0/14, no pair is unstable, all 14 winners fail strict score qualification, and the training file remains empty.
+
+**Next gates:** use those scored failure diagnoses to design a claim-ledger generation protocol and source-fidelity admission layer, then continue clean capture until at least 100 stable, training-qualified preferences span the required domains, task families, defects, and licenses. Only then train a validation-selected adapter and test exact adapter versus exact base on the frozen five-domain held-out ruler.
+
+**Release Boundary:** no adapter is active, no Gemma weight changed, and no paid-reference parity, human preference, instructor approval, classroom outcome, aggregate quality, statistical significance, or trained-model win is claimed.
 
 ## v0.16.56 — Make Every Lesson Earn Admission
 

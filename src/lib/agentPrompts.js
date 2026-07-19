@@ -16,6 +16,7 @@ import { getCustomDeliverable } from './customDeliverableLibrary';
 import { buildInstitutionProfileSummary, getProfile } from './professorProfile';
 import { capRenderedText, renderDeliverableItemText } from './courseContentIndex';
 import { buildJournalContext } from './courseJournal';
+import { findDuplicateLessonTitleGroups } from './lessonTitleIdentity';
 
 // ── Compact item schemas with key legends ──
 const ITEM_SCHEMAS = {
@@ -165,6 +166,16 @@ export function buildAgentSystemPrompt(
   const lessonList = (courseMap?.lessons || [])
     .map((l, i) => `  Lesson ${i + 1}: "${l.title}" (toolIndex=${i})`)
     .join('\n');
+  const duplicateTitleGroups = findDuplicateLessonTitleGroups(courseMap?.lessons || []);
+  const deterministicIssueSection =
+    duplicateTitleGroups.length > 0
+      ? `\n**Deterministic title conflicts (authoritative):**\n${duplicateTitleGroups
+          .map(
+            (group) =>
+              `  Lessons ${group.lessonIndices.map((index) => index + 1).join(' and ')} repeat the same topic identity: ${group.titles.join(' / ')}`,
+          )
+          .join('\n')}`
+      : '';
 
   // Course map field names (from actual section keys)
   const sampleSection = courseMap?.lessons?.[0]?.sections?.[0];
@@ -309,7 +320,7 @@ export function buildAgentSystemPrompt(
   const dynamic = `## COURSE
 **${courseMap?.courseName || 'Untitled'}** | ${courseMap?.semester || 'TBD'} | ${(courseMap?.lessons || []).length} lessons
 **Lessons:**
-${lessonList || '  (none)'}${(courseMap?.lessons || []).length === 0 ? '\n**Note:** No lessons yet — suggest the user create lessons or add them via addLesson.' : ''}
+${lessonList || '  (none)'}${(courseMap?.lessons || []).length === 0 ? '\n**Note:** No lessons yet — suggest the user create lessons or add them via addLesson.' : ''}${deterministicIssueSection}
 **Fields:** ${courseMapFields}
 **Active:** ${tabName} | **Status:** ${delivStatusLines}${briefSection}${delivContext}${viewportSection}${pathSection}${schemaSection}${otherDoneNote}${healthSection}${prefsSection}${memorySection}${journalSection}${institutionSection}`;
 

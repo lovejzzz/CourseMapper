@@ -1,0 +1,296 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-packet-v1",
+  "order": "B/A",
+  "generatedAt": "2026-07-19T19:00:00.000Z",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "fe3741c97241d3d2a1dcc5151fa204ea17538afd9ec39e54cdd1cc890bde8edc"
+  },
+  "prompt": {
+    "path": "evaluation/scion-adapters/lesson-kernel-judge-prompt-v0.16.54.md",
+    "sha256": "37844b86736335db54b561d8c031660ef71679c55ae1108e2e999e746f2a1c96"
+  },
+  "dimensions": [
+    "sourceFidelity",
+    "knowledgePrecision",
+    "scenarioReadiness",
+    "assessmentCorrectness",
+    "choiceDiscriminability",
+    "feedbackInstructionality",
+    "internalCoherence"
+  ],
+  "cases": [
+    {
+      "caseId": "scion-kernel-3c7d751e58b0007e18cd5b80",
+      "pairId": "scion-kernel-pair-7214fba6df783e592bbb536d",
+      "domain": "anatomy",
+      "failureFamilies": [
+        "feedback-instructionality",
+        "misconception-validity",
+        "source-fidelity"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-2",
+        "title": "Homeostasis and feedback regulation",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: Homeostasis is the maintenance of stable internal conditions, usually through negative-feedback loops that detect a deviation from a set point and activate a response that reverses it. Claim 1: A set point is the physiological value around which the normal range fluctuates. Claim 2: A feedback loop includes a sensor, a control center, and an effector.",
+        "readings": "OpenStax Anatomy and Physiology 2e"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "c7c91fd6e67090a9c77348bed5c1ef57a5d982ad0def5beb8851dcf171faef66",
+        "kernelId": "anatomy/homeostasis-feedback",
+        "term": "Homeostasis and feedback regulation",
+        "claims": [
+          "Homeostasis is the maintenance of stable internal conditions, usually through negative-feedback loops that detect a deviation from a set point and activate a response that reverses it.",
+          "A set point is the physiological value around which the normal range fluctuates.",
+          "A feedback loop includes a sensor, a control center, and an effector."
+        ],
+        "anchors": [
+          {
+            "src": "openstax:anatomy-and-physiology-2e#1-homeostasis",
+            "loc": "1.5",
+            "quote": "Negative feedback is a mechanism that reverses a deviation from the set point"
+          },
+          {
+            "src": "openstax:anatomy-and-physiology-2e#1-homeostasis",
+            "loc": "1.5",
+            "quote": "A set point is the physiological value around which the normal range fluctuates"
+          },
+          {
+            "src": "openstax:anatomy-and-physiology-2e#1-homeostasis",
+            "loc": "1.5",
+            "quote": "An effector is the component in a feedback system that causes a change to reverse the situation and return the value to the normal range"
+          }
+        ],
+        "attribution": [
+          "OpenStax Anatomy and Physiology 2e"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "e69ed884c2d8543d7735a3e155ebe7e58d967c3ce7e4afb8c2dcb5e4bfe5bc33",
+          "lessonKernel": {
+            "lessonId": "lesson-2",
+            "facts": [
+              "Homeostasis maintains stable internal conditions through negative-feedback loops.",
+              "A set point is the physiological value around which normal range fluctuates.",
+              "A feedback loop includes a sensor, a control center, and an effector.",
+              "The sensor detects deviation and sends information to the control center.",
+              "The effector produces a response that reverses the deviation toward the set point."
+            ],
+            "keyTerms": [
+              {
+                "tr": "homeostasis",
+                "df": "Homeostasis is the maintenance of stable internal conditions within a living system.",
+                "eg": "A body keeping internal conditions steady despite a small change shows homeostasis.",
+                "mi": "Homeostasis means internal conditions stay exactly fixed with no fluctuation.",
+                "cx": "Internal conditions can vary around a stable target while still showing homeostasis."
+              },
+              {
+                "tr": "set point",
+                "df": "A set point is the physiological value around which a normal range fluctuates.",
+                "eg": "A temperature target that the body returns toward reflects a set point.",
+                "mi": "A set point is the widest possible range of values that remains healthy.",
+                "cx": "A set point is a central value, not the entire range around it."
+              },
+              {
+                "tr": "feedback loop",
+                "df": "A feedback loop is a coordinated system of detection, control, and response.",
+                "eg": "A detector, comparator, and responding unit working together form a feedback loop.",
+                "mi": "A feedback loop is only the final response that changes the condition.",
+                "cx": "The loop also requires sensing and control, not just the response itself."
+              }
+            ],
+            "scenario": {
+              "su": "A student compares a note that shows internal conditions drifting upward with a sketch of a regulator that sends a corrective response. Time is limited, so the student must decide whether the control pattern describes homeostasis or only a fixed target value.",
+              "ma": "The first note records a deviation from a usual value and a response that pushes the value back. The second sketch labels a sensor, a control center, and an effector, with arrows showing the response moving conditions toward the usual value."
+            },
+            "mc": [
+              {
+                "q": "A measured value rises above its usual level, and a response pushes it back toward the usual level. Which statement best matches the relationship between homeostasis and set point in this situation?",
+                "op": [
+                  "Homeostasis is the target value itself, while the set point is the corrective response that changes the value.",
+                  "Homeostasis is only the detector that notices change, while the set point is the response unit.",
+                  "Homeostasis and set point both mean the same fixed value with no fluctuation.",
+                  "Homeostasis is the negative-feedback process that reverses the deviation, while the set point is the usual target value."
+                ],
+                "ai": 3,
+                "fi": [
+                  0
+                ],
+                "ex": "The deviation is reversed by a negative-feedback process, which fits homeostasis, and the usual target value is the set point. The closest distractor confuses the target value with the corrective response, but those are different roles."
+              },
+              {
+                "q": "A diagram labels a detector, a comparator, and a responding unit, and the final arrows show the variable moving back toward its usual value. Which sequence names those parts in order?",
+                "op": [
+                  "control center, effector, sensor",
+                  "sensor, control center, effector",
+                  "sensor, effector, control center",
+                  "effector, sensor, control center"
+                ],
+                "ai": 1,
+                "fi": [
+                  2
+                ],
+                "ex": "A feedback loop is built from sensing, control, and response, so the detector is the sensor, the comparator is the control center, and the responding unit is the effector. The closest distractor swaps the order, but the roles are not interchangeable."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "4200a36fb2efb398956f90423c9df05a5255b87d678a5065b1b27fb996fb85a5",
+          "lessonKernel": {
+            "lessonId": "lesson-2",
+            "facts": [
+              "Homeostasis is the maintenance of stable internal conditions usually through negative-feedback loops that detect a deviation from a set point and activate a response that reverses it.",
+              "A set point is the physiological value around which the normal range fluctuates in a system.",
+              "A feedback loop fundamentally includes a sensor, a control center, and an effector to maintain stability.",
+              "Negative feedback loops function by activating a response that opposes the initial deviation from the established set point.",
+              "The maintenance of stable internal conditions is the primary function of the homeostatic mechanism in living organisms."
+            ],
+            "keyTerms": [
+              {
+                "tr": "Homeostasis",
+                "df": "Homeostasis is the maintenance of stable internal conditions usually through negative-feedback loops that detect a deviation from a set point and activate a response that reverses it.",
+                "eg": "Maintaining a stable body temperature despite external environmental changes is an example of homeostasis.",
+                "mi": "Homeostasis is simply the constant state of being perfectly still without any internal regulation.",
+                "cx": "Homeostasis is an active process involving feedback loops that actively work to counteract deviations from a set point."
+              },
+              {
+                "tr": "Set point",
+                "df": "A set point is the physiological value around which the normal range fluctuates in a system.",
+                "eg": "The body's target blood glucose level serves as a set point for glucose regulation.",
+                "mi": "A set point is the absolute maximum or minimum value that a physiological variable can ever reach.",
+                "cx": "A set point is a dynamic value that the system actively works to keep within a normal fluctuating range."
+              },
+              {
+                "tr": "Feedback loop",
+                "df": "A feedback loop includes a sensor, a control center, and an effector to maintain stability.",
+                "eg": "A temperature regulation loop uses a thermometer as a sensor, the brain as the control center, and muscles as effectors.",
+                "mi": "A feedback loop is just a simple chain of events where one action directly causes the next action without a central processing unit.",
+                "cx": "A feedback loop requires a sensor, a control center, and an effector to function as a regulatory mechanism."
+              }
+            ],
+            "scenario": {
+              "su": "A patient's body temperature begins to rise above the normal set point of 37 degrees Celsius. The body initiates a response to bring the temperature back down to the stable range.",
+              "ma": "Compare the sensor, control center, and effector components in the body's temperature regulation system to determine which component is responsible for detecting the deviation from the set point."
+            },
+            "mc": [
+              {
+                "q": "When a physiological variable deviates from its set point, which component of the feedback loop is responsible for detecting this deviation?",
+                "op": [
+                  "The effector, which executes the response to reverse the deviation.",
+                  "The control center, which processes the deviation and initiates the corrective action.",
+                  "The set point, which defines the normal range the variable must stay within.",
+                  "The sensor, which is the component that measures the current physiological value."
+                ],
+                "ai": 0,
+                "fi": [
+                  0
+                ],
+                "ex": "The sensor is the component that measures the current physiological value, which is the subject evidence supporting the answer, then correct the closest distractor."
+              },
+              {
+                "q": "A system is observed where the effector activates a response that moves the variable further away from the set point, which is a failure of which regulatory principle?",
+                "op": [
+                  "Negative feedback, because the system is actively trying to maintain stability.",
+                  "Homeostasis, because the internal conditions are fluctuating outside the normal range.",
+                  "A set point, because the target value has been incorrectly established by the system.",
+                  "A feedback loop, because the sensor failed to detect the initial deviation."
+                ],
+                "ai": 0,
+                "fi": [
+                  1
+                ],
+                "ex": "Negative feedback functions by activating a response that opposes the initial deviation from the established set point, which is the subject evidence supporting the answer, then correct the closest distractor."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-3c7d751e58b0007e18cd5b80",
+        "pairId": "scion-kernel-pair-7214fba6df783e592bbb536d",
+        "artifactSha256": {
+          "A": "e69ed884c2d8543d7735a3e155ebe7e58d967c3ce7e4afb8c2dcb5e4bfe5bc33",
+          "B": "4200a36fb2efb398956f90423c9df05a5255b87d678a5065b1b27fb996fb85a5"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    }
+  ],
+  "claimBoundary": "This packet contains anonymous source-bound artifacts only. It contains no provider identity, model identity, route, admission outcome, retry history, compiler receipt, preference, or training authorization.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "47c82d3806e0e448e36a3503e9ef07f61947824e8517adf725449c80e451ba85"
+  }
+}

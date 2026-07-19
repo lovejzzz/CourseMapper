@@ -72,6 +72,10 @@ function formatTime(seconds) {
   return `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
 }
 
+export function displayAgentModelName(model) {
+  return model === 'scion-public' || model === 'public' ? 'Scion' : model;
+}
+
 function latestStep(steps, status) {
   for (let i = steps.length - 1; i >= 0; i--) {
     if (status === 'running' && steps[i].status === 'running') return steps[i];
@@ -392,7 +396,7 @@ export default function AgentProgressCard({
   const receiptParts = [
     runMeta?.mode,
     runTargets.length > 0 ? runTargets.join(', ') : runMeta?.target,
-    runMeta?.model,
+    displayAgentModelName(runMeta?.model),
   ].filter(Boolean);
   const receiptMeta = receiptParts.length > 0 ? `${receiptParts.join(' · ')} · ${progressMeta}` : progressMeta;
 

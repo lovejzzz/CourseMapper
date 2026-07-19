@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-review-v1",
+  "order": "B/A",
+  "packetSha256": "abd626c3b4065bc14979c2e741d09be3e5a8bcc700d35994c4cc5a3fee1ad04f",
+  "sessionId": "scion-v01654-batch-002-c925843890-b-a-5a9192b8-b711-4013-8046-87bc8e666de9",
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "completedAt": "2026-07-19T11:10:22Z",
+  "attestations": {
+    "anonymousArtifactsOnly": true,
+    "otherOrderUnavailable": true,
+    "organizerMappingUnavailable": true
+  },
+  "decisions": [
+    {
+      "caseId": "scion-kernel-027513236e6245031d2ac0f2",
+      "pairId": "scion-kernel-pair-f046f7cd790d85e5fd59dc5f",
+      "artifactSha256": {
+        "A": "d2e7e20851969cc04de32adedafedae9847512164801dbcfb05654a46a5ad26e",
+        "B": "c2273ef7a2d47902c56c0dbeffe9a138cfd5afee728f15926c1a0d49f3e57b20"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "The core claims are retained, but scalar/vector classifications, positive-test-charge behavior, and the charged-plate distance example go beyond the supplied claims."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "The terms clearly distinguish a point value, a two-point difference, and decreasing-potential field direction, though the unsigned charged-plate example is not reliably precise."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The learner must choose a field-arrow direction using inspectable 12 V and 7 V labels while keeping the per-charge energy change consistent."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both declared answers match the supplied distinctions: option 3 separates potential from potential difference, and option 2 points from 15 V toward 6 V."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "Both sets contain distinct alternatives and useful reversals, although the field-strength/charge distractor and perpendicular option are comparatively implausible."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation states the supporting relationship and directly repairs the nearest error: collapsing point and difference quantities or reversing field direction."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "The facts, scenario, cited fact indices, declared answers, and explanations consistently use energy per charge, two-point comparison, and decreasing potential."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 3,
+            "evidence": "Most content closely paraphrases the packet, but claiming that potential difference determines total work and saying field lines always point high-to-low extend the supplied wording."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "The three definitions and misconception corrections are mostly accurate, but the fact list is repetitive and the potential-difference example omits the per-unit-charge qualification."
+          },
+          "scenarioReadiness": {
+            "score": 2,
+            "evidence": "Determining the A-to-B potential relationship is usable, but the evidence itself supplies 10 V and 5 V, effectively giving away the decision without a real constraint."
+          },
+          "assessmentCorrectness": {
+            "score": 0,
+            "evidence": "Question 1 declares total final potential energy instead of potential difference, and question 2 declares greater potential although the correct option is less potential."
+          },
+          "choiceDiscriminability": {
+            "score": 2,
+            "evidence": "The alternatives are distinct and parallel, but the second stem calls the destination the lower-potential point, making the less-than option a wording giveaway."
+          },
+          "feedbackInstructionality": {
+            "score": 0,
+            "evidence": "Neither explanation supports its declared answer; both instead describe a different option, and neither explains why the closest misconception fails."
+          },
+          "internalCoherence": {
+            "score": 0,
+            "evidence": "Both answer keys contradict their explanations and supplied facts: option 2 is supported in each question while option 0 is declared."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "Unsupported factual additions include scalar/vector classifications, positive-test-charge behavior, and an unsigned charged-plate example that asserts higher potential nearby."
+        ],
+        "B": [
+          "The first question incorrectly declares option 0 even though the supplied claim and stem support option 2, potential difference.",
+          "The second question incorrectly declares option 0 while its premise, cited fact, and explanation support option 2, producing an answer-explanation contradiction.",
+          "The potential-difference example overstates the quantity as determining total work without specifying the charge magnitude or retaining the per-unit-charge qualification."
+        ]
+      },
+      "decision": "A",
+      "rationale": "Artifact A has coherent, correctly keyed assessments and substantially stronger scenario and feedback design. Its unsupported extensions reduce source fidelity, but artifact B has incorrect declared answers and answer-explanation contradictions in both questions, which are decisive critical defects."
+    }
+  ]
+}

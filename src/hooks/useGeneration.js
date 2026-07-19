@@ -25,6 +25,7 @@ import {
 } from '../lib/leanCourseMap';
 import { validateCourseMap } from '../lib/validateCourseMap';
 import { preserveMaterializedLessonNumbers } from '../lib/materializedLessonScope';
+import { getScionReviewFailureMessage } from '../lib/scionUserFacingError';
 
 function cellText(value) {
   if (value == null) return '';
@@ -132,6 +133,44 @@ export function constrainHighConfidenceLessonCount(courseMap, expectedInfo) {
     courseMap: { ...courseMap, lessons: lessons.slice(0, expected) },
     removedCount: lessons.length - expected,
   };
+}
+
+export function displayGenerationModelName(provider, modelName) {
+  return provider === 'public' || modelName === 'scion-public' ? 'Scion' : modelName;
+}
+
+export function buildCourseMapContinuationPrompt(workingMap, expectedCount, syllabusText = '', colDefs = []) {
+  const actual = workingMap.lessons.length;
+  const existingTitles = workingMap.lessons.map((lesson, index) => `${index + 1}. ${lesson.title}`).join('\n');
+  const sampleFields = colDefs.map((key) => `"${key}": "..."`).join(', ');
+  let continuationSyllabus;
+  if (syllabusText.length > 20000) {
+    const halfLength = Math.floor(syllabusText.length / 2);
+    continuationSyllabus = syllabusText.slice(Math.max(0, halfLength - 2000));
+  } else {
+    continuationSyllabus = syllabusText;
+  }
+  return `This Course Map has ${actual} of ${expectedCount} lessons.
+
+Existing lessons:
+${existingTitles}
+
+Generate ONLY Lessons ${actual + 1}-${expectedCount}.
+
+RULES:
+- Return one JSON object whose "lessons" array contains only the new lessons.
+- New topics must differ from every existing and new topic; renamed duplicates are forbidden.
+- Compare without lesson numbers and with acronyms expanded (CPI = Consumer Price Index).
+- Split broad topics by an explicit progression such as measurement, causes, policy application, or synthesis, with different objectives.
+- Each lesson needs "title" and "sections".
+- Each section is an object with these keys: ${colDefs.join(', ')}.
+- Use 2-5 sections per lesson. Leave no field empty.
+
+FORMAT:
+{"lessons": [{"title": "Lesson ${actual + 1}: Title Here", "sections": [{${sampleFields}}]}]}
+
+LATER SYLLABUS CONTENT:
+${continuationSyllabus}`;
 }
 
 function recordClassifiedFailedCall(recordApiCallEvent, err, event = {}, context = {}) {
@@ -257,9 +296,9 @@ export default function useGeneration({
                 .replace(/^./, (s) => s.toUpperCase())
                 .trim()
             : '';
-          setStreamDetail(`Mapping Lesson ${lessonNum}: ${keyLabel}...`);
+          setStreamDetail(`Mapping Lesson ${lessonNum} · ${keyLabel}…`);
         } else {
-          setStreamDetail(`Starting Lesson ${lessonNum}...`);
+          setStreamDetail(`Starting Lesson ${lessonNum}…`);
         }
       }
     }
@@ -461,7 +500,7 @@ export default function useGeneration({
         );
         console.warn('Examine step failed:', examErr.message);
         setOldCourseMap(null);
-        setExamChanges(['__EXAM_FAILED__:' + (examErr.message || 'Unknown error')]);
+        setExamChanges(['__EXAM_FAILED__:' + getScionReviewFailureMessage(examErr)]);
       }
     }
   }
@@ -558,44 +597,6 @@ export default function useGeneration({
     });
   }
 
-  // ── Build continuation prompt ──
-  function buildContinuationPrompt(workingMap, expectedCount, syllabusText, colDefs) {
-    const actual = workingMap.lessons.length;
-    const existingTitles = workingMap.lessons.map((l, i) => `${i + 1}. ${l.title}`).join('\n');
-    const sampleFields = colDefs.map((k) => `"${k}": "..."`).join(', ');
-    // Smart truncation: for continuation, prioritize the latter half of the syllabus
-    // since we're generating later lessons that correspond to content near the end
-    let contSyllabus;
-    if (syllabusText.length > 20000) {
-      const halfLen = Math.floor(syllabusText.length / 2);
-      contSyllabus = syllabusText.slice(Math.max(0, halfLen - 2000));
-    } else {
-      contSyllabus = syllabusText;
-    }
-    return `You previously generated a partial Course Map with ${actual} lessons, but the syllabus has ${expectedCount} lessons/weeks total.
-
-Here are the lessons already generated:
-${existingTitles}
-
-Continue generating the REMAINING lessons (Lesson ${actual + 1} through Lesson ${expectedCount}).
-
-IMPORTANT:
-- Return ONLY a JSON object with a "lessons" array containing ONLY the NEW lessons (Lesson ${actual + 1} onward).
-- Do NOT repeat any already-generated lessons.
-- Each lesson MUST have a "title" string and a "sections" array.
-- Each section is an object with these keys: ${colDefs.join(', ')}.
-- Each lesson should have 2-5 topic subsections in its "sections" array.
-- Do NOT leave any field empty.
-
-REQUIRED JSON FORMAT:
-{"lessons": [{"title": "Lesson ${actual + 1}: Title Here", "sections": [{${sampleFields}}]}]}
-
-SYLLABUS CONTENT (for reference — focusing on later content for remaining lessons):
-${contSyllabus}
-
-Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
-  }
-
   // ── Try one continuation call with a specific model ──
   async function tryContinuation(
     useProvider,
@@ -609,7 +610,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
     systemPromptOverride,
   ) {
     const actual = workingMap.lessons.length;
-    const contPrompt = buildContinuationPrompt(workingMap, expectedCount, syllabusText, colDefs);
+    const contPrompt = buildCourseMapContinuationPrompt(workingMap, expectedCount, syllabusText, colDefs);
 
     fullTextRef.current = '';
     lastGoodParseRef.current = null;
@@ -642,7 +643,9 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
           if (partial && partial.lessons) {
             lastGoodParseRef.current = partial;
             const newCount = actual + partial.lessons.length;
-            setStreamDetail(`${modelName}: generated ${newCount} of ${expectedCount} lessons...`);
+            setStreamDetail(
+              `${displayGenerationModelName(useProvider, modelName)} generated ${newCount} of ${expectedCount} lessons…`,
+            );
             setStreamProgress(Math.round((newCount / expectedCount) * 85));
             // Live-merge continuation lessons into preview (normalize flat→nested sections)
             const liveLessons = normalizeLessons(partial.lessons, colDefs).map((l, idx) => ({
@@ -686,14 +689,15 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
     let workingMap = currentMap;
 
     const model = { id: initialModelId, name: initialModelName, backend: provider, apiKey };
-    setActiveModelName(model.name);
+    const modelDisplayName = displayGenerationModelName(provider, model.name);
+    setActiveModelName(modelDisplayName);
 
     for (let attempt = 0; attempt < MAX_ATTEMPTS_PER_MODEL; attempt++) {
       const actual = workingMap.lessons.length;
       if (actual >= expectedCount) break;
 
       const missing = expectedCount - actual;
-      setStreamDetail(`${model.name}: completing ${missing} remaining lessons (attempt ${attempt + 1})...`);
+      setStreamDetail(`${modelDisplayName} is completing ${missing} remaining lessons · attempt ${attempt + 1}…`);
       setStreamProgress(Math.round((actual / expectedCount) * 85));
       setCompletenessInfo({
         expected: expectedCount,
@@ -729,10 +733,10 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
           setCourseMap(workingMap);
           courseMapRef.current = workingMap;
           const added = workingMap.lessons.length - prevCount;
-          addLog(model.name, `Added ${added} lessons (${prevCount + 1}–${workingMap.lessons.length})`, 'success');
-          pushVersion(workingMap, `${model.name}: added lessons ${prevCount + 1}–${workingMap.lessons.length}`);
+          addLog(modelDisplayName, `Added ${added} lessons (${prevCount + 1}–${workingMap.lessons.length})`, 'success');
+          pushVersion(workingMap, `${modelDisplayName}: added lessons ${prevCount + 1}–${workingMap.lessons.length}`);
         } else {
-          addLog(model.name, `No new lessons produced`, 'warning');
+          addLog(modelDisplayName, `No new lessons produced`, 'warning');
           break; // this model can't help, try next
         }
       } catch (contErr) {
@@ -743,7 +747,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
           { label: 'Course-map continuation failed' },
           { provider, modelId: model.id },
         );
-        addLog(model.name, `Failed: ${contErr.message}`, 'error');
+        addLog(modelDisplayName, `Failed: ${contErr.message}`, 'error');
         break;
       }
     }
@@ -1089,9 +1093,9 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
           finalResult = preserveMaterializedLessonNumbers(finalResult, scopeIndices);
 
           // Post-generation structural validation — auto-fix missing titles, sections, column keys
-          const { warnings: validationWarnings } = validateCourseMap(finalResult, columns);
+          let { warnings: validationWarnings } = validateCourseMap(finalResult, columns);
           if (validationWarnings.length > 0) {
-            addLog(usedModelName, `Validation: ${validationWarnings.length} fix(es) applied`, 'warning');
+            addLog(usedModelName, `Validation: ${validationWarnings.length} issue(s) found or fixed`, 'warning');
           }
 
           setCourseMap(finalResult);
@@ -1157,6 +1161,24 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
               });
               finalResult = assertExpectedLessonCount(finalResult, expected);
             }
+
+            // Continuation output used to bypass course-map validation entirely.
+            // Validate the final merged map so missing fields and repeated topic
+            // identities can trigger the same focused review as the first call.
+            const { warnings: continuationWarnings } = validateCourseMap(finalResult, columns);
+            const newContinuationWarnings = continuationWarnings.filter(
+              (warning) => !validationWarnings.includes(warning),
+            );
+            validationWarnings = [...new Set([...validationWarnings, ...continuationWarnings])];
+            if (newContinuationWarnings.length > 0) {
+              addLog(
+                displayGenerationModelName(provider, usedModelName),
+                `Continuation review: ${newContinuationWarnings.length} issue(s) found or fixed`,
+                'warning',
+              );
+            }
+            setCourseMap(finalResult);
+            courseMapRef.current = finalResult;
           }
 
           // Update completeness info
@@ -1621,6 +1643,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
     onAcceptPatches,
     onRejectPatch,
     retryInfo,
+    setRetryInfo,
     completenessInfo,
     generationLog,
     activeModelName,

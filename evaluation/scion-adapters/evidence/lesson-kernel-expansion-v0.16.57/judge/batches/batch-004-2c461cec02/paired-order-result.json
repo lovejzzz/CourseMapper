@@ -1,0 +1,145 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-paired-order-result-v1",
+  "generatedAt": "2026-07-19T19:00:00.000Z",
+  "status": "paired-orders-complete",
+  "requiredOrders": [
+    "A/B",
+    "B/A"
+  ],
+  "sessions": {
+    "A/B": "scion-v01654-batch-004-2c461cec02-a-b-9117366a-6d0d-4fe1-ba15-c00227c7403c",
+    "B/A": "scion-v01654-batch-004-2c461cec02-b-a-e4035b67-80b7-40e5-96e5-8a9fb18d06cb"
+  },
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "evidence": {
+    "prompt": {
+      "path": "evaluation/scion-adapters/lesson-kernel-judge-prompt-v0.16.54.md",
+      "sha256": "37844b86736335db54b561d8c031660ef71679c55ae1108e2e999e746f2a1c96"
+    },
+    "packets": {
+      "A/B": "d111b01c0df5c067a6b97e00650d2975925b68a86ea1ad89e8b068614971269d",
+      "B/A": "47c82d3806e0e448e36a3503e9ef07f61947824e8517adf725449c80e451ba85"
+    },
+    "reviews": {
+      "A/B": "17dc1e5c5e7052f8c827db45aae7804c7e5006030cd237802a644e24c25cb88e",
+      "B/A": "64c59c05cfb37c70b120aa96d3b881216a8d5cf485a68fd8f80019a8496e3106"
+    }
+  },
+  "issues": [],
+  "results": [
+    {
+      "caseId": "scion-kernel-3c7d751e58b0007e18cd5b80",
+      "pairId": "scion-kernel-pair-7214fba6df783e592bbb536d",
+      "winners": {
+        "A/B": "e69ed884c2d8543d7735a3e155ebe7e58d967c3ce7e4afb8c2dcb5e4bfe5bc33",
+        "B/A": "e69ed884c2d8543d7735a3e155ebe7e58d967c3ce7e4afb8c2dcb5e4bfe5bc33"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": true,
+      "scoreQualification": {
+        "qualified": false,
+        "winnerMinimumScore": 3,
+        "minimumTotalScoreMargin": 17,
+        "winnerCriticalDefects": [
+          "The claim that the sensor sends information to the control center is an unsupported causal detail not stated in the supplied source.",
+          "The opening fact removes the source's 'usually' qualifier and overstates negative feedback as universal to homeostasis.",
+          "Unsupported causal detail: the artifact states that the sensor sends information to the control center, which the supplied claims do not state."
+        ],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 3,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 3,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 3,
+              "internalCoherence": 3
+            },
+            "loserScores": {
+              "sourceFidelity": 1,
+              "knowledgePrecision": 1,
+              "scenarioReadiness": 2,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 2,
+              "feedbackInstructionality": 0,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 3,
+            "totalScoreMargin": 17,
+            "winnerCriticalDefects": [
+              "The claim that the sensor sends information to the control center is an unsupported causal detail not stated in the supplied source.",
+              "The opening fact removes the source's 'usually' qualifier and overstates negative feedback as universal to homeostasis."
+            ],
+            "loserCriticalDefects": [
+              "Question 1 declares the effector as the answer even though the sensor is uniquely correct, and its explanation explicitly contradicts the declared answer.",
+              "The 37-degree temperature scenario and the blood-glucose, thermometer, brain, and muscle examples introduce details absent from the source packet.",
+              "The set-point correction says the set point is dynamic, while the source says the normal range fluctuates around the set point.",
+              "Both explanations contain unfinished instructional wording telling the artifact to correct a distractor rather than actually providing that correction."
+            ],
+            "rationale": "B is the clear relative winner because it provides correct, coherent answer keys, substantially more instructional feedback, discriminable choices, and an evidence-based constrained scenario. A has a critical wrong key with an explanation contradiction, multiple source inventions, mismatched citations, and unfinished feedback text. B still has a source-boundary overstatement and one unsupported causal detail, so it is not defect-free.",
+            "decisionSha256": "47161335e946425f61b897b03f884b2c6ef5e213e2d69d427e1a58e14329e72b"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 3,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 1,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 1,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 2,
+              "feedbackInstructionality": 0,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 3,
+            "totalScoreMargin": 19,
+            "winnerCriticalDefects": [
+              "Unsupported causal detail: the artifact states that the sensor sends information to the control center, which the supplied claims do not state."
+            ],
+            "loserCriticalDefects": [
+              "Incorrect declared answer: the first item keys the effector option even though the sensor option answers which component detects the deviation.",
+              "Explanation/answer contradiction: the first explanation identifies the sensor while the declared answer identifies the effector.",
+              "Invented named examples and details include 37 degrees Celsius, blood glucose, a thermometer, the brain, and muscles.",
+              "Unsupported and internally conflicting claim: the set point is described as a dynamic value kept within a fluctuating range.",
+              "Truncated instructional text: both explanations end with the unfulfilled directive to correct the closest distractor.",
+              "Ambiguous alternatives: negative feedback and homeostasis are both defensible answers to the second question's broadly worded regulatory-failure prompt."
+            ],
+            "rationale": "Artifact A is substantially more teachable and coherent: its decisions are evidence-based, both keys are correct, and its feedback repairs misconceptions. Artifact B has a wrong key, a direct answer-explanation contradiction, unsupported named physiology, ambiguous assessment wording, and unfinished feedback.",
+            "decisionSha256": "401b0382627eda31c85598930cd7e6e1d0f1f9c963db7582a93ea5b8edecc5d8"
+          }
+        ]
+      },
+      "trainingEligible": false
+    }
+  ],
+  "summary": {
+    "pairs": 1,
+    "stablePreferences": 0,
+    "localWins": 0,
+    "referenceWins": 1,
+    "unstable": 0,
+    "scoreRejected": 1,
+    "compilerRejected": 0
+  },
+  "claimBoundary": "These are same-identity model-judge preferences from isolated A/B and B/A orders. They are not human, instructor, independent, classroom, heldout-adapter, or production-win evidence.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "3dc7c412c9f85efa45d7be1ab9bc269dd4d537affbdb41f355d1122022e8d5f2"
+  }
+}

@@ -105,6 +105,15 @@ function repeatsScionKeyTermField(left, right) {
   return containment >= 0.84 && intersection / Math.max(1, union) >= 0.66;
 }
 
+function correctionAddsSpecificMisconceptionContrast(definition, misconception, correction) {
+  if (!DIRECT_CONTRAST_RE.test(correction)) return false;
+  const definitionTokens = comparableScionKeyTermTokens(definition);
+  const misconceptionTokens = comparableScionKeyTermTokens(misconception);
+  const correctionTokens = comparableScionKeyTermTokens(correction);
+  const misconceptionOnlyTokens = [...misconceptionTokens].filter((token) => !definitionTokens.has(token));
+  return misconceptionOnlyTokens.some((token) => correctionTokens.has(token));
+}
+
 function misconceptionRestatesKnownFact(misconception, knownFacts, { strict = false, compact = false } = {}) {
   const candidate = cleanScionKeyTermText(misconception).replace(MISCONCEPTION_CUE_RE, '');
   if (candidate.length < 24) return false;
@@ -633,6 +642,16 @@ export function assessScionKeyTermContract(
     [normalized.example, normalized.correction, 'correction-repeats-example'],
     [normalized.misconception, normalized.correction, 'correction-repeats-misconception'],
   ]) {
+    if (
+      issue === 'correction-repeats-definition' &&
+      correctionAddsSpecificMisconceptionContrast(
+        normalized.definition,
+        normalized.misconception,
+        normalized.correction,
+      )
+    ) {
+      continue;
+    }
     if (repeatsScionKeyTermField(left, right)) issues.push(issue);
   }
   if (

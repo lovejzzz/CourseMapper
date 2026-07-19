@@ -151,4 +151,22 @@ describe('validateCourseMap', () => {
     expect(valid).toBe(true);
     expect(warnings).toHaveLength(0);
   });
+
+  it('flags duplicate topic identities after stripping lesson numbers and expanding CPI', () => {
+    const map = {
+      courseName: 'Macroeconomics',
+      semester: 'FA25',
+      lessons: [
+        { title: 'Lesson 3: Inflation and CPI', sections: [{}] },
+        { title: 'Lesson 4: Inflation and Consumer Price Index', sections: [{}] },
+      ],
+    };
+
+    const { valid, warnings } = validateCourseMap(map, []);
+
+    expect(valid).toBe(true);
+    expect(warnings).toContain(
+      'Lessons 1, 2: duplicate topic identity "inflation consumer price index" requires a distinct focus',
+    );
+  });
 });

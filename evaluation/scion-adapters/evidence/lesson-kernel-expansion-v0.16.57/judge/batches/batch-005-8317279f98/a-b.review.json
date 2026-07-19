@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-review-v1",
+  "order": "A/B",
+  "packetSha256": "3f7a14df6f37e5b1339c2e063ad097f7fadcd1c9aaa56a2a43df95eb686e1433",
+  "sessionId": "scion-v01654-batch-005-8317279f98-a-b-5f96ea89-8783-46c3-b6ea-ebbb13a25df9",
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "completedAt": "2026-07-19T11:13:36Z",
+  "attestations": {
+    "anonymousArtifactsOnly": true,
+    "otherOrderUnavailable": true,
+    "organizerMappingUnavailable": true
+  },
+  "decisions": [
+    {
+      "caseId": "scion-kernel-4df3ce51c565d84bb8930764",
+      "pairId": "scion-kernel-pair-8222c300c768050c31908e8a",
+      "artifactSha256": {
+        "A": "9fb722d13ae998d50f42697f8f66d7c406e256bd4d3ee1f8cccaa0dc8ff15f74",
+        "B": "68bd06fc701c16225dadd0e50109a86db2a5bde40408ba8b13b18083da1e8403"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 1,
+            "evidence": "It introduces an unsupported write() method and claims line-by-line processing conserves memory."
+          },
+          "knowledgePrecision": {
+            "score": 2,
+            "evidence": "The core method definitions are accurate, but the second assessment assigns read() to a line-by-line task."
+          },
+          "scenarioReadiness": {
+            "score": 3,
+            "evidence": "The small-log scenario supplies a file-size constraint, a counting goal, and an actionable read-method choice."
+          },
+          "assessmentCorrectness": {
+            "score": 1,
+            "evidence": "The second item declares option 0, read(), although its own explanation identifies readline() as appropriate."
+          },
+          "choiceDiscriminability": {
+            "score": 2,
+            "evidence": "Options are distinct, but one combines readline() and readlines() despite the second question requesting one method."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "The first explanation distinguishes read() from readline(), but the second explanation contradicts the declared answer."
+          },
+          "internalCoherence": {
+            "score": 1,
+            "evidence": "The second key selects read() while the question requests line-by-line work and the explanation endorses readline()."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "Its facts, terms, examples, questions, and answers consistently preserve the supplied distinctions among the four operations."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "It accurately distinguishes read() as one string, readline() as one line, and readlines() as a list of all lines."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The scenario requires choosing a method while preserving separate lines, with a blank line and later writing as inspectable constraints."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both items declare option 0, matching readlines() for separate lines and read() for one whole-text string."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "Each item presents four distinct method behaviors, with plausible swapped-behavior misconceptions and no duplicate alternatives."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation supports the correct method and explicitly contrasts it with the closest competing read behavior."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "Facts, term definitions, scenario requirements, answer keys, cited facts, and explanations agree throughout."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "The second assessment declares read() as correct, but the supported answer for next-line processing is readline().",
+          "The second assessment explanation endorses readline(), directly contradicting its declared read() answer.",
+          "The claim that line-by-line processing conserves memory is unsupported by the supplied source.",
+          "The open() example introduces a named write() method that the supplied claims do not establish."
+        ],
+        "B": []
+      },
+      "decision": "B",
+      "rationale": "B is consistently source-bound, gives two correct and coherent answer keys, and supplies explanations that distinguish the relevant methods. A contains a critical wrong answer and answer-explanation contradiction in its second assessment, plus unsupported claims about memory conservation and a write() method."
+    }
+  ]
+}

@@ -1,0 +1,150 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-paired-order-result-v1",
+  "generatedAt": "2026-07-19T19:00:00.000Z",
+  "status": "paired-orders-complete",
+  "requiredOrders": [
+    "A/B",
+    "B/A"
+  ],
+  "sessions": {
+    "A/B": "scion-v01654-batch-009-02c08f98b8-a-b-27087252-6d92-4d84-906e-1da973c72d2d",
+    "B/A": "scion-v01654-batch-009-02c08f98b8-b-a-507ea589-c26d-480f-a924-a4352f7cc198"
+  },
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "evidence": {
+    "prompt": {
+      "path": "evaluation/scion-adapters/lesson-kernel-judge-prompt-v0.16.54.md",
+      "sha256": "37844b86736335db54b561d8c031660ef71679c55ae1108e2e999e746f2a1c96"
+    },
+    "packets": {
+      "A/B": "bc99488c4728a0c98fe64b649b9245507a89eb630dc65eee0747f1cf4cc057bc",
+      "B/A": "fa3edb4c444554adffc4f3a6badf9c6853aad5cd7d95c758be87b50b4da821f2"
+    },
+    "reviews": {
+      "A/B": "b344506c210dc851602c3b187fdd44a971c3b5526f7e6ffe1c123f97841fdbb8",
+      "B/A": "7eb37a998c4413efb9c77a58a975f8701905c777024ba4daff8e76b2a5cc0e4b"
+    }
+  },
+  "issues": [],
+  "results": [
+    {
+      "caseId": "scion-kernel-60e90ca7ff0ef53a48cde334",
+      "pairId": "scion-kernel-pair-90b7ef955c56991140a2dd3b",
+      "winners": {
+        "A/B": "f88691c5397515ac053ae6af13f725d74f9d79655c0a0948616db610a6366651",
+        "B/A": "f88691c5397515ac053ae6af13f725d74f9d79655c0a0948616db610a6366651"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": true,
+      "scoreQualification": {
+        "qualified": false,
+        "winnerMinimumScore": 2,
+        "minimumTotalScoreMargin": 22,
+        "winnerCriticalDefects": [
+          "The artifact adds the unsupported causal claim that mantle convection helps drive or move plates.",
+          "The warm-mantle-rise/cooler-material-sink example and the trench beside the convergent contact are invented details outside the supplied claims.",
+          "The lithospheric-plate definition and examples add unsupported descriptions such as weaker deeper material and new rock forming below.",
+          "Unsupported factual claims and examples add causal or geological details absent from the packet, including convection helping drive plate motion, cooler material sinking, and weaker deeper material.",
+          "The second assessment invents a trench as named geological evidence not supplied by the source claims."
+        ],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 1,
+              "knowledgePrecision": 1,
+              "scenarioReadiness": 0,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 0,
+              "feedbackInstructionality": 0,
+              "internalCoherence": 1
+            },
+            "winnerMinimumScore": 2,
+            "totalScoreMargin": 22,
+            "winnerCriticalDefects": [
+              "The artifact adds the unsupported causal claim that mantle convection helps drive or move plates.",
+              "The warm-mantle-rise/cooler-material-sink example and the trench beside the convergent contact are invented details outside the supplied claims.",
+              "The lithospheric-plate definition and examples add unsupported descriptions such as weaker deeper material and new rock forming below."
+            ],
+            "loserCriticalDefects": [
+              "The rigid-lithospheric-plates example is truncated at 'Rigid lithospheric plates are a'.",
+              "The scenario invents measured and theoretical flow rates but supplies no values or actionable decision.",
+              "Question 1 declares a self-contradictory answer that first calls upward flow irrelevant and then calls it the primary mechanism; the explanation supports only its latter clause.",
+              "Question 2 contains four duplicate alternatives, and every alternative falsely says subduction is the only way to form new lithosphere at convergent boundaries.",
+              "The artifact introduces unsupported named details and causal claims, including the asthenosphere, independent crustal segments, lithosphere recycling, and convection as the engine of plate movement."
+            ],
+            "rationale": "B is the clear winner because it provides a usable evidence-based classification scenario, two uniquely correct assessments, discriminating alternatives, and explanations that repair close misconceptions. Its source fidelity is reduced by several outside geological details, but A has much more severe defects: truncated text, an unusable scenario, a contradictory keyed option, four duplicate false alternatives, a wrong fact citation, and unfinished feedback placeholders.",
+            "decisionSha256": "779453df2776387b133be4dce3bae483b2ef5c58a5073c178e7a4f7ed7e64b98"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 0,
+              "knowledgePrecision": 1,
+              "scenarioReadiness": 1,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 0,
+              "feedbackInstructionality": 0,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 2,
+            "totalScoreMargin": 23,
+            "winnerCriticalDefects": [
+              "Unsupported factual claims and examples add causal or geological details absent from the packet, including convection helping drive plate motion, cooler material sinking, and weaker deeper material.",
+              "The second assessment invents a trench as named geological evidence not supplied by the source claims."
+            ],
+            "loserCriticalDefects": [
+              "Multiple unsupported factual claims and invented details appear, including asthenosphere, mantle as the engine of plate movement, lithosphere recycling, and theoretical faster-convection models.",
+              "Instructional text is truncated or unfinished, including the first key-term example, several assessment options, and both placeholder feedback statements.",
+              "The first declared answer is incorrect and internally contradictory: it calls upward mantle flow irrelevant and also the primary mechanism.",
+              "All four alternatives in the second assessment are duplicates, making the item non-discriminating and ambiguous.",
+              "The second declared answer is unsupported and incorrect because every option claims subduction is the only way to form new lithosphere at convergent boundaries.",
+              "The scenario supplies no usable disciplinary decision and depends on an unsupported expected flow-rate benchmark."
+            ],
+            "rationale": "Artifact A is a coherent, actionable lesson with two uniquely correct assessments and instructional feedback. It has source-fidelity defects from added geological details, but Artifact B has pervasive unsupported content, truncation, contradictory and incorrect keys, duplicate alternatives, placeholder feedback, and no usable scenario decision.",
+            "decisionSha256": "bcd73e0f01d651870032cf644e2c00cb9a70ec111480d596e733a185ee74e1ed"
+          }
+        ]
+      },
+      "trainingEligible": false
+    }
+  ],
+  "summary": {
+    "pairs": 1,
+    "stablePreferences": 0,
+    "localWins": 0,
+    "referenceWins": 1,
+    "unstable": 0,
+    "scoreRejected": 1,
+    "compilerRejected": 0
+  },
+  "claimBoundary": "These are same-identity model-judge preferences from isolated A/B and B/A orders. They are not human, instructor, independent, classroom, heldout-adapter, or production-win evidence.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "78478e06f2328bbf4a554804c0c477782e70d5996aae50e7ce9ac96a1cda905b"
+  }
+}

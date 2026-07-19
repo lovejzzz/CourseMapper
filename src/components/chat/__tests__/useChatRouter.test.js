@@ -5,6 +5,7 @@ import {
   buildRetryFailedPrompt,
   prepareAutoReviewSend,
   prepareEditAndResendMessages,
+  resolveChatRoute,
 } from '../useChatRouter';
 
 vi.mock('../../../lib/customDeliverableLibrary', () => ({
@@ -73,6 +74,28 @@ describe('prepareAutoReviewSend', () => {
       agentPromptOverride: null,
       silent: false,
     });
+  });
+});
+
+describe('resolveChatRoute', () => {
+  it('routes a map-only workspace through the real Agent when its executor is ready', () => {
+    expect(
+      resolveChatRoute({ courseMap: { lessons: [{ title: 'One' }] }, hasDeliverables: false, hasExecutor: true }),
+    ).toBe('agent');
+  });
+
+  it('keeps in-progress work in help mode and preserves revision as a legacy fallback', () => {
+    expect(
+      resolveChatRoute({
+        courseMap: { lessons: [{ title: 'One' }] },
+        hasDeliverables: true,
+        isGenerating: true,
+        hasExecutor: true,
+      }),
+    ).toBe('help');
+    expect(
+      resolveChatRoute({ courseMap: { lessons: [{ title: 'One' }] }, hasDeliverables: false, hasExecutor: false }),
+    ).toBe('revision');
   });
 });
 

@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-review-v1",
+  "order": "A/B",
+  "packetSha256": "9ef24b1b495ee63320ad6fe315e2f3ae07bf38f8a6ab6a0abd8aacfd7b50755a",
+  "sessionId": "scion-v01654-batch-003-5dc9063c19-a-b-101cb4a0-a79f-4a84-83f1-b0858a43be8d",
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "completedAt": "2026-07-19T11:11:06Z",
+  "attestations": {
+    "anonymousArtifactsOnly": true,
+    "otherOrderUnavailable": true,
+    "organizerMappingUnavailable": true
+  },
+  "decisions": [
+    {
+      "caseId": "scion-kernel-304d938d19d4b55acfed37dc",
+      "pairId": "scion-kernel-pair-55ef0ebd21160f39d2ca6635",
+      "artifactSha256": {
+        "A": "22e4da893bf2190ea75b895fad247f8522a4f69480c9fb8fb41ccaaf10f65fda",
+        "B": "10e0ce55a06138739ceab4a7389558dcdd79d209ffdd63301b78f17a4281a4c9"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "The second item attributes exposure of procedure problems to the day-before task run, while the source assigns that outcome to a practice session with a team member."
+          },
+          "knowledgePrecision": {
+            "score": 2,
+            "evidence": "Most terms reflect the source, but “fully operational” overstates the prototype claim and the assessment conflates two distinct preparation claims."
+          },
+          "scenarioReadiness": {
+            "score": 3,
+            "evidence": "The checkout scenario supplies a usability decision, inspectable plan/objective/prototype evidence, and an accessibility constraint, though the tension is only lightly developed."
+          },
+          "assessmentCorrectness": {
+            "score": 1,
+            "evidence": "The first item declares option 0 even though option 1 is the uniquely supported response and is the response identified by its own explanation."
+          },
+          "choiceDiscriminability": {
+            "score": 2,
+            "evidence": "The alternatives are distinct, but both stems effectively state their intended answers, substantially reducing meaningful discrimination."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "The first explanation teaches the opposite of its declared answer, and the second teaches an unsupported causal link instead of distinguishing task run-through from team practice."
+          },
+          "internalCoherence": {
+            "score": 1,
+            "evidence": "The first key contradicts its stem and explanation, while the second item merges the separate day-before run-through and team-practice claims."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "The facts, examples, scenario details, answers, and explanations remain grounded in planning objectives, study roles, end-to-end readiness, and advance practice."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "Research plan, study setup, and practice session are accurately distinguished, with false misconceptions directly repaired by source-supported corrections."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The missing confirmation screen, unassigned observer role, next-day deadline, and named documents create an actionable preparation decision with inspectable evidence and tension."
+          },
+          "assessmentCorrectness": {
+            "score": 3,
+            "evidence": "Both declared answers are uniquely correct, but the first item cites fact 0 alone even though its full answer also depends on participant, task, and role content in fact 1."
+          },
+          "choiceDiscriminability": {
+            "score": 2,
+            "evidence": "Options are distinct and parallel, but repeated cues such as “only,” “skip,” “broken,” and waiting until participants arrive make the correct choices conspicuously preferable."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation states the governing concept and directly contrasts it with a close misconception without referring to answer position."
+          },
+          "internalCoherence": {
+            "score": 3,
+            "evidence": "Facts, scenario, keys, and explanations agree throughout; the only notable weakness is the first item’s incomplete fact citation for its compound answer."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "The first multiple-choice item declares ai 0, but its stem and explanation identify option 1 as correct, creating an incorrect declared answer and answer/explanation contradiction.",
+          "The second multiple-choice item makes the unsupported causal claim that the day-before task run exposes procedure problems; the supplied source attributes that benefit to a practice session with a team member."
+        ],
+        "B": []
+      },
+      "decision": "B",
+      "rationale": "B is consistently source-grounded, scenario-ready, and answer-key coherent. A has a plainly incorrect first key plus a source-claim conflation in its second assessment, both of which materially undermine assessment correctness and instructional reliability."
+    }
+  ]
+}

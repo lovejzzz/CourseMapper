@@ -1,0 +1,138 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-paired-order-result-v1",
+  "generatedAt": "2026-07-19T19:00:00.000Z",
+  "status": "paired-orders-complete",
+  "requiredOrders": [
+    "A/B",
+    "B/A"
+  ],
+  "sessions": {
+    "A/B": "scion-v01654-batch-007-6ee2361097-a-b-c9839f1c-db9b-49f1-80b1-824c7ab48d2a",
+    "B/A": "scion-v01654-batch-007-6ee2361097-b-a-e90ba156-9b6a-48c9-ae11-a11c12e581d7"
+  },
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "evidence": {
+    "prompt": {
+      "path": "evaluation/scion-adapters/lesson-kernel-judge-prompt-v0.16.54.md",
+      "sha256": "37844b86736335db54b561d8c031660ef71679c55ae1108e2e999e746f2a1c96"
+    },
+    "packets": {
+      "A/B": "94575301cfa722b3a64c869e1c06d3d2f6fa76e2d0249376676e3f5fb5156825",
+      "B/A": "6a69b0c8d5c3ca5c1cd4dac84ddc9a7641dd11bc661ac1167a034b83fb3bad33"
+    },
+    "reviews": {
+      "A/B": "1bacce3c1a12fdf73a39eb063ad64c874811a554760c48bda226255bf93c418c",
+      "B/A": "c994af0e357ddd4dba5781d743dbbf8ab56e416befee5ee6dfe9697ee0cc5ee1"
+    }
+  },
+  "issues": [],
+  "results": [
+    {
+      "caseId": "scion-kernel-57b7148eae73e0ce43d21a78",
+      "pairId": "scion-kernel-pair-0e48e4c71bb98b4570abcc7f",
+      "winners": {
+        "A/B": "b289c4e9e7e27d33da388dbbaa179f61102d2d26c729ba883d57cbb9e32ac57e",
+        "B/A": "b289c4e9e7e27d33da388dbbaa179f61102d2d26c729ba883d57cbb9e32ac57e"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": true,
+      "scoreQualification": {
+        "qualified": false,
+        "winnerMinimumScore": 2,
+        "minimumTotalScoreMargin": 7,
+        "winnerCriticalDefects": [
+          "The rule that inclusions are older than the rock containing them is not supplied by the source claims, yet it appears as a fact and controls the second question and explanation.",
+          "A introduces the unsupported factual claim that inclusions are older than the containing rock and uses it to determine the declared answer to question 2."
+        ],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 2,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 3
+            },
+            "loserScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 2,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 1
+            },
+            "winnerMinimumScore": 2,
+            "totalScoreMargin": 8,
+            "winnerCriticalDefects": [
+              "The rule that inclusions are older than the rock containing them is not supplied by the source claims, yet it appears as a fact and controls the second question and explanation."
+            ],
+            "loserCriticalDefects": [
+              "Both declared answers are incorrect: each ai value is 0 while the uniquely correct option is at index 1.",
+              "Both explanations contradict their declared answers by supporting the option at index 1 rather than the keyed option at index 0."
+            ],
+            "rationale": "B is the relative winner because its declared answers and explanations are internally correct and its scenario is decision-ready. Its unsupported inclusion rule is a serious source-fidelity defect, but A has incorrect answer keys and answer-explanation contradictions in every assessment item.",
+            "decisionSha256": "4731fbc6d8660935d7cdd9f446ed5418417cf31daac9676e58f2cc6d77980df4"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 2,
+              "choiceDiscriminability": 2,
+              "feedbackInstructionality": 3,
+              "internalCoherence": 3
+            },
+            "loserScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 1,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 2,
+            "totalScoreMargin": 7,
+            "winnerCriticalDefects": [
+              "A introduces the unsupported factual claim that inclusions are older than the containing rock and uses it to determine the declared answer to question 2."
+            ],
+            "loserCriticalDefects": [
+              "Question 1 declares option 0, saying the cutting feature is older, while the cited fact and explanation say the cutting feature is younger and support option 1.",
+              "Question 2 declares option 0, saying the youngest layer is at the bottom, while the cited fact and explanation say older layers are below younger layers and support option 1.",
+              "The scenario supplies its own dike-age conclusion and provides no concrete unresolved decision; it also does not explicitly establish an undisturbed sequence for applying superposition."
+            ],
+            "rationale": "A is the relative winner because it provides an actionable, evidence-based scenario and at least one correctly keyed assessment item with coherent explanations. Its unsupported inclusion rule is a material source-fidelity defect, but B is substantially less usable: both declared answers contradict their options, cited facts, and explanations, and its scenario states the conclusion without presenting a genuine decision.",
+            "decisionSha256": "c8a68616640a17f2453f7dc4cd81a6c25efa9981f142badd50828bd3ca11a9ab"
+          }
+        ]
+      },
+      "trainingEligible": false
+    }
+  ],
+  "summary": {
+    "pairs": 1,
+    "stablePreferences": 0,
+    "localWins": 0,
+    "referenceWins": 1,
+    "unstable": 0,
+    "scoreRejected": 1,
+    "compilerRejected": 0
+  },
+  "claimBoundary": "These are same-identity model-judge preferences from isolated A/B and B/A orders. They are not human, instructor, independent, classroom, heldout-adapter, or production-win evidence.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "927154e637f9d0e23e6ad0773b413a6cccf3a12194042a78988927ffbf65d3a1"
+  }
+}

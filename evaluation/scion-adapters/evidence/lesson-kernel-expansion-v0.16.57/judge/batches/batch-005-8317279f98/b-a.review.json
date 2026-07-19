@@ -1,0 +1,103 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-review-v1",
+  "order": "B/A",
+  "packetSha256": "95fb94d5f2ce90396313a290df479549c7c315e3123dd533c524ac640fe4b4a2",
+  "sessionId": "scion-v01654-batch-005-8317279f98-b-a-67cbd771-db70-4001-8a85-7a16d7c14dc6",
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "completedAt": "2026-07-19T11:15:00Z",
+  "attestations": {
+    "anonymousArtifactsOnly": true,
+    "otherOrderUnavailable": true,
+    "organizerMappingUnavailable": true
+  },
+  "decisions": [
+    {
+      "caseId": "scion-kernel-4df3ce51c565d84bb8930764",
+      "pairId": "scion-kernel-pair-8222c300c768050c31908e8a",
+      "artifactSha256": {
+        "A": "68bd06fc701c16225dadd0e50109a86db2a5bde40408ba8b13b18083da1e8403",
+        "B": "9fb722d13ae998d50f42697f8f66d7c406e256bd4d3ee1f8cccaa0dc8ff15f74"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 3,
+            "evidence": "The facts and assessments track the supplied method behaviors, but the open() definition changes 'returns a file object' to the unsupported claim that it 'creates' one."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "The lesson clearly distinguishes read(), readline(), and readlines(), although describing open() as creating rather than returning the object is imprecise."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The developer must choose among three read methods using inspectable requirements to preserve separate lines, including a blank line, before a later write step."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both declared answers are uniquely correct, cite the matching zero-based fact, and agree with their explanations."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "Each question supplies four distinct method-behavior alternatives built from plausible confusions among open(), read(), readline(), and readlines()."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation identifies the supported behavior and explicitly contrasts it with the closest method misconception."
+          },
+          "internalCoherence": {
+            "score": 3,
+            "evidence": "The scenario, questions, keys, citations, and explanations agree, but the key-term claim that open() creates an object is not identical to the lesson fact that it returns one."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "Most definitions repeat the source, but the artifact says open() creates an object and introduces unsupported memory-efficiency guidance for very large files."
+          },
+          "knowledgePrecision": {
+            "score": 2,
+            "evidence": "Core method definitions are accurate, yet the second item teaches a line-by-line requirement while declaring read(), which reads the entire file, as correct."
+          },
+          "scenarioReadiness": {
+            "score": 2,
+            "evidence": "The small-log scenario identifies a continuous-string requirement, but its size constraint depends on unsupplied memory assumptions and the material already states the method choice."
+          },
+          "assessmentCorrectness": {
+            "score": 1,
+            "evidence": "The first key is correct, but the second declares read() while its question requires line-by-line processing and its explanation identifies readline() instead."
+          },
+          "choiceDiscriminability": {
+            "score": 2,
+            "evidence": "The first item has distinct alternatives, but the second lacks a clean single-method answer because one option bundles both readline() and readlines()."
+          },
+          "feedbackInstructionality": {
+            "score": 2,
+            "evidence": "The first explanation supports read() and contrasts readline(), while the second explanation contradicts the declared answer and does not repair the memory-related misconception."
+          },
+          "internalCoherence": {
+            "score": 2,
+            "evidence": "Most facts and the first item agree, but the second answer index points to read() while its cited fact and explanation point to readline()/readlines()."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "The open() key-term definition and example make the unsupported factual claim that open() creates a file object; the supplied claim says only that it returns one."
+        ],
+        "B": [
+          "The second multiple-choice item declares read() as correct even though the stated line-by-line requirement is not satisfied by reading the entire file.",
+          "The second item's explanation identifies readline() as appropriate, directly contradicting its declared answer index.",
+          "The claim that line-by-line processing conserves memory for a very large file is outside the supplied source claims.",
+          "The open() example makes the unsupported factual claim that calling open() creates a file object rather than only stating that it returns one."
+        ]
+      },
+      "decision": "A",
+      "rationale": "Artifact A has two correct, well-cited assessments, discriminating choices, instructional feedback, and a genuinely actionable scenario. Artifact B contains a decisive answer-key error and answer-feedback contradiction in its second item, plus unsupported memory guidance. A's unsupported wording that open() creates an object is a real fidelity defect, but it is materially less damaging than B's broken assessment."
+    }
+  ]
+}

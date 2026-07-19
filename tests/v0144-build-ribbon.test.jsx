@@ -742,7 +742,7 @@ describe('B1 — buildRibbonModel selector', () => {
         },
         ENRICH_CHUNK_EVENT,
       ]),
-    ).toBe('Retrying local lesson kernel · attempt 2/3');
+    ).toBe('Retrying local lesson kernel · lessons 9–12 · attempt 2/3');
     expect(
       latestKnowledgeActivity([
         {
@@ -760,7 +760,7 @@ describe('B1 — buildRibbonModel selector', () => {
           at: 100,
         },
       ]),
-    ).toBe('Recovery 1/1 · retrying local lesson kernel · attempt 2/3');
+    ).toBe('Recovery 1/1 · retrying local lesson kernel · lesson 1 · attempt 2/3');
     expect(latestKnowledgeActivity([ENRICH_CHUNK_EVENT])).toBe('Enriching lessons 9–12');
     expect(latestKnowledgeActivity([])).toBe('Building lesson knowledge');
   });
@@ -1171,7 +1171,7 @@ describe('B1 — buildRibbonModel selector', () => {
     expect(model.steps.every((step) => step.status === 'done')).toBe(true);
     expect(model.pipelineChips).toEqual([
       { id: 'genome', label: 'Genome 6/13', emphasis: true },
-      { id: 'judgment', label: 'Judgment clean' },
+      { id: 'judgment', label: 'Sequence check passed' },
       { id: 'coverage', label: 'Knowledge 13/13' },
     ]);
     expect(model.spendDisplay).toBe('$0.13');
@@ -1268,7 +1268,7 @@ describe('B1 — buildRibbonModel selector', () => {
       uncovered: [],
     });
     expect(parseGenomeLinkerDetail('ran')).toBeNull();
-    expect(parseJudgmentDetail('no gaps across 22 linked concepts')).toBe('Judgment clean');
+    expect(parseJudgmentDetail('no gaps across 22 linked concepts')).toBe('Sequence check passed');
     expect(parseJudgmentDetail('no gaps across 1 linked concepts', { linked: 1, total: 15 })).toBe(
       'Limited knowledge check',
     );
@@ -1373,7 +1373,7 @@ describe('B1 — BuildRibbon render', () => {
     expect(html).toContain('data-state="complete"');
     expect(html).toContain('Ready to export');
     expect(html).toContain('Verified · Grade A');
-    expect(html).toContain('Judgment clean');
+    expect(html).toContain('Sequence check passed');
     expect(html).toContain('Knowledge 13/13');
     expect(html).toMatch(/Ready in \d+s/);
     expect(html).not.toContain('animate-pulse');

@@ -40,8 +40,8 @@
       },
       {
         "path": "src/lib/scionKeyTermContract.js",
-        "bytes": 33378,
-        "sha256": "db9d3c7922b4d0c10790e5a9ea461dceed968e2008ba3b17ed61cb5ac16613cc"
+        "bytes": 34178,
+        "sha256": "995c0f357e0b35785090a85f79d7c6c56931aea8a450bd8536583c5982aadcd5"
       },
       {
         "path": "src/lib/itemAdmissionLint.js",
@@ -55,8 +55,8 @@
       },
       {
         "path": "src/lib/publicScionProvider.js",
-        "bytes": 58128,
-        "sha256": "3dd3ae194b3042b20e982a77b34e32cdb98d465c1fbb9c9383d831cdca9e0317"
+        "bytes": 60209,
+        "sha256": "08025b0b997c841da3e42cb9fbb64e91a8399c1d0382c6fb7fbcc16b65ff3fd2"
       },
       {
         "path": "src/lib/blueprintEnrichmentPass.js",

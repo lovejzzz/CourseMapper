@@ -1,0 +1,100 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-review-v1",
+  "order": "B/A",
+  "packetSha256": "a8b41eb91e23b1003c05136116a8561c4aeabd6d61adce22dbe0a3b5b974d455",
+  "sessionId": "scion-v01654-batch-006-4ebd3cb7ab-b-a-5c4037b6-5c62-4192-a48c-a46370da0cf9",
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "completedAt": "2026-07-19T07:15:55-04:00",
+  "attestations": {
+    "anonymousArtifactsOnly": true,
+    "otherOrderUnavailable": true,
+    "organizerMappingUnavailable": true
+  },
+  "decisions": [
+    {
+      "caseId": "scion-kernel-560fc51a1b084a9a84a854e1",
+      "pairId": "scion-kernel-pair-858f18f7ea738a52b3832dc1",
+      "artifactSha256": {
+        "A": "27420efbd10fbf5d79eef44c71a0da8a984a4a89d897fca808bbd18726361afc",
+        "B": "30a9c5c6dc514f235218c7fb90ac519395f3a9f4f2d10afc4daceddc9499df40"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 3,
+            "evidence": "The facts, scenario, and questions closely track the supplied function and scope claims, but the function correction says a later call is required to make a function, which the source does not support."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "Function, local scope, global scope, and variable scope are distinguished accurately overall; however, the statement that both def and a later call are required conflates defining a function with running it."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The score_total scenario requires choosing whether score or limit is readable later, provides inspectable creation locations, and imposes the constraint of making no code changes."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both declared answers are uniquely supported: a def structure waits for a call, and a name assigned inside the function is unavailable outside that call."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "Each question supplies four distinct, parallel alternatives representing plausible confusions about immediate execution, global access, indentation, and local scope."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation states the governing rule and directly contrasts it with the closest misconception, without relying on answer-position language."
+          },
+          "internalCoherence": {
+            "score": 3,
+            "evidence": "The facts, scenario, keys, citations, and explanations otherwise agree, but the key-term correction's claim that a later call is required is imprecise relative to the definition fact."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "Its single fact and the total-variable scenario remain within the supplied claims about functions running when called and variables created inside functions being inaccessible outside."
+          },
+          "knowledgePrecision": {
+            "score": 1,
+            "evidence": "The one fact is accurate, but the artifact omits the definition syntax, explicit scope definitions, global scope, all key terms, and a direct statement of the local-scope rule used by its scenario."
+          },
+          "scenarioReadiness": {
+            "score": 3,
+            "evidence": "The programmer can compare the inside assignment with the outside access to diagnose the error, though the scenario largely supplies the outcome and offers little decision tension."
+          },
+          "assessmentCorrectness": {
+            "score": 0,
+            "evidence": "No assessment items, declared answers, fact citations, or answer explanations are present."
+          },
+          "choiceDiscriminability": {
+            "score": 0,
+            "evidence": "The artifact contains no four-option questions or alternatives whose distinctness and plausibility can be evaluated."
+          },
+          "feedbackInstructionality": {
+            "score": 0,
+            "evidence": "No assessment feedback is supplied to explain a supported answer or repair a misconception."
+          },
+          "internalCoherence": {
+            "score": 2,
+            "evidence": "The existing fact and scenario do not contradict each other, but the scenario relies on an omitted local-scope rule and there are no terms, questions, keys, citations, or explanations completing the instructional chain."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "The function key-term correction says that a defining marker and a later call are both required to make a function; a call is required to run the function, not to define it."
+        ],
+        "B": [
+          "The instructional kernel stops after one fact and a scenario, omitting all assessment questions, four-option alternatives, answer keys, citations, and feedback."
+        ]
+      },
+      "decision": "A",
+      "rationale": "A is the clear winner because it covers the supplied concepts, presents an actionable evidence-based scenario, and includes two correct, discriminating assessments with instructional explanations. Its localized definition-versus-execution error warrants a precision penalty and a critical defect, but B is substantially incomplete and provides no assessable questions, choices, keys, citations, or feedback."
+    }
+  ]
+}

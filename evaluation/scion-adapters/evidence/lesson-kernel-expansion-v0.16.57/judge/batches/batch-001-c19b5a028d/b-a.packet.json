@@ -1,0 +1,310 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-packet-v1",
+  "order": "B/A",
+  "generatedAt": "2026-07-19T19:00:00.000Z",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "fe3741c97241d3d2a1dcc5151fa204ea17538afd9ec39e54cdd1cc890bde8edc"
+  },
+  "prompt": {
+    "path": "evaluation/scion-adapters/lesson-kernel-judge-prompt-v0.16.54.md",
+    "sha256": "37844b86736335db54b561d8c031660ef71679c55ae1108e2e999e746f2a1c96"
+  },
+  "dimensions": [
+    "sourceFidelity",
+    "knowledgePrecision",
+    "scenarioReadiness",
+    "assessmentCorrectness",
+    "choiceDiscriminability",
+    "feedbackInstructionality",
+    "internalCoherence"
+  ],
+  "cases": [
+    {
+      "caseId": "scion-kernel-008bab43da5c7cb7977b1891",
+      "pairId": "scion-kernel-pair-1dbded9472ff4c011d739feb",
+      "domain": "user-experience-design",
+      "failureFamilies": [
+        "feedback-instructionality",
+        "key-term-precision",
+        "misconception-validity",
+        "scenario-evidence-sufficiency",
+        "source-coverage"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-1",
+        "title": "Personas",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: A research-based persona is a shareable profile of a user group with similar behavior and needs, used to keep design choices connected to evidence. Claim 1: Personas are one way to present research findings so other people can understand and share them. Claim 2: User needs are generally higher-level and more stable over time than individual interface requests. Claim 3: Teams turn user needs into user stories that describe features and content intended to meet those needs. Claim 4: Keeping each user story linked to its source need enables evaluation of whether the need is being met.",
+        "readings": "UK Government Service Manual"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "f0261b4e9d65d69eb1fd27b6e93e9702910c6f23322aeb3fcf3b799bb742fa6d",
+        "kernelId": "ux/evidence-based-personas",
+        "term": "Personas",
+        "claims": [
+          "A research-based persona is a shareable profile of a user group with similar behavior and needs, used to keep design choices connected to evidence.",
+          "Personas are one way to present research findings so other people can understand and share them.",
+          "User needs are generally higher-level and more stable over time than individual interface requests.",
+          "Teams turn user needs into user stories that describe features and content intended to meet those needs.",
+          "Keeping each user story linked to its source need enables evaluation of whether the need is being met."
+        ],
+        "anchors": [
+          {
+            "src": "govuk:user-needs",
+            "loc": "Share your user needs",
+            "quote": "user profiles or personas that describe groups of users with similar behaviour and needs"
+          },
+          {
+            "src": "govuk:user-needs",
+            "loc": "Share your user needs",
+            "quote": "Present what you've learned in a way that's easy for others to understand and share."
+          },
+          {
+            "src": "govuk:user-needs",
+            "loc": "Linking user needs",
+            "quote": "User needs tend to be high-level, broad in scope and stable over time."
+          },
+          {
+            "src": "govuk:user-needs",
+            "loc": "Linking user needs",
+            "quote": "These describe the specific features and content you need to create for your service to meet your users' needs."
+          },
+          {
+            "src": "govuk:user-needs",
+            "loc": "Linking user needs",
+            "quote": "This traceability allows you to track related activities and determine how well you're meeting a particular user need."
+          }
+        ],
+        "attribution": [
+          "UK Government Service Manual"
+        ],
+        "license": "Open Government Licence v3.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "20fea4aa722dd02128945a6dd9f79e7ef8610ac6709f0675499c27f18638492d",
+          "lessonKernel": {
+            "lessonId": "lesson-1",
+            "facts": [
+              "Research-based personas are shareable profiles of user groups with similar behavior and needs.",
+              "Personas keep design choices connected to evidence instead of isolated assumptions.",
+              "Personas also present research findings so other people can understand and share them.",
+              "User needs are usually higher-level and more stable than individual interface requests.",
+              "Teams turn user needs into user stories that describe features and content for those needs."
+            ],
+            "keyTerms": [
+              {
+                "tr": "research-based persona",
+                "df": "A research-based persona is a profile built from observed user-group patterns and used to guide design decisions.",
+                "eg": "A team summarizes repeated behavior and shared needs into one profile for a support-focused user group.",
+                "mi": "A persona is just a fictional character invented to make screens feel more human.",
+                "cx": "It comes from research patterns, not imagination, so it organizes evidence rather than decoration."
+              },
+              {
+                "tr": "user needs",
+                "df": "User needs are broader requirements that describe what people require over time, not a single screen request.",
+                "eg": "Someone who must quickly compare account details needs a stable way to find and check information.",
+                "mi": "A user need is the same thing as a request for one button or one layout change.",
+                "cx": "A button request can change quickly, while a need stays at the level of the underlying requirement."
+              },
+              {
+                "tr": "user stories",
+                "df": "User stories are feature and content descriptions written to address identified user needs within a team.",
+                "eg": "A story might describe a page element that helps people review information they need repeatedly.",
+                "mi": "A user story is only a marketing phrase and has no link to evidence or needs.",
+                "cx": "The story should be tied back to the underlying need so its purpose can be checked."
+              }
+            ],
+            "scenario": {
+              "su": "A design team is comparing a persona profile, a list of user needs, and several drafted user stories before approving a new service page. They must choose which items belong together while keeping the work connected to research evidence.",
+              "ma": "The persona shows shared behavior and needs, the needs list says people want stable access to account information, and one story proposes a quick-filter feature for that need. The team must decide whether the story belongs with that need and keep the linkage visible in the design record."
+            },
+            "mc": [
+              {
+                "q": "A workshop shows a profile built from shared behavior, alongside a page request for a single button. Which statement best distinguishes the profile from the request using the evidence presented?",
+                "op": [
+                  "The profile is a user story, while the button request is a user need.",
+                  "The profile is a single interface request, while the button request is a stable need.",
+                  "The profile is only a visual mockup, while the button request is the research finding.",
+                  "The profile is a research-based persona, while the button request is an individual interface request."
+                ],
+                "ai": 3,
+                "fi": [
+                  0
+                ],
+                "ex": "The evidence describes a shareable profile built from group behavior and needs, which matches a research-based persona. The button request is narrower and more specific, so it is an individual interface request rather than the broader profile."
+              },
+              {
+                "q": "A planning board shows a stable requirement for account information, plus a drafted feature note for faster filtering. What should be linked so later review can check whether the requirement is being met?",
+                "op": [
+                  "The feature note should replace the user need because it is more detailed.",
+                  "The feature note should stay linked to the underlying user need.",
+                  "The persona should be linked only to the visual style of the page.",
+                  "The user need should be rewritten as a mockup and detached from the feature note."
+                ],
+                "ai": 1,
+                "fi": [
+                  3
+                ],
+                "ex": "The feature note is a user story, and it should remain linked to the underlying need so the team can evaluate whether the need is met. Detaching it would hide that relationship, and the visual style alone does not track need fulfillment."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "8b121408061f04c82be46185c0fec45324a3785054a25365ca5d549bb7c6c3d7",
+          "lessonKernel": {
+            "lessonId": "lesson-1",
+            "facts": [
+              "A research-based persona is a shareable profile of a user group with similar behavior and needs.",
+              "Personas are one way to present research findings so other people can understand and share them.",
+              "User needs are generally higher-level and more stable over time than individual interface requests.",
+              "Teams turn user needs into user stories that describe features and content intended to meet those needs.",
+              "Keeping each user story linked to its source need enables evaluation of whether the need is being met."
+            ],
+            "keyTerms": [
+              {
+                "tr": "research-based persona",
+                "df": "A research-based persona is a shareable profile of a user group with similar behavior and needs.",
+                "eg": "A research-based persona is a shareable profile of a user group with similar behavior and needs.",
+                "mi": "A research-based persona is just a fictional character created for entertainment purposes.",
+                "cx": "A research-based persona is a shareable profile of a user group with similar behavior and needs."
+              },
+              {
+                "tr": "user needs",
+                "df": "User needs are generally higher-level and more stable over time than individual interface requests.",
+                "eg": "User needs are generally higher-level and more stable over time than individual interface requests.",
+                "mi": "User needs are specific, detailed requests for a particular button or screen layout.",
+                "cx": "User needs are generally higher-level and more stable over time than individual interface requests."
+              },
+              {
+                "tr": "user stories",
+                "df": "User stories translate abstract user needs into concrete descriptions of desired features and content intended to meet those needs.",
+                "eg": "User stories translate abstract user needs into concrete descriptions of desired features and content intended to meet those needs.",
+                "mi": "User stories are simply a list of tasks that developers must complete in a specific order.",
+                "cx": "User stories translate abstract user needs into concrete descriptions of desired features and content intended to meet those needs."
+              }
+            ],
+            "scenario": {
+              "su": "A design team is developing a new application and needs to ensure their feature set aligns with validated user requirements. They have identified a core user need related to task completion efficiency. The constraint is that they must only use the supplied claims to justify their current design decisions.",
+              "ma": "The team compares the research-based persona profile against the user stories to determine if the feature set addresses the core user need."
+            },
+            "mc": [
+              {
+                "q": "When evaluating a design, which element directly validates whether the original user need is being met according to the supplied claims?",
+                "op": [
+                  "Linking a user story to its source need provides the necessary evaluation mechanism.",
+                  "Creating a shareable profile allows stakeholders to easily understand the research findings.",
+                  "Using higher-level needs ensures that interface requests are always prioritized over stable needs.",
+                  "Presenting research findings through a persona is the only way to connect design choices to evidence."
+                ],
+                "ai": 0,
+                "fi": [
+                  3
+                ],
+                "ex": "Keeping each user story linked to its source need enables evaluation of whether the need is being met, then correct the closest distractor."
+              },
+              {
+                "q": "A team is reviewing a persona profile and observes that the profile describes specific interface requests rather than stable user needs. What is the correct distinction?",
+                "op": [
+                  "The profile is a research-based persona because it is a shareable profile of a user group with similar behavior and needs.",
+                  "The profile is a user story because it describes features and content intended to meet those needs.",
+                  "The profile is a user need because it is a higher-level and more stable requirement over time.",
+                  "The profile is a presentation of research findings because it helps other people understand the research findings."
+                ],
+                "ai": 0,
+                "fi": [
+                  0
+                ],
+                "ex": "A research-based persona is a shareable profile of a user group with similar behavior and needs, then correct the closest distractor."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-008bab43da5c7cb7977b1891",
+        "pairId": "scion-kernel-pair-1dbded9472ff4c011d739feb",
+        "artifactSha256": {
+          "A": "20fea4aa722dd02128945a6dd9f79e7ef8610ac6709f0675499c27f18638492d",
+          "B": "8b121408061f04c82be46185c0fec45324a3785054a25365ca5d549bb7c6c3d7"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    }
+  ],
+  "claimBoundary": "This packet contains anonymous source-bound artifacts only. It contains no provider identity, model identity, route, admission outcome, retry history, compiler receipt, preference, or training authorization.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "d67f7d0e522fea8e17416c9953e1c43b699845808d33f6f09a6154b842a3683d"
+  }
+}

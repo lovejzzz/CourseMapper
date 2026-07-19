@@ -31,7 +31,7 @@ function latestRunningStep(steps = []) {
 }
 
 function deriveAgentStatus(progress, isStreaming, isAgentMode, _agentDryRun = false, isGeneratingWorkspace = false) {
-  if (!isAgentMode && isGeneratingWorkspace) {
+  if (isGeneratingWorkspace) {
     return { label: 'Building', tone: 'indigo', detail: 'Starting workspace' };
   }
   if (!isAgentMode) return { label: 'Ask', tone: 'slate', detail: 'Ready' };
@@ -1238,10 +1238,10 @@ export default function ChatPanel({
   }, []);
   const { provider, apiKey, apiStatus, modelId } = useAIConfig();
 
-  // Detect agent mode: deliverables with done status exist
-  const isAgentMode = !!(
-    deliverables && Object.keys(deliverables).some((k) => k !== 'courseMap' && deliverables[k]?.status === 'done')
-  );
+  // A generated course map is already a usable Agent workspace. Waiting for a
+  // second deliverable forced map-only questions through the legacy revision
+  // path, where a read-only request could be mistaken for a destructive edit.
+  const isAgentMode = Boolean(courseMap);
 
   // Keep refs for values that can change between parallel tool calls in the same agent turn
   const delivRef = useRef(deliverables);

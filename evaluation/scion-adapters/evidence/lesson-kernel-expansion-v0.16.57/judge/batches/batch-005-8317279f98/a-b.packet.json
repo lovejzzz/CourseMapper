@@ -1,0 +1,303 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-packet-v1",
+  "order": "A/B",
+  "generatedAt": "2026-07-19T19:00:00.000Z",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "fe3741c97241d3d2a1dcc5151fa204ea17538afd9ec39e54cdd1cc890bde8edc"
+  },
+  "prompt": {
+    "path": "evaluation/scion-adapters/lesson-kernel-judge-prompt-v0.16.54.md",
+    "sha256": "37844b86736335db54b561d8c031660ef71679c55ae1108e2e999e746f2a1c96"
+  },
+  "dimensions": [
+    "sourceFidelity",
+    "knowledgePrecision",
+    "scenarioReadiness",
+    "assessmentCorrectness",
+    "choiceDiscriminability",
+    "feedbackInstructionality",
+    "internalCoherence"
+  ],
+  "cases": [
+    {
+      "caseId": "scion-kernel-4df3ce51c565d84bb8930764",
+      "pairId": "scion-kernel-pair-8222c300c768050c31908e8a",
+      "domain": "computer-science",
+      "failureFamilies": [
+        "answer-feedback-consistency",
+        "answer-key-correctness",
+        "feedback-instructionality",
+        "source-fidelity"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-4",
+        "title": "File input and output",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: File I/O lets a program read information from and write information into files; a file is accessed by opening it, working with its contents, and closing it. Claim 1: open() returns a file object that the program then reads from or writes to. Claim 2: read() reads the entire contents of a file and returns a single string. Claim 3: readline() returns the next single line, while readlines() returns a list with every line of the file.",
+        "readings": "OpenStax Introduction to Python Programming, §14.1 Reading from files"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "2735bbd307dd162ce4336e81a60168cee98878533740af1ebd8430e0efec45ea",
+        "kernelId": "cs/file-io",
+        "term": "File input and output",
+        "claims": [
+          "File I/O lets a program read information from and write information into files; a file is accessed by opening it, working with its contents, and closing it.",
+          "open() returns a file object that the program then reads from or writes to.",
+          "read() reads the entire contents of a file and returns a single string.",
+          "readline() returns the next single line, while readlines() returns a list with every line of the file."
+        ],
+        "anchors": [
+          {
+            "src": "openstax:introduction-python-programming#14.1",
+            "loc": "14.1",
+            "quote": "Python supports the opening of a file using the open() function"
+          },
+          {
+            "src": "openstax:introduction-python-programming#14.1",
+            "loc": "14.1",
+            "quote": "Python supports the opening of a file using the open() function"
+          },
+          {
+            "src": "openstax:introduction-python-programming#14.1",
+            "loc": "14.1",
+            "quote": "The read() function reads the contents of a file and returns a string"
+          },
+          {
+            "src": "openstax:introduction-python-programming#14.1",
+            "loc": "14.1",
+            "quote": "The readlines() function reads the individual lines of a file and returns a string list containing all the lines of the file in order"
+          }
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §14.1 Reading from files"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "9fb722d13ae998d50f42697f8f66d7c406e256bd4d3ee1f8cccaa0dc8ff15f74",
+          "lessonKernel": {
+            "lessonId": "lesson-4",
+            "facts": [
+              "File I/O lets a program read information from and write information into files.",
+              "open() returns a file object that the program then reads from or writes to.",
+              "read() reads the entire contents of a file and returns a single string.",
+              "readline() returns the next single line, while readlines() returns a list with every line of the file.",
+              "OpenStax Introduction to Python Programming, §14.1 Reading from files"
+            ],
+            "keyTerms": [
+              {
+                "tr": "File I/O",
+                "df": "File I/O is the capability that allows a program to read information from and write information into files.",
+                "eg": "A program opens a text file to read its contents and then closes the file after processing. This demonstrates the complete file interaction cycle.",
+                "mi": "File I/O only refers to writing data to a file without reading any information from it. This misunderstands the bidirectional nature of file input and output.",
+                "cx": "File I/O encompasses both reading and writing operations, not just writing data to a file."
+              },
+              {
+                "tr": "open()",
+                "df": "The open() function returns a file object that the program then reads from or writes to.",
+                "eg": "Calling open() creates a file object that the program uses to subsequently call read() or write() methods. This object is the central element.",
+                "mi": "The open() function directly performs the reading or writing operation on the file's contents immediately. This suggests the function handles the data transfer itself.",
+                "cx": "The open() function returns a file object, which is a handle used by the program to perform the reading or writing."
+              },
+              {
+                "tr": "read()",
+                "df": "The read() method reads the entire contents of a file and returns a single string.",
+                "eg": "Using read() on a small configuration file retrieves the entire text content as one large string variable. This is a complete retrieval.",
+                "mi": "The read() method reads only the first line of the file and returns that single line as a string. This confuses reading the whole file with reading just the first line.",
+                "cx": "The read() method reads the entire file contents and returns a single string, not just the first line."
+              }
+            ],
+            "scenario": {
+              "su": "A data processing script needs to ingest a small log file containing system events. The script must read all event records to calculate a total count. The constraint is that the log file size is guaranteed to be less than one megabyte.",
+              "ma": "The script uses open() to get a file object, then calls read() to store the entire log content as a single string variable."
+            },
+            "mc": [
+              {
+                "q": "When processing a small log file, which method is appropriate for retrieving all event records as one continuous string?",
+                "op": [
+                  "read() reads the entire contents of a file and returns a single string.",
+                  "readline() returns the next single line, while readlines() returns a list with every line of the file.",
+                  "open() returns a file object that the program then reads from or writes to.",
+                  "read() reads only the first line of the file and returns that single line as a string."
+                ],
+                "ai": 0,
+                "fi": [
+                  2
+                ],
+                "ex": "The read() method reads the entire contents of a file and returns a single string, which is the correct choice for retrieving all event records as one continuous string, while readline() only retrieves one line."
+              },
+              {
+                "q": "A developer wants to process a very large data file line by line to conserve memory; which method should they use?",
+                "op": [
+                  "read() reads the entire contents of a file and returns a single string.",
+                  "readline() returns the next single line, while readlines() returns a list with every line of the file.",
+                  "open() returns a file object that the program then reads from or writes to.",
+                  "read() reads only the first line of the file and returns that single line as a string."
+                ],
+                "ai": 0,
+                "fi": [
+                  3
+                ],
+                "ex": "readline() returns the next single line, while readlines() returns a list with every line of the file, which is the appropriate method for processing a very large data file line by line."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "68bd06fc701c16225dadd0e50109a86db2a5bde40408ba8b13b18083da1e8403",
+          "lessonKernel": {
+            "lessonId": "lesson-4",
+            "facts": [
+              "File I/O lets a program read information from files and write information into files.",
+              "A file is accessed by opening it, working with its contents, and closing it.",
+              "open() returns a file object that the program then reads from or writes to.",
+              "read() reads the entire contents of a file and returns one single string.",
+              "readline() returns the next single line, while readlines() returns a list of every line."
+            ],
+            "keyTerms": [
+              {
+                "tr": "File I/O",
+                "df": "File I/O is the use of files as external containers for program input and output.",
+                "eg": "A script reads a saved note file, updates its contents, and writes a new copy.",
+                "mi": "File I/O means the program only prints text to the screen.",
+                "cx": "File I/O concerns files as data sources and destinations, not just display output."
+              },
+              {
+                "tr": "open()",
+                "df": "open() is the operation that creates a file object for later reading or writing.",
+                "eg": "Calling open() before using a text file lets code access its stored contents.",
+                "mi": "open() itself reads every line from the file immediately.",
+                "cx": "open() only prepares the file object; reading happens later with methods like read()."
+              },
+              {
+                "tr": "readlines()",
+                "df": "readlines() is a file method that gathers every line into a list structure.",
+                "eg": "When a text file has several short lines, readlines() can collect them all at once.",
+                "mi": "readlines() returns one long string with all the text merged together.",
+                "cx": "readlines() produces a list of separate lines, unlike read() which returns one string."
+              }
+            ],
+            "scenario": {
+              "su": "A teammate opens a text file that stores three course notes, but the script must preserve each line separately. The file contains a blank line in the middle, and the program must choose one read method before a later write step.",
+              "ma": "The notes show three visible lines, a blank line between them, and a requirement to keep line breaks distinct when the program reviews the file. A developer must decide whether to use read(), readline(), or readlines() before writing a cleaned copy."
+            },
+            "mc": [
+              {
+                "q": "A programmer opens a text file and needs a result that keeps each line separate for later counting. Which behavior matches the method shown in the record with several lines preserved?",
+                "op": [
+                  "readlines() returns a list with every line of the file.",
+                  "read() returns the next single line only.",
+                  "readline() returns the entire contents as one string.",
+                  "open() returns the file contents immediately."
+                ],
+                "ai": 0,
+                "fi": [
+                  4
+                ],
+                "ex": "The record with several preserved lines matches readlines(), because it collects every line into a list. The closest distractor is read(), but that method returns one single string, not separate lines."
+              },
+              {
+                "q": "A note says the program must load the whole text at once before cleaning spaces, and the saved file should keep the original content available as one block. Which file behavior fits that observation?",
+                "op": [
+                  "read() returns the entire contents of a file as one string.",
+                  "readline() returns every line as a list.",
+                  "open() closes the file after the call finishes.",
+                  "readlines() returns only the first line."
+                ],
+                "ai": 0,
+                "fi": [
+                  3
+                ],
+                "ex": "The observation matches read(), which reads the whole file and returns one string. The closest distractor is readlines(), but that method returns a list of lines rather than one combined string."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-4df3ce51c565d84bb8930764",
+        "pairId": "scion-kernel-pair-8222c300c768050c31908e8a",
+        "artifactSha256": {
+          "A": "9fb722d13ae998d50f42697f8f66d7c406e256bd4d3ee1f8cccaa0dc8ff15f74",
+          "B": "68bd06fc701c16225dadd0e50109a86db2a5bde40408ba8b13b18083da1e8403"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    }
+  ],
+  "claimBoundary": "This packet contains anonymous source-bound artifacts only. It contains no provider identity, model identity, route, admission outcome, retry history, compiler receipt, preference, or training authorization.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "3f7a14df6f37e5b1339c2e063ad097f7fadcd1c9aaa56a2a43df95eb686e1433"
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "release": "0.16.57",
+  "date": "2026-07-19",
+  "status": "local-browser-verified",
+  "environment": {
+    "url": "http://127.0.0.1:5173/",
+    "browser": "Codex in-app Chromium",
+    "provider": "Scion",
+    "model": "Scion V0.16.57",
+    "baseCache": "warm",
+    "desktopViewport": { "width": 1280 },
+    "phoneViewport": { "width": 390, "height": 844 }
+  },
+  "runs": [
+    {
+      "name": "six-lesson-full-package-runtime-audit",
+      "promptSummary": "Six distinct Macroeconomics focuses with evidence-based activities and no renamed duplicates.",
+      "observedFrames": [
+        "16% build start",
+        "32% first enrichment",
+        "33-43% real lesson retry and enrichment work",
+        "50% complementary-source lookup",
+        "100% review state"
+      ],
+      "result": {
+        "lessonKernelsCompleted": 6,
+        "lessonKernelsRequested": 6,
+        "fatalWorkerErrors": 0,
+        "callbackStorms": 0,
+        "durationSecondsApproximate": 381,
+        "quality": 89,
+        "grade": "B"
+      },
+      "diagnosticFinding": "The pre-sequence-contract continuation repeated Supply and Demand and CPI under Lessons 4 and 5. The new duplicate-identity validator correctly exposed both as export blockers."
+    },
+    {
+      "name": "six-lesson-map-only-sequence-and-agent-audit",
+      "result": {
+        "durationSeconds": 37,
+        "lessonTitles": [
+          "Economic reasoning and scarcity",
+          "Supply and Demand",
+          "Measuring Inflation with CPI",
+          "Unemployment and Labor Markets",
+          "Aggregate Demand and Aggregate Supply",
+          "Fiscal and Monetary Policy Comparison"
+        ],
+        "duplicateTopicConflicts": 0,
+        "agentPreservedLessonCount": 6,
+        "severeConsoleErrors": 0
+      },
+      "agentChecks": [
+        "Compiler-grounded duplicate check returned no conflicts across six normalized identities.",
+        "A free-form Lesson 4 to Lesson 5 explanation reached the local Scion model without mutating the map.",
+        "The live audit found and repaired the missing retry-state callback and the legacy partial-map truncation path."
+      ]
+    }
+  ],
+  "responsive": {
+    "phoneInnerWidth": 390,
+    "phoneDocumentScrollWidth": 385,
+    "documentHorizontalOverflow": false,
+    "visibleButtonCount": 16,
+    "visibleButtonsUnder40Pixels": 0,
+    "verifiedPanels": ["Content", "Agent", "Export"],
+    "singleExportOwner": true
+  },
+  "regressionCommands": [
+    "npx vitest run tests/scion-browser-wllama.test.js",
+    "npx vitest run tests/course-map-continuation-quality.test.js",
+    "npx vitest run src/components/chat/__tests__/useChatRouter.test.js",
+    "npx vitest run src/hooks/__tests__/useRevision.test.js",
+    "npx vitest run src/components/chat/__tests__/useToolInvoker.receipt.test.js"
+  ],
+  "claimBoundary": "This is local browser evidence for the captured prompts, runtime, and viewport. It is not a universal speed, model-quality, accessibility-conformance, human-validation, classroom-outcome, or adapter-win claim."
+}

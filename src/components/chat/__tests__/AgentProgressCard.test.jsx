@@ -61,6 +61,20 @@ describe('AgentProgressCard', () => {
     expect(html).toContain('2 steps');
   });
 
+  it('shows the Scion product name instead of its internal model identifier', () => {
+    const html = renderToStaticMarkup(
+      <AgentProgressCard
+        status="running"
+        startedAt={Date.now()}
+        runMeta={{ mode: 'Agent run', target: 'Course Map', model: 'scion-public' }}
+        steps={[]}
+      />,
+    );
+
+    expect(html).toContain('Agent run · Course Map · Scion');
+    expect(html).not.toContain('scion-public');
+  });
+
   it('keeps activity receipt details behind the compact details control', () => {
     const html = renderToStaticMarkup(
       <AgentProgressCard
