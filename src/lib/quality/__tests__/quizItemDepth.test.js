@@ -99,6 +99,11 @@ describe('quiz item depth', () => {
     expect(isAppliedQuizStem('Which clef establishes the pitch reference point for a staff?')).toBe(false);
     expect(isAppliedQuizStem('Which interval numbers form inversion pairs?')).toBe(false);
     expect(isAppliedQuizStem('Which ethical framework focuses on duties rather than consequences?')).toBe(false);
+    expect(
+      isAppliedQuizStem(
+        'Which principle best describes the relationship between literary traditions in the study of world literature?',
+      ),
+    ).toBe(false);
     expect(isAppliedQuizStem("Bandura's four steps of successful modeling, in order, are")).toBe(false);
     expect(isAppliedQuizStem("In operant conditioning, 'positive' and 'negative' refer to")).toBe(false);
     expect(

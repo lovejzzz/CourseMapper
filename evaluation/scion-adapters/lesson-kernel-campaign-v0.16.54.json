@@ -5,7 +5,7 @@
   "status": "capture-ready",
   "identity": {
     "algorithm": "sha256-canonical-json",
-    "sha256": "9ff38d19a9b4ec1e740a0312332505405d78a9097ae4e24e2c003aee9615a7cc"
+    "sha256": "245dc761fcbd06d2f56266c6987f407fcf2032f959ddd26027b3a8bb0fe999c2"
   },
   "sourceManifests": [
     {
@@ -52,7 +52,7 @@
   "heldoutBenchmark": {
     "path": "evaluation/scion-adapters/held-out-course-benchmark-v5.json",
     "bytes": 3258,
-    "sha256": "5279a7708efe4cc0cadb16d723d8ab766b54eced17dcf67cf6be675b4e0a0893",
+    "sha256": "4a193079774cfd64e2f4627a5095d763c837886426c3446ac0ebdaf1d1861421",
     "id": "scion-held-out-course-benchmark-v5",
     "domains": [
       "astronomy",

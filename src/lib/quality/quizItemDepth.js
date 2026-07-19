@@ -120,7 +120,12 @@ export function isAppliedQuizStem(stem) {
   if (wordCount < 12 || !completePrompt) return false;
   if (MUSICAL_INTERVAL_CASE_RE.test(text) && MUSICAL_INTERVAL_REASONING_RE.test(text)) return true;
   if (!REASONING_RE.test(text)) return false;
-  return (ACTOR_RE.test(text) && ACTION_RE.test(text)) || EVIDENCE_RE.test(text);
+  // “In the study of world literature” names an academic field; it does not
+  // supply a research study or any evidence for the learner to inspect.
+  // Removing that narrow phrase prevents conceptual-definition questions
+  // from receiving applied credit merely because EVIDENCE_RE includes study.
+  const evidenceSurface = text.replace(/\bin (?:the )?study of\b/gi, 'in the discipline of');
+  return (ACTOR_RE.test(text) && ACTION_RE.test(text)) || EVIDENCE_RE.test(evidenceSurface);
 }
 
 export function summarizeAppliedQuizDepth(files = []) {

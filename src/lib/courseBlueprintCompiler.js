@@ -61,6 +61,7 @@ import {
 import { classifyAssessmentKind } from './courseGraph/deriveFromCourseMap.js';
 import { recordContentFallbackHit } from './contentFallbackTelemetry';
 import { lintItemAdmission } from './itemAdmissionLint';
+import { isAppliedQuizStem } from './quality/quizItemDepth';
 import { whyThisWorksNote, buildMethodsStatement } from './knowledge/pedagogyEvidence';
 import { buildCompetencyMap } from './knowledge/competencyMap';
 import {
@@ -19155,6 +19156,16 @@ function overlayCompleteMCItem(atom, enriched) {
   return next;
 }
 
+function authoredMcFitsQuizFrame(item, atom) {
+  const role = cleanText(atom?.quizPlan?.role);
+  // One conceptual/retrieval item is useful as a diagnostic. Every other MC
+  // slot promises application, analysis, or evaluation and therefore needs a
+  // concrete case/evidence stem rather than a recall question wearing a
+  // higher-order Bloom label.
+  if (/diagnostic|retrieval/i.test(role)) return true;
+  return isAppliedQuizStem(item?.question);
+}
+
 function overlayEnrichedQuizItems(framedAtoms, lesson, { itemFilter = () => true } = {}) {
   const enrichedItems = lesson?.enrichment?.quizItems;
   if (!Array.isArray(enrichedItems) || enrichedItems.length === 0) return framedAtoms;
@@ -19173,7 +19184,13 @@ function overlayEnrichedQuizItems(framedAtoms, lesson, { itemFilter = () => true
   // must not steal an item authored for a later slot.
   const reservedFrames = new Set(
     framedAtoms
-      .map((atom, index) => (atom.type === 'multiple_choice' && byIndexMC.has(index) ? index : -1))
+      .map((atom, index) =>
+        atom.type === 'multiple_choice' &&
+        byIndexMC.has(index) &&
+        authoredMcFitsQuizFrame(byIndexMC.get(index), atom)
+          ? index
+          : -1,
+      )
       .filter((index) => index >= 0),
   );
   for (const index of reservedFrames) usedMC.add(byIndexMC.get(index));
@@ -19189,7 +19206,7 @@ function overlayEnrichedQuizItems(framedAtoms, lesson, { itemFilter = () => true
     if (atom.type === 'multiple_choice') {
       const enriched = reservedFrames.has(index)
         ? byIndexMC.get(index)
-        : completeMC.find((item) => !usedMC.has(item)) || null;
+        : completeMC.find((item) => !usedMC.has(item) && authoredMcFitsQuizFrame(item, atom)) || null;
       if (!enriched) return atom;
       usedMC.add(enriched);
       return overlayCompleteMCItem(atom, enriched);

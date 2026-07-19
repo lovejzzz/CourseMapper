@@ -31,7 +31,7 @@
     "protocol": "scion-training-holdout-firewall-v1",
     "status": "pass",
     "manifestPath": "evaluation/scion-adapters/held-out-course-benchmark-v5.json",
-    "manifestSha256": "5279a7708efe4cc0cadb16d723d8ab766b54eced17dcf67cf6be675b4e0a0893",
+    "manifestSha256": "4a193079774cfd64e2f4627a5095d763c837886426c3446ac0ebdaf1d1861421",
     "benchmarkId": "scion-held-out-course-benchmark-v5",
     "frozenAt": "2026-07-18T05:45:00Z",
     "domainDisjointRequired": true,
@@ -579,6 +579,6 @@
   "quarantine": [],
   "identity": {
     "protocol": "scion-adapter-dataset-identity-v2",
-    "sha256": "3164c588c695f91d1ea54e333e1f36e58d1dabc9cbafc8a0f23b4c7cd7f6bbb4"
+    "sha256": "971da012b0ffe1548c19a92b3846884e9047fa4271877c62dad78514db837b19"
   }
 }
