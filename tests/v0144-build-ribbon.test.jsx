@@ -1425,6 +1425,8 @@ describe('B1 — BuildRibbon render', () => {
     expect(source).toContain('sm:order-none sm:w-auto sm:flex-1 sm:truncate');
     expect(source).toContain('auto-cols-fr grid-flow-col');
     expect(source).toContain('className="hidden sm:block"');
+    expect(source).toContain('text-[12px]');
+    expect(source).not.toContain('text-[10px]');
   });
 
   it('compile state: partial-enrichment chip renders amber before final export review', () => {

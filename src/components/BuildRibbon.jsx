@@ -205,7 +205,7 @@ export default function BuildRibbon({ model }) {
                 )}
               </span>
               <span
-                className={`min-w-0 text-[10px] font-semibold tracking-tight min-[360px]:text-[12px] ${
+                className={`min-w-0 text-[12px] font-semibold tracking-tight ${
                   step.status === 'active'
                     ? 'text-indigo-600 dark:text-indigo-300'
                     : step.status === 'warn'

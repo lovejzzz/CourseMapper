@@ -120,7 +120,10 @@ async function restoreGeneratedWorkspace(page, { activeTab = 'lessonPlans' } = {
     .toBeGreaterThanOrEqual(43.9);
   const savedSessionCopy = await page.getByTestId('saved-session-copy').boundingBox();
   const savedSessionDismiss = await savedSessionDismissButton.boundingBox();
-  expect(savedSessionCopy.width).toBeGreaterThanOrEqual(Math.min(140, page.viewportSize().width * 0.35));
+  // A nominal 112px CSS width can resolve a fraction below 112 after
+  // device-pixel conversion; retain the intended 35% allocation with a
+  // sub-pixel tolerance instead of making the layout test flaky.
+  expect(savedSessionCopy.width).toBeGreaterThanOrEqual(Math.min(140, page.viewportSize().width * 0.35) - 0.2);
   expect(savedSessionDismiss.height).toBeGreaterThanOrEqual(43.9);
   await page.locator('button:has-text("Resume")').click();
   await expect(page.getByTestId('workspace-shell')).toBeVisible({ timeout: 10000 });
@@ -193,6 +196,25 @@ test.describe('Generated workspace mobile layout', () => {
       await expect(page.getByTestId('workspace-content-panel')).toBeVisible();
       await expect(page.getByTestId('workspace-agent-panel')).toBeHidden();
       await expectNoHorizontalOverflow(page);
+
+      if (viewport.label === 'phone') {
+        const editableTitle = page.getByTitle('Click to edit title').first();
+        await page.getByRole('button', { name: 'Switch to dark mode' }).click();
+        await expect(editableTitle).toBeVisible();
+        const idleTitleStyle = await editableTitle.evaluate((title) => {
+          const style = getComputedStyle(title);
+          return { backgroundColor: style.backgroundColor, borderColor: style.borderColor };
+        });
+        expect(idleTitleStyle).toEqual({
+          backgroundColor: 'rgba(0, 0, 0, 0)',
+          borderColor: 'rgba(0, 0, 0, 0)',
+        });
+        await editableTitle.hover();
+        await expect
+          .poll(() => editableTitle.evaluate((title) => getComputedStyle(title).backgroundColor))
+          .not.toBe('rgba(0, 0, 0, 0)');
+        await page.getByRole('button', { name: 'Switch to light mode' }).click();
+      }
 
       const switcherTransitionProperties = await page
         .getByTestId('mobile-workspace-switcher')

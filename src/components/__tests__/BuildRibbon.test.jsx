@@ -30,11 +30,11 @@ describe('BuildRibbon', () => {
     expect(html).toContain('Preparing the next course material…');
   });
 
-  it('uses compact stage labels only below the 360px breakpoint', () => {
+  it('keeps stage labels at the product 12px readability floor', () => {
     const html = renderToStaticMarkup(<BuildRibbon model={makeModel()} />);
 
-    expect(html).toContain('text-[10px]');
-    expect(html).toContain('min-[360px]:text-[12px]');
+    expect(html).toContain('text-[12px]');
+    expect(html).not.toContain('text-[10px]');
     for (const label of STEP_LABELS) expect(html).toContain(`>${label}</span>`);
   });
 });
