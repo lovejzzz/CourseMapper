@@ -165,6 +165,69 @@ input.on('line', (line) => {
   expect(rows[0].modelMetrics).toEqual({ modelCalls: 1, completedModelCalls: 1, failedModelCalls: 0 });
 });
 
+it('restarts one crashed native worker and retries the same logical generation', async () => {
+  fixtureDir = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-shim-worker-restart-'));
+  const workerPath = path.join(fixtureDir, 'worker.mjs');
+  const crashMarkerPath = path.join(fixtureDir, 'crashed-once');
+  await fs.writeFile(
+    workerPath,
+    `import fs from 'node:fs';
+import readline from 'node:readline';
+process.stdout.write(JSON.stringify({ ready: true, constrained: true }) + '\\n');
+const input = readline.createInterface({ input: process.stdin });
+input.on('line', (line) => {
+  const request = JSON.parse(line);
+  if (!fs.existsSync(process.env.CRASH_MARKER)) {
+    fs.writeFileSync(process.env.CRASH_MARKER, '1');
+    process.exit(23);
+  }
+  process.stdout.write(JSON.stringify({ id: request.id, text: '{"recovered":true}', constrained: 'object', adapterMode: request.adapterMode, nativeAdapterActive: request.adapterMode === 'adapter', adapterScale: request.adapterMode === 'adapter' ? 1 : 0 }) + '\\n');
+});
+`,
+  );
+
+  const port = 29_000 + Math.floor(Math.random() * 2_000);
+  const baseUrl = `http://127.0.0.1:${port}`;
+  serverProcess = spawn(process.execPath, ['scripts/crucible/e2bOpenAIShim.mjs', String(port)], {
+    cwd: process.cwd(),
+    stdio: ['ignore', 'pipe', 'pipe'],
+    env: {
+      ...process.env,
+      TENDRIL_ITEMS_PYTHON: process.execPath,
+      TENDRIL_ITEMS_SCRIPT: workerPath,
+      CRASH_MARKER: crashMarkerPath,
+      LOCAL_MODEL_ID: 'fake-scion',
+      LOCAL_MODEL_NAME: 'Fake Scion',
+      SCION_MODEL: 'test/fake-scion',
+    },
+  });
+  await waitForHealth(baseUrl, (health) => health.modelReady === true);
+
+  const payload = await fetch(`${baseUrl}/v1/chat/completions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'fake-scion',
+      messages: [
+        { role: 'system', content: 'Return JSON.' },
+        { role: 'user', content: 'One object.' },
+      ],
+      response_format: { type: 'json_object' },
+    }),
+  }).then((response) => response.json());
+
+  expect(payload.choices[0].message.content).toBe('{"recovered":true}');
+  const recovered = await waitForHealth(baseUrl, (health) => health.recoveredModelCalls === 1);
+  expect(recovered).toMatchObject({
+    calls: 1,
+    completedCalls: 1,
+    failedModelCalls: 0,
+    modelWorkerRestarts: 1,
+    recoveredModelCalls: 1,
+    unrecoveredModelCrashes: 0,
+  });
+});
+
 it('routes declared-schema knowledge kernels through the strict per-lesson generator', async () => {
   fixtureDir = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-shim-kernel-route-'));
   const workerPath = path.join(fixtureDir, 'worker.mjs');

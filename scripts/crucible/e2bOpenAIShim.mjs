@@ -47,6 +47,9 @@ let inFlightCalls = 0;
 let activeGenerationCalls = 0;
 let maxConcurrentGenerationCalls = 0;
 let generationQueueTail = Promise.resolve();
+let modelWorkerRestarts = 0;
+let recoveredModelCalls = 0;
+let unrecoveredModelCrashes = 0;
 let failures = 0;
 let lastGenerationError = '';
 let modelState = 'loading';
@@ -132,6 +135,18 @@ function ensureLocalModelReady() {
 
 ensureLocalModelReady().catch(() => {});
 
+function isRecoverableModelWorkerFailure(error) {
+  return /tendril-s \[[^\]]+\] server exited|tendril-s timeout/i.test(String(error?.message || error));
+}
+
+async function restartLocalModelWorker() {
+  modelWorkerRestarts += 1;
+  modelState = 'recovering';
+  modelReadyPromise = null;
+  stopS();
+  await ensureLocalModelReady();
+}
+
 function readBody(req) {
   return new Promise((resolve) => {
     let b = '';
@@ -165,20 +180,41 @@ async function generate({ system, user, maxTokens, schema, jsonMode, temperature
     activeGenerationCalls += 1;
     maxConcurrentGenerationCalls = Math.max(maxConcurrentGenerationCalls, activeGenerationCalls);
     let result;
+    let recovered = false;
     try {
-      result = await sGenerate(
-        {
-          system,
-          user,
-          task: 'items',
-          maxTokens,
-          schema,
-          jsonMode,
-          temperature,
-          adapterMode: requestContext?.adapterRoute?.mode || 'base-only',
-        },
-        { timeoutMs: 1_200_000, includeMetadata: true },
-      );
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        try {
+          result = await sGenerate(
+            {
+              system,
+              user,
+              task: 'items',
+              maxTokens,
+              schema,
+              jsonMode,
+              temperature,
+              adapterMode: requestContext?.adapterRoute?.mode || 'base-only',
+            },
+            { timeoutMs: 1_200_000, includeMetadata: true },
+          );
+          if (recovered) recoveredModelCalls += 1;
+          break;
+        } catch (error) {
+          const recoverable = isRecoverableModelWorkerFailure(error);
+          if (!recoverable || attempt > 0) {
+            if (recoverable) unrecoveredModelCrashes += 1;
+            throw error;
+          }
+          recovered = true;
+          console.error(
+            JSON.stringify({
+              localModelWorkerRestart: modelWorkerRestarts + 1,
+              reason: String(error?.message || error).slice(0, 200),
+            }),
+          );
+          await restartLocalModelWorker();
+        }
+      }
     } finally {
       activeGenerationCalls -= 1;
       releaseQueue();
@@ -1215,6 +1251,9 @@ const server = http.createServer(async (req, res) => {
           queuedGenerationCalls: Math.max(0, inFlightCalls - activeGenerationCalls),
           activeGenerationCalls,
           maxConcurrentGenerationCalls,
+          modelWorkerRestarts,
+          recoveredModelCalls,
+          unrecoveredModelCrashes,
           failures,
           lastGenerationError,
           bodyLogEnabled: Boolean(BODY_LOG),
