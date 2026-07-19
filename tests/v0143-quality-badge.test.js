@@ -568,6 +568,27 @@ describe('B2 — ExportSidePanel compact download-card stamp', () => {
 });
 
 describe('V0.15.49 — shared package trust status spine', () => {
+  it('counts one quality P0 once even when finalizer and readiness mirror the same blocker', () => {
+    const status = getPackageTrustStatus({
+      packageQualityPass: {
+        status: 'blocked',
+        blockers: 1,
+        quality: gradedQuality({
+          score: 74,
+          grade: 'C',
+          findingCounts: { p0: 1, p1: 1, p2: 2 },
+          texture: { score: 88 },
+        }),
+        receipt: { exportFailed: 0 },
+      },
+      readiness: { blockers: [{ source: 'qualityGate' }], warnings: [] },
+    });
+
+    expect(status.blocked).toBe(true);
+    expect(status.blockerCount).toBe(1);
+    expect(status.qualityIssue.count).toBe(4);
+  });
+
   it('marks a downloadable 97/100 package with P1, texture loss, and export warnings as review, not clean', () => {
     const status = getPackageTrustStatus({
       packageQualityPass: {

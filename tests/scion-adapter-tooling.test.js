@@ -516,6 +516,9 @@ describe('Scion adapter tooling', () => {
     const taskScopedBenchmark = JSON.parse(
       await fs.readFile('evaluation/scion-adapters/held-out-course-benchmark-v5.json', 'utf8'),
     );
+    const currentGraderBenchmark = JSON.parse(
+      await fs.readFile('evaluation/scion-adapters/held-out-course-benchmark-v6.json', 'utf8'),
+    );
     expect(validateScionHeldoutBenchmark(benchmark)).toMatchObject({
       valid: true,
       issues: [],
@@ -523,6 +526,7 @@ describe('Scion adapter tooling', () => {
     });
     expect(validateScionHeldoutBenchmark(transitivelyBoundBenchmark)).toMatchObject({ valid: true, issues: [] });
     expect(validateScionHeldoutBenchmark(taskScopedBenchmark)).toMatchObject({ valid: true, issues: [] });
+    expect(validateScionHeldoutBenchmark(currentGraderBenchmark)).toMatchObject({ valid: true, issues: [] });
 
     const cleanDataset = {
       domains: ['computer-science', 'geology', 'business-ethics'],
@@ -653,7 +657,7 @@ describe('Scion adapter tooling', () => {
 
   it('derives promotion evidence from two hash-bound Crucible rounds', async () => {
     root = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-paired-evidence-'));
-    const benchmarkPath = path.resolve('evaluation/scion-adapters/held-out-course-benchmark-v4.json');
+    const benchmarkPath = path.resolve('evaluation/scion-adapters/held-out-course-benchmark-v6.json');
     const benchmark = JSON.parse(await fs.readFile(benchmarkPath, 'utf8'));
     const benchmarkSha256 = await sha256File(benchmarkPath);
     const datasetDir = path.join(root, 'dataset');
@@ -755,6 +759,29 @@ describe('Scion adapter tooling', () => {
     });
     expect(Object.keys(prepared.byCourseId)).toEqual(benchmark.courses.map((course) => course.courseId));
 
+    const routeConsole = (isAdapter) =>
+      [
+        {
+          type: 'scionAdapterRoute',
+          routeProtocol: 'scion-adapter-runtime-route-v1',
+          taskFamily: 'lesson-kernel',
+          routeMode: isAdapter ? 'adapter' : 'base-only',
+          nativeAdapterActive: isAdapter,
+          adapterId: isAdapter ? built.manifest.adapter.id : null,
+          adapterManifestSha256: isAdapter ? adapterManifestSha256 : null,
+          adapterScopeIdentitySha256: isAdapter ? built.manifest.training.taskScope.identity.sha256 : null,
+        },
+        {
+          type: 'scionAdapterRoute',
+          routeProtocol: 'scion-adapter-runtime-route-v1',
+          taskFamily: 'course-map',
+          routeMode: 'base-only',
+          nativeAdapterActive: false,
+        },
+      ]
+        .map((event) => JSON.stringify(event))
+        .join('\n');
+
     const writeCourse = async (roundDir, benchmarkCourse, variant) => {
       const courseDir = path.join(roundDir, `${benchmarkCourse.courseId}--quiet--local`);
       await fs.mkdir(path.join(courseDir, 'extracted'), { recursive: true });
@@ -821,7 +848,7 @@ describe('Scion adapter tooling', () => {
           path.join(courseDir, 'digest.json'),
           `${JSON.stringify({ cost: { byTask: [{ task: 'scionPass', calls: isAdapter ? 75 : 100 }] } })}\n`,
         ),
-        fs.writeFile(path.join(courseDir, 'console.log'), ''),
+        fs.writeFile(path.join(courseDir, 'console.log'), `${routeConsole(isAdapter)}\n`),
         fs.writeFile(path.join(courseDir, 'extracted', 'PACKAGE_MANIFEST.json'), packageManifestText),
         fs.writeFile(path.join(courseDir, 'package.zip'), zipBuffer),
       ]);
@@ -892,7 +919,7 @@ describe('Scion adapter tooling', () => {
           },
         })}\n`,
       ),
-      fs.writeFile(path.join(blockedBaseDir, 'console-attempt1.log'), ''),
+      fs.writeFile(path.join(blockedBaseDir, 'console-attempt1.log'), `${routeConsole(false)}\n`),
       fs.writeFile(
         path.join(blockedBaseDir, 'report.json'),
         `${JSON.stringify({

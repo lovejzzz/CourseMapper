@@ -75,7 +75,10 @@ import {
 // V0.14.7 WS-D D1 introduced the texture metric; v0.15.6 makes it score-bearing.
 import { computeTexture, textureDocsFromFiles, buildTextureAdvisories, TEXTURE_VERSION } from './textureMetric.js';
 import { addPackageQuizDepthFindings } from './quizItemDepth.js';
-import { detectForeignLanguageTeachingContent } from '../languageIdentityGuard.js';
+import {
+  detectForeignLanguageTeachingContent,
+  mandarinTargetLanguageRequirements,
+} from '../languageIdentityGuard.js';
 
 // v0.14.3 WS-A A3: the grader version stamped into manifest.quality. Bump on
 // any change to checks, weights, or severity penalties so a package's quality
@@ -2947,12 +2950,15 @@ function checkDiscipline(findings, { files }, course) {
     }
     const perLesson = (cjk + pinyin) / lessonCount;
     const mandarinIdentity = `${course?.title || ''} ${course?.courseName || ''} ${course?.prompt || ''}`;
-    const requiresHanziPinyinPairing =
-      /\b(?:elementary|beginning|beginner|first[- ]semester|introductory)\b|\bpinyin\b|tone[- ]marked|tone marks?|alongside pinyin/i.test(
-        mandarinIdentity,
-      );
+    const mandarinRequirement = mandarinTargetLanguageRequirements({
+      courseIdentity: mandarinIdentity,
+      sourceText: course?.prompt || '',
+    });
+    const requiresHanziPinyinPairing = mandarinRequirement.elements.includes('hanzi');
     const missingTargetLanguageLessons = [...targetLanguageByLesson.entries()]
-      .filter(([, counts]) => counts.cjk === 0 || (requiresHanziPinyinPairing && counts.pinyin === 0))
+      .filter(([, counts]) =>
+        requiresHanziPinyinPairing ? counts.cjk === 0 || counts.pinyin === 0 : counts.pinyin === 0,
+      )
       .map(([lessonNumber]) => lessonNumber)
       .sort((left, right) => left - right);
     const targetLanguageCoverage = targetLanguageByLesson.size - missingTargetLanguageLessons.length;
@@ -2963,7 +2969,7 @@ function checkDiscipline(findings, { files }, course) {
         severity: coverageRatio < 0.75 ? 'P0' : 'P1',
         dimension: 'discipline',
         file: 'lessonPlans + slideDecks',
-        detail: `Mandarin CJK/pinyin target-language coverage reaches ${targetLanguageCoverage}/${targetLanguageByLesson.size} lessons; ${missingTargetLanguageLessons.length} lesson(s) lack ${requiresHanziPinyinPairing ? 'hanzi with tone-marked pinyin' : 'hanzi'} (${missingTargetLanguageLessons.join(', ')})`,
+        detail: `Mandarin target-language coverage reaches ${targetLanguageCoverage}/${targetLanguageByLesson.size} lessons; ${missingTargetLanguageLessons.length} lesson(s) lack ${requiresHanziPinyinPairing ? 'hanzi with tone-marked pinyin' : 'tone-marked pinyin'} (${missingTargetLanguageLessons.join(', ')})`,
         evidence:
           targetLanguageByLesson.get(missingTargetLanguageLessons[0])?.files?.[0] ||
           lessonFiles[0]?.path ||
@@ -2973,24 +2979,33 @@ function checkDiscipline(findings, { files }, course) {
     if (!distributionFindingAdded && perLesson < 5) {
       const sample =
         lessonFiles.map((file) => file.text).find((text) => CJK_RE.test(text) || TONE_PINYIN_RE.test(text)) || '(none)';
+      const densityLabel = requiresHanziPinyinPairing ? 'CJK/pinyin tokens' : 'tone-marked Pinyin tokens';
       findings.add({
         severity: 'P0',
         dimension: 'discipline',
         file: 'lessonPlans + slideDecks',
-        detail: `Mandarin course averages ${perLesson.toFixed(1)} CJK/pinyin tokens per lesson (<5) — the language is missing from its own materials`,
+        detail: `Mandarin course averages ${perLesson.toFixed(1)} ${densityLabel} per lesson (<5) — the target language is too thin in its own materials`,
         evidence: quote(sample),
       });
     }
     // hanzi+pinyin pairing in study-guide tables.
     const guides = files.filter((file) => file.featureId === 'studyGuides');
-    const pairedGuides = guides.filter((guide) => CJK_RE.test(guide.text) && TONE_PINYIN_RE.test(guide.text));
+    const pairedGuides = guides.filter((guide) =>
+      requiresHanziPinyinPairing
+        ? CJK_RE.test(guide.text) && TONE_PINYIN_RE.test(guide.text)
+        : TONE_PINYIN_RE.test(guide.text),
+    );
     if (guides.length > 0 && pairedGuides.length < guides.length) {
-      const missingGuide = guides.find((guide) => !CJK_RE.test(guide.text) || !TONE_PINYIN_RE.test(guide.text));
+      const missingGuide = guides.find((guide) =>
+        requiresHanziPinyinPairing
+          ? !CJK_RE.test(guide.text) || !TONE_PINYIN_RE.test(guide.text)
+          : !TONE_PINYIN_RE.test(guide.text),
+      );
       findings.add({
         severity: pairedGuides.length === 0 ? 'P0' : 'P1',
         dimension: 'discipline',
         file: 'studyGuides',
-        detail: `${guides.length - pairedGuides.length}/${guides.length} study guides do not pair hanzi with tone-marked pinyin`,
+        detail: `${guides.length - pairedGuides.length}/${guides.length} study guides do not ${requiresHanziPinyinPairing ? 'pair hanzi with tone-marked pinyin' : 'include tone-marked pinyin'}`,
         evidence: quote(missingGuide?.text || '', 120),
       });
     }

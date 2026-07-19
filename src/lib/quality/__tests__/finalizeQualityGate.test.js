@@ -31,6 +31,7 @@ describe('gradePackageAtFinalize', () => {
       courseMap: { courseName: 'Project Management', lessons: [] },
       deliverables: {},
       featureIds: ['courseMap'],
+      coursePrompt: 'Use the instructor project brief as the grading scope.',
     });
 
     expect(result.status).toBe('graded');
@@ -38,7 +39,10 @@ describe('gradePackageAtFinalize', () => {
     expect(PACKAGE_FINALIZE_QUALITY_TIMEOUT_MS).toBeGreaterThanOrEqual(30000);
     expect(buildCourseMaterialsZip).toHaveBeenCalledWith(
       expect.objectContaining({
-        quality: expect.objectContaining({ timeoutMs: PACKAGE_FINALIZE_QUALITY_TIMEOUT_MS }),
+        quality: expect.objectContaining({
+          timeoutMs: PACKAGE_FINALIZE_QUALITY_TIMEOUT_MS,
+          coursePrompt: 'Use the instructor project brief as the grading scope.',
+        }),
       }),
     );
   });

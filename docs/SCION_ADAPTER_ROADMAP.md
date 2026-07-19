@@ -2,7 +2,27 @@
 
 **Architecture:** public Gemma 4 E2B base + small Scion adapter + Scion compiler = Scion Vx
 
-**Status:** the exact-QAT base, hash-bound training and conversion chain, browser adapter lifecycle, source-strict semantic compiler gates, frozen holdout firewall, and paired-order preference protocol are implemented. V0.16.53 adds a hash-bound task-scope contract across the dataset, training plan, adapter manifest, runtime, telemetry, and held-out ruler. It proves that the current 143-row research corpus covers only source key-term and multiple-choice atoms, not whole lesson kernels, and therefore refuses to treat the rejected global adapter run as task-matched evidence. A quality adapter, held-out adapter win, lesson-kernel preference corpus, production-compatible corpus, the remaining three device profiles, and any production promotion still do not exist.
+**Status:** the exact-QAT base, hash-bound training and conversion chain, browser adapter lifecycle, source-strict semantic compiler gates, frozen holdout firewall, and paired-order preference protocol are implemented. V0.16.54 aligns the browser, local-server, and evaluation lesson-kernel protocol; adds a 148-case production-compatible lesson-kernel campaign; and verifies the unchanged public base through one real source-only browser build. The campaign is a ruler and corpus target, not training evidence. A quality adapter, held-out adapter win, admitted lesson-kernel preference corpus, production-compatible training corpus, the remaining three device profiles, and any production promotion still do not exist.
+
+## v0.16.54 — Keep the Brief Intact
+
+**Goal:** make the exact work Scion serves measurable, source-bound, and understandable from the first browser frame to the exported package before training another adapter.
+
+**One production protocol:** browser Scion, the local Crucible-compatible server, and the adapter campaign now use the same compact lesson-kernel task identity and schema. Prompt context is forwarded into admission and grading instead of being silently dropped between model, compiler, and benchmark lanes.
+
+**Brief fidelity:** an explicit instructor-only brief stops outside retrieval, remains private generation context, preserves every supplied fact, and compiles the requested class duration. The current semantic layer distinguishes Pinyin-only teaching from broad Mandarin instruction, rejects a tone-marked full syllable mislabeled as an initial, rejects cited facts that have no anchor in the keyed answer, and refuses to turn an incomplete evidence fragment into classroom prose.
+
+**Living compiler proof:** a fresh cached-base browser run completed five selected materials in 117 seconds at 89/B with texture 88, zero P0 findings, exact 50-minute timing, all four mā/má/mǎ/mà examples, all five instructor facts, and 22/22 export checks. Progress remained monotonic while exposing bounded recovery attempts; ready-state language and the single export action matched actual package state. A free-form Agent turn used the same local Scion route and rendered both new and previously persisted response envelopes as clean prose.
+
+**Task-matched campaign:** the frozen campaign contains 148 production-compatible cases across 25 groups and seven domains. It defines the next lesson-kernel evaluation target, but no row is called a preference merely because it is structurally valid and no adapter is promoted from it.
+
+**Historical integrity:** residue checks added after older evidence campaigns remain active in the current production compiler while historical v0.16.40-v0.16.50 replays retain their original admission profiles. New rules cannot manufacture an apparent historical improvement or regression.
+
+**Lane:** v0.16.54 improves the shared compiler, Scion orchestration, browser UX, and evaluation validity. It does not alter Gemma weights or activate an adapter. Paid providers inherit shared source, compilation, grading, and export improvements; Scion additionally uses the browser-local runtime, compact-kernel retry, and future adapter route.
+
+**Next gates:** admit genuinely preferred lesson-kernel rows under the exact production protocol, train a validation-selected task-matched adapter, and run exact adapter versus exact base-only Scion on all five frozen held-out courses. Require a semantic win with no higher compiler burden and acceptable device cost before activation.
+
+**Release boundary:** no adapter is active, no Gemma weight changed, and no paid-reference parity, human preference, instructor approval, classroom outcome, or universal course-quality claim is made.
 
 ## v0.16.53 — Train What You Serve
 

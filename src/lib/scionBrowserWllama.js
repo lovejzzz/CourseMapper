@@ -246,10 +246,11 @@ export async function completeScionBrowserWllama(
     signal,
     onToken,
     taskFamily,
+    promptProtocol,
     onAdapterRoute,
   } = {},
 ) {
-  const route = await prepareAdapterRoute(taskFamily);
+  const route = await prepareAdapterRoute(taskFamily, promptProtocol);
   if (typeof onAdapterRoute === 'function') {
     try {
       onAdapterRoute(route);
@@ -308,6 +309,8 @@ function routeReceipt(route, nativeAdapterActive) {
     mode: route.mode,
     taskFamily: route.taskFamily,
     reason: route.reason,
+    promptProtocol: route.promptProtocol || null,
+    expectedPromptProtocol: route.expectedPromptProtocol || null,
     adapterId: activeAdapter?.adapterId || null,
     manifestSha256: activeAdapter?.manifestSha256 || null,
     scopeIdentitySha256: route.scopeIdentitySha256 || null,
@@ -334,7 +337,7 @@ async function quarantineAdapterRuntime(error, failedIdentity = activeAdapter ||
   throw error;
 }
 
-async function prepareAdapterRoute(taskFamily) {
+async function prepareAdapterRoute(taskFamily, promptProtocol) {
   const candidate = requireReady();
   if (!activeAdapter) {
     const native = await candidate.getLoraAdapterStatus();
@@ -351,6 +354,7 @@ async function prepareAdapterRoute(taskFamily) {
         mode: 'base-only',
         taskFamily: normalizeScionAdapterTaskFamily(taskFamily),
         reason: 'no-adapter-installed',
+        promptProtocol: promptProtocol || null,
       },
       false,
     );
@@ -361,7 +365,7 @@ async function prepareAdapterRoute(taskFamily) {
       'Scion blocked the adapter until its activation proof passes.',
     );
   }
-  const route = resolveScionAdapterTaskRoute({ manifest: activeAdapter.manifest, taskFamily });
+  const route = resolveScionAdapterTaskRoute({ manifest: activeAdapter.manifest, taskFamily, promptProtocol });
   try {
     const native = await candidate.getLoraAdapterStatus();
     if (route.mode === 'adapter') {

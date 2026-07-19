@@ -107,6 +107,73 @@ function kernelFieldSchemas({ mcCount = 4, keyTermCount = 4, requiresTargetLangu
   };
 }
 
+/**
+ * Exact compact contract used by the production lesson-kernel preference
+ * corpus. The optional adapter is trained only on these knowledge atoms; the
+ * compiler projects the admitted atoms into discussion, assignment, slides,
+ * study-guide, and session surfaces. Keeping this profile separate from the
+ * richer paid-model Pass B schema prevents a family label from silently
+ * widening the task the adapter is asked to perform.
+ */
+export function compactLessonKernelSchemaProfile({ expectedLessonIds = [] } = {}) {
+  const lessonIds = expectedLessonIds.filter(Boolean);
+  const schema = {
+    type: 'object',
+    properties: {
+      lessons: arr(
+        {
+          type: 'object',
+          properties: {
+            lessonId: lessonIds.length > 0 ? { type: 'string', enum: lessonIds } : str(3, 32),
+            facts: arr(str(20, 180), 5, 5),
+            keyTerms: arr(
+              {
+                type: 'object',
+                properties: {
+                  tr: str(2, 60),
+                  df: str(40, 380),
+                  eg: str(12, 300),
+                  mi: str(12, 300),
+                  cx: str(12, 300),
+                },
+                required: ['tr', 'df', 'eg', 'mi', 'cx'],
+              },
+              3,
+              3,
+            ),
+            scenario: {
+              type: 'object',
+              properties: { su: str(45, 500), ma: str(10, 300) },
+              required: ['su', 'ma'],
+            },
+            mc: arr(
+              {
+                type: 'object',
+                properties: {
+                  q: str(25, 300),
+                  op: arr(str(5, 140), 4, 4),
+                  ai: { type: 'integer', enum: [0] },
+                  fi: arr({ type: 'integer', minimum: 0, maximum: 4 }, 1, 1),
+                  ex: str(40, 380),
+                },
+                required: ['q', 'op', 'ai', 'fi', 'ex'],
+              },
+              2,
+              2,
+            ),
+          },
+          required: ['lessonId', 'facts', 'keyTerms', 'scenario', 'mc'],
+        },
+        lessonIds.length || 1,
+        lessonIds.length || 1,
+      ),
+    },
+    required: ['lessons'],
+  };
+  lockObjects(schema);
+  return { name: 'scion_compact_lesson_kernel_v1', schema, strict: true };
+}
+
 export const COURSE_LEVEL_SCHEMA = {
   type: 'object',
   properties: {

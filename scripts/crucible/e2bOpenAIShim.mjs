@@ -16,7 +16,20 @@ import { AsyncLocalStorage } from 'node:async_hooks';
 import { sGenerate, startItems, stopS } from '../../trellis/tendril/sModel.mjs';
 import { sha256File, verifyScionAdapterPackage } from '../scionAdapterPackage.mjs';
 import { computeScionAdapterPackageIdentity } from '../lib/scionBrowserDeviceMatrix.mjs';
-import { normalizeScionAdapterTaskFamily, resolveScionAdapterTaskRoute } from '../../src/lib/scionAdapterTaskScope.js';
+import {
+  normalizeScionAdapterTaskFamily,
+  resolveScionAdapterTaskRoute,
+  SCION_ADAPTER_TASK_FAMILIES,
+  SCION_LESSON_KERNEL_PROMPT_PROTOCOL,
+} from '../../src/lib/scionAdapterTaskScope.js';
+import {
+  assessPublicScionKernelResponse,
+  buildPublicScionMessages,
+  buildPublicScionRetryFeedback,
+  mergePublicScionKernelAttempts,
+  repairPublicScionJson,
+  shufflePublicScionKernelOptions,
+} from '../../src/lib/publicScionProvider.js';
 import { closeJsonContainersAtEof } from './jsonClosureRepair.mjs';
 import { valueConformsToSchema } from './jsonSchemaValidation.mjs';
 
@@ -245,6 +258,42 @@ async function generate({ system, user, maxTokens, schema, jsonMode, temperature
   } finally {
     inFlightCalls -= 1;
   }
+}
+
+async function generateCompactLessonKernel({ system, user, originalUser, maxTokens, schema }) {
+  let retainedIncompleteText = '';
+  let retryAssessment = null;
+  let latestText = '';
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const retryUser = retryAssessment?.needsRetry
+      ? `${user}\n\n${buildPublicScionRetryFeedback(retryAssessment)}`
+      : user;
+    const rawText = await generate({
+      system,
+      user: retryUser,
+      maxTokens: Math.min(2400, Math.max(1, Number(maxTokens) || 2400)),
+      schema,
+      ...(attempt > 0 ? { temperature: Math.min(0.45, attempt * 0.15) } : {}),
+    });
+    const repaired = repairPublicScionJson(rawText);
+    const merged = retainedIncompleteText
+      ? mergePublicScionKernelAttempts(retainedIncompleteText, repaired.text, originalUser)
+      : { text: repaired.text };
+    latestText = merged.text;
+    const assessment = assessPublicScionKernelResponse(latestText, originalUser, 'blueprintEnrichment');
+    console.error(
+      JSON.stringify({
+        compactKernelAttempt: attempt + 1,
+        needsRetry: assessment.needsRetry,
+        issueCount: assessment.issues.length,
+        issues: assessment.issues.slice(0, 12),
+      }),
+    );
+    if (!assessment.needsRetry) return shufflePublicScionKernelOptions(latestText).text;
+    retainedIncompleteText = latestText;
+    retryAssessment = assessment;
+  }
+  return shufflePublicScionKernelOptions(latestText).text;
 }
 
 // V2: pull the app's ACTUAL output contract out of either API shape so
@@ -588,8 +637,7 @@ function kernelContract(system, user) {
   const mcCount = Number((system.match(/exactly (\d+) mc items/i) || [])[1]) || 4;
   const keyTermCount = Number((system.match(/(\d+) keyTerms/i) || [])[1]) || 4;
   const includeCourseLevel = /courseLevel object once/i.test(user);
-  const recoveryAttempt =
-    Number((user.match(/(?:RECOVERY RETRY|Recovery attempt)\s+(\d+)/i) || [])[1]) || 0;
+  const recoveryAttempt = Number((user.match(/(?:RECOVERY RETRY|Recovery attempt)\s+(\d+)/i) || [])[1]) || 0;
   return {
     lessonIds,
     lessonSummaries,
@@ -629,9 +677,7 @@ async function kernelChunkedGenerate({ system, user, kernel, temperature }) {
       ? kernel.lessonSummaries.find((lesson) => lesson?.lessonId === lessonId)
       : null;
     const summaryIdentity = JSON.stringify(summary || { lessonId });
-    return `${courseLine}|${summaryIdentity}${
-      kernel.recoveryAttempt > 0 ? `|recovery-${kernel.recoveryAttempt}` : ''
-    }`;
+    return `${courseLine}|${summaryIdentity}${kernel.recoveryAttempt > 0 ? `|recovery-${kernel.recoveryAttempt}` : ''}`;
   };
   const requiresTargetLanguagePair = /\bElementary Mandarin Chinese\b/i.test(courseLine);
   const deadline = Date.now() + KERNEL_CALL_BUDGET_MS;
@@ -1191,11 +1237,12 @@ function corsHeaders() {
   return {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'authorization, content-type, openai-beta, x-scion-task-family',
+    'Access-Control-Allow-Headers':
+      'authorization, content-type, openai-beta, x-scion-task-family, x-scion-prompt-protocol',
   };
 }
 
-function adapterRouteForTaskFamily(value) {
+function adapterRouteForTaskFamily(value, promptProtocol) {
   const taskFamily = normalizeScionAdapterTaskFamily(value);
   if (!verifiedAdapterManifest) {
     return {
@@ -1203,17 +1250,20 @@ function adapterRouteForTaskFamily(value) {
       mode: 'base-only',
       taskFamily,
       reason: 'no-adapter-installed',
+      promptProtocol: promptProtocol || null,
       adapterId: null,
       manifestSha256: null,
       scopeIdentitySha256: null,
     };
   }
-  const resolved = resolveScionAdapterTaskRoute({ manifest: verifiedAdapterManifest, taskFamily });
+  const resolved = resolveScionAdapterTaskRoute({ manifest: verifiedAdapterManifest, taskFamily, promptProtocol });
   return {
     protocol: 'scion-adapter-runtime-route-v1',
     mode: resolved.mode,
     taskFamily: resolved.taskFamily,
     reason: resolved.reason,
+    promptProtocol: resolved.promptProtocol || promptProtocol || null,
+    expectedPromptProtocol: resolved.expectedPromptProtocol || null,
     adapterId,
     manifestSha256: adapterManifestSha256,
     scopeIdentitySha256: resolved.scopeIdentitySha256 || null,
@@ -1379,7 +1429,8 @@ const server = http.createServer(async (req, res) => {
   }
 
   const isResponsesShape = req.url.includes('/responses');
-  const adapterRoute = adapterRouteForTaskFamily(req.headers['x-scion-task-family']);
+  const promptProtocol = String(req.headers['x-scion-prompt-protocol'] || '').trim();
+  const adapterRoute = adapterRouteForTaskFamily(req.headers['x-scion-task-family'], promptProtocol);
   const routeProofs = [];
   // stream:true (the app's Local provider path): open SSE immediately and
   // heartbeat while the model generates — the payload arrives as one delta.
@@ -1402,6 +1453,22 @@ const server = http.createServer(async (req, res) => {
     }, 15_000);
   }
   let contract = extractJsonContract(body, isResponsesShape);
+  const originalCompilerUser = user;
+  const compactLessonKernelRequest =
+    adapterRoute.taskFamily === SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL &&
+    promptProtocol === SCION_LESSON_KERNEL_PROMPT_PROTOCOL;
+  if (compactLessonKernelRequest) {
+    // Match the production browser boundary exactly. The public provider
+    // converts the rich compiler prompt into the compact protocol used by the
+    // adapter corpus; the local benchmark must exercise those same messages
+    // instead of asking the adapter to write courseLevel/session/skin fields.
+    const compactMessages = buildPublicScionMessages(system, user, {
+      schema: contract.schema || null,
+      task: 'blueprintEnrichment',
+    });
+    system = compactMessages.find((message) => message.role === 'system')?.content || system;
+    user = compactMessages.find((message) => message.role === 'user')?.content || user;
+  }
   const temperature = 0;
   // Kernel/Pass-B calls: per-lesson chunked generation under the strict
   // contract derived from the app's own prompt + lint floor. CourseIR calls:
@@ -1410,7 +1477,7 @@ const server = http.createServer(async (req, res) => {
   // temperature (greedy default; recovery retries sample) — honor it.
   const declaredTemperature = Number(body.temperature) || 0;
   const hasJsonContract = Boolean(contract.schema || contract.jsonMode);
-  const kernel = hasJsonContract ? kernelContract(system, user) : null;
+  const kernel = !compactLessonKernelRequest && hasJsonContract ? kernelContract(system, user) : null;
   let isSkeleton = false;
   if (!kernel && hasJsonContract) {
     const pinned = courseIRContract(system, user) || skeletonContract(system, user);
@@ -1419,26 +1486,34 @@ const server = http.createServer(async (req, res) => {
       isSkeleton = Boolean(pinned.skeleton);
     }
   }
-  if (!kernel && (contract.schema || contract.jsonMode)) system += RICHNESS_DIRECTIVE;
+  if (!compactLessonKernelRequest && !kernel && (contract.schema || contract.jsonMode)) system += RICHNESS_DIRECTIVE;
   let text = '';
   let generationError = '';
   let jsonClosureRepair = '';
   const modelMetrics = { modelCalls: 0, completedModelCalls: 0, failedModelCalls: 0 };
   try {
     text = await requestMetrics.run({ metrics: modelMetrics, adapterRoute, routeProofs }, async () => {
-      let generated = kernel
-        ? await kernelChunkedGenerate({ system, user, kernel, temperature: declaredTemperature })
-        : await generate({
+      let generated = compactLessonKernelRequest
+        ? await generateCompactLessonKernel({
             system,
             user,
+            originalUser: originalCompilerUser,
             maxTokens: requestedMaxTokens(body),
-            ...contract,
-            ...(declaredTemperature > 0
-              ? { temperature: declaredTemperature }
-              : temperature > 0
-                ? { temperature }
-                : {}),
-          });
+            schema: contract.schema,
+          })
+        : kernel
+          ? await kernelChunkedGenerate({ system, user, kernel, temperature: declaredTemperature })
+          : await generate({
+              system,
+              user,
+              maxTokens: requestedMaxTokens(body),
+              ...contract,
+              ...(declaredTemperature > 0
+                ? { temperature: declaredTemperature }
+                : temperature > 0
+                  ? { temperature }
+                  : {}),
+            });
       if (hasJsonContract && generated) {
         const closure = closeJsonContainersAtEof(generated, { schema: contract.schema || null });
         generated = closure.text;

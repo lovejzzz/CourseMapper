@@ -47,7 +47,7 @@ export default function LessonScopeSelector({
               : 'border border-slate-200 bg-white/80 text-slate-600 hover:bg-white dark:border-slate-700 dark:bg-slate-950/60 dark:text-slate-300 dark:hover:bg-slate-950'
           }`}
         >
-          All {total > 0 ? `(${total} lessons)` : 'lessons'}
+          All {total > 0 ? `(${total} ${total === 1 ? 'lesson' : 'lessons'})` : 'lessons'}
         </button>
         <button
           type="button"

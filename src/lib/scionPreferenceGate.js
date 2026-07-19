@@ -222,7 +222,18 @@ export function assessScionMcItem(
     const combined = [normalized.question, ...normalized.options, normalized.explanation].join(' ').toLowerCase();
     if (!topicWords.some((word) => combined.includes(clean(word).toLowerCase()))) issues.push('off-topic');
   }
-  issues.push(...lintItemAdmission(normalized));
+  // The answer-position and internal-source residue checks were added after
+  // the frozen v0.16.40-v0.16.50 evidence campaigns. Keep them active for the
+  // production lesson-kernel profile and direct compiler linting, but do not
+  // silently reinterpret historical corpus receipts with newer rules.
+  const usesCurrentProductionResidueProfile = semanticProfile === 'source-strict-v6';
+  issues.push(
+    ...lintItemAdmission(normalized).filter(
+      (issue) =>
+        usesCurrentProductionResidueProfile ||
+        (issue !== 'answer-position-residue' && issue !== 'claim-marker-residue'),
+    ),
+  );
   const deduped = [...new Set(issues)];
   return {
     eligible: deduped.length === 0,

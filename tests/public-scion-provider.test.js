@@ -82,7 +82,7 @@ describe('Scion Public provider', () => {
             'Visual styling alone caused the recorded failures',
           ],
           ai: 0,
-          fi: [1],
+          fi: [0],
           ex: 'The repeated behavior warrants testing a revision. Interview comments alone cannot prove a universal preference or cause.',
         },
       ],
@@ -805,6 +805,20 @@ Continue generating the REMAINING lessons (Lesson 10 through Lesson 12).`;
     );
   });
 
+  it('retries when a valid fact index cites the wrong lesson fact for the key', () => {
+    const lesson = completeLesson({ lessonId: 'lesson-citation-mismatch' });
+    lesson.mc[0].fi = [2];
+    const assessment = assessPublicScionKernelResponse(
+      JSON.stringify({ lessons: [lesson] }),
+      `Course: UX Design\nLessons:\n[{"lessonId":"lesson-citation-mismatch","title":"Checkout Evidence"}]\nReturn ONLY valid JSON.`,
+      'blueprintEnrichment',
+    );
+    expect(assessment.issues).toContain('lesson-citation-mismatch:mc-0:source-fact-key-mismatch');
+    expect(buildPublicScionRetryFeedback(assessment)).toContain(
+      "Each fi must cite the one fact that directly supports the keyed option and the explanation's first sentence.",
+    );
+  });
+
   it('retries browser-local questions with incomplete feedback or multiple source-supported answers', () => {
     const prompt = `Course: UX Design\nLessons:\n[{"lessonId":"lesson-task-flow","title":"Task flow analysis"}]\nReturn ONLY valid JSON.`;
     const response = {
@@ -980,5 +994,33 @@ Continue generating the REMAINING lessons (Lesson 10 through Lesson 12).`;
     expect(text).toMatch(/fi=sourceFactIndexes/);
     expect(text).toMatch(/exactly \[n\]: one zero-based integer from 0 through 4/);
     expect(text).toMatch(/appears verbatim in at least one of that lesson's facts/);
+  });
+
+  it('carries the private instructor brief into the kernel source without changing the visible map', () => {
+    const courseMap = {
+      courseName: 'Elementary Mandarin',
+      lessons: [
+        {
+          title: 'Lesson 1: Pinyin and Tones',
+          sections: [
+            {
+              topicSection: 'Pinyin and Tones',
+              learningObjectives: 'Distinguish tone contours.',
+              supportingResources: 'Tone recording set.',
+            },
+          ],
+        },
+      ],
+    };
+    const sourceBrief = 'The first tone is high and level; mā means mother and mà means scold.';
+    const prompt = buildLessonKernelPrompt(courseMap, [0], { questionsPerLesson: 6, sourceBrief });
+    const extracted = extractPublicScionKernelLessons(prompt.userPrompt);
+    const messages = buildPublicScionMessages(prompt.systemPrompt, prompt.userPrompt, {
+      task: 'blueprintEnrichment',
+    });
+
+    expect(extracted[0].readings).toContain(`Instructor source brief: ${sourceBrief}`);
+    expect(messages[1].content).toContain(sourceBrief);
+    expect(courseMap.lessons[0].sections[0].supportingResources).toBe('Tone recording set.');
   });
 });

@@ -14,6 +14,32 @@ function completeTerm(overrides = {}) {
 }
 
 describe('Scion key-term composite integrity', () => {
+  it('rejects a tone-marked Pinyin syllable mislabeled as an initial', () => {
+    const assessment = assessScionKeyTermContract(
+      completeTerm({
+        tr: 'Pinyin initials',
+        df: 'Pinyin initials are consonant sounds that begin Mandarin syllables.',
+        eg: 'In 你好, nǐ is the Pinyin initial.',
+        mi: 'Pinyin initials are the syllable-ending sounds.',
+        cx: 'Initials begin syllables, while finals complete the remaining sound.',
+      }),
+      { lessonTitle: 'Pinyin and Tones', semanticProfile: 'strict-v6' },
+    );
+    expect(assessment.issues).toContain('example-confuses-pinyin-syllable-with-initial');
+
+    const corrected = assessScionKeyTermContract(
+      completeTerm({
+        tr: 'Pinyin initials',
+        df: 'Pinyin initials are consonant sounds that begin Mandarin syllables.',
+        eg: 'In the syllable nǐ, n is the Pinyin initial.',
+        mi: 'Pinyin initials are the syllable-ending sounds.',
+        cx: 'Initials begin syllables, while finals complete the remaining sound.',
+      }),
+      { lessonTitle: 'Pinyin and Tones', semanticProfile: 'strict-v6' },
+    );
+    expect(corrected.issues).not.toContain('example-confuses-pinyin-syllable-with-initial');
+  });
+
   it('rejects a joined concept label when its definition covers only one member', () => {
     const assessment = assessScionKeyTermContract(completeTerm(), {
       lessonTitle: 'Theories of International Relations',

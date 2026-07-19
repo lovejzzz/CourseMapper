@@ -358,7 +358,8 @@ function describeLessonScope(lessonScope, courseMap) {
     if (labels.length === 2) return `${labels[0]} and ${labels[1]}`;
     return `${labels.slice(0, 2).join(', ')} and ${labels.length - 2} more`;
   }
-  if (lessons.length > 0) return `All ${lessons.length} lessons`;
+  if (lessons.length === 1) return '1 lesson';
+  if (lessons.length > 1) return `All ${lessons.length} lessons`;
   return 'Current workspace';
 }
 

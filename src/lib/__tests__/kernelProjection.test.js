@@ -641,6 +641,35 @@ describe('kernel parse → project → compile (end to end)', () => {
     );
   });
 
+  it('drops an MC item whose valid fi points to an unrelated fact', () => {
+    const prompt = buildLessonKernelPrompt(COURSE_MAP, [0]);
+    const response = JSON.parse(shortKeyResponse);
+    response.lessons[0].facts = [
+      'Absolute numerical dating assigns specific ages in years to mineral grains within a rock.',
+      'Relative dating orders events from older to younger without assigning a numerical age.',
+      "Plate tectonics moves lithospheric plates slowly across Earth's surface over geologic time.",
+      'Mineral hardness compares resistance to scratching against a standard reference scale.',
+      'Sedimentary layers can preserve evidence of changing depositional environments over time.',
+    ];
+    response.lessons[0].mc = [
+      {
+        q: 'What does absolute dating provide regarding mineral grains in a rock?',
+        op: ['A numerical age in years', 'A relative order of events', 'A mineral hardness rank', 'A plate direction'],
+        ai: 0,
+        fi: [2],
+        ex: 'Absolute dating assigns a numerical age in years to sampled mineral grains. Plate motion does not date the grains.',
+      },
+    ];
+
+    const parsed = parseLessonKernelResponse(JSON.stringify(response), { prompt });
+    expect(parsed.lessons['lesson-1'].quizItems).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ question: response.lessons[0].mc[0].q })]),
+    );
+    expect(parsed.issues).toContainEqual(
+      expect.objectContaining({ surface: 'mc', problems: expect.arrayContaining(['source-fact-key-mismatch']) }),
+    );
+  });
+
   it('keeps every deterministic short-answer variant explicit about concept, evidence, and boundary', () => {
     const itemPlan = buildQuizItemPlan(6);
     for (let index = 0; index < 80; index += 1) {

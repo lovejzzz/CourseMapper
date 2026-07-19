@@ -303,7 +303,15 @@ describe('language identity firewall', () => {
     ).toMatchObject({ required: false, complete: true });
   });
 
-  it('states the Mandarin admission contract in the model prompt, including Pinyin-focused lessons', () => {
+  it('does not invent unsupported Hanzi for an explicitly Pinyin-only source scope', () => {
+    expect(
+      assessTargetLanguagePresence({
+        courseIdentity: 'Elementary Mandarin Chinese I',
+        sourceText: 'Lesson 1: Pinyin and Tones. Distinguish initials, finals, and four tone contours.',
+        text: 'Learners compare mā, má, mǎ, and mà while listening.',
+      }),
+    ).toMatchObject({ required: true, complete: true, pinyinOnly: true, missing: [] });
+
     const prompt = buildLessonKernelPrompt(
       {
         courseName: 'Elementary Mandarin Chinese I',
@@ -318,8 +326,53 @@ describe('language identity firewall', () => {
       { questionsPerLesson: 4 },
     );
 
-    expect(prompt.systemPrompt).toContain('EVERY lesson must contain at least one visible Hanzi example');
-    expect(prompt.systemPrompt).toContain('Pinyin-only lesson will be rejected');
+    expect(prompt.systemPrompt).toContain('Source-scoped Pinyin/tones requirement');
+    expect(prompt.systemPrompt).toContain('Do not invent unsupported Hanzi');
+    expect(prompt.systemPrompt).not.toContain('every broad Mandarin lesson');
+
+    const response = JSON.stringify({
+      lessons: [
+        {
+          lessonId: 'lesson-1',
+          facts: [
+            'Mandarin uses four main tone contours to distinguish otherwise similar spoken syllables.',
+            'The first tone is high and level while the second tone rises.',
+            'The third tone is low then rising while the fourth falls sharply.',
+            'A Pinyin syllable may contain an initial followed by a final.',
+            'Tone changes meaning across mā, má, mǎ, and mà.',
+          ],
+          keyTerms: [
+            {
+              tr: 'tone contour',
+              df: 'A pitch movement across one spoken syllable that can distinguish lexical meaning.',
+              eg: 'A learner compares mā, má, mǎ, and mà before repeating each contour.',
+              mi: 'Changing a tone changes only emotion and never changes lexical meaning.',
+              cx: 'The four contours can distinguish meaning even when the initial and final stay the same.',
+            },
+          ],
+        },
+      ],
+    });
+    expect(parseLessonKernelResponse(response, { prompt })).toBeTruthy();
+  });
+
+  it('keeps the Hanzi + tone-marked Pinyin contract for broad Mandarin lessons', () => {
+    const prompt = buildLessonKernelPrompt(
+      {
+        courseName: 'Elementary Mandarin Chinese I',
+        lessons: [
+          {
+            title: 'Lesson 1: Greetings',
+            sections: [{ topicSection: 'Introductions and polite greetings' }],
+          },
+        ],
+      },
+      [0],
+      { questionsPerLesson: 4 },
+    );
+
+    expect(prompt.systemPrompt).toContain('every broad Mandarin lesson');
+    expect(prompt.systemPrompt).toContain('Hanzi example paired with its tone-marked Pinyin');
   });
 
   it('projects a grammar-required Mandarin pair into learner-facing facts', () => {

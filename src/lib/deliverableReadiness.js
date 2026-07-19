@@ -1342,6 +1342,12 @@ function needsGenericAssessmentScaffoldRepair(key, value) {
 function needsCourseMapSemanticRepair(key, value, courseMap, lesson, section) {
   const raw = text(value);
   if (!raw) return false;
+  // A supporting-resource cell is a short source label, not a second copy of
+  // the instructor's entire build request. Small models sometimes paste the
+  // full brief here; that then leaks into every compiled surface as if it were
+  // an assigned reading. Preserve concise titles/lists and replace only the
+  // unmistakable paragraph-shaped prompt artifact.
+  if (key === 'supportingResources' && raw.length > 240 && raw.split(/\s+/).length > 35) return true;
   if (needsCourseTitleOnlyTopicRepair(raw, courseMap)) return true;
   if (hasRepeatedShortTopicReference(raw, courseMap)) return true;
   const profile = inferCourseMapFallbackProfile(courseMap, lesson, section);

@@ -3,6 +3,22 @@ import { createBaseModelCapabilities, createGenerationPlan } from '../modelCapab
 import { buildProviderTextRequest, createRequestControls } from '../modelRequestBuilders';
 
 describe('modelRequestBuilders', () => {
+  it('binds local Scion adapter routing to both task family and prompt protocol', () => {
+    const req = buildProviderTextRequest({
+      provider: 'local',
+      apiKey: '',
+      modelId: 'scion-1',
+      systemPrompt: 'Return JSON.',
+      userPrompt: 'Write one compact lesson kernel.',
+      task: 'blueprintEnrichment',
+      promptProtocol: 'production-lesson-kernel-prompt-v1',
+    });
+    expect(req.headers).toMatchObject({
+      'X-Scion-Task-Family': 'lesson-kernel',
+      'X-Scion-Prompt-Protocol': 'production-lesson-kernel-prompt-v1',
+    });
+  });
+
   it('uses strict JSON schema for OpenAI-compatible schema-capable profiles', () => {
     const profile = createBaseModelCapabilities('openai', {
       id: 'gpt-6.1',

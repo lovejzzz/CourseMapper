@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  findScionCitedSourceKeyMismatch,
   findScionIncompleteExplanationTail,
   repairScionEnrichmentAnswerKeys,
   repairScionMcItem,
@@ -19,6 +20,30 @@ const TRUNCATED_CONFLICT = {
 };
 
 describe('Scion MC contract recovery', () => {
+  it('rejects an explicit fact citation with no anchor in the keyed answer', () => {
+    const item = {
+      q: 'A note records 你好 while a diagram marks pitch contours. Which interpretation fits the note?',
+      op: [
+        '你好 means hello in this greeting.',
+        '你好 labels a Pinyin initial.',
+        '你好 names a syllable ending.',
+        '你好 identifies a writing exercise.',
+      ],
+      ai: 0,
+      ex: '你好 is a greeting whose meaning is hello. A Pinyin initial is only one component of a syllable.',
+    };
+    expect(
+      findScionCitedSourceKeyMismatch(item, {
+        sourceClaims: ['Pinyin initials and finals are the two parts of the Pinyin system.'],
+      }),
+    ).toMatchObject({ supportMethod: 'cited-fact-key-zero-overlap' });
+    expect(
+      findScionCitedSourceKeyMismatch(item, {
+        sourceClaims: ['你好 is a spoken Mandarin greeting whose meaning is hello.'],
+      }),
+    ).toBeNull();
+  });
+
   it('retains only complete model-authored sentences without trusting lexical key overlap', () => {
     const repaired = repairScionMcItem(TRUNCATED_CONFLICT, { lessonId: 'lesson-2', itemIndex: 1 });
     expect(repaired.item).toMatchObject({

@@ -174,6 +174,7 @@ export default function useStreamReader() {
       featureId,
       task,
       schema,
+      promptProtocol,
       temperature: temperatureOverride,
       onApiCallEvent,
       allowProviderFallback = true,
@@ -204,6 +205,7 @@ export default function useStreamReader() {
       maxOutputTokens: Number(maxOutputTokens) || undefined,
       approxInputTokens: estimateCharsAsTokens(systemPrompt, userPrompt),
       hasSchema: Boolean(schema),
+      promptProtocol: promptProtocol || '',
     });
     const recordLocalAdapterRoute = (payload) => {
       if (provider !== 'local' || !payload || typeof payload !== 'object') return;
@@ -239,6 +241,7 @@ export default function useStreamReader() {
           userPrompt,
           task,
           schema,
+          promptProtocol,
           maxOutputTokens,
           maxRetries,
           temperature: temperatureOverride ?? generationPlan?.temperature ?? 0,
@@ -439,6 +442,7 @@ export default function useStreamReader() {
       generationPlan,
       task,
       schema,
+      promptProtocol,
       temperatureOverride: requestTemperature,
     });
 

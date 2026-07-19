@@ -1,5 +1,6 @@
 export const SCION_ADAPTER_TASK_SCOPE_PROTOCOL = 'scion-adapter-task-scope-v1';
 export const SCION_ADAPTER_TASK_SCOPE_IDENTITY_ALGORITHM = 'sha256-canonical-scion-adapter-task-scope-v1';
+export const SCION_LESSON_KERNEL_PROMPT_PROTOCOL = 'production-lesson-kernel-prompt-v1';
 
 export const SCION_ADAPTER_TASK_FAMILIES = Object.freeze({
   SOURCE_KEY_TERM_ATOM: 'source-key-term-atom',
@@ -44,7 +45,7 @@ export function scionAdapterTaskFamilyForPairKind(value) {
 
 export function scionAdapterTaskFamilyForProviderTask(value) {
   const task = clean(value).toLowerCase();
-  if (['blueprintenrichment', 'lesson-kernel', 'lessonkernel', 'scionpass'].includes(task)) {
+  if (['blueprintenrichment', 'lesson-kernel', 'lessonkernel'].includes(task)) {
     return SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL;
   }
   if (['course-map', 'coursemap', 'native-skeleton', 'nativeskeleton', 'course-ir', 'courseir'].includes(task)) {
@@ -53,7 +54,7 @@ export function scionAdapterTaskFamilyForProviderTask(value) {
   if (['chat', 'agent', 'agent-advisory', 'agentadvisory'].includes(task)) {
     return SCION_ADAPTER_TASK_FAMILIES.AGENT_ADVISORY;
   }
-  if (['repair', 'compiler-repair', 'compilerrepair', 'verification'].includes(task)) {
+  if (['repair', 'compiler-repair', 'compilerrepair', 'verification', 'scionpass'].includes(task)) {
     return SCION_ADAPTER_TASK_FAMILIES.COMPILER_REPAIR;
   }
   if (['voicepass', 'voice-pass', 'voice-revision', 'voicerevision'].includes(task)) {
@@ -107,7 +108,7 @@ export function validateScionAdapterTaskScope(scope, { expectedRows } = {}) {
   return { valid: issues.length === 0, issues: [...new Set(issues)], totalRows };
 }
 
-export function resolveScionAdapterTaskRoute({ manifest, taskFamily } = {}) {
+export function resolveScionAdapterTaskRoute({ manifest, taskFamily, promptProtocol } = {}) {
   const family = normalizeScionAdapterTaskFamily(taskFamily);
   const validation = validateScionAdapterTaskScope(manifest?.training?.taskScope, {
     expectedRows: manifest?.training?.pairCount,
@@ -131,12 +132,29 @@ export function resolveScionAdapterTaskRoute({ manifest, taskFamily } = {}) {
     };
   }
   const eligible = manifest.training.taskScope.families.some((entry) => entry.id === family);
+  if (
+    eligible &&
+    family === SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL &&
+    clean(promptProtocol) !== SCION_LESSON_KERNEL_PROMPT_PROTOCOL
+  ) {
+    return {
+      mode: 'base-only',
+      adapterActive: false,
+      taskFamily: family,
+      reason: 'prompt-protocol-mismatch',
+      expectedPromptProtocol: SCION_LESSON_KERNEL_PROMPT_PROTOCOL,
+      promptProtocol: clean(promptProtocol) || null,
+      scopeIdentitySha256: manifest.training.taskScope.identity.sha256,
+      issues: [],
+    };
+  }
   return eligible
     ? {
         mode: 'adapter',
         adapterActive: true,
         taskFamily: family,
         reason: 'exact-task-family-match',
+        promptProtocol: clean(promptProtocol) || null,
         scopeIdentitySha256: manifest.training.taskScope.identity.sha256,
         issues: [],
       }
@@ -145,6 +163,7 @@ export function resolveScionAdapterTaskRoute({ manifest, taskFamily } = {}) {
         adapterActive: false,
         taskFamily: family,
         reason: 'task-family-out-of-scope',
+        promptProtocol: clean(promptProtocol) || null,
         scopeIdentitySha256: manifest.training.taskScope.identity.sha256,
         issues: [],
       };

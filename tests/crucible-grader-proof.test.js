@@ -609,7 +609,10 @@ describe('Crucible grader — seeded defects each produce their exact P0 finding
         course: mandarinCourse,
       });
       const finding = result.findings.find(
-        (f) => f.severity === 'P0' && f.dimension === 'discipline' && /CJK\/pinyin/i.test(f.detail),
+        (f) =>
+          f.severity === 'P0' &&
+          f.dimension === 'discipline' &&
+          /(?:CJK\/pinyin|hanzi with tone-marked pinyin)/i.test(f.detail),
       );
       expect(finding, JSON.stringify(result.findings.filter((f) => f.dimension === 'discipline'))).toBeTruthy();
       expect(finding.detail).toMatch(/coverage reaches 0\/4 lessons/);

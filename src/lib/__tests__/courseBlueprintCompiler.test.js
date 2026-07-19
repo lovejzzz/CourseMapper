@@ -7484,4 +7484,67 @@ describe('courseBlueprintCompiler', () => {
       findPromptArtifactContamination('This activity focuses on Discussion prompts rather than the course concept.'),
     ).toEqual(expect.objectContaining({ label: 'discussion prompts' }));
   });
+
+  it('honors an explicit 50-minute session and scales every teaching phase to the real clock', () => {
+    const blueprint = buildCourseBlueprint(makeWorldLanguageCourseMap(), { sessionMinutes: 50 });
+    const firstLesson = blueprint.lessons[0];
+    const phaseMinutes = firstLesson.classSessionPlan.segments.map((segment) => segment.minutes);
+    const compiled = compileBlueprintDeliverables(blueprint, ['lessonPlans']);
+
+    expect(firstLesson.classSessionPlan).toMatchObject({
+      sessionMinutes: 50,
+      plannedClassMinutes: 50,
+      feasibilityStatus: 'fits-session',
+    });
+    expect(phaseMinutes).toHaveLength(6);
+    expect(phaseMinutes.reduce((sum, value) => sum + value, 0)).toBe(50);
+    expect(firstLesson.workloadEstimate.inClassMinutes).toBe(50);
+    expect(compiled.lessonPlans.lessonPlans[0].duration).toBe('50 minutes');
+    expect(
+      compiled.lessonPlans.lessonPlans[0].outline.reduce(
+        (sum, segment) => sum + Number(String(segment.time).match(/\d+/)?.[0] || 0),
+        0,
+      ),
+    ).toBe(50);
+  });
+
+  it('projects the full admitted fact set into the lesson plan instead of hiding all but the first fact', () => {
+    const sourceFacts = [
+      'Pinyin writes Mandarin pronunciation with Latin letters.',
+      'mā means mother.',
+      'má means hemp.',
+      'mǎ means horse.',
+      'mà means scold.',
+    ];
+    const oneLessonMap = makeWorldLanguageCourseMap();
+    oneLessonMap.courseName = 'Elementary Mandarin: Pinyin and Tones';
+    oneLessonMap.lessons = oneLessonMap.lessons.slice(0, 1);
+    const blueprint = buildCourseBlueprint(oneLessonMap, {
+      sessionMinutes: 50,
+      instructorProvidedFacts: sourceFacts,
+    });
+    blueprint.lessons[0].enrichment = {
+      keyTerms: [
+        {
+          term: 'tone contour',
+          definition: 'Pitch movement distinguishes the four main Mandarin tones.',
+          misconception: 'Tone marks are optional decoration.',
+          correction: 'Tone changes meaning.',
+        },
+      ],
+      kernel: {
+        facts: ['The model compressed the lesson into one generic statement.'],
+      },
+    };
+
+    const compiled = compileBlueprintDeliverables(blueprint, ['lessonPlans']);
+    const text = JSON.stringify(compiled.lessonPlans.lessonPlans[0]);
+
+    expect(text).toContain('mā means mother');
+    expect(text).toContain('má means hemp');
+    expect(text).toContain('mǎ means horse');
+    expect(text).toContain('mà means scold');
+    expect(text).not.toContain('The checkout is.');
+    expect(text).not.toContain('Students submit one visible.');
+  });
 });

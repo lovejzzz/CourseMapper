@@ -217,6 +217,7 @@ export function buildProviderTextRequest({
   generationPlan = null,
   task = 'generation',
   schema = null,
+  promptProtocol = null,
   // Scion (V2.1 D2): greedy is deterministic — identical retries replay the
   // identical failure, so retry temperature is caller-controlled per attempt.
   temperatureOverride = undefined,
@@ -340,6 +341,7 @@ export function buildProviderTextRequest({
         // The benchmark/local server uses the same explicit family boundary as
         // the browser runtime. Never infer adapter eligibility from prompt text.
         'X-Scion-Task-Family': scionAdapterTaskFamilyForProviderTask(task),
+        ...(promptProtocol ? { 'X-Scion-Prompt-Protocol': promptProtocol } : {}),
       },
       body: {
         model: modelId,

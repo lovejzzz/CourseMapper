@@ -1328,6 +1328,7 @@ export default function ExportSidePanel({
     allReadyCount === 0 ||
     !courseMap ||
     (selectedLessons !== null && selectedLessons.length === 0);
+  const panelTitle = ['Download ZIP', 'Preparing ZIP…'].includes(zipButtonLabel) ? 'Export package' : 'Finish package';
   return (
     <div
       data-testid="export-side-panel"
@@ -1353,7 +1354,9 @@ export default function ExportSidePanel({
             </svg>
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-bold text-slate-800">Finish package</p>
+            <p data-testid="export-panel-title" className="text-xs font-bold text-slate-800">
+              {panelTitle}
+            </p>
           </div>
         </div>
 
@@ -1457,7 +1460,7 @@ export default function ExportSidePanel({
                   onClick={() => setEditingLessonScope(true)}
                   className="text-xs font-semibold text-indigo-500 hover:text-indigo-700 transition-colors"
                 >
-                  All {allLessons.length} lessons · Edit
+                  {allLessons.length === 1 ? '1 lesson' : `All ${allLessons.length} lessons`} · Edit
                 </button>
               </div>
             )}

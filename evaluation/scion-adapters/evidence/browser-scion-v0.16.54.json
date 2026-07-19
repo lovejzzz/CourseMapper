@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-real-browser-package-proof-v1",
+  "release": "v0.16.54",
+  "generatedAt": "2026-07-19T06:45:42.000Z",
+  "environment": {
+    "surface": "production-bundle-local-preview",
+    "url": "http://127.0.0.1:4173/?audit=20260719-final-v01654#/",
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "model": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+    "modelRevision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
+    "adapterActive": false,
+    "cachedBase": true
+  },
+  "course": {
+    "title": "Elementary Mandarin",
+    "lessons": 1,
+    "requestedMinutes": 50,
+    "compiledMinutes": 50,
+    "selectedMaterials": [
+      "Syllabus",
+      "Lesson Plans",
+      "Assignment Briefs",
+      "Rubrics",
+      "Quiz & Exam Bank"
+    ],
+    "completedMaterials": 5,
+    "sourceBoundary": "instructor-facts-only",
+    "sourceFactsSupplied": 5,
+    "sourceFactsVisible": 5,
+    "requiredExamples": ["mā", "má", "mǎ", "mà"],
+    "requiredExamplesVisible": 4,
+    "forbiddenRetrievalObserved": false
+  },
+  "livingCompiler": {
+    "durationSeconds": 117,
+    "observedPercentages": [15, 34, 45, 47, 48, 100],
+    "monotonic": true,
+    "boundedRecoveryVisible": true,
+    "recoveryLabel": "Recovery 1/1 · retrying local lesson kernel · attempt 2/3",
+    "terminalLabel": "Ready to export"
+  },
+  "quality": {
+    "score": 89,
+    "grade": "B",
+    "texture": 88,
+    "p0": 0,
+    "p1": 1,
+    "p2": 2,
+    "blockingFindings": 0,
+    "remainingP1": "The supplied source row is preserved for review but is not promoted to trusted bibliography proof."
+  },
+  "export": {
+    "verificationPassed": 22,
+    "verificationFailed": 0,
+    "downloadActionsVisible": 1,
+    "readyPanelTitle": "Export package"
+  },
+  "layout": {
+    "documentWidth": 1275,
+    "bodyWidth": 1275,
+    "horizontalOverflow": false,
+    "readyStateUsesWarningYellow": false
+  },
+  "console": {
+    "applicationErrors": 0,
+    "expectedRecoveredKernelFailures": 1,
+    "environmentWarnings": ["WebGPU single-thread fallback"]
+  },
+  "agent": {
+    "provider": "scion-public",
+    "modelLabel": "Scion V0.16.54",
+    "connected": true,
+    "lessonContextUsed": true,
+    "responseEnvelopeHidden": true,
+    "verifiedReply": "The example mā (mother), má (hemp), mǎ (horse), and mà (scold) is an excellent example to verify tone changes."
+  },
+  "claimBoundary": {
+    "gemmaWeightsChanged": false,
+    "adapterActive": false,
+    "adapterVersusBaseWin": false,
+    "paidReferenceParity": false,
+    "humanValidation": false,
+    "universalQualityClaim": false
+  }
+}

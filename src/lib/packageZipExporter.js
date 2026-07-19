@@ -1911,6 +1911,7 @@ export async function buildCourseMaterialsZip({
           course: {
             id: qualityOptions.courseId || '',
             title: safeCourseName,
+            prompt: qualityOptions.coursePrompt || '',
             featureIds: requestedFeatureIds,
           },
         });

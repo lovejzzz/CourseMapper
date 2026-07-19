@@ -55,7 +55,12 @@ const LANGUAGE_PROFILES = [
 ];
 
 const CJK_RE = /[一-鿿㐀-䶿]/g;
+const CJK_PRESENT_RE = /[一-鿿㐀-䶿]/;
 const TONE_MARKED_PINYIN_RE = /[a-zü]*[āáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜ]/gi;
+const PINYIN_ONLY_SCOPE_RE =
+  /\b(?:pinyin|tone contours?|four (?:main )?tones?|tone marks?|pronunciation|romanization|initials? and finals?|syllable structure)\b/i;
+const HANZI_SCOPE_RE =
+  /\b(?:hanzi|chinese characters?|character recognition|character writing|read(?:ing)? characters?|writ(?:e|ing) characters?|alongside (?:tone-marked )?pinyin)\b/i;
 
 export function explicitCourseLanguageIds(courseIdentity) {
   const identity = clean(courseIdentity);
@@ -97,19 +102,47 @@ export function detectForeignLanguageTeachingContent({ courseIdentity, text } = 
  * are exempt because an individual lesson may intentionally focus on the
  * other declared language.
  */
-export function assessTargetLanguagePresence({ courseIdentity, text } = {}) {
+export function mandarinTargetLanguageRequirements({ courseIdentity, sourceText } = {}) {
   const intendedLanguageIds = explicitCourseLanguageIds(courseIdentity);
-  const content = clean(text);
   if (intendedLanguageIds.length !== 1 || intendedLanguageIds[0] !== 'mandarin') {
-    return { required: false, complete: true, languageId: null, cjkCount: 0, pinyinCount: 0, missing: [] };
+    return { required: false, languageId: null, elements: [], pinyinOnly: false };
+  }
+
+  const source = clean(sourceText);
+  const sourceHasHanzi = CJK_PRESENT_RE.test(source) || HANZI_SCOPE_RE.test(source);
+  // A narrow Pinyin/tones brief should not force the model to invent Hanzi
+  // that the instructor never supplied. A broad Mandarin course keeps the
+  // stronger Hanzi + tone-marked-Pinyin rule, as does any brief that names
+  // characters or already contains them.
+  const pinyinOnly = Boolean(source) && PINYIN_ONLY_SCOPE_RE.test(source) && !sourceHasHanzi;
+  return {
+    required: true,
+    languageId: 'mandarin',
+    elements: pinyinOnly ? ['tone-marked-pinyin'] : ['hanzi', 'tone-marked-pinyin'],
+    pinyinOnly,
+  };
+}
+
+/**
+ * Check the target-language evidence required by the instructor's actual
+ * scope. Broad Mandarin lessons require Hanzi paired with tone-marked Pinyin;
+ * an explicitly Pinyin/tones-only source requires tone-marked Pinyin without
+ * manufacturing unsupported characters.
+ */
+export function assessTargetLanguagePresence({ courseIdentity, sourceText, text } = {}) {
+  const requirement = mandarinTargetLanguageRequirements({ courseIdentity, sourceText });
+  const content = clean(text);
+  if (!requirement.required) {
+    return { ...requirement, complete: true, cjkCount: 0, pinyinCount: 0, missing: [] };
   }
   const cjkCount = (content.match(CJK_RE) || []).length;
   const pinyinCount = (content.match(TONE_MARKED_PINYIN_RE) || []).length;
-  const missing = [...(cjkCount > 0 ? [] : ['hanzi']), ...(pinyinCount > 0 ? [] : ['tone-marked-pinyin'])];
+  const missing = requirement.elements.filter(
+    (element) => (element === 'hanzi' ? cjkCount === 0 : element === 'tone-marked-pinyin' ? pinyinCount === 0 : true),
+  );
   return {
-    required: true,
+    ...requirement,
     complete: missing.length === 0,
-    languageId: 'mandarin',
     cjkCount,
     pinyinCount,
     missing,

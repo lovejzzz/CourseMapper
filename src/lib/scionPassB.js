@@ -7,34 +7,19 @@
 //   scionKernelSchemaProfile — the declared json_schema contract for the call
 //   runScionPasses           — the D3 quality passes + D4 flywheel on the raw
 //                              batch JSON, returning the processed text
-import { kernelBatchSchemaProfile, scionPassesEnabled } from './scionContracts';
+import { compactLessonKernelSchemaProfile, scionPassesEnabled } from './scionContracts';
 import { applyScionKernelPasses } from './scionPasses';
 import { postFlywheelEvents } from './scionFlywheel';
-import { assessTargetLanguagePresence } from './languageIdentityGuard';
+import { SCION_LESSON_KERNEL_PROMPT_PROTOCOL } from './scionAdapterTaskScope';
 
 /**
  * The D1/D2 request options for the main Pass B call: the declared
  * json_schema contract + greedy-default temperature (recovery retries sample).
  */
-export function scionCallOpts({
-  prompt,
-  expectedLessonIds,
-  contentSourcedLessonIds,
-  includeCourseLevel,
-  recoveryAttempt,
-}) {
-  const mcCount = (prompt.itemPlan || []).filter((slot) => slot.type === 'multiple_choice').length || 4;
+export function scionCallOpts({ expectedLessonIds, recoveryAttempt }) {
   return {
-    schema: kernelBatchSchemaProfile({
-      expectedLessonIds,
-      contentSourcedLessonIds,
-      includeCourseLevel,
-      mcCount,
-      requiresTargetLanguagePair: assessTargetLanguagePresence({
-        courseIdentity: prompt?.courseName,
-        text: '',
-      }).required,
-    }),
+    schema: compactLessonKernelSchemaProfile({ expectedLessonIds }),
+    promptProtocol: SCION_LESSON_KERNEL_PROMPT_PROTOCOL,
     temperature: recoveryAttempt > 0 ? 0.7 : 0,
   };
 }
@@ -94,8 +79,8 @@ export async function runScionPasses({
       promptLessons: prompt.lessons,
       generateJson,
       contentSourcedLessonIds,
-      expectedMcCount: (prompt.itemPlan || []).filter((slot) => slot.type === 'multiple_choice').length || 4,
-      minimumKeyTermCount: 4,
+      expectedMcCount: 2,
+      minimumKeyTermCount: 3,
       courseName,
     });
     if (passOutcome.events.length > 0) {

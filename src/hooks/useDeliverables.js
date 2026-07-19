@@ -82,6 +82,7 @@ import {
   PUBLIC_SCION_PROVIDER_ID,
   publicScionEnrichmentRecoveryCallLimit,
 } from '../lib/publicScionProvider';
+import { analyzeSourceBriefConstraints } from '../lib/sourceBriefConstraints';
 
 const PROVIDER_CALL_EVENT_TYPES = new Set([
   'deliverableChunkCall',
@@ -423,6 +424,7 @@ export default function useDeliverables({
   pedagogicalMode,
   examChanges,
   columns,
+  sourceBrief = '',
   onApiCallEvent,
   onCourseMapRepair,
   courseGraph,
@@ -557,6 +559,7 @@ export default function useDeliverables({
         maxProviderCalls === null ? requested : Math.max(0, Math.min(requested, getRemainingProviderCalls()));
       const requestedFeatures = features.filter((f) => f && f !== 'courseMap');
       if (requestedFeatures.length === 0 || !courseMap) return;
+      const sourceBriefConstraints = analyzeSourceBriefConstraints(sourceBrief);
       const blueprintCompilerEnabled =
         generationOptions.useBlueprintCompiler !== false && generationPlan?.blueprintCompiler !== false;
       const blueprintCompiler = blueprintCompilerEnabled ? await import('../lib/courseBlueprintCompiler') : null;
@@ -997,7 +1000,12 @@ export default function useDeliverables({
         const outputCap = Number(generationOptions.blueprintEnrichmentMaxOutputTokens) || 1800;
         const enrichmentMaxOutputTokens = Math.max(512, Math.min(outputCap, Number(maxOutputTokens) || outputCap));
         // Decision trail for the run digest: why each stage ran or was skipped.
-        const stageDecisions = { genomeLinker: 'ran', modelStage: 'ran' };
+        const stageDecisions = {
+          genomeLinker: sourceBriefConstraints.instructorSourcesOnly
+            ? 'skipped: instructor source-only boundary'
+            : 'ran',
+          modelStage: 'ran',
+        };
         const allLessonIndices = Array.isArray(scopeIndices)
           ? scopeIndices
           : (blueprintCourseMap.lessons || []).map((_, lessonIdx) => lessonIdx);
@@ -1013,7 +1021,17 @@ export default function useDeliverables({
         // and never ran when enrichment was off — which it was, by default).
         let genomeLink = null;
         let lessonKernelCache = null;
-        try {
+        if (sourceBriefConstraints.instructorSourcesOnly) {
+          recordGenerationApiCallEvent({
+            type: 'pipelineDecision',
+            stage: 'genomeLinker',
+            label: 'CurriculumOS linker',
+            detail: 'Skipped because the instructor limited the course to the supplied facts and sources.',
+            featureId: 'blueprintEnrichment',
+          });
+          appendLog('Instructor source boundary active — no library facts or outside sources will be added', 'progress');
+        } else {
+          try {
           const [
             { getKernelLibrary },
             { hydrateLibraryForDisciplines, inferCourseDisciplines },
@@ -1201,14 +1219,15 @@ export default function useDeliverables({
               'progress',
             );
           }
-        } catch (linkErr) {
-          if (linkErr?.name === 'AbortError') {
-            abortMapRef.current.delete(abortKey);
-            throw linkErr;
+          } catch (linkErr) {
+            if (linkErr?.name === 'AbortError') {
+              abortMapRef.current.delete(abortKey);
+              throw linkErr;
+            }
+            // Genome is best-effort; the model path (or plain compile) continues.
+            stageDecisions.genomeLinker = `failed: ${linkErr?.message || 'unknown'}`;
+            genomeLink = null;
           }
-          // Genome is best-effort; the model path (or plain compile) continues.
-          stageDecisions.genomeLinker = `failed: ${linkErr?.message || 'unknown'}`;
-          genomeLink = null;
         }
 
         const genomeOnlyEnrichment = () => {
@@ -1349,27 +1368,37 @@ export default function useDeliverables({
               `Authoring lesson content onto the Pass A skeleton (${batches.length} parallel batch${batches.length === 1 ? '' : 'es'}, ${contentSourcedSet.size} lesson(s) content-sourced from the curriculum library)...`,
               'progress',
             );
+            const scionProvider = provider === 'local' || provider === PUBLIC_SCION_PROVIDER_ID;
 
             const runPassBBatch = async (chunk, { includeCourseLevel, recoveryLabel = null, recoveryAttempt = 0 }) => {
-              const expectedLessonIds = chunk.map(lessonIdOf);
+              const requestedLessonIds = chunk.map(lessonIdOf);
               const contentSourcedLessonIds = recoveryLabel
-                ? expectedLessonIds.filter(
+                ? requestedLessonIds.filter(
                     (lessonId) =>
                       lessonContent[lessonId] &&
                       (contentSourcedSet.has(lessonId) || kernelIsUsable(lessonContent[lessonId])),
                   )
-                : expectedLessonIds.filter((lessonId) => contentSourcedSet.has(lessonId));
-              const prompt = buildNativePassBPrompt(blueprintCourseMap, chunk, {
+                : requestedLessonIds.filter((lessonId) => contentSourcedSet.has(lessonId));
+              // Scion's trained contract owns compact knowledge kernels only.
+              // Curriculum-library lessons already have that knowledge, so do
+              // not spend local inference re-authoring content the parser must
+              // discard. Paid/general models retain the richer Pass B contract.
+              const modelChunk = scionProvider
+                ? chunk.filter((lessonIndex) => !contentSourcedLessonIds.includes(lessonIdOf(lessonIndex)))
+                : chunk;
+              if (modelChunk.length === 0) return;
+              const expectedLessonIds = modelChunk.map(lessonIdOf);
+              const prompt = buildNativePassBPrompt(blueprintCourseMap, modelChunk, {
                 questionsPerLesson: getGenerationConfig('quizBank')?.questionsPerLesson,
                 includeCourseLevel,
-                contentSourcedLessonIds,
+                contentSourcedLessonIds: scionProvider ? [] : contentSourcedLessonIds,
                 recoveryAttempt,
                 expectedLessonIds,
               });
               recordGenerationApiCallEvent({
                 type: recoveryLabel ? 'repairRetryCall' : 'blueprintEnrichmentCall',
                 label: recoveryLabel || 'Author lesson batch (native Pass B)',
-                detail: `Lessons ${chunk.map((lessonIdx) => lessonIdx + 1).join(', ')} — ${prompt.approxInputTokens} input tokens estimated`,
+                detail: `Lessons ${modelChunk.map((lessonIdx) => lessonIdx + 1).join(', ')} — ${prompt.approxInputTokens} input tokens estimated`,
                 featureId: 'blueprintEnrichment',
                 task: 'blueprintEnrichment',
               });
@@ -1383,10 +1412,7 @@ export default function useDeliverables({
               // lazy scionPassB chunk — the declared json_schema contract +
               // greedy-first temperature (D1/D2) and the judge-moving passes +
               // on-device flywheel (D3/D4). The main bundle carries none of it.
-              const scionMod =
-                provider === 'local' || provider === PUBLIC_SCION_PROVIDER_ID
-                  ? await import('../lib/scionPassB')
-                  : null;
+              const scionMod = scionProvider ? await import('../lib/scionPassB') : null;
               const result = await streamProvider(provider, apiKey, modelId, prompt.systemPrompt, prompt.userPrompt, {
                 modelCapabilities,
                 generationPlan,
@@ -1396,7 +1422,7 @@ export default function useDeliverables({
                   ? scionMod.scionCallOpts({
                       prompt,
                       expectedLessonIds,
-                      contentSourcedLessonIds,
+                      contentSourcedLessonIds: [],
                       includeCourseLevel,
                       recoveryAttempt,
                     })
@@ -1426,7 +1452,7 @@ export default function useDeliverables({
                   recordEvent: recordGenerationApiCallEvent,
                   prompt,
                   expectedLessonIds,
-                  contentSourcedLessonIds,
+                  contentSourcedLessonIds: scionProvider ? [] : contentSourcedLessonIds,
                   courseName: blueprintCourseMap?.courseName || '',
                 });
               }
@@ -1494,8 +1520,12 @@ export default function useDeliverables({
             // fail-closed last resort after the bounded repair budget.
             const listMissingKernelIndices = () =>
               allLessonIndices.filter((lessonIdx) => !kernelIsUsable(lessonContent[lessonIdOf(lessonIdx)]));
+            // Compact Scion deliberately leaves session goal/outcome/activity
+            // atoms to the typed skeleton and deterministic compiler. Treating
+            // those absent fields as a retry target caused multiple identical
+            // local generations after a good kernel had already arrived.
             const listMissingAuthoredIndices = () =>
-              allLessonIndices.filter((lessonIdx) => !nativeAuthored[lessonIdOf(lessonIdx)]);
+              scionProvider ? [] : allLessonIndices.filter((lessonIdx) => !nativeAuthored[lessonIdOf(lessonIdx)]);
             let nativeRecoveryCalls = 0;
             const attemptedNativeRecoveryIndices = [];
             while (
@@ -1589,6 +1619,8 @@ export default function useDeliverables({
                 `⚠ Native Pass B returned no outcomes for lesson${missingAuthoredNumbers.length === 1 ? '' : 's'} ${missingAuthoredNumbers.join(', ')} — those lessons keep structural cells`,
                 'warn',
               );
+            } else if (scionProvider) {
+              appendLog('✓ Scion kernels compiled onto the typed session structure', 'done');
             }
 
             const availablePayloadCount = Object.keys(lessonContent).length;
@@ -1774,7 +1806,11 @@ export default function useDeliverables({
             const kernelPrompt = buildLessonKernelPrompt(blueprintCourseMap, chunk, {
               questionsPerLesson: getGenerationConfig('quizBank')?.questionsPerLesson,
               includeCourseLevel: isFirstChunk,
+              sourceBrief,
             });
+            const scionMod =
+              provider === 'local' || provider === PUBLIC_SCION_PROVIDER_ID ? await import('../lib/scionPassB') : null;
+            const expectedLessonIds = chunk.map((lessonIdx) => `lesson-${lessonIdx + 1}`);
             recordGenerationApiCallEvent({
               type: 'blueprintEnrichmentCall',
               label: 'Enrich lesson kernels',
@@ -1795,6 +1831,13 @@ export default function useDeliverables({
                   generationPlan,
                   featureId: 'blueprintEnrichment',
                   task: 'blueprintEnrichment',
+                  ...(scionMod
+                    ? scionMod.scionCallOpts({
+                        prompt: kernelPrompt,
+                        expectedLessonIds,
+                        recoveryAttempt: 0,
+                      })
+                    : {}),
                   allowProviderFallback: maxProviderCalls === null || getRemainingProviderCalls() > 0,
                   onApiCallEvent: recordGenerationApiCallEvent,
                   signal: controller.signal,
@@ -1804,7 +1847,7 @@ export default function useDeliverables({
                 prompt: kernelPrompt,
                 // v0.14.1 P2.1: a renumbered lessonId must not overwrite
                 // another chunk's lesson through the Object.assign below.
-                expectedLessonIds: chunk.map((lessonIdx) => `lesson-${lessonIdx + 1}`),
+                expectedLessonIds,
               });
               if (parsedKernels) {
                 Object.assign(lessonContent, parsedKernels.lessons);
@@ -1915,8 +1958,12 @@ export default function useDeliverables({
               questionsPerLesson: getGenerationConfig('quizBank')?.questionsPerLesson,
               includeCourseLevel: false,
               recoveryAttempt: enrichmentRecoveryCalls,
+              sourceBrief,
               ...(romanizationChunk.length > 0 ? { romanizationFocus } : {}),
             });
+            const scionMod =
+              provider === 'local' || provider === PUBLIC_SCION_PROVIDER_ID ? await import('../lib/scionPassB') : null;
+            const expectedLessonIds = retryChunk.map((lessonIdx) => `lesson-${lessonIdx + 1}`);
             const retryDetailParts = [
               missingChunk.length > 0
                 ? `dropped lesson${missingChunk.length === 1 ? '' : 's'} ${missingChunk.map((lessonIdx) => lessonIdx + 1).join(', ')}`
@@ -1949,6 +1996,13 @@ export default function useDeliverables({
                   generationPlan,
                   featureId: 'blueprintEnrichment',
                   task: 'blueprintEnrichment',
+                  ...(scionMod
+                    ? scionMod.scionCallOpts({
+                        prompt: retryPrompt,
+                        expectedLessonIds,
+                        recoveryAttempt: enrichmentRecoveryCalls,
+                      })
+                    : {}),
                   ...(provider === PUBLIC_SCION_PROVIDER_ID
                     ? { temperature: 0.45 + enrichmentRecoveryCalls * 0.15 }
                     : {}),
@@ -1959,7 +2013,7 @@ export default function useDeliverables({
               );
               const recoveredKernels = parseLessonKernelResponse(retryResult?.fullText || '', {
                 prompt: retryPrompt,
-                expectedLessonIds: retryChunk.map((lessonIdx) => `lesson-${lessonIdx + 1}`),
+                expectedLessonIds,
               });
               if (recoveredKernels) {
                 semanticRepairs.push(...(recoveredKernels.repairs || []));
@@ -2350,88 +2404,97 @@ export default function useDeliverables({
         let genomeResourceCount = 0;
         let openReadingCount = 0;
         let sourceFinderCount = 0;
-        try {
-          const knowledge = await import('../lib/knowledge');
-          genomeResourceCount = knowledge.attachGenomeResources(courseGraph);
+        if (sourceBriefConstraints.instructorSourcesOnly) {
           recordGenerationApiCallEvent({
-            type: 'knowledgeBackboneLookup',
-            stage: 'knowledge-backbone',
-            label: 'Finding open readings',
-            detail: `Checking public sources for up to ${Math.min(8, courseGraph.sessions?.length || 0)} lessons`,
+            type: 'pipelineDecision',
+            stage: 'knowledgeBackbone',
+            label: 'Knowledge backbone',
+            detail: 'Skipped external readings and source finder because the instructor limited the course to supplied facts.',
           });
-          openReadingCount = await knowledge.attachOpenReadings(courseGraph, {
-            maxSessions: 8,
-            onProgress: ({ completed, total, provider }) => {
-              recordGenerationApiCallEvent({
-                type: 'knowledgeBackboneProgress',
-                stage: 'knowledge-backbone',
-                label: 'Checking open readings',
-                detail: `${completed}/${total} lessons checked${provider === 'crossref fallback' ? ' · using fallback source' : ''}`,
-              });
-            },
-          });
-          let coverage = knowledge.knowledgeCoverage(courseGraph);
-          if (knowledge.shouldRunSourceFinder?.(coverage)) {
-            const sourceTopicCount = Math.min(8, courseGraph.sessions?.length || 0);
+        } else {
+          try {
+            const knowledge = await import('../lib/knowledge');
+            genomeResourceCount = knowledge.attachGenomeResources(courseGraph);
             recordGenerationApiCallEvent({
               type: 'knowledgeBackboneLookup',
               stage: 'knowledge-backbone',
-              label: 'Finding complementary sources',
-              detail: `Checking complementary public sources for up to ${sourceTopicCount} lessons`,
+              label: 'Finding open readings',
+              detail: `Checking public sources for up to ${Math.min(8, courseGraph.sessions?.length || 0)} lessons`,
             });
-            const sourceMiniShard = await knowledge.findCourseSources(courseGraph, {
-              maxTopics: 8,
-              limitPerTopic: 3,
-              // The reading-list pass above already queried OpenAlex. Source
-              // finder should use complementary providers, not spend the same
-              // anonymous quota again for the same lesson topics.
-              providers: { openalex: async () => [] },
-              onProgress: ({ completed, total }) => {
+            openReadingCount = await knowledge.attachOpenReadings(courseGraph, {
+              maxSessions: 8,
+              onProgress: ({ completed, total, provider }) => {
                 recordGenerationApiCallEvent({
                   type: 'knowledgeBackboneProgress',
                   stage: 'knowledge-backbone',
-                  label: 'Checking complementary sources',
-                  detail: `${completed}/${total} lessons checked`,
+                  label: 'Checking open readings',
+                  detail: `${completed}/${total} lessons checked${provider === 'crossref fallback' ? ' · using fallback source' : ''}`,
                 });
               },
             });
-            sourceFinderCount = knowledge.attachSourceFinderResources(courseGraph, sourceMiniShard, {
-              maxSourcesPerTopic: 1,
-            });
-            coverage = knowledge.knowledgeCoverage(courseGraph);
-          }
-          if (coverage && genomeResourceCount + openReadingCount + sourceFinderCount > 0) {
-            const lessonCountWithReadings =
-              coverage.sessions > 0 && coverage.sessionsWithResources > coverage.sessions
-                ? coverage.sessions
-                : coverage.sessionsWithResources;
-            appendLog(
-              `✓ Reading lists attached: ${genomeResourceCount} cited textbook section${genomeResourceCount === 1 ? '' : 's'} + ${openReadingCount} open reading${openReadingCount === 1 ? '' : 's'}${sourceFinderCount > 0 ? ` + ${sourceFinderCount} source-finder citation${sourceFinderCount === 1 ? '' : 's'}` : ''} across ${lessonCountWithReadings} lesson${lessonCountWithReadings === 1 ? '' : 's'}`,
-              'done',
-            );
-            recordGenerationApiCallEvent({
-              type: 'pipelineDecision',
-              stage: 'knowledgeBackbone',
-              label: 'Knowledge backbone',
-              detail: `${coverage.genomeLinkedLessons}/${coverage.sessions} lessons genome-linked · ${coverage.openResources} graph reading resources (${Object.entries(
-                coverage.resourcesByOrigin,
-              )
-                .map(([origin, count]) => `${origin}: ${count}`)
-                .join(', ')}) · ${lessonCountWithReadings}/${coverage.sessions} lessons with readings`,
-            });
-            const sourceBackedJudgment = buildSourceBackedJudgmentStageEvent({
-              sourceRefCoverage: courseGraph?.courseIR?.sourceRefCoverage || null,
-              citedResourceCount: coverage.openResources,
-              lessonsWithResources: coverage.sessionsWithResources,
-              totalLessons: coverage.sessions,
-              genomeLinkedLessons: coverage.genomeLinkedLessons,
-            });
-            if (sourceBackedJudgment) {
-              recordGenerationApiCallEvent(sourceBackedJudgment);
+            let coverage = knowledge.knowledgeCoverage(courseGraph);
+            if (knowledge.shouldRunSourceFinder?.(coverage)) {
+              const sourceTopicCount = Math.min(8, courseGraph.sessions?.length || 0);
+              recordGenerationApiCallEvent({
+                type: 'knowledgeBackboneLookup',
+                stage: 'knowledge-backbone',
+                label: 'Finding complementary sources',
+                detail: `Checking complementary public sources for up to ${sourceTopicCount} lessons`,
+              });
+              const sourceMiniShard = await knowledge.findCourseSources(courseGraph, {
+                maxTopics: 8,
+                limitPerTopic: 3,
+                // The reading-list pass above already queried OpenAlex. Source
+                // finder should use complementary providers, not spend the same
+                // anonymous quota again for the same lesson topics.
+                providers: { openalex: async () => [] },
+                onProgress: ({ completed, total }) => {
+                  recordGenerationApiCallEvent({
+                    type: 'knowledgeBackboneProgress',
+                    stage: 'knowledge-backbone',
+                    label: 'Checking complementary sources',
+                    detail: `${completed}/${total} lessons checked`,
+                  });
+                },
+              });
+              sourceFinderCount = knowledge.attachSourceFinderResources(courseGraph, sourceMiniShard, {
+                maxSourcesPerTopic: 1,
+              });
+              coverage = knowledge.knowledgeCoverage(courseGraph);
             }
+            if (coverage && genomeResourceCount + openReadingCount + sourceFinderCount > 0) {
+              const lessonCountWithReadings =
+                coverage.sessions > 0 && coverage.sessionsWithResources > coverage.sessions
+                  ? coverage.sessions
+                  : coverage.sessionsWithResources;
+              appendLog(
+                `✓ Reading lists attached: ${genomeResourceCount} cited textbook section${genomeResourceCount === 1 ? '' : 's'} + ${openReadingCount} open reading${openReadingCount === 1 ? '' : 's'}${sourceFinderCount > 0 ? ` + ${sourceFinderCount} source-finder citation${sourceFinderCount === 1 ? '' : 's'}` : ''} across ${lessonCountWithReadings} lesson${lessonCountWithReadings === 1 ? '' : 's'}`,
+                'done',
+              );
+              recordGenerationApiCallEvent({
+                type: 'pipelineDecision',
+                stage: 'knowledgeBackbone',
+                label: 'Knowledge backbone',
+                detail: `${coverage.genomeLinkedLessons}/${coverage.sessions} lessons genome-linked · ${coverage.openResources} graph reading resources (${Object.entries(
+                  coverage.resourcesByOrigin,
+                )
+                  .map(([origin, count]) => `${origin}: ${count}`)
+                  .join(', ')}) · ${lessonCountWithReadings}/${coverage.sessions} lessons with readings`,
+              });
+              const sourceBackedJudgment = buildSourceBackedJudgmentStageEvent({
+                sourceRefCoverage: courseGraph?.courseIR?.sourceRefCoverage || null,
+                citedResourceCount: coverage.openResources,
+                lessonsWithResources: coverage.sessionsWithResources,
+                totalLessons: coverage.sessions,
+                genomeLinkedLessons: coverage.genomeLinkedLessons,
+              });
+              if (sourceBackedJudgment) {
+                recordGenerationApiCallEvent(sourceBackedJudgment);
+              }
+            }
+          } catch {
+            /* the knowledge backbone is additive — generation never fails on it */
           }
-        } catch {
-          /* the knowledge backbone is additive — generation never fails on it */
         }
         if (typeof onCourseGraph === 'function') {
           onCourseGraph(courseGraph, { source: 'generation' });
@@ -2485,6 +2548,12 @@ export default function useDeliverables({
             localization: (await import('../lib/professorProfile')).getProfile(),
             ...(courseMapAssessmentRegistry ? { assessmentRegistry: courseMapAssessmentRegistry } : {}),
             ...(courseMapReadingsRegistry ? { readingsRegistry: courseMapReadingsRegistry } : {}),
+            ...(sourceBriefConstraints.sessionMinutes
+              ? { sessionMinutes: sourceBriefConstraints.sessionMinutes }
+              : {}),
+            ...(sourceBriefConstraints.instructorProvidedFacts.length > 0
+              ? { instructorProvidedFacts: sourceBriefConstraints.instructorProvidedFacts }
+              : {}),
             compilerPath: {
               mode: blueprintEnrichment ? 'enriched' : 'deterministic',
               reason: !blueprintEnrichment
@@ -4781,6 +4850,7 @@ export default function useDeliverables({
       recordApiCallEvent,
       logIfRecovered,
       getGenerationConfig,
+      sourceBrief,
     ],
   );
 
@@ -5064,7 +5134,13 @@ export default function useDeliverables({
                 const kernelPrompt = buildLessonKernelPrompt(courseMap, [lessonIndex], {
                   questionsPerLesson: getGenerationConfig('quizBank')?.questionsPerLesson,
                   includeCourseLevel: false,
+                  sourceBrief,
                 });
+                const scionMod =
+                  provider === 'local' || provider === PUBLIC_SCION_PROVIDER_ID
+                    ? await import('../lib/scionPassB')
+                    : null;
+                const expectedLessonIds = [`lesson-${lessonIndex + 1}`];
                 recordRegenerationApiCallEvent({
                   type: 'blueprintEnrichmentCall',
                   label: 'Sync kernel refresh',
@@ -5083,12 +5159,19 @@ export default function useDeliverables({
                     modelCapabilities,
                     featureId: 'blueprintEnrichment',
                     task: 'blueprintEnrichment',
+                    ...(scionMod
+                      ? scionMod.scionCallOpts({
+                          prompt: kernelPrompt,
+                          expectedLessonIds,
+                          recoveryAttempt: 0,
+                        })
+                      : {}),
                     onApiCallEvent: recordRegenerationApiCallEvent,
                   },
                 );
                 const parsedKernels = parseLessonKernelResponse(kernelResult?.fullText || '', {
                   prompt: kernelPrompt,
-                  expectedLessonIds: [`lesson-${lessonIndex + 1}`],
+                  expectedLessonIds,
                 });
                 const refreshed = parsedKernels?.lessons?.[`lesson-${lessonIndex + 1}`];
                 if (refreshed) {
@@ -5487,6 +5570,7 @@ export default function useDeliverables({
       onCourseGraph,
       logIfRecovered,
       getGenerationConfig,
+      sourceBrief,
     ],
   );
 

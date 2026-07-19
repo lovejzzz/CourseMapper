@@ -276,6 +276,28 @@ describe('foreign-domain contamination quality gate', () => {
     );
   });
 
+  it('accepts tone-marked Pinyin without forcing unsupported Hanzi in a Pinyin-only brief', async () => {
+    const files = {
+      'Lesson Plans/Lesson 01 - Pinyin and Tones - Lesson Plans.txt':
+        'Compare mā, má, mǎ, and mà. The first tone is high and level, the second rises, the third dips then rises, and the fourth falls sharply.',
+      'Slide Decks/Lesson 01 - Pinyin and Tones - Slide Decks.txt':
+        'Listen for mā, má, mǎ, and mà; identify each contour before producing it.',
+      'Study Guides/Lesson 01 - Pinyin and Tones - Study Guides.txt':
+        'Review mā, má, mǎ, and mà by tracing the four tone contours and checking a recording.',
+    };
+    const result = await grade({
+      fileProvider: createMemoryFileProvider(files),
+      course: {
+        title: 'Elementary Mandarin',
+        prompt:
+          'One lesson on Pinyin and Tones. Use only supplied facts about initials, finals, and the four tone contours.',
+      },
+    });
+
+    expect(result.findings.some((finding) => /lack hanzi|do not pair hanzi/i.test(finding.detail))).toBe(false);
+    expect(result.findings.some((finding) => /target-language coverage/i.test(finding.detail))).toBe(false);
+  });
+
   it('uses manifest course identity when offline grading has no explicit course object', async () => {
     const result = await grade({
       fileProvider: createMemoryFileProvider({

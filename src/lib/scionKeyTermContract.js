@@ -70,6 +70,8 @@ const DEFINING_IDENTITY_RE = /\b(?:labels?|names?|terms?)\b/i;
 const CIRCULAR_DEFINITION_GENERIC_TOKENS = new Set(
   'concept definition idea kind form means method process property state term thing type used way'.split(' '),
 );
+const TONE_MARKED_PINYIN_AS_INITIAL_RE =
+  /\b[a-zü]*[āáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜ][a-zü]*\s+is\s+(?:a|the)\s+(?:pinyin\s+)?initial\b/iu;
 
 function comparableScionKeyTermText(value) {
   return (
@@ -485,8 +487,7 @@ export function assessScionKeyTermContract(
     semanticProfile === 'source-strict-v5' ||
     semanticProfile === 'strict-v6' ||
     semanticProfile === 'source-strict-v6';
-  const canonicalLessonTitleAdmission =
-    semanticProfile === 'strict-v6' || semanticProfile === 'source-strict-v6';
+  const canonicalLessonTitleAdmission = semanticProfile === 'strict-v6' || semanticProfile === 'source-strict-v6';
   const sourceGroundedSemanticAdmission =
     semanticProfile === 'source-strict' ||
     semanticProfile === 'source-strict-v3' ||
@@ -519,8 +520,7 @@ export function assessScionKeyTermContract(
     normalized.term &&
     normalizedLessonTitle &&
     normalized.term.toLowerCase() === normalizedLessonTitle &&
-    (!canonicalLessonTitleAdmission ||
-      definitionRestatesTermWithoutDifferentia(normalized.term, normalized.definition))
+    (!canonicalLessonTitleAdmission || definitionRestatesTermWithoutDifferentia(normalized.term, normalized.definition))
   ) {
     issues.push('term-is-lesson-title');
   }
@@ -538,13 +538,13 @@ export function assessScionKeyTermContract(
     if (!/[.!?][\])}"']?$/.test(normalized.definition)) issues.push('truncated-definition');
     if (completeDefinitionSentences.length > 1) issues.push('definition-multiple-sentences');
   }
-  if (
-    canonicalLessonTitleAdmission &&
-    definitionOmitsCompositeMember(normalized.term, normalized.definition)
-  ) {
+  if (canonicalLessonTitleAdmission && definitionOmitsCompositeMember(normalized.term, normalized.definition)) {
     issues.push('definition-omits-composite-member');
   }
   if (META_SURFACE_RE.test(`${normalized.definition} ${normalized.example}`)) issues.push('meta-definition');
+  if (strictSemanticAdmission && TONE_MARKED_PINYIN_AS_INITIAL_RE.test(normalized.example)) {
+    issues.push('example-confuses-pinyin-syllable-with-initial');
+  }
   const instructionalFields = [
     normalized.definition,
     normalized.example,

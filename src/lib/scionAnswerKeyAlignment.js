@@ -51,6 +51,17 @@ const SOURCE_ALIGNMENT_STOP_WORDS = new Set([
   'will',
   'with',
 ]);
+const CITED_KEY_ALIGNMENT_STOP_WORDS = new Set([
+  ...SOURCE_ALIGNMENT_STOP_WORDS,
+  'answer',
+  'best',
+  'choice',
+  'decision',
+  'evidence',
+  'option',
+  'support',
+  'supports',
+]);
 
 function clean(value) {
   return String(value ?? '')
@@ -117,6 +128,66 @@ function tokenOverlap(left, right) {
 function sourceClaimText(value) {
   if (value && typeof value === 'object') return clean(value.text ?? value.claim ?? value.value);
   return clean(value);
+}
+
+function citedKeyAlignmentTokens(value) {
+  return new Set(
+    clean(value)
+      .normalize('NFKC')
+      .toLowerCase()
+      .match(/[\p{L}\p{N}]+/gu)
+      ?.map((token) => {
+        let next = token;
+        if (/^[a-z0-9]+$/.test(next)) {
+          if (next.length > 5 && next.endsWith('ing')) next = next.slice(0, -3);
+          else if (next.length > 4 && next.endsWith('ed')) next = next.slice(0, -2);
+          else if (next.length > 3 && next.endsWith('s') && !/(?:ss|ous|ius|is|us)$/.test(next)) {
+            next = next.slice(0, -1);
+          }
+        }
+        return next;
+      })
+      .filter(
+        (token) => (token.length >= 3 || /[^a-z0-9]/i.test(token)) && !CITED_KEY_ALIGNMENT_STOP_WORDS.has(token),
+      ) || [],
+  );
+}
+
+/**
+ * Reject an explicit fact citation that has no semantic anchor in the keyed
+ * option or the explanation's affirmative lead sentence. This is narrower
+ * than general factuality: zero shared content is decisive evidence that the
+ * cited fact cannot be the support promised by `fi`. One-token paraphrases
+ * remain admissible rather than being guessed at or rewritten.
+ */
+export function findScionCitedSourceKeyMismatch(item = {}, { sourceClaims = [] } = {}) {
+  const normalized = normalizeScionMcItem(item);
+  const claims = (Array.isArray(sourceClaims) ? sourceClaims : []).map(sourceClaimText).filter(Boolean);
+  if (
+    claims.length === 0 ||
+    normalized.options.length !== 4 ||
+    !Number.isInteger(normalized.answerIndex) ||
+    normalized.answerIndex < 0 ||
+    normalized.answerIndex >= normalized.options.length
+  ) {
+    return null;
+  }
+  const affirmativeLead =
+    clean(normalized.explanation)
+      .match(/^.*?[.!?](?=\s|$)/)?.[0]
+      ?.trim() || clean(normalized.explanation);
+  const keyTokens = citedKeyAlignmentTokens(`${normalized.options[normalized.answerIndex]} ${affirmativeLead}`);
+  const claimTokens = new Set(claims.flatMap((claim) => [...citedKeyAlignmentTokens(claim)]));
+  if (keyTokens.size < 2 || claimTokens.size < 2) return null;
+  const sharedTokens = [...keyTokens].filter((token) => claimTokens.has(token));
+  return sharedTokens.length === 0
+    ? {
+        declaredIndex: normalized.answerIndex,
+        sharedTokens,
+        citedClaimCount: claims.length,
+        supportMethod: 'cited-fact-key-zero-overlap',
+      }
+    : null;
 }
 
 /**

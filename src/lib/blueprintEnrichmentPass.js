@@ -2,10 +2,15 @@ import { cleanText, stripLessonPrefix } from './compilerText';
 import { expandKeys } from './keyMaps';
 import { lintItemAdmission } from './itemAdmissionLint';
 import { projectKernelToSurfaces } from './kernelProjection';
-import { assessTargetLanguagePresence, detectForeignLanguageTeachingContent } from './languageIdentityGuard';
+import {
+  assessTargetLanguagePresence,
+  detectForeignLanguageTeachingContent,
+  mandarinTargetLanguageRequirements,
+} from './languageIdentityGuard';
 import { lintDecisionScenario } from './scenarioContract';
 import {
   findScionExplanationKeyConflict,
+  findScionCitedSourceKeyMismatch,
   findScionMissingKeyExplanationSupport,
   findScionMultipleSourceSupportedOptions,
   findScionSourceAnswerSupport,
@@ -151,7 +156,9 @@ const DIALOGUE_PROMPT_LINE =
 // compact model is never asked for Latin-only Pinyin and then rejected later
 // for failing a requirement that appeared only in the parser.
 const MANDARIN_TARGET_LANGUAGE_PROMPT_LINE =
-  'Single-language Mandarin requirement: EVERY lesson must contain at least one visible Hanzi example paired with its tone-marked Pinyin (for example, 你好 with nǐ hǎo). Include the pair even in lessons focused on the Pinyin system or tones; a Pinyin-only lesson will be rejected.';
+  'Single-language Mandarin requirement: every broad Mandarin lesson must contain at least one visible Hanzi example paired with its tone-marked Pinyin (for example, 你好 with nǐ hǎo).';
+const MANDARIN_PINYIN_ONLY_PROMPT_LINE =
+  'Source-scoped Pinyin/tones requirement: include accurate, visible tone-marked Pinyin. Do not invent unsupported Hanzi merely to satisfy a generic Mandarin pattern.';
 
 const DIALOGUE_TURN_CAP = 6;
 const DIALOGUE_LINE_MAX_CHARS = 160;
@@ -796,7 +803,8 @@ function cumulativeReviewAnchors(courseMap, lessonIndex) {
   return anchors;
 }
 
-function summarizeLessonsForContent(courseMap, lessonIndices) {
+function summarizeLessonsForContent(courseMap, lessonIndices, sourceBrief = '') {
+  const privateSourceBrief = truncateText(cleanText(sourceBrief), 900);
   return asArray(lessonIndices)
     .map((lessonIndex) => {
       const lesson = courseMap?.lessons?.[lessonIndex];
@@ -814,7 +822,16 @@ function summarizeLessonsForContent(courseMap, lessonIndices) {
             .join('; '),
           400,
         ),
-        readings: truncateText(String(section.supportingResources || ''), 600),
+        // The instructor's original brief is private generation context, not
+        // an assigned reading. Carry it only inside this model-facing summary
+        // so source facts survive the Course Map compression without leaking
+        // into the visible Supporting resources cell.
+        readings: truncateText(
+          [String(section.supportingResources || ''), privateSourceBrief && `Instructor source brief: ${privateSourceBrief}`]
+            .filter(Boolean)
+            .join('\n'),
+          1200,
+        ),
         ...(reviewAnchors.length > 0 ? { reviewAnchors } : {}),
       };
     })
@@ -911,7 +928,7 @@ export function assessProjectedKernelCoverage(payload, { requiredMcCount = 4 } =
 export function buildLessonContentEnrichmentPrompt(courseMap, lessonIndices, options = {}) {
   const questionsPerLesson = Math.max(5, Math.min(7, Number(options.questionsPerLesson) || 6));
   const keyTermsPerLesson = Math.max(3, Math.min(6, Number(options.keyTermsPerLesson) || 4));
-  const lessons = summarizeLessonsForContent(courseMap, lessonIndices);
+  const lessons = summarizeLessonsForContent(courseMap, lessonIndices, options.sourceBrief);
 
   const itemPlan = buildQuizItemPlan(questionsPerLesson);
 
@@ -1022,6 +1039,7 @@ export function lintEnrichedQuizItem(item, { groundingText = '', sourceClaims = 
       issues.push('explanation-repeats-answer');
     }
     const sourceSupport = findScionSourceAnswerSupport(item, { sourceClaims });
+    if (findScionCitedSourceKeyMismatch(item, { sourceClaims })) issues.push('source-fact-key-mismatch');
     if (!sourceSupport && findScionExplanationKeyConflict(item)) issues.push('explanation-key-conflict');
     if (findScionMissingKeyExplanationSupport(item)) issues.push('explanation-omits-key-support');
     if (
@@ -1127,6 +1145,7 @@ export function parseLessonContentEnrichmentResponse(text, { prompt } = {}) {
     }
     const targetLanguagePresence = assessTargetLanguagePresence({
       courseIdentity: prompt?.courseName,
+      sourceText: JSON.stringify((prompt?.lessons || []).find((lesson) => lesson.lessonId === lessonId) || {}),
       text: JSON.stringify(entry),
     });
     if (!targetLanguagePresence.complete) {
@@ -1331,11 +1350,11 @@ export function buildLessonKernelPrompt(courseMap, lessonIndices, options = {}) 
   const mcCount = itemPlan.filter((slot) => slot.type === 'multiple_choice').length;
   const includeCourseLevel = options.includeCourseLevel === true;
   const recoveryAttempt = Math.max(0, Number(options.recoveryAttempt) || 0);
-  const lessons = summarizeLessonsForContent(courseMap, lessonIndices);
-  const requiresMandarinPair = assessTargetLanguagePresence({
+  const lessons = summarizeLessonsForContent(courseMap, lessonIndices, options.sourceBrief);
+  const mandarinRequirement = mandarinTargetLanguageRequirements({
     courseIdentity: courseMap?.courseName,
-    text: '',
-  }).required;
+    sourceText: JSON.stringify(lessons),
+  });
 
   const systemPrompt = [
     LESSON_CONTENT_SYSTEM_PROMPT,
@@ -1357,7 +1376,13 @@ export function buildLessonKernelPrompt(courseMap, lessonIndices, options = {}) 
       ? [
           ROMANIZATION_PROMPT_LINE,
           DIALOGUE_PROMPT_LINE,
-          ...(requiresMandarinPair ? [MANDARIN_TARGET_LANGUAGE_PROMPT_LINE] : []),
+          ...(mandarinRequirement.required
+            ? [
+                mandarinRequirement.pinyinOnly
+                  ? MANDARIN_PINYIN_ONLY_PROMPT_LINE
+                  : MANDARIN_TARGET_LANGUAGE_PROMPT_LINE,
+              ]
+            : []),
         ]
       : []),
     'Return JSON matching this shape:',
@@ -1560,6 +1585,7 @@ export function parseLessonKernelResponse(text, { prompt, expectedLessonIds } = 
       const pairEvidence = `${hanzi} (${pinyin}) means ${english}.`;
       const pairPresence = assessTargetLanguagePresence({
         courseIdentity: prompt?.courseName,
+        sourceText: JSON.stringify(promptLesson || {}),
         text: pairEvidence,
       });
       if (pairPresence.complete) {
@@ -1589,6 +1615,7 @@ export function parseLessonKernelResponse(text, { prompt, expectedLessonIds } = 
     }
     const targetLanguagePresence = assessTargetLanguagePresence({
       courseIdentity: prompt?.courseName,
+      sourceText: JSON.stringify(promptLesson || {}),
       text: JSON.stringify(entry),
     });
     if (!targetLanguagePresence.complete) {

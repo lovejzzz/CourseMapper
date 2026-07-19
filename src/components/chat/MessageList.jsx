@@ -21,6 +21,7 @@ import DiagramCard from './DiagramCard';
 import ChartCard from './ChartCard';
 import ImageSearchCard from './ImageSearchCard';
 import { getChatOpener } from './constants';
+import { stripInternalAgentMarkers } from './agentResponseText';
 import {
   isLandingAgentContextText,
   LANDING_AGENT_CONTEXT_SOURCE,
@@ -418,7 +419,11 @@ export default function MessageList({
             <MessageBubble
               key={key}
               role={msg.role}
-              text={msg.text || msg.content || ''}
+              text={
+                msg.role === 'assistant'
+                  ? stripInternalAgentMarkers(msg.text || msg.content || '')
+                  : msg.text || msg.content || ''
+              }
               isLast={i === messages.length - 1}
               isStreaming={isStreaming}
               feedback={msg.feedback}

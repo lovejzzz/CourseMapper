@@ -139,6 +139,8 @@ const CUSTOM_STRUCTURED_TEMPLATE_DEFINITIONS = [
 ];
 
 const DEFAULT_CLASS_SESSION_MINUTES = 110;
+const MIN_CLASS_SESSION_MINUTES = 20;
+const MAX_CLASS_SESSION_MINUTES = 240;
 const FAQ_CATEGORIES = [
   'Course Logistics',
   'Assignment Clarification',
@@ -374,6 +376,20 @@ function readableSentences(value) {
     .replace(/\s*;\s*/g, '. ')
     .replace(/\s+—\s+/g, '. ')
     .replace(/\.\s*\./g, '.');
+}
+
+// Evidence routines are often three complete sentences. A character-budget
+// cut in the middle of sentence two produced classroom prose such as
+// "Students submit one visible." Keep the first authored sentence when it
+// fits; otherwise compose a short complete instruction from typed lesson
+// atoms instead of returning a grammatical fragment.
+function compactCompleteEvidenceRoutine(value, { concept = '', artifact = '' } = {}) {
+  const text = readableSentences(value);
+  const firstSentence = text.match(/^.*?[.!?](?=\s|$)/)?.[0] || '';
+  if (firstSentence && firstSentence.length <= 180) return stripTerminalPunctuation(firstSentence);
+  const safeConcept = cleanText(concept, 'lesson');
+  const safeArtifact = cleanText(artifact, 'course artifact');
+  return `Students name the ${safeConcept} evidence before defending a decision in ${safeArtifact}`;
 }
 
 function sanitizeAssignmentParameterForStudent(value) {
@@ -3222,7 +3238,45 @@ function formatWorkloadLine({
   })`;
 }
 
-function buildWorkloadEstimate({ resources, hasAssessment, bloomsLevel, artifactTitle = '' }) {
+function normalizeClassSessionMinutes(value) {
+  const minutes = Number(value);
+  if (!Number.isInteger(minutes) || minutes < MIN_CLASS_SESSION_MINUTES || minutes > MAX_CLASS_SESSION_MINUTES) {
+    return DEFAULT_CLASS_SESSION_MINUTES;
+  }
+  return minutes;
+}
+
+function fitSegmentsToSessionMinutes(segments = [], sessionMinutes = DEFAULT_CLASS_SESSION_MINUTES) {
+  if (!Array.isArray(segments) || segments.length === 0) return [];
+  const target = normalizeClassSessionMinutes(sessionMinutes);
+  const weights = segments.map((segment) => Math.max(1, Number(segment?.minutes) || 1));
+  const currentTotal = weights.reduce((sum, value) => sum + value, 0);
+  if (currentTotal === target) return segments;
+
+  // Keep every phase teachable while scaling the established modality shape
+  // to the instructor's actual clock. At 50 minutes, the six-phase default
+  // becomes 5/7/9/11/11/7 instead of overflowing at 105 minutes.
+  const minimum = target >= segments.length * 5 ? 5 : 1;
+  const distributable = Math.max(0, target - minimum * segments.length);
+  const raw = weights.map((weight) => minimum + (distributable * weight) / currentTotal);
+  const allocated = raw.map(Math.floor);
+  let remainder = target - allocated.reduce((sum, value) => sum + value, 0);
+  const order = raw
+    .map((value, index) => ({ index, fraction: value - Math.floor(value) }))
+    .sort((left, right) => right.fraction - left.fraction || left.index - right.index);
+  for (let index = 0; remainder > 0; index += 1, remainder -= 1) {
+    allocated[order[index % order.length].index] += 1;
+  }
+  return segments.map((segment, index) => ({ ...segment, minutes: allocated[index] }));
+}
+
+function buildWorkloadEstimate({
+  resources,
+  hasAssessment,
+  bloomsLevel,
+  artifactTitle = '',
+  sessionMinutes = DEFAULT_CLASS_SESSION_MINUTES,
+}) {
   const resourcePreparationMinutes = resources.length > 0 ? Math.min(75, 20 + resources.length * 8) : 20;
   // v0.16 E5 (Prof department catch — "estimates remain too low for a
   // beginner programming course with weekly autograded work and labs"):
@@ -3248,7 +3302,7 @@ function buildWorkloadEstimate({ resources, hasAssessment, bloomsLevel, artifact
   // 150-minute out-of-class ceiling; instructors can still raise the local
   // estimate after review.
   const afterClassMinutes = Math.min(rawAfterClassMinutes, 150 - beforeClassMinutes);
-  const inClassMinutes = DEFAULT_CLASS_SESSION_MINUTES;
+  const inClassMinutes = normalizeClassSessionMinutes(sessionMinutes);
   const totalStudentMinutes = beforeClassMinutes + inClassMinutes + afterClassMinutes;
   return {
     beforeClassMinutes,
@@ -3269,6 +3323,7 @@ function classifyOutOfClassWorkload(outOfClassMinutes) {
 }
 
 function buildClassSessionPlan({ lesson, modalityDecode, sessionMinutes = DEFAULT_CLASS_SESSION_MINUTES }) {
+  sessionMinutes = normalizeClassSessionMinutes(sessionMinutes);
   const concept = lesson.keyConcepts?.[0] || stripLessonPrefix(lesson.title) || 'the lesson focus';
   const artifact = stripTerminalPunctuation(lesson.studentArtifact || 'the weekly artifact');
   const modality = modalityDecode || lesson.modalityDecode || {};
@@ -4526,7 +4581,8 @@ function buildClassSessionPlan({ lesson, modalityDecode, sessionMinutes = DEFAUL
                                                 `Students submit or state one feedback-based revision to ${artifact}.`,
                                             },
                                           ];
-  const plannedClassMinutes = segments.reduce((sum, segment) => sum + Number(segment.minutes || 0), 0);
+  const fittedSegments = fitSegmentsToSessionMinutes(segments, sessionMinutes);
+  const plannedClassMinutes = fittedSegments.reduce((sum, segment) => sum + Number(segment.minutes || 0), 0);
   const overageMinutes = Math.max(0, plannedClassMinutes - sessionMinutes);
   const outOfClassMinutes =
     Number(lesson.workloadEstimate?.beforeClassMinutes || 0) + Number(lesson.workloadEstimate?.afterClassMinutes || 0);
@@ -4542,8 +4598,8 @@ function buildClassSessionPlan({ lesson, modalityDecode, sessionMinutes = DEFAUL
     bufferMinutes: Math.max(0, sessionMinutes - plannedClassMinutes),
     overageMinutes,
     feasibilityStatus: overageMinutes > 0 ? 'needs-timing-review' : 'fits-session',
-    segmentCount: segments.length,
-    segments,
+    segmentCount: fittedSegments.length,
+    segments: fittedSegments,
     studentWorkloadFit: {
       beforeClassMinutes: lesson.workloadEstimate?.beforeClassMinutes || 0,
       inClassMinutes: lesson.workloadEstimate?.inClassMinutes || sessionMinutes,
@@ -7286,7 +7342,7 @@ function contextualizeModalityRoutine(kind, base, { lesson = {}, concept = '', a
       `${title} adapts the course pattern: ${routine}, focused on ${concept}.`,
     ],
     evidenceRoutine: [
-      `${ensureSentenceCompiler(`During ${title} ${routine}`)} The checkout is a visible ${concept} evidence move in ${artifact}.`,
+      `${ensureSentenceCompiler(`During ${title} ${routine}`)} Students submit one visible ${concept} evidence check before moving on. Record it in ${artifact}.`,
       `${ensureSentenceCompiler(`During ${title} ${routine}`)} Students label the ${secondary} detail that makes ${artifact} credible.`,
       `${ensureSentenceCompiler(`During ${title} ${routine}`)} Students show which ${concept} evidence changes the ${artifact} decision.`,
     ],
@@ -11832,6 +11888,7 @@ function deriveRoutineFieldsForLesson(lesson = {}, index = 0, context = {}) {
           hasAssessment: Boolean(artifact),
           bloomsLevel,
           artifactTitle: artifact,
+          sessionMinutes: context.sessionMinutes,
         });
   const difficultyProfile =
     lesson.difficultyProfile?.cognitiveDemand && lesson.difficultyProfile?.stage
@@ -11996,7 +12053,9 @@ function normalizeLessonsForCompiler(blueprint = {}, context = {}) {
       modalityDecode,
       artifactGenre:
         lesson.artifactGenre || buildArtifactGenreDecode(lesson, context.courseModalityProfile || {}, modalityDecode),
-      classSessionPlan: lesson.classSessionPlan || buildClassSessionPlan({ lesson, modalityDecode }),
+      classSessionPlan:
+        lesson.classSessionPlan ||
+        buildClassSessionPlan({ lesson, modalityDecode, sessionMinutes: context.sessionMinutes }),
     };
     if (lessonWithCompilerKnobs.throughlineCase) {
       return lessonWithCompilerKnobs;
@@ -12033,6 +12092,9 @@ function attachCompilerDecisionsToLessons(lessons = [], assessments = [], source
 function deriveBlueprintForCompiler(blueprint = {}, options = {}) {
   const courseName = cleanText(blueprint.courseName, 'Untitled Course');
   const rawLessons = Array.isArray(blueprint.lessons) ? blueprint.lessons : [];
+  const sessionMinutes = normalizeClassSessionMinutes(
+    options.sessionMinutes || blueprint.sessionMinutes || rawLessons[0]?.classSessionPlan?.sessionMinutes,
+  );
   const rawConcepts = unique(
     rawLessons.flatMap((lesson) => lesson.keyConcepts || []),
     16,
@@ -12083,6 +12145,7 @@ function deriveBlueprintForCompiler(blueprint = {}, options = {}) {
     learnerContextProfile,
     courseThroughlineContext,
     readingsRegistry: blueprint.readingsRegistry,
+    sessionMinutes,
   });
   // Re-run semantic admission on the hydrated lesson payload. Compact
   // storage deliberately keeps large enrichment fields non-enumerable, and
@@ -12282,6 +12345,7 @@ function deriveBlueprintForCompiler(blueprint = {}, options = {}) {
     source: blueprint.source || 'deterministic-course-map',
     courseName,
     semester: blueprint.semester || publishableCourseTerm(),
+    sessionMinutes,
     totalLessons: Number.isFinite(Number(blueprint.totalLessons)) ? Number(blueprint.totalLessons) : lessons.length,
     lessons,
     assessments,
@@ -12634,6 +12698,9 @@ export function compactBlueprintForStorage(blueprint = {}) {
     source: blueprint.source || 'deterministic-course-map',
     courseName: blueprint.courseName,
     semester: blueprint.semester,
+    sessionMinutes: normalizeClassSessionMinutes(
+      blueprint.sessionMinutes || blueprint.lessons?.[0]?.classSessionPlan?.sessionMinutes,
+    ),
     totalLessons: blueprint.totalLessons,
     lessons: Array.isArray(blueprint.lessons) ? blueprint.lessons.map(compactLessonForStorage) : [],
     assessments: Array.isArray(blueprint.assessments)
@@ -12648,6 +12715,9 @@ export function compactBlueprintForStorage(blueprint = {}) {
     policies: clonePlain(blueprint.policies || null),
     designRules: clonePlain(blueprint.designRules || null),
   };
+  if (blueprint.instructorSourceFactsByLesson && typeof blueprint.instructorSourceFactsByLesson === 'object') {
+    compact.instructorSourceFactsByLesson = clonePlain(blueprint.instructorSourceFactsByLesson);
+  }
   if (blueprint.instructorPreferenceProfile) {
     compact.instructorPreferenceProfile = clonePlain(blueprint.instructorPreferenceProfile);
   }
@@ -13304,7 +13374,13 @@ function lessonLearnerContextCue(blueprint, lesson) {
   return lesson?.learnerContextCue || buildLessonLearnerContextCue(blueprint?.learnerContextProfile || {}, lesson);
 }
 
-function extractLessonBlueprint(lesson, originalIndex, assessmentRegistry = null, readingsRegistry = null) {
+function extractLessonBlueprint(
+  lesson,
+  originalIndex,
+  assessmentRegistry = null,
+  readingsRegistry = null,
+  sessionMinutes = DEFAULT_CLASS_SESSION_MINUTES,
+) {
   const lessonNumber = originalIndex + 1;
   const sourceLessonTitle = cleanText(lesson?.title || lesson?.lessonTitle || lesson?.lt || '');
   const rawLessonTitle = stripLessonPrefix(lesson?.title || lesson?.lessonTitle || lesson?.lt || '');
@@ -13494,6 +13570,7 @@ function extractLessonBlueprint(lesson, originalIndex, assessmentRegistry = null
     resources,
     hasAssessment,
     bloomsLevel,
+    sessionMinutes,
     // The technical signal usually lives in the ACTIVITIES ('Hands-on coding
     // lab'), not the assessment title.
     artifactTitle: [assessmentLink, syncActivityText, asyncActivityText].filter(Boolean).join(' '),
@@ -15197,9 +15274,23 @@ export function buildCourseBlueprint(courseMap, options = {}) {
   // v0.14.5 (A2): the readings registry — instructor-named titles lead every
   // readings surface. Strictly additive: absent/malformed → null → unchanged.
   const readingsRegistry = normalizeReadingsRegistry(options.readingsRegistry);
+  const sessionMinutes = normalizeClassSessionMinutes(options.sessionMinutes);
   const extractedLessons = selectedLessonEntries(courseMap, options.scopeIndices).map(({ lesson, originalIndex }) =>
-    extractLessonBlueprint(lesson, originalIndex, assessmentRegistry, readingsRegistry),
+    extractLessonBlueprint(lesson, originalIndex, assessmentRegistry, readingsRegistry, sessionMinutes),
   );
+  // A source-only one-lesson brief is an unusually strong provenance case:
+  // preserve its explicitly labeled facts verbatim so the compiler can teach
+  // every supplied example even if the small model compresses the kernel.
+  // Multi-lesson briefs stay model-routed because blindly copying a global
+  // fact list into every lesson would create cross-lesson contamination.
+  const instructorProvidedFacts = unique(
+    (Array.isArray(options.instructorProvidedFacts) ? options.instructorProvidedFacts : []).map(cleanText),
+    8,
+  );
+  const instructorSourceFactsByLesson =
+    extractedLessons.length === 1 && instructorProvidedFacts.length > 0
+      ? { [extractedLessons[0].id || 'lesson-1']: instructorProvidedFacts }
+      : null;
   const sourceConflictReport = buildSourceConflictReport(extractedLessons);
   const conflictAwareLessons = attachSourceConflictSignals(extractedLessons, sourceConflictReport);
   const sequencedLessons = addCourseSequenceSemantics(conflictAwareLessons);
@@ -15249,7 +15340,7 @@ export function buildCourseBlueprint(courseMap, options = {}) {
     return attachThroughlineCaseToLesson(
       {
         ...lessonWithContext,
-        classSessionPlan: buildClassSessionPlan({ lesson: lessonWithContext, modalityDecode }),
+        classSessionPlan: buildClassSessionPlan({ lesson: lessonWithContext, modalityDecode, sessionMinutes }),
       },
       courseThroughlineContext,
     );
@@ -15376,6 +15467,7 @@ export function buildCourseBlueprint(courseMap, options = {}) {
     source: 'deterministic-course-map',
     courseName,
     semester: publishableCourseTerm(options.localization?.termLabel || courseMap?.semester),
+    sessionMinutes,
     totalLessons: lessons.length,
     lessons,
     assessments,
@@ -15440,6 +15532,7 @@ export function buildCourseBlueprint(courseMap, options = {}) {
       alignment: 'Every artifact must connect objectives, practice, assessment, feedback, and support.',
       support: 'Name concrete success criteria and feedback use instead of generic encouragement.',
     },
+    ...(instructorSourceFactsByLesson ? { instructorSourceFactsByLesson } : {}),
   };
   if (instructorPreferenceProfile) {
     blueprint.instructorPreferenceProfile = instructorPreferenceProfile;
@@ -18698,7 +18791,7 @@ function buildShortAnswerQuestion({ lesson, index, bloom, objective, concept, le
       intendedUse: `Formative written check after ${lesson.title}; use responses to identify review needs before ${artifact}.`,
       question: `In 2-3 sentences, explain which course concept or method should shape ${artifact}. Name that concept or method, cite one evidence detail from ${sourceCue} to support your claim, then state one limitation or next piece of evidence.`,
       answer: answerGuidance,
-      sampleAnswer: `For ${lessonFocus}, I would select ${concept} because one exact source detail from ${sourceCue} supports the change I propose for ${artifact}. That detail supports the ${lens.decisionNoun}, but it does not establish a broader conclusion; I would inspect one additional source before extending the claim.`,
+      sampleAnswer: `For ${lessonFocus}, I would select ${concept} because one exact source detail from ${sourceCue} supports the change I propose for ${artifact}. In ${lessonFocus}, that detail supports the ${lens.decisionNoun}, but it does not establish a broader conclusion; I would inspect one additional source before extending the claim.`,
       explanation,
       scoringGuidance,
       tags: quizTags(lesson, 'short_answer', bloom, 'formative check'),
@@ -24269,9 +24362,23 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
   // of the generic process frame (the v0.13.1 live audit's weakest surface).
   const kernelPayload = lesson.enrichment || null;
   const kernelMisconception = (kernelPayload?.keyTerms || []).find((term) => term.misconception) || null;
-  const kernelFact = (kernelPayload?.kernel?.facts || [])[0] || '';
+  const instructorFacts = Array.isArray(blueprint?.instructorSourceFactsByLesson?.[lesson.id])
+    ? blueprint.instructorSourceFactsByLesson[lesson.id]
+    : [];
+  const kernelFacts = unique(
+    [
+      ...instructorFacts,
+      ...(Array.isArray(kernelPayload?.kernel?.facts) ? kernelPayload.kernel.facts : []),
+    ].map(cleanText),
+    8,
+  ).slice(0, 5);
+  const kernelFact = kernelFacts[0] || '';
   const kernelScenario = kernelPayload?.kernel?.scenario || null;
   const kernelWorkedExample = kernelPayload?.workedExample || null;
+  const lessonPlanEvidenceRoutine = compactCompleteEvidenceRoutine(
+    cleanText(modality.evidenceRoutine).replace(/^For [^,]{2,70},\s*/i, ''),
+    { concept, artifact },
+  );
   // v0.15.3 D1: DEEP mode carries the kernel inside the back-half steps too —
   // the collaborative debate runs the kernel's tension, the sprint checks
   // drafts against the worked example's moves and the term corrections, and
@@ -24356,6 +24463,10 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
             ]),
       instructorNotes: kernelWorkedExample
         ? `Solution path: ${kernelWorkedExample.steps.join(' → ')}. Result: ${kernelWorkedExample.result}. Have students annotate each step, then assign one variation with different numbers.`
+        : kernelFacts.length > 0
+          ? `Teach from the admitted source-grounded fact set: ${kernelFacts
+              .map((fact, index) => `${index + 1}) ${ensureSentenceCompiler(stripTerminalPunctuation(fact))}`)
+              .join(' ')} Keep these claims visible during the model, then ask students to identify which fact supports each practice decision.`
         : lessonVariant(lesson, [
             `Keep the model concrete: point to ${evidencePlan?.sourceCue || 'one source cue'}, then model the reasoning move students will transfer into ${artifact}.`,
             `Use ${evidencePlan?.sourceCue || 'one source cue'} as the worked anchor and name the inference students should carry into ${artifact}.`,
@@ -24435,8 +24546,8 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
             `Groups prepare a brief answer to “${stripTerminalPunctuation(kernelDiscussion.prompt)}” and name the evidence that would change their view.`,
           ])
         : lessonVariant(lesson, [
-            `Teams apply ${concept} to a new scenario and compare options. Routine: ${ensureSentenceCompiler(conciseClause(cleanText(modality.evidenceRoutine).replace(/^For [^,]{2,70},\s*/i, ''), 'compare the evidence', 145))}`,
-            `Teams test ${concept} in a fresh case and choose the strongest option. They document how the evidence changed the decision. Routine: ${ensureSentenceCompiler(conciseClause(cleanText(modality.evidenceRoutine).replace(/^For [^,]{2,70},\s*/i, ''), 'compare the evidence', 145))}`,
+            `Teams apply ${concept} to a new scenario and compare options. Routine: ${ensureSentenceCompiler(lessonPlanEvidenceRoutine)}`,
+            `Teams test ${concept} in a fresh case and choose the strongest option. They document how the evidence changed the decision. Routine: ${ensureSentenceCompiler(lessonPlanEvidenceRoutine)}`,
             `Small groups transfer ${concept} to a different situation, rank the options, and cite the evidence move that made the ranking credible.`,
             `Teams work a parallel case for ${concept}, compare the consequences of two choices, and prepare one evidence-backed report-out.`,
           ]),

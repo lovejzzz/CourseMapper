@@ -114,18 +114,18 @@
     "implementation": [
       {
         "path": "src/lib/scionAnswerKeyAlignment.js",
-        "bytes": 40688,
-        "sha256": "2c97a9b371b1c34e5946b5068ee5a5b46596d15039b359fb8f02e8e072833298"
+        "bytes": 43218,
+        "sha256": "2c6875437268444536de651f3ffbddf6368e2667c823ad0827a4245f86ebefa7"
       },
       {
         "path": "src/lib/scionPreferenceGate.js",
-        "bytes": 23207,
-        "sha256": "e1485227f0806503c7e982188ae801a2b234da94c8984035699e7a186e8c1084"
+        "bytes": 23813,
+        "sha256": "3b9eb6f5614beeb1ea399f48b2e08d69d184e18d1342cfbf2116cb435356648e"
       },
       {
         "path": "src/lib/scionKeyTermContract.js",
-        "bytes": 32098,
-        "sha256": "ac7f635bd3708c05f4f8c17b8218256860dd0bb714bb3b4baa1efb619e324cf0"
+        "bytes": 33378,
+        "sha256": "db9d3c7922b4d0c10790e5a9ea461dceed968e2008ba3b17ed61cb5ac16613cc"
       },
       {
         "path": "scripts/lib/scionSourceCapture.mjs",

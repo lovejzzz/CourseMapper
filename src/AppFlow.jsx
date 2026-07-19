@@ -107,6 +107,7 @@ import { getChunkCount, pLimit } from './lib/parallelGenerator';
 import { buildHumanReviewRecommendation, summarizeRepairEvidence } from './lib/packageTrust';
 import { traceLog } from './lib/traceLog';
 import { getPackageTrustStatus } from './lib/packageTrustStatus';
+import { derivePromptPreviewTitle } from './lib/promptAwarePreview';
 import {
   attachEnrichmentToGraph,
   courseGraphStats,
@@ -1099,6 +1100,7 @@ export default function AppFlow({
     pedagogicalMode: 'lecture',
     examChanges: gen.examChanges,
     columns,
+    sourceBrief: promptText,
     courseGraph,
     onApiCallEvent: recordApiCallEvent,
     onCourseMapRepair: handleGeneratedCourseMapRepair,
@@ -1863,6 +1865,7 @@ export default function AppFlow({
               pipelineState: getManifestPipelineState(),
               budget: apiCallBudgetRef.current || {},
               digest: runDigest,
+              coursePrompt: promptText,
             });
           } catch (err) {
             packageQuality = { status: 'not-graded', reason: err?.message || 'grading unavailable' };
@@ -2953,10 +2956,7 @@ export default function AppFlow({
   const packageReady = packageTrustStatus.canDownload;
   const workspaceCourseTitle =
     String(courseMap?.courseName || '').trim() ||
-    String(promptText || '')
-      .split('\n')[0]
-      .trim()
-      .slice(0, 80) ||
+    derivePromptPreviewTitle(promptText) ||
     'Untitled course';
   const workspaceLessonCount = Array.isArray(courseMap?.lessons) ? courseMap.lessons.length : 0;
   const workspaceMappingInProgress = buildRibbonModel?.steps?.some(

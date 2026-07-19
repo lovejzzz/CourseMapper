@@ -140,6 +140,6 @@ describe('B5 — lesson scope collapses to one line', () => {
     expect(panel).toContain('lesson-scope-done');
     expect(panel).toContain('allSelected && !editingLessonScope');
     expect(panel).toContain('(!allSelected || editingLessonScope)');
-    expect(panel).toContain('All {allLessons.length} lessons · Edit');
+    expect(panel).toContain("allLessons.length === 1 ? '1 lesson' : `All ${allLessons.length} lessons`");
   });
 });

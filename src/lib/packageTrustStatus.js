@@ -155,10 +155,17 @@ export function getPackageTrustStatus({
   const packageBlockerCount = compactCount(packageQualityPass?.blockers);
   const packageWarningCount = compactCount(packageQualityPass?.warnings);
   const exportFailedCount = exportFailureIssue ? exportFailureIssue.count : compactCount(packageReceipt?.exportFailed);
-  const qualityBlockerCount = qualityIssue?.severity === 'blocker' ? Math.max(1, qualityIssue.count) : 0;
+  const qualityBlockerCount =
+    qualityIssue?.severity === 'blocker' ? Math.max(1, compactCount(packageQuality?.findingCounts?.p0)) : 0;
   const qualityWarningCount =
     qualityIssue && qualityIssue.severity !== 'blocker' ? Math.max(1, qualityIssue.count) : qualityProofIssue ? 1 : 0;
-  const blockerCount = packageBlockerCount + readinessBlockers.length + exportFailedCount + qualityBlockerCount;
+  // `packageQualityPass.blockers`, readiness blockers, and quality P0s are
+  // three views of the same unresolved content gates after the finalizer.
+  // Summing them made one P0 read as five blockers in the workspace crown.
+  // Count the largest content view once, then add truly separate export
+  // failures.
+  const blockerCount =
+    Math.max(packageBlockerCount, readinessBlockers.length, qualityBlockerCount) + exportFailedCount;
   const warningCount =
     packageWarningCount + readinessWarnings.length + qualityWarningCount + exportIssues.length + sourceIssues.length;
   const hasNotGradedQuality = Boolean(qualityProofIssue || (packageQuality && packageQuality.status !== 'graded'));

@@ -1043,8 +1043,23 @@ async function polishProse(lesson, generateJson, events) {
  * away with the lesson.
  */
 async function targetLanguageIdentityGate(lesson, promptLesson, courseName, generateJson, events) {
-  const before = assessTargetLanguagePresence({ courseIdentity: courseName, text: JSON.stringify(lesson) });
+  const sourceText = JSON.stringify(promptLesson || {});
+  const before = assessTargetLanguagePresence({
+    courseIdentity: courseName,
+    sourceText,
+    text: JSON.stringify(lesson),
+  });
   if (!before.required || before.complete) return;
+  if (before.pinyinOnly) {
+    events.push({
+      pass: 'languageIdentity',
+      lessonId: lesson.lessonId,
+      action: 'deferred',
+      reason: 'source-scoped-pinyin-missing',
+      trainingEligible: false,
+    });
+    return;
+  }
   try {
     const reply = await generateJson({
       system:
@@ -1064,7 +1079,7 @@ async function targetLanguageIdentityGate(lesson, promptLesson, courseName, gene
     const pinyin = String(pair?.pinyin || '').trim();
     const english = String(pair?.english || '').trim();
     const evidence = `${hanzi} (${pinyin}) means ${english}.`;
-    const after = assessTargetLanguagePresence({ courseIdentity: courseName, text: evidence });
+    const after = assessTargetLanguagePresence({ courseIdentity: courseName, sourceText, text: evidence });
     if (!after.complete) throw new Error('repair did not contain a valid Hanzi/Pinyin pair');
     if (!Array.isArray(lesson.facts)) lesson.facts = [];
     if (!lesson.facts.some((fact) => String(fact).includes(hanzi) && String(fact).includes(pinyin))) {

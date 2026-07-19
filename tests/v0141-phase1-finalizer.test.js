@@ -944,6 +944,36 @@ describe('1.16 — prompt artifact labels never become course-map concepts', () 
     expect(faqText).not.toMatch(/\bslide decks\b/i);
   });
 
+  it('replaces a pasted build brief in supporting resources with a concise lesson resource', () => {
+    const pastedBrief =
+      'Elementary Mandarin — one lesson: Pinyin and Tones for adult beginners. Use only these instructor-provided facts: Pinyin writes Mandarin pronunciation with Latin letters. A syllable may contain an initial followed by a final. Mandarin has four main tones. Learners must identify tone contours, distinguish an initial from a complete syllable, and choose the tone-marked syllable that matches a stated meaning. Build a 50-minute lesson with guided listening, production practice, and a source-grounded evidence check.';
+    const courseMap = {
+      courseName: 'Elementary Mandarin',
+      lessons: [
+        {
+          title: 'Lesson 1: Pinyin and Tones',
+          sections: [
+            {
+              topicSection: 'Pinyin and Tones',
+              learningGoals: 'Distinguish Pinyin tone contours in guided listening.',
+              learningObjectives: 'Identify initials, finals, and four tone contours.',
+              weeklyAssessments: 'Tone-contour evidence check.',
+              asyncActivities: 'Listen to the supplied tone examples.',
+              syncActivities: 'Compare and produce tone contours in pairs.',
+              supportingResources: pastedBrief,
+            },
+          ],
+        },
+      ],
+    };
+
+    const repaired = repairCourseMapReadiness({ courseMap }).courseMap;
+    const resource = repaired.lessons[0].sections[0].supportingResources;
+    expect(resource).not.toBe(pastedBrief);
+    expect(resource.length).toBeLessThan(180);
+    expect(resource).toMatch(/Pinyin and Tones/i);
+  });
+
   it('keeps compact numbered artifact-resource lists out of compiled Course FAQ answers', () => {
     const courseMap = {
       courseName: 'Genetics and Society',

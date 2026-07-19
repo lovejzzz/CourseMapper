@@ -59,7 +59,7 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     expect(lesson.properties.targetLanguagePair.required).toEqual(['hanzi', 'pinyin', 'english']);
   });
 
-  it('D1: Scion call options activate the Mandarin grammar from course identity', () => {
+  it('D1: Scion call options use the exact compact adapter contract', () => {
     const options = scionCallOpts({
       prompt: { courseName: 'Elementary Mandarin Chinese I', itemPlan: [{ type: 'multiple_choice' }] },
       expectedLessonIds: ['lesson-1'],
@@ -68,8 +68,13 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
       recoveryAttempt: 0,
     });
     const lesson = options.schema.schema.properties.lessons.items;
-    expect(lesson.required).toContain('targetLanguagePair');
+    expect(options.schema.name).toBe('scion_compact_lesson_kernel_v1');
+    expect(options.promptProtocol).toBe('production-lesson-kernel-prompt-v1');
+    expect(lesson.required).toEqual(['lessonId', 'facts', 'keyTerms', 'scenario', 'mc']);
+    expect(lesson.properties.keyTerms).toMatchObject({ minItems: 3, maxItems: 3 });
+    expect(lesson.properties.mc).toMatchObject({ minItems: 2, maxItems: 2 });
     expect(lesson.properties.mc.items.required).toContain('fi');
+    expect(lesson.properties.mc.items.properties.fi).toMatchObject({ minItems: 1, maxItems: 1 });
   });
 
   it('D1: content-sourced lessons get the session-only variant', () => {
@@ -99,9 +104,7 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     };
     profiles.forEach((profile) => visit(profile.schema));
     expect(strings.some((schema) => schema.pattern)).toBe(true);
-    expect(strings.every((schema) => !(schema.pattern && ('minLength' in schema || 'maxLength' in schema)))).toBe(
-      true,
-    );
+    expect(strings.every((schema) => !(schema.pattern && ('minLength' in schema || 'maxLength' in schema)))).toBe(true);
   });
 
   it('D1: the skeleton contract pins the session count and requires assessments', () => {
@@ -918,7 +921,8 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     expect(deliverables).toContain('scionCallOpts');
     expect(deliverables).toContain('runScionPasses');
     const passB = fs.readFileSync('src/lib/scionPassB.js', 'utf8');
-    expect(passB).toContain('kernelBatchSchemaProfile');
+    expect(passB).toContain('compactLessonKernelSchemaProfile');
+    expect(passB).toContain('SCION_LESSON_KERNEL_PROMPT_PROTOCOL');
     expect(passB).toContain('applyScionKernelPasses');
     expect(passB).toContain('postFlywheelEvents');
     expect(passB).toContain('recoveryAttempt > 0 ? 0.7 : 0');

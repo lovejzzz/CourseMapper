@@ -127,6 +127,7 @@ export async function runScionLocalCompletion({
   systemPrompt = '',
   userPrompt = '',
   task = 'generation',
+  promptProtocol = null,
   schema = null,
   maxOutputTokens = PUBLIC_SCION_MAX_COMPLETION_TOKENS,
   maxRetries = SCION_LOCAL_MAX_GENERATION_RETRIES,
@@ -192,6 +193,7 @@ export async function runScionLocalCompletion({
       seed: 7 + attempt,
       signal,
       taskFamily,
+      promptProtocol,
       onAdapterRoute,
       onToken: (currentText) => {
         tokenCount += 1;

@@ -7,6 +7,7 @@ import { afterEach, expect, it } from 'vitest';
 
 import { closeJsonContainersAtEof } from '../crucible/jsonClosureRepair.mjs';
 import { valueConformsToSchema } from '../crucible/jsonSchemaValidation.mjs';
+import { compactLessonKernelSchemaProfile } from '../../src/lib/scionContracts.js';
 
 let serverProcess = null;
 let fixtureDir = null;
@@ -76,9 +77,7 @@ it('does not confuse syntactic closure with schema-complete lesson content', () 
   const partial = '{"lessons":[{"lessonId":"lesson-2"}';
   expect(closeJsonContainersAtEof(partial, { schema })).toEqual({ text: partial, addedClosers: '' });
   expect(valueConformsToSchema({ lessons: [{ lessonId: 'lesson-2' }] }, schema)).toBe(false);
-  expect(valueConformsToSchema({ lessons: [{ lessonId: 'lesson-2', facts: ['Grounded fact.'] }] }, schema)).toBe(
-    true,
-  );
+  expect(valueConformsToSchema({ lessons: [{ lessonId: 'lesson-2', facts: ['Grounded fact.'] }] }, schema)).toBe(true);
 });
 
 it('reports queued/completed model work and attributes inner calls to the HTTP envelope', async () => {
@@ -439,16 +438,51 @@ input.on('line', (line) => {
   }).then((result) => result.json());
   expect(revisedLesson.scion_adapter_route.modelCalls).toBeGreaterThan(0);
 
+  const compactProfile = compactLessonKernelSchemaProfile({ expectedLessonIds: ['lesson-4'] });
+  const compact = await fetch(`${baseUrl}/v1/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Scion-Task-Family': 'lesson-kernel',
+      'X-Scion-Prompt-Protocol': 'production-lesson-kernel-prompt-v1',
+    },
+    body: JSON.stringify({
+      model: 'fake-scion',
+      messages: [
+        { role: 'system', content: 'Write a rich Pass B lesson with courseLevel and every surface.' },
+        {
+          role: 'user',
+          content:
+            'Course: Testing Basics\nLessons:\n[{"lessonId":"lesson-4","title":"Evidence Tests","objectives":"Compare evidence","topics":"Claims and checks","readings":"Testing guide"}]\nAlso include the courseLevel object once.',
+        },
+      ],
+      response_format: {
+        type: 'json_schema',
+        json_schema: compactProfile,
+      },
+    }),
+  }).then((result) => result.json());
+  expect(JSON.parse(compact.choices[0].message.content).lessons[0]).toMatchObject({ lessonId: 'lesson-4' });
+  expect(compact.scion_adapter_route).toMatchObject({
+    taskFamily: 'lesson-kernel',
+    promptProtocol: 'production-lesson-kernel-prompt-v1',
+    modelCalls: 3,
+  });
+
   const rows = (await fs.readFile(bodyLogPath, 'utf8'))
     .trim()
     .split('\n')
     .map((line) => JSON.parse(line));
-  expect(rows).toHaveLength(4);
+  expect(rows).toHaveLength(5);
   expect(rows[0].modelMetrics.modelCalls).toBeGreaterThan(1);
   expect(rows[1].modelMetrics.modelCalls).toBe(1);
   expect(rows[1].jsonClosureRepair).toBe(']}');
   expect(rows[2].modelMetrics.modelCalls).toBeGreaterThan(0);
   expect(rows[3].modelMetrics.modelCalls).toBeGreaterThan(0);
+  expect(rows[4].modelMetrics.modelCalls).toBe(3);
+  expect(rows[4].system).toContain('CourseMapper Scion');
+  expect(rows[4].user).toContain('Write the compact knowledge core');
+  expect(rows[4].user).not.toContain('courseLevel object once');
 
   const schemas = (await fs.readFile(schemaLogPath, 'utf8'))
     .trim()

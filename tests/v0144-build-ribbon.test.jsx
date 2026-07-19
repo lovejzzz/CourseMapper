@@ -743,6 +743,24 @@ describe('B1 — buildRibbonModel selector', () => {
         ENRICH_CHUNK_EVENT,
       ]),
     ).toBe('Retrying local lesson kernel · attempt 2/3');
+    expect(
+      latestKnowledgeActivity([
+        {
+          type: 'streamRetryCall',
+          featureId: 'blueprintEnrichment',
+          task: 'blueprintEnrichment',
+          attempt: 1,
+          maxRetries: 2,
+          at: 200,
+        },
+        {
+          type: 'repairRetryCall',
+          label: 'Enrich lesson kernels (recovery)',
+          detail: 'Recovery 1/1 for dropped lesson 1 — 1159 input tokens estimated',
+          at: 100,
+        },
+      ]),
+    ).toBe('Recovery 1/1 · retrying local lesson kernel · attempt 2/3');
     expect(latestKnowledgeActivity([ENRICH_CHUNK_EVENT])).toBe('Enriching lessons 9–12');
     expect(latestKnowledgeActivity([])).toBe('Building lesson knowledge');
   });

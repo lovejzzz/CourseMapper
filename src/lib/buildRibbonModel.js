@@ -345,7 +345,9 @@ export function latestKnowledgeActivity(events = []) {
     const attempt = Math.max(0, Number(activity.attempt) || 0);
     const total = Math.max(1, Number(activity.maxRetries) + 1 || 1);
     const nextAttempt = Math.min(total, attempt + 1);
-    return `Retrying local lesson kernel · attempt ${nextAttempt}/${total}`;
+    const recoveryPrefix = recovery ? `Recovery ${recovery.attempt}/${recovery.total} · ` : '';
+    const retryLabel = recovery ? 'retrying' : 'Retrying';
+    return `${recoveryPrefix}${retryLabel} local lesson kernel · attempt ${nextAttempt}/${total}`;
   }
   if (['blueprintEnrichmentCall', 'repairRetryCall'].includes(activity?.type)) {
     return enrichmentLabelFromEvent(activity);

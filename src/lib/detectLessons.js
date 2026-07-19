@@ -82,6 +82,19 @@ export function detectExpectedLessons(text) {
     if (n >= 1 && n <= 52) return { expected: n, confidence: 'high', source: `"${m1unitCourse[0]}"` };
   }
 
+  // Pattern 1b.3: An explicit compact unit count does not need a trailing
+  // "course" noun. Users commonly write briefs such as "one lesson: Pinyin
+  // and Tones" or "two modules — onboarding and practice". Treat those as
+  // exact scope instead of asking the model to infer a larger course.
+  const compactUnitCountPat = new RegExp(`\\b(${SMALL_COUNT_TOKEN})\\s+(lesson|module|session)s?\\b`, 'i');
+  const compactUnitCount = text.match(compactUnitCountPat);
+  if (compactUnitCount && SMALL_COUNT_WORDS[String(compactUnitCount[1]).toLowerCase()]) {
+    const n = parseSmallCount(compactUnitCount[1]);
+    if (n >= 1 && n <= 52) {
+      return { expected: n, confidence: 'high', source: `"${compactUnitCount[0]}"` };
+    }
+  }
+
   // Pattern 2: Explicit "Weeks 1-15" or "Weeks 1 through 15"
   const rangePatterns = [
     /weeks?\s+(\d{1,2})\s*[-–—to]+\s*(\d{1,2})/gi,

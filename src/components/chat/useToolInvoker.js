@@ -35,6 +35,9 @@ import {
   evaluateAgentMutationConfirmation,
 } from '../../lib/agentConfirmationPolicy';
 import { buildAgentQualityScorecard } from '../../lib/agentQualityScorecard';
+import { stripInternalAgentMarkers } from './agentResponseText';
+
+export { stripInternalAgentMarkers } from './agentResponseText';
 
 /**
  * Execute the multi-step agentic loop with native tool calling.
@@ -769,16 +772,6 @@ export function chooseAgentFallbackText(
   }
   if (text && !isToolTraceOnlyText(text) && !isGenericCompletionText(text)) return text;
   return fallbackText || text || defaultText;
-}
-
-/** Remove prompt-only routing annotations that a small local model may echo. */
-export function stripInternalAgentMarkers(value = '') {
-  return String(value || '')
-    .replace(/^[\s)\]},;:]+/, '')
-    .replace(/\s*\(?\btool(?:Index|_index)\s*=\s*\d+\)?/gi, '')
-    .replace(/\s+([,.;:!?])/g, '$1')
-    .replace(/\s{2,}/g, ' ')
-    .trim();
 }
 
 export function ensureFinalResponseHasChatReply(response, toolResults = []) {

@@ -8,8 +8,7 @@ import LessonScopeSelector from '../components/config/LessonScopeSelector';
 import SetupProgress from '../components/SetupProgress';
 import SetupHelpDialog from '../components/SetupHelpDialog';
 import { getCustomDeliverable, listCustomDeliverables, toFeatureEntry } from '../lib/customDeliverableLibrary';
-import { detectExpectedLessons } from '../lib/detectLessons';
-import { PREVIEW_EXAMPLES } from '../lib/previewExamples';
+import { buildPromptAwarePreview } from '../lib/promptAwarePreview';
 import { useAuth } from '../contexts/AuthContext';
 import { useCourse } from '../contexts/CourseContext';
 import { useAIConfig } from '../contexts/AIConfigContext';
@@ -532,72 +531,6 @@ const FEATURE_LABELS = {
   syllabus: 'Syllabus',
 };
 
-function derivePromptPreviewTitle(promptText) {
-  const text = String(promptText || '')
-    .replace(/\s+/g, ' ')
-    .trim();
-  if (!text) return 'Your course';
-
-  const quoted = text.match(/["“']([^"”']{4,90})["”']/);
-  if (quoted?.[1]) return quoted[1].trim();
-
-  const cleaned = text
-    .replace(/^(?:build|create|generate|design|make|draft|prepare)\s+(?:an?\s+)?/i, '')
-    .replace(/^\d+[-\s]?(?:lesson|week|module|session)s?\s+/i, '')
-    .replace(/^(?:a|an|the)\s+/i, '')
-    .replace(/\b(?:course|class|seminar|workshop)\b.*$/i, (match) =>
-      match.replace(/\s+(?:with|for|that|where)\b.*$/i, ''),
-    )
-    .replace(/\s+(?:course|class|seminar|workshop)$/i, '')
-    .replace(/[.?!:;]+$/g, '')
-    .trim();
-
-  if (!cleaned) return 'Your course';
-  return cleaned.length > 72 ? `${cleaned.slice(0, 69).trim()}...` : cleaned;
-}
-
-function buildPreviewCellValue(column, courseTitle, lessonTheme, lessonNumber) {
-  const key = `${column?.key || ''} ${column?.label || ''}`.toLowerCase();
-  const lowerTitle = courseTitle === 'Your course' ? 'the course' : courseTitle;
-  if (/topic|content|theme|unit/.test(key)) return `${lessonTheme} for ${lowerTitle}`;
-  if (/objective|outcome|goal/.test(key)) return `Students explain and apply ${lessonTheme.toLowerCase()}`;
-  if (/activit|practice|class|session/.test(key)) return `Guided practice, feedback, and transfer task`;
-  if (/assessment|artifact|evidence|deliverable/.test(key))
-    return `Short evidence check tied to Lesson ${lessonNumber}`;
-  if (/reading|material|source/.test(key)) return `Instructor-confirmed source set`;
-  return `Draft ${column?.label || 'course detail'} for Lesson ${lessonNumber}`;
-}
-
-function buildPromptAwareCourseMapPreview({ promptText, lessonCount, columns }) {
-  const courseTitle = derivePromptPreviewTitle(promptText);
-  const promptDetectedLessons = detectExpectedLessons(promptText).expected;
-  const total = Math.max(1, Number(lessonCount) || promptDetectedLessons || PREVIEW_EXAMPLES.courseMap.total || 3);
-  const previewColumns =
-    (columns || []).filter((column) => column.enabled !== false).slice(0, 3) || PREVIEW_EXAMPLES.courseMap.cols;
-  const cols = previewColumns.length > 0 ? previewColumns : PREVIEW_EXAMPLES.courseMap.cols;
-  const lessonThemes = ['Foundations', 'Applied practice', 'Feedback and transfer'];
-
-  return {
-    type: 'courseMap',
-    isExample: true,
-    courseTitle,
-    total,
-    lessons: Array.from({ length: Math.min(3, total) }, (_, index) => {
-      const lessonNumber = index + 1;
-      const lessonTheme = lessonThemes[index] || `Lesson ${lessonNumber} focus`;
-      return {
-        title: `Lesson ${lessonNumber}: ${lessonTheme}`,
-        sections: [
-          Object.fromEntries(
-            cols.map((column) => [column.key, buildPreviewCellValue(column, courseTitle, lessonTheme, lessonNumber)]),
-          ),
-        ],
-      };
-    }),
-    cols,
-  };
-}
-
 function DeliverablePreview({ featureId, delivData, courseMap, columns, promptText, lessonCount }) {
   const [fullscreen, setFullscreen] = useState(false);
   const label = FEATURE_LABELS[featureId] || featureId;
@@ -673,13 +606,7 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns, promptTe
     }
 
     // Fall back to sample content that demonstrates structure only.
-    if (featureId === 'courseMap') {
-      return {
-        content: buildPromptAwareCourseMapPreview({ promptText, lessonCount, columns }),
-        isExample: true,
-      };
-    }
-    const example = PREVIEW_EXAMPLES[featureId];
+    const example = buildPromptAwarePreview(featureId, { promptText, lessonCount, columns });
     return example ? { content: example, isExample: true } : { content: null, isExample: true };
   }, [featureId, delivData, courseMap, columns, promptText, lessonCount]);
 
@@ -755,7 +682,7 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns, promptTe
         );
       }
       case 'lessonPlans': {
-        const items = expanded ? delivData.plans || delivData.lessonPlans || [] : realContent.items;
+        const items = expanded && !isExample ? delivData?.plans || delivData?.lessonPlans || [] : realContent.items;
         return (
           <div className="space-y-2">
             {items.map((plan, i) => {
@@ -799,7 +726,7 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns, promptTe
         );
       }
       case 'slideDecks': {
-        const items = expanded ? delivData.decks || delivData.slideDecks || [] : realContent.items;
+        const items = expanded && !isExample ? delivData?.decks || delivData?.slideDecks || [] : realContent.items;
         // Subtle tint per slide type so the deck shape reads at a glance.
         const typeTone = {
           title: 'bg-indigo-50/60 border-indigo-200/50',
@@ -881,7 +808,7 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns, promptTe
         );
       }
       case 'rubrics': {
-        const items = expanded ? delivData.rubrics || [] : realContent.items;
+        const items = expanded && !isExample ? delivData?.rubrics || [] : realContent.items;
         return (
           <div className="space-y-2">
             {items.map((rubric, i) => {
@@ -956,7 +883,7 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns, promptTe
         );
       }
       case 'quizBank': {
-        const items = expanded ? delivData.quizzes || delivData.quizBank || [] : realContent.items;
+        const items = expanded && !isExample ? delivData?.quizzes || delivData?.quizBank || [] : realContent.items;
         // Short-form type labels for the badge — keeps the row compact.
         const typeShort = { multiple_choice: 'MC', short_answer: 'SA', essay: 'Essay' };
         const diffTone = {
@@ -1033,7 +960,7 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns, promptTe
         );
       }
       case 'discussions': {
-        const items = expanded ? delivData.discussions || [] : realContent.items;
+        const items = expanded && !isExample ? delivData?.discussions || [] : realContent.items;
         return (
           <div className="space-y-2">
             {items.map((disc, i) => {
@@ -1088,7 +1015,7 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns, promptTe
         );
       }
       case 'assignments': {
-        const items = expanded ? delivData.assignments || [] : realContent.items;
+        const items = expanded && !isExample ? delivData?.assignments || [] : realContent.items;
         return (
           <div className="space-y-2">
             {items.map((asgn, i) => {
@@ -1180,7 +1107,7 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns, promptTe
         );
       }
       case 'studyGuides': {
-        const items = expanded ? delivData.studyGuides || delivData.guides || [] : realContent.items;
+        const items = expanded && !isExample ? delivData?.studyGuides || delivData?.guides || [] : realContent.items;
         return (
           <div className="space-y-2">
             {items.map((guide, i) => {
@@ -1236,20 +1163,20 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns, promptTe
         // FAQ had no preview case — if a user selected "Course FAQ" in the
         // Configure page before, the card would render the "Example" badge
         // but no body. Now shows Q/A pairs with a category tag.
-        const items = expanded ? delivData.faqs || delivData.courseFaq || [] : realContent.items;
+        const items = expanded && !isExample ? delivData?.faqs || delivData?.courseFaq || [] : realContent.items;
         return (
           <div className="space-y-1.5">
             {items.map((f, i) => (
               <div key={i} className="rounded border border-slate-200/30 overflow-hidden">
-                <div className={`${pad} bg-slate-50/60 flex items-start gap-2`}>
+                <div className={`${pad} flex flex-wrap items-start gap-x-2 gap-y-1 bg-slate-50/60 sm:flex-nowrap`}>
                   <span className="w-5 h-5 rounded bg-indigo-50/80 text-indigo-500 flex items-center justify-center text-[10px] font-bold flex-shrink-0">
                     Q
                   </span>
-                  <span className="font-semibold text-slate-700 flex-1">
+                  <span className="min-w-0 flex-1 basis-[calc(100%-1.75rem)] font-semibold text-slate-700 sm:basis-auto">
                     {truncate(f.question || f.q || '', expanded ? 220 : 100)}
                   </span>
                   {f.category && (
-                    <span className="text-2xs px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-semibold flex-shrink-0">
+                    <span className="ml-7 shrink-0 rounded bg-slate-100 px-1.5 py-0.5 text-2xs font-semibold text-slate-500 sm:ml-0">
                       {f.category}
                     </span>
                   )}
@@ -1271,8 +1198,9 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns, promptTe
         );
       }
       case 'syllabus': {
-        const sections = expanded ? delivData.sections || [] : realContent.sections;
-        const matrix = (expanded ? delivData.outcomeAlignmentMatrix : realContent.outcomeAlignmentMatrix) || [];
+        const sections = expanded && !isExample ? delivData?.sections || [] : realContent.sections;
+        const matrix =
+          (expanded && !isExample ? delivData?.outcomeAlignmentMatrix : realContent.outcomeAlignmentMatrix) || [];
         return (
           <div className="space-y-1.5">
             {sections.map((s, i) => (
@@ -1356,7 +1284,7 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns, promptTe
         className="mb-4 rounded-lg border border-slate-200/40 overflow-hidden"
       >
         <div className="px-3 py-1.5 bg-slate-50/60 border-b border-slate-200/40 flex items-center justify-between">
-          <p className="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
+          <p className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 pr-1 text-xs font-semibold text-slate-500">
             {label} — {realContent.total || realContent.items?.length || 0}{' '}
             {featureId === 'courseMap' ? 'lessons' : 'items'}
             {isExample && (
@@ -1367,8 +1295,9 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns, promptTe
           </p>
           <button
             onClick={() => setFullscreen(true)}
-            className="text-slate-300 hover:text-indigo-500 transition-colors"
+            className="tactile -my-2 -mr-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-slate-300 transition-colors hover:bg-white/80 hover:text-indigo-500 dark:hover:bg-slate-800"
             title="Full screen"
+            aria-label={`Open ${label} full-screen preview`}
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -1519,7 +1448,12 @@ function DeliverableConfigContent({
     case 'lessonPlans':
       return (
         <div className="space-y-4">
-          <DeliverablePreview featureId="lessonPlans" delivData={delivData} />
+          <DeliverablePreview
+            featureId="lessonPlans"
+            delivData={delivData}
+            promptText={promptText}
+            lessonCount={lessonCount}
+          />
           {/* Basic settings — always visible */}
           <Select
             label="Session length"
@@ -1566,7 +1500,12 @@ function DeliverableConfigContent({
     case 'slideDecks':
       return (
         <div className="space-y-4">
-          <DeliverablePreview featureId="slideDecks" delivData={delivData} />
+          <DeliverablePreview
+            featureId="slideDecks"
+            delivData={delivData}
+            promptText={promptText}
+            lessonCount={lessonCount}
+          />
           {/* Basic */}
           <NumberInput
             label="Slides per lesson"
@@ -1634,7 +1573,12 @@ function DeliverableConfigContent({
     case 'rubrics':
       return (
         <div className="space-y-4">
-          <DeliverablePreview featureId="rubrics" delivData={delivData} />
+          <DeliverablePreview
+            featureId="rubrics"
+            delivData={delivData}
+            promptText={promptText}
+            lessonCount={lessonCount}
+          />
           {/* Basic */}
           <NumberInput
             label="Criteria per rubric"
@@ -1672,7 +1616,12 @@ function DeliverableConfigContent({
     case 'quizBank':
       return (
         <div className="space-y-4">
-          <DeliverablePreview featureId="quizBank" delivData={delivData} />
+          <DeliverablePreview
+            featureId="quizBank"
+            delivData={delivData}
+            promptText={promptText}
+            lessonCount={lessonCount}
+          />
           {/* Basic */}
           <NumberInput
             label="Questions per lesson"
@@ -1721,7 +1670,12 @@ function DeliverableConfigContent({
     case 'discussions':
       return (
         <div className="space-y-4">
-          <DeliverablePreview featureId="discussions" delivData={delivData} />
+          <DeliverablePreview
+            featureId="discussions"
+            delivData={delivData}
+            promptText={promptText}
+            lessonCount={lessonCount}
+          />
           {/* Basic */}
           <Select
             label="Discussion format"
@@ -1755,7 +1709,12 @@ function DeliverableConfigContent({
     case 'assignments':
       return (
         <div className="space-y-4">
-          <DeliverablePreview featureId="assignments" delivData={delivData} />
+          <DeliverablePreview
+            featureId="assignments"
+            delivData={delivData}
+            promptText={promptText}
+            lessonCount={lessonCount}
+          />
           {/* Basic */}
           <MultiToggle
             label="Assignment types"
@@ -1799,7 +1758,12 @@ function DeliverableConfigContent({
     case 'studyGuides':
       return (
         <div className="space-y-4">
-          <DeliverablePreview featureId="studyGuides" delivData={delivData} />
+          <DeliverablePreview
+            featureId="studyGuides"
+            delivData={delivData}
+            promptText={promptText}
+            lessonCount={lessonCount}
+          />
           {/* Basic */}
           <NumberInput
             label="Key terms per guide"
@@ -1839,7 +1803,12 @@ function DeliverableConfigContent({
     case 'courseFaq':
       return (
         <div className="space-y-4">
-          <DeliverablePreview featureId="courseFaq" delivData={delivData} />
+          <DeliverablePreview
+            featureId="courseFaq"
+            delivData={delivData}
+            promptText={promptText}
+            lessonCount={lessonCount}
+          />
           {/* Basic */}
           <NumberInput
             label="Questions per lesson"
@@ -1890,7 +1859,12 @@ function DeliverableConfigContent({
     case 'syllabus':
       return (
         <div className="space-y-4">
-          <DeliverablePreview featureId="syllabus" delivData={delivData} />
+          <DeliverablePreview
+            featureId="syllabus"
+            delivData={delivData}
+            promptText={promptText}
+            lessonCount={lessonCount}
+          />
           {/* Basic */}
           <Select
             label="Citation style"
@@ -1982,6 +1956,7 @@ export default function Config({
   const scopeDescription = (() => {
     if (lessonScope.type === 'all') {
       const total = courseMap?.lessons?.length || lessonCount || 0;
+      if (total === 1) return '1 lesson';
       return total ? `All ${total} lessons` : 'All lessons';
     }
     const indices = lessonScope.indices || [];

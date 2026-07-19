@@ -4,6 +4,7 @@ import {
   SCION_ADAPTER_TASK_FAMILIES,
   SCION_ADAPTER_TASK_SCOPE_IDENTITY_ALGORITHM,
   SCION_ADAPTER_TASK_SCOPE_PROTOCOL,
+  SCION_LESSON_KERNEL_PROMPT_PROTOCOL,
   resolveScionAdapterTaskRoute,
   normalizeScionAdapterTaskFamily,
   scionAdapterTaskFamilyForPairKind,
@@ -33,7 +34,7 @@ describe('Scion adapter task scope', () => {
     expect(scionAdapterTaskFamilyForPairKind('mc-item')).toBe('source-mc-item-atom');
     expect(scionAdapterTaskFamilyForPairKind('lesson-kernel')).toBe('lesson-kernel');
     expect(scionAdapterTaskFamilyForProviderTask('blueprintEnrichment')).toBe('lesson-kernel');
-    expect(scionAdapterTaskFamilyForProviderTask('scionPass')).toBe('lesson-kernel');
+    expect(scionAdapterTaskFamilyForProviderTask('scionPass')).toBe('compiler-repair');
     expect(scionAdapterTaskFamilyForProviderTask('course-map')).toBe('course-map');
     expect(scionAdapterTaskFamilyForProviderTask('chat')).toBe('agent-advisory');
     expect(scionAdapterTaskFamilyForProviderTask('verification')).toBe('compiler-repair');
@@ -62,6 +63,30 @@ describe('Scion adapter task scope', () => {
       adapterActive: false,
       taskFamily: 'unclassified',
       reason: 'unclassified-task',
+    });
+  });
+
+  it('fails a lesson-kernel adapter closed unless the serving prompt protocol is exact', () => {
+    const lessonScope = scope();
+    lessonScope.families = [{ id: SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL, rows: 143 }];
+    const manifest = { training: { pairCount: 143, taskScope: lessonScope } };
+    expect(
+      resolveScionAdapterTaskRoute({ manifest, taskFamily: SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL }),
+    ).toMatchObject({
+      mode: 'base-only',
+      reason: 'prompt-protocol-mismatch',
+      expectedPromptProtocol: SCION_LESSON_KERNEL_PROMPT_PROTOCOL,
+    });
+    expect(
+      resolveScionAdapterTaskRoute({
+        manifest,
+        taskFamily: SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL,
+        promptProtocol: SCION_LESSON_KERNEL_PROMPT_PROTOCOL,
+      }),
+    ).toMatchObject({
+      mode: 'adapter',
+      reason: 'exact-task-family-match',
+      promptProtocol: SCION_LESSON_KERNEL_PROMPT_PROTOCOL,
     });
   });
 

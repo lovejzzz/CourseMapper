@@ -8,6 +8,7 @@ import { jsonrepair } from 'jsonrepair';
 import { APP_VERSION } from './appVersion.js';
 import {
   findScionExplanationKeyConflict,
+  findScionCitedSourceKeyMismatch,
   findScionMissingKeyExplanationSupport,
   findScionMultipleSourceSupportedOptions,
   findScionNearDuplicateOptionPair,
@@ -449,6 +450,14 @@ export function assessPublicScionKernelResponse(responseText, userPrompt, task) 
           issues.push(`${expected.lessonId}:mc-${index}:template-residue`);
         }
         const sourceFactIndexes = item?.sourceFactIndexes ?? item?.fi;
+        const sourceFactIndexesValid =
+          Array.isArray(sourceFactIndexes) &&
+          sourceFactIndexes.length >= 1 &&
+          sourceFactIndexes.length <= 2 &&
+          new Set(sourceFactIndexes).size === sourceFactIndexes.length &&
+          sourceFactIndexes.every(
+            (factIndex) => Number.isInteger(factIndex) && factIndex >= 0 && factIndex < facts.length,
+          );
         if (
           !Array.isArray(sourceFactIndexes) ||
           sourceFactIndexes.length < 1 ||
@@ -459,6 +468,14 @@ export function assessPublicScionKernelResponse(responseText, userPrompt, task) 
           )
         ) {
           issues.push(`${expected.lessonId}:mc-${index}:source-fact-index`);
+        }
+        if (
+          sourceFactIndexesValid &&
+          findScionCitedSourceKeyMismatch(item, {
+            sourceClaims: sourceFactIndexes.map((factIndex) => facts[factIndex]),
+          })
+        ) {
+          issues.push(`${expected.lessonId}:mc-${index}:source-fact-key-mismatch`);
         }
         if (findScionMissingKeyExplanationSupport(item)) {
           issues.push(`${expected.lessonId}:mc-${index}:explanation-omits-key-support`);
@@ -568,6 +585,9 @@ export function buildPublicScionRetryFeedback(assessment = {}) {
       : []),
     ...(allIssues.some((issue) => issue.includes('source-fact-index'))
       ? ['sourceFactIndexes is required and may cite only supplied zero-based claim indexes.']
+      : []),
+    ...(allIssues.some((issue) => issue.includes('source-fact-key-mismatch'))
+      ? ["Each fi must cite the one fact that directly supports the keyed option and the explanation's first sentence."]
       : []),
     ...(allIssues.some((issue) => issue.includes('explanation-omits-key-support'))
       ? ['Every ex must state why the keyed option is correct; eliminating distractors alone is incomplete feedback.']

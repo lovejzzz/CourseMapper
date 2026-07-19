@@ -47,6 +47,14 @@ describe('detectExpectedLessons', () => {
       expected: 1,
       confidence: 'high',
     });
+    expect(detectExpectedLessons('Elementary Mandarin — one lesson: Pinyin and Tones.')).toMatchObject({
+      expected: 1,
+      confidence: 'high',
+    });
+    expect(detectExpectedLessons('Faculty onboarding needs two modules — policy and practice.')).toMatchObject({
+      expected: 2,
+      confidence: 'high',
+    });
   });
 
   // ── Pattern 1b: "X week course" ──
