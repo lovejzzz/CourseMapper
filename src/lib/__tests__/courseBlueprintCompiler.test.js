@@ -6895,6 +6895,23 @@ describe('courseBlueprintCompiler', () => {
     expect(compiled.slideDecks.decks[0].slides[1].bullets.join(' ')).toContain('Practice with');
   });
 
+  it('keeps feedback fallbacks grammatical when a lesson concept starts with a determiner', () => {
+    const blueprint = buildCourseBlueprint(makeCourseMap(1));
+    blueprint.lessons[0].keyConcepts = ['the function of classroom language'];
+    blueprint.lessons[0].modalityDecode = {
+      ...blueprint.lessons[0].modalityDecode,
+      feedbackRoutine: 'Students name',
+    };
+
+    const compiled = compileBlueprintDeliverables(blueprint, ['slideDecks']);
+    const deckText = JSON.stringify(compiled.slideDecks.decks[0]);
+
+    expect(deckText).toContain(
+      'Name one source detail about the function of classroom language, one limitation, and the revision it supports.',
+    );
+    expect(deckText).not.toMatch(/\bName one (?:the|a|an|this|that|these|those)\b/i);
+  });
+
   it('keeps course-prefixed title anchors and numbered assessment echoes out of slide decks', () => {
     const courseMap = {
       courseName: 'Environmental Justice and Climate Policy',

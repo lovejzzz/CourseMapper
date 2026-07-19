@@ -20597,7 +20597,15 @@ function slideSourceCue(lesson) {
 }
 
 function slideFeedbackFallback(concept) {
-  const focus = conciseClause(concept, 'lesson focus', 32);
+  const focus = conciseClause(concept, 'lesson focus', 40);
+  // A concept can legitimately arrive as a noun phrase with its own
+  // determiner ("the function of classroom language"). Inserting that after
+  // "one" produced visible prompts such as "Name one the function…" in the
+  // frozen Mandarin package. Keep the admitted phrase intact and change the
+  // relationship around it instead of trying to rewrite its grammar.
+  if (/^(?:the|a|an|this|that|these|those)\b/i.test(focus)) {
+    return `Name one source detail about ${focus}, one limitation, and the revision it supports.`;
+  }
   return `Name one ${focus} source detail, one limitation, and the revision it supports.`;
 }
 
