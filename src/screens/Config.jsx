@@ -1995,7 +1995,7 @@ export default function Config({
   const generationAction = (
     <div
       data-testid="config-sticky-action"
-      className="sticky top-3 z-20 rounded-2xl border border-slate-200/80 bg-white/95 p-3 shadow-lg backdrop-blur-xl dark:border-slate-700 dark:bg-slate-950/95"
+      className="rounded-2xl border border-slate-200/80 bg-white/95 p-3 shadow-lg backdrop-blur-xl dark:border-slate-700 dark:bg-slate-950/95 sm:sticky sm:top-3 sm:z-20"
     >
       {provider === PUBLIC_SCION_PROVIDER_ID && (
         <div
