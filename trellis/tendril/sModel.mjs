@@ -159,7 +159,10 @@ async function startRoute(route, { timeoutMs = 120_000 } = {}) {
     servers.delete(route);
   };
   proc.on('error', (error) => rejectPending(error));
-  proc.on('exit', () => rejectPending(new Error(`tendril-s [${route}] server exited`)));
+  proc.on('exit', (code, signal) => {
+    const detail = signal ? `signal ${signal}` : Number.isInteger(code) ? `code ${code}` : 'unknown status';
+    rejectPending(new Error(`tendril-s [${route}] server exited (${detail})`));
+  });
   startupTimer = setTimeout(() => {
     if (!entry.ready) {
       servers.delete(route);

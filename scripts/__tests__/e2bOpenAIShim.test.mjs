@@ -201,6 +201,10 @@ input.on('line', (line) => {
       SCION_MODEL: 'test/fake-scion',
     },
   });
+  let serverStderr = '';
+  serverProcess.stderr.on('data', (chunk) => {
+    serverStderr += chunk.toString();
+  });
   await waitForHealth(baseUrl, (health) => health.modelReady === true);
 
   const payload = await fetch(`${baseUrl}/v1/chat/completions`, {
@@ -226,6 +230,7 @@ input.on('line', (line) => {
     recoveredModelCalls: 1,
     unrecoveredModelCrashes: 0,
   });
+  expect(serverStderr).toContain('server exited (code 23)');
 });
 
 it('routes declared-schema knowledge kernels through the strict per-lesson generator', async () => {
