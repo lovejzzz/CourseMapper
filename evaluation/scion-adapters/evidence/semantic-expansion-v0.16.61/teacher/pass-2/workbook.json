@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-teacher-revision-workbook-v1",
+  "generatedAt": "2026-07-19T23:25:00.000Z",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "judgeWorkbookSha256": "a1c2b65db7fe6ba3936c7ff411f4b8b336049cde62e54f218cdf2977429874fd",
+  "prompt": {
+    "path": "evaluation/scion-adapters/lesson-kernel-teacher-revision-prompt-v8-v0.16.60.md",
+    "sha256": "505aff4b87a07aa0d7d9d7d7b6d40bb268f654439a4b8e06f1d1efda53327eb1"
+  },
+  "revisionSource": {
+    "path": "verification-output/scion-lesson-kernel-teacher-revision-v8-v0.16.61-expansion-2-pass-1/teacher-report.json",
+    "reportSha256": "3901457cb86c87274e258b0fe20e29c043720cab20eabe603e51adabf3eeb530",
+    "protocol": "scion-lesson-kernel-teacher-capture-v1",
+    "arm": "teacher-revision",
+    "fallbackPath": "verification-output/scion-lesson-kernel-capture-v0.16.61-expansion-2/reference-current-replay.json",
+    "fallbackReportSha256": "f6636a52393942429b57c83c0da4deb1652d70e193230166842190fe50f587f2"
+  },
+  "maxCasesPerBatch": 1,
+  "exclusion": {
+    "admittedReportPath": "verification-output/scion-lesson-kernel-teacher-revision-v8-v0.16.61-expansion-2-pass-1/admitted-teacher-report.json",
+    "admittedReportSha256": "4af2b284535781bcd1d24beceaf6b42d3d3623f76db2f867d9092aff9baf0217",
+    "qualifiedResultPath": "verification-output/scion-lesson-kernel-judge-v0.16.61-expansion-2/paired-order-workbook-result.json",
+    "qualifiedResultSha256": "c9c053cf98d8b97ac7cad32e3c5b97779448fe2f0688040f6ba160f1b795d6c7",
+    "excludedCases": 27
+  },
+  "batches": [
+    {
+      "batchId": "batch-001-6c8e61467e",
+      "cases": 1,
+      "packetSha256": "ed8a4935cdfa74102d686c9022f2721dad71af8c37ea335d034e31a8e89bedc8"
+    }
+  ],
+  "cases": 1,
+  "claimBoundary": "This workbook authorizes source-bound model revision only. Each revised artifact still requires deterministic compiler admission and a fresh anonymous paired-order judgment.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "d67e143d24e558e9751560431cf1a4f06948373751afe5d293cd10aa0ebc0c73"
+  }
+}

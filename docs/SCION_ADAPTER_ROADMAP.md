@@ -2,7 +2,31 @@
 
 **Architecture:** public Gemma 4 E2B base + small Scion adapter + Scion compiler = Scion Vx
 
-**Status:** the exact-QAT base, hash-bound training and conversion chain, browser adapter lifecycle, source-strict semantic compiler gates, frozen holdout firewall, and paired-order preference protocol are implemented. V0.16.60 adds a source-only semantic teacher, corrects two compiler false positives, repairs five diagnosed gaps, and qualifies thirteen of fourteen balanced expansion cases. The corpus now contains twenty unique source-ledger full-lesson preferences across all seven training domains. This is 20% of the minimum corpus gate and still only training evidence: no quality adapter is trained or active, no Gemma weight changed, and no candidate has earned a held-out adapter win. The remaining eighty qualified rows, corpus freeze and license audit, training, device profiles, base comparison, and production promotion still do not exist.
+**Status:** the exact-QAT base, hash-bound training and conversion chain, browser adapter lifecycle, source-strict semantic compiler gates, frozen holdout firewall, and paired-order preference protocol are implemented. V0.16.61 adds cumulative diversity selection, deeper role-aware source admission, and 27 qualified rows from a new 28-case wave. The corpus now contains 47 unique source-ledger full-lesson preferences across all seven training domains. This is 47% of the minimum corpus gate and still only training evidence: no quality adapter is trained or active, no Gemma weight changed, and no candidate has earned a held-out adapter win. The remaining 53 qualified rows, corpus freeze and license audit, training, device profiles, base comparison, and production promotion still do not exist.
+
+## v0.16.61 — Make Every Preference Earn Its Place
+
+**Goal:** nearly double the task-matched ruler through cumulative novelty, improve the semantic compiler from real judge diagnoses, and admit only artifacts that preserve exact source claims and win stable reversed-order review.
+
+**Cumulative selector:** the new V2 selector measures every candidate against all earlier selected waves. Its 28 unseen cases contain four lessons in each of seven domains, 17 course groups, 28 source kernels, and all nine failure families. Seven course groups and 27 kernels are new relative to prior waves. The cumulative selected surface is now 49 cases, 25 groups, and 47 kernels instead of a sample that appears diverse only within one batch.
+
+**Role-aware alignment:** ordered token and clause binding distinguishes real semantic equivalence from subject/object swaps. Exact semicolon-delimited clause sets remain duplicates when only clause order changes; proportional relations canonicalize across reciprocal phrasing; paired mappings require each subject to retain its own predicate; and an explicitly partial sequence does not become a complete answer merely because every token appears somewhere in the source.
+
+**Source precision:** question, option, and explanation fields are checked separately so adjacent capitalized words cannot manufacture a proper name. Course titles supply naming context without becoming factual claims. Task-structural quantities and source-backed absolute words avoid false alarms. A new source-role conflict catches predicate drift such as assigning a property of magnetic field lines to magnetic fields, while coordinated subjects and pronoun-led continuations remain valid.
+
+**Frozen 28-case result:** current compiler replay admits 0/28 base-only Gemma artifacts and 21/28 paid-reference artifacts. The reference wins every anonymous A/B and B/A pair with zero order instability. Nineteen winners qualify directly. Nine nonqualified winners enter the source-only teacher lane; eight pass compiler admission, seven qualify after rejudgment, and one final targeted repair qualifies.
+
+**Honest quarantine:** the remaining geology candidate passed one compiler revision but missed a choice-discriminability floor, then failed a narrower repair. It is excluded. The expansion contributes 27—not 28—stable, source-exact, score-qualified preferences with zero winner critical defects.
+
+**Current ruler:** the 27 rows join the prior 20 for 47 unique full-lesson preferences across every training domain. The V0.16.61 receipt binds cumulative selection identity, raw captures, current-compiler replay, teacher packets and results, sixteen isolated judge sessions, implementation hashes, expansion rows, cumulative rows, and the explicit claim boundary. The frozen semantic ruler remains 78/78 losses detected, 78/78 preferred artifacts eligible, and zero regressions.
+
+**CI closure:** the failed `facc391` Fast verification screenshot was a stale derived source-compiler receipt. The next main commit rebuilt it and passed. This release rebuilds the transitive receipts again after the new compiler changes and audits byte-for-byte freshness before push.
+
+**Lane:** answer alignment, source admission, canonical compilation, deterministic recovery, grading, and evidence receipts are model-neutral and benefit compatible paid-provider output. The pinned WebGPU runtime, cache, compact local retry policy, and future adapter activation remain Scion-specific.
+
+**Next gates:** qualify 53 more diverse full-lesson preferences, freeze the corpus and licenses, train one task-matched adapter without touching V10 holdout answers, then require an implementation-bound multi-domain win over exact base-only Scion with equal or lower compiler repair burden and acceptable download, memory, and runtime cost.
+
+**Release Boundary:** no adapter is trained or active, no Gemma weight changed, and no held-out adapter comparison, paid-reference parity, human preference, independent-model judgment, instructor approval, classroom outcome, statistical significance, or production adapter win is claimed. Teacher and judge use distinct cleanroom sessions but the same GPT-5.6-sol identity.
 
 ## v0.16.60 — Teach the Gap, Keep the Gate
 

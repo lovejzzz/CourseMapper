@@ -15,14 +15,14 @@ describe('Scion authoring v2 comparison', () => {
       },
       candidateSurfaces: {
         v1: { rows: 69, localEligible: 54 },
-        v2: { rows: 91, localEligible: 88, referenceEligible: 85 },
+        v2: { rows: 91, localEligible: 88, referenceEligible: 86 },
       },
       deltas: {
         localStrictRawAtoms: 39,
         localStrictCompiledAtoms: 37,
         compiledLocalGapV1: 77,
-        compiledLocalGapV2: 32,
-        compiledGapNarrowing: 45,
+        compiledLocalGapV2: 33,
+        compiledGapNarrowing: 44,
       },
     });
     expect(Object.values(report.assertions)).toEqual(Array(Object.keys(report.assertions).length).fill(true));

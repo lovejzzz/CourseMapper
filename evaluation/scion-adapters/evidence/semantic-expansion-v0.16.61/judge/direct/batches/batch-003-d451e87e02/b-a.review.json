@@ -1,0 +1,502 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-review-v1",
+  "order": "B/A",
+  "packetSha256": "1956c13e6364456baa7715ccbcfbfe8139be8269fa583a1e9e13e226dc9a3180",
+  "sessionId": "scion-v01654-batch-003-d451e87e02-b-a-e7467cbb-a5f6-4aef-aa13-7204a6498240",
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "completedAt": "2026-07-19T19:20:49Z",
+  "attestations": {
+    "anonymousArtifactsOnly": true,
+    "otherOrderUnavailable": true,
+    "organizerMappingUnavailable": true
+  },
+  "decisions": [
+    {
+      "caseId": "scion-kernel-578ba8ceef41c4e8e4dd3030",
+      "pairId": "scion-kernel-pair-2081761405073f50d3751f3e",
+      "artifactSha256": {
+        "A": "2f2c24b6bf05d052dabde50e302fcafbcd42adb6c40f7be279ad95e7bb521f43",
+        "B": "c6eae17da329f369b41db1be5884cee7e476f890b20fa5722f81b4c86bf60cbf"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "Facts, examples, and both answers remain within the three supplied externality claims."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "The terms distinctly explain third-party effects, excluded spillover cost, and the market boundary."
+          },
+          "scenarioReadiness": {
+            "score": 3,
+            "evidence": "The clinic must classify a transaction using inspectable price and quantity records under a deadline."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both declared answers match their cited facts and the explanations without ambiguity."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "Each item has one supported answer, though several distractors are awkwardly phrased rather than fully plausible."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation states the supported relationship and directly contrasts the closest reversed relationship."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "The facts, terminology, scenario evidence, answer keys, citations, and explanations agree throughout."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 1,
+            "evidence": "Exact source facts are present, but both declared answers contradict them and the scenario adds unsupported clinical evidence."
+          },
+          "knowledgePrecision": {
+            "score": 1,
+            "evidence": "Negative externality and socially efficient quantity are defined with mismatched claims rather than precise definitions."
+          },
+          "scenarioReadiness": {
+            "score": 1,
+            "evidence": "The factory description supplies observations but no explicit disciplinary decision and adds unexplained health-report evidence."
+          },
+          "assessmentCorrectness": {
+            "score": 0,
+            "evidence": "Both items declare option zero even though their own explanations support option one."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "The alternatives are mostly distinct and leave a recognizable correct statement despite the erroneous keys."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "The explanations state the right ideas but contradict the declared answers and barely analyze misconceptions."
+          },
+          "internalCoherence": {
+            "score": 0,
+            "evidence": "Each answer key directly conflicts with its explanation and with the corresponding supplied fact."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [],
+        "B": [
+          "The first item declares that price includes the spillover cost, while its explanation and the source require the option stating that price excludes it.",
+          "The second item declares allowing the market to determine quantity, while its explanation endorses the different option about adjusting price.",
+          "The factory residents' elevated health reports are unsupported by the supplied claims.",
+          "The specific prescription to adjust market price is presented as the correction even though the source only states that decision-makers must face omitted costs or benefits."
+        ]
+      },
+      "decision": "A",
+      "rationale": "A is consistently sourced, correctly keyed, and instructionally coherent. B has two answer-key contradictions, imprecise term definitions, unsupported scenario details, and no clearly usable scenario decision."
+    },
+    {
+      "caseId": "scion-kernel-66d9d7e9c204f921942a1c6e",
+      "pairId": "scion-kernel-pair-1f0541c1e4b3bccf0f26123a",
+      "artifactSha256": {
+        "A": "08357d4292a87ee476345efe74de26ad5896ff39f5522b1b24bb9916f7a30e5d",
+        "B": "7f699dad7570ed6289d1a0133193452218d2e1eb5401ec7ad18e377b2a16ee12"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "All instructional claims and examples track the supplied chord-function and minor-mode statements."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "Functional harmony, tonic, and strengthened dominant function are accurately separated and corrected."
+          },
+          "scenarioReadiness": {
+            "score": 3,
+            "evidence": "The editor has a classification decision, degree records, and a deadline, though the setup is somewhat artificial."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both declared answers uniquely reproduce the relevant scale-degree and raised-third relationships."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "The answer sets are distinct, but some distractors combine degrees in awkward, less plausible ways."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "The explanations identify the evidence and explicitly repair the reversed degree or function relation."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "Terms, evidence, answers, citations, and explanations consistently express the same supplied distinctions."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 1,
+            "evidence": "The artifact adds C minor and unsupported claims about resolution, tension, and progression-leading behavior."
+          },
+          "knowledgePrecision": {
+            "score": 1,
+            "evidence": "Definitions contain template text about character counts, and several supposed misconceptions are unsupported or broadly valid."
+          },
+          "scenarioReadiness": {
+            "score": 3,
+            "evidence": "The composer has a chord-classification decision, inspectable scale degrees, and a source-limited constraint."
+          },
+          "assessmentCorrectness": {
+            "score": 3,
+            "evidence": "The declared answers are supportable, but the second explanation omits the required strengthening of dominant function."
+          },
+          "choiceDiscriminability": {
+            "score": 1,
+            "evidence": "The first item repeats the same false alternative verbatim, while the second uses long near-copy constructions."
+          },
+          "feedbackInstructionality": {
+            "score": 2,
+            "evidence": "Feedback mechanically restates an answer and one distractor without clearly teaching the strongest misconception."
+          },
+          "internalCoherence": {
+            "score": 2,
+            "evidence": "Core answers align with the facts, but template leakage and unsupported term claims weaken consistency."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [],
+        "B": [
+          "The named C-minor example is not supplied by the source packet.",
+          "Claims that tonic resolves tension, pre-dominants lead directly to dominant, and dominant creates primary tension introduce unsupported harmonic content.",
+          "The first assessment repeats an identical alternative, so it does not provide four meaningfully distinct choices."
+        ]
+      },
+      "decision": "A",
+      "rationale": "A precisely teaches and assesses every supplied relationship. B retains mostly correct keys but introduces unsupported harmony claims, template leakage, a named example, and a duplicated assessment alternative."
+    },
+    {
+      "caseId": "scion-kernel-7b43a068f54bca3504a52588",
+      "pairId": "scion-kernel-pair-4ff958bd1ba65d47961cc074",
+      "artifactSha256": {
+        "A": "41dcef49389cf76b0e86f2229078ea090053195c7cf2a2a04893ba6a300539de",
+        "B": "9d4b679b47b9784abde17aa85be6f81e76d2d7cfbb547984131bd78183ea9f24"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "The facts, term examples, scenario evidence, and answers stay within the three supplied muscle claims."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "The lesson accurately distinguishes shared excitability from skeletal muscle's signaling dependence."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The student must assign a supported label using a comparison table and signaling note under a deadline."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both declared answers uniquely preserve the supplied excitability and signaling relationships."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "Options are distinct, though one incomplete true statement about skeletal and cardiac excitability is a weak distractor."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Feedback states the supported distinction and explains why extending or reversing dependency fails."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "All lesson components consistently distinguish the shared property from the type-specific dependency."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "Core facts are reproduced, but exclusive dependence, external stimulation, and a new excitability definition exceed the source."
+          },
+          "knowledgePrecision": {
+            "score": 2,
+            "evidence": "The central distinction is retained, but absence of a stated dependency is treated as proof that other types lack it."
+          },
+          "scenarioReadiness": {
+            "score": 2,
+            "evidence": "The researcher has a comparison task, but the excitability-only constraint cannot establish exclusive signaling dependence."
+          },
+          "assessmentCorrectness": {
+            "score": 3,
+            "evidence": "Skeletal muscle is the best supported answer twice, although the stems overstate exclusivity beyond the evidence."
+          },
+          "choiceDiscriminability": {
+            "score": 2,
+            "evidence": "Each item has parallel options, but the two questions and their complete option sets are substantively redundant."
+          },
+          "feedbackInstructionality": {
+            "score": 2,
+            "evidence": "Identical feedback repeats the answer and relies on missing source mention rather than repairing the closest inference."
+          },
+          "internalCoherence": {
+            "score": 3,
+            "evidence": "Answers follow the stated facts, but the scenario's exclusivity claim and constraint do not follow from them."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [],
+        "B": [
+          "The scenario asserts that one muscle type is exclusively dependent on nervous-system signaling, while the source only affirmatively states skeletal muscle's dependence.",
+          "Defining excitability as capacity to be stimulated and describing nervous-system signaling as external stimulation add unsupported factual content."
+        ]
+      },
+      "decision": "A",
+      "rationale": "A makes the exact supported distinction with usable evidence and instructive feedback. B overclaims exclusivity, adds unsupported definitions, and repeats essentially the same assessment twice."
+    },
+    {
+      "caseId": "scion-kernel-7ef640fbcbe8cfa330843c26",
+      "pairId": "scion-kernel-pair-12eecff0bfe4512ce33289d4",
+      "artifactSha256": {
+        "A": "478263ca6df50fa8b4517c0880d9c24a651f90c19bd8a687d57ac8483392e3ef",
+        "B": "2333ecdc5746ab0d94b21d33dda4fc83798f0c58ae103322923cccef57580ecd"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "The lesson content is source-bound, but the first declared answer endorses numeric-position lookup contrary to the source."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "Terms and corrections are precise, but the erroneous first key undermines the taught dictionary distinction."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The program must classify a design using notation, labeling, duplicate-key, and lookup evidence."
+          },
+          "assessmentCorrectness": {
+            "score": 1,
+            "evidence": "The first key selects numeric-position lookup even though option zero and the explanation state key lookup."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "Both sets offer distinct alternatives, though several duplicate-key distractors are simple reversals."
+          },
+          "feedbackInstructionality": {
+            "score": 2,
+            "evidence": "Both explanations teach the source accurately, but the first directly conflicts with its declared answer."
+          },
+          "internalCoherence": {
+            "score": 1,
+            "evidence": "The first item's key contradicts its facts, cited fact, options, and explanation; the second item is coherent."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 1,
+            "evidence": "The first declared answer contradicts key lookup, and the scenario invents named Alice and Bob records."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "Definitions and corrections accurately reproduce the source, but one answer key reverses the retrieval method."
+          },
+          "scenarioReadiness": {
+            "score": 2,
+            "evidence": "The settings task has a uniqueness constraint, but the two named records do not test duplicates or support the later student contexts."
+          },
+          "assessmentCorrectness": {
+            "score": 1,
+            "evidence": "The first key selects numeric position while the explanation and source support the key-based option."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "Each item presents four distinct, parallel alternatives with one content-level answer supported by the source."
+          },
+          "feedbackInstructionality": {
+            "score": 2,
+            "evidence": "Explanations correctly teach key lookup and uniqueness, but the first contradicts the declared answer."
+          },
+          "internalCoherence": {
+            "score": 1,
+            "evidence": "The first answer key conflicts with its explanation, and the scenario shifts from settings to unrelated student examples."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "The first item declares option three, but option zero and the explanation correctly identify key lookup with curly-brace key-value notation."
+        ],
+        "B": [
+          "The first item declares numeric-position retrieval even though its explanation explicitly supports retrieval by key.",
+          "The Alice and Bob dictionary records are invented named examples outside the supplied claims."
+        ]
+      },
+      "decision": "A",
+      "rationale": "Both artifacts contain an incorrect first answer key. A is preferable because its scenario evidence is actionable and source-bound, whereas B also invents named records and shifts incoherently among settings, scores, and student IDs."
+    },
+    {
+      "caseId": "scion-kernel-8594178db3964746c3baf380",
+      "pairId": "scion-kernel-pair-8b87a6e8b6669f24a9b5ce99",
+      "artifactSha256": {
+        "A": "a009d6ffe08aa347bc89ad9a6d47738666c72be3ba7f4511d2ee0bc6208dad28",
+        "B": "e9ae40f4d75a560508a12b7f7ca9959fd16c2a24e3c807e63dcc61b646fcaf6b"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "Every claim, example, misconception, and answer is directly traceable to the supplied signaling facts."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "Hormones, target cells, receptors, binding, responses, and regulated processes remain accurately distinct."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The reviewer must distinguish targeting from initiation using receptor, binding, and response records under a deadline."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both declared answers are unique, source-supported, and consistent with their explanations."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "Each item has one clear answer, though several reversed-agent distractors are syntactically awkward."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Feedback explains the supported direction of regulation and directly repairs each reversed relationship."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "The scenario, terms, assessments, citations, and explanations consistently follow the signaling sequence."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "Source facts are copied accurately, but the patient case adds unsupported measurements and a diagnostic causal choice."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "Term content is accurate but largely repeats facts verbatim instead of adding distinct instructional definitions."
+          },
+          "scenarioReadiness": {
+            "score": 0,
+            "evidence": "No supplied threshold or mechanism lets the team infer signaling failure versus circulation failure from the measurements."
+          },
+          "assessmentCorrectness": {
+            "score": 2,
+            "evidence": "Declared answers are supported, but each item includes another factually true option, weakening unique correctness."
+          },
+          "choiceDiscriminability": {
+            "score": 2,
+            "evidence": "The first item includes a true response-regulation statement, and the second includes two accurate hormone descriptions."
+          },
+          "feedbackInstructionality": {
+            "score": 2,
+            "evidence": "Feedback restates the selected fact but does not explain why the closest accurate yet less specific option fails."
+          },
+          "internalCoherence": {
+            "score": 3,
+            "evidence": "Questions and keys agree with the facts, but they do not resolve the diagnostic decision posed by the scenario."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [],
+        "B": [
+          "The numerical fluid-balance and sleep measurements are unsupported by the source packet.",
+          "The scenario has no usable decision because supplied evidence cannot distinguish failure of hormone signaling from failure of circulation."
+        ]
+      },
+      "decision": "A",
+      "rationale": "A is source-complete, decision-ready, uniquely keyed, and instructionally coherent. B invents clinical measurements, poses an unsupported diagnosis, and uses assessment choices that are not cleanly discriminating."
+    },
+    {
+      "caseId": "scion-kernel-88e860d3d824b1109e0c8513",
+      "pairId": "scion-kernel-pair-a05b84b3c51becf73f8cd217",
+      "artifactSha256": {
+        "A": "3a13aac647676fe1274c5c4ab6c7778a89e42b91a7a44917d3a65f165213407f",
+        "B": "fc307c5984c2b97b27f684a13aa100110d93e6d948beaae26960bf093036ae2b"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "Facts, terminology, scenario evidence, answers, and examples remain within the three inductance claims."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "Inductance, inductor energy storage, changing flux, and back emf are accurately distinguished."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The group must classify observed current, flux, emf, and stored-energy evidence under an explicit labeling task."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both keys identify the complete supported distinctions and sequences without contradiction."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "The correct choices are unique, though some distractors are incomplete variants rather than independent misconceptions."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Feedback teaches the correct distinction or causal sequence and explains the closest swapped or incomplete alternative."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "Terms, scenario records, questions, citations, keys, and explanations consistently express the supplied relationships."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 1,
+            "evidence": "Exact facts coexist with unsupported numerical calculations, an inaccurate flux definition, and a false back-emf answer."
+          },
+          "knowledgePrecision": {
+            "score": 1,
+            "evidence": "Magnetic flux is imprecisely equated with magnetic field, and back emf is incorrectly treated as stored energy."
+          },
+          "scenarioReadiness": {
+            "score": 0,
+            "evidence": "The requested calculation cannot be performed from the supplied claims, and the stated current-change rates conflict."
+          },
+          "assessmentCorrectness": {
+            "score": 1,
+            "evidence": "The first answer is supported, but the second declares the false claim that back emf is stored magnetic energy."
+          },
+          "choiceDiscriminability": {
+            "score": 1,
+            "evidence": "The second item duplicates the same false alternative and provides no correct description of the requested relationship."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "The first explanation merely restates evidence, while the second reinforces the false energy and back-emf conflation."
+          },
+          "internalCoherence": {
+            "score": 0,
+            "evidence": "The facts say an inductor stores energy, but the second answer and explanation assign that energy to back emf."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [],
+        "B": [
+          "The scenario invents 50 mH, two current-change rates, a 10 A limit, and a back-emf calculation unsupported by any supplied formula.",
+          "The scenario provides no usable decision because the requested calculation cannot be completed from the source.",
+          "The second item incorrectly declares that back emf is energy stored in the magnetic field.",
+          "The second item repeats the same false alternative twice and offers no source-supported correct answer.",
+          "The second explanation contradicts the stated fact that an inductor, rather than back emf, stores energy in its magnetic field."
+        ]
+      },
+      "decision": "A",
+      "rationale": "A cleanly distinguishes the property, device, energy storage, and induced-emf sequence. B adds an impossible numerical task and contains a duplicated, incorrectly keyed item that contradicts its own facts."
+    }
+  ]
+}

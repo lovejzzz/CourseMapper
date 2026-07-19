@@ -1,0 +1,150 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-teacher-capture-v1",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "packetSha256": "0291e72fad62d2f751b69929e663789fda8ce976f31f3953ad4056318af5f03e",
+  "resultSha256": "57d8337b9525823589e4aaec0918d125f062570577f21aae65e913d1d514c806",
+  "reviser": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-source-cleanroom"
+  },
+  "calls": [
+    {
+      "caseId": "scion-kernel-4ed7b918a8ad0fe66ff45257",
+      "caseSha256": "4ed7b918a8ad0fe66ff45257cee336d04ba04ae32c440ac7b8de896e888f4886",
+      "arm": "teacher-revision",
+      "model": {
+        "model": "gpt-5.6-sol",
+        "revision": "codex-cli 0.144.5",
+        "runtime": "codex-cli-ephemeral-source-cleanroom"
+      },
+      "sourceContextSha256": "111199ea6b8c7f75d3a15bd3463ea0631dd739efe70f876336bd5a6394198d8b",
+      "originalArtifactSha256": "79e438a291466bcd40f3bae48780202084362dbb4dc04a571781caf7c214c333",
+      "artifact": {
+        "lessonId": "lesson-4",
+        "facts": [
+          "Electric potential is electric potential energy per unit charge; potential difference is the work per unit charge required to move between two points.",
+          "Only potential differences affect work and energy changes in electrostatics.",
+          "Electric field points in the direction of decreasing electric potential."
+        ],
+        "keyTerms": [
+          {
+            "tr": "Electric potential",
+            "df": "Electric potential is the quantity defined as electric potential energy per unit charge.",
+            "eg": "The phrase “electric potential energy per unit charge” is labeled electric potential.",
+            "mi": "Electric potential means the work per unit charge required to move between two points.",
+            "cx": "Work per unit charge for movement between points identifies potential difference instead."
+          },
+          {
+            "tr": "potential difference",
+            "df": "Potential difference is the work per unit charge required for movement between two points.",
+            "eg": "Moving between two points provides the context for identifying potential difference.",
+            "mi": "Potential difference is electric potential energy per unit charge at a point.",
+            "cx": "The between-points quantity is determined by required work per unit charge."
+          },
+          {
+            "tr": "Electric field",
+            "df": "Electric field has a direction that points toward decreasing electric potential.",
+            "eg": "A direction notation shows electric field pointing toward decreasing electric potential.",
+            "mi": "Electric field points in the direction of increasing electric potential.",
+            "cx": "Its indicated direction runs toward lower, rather than higher, electric potential."
+          }
+        ],
+        "scenario": {
+          "su": "Two passages must be classified: one states work per unit charge required to move between two points, and the other shows electric field pointing in the direction of decreasing electric potential. Decide whether each passage describes potential difference or electric field direction, with both classifications supported by the supplied relations.",
+          "ma": "Inspect the passage stating work per unit charge required to move between two points and the passage showing electric field pointing in the direction of decreasing electric potential. Classify the first as potential difference and the second as electric field direction."
+        },
+        "mc": [
+          {
+            "q": "A passage describes electric potential energy per unit charge, while another describes work per unit charge required to move between two points; which distinction matches these observations?",
+            "op": [
+              "Electric potential first, electric potential second",
+              "Electric potential first, potential difference second",
+              "Potential difference first, potential difference second",
+              "Potential difference first, electric potential second"
+            ],
+            "ai": 1,
+            "fi": [
+              0
+            ],
+            "ex": "Electric potential is electric potential energy per unit charge, whereas potential difference is work per unit charge required between two points. Reversing those labels swaps the two supplied relations."
+          },
+          {
+            "q": "In electrostatics, a group compares work and energy changes while tracking potential differences under a deadline; which observation identifies the quantity affecting those changes?",
+            "op": [
+              "Potential differences affect work and energy changes",
+              "Electric field affects work and energy changes",
+              "Electric potential affects work and energy changes",
+              "Energy changes affect potential differences and work"
+            ],
+            "ai": 0,
+            "fi": [
+              1
+            ],
+            "ex": "Potential differences affect work and energy changes in electrostatics. Assigning that relation to electric potential replaces the specified quantity with a different one."
+          }
+        ]
+      },
+      "artifactSha256": "0cefa531a6d92237affb4352710b732bd67420bb9547eaef8d913ea89f05a147",
+      "admission": {
+        "needsRetry": false,
+        "issues": []
+      },
+      "compilerRepairs": [
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-4",
+          "item": 0,
+          "permutation": [
+            2,
+            0,
+            3,
+            1
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 1,
+          "trainingEligible": false
+        },
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-4",
+          "item": 1,
+          "permutation": [
+            0,
+            2,
+            1,
+            3
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 0,
+          "trainingEligible": false
+        }
+      ],
+      "revisionEvidence": {
+        "packetSha256": "0291e72fad62d2f751b69929e663789fda8ce976f31f3953ad4056318af5f03e",
+        "sessionId": "scion-v01654-teacher-batch-002-89f6c008c4-060397e3-ad5e-4904-ae21-59d5818ea27b",
+        "changeSummary": [
+          "Replaced the unsupported named workshop in the scenario while preserving every lesson-kernel field not implicated by the diagnosis.",
+          "Revised both scenario fields to provide two inspectable passages, an explicit classification decision, and a source-bound constraint."
+        ],
+        "addressedDiagnoses": [
+          "Removed the invented name “Physics Fields, Circuits, and Induction Workshop” from the scenario."
+        ]
+      }
+    }
+  ],
+  "summary": {
+    "cases": 1,
+    "compilerAdmitted": 1,
+    "compilerRejected": 0
+  },
+  "claimBoundary": "These source-constrained model revisions cleared only deterministic compiler admission where stated. They are not judge preferences, human evidence, adapter wins, or training authorization.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6e11323d72068773e4e054ca124c6ba427d949a9992402224ae33b430f7151fe"
+  }
+}

@@ -342,6 +342,124 @@ describe('Scion Public provider', () => {
     expect(supportedAssessment.issues).not.toContain('lesson-9:scenario:source-unsupported-quantity');
   });
 
+  it('does not mistake task structure, sentence leads, course titles, or source-backed absolutes for hallucinations', () => {
+    const prompt = `Course: Physics Fields, Circuits, and Induction Workshop\nLessons:\n${JSON.stringify([
+      {
+        lessonId: 'lesson-9',
+        title: 'Muscle tissue comparison',
+        objectives: 'Distinguish the supplied observations without adding outside facts.',
+        topics:
+          "All three muscle tissue types share excitability. GDP is an observable proxy. Ohm relates voltage, current, and resistance. Earth's internal heat and the Sun are supplied terms.",
+        readings: 'Supplied comparison packet',
+      },
+    ])}\nReturn ONLY valid JSON.`;
+    const lesson = completeLesson({
+      scenario: {
+        su: 'A Physics Fields, Circuits, and Induction Workshop group compares two passages; one records material movement and the other records a surface observation.',
+        ma: 'Two supplied passage labels and one comparison decision.',
+      },
+    });
+    lesson.mc[0] = {
+      q: 'When GDP and the three muscle tissue types appear in two observations, which statement correctly distinguishes the two observations using only the supplied record?',
+      op: [
+        'All three muscle tissue types share excitability',
+        'GDP is identical to every construct',
+        'The tissue types lack a shared property',
+        'the Sun',
+      ],
+      ai: 0,
+      fi: [0],
+      ex: "Earth's internal heat is separate context. All three types are source-backed as excitable, while Treating Ohm as a study participant would add an unsupported role.",
+    };
+
+    const assessment = assessPublicScionKernelResponse(
+      JSON.stringify({ lessons: [lesson] }),
+      prompt,
+      'blueprintEnrichment',
+    );
+    expect(assessment.issues).not.toContain('lesson-9:scenario:unanchored-named-detail');
+    expect(assessment.issues).not.toContain('lesson-9:scenario:source-unsupported-quantity');
+    expect(assessment.issues).not.toContain('lesson-9:mc-0:unanchored-named-detail');
+    expect(assessment.issues).not.toContain('lesson-9:mc-0:source-unsupported-quantity');
+    expect(assessment.issues).not.toContain('lesson-9:mc-0:absolute-option');
+  });
+
+  it('rejects an explanation that moves a source predicate onto the wrong grammatical head', () => {
+    const claims = [
+      'A magnetic field describes magnetic influence in space and determines magnetic forces on moving charges and currents.',
+      'Magnetic field lines form closed loops and do not begin or end on isolated magnetic charges.',
+      'Currents produce magnetic fields.',
+    ];
+    const prompt = `Course: Magnetic Fields\nLessons:\n${JSON.stringify([
+      {
+        lessonId: 'lesson-9',
+        sourceFactPolicy: 'numbered-source-ledger-v1',
+        title: 'Magnetic field',
+        objectives: 'Use only the supplied claims.',
+        topics: claims.map((claim, index) => `Claim ${index}: ${claim}`).join(' '),
+        readings: 'Supplied magnetic-field packet',
+      },
+    ])}\nReturn ONLY valid JSON.`;
+    const lesson = completeLesson({ facts: claims });
+    lesson.mc[0] = {
+      q: 'One notation shows a magnetic field determining forces on moving charges, while another shows field lines closing on themselves. Which statement correctly distinguishes the two observations?',
+      op: [
+        'Magnetic fields determine forces; field lines close',
+        'Magnetic fields close; field lines determine forces',
+        'Magnetic forces determine fields; charges end lines',
+        'Currents determine forces; field lines produce fields',
+      ],
+      ai: 0,
+      fi: [0, 1],
+      ex: 'A magnetic field determines magnetic forces on moving charges, whereas magnetic field lines form closed loops. Field lines do not determine those forces while magnetic fields form the loops.',
+    };
+    const wrong = assessPublicScionKernelResponse(JSON.stringify({ lessons: [lesson] }), prompt, 'blueprintEnrichment');
+    expect(wrong.issues).toContain('lesson-9:mc-0:source-role-conflict');
+    expect(buildPublicScionRetryFeedback(wrong)).toContain('wrong subject');
+
+    lesson.mc[0].ex =
+      'A magnetic field determines magnetic forces on moving charges, whereas magnetic field lines form closed loops. Field lines form the loops and do not determine those forces.';
+    expect(
+      assessPublicScionKernelResponse(JSON.stringify({ lessons: [lesson] }), prompt, 'blueprintEnrichment').issues,
+    ).not.toContain('lesson-9:mc-0:source-role-conflict');
+
+    const hydrologicalClaims = [
+      "The rock cycle is driven by Earth's internal heat engine and the solar-powered hydrological cycle.",
+      "Earth's internal heat moves material through the core and mantle.",
+      'The hydrological cycle moves water, ice, and air at the surface and is powered by the Sun.',
+    ];
+    const hydrologicalPrompt = `Course: Rock Cycle\nLessons:\n${JSON.stringify([
+      {
+        lessonId: 'lesson-9',
+        sourceFactPolicy: 'numbered-source-ledger-v1',
+        title: 'Rock-cycle drivers',
+        objectives: 'Use only the supplied claims.',
+        topics: hydrologicalClaims.map((claim, index) => `Claim ${index}: ${claim}`).join(' '),
+        readings: 'Supplied rock-cycle packet',
+      },
+    ])}\nReturn ONLY valid JSON.`;
+    const hydrologicalLesson = completeLesson({ facts: hydrologicalClaims });
+    hydrologicalLesson.mc[0] = {
+      q: 'Water, ice, and air move at the surface, and the Sun supplies the power. Which classification matches the described movement and its stated source?',
+      op: [
+        'The solar-powered hydrological cycle',
+        "Earth's internal heat engine",
+        'Material moving through the core and mantle',
+        'Continuing transformation of crustal materials',
+      ],
+      ai: 0,
+      fi: [0, 2],
+      ex: "The hydrological cycle matches because it moves water, ice, and air at the surface and is powered by the Sun. Earth's internal heat instead moves material through the core and mantle.",
+    };
+    expect(
+      assessPublicScionKernelResponse(
+        JSON.stringify({ lessons: [hydrologicalLesson] }),
+        hydrologicalPrompt,
+        'blueprintEnrichment',
+      ).issues,
+    ).not.toContain('lesson-9:mc-0:source-role-conflict');
+  });
+
   it('rejects a punctuated fact that ends with a dangling learner-description adjective', () => {
     const prompt = `Course: Interface Design\nLessons:\n[{"lessonId":"lesson-9","title":"Wireframes"}]\nReturn ONLY valid JSON.`;
     const lesson = completeLesson();

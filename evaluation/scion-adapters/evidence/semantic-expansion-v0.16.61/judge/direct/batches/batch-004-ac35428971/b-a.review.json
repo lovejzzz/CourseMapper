@@ -1,0 +1,504 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-review-v1",
+  "order": "B/A",
+  "packetSha256": "815f44cc74bbe3481ce4afe88a4a82df5b2811857c3da957106e077106d97187",
+  "sessionId": "scion-v01654-batch-004-ac35428971-b-a-8ef0b796-6239-4818-a42c-70fcacdd6217",
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "completedAt": "2026-07-19T21:00:00.000Z",
+  "attestations": {
+    "anonymousArtifactsOnly": true,
+    "otherOrderUnavailable": true,
+    "organizerMappingUnavailable": true
+  },
+  "decisions": [
+    {
+      "caseId": "scion-kernel-8ed67c4df21f0027a46ac281",
+      "pairId": "scion-kernel-pair-e764cefb79ba569ed31bc993",
+      "artifactSha256": {
+        "A": "3b2005b930ddc6cb35ac5e7383653df536a2ffa5d35560364facb31c62cf8a45",
+        "B": "d98ce77359cd38b3552ce16f4fda3dacdef92137c7fba58c4b68a16abdd92edb"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "All facts, definitions, examples, questions, and explanations stay within the three supplied volcanism claims."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "The terms accurately distinguish decompression melting, flux melting, and pressure-driven partial melting at a ridge."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The ridge-classification decision uses inspectable mantle-motion and pressure evidence under a stated deadline."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both keyed answers uniquely match their cited claims: option 2 in each question."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "Both questions offer four distinct process or pressure classifications without duplicate alternatives."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation states the supporting relationship and directly repairs the closest reversal misconception."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "Facts, terms, scenario evidence, keys, citations, and explanations consistently distinguish the melting mechanisms."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "The copied facts and terms are faithful, but the second key selects decompression at a convergent boundary against the source."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "The term definitions correctly assign the mechanisms, although the second assessment misidentifies the convergent-boundary mechanism."
+          },
+          "scenarioReadiness": {
+            "score": 3,
+            "evidence": "The scenario supplies two settings and a source-only constraint, but its materials are an instruction to compare rather than recorded evidence."
+          },
+          "assessmentCorrectness": {
+            "score": 0,
+            "evidence": "The convergent-boundary question keys option 0, while the cited fact and explanation identify option 1, flux melting."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "The alternatives are generally distinct, though the first question includes two accurate ridge descriptions under a condition-focused stem."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "Both explanations state a relevant fact but end with literal placeholder text directing the writer to correct a distractor."
+          },
+          "internalCoherence": {
+            "score": 1,
+            "evidence": "The second key directly contradicts both the supplied fact and its own explanation, and the feedback remains unfinished."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [],
+        "B": [
+          "The second question declares decompression melting at the convergent boundary even though the cited fact and explanation require flux melting.",
+          "Both explanations contain unexecuted placeholder instructions instead of completed misconception feedback."
+        ]
+      },
+      "decision": "A",
+      "rationale": "A is fully source-bound, gives an evidence-driven classification scenario, and has two coherent assessments with completed feedback. B has an incorrect declared answer that contradicts its citation and explanation, plus unfinished instructional text."
+    },
+    {
+      "caseId": "scion-kernel-a84a171ff6419a1eeeff9d2e",
+      "pairId": "scion-kernel-pair-3d5041d7f377f05e890d7c4a",
+      "artifactSha256": {
+        "A": "cfece01a97bec52e3e62e43641d6967f9350a13aa0ea0db08fb7d121e65cd73b",
+        "B": "d81aaf0d047e8141267664bd8679cfca631e7289a8a542520a58fe2cf6469daf"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "The facts, term content, scenario observations, and answers all derive directly from the five supplied Python claims."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "The artifact accurately separates data types, implicit promotion, int() conversion, true division, and floor division."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The learner must label three observed behaviors using explicit notation, displayed results, and a deadline constraint."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Option 2 is uniquely supported in both questions by the cited division and int() facts."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "The choices are parallel and plausible, but 'remainder removal' closely resembles the keyed 'fractional-part removal' in question two."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation justifies the answer and explicitly repairs the closest reversed or wrong-type alternative."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "The terminology, observations, answer keys, citations, and explanations consistently apply the supplied type rules."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "The artifact adds an unsupported cost-and-tax application and an explanation claiming mixed expressions always produce floats because division is default."
+          },
+          "knowledgePrecision": {
+            "score": 2,
+            "evidence": "Several definitions are sound, but one misconception is not genuinely false and the first explanation appends a false generalization."
+          },
+          "scenarioReadiness": {
+            "score": 2,
+            "evidence": "The integer-ledger decision and tax calculation are not reconciled with the materials, which only compare 100.50 / 2 and // 2."
+          },
+          "assessmentCorrectness": {
+            "score": 2,
+            "evidence": "Both keys select supported answers, but the first explanation then affirms an unsupported competing claim about always obtaining a float."
+          },
+          "choiceDiscriminability": {
+            "score": 2,
+            "evidence": "Correct options largely repeat source wording, while several distractors are implausible or internally malformed."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "The first feedback joins the correct rule to a false distractor assertion, and the second is repetitive rather than corrective."
+          },
+          "internalCoherence": {
+            "score": 2,
+            "evidence": "The keys are correct, but the scenario is poorly aligned and the first explanation conflicts with the general mixed-expression question."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [],
+        "B": [
+          "The first explanation appends the unsupported claim that a mixed expression always yields a float because division is the default behavior.",
+          "The cost-and-tax scenario introduces numeric application details not supplied by the source claims."
+        ]
+      },
+      "decision": "A",
+      "rationale": "A provides precise distinctions, an inspectable labeling task, correct keys, and genuinely corrective feedback. B's keys are nominally correct, but its scenario adds unsupported detail and its first explanation affirms a false competing generalization."
+    },
+    {
+      "caseId": "scion-kernel-becf20842df8b3de34276971",
+      "pairId": "scion-kernel-pair-90b578a4b771f13460618586",
+      "artifactSha256": {
+        "A": "c3c5384b7410a750f0dbd213cc628772c9d638f6728416233b099c767b1d7ef7",
+        "B": "f81de504fcd4ca72bc829eec1776b29224c51468fae45c987ebdd081a58705fb"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 3,
+            "evidence": "The artifact otherwise follows the three claims, but the first explanation wrongly says homeostasis anchors fluctuations."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "The key terms accurately distinguish homeostasis, set point, and feedback-loop components despite one erroneous feedback sentence."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The reviewer has a deadline, two concrete notations, and a clear decision about model type and loop identity."
+          },
+          "assessmentCorrectness": {
+            "score": 2,
+            "evidence": "Both keys are supported, but the first explanation ends by assigning fluctuation anchoring to homeostasis rather than the set point."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "The alternatives are distinct and parallel, although the complete-loop answer is easier to spot than the incomplete component pairs."
+          },
+          "feedbackInstructionality": {
+            "score": 2,
+            "evidence": "The second explanation is corrective, but the first introduces the very relationship reversal it should repair."
+          },
+          "internalCoherence": {
+            "score": 2,
+            "evidence": "The first key and opening explanation are correct, but the closing sentence contradicts the term definitions and selected distinction."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 1,
+            "evidence": "The artifact invents temperature, cooling, and vasodilation details and falsely states that the set point itself is fluctuating."
+          },
+          "knowledgePrecision": {
+            "score": 1,
+            "evidence": "The set-point correction is inaccurate, and both assessments confuse the mechanism or component named in their stems."
+          },
+          "scenarioReadiness": {
+            "score": 2,
+            "evidence": "The scenario contains observable components and a deviation, but offers no clear learner decision and relies on unsupported physiological details."
+          },
+          "assessmentCorrectness": {
+            "score": 0,
+            "evidence": "Question one keys the set-point definition instead of negative feedback, and question two keys the set point instead of a loop component."
+          },
+          "choiceDiscriminability": {
+            "score": 2,
+            "evidence": "The options name distinct concepts, but the keys do not select the answers responsive to either stem."
+          },
+          "feedbackInstructionality": {
+            "score": 0,
+            "evidence": "The explanations merely concatenate all three source facts and do not justify the declared answers or repair misconceptions."
+          },
+          "internalCoherence": {
+            "score": 0,
+            "evidence": "Both declared answers conflict with their stems, options, and explanations, while the set-point correction also contradicts the source."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "The first explanation contradicts its keyed distinction by saying homeostasis, rather than the set point, anchors fluctuations."
+        ],
+        "B": [
+          "The first question incorrectly declares the set-point definition instead of the negative-feedback mechanism.",
+          "The second question incorrectly declares the set point as the component that processes sensor information.",
+          "The set-point correction falsely says the set point itself is a fluctuating value.",
+          "The scenario introduces unsupported temperature-control and vasodilation claims."
+        ]
+      },
+      "decision": "A",
+      "rationale": "A has one localized explanation contradiction but otherwise supplies precise terms, a usable classification scenario, and correct keys. B contains two incorrect declared answers, unsupported physiology details, an inaccurate set-point correction, and non-instructional feedback."
+    },
+    {
+      "caseId": "scion-kernel-bf7c2cbf2045087ba349c0c3",
+      "pairId": "scion-kernel-pair-b9799a8ad1951250a25c05a3",
+      "artifactSha256": {
+        "A": "7aaeaebbeb5e8aadf94351223750a58cb140937c22865af06600f39f64b996f2",
+        "B": "89543c9bb19e9729a3ec3bb74881283c861bc10a3db2f7ed3743a9d227aa159a"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 3,
+            "evidence": "Most content closely follows the claims, but the second explanation treats reciprocal proportionality wording as factually different."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "The terms accurately separate resistance, Ohm's law, and fixed temperature, aside from the directional treatment of proportionality."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The workshop must classify two recorded relations using explicit evidence and a real deadline constraint."
+          },
+          "assessmentCorrectness": {
+            "score": 2,
+            "evidence": "Question one is sound, but question two presents current proportional to voltage and voltage proportional to current as different answers."
+          },
+          "choiceDiscriminability": {
+            "score": 2,
+            "evidence": "The second question contains two mathematically equivalent proportionality alternatives, making the keyed choice non-unique."
+          },
+          "feedbackInstructionality": {
+            "score": 2,
+            "evidence": "The first explanation repairs a role swap, but the second incorrectly rejects an equivalent reciprocal proportionality statement."
+          },
+          "internalCoherence": {
+            "score": 2,
+            "evidence": "The artifact is coherent except where the second choices and explanation conflict with the meaning of direct proportionality."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 1,
+            "evidence": "It adds an unsupported copper-versus-silver comparison and asks for directional resistance effects absent from the supplied dependencies."
+          },
+          "knowledgePrecision": {
+            "score": 1,
+            "evidence": "The assessments misuse proportionality and infer how area, length, and temperature change resistance without supplied directional rules."
+          },
+          "scenarioReadiness": {
+            "score": 2,
+            "evidence": "The setup includes measurements and a manipulation, but the stated decision and materials do not align and require unsupported relations."
+          },
+          "assessmentCorrectness": {
+            "score": 0,
+            "evidence": "Question one keys inverse rather than direct proportionality, while question two has no supported option for halving current at fixed voltage."
+          },
+          "choiceDiscriminability": {
+            "score": 1,
+            "evidence": "The first key is wrong, and every second-question alternative is unsupported or moves resistance in the wrong stated direction."
+          },
+          "feedbackInstructionality": {
+            "score": 0,
+            "evidence": "Each explanation strings together mutually contradictory alternatives without explaining support or correcting a misconception."
+          },
+          "internalCoherence": {
+            "score": 0,
+            "evidence": "Both keys conflict with the supplied relationships, and the explanations repeat incompatible choices rather than resolve them."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "The second question duplicates the same direct-proportionality relationship as 'current is proportional to voltage' and 'voltage is proportional to current,' making the answer ambiguous."
+        ],
+        "B": [
+          "The first question declares inverse proportionality even though the cited fact states direct proportionality.",
+          "The second question declares increased cross-sectional area despite having no source-supported correct option for halving current at fixed voltage.",
+          "The copper-versus-silver resistance comparison is an invented, unqualified example absent from the source.",
+          "Both explanations concatenate contradictory alternatives rather than provide completed instructional feedback."
+        ]
+      },
+      "decision": "A",
+      "rationale": "A has a significant duplicate-alternative defect in its second assessment but otherwise remains accurate and scenario-ready. B has two invalid answer keys, unsupported directional claims, invented comparison detail, and incoherent feedback."
+    },
+    {
+      "caseId": "scion-kernel-c6d826e4fc868a6fa9ef434f",
+      "pairId": "scion-kernel-pair-9edfa5afada2c3aba5766ace",
+      "artifactSha256": {
+        "A": "a522a81a065377f9f55d2d657f3de2f872d7c8d42f8d8655d78f07915f8deecf",
+        "B": "9baea45054f6d0f009a57290211e924e1c8f310026d681a3bc7d62e5cb0c82ff"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "All instructional claims, examples, scenario evidence, answers, and explanations remain within the three scale claims."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "The definitions precisely distinguish the major pattern, natural minor, the seventh degree, and the subtonic label."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The editor must classify displayed step relations under a deadline using two explicit, inspectable notations."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both declared answers are uniquely supported by the cited major-pattern and natural-minor claims."
+          },
+          "choiceDiscriminability": {
+            "score": 2,
+            "evidence": "Question one repeats the same false pairing in options 0 and 3 with only the clause order reversed."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Both explanations identify the governing interval relation and directly correct the closest label or scale reversal."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "Terms, scenario observations, keys, citations, and explanations consistently distinguish major from natural minor."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 3,
+            "evidence": "Most content repeats the supplied claims, but the C-major composition setup is an added named application not present in the source."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "The central definitions are accurate, though the major-pattern misconception is vague and its correction merely restates the definition."
+          },
+          "scenarioReadiness": {
+            "score": 3,
+            "evidence": "The composer has a mode decision, explicit patterns, and a constraint, though being in C major while choosing the mode is awkward."
+          },
+          "assessmentCorrectness": {
+            "score": 0,
+            "evidence": "Question one has multiple supported characteristics, and question two keys the sixth degree even though the cited fact says seventh degree."
+          },
+          "choiceDiscriminability": {
+            "score": 1,
+            "evidence": "Several first-question options are true, while the second question's declared answer is a plainly false degree label."
+          },
+          "feedbackInstructionality": {
+            "score": 0,
+            "evidence": "Both explanations retain placeholder instructions, and the second explanation contradicts its declared sixth-degree answer."
+          },
+          "internalCoherence": {
+            "score": 0,
+            "evidence": "The first assessment is ambiguous, the second key contradicts its citation and explanation, and both feedback strings are unfinished."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "Options 0 and 3 in the first question are semantically duplicate alternatives with their clauses merely reversed."
+        ],
+        "B": [
+          "The first question has multiple source-supported alternatives and therefore no unique correct answer.",
+          "The second question incorrectly declares the sixth degree even though the source and explanation identify the seventh degree as subtonic.",
+          "Both explanations contain unexecuted placeholder instructions instead of completed misconception feedback."
+        ]
+      },
+      "decision": "A",
+      "rationale": "A is accurate, scenario-ready, and correctly keyed, with one duplicated-distractor defect. B has an ambiguous first item, an incorrect second key that contradicts its citation, and unfinished feedback in both questions."
+    },
+    {
+      "caseId": "scion-kernel-caca037b2c9e892b84404b0b",
+      "pairId": "scion-kernel-pair-65083a57c7918c7962e919e3",
+      "artifactSha256": {
+        "A": "ff670980b3c7f55fab2dfd738f2fa4f61317d95ce64c85bf7205386d175c98e1",
+        "B": "34c29dc5cb71bd53611df8b5e857c49216b965aee444aa0ba4149b4e3c5bdc73"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "The facts, examples, scenario descriptions, questions, and explanations remain within the three plate-tectonics claims."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "The key terms clearly distinguish the plate-tectonics model, lithosphere composition, and moving tectonic plates."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The editor must classify two concrete descriptions before publication using listed passages and structural notation."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Option 3 is correctly keyed in both questions and directly supported by the cited model claims."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "The choices are distinct, though the first keyed option states only the model half of the requested two-part distinction."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation supports the selected relationship and explicitly corrects the nearest role reversal."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "The terms, evidence, questions, keys, citations, and explanations consistently preserve model-versus-structure distinctions."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 3,
+            "evidence": "The central content follows the claims, but the active regional observation and self-referential plate correction add imprecision."
+          },
+          "knowledgePrecision": {
+            "score": 2,
+            "evidence": "Most definitions are accurate, but the lithospheric-plates correction says plates are divided into moving tectonic plates."
+          },
+          "scenarioReadiness": {
+            "score": 2,
+            "evidence": "The geological observations are inspectable, but the setup states no concrete classification or disciplinary decision for the learner."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both declared answers match their cited claims about explained features and moving lithospheric plates."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "The options are mostly distinct and plausible, although the first scenario mentions features represented by more than one distractor."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "Both explanations state the answer but leave literal instructions to correct a distractor instead of doing so."
+          },
+          "internalCoherence": {
+            "score": 3,
+            "evidence": "The keys agree with the facts, but one term correction is self-referential and the explanations are unfinished."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [],
+        "B": [
+          "Both assessment explanations contain unexecuted placeholder instructions instead of completed misconception feedback."
+        ]
+      },
+      "decision": "A",
+      "rationale": "A offers more precise terminology, a genuine publication decision, correct assessments, and completed corrective explanations. B's keys are correct, but its scenario lacks a usable decision, one correction is self-referential, and both feedback strings are unfinished."
+    }
+  ]
+}

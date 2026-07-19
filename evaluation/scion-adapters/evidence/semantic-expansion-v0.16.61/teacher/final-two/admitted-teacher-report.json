@@ -1,0 +1,338 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-teacher-capture-v1",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "reviser": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-source-cleanroom"
+  },
+  "calls": [
+    {
+      "caseId": "scion-kernel-1711f0b21d56aa4e046c9307",
+      "caseSha256": "1711f0b21d56aa4e046c9307efa90ea84a07ded7cc476da9eaf530d193d9337e",
+      "arm": "teacher-revision",
+      "model": {
+        "model": "gpt-5.6-sol",
+        "revision": "codex-cli 0.144.5",
+        "runtime": "codex-cli-ephemeral-source-cleanroom"
+      },
+      "sourceContextSha256": "70d2dc8e65efa6974c84f9ace810bd1b0db26873d5225407a44b48ed2507046b",
+      "originalArtifactSha256": "e6b35fb67e5d88ed60c8cd43d9e2ce3df5ac6939f57aeab77f771620c696d7e6",
+      "artifact": {
+        "lessonId": "lesson-5",
+        "facts": [
+          "The rock cycle describes the continuing transformation of crustal materials and is driven by Earth's internal heat engine and the solar-powered hydrological cycle.",
+          "Earth's internal heat moves material through the core and mantle and contributes to changes within the crust.",
+          "The hydrological cycle moves water, ice, and air at the surface and is powered by the Sun."
+        ],
+        "keyTerms": [
+          {
+            "tr": "rock cycle",
+            "df": "The rock cycle is the continuing transformation of crustal materials.",
+            "eg": "Earth's internal heat engine and the solar-powered hydrological cycle drive the rock cycle.",
+            "mi": "The rock cycle is powered by the Sun alone.",
+            "cx": "The Sun powers the hydrological cycle, while Earth's internal heat moves material through the core and mantle as another rock-cycle driver."
+          },
+          {
+            "tr": "internal heat",
+            "df": "Internal heat is an Earth driver that moves material through the core and mantle.",
+            "eg": "Earth's internal heat contributes to changes within the crust.",
+            "mi": "Earth's internal heat moves water, ice, and air at the surface.",
+            "cx": "The hydrological cycle moves water, ice, and air at the surface."
+          },
+          {
+            "tr": "hydrological cycle",
+            "df": "The hydrological cycle is a Sun-powered driver that moves water, ice, and air at the surface.",
+            "eg": "The Sun powers the hydrological cycle at Earth's surface.",
+            "mi": "The hydrological cycle moves material through the core and mantle.",
+            "cx": "Earth's internal heat moves material through the core and mantle."
+          }
+        ],
+        "scenario": {
+          "su": "A student must label two passages before a deadline: one records material moving through the core and mantle, while the other records water, ice, and air moving at the surface. The labels must distinguish Earth's internal heat from the hydrological cycle using the recorded locations and materials.",
+          "ma": "core-and-mantle material passage, surface water-ice-air notation, Sun-powered cycle observation"
+        },
+        "mc": [
+          {
+            "q": "A record pairs one driver with material moving through the core and mantle and a second driver with water, ice, and air moving at the surface. Which pairing matches the stated rock-cycle drivers?",
+            "op": [
+              "Crustal materials; core and mantle",
+              "Earth's internal heat; solar-powered hydrological cycle",
+              "Hydrological cycle; Earth's internal heat",
+              "Water, ice, and air; the Sun"
+            ],
+            "ai": 1,
+            "fi": [
+              1,
+              2
+            ],
+            "ex": "Earth's internal heat is the driver associated with material moving through the core and mantle, and the solar-powered hydrological cycle is the driver associated with surface movement of water, ice, and air. The reversed pairing assigns each driver to the other driver's stated movement."
+          },
+          {
+            "q": "A record identifies water, ice, and air moving at the surface and notes power from the Sun; under a one-label constraint, which classification fits the complete observation?",
+            "op": [
+              "Label it Earth's internal heat engine",
+              "Label Sun as powered by hydrological cycle",
+              "Label it hydrological cycle moving mantle material",
+              "Label it the solar-powered hydrological cycle"
+            ],
+            "ai": 3,
+            "fi": [
+              2
+            ],
+            "ex": "The hydrological cycle moves water, ice, and air at the surface and is powered by the Sun. Earth's internal heat instead moves material through the core and mantle."
+          }
+        ]
+      },
+      "artifactSha256": "b99871993bee0f563d54738e54c1b56d83245a486bd97f12d869cd3a76de3d70",
+      "admission": {
+        "needsRetry": false,
+        "issues": []
+      },
+      "compilerRepairs": [
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-5",
+          "item": 0,
+          "permutation": [
+            2,
+            0,
+            1,
+            3
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 1,
+          "trainingEligible": false
+        },
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-5",
+          "item": 1,
+          "permutation": [
+            1,
+            2,
+            3,
+            0
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 3,
+          "trainingEligible": false
+        }
+      ],
+      "revisionEvidence": {
+        "packetSha256": "fbb7c61cc05fa6d7c51349ff54eac0c02445b17fa77815d997489e2f443bbd18",
+        "sessionId": "scion-v01654-teacher-batch-001-6c8e61467e-0619c306-3287-4cdf-94e1-83007872914d",
+        "changeSummary": [
+          "Re-authored the complete first multiple-choice item to correct its source-fact key mismatch and make one pairing uniquely supported."
+        ],
+        "addressedDiagnoses": [
+          "Removed the competing supported alternative from the first item by making each distractor false or inapplicable under the cited claims."
+        ]
+      }
+    },
+    {
+      "caseId": "scion-kernel-4ed7b918a8ad0fe66ff45257",
+      "caseSha256": "4ed7b918a8ad0fe66ff45257cee336d04ba04ae32c440ac7b8de896e888f4886",
+      "arm": "teacher-revision",
+      "model": {
+        "model": "gpt-5.6-sol",
+        "revision": "codex-cli 0.144.5",
+        "runtime": "codex-cli-ephemeral-source-cleanroom"
+      },
+      "sourceContextSha256": "111199ea6b8c7f75d3a15bd3463ea0631dd739efe70f876336bd5a6394198d8b",
+      "originalArtifactSha256": "0cefa531a6d92237affb4352710b732bd67420bb9547eaef8d913ea89f05a147",
+      "artifact": {
+        "lessonId": "lesson-4",
+        "facts": [
+          "Electric potential is electric potential energy per unit charge; potential difference is the work per unit charge required to move between two points.",
+          "Only potential differences affect work and energy changes in electrostatics.",
+          "Electric field points in the direction of decreasing electric potential."
+        ],
+        "keyTerms": [
+          {
+            "tr": "Electric potential",
+            "df": "Electric potential is the quantity defined as electric potential energy per unit charge.",
+            "eg": "The phrase “electric potential energy per unit charge” is labeled electric potential.",
+            "mi": "Electric potential means the work per unit charge required to move between two points.",
+            "cx": "Work per unit charge for movement between points identifies potential difference instead."
+          },
+          {
+            "tr": "potential difference",
+            "df": "Potential difference is the work per unit charge required for movement between two points.",
+            "eg": "Moving between two points provides the context for identifying potential difference.",
+            "mi": "Potential difference is electric potential energy per unit charge at a point.",
+            "cx": "The between-points quantity is determined by required work per unit charge."
+          },
+          {
+            "tr": "Electric field",
+            "df": "Electric field has a direction that points toward decreasing electric potential.",
+            "eg": "A direction notation shows electric field pointing toward decreasing electric potential.",
+            "mi": "Electric field points in the direction of increasing electric potential.",
+            "cx": "Its indicated direction runs toward lower, rather than higher, electric potential."
+          }
+        ],
+        "scenario": {
+          "su": "Two passages must be classified: one states work per unit charge required to move between two points, and the other shows electric field pointing in the direction of decreasing electric potential. Decide whether each passage describes potential difference or electric field direction, with both classifications supported by the supplied relations.",
+          "ma": "Inspect the passage stating work per unit charge required to move between two points and the passage showing electric field pointing in the direction of decreasing electric potential. Classify the first as potential difference and the second as electric field direction."
+        },
+        "mc": [
+          {
+            "q": "A passage describes electric potential energy per unit charge, while another describes work per unit charge required to move between two points; which distinction matches these observations?",
+            "op": [
+              "Electric potential first, potential difference second",
+              "Potential difference first, potential difference second",
+              "Potential difference first, electric potential second",
+              "Electric potential first, electric potential second"
+            ],
+            "ai": 0,
+            "fi": [
+              0
+            ],
+            "ex": "Electric potential matches electric potential energy per unit charge, while potential difference matches work per unit charge between points. Calling both descriptions electric potential confuses the second relation with the first."
+          },
+          {
+            "q": "In electrostatics, a group compares work and energy changes while tracking potential differences under a deadline; which observation identifies the quantity affecting those changes?",
+            "op": [
+              "Energy changes affect potential differences and work",
+              "Electric potential affects work and energy changes",
+              "Electric field affects work and energy changes",
+              "Potential differences affect work and energy changes"
+            ],
+            "ai": 3,
+            "fi": [
+              1
+            ],
+            "ex": "Potential differences affect work and energy changes in electrostatics. Assigning that relation to electric potential replaces the specified quantity with a different one."
+          }
+        ]
+      },
+      "artifactSha256": "6b44f2c15963412ce8dbd9e273aa5e4d4c5f5f7b816ec4092ddd016dedabae84",
+      "admission": {
+        "needsRetry": false,
+        "issues": []
+      },
+      "compilerRepairs": [
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-4",
+          "item": 0,
+          "permutation": [
+            0,
+            2,
+            3,
+            1
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 0,
+          "trainingEligible": false
+        },
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-4",
+          "item": 1,
+          "permutation": [
+            3,
+            2,
+            1,
+            0
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 3,
+          "trainingEligible": false
+        }
+      ],
+      "revisionEvidence": {
+        "packetSha256": "7b47516550187bf57d1592a8a7b7842847192a7018adaa0785f540e0e94ed3e3",
+        "sessionId": "scion-v01654-teacher-batch-001-4cf7891686-9839b5d4-b710-49ee-b245-70d6ad6a9c03",
+        "changeSummary": [
+          "Moved the uniquely supported option in the first assessment item to the required first position and revised its explanation to correct one closest distractor."
+        ],
+        "addressedDiagnoses": [
+          "No critical defects were reported; the first assessment item was normalized to the required answer-first format."
+        ]
+      }
+    }
+  ],
+  "batchReports": [
+    {
+      "batchId": "batch-001-6c8e61467e",
+      "packetSha256": "fbb7c61cc05fa6d7c51349ff54eac0c02445b17fa77815d997489e2f443bbd18",
+      "resultSha256": "a720b0ebb5259f0b1ad9e1ca8cdb5a52e2f2918e4e5ab94b9a7a9d75201c2fcb",
+      "reportSha256": "2901ec1a890d96731a125415f69af5e619f782e92680d3ca3043875d856f4781",
+      "summary": {
+        "cases": 1,
+        "compilerAdmitted": 1,
+        "compilerRejected": 0
+      },
+      "sourceReportSha256": "bfbcb31ac106ac65398cca3727391a05658074c31944c1e2feb5f8eda95e0d8f",
+      "sourceWorkbookSha256": "c5122bf06c13ce094cae9746a1b00846f64538f0b313175ef61883d946f47207"
+    },
+    {
+      "batchId": "batch-001-4cf7891686",
+      "packetSha256": "7b47516550187bf57d1592a8a7b7842847192a7018adaa0785f540e0e94ed3e3",
+      "resultSha256": "15145ab756249e034cf3f98d228d67ee41eac85bb6f61bb9896466096ec4baec",
+      "reportSha256": "55a2d0f126b8ec8cea3139ffab5d937cb909c8fb8d31bd8378d9b8e2d995831d",
+      "summary": {
+        "cases": 1,
+        "compilerAdmitted": 1,
+        "compilerRejected": 0
+      },
+      "sourceReportSha256": "081d5c9de0af974afb7105c43760ef45c18b7f600e4e8b44334287a2c9a5357e",
+      "sourceWorkbookSha256": "1a2611fa87e989c3a1acf879fb0329d91d2a7be00a836e37c62f80f86a8686c6"
+    }
+  ],
+  "sourceReports": [
+    {
+      "index": 1,
+      "path": "verification-output/scion-lesson-kernel-teacher-revision-v8-v0.16.61-expansion-2-pass-3/teacher-report.json",
+      "reportSha256": "bfbcb31ac106ac65398cca3727391a05658074c31944c1e2feb5f8eda95e0d8f",
+      "workbookSha256": "c5122bf06c13ce094cae9746a1b00846f64538f0b313175ef61883d946f47207",
+      "compilerAdmitted": 1,
+      "compilerRejected": 0,
+      "mergedCandidates": 1,
+      "excludedDirectQualified": 0,
+      "caseIds": [
+        "scion-kernel-1711f0b21d56aa4e046c9307"
+      ]
+    },
+    {
+      "index": 2,
+      "path": "verification-output/scion-lesson-kernel-teacher-revision-v8-v0.16.61-expansion-2-judge-repair/teacher-report.json",
+      "reportSha256": "081d5c9de0af974afb7105c43760ef45c18b7f600e4e8b44334287a2c9a5357e",
+      "workbookSha256": "1a2611fa87e989c3a1acf879fb0329d91d2a7be00a836e37c62f80f86a8686c6",
+      "compilerAdmitted": 1,
+      "compilerRejected": 0,
+      "mergedCandidates": 1,
+      "excludedDirectQualified": 0,
+      "caseIds": [
+        "scion-kernel-4ed7b918a8ad0fe66ff45257"
+      ]
+    }
+  ],
+  "merge": {
+    "protocol": "scion-lesson-kernel-teacher-report-merge-v2",
+    "sourceReportCount": 2,
+    "admissionPolicy": "compiler-admitted-non-direct-qualified-only",
+    "exclusion": {
+      "qualifiedCases": 0,
+      "evidence": null
+    }
+  },
+  "summary": {
+    "cases": 2,
+    "compilerAdmitted": 2,
+    "compilerRejected": 0,
+    "excludedCompilerRejected": 0,
+    "excludedDirectQualified": 0,
+    "sourceReports": 2
+  },
+  "claimBoundary": "This merge contains unique compiler-admitted source-constrained teacher revisions that do not already have direct-qualified evidence. Every artifact still requires fresh anonymous paired-order judgment and is not human evidence, adapter-win evidence, or training authorization.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "9a8098a593bd35a48e8a5af488c1192e1d637d438a9028d04f4e231de7a0bbf7"
+  }
+}

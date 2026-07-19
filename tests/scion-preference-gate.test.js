@@ -10,6 +10,7 @@ import {
   deriveDeterministicContractEvidence,
   findScionExplanationKeyConflict,
 } from '../src/lib/scionPreferenceGate';
+import { findScionMultipleSourceSupportedOptions } from '../src/lib/scionAnswerKeyAlignment.js';
 import { attachEnrichmentToGraph } from '../src/lib/courseGraph/blueprintFromGraph.js';
 import {
   assessCorpusRow,
@@ -75,6 +76,53 @@ function goodLesson() {
 }
 
 describe('Scion preference admission gate', () => {
+  it('binds source-supported options by relation order and honors an explicitly incomplete distractor', () => {
+    const magneticClaims = [
+      'A magnetic field describes magnetic influence in space and determines magnetic forces on moving charges and currents.',
+      'Magnetic field lines form closed loops and do not begin or end on isolated magnetic charges.',
+      'Currents produce magnetic fields.',
+    ];
+    const magneticItem = {
+      q: 'A workshop record pairs a current with a magnetic field, but the label must state one warranted production relation. Which label correctly describes the recorded case?',
+      op: [
+        'Currents produce magnetic fields',
+        'Magnetic fields produce currents',
+        'Currents produce magnetic forces',
+        'Magnetic forces produce currents',
+      ],
+      ai: 0,
+      ex: 'The recorded current supports the statement that currents produce magnetic fields. The reversed label is incorrect because magnetic fields are not identified as producing currents.',
+    };
+    expect(
+      findScionMultipleSourceSupportedOptions(magneticItem, {
+        sourceClaims: magneticClaims,
+        allowBroadSourceContext: true,
+      }),
+    ).toBeNull();
+
+    const inductanceItem = {
+      q: 'A current notation shows changing current, and a flux notation shows changing magnetic flux. Under a constraint to select the fully supported sequence, which option fits these observations?',
+      op: [
+        'Changing current creates flux that induces back emf',
+        'Changing flux creates current that induces back emf',
+        'Changing current creates changing magnetic flux',
+        'Back emf creates flux that changes current',
+      ],
+      ai: 0,
+      ex: 'A changing current creates changing magnetic flux that induces back emf. Stopping at changing magnetic flux omits the resulting induced back emf.',
+    };
+    expect(
+      findScionMultipleSourceSupportedOptions(inductanceItem, {
+        sourceClaims: [
+          'Inductance measures how a circuit element resists changes in current by inducing emf through changing magnetic flux.',
+          'An inductor stores energy in its magnetic field.',
+          'A changing current creates a changing magnetic flux that induces back emf.',
+        ],
+        allowBroadSourceContext: true,
+      }),
+    ).toBeNull();
+  });
+
   it('rejects superficially structured items with truncated or process-like explanations', () => {
     expect(
       assessScionMcItem(goodMc({ ex: 'Key elements include repeated task failure and several activities include' })),
@@ -134,6 +182,55 @@ describe('Scion preference admission gate', () => {
     );
 
     expect(result.issues).not.toContain('duplicate-options');
+  });
+
+  it('keeps contained token sets distinct when relation order changes the claim', () => {
+    const taskFlow = assessScionMcItem(
+      goodMc({
+        q: 'A review identifies obstacles while its diagram contains decision points. Which comparison assigns each observed role to the supported task-flow subject?',
+        op: [
+          'Analysis surfaces obstacles; diagram may include decision points',
+          'Analysis includes obstacles; diagram surfaces decision points',
+          'Obstacles surface goals; decision points include paths',
+          'Analysis surfaces goals; diagram may include obstacles',
+        ],
+        ai: 0,
+        ex: 'Task flow analysis surfaces obstacles, while its diagram may include decision points.',
+      }),
+      { semanticProfile: 'source-strict-v3' },
+    );
+    const keySignature = assessScionMcItem(
+      goodMc({
+        q: 'A passage compares normal sharps or flats with a later modulation. Which choice correctly assigns key signatures and accidentals?',
+        op: [
+          'Normal sharps or flats: key signature; modulation: accidentals',
+          'Normal sharps or flats: accidentals; modulation: key signature',
+          'Normal sharps or flats: key signature; modulation: key signature',
+          'Normal sharps or flats: accidentals; modulation: accidentals',
+        ],
+        ai: 0,
+        ex: 'A key signature records the normal sharps or flats, while modulation can require accidentals.',
+      }),
+      { semanticProfile: 'source-strict-v3' },
+    );
+    const inductance = assessScionMcItem(
+      goodMc({
+        q: 'A circuit description compares resistance to current changes with energy stored in a magnetic field. Which option distinguishes inductance from an inductor?',
+        op: [
+          'Inductance resists current changes; an inductor stores energy',
+          'Inductance stores energy; an inductor resists current changes',
+          'Inductance resists changes in current and stores energy',
+          'An inductor stores energy and measures inductance',
+        ],
+        ai: 0,
+        ex: 'Inductance measures resistance to current changes, while an inductor stores energy in its magnetic field.',
+      }),
+      { semanticProfile: 'source-strict-v3' },
+    );
+
+    expect(taskFlow.issues).not.toContain('duplicate-options');
+    expect(keySignature.issues).not.toContain('duplicate-options');
+    expect(inductance.issues).not.toContain('duplicate-options');
   });
 
   it('can reconstruct the frozen pre-semantic review-candidate ledger without weakening current admission', () => {

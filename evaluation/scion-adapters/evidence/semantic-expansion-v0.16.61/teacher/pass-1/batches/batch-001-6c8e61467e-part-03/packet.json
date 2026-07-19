@@ -1,0 +1,168 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-teacher-revision-packet-v1",
+  "generatedAt": "2026-07-19T22:45:00.000Z",
+  "batchId": "batch-001-6c8e61467e-part-03",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "aggregateSha256": "4a829fb0977f4b711929bd96dd1f9429321dcd83c8aa0da2daadff8b7ac4bb60",
+  "prompt": {
+    "path": "evaluation/scion-adapters/lesson-kernel-teacher-revision-prompt-v8-v0.16.60.md",
+    "sha256": "505aff4b87a07aa0d7d9d7d7b6d40bb268f654439a4b8e06f1d1efda53327eb1"
+  },
+  "cases": [
+    {
+      "caseId": "scion-kernel-1c1a13aa65159075aedfa3a8",
+      "caseSha256": "1c1a13aa65159075aedfa3a87866ad92a114e4362ab77612ad5e25e21a8f6b7d",
+      "lessonInput": {
+        "lessonId": "lesson-4",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Wage-price spiral",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: A wage-price spiral is a self-reinforcing cycle in which rising prices lead workers to demand higher wages, and higher wage costs lead firms to raise prices further. Claim 1: The wage-price spiral is positive feedback: an initial change is amplified rather than damped. Claim 2: Unlike negative feedback, positive feedback drives the system further from where it started.",
+        "readings": "OpenStax Principles of Macroeconomics 2e, Ch. 11"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "a0512852dc293dd8aeff7a2de56b26a5f38487ab033bcb97f0d8105e3c8d0016",
+        "kernelId": "econ/wage-price-spiral",
+        "term": "Wage-price spiral",
+        "claims": [
+          "A wage-price spiral is a self-reinforcing cycle in which rising prices lead workers to demand higher wages, and higher wage costs lead firms to raise prices further.",
+          "The wage-price spiral is positive feedback: an initial change is amplified rather than damped.",
+          "Unlike negative feedback, positive feedback drives the system further from where it started."
+        ],
+        "anchors": [
+          {
+            "src": "openstax:macroeconomics-2e#11",
+            "loc": "11.3",
+            "quote": "rising prices lead workers to demand higher wages, and the higher wage costs lead firms to raise prices further"
+          },
+          {
+            "src": "openstax:macroeconomics-2e#11",
+            "loc": "11.3",
+            "quote": "positive feedback, in which an initial change is amplified rather than damped"
+          },
+          {
+            "src": "openstax:macroeconomics-2e#11",
+            "loc": "11.3",
+            "quote": "positive feedback drives the system further from where it started"
+          }
+        ],
+        "attribution": [
+          "OpenStax Principles of Macroeconomics 2e, Ch. 11"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "originalArtifact": {
+        "lessonId": "lesson-4",
+        "facts": [
+          "A wage-price spiral is a self-reinforcing cycle in which rising prices lead workers to demand higher wages, and higher wage costs lead firms to raise prices further.",
+          "The wage-price spiral is positive feedback: an initial change is amplified rather than damped.",
+          "Unlike negative feedback, positive feedback drives the system further from where it started."
+        ],
+        "keyTerms": [
+          {
+            "tr": "self-reinforcing cycle",
+            "df": "A self-reinforcing cycle links rising prices, higher wage demands, higher wage costs, and further price increases.",
+            "eg": "Rising prices lead workers to demand higher wages, while higher wage costs lead firms to raise prices further.",
+            "mi": "A self-reinforcing cycle ends when firms raise prices further.",
+            "cx": "Further price increases continue the stated cycle rather than ending it."
+          },
+          {
+            "tr": "positive feedback",
+            "df": "Positive feedback is feedback in which an initial change is amplified rather than damped.",
+            "eg": "The wage-price spiral is positive feedback because its initial change is amplified.",
+            "mi": "Positive feedback dampens an initial change and moves the system toward where it started.",
+            "cx": "Positive feedback amplifies the change and drives the system further from its starting point."
+          },
+          {
+            "tr": "negative feedback",
+            "df": "Negative feedback differs from positive feedback, which drives the system further from where it started.",
+            "eg": "Positive feedback and negative feedback differ in whether the system is driven further from where it started.",
+            "mi": "Negative feedback drives the system further from where it started.",
+            "cx": "That stated property belongs to positive feedback, not negative feedback."
+          }
+        ],
+        "scenario": {
+          "su": "Workers respond to rising prices by demanding higher wages, and firms respond to higher wage costs by raising prices further. Students must classify the pattern as positive feedback or negative feedback, but they may select only one label.",
+          "ma": "workers’ wage-demand record, firms’ price-raise record, notation showing the initial change being amplified"
+        },
+        "mc": [
+          {
+            "q": "When an initial change is amplified and the system moves further from where it started, which comparison between positive feedback and negative feedback fits the observation?",
+            "op": [
+              "Positive feedback drives movement further from start",
+              "Negative feedback drives movement further from start",
+              "Positive feedback dampens the initial change",
+              "Negative feedback amplifies the initial change"
+            ],
+            "ai": 0,
+            "fi": [
+              2
+            ],
+            "ex": "Positive feedback drives the system further from where it started. Assigning that movement to negative feedback reverses the supplied distinction."
+          },
+          {
+            "q": "Workers demand higher wages after rising prices, and firms raise prices further after higher wage costs; with one label required, how should this observed pattern be classified?",
+            "op": [
+              "A positive-feedback wage-price spiral",
+              "Negative feedback from rising prices",
+              "Rising prices as the complete cycle",
+              "Higher wage costs as the complete cycle"
+            ],
+            "ai": 0,
+            "fi": [
+              0,
+              1
+            ],
+            "ex": "The linked price, wage-demand, wage-cost, and further-price observations form a wage-price spiral, and amplification makes it positive feedback. Rising prices alone omit the remaining linked parts of the cycle."
+          }
+        ]
+      },
+      "originalArtifactSha256": "5159c0ef3f90921b23126d1e93b870783f7e74172488a6d89168c2e6ca7d52f9",
+      "compilerAdmission": {
+        "needsRetry": true,
+        "issues": [
+          "lesson-4:key-term-2:misconception-repeats-definition"
+        ]
+      },
+      "diagnoses": [
+        {
+          "winnerScores": {
+            "sourceFidelity": 4,
+            "knowledgePrecision": 3,
+            "scenarioReadiness": 4,
+            "assessmentCorrectness": 4,
+            "choiceDiscriminability": 4,
+            "feedbackInstructionality": 4,
+            "internalCoherence": 4
+          },
+          "criticalDefects": [],
+          "rationale": "B is source-faithful, actionable, correctly keyed, and teaches both the complete cycle and feedback distinction. A has two wrong keys, two answer-feedback contradictions, unsupported causal details, and a self-contradictory misconception.",
+          "decisionSha256": "df5c7af82b74e8c56dc28004be447f16801c6a38f5636e8ab91e17511469d483"
+        },
+        {
+          "winnerScores": {
+            "sourceFidelity": 4,
+            "knowledgePrecision": 4,
+            "scenarioReadiness": 4,
+            "assessmentCorrectness": 4,
+            "choiceDiscriminability": 3,
+            "feedbackInstructionality": 4,
+            "internalCoherence": 4
+          },
+          "criticalDefects": [],
+          "rationale": "A gives a faithful, coherent positive-feedback lesson with correct assessments. B miskeys both questions, contradicts both keys in its feedback, and introduces multiple unsupported causal and numerical claims.",
+          "decisionSha256": "a4fadf3a07692c5f0c3e1917d6e2eab26b00f9bb375e377c22f82f58e6ce773d"
+        }
+      ]
+    }
+  ],
+  "claimBoundary": "These are source packets, diagnosed reference artifacts, and compiler outcomes only. No local artifact, provider route, organizer preference, or training authorization is included.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "315bf07841ba2cfa92202b502530af185ed547f4f1b806230191be3e4fbac980"
+  }
+}

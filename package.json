@@ -1,6 +1,6 @@
 {
   "name": "course-mapper",
-  "version": "0.16.60",
+  "version": "0.16.61",
   "type": "module",
   "description": "AI-powered course syllabus to course map generator",
   "scripts": {
@@ -143,6 +143,8 @@
     "audit:scion:semantic-teacher-evidence:v0.16.60": "node scripts/scionSemanticTeacherV01660Audit.mjs --audit",
     "build:scion:semantic-expansion-evidence:v0.16.60": "node scripts/scionSemanticExpansionV01660Audit.mjs --build",
     "audit:scion:semantic-expansion-evidence:v0.16.60": "node scripts/scionSemanticExpansionV01660Audit.mjs --audit",
+    "build:scion:semantic-expansion-evidence:v0.16.61": "node scripts/scionSemanticExpansionV01661Audit.mjs --build",
+    "audit:scion:semantic-expansion-evidence:v0.16.61": "node scripts/scionSemanticExpansionV01661Audit.mjs --audit",
     "capture:scion:lesson-kernel:local:v0.16.54": "node scripts/scionLessonKernelCapture.mjs --capture --arm local",
     "capture:scion:lesson-kernel:reference:v0.16.54": "node scripts/scionLessonKernelCapture.mjs --capture --arm reference",
     "audit:scion:lesson-kernel-capture:v0.16.54": "node scripts/scionLessonKernelCapture.mjs --verify",
@@ -155,6 +157,8 @@
     "audit:scion:lesson-kernel-evidence:v0.16.56": "node scripts/scionLessonKernelEvidenceV01656.mjs --audit",
     "build:scion:lesson-kernel-expansion:v0.16.57": "node scripts/scionLessonKernelExpansionBatchV01657.mjs --write",
     "audit:scion:lesson-kernel-expansion:v0.16.57": "node scripts/scionLessonKernelExpansionBatchV01657.mjs --audit",
+    "build:scion:lesson-kernel-expansion:v0.16.61": "node scripts/scionLessonKernelExpansionBatchV01661.mjs --write",
+    "audit:scion:lesson-kernel-expansion:v0.16.61": "node scripts/scionLessonKernelExpansionBatchV01661.mjs --audit",
     "build:scion:lesson-kernel-expansion-evidence:v0.16.57": "node scripts/scionLessonKernelExpansionEvidenceV01657.mjs --build",
     "audit:scion:lesson-kernel-expansion-evidence:v0.16.57": "node scripts/scionLessonKernelExpansionEvidenceV01657.mjs --audit",
     "build:scion:cited-answer-repair:v0.16.58": "node scripts/scionCitedAnswerRepairV01658Audit.mjs --write",

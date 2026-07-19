@@ -1,0 +1,548 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-paired-order-result-v1",
+  "generatedAt": "2026-07-19T21:00:00.000Z",
+  "status": "paired-orders-complete",
+  "requiredOrders": [
+    "A/B",
+    "B/A"
+  ],
+  "sessions": {
+    "A/B": "scion-v01654-batch-003-d451e87e02-a-b-d16963e1-7cb0-4ab9-9779-24fa0ae77e18",
+    "B/A": "scion-v01654-batch-003-d451e87e02-b-a-e7467cbb-a5f6-4aef-aa13-7204a6498240"
+  },
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "evidence": {
+    "prompt": {
+      "path": "evaluation/scion-adapters/lesson-kernel-judge-prompt-v0.16.54.md",
+      "sha256": "37844b86736335db54b561d8c031660ef71679c55ae1108e2e999e746f2a1c96"
+    },
+    "packets": {
+      "A/B": "7e0fe1cc357a20ceb9004264fa12f19339ff3eb53d149c8617402e8d4b9cf0ed",
+      "B/A": "1956c13e6364456baa7715ccbcfbfe8139be8269fa583a1e9e13e226dc9a3180"
+    },
+    "reviews": {
+      "A/B": "5c7ba08498eb8dd8459b87d2a2100e733f011cf61833b77b2826c10530da3239",
+      "B/A": "f8018bd63b5508ac135e13748602a42a6766eed63452cd12f094b3818641b0f2"
+    }
+  },
+  "issues": [],
+  "results": [
+    {
+      "caseId": "scion-kernel-578ba8ceef41c4e8e4dd3030",
+      "pairId": "scion-kernel-pair-2081761405073f50d3751f3e",
+      "winners": {
+        "A/B": "2f2c24b6bf05d052dabde50e302fcafbcd42adb6c40f7be279ad95e7bb521f43",
+        "B/A": "2f2c24b6bf05d052dabde50e302fcafbcd42adb6c40f7be279ad95e7bb521f43"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": true,
+      "scoreQualification": {
+        "qualified": true,
+        "winnerMinimumScore": 3,
+        "minimumTotalScoreMargin": 18,
+        "winnerCriticalDefects": [],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 1,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 3,
+            "totalScoreMargin": 18,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "Question 1 declares option 0, but option 1 is correct and is identified by the explanation.",
+              "Question 2 declares option 0, but option 1 is correct and is identified by the explanation.",
+              "The scenario invents residents' health reports and elevated pollution measurements not supplied by the source.",
+              "The scenario presents observations without a usable decision or constraint."
+            ],
+            "rationale": "B is source-bound, decision-ready, and fully correct. A has two incorrect declared answers, direct explanation-key contradictions, unsupported scenario evidence, and no usable scenario decision.",
+            "decisionSha256": "06574798e5ae96afefabae6bdb19f5659367630a9f1f581d78a444b50780c163"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 3,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 1,
+              "knowledgePrecision": 1,
+              "scenarioReadiness": 1,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 3,
+            "totalScoreMargin": 19,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The first item declares that price includes the spillover cost, while its explanation and the source require the option stating that price excludes it.",
+              "The second item declares allowing the market to determine quantity, while its explanation endorses the different option about adjusting price.",
+              "The factory residents' elevated health reports are unsupported by the supplied claims.",
+              "The specific prescription to adjust market price is presented as the correction even though the source only states that decision-makers must face omitted costs or benefits."
+            ],
+            "rationale": "A is consistently sourced, correctly keyed, and instructionally coherent. B has two answer-key contradictions, imprecise term definitions, unsupported scenario details, and no clearly usable scenario decision.",
+            "decisionSha256": "2b61f73998d5946dc0af89565de2b42f1ae4da99328b67c3e7d918be2fd3c584"
+          }
+        ]
+      },
+      "trainingEligible": true
+    },
+    {
+      "caseId": "scion-kernel-66d9d7e9c204f921942a1c6e",
+      "pairId": "scion-kernel-pair-1f0541c1e4b3bccf0f26123a",
+      "winners": {
+        "A/B": "08357d4292a87ee476345efe74de26ad5896ff39f5522b1b24bb9916f7a30e5d",
+        "B/A": "08357d4292a87ee476345efe74de26ad5896ff39f5522b1b24bb9916f7a30e5d"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": true,
+      "scoreQualification": {
+        "qualified": true,
+        "winnerMinimumScore": 3,
+        "minimumTotalScoreMargin": 10,
+        "winnerCriticalDefects": [],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 3,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 3,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 1,
+              "feedbackInstructionality": 2,
+              "internalCoherence": 2
+            },
+            "winnerMinimumScore": 3,
+            "totalScoreMargin": 10,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [],
+            "rationale": "B delivers precise terms, a usable evidence-based classification scenario, clean answer keys, and corrective feedback. A remains answerable but is weakened by template residue, duplicated alternatives, and less coherent evidence.",
+            "decisionSha256": "a708c4ebe4869159baba7b8709384c4bd1bdddeba68b263a866f7ff8701e1c3e"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 3,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 1,
+              "knowledgePrecision": 1,
+              "scenarioReadiness": 3,
+              "assessmentCorrectness": 3,
+              "choiceDiscriminability": 1,
+              "feedbackInstructionality": 2,
+              "internalCoherence": 2
+            },
+            "winnerMinimumScore": 3,
+            "totalScoreMargin": 13,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The named C-minor example is not supplied by the source packet.",
+              "Claims that tonic resolves tension, pre-dominants lead directly to dominant, and dominant creates primary tension introduce unsupported harmonic content.",
+              "The first assessment repeats an identical alternative, so it does not provide four meaningfully distinct choices."
+            ],
+            "rationale": "A precisely teaches and assesses every supplied relationship. B retains mostly correct keys but introduces unsupported harmony claims, template leakage, a named example, and a duplicated assessment alternative.",
+            "decisionSha256": "2c92b341b416f5ebb6c5144c739cd351ecffbeebe4b49581e499d04863bc29db"
+          }
+        ]
+      },
+      "trainingEligible": true
+    },
+    {
+      "caseId": "scion-kernel-7b43a068f54bca3504a52588",
+      "pairId": "scion-kernel-pair-4ff958bd1ba65d47961cc074",
+      "winners": {
+        "A/B": "41dcef49389cf76b0e86f2229078ea090053195c7cf2a2a04893ba6a300539de",
+        "B/A": "41dcef49389cf76b0e86f2229078ea090053195c7cf2a2a04893ba6a300539de"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": true,
+      "scoreQualification": {
+        "qualified": true,
+        "winnerMinimumScore": 3,
+        "minimumTotalScoreMargin": 11,
+        "winnerCriticalDefects": [],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 1,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 2,
+              "internalCoherence": 2
+            },
+            "winnerMinimumScore": 3,
+            "totalScoreMargin": 11,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The excitability definition adds the unsupported claim that excitability means a capacity to be stimulated.",
+              "The scenario asserts that one tissue is exclusively signaling-dependent, although exclusivity is not supplied."
+            ],
+            "rationale": "B is fully source-bound and turns the two supplied relations into a coherent labeling decision. A reaches correct answers but adds unsupported meanings and builds its scenario around an unsupported exclusivity claim.",
+            "decisionSha256": "7a5cc85dd2ac1f471f86e3300fd5f6560b421cc9f351aed248e8f84db8a8cf54"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 2,
+              "assessmentCorrectness": 3,
+              "choiceDiscriminability": 2,
+              "feedbackInstructionality": 2,
+              "internalCoherence": 3
+            },
+            "winnerMinimumScore": 3,
+            "totalScoreMargin": 11,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The scenario asserts that one muscle type is exclusively dependent on nervous-system signaling, while the source only affirmatively states skeletal muscle's dependence.",
+              "Defining excitability as capacity to be stimulated and describing nervous-system signaling as external stimulation add unsupported factual content."
+            ],
+            "rationale": "A makes the exact supported distinction with usable evidence and instructive feedback. B overclaims exclusivity, adds unsupported definitions, and repeats essentially the same assessment twice.",
+            "decisionSha256": "eb704980af4203b132bcb42550b7a7ad70c6371deda936f163b0347b48e9f232"
+          }
+        ]
+      },
+      "trainingEligible": true
+    },
+    {
+      "caseId": "scion-kernel-7ef640fbcbe8cfa330843c26",
+      "pairId": "scion-kernel-pair-12eecff0bfe4512ce33289d4",
+      "winners": {
+        "A/B": "478263ca6df50fa8b4517c0880d9c24a651f90c19bd8a687d57ac8483392e3ef",
+        "B/A": "478263ca6df50fa8b4517c0880d9c24a651f90c19bd8a687d57ac8483392e3ef"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": false,
+      "scoreQualification": {
+        "qualified": false,
+        "winnerMinimumScore": 1,
+        "minimumTotalScoreMargin": 2,
+        "winnerCriticalDefects": [
+          "Question 1 declares option 3, but option 0 is correct.",
+          "Question 1's explanation supports option 0 and directly contradicts the declared answer.",
+          "The first item declares option three, but option zero and the explanation correctly identify key lookup with curly-brace key-value notation."
+        ],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 1,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 3,
+              "internalCoherence": 2
+            },
+            "loserScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 1,
+              "assessmentCorrectness": 1,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 2,
+              "internalCoherence": 1
+            },
+            "winnerMinimumScore": 1,
+            "totalScoreMargin": 10,
+            "winnerCriticalDefects": [
+              "Question 1 declares option 3, but option 0 is correct.",
+              "Question 1's explanation supports option 0 and directly contradicts the declared answer."
+            ],
+            "loserCriticalDefects": [
+              "Question 1 declares option 0, but option 1 is correct.",
+              "Question 1's explanation explicitly supports key lookup and therefore contradicts the declared answer.",
+              "The scenario invents named Alice and Bob examples not present in the supplied claims."
+            ],
+            "rationale": "Both artifacts contain one incorrect declared answer, but B is substantially stronger in terminology, scenario evidence, choice construction, and feedback. A additionally introduces named examples and disconnected scenario evidence.",
+            "decisionSha256": "34f09750d4be43482af5a085de9b228074d4327aa8497ab43ea6d9e06532721b"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 1,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 2,
+              "internalCoherence": 1
+            },
+            "loserScores": {
+              "sourceFidelity": 1,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 2,
+              "assessmentCorrectness": 1,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 2,
+              "internalCoherence": 1
+            },
+            "winnerMinimumScore": 1,
+            "totalScoreMargin": 2,
+            "winnerCriticalDefects": [
+              "The first item declares option three, but option zero and the explanation correctly identify key lookup with curly-brace key-value notation."
+            ],
+            "loserCriticalDefects": [
+              "The first item declares numeric-position retrieval even though its explanation explicitly supports retrieval by key.",
+              "The Alice and Bob dictionary records are invented named examples outside the supplied claims."
+            ],
+            "rationale": "Both artifacts contain an incorrect first answer key. A is preferable because its scenario evidence is actionable and source-bound, whereas B also invents named records and shifts incoherently among settings, scores, and student IDs.",
+            "decisionSha256": "f737d2973cce9205c8721cfbaa845e21443615df75d23321a82f07e8a54cd122"
+          }
+        ]
+      },
+      "trainingEligible": false
+    },
+    {
+      "caseId": "scion-kernel-8594178db3964746c3baf380",
+      "pairId": "scion-kernel-pair-8b87a6e8b6669f24a9b5ce99",
+      "winners": {
+        "A/B": "a009d6ffe08aa347bc89ad9a6d47738666c72be3ba7f4511d2ee0bc6208dad28",
+        "B/A": "a009d6ffe08aa347bc89ad9a6d47738666c72be3ba7f4511d2ee0bc6208dad28"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": true,
+      "scoreQualification": {
+        "qualified": true,
+        "winnerMinimumScore": 3,
+        "minimumTotalScoreMargin": 13,
+        "winnerCriticalDefects": [],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 3
+            },
+            "loserScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 0,
+              "assessmentCorrectness": 2,
+              "choiceDiscriminability": 2,
+              "feedbackInstructionality": 2,
+              "internalCoherence": 1
+            },
+            "winnerMinimumScore": 3,
+            "totalScoreMargin": 15,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The scenario invents 150 and 300 mOsm/L measurements and four- and eight-hour sleep records unsupported by the source.",
+              "The scenario evidence cannot support its required diagnosis of signaling failure versus circulation failure.",
+              "Question 2 is not uniquely answerable because options 1 and 3 are both supported descriptions of hormone function."
+            ],
+            "rationale": "B provides a source-bound, inspectable classification task with precise directional feedback and uniquely supported keys. A invents diagnostic measurements, poses a decision its evidence cannot support, and includes a non-unique assessment item.",
+            "decisionSha256": "3172864752fff03c78c95470498397a917fda3dc7f0a2190e7029c02ccce5ccc"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 0,
+              "assessmentCorrectness": 2,
+              "choiceDiscriminability": 2,
+              "feedbackInstructionality": 2,
+              "internalCoherence": 3
+            },
+            "winnerMinimumScore": 3,
+            "totalScoreMargin": 13,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The numerical fluid-balance and sleep measurements are unsupported by the source packet.",
+              "The scenario has no usable decision because supplied evidence cannot distinguish failure of hormone signaling from failure of circulation."
+            ],
+            "rationale": "A is source-complete, decision-ready, uniquely keyed, and instructionally coherent. B invents clinical measurements, poses an unsupported diagnosis, and uses assessment choices that are not cleanly discriminating.",
+            "decisionSha256": "21388ec3f6624ea117b5c4fac56d9e3421d2aea23fd1577563791c3672d67b7a"
+          }
+        ]
+      },
+      "trainingEligible": true
+    },
+    {
+      "caseId": "scion-kernel-88e860d3d824b1109e0c8513",
+      "pairId": "scion-kernel-pair-a05b84b3c51becf73f8cd217",
+      "winners": {
+        "A/B": "3a13aac647676fe1274c5c4ab6c7778a89e42b91a7a44917d3a65f165213407f",
+        "B/A": "3a13aac647676fe1274c5c4ab6c7778a89e42b91a7a44917d3a65f165213407f"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": true,
+      "scoreQualification": {
+        "qualified": true,
+        "winnerMinimumScore": 3,
+        "minimumTotalScoreMargin": 22,
+        "winnerCriticalDefects": [],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 1,
+              "knowledgePrecision": 1,
+              "scenarioReadiness": 0,
+              "assessmentCorrectness": 1,
+              "choiceDiscriminability": 1,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 3,
+            "totalScoreMargin": 22,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The scenario invents numerical inductance, current-rate, and current-limit details and requires an unsupported calculation.",
+              "Question 2 declares the incorrect claim that back emf is energy stored in the magnetic field.",
+              "Question 2 duplicates the same alternative verbatim and provides no correct answer.",
+              "Question 2's explanation identifies inductor energy storage while contradicting the declared back-emf answer."
+            ],
+            "rationale": "B cleanly distinguishes inductance, an inductor, and back emf with a usable evidence-matching scenario and correct assessments. A adds unsupported quantitative requirements and contains a fatally incorrect, duplicated, internally contradictory second question.",
+            "decisionSha256": "d70307b3cf161e7564513822538f446ce25f45224d6faf2537f39d342f11a8cb"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 1,
+              "knowledgePrecision": 1,
+              "scenarioReadiness": 0,
+              "assessmentCorrectness": 1,
+              "choiceDiscriminability": 1,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 3,
+            "totalScoreMargin": 22,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The scenario invents 50 mH, two current-change rates, a 10 A limit, and a back-emf calculation unsupported by any supplied formula.",
+              "The scenario provides no usable decision because the requested calculation cannot be completed from the source.",
+              "The second item incorrectly declares that back emf is energy stored in the magnetic field.",
+              "The second item repeats the same false alternative twice and offers no source-supported correct answer.",
+              "The second explanation contradicts the stated fact that an inductor, rather than back emf, stores energy in its magnetic field."
+            ],
+            "rationale": "A cleanly distinguishes the property, device, energy storage, and induced-emf sequence. B adds an impossible numerical task and contains a duplicated, incorrectly keyed item that contradicts its own facts.",
+            "decisionSha256": "8e17b9fca652993984386dbddfb178219211b821caff797c3b9acfb660de2bc8"
+          }
+        ]
+      },
+      "trainingEligible": true
+    }
+  ],
+  "summary": {
+    "pairs": 6,
+    "stablePreferences": 5,
+    "localWins": 0,
+    "referenceWins": 6,
+    "unstable": 0,
+    "scoreRejected": 1,
+    "compilerRejected": 0
+  },
+  "claimBoundary": "These are same-identity model-judge preferences from isolated A/B and B/A orders. They are not human, instructor, independent, classroom, heldout-adapter, or production-win evidence.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "8be9101038d743b798a947bdf20dfcfb69be05e9fc081bf6a90cd33500d64bfb"
+  }
+}

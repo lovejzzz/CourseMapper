@@ -1,0 +1,1074 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-packet-v1",
+  "order": "A/B",
+  "generatedAt": "2026-07-19T23:20:00.000Z",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "prompt": {
+    "path": "evaluation/scion-adapters/lesson-kernel-judge-prompt-v0.16.54.md",
+    "sha256": "37844b86736335db54b561d8c031660ef71679c55ae1108e2e999e746f2a1c96"
+  },
+  "dimensions": [
+    "sourceFidelity",
+    "knowledgePrecision",
+    "scenarioReadiness",
+    "assessmentCorrectness",
+    "choiceDiscriminability",
+    "feedbackInstructionality",
+    "internalCoherence"
+  ],
+  "cases": [
+    {
+      "caseId": "scion-kernel-02772fca67bf5fc5661a4764",
+      "pairId": "scion-kernel-pair-4c2c4b2675aa3f0d81bd8ac0",
+      "domain": "physics",
+      "failureFamilies": [
+        "source-coverage"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-9",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Magnetic field",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: A magnetic field describes magnetic influence in space and determines magnetic forces on moving charges and currents. Claim 1: Magnetic field lines form closed loops and do not begin or end on isolated magnetic charges. Claim 2: Currents produce magnetic fields.",
+        "readings": "OpenStax University Physics Volume 2, Ch. 11-12"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "bde05b7b9582176e048e9e0ae8a40e052a003910ab430c42b50031727a58cd48",
+        "kernelId": "physics/magnetic-field",
+        "term": "Magnetic field",
+        "claims": [
+          "A magnetic field describes magnetic influence in space and determines magnetic forces on moving charges and currents.",
+          "Magnetic field lines form closed loops and do not begin or end on isolated magnetic charges.",
+          "Currents produce magnetic fields."
+        ],
+        "anchors": [
+          {
+            "src": "openstax:university-physics-volume-2#11",
+            "loc": "11.1",
+            "quote": "magnetic field"
+          },
+          {
+            "src": "openstax:university-physics-volume-2#11",
+            "loc": "11.1",
+            "quote": "magnetic field lines are continuous"
+          },
+          {
+            "src": "openstax:university-physics-volume-2#12",
+            "loc": "12.1",
+            "quote": "currents produce magnetic fields"
+          }
+        ],
+        "attribution": [
+          "OpenStax University Physics Volume 2, Ch. 11-12"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "3740278453d2bba81dbf25e92ad7f5f36ff02f4361f37b6ca60c1ea5a65aba8d",
+          "lessonKernel": {
+            "lessonId": "lesson-9",
+            "facts": [
+              "A magnetic field describes magnetic influence in space and determines magnetic forces on moving charges and currents.",
+              "Magnetic field lines form closed loops and do not begin or end on isolated magnetic charges.",
+              "Currents produce magnetic fields."
+            ],
+            "keyTerms": [
+              {
+                "tr": "magnetic field",
+                "df": "A magnetic field describes magnetic influence in space and determines magnetic forces on moving charges and currents.",
+                "eg": "The magnetic field determines the force on a moving charge.",
+                "mi": "A magnetic field is only felt by magnetic charges in space.",
+                "cx": "A magnetic field describes magnetic influence in space and determines magnetic forces on moving charges and currents."
+              },
+              {
+                "tr": "magnetic field lines",
+                "df": "Magnetic field lines form closed loops and do not begin or end on isolated magnetic charges.",
+                "eg": "Field lines form closed loops around a current.",
+                "mi": "Magnetic field lines always start and end on magnetic charges.",
+                "cx": "Magnetic field lines form closed loops and do not begin or end on isolated magnetic charges."
+              },
+              {
+                "tr": "currents produce magnetic fields",
+                "df": "Currents produce magnetic fields, which is a fundamental relationship in electromagnetism.",
+                "eg": "An electric current creates a magnetic field around a wire.",
+                "mi": "Magnetic fields are only produced by moving charges, not currents.",
+                "cx": "Currents produce magnetic fields."
+              }
+            ],
+            "scenario": {
+              "su": "A magnetic field describes magnetic influence in space and determines magnetic forces on moving charges and currents. A student observes a wire carrying a steady current and notes the resulting magnetic influence on a nearby compass.",
+              "ma": "Compare the magnetic influence described by the magnetic field to the influence produced by currents in the context of the observed wire and compass."
+            },
+            "mc": [
+              {
+                "q": "Distinguish between the description of magnetic influence and the production of magnetic fields based on the supplied claims.",
+                "op": [
+                  "Magnetic influence is determined by magnetic field lines.",
+                  "Magnetic influence is determined by currents producing magnetic fields.",
+                  "Magnetic field lines form closed loops and currents produce fields.",
+                  "Magnetic influence is determined by magnetic charges in space."
+                ],
+                "ai": 0,
+                "fi": [
+                  0,
+                  2
+                ],
+                "ex": "A magnetic field describes magnetic influence in space and determines magnetic forces on moving charges and currents, while currents produce magnetic fields, which is the subject evidence supporting the answer, then correct the closest distractor."
+              },
+              {
+                "q": "A student measures the magnetic influence around a wire and observes that the field lines form closed loops, while another student incorrectly assumes field lines must begin and end on magnetic charges.",
+                "op": [
+                  "Field lines begin and end on magnetic charges.",
+                  "Field lines form closed loops and do not begin or end on isolated magnetic charges.",
+                  "Currents produce magnetic fields and field lines are open.",
+                  "Magnetic influence is determined by magnetic charges in space."
+                ],
+                "ai": 1,
+                "fi": [
+                  1
+                ],
+                "ex": "Magnetic field lines form closed loops and do not begin or end on isolated magnetic charges, which is the subject evidence supporting the answer, then correct the closest distractor."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "cf713e46050d5f7f5d0d27b87543ceeea48afdb94affded46ee4959ae8886715",
+          "lessonKernel": {
+            "lessonId": "lesson-9",
+            "facts": [
+              "A magnetic field describes magnetic influence in space and determines magnetic forces on moving charges and currents.",
+              "Magnetic field lines form closed loops and do not begin or end on isolated magnetic charges.",
+              "Currents produce magnetic fields."
+            ],
+            "keyTerms": [
+              {
+                "tr": "magnetic field",
+                "df": "A magnetic field is a description of magnetic influence in space.",
+                "eg": "A magnetic field determines magnetic forces on moving charges.",
+                "mi": "Magnetic forces determine the magnetic field around currents.",
+                "cx": "The direction of determination runs from the field to forces on moving charges and currents."
+              },
+              {
+                "tr": "field lines",
+                "df": "Magnetic field lines are distinguished by forming closed loops with no isolated magnetic-charge endpoints.",
+                "eg": "Field lines close into loops instead of ending on isolated magnetic charges.",
+                "mi": "Isolated magnetic charges are places where field lines begin.",
+                "cx": "No line starts at an isolated magnetic charge; the lines continue in closed form."
+              },
+              {
+                "tr": "Currents",
+                "df": "Currents are distinguished here by their production of magnetic fields.",
+                "eg": "A current produces a magnetic field.",
+                "mi": "A magnetic field produces currents.",
+                "cx": "Production runs from currents toward magnetic fields, not in the reversed direction."
+              }
+            ],
+            "scenario": {
+              "su": "A workshop group must label a closed-loop diagram and a currents-to-magnetic-fields notation before a deadline. The labels must distinguish what magnetic field lines do from what currents produce while preserving both recorded relations.",
+              "ma": "closed-loop diagram, currents-to-magnetic-fields notation, magnetic-field-lines passage, currents passage"
+            },
+            "mc": [
+              {
+                "q": "A magnetic field determines magnetic forces on moving charges and currents, while magnetic field lines form closed loops. Which description correctly distinguishes the role of the magnetic field from the form of its lines?",
+                "op": [
+                  "Moving charges produce currents; magnetic forces form loops",
+                  "Magnetic fields determine forces; magnetic field lines form loops",
+                  "Isolated magnetic charges begin lines; currents form loops",
+                  "Magnetic forces determine fields; moving charges form loops"
+                ],
+                "ai": 1,
+                "fi": [
+                  0,
+                  1
+                ],
+                "ex": "The magnetic field determines magnetic forces on moving charges and currents, while magnetic field lines form closed loops. The choice assigning determination to magnetic forces and loop formation to moving charges reverses and misassigns those relations."
+              },
+              {
+                "q": "A workshop record pairs a current with a magnetic field, but the label must state one warranted production relation. Which label correctly describes the recorded case?",
+                "op": [
+                  "Magnetic fields produce currents",
+                  "Currents produce magnetic forces",
+                  "Magnetic forces produce currents",
+                  "Currents produce magnetic fields"
+                ],
+                "ai": 3,
+                "fi": [
+                  2
+                ],
+                "ex": "The recorded current supports the statement that currents produce magnetic fields. The reversed label is incorrect because magnetic fields are not identified as producing currents."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-02772fca67bf5fc5661a4764",
+        "pairId": "scion-kernel-pair-4c2c4b2675aa3f0d81bd8ac0",
+        "artifactSha256": {
+          "A": "3740278453d2bba81dbf25e92ad7f5f36ff02f4361f37b6ca60c1ea5a65aba8d",
+          "B": "cf713e46050d5f7f5d0d27b87543ceeea48afdb94affded46ee4959ae8886715"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    },
+    {
+      "caseId": "scion-kernel-1c1a13aa65159075aedfa3a8",
+      "pairId": "scion-kernel-pair-ea66de3da6c22d77858e554f",
+      "domain": "economics",
+      "failureFamilies": [
+        "misconception-validity"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-4",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Wage-price spiral",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: A wage-price spiral is a self-reinforcing cycle in which rising prices lead workers to demand higher wages, and higher wage costs lead firms to raise prices further. Claim 1: The wage-price spiral is positive feedback: an initial change is amplified rather than damped. Claim 2: Unlike negative feedback, positive feedback drives the system further from where it started.",
+        "readings": "OpenStax Principles of Macroeconomics 2e, Ch. 11"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "a0512852dc293dd8aeff7a2de56b26a5f38487ab033bcb97f0d8105e3c8d0016",
+        "kernelId": "econ/wage-price-spiral",
+        "term": "Wage-price spiral",
+        "claims": [
+          "A wage-price spiral is a self-reinforcing cycle in which rising prices lead workers to demand higher wages, and higher wage costs lead firms to raise prices further.",
+          "The wage-price spiral is positive feedback: an initial change is amplified rather than damped.",
+          "Unlike negative feedback, positive feedback drives the system further from where it started."
+        ],
+        "anchors": [
+          {
+            "src": "openstax:macroeconomics-2e#11",
+            "loc": "11.3",
+            "quote": "rising prices lead workers to demand higher wages, and the higher wage costs lead firms to raise prices further"
+          },
+          {
+            "src": "openstax:macroeconomics-2e#11",
+            "loc": "11.3",
+            "quote": "positive feedback, in which an initial change is amplified rather than damped"
+          },
+          {
+            "src": "openstax:macroeconomics-2e#11",
+            "loc": "11.3",
+            "quote": "positive feedback drives the system further from where it started"
+          }
+        ],
+        "attribution": [
+          "OpenStax Principles of Macroeconomics 2e, Ch. 11"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "5fea40377e0edb32a15c69006bffe4eb32d098c522efeceecc0e36cac2664307",
+          "lessonKernel": {
+            "lessonId": "lesson-4",
+            "facts": [
+              "A wage-price spiral is a self-reinforcing cycle in which rising prices lead workers to demand higher wages, and higher wage costs lead firms to raise prices further.",
+              "The wage-price spiral is positive feedback: an initial change is amplified rather than damped.",
+              "Unlike negative feedback, positive feedback drives the system further from where it started."
+            ],
+            "keyTerms": [
+              {
+                "tr": "wage-price spiral",
+                "df": "A self-reinforcing cycle where rising prices cause workers to demand higher wages, and higher wage costs cause firms to raise prices further.",
+                "eg": "If prices rise, workers demand more wages, which increases firm costs, causing prices to rise again.",
+                "mi": "A wage-price spiral is a stabilizing mechanism that prevents prices from fluctuating wildly by dampening initial changes.",
+                "cx": "This cycle is positive feedback because it amplifies the initial change rather than dampening it."
+              },
+              {
+                "tr": "positive feedback",
+                "df": "A system property where an initial change is amplified rather than damped, driving the system further from its starting point.",
+                "eg": "An initial small price increase leads to higher wage demands, which causes further price increases.",
+                "mi": "Positive feedback is a mechanism that seeks equilibrium by reducing the magnitude of any initial fluctuation.",
+                "cx": "Positive feedback drives the system further from where it started, unlike negative feedback which seeks damping."
+              },
+              {
+                "tr": "negative feedback",
+                "df": "A system property that acts to dampen an initial change, moving the system back toward a stable state.",
+                "eg": "If prices rise, firms reduce production, which causes prices to fall, thus damping the initial rise.",
+                "mi": "Negative feedback is a mechanism that stabilizes the system by reducing the magnitude of any initial fluctuation.",
+                "cx": "Negative feedback is distinct because it moves the system back toward a stable state, whereas positive feedback drives it further away."
+              }
+            ],
+            "scenario": {
+              "su": "A manufacturing firm observes that after a 5% increase in raw material costs, workers immediately demand a 10% wage increase, which the firm passes on to consumers via a 7% price hike. The firm is constrained by a fixed production capacity that cannot immediately absorb the increased labor costs.",
+              "ma": "Compare the observation that rising prices lead to higher wage demands with the observation that the wage-price spiral is positive feedback."
+            },
+            "mc": [
+              {
+                "q": "Which statement correctly distinguishes the wage-price spiral from negative feedback based on system behavior?",
+                "op": [
+                  "The spiral dampens initial changes toward a stable state.",
+                  "The spiral is positive feedback driving the system further away.",
+                  "Negative feedback amplifies initial changes rather than damping them.",
+                  "The spiral is a stabilizing mechanism that reduces fluctuations."
+                ],
+                "ai": 2,
+                "fi": [
+                  0,
+                  1
+                ],
+                "ex": "The spiral is positive feedback driving the system further away, whereas negative feedback seeks damping toward a stable state."
+              },
+              {
+                "q": "Given the firm's constraint, what is the most likely outcome if the wage-price spiral continues?",
+                "op": [
+                  "Prices will stabilize quickly due to negative feedback.",
+                  "The spiral will drive prices further from the starting point.",
+                  "The system will return to the original price level.",
+                  "The firm will reduce labor costs to lower prices."
+                ],
+                "ai": 0,
+                "fi": [
+                  1
+                ],
+                "ex": "The spiral will drive prices further from the starting point, because positive feedback amplifies the initial change rather than damping it."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "7d9f46a3ea4082c0ff2fc672be0ef52458d3febe9d8f17adf4358b7d1db88af2",
+          "lessonKernel": {
+            "lessonId": "lesson-4",
+            "facts": [
+              "A wage-price spiral is a self-reinforcing cycle in which rising prices lead workers to demand higher wages, and higher wage costs lead firms to raise prices further.",
+              "The wage-price spiral is positive feedback: an initial change is amplified rather than damped.",
+              "Unlike negative feedback, positive feedback drives the system further from where it started."
+            ],
+            "keyTerms": [
+              {
+                "tr": "self-reinforcing cycle",
+                "df": "A self-reinforcing cycle links rising prices, higher wage demands, higher wage costs, and further price increases.",
+                "eg": "Rising prices lead workers to demand higher wages, while higher wage costs lead firms to raise prices further.",
+                "mi": "A self-reinforcing cycle ends when firms raise prices further.",
+                "cx": "Further price increases continue the stated cycle rather than ending it."
+              },
+              {
+                "tr": "positive feedback",
+                "df": "Positive feedback is feedback in which an initial change is amplified rather than damped.",
+                "eg": "The wage-price spiral is positive feedback because its initial change is amplified.",
+                "mi": "Positive feedback dampens an initial change and moves the system toward where it started.",
+                "cx": "Positive feedback amplifies the change and drives the system further from its starting point."
+              },
+              {
+                "tr": "negative feedback",
+                "df": "Negative feedback differs from positive feedback, which drives the system further from where it started.",
+                "eg": "Positive feedback and negative feedback differ in whether the system is driven further from where it started.",
+                "mi": "The wage-price spiral is negative feedback because it drives the system further from where it started.",
+                "cx": "That stated property belongs to positive feedback, not negative feedback."
+              }
+            ],
+            "scenario": {
+              "su": "Workers respond to rising prices by demanding higher wages, and firms respond to higher wage costs by raising prices further. Students must classify the pattern as positive feedback or negative feedback, but they may select only one label.",
+              "ma": "workers’ wage-demand record, firms’ price-raise record, notation showing the initial change being amplified"
+            },
+            "mc": [
+              {
+                "q": "When an initial change is amplified and the system moves further from where it started, which comparison between positive feedback and negative feedback fits the observation?",
+                "op": [
+                  "Negative feedback amplifies the initial change",
+                  "Positive feedback drives movement further from start",
+                  "Positive feedback dampens the initial change",
+                  "Negative feedback drives movement further from start"
+                ],
+                "ai": 1,
+                "fi": [
+                  2
+                ],
+                "ex": "Positive feedback drives the system further from where it started. Assigning that movement to negative feedback reverses the supplied distinction."
+              },
+              {
+                "q": "Workers demand higher wages after rising prices, and firms raise prices further after higher wage costs; with one label required, how should this observed pattern be classified?",
+                "op": [
+                  "Negative feedback from rising prices",
+                  "Higher wage costs as the complete cycle",
+                  "Rising prices as the complete cycle",
+                  "A positive-feedback wage-price spiral"
+                ],
+                "ai": 3,
+                "fi": [
+                  0,
+                  1
+                ],
+                "ex": "The linked price, wage-demand, wage-cost, and further-price observations form a wage-price spiral, and amplification makes it positive feedback. Rising prices alone omit the remaining linked parts of the cycle."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-1c1a13aa65159075aedfa3a8",
+        "pairId": "scion-kernel-pair-ea66de3da6c22d77858e554f",
+        "artifactSha256": {
+          "A": "5fea40377e0edb32a15c69006bffe4eb32d098c522efeceecc0e36cac2664307",
+          "B": "7d9f46a3ea4082c0ff2fc672be0ef52458d3febe9d8f17adf4358b7d1db88af2"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    },
+    {
+      "caseId": "scion-kernel-4ed7b918a8ad0fe66ff45257",
+      "pairId": "scion-kernel-pair-3213e67cd326c70a68be6e3a",
+      "domain": "physics",
+      "failureFamilies": [
+        "source-coverage"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-4",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Electric potential",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: Electric potential is electric potential energy per unit charge; potential difference is the work per unit charge required to move between two points. Claim 1: Only potential differences affect work and energy changes in electrostatics. Claim 2: Electric field points in the direction of decreasing electric potential.",
+        "readings": "OpenStax University Physics Volume 2, Ch. 7"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "bde05b7b9582176e048e9e0ae8a40e052a003910ab430c42b50031727a58cd48",
+        "kernelId": "physics/electric-potential",
+        "term": "Electric potential",
+        "claims": [
+          "Electric potential is electric potential energy per unit charge; potential difference is the work per unit charge required to move between two points.",
+          "Only potential differences affect work and energy changes in electrostatics.",
+          "Electric field points in the direction of decreasing electric potential."
+        ],
+        "anchors": [
+          {
+            "src": "openstax:university-physics-volume-2#7",
+            "loc": "7.1",
+            "quote": "electric potential energy per unit charge"
+          },
+          {
+            "src": "openstax:university-physics-volume-2#7",
+            "loc": "7.1",
+            "quote": "only differences in potential energy are physically meaningful"
+          },
+          {
+            "src": "openstax:university-physics-volume-2#7",
+            "loc": "7.5",
+            "quote": "electric field points in the direction of decreasing potential"
+          }
+        ],
+        "attribution": [
+          "OpenStax University Physics Volume 2, Ch. 7"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "7a65a46857d3be76a490fb2871f49e7b63226387d9ea3dc8d54ee385c27af4bc",
+          "lessonKernel": {
+            "lessonId": "lesson-4",
+            "facts": [
+              "Electric potential is electric potential energy per unit charge; potential difference is the work per unit charge required to move between two points. ",
+              "Only potential differences affect work and energy changes in electrostatics. ",
+              "Electric field points in the direction of decreasing electric potential."
+            ],
+            "keyTerms": [
+              {
+                "tr": "Electric potential",
+                "df": "Electric potential is defined as electric potential energy per unit charge, which quantifies the energy stored at a specific location. ",
+                "eg": "Calculating the potential energy per unit charge at a point in a uniform electric field. ",
+                "mi": "Electric potential is the total energy stored in a charge at a point in space.",
+                "cx": "Electric potential is specifically the energy per unit charge at a point, not the total energy stored at a location."
+              },
+              {
+                "tr": "Potential difference",
+                "df": "Potential difference represents the work per unit charge necessary to move between two specified points in an electrostatic system. ",
+                "eg": "Determining the work per unit charge needed to move a charge from point A to point B. ",
+                "mi": "Potential difference is the total work done by a field on a charge moving between two points.",
+                "cx": "Potential difference is the work per unit charge required for movement between points, not the total work done by the field."
+              },
+              {
+                "tr": "Electric field",
+                "df": "The electric field is a vector quantity that indicates the direction of the force experienced by a test charge at a given location. ",
+                "eg": "Determining the direction of the electric field at a specific point in space. ",
+                "mi": "The electric field is a scalar quantity that represents the strength of the electric force at a point.",
+                "cx": "The electric field is a vector quantity indicating the force direction, not a scalar quantity representing only strength."
+              }
+            ],
+            "scenario": {
+              "su": "A charge is moved from point A to point B in a region where the electric field is non-zero. The constraint is that the work done by the electric field must be calculated using only potential differences. ",
+              "ma": "Passage describing the potential at point A is 100 V, and the potential at point B is 50 V. Observation showing the electric field vector at point A points toward point B. "
+            },
+            "mc": [
+              {
+                "q": "When calculating the work required to move a charge between two points, which statement correctly relates potential difference to energy change?",
+                "op": [
+                  "Potential difference equals total work done by field.",
+                  "Potential difference equals work per unit charge.",
+                  "Potential difference equals electric potential energy.",
+                  "Potential difference equals electric field strength."
+                ],
+                "ai": 1,
+                "fi": [
+                  0,
+                  1
+                ],
+                "ex": "Potential difference is the work per unit charge required to move between two points, which is supported by the first fact. Potential difference equals work per unit charge."
+              },
+              {
+                "q": "A student observes that the electric field vector at a point points toward a region where the electric potential is lower. Which statement correctly describes this relationship?",
+                "op": [
+                  "Electric field points toward higher potential regions.",
+                  "Electric field points toward lower potential regions.",
+                  "Electric field points in the direction of decreasing potential.",
+                  "Electric field points in the direction of increasing potential."
+                ],
+                "ai": 0,
+                "fi": [
+                  2
+                ],
+                "ex": "Electric field points in the direction of decreasing electric potential, which is supported by the third fact. Electric field points in the direction of decreasing electric potential."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "0cefa531a6d92237affb4352710b732bd67420bb9547eaef8d913ea89f05a147",
+          "lessonKernel": {
+            "lessonId": "lesson-4",
+            "facts": [
+              "Electric potential is electric potential energy per unit charge; potential difference is the work per unit charge required to move between two points.",
+              "Only potential differences affect work and energy changes in electrostatics.",
+              "Electric field points in the direction of decreasing electric potential."
+            ],
+            "keyTerms": [
+              {
+                "tr": "Electric potential",
+                "df": "Electric potential is the quantity defined as electric potential energy per unit charge.",
+                "eg": "The phrase “electric potential energy per unit charge” is labeled electric potential.",
+                "mi": "Electric potential means the work per unit charge required to move between two points.",
+                "cx": "Work per unit charge for movement between points identifies potential difference instead."
+              },
+              {
+                "tr": "potential difference",
+                "df": "Potential difference is the work per unit charge required for movement between two points.",
+                "eg": "Moving between two points provides the context for identifying potential difference.",
+                "mi": "Potential difference is electric potential energy per unit charge at a point.",
+                "cx": "The between-points quantity is determined by required work per unit charge."
+              },
+              {
+                "tr": "Electric field",
+                "df": "Electric field has a direction that points toward decreasing electric potential.",
+                "eg": "A direction notation shows electric field pointing toward decreasing electric potential.",
+                "mi": "Electric field points in the direction of increasing electric potential.",
+                "cx": "Its indicated direction runs toward lower, rather than higher, electric potential."
+              }
+            ],
+            "scenario": {
+              "su": "Two passages must be classified: one states work per unit charge required to move between two points, and the other shows electric field pointing in the direction of decreasing electric potential. Decide whether each passage describes potential difference or electric field direction, with both classifications supported by the supplied relations.",
+              "ma": "Inspect the passage stating work per unit charge required to move between two points and the passage showing electric field pointing in the direction of decreasing electric potential. Classify the first as potential difference and the second as electric field direction."
+            },
+            "mc": [
+              {
+                "q": "A passage describes electric potential energy per unit charge, while another describes work per unit charge required to move between two points; which distinction matches these observations?",
+                "op": [
+                  "Electric potential first, electric potential second",
+                  "Electric potential first, potential difference second",
+                  "Potential difference first, potential difference second",
+                  "Potential difference first, electric potential second"
+                ],
+                "ai": 1,
+                "fi": [
+                  0
+                ],
+                "ex": "Electric potential is electric potential energy per unit charge, whereas potential difference is work per unit charge required between two points. Reversing those labels swaps the two supplied relations."
+              },
+              {
+                "q": "In electrostatics, a group compares work and energy changes while tracking potential differences under a deadline; which observation identifies the quantity affecting those changes?",
+                "op": [
+                  "Potential differences affect work and energy changes",
+                  "Electric field affects work and energy changes",
+                  "Electric potential affects work and energy changes",
+                  "Energy changes affect potential differences and work"
+                ],
+                "ai": 0,
+                "fi": [
+                  1
+                ],
+                "ex": "Potential differences affect work and energy changes in electrostatics. Assigning that relation to electric potential replaces the specified quantity with a different one."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-4ed7b918a8ad0fe66ff45257",
+        "pairId": "scion-kernel-pair-3213e67cd326c70a68be6e3a",
+        "artifactSha256": {
+          "A": "7a65a46857d3be76a490fb2871f49e7b63226387d9ea3dc8d54ee385c27af4bc",
+          "B": "0cefa531a6d92237affb4352710b732bd67420bb9547eaef8d913ea89f05a147"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    },
+    {
+      "caseId": "scion-kernel-7ef640fbcbe8cfa330843c26",
+      "pairId": "scion-kernel-pair-c1f438dbb91905f0bccb536f",
+      "domain": "computer-science",
+      "failureFamilies": [
+        "feedback-instructionality"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-3",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Dictionaries",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: A dictionary stores key-value pairs and looks up each value by its key rather than by a numeric position. Claim 1: Because a dictionary looks up values using keys, it cannot hold duplicate keys. Claim 2: Dictionaries are written with curly braces in key: value form and are ideal when data is naturally labeled rather than ordered.",
+        "readings": "OpenStax Introduction to Python Programming, §10.1 Dictionary basics"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "c1e5a229ef1b1eb91b61a6f4c7d6271ce7329726a592602dacb9e2e4ce844b34",
+        "kernelId": "cs/dictionaries",
+        "term": "Dictionaries",
+        "claims": [
+          "A dictionary stores key-value pairs and looks up each value by its key rather than by a numeric position.",
+          "Because a dictionary looks up values using keys, it cannot hold duplicate keys.",
+          "Dictionaries are written with curly braces in key: value form and are ideal when data is naturally labeled rather than ordered."
+        ],
+        "anchors": [
+          {
+            "src": "openstax:introduction-python-programming#10.1",
+            "loc": "10.1",
+            "quote": "A dictionary in Python is a container object including key-value pairs"
+          },
+          {
+            "src": "openstax:introduction-python-programming#10.1",
+            "loc": "10.1",
+            "quote": "a dictionary object cannot hold duplicate key values"
+          }
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §10.1 Dictionary basics"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "2333ecdc5746ab0d94b21d33dda4fc83798f0c58ae103322923cccef57580ecd",
+          "lessonKernel": {
+            "lessonId": "lesson-3",
+            "facts": [
+              "A dictionary stores key-value pairs and looks up each value by its key rather than by a numeric position. ",
+              "Because a dictionary looks up values using keys, it cannot hold duplicate keys. ",
+              "Dictionaries are written with curly braces in key: value form and are ideal when data is naturally labeled rather than ordered."
+            ],
+            "keyTerms": [
+              {
+                "tr": "key-value pairs",
+                "df": "A dictionary stores key-value pairs and looks up each value by its key rather than by a numeric position. ",
+                "eg": "A dictionary stores key-value pairs and looks up each value by its key rather than by a numeric position. ",
+                "mi": "A dictionary stores data in a sequence where the position determines the retrieval method.",
+                "cx": "A dictionary retrieves values using keys instead of a numeric position."
+              },
+              {
+                "tr": "duplicate keys",
+                "df": "Because a dictionary looks up values using keys, it cannot hold duplicate keys. ",
+                "eg": "Because a dictionary looks up values using keys, it cannot hold duplicate keys. ",
+                "mi": "A dictionary allows the same key to be used multiple times to store different values.",
+                "cx": "The structure of a dictionary prevents the use of duplicate keys."
+              },
+              {
+                "tr": "curly braces",
+                "df": "Dictionaries are written with curly braces in key: value form and are ideal when data is naturally labeled rather than ordered. ",
+                "eg": "Dictionaries are written with curly braces in key: value form and are ideal when data is naturally labeled rather than ordered. ",
+                "mi": "Curly braces are only used for defining simple lists of items in Python.",
+                "cx": "Curly braces are used specifically for the key: value form in dictionaries."
+              }
+            ],
+            "scenario": {
+              "su": "A programmer needs to store user settings where each setting has a specific label. The constraint is that the system must ensure no two settings share the same unique label. ",
+              "ma": "Compare the structure of two data sets: {'name': 'Alice', 'age': 30} and {'name': 'Bob', 'age': 25}."
+            },
+            "mc": [
+              {
+                "q": "When searching for a specific student's score, which structural property of a dictionary dictates the retrieval method?",
+                "op": [
+                  "The retrieval method is based on numeric position.",
+                  "The retrieval method is based on the key.",
+                  "The retrieval method is based on the value.",
+                  "The retrieval method is based on the order of insertion."
+                ],
+                "ai": 0,
+                "fi": [
+                  0
+                ],
+                "ex": "A dictionary stores key-value pairs and looks up each value by its key rather than by a numeric position. The retrieval method is based on the key, while the other options describe positional or value-based retrieval."
+              },
+              {
+                "q": "Given the requirement to store unique student IDs, which characteristic of dictionaries prevents the storage of identical keys?",
+                "op": [
+                  "Dictionaries allow the same key to be used multiple times.",
+                  "Dictionaries are written with curly braces in key: value form.",
+                  "A dictionary cannot hold duplicate keys.",
+                  "Dictionaries are ideal when data is naturally ordered."
+                ],
+                "ai": 2,
+                "fi": [
+                  1
+                ],
+                "ex": "Because a dictionary looks up values using keys, it cannot hold duplicate keys. A dictionary cannot hold duplicate keys, while the other options describe features unrelated to key uniqueness."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "17c8a649bafc12bee8ad73cefbacfce212cb120b665d11cebcd4584c59ab7e61",
+          "lessonKernel": {
+            "lessonId": "lesson-3",
+            "facts": [
+              "A dictionary stores key-value pairs and looks up each value by its key rather than by a numeric position.",
+              "Because a dictionary looks up values using keys, it cannot hold duplicate keys.",
+              "Dictionaries are written with curly braces in key: value form and are ideal when data is naturally labeled rather than ordered."
+            ],
+            "keyTerms": [
+              {
+                "tr": "dictionary",
+                "df": "A dictionary is a structure that stores key-value pairs and looks up each value by its key.",
+                "eg": "A dictionary uses key: value form inside curly braces.",
+                "mi": "A dictionary looks up each value by a numeric position.",
+                "cx": "Dictionary lookup uses keys rather than numeric positions."
+              },
+              {
+                "tr": "key-value pairs",
+                "df": "Key-value pairs are stored associations whose values are looked up using their keys.",
+                "eg": "Dictionaries store key-value pairs in key: value form.",
+                "mi": "Key-value pairs require duplicate keys for lookup.",
+                "cx": "Duplicate keys cannot be held when lookup uses keys."
+              },
+              {
+                "tr": "curly braces",
+                "df": "Curly braces are the notation surrounding a dictionary written in key: value form.",
+                "eg": "A dictionary with naturally labeled data is written with curly braces.",
+                "mi": "Curly braces indicate that data is naturally ordered.",
+                "cx": "The notation belongs to dictionaries, which are ideal for naturally labeled data rather than ordered data."
+              }
+            ],
+            "scenario": {
+              "su": "A Python program must classify a design as a dictionary or as numeric-position lookup. The decision must reconcile its curly-brace key: value notation with its requirement that naturally labeled data cannot use duplicate keys.",
+              "ma": "curly-brace key: value notation, naturally labeled data description, proposed duplicate-key record, numeric-position lookup passage"
+            },
+            "mc": [
+              {
+                "q": "One description says a dictionary stores key-value pairs and another says lookup uses a numeric position. Which description states how the dictionary looks up each value?",
+                "op": [
+                  "Looks up each key by its value",
+                  "Looks up each value by numeric position",
+                  "Looks up each value by its key",
+                  "Looks up each key by numeric position"
+                ],
+                "ai": 2,
+                "fi": [
+                  0
+                ],
+                "ex": "The dictionary looks up each value by its key, so that description follows. Looking up each value by a numeric position contradicts the stated dictionary lookup."
+              },
+              {
+                "q": "A Python design uses keys for lookup but proposes duplicate keys in its key: value records; under that concrete constraint, which decision follows from dictionary behavior?",
+                "op": [
+                  "Accept duplicate keys under key-based lookup",
+                  "Use duplicate keys in key: value form",
+                  "Reject key-value pairs under key-based lookup",
+                  "Reject duplicate keys under key-based lookup"
+                ],
+                "ai": 3,
+                "fi": [
+                  1
+                ],
+                "ex": "Key-based lookup means a dictionary cannot hold duplicate keys, so the proposed records must reject them. Accepting duplicate keys contradicts that lookup constraint."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-7ef640fbcbe8cfa330843c26",
+        "pairId": "scion-kernel-pair-c1f438dbb91905f0bccb536f",
+        "artifactSha256": {
+          "A": "2333ecdc5746ab0d94b21d33dda4fc83798f0c58ae103322923cccef57580ecd",
+          "B": "17c8a649bafc12bee8ad73cefbacfce212cb120b665d11cebcd4584c59ab7e61"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    }
+  ],
+  "claimBoundary": "This packet contains anonymous source-bound artifacts only. It contains no provider identity, model identity, route, admission outcome, retry history, compiler receipt, preference, or training authorization.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "679499c1e86ca1895f7e005b0680e029cf02dddb75817e246282cab28f1b0a33"
+  }
+}

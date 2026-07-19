@@ -1,0 +1,554 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-paired-order-result-v1",
+  "generatedAt": "2026-07-19T21:00:00.000Z",
+  "status": "paired-orders-complete",
+  "requiredOrders": [
+    "A/B",
+    "B/A"
+  ],
+  "sessions": {
+    "A/B": "scion-v01654-batch-004-ac35428971-a-b-ac6fdfe3-2c60-4c51-9904-91091f7c0ef8",
+    "B/A": "scion-v01654-batch-004-ac35428971-b-a-8ef0b796-6239-4818-a42c-70fcacdd6217"
+  },
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "evidence": {
+    "prompt": {
+      "path": "evaluation/scion-adapters/lesson-kernel-judge-prompt-v0.16.54.md",
+      "sha256": "37844b86736335db54b561d8c031660ef71679c55ae1108e2e999e746f2a1c96"
+    },
+    "packets": {
+      "A/B": "8b1f675d035d21c385e38d750e7a579ccb06ec07348a9a75db09086d5f64d19d",
+      "B/A": "815f44cc74bbe3481ce4afe88a4a82df5b2811857c3da957106e077106d97187"
+    },
+    "reviews": {
+      "A/B": "3053931ccc08b4fa7c6d5d99566be37a58bdca37c2b60696a1c5c429df5f0bae",
+      "B/A": "496fdff76bab8c856fbcbd7d24a55648f5a3d1313f6fab718a61fae3b95de186"
+    }
+  },
+  "issues": [],
+  "results": [
+    {
+      "caseId": "scion-kernel-8ed67c4df21f0027a46ac281",
+      "pairId": "scion-kernel-pair-e764cefb79ba569ed31bc993",
+      "winners": {
+        "A/B": "3b2005b930ddc6cb35ac5e7383653df536a2ffa5d35560364facb31c62cf8a45",
+        "B/A": "3b2005b930ddc6cb35ac5e7383653df536a2ffa5d35560364facb31c62cf8a45"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": true,
+      "scoreQualification": {
+        "qualified": true,
+        "winnerMinimumScore": 4,
+        "minimumTotalScoreMargin": 9,
+        "winnerCriticalDefects": [],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 3,
+              "assessmentCorrectness": 1,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 2
+            },
+            "winnerMinimumScore": 4,
+            "totalScoreMargin": 9,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The second question declares decompression melting at a convergent boundary, while the source and its explanation identify flux melting."
+            ],
+            "rationale": "B is fully source-bound, gives a more inspectable classification scenario, and has two correct, well-explained assessments. A contains a critical incorrect key and answer-explanation contradiction in its convergent-boundary question.",
+            "decisionSha256": "3609a18b4c68563dd5c8cf989016ac2c35b5198b66b5b165bed217a3e06dfe5e"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 3,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 1
+            },
+            "winnerMinimumScore": 4,
+            "totalScoreMargin": 15,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The second question declares decompression melting at the convergent boundary even though the cited fact and explanation require flux melting.",
+              "Both explanations contain unexecuted placeholder instructions instead of completed misconception feedback."
+            ],
+            "rationale": "A is fully source-bound, gives an evidence-driven classification scenario, and has two coherent assessments with completed feedback. B has an incorrect declared answer that contradicts its citation and explanation, plus unfinished instructional text.",
+            "decisionSha256": "fd660d61e2f444ec5f5f6b440b84012358c33361d4f9f6d0df3d0db6ddf4ee1a"
+          }
+        ]
+      },
+      "trainingEligible": true
+    },
+    {
+      "caseId": "scion-kernel-a84a171ff6419a1eeeff9d2e",
+      "pairId": "scion-kernel-pair-3d5041d7f377f05e890d7c4a",
+      "winners": {
+        "A/B": "cfece01a97bec52e3e62e43641d6967f9350a13aa0ea0db08fb7d121e65cd73b",
+        "B/A": "cfece01a97bec52e3e62e43641d6967f9350a13aa0ea0db08fb7d121e65cd73b"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": true,
+      "scoreQualification": {
+        "qualified": true,
+        "winnerMinimumScore": 3,
+        "minimumTotalScoreMargin": 11,
+        "winnerCriticalDefects": [],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 3,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 2,
+              "assessmentCorrectness": 3,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 2
+            },
+            "winnerMinimumScore": 4,
+            "totalScoreMargin": 11,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The first assessment explanation presents 'the result is always a float because division is the default behavior' without marking it false, creating an unsupported conflicting claim."
+            ],
+            "rationale": "B provides precise operation distinctions, an evidence-rich scenario, and instructional feedback. A has a weakly connected scenario, ambiguous term work, and critically introduces an unsupported conflicting statement in its first explanation.",
+            "decisionSha256": "a6f1f518cb2ec581f2c0fa570e3cb5ad81a36194265046a7ec669768587aab59"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 2,
+              "assessmentCorrectness": 2,
+              "choiceDiscriminability": 2,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 2
+            },
+            "winnerMinimumScore": 3,
+            "totalScoreMargin": 14,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The first explanation appends the unsupported claim that a mixed expression always yields a float because division is the default behavior.",
+              "The cost-and-tax scenario introduces numeric application details not supplied by the source claims."
+            ],
+            "rationale": "A provides precise distinctions, an inspectable labeling task, correct keys, and genuinely corrective feedback. B's keys are nominally correct, but its scenario adds unsupported detail and its first explanation affirms a false competing generalization.",
+            "decisionSha256": "68b373d613b9f06f4af03a27df5635e582094e50e8562352ce7816e0f6596151"
+          }
+        ]
+      },
+      "trainingEligible": true
+    },
+    {
+      "caseId": "scion-kernel-becf20842df8b3de34276971",
+      "pairId": "scion-kernel-pair-90b578a4b771f13460618586",
+      "winners": {
+        "A/B": "c3c5384b7410a750f0dbd213cc628772c9d638f6728416233b099c767b1d7ef7",
+        "B/A": "c3c5384b7410a750f0dbd213cc628772c9d638f6728416233b099c767b1d7ef7"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": true,
+      "scoreQualification": {
+        "qualified": false,
+        "winnerMinimumScore": 2,
+        "minimumTotalScoreMargin": 13,
+        "winnerCriticalDefects": [
+          "The first explanation says homeostasis anchors fluctuations, contradicting both the source and the declared answer that assigns that role to the set point.",
+          "The first explanation contradicts its keyed distinction by saying homeostasis, rather than the set point, anchors fluctuations."
+        ],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 3,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 3,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 2,
+              "internalCoherence": 3
+            },
+            "loserScores": {
+              "sourceFidelity": 1,
+              "knowledgePrecision": 1,
+              "scenarioReadiness": 2,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 0,
+              "internalCoherence": 1
+            },
+            "winnerMinimumScore": 2,
+            "totalScoreMargin": 15,
+            "winnerCriticalDefects": [
+              "The first explanation says homeostasis anchors fluctuations, contradicting both the source and the declared answer that assigns that role to the set point."
+            ],
+            "loserCriticalDefects": [
+              "The set-point correction incorrectly says the set point is a fluctuating value; the source says the normal range fluctuates around it.",
+              "The scenario invents body-temperature, cooling-mechanism, and vasodilation details absent from the supplied claims.",
+              "The first question declares the set-point definition instead of the negative-feedback response that restores stability.",
+              "The second question declares set point instead of the control center described in the scenario as initiating the response."
+            ],
+            "rationale": "B has correct keys, precise terms, and an actionable classification scenario despite one critical contradictory feedback clause. A has two incorrect keys, an incorrect set-point correction, unsupported physiological details, and non-instructional feedback.",
+            "decisionSha256": "78fba3bff08bdb03267d350940304670bb054eb912bc70c1a0dc0952b363f967"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 3,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 2,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 2,
+              "internalCoherence": 2
+            },
+            "loserScores": {
+              "sourceFidelity": 1,
+              "knowledgePrecision": 1,
+              "scenarioReadiness": 2,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 2,
+              "feedbackInstructionality": 0,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 2,
+            "totalScoreMargin": 13,
+            "winnerCriticalDefects": [
+              "The first explanation contradicts its keyed distinction by saying homeostasis, rather than the set point, anchors fluctuations."
+            ],
+            "loserCriticalDefects": [
+              "The first question incorrectly declares the set-point definition instead of the negative-feedback mechanism.",
+              "The second question incorrectly declares the set point as the component that processes sensor information.",
+              "The set-point correction falsely says the set point itself is a fluctuating value.",
+              "The scenario introduces unsupported temperature-control and vasodilation claims."
+            ],
+            "rationale": "A has one localized explanation contradiction but otherwise supplies precise terms, a usable classification scenario, and correct keys. B contains two incorrect declared answers, unsupported physiology details, an inaccurate set-point correction, and non-instructional feedback.",
+            "decisionSha256": "dbdf18b13a5af13ed7683765e22ecbfe0bb5655f0f4df36da10b0b058df1938d"
+          }
+        ]
+      },
+      "trainingEligible": false
+    },
+    {
+      "caseId": "scion-kernel-bf7c2cbf2045087ba349c0c3",
+      "pairId": "scion-kernel-pair-b9799a8ad1951250a25c05a3",
+      "winners": {
+        "A/B": "7aaeaebbeb5e8aadf94351223750a58cb140937c22865af06600f39f64b996f2",
+        "B/A": "7aaeaebbeb5e8aadf94351223750a58cb140937c22865af06600f39f64b996f2"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": false,
+      "scoreQualification": {
+        "qualified": false,
+        "winnerMinimumScore": 2,
+        "minimumTotalScoreMargin": 13,
+        "winnerCriticalDefects": [
+          "In the second question, 'current is proportional to voltage' and 'voltage is proportional to current' are equivalent alternatives, so the declared answer is not unique.",
+          "The second explanation incorrectly claims that reversing the wording of a proportional relationship changes the relationship.",
+          "The second question duplicates the same direct-proportionality relationship as 'current is proportional to voltage' and 'voltage is proportional to current,' making the answer ambiguous."
+        ],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 3,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 2,
+              "choiceDiscriminability": 2,
+              "feedbackInstructionality": 2,
+              "internalCoherence": 3
+            },
+            "loserScores": {
+              "sourceFidelity": 1,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 1,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 1,
+              "feedbackInstructionality": 0,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 2,
+            "totalScoreMargin": 14,
+            "winnerCriticalDefects": [
+              "In the second question, 'current is proportional to voltage' and 'voltage is proportional to current' are equivalent alternatives, so the declared answer is not unique.",
+              "The second explanation incorrectly claims that reversing the wording of a proportional relationship changes the relationship."
+            ],
+            "loserCriticalDefects": [
+              "The electrical-resistance example invents a copper-versus-silver comparison unsupported by the source.",
+              "The first question declares inverse voltage-current proportionality even though the supplied claim states direct proportionality.",
+              "The second question has no uniquely source-supported option and declares an unsupported cross-sectional-area adjustment.",
+              "The scenario asks which resistor property was manipulated even though its observation identifies voltage and its evidence field switches to a length comparison."
+            ],
+            "rationale": "B preserves the core resistance distinctions and offers a usable scenario, although its second assessment is critically ambiguous. A is substantially worse: both keys fail, unsupported directional claims are introduced, and the scenario provides no coherent decision path.",
+            "decisionSha256": "ca7d6488c1bd4811e4b2ff7c8346ba6c55cd351d88647cc25654d4aa8d04aabd"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 3,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 2,
+              "choiceDiscriminability": 2,
+              "feedbackInstructionality": 2,
+              "internalCoherence": 2
+            },
+            "loserScores": {
+              "sourceFidelity": 1,
+              "knowledgePrecision": 1,
+              "scenarioReadiness": 2,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 1,
+              "feedbackInstructionality": 0,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 2,
+            "totalScoreMargin": 13,
+            "winnerCriticalDefects": [
+              "The second question duplicates the same direct-proportionality relationship as 'current is proportional to voltage' and 'voltage is proportional to current,' making the answer ambiguous."
+            ],
+            "loserCriticalDefects": [
+              "The first question declares inverse proportionality even though the cited fact states direct proportionality.",
+              "The second question declares increased cross-sectional area despite having no source-supported correct option for halving current at fixed voltage.",
+              "The copper-versus-silver resistance comparison is an invented, unqualified example absent from the source.",
+              "Both explanations concatenate contradictory alternatives rather than provide completed instructional feedback."
+            ],
+            "rationale": "A has a significant duplicate-alternative defect in its second assessment but otherwise remains accurate and scenario-ready. B has two invalid answer keys, unsupported directional claims, invented comparison detail, and incoherent feedback.",
+            "decisionSha256": "a53bb85e3757ad1b5b88808fc550308da55f4adffe0f58396a2b8c88388f9e55"
+          }
+        ]
+      },
+      "trainingEligible": false
+    },
+    {
+      "caseId": "scion-kernel-c6d826e4fc868a6fa9ef434f",
+      "pairId": "scion-kernel-pair-9edfa5afada2c3aba5766ace",
+      "winners": {
+        "A/B": "a522a81a065377f9f55d2d657f3de2f872d7c8d42f8d8655d78f07915f8deecf",
+        "B/A": "a522a81a065377f9f55d2d657f3de2f872d7c8d42f8d8655d78f07915f8deecf"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": false,
+      "scoreQualification": {
+        "qualified": false,
+        "winnerMinimumScore": 2,
+        "minimumTotalScoreMargin": 16,
+        "winnerCriticalDefects": [
+          "Options 0 and 3 in the first question are semantically duplicate alternatives with their clauses merely reversed."
+        ],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 3,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 2,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 1,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 1
+            },
+            "winnerMinimumScore": 4,
+            "totalScoreMargin": 17,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The scenario invents the named key of C major and creates a conflict by asking for a major-versus-minor decision after already fixing that key.",
+              "The first question is ambiguous because the exact major pattern, the natural-minor seventh-to-tonic whole step, and the major seventh-to-tonic half step are all supported alternatives.",
+              "The second question declares the sixth degree as subtonic while the source and explanation identify the seventh degree."
+            ],
+            "rationale": "B is source-bound, operational, and fully coherent, with two uniquely correct assessments and corrective feedback. A adds unsupported scenario detail, presents an ambiguous first question, and contains a critical wrong key and explanation contradiction in the second.",
+            "decisionSha256": "f4f2a55abb284a718160e939a4556ae85fa938bf5d817b392ad6e1c53d726415"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 2,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 3,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 3,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 1,
+              "feedbackInstructionality": 0,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 2,
+            "totalScoreMargin": 16,
+            "winnerCriticalDefects": [
+              "Options 0 and 3 in the first question are semantically duplicate alternatives with their clauses merely reversed."
+            ],
+            "loserCriticalDefects": [
+              "The first question has multiple source-supported alternatives and therefore no unique correct answer.",
+              "The second question incorrectly declares the sixth degree even though the source and explanation identify the seventh degree as subtonic.",
+              "Both explanations contain unexecuted placeholder instructions instead of completed misconception feedback."
+            ],
+            "rationale": "A is accurate, scenario-ready, and correctly keyed, with one duplicated-distractor defect. B has an ambiguous first item, an incorrect second key that contradicts its citation, and unfinished feedback in both questions.",
+            "decisionSha256": "0c8ccd404771075f8ea72fb6354b145f5549e7f79b49b1cfafb38de2c5bdf07c"
+          }
+        ]
+      },
+      "trainingEligible": false
+    },
+    {
+      "caseId": "scion-kernel-caca037b2c9e892b84404b0b",
+      "pairId": "scion-kernel-pair-65083a57c7918c7962e919e3",
+      "winners": {
+        "A/B": "ff670980b3c7f55fab2dfd738f2fa4f61317d95ce64c85bf7205386d175c98e1",
+        "B/A": "ff670980b3c7f55fab2dfd738f2fa4f61317d95ce64c85bf7205386d175c98e1"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": true,
+      "scoreQualification": {
+        "qualified": true,
+        "winnerMinimumScore": 3,
+        "minimumTotalScoreMargin": 5,
+        "winnerCriticalDefects": [],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 3,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 2,
+              "internalCoherence": 4
+            },
+            "winnerMinimumScore": 4,
+            "totalScoreMargin": 5,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [],
+            "rationale": "Both artifacts are source-faithful and have correct keys, but B is more precise, scenario-ready, discriminating, and instructional. A's terminology is repetitive, its scenario offers less decision tension, and its feedback leaves corrections unfinished.",
+            "decisionSha256": "f76ced64748d96042e70e28675ac302249f60a642e1ec21073d0f195e8492e5b"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 3,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 2,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 3
+            },
+            "winnerMinimumScore": 3,
+            "totalScoreMargin": 9,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "Both assessment explanations contain unexecuted placeholder instructions instead of completed misconception feedback."
+            ],
+            "rationale": "A offers more precise terminology, a genuine publication decision, correct assessments, and completed corrective explanations. B's keys are correct, but its scenario lacks a usable decision, one correction is self-referential, and both feedback strings are unfinished.",
+            "decisionSha256": "8a89c3a8ad8555c9ea563e2631a7a4ae8765993b48eb6f0994f282b300622513"
+          }
+        ]
+      },
+      "trainingEligible": true
+    }
+  ],
+  "summary": {
+    "pairs": 6,
+    "stablePreferences": 3,
+    "localWins": 0,
+    "referenceWins": 6,
+    "unstable": 0,
+    "scoreRejected": 3,
+    "compilerRejected": 0
+  },
+  "claimBoundary": "These are same-identity model-judge preferences from isolated A/B and B/A orders. They are not human, instructor, independent, classroom, heldout-adapter, or production-win evidence.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "143dce3f4fe341c7dedfbbf3993b1912294bd13093e650855057208082fac91f"
+  }
+}

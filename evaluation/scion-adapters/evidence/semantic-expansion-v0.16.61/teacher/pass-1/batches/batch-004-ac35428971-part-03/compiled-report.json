@@ -1,0 +1,149 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-teacher-capture-v1",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "packetSha256": "c57cbf8f30220aa17ffbf327cf68f41fa8f3710bd58e8744de374a0db427a31c",
+  "resultSha256": "3da2c0a93d16621b3d93d80e463e751f964832a8a1b6cbf0b8e98b11d8cee376",
+  "reviser": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-source-cleanroom"
+  },
+  "calls": [
+    {
+      "caseId": "scion-kernel-c6d826e4fc868a6fa9ef434f",
+      "caseSha256": "c6d826e4fc868a6fa9ef434f97c462ff9e7dd77fa2aa3fe6f02ee099567d4cc6",
+      "arm": "teacher-revision",
+      "model": {
+        "model": "gpt-5.6-sol",
+        "revision": "codex-cli 0.144.5",
+        "runtime": "codex-cli-ephemeral-source-cleanroom"
+      },
+      "sourceContextSha256": "93f1967ab8d9ef573ce845e9bd5ffd6778ae95c548d7171dbd6902c7d869a8fa",
+      "originalArtifactSha256": "a522a81a065377f9f55d2d657f3de2f872d7c8d42f8d8655d78f07915f8deecf",
+      "artifact": {
+        "lessonId": "lesson-2",
+        "facts": [
+          "Major and natural minor scales are distinguished by their ordered patterns of whole steps and half steps between adjacent scale degrees.",
+          "The major-scale step pattern is whole, whole, half, whole, whole, whole, half.",
+          "Natural minor has a whole step from its seventh degree to the tonic, so that degree is called the subtonic."
+        ],
+        "keyTerms": [
+          {
+            "tr": "major-scale step pattern",
+            "df": "The major-scale step pattern is an ordered pattern of whole and half steps between adjacent scale degrees.",
+            "eg": "The major-scale step pattern is whole, whole, half, whole, whole, whole, half.",
+            "mi": "Natural minor is identified by the listed major-scale step pattern.",
+            "cx": "That listed sequence identifies the major scale, while natural minor has a whole step from its seventh degree to the tonic."
+          },
+          {
+            "tr": "natural minor",
+            "df": "Natural minor is a scale distinguished by a whole step from its seventh degree to the tonic.",
+            "eg": "In natural minor, the seventh degree is called the subtonic.",
+            "mi": "In natural minor, the tonic is called the subtonic.",
+            "cx": "The subtonic label belongs to the seventh degree, not to the tonic."
+          },
+          {
+            "tr": "subtonic",
+            "df": "The subtonic is the seventh degree of natural minor when it has a whole step to the tonic.",
+            "eg": "A natural minor notation labels its seventh degree as the subtonic.",
+            "mi": "Subtonic names the whole step between adjacent scale degrees.",
+            "cx": "Subtonic names a scale degree; the whole step describes its relation to the tonic."
+          }
+        ],
+        "scenario": {
+          "su": "An editor must distinguish a major scale from natural minor using displayed adjacent-step relations. A deadline requires the editor to base the classification on the displayed patterns and labels.",
+          "ma": "major-scale adjacent-step notation: whole, whole, half, whole, whole, whole, half, natural-minor observation: whole step from the seventh degree to the tonic with that degree labeled subtonic"
+        },
+        "mc": [
+          {
+            "q": "An ordered pattern between adjacent scale degrees is whole, whole, half, whole, whole, whole, half. Which scale does that ordered pattern identify?",
+            "op": [
+              "The tonic matches this ordered pattern",
+              "The natural minor scale matches this ordered pattern",
+              "The major scale matches this ordered pattern",
+              "The subtonic matches this ordered pattern"
+            ],
+            "ai": 2,
+            "fi": [
+              1
+            ],
+            "ex": "The sequence whole, whole, half, whole, whole, whole, half is the major-scale step pattern. The natural minor choice is incorrect because the cited claim assigns this sequence to the major scale."
+          },
+          {
+            "q": "An editor observes a whole step from a scale’s seventh degree to its tonic and must classify and label the notation from that relation. Which decision is supported?",
+            "op": [
+              "Natural minor with tonic called subtonic",
+              "Major with tonic called subtonic",
+              "Natural minor with seventh degree called subtonic",
+              "Major with seventh degree called subtonic"
+            ],
+            "ai": 2,
+            "fi": [
+              2
+            ],
+            "ex": "A whole step from the seventh degree to the tonic supports natural minor and the subtonic label for that seventh degree. Calling the tonic subtonic reverses which degree receives the label."
+          }
+        ]
+      },
+      "artifactSha256": "19ab1bca1f3282ad0513641405543ea1c575057876a099afe61818ed2453aca7",
+      "admission": {
+        "needsRetry": false,
+        "issues": []
+      },
+      "compilerRepairs": [
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-2",
+          "item": 0,
+          "permutation": [
+            3,
+            1,
+            0,
+            2
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 2,
+          "trainingEligible": false
+        },
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-2",
+          "item": 1,
+          "permutation": [
+            1,
+            3,
+            0,
+            2
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 2,
+          "trainingEligible": false
+        }
+      ],
+      "revisionEvidence": {
+        "packetSha256": "c57cbf8f30220aa17ffbf327cf68f41fa8f3710bd58e8744de374a0db427a31c",
+        "sessionId": "scion-v01654-teacher-batch-004-ac35428971-part-03-358fa2d9-e480-437c-90b3-af148f55ba5b",
+        "changeSummary": [
+          "Re-authored the complete first assessment item as a major-scale pattern identification decision with four distinct alternatives."
+        ],
+        "addressedDiagnoses": [
+          "Eliminated the semantically duplicate alternatives previously present in the first question."
+        ]
+      }
+    }
+  ],
+  "summary": {
+    "cases": 1,
+    "compilerAdmitted": 1,
+    "compilerRejected": 0
+  },
+  "claimBoundary": "These source-constrained model revisions cleared only deterministic compiler admission where stated. They are not judge preferences, human evidence, adapter wins, or training authorization.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "3c6e18da8da7c640bce5209564fec50fa3737753bbbcfff172bdb103e6c5c071"
+  }
+}

@@ -1,0 +1,150 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-teacher-capture-v1",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "packetSha256": "5b5dd27df39f6322c0ac4f8a50bb05abcfc89fc910e1341953936a50e3e8d7e1",
+  "resultSha256": "c2ad684a022e0975ff008f52b9f3d40c8ddb234e6ffa4de5eb0f9158f66108d6",
+  "reviser": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-source-cleanroom"
+  },
+  "calls": [
+    {
+      "caseId": "scion-kernel-eb4049f6a28f14cedcfa8b79",
+      "caseSha256": "eb4049f6a28f14cedcfa8b79c562561cfce310d76cb939aa136e75d7cb32349c",
+      "arm": "teacher-revision",
+      "model": {
+        "model": "gpt-5.6-sol",
+        "revision": "codex-cli 0.144.5",
+        "runtime": "codex-cli-ephemeral-source-cleanroom"
+      },
+      "sourceContextSha256": "4fb22bcb5552beda1fca8748ba9ed0740ca3d0de8b9cf8ba3efe05b0a4586b68",
+      "originalArtifactSha256": "7062ff632711cdc69998ce48e7b2e641e511cb988c78cf255f07f101f62a3692",
+      "artifact": {
+        "lessonId": "lesson-3",
+        "facts": [
+          "The minor key system has natural, harmonic, and melodic variants that differ through alterations to the sixth and seventh scale degrees.",
+          "Harmonic minor raises the seventh scale degree so it can function as a leading tone.",
+          "Melodic minor raises both the sixth and seventh scale degrees."
+        ],
+        "keyTerms": [
+          {
+            "tr": "minor key system",
+            "df": "The minor key system includes natural, harmonic, and melodic variants distinguished through alterations to the sixth and seventh scale degrees.",
+            "eg": "Natural, harmonic, and melodic are variants within the minor key system.",
+            "mi": "The minor key system has harmonic and melodic variants distinguished through the seventh scale degree.",
+            "cx": "Natural is also a variant, and the stated differences involve alterations to the sixth and seventh scale degrees."
+          },
+          {
+            "tr": "harmonic minor",
+            "df": "Harmonic minor is the variant that raises the seventh scale degree so it can function as a leading tone.",
+            "eg": "Harmonic minor raises the seventh scale degree.",
+            "mi": "Harmonic minor raises both the sixth and seventh scale degrees.",
+            "cx": "Raising both degrees is the stated relation for melodic minor, while harmonic minor raises the seventh."
+          },
+          {
+            "tr": "melodic minor",
+            "df": "Melodic minor is the variant distinguished by raising both the sixth and seventh scale degrees.",
+            "eg": "Melodic minor raises both the sixth and seventh scale degrees.",
+            "mi": "The alteration involving both scale degrees belongs to harmonic minor rather than melodic minor.",
+            "cx": "The supplied relations run oppositely: melodic minor raises both degrees, and harmonic minor raises the seventh."
+          }
+        ],
+        "scenario": {
+          "su": "A student compares a notation with a raised seventh scale degree against a notation with raised sixth and seventh scale degrees. Because both notations raise the seventh, the student must use the sixth-degree observation to label harmonic minor and melodic minor defensibly.",
+          "ma": "notation showing a raised seventh scale degree, notation showing raised sixth and seventh scale degrees"
+        },
+        "mc": [
+          {
+            "q": "Two notations show different alterations: harmonic minor has a raised seventh degree, while melodic minor has raised sixth and seventh degrees. Which comparison fully matches both observations?",
+            "op": [
+              "Harmonic raises the seventh; melodic raises the seventh",
+              "Harmonic raises seventh; melodic raises the sixth",
+              "Harmonic raises seventh; melodic raises sixth and seventh",
+              "Melodic raises seventh; harmonic raises sixth and seventh"
+            ],
+            "ai": 2,
+            "fi": [
+              1,
+              2
+            ],
+            "ex": "Harmonic minor raises the seventh scale degree, whereas melodic minor raises both the sixth and seventh. Saying melodic minor raises the sixth omits its raised seventh."
+          },
+          {
+            "q": "A notation displays raised sixth and seventh scale degrees, and the student must select the supplied variant description that accounts for every observed alteration. Which description directly matches the notation?",
+            "op": [
+              "Harmonic minor raises the seventh scale degree",
+              "Harmonic minor raises both observed scale degrees",
+              "Melodic minor raises the seventh scale degree",
+              "Melodic minor raises both observed scale degrees"
+            ],
+            "ai": 3,
+            "fi": [
+              2
+            ],
+            "ex": "Melodic minor raises both the sixth and seventh scale degrees, matching every observation. The description mentioning its seventh degree alone omits the observed raised sixth."
+          }
+        ]
+      },
+      "artifactSha256": "4cd1c779b35b55aca7f110350715bc14a97724a08493156fa851cffa7e86bb17",
+      "admission": {
+        "needsRetry": false,
+        "issues": []
+      },
+      "compilerRepairs": [
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-3",
+          "item": 0,
+          "permutation": [
+            3,
+            2,
+            0,
+            1
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 2,
+          "trainingEligible": false
+        },
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-3",
+          "item": 1,
+          "permutation": [
+            3,
+            1,
+            2,
+            0
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 3,
+          "trainingEligible": false
+        }
+      ],
+      "revisionEvidence": {
+        "packetSha256": "5b5dd27df39f6322c0ac4f8a50bb05abcfc89fc910e1341953936a50e3e8d7e1",
+        "sessionId": "scion-v01654-teacher-batch-005-3337231ee9-a71571a2-26db-4bee-aa90-0a426ed3323e",
+        "changeSummary": [
+          "Revised keyTerms[2].mi so the misconception no longer repeats the melodic minor example."
+        ],
+        "addressedDiagnoses": [
+          "lesson-3:key-term-2:misconception-repeats-example"
+        ]
+      }
+    }
+  ],
+  "summary": {
+    "cases": 1,
+    "compilerAdmitted": 1,
+    "compilerRejected": 0
+  },
+  "claimBoundary": "These source-constrained model revisions cleared only deterministic compiler admission where stated. They are not judge preferences, human evidence, adapter wins, or training authorization.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "d222057cf124d70379a1c882b8dd600c8c14b79a0c8d65d949e10b6b623f2d78"
+  }
+}

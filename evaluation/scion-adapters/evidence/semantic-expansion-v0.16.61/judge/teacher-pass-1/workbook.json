@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-workbook-v1",
+  "generatedAt": "2026-07-19T23:20:00.000Z",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "prompt": {
+    "path": "evaluation/scion-adapters/lesson-kernel-judge-prompt-v0.16.54.md",
+    "sha256": "37844b86736335db54b561d8c031660ef71679c55ae1108e2e999e746f2a1c96"
+  },
+  "chunkSize": 4,
+  "campaignCaseCount": 148,
+  "caseCount": 8,
+  "captureComplete": false,
+  "sparseComplete": true,
+  "batches": [
+    {
+      "batchId": "batch-001-4cf7891686",
+      "index": 1,
+      "caseIds": [
+        "scion-kernel-02772fca67bf5fc5661a4764",
+        "scion-kernel-1c1a13aa65159075aedfa3a8",
+        "scion-kernel-4ed7b918a8ad0fe66ff45257",
+        "scion-kernel-7ef640fbcbe8cfa330843c26"
+      ],
+      "sealed": true,
+      "packetSha256": {
+        "A/B": "679499c1e86ca1895f7e005b0680e029cf02dddb75817e246282cab28f1b0a33",
+        "B/A": "e8ad9fb836419a6e6dcdef8df5833f959db7b4cb26f2adcc8576e4d667cd2124"
+      }
+    },
+    {
+      "batchId": "batch-002-d428445a1b",
+      "index": 2,
+      "caseIds": [
+        "scion-kernel-becf20842df8b3de34276971",
+        "scion-kernel-bf7c2cbf2045087ba349c0c3",
+        "scion-kernel-c6d826e4fc868a6fa9ef434f",
+        "scion-kernel-eb4049f6a28f14cedcfa8b79"
+      ],
+      "sealed": true,
+      "packetSha256": {
+        "A/B": "3e53385cacc29a6a468b9662c15377e654027cb7b7d5c6b70b9c729e6471fadb",
+        "B/A": "09b90ad55d08023cfb99113f924a14f80f23a6b41496459b4352e421d8a8614f"
+      }
+    }
+  ],
+  "claimBoundary": "Each batch is judged in two isolated sessions with exact reversed artifact order. The workbook contains no organizer mapping, provider identity, model route, preference, or training authorization.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "f2c708fd0ae07c4c9b08f909dc3e09c5d9aa36a955c5f1f86ebdb893e0545f80"
+  }
+}

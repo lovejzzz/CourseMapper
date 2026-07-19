@@ -14,8 +14,8 @@
     "scripts/scionLessonKernelTeacherRevisionRunner.mjs": "33cb31b8dd5e5941e05b6b4d5337a2bc996330392fbda35915619a9f55e57421",
     "scripts/scionLessonKernelJudgeBatches.mjs": "edb0d15e606d4b78d4c56b988b129812f9a9adcc7b4579209904679429783e93",
     "scripts/scionLessonKernelJudgeRunner.mjs": "56ed5df3f192b23f46aab6c092c25ec43d711d3150b12fcc0acf921152815afc",
-    "src/lib/scionAnswerKeyAlignment.js": "87effc6a3dce3027faa292c111f138d903b5ed2a31f3270f0b8e151428b182c5",
-    "src/lib/publicScionProvider.js": "9ea298750a81be766b77664b45beb81938d77b07d38b1ddf205fb5cedf637692",
+    "src/lib/scionAnswerKeyAlignment.js": "c5aff075c25ee6f1bf6de87d52991d1b354e741c188e1290f3fa3c4282750423",
+    "src/lib/publicScionProvider.js": "eecc83c41a7b58f6a6397f257d9952250a9e611ef0979aa86ba4b5f109a6e8d8",
     "evaluation/scion-adapters/lesson-kernel-teacher-revision-prompt-v8-v0.16.60.md": "505aff4b87a07aa0d7d9d7d7b6d40bb268f654439a4b8e06f1d1efda53327eb1"
   },
   "evidenceFiles": {
@@ -241,6 +241,6 @@
   "claimBoundary": "These are source-constrained same-identity model-teacher and model-judge preferences from separate isolated sessions with reversed-order controls. They are not human, instructor, classroom, independent-judge, held-out-adapter, production-win, or model-weight-improvement evidence. The public Gemma 4 E2B base remained unmodified and no Scion adapter was trained or active.",
   "identity": {
     "algorithm": "sha256-canonical-json",
-    "sha256": "d317c20392fb0ac6bbfbfdab98a4caca2f0d4afa1b3f2dd64fbba2d92ecc4dfe"
+    "sha256": "bba1b0059623027b8a52ae41ae42ad2fdd69fe7858240bfaca382eba7f36e3ff"
   }
 }

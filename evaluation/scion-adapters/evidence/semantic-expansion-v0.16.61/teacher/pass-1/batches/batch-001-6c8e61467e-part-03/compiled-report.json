@@ -1,0 +1,150 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-teacher-capture-v1",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "packetSha256": "315bf07841ba2cfa92202b502530af185ed547f4f1b806230191be3e4fbac980",
+  "resultSha256": "c2007cce7ee23899df3fab8cf9a7f04afe303bd7ac8949dad0a14f250248e31f",
+  "reviser": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-source-cleanroom"
+  },
+  "calls": [
+    {
+      "caseId": "scion-kernel-1c1a13aa65159075aedfa3a8",
+      "caseSha256": "1c1a13aa65159075aedfa3a87866ad92a114e4362ab77612ad5e25e21a8f6b7d",
+      "arm": "teacher-revision",
+      "model": {
+        "model": "gpt-5.6-sol",
+        "revision": "codex-cli 0.144.5",
+        "runtime": "codex-cli-ephemeral-source-cleanroom"
+      },
+      "sourceContextSha256": "5d03babcca407b1e91009135e370f3061f14ced952b7bf8eb7be2c6d262a6728",
+      "originalArtifactSha256": "5159c0ef3f90921b23126d1e93b870783f7e74172488a6d89168c2e6ca7d52f9",
+      "artifact": {
+        "lessonId": "lesson-4",
+        "facts": [
+          "A wage-price spiral is a self-reinforcing cycle in which rising prices lead workers to demand higher wages, and higher wage costs lead firms to raise prices further.",
+          "The wage-price spiral is positive feedback: an initial change is amplified rather than damped.",
+          "Unlike negative feedback, positive feedback drives the system further from where it started."
+        ],
+        "keyTerms": [
+          {
+            "tr": "self-reinforcing cycle",
+            "df": "A self-reinforcing cycle links rising prices, higher wage demands, higher wage costs, and further price increases.",
+            "eg": "Rising prices lead workers to demand higher wages, while higher wage costs lead firms to raise prices further.",
+            "mi": "A self-reinforcing cycle ends when firms raise prices further.",
+            "cx": "Further price increases continue the stated cycle rather than ending it."
+          },
+          {
+            "tr": "positive feedback",
+            "df": "Positive feedback is feedback in which an initial change is amplified rather than damped.",
+            "eg": "The wage-price spiral is positive feedback because its initial change is amplified.",
+            "mi": "Positive feedback dampens an initial change and moves the system toward where it started.",
+            "cx": "Positive feedback amplifies the change and drives the system further from its starting point."
+          },
+          {
+            "tr": "negative feedback",
+            "df": "Negative feedback differs from positive feedback, which drives the system further from where it started.",
+            "eg": "Positive feedback and negative feedback differ in whether the system is driven further from where it started.",
+            "mi": "The wage-price spiral is negative feedback because it drives the system further from where it started.",
+            "cx": "That stated property belongs to positive feedback, not negative feedback."
+          }
+        ],
+        "scenario": {
+          "su": "Workers respond to rising prices by demanding higher wages, and firms respond to higher wage costs by raising prices further. Students must classify the pattern as positive feedback or negative feedback, but they may select only one label.",
+          "ma": "workers’ wage-demand record, firms’ price-raise record, notation showing the initial change being amplified"
+        },
+        "mc": [
+          {
+            "q": "When an initial change is amplified and the system moves further from where it started, which comparison between positive feedback and negative feedback fits the observation?",
+            "op": [
+              "Negative feedback amplifies the initial change",
+              "Positive feedback drives movement further from start",
+              "Positive feedback dampens the initial change",
+              "Negative feedback drives movement further from start"
+            ],
+            "ai": 1,
+            "fi": [
+              2
+            ],
+            "ex": "Positive feedback drives the system further from where it started. Assigning that movement to negative feedback reverses the supplied distinction."
+          },
+          {
+            "q": "Workers demand higher wages after rising prices, and firms raise prices further after higher wage costs; with one label required, how should this observed pattern be classified?",
+            "op": [
+              "Negative feedback from rising prices",
+              "Higher wage costs as the complete cycle",
+              "Rising prices as the complete cycle",
+              "A positive-feedback wage-price spiral"
+            ],
+            "ai": 3,
+            "fi": [
+              0,
+              1
+            ],
+            "ex": "The linked price, wage-demand, wage-cost, and further-price observations form a wage-price spiral, and amplification makes it positive feedback. Rising prices alone omit the remaining linked parts of the cycle."
+          }
+        ]
+      },
+      "artifactSha256": "7d9f46a3ea4082c0ff2fc672be0ef52458d3febe9d8f17adf4358b7d1db88af2",
+      "admission": {
+        "needsRetry": false,
+        "issues": []
+      },
+      "compilerRepairs": [
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-4",
+          "item": 0,
+          "permutation": [
+            3,
+            0,
+            2,
+            1
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 1,
+          "trainingEligible": false
+        },
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-4",
+          "item": 1,
+          "permutation": [
+            1,
+            3,
+            2,
+            0
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 3,
+          "trainingEligible": false
+        }
+      ],
+      "revisionEvidence": {
+        "packetSha256": "315bf07841ba2cfa92202b502530af185ed547f4f1b806230191be3e4fbac980",
+        "sessionId": "scion-v01654-teacher-batch-001-6c8e61467e-part-03-a164006a-6658-4f29-b263-1290b4bbc144",
+        "changeSummary": [
+          "Replaced only the rejected key-term misconception atom with a distinct false classification belief and preserved every other lesson-kernel field."
+        ],
+        "addressedDiagnoses": [
+          "Addressed lesson-4:key-term-2:misconception-repeats-definition by separating the false learner belief from the defining distinction."
+        ]
+      }
+    }
+  ],
+  "summary": {
+    "cases": 1,
+    "compilerAdmitted": 1,
+    "compilerRejected": 0
+  },
+  "claimBoundary": "These source-constrained model revisions cleared only deterministic compiler admission where stated. They are not judge preferences, human evidence, adapter wins, or training authorization.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "9f6978fb1cae74ebe617c35b4ddb84123e95cfc6435eb43bb1aa3c571b1f8467"
+  }
+}

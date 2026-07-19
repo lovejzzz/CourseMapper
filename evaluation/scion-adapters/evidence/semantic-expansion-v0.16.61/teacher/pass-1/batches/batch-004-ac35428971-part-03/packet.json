@@ -1,0 +1,168 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-teacher-revision-packet-v1",
+  "generatedAt": "2026-07-19T22:45:00.000Z",
+  "batchId": "batch-004-ac35428971-part-03",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "aggregateSha256": "6b3f700ccbd099b5bb7505d697d7f67ad20a5607c6f7e898d3a91fb808095926",
+  "prompt": {
+    "path": "evaluation/scion-adapters/lesson-kernel-teacher-revision-prompt-v8-v0.16.60.md",
+    "sha256": "505aff4b87a07aa0d7d9d7d7b6d40bb268f654439a4b8e06f1d1efda53327eb1"
+  },
+  "cases": [
+    {
+      "caseId": "scion-kernel-c6d826e4fc868a6fa9ef434f",
+      "caseSha256": "c6d826e4fc868a6fa9ef434f97c462ff9e7dd77fa2aa3fe6f02ee099567d4cc6",
+      "lessonInput": {
+        "lessonId": "lesson-2",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Major and natural minor scales",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: Major and natural minor scales are distinguished by their ordered patterns of whole steps and half steps between adjacent scale degrees. Claim 1: The major-scale step pattern is whole, whole, half, whole, whole, whole, half. Claim 2: Natural minor has a whole step from its seventh degree to the tonic, so that degree is called the subtonic.",
+        "readings": "Justin Rubin, Music Composition & Theory (2024), chapter 25, University of Minnesota Libraries Publishing"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "ffabcbcf6dc1ecf2545741964b1895f8405b48fa982afc1b44b4166d1a25d025",
+        "kernelId": "music-ccby/major-natural-minor-scales",
+        "term": "Major and natural minor scales",
+        "claims": [
+          "Major and natural minor scales are distinguished by their ordered patterns of whole steps and half steps between adjacent scale degrees.",
+          "The major-scale step pattern is whole, whole, half, whole, whole, whole, half.",
+          "Natural minor has a whole step from its seventh degree to the tonic, so that degree is called the subtonic."
+        ],
+        "anchors": [
+          {
+            "src": "https://open.lib.umn.edu/musiccomposition/chapter/common-practice-era-scales-intervals-and-chord-functions/",
+            "loc": "25 Common Practice Era Scales, Major",
+            "quote": "The distinguishing factors of any scale are dependent upon the intervals between each of its steps."
+          },
+          {
+            "src": "https://open.lib.umn.edu/musiccomposition/chapter/common-practice-era-scales-intervals-and-chord-functions/",
+            "loc": "25 Common Practice Era Scales, Major",
+            "quote": "whole-step, whole-step, half-step, whole-step, whole-step, whole-step, half-step"
+          },
+          {
+            "src": "https://open.lib.umn.edu/musiccomposition/chapter/common-practice-era-scales-intervals-and-chord-functions/",
+            "loc": "25 Common Practice Era Scales, Key Systems and Terminology",
+            "quote": "it is called a subtonic (rather than leading tone)"
+          }
+        ],
+        "attribution": [
+          "Justin Rubin, Music Composition & Theory (2024), chapter 25, University of Minnesota Libraries Publishing"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "originalArtifact": {
+        "lessonId": "lesson-2",
+        "facts": [
+          "Major and natural minor scales are distinguished by their ordered patterns of whole steps and half steps between adjacent scale degrees.",
+          "The major-scale step pattern is whole, whole, half, whole, whole, whole, half.",
+          "Natural minor has a whole step from its seventh degree to the tonic, so that degree is called the subtonic."
+        ],
+        "keyTerms": [
+          {
+            "tr": "major-scale step pattern",
+            "df": "The major-scale step pattern is an ordered pattern of whole and half steps between adjacent scale degrees.",
+            "eg": "The major-scale step pattern is whole, whole, half, whole, whole, whole, half.",
+            "mi": "Natural minor is identified by the listed major-scale step pattern.",
+            "cx": "That listed sequence identifies the major scale, while natural minor has a whole step from its seventh degree to the tonic."
+          },
+          {
+            "tr": "natural minor",
+            "df": "Natural minor is a scale distinguished by a whole step from its seventh degree to the tonic.",
+            "eg": "In natural minor, the seventh degree is called the subtonic.",
+            "mi": "In natural minor, the tonic is called the subtonic.",
+            "cx": "The subtonic label belongs to the seventh degree, not to the tonic."
+          },
+          {
+            "tr": "subtonic",
+            "df": "The subtonic is the seventh degree of natural minor when it has a whole step to the tonic.",
+            "eg": "A natural minor notation labels its seventh degree as the subtonic.",
+            "mi": "Subtonic names the whole step between adjacent scale degrees.",
+            "cx": "Subtonic names a scale degree; the whole step describes its relation to the tonic."
+          }
+        ],
+        "scenario": {
+          "su": "An editor must distinguish a major scale from natural minor using displayed adjacent-step relations. A deadline requires the editor to base the classification on the displayed patterns and labels.",
+          "ma": "major-scale adjacent-step notation: whole, whole, half, whole, whole, whole, half, natural-minor observation: whole step from the seventh degree to the tonic with that degree labeled subtonic"
+        },
+        "mc": [
+          {
+            "q": "A comparison shows the listed major-scale step pattern beside a natural minor notation whose seventh degree has a whole step to the tonic. Which distinction is supported?",
+            "op": [
+              "Natural minor matches the pattern; major has subtonic",
+              "Major uses whole steps; natural minor uses half steps",
+              "Major matches the pattern; natural minor has subtonic",
+              "Major has subtonic; natural minor matches the pattern"
+            ],
+            "ai": 2,
+            "fi": [
+              1,
+              2
+            ],
+            "ex": "The listed sequence is the major-scale step pattern, while natural minor has a subtonic because its seventh degree lies a whole step from the tonic. Assigning the listed pattern to natural minor swaps the supported scale relations."
+          },
+          {
+            "q": "An editor observes a whole step from a scale’s seventh degree to its tonic and must classify and label the notation from that relation. Which decision is supported?",
+            "op": [
+              "Natural minor with seventh degree called subtonic",
+              "Natural minor with tonic called subtonic",
+              "Major with seventh degree called subtonic",
+              "Major with tonic called subtonic"
+            ],
+            "ai": 0,
+            "fi": [
+              2
+            ],
+            "ex": "A whole step from the seventh degree to the tonic supports natural minor and the subtonic label for that seventh degree. Calling the tonic subtonic reverses which degree receives the label."
+          }
+        ]
+      },
+      "originalArtifactSha256": "a522a81a065377f9f55d2d657f3de2f872d7c8d42f8d8655d78f07915f8deecf",
+      "compilerAdmission": {
+        "needsRetry": false,
+        "issues": []
+      },
+      "diagnoses": [
+        {
+          "winnerScores": {
+            "sourceFidelity": 4,
+            "knowledgePrecision": 4,
+            "scenarioReadiness": 4,
+            "assessmentCorrectness": 4,
+            "choiceDiscriminability": 4,
+            "feedbackInstructionality": 4,
+            "internalCoherence": 4
+          },
+          "criticalDefects": [],
+          "rationale": "B is source-bound, operational, and fully coherent, with two uniquely correct assessments and corrective feedback. A adds unsupported scenario detail, presents an ambiguous first question, and contains a critical wrong key and explanation contradiction in the second.",
+          "decisionSha256": "f4f2a55abb284a718160e939a4556ae85fa938bf5d817b392ad6e1c53d726415"
+        },
+        {
+          "winnerScores": {
+            "sourceFidelity": 4,
+            "knowledgePrecision": 4,
+            "scenarioReadiness": 4,
+            "assessmentCorrectness": 4,
+            "choiceDiscriminability": 2,
+            "feedbackInstructionality": 4,
+            "internalCoherence": 4
+          },
+          "criticalDefects": [
+            "Options 0 and 3 in the first question are semantically duplicate alternatives with their clauses merely reversed."
+          ],
+          "rationale": "A is accurate, scenario-ready, and correctly keyed, with one duplicated-distractor defect. B has an ambiguous first item, an incorrect second key that contradicts its citation, and unfinished feedback in both questions.",
+          "decisionSha256": "0c8ccd404771075f8ea72fb6354b145f5549e7f79b49b1cfafb38de2c5bdf07c"
+        }
+      ]
+    }
+  ],
+  "claimBoundary": "These are source packets, diagnosed reference artifacts, and compiler outcomes only. No local artifact, provider route, organizer preference, or training authorization is included.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "c57cbf8f30220aa17ffbf327cf68f41fa8f3710bd58e8744de374a0db427a31c"
+  }
+}

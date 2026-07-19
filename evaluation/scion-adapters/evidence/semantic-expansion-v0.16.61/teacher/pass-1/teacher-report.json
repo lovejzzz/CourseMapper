@@ -1,0 +1,1213 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-teacher-capture-v1",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "workbookSha256": "5e72fae4202a40f2399b4d29c878b0e9e19960c9c4af108a591cc19f372590ff",
+  "reviser": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-source-cleanroom"
+  },
+  "calls": [
+    {
+      "caseId": "scion-kernel-02772fca67bf5fc5661a4764",
+      "caseSha256": "02772fca67bf5fc5661a476414b9e1d11180855e45dc8f970203d4976ee36f9a",
+      "arm": "teacher-revision",
+      "model": {
+        "model": "gpt-5.6-sol",
+        "revision": "codex-cli 0.144.5",
+        "runtime": "codex-cli-ephemeral-source-cleanroom"
+      },
+      "sourceContextSha256": "a5846014e65f8b8807b3ae5c45a0e3ad89dd4ed5f57c2fd41ccfbcda506a5a00",
+      "originalArtifactSha256": "687019039533933a03815ea1af745e8858458e80a6b5848535e77c121ce045eb",
+      "artifact": {
+        "lessonId": "lesson-9",
+        "facts": [
+          "A magnetic field describes magnetic influence in space and determines magnetic forces on moving charges and currents.",
+          "Magnetic field lines form closed loops and do not begin or end on isolated magnetic charges.",
+          "Currents produce magnetic fields."
+        ],
+        "keyTerms": [
+          {
+            "tr": "magnetic field",
+            "df": "A magnetic field is a description of magnetic influence in space.",
+            "eg": "A magnetic field determines magnetic forces on moving charges.",
+            "mi": "Magnetic forces determine the magnetic field around currents.",
+            "cx": "The direction of determination runs from the field to forces on moving charges and currents."
+          },
+          {
+            "tr": "field lines",
+            "df": "Magnetic field lines are distinguished by forming closed loops with no isolated magnetic-charge endpoints.",
+            "eg": "Field lines close into loops instead of ending on isolated magnetic charges.",
+            "mi": "Isolated magnetic charges are places where field lines begin.",
+            "cx": "No line starts at an isolated magnetic charge; the lines continue in closed form."
+          },
+          {
+            "tr": "Currents",
+            "df": "Currents are distinguished here by their production of magnetic fields.",
+            "eg": "A current produces a magnetic field.",
+            "mi": "A magnetic field produces currents.",
+            "cx": "Production runs from currents toward magnetic fields, not in the reversed direction."
+          }
+        ],
+        "scenario": {
+          "su": "A workshop group must label a closed-loop diagram and a currents-to-magnetic-fields notation before a deadline. The labels must distinguish what magnetic field lines do from what currents produce while preserving both recorded relations.",
+          "ma": "closed-loop diagram, currents-to-magnetic-fields notation, magnetic-field-lines passage, currents passage"
+        },
+        "mc": [
+          {
+            "q": "A magnetic field determines magnetic forces on moving charges and currents, while magnetic field lines form closed loops. Which description correctly distinguishes the role of the magnetic field from the form of its lines?",
+            "op": [
+              "Moving charges produce currents; magnetic forces form loops",
+              "Magnetic fields determine forces; magnetic field lines form loops",
+              "Isolated magnetic charges begin lines; currents form loops",
+              "Magnetic forces determine fields; moving charges form loops"
+            ],
+            "ai": 1,
+            "fi": [
+              0,
+              1
+            ],
+            "ex": "The magnetic field determines magnetic forces on moving charges and currents, while magnetic field lines form closed loops. The choice assigning determination to magnetic forces and loop formation to moving charges reverses and misassigns those relations."
+          },
+          {
+            "q": "A workshop record pairs a current with a magnetic field, but the label must state one warranted production relation. Which label correctly describes the recorded case?",
+            "op": [
+              "Magnetic fields produce currents",
+              "Currents produce magnetic forces",
+              "Magnetic forces produce currents",
+              "Currents produce magnetic fields"
+            ],
+            "ai": 3,
+            "fi": [
+              2
+            ],
+            "ex": "The recorded current supports the statement that currents produce magnetic fields. The reversed label is incorrect because magnetic fields are not identified as producing currents."
+          }
+        ]
+      },
+      "artifactSha256": "cf713e46050d5f7f5d0d27b87543ceeea48afdb94affded46ee4959ae8886715",
+      "admission": {
+        "needsRetry": false,
+        "issues": []
+      },
+      "compilerRepairs": [
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-9",
+          "item": 0,
+          "permutation": [
+            2,
+            0,
+            3,
+            1
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 1,
+          "trainingEligible": false
+        },
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-9",
+          "item": 1,
+          "permutation": [
+            1,
+            2,
+            3,
+            0
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 3,
+          "trainingEligible": false
+        }
+      ],
+      "revisionEvidence": {
+        "packetSha256": "7b8a3604c2b30e99900b27e71b895930529867c2e28e069da4d0056d669e7709",
+        "sessionId": "scion-v01654-teacher-batch-001-6c8e61467e-part-01-dbeaa6ba-14c6-4265-89c4-ea825e46ffde",
+        "changeSummary": [
+          "Re-authored the complete first multiple-choice item to distinguish magnetic-field determination from magnetic-field-line loop formation.",
+          "Replaced the first item's explanation so loop formation is assigned to magnetic field lines rather than magnetic fields."
+        ],
+        "addressedDiagnoses": [
+          "Resolved lesson-9:mc-0:source-role-conflict by separating the roles of magnetic fields and magnetic field lines.",
+          "Corrected both diagnoses concerning the first explanation's assignment of closed-loop formation."
+        ]
+      }
+    },
+    {
+      "caseId": "scion-kernel-1711f0b21d56aa4e046c9307",
+      "caseSha256": "1711f0b21d56aa4e046c9307efa90ea84a07ded7cc476da9eaf530d193d9337e",
+      "arm": "teacher-revision",
+      "model": {
+        "model": "gpt-5.6-sol",
+        "revision": "codex-cli 0.144.5",
+        "runtime": "codex-cli-ephemeral-source-cleanroom"
+      },
+      "sourceContextSha256": "70d2dc8e65efa6974c84f9ace810bd1b0db26873d5225407a44b48ed2507046b",
+      "originalArtifactSha256": "63d947d637e210a9dd745e0d7609edb3c1a7fc1a3af4f0725501affadc1cef40",
+      "artifact": {
+        "lessonId": "lesson-5",
+        "facts": [
+          "The rock cycle describes the continuing transformation of crustal materials and is driven by Earth's internal heat engine and the solar-powered hydrological cycle.",
+          "Earth's internal heat moves material through the core and mantle and contributes to changes within the crust.",
+          "The hydrological cycle moves water, ice, and air at the surface and is powered by the Sun."
+        ],
+        "keyTerms": [
+          {
+            "tr": "rock cycle",
+            "df": "The rock cycle is the continuing transformation of crustal materials.",
+            "eg": "Earth's internal heat engine and the solar-powered hydrological cycle drive the rock cycle.",
+            "mi": "The rock cycle is powered by the Sun alone.",
+            "cx": "The Sun powers the hydrological cycle, while Earth's internal heat moves material through the core and mantle as another rock-cycle driver."
+          },
+          {
+            "tr": "internal heat",
+            "df": "Internal heat is an Earth driver that moves material through the core and mantle.",
+            "eg": "Earth's internal heat contributes to changes within the crust.",
+            "mi": "Earth's internal heat moves water, ice, and air at the surface.",
+            "cx": "The hydrological cycle moves water, ice, and air at the surface."
+          },
+          {
+            "tr": "hydrological cycle",
+            "df": "The hydrological cycle is a Sun-powered driver that moves water, ice, and air at the surface.",
+            "eg": "The Sun powers the hydrological cycle at Earth's surface.",
+            "mi": "The hydrological cycle moves material through the core and mantle.",
+            "cx": "Earth's internal heat moves material through the core and mantle."
+          }
+        ],
+        "scenario": {
+          "su": "A student must label two passages before a deadline: one records material moving through the core and mantle, while the other records water, ice, and air moving at the surface. The labels must distinguish Earth's internal heat from the hydrological cycle using the recorded locations and materials.",
+          "ma": "core-and-mantle material passage, surface water-ice-air notation, Sun-powered cycle observation"
+        },
+        "mc": [
+          {
+            "q": "A record pairs material moving through the core and mantle with one driver, and water, ice, and air moving at the surface with another. Which comparison correctly identifies both drivers?",
+            "op": [
+              "Internal heat: core and mantle; hydrological cycle: surface",
+              "Hydrological cycle: core and mantle; internal heat: surface",
+              "Both drivers: core and mantle material movement",
+              "Both drivers: surface water, ice, and air movement"
+            ],
+            "ai": 0,
+            "fi": [
+              1,
+              2
+            ],
+            "ex": "Earth's internal heat moves material through the core and mantle, while the hydrological cycle moves water, ice, and air at the surface. Reversing those locations assigns each movement to the wrong driver."
+          },
+          {
+            "q": "A record identifies water, ice, and air moving at the surface and notes power from the Sun; under a one-label constraint, which classification fits the complete observation?",
+            "op": [
+              "Label it the solar-powered hydrological cycle",
+              "Label it Earth's internal heat engine",
+              "Label Sun as powered by hydrological cycle",
+              "Label it hydrological cycle moving mantle material"
+            ],
+            "ai": 0,
+            "fi": [
+              2
+            ],
+            "ex": "The hydrological cycle moves water, ice, and air at the surface and is powered by the Sun. Earth's internal heat instead moves material through the core and mantle."
+          }
+        ]
+      },
+      "artifactSha256": "59ad7b401bd204171f20691ba472fba860d5672dfcfbacbd4396a6972a679b30",
+      "admission": {
+        "needsRetry": true,
+        "issues": [
+          "lesson-5:mc-0:source-fact-key-mismatch"
+        ]
+      },
+      "compilerRepairs": [],
+      "revisionEvidence": {
+        "packetSha256": "94b42308614f56e29002a7bf771a3a8227b366c9e44d0944b088d09d200ab666",
+        "sessionId": "scion-v01654-teacher-batch-001-6c8e61467e-part-02-def16624-d7e6-4e6f-8e3d-5ccce6a57bd8",
+        "changeSummary": [
+          "Replaced keyTerms[0].cx so the correction no longer repeats the example.",
+          "Re-authored mc[0] with four distinct options and one uniquely supported answer."
+        ],
+        "addressedDiagnoses": [
+          "Resolved lesson-5:key-term-0:correction-repeats-example.",
+          "Resolved lesson-5:mc-0:multiple-source-supported-options and the duplicate-answer defect."
+        ]
+      }
+    },
+    {
+      "caseId": "scion-kernel-1c1a13aa65159075aedfa3a8",
+      "caseSha256": "1c1a13aa65159075aedfa3a87866ad92a114e4362ab77612ad5e25e21a8f6b7d",
+      "arm": "teacher-revision",
+      "model": {
+        "model": "gpt-5.6-sol",
+        "revision": "codex-cli 0.144.5",
+        "runtime": "codex-cli-ephemeral-source-cleanroom"
+      },
+      "sourceContextSha256": "5d03babcca407b1e91009135e370f3061f14ced952b7bf8eb7be2c6d262a6728",
+      "originalArtifactSha256": "5159c0ef3f90921b23126d1e93b870783f7e74172488a6d89168c2e6ca7d52f9",
+      "artifact": {
+        "lessonId": "lesson-4",
+        "facts": [
+          "A wage-price spiral is a self-reinforcing cycle in which rising prices lead workers to demand higher wages, and higher wage costs lead firms to raise prices further.",
+          "The wage-price spiral is positive feedback: an initial change is amplified rather than damped.",
+          "Unlike negative feedback, positive feedback drives the system further from where it started."
+        ],
+        "keyTerms": [
+          {
+            "tr": "self-reinforcing cycle",
+            "df": "A self-reinforcing cycle links rising prices, higher wage demands, higher wage costs, and further price increases.",
+            "eg": "Rising prices lead workers to demand higher wages, while higher wage costs lead firms to raise prices further.",
+            "mi": "A self-reinforcing cycle ends when firms raise prices further.",
+            "cx": "Further price increases continue the stated cycle rather than ending it."
+          },
+          {
+            "tr": "positive feedback",
+            "df": "Positive feedback is feedback in which an initial change is amplified rather than damped.",
+            "eg": "The wage-price spiral is positive feedback because its initial change is amplified.",
+            "mi": "Positive feedback dampens an initial change and moves the system toward where it started.",
+            "cx": "Positive feedback amplifies the change and drives the system further from its starting point."
+          },
+          {
+            "tr": "negative feedback",
+            "df": "Negative feedback differs from positive feedback, which drives the system further from where it started.",
+            "eg": "Positive feedback and negative feedback differ in whether the system is driven further from where it started.",
+            "mi": "The wage-price spiral is negative feedback because it drives the system further from where it started.",
+            "cx": "That stated property belongs to positive feedback, not negative feedback."
+          }
+        ],
+        "scenario": {
+          "su": "Workers respond to rising prices by demanding higher wages, and firms respond to higher wage costs by raising prices further. Students must classify the pattern as positive feedback or negative feedback, but they may select only one label.",
+          "ma": "workers’ wage-demand record, firms’ price-raise record, notation showing the initial change being amplified"
+        },
+        "mc": [
+          {
+            "q": "When an initial change is amplified and the system moves further from where it started, which comparison between positive feedback and negative feedback fits the observation?",
+            "op": [
+              "Negative feedback amplifies the initial change",
+              "Positive feedback drives movement further from start",
+              "Positive feedback dampens the initial change",
+              "Negative feedback drives movement further from start"
+            ],
+            "ai": 1,
+            "fi": [
+              2
+            ],
+            "ex": "Positive feedback drives the system further from where it started. Assigning that movement to negative feedback reverses the supplied distinction."
+          },
+          {
+            "q": "Workers demand higher wages after rising prices, and firms raise prices further after higher wage costs; with one label required, how should this observed pattern be classified?",
+            "op": [
+              "Negative feedback from rising prices",
+              "Higher wage costs as the complete cycle",
+              "Rising prices as the complete cycle",
+              "A positive-feedback wage-price spiral"
+            ],
+            "ai": 3,
+            "fi": [
+              0,
+              1
+            ],
+            "ex": "The linked price, wage-demand, wage-cost, and further-price observations form a wage-price spiral, and amplification makes it positive feedback. Rising prices alone omit the remaining linked parts of the cycle."
+          }
+        ]
+      },
+      "artifactSha256": "7d9f46a3ea4082c0ff2fc672be0ef52458d3febe9d8f17adf4358b7d1db88af2",
+      "admission": {
+        "needsRetry": false,
+        "issues": []
+      },
+      "compilerRepairs": [
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-4",
+          "item": 0,
+          "permutation": [
+            3,
+            0,
+            2,
+            1
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 1,
+          "trainingEligible": false
+        },
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-4",
+          "item": 1,
+          "permutation": [
+            1,
+            3,
+            2,
+            0
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 3,
+          "trainingEligible": false
+        }
+      ],
+      "revisionEvidence": {
+        "packetSha256": "315bf07841ba2cfa92202b502530af185ed547f4f1b806230191be3e4fbac980",
+        "sessionId": "scion-v01654-teacher-batch-001-6c8e61467e-part-03-a164006a-6658-4f29-b263-1290b4bbc144",
+        "changeSummary": [
+          "Replaced only the rejected key-term misconception atom with a distinct false classification belief and preserved every other lesson-kernel field."
+        ],
+        "addressedDiagnoses": [
+          "Addressed lesson-4:key-term-2:misconception-repeats-definition by separating the false learner belief from the defining distinction."
+        ]
+      }
+    },
+    {
+      "caseId": "scion-kernel-4ed7b918a8ad0fe66ff45257",
+      "caseSha256": "4ed7b918a8ad0fe66ff45257cee336d04ba04ae32c440ac7b8de896e888f4886",
+      "arm": "teacher-revision",
+      "model": {
+        "model": "gpt-5.6-sol",
+        "revision": "codex-cli 0.144.5",
+        "runtime": "codex-cli-ephemeral-source-cleanroom"
+      },
+      "sourceContextSha256": "111199ea6b8c7f75d3a15bd3463ea0631dd739efe70f876336bd5a6394198d8b",
+      "originalArtifactSha256": "79e438a291466bcd40f3bae48780202084362dbb4dc04a571781caf7c214c333",
+      "artifact": {
+        "lessonId": "lesson-4",
+        "facts": [
+          "Electric potential is electric potential energy per unit charge; potential difference is the work per unit charge required to move between two points.",
+          "Only potential differences affect work and energy changes in electrostatics.",
+          "Electric field points in the direction of decreasing electric potential."
+        ],
+        "keyTerms": [
+          {
+            "tr": "Electric potential",
+            "df": "Electric potential is the quantity defined as electric potential energy per unit charge.",
+            "eg": "The phrase “electric potential energy per unit charge” is labeled electric potential.",
+            "mi": "Electric potential means the work per unit charge required to move between two points.",
+            "cx": "Work per unit charge for movement between points identifies potential difference instead."
+          },
+          {
+            "tr": "potential difference",
+            "df": "Potential difference is the work per unit charge required for movement between two points.",
+            "eg": "Moving between two points provides the context for identifying potential difference.",
+            "mi": "Potential difference is electric potential energy per unit charge at a point.",
+            "cx": "The between-points quantity is determined by required work per unit charge."
+          },
+          {
+            "tr": "Electric field",
+            "df": "Electric field has a direction that points toward decreasing electric potential.",
+            "eg": "A direction notation shows electric field pointing toward decreasing electric potential.",
+            "mi": "Electric field points in the direction of increasing electric potential.",
+            "cx": "Its indicated direction runs toward lower, rather than higher, electric potential."
+          }
+        ],
+        "scenario": {
+          "su": "Two passages must be classified: one states work per unit charge required to move between two points, and the other shows electric field pointing in the direction of decreasing electric potential. Decide whether each passage describes potential difference or electric field direction, with both classifications supported by the supplied relations.",
+          "ma": "Inspect the passage stating work per unit charge required to move between two points and the passage showing electric field pointing in the direction of decreasing electric potential. Classify the first as potential difference and the second as electric field direction."
+        },
+        "mc": [
+          {
+            "q": "A passage describes electric potential energy per unit charge, while another describes work per unit charge required to move between two points; which distinction matches these observations?",
+            "op": [
+              "Electric potential first, electric potential second",
+              "Electric potential first, potential difference second",
+              "Potential difference first, potential difference second",
+              "Potential difference first, electric potential second"
+            ],
+            "ai": 1,
+            "fi": [
+              0
+            ],
+            "ex": "Electric potential is electric potential energy per unit charge, whereas potential difference is work per unit charge required between two points. Reversing those labels swaps the two supplied relations."
+          },
+          {
+            "q": "In electrostatics, a group compares work and energy changes while tracking potential differences under a deadline; which observation identifies the quantity affecting those changes?",
+            "op": [
+              "Potential differences affect work and energy changes",
+              "Electric field affects work and energy changes",
+              "Electric potential affects work and energy changes",
+              "Energy changes affect potential differences and work"
+            ],
+            "ai": 0,
+            "fi": [
+              1
+            ],
+            "ex": "Potential differences affect work and energy changes in electrostatics. Assigning that relation to electric potential replaces the specified quantity with a different one."
+          }
+        ]
+      },
+      "artifactSha256": "0cefa531a6d92237affb4352710b732bd67420bb9547eaef8d913ea89f05a147",
+      "admission": {
+        "needsRetry": false,
+        "issues": []
+      },
+      "compilerRepairs": [
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-4",
+          "item": 0,
+          "permutation": [
+            2,
+            0,
+            3,
+            1
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 1,
+          "trainingEligible": false
+        },
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-4",
+          "item": 1,
+          "permutation": [
+            0,
+            2,
+            1,
+            3
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 0,
+          "trainingEligible": false
+        }
+      ],
+      "revisionEvidence": {
+        "packetSha256": "0291e72fad62d2f751b69929e663789fda8ce976f31f3953ad4056318af5f03e",
+        "sessionId": "scion-v01654-teacher-batch-002-89f6c008c4-060397e3-ad5e-4904-ae21-59d5818ea27b",
+        "changeSummary": [
+          "Replaced the unsupported named workshop in the scenario while preserving every lesson-kernel field not implicated by the diagnosis.",
+          "Revised both scenario fields to provide two inspectable passages, an explicit classification decision, and a source-bound constraint."
+        ],
+        "addressedDiagnoses": [
+          "Removed the invented name “Physics Fields, Circuits, and Induction Workshop” from the scenario."
+        ]
+      }
+    },
+    {
+      "caseId": "scion-kernel-7ef640fbcbe8cfa330843c26",
+      "caseSha256": "7ef640fbcbe8cfa330843c261cff4ab36a6ad664275ba7532cd723cee8bfcf99",
+      "arm": "teacher-revision",
+      "model": {
+        "model": "gpt-5.6-sol",
+        "revision": "codex-cli 0.144.5",
+        "runtime": "codex-cli-ephemeral-source-cleanroom"
+      },
+      "sourceContextSha256": "4e4d971cfc98e957cb54363e8b5f9aacb2369b9f10fa01c3eb508ec644039655",
+      "originalArtifactSha256": "478263ca6df50fa8b4517c0880d9c24a651f90c19bd8a687d57ac8483392e3ef",
+      "artifact": {
+        "lessonId": "lesson-3",
+        "facts": [
+          "A dictionary stores key-value pairs and looks up each value by its key rather than by a numeric position.",
+          "Because a dictionary looks up values using keys, it cannot hold duplicate keys.",
+          "Dictionaries are written with curly braces in key: value form and are ideal when data is naturally labeled rather than ordered."
+        ],
+        "keyTerms": [
+          {
+            "tr": "dictionary",
+            "df": "A dictionary is a structure that stores key-value pairs and looks up each value by its key.",
+            "eg": "A dictionary uses key: value form inside curly braces.",
+            "mi": "A dictionary looks up each value by a numeric position.",
+            "cx": "Dictionary lookup uses keys rather than numeric positions."
+          },
+          {
+            "tr": "key-value pairs",
+            "df": "Key-value pairs are stored associations whose values are looked up using their keys.",
+            "eg": "Dictionaries store key-value pairs in key: value form.",
+            "mi": "Key-value pairs require duplicate keys for lookup.",
+            "cx": "Duplicate keys cannot be held when lookup uses keys."
+          },
+          {
+            "tr": "curly braces",
+            "df": "Curly braces are the notation surrounding a dictionary written in key: value form.",
+            "eg": "A dictionary with naturally labeled data is written with curly braces.",
+            "mi": "Curly braces indicate that data is naturally ordered.",
+            "cx": "The notation belongs to dictionaries, which are ideal for naturally labeled data rather than ordered data."
+          }
+        ],
+        "scenario": {
+          "su": "A Python program must classify a design as a dictionary or as numeric-position lookup. The decision must reconcile its curly-brace key: value notation with its requirement that naturally labeled data cannot use duplicate keys.",
+          "ma": "curly-brace key: value notation, naturally labeled data description, proposed duplicate-key record, numeric-position lookup passage"
+        },
+        "mc": [
+          {
+            "q": "One description says a dictionary stores key-value pairs and another says lookup uses a numeric position. Which description states how the dictionary looks up each value?",
+            "op": [
+              "Looks up each key by its value",
+              "Looks up each value by numeric position",
+              "Looks up each value by its key",
+              "Looks up each key by numeric position"
+            ],
+            "ai": 2,
+            "fi": [
+              0
+            ],
+            "ex": "The dictionary looks up each value by its key, so that description follows. Looking up each value by a numeric position contradicts the stated dictionary lookup."
+          },
+          {
+            "q": "A Python design uses keys for lookup but proposes duplicate keys in its key: value records; under that concrete constraint, which decision follows from dictionary behavior?",
+            "op": [
+              "Accept duplicate keys under key-based lookup",
+              "Use duplicate keys in key: value form",
+              "Reject key-value pairs under key-based lookup",
+              "Reject duplicate keys under key-based lookup"
+            ],
+            "ai": 3,
+            "fi": [
+              1
+            ],
+            "ex": "Key-based lookup means a dictionary cannot hold duplicate keys, so the proposed records must reject them. Accepting duplicate keys contradicts that lookup constraint."
+          }
+        ]
+      },
+      "artifactSha256": "17c8a649bafc12bee8ad73cefbacfce212cb120b665d11cebcd4584c59ab7e61",
+      "admission": {
+        "needsRetry": false,
+        "issues": []
+      },
+      "compilerRepairs": [
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-3",
+          "item": 0,
+          "permutation": [
+            1,
+            2,
+            0,
+            3
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 2,
+          "trainingEligible": false
+        },
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-3",
+          "item": 1,
+          "permutation": [
+            1,
+            3,
+            2,
+            0
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 3,
+          "trainingEligible": false
+        }
+      ],
+      "revisionEvidence": {
+        "packetSha256": "cbccbdfd5277ff96abc50e144b5b41253823d402da355a46f9fbab427bb23717",
+        "sessionId": "scion-v01654-teacher-batch-003-d451e87e02-5920f510-8cae-4868-a8ff-d5f71a2f4462",
+        "changeSummary": [
+          "Re-authored the complete first multiple-choice item so its supported option is first, its answer index is zero, and its cited fact directly supports the revised lookup distinction."
+        ],
+        "addressedDiagnoses": [
+          "Resolved the first item's answer-key conflict by aligning its options, declared answer, cited fact, and explanation with key-based dictionary lookup."
+        ]
+      }
+    },
+    {
+      "caseId": "scion-kernel-becf20842df8b3de34276971",
+      "caseSha256": "becf20842df8b3de3427697127ecec5d68cc8464e3b12f8ed48659b085e8b364",
+      "arm": "teacher-revision",
+      "model": {
+        "model": "gpt-5.6-sol",
+        "revision": "codex-cli 0.144.5",
+        "runtime": "codex-cli-ephemeral-source-cleanroom"
+      },
+      "sourceContextSha256": "593a7ec432d1f7eda0faf5fba692d676e1fffe41002f893154d05eb03ad93a6a",
+      "originalArtifactSha256": "c3c5384b7410a750f0dbd213cc628772c9d638f6728416233b099c767b1d7ef7",
+      "artifact": {
+        "lessonId": "lesson-2",
+        "facts": [
+          "Homeostasis is the maintenance of stable internal conditions, usually through negative-feedback loops that detect a deviation from a set point and activate a response that reverses it.",
+          "A set point is the physiological value around which the normal range fluctuates.",
+          "A feedback loop includes a sensor, a control center, and an effector."
+        ],
+        "keyTerms": [
+          {
+            "tr": "Homeostasis",
+            "df": "Homeostasis is maintenance distinguished by stable internal conditions and negative-feedback regulation.",
+            "eg": "A detected deviation prompts an activated response that reverses the deviation.",
+            "mi": "Homeostasis activates a response that preserves a deviation from the set point.",
+            "cx": "The activated response reverses the detected deviation rather than preserving it."
+          },
+          {
+            "tr": "set point",
+            "df": "A set point is the physiological value that provides the center of normal-range fluctuation.",
+            "eg": "The normal range fluctuates around the marked physiological value.",
+            "mi": "The set point fluctuates around the normal range.",
+            "cx": "The normal range varies around the physiological value, reversing the proposed relationship."
+          },
+          {
+            "tr": "feedback loop",
+            "df": "A feedback loop is a composite that includes a sensor, a control center, and an effector.",
+            "eg": "A loop notation lists the sensor, control center, and effector.",
+            "mi": "A feedback loop consists of a set point and a normal range.",
+            "cx": "The set point and normal range cannot replace the sensor, control center, and effector as the loop's included components."
+          }
+        ],
+        "scenario": {
+          "su": "A reviewer must classify two physiology notations before a deadline: one shows a detected set-point deviation followed by a reversing response, while another lists a sensor, control center, and effector. The reviewer must decide which notation describes homeostasis and which identifies a feedback loop.",
+          "ma": "The reviewer compares the set-point deviation-and-response notation, the sensor-control-center-effector design, and the normal-range fluctuation passage."
+        },
+        "mc": [
+          {
+            "q": "When one notation shows maintenance of stable internal conditions and another marks the physiological value around which a normal range fluctuates, which comparison correctly distinguishes Homeostasis from a set point?",
+            "op": [
+              "Homeostasis maintains conditions; set point anchors fluctuations",
+              "Homeostasis is a value; set point maintains conditions",
+              "Set point maintains conditions; homeostasis anchors fluctuations",
+              "Homeostasis anchors fluctuations; set point detects deviation"
+            ],
+            "ai": 0,
+            "fi": [
+              0,
+              1
+            ],
+            "ex": "Homeostasis maintains stable internal conditions, whereas the set point is the physiological value around which the normal range fluctuates. The comparison that makes homeostasis a value and the set point the maintenance process reverses those roles."
+          },
+          {
+            "q": "A design explicitly contains a sensor, a control center, and an effector, but the reviewer must choose one label before a deadline; which classification is supported?",
+            "op": [
+              "Classify it as control center and effector",
+              "Classify it as sensor and effector",
+              "Classify it as sensor and control center",
+              "Classify it as a complete feedback loop"
+            ],
+            "ai": 3,
+            "fi": [
+              2
+            ],
+            "ex": "The design contains every listed component of a feedback loop: a sensor, a control center, and an effector. Classifying it by two components omits the remaining required member."
+          }
+        ]
+      },
+      "artifactSha256": "9670bcf411ab47c22fbc533afea81846d34045c555f717d902aba8208ef4ce3d",
+      "admission": {
+        "needsRetry": false,
+        "issues": []
+      },
+      "compilerRepairs": [
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-2",
+          "item": 0,
+          "permutation": [
+            0,
+            3,
+            2,
+            1
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 0,
+          "trainingEligible": false
+        },
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-2",
+          "item": 1,
+          "permutation": [
+            1,
+            2,
+            3,
+            0
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 3,
+          "trainingEligible": false
+        }
+      ],
+      "revisionEvidence": {
+        "packetSha256": "7f62fcbbceb5b8e3508c4562e4896b9bf63df1768ba20b769ee45ab0c09d2dba",
+        "sessionId": "scion-v01654-teacher-batch-004-ac35428971-part-01-ededde15-5918-4643-a6cb-cc025d7382b4",
+        "changeSummary": [
+          "Moved each uniquely supported option to the first position and set each answer index to zero.",
+          "Rewrote the first explanation to preserve the stated roles of homeostasis and the set point."
+        ],
+        "addressedDiagnoses": [
+          "Corrected the first explanation so it no longer assigns fluctuation anchoring to homeostasis.",
+          "Aligned the first explanation with its keyed distinction between homeostasis and a set point."
+        ]
+      }
+    },
+    {
+      "caseId": "scion-kernel-bf7c2cbf2045087ba349c0c3",
+      "caseSha256": "bf7c2cbf2045087ba349c0c39766afc35d65d6493989d8140ea3c42cbc76707d",
+      "arm": "teacher-revision",
+      "model": {
+        "model": "gpt-5.6-sol",
+        "revision": "codex-cli 0.144.5",
+        "runtime": "codex-cli-ephemeral-source-cleanroom"
+      },
+      "sourceContextSha256": "902ce9edbc7ec41d6f094b005579c5cee05a49a4991c6418cfdf07fb9eae6ba5",
+      "originalArtifactSha256": "7aaeaebbeb5e8aadf94351223750a58cb140937c22865af06600f39f64b996f2",
+      "artifact": {
+        "lessonId": "lesson-7",
+        "facts": [
+          "Electrical resistance describes how strongly a material or device opposes current; Ohm's law relates voltage, current, and resistance for ohmic conductors.",
+          "For an ohmic device at fixed temperature, current is proportional to voltage.",
+          "Resistance depends on material, length, cross-sectional area, and temperature."
+        ],
+        "keyTerms": [
+          {
+            "tr": "Electrical resistance",
+            "df": "Electrical resistance is a description of how strongly a material or device opposes current.",
+            "eg": "Material, length, cross-sectional area, and temperature are recorded when comparing resistance.",
+            "mi": "Electrical resistance describes how strongly voltage opposes current.",
+            "cx": "Voltage is one quantity related by Ohm's law, while the opposition to current is attributed to a material or device."
+          },
+          {
+            "tr": "Ohm's law",
+            "df": "Ohm's law is a relation among voltage, current, and resistance for ohmic conductors.",
+            "eg": "An ohmic device at fixed temperature provides a voltage-current proportionality case.",
+            "mi": "Ohm's law makes material, length, cross-sectional area, and temperature proportional.",
+            "cx": "Those properties are dependencies of resistance; the stated proportionality connects current and voltage at fixed temperature."
+          },
+          {
+            "tr": "fixed temperature",
+            "df": "Fixed temperature is the stated condition for proportional current and voltage in an ohmic device.",
+            "eg": "A voltage-current comparison for an ohmic device records fixed temperature as its condition.",
+            "mi": "At fixed temperature, resistance is proportional to cross-sectional area.",
+            "cx": "The proportional relation under that condition connects current with voltage, not resistance with cross-sectional area."
+          }
+        ],
+        "scenario": {
+          "su": "A workshop group must label which statement describes electrical resistance and which describes an ohmic device at fixed temperature. Before a deadline, they must distinguish the recorded opposition to current from the recorded proportionality of current to voltage.",
+          "ma": "the opposition-to-current statement, the fixed-temperature voltage-current observation, the material-length-area-temperature resistance list"
+        },
+        "mc": [
+          {
+            "q": "A circuit record compares electrical resistance with Ohm's law: one statement describes opposition to current, while another links voltage, current, and resistance. Which option preserves the complete distinction?",
+            "op": [
+              "Ohm's law opposes current; resistance relates three quantities.",
+              "Resistance relates voltage; Ohm's law opposes current.",
+              "Resistance opposes current; Ohm's law relates three quantities.",
+              "Resistance opposes current; Ohm's law relates voltage."
+            ],
+            "ai": 2,
+            "fi": [
+              0
+            ],
+            "ex": "Electrical resistance describes opposition to current, while Ohm's law relates voltage, current, and resistance for ohmic conductors. Treating Ohm's law as opposition swaps the two stated relations."
+          },
+          {
+            "q": "For an ohmic device at fixed temperature, a comparison considers current, voltage, resistance, and temperature. Which relationship identifies the proportional quantities stated under this condition?",
+            "op": [
+              "Voltage is proportional to temperature.",
+              "Current is proportional to voltage.",
+              "Current is proportional to temperature.",
+              "Resistance is proportional to voltage."
+            ],
+            "ai": 1,
+            "fi": [
+              1
+            ],
+            "ex": "For an ohmic device at fixed temperature, the stated relationship is that current is proportional to voltage. Fixed temperature is the condition, so current proportional to temperature is not the stated relationship."
+          }
+        ]
+      },
+      "artifactSha256": "46fee99f811c547ca3080ff5143b7164399cff1395394e725b6c182d397f7131",
+      "admission": {
+        "needsRetry": false,
+        "issues": []
+      },
+      "compilerRepairs": [
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-7",
+          "item": 0,
+          "permutation": [
+            1,
+            2,
+            0,
+            3
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 2,
+          "trainingEligible": false
+        },
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-7",
+          "item": 1,
+          "permutation": [
+            3,
+            0,
+            1,
+            2
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 1,
+          "trainingEligible": false
+        }
+      ],
+      "revisionEvidence": {
+        "packetSha256": "f82fe52b7c9e1de407cbc3dd931b073b97286f90211a25b68a3a2b86a17f21aa",
+        "sessionId": "scion-v01654-teacher-batch-004-ac35428971-part-02-1e72c194-fc88-4118-8e7f-1218763cdd6c",
+        "changeSummary": [
+          "Re-authored the complete second multiple-choice item to remove the equivalent alternatives while preserving the cited source claim."
+        ],
+        "addressedDiagnoses": [
+          "Removed the duplicate direct-proportionality alternatives that made the second assessment ambiguous.",
+          "Replaced the incorrect explanation about reversing a proportional relationship with a source-backed correction."
+        ]
+      }
+    },
+    {
+      "caseId": "scion-kernel-c6d826e4fc868a6fa9ef434f",
+      "caseSha256": "c6d826e4fc868a6fa9ef434f97c462ff9e7dd77fa2aa3fe6f02ee099567d4cc6",
+      "arm": "teacher-revision",
+      "model": {
+        "model": "gpt-5.6-sol",
+        "revision": "codex-cli 0.144.5",
+        "runtime": "codex-cli-ephemeral-source-cleanroom"
+      },
+      "sourceContextSha256": "93f1967ab8d9ef573ce845e9bd5ffd6778ae95c548d7171dbd6902c7d869a8fa",
+      "originalArtifactSha256": "a522a81a065377f9f55d2d657f3de2f872d7c8d42f8d8655d78f07915f8deecf",
+      "artifact": {
+        "lessonId": "lesson-2",
+        "facts": [
+          "Major and natural minor scales are distinguished by their ordered patterns of whole steps and half steps between adjacent scale degrees.",
+          "The major-scale step pattern is whole, whole, half, whole, whole, whole, half.",
+          "Natural minor has a whole step from its seventh degree to the tonic, so that degree is called the subtonic."
+        ],
+        "keyTerms": [
+          {
+            "tr": "major-scale step pattern",
+            "df": "The major-scale step pattern is an ordered pattern of whole and half steps between adjacent scale degrees.",
+            "eg": "The major-scale step pattern is whole, whole, half, whole, whole, whole, half.",
+            "mi": "Natural minor is identified by the listed major-scale step pattern.",
+            "cx": "That listed sequence identifies the major scale, while natural minor has a whole step from its seventh degree to the tonic."
+          },
+          {
+            "tr": "natural minor",
+            "df": "Natural minor is a scale distinguished by a whole step from its seventh degree to the tonic.",
+            "eg": "In natural minor, the seventh degree is called the subtonic.",
+            "mi": "In natural minor, the tonic is called the subtonic.",
+            "cx": "The subtonic label belongs to the seventh degree, not to the tonic."
+          },
+          {
+            "tr": "subtonic",
+            "df": "The subtonic is the seventh degree of natural minor when it has a whole step to the tonic.",
+            "eg": "A natural minor notation labels its seventh degree as the subtonic.",
+            "mi": "Subtonic names the whole step between adjacent scale degrees.",
+            "cx": "Subtonic names a scale degree; the whole step describes its relation to the tonic."
+          }
+        ],
+        "scenario": {
+          "su": "An editor must distinguish a major scale from natural minor using displayed adjacent-step relations. A deadline requires the editor to base the classification on the displayed patterns and labels.",
+          "ma": "major-scale adjacent-step notation: whole, whole, half, whole, whole, whole, half, natural-minor observation: whole step from the seventh degree to the tonic with that degree labeled subtonic"
+        },
+        "mc": [
+          {
+            "q": "An ordered pattern between adjacent scale degrees is whole, whole, half, whole, whole, whole, half. Which scale does that ordered pattern identify?",
+            "op": [
+              "The tonic matches this ordered pattern",
+              "The natural minor scale matches this ordered pattern",
+              "The major scale matches this ordered pattern",
+              "The subtonic matches this ordered pattern"
+            ],
+            "ai": 2,
+            "fi": [
+              1
+            ],
+            "ex": "The sequence whole, whole, half, whole, whole, whole, half is the major-scale step pattern. The natural minor choice is incorrect because the cited claim assigns this sequence to the major scale."
+          },
+          {
+            "q": "An editor observes a whole step from a scale’s seventh degree to its tonic and must classify and label the notation from that relation. Which decision is supported?",
+            "op": [
+              "Natural minor with tonic called subtonic",
+              "Major with tonic called subtonic",
+              "Natural minor with seventh degree called subtonic",
+              "Major with seventh degree called subtonic"
+            ],
+            "ai": 2,
+            "fi": [
+              2
+            ],
+            "ex": "A whole step from the seventh degree to the tonic supports natural minor and the subtonic label for that seventh degree. Calling the tonic subtonic reverses which degree receives the label."
+          }
+        ]
+      },
+      "artifactSha256": "19ab1bca1f3282ad0513641405543ea1c575057876a099afe61818ed2453aca7",
+      "admission": {
+        "needsRetry": false,
+        "issues": []
+      },
+      "compilerRepairs": [
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-2",
+          "item": 0,
+          "permutation": [
+            3,
+            1,
+            0,
+            2
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 2,
+          "trainingEligible": false
+        },
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-2",
+          "item": 1,
+          "permutation": [
+            1,
+            3,
+            0,
+            2
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 2,
+          "trainingEligible": false
+        }
+      ],
+      "revisionEvidence": {
+        "packetSha256": "c57cbf8f30220aa17ffbf327cf68f41fa8f3710bd58e8744de374a0db427a31c",
+        "sessionId": "scion-v01654-teacher-batch-004-ac35428971-part-03-358fa2d9-e480-437c-90b3-af148f55ba5b",
+        "changeSummary": [
+          "Re-authored the complete first assessment item as a major-scale pattern identification decision with four distinct alternatives."
+        ],
+        "addressedDiagnoses": [
+          "Eliminated the semantically duplicate alternatives previously present in the first question."
+        ]
+      }
+    },
+    {
+      "caseId": "scion-kernel-eb4049f6a28f14cedcfa8b79",
+      "caseSha256": "eb4049f6a28f14cedcfa8b79c562561cfce310d76cb939aa136e75d7cb32349c",
+      "arm": "teacher-revision",
+      "model": {
+        "model": "gpt-5.6-sol",
+        "revision": "codex-cli 0.144.5",
+        "runtime": "codex-cli-ephemeral-source-cleanroom"
+      },
+      "sourceContextSha256": "4fb22bcb5552beda1fca8748ba9ed0740ca3d0de8b9cf8ba3efe05b0a4586b68",
+      "originalArtifactSha256": "7062ff632711cdc69998ce48e7b2e641e511cb988c78cf255f07f101f62a3692",
+      "artifact": {
+        "lessonId": "lesson-3",
+        "facts": [
+          "The minor key system has natural, harmonic, and melodic variants that differ through alterations to the sixth and seventh scale degrees.",
+          "Harmonic minor raises the seventh scale degree so it can function as a leading tone.",
+          "Melodic minor raises both the sixth and seventh scale degrees."
+        ],
+        "keyTerms": [
+          {
+            "tr": "minor key system",
+            "df": "The minor key system includes natural, harmonic, and melodic variants distinguished through alterations to the sixth and seventh scale degrees.",
+            "eg": "Natural, harmonic, and melodic are variants within the minor key system.",
+            "mi": "The minor key system has harmonic and melodic variants distinguished through the seventh scale degree.",
+            "cx": "Natural is also a variant, and the stated differences involve alterations to the sixth and seventh scale degrees."
+          },
+          {
+            "tr": "harmonic minor",
+            "df": "Harmonic minor is the variant that raises the seventh scale degree so it can function as a leading tone.",
+            "eg": "Harmonic minor raises the seventh scale degree.",
+            "mi": "Harmonic minor raises both the sixth and seventh scale degrees.",
+            "cx": "Raising both degrees is the stated relation for melodic minor, while harmonic minor raises the seventh."
+          },
+          {
+            "tr": "melodic minor",
+            "df": "Melodic minor is the variant distinguished by raising both the sixth and seventh scale degrees.",
+            "eg": "Melodic minor raises both the sixth and seventh scale degrees.",
+            "mi": "The alteration involving both scale degrees belongs to harmonic minor rather than melodic minor.",
+            "cx": "The supplied relations run oppositely: melodic minor raises both degrees, and harmonic minor raises the seventh."
+          }
+        ],
+        "scenario": {
+          "su": "A student compares a notation with a raised seventh scale degree against a notation with raised sixth and seventh scale degrees. Because both notations raise the seventh, the student must use the sixth-degree observation to label harmonic minor and melodic minor defensibly.",
+          "ma": "notation showing a raised seventh scale degree, notation showing raised sixth and seventh scale degrees"
+        },
+        "mc": [
+          {
+            "q": "Two notations show different alterations: harmonic minor has a raised seventh degree, while melodic minor has raised sixth and seventh degrees. Which comparison fully matches both observations?",
+            "op": [
+              "Harmonic raises the seventh; melodic raises the seventh",
+              "Harmonic raises seventh; melodic raises the sixth",
+              "Harmonic raises seventh; melodic raises sixth and seventh",
+              "Melodic raises seventh; harmonic raises sixth and seventh"
+            ],
+            "ai": 2,
+            "fi": [
+              1,
+              2
+            ],
+            "ex": "Harmonic minor raises the seventh scale degree, whereas melodic minor raises both the sixth and seventh. Saying melodic minor raises the sixth omits its raised seventh."
+          },
+          {
+            "q": "A notation displays raised sixth and seventh scale degrees, and the student must select the supplied variant description that accounts for every observed alteration. Which description directly matches the notation?",
+            "op": [
+              "Harmonic minor raises the seventh scale degree",
+              "Harmonic minor raises both observed scale degrees",
+              "Melodic minor raises the seventh scale degree",
+              "Melodic minor raises both observed scale degrees"
+            ],
+            "ai": 3,
+            "fi": [
+              2
+            ],
+            "ex": "Melodic minor raises both the sixth and seventh scale degrees, matching every observation. The description mentioning its seventh degree alone omits the observed raised sixth."
+          }
+        ]
+      },
+      "artifactSha256": "4cd1c779b35b55aca7f110350715bc14a97724a08493156fa851cffa7e86bb17",
+      "admission": {
+        "needsRetry": false,
+        "issues": []
+      },
+      "compilerRepairs": [
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-3",
+          "item": 0,
+          "permutation": [
+            3,
+            2,
+            0,
+            1
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 2,
+          "trainingEligible": false
+        },
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-3",
+          "item": 1,
+          "permutation": [
+            3,
+            1,
+            2,
+            0
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 3,
+          "trainingEligible": false
+        }
+      ],
+      "revisionEvidence": {
+        "packetSha256": "5b5dd27df39f6322c0ac4f8a50bb05abcfc89fc910e1341953936a50e3e8d7e1",
+        "sessionId": "scion-v01654-teacher-batch-005-3337231ee9-a71571a2-26db-4bee-aa90-0a426ed3323e",
+        "changeSummary": [
+          "Revised keyTerms[2].mi so the misconception no longer repeats the melodic minor example."
+        ],
+        "addressedDiagnoses": [
+          "lesson-3:key-term-2:misconception-repeats-example"
+        ]
+      }
+    }
+  ],
+  "batchReports": [
+    {
+      "batchId": "batch-001-6c8e61467e-part-01",
+      "packetSha256": "7b8a3604c2b30e99900b27e71b895930529867c2e28e069da4d0056d669e7709",
+      "resultSha256": "27b7b09005f3ab0341a454b268906f3cc950727457969a8d77ed3cd39e631dbe",
+      "reportSha256": "3ea376d74204955aa9a7e033b8ed2713fb3c2ddecd17078698e4c85e0208cb55",
+      "summary": {
+        "cases": 1,
+        "compilerAdmitted": 1,
+        "compilerRejected": 0
+      }
+    },
+    {
+      "batchId": "batch-001-6c8e61467e-part-02",
+      "packetSha256": "94b42308614f56e29002a7bf771a3a8227b366c9e44d0944b088d09d200ab666",
+      "resultSha256": "e689454e797a1acf5f3c9fe98c609e876a8f0905a08c58f1893cbd2b601b47cf",
+      "reportSha256": "c6fe59ff645c984ad4643dd04a7d6c6914089ba200f912e13b15dfd3178a3615",
+      "summary": {
+        "cases": 1,
+        "compilerAdmitted": 0,
+        "compilerRejected": 1
+      }
+    },
+    {
+      "batchId": "batch-001-6c8e61467e-part-03",
+      "packetSha256": "315bf07841ba2cfa92202b502530af185ed547f4f1b806230191be3e4fbac980",
+      "resultSha256": "c2007cce7ee23899df3fab8cf9a7f04afe303bd7ac8949dad0a14f250248e31f",
+      "reportSha256": "9f6978fb1cae74ebe617c35b4ddb84123e95cfc6435eb43bb1aa3c571b1f8467",
+      "summary": {
+        "cases": 1,
+        "compilerAdmitted": 1,
+        "compilerRejected": 0
+      }
+    },
+    {
+      "batchId": "batch-002-89f6c008c4",
+      "packetSha256": "0291e72fad62d2f751b69929e663789fda8ce976f31f3953ad4056318af5f03e",
+      "resultSha256": "57d8337b9525823589e4aaec0918d125f062570577f21aae65e913d1d514c806",
+      "reportSha256": "6e11323d72068773e4e054ca124c6ba427d949a9992402224ae33b430f7151fe",
+      "summary": {
+        "cases": 1,
+        "compilerAdmitted": 1,
+        "compilerRejected": 0
+      }
+    },
+    {
+      "batchId": "batch-003-d451e87e02",
+      "packetSha256": "cbccbdfd5277ff96abc50e144b5b41253823d402da355a46f9fbab427bb23717",
+      "resultSha256": "81c0f4d024154c9c77cc028fe99a263abc2aeee1170de6df69e8a2596a17f207",
+      "reportSha256": "5742097bce722a454e06cb3b8e37b126520f2f5236fbe57473637876cd75bc66",
+      "summary": {
+        "cases": 1,
+        "compilerAdmitted": 1,
+        "compilerRejected": 0
+      }
+    },
+    {
+      "batchId": "batch-004-ac35428971-part-01",
+      "packetSha256": "7f62fcbbceb5b8e3508c4562e4896b9bf63df1768ba20b769ee45ab0c09d2dba",
+      "resultSha256": "042c9ce00b1d24fc81f074b19cdf5c23c2cbe76175215eda736c2818215dc275",
+      "reportSha256": "db304754aef9e6d7f1b7451254ce6ede9d7463749339541dd4cd760033a8d494",
+      "summary": {
+        "cases": 1,
+        "compilerAdmitted": 1,
+        "compilerRejected": 0
+      }
+    },
+    {
+      "batchId": "batch-004-ac35428971-part-02",
+      "packetSha256": "f82fe52b7c9e1de407cbc3dd931b073b97286f90211a25b68a3a2b86a17f21aa",
+      "resultSha256": "2c025dd3ceadd66ae57643ebe3601f37c6df0f93da790c82272a3c71d9b50aff",
+      "reportSha256": "b47cc7bf59b3a80c6942c21afb7f7e7197505f2f2af85354ee4ed86f31a3c578",
+      "summary": {
+        "cases": 1,
+        "compilerAdmitted": 1,
+        "compilerRejected": 0
+      }
+    },
+    {
+      "batchId": "batch-004-ac35428971-part-03",
+      "packetSha256": "c57cbf8f30220aa17ffbf327cf68f41fa8f3710bd58e8744de374a0db427a31c",
+      "resultSha256": "3da2c0a93d16621b3d93d80e463e751f964832a8a1b6cbf0b8e98b11d8cee376",
+      "reportSha256": "3c6e18da8da7c640bce5209564fec50fa3737753bbbcfff172bdb103e6c5c071",
+      "summary": {
+        "cases": 1,
+        "compilerAdmitted": 1,
+        "compilerRejected": 0
+      }
+    },
+    {
+      "batchId": "batch-005-3337231ee9",
+      "packetSha256": "5b5dd27df39f6322c0ac4f8a50bb05abcfc89fc910e1341953936a50e3e8d7e1",
+      "resultSha256": "c2ad684a022e0975ff008f52b9f3d40c8ddb234e6ffa4de5eb0f9158f66108d6",
+      "reportSha256": "d222057cf124d70379a1c882b8dd600c8c14b79a0c8d65d949e10b6b623f2d78",
+      "summary": {
+        "cases": 1,
+        "compilerAdmitted": 1,
+        "compilerRejected": 0
+      }
+    }
+  ],
+  "summary": {
+    "cases": 9,
+    "compilerAdmitted": 8,
+    "compilerRejected": 1,
+    "completedBatches": 9,
+    "pendingBatches": 0
+  },
+  "claimBoundary": "These source-constrained model revisions are compiler candidates only. They are not human evidence, judge preferences, adapter wins, or training authorization.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "3901457cb86c87274e258b0fe20e29c043720cab20eabe603e51adabf3eeb530"
+  }
+}

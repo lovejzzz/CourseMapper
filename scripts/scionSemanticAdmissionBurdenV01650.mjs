@@ -225,8 +225,8 @@ export async function buildScionSemanticAdmissionBurdenV01650({ cwd = process.cw
     frozenCandidateEligibilityUnchanged:
       candidate.previousEligible === 80 &&
       candidate.currentEligible === 80 &&
-      reference.previousEligible === 83 &&
-      reference.currentEligible === 83,
+      reference.previousEligible === 84 &&
+      reference.currentEligible === 84,
     noAdditionalCandidateRetrySeats:
       candidate.additionalRetrySeats === 0 &&
       candidate.removedRetrySeats === 0 &&

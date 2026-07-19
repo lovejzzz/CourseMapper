@@ -271,17 +271,17 @@ export async function buildScionAuthoringV2ComparisonAudit({ cwd = process.cwd()
       v1.strictReplay.reference.compiled.admittedAtoms === 131 &&
       v2.strictReplay.local.raw.admittedAtoms === 77 &&
       v2.strictReplay.local.compiled.admittedAtoms === 91 &&
-      v2.strictReplay.reference.raw.admittedAtoms === 112 &&
-      v2.strictReplay.reference.compiled.admittedAtoms === 123,
+      v2.strictReplay.reference.raw.admittedAtoms === 113 &&
+      v2.strictReplay.reference.compiled.admittedAtoms === 124,
     localStrictAdmissionImproved: deltas.localStrictRawAtoms === 39 && deltas.localStrictCompiledAtoms === 37,
     strictCompiledGapNarrowed:
-      deltas.compiledLocalGapV1 === 77 && deltas.compiledLocalGapV2 === 32 && deltas.compiledGapNarrowing === 45,
+      deltas.compiledLocalGapV1 === 77 && deltas.compiledLocalGapV2 === 33 && deltas.compiledGapNarrowing === 44,
     candidateSurfaceImproved:
       candidates.v1.rows === 69 &&
       candidates.v1.localEligible === 54 &&
       candidates.v2.rows === 91 &&
       candidates.v2.localEligible === 88 &&
-      candidates.v2.referenceEligible === 85 &&
+      candidates.v2.referenceEligible === 86 &&
       candidates.v2.localEligibilityRate > candidates.v1.localEligibilityRate,
   };
   const failures = Object.entries(assertions)
@@ -322,7 +322,7 @@ export async function buildScionAuthoringV2ComparisonAudit({ cwd = process.cwd()
     deltas,
     assertions,
     interpretation:
-      'On the same 34 semantic source kernels and exact model identities, the joint v2 pipeline change increased strict local raw admission by 39 atoms and strict compiled admission by 37 atoms, while narrowing the strict compiled reference lead from 77 to 32 atoms under the current stricter truncation and label-leakage gate. The reviewable local candidate eligibility rate also rose materially.',
+      'On the same 34 semantic source kernels and exact model identities, the joint v2 pipeline change increased strict local raw admission by 39 atoms and strict compiled admission by 37 atoms, while narrowing the strict compiled reference lead from 77 to 33 atoms under the current role-aware admission gate. The reviewable local candidate eligibility rate also rose materially.',
     claimBoundary:
       'This replay controls semantic source-kernel payloads but jointly changes authoring instructions, course context, group partitioning, and newly sampled model output. It therefore demonstrates a pipeline revision gain, not an isolated causal prompt effect. It contains no blind preference outcome and proves no adapter, instructor, classroom, held-out, or production win.',
   };

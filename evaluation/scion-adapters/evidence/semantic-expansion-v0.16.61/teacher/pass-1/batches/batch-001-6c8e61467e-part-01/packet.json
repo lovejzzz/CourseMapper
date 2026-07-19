@@ -1,0 +1,172 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-teacher-revision-packet-v1",
+  "generatedAt": "2026-07-19T22:45:00.000Z",
+  "batchId": "batch-001-6c8e61467e-part-01",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "aggregateSha256": "4a829fb0977f4b711929bd96dd1f9429321dcd83c8aa0da2daadff8b7ac4bb60",
+  "prompt": {
+    "path": "evaluation/scion-adapters/lesson-kernel-teacher-revision-prompt-v8-v0.16.60.md",
+    "sha256": "505aff4b87a07aa0d7d9d7d7b6d40bb268f654439a4b8e06f1d1efda53327eb1"
+  },
+  "cases": [
+    {
+      "caseId": "scion-kernel-02772fca67bf5fc5661a4764",
+      "caseSha256": "02772fca67bf5fc5661a476414b9e1d11180855e45dc8f970203d4976ee36f9a",
+      "lessonInput": {
+        "lessonId": "lesson-9",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Magnetic field",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: A magnetic field describes magnetic influence in space and determines magnetic forces on moving charges and currents. Claim 1: Magnetic field lines form closed loops and do not begin or end on isolated magnetic charges. Claim 2: Currents produce magnetic fields.",
+        "readings": "OpenStax University Physics Volume 2, Ch. 11-12"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "bde05b7b9582176e048e9e0ae8a40e052a003910ab430c42b50031727a58cd48",
+        "kernelId": "physics/magnetic-field",
+        "term": "Magnetic field",
+        "claims": [
+          "A magnetic field describes magnetic influence in space and determines magnetic forces on moving charges and currents.",
+          "Magnetic field lines form closed loops and do not begin or end on isolated magnetic charges.",
+          "Currents produce magnetic fields."
+        ],
+        "anchors": [
+          {
+            "src": "openstax:university-physics-volume-2#11",
+            "loc": "11.1",
+            "quote": "magnetic field"
+          },
+          {
+            "src": "openstax:university-physics-volume-2#11",
+            "loc": "11.1",
+            "quote": "magnetic field lines are continuous"
+          },
+          {
+            "src": "openstax:university-physics-volume-2#12",
+            "loc": "12.1",
+            "quote": "currents produce magnetic fields"
+          }
+        ],
+        "attribution": [
+          "OpenStax University Physics Volume 2, Ch. 11-12"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "originalArtifact": {
+        "lessonId": "lesson-9",
+        "facts": [
+          "A magnetic field describes magnetic influence in space and determines magnetic forces on moving charges and currents.",
+          "Magnetic field lines form closed loops and do not begin or end on isolated magnetic charges.",
+          "Currents produce magnetic fields."
+        ],
+        "keyTerms": [
+          {
+            "tr": "magnetic field",
+            "df": "A magnetic field is a description of magnetic influence in space.",
+            "eg": "A magnetic field determines magnetic forces on moving charges.",
+            "mi": "Magnetic forces determine the magnetic field around currents.",
+            "cx": "The direction of determination runs from the field to forces on moving charges and currents."
+          },
+          {
+            "tr": "field lines",
+            "df": "Magnetic field lines are distinguished by forming closed loops with no isolated magnetic-charge endpoints.",
+            "eg": "Field lines close into loops instead of ending on isolated magnetic charges.",
+            "mi": "Isolated magnetic charges are places where field lines begin.",
+            "cx": "No line starts at an isolated magnetic charge; the lines continue in closed form."
+          },
+          {
+            "tr": "Currents",
+            "df": "Currents are distinguished here by their production of magnetic fields.",
+            "eg": "A current produces a magnetic field.",
+            "mi": "A magnetic field produces currents.",
+            "cx": "Production runs from currents toward magnetic fields, not in the reversed direction."
+          }
+        ],
+        "scenario": {
+          "su": "A workshop group must label a closed-loop diagram and a currents-to-magnetic-fields notation before a deadline. The labels must distinguish what magnetic field lines do from what currents produce while preserving both recorded relations.",
+          "ma": "closed-loop diagram, currents-to-magnetic-fields notation, magnetic-field-lines passage, currents passage"
+        },
+        "mc": [
+          {
+            "q": "One notation shows a magnetic field determining forces on moving charges, while another shows field lines closing on themselves. Which statement correctly distinguishes the two observations?",
+            "op": [
+              "Magnetic fields determine forces; field lines close",
+              "Magnetic fields close; field lines determine forces",
+              "Magnetic forces determine fields; charges end lines",
+              "Currents determine forces; field lines produce fields"
+            ],
+            "ai": 0,
+            "fi": [
+              0,
+              1
+            ],
+            "ex": "A magnetic field determines magnetic forces on moving charges, whereas magnetic field lines form closed loops. Field lines do not determine those forces while magnetic fields form the loops."
+          },
+          {
+            "q": "A workshop record pairs a current with a magnetic field, but the label must state one warranted production relation. Which label correctly describes the recorded case?",
+            "op": [
+              "Currents produce magnetic fields",
+              "Magnetic fields produce currents",
+              "Currents produce magnetic forces",
+              "Magnetic forces produce currents"
+            ],
+            "ai": 0,
+            "fi": [
+              2
+            ],
+            "ex": "The recorded current supports the statement that currents produce magnetic fields. The reversed label is incorrect because magnetic fields are not identified as producing currents."
+          }
+        ]
+      },
+      "originalArtifactSha256": "687019039533933a03815ea1af745e8858458e80a6b5848535e77c121ce045eb",
+      "compilerAdmission": {
+        "needsRetry": true,
+        "issues": [
+          "lesson-9:mc-0:source-role-conflict"
+        ]
+      },
+      "diagnoses": [
+        {
+          "winnerScores": {
+            "sourceFidelity": 3,
+            "knowledgePrecision": 3,
+            "scenarioReadiness": 4,
+            "assessmentCorrectness": 3,
+            "choiceDiscriminability": 4,
+            "feedbackInstructionality": 3,
+            "internalCoherence": 3
+          },
+          "criticalDefects": [
+            "The first explanation says magnetic fields form loops, shifting the supplied closed-loop property away from magnetic field lines."
+          ],
+          "rationale": "B provides a usable constrained labeling scenario, correct keys, discriminable choices, and generally instructional feedback. A has a wrong first answer, contradictory placeholder feedback, unsupported examples, and no usable decision.",
+          "decisionSha256": "adba48a8906a71a183d873ef6644fd0a8cb54fda62f4b45fc1c22d7a8b9036d6"
+        },
+        {
+          "winnerScores": {
+            "sourceFidelity": 3,
+            "knowledgePrecision": 3,
+            "scenarioReadiness": 4,
+            "assessmentCorrectness": 3,
+            "choiceDiscriminability": 4,
+            "feedbackInstructionality": 3,
+            "internalCoherence": 3
+          },
+          "criticalDefects": [
+            "MC1's explanation says magnetic fields form the loops, contradicting its answer and the supplied claim that magnetic field lines form closed loops."
+          ],
+          "rationale": "A preserves the supplied distinctions, provides an actionable scenario, and keys both questions correctly. B has an incorrect declared answer, unsupported examples, and incomplete placeholder feedback.",
+          "decisionSha256": "00c6b8322e5492e40299770505048b9704f57c1e1ad30c45388107ecd6ff1e82"
+        }
+      ]
+    }
+  ],
+  "claimBoundary": "These are source packets, diagnosed reference artifacts, and compiler outcomes only. No local artifact, provider route, organizer preference, or training authorization is included.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "7b8a3604c2b30e99900b27e71b895930529867c2e28e069da4d0056d669e7709"
+  }
+}

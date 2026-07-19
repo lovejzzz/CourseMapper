@@ -1,0 +1,373 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-paired-order-result-v1",
+  "generatedAt": "2026-07-19T21:00:00.000Z",
+  "status": "paired-orders-complete",
+  "requiredOrders": [
+    "A/B",
+    "B/A"
+  ],
+  "sessions": {
+    "A/B": "scion-v01654-batch-005-3337231ee9-a-b-90d1a21a-e43f-48e3-bfd0-7624a0b239ee",
+    "B/A": "scion-v01654-batch-005-3337231ee9-b-a-cf8f9a70-4e9d-412a-bf03-d6b19d70b4c9"
+  },
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "evidence": {
+    "prompt": {
+      "path": "evaluation/scion-adapters/lesson-kernel-judge-prompt-v0.16.54.md",
+      "sha256": "37844b86736335db54b561d8c031660ef71679c55ae1108e2e999e746f2a1c96"
+    },
+    "packets": {
+      "A/B": "f11a0c43031979aee81d7521469f7a32225e5c2690b07bc6ce424458e24bef02",
+      "B/A": "8cff5fbe9bc96f745edc3c78b3a7eff7620a6a1532bd308876939f8b7dc67275"
+    },
+    "reviews": {
+      "A/B": "45aea498796e85d4eb20652b6506718a8074d716c8e1ce976fe656a0faf31b33",
+      "B/A": "dff305da862d113898ed8798369e4db991453ce53d9c934ab75bae5f8e8b409c"
+    }
+  },
+  "issues": [],
+  "results": [
+    {
+      "caseId": "scion-kernel-dc63d092d72ff31db8a01e41",
+      "pairId": "scion-kernel-pair-f45748d2e07788ae111caa27",
+      "winners": {
+        "A/B": "542ab19f8dea38ae0ab6ad50570a795e73ea4e606dffada45033ec1485137e7b",
+        "B/A": "542ab19f8dea38ae0ab6ad50570a795e73ea4e606dffada45033ec1485137e7b"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": true,
+      "scoreQualification": {
+        "qualified": true,
+        "winnerMinimumScore": 4,
+        "minimumTotalScoreMargin": 11,
+        "winnerCriticalDefects": [],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 3,
+              "assessmentCorrectness": 1,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 1
+            },
+            "winnerMinimumScore": 4,
+            "totalScoreMargin": 14,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The second assessment declares “1 through 5” correct, while the supplied claim and its explanation establish “0 through 4.”"
+            ],
+            "rationale": "B is consistently source-bound and has two uniquely correct, coherently explained assessments. A contains a critical wrong answer and answer-explanation contradiction in its range(5) item.",
+            "decisionSha256": "7a6b248f655fffcb2718864a236fd0fc20312e4976fa1036c179d4156d5bdb2a"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 3,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 2,
+              "internalCoherence": 1
+            },
+            "winnerMinimumScore": 4,
+            "totalScoreMargin": 11,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The range(5) question declares option 0 even though option 1 is uniquely correct.",
+              "The range(5) explanation states 0 through 4, directly contradicting the declared answer."
+            ],
+            "rationale": "A is fully source-bound and internally consistent. B teaches the same core content but contains a critical incorrect key and answer-explanation contradiction in its range(5) assessment.",
+            "decisionSha256": "7888c9c6fb4f8a51f6beebd4b4d2303f129ecd3fe4390677fe0599f8c88eeb0b"
+          }
+        ]
+      },
+      "trainingEligible": true
+    },
+    {
+      "caseId": "scion-kernel-eb4049f6a28f14cedcfa8b79",
+      "pairId": "scion-kernel-pair-52e608f3ee950d684afa8bf3",
+      "winners": {
+        "A/B": "7062ff632711cdc69998ce48e7b2e641e511cb988c78cf255f07f101f62a3692",
+        "B/A": "7062ff632711cdc69998ce48e7b2e641e511cb988c78cf255f07f101f62a3692"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": false,
+      "scoreQualification": {
+        "qualified": true,
+        "winnerMinimumScore": 4,
+        "minimumTotalScoreMargin": 20,
+        "winnerCriticalDefects": [],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 1,
+              "knowledgePrecision": 1,
+              "scenarioReadiness": 3,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 0,
+              "feedbackInstructionality": 0,
+              "internalCoherence": 1
+            },
+            "winnerMinimumScore": 4,
+            "totalScoreMargin": 22,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The scenario introduces named A-minor passages that are absent from the supplied source.",
+              "The first assessment is not uniquely answerable because more than one alternative states a supplied distinction.",
+              "The second assessment declares harmonic minor, duplicates that alternative, and contradicts its explanation that the observed variant is melodic minor."
+            ],
+            "rationale": "B supplies a complete, source-bound comparison with discriminating choices and correct explanations. A has invented named material, a non-unique first item, and a critically incorrect and duplicated second-item answer.",
+            "decisionSha256": "f5f686d91abdf24afc14d717295354b70fc8aa81941c86c97465ff80eea46379"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 3,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 0,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 4,
+            "totalScoreMargin": 20,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The scenario measurement invents named A-minor harmonic and melodic passages absent from the supplied claims.",
+              "Question 1 is ambiguous because both harmonic-minor-only-seventh and melodic-minor-sixth-and-seventh alternatives are supported.",
+              "Question 2 duplicates the harmonic-minor alternative at options 0 and 3.",
+              "Question 2 declares harmonic minor, but raised sixth and seventh uniquely identify melodic minor.",
+              "Question 2's explanation identifies melodic minor and therefore contradicts the declared answer."
+            ],
+            "rationale": "A provides a complete, source-bound comparison with uniquely correct assessments and corrective feedback. B adds an unsupported named example and has severe ambiguity, duplication, and answer-feedback contradictions.",
+            "decisionSha256": "cdba1678068a490134b38507bb66c87fa18000a215a4b944cb047b786f88e10f"
+          }
+        ]
+      },
+      "trainingEligible": false
+    },
+    {
+      "caseId": "scion-kernel-f0f0aa2c9a2a35c93fde20f4",
+      "pairId": "scion-kernel-pair-07d6be681e32a0476d651c5f",
+      "winners": {
+        "A/B": "a2aaf3998a10e7ad02bc77e325bef757fdcf63c45cd62f02517e53c20edb5b9d",
+        "B/A": "a2aaf3998a10e7ad02bc77e325bef757fdcf63c45cd62f02517e53c20edb5b9d"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": true,
+      "scoreQualification": {
+        "qualified": true,
+        "winnerMinimumScore": 3,
+        "minimumTotalScoreMargin": 6,
+        "winnerCriticalDefects": [],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 2,
+              "assessmentCorrectness": 2,
+              "choiceDiscriminability": 1,
+              "feedbackInstructionality": 2,
+              "internalCoherence": 2
+            },
+            "winnerMinimumScore": 3,
+            "totalScoreMargin": 13,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The second assessment invents an unsupported “primary method” hierarchy, leaving two source-supported alternatives and no unique answer."
+            ],
+            "rationale": "B turns the supplied guidance into an evidence-rich decision with unique answers and corrective feedback. A's scenario evidence is incomplete, and its second assessment is critically non-unique because both leading alternatives are source-supported.",
+            "decisionSha256": "332de87fa1c4483672b12c0c52d1494c7ecaa12df68c7e7225e33504435e2e64"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 3,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 3,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 2,
+              "feedbackInstructionality": 3,
+              "internalCoherence": 3
+            },
+            "winnerMinimumScore": 4,
+            "totalScoreMargin": 6,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [],
+            "rationale": "Both artifacts preserve the central prototype guidance and have correct keys. A is stronger because its scenario is directly supported, its choices are more exclusive, and its feedback repairs the closest misconceptions.",
+            "decisionSha256": "02485358c76078bf871d87a4143e990dcf634ec81738fa175d1faa65c25c0d49"
+          }
+        ]
+      },
+      "trainingEligible": true
+    },
+    {
+      "caseId": "scion-kernel-facfeccb0a971da847bad726",
+      "pairId": "scion-kernel-pair-390127cae11411ba6e8d2bdb",
+      "winners": {
+        "A/B": "783fbc5e2d01ab16b5a85236034c48aa11476d9c724c5136203dd06cd99d81b5",
+        "B/A": "783fbc5e2d01ab16b5a85236034c48aa11476d9c724c5136203dd06cd99d81b5"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": true,
+      "scoreQualification": {
+        "qualified": true,
+        "winnerMinimumScore": 4,
+        "minimumTotalScoreMargin": 16,
+        "winnerCriticalDefects": [],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 3,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 0,
+              "feedbackInstructionality": 0,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 4,
+            "totalScoreMargin": 21,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The first assessment declares a new key signature correct, while its explanation and the source support accidentals for the temporary modulation.",
+              "The second assessment declares an option that does not answer the stated function question, and its explanation does not justify that selection.",
+              "The second assessment contains near-duplicate temporary-modulation alternatives and multiple general key-signature functions, preventing a unique answer."
+            ],
+            "rationale": "B is precise, actionable, and fully coherent across both notation distinctions. A has two incorrect declared answers, an explicit answer-explanation contradiction, and a non-discriminating second choice set.",
+            "decisionSha256": "6079223a2f58c6cea729aa45d9aa87b38a60a7fb867d7cf8d5ccda651da067b1"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 3,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 1,
+              "feedbackInstructionality": 0,
+              "internalCoherence": 1
+            },
+            "winnerMinimumScore": 4,
+            "totalScoreMargin": 16,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "Question 1 declares a new key signature, but the supported answer is accidentals for a temporary modulation.",
+              "Question 1's explanation supports accidentals and directly contradicts the declared answer.",
+              "Question 2 declares temporary modulation even though the stem concerns why a key signature is repeated.",
+              "Question 2 provides no alternative that answers the stated function of repeating a key signature.",
+              "Question 2 includes near-duplicate alternatives about indicating a temporary modulation with accidentals."
+            ],
+            "rationale": "A is fully coherent, source-bound, and correctly keyed. B reproduces the source facts but both assessments are critically defective, with incorrect keys, duplicated or missing choices, and contradictory or nonresponsive feedback.",
+            "decisionSha256": "eea6799dcce10e1f7d979a1493720688c8d89d3b6794d0a6f9a68ad01bd51ae8"
+          }
+        ]
+      },
+      "trainingEligible": true
+    }
+  ],
+  "summary": {
+    "pairs": 4,
+    "stablePreferences": 3,
+    "localWins": 0,
+    "referenceWins": 4,
+    "unstable": 0,
+    "scoreRejected": 0,
+    "compilerRejected": 1
+  },
+  "claimBoundary": "These are same-identity model-judge preferences from isolated A/B and B/A orders. They are not human, instructor, independent, classroom, heldout-adapter, or production-win evidence.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "34b7ab46362d7ffa34e7f89dd6f1c958c6f13779d7e6d7ed5451a87de759b52b"
+  }
+}

@@ -148,6 +148,13 @@ function normalizedRelationEntity(value) {
 }
 
 function canonicalLinearEquation(value) {
+  const proportional = clean(stripOptionLabel(value)).match(/^(.+?)\s+(?:is|are)\s+proportional\s+to\s+(.+?)[.!?]?$/i);
+  if (proportional) {
+    const terms = [normalizedRelationEntity(proportional[1]), normalizedRelationEntity(proportional[2])].sort();
+    if (terms.every((term) => term && term.length <= 60) && terms[0] !== terms[1]) {
+      return `proportional|${terms.join('|')}`;
+    }
+  }
   const match = clean(stripOptionLabel(value)).match(
     /^(.+?)\s+(?:equals|=)\s+(.+?)\s+(plus|minus|\+|-)\s+(.+?)[.!?]?$/i,
   );
@@ -571,19 +578,29 @@ const NEAR_DUPLICATE_POLARITY_GROUPS = [
   ['always', 'never'],
 ];
 
-function nearDuplicateOptionTokens(value) {
-  return new Set(
-    stripOptionLabel(value)
-      .normalize('NFKC')
-      .toLowerCase()
-      .replace(/[‘’']/g, '')
-      .replace(/[^a-z0-9♭♯#]+/g, ' ')
-      .trim()
-      .split(/\s+/)
-      .filter(Boolean)
-      .map((token) => (token.length > 4 && token.endsWith('s') ? token.slice(0, -1) : token))
-      .filter((token) => !NEAR_DUPLICATE_OPTION_STOP_WORDS.has(token)),
-  );
+function nearDuplicateOptionTokenSequence(value) {
+  const tokens = stripOptionLabel(value)
+    .normalize('NFKC')
+    .toLowerCase()
+    .replace(/[‘’']/g, '')
+    .replace(/[^a-z0-9♭♯#]+/g, ' ')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((token) => (token.length > 4 && token.endsWith('s') ? token.slice(0, -1) : token))
+    .filter((token) => !NEAR_DUPLICATE_OPTION_STOP_WORDS.has(token));
+  // Preserve repeated tokens: “modulation: key signature” after an earlier
+  // “normal sharps: key signature” is a second relation, not filler.
+  return tokens;
+}
+
+function isOrderedTokenSubsequence(smaller, larger) {
+  let smallerIndex = 0;
+  for (const token of larger) {
+    if (token === smaller[smallerIndex]) smallerIndex += 1;
+    if (smallerIndex === smaller.length) return true;
+  }
+  return false;
 }
 
 function hasCriticalOptionContrast(left, right) {
@@ -606,7 +623,24 @@ function hasCriticalOptionContrast(left, right) {
  * contrasts. Returns null when the choices remain meaningfully distinct.
  */
 export function findScionNearDuplicateOptionPair(options = []) {
-  const rows = (Array.isArray(options) ? options : []).map((option) => nearDuplicateOptionTokens(option));
+  const clauseCanonicals = (Array.isArray(options) ? options : []).map((option) => {
+    const clauses = String(option || '')
+      .split(/\s*;\s*/)
+      .map((clause) => nearDuplicateOptionTokenSequence(clause).join(' '))
+      .filter(Boolean);
+    return clauses.length >= 2 ? clauses.sort().join(' || ') : '';
+  });
+  const seenClauseSets = new Map();
+  for (let index = 0; index < clauseCanonicals.length; index += 1) {
+    const canonical = clauseCanonicals[index];
+    if (!canonical) continue;
+    if (seenClauseSets.has(canonical)) {
+      return { leftIndex: seenClauseSets.get(canonical), rightIndex: index, clauseOrderEquivalent: true };
+    }
+    seenClauseSets.set(canonical, index);
+  }
+  const sequences = (Array.isArray(options) ? options : []).map(nearDuplicateOptionTokenSequence);
+  const rows = sequences.map((sequence) => new Set(sequence));
   for (let leftIndex = 0; leftIndex < rows.length; leftIndex += 1) {
     for (let rightIndex = leftIndex + 1; rightIndex < rows.length; rightIndex += 1) {
       const left = rows[leftIndex];
@@ -618,7 +652,17 @@ export function findScionNearDuplicateOptionPair(options = []) {
       // require a strict superset instead of treating high overlap as enough.
       if (smaller < 6 || left.size === right.size || hasCriticalOptionContrast(left, right)) continue;
       const shared = [...left].filter((token) => right.has(token)).length;
-      if (shared === smaller) return { leftIndex, rightIndex, shared, smaller };
+      const smallerSequence = left.size < right.size ? sequences[leftIndex] : sequences[rightIndex];
+      const largerSequence = left.size < right.size ? sequences[rightIndex] : sequences[leftIndex];
+      // Token-set containment alone collapses relation swaps and partial
+      // contrasts. For example, “analysis surfaces obstacles; diagram may
+      // include decisions” is not the same answer as assigning those verbs to
+      // the opposite subject, and “modulation: accidentals” is not duplicated
+      // by “modulation: key signature.” A filler-expanded duplicate preserves
+      // the smaller option's semantic token order.
+      if (shared === smaller && isOrderedTokenSubsequence(smallerSequence, largerSequence)) {
+        return { leftIndex, rightIndex, shared, smaller };
+      }
     }
   }
   return null;
@@ -937,7 +981,10 @@ export function findScionMultipleSourceSupportedOptions(
     matchingProfile === 'v0.16.58'
       ? /\b(?:what (?:is|are)(?:\s+the\s+primary)?|how (?:is|are)[^?]{0,100}(?:defined|structured|referred|represented)|which (?:statement|description|characteristic|function|role)[^?]{0,100}(?:best|primary|describes|defines))\b/i
       : /\b(?:what (?:is|are)(?:\s+the\s+primary)?|how (?:is|are)[^?]{0,100}(?:defined|structured|referred|represented)|which (?:statement|description|characteristic|function|role|label|entry|pairing|system|variant|artifact|example|choice|option|item)[^?]{0,100}(?:best|primary|describes|defines|fits|is|are|relevant|valid|eligible|appropriate|supported))\b/i;
-  if (!broadQuestionPattern.test(normalized.question)) {
+  const pairedDistinction =
+    /\b(?:distinction|comparison)\b/i.test(normalized.question) &&
+    normalized.options.some((option) => /:[^;]+;[^:]+:/.test(option));
+  if (!broadQuestionPattern.test(normalized.question) && !pairedDistinction) {
     return null;
   }
   const questionTokens = sourceAlignmentTokens(normalized.question);
@@ -977,11 +1024,34 @@ export function findScionMultipleSourceSupportedOptions(
 
   function findSupportedOptions(candidateClaimIndexes) {
     const claimTokens = claims.map(sourceAlignmentTokens);
+    const pairedClaimClauses = candidateClaimIndexes.flatMap((claimIndex) =>
+      claims[claimIndex]
+        .split(/\s*(?:[.;]|\b(?:whereas|while)\b)\s*/i)
+        .filter((clause) => !/\bor\b/i.test(clause))
+        .map((clause) => sourceAlignmentTokens(clause))
+        .filter((tokens) => tokens.size > 0),
+    );
+    const pairedAssignmentIsSupported = (option) => {
+      const segments = clean(stripOptionLabel(option))
+        .split(/\s*;\s*/)
+        .map((segment) => segment.split(/\s*:\s*/, 2))
+        .filter((parts) => parts.length === 2 && parts.every(Boolean));
+      if (segments.length < 2) return false;
+      return segments.every(([subject, object]) => {
+        const subjectTokens = sourceAlignmentTokens(subject);
+        const objectTokens = sourceAlignmentTokens(object);
+        if (subjectTokens.size === 0 || objectTokens.size === 0) return false;
+        return pairedClaimClauses.some((tokens) => {
+          const objectOverlap = tokenOverlap(objectTokens, tokens);
+          return tokenOverlap(subjectTokens, tokens) >= 1 && objectOverlap / Math.max(1, objectTokens.size) >= 0.8;
+        });
+      });
+    };
     const supported = normalized.options
       .map((option, index) => {
         const surface = stripOptionLabel(option).toLowerCase();
         const tokens = semanticOptionTokens(option);
-        let best = { score: 0, containment: 0, claimIndex: -1, exactPhrase: false };
+        let best = { score: 0, containment: 0, orderedCoverage: 0, claimIndex: -1, exactPhrase: false };
         candidateClaimIndexes.forEach((claimIndex) => {
           const claim = claims[claimIndex];
           const claimSurface = claim.toLowerCase();
@@ -990,24 +1060,62 @@ export function findScionMultipleSourceSupportedOptions(
           }
           const score = tokenOverlap(tokens, claimTokens[claimIndex]);
           const containment = score / Math.max(1, tokens.size);
+          const orderedCoverage = orderedSemanticTokenCoverage(tokens, claim);
           const exactPhrase = surface.length >= 8 && claimSurface.includes(surface);
           if (
             Number(exactPhrase) > Number(best.exactPhrase) ||
             (exactPhrase === best.exactPhrase &&
-              (containment > best.containment || (containment === best.containment && score > best.score)))
+              (orderedCoverage > best.orderedCoverage ||
+                (orderedCoverage === best.orderedCoverage &&
+                  (containment > best.containment || (containment === best.containment && score > best.score)))))
           ) {
-            best = { score, containment, claimIndex, exactPhrase };
+            best = { score, containment, orderedCoverage, claimIndex, exactPhrase };
           }
         });
+        const relationOrderRequired =
+          /\b(?:affect\w*|creat(?:e|es|ed|ing)|depend\w*|determin\w*|drive\w*|induc\w*|lead\w*|link\w*|measur\w*|move\w*|power\w*|produc(?:e|es|ed|ing)|rais\w*|relat(?:e|es|ed|ing)|resist\w*|stor(?:e|es|ed|ing))\b/i.test(
+            surface,
+          );
+        const orderIsSupported = !relationOrderRequired || best.orderedCoverage >= 0.8;
         const compactSourcePhrase =
-          matchingProfile !== 'v0.16.58' && tokens.size <= 4 && best.score >= 2 && best.containment >= 0.6;
-        const eligible = best.exactPhrase || compactSourcePhrase || (best.score >= 3 && best.containment >= 0.72);
-        return { index, ...best, eligible };
+          matchingProfile !== 'v0.16.58' &&
+          tokens.size <= 4 &&
+          best.score >= 2 &&
+          best.containment >= 0.6 &&
+          orderIsSupported;
+        const pairedAssignment = pairedAssignmentIsSupported(option);
+        const eligible = pairedDistinction
+          ? pairedAssignment
+          : best.exactPhrase ||
+            compactSourcePhrase ||
+            (best.score >= 3 && best.containment >= 0.72 && orderIsSupported);
+        return { index, ...best, pairedAssignment, eligible };
       })
       .filter((entry) => entry.eligible);
-    return supported.length >= 2
+
+    // A source-grounded partial statement can be a legitimate distractor
+    // when the stem explicitly requires the complete sequence and the
+    // explanation identifies what that partial statement omits. Do not call
+    // it a second defensible answer merely because its individual words occur
+    // in the source.
+    const completenessRequired =
+      /\b(?:complete|fully|full sequence|entire sequence|every observed|all observed)\b/i.test(normalized.question);
+    const incompleteClauses = completenessRequired
+      ? normalized.explanation
+          .split(/(?<=[.!?;])\s+/)
+          .filter((clause) => /\b(?:incomplete|omit\w*|leaves? out|stopping at|fails? to include)\b/i.test(clause))
+      : [];
+    const qualified = supported.filter((entry) => {
+      if (entry.index === normalized.answerIndex || incompleteClauses.length === 0) return true;
+      const optionTokens = semanticOptionTokens(normalized.options[entry.index]);
+      return !incompleteClauses.some((clause) => {
+        const overlap = tokenOverlap(optionTokens, semanticOptionTokens(clause));
+        return overlap >= 3 && overlap / Math.max(1, optionTokens.size) >= 0.6;
+      });
+    });
+    return qualified.length >= 2
       ? {
-          supported,
+          supported: qualified,
           relevantClaimIndexes: candidateClaimIndexes,
           supportMethod: 'question-relevant-source-option-support',
         }

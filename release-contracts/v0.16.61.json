@@ -1,0 +1,188 @@
+{
+  "version": "0.16.61",
+  "date": "July 20, 2026",
+  "title": "Make Every Preference Earn Its Place",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test",
+      "npm run lint",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run test:e2e",
+      "npm run audit:release-history",
+      "npm run audit:scion:semantic-admission:v0.16.55",
+      "npm run audit:scion:source-compiler-replay",
+      "npm run audit:scion:semantic-expansion-evidence:v0.16.61"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification will rerun formatting, lint, release and evidence audits, the unit suite, proof smoke, main evaluation, build, and bundle budgets after push."
+    },
+    "ciDeep": {
+      "status": "not-current",
+      "note": "No adapter-versus-base promotion run is claimed because the corpus has not reached its 100-row training gate."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Deployment remains downstream of the successful main Fast verification run."
+    },
+    "liveProvider": {
+      "status": "not-current",
+      "note": "The frozen base/reference capture is production-protocol model evidence, not a new hosted-browser generation claim."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No human, instructor, classroom, or independent-model validation is claimed."
+    },
+    "manualBrowser": {
+      "status": "success",
+      "url": "http://127.0.0.1:5181/",
+      "note": "Desktop and 390 by 844 in-app Chromium checks verified the V0.16.61 landing, one-lesson Scion configuration, responsive changelog, zero horizontal overflow, and zero console warnings or errors."
+    },
+    "strictLayeredEvaluation": {
+      "status": "success",
+      "url": "evaluation/scion-adapters/evidence/semantic-expansion-v0.16.61/receipt.json",
+      "claimStatus": "forty-seven-qualified-full-lesson-preferences",
+      "note": "Twenty-seven new qualified rows join twenty prior rows; one unresolved geology artifact remains quarantined."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01661-cumulative-diversity-selector",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "A deterministic selector measures novelty against all prior waves and chooses 28 unseen cases spanning every domain and failure family.",
+      "anchors": [
+        "scripts/lib/scionLessonKernelExpansionBatchV2.mjs",
+        "scripts/scionLessonKernelExpansionBatchV01661.mjs",
+        "evaluation/scion-adapters/lesson-kernel-expansion-batch-v0.16.61.json"
+      ],
+      "proofCommands": [
+        "npm run audit:scion:lesson-kernel-expansion:v0.16.61",
+        "npx vitest run tests/scion-lesson-kernel-expansion-batch-v2.test.js"
+      ],
+      "proofScopes": ["unit", "gold-audit"]
+    },
+    {
+      "id": "v01661-role-aware-answer-alignment",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Ordered role and clause binding separates role swaps and partial mappings from genuine duplicate or reciprocal relations.",
+      "anchors": [
+        "src/lib/scionAnswerKeyAlignment.js",
+        "tests/scion-answer-key-alignment.test.js",
+        "tests/scion-preference-gate.test.js"
+      ],
+      "proofCommands": ["npx vitest run tests/scion-answer-key-alignment.test.js tests/scion-preference-gate.test.js"],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v01661-source-admission-precision",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Field isolation, naming context, quantity and scope handling, and source-role conflict detection reduce false alarms while catching predicate drift.",
+      "anchors": ["src/lib/publicScionProvider.js", "tests/public-scion-provider.test.js"],
+      "proofCommands": ["npx vitest run tests/public-scion-provider.test.js"],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v01661-twenty-eight-paired-reference-wins",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Current replay admits zero base artifacts and 21 reference artifacts, while the reference wins all 28 reversed-order comparisons without instability.",
+      "anchors": [
+        "evaluation/scion-adapters/evidence/semantic-expansion-v0.16.61/capture/local-current-replay.json",
+        "evaluation/scion-adapters/evidence/semantic-expansion-v0.16.61/capture/reference-current-replay.json",
+        "evaluation/scion-adapters/evidence/semantic-expansion-v0.16.61/judge/direct/paired-order-workbook-result.json"
+      ],
+      "proofCommands": ["npm run audit:scion:semantic-expansion-evidence:v0.16.61"],
+      "proofScopes": ["gold-audit"]
+    },
+    {
+      "id": "v01661-twenty-seven-qualified-expansion-rows",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "Nineteen direct winners, seven first-pass repairs, and one final repair yield 27 source-exact, score-qualified preferences with zero winner critical defects.",
+      "anchors": [
+        "scripts/scionSemanticExpansionV01661Audit.mjs",
+        "evaluation/scion-adapters/evidence/semantic-expansion-v0.16.61/training-preferences.jsonl",
+        "evaluation/scion-adapters/evidence/semantic-expansion-v0.16.61/receipt.json"
+      ],
+      "proofCommands": [
+        "npm run audit:scion:semantic-expansion-evidence:v0.16.61",
+        "npx vitest run scripts/__tests__/scionSemanticExpansionV01661Audit.test.js"
+      ],
+      "proofScopes": ["unit", "gold-audit"]
+    },
+    {
+      "id": "v01661-geology-quarantine",
+      "status": "verified-current",
+      "changelogHighlightIndex": 5,
+      "summary": "One repeatedly repaired geology artifact remains excluded after compiler and score failure instead of weakening the gate.",
+      "anchors": [
+        "evaluation/scion-adapters/evidence/semantic-expansion-v0.16.61/teacher/geology-quarantined/teacher-report.json",
+        "evaluation/scion-adapters/evidence/semantic-expansion-v0.16.61/judge/final-two/paired-order-workbook-result.json",
+        "docs/SCION_ADAPTER_ROADMAP.md"
+      ],
+      "proofCommands": ["npm run audit:scion:semantic-expansion-evidence:v0.16.61"],
+      "proofScopes": ["gold-audit", "doc"]
+    },
+    {
+      "id": "v01661-forty-seven-row-ruler",
+      "status": "verified-current",
+      "changelogHighlightIndex": 6,
+      "summary": "The cumulative source-ledger ruler reaches 47 unique full lessons across all seven training domains.",
+      "anchors": [
+        "evaluation/scion-adapters/evidence/semantic-expansion-v0.16.61/cumulative-training-preferences.jsonl",
+        "evaluation/scion-adapters/evidence/semantic-expansion-v0.16.61/receipt.json",
+        "README.md"
+      ],
+      "proofCommands": ["npm run audit:scion:semantic-expansion-evidence:v0.16.61"],
+      "proofScopes": ["gold-audit", "doc"]
+    },
+    {
+      "id": "v01661-frozen-semantic-regression-ruler",
+      "status": "verified-current",
+      "changelogHighlightIndex": 7,
+      "summary": "The shared compiler retains 78 of 78 losing-atom detections, 78 of 78 preferred eligibilities, and zero regressions.",
+      "anchors": [
+        "evaluation/scion-adapters/evidence/semantic-admission-v2-v0.16.55.json",
+        "src/lib/scionAnswerKeyAlignment.js",
+        "src/lib/publicScionProvider.js"
+      ],
+      "proofCommands": ["npm run audit:scion:semantic-admission:v0.16.55"],
+      "proofScopes": ["gold-audit", "unit"]
+    },
+    {
+      "id": "v01661-ci-receipt-integrity",
+      "status": "verified-current",
+      "changelogHighlightIndex": 8,
+      "summary": "The stale receipt behind the failed screenshot commit is diagnosed, rebuilt from retained bytes, and extended with a hash-bound V0.16.61 evidence chain.",
+      "anchors": [
+        "evaluation/scion-adapters/evidence/source-compiler-replay-v0.16.47.json",
+        "scripts/scionSemanticExpansionV01661Audit.mjs",
+        "docs/evidence/SCION_V01661_EXPERIENCE_AUDIT.json"
+      ],
+      "proofCommands": [
+        "npm run audit:scion:source-compiler-replay",
+        "npm run audit:scion:semantic-expansion-evidence:v0.16.61"
+      ],
+      "proofScopes": ["gold-audit", "ci-fast"]
+    },
+    {
+      "id": "v01661-closed-adapter-claim-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 9,
+      "summary": "Gemma weights and website adapter activation remain unchanged; same-identity teacher and judge evidence is not presented as independent, human, held-out, classroom, or production proof.",
+      "anchors": [
+        "README.md",
+        "docs/SCION_ADAPTER_ROADMAP.md",
+        "src/lib/releaseManifest.js",
+        "evaluation/scion-adapters/evidence/semantic-expansion-v0.16.61/receipt.json"
+      ],
+      "proofCommands": ["npm run audit:release-history", "npm run audit:scion:semantic-expansion-evidence:v0.16.61"],
+      "proofScopes": ["doc", "static-audit", "gold-audit"]
+    }
+  ]
+}

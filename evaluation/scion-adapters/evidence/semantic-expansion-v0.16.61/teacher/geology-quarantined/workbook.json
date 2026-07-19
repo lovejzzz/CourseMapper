@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-teacher-revision-workbook-v1",
+  "generatedAt": "2026-07-20T00:20:00.000Z",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "judgeWorkbookSha256": "d6c2159be0972613d267d960d84c78075e0b329a03da777a2d7cb32d5b9407f8",
+  "prompt": {
+    "path": "evaluation/scion-adapters/lesson-kernel-teacher-revision-prompt-v8-v0.16.60.md",
+    "sha256": "505aff4b87a07aa0d7d9d7d7b6d40bb268f654439a4b8e06f1d1efda53327eb1"
+  },
+  "revisionSource": {
+    "path": "verification-output/scion-lesson-kernel-teacher-revision-v8-v0.16.61-expansion-2-final-two/admitted-teacher-report.json",
+    "reportSha256": "9a8098a593bd35a48e8a5af488c1192e1d637d438a9028d04f4e231de7a0bbf7",
+    "protocol": "scion-lesson-kernel-teacher-capture-v1",
+    "arm": "teacher-revision",
+    "fallbackPath": null,
+    "fallbackReportSha256": null
+  },
+  "maxCasesPerBatch": 1,
+  "exclusion": {
+    "admittedReportPath": null,
+    "admittedReportSha256": null,
+    "qualifiedResultPath": "verification-output/scion-lesson-kernel-teacher-judge-v8-v0.16.61-expansion-2-final-two/paired-order-workbook-result.json",
+    "qualifiedResultSha256": "be9351dca2aae0b17d0299f480e77b06f72f863e0df79bd4146c9ac67019f436",
+    "excludedCases": 1
+  },
+  "batches": [
+    {
+      "batchId": "batch-001-a369ac322a",
+      "cases": 1,
+      "packetSha256": "3461123c234f9b0c4623531f2c22ee860eae77e9c47102c2523c7fd0d8607513"
+    }
+  ],
+  "cases": 1,
+  "claimBoundary": "This workbook authorizes source-bound model revision only. Each revised artifact still requires deterministic compiler admission and a fresh anonymous paired-order judgment.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "e0bc3bca5d18cc8e0117e2662b376f29d6b798f8f606321706e1193e6a2d0ee9"
+  }
+}

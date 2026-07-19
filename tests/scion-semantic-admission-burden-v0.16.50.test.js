@@ -8,7 +8,7 @@ describe('Scion v0.16.50 semantic-admission burden replay', () => {
     expect(report).toMatchObject({
       status: 'bounded-reviewed-semantic-retry-burden',
       candidate: { rows: 91, previousEligible: 80, currentEligible: 80, additionalRetrySeats: 0 },
-      reference: { rows: 91, previousEligible: 83, currentEligible: 83, additionalRetrySeats: 0 },
+      reference: { rows: 91, previousEligible: 84, currentEligible: 84, additionalRetrySeats: 0 },
       retainedLocalReplay: {
         previous: { expectedAtoms: 192, admittedAtoms: 49, burdenAtoms: 143 },
         current: { expectedAtoms: 192, admittedAtoms: 47, burdenAtoms: 145 },

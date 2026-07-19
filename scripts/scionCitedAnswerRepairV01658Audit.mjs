@@ -191,10 +191,10 @@ export async function buildScionCitedAnswerRepairV01658Audit({ cwd = process.cwd
       local.summary.answerFeedbackConflictsBefore === 8 &&
       local.summary.answerFeedbackConflictsAfter === 4 &&
       local.summary.answerIndexesRepaired === 4,
-    exactIssueDelta: local.summary.issueInstancesBefore === 78 && local.summary.issueInstancesAfter === 74,
+    exactIssueDelta: local.summary.issueInstancesBefore === 77 && local.summary.issueInstancesAfter === 73,
     strongerOptionDetectorReplayed:
       local.summary.issueInstancesHistoricalBefore === 70 &&
-      local.summary.issueInstancesBefore === 78 &&
+      local.summary.issueInstancesBefore === 77 &&
       local.summary.newlyDetectedBaselineIssues === 8 &&
       reference.summary.issueInstancesHistoricalBefore === 0 &&
       reference.summary.issueInstancesBefore === 6 &&
@@ -259,7 +259,7 @@ export async function buildScionCitedAnswerRepairV01658Audit({ cwd = process.cwd
     },
     assertions,
     interpretation:
-      'The production compiler now repairs four previously retained answer-feedback conflicts by moving only the declared answer index. Every move is jointly bound to the item citation and the supplied lesson source. Under the current detector, local issue instances fall from 78 to 74. The stronger option-completion checks also reveal 8 historical local defects and 6 paid-reference defects that the frozen v0.16.57 profile did not count; every reference artifact remains byte-identical.',
+      'The production compiler repairs four previously retained answer-feedback conflicts by moving only the declared answer index. Every move is jointly bound to the item citation and the supplied lesson source. Under the current role-aware detector, local issue instances fall from 77 to 73. The current checks reveal 8 historical local defects and 6 paid-reference defects that the frozen v0.16.57 profile did not count, while one former issue is now correctly absent; every reference artifact remains byte-identical.',
     claimBoundary:
       'This is retrospective deterministic repair evidence on 14 frozen expansion artifacts. It proves four conservative index corrections, no repair-introduced admission issues, no reference mutation, and no added model calls. The additional option findings are detector expansion, not generation regression. It does not make the remaining 13 rejected local kernels publishable, create training preferences, prove unseen precision, measure wall-clock speed, activate an adapter, or establish paid-reference parity.',
   };

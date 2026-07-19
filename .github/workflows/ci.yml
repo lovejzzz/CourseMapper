@@ -44,6 +44,7 @@ jobs:
           npm run audit:release-history
           npm run audit:scion:codex-cross-revision-evidence
           npm run audit:scion:source-compiler-replay
+          npm run audit:scion:semantic-expansion-evidence:v0.16.61
           npm run audit:scion:review-candidates
           npm run audit:scion:source-review-packet
           npm run audit:scion:codex-first-order

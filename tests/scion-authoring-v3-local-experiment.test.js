@@ -12,8 +12,8 @@ describe('Scion authoring v3 local experiment', () => {
         { strictReplay: { raw: { admittedAtoms: 77 }, effective: { admittedAtoms: 91 } } },
         {
           strictReplay: {
-            raw: { admittedAtoms: 41, missingResponses: 3 },
-            effective: { admittedAtoms: 64 },
+            raw: { admittedAtoms: 42, missingResponses: 3 },
+            effective: { admittedAtoms: 65 },
           },
           targetedRecovery: {
             calls: 34,
@@ -23,7 +23,7 @@ describe('Scion authoring v3 local experiment', () => {
           },
         },
       ],
-      delta: { rawAdmittedAtoms: -36, effectiveAdmittedAtoms: -27, malformedResponses: 3 },
+      delta: { rawAdmittedAtoms: -35, effectiveAdmittedAtoms: -26, malformedResponses: 3 },
       decision: { promoted: false, activeAuthoringPolicy: 'source-atom-authoring-v2' },
     });
     expect(Object.values(report.assertions).every(Boolean)).toBe(true);

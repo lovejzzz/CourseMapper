@@ -42,6 +42,26 @@ const PUBLIC_SCION_INTERNAL_INDEX_RE = /\b(?:fact|claim|source(?:Fact)?Index)\s*
 const PUBLIC_SCION_ABSOLUTE_OPTION_RE = /\b(?:always|never|all|none)\b/i;
 const PUBLIC_SCION_NAMED_PHRASE_RE =
   /\b(?:[A-Z][a-z]+(?:-[A-Z][a-z]+)?)(?:\s+[A-Z][A-Za-z]+(?:-[A-Z][A-Za-z]+)?){1,4}\b/g;
+const PUBLIC_SCION_SENTENCE_LEAD_WORDS = new Set([
+  'after',
+  'before',
+  'choose',
+  'compare',
+  'consider',
+  'facing',
+  'given',
+  'identify',
+  'label',
+  'select',
+  'suppose',
+  'treating',
+  'using',
+  'what',
+  'when',
+  'where',
+  'which',
+  'while',
+]);
 const PUBLIC_SCION_SCRIPT_RE = /[\p{Script=Han}\p{Script=Cyrillic}\p{Script=Arabic}\p{Script=Devanagari}]/u;
 const PUBLIC_SCION_QUANTITY_RE =
   /\b(?:\d+(?:\.\d+)?|zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred)\s*(?:-|\s)?(?:%|percent(?:age)?(?:\s+points?)?|dollars?|euros?|pounds?|cents?|usd|eur|gbp|coulombs?|volts?|amperes?|amps?|watts?|joules?|ohms?|farads?|hertz|hz|millimeters?|centimeters?|kilometers?|meters?|millimetres?|centimetres?|kilometres?|metres?|mm|cm|km|m|milligrams?|grams?|kilograms?|mg|kg|seconds?|minutes?|hours?|days?|weeks?|months?|years?|participants?|users?|students?|respondents?|records?|items?|units?|samples?|observations?|degrees?)\b/gi;
@@ -61,6 +81,7 @@ const PUBLIC_SCION_HIGH_RISK_ISSUE_MARKERS = Object.freeze([
   'truncated-definition',
   'unanchored-named',
   'source-unsupported-quantity',
+  'source-role-conflict',
   'scenario-template-residue',
   'option-length',
   'truncated-option',
@@ -89,6 +110,7 @@ const PUBLIC_SCION_CRITICAL_ISSUE_MARKERS = Object.freeze([
   'unexpected-script',
   'unanchored-named',
   'source-unsupported-quantity',
+  'source-role-conflict',
   'scenario-template-residue',
   'truncated-option',
   'duplicate-options',
@@ -108,10 +130,15 @@ const PUBLIC_SCION_CRITICAL_ISSUE_MARKERS = Object.freeze([
   'source-fact-ledger-mismatch',
 ]);
 const PUBLIC_SCION_RELATION_STOP_WORDS = new Set([
+  'and',
   'between',
+  'but',
+  'directly',
   'from',
+  'instead',
   'into',
   'of',
+  'only',
   'the',
   'their',
   'through',
@@ -466,7 +493,15 @@ function publicScionUnanchoredNamedPhrases(value, sourceText) {
   const source = String(sourceText || '').toLowerCase();
   return [...String(value || '').matchAll(PUBLIC_SCION_NAMED_PHRASE_RE)]
     .map((match) => match[0].replace(/^The\s+/, '').trim())
-    .filter((phrase) => phrase.split(/\s+/).length >= 2 && !source.includes(phrase.toLowerCase()));
+    .filter((phrase) => {
+      const words = phrase.split(/\s+/);
+      // Capitalization after punctuation does not turn an imperative,
+      // participle, or question lead into a named entity. False matches such
+      // as "When GDP", "Label Sun", and "Treating Ohm" previously rejected
+      // source-grounded lessons while adding no hallucination protection.
+      if (PUBLIC_SCION_SENTENCE_LEAD_WORDS.has(String(words[0] || '').toLowerCase())) return false;
+      return words.length >= 2 && !source.includes(phrase.toLowerCase());
+    });
 }
 
 function publicScionQuantitySignatures(value) {
@@ -531,6 +566,72 @@ function publicScionComparativeRelations(value) {
   return relations;
 }
 
+const PUBLIC_SCION_ROLE_RELATION_RE =
+  /(?<subject>(?:[\p{L}\d][\p{L}\d'’-]*\s+){0,7}[\p{L}\d][\p{L}\d'’-]*)\s+(?<verb>affects?|captures?|creates?|describes?|determines?|drives?|forms?|induces?|measures?|misses?|moves?|powers?|produces?|raises?|resists?|stores?)\s+(?<object>[^,.;!?]{2,120}?)(?=\s+(?:whereas|while|but)\b|[,.;!?]|$)/giu;
+
+function publicScionRoleTokenSequence(value) {
+  return (
+    String(value || '')
+      .normalize('NFKC')
+      .toLowerCase()
+      .match(/[a-z0-9]+(?:-[a-z0-9]+)*/g)
+      ?.map((token) => (token.length > 4 && token.endsWith('s') && !token.endsWith('ss') ? token.slice(0, -1) : token))
+      .filter((token) => token.length >= 3 && !PUBLIC_SCION_RELATION_STOP_WORDS.has(token)) || []
+  );
+}
+
+function publicScionRoleRelations(value) {
+  const relations = [];
+  for (const match of String(value || '').matchAll(PUBLIC_SCION_ROLE_RELATION_RE)) {
+    const subject = String(match.groups?.subject || '').trim();
+    const verb = String(match.groups?.verb || '').toLowerCase();
+    const object = String(match.groups?.object || '').trim();
+    if (
+      !subject ||
+      !verb ||
+      !object ||
+      /\b(?:cannot|never|not)\b/i.test(subject) ||
+      /\b(?:and|but|he|it|she|that|they|this|whereas|while)\s*$/i.test(subject)
+    ) {
+      continue;
+    }
+    const subjectTokens = publicScionRoleTokenSequence(subject.replace(/^(?:and|but|whereas|while)\s+/i, ''));
+    const objectTokens = publicScionRelationTokens(object);
+    if (subjectTokens.length === 0 || objectTokens.size === 0) continue;
+    // A pronoun-headed continuation ("the cycle matches because it moves")
+    // inherits its antecedent; treating `it` as a newly conflicting source
+    // subject is less reliable than declining the role check for that clause.
+    if (['he', 'it', 'she', 'that', 'they', 'this'].includes(subjectTokens.at(-1))) continue;
+    relations.push({
+      verb: verb.replace(/(?:es|s)$/i, ''),
+      subjectTokens: new Set(subjectTokens),
+      subjectHead: subjectTokens.at(-1),
+      objectTokens,
+    });
+  }
+  return relations;
+}
+
+function publicScionHasSourceRoleConflict(value, sourceClaims) {
+  const candidateRelations = publicScionRoleRelations(value);
+  const sourceRelations = publicScionRoleRelations(sourceClaims);
+  return candidateRelations.some((candidate) => {
+    const predicateMatches = sourceRelations.filter((source) => {
+      if (source.verb !== candidate.verb) return false;
+      const objectOverlap = [...candidate.objectTokens].filter((token) => source.objectTokens.has(token)).length;
+      return objectOverlap >= 1 && objectOverlap / Math.max(1, candidate.objectTokens.size) >= 0.5;
+    });
+    if (predicateMatches.length === 0) return false;
+    if (predicateMatches.some((source) => source.subjectHead === candidate.subjectHead)) return false;
+    // Require a shared subject anchor so unrelated clauses that happen to use
+    // the same common verb never become a conflict. The decisive signal is a
+    // changed grammatical head (for example, field versus field lines).
+    return predicateMatches.some(
+      (source) => [...candidate.subjectTokens].filter((token) => source.subjectTokens.has(token)).length >= 1,
+    );
+  });
+}
+
 function publicScionHasSourceDirectionConflict(value, sourceClaims) {
   const candidateRelations = publicScionComparativeRelations(value);
   const sourceRelations = publicScionComparativeRelations(sourceClaims);
@@ -554,7 +655,36 @@ function publicScionHasSourceDirectionConflict(value, sourceClaims) {
 
 function publicScionUnsupportedQuantities(value, sourceText) {
   const sourceQuantities = new Set(publicScionQuantitySignatures(sourceText));
-  return [...new Set(publicScionQuantitySignatures(value))].filter((quantity) => !sourceQuantities.has(quantity));
+  const candidateText = String(value || '');
+  return [...new Set(publicScionQuantitySignatures(candidateText))].filter((quantity) => {
+    if (sourceQuantities.has(quantity)) return false;
+    // "One records ..." uses records as a verb, not a count noun. The broad
+    // quantity lexer intentionally watches records, items, and observations,
+    // but singular-number/plural-noun pairs cannot be factual quantities.
+    if (/^one (?:items|observations|records)$/.test(quantity)) return false;
+    // A distinction stem can enumerate the observations supplied in the stem
+    // itself. Keep invented study sizes fail-closed, while allowing an exact
+    // one-to-four count used only to identify the compared task artifacts.
+    if (
+      /^(?:one|two|three|four) (?:items|observations|records)$/.test(quantity) &&
+      /\b(?:compare|distinguish|label|match)\w*\b[^.!?]{0,100}\b(?:the\s+)?(?:one|two|three|four)\s+(?:items|observations|records)\b/i.test(
+        candidateText,
+      )
+    ) {
+      return false;
+    }
+    return true;
+  });
+}
+
+function publicScionHasUnsupportedAbsoluteOption(options, sourceText) {
+  const source = String(sourceText || '').toLowerCase();
+  return (Array.isArray(options) ? options : []).some((option) => {
+    const markers = [...String(option || '').matchAll(new RegExp(PUBLIC_SCION_ABSOLUTE_OPTION_RE.source, 'gi'))].map(
+      (match) => match[0].toLowerCase(),
+    );
+    return markers.some((marker) => !new RegExp(`\\b${marker}\\b`, 'i').test(source));
+  });
 }
 
 function publicScionLooksTruncatedClaim(value) {
@@ -599,6 +729,13 @@ export function assessPublicScionKernelResponse(
       const facts = Array.isArray(lesson.facts) ? lesson.facts : [];
       const factContract = scionFactContractForLesson(expected, { userPrompt });
       const sourceText = publicScionSourceText(expected);
+      const courseTitle =
+        String(userPrompt || '')
+          .match(/^Course:\s*(.+)$/im)?.[1]
+          ?.trim() || '';
+      // The course title is valid naming context for scenarios, but not a
+      // factual source claim. Bind it only to the proper-name check.
+      const namedSourceText = [sourceText, courseTitle].filter(Boolean).join(' ');
       const hasRichSourceEvidence = publicScionHasRichSourceEvidence(expected);
       const sourceFacts = hasRichSourceEvidence ? [sourceText] : facts;
       if (!PUBLIC_SCION_SCRIPT_RE.test(sourceText) && PUBLIC_SCION_SCRIPT_RE.test(JSON.stringify(lesson))) {
@@ -657,7 +794,7 @@ export function assessPublicScionKernelResponse(
           semanticProfile: hasRichSourceEvidence ? 'source-strict-v6' : 'strict-v6',
         });
         for (const issue of result.issues) issues.push(`${expected.lessonId}:key-term-${index}:${issue}`);
-        const namedPhrases = publicScionUnanchoredNamedPhrases(term?.eg ?? term?.example, sourceText);
+        const namedPhrases = publicScionUnanchoredNamedPhrases(term?.eg ?? term?.example, namedSourceText);
         if (namedPhrases.length > 0) {
           issues.push(`${expected.lessonId}:key-term-${index}:unanchored-named-example`);
         }
@@ -669,7 +806,7 @@ export function assessPublicScionKernelResponse(
         evaluationProfile: admissionProfile === 'v0.16.58' ? 'v0.16.58' : 'current',
       });
       for (const issue of scenario.issues) issues.push(`${expected.lessonId}:scenario:${issue}`);
-      if (publicScionUnanchoredNamedPhrases(`${scenario.setup} ${scenario.materials}`, sourceText).length > 0) {
+      if (publicScionUnanchoredNamedPhrases(`${scenario.setup} ${scenario.materials}`, namedSourceText).length > 0) {
         issues.push(`${expected.lessonId}:scenario:unanchored-named-detail`);
       }
       if (
@@ -721,7 +858,7 @@ export function assessPublicScionKernelResponse(
         if (admissionProfile !== 'v0.16.58' && findScionEquivalentComparisonOptionPair(options)) {
           issues.push(`${expected.lessonId}:mc-${index}:equivalent-comparison-options`);
         }
-        if ((Array.isArray(options) ? options : []).some((option) => PUBLIC_SCION_ABSOLUTE_OPTION_RE.test(option))) {
+        if (publicScionHasUnsupportedAbsoluteOption(options, sourceText)) {
           issues.push(`${expected.lessonId}:mc-${index}:absolute-option`);
         }
         if (admissionProfile !== 'v0.16.58' && findScionUnsupportedScopeOption(options, { sourceClaims: facts })) {
@@ -757,6 +894,9 @@ export function assessPublicScionKernelResponse(
           lexicalMargin < 2;
         if (explanationConflict && !weakLedgerLexicalConflict) {
           issues.push(`${expected.lessonId}:mc-${index}:explanation-key-conflict`);
+        }
+        if (hasRichSourceEvidence && publicScionHasSourceRoleConflict(explanation, facts)) {
+          issues.push(`${expected.lessonId}:mc-${index}:source-role-conflict`);
         }
         if (admissionProfile !== 'v0.16.58' && findScionMultipleExplanationSupportedOptions(item)) {
           issues.push(`${expected.lessonId}:mc-${index}:explanation-supports-multiple-options`);
@@ -808,7 +948,14 @@ export function assessPublicScionKernelResponse(
         ) {
           issues.push(`${expected.lessonId}:mc-${index}:multiple-source-supported-options`);
         }
-        if (publicScionUnanchoredNamedPhrases([question, ...options, explanation].join(' '), sourceText).length > 0) {
+        // Keep authored fields isolated. Concatenating an option ending in
+        // “Sun” with an explanation beginning “Earth's” fabricated a
+        // cross-boundary “Sun Earth” proper noun that existed in no field.
+        if (
+          [question, ...(Array.isArray(options) ? options : []), explanation].some(
+            (value) => publicScionUnanchoredNamedPhrases(value, namedSourceText).length > 0,
+          )
+        ) {
           issues.push(`${expected.lessonId}:mc-${index}:unanchored-named-detail`);
         }
         if (
@@ -978,6 +1125,11 @@ export function buildPublicScionRetryFeedback(assessment = {}) {
     ...(allIssues.some((issue) => issue.includes('source-direction-conflict'))
       ? [
           'A comparative fact reverses a supplied increase/decrease relationship. Re-author it from the exact source claim without guessing.',
+        ]
+      : []),
+    ...(allIssues.some((issue) => issue.includes('source-role-conflict'))
+      ? [
+          'An explanation assigns a supplied action to the wrong subject. Preserve the exact source subject-predicate relation and its defining head noun.',
         ]
       : []),
     ...(allIssues.some((issue) => issue.includes('source-fact-ledger-mismatch'))

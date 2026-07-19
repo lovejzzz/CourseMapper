@@ -1,0 +1,383 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-paired-order-result-v1",
+  "generatedAt": "2026-07-19T23:20:00.000Z",
+  "status": "paired-orders-complete",
+  "requiredOrders": [
+    "A/B",
+    "B/A"
+  ],
+  "sessions": {
+    "A/B": "scion-v01654-batch-002-d428445a1b-a-b-a66ddae1-cc62-4314-bdd0-5857afdb424f",
+    "B/A": "scion-v01654-batch-002-d428445a1b-b-a-42af95cc-0ec1-4fae-9cd7-b0b47ae116c1"
+  },
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "evidence": {
+    "prompt": {
+      "path": "evaluation/scion-adapters/lesson-kernel-judge-prompt-v0.16.54.md",
+      "sha256": "37844b86736335db54b561d8c031660ef71679c55ae1108e2e999e746f2a1c96"
+    },
+    "packets": {
+      "A/B": "3e53385cacc29a6a468b9662c15377e654027cb7b7d5c6b70b9c729e6471fadb",
+      "B/A": "09b90ad55d08023cfb99113f924a14f80f23a6b41496459b4352e421d8a8614f"
+    },
+    "reviews": {
+      "A/B": "666e8d143ceabe9474c32d8441428249a23eaf58bfb27fa46e4e559148f0b124",
+      "B/A": "ceb06445d6b3ab5c6c1a3e7d058c6cf274025bb305c6e316d15b5be0a4c55ac0"
+    }
+  },
+  "issues": [],
+  "results": [
+    {
+      "caseId": "scion-kernel-becf20842df8b3de34276971",
+      "pairId": "scion-kernel-pair-7e62fb29238b7d476a1897af",
+      "winners": {
+        "A/B": "9670bcf411ab47c22fbc533afea81846d34045c555f717d902aba8208ef4ce3d",
+        "B/A": "9670bcf411ab47c22fbc533afea81846d34045c555f717d902aba8208ef4ce3d"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": true,
+      "scoreQualification": {
+        "qualified": true,
+        "winnerMinimumScore": 4,
+        "minimumTotalScoreMargin": 23,
+        "winnerCriticalDefects": [],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 1,
+              "knowledgePrecision": 1,
+              "scenarioReadiness": 1,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 1,
+              "feedbackInstructionality": 0,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 4,
+            "totalScoreMargin": 24,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "Both multiple-choice items have incorrect declared answers.",
+              "The scenario adds unsupported physiological details about body temperature, cooling mechanisms, and vasodilation.",
+              "The set-point correction makes the unsupported and inaccurate claim that the set point itself is a fluctuating value."
+            ],
+            "rationale": "B is fully source-bound, presents a usable classification decision, and has uniquely correct assessments with explanatory feedback. A adds unsupported physiological content, misstates the set point, and declares incorrect answers for both questions.",
+            "decisionSha256": "8d763892b0ac9ca33e91072e2c3bae0a8d0ea2853a8fb1b5c54517584350d8dd"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 1,
+              "knowledgePrecision": 1,
+              "scenarioReadiness": 1,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 2,
+              "feedbackInstructionality": 0,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 4,
+            "totalScoreMargin": 23,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "Both declared answers are incorrect: question 1 keys the set-point definition instead of negative feedback, and question 2 keys the set point instead of the relevant feedback-loop component.",
+              "The scenario introduces unsupported physiological claims about elevated body temperature, cooling mechanisms, and vasodilation.",
+              "The set-point correction falsely says the set point is a fluctuating value, contrary to the claim that the normal range fluctuates around it."
+            ],
+            "rationale": "Artifact A is fully source-bound, actionable, correctly keyed, and instructionally explained. Artifact B adds unsupported physiology, contains a false set-point correction, and declares incorrect answers for both questions.",
+            "decisionSha256": "6a098916e6efc95f3173f7fc8335f57b6d534ef038fdc2425837d4455ed1a5ca"
+          }
+        ]
+      },
+      "trainingEligible": true
+    },
+    {
+      "caseId": "scion-kernel-bf7c2cbf2045087ba349c0c3",
+      "pairId": "scion-kernel-pair-0548e154ebc8779dd0105986",
+      "winners": {
+        "A/B": "46fee99f811c547ca3080ff5143b7164399cff1395394e725b6c182d397f7131",
+        "B/A": "46fee99f811c547ca3080ff5143b7164399cff1395394e725b6c182d397f7131"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": true,
+      "scoreQualification": {
+        "qualified": true,
+        "winnerMinimumScore": 3,
+        "minimumTotalScoreMargin": 23,
+        "winnerCriticalDefects": [],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 1,
+              "knowledgePrecision": 1,
+              "scenarioReadiness": 1,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 1,
+              "feedbackInstructionality": 0,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 3,
+            "totalScoreMargin": 23,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "Both multiple-choice items have incorrect or unsupported declared answers.",
+              "The copper-versus-silver example is an unsupported invented named comparison.",
+              "The second question requires unsupported directional and quantitative effects of resistance variables."
+            ],
+            "rationale": "B cleanly distinguishes the supplied resistance concepts and supports both keyed answers with focused feedback. A introduces unsupported material comparisons and causal relationships, then keys both assessments incorrectly or without source support.",
+            "decisionSha256": "5dabaf4fb49c66e0713331e5c20cec2f610508e0e22771b03fb861877bf1313a"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 1,
+              "knowledgePrecision": 1,
+              "scenarioReadiness": 1,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 1,
+              "feedbackInstructionality": 0,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 4,
+            "totalScoreMargin": 24,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "Question 1 declares inverse voltage-current proportionality even though the supplied claim states direct proportionality at fixed temperature.",
+              "Question 2 declares an unsupported and incorrect cross-sectional-area adjustment; none of its options states the required resistance increase.",
+              "The copper-versus-silver assertion and the 10-meter versus 5-meter copper-wire example introduce unsupported named and numeric details.",
+              "The artifact asserts directional effects of area, length, and temperature although the source only states that resistance depends on those factors."
+            ],
+            "rationale": "Artifact A cleanly distinguishes resistance, Ohm's law, and fixed-temperature proportionality with correct assessments. Artifact B introduces unsupported examples and causal directions, misaligns its scenario, and declares incorrect answers.",
+            "decisionSha256": "4df92387b835076352db3845f3e80510e64bffdb2d077cabf0864383a12b122f"
+          }
+        ]
+      },
+      "trainingEligible": true
+    },
+    {
+      "caseId": "scion-kernel-c6d826e4fc868a6fa9ef434f",
+      "pairId": "scion-kernel-pair-f7af16e5d234275bda2de291",
+      "winners": {
+        "A/B": "19ab1bca1f3282ad0513641405543ea1c575057876a099afe61818ed2453aca7",
+        "B/A": "19ab1bca1f3282ad0513641405543ea1c575057876a099afe61818ed2453aca7"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": true,
+      "scoreQualification": {
+        "qualified": true,
+        "winnerMinimumScore": 3,
+        "minimumTotalScoreMargin": 20,
+        "winnerCriticalDefects": [],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 1,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 2,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 1,
+              "feedbackInstructionality": 0,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 3,
+            "totalScoreMargin": 21,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The second multiple-choice item has an incorrect declared answer, and its explanation contradicts that answer.",
+              "The first question has multiple source-supported alternatives and is therefore ambiguous.",
+              "Both explanations contain unfinished instructional template text instead of the promised misconception correction.",
+              "The scenario adds the unsupported named example of C major."
+            ],
+            "rationale": "B remains within the source and turns both distinguishing relations into coherent, uniquely keyed decisions with useful correction. A adds a named example, creates an ambiguous first item, miskeys the second, and leaves feedback unfinished.",
+            "decisionSha256": "fe9bb4bbca8b16d6ea16830c155d97fe0e4b723c986795dc4affee4d70248ed2"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 2,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 1,
+              "feedbackInstructionality": 0,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 3,
+            "totalScoreMargin": 20,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The scenario invents the named C-major example, which is absent from the supplied claims.",
+              "Question 1 is ambiguous because both the major-pattern option and the natural-minor seventh-to-tonic option state supported distinguishing characteristics.",
+              "Question 2 incorrectly keys the sixth degree while the source and explanation identify the seventh degree as the subtonic.",
+              "Both explanations contain unfinished instructional boilerplate: 'then correct the closest distractor.'"
+            ],
+            "rationale": "Artifact A turns the supplied patterns into a coherent, correctly keyed classification task. Artifact B invents a named setting, makes one question ambiguous, keys the other incorrectly, and leaves both explanations unfinished.",
+            "decisionSha256": "a7d2fa602435fa2fe44888d70894dca44f467ca6642110670c44529b1802f634"
+          }
+        ]
+      },
+      "trainingEligible": true
+    },
+    {
+      "caseId": "scion-kernel-eb4049f6a28f14cedcfa8b79",
+      "pairId": "scion-kernel-pair-269d39baaef24615ef4f1553",
+      "winners": {
+        "A/B": "4cd1c779b35b55aca7f110350715bc14a97724a08493156fa851cffa7e86bb17",
+        "B/A": "4cd1c779b35b55aca7f110350715bc14a97724a08493156fa851cffa7e86bb17"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": true,
+      "scoreQualification": {
+        "qualified": true,
+        "winnerMinimumScore": 4,
+        "minimumTotalScoreMargin": 20,
+        "winnerCriticalDefects": [],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 1,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 2,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 0,
+              "feedbackInstructionality": 0,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 4,
+            "totalScoreMargin": 23,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The second multiple-choice item has an incorrect declared answer, and its explanation contradicts that answer.",
+              "The first multiple-choice item has multiple source-supported answers.",
+              "The second item duplicates the harmonic-minor alternative, making the choice set defective.",
+              "The scenario invents named A-minor passages not present in the supplied source."
+            ],
+            "rationale": "B provides a fully source-bound and discriminating comparison of harmonic and melodic minor. A has an ambiguous first item, a duplicated and incorrectly keyed second item, contradictory feedback, and unsupported named passages.",
+            "decisionSha256": "0c45827b3c846c8bf544d0b042cc99bf7fa0f110861124c492b7c3f5bdc9106b"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 3,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 0,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 4,
+            "totalScoreMargin": 20,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The scenario invents named A-minor harmonic and melodic passages that are absent from the supplied claims.",
+              "Question 1 is ambiguous because both the harmonic-minor and melodic-minor alteration statements are supported answers to its broad comparison prompt.",
+              "Question 2 duplicates the harmonic-minor option verbatim and incorrectly declares it instead of melodic minor.",
+              "Question 2's explanation identifies melodic minor, directly contradicting its declared harmonic-minor answer."
+            ],
+            "rationale": "Artifact A provides a precise evidence-based comparison with uniquely correct keys and corrective feedback. Artifact B adds a named example, uses an invalid misconception, makes question 1 ambiguous, and breaks question 2 with duplication and a contradictory key.",
+            "decisionSha256": "3a66a1acac960fe1db5ff6e53a35e1ccf2c5c24a46672b2e699f06568e1a8f53"
+          }
+        ]
+      },
+      "trainingEligible": true
+    }
+  ],
+  "summary": {
+    "pairs": 4,
+    "stablePreferences": 4,
+    "localWins": 0,
+    "referenceWins": 4,
+    "unstable": 0,
+    "scoreRejected": 0,
+    "compilerRejected": 0
+  },
+  "claimBoundary": "These are same-identity model-judge preferences from isolated A/B and B/A orders. They are not human, instructor, independent, classroom, heldout-adapter, or production-win evidence.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "f7077f5babc1b6451a5623e44e8d1f0b6cd5e3da1b84a90e42b9864ae1205899"
+  }
+}

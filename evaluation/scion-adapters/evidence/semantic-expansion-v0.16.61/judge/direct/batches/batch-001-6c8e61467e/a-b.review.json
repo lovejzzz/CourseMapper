@@ -1,0 +1,509 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-review-v1",
+  "order": "A/B",
+  "packetSha256": "dfb259c22d9314604ab5e59ec5542c0c58c097cc1825be668e7ca49ad708ecd0",
+  "sessionId": "scion-v01654-batch-001-6c8e61467e-a-b-2178fc74-33f1-4aac-8993-d99c66e58318",
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "completedAt": "2026-07-19T19:15:54Z",
+  "attestations": {
+    "anonymousArtifactsOnly": true,
+    "otherOrderUnavailable": true,
+    "organizerMappingUnavailable": true
+  },
+  "decisions": [
+    {
+      "caseId": "scion-kernel-02772fca67bf5fc5661a4764",
+      "pairId": "scion-kernel-pair-d8b10734394e0572bf9c0de1",
+      "artifactSha256": {
+        "A": "3740278453d2bba81dbf25e92ad7f5f36ff02f4361f37b6ca60c1ea5a65aba8d",
+        "B": "687019039533933a03815ea1af745e8858458e80a6b5848535e77c121ce045eb"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "The fact list is exact, but the wire-and-compass effect, field around a wire, and 'fundamental relationship' language exceed the supplied claims."
+          },
+          "knowledgePrecision": {
+            "score": 2,
+            "evidence": "The definitions retain the three relations, but several examples add unsupported geometry or effects and the first assessment confuses a field with field lines."
+          },
+          "scenarioReadiness": {
+            "score": 1,
+            "evidence": "The scenario supplies a current-carrying wire and compass, but asks only for a vague comparison and gives no constrained disciplinary decision."
+          },
+          "assessmentCorrectness": {
+            "score": 1,
+            "evidence": "The second key is supported, but the first declares that field lines determine magnetic influence while its explanation instead cites magnetic fields and currents."
+          },
+          "choiceDiscriminability": {
+            "score": 1,
+            "evidence": "The first item has no clean option expressing the requested field-description versus current-production distinction, and its declared option is unsupported."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "Both explanations retain the literal instruction 'then correct the closest distractor'; the first also fails to justify its declared answer."
+          },
+          "internalCoherence": {
+            "score": 1,
+            "evidence": "The first key, option, cited facts, and explanation assign determination and production to inconsistent subjects."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 3,
+            "evidence": "Facts, terms, scenario evidence, and answers track the three claims, apart from one explanation saying magnetic fields rather than field lines form loops."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "The field, field-line, and current relations are sharply distinguished, though the first explanation briefly shifts the loop property to magnetic fields."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The workshop must label two inspectable notations before a deadline while preserving the closed-loop and current-production relations."
+          },
+          "assessmentCorrectness": {
+            "score": 3,
+            "evidence": "Both declared options are supported, but the first explanation ends with the imprecise claim that magnetic fields form the loops."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "Both items present four distinct directional or subject-role alternatives with one clearly supported option."
+          },
+          "feedbackInstructionality": {
+            "score": 3,
+            "evidence": "The explanations state the warranted relations and reject reversals, with one terminology lapse concerning what forms loops."
+          },
+          "internalCoherence": {
+            "score": 3,
+            "evidence": "Terms, scenario, keys, and citations align, except for the first explanation's field-versus-field-line wording."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "The first item declares an unsupported answer that assigns determination to magnetic field lines.",
+          "The first explanation cites magnetic fields and currents rather than supporting the declared field-lines answer.",
+          "The wire-and-compass effect and field-around-a-wire example add factual detail not supplied by the claims.",
+          "Both explanations end with an unfulfilled instruction to correct the closest distractor.",
+          "The scenario provides no usable constrained decision beyond a vague comparison."
+        ],
+        "B": [
+          "The first explanation says magnetic fields form loops, shifting the supplied closed-loop property away from magnetic field lines."
+        ]
+      },
+      "decision": "B",
+      "rationale": "B provides a usable constrained labeling scenario, correct keys, discriminable choices, and generally instructional feedback. A has a wrong first answer, contradictory placeholder feedback, unsupported examples, and no usable decision."
+    },
+    {
+      "caseId": "scion-kernel-1711f0b21d56aa4e046c9307",
+      "pairId": "scion-kernel-pair-7eb74691b62e4c760c7e2c7e",
+      "artifactSha256": {
+        "A": "3e966588714e5686c7db025db4d4b0ce9331053875f15aaaa0de6cbdbf12e28f",
+        "B": "63d947d637e210a9dd745e0d7609edb3c1a7fc1a3af4f0725501affadc1cef40"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "The facts and definitions reproduce the claims, but high volcanic activity and deep mantle convection are introduced without source support."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "The two drivers, their locations, their moved materials, and the Sun relation are accurately distinguished in the term entries."
+          },
+          "scenarioReadiness": {
+            "score": 1,
+            "evidence": "The scenario recites claims and an unsupported volcanic setting, while its material merely instructs comparison rather than supplying an inspectable decision record."
+          },
+          "assessmentCorrectness": {
+            "score": 1,
+            "evidence": "The first item is correct, but the second declares the hydrological-cycle option even though its explanation identifies internal heat as responsible."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "Each item offers four meaningfully different allocations of power source, location, material, or crustal role."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "The first explanation does not repair a misconception, and the second teaches internal heat while contradicting the declared hydrological-cycle answer."
+          },
+          "internalCoherence": {
+            "score": 1,
+            "evidence": "The second question's key conflicts directly with its explanation and with the internal-heat fact cited by that explanation."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "The facts, key terms, scenario records, and explanations stay within the supplied driver, location, material, and power relations."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "Internal heat is tied to core and mantle material, while the Sun-powered hydrological cycle is tied to water, ice, and air at the surface."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "A deadline-bound labeling task supplies separate core-and-mantle, surface-material, and Sun-power observations for an actionable classification."
+          },
+          "assessmentCorrectness": {
+            "score": 2,
+            "evidence": "The second item is uniquely correct, but the first item's option 3 is also a supported, less complete version of declared option 0."
+          },
+          "choiceDiscriminability": {
+            "score": 2,
+            "evidence": "In the first item, both 'core and mantle; surface' and 'core; water at surface' state true distinctions, making the answer non-unique."
+          },
+          "feedbackInstructionality": {
+            "score": 3,
+            "evidence": "The explanations teach the correct driver contrast, but the first does not explain why the also-true partial alternative should be rejected."
+          },
+          "internalCoherence": {
+            "score": 3,
+            "evidence": "Content and keys otherwise agree, but the first key's uniqueness is undermined by another supported option."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "The second item declares the hydrological cycle, although internal heat is the supported answer.",
+          "The second explanation identifies internal heat and therefore contradicts its declared answer.",
+          "The volcanic-activity setting and deep mantle convection observation add unsupported factual detail."
+        ],
+        "B": [
+          "The first item's options 0 and 3 are both supported distinctions, making the declared answer non-unique."
+        ]
+      },
+      "decision": "B",
+      "rationale": "B is source-bound, precise, scenario-ready, and instructionally coherent, although its first item has two supported alternatives. A has an incorrect second key, a direct answer-feedback contradiction, and unsupported scenario details."
+    },
+    {
+      "caseId": "scion-kernel-1975575816c67ebe73b3a43a",
+      "pairId": "scion-kernel-pair-94a747e148bb36cd6e9cbef2",
+      "artifactSha256": {
+        "A": "260437ee3a0314d8f0fa7e503a31be146b8b4f6d7e75ae0d78715ba9531bc149",
+        "B": "bf9f39f03e018dd7903b5088bc7cbbad66d30461a599d8a070e27c86a3505441"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 3,
+            "evidence": "The five facts and procedure-problem relation are preserved, though the checkout setting and user-flow materials are not supplied by the source."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "Learning objectives and procedure problems are useful, but the rehearsal-ready setup entry is circular and does not capture the full preparation requirements."
+          },
+          "scenarioReadiness": {
+            "score": 3,
+            "evidence": "The team has an actionable sequencing decision and evidence that objectives are unfinished, but the study record and constraint remain thin."
+          },
+          "assessmentCorrectness": {
+            "score": 1,
+            "evidence": "The first item declares 'selecting study details first,' while the cited fact and explanation require agreeing what to learn first."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "Both items provide four distinct planning or preparation actions with a uniquely source-supported substantive option."
+          },
+          "feedbackInstructionality": {
+            "score": 2,
+            "evidence": "The explanations clearly state both planning relations, but the first teaches an option different from the declared answer."
+          },
+          "internalCoherence": {
+            "score": 1,
+            "evidence": "The first answer key reverses the sequence stated consistently in the facts, key-term correction, question, and explanation."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "Every fact, term, scenario observation, answer, and explanation is confined to the five supplied research-planning claims."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "The entries distinctly cover plan components, prototype readiness, planning order, and the practice session's diagnostic role."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "A session scheduled tomorrow creates a real timing constraint, with inspectable prototype and preparation records supporting a readiness decision."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both keys uniquely match their cited facts: agree learning needs before details and run through tasks on the day before research."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "The correct choices are distinct, though several distractors such as replacing tasks with roles are relatively easy to dismiss."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation states the supported sequence or timing and explicitly repairs the closest reversal."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "Facts, term corrections, tomorrow/today timing, answer keys, citations, and explanations agree throughout."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "The first item declares 'selecting study details first,' which reverses the supplied planning order.",
+          "The first explanation supports agreeing what to learn first and therefore contradicts the declared answer."
+        ],
+        "B": []
+      },
+      "decision": "B",
+      "rationale": "B fully integrates the source into a timed, inspectable readiness decision with correct keys and explanatory feedback. A is otherwise serviceable but its first key reverses the source and contradicts its own explanation."
+    },
+    {
+      "caseId": "scion-kernel-1c1a13aa65159075aedfa3a8",
+      "pairId": "scion-kernel-pair-df80c0882f92759ac5200705",
+      "artifactSha256": {
+        "A": "5fea40377e0edb32a15c69006bffe4eb32d098c522efeceecc0e36cac2664307",
+        "B": "5159c0ef3f90921b23126d1e93b870783f7e74172488a6d89168c2e6ca7d52f9"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 1,
+            "evidence": "Exact facts are followed by unsupported equilibrium, production-response, raw-material, percentage, and fixed-capacity claims."
+          },
+          "knowledgePrecision": {
+            "score": 1,
+            "evidence": "The negative-feedback misconception says it stabilizes by reducing fluctuations, which the artifact's own definition and correction also treat as true."
+          },
+          "scenarioReadiness": {
+            "score": 2,
+            "evidence": "The firm scenario supplies quantities and a capacity constraint, but those details are unsupported and the constraint does not govern the classification."
+          },
+          "assessmentCorrectness": {
+            "score": 0,
+            "evidence": "Both items declare a damping or stabilizing option, while both explanations identify the unselected further-from-start option as correct."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "The alternatives are distinct, but the repeated amplification-versus-damping language makes the supported options comparatively obvious."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "The explanations accurately describe positive feedback but contradict both declared answers and do not fully address the closest distractors."
+          },
+          "internalCoherence": {
+            "score": 0,
+            "evidence": "Both keys conflict with their explanations and facts, while the negative-feedback misconception conflicts with its own definition and correction."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "The artifact uses only the supplied price, wage, amplification, damping, and distance-from-start relations."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "Positive feedback and the full spiral are precise; the negative-feedback definition is source-safe but comparatively incomplete and contrast-based."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "Students must apply one label to an inspectable sequence of wage and price responses plus an amplification notation."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both declared answers uniquely match the cited facts: positive feedback moves further from start and the linked pattern is a wage-price spiral."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "The options distinctly test feedback direction and whether a partial observation or the complete linked cycle is being classified."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "The explanations connect every stage of the cycle, identify amplification, and repair reversed or incomplete alternatives."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "Facts, terms, scenario evidence, keys, citations, and explanations consistently classify the pattern as positive feedback."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "Both multiple-choice items declare incorrect answers.",
+          "Both explanations support option 1 rather than their declared option 0 or option 2.",
+          "The raw-material cause, numerical changes, production response, and fixed-capacity consequence are unsupported factual additions.",
+          "The negative-feedback misconception is affirmed by the artifact's own definition and correction."
+        ],
+        "B": []
+      },
+      "decision": "B",
+      "rationale": "B is source-faithful, actionable, correctly keyed, and teaches both the complete cycle and feedback distinction. A has two wrong keys, two answer-feedback contradictions, unsupported causal details, and a self-contradictory misconception."
+    },
+    {
+      "caseId": "scion-kernel-2122bdcdb8b7d259f1b11c2d",
+      "pairId": "scion-kernel-pair-c1bf4c29423d656942695dbd",
+      "artifactSha256": {
+        "A": "579da20ccf761913726b279ca6dd547db467006cf0a91735500c2f4fbc8e388f",
+        "B": "24d354fe6739361264acd1047d526a689eb7f33bad6acd94649f83f4fdc1e539"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 1,
+            "evidence": "The artifact adds a knee, patient injury, viscous substance, simple hinge comparison, and a cartilage-specific smooth-motion cause not supplied."
+          },
+          "knowledgePrecision": {
+            "score": 1,
+            "evidence": "The cavity and ligament entries are usable, but the cartilage correction is tautological and assigns unsupported causal responsibility for smooth motion."
+          },
+          "scenarioReadiness": {
+            "score": 1,
+            "evidence": "The scenario asks for comparison with a simple hinge joint, but supplies no hinge evidence from which that disciplinary decision can be made."
+          },
+          "assessmentCorrectness": {
+            "score": 0,
+            "evidence": "The first item declares ligaments instead of the joint cavity, and the second declares the cavity instead of supporting ligaments."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "Each item presents four distinct joint features or functions, and the source makes the substantive answer unique."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "Each explanation states the correct cavity or ligament fact but contradicts the declared answer and does not repair a distractor."
+          },
+          "internalCoherence": {
+            "score": 0,
+            "evidence": "Both answer keys conflict directly with their questions, cited facts, and explanations."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "Facts, definitions, observations, options, and explanations remain within the supplied cavity, cartilage, fluid, ligament, and motion claims."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "The fluid-filled cavity's structural role is cleanly distinguished from ligaments holding bones and resisting abnormal motion."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The student must choose a constrained notation using recorded cavity and ligament observations that are directly inspectable."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both keys uniquely assign the structural label to the cavity and support or motion resistance to ligaments."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "All four options in each item are parallel role assignments, with reversals and category errors serving as plausible distractors."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Both explanations cite the observed roles and explicitly explain why the cavity cannot perform the ligament-support function."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "Key terms, scenario evidence, answer keys, fact citations, and explanations preserve the same cavity-versus-ligament distinction."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "Both multiple-choice items declare incorrect answers.",
+          "Both explanations identify answers different from the declared keys.",
+          "The named knee-injury example, viscous-substance observation, and simple-hinge comparison are unsupported additions.",
+          "The scenario has no usable source-bound decision because no simple-hinge evidence is supplied.",
+          "The claim that articular cartilage itself allows smooth motion is an unsupported causal assignment."
+        ],
+        "B": []
+      },
+      "decision": "B",
+      "rationale": "B gives a source-bound, evidence-based role distinction with correct keys and strong feedback. A adds unsupported anatomy and a hinge comparison, then miskeys both questions despite explanations that state the correct answers."
+    },
+    {
+      "caseId": "scion-kernel-226e9f86fc7be0c5f692c69d",
+      "pairId": "scion-kernel-pair-7d7b2596cf972a7792bd7adb",
+      "artifactSha256": {
+        "A": "f97cd72fb2569b02b42c2f7ef0e10ff0108d5193bfe63341df5fe7678d313f55",
+        "B": "86114d1033c0d4be2d16eedc2d5dfd19f605d0249679e8275b48ed63e68a43fc"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 1,
+            "evidence": "The artifact adds $100 and $50 examples, textbook and laptop prices, feasible-set terminology, and unsupported satisfaction conclusions."
+          },
+          "knowledgePrecision": {
+            "score": 2,
+            "evidence": "The central utility, affordability, and tradeoff ideas remain, but the budget-constraint entry is incomplete and its alleged misconception is not clearly false."
+          },
+          "scenarioReadiness": {
+            "score": 0,
+            "evidence": "Both goods are affordable, but no satisfaction evidence is supplied, so the requested choice between textbook and laptop cannot be made."
+          },
+          "assessmentCorrectness": {
+            "score": 1,
+            "evidence": "The first key restates the theory, but its explanation invents a preferred bundle; the second key selects an unmet buy-both condition."
+          },
+          "choiceDiscriminability": {
+            "score": 2,
+            "evidence": "The first correct option copies the stem, while the second asks for a concrete item decision but offers only generic rules and an impossible condition."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "Both explanations circularly assert that the textbook yields highest satisfaction without evidence and do not diagnose the closest misconception."
+          },
+          "internalCoherence": {
+            "score": 1,
+            "evidence": "The prices make both single-item bundles affordable but do not establish satisfaction, while the keys and explanations nevertheless select different outcomes."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "All facts, terms, scenario evidence, options, and explanations stay within utility maximization, affordability, optimality, budget, and tradeoff claims."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "The artifact distinctly defines the theory, an affordable bundle, and the condition that makes a choice optimal."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The consumer must classify a bundle using inspectable affordability, satisfaction, and budget-exceeding evidence under a clear decision constraint."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both declared answers uniquely match their cited facts: theory models, the consumer selects, and the observed bundle meets the optimality condition."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "The options separately test actor roles, reversed maximization, affordability, tradeoff, and the condition for optimality."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation states the warranted distinction or condition and directly repairs the closest reversed claim."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "The key terms, scenario observations, answer keys, citations, and explanations consistently describe the same optimal affordable bundle."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "The second item declares 'buy both if the total is under $50,' although the stated prices total $70 and the source does not support that rule.",
+          "Both explanations assert that the textbook yields the highest satisfaction without any satisfaction evidence.",
+          "The numerical textbook-and-laptop examples introduce unsupported named details.",
+          "The scenario has no usable decision because it supplies prices but no evidence comparing satisfaction."
+        ],
+        "B": []
+      },
+      "decision": "B",
+      "rationale": "B is fully source-bound and converts all three claims into an inspectable optimal-choice decision with correct, discriminable assessments. A lacks the satisfaction evidence needed for its scenario, invents a preferred bundle, and miskeys its second question."
+    }
+  ]
+}

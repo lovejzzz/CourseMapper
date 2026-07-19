@@ -1,0 +1,1110 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-packet-v1",
+  "order": "A/B",
+  "generatedAt": "2026-07-19T21:00:00.000Z",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "prompt": {
+    "path": "evaluation/scion-adapters/lesson-kernel-judge-prompt-v0.16.54.md",
+    "sha256": "37844b86736335db54b561d8c031660ef71679c55ae1108e2e999e746f2a1c96"
+  },
+  "dimensions": [
+    "sourceFidelity",
+    "knowledgePrecision",
+    "scenarioReadiness",
+    "assessmentCorrectness",
+    "choiceDiscriminability",
+    "feedbackInstructionality",
+    "internalCoherence"
+  ],
+  "cases": [
+    {
+      "caseId": "scion-kernel-dc63d092d72ff31db8a01e41",
+      "pairId": "scion-kernel-pair-f45748d2e07788ae111caa27",
+      "domain": "computer-science",
+      "failureFamilies": [
+        "answer-feedback-consistency"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-2",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "For loops and range",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: A for loop iterates over each element of a container — a range of numbers, a string, or a list — binding a loop variable to one element at a time. Claim 1: A container can be a range of numbers, a string of characters, or a list of values. Claim 2: The loop retrieves the objects of a container one at a time. Claim 3: range() produces a sequence of integers and is commonly paired with a for loop to repeat the body a fixed number of times; range(n) yields 0 through n-1.",
+        "readings": "OpenStax Introduction to Python Programming, §5.2 For loop"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "fcaa13f176a76ca483f7b246776528f38bcd89d679b51979a6c13763df234b00",
+        "kernelId": "cs/for-loops",
+        "term": "For loops and range",
+        "claims": [
+          "A for loop iterates over each element of a container — a range of numbers, a string, or a list — binding a loop variable to one element at a time.",
+          "A container can be a range of numbers, a string of characters, or a list of values.",
+          "The loop retrieves the objects of a container one at a time.",
+          "range() produces a sequence of integers and is commonly paired with a for loop to repeat the body a fixed number of times; range(n) yields 0 through n-1."
+        ],
+        "anchors": [
+          {
+            "src": "openstax:introduction-python-programming#5.2",
+            "loc": "5.2",
+            "quote": "A for loop iterates over all elements in a container"
+          },
+          {
+            "src": "openstax:introduction-python-programming#5.2",
+            "loc": "5.2",
+            "quote": "In Python, a container can be a range of numbers, a string of characters, or a list of values"
+          },
+          {
+            "src": "openstax:introduction-python-programming#5.2",
+            "loc": "5.2",
+            "quote": "an iterative loop can be designed to retrieve objects one at a time"
+          },
+          {
+            "src": "openstax:introduction-python-programming#5.2",
+            "loc": "5.2",
+            "quote": "The range() function produces a sequence of integers"
+          }
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §5.2 For loop"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "bcf36e07c34554687b34757c9984771ca24784d1c1b193e85eca8b3e1c61526a",
+          "lessonKernel": {
+            "lessonId": "lesson-2",
+            "facts": [
+              "A for loop iterates over each element of a container — a range of numbers, a string, or a list — binding a loop variable to one element at a time.",
+              "A container can be a range of numbers, a string of characters, or a list of values.",
+              "The loop retrieves the objects of a container one at a time.",
+              "range() produces a sequence of integers and is commonly paired with a for loop to repeat the body a fixed number of times; range(n) yields 0 through n-1."
+            ],
+            "keyTerms": [
+              {
+                "tr": "for loop",
+                "df": "A for loop iterates over each element of a container — a range of numbers, a string, or a list — binding a loop variable to one element at a time.",
+                "eg": "Using a for loop to process every item in a list of names.",
+                "mi": "A for loop only works with lists and cannot iterate over a range of numbers.",
+                "cx": "A for loop can iterate over a range of numbers, a string of characters, or a list of values."
+              },
+              {
+                "tr": "container",
+                "df": "A container can be a range of numbers, a string of characters, or a list of values.",
+                "eg": "A string is a container that can be iterated over by a for loop.",
+                "mi": "A container is strictly limited to being a list of values for loop operations.",
+                "cx": "A container can be a range of numbers, a string of characters, or a list of values."
+              },
+              {
+                "tr": "range()",
+                "df": "range() produces a sequence of integers and is commonly paired with a for loop to repeat the body a fixed number of times; range(n) yields 0 through n-1.",
+                "eg": "Using range(5) with a for loop to execute code five times.",
+                "mi": "range() produces a list of values that must be explicitly converted before use in a loop.",
+                "cx": "range() produces a sequence of integers and is commonly paired with a for loop to repeat the body a fixed number of times; range(n) yields 0 through n-1."
+              }
+            ],
+            "scenario": {
+              "su": "A programmer needs to process every item in a list of sensor readings, but they only have a fixed number of iterations available. The constraint is that the loop must execute exactly ten times to ensure all readings are handled.",
+              "ma": "Compare the list of readings [101, 102, 103, 104, 105, 106, 107, 108, 109, 110] with the range(10) sequence."
+            },
+            "mc": [
+              {
+                "q": "When using a for loop on a string, what is the primary action performed by the loop variable?",
+                "op": [
+                  "The loop variable binds to a single character in the string.",
+                  "The loop variable binds to the entire string object.",
+                  "The loop variable retrieves the container one at a time.",
+                  "The loop variable produces a sequence of integers."
+                ],
+                "ai": 0,
+                "fi": [
+                  0
+                ],
+                "ex": "A for loop iterates over each element of a container — a range of numbers, a string, or a list — binding a loop variable to one element at a time. The loop variable binds to a single character in the string."
+              },
+              {
+                "q": "If a programmer uses range(5) with a for loop, what is the resulting sequence of integers generated by range()?",
+                "op": [
+                  "The sequence is 1 through 5 inclusive.",
+                  "The sequence is 0 through 4 inclusive.",
+                  "The sequence is 1 through 4 inclusive.",
+                  "The sequence is 0 through 5 inclusive."
+                ],
+                "ai": 0,
+                "fi": [
+                  3
+                ],
+                "ex": "range() produces a sequence of integers and is commonly paired with a for loop to repeat the body a fixed number of times; range(n) yields 0 through n-1. The sequence is 0 through 4 inclusive."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "542ab19f8dea38ae0ab6ad50570a795e73ea4e606dffada45033ec1485137e7b",
+          "lessonKernel": {
+            "lessonId": "lesson-2",
+            "facts": [
+              "A for loop iterates over each element of a container — a range of numbers, a string, or a list — binding a loop variable to one element at a time.",
+              "A container can be a range of numbers, a string of characters, or a list of values.",
+              "The loop retrieves the objects of a container one at a time.",
+              "range() produces a sequence of integers and is commonly paired with a for loop to repeat the body a fixed number of times; range(n) yields 0 through n-1."
+            ],
+            "keyTerms": [
+              {
+                "tr": "for loop",
+                "df": "A for loop is an iteration structure that binds its loop variable to each container element in turn.",
+                "eg": "A for loop can iterate over a string of characters.",
+                "mi": "The loop variable binds the entire container at once.",
+                "cx": "Instead, the variable is bound to one element during each retrieval."
+              },
+              {
+                "tr": "container",
+                "df": "A container is a range of numbers, a string of characters, or a list of values.",
+                "eg": "A list of values can serve as the container for a loop.",
+                "mi": "A container retrieves a loop one object at a time.",
+                "cx": "Retrieval belongs to the loop; the container supplies the objects."
+              },
+              {
+                "tr": "range()",
+                "df": "range() produces an integer sequence that can be paired with a for loop for fixed repetition.",
+                "eg": "range(n) yields the integers from 0 through n-1.",
+                "mi": "range() produces a string of characters for iteration.",
+                "cx": "Its produced sequence consists of integers, while a string is a kind of container."
+              }
+            ],
+            "scenario": {
+              "su": "A student must classify a for loop paired with range(n), where the observed sequence runs from 0 through n-1. The classification must distinguish what range() produces from how the loop retrieves objects.",
+              "ma": "the notation range(n), the observed sequence 0 through n-1, the loop retrieving objects one at a time"
+            },
+            "mc": [
+              {
+                "q": "A comparison shows that a container may be a string or list, while a for loop binds a loop variable during iteration. Which statement correctly distinguishes their roles?",
+                "op": [
+                  "The loop is the container of values",
+                  "The container supplies elements; the loop retrieves them",
+                  "The container binds elements; the variable retrieves them",
+                  "The loop supplies elements; the container retrieves them"
+                ],
+                "ai": 1,
+                "fi": [
+                  0,
+                  1
+                ],
+                "ex": "A container can hold a range, string, or list, while the for loop retrieves its elements and binds the loop variable in turn. The reversed account incorrectly assigns retrieval to the container."
+              },
+              {
+                "q": "A student observes range(n) yielding 0 through n-1 and must classify the result before pairing it with a for loop. Which classification matches the observation?",
+                "op": [
+                  "range() binds each loop variable",
+                  "range() produces a sequence of integers",
+                  "range() produces a string of characters",
+                  "range() retrieves objects from a container"
+                ],
+                "ai": 1,
+                "fi": [
+                  3
+                ],
+                "ex": "The observed 0-through-n-1 result is the integer sequence produced by range(n). A string of characters is a possible container, not the stated product of range()."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-dc63d092d72ff31db8a01e41",
+        "pairId": "scion-kernel-pair-f45748d2e07788ae111caa27",
+        "artifactSha256": {
+          "A": "bcf36e07c34554687b34757c9984771ca24784d1c1b193e85eca8b3e1c61526a",
+          "B": "542ab19f8dea38ae0ab6ad50570a795e73ea4e606dffada45033ec1485137e7b"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    },
+    {
+      "caseId": "scion-kernel-eb4049f6a28f14cedcfa8b79",
+      "pairId": "scion-kernel-pair-52e608f3ee950d684afa8bf3",
+      "domain": "music-theory",
+      "failureFamilies": [
+        "feedback-instructionality",
+        "scenario-evidence-sufficiency",
+        "source-coverage",
+        "source-fidelity"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-3",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Minor-scale variants",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: The minor key system has natural, harmonic, and melodic variants that differ through alterations to the sixth and seventh scale degrees. Claim 1: Harmonic minor raises the seventh scale degree so it can function as a leading tone. Claim 2: Melodic minor raises both the sixth and seventh scale degrees.",
+        "readings": "Justin Rubin, Music Composition & Theory (2024), chapter 25, University of Minnesota Libraries Publishing"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "ffabcbcf6dc1ecf2545741964b1895f8405b48fa982afc1b44b4166d1a25d025",
+        "kernelId": "music-ccby/minor-scale-variants",
+        "term": "Minor-scale variants",
+        "claims": [
+          "The minor key system has natural, harmonic, and melodic variants that differ through alterations to the sixth and seventh scale degrees.",
+          "Harmonic minor raises the seventh scale degree so it can function as a leading tone.",
+          "Melodic minor raises both the sixth and seventh scale degrees."
+        ],
+        "anchors": [
+          {
+            "src": "https://open.lib.umn.edu/musiccomposition/chapter/common-practice-era-scales-intervals-and-chord-functions/",
+            "loc": "25 Common Practice Era Scales, Minor",
+            "quote": "The minor key system has three variants: a) Natural, b) Harmonic, and c) Melodic."
+          },
+          {
+            "src": "https://open.lib.umn.edu/musiccomposition/chapter/common-practice-era-scales-intervals-and-chord-functions/",
+            "loc": "25 Common Practice Era Scales, Minor",
+            "quote": "The harmonic minor scale includes a raised seventh scale degree"
+          },
+          {
+            "src": "https://open.lib.umn.edu/musiccomposition/chapter/common-practice-era-scales-intervals-and-chord-functions/",
+            "loc": "25 Common Practice Era Scales, Minor",
+            "quote": "The melodic minor scale includes a raised sixth as well as seventh scale degree."
+          }
+        ],
+        "attribution": [
+          "Justin Rubin, Music Composition & Theory (2024), chapter 25, University of Minnesota Libraries Publishing"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "f918fc8913140ff12d81d44183585b3937395d6005f4c15a458790c04215401a",
+          "lessonKernel": {
+            "lessonId": "lesson-3",
+            "facts": [
+              "The minor key system has natural, harmonic, and melodic variants that differ through alterations to the sixth and seventh scale degrees.",
+              "Harmonic minor raises the seventh scale degree so it can function as a leading tone.",
+              "Melodic minor raises both the sixth and seventh scale degrees."
+            ],
+            "keyTerms": [
+              {
+                "tr": "minor-scale variants",
+                "df": "The minor key system possesses natural, harmonic, and melodic variants that are distinguished by alterations to the sixth and seventh scale degrees.",
+                "eg": "A composer uses alterations to the sixth and seventh scale degrees to create a minor-scale variant.",
+                "mi": "Minor-scale variants only differ by altering the sixth and seventh scale degrees.",
+                "cx": "Minor-scale variants differ through alterations to the sixth and seventh scale degrees, which is a broader category."
+              },
+              {
+                "tr": "harmonic minor",
+                "df": "Harmonic minor is a minor-scale variant characterized by raising the seventh scale degree to function as a leading tone.",
+                "eg": "A piece employs harmonic minor to establish a leading tone on the seventh scale degree.",
+                "mi": "Harmonic minor raises the sixth scale degree to function as a leading tone.",
+                "cx": "Harmonic minor raises the seventh scale degree so it can function as a leading tone, not the sixth scale degree."
+              },
+              {
+                "tr": "melodic minor",
+                "df": "Melodic minor is a minor-scale variant where both the sixth and seventh scale degrees are raised.",
+                "eg": "A melody utilizes melodic minor to raise both the sixth and seventh scale degrees.",
+                "mi": "Melodic minor only raises the seventh scale degree to function as a leading tone.",
+                "cx": "Melodic minor raises both the sixth and seventh scale degrees, not just the seventh scale degree."
+              }
+            ],
+            "scenario": {
+              "su": "A composer is analyzing a piece written in a minor key context and needs to determine the specific scale type used. The composer observes that the seventh scale degree is raised, but the sixth scale degree remains unaltered. The constraint is that the analysis must rely solely on the provided scale degree alterations.",
+              "ma": "The composer compares the scale degrees in the passage 'A minor's harmonic minor' against the scale degrees in the passage 'A minor's melodic minor'."
+            },
+            "mc": [
+              {
+                "q": "When distinguishing between harmonic minor and melodic minor, what is the primary difference in scale degree alterations?",
+                "op": [
+                  "Harmonic minor raises the seventh scale degree only.",
+                  "Melodic minor raises both the sixth and seventh scale degrees.",
+                  "Harmonic minor raises the sixth scale degree only.",
+                  "Melodic minor raises the seventh scale degree only."
+                ],
+                "ai": 0,
+                "fi": [
+                  0,
+                  2
+                ],
+                "ex": "The minor-scale variants differ through alterations to the sixth and seventh scale degrees, and harmonic minor raises the seventh scale degree so it can function as a leading tone, while melodic minor raises both the sixth and seventh scale degrees."
+              },
+              {
+                "q": "A musician is transcribing a melody and notices that both the sixth and seventh scale degrees are raised in the minor-scale variant being used. Which variant is this?",
+                "op": [
+                  "The harmonic minor variant is being used.",
+                  "The melodic minor variant is being used.",
+                  "The natural minor variant is being used.",
+                  "The harmonic minor variant is being used."
+                ],
+                "ai": 0,
+                "fi": [
+                  2
+                ],
+                "ex": "Melodic minor raises both the sixth and seventh scale degrees, which is the defining characteristic of the melodic minor variant."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "7062ff632711cdc69998ce48e7b2e641e511cb988c78cf255f07f101f62a3692",
+          "lessonKernel": {
+            "lessonId": "lesson-3",
+            "facts": [
+              "The minor key system has natural, harmonic, and melodic variants that differ through alterations to the sixth and seventh scale degrees.",
+              "Harmonic minor raises the seventh scale degree so it can function as a leading tone.",
+              "Melodic minor raises both the sixth and seventh scale degrees."
+            ],
+            "keyTerms": [
+              {
+                "tr": "minor key system",
+                "df": "The minor key system includes natural, harmonic, and melodic variants distinguished through alterations to the sixth and seventh scale degrees.",
+                "eg": "Natural, harmonic, and melodic are variants within the minor key system.",
+                "mi": "The minor key system has harmonic and melodic variants distinguished through the seventh scale degree.",
+                "cx": "Natural is also a variant, and the stated differences involve alterations to the sixth and seventh scale degrees."
+              },
+              {
+                "tr": "harmonic minor",
+                "df": "Harmonic minor is the variant that raises the seventh scale degree so it can function as a leading tone.",
+                "eg": "Harmonic minor raises the seventh scale degree.",
+                "mi": "Harmonic minor raises both the sixth and seventh scale degrees.",
+                "cx": "Raising both degrees is the stated relation for melodic minor, while harmonic minor raises the seventh."
+              },
+              {
+                "tr": "melodic minor",
+                "df": "Melodic minor is the variant distinguished by raising both the sixth and seventh scale degrees.",
+                "eg": "Melodic minor raises both the sixth and seventh scale degrees.",
+                "mi": "Melodic minor raises the seventh scale degree while harmonic minor raises both degrees.",
+                "cx": "The supplied relations run oppositely: melodic minor raises both degrees, and harmonic minor raises the seventh."
+              }
+            ],
+            "scenario": {
+              "su": "A student compares a notation with a raised seventh scale degree against a notation with raised sixth and seventh scale degrees. Because both notations raise the seventh, the student must use the sixth-degree observation to label harmonic minor and melodic minor defensibly.",
+              "ma": "notation showing a raised seventh scale degree, notation showing raised sixth and seventh scale degrees"
+            },
+            "mc": [
+              {
+                "q": "Two notations show different alterations: harmonic minor has a raised seventh degree, while melodic minor has raised sixth and seventh degrees. Which comparison fully matches both observations?",
+                "op": [
+                  "Harmonic raises seventh; melodic raises sixth and seventh",
+                  "Melodic raises seventh; harmonic raises sixth and seventh",
+                  "Harmonic raises seventh; melodic raises the sixth",
+                  "Harmonic raises the seventh; melodic raises the seventh"
+                ],
+                "ai": 0,
+                "fi": [
+                  1,
+                  2
+                ],
+                "ex": "Harmonic minor raises the seventh scale degree, whereas melodic minor raises both the sixth and seventh. Saying melodic minor raises the sixth omits its raised seventh."
+              },
+              {
+                "q": "A notation displays raised sixth and seventh scale degrees, and the student must select the supplied variant description that accounts for every observed alteration. Which description directly matches the notation?",
+                "op": [
+                  "Melodic minor raises both observed scale degrees",
+                  "Harmonic minor raises both observed scale degrees",
+                  "Melodic minor raises the seventh scale degree",
+                  "Harmonic minor raises the seventh scale degree"
+                ],
+                "ai": 0,
+                "fi": [
+                  2
+                ],
+                "ex": "Melodic minor raises both the sixth and seventh scale degrees, matching every observation. The description mentioning its seventh degree alone omits the observed raised sixth."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-eb4049f6a28f14cedcfa8b79",
+        "pairId": "scion-kernel-pair-52e608f3ee950d684afa8bf3",
+        "artifactSha256": {
+          "A": "f918fc8913140ff12d81d44183585b3937395d6005f4c15a458790c04215401a",
+          "B": "7062ff632711cdc69998ce48e7b2e641e511cb988c78cf255f07f101f62a3692"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    },
+    {
+      "caseId": "scion-kernel-f0f0aa2c9a2a35c93fde20f4",
+      "pairId": "scion-kernel-pair-07d6be681e32a0476d651c5f",
+      "domain": "user-experience-design",
+      "failureFamilies": [
+        "choice-discriminability"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-5",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Interactive prototyping",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: Interactive prototyping builds a testable representation of how a planned experience looks and works without requiring every production detail. Claim 1: Prototypes can be combined with usability testing or a cognitive walkthrough to test whether a design concept works. Claim 2: Functional prototypes allow a team to observe how users interact with a product. Claim 3: A prototype should show the major interactions even when not every interaction is functional. Claim 4: Prototypes should support fast iteration and be inexpensive enough to discard after learning from them.",
+        "readings": "Digital.gov, U.S. General Services Administration"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "55810138f44b132a506c48e324abae61faab42bb035796fd7728e36106eaf51e",
+        "kernelId": "ux/interactive-prototyping",
+        "term": "Interactive prototyping",
+        "claims": [
+          "Interactive prototyping builds a testable representation of how a planned experience looks and works without requiring every production detail.",
+          "Prototypes can be combined with usability testing or a cognitive walkthrough to test whether a design concept works.",
+          "Functional prototypes allow a team to observe how users interact with a product.",
+          "A prototype should show the major interactions even when not every interaction is functional.",
+          "Prototypes should support fast iteration and be inexpensive enough to discard after learning from them."
+        ],
+        "anchors": [
+          {
+            "src": "digitalgov:prototypes",
+            "loc": "What",
+            "quote": "A prototype is an interactive (high-fidelity) version of the experience you are planning to build. It shows how the design will look and work, without full detail."
+          },
+          {
+            "src": "digitalgov:prototypes",
+            "loc": "Why",
+            "quote": "Combined with other methods like usability testing or a cognitive walkthrough, prototypes help you test whether a design concept will work."
+          },
+          {
+            "src": "digitalgov:prototypes",
+            "loc": "Why",
+            "quote": "Functional prototypes help you observe how users interact with the product."
+          },
+          {
+            "src": "digitalgov:prototypes",
+            "loc": "How to do it",
+            "quote": "Show the major interactions. Not all interactions need to be functional."
+          },
+          {
+            "src": "digitalgov:prototypes",
+            "loc": "How to do it",
+            "quote": "Iterate. Prototypes should be quick to create and even quicker to discard."
+          }
+        ],
+        "attribution": [
+          "Digital.gov, U.S. General Services Administration"
+        ],
+        "license": "U.S. Government Work"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "9696d25da8ae5d461934b746d27a33f3dc84b8e0a51c70914626cda109444b50",
+          "lessonKernel": {
+            "lessonId": "lesson-5",
+            "facts": [
+              "Interactive prototyping builds a testable representation of how a planned experience looks and works without requiring every production detail.",
+              "Prototypes can be combined with usability testing or a cognitive walkthrough to test whether a design concept works.",
+              "Functional prototypes allow a team to observe how users interact with a product.",
+              "A prototype should show the major interactions even when not every interaction is functional.",
+              "Prototypes should support fast iteration and be inexpensive enough to discard after learning from them."
+            ],
+            "keyTerms": [
+              {
+                "tr": "Interactive prototyping",
+                "df": "Interactive prototyping builds a testable representation of how a planned experience looks and works without requiring every production detail.",
+                "eg": "A clickable wireframe showing the main navigation flow of a new application.",
+                "mi": "Interactive prototyping requires every single production detail to be fully realized before testing can begin.",
+                "cx": "Interactive prototyping builds a testable representation without needing every production detail."
+              },
+              {
+                "tr": "Functional prototypes",
+                "df": "Functional prototypes allow a team to observe how users interact with a product.",
+                "eg": "A prototype where users can click through the main screens to simulate a user journey.",
+                "mi": "Functional prototypes are only useful if every single interaction within the prototype is perfectly coded.",
+                "cx": "Functional prototypes allow a team to observe how users interact with a product."
+              },
+              {
+                "tr": "Fast iteration",
+                "df": "Prototypes should support fast iteration and be inexpensive enough to discard after learning from them.",
+                "eg": "Rapidly changing a low-fidelity mockup based on initial user feedback.",
+                "mi": "Fast iteration means making every prototype extremely expensive to build and maintain.",
+                "cx": "Fast iteration means prototypes should be inexpensive enough to discard after learning from them."
+              }
+            ],
+            "scenario": {
+              "su": "A design team is developing a new mobile app feature and needs to validate the core user flow before committing to high-fidelity coding. The team is constrained by a tight deadline for initial concept validation. They must decide whether to build a detailed visual mockup or a simple clickable model.",
+              "ma": "The team compares the low-fidelity wireframe sketch and the high-fidelity clickable prototype."
+            },
+            "mc": [
+              {
+                "q": "Which characteristic distinguishes a prototype that shows major interactions from one that requires every interaction to be fully functional?",
+                "op": [
+                  "Showing major interactions even when not every interaction is functional.",
+                  "Requiring every single interaction to be perfectly coded.",
+                  "Requiring every production detail to be fully realized before testing can begin.",
+                  "Allowing a team to observe how users interact with a product."
+                ],
+                "ai": 0,
+                "fi": [
+                  3
+                ],
+                "ex": "A prototype should show the major interactions even when not every interaction is functional, which distinguishes it from a prototype where every interaction must be perfectly coded."
+              },
+              {
+                "q": "A team is using a prototype to test a design concept; what is the primary method for validating the design concept?",
+                "op": [
+                  "Combining prototypes with usability testing or a cognitive walkthrough.",
+                  "Observing how users interact with a product through functional prototypes.",
+                  "Discarding prototypes immediately after the first interaction.",
+                  "Ensuring every production detail is fully realized before testing begins."
+                ],
+                "ai": 0,
+                "fi": [
+                  1
+                ],
+                "ex": "Prototypes can be combined with usability testing or a cognitive walkthrough to test whether a design concept works, which is the primary method for validating the design concept."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "a2aaf3998a10e7ad02bc77e325bef757fdcf63c45cd62f02517e53c20edb5b9d",
+          "lessonKernel": {
+            "lessonId": "lesson-5",
+            "facts": [
+              "Interactive prototyping builds a testable representation of how a planned experience looks and works without requiring every production detail.",
+              "Prototypes can be combined with usability testing or a cognitive walkthrough to test whether a design concept works.",
+              "Functional prototypes allow a team to observe how users interact with a product.",
+              "A prototype should show the major interactions even when not every interaction is functional.",
+              "Prototypes should support fast iteration and be inexpensive enough to discard after learning from them."
+            ],
+            "keyTerms": [
+              {
+                "tr": "Interactive prototyping",
+                "df": "Interactive prototyping builds a testable representation of how a planned experience looks and works.",
+                "eg": "A prototype shows the major interactions while some interactions remain not functional.",
+                "mi": "Interactive prototyping requires every production detail before a representation can be tested.",
+                "cx": "The representation can be testable without requiring every production detail."
+              },
+              {
+                "tr": "Prototypes",
+                "df": "Prototypes are representations that can be combined with usability testing or a cognitive walkthrough.",
+                "eg": "Functional prototypes let a team observe how users interact with a product.",
+                "mi": "Prototypes must be expensive enough to retain after the team learns from them.",
+                "cx": "They should be inexpensive enough to discard after learning."
+              },
+              {
+                "tr": "fast iteration",
+                "df": "Fast iteration is a property that prototypes should support during their use.",
+                "eg": "After learning, a team discards an inexpensive prototype.",
+                "mi": "Fast iteration requires every interaction in a prototype to be functional.",
+                "cx": "Major interactions can be shown even when some interactions are not functional."
+              }
+            ],
+            "scenario": {
+              "su": "A team facing a deadline must classify whether a prototype follows the supplied guidance. Its design shows the major interactions, its functionality notation marks some interactions as not functional, and its iteration record indicates inexpensive discard after learning.",
+              "ma": "major-interaction design, functionality notation, iteration record, discard-cost measurement"
+            },
+            "mc": [
+              {
+                "q": "A team compares interactive prototyping that represents how a planned experience looks and works with functional prototypes that reveal observed user interaction. Which distinction matches those observations?",
+                "op": [
+                  "Functional prototypes support discard; representation observes users",
+                  "Representation enables observation; functional prototypes omit experience",
+                  "Representation models experience; functional prototypes reveal interaction",
+                  "Functional prototypes model experience; representation reveals interaction"
+                ],
+                "ai": 2,
+                "fi": [
+                  0,
+                  2
+                ],
+                "ex": "Interactive prototyping represents how a planned experience looks and works, while functional prototypes enable observation of user interaction. Reversing those relations assigns each supplied property to the wrong subject."
+              },
+              {
+                "q": "Under a deadline, a prototype shows major interactions, but its functionality notation marks several interactions as not functional. Which decision is supported by this concrete case?",
+                "op": [
+                  "Discard major interactions when functionality remains incomplete",
+                  "Keep major interactions; permit incomplete functionality",
+                  "Require every interaction before showing major interactions",
+                  "Require production details before testing the representation"
+                ],
+                "ai": 1,
+                "fi": [
+                  3
+                ],
+                "ex": "A prototype should show major interactions even when not every interaction is functional. Requiring every interaction to function reverses the supplied allowance for incomplete functionality."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-f0f0aa2c9a2a35c93fde20f4",
+        "pairId": "scion-kernel-pair-07d6be681e32a0476d651c5f",
+        "artifactSha256": {
+          "A": "9696d25da8ae5d461934b746d27a33f3dc84b8e0a51c70914626cda109444b50",
+          "B": "a2aaf3998a10e7ad02bc77e325bef757fdcf63c45cd62f02517e53c20edb5b9d"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    },
+    {
+      "caseId": "scion-kernel-facfeccb0a971da847bad726",
+      "pairId": "scion-kernel-pair-390127cae11411ba6e8d2bdb",
+      "domain": "music-theory",
+      "failureFamilies": [
+        "answer-feedback-consistency",
+        "answer-key-correctness",
+        "choice-discriminability",
+        "feedback-instructionality",
+        "misconception-validity"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-1",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Key signatures",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: A key signature records the sharps or flats that normally apply in a passage, reducing the need to repeat accidentals on individual notes. Claim 1: Correct notation repeats the key signature on every staff and every system. Claim 2: A temporary modulation can be notated with accidentals rather than a new key signature.",
+        "readings": "Justin Rubin, Music Composition & Theory (2024), chapter 22, University of Minnesota Libraries Publishing"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "ffabcbcf6dc1ecf2545741964b1895f8405b48fa982afc1b44b4166d1a25d025",
+        "kernelId": "music-ccby/key-signatures",
+        "term": "Key signatures",
+        "claims": [
+          "A key signature records the sharps or flats that normally apply in a passage, reducing the need to repeat accidentals on individual notes.",
+          "Correct notation repeats the key signature on every staff and every system.",
+          "A temporary modulation can be notated with accidentals rather than a new key signature."
+        ],
+        "anchors": [
+          {
+            "src": "https://open.lib.umn.edu/musiccomposition/chapter/key-signatures/",
+            "loc": "22 Key Signatures, paragraph 1",
+            "quote": "enable the composer to write without using excessive accidentals"
+          },
+          {
+            "src": "https://open.lib.umn.edu/musiccomposition/chapter/key-signatures/",
+            "loc": "22 Key Signatures, paragraph 1",
+            "quote": "writing in the key signature on every staff and every system"
+          },
+          {
+            "src": "https://open.lib.umn.edu/musiccomposition/chapter/key-signatures/",
+            "loc": "22 Key Signatures, paragraph 1",
+            "quote": "temporary modulations to other key regions will simply add appropriate accidentals"
+          }
+        ],
+        "attribution": [
+          "Justin Rubin, Music Composition & Theory (2024), chapter 22, University of Minnesota Libraries Publishing"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "b00a938855dd57a799fd4bac909492a5de43b4ffa742b82fde0e1afc1417709f",
+          "lessonKernel": {
+            "lessonId": "lesson-1",
+            "facts": [
+              "A key signature records the sharps or flats that normally apply in a passage, reducing the need to repeat accidentals on individual notes. ",
+              "Correct notation repeats the key signature on every staff and every system. ",
+              "A temporary modulation can be notated with accidentals rather than a new key signature."
+            ],
+            "keyTerms": [
+              {
+                "tr": "key signature",
+                "df": "A key signature records the sharps or flats that normally apply in a passage, reducing the need to repeat accidentals on individual notes.",
+                "eg": "A key signature records the sharps or flats that normally apply in a passage, reducing the need to repeat accidentals on individual notes.",
+                "mi": "A key signature is a temporary marking used only for a single measure or phrase.",
+                "cx": "A key signature records the sharps or flats that normally apply in a passage, reducing the need to repeat accidentals on individual notes."
+              },
+              {
+                "tr": "correct notation",
+                "df": "Correct notation repeats the key signature on every staff and every system.",
+                "eg": "Correct notation repeats the key signature on every staff and every system.",
+                "mi": "Correct notation only requires repeating the key signature at the beginning of a new piece.",
+                "cx": "Correct notation repeats the key signature on every staff and every system."
+              },
+              {
+                "tr": "temporary modulation",
+                "df": "A temporary modulation can be notated with accidentals rather than a new key signature.",
+                "eg": "A temporary modulation can be notated with accidentals rather than a new key signature.",
+                "mi": "A temporary modulation always requires a new key signature to be written down.",
+                "cx": "A temporary modulation can be notated with accidentals rather than a new key signature."
+              }
+            ],
+            "scenario": {
+              "su": "A composer is writing a short passage where the tonal center shifts briefly. The composer must decide whether to use a new key signature or accidentals to indicate this shift. The constraint is that the notation must be concise.",
+              "ma": "Compare the notation of a passage using a new key signature versus a passage using accidentals for a temporary modulation."
+            },
+            "mc": [
+              {
+                "q": "When a composer needs to indicate a shift in tonality within a passage, which method is appropriate for notation?",
+                "op": [
+                  "Using a new key signature for the entire passage",
+                  "Using accidentals to indicate a temporary modulation",
+                  "Repeating the original key signature on every staff",
+                  "Omitting the key signature entirely for clarity"
+                ],
+                "ai": 0,
+                "fi": [
+                  2
+                ],
+                "ex": "A temporary modulation can be notated with accidentals rather than a new key signature, which supports using accidentals for a shift."
+              },
+              {
+                "q": "A student observes a piece where the key signature is repeated on every staff and every system; what is the primary function of this practice?",
+                "op": [
+                  "To allow for temporary modulations using accidentals",
+                  "To reduce the need to repeat accidentals on individual notes",
+                  "To record the sharps or flats that normally apply in a passage",
+                  "To indicate a temporary modulation with accidentals"
+                ],
+                "ai": 0,
+                "fi": [
+                  1
+                ],
+                "ex": "Correct notation repeats the key signature on every staff and every system, which supports the function of repeating the key signature on every staff and every system."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "783fbc5e2d01ab16b5a85236034c48aa11476d9c724c5136203dd06cd99d81b5",
+          "lessonKernel": {
+            "lessonId": "lesson-1",
+            "facts": [
+              "A key signature records the sharps or flats that normally apply in a passage, reducing the need to repeat accidentals on individual notes.",
+              "Correct notation repeats the key signature on every staff and every system.",
+              "A temporary modulation can be notated with accidentals rather than a new key signature."
+            ],
+            "keyTerms": [
+              {
+                "tr": "key signature",
+                "df": "A key signature is notation for sharps or flats that normally apply in a passage.",
+                "eg": "Correct notation repeats the key signature on every staff and every system.",
+                "mi": "A key signature must replace accidentals for a temporary modulation.",
+                "cx": "A temporary modulation may instead be represented by accidentals rather than a new key signature."
+              },
+              {
+                "tr": "accidentals",
+                "df": "Accidentals are notation that can represent a temporary modulation rather than a new key signature.",
+                "eg": "A key signature reduces the need to repeat accidentals on individual notes.",
+                "mi": "Accidentals that notate a temporary modulation require a new key signature.",
+                "cx": "The temporary modulation may be written with accidentals in place of introducing a new key signature."
+              },
+              {
+                "tr": "temporary modulation",
+                "df": "A temporary modulation can be represented through accidentals rather than through a new key signature.",
+                "eg": "In a passage, accidentals provide the notation for a temporary modulation.",
+                "mi": "A temporary modulation must be recorded by a new key signature.",
+                "cx": "Using accidentals is a supported way to notate that modulation."
+              }
+            ],
+            "scenario": {
+              "su": "An editor must classify two passages before notation is finalized: one shows normally applying sharps or flats, while another shows a temporary modulation through accidentals. The editor must distinguish their notation while also checking every staff and every system for repeated key signatures.",
+              "ma": "passage with normally applying sharps or flats and a key signature repeated on every staff and every system, passage with a temporary modulation notated with accidentals rather than a new key signature"
+            },
+            "mc": [
+              {
+                "q": "One passage has sharps or flats that normally apply, while another has a temporary modulation; which comparison correctly distinguishes the observed key signature and accidentals?",
+                "op": [
+                  "Normal sharps or flats: key signature; modulation: accidentals",
+                  "Normal sharps or flats: accidentals; modulation: key signature",
+                  "Normal sharps or flats: key signature; modulation: key signature",
+                  "Normal sharps or flats: accidentals; modulation: accidentals"
+                ],
+                "ai": 0,
+                "fi": [
+                  0,
+                  2
+                ],
+                "ex": "A key signature records normally applying sharps or flats, whereas accidentals can notate a temporary modulation. Reversing those two relationships conflicts with the supplied distinction."
+              },
+              {
+                "q": "An editor sees a key signature on the first staff of a system but must finalize correct notation across several staffs and systems; what action matches the observed requirement?",
+                "op": [
+                  "Repeat key signature on every staff and system",
+                  "Repeat key signature on every staff",
+                  "Repeat key signature on every system",
+                  "Repeat accidentals on every staff and system"
+                ],
+                "ai": 0,
+                "fi": [
+                  1
+                ],
+                "ex": "Correct notation repeats the key signature on every staff and every system. Repeating it across staffs while omitting the system requirement leaves the stated notation rule incomplete."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-facfeccb0a971da847bad726",
+        "pairId": "scion-kernel-pair-390127cae11411ba6e8d2bdb",
+        "artifactSha256": {
+          "A": "b00a938855dd57a799fd4bac909492a5de43b4ffa742b82fde0e1afc1417709f",
+          "B": "783fbc5e2d01ab16b5a85236034c48aa11476d9c724c5136203dd06cd99d81b5"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    }
+  ],
+  "claimBoundary": "This packet contains anonymous source-bound artifacts only. It contains no provider identity, model identity, route, admission outcome, retry history, compiler receipt, preference, or training authorization.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "f11a0c43031979aee81d7521469f7a32225e5c2690b07bc6ce424458e24bef02"
+  }
+}

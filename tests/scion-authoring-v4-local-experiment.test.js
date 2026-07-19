@@ -18,7 +18,7 @@ describe('Scion authoring v4 local experiment', () => {
         {
           strictReplay: {
             raw: { admittedAtoms: 31, admittedMcItems: 30, admittedKeyTerms: 1, missingResponses: 0 },
-            effective: { admittedAtoms: 47, admittedMcItems: 44, admittedKeyTerms: 3 },
+            effective: { admittedAtoms: 49, admittedMcItems: 46, admittedKeyTerms: 3 },
           },
           targetedRecovery: {
             calls: 34,
@@ -30,10 +30,10 @@ describe('Scion authoring v4 local experiment', () => {
       ],
       delta: {
         rawAdmittedAtoms: -46,
-        effectiveAdmittedAtoms: -44,
+        effectiveAdmittedAtoms: -42,
         rawAdmittedMcItems: -13,
         rawAdmittedKeyTerms: -33,
-        effectiveAdmittedMcItems: -10,
+        effectiveAdmittedMcItems: -8,
         effectiveAdmittedKeyTerms: -34,
         malformedResponses: 0,
       },

@@ -1,0 +1,150 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-teacher-capture-v1",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "packetSha256": "f82fe52b7c9e1de407cbc3dd931b073b97286f90211a25b68a3a2b86a17f21aa",
+  "resultSha256": "2c025dd3ceadd66ae57643ebe3601f37c6df0f93da790c82272a3c71d9b50aff",
+  "reviser": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-source-cleanroom"
+  },
+  "calls": [
+    {
+      "caseId": "scion-kernel-bf7c2cbf2045087ba349c0c3",
+      "caseSha256": "bf7c2cbf2045087ba349c0c39766afc35d65d6493989d8140ea3c42cbc76707d",
+      "arm": "teacher-revision",
+      "model": {
+        "model": "gpt-5.6-sol",
+        "revision": "codex-cli 0.144.5",
+        "runtime": "codex-cli-ephemeral-source-cleanroom"
+      },
+      "sourceContextSha256": "902ce9edbc7ec41d6f094b005579c5cee05a49a4991c6418cfdf07fb9eae6ba5",
+      "originalArtifactSha256": "7aaeaebbeb5e8aadf94351223750a58cb140937c22865af06600f39f64b996f2",
+      "artifact": {
+        "lessonId": "lesson-7",
+        "facts": [
+          "Electrical resistance describes how strongly a material or device opposes current; Ohm's law relates voltage, current, and resistance for ohmic conductors.",
+          "For an ohmic device at fixed temperature, current is proportional to voltage.",
+          "Resistance depends on material, length, cross-sectional area, and temperature."
+        ],
+        "keyTerms": [
+          {
+            "tr": "Electrical resistance",
+            "df": "Electrical resistance is a description of how strongly a material or device opposes current.",
+            "eg": "Material, length, cross-sectional area, and temperature are recorded when comparing resistance.",
+            "mi": "Electrical resistance describes how strongly voltage opposes current.",
+            "cx": "Voltage is one quantity related by Ohm's law, while the opposition to current is attributed to a material or device."
+          },
+          {
+            "tr": "Ohm's law",
+            "df": "Ohm's law is a relation among voltage, current, and resistance for ohmic conductors.",
+            "eg": "An ohmic device at fixed temperature provides a voltage-current proportionality case.",
+            "mi": "Ohm's law makes material, length, cross-sectional area, and temperature proportional.",
+            "cx": "Those properties are dependencies of resistance; the stated proportionality connects current and voltage at fixed temperature."
+          },
+          {
+            "tr": "fixed temperature",
+            "df": "Fixed temperature is the stated condition for proportional current and voltage in an ohmic device.",
+            "eg": "A voltage-current comparison for an ohmic device records fixed temperature as its condition.",
+            "mi": "At fixed temperature, resistance is proportional to cross-sectional area.",
+            "cx": "The proportional relation under that condition connects current with voltage, not resistance with cross-sectional area."
+          }
+        ],
+        "scenario": {
+          "su": "A workshop group must label which statement describes electrical resistance and which describes an ohmic device at fixed temperature. Before a deadline, they must distinguish the recorded opposition to current from the recorded proportionality of current to voltage.",
+          "ma": "the opposition-to-current statement, the fixed-temperature voltage-current observation, the material-length-area-temperature resistance list"
+        },
+        "mc": [
+          {
+            "q": "A circuit record compares electrical resistance with Ohm's law: one statement describes opposition to current, while another links voltage, current, and resistance. Which option preserves the complete distinction?",
+            "op": [
+              "Ohm's law opposes current; resistance relates three quantities.",
+              "Resistance relates voltage; Ohm's law opposes current.",
+              "Resistance opposes current; Ohm's law relates three quantities.",
+              "Resistance opposes current; Ohm's law relates voltage."
+            ],
+            "ai": 2,
+            "fi": [
+              0
+            ],
+            "ex": "Electrical resistance describes opposition to current, while Ohm's law relates voltage, current, and resistance for ohmic conductors. Treating Ohm's law as opposition swaps the two stated relations."
+          },
+          {
+            "q": "For an ohmic device at fixed temperature, a comparison considers current, voltage, resistance, and temperature. Which relationship identifies the proportional quantities stated under this condition?",
+            "op": [
+              "Voltage is proportional to temperature.",
+              "Current is proportional to voltage.",
+              "Current is proportional to temperature.",
+              "Resistance is proportional to voltage."
+            ],
+            "ai": 1,
+            "fi": [
+              1
+            ],
+            "ex": "For an ohmic device at fixed temperature, the stated relationship is that current is proportional to voltage. Fixed temperature is the condition, so current proportional to temperature is not the stated relationship."
+          }
+        ]
+      },
+      "artifactSha256": "46fee99f811c547ca3080ff5143b7164399cff1395394e725b6c182d397f7131",
+      "admission": {
+        "needsRetry": false,
+        "issues": []
+      },
+      "compilerRepairs": [
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-7",
+          "item": 0,
+          "permutation": [
+            1,
+            2,
+            0,
+            3
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 2,
+          "trainingEligible": false
+        },
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-7",
+          "item": 1,
+          "permutation": [
+            3,
+            0,
+            1,
+            2
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 1,
+          "trainingEligible": false
+        }
+      ],
+      "revisionEvidence": {
+        "packetSha256": "f82fe52b7c9e1de407cbc3dd931b073b97286f90211a25b68a3a2b86a17f21aa",
+        "sessionId": "scion-v01654-teacher-batch-004-ac35428971-part-02-1e72c194-fc88-4118-8e7f-1218763cdd6c",
+        "changeSummary": [
+          "Re-authored the complete second multiple-choice item to remove the equivalent alternatives while preserving the cited source claim."
+        ],
+        "addressedDiagnoses": [
+          "Removed the duplicate direct-proportionality alternatives that made the second assessment ambiguous.",
+          "Replaced the incorrect explanation about reversing a proportional relationship with a source-backed correction."
+        ]
+      }
+    }
+  ],
+  "summary": {
+    "cases": 1,
+    "compilerAdmitted": 1,
+    "compilerRejected": 0
+  },
+  "claimBoundary": "These source-constrained model revisions cleared only deterministic compiler admission where stated. They are not judge preferences, human evidence, adapter wins, or training authorization.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "b47cc7bf59b3a80c6942c21afb7f7e7197505f2f2af85354ee4ed86f31a3c578"
+  }
+}

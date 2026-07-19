@@ -1,0 +1,342 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-review-v1",
+  "order": "A/B",
+  "packetSha256": "3e53385cacc29a6a468b9662c15377e654027cb7b7d5c6b70b9c729e6471fadb",
+  "sessionId": "scion-v01654-batch-002-d428445a1b-a-b-a66ddae1-cc62-4314-bdd0-5857afdb424f",
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "completedAt": "2026-07-19T19:44:22Z",
+  "attestations": {
+    "anonymousArtifactsOnly": true,
+    "otherOrderUnavailable": true,
+    "organizerMappingUnavailable": true
+  },
+  "decisions": [
+    {
+      "caseId": "scion-kernel-becf20842df8b3de34276971",
+      "pairId": "scion-kernel-pair-7e62fb29238b7d476a1897af",
+      "artifactSha256": {
+        "A": "f81de504fcd4ca72bc829eec1776b29224c51468fae45c987ebdd081a58705fb",
+        "B": "9670bcf411ab47c22fbc533afea81846d34045c555f717d902aba8208ef4ce3d"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 1,
+            "evidence": "The scenario invents body temperature, cooling mechanisms, and vasodilation, while the set-point correction wrongly calls the set point a fluctuating value."
+          },
+          "knowledgePrecision": {
+            "score": 1,
+            "evidence": "The copied facts are accurate, but the set-point correction confuses the physiological value with the normal range that fluctuates around it."
+          },
+          "scenarioReadiness": {
+            "score": 1,
+            "evidence": "The patient setup names a deviation and responses, but its action merely says to compare components and supplies unsupported physiological details."
+          },
+          "assessmentCorrectness": {
+            "score": 0,
+            "evidence": "Question one declares the set-point definition instead of negative feedback, and question two declares the set-point option instead of the control center."
+          },
+          "choiceDiscriminability": {
+            "score": 1,
+            "evidence": "The first item mixes mechanisms with unrelated definitions, while the second mixes component roles with a set-point definition and keys the wrong option."
+          },
+          "feedbackInstructionality": {
+            "score": 0,
+            "evidence": "Both explanations concatenate all three source facts without explaining the declared choice or repairing the closest misconception."
+          },
+          "internalCoherence": {
+            "score": 0,
+            "evidence": "Both answer indices conflict with their questions, and the claim that a set point fluctuates conflicts with the artifact's own fact."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "Facts, term distinctions, notation scenario, options, and explanations all remain within the three supplied homeostasis claims."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "Homeostasis, set point, and feedback loop are kept distinct, and each misconception is directly corrected by the relevant supplied relation."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The reviewer must classify two inspectable notations before a deadline using deviation-response, component-list, and fluctuation evidence."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "The keyed comparisons correctly distinguish homeostasis from set point and identify the three-component design as a complete feedback loop."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "Both items offer four distinct classifications, with the correct choice uniquely preserving all stated roles or all three components."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation states the supporting distinction and explicitly repairs the closest role reversal or omitted-component misconception."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "Facts, terms, scenario evidence, answer indices, and explanations consistently express the same three source-defined distinctions."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "Both multiple-choice items have incorrect declared answers.",
+          "The scenario adds unsupported physiological details about body temperature, cooling mechanisms, and vasodilation.",
+          "The set-point correction makes the unsupported and inaccurate claim that the set point itself is a fluctuating value."
+        ],
+        "B": []
+      },
+      "decision": "B",
+      "rationale": "B is fully source-bound, presents a usable classification decision, and has uniquely correct assessments with explanatory feedback. A adds unsupported physiological content, misstates the set point, and declares incorrect answers for both questions."
+    },
+    {
+      "caseId": "scion-kernel-bf7c2cbf2045087ba349c0c3",
+      "pairId": "scion-kernel-pair-0548e154ebc8779dd0105986",
+      "artifactSha256": {
+        "A": "89543c9bb19e9729a3ec3bb74881283c861bc10a3db2f7ed3743a9d227aa159a",
+        "B": "46fee99f811c547ca3080ff5143b7164399cff1395394e725b6c182d397f7131"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 1,
+            "evidence": "The artifact invents a copper-versus-silver resistance comparison and asks for directional and quantitative resistance effects absent from the supplied claims."
+          },
+          "knowledgePrecision": {
+            "score": 1,
+            "evidence": "Core definitions are copied accurately, but the examples and applications assert unsupported comparisons and fail to distinguish proportional current from inverse proportionality."
+          },
+          "scenarioReadiness": {
+            "score": 1,
+            "evidence": "The doubling observation is inspectable, but the requested manipulated property and the separate 10-meter versus 5-meter comparison do not form one coherent decision."
+          },
+          "assessmentCorrectness": {
+            "score": 0,
+            "evidence": "The first key declares current inversely proportional to voltage, and the second key selects an area change that cannot be justified as reducing current."
+          },
+          "choiceDiscriminability": {
+            "score": 1,
+            "evidence": "The first options are distinct but keyed incorrectly; the second offers interventions whose effects are not supplied and has no supported unique answer."
+          },
+          "feedbackInstructionality": {
+            "score": 0,
+            "evidence": "Each explanation is a mechanical sequence of claim and option text and neither supports the key nor corrects a misconception."
+          },
+          "internalCoherence": {
+            "score": 0,
+            "evidence": "The keys contradict the proportionality fact, the explanations do not support them, and the scenario's action is disconnected from its comparison evidence."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "Every definition, scenario record, option, and explanation restates or contrasts only the supplied resistance and proportionality claims."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "Resistance, Ohm's law, and fixed temperature are accurately distinguished, with misconceptions repaired by identifying the correct relation or dependency."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The workshop must label two kinds of statements before a deadline using three explicit, inspectable records as evidence."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "The keys correctly identify resistance as opposition to current, Ohm's law as the three-quantity relation, and current as proportional to voltage."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "The options are distinct and uniquely answerable, though phrases such as 'three quantities' and incomplete alternatives make the first item somewhat easy."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "The explanations give the supporting relations and directly explain why the closest swapped or temperature-based interpretation fails."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "The terms, scenario records, questions, answer indices, and explanations consistently preserve the same source-defined relationships."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "Both multiple-choice items have incorrect or unsupported declared answers.",
+          "The copper-versus-silver example is an unsupported invented named comparison.",
+          "The second question requires unsupported directional and quantitative effects of resistance variables."
+        ],
+        "B": []
+      },
+      "decision": "B",
+      "rationale": "B cleanly distinguishes the supplied resistance concepts and supports both keyed answers with focused feedback. A introduces unsupported material comparisons and causal relationships, then keys both assessments incorrectly or without source support."
+    },
+    {
+      "caseId": "scion-kernel-c6d826e4fc868a6fa9ef434f",
+      "pairId": "scion-kernel-pair-f7af16e5d234275bda2de291",
+      "artifactSha256": {
+        "A": "9baea45054f6d0f009a57290211e924e1c8f310026d681a3bc7d62e5cb0c82ff",
+        "B": "19ab1bca1f3282ad0513641405543ea1c575057876a099afe61818ed2453aca7"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 1,
+            "evidence": "The scenario introduces the unsupported named key of C major, and the second item declares the false claim that subtonic is the sixth degree."
+          },
+          "knowledgePrecision": {
+            "score": 2,
+            "evidence": "Most definitions reproduce the claims, but the first misconception is unclear and the assessment fails the central seventh-degree definition."
+          },
+          "scenarioReadiness": {
+            "score": 2,
+            "evidence": "The scenario supplies patterns and a strict-pattern constraint, but calling the piece C major pre-decides and conflicts with the proposed major-versus-minor choice."
+          },
+          "assessmentCorrectness": {
+            "score": 0,
+            "evidence": "Question one admits both the stated major pattern and the stated natural-minor characteristic, while question two keys the false sixth-degree option."
+          },
+          "choiceDiscriminability": {
+            "score": 1,
+            "evidence": "The first item contains two source-supported characteristics, and the second item's declared answer is a false distractor rather than the unique seventh-degree choice."
+          },
+          "feedbackInstructionality": {
+            "score": 0,
+            "evidence": "Both explanations end with unfinished template language about correcting a distractor, and the second explanation contradicts its declared answer."
+          },
+          "internalCoherence": {
+            "score": 0,
+            "evidence": "The C-major premise conflicts with the mode decision, one item is ambiguous, and the other item's key conflicts with its own explanation and fact."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "The definitions, notation evidence, choices, and explanations use only the supplied major pattern and natural-minor subtonic relation."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "Major-scale pattern, natural minor, and subtonic are accurately distinguished, with each misconception corrected at the precise scale or degree level."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The editor must classify displayed relations under a deadline using a complete major pattern and an explicit seventh-degree-to-tonic observation."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "The keys uniquely identify the supplied whole-half sequence as major and the whole-step seventh degree as the natural-minor subtonic."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "All choices are distinct and the second item is strongly parallel, though tonic and subtonic are weak category distractors in the first item."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation cites the decisive pattern or interval relation and repairs the nearest natural-minor or tonic-label misconception."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "Terms, scenario notation, answer keys, and explanations consistently assign the pattern to major and subtonic to natural minor's seventh degree."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "The second multiple-choice item has an incorrect declared answer, and its explanation contradicts that answer.",
+          "The first question has multiple source-supported alternatives and is therefore ambiguous.",
+          "Both explanations contain unfinished instructional template text instead of the promised misconception correction.",
+          "The scenario adds the unsupported named example of C major."
+        ],
+        "B": []
+      },
+      "decision": "B",
+      "rationale": "B remains within the source and turns both distinguishing relations into coherent, uniquely keyed decisions with useful correction. A adds a named example, creates an ambiguous first item, miskeys the second, and leaves feedback unfinished."
+    },
+    {
+      "caseId": "scion-kernel-eb4049f6a28f14cedcfa8b79",
+      "pairId": "scion-kernel-pair-269d39baaef24615ef4f1553",
+      "artifactSha256": {
+        "A": "f918fc8913140ff12d81d44183585b3937395d6005f4c15a458790c04215401a",
+        "B": "4cd1c779b35b55aca7f110350715bc14a97724a08493156fa851cffa7e86bb17"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 1,
+            "evidence": "The artifact introduces named A-minor passages, asserts an unsupported 'only' distinction, and declares harmonic minor for raised sixth and seventh degrees."
+          },
+          "knowledgePrecision": {
+            "score": 2,
+            "evidence": "The harmonic and melodic definitions are accurate, but the first misconception is not genuinely repaired and the assessments mishandle their distinction."
+          },
+          "scenarioReadiness": {
+            "score": 2,
+            "evidence": "The observed altered degrees support a classification, but the main action compares already labeled named passages rather than presenting neutral evidence for the decision."
+          },
+          "assessmentCorrectness": {
+            "score": 0,
+            "evidence": "The first question has two independently true alternatives, and the second keys harmonic minor even though its own explanation identifies melodic minor."
+          },
+          "choiceDiscriminability": {
+            "score": 0,
+            "evidence": "Question one has multiple supportable answers, while question two duplicates the harmonic-minor alternative and keys that duplicate wrong classification."
+          },
+          "feedbackInstructionality": {
+            "score": 0,
+            "evidence": "The first explanation does not resolve why one of two true choices wins, and the second directly contradicts the declared answer."
+          },
+          "internalCoherence": {
+            "score": 0,
+            "evidence": "The questions, answer indices, and explanations disagree, and the duplicated alternatives compound the assessment inconsistency."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "All facts, term examples, scenario observations, options, and explanations stay within the three supplied minor-variant claims."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "Natural, harmonic, and melodic variants remain distinct, and corrections precisely contrast raised seventh with raised sixth and seventh degrees."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The student must label two inspectable notations and use the sixth-degree observation as the explicit constraint that separates the variants."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both keys uniquely select harmonic minor with raised seventh and melodic minor with raised sixth and seventh degrees."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "The alternatives are parallel, distinct, and plausible partial or swapped descriptions, while only one choice accounts for every observed alteration."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation states the full supported contrast and explains why the closest partial description fails by omitting the raised sixth or seventh."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "Facts, definitions, scenario evidence, answer indices, and explanations consistently use the sixth-degree alteration to distinguish the two variants."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "The second multiple-choice item has an incorrect declared answer, and its explanation contradicts that answer.",
+          "The first multiple-choice item has multiple source-supported answers.",
+          "The second item duplicates the harmonic-minor alternative, making the choice set defective.",
+          "The scenario invents named A-minor passages not present in the supplied source."
+        ],
+        "B": []
+      },
+      "decision": "B",
+      "rationale": "B provides a fully source-bound and discriminating comparison of harmonic and melodic minor. A has an ambiguous first item, a duplicated and incorrectly keyed second item, contradictory feedback, and unsupported named passages."
+    }
+  ]
+}

@@ -1,0 +1,168 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-teacher-revision-packet-v1",
+  "generatedAt": "2026-07-19T22:45:00.000Z",
+  "batchId": "batch-005-3337231ee9",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "aggregateSha256": "34b7ab46362d7ffa34e7f89dd6f1c958c6f13779d7e6d7ed5451a87de759b52b",
+  "prompt": {
+    "path": "evaluation/scion-adapters/lesson-kernel-teacher-revision-prompt-v8-v0.16.60.md",
+    "sha256": "505aff4b87a07aa0d7d9d7d7b6d40bb268f654439a4b8e06f1d1efda53327eb1"
+  },
+  "cases": [
+    {
+      "caseId": "scion-kernel-eb4049f6a28f14cedcfa8b79",
+      "caseSha256": "eb4049f6a28f14cedcfa8b79c562561cfce310d76cb939aa136e75d7cb32349c",
+      "lessonInput": {
+        "lessonId": "lesson-3",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Minor-scale variants",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: The minor key system has natural, harmonic, and melodic variants that differ through alterations to the sixth and seventh scale degrees. Claim 1: Harmonic minor raises the seventh scale degree so it can function as a leading tone. Claim 2: Melodic minor raises both the sixth and seventh scale degrees.",
+        "readings": "Justin Rubin, Music Composition & Theory (2024), chapter 25, University of Minnesota Libraries Publishing"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "ffabcbcf6dc1ecf2545741964b1895f8405b48fa982afc1b44b4166d1a25d025",
+        "kernelId": "music-ccby/minor-scale-variants",
+        "term": "Minor-scale variants",
+        "claims": [
+          "The minor key system has natural, harmonic, and melodic variants that differ through alterations to the sixth and seventh scale degrees.",
+          "Harmonic minor raises the seventh scale degree so it can function as a leading tone.",
+          "Melodic minor raises both the sixth and seventh scale degrees."
+        ],
+        "anchors": [
+          {
+            "src": "https://open.lib.umn.edu/musiccomposition/chapter/common-practice-era-scales-intervals-and-chord-functions/",
+            "loc": "25 Common Practice Era Scales, Minor",
+            "quote": "The minor key system has three variants: a) Natural, b) Harmonic, and c) Melodic."
+          },
+          {
+            "src": "https://open.lib.umn.edu/musiccomposition/chapter/common-practice-era-scales-intervals-and-chord-functions/",
+            "loc": "25 Common Practice Era Scales, Minor",
+            "quote": "The harmonic minor scale includes a raised seventh scale degree"
+          },
+          {
+            "src": "https://open.lib.umn.edu/musiccomposition/chapter/common-practice-era-scales-intervals-and-chord-functions/",
+            "loc": "25 Common Practice Era Scales, Minor",
+            "quote": "The melodic minor scale includes a raised sixth as well as seventh scale degree."
+          }
+        ],
+        "attribution": [
+          "Justin Rubin, Music Composition & Theory (2024), chapter 25, University of Minnesota Libraries Publishing"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "originalArtifact": {
+        "lessonId": "lesson-3",
+        "facts": [
+          "The minor key system has natural, harmonic, and melodic variants that differ through alterations to the sixth and seventh scale degrees.",
+          "Harmonic minor raises the seventh scale degree so it can function as a leading tone.",
+          "Melodic minor raises both the sixth and seventh scale degrees."
+        ],
+        "keyTerms": [
+          {
+            "tr": "minor key system",
+            "df": "The minor key system includes natural, harmonic, and melodic variants distinguished through alterations to the sixth and seventh scale degrees.",
+            "eg": "Natural, harmonic, and melodic are variants within the minor key system.",
+            "mi": "The minor key system has harmonic and melodic variants distinguished through the seventh scale degree.",
+            "cx": "Natural is also a variant, and the stated differences involve alterations to the sixth and seventh scale degrees."
+          },
+          {
+            "tr": "harmonic minor",
+            "df": "Harmonic minor is the variant that raises the seventh scale degree so it can function as a leading tone.",
+            "eg": "Harmonic minor raises the seventh scale degree.",
+            "mi": "Harmonic minor raises both the sixth and seventh scale degrees.",
+            "cx": "Raising both degrees is the stated relation for melodic minor, while harmonic minor raises the seventh."
+          },
+          {
+            "tr": "melodic minor",
+            "df": "Melodic minor is the variant distinguished by raising both the sixth and seventh scale degrees.",
+            "eg": "Melodic minor raises both the sixth and seventh scale degrees.",
+            "mi": "Melodic minor raises the seventh scale degree while harmonic minor raises both degrees.",
+            "cx": "The supplied relations run oppositely: melodic minor raises both degrees, and harmonic minor raises the seventh."
+          }
+        ],
+        "scenario": {
+          "su": "A student compares a notation with a raised seventh scale degree against a notation with raised sixth and seventh scale degrees. Because both notations raise the seventh, the student must use the sixth-degree observation to label harmonic minor and melodic minor defensibly.",
+          "ma": "notation showing a raised seventh scale degree, notation showing raised sixth and seventh scale degrees"
+        },
+        "mc": [
+          {
+            "q": "Two notations show different alterations: harmonic minor has a raised seventh degree, while melodic minor has raised sixth and seventh degrees. Which comparison fully matches both observations?",
+            "op": [
+              "Harmonic raises seventh; melodic raises sixth and seventh",
+              "Melodic raises seventh; harmonic raises sixth and seventh",
+              "Harmonic raises seventh; melodic raises the sixth",
+              "Harmonic raises the seventh; melodic raises the seventh"
+            ],
+            "ai": 0,
+            "fi": [
+              1,
+              2
+            ],
+            "ex": "Harmonic minor raises the seventh scale degree, whereas melodic minor raises both the sixth and seventh. Saying melodic minor raises the sixth omits its raised seventh."
+          },
+          {
+            "q": "A notation displays raised sixth and seventh scale degrees, and the student must select the supplied variant description that accounts for every observed alteration. Which description directly matches the notation?",
+            "op": [
+              "Melodic minor raises both observed scale degrees",
+              "Harmonic minor raises both observed scale degrees",
+              "Melodic minor raises the seventh scale degree",
+              "Harmonic minor raises the seventh scale degree"
+            ],
+            "ai": 0,
+            "fi": [
+              2
+            ],
+            "ex": "Melodic minor raises both the sixth and seventh scale degrees, matching every observation. The description mentioning its seventh degree alone omits the observed raised sixth."
+          }
+        ]
+      },
+      "originalArtifactSha256": "7062ff632711cdc69998ce48e7b2e641e511cb988c78cf255f07f101f62a3692",
+      "compilerAdmission": {
+        "needsRetry": true,
+        "issues": [
+          "lesson-3:key-term-2:misconception-repeats-example"
+        ]
+      },
+      "diagnoses": [
+        {
+          "winnerScores": {
+            "sourceFidelity": 4,
+            "knowledgePrecision": 4,
+            "scenarioReadiness": 4,
+            "assessmentCorrectness": 4,
+            "choiceDiscriminability": 4,
+            "feedbackInstructionality": 4,
+            "internalCoherence": 4
+          },
+          "criticalDefects": [],
+          "rationale": "B supplies a complete, source-bound comparison with discriminating choices and correct explanations. A has invented named material, a non-unique first item, and a critically incorrect and duplicated second-item answer.",
+          "decisionSha256": "f5f686d91abdf24afc14d717295354b70fc8aa81941c86c97465ff80eea46379"
+        },
+        {
+          "winnerScores": {
+            "sourceFidelity": 4,
+            "knowledgePrecision": 4,
+            "scenarioReadiness": 4,
+            "assessmentCorrectness": 4,
+            "choiceDiscriminability": 4,
+            "feedbackInstructionality": 4,
+            "internalCoherence": 4
+          },
+          "criticalDefects": [],
+          "rationale": "A provides a complete, source-bound comparison with uniquely correct assessments and corrective feedback. B adds an unsupported named example and has severe ambiguity, duplication, and answer-feedback contradictions.",
+          "decisionSha256": "cdba1678068a490134b38507bb66c87fa18000a215a4b944cb047b786f88e10f"
+        }
+      ]
+    }
+  ],
+  "claimBoundary": "These are source packets, diagnosed reference artifacts, and compiler outcomes only. No local artifact, provider route, organizer preference, or training authorization is included.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "5b5dd27df39f6322c0ac4f8a50bb05abcfc89fc910e1341953936a50e3e8d7e1"
+  }
+}

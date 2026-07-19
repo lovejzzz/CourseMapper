@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-teacher-revision-result-v1",
+  "packetSha256": "7f62fcbbceb5b8e3508c4562e4896b9bf63df1768ba20b769ee45ab0c09d2dba",
+  "sessionId": "scion-v01654-teacher-batch-004-ac35428971-part-01-ededde15-5918-4643-a6cb-cc025d7382b4",
+  "reviser": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-source-cleanroom"
+  },
+  "completedAt": "2026-07-19T22:45:00.000Z",
+  "attestations": {
+    "suppliedClaimsOnly": true,
+    "noExternalFacts": true,
+    "noTrainingAuthorization": true
+  },
+  "revisions": [
+    {
+      "caseId": "scion-kernel-becf20842df8b3de34276971",
+      "originalArtifactSha256": "c3c5384b7410a750f0dbd213cc628772c9d638f6728416233b099c767b1d7ef7",
+      "lessonKernel": {
+        "lessonId": "lesson-2",
+        "facts": [
+          "Homeostasis is the maintenance of stable internal conditions, usually through negative-feedback loops that detect a deviation from a set point and activate a response that reverses it.",
+          "A set point is the physiological value around which the normal range fluctuates.",
+          "A feedback loop includes a sensor, a control center, and an effector."
+        ],
+        "keyTerms": [
+          {
+            "tr": "Homeostasis",
+            "df": "Homeostasis is maintenance distinguished by stable internal conditions and negative-feedback regulation.",
+            "eg": "A detected deviation prompts an activated response that reverses the deviation.",
+            "mi": "Homeostasis activates a response that preserves a deviation from the set point.",
+            "cx": "The activated response reverses the detected deviation rather than preserving it."
+          },
+          {
+            "tr": "set point",
+            "df": "A set point is the physiological value that provides the center of normal-range fluctuation.",
+            "eg": "The normal range fluctuates around the marked physiological value.",
+            "mi": "The set point fluctuates around the normal range.",
+            "cx": "The normal range varies around the physiological value, reversing the proposed relationship."
+          },
+          {
+            "tr": "feedback loop",
+            "df": "A feedback loop is a composite that includes a sensor, a control center, and an effector.",
+            "eg": "A loop notation lists the sensor, control center, and effector.",
+            "mi": "A feedback loop consists of a set point and a normal range.",
+            "cx": "The set point and normal range cannot replace the sensor, control center, and effector as the loop's included components."
+          }
+        ],
+        "scenario": {
+          "su": "A reviewer must classify two physiology notations before a deadline: one shows a detected set-point deviation followed by a reversing response, while another lists a sensor, control center, and effector. The reviewer must decide which notation describes homeostasis and which identifies a feedback loop.",
+          "ma": "The reviewer compares the set-point deviation-and-response notation, the sensor-control-center-effector design, and the normal-range fluctuation passage."
+        },
+        "mc": [
+          {
+            "q": "When one notation shows maintenance of stable internal conditions and another marks the physiological value around which a normal range fluctuates, which comparison correctly distinguishes Homeostasis from a set point?",
+            "op": [
+              "Homeostasis maintains conditions; set point anchors fluctuations",
+              "Homeostasis anchors fluctuations; set point detects deviation",
+              "Set point maintains conditions; homeostasis anchors fluctuations",
+              "Homeostasis is a value; set point maintains conditions"
+            ],
+            "ai": 0,
+            "fi": [
+              0,
+              1
+            ],
+            "ex": "Homeostasis maintains stable internal conditions, whereas the set point is the physiological value around which the normal range fluctuates. The comparison that makes homeostasis a value and the set point the maintenance process reverses those roles."
+          },
+          {
+            "q": "A design explicitly contains a sensor, a control center, and an effector, but the reviewer must choose one label before a deadline; which classification is supported?",
+            "op": [
+              "Classify it as a complete feedback loop",
+              "Classify it as control center and effector",
+              "Classify it as sensor and effector",
+              "Classify it as sensor and control center"
+            ],
+            "ai": 0,
+            "fi": [
+              2
+            ],
+            "ex": "The design contains every listed component of a feedback loop: a sensor, a control center, and an effector. Classifying it by two components omits the remaining required member."
+          }
+        ]
+      },
+      "changeSummary": [
+        "Moved each uniquely supported option to the first position and set each answer index to zero.",
+        "Rewrote the first explanation to preserve the stated roles of homeostasis and the set point."
+      ],
+      "addressedDiagnoses": [
+        "Corrected the first explanation so it no longer assigns fluctuation anchoring to homeostasis.",
+        "Aligned the first explanation with its keyed distinction between homeostasis and a set point."
+      ]
+    }
+  ]
+}

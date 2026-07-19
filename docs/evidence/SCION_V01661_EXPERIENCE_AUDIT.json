@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "release": "0.16.61",
+  "date": "2026-07-20",
+  "status": "local-browser-and-regression-verified",
+  "environment": {
+    "browser": "Chromium",
+    "provider": "Scion configuration and fixture-backed workflow routes",
+    "liveProviderGeneration": false
+  },
+  "ciDiagnosis": {
+    "screenshotCommit": "facc391",
+    "failure": "Tracked source compiler replay receipt was stale",
+    "productBuildFailure": false,
+    "resolvedMainCommit": "071a093",
+    "resolvedRun": "https://github.com/lovejzzz/CourseMapper/actions/runs/29698499008",
+    "resolvedRunConclusion": "success"
+  },
+  "qualityEvidence": {
+    "selectionCases": 28,
+    "referenceWins": 28,
+    "orderUnstablePairs": 0,
+    "qualifiedExpansionRows": 27,
+    "quarantinedCases": 1,
+    "cumulativeQualifiedRows": 47,
+    "targetRows": 100,
+    "frozenLosingAtomsDetected": 78,
+    "frozenPreferredArtifactsPreserved": 78,
+    "frozenRegressions": 0
+  },
+  "localVerification": {
+    "status": "passed",
+    "commands": [
+      "npm test",
+      "npm run lint",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run test:e2e",
+      "npm run audit:release-history",
+      "npm run audit:scion:semantic-admission:v0.16.55",
+      "npm run audit:scion:source-compiler-replay",
+      "npm run audit:scion:semantic-expansion-evidence:v0.16.61"
+    ],
+    "results": {
+      "unitTests": 5022,
+      "unitTestFiles": 416,
+      "unitFailures": 0,
+      "e2eTests": 147,
+      "e2eFailures": 0,
+      "format": "passed",
+      "lint": "passed",
+      "productionBuild": "passed",
+      "bundleBudgets": "passed",
+      "releaseClaims": 10,
+      "semanticExpansionQualifiedRows": 27,
+      "semanticExpansionCumulativeRows": 47
+    }
+  },
+  "browserVerification": {
+    "status": "passed",
+    "url": "http://127.0.0.1:5181/",
+    "browser": "Codex in-app Chromium",
+    "desktopChecks": [
+      "Landing page shows Scion V0.16.61, Connected, and On-device",
+      "A one-lesson Ohm's law brief reaches recommended materials and Configure generation",
+      "The Scion information note states local execution, no API key, first-run model download, and review responsibility",
+      "The V0.16.61 changelog renders all ten highlights and six detailed sections",
+      "No console warnings or errors were recorded during the manual path"
+    ],
+    "phoneChecks": {
+      "viewport": "390x844",
+      "landingClientWidth": 390,
+      "landingScrollWidth": 390,
+      "changelogClientWidth": 385,
+      "changelogScrollWidth": 385,
+      "horizontalOverflow": false,
+      "title": "Make Every Preference Earn Its Place"
+    },
+    "automatedSuite": {
+      "tests": 147,
+      "passed": 147,
+      "failed": 0,
+      "duration": "1.5 minutes",
+      "report": "verification-output/e2e-report/results.json"
+    }
+  },
+  "evaluationBoundary": {
+    "adapterCompared": false,
+    "adapterActive": false,
+    "gemmaWeightChanged": false,
+    "humanReview": false,
+    "independentJudgeModel": false
+  },
+  "claimBoundary": "This release proves compiler precision and reproducible same-identity source-grounded preference evidence. It is not a fresh live-provider generation, human usability study, accessibility conformance audit, classroom validation, adapter win, model-weight improvement, or paid-reference parity claim."
+}

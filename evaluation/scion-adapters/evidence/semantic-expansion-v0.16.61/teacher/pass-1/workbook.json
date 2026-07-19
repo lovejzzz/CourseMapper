@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-teacher-revision-workbook-v1",
+  "generatedAt": "2026-07-19T22:45:00.000Z",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "judgeWorkbookSha256": "a1c2b65db7fe6ba3936c7ff411f4b8b336049cde62e54f218cdf2977429874fd",
+  "prompt": {
+    "path": "evaluation/scion-adapters/lesson-kernel-teacher-revision-prompt-v8-v0.16.60.md",
+    "sha256": "505aff4b87a07aa0d7d9d7d7b6d40bb268f654439a4b8e06f1d1efda53327eb1"
+  },
+  "revisionSource": {
+    "path": "verification-output/scion-lesson-kernel-capture-v0.16.61-expansion-2/reference-current-replay.json",
+    "reportSha256": "31073e48549de6ea8881ba15c0370d2b08ae458db548bb6ef47da3168eca9318",
+    "protocol": "scion-lesson-kernel-admission-replay-v1",
+    "arm": "reference",
+    "fallbackPath": null,
+    "fallbackReportSha256": null
+  },
+  "maxCasesPerBatch": 1,
+  "exclusion": {
+    "admittedReportPath": null,
+    "admittedReportSha256": null,
+    "qualifiedResultPath": "verification-output/scion-lesson-kernel-judge-v0.16.61-expansion-2/paired-order-workbook-result.json",
+    "qualifiedResultSha256": "6bc774764d50b2d1f65fab8b2c6eab478bac11918471963b0ad0699702a9a578",
+    "excludedCases": 19
+  },
+  "batches": [
+    {
+      "batchId": "batch-001-6c8e61467e-part-01",
+      "cases": 1,
+      "packetSha256": "7b8a3604c2b30e99900b27e71b895930529867c2e28e069da4d0056d669e7709"
+    },
+    {
+      "batchId": "batch-001-6c8e61467e-part-02",
+      "cases": 1,
+      "packetSha256": "94b42308614f56e29002a7bf771a3a8227b366c9e44d0944b088d09d200ab666"
+    },
+    {
+      "batchId": "batch-001-6c8e61467e-part-03",
+      "cases": 1,
+      "packetSha256": "315bf07841ba2cfa92202b502530af185ed547f4f1b806230191be3e4fbac980"
+    },
+    {
+      "batchId": "batch-002-89f6c008c4",
+      "cases": 1,
+      "packetSha256": "0291e72fad62d2f751b69929e663789fda8ce976f31f3953ad4056318af5f03e"
+    },
+    {
+      "batchId": "batch-003-d451e87e02",
+      "cases": 1,
+      "packetSha256": "cbccbdfd5277ff96abc50e144b5b41253823d402da355a46f9fbab427bb23717"
+    },
+    {
+      "batchId": "batch-004-ac35428971-part-01",
+      "cases": 1,
+      "packetSha256": "7f62fcbbceb5b8e3508c4562e4896b9bf63df1768ba20b769ee45ab0c09d2dba"
+    },
+    {
+      "batchId": "batch-004-ac35428971-part-02",
+      "cases": 1,
+      "packetSha256": "f82fe52b7c9e1de407cbc3dd931b073b97286f90211a25b68a3a2b86a17f21aa"
+    },
+    {
+      "batchId": "batch-004-ac35428971-part-03",
+      "cases": 1,
+      "packetSha256": "c57cbf8f30220aa17ffbf327cf68f41fa8f3710bd58e8744de374a0db427a31c"
+    },
+    {
+      "batchId": "batch-005-3337231ee9",
+      "cases": 1,
+      "packetSha256": "5b5dd27df39f6322c0ac4f8a50bb05abcfc89fc910e1341953936a50e3e8d7e1"
+    }
+  ],
+  "cases": 9,
+  "claimBoundary": "This workbook authorizes source-bound model revision only. Each revised artifact still requires deterministic compiler admission and a fresh anonymous paired-order judgment.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "5e72fae4202a40f2399b4d29c878b0e9e19960c9c4af108a591cc19f372590ff"
+  }
+}

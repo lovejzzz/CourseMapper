@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-teacher-revision-result-v1",
+  "packetSha256": "cbccbdfd5277ff96abc50e144b5b41253823d402da355a46f9fbab427bb23717",
+  "sessionId": "scion-v01654-teacher-batch-003-d451e87e02-5920f510-8cae-4868-a8ff-d5f71a2f4462",
+  "reviser": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-source-cleanroom"
+  },
+  "completedAt": "2026-07-19T22:45:00.000Z",
+  "attestations": {
+    "suppliedClaimsOnly": true,
+    "noExternalFacts": true,
+    "noTrainingAuthorization": true
+  },
+  "revisions": [
+    {
+      "caseId": "scion-kernel-7ef640fbcbe8cfa330843c26",
+      "originalArtifactSha256": "478263ca6df50fa8b4517c0880d9c24a651f90c19bd8a687d57ac8483392e3ef",
+      "lessonKernel": {
+        "lessonId": "lesson-3",
+        "facts": [
+          "A dictionary stores key-value pairs and looks up each value by its key rather than by a numeric position.",
+          "Because a dictionary looks up values using keys, it cannot hold duplicate keys.",
+          "Dictionaries are written with curly braces in key: value form and are ideal when data is naturally labeled rather than ordered."
+        ],
+        "keyTerms": [
+          {
+            "tr": "dictionary",
+            "df": "A dictionary is a structure that stores key-value pairs and looks up each value by its key.",
+            "eg": "A dictionary uses key: value form inside curly braces.",
+            "mi": "A dictionary looks up each value by a numeric position.",
+            "cx": "Dictionary lookup uses keys rather than numeric positions."
+          },
+          {
+            "tr": "key-value pairs",
+            "df": "Key-value pairs are stored associations whose values are looked up using their keys.",
+            "eg": "Dictionaries store key-value pairs in key: value form.",
+            "mi": "Key-value pairs require duplicate keys for lookup.",
+            "cx": "Duplicate keys cannot be held when lookup uses keys."
+          },
+          {
+            "tr": "curly braces",
+            "df": "Curly braces are the notation surrounding a dictionary written in key: value form.",
+            "eg": "A dictionary with naturally labeled data is written with curly braces.",
+            "mi": "Curly braces indicate that data is naturally ordered.",
+            "cx": "The notation belongs to dictionaries, which are ideal for naturally labeled data rather than ordered data."
+          }
+        ],
+        "scenario": {
+          "su": "A Python program must classify a design as a dictionary or as numeric-position lookup. The decision must reconcile its curly-brace key: value notation with its requirement that naturally labeled data cannot use duplicate keys.",
+          "ma": "curly-brace key: value notation, naturally labeled data description, proposed duplicate-key record, numeric-position lookup passage"
+        },
+        "mc": [
+          {
+            "q": "One description says a dictionary stores key-value pairs and another says lookup uses a numeric position. Which description states how the dictionary looks up each value?",
+            "op": [
+              "Looks up each value by its key",
+              "Looks up each key by its value",
+              "Looks up each value by numeric position",
+              "Looks up each key by numeric position"
+            ],
+            "ai": 0,
+            "fi": [
+              0
+            ],
+            "ex": "The dictionary looks up each value by its key, so that description follows. Looking up each value by a numeric position contradicts the stated dictionary lookup."
+          },
+          {
+            "q": "A Python design uses keys for lookup but proposes duplicate keys in its key: value records; under that concrete constraint, which decision follows from dictionary behavior?",
+            "op": [
+              "Reject duplicate keys under key-based lookup",
+              "Accept duplicate keys under key-based lookup",
+              "Reject key-value pairs under key-based lookup",
+              "Use duplicate keys in key: value form"
+            ],
+            "ai": 0,
+            "fi": [
+              1
+            ],
+            "ex": "Key-based lookup means a dictionary cannot hold duplicate keys, so the proposed records must reject them. Accepting duplicate keys contradicts that lookup constraint."
+          }
+        ]
+      },
+      "changeSummary": [
+        "Re-authored the complete first multiple-choice item so its supported option is first, its answer index is zero, and its cited fact directly supports the revised lookup distinction."
+      ],
+      "addressedDiagnoses": [
+        "Resolved the first item's answer-key conflict by aligning its options, declared answer, cited fact, and explanation with key-based dictionary lookup."
+      ]
+    }
+  ]
+}

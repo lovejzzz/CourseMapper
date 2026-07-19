@@ -7,6 +7,7 @@ import {
   findScionIncompleteExplanationTail,
   findScionMultipleExplanationSupportedOptions,
   findScionMultipleSourceSupportedOptions,
+  findScionNearDuplicateOptionPair,
   findScionUnsupportedScopeOption,
   repairScionEnrichmentAnswerKeys,
   repairScionMcItem,
@@ -164,6 +165,78 @@ describe('Scion MC contract recovery', () => {
     });
   });
 
+  it('treats an explicitly requested distinction as broad enough to expose an incomplete second answer', () => {
+    expect(
+      findScionMultipleSourceSupportedOptions(
+        {
+          q: 'A comparison records material moving through the core and mantle and water, ice, and air moving at the surface; which distinction between internal heat and hydrological cycle is supported?',
+          op: [
+            'Internal heat: core and mantle; hydrological: surface',
+            'Internal heat: surface; hydrological: core and mantle',
+            'Internal heat: water and ice; hydrological: mantle material',
+            'Internal heat: core; hydrological: water at surface',
+          ],
+          ai: 0,
+          ex: "Earth's internal heat moves material through the core and mantle, whereas the hydrological cycle moves water, ice, and air at the surface.",
+        },
+        {
+          sourceClaims: [
+            "Earth's internal heat moves material through the core and mantle and contributes to changes within the crust.",
+            'The hydrological cycle moves water, ice, and air at the surface and is powered by the Sun.',
+          ],
+          allowBroadSourceContext: true,
+        },
+      ),
+    ).toMatchObject({
+      supportMethod: 'question-relevant-source-option-support',
+      supported: expect.arrayContaining([expect.objectContaining({ index: 0 }), expect.objectContaining({ index: 3 })]),
+    });
+  });
+
+  it('binds paired distinctions within source clauses instead of mixing broad lists or reversed roles', () => {
+    const functionalHarmony = {
+      q: 'A progression notation shows one chord on degree one and another on degree four; which comparison correctly distinguishes the exact tonic and pre-dominant relationships observed?',
+      op: [
+        'Tonic: degree one; pre-dominant: degree four',
+        'Tonic: degree four; pre-dominant: degrees two and three',
+        'Pre-dominant: degree six; tonic: degrees three and four',
+        'Pre-dominant: degree one; tonic: degree four',
+      ],
+      ai: 0,
+      ex: 'The degree-one chord is tonic, and degree four is among the degrees supporting pre-dominants.',
+    };
+    expect(
+      findScionMultipleSourceSupportedOptions(functionalHarmony, {
+        sourceClaims: [
+          'Functional harmony classifies chords by the role they play in a progression, especially tonic, dominant, and pre-dominant functions.',
+          'The tonic is built on scale degree one, while pre-dominants are built on degrees two, three, four, and six.',
+        ],
+        allowBroadSourceContext: true,
+      }),
+    ).toBeNull();
+
+    const melting = {
+      q: 'A comparison records magma generation at divergent boundaries and convergent boundaries. Which distinction matches the documented melting processes at these two tectonic settings?',
+      op: [
+        'Divergent: flux; convergent: decompression melting',
+        'Divergent and convergent: decompression melting',
+        'Divergent: decompression; convergent: flux melting',
+        'Divergent and convergent: flux melting',
+      ],
+      ai: 2,
+      ex: 'Divergent boundaries generate magma by decompression melting, while convergent boundaries use flux melting.',
+    };
+    expect(
+      findScionMultipleSourceSupportedOptions(melting, {
+        sourceClaims: [
+          'Volcanic magma forms chiefly at divergent boundaries, convergent boundaries, and mantle plumes through decompression or flux melting.',
+          'Divergent boundaries and mantle plumes generate magma by decompression melting, while convergent boundaries use flux melting.',
+        ],
+        allowBroadSourceContext: true,
+      }),
+    ).toBeNull();
+  });
+
   it('does not confuse source-supported distractor facts with answers to a narrower subject match', () => {
     expect(
       findScionMultipleSourceSupportedOptions(
@@ -219,6 +292,26 @@ describe('Scion MC contract recovery', () => {
         'Depreciation equals gross investment minus net investment.',
       ]),
     ).toMatchObject({ left: 2, right: 3 });
+
+    expect(
+      findScionEquivalentEquationOptionPair([
+        'Current is proportional to voltage.',
+        'Voltage is proportional to current.',
+        'Temperature is proportional to current.',
+        'Resistance is proportional to temperature.',
+      ]),
+    ).toMatchObject({ left: 0, right: 1 });
+  });
+
+  it('detects an exact pair of semantic clauses when only their display order changes', () => {
+    expect(
+      findScionNearDuplicateOptionPair([
+        'Natural minor matches the pattern; major has subtonic',
+        'Major uses whole steps; natural minor uses half steps',
+        'Major matches the pattern; natural minor has subtonic',
+        'Major has subtonic; natural minor matches the pattern',
+      ]),
+    ).toMatchObject({ leftIndex: 0, rightIndex: 3, clauseOrderEquivalent: true });
   });
 
   it('detects inverse-worded duplicate comparisons', () => {

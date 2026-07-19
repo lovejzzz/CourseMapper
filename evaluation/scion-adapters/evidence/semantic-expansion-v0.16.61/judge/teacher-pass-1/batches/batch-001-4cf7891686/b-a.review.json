@@ -1,0 +1,342 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-review-v1",
+  "order": "B/A",
+  "packetSha256": "e8ad9fb836419a6e6dcdef8df5833f959db7b4cb26f2adcc8576e4d667cd2124",
+  "sessionId": "scion-v01654-batch-001-4cf7891686-b-a-40a4cd47-ba66-4152-ad2f-ae6425d59c9b",
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "completedAt": "2026-07-19T19:45:18Z",
+  "attestations": {
+    "anonymousArtifactsOnly": true,
+    "otherOrderUnavailable": true,
+    "organizerMappingUnavailable": true
+  },
+  "decisions": [
+    {
+      "caseId": "scion-kernel-02772fca67bf5fc5661a4764",
+      "pairId": "scion-kernel-pair-4c2c4b2675aa3f0d81bd8ac0",
+      "artifactSha256": {
+        "A": "cf713e46050d5f7f5d0d27b87543ceeea48afdb94affded46ee4959ae8886715",
+        "B": "3740278453d2bba81dbf25e92ad7f5f36ff02f4361f37b6ca60c1ea5a65aba8d"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "The facts reproduce all three supplied claims, and the terms and examples only restate their relations."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "The terms distinctly explain field influence, closed-loop field lines, and currents producing fields, with direct misconception repairs."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The workshop must choose labels for two inspectable notations before a deadline while preserving both recorded relations."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both declared answers exactly match the cited claims: fields determine forces and currents produce magnetic fields."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "Each item presents four parallel relation statements whose reversals and misassignments remain meaningfully distinct."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation states the supported relation and explicitly identifies the reversal or misassignment in the closest misconception."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "Facts, terms, scenario labels, answer indices, fact citations, and explanations consistently preserve the same directional relations."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "The core facts are copied accurately, but examples add an around-a-wire field, a steady wire, and a nearby compass."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "Definitions retain the main claims, though phrases such as a fundamental relationship and around a wire add unsupported specificity."
+          },
+          "scenarioReadiness": {
+            "score": 2,
+            "evidence": "The wire-and-compass observation is inspectable, but the task merely says to compare influences and supplies no real constraint."
+          },
+          "assessmentCorrectness": {
+            "score": 1,
+            "evidence": "The first item declares option 0 even though option 2, not option 0, combines the supplied closed-loop and current-production claims."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "Most alternatives are distinct, but the first item includes an exact source-supported option that conflicts with its declared key."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "Both explanations end with the unfulfilled instruction to correct a distractor, and the first does not support its declared answer."
+          },
+          "internalCoherence": {
+            "score": 1,
+            "evidence": "The first key selects field lines determining influence while its explanation instead states that a magnetic field describes influence."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [],
+        "B": [
+          "Unsupported wire-and-compass and around-a-wire examples add factual detail beyond the supplied claims.",
+          "The first multiple-choice item declares option 0, although option 2 states the supplied claims; its explanation also supports those claims rather than the declared answer.",
+          "Both explanations contain the unfulfilled template instruction to correct the closest distractor, leaving the instructional text incomplete."
+        ]
+      },
+      "decision": "A",
+      "rationale": "A remains fully source-bound and supplies coherent, correctly keyed assessments with actionable scenario evidence. B adds unsupported examples, miskeys its first assessment, and leaves templated feedback incomplete."
+    },
+    {
+      "caseId": "scion-kernel-1c1a13aa65159075aedfa3a8",
+      "pairId": "scion-kernel-pair-ea66de3da6c22d77858e554f",
+      "artifactSha256": {
+        "A": "7d9f46a3ea4082c0ff2fc672be0ef52458d3febe9d8f17adf4358b7d1db88af2",
+        "B": "5fea40377e0edb32a15c69006bffe4eb32d098c522efeceecc0e36cac2664307"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "The facts, examples, scenario observations, and questions stay within the supplied price-wage cycle and feedback distinctions."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "The terms accurately distinguish self-reinforcement, amplification, damping, and movement farther from the starting point."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "Students must classify an observed price-wage chain using one of two labels and can inspect three specified records."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both declared answers correctly identify movement farther from the start and the complete chain as positive feedback."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "The options are parallel and plausible, although two first-item distractors similarly assign amplification or farther movement to negative feedback."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "The explanations connect each answer to amplification and explain why negative-feedback labeling or an isolated event fails."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "The facts, term corrections, classification scenario, answer indices, citations, and explanations all identify the cycle as positive feedback."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 1,
+            "evidence": "The artifact invents raw-material costs, three percentages, fixed production capacity, equilibrium language, and a production-reduction example."
+          },
+          "knowledgePrecision": {
+            "score": 2,
+            "evidence": "The positive-feedback account is accurate, but the negative-feedback entry adds stable-state claims and labels its own stabilizing definition a misconception."
+          },
+          "scenarioReadiness": {
+            "score": 2,
+            "evidence": "The scenario offers observations and a capacity constraint, but asks only for comparison and ties the constraint weakly to any decision."
+          },
+          "assessmentCorrectness": {
+            "score": 0,
+            "evidence": "Both declared indices are wrong: each explanation states that option 1 is correct while the keys select options 2 and 0."
+          },
+          "choiceDiscriminability": {
+            "score": 2,
+            "evidence": "The first item duplicates damping and stabilizing distractors, while the second similarly repeats stabilization and return-to-origin outcomes."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "Each explanation states the source-supported outcome but directly contradicts the declared answer and does not repair the closest misconception."
+          },
+          "internalCoherence": {
+            "score": 0,
+            "evidence": "Both answer keys contradict their explanations, and the negative-feedback misconception repeats what the same entry presents as its definition."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [],
+        "B": [
+          "The manufacturing percentages, raw-material cause, fixed-capacity constraint, and production-reduction example are unsupported factual additions.",
+          "The negative-feedback misconception says it stabilizes by reducing a fluctuation, which the same term entry presents as its definition and correction.",
+          "The first item declares option 2 while its explanation supports option 1, producing an incorrect answer and explanation contradiction.",
+          "The second item declares option 0 while its explanation supports option 1, producing another incorrect answer and explanation contradiction."
+        ]
+      },
+      "decision": "A",
+      "rationale": "A gives a source-contained, actionable classification task with two correct keys and instructive feedback. B introduces extensive unsupported detail, contains an invalid misconception, and miskeys both assessments."
+    },
+    {
+      "caseId": "scion-kernel-4ed7b918a8ad0fe66ff45257",
+      "pairId": "scion-kernel-pair-3213e67cd326c70a68be6e3a",
+      "artifactSha256": {
+        "A": "0cefa531a6d92237affb4352710b732bd67420bb9547eaef8d913ea89f05a147",
+        "B": "7a65a46857d3be76a490fb2871f49e7b63226387d9ea3dc8d54ee385c27af4bc"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "Every fact, definition, example, correction, scenario passage, and answer remains within the three supplied electric-potential claims."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "Electric potential, potential difference, and electric-field direction are accurately distinguished with direct corrections of swapped relations."
+          },
+          "scenarioReadiness": {
+            "score": 3,
+            "evidence": "The scenario requires two supported classifications using inspectable passages, though its material list largely supplies the classifications themselves."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both keys are uniquely supported: option 1 distinguishes the two quantities and option 0 identifies potential differences."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "The first options systematically vary the two labels, while the second options distinctly assign the work-energy relation."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation states the governing claim and explains how swapping labels or substituting electric potential fails."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "Definitions, classifications, questions, keys, cited facts, and explanations preserve all supplied quantity and direction distinctions."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 1,
+            "evidence": "The artifact adds vector and test-charge definitions, a uniform field, numerical voltages, nonzero-field conditions, and point-to-point observations."
+          },
+          "knowledgePrecision": {
+            "score": 2,
+            "evidence": "Potential and potential difference are mostly accurate, but the electric-field term replaces the supplied decreasing-potential relation with unsupported vector facts."
+          },
+          "scenarioReadiness": {
+            "score": 2,
+            "evidence": "The scenario names a calculation and gives two voltages, but supplies no charge magnitude or clear supported work result to decide."
+          },
+          "assessmentCorrectness": {
+            "score": 1,
+            "evidence": "The first key is correct, but the second declares higher potential even though its explanation and cited fact specify decreasing potential."
+          },
+          "choiceDiscriminability": {
+            "score": 1,
+            "evidence": "In the second item, pointing toward lower potential and pointing in the direction of decreasing potential are equivalent correct alternatives."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "The first explanation merely repeats the answer, while the second explanation directly contradicts its declared higher-potential key."
+          },
+          "internalCoherence": {
+            "score": 1,
+            "evidence": "The second answer key conflicts with its question, fact, and explanation, and the scenario additions are not grounded in the source ledger."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [],
+        "B": [
+          "The vector/test-charge definition, uniform-field example, numerical point voltages, and nonzero-field details are unsupported factual additions.",
+          "The second multiple-choice item incorrectly declares option 0 even though its explanation states that the field points toward decreasing potential.",
+          "Second-item options 1 and 2 are equivalent alternatives, making the question ambiguous.",
+          "The scenario requires calculating work but provides no charge magnitude or supported total-work relation, leaving no usable calculation decision."
+        ]
+      },
+      "decision": "A",
+      "rationale": "A accurately teaches and assesses all three supplied distinctions with coherent keys and feedback. B adds unsupported physics, provides an incomplete calculation scenario, and has an ambiguous, incorrectly keyed second item."
+    },
+    {
+      "caseId": "scion-kernel-7ef640fbcbe8cfa330843c26",
+      "pairId": "scion-kernel-pair-c1f438dbb91905f0bccb536f",
+      "artifactSha256": {
+        "A": "17c8a649bafc12bee8ad73cefbacfce212cb120b665d11cebcd4584c59ab7e61",
+        "B": "2333ecdc5746ab0d94b21d33dda4fc83798f0c58ae103322923cccef57580ecd"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "The facts, term examples, scenario evidence, and questions use only key lookup, unique keys, curly braces, and labeled data."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "The terms distinctly and accurately explain dictionaries, key-value associations, lookup by key, uniqueness, and curly-brace notation."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The program must classify a design using four inspectable artifacts while reconciling notation, labeling, lookup, and duplicate-key constraints."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Option 2 correctly identifies lookup by key, and option 3 correctly rejects duplicate keys under key-based lookup."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "The first item forms a clear lookup matrix, though two second-item distractors both propose accepting or using duplicate keys."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Both explanations connect the decision to key-based lookup and explicitly show why numeric-position lookup or duplicate keys fail."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "Facts, terms, design constraint, answer indices, citations, and explanations consistently describe dictionary behavior."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "The core claims are accurate, but the scenario and questions invent Alice, Bob, ages, user settings, student scores, and student IDs."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "The definitions and corrections are accurate, but each example merely repeats its definition rather than providing an instructive application."
+          },
+          "scenarioReadiness": {
+            "score": 1,
+            "evidence": "The material compares two separate valid dictionaries that reuse keys across records, which does not exhibit a duplicate key within one dictionary."
+          },
+          "assessmentCorrectness": {
+            "score": 1,
+            "evidence": "The first item declares numeric-position retrieval even though option 1 and the explanation correctly specify retrieval by key."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "Both items offer four parallel, distinct alternatives covering positional, key-based, value-based, notation, uniqueness, and ordering claims."
+          },
+          "feedbackInstructionality": {
+            "score": 2,
+            "evidence": "The second explanation supports uniqueness, but the first teaches lookup by key while contradicting its declared numeric-position answer."
+          },
+          "internalCoherence": {
+            "score": 1,
+            "evidence": "The first key contradicts the fact and explanation, and the scenario evidence does not demonstrate the duplicate-key constraint it describes."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [],
+        "B": [
+          "Alice, Bob, ages, user settings, student scores, and student IDs are invented example details beyond the supplied claims.",
+          "The first multiple-choice item incorrectly declares option 0 while its explanation and the source support option 1.",
+          "The scenario compares duplicate labels across two separate dictionaries rather than duplicate keys within one dictionary, so its evidence does not support a usable uniqueness decision."
+        ]
+      },
+      "decision": "A",
+      "rationale": "A provides a coherent, source-bound design decision with correct assessments and explicit misconception repair. B uses mismatched scenario evidence and has a first-item key that directly contradicts both source and explanation."
+    }
+  ]
+}

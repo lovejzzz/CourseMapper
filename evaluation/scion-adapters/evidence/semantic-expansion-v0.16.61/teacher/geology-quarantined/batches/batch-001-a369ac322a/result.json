@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-teacher-revision-result-v1",
+  "packetSha256": "3461123c234f9b0c4623531f2c22ee860eae77e9c47102c2523c7fd0d8607513",
+  "sessionId": "scion-v01654-teacher-batch-001-a369ac322a-b7ab2500-3f84-4a9f-9a58-984df9f159a6",
+  "reviser": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-source-cleanroom"
+  },
+  "completedAt": "2026-07-19T19:55:53Z",
+  "attestations": {
+    "suppliedClaimsOnly": true,
+    "noExternalFacts": true,
+    "noTrainingAuthorization": true
+  },
+  "revisions": [
+    {
+      "caseId": "scion-kernel-1711f0b21d56aa4e046c9307",
+      "originalArtifactSha256": "b99871993bee0f563d54738e54c1b56d83245a486bd97f12d869cd3a76de3d70",
+      "lessonKernel": {
+        "lessonId": "lesson-5",
+        "facts": [
+          "The rock cycle describes the continuing transformation of crustal materials and is driven by Earth's internal heat engine and the solar-powered hydrological cycle.",
+          "Earth's internal heat moves material through the core and mantle and contributes to changes within the crust.",
+          "The hydrological cycle moves water, ice, and air at the surface and is powered by the Sun."
+        ],
+        "keyTerms": [
+          {
+            "tr": "rock cycle",
+            "df": "The rock cycle is the continuing transformation of crustal materials.",
+            "eg": "Earth's internal heat engine and the solar-powered hydrological cycle drive the rock cycle.",
+            "mi": "The rock cycle is powered by the Sun alone.",
+            "cx": "The Sun powers the hydrological cycle, while Earth's internal heat moves material through the core and mantle as another rock-cycle driver."
+          },
+          {
+            "tr": "internal heat",
+            "df": "Internal heat is an Earth driver that moves material through the core and mantle.",
+            "eg": "Earth's internal heat contributes to changes within the crust.",
+            "mi": "Earth's internal heat moves water, ice, and air at the surface.",
+            "cx": "The hydrological cycle moves water, ice, and air at the surface."
+          },
+          {
+            "tr": "hydrological cycle",
+            "df": "The hydrological cycle is a Sun-powered driver that moves water, ice, and air at the surface.",
+            "eg": "The Sun powers the hydrological cycle at Earth's surface.",
+            "mi": "The hydrological cycle moves material through the core and mantle.",
+            "cx": "Earth's internal heat moves material through the core and mantle."
+          }
+        ],
+        "scenario": {
+          "su": "A student must label two passages before a deadline: one records material moving through the core and mantle, while the other records water, ice, and air moving at the surface. The labels must distinguish Earth's internal heat from the hydrological cycle using the recorded locations and materials.",
+          "ma": "core-and-mantle material passage, surface water-ice-air notation, Sun-powered cycle observation"
+        },
+        "mc": [
+          {
+            "q": "Material moves through the core and mantle, while water, ice, and air move at the surface. Which statement correctly matches each movement with what drives it?",
+            "op": [
+              "Earth's internal heat; solar-powered hydrological cycle",
+              "Hydrological cycle; Earth's internal heat engine",
+              "The Sun; continuing transformation of crustal materials",
+              "Crustal materials; water, ice, and air"
+            ],
+            "ai": 0,
+            "fi": [
+              1,
+              2
+            ],
+            "ex": "Earth's internal heat moves material through the core and mantle, while the hydrological cycle moves water, ice, and air at the surface and is powered by the Sun. The reversed pairing assigns each movement to the other stated driver."
+          },
+          {
+            "q": "Water, ice, and air move at the surface, and the Sun supplies the power. Which classification matches both the described movement and its stated power source?",
+            "op": [
+              "The solar-powered hydrological cycle",
+              "Earth's internal heat engine",
+              "Material moving through the core and mantle",
+              "Continuing transformation of crustal materials"
+            ],
+            "ai": 0,
+            "fi": [
+              2
+            ],
+            "ex": "The hydrological cycle matches because it moves water, ice, and air at the surface and is powered by the Sun. Earth's internal heat instead moves material through the core and mantle."
+          }
+        ]
+      },
+      "changeSummary": [
+        "Re-authored both multiple-choice items so each uniquely supported answer appears first and each option is a distinct, source-bounded noun phrase.",
+        "Preserved the source ledger, key terms, and scenario because no listed compiler issue or critical defect implicated those fields."
+      ],
+      "addressedDiagnoses": [
+        "Strengthened choice discriminability while preserving the source fidelity, assessment correctness, and internal coherence reflected in the anonymous diagnoses."
+      ]
+    }
+  ]
+}
