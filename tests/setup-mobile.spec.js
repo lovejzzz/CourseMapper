@@ -75,3 +75,55 @@ test('keeps the setup journey readable at the 320px minimum width', async ({ pag
   }));
   expect(configMetrics.scrollWidth).toBeLessThanOrEqual(configMetrics.clientWidth + 2);
 });
+
+test('keeps custom-material orientation and actions fixed while its phone form scrolls', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 700 });
+  await page.goto('/');
+  await page.evaluate(() => {
+    localStorage.clear();
+    sessionStorage.clear();
+  });
+  await page.reload();
+  await page
+    .getByRole('textbox', { name: 'Describe your course' })
+    .fill('Build a short interface design course with critique, prototyping, and usability testing.');
+  await page.getByRole('button', { name: 'Customize package' }).click();
+  await page.getByRole('button', { name: /Create custom/ }).click();
+
+  const dialog = page.getByRole('dialog', { name: 'Create Custom Deliverable' });
+  const dialogHeading = dialog.getByRole('heading', { name: 'Create Custom Deliverable' });
+  const close = dialog.getByRole('button', { name: 'Close dialog' });
+  const name = dialog.getByRole('textbox', { name: 'Name *' });
+  const next = dialog.getByRole('button', { name: 'Next' });
+  await expect(dialogHeading).toBeVisible();
+  await expect(close).toBeVisible();
+  await expect(name).toHaveAttribute('aria-describedby', 'custom-deliverable-name-hint');
+  await expect(next).toBeDisabled();
+  await expect(dialog.getByRole('button', { name: '2. Prompt & Settings' })).toBeDisabled();
+
+  const dialogBox = await dialog.boundingBox();
+  expect(dialogBox.x).toBeGreaterThanOrEqual(8);
+  expect(dialogBox.x + dialogBox.width).toBeLessThanOrEqual(page.viewportSize().width - 8);
+  expect(dialogBox.y).toBeGreaterThanOrEqual(8);
+  expect(dialogBox.y + dialogBox.height).toBeLessThanOrEqual(page.viewportSize().height - 8);
+
+  await name.fill('Weekly learning journal');
+  await expect(next).toBeEnabled();
+  await next.click();
+  const create = dialog.getByRole('button', { name: 'Create Deliverable' });
+  await expect(create).toBeVisible();
+  await expect(create).toBeEnabled();
+  await dialog
+    .getByPlaceholder('Generate [deliverable type] for this course:\n\n{{courseMap}}\n\nReturn ONLY valid JSON.')
+    .scrollIntoViewIfNeeded();
+  await expect(dialogHeading).toBeVisible();
+  await expect(close).toBeVisible();
+  await expect(create).toBeVisible();
+
+  await close.click();
+  await page.getByRole('button', { name: /Create custom/ }).click();
+  const reopened = page.getByRole('dialog', { name: 'Create Custom Deliverable' });
+  await expect(reopened.getByRole('textbox', { name: 'Name *' })).toHaveValue('');
+  await expect(reopened.getByRole('button', { name: 'Next' })).toBeDisabled();
+  await expect(reopened.getByText('Add a name to continue.')).toBeVisible();
+});
