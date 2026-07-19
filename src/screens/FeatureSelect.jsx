@@ -378,6 +378,10 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef }) {
 
             {step === 2 && (
               <div id="custom-deliverable-settings-panel" role="tabpanel" className="space-y-5">
+                <p className="rounded-lg border border-indigo-100 bg-indigo-50/70 px-3 py-2 text-xs leading-relaxed text-indigo-700 dark:border-indigo-400/20 dark:bg-indigo-400/10 dark:text-indigo-200">
+                  Optional: leave tone, format, or length unselected and Scion will match them to the course and
+                  deliverable.
+                </p>
                 {/* Tone */}
                 <div>
                   <span className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-slate-200">Default Tone</span>

@@ -136,7 +136,10 @@ function ensureLocalModelReady() {
 ensureLocalModelReady().catch(() => {});
 
 function isRecoverableModelWorkerFailure(error) {
-  return /tendril-s \[[^\]]+\] server exited|tendril-s timeout/i.test(String(error?.message || error));
+  // A native-process exit has produced no candidate to score, so replaying
+  // the exact request once is infrastructure recovery. A generation timeout
+  // is different: it is a measured latency failure and must stay visible.
+  return /tendril-s \[[^\]]+\] server exited/i.test(String(error?.message || error));
 }
 
 async function restartLocalModelWorker() {
