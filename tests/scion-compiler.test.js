@@ -478,6 +478,95 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     );
   });
 
+  it('D1: still applies one fact-preserving language repair when an invalid fact ledger blocks the adapter stage', async () => {
+    const lessons = [
+      {
+        lessonId: 'lesson-4',
+        title: 'Lesson 4: Numbers and Dates',
+        topics: 'Numbers; Age; Dates',
+        readings:
+          'Elementary Mandarin course materials must show actual Hanzi alongside tone-marked Pinyin throughout.',
+      },
+    ];
+    const prompt = {
+      courseName: 'Elementary Mandarin Chinese I',
+      lessons,
+      userPrompt: `Course: Elementary Mandarin Chinese I\nLessons:\n${JSON.stringify(lessons)}\nReturn ONLY valid JSON matching the kernel shape from the instructions.`,
+      systemPrompt: 'Write a compact knowledge kernel.',
+    };
+    const base = {
+      lessons: [
+        {
+          lessonId: 'lesson-4',
+          facts: [
+            'Mandarin numbers support counting in daily settings.',
+            'Dates combine year, month, and day components.',
+            'Dates combine year, month, and day components.',
+            'The calendar example writes 2005年3月15日.',
+            'The pronunciation form shì uses a tone mark.',
+          ],
+          keyTerms: [],
+          scenario: {},
+          mc: [],
+        },
+      ],
+    };
+    const events = [];
+    const streamProvider = vi.fn().mockResolvedValue({
+      fullText: JSON.stringify({ hanzi: '四月', pinyin: 'sì yuè', english: 'April' }),
+      adapterRoutes: [
+        {
+          taskFamily: 'compiler-repair',
+          routeMode: 'base-only',
+          nativeAdapterActive: false,
+        },
+      ],
+    });
+
+    const result = await runScionPasses({
+      rawText: JSON.stringify(base),
+      streamProvider,
+      provider: 'local',
+      apiKey: '',
+      modelId: 'scion-1',
+      modelCapabilities: {},
+      generationPlan: {},
+      recordEvent: (event) => events.push(event),
+      prompt,
+      expectedLessonIds: ['lesson-4'],
+      contentSourcedLessonIds: [],
+      courseName: prompt.courseName,
+      runtimeRoutes: [
+        {
+          taskFamily: 'lesson-kernel-synthesis',
+          routeMode: 'base-only',
+          routeReason: 'grounded-stage-available',
+          adapterId: 'scion-source-grounded',
+        },
+      ],
+    });
+
+    expect(streamProvider).toHaveBeenCalledTimes(1);
+    expect(streamProvider.mock.calls[0][5]?.schema?.name).toBe('target_language_pair_repair');
+    expect(JSON.parse(result).lessons[0].targetLanguagePair).toEqual({
+      hanzi: '四月',
+      pinyin: 'sì yuè',
+      english: 'April',
+    });
+    expect(events).toContainEqual(
+      expect.objectContaining({
+        label: 'Scion staged adapter refinement',
+        detail: expect.stringContaining('base fact ledger failed'),
+      }),
+    );
+    expect(events).toContainEqual(
+      expect.objectContaining({
+        label: 'Scion quality passes',
+        detail: expect.stringContaining('languageIdentity:lesson-4 repaired [hanzi-pinyin-pair]'),
+      }),
+    );
+  });
+
   it('D1: content-sourced lessons get the session-only variant', () => {
     const profile = kernelBatchSchemaProfile({
       expectedLessonIds: ['lesson-1'],

@@ -188,13 +188,17 @@ export async function runScionPasses({
     let workingPrompt = prompt;
     let workingUsesGroundedAdapter = false;
     let groundedAdapterWasProven = false;
+    let groundedAdapterWasBlocked = false;
     if (shouldRunScionGroundedAdapterStage(runtimeRoutes)) {
       const groundedPrompt = buildScionGroundedRefinementPrompt({ rawText, prompt, expectedLessonIds });
       if (!groundedPrompt) {
         // The grounded adapter cannot safely run without a valid, immutable
-        // fact ledger. Every later Scion pass edits teaching atoms rather
-        // than facts, so spending model calls here cannot make the lesson
-        // admissible. Let the deterministic compiler derive its fallback.
+        // fact ledger. Skip that adapter stage, but keep one bounded seat for
+        // the fact-preserving compiler passes below. Language identity in
+        // particular is orthogonal to a duplicated fact: returning here left
+        // an otherwise usable Mandarin lesson without a visible Hanzi/Pinyin
+        // pair and made the exported package fail its domain contract.
+        groundedAdapterWasBlocked = true;
         recordEvent({
           type: 'pipelineDecision',
           label: 'Scion staged adapter refinement',
@@ -203,9 +207,8 @@ export async function runScionPasses({
           featureId: 'blueprintEnrichment',
           task: 'blueprintEnrichment',
         });
-        return rawText;
       }
-      if (groundedPrompt) {
+      if (!groundedAdapterWasBlocked && groundedPrompt) {
         recordEvent({
           type: 'blueprintEnrichmentCall',
           label: 'Scion source-grounded adapter stage',
@@ -337,7 +340,7 @@ export async function runScionPasses({
       // seat, then trust admission/quarantine/fallback. This also bounds the
       // safer base fallback when the adapter loses: a live Mandarin canary
       // showed five subsequent repair calls and all five were rejected.
-      ...(workingUsesGroundedAdapter || groundedAdapterWasProven
+      ...(workingUsesGroundedAdapter || groundedAdapterWasProven || groundedAdapterWasBlocked
         ? {
             maxCallsPerLesson: 1,
             skipImprovementOnlyPasses: true,
