@@ -1433,6 +1433,7 @@ export default function useDeliverables({
                 signal: controller.signal,
               });
               let passBText = result?.fullText || '';
+              let canonicalAdmissionPrompt = prompt;
               if (scionMod) {
                 passBText = await scionMod.runScionPasses({
                   rawText: passBText,
@@ -1449,10 +1450,17 @@ export default function useDeliverables({
                   contentSourcedLessonIds: scionProvider ? [] : contentSourcedLessonIds,
                   courseName: blueprintCourseMap?.courseName || '',
                   runtimeRoutes: result?.adapterRoutes || [],
+                  onResolvedPrompt: (resolvedPrompt) => {
+                    canonicalAdmissionPrompt = resolvedPrompt;
+                  },
                 });
               }
               const parsed = parseNativePassBResponse(passBText, {
-                prompt,
+                // The fact synthesizer and adapter are two distinct trust
+                // stages. Canonical admission must validate the final draft
+                // against the exact frozen ledger created between them, not
+                // the pre-ledger course-map prompt.
+                prompt: canonicalAdmissionPrompt,
                 expectedLessonIds,
                 contentSourcedLessonIds,
               });

@@ -7,7 +7,7 @@
 //   scionKernelSchemaProfile — the declared json_schema contract for the call
 //   runScionPasses           — the D3 quality passes + D4 flywheel on the raw
 //                              batch JSON, returning the processed text
-import { compactLessonKernelSchemaProfile, scionPassesEnabled } from './scionContracts';
+import { compactFactLedgerSchemaProfile, compactLessonKernelSchemaProfile, scionPassesEnabled } from './scionContracts';
 import {
   scionFactContractForLesson,
   scionFactCountForPrompt,
@@ -17,6 +17,7 @@ import { applyScionKernelPasses } from './scionPasses';
 import { postFlywheelEvents } from './scionFlywheel';
 import { assessProjectedKernelCoverage } from './blueprintEnrichmentPass';
 import { completeNativeKernelSurfaces, parseNativePassBResponse } from './nativeGraphAuthoring';
+import { explicitCourseLanguageIds } from './languageIdentityGuard';
 import {
   assessPublicScionKernelResponse,
   mergePublicScionKernelAttempts,
@@ -245,6 +246,7 @@ export async function runScionPasses({
   contentSourcedLessonIds,
   courseName,
   runtimeRoutes = [],
+  onResolvedPrompt,
 }) {
   if (!scionPassesEnabled()) return rawText;
   try {
@@ -258,8 +260,89 @@ export async function runScionPasses({
     let workingUsesGroundedAdapter = false;
     let groundedAdapterWasProven = false;
     let groundedAdapterWasBlocked = false;
+    let hasBoundFactLedger = false;
     if (shouldRunScionGroundedAdapterStage(runtimeRoutes)) {
-      const groundedPrompt = buildScionGroundedRefinementPrompt({ rawText, prompt, expectedLessonIds });
+      let groundedPrompt = buildScionGroundedRefinementPrompt({ rawText, prompt, expectedLessonIds });
+      if (!groundedPrompt) {
+        // One compact retry is reserved for the only failure the compiler
+        // cannot repair safely: an absent, short, or duplicated fact ledger.
+        // Do not ask for MC/key-term rewrites here; without 3-5 distinct facts
+        // there is no trustworthy semantic backbone to compile around.
+        recordEvent({
+          type: 'repairRetryCall',
+          label: 'Scion fact-ledger recovery (1/1)',
+          detail: `Lessons ${expectedLessonIds.join(', ')} · fact contract only`,
+          featureId: 'blueprintEnrichment',
+          task: 'blueprintEnrichment',
+        });
+        try {
+          const recoveryPrompt = {
+            ...prompt,
+            userPrompt: `${prompt.userPrompt}\nFACT LEDGER RECOVERY: The previous response did not contain 3-5 distinct complete subject facts for every requested lesson. Return only the lessonId and facts fields now. Preserve the exact requested lesson ids.`,
+          };
+          const recovered = await streamProvider(
+            provider,
+            apiKey,
+            modelId,
+            recoveryPrompt.systemPrompt,
+            recoveryPrompt.userPrompt,
+            {
+              modelCapabilities,
+              generationPlan,
+              featureId: 'blueprintEnrichment',
+              task: 'blueprintEnrichment',
+              schema: compactFactLedgerSchemaProfile({
+                expectedLessonIds,
+                factCount: scionFactCountForPrompt(prompt, expectedLessonIds),
+              }),
+              promptProtocol: SCION_LESSON_KERNEL_SYNTHESIS_PROMPT_PROTOCOL,
+              temperature: 0.35,
+              maxOutputTokens: 800,
+              maxRetries: 0,
+              allowProviderFallback: false,
+              onApiCallEvent: recordEvent,
+              signal,
+            },
+          );
+          const recoveredText = recovered?.fullText || '';
+          const recoveredGroundedPrompt = buildScionGroundedRefinementPrompt({
+            rawText: recoveredText,
+            prompt,
+            expectedLessonIds,
+          });
+          if (recoveredGroundedPrompt) {
+            workingText = recoveredText;
+            groundedPrompt = recoveredGroundedPrompt;
+            recordEvent({
+              type: 'pipelineDecision',
+              label: 'Scion fact-ledger recovery',
+              detail: 'admitted · compact fact contract restored before adapter refinement',
+              stage: 'scionFactLedgerStage',
+              featureId: 'blueprintEnrichment',
+              task: 'blueprintEnrichment',
+            });
+          } else {
+            recordEvent({
+              type: 'pipelineDecision',
+              label: 'Scion fact-ledger recovery',
+              detail: 'rejected · fact contract still incomplete after the one bounded retry',
+              stage: 'scionFactLedgerStage',
+              featureId: 'blueprintEnrichment',
+              task: 'blueprintEnrichment',
+            });
+          }
+        } catch (error) {
+          if (error?.name === 'AbortError') throw error;
+          recordEvent({
+            type: 'pipelineDecision',
+            label: 'Scion fact-ledger recovery',
+            detail: `rejected · ${String(error?.message || 'fact recovery failed').slice(0, 180)}`,
+            stage: 'scionFactLedgerStage',
+            featureId: 'blueprintEnrichment',
+            task: 'blueprintEnrichment',
+          });
+        }
+      }
       if (!groundedPrompt) {
         // The grounded adapter cannot safely run without a valid, immutable
         // fact ledger. Skip that adapter stage, but keep one bounded seat for
@@ -278,6 +361,9 @@ export async function runScionPasses({
         });
       }
       if (!groundedAdapterWasBlocked && groundedPrompt) {
+        hasBoundFactLedger = true;
+        workingPrompt = groundedPrompt;
+        if (typeof onResolvedPrompt === 'function') onResolvedPrompt(groundedPrompt);
         recordEvent({
           type: 'blueprintEnrichmentCall',
           label: 'Scion source-grounded adapter stage',
@@ -318,7 +404,7 @@ export async function runScionPasses({
           );
           const selectedDraft = stagedUsedAdapter
             ? selectScionGroundedAdapterDraft({
-                baseText: rawText,
+                baseText: workingText,
                 adapterText: staged?.fullText || '',
                 groundedPrompt,
               })
@@ -404,14 +490,19 @@ export async function runScionPasses({
       // model never certifies itself or creates adapter evidence.
       verifyRepairMcWithSameModel: false,
       maxAdmissionRepairsPerCall: 1,
-      // Once the aligned adapter route has been proven and evaluated, give
-      // whichever draft won deterministic selection one high-value repair
-      // seat, then trust admission/quarantine/fallback. This also bounds the
-      // safer base fallback when the adapter loses: a live Mandarin canary
-      // showed five subsequent repair calls and all five were rejected.
-      ...(workingUsesGroundedAdapter || groundedAdapterWasProven || groundedAdapterWasBlocked
+      // A retained aligned-adapter draft has already crossed deterministic
+      // selection and will cross canonical per-atom admission next. Fresh
+      // disjoint-domain canaries showed every post-adapter model repair was
+      // rejected by that same admission boundary, so do not spend another
+      // inference call on it. A blocked or losing adapter still leaves one
+      // seat for the safer base fallback (notably target-language identity).
+      ...(workingUsesGroundedAdapter || groundedAdapterWasProven || groundedAdapterWasBlocked || hasBoundFactLedger
         ? {
-            maxCallsPerLesson: 1,
+            // Once the canonical parser is bound to a validated fact ledger,
+            // another same-model MC rewrite cannot add trustworthy knowledge.
+            // The only retained one-call exception is target-language identity
+            // when no valid ledger could be established at all.
+            maxCallsPerLesson: hasBoundFactLedger || explicitCourseLanguageIds(courseName).length === 0 ? 0 : 1,
             skipImprovementOnlyPasses: true,
           }
         : {}),

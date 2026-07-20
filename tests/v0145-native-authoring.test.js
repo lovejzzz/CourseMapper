@@ -818,6 +818,23 @@ describe('Pass B contract (B2)', () => {
       ]),
     );
 
+    const boundarySafe = completeNativeKernelSurfaces(
+      {
+        ...sparse,
+        kernel: {
+          ...sparse.kernel,
+          scenario: {
+            ...sparse.kernel.scenario,
+            materials:
+              'Interview transcript, annotated prototype, observation log, comparison worksheet, decision record, critique notes, accessibility review, task-flow map, evidence table, and the complete final synthesis artifact.',
+          },
+        },
+      },
+      { lessonNumber: 2, title: 'Lesson 2: Intervals and Hearing', sections: [] },
+    );
+    expect(boundarySafe.assignmentCore.taskDescription).not.toContain('form a compl');
+    expect(boundarySafe.assignmentCore.taskDescription).not.toMatch(/\b\w{1,3}\s+artifact\b/);
+
     const variedFallbacks = Array.from({ length: 6 }, (_, index) =>
       completeNativeKernelSurfaces(sparse, {
         lessonNumber: index + 1,
@@ -848,6 +865,77 @@ describe('Pass B contract (B2)', () => {
     expect(overlay['lesson-1']).toEqual(
       expect.objectContaining({ discussionPrompt: expect.any(Object), assignmentCore: expect.any(Object) }),
     );
+  });
+
+  it('projects a minimal terminology core when every adapter term is quarantined', () => {
+    const completed = completeNativeKernelSurfaces(
+      {
+        keyTerms: [],
+        quizItems: [],
+        kernel: {
+          facts: [
+            'Audience analysis compares listener knowledge, attitudes, and expectations before a speech.',
+            'Demographic evidence describes audience characteristics rather than argument quality.',
+            'Situational evidence includes the occasion, setting, and reason listeners are assembled.',
+          ],
+          scenario: {
+            setup:
+              'A speaker compares a registration survey with observations from the event venue before revising an opening.',
+            materials: 'registration survey, venue observation notes',
+          },
+        },
+      },
+      {
+        title: 'Lesson 2: Audience Analysis',
+        sections: [{ topicSection: 'Audience analysis and evidence' }],
+      },
+    );
+
+    expect(completed.keyTerms).toHaveLength(1);
+    expect(completed.keyTerms[0]).toMatchObject({
+      term: 'Audience analysis and evidence',
+      source: 'fact-ledger-projection',
+    });
+    expect(completed.keyTerms[0].definition).toBe(
+      'Audience analysis compares listener knowledge, attitudes, and expectations before a speech.',
+    );
+    expect(completed.keyTerms[0].example).toContain('registration survey');
+    expect(completed.keyTermFallbacks).toContainEqual(
+      expect.objectContaining({ type: 'term', source: 'fact-ledger-projection' }),
+    );
+    expect(completed.quizItems).toHaveLength(2);
+    expect(completed.slideContent.length).toBeGreaterThanOrEqual(1);
+    expect(assessProjectedKernelCoverage(completed).usable).toBe(true);
+
+    const factsOnly = completeNativeKernelSurfaces(
+      {
+        keyTerms: [],
+        quizItems: [],
+        kernel: {
+          facts: [
+            'Contemporary art includes artistic expressions created from the mid-twentieth century onward.',
+            'Global art studies artistic production originating from various geographical regions.',
+            'Contemporary art can be analyzed through painting, sculpture, and digital art.',
+            'Contemporary global art examines relationships between local and international artistic scenes.',
+            'Artistic media provide inspectable details for comparing contemporary practices.',
+          ],
+          scenario: null,
+        },
+      },
+      {
+        title: 'Lesson 14: Contemporary Global Art',
+        sections: [{ topicSection: 'Contemporary and global art' }],
+      },
+    );
+    expect(factsOnly.kernel.scenario).toMatchObject({ source: 'derived-kernel-fallback' });
+    expect(factsOnly.quizItems).toHaveLength(2);
+    expect(factsOnly.coreFallbacks).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ field: 'scenario', source: 'fact-ledger-projection' }),
+        expect.objectContaining({ field: 'quizItems', source: 'fact-ledger-projection' }),
+      ]),
+    );
+    expect(assessProjectedKernelCoverage(factsOnly).usable).toBe(true);
   });
 
   it('parses kernels through the existing linters and rejects out-of-chunk ids', () => {

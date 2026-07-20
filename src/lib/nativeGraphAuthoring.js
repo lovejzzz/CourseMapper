@@ -51,6 +51,7 @@ import { buildCourseIRFromCourseMap, courseIRToCourseGraph, validateCourseIR } f
 import { repairNativeFallbackWithCurriculumV1 } from './curriculumV1Repair.js';
 import { dedupeNumberedAssessmentEcho } from './compilerText.js';
 import { assessTargetLanguagePresence, detectForeignLanguageTeachingContent } from './languageIdentityGuard.js';
+import { projectKernelToSurfaces } from './kernelProjection';
 import { NATIVE_PASS_B_AUTHORING_ADDITION } from './prompts';
 import { extractExplicitLessonSequence } from './explicitLessonSequence';
 export { AUTHORING_MODE_STORAGE_KEY, readAuthoringMode, saveAuthoringMode } from './authoringMode.js';
@@ -72,6 +73,25 @@ function cleanText(value, max = 300) {
     .replace(/\s+/g, ' ')
     .trim()
     .slice(0, max);
+}
+
+function cleanTextAtBoundary(value, max = 300) {
+  const text = String(value ?? '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (text.length <= max) return text;
+  const slice = text.slice(0, max + 1);
+  const sentenceEnd = Math.max(slice.lastIndexOf('.'), slice.lastIndexOf('!'), slice.lastIndexOf('?'));
+  if (sentenceEnd >= Math.floor(max * 0.55)) return slice.slice(0, sentenceEnd + 1).trim();
+  const clauseEnd = Math.max(
+    slice.lastIndexOf(';'),
+    slice.lastIndexOf(','),
+    slice.lastIndexOf('—'),
+    slice.lastIndexOf('–'),
+  );
+  if (clauseEnd >= Math.floor(max * 0.55)) return slice.slice(0, clauseEnd).trim();
+  const wordEnd = slice.lastIndexOf(' ');
+  return (wordEnd >= Math.floor(max * 0.55) ? slice.slice(0, wordEnd) : text.slice(0, max)).trim();
 }
 
 export function isNativeContentSourcedKernel(payload, partialOverlay) {
@@ -142,14 +162,15 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
     .map((section) => cleanText(section?.topicSection, 120).replace(/^\d+(?:\.\d+)*\s*[:.-]\s*/i, ''))
     .find(Boolean);
   const concept = cleanText(payload?.keyTerms?.[0]?.term || topic || title || 'the central concept', 80);
-  const definition = cleanText(payload?.keyTerms?.[0]?.definition, 260);
+  const definition = cleanTextAtBoundary(payload?.keyTerms?.[0]?.definition, 260);
   const facts = asArray(payload?.kernel?.facts)
-    .map((fact) => cleanText(fact, 220))
+    .map((fact) => cleanTextAtBoundary(fact, 220))
     .filter(Boolean);
   const anchorFact = facts[0] || definition || `${concept} requires a claim grounded in inspectable details.`;
   const anchorClause = anchorFact.replace(/[.!?]+$/, '');
   const scenario = payload?.kernel?.scenario || {};
-  const materials = cleanText(scenario?.materials, 180) || `${concept} examples and the named reading or activity`;
+  const materials =
+    cleanTextAtBoundary(scenario?.materials, 180) || `${concept} examples and the named reading or activity`;
   const assessment = sections
     .flatMap((section) => {
       const value = section?.weeklyAssessments;
@@ -167,11 +188,36 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
     wordCount(term?.misconception) >= 5 &&
     wordCount(term?.correction) >= 5;
   const keyTerms = asArray(payload.keyTerms).map((term) => ({ ...term }));
-  const scenarioExample = cleanText(scenario?.setup, 300);
+  const scenarioExample = cleanTextAtBoundary(scenario?.setup, 300);
   for (const term of keyTerms) {
     if (wordCount(term.example) >= 5 || wordCount(scenarioExample) < 5) continue;
     term.example = scenarioExample;
     keyTermFallbacks.push({ type: 'example', term: cleanText(term.term, 60), source: 'admitted-scenario' });
+  }
+  // If every adapter term was quarantined, preserve the admitted fact ledger
+  // as a minimal terminology core instead of regenerating the entire lesson.
+  // The compiler adds only instructional framing; definition and example
+  // remain traceable to the accepted fact/scenario atoms.
+  if (keyTerms.filter(substantiveTerm).length === 0 && facts.length >= 3) {
+    const fallbackTerm = {
+      term: cleanText(concept, 60),
+      definition: anchorFact,
+      example:
+        scenarioExample ||
+        `In the supplied case, the learner compares the named ${cleanText(materials, 120)} before deciding.`,
+      misconception: `A common mistake is to apply ${cleanText(concept, 60)} without checking the named evidence.`,
+      correction: `Apply ${cleanText(concept, 60)} only after comparing the evidence with the stated subject relation.`,
+      source: 'fact-ledger-projection',
+      tier: 1,
+    };
+    if (substantiveTerm(fallbackTerm)) {
+      keyTerms.push(fallbackTerm);
+      keyTermFallbacks.push({
+        type: 'term',
+        term: fallbackTerm.term,
+        source: 'fact-ledger-projection',
+      });
+    }
   }
   const seenTerms = new Set(keyTerms.map((term) => cleanText(term?.term, 60).toLowerCase()).filter(Boolean));
   if (keyTerms.filter(substantiveTerm).length < 3) {
@@ -223,13 +269,87 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
       if (keyTerms.filter(substantiveTerm).length >= 3) break;
     }
   }
-  const completed = {
+  let completed = {
     ...payload,
     keyTerms,
     ...(keyTermFallbacks.length > 0
       ? { keyTermFallbacks: [...(payload.keyTermFallbacks || []), ...keyTermFallbacks] }
       : {}),
   };
+
+  // Facts are the immutable semantic backbone. When every adapter assessment
+  // atom is quarantined, re-running the model is both expensive and unsafe:
+  // the same weak draft often repeats the defect. Project the minimum usable
+  // teaching core from the admitted facts and terminology instead. The two
+  // assessment seats are constructed response, so the compiler never invents
+  // distractors or a new correct answer.
+  const existingQuizItems = asArray(completed.quizItems);
+  const existingSlides = asArray(completed.slideContent);
+  const existingScenario = completed?.kernel?.scenario;
+  const needsFactProjection =
+    facts.length >= 3 &&
+    keyTerms.filter(substantiveTerm).length >= 1 &&
+    (existingQuizItems.length < 2 ||
+      existingSlides.length < 1 ||
+      !existingScenario?.setup ||
+      !existingScenario?.materials);
+  if (needsFactProjection) {
+    const factProjection = projectKernelToSurfaces(
+      {
+        facts,
+        keyTerms,
+        scenario: existingScenario,
+      },
+      {
+        itemPlan: [
+          { index: 3, type: 'short_answer', bloom: 'Analyze' },
+          { index: 5, type: 'essay', bloom: 'Create' },
+        ],
+      },
+    );
+    const quizItems = [...existingQuizItems];
+    const occupiedQuizIndexes = new Set(quizItems.map((item) => Number(item?.index)));
+    for (const item of asArray(factProjection.quizItems)) {
+      if (quizItems.length >= 2) break;
+      if (occupiedQuizIndexes.has(Number(item?.index))) continue;
+      quizItems.push({ ...item, enrichmentSource: 'fact-ledger-projection' });
+      occupiedQuizIndexes.add(Number(item?.index));
+    }
+    const projectedScenario = factProjection?.kernel?.scenario;
+    const coreFallbacks = [];
+    if (quizItems.length > existingQuizItems.length) coreFallbacks.push('quizItems');
+    if (existingSlides.length < 1 && asArray(factProjection.slideContent).length > 0) {
+      coreFallbacks.push('slideContent');
+    }
+    if (
+      (!existingScenario?.setup || !existingScenario?.materials) &&
+      projectedScenario?.setup &&
+      projectedScenario?.materials
+    ) {
+      coreFallbacks.push('scenario');
+    }
+    completed = {
+      ...completed,
+      quizItems,
+      ...(existingSlides.length < 1 && asArray(factProjection.slideContent).length > 0
+        ? { slideContent: factProjection.slideContent }
+        : {}),
+      kernel: {
+        ...(completed.kernel || {}),
+        ...((!existingScenario?.setup || !existingScenario?.materials) && projectedScenario
+          ? { scenario: projectedScenario }
+          : {}),
+      },
+      ...(coreFallbacks.length > 0
+        ? {
+            coreFallbacks: [
+              ...asArray(completed.coreFallbacks),
+              ...coreFallbacks.map((field) => ({ field, source: 'fact-ledger-projection' })),
+            ],
+          }
+        : {}),
+    };
+  }
 
   if (!completed.discussionPrompt) {
     const discussionPrompt = {

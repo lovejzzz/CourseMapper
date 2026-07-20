@@ -1831,6 +1831,45 @@ Return ONLY valid JSON.`;
     expect(courseMap.lessons[0].sections[0].supportingResources).toBe('Tone recording set.');
   });
 
+  it('uses a fact-only first-pass prompt when the grounded adapter owns kernel authoring', () => {
+    const prompt = buildLessonKernelPrompt(
+      {
+        courseName: 'Public Speaking',
+        lessons: [
+          {
+            title: 'Lesson 1: Audience Analysis',
+            sections: [
+              {
+                topicSection: 'Audience needs and prior knowledge',
+                learningObjectives: 'Analyze audience evidence before choosing supporting material.',
+              },
+            ],
+          },
+        ],
+      },
+      [0],
+      { questionsPerLesson: 6 },
+    );
+    const full = buildPublicScionMessages(prompt.systemPrompt, prompt.userPrompt, {
+      task: 'blueprintEnrichment',
+    });
+    const ledger = buildPublicScionMessages(prompt.systemPrompt, prompt.userPrompt, {
+      task: 'blueprintEnrichment',
+      factLedgerOnly: true,
+    });
+    const ledgerPrompt = ledger.at(-1).content;
+    const template = JSON.parse(ledgerPrompt.split('TEMPLATE TO FILL:\n')[1]);
+
+    expect(ledgerPrompt).toContain('Write only the factual ledger');
+    expect(template.lessons).toHaveLength(1);
+    expect(Object.keys(template.lessons[0])).toEqual(['lessonId', 'facts']);
+    expect(template.lessons[0].facts).toHaveLength(5);
+    expect(ledgerPrompt).toContain('stable, widely accepted disciplinary knowledge');
+    expect(ledgerPrompt).toContain('Never write course metadata');
+    expect(ledgerPrompt).toContain('at least three must define or distinguish a concept');
+    expect(ledgerPrompt.length).toBeLessThan(full.at(-1).content.length / 2);
+  });
+
   it('activates the exact fact ledger for explicit instructor-only facts in the production prompt', () => {
     const facts = [
       'A usability test observes representative users attempting realistic tasks.',

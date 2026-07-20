@@ -1592,6 +1592,63 @@ TEMPLATE TO FILL:
 ${JSON.stringify(template)}`;
 }
 
+/**
+ * Ledger-first Scion prompt. When the runtime proves that the exact
+ * source-grounded adapter is installed, the base model has one job: establish
+ * a small factual warrant. The adapter then authors key terms, scenario, and
+ * assessment atoms around the frozen facts. This removes the old pattern of
+ * drafting a full kernel one or two times merely to retain its facts.
+ */
+export function buildPublicScionFactLedgerPrompt(userPrompt) {
+  const text = String(userPrompt || '');
+  const lessons = extractPublicScionKernelLessons(text).slice(0, PUBLIC_SCION_KERNEL_LESSONS_PER_CALL);
+  const course = text.match(/^Course:\s*(.+)$/im)?.[1]?.trim() || 'Untitled Course';
+  const requiredLessonIds = lessons.map((lesson) => lesson.lessonId || 'lesson-1');
+  const lessonTemplates = lessons.map((lesson) => {
+    const factContract = scionFactContractForLesson(lesson);
+    return {
+      lessonId: lesson.lessonId || 'lesson-1',
+      facts:
+        factContract.mode === 'numbered-source-ledger-v1'
+          ? factContract.claims
+          : [
+              'First specific subject claim of twenty or more characters.',
+              'Second distinct subject claim of twenty or more characters.',
+              'Third distinct subject claim of twenty or more characters.',
+              'Fourth distinct subject claim of twenty or more characters.',
+              'Fifth distinct subject claim of twenty or more characters.',
+            ],
+    };
+  });
+  const sourceLedgerContract =
+    lessons.length === 1 ? scionFactContractForLesson(lessons[0], { userPrompt: text }) : null;
+
+  return `COURSE: ${clip(course, 160)}
+LESSONS TO GROUND:
+${JSON.stringify(lessons)}
+
+TASK:
+Write only the factual ledger for every listed lesson. Use the exact lessonId. These claims become the immutable warrant for a separate teaching-kernel pass.
+
+Rules:
+- Return ONLY valid JSON shaped as {"lessons":[{"lessonId":"...","facts":["..."]}]}.
+- Return exactly ${lessons.length} lesson object${lessons.length === 1 ? '' : 's'} with these exact ids: ${requiredLessonIds.join(', ')}.
+${
+  sourceLedgerContract?.mode === 'numbered-source-ledger-v1'
+    ? `- Copy the ${sourceLedgerContract.factCount} supplied numbered claims exactly, including every word and punctuation mark. Do not paraphrase, split, merge, omit, or add a claim.\n`
+    : '- Write exactly 5 distinct facts per lesson. Each fact is one complete 8-20 word sentence, at least 20 characters, with terminal punctuation.\n'
+}- State subject knowledge, not teaching process, assignments, rubrics, evidence moves, or what students will do.
+- Treat a familiar title or topic as permission to state stable, widely accepted disciplinary knowledge about it. Ground every claim in the listed title, topics, objectives, readings, or instructor source brief, but do not merely report that those inputs mention or cover the topic.
+- Write facts that can support teaching decisions: at least three must define or distinguish a concept, and at least two must state a concrete feature, relation, or application that can be compared with another fact.
+- Never write course metadata such as "the course structure includes", "the instructor source brief indicates", "the readings suggest", "the lesson covers", or "students will learn". State the underlying subject claim directly instead.
+- Do not invent citations, URLs, page numbers, statistics, named studies, people, places, products, organizations, or events.
+- Do not copy template wording, repeat a fact, fuse two facts, or end mid-clause.
+- Return only lessonId and facts inside each lesson object. Do not add keyTerms, scenario, mc, discussionPrompt, assignmentCore, studyGuide, or authoring fields.
+
+TEMPLATE TO FILL:
+${JSON.stringify({ lessons: lessonTemplates })}`;
+}
+
 export function extractPublicScionVoiceSurfaces(userPrompt = '') {
   const text = String(userPrompt || '');
   const marker = 'Surfaces (JSON):\n';
@@ -1626,7 +1683,11 @@ Rules:
 - Prefer concrete kernel terms and examples over generic course language.`;
 }
 
-export function buildPublicScionMessages(systemPrompt, userPrompt, { schema = null, task = 'generation' } = {}) {
+export function buildPublicScionMessages(
+  systemPrompt,
+  userPrompt,
+  { schema = null, task = 'generation', factLedgerOnly = false } = {},
+) {
   const kernelTask = task === 'blueprintEnrichment';
   const voiceTask = task === 'voicePass';
   const compilerRepairTask = task === 'scionPass';
@@ -1701,7 +1762,9 @@ export function buildPublicScionMessages(systemPrompt, userPrompt, { schema = nu
     {
       role: 'user',
       content: kernelTask
-        ? buildPublicScionKernelPrompt(userPrompt)
+        ? factLedgerOnly
+          ? buildPublicScionFactLedgerPrompt(userPrompt)
+          : buildPublicScionKernelPrompt(userPrompt)
         : voiceTask
           ? buildPublicScionVoicePrompt(userPrompt)
           : buildCompactPublicScionPrompt(userPrompt),

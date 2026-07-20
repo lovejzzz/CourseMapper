@@ -1635,6 +1635,12 @@ export function parseLessonKernelResponse(text, { prompt, expectedLessonIds } = 
     }
     const issueCountAtEntryStart = issues.length;
     const promptLesson = (prompt?.lessons || []).find((lesson) => lesson.lessonId === lessonId);
+    const factContract = scionFactContractForLesson(promptLesson || {}, { userPrompt: prompt?.userPrompt });
+    const rawEntryFacts = asArray(entry?.facts).map((fact) => cleanText(fact));
+    const preservesExactSourceLedger =
+      factContract.mode === 'numbered-source-ledger-v1' &&
+      rawEntryFacts.length === factContract.factCount &&
+      rawEntryFacts.every((fact, index) => fact === cleanText(factContract.claims[index]));
     // Scion's language-specific grammar can guarantee one compact pair even
     // when the weak draft forgets to repeat it inside facts/key terms. Keep
     // the pair structured: facts form the immutable source ledger and mc fi
@@ -1658,7 +1664,7 @@ export function parseLessonKernelResponse(text, { prompt, expectedLessonIds } = 
       courseIdentity: prompt?.courseName,
       text: JSON.stringify(entry),
     });
-    if (languageContamination) {
+    if (languageContamination && !preservesExactSourceLedger) {
       issues.push({
         lessonId,
         surface: 'lesson',
@@ -1669,6 +1675,37 @@ export function parseLessonKernelResponse(text, { prompt, expectedLessonIds } = 
       });
       continue;
     }
+    if (languageContamination) {
+      // The base-authored fact ledger is immutable and independently
+      // traceable. A stray foreign-language token in one adapter-authored
+      // scenario or item must quarantine that atom, not erase the safe facts
+      // and trigger a whole-lesson regeneration. Each authored surface is
+      // checked again below before it can enter the projected kernel.
+      issues.push({
+        lessonId,
+        surface: 'lesson',
+        index: entryIndex,
+        reason: 'foreign-language-atom-quarantine',
+        atomIssueCount: 1,
+        problems: [`foreign-language-atom-quarantine:${languageContamination.languageId}`],
+      });
+    }
+    const quarantineForeignAtom = (surface, index, value) => {
+      if (!languageContamination || value === null || value === undefined) return false;
+      const contamination = detectForeignLanguageTeachingContent({
+        courseIdentity: prompt?.courseName,
+        text: JSON.stringify(value),
+      });
+      if (!contamination) return false;
+      issues.push({
+        lessonId,
+        surface,
+        index,
+        reason: 'foreign-language-atom-quarantine',
+        problems: [`foreign-language-atom-quarantine:${contamination.languageId}`],
+      });
+      return true;
+    };
     const targetLanguagePresence = assessTargetLanguagePresence({
       courseIdentity: prompt?.courseName,
       sourceText: JSON.stringify(promptLesson || {}),
@@ -1702,6 +1739,7 @@ export function parseLessonKernelResponse(text, { prompt, expectedLessonIds } = 
 
     const keyTerms = [];
     asArray(entry?.keyTerms).forEach((term, index) => {
+      if (quarantineForeignAtom('keyTerms', index, term)) return;
       if (isLessonTitleEchoSemanticSurface(term?.term, promptLesson || {})) {
         // Keep the lesson title as identity, but never promote a long title
         // into a glossary atom. Projecting it would multiply one model quirk
@@ -1732,7 +1770,7 @@ export function parseLessonKernelResponse(text, { prompt, expectedLessonIds } = 
 
     // v0.13.3: optional quantitative worked example for the lesson.
     let workedExample = null;
-    if (entry?.workedExample) {
+    if (entry?.workedExample && !quarantineForeignAtom('workedExample', 0, entry.workedExample)) {
       const problem = cleanText(entry.workedExample.problem);
       const steps = asArray(entry.workedExample.steps).map(cleanText).filter(Boolean);
       const result = cleanText(entry.workedExample.result);
@@ -1744,14 +1782,14 @@ export function parseLessonKernelResponse(text, { prompt, expectedLessonIds } = 
     }
 
     let scenario = null;
-    if (entry?.scenario) {
+    if (entry?.scenario && !quarantineForeignAtom('scenario', 0, entry.scenario)) {
       const problems = lintKernelScenario(entry.scenario);
       if (problems.length > 0) issues.push({ lessonId, surface: 'scenario', index: 0, problems });
       else scenario = { setup: cleanText(entry.scenario.setup), materials: cleanText(entry.scenario.materials) };
     }
 
     let discussionPrompt = null;
-    if (entry?.discussionPrompt) {
+    if (entry?.discussionPrompt && !quarantineForeignAtom('discussionPrompt', 0, entry.discussionPrompt)) {
       const problems = lintEnrichedDiscussionPrompt(entry.discussionPrompt);
       if (problems.length > 0) issues.push({ lessonId, surface: 'discussionPrompt', index: 0, problems });
       else {
@@ -1764,7 +1802,7 @@ export function parseLessonKernelResponse(text, { prompt, expectedLessonIds } = 
     }
 
     let assignmentCore = null;
-    if (entry?.assignmentCore) {
+    if (entry?.assignmentCore && !quarantineForeignAtom('assignmentCore', 0, entry.assignmentCore)) {
       const problems = lintEnrichedAssignmentCore(entry.assignmentCore);
       if (problems.length > 0) issues.push({ lessonId, surface: 'assignmentCore', index: 0, problems });
       else {
@@ -1785,6 +1823,7 @@ export function parseLessonKernelResponse(text, { prompt, expectedLessonIds } = 
         issues.push({ lessonId, surface: 'mc', index, problems: ['missing-item'] });
         return;
       }
+      if (quarantineForeignAtom('mc', index, item)) return;
       // Repair only evidence already present in the model output: retain a
       // complete sentence prefix before an unfinished tail, then realign only
       // a decisive, unique explanation/key contradiction. Both operations are
@@ -1824,7 +1863,6 @@ export function parseLessonKernelResponse(text, { prompt, expectedLessonIds } = 
       }
     });
 
-    const factContract = scionFactContractForLesson(promptLesson || {}, { userPrompt: prompt?.userPrompt });
     const exactSourceLedgerFacts =
       factContract.mode === 'numbered-source-ledger-v1' &&
       facts.length === factContract.factCount &&
@@ -1870,7 +1908,11 @@ export function parseLessonKernelResponse(text, { prompt, expectedLessonIds } = 
     // rides beside the projected surfaces, dialogue-style: a bad block is
     // dropped with an issue row and never costs the lesson; an absent one
     // falls back to the template body downstream.
-    if (entry?.studyGuide && typeof entry.studyGuide === 'object') {
+    if (
+      entry?.studyGuide &&
+      typeof entry.studyGuide === 'object' &&
+      !quarantineForeignAtom('studyGuide', 0, entry.studyGuide)
+    ) {
       const summary = cleanText(entry.studyGuide.summary);
       const reviewStrategy = cleanText(entry.studyGuide.reviewStrategy);
       const problems = [];

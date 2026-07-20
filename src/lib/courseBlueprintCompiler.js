@@ -614,7 +614,9 @@ function compactList(values, fallback = 'source evidence', limit = 3) {
 function compactSourceCue(value, fallback = 'assigned source materials', maxWords = 6) {
   const text = stripTerminalPunctuation(cleanText(value, fallback));
   if (!text) return fallback;
-  if (isPromptArtifactEvidenceCue(text) || isCompactNumberedArtifactList(text)) return fallback;
+  if (isPromptArtifactEvidenceCue(text) || isCompactNumberedArtifactList(text) || isUnsafeSourceCuePhrase(text)) {
+    return fallback;
+  }
   const clauses = text
     .split(/\s*(?:[;|\n,]|\/)\s*/g)
     // A clause carved from the middle of a list keeps its conjunction
@@ -624,7 +626,7 @@ function compactSourceCue(value, fallback = 'assigned source materials', maxWord
     .filter((part) => part && !isPromptArtifactEvidenceCue(part) && !isCompactNumberedArtifactList(part));
   const boundedClause = clauses.find((part) => {
     const count = wordCount(part);
-    return count >= 3 && count <= maxWords;
+    return count >= 3 && count <= maxWords && !isUnsafeSourceCuePhrase(part);
   });
   if (boundedClause) return boundedClause;
   // No single clause is bounded: prefer the LEADING clauses joined up to the
@@ -641,15 +643,16 @@ function compactSourceCue(value, fallback = 'assigned source materials', maxWord
       joined.push(clause);
       joinedWords += count;
     }
-    if (joined.length > 0 && joinedWords >= 3) return joined.join(', ');
+    const joinedCue = joined.join(', ');
+    if (joinedWords >= 3 && !isUnsafeSourceCuePhrase(joinedCue)) return joinedCue;
   }
   const words = text
     .replace(/[^\w\s.-]+/g, ' ')
     .split(/\s+/)
     .map((word) => word.trim())
     .filter((word) => word && !/^(?:and|or|the|a|an)$/i.test(word));
-  if (words.length <= maxWords) return words.join(' ') || text;
-  return words.slice(0, maxWords).join(' ');
+  const compact = trimDanglingTail((words.length <= maxWords ? words : words.slice(0, maxWords)).join(' '));
+  return compact && !isUnsafeSourceCuePhrase(compact) ? compact : fallback;
 }
 
 function compactFallbackEvidencePacket(title, lessonNumber) {
@@ -802,6 +805,15 @@ function trimDanglingTail(value) {
     text = text.replace(DANGLING_TAIL_RE, '').trim();
   } while (text && text !== previous);
   return text;
+}
+
+function isUnsafeSourceCuePhrase(value) {
+  const text = stripTerminalPunctuation(cleanText(value));
+  // Evidence plans sometimes leak a clipped objective ("Compare source
+  // evidence historical interpretations of") into the source-cue slot. A
+  // source label is a noun/title, not an instruction; fall back to the
+  // lesson's honest source label rather than projecting the broken clause.
+  return !text || DANGLING_TAIL_RE.test(text) || (OBJECTIVE_LIKE_ASSESSMENT_LABEL_RE.test(text) && !/["':]/.test(text));
 }
 
 function conciseClause(value, fallback = 'source evidence', maxLength = 120, { ellipsis = false } = {}) {
@@ -5570,7 +5582,11 @@ function safeLessonEvidenceCue(lesson = {}, lens = null) {
     candidates
       .map((candidate) => stripTerminalPunctuation(cleanText(candidate)))
       .find(
-        (candidate) => candidate && !isUnsafeLessonConceptPhrase(candidate) && !isUnsafeLessonArtifactPhrase(candidate),
+        (candidate) =>
+          candidate &&
+          !isUnsafeLessonConceptPhrase(candidate) &&
+          !isUnsafeLessonArtifactPhrase(candidate) &&
+          !isUnsafeSourceCuePhrase(candidate),
       ) || fallback,
     fallback,
   );
@@ -14351,10 +14367,11 @@ function buildAssessmentValidityEvidence(lesson) {
   const artifact = safeLessonArtifact(lesson);
   const title = stripLessonPrefix(lesson.title);
   const sourceCue = safeLessonEvidenceCue(lesson);
+  const unsupportedArtifact = /^(?:an?|the)\b/i.test(artifact) ? `submission for ${artifact}` : artifact;
   return {
     targetConstruct: `${artifact} shows whether students can use ${concept} evidence to make a defensible course decision.`,
     authenticPerformance: `The task asks students to produce ${artifact}, not only recall vocabulary, so performance evidence comes from applied reasoning in ${stripLessonPrefix(lesson.title)}.`,
-    validityThreat: `A polished but unsupported ${artifact} could hide weak ${concept} reasoning if scoring does not require inspectable evidence from ${sourceCue}.`,
+    validityThreat: `A polished but unsupported ${unsupportedArtifact} could hide weak ${concept} reasoning if scoring does not require inspectable evidence from ${sourceCue}.`,
     calibrationCheck: lessonVariant(lesson, [
       `Before scoring ${title}, compare one strong and one partial ${artifact} sample. The stronger sample should cite ${sourceCue}. It should explain the ${concept} decision and name a limit.`,
       `Start calibration for ${title} with two ${artifact} anchors. The stronger one should use ${sourceCue}, show the ${concept} reasoning, and bound its claim.`,
@@ -21339,7 +21356,12 @@ function slideSourceCue(lesson) {
       })
       // Quiz-projection labels are internal provenance for a derived fallback,
       // not sources an instructor can assign or a student can inspect.
-      .find((part) => !isWeakSlidePhrase(part) && !/\bverified[- ]quiz[- ]projection\b/i.test(part)) || fallback
+      .find(
+        (part) =>
+          !isWeakSlidePhrase(part) &&
+          !isUnsafeSourceCuePhrase(part) &&
+          !/\bverified[- ]quiz[- ]projection\b/i.test(part),
+      ) || fallback
   );
 }
 
@@ -22305,9 +22327,11 @@ function punctuatePassthroughBullets(bullets) {
 }
 
 function finalizeSlideBulletsForExport(slide) {
+  const visual = slide?.visual;
   return {
     ...slide,
     bullets: punctuatePassthroughBullets(slide.bullets),
+    visual: Array.isArray(visual?.rows) ? { ...visual, rows: visual.rows.map(punctuatePassthroughBullets) } : visual,
   };
 }
 

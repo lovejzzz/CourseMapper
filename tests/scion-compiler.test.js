@@ -5,6 +5,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import fs from 'node:fs';
 import {
+  compactFactLedgerSchemaProfile,
   isScionProvider,
   kernelBatchSchemaProfile,
   skeletonSchemaProfile,
@@ -30,6 +31,16 @@ import { isAppliedQuizStem } from '../src/lib/quality/quizItemDepth';
 import { assessScionKeyTerm } from '../src/lib/scionPreferenceGate';
 
 describe('Scion-native compiler (V2.1 Workstream D)', () => {
+  it('declares a strict fact-only first-pass contract', () => {
+    const profile = compactFactLedgerSchemaProfile({ expectedLessonIds: ['lesson-7'], factCount: 5 });
+    const lesson = profile.schema.properties.lessons.items;
+    expect(profile.name).toBe('scion_compact_fact_ledger_v1');
+    expect(lesson.required).toEqual(['lessonId', 'facts']);
+    expect(Object.keys(lesson.properties)).toEqual(['lessonId', 'facts']);
+    expect(lesson.properties.facts).toMatchObject({ minItems: 5, maxItems: 5 });
+    expect(lesson.additionalProperties).toBe(false);
+  });
+
   it('normalizes a stray terminal schema marker before learner-facing projection', async () => {
     const raw = JSON.stringify({
       lessons: [
@@ -86,6 +97,46 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
       expect.objectContaining({
         pass: 'surfaceNormalization',
         reason: 'redundant-answer-position-question',
+      }),
+    );
+  });
+
+  it('allows canonical admission to run with zero additional model calls', async () => {
+    const generateJson = vi.fn();
+    const raw = JSON.stringify({
+      lessons: [
+        {
+          lessonId: 'lesson-1',
+          facts: [
+            'Audience analysis compares listener knowledge, attitudes, and expectations before a speech.',
+            'Demographic evidence describes audience characteristics rather than the quality of an argument.',
+            'Situational evidence includes the occasion, setting, and reason listeners are assembled.',
+          ],
+          keyTerms: [],
+          scenario: {},
+          mc: [],
+        },
+      ],
+    });
+
+    const result = await applyScionKernelPasses(raw, {
+      promptLessons: [{ lessonId: 'lesson-1', title: 'Audience Analysis', topics: 'Audience evidence' }],
+      generateJson,
+      expectedMcCount: 2,
+      minimumKeyTermCount: 3,
+      maxCallsPerLesson: 0,
+      verifyDraftMcWithSameModel: false,
+      verifyRepairMcWithSameModel: false,
+      skipImprovementOnlyPasses: true,
+    });
+
+    expect(generateJson).not.toHaveBeenCalled();
+    expect(JSON.parse(result.text).lessons[0].facts).toHaveLength(3);
+    expect(result.events).toContainEqual(
+      expect.objectContaining({
+        pass: 'passBudget',
+        action: 'bounded',
+        reason: '0/0-calls-used-before-languageIdentity',
       }),
     );
   });
@@ -238,6 +289,25 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     });
   });
 
+  it('D1: builds the grounded adapter handoff from a fact-only base response', () => {
+    const lessons = JSON.parse(SCION_LESSON_KERNEL_PILOT_PROMPT.match(/Lessons:\n(\[.*\])\nReturn/s)[1]);
+    const facts = SCION_LESSON_KERNEL_REFERENCE_PILOT_RESPONSE.lessons[0].facts;
+    const prompt = {
+      courseName: 'Geology Inference and Feedback Audit',
+      lessons,
+      userPrompt: SCION_LESSON_KERNEL_PILOT_PROMPT,
+      systemPrompt: 'Write a compact knowledge kernel.',
+    };
+    const grounded = buildScionGroundedRefinementPrompt({
+      rawText: JSON.stringify({ lessons: [{ lessonId: 'lesson-3', facts }] }),
+      prompt,
+      expectedLessonIds: ['lesson-3'],
+    });
+
+    expect(grounded).not.toBeNull();
+    expect(grounded.lessons[0].topics).toBe(facts.map((fact, index) => `Claim ${index}: ${fact}`).join(' '));
+  });
+
   it('D1: admits a proven source-grounded adapter stage and keeps its frozen fact ledger', async () => {
     const lessons = JSON.parse(SCION_LESSON_KERNEL_PILOT_PROMPT.match(/Lessons:\n(\[.*\])\nReturn/s)[1]);
     const prompt = {
@@ -248,6 +318,7 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     };
     const response = JSON.stringify(SCION_LESSON_KERNEL_REFERENCE_PILOT_RESPONSE);
     const events = [];
+    let resolvedPrompt = null;
     const streamProvider = vi.fn().mockResolvedValue({
       fullText: response,
       adapterRoutes: [
@@ -279,6 +350,9 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
           adapterId: 'scion-source-grounded',
         },
       ],
+      onResolvedPrompt: (nextPrompt) => {
+        resolvedPrompt = nextPrompt;
+      },
     });
     expect(streamProvider).toHaveBeenCalledWith(
       'local',
@@ -288,6 +362,8 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
       expect.stringContaining('"sourceFactPolicy":"numbered-source-ledger-v1"'),
       expect.objectContaining({ promptProtocol: 'production-lesson-kernel-prompt-v1', maxRetries: 0 }),
     );
+    expect(resolvedPrompt?.lessons?.[0]?.sourceFactPolicy).toBe('numbered-source-ledger-v1');
+    expect(resolvedPrompt?.lessons?.[0]?.topics).toContain('Claim 0:');
     expect(events).toContainEqual(
       expect.objectContaining({
         label: 'Scion staged adapter refinement',
@@ -461,13 +537,13 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
       expect.objectContaining({
         label: 'Scion quality passes',
         detail: expect.stringContaining(
-          'improvementPasses:lesson-3 skipped [grounded-adapter-bounded-repair-policy:0/1]',
+          'improvementPasses:lesson-3 skipped [grounded-adapter-bounded-repair-policy:0/0]',
         ),
       }),
     );
   });
 
-  it('D1: bounds the safer base fallback after a proven adapter draft loses selection', async () => {
+  it('D1: compiles the bound base ledger without another repair when an adapter draft loses selection', async () => {
     const lessons = JSON.parse(SCION_LESSON_KERNEL_PILOT_PROMPT.match(/Lessons:\n(\[.*\])\nReturn/s)[1]);
     const prompt = {
       courseName: 'Geology Inference and Feedback Audit',
@@ -519,7 +595,7 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
       ],
     });
 
-    expect(streamProvider).toHaveBeenCalledTimes(2);
+    expect(streamProvider).toHaveBeenCalledTimes(1);
     expect(events).toContainEqual(
       expect.objectContaining({
         label: 'Scion staged adapter refinement',
@@ -530,13 +606,13 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
       expect.objectContaining({
         label: 'Scion quality passes',
         detail: expect.stringContaining(
-          'improvementPasses:lesson-3 skipped [grounded-adapter-bounded-repair-policy:1/1]',
+          'improvementPasses:lesson-3 skipped [grounded-adapter-bounded-repair-policy:0/0]',
         ),
       }),
     );
   });
 
-  it('D1: spends no repair calls when the immutable base fact ledger is invalid', async () => {
+  it('D1: spends only one fact-contract recovery when the immutable base ledger remains invalid', async () => {
     const lessons = JSON.parse(SCION_LESSON_KERNEL_PILOT_PROMPT.match(/Lessons:\n(\[.*\])\nReturn/s)[1]);
     const prompt = {
       courseName: 'Geology Inference and Feedback Audit',
@@ -547,7 +623,16 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     const base = structuredClone(SCION_LESSON_KERNEL_REFERENCE_PILOT_RESPONSE);
     base.lessons[0].facts[1] = base.lessons[0].facts[0];
     const events = [];
-    const streamProvider = vi.fn();
+    const streamProvider = vi.fn().mockResolvedValue({
+      fullText: JSON.stringify(base),
+      adapterRoutes: [
+        {
+          taskFamily: 'lesson-kernel-synthesis',
+          routeMode: 'base-only',
+          nativeAdapterActive: false,
+        },
+      ],
+    });
 
     const result = await runScionPasses({
       rawText: JSON.stringify(base),
@@ -573,7 +658,17 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     });
 
     expect(result).toBe(JSON.stringify(base));
-    expect(streamProvider).not.toHaveBeenCalled();
+    expect(streamProvider).toHaveBeenCalledTimes(1);
+    expect(streamProvider.mock.calls[0][5]).toEqual(
+      expect.objectContaining({ task: 'blueprintEnrichment', maxOutputTokens: 800, maxRetries: 0 }),
+    );
+    expect(streamProvider.mock.calls[0][5]?.schema?.name).toBe('scion_compact_fact_ledger_v1');
+    expect(events).toContainEqual(
+      expect.objectContaining({
+        label: 'Scion fact-ledger recovery',
+        detail: expect.stringContaining('still incomplete'),
+      }),
+    );
     expect(events).toContainEqual(
       expect.objectContaining({
         label: 'Scion staged adapter refinement',
@@ -650,8 +745,8 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
       ],
     });
 
-    expect(streamProvider).toHaveBeenCalledTimes(1);
-    expect(streamProvider.mock.calls[0][5]?.schema?.name).toBe('target_language_pair_repair');
+    expect(streamProvider).toHaveBeenCalledTimes(2);
+    expect(streamProvider.mock.calls[1][5]?.schema?.name).toBe('target_language_pair_repair');
     expect(JSON.parse(result).lessons[0].targetLanguagePair).toEqual({
       hanzi: '四月',
       pinyin: 'sì yuè',

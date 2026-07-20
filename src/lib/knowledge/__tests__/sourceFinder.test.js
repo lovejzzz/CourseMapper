@@ -103,7 +103,7 @@ describe('source finder mini-shard', () => {
     });
 
     expect(first.temporary).toBe(true);
-    expect(first.id).toContain('source-finder-v6');
+    expect(first.id).toContain('source-finder-v8');
     expect(first.stats).toMatchObject({ topics: 2, topicsWithSources: 2, sources: 4, cacheHits: 0 });
     expect(second.stats.cacheHits).toBe(2);
     expect(providers.searchScholarlyReadings).toHaveBeenCalledTimes(2);
@@ -444,6 +444,117 @@ describe('source finder mini-shard', () => {
     expect(titles).toEqual(['Linear independence']);
     // Fallback provider queries carry the course-name anchor now.
     expect(wikipedia.mock.calls[0][0].toLowerCase()).toContain('linear algebra');
+  }, 15000);
+
+  it('rejects an unrequested biography whose career summary happens to match an earth-science topic', async () => {
+    const graph = createEmptyCourseGraph({ courseName: 'Middle School Earth Science' });
+    graph.sessions = [
+      {
+        id: 's3',
+        number: 3,
+        title: 'Lesson 3: Weather and the atmosphere',
+        sections: [{ topic: '3.1: atmospheric layers, weather phenomena, and air movement' }],
+      },
+    ];
+    graph.concepts = [
+      { id: 'c10', term: 'Atmospheric layers' },
+      { id: 'c11', term: 'Weather phenomena' },
+      { id: 'c12', term: 'Air movement' },
+    ];
+    graph.edges.teaches = graph.concepts.map((concept) => ({ from: 's3', to: concept.id }));
+
+    const miniShard = await findCourseSources(graph, {
+      storage: memoryStorage(),
+      maxTopics: 1,
+      limitPerTopic: 3,
+      minUsefulSources: 1,
+      providers: {
+        searchScholarlyReadings: vi.fn(async () => []),
+        searchCrossrefWorks: vi.fn(async () => []),
+        searchWikipediaPages: vi.fn(async () => [
+          source('wikipedia', 'Richard Lindzen', {
+            abstract:
+              'Richard Siegmund Lindzen (born February 8, 1940) is an American atmospheric physicist known for work on the middle atmosphere, atmospheric tides, and air movement.',
+          }),
+          source('wikipedia', 'Atmosphere of Earth', {
+            abstract:
+              'The atmosphere of Earth has layers and moving air that produce weather phenomena and shape conditions near the surface.',
+          }),
+        ]),
+      },
+    });
+
+    const titles = miniShard.topics.flatMap((topic) => topic.sources.map((item) => item.title));
+    expect(titles).toContain('Atmosphere of Earth');
+    expect(titles).not.toContain('Richard Lindzen');
+  }, 15000);
+
+  it('uses the lesson title as retrieval context and rejects Earth Science single-token bycatch', async () => {
+    const graph = createEmptyCourseGraph({ courseName: 'Middle School Earth Science' });
+    graph.sessions = [
+      {
+        id: 's2',
+        number: 2,
+        title: 'Lesson 2: Rocks and the rock cycle',
+        sections: [{ topic: '2.1: Rock types' }],
+      },
+      {
+        id: 's6',
+        number: 6,
+        title: 'Lesson 6: Layers of Earth',
+        sections: [{ topic: "6.1: Earth's structure" }],
+      },
+    ];
+    graph.concepts = [
+      { id: 'c4', term: 'Rock types' },
+      { id: 'c16', term: "Earth's structure" },
+    ];
+    graph.edges.teaches = [
+      { from: 's2', to: 'c4' },
+      { from: 's6', to: 'c16' },
+    ];
+    const wikipedia = vi.fn(async (query) =>
+      /rock/i.test(query)
+        ? [
+            source('wikipedia', 'Rock art', {
+              abstract:
+                'Rock art is human-made marking on natural stone surfaces studied in archaeology and art history.',
+            }),
+            source('wikipedia', 'Rock cycle', {
+              abstract:
+                'The rock cycle describes how igneous, sedimentary, and metamorphic rocks form and change through geological processes.',
+            }),
+          ]
+        : [],
+    );
+    const crossref = vi.fn(async (query) =>
+      /structure/i.test(query)
+        ? [
+            source('crossref', 'Influence of coalification on pore structure evolution in middle-ranked coals', {
+              abstract:
+                'Coalification changes pore structure in coalbed methane reservoirs and affects pore heterogeneity.',
+            }),
+          ]
+        : [],
+    );
+
+    const miniShard = await findCourseSources(graph, {
+      storage: memoryStorage(),
+      maxTopics: 2,
+      limitPerTopic: 3,
+      minUsefulSources: 1,
+      providers: {
+        searchScholarlyReadings: vi.fn(async () => []),
+        searchCrossrefWorks: crossref,
+        searchWikipediaPages: wikipedia,
+      },
+    });
+
+    expect(wikipedia.mock.calls[0][0]).toContain('Rocks and the rock cycle');
+    const titles = miniShard.topics.flatMap((topic) => topic.sources.map((item) => item.title));
+    expect(titles).toContain('Rock cycle');
+    expect(titles).not.toContain('Rock art');
+    expect(titles).not.toContain('Influence of coalification on pore structure evolution in middle-ranked coals');
   }, 15000);
 
   it('rejects single-shared-token Crossref hits like "Lewis acids and bases" for a bases lesson', async () => {

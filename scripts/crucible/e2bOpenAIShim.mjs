@@ -27,17 +27,21 @@ import {
   assessPublicScionKernelResponse,
   buildPublicScionMessages,
   buildPublicScionRetryFeedback,
+  extractPublicScionKernelLessons,
   mergePublicScionKernelAttempts,
   publicScionAdmissionRisk,
   publicScionFactContractIssues,
   repairPublicScionJson,
   shufflePublicScionKernelOptions,
 } from '../../src/lib/publicScionProvider.js';
+import { compactFactLedgerSchemaProfile } from '../../src/lib/scionContracts.js';
+import { scionFactCountForPrompt } from '../../src/lib/scionEvidenceContract.js';
 import { closeJsonContainersAtEof } from './jsonClosureRepair.mjs';
 import { valueConformsToSchema } from './jsonSchemaValidation.mjs';
 import { scionCompactKernelMaxAttempts } from './scionCompactAttemptPolicy.mjs';
 
 const PORT = Number(process.argv[2] ?? 8799);
+const SCION_LEDGER_FIRST = process.env.SCION_LEDGER_FIRST !== '0';
 // Optional autopsy log: SHIM_BODY_LOG=<path> appends one JSON line per call
 // ({url, system, user, response}) so failing outputs can be replayed offline.
 function prepareBodyLog(value) {
@@ -1501,6 +1505,11 @@ const server = http.createServer(async (req, res) => {
     // adapter even though the compact response contract remains executable.
     (adapterRoute.taskFamily === SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL &&
       promptProtocol === SCION_LESSON_KERNEL_PROMPT_PROTOCOL);
+  const factLedgerFirstRequest =
+    SCION_LEDGER_FIRST &&
+    adapterRoute.taskFamily === SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL_SYNTHESIS &&
+    adapterRoute.reason === 'grounded-stage-available' &&
+    promptProtocol === SCION_LESSON_KERNEL_SYNTHESIS_PROMPT_PROTOCOL;
   if (compactLessonKernelRequest) {
     // Match the production browser boundary exactly. The public provider
     // converts the rich compiler prompt into the compact protocol used by the
@@ -1509,9 +1518,27 @@ const server = http.createServer(async (req, res) => {
     const compactMessages = buildPublicScionMessages(system, user, {
       schema: contract.schema || null,
       task: 'blueprintEnrichment',
+      factLedgerOnly: factLedgerFirstRequest,
     });
     system = compactMessages.find((message) => message.role === 'system')?.content || system;
     user = compactMessages.find((message) => message.role === 'user')?.content || user;
+    if (factLedgerFirstRequest) {
+      const lessons = extractPublicScionKernelLessons(originalCompilerUser).filter((lesson) => lesson?.lessonId);
+      const expectedLessonIds = lessons.map((lesson) => lesson.lessonId);
+      contract = {
+        schema: compactFactLedgerSchemaProfile({
+          expectedLessonIds,
+          factCount: scionFactCountForPrompt({ lessons, userPrompt: originalCompilerUser }, expectedLessonIds),
+        }).schema,
+      };
+      console.error(
+        JSON.stringify({
+          scionArchitecture: 'ledger-first-v1',
+          stage: 'fact-ledger',
+          expectedLessonIds,
+        }),
+      );
+    }
   }
   const temperature = 0;
   // Kernel/Pass-B calls: per-lesson chunked generation under the strict
@@ -1544,7 +1571,7 @@ const server = http.createServer(async (req, res) => {
             system,
             user,
             originalUser: originalCompilerUser,
-            maxTokens: requestedMaxTokens(body),
+            maxTokens: factLedgerFirstRequest ? Math.min(800, requestedMaxTokens(body)) : requestedMaxTokens(body),
             schema: contract.schema,
             maxAttempts: scionCompactKernelMaxAttempts({
               taskFamily: adapterRoute.taskFamily,

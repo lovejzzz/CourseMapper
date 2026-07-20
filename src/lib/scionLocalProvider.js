@@ -136,20 +136,28 @@ export async function runScionLocalCompletion({
     throw localError('SCION_LOCAL_RUNTIME_API', 'The packaged Scion browser runtime is unavailable.');
   }
 
-  const messages = buildPublicScionMessages(systemPrompt, userPrompt, { schema, task });
-  const outputLimit = Math.max(
+  const taskFamily = scionAdapterTaskFamilyForProviderTask(task, { promptProtocol });
+  const recoveryAttempt =
+    Number(String(userPrompt || '').match(/(?:RECOVERY RETRY|Recovery attempt)\s+(\d+)/i)?.[1]) || 0;
+
+  await runtimeApi.loadScionBrowserWllama({ onProgress, signal });
+  const plannedRoute =
+    typeof runtimeApi.prepareScionBrowserWllamaTaskRoute === 'function'
+      ? await runtimeApi.prepareScionBrowserWllamaTaskRoute({ taskFamily, promptProtocol })
+      : null;
+  const factLedgerOnly =
+    taskFamily === SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL_SYNTHESIS &&
+    plannedRoute?.reason === 'grounded-stage-available';
+  const messages = buildPublicScionMessages(systemPrompt, userPrompt, { schema, task, factLedgerOnly });
+  const requestedOutputLimit = Math.max(
     1,
     Math.min(
       PUBLIC_SCION_MAX_COMPLETION_TOKENS,
       Math.floor(Number(maxOutputTokens) || PUBLIC_SCION_MAX_COMPLETION_TOKENS),
     ),
   );
+  const outputLimit = factLedgerOnly ? Math.min(800, requestedOutputLimit) : requestedOutputLimit;
   const retryLimit = Math.max(0, Math.min(SCION_LOCAL_MAX_GENERATION_RETRIES, Math.floor(Number(maxRetries) || 0)));
-  const taskFamily = scionAdapterTaskFamilyForProviderTask(task, { promptProtocol });
-  const recoveryAttempt =
-    Number(String(userPrompt || '').match(/(?:RECOVERY RETRY|Recovery attempt)\s+(\d+)/i)?.[1]) || 0;
-
-  await runtimeApi.loadScionBrowserWllama({ onProgress, signal });
 
   let retryAssessment = null;
   const observedRetryIssues = new Set();

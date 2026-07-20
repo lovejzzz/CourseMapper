@@ -429,6 +429,8 @@ describe('trusted source ledger', () => {
       ]),
     );
     expect(isLicenseAmbiguous('http://doi.wiley.com/10.1002/tdm_license_1.1')).toBe(true);
+    expect(isLicenseAmbiguous('https://www.cambridge.org/core/terms')).toBe(true);
+    expect(isLicenseAmbiguous('http://onlinelibrary.wiley.com/termsAndConditions#vor')).toBe(true);
   });
 
   it('quarantines accessible source resources when license proof is missing', () => {
@@ -849,6 +851,55 @@ describe('trusted source ledger', () => {
         }),
       ]),
     );
+  });
+
+  it('keeps one licensed background overview per topic for a foundational K-12 course', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'Middle School Earth Science' },
+        concepts: [{ id: 'c1', term: 'Climate factors' }],
+        sessions: [
+          {
+            id: 's1',
+            number: 1,
+            sections: [{ id: 'sec1', topic: 'Climate factors', conceptRefs: ['c1'], resourceRefs: [] }],
+          },
+        ],
+        resources: [],
+        sourceFinderMiniShard: {
+          topics: [
+            {
+              sessionId: 's1',
+              lessonNumber: 1,
+              topic: 'climate factors',
+              sources: [
+                {
+                  provider: 'crossref',
+                  kind: 'journal-article',
+                  title: 'Emerging Climate Signals in Oxygen Minimum Zones',
+                  doi: '10.1000/oxygen-minimum-zones',
+                  url: 'https://doi.org/10.1000/oxygen-minimum-zones',
+                  license: 'CC BY 4.0',
+                  snippet: 'A narrow research study of climate signals in ocean oxygen minimum zones.',
+                },
+                {
+                  provider: 'wikipedia',
+                  kind: 'encyclopedia background',
+                  title: 'Climate change',
+                  url: 'https://en.wikipedia.org/wiki/Climate_change',
+                  license: 'CC BY-SA 4.0',
+                  snippet: 'An overview of climate change, causes, evidence, and effects.',
+                },
+              ],
+            },
+          ],
+        },
+      },
+      { checkedAt: '2026-07-20T00:00:00.000Z' },
+    );
+
+    expect(ledger.rows).toHaveLength(1);
+    expect(ledger.rows[0]).toMatchObject({ provider: 'wikipedia', title: 'Climate change' });
   });
 
   it('counts only accessible non-ambiguous source-finder rows as trusted bibliography', () => {

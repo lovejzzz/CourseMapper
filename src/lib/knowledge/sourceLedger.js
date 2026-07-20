@@ -30,7 +30,7 @@ const AMBIGUOUS_LICENSE_RE =
   /^(?:|unknown|open access|open license|other[-\s]?oa|(?:[\w.-]+\s+)*public metadata|instructor review required|review required|varies|mixed|metadata only|in copyright|all rights reserved)$/i;
 const RESTRICTED_RIGHTS_STATEMENT_RE = /rightsstatements\.org\/vocab\/inc(?:[-/]|$)/i;
 const PUBLISHER_POLICY_LICENSE_RE =
-  /(?:\/tdm(?:[_/-]|$)|\btdm(?:[_-]?license)?\b|text[-\s]?and[-\s]?data[-\s]?mining|policy-029|springernature\.com\/gp\/researchers\/text-and-data-mining|elsevier\.com\/tdm|sagepub\.com\/page\/policies\/text-and-data-mining-license|doi\.wiley\.com\/10\.1002\/tdm_license)/i;
+  /(?:\/tdm(?:[_/-]|$)|\btdm(?:[_-]?license)?\b|text[-\s]?and[-\s]?data[-\s]?mining|policy-029|springernature\.com\/gp\/researchers\/text-and-data-mining|elsevier\.com\/tdm|sagepub\.com\/page\/policies\/text-and-data-mining-license|doi\.wiley\.com\/10\.1002\/tdm_license|cambridge\.org\/core\/terms|onlinelibrary\.wiley\.com\/termsandconditions)/i;
 const NO_DERIVATIVES_LICENSE_RE =
   /(?:\bCC[-_\s]+BY(?:[-_\s]+(?:NC|SA|ND))*[-_\s]+ND(?:[-_\s]+(?:NC|SA|ND))*\b|creativecommons\.org\/licenses\/by(?:-[a-z]+)*-nd(?:\/|$))/i;
 const SOURCE_SIGNAL_RE =
@@ -835,7 +835,14 @@ function isCourseIRReviewOnlySource(source = {}) {
   );
 }
 
-function sourceFinderLedgerCandidateScore(source = {}) {
+function isFoundationalCourseGraph(courseGraph = {}) {
+  const courseName = cleanText(courseGraph?.course?.name || courseGraph?.courseName || courseGraph?.title || '', 200);
+  return /\b(?:middle school|elementary school|grades?\s*[1-9](?:\s*[-–]\s*1?[0-2])?|k\s*[-–]\s*12)\b/i.test(
+    courseName,
+  );
+}
+
+function sourceFinderLedgerCandidateScore(source = {}, courseGraph = {}) {
   const provider = cleanText(source.provider || source.origin || '', 80).toLowerCase();
   let score = 0;
   if (isSourceAccessible(source)) score += 30;
@@ -845,14 +852,15 @@ function sourceFinderLedgerCandidateScore(source = {}) {
   if (ACADEMIC_PROVIDERS.has(provider)) score += 12;
   if (OER_PROVIDERS.has(provider)) score += 10;
   if (LICENSED_BACKGROUND_PROVIDERS.has(provider)) score += 8;
+  if (isFoundationalCourseGraph(courseGraph) && LICENSED_BACKGROUND_PROVIDERS.has(provider)) score += 36;
   if (METADATA_ONLY_PROVIDERS.has(provider) || REVIEW_ONLY_PROVIDERS.has(provider)) score -= 20;
   return score;
 }
 
-function rankedSourceFinderTopicSources(topic = {}) {
+function rankedSourceFinderTopicSources(topic = {}, courseGraph = {}) {
   return (Array.isArray(topic.sources) ? topic.sources : [])
     .filter((source) => source && typeof source === 'object')
-    .map((source, index) => ({ source, index, score: sourceFinderLedgerCandidateScore(source) }))
+    .map((source, index) => ({ source, index, score: sourceFinderLedgerCandidateScore(source, courseGraph) }))
     .sort((left, right) => right.score - left.score || left.index - right.index);
 }
 
@@ -877,7 +885,7 @@ function normalizeSourceFinderTopicSource(courseGraph, topic, source, topicIndex
 }
 
 function sourceFinderTopicLedgerSources(courseGraph, topic, topicIndex, checkedAt) {
-  const candidates = rankedSourceFinderTopicSources(topic).map(({ source }, sourceIndex) =>
+  const candidates = rankedSourceFinderTopicSources(topic, courseGraph).map(({ source }, sourceIndex) =>
     normalizeSourceFinderTopicSource(courseGraph, topic, source, topicIndex, sourceIndex, checkedAt),
   );
   const trustedConceptLinked = [];
@@ -899,8 +907,9 @@ function sourceFinderTopicLedgerSources(courseGraph, topic, topicIndex, checkedA
     appendUnique(trustedConceptLinked, source);
   }
   if (trustedConceptLinked.length > 0) {
+    const trustedLimit = isFoundationalCourseGraph(courseGraph) ? 1 : SOURCE_FINDER_TRUSTED_ROWS_PER_TOPIC;
     return {
-      rows: trustedConceptLinked.slice(0, SOURCE_FINDER_TRUSTED_ROWS_PER_TOPIC),
+      rows: trustedConceptLinked.slice(0, trustedLimit),
       reviewRows: [],
     };
   }

@@ -512,6 +512,15 @@ async function prepareAdapterRoute(taskFamily, promptProtocol) {
   }
 }
 
+/**
+ * Resolve and prepare an inference route before prompt construction. The
+ * local provider uses this receipt to choose the small fact-ledger prompt
+ * when a verified grounded adapter can own the following kernel pass.
+ */
+export async function prepareScionBrowserWllamaTaskRoute({ taskFamily, promptProtocol } = {}) {
+  return prepareAdapterRoute(taskFamily, promptProtocol);
+}
+
 export async function applyScionBrowserWllamaAdapter({ adapterId, manifest, manifestSha256, files } = {}) {
   const candidate = requireReady();
   const { descriptor, bytes } = ggufAdapterFile(manifest, files);

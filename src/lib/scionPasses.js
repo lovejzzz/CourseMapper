@@ -1258,7 +1258,11 @@ export async function applyScionKernelPasses(
     if (contentSourced.has(lesson?.lessonId)) continue; // library content — never touched
     normalizeMcSurfaces(lesson, events);
     const promptLesson = promptLessons.find((entry) => entry?.lessonId === lesson?.lessonId) ?? null;
-    const callLimit = Math.max(1, Math.floor(Number(maxCallsPerLesson) || SCION_PASS_CALL_BUDGET_PER_LESSON));
+    const requestedCallLimit = Number(maxCallsPerLesson);
+    const callLimit = Math.max(
+      0,
+      Math.floor(Number.isFinite(requestedCallLimit) ? requestedCallLimit : SCION_PASS_CALL_BUDGET_PER_LESSON),
+    );
     let callsUsed = 0;
     let budgetEventRecorded = false;
     const budgetedGenerateJson = async (request) => {

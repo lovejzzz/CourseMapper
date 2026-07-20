@@ -14,7 +14,7 @@
 // both intentions in one bounded-token regex; the parser still owns exact
 // character admission after decoding.
 
-import { LOCAL_PROVIDER_ID } from './localProvider';
+import { LOCAL_PROVIDER_ID } from './localProvider.js';
 
 export function isScionProvider(provider) {
   return provider === LOCAL_PROVIDER_ID;
@@ -173,6 +173,37 @@ export function compactLessonKernelSchemaProfile({ expectedLessonIds = [], factC
   };
   lockObjects(schema);
   return { name: 'scion_compact_lesson_kernel_v1', schema, strict: true };
+}
+
+/**
+ * Small first-pass contract used only when a verified source-grounded adapter
+ * is available for the second pass. The base model establishes the factual
+ * warrant; it does not spend tokens drafting teaching surfaces that the
+ * task-scoped adapter will immediately replace.
+ */
+export function compactFactLedgerSchemaProfile({ expectedLessonIds = [], factCount = 5 } = {}) {
+  const lessonIds = expectedLessonIds.filter(Boolean);
+  const requiredFactCount = Math.max(3, Math.min(5, Number(factCount) || 5));
+  const schema = {
+    type: 'object',
+    properties: {
+      lessons: arr(
+        {
+          type: 'object',
+          properties: {
+            lessonId: lessonIds.length > 0 ? { type: 'string', enum: lessonIds } : str(3, 32),
+            facts: arr(str(20, 260), requiredFactCount, requiredFactCount),
+          },
+          required: ['lessonId', 'facts'],
+        },
+        lessonIds.length || 1,
+        lessonIds.length || 1,
+      ),
+    },
+    required: ['lessons'],
+  };
+  lockObjects(schema);
+  return { name: 'scion_compact_fact_ledger_v1', schema, strict: true };
 }
 
 export const COURSE_LEVEL_SCHEMA = {

@@ -1,13 +1,18 @@
 import { describe, expect, it, vi } from 'vitest';
 import { runScionLocalCompletion, SCION_LOCAL_MAX_GENERATION_RETRIES } from '../src/lib/scionLocalProvider';
 
-function runtimeWith(outputs, { route = null } = {}) {
+function runtimeWith(outputs, { route = null, plannedRoute = null } = {}) {
   const queue = [...outputs];
   return {
     loadScionBrowserWllama: vi.fn(async ({ onProgress }) => {
       onProgress?.({ phase: 'ready', progress: 1, message: 'Scion local Gemma 4 is ready.' });
       return { status: { phase: 'ready' } };
     }),
+    ...(plannedRoute
+      ? {
+          prepareScionBrowserWllamaTaskRoute: vi.fn(async () => plannedRoute),
+        }
+      : {}),
     completeScionBrowserWllama: vi.fn(async (_messages, options) => {
       if (route) options.onAdapterRoute?.(route);
       const output = queue.shift();
@@ -186,6 +191,52 @@ describe('Scion browser-local provider', () => {
     expect(result).toMatchObject({ attempt: 1, retryCount: 0, maxRetries: 1, contractIncomplete: true });
     expect(result.admissionIssues).toContain('lesson-4:key-term-0:correction-repeats-definition');
     expect(runtime.completeScionBrowserWllama).toHaveBeenCalledTimes(1);
+  });
+
+  it('plans a ledger-only base call before a verified grounded adapter stage', async () => {
+    const route = {
+      mode: 'base-only',
+      taskFamily: 'lesson-kernel-synthesis',
+      reason: 'grounded-stage-available',
+      adapterId: 'scion-grounded-test',
+      nativeAdapterActive: false,
+    };
+    const ledger = JSON.stringify({
+      lessons: [
+        {
+          lessonId: 'lesson-4',
+          facts: [
+            'Observed task failures reveal where an interface blocks a user goal.',
+            'Interview comments explain expectations but cannot replace observed behavior.',
+            'Audience evidence should guide which supporting details a speaker selects.',
+            'A prototype represents chosen interactions before production details are complete.',
+            'Specific feedback supports revision when it identifies an observable breakdown.',
+          ],
+        },
+      ],
+    });
+    const runtime = runtimeWith([ledger], { route, plannedRoute: route });
+    const prompt = `Course: Design\nLessons:\n[{"lessonId":"lesson-4","title":"Affinity Mapping"}]\nReturn ONLY valid JSON.`;
+
+    const result = await runScionLocalCompletion({
+      userPrompt: prompt,
+      task: 'blueprintEnrichment',
+      promptProtocol: 'production-lesson-kernel-synthesis-prompt-v1',
+      maxOutputTokens: 2400,
+      maxRetries: 2,
+      runtimeLoader: async () => runtime,
+      sleep: async () => {},
+    });
+
+    const [messages, options] = runtime.completeScionBrowserWllama.mock.calls[0];
+    const template = JSON.parse(messages.at(-1).content.split('TEMPLATE TO FILL:\n')[1]);
+    expect(runtime.prepareScionBrowserWllamaTaskRoute).toHaveBeenCalledWith(
+      expect.objectContaining({ taskFamily: 'lesson-kernel-synthesis' }),
+    );
+    expect(Object.keys(template.lessons[0])).toEqual(['lessonId', 'facts']);
+    expect(options.maxNewTokens).toBe(800);
+    expect(result).toMatchObject({ attempt: 1, retryCount: 0, contractIncomplete: true });
+    expect(result.admissionIssues).toContain('lesson-4:key-terms-count:0/3');
   });
 
   it('uses the conditional synthesis retry when the first grounded-stage fact ledger is invalid', async () => {

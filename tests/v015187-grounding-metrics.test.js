@@ -255,6 +255,36 @@ describe('courseFaq atom routing (v0.15.187)', () => {
     expect(cell[0]).toContain('— e.g., comparing survey results');
     expect(cell[0]).toMatch(/over\./);
   });
+
+  it('punctuates long structural-mapping table cells at the final slide boundary', () => {
+    const blueprint = buildCourseBlueprint(KERNEL_COURSE, { enrichment: FULL_KERNEL_ENRICHMENT });
+    blueprint.lessons[0].enrichment.structuralBridges = [
+      {
+        fromTerm: 'Earlier evidence model',
+        toTerm: 'Evidence triangulation',
+        archetypeName: 'Staged process',
+        note: 'Both structures coordinate evidence across successive decisions.',
+        mappingPairs: [
+          {
+            from: 'Each observation is checked before the next interpretation is accepted',
+            to: 'Each source is compared with independent evidence before a claim is accepted',
+          },
+          {
+            from: 'A later decision depends on the evidence consolidated in the stage before',
+            to: 'A final claim depends on corroboration established in the comparison before',
+          },
+        ],
+      },
+    ];
+    const compiled = compileBlueprintDeliverables(blueprint, ['slideDecks'], {});
+    const mapping = compiled.slideDecks.decks[0].slides.find(
+      (slide) => slide.visual?.kind === 'structural mapping table',
+    );
+    const longCells = mapping.visual.rows.flat().filter((cell) => cell.length >= 60);
+
+    expect(longCells.length).toBeGreaterThan(0);
+    longCells.forEach((cell) => expect(cell).toMatch(/[.!?;:]$/));
+  });
 });
 
 // Live crucible P1 (the last format point): the finalizer's lesson-title

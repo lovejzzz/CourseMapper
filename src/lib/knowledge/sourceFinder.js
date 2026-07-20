@@ -31,7 +31,11 @@ export const SOURCE_FINDER_ORIGIN = 'source-finder';
 // v6 invalidates v5 mini-shards after weak lesson labels and same-token
 // course/topic overlap were tightened. Reusing the old cache could otherwise
 // keep a "Focus group" page attached to Tang poetry for the rest of the week.
-const SOURCE_FINDER_VERSION = 'source-finder-v6';
+// v7 invalidates biographies that matched only through a person's career
+// summary (for example, Richard Lindzen for an atmospheric-layers lesson).
+// v8 also carries the lesson title into retrieval and tightens single-token
+// domain matches exposed by the K-12 Earth Science field run.
+const SOURCE_FINDER_VERSION = 'source-finder-v8';
 const CACHE_PREFIX = 'cm-source-finder:';
 const SNIPPET_LIMIT = 320;
 const DEFAULT_MAX_TOPICS = 8;
@@ -174,6 +178,11 @@ const LOW_SIGNAL_QUERY_TERMS = new Set([
 
 const TOPICAL_MISMATCH_GATES = [
   {
+    applies: /\b(?:rock types?|rock cycle|rock formation)\b/i,
+    reject: /\b(?:rock art|cave art|parietal art|tactile maps?)\b/i,
+    unlessTopic: /\b(?:art|archaeolog|map|cartograph)\b/i,
+  },
+  {
     applies: /\bfunctions?\b/i,
     reject: /\b(?:special functions?|mathematical physics|bessel|legendre|hypergeometric)\b/i,
     unlessSource: /\b(?:domain|codomain|mapping|bijection|injection|surjection|composition|sets?)\b/i,
@@ -238,11 +247,32 @@ function sourceContext(source) {
   ).toLowerCase();
 }
 
+// A biography can be relevant to a course without being a useful source for
+// the topic the lesson actually teaches. Wikipedia search sometimes returns a
+// scientist's page because the opening career summary repeats several query
+// terms. Keep biographies when the lesson explicitly names that person, but
+// reject an otherwise unrequested person page before snippet overlap can make
+// it look like a topical overview.
+function isUnrequestedBiography(source, topic) {
+  if (cleanText(source?.provider).toLowerCase() !== 'wikipedia') return false;
+  const snippetHead = cleanText(source?.snippet || source?.abstract || source?.description).slice(0, 220);
+  if (!/\((?:born|died)\b|\b(?:born|died)\s+(?:in\s+)?(?:1[5-9]|20)\d{2}\b/i.test(snippetHead)) return false;
+
+  const titleTerms = stemmedTermSet(source?.title || '');
+  const requestedTerms = new Set(meaningfulQueryTerms(topic).map(stemTerm));
+  return ![...titleTerms].some((term) => requestedTerms.has(term));
+}
+
 // Light stemming so "determinants" (topic) matches "determinant" (source
 // title) — the token gate is a Set intersection, not a substring match.
 function stemTerm(term) {
   if (/^iterat(?:e|es|ed|ing|ion|ions|ive|ives)$/.test(term)) return 'iterat';
   if (/^literar(?:y|ies|ature|atures)$/.test(term)) return 'literar';
+  if (/^epistemolog(?:y|ical|ist|ists)$/.test(term)) return 'knowledge';
+  if (/^theis(?:m|t|ts|tic)$/.test(term)) return 'god';
+  if (/^atmospher(?:e|es|ic|ics)$/.test(term)) return 'atmospher';
+  if (/^geolog(?:y|ic|ical|ist|ists)$/.test(term)) return 'geolog';
+  if (/^volcan(?:o|oes|ic|ism|ologist|ologists)$/.test(term)) return 'volcan';
   return term.length > 4 && term.endsWith('s') ? term.slice(0, -1) : term;
 }
 
@@ -288,13 +318,42 @@ const COURSE_SUBJECT_LEXICON = [
     signal: /\b(?:chemistry|chemical|biochem|organic chem)\b/i,
     terms: ['chemical', 'chemistry', 'molecul', 'reaction', 'compound', 'atom'],
   },
+  {
+    signal: /\b(?:earth science|geology|geological|rock cycle|plate tectonic)\b/i,
+    terms: [
+      'earth',
+      'geolog',
+      'mineral',
+      'igneous',
+      'sedimentary',
+      'metamorphic',
+      'rock',
+      'crust',
+      'mantle',
+      'core',
+      'tectonic',
+      'seismic',
+      'volcan',
+      'atmospher',
+      'weather',
+      'climate',
+      'hydrolog',
+      'erosion',
+    ],
+  },
 ];
 
-function courseSubjectTerms(courseName) {
-  const terms = [...stemmedTermSet(courseName)].filter((term) => !LOW_SIGNAL_QUERY_TERMS.has(term));
+function matchingCourseLexiconTerms(courseName) {
+  const terms = [];
   for (const entry of COURSE_SUBJECT_LEXICON) {
     if (entry.signal.test(courseName || '')) terms.push(...entry.terms.map(stemTerm));
   }
+  return new Set(terms);
+}
+
+function courseSubjectTerms(courseName) {
+  const terms = [...stemmedTermSet(courseName)].filter((term) => !LOW_SIGNAL_QUERY_TERMS.has(term));
+  terms.push(...matchingCourseLexiconTerms(courseName));
   return new Set(terms);
 }
 
@@ -333,6 +392,7 @@ function sourcePassesTopicalFit(source, topic) {
   if (!sourceText) return false;
 
   if (!sourcePassesDisciplineAnchor(source, topic)) return false;
+  if (isUnrequestedBiography(source, topic)) return false;
 
   for (const gate of TOPICAL_MISMATCH_GATES) {
     const rescuedByTopic = gate.unlessTopic?.test(topicText) || false;
@@ -367,13 +427,38 @@ function sourcePassesTopicalFit(source, topic) {
   if (sourceNamesCourse && discriminativeTopicTerms.length <= 1) return true;
   const topicHits = discriminativeTopicTerms.filter((term) => haystack.has(term)).length;
   if (topicHits === 0) return false;
+  const sourceTitleTopicHits = [...sourceTitleTerms].filter((term) => discriminativeTopicTerms.includes(term));
+  // Snippets are supporting evidence, not the identity of a source. Earth
+  // Science search is especially collision-prone ("Earth shelter", "Rock
+  // art", coal "pore structure"), so require its candidate title to carry a
+  // lesson term. Other disciplines retain their established semantic/domain
+  // gates until an equivalent field proof justifies tightening them.
+  if (/\b(?:earth science|geology|geological)\b/i.test(topic?.courseName || '') && sourceTitleTopicHits.length === 0) {
+    return false;
+  }
   // Two distinct topic-term hits clear the gate outright. A single hit — the
   // homonym trap ("bases", "independent", "matrix", "determinant", "midterm")
   // — must ALSO share a course-subject term, so an off-domain page that only
   // collides on the concept headword is rejected.
   if (topicHits < 2 && discriminativeTopicTerms.length >= 1) {
-    const courseTerms = courseSubjectTerms(topic?.courseName || '');
-    if (courseTerms.size > 0 && ![...courseTerms].some((term) => haystack.has(term))) return false;
+    const matchedTopicTerms = new Set(discriminativeTopicTerms.filter((term) => haystack.has(term)));
+    const titleTopicHits = [...sourceTitleTerms].filter((term) => matchedTopicTerms.has(term));
+    const titleExtras = [...sourceTitleTerms].filter(
+      (term) => !matchedTopicTerms.has(term) && !LOW_SIGNAL_QUERY_TERMS.has(term),
+    );
+    // A direct one-word overview such as "Water" is useful for "Water
+    // movement" without a second anchor. Once the title adds another concept
+    // ("Rock art"), that extra meaning needs independent discipline support.
+    if (!(titleTopicHits.length >= 1 && titleExtras.length === 0)) {
+      const domainTerms = new Set(
+        [...matchingCourseLexiconTerms(topic?.courseName || '')].filter((term) => !courseIdentityTerms.has(term)),
+      );
+      const courseTerms = domainTerms.size > 0 ? domainTerms : courseSubjectTerms(topic?.courseName || '');
+      const hasIndependentCourseAnchor = [...courseTerms].some(
+        (term) => !matchedTopicTerms.has(term) && haystack.has(term),
+      );
+      if (courseTerms.size > 0 && !hasIndependentCourseAnchor) return false;
+    }
   }
 
   return true;
@@ -402,7 +487,15 @@ function sourceTopicsFromGraph(graph, { maxTopics = DEFAULT_MAX_TOPICS } = {}) {
       const conceptTerms = (taughtBySession.get(session.id) || [])
         .filter((term) => !isWeakSourceTopic(term))
         .slice(0, 3);
-      const query = cleanText([topic, ...conceptTerms].join(' '));
+      const queryParts = [topic, lessonTitle, ...conceptTerms].filter(Boolean);
+      const query = cleanText(
+        queryParts
+          .filter((part, partIndex) => {
+            const normalized = cleanText(part).toLowerCase();
+            return queryParts.findIndex((candidate) => cleanText(candidate).toLowerCase() === normalized) === partIndex;
+          })
+          .join(' '),
+      );
       return {
         courseName,
         lessonNumber: Number.isInteger(session.number) ? session.number : index + 1,
@@ -524,7 +617,24 @@ function scoreSource(source, topic) {
   for (const term of queryTerms) if (haystack.has(term)) hits += 1;
   const providerScore = PROVIDER_PRIORITY[source.provider] || 30;
   const licenseScore = isLicenseAmbiguous(source.license) ? -28 : 28;
-  return providerScore + licenseScore + hits * 8 + (source.snippet ? 3 : 0) + (source.year ? 1 : 0);
+  // For K-12 foundations, a licensed encyclopedia overview is usually a
+  // better student-facing starting point than a narrowly scoped research
+  // article with the same keywords. The relevance gate still runs first, so
+  // this preference cannot rescue an off-topic Wikipedia result.
+  const foundationalBackgroundScore =
+    /\b(?:middle school|elementary school|grades?\s*[1-9](?:\s*[-–]\s*1?[0-2])?|k\s*[-–]\s*12)\b/i.test(
+      topic?.courseName || '',
+    ) && source.provider === 'wikipedia'
+      ? 36
+      : 0;
+  return (
+    providerScore +
+    licenseScore +
+    foundationalBackgroundScore +
+    hits * 8 +
+    (source.snippet ? 3 : 0) +
+    (source.year ? 1 : 0)
+  );
 }
 
 function dedupeAndRankSources(rawSources, topic, limit) {

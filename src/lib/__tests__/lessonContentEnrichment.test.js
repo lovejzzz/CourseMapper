@@ -164,6 +164,57 @@ describe('lesson content enrichment contracts', () => {
     );
   });
 
+  it('quarantines a contaminated adapter atom without discarding an exact source ledger', () => {
+    const sourceFacts = [
+      '你好 (nǐ hǎo) means hello in Mandarin.',
+      '谢谢 (xiè xie) means thank you in Mandarin.',
+      '再见 (zài jiàn) means goodbye in Mandarin.',
+    ];
+    const prompt = {
+      courseName: 'Elementary Mandarin Chinese I',
+      userPrompt: 'SOURCE FACT LEDGER',
+      lessons: [
+        {
+          lessonId: 'lesson-1',
+          title: 'Mandarin Greetings',
+          sourceFactPolicy: 'numbered-source-ledger-v1',
+          sourceFacts,
+        },
+      ],
+      itemPlan: [],
+    };
+    const parsed = parseLessonKernelResponse(
+      JSON.stringify({
+        lessons: [
+          {
+            lessonId: 'lesson-1',
+            facts: sourceFacts,
+            keyTerms: [],
+            mc: [],
+            targetLanguagePair: { hanzi: '你好', pinyin: 'nǐ hǎo', english: 'hello' },
+            scenario: {
+              su: 'A learner compares two greeting records before choosing the appropriate expression for a conversation.',
+              ma: 'Hangul counter notes, Sino-Korean number record',
+            },
+          },
+        ],
+      }),
+      { prompt, expectedLessonIds: ['lesson-1'] },
+    );
+
+    expect(parsed.lessons['lesson-1'].kernel.facts).toEqual(sourceFacts);
+    expect(parsed.lessons['lesson-1'].kernel.scenario).toBeNull();
+    expect(parsed.issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          lessonId: 'lesson-1',
+          surface: 'scenario',
+          reason: 'foreign-language-atom-quarantine',
+        }),
+      ]),
+    );
+  });
+
   it('lint distinguishes a meta definition from a true circular definition', () => {
     expect(lintEnrichedKeyTerm(GOOD_TERM, { lessonTitle: COURSE_MAP.lessons[0].title })).toHaveLength(0);
     const circular = {
