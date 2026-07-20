@@ -8,6 +8,8 @@ import {
   isLessonKernelCacheable,
 } from '../lessonKernelCache.js';
 import { buildQuizItemPlan } from '../../blueprintEnrichmentPass.js';
+import { completeNativeLessonSurfaces, selectNativeContentSources } from '../../nativeGraphAuthoring.js';
+import NUTRITION_SHARD from '../../../../public/genome/nutrition-intro.json';
 
 const ELASTICITY = {
   id: 'econ/price-elasticity-of-demand',
@@ -170,6 +172,138 @@ describe('runGenomeLinker', () => {
     expect(result.missingIndices).toEqual([0, 1]);
     expect(result.telemetry.resolvedFromGenome).toBe(0);
     expect(Object.keys(result.lessonContent)).toHaveLength(0);
+  });
+
+  it('builds late review lessons from prior cited concepts instead of asking the model to guess', () => {
+    const library = createKernelLibrary({ storage: memoryStorage() });
+    const concepts = ['Alpha', 'Beta', 'Gamma', 'Delta'].map((term) => ({
+      ...ELASTICITY,
+      id: `review/${term.toLowerCase()}`,
+      term,
+      aliases: [`${term} topic`],
+      definition: {
+        ...ELASTICITY.definition,
+        text: `${term} is a source-backed concept with a distinct role in the cumulative review.`,
+      },
+      facts: [
+        {
+          ...ELASTICITY.facts[0],
+          text: `${term} supplies an anchored fact that students can distinguish from the other review concepts.`,
+        },
+      ],
+      misconceptions: [
+        {
+          text: `${term} can be replaced by any other review concept without changing the answer.`,
+          corrective: `${term} has its own cited definition and must be matched to its own evidence.`,
+          tier: 2,
+        },
+      ],
+      examples: [{ text: `${term} appears in a concrete source-backed comparison.` }],
+      mcBank: [
+        {
+          stem: `Which label identifies the source-backed ${term} concept`,
+          options: [term, `${term} distractor`, `${term} substitute`, `${term} omission`],
+          answerIndex: 0,
+          explanationFactRef: 0,
+        },
+      ],
+    }));
+    concepts.forEach((kernel) => library.addKernel(kernel));
+    const reviewCourse = {
+      courseName: 'Evidence Survey',
+      lessons: [
+        ...concepts.map((kernel, index) => ({
+          title: `Lesson ${index + 1}: ${kernel.term}`,
+          sections: [{ topicSection: `${kernel.term} topic` }],
+        })),
+        { title: 'Lesson 5: Applied workshop', sections: [{ topicSection: 'Practice and feedback' }] },
+        { title: 'Lesson 6: Review of core concepts', sections: [{ topicSection: 'Cumulative review' }] },
+      ],
+    };
+
+    const result = runGenomeLinker({
+      courseMap: reviewCourse,
+      lessonIndices: [0, 1, 2, 3, 4, 5],
+      library,
+      itemPlan,
+    });
+
+    const review = result.lessonContent['lesson-6'];
+    expect(review.enrichmentSource).toBe('genome-cumulative-synthesis');
+    expect(review.cumulativeSynthesis).toMatchObject({
+      source: 'prior-genome-concepts',
+      generatedQuizItems: 2,
+    });
+    expect(review.cumulativeSynthesis.conceptIds).toHaveLength(4);
+    expect(review.quizItems.filter((item) => item.type === 'multiple_choice')).toHaveLength(2);
+    expect(review.quizItems[0].question).toContain('Which answer pair is correct, in order?');
+    expect(review.conceptProvenance.citations.length).toBeGreaterThan(0);
+    expect(result.missingIndices).not.toContain(5);
+    expect(result.telemetry.cumulativeSyntheses).toBe(1);
+    expect(describeGenomeLinkTelemetry(result.telemetry, 6, ['evidence'])).toContain(
+      '1 cumulative lesson synthesized from prior cited concepts',
+    );
+  });
+
+  it('source-backs Nutrition review and final-project lessons from the preceding genome sequence', () => {
+    const library = createKernelLibrary({ storage: memoryStorage() });
+    NUTRITION_SHARD.kernels.forEach((kernel) => library.addKernel(kernel));
+    const topics = [
+      'the six classes of nutrients and the difference between macronutrients and micronutrients',
+      'carbohydrates, simple and complex',
+      'dietary fiber, soluble and insoluble',
+      'proteins and amino acids',
+      'lipids including saturated, unsaturated, and trans fats',
+      'fat-soluble and water-soluble vitamins',
+      'major minerals and electrolytes',
+      'water and hydration',
+      'digestion and absorption in the GI tract',
+      'energy balance and metabolism with kcal worked examples of calories in versus calories out',
+      'healthy eating patterns and MyPlate',
+      'reading a Nutrition Facts label and percent daily value',
+      'review of nutrient functions',
+      'final diet-analysis project',
+    ];
+    const courseMap = {
+      courseName: 'Human Nutrition',
+      lessons: topics.map((topic, index) => ({
+        title: `Lesson ${index + 1}: ${topic}`,
+        sections: [{ topicSection: `${index + 1}.1: ${topic}` }],
+      })),
+    };
+
+    const result = runGenomeLinker({
+      courseMap,
+      lessonIndices: topics.map((_, index) => index),
+      library,
+      itemPlan,
+    });
+
+    const review = result.lessonContent['lesson-13'];
+    const project = result.lessonContent['lesson-14'];
+    expect(review.enrichmentSource).toBe('genome-cumulative-synthesis');
+    expect(project.enrichmentSource).toBe('genome-cumulative-synthesis');
+    expect(review.quizItems.filter((item) => item.type === 'multiple_choice')).toHaveLength(2);
+    expect(project.quizItems.filter((item) => item.type === 'multiple_choice')).toHaveLength(2);
+    expect(project.quizItems[0].question).not.toBe(review.quizItems[0].question);
+    expect(review.conceptProvenance.fullyAnchored).toBe(true);
+    expect(project.conceptProvenance.fullyAnchored).toBe(true);
+    expect(result.missingIndices).not.toContain(12);
+    expect(result.missingIndices).not.toContain(13);
+    expect(result.telemetry.resolvedFromGenome).toBe(14);
+    expect(result.telemetry.cumulativeSyntheses).toBe(2);
+    completeNativeLessonSurfaces(
+      result.lessonContent,
+      courseMap.lessons,
+      topics.map((_, index) => index),
+    );
+    expect(
+      selectNativeContentSources(
+        topics.map((_, index) => index),
+        result.lessonContent,
+        result.partialOverlays,
+      ),
+    ).toEqual(expect.arrayContaining(['lesson-13', 'lesson-14']));
   });
 
   it('rejects a Korean genome kernel from a Mandarin course before any surface is composed', () => {
