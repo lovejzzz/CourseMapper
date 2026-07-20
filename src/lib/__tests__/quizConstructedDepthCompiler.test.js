@@ -176,6 +176,104 @@ describe('constructed-response compiler depth', () => {
     expect(JSON.stringify(compilerItems)).not.toMatch(/source use without fabricating|kernel failed admission/i);
   });
 
+  it('never mislabels an admitted Nutrition kernel as missing when one MC filler is rejected', () => {
+    const blueprint = buildCourseBlueprint({
+      courseName: 'Human Nutrition',
+      lessons: [
+        {
+          title: 'Lesson 1: six classes of nutrients and the difference between macronutrients and micronutrients',
+          sections: [
+            {
+              topicSection: 'Nutrient classes',
+              learningObjectives:
+                'Explain the six nutrient classes and distinguish macronutrients from micronutrients.',
+            },
+          ],
+        },
+      ],
+    });
+    blueprint.lessons[0].enrichment = {
+      keyTerms: [
+        {
+          term: 'The six classes of nutrients',
+          definition:
+            'There are six classes of nutrients required for the body to function: carbohydrates, lipids, proteins, water, vitamins, and minerals.',
+          misconception: 'Students believe vitamins and minerals give the body energy.',
+          correction:
+            'Only carbohydrates, lipids, and proteins yield kilocalories; vitamins and minerals contribute no energy themselves.',
+          source: 'UH OER human nutrition 2e',
+          tier: 2,
+        },
+        {
+          term: 'water',
+          definition:
+            'Nutrients are substances required by the body to perform its basic functions, and they must be obtained from the diet because the body does not synthesize them.',
+          misconception: 'A common error is choosing fiber without checking the details named in the question.',
+          correction:
+            'The admitted explanation supports water after the named details are checked against every option.',
+          source: 'verified-quiz-projection',
+          derivedFromQuizIndex: 0,
+        },
+        {
+          term: 'lipids',
+          definition:
+            'Lipids are the most energy-dense class at nine kilocalories per gram — more than double carbohydrates.',
+          misconception: 'A common error is choosing carbohydrates without checking the details named in the question.',
+          correction:
+            'The admitted explanation supports lipids after the named details are checked against every option.',
+          source: 'verified-quiz-projection',
+          derivedFromQuizIndex: 1,
+        },
+      ],
+      kernel: {
+        facts: [
+          'Nutrients are substances required by the body to perform its basic functions, and they must be obtained from the diet because the body does not synthesize them.',
+          'Nutrients needed in large amounts are macronutrients; micronutrients are required in lesser amounts but remain essential.',
+          'Digestible carbohydrates and proteins each yield four kilocalories of energy per gram.',
+          'Lipids are the most energy-dense class at nine kilocalories per gram — more than double carbohydrates.',
+          "A kilocalorie is synonymous with the capital-C 'Calorie' printed on nutrition food labels.",
+        ],
+      },
+      quizItems: [
+        {
+          index: 0,
+          type: 'multiple_choice',
+          question: 'Which of these is itself one of the six classes of nutrients?',
+          options: ['water', 'fiber', 'cholesterol', 'caffeine'],
+          answerIndex: 0,
+          explanation: 'Water is one of the six nutrient classes.',
+        },
+        {
+          index: 1,
+          type: 'multiple_choice',
+          question: 'Which nutrient class supplies the most kilocalories per gram?',
+          options: ['lipids', 'carbohydrates', 'proteins', 'vitamins'],
+          answerIndex: 0,
+          explanation: 'Lipids supply nine kilocalories per gram.',
+        },
+      ],
+    };
+    blueprint.enrichment = {
+      coverage: { requestedLessons: 1, enrichedLessons: 1, missingLessons: [] },
+      stageDecisions: { modelStage: 'ran' },
+    };
+
+    const items = buildQuizAtomsForLesson(blueprint.lessons[0], blueprint, { assessment: {} });
+
+    expect(items).toHaveLength(6);
+    expect(items.every((item) => item.enrichmentSource !== 'source-bound-recovery')).toBe(true);
+    expect(items.every((item) => item.sourceReviewRequired !== true)).toBe(true);
+    expect(items.some((item) => item.enrichmentSource === 'admitted-kernel-assessment')).toBe(true);
+    expect(items[2]).toMatchObject({
+      type: 'short_answer',
+      enrichmentSource: 'admitted-kernel-assessment',
+    });
+    expect(items[2].bloomsLevel).toBe('Analyze');
+    expect(items[2].question).toMatch(/Analyze this course statement/);
+    expect(items[2].question).toMatch(/relates to The six classes of nutrients/);
+    expect(items[2].question).not.toMatch(/relates to water/);
+  });
+
   it('uses two distinct admitted concepts for a one-lesson exam and removes doubled decision language', () => {
     const blueprint = evidenceCourseBlueprint();
     blueprint.lessons[0].enrichment = {

@@ -19219,7 +19219,7 @@ export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
       ? buildAdmittedKernelAssessmentFillers({ lesson, blueprint, quizPlan, assessment })
       : [];
   const sourceBoundFillers =
-    knowledgeWasRequested && !machineScored
+    knowledgeWasRequested && !machineScored && lessonNeedsSourceBoundRecovery(lesson, blueprint)
       ? buildSourceBoundRecoveryQuizAtoms({
           lesson,
           blueprint,
@@ -19913,6 +19913,72 @@ function rotateAdmittedAssessmentKnowledge(lesson, offset = 0) {
   };
 }
 
+// A complete, admitted kernel must never fall through to source-bound
+// recovery merely because one generated MC option set fails admission. This
+// constructed-response atom quotes the admitted fact directly, connects it to
+// an admitted term, and asks students to bound the claim. It is intentionally
+// simpler than trying to synthesize another plausible distractor set from a
+// one-lesson evidence pool: the answer remains inspectable without pretending
+// the lesson's knowledge is missing.
+function buildAdmittedKernelEvidenceItem({ lesson, quizPlan, index, offset = 0 }) {
+  const terms = examLessonTerms(lesson);
+  const facts = (lesson?.enrichment?.kernel?.facts || []).map(cleanText).filter(Boolean);
+  // Genome-authored terms carry the lesson concept. Quiz-projected terms
+  // (for example, an answer option promoted as "water") are useful retrieval
+  // atoms but can have a definition whose scope is broader than the label.
+  // Prefer the primary, non-projected term for a cross-fact analysis prompt.
+  const term =
+    terms.find(
+      (candidate) =>
+        candidate?.derivedFromQuizIndex == null && cleanText(candidate?.source) !== 'verified-quiz-projection',
+    ) ||
+    terms[0] ||
+    null;
+  const fact = facts[offset % Math.max(1, facts.length)] || cleanText(term?.definition);
+  const concept = cleanText(term?.term) || primaryConceptForLesson(lesson);
+  const definition = cleanText(term?.definition);
+  if (!concept || !fact) return null;
+
+  const plan = quizPlan[index] || quizPlan[0] || {};
+  const quotedFact = stripTerminalPunctuation(fact);
+  const definitionCue = definition
+    ? `${joinTermDefinition(concept, definition, { separator: ' means ', lowercaseTail: true })}.`
+    : `${sentenceCase(concept)} is the concept students should use to interpret the quoted evidence.`;
+  return withQuizPlan(
+    {
+      id: quizQuestionId(lesson, index),
+      type: 'short_answer',
+      bloomsLevel: 'Analyze',
+      difficulty: plan.difficulty || 'Medium',
+      estimatedMinutes: 5,
+      points: 4,
+      objectiveAligned: plan.objective || lesson.outcomes?.[0] || '',
+      intendedUse: `Weekly source-grounded evidence check for ${lesson.title}; score the relationship and claim boundary against the admitted lesson kernel.`,
+      question: `Analyze this course statement: “${quotedFact}.” In 2-3 sentences, explain how the evidence relates to ${concept}, then name one conclusion the statement does not establish by itself.`,
+      answer: `A complete answer accurately connects the quoted statement to ${concept}, explains the relationship it establishes, and keeps the conclusion within the supplied evidence.`,
+      sampleAnswer: `${definitionCue} The evidence supports that concept by showing that ${lowercaseSentenceLead(quotedFact)}. It does not support a conclusion that adds a nutrient, quantity, cause, or outcome not stated in the quotation.`,
+      explanation: `This item checks whether students can interpret an admitted ${concept} fact and distinguish its supported relationship from an overclaim.`,
+      scoringGuidance: `Award full credit for accurate use of ${concept}, an explicit explanation of the quoted relationship, and one defensible boundary. Partial credit when the response repeats the fact without explaining or limiting it.`,
+      tags: unique(['quiz', 'short answer', concept, 'source evidence', 'claim boundary'], 8),
+      enrichmentSource: 'admitted-kernel-assessment',
+    },
+    {
+      ...plan,
+      source: 'source-grounded-quiz-plan',
+      role: 'admitted-kernel-evidence-analysis',
+      bloom: 'Analyze',
+      difficulty: plan.difficulty || 'Medium',
+      use: 'weekly source-grounded evidence check',
+      questionIndex: index,
+      bloomSource: 'admitted lesson fact and claim-boundary demand',
+      sourceSignal: quotedFact,
+      objectiveAlignmentStrategy: plan.objectiveAlignmentStrategy || 'lesson-primary-objective',
+      objectiveAlignmentRationale:
+        plan.objectiveAlignmentRationale || 'Question applies an admitted lesson fact to the lesson objective.',
+    },
+  );
+}
+
 function buildAdmittedKernelAssessmentFillers({ lesson, blueprint, quizPlan, assessment }) {
   if (lessonNeedsSourceBoundRecovery(lesson, blueprint) || (!examLessonTerm(lesson) && !examLessonFact(lesson))) {
     return [];
@@ -19961,7 +20027,10 @@ function buildAdmittedKernelAssessmentFillers({ lesson, blueprint, quizPlan, ass
   const fillers = [];
   fillers[0] = build(buildExamDefinitionItem, 0) || build(buildExamFactItem, 0);
   fillers[1] = build(buildExamMisconceptionItem, 1) || build(buildExamFactItem, 1, 1);
-  fillers[2] = build(buildExamFactItem, 2) || build(buildExamDefinitionItem, 2, 1);
+  fillers[2] =
+    build(buildExamFactItem, 2) ||
+    build(buildExamDefinitionItem, 2, 1) ||
+    buildAdmittedKernelEvidenceItem({ lesson, quizPlan, index: 2, offset: 1 });
   fillers[4] =
     build(buildExamMisconceptionItem, 4, 1) || build(buildExamFactItem, 4, 1) || build(buildExamDefinitionItem, 4, 1);
   const examArgs = {
