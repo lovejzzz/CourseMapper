@@ -363,6 +363,75 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     );
   });
 
+  it('D1: bounds the safer base fallback after a proven adapter draft loses selection', async () => {
+    const lessons = JSON.parse(SCION_LESSON_KERNEL_PILOT_PROMPT.match(/Lessons:\n(\[.*\])\nReturn/s)[1]);
+    const prompt = {
+      courseName: 'Geology Inference and Feedback Audit',
+      lessons,
+      userPrompt: SCION_LESSON_KERNEL_PILOT_PROMPT,
+      systemPrompt: 'Write a compact knowledge kernel.',
+    };
+    const base = structuredClone(SCION_LESSON_KERNEL_REFERENCE_PILOT_RESPONSE);
+    base.lessons[0].scenario = {};
+    base.lessons[0].mc[0].op = ['Same option', 'Same option', 'Same option', 'Same option'];
+    base.lessons[0].keyTerms[0].eg = base.lessons[0].keyTerms[0].df;
+    const adapter = structuredClone(base);
+    adapter.lessons[0].keyTerms[1].eg = adapter.lessons[0].keyTerms[1].df;
+    const events = [];
+    const streamProvider = vi
+      .fn()
+      .mockResolvedValueOnce({
+        fullText: JSON.stringify(adapter),
+        adapterRoutes: [
+          {
+            taskFamily: 'source-grounded-lesson-kernel',
+            routeMode: 'adapter',
+            nativeAdapterActive: true,
+          },
+        ],
+      })
+      .mockResolvedValueOnce({ fullText: JSON.stringify({ repairs: [] }), adapterRoutes: [] });
+
+    await runScionPasses({
+      rawText: JSON.stringify(base),
+      streamProvider,
+      provider: 'local',
+      apiKey: '',
+      modelId: 'scion-1',
+      modelCapabilities: {},
+      generationPlan: {},
+      recordEvent: (event) => events.push(event),
+      prompt,
+      expectedLessonIds: ['lesson-3'],
+      contentSourcedLessonIds: [],
+      courseName: prompt.courseName,
+      runtimeRoutes: [
+        {
+          taskFamily: 'lesson-kernel-synthesis',
+          routeMode: 'base-only',
+          routeReason: 'grounded-stage-available',
+          adapterId: 'scion-source-grounded',
+        },
+      ],
+    });
+
+    expect(streamProvider).toHaveBeenCalledTimes(2);
+    expect(events).toContainEqual(
+      expect.objectContaining({
+        label: 'Scion staged adapter refinement',
+        detail: expect.stringContaining('rejected'),
+      }),
+    );
+    expect(events).toContainEqual(
+      expect.objectContaining({
+        label: 'Scion quality passes',
+        detail: expect.stringContaining(
+          'improvementPasses:lesson-3 skipped [grounded-adapter-bounded-repair-policy:1/1]',
+        ),
+      }),
+    );
+  });
+
   it('D1: spends no repair calls when the immutable base fact ledger is invalid', async () => {
     const lessons = JSON.parse(SCION_LESSON_KERNEL_PILOT_PROMPT.match(/Lessons:\n(\[.*\])\nReturn/s)[1]);
     const prompt = {

@@ -187,6 +187,7 @@ export async function runScionPasses({
     let workingText = rawText;
     let workingPrompt = prompt;
     let workingUsesGroundedAdapter = false;
+    let groundedAdapterWasProven = false;
     if (shouldRunScionGroundedAdapterStage(runtimeRoutes)) {
       const groundedPrompt = buildScionGroundedRefinementPrompt({ rawText, prompt, expectedLessonIds });
       if (!groundedPrompt) {
@@ -237,6 +238,7 @@ export async function runScionPasses({
               route?.routeMode === 'adapter' &&
               route?.nativeAdapterActive === true,
           );
+          groundedAdapterWasProven = stagedUsedAdapter;
           const stagedAssessment = assessPublicScionKernelResponse(
             staged?.fullText || '',
             groundedPrompt.userPrompt,
@@ -330,12 +332,12 @@ export async function runScionPasses({
       // model never certifies itself or creates adapter evidence.
       verifyRepairMcWithSameModel: false,
       maxAdmissionRepairsPerCall: 1,
-      // The aligned adapter can now provide a strictly safer near-miss. Give
-      // that draft one high-value repair seat, then trust the deterministic
-      // admission/quarantine/fallback compiler. The previous five-seat stack
-      // spent fourteen extra generations across four canary lessons, mostly
-      // on rejected applied-depth and same-model compensation.
-      ...(workingUsesGroundedAdapter
+      // Once the aligned adapter route has been proven and evaluated, give
+      // whichever draft won deterministic selection one high-value repair
+      // seat, then trust admission/quarantine/fallback. This also bounds the
+      // safer base fallback when the adapter loses: a live Mandarin canary
+      // showed five subsequent repair calls and all five were rejected.
+      ...(workingUsesGroundedAdapter || groundedAdapterWasProven
         ? {
             maxCallsPerLesson: 1,
             skipImprovementOnlyPasses: true,
