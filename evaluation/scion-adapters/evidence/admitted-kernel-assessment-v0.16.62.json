@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-admitted-kernel-assessment-replay-v1",
+  "release": "v0.16.62-candidate",
+  "observedAt": "2026-07-20T05:17:15.000Z",
+  "status": "compiler-lift-demonstrated-adapter-win-not-evaluated",
+  "claimBoundary": "This receipt demonstrates deterministic compiler lift and browser project-restoration behavior on one saved Mandarin canary. It is not a matched base-versus-adapter comparison, an adapter promotion, paid-reference parity, independent review, or evidence that the adapter improves Gemma.",
+  "candidate": {
+    "adapterId": "scion-g4e2b-production-24fea2752e6edb62",
+    "manifestSha256": "e0288a9bd96b5ff1f510e55d93da586aa3b460919d61a63fa08064c61e525a08",
+    "baseModel": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+    "baseRevision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
+    "activeOnProductionWebsite": false,
+    "adapterQualityWinProven": false
+  },
+  "canary": {
+    "path": "verification-output/crucible/round-2026-07-20T04-30-09-090Z/mandarin--native--quiet--local",
+    "courseId": "mandarin",
+    "lessons": 15,
+    "filesExported": 127,
+    "quality": {
+      "score": 89,
+      "grade": "B",
+      "p0": 0,
+      "p1": 2,
+      "p2": 1
+    },
+    "runtime": {
+      "durationMs": 887383,
+      "providerCalls": 46,
+      "pipelineCalls": 33,
+      "modelFailures": 0,
+      "workerRestarts": 0,
+      "apiCostUsd": 0
+    },
+    "sha256": {
+      "project.json": "5e174e6b9dfafb9704ee90812d70de3976f937aaaf33671fbec5ac73dd924402",
+      "report.json": "b2c77bdbbfd6fb876380690489240ea9a6fd63121359fcc152ecbc3bc2eea381",
+      "digest.json": "80fe23329bdc833dd747d9d72afded4f75dd0f46710ece7e6872b11ea26a3071",
+      "package.zip": "f6eddce8bfab603159be4f500ce725a8988d25b8efe6c143623aa47b79ed2b90"
+    },
+    "remainingFindings": [
+      "Mandarin target-language pairing reaches 14/15 lessons",
+      "One of 15 study guides lacks a visible Hanzi and tone-marked Pinyin pair",
+      "One enriched slide deck lacks a native visual"
+    ]
+  },
+  "assessmentReplay": {
+    "sourceModel": {
+      "multipleChoiceItems": 19,
+      "appliedMultipleChoiceItems": 2,
+      "appliedMultipleChoiceRate": 0.105
+    },
+    "compiled": {
+      "assessmentSeats": 90,
+      "multipleChoiceItems": 60,
+      "appliedMultipleChoiceItems": 32,
+      "appliedMultipleChoiceRate": 0.533,
+      "constructedResponseItems": 15,
+      "claimEvidenceBoundaryItems": 13,
+      "claimEvidenceBoundaryRate": 0.867,
+      "sourceBoundRecoverySeats": 0,
+      "admittedKernelAssessmentSeats": 55,
+      "sourceReviewRequiredSeats": 0,
+      "admissionIssues": []
+    }
+  },
+  "browserAudit": {
+    "projectRestore": {
+      "legacyGraphValidBeforeRepair": false,
+      "duplicateResourceIds": ["r4", "r9", "r19", "r29"],
+      "admissionRecheckedKernelsRestored": 15,
+      "requestedKernels": 15
+    },
+    "onDemandQuizCompile": {
+      "completeSavedOverlayReused": true,
+      "genericAssignedSourceMentionsInExpandedSnapshot": 0,
+      "mandarinSubjectFactMentionsInExpandedSnapshot": 14,
+      "readyToDownload": true
+    },
+    "limitations": "This was a local interactive Chrome audit of the saved canary project, not an independent browser laboratory or a multi-device performance benchmark."
+  },
+  "implementation": [
+    "Missing quiz seats rotate through admitted facts, key terms, and misconceptions before any conservative recovery path.",
+    "Generated multiple-choice fillers pass the same admission lint as model-authored items.",
+    "Legacy duplicate resource IDs are repaired deterministically and session resource references are remapped.",
+    "A complete saved enrichment overlay is revalidated and reused for single-deliverable compilation; a partial or stale overlay is rejected.",
+    "A stray model-emitted dollar sign after terminal punctuation is removed without changing legitimate inline math delimiters."
+  ]
+}

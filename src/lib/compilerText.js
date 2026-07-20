@@ -181,7 +181,12 @@ export function humanizeQuizText(value) {
   return humanizeMachineTokens(
     sourceSafe
       .replace(/\s*§\s*[A-Za-z0-9_-]+/g, '')
-      .replace(/\s*\((?:open textbook|open license)(?:\s*,[^)]*)?\)/gi, ''),
+      .replace(/\s*\((?:open textbook|open license)(?:\s*,[^)]*)?\)/gi, '')
+      // Weak local models occasionally close a prose question with a lone
+      // math delimiter ("...supported?$"). A dollar after sentence
+      // punctuation cannot be a useful closing inline-math token, so remove
+      // it without touching legitimate prompts such as "Evaluate $x$".
+      .replace(/([.!?])\s*\$$/, '$1'),
   );
 }
 

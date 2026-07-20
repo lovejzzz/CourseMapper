@@ -19210,9 +19210,14 @@ export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
     : overlayEnrichedQuizItems(framed, lesson);
   // A partially admitted kernel may contain one excellent authored item and
   // five empty slots. Preserve that item, but do not fill the other slots
-  // with subject-free answer keys. Source-bound constructed responses are
-  // honest about the missing knowledge and work for every model provider.
+  // with subject-free answer keys. Prefer deterministic assessment items built
+  // from already admitted lesson atoms; only genuinely missing knowledge falls
+  // back to source-bound review prompts that are honest about the gap.
   const knowledgeWasRequested = Number(blueprint?.enrichment?.coverage?.requestedLessons) > 0;
+  const admittedKernelFillers =
+    knowledgeWasRequested && !machineScored
+      ? buildAdmittedKernelAssessmentFillers({ lesson, blueprint, quizPlan, assessment })
+      : [];
   const sourceBoundFillers =
     knowledgeWasRequested && !machineScored
       ? buildSourceBoundRecoveryQuizAtoms({
@@ -19225,8 +19230,10 @@ export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
         })
       : [];
   const knowledgeSafe =
-    sourceBoundFillers.length > 0
-      ? overlaid.map((atom, index) => (atom.enrichmentSource ? atom : sourceBoundFillers[index] || atom))
+    admittedKernelFillers.length > 0 || sourceBoundFillers.length > 0
+      ? overlaid.map((atom, index) =>
+          atom.enrichmentSource ? atom : admittedKernelFillers[index] || sourceBoundFillers[index] || atom,
+        )
       : overlaid;
   const bloomAligned = knowledgeSafe.map((atom) => {
     const stemLevel = bloomLevelFromStemVerb(atom.question);
@@ -19887,6 +19894,88 @@ function buildExamFactItem({ lesson, covered, coveredIndex, index, objective, as
   );
 }
 
+function rotateAdmittedAssessmentKnowledge(lesson, offset = 0) {
+  const rotate = (values = []) => {
+    if (values.length < 2) return values;
+    const start = offset % values.length;
+    return [...values.slice(start), ...values.slice(0, start)];
+  };
+  return {
+    ...lesson,
+    enrichment: {
+      ...lesson?.enrichment,
+      keyTerms: rotate(lesson?.enrichment?.keyTerms || []),
+      kernel: {
+        ...lesson?.enrichment?.kernel,
+        facts: rotate(lesson?.enrichment?.kernel?.facts || []),
+      },
+    },
+  };
+}
+
+function buildAdmittedKernelAssessmentFillers({ lesson, blueprint, quizPlan, assessment }) {
+  if (lessonNeedsSourceBoundRecovery(lesson, blueprint) || (!examLessonTerm(lesson) && !examLessonFact(lesson))) {
+    return [];
+  }
+  const weeklyAssessment = {
+    ...assessment,
+    title: cleanText(assessment?.title) || `${lesson.title} weekly knowledge check`,
+  };
+  const covered = [lesson];
+  const weeklyize = (item, index) => {
+    if (!item) return null;
+    if (
+      item.type === 'multiple_choice' &&
+      lintItemAdmission({
+        question: item.question,
+        options: item.options.map((option) => option.replace(/^[A-D]\.\s*/, '')),
+        answerIndex: QUIZ_ANSWER_LETTERS.indexOf(item.answer),
+        explanation: item.explanation,
+      }).length > 0
+    ) {
+      return null;
+    }
+    return {
+      ...item,
+      intendedUse: `Weekly source-grounded knowledge check for ${lesson.title}; the answer and distractors come from admitted lesson atoms.`,
+      enrichmentSource: 'admitted-kernel-assessment',
+      tags: (item.tags || []).map((tag) => (tag === 'exam' ? 'quiz' : tag)),
+      quizPlan: { ...item.quizPlan, ...quizPlan[index], questionIndex: index },
+    };
+  };
+  const build = (builder, index, offset = 0) => {
+    const sourceLesson = rotateAdmittedAssessmentKnowledge(lesson, offset);
+    return weeklyize(
+      builder({
+        lesson: sourceLesson,
+        covered,
+        coveredIndex: 0,
+        index,
+        objective: quizPlan[index]?.objective || lesson.outcomes?.[0] || '',
+        assessment: weeklyAssessment,
+        plan: quizPlan[index],
+      }),
+      index,
+    );
+  };
+  const fillers = [];
+  fillers[0] = build(buildExamDefinitionItem, 0) || build(buildExamFactItem, 0);
+  fillers[1] = build(buildExamMisconceptionItem, 1) || build(buildExamFactItem, 1, 1);
+  fillers[2] = build(buildExamFactItem, 2) || build(buildExamDefinitionItem, 2, 1);
+  fillers[4] =
+    build(buildExamMisconceptionItem, 4, 1) || build(buildExamFactItem, 4, 1) || build(buildExamDefinitionItem, 4, 1);
+  const examArgs = {
+    blueprint,
+    assessment: weeklyAssessment,
+    covered,
+    lens: blueprintLens(blueprint),
+    examSlug: `lesson-${lesson.lessonNumber}-weekly`,
+  };
+  fillers[3] = weeklyize(buildExamShortAnswerItem({ ...examArgs, ordinal: 4 }), 3);
+  fillers[5] = weeklyize(buildExamEssayItem({ ...examArgs, ordinal: 6 }), 5);
+  return fillers;
+}
+
 // Misconception vs corrective: the stem quotes the documented wrong claim;
 // the correct option is its authored corrective (or the definition phrased
 // as a counter), distractors endorse the claim or answer about a different
@@ -19936,7 +20025,7 @@ function buildExamMisconceptionItem({ lesson, covered, coveredIndex, index, obje
       points: 2,
       objectiveAligned: objective,
       intendedUse: `Summative misconception check on ${assessment.title}; students pick the corrective over the documented wrong turn.`,
-      question: `A classmate preparing for ${assessment.title} claims: “${stripTerminalPunctuation(claim)}.” Which statement about ${concept} corrects this?`,
+      question: `A classmate preparing for ${assessment.title} claims: “${stripTerminalPunctuation(claim)}.” Which response best addresses this claim about ${concept} using the course evidence?`,
       options,
       answer,
       distractorRationale: `The lead distractor endorses ${concept}'s documented misconception; the rest are claims about other covered concepts that never address it.`,
@@ -20184,10 +20273,10 @@ function buildReviewWeekQuizAtoms(lesson, blueprint, options = {}) {
       `A practice problem from ${sourceFocus} resurfaces in ${reviewFocus}. Which response shows ${concept} transfers to new evidence?`,
     ];
     const corrects = [
-      `Re-apply ${concept} to a fresh example from ${sourceCue} and confirm the same decision logic holds for ${reviewArtifact}.`,
-      `Use ${concept} to work one ${sourceFocus} example end-to-end, then check the result against ${sourceCue}.`,
-      `Explain ${concept} from memory, then verify the explanation against ${sourceCue} before relying on it in ${reviewArtifact}.`,
-      `Apply ${concept} to the new evidence first, and only then compare the answer with the original ${sourceFocus} work.`,
+      `Re-apply the named method to a fresh covered example and confirm the same decision logic holds for the current task.`,
+      `Use the named method to work one covered example end-to-end, then check the result against the assigned source.`,
+      `Explain the named method from memory, then verify the explanation against the assigned source before relying on it in the current task.`,
+      `Apply the named method to the new evidence first, and only then compare the answer with the original work.`,
     ];
     return buildMultipleChoiceQuestion({
       lesson: hybrid,

@@ -67,6 +67,7 @@ import {
   mergeRegeneratedLessonItems,
 } from '../src/lib/lessonRegenMerge.js';
 import { buildDeliverableDocxBlob } from '../src/lib/exporters/bulkDocxExporter.js';
+import { lintItemAdmission } from '../src/lib/itemAdmissionLint.js';
 import {
   buildLessonKernelPrompt,
   buildLessonContentEnrichmentPrompt,
@@ -900,6 +901,20 @@ describe('fix 7 — review-week weekly quizzes draw from PRIOR lessons, not the 
         ROUND2_TOPICS.some(([, concept]) => question.question.includes(concept));
       expect(named, `review MC stem names no covered content: ${question.question}`).toBe(true);
     }
+  });
+
+  it('keeps review-week answer choices free of test-wise admission cues', () => {
+    const issues = reviewQuiz.questions
+      .filter((question) => question.type === 'multiple_choice')
+      .flatMap((question) =>
+        lintItemAdmission({
+          question: question.question,
+          options: question.options.map((option) => option.replace(/^[A-D]\.\s*/, '')),
+          answerIndex: 'ABCD'.indexOf(question.answer),
+          explanation: question.explanation,
+        }),
+      );
+    expect(issues).toEqual([]);
   });
 
   it('duplicates no stem from the covered lessons’ own quizzes or the compiled exam', () => {

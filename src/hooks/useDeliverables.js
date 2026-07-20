@@ -2234,7 +2234,31 @@ export default function useDeliverables({
           directCourseIRState = directCourseIRResult.state;
           blueprintEnrichment = directCourseIRResult.blueprintEnrichment;
         }
-        if (!directCourseIRState) {
+        if (
+          !directCourseIRState &&
+          !nativeSkeleton &&
+          generationOptions.refreshEnrichment !== true &&
+          lastEnrichmentOverlayRef.current?.lessonContent
+        ) {
+          const { restoreCompleteEnrichmentOverlay } = await import('../lib/compiledLessonSync');
+          const restored = restoreCompleteEnrichmentOverlay(
+            lastEnrichmentOverlayRef.current,
+            blueprintCourseMap,
+            scopeIndices,
+          );
+          if (restored) {
+            blueprintEnrichment = restored.enrichment;
+            appendLog(
+              `✓ Reused ${restored.enrichedLessonIds.length}/${lessonIndices.length} saved knowledge kernel${restored.enrichedLessonIds.length === 1 ? '' : 's'} after admission recheck`,
+              'done',
+            );
+            traceGeneration(generationRunId, 'blueprint_enrichment_restored', {
+              lessonIds: restored.enrichedLessonIds,
+              admissionRevalidation: restored.receipt,
+            });
+          }
+        }
+        if (!directCourseIRState && !blueprintEnrichment) {
           blueprintEnrichment = await runBlueprintEnrichment(blueprintCourseMap, nativeSkeleton);
         }
         // v0.12.1: structured outcome for the run digest's content-risk

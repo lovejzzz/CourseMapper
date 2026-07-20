@@ -5,7 +5,12 @@ import {
   buildQuizAtomsForLesson,
   compileBlueprintDeliverable,
 } from '../courseBlueprintCompiler.js';
-import { isClaimEvidenceBoundaryShortAnswer, isConceptCuedCompilerShortAnswer } from '../quality/quizItemDepth.js';
+import { lintItemAdmission } from '../itemAdmissionLint.js';
+import {
+  isAppliedQuizStem,
+  isClaimEvidenceBoundaryShortAnswer,
+  isConceptCuedCompilerShortAnswer,
+} from '../quality/quizItemDepth.js';
 
 function evidenceCourseBlueprint() {
   return buildCourseBlueprint({
@@ -101,6 +106,74 @@ describe('constructed-response compiler depth', () => {
     expect(items.some((item) => /instructor-provided fact list/i.test(item.question))).toBe(true);
     expect(items.every((item) => !/worked example|worked solution|source example/i.test(item.question))).toBe(true);
     expect(items.some((item) => /supplied wording does not establish/i.test(item.question))).toBe(true);
+  });
+
+  it('fills empty assessment seats from admitted facts and misconceptions before source-review recovery', () => {
+    const blueprint = evidenceCourseBlueprint();
+    blueprint.lessons[0].enrichment = {
+      keyTerms: [
+        {
+          term: 'Evidence triangulation',
+          definition: 'Evidence triangulation combines independent observations before choosing a revision.',
+          misconception: 'One striking observation proves the interface fails for every user.',
+          correction: 'One observation motivates a follow-up; repeated independent evidence supports a bounded claim.',
+        },
+        {
+          term: 'Task failure pattern',
+          definition: 'A task failure pattern is a repeated observable breakdown under the same interface condition.',
+          misconception: 'Any pause establishes that the interface caused confusion.',
+          correction: 'A pause needs corroborating behavior or participant explanation before supporting a cause.',
+        },
+      ],
+      kernel: {
+        facts: [
+          'Repeated task failures under the same interface condition support a bounded usability claim.',
+          'A single observation can motivate a follow-up but does not establish a universal conclusion.',
+          'Independent observations strengthen a revision decision when they point to the same breakdown.',
+        ],
+      },
+      quizItems: [
+        {
+          index: 3,
+          type: 'short_answer',
+          question: 'Which course method should shape the revision, and what evidence limits the claim?',
+          answer: 'Select the method independently, cite the repeated breakdown, and limit the conclusion.',
+        },
+        {
+          index: 5,
+          type: 'essay',
+          question: 'Evaluate the revision using two observations and one explicit limitation.',
+          answer: 'A strong response compares the observations and keeps the recommendation bounded.',
+        },
+      ],
+    };
+    blueprint.enrichment = {
+      coverage: { requestedLessons: 1, enrichedLessons: 1, missingLessons: [] },
+      stageDecisions: { modelStage: 'ran' },
+    };
+
+    const items = buildQuizAtomsForLesson(blueprint.lessons[0], blueprint, { assessment: {} });
+    const compilerItems = items.filter((item) => item.enrichmentSource === 'admitted-kernel-assessment');
+    const multipleChoice = items.filter((item) => item.type === 'multiple_choice');
+
+    expect(items).toHaveLength(6);
+    expect(compilerItems).toHaveLength(4);
+    expect(items.every((item) => item.enrichmentSource !== 'source-bound-recovery')).toBe(true);
+    expect(items.every((item) => item.sourceReviewRequired !== true)).toBe(true);
+    expect(multipleChoice).toHaveLength(4);
+    expect(multipleChoice.filter((item) => isAppliedQuizStem(item.question))).toHaveLength(2);
+    expect(
+      multipleChoice.flatMap((item) =>
+        lintItemAdmission({
+          question: item.question,
+          options: item.options.map((option) => option.replace(/^[A-D]\.\s*/, '')),
+          answerIndex: 'ABCD'.indexOf(item.answer),
+          explanation: item.explanation,
+        }),
+      ),
+    ).toEqual([]);
+    expect(JSON.stringify(compilerItems)).toMatch(/Repeated task failures|One observation motivates a follow-up/i);
+    expect(JSON.stringify(compilerItems)).not.toMatch(/source use without fabricating|kernel failed admission/i);
   });
 
   it('uses two distinct admitted concepts for a one-lesson exam and removes doubled decision language', () => {

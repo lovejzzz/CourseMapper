@@ -1451,6 +1451,76 @@ function uniqueResourceId(preferredId, seenIds) {
   return candidate;
 }
 
+/**
+ * Repair the resource-id collision briefly produced when a re-derived graph
+ * preserved a source-backed resource's old id after that id had already been
+ * assigned to a different syllabus resource. Existing project files must keep
+ * their authored enrichment, so restore repairs this narrow structural defect
+ * instead of rejecting the entire graph and deriving a content-thin fallback.
+ */
+export function repairCourseGraphResourceIds(inputGraph) {
+  if (!inputGraph || typeof inputGraph !== 'object' || !Array.isArray(inputGraph.resources)) return inputGraph;
+
+  const occupiedIds = new Set();
+  for (const collection of ['concepts', 'outcomes', 'assessments', 'sessions', 'readings']) {
+    for (const entity of inputGraph[collection] || []) {
+      if (entity?.id) occupiedIds.add(entity.id);
+    }
+  }
+
+  const assignmentsByOriginalId = new Map();
+  let changed = false;
+  const resources = inputGraph.resources.map((resource) => {
+    const originalId = cleanText(resource?.id) || 'resource';
+    const assignedId = uniqueResourceId(originalId, occupiedIds);
+    occupiedIds.add(assignedId);
+    if (assignedId !== resource?.id) changed = true;
+    const assignment = { id: assignedId, sessionRefs: resource?.sessionRefs || [] };
+    const assignments = assignmentsByOriginalId.get(originalId) || [];
+    assignments.push(assignment);
+    assignmentsByOriginalId.set(originalId, assignments);
+    return assignedId === resource?.id ? resource : { ...resource, id: assignedId };
+  });
+
+  if (!changed) return inputGraph;
+  const graph = { ...inputGraph, resources };
+  graph.sessions = (inputGraph.sessions || []).map((session) => ({
+    ...session,
+    sections: (session.sections || []).map((section) => ({
+      ...section,
+      ...(Array.isArray(section.resourceRefs)
+        ? {
+            resourceRefs: [
+              ...new Set(
+                section.resourceRefs.flatMap((resourceId) => {
+                  const assignments = assignmentsByOriginalId.get(String(resourceId)) || [];
+                  if (assignments.length <= 1) return assignments[0]?.id || resourceId;
+                  const sessionMatches = assignments.filter((assignment) =>
+                    assignment.sessionRefs.some((ref) => sessionMatchesRef(session, ref)),
+                  );
+                  return (sessionMatches.length > 0 ? sessionMatches : assignments.slice(0, 1)).map(
+                    (assignment) => assignment.id,
+                  );
+                }),
+              ),
+            ],
+          }
+        : {}),
+    })),
+  }));
+  return graph;
+}
+
+export function restoreCourseGraphForProject(saved = {}) {
+  const restoredGraph = repairCourseGraphResourceIds(saved.courseGraph);
+  if (restoredGraph && validateCourseGraph(restoredGraph).valid) return restoredGraph;
+  try {
+    return saved?.courseMap?.lessons ? deriveCourseGraphFromCourseMap(saved.courseMap) : null;
+  } catch {
+    return null;
+  }
+}
+
 function sessionMatchesRef(session = {}, ref) {
   const key = String(ref ?? '');
   return key && (key === String(session.id ?? '') || key === String(session.number ?? ''));
@@ -1491,19 +1561,40 @@ function preserveResourceMetadata(oldGraph, graph) {
   }
 
   const resourceRemap = new Map();
-  const seenIds = new Set((graph.resources || []).map((resource) => resource.id).filter(Boolean));
+  const seenIds = new Set();
+  for (const collection of ['concepts', 'outcomes', 'assessments', 'sessions', 'readings']) {
+    for (const entity of graph[collection] || []) {
+      if (entity?.id) seenIds.add(entity.id);
+    }
+  }
   const matchedOldIds = new Set();
-  graph.resources = graph.resources.map((resource) => {
-    const match = oldByKey.get(normalizedResourceKey(resource));
-    if (!match) return resource;
-    matchedOldIds.add(match.id);
-    if (match.id && resource.id && match.id !== resource.id) resourceRemap.set(resource.id, match.id);
-    seenIds.delete(resource.id);
-    seenIds.add(match.id);
+  const resourceRecords = graph.resources.map((resource) => ({
+    resource,
+    match: oldByKey.get(normalizedResourceKey(resource)) || null,
+    originalId: resource.id,
+    assignedId: null,
+  }));
+
+  // Matched resources claim their stable old ids first. An unrelated new
+  // resource whose derived id collides is renamed below and its section refs
+  // follow through resourceRemap.
+  for (const record of resourceRecords.filter(({ match }) => match)) {
+    record.assignedId = uniqueResourceId(record.match.id || record.originalId, seenIds);
+    seenIds.add(record.assignedId);
+    if (record.match.id) matchedOldIds.add(record.match.id);
+  }
+  for (const record of resourceRecords.filter(({ match }) => !match)) {
+    record.assignedId = uniqueResourceId(record.originalId, seenIds);
+    seenIds.add(record.assignedId);
+  }
+
+  graph.resources = resourceRecords.map(({ resource, match, originalId, assignedId }) => {
+    if (originalId && assignedId !== originalId) resourceRemap.set(originalId, assignedId);
+    if (!match) return assignedId === originalId ? resource : { ...resource, id: assignedId };
     return {
       ...resource,
       ...match,
-      id: match.id || resource.id,
+      id: assignedId,
       sessionRefs: mergeRefs(match.sessionRefs || [], resource.sessionRefs || []),
     };
   });

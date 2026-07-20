@@ -65,7 +65,11 @@ const lazyChunkBudgets = [
   // v0.16.59: +0.6 KiB raw carries the exact source ledger into the workspace
   // and suppresses futile outer recovery. Gzip remains below the V0.16.55
   // ceiling; 275 KiB keeps less than 0.5 KiB raw headroom.
-  { prefix: 'AppFlow-', rawKiB: 275, gzipKiB: 83, gzipSlackBytes: 256 },
+  // v0.16.62 candidate: +0.5 KiB raw repairs duplicate resource ids while
+  // restoring older project graphs and reuses admission-checked saved kernels
+  // for on-demand compiles. This prevents a silent content downgrade and an
+  // unnecessary model pass; measured 275.2/83.0 with gzip unchanged.
+  { prefix: 'AppFlow-', rawKiB: 276, gzipKiB: 83, gzipSlackBytes: 256 },
   // v0.16.47: the Living Course Compiler component and pure selector gained
   // an independently cacheable route boundary instead of raising AppFlow's
   // long-standing ratchet. Clean measurement: AppFlow 251.6/75.9; ribbon
@@ -118,10 +122,12 @@ const lazyChunkBudgets = [
   // v0.16.55 remeasurement: the unchanged clean parent is 795.4/219.7 under
   // the locked bundler. This release adds no bytes to this chunk; 796/220
   // records the real inherited floor with less than 0.6/0.3 KiB headroom.
-  // v0.16.59: +1.6 KiB raw / +0.5 KiB gzip for the source-ledger recovery
-  // contract and its canonical admission checks. This remains workspace-only
-  // compiler behavior; the 798/221 ceiling leaves less than 1 KiB headroom.
-  { prefix: 'courseBlueprintCompiler-', rawKiB: 798, gzipKiB: 221 },
+  // v0.16.62 candidate: admitted lesson facts, terms, and misconceptions now
+  // fill missing assessment seats before generic source-review recovery. The
+  // retained Mandarin replay moved generic recovery from 54 seats to 0/90 and
+  // raw-model versus compiled applied depth from 2/19 to 32/60, for +1.5 KiB
+  // raw and +0.5 KiB gzip. Keep the increase local to the compiler chunk.
+  { prefix: 'courseBlueprintCompiler-', rawKiB: 800, gzipKiB: 223 },
   // v0.16.49: Bayesian and music-interval assessment frames are workspace-only
   // data and independently cacheable. The same boundary now owns the music
   // interval admission, discussion, FAQ, quiz, and study-guide rules so the
