@@ -132,7 +132,7 @@ describe('Scion adapter manifest', () => {
     ).toMatchObject({ mode: 'adapter-ready', adapterActive: true, adapterId: 'scion-g4e2b-v1' });
   });
 
-  it('accepts the locked seven-domain lesson-kernel production profile at 100+ pairs', () => {
+  it('accepts the locked seven-domain source-grounded lesson-kernel production profile at 100+ pairs', () => {
     const candidate = manifest({
       training: {
         pairCount: 129,
@@ -147,7 +147,7 @@ describe('Scion adapter manifest', () => {
         taskScope: {
           protocol: 'scion-adapter-task-scope-v1',
           mode: 'allowlist',
-          families: [{ id: 'lesson-kernel', rows: 129 }],
+          families: [{ id: 'source-grounded-lesson-kernel', rows: 129 }],
           unclassifiedPolicy: 'base-only',
           compositePolicy: 'exact-family-only',
           identity: { algorithm: 'sha256-canonical-scion-adapter-task-scope-v1', sha256: HASH },
@@ -174,6 +174,32 @@ describe('Scion adapter manifest', () => {
           protocol: 'scion-adapter-task-scope-v1',
           mode: 'allowlist',
           families: [{ id: 'source-mc-item-atom', rows: 129 }],
+          unclassifiedPolicy: 'base-only',
+          compositePolicy: 'exact-family-only',
+          identity: { algorithm: 'sha256-canonical-scion-adapter-task-scope-v1', sha256: HASH },
+        },
+      },
+    });
+
+    expect(validateScionAdapterManifest(candidate).issues).toContain('candidate-pair-count');
+  });
+
+  it('does not grant the task-scoped floor to the legacy broad lesson-kernel family', () => {
+    const candidate = manifest({
+      training: {
+        pairCount: 129,
+        domainCount: 7,
+        groupCount: 25,
+        modelJudgePairCount: 129,
+        modelJudgeDomainCount: 7,
+        domainGroupCounts: domainCounts(LESSON_KERNEL_DOMAINS, 2),
+        modelJudgeDomainCounts: domainCounts(LESSON_KERNEL_DOMAINS, 8),
+        splitCounts: { train: 106, valid: 12, test: 11 },
+        splitDomainCounts: { train: 7, valid: 7, test: 7 },
+        taskScope: {
+          protocol: 'scion-adapter-task-scope-v1',
+          mode: 'allowlist',
+          families: [{ id: 'lesson-kernel', rows: 129 }],
           unclassifiedPolicy: 'base-only',
           compositePolicy: 'exact-family-only',
           identity: { algorithm: 'sha256-canonical-scion-adapter-task-scope-v1', sha256: HASH },

@@ -1247,7 +1247,7 @@ describe('Scion adapter tooling', () => {
       splitDomainCounts: { train: 7, valid: 7, test: 7 },
       taskScope: {
         ...taskScopedManifest.training.taskScope,
-        families: [{ id: 'lesson-kernel', rows: 129 }],
+        families: [{ id: 'source-grounded-lesson-kernel', rows: 129 }],
       },
     });
     const taskScopedGate = assessScionAdapterPromotion({ manifest: taskScopedManifest });

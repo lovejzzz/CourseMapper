@@ -1,4 +1,5 @@
 import {
+  SCION_ADAPTER_TASK_FAMILIES,
   resolveScionAdapterTaskRoute as resolveTaskRoute,
   validateScionAdapterTaskScope,
 } from './scionAdapterTaskScope.js';
@@ -92,7 +93,7 @@ function isLessonKernelProductionProfile(training) {
     training?.taskScope?.unclassifiedPolicy === 'base-only' &&
     training?.taskScope?.compositePolicy === 'exact-family-only' &&
     families.length === 1 &&
-    families[0]?.id === 'lesson-kernel' &&
+    families[0]?.id === SCION_ADAPTER_TASK_FAMILIES.SOURCE_GROUNDED_LESSON_KERNEL &&
     Number.isSafeInteger(training?.pairCount) &&
     training.pairCount < 3000 &&
     families[0]?.rows === training.pairCount
