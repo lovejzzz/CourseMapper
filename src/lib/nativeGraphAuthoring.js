@@ -269,7 +269,14 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
 
   if (!completed.assignmentCore) {
     const assignmentCore = {
-      taskDescription: `Analyze ${materials} through ${concept}. Produce ${product} that states the best-supported conclusion, cites the decisive detail, and names one limit.`,
+      taskDescription: lessonVariant([
+        `Analyze ${materials} through ${concept}. Produce ${product} that states the best-supported conclusion, cites the decisive detail, and names one limit.`,
+        `Use ${concept} to interpret ${materials}. In ${product}, defend the strongest conclusion, point to the evidence behind it, and qualify the claim.`,
+        `Examine ${materials} with the ${concept} lens, then build ${product} around one supported interpretation, its key detail, and its boundary.`,
+        `Test a ${concept} claim against ${materials}. Submit ${product} that explains the evidence, the resulting judgment, and what remains uncertain.`,
+        `Compare the plausible readings of ${materials} through ${concept}. Make ${product} defend one, cite the deciding evidence, and state where it may not hold.`,
+        `Develop ${product} from the ${concept} evidence in ${materials}: identify the strongest conclusion, justify it with a specific detail, and avoid overclaiming.`,
+      ]),
       parameters: [
         `Scope: use the named ${concept} case or example only.`,
         `Format: submit ${product} in the instructor-approved format.`,

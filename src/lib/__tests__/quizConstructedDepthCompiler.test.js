@@ -317,6 +317,23 @@ describe('constructed-response compiler depth', () => {
     expect(essay.question).not.toMatch(/(.+?) through \1/i);
     expect(essay.rubricHints).toMatch(/two concepts from the covered lesson/i);
     expect(essay.rubricHints).not.toMatch(/different covered lessons/i);
+
+    const essayVariants = Array.from({ length: 6 }, (_, index) => {
+      const lessonNumber = index + 1;
+      const variantBlueprint = structuredClone(blueprint);
+      variantBlueprint.lessons[0].lessonNumber = lessonNumber;
+      variantBlueprint.lessons[0].title = `Lesson ${lessonNumber}: Usability Evidence`;
+      variantBlueprint.assessments[0].lessonNumbers = [lessonNumber];
+      const variantExam = compileBlueprintDeliverable('quizBank', variantBlueprint, {
+        skipPrepareBlueprint: true,
+        skipCompilerContractCheck: true,
+        skipLanguageFinalizer: true,
+      }).quizzes.find((quiz) => quiz.kind === 'exam');
+      return variantExam.questions.find((item) => item.type === 'essay');
+    });
+    expect(new Set(essayVariants.map((item) => item.question)).size).toBe(6);
+    expect(new Set(essayVariants.map((item) => item.sampleAnswer)).size).toBe(6);
+    expect(essayVariants.map((item) => item.rubricHints).join(' ')).not.toMatch(/two lesson concepts/i);
   });
 
   it('splits a composite one-lesson concept into a real comparison without title echoes', () => {

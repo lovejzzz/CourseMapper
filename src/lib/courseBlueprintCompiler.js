@@ -17129,7 +17129,7 @@ const PARAMETER_CITATION_VERB_RE = /^(?:cite|reference|quote|credit|attribute)\b
 const PARAMETER_PROCESS_VERB_RE =
   /^(?:use|apply|follow|work within|keep|limit|stay within|maintain|ensure|separate|write|draft|format|organize|complete|explain|compare|analyze|base|ground)\b\s*/i;
 
-function parameterCriterionName(parameter, ordinal) {
+function parameterCriterionName(parameter, ordinal, lesson = {}) {
   const text = stripTerminalPunctuation(cleanText(parameter));
   let core = text;
   let suffix = 'addressed as specified';
@@ -17147,7 +17147,12 @@ function parameterCriterionName(parameter, ordinal) {
     .replace(/^(?:only|at least|at most|no more than|exactly|up to)\s+/i, '')
     .replace(/^(?:one|two|three|four|five|six|a|an|the)\s+/i, '');
   const lead = sentenceCase(conciseClause(core, text, 56));
-  return `${lead} — ${suffix} (per brief parameter ${ordinal})`;
+  return lessonVariant(lesson, [
+    `${lead} — ${suffix} (per brief parameter ${ordinal})`,
+    `${lead} — verified in the submitted work (brief requirement ${ordinal})`,
+    `${lead} — shown with inspectable evidence (requirement ${ordinal})`,
+    `${lead} — completed to the stated standard (task parameter ${ordinal})`,
+  ]);
 }
 
 // Split an integer weight total across n criteria (largest-first remainder),
@@ -17163,7 +17168,7 @@ function buildParameterCriterionRow({ parameter, ordinal, weight, assessment, le
   const artifact = stripTerminalPunctuation(assessment.artifact || assessment.title);
   const verbatim = stripTerminalPunctuation(cleanText(parameter));
   const shortForm = conciseClause(verbatim, verbatim, 90, { ellipsis: true });
-  const criterion = parameterCriterionName(parameter, ordinal);
+  const criterion = parameterCriterionName(parameter, ordinal, lesson);
   const priority = `brief parameter ${ordinal} fidelity`;
   const evidenceSignal = lessonVariant(lesson, [
     `The brief requires: "${verbatim}". Look for visible evidence in ${artifact} that this parameter is satisfied, accurate, and integrated with the surrounding work.`,
@@ -18302,11 +18307,14 @@ function compileStudyGuides(blueprint) {
           // and rehearses a real authored fact — not a generic note format.
           ...(cleanText(lesson.enrichment?.kernel?.scenario?.materials)
             ? [
-                `Work directly with ${stripTerminalPunctuation(cleanText(lesson.enrichment.kernel.scenario.materials))}: mark the detail that best supports the ${primaryConcept} claim, the detail that complicates it, and the decision each one points to.${
-                  lesson.enrichment?.kernel?.facts?.[1]
-                    ? ` Check your reading against this: ${stripTerminalPunctuation(lesson.enrichment.kernel.facts[1])}.`
-                    : ''
-                }`,
+                lessonVariant(lesson, [
+                  `Work directly with ${stripTerminalPunctuation(cleanText(lesson.enrichment.kernel.scenario.materials))}: mark the detail that best supports the ${primaryConcept} claim, the detail that complicates it, and the decision each one points to.${lesson.enrichment?.kernel?.facts?.[1] ? ` Check your reading against this: ${stripTerminalPunctuation(lesson.enrichment.kernel.facts[1])}.` : ''}`,
+                  `Inspect ${stripTerminalPunctuation(cleanText(lesson.enrichment.kernel.scenario.materials))}. Identify the strongest ${primaryConcept} evidence, one counter-detail, and the judgment that follows.${lesson.enrichment?.kernel?.facts?.[1] ? ` Test that judgment against this course statement: ${stripTerminalPunctuation(lesson.enrichment.kernel.facts[1])}.` : ''}`,
+                  `Annotate ${stripTerminalPunctuation(cleanText(lesson.enrichment.kernel.scenario.materials))} for one ${primaryConcept} signal and one complication. Explain which interpretation survives the comparison.${lesson.enrichment?.kernel?.facts?.[1] ? ` Use this fact as the boundary check: ${stripTerminalPunctuation(lesson.enrichment.kernel.facts[1])}.` : ''}`,
+                  `Use ${stripTerminalPunctuation(cleanText(lesson.enrichment.kernel.scenario.materials))} to separate supporting evidence from uncertainty about ${primaryConcept}. Record the conclusion each detail permits.${lesson.enrichment?.kernel?.facts?.[1] ? ` Reconcile your note with this statement: ${stripTerminalPunctuation(lesson.enrichment.kernel.facts[1])}.` : ''}`,
+                  `Compare the relevant details in ${stripTerminalPunctuation(cleanText(lesson.enrichment.kernel.scenario.materials))}. Choose the evidence that best warrants a ${primaryConcept} claim and name what could weaken it.${lesson.enrichment?.kernel?.facts?.[1] ? ` Then check the claim against: ${stripTerminalPunctuation(lesson.enrichment.kernel.facts[1])}.` : ''}`,
+                  `Trace a ${primaryConcept} claim through ${stripTerminalPunctuation(cleanText(lesson.enrichment.kernel.scenario.materials))}: cite its strongest support, surface a limiting detail, and revise the judgment accordingly.${lesson.enrichment?.kernel?.facts?.[1] ? ` Keep this admitted fact in view: ${stripTerminalPunctuation(lesson.enrichment.kernel.facts[1])}.` : ''}`,
+                ]),
               ]
             : []),
           ...(isDataScience
@@ -19686,6 +19694,8 @@ function buildExamEssayItem({ blueprint, assessment, covered, lens, examSlug, or
   const decisionFocus = /\bdecision$/i.test(cleanText(lens.decisionNoun))
     ? cleanText(lens.decisionNoun).replace(/\bdecision$/i, 'decision-making')
     : cleanText(lens.decisionNoun);
+  const exampleConceptLabel =
+    exampleConcepts.length === 2 ? `${exampleConcepts[0]} and ${exampleConcepts[1]}` : `two ideas from ${span}`;
   return withQuizPlan(
     {
       id: `${examSlug}-q${ordinal}`,
@@ -19696,19 +19706,35 @@ function buildExamEssayItem({ blueprint, assessment, covered, lens, examSlug, or
       points: 10,
       objectiveAligned: last.outcomes?.[0] || '',
       intendedUse: `Summative synthesis for ${assessment.title}; score with the rubric hints below.`,
-      question: `Synthesize the covered material (${span}): choose the two concepts that most changed your approach to ${decisionFocus} in ${blueprint.courseName}, justify the choice with course ${lens.evidenceNoun}, and name one limitation of each.`,
+      question: singleLesson
+        ? lessonVariant(last, [
+            `Synthesize the covered material (${span}): choose the two concepts that most changed your approach to ${decisionFocus} in ${blueprint.courseName}, justify the choice with course ${lens.evidenceNoun}, and name one limitation of each.`,
+            `Evaluate ${exampleConceptLabel} in ${span}: explain how each shapes ${decisionFocus}, support both with course ${lens.evidenceNoun}, and state where each interpretation is limited.`,
+            `Build an evidence-backed synthesis of ${exampleConceptLabel} for ${span}. Show how they interact in ${decisionFocus} and identify one boundary for each claim.`,
+            `Compare ${exampleConceptLabel} as tools for ${decisionFocus} in ${blueprint.courseName}. Use specific ${lens.evidenceNoun}, connect the two, and qualify both conclusions.`,
+            `Use ${exampleConceptLabel} to explain a consequential ${decisionFocus} in ${span}. Defend the relationship with ${lens.evidenceNoun} and test the limits of each idea.`,
+            `Develop a synthesis of ${span} around ${exampleConceptLabel}: cite the ${lens.evidenceNoun} that links them, explain the resulting ${decisionFocus}, and name two defensible boundaries.`,
+          ])
+        : `Synthesize the covered material (${span}): choose the two concepts that most changed your approach to ${decisionFocus} in ${blueprint.courseName}, justify the choice with course ${lens.evidenceNoun}, and name one limitation of each.`,
       rubricHints: singleLesson
         ? lessonVariant(last, [
             `Strong responses distinguish two concepts from the covered lesson, ground each in specific ${lens.evidenceNoun}, explain their relationship, and identify a genuine limit for both.`,
-            `A strong response accurately separates two lesson concepts, supports each with ${lens.evidenceNoun}, connects the reasoning, and tests one boundary per concept.`,
+            `A strong response accurately separates ${exampleConceptLabel}, supports each with ${lens.evidenceNoun}, connects the reasoning, and tests one boundary per concept.`,
             `Credit-worthy work uses two distinct lesson ideas, cites concrete ${lens.evidenceNoun} for each, synthesizes them, and qualifies both claims.`,
             `Strong essays make two covered concepts meaningfully different, show the ${lens.evidenceNoun} behind each, link them, and state where each stops applying.`,
-            `The response should select two lesson concepts, justify both with specific ${lens.evidenceNoun}, explain the connection, and give each an evidence-based limitation.`,
+            `The response should distinguish ${exampleConceptLabel}, justify both with specific ${lens.evidenceNoun}, explain the connection, and give each an evidence-based limitation.`,
             `High-quality work distinguishes and relates two covered ideas, anchors both in ${lens.evidenceNoun}, and names the boundary of each conclusion.`,
           ])
         : `Strong responses pick two concepts from different covered lessons, support each with specific ${lens.evidenceNoun}, connect them, and name a real limitation for each.`,
       sampleAnswer: singleLesson
-        ? `A strong response selects two covered concepts${exampleConcepts.length === 2 ? `, such as ${exampleConcepts[0]} and ${exampleConcepts[1]},` : ''} shows with concrete source evidence how each changes an interpretation, connects the two, and closes with one limitation per concept.`
+        ? lessonVariant(last, [
+            `A strong response selects ${exampleConceptLabel}, shows with concrete source evidence how each changes an interpretation, connects the two, and closes with one limitation per concept.`,
+            `A complete answer defines ${exampleConceptLabel} in context, uses specific ${lens.evidenceNoun} to relate them, and explains the boundary of each conclusion.`,
+            `A defensible synthesis traces how ${exampleConceptLabel} work together, cites the decisive evidence for both, and qualifies each claim separately.`,
+            `The response should compare ${exampleConceptLabel}, show which source details support the comparison, and identify what neither idea proves on its own.`,
+            `Strong work applies ${exampleConceptLabel} to the same interpretive problem, explains their relationship through evidence, and states where both readings stop.`,
+            `An effective essay uses ${exampleConceptLabel} accurately, connects them through course evidence, and ends with two specific limits rather than a broad disclaimer.`,
+          ])
         : `A strong response selects two covered concepts (for example, ${concept} and one earlier idea), shows with concrete source evidence how each changes a decision, connects the two, and closes with one limitation per concept.`,
       explanation: singleLesson
         ? lessonVariant(last, [
@@ -24085,7 +24111,19 @@ function compileSlideDecks(blueprint) {
               return `${compressed.charAt(0).toUpperCase()}${compressed.slice(1)}`;
             }),
             notes: `Quick retrieval practice: students saw this routine earlier in the course. Ask them to reconstruct the steps for ${scaffold.term} before revealing the bullets, then apply one step to today's material.`,
-            visual: null,
+            visual: {
+              kind: 'expert reasoning table',
+              tableLead: `Reconstruct the ${scaffold.term} routine before revealing each expert move.`,
+              columnLabels: ['STEP', 'EXPERT MOVE'],
+              rows: moves
+                .slice(0, 3)
+                .map((move, moveIndex) => [
+                  `Step ${moveIndex + 1}`,
+                  conciseClause(move, move, 125, { ellipsis: true }),
+                ]),
+              description: `Retrieval table for the expert reasoning sequence behind ${scaffold.term}.`,
+              altText: `Three-step expert reasoning routine for ${scaffold.term}.`,
+            },
             activityType: 'retrieval practice',
             timer: '2 min',
             bloomsLevel: 'Apply',
@@ -24107,7 +24145,16 @@ function compileSlideDecks(blueprint) {
             ...moves.map((m) => `${m.charAt(0).toUpperCase()}${m.slice(1)}`),
           ]),
           notes: `Model this routine aloud on a worked example before students try it: walk through "${moves.join('", then "')}". Naming the steps an expert runs — instead of only showing the answer — is what makes the thinking transferable.`,
-          visual: null,
+          visual: {
+            kind: 'expert reasoning table',
+            tableLead: `Follow the ${scaffold.term} reasoning routine in order, then apply it to the worked example.`,
+            columnLabels: ['STEP', 'EXPERT MOVE'],
+            rows: moves
+              .slice(0, 4)
+              .map((move, moveIndex) => [`Step ${moveIndex + 1}`, conciseClause(move, move, 125, { ellipsis: true })]),
+            description: `Ordered expert reasoning sequence for ${scaffold.term} as ${structure}.`,
+            altText: `Table listing the expert reasoning steps used for ${scaffold.term}.`,
+          },
           activityType: 'worked example',
           timer: '4 min',
           bloomsLevel: 'Apply',
@@ -24142,7 +24189,19 @@ function compileSlideDecks(blueprint) {
             ...pairBullets,
           ],
           notes: `Draw the analogy explicitly: ${bridge.note} Ask students to predict one place where the analogy breaks down — naming the limit of a structural mapping deepens transfer.`,
-          visual: null,
+          visual: {
+            kind: 'structural mapping table',
+            tableLead: `Compare the earlier and current concepts through their shared ${bridge.archetypeName.toLowerCase()} structure.`,
+            columnLabels: ['EARLIER STRUCTURE', 'CURRENT STRUCTURE'],
+            rows: bridge.mappingPairs
+              .slice(0, 4)
+              .map((pair) => [
+                conciseClause(pair.from, pair.from, 42, { ellipsis: true }),
+                conciseClause(pair.to, pair.to, 125, { ellipsis: true }),
+              ]),
+            description: `Structural mapping between ${bridge.fromTerm} and ${bridge.toTerm}.`,
+            altText: `Table pairing the shared structural roles in ${bridge.fromTerm} and ${bridge.toTerm}.`,
+          },
           activityType: 'discussion',
           timer: '4 min',
           bloomsLevel: 'Analyze',

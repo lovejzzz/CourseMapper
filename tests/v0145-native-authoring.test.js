@@ -779,16 +779,16 @@ describe('Pass B contract (B2)', () => {
       ]),
     );
 
-    const fallbackOpponents = Array.from(
-      { length: 6 },
-      (_, index) =>
-        completeNativeKernelSurfaces(sparse, {
-          lessonNumber: index + 1,
-          title: `Lesson ${index + 1}: Intervals and Hearing`,
-          sections: [{ topicSection: 'Musical intervals' }],
-        }).discussionPrompt.positions[1],
+    const variedFallbacks = Array.from({ length: 6 }, (_, index) =>
+      completeNativeKernelSurfaces(sparse, {
+        lessonNumber: index + 1,
+        title: `Lesson ${index + 1}: Intervals and Hearing`,
+        sections: [{ topicSection: 'Musical intervals' }],
+      }),
     );
+    const fallbackOpponents = variedFallbacks.map((fallback) => fallback.discussionPrompt.positions[1]);
     expect(new Set(fallbackOpponents).size).toBe(6);
+    expect(new Set(variedFallbacks.map((fallback) => fallback.assignmentCore.taskDescription)).size).toBe(6);
 
     const authored = {
       ...completed,
