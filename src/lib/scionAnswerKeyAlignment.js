@@ -517,6 +517,23 @@ export function findScionSourceAnswerSupport(item = {}, { sourceClaims = [], str
     }
   }
 
+  const distinctionSupport = /\b(?:comparison|distinction|distinguish|match(?:es|ing)?)\b/i.test(normalized.question)
+    ? findDistinctionOptionSupport(normalized.options, claims)
+    : null;
+  if (distinctionSupport?.supported.length === 1) {
+    return {
+      declaredIndex: normalized.answerIndex,
+      supportedIndex: distinctionSupport.supported[0],
+      scores: distinctionSupport.scores,
+      containment: distinctionSupport.scores,
+      supportMethod: 'source-distinction-relation-alignment',
+      sourceAlignmentProfile: strict ? 'strict-cited-source' : 'default-source',
+      relevantSourceClaimIndexes: claims.map((_, index) => index),
+      questionClaimScore: null,
+      thresholds: { completeDistinctionRelationRequired: true },
+    };
+  }
+
   const questionTokens = sourceAlignmentTokens(normalized.question);
   const claimScores = claims.map((claim, index) => {
     const tokens = sourceAlignmentTokens(claim);
@@ -1038,6 +1055,48 @@ function findPairedRelationSupport(normalized, evidence = '') {
   return supported.length === 1 ? { supportedIndex: supported[0], scores } : null;
 }
 
+function distinctionRelation(value) {
+  const surface = clean(stripOptionLabel(value));
+  const source = surface.match(
+    /\bdistinguish(?:es|ed|ing)?\s+between\s+(.+?)\s+and\s+(.+?)\s+based\s+on\s+(.+?)[.!?]?$/i,
+  );
+  if (source) return { left: source[1], right: source[2], basis: source[3] };
+  const passive = surface.match(
+    /^(.+?)\s+and\s+(.+?)\s+(?:are|were)\s+distinguished\s+(?:from\s+each\s+other\s+)?(?:by|based\s+on)\s+(.+?)[.!?]?$/i,
+  );
+  if (passive) return { left: passive[1], right: passive[2], basis: passive[3] };
+  const option = surface.match(/^(.+?)\s+distinguish(?:es)?\s+(.+?)\s+from\s+(.+?)[.!?]?$/i);
+  return option ? { basis: option[1], left: option[2], right: option[3] } : null;
+}
+
+function distinctionPartMatches(candidate, source) {
+  const candidateTokens = sourceAlignmentTokens(candidate);
+  const sourceTokens = sourceAlignmentTokens(source);
+  if (candidateTokens.size === 0 || sourceTokens.size === 0) return false;
+  const overlap = tokenOverlap(candidateTokens, sourceTokens);
+  return overlap >= 1 && overlap / candidateTokens.size >= 0.8;
+}
+
+function distinctionRelationMatches(candidate, source) {
+  if (!candidate || !source || !distinctionPartMatches(candidate.basis, source.basis)) return false;
+  const direct =
+    distinctionPartMatches(candidate.left, source.left) && distinctionPartMatches(candidate.right, source.right);
+  const reversed =
+    distinctionPartMatches(candidate.left, source.right) && distinctionPartMatches(candidate.right, source.left);
+  return direct || reversed;
+}
+
+function findDistinctionOptionSupport(options = [], claims = []) {
+  const sourceRelations = claims.map(distinctionRelation).filter(Boolean);
+  if (sourceRelations.length === 0) return null;
+  const scores = options.map((option) => {
+    const relation = distinctionRelation(option);
+    return relation && sourceRelations.some((source) => distinctionRelationMatches(relation, source)) ? 1 : 0;
+  });
+  const supported = scores.map((score, index) => (score === 1 ? index : -1)).filter((index) => index >= 0);
+  return supported.length > 0 ? { supported, scores } : null;
+}
+
 /**
  * Detect when the affirmative first sentence clearly supports a different
  * displayed option. This is deliberately narrower than open-ended semantic
@@ -1194,6 +1253,26 @@ export function findScionMultipleSourceSupportedOptions(
   const pairedDistinction =
     /\b(?:distinction|comparison)\b/i.test(normalized.question) &&
     normalized.options.some((option) => /:[^;]+;[^:]+:/.test(option));
+  const distinctionSupport = /\b(?:comparison|distinction|distinguish|match(?:es|ing)?)\b/i.test(normalized.question)
+    ? findDistinctionOptionSupport(normalized.options, claims)
+    : null;
+  if (distinctionSupport?.supported.length === 1) return null;
+  if (distinctionSupport?.supported.length > 1) {
+    return {
+      supported: distinctionSupport.supported.map((index) => ({
+        index,
+        score: 1,
+        containment: 1,
+        orderedCoverage: 1,
+        claimIndex: -1,
+        exactPhrase: false,
+        pairedAssignment: false,
+        eligible: true,
+      })),
+      relevantClaimIndexes: claims.map((_, index) => index),
+      supportMethod: 'question-relevant-source-distinction-support',
+    };
+  }
   if (!broadQuestionPattern.test(normalized.question) && !pairedDistinction) {
     return null;
   }

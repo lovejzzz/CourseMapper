@@ -51,6 +51,18 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
               fi: [0],
               ex: 'Carbohydrates supply necessary energy for daily activities.',
             },
+            {
+              q: 'Which distinction matches the observed comparison? Which option is supported?$',
+              op: [
+                'Quantities distinguish macronutrients from micronutrients',
+                'Macronutrients distinguish quantities from micronutrients',
+                'Micronutrients distinguish quantities from macronutrients',
+                'Quantities distinguish macronutrients from components',
+              ],
+              ai: 0,
+              fi: [0],
+              ex: 'Required quantities distinguish macronutrients from micronutrients.',
+            },
           ],
         },
       ],
@@ -66,8 +78,15 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
       skipImprovementOnlyPasses: true,
     });
     expect(JSON.parse(result.text).lessons[0].mc[0].q).toBe('Which statement is supported by the observed function?');
+    expect(JSON.parse(result.text).lessons[0].mc[1].q).toBe('Which distinction matches the observed comparison?');
     expect(result.events).toContainEqual(
       expect.objectContaining({ pass: 'surfaceNormalization', reason: 'terminal-schema-marker' }),
+    );
+    expect(result.events).toContainEqual(
+      expect.objectContaining({
+        pass: 'surfaceNormalization',
+        reason: 'redundant-answer-position-question',
+      }),
     );
   });
 
@@ -278,7 +297,7 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     expect(JSON.parse(result).lessons[0].facts).toEqual(SCION_LESSON_KERNEL_REFERENCE_PILOT_RESPONSE.lessons[0].facts);
   });
 
-  it('D1: retains a strictly lower-risk adapter near-miss for compiler repair', () => {
+  it('D1: salvages a clean cross-attempt draft before compiler repair', () => {
     const lessons = JSON.parse(SCION_LESSON_KERNEL_PILOT_PROMPT.match(/Lessons:\n(\[.*\])\nReturn/s)[1]);
     const prompt = {
       courseName: 'Geology Inference and Feedback Audit',
@@ -305,14 +324,15 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
       groundedPrompt: grounded,
     });
 
-    expect(selected).toMatchObject({ source: 'adapter' });
+    expect(selected).toMatchObject({ source: 'cross-attempt-merge' });
     expect(selected.risk.score).toBeLessThan(selected.baseRisk.score);
-    expect(selected.assessment.needsRetry).toBe(true);
-    expect(selected.assessment.issues).toContain('lesson-3:key-term-2:example-repeats-definition');
+    expect(selected.assessment.needsRetry).toBe(false);
+    expect(selected.assessment.issues).toEqual([]);
+    expect(selected.repairs).toContainEqual(expect.objectContaining({ field: 'keyTerms[2]' }));
     expect(JSON.parse(selected.text).lessons[0].facts).toEqual(base.lessons[0].facts);
   });
 
-  it('D1: preserves a compiler-usable base when a lower numeric adapter risk loses the teaching core', () => {
+  it('D1: preserves base-level teaching coverage when atom salvage lowers risk', () => {
     const lessons = JSON.parse(SCION_LESSON_KERNEL_PILOT_PROMPT.match(/Lessons:\n(\[.*\])\nReturn/s)[1]);
     const prompt = {
       courseName: 'Geology Inference and Feedback Audit',
@@ -342,13 +362,17 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
       term.eg = term.df;
     });
 
-    expect(
-      selectScionGroundedAdapterDraft({
-        baseText: JSON.stringify(base),
-        adapterText: JSON.stringify(adapter),
-        groundedPrompt: grounded,
-      }),
-    ).toBeNull();
+    const selected = selectScionGroundedAdapterDraft({
+      baseText: JSON.stringify(base),
+      adapterText: JSON.stringify(adapter),
+      groundedPrompt: grounded,
+    });
+
+    expect(selected).toMatchObject({ source: 'cross-attempt-merge' });
+    expect(selected.compilerQuality.usable).toBe(true);
+    expect(selected.compilerQuality.score).toBeGreaterThanOrEqual(selected.baseCompilerQuality.score);
+    expect(selected.risk.score).toBeLessThan(selected.baseRisk.score);
+    expect(selected.repairs).toContainEqual(expect.objectContaining({ field: 'keyTerms[0]' }));
   });
 
   it('D1: never retains an adapter draft that mutates the frozen fact ledger', () => {
@@ -373,7 +397,7 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     ).toBeNull();
   });
 
-  it('D1: bounds a retained adapter near-miss to one compiler repair call', async () => {
+  it('D1: avoids a compiler repair call when deterministic atom salvage clears admission', async () => {
     const lessons = JSON.parse(SCION_LESSON_KERNEL_PILOT_PROMPT.match(/Lessons:\n(\[.*\])\nReturn/s)[1]);
     const prompt = {
       courseName: 'Geology Inference and Feedback Audit',
@@ -426,18 +450,18 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
       ],
     });
 
-    expect(streamProvider).toHaveBeenCalledTimes(2);
+    expect(streamProvider).toHaveBeenCalledTimes(1);
     expect(events).toContainEqual(
       expect.objectContaining({
         label: 'Scion staged adapter refinement',
-        detail: expect.stringContaining('retained for compiler repair'),
+        detail: expect.stringContaining('admitted after deterministic merge'),
       }),
     );
     expect(events).toContainEqual(
       expect.objectContaining({
         label: 'Scion quality passes',
         detail: expect.stringContaining(
-          'improvementPasses:lesson-3 skipped [grounded-adapter-bounded-repair-policy:1/1]',
+          'improvementPasses:lesson-3 skipped [grounded-adapter-bounded-repair-policy:0/1]',
         ),
       }),
     );

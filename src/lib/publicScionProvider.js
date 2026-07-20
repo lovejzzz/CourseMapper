@@ -20,7 +20,7 @@ import {
   repairScionMcItem,
 } from './scionAnswerKeyAlignment.js';
 import { SCION_BROWSER_GEMMA4_GGUF } from './scionBrowserConstants.js';
-import { assessScionKeyTermContract } from './scionKeyTermContract.js';
+import { assessScionKeyTermContract, normalizeScionKeyTerm } from './scionKeyTermContract.js';
 import { scionFactContractForLesson } from './scionEvidenceContract.js';
 import { analyzeDecisionScenario } from './scenarioContract.js';
 
@@ -79,6 +79,7 @@ const PUBLIC_SCION_HIGH_RISK_ISSUE_MARKERS = Object.freeze([
   'facts-count',
   'duplicate-facts',
   'key-terms-count',
+  'duplicate-key-terms',
   'mc-count',
   'scenario:scenario-missing',
   'unexpected-script',
@@ -113,6 +114,7 @@ const PUBLIC_SCION_CRITICAL_ISSUE_MARKERS = Object.freeze([
   'facts-count',
   'duplicate-facts',
   'key-terms-count',
+  'duplicate-key-terms',
   'mc-count',
   'scenario:scenario-missing',
   'unexpected-script',
@@ -819,6 +821,12 @@ export function assessPublicScionKernelResponse(
       });
       const keyTerms = Array.isArray(lesson.keyTerms) ? lesson.keyTerms : [];
       if (keyTerms.length < 3) issues.push(`${expected.lessonId}:key-terms-count:${keyTerms.length}/3`);
+      const normalizedTermNames = keyTerms
+        .map((term) => normalizeScionKeyTerm(term).term.normalize('NFKC').toLowerCase())
+        .filter(Boolean);
+      if (new Set(normalizedTermNames).size !== normalizedTermNames.length) {
+        issues.push(`${expected.lessonId}:duplicate-key-terms`);
+      }
       keyTerms.forEach((term, index) => {
         const result = assessScionKeyTermContract(term, {
           lessonTitle: expected.title || '',
@@ -1072,6 +1080,46 @@ export function mergePublicScionKernelAttempts(previousText, currentText, userPr
           pass: 'crossAttemptAtomicRetention',
           lessonId: lesson.lessonId,
           field: group.field,
+          issueCountBefore: before.issues.length,
+          issueCountAfter: after.issues.length,
+          resolvedIssues: before.issues.filter((issue) => !(after.issues || []).includes(issue)),
+          trainingEligible: false,
+          preferenceEvidence: { evidenceScope: 'deterministic-contract-only', verified: false },
+        });
+        current = candidate;
+      }
+
+      // A whole key-term set can be a bad swap even when two individual
+      // source-grounded terms are clear wins: the prior attempt may carry one
+      // different defect that would make the set-level merge introduce a new
+      // issue. Preserve complete term atoms independently—never splice their
+      // definition/example/misconception fields—and accept only replacements
+      // that strictly reduce the complete response's issue set without adding
+      // any new defect.
+      const currentLesson = current.lessons.find((entry) => entry?.lessonId === lesson.lessonId);
+      const priorTerms = Array.isArray(priorLesson.keyTerms) ? priorLesson.keyTerms : [];
+      const currentTerms = Array.isArray(currentLesson?.keyTerms) ? currentLesson.keyTerms : [];
+      for (let termIndex = 0; termIndex < Math.min(priorTerms.length, currentTerms.length); termIndex += 1) {
+        const activeLesson = current.lessons.find((entry) => entry?.lessonId === lesson.lessonId);
+        const activeTerms = Array.isArray(activeLesson?.keyTerms) ? activeLesson.keyTerms : [];
+        const priorTermName = normalizeScionKeyTerm(priorTerms[termIndex]).term.normalize('NFKC').toLowerCase();
+        const otherCurrentTermNames = activeTerms
+          .filter((_, index) => index !== termIndex)
+          .map((term) => normalizeScionKeyTerm(term).term.normalize('NFKC').toLowerCase())
+          .filter(Boolean);
+        if (priorTermName && otherCurrentTermNames.includes(priorTermName)) continue;
+        const before = assessPublicScionKernelResponse(JSON.stringify(current), userPrompt, 'blueprintEnrichment');
+        const candidate = structuredClone(current);
+        const candidateLesson = candidate.lessons.find((entry) => entry?.lessonId === lesson.lessonId);
+        candidateLesson.keyTerms[termIndex] = structuredClone(priorTerms[termIndex]);
+        const after = assessPublicScionKernelResponse(JSON.stringify(candidate), userPrompt, 'blueprintEnrichment');
+        const beforeIssues = new Set(before.issues || []);
+        const introduced = (after.issues || []).filter((issue) => !beforeIssues.has(issue));
+        if ((after.issues || []).length >= (before.issues || []).length || introduced.length > 0) continue;
+        repairs.push({
+          pass: 'crossAttemptAtomicRetention',
+          lessonId: lesson.lessonId,
+          field: `keyTerms[${termIndex}]`,
           issueCountBefore: before.issues.length,
           issueCountAfter: after.issues.length,
           resolvedIssues: before.issues.filter((issue) => !(after.issues || []).includes(issue)),

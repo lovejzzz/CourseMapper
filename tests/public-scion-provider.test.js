@@ -1188,6 +1188,61 @@ Continue generating the REMAINING lessons (Lesson 10 through Lesson 12).`;
     );
   });
 
+  it('retains whole key-term atoms when a set-level merge would introduce a different defect', () => {
+    const prompt = `Course: Interface Design
+Lessons:
+[{"lessonId":"lesson-9","title":"Wireframes"}]
+Return ONLY valid JSON.`;
+    const previousTerms = completeTerms.map((term, index) => (index === 1 ? { ...term, cx: term.df } : term));
+    const currentTerms = completeTerms.map((term, index) =>
+      index === 0 || index === 2 ? { ...term, cx: term.df } : term,
+    );
+    const previous = completeLesson({ keyTerms: previousTerms });
+    const current = completeLesson({ keyTerms: currentTerms });
+
+    const merged = mergePublicScionKernelAttempts(
+      JSON.stringify({ lessons: [previous] }),
+      JSON.stringify({ lessons: [current] }),
+      prompt,
+    );
+
+    const terms = JSON.parse(merged.text).lessons[0].keyTerms;
+    expect(terms[0]).toEqual(previousTerms[0]);
+    expect(terms[1]).toEqual(currentTerms[1]);
+    expect(terms[2]).toEqual(previousTerms[2]);
+    expect(merged.repairs).toEqual([
+      expect.objectContaining({ field: 'keyTerms[0]', issueCountBefore: 2, issueCountAfter: 1 }),
+      expect.objectContaining({ field: 'keyTerms[2]', issueCountBefore: 1, issueCountAfter: 0 }),
+    ]);
+  });
+
+  it('rejects an individually cleaner key-term replacement that duplicates another concept', () => {
+    const prompt = `Course: Interface Design
+Lessons:
+[{"lessonId":"lesson-9","title":"Wireframes"}]
+Return ONLY valid JSON.`;
+    const previousTerms = structuredClone(completeTerms);
+    previousTerms[2] = { ...previousTerms[2], tr: previousTerms[1].tr };
+    const currentTerms = completeTerms.map((term, index) => (index === 2 ? { ...term, cx: term.df } : term));
+    const previous = completeLesson({ keyTerms: previousTerms });
+    const current = completeLesson({ keyTerms: currentTerms });
+
+    const previousAssessment = assessPublicScionKernelResponse(
+      JSON.stringify({ lessons: [previous] }),
+      prompt,
+      'blueprintEnrichment',
+    );
+    const merged = mergePublicScionKernelAttempts(
+      JSON.stringify({ lessons: [previous] }),
+      JSON.stringify({ lessons: [current] }),
+      prompt,
+    );
+
+    expect(previousAssessment.issues).toContain('lesson-9:duplicate-key-terms');
+    expect(JSON.parse(merged.text).lessons[0].keyTerms).toEqual(currentTerms);
+    expect(merged.repairs).toEqual([]);
+  });
+
   it('repairs malformed MC option-array and item closers without changing content', () => {
     const malformed =
       '{"lessons":[{"lessonId":"lesson-2","mc":[{"q":"Which action is best?","op":["A","B","C","D"]","ai":1,"ex":"B uses the evidence."]},{"q":"Which flaw matters?","op":["A","B","C","D"]","ai":0,"ex":"A identifies the sampling flaw."]],"studyGuide":{"sm":"A sufficiently long subject summary connecting research planning with ethical safeguards.","rs":"Compare each decision with the supplied evidence before choosing an answer."}}]}';

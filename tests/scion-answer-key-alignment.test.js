@@ -401,6 +401,36 @@ describe('Scion MC contract recovery', () => {
     expect(findScionSourceAnswerConflict(item, { sourceClaims, strict: true })).toBeNull();
   });
 
+  it('uses the stated distinction basis instead of admitting role-swapped word overlap', () => {
+    const sourceClaims = [
+      'The review distinguishes between macronutrients and micronutrients based on their required quantities for bodily processes.',
+    ];
+    const item = {
+      q: 'A review compares macronutrients and micronutrients using required quantities. Which distinction matches the observed comparison?',
+      op: [
+        'Quantities distinguish macronutrients from essential components',
+        'Quantities distinguish macronutrients from micronutrients',
+        'Macronutrients distinguish quantities from micronutrients',
+        'Macronutrients and micronutrients distinguish quantities',
+      ],
+      ai: 1,
+      ex: 'The review distinguishes macronutrients and micronutrients based on their required quantities for bodily processes.',
+    };
+
+    expect(findScionSourceAnswerSupport(item, { sourceClaims, strict: true })).toMatchObject({
+      declaredIndex: 1,
+      supportedIndex: 1,
+      scores: [0, 1, 0, 0],
+      supportMethod: 'source-distinction-relation-alignment',
+    });
+    expect(
+      findScionMultipleSourceSupportedOptions(item, {
+        sourceClaims,
+        allowBroadSourceContext: true,
+      }),
+    ).toBeNull();
+  });
+
   it('does not confuse source-supported distractor facts with answers to a narrower subject match', () => {
     expect(
       findScionMultipleSourceSupportedOptions(

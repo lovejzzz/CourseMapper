@@ -177,9 +177,12 @@ function normalizeMcSurfaces(lesson, events = []) {
   for (const item of Array.isArray(lesson?.mc) ? lesson.mc : []) {
     if (!item || typeof item !== 'object') continue;
     const originalQuestion = String(item.q || '');
-    const normalizedQuestion = originalQuestion
-      .replace(/\s+/g, ' ')
-      .trim()
+    const compactQuestion = originalQuestion.replace(/\s+/g, ' ').trim();
+    const withoutRedundantAnswerPrompt = compactQuestion.replace(
+      /(\?)\s+Which\s+(?:option|choice|answer)\s+is\s+supported\?\$?$/i,
+      '$1',
+    );
+    const normalizedQuestion = withoutRedundantAnswerPrompt
       // Gemma occasionally emits a JSON-schema end marker as a literal final
       // dollar sign ("Which statement is supported?$"). It has no subject
       // meaning after terminal punctuation and must never reach learners.
@@ -190,7 +193,10 @@ function normalizeMcSurfaces(lesson, events = []) {
         pass: 'surfaceNormalization',
         lessonId: lesson?.lessonId,
         action: 'repaired',
-        reason: 'terminal-schema-marker',
+        reason:
+          withoutRedundantAnswerPrompt !== compactQuestion
+            ? 'redundant-answer-position-question'
+            : 'terminal-schema-marker',
         trainingEligible: false,
       });
     }
