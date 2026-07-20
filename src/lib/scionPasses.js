@@ -1193,6 +1193,7 @@ export async function applyScionKernelPasses(
     verifyDraftMcWithSameModel = true,
     verifyRepairMcWithSameModel = true,
     maxAdmissionRepairsPerCall = Number.POSITIVE_INFINITY,
+    skipImprovementOnlyPasses = false,
   } = {},
 ) {
   let parsed = null;
@@ -1288,8 +1289,18 @@ export async function applyScionKernelPasses(
     await runPass('keyTermAdmission', () =>
       keyTermAdmissionGate(lesson, promptLesson, budgetedGenerateJson, events, minimumKeyTermCount),
     );
-    await runPass('appliedDepth', () => appliedDepthGate(lesson, promptLesson, budgetedGenerateJson, events));
-    await runPass('polish', () => polishProse(lesson, budgetedGenerateJson, events));
+    if (!skipImprovementOnlyPasses) {
+      await runPass('appliedDepth', () => appliedDepthGate(lesson, promptLesson, budgetedGenerateJson, events));
+      await runPass('polish', () => polishProse(lesson, budgetedGenerateJson, events));
+    } else {
+      events.push({
+        pass: 'improvementPasses',
+        lessonId: lesson.lessonId,
+        action: 'skipped',
+        reason: `grounded-adapter-bounded-repair-policy:${callsUsed}/${callLimit}`,
+        trainingEligible: false,
+      });
+    }
     // A bounded replacement can arrive after the initial normalization. Keep
     // exporter-owned A/B/C/D labels out of the stored options regardless of
     // which repair pass authored the final item.

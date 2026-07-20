@@ -186,6 +186,7 @@ export async function runScionPasses({
   async function applyPasses() {
     let workingText = rawText;
     let workingPrompt = prompt;
+    let workingUsesGroundedAdapter = false;
     if (shouldRunScionGroundedAdapterStage(runtimeRoutes)) {
       const groundedPrompt = buildScionGroundedRefinementPrompt({ rawText, prompt, expectedLessonIds });
       if (groundedPrompt) {
@@ -236,6 +237,7 @@ export async function runScionPasses({
           if (stagedUsedAdapter && (!stagedAssessment.needsRetry || selectedDraft)) {
             workingText = selectedDraft?.text || staged.fullText;
             workingPrompt = groundedPrompt;
+            workingUsesGroundedAdapter = true;
             const effectiveAssessment = selectedDraft?.assessment || stagedAssessment;
             recordEvent({
               type: 'pipelineDecision',
@@ -313,6 +315,17 @@ export async function runScionPasses({
       // model never certifies itself or creates adapter evidence.
       verifyRepairMcWithSameModel: false,
       maxAdmissionRepairsPerCall: 1,
+      // The aligned adapter can now provide a strictly safer near-miss. Give
+      // that draft one high-value repair seat, then trust the deterministic
+      // admission/quarantine/fallback compiler. The previous five-seat stack
+      // spent fourteen extra generations across four canary lessons, mostly
+      // on rejected applied-depth and same-model compensation.
+      ...(workingUsesGroundedAdapter
+        ? {
+            maxCallsPerLesson: 1,
+            skipImprovementOnlyPasses: true,
+          }
+        : {}),
     });
     if (passOutcome.events.length > 0) {
       recordEvent({
