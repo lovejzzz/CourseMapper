@@ -7236,6 +7236,20 @@ function contextualizeModalityRoutine(kind, base, { lesson = {}, concept = '', a
     ]);
   }
   if (
+    kind === 'evidenceRoutine' &&
+    /\bcollect passage, scene, source, translation, context, or form evidence\b/i.test(routine) &&
+    /\bdefend an interpretation\b/i.test(routine)
+  ) {
+    routine = lessonVariant(lesson, [
+      'gather passage, scene, source, translation, context, or form details before defending an interpretation',
+      'mark the textual or contextual evidence each reading relies on before comparing the claims',
+      'separate observation, source context, and interpretive warrant before students commit to a reading',
+      'trace each interpretation back to the passage, scene, form, translation, or historical detail that supports it',
+      'build an evidence ledger for the competing readings before deciding which claim the source can bear',
+      'identify the decisive source detail and the remaining context gap before students finalize an interpretation',
+    ]);
+  }
+  if (
     kind === 'signaturePractice' &&
     /\bretrieval-to-exam practice cycle\b/i.test(routine) &&
     /\banswer\b.+\bexplain\b.+\bdiagnose\b.+\bcorrect\b/i.test(routine)
@@ -21806,7 +21820,12 @@ function slideTypeFocus(type, lesson, lens) {
           `Prompt students to identify the evidence cue they can now defend inside ${artifact}.`,
           `Close by having students name the strongest support they will carry into ${artifact}.`,
         ]),
-        misconception: `If they can only repeat vocabulary, prompt for the specific ${artifact} revision or next step they can now justify.`,
+        misconception: lessonVariant(lesson, [
+          `If students only repeat vocabulary, ask which specific ${artifact} revision the evidence now justifies.`,
+          `When the self-check stops at definitions, require one concrete next move for ${artifact}.`,
+          `If students can name the term but not use it, ask what should change first in ${artifact} and why.`,
+          `Turn vocabulary-only responses into transfer by asking for one evidence-backed ${artifact} decision.`,
+        ]),
       };
     case 'closing':
       return {
@@ -21832,7 +21851,14 @@ function slideTypeFocus(type, lesson, lens) {
     default:
       return {
         opening: `Use this slide to keep ${displayTitle} tied to ${slideConceptList(lesson)}.`,
-        evidence: `Connect the slide to one visible ${lens.evidenceNoun} move in ${artifact}.`,
+        evidence: lessonVariant(lesson, [
+          `Connect the slide to one visible ${lens.evidenceNoun} move in ${artifact}.`,
+          `Ask students which ${lens.evidenceNoun} detail from this slide belongs in ${artifact}.`,
+          `Make the slide actionable by naming the ${lens.evidenceNoun} choice it changes in ${artifact}.`,
+          `Trace one claim on the slide into an inspectable evidence decision for ${artifact}.`,
+          `Use the slide to surface the source detail students should carry into ${artifact}.`,
+          `End the slide by identifying which evidence link in ${artifact} is now stronger or needs revision.`,
+        ]),
         misconception: lessonVariant(lesson, [
           `Redirect abstract discussion back to the evidence and decision work students must complete in ${artifact}.`,
           `If the slide becomes too general, ask which evidence move would change ${artifact}.`,
@@ -22700,7 +22726,14 @@ function buildDiscussionFollowUps(lesson, phrase) {
         ]),
     `If the ${concept} evidence changed, what part of ${artifact} would you revise first?`,
     tension
-      ? `The live tension: ${tension}. Which side does your evidence actually support, and what finding would change your mind?`
+      ? lessonVariant(lesson, [
+          `The live tension: ${tension}. Which side does your evidence actually support, and what finding would change your mind?`,
+          `Use this tension: ${tension}. Where is the stronger source support, and what detail could reverse your judgment?`,
+          `The unresolved question is ${tension}. Defend the reading the evidence favors, then name the evidence that would unsettle it.`,
+          `Test the competing views through this tension: ${tension}. What warrants your position, and where should confidence stop?`,
+          `Return to the central tension—${tension}. Which claim survives the source check, and what remains uncertain?`,
+          `The debate turns on this tension: ${tension}. Identify the decisive evidence and one finding that would require revision.`,
+        ])
       : lessonVariant(lesson, [
           `Which limit, risk, or ethical concern should change how you frame ${artifact}?`,
           `Which assumption in your ${artifact} reasoning needs the clearest evidence check before you revise?`,
@@ -24434,7 +24467,14 @@ function compileCourseFaq(blueprint, config = {}) {
       if (taskDescription) {
         return {
           q: `How does ${stripLessonPrefix(lesson.title)} connect to graded work?`,
-          an: `${lesson.title} feeds directly into the graded task: ${stripTerminalPunctuation(taskDescription)}. Use the ${safeCourseFaqPrimaryConcept(lesson)} success criteria to test your work against that task before submitting.`,
+          an: lessonVariant(lesson, [
+            `${lesson.title} feeds directly into the graded task: ${stripTerminalPunctuation(taskDescription)}. Use the ${safeCourseFaqPrimaryConcept(lesson)} success criteria to test your work against that task before submitting.`,
+            `The graded-work link for ${lesson.title} is explicit: ${stripTerminalPunctuation(taskDescription)}. Before submitting, check the evidence and boundary against the ${safeCourseFaqPrimaryConcept(lesson)} criteria.`,
+            `${lesson.title} prepares the assigned task this way: ${stripTerminalPunctuation(taskDescription)}. Use the ${safeCourseFaqPrimaryConcept(lesson)} evidence standard to revise any unsupported part.`,
+            `Carry ${lesson.title} into the graded work by following this brief: ${stripTerminalPunctuation(taskDescription)}. Then verify that the ${safeCourseFaqPrimaryConcept(lesson)} reasoning is visible to a scorer.`,
+            `The assessment asks you to transfer ${lesson.title} directly: ${stripTerminalPunctuation(taskDescription)}. Self-check the source detail, conclusion, and limitation before release.`,
+            `For graded work, apply ${lesson.title} through this task: ${stripTerminalPunctuation(taskDescription)}. Compare the result with the ${safeCourseFaqPrimaryConcept(lesson)} success criteria and revise the weakest link.`,
+          ]),
           ca: 'Assignment Clarification',
           rc: ['success criteria', ...safeCourseFaqConcepts(lesson).slice(0, 2)],
           df: 'Intermediate',
