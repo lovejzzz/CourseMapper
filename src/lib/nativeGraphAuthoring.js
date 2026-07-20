@@ -130,6 +130,13 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
   if (!payload || typeof payload !== 'object') return payload;
   const sections = asArray(courseMapLesson?.sections);
   const title = cleanText(courseMapLesson?.title, 140).replace(/^lesson\s+\d+\s*[:.-]\s*/i, '');
+  const lessonOrdinal = Math.max(
+    1,
+    Number(courseMapLesson?.lessonNumber) ||
+      Number(cleanText(courseMapLesson?.title, 140).match(/^lesson\s+(\d+)/i)?.[1]) ||
+      1,
+  );
+  const lessonVariant = (variants) => variants[(lessonOrdinal - 1) % variants.length];
   const topic = sections
     .map((section) => cleanText(section?.topicSection, 120).replace(/^\d+(?:\.\d+)*\s*[:.-]\s*/i, ''))
     .find(Boolean);
@@ -226,11 +233,32 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
   if (!completed.discussionPrompt) {
     const discussionPrompt = {
       prompt: `Which interpretation of ${concept} is best supported by ${materials}, and what detail could change that conclusion?`,
-      tension: `One position prioritizes the strongest observed ${concept} pattern, while another prioritizes the remaining uncertainty.`,
+      tension: lessonVariant([
+        `One reading gives the strongest observed ${concept} pattern priority; another treats the unresolved detail as decisive.`,
+        `The debate is whether the available ${concept} evidence warrants a leading interpretation or only a provisional one.`,
+        `One side emphasizes what the ${concept} evidence already supports, while the other emphasizes what remains unknown.`,
+        `The central tension is how much confidence the present ${concept} evidence can bear before another detail is checked.`,
+        `Readers must decide whether the clearest ${concept} pattern outweighs the uncertainty still present in the materials.`,
+        `The competing views differ over whether the current ${concept} evidence is sufficient or should remain conditional.`,
+      ]),
       positions: [
         `Use ${anchorClause} as the leading interpretation.`,
-        `Prefer an alternative explanation until the uncertainty about ${concept} is resolved.`,
-        `Use a conditional conclusion that changes when the missing ${concept} detail becomes available.`,
+        lessonVariant([
+          `Keep an alternative explanation open until the unresolved ${concept} detail is checked.`,
+          `Treat the current reading as provisional because the missing ${concept} evidence could change it.`,
+          `Give the competing interpretation priority until the uncertain ${concept} claim has stronger support.`,
+          `Withhold a firm conclusion while the available ${concept} materials leave a plausible counter-reading.`,
+          `Challenge the leading account by asking whether another ${concept} explanation fits the same evidence.`,
+          `Retain the rival reading unless the decisive ${concept} detail rules it out.`,
+        ]),
+        lessonVariant([
+          `State a conditional conclusion and identify the ${concept} finding that would require revision.`,
+          `Name the present interpretation together with the missing ${concept} evidence that could overturn it.`,
+          `Frame the claim around what is supported now and how a new ${concept} detail would change it.`,
+          `Offer a bounded conclusion whose confidence depends on resolving the remaining ${concept} uncertainty.`,
+          `Separate the defensible ${concept} claim from the unanswered question that limits it.`,
+          `Use a qualified interpretation and specify which additional ${concept} observation would shift the judgment.`,
+        ]),
       ],
     };
     if (lintEnrichedDiscussionPrompt(discussionPrompt).length === 0) {

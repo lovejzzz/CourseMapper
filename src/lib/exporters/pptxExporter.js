@@ -489,9 +489,24 @@ function planNativeVisual(s, slideType, visKind, hasGeneratedImage, hasLatex) {
       )
       .slice(0, 4);
     if (rows.length < 2) return null;
-    const lead = bullets[0];
+    const descriptorLead = String(visual.tableLead || '').trim();
+    const lead = descriptorLead || bullets[0];
     if (!lead || lead.length > NATIVE_VISUAL_LIMITS.tableLead) return null;
-    return { type: 'evidenceTable', lead, twoCol: true, rows };
+    const columnLabels = (Array.isArray(visual.columnLabels) ? visual.columnLabels : [])
+      .map((label) =>
+        String(label || '')
+          .trim()
+          .toUpperCase(),
+      )
+      .filter((label) => label && label.length <= 24)
+      .slice(0, 2);
+    return {
+      type: 'evidenceTable',
+      lead,
+      twoCol: true,
+      rows,
+      columnLabels: columnLabels.length === 2 ? columnLabels : ['CLAIM', 'EVIDENCE'],
+    };
   }
 
   if (slideType === 'question' && /\bmatrix\b/i.test(visKind)) {
@@ -580,8 +595,8 @@ function addEvidenceTable(pptx, slide, theme, plan, visKind, tracker) {
   // columns, so every emitted cell carries content. The visKind label stays
   // visible in the speaker notes' visual guidance block.
   const headerRow = [
-    { text: 'CLAIM', options: { ...headerOptions } },
-    { text: 'EVIDENCE', options: { ...headerOptions } },
+    { text: plan.columnLabels?.[0] || 'CLAIM', options: { ...headerOptions } },
+    { text: plan.columnLabels?.[1] || 'EVIDENCE', options: { ...headerOptions } },
   ];
   const bodyRows = plan.rows.map((cells) =>
     cells.map((cell, ci) => ({

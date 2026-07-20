@@ -7222,6 +7222,21 @@ function contextualizeModalityRoutine(kind, base, { lesson = {}, concept = '', a
   const secondary = alternateLessonConcept(lesson, concept);
   if (
     kind === 'signaturePractice' &&
+    /\bhumanities interpretation seminar\b/i.test(routine) &&
+    /\bannotate evidence\b/i.test(routine) &&
+    /\bcompeting claims\b/i.test(routine)
+  ) {
+    routine = lessonVariant(lesson, [
+      'annotate a passage or scene, compare rival readings, and revise the claim that will enter the artifact',
+      'mark the source detail, test two plausible interpretations, and refine the argument students will carry forward',
+      'move from close evidence annotation into counter-reading, context check, and interpretive revision',
+      'trace how form or context supports a reading, challenge it with competing evidence, and qualify the final claim',
+      'stage an evidence-centered seminar where students defend one interpretation and revise it after a source challenge',
+      'compare how two readings use the same detail, identify the stronger warrant, and update the interpretive artifact',
+    ]);
+  }
+  if (
+    kind === 'signaturePractice' &&
     /\bretrieval-to-exam practice cycle\b/i.test(routine) &&
     /\banswer\b.+\bexplain\b.+\bdiagnose\b.+\bcorrect\b/i.test(routine)
   ) {
@@ -19683,16 +19698,37 @@ function buildExamEssayItem({ blueprint, assessment, covered, lens, examSlug, or
       intendedUse: `Summative synthesis for ${assessment.title}; score with the rubric hints below.`,
       question: `Synthesize the covered material (${span}): choose the two concepts that most changed your approach to ${decisionFocus} in ${blueprint.courseName}, justify the choice with course ${lens.evidenceNoun}, and name one limitation of each.`,
       rubricHints: singleLesson
-        ? `Strong responses distinguish two concepts from the covered lesson, support each with specific ${lens.evidenceNoun}, connect them, and name a real limitation for each.`
+        ? lessonVariant(last, [
+            `Strong responses distinguish two concepts from the covered lesson, ground each in specific ${lens.evidenceNoun}, explain their relationship, and identify a genuine limit for both.`,
+            `A strong response accurately separates two lesson concepts, supports each with ${lens.evidenceNoun}, connects the reasoning, and tests one boundary per concept.`,
+            `Credit-worthy work uses two distinct lesson ideas, cites concrete ${lens.evidenceNoun} for each, synthesizes them, and qualifies both claims.`,
+            `Strong essays make two covered concepts meaningfully different, show the ${lens.evidenceNoun} behind each, link them, and state where each stops applying.`,
+            `The response should select two lesson concepts, justify both with specific ${lens.evidenceNoun}, explain the connection, and give each an evidence-based limitation.`,
+            `High-quality work distinguishes and relates two covered ideas, anchors both in ${lens.evidenceNoun}, and names the boundary of each conclusion.`,
+          ])
         : `Strong responses pick two concepts from different covered lessons, support each with specific ${lens.evidenceNoun}, connect them, and name a real limitation for each.`,
       sampleAnswer: singleLesson
         ? `A strong response selects two covered concepts${exampleConcepts.length === 2 ? `, such as ${exampleConcepts[0]} and ${exampleConcepts[1]},` : ''} shows with concrete source evidence how each changes an interpretation, connects the two, and closes with one limitation per concept.`
         : `A strong response selects two covered concepts (for example, ${concept} and one earlier idea), shows with concrete source evidence how each changes a decision, connects the two, and closes with one limitation per concept.`,
       explanation: singleLesson
-        ? `The essay is scored for synthesis within the covered lesson, not for listing its vocabulary.`
+        ? lessonVariant(last, [
+            `Scoring rewards synthesis inside the lesson rather than a list of its terms.`,
+            `The task checks whether students can relate covered ideas, not merely recall their labels.`,
+            `A vocabulary inventory is insufficient; the response must connect evidence, concepts, and limits.`,
+            `Students earn credit for an evidence-backed relationship between ideas, not for term repetition.`,
+            `The essay measures integrated reasoning within this lesson instead of isolated definitions.`,
+            `Evaluation focuses on how the lesson ideas work together and where their evidence stops.`,
+          ])
         : `The essay is scored for synthesis across the covered range, not for restating any single lesson.`,
       scoringGuidance: singleLesson
-        ? `Full credit requires two accurately distinguished concepts from the lesson, evidence for each, an explicit connection, and two limitations. Partial credit when concepts are accurate but unconnected.`
+        ? lessonVariant(last, [
+            `Full credit requires two accurately distinguished lesson concepts, evidence for each, a stated relationship, and a limitation for both. Partial credit applies when accurate ideas remain unconnected.`,
+            `Award full credit when two distinct concepts are supported, synthesized, and bounded separately. Give partial credit for accurate but disconnected explanations.`,
+            `Complete responses use two covered ideas accurately, cite evidence for both, explain their connection, and qualify each one. Unconnected accuracy earns partial credit.`,
+            `Full credit depends on conceptual distinction, two evidence links, one explicit synthesis, and two defensible limits. Partial credit covers correct ideas without synthesis.`,
+            `Score fully when the response differentiates two concepts, supports and connects them, and states where each claim is limited. Accurate listing alone is partial.`,
+            `A complete answer relates two accurately used concepts through evidence and supplies a boundary for each; partial credit is appropriate when the relationship is missing.`,
+          ])
         : `Full credit requires two accurately used concepts from different lessons, evidence for each, an explicit connection, and two limitations. Partial credit when concepts are accurate but unconnected.`,
       tags: ['exam', 'essay', concept].filter(Boolean),
     },
@@ -20003,7 +20039,14 @@ function buildAdmittedKernelAssessmentFillers({ lesson, blueprint, quizPlan, ass
     }
     return {
       ...item,
-      intendedUse: `Weekly source-grounded knowledge check for ${lesson.title}; the answer and distractors come from admitted lesson atoms.`,
+      intendedUse: lessonVariant(lesson, [
+        `Weekly source-grounded knowledge check for ${lesson.title}; each answer choice is built from admitted lesson atoms.`,
+        `Use this ${lesson.title} knowledge check to assess distinctions supported by the admitted lesson evidence.`,
+        `Weekly retrieval for ${lesson.title}; the keyed response and alternatives stay within the admitted kernel.`,
+        `This ${lesson.title} check tests course knowledge using only admitted facts, terms, and misconception evidence.`,
+        `Source-grounded practice for ${lesson.title}; score the answer against the lesson atoms already admitted.`,
+        `Weekly ${lesson.title} assessment item grounded in the lesson's verified knowledge kernel.`,
+      ]),
       enrichmentSource: 'admitted-kernel-assessment',
       tags: (item.tags || []).map((tag) => (tag === 'exam' ? 'quiz' : tag)),
       quizPlan: { ...item.quizPlan, ...quizPlan[index], questionIndex: index },
@@ -21436,11 +21479,25 @@ function slideVisual(lesson, slide) {
         }
       : /common pitfalls/i.test(title)
         ? {
-            // v0.14.3 D1(a): the pitfalls slide's bullets ARE the visual —
-            // tempting claim vs corrective, run as a vote-then-reveal.
-            kind: 'misconception vote-and-reveal',
+            // The same admitted misconception/correction pairs that author
+            // the bullets also form a native two-column comparison. No
+            // content is inferred by the exporter.
+            kind: 'misconception comparison table',
+            columnLabels: ['MISCONCEPTION', 'CORRECTION'],
             purpose: `Surface the tempting ${concept} misreadings before they reach ${artifact}.`,
             evidenceUse: `Vote on each tempting claim, then test it against the corrective and ${source}.`,
+            tableLead: lessonVariant(lesson, [
+              'Vote first, then compare each tempting claim with its evidence-based correction.',
+              'Commit to a judgment before revealing why each misconception needs revision.',
+              'Use the comparison to separate a plausible error from the corrective supported by the lesson.',
+              'Test each tempting statement, then trace the evidence behind the stronger explanation.',
+            ]),
+            rows: lessonMisconceptionPairs(lesson)
+              .slice(0, 3)
+              .map((pair) => [
+                conciseClause(pair.misconception, pair.misconception, 42, { ellipsis: true }),
+                conciseClause(pair.corrective, pair.corrective, 130, { ellipsis: true }),
+              ]),
           }
         : {
             kind: /limit|honest|gap/i.test(title) ? 'constraint map' : 'evidence table',
@@ -21558,6 +21615,10 @@ function slideVisual(lesson, slide) {
     ...(selected.hub && Array.isArray(selected.spokes) ? { hub: selected.hub, spokes: selected.spokes } : {}),
     // v0.14.1 (5.2c): pre-paired claim/evidence rows for the evidence table.
     ...(Array.isArray(selected.rows) && selected.rows.length >= 2 ? { rows: selected.rows } : {}),
+    ...(selected.tableLead ? { tableLead: selected.tableLead } : {}),
+    ...(Array.isArray(selected.columnLabels) && selected.columnLabels.length === 2
+      ? { columnLabels: selected.columnLabels }
+      : {}),
     // v0.14.5 (C2): worked-example plot pairs for the native bar chart.
     ...(selected.wePlot ? { wePlot: selected.wePlot } : {}),
     visualPlan,
@@ -22597,7 +22658,14 @@ function buildDiscussionFollowUps(lesson, phrase) {
   return [
     `What evidence from ${lesson.title} most strongly supports your position on ${concept}?`,
     positions.length >= 2
-      ? `A classmate will argue: “${positions[1]}.” What evidence would you need to answer them — or to concede — before revising ${artifact}?`
+      ? lessonVariant(lesson, [
+          `A classmate argues: “${positions[1]}.” What evidence would make you answer them — or concede — before revising ${artifact}?`,
+          `Another reader objects: “${positions[1]}.” Which source detail would resolve the disagreement before you revise ${artifact}?`,
+          `Test this counterclaim: “${positions[1]}.” What evidence would strengthen it or require a change to ${artifact}?`,
+          `Suppose a peer says: “${positions[1]}.” What would you need to verify before defending or revising ${artifact}?`,
+          `The opposing position is: “${positions[1]}.” Which evidence could change your response and the next ${artifact} move?`,
+          `A seminar partner proposes: “${positions[1]}.” Where does the evidence support or limit that view in ${artifact}?`,
+        ])
       : lessonVariant(lesson, [
           `Which alternative reading of the same evidence about ${concept} would challenge your claim, and why might another student prefer it for ${artifact}?`,
           `What source detail could weaken your ${concept} interpretation, and how would that change the next ${artifact} move?`,

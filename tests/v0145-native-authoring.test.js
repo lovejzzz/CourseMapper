@@ -779,6 +779,17 @@ describe('Pass B contract (B2)', () => {
       ]),
     );
 
+    const fallbackOpponents = Array.from(
+      { length: 6 },
+      (_, index) =>
+        completeNativeKernelSurfaces(sparse, {
+          lessonNumber: index + 1,
+          title: `Lesson ${index + 1}: Intervals and Hearing`,
+          sections: [{ topicSection: 'Musical intervals' }],
+        }).discussionPrompt.positions[1],
+    );
+    expect(new Set(fallbackOpponents).size).toBe(6);
+
     const authored = {
       ...completed,
       assignmentCore: { taskDescription: 'Instructor-authored assignment stays intact.', parameters: ['one', 'two'] },
