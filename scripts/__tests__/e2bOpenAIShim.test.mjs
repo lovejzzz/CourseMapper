@@ -469,11 +469,81 @@ input.on('line', (line) => {
     modelCalls: 3,
   });
 
+  const baseLedgerProfile = compactLessonKernelSchemaProfile({ expectedLessonIds: ['lesson-5'] });
+  const baseLedger = await fetch(`${baseUrl}/v1/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Scion-Task-Family': 'lesson-kernel-synthesis',
+      'X-Scion-Prompt-Protocol': 'production-lesson-kernel-synthesis-prompt-v1',
+    },
+    body: JSON.stringify({
+      model: 'fake-scion',
+      messages: [
+        { role: 'system', content: 'Write a rich Pass B lesson with every surface.' },
+        {
+          role: 'user',
+          content:
+            'Course: Testing Basics\nLessons:\n[{"lessonId":"lesson-5","title":"Source Checks","objectives":"Verify a claim","topics":"Claims and sources","readings":"Testing guide"}]',
+        },
+      ],
+      response_format: { type: 'json_schema', json_schema: baseLedgerProfile },
+    }),
+  }).then((result) => result.json());
+  expect(JSON.parse(baseLedger.choices[0].message.content).lessons[0]).toEqual({
+    lessonId: 'lesson-5',
+    facts: expect.any(Array),
+  });
+  expect(baseLedger.scion_adapter_route).toMatchObject({
+    mode: 'base-only',
+    taskFamily: 'lesson-kernel-synthesis',
+    promptProtocol: 'production-lesson-kernel-synthesis-prompt-v1',
+    // The fake worker repeats the same schema-derived fact, so the fact-only
+    // contract spends its one focused retry and then stops.
+    modelCalls: 2,
+  });
+
+  const mandarinProfile = compactLessonKernelSchemaProfile({
+    expectedLessonIds: ['lesson-6'],
+    requiresTargetLanguagePair: true,
+  });
+  const mandarin = await fetch(`${baseUrl}/v1/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Scion-Task-Family': 'lesson-kernel-synthesis',
+      'X-Scion-Prompt-Protocol': 'production-lesson-kernel-synthesis-prompt-v1',
+    },
+    body: JSON.stringify({
+      model: 'fake-scion',
+      messages: [
+        { role: 'system', content: 'Write a rich Pass B lesson with every surface.' },
+        {
+          role: 'user',
+          content:
+            'Course: Elementary Mandarin Chinese I\nLessons:\n[{"lessonId":"lesson-6","title":"Greetings","objectives":"Use a greeting","topics":"Hanzi and pinyin","readings":"Language guide"}]',
+        },
+      ],
+      response_format: { type: 'json_schema', json_schema: mandarinProfile },
+    }),
+  }).then((result) => result.json());
+  expect(JSON.parse(mandarin.choices[0].message.content).lessons[0]).toMatchObject({
+    lessonId: 'lesson-6',
+    keyTerms: expect.any(Array),
+    scenario: expect.any(Object),
+    mc: expect.any(Array),
+  });
+  expect(mandarin.scion_adapter_route).toMatchObject({
+    mode: 'base-only',
+    taskFamily: 'lesson-kernel-synthesis',
+    promptProtocol: 'production-lesson-kernel-synthesis-prompt-v1',
+  });
+
   const rows = (await fs.readFile(bodyLogPath, 'utf8'))
     .trim()
     .split('\n')
     .map((line) => JSON.parse(line));
-  expect(rows).toHaveLength(5);
+  expect(rows).toHaveLength(7);
   expect(rows[0].modelMetrics.modelCalls).toBeGreaterThan(1);
   expect(rows[1].modelMetrics.modelCalls).toBe(1);
   expect(rows[1].jsonClosureRepair).toBe(']}');
@@ -485,6 +555,8 @@ input.on('line', (line) => {
   expect(rows[4].user).not.toContain('courseLevel object once');
   expect(rows[4].originalCompilerUser).toContain('Course: Testing Basics');
   expect(rows[4].originalCompilerUser).toContain('courseLevel object once');
+  expect(rows[5].user).toContain('factual ledger');
+  expect(rows[6].user).not.toContain('factual ledger');
 
   const schemas = (await fs.readFile(schemaLogPath, 'utf8'))
     .trim()

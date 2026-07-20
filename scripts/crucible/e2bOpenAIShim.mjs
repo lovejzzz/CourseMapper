@@ -36,6 +36,7 @@ import {
 } from '../../src/lib/publicScionProvider.js';
 import { compactFactLedgerSchemaProfile } from '../../src/lib/scionContracts.js';
 import { scionFactCountForPrompt } from '../../src/lib/scionEvidenceContract.js';
+import { explicitCourseLanguageIds } from '../../src/lib/languageIdentityGuard.js';
 import { closeJsonContainersAtEof } from './jsonClosureRepair.mjs';
 import { valueConformsToSchema } from './jsonSchemaValidation.mjs';
 import { scionCompactKernelMaxAttempts } from './scionCompactAttemptPolicy.mjs';
@@ -276,7 +277,7 @@ async function generateCompactLessonKernel({
   schema,
   maxAttempts = 3,
   temperature = 0,
-  deferToGroundedAdapter = false,
+  deferToCompilerProjection = false,
 }) {
   let retainedIncompleteText = '';
   let retryAssessment = null;
@@ -300,7 +301,7 @@ async function generateCompactLessonKernel({
       : { text: repaired.text };
     latestText = merged.text;
     const assessment = assessPublicScionKernelResponse(latestText, originalUser, 'blueprintEnrichment');
-    const retryIssues = deferToGroundedAdapter ? publicScionFactContractIssues(assessment) : assessment.issues;
+    const retryIssues = deferToCompilerProjection ? publicScionFactContractIssues(assessment) : assessment.issues;
     const retryGate = { needsRetry: retryIssues.length > 0, issues: retryIssues };
     console.error(
       JSON.stringify({
@@ -308,7 +309,7 @@ async function generateCompactLessonKernel({
         needsRetry: retryGate.needsRetry,
         issueCount: assessment.issues.length,
         issues: assessment.issues.slice(0, 12),
-        ...(deferToGroundedAdapter ? { factIssueCount: retryIssues.length } : {}),
+        ...(deferToCompilerProjection ? { factIssueCount: retryIssues.length } : {}),
       }),
     );
     if (!retryGate.needsRetry) return shufflePublicScionKernelOptions(latestText).text;
@@ -1505,11 +1506,19 @@ const server = http.createServer(async (req, res) => {
     // adapter even though the compact response contract remains executable.
     (adapterRoute.taskFamily === SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL &&
       promptProtocol === SCION_LESSON_KERNEL_PROMPT_PROTOCOL);
+  const targetLanguageKernel = explicitCourseLanguageIds(originalCompilerUser).length > 0;
   const factLedgerFirstRequest =
     SCION_LEDGER_FIRST &&
     adapterRoute.taskFamily === SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL_SYNTHESIS &&
-    adapterRoute.reason === 'grounded-stage-available' &&
-    promptProtocol === SCION_LESSON_KERNEL_SYNTHESIS_PROMPT_PROTOCOL;
+    promptProtocol === SCION_LESSON_KERNEL_SYNTHESIS_PROMPT_PROTOCOL &&
+    // Base-only Scion previously requested the complete lesson surface, then
+    // spent dozens of same-model repair calls on fields the compiler can
+    // project safely from admitted facts. Use the same compact ledger boundary
+    // with or without an installed adapter. Target-language kernels are the
+    // exception until the ledger contract can carry the required native-script
+    // and romanization pair; the richer base path is currently the measured
+    // fidelity-preserving route for those lessons.
+    (adapterRoute.reason === 'grounded-stage-available' || !targetLanguageKernel);
   if (compactLessonKernelRequest) {
     // Match the production browser boundary exactly. The public provider
     // converts the rich compiler prompt into the compact protocol used by the
@@ -1573,16 +1582,18 @@ const server = http.createServer(async (req, res) => {
             originalUser: originalCompilerUser,
             maxTokens: factLedgerFirstRequest ? Math.min(800, requestedMaxTokens(body)) : requestedMaxTokens(body),
             schema: contract.schema,
-            maxAttempts: scionCompactKernelMaxAttempts({
-              taskFamily: adapterRoute.taskFamily,
-              promptProtocol,
-              routeReason: adapterRoute.reason,
-              recoveryAttempt,
-            }),
+            maxAttempts: factLedgerFirstRequest
+              ? recoveryAttempt > 0
+                ? 3
+                : 2
+              : scionCompactKernelMaxAttempts({
+                  taskFamily: adapterRoute.taskFamily,
+                  promptProtocol,
+                  routeReason: adapterRoute.reason,
+                  recoveryAttempt,
+                }),
             temperature: declaredTemperature,
-            deferToGroundedAdapter:
-              adapterRoute.taskFamily === SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL_SYNTHESIS &&
-              adapterRoute.reason === 'grounded-stage-available',
+            deferToCompilerProjection: factLedgerFirstRequest,
           })
         : kernel
           ? await kernelChunkedGenerate({ system, user, kernel, temperature: declaredTemperature })
