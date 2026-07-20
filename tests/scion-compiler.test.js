@@ -875,8 +875,8 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     );
 
     const lesson = JSON.parse(result.text).lessons[0];
-    expect(lesson.facts[0]).toBe('The greeting nǐ hǎo uses tone marks to show pitch movement.');
-    expect(lesson.facts.at(-1)).toContain('你好 (nǐ hǎo)');
+    expect(lesson.facts).toEqual(['The greeting nǐ hǎo uses tone marks to show pitch movement.']);
+    expect(lesson.targetLanguagePair).toEqual({ hanzi: '你好', pinyin: 'nǐ hǎo', english: 'hello' });
     expect(calls[0]).toBe('target_language_pair_repair');
     expect(result.events).toContainEqual({
       pass: 'languageIdentity',
@@ -1431,6 +1431,15 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     expect(deliverables).toContain("provider === 'local' || provider === PUBLIC_SCION_PROVIDER_ID");
     expect(deliverables).toContain('scionCallOpts');
     expect(deliverables).toContain('runScionPasses');
+    const initialFanOut = deliverables.indexOf('await Promise.all(\n              fanOut.map');
+    const completedBeforeRecovery = deliverables.indexOf(
+      'completeNativeLessonSurfaces(lessonContent, blueprintCourseMap.lessons, allLessonIndices, appendLog)',
+      initialFanOut,
+    );
+    const recoveryScan = deliverables.indexOf('const listMissingKernelIndices', initialFanOut);
+    expect(initialFanOut).toBeGreaterThan(-1);
+    expect(completedBeforeRecovery).toBeGreaterThan(initialFanOut);
+    expect(completedBeforeRecovery).toBeLessThan(recoveryScan);
     const passB = fs.readFileSync('src/lib/scionPassB.js', 'utf8');
     expect(passB).toContain('compactLessonKernelSchemaProfile');
     expect(passB).toContain('SCION_LESSON_KERNEL_PROMPT_PROTOCOL');

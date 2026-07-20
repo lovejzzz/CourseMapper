@@ -1150,12 +1150,12 @@ async function targetLanguageIdentityGate(lesson, promptLesson, courseName, gene
     const evidence = `${hanzi} (${pinyin}) means ${english}.`;
     const after = assessTargetLanguagePresence({ courseIdentity: courseName, sourceText, text: evidence });
     if (!after.complete) throw new Error('repair did not contain a valid Hanzi/Pinyin pair');
-    if (!Array.isArray(lesson.facts)) lesson.facts = [];
-    if (!lesson.facts.some((fact) => String(fact).includes(hanzi) && String(fact).includes(pinyin))) {
-      // Keep existing indexes stable: fi citations were authored against the
-      // original facts array and must continue to name the same claims.
-      lesson.facts.push(evidence);
-    }
+    // Facts are the immutable warrant for every cited teaching atom. Keep the
+    // repaired language example beside that ledger instead of appending a new
+    // uncited fact (which also turned a valid five-fact compact kernel into an
+    // invalid six-fact response). The parser and compiler carry this
+    // structured pair into learner-facing vocabulary without changing fi.
+    lesson.targetLanguagePair = { hanzi, pinyin, english };
     events.push({
       pass: 'languageIdentity',
       lessonId: lesson.lessonId,

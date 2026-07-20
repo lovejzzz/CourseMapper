@@ -732,6 +732,38 @@ describe('Scion Public provider', () => {
     expect(buildPublicScionRetryFeedback(assessment)).toContain('genuinely false learner belief');
   });
 
+  it('checks each numbered source claim even when a long instructor brief is also present', () => {
+    const facts = [
+      'Health vocabulary describes physical well-being and personal physical states.',
+      'Feelings vocabulary describes emotions and psychological states in daily life.',
+      'Health and feelings support communication about personal well-being.',
+    ];
+    const prompt = `Course: Elementary Mandarin Chinese I
+Lessons:
+[{"lessonId":"lesson-13","sourceFactPolicy":"numbered-source-ledger-v1","title":"Health and Feelings","objectives":"Use only the supplied claims.","topics":"Claim 0: ${facts[0]} Claim 1: ${facts[1]} Claim 2: ${facts[2]}","readings":"Instructor source brief: This intentionally long source context describes a fifteen-lesson language course with speaking, listening, reading, writing, review, performance, and target-language practice throughout the term."}]
+Return ONLY valid JSON.`;
+    const response = completeLesson({
+      lessonId: 'lesson-13',
+      facts,
+      keyTerms: completeTerms.map((term, index) =>
+        index === 0
+          ? {
+              ...term,
+              mi: 'Health vocabulary describes physical well-being and personal physical states.',
+            }
+          : term,
+      ),
+    });
+
+    const assessment = assessPublicScionKernelResponse(
+      JSON.stringify({ lessons: [response] }),
+      prompt,
+      'blueprintEnrichment',
+    );
+
+    expect(assessment.issues).toContain('lesson-13:key-term-0:misconception-repeats-known-fact');
+  });
+
   it('keeps a source-overlapping misconception when explicit contrast makes the belief false', () => {
     const prompt = `Course: Interaction Design\nLessons:\n[{"lessonId":"lesson-9","title":"Interactive Prototyping"}]\nReturn ONLY valid JSON.`;
     const response = {

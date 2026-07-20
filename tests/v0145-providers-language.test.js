@@ -375,7 +375,7 @@ describe('language identity firewall', () => {
     expect(prompt.systemPrompt).toContain('Hanzi example paired with its tone-marked Pinyin');
   });
 
-  it('projects a grammar-required Mandarin pair into learner-facing facts', () => {
+  it('preserves a grammar-required Mandarin pair without mutating source facts', () => {
     const prompt = buildLessonKernelPrompt(mandarinCourseMap(), [0]);
     const response = JSON.stringify({
       lessons: [
@@ -398,7 +398,14 @@ describe('language identity firewall', () => {
 
     const parsed = parseLessonKernelResponse(response, { prompt });
     expect(parsed).toBeTruthy();
-    expect(parsed.lessons['lesson-1'].kernel.facts).toContain('你好 (nǐ hǎo) means hello.');
+    expect(parsed.lessons['lesson-1'].kernel.facts).toEqual([
+      'Tone contours distinguish otherwise identical spoken syllables in Mandarin.',
+    ]);
+    expect(parsed.lessons['lesson-1'].targetLanguagePair).toEqual({
+      hanzi: '你好',
+      pinyin: 'nǐ hǎo',
+      english: 'hello',
+    });
   });
 
   it('rejects a Korean lesson kernel inside Mandarin but permits an explicitly comparative course', () => {
@@ -494,6 +501,39 @@ describe('F2 — compiled render sites (lesson plan practice block + study guide
               },
             ],
             kernel: { facts: ['妈 (mā) means mother.'] },
+          },
+        },
+      },
+    });
+
+    const guide = compileBlueprintDeliverable('studyGuides', blueprint, { skipLanguageFinalizer: true }).studyGuides[0];
+    expect(guide.keyTerms).toContainEqual(
+      expect.objectContaining({
+        term: '妈 (mā)',
+        scriptTerm: '妈',
+        romanization: 'mā',
+        definition: '妈 means mother.',
+        enrichmentSource: 'admitted-language-pair',
+      }),
+    );
+  });
+
+  it('projects a structured admitted Hanzi-Pinyin pair when source facts stay frozen', () => {
+    const blueprint = buildCourseBlueprint(mandarinCourseMap(), {
+      enrichment: {
+        source: 'test-enrichment',
+        lessonContent: {
+          'lesson-1': {
+            quizItems: [],
+            keyTerms: [
+              {
+                term: 'Tone contour',
+                definition: 'A pitch movement that distinguishes lexical meaning.',
+                example: 'Learners compare the four Mandarin tones.',
+              },
+            ],
+            targetLanguagePair: { hanzi: '妈', pinyin: 'mā', english: 'mother' },
+            kernel: { facts: ['Tone contours distinguish otherwise identical spoken syllables.'] },
           },
         },
       },

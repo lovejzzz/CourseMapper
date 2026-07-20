@@ -17797,13 +17797,32 @@ const TONE_MARKED_PINYIN_TOKEN_RE = /[a-zü]*[āáǎàēéěèīíǐìōóǒòū
 
 /**
  * Recover one already-admitted learner-language pair from the lesson kernel.
- * Scion's Mandarin contract guarantees facts in the form
- * "你好 (nǐ hǎo) means hello.". Some valid kernels use Latin-script key
- * terms, though, so the study-guide projection used to hide that pair. This
- * parser never transliterates or supplies a meaning; it only republishes
- * evidence that already cleared kernel admission.
+ * New kernels keep the pair structured beside the immutable source-fact
+ * ledger; legacy kernels may still carry "你好 (nǐ hǎo) means hello." as a
+ * fact. This parser never transliterates or supplies a meaning—it republishes
+ * evidence that already cleared target-language admission.
  */
 function admittedLanguagePairTerm(lesson = {}) {
+  const pair = lesson?.enrichment?.targetLanguagePair;
+  const pairScript = cleanText(pair?.hanzi);
+  const pairRomanization = cleanText(pair?.pinyin);
+  const pairMeaning = cleanText(pair?.english).replace(/[.!?]+$/, '');
+  if (
+    pairScript &&
+    pairRomanization &&
+    pairMeaning &&
+    CJK_SCRIPT_RE.test(pairScript) &&
+    TONE_MARKED_PINYIN_TOKEN_RE.test(pairRomanization)
+  ) {
+    return {
+      term: `${pairScript} (${pairRomanization})`,
+      scriptTerm: pairScript,
+      romanization: pairRomanization,
+      definition: `${pairScript} means ${pairMeaning}.`,
+      example: `${pairScript} (${pairRomanization}) means ${pairMeaning}.`,
+      enrichmentSource: 'admitted-language-pair',
+    };
+  }
   const facts = Array.isArray(lesson?.enrichment?.kernel?.facts) ? lesson.enrichment.kernel.facts : [];
   for (const fact of facts) {
     const match = cleanText(fact).match(CJK_PINYIN_PAIR_RE);

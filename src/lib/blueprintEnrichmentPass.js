@@ -1635,9 +1635,10 @@ export function parseLessonKernelResponse(text, { prompt, expectedLessonIds } = 
     const issueCountAtEntryStart = issues.length;
     const promptLesson = (prompt?.lessons || []).find((lesson) => lesson.lessonId === lessonId);
     // Scion's language-specific grammar can guarantee one compact pair even
-    // when the weak draft forgets to repeat it inside facts/key terms. Move
-    // that admitted pair into the learner-facing fact bank before any gate;
-    // the structured helper field never becomes invisible evidence.
+    // when the weak draft forgets to repeat it inside facts/key terms. Keep
+    // the pair structured: facts form the immutable source ledger and mc fi
+    // indexes must keep naming exactly those claims.
+    let targetLanguagePair = null;
     if (entry?.targetLanguagePair && typeof entry.targetLanguagePair === 'object') {
       const hanzi = cleanText(entry.targetLanguagePair.hanzi);
       const pinyin = cleanText(entry.targetLanguagePair.pinyin);
@@ -1649,13 +1650,7 @@ export function parseLessonKernelResponse(text, { prompt, expectedLessonIds } = 
         text: pairEvidence,
       });
       if (pairPresence.complete) {
-        const currentFacts = asArray(entry.facts);
-        if (!currentFacts.some((fact) => String(fact).includes(hanzi) && String(fact).includes(pinyin))) {
-          // Append rather than prepend: model-authored fi indexes point into
-          // the original facts array, so preserving those positions keeps
-          // every quiz citation attached to the claim it was written from.
-          entry.facts = [...currentFacts, pairEvidence];
-        }
+        targetLanguagePair = { hanzi, pinyin, english };
       }
     }
     const languageContamination = detectForeignLanguageTeachingContent({
@@ -1856,6 +1851,7 @@ export function parseLessonKernelResponse(text, { prompt, expectedLessonIds } = 
       { facts, keyTerms, scenario, discussionPrompt, assignmentCore, mc, workedExample },
       { itemPlan },
     );
+    if (targetLanguagePair) payload.targetLanguagePair = targetLanguagePair;
     // v0.14.5 (F2): the optional language-course dialogue rides the payload
     // beside the projected surfaces. Malformed turns were dropped above the
     // lesson line (sanitizeDialogueTurns) — a bad dialogue never costs the

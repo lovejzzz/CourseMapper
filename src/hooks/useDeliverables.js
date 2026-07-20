@@ -1508,6 +1508,13 @@ export default function useDeliverables({
               fanOut.map((chunk, position) => limit(() => runBatchSafely(chunk, warmFirst ? position + 1 : position))),
             );
 
+            // Compact Scion intentionally authors only the semantic kernel.
+            // Complete compiler-owned discussion, assignment, and study-guide
+            // surfaces before recovery decides whether that kernel is usable;
+            // otherwise every good compact response looks incomplete and the
+            // two recovery seats are wasted re-authoring the first lessons.
+            completeNativeLessonSurfaces(lessonContent, blueprintCourseMap.lessons, allLessonIndices, appendLog);
+
             // Recovery (same budget discipline as the prose kernel stage,
             // v0.14.1 P2.3): ≤2 extra sequential calls for lessons whose
             // kernel is absent OR instructionally unusable, or whose authored

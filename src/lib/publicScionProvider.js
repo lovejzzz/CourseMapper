@@ -756,7 +756,12 @@ export function assessPublicScionKernelResponse(
       // factual source claim. Bind it only to the proper-name check.
       const namedSourceText = [sourceText, courseTitle].filter(Boolean).join(' ');
       const hasRichSourceEvidence = publicScionHasRichSourceEvidence(expected);
-      const sourceFacts = hasRichSourceEvidence ? [sourceText] : facts;
+      // A numbered ledger is already the canonical per-claim source. Keep its
+      // claims separate for semantic overlap checks even when the lesson also
+      // carries a long instructor brief; folding the ledger into one giant
+      // source blob hid affirmative facts mislabeled as misconceptions.
+      const sourceFacts =
+        factContract.mode === 'numbered-source-ledger-v1' ? facts : hasRichSourceEvidence ? [sourceText] : facts;
       if (!PUBLIC_SCION_SCRIPT_RE.test(sourceText) && PUBLIC_SCION_SCRIPT_RE.test(JSON.stringify(lesson))) {
         issues.push(`${expected.lessonId}:unexpected-script`);
       }
