@@ -89,4 +89,32 @@ describe('explicit lesson-sequence quality checks', () => {
     );
     expect(findings.list).toEqual([]);
   });
+
+  it('blocks the real six-week Scion collapse from a “with these lessons” brief', () => {
+    const findings = collector();
+    const titles = [
+      'World Literature Scope',
+      'Oral Epic Tradition',
+      'Homeric Epic and Classical Drama',
+      'World Literature Scope',
+      'Oral Epic Tradition',
+      'Homeric Epic and Classical Drama',
+    ];
+    checkExplicitLessonSequenceReuse(
+      findings,
+      new Map(titles.map((title, index) => [index + 1, [{ title, path: `Lesson ${index + 1}.docx` }]])),
+      {
+        prompt:
+          'Create a 6-week college World Literature course with these lessons: World Literature Scope; Oral Epic Tradition using Gilgamesh; Homeric Epic using The Odyssey; Classical Drama using Antigone; Tang Poetry using selected poems by Li Bai and Du Fu; and Frame Narratives using The Thousand and One Nights. Focus on textual analysis.',
+      },
+    );
+
+    expect(findings.list).toEqual([
+      expect.objectContaining({
+        severity: 'P0',
+        detail: 'Explicit source lesson sequence omits or shifts 3 ordered topic(s)',
+        evidence: expect.stringContaining('L4 expected "Classical Drama using Antigone"'),
+      }),
+    ]);
+  });
 });

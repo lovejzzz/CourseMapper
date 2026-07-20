@@ -20,6 +20,7 @@ import { auditPrerequisites, buildPrerequisiteJudgment } from './prerequisiteAud
 import { buildGlossaryGraph } from './glossaryGraph';
 import { buildArchetypeBridges } from './archetypeBridges';
 import { assessTargetLanguagePresence, detectForeignLanguageTeachingContent } from '../languageIdentityGuard';
+import { sanitizeLessonTitleEchoEnrichment } from '../lessonSemanticRelevance';
 
 function lessonIdFor(lessonIndex) {
   return `lesson-${lessonIndex + 1}`;
@@ -282,10 +283,14 @@ export function runGenomeLinker({
 
     // Tier 1 — own-kernel cache (same course regenerated/revised).
     const cached = cache?.get ? cache.get(lesson) : null;
-    if (cached && respectsCourseLanguage(courseMap?.courseName, cached)) {
-      lessonContent[lessonId] = { ...cached, enrichmentSource: cached.enrichmentSource || 'own-kernel-cache' };
+    const titleSafeCached = cached ? sanitizeLessonTitleEchoEnrichment(lesson, cached).enrichment : null;
+    if (titleSafeCached && respectsCourseLanguage(courseMap?.courseName, titleSafeCached)) {
+      lessonContent[lessonId] = {
+        ...titleSafeCached,
+        enrichmentSource: titleSafeCached.enrichmentSource || 'own-kernel-cache',
+      };
       telemetry.resolvedFromCache += 1;
-      if (isGenomeBackedPayload(cached)) telemetry.cachedGenomeBacked += 1;
+      if (isGenomeBackedPayload(titleSafeCached)) telemetry.cachedGenomeBacked += 1;
       continue;
     }
     if (cached) telemetry.languageIdentityRejects += 1;

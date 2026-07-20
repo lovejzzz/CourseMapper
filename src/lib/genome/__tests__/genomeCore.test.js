@@ -139,6 +139,76 @@ describe('conceptResolver', () => {
     expect(suggestions.length + conceptRefs.length).toBeGreaterThanOrEqual(0);
   });
 
+  it('does not resolve a specific subtype from generic descriptor words alone', () => {
+    const poeticFormIndex = buildConceptIndex([
+      {
+        id: 'lit/ballad-form',
+        rev: 1,
+        term: 'Ballad (poetic form)',
+        aliases: ['folk ballad'],
+        level: 'intro',
+      },
+    ]);
+    const broadLesson = {
+      title: 'Lesson 5: Tang Poetry',
+      sections: [
+        {
+          topicSection: 'Poetic Forms',
+          learningObjectives: 'Analyze poetic forms using textual evidence.',
+        },
+      ],
+    };
+    const exactLesson = {
+      title: 'Lesson 6: Ballad Form',
+      sections: [{ topicSection: 'The folk ballad', learningObjectives: 'Analyze a ballad.' }],
+    };
+
+    expect(resolveLessonConcepts(broadLesson, poeticFormIndex).conceptRefs).toEqual([]);
+    expect(resolveLessonConcepts(exactLesson, poeticFormIndex).conceptRefs.map((ref) => ref.id)).toContain(
+      'lit/ballad-form',
+    );
+  });
+
+  it('does not resolve neighboring concepts from generic academic vocabulary', () => {
+    const neighboringIndex = buildConceptIndex([
+      {
+        id: 'bio/species-concept',
+        rev: 1,
+        term: 'Species concept',
+        aliases: ['the species problem', 'defining a species'],
+        level: 'intro',
+      },
+      {
+        id: 'history/historical-argument',
+        rev: 1,
+        term: 'Historical argument',
+        aliases: ['historical interpretation', 'argument from primary sources'],
+        level: 'intro',
+      },
+    ]);
+    const bioindicatorLesson = {
+      title: 'Lesson 2: Bioindicators',
+      sections: [
+        {
+          topicSection: 'bioindicator indicator species biomarker ecosystem health water quality',
+          learningObjectives: 'Evaluate a bioindicator of ecosystem health.',
+        },
+      ],
+    };
+    const contextualLesson = {
+      title: 'Lesson 2: Reading Sources in Context',
+      sections: [
+        {
+          topicSection: 'contextual interpretation historical context situating a source period',
+          learningObjectives: 'Interpret a historical source in its context.',
+        },
+      ],
+    };
+
+    expect(resolveLessonConcepts(bioindicatorLesson, neighboringIndex).conceptRefs).toEqual([]);
+    expect(resolveLessonConcepts(contextualLesson, neighboringIndex).conceptRefs).toEqual([]);
+  });
+
   it('computes a course hit rate', () => {
     const courseMap = {
       lessons: [

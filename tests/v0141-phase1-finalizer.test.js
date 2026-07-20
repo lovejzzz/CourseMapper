@@ -531,6 +531,48 @@ describe('1.16 — prompt artifact labels never become course-map concepts', () 
     expect(repairedText).not.toMatch(/needed for Develop an evidence-backed account/i);
   });
 
+  it('repairs the audited one-word Focus label from the literature lesson identity before compilation', () => {
+    const courseMap = {
+      courseName: 'World Literature',
+      lessons: [
+        {
+          title: 'Lesson 1: Tang Poetry using Li Bai and Du Fu',
+          compilerDerived: ['evaluateDesign', 'presentationFormat', 'technologyNeeded'],
+          sections: [
+            {
+              topicSection: '1.1: Focus',
+              learningGoals: 'Analyze poetic styles',
+              learningObjectives: 'Compare Li Bai and Du Fu.\nSynthesize poetic analysis.',
+              weeklyAssessments: '',
+              asyncActivities: 'Practice: compare Li Bai and Du Fu\nDraft: synthesize poetic analysis',
+              syncActivities: 'Workshop: compare Li Bai and Du Fu',
+              supportingResources: 'Selected poems by Li Bai and Du Fu',
+              evaluateDesign:
+                'Each objective verb (memorize) is exercised by an activity and measured by an assessment.',
+            },
+          ],
+        },
+      ],
+    };
+
+    const repair = repairCourseMapReadiness({ courseMap });
+    const section = repair.courseMap.lessons[0].sections[0];
+
+    expect(repair.changed).toBe(true);
+    expect(section.topicSection).toBe('Tang Poetry using Li Bai and Du Fu');
+    expect(section.weeklyAssessments).toContain('Tang Poetry using Li Bai and Du Fu');
+    expect(section.weeklyAssessments).toMatch(/textual|passage|interpret|reading|evidence/i);
+    expect(section.weeklyAssessments).toMatch(/comparative|compare/i);
+    expect(section.weeklyAssessments).toMatch(/synthesize/i);
+    expect(section.evaluateDesign).not.toBe(
+      'Each objective verb (memorize) is exercised by an activity and measured by an assessment.',
+    );
+    expect(section.evaluateDesign).toBe(
+      'Each objective verb (compare, synthesize) is exercised by an activity and measured by an assessment.',
+    );
+    expect(JSON.stringify(repair.courseMap)).not.toMatch(/\bFocus(?: group| on the Family)?\b/i);
+  });
+
   it('repairs native skeleton Session N labels before Project Management export', () => {
     const courseMap = {
       courseName: 'Project Management',

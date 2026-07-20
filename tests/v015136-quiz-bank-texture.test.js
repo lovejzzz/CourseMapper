@@ -53,14 +53,19 @@ describe('v0.15.136 quiz-bank texture', () => {
     });
     const values = textValues(compiled.quizBank);
     const quizText = values.join('\n');
-    const intendedUses = values.filter((value) => /for Lesson \d+:.+; /.test(value));
+    const intendedUses = compiled.quizBank.quizzes.flatMap((quiz) =>
+      quiz.questions
+        .filter((question) => question.type === 'multiple_choice')
+        .map((question) => question.intendedUse)
+        .filter(Boolean),
+    );
 
     expect(quizText).not.toMatch(/review distractor choices before the next/i);
     expect(intendedUses.length).toBeGreaterThanOrEqual(UX_TOPICS.length);
     expect(intendedUses.some((value) => /compare each distractor/i.test(value))).toBe(true);
     expect(intendedUses.some((value) => /use the options to surface/i.test(value))).toBe(true);
     expect(intendedUses.some((value) => /wrong option misses/i.test(value))).toBe(false);
-    expect(intendedUses.some((value) => /breaks the .* evidence rule/i.test(value))).toBe(true);
+    expect(intendedUses.some((value) => /breaks the evidence rule/i.test(value))).toBe(true);
     expect(intendedUses.some((value) => /practice moment/i.test(value))).toBe(true);
     expect(intendedUses.some((value) => /most tempting option/i.test(value))).toBe(true);
   });

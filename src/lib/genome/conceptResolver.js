@@ -14,6 +14,8 @@
  * See docs/CURRICULUMOS_V1_DESIGN.md §4.
  */
 
+import { isDiscriminativeSurfaceMatch, semanticIdentityTokens } from '../lessonSemanticRelevance';
+
 const STOP_WORDS = new Set([
   'analyze',
   'apply',
@@ -95,23 +97,37 @@ export function buildConceptIndex(kernels = []) {
   return { postings, kernels: byId };
 }
 
-function lessonVocabulary(lesson) {
+function lessonVocabularyText(lesson) {
   const section = lesson?.sections?.[0] || {};
   const topics = (lesson?.sections || [])
     .map((entry) => entry?.topicSection)
     .filter(Boolean)
     .join(' ');
-  const text = [
-    cleanText(lesson?.title).replace(/^lesson\s*\d+\s*[:.\-–—]\s*/i, ''),
-    topics,
-    section.learningObjectives,
-  ]
+  return [cleanText(lesson?.title).replace(/^lesson\s*\d+\s*[:.\-–—]\s*/i, ''), topics, section.learningObjectives]
     .filter(Boolean)
     .join(' ');
-  return tokens(text);
 }
 
-function scoreCandidate(kernel, vocabSet, { level, priorIds, lessonVocabSet = vocabSet }) {
+function lessonVocabulary(lesson) {
+  return tokens(lessonVocabularyText(lesson));
+}
+
+function containsTokenSequence(haystack = [], needle = []) {
+  if (needle.length === 0 || needle.length > haystack.length) return false;
+  return haystack.some((_, start) => needle.every((token, offset) => haystack[start + offset] === token));
+}
+
+function scoreCandidate(
+  kernel,
+  vocabSet,
+  {
+    level,
+    priorIds,
+    lessonVocabSet = vocabSet,
+    semanticLessonVocab = [...lessonVocabSet],
+    semanticLessonVocabSet = lessonVocabSet,
+  },
+) {
   // Iteration-1 refinement: score each surface form (the term and each alias)
   // INDEPENDENTLY and take the best. Scoring the union punished multi-alias
   // kernels — "p-value" matched 1 of 4 union tokens and missed, while a
@@ -136,6 +152,19 @@ function scoreCandidate(kernel, vocabSet, { level, priorIds, lessonVocabSet = vo
     let matched = 0;
     for (const token of surfaceTokens) if (surfaceVocabSet.has(token)) matched += 1;
     if (matched === 0) continue;
+    // Score with the compact resolver vocabulary, but admit with the original
+    // semantic phrase. The scoring vocabulary intentionally drops words such
+    // as "concept"; using it for admission made "indicator species" look like
+    // an exact match for "Species concept". The semantic phrase keeps that
+    // qualifier, so generic partial overlap cannot silently import a neighbor.
+    const semanticSurfaceTokens = [...new Set(semanticIdentityTokens(surface))];
+    const semanticMatchedTokens = semanticSurfaceTokens.filter((token) => semanticLessonVocabSet.has(token));
+    if (
+      !isDiscriminativeSurfaceMatch(semanticSurfaceTokens, semanticMatchedTokens, {
+        exactGenericMatch: containsTokenSequence(semanticLessonVocab, semanticSurfaceTokens),
+      })
+    )
+      continue;
 
     // Coverage: how much of THIS surface form the lesson vocabulary covers.
     const coverage = matched / surfaceTokens.length;
@@ -182,6 +211,8 @@ export function resolveLessonConcepts(lesson, index, options = {}) {
   // Course identity disambiguates parenthetical/kernel qualifiers that do not
   // need repeating in every lesson (for example Interval (music)).
   const lessonVocab = lessonVocabulary(lesson);
+  const semanticLessonVocab = semanticIdentityTokens(lessonVocabularyText(lesson));
+  const semanticLessonVocabSet = new Set(semanticLessonVocab);
   const vocab = [...lessonVocab, ...tokens(context)];
   const vocabSet = new Set(vocab);
   const lessonVocabSet = new Set(lessonVocab);
@@ -196,7 +227,13 @@ export function resolveLessonConcepts(lesson, index, options = {}) {
   for (const id of candidateIds) {
     const kernel = index.kernels.get(id);
     if (!kernel) continue;
-    const score = scoreCandidate(kernel, vocabSet, { level, priorIds, lessonVocabSet });
+    const score = scoreCandidate(kernel, vocabSet, {
+      level,
+      priorIds,
+      lessonVocabSet,
+      semanticLessonVocab,
+      semanticLessonVocabSet,
+    });
     if (score >= SUGGESTED_THRESHOLD) scored.push({ id, kernel, score: Number(score.toFixed(3)) });
   }
   scored.sort((a, b) => b.score - a.score);

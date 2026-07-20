@@ -23,14 +23,30 @@ import { getChunkCount } from './parallelGenerator';
 import { getCustomDeliverable } from './customDeliverableLibrary';
 import { buildObservationProtocol } from './observationProtocols';
 import {
+  compactAssignmentBriefBodyReferences,
+  compactCourseCopyEmbeddedReference,
+  compactCourseCopyFocus,
+  courseCopySurfaceWords,
   examAtomPaddingOptions,
   examFactCopy,
   examUnderstandCorrectText,
   kernelFactInstructorNote,
+  slideAgendaOpening,
+  slideFeedbackFallbackCopy,
+  slideObjectiveEvidence,
+  slideTransitionCopy,
+  studyGuideArtifactConnection,
+  studyGuideCoreQuestion,
   titleSlideNote,
   titleSlideOpening,
+  titleSlideExpectation,
 } from './courseCompilerCopyVariants';
 import { recordLegacyPathHit } from './legacyPathTelemetry';
+import {
+  isLessonTitleEchoSemanticSurface,
+  sanitizeGenomeEnrichmentForLesson,
+  sanitizeLessonTitleEchoEnrichment,
+} from './lessonSemanticRelevance';
 import { buildBayesianFallbackQuizAtoms, hasBayesianDecisionEvidence } from './bayesianQuizFrames';
 import {
   buildMusicIntervalAssignmentOverview,
@@ -5260,9 +5276,9 @@ function buildFeedbackCycle({ title, concepts, artifact, evidencePlan }) {
 
 function buildPrerequisitePlan({ lesson, previous }) {
   const concept = safeLessonPrimaryConcept(lesson);
-  const artifactName = safeLessonArtifact(lesson);
+  const artifactName = compactLessonArtifactReference(lesson);
   const previousConcept = previous ? safeLessonPrimaryConcept(previous) : 'prior course experience';
-  const previousArtifact = previous ? safeLessonArtifact(previous, 'work') : 'prior course work';
+  const previousArtifact = previous ? compactLessonArtifactReference(previous, 'work') : 'prior course work';
   const assumedKnowledge = previous
     ? unique([previousConcept, ...safeLessonConcepts(previous, { limit: 3 }).slice(1, 3)], 3)
     : unique(
@@ -5296,9 +5312,9 @@ function buildPrerequisitePlan({ lesson, previous }) {
 
 function buildLearningTransferPlan({ lesson, previous, next }) {
   const concept = safeLessonPrimaryConcept(lesson);
-  const artifactName = safeLessonArtifact(lesson);
+  const artifactName = compactLessonArtifactReference(lesson);
   const previousConcept = previous ? safeLessonPrimaryConcept(previous) : 'prior source evidence';
-  const nextTarget = next ? safeLessonArtifact(next, 'synthesis') : 'the final course synthesis';
+  const nextTarget = next ? compactLessonArtifactReference(next, 'synthesis') : 'the final course synthesis';
   const nextConcept = next ? safeLessonPrimaryConcept(next) : 'the next course decision';
   return {
     retrievalCue: previous
@@ -5331,9 +5347,9 @@ function buildLearningTransferPlan({ lesson, previous, next }) {
 
 function buildTeachingIntent({ lesson, previous, next }) {
   const concept = safeLessonPrimaryConcept(lesson);
-  const artifactName = safeLessonArtifact(lesson);
+  const artifactName = compactLessonArtifactReference(lesson);
   const previousConcept = previous ? safeLessonPrimaryConcept(previous) : 'prior source evidence';
-  const nextTarget = next ? safeLessonArtifact(next, 'synthesis artifact') : 'the next synthesis artifact';
+  const nextTarget = next ? compactLessonArtifactReference(next, 'synthesis artifact') : 'the next synthesis artifact';
   return {
     version: 1,
     teachingGoal: `${stripLessonPrefix(lesson.title)} moves students from ${previousConcept} into evidence-backed ${concept} decisions for ${artifactName}.`,
@@ -5392,6 +5408,50 @@ function lessonFocusFallback(lesson = {}) {
   return `${week} focus`;
 }
 
+function compactLessonFocusReference(lesson = {}) {
+  return compactCourseCopyFocus(lessonFocusFallback(lesson));
+}
+
+function compactLessonEmbeddedReference(value, lesson = {}) {
+  return compactCourseCopyEmbeddedReference(value, lessonFocusFallback(lesson));
+}
+
+// A small model sometimes republishes the complete lesson title as a
+// glossary term (for example, "Tang Poetry using Li Bai and Du Fu"). That is
+// semantically on-topic, so the admission gate correctly keeps the kernel,
+// but it is not a reusable disciplinary concept: quiz/FAQ templates repeat it
+// in every stem, answer, rationale, tag, and cross-reference. Preserve short
+// legitimate title concepts such as "Close Reading" and screen only long
+// title echoes or four-word title fragments at teaching-surface projection.
+function isLessonTitleEchoConcept(value, lesson = {}) {
+  return isLessonTitleEchoSemanticSurface(value, lesson);
+}
+
+function lessonTeachingKeyTerms(lesson = {}) {
+  return (lesson?.enrichment?.keyTerms || []).filter(
+    (entry) => cleanText(entry?.term) && !isLessonTitleEchoConcept(entry.term, lesson),
+  );
+}
+
+// Repeated teaching prose should name the artifact, not recite a long lesson
+// title every time it mentions that artifact. Keep the canonical artifact on
+// the blueprint/export heading, but collapse an exact long-title prefix for
+// sentence-level references: "Tang Poetry using Li Bai and Du Fu
+// interpretive claim" becomes "interpretive claim". Short disciplinary
+// labels such as "Design research memo" remain intact.
+function compactLessonArtifactReference(lesson = {}, fallbackKind = 'artifact') {
+  const artifact = safeLessonArtifact(lesson, fallbackKind);
+  const focus = lessonFocusFallback(lesson);
+  if (courseCopySurfaceWords(focus).length < 4) return artifact;
+  const remainder = stripTerminalPunctuation(
+    artifact.replace(new RegExp(`^${escapeRegExpCompiler(focus)}(?:\\s*[:–—-]\\s*|\\s+)`, 'i'), ''),
+  );
+  if (!remainder || remainder.toLowerCase() === artifact.toLowerCase() || genericLessonPhrase(remainder)) {
+    return artifact;
+  }
+  return remainder;
+}
+
 function safeLessonConcepts(lesson = {}, { limit = 8 } = {}) {
   // Admitted lesson-kernel terms are the most precise concept source the
   // compiler owns. Prefer them to broad map labels such as "Introduction to
@@ -5399,7 +5459,7 @@ function safeLessonConcepts(lesson = {}, { limit = 8 } = {}) {
   // verified disciplinary content instead of turning a lesson title into a
   // pseudo-concept.
   const enrichedConcepts = normalizeConceptCandidates(
-    (lesson?.enrichment?.keyTerms || [])
+    lessonTeachingKeyTerms(lesson)
       .filter((entry) => cleanText(entry?.term) && cleanText(entry?.definition))
       .map((entry) => entry.term),
     { title: lesson?.title, limit },
@@ -12630,6 +12690,7 @@ const LESSON_STORAGE_KEYS = new Set([
   'lessonNumber',
   'enrichment',
   'title',
+  'semanticIdentityTerms',
   'outcomes',
   'keyConcepts',
   'readings',
@@ -13426,6 +13487,7 @@ function extractLessonBlueprint(
   const objectiveText = extractColumn(lesson, 'learningObjectives');
   const goalText = extractColumn(lesson, 'learningGoals');
   const topicText = extractColumn(lesson, 'topicSection');
+  const readingText = extractColumn(lesson, 'readings');
   const resourceText = extractColumn(lesson, 'supportingResources');
   const asyncActivityText = extractColumn(lesson, 'asyncActivities');
   const syncActivityText = extractColumn(lesson, 'syncActivities');
@@ -13435,6 +13497,7 @@ function extractLessonBlueprint(
   const hasGoals = goalEntries.length > 0;
   const objectives = unique(objectiveEntries.length > 0 ? objectiveEntries : goalEntries, 5);
   const topicEntries = meaningfulEntries(splitList(topicText));
+  const readingEntries = meaningfulEntries(splitList(readingText));
   const hasTopics = topicEntries.length > 0;
   const topics = normalizeConceptCandidates(topicEntries.length > 0 ? topicEntries : goalEntries, { title, limit: 8 });
   const topicTitleFallback = titleFallbackFromTopics(
@@ -13715,6 +13778,13 @@ function extractLessonBlueprint(
     lessonIndex: originalIndex,
     lessonNumber,
     title,
+    // Immutable course-map identity for semantic admission after compact
+    // storage. Export-ready `readings` also contains retrieved resources, so
+    // it cannot safely serve as the admission oracle on restore.
+    semanticIdentityTerms: unique(
+      [rawTitleConcept, ...topicEntries, ...objectives, ...readingEntries, ...registryReadingTitles],
+      16,
+    ),
     outcomes,
     keyConcepts,
     readings,
@@ -14347,7 +14417,7 @@ function buildCriterionEvidenceMap(lesson, criteria, validityEvidence) {
   // is scoreable; adverb gradients ("thorough" vs "adequate") are not.
   // Same screen as every other keyTerm consumer: internal deliverable labels
   // planted as terms ("Study Guides") must never become rubric language.
-  const safeTerms = (lesson.enrichment?.keyTerms || []).filter(
+  const safeTerms = lessonTeachingKeyTerms(lesson).filter(
     (term) =>
       cleanText(term?.term) &&
       !PROMPT_ARTIFACT_DISPLAY_RE.test(cleanText(term.term)) &&
@@ -14881,7 +14951,7 @@ function buildSpeakingAssessmentCriteria(lesson, assessmentTitle) {
   const concept = lesson.keyConcepts?.[0] || stripLessonPrefix(lesson.title);
   const terms = unique(
     [
-      ...((lesson.enrichment?.keyTerms || []).map((term) => cleanText(term?.term)) || []),
+      ...lessonTeachingKeyTerms(lesson).map((term) => cleanText(term?.term)),
       ...(lesson.keyConcepts || []).map((term) => cleanText(term)),
     ].filter(Boolean),
     3,
@@ -15435,6 +15505,7 @@ export function buildCourseBlueprint(courseMap, options = {}) {
   lessons = attachMasteryEvidenceToLessons(lessons, assessments);
   lessons = attachEvidenceResponseToLessons(lessons);
   lessons = attachObjectiveEvidenceToLessons(lessons, assessments);
+  const compilerSafeNormalizedEnrichment = disciplineSafeBlueprintEnrichment(normalizedEnrichment, lessons);
   const masteryEvidenceMap = buildMasteryEvidenceMap(lessons);
   const evidenceResponseMap = buildEvidenceResponseMap(lessons);
   const objectiveEvidenceMap = buildObjectiveEvidenceMap({ lessons, assessments });
@@ -15493,7 +15564,7 @@ export function buildCourseBlueprint(courseMap, options = {}) {
     lessons,
     assessments,
     courseArc,
-    enrichment: normalizedEnrichment,
+    enrichment: compilerSafeNormalizedEnrichment,
     learnerContextProfile,
     courseModalityProfile,
     sourceRiskRegister,
@@ -15586,7 +15657,7 @@ export function buildCourseBlueprint(courseMap, options = {}) {
   }
   const enrichedBlueprint = {
     ...blueprint,
-    enrichment: normalizedEnrichment,
+    enrichment: compilerSafeNormalizedEnrichment,
   };
   const blueprintWithPath = {
     ...enrichedBlueprint,
@@ -16608,7 +16679,7 @@ function compileSyllabus(blueprint) {
       weeklySchedule: blueprint.lessons.map((lesson) => {
         // v0.15.187 atom routing: the kernel's real disciplinary terms become
         // the week's key vocabulary — the same terms the study guide teaches.
-        const weekTerms = (lesson.enrichment?.keyTerms || [])
+        const weekTerms = lessonTeachingKeyTerms(lesson)
           .map((term) => cleanText(term?.term))
           .filter(Boolean)
           .slice(0, 4);
@@ -16673,7 +16744,7 @@ function buildSpeakingPrompts({ lesson, assessment, lens }) {
   const concept = lesson.keyConcepts?.[0] || stripLessonPrefix(lesson.title);
   const terms = unique(
     [
-      ...((lesson.enrichment?.keyTerms || []).map((term) => cleanText(term?.term)) || []),
+      ...lessonTeachingKeyTerms(lesson).map((term) => cleanText(term?.term)),
       ...(lesson.keyConcepts || []).map((term) => cleanText(term)),
     ].filter(Boolean),
     5,
@@ -16726,6 +16797,12 @@ function assessmentNeedsStandaloneAssignmentBrief(assessment = {}, _index = 0, a
   return !assessmentHasSubstantiveSibling(assessment, assessments);
 }
 
+// Assignment headings and the Related Lessons line are identity surfaces: they
+// keep the exact assessment and lesson titles so a reader can trace the brief
+// back to the Course Map. Body copy is a different surface. Repeating a long
+// title in instructions, criteria, milestone copy, and self-assessment prose
+// makes a source-grounded brief read like a template (and can trip the rendered
+// eight-word repetition audit). Compact only those student-facing body fields.
 function compileAssignments(blueprint) {
   const lens = blueprintLens(blueprint);
   const preference = featurePreference(blueprint, 'assignments');
@@ -17136,7 +17213,13 @@ function compileAssignments(blueprint) {
       };
       // v0.16.1: complete the twin rename — the lab brief must not carry
       // sibling proof-artifact residue from lesson-level template text.
-      return isCodeLab ? relabelLabTwinDeliverable(brief, lesson, assessment) : brief;
+      const labeledBrief = isCodeLab ? relabelLabTwinDeliverable(brief, lesson, assessment) : brief;
+      return compactAssignmentBriefBodyReferences({
+        brief: labeledBrief,
+        lesson,
+        fullFocus: lessonFocusFallback(lesson),
+        fallbackArtifact: compactLessonArtifactReference(lesson, 'assignment'),
+      });
     }),
   };
 }
@@ -17714,7 +17797,9 @@ function disciplineSafeAssessmentRegistry(registry = null, lessons = []) {
 // the verified glossary/facts, and lets downstream surfaces compile from the
 // safe payload. This is intentionally narrower than a generic model rewrite.
 function enforceDisciplineSafeEnrichment(lesson = {}, enrichment = null) {
-  return enforceMusicIntervalEnrichment(lesson, enrichment);
+  const titleSafe = sanitizeLessonTitleEchoEnrichment(lesson, enrichment).enrichment;
+  const semanticSafe = sanitizeGenomeEnrichmentForLesson(lesson, titleSafe).enrichment;
+  return enforceMusicIntervalEnrichment(lesson, semanticSafe);
 }
 
 function disciplineSafeBlueprintEnrichment(enrichment = null, lessons = []) {
@@ -17766,7 +17851,7 @@ function lessonNeedsSourceBoundRecovery(lesson = {}, blueprint = {}) {
   // sent the missing lesson through generic professional-decision templates.
   if (missingLessons.length > 0) return missingLessons.includes(Number(lesson.lessonNumber));
   const admittedTerms = Array.isArray(lesson?.enrichment?.keyTerms)
-    ? lesson.enrichment.keyTerms.filter(
+    ? lessonTeachingKeyTerms(lesson).filter(
         (term) =>
           cleanText(term?.term) &&
           cleanText(term?.definition) &&
@@ -17921,8 +18006,8 @@ function applyAdmittedLanguagePairToSlides(slides = [], lesson = {}) {
 }
 
 function enrichedKeyTermsForLesson(lesson, { fallback }) {
-  const enriched = lesson?.enrichment?.keyTerms;
-  if (!Array.isArray(enriched) || enriched.length === 0) return fallback();
+  const enriched = lessonTeachingKeyTerms(lesson);
+  if (enriched.length === 0) return fallback();
   const safeEnriched = enriched.filter((term) => {
     const display = displayKeyTermName(term);
     return display && !isUnsafeLessonConceptPhrase(display) && !isUnsafeLessonArtifactPhrase(display);
@@ -18096,7 +18181,7 @@ function compileStudyGuides(blueprint) {
         lessonNeedsSourceBoundRecovery(lesson, blueprint) && !isDataScience && musicTheoryGuides.length === 0;
       const dataScienceEvidenceCue =
         'validation metrics, model-performance evidence, data-quality checks, threshold tradeoffs, and fairness or limitation evidence';
-      const enrichedMisconceptions = (lesson.enrichment?.keyTerms || [])
+      const enrichedMisconceptions = lessonTeachingKeyTerms(lesson)
         .filter((term) => !isUnsafeLessonConceptPhrase(displayKeyTermName(term)))
         .filter((term) => term.misconception)
         .slice(0, 3)
@@ -18214,7 +18299,11 @@ function compileStudyGuides(blueprint) {
           // Layer 2: analogical bridges lead — structural transfer is the
           // highest-value connection a study guide can name.
           ...(Array.isArray(lesson.enrichment?.structuralConnections) ? lesson.enrichment.structuralConnections : []),
-          `${lesson.title} connects to the assessment artifact: ${studyArtifact}.`,
+          studyGuideArtifactConnection({
+            lessonNumber: lesson.lessonNumber,
+            lessonTitle: lesson.title,
+            studyArtifact,
+          }),
           lesson.prerequisitePlan?.prerequisiteEvidence ||
             `Prerequisite readiness should be checked before students prepare ${studyArtifact}.`,
           assessment.anchorExampleSet?.studentFacingUse ||
@@ -18267,7 +18356,13 @@ function compileStudyGuides(blueprint) {
               ]
             : [
                 {
-                  question: `How would you explain the central idea of ${stripLessonPrefix(lesson.title)} for ${specificity.week} using ${lens.evidenceNoun} from ${lessonSourceCue}?`,
+                  question: studyGuideCoreQuestion({
+                    lessonNumber: lesson.lessonNumber,
+                    lessonFocus: stripLessonPrefix(lesson.title),
+                    week: specificity.week,
+                    evidenceNoun: lens.evidenceNoun,
+                    sourceCue: lessonSourceCue,
+                  }),
                   bloomsLevel: 'Analyze',
                   hint: lessonVariant(lesson, [
                     `Name ${phrase.context}, then connect one source detail to the decision it changes.`,
@@ -18416,7 +18511,7 @@ function quizTags(lesson, type, bloom, use) {
   return unique(
     [
       'quiz',
-      ...normalizeConceptCandidates(lesson.keyConcepts || [], { title: lesson.title, limit: 4 }),
+      ...safeLessonConcepts(lesson, { limit: 4 }),
       // v0.12.1: tags print in student-facing documents — never the raw
       // enum id ("multiple_choice").
       String(type || '').replace(/[_-]+/g, ' '),
@@ -18631,7 +18726,7 @@ function quizCorrectExplanation({ answer, concept, artifact, objective, lesson, 
   // is the subject, the frame is connective. Deliberately narrow: attaching
   // unrelated facts to frame stems is the mismatch defect the July 1 field
   // audit flagged, so anything but an exact concept match keeps the frame.
-  const matchedTerm = (lesson?.enrichment?.keyTerms || []).find(
+  const matchedTerm = lessonTeachingKeyTerms(lesson).find(
     (term) =>
       cleanText(term?.term) &&
       cleanText(term?.definition) &&
@@ -18676,7 +18771,7 @@ function quizCorrectExplanation({ answer, concept, artifact, objective, lesson, 
 function buildMultipleChoiceOptions({ lesson, index, concept, artifact, use, correct }) {
   const correctLetter = correctLetterForQuestion(lesson, index);
   const sourceCue = humanizeClassroomSourceCue(lesson?.evidencePlan?.sourceCue, 'the assigned course materials');
-  const lessonFocus = stripLessonPrefix(lesson?.title || 'this lesson');
+  const lessonFocus = compactLessonFocusReference(lesson);
   // Rotating pools of plausible-but-flawed moves, phrased in parallel with
   // typical correct options so the right answer is not the stylistic odd one
   // out. v0.14.1: three alternate pools rotate by lesson index so adjacent
@@ -18747,7 +18842,7 @@ function kernelMisconceptionDistractor(lesson, concept) {
   // sits inside "Evidence triangulation and corroboration" (the concept). Safe
   // against the unrelated-atom mismatch defect because it requires the shorter
   // phrase's significant tokens to be a subset of the longer.
-  const term = (lesson?.enrichment?.keyTerms || []).find((entry) => {
+  const term = lessonTeachingKeyTerms(lesson).find((entry) => {
     if (!cleanText(entry?.term) || !cleanText(entry?.misconception)) return false;
     const termNorm = cleanText(entry.term).toLowerCase();
     if (termNorm === conceptNorm) return true;
@@ -18822,7 +18917,7 @@ function buildMultipleChoiceQuestion({
       options,
       answer,
       distractorRationale: humanizeQuizText(
-        `${sentenceCase(use)} distractors test evidence use, example fit, recommendation timing, and reasoning quality for ${specificity.week} ${stripLessonPrefix(lesson.title)} question ${index + 1} on ${concept}.`,
+        `${sentenceCase(use)} distractors test evidence use, example fit, recommendation timing, and reasoning quality for ${specificity.week} ${compactLessonFocusReference(lesson)} question ${index + 1} on ${concept}.`,
       ),
       explanation: humanizeQuizText(quizCorrectExplanation({ answer, concept, artifact, objective, lesson, index })),
       tags: quizTags(lesson, 'multiple_choice', bloom, use),
@@ -18837,25 +18932,28 @@ function buildMultipleChoiceQuestion({
 
 function quizIntendedUse({ lesson, index = 0, use, artifact }) {
   const lessonNumber = Math.max(1, Number(lesson?.lessonNumber || 1));
-  const lessonFocus = stripLessonPrefix(lesson?.title || 'this lesson');
+  const lessonFocus = compactLessonFocusReference(lesson);
   const variants = [
-    `${use} for ${lesson.title}; compare each distractor with the ${artifact} evidence before review.`,
-    `${use} for ${lesson.title}; use the options to surface one ${lessonFocus} misconception at a time.`,
-    `${use} for ${lesson.title}; have students name the distractor that breaks the ${lessonFocus} evidence rule.`,
-    `${use} for ${lesson.title}; save this item for the practice moment where ${artifact} decisions need evidence.`,
-    `${use} for ${lesson.title}; ask pairs to revise one option until the ${lessonFocus} evidence is visible.`,
-    `${use} for ${lesson.title}; turn the most tempting option into a quick note about missing evidence.`,
+    `${use} for ${lessonFocus}; compare each distractor with the ${artifact} evidence before review.`,
+    `${use} for ${lessonFocus}; use the options to surface one misconception at a time.`,
+    `${use} for ${lessonFocus}; have students name the distractor that breaks the evidence rule.`,
+    `${use} for ${lessonFocus}; save this item for the practice moment where ${artifact} needs evidence.`,
+    `${use} for ${lessonFocus}; ask pairs to revise one option until the evidence is visible.`,
+    `${use} for ${lessonFocus}; turn the most tempting option into a quick note about missing evidence.`,
   ];
   return variants[(lessonNumber - 1 + index) % variants.length];
 }
 
 function buildShortAnswerQuestion({ lesson, index, bloom, objective, concept, lens, plan }) {
-  const artifact = stripTerminalPunctuation(lesson.studentArtifact);
-  const sourceCue = lesson.throughlineCase?.evidencePacket || `${lesson.title} evidence`;
-  const lessonFocus = stripLessonPrefix(lesson.title);
+  const artifact = compactLessonArtifactReference(lesson);
+  const lessonFocus = compactLessonFocusReference(lesson);
+  const sourceCue = compactLessonEmbeddedReference(
+    lesson.throughlineCase?.evidencePacket || `${lessonFocus} evidence`,
+    lesson,
+  );
   const answerGuidance = lessonVariant(lesson, [
-    `${concept} should guide the evidence students select and the decision they justify in ${artifact}. A strong ${lesson.title} answer names one inspectable ${sourceCue} clue, explains why it fits, and states how the evidence changes the next step.`,
-    `A complete ${lesson.title} response uses ${concept} to choose evidence from ${sourceCue}, explains the evidence boundary, and names the decision it supports in ${artifact}.`,
+    `${concept} should guide the evidence students select and the decision they justify in ${artifact}. A strong ${lessonFocus} answer names one inspectable ${sourceCue} clue, explains why it fits, and states how the evidence changes the next step.`,
+    `A complete ${lessonFocus} response uses ${concept} to choose evidence from ${sourceCue}, explains the evidence boundary, and names the decision it supports in ${artifact}.`,
     `Strong work connects ${concept} to a source detail from ${sourceCue}, then explains what the detail proves, limits, or changes for ${artifact}.`,
     `The response should treat ${concept} as a reasoning move: select evidence from ${sourceCue}, explain its fit, and state the implication for ${artifact}.`,
   ]);
@@ -18880,7 +18978,7 @@ function buildShortAnswerQuestion({ lesson, index, bloom, objective, concept, le
       estimatedMinutes: 5,
       points: 4,
       objectiveAligned: objective,
-      intendedUse: `Formative written check after ${lesson.title}; use responses to identify review needs before ${artifact}.`,
+      intendedUse: `Formative written check after ${lessonFocus}; use responses to identify review needs before ${artifact}.`,
       question: `In 2-3 sentences, explain which course concept or method should shape ${artifact}. Name that concept or method, cite one evidence detail from ${sourceCue} to support your claim, then state one limitation or next piece of evidence.`,
       answer: answerGuidance,
       sampleAnswer: `For ${lessonFocus}, I would select ${concept} because one exact source detail from ${sourceCue} supports the change I propose for ${artifact}. In ${lessonFocus}, that detail supports the ${lens.decisionNoun}, but it does not establish a broader conclusion; I would inspect one additional source before extending the claim.`,
@@ -18893,10 +18991,13 @@ function buildShortAnswerQuestion({ lesson, index, bloom, objective, concept, le
 }
 
 function buildEssayQuestion({ lesson, index, bloom, objective, concept, lens, plan }) {
-  const artifact = stripTerminalPunctuation(lesson.studentArtifact);
-  const scenario =
+  const artifact = compactLessonArtifactReference(lesson);
+  const lessonFocus = compactLessonFocusReference(lesson);
+  const scenario = compactLessonEmbeddedReference(
     lesson.throughlineCase?.lessonCaseName ||
-    [lens.exampleNoun, concept].filter(Boolean).map(stripTerminalPunctuation).join(' focused on ');
+      [lens.exampleNoun, concept].filter(Boolean).map(stripTerminalPunctuation).join(' focused on '),
+    lesson,
+  );
   const clientCue = lesson.throughlineCase?.clientName || 'the course audience';
   const promptLead = lessonVariant(lesson, [
     `${bloom === 'Create' ? 'Create' : 'Evaluate'} a defensible next step for ${artifact} in the ${scenario} for ${clientCue}.`,
@@ -18919,7 +19020,7 @@ function buildEssayQuestion({ lesson, index, bloom, objective, concept, lens, pl
       estimatedMinutes: 12,
       points: 8,
       objectiveAligned: objective,
-      intendedUse: `Summative or exam-prep synthesis for ${lesson.title}; score with the rubric hints before students revise related work.`,
+      intendedUse: `Summative or exam-prep synthesis for ${lessonFocus}; score with the rubric hints before students revise related work.`,
       question: `${promptLead} In 2-3 organized paragraphs, use ${concept}, cite lesson evidence, and explain one limitation.`,
       rubricHints: lessonVariant(lesson, [
         `Strong responses define ${concept}, use at least two pieces of ${lens.evidenceNoun}, justify a ${lens.decisionNoun}, and acknowledge a limitation or risk.`,
@@ -18931,14 +19032,14 @@ function buildEssayQuestion({ lesson, index, bloom, objective, concept, lens, pl
         `Look for synthesis across ${lens.evidenceNoun}: the answer should weigh evidence, defend the decision, and identify what needs confirmation.`,
       ]),
       sampleAnswer: lessonVariant(lesson, [
-        `A strong response for ${lesson.title} would identify how ${concept} changes the artifact, cite evidence from ${lesson.throughlineCase?.evidencePacket || 'the lesson activity or readings'}, and propose a next step that is feasible for ${artifact}. It would also name a ${lesson.title} limitation so the recommendation is not overstated.`,
-        `For ${lesson.title}, a strong answer explains what ${concept} changes, anchors the recommendation in ${lesson.throughlineCase?.evidencePacket || 'the lesson activity or readings'}, and names the ${artifact} move that should happen next. It also states what the evidence cannot settle.`,
-        `A high-quality ${lesson.title} response uses ${concept} to choose an action for ${artifact}, points to the source detail behind that action, and marks one risk or missing fact before recommending next work.`,
+        `A strong response for ${lessonFocus} would identify how ${concept} changes the artifact, cite evidence from ${compactLessonEmbeddedReference(lesson.throughlineCase?.evidencePacket || 'the lesson activity or readings', lesson)}, and propose a next step that is feasible for ${artifact}. It would also name a ${lessonFocus} limitation so the recommendation is not overstated.`,
+        `For ${lessonFocus}, a strong answer explains what ${concept} changes, anchors the recommendation in ${compactLessonEmbeddedReference(lesson.throughlineCase?.evidencePacket || 'the lesson activity or readings', lesson)}, and names the ${artifact} move that should happen next. It also states what the evidence cannot settle.`,
+        `A high-quality ${lessonFocus} response uses ${concept} to choose an action for ${artifact}, points to the source detail behind that action, and marks one risk or missing fact before recommending next work.`,
         `The strongest answer ties ${concept} to the ${artifact} recommendation, shows which evidence made the choice defensible, and identifies one boundary that keeps the recommendation honest.`,
       ]),
       explanation,
       scoringGuidance: lessonVariant(lesson, [
-        `Full credit for ${lesson.title} requires concept accuracy, evidence use, a justified next step, and a limitation. Partial credit is appropriate when the response has ${concept} evidence but weak decision logic. Flag responses that ignore ${artifact}.`,
+        `Full credit for ${lessonFocus} requires concept accuracy, evidence use, a justified next step, and a limitation. Partial credit is appropriate when the response has ${concept} evidence but weak decision logic. Flag responses that ignore ${artifact}.`,
         `Award full credit when the essay uses ${concept} correctly, names evidence, explains the next step, and keeps the claim bounded. Evidence without decision logic earns partial credit.`,
         `Score the response for accurate ${concept} use, source-grounded reasoning, a feasible action, and a stated limit; work that never addresses ${artifact} should be revised.`,
         `A full-credit answer makes the ${concept} decision inspectable: evidence, action, consequence, and limitation all appear in the reasoning.`,
@@ -19084,7 +19185,7 @@ export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
   const concept = primaryConceptForLesson(lesson);
   const secondary =
     normalizeConceptCandidates((lesson.keyConcepts || []).slice(1), { title: lesson.title, limit: 1 })[0] || concept;
-  const artifact = stripTerminalPunctuation(lesson.studentArtifact);
+  const artifact = compactLessonArtifactReference(lesson);
   const targetCount = Math.max(5, Math.min(7, Number(options.questionsPerLesson) || 6));
   const assessment =
     options.assessment ||
@@ -19100,11 +19201,13 @@ export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
   // frames ("Which instructor question…", "Which feedback move…") shipped
   // verbatim whenever enrichment did not overlay those slots.
   const evidenceCue = humanizeClassroomSourceCue(lesson.evidencePlan?.sourceCue, 'the assigned course materials');
-  const lessonFocus = stripLessonPrefix(lesson.title);
+  const lessonFocus = compactLessonFocusReference(lesson);
   const decisionNoun = stripTerminalPunctuation(cleanText(lens.decisionNoun || 'decision'));
-  const quizDecision = lessonFocus.toLowerCase().includes(decisionNoun.toLowerCase())
-    ? lessonFocus
-    : `${lessonFocus} ${decisionNoun}`;
+  const quizArtifact =
+    lessonArtifactGenre(lesson) === 'autograded-quiz' || promptLabeledArtifactKind(artifact) ? lessonFocus : artifact;
+  const quizDecision = quizArtifact.toLowerCase().includes(decisionNoun.toLowerCase())
+    ? quizArtifact
+    : `${quizArtifact} ${decisionNoun}`;
   const quizPlan = buildQuizQuestionPlan({ lesson, assessment, targetCount: 6 });
   const hasCompleteAuthoredMc = (lesson?.enrichment?.quizItems || []).some(
     (item) => item?.extension !== true && enrichedItemIsCompleteMC(item),
@@ -19541,12 +19644,12 @@ function examCoveredLessons(blueprint, assessment) {
 // the exam item compares the two AUTHORED definitions and the sample answer
 // quotes them plus an anchor fact, composeScenarioAnswer-style.
 function examLessonTerm(lesson) {
-  return (lesson?.enrichment?.keyTerms || []).find((term) => cleanText(term?.term) && cleanText(term?.definition));
+  return lessonTeachingKeyTerms(lesson).find((term) => cleanText(term?.term) && cleanText(term?.definition));
 }
 
 function examLessonTerms(lesson) {
   const seen = new Set();
-  return (lesson?.enrichment?.keyTerms || []).filter((term) => {
+  return lessonTeachingKeyTerms(lesson).filter((term) => {
     const key = cleanText(term?.term).toLowerCase();
     if (!key || !cleanText(term?.definition) || seen.has(key)) return false;
     seen.add(key);
@@ -19628,7 +19731,7 @@ function buildExamShortAnswerItem({ blueprint, assessment, covered, lens, examSl
   );
   const grounded = Boolean(distinctConcepts && (compositeGrounded || (!usesCompositePair && termA && termB)));
   const anchorFact = examLessonFact(last) || examLessonFact(first);
-  const firstTitle = stripLessonPrefix(first.title);
+  const firstTitle = compactLessonFocusReference(first);
   const normalizedPairTitle = cleanText(firstTitle).toLowerCase();
   const titleIsConceptPair = [
     `${conceptA} and ${conceptB}`,
@@ -19711,13 +19814,13 @@ function buildExamShortAnswerItem({ blueprint, assessment, covered, lens, examSl
 function buildExamEssayItem({ blueprint, assessment, covered, lens, examSlug, ordinal }) {
   const last = covered[covered.length - 1];
   const singleLesson = covered.length === 1;
-  const concept = last.keyConcepts?.[0] || stripLessonPrefix(last.title);
+  const concept = safeLessonPrimaryConcept(last);
   const lessonConcepts = safeLessonConcepts(last, { limit: 4 });
   const compositePair = splitCompositeExamConcept(lessonConcepts[0] || concept);
   const exampleConcepts = unique([...compositePair, ...lessonConcepts], 2);
   const span = singleLesson
-    ? stripLessonPrefix(last.title)
-    : `${stripLessonPrefix(covered[0].title)} through ${stripLessonPrefix(last.title)}`;
+    ? compactLessonFocusReference(last)
+    : `${compactLessonFocusReference(covered[0])} through ${compactLessonFocusReference(last)}`;
   const decisionFocus = /\bdecision$/i.test(cleanText(lens.decisionNoun))
     ? cleanText(lens.decisionNoun).replace(/\bdecision$/i, 'decision-making')
     : cleanText(lens.decisionNoun);
@@ -19849,7 +19952,9 @@ function examLessonAtomStatement(lesson) {
 // (true statements about the WRONG concept), rotated by covered position so
 // adjacent items never share a draw.
 function examAtomDistractors({ lesson, covered, coveredIndex }) {
-  const own = (lesson?.enrichment?.keyTerms || []).map((term) => examMisconceptionClaim(term)).filter(Boolean);
+  const own = lessonTeachingKeyTerms(lesson)
+    .map((term) => examMisconceptionClaim(term))
+    .filter(Boolean);
   const rest = covered.filter((candidate) => candidate !== lesson);
   const others = [];
   for (let offset = 0; offset < rest.length; offset += 1) {
@@ -19892,7 +19997,7 @@ function buildExamAtomOptions({ lesson, index, correct, distractors, concept, le
 function buildExamDefinitionItem({ lesson, covered, coveredIndex, index, objective, assessment, plan }) {
   const term = examLessonTerm(lesson);
   if (!term) return null;
-  const lessonFocus = stripLessonPrefix(lesson.title);
+  const lessonFocus = compactLessonFocusReference(lesson);
   const concept = cleanText(term.term);
   const correct = `${stripTerminalPunctuation(cleanText(term.definition))}.`;
   const distractors = examAtomDistractors({ lesson, covered, coveredIndex });
@@ -19926,15 +20031,17 @@ function buildExamDefinitionItem({ lesson, covered, coveredIndex, index, objecti
 function buildExamFactItem({ lesson, covered, coveredIndex, index, objective, assessment, plan }) {
   const fact = examLessonFact(lesson);
   if (!fact) return null;
-  const lessonFocus = stripLessonPrefix(lesson.title);
+  const lessonFocus = compactLessonFocusReference(lesson);
   const concept = primaryConceptForLesson(lesson);
   const correct = `${stripTerminalPunctuation(fact)}.`;
-  const ownClaims = (lesson?.enrichment?.keyTerms || []).map((term) => examMisconceptionClaim(term)).filter(Boolean);
+  const ownClaims = lessonTeachingKeyTerms(lesson)
+    .map((term) => examMisconceptionClaim(term))
+    .filter(Boolean);
   const rest = covered.filter((candidate) => candidate !== lesson);
   const otherClaims = [];
   for (let offset = 0; offset < rest.length; offset += 1) {
     const source = rest[(coveredIndex + offset) % rest.length];
-    for (const entry of source?.enrichment?.keyTerms || []) {
+    for (const entry of lessonTeachingKeyTerms(source)) {
       const claim = examMisconceptionClaim(entry);
       if (claim) {
         otherClaims.push(claim);
@@ -19988,7 +20095,7 @@ function rotateAdmittedAssessmentKnowledge(lesson, offset = 0) {
     ...lesson,
     enrichment: {
       ...lesson?.enrichment,
-      keyTerms: rotate(lesson?.enrichment?.keyTerms || []),
+      keyTerms: rotate(lessonTeachingKeyTerms(lesson)),
       kernel: {
         ...lesson?.enrichment?.kernel,
         facts: rotate(lesson?.enrichment?.kernel?.facts || []),
@@ -20142,12 +20249,12 @@ function buildAdmittedKernelAssessmentFillers({ lesson, blueprint, quizPlan, ass
 // covered concept.
 function buildExamMisconceptionItem({ lesson, covered, coveredIndex, index, objective, assessment, plan }) {
   const definitionTerm = examLessonTerm(lesson);
-  const candidates = (lesson?.enrichment?.keyTerms || []).filter(
+  const candidates = lessonTeachingKeyTerms(lesson).filter(
     (entry) => cleanText(entry?.term) && examMisconceptionClaim(entry),
   );
   const term = candidates.find((entry) => entry !== definitionTerm) || candidates[0];
   if (!term) return null;
-  const lessonFocus = stripLessonPrefix(lesson.title);
+  const lessonFocus = compactLessonFocusReference(lesson);
   const concept = cleanText(term.term);
   const claim = examMisconceptionClaim(term);
   const correctiveSource = cleanText(term.correction || term.corrective);
@@ -20158,7 +20265,7 @@ function buildExamMisconceptionItem({ lesson, covered, coveredIndex, index, obje
   const otherClaims = [];
   for (let offset = 0; offset < rest.length; offset += 1) {
     const source = rest[(coveredIndex + offset) % rest.length];
-    for (const entry of source?.enrichment?.keyTerms || []) {
+    for (const entry of lessonTeachingKeyTerms(source)) {
       const otherClaim = examMisconceptionClaim(entry);
       if (otherClaim && otherClaim !== claim) {
         otherClaims.push(otherClaim);
@@ -20185,7 +20292,7 @@ function buildExamMisconceptionItem({ lesson, covered, coveredIndex, index, obje
       points: 2,
       objectiveAligned: objective,
       intendedUse: `Summative misconception check on ${assessment.title}; students pick the corrective over the documented wrong turn.`,
-      question: `A classmate preparing for ${assessment.title} claims: “${stripTerminalPunctuation(claim)}.” Which response best addresses this claim about ${concept} using the course evidence?`,
+      question: `A classmate preparing for ${stripTerminalPunctuation(assessment.title)} claims: “${stripTerminalPunctuation(claim)}.” Which response best addresses this claim about ${concept} using the course evidence?`,
       options,
       answer,
       distractorRationale: `The lead distractor endorses ${concept}'s documented misconception; the rest are claims about other covered concepts that never address it.`,
@@ -20214,7 +20321,7 @@ function buildRegistryExamEntry(blueprint, assessment, examOrdinal) {
     const secondary =
       normalizeConceptCandidates((lesson.keyConcepts || []).slice(1), { title: lesson.title, limit: 1 })[0] || concept;
     const artifact = stripTerminalPunctuation(lesson.studentArtifact);
-    const lessonFocus = stripLessonPrefix(lesson.title);
+    const lessonFocus = compactLessonFocusReference(lesson);
     const sourceCue = lesson.evidencePlan?.sourceCue || 'the assigned course materials';
     const plan = (questionIndex, bloom, difficulty, use) => ({
       source: 'source-grounded-quiz-plan',
@@ -20734,7 +20841,7 @@ function buildExamDayStudyGuide(blueprint, lesson) {
   const { examTitle, covered, coveredSpan } = examDayContext(blueprint, lesson);
   const keyTerms = covered
     .flatMap((coveredLesson) =>
-      (coveredLesson?.enrichment?.keyTerms || [])
+      lessonTeachingKeyTerms(coveredLesson)
         .filter((term) => cleanText(term?.term) && cleanText(term?.definition))
         .slice(0, 1)
         .map((term) => ({
@@ -20754,7 +20861,7 @@ function buildExamDayStudyGuide(blueprint, lesson) {
   }
   const misconceptions = covered
     .flatMap((coveredLesson) =>
-      (coveredLesson?.enrichment?.keyTerms || [])
+      lessonTeachingKeyTerms(coveredLesson)
         .filter((term) => cleanText(term?.misconception))
         .slice(0, 1)
         .map((term) => ({
@@ -21236,20 +21343,21 @@ function slideSourceCue(lesson) {
   );
 }
 
-function slideFeedbackFallback(concept) {
+function slideFeedbackFallback(concept, lessonNumber = 1) {
   const focus = conciseClause(concept, 'lesson focus', 40);
   // A concept can legitimately arrive as a noun phrase with its own
   // determiner ("the function of classroom language"). Inserting that after
   // "one" produced visible prompts such as "Name one the function…" in the
   // frozen Mandarin package. Keep the admitted phrase intact and change the
   // relationship around it instead of trying to rewrite its grammar.
-  if (/^(?:the|a|an|this|that|these|those)\b/i.test(focus)) {
-    return `Name one source detail about ${focus}, one limitation, and the revision it supports.`;
-  }
-  return `Name one ${focus} source detail, one limitation, and the revision it supports.`;
+  return slideFeedbackFallbackCopy({
+    lessonNumber,
+    focus,
+    hasDeterminer: /^(?:the|a|an|this|that|these|those)\b/i.test(focus),
+  });
 }
 
-function completeSlideFeedbackRoutine(value, { concept }) {
+function completeSlideFeedbackRoutine(value, { concept, lessonNumber }) {
   const routine = stripTerminalPunctuation(cleanText(value));
   const visiblyChopped =
     !routine ||
@@ -21257,7 +21365,7 @@ function completeSlideFeedbackRoutine(value, { concept }) {
     /\b(?:students?|teams?|pairs?)\s+(?:mark|name|explain|compare|identify|choose)$/i.test(routine) ||
     /\b(?:and|or|but|by|for|from|in|of|to|with|which|that|because)\s*$/i.test(routine);
   if (visiblyChopped) {
-    return slideFeedbackFallback(concept);
+    return slideFeedbackFallback(concept, lessonNumber);
   }
   return ensureSentenceCompiler(routine);
 }
@@ -21296,7 +21404,7 @@ function slideDeckPhrase(blueprint, lesson) {
  * table guards (lead 42 / row 130 chars).
  */
 function enrichedEvidenceTableRows(lesson) {
-  const terms = Array.isArray(lesson?.enrichment?.keyTerms) ? lesson.enrichment.keyTerms : [];
+  const terms = lessonTeachingKeyTerms(lesson);
   return terms
     .map((term) => {
       // v0.14.1 round-2 (fix 4): the slide key-term cell pairs non-Latin
@@ -21498,7 +21606,7 @@ function slideVisual(lesson, slide) {
         const hub = conciseClause(concept, concept, 36);
         const spokes = unique(
           [
-            ...(lesson.enrichment?.keyTerms || []).map((term) => cleanText(term.term)),
+            ...lessonTeachingKeyTerms(lesson).map((term) => cleanText(term.term)),
             ...(lesson.keyConcepts || []).map((term) => cleanText(term)),
             cleanText(secondary),
           ].filter((term) => term && term.length <= 26 && term.toLowerCase() !== hub.toLowerCase()),
@@ -21693,11 +21801,20 @@ function slideTypeFocus(type, lesson, lens) {
           artifact,
         }),
         evidence: `Preview the ${lens.evidenceNoun} from ${source} that students will inspect before they revise ${artifact}.`,
-        misconception: `Set the expectation that ${displayTitle} ends with one concrete ${concept} move students can use in ${artifact}.`,
+        misconception: titleSlideExpectation({
+          lessonNumber: lesson.lessonNumber,
+          displayTitle,
+          concept,
+          artifact,
+        }),
       };
     case 'agenda':
       return {
-        opening: `Walk through the lesson flow so students can see where ${concept}, practice, and feedback each appear in ${displayTitle}.`,
+        opening: slideAgendaOpening({
+          lessonNumber: lesson.lessonNumber,
+          concept,
+          displayTitle,
+        }),
         evidence: lessonVariant(lesson, [
           `Point to the work block where students test ${secondary} against live ${lens.evidenceNoun} for ${artifact}.`,
           `Show the moment when ${secondary} moves from explanation into inspectable ${lens.evidenceNoun} for ${artifact}.`,
@@ -21719,7 +21836,13 @@ function slideTypeFocus(type, lesson, lens) {
           `Frame the objectives as concrete moves students should show before the lesson closes.`,
           `Make the objectives observable: name what students will produce, explain, or revise by the end of ${displayTitle}.`,
         ]),
-        evidence: `Tie each ${concept} objective in ${displayTitle} to the evidence move students need for ${numberedArtifact}.`,
+        evidence: slideObjectiveEvidence({
+          lessonNumber: lesson.lessonNumber,
+          concept,
+          displayTitle,
+          evidenceNoun: lens.evidenceNoun,
+          artifact: numberedArtifact,
+        }),
         misconception: lessonVariant(lesson, [
           `If students treat the objectives as vocabulary only, turn each one into a decision they must defend in ${artifact}.`,
           `When objectives sound like terms to memorize, ask what choice the evidence should help justify in ${artifact}.`,
@@ -21865,7 +21988,14 @@ function slideTypeFocus(type, lesson, lens) {
       };
     default:
       return {
-        opening: `Use this slide to keep ${displayTitle} tied to ${slideConceptList(lesson)}.`,
+        opening: lessonVariant(lesson, [
+          `Use this slide to keep ${displayTitle} tied to ${slideConceptList(lesson)}.`,
+          `Position this part of ${displayTitle} as an evidence checkpoint for ${slideConceptList(lesson)}.`,
+          `Before explaining the slide, ask which connection among ${slideConceptList(lesson)} students need to test.`,
+          `Make this slide earn its place in ${displayTitle}: students should use ${slideConceptList(lesson)} to improve one decision.`,
+          `Connect ${slideConceptList(lesson)} through the evidence students can inspect on this ${displayTitle} slide.`,
+          `Students should leave this slide able to explain how ${slideConceptList(lesson)} changes their next move in ${displayTitle}.`,
+        ]),
         evidence: lessonVariant(lesson, [
           `Connect the slide to one visible ${lens.evidenceNoun} move in ${artifact}.`,
           `Ask students which ${lens.evidenceNoun} detail from this slide belongs in ${artifact}.`,
@@ -21930,7 +22060,14 @@ function slideNoteAnchor({ type, anchor, concept, artifact, displayTitle, lesson
         `Make "${anchor}" inspectable by asking which student evidence would show the objective in practice.`,
       ]);
     case 'bridge':
-      return `Use "${safeAnchor}" as the continuity cue between prior work and today's ${concept} decision.`;
+      return lessonVariant(lesson, [
+        `Use "${safeAnchor}" as the continuity cue between prior work and today's ${concept} decision.`,
+        `Reopen "${safeAnchor}" and ask which earlier evidence still matters for today's ${concept} decision.`,
+        `Begin with "${safeAnchor}": students name what carries forward and what the new ${concept} evidence must change.`,
+        `Carry "${safeAnchor}" into today's work by testing one prior claim against the new ${concept} context.`,
+        `Ask what from "${safeAnchor}" students should keep, revise, or reject before making the ${concept} decision.`,
+        `Treat "${safeAnchor}" as evidence to interrogate, not a recap to repeat, before students apply ${concept}.`,
+      ]);
     case 'keyTerm':
       return lessonVariant(lesson, [
         `Put "${safeAnchor}" into a sentence students could write in their own notes before showing a formal definition.`,
@@ -22073,27 +22210,25 @@ function slideNoteCriterionCue(type, criterion, lesson = {}) {
 
 function slideNoteTransition({ type, nextCue, lens, concept, artifact, lesson }) {
   if (nextCue) {
-    const transitions = {
-      title: lessonVariant(lesson, [
+    if (type === 'title') {
+      return lessonVariant(lesson, [
         `Then move into "${nextCue}" by asking which ${concept} cue students should track first.`,
         `Use "${nextCue}" to have students name the ${concept} evidence they should watch for.`,
         `Bridge to "${nextCue}" by asking which ${concept} detail will matter during practice.`,
         `Before "${nextCue}", have students point to the ${concept} cue that should guide the next move.`,
         `Open "${nextCue}" with one question: what ${concept} evidence would change the artifact?`,
         `Move into "${nextCue}" by choosing the ${concept} signal students should test next.`,
-      ]),
-      agenda: `Before "${nextCue}", confirm students can name the ${concept} evidence they will use for ${artifact}.`,
-      objectives: `Transition to "${nextCue}" by choosing one ${concept} objective to watch during practice.`,
-      bridge: `Use that ${concept} carry-forward point to launch "${nextCue}" without restarting the lesson from scratch.`,
-      keyTerm: `Move to "${nextCue}" by asking students where ${concept} would show up in ${artifact}.`,
-      content: `Move next to "${nextCue}" by naming how ${concept} changes the ${lens.decisionNoun} for ${artifact}.`,
-      example: `Carry the strongest ${concept} detail into "${nextCue}" as the next piece of evidence for ${artifact}.`,
-      activity: `Use one ${artifact} revision as the bridge into "${nextCue}".`,
-      discussion: `Close the exchange by selecting the ${concept} claim that should guide "${nextCue}".`,
-      summary: `Use the ${concept} self-check result to decide what needs reinforcement in "${nextCue}".`,
-      closing: `Point students to "${nextCue}" as the next place their ${artifact} revision decision will matter.`,
-    };
-    return transitions[type] || `Move next to "${nextCue}" by naming how it changes the ${lens.decisionNoun}.`;
+      ]);
+    }
+    return slideTransitionCopy({
+      type,
+      lessonNumber: lesson.lessonNumber,
+      nextCue,
+      concept,
+      evidenceNoun: lens.evidenceNoun,
+      decisionNoun: lens.decisionNoun,
+      artifact,
+    });
   }
   return lessonVariant(lesson, [
     `End by asking how this point changes the ${lens.decisionNoun} students will make for ${artifact}.`,
@@ -22220,7 +22355,7 @@ function compactSlideDisplayBullet(slide, bullet, index, lesson) {
     const fullPrompt = stripTerminalPunctuation(cleanText(bullet));
     if (fullPrompt.length <= 118) return punctuateDisplayBullet(fullPrompt, bullet);
     if (index === 2) {
-      return slideFeedbackFallback(primarySlideConcept(lesson));
+      return slideFeedbackFallback(primarySlideConcept(lesson), lesson.lessonNumber);
     }
   }
   const fullLength = type === 'activity' || type === 'discussion' ? 78 : 112;
@@ -22864,7 +22999,7 @@ function buildDiscussionGuidelinesForFormat(lesson, protocol) {
   const format = protocol.format;
   const concept = safeLessonPrimaryConcept(lesson);
   const artifact = safeLessonArtifact(lesson);
-  const lessonFocus = stripLessonPrefix(lesson.title);
+  const lessonFocus = compactLessonFocusReference(lesson);
   if (isMusicIntervalLesson(lesson)) {
     const source = preferredMusicIntervalSource(lesson.readings || []) || safeLessonEvidenceCue(lesson);
     const inversionLesson = isMusicIntervalInversionLesson(lesson);
@@ -23041,7 +23176,7 @@ function lowercaseClauseLead(value) {
 function lessonMisconceptionPairs(lesson) {
   const seen = new Set();
   const pairs = [];
-  for (const term of lesson?.enrichment?.keyTerms || []) {
+  for (const term of lessonTeachingKeyTerms(lesson)) {
     // These pairs are synthesized from a quiz distractor and its answer-key
     // explanation. They are useful fallback metadata, but they are not an
     // authored misconception/correction pair and can produce circular or
@@ -23195,7 +23330,9 @@ function contentFloorTokenSet(lesson) {
     [
       stripLessonPrefix(lesson?.title || ''),
       ...(lesson?.keyConcepts || []),
-      ...(lesson?.enrichment?.keyTerms || []).map((term) => cleanText(term?.term)).filter(Boolean),
+      ...lessonTeachingKeyTerms(lesson)
+        .map((term) => cleanText(term?.term))
+        .filter(Boolean),
     ].flatMap(identityTokens),
   );
   if (tokens.size >= 2) return tokens;
@@ -23697,7 +23834,10 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
   const objectiveTwo =
     lesson.outcomes.find((outcome) => outcome !== objectiveOne && !/\b(TBD|to be determined)\b/i.test(outcome)) ||
     `Evaluate how ${secondary} evidence changes ${artifact}.`;
-  const discussionFeedbackRoutine = completeSlideFeedbackRoutine(modality.feedbackRoutine, { concept });
+  const discussionFeedbackRoutine = completeSlideFeedbackRoutine(modality.feedbackRoutine, {
+    concept,
+    lessonNumber: index + 1,
+  });
   const slides = [
     {
       type: 'title',
@@ -24320,7 +24460,7 @@ function safeCourseFaqConcepts(lesson) {
   const concepts = unique(
     asArray(lesson?.keyConcepts)
       .map((concept) => stripTerminalPunctuation(cleanText(concept)))
-      .filter((concept) => concept && !isUnsafeCourseFaqPhrase(concept)),
+      .filter((concept) => concept && !isUnsafeCourseFaqPhrase(concept) && !isLessonTitleEchoConcept(concept, lesson)),
     4,
   );
   return concepts.length > 0 ? concepts : [focus];
@@ -24331,7 +24471,7 @@ function safeCourseFaqPrimaryConcept(lesson) {
 }
 
 function safeCourseFaqStudentArtifact(lesson) {
-  const raw = stripTerminalPunctuation(cleanText(lesson?.studentArtifact));
+  const raw = compactLessonArtifactReference(lesson);
   const genericArtifact = isGenericArtifactLabel(raw);
   const artifact =
     raw && !genericArtifact && !genericLessonPhrase(raw) && !isUnsafeCourseFaqPhrase(raw)
@@ -24383,7 +24523,7 @@ function compileCourseFaq(blueprint, config = {}) {
     // phrased as the student asks it, and the plain "what does X actually
     // mean" question. Both quote the kernel's own vocabulary.
     (lesson) => {
-      const term = (lesson.enrichment?.keyTerms || []).find(
+      const term = lessonTeachingKeyTerms(lesson).find(
         (entry) => cleanText(entry?.term) && cleanText(entry?.misconception),
       );
       if (!term) return null;
@@ -24398,7 +24538,7 @@ function compileCourseFaq(blueprint, config = {}) {
       };
     },
     (lesson) => {
-      const terms = lesson.enrichment?.keyTerms || [];
+      const terms = lessonTeachingKeyTerms(lesson);
       const misconceptionTerm = terms.find((entry) => cleanText(entry?.term) && cleanText(entry?.misconception));
       const term =
         terms.find(
@@ -24427,7 +24567,7 @@ function compileCourseFaq(blueprint, config = {}) {
       const facts = (lesson.enrichment?.kernel?.facts || []).slice(0, 2);
       if (facts.length > 0) {
         const verifiedMusicDefinitions = isMusicIntervalLesson(lesson)
-          ? (lesson.enrichment?.keyTerms || [])
+          ? lessonTeachingKeyTerms(lesson)
               .map((term) => cleanText(term?.definition))
               .filter(Boolean)
               .slice(0, 5)
@@ -24558,7 +24698,7 @@ function compileCourseFaq(blueprint, config = {}) {
       // v0.15.187 atom routing: the kernel authored the ACTUAL common
       // misunderstanding and its correction — the canonical answer to this
       // question. The generic "don't just summarize" advice is the fallback.
-      const contested = (lesson.enrichment?.keyTerms || []).find(
+      const contested = lessonTeachingKeyTerms(lesson).find(
         (term) => cleanText(term?.misconception) && cleanText(term?.correction),
       );
       if (contested) {
@@ -24634,7 +24774,7 @@ function compileCourseFaq(blueprint, config = {}) {
       // v0.15.187 atom routing: readiness = can you state the authored
       // definition and apply it — quote the kernel's term/definition when
       // present so the self-check has real content to check against.
-      const termWithDefinition = (lesson.enrichment?.keyTerms || []).find(
+      const termWithDefinition = lessonTeachingKeyTerms(lesson).find(
         (term) => cleanText(term?.term) && cleanText(term?.definition),
       );
       if (termWithDefinition) {
@@ -25399,7 +25539,9 @@ function compileLessonPlans(blueprint, options = {}) {
           const exitFact = stripTerminalPunctuation(
             cleanText(
               (lesson.enrichment?.kernel?.facts || [])[1] ||
-                (lesson.enrichment?.keyTerms || []).map((term) => cleanText(term?.definition)).filter(Boolean)[1] ||
+                lessonTeachingKeyTerms(lesson)
+                  .map((term) => cleanText(term?.definition))
+                  .filter(Boolean)[1] ||
                 '',
             ),
           );

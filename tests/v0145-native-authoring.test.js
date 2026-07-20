@@ -356,6 +356,45 @@ describe('Pass A skeleton contract (B1)', () => {
     });
   });
 
+  it('restores the exact “with these lessons” sequence before Pass B authors content', () => {
+    const sourceText =
+      'Create a 6-week college World Literature course with these lessons: World Literature Scope; Oral Epic Tradition using Gilgamesh; Homeric Epic using The Odyssey; Classical Drama using Antigone; Tang Poetry using selected poems by Li Bai and Du Fu; and Frame Narratives using The Thousand and One Nights. Focus on textual analysis.';
+    const repeated = [
+      'World Literature Scope',
+      'Oral Epic Tradition',
+      'Homeric Epic and Classical Drama',
+      'World Literature Scope',
+      'Oral Epic Tradition',
+      'Homeric Epic and Classical Drama',
+    ];
+    const skeleton = parseNativeSkeletonResponse(
+      JSON.stringify({
+        course: { name: 'World Literature', term: 'TBD' },
+        sessions: repeated.map((title, index) => ({
+          id: `s${index + 1}`,
+          order: index + 1,
+          title,
+          sectionTitles: [title],
+        })),
+      }),
+      { expectedLessons: 6, sourceText },
+    );
+
+    expect(skeleton.sessions.map((session) => session.title)).toEqual([
+      'World Literature Scope',
+      'Oral Epic Tradition using Gilgamesh',
+      'Homeric Epic using The Odyssey',
+      'Classical Drama using Antigone',
+      'Tang Poetry using selected poems by Li Bai and Du Fu',
+      'Frame Narratives using The Thousand and One Nights',
+    ]);
+    expect(skeleton.sessionSequenceRecovery).toMatchObject({
+      kind: 'explicit-source-lesson-sequence',
+      recoveredCount: 6,
+      reason: 'ordered-topic-misalignment',
+    });
+  });
+
   it('restores an explicit instructor reading list when Pass A omits the registry', () => {
     const sourceText =
       'World Literature, a 14-lesson seminar. Required readings as named on the syllabus: Week 2 reads Gilgamesh; Week 3 reads The Odyssey; Week 4 reads Antigone; Week 5 reads selected poems of Li Bai and Du Fu; Week 6 reads The Thousand and One Nights; Week 7 reads Inferno; Week 9 reads Things Fall Apart; Week 10 reads One Hundred Years of Solitude; Week 11 reads The Waste Land; Week 12 reads The Library of Babel.';

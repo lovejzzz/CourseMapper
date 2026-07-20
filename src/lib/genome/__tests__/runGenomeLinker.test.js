@@ -144,6 +144,44 @@ describe('runGenomeLinker', () => {
     expect(result.missingIndices).toEqual([]);
   });
 
+  it('revalidates cached title-as-concept payloads before reuse', () => {
+    const library = createKernelLibrary({ storage: memoryStorage() });
+    const cache = createLessonKernelCache({ storage: memoryStorage() });
+    const lesson = COURSE.lessons[1];
+    const titleEcho = 'Game Theory and Nash Equilibrium';
+    cache.set(lesson, {
+      keyTerms: [
+        { term: titleEcho, definition: 'The complete schedule label returned as a pseudo-term.' },
+        { term: 'Nash equilibrium', definition: 'A profile where no player benefits from changing alone.' },
+      ],
+      kernel: {
+        facts: ['A unilateral deviation does not improve a player’s payoff at a Nash equilibrium.'],
+        scenario: {
+          setup: `${titleEcho} is repeated in a derived case about ${titleEcho}.`,
+          materials: `the ${titleEcho} case example`,
+          source: 'derived-kernel-fallback',
+        },
+      },
+      quizItems: [
+        { index: 0, type: 'multiple_choice', question: `Which claim about ${titleEcho} is supported?` },
+        { index: 3, type: 'short_answer', question: `${titleEcho} ${titleEcho} cached projection.` },
+      ],
+    });
+
+    const result = runGenomeLinker({ courseMap: COURSE, lessonIndices: [1], library, cache, itemPlan });
+    const cached = result.lessonContent['lesson-2'];
+
+    expect(cached.keyTerms.map((term) => term.term)).toEqual(['Nash equilibrium']);
+    expect(cached.quizItems).toHaveLength(1);
+    expect(cached.quizItems[0].type).toBe('multiple_choice');
+    expect(cached.kernel.scenario).toBeNull();
+    expect(cached.semanticAdmissionReceipt).toMatchObject({
+      titleEchoRepairApplied: true,
+      rejectedTitleTerms: [titleEcho],
+    });
+    expect(result.telemetry.resolvedFromCache).toBe(1);
+  });
+
   it('distinguishes genome-backed cached lessons from model-only cached lessons', () => {
     const storage = memoryStorage();
     const cache = createLessonKernelCache({ storage });

@@ -1,3 +1,5 @@
+import { extractExplicitLessonSequence } from '../explicitLessonSequence.js';
+
 function clean(value) {
   return String(value || '')
     .replace(/\s+/g, ' ')
@@ -48,15 +50,6 @@ function topicTokens(value) {
   );
 }
 
-function explicitLessonTopics(source) {
-  const match = /\blessons?\s+cover\s*:\s*([\s\S]+?)(?:\.(?:\s|$)|$)/i.exec(clean(source));
-  if (!match) return [];
-  return match[1]
-    .split(/\s*;\s*/)
-    .map((value) => clean(value.replace(/^and\s+/i, '').replace(/^(?:an?|the)\s+/i, '')))
-    .filter(Boolean);
-}
-
 function topicAligned(title, expectedTopic) {
   const expected = new Set(topicTokens(expectedTopic));
   return topicTokens(title).some((token) => expected.has(token));
@@ -71,7 +64,8 @@ function topicAligned(title, expectedTopic) {
  */
 export function checkExplicitLessonSequenceReuse(findings, byLesson, course = {}) {
   const source = `${course?.prompt || ''} ${course?.description || ''} ${course?.sourceText || ''}`;
-  if (!/\blessons?\s+cover\s*:/i.test(source) || !(byLesson instanceof Map)) return;
+  const topics = extractExplicitLessonSequence(source);
+  if (topics.length < 2 || !(byLesson instanceof Map)) return;
 
   const byTitle = new Map();
   for (const [lessonNumber, entries] of byLesson) {
@@ -100,7 +94,6 @@ export function checkExplicitLessonSequenceReuse(findings, byLesson, course = {}
   }
   if (repeatedSequence) return;
 
-  const topics = explicitLessonTopics(source);
   const lessonNumbers = [...byLesson.keys()]
     .map(Number)
     .filter(Number.isFinite)

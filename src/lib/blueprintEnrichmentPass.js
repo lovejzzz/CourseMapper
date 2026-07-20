@@ -8,6 +8,7 @@ import {
   mandarinTargetLanguageRequirements,
 } from './languageIdentityGuard';
 import { lintDecisionScenario } from './scenarioContract';
+import { isLessonTitleEchoSemanticSurface } from './lessonSemanticRelevance';
 import {
   findScionExplanationKeyConflict,
   findScionCitedSourceKeyMismatch,
@@ -1701,6 +1702,12 @@ export function parseLessonKernelResponse(text, { prompt, expectedLessonIds } = 
 
     const keyTerms = [];
     asArray(entry?.keyTerms).forEach((term, index) => {
+      if (isLessonTitleEchoSemanticSurface(term?.term, promptLesson || {})) {
+        // Keep the lesson title as identity, but never promote a long title
+        // into a glossary atom. Projecting it would multiply one model quirk
+        // through quiz scenarios, answers, rubrics, FAQ copy, and tags.
+        return;
+      }
       const problems = lintEnrichedKeyTerm(term, {
         lessonTitle: promptLesson?.title || '',
         knownFacts: facts,

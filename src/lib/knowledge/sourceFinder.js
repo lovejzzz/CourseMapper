@@ -28,7 +28,10 @@ export const SOURCE_FINDER_ORIGIN = 'source-finder';
 // Cached sources are already ranked/filtered, so reusing a v2 shard would
 // keep known homonym failures (for example "Staff (military)" in music
 // theory) even after the live filter became stricter.
-const SOURCE_FINDER_VERSION = 'source-finder-v5';
+// v6 invalidates v5 mini-shards after weak lesson labels and same-token
+// course/topic overlap were tightened. Reusing the old cache could otherwise
+// keep a "Focus group" page attached to Tang poetry for the rest of the week.
+const SOURCE_FINDER_VERSION = 'source-finder-v6';
 const CACHE_PREFIX = 'cm-source-finder:';
 const SNIPPET_LIMIT = 320;
 const DEFAULT_MAX_TOPICS = 8;
@@ -123,6 +126,14 @@ function stripSectionPrefix(value) {
   return cleanText(value).replace(/^\d+(?:\.\d+)*\s*[:.)-]\s*/, '');
 }
 
+function isWeakSourceTopic(value) {
+  const candidate = stripSectionPrefix(stripLessonPrefix(value));
+  if (!candidate) return true;
+  return /^(?:focus|overview|foundation|foundations|basic|basics|introduction|practice|review|scope|topic|lesson|week)$/i.test(
+    candidate,
+  );
+}
+
 function termsFromText(value) {
   return cleanText(value)
     .toLowerCase()
@@ -131,17 +142,33 @@ function termsFromText(value) {
 
 const LOW_SIGNAL_QUERY_TERMS = new Set([
   'able',
+  'analyze',
   'apply',
   'basic',
+  'compare',
+  'construct',
   'course',
+  'deconstruct',
+  'define',
+  'describe',
+  'evaluate',
+  'examine',
   'explain',
+  'focus',
+  'foundations',
   'ideas',
+  'identify',
   'introduction',
+  'interpret',
   'key',
   'lesson',
   'main',
+  'overview',
+  'scope',
   'students',
+  'synthesize',
   'understand',
+  'using',
   'will',
 ]);
 
@@ -214,6 +241,8 @@ function sourceContext(source) {
 // Light stemming so "determinants" (topic) matches "determinant" (source
 // title) — the token gate is a Set intersection, not a substring match.
 function stemTerm(term) {
+  if (/^iterat(?:e|es|ed|ing|ion|ions|ive|ives)$/.test(term)) return 'iterat';
+  if (/^literar(?:y|ies|ature|atures)$/.test(term)) return 'literar';
   return term.length > 4 && term.endsWith('s') ? term.slice(0, -1) : term;
 }
 
@@ -246,6 +275,10 @@ const COURSE_SUBJECT_LEXICON = [
   {
     signal: /\b(?:user experience|ux|interaction design|design studio|usability)\b/i,
     terms: ['design', 'usability', 'prototype', 'prototyping', 'interface', 'wireframe', 'critique'],
+  },
+  {
+    signal: /\b(?:world literature|comparative literature|literary|literature|poetry|drama|novel)\b/i,
+    terms: ['literar', 'poetry', 'poem', 'narrative', 'epic', 'drama', 'novel', 'text', 'reading', 'interpretation'],
   },
   {
     signal: /\b(?:physics|mechanics|electromagnet|thermodynamic)\b/i,
@@ -319,13 +352,26 @@ function sourcePassesTopicalFit(source, topic) {
   // when the topic itself is a single word like "Midterm".
   const haystack = stemmedTermSet(sourceText);
   const topicTerms = [...new Set(meaningfulQueryTerms(topic).map(stemTerm))];
-  const topicHits = topicTerms.filter((term) => haystack.has(term)).length;
+  const courseIdentityTerms = new Set(
+    [...stemmedTermSet(topic?.courseName || '')].filter((term) => !LOW_SIGNAL_QUERY_TERMS.has(term)),
+  );
+  const discriminativeTopicTerms = topicTerms.filter((term) => !courseIdentityTerms.has(term));
+  const sourceTitleTerms = stemmedTermSet(source?.title || '');
+  const sourceNamesCourse =
+    courseIdentityTerms.size >= 2 && [...courseIdentityTerms].every((term) => sourceTitleTerms.has(term));
+
+  // A course-overview lesson may have no discriminative topic beyond the
+  // course identity itself. Accept the exact named subject page, but do not
+  // let one reused course word stand in for a topic match ("Erotic
+  // literature" is not evidence for "World Literature Scope").
+  if (sourceNamesCourse && discriminativeTopicTerms.length <= 1) return true;
+  const topicHits = discriminativeTopicTerms.filter((term) => haystack.has(term)).length;
   if (topicHits === 0) return false;
   // Two distinct topic-term hits clear the gate outright. A single hit — the
   // homonym trap ("bases", "independent", "matrix", "determinant", "midterm")
   // — must ALSO share a course-subject term, so an off-domain page that only
   // collides on the concept headword is rejected.
-  if (topicHits < 2 && topicTerms.length >= 2) {
+  if (topicHits < 2 && discriminativeTopicTerms.length >= 1) {
     const courseTerms = courseSubjectTerms(topic?.courseName || '');
     if (courseTerms.size > 0 && ![...courseTerms].some((term) => haystack.has(term))) return false;
   }
@@ -349,8 +395,13 @@ function sourceTopicsFromGraph(graph, { maxTopics = DEFAULT_MAX_TOPICS } = {}) {
     .slice(0, maxTopics)
     .map((session, index) => {
       const section = (session.sections || [])[0] || {};
-      const topic = stripSectionPrefix(section.topic) || stripLessonPrefix(session.title) || `Lesson ${index + 1}`;
-      const conceptTerms = (taughtBySession.get(session.id) || []).slice(0, 3);
+      const sectionTopic = stripSectionPrefix(section.topic);
+      const lessonTitle = stripLessonPrefix(session.title);
+      const topic =
+        (isWeakSourceTopic(sectionTopic) ? lessonTitle : sectionTopic) || lessonTitle || `Lesson ${index + 1}`;
+      const conceptTerms = (taughtBySession.get(session.id) || [])
+        .filter((term) => !isWeakSourceTopic(term))
+        .slice(0, 3);
       const query = cleanText([topic, ...conceptTerms].join(' '));
       return {
         courseName,
@@ -369,7 +420,9 @@ function sourceTopicsFromCourseMap(courseMap, { maxTopics = DEFAULT_MAX_TOPICS }
     .slice(0, maxTopics)
     .map((lesson, index) => {
       const section = (lesson.sections || [])[0] || {};
-      const topic = stripSectionPrefix(section.topicSection || section.topic) || stripLessonPrefix(lesson.title);
+      const sectionTopic = stripSectionPrefix(section.topicSection || section.topic);
+      const lessonTitle = stripLessonPrefix(lesson.title);
+      const topic = (isWeakSourceTopic(sectionTopic) ? lessonTitle : sectionTopic) || lessonTitle;
       const objective = cleanText(section.learningObjectives).slice(0, 120);
       const query = cleanText([topic, objective].join(' '));
       return {

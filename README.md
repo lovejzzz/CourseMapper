@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.62
+**Current release:** v0.16.63
 
 ---
 
@@ -31,11 +31,11 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.62**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts a new foundation model. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
+The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.63**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts a new foundation model. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
 
 ### Adapter work in progress
 
-The V0.16.62 research corpus has crossed its first real training threshold: 102 qualified source-grounded preferences rebuild into 100 usable production rows, split by complete course group across seven domains. One 200-iteration adapter training run completed against the pinned Gemma base, reduced validation loss from 1.555 to 1.089, and produced a 105 MB learned delta. That artifact is **not** a quality win and is not active on the website.
+The V0.16.63 research corpus remains beyond its first real training threshold: 102 qualified source-grounded preferences rebuild into 100 usable production rows, split by complete course group across seven domains. One 200-iteration adapter training run completed against the pinned Gemma base, reduced validation loss from 1.555 to 1.089, and produced a 105 MB learned delta. That artifact is **not** a quality win and is not active on the website.
 
 The first live held-out attempt found an evaluation error before a score could be claimed. Every training row transformed a supplied three-to-five-fact source ledger, while the old broad `lesson-kernel` route also asked the adapter to invent the initial facts. The run was stopped: ten lesson requests expanded into 52 native generations, and the adapter repeatedly produced truncated or conflicting kernels outside its learned distribution. Scion now records that attempt as a failed diagnostic rather than a benchmark result.
 
@@ -50,6 +50,16 @@ A fresh full package still grades **89/B** with zero P0, two P1, and one P2 find
 The rejected whole-kernel pairing gate remains rejected: it regressed coverage to 5/15. Pair visibility will be repaired at the compiler projection layer; it will not be allowed to discard otherwise-admitted lesson knowledge.
 
 ### Living Course Compiler
+
+V0.16.63 makes lesson identity a compiler invariant. Model enrichment is revalidated against the current lesson's title, objectives, topics, and instructor-named readings before it may persist, survive a cache restore, compile, or render. Rejected concepts leave with their dependent facts, citations, scenarios, questions, rationales, and derived references. In an exact World Literature twin, measured Shakespeare, `directorial reading`, `title as doorway`, and unrelated poetry-form leakage fell from **40, 52, 33, and 29** document occurrences to **zero**, while compiler texture improved from **90 to 94**.
+
+The course request now has an enforceable sequence contract. A narrow parser preserves labeled semicolon and numbered lesson schedules; continuation understands both “Lessons 4 through 6” and “Lessons 4-6”; and grader 1.10.24 blocks missing, merged, shifted, or repeated requested lessons. Weak scaffolds such as `Focus`, `Overview`, and `Foundations` are repaired from the specific lesson identity before they can seed concepts, assessments, filenames, or retrieval. Source Finder V6 rejects broad false friends unless the candidate matches a discriminative lesson topic or the exact named course identity.
+
+Canonical titles remain exact in Course Map rows, document headings, related-lesson identity, and provenance. Repeated working prose uses compact lesson and artifact labels instead, preventing a long title from becoming a pseudo-term or appearing in every instruction, criterion, milestone, and quiz scaffold. The same boundary removes false Agent warnings for short author names such as Li, Bai, Du, and Fu while preserving real objective gaps. Lesson-aware copy variants diversify study-guide prompts, slide objectives, transitions, artifact connections, expectations, and feedback without adding a model call.
+
+The final real-browser proof used the public Gemma base with the adapter inactive. A fresh six-lesson World Literature build completed in about **40 seconds**, admitted **6/6** lesson kernels, compiled **9/9** material families, and graded **99/A** with **texture 96**. Its downloaded **53-file ZIP** passed independent archive inspection and all **38 export checks** with zero failures and zero warnings. One quiz-bank readability recommendation at grade level 16.4 remains advisory. This is one bounded compiler and export proof—not factual verification, instructor approval, classroom evidence, or a promise that every course receives the same score.
+
+Held-out benchmark V14 freezes grader 1.10.24, texture 1.1.0, and the explicit-sequence contract over the same five disjoint course domains. It inherits no V13 score or adapter result. Gemma's weights are unchanged and the research adapter remains inactive until a fresh exact-lineage candidate produces a credible cross-domain quality win with no worse compiler burden. The semantic admission, sequence, source-relevance, compiler, grader, texture, and export improvements are model-neutral, so compatible paid-provider routes benefit too.
 
 V0.16.62 crosses the first research-training threshold without turning that milestone into a marketing claim. Fifty-five new qualified source-grounded lessons join 47 prior rows for 102; deterministic, group-disjoint dataset construction retains 100 production rows across seven domains and 24 course groups. A real 200-iteration adapter reduced validation loss from 1.555 to 1.089 and packaged a roughly 105 MB delta, but it remains inactive because training loss is not evidence of better held-out courses.
 

@@ -6687,6 +6687,51 @@ describe('courseBlueprintCompiler', () => {
     });
   });
 
+  it('keeps canonical long lesson identity while compacting repeated assignment body references', () => {
+    const courseMap = makeCourseMap(1);
+    const exactLessonFocus = 'Tang Poetry using Li Bai and Du Fu';
+    courseMap.courseName = 'World Literature';
+    courseMap.lessons[0] = {
+      title: `Lesson 1: ${exactLessonFocus}`,
+      sections: [
+        {
+          topicSection: 'Tang poetry; poetic analysis; comparative close reading',
+          learningObjectives: 'Compare two passages and synthesize one source-grounded interpretive claim.',
+          learningGoals: 'Use quoted details to support a bounded literary interpretation.',
+          weeklyAssessments: `${exactLessonFocus} comparative close-reading memo`,
+          asyncActivities: 'Annotate one poem by Li Bai and one by Du Fu.',
+          syncActivities: 'Compare passage evidence and test one counter-reading.',
+          supportingResources: 'Assigned poems; close-reading guide; annotation notes',
+          evaluateDesign: 'Score passage evidence, comparative reasoning, limitations, and revision quality.',
+        },
+      ],
+    };
+
+    const blueprint = buildCourseBlueprint(courseMap);
+    const assignment = compileBlueprintDeliverables(blueprint, ['assignments']).assignments.assignments[0];
+    const identityText = JSON.stringify({ title: assignment.title, relatedLessons: assignment.relatedLessons });
+    const bodyText = JSON.stringify(
+      Object.fromEntries(
+        [
+          'overview',
+          'instructions',
+          'formatRequirements',
+          'gradingCriteria',
+          'progressTracking',
+          'accessibilityAndUDL',
+          'selfAssessmentRubric',
+          'scaffoldingMilestones',
+          'supportResources',
+          'academicIntegrityStatement',
+        ].map((field) => [field, assignment[field]]),
+      ),
+    );
+
+    expect(identityText).toContain(exactLessonFocus);
+    expect(bodyText).not.toContain(exactLessonFocus);
+    expect(bodyText).toMatch(/Tang Poetry|close-reading/i);
+  });
+
   it('replaces placeholder course terms with local confirmation language in compiled syllabi', () => {
     const sparseMap = makeCourseMap(4);
     sparseMap.semester = 'TBD';

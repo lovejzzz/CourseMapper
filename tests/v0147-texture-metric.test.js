@@ -491,6 +491,43 @@ function uxDesignTextureRegressionMap() {
   };
 }
 
+function worldLiteratureTextureRegressionMap() {
+  const topics = [
+    'World Literature Scope',
+    'Oral Epic Tradition',
+    'Homeric Epic',
+    'Classical Drama',
+    'Tang Poetry',
+    'Frame Narratives',
+    'Medieval Journey Narrative',
+    'Comparative Reading Methods',
+    'Postcolonial Literature',
+    'Magical Realism',
+    'Modernist Poetry',
+    'Fantastic Library',
+    'Contemporary Fiction',
+    'Course Synthesis',
+  ];
+  return {
+    courseName: 'World Literature',
+    semester: 'Fall 2026',
+    lessons: topics.map((title, index) => ({
+      title: `Lesson ${index + 1}: ${title}`,
+      sections: [
+        {
+          topicSection: `${index + 1}.1: ${title}`,
+          learningGoals: `Interpret ${title.toLowerCase()} through textual evidence and comparative context.`,
+          learningObjectives: `Analyze a passage using ${title.toLowerCase()}.\nDefend an interpretation while naming its limits.`,
+          weeklyAssessments: `${title} close-reading note with a passage, interpretive claim, and qualification.`,
+          asyncActivities: `Read the assigned ${title.toLowerCase()} selection and annotate one consequential passage.`,
+          syncActivities: `Compare interpretations of ${title.toLowerCase()} and revise one claim from textual evidence.`,
+          supportingResources: `Assigned world-literature text; translation note; close-reading guide ${index + 1}`,
+        },
+      ],
+    })),
+  };
+}
+
 function countPhrase(haystack, phrase) {
   const escaped = phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   return haystack.match(new RegExp(escaped, 'g'))?.length || 0;
@@ -603,6 +640,129 @@ describe('D1(2b) — compiler prose texture regression guard', () => {
     expect(countNormalizedPhrase(text, 'wrong option misses the')).toBeLessThanOrEqual(2);
     expect(countNormalizedPhrase(text, 'what evidence justifies the change')).toBeLessThanOrEqual(2);
   }, 30000);
+
+  it('varies the exact study-guide and objective-slide tails from the final World Literature browser package', () => {
+    const blueprint = buildCourseBlueprint(worldLiteratureTextureRegressionMap());
+    blueprint.lessons.forEach((lesson) => {
+      lesson.modalityDecode = {
+        ...(lesson.modalityDecode || {}),
+        feedbackRoutine: `During ${lesson.title}, challenge the claim with a counter-reading, source limit, or context boundary before revision, then require students to identify the exact evidence change they will carry into the assessed artifact.`,
+      };
+    });
+    const compiled = compileBlueprintDeliverables(blueprint, ['slideDecks', 'studyGuides']);
+    const guides = compiled.studyGuides.studyGuides;
+    const decks = compiled.slideDecks.decks;
+    const text = JSON.stringify({ guides, decks }).toLowerCase();
+
+    expect(guides).toHaveLength(14);
+    expect(decks).toHaveLength(14);
+    expect(countNormalizedPhrase(text, 'connects to the assessment artifact')).toBe(0);
+    expect(countNormalizedPhrase(text, 'how would you explain the central idea of')).toBeLessThanOrEqual(3);
+    expect(countNormalizedPhrase(text, 'to the evidence move students need for')).toBeLessThanOrEqual(3);
+    expect(countNormalizedPhrase(text, 'one limitation and the revision it supports')).toBeLessThanOrEqual(3);
+    expect(countNormalizedPhrase(text, 'use this slide to keep')).toBeLessThanOrEqual(3);
+    expect(countNormalizedPhrase(text, 'as the continuity cue between prior work and')).toBeLessThanOrEqual(3);
+
+    const texture = computeTexture([
+      ...guides.map((guide, index) => ({
+        id: `world-lit-guide-${index + 1}`,
+        feature: 'studyGuides',
+        text: JSON.stringify(guide),
+      })),
+      ...decks.map((deck, index) => ({
+        id: `world-lit-deck-${index + 1}`,
+        feature: 'slideDecks',
+        text: JSON.stringify(deck),
+      })),
+    ]);
+    const evidence = texture.evidence.map((item) => item.shingle).join('\n');
+    expect(evidence).not.toMatch(/explain the central idea|connects to the assessment artifact/);
+  }, 30000);
+
+  it('does not multiply a model-authored lesson-title echo across quiz, FAQ, and study-guide surfaces', () => {
+    const lessonTitle = 'Tang Poetry using Li Bai and Du Fu';
+    const blueprint = buildCourseBlueprint({
+      courseName: 'World Literature',
+      semester: 'Fall 2026',
+      lessons: [
+        {
+          title: `Lesson 1: ${lessonTitle}`,
+          sections: [
+            {
+              topicSection: `1.1: ${lessonTitle}`,
+              learningGoals: 'Interpret two Tang poems through precise textual evidence and comparative context.',
+              learningObjectives:
+                'Analyze imagery in a translated poem.\nSynthesize one comparative claim from two passages.',
+              weeklyAssessments:
+                'Comparative close-reading note with two quoted details, one synthesis claim, and one qualification.',
+              asyncActivities: 'Annotate one translated poem by Li Bai and one by Du Fu.',
+              syncActivities: 'Compare imagery and revise a synthesis claim from textual evidence.',
+              supportingResources: 'Li Bai selection; Du Fu selection; translation note; close-reading guide',
+            },
+          ],
+        },
+      ],
+    });
+    const lesson = blueprint.lessons[0];
+    lesson.keyConcepts = [lessonTitle, 'Poetic analysis', 'Comparative reasoning'];
+    lesson.enrichment = {
+      keyTerms: [
+        {
+          term: lessonTitle,
+          definition: 'This entire schedule label was mistakenly returned as a reusable glossary concept.',
+          example: 'A schedule row names the authors and the genre together.',
+          misconception: 'Students may treat the full schedule label as a disciplinary term.',
+          correction: 'Use a reusable analytic concept instead.',
+        },
+        {
+          term: 'Poetic analysis',
+          definition: 'Poetic analysis explains how formal choices create meaning in a specific passage.',
+          example: 'Compare how an image changes the speaker’s stance in each translated poem.',
+          misconception: 'Poetic analysis only paraphrases what a poem says.',
+          correction: 'It connects formal evidence to an interpretive claim.',
+        },
+        {
+          term: 'Comparative reasoning',
+          definition: 'Comparative reasoning uses a shared criterion to explain a meaningful similarity or difference.',
+          example: 'Use the treatment of distance as the same criterion in both passages.',
+          misconception: 'A comparison is complete after listing one feature from each poem.',
+          correction: 'The shared criterion must support a synthesis claim.',
+        },
+      ],
+      kernel: {
+        facts: [
+          'Li Bai and Du Fu use images of distance to position the speaker differently.',
+          'A translation choice can alter sound, image, and interpretive emphasis.',
+        ],
+        scenario: {
+          setup: 'Two translations render the same image with different degrees of distance.',
+          materials: 'Two short translated passages and their translators’ notes.',
+          decision: 'Choose which translation better supports the synthesis claim and explain the limit.',
+        },
+      },
+      assignmentCore: {
+        taskDescription: 'Write a comparative close-reading note using one quoted detail from each poem.',
+      },
+    };
+
+    const compiled = compileBlueprintDeliverables(blueprint, ['quizBank', 'courseFaq', 'studyGuides']);
+    const quizText = JSON.stringify(compiled.quizBank.quizzes[0].questions).toLowerCase();
+    const faqText = JSON.stringify(compiled.courseFaq.faqs[0].qs).toLowerCase();
+    const guide = compiled.studyGuides.studyGuides[0];
+    const guideText = JSON.stringify({
+      keyTerms: guide.keyTerms,
+      commonMisconceptions: guide.commonMisconceptions,
+      reviewQuestions: guide.reviewQuestions,
+      practiceActivities: guide.practiceActivities,
+    }).toLowerCase();
+    const titlePhrase = lessonTitle.toLowerCase();
+
+    expect(countPhrase(quizText, titlePhrase)).toBeLessThan(12);
+    expect(countPhrase(faqText, titlePhrase)).toBeLessThan(12);
+    expect(guideText).not.toContain('this entire schedule label was mistakenly returned');
+    expect(guideText).toContain('poetic analysis');
+    expect(guideText).toContain('comparative reasoning');
+  }, 30000);
 });
 
 function healthyConsoleLog() {
@@ -695,7 +855,7 @@ describe('D1(3)+(4) — weight-0 invariance and the report row on a real package
   });
 
   it('keeps every pre-texture weight and gives texture a score-bearing weight that can cost the A band', () => {
-    expect(GRADER_VERSION).toBe('1.10.23');
+    expect(GRADER_VERSION).toBe('1.10.24');
     expect(DIMENSION_WEIGHTS).toEqual({
       identity: 20,
       substance: 20,

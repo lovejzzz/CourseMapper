@@ -15,36 +15,57 @@ import { getArrayKey } from './syncDependencies';
 const LOWER_BLOOMS = new Set(['remember', 'understand']);
 const MAX_OBSERVATIONS = 3;
 const OBJECTIVE_ECHO_STOP_WORDS = new Set([
+  'an',
+  'and',
   'able',
   'about',
   'after',
+  'are',
+  'as',
+  'at',
   'before',
+  'by',
   'course',
+  'for',
   'from',
+  'in',
   'into',
+  'is',
+  'of',
+  'on',
+  'or',
   'lesson',
   'student',
   'students',
+  'the',
   'their',
   'through',
+  'to',
   'using',
+  'via',
   'with',
 ]);
 
 function objectiveEchoStem(value) {
-  return String(value || '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, ' ')
-    .trim()
-    .split(/\s+/)
-    .filter((token) => token.length >= 4 && !OBJECTIVE_ECHO_STOP_WORDS.has(token))
-    .map((token) =>
-      token
-        .replace(/ies$/, 'y')
-        .replace(/(?:ing|ers?|ed|ly)$/, '')
-        .replace(/s$/, ''),
-    )
-    .filter((token) => token.length >= 3);
+  return (
+    String(value || '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, ' ')
+      .trim()
+      .split(/\s+/)
+      // Preserve short names/acronyms (Li Bai, Du Fu, UX, AI). The previous
+      // four-character floor reduced "Compare Li Bai and Du Fu" to the lone
+      // generic verb "compare," so even an explicitly comparative assessment
+      // triggered a false coverage warning.
+      .filter((token) => token.length >= 2 && !OBJECTIVE_ECHO_STOP_WORDS.has(token))
+      .map((token) =>
+        token
+          .replace(/ies$/, 'y')
+          .replace(/(?:ing|ers?|ed|ly)$/, '')
+          .replace(/s$/, ''),
+      )
+      .filter((token) => token.length >= 2)
+  );
 }
 
 // Exact sentence search is intentionally the first signal, but objectives

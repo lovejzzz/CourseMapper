@@ -1,4 +1,4 @@
-import { sentenceCase } from './compilerText';
+import { cleanText, escapeRegexLiteral, sentenceCase, stripTerminalPunctuation, unique } from './compilerText';
 
 function variantIndex(lessonNumber, length) {
   const ordinal = Number.isFinite(Number(lessonNumber)) ? Math.trunc(Number(lessonNumber)) : 1;
@@ -7,6 +7,102 @@ function variantIndex(lessonNumber, length) {
 
 function selectVariant(lessonNumber, variants) {
   return variants[variantIndex(lessonNumber, variants.length)];
+}
+
+export function courseCopySurfaceWords(value) {
+  return cleanText(value)
+    .replace(/^(?:lesson|week)\s*\d+\s*[:.\-–—]\s*/i, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter((word) => word && !['and', 'for', 'from', 'lesson', 'selected', 'the', 'using', 'with'].includes(word));
+}
+
+export function compactCourseCopyFocus(focus) {
+  const cleanFocus = cleanText(focus);
+  const literalWordCount = (cleanFocus.match(/[A-Za-z0-9][A-Za-z0-9'-]*/g) || []).length;
+  if (courseCopySurfaceWords(cleanFocus).length < 4 && literalWordCount < 5) return cleanFocus;
+  const methodPrefix = stripTerminalPunctuation(cleanFocus.split(/\s+using\s+/i)[0]);
+  return methodPrefix && courseCopySurfaceWords(methodPrefix).length <= 4 ? methodPrefix : cleanFocus;
+}
+
+export function compactCourseCopyEmbeddedReference(value, fullFocus) {
+  const text = cleanText(value);
+  const cleanFocus = cleanText(fullFocus);
+  const compactFocus = compactCourseCopyFocus(cleanFocus);
+  if (!text || !cleanFocus || cleanFocus === compactFocus) return text;
+  return text.replace(new RegExp(escapeRegexLiteral(cleanFocus), 'gi'), compactFocus);
+}
+
+const ASSIGNMENT_BRIEF_BODY_FIELDS = [
+  'overview',
+  'description',
+  'speakingPrompts',
+  'objectives',
+  'instructions',
+  'formatRequirements',
+  'deliverables',
+  'submissionFormat',
+  'gradingCriteria',
+  'progressTracking',
+  'accessibilityAndUDL',
+  'selfAssessmentRubric',
+  'feedbackLoop',
+  'scaffoldingMilestones',
+  'supportResources',
+  'academicIntegrityStatement',
+];
+
+function compactAssignmentBriefBodyValue(value, fullFocus, aliases) {
+  if (typeof value === 'string') {
+    const dealiased = aliases.reduce((text, [source, replacement]) => {
+      if (!source || !replacement || source === replacement) return text;
+      return text.replace(new RegExp(escapeRegexLiteral(source), 'gi'), replacement);
+    }, value);
+    return compactCourseCopyEmbeddedReference(dealiased, fullFocus);
+  }
+  if (Array.isArray(value)) return value.map((item) => compactAssignmentBriefBodyValue(item, fullFocus, aliases));
+  if (!value || typeof value !== 'object') return value;
+  return Object.fromEntries(
+    Object.entries(value).map(([key, child]) => [key, compactAssignmentBriefBodyValue(child, fullFocus, aliases)]),
+  );
+}
+
+export function compactAssignmentBriefBodyReferences({ brief = {}, lesson = {}, fullFocus, fallbackArtifact }) {
+  const compacted = { ...brief };
+  const canonicalTitle = stripTerminalPunctuation(cleanText(brief?.title));
+  const titleRemainder = stripTerminalPunctuation(
+    canonicalTitle.replace(new RegExp(`^${escapeRegexLiteral(fullFocus)}(?:\\s*[:–—-]\\s*|\\s+)`, 'i'), ''),
+  );
+  const rawArtifact =
+    titleRemainder &&
+    titleRemainder.toLowerCase() !== canonicalTitle.toLowerCase() &&
+    courseCopySurfaceWords(titleRemainder).length >= 2
+      ? titleRemainder
+      : fallbackArtifact;
+  const shortArtifact = stripTerminalPunctuation(rawArtifact.split(/\s*[:;–—]\s*/)[0]);
+  const genre = stripTerminalPunctuation(
+    cleanText(lesson?.artifactGenre?.label || lesson?.artifactGenre?.genre || brief?.assignmentType || 'assignment'),
+  );
+  const artifactLabel =
+    shortArtifact && courseCopySurfaceWords(shortArtifact).length <= 6 ? shortArtifact : genre || 'assignment';
+  const week = Number.isFinite(Number(lesson?.lessonNumber)) ? `Week ${lesson.lessonNumber}` : '';
+  const shortReference =
+    week && !new RegExp(`^${escapeRegexLiteral(week)}\\b`, 'i').test(artifactLabel)
+      ? `${week} ${artifactLabel.charAt(0).toLowerCase()}${artifactLabel.slice(1)}`
+      : artifactLabel;
+  const aliases = unique(
+    [brief?.title, lesson?.studentArtifact, lesson?.assessmentAnchor?.title, lesson?.assessmentAnchor?.artifact]
+      .map((value) => stripTerminalPunctuation(cleanText(value)))
+      .filter((value) => value && courseCopySurfaceWords(value).length >= 7),
+    8,
+  ).map((source) => [source, shortReference]);
+  for (const field of ASSIGNMENT_BRIEF_BODY_FIELDS) {
+    if (compacted[field] !== undefined) {
+      compacted[field] = compactAssignmentBriefBodyValue(compacted[field], fullFocus, aliases);
+    }
+  }
+  return compacted;
 }
 
 const EXAM_UNDERSTAND_CORRECT_TEMPLATES = [
@@ -137,4 +233,161 @@ export function kernelFactInstructorNote({ lessonNumber, kernelFactLedger }) {
     `Model with only these admitted course claims: ${kernelFactLedger} Have students name the evidence used at each decision point.`,
     `Anchor the worked explanation in this fact set: ${kernelFactLedger} Before transfer, students match each reasoning step to the claim that supports it.`,
   ]);
+}
+
+export function studyGuideArtifactConnection({ lessonNumber, lessonTitle, studyArtifact }) {
+  return selectVariant(lessonNumber, [
+    `Use ${studyArtifact} to show what ${lessonTitle} changed in your evidence choice.`,
+    `${studyArtifact} should carry the strongest insight from ${lessonTitle} into assessed work.`,
+    `Before drafting ${studyArtifact}, identify the ${lessonTitle} idea that the evidence supports.`,
+    `Let ${lessonTitle} shape one visible decision in ${studyArtifact}.`,
+    `The assessment transfer from ${lessonTitle} becomes visible in ${studyArtifact}.`,
+    `Apply the defensible ${lessonTitle} claim when revising ${studyArtifact}.`,
+  ]);
+}
+
+export function studyGuideCoreQuestion({ lessonNumber, lessonFocus, week, evidenceNoun, sourceCue }) {
+  return selectVariant(lessonNumber, [
+    `How would you explain the central idea of ${lessonFocus} for ${week} using ${evidenceNoun} from ${sourceCue}?`,
+    `Which claim about ${lessonFocus} can you defend from ${sourceCue}, and what ${evidenceNoun} makes it credible for ${week}?`,
+    `Using ${sourceCue}, trace the ${evidenceNoun} that changes your interpretation of ${lessonFocus} in ${week}.`,
+    `What does ${sourceCue} establish about ${lessonFocus}? Explain the reasoning and one limit of that ${week} claim.`,
+    `For ${week}, compare two details in ${sourceCue} and decide which better explains ${lessonFocus}.`,
+    `Build a concise ${lessonFocus} explanation for ${week}: name the decisive ${evidenceNoun} in ${sourceCue} and qualify the conclusion.`,
+  ]);
+}
+
+export function slideObjectiveEvidence({ lessonNumber, concept, displayTitle, evidenceNoun, artifact }) {
+  return selectVariant(lessonNumber, [
+    `Tie each ${concept} objective in ${displayTitle} to the evidence move students need for ${artifact}.`,
+    `For every ${displayTitle} objective, identify the ${evidenceNoun} students must use and where it belongs in ${artifact}.`,
+    `Turn the ${concept} objectives into evidence checkpoints that students can demonstrate inside ${artifact}.`,
+    `Ask which ${displayTitle} target is visible in ${artifact}, then name the ${evidenceNoun} that proves it.`,
+    `Connect each ${concept} performance target to one inspectable change students make in ${artifact}.`,
+    `Use ${artifact} to test the objectives: students point to the ${evidenceNoun} behind each ${concept} decision.`,
+  ]);
+}
+
+export function slideAgendaOpening({ lessonNumber, concept, displayTitle }) {
+  return selectVariant(lessonNumber, [
+    `Walk through the lesson flow so students can see where ${concept}, practice, and feedback each appear in ${displayTitle}.`,
+    `Preview ${displayTitle} as a sequence: encounter ${concept}, test it in practice, then use feedback to revise.`,
+    `Map the ${displayTitle} work blocks and identify when students first explain, apply, and reconsider ${concept}.`,
+    `Show how ${displayTitle} moves from a ${concept} question to evidence work and a visible revision.`,
+    `Give students the ${displayTitle} route: examine ${concept}, make a choice, compare evidence, and improve the artifact.`,
+    `Orient ${displayTitle} around the decision students will make with ${concept} before and after feedback.`,
+  ]);
+}
+
+export function titleSlideExpectation({ lessonNumber, displayTitle, concept, artifact }) {
+  return selectVariant(lessonNumber, [
+    `Set the expectation that ${displayTitle} ends with one concrete ${concept} move students can use in ${artifact}.`,
+    `Students should leave ${displayTitle} able to apply ${concept} in one visible ${artifact} decision.`,
+    `Give ${displayTitle} a concrete destination: the class can show where ${concept} changes ${artifact}.`,
+    `By the end of ${displayTitle}, students should defend one ${concept} choice inside ${artifact}.`,
+    `Frame success for ${displayTitle} as an evidence-backed ${concept} revision to ${artifact}.`,
+    `Make the ${displayTitle} outcome inspectable: students point to the ${concept} move they added to ${artifact}.`,
+  ]);
+}
+
+export function slideFeedbackFallbackCopy({ lessonNumber, focus, hasDeterminer }) {
+  return selectVariant(lessonNumber, [
+    hasDeterminer
+      ? `Name one source detail about ${focus}, one limitation, and the revision it supports.`
+      : `Name one ${focus} source detail, one limitation, and the revision it supports.`,
+    `Identify a source detail about ${focus}, explain one limit on what it establishes, and make the corresponding revision.`,
+    `Point to evidence concerning ${focus}; qualify the claim, then revise the work accordingly.`,
+    `Choose one inspectable detail for ${focus}, state what it cannot prove, and use that boundary to improve the artifact.`,
+    `Connect one source cue about ${focus} to one bounded conclusion and one concrete revision.`,
+    `Use evidence about ${focus} to justify a revision while naming the claim's limitation.`,
+  ]);
+}
+
+export function slideTransitionCopy({ type, lessonNumber, nextCue, concept, evidenceNoun, decisionNoun, artifact }) {
+  const variants = {
+    agenda: [
+      `Before “${nextCue},” confirm students can name the ${concept} evidence they will use for ${artifact}.`,
+      `Move from the agenda into “${nextCue}” by asking which ${evidenceNoun} students need first for ${artifact}.`,
+      `At “${nextCue},” have students predict where ${concept} should change their work on ${artifact}.`,
+      `Use “${nextCue}” to convert the schedule into action: students identify the first ${concept} choice for ${artifact}.`,
+      `Bridge to “${nextCue}” with one readiness check about the ${evidenceNoun} required in ${artifact}.`,
+      `Open “${nextCue}” by naming the ${concept} question that the next artifact decision must answer.`,
+    ],
+    objectives: [
+      `Transition to “${nextCue}” by choosing one ${concept} objective to watch during practice.`,
+      `Carry one observable ${concept} target into “${nextCue}” and ask students how they will demonstrate it.`,
+      `Use “${nextCue}” to test the first objective against the ${evidenceNoun} students can actually inspect.`,
+      `Move into “${nextCue}” with students naming what successful ${concept} performance should look like.`,
+      `Select one ${concept} objective as the lens for “${nextCue},” then identify the evidence it requires.`,
+      `Before “${nextCue},” turn the objective into a concrete action students can show in ${artifact}.`,
+    ],
+    bridge: [
+      `Use that ${concept} carry-forward point to launch “${nextCue}” without restarting the lesson from scratch.`,
+      `Let the prior ${concept} insight become the opening evidence for “${nextCue}.”`,
+      `Enter “${nextCue}” by testing whether the earlier ${concept} decision still holds.`,
+      `Carry the unresolved ${concept} question directly into “${nextCue}” as the new problem.`,
+      `Open “${nextCue}” with the earlier evidence students must keep, revise, or reject.`,
+      `Make “${nextCue}” extend the previous ${concept} work instead of beginning a separate topic.`,
+    ],
+    keyTerm: [
+      `Move to “${nextCue}” by asking students where ${concept} would show up in ${artifact}.`,
+      `Test the ${concept} definition inside “${nextCue}” by locating one visible instance in ${artifact}.`,
+      `Carry ${concept} into “${nextCue}” and ask which ${evidenceNoun} makes the term useful.`,
+      `Use “${nextCue}” to move ${concept} from vocabulary into an artifact decision.`,
+      `Before “${nextCue},” have students predict what ${artifact} would look like without ${concept}.`,
+      `Open “${nextCue}” by applying ${concept} to one concrete detail in ${artifact}.`,
+    ],
+    content: [
+      `Move next to “${nextCue}” by naming how ${concept} changes the ${decisionNoun} for ${artifact}.`,
+      `Carry the strongest ${concept} explanation into “${nextCue}” and test it against ${artifact}.`,
+      `Use “${nextCue}” to decide which ${evidenceNoun} from the explanation should alter ${artifact}.`,
+      `Before “${nextCue},” ask students to state the ${concept} inference their artifact must make visible.`,
+      `Let “${nextCue}” challenge the current ${concept} account with one competing piece of evidence.`,
+      `Enter “${nextCue}” by turning the ${concept} explanation into a defensible ${artifact} choice.`,
+    ],
+    example: [
+      `Carry the strongest ${concept} detail into “${nextCue}” as the next piece of evidence for ${artifact}.`,
+      `Use the example to open “${nextCue}”: students identify the detail that should revise ${artifact}.`,
+      `Move into “${nextCue}” by separating what the ${concept} example proves from what it leaves uncertain.`,
+      `At “${nextCue},” have students transfer one evidence-backed move from the example to ${artifact}.`,
+      `Bridge from the example to “${nextCue}” with the ${concept} choice students can now defend.`,
+      `Make “${nextCue}” test whether the example's ${evidenceNoun} still applies in ${artifact}.`,
+    ],
+    activity: [
+      `Use one ${artifact} revision as the bridge into “${nextCue}.”`,
+      `Open “${nextCue}” with the activity output students most need to explain or revise.`,
+      `Carry one visible ${concept} decision from the activity into “${nextCue}.”`,
+      `Before “${nextCue},” have pairs select the ${artifact} change their evidence best supports.`,
+      `Use “${nextCue}” to compare two activity results and decide which should shape ${artifact}.`,
+      `Transition through the activity's unresolved question, making it the first task in “${nextCue}.”`,
+    ],
+    discussion: [
+      `Close the exchange by selecting the ${concept} claim that should guide “${nextCue}.”`,
+      `Carry the most defensible discussion claim into “${nextCue}” and name its supporting ${evidenceNoun}.`,
+      `Use “${nextCue}” to test the point of disagreement that remains about ${concept}.`,
+      `Before “${nextCue},” ask the group which ${concept} interpretation should change ${artifact} and why.`,
+      `Let the discussion's strongest counterpoint become the opening challenge in “${nextCue}.”`,
+      `Move to “${nextCue}” with one qualified ${concept} conclusion students can now defend.`,
+    ],
+    summary: [
+      `Use the ${concept} self-check result to decide what needs reinforcement in “${nextCue}.”`,
+      `Open “${nextCue}” with the ${concept} point students were least ready to explain.`,
+      `Carry the summary's strongest evidence into “${nextCue}” and revisit the weakest inference.`,
+      `Let the exit response determine which ${concept} question starts “${nextCue}.”`,
+      `Use “${nextCue}” to address the gap students named in their ${artifact} self-check.`,
+      `Move forward with the ${concept} conclusion students can support and the boundary they still need to test.`,
+    ],
+    closing: [
+      `Point students to “${nextCue}” as the next place their ${artifact} revision decision will matter.`,
+      `Connect the final ${concept} choice to the first artifact move students will make in “${nextCue}.”`,
+      `Use “${nextCue}” as the transfer test for today's strongest ${evidenceNoun}.`,
+      `Close by naming what students should carry into “${nextCue}” and what they should leave unresolved.`,
+      `Have students enter “${nextCue}” with one ${artifact} revision and the evidence that justified it.`,
+      `Frame “${nextCue}” as the next chance to apply, qualify, or replace today's ${concept} conclusion.`,
+    ],
+  };
+  return selectVariant(
+    lessonNumber,
+    variants[type] || [`Move next to “${nextCue}” by naming how it changes the ${decisionNoun}.`],
+  );
 }

@@ -157,14 +157,14 @@ describe('source-backed UX assessment bank', () => {
     const courseMap = structuredClone(UX_COURSE_MAP);
     courseMap.lessons[7].sections[0].supportingResources = 'Digitalgov:task Flow §what (open textbook)';
     const linked = linkUxCourse();
-    const lessonOneContent = structuredClone(linked.lessonContent['lesson-2']);
-    lessonOneContent.quizItems[0].options[1] = 'Test_Hypothesis';
+    const lessonTwoContent = structuredClone(linked.lessonContent['lesson-2']);
+    lessonTwoContent.quizItems[0].options[1] = 'Test_Hypothesis';
     const blueprint = buildCourseBlueprint(courseMap, {
       enrichment: {
         source: 'ux-quiz-humanization-regression',
         lessonContent: {
           ...linked.lessonContent,
-          'lesson-1': lessonOneContent,
+          'lesson-2': lessonTwoContent,
         },
         genomeTelemetry: linked.telemetry,
       },
