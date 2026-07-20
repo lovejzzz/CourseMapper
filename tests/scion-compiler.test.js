@@ -30,6 +30,47 @@ import { isAppliedQuizStem } from '../src/lib/quality/quizItemDepth';
 import { assessScionKeyTerm } from '../src/lib/scionPreferenceGate';
 
 describe('Scion-native compiler (V2.1 Workstream D)', () => {
+  it('normalizes a stray terminal schema marker before learner-facing projection', async () => {
+    const raw = JSON.stringify({
+      lessons: [
+        {
+          lessonId: 'lesson-1',
+          facts: ['Carbohydrates supply necessary energy for daily activities.'],
+          keyTerms: [],
+          scenario: { su: '', ma: '' },
+          mc: [
+            {
+              q: 'Which statement is supported by the observed function?$',
+              op: [
+                'Carbohydrates supply necessary energy',
+                'Minerals supply necessary energy',
+                'Water supplies daily energy',
+                'Fiber supplies daily energy',
+              ],
+              ai: 0,
+              fi: [0],
+              ex: 'Carbohydrates supply necessary energy for daily activities.',
+            },
+          ],
+        },
+      ],
+    });
+    const result = await applyScionKernelPasses(raw, {
+      promptLessons: [{ lessonId: 'lesson-1', title: 'Lesson 1: Carbohydrates', topics: 'Carbohydrates and energy' }],
+      generateJson: async () => JSON.stringify({ repairs: [] }),
+      expectedMcCount: 0,
+      minimumKeyTermCount: 0,
+      maxCallsPerLesson: 1,
+      verifyDraftMcWithSameModel: false,
+      verifyRepairMcWithSameModel: false,
+      skipImprovementOnlyPasses: true,
+    });
+    expect(JSON.parse(result.text).lessons[0].mc[0].q).toBe('Which statement is supported by the observed function?');
+    expect(result.events).toContainEqual(
+      expect.objectContaining({ pass: 'surfaceNormalization', reason: 'terminal-schema-marker' }),
+    );
+  });
+
   it('D1: Pass B runs per-lesson for the local provider', () => {
     const size = getAdaptiveNativePassBBatchSize({
       lessonCount: 7,

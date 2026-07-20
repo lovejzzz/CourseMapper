@@ -173,8 +173,27 @@ function normalizeOptionLabels(options) {
     : options;
 }
 
-function normalizeMcOptionLabels(lesson) {
+function normalizeMcSurfaces(lesson, events = []) {
   for (const item of Array.isArray(lesson?.mc) ? lesson.mc : []) {
+    if (!item || typeof item !== 'object') continue;
+    const originalQuestion = String(item.q || '');
+    const normalizedQuestion = originalQuestion
+      .replace(/\s+/g, ' ')
+      .trim()
+      // Gemma occasionally emits a JSON-schema end marker as a literal final
+      // dollar sign ("Which statement is supported?$"). It has no subject
+      // meaning after terminal punctuation and must never reach learners.
+      .replace(/([.!?])\$$/, '$1');
+    if (normalizedQuestion !== originalQuestion) {
+      item.q = normalizedQuestion;
+      events.push({
+        pass: 'surfaceNormalization',
+        lessonId: lesson?.lessonId,
+        action: 'repaired',
+        reason: 'terminal-schema-marker',
+        trainingEligible: false,
+      });
+    }
     if (!Array.isArray(item?.op)) continue;
     item.op = normalizeOptionLabels(item.op);
   }
@@ -1231,7 +1250,7 @@ export async function applyScionKernelPasses(
 
   for (const lesson of lessons) {
     if (contentSourced.has(lesson?.lessonId)) continue; // library content — never touched
-    normalizeMcOptionLabels(lesson);
+    normalizeMcSurfaces(lesson, events);
     const promptLesson = promptLessons.find((entry) => entry?.lessonId === lesson?.lessonId) ?? null;
     const callLimit = Math.max(1, Math.floor(Number(maxCallsPerLesson) || SCION_PASS_CALL_BUDGET_PER_LESSON));
     let callsUsed = 0;
@@ -1306,7 +1325,7 @@ export async function applyScionKernelPasses(
     // A bounded replacement can arrive after the initial normalization. Keep
     // exporter-owned A/B/C/D labels out of the stored options regardless of
     // which repair pass authored the final item.
-    normalizeMcOptionLabels(lesson);
+    normalizeMcSurfaces(lesson, events);
   }
   return { text: JSON.stringify(parsed), events };
 }

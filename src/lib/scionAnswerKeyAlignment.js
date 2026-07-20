@@ -494,6 +494,29 @@ export function findScionSourceAnswerSupport(item = {}, { sourceClaims = [], str
     return null;
   }
 
+  const pairedRelationQuestion =
+    /\b(?:comparison|distinction|differentiate|match(?:es|ing)?|observations?)\b/i.test(normalized.question) &&
+    normalized.options.some((option) => pairedRelationSegments(option).length >= 2);
+  if (pairedRelationQuestion) {
+    const pairedScores = normalized.options.map((option) =>
+      pairedRelationAssignmentIsSupported(option, claims) ? 1 : 0,
+    );
+    const supported = pairedScores.map((score, index) => (score === 1 ? index : -1)).filter((index) => index >= 0);
+    if (supported.length === 1) {
+      return {
+        declaredIndex: normalized.answerIndex,
+        supportedIndex: supported[0],
+        scores: pairedScores,
+        containment: pairedScores,
+        supportMethod: 'source-paired-relation-alignment',
+        sourceAlignmentProfile: strict ? 'strict-cited-source' : 'default-source',
+        relevantSourceClaimIndexes: claims.map((_, index) => index),
+        questionClaimScore: null,
+        thresholds: { completePairedAssignmentsRequired: 2 },
+      };
+    }
+  }
+
   const questionTokens = sourceAlignmentTokens(normalized.question);
   const claimScores = claims.map((claim, index) => {
     const tokens = sourceAlignmentTokens(claim);
@@ -941,6 +964,80 @@ function relationDestinationTokens(value) {
   return match ? sourceAlignmentTokens(match[1]) : new Set();
 }
 
+const PAIRED_RELATION_VERB_RE =
+  /\b(?:is|are|become|becomes|classify|classifies|contain|contains|describe|describes|include|includes|maintain|maintains|provide|provides|regulate|regulates|require|requires|supply|supplies|support|supports|use|uses)\b/i;
+
+function pairedRelationVerbGroup(value) {
+  const verb = clean(value).toLowerCase();
+  if (/^(?:provide|provides|supply|supplies)$/.test(verb)) return 'furnish';
+  if (/^(?:maintain|maintains|regulate|regulates|support|supports)$/.test(verb)) return 'sustain';
+  if (/^(?:is|are|become|becomes)$/.test(verb)) return 'copula';
+  return verb.replace(/(?:es|s)$/, '');
+}
+
+function pairedRelationSegments(value) {
+  const clauses = clean(stripOptionLabel(value))
+    .split(/\s*;\s*/)
+    .map(clean)
+    .filter(Boolean);
+  if (clauses.length < 2) return [];
+  return clauses
+    .map((clause) => {
+      const colon = clause.split(/\s*:\s*/, 2);
+      if (colon.length === 2 && colon.every(Boolean)) return { subject: colon[0], object: colon[1], relation: '' };
+      const verb = clause.match(PAIRED_RELATION_VERB_RE);
+      if (!verb || !Number.isInteger(verb.index) || verb.index < 1) return null;
+      const subject = clean(clause.slice(0, verb.index));
+      const object = clean(clause.slice(verb.index + verb[0].length));
+      return subject && object ? { subject, object, relation: pairedRelationVerbGroup(verb[0]) } : null;
+    })
+    .filter(Boolean);
+}
+
+/**
+ * Verify compact two-part assignments without losing who does what.
+ * Bag-of-words overlap cannot distinguish a correct relation from the same
+ * nouns and predicates swapped between subjects.
+ */
+function pairedRelationAssignmentIsSupported(option, claims = []) {
+  const segments = pairedRelationSegments(option);
+  if (segments.length < 2) return false;
+  const sourceClauses = claims
+    .flatMap((claim) => clean(claim).split(/\s*(?:[.;]|\b(?:whereas|while)\b)\s*/i))
+    .map((clause) => ({
+      tokens: sourceAlignmentTokens(clause),
+      relations: new Set(
+        [...clause.matchAll(new RegExp(PAIRED_RELATION_VERB_RE, 'gi'))].map((match) =>
+          pairedRelationVerbGroup(match[0]),
+        ),
+      ),
+    }))
+    .filter(({ tokens }) => tokens.size > 0);
+  return segments.every((segment) => {
+    const subjectTokens = sourceAlignmentTokens(segment.subject);
+    const objectTokens = sourceAlignmentTokens(segment.object);
+    if (subjectTokens.size === 0 || objectTokens.size === 0) return false;
+    return sourceClauses.some(({ tokens, relations }) => {
+      const objectOverlap = tokenOverlap(objectTokens, tokens);
+      const relationMatches = !segment.relation || relations.has(segment.relation);
+      return (
+        relationMatches &&
+        tokenOverlap(subjectTokens, tokens) >= 1 &&
+        objectOverlap / Math.max(1, objectTokens.size) >= 0.8
+      );
+    });
+  });
+}
+
+function findPairedRelationSupport(normalized, evidence = '') {
+  if (!clean(evidence) || !normalized.options.some((option) => pairedRelationSegments(option).length >= 2)) {
+    return null;
+  }
+  const scores = normalized.options.map((option) => (pairedRelationAssignmentIsSupported(option, [evidence]) ? 1 : 0));
+  const supported = scores.map((score, index) => (score === 1 ? index : -1)).filter((index) => index >= 0);
+  return supported.length === 1 ? { supportedIndex: supported[0], scores } : null;
+}
+
 /**
  * Detect when the affirmative first sentence clearly supports a different
  * displayed option. This is deliberately narrower than open-ended semantic
@@ -963,6 +1060,18 @@ export function findScionAffirmativeOptionConflict(item = {}) {
       .match(/^.*?[.!?](?=\s|$)/)?.[0]
       ?.trim() || clean(normalized.explanation);
   if (!firstSentence || EXPLANATION_NEGATIVE_EVIDENCE_RE.test(firstSentence)) return null;
+  const pairedSupport = findPairedRelationSupport(normalized, firstSentence);
+  if (pairedSupport) {
+    if (pairedSupport.supportedIndex === normalized.answerIndex) return null;
+    return {
+      declaredIndex: normalized.answerIndex,
+      supportedIndex: pairedSupport.supportedIndex,
+      scores: pairedSupport.scores,
+      containment: pairedSupport.scores,
+      supportMethod: 'affirmative-paired-relation-conflict',
+      evidenceSentence: firstSentence,
+    };
+  }
   const affirmative = firstSentence
     .replace(/^\s*(?:the\s+)?(?:correct|best)\s+(?:option|choice|answer)\s*(?:is|was|:|,)\s*(?:that\s+)?/i, '')
     .trim();
@@ -1390,6 +1499,22 @@ export function findScionExplanationKeyConflict(
     !normalized.explanation
   ) {
     return null;
+  }
+  const firstSentence =
+    clean(normalized.explanation)
+      .match(/^.*?[.!?](?=\s|$)/)?.[0]
+      ?.trim() || clean(normalized.explanation);
+  const pairedSupport = findPairedRelationSupport(normalized, firstSentence);
+  if (pairedSupport) {
+    if (pairedSupport.supportedIndex === normalized.answerIndex) return null;
+    return {
+      declaredIndex: normalized.answerIndex,
+      supportedIndex: pairedSupport.supportedIndex,
+      scores: pairedSupport.scores,
+      supportMethod: 'affirmative-paired-relation-conflict',
+      explicitCues: [],
+      evidenceSentence: firstSentence,
+    };
   }
   if (allowExplicitCues) {
     const explicitCue = findExplicitExplanationAnswerCue(normalized, {

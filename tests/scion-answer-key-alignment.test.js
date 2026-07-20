@@ -9,6 +9,8 @@ import {
   findScionMultipleExplanationSupportedOptions,
   findScionMultipleSourceSupportedOptions,
   findScionNearDuplicateOptionPair,
+  findScionSourceAnswerConflict,
+  findScionSourceAnswerSupport,
   findScionUnsupportedScopeOption,
   repairScionEnrichmentAnswerKeys,
   repairScionMcItem,
@@ -371,6 +373,32 @@ describe('Scion MC contract recovery', () => {
         allowBroadSourceContext: true,
       }),
     ).toBeNull();
+  });
+
+  it('binds semicolon relation subjects before source alignment can prefer a role-swapped distractor', () => {
+    const sourceClaims = [
+      "Simple carbohydrates provide readily available energy sources for the body's immediate needs.",
+      'Major minerals and electrolytes maintain fluid balance and support nerve and muscle function effectively.',
+    ];
+    const item = {
+      q: 'A comparison notes that simple carbohydrates provide readily available energy sources, while major minerals and electrolytes maintain fluid balance. Which distinction matches these observations?',
+      op: [
+        'Carbohydrates maintain fluid balance; minerals supply energy',
+        'Carbohydrates supply energy; minerals support fluid balance',
+        'Minerals maintain fluid balance; carbohydrates support nerve function',
+        'Carbohydrates support energy; minerals supply fluid balance',
+      ],
+      ai: 1,
+      ex: 'Simple carbohydrates provide immediate energy, while major minerals and electrolytes maintain fluid balance.',
+    };
+
+    expect(findScionSourceAnswerSupport(item, { sourceClaims, strict: true })).toMatchObject({
+      declaredIndex: 1,
+      supportedIndex: 1,
+      supportMethod: 'source-paired-relation-alignment',
+      scores: [0, 1, 0, 0],
+    });
+    expect(findScionSourceAnswerConflict(item, { sourceClaims, strict: true })).toBeNull();
   });
 
   it('does not confuse source-supported distractor facts with answers to a narrower subject match', () => {
