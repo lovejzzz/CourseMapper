@@ -887,6 +887,45 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     });
   });
 
+  it('D3: structures separated Hanzi and Pinyin so the compiler can project a visible learner pair', async () => {
+    const calls = [];
+    const result = await applyScionKernelPasses(
+      JSON.stringify({
+        lessons: [
+          {
+            lessonId: 'lesson-4',
+            facts: [
+              '你好 is the target-script greeting used for a basic introduction.',
+              'The tone-marked form nǐ hǎo records its Mandarin pronunciation.',
+            ],
+            mc: [],
+          },
+        ],
+      }),
+      {
+        courseName: 'Elementary Mandarin Chinese I',
+        promptLessons: [{ lessonId: 'lesson-4', title: 'Numbers and Dates', topics: 'Numbers; Age; Dates' }],
+        maxCallsPerLesson: 1,
+        generateJson: async ({ schemaProfile }) => {
+          calls.push(schemaProfile.name);
+          return JSON.stringify({ hanzi: '四月', pinyin: 'sì yuè', english: 'April' });
+        },
+      },
+    );
+
+    const lesson = JSON.parse(result.text).lessons[0];
+    expect(lesson.facts).toHaveLength(2);
+    expect(lesson.targetLanguagePair).toEqual({ hanzi: '四月', pinyin: 'sì yuè', english: 'April' });
+    expect(calls).toEqual(['target_language_pair_repair']);
+    expect(result.events).toContainEqual({
+      pass: 'languageIdentity',
+      lessonId: 'lesson-4',
+      action: 'repaired',
+      reason: 'hanzi-pinyin-pair',
+      trainingEligible: false,
+    });
+  });
+
   it('D3: never guesses a missing lesson id when the response or prompt is ambiguous', async () => {
     const raw = JSON.stringify({ lessons: [{ goal: 'First' }] });
     const result = await applyScionKernelPasses(raw, {

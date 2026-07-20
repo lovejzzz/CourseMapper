@@ -1603,7 +1603,7 @@ const server = http.createServer(async (req, res) => {
     try {
       fs.appendFileSync(
         BODY_LOG,
-        `${JSON.stringify({ url: req.url, system, user, response: text, modelMetrics, adapterRoute: routeEvidence, ...(jsonClosureRepair ? { jsonClosureRepair } : {}), ...(generationError ? { error: generationError } : {}) })}\n`,
+        `${JSON.stringify({ url: req.url, system, user, originalCompilerUser, response: text, modelMetrics, adapterRoute: routeEvidence, ...(jsonClosureRepair ? { jsonClosureRepair } : {}), ...(generationError ? { error: generationError } : {}) })}\n`,
       );
     } catch (error) {
       bodyLogError = String(error?.message || error).slice(0, 500);

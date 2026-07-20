@@ -326,6 +326,7 @@
     "audit:scion:adapter:production": "node scripts/scionAdapterProductionCanaryPromotionAudit.mjs",
     "audit:scion:adapter:canaries:contract": "node scripts/scionAdapterCanaryPromotionContractAudit.mjs",
     "capture:scion:adapter:pairs": "node scripts/scionAdapterPairedEvidence.mjs",
+    "audit:scion:matched-kernel-autopsy": "npx vite-node scripts/scionMatchedKernelAutopsy.mjs",
     "audit:scion:browser-base": "node scripts/scionBrowserBaseAudit.mjs",
     "audit:scion:browser-lora": "node scripts/scionBrowserLoraRuntimeAudit.mjs",
     "audit:scion:browser-adapter-smoke": "node scripts/scionBrowserAdapterSmokeAudit.mjs",

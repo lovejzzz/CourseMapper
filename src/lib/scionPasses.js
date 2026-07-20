@@ -1118,7 +1118,9 @@ async function targetLanguageIdentityGate(lesson, promptLesson, courseName, gene
     sourceText,
     text: JSON.stringify(lesson),
   });
-  if (!before.required || before.complete) return;
+  const missingVisiblePair = before.required && !before.pinyinOnly && before.complete && !before.paired;
+  if (!before.required || (before.complete && !missingVisiblePair)) return;
+  const repairReason = missingVisiblePair ? 'hanzi-pinyin-pair' : before.missing.join(',');
   if (before.pinyinOnly) {
     events.push({
       pass: 'languageIdentity',
@@ -1149,7 +1151,7 @@ async function targetLanguageIdentityGate(lesson, promptLesson, courseName, gene
     const english = String(pair?.english || '').trim();
     const evidence = `${hanzi} (${pinyin}) means ${english}.`;
     const after = assessTargetLanguagePresence({ courseIdentity: courseName, sourceText, text: evidence });
-    if (!after.complete) throw new Error('repair did not contain a valid Hanzi/Pinyin pair');
+    if (!after.complete || !after.paired) throw new Error('repair did not contain a valid Hanzi/Pinyin pair');
     // Facts are the immutable warrant for every cited teaching atom. Keep the
     // repaired language example beside that ledger instead of appending a new
     // uncited fact (which also turned a valid five-fact compact kernel into an
@@ -1160,7 +1162,7 @@ async function targetLanguageIdentityGate(lesson, promptLesson, courseName, gene
       pass: 'languageIdentity',
       lessonId: lesson.lessonId,
       action: 'repaired',
-      reason: before.missing.join(','),
+      reason: repairReason,
       trainingEligible: false,
     });
   } catch {
@@ -1168,7 +1170,7 @@ async function targetLanguageIdentityGate(lesson, promptLesson, courseName, gene
       pass: 'languageIdentity',
       lessonId: lesson.lessonId,
       action: 'failed',
-      reason: before.missing.join(','),
+      reason: repairReason,
       trainingEligible: false,
     });
   }

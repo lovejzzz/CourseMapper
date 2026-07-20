@@ -92,9 +92,31 @@ export function selectNativeContentSources(lessonIndices, lessonContent = {}, pa
 
 export function pickNativeKernel(previous, candidate) {
   if (!previous) return candidate;
-  return assessProjectedKernelCoverage(candidate).score >= assessProjectedKernelCoverage(previous).score
-    ? candidate
-    : previous;
+  // Thin genome overlays deliberately remain in `lessonContent` while the
+  // model authors the missing semantic backbone. Comparing only the seven
+  // optional-surface checks let a citation-rich but unusable partial outrank
+  // a compact model kernel that becomes usable after deterministic surface
+  // completion. Recovery then generated the same lesson again and discarded
+  // it again. Rank the state users can actually receive: usability after the
+  // compiler's evidence-preserving completion comes before saturation score.
+  const rank = (payload) => {
+    const completed = completeNativeKernelSurfaces(payload);
+    const coverage = assessProjectedKernelCoverage(completed);
+    return [
+      coverage.usable ? 1 : 0,
+      coverage.complete ? 1 : 0,
+      coverage.score,
+      Math.min(8, coverage.factCount + coverage.keyTermCount),
+      Math.min(4, coverage.quizItemCount),
+    ];
+  };
+  const previousRank = rank(previous);
+  const candidateRank = rank(candidate);
+  for (let index = 0; index < candidateRank.length; index += 1) {
+    if (candidateRank[index] > previousRank[index]) return candidate;
+    if (candidateRank[index] < previousRank[index]) return previous;
+  }
+  return candidate;
 }
 
 /**
