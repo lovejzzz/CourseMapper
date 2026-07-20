@@ -540,6 +540,30 @@ describe('kernel parse → project → compile (end to end)', () => {
     expect(courseLevel.quality.source).toBe('kernel-chunk-1');
   });
 
+  it('does not project a long lesson title returned as a glossary term', () => {
+    const prompt = buildLessonKernelPrompt(COURSE_MAP, [0]);
+    const response = JSON.parse(shortKeyResponse);
+    const titleEcho = 'Climate Science Foundations and the Justice Lens';
+    response.lessons[0].keyTerms.unshift({
+      tr: titleEcho,
+      df: 'This full schedule label was mistakenly returned as if it were one reusable disciplinary concept.',
+      eg: 'The course schedule uses the full phrase to identify the lesson and its justice perspective.',
+      mi: 'Students may treat the schedule label itself as the scientific mechanism.',
+      cx: 'Use greenhouse effect, albedo, or radiative forcing as the reusable concepts instead.',
+    });
+
+    const parsed = parseLessonKernelResponse(JSON.stringify(response), { prompt });
+    const payload = parsed.lessons['lesson-1'];
+    const constructedText = JSON.stringify(payload.quizItems.filter((item) => item.type !== 'multiple_choice'));
+
+    expect(payload.keyTerms.map((term) => term.term)).not.toContain(titleEcho);
+    expect(payload.keyTerms.map((term) => term.term)).toEqual(
+      expect.arrayContaining(['Greenhouse effect', 'Albedo', 'Radiative forcing']),
+    );
+    expect(constructedText).not.toContain(titleEcho);
+    expect(constructedText).toContain('Greenhouse effect');
+  });
+
   it('rejects an explanation-key conflict when only lexical overlap supports moving the key', () => {
     const prompt = buildLessonKernelPrompt(COURSE_MAP, [0]);
     const response = JSON.parse(shortKeyResponse);

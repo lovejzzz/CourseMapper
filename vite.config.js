@@ -41,8 +41,11 @@ export default defineConfig({
           )
             return 'scionRuntime';
           if (/src\/lib\/quality\/quizItemDepth\.js$/.test(id)) return 'quizItemDepth';
-          if (/src\/lib\/(?:bayesianQuizFrames|musicTheoryQuizFrames|courseCompilerCopyVariants)\.js$/.test(id))
-            return 'compilerFrames';
+          if (/src\/lib\/(?:bayesianQuizFrames|musicTheoryQuizFrames)\.js$/.test(id)) return 'compilerFrames';
+          // Rotating instructional prose is data, not compiler control flow.
+          // Keep it independently cacheable so adding texture does not make
+          // the disciplinary frame chunk pay the parsing/invalidation cost.
+          if (/src\/lib\/courseCompilerCopyVariants\.js$/.test(id)) return 'compilerCopyVariants';
         },
       },
     },

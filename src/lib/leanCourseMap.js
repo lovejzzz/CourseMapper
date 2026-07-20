@@ -374,7 +374,7 @@ function poolReflectsObjective(poolWords, objectiveWords) {
   return objectiveWords.some((objectiveWord) => poolWords.some((poolWord) => wordsShareStem(poolWord, objectiveWord)));
 }
 
-function deriveEvaluateDesign(section) {
+export function deriveEvaluateDesign(section) {
   const objectives = cellLines(section.learningObjectives).filter((line) => !/^students will be able to/i.test(line));
   const assessmentLines = cellLines(section.weeklyAssessments);
   const activityLines = [...cellLines(section.syncActivities), ...cellLines(section.asyncActivities)];

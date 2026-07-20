@@ -1090,6 +1090,11 @@ Respond with JSON only, exactly this shape:
       count: 3,
       continuation: true,
     });
+    expect(extractPublicScionLessonWindow('Generate ONLY Lessons 4-6.')).toEqual({
+      start: 4,
+      count: 3,
+      continuation: true,
+    });
 
     const messages = buildPublicScionMessages('system', 'Create a 3-lesson music theory course.');
     expect(messages[1].content).toContain('Create 3 compact CourseMapper lessons');
@@ -1146,6 +1151,39 @@ Generate lessons 4 through 6 now as JSON:`;
     expect(messages[1].content).toContain('- Lesson 4: unemployment and labor markets');
     expect(messages[1].content).toContain('- Lesson 6: fiscal and monetary policy comparison');
     expect(messages[1].content).toContain('substitution is not');
+  });
+
+  it('treats a user-authored “with these lessons” list as the exact Scion plan', () => {
+    const source =
+      'Create a 6-week college World Literature course with these lessons: World Literature Scope; Oral Epic Tradition using Gilgamesh; Homeric Epic using The Odyssey; Classical Drama using Antigone; Tang Poetry using selected poems by Li Bai and Du Fu; and Frame Narratives using The Thousand and One Nights. Focus on textual analysis.';
+
+    expect(extractPublicScionExplicitTopicSequence(source)).toEqual([
+      'World Literature Scope',
+      'Oral Epic Tradition using Gilgamesh',
+      'Homeric Epic using The Odyssey',
+      'Classical Drama using Antigone',
+      'Tang Poetry using selected poems by Li Bai and Du Fu',
+      'Frame Narratives using The Thousand and One Nights',
+    ]);
+    const messages = buildPublicScionMessages('system', source);
+    expect(messages[1].content).toContain('- Lesson 1: World Literature Scope');
+    expect(messages[1].content).toContain('- Lesson 3: Homeric Epic using The Odyssey');
+
+    const continuation = `This Course Map has 3 of 6 lessons.
+
+Existing lessons:
+1. Lesson 1: World Literature Scope
+2. Lesson 2: Oral Epic Tradition using Gilgamesh
+3. Lesson 3: Homeric Epic using The Odyssey
+
+Generate ONLY Lessons 4-6.
+
+LATER SYLLABUS CONTENT:
+${source}`;
+    const continuationMessages = buildPublicScionMessages('system', continuation);
+    expect(continuationMessages[1].content).toContain('- Lesson 4: Classical Drama using Antigone');
+    expect(continuationMessages[1].content).toContain('- Lesson 6: Frame Narratives using The Thousand and One Nights');
+    expect(continuationMessages[1].content).toContain('FINAL WINDOW: Lessons 4-6 of 6');
   });
 
   it('marks the last continuation as a final window and pins the final source item', () => {

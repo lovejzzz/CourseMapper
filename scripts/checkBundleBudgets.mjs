@@ -145,6 +145,11 @@ const lazyChunkBudgets = [
   // compiler into this already-required frame chunk. This improves parsing
   // and cache locality without adding another generation-time request.
   { prefix: 'compilerFrames-', rawKiB: 51, gzipKiB: 17 },
+  // v0.16.63: rotating slide, study-guide, and assessment language is data,
+  // not compiler control flow. It is isolated from compilerFrames so writing
+  // texture can evolve without invalidating disciplinary logic. The chunk is
+  // workspace-only and first loads with compilation (measured 21.2/7.4).
+  { prefix: 'compilerCopyVariants-', rawKiB: 22, gzipKiB: 8 },
   { prefix: 'DeliverableView-', rawKiB: 170, gzipKiB: 35 },
   { prefix: 'DeveloperModePanel-', rawKiB: 130, gzipKiB: 35 },
   // v0.9.1: +3 KiB raw for the pre-export checklist (localization gaps +
@@ -194,6 +199,7 @@ const forbiddenInitialChunks = [
   // restore the extra startup download.
   /livingCompilerRibbon/i,
   /compilerFrames/i,
+  /compilerCopyVariants/i,
   /webllm/i,
   /deepQualityGrader/i,
   /finalizeQualityGate/i,

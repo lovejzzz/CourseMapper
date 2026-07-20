@@ -14,6 +14,7 @@
 
 import { buildCourseBlueprint } from '../courseBlueprintCompiler.js';
 import { detectForeignLanguageTeachingContent } from '../languageIdentityGuard.js';
+import { sanitizeGenomeEnrichmentForLesson, semanticIdentityTokens } from '../lessonSemanticRelevance.js';
 import { repairScionEnrichmentAnswerKeys } from '../scionAnswerKeyAlignment.js';
 import { renderCourseMapFromGraph } from './renderCourseMap.js';
 
@@ -131,7 +132,7 @@ const KNOWLEDGE_BACKBONE_ORIGINS = new Set([
 
 function compilerSafeKnowledgeGraph(graph) {
   const courseIdentity = graph?.course?.name || graph?.courseName || graph?.title || '';
-  const rejectedIds = new Set(
+  const foreignLanguageResourceIds = new Set(
     (graph?.resources || [])
       .filter((resource) => KNOWLEDGE_BACKBONE_ORIGINS.has(resource?.origin))
       .filter((resource) =>
@@ -145,17 +146,75 @@ function compilerSafeKnowledgeGraph(graph) {
       .map((resource) => resource.id)
       .filter(Boolean),
   );
-  if (rejectedIds.size === 0) return graph;
+  const lessonContent = graph?.enrichmentOverlay?.lessonContent || {};
+  const renderedLessons = renderCourseMapFromGraph(graph)?.lessons || [];
+  const resourcesById = new Map((graph?.resources || []).map((resource) => [resource.id, resource]));
+  const originallyReferencedResourceIds = new Set(
+    (graph?.sessions || []).flatMap((session) =>
+      (session.sections || []).flatMap((section) => section.resourceRefs || []),
+    ),
+  );
+  let changed = foreignLanguageResourceIds.size > 0;
+  const retainedResourceIds = new Set();
+
+  const resourceMatchesRejectedGenomeContent = (resource, receipt) => {
+    if (!resource || !KNOWLEDGE_BACKBONE_ORIGINS.has(resource.origin)) return false;
+    const rejectedConceptIds = new Set(receipt.rejectedConceptIds || []);
+    if (
+      (resource.conceptLinks || []).some((link) => rejectedConceptIds.has(typeof link === 'string' ? link : link?.id))
+    ) {
+      return true;
+    }
+    const resourceTokens = new Set(
+      semanticIdentityTokens(
+        [resource.title, resource.citation, resource.attribution, resource.dedupeKey, resource.evidence]
+          .filter(Boolean)
+          .join(' '),
+      ),
+    );
+    return (receipt.rejectedGenomeTerms || []).some((term) => {
+      const termTokens = semanticIdentityTokens(term);
+      const distinguishingTokens = termTokens.filter(
+        (token) => !['analysi', 'concept', 'form', 'literary', 'poetic', 'read', 'theory'].includes(token),
+      );
+      return distinguishingTokens.some((token) => resourceTokens.has(token));
+    });
+  };
+
+  const sessions = (graph?.sessions || []).map((session, index) => {
+    const lesson = renderedLessons[index] || session;
+    const payload = lessonContent[`lesson-${session.number || index + 1}`] || lessonContent[session.id] || null;
+    const semanticReceipt = sanitizeGenomeEnrichmentForLesson(lesson, payload).receipt;
+    let sessionChanged = false;
+    const sections = (session.sections || []).map((section) => {
+      const resourceRefs = (section.resourceRefs || []).filter((id) => {
+        if (foreignLanguageResourceIds.has(id)) {
+          sessionChanged = true;
+          return false;
+        }
+        if (resourceMatchesRejectedGenomeContent(resourcesById.get(id), semanticReceipt)) {
+          sessionChanged = true;
+          return false;
+        }
+        retainedResourceIds.add(id);
+        return true;
+      });
+      return resourceRefs.length === (section.resourceRefs || []).length ? section : { ...section, resourceRefs };
+    });
+    if (!sessionChanged) return session;
+    changed = true;
+    return { ...session, sections };
+  });
+
+  if (!changed) return graph;
   return {
     ...graph,
-    resources: (graph.resources || []).filter((resource) => !rejectedIds.has(resource?.id)),
-    sessions: (graph.sessions || []).map((session) => ({
-      ...session,
-      sections: (session.sections || []).map((section) => ({
-        ...section,
-        resourceRefs: (section.resourceRefs || []).filter((id) => !rejectedIds.has(id)),
-      })),
-    })),
+    resources: (graph.resources || []).filter((resource) => {
+      if (foreignLanguageResourceIds.has(resource?.id)) return false;
+      if (!KNOWLEDGE_BACKBONE_ORIGINS.has(resource?.origin)) return true;
+      return !originallyReferencedResourceIds.has(resource?.id) || retainedResourceIds.has(resource?.id);
+    }),
+    sessions,
   };
 }
 

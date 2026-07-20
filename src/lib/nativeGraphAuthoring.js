@@ -52,6 +52,7 @@ import { repairNativeFallbackWithCurriculumV1 } from './curriculumV1Repair.js';
 import { dedupeNumberedAssessmentEcho } from './compilerText.js';
 import { assessTargetLanguagePresence, detectForeignLanguageTeachingContent } from './languageIdentityGuard.js';
 import { NATIVE_PASS_B_AUTHORING_ADDITION } from './prompts';
+import { extractExplicitLessonSequence } from './explicitLessonSequence';
 export { AUTHORING_MODE_STORAGE_KEY, readAuthoringMode, saveAuthoringMode } from './authoringMode.js';
 
 // ── Typed failure: the degraded-plan guard ──────────────────────────────────
@@ -432,13 +433,7 @@ function uniqueStrings(values = [], limit = Infinity) {
 
 function recoverExplicitLessonSequence(sourceText, expectedCount) {
   if (!Number.isInteger(expectedCount) || expectedCount < 2) return [];
-  const match = /\blessons?\s+cover\s*:\s*([\s\S]+?)(?:\.(?:\s|$)|$)/i.exec(String(sourceText || ''));
-  if (!match) return [];
-  const topics = match[1]
-    .split(/\s*;\s*/)
-    .map((value) => cleanText(value.replace(/^and\s+/i, '').replace(/^(?:an?|the)\s+/i, ''), 120))
-    .filter(Boolean);
-  return topics.length === expectedCount ? topics : [];
+  return extractExplicitLessonSequence(sourceText, { expectedCount });
 }
 
 const EXPLICIT_READING_LIST_HEADER_RE =

@@ -1,5 +1,6 @@
 import { getArrayKey } from './syncDependencies';
 import { classifyAssessmentKind } from './courseGraph/deriveFromCourseMap.js';
+import { deriveEvaluateDesign } from './leanCourseMap.js';
 import { findPublishabilityPlaceholders } from './publishabilityPlaceholders';
 import { normalizeReadinessIssue, normalizeReadinessIssues } from './readinessIssueSchema';
 import {
@@ -667,7 +668,7 @@ function isWeakCourseMapTopic(value, courseMap) {
   if (isAssessmentLabelCourseMapIdentity(candidate)) return true;
   if (needsRepeatedShortTopicRepair(candidate, courseMap)) return true;
   if (isSentenceShapedCourseMapTopic(candidate)) return true;
-  return /^(?:none|n\/a|not applicable|lesson|week|topic|block|clinical|community|health|studio|seminar|placement)$/i.test(
+  return /^(?:none|n\/a|not applicable|lesson|week|topic|focus|overview|foundations?|basics?|block|clinical|community|health|studio|seminar|placement)$/i.test(
     candidate,
   );
 }
@@ -766,10 +767,15 @@ function getCourseMapTopic(courseMap, lesson, section, lessonIndex) {
   const courseCandidates = courseMapTopicList(courseMap?.courseName);
   const raw =
     pickCourseMapTopic(sectionTopicCandidates, courseMap) ||
-    pickCourseMapTopic(sectionSupportingCandidates, courseMap) ||
     pickCourseMapTopic(siblingTopicCandidates, courseMap) ||
-    pickCourseMapTopic(siblingSupportingCandidates, courseMap) ||
-    pickCourseMapTopic(titleCandidates, courseMap);
+    // A specific lesson title is a stronger identity source than an
+    // objective or assessment sentence. The old order turned a weak section
+    // label such as "Focus" into "Compare Li Bai and Du Fu" (or even a
+    // generic assessment stem) instead of restoring the authored lesson
+    // identity "Tang Poetry using Li Bai and Du Fu".
+    pickCourseMapTopic(titleCandidates, courseMap) ||
+    pickCourseMapTopic(sectionSupportingCandidates, courseMap) ||
+    pickCourseMapTopic(siblingSupportingCandidates, courseMap);
   return (
     raw ||
     getCourseMapProgressionTopic(courseMap, lessonIndex) ||
@@ -808,6 +814,9 @@ function getCourseMapProgressionTopic(courseMap, lessonIndex) {
 const HISTORY_COURSE_MAP_RE =
   /\b(?:western civilization|civilization|world history|history|historical|ancient|medieval|middle ages|renaissance|reformation|mesopotamia|egypt|egyptian|greece|greek|rome|roman|byzantine|islamic|crusade|feudal|charlemagne|carolingian|empire|kingdom|primary[- ]source|source analysis)\b/i;
 
+const LITERATURE_COURSE_MAP_RE =
+  /\b(?:world literature|comparative literature|literary|literature|poetry|poem|epic|drama|novel|short stor(?:y|ies)|close reading|textual analysis|narrative|author|playwright)\b/i;
+
 const UX_DESIGN_COURSE_MAP_RE =
   /\b(?:user experience|ux|design studio|design research|user research|usability|prototype|prototyping|wireframe|journey map|personas?|accessibility|portfolio review|case study|critique session|design journals?)\b/i;
 
@@ -832,9 +841,9 @@ const COMPUTER_SCIENCE_COURSE_MAP_RE = {
 };
 
 const GENERIC_COURSE_MAP_FALLBACK_RE =
-  /\b(?:course problem|course applications|next assessment|quick evidence check|exit ticket using|practice response|review assigned materials|prepare notes|new example|observe, label, calculate, or decide|course task or example|course activities|evidence of learning|lab materials|discipline-specific tools)\b/i;
+  /\b(?:course problem|course applications|next assessment|quick evidence check|application check|exit ticket using|practice response|review assigned materials|prepare notes|new example|one course decision|visible product|observe, label, calculate, or decide|course task or example|course activities|evidence of learning|lab materials|discipline-specific tools)\b/i;
 const GENERIC_ASSESSMENT_SCAFFOLD_RE =
-  /\b(?:quick evidence check|evidence check|exit ticket using|practice response(?:\s+that\s+names)?|prepared response|applied response|practice checkpoint|review note|transfer task)\b/i;
+  /\b(?:quick evidence check|evidence check|application check|exit ticket using|practice response(?:\s+that\s+names)?|prepared response|applied response|practice checkpoint|review note|transfer task)\b/i;
 const GENERIC_ASSESSMENT_NEW_EXAMPLE_RE = /\bapply\b[^.?!\n]{0,120}\bto a new example\b/i;
 const GENERIC_ASSESSMENT_COURSE_DECISION_RE = /\busing\b[^.?!\n]{0,120}\bto justify one course-relevant decision\b/i;
 
@@ -854,6 +863,7 @@ function inferCourseMapFallbackProfile(courseMap, lesson, section) {
   if (PROJECT_MANAGEMENT_COURSE_RE.test(context)) return 'project-management';
   if (UX_DESIGN_COURSE_MAP_RE.test(context)) return 'ux-design';
   if (COMPUTER_SCIENCE_COURSE_MAP_RE.test(context)) return 'computer-science';
+  if (LITERATURE_COURSE_MAP_RE.test(context)) return 'literature';
   if (
     /\b(?:music theory|aural skills?|ear training|interval quality|semitones?|pitch(?:es)?|notated|notation|inversion number|compound intervals?)\b/i.test(
       context,
@@ -914,6 +924,56 @@ function getHistoryCourseMapFallbacks(topic, pick) {
       `Source-analysis guide and background reading for ${topic}.`,
     ]),
     evaluateDesign: `Check that the ${topic} activity, source, and assessment ask students to support a historical claim with evidence.`,
+  };
+}
+
+function getLiteratureCourseMapFallbacks(topic, pick) {
+  const displayTopic = displayCourseMapTopic(topic);
+  return {
+    learningGoals: pick([
+      `Use textual evidence from ${topic} to build an interpretation that attends to form, context, and language.`,
+      `Compare how ${topic} develops a literary idea through structure, voice, imagery, or genre.`,
+      `Develop an evidence-backed reading of ${topic} and connect it to a broader literary tradition.`,
+    ]),
+    topicSection: topic,
+    learningObjectives: pick([
+      `Analyze a passage from ${topic} and explain how one formal choice shapes its meaning.`,
+      `Compare two moments in ${topic} using quoted textual evidence and a clear interpretive claim.`,
+      `Interpret ${topic} in its literary or historical context and identify one meaningful tension.`,
+      `Evaluate competing readings of ${topic} and defend the stronger interpretation with textual evidence.`,
+    ]),
+    weeklyAssessments: pick([
+      `${displayTopic} comparative close-reading: compare two passages by the selected writers, synthesize one claim, and support it with quoted details.`,
+      `${displayTopic} comparison: connect two passages, authors, or traditions through a defensible claim.`,
+      `${displayTopic} evidence memo: explain how form, language, or context changes the reading.`,
+      `${displayTopic} interpretive response: test one reading against a specific passage and one alternative.`,
+    ]),
+    asyncActivities: pick([
+      `Annotate the assigned text for a recurring image, formal pattern, or interpretive tension in ${topic}.`,
+      `Prepare two passage notes that could support different readings of ${topic}.`,
+      `Read the assigned selection and mark one formal choice that changes how ${topic} can be interpreted.`,
+    ]),
+    syncActivities: pick([
+      `Compare passage evidence for ${topic}, then revise one claim after hearing an alternative reading.`,
+      `Work through a close reading of ${topic} and distinguish observation from interpretation.`,
+      `Test two interpretations of ${topic} against the language and structure of the assigned text.`,
+    ]),
+    technologyNeeded: pick([
+      'Course LMS, accessible assigned text, annotation workspace, and shared discussion notes.',
+      'Digital or print course reader, passage-marking tools, and a workspace for comparative notes.',
+      'Course platform, accessible reading files, and a shared space for evidence-backed discussion.',
+    ]),
+    presentationFormat: pick([
+      'Passage framing, guided close reading, interpretive comparison, and claim revision.',
+      'Context cue, textual analysis, competing readings, and evidence-backed synthesis.',
+      'Opening passage question, annotation workshop, comparison, and short interpretive response.',
+    ]),
+    supportingResources: pick([
+      `Assigned text or excerpt, contextual note, and close-reading guide for ${topic}.`,
+      `Course-reader selection, passage annotation guide, and interpretive model aligned to ${topic}.`,
+      `Primary literary text, brief context source, and evidence checklist for ${topic}.`,
+    ]),
+    evaluateDesign: `Check that the ${topic} reading, discussion, and assessment require students to support the same interpretive claim with textual evidence.`,
   };
 }
 
@@ -1250,69 +1310,71 @@ function getCourseMapFallbackValue(key, courseMap, lesson, section, lessonIndex)
   const fieldFallbacks =
     profile === 'history'
       ? getHistoryCourseMapFallbacks(topic, pick)
-      : profile === 'project-management'
-        ? getProjectManagementCourseMapFallbacks(topic, pick)
-        : profile === 'ux-design'
-          ? getUxDesignCourseMapFallbacks(topic, pick)
-          : profile === 'computer-science'
-            ? getComputerScienceCourseMapFallbacks(topic, pick)
-            : profile === 'music-theory'
-              ? getMusicTheoryCourseMapFallbacks(topic, pick, lesson, section, courseMap)
-              : {
-                  learningGoals: pick([
-                    `Use ${topic} to explain a course problem and prepare evidence for the next assessment.`,
-                    `Trace how ${topic} changes what students can observe, label, calculate, or decide.`,
-                    `Develop an evidence-backed account of ${topic} for course applications.`,
-                  ]),
-                  topicSection: topic,
-                  learningObjectives: pick([
-                    `Explain the key ideas in ${topic} and apply them in course activities.`,
-                    `Apply the main concepts from ${topic} to a course task or example.`,
-                    `Connect ${topic} to the week's work and explain one supporting evidence source.`,
-                    `Analyze an example using ${topic} and name one limitation or open question.`,
-                  ]),
-                  weeklyAssessments: pick([
-                    `${displayCourseMapTopic(topic)} application check: choose evidence that supports one course decision.`,
-                    `${displayCourseMapTopic(topic)} transfer task: explain one example, one source detail, and one limitation.`,
-                    `${displayCourseMapTopic(topic)} exit note connecting the activity to one visible product.`,
-                    `${displayCourseMapTopic(topic)} short response that names the claim, example, and next question.`,
-                  ]),
-                  asyncActivities: pick([
-                    `Annotate the instructor-provided resource for ${topic} and bring one usable example.`,
-                    `Prepare a source note that names one claim, example, or question about ${topic}.`,
-                    `Compare the lesson resource with a sample response and mark where ${topic} appears.`,
-                    `Draft one question about ${topic} that can be answered with course evidence.`,
-                  ]),
-                  syncActivities: pick([
-                    `Compare two examples of ${topic} and explain which evidence is stronger.`,
-                    `Practice applying ${topic} in pairs, then revise one response from feedback.`,
-                    `Use a guided case, text, dataset, or demonstration to test ${topic}.`,
-                    `Share one ${topic} claim and identify the evidence that would make it stronger.`,
-                  ]),
-                  technologyNeeded: pick([
-                    'Course site, instructor-provided resource, and the tool used for the lesson activity.',
-                    'Shared reading, example file, or activity handout plus a workspace for responses.',
-                    'Instructor-provided materials and the classroom tool named for the lesson task.',
-                    'Course platform, accessible resource file, and response workspace for the checkpoint.',
-                  ]),
-                  presentationFormat: pick([
-                    'Instructor framing, guided student work, and a short synthesis.',
-                    'Brief setup, worked example or demonstration, then student application.',
-                    'Opening question, structured practice, and a closing artifact review.',
-                  ]),
-                  supportingResources: pick([
-                    `Source excerpt, example, or activity prompt aligned to ${topic}.`,
-                    `Short resource excerpt, model response, or practice handout for ${topic}.`,
-                    `Course example and response guide students can use to explain ${topic}.`,
-                    `Activity prompt, reference note, and feedback guide connected to ${topic}.`,
-                  ]),
-                  evaluateDesign: pick([
-                    `Check that the ${topic} resource, activity, and assessment all ask for one visible product.`,
-                    `Confirm students use the same source detail or example for ${topic} practice and assessment.`,
-                    `Align the ${topic} activity with one observable response, artifact, or explanation.`,
-                    `Make the ${topic} practice task produce evidence students can reuse in the assessment.`,
-                  ]),
-                };
+      : profile === 'literature'
+        ? getLiteratureCourseMapFallbacks(topic, pick)
+        : profile === 'project-management'
+          ? getProjectManagementCourseMapFallbacks(topic, pick)
+          : profile === 'ux-design'
+            ? getUxDesignCourseMapFallbacks(topic, pick)
+            : profile === 'computer-science'
+              ? getComputerScienceCourseMapFallbacks(topic, pick)
+              : profile === 'music-theory'
+                ? getMusicTheoryCourseMapFallbacks(topic, pick, lesson, section, courseMap)
+                : {
+                    learningGoals: pick([
+                      `Use ${topic} to explain a course problem and prepare evidence for the next assessment.`,
+                      `Trace how ${topic} changes what students can observe, label, calculate, or decide.`,
+                      `Develop an evidence-backed account of ${topic} for course applications.`,
+                    ]),
+                    topicSection: topic,
+                    learningObjectives: pick([
+                      `Explain the key ideas in ${topic} and apply them in course activities.`,
+                      `Apply the main concepts from ${topic} to a course task or example.`,
+                      `Connect ${topic} to the week's work and explain one supporting evidence source.`,
+                      `Analyze an example using ${topic} and name one limitation or open question.`,
+                    ]),
+                    weeklyAssessments: pick([
+                      `${displayCourseMapTopic(topic)} application check: choose evidence that supports one course decision.`,
+                      `${displayCourseMapTopic(topic)} transfer task: explain one example, one source detail, and one limitation.`,
+                      `${displayCourseMapTopic(topic)} exit note connecting the activity to one visible product.`,
+                      `${displayCourseMapTopic(topic)} short response that names the claim, example, and next question.`,
+                    ]),
+                    asyncActivities: pick([
+                      `Annotate the instructor-provided resource for ${topic} and bring one usable example.`,
+                      `Prepare a source note that names one claim, example, or question about ${topic}.`,
+                      `Compare the lesson resource with a sample response and mark where ${topic} appears.`,
+                      `Draft one question about ${topic} that can be answered with course evidence.`,
+                    ]),
+                    syncActivities: pick([
+                      `Compare two examples of ${topic} and explain which evidence is stronger.`,
+                      `Practice applying ${topic} in pairs, then revise one response from feedback.`,
+                      `Use a guided case, text, dataset, or demonstration to test ${topic}.`,
+                      `Share one ${topic} claim and identify the evidence that would make it stronger.`,
+                    ]),
+                    technologyNeeded: pick([
+                      'Course site, instructor-provided resource, and the tool used for the lesson activity.',
+                      'Shared reading, example file, or activity handout plus a workspace for responses.',
+                      'Instructor-provided materials and the classroom tool named for the lesson task.',
+                      'Course platform, accessible resource file, and response workspace for the checkpoint.',
+                    ]),
+                    presentationFormat: pick([
+                      'Instructor framing, guided student work, and a short synthesis.',
+                      'Brief setup, worked example or demonstration, then student application.',
+                      'Opening question, structured practice, and a closing artifact review.',
+                    ]),
+                    supportingResources: pick([
+                      `Source excerpt, example, or activity prompt aligned to ${topic}.`,
+                      `Short resource excerpt, model response, or practice handout for ${topic}.`,
+                      `Course example and response guide students can use to explain ${topic}.`,
+                      `Activity prompt, reference note, and feedback guide connected to ${topic}.`,
+                    ]),
+                    evaluateDesign: pick([
+                      `Check that the ${topic} resource, activity, and assessment all ask for one visible product.`,
+                      `Confirm students use the same source detail or example for ${topic} practice and assessment.`,
+                      `Align the ${topic} activity with one observable response, artifact, or explanation.`,
+                      `Make the ${topic} practice task produce evidence students can reuse in the assessment.`,
+                    ]),
+                  };
   const value = fieldFallbacks[key] || `Instructor-confirmed material for ${topic}.`;
   // Belt: no minted assessment title may register as an exam, whatever the
   // frame pool produced.
@@ -1548,6 +1610,12 @@ export function repairCourseMapReadiness({ courseMap, columns = [], lessonFilter
     let sectionsChanged = false;
     const sections = nextLesson.sections.map((section, sectionIndex) => {
       let nextSection = section;
+      const originalAlignmentInputs = stableJson([
+        section?.learningObjectives,
+        section?.weeklyAssessments,
+        section?.asyncActivities,
+        section?.syncActivities,
+      ]);
       for (const key of columnsToRepair) {
         if (!needsCourseMapFieldRepair(nextSection?.[key])) continue;
         nextSection = {
@@ -1682,6 +1750,26 @@ export function repairCourseMapReadiness({ courseMap, columns = [], lessonFilter
         );
         sectionsChanged = true;
         changed = true;
+      }
+      const repairedAlignmentInputs = stableJson([
+        nextSection?.learningObjectives,
+        nextSection?.weeklyAssessments,
+        nextSection?.asyncActivities,
+        nextSection?.syncActivities,
+      ]);
+      if (
+        originalAlignmentInputs !== repairedAlignmentInputs &&
+        asArray(nextLesson?.compilerDerived).includes('evaluateDesign')
+      ) {
+        const recalculatedEvaluateDesign = deriveEvaluateDesign(nextSection);
+        if (stableJson(recalculatedEvaluateDesign) !== stableJson(nextSection?.evaluateDesign)) {
+          nextSection = { ...nextSection, evaluateDesign: recalculatedEvaluateDesign };
+          repairedFields.push(
+            `Lesson ${lessonIndex + 1}, Section ${sectionIndex + 1} ${columnLabel(columns, 'evaluateDesign')} (alignment recompute)`,
+          );
+          sectionsChanged = true;
+          changed = true;
+        }
       }
       return nextSection;
     });

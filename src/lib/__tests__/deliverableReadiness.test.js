@@ -990,6 +990,7 @@ describe('repairWorkspaceReadiness', () => {
       'Lesson 1, Section 1 Learning Goals',
       'Lesson 1, Section 1 Learning Objectives',
       'Lesson 1, Section 1 Weekly Assessments',
+      'Lesson 1, Section 1 Weekly Assessments (assessment scaffold)',
     ]);
 
     const readiness = evaluateWorkspaceReadiness({

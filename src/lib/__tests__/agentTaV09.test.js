@@ -138,6 +138,39 @@ describe('buildPostGenerationDigest', () => {
     );
   });
 
+  it('preserves short names when tracing objective coverage', () => {
+    const digest = buildPostGenerationDigest({
+      courseMap: {
+        courseName: 'World Literature',
+        lessons: [
+          {
+            title: 'Lesson 1: Tang Poetry using Li Bai and Du Fu',
+            sections: [{ learningObjectives: 'Compare Li Bai and Du Fu.\nSynthesize poetic analysis.' }],
+          },
+        ],
+      },
+      deliverables: {
+        assignments: {
+          status: 'done',
+          data: {
+            assignments: [
+              {
+                lessonTitle: 'Lesson 1: Tang Poetry using Li Bai and Du Fu',
+                title: 'Comparative close-reading',
+                taskDescription:
+                  'Compare one passage by Li Bai with one by Du Fu, then synthesize a claim from quoted details.',
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    expect(digest?.observations || []).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: 'coverage-l1' })]),
+    );
+  });
+
   it('caps observations at three', () => {
     const noisy = {
       status: 'done',

@@ -21,6 +21,7 @@ import {
 import { assessScionKeyTermContract, normalizeScionKeyTerm } from './scionKeyTermContract.js';
 import { scionFactContractForLesson } from './scionEvidenceContract.js';
 import { analyzeDecisionScenario } from './scenarioContract.js';
+import { extractExplicitLessonSequence } from './explicitLessonSequence.js';
 import {
   PUBLIC_SCION_MAX_COMPLETION_TOKENS,
   PUBLIC_SCION_MODEL_ID,
@@ -1317,7 +1318,7 @@ export function extractPublicScionSource(userPrompt = '') {
 
 export function extractPublicScionLessonWindow(userPrompt = '') {
   const text = String(userPrompt || '');
-  const continuation = text.match(/Lesson\s+(\d+)\s+through\s+Lesson\s+(\d+)/i);
+  const continuation = text.match(/Lessons?\s+(\d+)\s*(?:through|[-–—])\s*(?:Lessons?\s+)?(\d+)/i);
   if (continuation) {
     const start = Math.max(1, Number(continuation[1]) || 1);
     const end = Math.max(start, Number(continuation[2]) || start);
@@ -1340,6 +1341,7 @@ export function extractPublicScionTotalLessonCount(userPrompt = '') {
   const text = String(userPrompt || '');
   const match =
     text.match(/has\s+(\d+)\s+lessons(?:\/weeks)?\s+total/i) ||
+    text.match(/has\s+\d+\s+of\s+(\d+)\s+lessons/i) ||
     text.match(/EXACTLY\s+(\d+)\s+lesson/i) ||
     text.match(/approximately\s+(\d+)\s+lessons/i);
   const total = Number(match?.[1]);
@@ -1368,21 +1370,7 @@ function cleanPublicScionTopicItem(value) {
 }
 
 export function extractPublicScionExplicitTopicSequence(source = '') {
-  const text = String(source || '');
-  const labeledList = text.match(
-    /\b(?:(?:use|cover|include)\s+\w+\s+)?(?:distinct\s+)?(?:weekly\s+)?(?:focus(?:es)?|topics?|modules?)\s*:\s*([^\n.]+)/i,
-  );
-  if (labeledList?.[1]?.includes(';')) {
-    const items = labeledList[1].split(';').map(cleanPublicScionTopicItem).filter(Boolean);
-    if (items.length >= 2) return items.slice(0, 24);
-  }
-
-  const numbered = text
-    .split('\n')
-    .map((line) => line.match(/^\s*(?:(?:lesson|week|module)\s*)?\d{1,2}\s*[:.)\-–—]\s*(.+)$/i)?.[1])
-    .map(cleanPublicScionTopicItem)
-    .filter(Boolean);
-  return numbered.length >= 2 ? numbered.slice(0, 24) : [];
+  return extractExplicitLessonSequence(source).map(cleanPublicScionTopicItem).slice(0, 24);
 }
 
 function buildCompactPublicScionPrompt(userPrompt) {

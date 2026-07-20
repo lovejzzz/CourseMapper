@@ -103,7 +103,7 @@ describe('source finder mini-shard', () => {
     });
 
     expect(first.temporary).toBe(true);
-    expect(first.id).toContain('source-finder-v5');
+    expect(first.id).toContain('source-finder-v6');
     expect(first.stats).toMatchObject({ topics: 2, topicsWithSources: 2, sources: 4, cacheHits: 0 });
     expect(second.stats.cacheHits).toBe(2);
     expect(providers.searchScholarlyReadings).toHaveBeenCalledTimes(2);
@@ -238,6 +238,75 @@ describe('source finder mini-shard', () => {
 
     expect(miniShard.topics[0].sources.map((item) => item.title)).toEqual(['Staff (music)']);
   });
+
+  it('restores a specific literature lesson identity before retrieval and rejects the audited Focus false friends', async () => {
+    const graph = createEmptyCourseGraph({ courseName: 'World Literature' });
+    graph.sessions = [
+      {
+        id: 's1',
+        number: 1,
+        title: 'Lesson 1: World Literature Scope',
+        sections: [{ topic: '1.1: Focus' }],
+      },
+      {
+        id: 's2',
+        number: 2,
+        title: 'Lesson 2: Tang Poetry using Li Bai and Du Fu',
+        sections: [{ topic: '2.1: Focus' }],
+      },
+    ];
+    graph.concepts = [
+      { id: 'c1', term: 'Focus' },
+      { id: 'c2', term: 'Focus' },
+    ];
+    graph.edges.teaches = [
+      { from: 's1', to: 'c1' },
+      { from: 's2', to: 'c2' },
+    ];
+
+    const topics = sourceTopicsFromCourse(graph, { maxTopics: 2 });
+    expect(topics.map((topic) => topic.topic)).toEqual([
+      'World Literature Scope',
+      'Tang Poetry using Li Bai and Du Fu',
+    ]);
+    expect(topics.map((topic) => topic.query)).not.toContain('Focus');
+
+    const miniShard = await findCourseSources(graph, {
+      storage: memoryStorage(),
+      maxTopics: 2,
+      limitPerTopic: 2,
+      minUsefulSources: 1,
+      providers: {
+        searchScholarlyReadings: vi.fn(async () => []),
+        searchCrossrefWorks: vi.fn(async () => []),
+        searchBookMetadata: vi.fn(async () => []),
+        searchWikipediaPages: vi.fn(async (query) =>
+          /Tang Poetry/i.test(query)
+            ? [
+                source('wikipedia', 'Focus on the Family', {
+                  abstract: 'Focus on the Family is an American evangelical organization concerned with family life.',
+                }),
+                source('wikipedia', 'Tang poetry', {
+                  abstract: 'Tang poetry includes major Chinese poets such as Li Bai and Du Fu and their poems.',
+                }),
+              ]
+            : [
+                source('wikipedia', 'Erotic literature', {
+                  abstract: 'Erotic literature includes fictional stories about romantic and sexual relationships.',
+                }),
+                source('wikipedia', 'World literature', {
+                  abstract: 'World literature studies literary works as they circulate beyond their culture of origin.',
+                }),
+              ],
+        ),
+      },
+    });
+
+    expect(miniShard.topics.map((topic) => topic.sources.map((item) => item.title))).toEqual([
+      ['World literature'],
+      ['Tang poetry'],
+    ]);
+  }, 15000);
 
   it('rejects generic Crossref hits for genetics topics when they lack a genetics anchor', async () => {
     const graph = createEmptyCourseGraph({ courseName: 'Genetics and Society' });

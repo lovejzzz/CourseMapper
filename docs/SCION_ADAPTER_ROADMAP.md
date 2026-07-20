@@ -2,7 +2,29 @@
 
 **Architecture:** public Gemma 4 E2B base + small Scion adapter + Scion compiler = Scion Vx
 
-**Status:** the exact-QAT base, hash-bound training and conversion chain, browser adapter lifecycle, source-strict semantic compiler gates, frozen holdout firewall, and paired-order preference protocol are implemented. The V0.16.62 corpus contains 102 qualified source-grounded preferences; 100 usable production rows rebuild into course-group-isolated train, validation, and test splits across seven domains. One real 200-iteration adapter run completed and improved validation loss from 1.555 to 1.089. A later five-course V12 diagnostic cut native inference attempts from 233 to 114, but produced the same two publishable courses, one Mandarin quality regression, and no aggregate quality lift. That candidate is not active. Compiler and evaluator fixes now freeze benchmark V13; no candidate has earned a held-out quality win.
+**Status:** the exact-QAT base, hash-bound training and conversion chain, browser adapter lifecycle, source-strict semantic compiler gates, frozen holdout firewall, and paired-order preference protocol are implemented. The research corpus still contains 102 qualified source-grounded preferences and rebuilds into 100 group-isolated production rows across seven domains. One real 200-iteration adapter run lowered validation loss, and a later five-course diagnostic reduced inference burden, but neither established a held-out quality win; the candidate remains inactive. V0.16.63 now closes lesson-identity, explicit-sequence, and source-relevance defects found by exact twin and live-browser package audits. Those changes freeze benchmark V14 under grader 1.10.24 without inheriting a V13 score.
+
+## V0.16.63 — Keep Every Lesson in Its Own World
+
+**Goal:** make lesson identity an enforced semantic boundary from map planning through knowledge admission, source retrieval, compilation, grading, and export, while preserving an instructor's explicit lesson sequence exactly.
+
+**Semantic lesson admission:** genome enrichment is revalidated against title, objectives, topics, and instructor-named readings before it can persist or render. Generic descriptors such as `concept`, `method`, `reading`, and `form` cannot manufacture a match from scattered vocabulary. Rejected concept ids, citations, facts, scenarios, quiz atoms, and derived references are removed together, with an admission receipt that records the exact rejected terms and surfaces.
+
+**Exact twin result:** the retained fourteen-lesson World Literature project previously spread Shakespeare into 40 documents, `directorial reading` into 52, `title as doorway` into 33, and unrelated poetry forms into 29 combined document occurrences. The candidate exact twin reduces each of those measured leaks to zero, removes the repeated `How Experts Think` deck label from all twelve affected decks, and improves the dedicated compiler texture score from 90 to 94. One legitimate syllabus delivery phrase containing `close reading` remains; it is not lesson knowledge leakage.
+
+**Explicit sequence protocol:** a narrow parser recognizes labeled semicolon schedules and numbered lesson lists without converting ordinary prose into a schedule. Initial planning and continuation prompts share that contract. The public continuation parser now understands both `Lessons 4 through 6` and the live `Lessons 4-6` wording, so a six-lesson request no longer restarts at lessons one through three. Grader 1.10.24 treats missing, merged, shifted, or repeated requested lessons as a release-blocking sequence failure.
+
+**Source and assessment identity:** one-word scaffolds such as `Focus`, `Overview`, and `Foundations` are repaired from the specific lesson title before they seed concepts, assessments, filenames, or retrieval. Literature fallbacks ask for passage evidence, comparison, and interpretation instead of a generic `course decision`. Source Finder V6 ignores weak concepts, prefers the lesson title, and requires a discriminative topic match or the exact named course identity. This closes the audited `Focus group`, `Focus on the Family`, and `Erotic literature` false-friend paths without adding a paid or backend call.
+
+**Texture and truth:** study-guide questions, artifact connections, slide objectives, agendas, transitions, title-slide expectations, and feedback language rotate through lesson-aware compiler variants. Compiler-owned alignment notes are recomputed when repaired objectives, assessments, or activities change, rather than preserving stale positive prose.
+
+**Frozen ruler V14:** V14 keeps the five held-out domains and courses unchanged while binding grader 1.10.24 and its transitive implementation. It adds the explicit-sequence contract and inherits no prior score, adapter result, or promotion decision. The adapter stays off until a fresh exact-lineage candidate wins this ruler across domains with no worse repair burden.
+
+**Lane:** semantic admission, explicit-sequence preservation, course-map repair, source relevance, compilation, grading, texture, and export are model-neutral and benefit compatible paid-provider output. Browser WebGPU loading, the pinned public Gemma runtime, local caching, and future adapter download remain Scion-specific.
+
+**Next gates:** finish the exact-base browser and ZIP audit; replay the five held-out V14 courses with a newly trained exact-task adapter only after the compiler freeze; then require a cross-domain quality win, equal or lower compiler burden, stable reversed-order judgment, and acceptable download, memory, and runtime cost before activation.
+
+**Release Boundary:** Gemma weights are unchanged, the research adapter is inactive, and the exact twin is compiler evidence rather than a trained-model win. No paid-reference parity, general factual correctness, instructor approval, classroom outcome, human preference, or independent validation is claimed.
 
 ## V0.16.62 — Split Synthesis From Grounded Refinement
 

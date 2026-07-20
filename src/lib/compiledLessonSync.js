@@ -7,6 +7,7 @@ import {
 } from './courseBlueprintCompiler';
 import { attachEnrichmentToGraph, buildBlueprintFromGraph, deriveCourseGraphFromCourseMap } from './courseGraph';
 import { applyLessonDepthToConfigMap } from './lessonDepth';
+import { sanitizeGenomeEnrichmentForLesson, sanitizeLessonTitleEchoEnrichment } from './lessonSemanticRelevance';
 import { assessScionKeyTermContract } from './scionKeyTermContract';
 
 function cleanText(value, fallback = '') {
@@ -51,7 +52,11 @@ export function revalidatePersistedLessonContent(lessonContent = {}, courseMap =
     rejectedKeyTerms: 0,
     removedQuizItems: 0,
     removedSlides: 0,
+    removedFacts: 0,
     removedWalkthroughs: 0,
+    removedScenarios: 0,
+    rejectedGenomeTerms: 0,
+    semanticAtomResets: 0,
     droppedLessonIds: [],
   };
   const sanitized = {};
@@ -66,9 +71,22 @@ export function revalidatePersistedLessonContent(lessonContent = {}, courseMap =
       continue;
     }
 
+    const titleResult = sanitizeLessonTitleEchoEnrichment(lesson, payload);
+    const semanticResult = sanitizeGenomeEnrichmentForLesson(lesson, titleResult.enrichment);
+    const candidatePayload = semanticResult.enrichment || payload;
+    receipt.rejectedKeyTerms += titleResult.receipt.rejectedTitleTerms.length;
+    receipt.removedQuizItems += titleResult.receipt.removedQuizItems;
+    receipt.removedSlides += titleResult.receipt.removedSlides;
+    if (titleResult.receipt.removedScenario) receipt.removedScenarios += 1;
+    receipt.rejectedGenomeTerms += semanticResult.receipt.rejectedGenomeTerms.length;
+    receipt.removedQuizItems += semanticResult.receipt.removedQuizItems;
+    receipt.removedSlides += semanticResult.receipt.removedSlides;
+    receipt.removedFacts += semanticResult.receipt.removedFacts;
+    if (semanticResult.receipt.resetAuthoredAtoms) receipt.semanticAtomResets += 1;
+
     const rejectedTerms = [];
-    const keyTerms = (Array.isArray(payload.keyTerms) ? payload.keyTerms : []).filter((term) => {
-      const assessment = persistedTermAssessment(term, lesson, payload);
+    const keyTerms = (Array.isArray(candidatePayload.keyTerms) ? candidatePayload.keyTerms : []).filter((term) => {
+      const assessment = persistedTermAssessment(term, lesson, candidatePayload);
       if (assessment.eligible) return true;
       const termName = cleanText(term?.term || term?.tr).toLowerCase();
       if (termName) rejectedTerms.push(termName);
@@ -76,21 +94,25 @@ export function revalidatePersistedLessonContent(lessonContent = {}, courseMap =
       return false;
     });
     if (rejectedTerms.length === 0) {
-      sanitized[lessonId] = payload;
+      if (keyTerms.length === 0 && !(candidatePayload.quizItems || []).length) {
+        receipt.droppedLessonIds.push(lessonId);
+      } else {
+        sanitized[lessonId] = candidatePayload;
+      }
       continue;
     }
 
-    const originalQuizItems = Array.isArray(payload.quizItems) ? payload.quizItems : [];
+    const originalQuizItems = Array.isArray(candidatePayload.quizItems) ? candidatePayload.quizItems : [];
     const quizItems = originalQuizItems.filter((item) => !payloadReferencesAnyTerm(item, rejectedTerms));
     receipt.removedQuizItems += originalQuizItems.length - quizItems.length;
 
-    const originalSlides = Array.isArray(payload.slideContent) ? payload.slideContent : [];
+    const originalSlides = Array.isArray(candidatePayload.slideContent) ? candidatePayload.slideContent : [];
     const slideContent = originalSlides.filter((slide) => !payloadReferencesAnyTerm(slide, rejectedTerms));
     receipt.removedSlides += originalSlides.length - slideContent.length;
 
-    const nextPayload = { ...payload, keyTerms, quizItems };
+    const nextPayload = { ...candidatePayload, keyTerms, quizItems };
     if (originalSlides.length > 0) nextPayload.slideContent = slideContent;
-    if (payload.mcWalkthrough && payloadReferencesAnyTerm(payload.mcWalkthrough, rejectedTerms)) {
+    if (candidatePayload.mcWalkthrough && payloadReferencesAnyTerm(candidatePayload.mcWalkthrough, rejectedTerms)) {
       delete nextPayload.mcWalkthrough;
       receipt.removedWalkthroughs += 1;
     }

@@ -104,6 +104,64 @@ describe('G1 — the sync compile keeps its subject matter', () => {
     expect(result.receipt).toMatchObject({ rejectedKeyTerms: 1, removedQuizItems: 1 });
   });
 
+  it('rejects genome terms that match only generic lesson descriptors and resets unattributed atoms', () => {
+    const courseMap = {
+      courseName: 'World Literature',
+      lessons: [
+        {
+          title: 'Lesson 1: Oral Epic Tradition',
+          sections: [
+            {
+              topicSection: 'Oral Epic Forms',
+              learningObjectives: 'Analyze oral transmission using evidence from Gilgamesh.',
+              readings: 'Gilgamesh',
+              supportingResources:
+                'Shakespeare staging source and a close-reading title exercise imported by an older genome linker.',
+            },
+          ],
+        },
+      ],
+    };
+    const result = revalidatePersistedLessonContent(
+      {
+        'lesson-1': {
+          enrichmentSource: 'genome-linked',
+          keyTerms: [
+            {
+              term: 'Directorial reading of a play',
+              definition:
+                'A directorial reading interprets a dramatic text through staging choices and performance constraints.',
+              example: 'A director decides how an actor should cross the stage during a disputed line.',
+              misconception: 'Students may assume that Shakespeare supplies every required stage direction.',
+              correction:
+                'The director must infer staging from the dramatic evidence rather than inventing textual directions.',
+              source: 'Shakespeare staging source',
+            },
+          ],
+          quizItems: [{ index: 0, question: 'Which Shakespeare staging choice is best supported?' }],
+          slideContent: [{ title: 'Reading Shakespeare as a director', bullets: ['Infer a stage direction.'] }],
+          kernel: { facts: ['Shakespeare does not supply every stage direction.'], scenario: { title: 'Rehearsal' } },
+          conceptProvenance: {
+            source: 'genome-linked',
+            conceptIds: ['lit/reading-shakespeare-as-director'],
+            competencies: [{ term: 'Directorial reading of a play', bloom: 'Apply', standards: [] }],
+            citations: ['Shakespeare staging source'],
+          },
+        },
+      },
+      courseMap,
+    );
+
+    expect(result.lessonContent).not.toHaveProperty('lesson-1');
+    expect(result.receipt).toMatchObject({
+      rejectedGenomeTerms: 1,
+      semanticAtomResets: 1,
+      removedQuizItems: 1,
+      removedSlides: 1,
+      removedFacts: 1,
+    });
+  });
+
   it('reuses a complete restored overlay without another model pass', () => {
     const courseMap = geologyMap();
     const fullOverlay = {

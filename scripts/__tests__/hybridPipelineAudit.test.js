@@ -113,9 +113,9 @@ describe('hybrid pipeline audit', () => {
       });
 
       expect(result.courseMapRepair.changed).toBe(true);
-      expect(result.courseMapRepair.repairedFieldCount).toBe(3);
+      expect(result.courseMapRepair.repairedFieldCount).toBe(4);
       expect(result.trustEvidence.repairSummary).toContain('Lesson 1 title');
-      expect(result.trustEvidence.repairSummary).toContain('+1 more');
+      expect(result.trustEvidence.repairSummary).toContain('+2 more');
       expect(result.trustEvidence.deliveryPath).toBe('9 compiled / 0 model-generated');
       expect(result.reviewRecommendation).toBe(
         'Spot-check repaired course-map fields plus institution-specific facts before handoff.',
@@ -142,8 +142,8 @@ describe('hybrid pipeline audit', () => {
         results: [result],
       });
 
-      expect(markdown).toContain('| repair-evidence-fixture | 5 | 3 | Lesson 1 title;');
-      expect(markdown).toContain('+1 more | 9 compiled / 0 model-generated |');
+      expect(markdown).toContain('| repair-evidence-fixture | 5 | 4 | Lesson 1 title;');
+      expect(markdown).toContain('+2 more | 9 compiled / 0 model-generated |');
       expect(markdown).toContain(
         'Spot-check repaired course-map fields plus institution-specific facts before handoff.',
       );
