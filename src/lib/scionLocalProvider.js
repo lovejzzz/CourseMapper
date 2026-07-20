@@ -209,11 +209,16 @@ export async function runScionLocalCompletion({
     const retryGate = { needsRetry: empty || retryIssues.length > 0, issues: retryIssues };
     const incomplete = !empty && retryGate.needsRetry;
     // When an exact source-grounded adapter is available, the synthesis arm
-    // only needs one structurally usable fact draft. Do not spend two more
-    // base generations polishing quiz prose that the next adapter stage is
-    // specifically trained to replace. A malformed or fact-incomplete draft
-    // still fails closed and never reaches the adapter.
-    const effectiveRetryLimit = groundedSynthesis ? (recoveryAttempt > 0 ? Math.min(2, retryLimit) : 0) : retryLimit;
+    // only needs one structurally usable fact draft. A valid fact ledger exits
+    // above without another call; an invalid ledger gets one issue-informed
+    // retry so an exact duplicate cannot consume one of the two course-level
+    // recovery seats and strand a whole lesson. Explicit recovery retains its
+    // two-retry ceiling for a stubborn malformed ledger.
+    const effectiveRetryLimit = groundedSynthesis
+      ? recoveryAttempt > 0
+        ? Math.min(2, retryLimit)
+        : Math.min(1, retryLimit)
+      : retryLimit;
     if (!empty && !incomplete) {
       const shuffled = shufflePublicScionKernelOptions(fullText);
       return {

@@ -12,12 +12,12 @@ describe('Scion compact-kernel attempt policy', () => {
     ).toBe(1);
   });
 
-  it('uses one facts-first synthesis attempt only when the grounded stage is proven available', () => {
+  it('reserves one conditional fact-ledger retry only when the grounded stage is proven available', () => {
     const request = {
       taskFamily: 'lesson-kernel-synthesis',
       promptProtocol: 'production-lesson-kernel-synthesis-prompt-v1',
     };
-    expect(scionCompactKernelMaxAttempts({ ...request, routeReason: 'grounded-stage-available' })).toBe(1);
+    expect(scionCompactKernelMaxAttempts({ ...request, routeReason: 'grounded-stage-available' })).toBe(2);
     expect(scionCompactKernelMaxAttempts({ ...request, routeReason: 'task-family-out-of-scope' })).toBe(3);
   });
 

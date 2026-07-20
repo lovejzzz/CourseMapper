@@ -19,12 +19,12 @@ export function scionCompactKernelMaxAttempts({ taskFamily, promptProtocol, rout
     routeReason === 'grounded-stage-available'
   ) {
     // The normal synthesis pass only needs one valid frozen fact ledger before
-    // the grounded adapter takes over. An explicit compiler recovery means
-    // that ledger already failed once, so allow two issue-informed retries
-    // inside the same recovery seat. Real-model evidence showed that the
-    // first retry can fix the original defect while introducing one bounded
-    // fact-length violation; the second retry closes that last admission gap.
-    return Number(recoveryAttempt) > 0 ? 3 : 1;
+    // the grounded adapter takes over. The second seat is conditional in
+    // generateCompactLessonKernel: a valid first ledger returns immediately,
+    // while a duplicate or malformed ledger receives one focused retry before
+    // it can consume a scarce course-level recovery call. An explicit compiler
+    // recovery keeps two issue-informed retries for a stubborn failure.
+    return Number(recoveryAttempt) > 0 ? 3 : 2;
   }
   return SCION_COMPACT_KERNEL_DEFAULT_ATTEMPTS;
 }

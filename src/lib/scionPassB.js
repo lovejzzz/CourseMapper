@@ -15,6 +15,8 @@ import {
 } from './scionEvidenceContract';
 import { applyScionKernelPasses } from './scionPasses';
 import { postFlywheelEvents } from './scionFlywheel';
+import { assessProjectedKernelCoverage } from './blueprintEnrichmentPass';
+import { completeNativeKernelSurfaces, parseNativePassBResponse } from './nativeGraphAuthoring';
 import {
   assessPublicScionKernelResponse,
   mergePublicScionKernelAttempts,
@@ -31,6 +33,53 @@ import {
 const UNSAFE_ADAPTER_STAGE_ISSUE = /(?:^|:)(?:invalid-json|missing-lesson|facts-count|duplicate-facts|fact-\d+:)/;
 const GROUNDED_ADAPTER_OBJECTIVE =
   'Use only the supplied claims to make a defensible distinction without adding outside facts.';
+
+function projectedDraftQuality(text, prompt) {
+  const expectedLessonIds = (Array.isArray(prompt?.lessons) ? prompt.lessons : [])
+    .map((lesson) => lesson?.lessonId)
+    .filter(Boolean);
+  if (!text || expectedLessonIds.length === 0) {
+    return { usable: false, complete: false, usableCount: 0, completeCount: 0, score: 0 };
+  }
+  try {
+    const parsed = parseNativePassBResponse(text, { prompt, expectedLessonIds });
+    const coverage = expectedLessonIds.map((lessonId) => {
+      const payload = parsed.kernels[lessonId];
+      if (!payload) return null;
+      const lesson = prompt.lessons.find((entry) => entry?.lessonId === lessonId) || {};
+      const completed = completeNativeKernelSurfaces(payload, {
+        title: lesson.title,
+        sections: [
+          {
+            topicSection: lesson.topics,
+            learningObjectives: lesson.objectives,
+          },
+        ],
+      });
+      return assessProjectedKernelCoverage(completed);
+    });
+    const usableCount = coverage.filter((entry) => entry?.usable).length;
+    const completeCount = coverage.filter((entry) => entry?.complete).length;
+    return {
+      usable: usableCount === expectedLessonIds.length,
+      complete: completeCount === expectedLessonIds.length,
+      usableCount,
+      completeCount,
+      score: coverage.reduce((total, entry) => total + (Number(entry?.score) || 0), 0),
+    };
+  } catch {
+    return { usable: false, complete: false, usableCount: 0, completeCount: 0, score: 0 };
+  }
+}
+
+function compareProjectedDraftQuality(left, right) {
+  const leftRank = [left.usable ? 1 : 0, left.complete ? 1 : 0, left.usableCount, left.completeCount, left.score];
+  const rightRank = [right.usable ? 1 : 0, right.complete ? 1 : 0, right.usableCount, right.completeCount, right.score];
+  for (let index = 0; index < leftRank.length; index += 1) {
+    if (leftRank[index] !== rightRank[index]) return leftRank[index] - rightRank[index];
+  }
+  return 0;
+}
 
 export function shouldRunScionGroundedAdapterStage(routes = []) {
   return routes.some(
@@ -105,6 +154,7 @@ export function selectScionGroundedAdapterDraft({ baseText, adapterText, grounde
   const assess = (text) => assessPublicScionKernelResponse(text, groundedPrompt.userPrompt, 'blueprintEnrichment');
   const baseAssessment = assess(baseText);
   const baseRisk = publicScionAdmissionRisk(baseAssessment);
+  const baseCompilerQuality = projectedDraftQuality(baseText, groundedPrompt);
   const merged = mergePublicScionKernelAttempts(baseText, adapterText, groundedPrompt.userPrompt);
   const candidates = [
     { text: adapterText, source: 'adapter', repairs: [], assessment: assess(adapterText) },
@@ -123,14 +173,33 @@ export function selectScionGroundedAdapterDraft({ baseText, adapterText, grounde
       (candidate) =>
         !(candidate.assessment.issues || []).some((issue) => UNSAFE_ADAPTER_STAGE_ISSUE.test(String(issue))),
     )
-    .map((candidate) => ({ ...candidate, risk: publicScionAdmissionRisk(candidate.assessment) }))
-    .sort((left, right) => left.risk.score - right.risk.score || left.risk.issueCount - right.risk.issueCount);
+    .map((candidate) => ({
+      ...candidate,
+      risk: publicScionAdmissionRisk(candidate.assessment),
+      compilerQuality: projectedDraftQuality(candidate.text, groundedPrompt),
+    }))
+    // Public issue counts are useful, but they are not the user-facing
+    // boundary. A staged adapter once reduced the numeric risk by one while
+    // turning a World Literature base kernel that compiled into a usable
+    // lesson into a kernel with no admitted terminology core. Never trade a
+    // compiler-usable draft for an unusable near-miss.
+    .filter((candidate) => compareProjectedDraftQuality(candidate.compilerQuality, baseCompilerQuality) >= 0)
+    .sort(
+      (left, right) =>
+        compareProjectedDraftQuality(right.compilerQuality, left.compilerQuality) ||
+        left.risk.score - right.risk.score ||
+        left.risk.issueCount - right.risk.issueCount,
+    );
   const selected = candidates[0];
-  if (!selected || selected.risk.score >= baseRisk.score) return null;
+  const compilerImprovement = selected
+    ? compareProjectedDraftQuality(selected.compilerQuality, baseCompilerQuality)
+    : 0;
+  if (!selected || (compilerImprovement <= 0 && selected.risk.score >= baseRisk.score)) return null;
   return {
     ...selected,
     baseAssessment,
     baseRisk,
+    baseCompilerQuality,
     riskReduction: baseRisk.score - selected.risk.score,
   };
 }

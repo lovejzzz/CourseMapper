@@ -183,9 +183,37 @@ describe('Scion browser-local provider', () => {
       sleep: async () => {},
     });
 
-    expect(result).toMatchObject({ attempt: 1, retryCount: 0, maxRetries: 0, contractIncomplete: true });
+    expect(result).toMatchObject({ attempt: 1, retryCount: 0, maxRetries: 1, contractIncomplete: true });
     expect(result.admissionIssues).toContain('lesson-4:key-term-0:correction-repeats-definition');
     expect(runtime.completeScionBrowserWllama).toHaveBeenCalledTimes(1);
+  });
+
+  it('uses the conditional synthesis retry when the first grounded-stage fact ledger is invalid', async () => {
+    const invalidFacts = JSON.parse(completeKernelResponse());
+    invalidFacts.lessons[0].facts[2] = invalidFacts.lessons[0].facts[1];
+    const runtime = runtimeWith([JSON.stringify(invalidFacts), completeKernelResponse()], {
+      route: {
+        mode: 'base-only',
+        taskFamily: 'lesson-kernel-synthesis',
+        reason: 'grounded-stage-available',
+        adapterId: 'scion-grounded-test',
+        nativeAdapterActive: false,
+      },
+    });
+    const prompt = `Course: Design\nLessons:\n[{"lessonId":"lesson-4","title":"Affinity Mapping"}]\nReturn ONLY valid JSON.`;
+
+    const result = await runScionLocalCompletion({
+      userPrompt: prompt,
+      task: 'blueprintEnrichment',
+      promptProtocol: 'production-lesson-kernel-synthesis-prompt-v1',
+      maxRetries: 2,
+      runtimeLoader: async () => runtime,
+      sleep: async () => {},
+    });
+
+    expect(result).toMatchObject({ attempt: 2, retryCount: 1, maxRetries: 1 });
+    expect(runtime.completeScionBrowserWllama).toHaveBeenCalledTimes(2);
+    expect(runtime.completeScionBrowserWllama.mock.calls[1][0].at(-1).content).toContain('duplicate-facts');
   });
 
   it('reserves two issue-informed retries when the compiler explicitly recovers a failed synthesis ledger', async () => {

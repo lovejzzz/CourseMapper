@@ -271,6 +271,45 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     expect(JSON.parse(selected.text).lessons[0].facts).toEqual(base.lessons[0].facts);
   });
 
+  it('D1: preserves a compiler-usable base when a lower numeric adapter risk loses the teaching core', () => {
+    const lessons = JSON.parse(SCION_LESSON_KERNEL_PILOT_PROMPT.match(/Lessons:\n(\[.*\])\nReturn/s)[1]);
+    const prompt = {
+      courseName: 'Geology Inference and Feedback Audit',
+      lessons,
+      userPrompt: SCION_LESSON_KERNEL_PILOT_PROMPT,
+      systemPrompt: 'Write a compact knowledge kernel.',
+    };
+    const base = structuredClone(SCION_LESSON_KERNEL_REFERENCE_PILOT_RESPONSE);
+    // Keep one substantive term, but give the public issue counter enough
+    // low-risk noise that a superficially cleaner adapter can look better.
+    for (const index of [1, 2]) {
+      base.lessons[0].keyTerms[index].eg = base.lessons[0].keyTerms[index].df;
+      base.lessons[0].keyTerms[index].mi = base.lessons[0].facts[index];
+    }
+    // The canonical parser can conservatively realign this key from its
+    // explanation/source support, so the projected base remains usable.
+    base.lessons[0].mc[0].ai = (base.lessons[0].mc[0].ai + 1) % 4;
+    const grounded = buildScionGroundedRefinementPrompt({
+      rawText: JSON.stringify(base),
+      prompt,
+      expectedLessonIds: ['lesson-3'],
+    });
+    const adapter = structuredClone(SCION_LESSON_KERNEL_REFERENCE_PILOT_RESPONSE);
+    // Each adapter term is rejected atomically. Its public issue total is
+    // lower than the base's, but no terminology core survives projection.
+    adapter.lessons[0].keyTerms.forEach((term) => {
+      term.eg = term.df;
+    });
+
+    expect(
+      selectScionGroundedAdapterDraft({
+        baseText: JSON.stringify(base),
+        adapterText: JSON.stringify(adapter),
+        groundedPrompt: grounded,
+      }),
+    ).toBeNull();
+  });
+
   it('D1: never retains an adapter draft that mutates the frozen fact ledger', () => {
     const lessons = JSON.parse(SCION_LESSON_KERNEL_PILOT_PROMPT.match(/Lessons:\n(\[.*\])\nReturn/s)[1]);
     const prompt = {
