@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-adapter-aligned-input-canary-v1",
+  "release": "v0.16.62",
+  "observedAt": "2026-07-20T01:43:35Z",
+  "status": "stopped-after-predeclared-six-stage-canary",
+  "claimBoundary": "This is a deliberately bounded architecture diagnostic, not a completed course, a benchmark score, an adapter win, or promotion evidence. It tests exact training-shape serialization and replays a deterministic risk-reducing handoff against six completed staged requests.",
+  "repository": {
+    "commit": "5a511916634ac62f2246c88db7d5492845bd19ff",
+    "tree": "518685933936cccb9737e330fdfdc527208267b0"
+  },
+  "candidate": {
+    "adapterId": "scion-g4e2b-production-24fea2752e6edb62",
+    "manifestSha256": "e0288a9bd96b5ff1f510e55d93da586aa3b460919d61a63fa08064c61e525a08",
+    "weightsSha256": "5008a8df7b47d02b347b8e1a092be0614e8137e13ad2475bc867ecd6454bf762",
+    "datasetManifestSha256": "47492620e7dc2e8846efab20776ebeeb2f421e699064b260af32fa6b7868df15",
+    "datasetIdentitySha256": "cbb4629d9bebe2da46ed09cbe509b65700cba883397aedbdb8e937efb11585a1",
+    "taskFamily": "source-grounded-lesson-kernel"
+  },
+  "run": {
+    "benchmark": "evaluation/scion-adapters/held-out-course-benchmark-v11.json",
+    "round": "round-2026-07-20T01-31-34-758Z",
+    "pairRunId": "scion-v01662-v11-24fea275-5a511916",
+    "courseId": "mandarin",
+    "domain": "world-languages",
+    "requestedLessons": 15,
+    "completedPackage": false,
+    "scoreProduced": false,
+    "completedOuterProviderRequests": 41,
+    "completedNativeModelCalls": 41,
+    "receivedShimRequests": 44,
+    "abortedBeforeResponseLog": 3,
+    "requestsByTaskFamily": {
+      "course-map": { "outer": 1, "native": 1 },
+      "lesson-kernel-synthesis": { "outer": 10, "native": 10 },
+      "source-grounded-lesson-kernel": { "outer": 6, "native": 6 },
+      "compiler-repair": { "outer": 24, "native": 24 }
+    },
+    "adapterAdmission": {
+      "attempted": 6,
+      "admitted": 1,
+      "rejected": 5,
+      "rate": 0.166667,
+      "rejections": {
+        "lesson-1": ["key-term-2:example-repeats-definition"],
+        "lesson-2": ["mc-1:duplicate-options"],
+        "lesson-5": ["mc-1:duplicate-options", "mc-1:unanchored-named-detail"],
+        "lesson-6": ["key-term-1:example-repeats-definition", "mc-0:option-length"],
+        "lesson-9": [
+          "key-term-0:misconception-repeats-example",
+          "key-term-0:correction-repeats-misconception",
+          "scenario:source-unsupported-quantity"
+        ]
+      }
+    },
+    "rawBodyLog": {
+      "pathAtCapture": "/tmp/scion-v11-aligned-canary-5a511916-20260720.jsonl",
+      "bytes": 335720,
+      "sha256": "d6ac41909631f2368254e110f76e88254b294b68b4445daef428bc9d93510f6b"
+    },
+    "consoleAttemptLog": {
+      "bytes": 193917,
+      "sha256": "9438b7245572c5660fdf92b8e67138f079404dfd7e6e87e9a9e9aabbddd40190"
+    },
+    "courseInput": {
+      "bytes": 2714,
+      "sha256": "1817ff97632302efb7e35e711028a66a23e6077824075c0ccd4a90ef592c9b67"
+    }
+  },
+  "productionShapeCheck": {
+    "adapterRequestsInspected": 6,
+    "lessonKeyOrder": ["lessonId", "sourceFactPolicy", "title", "objectives", "topics", "readings"],
+    "claimTopicsRequests": 6,
+    "sourceFactsFieldRequests": 0,
+    "frozenFactLedgerMutations": 0
+  },
+  "riskReplay": {
+    "protocol": "public-scion-admission-risk-current",
+    "baseScores": [50506, 30306, 20203, 40408, 20205, 30303],
+    "rawAdapterScores": [1, 10101, 0, 20202, 102, 10103],
+    "riskReducingStages": 6,
+    "strictlyAdmittedRawStages": 1,
+    "deterministicCrossAttemptMerges": 2,
+    "selectedScoresAfterMerge": [0, 10101, 0, 20202, 102, 10101],
+    "fullyAdmittedAfterMerge": 2,
+    "factLedgerMutationCandidatesAccepted": 0
+  },
+  "findings": [
+    {
+      "severity": "P1",
+      "code": "alignment-improves-risk-but-whole-lesson-gate-discards-local-wins",
+      "detail": "The exact learned input shape lowered deterministic admission risk in all six staged requests, but only one raw adapter response passed every atom. Five near-misses were discarded even though each was safer than its base draft and four missed by one or two localized atoms."
+    },
+    {
+      "severity": "P1",
+      "code": "existing-compiler-repair-boundary-can-safely-consume-near-misses",
+      "detail": "Offline replay using the production assessor and existing cross-attempt atomic retention reduced two staged drafts further without altering frozen facts. A strict lower-risk check can hand near-misses to the existing per-atom repair and quarantine passes without weakening admission."
+    }
+  ],
+  "resolution": {
+    "selectionPolicy": "Retain a proven adapter draft only when its production admission-risk score is strictly lower than the base draft under the identical grounded prompt.",
+    "failClosedBoundary": "Invalid JSON, missing lessons, fact-count defects, duplicate facts, and any per-fact or frozen-ledger mutation reject the adapter candidate regardless of aggregate score.",
+    "repairBoundary": "A lower-risk near-miss proceeds through the existing deterministic compiler admission, repair, and quarantine passes. It is never labeled fully admitted until the complete production contract passes.",
+    "nextEvidence": "Repeat the six-stage Mandarin canary on the new compiler commit, then complete fresh paired V11 adapter and base arms only if the package finishes without a new safety or efficiency regression."
+  }
+}

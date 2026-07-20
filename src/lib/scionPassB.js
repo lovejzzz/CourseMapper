@@ -15,7 +15,12 @@ import {
 } from './scionEvidenceContract';
 import { applyScionKernelPasses } from './scionPasses';
 import { postFlywheelEvents } from './scionFlywheel';
-import { assessPublicScionKernelResponse, repairPublicScionJson } from './publicScionProvider';
+import {
+  assessPublicScionKernelResponse,
+  mergePublicScionKernelAttempts,
+  publicScionAdmissionRisk,
+  repairPublicScionJson,
+} from './publicScionProvider';
 import {
   SCION_ADAPTER_TASK_FAMILIES,
   SCION_LESSON_KERNEL_PROMPT_PROTOCOL,
@@ -23,6 +28,7 @@ import {
 } from './scionAdapterTaskScope';
 
 const FACT_CONTRACT_ISSUE = /:(?:facts-count|duplicate-facts|fact-\d+:)/;
+const UNSAFE_ADAPTER_STAGE_ISSUE = /(?:^|:)(?:invalid-json|missing-lesson|facts-count|duplicate-facts|fact-\d+:)/;
 const GROUNDED_ADAPTER_OBJECTIVE =
   'Use only the supplied claims to make a defensible distinction without adding outside facts.';
 
@@ -85,6 +91,48 @@ export function buildScionGroundedRefinementPrompt({ rawText, prompt, expectedLe
   const course = String(prompt.courseName || '').trim() || 'Untitled Course';
   const userPrompt = `Course: ${course}\nLessons:\n${JSON.stringify(lessons)}\nReturn ONLY valid JSON matching the kernel shape from the instructions.`;
   return { ...prompt, lessons, userPrompt };
+}
+
+/**
+ * Keep a staged adapter draft only when the deterministic production gate
+ * proves that it is strictly safer than the base draft against the same
+ * frozen fact ledger. A near-miss can then use the compiler's existing
+ * per-atom repair/quarantine passes instead of discarding every good atom.
+ * Identity or fact-ledger failures always fail closed, regardless of score.
+ */
+export function selectScionGroundedAdapterDraft({ baseText, adapterText, groundedPrompt } = {}) {
+  if (!groundedPrompt?.userPrompt || typeof baseText !== 'string' || typeof adapterText !== 'string') return null;
+  const assess = (text) => assessPublicScionKernelResponse(text, groundedPrompt.userPrompt, 'blueprintEnrichment');
+  const baseAssessment = assess(baseText);
+  const baseRisk = publicScionAdmissionRisk(baseAssessment);
+  const merged = mergePublicScionKernelAttempts(baseText, adapterText, groundedPrompt.userPrompt);
+  const candidates = [
+    { text: adapterText, source: 'adapter', repairs: [], assessment: assess(adapterText) },
+    ...(merged?.text && merged.text !== adapterText
+      ? [
+          {
+            text: merged.text,
+            source: 'cross-attempt-merge',
+            repairs: merged.repairs || [],
+            assessment: assess(merged.text),
+          },
+        ]
+      : []),
+  ]
+    .filter(
+      (candidate) =>
+        !(candidate.assessment.issues || []).some((issue) => UNSAFE_ADAPTER_STAGE_ISSUE.test(String(issue))),
+    )
+    .map((candidate) => ({ ...candidate, risk: publicScionAdmissionRisk(candidate.assessment) }))
+    .sort((left, right) => left.risk.score - right.risk.score || left.risk.issueCount - right.risk.issueCount);
+  const selected = candidates[0];
+  if (!selected || selected.risk.score >= baseRisk.score) return null;
+  return {
+    ...selected,
+    baseAssessment,
+    baseRisk,
+    riskReduction: baseRisk.score - selected.risk.score,
+  };
 }
 
 /**
@@ -178,13 +226,25 @@ export async function runScionPasses({
             groundedPrompt.userPrompt,
             'blueprintEnrichment',
           );
-          if (stagedUsedAdapter && !stagedAssessment.needsRetry) {
-            workingText = staged.fullText;
+          const selectedDraft = stagedUsedAdapter
+            ? selectScionGroundedAdapterDraft({
+                baseText: rawText,
+                adapterText: staged?.fullText || '',
+                groundedPrompt,
+              })
+            : null;
+          if (stagedUsedAdapter && (!stagedAssessment.needsRetry || selectedDraft)) {
+            workingText = selectedDraft?.text || staged.fullText;
             workingPrompt = groundedPrompt;
+            const effectiveAssessment = selectedDraft?.assessment || stagedAssessment;
             recordEvent({
               type: 'pipelineDecision',
               label: 'Scion staged adapter refinement',
-              detail: 'admitted · base synthesized facts, adapter authored the grounded teaching kernel',
+              detail: effectiveAssessment.needsRetry
+                ? `retained for compiler repair · ${selectedDraft.source} · deterministic admission risk ${selectedDraft.baseRisk.score}→${selectedDraft.risk.score} · ${(effectiveAssessment.issues || []).slice(0, 3).join(', ')}`
+                : selectedDraft?.source === 'cross-attempt-merge'
+                  ? `admitted after deterministic merge · admission risk ${selectedDraft.baseRisk.score}→0`
+                  : 'admitted · base synthesized facts, adapter authored the grounded teaching kernel',
               stage: 'scionAdapterStage',
               featureId: 'blueprintEnrichment',
               task: 'blueprintEnrichment',

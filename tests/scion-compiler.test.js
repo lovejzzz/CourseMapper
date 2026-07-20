@@ -17,6 +17,7 @@ import {
   buildScionGroundedRefinementPrompt,
   runScionPasses,
   scionCallOpts,
+  selectScionGroundedAdapterDraft,
   shouldRunScionGroundedAdapterStage,
 } from '../src/lib/scionPassB';
 import {
@@ -234,6 +235,62 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
       }),
     );
     expect(JSON.parse(result).lessons[0].facts).toEqual(SCION_LESSON_KERNEL_REFERENCE_PILOT_RESPONSE.lessons[0].facts);
+  });
+
+  it('D1: retains a strictly lower-risk adapter near-miss for compiler repair', () => {
+    const lessons = JSON.parse(SCION_LESSON_KERNEL_PILOT_PROMPT.match(/Lessons:\n(\[.*\])\nReturn/s)[1]);
+    const prompt = {
+      courseName: 'Geology Inference and Feedback Audit',
+      lessons,
+      userPrompt: SCION_LESSON_KERNEL_PILOT_PROMPT,
+      systemPrompt: 'Write a compact knowledge kernel.',
+    };
+    const base = structuredClone(SCION_LESSON_KERNEL_REFERENCE_PILOT_RESPONSE);
+    base.lessons[0].scenario = {};
+    base.lessons[0].mc[0].op = ['Same option', 'Same option', 'Same option', 'Same option'];
+    base.lessons[0].keyTerms[0].eg = base.lessons[0].keyTerms[0].df;
+    base.lessons[0].keyTerms[1].eg = base.lessons[0].keyTerms[1].df;
+    const grounded = buildScionGroundedRefinementPrompt({
+      rawText: JSON.stringify(base),
+      prompt,
+      expectedLessonIds: ['lesson-3'],
+    });
+    const adapter = structuredClone(SCION_LESSON_KERNEL_REFERENCE_PILOT_RESPONSE);
+    adapter.lessons[0].keyTerms[2].eg = adapter.lessons[0].keyTerms[2].df;
+
+    const selected = selectScionGroundedAdapterDraft({
+      baseText: JSON.stringify(base),
+      adapterText: JSON.stringify(adapter),
+      groundedPrompt: grounded,
+    });
+
+    expect(selected).toMatchObject({ source: 'adapter' });
+    expect(selected.risk.score).toBeLessThan(selected.baseRisk.score);
+    expect(selected.assessment.needsRetry).toBe(true);
+    expect(selected.assessment.issues).toContain('lesson-3:key-term-2:example-repeats-definition');
+    expect(JSON.parse(selected.text).lessons[0].facts).toEqual(base.lessons[0].facts);
+  });
+
+  it('D1: never retains an adapter draft that mutates the frozen fact ledger', () => {
+    const lessons = JSON.parse(SCION_LESSON_KERNEL_PILOT_PROMPT.match(/Lessons:\n(\[.*\])\nReturn/s)[1]);
+    const prompt = {
+      courseName: 'Geology Inference and Feedback Audit',
+      lessons,
+      userPrompt: SCION_LESSON_KERNEL_PILOT_PROMPT,
+      systemPrompt: 'Write a compact knowledge kernel.',
+    };
+    const response = JSON.stringify(SCION_LESSON_KERNEL_REFERENCE_PILOT_RESPONSE);
+    const grounded = buildScionGroundedRefinementPrompt({ rawText: response, prompt, expectedLessonIds: ['lesson-3'] });
+    const adapter = structuredClone(SCION_LESSON_KERNEL_REFERENCE_PILOT_RESPONSE);
+    adapter.lessons[0].facts[0] = 'The adapter tried to replace the compiler-owned source fact.';
+
+    expect(
+      selectScionGroundedAdapterDraft({
+        baseText: response,
+        adapterText: JSON.stringify(adapter),
+        groundedPrompt: grounded,
+      }),
+    ).toBeNull();
   });
 
   it('D1: content-sourced lessons get the session-only variant', () => {
