@@ -148,14 +148,29 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     });
     expect(grounded).toMatchObject({
       lessons: [
-        expect.objectContaining({
+        {
           lessonId: 'lesson-3',
           sourceFactPolicy: 'numbered-source-ledger-v1',
-          sourceFacts: SCION_LESSON_KERNEL_REFERENCE_PILOT_RESPONSE.lessons[0].facts,
-        }),
+          title: lessons[0].title,
+          objectives: 'Use only the supplied claims to make a defensible distinction without adding outside facts.',
+          topics: SCION_LESSON_KERNEL_REFERENCE_PILOT_RESPONSE.lessons[0].facts
+            .map((fact, index) => `Claim ${index}: ${fact}`)
+            .join(' '),
+          readings: lessons[0].readings,
+        },
       ],
     });
+    expect(Object.keys(grounded.lessons[0])).toEqual([
+      'lessonId',
+      'sourceFactPolicy',
+      'title',
+      'objectives',
+      'topics',
+      'readings',
+    ]);
     expect(grounded.userPrompt).toContain('"sourceFactPolicy":"numbered-source-ledger-v1"');
+    expect(grounded.userPrompt).toContain('"topics":"Claim 0:');
+    expect(grounded.userPrompt).not.toContain('"sourceFacts"');
     expect(scionCallOpts({ prompt: grounded, expectedLessonIds: ['lesson-3'], recoveryAttempt: 0 })).toMatchObject({
       promptProtocol: 'production-lesson-kernel-prompt-v1',
       maxRetries: 0,

@@ -8,7 +8,11 @@
 //   runScionPasses           — the D3 quality passes + D4 flywheel on the raw
 //                              batch JSON, returning the processed text
 import { compactLessonKernelSchemaProfile, scionPassesEnabled } from './scionContracts';
-import { scionFactCountForPrompt, scionPromptUsesSourceLedger } from './scionEvidenceContract';
+import {
+  scionFactContractForLesson,
+  scionFactCountForPrompt,
+  scionPromptUsesSourceLedger,
+} from './scionEvidenceContract';
 import { applyScionKernelPasses } from './scionPasses';
 import { postFlywheelEvents } from './scionFlywheel';
 import { assessPublicScionKernelResponse, repairPublicScionJson } from './publicScionProvider';
@@ -19,6 +23,8 @@ import {
 } from './scionAdapterTaskScope';
 
 const FACT_CONTRACT_ISSUE = /:(?:facts-count|duplicate-facts|fact-\d+:)/;
+const GROUNDED_ADAPTER_OBJECTIVE =
+  'Use only the supplied claims to make a defensible distinction without adding outside facts.';
 
 export function shouldRunScionGroundedAdapterStage(routes = []) {
   return routes.some(
@@ -28,6 +34,28 @@ export function shouldRunScionGroundedAdapterStage(routes = []) {
       route?.routeReason === 'grounded-stage-available' &&
       Boolean(route?.adapterId),
   );
+}
+
+function buildGroundedAdapterLesson(lesson, facts) {
+  if (!Array.isArray(facts) || facts.length < 3 || facts.length > 5 || facts.some((fact) => typeof fact !== 'string')) {
+    return null;
+  }
+  // Match the exact lesson serialization learned by every admitted training
+  // row: ordered Claim N topics, a task objective, and no parallel sourceFacts
+  // field. The semantic contract re-parses the encoding before it can reach
+  // the adapter, so a reserved marker or whitespace mutation fails closed.
+  const adapterLesson = {
+    lessonId: lesson.lessonId,
+    sourceFactPolicy: 'numbered-source-ledger-v1',
+    title: String(lesson.title || ''),
+    objectives: GROUNDED_ADAPTER_OBJECTIVE,
+    topics: facts.map((fact, index) => `Claim ${index}: ${fact}`).join(' '),
+    readings: String(lesson.readings || ''),
+  };
+  const contract = scionFactContractForLesson(adapterLesson);
+  return contract.mode === 'numbered-source-ledger-v1' && JSON.stringify(contract.claims) === JSON.stringify(facts)
+    ? adapterLesson
+    : null;
 }
 
 export function buildScionGroundedRefinementPrompt({ rawText, prompt, expectedLessonIds = [] } = {}) {
@@ -51,12 +79,7 @@ export function buildScionGroundedRefinementPrompt({ rawText, prompt, expectedLe
     .filter((lesson) => expected.has(lesson?.lessonId))
     .map((lesson) => {
       const facts = returned.get(lesson.lessonId)?.facts;
-      if (!Array.isArray(facts) || facts.length < 3 || facts.length > 5) return null;
-      return {
-        ...lesson,
-        sourceFactPolicy: 'numbered-source-ledger-v1',
-        sourceFacts: [...facts],
-      };
+      return buildGroundedAdapterLesson(lesson, facts);
     });
   if (lessons.length !== expectedLessonIds.length || lessons.some((lesson) => !lesson)) return null;
   const course = String(prompt.courseName || '').trim() || 'Untitled Course';
