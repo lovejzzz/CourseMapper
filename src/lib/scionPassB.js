@@ -189,6 +189,21 @@ export async function runScionPasses({
     let workingUsesGroundedAdapter = false;
     if (shouldRunScionGroundedAdapterStage(runtimeRoutes)) {
       const groundedPrompt = buildScionGroundedRefinementPrompt({ rawText, prompt, expectedLessonIds });
+      if (!groundedPrompt) {
+        // The grounded adapter cannot safely run without a valid, immutable
+        // fact ledger. Every later Scion pass edits teaching atoms rather
+        // than facts, so spending model calls here cannot make the lesson
+        // admissible. Let the deterministic compiler derive its fallback.
+        recordEvent({
+          type: 'pipelineDecision',
+          label: 'Scion staged adapter refinement',
+          detail: 'not attempted · base fact ledger failed the immutable contract · deterministic fallback',
+          stage: 'scionAdapterStage',
+          featureId: 'blueprintEnrichment',
+          task: 'blueprintEnrichment',
+        });
+        return rawText;
+      }
       if (groundedPrompt) {
         recordEvent({
           type: 'blueprintEnrichmentCall',

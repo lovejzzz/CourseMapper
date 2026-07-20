@@ -363,6 +363,52 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     );
   });
 
+  it('D1: spends no repair calls when the immutable base fact ledger is invalid', async () => {
+    const lessons = JSON.parse(SCION_LESSON_KERNEL_PILOT_PROMPT.match(/Lessons:\n(\[.*\])\nReturn/s)[1]);
+    const prompt = {
+      courseName: 'Geology Inference and Feedback Audit',
+      lessons,
+      userPrompt: SCION_LESSON_KERNEL_PILOT_PROMPT,
+      systemPrompt: 'Write a compact knowledge kernel.',
+    };
+    const base = structuredClone(SCION_LESSON_KERNEL_REFERENCE_PILOT_RESPONSE);
+    base.lessons[0].facts[1] = base.lessons[0].facts[0];
+    const events = [];
+    const streamProvider = vi.fn();
+
+    const result = await runScionPasses({
+      rawText: JSON.stringify(base),
+      streamProvider,
+      provider: 'local',
+      apiKey: '',
+      modelId: 'scion-1',
+      modelCapabilities: {},
+      generationPlan: {},
+      recordEvent: (event) => events.push(event),
+      prompt,
+      expectedLessonIds: ['lesson-3'],
+      contentSourcedLessonIds: [],
+      courseName: prompt.courseName,
+      runtimeRoutes: [
+        {
+          taskFamily: 'lesson-kernel-synthesis',
+          routeMode: 'base-only',
+          routeReason: 'grounded-stage-available',
+          adapterId: 'scion-source-grounded',
+        },
+      ],
+    });
+
+    expect(result).toBe(JSON.stringify(base));
+    expect(streamProvider).not.toHaveBeenCalled();
+    expect(events).toContainEqual(
+      expect.objectContaining({
+        label: 'Scion staged adapter refinement',
+        detail: expect.stringContaining('base fact ledger failed'),
+      }),
+    );
+  });
+
   it('D1: content-sourced lessons get the session-only variant', () => {
     const profile = kernelBatchSchemaProfile({
       expectedLessonIds: ['lesson-1'],
