@@ -7,11 +7,12 @@ import {
   extractPublicScionKernelLessons,
   mergePublicScionKernelAttempts,
   publicScionAdmissionRisk,
+  publicScionFactContractIssues,
   publicScionRetryDelay,
   repairPublicScionJson,
   shufflePublicScionKernelOptions,
 } from './publicScionProvider';
-import { scionAdapterTaskFamilyForProviderTask } from './scionAdapterTaskScope';
+import { SCION_ADAPTER_TASK_FAMILIES, scionAdapterTaskFamilyForProviderTask } from './scionAdapterTaskScope';
 import { scionFactContractForLesson } from './scionEvidenceContract';
 
 export const SCION_LOCAL_MAX_GENERATION_RETRIES = PUBLIC_SCION_MIN_RETRIES;
@@ -144,7 +145,9 @@ export async function runScionLocalCompletion({
     ),
   );
   const retryLimit = Math.max(0, Math.min(SCION_LOCAL_MAX_GENERATION_RETRIES, Math.floor(Number(maxRetries) || 0)));
-  const taskFamily = scionAdapterTaskFamilyForProviderTask(task);
+  const taskFamily = scionAdapterTaskFamilyForProviderTask(task, { promptProtocol });
+  const recoveryAttempt =
+    Number(String(userPrompt || '').match(/(?:RECOVERY RETRY|Recovery attempt)\s+(\d+)/i)?.[1]) || 0;
 
   await runtimeApi.loadScionBrowserWllama({ onProgress, signal });
 
@@ -171,6 +174,7 @@ export async function runScionLocalCompletion({
       });
     }
     let tokenCount = 0;
+    let attemptRoute = null;
     const rawText = await runtimeApi.completeScionBrowserWllama(attemptMessages, {
       maxNewTokens: outputLimit,
       temperature: attemptTemperature,
@@ -180,7 +184,10 @@ export async function runScionLocalCompletion({
       signal,
       taskFamily,
       promptProtocol,
-      onAdapterRoute,
+      onAdapterRoute: (route) => {
+        attemptRoute = route;
+        if (typeof onAdapterRoute === 'function') onAdapterRoute(route);
+      },
       onToken: (currentText) => {
         tokenCount += 1;
         if (typeof onToken === 'function') onToken(currentText, tokenCount, attempt + 1);
@@ -195,7 +202,23 @@ export async function runScionLocalCompletion({
     const assessment = empty
       ? { needsRetry: true, issues: ['empty-response'] }
       : assessPublicScionKernelResponse(fullText, userPrompt, task);
-    const incomplete = !empty && assessment.needsRetry;
+    const groundedSynthesis =
+      taskFamily === SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL_SYNTHESIS &&
+      attemptRoute?.reason === 'grounded-stage-available';
+    const retryIssues = groundedSynthesis ? publicScionFactContractIssues(assessment) : assessment.issues || [];
+    const retryGate = { needsRetry: empty || retryIssues.length > 0, issues: retryIssues };
+    const incomplete = !empty && retryGate.needsRetry;
+    // When an exact source-grounded adapter is available, the synthesis arm
+    // only needs one structurally usable fact draft. A valid fact ledger exits
+    // above without another call; an invalid ledger gets one issue-informed
+    // retry so an exact duplicate cannot consume one of the two course-level
+    // recovery seats and strand a whole lesson. Explicit recovery retains its
+    // two-retry ceiling for a stubborn malformed ledger.
+    const effectiveRetryLimit = groundedSynthesis
+      ? recoveryAttempt > 0
+        ? Math.min(2, retryLimit)
+        : Math.min(1, retryLimit)
+      : retryLimit;
     if (!empty && !incomplete) {
       const shuffled = shufflePublicScionKernelOptions(fullText);
       return {
@@ -205,8 +228,9 @@ export async function runScionLocalCompletion({
         messages: attemptMessages,
         attempt: attempt + 1,
         retryCount: attempt,
-        maxRetries: retryLimit,
+        maxRetries: effectiveRetryLimit,
         tokenCount,
+        ...(assessment.needsRetry ? { contractIncomplete: true, admissionIssues: assessment.issues || [] } : {}),
       };
     }
 
@@ -229,8 +253,8 @@ export async function runScionLocalCompletion({
         attempt: attempt + 1,
         tokenCount,
       };
-      if (!bestIncomplete || publicScionAdmissionRisk(assessment).score < bestIncomplete.risk.score) {
-        bestIncomplete = { ...candidate, risk: publicScionAdmissionRisk(assessment) };
+      if (!bestIncomplete || publicScionAdmissionRisk(retryGate).score < bestIncomplete.risk.score) {
+        bestIncomplete = { ...candidate, risk: publicScionAdmissionRisk(retryGate) };
       }
     }
     // The browser transport owns syntax and envelope integrity. The canonical
@@ -239,7 +263,7 @@ export async function runScionLocalCompletion({
     // receipt instead of regenerating the whole lesson repeatedly; the parser
     // can then keep safe facts/items and reject only the defective atoms.
     const deferAfterAttempt =
-      publicScionAdmissionRisk(assessment).highRiskIssues > 0 ? retryLimit : Math.min(1, retryLimit);
+      publicScionAdmissionRisk(retryGate).highRiskIssues > 0 ? effectiveRetryLimit : Math.min(1, effectiveRetryLimit);
     if (attempt >= deferAfterAttempt && deferable) {
       const selected = bestIncomplete || {
         fullText,
@@ -259,20 +283,20 @@ export async function runScionLocalCompletion({
         attempt: attempt + 1,
         selectedAttempt: selected.attempt,
         retryCount: attempt,
-        maxRetries: retryLimit,
+        maxRetries: effectiveRetryLimit,
         tokenCount: selected.tokenCount,
         contractIncomplete: true,
         admissionIssues: selected.assessment.issues || [],
         kernelShape: selected.kernelShape,
       };
     }
-    if (attempt >= retryLimit) throw failure;
-    for (const issue of assessment.issues || []) observedRetryIssues.add(issue);
+    if (attempt >= effectiveRetryLimit) throw failure;
+    for (const issue of retryGate.issues || []) observedRetryIssues.add(issue);
     retryAssessment = { needsRetry: true, issues: [...observedRetryIssues] };
     retainedIncompleteText = fullText;
     const retryNumber = attempt + 1;
     const delay = publicScionRetryDelay(retryNumber);
-    if (typeof onRetry === 'function') onRetry(retryNumber, retryLimit, delay, failure);
+    if (typeof onRetry === 'function') onRetry(retryNumber, effectiveRetryLimit, delay, failure);
     await sleep(delay);
   }
 

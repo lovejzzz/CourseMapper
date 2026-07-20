@@ -21,6 +21,7 @@ function parseArgs(argv) {
     concurrency: 2,
     limit: 0,
     includePartial: false,
+    sessionPrefix: 'scion-v01654',
   };
   for (let index = 0; index < argv.length; index += 1) {
     const token = argv[index];
@@ -30,6 +31,7 @@ function parseArgs(argv) {
     else if (token === '--concurrency') args.concurrency = Number(argv[++index] || 0);
     else if (token === '--limit') args.limit = Number(argv[++index] || 0);
     else if (token === '--include-partial') args.includePartial = true;
+    else if (token === '--session-prefix') args.sessionPrefix = argv[++index] || args.sessionPrefix;
     else if (token === '--help' || token === '-h') args.help = true;
     else throw new Error(`Unknown lesson-kernel judge runner option: ${token}`);
   }
@@ -116,7 +118,7 @@ async function runTask(task, args, codex, runtimeVersion) {
   }
 
   const cleanroom = await fs.mkdtemp(path.join(os.tmpdir(), `scion-${task.batchId}-${stem}-`));
-  const sessionId = `scion-v01654-${task.batchId}-${stem}-${crypto.randomUUID()}`;
+  const sessionId = `${args.sessionPrefix}-${task.batchId}-${stem}-${crypto.randomUUID()}`;
   try {
     await Promise.all([
       fs.copyFile(path.join(sourceDir, 'judge-prompt.md'), path.join(cleanroom, 'judge-prompt.md')),
@@ -172,7 +174,7 @@ async function main() {
   const args = parseArgs(process.argv.slice(2));
   if (args.help) {
     console.log(
-      'Usage: node scripts/scionLessonKernelJudgeRunner.mjs [--model gpt-5.6-sol] [--reasoning xhigh] [--concurrency 2] [--limit N] [--include-partial]',
+      'Usage: node scripts/scionLessonKernelJudgeRunner.mjs [--model gpt-5.6-sol] [--reasoning xhigh] [--concurrency 2] [--limit N] [--include-partial] [--session-prefix scion-v01662]',
     );
     return;
   }

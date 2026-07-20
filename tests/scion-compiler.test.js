@@ -2,7 +2,7 @@
 // D1 contract handoff (declared json_schema, per-lesson chunks, pinned
 // skeleton), D2 time-planner (CourseIR skip, greedy-first retry temperature),
 // D3 quality passes in the compiler, D4 the on-device flywheel.
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import fs from 'node:fs';
 import {
   isScionProvider,
@@ -13,13 +13,83 @@ import {
   scionFlywheelEnabled,
 } from '../src/lib/scionContracts';
 import { applyScionKernelPasses, SCION_PASS_CALL_BUDGET_PER_LESSON } from '../src/lib/scionPasses';
-import { scionCallOpts } from '../src/lib/scionPassB';
+import {
+  buildScionGroundedRefinementPrompt,
+  runScionPasses,
+  scionCallOpts,
+  selectScionGroundedAdapterDraft,
+  shouldRunScionGroundedAdapterStage,
+} from '../src/lib/scionPassB';
+import {
+  SCION_LESSON_KERNEL_PILOT_PROMPT,
+  SCION_LESSON_KERNEL_REFERENCE_PILOT_RESPONSE,
+} from './fixtures/scionLessonKernelAdmissionV01654';
 import { getAdaptiveNativePassBBatchSize } from '../src/lib/adaptiveProviderBatching';
 import { buildProviderTextRequest } from '../src/lib/modelRequestBuilders';
 import { isAppliedQuizStem } from '../src/lib/quality/quizItemDepth';
 import { assessScionKeyTerm } from '../src/lib/scionPreferenceGate';
 
 describe('Scion-native compiler (V2.1 Workstream D)', () => {
+  it('normalizes a stray terminal schema marker before learner-facing projection', async () => {
+    const raw = JSON.stringify({
+      lessons: [
+        {
+          lessonId: 'lesson-1',
+          facts: ['Carbohydrates supply necessary energy for daily activities.'],
+          keyTerms: [],
+          scenario: { su: '', ma: '' },
+          mc: [
+            {
+              q: 'Which statement is supported by the observed function?$',
+              op: [
+                'Carbohydrates supply necessary energy',
+                'Minerals supply necessary energy',
+                'Water supplies daily energy',
+                'Fiber supplies daily energy',
+              ],
+              ai: 0,
+              fi: [0],
+              ex: 'Carbohydrates supply necessary energy for daily activities.',
+            },
+            {
+              q: 'Which distinction matches the observed comparison? Which option is supported?$',
+              op: [
+                'Quantities distinguish macronutrients from micronutrients',
+                'Macronutrients distinguish quantities from micronutrients',
+                'Micronutrients distinguish quantities from macronutrients',
+                'Quantities distinguish macronutrients from components',
+              ],
+              ai: 0,
+              fi: [0],
+              ex: 'Required quantities distinguish macronutrients from micronutrients.',
+            },
+          ],
+        },
+      ],
+    });
+    const result = await applyScionKernelPasses(raw, {
+      promptLessons: [{ lessonId: 'lesson-1', title: 'Lesson 1: Carbohydrates', topics: 'Carbohydrates and energy' }],
+      generateJson: async () => JSON.stringify({ repairs: [] }),
+      expectedMcCount: 0,
+      minimumKeyTermCount: 0,
+      maxCallsPerLesson: 1,
+      verifyDraftMcWithSameModel: false,
+      verifyRepairMcWithSameModel: false,
+      skipImprovementOnlyPasses: true,
+    });
+    expect(JSON.parse(result.text).lessons[0].mc[0].q).toBe('Which statement is supported by the observed function?');
+    expect(JSON.parse(result.text).lessons[0].mc[1].q).toBe('Which distinction matches the observed comparison?');
+    expect(result.events).toContainEqual(
+      expect.objectContaining({ pass: 'surfaceNormalization', reason: 'terminal-schema-marker' }),
+    );
+    expect(result.events).toContainEqual(
+      expect.objectContaining({
+        pass: 'surfaceNormalization',
+        reason: 'redundant-answer-position-question',
+      }),
+    );
+  });
+
   it('D1: Pass B runs per-lesson for the local provider', () => {
     const size = getAdaptiveNativePassBBatchSize({
       lessonCount: 7,
@@ -69,7 +139,7 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     });
     const lesson = options.schema.schema.properties.lessons.items;
     expect(options.schema.name).toBe('scion_compact_lesson_kernel_v1');
-    expect(options.promptProtocol).toBe('production-lesson-kernel-prompt-v1');
+    expect(options.promptProtocol).toBe('production-lesson-kernel-synthesis-prompt-v1');
     expect(lesson.required).toEqual(['lessonId', 'facts', 'keyTerms', 'scenario', 'mc']);
     expect(lesson.properties.keyTerms).toMatchObject({ minItems: 3, maxItems: 3 });
     expect(lesson.properties.mc).toMatchObject({ minItems: 2, maxItems: 2 });
@@ -99,7 +169,506 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     });
 
     expect(options.maxRetries).toBe(0);
+    expect(options.promptProtocol).toBe('production-lesson-kernel-prompt-v1');
     expect(options.schema.schema.properties.lessons.items.properties.facts).toMatchObject({ minItems: 3, maxItems: 3 });
+  });
+
+  it('D1: stages only an exact grounded adapter after freezing valid synthesized facts', () => {
+    expect(
+      shouldRunScionGroundedAdapterStage([
+        {
+          taskFamily: 'lesson-kernel-synthesis',
+          routeMode: 'base-only',
+          routeReason: 'grounded-stage-available',
+          adapterId: 'scion-source-grounded',
+        },
+      ]),
+    ).toBe(true);
+    expect(
+      shouldRunScionGroundedAdapterStage([
+        {
+          taskFamily: 'lesson-kernel-synthesis',
+          routeMode: 'base-only',
+          routeReason: 'no-adapter-installed',
+          adapterId: null,
+        },
+      ]),
+    ).toBe(false);
+
+    const lessons = JSON.parse(SCION_LESSON_KERNEL_PILOT_PROMPT.match(/Lessons:\n(\[.*\])\nReturn/s)[1]);
+    const prompt = {
+      courseName: 'Geology Inference and Feedback Audit',
+      lessons,
+      userPrompt: SCION_LESSON_KERNEL_PILOT_PROMPT,
+      systemPrompt: 'Write a compact knowledge kernel.',
+    };
+    const grounded = buildScionGroundedRefinementPrompt({
+      rawText: JSON.stringify(SCION_LESSON_KERNEL_REFERENCE_PILOT_RESPONSE),
+      prompt,
+      expectedLessonIds: ['lesson-3'],
+    });
+    expect(grounded).toMatchObject({
+      lessons: [
+        {
+          lessonId: 'lesson-3',
+          sourceFactPolicy: 'numbered-source-ledger-v1',
+          title: lessons[0].title,
+          objectives: 'Use only the supplied claims to make a defensible distinction without adding outside facts.',
+          topics: SCION_LESSON_KERNEL_REFERENCE_PILOT_RESPONSE.lessons[0].facts
+            .map((fact, index) => `Claim ${index}: ${fact}`)
+            .join(' '),
+          readings: lessons[0].readings,
+        },
+      ],
+    });
+    expect(Object.keys(grounded.lessons[0])).toEqual([
+      'lessonId',
+      'sourceFactPolicy',
+      'title',
+      'objectives',
+      'topics',
+      'readings',
+    ]);
+    expect(grounded.userPrompt).toContain('"sourceFactPolicy":"numbered-source-ledger-v1"');
+    expect(grounded.userPrompt).toContain('"topics":"Claim 0:');
+    expect(grounded.userPrompt).not.toContain('"sourceFacts"');
+    expect(scionCallOpts({ prompt: grounded, expectedLessonIds: ['lesson-3'], recoveryAttempt: 0 })).toMatchObject({
+      promptProtocol: 'production-lesson-kernel-prompt-v1',
+      maxRetries: 0,
+    });
+  });
+
+  it('D1: admits a proven source-grounded adapter stage and keeps its frozen fact ledger', async () => {
+    const lessons = JSON.parse(SCION_LESSON_KERNEL_PILOT_PROMPT.match(/Lessons:\n(\[.*\])\nReturn/s)[1]);
+    const prompt = {
+      courseName: 'Geology Inference and Feedback Audit',
+      lessons,
+      userPrompt: SCION_LESSON_KERNEL_PILOT_PROMPT,
+      systemPrompt: 'Write a compact knowledge kernel.',
+    };
+    const response = JSON.stringify(SCION_LESSON_KERNEL_REFERENCE_PILOT_RESPONSE);
+    const events = [];
+    const streamProvider = vi.fn().mockResolvedValue({
+      fullText: response,
+      adapterRoutes: [
+        {
+          taskFamily: 'source-grounded-lesson-kernel',
+          routeMode: 'adapter',
+          nativeAdapterActive: true,
+        },
+      ],
+    });
+    const result = await runScionPasses({
+      rawText: response,
+      streamProvider,
+      provider: 'local',
+      apiKey: '',
+      modelId: 'scion-1',
+      modelCapabilities: {},
+      generationPlan: {},
+      recordEvent: (event) => events.push(event),
+      prompt,
+      expectedLessonIds: ['lesson-3'],
+      contentSourcedLessonIds: [],
+      courseName: prompt.courseName,
+      runtimeRoutes: [
+        {
+          taskFamily: 'lesson-kernel-synthesis',
+          routeMode: 'base-only',
+          routeReason: 'grounded-stage-available',
+          adapterId: 'scion-source-grounded',
+        },
+      ],
+    });
+    expect(streamProvider).toHaveBeenCalledWith(
+      'local',
+      '',
+      'scion-1',
+      prompt.systemPrompt,
+      expect.stringContaining('"sourceFactPolicy":"numbered-source-ledger-v1"'),
+      expect.objectContaining({ promptProtocol: 'production-lesson-kernel-prompt-v1', maxRetries: 0 }),
+    );
+    expect(events).toContainEqual(
+      expect.objectContaining({
+        label: 'Scion staged adapter refinement',
+        detail: expect.stringContaining('admitted'),
+      }),
+    );
+    expect(JSON.parse(result).lessons[0].facts).toEqual(SCION_LESSON_KERNEL_REFERENCE_PILOT_RESPONSE.lessons[0].facts);
+  });
+
+  it('D1: salvages a clean cross-attempt draft before compiler repair', () => {
+    const lessons = JSON.parse(SCION_LESSON_KERNEL_PILOT_PROMPT.match(/Lessons:\n(\[.*\])\nReturn/s)[1]);
+    const prompt = {
+      courseName: 'Geology Inference and Feedback Audit',
+      lessons,
+      userPrompt: SCION_LESSON_KERNEL_PILOT_PROMPT,
+      systemPrompt: 'Write a compact knowledge kernel.',
+    };
+    const base = structuredClone(SCION_LESSON_KERNEL_REFERENCE_PILOT_RESPONSE);
+    base.lessons[0].scenario = {};
+    base.lessons[0].mc[0].op = ['Same option', 'Same option', 'Same option', 'Same option'];
+    base.lessons[0].keyTerms[0].eg = base.lessons[0].keyTerms[0].df;
+    base.lessons[0].keyTerms[1].eg = base.lessons[0].keyTerms[1].df;
+    const grounded = buildScionGroundedRefinementPrompt({
+      rawText: JSON.stringify(base),
+      prompt,
+      expectedLessonIds: ['lesson-3'],
+    });
+    const adapter = structuredClone(SCION_LESSON_KERNEL_REFERENCE_PILOT_RESPONSE);
+    adapter.lessons[0].keyTerms[2].eg = adapter.lessons[0].keyTerms[2].df;
+
+    const selected = selectScionGroundedAdapterDraft({
+      baseText: JSON.stringify(base),
+      adapterText: JSON.stringify(adapter),
+      groundedPrompt: grounded,
+    });
+
+    expect(selected).toMatchObject({ source: 'cross-attempt-merge' });
+    expect(selected.risk.score).toBeLessThan(selected.baseRisk.score);
+    expect(selected.assessment.needsRetry).toBe(false);
+    expect(selected.assessment.issues).toEqual([]);
+    expect(selected.repairs).toContainEqual(expect.objectContaining({ field: 'keyTerms[2]' }));
+    expect(JSON.parse(selected.text).lessons[0].facts).toEqual(base.lessons[0].facts);
+  });
+
+  it('D1: preserves base-level teaching coverage when atom salvage lowers risk', () => {
+    const lessons = JSON.parse(SCION_LESSON_KERNEL_PILOT_PROMPT.match(/Lessons:\n(\[.*\])\nReturn/s)[1]);
+    const prompt = {
+      courseName: 'Geology Inference and Feedback Audit',
+      lessons,
+      userPrompt: SCION_LESSON_KERNEL_PILOT_PROMPT,
+      systemPrompt: 'Write a compact knowledge kernel.',
+    };
+    const base = structuredClone(SCION_LESSON_KERNEL_REFERENCE_PILOT_RESPONSE);
+    // Keep one substantive term, but give the public issue counter enough
+    // low-risk noise that a superficially cleaner adapter can look better.
+    for (const index of [1, 2]) {
+      base.lessons[0].keyTerms[index].eg = base.lessons[0].keyTerms[index].df;
+      base.lessons[0].keyTerms[index].mi = base.lessons[0].facts[index];
+    }
+    // The canonical parser can conservatively realign this key from its
+    // explanation/source support, so the projected base remains usable.
+    base.lessons[0].mc[0].ai = (base.lessons[0].mc[0].ai + 1) % 4;
+    const grounded = buildScionGroundedRefinementPrompt({
+      rawText: JSON.stringify(base),
+      prompt,
+      expectedLessonIds: ['lesson-3'],
+    });
+    const adapter = structuredClone(SCION_LESSON_KERNEL_REFERENCE_PILOT_RESPONSE);
+    // Each adapter term is rejected atomically. Its public issue total is
+    // lower than the base's, but no terminology core survives projection.
+    adapter.lessons[0].keyTerms.forEach((term) => {
+      term.eg = term.df;
+    });
+
+    const selected = selectScionGroundedAdapterDraft({
+      baseText: JSON.stringify(base),
+      adapterText: JSON.stringify(adapter),
+      groundedPrompt: grounded,
+    });
+
+    expect(selected).toMatchObject({ source: 'cross-attempt-merge' });
+    expect(selected.compilerQuality.usable).toBe(true);
+    expect(selected.compilerQuality.score).toBeGreaterThanOrEqual(selected.baseCompilerQuality.score);
+    expect(selected.risk.score).toBeLessThan(selected.baseRisk.score);
+    expect(selected.repairs).toContainEqual(expect.objectContaining({ field: 'keyTerms[0]' }));
+  });
+
+  it('D1: never retains an adapter draft that mutates the frozen fact ledger', () => {
+    const lessons = JSON.parse(SCION_LESSON_KERNEL_PILOT_PROMPT.match(/Lessons:\n(\[.*\])\nReturn/s)[1]);
+    const prompt = {
+      courseName: 'Geology Inference and Feedback Audit',
+      lessons,
+      userPrompt: SCION_LESSON_KERNEL_PILOT_PROMPT,
+      systemPrompt: 'Write a compact knowledge kernel.',
+    };
+    const response = JSON.stringify(SCION_LESSON_KERNEL_REFERENCE_PILOT_RESPONSE);
+    const grounded = buildScionGroundedRefinementPrompt({ rawText: response, prompt, expectedLessonIds: ['lesson-3'] });
+    const adapter = structuredClone(SCION_LESSON_KERNEL_REFERENCE_PILOT_RESPONSE);
+    adapter.lessons[0].facts[0] = 'The adapter tried to replace the compiler-owned source fact.';
+
+    expect(
+      selectScionGroundedAdapterDraft({
+        baseText: response,
+        adapterText: JSON.stringify(adapter),
+        groundedPrompt: grounded,
+      }),
+    ).toBeNull();
+  });
+
+  it('D1: avoids a compiler repair call when deterministic atom salvage clears admission', async () => {
+    const lessons = JSON.parse(SCION_LESSON_KERNEL_PILOT_PROMPT.match(/Lessons:\n(\[.*\])\nReturn/s)[1]);
+    const prompt = {
+      courseName: 'Geology Inference and Feedback Audit',
+      lessons,
+      userPrompt: SCION_LESSON_KERNEL_PILOT_PROMPT,
+      systemPrompt: 'Write a compact knowledge kernel.',
+    };
+    const base = structuredClone(SCION_LESSON_KERNEL_REFERENCE_PILOT_RESPONSE);
+    base.lessons[0].scenario = {};
+    base.lessons[0].mc[0].op = ['Same option', 'Same option', 'Same option', 'Same option'];
+    base.lessons[0].keyTerms[0].eg = base.lessons[0].keyTerms[0].df;
+    base.lessons[0].keyTerms[1].eg = base.lessons[0].keyTerms[1].df;
+    const adapter = structuredClone(SCION_LESSON_KERNEL_REFERENCE_PILOT_RESPONSE);
+    adapter.lessons[0].keyTerms[2].eg = adapter.lessons[0].keyTerms[2].df;
+    const events = [];
+    const streamProvider = vi
+      .fn()
+      .mockResolvedValueOnce({
+        fullText: JSON.stringify(adapter),
+        adapterRoutes: [
+          {
+            taskFamily: 'source-grounded-lesson-kernel',
+            routeMode: 'adapter',
+            nativeAdapterActive: true,
+          },
+        ],
+      })
+      .mockResolvedValueOnce({ fullText: JSON.stringify({ repairs: [] }), adapterRoutes: [] });
+
+    await runScionPasses({
+      rawText: JSON.stringify(base),
+      streamProvider,
+      provider: 'local',
+      apiKey: '',
+      modelId: 'scion-1',
+      modelCapabilities: {},
+      generationPlan: {},
+      recordEvent: (event) => events.push(event),
+      prompt,
+      expectedLessonIds: ['lesson-3'],
+      contentSourcedLessonIds: [],
+      courseName: prompt.courseName,
+      runtimeRoutes: [
+        {
+          taskFamily: 'lesson-kernel-synthesis',
+          routeMode: 'base-only',
+          routeReason: 'grounded-stage-available',
+          adapterId: 'scion-source-grounded',
+        },
+      ],
+    });
+
+    expect(streamProvider).toHaveBeenCalledTimes(1);
+    expect(events).toContainEqual(
+      expect.objectContaining({
+        label: 'Scion staged adapter refinement',
+        detail: expect.stringContaining('admitted after deterministic merge'),
+      }),
+    );
+    expect(events).toContainEqual(
+      expect.objectContaining({
+        label: 'Scion quality passes',
+        detail: expect.stringContaining(
+          'improvementPasses:lesson-3 skipped [grounded-adapter-bounded-repair-policy:0/1]',
+        ),
+      }),
+    );
+  });
+
+  it('D1: bounds the safer base fallback after a proven adapter draft loses selection', async () => {
+    const lessons = JSON.parse(SCION_LESSON_KERNEL_PILOT_PROMPT.match(/Lessons:\n(\[.*\])\nReturn/s)[1]);
+    const prompt = {
+      courseName: 'Geology Inference and Feedback Audit',
+      lessons,
+      userPrompt: SCION_LESSON_KERNEL_PILOT_PROMPT,
+      systemPrompt: 'Write a compact knowledge kernel.',
+    };
+    const base = structuredClone(SCION_LESSON_KERNEL_REFERENCE_PILOT_RESPONSE);
+    base.lessons[0].scenario = {};
+    base.lessons[0].mc[0].op = ['Same option', 'Same option', 'Same option', 'Same option'];
+    base.lessons[0].keyTerms[0].eg = base.lessons[0].keyTerms[0].df;
+    const adapter = structuredClone(base);
+    adapter.lessons[0].keyTerms[1].eg = adapter.lessons[0].keyTerms[1].df;
+    const events = [];
+    const streamProvider = vi
+      .fn()
+      .mockResolvedValueOnce({
+        fullText: JSON.stringify(adapter),
+        adapterRoutes: [
+          {
+            taskFamily: 'source-grounded-lesson-kernel',
+            routeMode: 'adapter',
+            nativeAdapterActive: true,
+          },
+        ],
+      })
+      .mockResolvedValueOnce({ fullText: JSON.stringify({ repairs: [] }), adapterRoutes: [] });
+
+    await runScionPasses({
+      rawText: JSON.stringify(base),
+      streamProvider,
+      provider: 'local',
+      apiKey: '',
+      modelId: 'scion-1',
+      modelCapabilities: {},
+      generationPlan: {},
+      recordEvent: (event) => events.push(event),
+      prompt,
+      expectedLessonIds: ['lesson-3'],
+      contentSourcedLessonIds: [],
+      courseName: prompt.courseName,
+      runtimeRoutes: [
+        {
+          taskFamily: 'lesson-kernel-synthesis',
+          routeMode: 'base-only',
+          routeReason: 'grounded-stage-available',
+          adapterId: 'scion-source-grounded',
+        },
+      ],
+    });
+
+    expect(streamProvider).toHaveBeenCalledTimes(2);
+    expect(events).toContainEqual(
+      expect.objectContaining({
+        label: 'Scion staged adapter refinement',
+        detail: expect.stringContaining('rejected'),
+      }),
+    );
+    expect(events).toContainEqual(
+      expect.objectContaining({
+        label: 'Scion quality passes',
+        detail: expect.stringContaining(
+          'improvementPasses:lesson-3 skipped [grounded-adapter-bounded-repair-policy:1/1]',
+        ),
+      }),
+    );
+  });
+
+  it('D1: spends no repair calls when the immutable base fact ledger is invalid', async () => {
+    const lessons = JSON.parse(SCION_LESSON_KERNEL_PILOT_PROMPT.match(/Lessons:\n(\[.*\])\nReturn/s)[1]);
+    const prompt = {
+      courseName: 'Geology Inference and Feedback Audit',
+      lessons,
+      userPrompt: SCION_LESSON_KERNEL_PILOT_PROMPT,
+      systemPrompt: 'Write a compact knowledge kernel.',
+    };
+    const base = structuredClone(SCION_LESSON_KERNEL_REFERENCE_PILOT_RESPONSE);
+    base.lessons[0].facts[1] = base.lessons[0].facts[0];
+    const events = [];
+    const streamProvider = vi.fn();
+
+    const result = await runScionPasses({
+      rawText: JSON.stringify(base),
+      streamProvider,
+      provider: 'local',
+      apiKey: '',
+      modelId: 'scion-1',
+      modelCapabilities: {},
+      generationPlan: {},
+      recordEvent: (event) => events.push(event),
+      prompt,
+      expectedLessonIds: ['lesson-3'],
+      contentSourcedLessonIds: [],
+      courseName: prompt.courseName,
+      runtimeRoutes: [
+        {
+          taskFamily: 'lesson-kernel-synthesis',
+          routeMode: 'base-only',
+          routeReason: 'grounded-stage-available',
+          adapterId: 'scion-source-grounded',
+        },
+      ],
+    });
+
+    expect(result).toBe(JSON.stringify(base));
+    expect(streamProvider).not.toHaveBeenCalled();
+    expect(events).toContainEqual(
+      expect.objectContaining({
+        label: 'Scion staged adapter refinement',
+        detail: expect.stringContaining('base fact ledger failed'),
+      }),
+    );
+  });
+
+  it('D1: still applies one fact-preserving language repair when an invalid fact ledger blocks the adapter stage', async () => {
+    const lessons = [
+      {
+        lessonId: 'lesson-4',
+        title: 'Lesson 4: Numbers and Dates',
+        topics: 'Numbers; Age; Dates',
+        readings:
+          'Elementary Mandarin course materials must show actual Hanzi alongside tone-marked Pinyin throughout.',
+      },
+    ];
+    const prompt = {
+      courseName: 'Elementary Mandarin Chinese I',
+      lessons,
+      userPrompt: `Course: Elementary Mandarin Chinese I\nLessons:\n${JSON.stringify(lessons)}\nReturn ONLY valid JSON matching the kernel shape from the instructions.`,
+      systemPrompt: 'Write a compact knowledge kernel.',
+    };
+    const base = {
+      lessons: [
+        {
+          lessonId: 'lesson-4',
+          facts: [
+            'Mandarin numbers support counting in daily settings.',
+            'Dates combine year, month, and day components.',
+            'Dates combine year, month, and day components.',
+            'The calendar example writes 2005年3月15日.',
+            'The pronunciation form shì uses a tone mark.',
+          ],
+          keyTerms: [],
+          scenario: {},
+          mc: [],
+        },
+      ],
+    };
+    const events = [];
+    const streamProvider = vi.fn().mockResolvedValue({
+      fullText: JSON.stringify({ hanzi: '四月', pinyin: 'sì yuè', english: 'April' }),
+      adapterRoutes: [
+        {
+          taskFamily: 'compiler-repair',
+          routeMode: 'base-only',
+          nativeAdapterActive: false,
+        },
+      ],
+    });
+
+    const result = await runScionPasses({
+      rawText: JSON.stringify(base),
+      streamProvider,
+      provider: 'local',
+      apiKey: '',
+      modelId: 'scion-1',
+      modelCapabilities: {},
+      generationPlan: {},
+      recordEvent: (event) => events.push(event),
+      prompt,
+      expectedLessonIds: ['lesson-4'],
+      contentSourcedLessonIds: [],
+      courseName: prompt.courseName,
+      runtimeRoutes: [
+        {
+          taskFamily: 'lesson-kernel-synthesis',
+          routeMode: 'base-only',
+          routeReason: 'grounded-stage-available',
+          adapterId: 'scion-source-grounded',
+        },
+      ],
+    });
+
+    expect(streamProvider).toHaveBeenCalledTimes(1);
+    expect(streamProvider.mock.calls[0][5]?.schema?.name).toBe('target_language_pair_repair');
+    expect(JSON.parse(result).lessons[0].targetLanguagePair).toEqual({
+      hanzi: '四月',
+      pinyin: 'sì yuè',
+      english: 'April',
+    });
+    expect(events).toContainEqual(
+      expect.objectContaining({
+        label: 'Scion staged adapter refinement',
+        detail: expect.stringContaining('base fact ledger failed'),
+      }),
+    );
+    expect(events).toContainEqual(
+      expect.objectContaining({
+        label: 'Scion quality passes',
+        detail: expect.stringContaining('languageIdentity:lesson-4 repaired [hanzi-pinyin-pair]'),
+      }),
+    );
   });
 
   it('D1: content-sourced lessons get the session-only variant', () => {
@@ -499,14 +1068,53 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     );
 
     const lesson = JSON.parse(result.text).lessons[0];
-    expect(lesson.facts[0]).toBe('The greeting nǐ hǎo uses tone marks to show pitch movement.');
-    expect(lesson.facts.at(-1)).toContain('你好 (nǐ hǎo)');
+    expect(lesson.facts).toEqual(['The greeting nǐ hǎo uses tone marks to show pitch movement.']);
+    expect(lesson.targetLanguagePair).toEqual({ hanzi: '你好', pinyin: 'nǐ hǎo', english: 'hello' });
     expect(calls[0]).toBe('target_language_pair_repair');
     expect(result.events).toContainEqual({
       pass: 'languageIdentity',
       lessonId: 'lesson-1',
       action: 'repaired',
       reason: 'hanzi',
+      trainingEligible: false,
+    });
+  });
+
+  it('D3: structures separated Hanzi and Pinyin so the compiler can project a visible learner pair', async () => {
+    const calls = [];
+    const result = await applyScionKernelPasses(
+      JSON.stringify({
+        lessons: [
+          {
+            lessonId: 'lesson-4',
+            facts: [
+              '你好 is the target-script greeting used for a basic introduction.',
+              'The tone-marked form nǐ hǎo records its Mandarin pronunciation.',
+            ],
+            mc: [],
+          },
+        ],
+      }),
+      {
+        courseName: 'Elementary Mandarin Chinese I',
+        promptLessons: [{ lessonId: 'lesson-4', title: 'Numbers and Dates', topics: 'Numbers; Age; Dates' }],
+        maxCallsPerLesson: 1,
+        generateJson: async ({ schemaProfile }) => {
+          calls.push(schemaProfile.name);
+          return JSON.stringify({ hanzi: '四月', pinyin: 'sì yuè', english: 'April' });
+        },
+      },
+    );
+
+    const lesson = JSON.parse(result.text).lessons[0];
+    expect(lesson.facts).toHaveLength(2);
+    expect(lesson.targetLanguagePair).toEqual({ hanzi: '四月', pinyin: 'sì yuè', english: 'April' });
+    expect(calls).toEqual(['target_language_pair_repair']);
+    expect(result.events).toContainEqual({
+      pass: 'languageIdentity',
+      lessonId: 'lesson-4',
+      action: 'repaired',
+      reason: 'hanzi-pinyin-pair',
       trainingEligible: false,
     });
   });
@@ -1055,6 +1663,15 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     expect(deliverables).toContain("provider === 'local' || provider === PUBLIC_SCION_PROVIDER_ID");
     expect(deliverables).toContain('scionCallOpts');
     expect(deliverables).toContain('runScionPasses');
+    const initialFanOut = deliverables.indexOf('await Promise.all(\n              fanOut.map');
+    const completedBeforeRecovery = deliverables.indexOf(
+      'completeNativeLessonSurfaces(lessonContent, blueprintCourseMap.lessons, allLessonIndices, appendLog)',
+      initialFanOut,
+    );
+    const recoveryScan = deliverables.indexOf('const listMissingKernelIndices', initialFanOut);
+    expect(initialFanOut).toBeGreaterThan(-1);
+    expect(completedBeforeRecovery).toBeGreaterThan(initialFanOut);
+    expect(completedBeforeRecovery).toBeLessThan(recoveryScan);
     const passB = fs.readFileSync('src/lib/scionPassB.js', 'utf8');
     expect(passB).toContain('compactLessonKernelSchemaProfile');
     expect(passB).toContain('SCION_LESSON_KERNEL_PROMPT_PROTOCOL');

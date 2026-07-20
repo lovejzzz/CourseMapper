@@ -32,6 +32,7 @@ import { validateCourseGraph } from '../src/lib/courseGraph/schema.js';
 import { buildBlueprintFromGraph } from '../src/lib/courseGraph/blueprintFromGraph.js';
 import { compactBlueprintForStorage, compileBlueprintDeliverables } from '../src/lib/courseBlueprintCompiler';
 import { repairNativeFallbackWithCurriculumV1 } from '../src/lib/curriculumV1Repair';
+import { assessProjectedKernelCoverage } from '../src/lib/blueprintEnrichmentPass';
 import {
   AUTHORING_MODE_STORAGE_KEY,
   NativeAuthoringError,
@@ -619,6 +620,74 @@ describe('Pass B contract (B2)', () => {
     expect(pickNativeKernel(sparse, complete)).toBe(complete);
   });
 
+  it('prefers a compact kernel that the compiler can complete over a higher-scoring unusable genome partial', () => {
+    const thinGenomePartial = {
+      enrichmentSource: 'genome-linked',
+      quizItems: Array.from({ length: 4 }, () => ({ type: 'short_answer' })),
+      keyTerms: [],
+      slideContent: [{}, {}, {}],
+      discussionPrompt: { positions: ['one', 'two', 'three'] },
+      assignmentCore: { parameters: ['scope', 'format', 'evidence', 'length'] },
+      kernel: { facts: [], scenario: { setup: 'A concrete decision context.', materials: 'Two records.' } },
+      studyGuide: { summary: 'A substantive summary.', reviewStrategy: 'A specific review strategy.' },
+    };
+    const compactModelKernel = {
+      quizItems: [{ type: 'short_answer' }, { type: 'essay' }],
+      keyTerms: [
+        {
+          term: 'Orbital period',
+          definition:
+            'Orbital period distinguishes the time required to complete one revolution around a central body.',
+          example: 'Two measured periods let students compare the observed revolutions.',
+          misconception: 'A longer measured period always means the observed body is moving faster.',
+          correction: 'The period records elapsed revolution time; speed requires a separate distance relation.',
+        },
+        {
+          term: 'Distance relation',
+          definition:
+            'A distance relation connects a measured separation to another observable quantity in a defined system.',
+          example: 'The recorded separation is compared with the measured orbital period.',
+          misconception: 'Any two distance values establish the same relation without a shared system.',
+          correction: 'The comparison is valid only when both values describe the defined orbital system.',
+        },
+        {
+          term: 'Revolution',
+          definition: 'A revolution is one completed path of an orbiting body around its central body.',
+          example: 'The observation log marks one full path before recording the elapsed time.',
+          misconception: 'A revolution is the same event as a body turning once on its axis.',
+          correction: 'Revolution follows the orbital path; axial turning is a different motion.',
+        },
+      ],
+      slideContent: [
+        {
+          title: 'Orbital period records one revolution',
+          bullets: ['One path is completed', 'Elapsed time is recorded'],
+        },
+      ],
+      kernel: {
+        facts: [
+          'Orbital period records the time required for one complete revolution.',
+          'A revolution follows a path around a central body.',
+          'Measured periods can be compared within the same orbital system.',
+          'Distance and period are separate observed quantities.',
+          'A defined relation connects those quantities without treating them as identical.',
+        ],
+        scenario: {
+          setup: 'An observer compares two orbital records before choosing which relation the evidence supports.',
+          materials: 'two elapsed-time records, two measured separations',
+        },
+      },
+    };
+
+    expect(assessProjectedKernelCoverage(thinGenomePartial).score).toBeGreaterThan(
+      assessProjectedKernelCoverage(compactModelKernel).score,
+    );
+    expect(assessProjectedKernelCoverage(completeNativeKernelSurfaces(thinGenomePartial)).usable).toBe(false);
+    expect(assessProjectedKernelCoverage(completeNativeKernelSurfaces(compactModelKernel)).usable).toBe(true);
+    expect(pickNativeKernel(thinGenomePartial, compactModelKernel)).toBe(compactModelKernel);
+    expect(pickNativeKernel(compactModelKernel, thinGenomePartial)).toBe(compactModelKernel);
+  });
+
   const wireMap = buildNativeWireMap(parsedSkeleton());
 
   it('rides the existing kernel contract plus the native authoring addition', () => {
@@ -709,6 +778,18 @@ describe('Pass B contract (B2)', () => {
         expect.objectContaining({ type: 'term', term: 'Harmonic interval', source: 'verified-quiz-projection' }),
       ]),
     );
+
+    const variedFallbacks = Array.from({ length: 6 }, (_, index) =>
+      completeNativeKernelSurfaces(sparse, {
+        lessonNumber: index + 1,
+        title: `Lesson ${index + 1}: Intervals and Hearing`,
+        sections: [{ topicSection: 'Musical intervals' }],
+      }),
+    );
+    const fallbackOpponents = variedFallbacks.map((fallback) => fallback.discussionPrompt.positions[1]);
+    expect(new Set(fallbackOpponents).size).toBe(6);
+    expect(new Set(variedFallbacks.map((fallback) => fallback.assignmentCore.taskDescription)).size).toBe(6);
+    expect(new Set(variedFallbacks.map((fallback) => JSON.stringify(fallback.assignmentCore.parameters))).size).toBe(6);
 
     const authored = {
       ...completed,

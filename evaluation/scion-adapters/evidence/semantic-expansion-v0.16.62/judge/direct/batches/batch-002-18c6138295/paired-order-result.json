@@ -1,0 +1,554 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-paired-order-result-v1",
+  "generatedAt": "2026-07-19T21:41:00.000Z",
+  "status": "paired-orders-complete",
+  "requiredOrders": [
+    "A/B",
+    "B/A"
+  ],
+  "sessions": {
+    "A/B": "scion-v01662-batch-002-18c6138295-a-b-0b89a0af-939c-498a-aa66-81f5f31b43d9",
+    "B/A": "scion-v01662-batch-002-18c6138295-b-a-d8b67cc6-550e-440c-983c-189a54fa2019"
+  },
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "evidence": {
+    "prompt": {
+      "path": "evaluation/scion-adapters/lesson-kernel-judge-prompt-v0.16.54.md",
+      "sha256": "37844b86736335db54b561d8c031660ef71679c55ae1108e2e999e746f2a1c96"
+    },
+    "packets": {
+      "A/B": "cad0b4c3872cbd2352db0a9698cdb6eaa863e48a67205aebb63dad022abbf005",
+      "B/A": "46e8b05fbe88a4a6ba178e8a790bb922af76909e0b77bba97af65302e4f03986"
+    },
+    "reviews": {
+      "A/B": "ac5229d5550a1cc097c638d0d75aa22278b7e955eac98676dc75b21fdea16722",
+      "B/A": "568c11bd669668be3c51cf0cb064fea683b3593ef58587115b211fb9747d8241"
+    }
+  },
+  "issues": [],
+  "results": [
+    {
+      "caseId": "scion-kernel-2d8329dadc5f63162d060330",
+      "pairId": "scion-kernel-pair-ab3f9d9cf6b043a456164c5a",
+      "winners": {
+        "A/B": "1ff5522ec0dd2a5041684b8c08b66f02172c4f4768bcb5688b85c7205939879b",
+        "B/A": "1ff5522ec0dd2a5041684b8c08b66f02172c4f4768bcb5688b85c7205939879b"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": true,
+      "scoreQualification": {
+        "qualified": true,
+        "winnerMinimumScore": 4,
+        "minimumTotalScoreMargin": 17,
+        "winnerCriticalDefects": [],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 1,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 1,
+              "assessmentCorrectness": 1,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 1
+            },
+            "winnerMinimumScore": 4,
+            "totalScoreMargin": 17,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "Question 2 has an incorrect declared answer.",
+              "Question 2's explanation contradicts its declared answer.",
+              "The artifact introduces unsupported pharmaceutical, patent, utility-franchise, rate, and socially optimal output details.",
+              "The scenario requests a deadweight-loss calculation without usable evidence or a clear decision."
+            ],
+            "rationale": "B is fully source-bound and aligns both assessments with its explanations. A contains a fatal wrong key and answer-explanation contradiction, alongside unsupported examples and an unusable calculation task.",
+            "decisionSha256": "252fad90f06b8fd54d6936d9de4dd0a682a0e2f949f6dfdb1b16c819277af736"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 1,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 1,
+              "assessmentCorrectness": 1,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 1
+            },
+            "winnerMinimumScore": 4,
+            "totalScoreMargin": 18,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The second assessment item has an incorrect declared answer.",
+              "The second assessment explanation supports option 1 while the declared answer is option 3.",
+              "Multiple examples and scenario details introduce unsupported pharmaceutical, patent, utility-franchise, service-level, and socially optimal-output claims.",
+              "The scenario has no usable evidence-based learner decision and requests an unspecified deadweight-loss calculation."
+            ],
+            "rationale": "Artifact A is fully source-bound, gives an actionable classification decision, and keeps both assessment keys aligned with their evidence and explanations. Artifact B adds numerous unsupported examples and has a decisive answer-key contradiction in its second question.",
+            "decisionSha256": "6cc70ba8b08739b05c9fdf209fb276b36f607d7ed634ff803fa4f85eef55b9a3"
+          }
+        ]
+      },
+      "trainingEligible": true
+    },
+    {
+      "caseId": "scion-kernel-2da6ae5908cc12b0c12cf8e1",
+      "pairId": "scion-kernel-pair-1c57d3127b3987668a1bf59f",
+      "winners": {
+        "A/B": "4c65a576488f33b94c85bac1c90398a9ca979fa2192ba131c5c6845ff48b141d",
+        "B/A": "4c65a576488f33b94c85bac1c90398a9ca979fa2192ba131c5c6845ff48b141d"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": true,
+      "scoreQualification": {
+        "qualified": false,
+        "winnerMinimumScore": 1,
+        "minimumTotalScoreMargin": 6,
+        "winnerCriticalDefects": [
+          "The scenario offers two incomplete drafts as its decision set: the first lacks motivation and the second lacks multiple required elements, leaving no supported defensible choice."
+        ],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 3,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 1,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 3,
+              "internalCoherence": 3
+            },
+            "winnerMinimumScore": 3,
+            "totalScoreMargin": 6,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The scenario introduces unsupported claims about a senior citizen's accessibility needs, digital literacy, and public-computer circumstances.",
+              "The scenario supplies no usable disciplinary decision."
+            ],
+            "rationale": "B stays within the source and provides a time-constrained classification task with strong answer-specific feedback. A's assessments are correct, but its scenario is an unsupported profile description rather than a usable decision.",
+            "decisionSha256": "171257e082415330f70256ca850280f24f0c511b42762f5359c3a0d98a90447e"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 1,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 3
+            },
+            "loserScores": {
+              "sourceFidelity": 1,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 1,
+              "assessmentCorrectness": 3,
+              "choiceDiscriminability": 2,
+              "feedbackInstructionality": 2,
+              "internalCoherence": 2
+            },
+            "winnerMinimumScore": 1,
+            "totalScoreMargin": 9,
+            "winnerCriticalDefects": [
+              "The scenario offers two incomplete drafts as its decision set: the first lacks motivation and the second lacks multiple required elements, leaving no supported defensible choice."
+            ],
+            "loserCriticalDefects": [
+              "The scenario introduces unsupported named user, setting, accessibility, form, and digital-literacy details.",
+              "The scenario presents no usable disciplinary decision for the learner."
+            ],
+            "rationale": "Artifact A has the stronger source-bound instruction and fully correct assessments, despite a scenario whose two candidate drafts are both incomplete. Artifact B also lacks a usable scenario decision, adds extensive unsupported specifics, and provides less precise assessment and feedback.",
+            "decisionSha256": "07f019f91d3b7ac0d0ae2cd48ed2bdd8a69afaadb17500f9111e276fd22ab2c5"
+          }
+        ]
+      },
+      "trainingEligible": false
+    },
+    {
+      "caseId": "scion-kernel-3a51fe869568b2b6be84c405",
+      "pairId": "scion-kernel-pair-6946cdedb1ed57a6ed719fbd",
+      "winners": {
+        "A/B": "f658775c4e60d439077d5509144e7cf43a1a8e30b02272985c020c5ded02cfd0",
+        "B/A": "f658775c4e60d439077d5509144e7cf43a1a8e30b02272985c020c5ded02cfd0"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": true,
+      "scoreQualification": {
+        "qualified": true,
+        "winnerMinimumScore": 3,
+        "minimumTotalScoreMargin": 18,
+        "winnerCriticalDefects": [],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 3,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 1,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 2,
+              "assessmentCorrectness": 1,
+              "choiceDiscriminability": 0,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 1
+            },
+            "winnerMinimumScore": 3,
+            "totalScoreMargin": 18,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "Question 2 has an incorrect declared answer.",
+              "Question 2's explanation contradicts its declared answer.",
+              "Question 2 contains duplicate alternatives that make the question ambiguous.",
+              "The artifact introduces unsupported application, device, mobile-app, navigation, and search-bar details."
+            ],
+            "rationale": "B provides complete, source-bound coverage of personas, needs, stories, and traceability. A has a wrong key, contradictory feedback, and exact duplicate alternatives that make its second assessment unanswerable.",
+            "decisionSha256": "dbd7bb0ec9b34d94af93a98470ef52ce579bd3118fc1e7bba8c13bc9d53e4296"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 1,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 3,
+              "assessmentCorrectness": 1,
+              "choiceDiscriminability": 1,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 1
+            },
+            "winnerMinimumScore": 4,
+            "totalScoreMargin": 18,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The second assessment item has an incorrect declared answer.",
+              "The second assessment explanation contradicts the declared answer and instead supports options 2 and 3.",
+              "The second assessment contains two pairs of exactly duplicated alternatives.",
+              "Examples and the scenario introduce unsupported application, stakeholder, device, interface, navigation, search-bar, and information-retrieval details."
+            ],
+            "rationale": "Artifact A delivers a precise, source-bound chain from persona evidence through needs and linked user stories, with two coherent assessments. Artifact B's second assessment has duplicate alternatives, an incorrect key, and an explanation that supports the opposite proposition, in addition to unsupported examples.",
+            "decisionSha256": "318d2cd274e57e318aa71c0e2e6e9216f2d4118c9f73a6473b9a95461aad32b6"
+          }
+        ]
+      },
+      "trainingEligible": true
+    },
+    {
+      "caseId": "scion-kernel-420a6b2a9d27149e5263411f",
+      "pairId": "scion-kernel-pair-a500b66cbc31aa11adf6ca9d",
+      "winners": {
+        "A/B": "af645e658d5ebceda044b5b881493a71137cafab5c7231f699cefa98e8cbcc50",
+        "B/A": "af645e658d5ebceda044b5b881493a71137cafab5c7231f699cefa98e8cbcc50"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": true,
+      "scoreQualification": {
+        "qualified": true,
+        "winnerMinimumScore": 3,
+        "minimumTotalScoreMargin": 11,
+        "winnerCriticalDefects": [],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 3,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 1,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 1,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 2
+            },
+            "winnerMinimumScore": 3,
+            "totalScoreMargin": 11,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The artifact introduces unsupported named examples and details involving protons, electrons, containers, spheres, plastic, capacitors, conductors, and numeric charges.",
+              "Both assessment explanations contain unresolved instructional placeholder text.",
+              "The scenario has no usable decision and leaves material evidence unspecified."
+            ],
+            "rationale": "Both artifacts key their questions correctly, but B is source-bound and supplies complete instructional feedback. A adds extensive outside detail, offers no clear scenario decision, and leaves placeholder instructions in both explanations.",
+            "decisionSha256": "4f644b8d3a75e5d64c0e0f09b969ea8eaf3b07aa6ed06da9fff0425e4488a1e7"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 3,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 1,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 1,
+              "assessmentCorrectness": 3,
+              "choiceDiscriminability": 2,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 2
+            },
+            "winnerMinimumScore": 3,
+            "totalScoreMargin": 14,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "Examples and scenarios introduce unsupported named particles, materials, objects, processes, and numerical charge values.",
+              "The scenario has no usable learner decision and does not identify the second sphere's charge, making its repulsion claim unsupported.",
+              "Both assessment explanations contain unfinished template instructions instead of complete instructional feedback."
+            ],
+            "rationale": "Artifact A stays within the supplied charge relations and has correct, well-explained assessments. Artifact B relies on unsupported physical examples, lacks a usable scenario decision, leaves a key charge observation underdetermined, and contains unfinished feedback placeholders.",
+            "decisionSha256": "ead0d24a4676894a1af1b3232589581739fd275e99cdbcb67e423173ce1a15ae"
+          }
+        ]
+      },
+      "trainingEligible": true
+    },
+    {
+      "caseId": "scion-kernel-424b4289100cc16011ad7cd8",
+      "pairId": "scion-kernel-pair-11b177f0ab68d4a8af4d4b4d",
+      "winners": {
+        "A/B": "4c19b3e4bd18b8636b6d7c1334c1b257f15d48f37467503bee051df8a480bd5c",
+        "B/A": "4c19b3e4bd18b8636b6d7c1334c1b257f15d48f37467503bee051df8a480bd5c"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": true,
+      "scoreQualification": {
+        "qualified": true,
+        "winnerMinimumScore": 3,
+        "minimumTotalScoreMargin": 15,
+        "winnerCriticalDefects": [],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 2,
+              "assessmentCorrectness": 1,
+              "choiceDiscriminability": 2,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 1
+            },
+            "winnerMinimumScore": 3,
+            "totalScoreMargin": 15,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "Question 1 has an incorrect declared answer.",
+              "Question 1's key conflicts with the artifact's own facts about operational layers.",
+              "The artifact introduces unsupported logistics-company and customer-emotional-experience content.",
+              "The scenario does not provide a usable disciplinary decision."
+            ],
+            "rationale": "B delivers a coherent, source-bound classification scenario with correct keys and corrective feedback. A fatally keys user-facing layers where backstage and support layers are required, and its scenario lacks a clear decision.",
+            "decisionSha256": "f00b43ac7f27e91731a556982f6093a6c8fe946990c7eb17f83e2dae228e08de"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 1,
+              "assessmentCorrectness": 1,
+              "choiceDiscriminability": 2,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 1
+            },
+            "winnerMinimumScore": 3,
+            "totalScoreMargin": 17,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The first assessment item has an incorrect declared answer; backstage activities and support processes, not user steps and frontstage actions, are the operational layers beyond the user perspective.",
+              "The first explanation does not support the declared answer.",
+              "The scenario introduces unsupported logistics, delivery, customer-experience, and interface details.",
+              "The scenario does not provide a usable disciplinary decision for the learner."
+            ],
+            "rationale": "Artifact A accurately distinguishes blueprint operational layers from the journey-map perspective and applies that distinction in an actionable classification. Artifact B has an incorrect first answer, insufficient feedback, unsupported scenario details, and no concrete learner decision.",
+            "decisionSha256": "747ef9183f4dbc69c07fe7265a5585e79c12b957837204afd2a5640b9d126a4c"
+          }
+        ]
+      },
+      "trainingEligible": true
+    },
+    {
+      "caseId": "scion-kernel-43e76f2d069ef8c68f9a8fbf",
+      "pairId": "scion-kernel-pair-510717dd26ea15961bfbc422",
+      "winners": {
+        "A/B": "52f6a3c45a52059500fd73585d45458a43abb90a97819b16d96e00c47b5dbfea",
+        "B/A": "52f6a3c45a52059500fd73585d45458a43abb90a97819b16d96e00c47b5dbfea"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": true,
+      "scoreQualification": {
+        "qualified": true,
+        "winnerMinimumScore": 4,
+        "minimumTotalScoreMargin": 15,
+        "winnerCriticalDefects": [],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 1,
+              "assessmentCorrectness": 1,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 1
+            },
+            "winnerMinimumScore": 4,
+            "totalScoreMargin": 15,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "Question 1 has an incorrect declared answer.",
+              "Question 1's explanation contradicts its declared answer.",
+              "The artifact introduces unsupported factorial, input-value, programmer, and system-crash details.",
+              "Both explanations contain unresolved instructional placeholder text.",
+              "The scenario lacks sufficient evidence and a usable design decision."
+            ],
+            "rationale": "B is fully coherent, source-bound, and scenario-ready. A has a fatal wrong key and answer-feedback contradiction, adds unsupported factorial details, and leaves both feedback passages instructionally unfinished.",
+            "decisionSha256": "9c25ea7fbf17c5aeb3f7b9e8f488b9538956f9a065e5692489f6d993841f5d4a"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 1,
+              "assessmentCorrectness": 1,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 1
+            },
+            "winnerMinimumScore": 4,
+            "totalScoreMargin": 16,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The factorial example and its input-specific termination claims are unsupported by the supplied source.",
+              "The scenario provides no base condition or usable evidence-based learner decision.",
+              "The first assessment item has an incorrect declared answer.",
+              "The first assessment explanation supports option 1 while the declared answer is option 0.",
+              "Both assessment explanations contain unfinished template instructions instead of complete feedback."
+            ],
+            "rationale": "Artifact A is fully source-bound and correctly aligns recursive reduction, smaller-input calls, base cases, and nontermination. Artifact B adds an unsupported factorial scenario, keys its first question incorrectly, contradicts that key in the explanation, and leaves feedback instructions unfinished.",
+            "decisionSha256": "6a1c2a23feced0448168f66c753f84a71149ada2807915ca0172d544394f78fb"
+          }
+        ]
+      },
+      "trainingEligible": true
+    }
+  ],
+  "summary": {
+    "pairs": 6,
+    "stablePreferences": 5,
+    "localWins": 0,
+    "referenceWins": 6,
+    "unstable": 0,
+    "scoreRejected": 1,
+    "compilerRejected": 0
+  },
+  "claimBoundary": "These are same-identity model-judge preferences from isolated A/B and B/A orders. They are not human, instructor, independent, classroom, heldout-adapter, or production-win evidence.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "1d2b518d03132e410618521de83b2a2b511d7da3454cfde8828bfa7c9d7b2b88"
+  }
+}

@@ -18,7 +18,7 @@ import { useCourse } from '../contexts/CourseContext';
 import { useAIConfig } from '../contexts/AIConfigContext';
 import { fetchOpenAIImageModels, OPENAI_IMAGE_MODEL_FALLBACKS, OPENAI_SLIDE_IMAGE_MODEL } from '../lib/imageSearch';
 import { APP_VERSION } from '../lib/appVersion';
-import { PUBLIC_SCION_PROVIDER_ID } from '../lib/publicScionProvider';
+import { PUBLIC_SCION_PROVIDER_ID } from '../lib/publicScionIdentity';
 import {
   applyModelAwareDeliverableDefaults,
   createModelAwareConfigPlan,

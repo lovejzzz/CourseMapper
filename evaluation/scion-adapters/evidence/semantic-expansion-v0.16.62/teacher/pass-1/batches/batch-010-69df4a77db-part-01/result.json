@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-teacher-revision-result-v1",
+  "packetSha256": "94d4b6699d1865eb73c9d99d9eb16e87c0d31517386bd2f787ae102e34a1e982",
+  "sessionId": "scion-v01654-teacher-batch-010-69df4a77db-part-01-c93add96-aa76-446a-8631-5cc5f023ce87",
+  "reviser": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-source-cleanroom"
+  },
+  "completedAt": "2026-07-19T22:01:25.000Z",
+  "attestations": {
+    "suppliedClaimsOnly": true,
+    "noExternalFacts": true,
+    "noTrainingAuthorization": true
+  },
+  "revisions": [
+    {
+      "caseId": "scion-kernel-f6694acc8a391b1aa629bdee",
+      "originalArtifactSha256": "93fe2a262f94b045ec895acfb22678cd2abd688b0fe4d76ab97b8274956b3e80",
+      "lessonKernel": {
+        "lessonId": "lesson-5",
+        "facts": [
+          "Capacitance is the ratio of stored charge to potential difference for a conductor or capacitor.",
+          "A capacitor stores energy in the electric field between its conductors.",
+          "For a parallel-plate capacitor, increasing plate area increases capacitance and increasing separation decreases capacitance."
+        ],
+        "keyTerms": [
+          {
+            "tr": "Capacitance",
+            "df": "Capacitance is a ratio relating stored charge to potential difference for a conductor or capacitor.",
+            "eg": "For a conductor, stored charge is compared with potential difference.",
+            "mi": "Capacitance is the energy stored between a capacitor's conductors.",
+            "cx": "Energy is stored in the electric field; the charge-to-potential-difference relation identifies capacitance."
+          },
+          {
+            "tr": "electric field",
+            "df": "The electric field between a capacitor's conductors is where the capacitor stores energy.",
+            "eg": "A capacitor passage associates stored energy with the region between its conductors.",
+            "mi": "The electric field is the ratio of stored charge to potential difference.",
+            "cx": "That ratio describes capacitance, whereas stored energy is associated with the field between conductors."
+          },
+          {
+            "tr": "plate area",
+            "df": "Plate area is a property whose increase raises capacitance for a parallel-plate capacitor.",
+            "eg": "A design increases plate area and separation, invoking opposite stated relations to capacitance.",
+            "mi": "Increasing plate area decreases capacitance in a parallel-plate capacitor.",
+            "cx": "For parallel plates, a rise in area goes with a rise, rather than a fall, in capacitance."
+          }
+        ],
+        "scenario": {
+          "su": "A workshop team must label which parallel-plate design change supports increased capacitance and which supports decreased capacitance before a review deadline. One design increases plate area while another increases separation, so the team must resolve the opposing labels from the recorded changes.",
+          "ma": "parallel-plate design A notation showing increased plate area, parallel-plate design B notation showing increased separation, capacitance label record"
+        },
+        "mc": [
+          {
+            "q": "A record identifies capacitance by comparing stored charge with potential difference, while a passage identifies where a capacitor stores energy; which paired description matches these observations?",
+            "op": [
+              "Capacitance is the ratio; capacitor energy is field-stored",
+              "Capacitance is field-stored; capacitor energy is the ratio",
+              "Capacitance is stored charge; capacitor energy is potential difference",
+              "Capacitance is potential difference; capacitor energy is stored charge"
+            ],
+            "ai": 0,
+            "fi": [
+              0,
+              1
+            ],
+            "ex": "Capacitance is the ratio of stored charge to potential difference, and a capacitor stores energy in the electric field between its conductors. The closest distractor reverses these relationships: capacitance is not field-stored energy, and capacitor energy is not the ratio."
+          },
+          {
+            "q": "Design A increases plate area, while design B increases plate separation; with both changes fixed and requiring separate capacitance labels, which paired classification is supported?",
+            "op": [
+              "Area increase raises capacitance; separation increase lowers it",
+              "Area increase lowers capacitance; separation increase raises it",
+              "Area increase raises capacitance; separation increase raises it",
+              "Area increase lowers capacitance; separation increase lowers it"
+            ],
+            "ai": 0,
+            "fi": [
+              2
+            ],
+            "ex": "For a parallel-plate capacitor, increased plate area increases capacitance and increased separation decreases it. Treating increased separation as raising capacitance reverses its stated relation."
+          }
+        ]
+      },
+      "changeSummary": [
+        "Re-authored the complete first multiple-choice item to remove the overlapping ratio distractor while preserving its source-fact citations and required answer index."
+      ],
+      "addressedDiagnoses": [
+        "Resolved the diagnosed ambiguity in the first question by making each paired option express a distinct relationship."
+      ]
+    }
+  ]
+}

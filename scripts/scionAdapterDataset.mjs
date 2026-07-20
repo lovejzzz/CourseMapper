@@ -33,7 +33,7 @@ export const SCION_ADAPTER_DEFAULT_SOURCES = [
 ];
 const DEFAULT_OUTPUT = 'trellis/tendril/distill/data-g4-orpo/curated';
 const DEFAULT_DOMAIN_MAP = 'evaluation/scion-course-domain-map.json';
-export const SCION_ADAPTER_DEFAULT_HELDOUT_BENCHMARK = 'evaluation/scion-adapters/held-out-course-benchmark-v10.json';
+export const SCION_ADAPTER_DEFAULT_HELDOUT_BENCHMARK = 'evaluation/scion-adapters/held-out-course-benchmark-v13.json';
 const DEFAULT_SOURCES = SCION_ADAPTER_DEFAULT_SOURCES;
 const DEFAULT_HELDOUT_BENCHMARK = SCION_ADAPTER_DEFAULT_HELDOUT_BENCHMARK;
 export const SCION_ADAPTER_DATASET_PROFILES = Object.freeze({
@@ -41,6 +41,28 @@ export const SCION_ADAPTER_DATASET_PROFILES = Object.freeze({
     sources: Object.freeze([
       'verification-output/scion-lesson-kernel-judge-batches-v6-v0.16.54/training-preferences.jsonl',
       'verification-output/scion-lesson-kernel-teacher-judge-v0.16.54/training-preferences.jsonl',
+    ]),
+    minimumPairs: 100,
+    minimumDomains: 7,
+    minimumGroupsPerDomain: 2,
+    minimumTaskGroupsPerDomain: 6,
+    minimumSourceKernelsPerDomain: 6,
+    minimumModelJudgePairs: 100,
+    minimumModelJudgeDomains: 7,
+    minimumModelJudgePairsPerDomain: 8,
+    researchMinimumPairs: 100,
+    researchMinimumDomains: 7,
+    researchMinimumGroupsPerDomain: 2,
+    researchMinimumTaskGroupsPerDomain: 6,
+    researchMinimumSourceKernelsPerDomain: 6,
+    researchMinimumModelJudgePairs: 100,
+    researchMinimumModelJudgeDomains: 7,
+    researchMinimumModelJudgePairsPerDomain: 8,
+    semanticProfile: 'source-strict-v6',
+  }),
+  'lesson-kernel-v0.16.62': Object.freeze({
+    sources: Object.freeze([
+      'evaluation/scion-adapters/evidence/semantic-expansion-v0.16.62/cumulative-training-preferences.jsonl',
     ]),
     minimumPairs: 100,
     minimumDomains: 7,

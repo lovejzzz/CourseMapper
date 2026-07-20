@@ -1,0 +1,504 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-review-v1",
+  "order": "A/B",
+  "packetSha256": "cad0b4c3872cbd2352db0a9698cdb6eaa863e48a67205aebb63dad022abbf005",
+  "sessionId": "scion-v01662-batch-002-18c6138295-a-b-0b89a0af-939c-498a-aa66-81f5f31b43d9",
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "completedAt": "2026-07-19",
+  "attestations": {
+    "anonymousArtifactsOnly": true,
+    "otherOrderUnavailable": true,
+    "organizerMappingUnavailable": true
+  },
+  "decisions": [
+    {
+      "caseId": "scion-kernel-2d8329dadc5f63162d060330",
+      "pairId": "scion-kernel-pair-ab3f9d9cf6b043a456164c5a",
+      "artifactSha256": {
+        "A": "5c2460770c17d2733991bdc79eeb46ff1ff196218fdd2768a7f96478d303c3bf",
+        "B": "1ff5522ec0dd2a5041684b8c08b66f02172c4f4768bcb5688b85c7205939879b"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 1,
+            "evidence": "The pharmaceutical patent, utility-rate, franchise, and socially optimal output examples add details absent from the three supplied claims."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "The monopoly, price-maker, and deadweight-loss definitions preserve the supplied distinctions, although several examples overextend the source."
+          },
+          "scenarioReadiness": {
+            "score": 1,
+            "evidence": "The utility scenario supplies a service constraint but asks for an unsupported deadweight-loss calculation without quantities or a clear decision."
+          },
+          "assessmentCorrectness": {
+            "score": 1,
+            "evidence": "The first key is correct, but the second key selects price-taking and greater production even though its explanation supports price-making and lower production."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "Both questions use four distinct alternatives, and the pricing-power combinations are meaningfully different despite the erroneous second key."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "The first explanation contrasts price-making with price-taking, but the second teaches the opposite of its declared answer and does not repair a distractor."
+          },
+          "internalCoherence": {
+            "score": 1,
+            "evidence": "The second explanation says a monopoly produces less and charges more while its key selects the option saying it produces more as a price taker."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "Facts, definitions, examples, scenario evidence, and answers remain direct transformations of the three supplied monopoly claims."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "The artifact distinctly defines monopoly conditions, quantity-based price-making, and the lower-output, higher-price basis of deadweight loss."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "An analyst must classify explicit seller, substitute, entry, quantity, and price records before a deadline."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both declared answers are uniquely supported: monopoly versus price-taking roles in the first and monopoly conditions with deadweight loss in the second."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "Each question offers four parallel combinations that separately reverse roles, market conditions, output direction, or price direction."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation states the supporting relationship and directly explains why the closest reversed classification fails."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "The terms, recorded evidence, answer keys, cited facts, and explanations consistently use the same monopoly distinctions."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "Question 2 has an incorrect declared answer.",
+          "Question 2's explanation contradicts its declared answer.",
+          "The artifact introduces unsupported pharmaceutical, patent, utility-franchise, rate, and socially optimal output details.",
+          "The scenario requests a deadweight-loss calculation without usable evidence or a clear decision."
+        ],
+        "B": []
+      },
+      "decision": "B",
+      "rationale": "B is fully source-bound and aligns both assessments with its explanations. A contains a fatal wrong key and answer-explanation contradiction, alongside unsupported examples and an unusable calculation task."
+    },
+    {
+      "caseId": "scion-kernel-2da6ae5908cc12b0c12cf8e1",
+      "pairId": "scion-kernel-pair-1c57d3127b3987668a1bf59f",
+      "artifactSha256": {
+        "A": "50a4f375ba014e03edb522957072628280418b499133262ba3ac3497f4b91ba1",
+        "B": "4c65a576488f33b94c85bac1c90398a9ca979fa2192ba131c5c6845ff48b141d"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "The facts and term definitions track the source, but the senior-citizen, accessibility, public-library, digital-literacy, and complex-form details are unsupported."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "The three terms accurately cover scenario composition, design-idea communication, and validation, though some corrections are tautological."
+          },
+          "scenarioReadiness": {
+            "score": 1,
+            "evidence": "The scenario lists a user's attributes and constraints but gives no design decision, alternatives, or evidence to evaluate."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both declared answers directly match the supplied claims about specific interactions and validation with represented users."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "The alternatives are distinct, though several distractors use broad unsupported activities that are easier to reject than the keyed statements."
+          },
+          "feedbackInstructionality": {
+            "score": 3,
+            "evidence": "Both explanations identify the supporting claim and reject one misconception, but the contrasts are brief and partly generic."
+          },
+          "internalCoherence": {
+            "score": 3,
+            "evidence": "Facts, keys, and explanations agree, while the attribute-only scenario remains disconnected from the assessment decisions."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "The artifact confines its definitions, examples, draft evidence, questions, and explanations to the five supplied scenario claims."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "It preserves the required user elements and validation roles, although defining a specific interaction as a setting is somewhat imprecise."
+          },
+          "scenarioReadiness": {
+            "score": 3,
+            "evidence": "The team must classify two inspectable drafts before a deadline, but neither draft explicitly contains every required scenario element."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "The first key preserves the narrative-versus-design-communication relationships, and the second uniquely selects all five required elements."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "The second question uses well-controlled element omissions; the first uses distinct but somewhat artificial relationship permutations."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "The explanations state the correct relationships and specifically repair swapped roles and omission of how the user pursues the goal."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "Definitions, draft evidence, answer keys, and explanations consistently distinguish situated elements from design communication."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "The scenario introduces unsupported claims about a senior citizen's accessibility needs, digital literacy, and public-computer circumstances.",
+          "The scenario supplies no usable disciplinary decision."
+        ],
+        "B": []
+      },
+      "decision": "B",
+      "rationale": "B stays within the source and provides a time-constrained classification task with strong answer-specific feedback. A's assessments are correct, but its scenario is an unsupported profile description rather than a usable decision."
+    },
+    {
+      "caseId": "scion-kernel-3a51fe869568b2b6be84c405",
+      "pairId": "scion-kernel-pair-6946cdedb1ed57a6ed719fbd",
+      "artifactSha256": {
+        "A": "ab987ede2d9ede2e252f6538520315db1e3e4fa951bea2b3ac9f564f2c975013",
+        "B": "f658775c4e60d439077d5509144e7cf43a1a8e30b02272985c020c5ded02cfd0"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 1,
+            "evidence": "Application, stakeholder, device-accessibility, button-color, mobile-app, navigation, and search-bar details go beyond the supplied claims."
+          },
+          "knowledgePrecision": {
+            "score": 2,
+            "evidence": "The persona and user-need definitions are mostly accurate, but user-story traceability is omitted from the terms and one correction is circular."
+          },
+          "scenarioReadiness": {
+            "score": 2,
+            "evidence": "The team faces a navigation decision and conflicting feedback, but the evidence lacks a concrete persona and a demonstrated story-to-need link."
+          },
+          "assessmentCorrectness": {
+            "score": 1,
+            "evidence": "The first key is correct, but the second selects a search-bar statement while its explanation identifies efficient retrieval as the higher-level need."
+          },
+          "choiceDiscriminability": {
+            "score": 0,
+            "evidence": "Question 2 repeats the same incorrect option twice and the same correct option twice, making a unique answer impossible."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "The first explanation teaches the persona-story distinction, but the second contradicts its key and does not resolve the duplicated alternatives."
+          },
+          "internalCoherence": {
+            "score": 1,
+            "evidence": "Question 2's declared answer conflicts with its explanation, and its duplicated choices undermine the stated higher-level-need distinction."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "All facts, terms, examples, scenario records, questions, and explanations remain within the five supplied persona and traceability claims."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "The artifact clearly separates a persona profile, stable user needs, feature-bearing user stories, and story-to-source-need traceability."
+          },
+          "scenarioReadiness": {
+            "score": 3,
+            "evidence": "The team classifies a profile, story, and linkage before a design choice using inspectable records, though the constraint is modest."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both declared answers uniquely preserve the persona-versus-need distinction and the evaluative function of a linked user story."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "The alternatives encode different role assignments, although several distractors are syntactically compressed and less natural."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation states the supporting distinctions and repairs confusion between personas, needs, stories, and research presentation."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "The facts, term corrections, scenario materials, keys, and explanations consistently preserve the source's traceability chain."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "Question 2 has an incorrect declared answer.",
+          "Question 2's explanation contradicts its declared answer.",
+          "Question 2 contains duplicate alternatives that make the question ambiguous.",
+          "The artifact introduces unsupported application, device, mobile-app, navigation, and search-bar details."
+        ],
+        "B": []
+      },
+      "decision": "B",
+      "rationale": "B provides complete, source-bound coverage of personas, needs, stories, and traceability. A has a wrong key, contradictory feedback, and exact duplicate alternatives that make its second assessment unanswerable."
+    },
+    {
+      "caseId": "scion-kernel-420a6b2a9d27149e5263411f",
+      "pairId": "scion-kernel-pair-a500b66cbc31aa11adf6ca9d",
+      "artifactSha256": {
+        "A": "061ad00ba53cec42ae51b738061e3c2580d77000e8f545c93c8064e2af42240e",
+        "B": "af645e658d5ebceda044b5b881493a71137cafab5c7231f699cefa98e8cbcc50"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 1,
+            "evidence": "Protons, electrons, a metal container, rubbed spheres, plastic, a capacitor, a conductor, and numeric charges are absent from the source packet."
+          },
+          "knowledgePrecision": {
+            "score": 2,
+            "evidence": "The core interaction and conservation rules are accurate, but some misconceptions are poorly formed and rely on unsupported examples."
+          },
+          "scenarioReadiness": {
+            "score": 1,
+            "evidence": "The sphere setup states observations and a constraint but supplies no explicit classification or decision and leaves the second sphere's charge unspecified."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both keys correctly select like-charge repulsion versus unlike-charge attraction and conservation of net charge in an isolated system."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "The interaction combinations are parallel and distinct, while the conservation distractors mix unrelated sign conclusions with a doubly false claim."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "Both explanations state the supporting answer but end with the unresolved instruction to correct the closest distractor instead of doing so."
+          },
+          "internalCoherence": {
+            "score": 2,
+            "evidence": "The keys agree with the facts, but unsupported examples, an underspecified scenario, and unfinished feedback weaken the lesson's consistency."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "The artifact uses only positive and negative forms, charge interactions, and isolated-system conservation from the supplied claims."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "All three distinctions are accurate, though the definitions of like charges and isolated system are narrow and somewhat circular."
+          },
+          "scenarioReadiness": {
+            "score": 3,
+            "evidence": "Students classify inspectable interaction and conservation records before a deadline, although the requested single label is not fully specified."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both declared answers uniquely match the supplied interaction rule and isolated-system conservation relation."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "The first options form clear interaction combinations; the second options are distinct but include two comparatively weak distractors."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation states the source rule and directly corrects the nearest reversal without relying on option position."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "Terms, observations, keys, and explanations consistently distinguish interaction behavior from net-charge conservation."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "The artifact introduces unsupported named examples and details involving protons, electrons, containers, spheres, plastic, capacitors, conductors, and numeric charges.",
+          "Both assessment explanations contain unresolved instructional placeholder text.",
+          "The scenario has no usable decision and leaves material evidence unspecified."
+        ],
+        "B": []
+      },
+      "decision": "B",
+      "rationale": "Both artifacts key their questions correctly, but B is source-bound and supplies complete instructional feedback. A adds extensive outside detail, offers no clear scenario decision, and leaves placeholder instructions in both explanations."
+    },
+    {
+      "caseId": "scion-kernel-424b4289100cc16011ad7cd8",
+      "pairId": "scion-kernel-pair-11b177f0ab68d4a8af4d4b4d",
+      "artifactSha256": {
+        "A": "7eb8967aac4c4d7b3c7e6a43185244219b10425db8e1d7682c2d8641e9d73d5c",
+        "B": "4c19b3e4bd18b8636b6d7c1334c1b257f15d48f37467503bee051df8a480bd5c"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "The facts track the source, but the logistics-company example and customer-emotional-experience misconception introduce unsupported content."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "The terms accurately distinguish user, frontstage, backstage, and support layers, but the service-blueprint correction does not directly repair its misconception."
+          },
+          "scenarioReadiness": {
+            "score": 2,
+            "evidence": "The team has a service problem, evidence constraint, and layers to inspect, but it is asked only to compare diagrams rather than make a clear decision."
+          },
+          "assessmentCorrectness": {
+            "score": 1,
+            "evidence": "Question 1 declares user steps and frontstage actions, although backstage activities and support processes are the operational layers beyond the user perspective."
+          },
+          "choiceDiscriminability": {
+            "score": 2,
+            "evidence": "Question 1 has distinct categories, but question 2 lacks an option directly naming poor backstage documentation and forces an indirect answer."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "The first explanation never identifies the correct operational layers, and the second merely restates a broad benefit without rejecting a misconception."
+          },
+          "internalCoherence": {
+            "score": 1,
+            "evidence": "The first answer key contradicts the artifact's own facts and term definitions about backstage activities and support processes."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "Every definition, example, scenario observation, option, and explanation is confined to the five supplied blueprint claims."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "The terms precisely distinguish a service blueprint from a journey map and keep backstage actions separate from other diagram layers."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "Staff must classify an observed four-layer diagram before a stakeholder interview using labeled sections and system-process notes."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both keys uniquely identify the service blueprint through operational layers beyond the user perspective and separated diagram sections."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "The correct propositions are distinct, though some containment-style distractors are awkward and less plausible."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Both explanations state the blueprint distinction and directly repair the misconception that operational layers belong to a journey map."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "Definitions, scenario evidence, classifications, keys, and explanations all use the same operational-layer distinction."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "Question 1 has an incorrect declared answer.",
+          "Question 1's key conflicts with the artifact's own facts about operational layers.",
+          "The artifact introduces unsupported logistics-company and customer-emotional-experience content.",
+          "The scenario does not provide a usable disciplinary decision."
+        ],
+        "B": []
+      },
+      "decision": "B",
+      "rationale": "B delivers a coherent, source-bound classification scenario with correct keys and corrective feedback. A fatally keys user-facing layers where backstage and support layers are required, and its scenario lacks a clear decision."
+    },
+    {
+      "caseId": "scion-kernel-43e76f2d069ef8c68f9a8fbf",
+      "pairId": "scion-kernel-pair-510717dd26ea15961bfbc422",
+      "artifactSha256": {
+        "A": "cfa629a8cc060c31fb23423148b7db521f86a98a0f065c489733b3099511aadd",
+        "B": "52f6a3c45a52059500fd73585d45458a43abb90a97819b16d96e00c47b5dbfea"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "The core facts are copied accurately, but factorial, positive-integer, input-value, programmer, and system-crash details are not supplied."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "The recursive-function and base-case distinctions are accurate and misconceptions are false, but the examples largely repeat definitions or add unsupported content."
+          },
+          "scenarioReadiness": {
+            "score": 1,
+            "evidence": "The factorial scenario gives no function definition or base-case evidence and asks for a comparison rather than an actionable design decision."
+          },
+          "assessmentCorrectness": {
+            "score": 1,
+            "evidence": "Question 1 declares the larger-input option while its explanation correctly identifies the base case; Question 2 is correctly keyed."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "Both questions provide four distinct, plausible alternatives separating smaller inputs, base cases, termination, and stack overflow."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "Both explanations end with an unresolved instruction to correct a distractor, and the first explanation contradicts its declared answer."
+          },
+          "internalCoherence": {
+            "score": 1,
+            "evidence": "The first key selects larger-input self-calls even though the facts and its own explanation say a base case stops the process."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "All content remains within the supplied relationships among simpler problems, smaller-input self-calls, base cases, and stack overflow."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "The artifact distinctly assigns problem reduction to recursion, smaller-input self-calls to recursive functions, and stopping to the base case."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "A reviewer must classify two inspectable recursive designs before a deadline based on whether a base case stops their self-calls."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both keys uniquely preserve the separate roles of smaller inputs and base cases and correctly classify recursion without a stopping case."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "The alternatives distinctly swap the roles of self-calls and base cases or contrast termination outcomes without duplication."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation gives the supporting rule and directly explains why the closest role reversal or termination claim fails."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "Facts, terms, two-design evidence, answer keys, and explanations consistently assign stopping behavior to the base case."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "Question 1 has an incorrect declared answer.",
+          "Question 1's explanation contradicts its declared answer.",
+          "The artifact introduces unsupported factorial, input-value, programmer, and system-crash details.",
+          "Both explanations contain unresolved instructional placeholder text.",
+          "The scenario lacks sufficient evidence and a usable design decision."
+        ],
+        "B": []
+      },
+      "decision": "B",
+      "rationale": "B is fully coherent, source-bound, and scenario-ready. A has a fatal wrong key and answer-feedback contradiction, adds unsupported factorial details, and leaves both feedback passages instructionally unfinished."
+    }
+  ]
+}

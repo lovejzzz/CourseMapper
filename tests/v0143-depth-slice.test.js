@@ -221,6 +221,12 @@ describe('D1a — common pitfalls slide from real misconception pairs', () => {
     expect(pitfalls).toBeTruthy();
     expect(pitfalls.enrichmentSource).toBe('kernel-misconception-pitfalls');
     expect(pitfalls.bullets).toHaveLength(3);
+    expect(pitfalls.visual.kind).toBe('misconception comparison table');
+    expect(pitfalls.visual.columnLabels).toEqual(['MISCONCEPTION', 'CORRECTION']);
+    expect(pitfalls.visual.tableLead).toMatch(/vote|commit|comparison|test/i);
+    expect(pitfalls.visual.rows).toHaveLength(3);
+    expect(pitfalls.visual.rows[0][0]).toMatch(/streak always matches/i);
+    expect(pitfalls.visual.rows[0][1]).toMatch(/powder color is often different/i);
     const openingFamilies = new Set();
     for (const bullet of pitfalls.bullets) {
       const opener = bullet.match(

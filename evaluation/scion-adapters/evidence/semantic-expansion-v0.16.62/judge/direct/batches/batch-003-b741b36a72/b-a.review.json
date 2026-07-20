@@ -1,0 +1,503 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-review-v1",
+  "order": "B/A",
+  "packetSha256": "ee65dd0399a860ce34973e721df6ad63fbfa59b25dc5bb4b3a79724197b53543",
+  "sessionId": "scion-v01662-batch-003-b741b36a72-b-a-6ab95a6b-1220-4abb-b608-810c24ccdd3f",
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "completedAt": "2026-07-19T21:45:00Z",
+  "attestations": {
+    "anonymousArtifactsOnly": true,
+    "otherOrderUnavailable": true,
+    "organizerMappingUnavailable": true
+  },
+  "decisions": [
+    {
+      "caseId": "scion-kernel-469cae031b9e2cc9d18a7ad7",
+      "pairId": "scion-kernel-pair-4608b4242c3d548a8558f650",
+      "artifactSha256": {
+        "A": "8d3d7cfc57a38f893655740fcc065f03a1036740a9433fea43fbcc7c4ccd10fb",
+        "B": "b67b29f1aff5fbc5b80acea7c98d2be5f501f9f8f3548a9f30307f1c2584134a"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "All facts, examples, and distinctions stay within the three supplied seventh-chord claims."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "The kernel precisely separates supertonic pull toward the dominant from dominant-seventh pull toward the tonic."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The student must assign two functional labels using explicit notation, pull observations, and a deadline."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both declared answers uniquely match the cited destinations and the accompanying explanations."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "Each item offers four distinct, parallel combinations of chord, function, or tonal destination."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation states the supported distinction and directly repairs the closest destination swap."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "Facts, terms, scenario evidence, keys, citations, and explanations consistently preserve both tonal pulls."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 1,
+            "evidence": "The scenario invents the named progression Cmaj7 to Bb7 to G7, which the source claims do not supply."
+          },
+          "knowledgePrecision": {
+            "score": 2,
+            "evidence": "The core definitions are accurate, but the unsupported chord sequence does not establish the asserted supertonic evidence."
+          },
+          "scenarioReadiness": {
+            "score": 1,
+            "evidence": "The task asks for a pull comparison but provides chord names rather than inspectable pull observations from the source."
+          },
+          "assessmentCorrectness": {
+            "score": 1,
+            "evidence": "The second item declares option 0 even though the supplied fact and explanation support option 2."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "The alternatives are distinct and parallel, including clear increase, decrease, unchanged, and redirected-pull choices."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "The first explanation is circular, and the second teaches an increase while the key selects a decrease."
+          },
+          "internalCoherence": {
+            "score": 1,
+            "evidence": "The second answer contradicts its explanation, and the scenario depends on an unsupported named progression."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [],
+        "B": [
+          "Incorrect declared answer in the second item: ai=0 selects decreased tonic pull, while the cited fact supports option 2, increased tonic pull.",
+          "The second explanation supports increased tonic pull while the declared answer selects decreased tonic pull.",
+          "The named progression Cmaj7 -> Bb7 -> G7 is invented outside the supplied claims and does not provide the stated pull evidence."
+        ]
+      },
+      "decision": "A",
+      "rationale": "A is fully source-bound, actionable, and assessment-consistent. B introduces an unsupported named progression and contains a plainly incorrect answer that contradicts its own explanation."
+    },
+    {
+      "caseId": "scion-kernel-4bf5c84b6335f81e9c0eb777",
+      "pairId": "scion-kernel-pair-9432ebbc79d2f88036db26d0",
+      "artifactSha256": {
+        "A": "28893a0876618ad8d112238ecea2e2078d5322d8ac715ac04e2902e4120e1027",
+        "B": "62e82fae4b3b6047fd77e8b4b34245873069498b19b610c0ec5c35fa571b25be"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "The facts, term examples, scenario evidence, and questions remain within the five task-flow claims."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "The kernel accurately distinguishes diagramming, validating understanding, decision points, goals, and surfaced obstacles."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "A deadline-bound review decision uses countable task sequences, decision points, and an obstacle notation."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both declared answers are uniquely supported by their cited facts and agree with their explanations."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "The alternatives test diagram-versus-validation distinctions, though some distractor wording is slightly artificial."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Both explanations connect the observation to the claim and explain why validation language does not apply."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "The terms, scenario, item keys, fact citations, and explanations preserve the same task-flow distinctions."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "Purchase clicks, a specific application, form submission, confusion, and missing information are added beyond the source."
+          },
+          "knowledgePrecision": {
+            "score": 2,
+            "evidence": "Core definitions are sound, but the user-goal misconception is not directly repaired and obstacle examples are unsupported."
+          },
+          "scenarioReadiness": {
+            "score": 2,
+            "evidence": "The team has an actionable obstacle-finding task, but no actual obstacle evidence or meaningful constraint is supplied."
+          },
+          "assessmentCorrectness": {
+            "score": 3,
+            "evidence": "Both keys select the best available answers, although the second answer incompletely characterizes validation."
+          },
+          "choiceDiscriminability": {
+            "score": 2,
+            "evidence": "The first item largely echoes a source sentence, while the second reduces overlapping concepts to artificial pairings."
+          },
+          "feedbackInstructionality": {
+            "score": 2,
+            "evidence": "The first explanation merely repeats the answer, and the second states the distinction without repairing a close misconception."
+          },
+          "internalCoherence": {
+            "score": 3,
+            "evidence": "The assessments generally align with the facts, but unsupported examples and the thin scenario weaken the whole."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [],
+        "B": [
+          "The claim that obstacles include user confusion or missing information adds unsupported factual detail beyond the supplied obstacle claim.",
+          "The purchase, application, and website-form examples introduce specific contexts that are not present in the supplied source."
+        ]
+      },
+      "decision": "A",
+      "rationale": "A covers and distinguishes the supplied task-flow functions with inspectable scenario evidence and instructional feedback. B adds unsupported examples and provides a much weaker scenario and assessment design."
+    },
+    {
+      "caseId": "scion-kernel-4d4159fe0d91fa8538d63235",
+      "pairId": "scion-kernel-pair-b83a116814535f56195cb209",
+      "artifactSha256": {
+        "A": "02b14fe1af9d288ab2f266d87218f2d7522e8e561b249cf87239002ca16e24ac",
+        "B": "2b74efffe9e9c14fed1c0c22e0fcf61f8c81249e98e4297583022b0a663c84b3"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "Every definition, example, scenario observation, and assessment proposition derives from the three supplied claims."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "The kernel precisely distinguishes simplification, nonexact assumptions, close-enough usefulness, and broken-assumption failure."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The student must resolve a genuine tension between close-enough assumptions and an observed broken key assumption."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both answers are uniquely correct, properly cited, and fully consistent with their explanations."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "Both option sets use clear parallel contrasts without duplication or unsupported alternatives."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "The explanations justify the keys and explicitly repair exactness and close-enough misconceptions."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "Facts, terms, scenario tension, questions, keys, citations, and explanations agree throughout."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 1,
+            "evidence": "Central-bank inflation policy, interest-rate hikes, consumer spending, price predictions, and market imperfections are unsupported additions."
+          },
+          "knowledgePrecision": {
+            "score": 2,
+            "evidence": "The central model criteria are mostly accurate, but examples and the claim that utility is determined by alignment overstate the source."
+          },
+          "scenarioReadiness": {
+            "score": 1,
+            "evidence": "The scenario asks which assumption predicts a policy outcome without supplying evidence that could support that comparison."
+          },
+          "assessmentCorrectness": {
+            "score": 1,
+            "evidence": "The first key is correct, but the second declares option 0 when option 2 is uniquely supported."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "The options are distinct, though the first item includes another generally true model property as a distractor."
+          },
+          "feedbackInstructionality": {
+            "score": 0,
+            "evidence": "The first explanation asserts a false perfect-truth criterion, and the second supports a different option from the key."
+          },
+          "internalCoherence": {
+            "score": 1,
+            "evidence": "The scenario is unsupported, one answer is wrong, and both feedback passages conflict with their instructional purpose."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [],
+        "B": [
+          "The central-bank inflation, volatile-economy, interest-rate-hike, consumer-spending, and market-prediction details are invented beyond the source.",
+          "The second item declares option 0, but a broken key assumption supports option 2, making the model misleading.",
+          "The first explanation incorrectly states that a model is useful when all assumptions are perfectly true.",
+          "The second explanation supports a misleading classification while the declared answer selects a useful classification.",
+          "The scenario provides no source-bound evidence for comparing rational choice with perfect competition in the stated prediction task."
+        ]
+      },
+      "decision": "A",
+      "rationale": "A is precise, source-complete, and turns the close-enough-versus-broken-assumption tension into a usable decision. B has extensive unsupported content, an unusable scenario, a wrong key, and contradictory feedback."
+    },
+    {
+      "caseId": "scion-kernel-52964fc20ca887179f1a8f82",
+      "pairId": "scion-kernel-pair-213786c8191c2e255e11beb0",
+      "artifactSha256": {
+        "A": "bc5ddf7fe7d2fde8d35da656821899c31e5b4b3641ba598c0ba73151e88726dc",
+        "B": "a197b409ba3e1b58c3fb64858cd27e3f04abfcc7b296933de19d1fd762f6845f"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "All content stays within the supplied relationships among nervous tissue, neurons, neuroglia, signals, and action potentials."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "The kernel clearly assigns action-potential propagation to neurons and support and modulation to neuroglia."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The student must classify two inspectable passages under a deadline using their stated signal and support relations."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both keyed pairings are uniquely supported by the cited facts and accurately explained."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "The options are distinct role assignments that expose plausible neuron, neuroglia, tissue, and signal confusions."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation teaches the correct role pairing and directly rejects the closest reversed attribution."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "Definitions, misconceptions, scenario passages, answer keys, citations, and explanations consistently assign the same roles."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 1,
+            "evidence": "The patient, impaired sensory input, glial contact with an axon, primary-cell status, and non-generation claim are unsupported."
+          },
+          "knowledgePrecision": {
+            "score": 2,
+            "evidence": "The main roles are accurate, but several refinements exceed the source and the neuron misconception correction does not repair receiving."
+          },
+          "scenarioReadiness": {
+            "score": 2,
+            "evidence": "A technician has a decision and observations, but those observations do not establish the requested primary tissue function."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both declared answers are uniquely supported by the cited nervous-tissue facts and agree with their explanations."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "The options are distinct, but the first correct option states only the neuron role despite asking for a distinction."
+          },
+          "feedbackInstructionality": {
+            "score": 3,
+            "evidence": "The first explanation teaches both roles, while the second mostly repeats the directly matching source statement."
+          },
+          "internalCoherence": {
+            "score": 2,
+            "evidence": "The assessments align with the core facts, but the key terms and medical scenario add unsupported assertions."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [],
+        "B": [
+          "The patient with impaired sensory input and observed glial contact with an axon is an invented medical scenario unsupported by the source.",
+          "The claims that neurons are the primary excitable cells and that neuroglia do not generate action potentials are not supplied.",
+          "The correction to the misconception about neurons being the only signal receivers does not establish who receives signals and therefore does not directly repair it."
+        ]
+      },
+      "decision": "A",
+      "rationale": "A is fully source-bound and provides a clean, actionable comparison of neuron and neuroglia roles. B's assessments are correct, but unsupported medical details and imprecise misconception repair materially reduce fidelity and coherence."
+    },
+    {
+      "caseId": "scion-kernel-59a07c63e1457ae09f1974c7",
+      "pairId": "scion-kernel-pair-bd5af31fefe3f4ded28e8916",
+      "artifactSha256": {
+        "A": "f4af3ebaf3ed9c70e33cfc50b6f7c6153b554ff94b17d21fb54e94affbe4fd21",
+        "B": "1c479bd76b86faaef08c193fa34d0d923a2b523cb42c54a7c7491b84102f2af0"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "The kernel uses only the supplied demand-curve definition, downward slope, and movement-versus-shift distinction."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "Definitions and corrections accurately distinguish price movement from income or taste shifts."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "A reviewer must label inspectable price and income annotations before review closes."
+          },
+          "assessmentCorrectness": {
+            "score": 2,
+            "evidence": "The first key is unique, but the second stem also supports options 2 and 3 as true descriptions."
+          },
+          "choiceDiscriminability": {
+            "score": 1,
+            "evidence": "In the second item, options 0, 2, and 3 are all factually supported, with option 0 merely more complete."
+          },
+          "feedbackInstructionality": {
+            "score": 3,
+            "evidence": "The explanations teach the intended distinctions, but omission of one observation does not make option 2 false."
+          },
+          "internalCoherence": {
+            "score": 3,
+            "evidence": "The content is conceptually consistent, though the second item's key is not uniquely determined by its wording."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 3,
+            "evidence": "The electronic-device application is generic and consistent with a downward curve, but adds a specific consumer context."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "The movement and shift distinction is accurate, with only minor expansion into quantity-demanded terminology."
+          },
+          "scenarioReadiness": {
+            "score": 3,
+            "evidence": "The consumer must choose a graphical representation using a price observation and constant-income constraint."
+          },
+          "assessmentCorrectness": {
+            "score": 1,
+            "evidence": "The first key is correct, but the second declares a shift even though the cited fact supports movement along the curve."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "The alternatives are parallel and distinct, though both items reuse nearly the same four combinations."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "The first explanation is minimal, and the second supports movement while the declared answer selects a shift."
+          },
+          "internalCoherence": {
+            "score": 1,
+            "evidence": "The second answer directly contradicts both the cited fact and its own explanation."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "The second item is ambiguous because options 0, 2, and 3 are all supported descriptions of the stated record."
+        ],
+        "B": [
+          "The second item declares option 0, a price-caused shift, while the supplied fact uniquely supports option 1, movement along the curve.",
+          "The second explanation supports movement along the curve while the declared answer selects a shift."
+        ]
+      },
+      "decision": "A",
+      "rationale": "A has one materially ambiguous item but remains source-faithful and otherwise coherent. B's second answer is plainly incorrect and contradicts its explanation, making A the stronger artifact overall."
+    },
+    {
+      "caseId": "scion-kernel-5af741177e6cf537a280f948",
+      "pairId": "scion-kernel-pair-3ac5e207dd6dc3eccf1f13c9",
+      "artifactSha256": {
+        "A": "4ec5ef503e0745a0f19beafa3af3d65c58518aa7b283499a7c965f3ffe6abfee",
+        "B": "9fb9920a62112b21a23010deda007767aca1c5f393411d73d69685a53f376639"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "All facts, examples, scenario notations, and assessment claims remain inside the supplied sensory claims."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "The kernel sharply distinguishes receptor detection, stimulus conversion, and perception's central processing."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The editor must assign one label to each of two inspectable notations under a deadline."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both declared answers are unique, directly cited, and fully consistent with their explanations."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "The options are parallel role assignments or process reversals that test distinct misconceptions."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation justifies the supported process and explicitly repairs the closest reversed account."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "Terms, scenario, questions, keys, citations, and explanations preserve the same detection-conversion-processing sequence."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "The heat example and patient sharp-pain scenario introduce sensory and medical details absent from the supplied claims."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "The three core concepts are accurate, but examples and corrections mostly restate definitions rather than sharpen distinctions."
+          },
+          "scenarioReadiness": {
+            "score": 2,
+            "evidence": "The technician has an identification task, but no genuine constraint or tension accompanies the unsupported patient details."
+          },
+          "assessmentCorrectness": {
+            "score": 1,
+            "evidence": "The first key is correct, but the second has no option for conversion to an electrochemical signal and keys an unsupported outcome."
+          },
+          "choiceDiscriminability": {
+            "score": 2,
+            "evidence": "The first choices are useful contrasts, while the second set lacks the source-supported immediate next step."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "The second explanation cites conversion to an electrochemical signal but does not justify the keyed meaningful-pattern answer."
+          },
+          "internalCoherence": {
+            "score": 1,
+            "evidence": "The second key conflicts with its citation and explanation, while the scenario and examples exceed the source."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [],
+        "B": [
+          "The sharp-pain, hot-surface, and skin-response scenario introduces unsupported medical and sensory details.",
+          "The second item has no source-supported correct option for the requested immediate next step, which should be conversion into an electrochemical signal.",
+          "The second item declares option 0, an immediate meaningful pattern, although the cited claim supports conversion into an electrochemical signal.",
+          "The second explanation discusses electrochemical-signal conversion but does not support the declared meaningful-pattern answer."
+        ]
+      },
+      "decision": "A",
+      "rationale": "A cleanly separates detection, signal conversion, and perception with source-bound evidence and valid assessments. B invents a medical scenario and its second question lacks a correct option, has a wrong key, and contains contradictory feedback."
+    }
+  ]
+}

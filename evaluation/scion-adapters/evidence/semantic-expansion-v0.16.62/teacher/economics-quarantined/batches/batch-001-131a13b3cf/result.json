@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-teacher-revision-result-v1",
+  "packetSha256": "4bafeb99980579110b899431caf81c57c16fb36b419c2272f712011fb67f383d",
+  "sessionId": "scion-v01662-teacher-judge-repair-batch-001-131a13b3cf-1479a4a3-fe59-4fae-88dc-bc727c489171",
+  "reviser": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-source-cleanroom"
+  },
+  "completedAt": "2026-07-19",
+  "attestations": {
+    "suppliedClaimsOnly": true,
+    "noExternalFacts": true,
+    "noTrainingAuthorization": true
+  },
+  "revisions": [
+    {
+      "caseId": "scion-kernel-5edc63b53c12793b089d95e4",
+      "originalArtifactSha256": "32256ad9003d03cde0318ab85b141b2b97c57927ad2ba40fcab4ac25d24f9856",
+      "lessonKernel": {
+        "lessonId": "lesson-8",
+        "facts": [
+          "In the circular flow of income, money that households earn returns to firms as spending unless it leaks out of the flow as saving, taxes, or spending on imports.",
+          "Leakages are balanced by injections such as investment, government spending, and exports that add spending back into the flow.",
+          "When total leakages equal total injections, the circular flow is in balance and national income neither rises nor falls."
+        ],
+        "keyTerms": [
+          {
+            "tr": "circular flow",
+            "df": "The circular flow describes household earnings returning to firms as spending unless they leak out.",
+            "eg": "Money that households earn returns to firms as spending in the circular flow.",
+            "mi": "The circular flow requires household earnings to become saving, taxes, or spending on imports.",
+            "cx": "Household earnings return to firms as spending unless they leak out through those categories."
+          },
+          {
+            "tr": "leakages",
+            "df": "Leakages are saving, taxes, or spending on imports that leave the circular flow.",
+            "eg": "Saving, taxes, and spending on imports are leakages.",
+            "mi": "Investment, government spending, and exports are leakages from the circular flow.",
+            "cx": "Those categories are injections that add spending back into the flow."
+          },
+          {
+            "tr": "injections",
+            "df": "Injections are investment, government spending, and exports that add spending back into the flow.",
+            "eg": "Investment, government spending, and exports are injections.",
+            "mi": "Injections consist of saving, taxes, and spending on imports.",
+            "cx": "Saving, taxes, and spending on imports are leakages rather than injections."
+          }
+        ],
+        "scenario": {
+          "su": "An analyst must classify whether the circular flow is in balance while relying on recorded totals that show total leakages equal total injections. The analyst must also account for a household spending record showing earnings returning to firms and category records listing saving, taxes, imports, investment, government spending, and exports.",
+          "ma": "household spending record, leakage category record, injection category record, equal-totals notation"
+        },
+        "mc": [
+          {
+            "q": "A record groups saving, taxes, and spending on imports, while another groups investment, government spending, and exports. Which classification matches the roles of the two groups in the circular flow?",
+            "op": [
+              "First group: leakages; second group: injections",
+              "First group: injections; second group: leakages",
+              "First group: leakages; second group: leakages",
+              "First group: injections; second group: injections"
+            ],
+            "ai": 0,
+            "fi": [
+              0,
+              1
+            ],
+            "ex": "Saving, taxes, and spending on imports make the first group leakages, while investment, government spending, and exports make the second group injections. The reversed classification mislabels both groups."
+          },
+          {
+            "q": "A record shows household earnings returning to firms as spending and equal totals for leakages and injections. Which conclusion matches both the circular flow condition and national income?",
+            "op": [
+              "Flow in balance; income neither rises nor falls",
+              "Flow in balance; income rises",
+              "Flow in balance; income falls",
+              "Flow neither rises nor falls; income in balance"
+            ],
+            "ai": 0,
+            "fi": [
+              2
+            ],
+            "ex": "Equal total leakages and injections put the circular flow in balance, with national income neither rising nor falling. A conclusion that national income rises conflicts with that stated result."
+          }
+        ]
+      },
+      "changeSummary": [
+        "Re-authored both multiple-choice items so the supported option appears first and each item uses four parallel, source-grounded choices.",
+        "Kept the lesson facts, key terms, and scenario unchanged because no compiler issue or critical defect implicated them."
+      ],
+      "addressedDiagnoses": [
+        "Strengthened choice discriminability by replacing each option set with four parallel, mutually distinct classifications or conclusions.",
+        "Preserved the source-grounded category distinctions and equality conclusion highlighted in the anonymous rationales."
+      ]
+    }
+  ]
+}

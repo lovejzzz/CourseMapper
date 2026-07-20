@@ -157,7 +157,7 @@ import { parseClassSessionMinutes } from '../sourceBriefConstraints.js';
 // surface before any adapter comparison.
 // 1.10.20 — session-outline timing accepts the ordinary min/mins abbreviations
 // emitted by lesson-plan exporters instead of falsely reading them as 0 min.
-export const GRADER_VERSION = '1.10.20';
+export const GRADER_VERSION = '1.10.23';
 
 // ── Dimension weights & letter bands (documented in the module header) ──────
 // v0.15.186: texture weight 10 → 25. At 10/120 a fully templated package
@@ -1997,6 +1997,7 @@ function overlapsVocab(tokens, vocab) {
 // Probe vocab is resolved at call time (GEOLOGY_VOCAB / WORLD_LIT_NAMES are
 // declared later in the discipline-probe section) to avoid a TDZ reference.
 function disciplineProbeVocab(probe) {
+  if (probe === 'mandarin') return MANDARIN_CITATION_VOCAB;
   if (probe === 'geology') return GEOLOGY_VOCAB;
   if (probe === 'world-lit') return WORLD_LIT_NAMES;
   if (probe === 'econ') return ECON_VOCAB;
@@ -2337,6 +2338,21 @@ function extractKeyTerms(text) {
 // DISCIPLINE PROBES — selected by course.id / inferred title.
 const CJK_RE = /[一-鿿㐀-䶿]/;
 const TONE_PINYIN_RE = /[a-zü]+[āáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜ]/i;
+const MANDARIN_CITATION_VOCAB = [
+  'mandarin',
+  'chinese',
+  'pinyin',
+  'hanzi',
+  'bopomofo',
+  'zhuyin',
+  'tone',
+  'pronunciation',
+  'character',
+  'radical',
+  'grammar',
+  'classifier',
+  'vocabulary',
+];
 const WORLD_LIT_NAMES = [
   'Homer',
   'Sophocles',

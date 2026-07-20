@@ -20,6 +20,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   buildCompiledLessonPatchData,
   compileBlueprintLessonPatch,
+  restoreCompleteEnrichmentOverlay,
   revalidatePersistedLessonContent,
 } from '../src/lib/compiledLessonSync.js';
 import { computeSyncBlastRadius, diffCompiledFeature } from '../src/lib/syncBlastRadius.js';
@@ -101,6 +102,46 @@ describe('G1 — the sync compile keeps its subject matter', () => {
     expect(result.lessonContent['lesson-2'].quizItems).toHaveLength(1);
     expect(result.lessonContent['lesson-2'].quizItems[0].index).toBe(1);
     expect(result.receipt).toMatchObject({ rejectedKeyTerms: 1, removedQuizItems: 1 });
+  });
+
+  it('reuses a complete restored overlay without another model pass', () => {
+    const courseMap = geologyMap();
+    const fullOverlay = {
+      quality: { source: 'native-pass-b' },
+      stageDecisions: { genomeLinker: 'ran', modelStage: 'ran' },
+      lessonContent: Object.fromEntries(
+        courseMap.lessons.map((_, index) => [
+          `lesson-${index + 1}`,
+          overlayFor(index + 1).lessonContent[`lesson-${index + 1}`],
+        ]),
+      ),
+    };
+
+    const restored = restoreCompleteEnrichmentOverlay(fullOverlay, courseMap);
+
+    expect(restored.enrichedLessonIds).toEqual(['lesson-1', 'lesson-2', 'lesson-3', 'lesson-4']);
+    expect(restored.enrichment).toMatchObject({
+      quality: { source: 'native-pass-b' },
+      coverage: { requestedLessons: 4, enrichedLessons: 4, missingLessons: [] },
+      stageDecisions: { genomeLinker: 'ran', modelStage: 'restored' },
+    });
+  });
+
+  it('refuses a partial restored overlay so the missing lesson can be refreshed', () => {
+    expect(restoreCompleteEnrichmentOverlay(overlayFor(2), geologyMap())).toBeNull();
+  });
+
+  it('drops saved lesson payloads that no longer exist in the course map', () => {
+    const result = revalidatePersistedLessonContent(
+      {
+        ...overlayFor(2).lessonContent,
+        'lesson-99': overlayFor(2).lessonContent['lesson-2'],
+      },
+      geologyMap(),
+    );
+
+    expect(result.lessonContent).not.toHaveProperty('lesson-99');
+    expect(result.receipt.droppedLessonIds).toContain('lesson-99');
   });
 
   it('with the stored overlay, the synced lesson compiles enriched and carries the kernel term', () => {

@@ -483,6 +483,8 @@ input.on('line', (line) => {
   expect(rows[4].system).toContain('CourseMapper Scion');
   expect(rows[4].user).toContain('Write the compact knowledge core');
   expect(rows[4].user).not.toContain('courseLevel object once');
+  expect(rows[4].originalCompilerUser).toContain('Course: Testing Basics');
+  expect(rows[4].originalCompilerUser).toContain('courseLevel object once');
 
   const schemas = (await fs.readFile(schemaLogPath, 'utf8'))
     .trim()

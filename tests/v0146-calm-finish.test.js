@@ -137,6 +137,58 @@ describe('v0.14.6 (1) — exam correct-option rotation stays under the shingle a
     );
     expect(signatures.size).toBeGreaterThanOrEqual(4);
   });
+
+  it('rotates sparse-kernel padding instead of repeating one generic wrong answer', () => {
+    const sparseBlueprint = buildBlueprintFromGraph(deriveCourseGraphFromCourseMap(calculusCourseMap()));
+    sparseBlueprint.lessons.forEach((lesson) => {
+      lesson.enrichment = {
+        ...(lesson.enrichment || {}),
+        keyTerms: [
+          {
+            term: 'rate of change',
+            definition: 'Rate of change compares a change in output with the corresponding change in input.',
+            misconception: '',
+            correction: '',
+          },
+        ],
+        kernel: { facts: [] },
+      };
+    });
+    const sparseExam = compileBlueprintDeliverables(sparseBlueprint, ['quizBank'], {
+      enforceCompilerContract: false,
+    }).quizBank.quizzes.find((quiz) => quiz.kind === 'exam');
+    const incorrectOptions = sparseExam.questions
+      .filter((question) => question.type === 'multiple_choice')
+      .flatMap((question) => {
+        const correctLetter = String(question.answer || '')
+          .trim()
+          .charAt(0);
+        return (question.options || []).filter((_, index) => String.fromCharCode(65 + index) !== correctLetter);
+      });
+    const padding = incorrectOptions.filter((option) =>
+      /evidence never changes|later evidence contradicts|without checking limits|every example supports|no relevant evidence|regardless of the claim|no relationship needs|equally defensible|course vocabulary|cannot alter the conclusion|broadest statement|connecting it to the question/i.test(
+        option,
+      ),
+    );
+
+    expect(incorrectOptions.join(' ')).not.toMatch(/another name for the whole of/i);
+    expect(JSON.stringify(sparseExam)).not.toMatch(/states the authored course fact for/i);
+    expect(padding.length).toBeGreaterThan(0);
+    // Forty-five fallback seats spread across twelve skeletons; even the
+    // busiest frame stays far below both the 12-hit export audit and the
+    // 60%-of-documents texture threshold.
+    expect(worstShingleCount(padding)).toBeLessThanOrEqual(5);
+  });
+
+  it('varies title-slide framing and speaker-note launches across the course', () => {
+    const decks = compileBlueprintDeliverables(blueprint, ['slideDecks']).slideDecks.decks;
+    const titleSlides = decks.map((deck) => deck.slides.find((slide) => slide.type === 'title')).filter(Boolean);
+    const texts = titleSlides.map((slide) => `${(slide.bullets || []).join(' ')} ${slide.notes || ''}`);
+
+    expect(titleSlides.length).toBe(15);
+    expect(texts.filter((text) => /as the visible product.*start the .* working session/i.test(text))).toHaveLength(3);
+    expect(new Set(titleSlides.map((slide) => String(slide.notes || '').split(/\s+/)[0])).size).toBe(6);
+  });
 });
 
 describe('v0.14.7.1 — long lesson titles stay under the mention budget in briefs/discussions', () => {

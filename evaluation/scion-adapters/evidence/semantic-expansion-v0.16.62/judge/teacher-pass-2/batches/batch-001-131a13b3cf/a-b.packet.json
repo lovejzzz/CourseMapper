@@ -1,0 +1,819 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-packet-v1",
+  "order": "A/B",
+  "generatedAt": "2026-07-19T22:31:00.000Z",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "prompt": {
+    "path": "evaluation/scion-adapters/lesson-kernel-judge-prompt-v0.16.54.md",
+    "sha256": "37844b86736335db54b561d8c031660ef71679c55ae1108e2e999e746f2a1c96"
+  },
+  "dimensions": [
+    "sourceFidelity",
+    "knowledgePrecision",
+    "scenarioReadiness",
+    "assessmentCorrectness",
+    "choiceDiscriminability",
+    "feedbackInstructionality",
+    "internalCoherence"
+  ],
+  "cases": [
+    {
+      "caseId": "scion-kernel-59a07c63e1457ae09f1974c7",
+      "pairId": "scion-kernel-pair-2e866eb0cb1c01e9d57bd0a2",
+      "domain": "economics",
+      "failureFamilies": [
+        "choice-discriminability",
+        "source-fidelity"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-2",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Demand curve",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: A demand curve shows the quantity of a good consumers are willing and able to purchase at each price, holding other factors constant. Claim 1: Demand curves typically slope downward, reflecting the law of demand. Claim 2: A change in price causes a movement along the demand curve, while a change in income or tastes shifts the curve.",
+        "readings": "OpenStax Principles of Microeconomics 3e, Ch. 3"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "13a691e562b5c8e8cd8780917c95852a4fc9041b68384de9a7efc063d90a6f05",
+        "kernelId": "econ/demand-curve",
+        "term": "Demand curve",
+        "claims": [
+          "A demand curve shows the quantity of a good consumers are willing and able to purchase at each price, holding other factors constant.",
+          "Demand curves typically slope downward, reflecting the law of demand.",
+          "A change in price causes a movement along the demand curve, while a change in income or tastes shifts the curve."
+        ],
+        "anchors": [
+          {
+            "src": "openstax:microeconomics-3e#3",
+            "loc": "3.1",
+            "quote": "the quantity of a good that consumers are willing and able to purchase at each price, holding all other factors constant"
+          },
+          {
+            "src": "openstax:microeconomics-3e#3",
+            "loc": "3.1",
+            "quote": "Demand curves typically slope downward, reflecting the law of demand"
+          },
+          {
+            "src": "openstax:microeconomics-3e#3",
+            "loc": "3.2",
+            "quote": "A change in price causes a movement along the demand curve"
+          }
+        ],
+        "attribution": [
+          "OpenStax Principles of Microeconomics 3e, Ch. 3"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "1c479bd76b86faaef08c193fa34d0d923a2b523cb42c54a7c7491b84102f2af0",
+          "lessonKernel": {
+            "lessonId": "lesson-2",
+            "facts": [
+              "A demand curve shows the quantity of a good consumers are willing and able to purchase at each price, holding other factors constant. ",
+              "Demand curves typically slope downward, reflecting the law of demand. ",
+              "A change in price causes a movement along the demand curve, while a change in income or tastes shifts the curve."
+            ],
+            "keyTerms": [
+              {
+                "tr": "demand curve",
+                "df": "A demand curve illustrates the quantity of a good consumers are willing and able to purchase at each price, holding other factors constant. ",
+                "eg": "A graph showing how many units of a product people buy at different prices. ",
+                "mi": "A demand curve shows the total quantity of a good consumers are willing and able to purchase regardless of price changes. ",
+                "cx": "A demand curve shows the quantity of a good consumers are willing and able to purchase at each price, holding other factors constant."
+              },
+              {
+                "tr": "law of demand",
+                "df": "The law of demand is reflected in the property that demand curves typically slope downward. ",
+                "eg": "The downward slope of a graph representing consumer desire for a product. ",
+                "mi": "The law of demand means that as the price of a good increases, the quantity demanded increases. ",
+                "cx": "The law of demand means that demand curves typically slope downward, reflecting the law of demand."
+              },
+              {
+                "tr": "change in price",
+                "df": "A change in price results in a movement along the demand curve, indicating a change in quantity demanded. ",
+                "eg": "Moving from one point to another on a demand graph due to a price adjustment. ",
+                "mi": "A change in price causes the entire demand curve to shift to a new position on the graph. ",
+                "cx": "A change in price causes a movement along the demand curve, while a change in income or tastes shifts the curve."
+              }
+            ],
+            "scenario": {
+              "su": "A consumer observes that when the price of a specific electronic device increases, the quantity they purchase decreases. This observation occurs while their income remains constant. The consumer must determine the correct graphical representation of this relationship. ",
+              "ma": "Compare the demand curve's behavior when the price changes versus when consumer income changes."
+            },
+            "mc": [
+              {
+                "q": "When a consumer's income changes, which action correctly describes the effect on the demand curve?",
+                "op": [
+                  "A shift in the curve due to income change.",
+                  "A movement along the curve due to income change.",
+                  "A movement along the curve due to price change.",
+                  "A shift in the curve due to price change."
+                ],
+                "ai": 0,
+                "fi": [
+                  2
+                ],
+                "ex": "A change in income or tastes shifts the curve, which is the correct description of the effect on the demand curve."
+              },
+              {
+                "q": "If a consumer changes the price of a good, what graphical representation accurately depicts the resulting change?",
+                "op": [
+                  "A shift in the curve due to price change.",
+                  "A movement along the curve due to price change.",
+                  "A shift in the curve due to income change.",
+                  "A movement along the curve due to income change."
+                ],
+                "ai": 0,
+                "fi": [
+                  1
+                ],
+                "ex": "A change in price causes a movement along the demand curve, which is the correct description of the effect on the demand curve."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "e78dce633e8e52de6df7d2309e3f2e1dbaf2b28b1add1db2f7aef16dcac4d65b",
+          "lessonKernel": {
+            "lessonId": "lesson-2",
+            "facts": [
+              "A demand curve shows the quantity of a good consumers are willing and able to purchase at each price, holding other factors constant.",
+              "Demand curves typically slope downward, reflecting the law of demand.",
+              "A change in price causes a movement along the demand curve, while a change in income or tastes shifts the curve."
+            ],
+            "keyTerms": [
+              {
+                "tr": "demand curve",
+                "df": "A demand curve represents quantity consumers are willing and able to purchase at each price, holding other factors constant.",
+                "eg": "For a good, consumers compare quantity at each price on a curve that typically slopes downward.",
+                "mi": "A demand curve shows price at each quantity consumers purchase.",
+                "cx": "The curve associates each price with the quantity consumers are willing and able to purchase."
+              },
+              {
+                "tr": "law of demand",
+                "df": "The law of demand is the relationship reflected by the typical downward slope of demand curves.",
+                "eg": "A demand curve that slopes downward reflects the law of demand.",
+                "mi": "The law of demand is reflected when income shifts the demand curve.",
+                "cx": "Income changes shift the curve; its typical downward slope reflects the law of demand."
+              },
+              {
+                "tr": "price",
+                "df": "Price is a value at which the demand curve shows a quantity consumers are willing and able to purchase.",
+                "eg": "A change in price produces movement along a downward-sloping demand curve.",
+                "mi": "A price change shifts the demand curve in the way a change in tastes does.",
+                "cx": "Price changes produce movement along the curve, while changes in tastes shift it."
+              }
+            ],
+            "scenario": {
+              "su": "A reviewer receives a demand-curve sketch with a price-change annotation and a separate passage describing a change in income. Before review closes, the reviewer must label each as movement or shift despite their shared reference to the demand curve.",
+              "ma": "price-change annotation beside movement along the demand curve, income-change passage beside a shifted curve, tastes-change notation beside a shifted curve"
+            },
+            "mc": [
+              {
+                "q": "A curve record shows a price change beside movement along the demand curve, while an income note accompanies a shifted curve; which distinction matches these observations?",
+                "op": [
+                  "Price and income move along the curve",
+                  "Income moves along; price shifts the curve",
+                  "Price moves along; income shifts the curve",
+                  "Price and income shift the demand curve"
+                ],
+                "ai": 2,
+                "fi": [
+                  2
+                ],
+                "ex": "A change in price causes movement along the demand curve, while a change in income shifts the curve. Treating income as movement and price as a shift reverses that distinction."
+              },
+              {
+                "q": "Consumers are willing and able to purchase a good. Holding other factors constant, which relationship does a demand curve show for those consumers?",
+                "op": [
+                  "Income of consumers at each price",
+                  "Tastes of consumers at each quantity",
+                  "Movement along the curve at each income",
+                  "Quantity of a good at each price"
+                ],
+                "ai": 3,
+                "fi": [
+                  0
+                ],
+                "ex": "A demand curve shows the quantity of a good consumers are willing and able to purchase at each price. The income-at-each-price choice replaces that quantity with income."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-59a07c63e1457ae09f1974c7",
+        "pairId": "scion-kernel-pair-2e866eb0cb1c01e9d57bd0a2",
+        "artifactSha256": {
+          "A": "1c479bd76b86faaef08c193fa34d0d923a2b523cb42c54a7c7491b84102f2af0",
+          "B": "e78dce633e8e52de6df7d2309e3f2e1dbaf2b28b1add1db2f7aef16dcac4d65b"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    },
+    {
+      "caseId": "scion-kernel-5edc63b53c12793b089d95e4",
+      "pairId": "scion-kernel-pair-a200f9cd175f5fcd9d33a3ca",
+      "domain": "economics",
+      "failureFamilies": [
+        "choice-discriminability",
+        "source-fidelity"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-8",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Circular flow of income",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: In the circular flow of income, money that households earn returns to firms as spending unless it leaks out of the flow as saving, taxes, or spending on imports. Claim 1: Leakages are balanced by injections such as investment, government spending, and exports that add spending back into the flow. Claim 2: When total leakages equal total injections, the circular flow is in balance and national income neither rises nor falls.",
+        "readings": "OpenStax Principles of Macroeconomics 2e, Ch. 1"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "13a691e562b5c8e8cd8780917c95852a4fc9041b68384de9a7efc063d90a6f05",
+        "kernelId": "econ/circular-flow-of-income",
+        "term": "Circular flow of income",
+        "claims": [
+          "In the circular flow of income, money that households earn returns to firms as spending unless it leaks out of the flow as saving, taxes, or spending on imports.",
+          "Leakages are balanced by injections such as investment, government spending, and exports that add spending back into the flow.",
+          "When total leakages equal total injections, the circular flow is in balance and national income neither rises nor falls."
+        ],
+        "anchors": [
+          {
+            "src": "openstax:macroeconomics-2e#1",
+            "loc": "1.2",
+            "quote": "money that households earn returns to firms as spending unless it leaks out of the flow as saving, taxes, or spending on imports"
+          },
+          {
+            "src": "openstax:macroeconomics-2e#1",
+            "loc": "1.2",
+            "quote": "Leakages are balanced by injections such as investment, government spending, and exports that add spending back into the flow"
+          },
+          {
+            "src": "openstax:macroeconomics-2e#1",
+            "loc": "1.2",
+            "quote": "When total leakages equal total injections, the circular flow is in balance and national income neither rises nor falls"
+          }
+        ],
+        "attribution": [
+          "OpenStax Principles of Macroeconomics 2e, Ch. 1"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "e271272fe4a4f78c3b6232efbbbbe66ec29a8a09b98a9f91c023bac95615b619",
+          "lessonKernel": {
+            "lessonId": "lesson-8",
+            "facts": [
+              "In the circular flow of income, money that households earn returns to firms as spending unless it leaks out of the flow as saving, taxes, or spending on imports. ",
+              "Leakages are balanced by injections such as investment, government spending, and exports that add spending back into the flow. ",
+              "When total leakages equal total injections, the circular flow is in balance and national income neither rises nor falls."
+            ],
+            "keyTerms": [
+              {
+                "tr": "money that households earn returns to firms as spending",
+                "df": "This describes the flow of income from households to firms as spending unless it leaks out of the flow as saving, taxes, or spending on imports.",
+                "eg": "Households earning wages spend that income on goods and services purchased from firms.",
+                "mi": "Households spend all earned income on firms because there are no other ways to use the money.",
+                "cx": "Households spend income on firms only if it does not leak out as saving, taxes, or spending on imports."
+              },
+              {
+                "tr": "leakages are balanced by injections",
+                "df": "Leakages are balanced by injections such as investment, government spending, and exports that add spending back into the flow.",
+                "eg": "Government spending is an injection that adds spending back into the circular flow of income.",
+                "mi": "Injections are always larger than leakages because the economy always grows when spending is high.",
+                "cx": "Leakages are balanced by injections because the circular flow is in balance when total leakages equal total injections."
+              },
+              {
+                "tr": "circular flow is in balance",
+                "df": "When total leakages equal total injections, the circular flow is in balance and national income neither rises nor falls.",
+                "eg": "If total leakages equal total injections, national income remains constant.",
+                "mi": "National income always rises when injections exceed leakages because spending is always increasing.",
+                "cx": "National income neither rises nor falls when total leakages equal total injections because the circular flow is in balance."
+              }
+            ],
+            "scenario": {
+              "su": "A nation observes that household spending on imported goods is increasing by 15% while investment in new machinery remains flat. The constraint is that the government cannot increase its spending on infrastructure due to a fixed budget.",
+              "ma": "Compare the observation that money that households earn returns to firms as spending unless it leaks out of the flow as saving, taxes, or spending on imports with the observation that leakages are balanced by injections such as investment, government spending, and exports that add spending back into the flow."
+            },
+            "mc": [
+              {
+                "q": "Distinguish between the flow of income from households to firms and the balancing mechanism involving leakages and injections.",
+                "op": [
+                  "Spending is the flow, leakages balance injections.",
+                  "Injections are the flow, leakages balance spending.",
+                  "Leakages are the flow, injections balance saving.",
+                  "Spending is the balancing mechanism, leakages are the flow."
+                ],
+                "ai": 0,
+                "fi": [
+                  0,
+                  1
+                ],
+                "ex": "The subject evidence supporting the answer is that money that households earn returns to firms as spending unless it leaks out of the flow as saving, taxes, or spending on imports, and leakages are balanced by injections such as investment, government spending, and exports that add spending back into the flow, which shows spending is the flow and leakages balance injections."
+              },
+              {
+                "q": "Given that government spending is an injection, which statement correctly describes the condition for the circular flow to be in balance?",
+                "op": [
+                  "Total leakages must exceed total injections.",
+                  "Total injections must exceed total leakages.",
+                  "Total leakages must equal total injections.",
+                  "Total injections must be zero."
+                ],
+                "ai": 0,
+                "fi": [
+                  1
+                ],
+                "ex": "The subject evidence supporting the answer is that when total leakages equal total injections, the circular flow is in balance and national income neither rises nor falls, which means total leakages must equal total injections."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "32256ad9003d03cde0318ab85b141b2b97c57927ad2ba40fcab4ac25d24f9856",
+          "lessonKernel": {
+            "lessonId": "lesson-8",
+            "facts": [
+              "In the circular flow of income, money that households earn returns to firms as spending unless it leaks out of the flow as saving, taxes, or spending on imports.",
+              "Leakages are balanced by injections such as investment, government spending, and exports that add spending back into the flow.",
+              "When total leakages equal total injections, the circular flow is in balance and national income neither rises nor falls."
+            ],
+            "keyTerms": [
+              {
+                "tr": "circular flow",
+                "df": "The circular flow describes household earnings returning to firms as spending unless they leak out.",
+                "eg": "Money that households earn returns to firms as spending in the circular flow.",
+                "mi": "The circular flow requires household earnings to become saving, taxes, or spending on imports.",
+                "cx": "Household earnings return to firms as spending unless they leak out through those categories."
+              },
+              {
+                "tr": "leakages",
+                "df": "Leakages are saving, taxes, or spending on imports that leave the circular flow.",
+                "eg": "Saving, taxes, and spending on imports are leakages.",
+                "mi": "Investment, government spending, and exports are leakages from the circular flow.",
+                "cx": "Those categories are injections that add spending back into the flow."
+              },
+              {
+                "tr": "injections",
+                "df": "Injections are investment, government spending, and exports that add spending back into the flow.",
+                "eg": "Investment, government spending, and exports are injections.",
+                "mi": "Injections consist of saving, taxes, and spending on imports.",
+                "cx": "Saving, taxes, and spending on imports are leakages rather than injections."
+              }
+            ],
+            "scenario": {
+              "su": "An analyst must classify whether the circular flow is in balance while relying on recorded totals that show total leakages equal total injections. The analyst must also account for a household spending record showing earnings returning to firms and category records listing saving, taxes, imports, investment, government spending, and exports.",
+              "ma": "household spending record, leakage category record, injection category record, equal-totals notation"
+            },
+            "mc": [
+              {
+                "q": "A record groups saving, taxes, and spending on imports together, while another groups investment, government spending, and exports together. How should the two groups be classified in the circular flow?",
+                "op": [
+                  "Exports and investment belong with leakages",
+                  "First group leakages; second group injections",
+                  "Both groups add spending back into flow",
+                  "Saving and taxes belong with injections"
+                ],
+                "ai": 1,
+                "fi": [
+                  0,
+                  1
+                ],
+                "ex": "The first group contains saving, taxes, and spending on imports that leak out, while the second contains injections that add spending back. Exports and investment are injections, not leakages."
+              },
+              {
+                "q": "Money that households earn returns to firms as spending, and total leakages equal total injections. Which conclusion correctly identifies the circular flow condition and national income?",
+                "op": [
+                  "Money returns; circular flow leaks; income adds spending back",
+                  "Money adds spending; circular flow returns; income is balanced",
+                  "Money returns; circular flow balanced; income neither rises nor falls",
+                  "Money leaks; circular flow balanced; income returns to firms"
+                ],
+                "ai": 2,
+                "fi": [
+                  0,
+                  2
+                ],
+                "ex": "Money that households earn returns to firms as spending, while equal total leakages and injections make the circular flow balanced and national income neither rises nor falls. Money leaking while income returns reverses those stated results."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-5edc63b53c12793b089d95e4",
+        "pairId": "scion-kernel-pair-a200f9cd175f5fcd9d33a3ca",
+        "artifactSha256": {
+          "A": "e271272fe4a4f78c3b6232efbbbbe66ec29a8a09b98a9f91c023bac95615b619",
+          "B": "32256ad9003d03cde0318ab85b141b2b97c57927ad2ba40fcab4ac25d24f9856"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    },
+    {
+      "caseId": "scion-kernel-b379d50b14fb4e12972e8ffc",
+      "pairId": "scion-kernel-pair-7cef03a701c843a2032f18d2",
+      "domain": "physics",
+      "failureFamilies": [
+        "answer-key-correctness"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-6",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Electric current",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: Electric current is the rate at which charge passes through a surface. Claim 1: Conventional current direction is the direction positive charge would move. Claim 2: Microscopic drift speed is slow even though the electric signal through a circuit propagates rapidly.",
+        "readings": "OpenStax University Physics Volume 2, Ch. 9"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "3b263333e49bb33f83e6d019fd7e157fd10c684598ac03a65955ba0733dc0e6f",
+        "kernelId": "physics/electric-current",
+        "term": "Electric current",
+        "claims": [
+          "Electric current is the rate at which charge passes through a surface.",
+          "Conventional current direction is the direction positive charge would move.",
+          "Microscopic drift speed is slow even though the electric signal through a circuit propagates rapidly."
+        ],
+        "anchors": [
+          {
+            "src": "openstax:university-physics-volume-2#9",
+            "loc": "9.1",
+            "quote": "electric current is the rate at which charge flows"
+          },
+          {
+            "src": "openstax:university-physics-volume-2#9",
+            "loc": "9.1",
+            "quote": "direction of positive charge flow"
+          },
+          {
+            "src": "openstax:university-physics-volume-2#9",
+            "loc": "9.2",
+            "quote": "constant velocity, known as the drift velocity"
+          }
+        ],
+        "attribution": [
+          "OpenStax University Physics Volume 2, Ch. 9"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "24d8e91bfca51785e3a3ad2ff214d97fcbde11f1f3fc9adc12f9e6940e2b4da8",
+          "lessonKernel": {
+            "lessonId": "lesson-6",
+            "facts": [
+              "Electric current is the rate at which charge passes through a surface.",
+              "Conventional current direction is the direction positive charge would move.",
+              "Microscopic drift speed is slow even though the electric signal through a circuit propagates rapidly."
+            ],
+            "keyTerms": [
+              {
+                "tr": "Electric current",
+                "df": "Electric current is defined as the rate at which charge passes through a surface.",
+                "eg": "A flow of charge through a wire is measured by the current passing through a cross-section.",
+                "mi": "Electric current is the speed at which charge moves through a wire.",
+                "cx": "Electric current is the rate at which charge passes through a surface."
+              },
+              {
+                "tr": "Conventional current direction",
+                "df": "Conventional current direction is the direction positive charge would move through a circuit.",
+                "eg": "If positive charges were moving, the current would be defined as flowing in that direction.",
+                "mi": "Conventional current direction is the direction negative charge actually moves.",
+                "cx": "Conventional current direction is the direction positive charge would move."
+              },
+              {
+                "tr": "Microscopic drift speed",
+                "df": "Microscopic drift speed is slow even though the electric signal through a circuit propagates rapidly.",
+                "eg": "The actual movement of charge carriers within a material is characterized by a slow drift speed.",
+                "mi": "Microscopic drift speed is fast because the electric signal propagates rapidly.",
+                "cx": "Microscopic drift speed is slow even though the electric signal through a circuit propagates rapidly."
+              }
+            ],
+            "scenario": {
+              "su": "A technician measures the flow of charge through a copper wire and observes a signal propagating through the circuit very quickly. The technician must determine the correct direction of the current flow based on the movement of positive charge. The constraint is that the measurement must align with the definition of conventional current direction.",
+              "ma": "The technician observes a current flowing from the positive terminal to the negative terminal of a battery. They compare this observation to a diagram showing the actual movement of electrons within the copper wire. The technician must decide which direction represents the conventional current flow."
+            },
+            "mc": [
+              {
+                "q": "When analyzing a circuit, how does the conventional current direction relate to the actual movement of positive charge within the material?",
+                "op": [
+                  "Conventional current is the actual movement of positive charge.",
+                  "Conventional current is the direction positive charge would move.",
+                  "Conventional current is the speed of charge movement.",
+                  "Conventional current is the rate of charge passing through a surface."
+                ],
+                "ai": 1,
+                "fi": [
+                  1
+                ],
+                "ex": "Conventional current direction is the direction positive charge would move, then conventional current is the direction positive charge would move."
+              },
+              {
+                "q": "A circuit exhibits a very fast signal propagation, yet the microscopic drift speed of the charge carriers is slow; which statement accurately describes this relationship?",
+                "op": [
+                  "Drift speed is fast while signal propagation is slow.",
+                  "Drift speed is slow even though signal propagation is rapid.",
+                  "Drift speed is fast because the signal propagates rapidly.",
+                  "Drift speed is slow because the signal propagates slowly."
+                ],
+                "ai": 0,
+                "fi": [
+                  2
+                ],
+                "ex": "Microscopic drift speed is slow even though the electric signal through a circuit propagates rapidly, then drift speed is slow even though signal propagation is rapid."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "3a4cc040314b1b90d562a8e6fa36dab749f3531e3ae36966526a0a8099560a75",
+          "lessonKernel": {
+            "lessonId": "lesson-6",
+            "facts": [
+              "Electric current is the rate at which charge passes through a surface.",
+              "Conventional current direction is the direction positive charge would move.",
+              "Microscopic drift speed is slow even though the electric signal through a circuit propagates rapidly."
+            ],
+            "keyTerms": [
+              {
+                "tr": "Electric current",
+                "df": "Electric current is a rate quantity defined by charge passing through a surface.",
+                "eg": "Choose electric current rather than conventional current direction for the charge-passage rate.",
+                "mi": "Electric current names the surface through which charge passes.",
+                "cx": "The surface marks where passage occurs; current describes the rate of that passage."
+              },
+              {
+                "tr": "Conventional current direction",
+                "df": "Conventional current direction identifies the direction in which positive charge would move.",
+                "eg": "Choose conventional current direction rather than electric current for where positive charge would move.",
+                "mi": "Conventional current direction is the rate at which positive charge passes.",
+                "cx": "It specifies possible positive-charge motion in a direction rather than measuring passage rate."
+              },
+              {
+                "tr": "Microscopic drift speed",
+                "df": "Microscopic drift speed is slow compared with the rapidly propagating electric signal through a circuit.",
+                "eg": "A circuit comparison pairs slow microscopic drift speed with rapid electric-signal propagation.",
+                "mi": "Microscopic drift speed propagates rapidly while the electric signal is slow.",
+                "cx": "The rapid propagation belongs to the electric signal, while microscopic drift remains slow."
+              }
+            ],
+            "scenario": {
+              "su": "A workshop group must assign accurate labels to four statements about charge, direction, drift speed, and signal propagation. The group faces a deadline and must distinguish the paired ideas using the stated observations rather than treating their properties as interchangeable.",
+              "ma": "charge-through-surface rate notation, positive-charge direction notation, slow-drift observation, rapid-signal observation"
+            },
+            "mc": [
+              {
+                "q": "A comparison records charge passing through a surface at a rate and separately marks the direction positive charge would move. Which distinction correctly labels electric current and conventional current direction?",
+                "op": [
+                  "Current gives positive-charge direction; conventional direction marks surface",
+                  "Current marks the surface; conventional direction gives charge rate",
+                  "Current tracks positive charge; conventional direction gives passage rate",
+                  "Current gives charge-passage rate; conventional direction tracks positive charge"
+                ],
+                "ai": 3,
+                "fi": [
+                  0,
+                  1
+                ],
+                "ex": "Electric current is the rate of charge passing through a surface, whereas conventional current direction follows the direction positive charge would move. The two relations should not be exchanged between rate and direction."
+              },
+              {
+                "q": "In a circuit comparison, the recorded microscopic drift speed is slow while the observed electric signal propagates rapidly. Under a constraint requiring one accurate paired label, which notation is supported?",
+                "op": [
+                  "Drift speed is slow; electric signal propagates slowly",
+                  "Drift speed is slow; electric signal propagates rapidly",
+                  "Drift speed is rapid; electric signal propagates slowly",
+                  "Drift speed is rapid; electric signal propagates rapidly"
+                ],
+                "ai": 1,
+                "fi": [
+                  2
+                ],
+                "ex": "Microscopic drift speed is slow even though the electric signal through a circuit propagates rapidly. Rapid propagation therefore describes the signal, not the microscopic drift speed."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-b379d50b14fb4e12972e8ffc",
+        "pairId": "scion-kernel-pair-7cef03a701c843a2032f18d2",
+        "artifactSha256": {
+          "A": "24d8e91bfca51785e3a3ad2ff214d97fcbde11f1f3fc9adc12f9e6940e2b4da8",
+          "B": "3a4cc040314b1b90d562a8e6fa36dab749f3531e3ae36966526a0a8099560a75"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    }
+  ],
+  "claimBoundary": "This packet contains anonymous source-bound artifacts only. It contains no provider identity, model identity, route, admission outcome, retry history, compiler receipt, preference, or training authorization.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "cda53b358b12b51d43cdf6380c8a44b4145898a1865f50abd1c8d96c0013e24f"
+  }
+}

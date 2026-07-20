@@ -1,0 +1,182 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-teacher-revision-packet-v1",
+  "generatedAt": "2026-07-19T22:01:25.000Z",
+  "batchId": "batch-002-18c6138295",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "aggregateSha256": "1d2b518d03132e410618521de83b2a2b511d7da3454cfde8828bfa7c9d7b2b88",
+  "prompt": {
+    "path": "evaluation/scion-adapters/lesson-kernel-teacher-revision-prompt-v8-v0.16.60.md",
+    "sha256": "505aff4b87a07aa0d7d9d7d7b6d40bb268f654439a4b8e06f1d1efda53327eb1"
+  },
+  "cases": [
+    {
+      "caseId": "scion-kernel-2da6ae5908cc12b0c12cf8e1",
+      "caseSha256": "2da6ae5908cc12b0c12cf8e1c2181940347492e0a51adf06ed08ee3b96fcad35",
+      "lessonInput": {
+        "lessonId": "lesson-2",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "User scenarios",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: A user scenario is a narrative that situates a user type, motivation, context, goal, and tasks in a specific interaction. Claim 1: Scenarios communicate a design idea through a specific interaction for a specific user. Claim 2: A scenario should state who the user is, why and where they act, what goal they have, and how they pursue it. Claim 3: Scenario work can reveal how needs vary with context and across diverse users. Claim 4: Teams should validate and refine scenarios with the represented user group and collaborators.",
+        "readings": "Digital.gov, U.S. General Services Administration"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "91025e358b91265f110903e864438a936557a07bce01795345fa49826e0ca607",
+        "kernelId": "ux/user-scenarios",
+        "term": "User scenarios",
+        "claims": [
+          "A user scenario is a narrative that situates a user type, motivation, context, goal, and tasks in a specific interaction.",
+          "Scenarios communicate a design idea through a specific interaction for a specific user.",
+          "A scenario should state who the user is, why and where they act, what goal they have, and how they pursue it.",
+          "Scenario work can reveal how needs vary with context and across diverse users.",
+          "Teams should validate and refine scenarios with the represented user group and collaborators."
+        ],
+        "anchors": [
+          {
+            "src": "digitalgov:user-interaction",
+            "loc": "User scenarios — What",
+            "quote": "tells a story about how users interact"
+          },
+          {
+            "src": "digitalgov:user-interaction",
+            "loc": "User scenarios — Why",
+            "quote": "specific interaction for a specific user"
+          },
+          {
+            "src": "digitalgov:user-interaction",
+            "loc": "User scenarios — How",
+            "quote": "Who they are"
+          },
+          {
+            "src": "digitalgov:user-interaction",
+            "loc": "User scenarios — Why",
+            "quote": "needs might vary depending on their context"
+          },
+          {
+            "src": "digitalgov:user-interaction",
+            "loc": "User scenarios — How",
+            "quote": "validation, feedback, and refinement"
+          }
+        ],
+        "attribution": [
+          "Digital.gov, U.S. General Services Administration"
+        ],
+        "license": "U.S. Government Work"
+      },
+      "originalArtifact": {
+        "lessonId": "lesson-2",
+        "facts": [
+          "A user scenario is a narrative that situates a user type, motivation, context, goal, and tasks in a specific interaction.",
+          "Scenarios communicate a design idea through a specific interaction for a specific user.",
+          "A scenario should state who the user is, why and where they act, what goal they have, and how they pursue it.",
+          "Scenario work can reveal how needs vary with context and across diverse users.",
+          "Teams should validate and refine scenarios with the represented user group and collaborators."
+        ],
+        "keyTerms": [
+          {
+            "tr": "user scenario",
+            "df": "A user scenario is a narrative distinguished by situating specified user elements within a specific interaction.",
+            "eg": "A team writes who the user is, why and where they act, their goal, and how they pursue it.",
+            "mi": "A user scenario communicates a design idea without situating a user type or context.",
+            "cx": "The narrative must place the user type and context within the interaction, so those elements cannot be omitted."
+          },
+          {
+            "tr": "specific interaction",
+            "df": "A specific interaction is the setting through which scenarios communicate a design idea for a specific user.",
+            "eg": "A scenario connects a specific user, goal, and tasks within the interaction.",
+            "mi": "A specific interaction replaces the need to identify who acts and what goal they have.",
+            "cx": "The interaction does not replace those details; the scenario should state the user and goal as well."
+          },
+          {
+            "tr": "represented user group",
+            "df": "The represented user group is a participant in the validation and refinement of scenarios alongside collaborators.",
+            "eg": "Teams ask the represented user group and collaborators to validate and refine a scenario.",
+            "mi": "Collaborators should refine scenarios before the represented user group validates them separately.",
+            "cx": "Both the represented users and collaborators belong in validation and refinement, rather than being assigned separate roles."
+          }
+        ],
+        "scenario": {
+          "su": "Before a deadline, a team must choose which scenario draft is defensible: one states the user, context, goal, and tasks, while the other states a design idea and specific interaction. The team must classify each draft using its recorded contents despite pressure to select one immediately.",
+          "ma": "draft notation listing user, context, goal, and tasks, draft passage stating a design idea through a specific interaction for a specific user"
+        },
+        "mc": [
+          {
+            "q": "A reviewer compares a narrative that situates user elements with scenarios that present a design idea; which distinction correctly describes the narrative and the specific interaction?",
+            "op": [
+              "Narratives communicate contexts; scenarios situate specific users",
+              "Narratives situate elements; scenarios communicate design ideas",
+              "Narratives situate design ideas; scenarios communicate user types",
+              "Narratives communicate users; scenarios situate design ideas"
+            ],
+            "ai": 1,
+            "fi": [
+              0,
+              1
+            ],
+            "ex": "A user-scenario narrative situates the user elements, while scenarios communicate a design idea through a specific interaction. Assigning the design idea to what the narrative situates swaps these relationships."
+          },
+          {
+            "q": "A team compares scenario drafts before review: one records who, why, where, the goal, and its pursuit, while the others omit a recorded element. Which draft should it select?",
+            "op": [
+              "Choose why, where, goal, and pursuit",
+              "Choose who, why, where, goal, and pursuit",
+              "Choose who, where, goal, and pursuit",
+              "Choose who, why, where, and goal"
+            ],
+            "ai": 1,
+            "fi": [
+              2
+            ],
+            "ex": "A scenario should state who acts, why and where they act, their goal, and how they pursue it. Stopping at the goal omits how the user pursues it."
+          }
+        ]
+      },
+      "originalArtifactSha256": "4c65a576488f33b94c85bac1c90398a9ca979fa2192ba131c5c6845ff48b141d",
+      "compilerAdmission": {
+        "needsRetry": false,
+        "issues": []
+      },
+      "diagnoses": [
+        {
+          "winnerScores": {
+            "sourceFidelity": 4,
+            "knowledgePrecision": 3,
+            "scenarioReadiness": 3,
+            "assessmentCorrectness": 4,
+            "choiceDiscriminability": 3,
+            "feedbackInstructionality": 4,
+            "internalCoherence": 4
+          },
+          "criticalDefects": [],
+          "rationale": "B stays within the source and provides a time-constrained classification task with strong answer-specific feedback. A's assessments are correct, but its scenario is an unsupported profile description rather than a usable decision.",
+          "decisionSha256": "171257e082415330f70256ca850280f24f0c511b42762f5359c3a0d98a90447e"
+        },
+        {
+          "winnerScores": {
+            "sourceFidelity": 4,
+            "knowledgePrecision": 3,
+            "scenarioReadiness": 1,
+            "assessmentCorrectness": 4,
+            "choiceDiscriminability": 3,
+            "feedbackInstructionality": 4,
+            "internalCoherence": 3
+          },
+          "criticalDefects": [
+            "The scenario offers two incomplete drafts as its decision set: the first lacks motivation and the second lacks multiple required elements, leaving no supported defensible choice."
+          ],
+          "rationale": "Artifact A has the stronger source-bound instruction and fully correct assessments, despite a scenario whose two candidate drafts are both incomplete. Artifact B also lacks a usable scenario decision, adds extensive unsupported specifics, and provides less precise assessment and feedback.",
+          "decisionSha256": "07f019f91d3b7ac0d0ae2cd48ed2bdd8a69afaadb17500f9111e276fd22ab2c5"
+        }
+      ]
+    }
+  ],
+  "claimBoundary": "These are source packets, diagnosed reference artifacts, and compiler outcomes only. No local artifact, provider route, organizer preference, or training authorization is included.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "75215b6adfd2cafda840e65b7e2d826f42fa74fe4f9b94a0e1a1468d7364b34b"
+  }
+}

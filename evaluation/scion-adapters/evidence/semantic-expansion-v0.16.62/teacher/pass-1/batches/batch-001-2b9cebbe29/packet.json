@@ -1,0 +1,172 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-teacher-revision-packet-v1",
+  "generatedAt": "2026-07-19T22:01:25.000Z",
+  "batchId": "batch-001-2b9cebbe29",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "aggregateSha256": "f1f3161426b1cb5ea0b01abaeacdf57f3b2e9f9f77359692ad8db92f6f3f6df4",
+  "prompt": {
+    "path": "evaluation/scion-adapters/lesson-kernel-teacher-revision-prompt-v8-v0.16.60.md",
+    "sha256": "505aff4b87a07aa0d7d9d7d7b6d40bb268f654439a4b8e06f1d1efda53327eb1"
+  },
+  "cases": [
+    {
+      "caseId": "scion-kernel-1ed0d7927b7ef600197320d3",
+      "caseSha256": "1ed0d7927b7ef600197320d3aa9e2e8bb1b81aa592d139efaa729440180bbf03",
+      "lessonInput": {
+        "lessonId": "lesson-6",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Objects and classes",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: A class defines a type of object with attributes (data) and methods (behavior); it is a blueprint, and each object built from it is an instance. Claim 1: A class is a blueprint for creating objects. Claim 2: Individual objects created from a class are called instances. Claim 3: Each instance carries its own copy of the attributes, while the methods defined by the class are shared by every instance.",
+        "readings": "OpenStax Introduction to Python Programming, §11.1 Object-oriented programming basics; §11.2 Classes and instances"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "fcaa13f176a76ca483f7b246776528f38bcd89d679b51979a6c13763df234b00",
+        "kernelId": "cs/classes",
+        "term": "Objects and classes",
+        "claims": [
+          "A class defines a type of object with attributes (data) and methods (behavior); it is a blueprint, and each object built from it is an instance.",
+          "A class is a blueprint for creating objects.",
+          "Individual objects created from a class are called instances.",
+          "Each instance carries its own copy of the attributes, while the methods defined by the class are shared by every instance."
+        ],
+        "anchors": [
+          {
+            "src": "openstax:introduction-python-programming#11.2",
+            "loc": "11.2",
+            "quote": "In a Python program, a class defines a type of object with attributes (fields) and methods (procedures)"
+          },
+          {
+            "src": "openstax:introduction-python-programming#11.2",
+            "loc": "11.2",
+            "quote": "A class is a blueprint for creating objects"
+          },
+          {
+            "src": "openstax:introduction-python-programming#11.2",
+            "loc": "11.2",
+            "quote": "Individual objects created of the class type are called instances"
+          },
+          {
+            "src": "openstax:introduction-python-programming#11.2",
+            "loc": "11.2",
+            "quote": "Each instance carries its own copy of the attributes"
+          }
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §11.1 Object-oriented programming basics; §11.2 Classes and instances"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "originalArtifact": {
+        "lessonId": "lesson-6",
+        "facts": [
+          "A class defines a type of object with attributes (data) and methods (behavior); it is a blueprint, and each object built from it is an instance.",
+          "A class is a blueprint for creating objects.",
+          "Individual objects created from a class are called instances.",
+          "Each instance carries its own copy of the attributes, while the methods defined by the class are shared by every instance."
+        ],
+        "keyTerms": [
+          {
+            "tr": "class",
+            "df": "A class defines a type of object and serves as its blueprint.",
+            "eg": "A class is used as the blueprint for creating objects.",
+            "mi": "A class is an individual object created from a blueprint.",
+            "cx": "The created individual is an instance; the class supplies the blueprint."
+          },
+          {
+            "tr": "objects",
+            "df": "Objects are entities built from a class, with each one called an instance.",
+            "eg": "Objects created from a class are individual instances.",
+            "mi": "Objects define the methods shared by every instance.",
+            "cx": "The class defines the shared methods, while objects are built from that class."
+          },
+          {
+            "tr": "instances",
+            "df": "Instances are individual objects whose attributes are carried as their own copies.",
+            "eg": "Each instance carries its own copy of the attributes.",
+            "mi": "Instances define the methods that the class shares.",
+            "cx": "Methods come from the class and are shared by its instances."
+          }
+        ],
+        "scenario": {
+          "su": "Students must classify a class and two objects as either a blueprint or instances before a deadline. They must also distinguish the separate attribute copies from the methods shared by both objects.",
+          "ma": "class passage stating that it is a blueprint for creating objects, object passages identifying two individual objects created from the class, attribute observation showing each instance carrying its own copy, method observation showing class-defined methods shared by both instances"
+        },
+        "mc": [
+          {
+            "q": "When a class is observed defining a type and an object is observed being built from it, which comparison correctly distinguishes the exact terms class and instance?",
+            "op": [
+              "Class is blueprint; built object is instance",
+              "Class is instance; built object is blueprint",
+              "Instance is blueprint; class is built object",
+              "Object is class; blueprint is instance"
+            ],
+            "ai": 0,
+            "fi": [
+              0
+            ],
+            "ex": "The class is the blueprint, and an object built from it is an instance. Calling the instance the blueprint reverses the stated relationship."
+          },
+          {
+            "q": "Two objects each carry separate attribute copies but use methods defined by their class; under a complete-comparison constraint, which account fits these observations?",
+            "op": [
+              "Instances copy attributes and share class methods",
+              "Instances carry their own attribute copies",
+              "Instances share attributes and copy class methods",
+              "Class methods are shared by instances"
+            ],
+            "ai": 0,
+            "fi": [
+              3
+            ],
+            "ex": "Each instance has its own attribute copy, while the class-defined methods are shared by the instances. Saying attributes are shared and methods copied reverses both relationships."
+          }
+        ]
+      },
+      "originalArtifactSha256": "72983e37fab046247d100c7fc5f95b49853e944f7860546d8727117a2f8eed9a",
+      "compilerAdmission": {
+        "needsRetry": false,
+        "issues": []
+      },
+      "diagnoses": [
+        {
+          "winnerScores": {
+            "sourceFidelity": 4,
+            "knowledgePrecision": 4,
+            "scenarioReadiness": 4,
+            "assessmentCorrectness": 4,
+            "choiceDiscriminability": 3,
+            "feedbackInstructionality": 4,
+            "internalCoherence": 4
+          },
+          "criticalDefects": [],
+          "rationale": "B provides a coherent and correctly keyed comparison of classes, instances, attributes, and methods. A declares the wrong answer twice and leaves template instructions in its feedback.",
+          "decisionSha256": "9a1e8844ffc421de39b99506a3b90f4fd1ddf46c8a1d839ee0684147996b436f"
+        },
+        {
+          "winnerScores": {
+            "sourceFidelity": 4,
+            "knowledgePrecision": 4,
+            "scenarioReadiness": 4,
+            "assessmentCorrectness": 4,
+            "choiceDiscriminability": 2,
+            "feedbackInstructionality": 4,
+            "internalCoherence": 4
+          },
+          "criticalDefects": [],
+          "rationale": "Artifact A is accurate and fully coherent despite some weak distractors. Artifact B fails both answer keys, contradicts those keys in feedback, and contains unresolved instructional text.",
+          "decisionSha256": "a37533a2dc1ba1aa422ed514d22ad007d07f1e13789e810752c28f5098195487"
+        }
+      ]
+    }
+  ],
+  "claimBoundary": "These are source packets, diagnosed reference artifacts, and compiler outcomes only. No local artifact, provider route, organizer preference, or training authorization is included.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "9236ea65b411223a4ad482d7fb9d4e80584fca1639f6d882113139bc9a3837f3"
+  }
+}

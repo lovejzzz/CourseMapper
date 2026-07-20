@@ -1,0 +1,175 @@
+{
+  "schemaVersion": 1,
+  "protocolVersion": "scion-paired-v12-diagnostic-v1",
+  "observedAt": "2026-07-20T06:40:34.992Z",
+  "benchmarkId": "scion-held-out-course-benchmark-v12",
+  "pairId": "scion-v01662-24fea275-v12-001",
+  "compilerCommitSha": "581bfc37",
+  "adapter": {
+    "id": "scion-g4e2b-production-24fea2752e6edb62",
+    "manifestSha256": "e0288a9bd96b5ff1f510e55d93da586aa3b460919d61a63fa08064c61e525a08",
+    "packageIdentitySha256": "f5d8fc9e82e0b68050421a03baabdff39da504a0ed41f87246ca37b5517cbe96",
+    "datasetManifestSha256": "47492620e7dc2e8846efab20776ebeeb2f421e699064b260af32fa6b7868df15",
+    "taskFamily": "source-grounded-lesson-kernel"
+  },
+  "artifacts": {
+    "candidateEvidence": {
+      "path": "verification-output/scion-adapter-paired-evidence-v0.16.62-v12-001/candidate.json",
+      "sha256": "210501694b5505cc7190e668b39a106175619642b4611068e72172056f8121de"
+    },
+    "baseEvidence": {
+      "path": "verification-output/scion-adapter-paired-evidence-v0.16.62-v12-001/base.json",
+      "sha256": "33f37f076973f0c293eb94bcfe1dbbe1e72d43bcad597694c8bb0e20d894fc8c"
+    },
+    "receipt": {
+      "path": "verification-output/scion-adapter-paired-evidence-v0.16.62-v12-001/receipt.json",
+      "sha256": "da076631501df0e7b6fa6027b15403a5c77fde68e871336cb5b507814974c442"
+    },
+    "baseBodyLog": {
+      "localPath": "/tmp/scion-v12-base-581bfc37.jsonl",
+      "sha256": "330faf04b47d8e66ce8abf66f356ebb981bced2aec32f545d79942fd71d24e4e"
+    },
+    "candidateBodyLog": {
+      "localPath": "/tmp/scion-v12-adapter-581bfc37.jsonl",
+      "sha256": "b2d266bb5798a21acbff2559dbd10c2bf38ab61f0d43d8ced59f71f193b4b948"
+    }
+  },
+  "matchedResult": {
+    "promotionEligible": false,
+    "heldoutBoundaryPass": true,
+    "base": {
+      "publishableCourses": 2,
+      "blockedCourses": 3,
+      "nativeInferenceAttempts": 233,
+      "scionPassCalls": 104,
+      "durationMs": 2412709
+    },
+    "adapter": {
+      "publishableCourses": 2,
+      "blockedCourses": 3,
+      "nativeInferenceAttempts": 114,
+      "scionPassCalls": 27,
+      "durationMs": 2207006
+    },
+    "delta": {
+      "nativeInferenceAttempts": -119,
+      "nativeInferenceAttemptFraction": -0.5107,
+      "scionPassCalls": -77,
+      "durationMs": -205703,
+      "durationFraction": -0.0853,
+      "publishableCourses": 0
+    }
+  },
+  "courseResults": [
+    {
+      "domain": "world-languages",
+      "courseId": "mandarin",
+      "base": { "score": 99, "grade": "A", "p1": 0, "p2": 1, "durationMs": 891894, "nativeInferenceAttempts": 98 },
+      "adapter": { "score": 89, "grade": "B", "p1": 2, "p2": 0, "durationMs": 754563, "nativeInferenceAttempts": 46 },
+      "verdict": "quality-regression",
+      "diagnosis": "The adapter path reduced calls but one lesson lost the visible Hanzi and tone-marked-Pinyin pairing required by the learner-facing package."
+    },
+    {
+      "domain": "world-literature",
+      "courseId": "world-lit-readings",
+      "base": { "score": 97, "grade": "A", "p1": 0, "p2": 1, "durationMs": 235873, "nativeInferenceAttempts": 16 },
+      "adapter": { "score": 98, "grade": "A", "p1": 0, "p2": 1, "durationMs": 366540, "nativeInferenceAttempts": 14 },
+      "verdict": "weak-positive-not-decisive",
+      "diagnosis": "The one-point score gain is too small to offset a 55 percent runtime increase or establish general adapter quality."
+    },
+    {
+      "domain": "psychology",
+      "courseId": "psych-101",
+      "base": {
+        "score": 89,
+        "grade": "B",
+        "p1": 3,
+        "p2": 0,
+        "durationMs": 304980,
+        "nativeInferenceAttempts": 29,
+        "admittedKernels": 12,
+        "lessonCount": 15
+      },
+      "adapter": {
+        "score": 89,
+        "grade": "B",
+        "p1": 3,
+        "p2": 0,
+        "durationMs": 241592,
+        "nativeInferenceAttempts": 16,
+        "admittedKernels": 12,
+        "lessonCount": 15
+      },
+      "verdict": "efficiency-only",
+      "diagnosis": "Both arms missed lessons 13, 14, and 15; the adapter did not change the quality boundary."
+    },
+    {
+      "domain": "nutrition",
+      "courseId": "nutrition-101",
+      "base": {
+        "score": 89,
+        "grade": "B",
+        "p1": 3,
+        "p2": 0,
+        "durationMs": 420434,
+        "nativeInferenceAttempts": 38,
+        "admittedKernels": 11,
+        "lessonCount": 14
+      },
+      "adapter": {
+        "score": 89,
+        "grade": "B",
+        "p1": 3,
+        "p2": 1,
+        "durationMs": 380528,
+        "nativeInferenceAttempts": 16,
+        "admittedKernels": 11,
+        "lessonCount": 14
+      },
+      "verdict": "efficiency-with-minor-regression",
+      "diagnosis": "Both arms missed lessons 3, 4, and 12; the adapter added one P2 finding without increasing coverage."
+    },
+    {
+      "domain": "astronomy",
+      "courseId": "astro-101",
+      "base": {
+        "score": 89,
+        "grade": "B",
+        "p1": 3,
+        "p2": 2,
+        "durationMs": 559528,
+        "nativeInferenceAttempts": 52,
+        "admittedKernels": 4,
+        "lessonCount": 12
+      },
+      "adapter": {
+        "score": 89,
+        "grade": "B",
+        "p1": 3,
+        "p2": 2,
+        "durationMs": 463783,
+        "nativeInferenceAttempts": 22,
+        "admittedKernels": 4,
+        "lessonCount": 12
+      },
+      "verdict": "efficiency-only",
+      "diagnosis": "Both arms missed the same eight model-routed lessons; four source-grounded adapter routes ran, but coverage did not improve."
+    }
+  ],
+  "rootCause": {
+    "status": "compiler-selection-defect-confirmed",
+    "summary": "Thin genome overlays were stored before model enrichment. pickNativeKernel ranked the raw seven-check saturation score, so an unusable but surface-rich partial could outrank a compact model kernel that becomes usable after deterministic completion. Recovery generated another candidate and the same comparator discarded it again.",
+    "support": [
+      "The base and adapter arms missed identical lesson sets in Psychology, Nutrition, and Astronomy.",
+      "The captured base body log contains usable compact backbones for all eight first-attempt Astronomy gap lessons when replayed through atomic admission and deterministic surface completion.",
+      "The held-out run reported all eight of those model-routed Astronomy lessons as template fallback.",
+      "A regression test now reproduces the selector error with a high-scoring unusable genome partial and a lower-scoring compiler-completable model kernel."
+    ]
+  },
+  "claimBoundary": {
+    "adapterQualityWin": false,
+    "adapterEfficiencyWin": true,
+    "productionActivationAllowed": false,
+    "statement": "This pair proves a substantial inference-call reduction, not a quality improvement. The adapter remains unpromoted until a clean rerun after the compiler fix meets the matched quality gates."
+  }
+}

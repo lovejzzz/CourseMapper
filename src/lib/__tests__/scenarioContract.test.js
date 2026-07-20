@@ -52,6 +52,20 @@ describe('evidence-to-decision scenario contract', () => {
     expect(result.evidenceKinds).toContain('data');
   });
 
+  it('recognizes two named notations as an inspectable evidence packet', () => {
+    const result = analyzeDecisionScenario({
+      setup:
+        'A progression displays two chord notations: the first is built on scale degree one, and the second is built on scale degree four. Decide which notation has tonic function and which has pre-dominant function, with each label constrained by its displayed scale degree.',
+      materials:
+        'Inspect the scale-degree-one chord notation and the scale-degree-four chord notation; compare both displayed scale degrees with the selected tonic and pre-dominant labels.',
+    });
+
+    expect(result.ready).toBe(true);
+    expect(result.checks).toMatchObject({ evidencePacket: true, materials: true });
+    expect(result.evidenceKinds).toContain('design');
+    expect(result.materialSegmentCount).toBeGreaterThanOrEqual(2);
+  });
+
   it('recognizes naming a supported classification under a time constraint as a decision', () => {
     const result = analyzeDecisionScenario({
       setup:

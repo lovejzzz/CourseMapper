@@ -1,0 +1,124 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-teacher-capture-v1",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "packetSha256": "50c769c3f639f7b9de79ee0d683e9a06464c290780c2e5196186a362ad9669e7",
+  "resultSha256": "457071663c5c7393a118097939be7d3f1c1b7bb5f8fc07f080c676dd3e3f515f",
+  "reviser": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-source-cleanroom"
+  },
+  "calls": [
+    {
+      "caseId": "scion-kernel-b379d50b14fb4e12972e8ffc",
+      "caseSha256": "b379d50b14fb4e12972e8ffc7176862fd227610cbbfd8eb441215ffe4c930066",
+      "arm": "teacher-revision",
+      "model": {
+        "model": "gpt-5.6-sol",
+        "revision": "codex-cli 0.144.5",
+        "runtime": "codex-cli-ephemeral-source-cleanroom"
+      },
+      "sourceContextSha256": "17dd18fa5c011c25b1b6bd2601d174b4686e7708bea10a447e2541ad17a93fef",
+      "originalArtifactSha256": "b727d9133bb0c5cae7395094563435cd5f78a8453606e56da8c0f52852a8d2b2",
+      "artifact": {
+        "lessonId": "lesson-6",
+        "facts": [
+          "Electric current is the rate at which charge passes through a surface.",
+          "Conventional current direction is the direction positive charge would move.",
+          "Microscopic drift speed is slow even though the electric signal through a circuit propagates rapidly."
+        ],
+        "keyTerms": [
+          {
+            "tr": "Electric current",
+            "df": "Electric current is a rate quantity defined by charge passing through a surface.",
+            "eg": "Classify a rate for charge passing through a surface as electric current.",
+            "mi": "Electric current names the surface through which charge passes.",
+            "cx": "The surface marks where passage occurs; current describes the rate of that passage."
+          },
+          {
+            "tr": "Conventional current direction",
+            "df": "Conventional current direction identifies the direction in which positive charge would move.",
+            "eg": "Positive charge would move in the conventional current direction.",
+            "mi": "Conventional current direction is the rate at which positive charge passes.",
+            "cx": "It specifies possible positive-charge motion in a direction rather than measuring passage rate."
+          },
+          {
+            "tr": "Microscopic drift speed",
+            "df": "Microscopic drift speed is slow compared with the rapidly propagating electric signal through a circuit.",
+            "eg": "A circuit comparison pairs slow microscopic drift speed with rapid electric-signal propagation.",
+            "mi": "Microscopic drift speed propagates rapidly while the electric signal is slow.",
+            "cx": "The rapid propagation belongs to the electric signal, while microscopic drift remains slow."
+          }
+        ],
+        "scenario": {
+          "su": "A workshop group must assign accurate labels to four statements about charge, direction, drift speed, and signal propagation. The group faces a deadline and must distinguish the paired ideas using the stated observations rather than treating their properties as interchangeable.",
+          "ma": "charge-through-surface rate notation, positive-charge direction notation, slow-drift observation, rapid-signal observation"
+        },
+        "mc": [
+          {
+            "q": "A comparison records charge passing through a surface at a rate and separately marks the direction positive charge would move. Which distinction correctly labels electric current and conventional current direction?",
+            "op": [
+              "Current gives charge-passage rate; conventional direction tracks positive charge",
+              "Current tracks positive charge; conventional direction gives passage rate",
+              "Current gives positive-charge direction; conventional direction marks surface",
+              "Current marks the surface; conventional direction gives charge rate"
+            ],
+            "ai": 0,
+            "fi": [
+              0,
+              1
+            ],
+            "ex": "Electric current is the rate of charge passing through a surface, whereas conventional current direction follows the direction positive charge would move. The two relations should not be exchanged between rate and direction."
+          },
+          {
+            "q": "In a circuit comparison, the recorded microscopic drift speed is slow while the observed electric signal propagates rapidly. Under a constraint requiring one accurate paired label, which notation is supported?",
+            "op": [
+              "Drift speed is slow; electric signal propagates rapidly",
+              "Drift speed is rapid; electric signal propagates slowly",
+              "Drift speed is rapid; electric signal propagates rapidly",
+              "Drift speed is slow; electric signal propagates slowly"
+            ],
+            "ai": 0,
+            "fi": [
+              2
+            ],
+            "ex": "Microscopic drift speed is slow even though the electric signal through a circuit propagates rapidly. Rapid propagation therefore describes the signal, not the microscopic drift speed."
+          }
+        ]
+      },
+      "artifactSha256": "a12c546cdc75546ed21ccb7f82593f6ae938ad0e0fd6567564a2c03e4b7593d8",
+      "admission": {
+        "needsRetry": true,
+        "issues": [
+          "lesson-6:key-term-0:example-repeats-definition",
+          "lesson-6:key-term-1:example-repeats-definition"
+        ]
+      },
+      "compilerRepairs": [],
+      "revisionEvidence": {
+        "packetSha256": "50c769c3f639f7b9de79ee0d683e9a06464c290780c2e5196186a362ad9669e7",
+        "sessionId": "scion-v01654-teacher-batch-008-10005ed763-6559c907-e9dd-47f2-944d-9b6adf1d9c84",
+        "changeSummary": [
+          "Replaced the rejected Electric current example with a source-bounded classification application while preserving all fields not implicated by the compiler issue."
+        ],
+        "addressedDiagnoses": [
+          "Resolved lesson-6:key-term-1:example-repeats-definition; the anonymous judge diagnoses listed no winner critical defects."
+        ]
+      }
+    }
+  ],
+  "summary": {
+    "cases": 1,
+    "compilerAdmitted": 0,
+    "compilerRejected": 1
+  },
+  "claimBoundary": "These source-constrained model revisions cleared only deterministic compiler admission where stated. They are not judge preferences, human evidence, adapter wins, or training authorization.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "80bb8893dca4bf4227b7ac250438d81333b12d6dd8f6afd3e9190831dd805c92"
+  }
+}

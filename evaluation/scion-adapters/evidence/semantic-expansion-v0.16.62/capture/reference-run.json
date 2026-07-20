@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-capture-v1",
+  "generatedAt": "2026-07-19T21:15:55.089Z",
+  "campaign": {
+    "path": "evaluation/scion-adapters/lesson-kernel-campaign-v0.16.59.json",
+    "protocol": "scion-lesson-kernel-preference-campaign-v1",
+    "identity": {
+      "algorithm": "sha256-canonical-json",
+      "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+    },
+    "summary": {
+      "cases": 148,
+      "courseGroups": 25,
+      "sourceKernels": 72,
+      "domains": {
+        "anatomy": 20,
+        "computer-science": 24,
+        "economics": 28,
+        "geology": 12,
+        "music-theory": 12,
+        "physics": 24,
+        "user-experience-design": 28
+      },
+      "licenses": {
+        "CC-BY-4.0": 120,
+        "Open Government Licence v3.0": 12,
+        "U.S. Government Work": 12,
+        "W3C Document License and U.S. Government Work": 4
+      },
+      "failureFamilies": {
+        "answer-key-correctness": 32,
+        "answer-feedback-consistency": 26,
+        "choice-discriminability": 38,
+        "source-fidelity": 66,
+        "source-coverage": 27,
+        "key-term-precision": 8,
+        "misconception-validity": 53,
+        "feedback-instructionality": 77,
+        "scenario-evidence-sufficiency": 41
+      },
+      "excludedCases": 53,
+      "excludedLicenses": {
+        "CC-BY-NC-SA-4.0": 24,
+        "CC-BY-SA-4.0": 29
+      }
+    }
+  },
+  "generation": {
+    "arm": "reference",
+    "newCalls": 0,
+    "checkpointPath": "/Users/tianxing/Documents/NYU/NYUsliver/CourseMapper-scion-v01654/verification-output/scion-lesson-kernel-capture-v0.16.62-expansion-3/reference.json"
+  },
+  "checkpoints": {
+    "reference": {
+      "status": "partial",
+      "calls": 56,
+      "validCalls": 56,
+      "admitted": 33,
+      "retained": 23,
+      "missingArtifacts": 0,
+      "retries": 85,
+      "durationMs": 5196834,
+      "issues": []
+    }
+  },
+  "claimBoundary": "Capture receipts bind model outputs, production-prompt inputs, compiler admission, and retry burden. They create no preference, adapter win, human evidence, held-out result, or activation claim."
+}

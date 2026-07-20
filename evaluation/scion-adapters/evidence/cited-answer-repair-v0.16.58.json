@@ -23,13 +23,13 @@
     "implementation": [
       {
         "path": "src/lib/scionAnswerKeyAlignment.js",
-        "bytes": 62003,
-        "sha256": "c5aff075c25ee6f1bf6de87d52991d1b354e741c188e1290f3fa3c4282750423"
+        "bytes": 68304,
+        "sha256": "a6e48a2d3ecd5172f1c2b1fc4fed853c172d92ce8dad799f7a022015cff6fb0b"
       },
       {
         "path": "src/lib/publicScionProvider.js",
-        "bytes": 80372,
-        "sha256": "eecc83c41a7b58f6a6397f257d9952250a9e611ef0979aa86ba4b5f109a6e8d8"
+        "bytes": 81393,
+        "sha256": "65887825ee8e3035736d79a61680b7e7b097675937e23637db5bebc2b80a13db"
       },
       {
         "path": "src/lib/scionLocalProvider.js",
@@ -118,13 +118,11 @@
           ],
           "beforeIssues": [
             "lesson-4:duplicate-facts",
-            "lesson-4:key-term-2:correction-repeats-misconception",
             "lesson-4:mc-0:explanation-key-conflict",
             "lesson-4:mc-1:explanation-key-conflict"
           ],
           "afterIssues": [
             "lesson-4:duplicate-facts",
-            "lesson-4:key-term-2:correction-repeats-misconception",
             "lesson-4:mc-0:explanation-key-conflict",
             "lesson-4:mc-1:explanation-key-conflict"
           ],
@@ -632,8 +630,8 @@
       "admittedBefore": 1,
       "admittedAfter": 1,
       "issueInstancesHistoricalBefore": 70,
-      "issueInstancesBefore": 77,
-      "issueInstancesAfter": 73,
+      "issueInstancesBefore": 76,
+      "issueInstancesAfter": 72,
       "answerFeedbackConflictsHistoricalBefore": 8,
       "answerFeedbackConflictsBefore": 8,
       "answerFeedbackConflictsAfter": 4,

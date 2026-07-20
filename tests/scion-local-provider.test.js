@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { runScionLocalCompletion, SCION_LOCAL_MAX_GENERATION_RETRIES } from '../src/lib/scionLocalProvider';
 
-function runtimeWith(outputs) {
+function runtimeWith(outputs, { route = null } = {}) {
   const queue = [...outputs];
   return {
     loadScionBrowserWllama: vi.fn(async ({ onProgress }) => {
@@ -9,6 +9,7 @@ function runtimeWith(outputs) {
       return { status: { phase: 'ready' } };
     }),
     completeScionBrowserWllama: vi.fn(async (_messages, options) => {
+      if (route) options.onAdapterRoute?.(route);
       const output = queue.shift();
       options.onToken?.(String(output || '').slice(0, 12));
       return output;
@@ -157,6 +158,92 @@ describe('Scion browser-local provider', () => {
     expect(runtime.completeScionBrowserWllama.mock.calls[1][0].at(-1).content).toContain(
       'correction-repeats-definition',
     );
+  });
+
+  it('stops facts-first synthesis after one usable draft when the grounded adapter stage is available', async () => {
+    const incomplete = JSON.parse(completeKernelResponse());
+    incomplete.lessons[0].keyTerms[0].cx = incomplete.lessons[0].keyTerms[0].df;
+    const runtime = runtimeWith([JSON.stringify(incomplete), completeKernelResponse()], {
+      route: {
+        mode: 'base-only',
+        taskFamily: 'lesson-kernel-synthesis',
+        reason: 'grounded-stage-available',
+        adapterId: 'scion-grounded-test',
+        nativeAdapterActive: false,
+      },
+    });
+    const prompt = `Course: Design\nLessons:\n[{"lessonId":"lesson-4","title":"Affinity Mapping"}]\nReturn ONLY valid JSON.`;
+
+    const result = await runScionLocalCompletion({
+      userPrompt: prompt,
+      task: 'blueprintEnrichment',
+      promptProtocol: 'production-lesson-kernel-synthesis-prompt-v1',
+      maxRetries: 2,
+      runtimeLoader: async () => runtime,
+      sleep: async () => {},
+    });
+
+    expect(result).toMatchObject({ attempt: 1, retryCount: 0, maxRetries: 1, contractIncomplete: true });
+    expect(result.admissionIssues).toContain('lesson-4:key-term-0:correction-repeats-definition');
+    expect(runtime.completeScionBrowserWllama).toHaveBeenCalledTimes(1);
+  });
+
+  it('uses the conditional synthesis retry when the first grounded-stage fact ledger is invalid', async () => {
+    const invalidFacts = JSON.parse(completeKernelResponse());
+    invalidFacts.lessons[0].facts[2] = invalidFacts.lessons[0].facts[1];
+    const runtime = runtimeWith([JSON.stringify(invalidFacts), completeKernelResponse()], {
+      route: {
+        mode: 'base-only',
+        taskFamily: 'lesson-kernel-synthesis',
+        reason: 'grounded-stage-available',
+        adapterId: 'scion-grounded-test',
+        nativeAdapterActive: false,
+      },
+    });
+    const prompt = `Course: Design\nLessons:\n[{"lessonId":"lesson-4","title":"Affinity Mapping"}]\nReturn ONLY valid JSON.`;
+
+    const result = await runScionLocalCompletion({
+      userPrompt: prompt,
+      task: 'blueprintEnrichment',
+      promptProtocol: 'production-lesson-kernel-synthesis-prompt-v1',
+      maxRetries: 2,
+      runtimeLoader: async () => runtime,
+      sleep: async () => {},
+    });
+
+    expect(result).toMatchObject({ attempt: 2, retryCount: 1, maxRetries: 1 });
+    expect(runtime.completeScionBrowserWllama).toHaveBeenCalledTimes(2);
+    expect(runtime.completeScionBrowserWllama.mock.calls[1][0].at(-1).content).toContain('duplicate-facts');
+  });
+
+  it('reserves two issue-informed retries when the compiler explicitly recovers a failed synthesis ledger', async () => {
+    const invalidFacts = JSON.parse(completeKernelResponse());
+    invalidFacts.lessons[0].facts = invalidFacts.lessons[0].facts.slice(0, 4);
+    const runtime = runtimeWith([JSON.stringify(invalidFacts), completeKernelResponse()], {
+      route: {
+        mode: 'base-only',
+        taskFamily: 'lesson-kernel-synthesis',
+        reason: 'grounded-stage-available',
+        adapterId: 'scion-grounded-test',
+        nativeAdapterActive: false,
+      },
+    });
+    const prompt = `Course: Design\nLessons:\n[{"lessonId":"lesson-4","title":"Affinity Mapping"}]\nRecovery attempt 1: re-author the complete lesson.\nReturn ONLY valid JSON.`;
+
+    const result = await runScionLocalCompletion({
+      userPrompt: prompt,
+      task: 'blueprintEnrichment',
+      promptProtocol: 'production-lesson-kernel-synthesis-prompt-v1',
+      maxRetries: 2,
+      temperature: 0.7,
+      runtimeLoader: async () => runtime,
+      sleep: async () => {},
+    });
+
+    expect(result).toMatchObject({ attempt: 2, retryCount: 1, maxRetries: 2 });
+    expect(runtime.completeScionBrowserWllama).toHaveBeenCalledTimes(2);
+    expect(runtime.completeScionBrowserWllama.mock.calls[0][1]).toMatchObject({ temperature: 0.45, seed: 7 });
+    expect(runtime.completeScionBrowserWllama.mock.calls[1][0].at(-1).content).toContain('facts-count:4/5');
   });
 
   it('carries an earlier defect into corrective feedback before a low-risk atomic deferral', async () => {

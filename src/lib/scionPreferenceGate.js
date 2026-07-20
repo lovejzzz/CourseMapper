@@ -225,6 +225,7 @@ export function assessScionMcItem(
       stripTerminalPunctuation: semanticAdmission,
       allowFirstSentenceLexicalCue,
       rejectNegativeEvidence,
+      allowDirectionalRelationConflict: semanticProfile === 'strict-v6' || semanticProfile === 'source-strict-v6',
     })
   ) {
     issues.push('explanation-key-conflict');

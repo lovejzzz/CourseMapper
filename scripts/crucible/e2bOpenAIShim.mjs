@@ -21,17 +21,21 @@ import {
   resolveScionAdapterTaskRoute,
   SCION_ADAPTER_TASK_FAMILIES,
   SCION_LESSON_KERNEL_PROMPT_PROTOCOL,
+  SCION_LESSON_KERNEL_SYNTHESIS_PROMPT_PROTOCOL,
 } from '../../src/lib/scionAdapterTaskScope.js';
 import {
   assessPublicScionKernelResponse,
   buildPublicScionMessages,
   buildPublicScionRetryFeedback,
   mergePublicScionKernelAttempts,
+  publicScionAdmissionRisk,
+  publicScionFactContractIssues,
   repairPublicScionJson,
   shufflePublicScionKernelOptions,
 } from '../../src/lib/publicScionProvider.js';
 import { closeJsonContainersAtEof } from './jsonClosureRepair.mjs';
 import { valueConformsToSchema } from './jsonSchemaValidation.mjs';
+import { scionCompactKernelMaxAttempts } from './scionCompactAttemptPolicy.mjs';
 
 const PORT = Number(process.argv[2] ?? 8799);
 // Optional autopsy log: SHIM_BODY_LOG=<path> appends one JSON line per call
@@ -260,20 +264,31 @@ async function generate({ system, user, maxTokens, schema, jsonMode, temperature
   }
 }
 
-async function generateCompactLessonKernel({ system, user, originalUser, maxTokens, schema }) {
+async function generateCompactLessonKernel({
+  system,
+  user,
+  originalUser,
+  maxTokens,
+  schema,
+  maxAttempts = 3,
+  temperature = 0,
+  deferToGroundedAdapter = false,
+}) {
   let retainedIncompleteText = '';
   let retryAssessment = null;
   let latestText = '';
-  for (let attempt = 0; attempt < 3; attempt += 1) {
+  let bestIncomplete = null;
+  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
     const retryUser = retryAssessment?.needsRetry
       ? `${user}\n\n${buildPublicScionRetryFeedback(retryAssessment)}`
       : user;
+    const attemptTemperature = Math.min(0.45, Math.max(0, Number(temperature) || 0) + attempt * 0.15);
     const rawText = await generate({
       system,
       user: retryUser,
       maxTokens: Math.min(2400, Math.max(1, Number(maxTokens) || 2400)),
       schema,
-      ...(attempt > 0 ? { temperature: Math.min(0.45, attempt * 0.15) } : {}),
+      ...(attemptTemperature > 0 ? { temperature: attemptTemperature } : {}),
     });
     const repaired = repairPublicScionJson(rawText);
     const merged = retainedIncompleteText
@@ -281,19 +296,41 @@ async function generateCompactLessonKernel({ system, user, originalUser, maxToke
       : { text: repaired.text };
     latestText = merged.text;
     const assessment = assessPublicScionKernelResponse(latestText, originalUser, 'blueprintEnrichment');
+    const retryIssues = deferToGroundedAdapter ? publicScionFactContractIssues(assessment) : assessment.issues;
+    const retryGate = { needsRetry: retryIssues.length > 0, issues: retryIssues };
     console.error(
       JSON.stringify({
         compactKernelAttempt: attempt + 1,
-        needsRetry: assessment.needsRetry,
+        needsRetry: retryGate.needsRetry,
         issueCount: assessment.issues.length,
         issues: assessment.issues.slice(0, 12),
+        ...(deferToGroundedAdapter ? { factIssueCount: retryIssues.length } : {}),
       }),
     );
-    if (!assessment.needsRetry) return shufflePublicScionKernelOptions(latestText).text;
+    if (!retryGate.needsRetry) return shufflePublicScionKernelOptions(latestText).text;
+    const risk = publicScionAdmissionRisk(retryGate);
+    if (!bestIncomplete || risk.score < bestIncomplete.risk.score) {
+      bestIncomplete = { text: latestText, attempt: attempt + 1, risk };
+    }
+    // Match the browser transport: after one issue-informed retry, a complete
+    // envelope with only low-risk semantic defects is better handed to the
+    // canonical compiler (and grounded adapter stage) than exposed to another
+    // stochastic rewrite that can damage an already-valid fact ledger.
+    if (attempt >= 1 && risk.highRiskIssues === 0) {
+      console.error(JSON.stringify({ compactKernelSelectedAttempt: attempt + 1, reason: 'compiler-deferable' }));
+      return shufflePublicScionKernelOptions(latestText).text;
+    }
     retainedIncompleteText = latestText;
-    retryAssessment = assessment;
+    retryAssessment = retryGate;
   }
-  return shufflePublicScionKernelOptions(latestText).text;
+  const selected = bestIncomplete || { text: latestText, attempt: maxAttempts };
+  console.error(
+    JSON.stringify({
+      compactKernelSelectedAttempt: selected.attempt,
+      reason: 'lowest-admission-risk-after-exhaustion',
+    }),
+  );
+  return shufflePublicScionKernelOptions(selected.text).text;
 }
 
 // V2: pull the app's ACTUAL output contract out of either API shape so
@@ -1455,8 +1492,15 @@ const server = http.createServer(async (req, res) => {
   let contract = extractJsonContract(body, isResponsesShape);
   const originalCompilerUser = user;
   const compactLessonKernelRequest =
-    adapterRoute.taskFamily === SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL &&
-    promptProtocol === SCION_LESSON_KERNEL_PROMPT_PROTOCOL;
+    (adapterRoute.taskFamily === SCION_ADAPTER_TASK_FAMILIES.SOURCE_GROUNDED_LESSON_KERNEL &&
+      promptProtocol === SCION_LESSON_KERNEL_PROMPT_PROTOCOL) ||
+    (adapterRoute.taskFamily === SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL_SYNTHESIS &&
+      promptProtocol === SCION_LESSON_KERNEL_SYNTHESIS_PROMPT_PROTOCOL) ||
+    // Replay-only compatibility for frozen pre-split benchmark requests. The
+    // resolver keeps this broad family base-only, so it cannot activate an
+    // adapter even though the compact response contract remains executable.
+    (adapterRoute.taskFamily === SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL &&
+      promptProtocol === SCION_LESSON_KERNEL_PROMPT_PROTOCOL);
   if (compactLessonKernelRequest) {
     // Match the production browser boundary exactly. The public provider
     // converts the rich compiler prompt into the compact protocol used by the
@@ -1476,6 +1520,8 @@ const server = http.createServer(async (req, res) => {
   // D1 contract handoff: an app-declared schema call also controls its own
   // temperature (greedy default; recovery retries sample) — honor it.
   const declaredTemperature = Number(body.temperature) || 0;
+  const recoveryAttempt =
+    Number(String(originalCompilerUser || '').match(/(?:RECOVERY RETRY|Recovery attempt)\s+(\d+)/i)?.[1]) || 0;
   const hasJsonContract = Boolean(contract.schema || contract.jsonMode);
   const kernel = !compactLessonKernelRequest && hasJsonContract ? kernelContract(system, user) : null;
   let isSkeleton = false;
@@ -1500,6 +1546,16 @@ const server = http.createServer(async (req, res) => {
             originalUser: originalCompilerUser,
             maxTokens: requestedMaxTokens(body),
             schema: contract.schema,
+            maxAttempts: scionCompactKernelMaxAttempts({
+              taskFamily: adapterRoute.taskFamily,
+              promptProtocol,
+              routeReason: adapterRoute.reason,
+              recoveryAttempt,
+            }),
+            temperature: declaredTemperature,
+            deferToGroundedAdapter:
+              adapterRoute.taskFamily === SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL_SYNTHESIS &&
+              adapterRoute.reason === 'grounded-stage-available',
           })
         : kernel
           ? await kernelChunkedGenerate({ system, user, kernel, temperature: declaredTemperature })
@@ -1547,7 +1603,7 @@ const server = http.createServer(async (req, res) => {
     try {
       fs.appendFileSync(
         BODY_LOG,
-        `${JSON.stringify({ url: req.url, system, user, response: text, modelMetrics, adapterRoute: routeEvidence, ...(jsonClosureRepair ? { jsonClosureRepair } : {}), ...(generationError ? { error: generationError } : {}) })}\n`,
+        `${JSON.stringify({ url: req.url, system, user, originalCompilerUser, response: text, modelMetrics, adapterRoute: routeEvidence, ...(jsonClosureRepair ? { jsonClosureRepair } : {}), ...(generationError ? { error: generationError } : {}) })}\n`,
       );
     } catch (error) {
       bodyLogError = String(error?.message || error).slice(0, 500);

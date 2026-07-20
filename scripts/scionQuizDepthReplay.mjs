@@ -36,6 +36,42 @@ function summarizeConstructed(items) {
   };
 }
 
+function summarizeProvenance(items) {
+  const counts = new Map();
+  for (const item of items) {
+    const source = String(item?.enrichmentSource || 'unlabeled');
+    counts.set(source, (counts.get(source) || 0) + 1);
+  }
+  return Object.fromEntries([...counts.entries()].sort(([left], [right]) => left.localeCompare(right)));
+}
+
+function compiledAdmissionIssues(items) {
+  return items.flatMap((item) => {
+    const issues = lintItemAdmission({
+      question: item.question,
+      options: (item.options || []).map((option) => String(option).replace(/^[A-D]\.\s*/, '')),
+      answerIndex: 'ABCD'.indexOf(item.answer),
+      explanation: item.explanation,
+    });
+    return issues.length > 0
+      ? [
+          {
+            lessonNumber: item.lessonNumber,
+            enrichmentSource: item.enrichmentSource || null,
+            question: item.question,
+            options: item.options,
+            answer: item.answer,
+            explanation: item.explanation,
+            tags: item.tags,
+            quizPlan: item.quizPlan,
+            misconceptionSourced: item.misconceptionSourced === true,
+            issues,
+          },
+        ]
+      : [];
+  });
+}
+
 const projectPath = valueAfter('--project') || process.argv[2];
 if (!projectPath) {
   console.error('Usage: npx vite-node scripts/scionQuizDepthReplay.mjs --project /path/to/project.json');
@@ -55,6 +91,9 @@ if (!projectPath) {
   );
   const compiled = compileBlueprintDeliverables(blueprint, ['quizBank'], { skipLanguageFinalizer: true });
   const weeklyQuizzes = compiled.quizBank?.quizzes || [];
+  const compiledQuestionSeats = weeklyQuizzes.flatMap((quiz) =>
+    (quiz.questions || []).map((item) => ({ ...item, lessonNumber: quiz.lessonNumber ?? null })),
+  );
   const compiledItems = weeklyQuizzes.flatMap((quiz) =>
     (quiz.questions || [])
       .filter((item) => item?.type === 'multiple_choice')
@@ -76,7 +115,7 @@ if (!projectPath) {
   console.log(
     JSON.stringify(
       {
-        schemaVersion: 1,
+        schemaVersion: 2,
         projectPath: absolutePath,
         courseName: blueprint.courseName || graph.course?.name || '',
         sourceModelItems: summarize(sourceItems),
@@ -89,6 +128,17 @@ if (!projectPath) {
             admissionIssues: lintItemAdmission(item),
           })),
         compiledItems: summarize(compiledItems),
+        compiledQuestionSeats: {
+          total: compiledQuestionSeats.length,
+          sourceBoundRecovery: compiledQuestionSeats.filter((item) => item.enrichmentSource === 'source-bound-recovery')
+            .length,
+          admittedKernelAssessment: compiledQuestionSeats.filter(
+            (item) => item.enrichmentSource === 'admitted-kernel-assessment',
+          ).length,
+          sourceReviewRequired: compiledQuestionSeats.filter((item) => item.sourceReviewRequired === true).length,
+          provenance: summarizeProvenance(compiledQuestionSeats),
+        },
+        compiledAdmissionIssues: compiledAdmissionIssues(compiledItems),
         compiledAuthoredItems: summarize(compiledAuthoredItems),
         compiledConstructedItems: summarizeConstructed(compiledConstructedItems),
         byLesson,

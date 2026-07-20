@@ -65,7 +65,14 @@ const lazyChunkBudgets = [
   // v0.16.59: +0.6 KiB raw carries the exact source ledger into the workspace
   // and suppresses futile outer recovery. Gzip remains below the V0.16.55
   // ceiling; 275 KiB keeps less than 0.5 KiB raw headroom.
-  { prefix: 'AppFlow-', rawKiB: 275, gzipKiB: 83, gzipSlackBytes: 256 },
+  // v0.16.62 candidate: +0.5 KiB raw repairs duplicate resource ids while
+  // restoring older project graphs and reuses admission-checked saved kernels
+  // for on-demand compiles. This prevents a silent content downgrade and an
+  // unnecessary model pass; measured 275.2/83.0 with gzip unchanged.
+  // The Vite 8 graph correction also moved Scion's public identity into a
+  // 0.3 KiB landing leaf. That removes 1.75 MiB from the initial route while
+  // shifting 0.2/0.3 KiB into AppFlow's lazy ownership. Keep sub-KiB margin.
+  { prefix: 'AppFlow-', rawKiB: 277, gzipKiB: 84 },
   // v0.16.47: the Living Course Compiler component and pure selector gained
   // an independently cacheable route boundary instead of raising AppFlow's
   // long-standing ratchet. Clean measurement: AppFlow 251.6/75.9; ribbon
@@ -118,17 +125,26 @@ const lazyChunkBudgets = [
   // v0.16.55 remeasurement: the unchanged clean parent is 795.4/219.7 under
   // the locked bundler. This release adds no bytes to this chunk; 796/220
   // records the real inherited floor with less than 0.6/0.3 KiB headroom.
-  // v0.16.59: +1.6 KiB raw / +0.5 KiB gzip for the source-ledger recovery
-  // contract and its canonical admission checks. This remains workspace-only
-  // compiler behavior; the 798/221 ceiling leaves less than 1 KiB headroom.
-  { prefix: 'courseBlueprintCompiler-', rawKiB: 798, gzipKiB: 221 },
+  // v0.16.62 candidate: admitted lesson facts, terms, and misconceptions now
+  // fill missing assessment seats before generic source-review recovery. The
+  // retained Mandarin replay moved generic recovery from 54 seats to 0/90 and
+  // raw-model versus compiled applied depth from 2/19 to 32/60, for +1.5 KiB
+  // raw and +0.5 KiB gzip. Keep the increase local to the compiler chunk.
+  // Vite 8's automatic boundary is 811.8/224.4 after the public-provider
+  // landing fix. Course copy variants were extracted below so this core is
+  // 6.2 KiB smaller than the unsplit candidate; 812/225 is the measured floor,
+  // not an allowance to put prose back into the 1.4 MB source file.
+  { prefix: 'courseBlueprintCompiler-', rawKiB: 812, gzipKiB: 225 },
   // v0.16.49: Bayesian and music-interval assessment frames are workspace-only
   // data and independently cacheable. The same boundary now owns the music
   // interval admission, discussion, FAQ, quiz, and study-guide rules so the
   // core compiler does not own their full data. The final disciplinary pass
   // adds classification/inversion facilitation, criteria, response stems,
   // and verified frames; measured 39.5/12.7. It remains workspace-only.
-  { prefix: 'compilerFrames-', rawKiB: 41, gzipKiB: 14 },
+  // v0.16.62: 10.6 KiB of rotating course-copy data moved out of the core
+  // compiler into this already-required frame chunk. This improves parsing
+  // and cache locality without adding another generation-time request.
+  { prefix: 'compilerFrames-', rawKiB: 51, gzipKiB: 17 },
   { prefix: 'DeliverableView-', rawKiB: 170, gzipKiB: 35 },
   { prefix: 'DeveloperModePanel-', rawKiB: 130, gzipKiB: 35 },
   // v0.9.1: +3 KiB raw for the pre-export checklist (localization gaps +

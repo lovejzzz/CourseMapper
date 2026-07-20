@@ -1,0 +1,147 @@
+{
+  "schemaVersion": 1,
+  "release": "0.16.62",
+  "date": "2026-07-20",
+  "status": "exact-base-live-browser-and-export-verified",
+  "modelBoundary": {
+    "publicBase": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+    "providerDisplay": "Scion",
+    "modelDisplay": "Scion V0.16.62",
+    "adapterActive": false,
+    "adapterState": "base-only",
+    "backendGenerationSpendUsd": 0,
+    "gemmaWeightsChanged": false
+  },
+  "qualitySystem": {
+    "graderVersion": "1.10.23",
+    "textureVersion": "1.1.0",
+    "heldOutRuler": "evaluation/scion-adapters/held-out-course-benchmark-v13.json",
+    "semanticAdmission": {
+      "stableLossesDetected": 78,
+      "preferredArtifactsPreserved": 78,
+      "preferredRegressions": 0
+    },
+    "semanticCorpus": {
+      "newCases": 56,
+      "newQualifiedRows": 55,
+      "quarantinedRows": 1,
+      "cumulativeQualifiedRows": 102,
+      "productionTrainingRows": 100,
+      "domains": 7,
+      "courseGroups": 25,
+      "sourceKernels": 72
+    }
+  },
+  "researchAdapter": {
+    "status": "trained-research-candidate-not-promoted",
+    "taskFamily": "source-grounded-lesson-kernel",
+    "trainingIterations": 200,
+    "validationLoss": {
+      "start": 1.555,
+      "end": 1.089
+    },
+    "adapterBytes": 105459677,
+    "matchedFiveCourseDiagnostic": {
+      "basePublishableCourses": 2,
+      "adapterPublishableCourses": 2,
+      "baseNativeInferenceAttempts": 233,
+      "adapterNativeInferenceAttempts": 114,
+      "inferenceAttemptDeltaFraction": -0.5107,
+      "baseDurationMs": 2412709,
+      "adapterDurationMs": 2207006,
+      "durationDeltaFraction": -0.0853,
+      "adapterQualityWin": false,
+      "adapterEfficiencyWin": true,
+      "productionActivationAllowed": false,
+      "knownRegression": "Mandarin fell from 99/A to 89/B because one lesson lost the required visible Hanzi and tone-marked-Pinyin pairing."
+    }
+  },
+  "localVerification": {
+    "status": "passed",
+    "unit": {
+      "testFilesPassed": 422,
+      "testsPassed": 5106,
+      "testFilesSkipped": 16,
+      "testsSkipped": 162,
+      "failures": 0
+    },
+    "browserRegression": {
+      "testsPassed": 147,
+      "testsFailed": 0,
+      "browser": "Playwright Chromium",
+      "duration": "1.5 minutes"
+    },
+    "otherGates": {
+      "format": "passed",
+      "lint": "passed",
+      "productionBuild": "passed",
+      "bundleBudgets": "passed",
+      "releaseClaimsVerified": 10,
+      "semanticExpansionReceipt": "passed",
+      "semanticAdmissionReceipt": "passed",
+      "sourceCompilerReplayReceipt": "passed"
+    }
+  },
+  "performance": {
+    "candidateInitialLandingBeforeFix": {
+      "rawKiB": 2105,
+      "gzipKiB": 623.7
+    },
+    "finalInitialLanding": {
+      "rawKiB": 251.4,
+      "gzipKiB": 79.4,
+      "budgetRawKiB": 610,
+      "budgetGzipKiB": 190
+    },
+    "implementation": "A lightweight public Scion identity leaf keeps model constants on the landing path while the provider, compiler, grader, exporters, and workspace remain lazy. Compiler copy variants share the existing compiler-frame request instead of adding a new generation-time request."
+  },
+  "exactBaseBrowserRun": {
+    "status": "passed",
+    "course": "World Literature",
+    "lessons": 14,
+    "authoring": "native",
+    "voice": "off",
+    "round": "verification-output/crucible/round-2026-07-20T14-46-52-763Z",
+    "generationDurationMs": 182633,
+    "inAppElapsedMs": 165660,
+    "providerCalls": 12,
+    "pipelineCalls": 4,
+    "admittedLessonKernels": 14,
+    "compiledMaterialTypes": 9,
+    "savedProviderCalls": 25,
+    "quality": {
+      "score": 98,
+      "grade": "A",
+      "textureScore": 90,
+      "textureGrade": "A",
+      "p0": 0,
+      "p1": 0,
+      "p2": 0
+    },
+    "export": {
+      "status": "passed",
+      "zipEntries": 117,
+      "gradedFiles": 115,
+      "checks": 38,
+      "failedChecks": 0,
+      "warnings": 0,
+      "visibleObjectLeaks": 0,
+      "mirroredAssessmentTitleLeaks": 0
+    },
+    "workspaceScreenshot": "verification-output/crucible/round-2026-07-20T14-46-52-763Z/world-lit-readings--native--quiet--local/workspace-ready.png"
+  },
+  "browserPresentation": {
+    "inAppBrowser": "Codex in-app Chromium",
+    "landingChecks": [
+      "Scion V0.16.62, Connected, and On-device are visible without exposing the internal model identifier.",
+      "The changelog tooltip renders all ten release claims and states that Gemma weights are unchanged and the adapter remains inactive.",
+      "The final workspace shows one Living Course Compiler status spine, 14/14 lesson kernels, 9/9 compiled materials, Grade A, the connected Agent, and one package ZIP action."
+    ]
+  },
+  "remainingGap": {
+    "texture": "The 90/A texture score still records repeated study-guide and slide-deck tails across 13 of 14 lessons. These are advisory signals rather than encoded package defects, but they identify the next compiler-quality lane.",
+    "adapter": "The research adapter reduces inference burden but has not beaten the base model on held-out multi-domain quality, so it remains inactive.",
+    "validation": "The deterministic 98/A score is encoded defect-conformance evidence, not proof of factual accuracy, classroom outcomes, or paid-model parity."
+  },
+  "claimBoundary": "V0.16.62 proves that the untouched public Gemma 4 E2B base plus the Scion compiler can complete a real 14-lesson browser generation and export a 117-entry package at 98/A under grader 1.10.23, with zero encoded P0/P1/P2 findings and zero export warnings. It does not prove that the research adapter improves quality, that every course will score 98/A, that the package has been independently fact-checked or classroom-validated, or that Scion beats a paid frontier model."
+}

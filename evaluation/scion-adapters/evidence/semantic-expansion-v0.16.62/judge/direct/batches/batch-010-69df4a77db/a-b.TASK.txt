@@ -1,0 +1,1 @@
+Use only judge-prompt.md, a-b.packet.json, a-b.review.template.json, and review.schema.json in this directory. Score every anonymous case. Do not inspect the repository, capture reports, the other order, prior outcomes, or any organizer mapping. Set a fresh unique sessionId and the three attestations only if true. Return valid JSON only.

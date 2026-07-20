@@ -1,0 +1,480 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "const": 1
+    },
+    "protocol": {
+      "type": "string",
+      "const": "scion-lesson-kernel-teacher-revision-result-v1"
+    },
+    "packetSha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "sessionId": {
+      "type": "string",
+      "minLength": 8
+    },
+    "reviser": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "model": {
+          "type": "string",
+          "minLength": 1
+        },
+        "revision": {
+          "type": "string",
+          "minLength": 1
+        },
+        "runtime": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "model",
+        "revision",
+        "runtime"
+      ]
+    },
+    "completedAt": {
+      "type": "string",
+      "minLength": 10
+    },
+    "attestations": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "suppliedClaimsOnly": {
+          "type": "boolean",
+          "const": true
+        },
+        "noExternalFacts": {
+          "type": "boolean",
+          "const": true
+        },
+        "noTrainingAuthorization": {
+          "type": "boolean",
+          "const": true
+        }
+      },
+      "required": [
+        "suppliedClaimsOnly",
+        "noExternalFacts",
+        "noTrainingAuthorization"
+      ]
+    },
+    "revisions": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1,
+      "prefixItems": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "caseId": {
+              "type": "string",
+              "const": "scion-kernel-fb9da96bbe4e44f5ef726a96"
+            },
+            "originalArtifactSha256": {
+              "type": "string",
+              "const": "2f6ad6a3cd79af322a8a441193ffdc3b50a89b6773da38e959955bd5ea131b80"
+            },
+            "lessonKernel": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "lessonId": {
+                  "type": "string",
+                  "const": "lesson-5"
+                },
+                "facts": {
+                  "type": "array",
+                  "prefixItems": [
+                    {
+                      "type": "string",
+                      "const": "Functional harmony classifies chords by the role they play in a progression, especially tonic, dominant, and pre-dominant functions."
+                    },
+                    {
+                      "type": "string",
+                      "const": "The tonic is built on scale degree one, while pre-dominants are built on degrees two, three, four, and six."
+                    },
+                    {
+                      "type": "string",
+                      "const": "In minor, raising the third of the fifth-degree chord makes it major and strengthens its dominant function."
+                    }
+                  ],
+                  "items": {
+                    "type": "string"
+                  },
+                  "minItems": 3,
+                  "maxItems": 3
+                },
+                "keyTerms": {
+                  "type": "array",
+                  "minItems": 3,
+                  "maxItems": 3,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "tr": {
+                        "type": "string",
+                        "minLength": 3,
+                        "maxLength": 60
+                      },
+                      "df": {
+                        "type": "string",
+                        "minLength": 40,
+                        "maxLength": 380
+                      },
+                      "eg": {
+                        "type": "string",
+                        "minLength": 12,
+                        "maxLength": 300
+                      },
+                      "mi": {
+                        "type": "string",
+                        "minLength": 12,
+                        "maxLength": 300
+                      },
+                      "cx": {
+                        "type": "string",
+                        "minLength": 12,
+                        "maxLength": 300
+                      }
+                    },
+                    "required": [
+                      "tr",
+                      "df",
+                      "eg",
+                      "mi",
+                      "cx"
+                    ]
+                  }
+                },
+                "scenario": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "su": {
+                      "type": "string",
+                      "minLength": 45,
+                      "maxLength": 600
+                    },
+                    "ma": {
+                      "type": "string",
+                      "minLength": 10,
+                      "maxLength": 360
+                    }
+                  },
+                  "required": [
+                    "su",
+                    "ma"
+                  ]
+                },
+                "mc": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "q": {
+                        "type": "string",
+                        "minLength": 20,
+                        "maxLength": 300
+                      },
+                      "op": {
+                        "type": "array",
+                        "minItems": 4,
+                        "maxItems": 4,
+                        "items": {
+                          "type": "string",
+                          "minLength": 5,
+                          "maxLength": 180
+                        }
+                      },
+                      "ai": {
+                        "type": "integer",
+                        "enum": [
+                          0
+                        ]
+                      },
+                      "fi": {
+                        "type": "array",
+                        "minItems": 1,
+                        "maxItems": 2,
+                        "items": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 2
+                        }
+                      },
+                      "ex": {
+                        "type": "string",
+                        "minLength": 20,
+                        "maxLength": 400
+                      }
+                    },
+                    "required": [
+                      "q",
+                      "op",
+                      "ai",
+                      "fi",
+                      "ex"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "lessonId",
+                "facts",
+                "keyTerms",
+                "scenario",
+                "mc"
+              ]
+            },
+            "changeSummary": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "minLength": 12
+              }
+            },
+            "addressedDiagnoses": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "minLength": 12
+              }
+            }
+          },
+          "required": [
+            "caseId",
+            "originalArtifactSha256",
+            "lessonKernel",
+            "changeSummary",
+            "addressedDiagnoses"
+          ]
+        }
+      ],
+      "items": {
+        "anyOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "caseId": {
+                "type": "string",
+                "const": "scion-kernel-fb9da96bbe4e44f5ef726a96"
+              },
+              "originalArtifactSha256": {
+                "type": "string",
+                "const": "2f6ad6a3cd79af322a8a441193ffdc3b50a89b6773da38e959955bd5ea131b80"
+              },
+              "lessonKernel": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "lessonId": {
+                    "type": "string",
+                    "const": "lesson-5"
+                  },
+                  "facts": {
+                    "type": "array",
+                    "prefixItems": [
+                      {
+                        "type": "string",
+                        "const": "Functional harmony classifies chords by the role they play in a progression, especially tonic, dominant, and pre-dominant functions."
+                      },
+                      {
+                        "type": "string",
+                        "const": "The tonic is built on scale degree one, while pre-dominants are built on degrees two, three, four, and six."
+                      },
+                      {
+                        "type": "string",
+                        "const": "In minor, raising the third of the fifth-degree chord makes it major and strengthens its dominant function."
+                      }
+                    ],
+                    "items": {
+                      "type": "string"
+                    },
+                    "minItems": 3,
+                    "maxItems": 3
+                  },
+                  "keyTerms": {
+                    "type": "array",
+                    "minItems": 3,
+                    "maxItems": 3,
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "tr": {
+                          "type": "string",
+                          "minLength": 3,
+                          "maxLength": 60
+                        },
+                        "df": {
+                          "type": "string",
+                          "minLength": 40,
+                          "maxLength": 380
+                        },
+                        "eg": {
+                          "type": "string",
+                          "minLength": 12,
+                          "maxLength": 300
+                        },
+                        "mi": {
+                          "type": "string",
+                          "minLength": 12,
+                          "maxLength": 300
+                        },
+                        "cx": {
+                          "type": "string",
+                          "minLength": 12,
+                          "maxLength": 300
+                        }
+                      },
+                      "required": [
+                        "tr",
+                        "df",
+                        "eg",
+                        "mi",
+                        "cx"
+                      ]
+                    }
+                  },
+                  "scenario": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "su": {
+                        "type": "string",
+                        "minLength": 45,
+                        "maxLength": 600
+                      },
+                      "ma": {
+                        "type": "string",
+                        "minLength": 10,
+                        "maxLength": 360
+                      }
+                    },
+                    "required": [
+                      "su",
+                      "ma"
+                    ]
+                  },
+                  "mc": {
+                    "type": "array",
+                    "minItems": 2,
+                    "maxItems": 2,
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "q": {
+                          "type": "string",
+                          "minLength": 20,
+                          "maxLength": 300
+                        },
+                        "op": {
+                          "type": "array",
+                          "minItems": 4,
+                          "maxItems": 4,
+                          "items": {
+                            "type": "string",
+                            "minLength": 5,
+                            "maxLength": 180
+                          }
+                        },
+                        "ai": {
+                          "type": "integer",
+                          "enum": [
+                            0
+                          ]
+                        },
+                        "fi": {
+                          "type": "array",
+                          "minItems": 1,
+                          "maxItems": 2,
+                          "items": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 2
+                          }
+                        },
+                        "ex": {
+                          "type": "string",
+                          "minLength": 20,
+                          "maxLength": 400
+                        }
+                      },
+                      "required": [
+                        "q",
+                        "op",
+                        "ai",
+                        "fi",
+                        "ex"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "lessonId",
+                  "facts",
+                  "keyTerms",
+                  "scenario",
+                  "mc"
+                ]
+              },
+              "changeSummary": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string",
+                  "minLength": 12
+                }
+              },
+              "addressedDiagnoses": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string",
+                  "minLength": 12
+                }
+              }
+            },
+            "required": [
+              "caseId",
+              "originalArtifactSha256",
+              "lessonKernel",
+              "changeSummary",
+              "addressedDiagnoses"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "protocol",
+    "packetSha256",
+    "sessionId",
+    "reviser",
+    "completedAt",
+    "attestations",
+    "revisions"
+  ]
+}

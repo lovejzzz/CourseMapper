@@ -1,0 +1,503 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-review-v1",
+  "order": "B/A",
+  "packetSha256": "93f96cd54cd4a8da5e6b302a6d50dd6d633e9e116876b70319ea0af8a2b25d72",
+  "sessionId": "scion-v01662-batch-007-20ba2f5632-b-a-a1b5ac36-f995-4f1c-8781-a3124baf4da1",
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "completedAt": "2026-07-19",
+  "attestations": {
+    "anonymousArtifactsOnly": true,
+    "otherOrderUnavailable": true,
+    "organizerMappingUnavailable": true
+  },
+  "decisions": [
+    {
+      "caseId": "scion-kernel-9cf66f744feb86fe5b238dfb",
+      "pairId": "scion-kernel-pair-64589f39232035506f4600ff",
+      "artifactSha256": {
+        "A": "d20e8714013ae355d83f89a3cdddb8e4454ddac208159fe3d800ff461723a772",
+        "B": "095eb7c6553df30609d1ea37529396de0e0f93711baa28774750fc3e02747761"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "All facts and elaborations preserve the supplied charge, flux, field, and symmetry distinctions."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "The three terms are distinct, and each false zero-field or symmetry misconception receives a direct correction."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The scenario supplies zero-charge, zero-flux, and surface-field records for a constrained interpretive decision."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both keys uniquely select the supported distinctions: nonzero local field remains possible, and symmetry makes the surface useful."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "Both four-option sets are distinct, though several distractors are straightforward reversals or contradict the stem."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation states the governing distinction and directly rejects the closest zero-field or zero-charge misconception."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "Facts, terms, scenario evidence, keys, fact indices, and explanations consistently express the same distinctions."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "The copied facts are faithful, but spherical and point-charge examples and the perfectly spherical scenario add unsupported details."
+          },
+          "knowledgePrecision": {
+            "score": 1,
+            "evidence": "The alleged misconception that zero enclosed charge always gives zero net flux is actually affirmed by the supplied claim."
+          },
+          "scenarioReadiness": {
+            "score": 1,
+            "evidence": "The scenario mixes an enclosed point charge Q with a zero-charge region and requests a calculation unsupported by the qualitative claims."
+          },
+          "assessmentCorrectness": {
+            "score": 1,
+            "evidence": "The first key selects the false zero-field explanation, while the cited fact and explanation support the enclosed-charge option instead."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "The options express distinct causal explanations, but the first set is undermined by its incorrect declared key."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "The first explanation states the correct charge-flux relation but neither supports its keyed option nor repairs that option's zero-field error."
+          },
+          "internalCoherence": {
+            "score": 1,
+            "evidence": "A true statement is labeled a misconception, the scenario is under-supported, and the first answer conflicts with its explanation."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [],
+        "B": [
+          "The first assessment declares the zero-field option correct even though the supplied claim supports the enclosed-charge option.",
+          "The first assessment explanation supports a different option from the declared answer.",
+          "The spherical point-charge calculation scenario introduces unsupported details and lacks enough supplied information for the requested calculation."
+        ]
+      },
+      "decision": "A",
+      "rationale": "Artifact A remains source-bound and has two correct, coherent assessments. Artifact B contains an incorrect answer key, answer-feedback contradiction, a true statement labeled as a misconception, and an under-supported scenario."
+    },
+    {
+      "caseId": "scion-kernel-a0ec1501fb4ae28c55cd25b4",
+      "pairId": "scion-kernel-pair-f5ca71e258b5f9795e9d98a9",
+      "artifactSha256": {
+        "A": "d96b91e5a6ec3dd1501e3d97c150f86100cba5629ff46f6fb4eb8e8946b22606",
+        "B": "48f25a32ef8a45ebe898ae6439dedf4ab278eb1315d4d9fe25d642293273f4d4"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "Facts, term examples, scenario records, and answers stay within the three supplied homeostasis claims."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "Homeostasis, set point, and feedback loop are accurately distinguished, with direct corrections for role and relation reversals."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The student must classify two inspectable descriptions under a deadline and an explicit no-added-assumptions constraint."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both keys uniquely match the supplied set-point relation and the required three feedback-loop components."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "The first set uses useful role reversals; the second relies on nested partial component lists but retains one complete answer."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation identifies the relevant distinction and explains why the nearest reversal or omitted component fails."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "Terms, scenario records, questions, keys, citations, and explanations consistently match the source ledger."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "Body temperature, a patient, and a cooling response are concrete additions not contained in the supplied claims."
+          },
+          "knowledgePrecision": {
+            "score": 2,
+            "evidence": "The homeostasis correction overstates negative feedback as definitional, and the feedback-loop misconception and correction are vague."
+          },
+          "scenarioReadiness": {
+            "score": 2,
+            "evidence": "The scenario supplies sensor and control-center records but does not state a clear decision between them."
+          },
+          "assessmentCorrectness": {
+            "score": 2,
+            "evidence": "The first key is correct, but the second stem reverses what fluctuates and offers a definition rather than the requested term."
+          },
+          "choiceDiscriminability": {
+            "score": 2,
+            "evidence": "The second item mixes definitions with other concepts and includes a near-tautological set-point option."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "Both explanations end with unfulfilled template language instructing the author to correct a distractor instead of doing so."
+          },
+          "internalCoherence": {
+            "score": 2,
+            "evidence": "The second stem reverses the set-point relation, while the scenario and feedback do not align cleanly with the completed instruction."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [],
+        "B": [
+          "The patient, body-temperature, and cooling-response example introduces unsupported scenario details.",
+          "Both assessment explanations contain truncated instructional-template text instead of completed distractor feedback."
+        ]
+      },
+      "decision": "A",
+      "rationale": "Artifact A provides precise source-bound distinctions, an actionable classification scenario, and complete instructional feedback. Artifact B adds unsupported physiology details and leaves both explanations in an unfinished template state."
+    },
+    {
+      "caseId": "scion-kernel-a2c0b5c5451d366d5635d6ba",
+      "pairId": "scion-kernel-pair-1322822493e45ddcab9d3169",
+      "artifactSha256": {
+        "A": "7100cec618e244a83bd101a8a03f3fa66e621abc1e7f9b7ca03554ca34c91fb7",
+        "B": "e646f8afdffd3f5cb2dd59eb1afa333c8550ed26cc2a239ef1dbf95d2698b6aa"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "Every fact, term, scenario record, and assessed action is directly supported by the five research-planning claims."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "Research plan, prototype, and practice session are accurately separated by objectives, venue readiness, and rehearsal timing."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The team must decide rehearsal readiness using explicit objective, prototype, venue, run-through, and practice-session records."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both keys uniquely apply the required sequencing: agree learning first and practice before participants arrive."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "The first alternatives are strong sequencing contrasts, while three second-item distractors repeat essentially the same late-practice error."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation connects the timing or planning rule to the decision and repairs the closest reversed sequence."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "The scenario, evidence list, questions, answers, cited facts, and explanations agree throughout."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "The checkout process, shared-office venue, and limited setup-time details are not supplied by the source claims."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "The core definitions are accurate, though actionable objectives and rehearsal readiness are described more narrowly than the source."
+          },
+          "scenarioReadiness": {
+            "score": 3,
+            "evidence": "The scenario presents learning and prototype evidence with a venue constraint, but the precise decision is only implied."
+          },
+          "assessmentCorrectness": {
+            "score": 1,
+            "evidence": "The second item has several source-supported readiness actions, yet keys only the task run-through and rejects prototype accessibility."
+          },
+          "choiceDiscriminability": {
+            "score": 2,
+            "evidence": "The second question makes the run-through, accessible prototype, and team-member practice all plausible ways to ensure readiness."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "The second explanation incorrectly dismisses an end-to-end accessible prototype even though the supplied claims require it for research."
+          },
+          "internalCoherence": {
+            "score": 2,
+            "evidence": "The second answer and explanation conflict with the artifact's own prototype-readiness fact and scenario evidence."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [],
+        "B": [
+          "The second assessment is not uniquely answerable because multiple listed actions are supported requirements for session readiness.",
+          "The second explanation incorrectly rejects ensuring that the prototype works end-to-end and is accessible.",
+          "The checkout and shared-office scenario introduces unsupported concrete details."
+        ]
+      },
+      "decision": "A",
+      "rationale": "Artifact A converts the source into a complete readiness decision with uniquely correct assessments. Artifact B's second assessment is ambiguous and its explanation rejects a requirement stated in its own fact ledger."
+    },
+    {
+      "caseId": "scion-kernel-a59f5ba5983f07cae64e4baa",
+      "pairId": "scion-kernel-pair-1253b20523f3166b7e945a71",
+      "artifactSha256": {
+        "A": "8f4eee2d87563cc98c08489f0a9061672870c70690ecfa5c0cce35f707c562bd",
+        "B": "8aed6defc118a9b5a160f2d22f4cf6226e2542856379d528d89a800c97427e41"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "The facts, examples, role distinctions, scenario observations, and answers remain within the three nervous-tissue claims."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "The neuron misconception is awkwardly phrased, but all three terms retain accurate signaling, propagation, and support distinctions."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The student must assign two labels using explicit signal and support records under a deadline."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both declared answers uniquely match tissue composition, neuronal propagation, and nervous-tissue signaling."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "The alternatives use distinct role assignments, though several are clipped or simple swaps of supplied phrases."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Both explanations state the supported role and contrast it directly with neuroglial support or neuronal propagation."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "Facts, terms, scenario labels, keys, citations, and explanations consistently assign the three roles."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "The impaired-sensory patient scenario and claims about primary or passive cell roles add details absent from the source."
+          },
+          "knowledgePrecision": {
+            "score": 1,
+            "evidence": "The neuron correction transfers tissue-level sending and receiving to neurons, and the neuroglia correction is circular."
+          },
+          "scenarioReadiness": {
+            "score": 2,
+            "evidence": "The scenario gives two observed cell clusters and a role decision but lacks a genuine constraint or tension."
+          },
+          "assessmentCorrectness": {
+            "score": 0,
+            "evidence": "The first item has several true options, and the second explanation identifies neuroglia while the declared answer identifies neurons."
+          },
+          "choiceDiscriminability": {
+            "score": 1,
+            "evidence": "Both sets reuse multiple true source statements, so more than one option plausibly answers each broad prompt."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "The first explanation does not disambiguate its multiple true choices, and the second supports a different option from the key."
+          },
+          "internalCoherence": {
+            "score": 1,
+            "evidence": "Role attribution shifts between tissue and neurons, and the second answer directly conflicts with its neuroglia explanation."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [],
+        "B": [
+          "The first assessment has multiple source-supported alternatives and therefore lacks a uniquely correct answer.",
+          "The second assessment declares a neuron answer while its explanation explicitly identifies neuroglia.",
+          "The patient and impaired-sensory scenario introduces unsupported concrete details.",
+          "The neuron correction unsupportedly reassigns the source's nervous-tissue signaling claim to neurons."
+        ]
+      },
+      "decision": "A",
+      "rationale": "Artifact A preserves the supplied tissue, neuron, and neuroglia roles in a usable labeling task. Artifact B has ambiguous choices, unsupported role transfers, and a direct answer-explanation contradiction."
+    },
+    {
+      "caseId": "scion-kernel-a62335bce70872832c407eb3",
+      "pairId": "scion-kernel-pair-cfb1819715aff8d7b95ba8b0",
+      "artifactSha256": {
+        "A": "ce51ce3ee750ea4d57a36590cdf28c9cbc77d7d7649024cbe5d853ebdd0d45ef",
+        "B": "047f514ff74e5f87f3b44bdada7c4179b466e3f9bc200ab5d1dee0862ab3de4a"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "All content remains within the supplied model, explained-feature, and lithosphere-composition claims."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "Plate tectonics, lithosphere, and continental drift are precisely distinguished by model, composition, and explained-feature roles."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "An editor must correct conflated labels using inspectable composition, plate-division, folded-rock, and mountain records under a deadline."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both keys uniquely identify lithosphere composition and its division into moving tectonic plates."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "Both option sets use parallel, meaningful composition-versus-explanation or division-direction contrasts."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation states the correct relationship and directly repairs the nearest reversed relationship."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "Facts, definitions, scenario evidence, questions, keys, cited facts, and explanations agree completely."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 1,
+            "evidence": "The artifact invents a crust-only model, links listed features to continental drift, and introduces trenches and volcanic arcs."
+          },
+          "knowledgePrecision": {
+            "score": 1,
+            "evidence": "The moving-plates correction reverses the supplied lithosphere relation, and its misconception cannot be corrected from the source."
+          },
+          "scenarioReadiness": {
+            "score": 2,
+            "evidence": "The scenario offers feature observations and an explanation constraint, but rests on an unsupported association with continental drift."
+          },
+          "assessmentCorrectness": {
+            "score": 0,
+            "evidence": "The first item has two supported scope statements, while the second key and explanation make unsupported claims about trenches and arcs."
+          },
+          "choiceDiscriminability": {
+            "score": 1,
+            "evidence": "The first set contains multiple correct plate-tectonics statements, and the second is built around unsupported feature choices."
+          },
+          "feedbackInstructionality": {
+            "score": 0,
+            "evidence": "The second explanation falsely asserts that the supplied feature list includes a deep-sea trench and volcanic arc."
+          },
+          "internalCoherence": {
+            "score": 0,
+            "evidence": "The key-term correction reverses composition, the first item is nonunique, and the second key conflicts with its own explanation."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [],
+        "B": [
+          "The moving-lithospheric-plates correction incorrectly says the plates are divided into crust and rigid outermost mantle.",
+          "The first assessment is nonunique because both continental drift and folded rocks with mountain ranges are source-supported plate-tectonics scope statements.",
+          "The second assessment declares continental drift as the cause despite no supplied causal claim.",
+          "The deep-sea trench and volcanic arc are invented examples, and the explanation falsely claims they occur in the supplied feature list.",
+          "The crust-only simpler model and association of folded rocks and mountains with continental drift are unsupported claims."
+        ]
+      },
+      "decision": "A",
+      "rationale": "Artifact A cleanly separates lithosphere composition from what the plate-tectonics model explains. Artifact B introduces several unsupported geological claims, has a nonunique first item, and gives a false second answer and explanation."
+    },
+    {
+      "caseId": "scion-kernel-a97c812f0a6e2be5fe5a73f5",
+      "pairId": "scion-kernel-pair-2002f85af6d888bcd9f4f6d5",
+      "artifactSha256": {
+        "A": "79d3c446b0b33351c1b53383448a78c9b16f551c1c5d1ba936543701f49cf135",
+        "B": "af1be0d8291780796fb0278e35f1bb6c11f1089ce043d8be83dc1dc0e761d778"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "All facts, examples, scenario records, and assessed characteristics are direct applications of the five supplied prototype claims."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "Interactive, functional, and major-interaction concepts are distinct, accurate, and paired with directly repairing corrections."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The team must label two designs using recorded functionality and user-observation evidence under a deadline."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both keys uniquely select user-interaction observation and the combined fast-iteration plus inexpensive-discard requirement."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "The choices are distinct and parallel, though the second set uses two partial versions of the complete correct answer."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation cites the complete governing claim and explains why the closest partial or contrary choice fails."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "Facts, terms, scenario evidence, questions, answers, citations, and explanations align throughout."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "The new mobile app, high-fidelity coding, wireframe, clickable flow, navigation, and layout examples are unsupported additions."
+          },
+          "knowledgePrecision": {
+            "score": 2,
+            "evidence": "Usability testing is defined by a sentence about two methods, and fast iteration is incorrectly said to imply inexpensive discard."
+          },
+          "scenarioReadiness": {
+            "score": 1,
+            "evidence": "The scenario asks which representation supports fast iteration without evidence connecting either the wireframe or clickable flow to that property."
+          },
+          "assessmentCorrectness": {
+            "score": 1,
+            "evidence": "The first key selects usability testing even though the prompt and explanation specifically support the cognitive-walkthrough option."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "Both four-option sets are meaningfully distinct, and the first would be unique if the correct cognitive-walkthrough option were keyed."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "The first explanation identifies cognitive walkthrough as correct while the key selects usability testing; the second merely restates the claim."
+          },
+          "internalCoherence": {
+            "score": 1,
+            "evidence": "The first key contradicts its explanation, the fast-iteration correction overclaims implication, and scenario evidence cannot support its decision."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [],
+        "B": [
+          "The first assessment declares the usability-testing option even though the question and explanation support cognitive walkthrough.",
+          "The first assessment explanation contradicts the declared answer.",
+          "The mobile-app, high-fidelity-coding, wireframe, and clickable-prototype scenario introduces unsupported concrete details.",
+          "The scenario provides no usable evidence for deciding which of its two representations best supports fast iteration."
+        ]
+      },
+      "decision": "A",
+      "rationale": "Artifact A accurately covers the supplied prototype distinctions with usable evidence and correct assessments. Artifact B has an unsupported scenario with no defensible comparison and a direct answer-explanation contradiction in its first assessment."
+    }
+  ]
+}

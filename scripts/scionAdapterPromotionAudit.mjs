@@ -262,8 +262,8 @@ export function assessScionAdapterPromotion({
     const uniqueEvidencePass = candidateCourses.length === 1 && baseCourses.length === 1;
     const candidateCourse = candidateCourses[0];
     const baseCourse = baseCourses[0];
-    const candidateCalls = Number(candidateCourse?.scionPassCalls);
-    const baseCalls = Number(baseCourse?.scionPassCalls);
+    const candidateCalls = Number(candidateCourse?.nativeInferenceAttempts);
+    const baseCalls = Number(baseCourse?.nativeInferenceAttempts);
     const candidateGrade = Number(candidateCourse?.packageGrade);
     const baseGrade = Number(baseCourse?.packageGrade);
     const candidateP2 = Number(candidateCourse?.p2);
@@ -324,6 +324,8 @@ export function assessScionAdapterPromotion({
       callCeilingPass,
       candidateCalls,
       baseCalls,
+      candidateScionPassCalls: Number(candidateCourse?.scionPassCalls),
+      baseScionPassCalls: Number(baseCourse?.scionPassCalls),
       callRatio: baseCalls > 0 ? Number((candidateCalls / baseCalls).toFixed(3)) : null,
     };
   });

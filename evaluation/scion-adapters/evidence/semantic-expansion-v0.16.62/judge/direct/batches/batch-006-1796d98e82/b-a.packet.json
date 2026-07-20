@@ -1,0 +1,1659 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-packet-v1",
+  "order": "B/A",
+  "generatedAt": "2026-07-19T21:41:00.000Z",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "prompt": {
+    "path": "evaluation/scion-adapters/lesson-kernel-judge-prompt-v0.16.54.md",
+    "sha256": "37844b86736335db54b561d8c031660ef71679c55ae1108e2e999e746f2a1c96"
+  },
+  "dimensions": [
+    "sourceFidelity",
+    "knowledgePrecision",
+    "scenarioReadiness",
+    "assessmentCorrectness",
+    "choiceDiscriminability",
+    "feedbackInstructionality",
+    "internalCoherence"
+  ],
+  "cases": [
+    {
+      "caseId": "scion-kernel-8ef23dcb95e41dcdbb4e1f9b",
+      "pairId": "scion-kernel-pair-8c2d0904f8034a490d46e6d6",
+      "domain": "computer-science",
+      "failureFamilies": [
+        "answer-key-correctness",
+        "choice-discriminability",
+        "feedback-instructionality"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-3",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Conditionals and boolean logic",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: A conditional statement chooses which block of code to run based on whether a condition is true; if-else takes exactly one branch, and boolean operators (and, or, not) build compound conditions. Claim 1: An if statement runs its body only when the condition is true, and skips it when the condition is false. Claim 2: An else clause holds statements that run when the if condition is false. Claim 3: and returns True only if both conditions are true; or returns True if either is true; not inverts a single condition.",
+        "readings": "OpenStax Introduction to Python Programming, §4.2 If-else statements; §4.3 Boolean operations"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "5e7862a012e6583051c6d8a7f6dc305cc23e0ba165daf802984ba9ee852ede90",
+        "kernelId": "cs/conditionals",
+        "term": "Conditionals and boolean logic",
+        "claims": [
+          "A conditional statement chooses which block of code to run based on whether a condition is true; if-else takes exactly one branch, and boolean operators (and, or, not) build compound conditions.",
+          "An if statement runs its body only when the condition is true, and skips it when the condition is false.",
+          "An else clause holds statements that run when the if condition is false.",
+          "and returns True only if both conditions are true; or returns True if either is true; not inverts a single condition."
+        ],
+        "anchors": [
+          {
+            "src": "openstax:introduction-python-programming#4.2",
+            "loc": "4.2",
+            "quote": "When an if-else statement is executed, one and only one of the branches is taken"
+          },
+          {
+            "src": "openstax:introduction-python-programming#4.2",
+            "loc": "4.2",
+            "quote": "If the condition is true, the body is executed. If the condition is false, the body is not executed"
+          },
+          {
+            "src": "openstax:introduction-python-programming#4.2",
+            "loc": "4.2",
+            "quote": "An else statement is used with an if statement and contains a body of statements that is executed when the if statement's condition is false"
+          },
+          {
+            "src": "openstax:introduction-python-programming#4.3",
+            "loc": "4.3",
+            "quote": "The and operator takes two condition operands and returns True if both conditions are true"
+          }
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §4.2 If-else statements; §4.3 Boolean operations"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "15f532454445509df1c7deee0964bc783aa816fa1b9b47e4c1f62455419a7f94",
+          "lessonKernel": {
+            "lessonId": "lesson-3",
+            "facts": [
+              "A conditional statement chooses which block of code to run based on whether a condition is true; if-else takes exactly one branch, and boolean operators (and, or, not) build compound conditions.",
+              "An if statement runs its body only when the condition is true, and skips it when the condition is false.",
+              "An else clause holds statements that run when the if condition is false.",
+              "and returns True only if both conditions are true; or returns True if either is true; not inverts a single condition."
+            ],
+            "keyTerms": [
+              {
+                "tr": "conditional statement",
+                "df": "A conditional statement selects a block according to whether its condition is true.",
+                "eg": "When a condition is true, the conditional statement chooses which block runs.",
+                "mi": "A conditional statement requires boolean operators to choose a block.",
+                "cx": "Block selection can be based on whether a condition is true; a compound condition is not required."
+              },
+              {
+                "tr": "if statement",
+                "df": "An if statement is a conditional form whose body runs when its condition is true.",
+                "eg": "When the if condition is false, the if statement skips its body.",
+                "mi": "An if statement runs its body when its condition is false.",
+                "cx": "A false condition leads the body to be skipped, not run."
+              },
+              {
+                "tr": "else clause",
+                "df": "An else clause contains statements associated with a false if condition.",
+                "eg": "If the condition is false, the statements in the else clause run.",
+                "mi": "An else clause holds statements for a true if condition.",
+                "cx": "Its statements correspond to the condition being false rather than true."
+              }
+            ],
+            "scenario": {
+              "su": "A student must label which block runs in an if-else before a deadline, with the recorded if condition marked false. The student must also distinguish a compound condition recorded as true or false, using the noted and, or, and not operators.",
+              "ma": "if condition notation marked false, if-body observation marked skipped, else-clause observation marked run, and-or-not condition table marked true or false"
+            },
+            "mc": [
+              {
+                "q": "An if statement condition is observed as false beside an else clause containing statements. Which comparison correctly distinguishes what happens to the if statement and else clause?",
+                "op": [
+                  "The if body skips; else statements run",
+                  "The if body runs; else statements skip",
+                  "Both if and else statements run",
+                  "Both if and else statements skip"
+                ],
+                "ai": 0,
+                "fi": [
+                  1,
+                  2
+                ],
+                "ex": "A false condition makes the if statement skip its body and makes the else clause statements run. The if body does not run while the else statements skip."
+              },
+              {
+                "q": "A compound condition records one condition as true and the other as false; students must classify both results before a deadline. Which notation correctly compares and with or?",
+                "op": [
+                  "and is False; or is True",
+                  "and is True; or is False",
+                  "and and or are both True",
+                  "and and or are both False"
+                ],
+                "ai": 0,
+                "fi": [
+                  3
+                ],
+                "ex": "and returns True only when both conditions are true, while or returns True when either condition is true. They therefore do not both return True for these recorded conditions."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "5f54229af2f8b99b5e14c50b6f7e80bd0b126b1caf5b3803b27e88c6b0391204",
+          "lessonKernel": {
+            "lessonId": "lesson-3",
+            "facts": [
+              "A conditional statement chooses which block of code to run based on whether a condition is true; if-else takes exactly one branch, and boolean operators (and, or, not) build compound conditions.",
+              "An if statement runs its body only when the condition is true, and skips it when the condition is false.",
+              "An else clause holds statements that run when the if condition is false.",
+              "and returns True only if both conditions are true; or returns True if either is true; not inverts a single condition."
+            ],
+            "keyTerms": [
+              {
+                "tr": "conditional statement",
+                "df": "A conditional statement selects which code block executes based on a condition's truth value.",
+                "eg": "An if statement runs its body only when the condition is true.",
+                "mi": "A conditional statement executes multiple code blocks depending on the condition's truth value.",
+                "cx": "A conditional statement takes exactly one branch, meaning it chooses only one path based on the condition's truth value."
+              },
+              {
+                "tr": "if statement",
+                "df": "An if statement executes its body only when the specified condition evaluates to true.",
+                "eg": "An if statement runs its body only when the condition is true.",
+                "mi": "An if statement executes its body when the condition is false and skips it when true.",
+                "cx": "An if statement skips its body when the condition is false, executing it only when the condition is true."
+              },
+              {
+                "tr": "boolean operators",
+                "df": "Boolean operators are used to construct compound conditions using and, or, and not.",
+                "eg": "Boolean operators (and, or, not) build compound conditions.",
+                "mi": "Boolean operators only invert a single condition to determine the final outcome.",
+                "cx": "Boolean operators not inverts a single condition; they build compound conditions using and, or, not."
+              }
+            ],
+            "scenario": {
+              "su": "A program checks if a user's age is over eighteen to grant access to a restricted area. The program must handle the case where the age is below the threshold by displaying an error message instead.",
+              "ma": "Compare the logic for checking age 17 and age 20 against the requirement that an if statement runs its body only when the condition is true."
+            },
+            "mc": [
+              {
+                "q": "Distinguish between the behavior of an if statement and an else clause regarding code execution flow.",
+                "op": [
+                  "The if statement runs its body when the condition is false.",
+                  "The else clause runs its body when the condition is true.",
+                  "The if statement skips its body when the condition is false.",
+                  "The else clause runs its body when the condition is false."
+                ],
+                "ai": 0,
+                "fi": [
+                  1,
+                  2
+                ],
+                "ex": "An if statement skips its body when the condition is false, while the else clause holds statements that run when the if condition is false."
+              },
+              {
+                "q": "Determine the result of a compound condition using boolean operators when checking if a user is an administrator or a moderator.",
+                "op": [
+                  "The condition returns True if both parts are false.",
+                  "The condition returns True if either part is true.",
+                  "The condition returns True only if both parts are true.",
+                  "The condition returns True if the 'not' operator is used."
+                ],
+                "ai": 0,
+                "fi": [
+                  3
+                ],
+                "ex": "The condition returns True if either part is true, which is the behavior of the or operator."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-8ef23dcb95e41dcdbb4e1f9b",
+        "pairId": "scion-kernel-pair-8c2d0904f8034a490d46e6d6",
+        "artifactSha256": {
+          "A": "15f532454445509df1c7deee0964bc783aa816fa1b9b47e4c1f62455419a7f94",
+          "B": "5f54229af2f8b99b5e14c50b6f7e80bd0b126b1caf5b3803b27e88c6b0391204"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    },
+    {
+      "caseId": "scion-kernel-8f8fe3056acd54a1003b7a52",
+      "pairId": "scion-kernel-pair-4c40ccc9ee995a44fec05c7b",
+      "domain": "anatomy",
+      "failureFamilies": [
+        "feedback-instructionality",
+        "misconception-validity",
+        "source-fidelity"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-4",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Integumentary system and skin layers",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: The integumentary system includes the skin and accessory structures; skin has epidermal and dermal layers that support protection and communication. Claim 1: The skin has two main layers: the epidermis and dermis. Claim 2: The epidermis is made of keratinized stratified squamous epithelium.",
+        "readings": "OpenStax Anatomy and Physiology 2e"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "c7c91fd6e67090a9c77348bed5c1ef57a5d982ad0def5beb8851dcf171faef66",
+        "kernelId": "anatomy/integumentary-skin-layers",
+        "term": "Integumentary system and skin layers",
+        "claims": [
+          "The integumentary system includes the skin and accessory structures; skin has epidermal and dermal layers that support protection and communication.",
+          "The skin has two main layers: the epidermis and dermis.",
+          "The epidermis is made of keratinized stratified squamous epithelium."
+        ],
+        "anchors": [
+          {
+            "src": "openstax:anatomy-and-physiology-2e#5-1",
+            "loc": "5.1",
+            "quote": "The skin and its accessory structures make up the integumentary system"
+          },
+          {
+            "src": "openstax:anatomy-and-physiology-2e#5-1",
+            "loc": "5.1",
+            "quote": "The skin is composed of two main layers: the epidermis"
+          },
+          {
+            "src": "openstax:anatomy-and-physiology-2e#5-1",
+            "loc": "5.1",
+            "quote": "The epidermis is composed of keratinized, stratified squamous epithelium"
+          }
+        ],
+        "attribution": [
+          "OpenStax Anatomy and Physiology 2e"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "67413776e44ab21bc4f45d54a5b6b43d28ecd5bc6f3f6c5cdd2782383a143d93",
+          "lessonKernel": {
+            "lessonId": "lesson-4",
+            "facts": [
+              "The integumentary system includes the skin and accessory structures; skin has epidermal and dermal layers that support protection and communication.",
+              "The skin has two main layers: the epidermis and dermis.",
+              "The epidermis is made of keratinized stratified squamous epithelium."
+            ],
+            "keyTerms": [
+              {
+                "tr": "skin",
+                "df": "Skin belongs to the integumentary system and has epidermal and dermal layers.",
+                "eg": "A system notation lists skin alongside accessory structures.",
+                "mi": "Skin is made of keratinized stratified squamous epithelium.",
+                "cx": "That tissue description applies to the epidermis; skin has epidermal and dermal layers."
+              },
+              {
+                "tr": "epidermis",
+                "df": "The epidermis is a main skin layer made of keratinized stratified squamous epithelium.",
+                "eg": "A layer notation pairs the epidermis with the dermis.",
+                "mi": "The epidermis includes the skin and accessory structures.",
+                "cx": "Those structures belong within the integumentary system; the epidermis is a skin layer."
+              },
+              {
+                "tr": "dermis",
+                "df": "The dermis is one of the skin's two main layers, paired with the epidermis.",
+                "eg": "A skin record names epidermal and dermal layers supporting protection and communication.",
+                "mi": "The dermis is made of keratinized stratified squamous epithelium.",
+                "cx": "Keratinized stratified squamous epithelium describes the epidermis; the dermis is a main skin layer."
+              }
+            ],
+            "scenario": {
+              "su": "A student editor must assign subject labels to three anatomy notations before a deadline. One notation lists skin and accessory structures, another lists epidermal and dermal layers, and a third names keratinized stratified squamous epithelium, so each label must match the stated subject.",
+              "ma": "system passage listing skin and accessory structures, layer notation naming the epidermis and dermis, tissue observation naming keratinized stratified squamous epithelium"
+            },
+            "mc": [
+              {
+                "q": "A comparison records that the integumentary system includes skin and accessory structures, while skin has epidermal and dermal layers. Which proposition preserves the distinction between integumentary system and skin?",
+                "op": [
+                  "Accessory structures have epidermal and dermal layers.",
+                  "Epidermis includes skin and accessory structures.",
+                  "Dermis includes skin and accessory structures.",
+                  "Skin has epidermal and dermal layers."
+                ],
+                "ai": 3,
+                "fi": [
+                  0
+                ],
+                "ex": "The skin is stated to have epidermal and dermal layers within the integumentary system. Accessory structures are included in the system, but the layer relation is stated for skin."
+              },
+              {
+                "q": "An anatomy notation identifies keratinized stratified squamous epithelium, and the editor must attach the correct subject label before the deadline. Which label-and-description proposition matches the recorded tissue observation?",
+                "op": [
+                  "Integumentary system is keratinized stratified squamous epithelium.",
+                  "Dermis is keratinized stratified squamous epithelium.",
+                  "Skin is keratinized stratified squamous epithelium.",
+                  "Epidermis is keratinized stratified squamous epithelium."
+                ],
+                "ai": 3,
+                "fi": [
+                  2
+                ],
+                "ex": "The epidermis is stated to be made of keratinized stratified squamous epithelium. The dermis is a main skin layer, but the tissue description is assigned to the epidermis."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "b8f88101c7e45991d5f306708a5e635c4e4ccd4d5a501487597f874a308812d9",
+          "lessonKernel": {
+            "lessonId": "lesson-4",
+            "facts": [
+              "The integumentary system includes the skin and accessory structures; skin has epidermal and dermal layers that support protection and communication.",
+              "The skin has two main layers: the epidermis and dermis.",
+              "The epidermis is made of keratinized stratified squamous epithelium."
+            ],
+            "keyTerms": [
+              {
+                "tr": "integumentary system",
+                "df": "The integumentary system encompasses the skin and its accessory structures which function to provide protection and communication.",
+                "eg": "The skin and its accessory structures provide protection and communication.",
+                "mi": "The integumentary system is only the skin and does not include accessory structures.",
+                "cx": "The integumentary system includes the skin and accessory structures which function to provide protection and communication."
+              },
+              {
+                "tr": "epidermis",
+                "df": "The epidermis is a layer of the skin composed of keratinized stratified squamous epithelium that provides primary protection.",
+                "eg": "The epidermis is made of keratinized stratified squamous epithelium.",
+                "mi": "The epidermis is a simple layer of skin that lacks keratinization.",
+                "cx": "The epidermis is made of keratinized stratified squamous epithelium, which is a specific structural composition."
+              },
+              {
+                "tr": "dermis",
+                "df": "The dermis is one of the two main layers of the skin that supports the epidermis and facilitates communication.",
+                "eg": "The skin has two main layers: the epidermis and dermis.",
+                "mi": "The dermis is the outermost layer of the skin that is primarily responsible for keratinization.",
+                "cx": "The dermis is one of the two main layers of the skin that supports the epidermis and facilitates communication."
+              }
+            ],
+            "scenario": {
+              "su": "A patient presents with a deep abrasion on their forearm, and a nurse observes the skin surface exhibiting a thick, tough outer layer. The nurse must determine which layer is responsible for this specific protective feature.",
+              "ma": "The nurse compares the observation of the thick, tough outer layer to the description of the epidermis, and notes the presence of the dermal layer beneath it."
+            },
+            "mc": [
+              {
+                "q": "When examining a deep abrasion, which layer is primarily responsible for the thick, tough outer layer of the skin structure?",
+                "op": [
+                  "The dermis provides the thick, tough outer layer.",
+                  "The epidermis provides the thick, tough outer layer.",
+                  "The epidermis supports communication and protection.",
+                  "The dermis is made of keratinized stratified epithelium."
+                ],
+                "ai": 0,
+                "fi": [
+                  2
+                ],
+                "ex": "The epidermis is made of keratinized stratified squamous epithelium, which is the subject evidence supporting the answer, then correct the closest distractor."
+              },
+              {
+                "q": "A student is studying the skin layers and observes that the skin has two main layers, one of which is the epidermis, while another layer supports communication.",
+                "op": [
+                  "The dermis is made of keratinized stratified squamous epithelium.",
+                  "The epidermis supports communication and protection.",
+                  "The dermis is the outermost layer of the skin.",
+                  "The epidermis is the layer that supports communication."
+                ],
+                "ai": 0,
+                "fi": [
+                  0,
+                  1
+                ],
+                "ex": "The skin has two main layers: the epidermis and dermis, which is the subject evidence supporting the answer, then correct the closest distractor."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-8f8fe3056acd54a1003b7a52",
+        "pairId": "scion-kernel-pair-4c40ccc9ee995a44fec05c7b",
+        "artifactSha256": {
+          "A": "67413776e44ab21bc4f45d54a5b6b43d28ecd5bc6f3f6c5cdd2782383a143d93",
+          "B": "b8f88101c7e45991d5f306708a5e635c4e4ccd4d5a501487597f874a308812d9"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    },
+    {
+      "caseId": "scion-kernel-8fed8eae15665ac533576b47",
+      "pairId": "scion-kernel-pair-b4edab820259f72690bbe9a9",
+      "domain": "computer-science",
+      "failureFamilies": [
+        "source-coverage"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-4",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "File input and output",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: File I/O lets a program read information from and write information into files; a file is accessed by opening it, working with its contents, and closing it. Claim 1: open() returns a file object that the program then reads from or writes to. Claim 2: read() reads the entire contents of a file and returns a single string. Claim 3: readline() returns the next single line, while readlines() returns a list with every line of the file.",
+        "readings": "OpenStax Introduction to Python Programming, §14.1 Reading from files"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "fcaa13f176a76ca483f7b246776528f38bcd89d679b51979a6c13763df234b00",
+        "kernelId": "cs/file-io",
+        "term": "File input and output",
+        "claims": [
+          "File I/O lets a program read information from and write information into files; a file is accessed by opening it, working with its contents, and closing it.",
+          "open() returns a file object that the program then reads from or writes to.",
+          "read() reads the entire contents of a file and returns a single string.",
+          "readline() returns the next single line, while readlines() returns a list with every line of the file."
+        ],
+        "anchors": [
+          {
+            "src": "openstax:introduction-python-programming#14.1",
+            "loc": "14.1",
+            "quote": "Python supports the opening of a file using the open() function"
+          },
+          {
+            "src": "openstax:introduction-python-programming#14.1",
+            "loc": "14.1",
+            "quote": "Python supports the opening of a file using the open() function"
+          },
+          {
+            "src": "openstax:introduction-python-programming#14.1",
+            "loc": "14.1",
+            "quote": "The read() function reads the contents of a file and returns a string"
+          },
+          {
+            "src": "openstax:introduction-python-programming#14.1",
+            "loc": "14.1",
+            "quote": "The readlines() function reads the individual lines of a file and returns a string list containing all the lines of the file in order"
+          }
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §14.1 Reading from files"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "8344e85fe60c4eb7a2177a7f27ac257f2cb176cf4999bee3f95c4dc6090d6efb",
+          "lessonKernel": {
+            "lessonId": "lesson-4",
+            "facts": [
+              "File I/O lets a program read information from and write information into files; a file is accessed by opening it, working with its contents, and closing it.",
+              "open() returns a file object that the program then reads from or writes to.",
+              "read() reads the entire contents of a file and returns a single string.",
+              "readline() returns the next single line, while readlines() returns a list with every line of the file."
+            ],
+            "keyTerms": [
+              {
+                "tr": "file object",
+                "df": "A file object is what open() returns for a program to read from or write to.",
+                "eg": "The program receives a file object from open().",
+                "mi": "A file object is the single string returned by read().",
+                "cx": "The object comes from open(); read() instead produces a string containing the entire contents."
+              },
+              {
+                "tr": "read()",
+                "df": "read() is a file operation that returns the entire contents as one string.",
+                "eg": "A program applies read() and receives the entire contents in a single string.",
+                "mi": "read() returns the next single line from the file.",
+                "cx": "The next-line result belongs to readline(), whereas read() produces the entire contents."
+              },
+              {
+                "tr": "readlines()",
+                "df": "readlines() is a file operation whose returned value is a list containing every line.",
+                "eg": "A program applies readlines() and receives a list with every line of the file.",
+                "mi": "readlines() returns the entire contents as a single string.",
+                "cx": "The every-line result from readlines() is a list; the single-string result comes from read()."
+              }
+            ],
+            "scenario": {
+              "su": "A program review must classify two recorded file results before a deadline. The reviewer must distinguish a single string containing the entire contents from the next single line.",
+              "ma": "read() result notation: entire contents returned as a single string, readline() result notation: next single line returned"
+            },
+            "mc": [
+              {
+                "q": "A review compares read() returning the entire contents as one string with readline() returning the next line. Which statement preserves the observed distinction?",
+                "op": [
+                  "read() returns one string; readline() returns next line",
+                  "Both return the next single line",
+                  "read() returns next line; readline() returns one string",
+                  "Both return entire contents as one string"
+                ],
+                "ai": 0,
+                "fi": [
+                  2,
+                  3
+                ],
+                "ex": "read() returns the entire contents as a single string, while readline() returns the next single line. They do not exchange those results."
+              },
+              {
+                "q": "A review records that a call returned a list with every line of the file, and the label must be chosen before a deadline. Which label matches the observation?",
+                "op": [
+                  "The call was readline()",
+                  "The call was read()",
+                  "The call was open()",
+                  "The call was readlines()"
+                ],
+                "ai": 3,
+                "fi": [
+                  3
+                ],
+                "ex": "A list containing every line is the result specified for readlines(). readline() instead produces the next single line."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "b2addd401b7358d418bb4307dcc31aa54e3034cbb35600135104935dee978f2d",
+          "lessonKernel": {
+            "lessonId": "lesson-4",
+            "facts": [
+              "File I/O lets a program read information from and write information into files; a file is accessed by opening it, working with its contents, and closing it.",
+              "open() returns a file object that the program then reads from or writes to.",
+              "read() reads the entire contents of a file and returns a single string.",
+              "readline() returns the next single line, while readlines() returns a list with every line of the file."
+            ],
+            "keyTerms": [
+              {
+                "tr": "File I/O",
+                "df": "File I/O is the process that allows a program to read information from and write information into files.",
+                "eg": "A program uses File I/O to save user data to a text file and later retrieve that data.",
+                "mi": "File I/O is simply the act of typing data directly into a file without using a program.",
+                "cx": "File I/O is the mechanism that enables a program to read and write information into files."
+              },
+              {
+                "tr": "open()",
+                "df": "The open() function returns a file object that the program subsequently uses to read from or write to.",
+                "eg": "Calling open() creates a file object that allows subsequent read() or write() operations on the file.",
+                "mi": "open() is a command that directly writes data into the file without creating a file object for later use.",
+                "cx": "open() is the function that generates a file object for subsequent reading or writing operations."
+              },
+              {
+                "tr": "read()",
+                "df": "The read() function reads the entire contents of a file and returns that content as a single string.",
+                "eg": "Using read() on a file retrieves all the text within that file as one continuous string.",
+                "mi": "read() only reads the first line of a file and returns that line as a string.",
+                "cx": "read() reads the entire contents of a file and returns a single string, not just the first line."
+              }
+            ],
+            "scenario": {
+              "su": "A data processing script needs to read configuration settings from a text file and then update a specific setting within that file. The constraint is that the script must handle the file access safely by ensuring the file is properly closed after all operations are complete.",
+              "ma": "Compare the behavior of read() and readline() when processing a configuration file containing three distinct lines of settings."
+            },
+            "mc": [
+              {
+                "q": "When a program uses read() on a file, what is the resulting data structure returned to the program?",
+                "op": [
+                  "A single string containing all file contents",
+                  "A list of lines from the file",
+                  "A file object for further operations",
+                  "A dictionary mapping keys to values"
+                ],
+                "ai": 0,
+                "fi": [
+                  2
+                ],
+                "ex": "read() reads the entire contents of a file and returns a single string, then correct the closest distractor."
+              },
+              {
+                "q": "A developer is writing code to process a log file where each entry is on a new line, and they need to iterate through every entry sequentially. Which method should they use?",
+                "op": [
+                  "A() to get the file object",
+                  "read() to get the whole file content",
+                  "readline() to get the next single line",
+                  "readlines() to get a list of every line"
+                ],
+                "ai": 0,
+                "fi": [
+                  3
+                ],
+                "ex": "readline() returns the next single line, while readlines() returns a list with every line of the file, then correct the closest distractor."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-8fed8eae15665ac533576b47",
+        "pairId": "scion-kernel-pair-b4edab820259f72690bbe9a9",
+        "artifactSha256": {
+          "A": "8344e85fe60c4eb7a2177a7f27ac257f2cb176cf4999bee3f95c4dc6090d6efb",
+          "B": "b2addd401b7358d418bb4307dcc31aa54e3034cbb35600135104935dee978f2d"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    },
+    {
+      "caseId": "scion-kernel-901bcdec12e941126815530a",
+      "pairId": "scion-kernel-pair-1d7916c7a075504ec995a592",
+      "domain": "user-experience-design",
+      "failureFamilies": [
+        "misconception-validity",
+        "scenario-evidence-sufficiency"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-4",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Process and progress indicators",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: Process lists explain sequential instructions, while step indicators show a user’s current position in a linear multi-page flow. Claim 1: A step indicator suits a linear process with at least three high-level steps across multiple screens. Claim 2: The indicator complements back and next controls; it is not navigation by itself. Claim 3: Completion and current-step meaning must not rely on color alone. Claim 4: The current labeled step should be exposed programmatically with aria-current.",
+        "readings": "U.S. Web Design System, U.S. General Services Administration"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "91025e358b91265f110903e864438a936557a07bce01795345fa49826e0ca607",
+        "kernelId": "ux/process-and-progress-indicators",
+        "term": "Process and progress indicators",
+        "claims": [
+          "Process lists explain sequential instructions, while step indicators show a user’s current position in a linear multi-page flow.",
+          "A step indicator suits a linear process with at least three high-level steps across multiple screens.",
+          "The indicator complements back and next controls; it is not navigation by itself.",
+          "Completion and current-step meaning must not rely on color alone.",
+          "The current labeled step should be exposed programmatically with aria-current."
+        ],
+        "anchors": [
+          {
+            "src": "uswds:step-indicator",
+            "loc": "Overview",
+            "quote": "updates users on their progress"
+          },
+          {
+            "src": "uswds:step-indicator",
+            "loc": "When to use",
+            "quote": "three or more high-level steps"
+          },
+          {
+            "src": "uswds:step-indicator",
+            "loc": "When to use",
+            "quote": "not to be navigation of its own"
+          },
+          {
+            "src": "uswds:step-indicator",
+            "loc": "Accessibility guidance",
+            "quote": "make the completion status of each step explicit"
+          },
+          {
+            "src": "uswds:step-indicator",
+            "loc": "Accessibility guidance",
+            "quote": "use aria-current=\"true\""
+          }
+        ],
+        "attribution": [
+          "U.S. Web Design System, U.S. General Services Administration"
+        ],
+        "license": "U.S. Government Work"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "e1ef15413da4258897071a217636cbc4e569dcec01de5a883819055930f56224",
+          "lessonKernel": {
+            "lessonId": "lesson-4",
+            "facts": [
+              "Process lists explain sequential instructions, while step indicators show a user’s current position in a linear multi-page flow.",
+              "A step indicator suits a linear process with at least three high-level steps across multiple screens.",
+              "The indicator complements back and next controls; it is not navigation by itself.",
+              "Completion and current-step meaning must not rely on color alone.",
+              "The current labeled step should be exposed programmatically with aria-current."
+            ],
+            "keyTerms": [
+              {
+                "tr": "Process lists",
+                "df": "Process lists are instructions arranged as a sequence.",
+                "eg": "The U.S. Web Design System uses a process list to explain sequential instructions.",
+                "mi": "Process lists show a user’s current position across multiple screens.",
+                "cx": "Showing current position in a linear multi-page flow is the role of step indicators."
+              },
+              {
+                "tr": "step indicator",
+                "df": "A step indicator marks current position within a linear process spanning multiple screens.",
+                "eg": "A step indicator shows the current labeled step alongside back and next controls.",
+                "mi": "A step indicator replaces back and next controls as navigation.",
+                "cx": "Users still need back and next controls because the indicator merely complements them."
+              },
+              {
+                "tr": "aria-current",
+                "df": "Aria-current programmatically exposes which labeled step is current.",
+                "eg": "The current labeled step in the U.S. Web Design System is exposed with aria-current.",
+                "mi": "Aria-current makes color sufficient for communicating completion and current-step meaning.",
+                "cx": "Completion and current-step meaning require more than color, regardless of programmatic exposure."
+              }
+            ],
+            "scenario": {
+              "su": "A U.S. Web Design System review covers a linear process with three high-level steps across multiple screens, but its indicator is expected to replace back and next controls. Students must classify that expectation while checking a current labeled step shown by color under a deadline.",
+              "ma": "three-step multi-screen flow design, back-and-next control design, color-based current-step observation, aria-current notation"
+            },
+            "mc": [
+              {
+                "q": "A review compares process lists that present sequential instructions with step indicators that display current position across multiple screens; which distinction matches the observed designs?",
+                "op": [
+                  "Both designs show current position",
+                  "Process lists show position; step indicators instruct",
+                  "Both designs explain sequential instructions",
+                  "Process lists instruct; step indicators show position"
+                ],
+                "ai": 3,
+                "fi": [
+                  0
+                ],
+                "ex": "Process lists explain sequential instructions, whereas step indicators show current position in a linear multi-page flow. Treating the two designs as interchangeable reverses their stated roles."
+              },
+              {
+                "q": "A linear process has three high-level steps across multiple screens, and its indicator appears beside back and next controls; how should reviewers classify the indicator?",
+                "op": [
+                  "Suitable navigation replacing back and next controls",
+                  "Process list complementing back and next controls",
+                  "Suitable indicator complementing back and next controls",
+                  "Process list replacing back and next controls"
+                ],
+                "ai": 2,
+                "fi": [
+                  1,
+                  2
+                ],
+                "ex": "Three high-level steps across multiple screens make a step indicator suitable, and the indicator complements back and next controls. It does not replace those controls as navigation."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "1f6a0335e4fc6f726a53f204d7524a5ef59cff5084168ce6631bf0fe05c85980",
+          "lessonKernel": {
+            "lessonId": "lesson-4",
+            "facts": [
+              "Process lists explain sequential instructions, while step indicators show a user’s current position in a linear multi-page flow.",
+              "A step indicator suits a linear process with at least three high-level steps across multiple screens.",
+              "The indicator complements back and next controls; it is not navigation by itself.",
+              "Completion and current-step meaning must not rely on color alone.",
+              "The current labeled step should be exposed programmatically with aria-current."
+            ],
+            "keyTerms": [
+              {
+                "tr": "Process lists",
+                "df": "Process lists explain sequential instructions for a task.",
+                "eg": "A process list detailing the steps required to complete a multi-page form.",
+                "mi": "Process lists are only for showing the order of steps in a flow.",
+                "cx": "Process lists explain sequential instructions, while step indicators show a user’s current position in a linear multi-page flow."
+              },
+              {
+                "tr": "Step indicators",
+                "df": "Step indicators show a user’s current position within a linear multi-page flow.",
+                "eg": "A step indicator showing the user is on step two of a four-step checkout process.",
+                "mi": "Step indicators are used exclusively for showing the final completion status of a task.",
+                "cx": "Step indicators show a user’s current position in a linear multi-page flow, and they complement back and next controls."
+              },
+              {
+                "tr": "aria-current",
+                "df": "The current labeled step should be exposed programmatically with aria-current.",
+                "eg": "Using aria-current to programmatically mark the active step in a multi-page flow.",
+                "mi": "aria-current is a visual styling method used to highlight the current step.",
+                "cx": "The current labeled step should be exposed programmatically with aria-current, not relying on visual styling."
+              }
+            ],
+            "scenario": {
+              "su": "A user is navigating a multi-page service application that requires completing at least three high-level steps across different screens. The user needs a clear way to understand their progress without relying solely on visual cues. The constraint is that the indicator must not rely on color alone to convey meaning.",
+              "ma": "Compare the process list showing sequential instructions with the step indicator showing the user's current position in a linear multi-page flow."
+            },
+            "mc": [
+              {
+                "q": "When designing a linear multi-page flow, what is the primary function of a step indicator in relation to process lists?",
+                "op": [
+                  "Step indicators are used for showing the final completion status of a task.",
+                  "Step indicators show a user’s current position in a linear multi-page flow.",
+                  "Step indicators are only for showing the order of steps in a flow.",
+                  "Step indicators are used exclusively for showing sequential instructions."
+                ],
+                "ai": 1,
+                "fi": [
+                  0,
+                  1
+                ],
+                "ex": "Process lists explain sequential instructions, while step indicators show a user’s current position in a linear multi-page flow, then step indicators show a user’s current position in a linear multi-page flow."
+              },
+              {
+                "q": "A designer is choosing between a process list and a step indicator for a linear process that spans multiple screens; what is the correct choice?",
+                "op": [
+                  "A process list is the only way to show the user's current position.",
+                  "A step indicator suits a linear process with at least three high-level steps across multiple screens.",
+                  "A process list is better when the flow has fewer than three high-level steps.",
+                  "A step indicator is not navigation by itself but complements back and next controls."
+                ],
+                "ai": 1,
+                "fi": [
+                  1
+                ],
+                "ex": "A step indicator suits a linear process with at least three high-level steps across multiple screens, then a step indicator suits a linear process with at least three high-level steps across multiple screens."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-901bcdec12e941126815530a",
+        "pairId": "scion-kernel-pair-1d7916c7a075504ec995a592",
+        "artifactSha256": {
+          "A": "e1ef15413da4258897071a217636cbc4e569dcec01de5a883819055930f56224",
+          "B": "1f6a0335e4fc6f726a53f204d7524a5ef59cff5084168ce6631bf0fe05c85980"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    },
+    {
+      "caseId": "scion-kernel-91d57c49e68873ad738edc77",
+      "pairId": "scion-kernel-pair-b95593c92128b753b9f886de",
+      "domain": "physics",
+      "failureFamilies": [
+        "misconception-validity"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-8",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "DC circuits",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: A DC circuit is a conducting path with steady current, sources, and components whose voltages and currents obey conservation rules. Claim 1: Series components share the same current; parallel branches share the same voltage. Claim 2: Kirchhoff's junction rule expresses charge conservation, and the loop rule expresses energy conservation.",
+        "readings": "OpenStax University Physics Volume 2, Ch. 10"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "bde05b7b9582176e048e9e0ae8a40e052a003910ab430c42b50031727a58cd48",
+        "kernelId": "physics/dc-circuits",
+        "term": "DC circuits",
+        "claims": [
+          "A DC circuit is a conducting path with steady current, sources, and components whose voltages and currents obey conservation rules.",
+          "Series components share the same current; parallel branches share the same voltage.",
+          "Kirchhoff's junction rule expresses charge conservation, and the loop rule expresses energy conservation."
+        ],
+        "anchors": [
+          {
+            "src": "openstax:university-physics-volume-2#10",
+            "loc": "10.1",
+            "quote": "direct-current circuits"
+          },
+          {
+            "src": "openstax:university-physics-volume-2#10",
+            "loc": "10.2",
+            "quote": "series and parallel resistors"
+          },
+          {
+            "src": "openstax:university-physics-volume-2#10",
+            "loc": "10.3",
+            "quote": "Kirchhoff's rules"
+          }
+        ],
+        "attribution": [
+          "OpenStax University Physics Volume 2, Ch. 10"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "5bdb6884a17b6c39604fa626e2f5fd3a1d16fed31cbdeed158fe5076ae8dffc1",
+          "lessonKernel": {
+            "lessonId": "lesson-8",
+            "facts": [
+              "A DC circuit is a conducting path with steady current, sources, and components whose voltages and currents obey conservation rules.",
+              "Series components share the same current; parallel branches share the same voltage.",
+              "Kirchhoff's junction rule expresses charge conservation, and the loop rule expresses energy conservation."
+            ],
+            "keyTerms": [
+              {
+                "tr": "DC circuit",
+                "df": "A DC circuit is a conducting path distinguished by steady current, sources, components, and conservation rules.",
+                "eg": "A conducting path with steady current, sources, and components is a DC circuit.",
+                "mi": "A DC circuit has component voltages and currents that oppose conservation rules.",
+                "cx": "Its component voltages and currents obey conservation rules along the conducting path."
+              },
+              {
+                "tr": "Series components",
+                "df": "Series components are circuit components distinguished by sharing the same current.",
+                "eg": "Two series components in a DC circuit carry the same current.",
+                "mi": "Series components are identified by sharing the same voltage.",
+                "cx": "Shared current characterizes series components, while shared voltage characterizes parallel branches."
+              },
+              {
+                "tr": "junction rule",
+                "df": "The junction rule is a Kirchhoff rule that expresses charge conservation.",
+                "eg": "Kirchhoff's junction rule and loop rule express charge and energy conservation, respectively.",
+                "mi": "The junction rule expresses energy conservation rather than charge conservation.",
+                "cx": "Charge conservation corresponds to the junction rule; energy conservation corresponds to the loop rule."
+              }
+            ],
+            "scenario": {
+              "su": "Students must label a conducting path as a DC circuit and distinguish its series components from its parallel branches before a deadline. The steady-current notation, component current comparison, and branch voltage comparison must support one defensible classification despite the time constraint.",
+              "ma": "steady-current path diagram, component current comparison, branch voltage comparison"
+            },
+            "mc": [
+              {
+                "q": "A circuit notation shows equal current through series components and equal voltage across parallel branches; which comparison correctly distinguishes the two observed component relations?",
+                "op": [
+                  "Series share current; parallel branches share voltage",
+                  "Series share voltage; parallel branches share current",
+                  "Series and parallel branches share current",
+                  "Series and parallel components share voltage"
+                ],
+                "ai": 0,
+                "fi": [
+                  1
+                ],
+                "ex": "Series components share the same current, whereas parallel branches share the same voltage. The reversed comparison incorrectly exchanges these two relations."
+              },
+              {
+                "q": "A student compares junction notation tied to charge conservation with loop notation tied to energy conservation; which labels fit the records before the workshop deadline?",
+                "op": [
+                  "Junction: charge conservation; loop: energy conservation",
+                  "Junction: energy conservation; loop: charge conservation",
+                  "Junction and loop: charge conservation",
+                  "Junction and loop: energy conservation"
+                ],
+                "ai": 0,
+                "fi": [
+                  2
+                ],
+                "ex": "The junction rule expresses charge conservation, and the loop rule expresses energy conservation. Assigning energy to the junction and charge to the loop reverses the supported labels."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "4f30c2f2a36d08a948f7356773387d4745b6f8a74df7b2f282af918193fefc0d",
+          "lessonKernel": {
+            "lessonId": "lesson-8",
+            "facts": [
+              "A DC circuit is a conducting path with steady current, sources, and components whose voltages and currents obey conservation rules. ",
+              "Series components share the same current; parallel branches share the same voltage. ",
+              "Kirchhoff's junction rule expresses charge conservation, and the loop rule expresses energy conservation."
+            ],
+            "keyTerms": [
+              {
+                "tr": "DC circuit",
+                "df": "A conducting path with steady current, sources, and components whose voltages and currents obey conservation rules.",
+                "eg": "A circuit where a battery and a resistor are connected in a single path.",
+                "mi": "A DC circuit only involves components that have constant voltage and current.",
+                "cx": "A DC circuit involves sources and components whose voltages and currents obey conservation rules."
+              },
+              {
+                "tr": "Series components",
+                "df": "Components connected in series share the same current flowing through them.",
+                "eg": "Two resistors connected end-to-end in a single wire.",
+                "mi": "In series circuits, the voltage across each component is identical.",
+                "cx": "In series circuits, the current is the same, but the voltage across each component is not necessarily identical."
+              },
+              {
+                "tr": "Parallel branches",
+                "df": "Branches connected in parallel share the same voltage across them.",
+                "eg": "Two light bulbs connected across the same power source.",
+                "mi": "Parallel branches require the current to be the same through every component.",
+                "cx": "Parallel branches require the voltage across every branch to be the same, not the current."
+              }
+            ],
+            "scenario": {
+              "su": "A circuit has a 12V battery connected to a series combination of a 4$\text{\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\n",
+              "ma": "A circuit diagram shows a 12V source connected to a series circuit containing a 2$\text{\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }"
+            },
+            "mc": [
+              {
+                "q": "When analyzing a DC circuit, which rule is used to express energy conservation across a closed path?",
+                "op": [
+                  "The junction rule expresses energy conservation",
+                  "The loop rule expresses energy conservation",
+                  "The series rule expresses energy conservation",
+                  "The parallel rule expresses energy conservation"
+                ],
+                "ai": 0,
+                "fi": [
+                  2
+                ],
+                "ex": "The loop rule expresses energy conservation, then the junction rule expresses charge conservation, then the series rule expresses current sharing."
+              },
+              {
+                "q": "Given a circuit with a 12V source and two parallel branches, which property must be true for the branches?",
+                "op": [
+                  "Branches must share the same current",
+                  "Branches must share the same voltage",
+                  "Branches must share the same resistance",
+                  "Branches must share the same charge"
+                ],
+                "ai": 0,
+                "fi": [
+                  1
+                ],
+                "ex": "Parallel branches share the same voltage across them, then series components share the same current flowing through them, then Kirchhoff's junction rule expresses charge conservation."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-91d57c49e68873ad738edc77",
+        "pairId": "scion-kernel-pair-b95593c92128b753b9f886de",
+        "artifactSha256": {
+          "A": "5bdb6884a17b6c39604fa626e2f5fd3a1d16fed31cbdeed158fe5076ae8dffc1",
+          "B": "4f30c2f2a36d08a948f7356773387d4745b6f8a74df7b2f282af918193fefc0d"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    },
+    {
+      "caseId": "scion-kernel-987da285da5f74ba181cfa92",
+      "pairId": "scion-kernel-pair-a9174b01b7b046ba55b5d456",
+      "domain": "user-experience-design",
+      "failureFamilies": [
+        "source-coverage"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-3",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Journey mapping",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: Journey mapping represents an end-to-end experience from the user's perspective so a team can see connected steps, boundaries, breakdowns, and opportunities. Claim 1: A journey map should start from research about the steps users actually take and the transactions involved. Claim 2: An experience map should make struggle points and candidate improvement areas visible. Claim 3: A map can reveal dead ends where the user cannot continue toward the larger goal. Claim 4: Journey analysis should include gaps between online and offline parts of a service.",
+        "readings": "UK Government Service Manual"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "55810138f44b132a506c48e324abae61faab42bb035796fd7728e36106eaf51e",
+        "kernelId": "ux/journey-mapping",
+        "term": "Journey mapping",
+        "claims": [
+          "Journey mapping represents an end-to-end experience from the user's perspective so a team can see connected steps, boundaries, breakdowns, and opportunities.",
+          "A journey map should start from research about the steps users actually take and the transactions involved.",
+          "An experience map should make struggle points and candidate improvement areas visible.",
+          "A map can reveal dead ends where the user cannot continue toward the larger goal.",
+          "Journey analysis should include gaps between online and offline parts of a service."
+        ],
+        "anchors": [
+          {
+            "src": "govuk:whole-journey",
+            "loc": "Whole problem",
+            "quote": "It's important for teams to make sure the thing they're building forms a coherent part of a user's wider journey."
+          },
+          {
+            "src": "govuk:whole-journey",
+            "loc": "User point of view",
+            "quote": "Start by talking to your users to learn more about the steps they have to take and the transactions involved."
+          },
+          {
+            "src": "govuk:whole-journey",
+            "loc": "User point of view",
+            "quote": "The map should show which bits of the journey users are struggling with and the areas you might want to focus on improving."
+          },
+          {
+            "src": "govuk:whole-journey",
+            "loc": "What to change",
+            "quote": "dead ends in the user journey"
+          },
+          {
+            "src": "govuk:whole-journey",
+            "loc": "What to change",
+            "quote": "online and offline elements of the transaction not joining up in an intuitive way"
+          }
+        ],
+        "attribution": [
+          "UK Government Service Manual"
+        ],
+        "license": "Open Government Licence v3.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "fa1d18269b212564b85920995e7468d8b33c232523edc810c363a081e8640170",
+          "lessonKernel": {
+            "lessonId": "lesson-3",
+            "facts": [
+              "Journey mapping represents an end-to-end experience from the user's perspective so a team can see connected steps, boundaries, breakdowns, and opportunities.",
+              "A journey map should start from research about the steps users actually take and the transactions involved.",
+              "An experience map should make struggle points and candidate improvement areas visible.",
+              "A map can reveal dead ends where the user cannot continue toward the larger goal.",
+              "Journey analysis should include gaps between online and offline parts of a service."
+            ],
+            "keyTerms": [
+              {
+                "tr": "Journey mapping",
+                "df": "Journey mapping represents an end-to-end experience from the user's perspective.",
+                "eg": "Journey mapping shows connected steps, boundaries, breakdowns, and opportunities.",
+                "mi": "Journey mapping represents separate transactions rather than an end-to-end experience.",
+                "cx": "It connects the experience from the user's perspective across its steps and boundaries."
+              },
+              {
+                "tr": "experience map",
+                "df": "An experience map makes struggle points and candidate improvement areas visible.",
+                "eg": "An experience map shows a struggle point beside a candidate improvement area.",
+                "mi": "An experience map makes transactions involved visible instead of struggle points.",
+                "cx": "Its visible subjects are struggle points and candidate improvement areas."
+              },
+              {
+                "tr": "dead ends",
+                "df": "Dead ends are points where the user cannot continue toward the larger goal.",
+                "eg": "A map shows a dead end between connected steps toward the larger goal.",
+                "mi": "Dead ends are gaps between online and offline parts of a service.",
+                "cx": "They mark where continuation toward the larger goal is not possible."
+              }
+            ],
+            "scenario": {
+              "su": "A team must classify what its map shows before a deadline: connected steps and boundaries across an end-to-end experience, plus struggle points and candidate improvement areas. The team must distinguish the map's two supported roles while also checking a recorded gap between online and offline parts of the service.",
+              "ma": "research record of steps users actually take and transactions involved, notation of connected steps and boundaries, observation of struggle points and candidate improvement areas, notation of the online-offline gap"
+            },
+            "mc": [
+              {
+                "q": "A team compares connected steps and boundaries across an end-to-end experience with visible struggle points and candidate improvement areas. Which distinction between journey mapping and an experience map is supported?",
+                "op": [
+                  "Journey mapping exposes struggles; experience maps connect",
+                  "Both represent connected steps and boundaries",
+                  "Both show struggle points and improvement areas",
+                  "Journey mapping connects; experience maps expose struggles"
+                ],
+                "ai": 3,
+                "fi": [
+                  0,
+                  2
+                ],
+                "ex": "Journey mapping represents the end-to-end experience and connected elements, while an experience map makes struggles and improvement areas visible. Assigning those roles in reverse swaps the supplied relations."
+              },
+              {
+                "q": "Research records the steps users actually take and their transactions, while a notation shows the user cannot continue toward the larger goal. Under a deadline, what should the team identify?",
+                "op": [
+                  "Dead ends ground research into user transactions",
+                  "Research grounds visible candidate improvement areas",
+                  "Research grounds a journey map revealing dead ends",
+                  "Transactions reveal online and offline gaps"
+                ],
+                "ai": 2,
+                "fi": [
+                  1,
+                  3
+                ],
+                "ex": "The recorded steps and transactions provide the research basis for a journey map, and the blocked continuation is a dead end the map can reveal. Candidate improvement areas belong to what an experience map makes visible."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "85de28979f7dffc1c6b36121dae339ac6fc88f32f705e6391d4b61c01099f584",
+          "lessonKernel": {
+            "lessonId": "lesson-3",
+            "facts": [
+              "Journey mapping represents an end-to-end experience from the user's perspective so a team can see connected steps, boundaries, breakdowns, and opportunities.",
+              "A journey map should start from research about the steps users actually take and the transactions involved.",
+              "An experience map should make struggle points and candidate improvement areas visible.",
+              "A map can reveal dead ends where the user cannot continue toward the larger goal.",
+              "Journey analysis should include gaps between online and offline parts of a service."
+            ],
+            "keyTerms": [
+              {
+                "tr": "Journey mapping",
+                "df": "Journey mapping is an end-to-end experience from the user's perspective allowing a team to see connected steps, boundaries, breakdowns, and opportunities.",
+                "eg": "A team uses a journey map to visualize the entire process a user goes through from start to finish.",
+                "mi": "Journey mapping is just a simple list of steps a user takes without considering the emotional or contextual experience.",
+                "cx": "Journey mapping requires seeing connected steps, boundaries, breakdowns, and opportunities from the user's perspective."
+              },
+              {
+                "tr": "Experience map",
+                "df": "An experience map is a tool designed to make struggle points and candidate improvement areas visible within a service.",
+                "eg": "An experience map highlights where users encounter friction or where improvements are needed in the service flow.",
+                "mi": "An experience map is identical to a journey map but focuses only on the positive aspects of the user's interaction.",
+                "cx": "An experience map specifically makes struggle points and candidate improvement areas visible, unlike a simple list."
+              },
+              {
+                "tr": "Journey analysis",
+                "df": "Journey analysis involves examining gaps between online and offline parts of a service to identify areas for improvement.",
+                "eg": "Journey analysis looks at the disconnect between a website process and the physical steps a user takes in a store.",
+                "mi": "Journey analysis is only about looking at the online steps and ignoring any offline interactions or physical environments.",
+                "cx": "Journey analysis must include gaps between online and offline parts of a service to be comprehensive."
+              }
+            ],
+            "scenario": {
+              "su": "A team is mapping the process for a customer to return a faulty product online. The actionable problem is identifying where the user encounters a dead end in the return process. The constraint is that the team only has access to the online transaction steps and cannot observe the physical return location.",
+              "ma": "Compare the map showing the online return steps with the map showing the physical return steps."
+            },
+            "mc": [
+              {
+                "q": "Which concept distinguishes a journey map from an experience map based on what they reveal about the user's path?",
+                "op": [
+                  "Journey mapping shows connected steps and boundaries.",
+                  "Experience map shows struggle points and improvement areas.",
+                  "Journey mapping reveals dead ends where users cannot continue.",
+                  "Experience map includes gaps between online and offline parts."
+                ],
+                "ai": 0,
+                "fi": [
+                  0,
+                  2
+                ],
+                "ex": "Journey mapping represents an end-to-end experience from the user's perspective so a team can see connected steps, boundaries, breakdowns, and opportunities. An experience map should make struggle points and candidate improvement areas visible."
+              },
+              {
+                "q": "When analyzing a service, what specific element must journey analysis include to provide a complete view of the user's interaction?",
+                "op": [
+                  "Identifying dead ends where the user cannot continue toward the larger goal.",
+                  "Researching the steps users actually take and the transactions involved.",
+                  "Making struggle points and candidate improvement areas visible.",
+                  "Including gaps between online and offline parts of a service."
+                ],
+                "ai": 3,
+                "fi": [
+                  1,
+                  4
+                ],
+                "ex": "Journey analysis should include gaps between online and offline parts of a service. A journey map should start from research about the steps users actually take and the transactions involved."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-987da285da5f74ba181cfa92",
+        "pairId": "scion-kernel-pair-a9174b01b7b046ba55b5d456",
+        "artifactSha256": {
+          "A": "fa1d18269b212564b85920995e7468d8b33c232523edc810c363a081e8640170",
+          "B": "85de28979f7dffc1c6b36121dae339ac6fc88f32f705e6391d4b61c01099f584"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    }
+  ],
+  "claimBoundary": "This packet contains anonymous source-bound artifacts only. It contains no provider identity, model identity, route, admission outcome, retry history, compiler receipt, preference, or training authorization.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6c8eb8fcc2681f2f127cd8b834c7353f3d19b74fc636ba7bb0fd6eb7caa2851c"
+  }
+}

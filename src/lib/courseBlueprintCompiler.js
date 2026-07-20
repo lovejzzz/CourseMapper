@@ -22,6 +22,14 @@ import { finalizeCompiledDeliverableLanguage, shortArtifactReference } from './c
 import { getChunkCount } from './parallelGenerator';
 import { getCustomDeliverable } from './customDeliverableLibrary';
 import { buildObservationProtocol } from './observationProtocols';
+import {
+  examAtomPaddingOptions,
+  examFactCopy,
+  examUnderstandCorrectText,
+  kernelFactInstructorNote,
+  titleSlideNote,
+  titleSlideOpening,
+} from './courseCompilerCopyVariants';
 import { recordLegacyPathHit } from './legacyPathTelemetry';
 import { buildBayesianFallbackQuizAtoms, hasBayesianDecisionEvidence } from './bayesianQuizFrames';
 import {
@@ -7222,6 +7230,35 @@ function contextualizeModalityRoutine(kind, base, { lesson = {}, concept = '', a
   const secondary = alternateLessonConcept(lesson, concept);
   if (
     kind === 'signaturePractice' &&
+    /\bhumanities interpretation seminar\b/i.test(routine) &&
+    /\bannotate evidence\b/i.test(routine) &&
+    /\bcompeting claims\b/i.test(routine)
+  ) {
+    routine = lessonVariant(lesson, [
+      'annotate a passage or scene, compare rival readings, and revise the claim that will enter the artifact',
+      'mark the source detail, test two plausible interpretations, and refine the argument students will carry forward',
+      'move from close evidence annotation into counter-reading, context check, and interpretive revision',
+      'trace how form or context supports a reading, challenge it with competing evidence, and qualify the final claim',
+      'stage an evidence-centered seminar where students defend one interpretation and revise it after a source challenge',
+      'compare how two readings use the same detail, identify the stronger warrant, and update the interpretive artifact',
+    ]);
+  }
+  if (
+    kind === 'evidenceRoutine' &&
+    /\bcollect passage, scene, source, translation, context, or form evidence\b/i.test(routine) &&
+    /\bdefend an interpretation\b/i.test(routine)
+  ) {
+    routine = lessonVariant(lesson, [
+      'gather passage, scene, source, translation, context, or form details before defending an interpretation',
+      'mark the textual or contextual evidence each reading relies on before comparing the claims',
+      'separate observation, source context, and interpretive warrant before students commit to a reading',
+      'trace each interpretation back to the passage, scene, form, translation, or historical detail that supports it',
+      'build an evidence ledger for the competing readings before deciding which claim the source can bear',
+      'identify the decisive source detail and the remaining context gap before students finalize an interpretation',
+    ]);
+  }
+  if (
+    kind === 'signaturePractice' &&
     /\bretrieval-to-exam practice cycle\b/i.test(routine) &&
     /\banswer\b.+\bexplain\b.+\bdiagnose\b.+\bcorrect\b/i.test(routine)
   ) {
@@ -13439,8 +13476,13 @@ function extractLessonBlueprint(
   const hasResources = resources.length > 0;
   const weeklyAssessmentText = extractColumn(lesson, 'weeklyAssessments');
   const evaluationDesignText = extractColumn(lesson, 'evaluateDesign');
-  const weeklyAssessmentEntries = meaningfulEntries(splitList(weeklyAssessmentText));
-  const evaluationDesignEntries = meaningfulEntries(splitList(evaluationDesignText));
+  // Normalize identity echoes at the Course Map boundary too. The registry
+  // path already cleans its title, but assessmentLink and every derived
+  // teaching field also consume the visible cell; leaving "X.: X." here
+  // let the corrupt form survive in lesson-plan prose after the registry
+  // itself had been repaired.
+  const weeklyAssessmentEntries = meaningfulEntries(splitList(weeklyAssessmentText)).map(dedupeNumberedAssessmentEcho);
+  const evaluationDesignEntries = meaningfulEntries(splitList(evaluationDesignText)).map(dedupeNumberedAssessmentEcho);
   const hasWeeklyAssessment = weeklyAssessmentEntries.length > 0 && hasMeaningfulAssessment(weeklyAssessmentText);
   const hasEvaluationDesign = evaluationDesignEntries.length > 0 && hasMeaningfulAssessment(evaluationDesignText);
   const hasAssessmentPlaceholder = containsWeakPlaceholder(weeklyAssessmentText);
@@ -17114,7 +17156,7 @@ const PARAMETER_CITATION_VERB_RE = /^(?:cite|reference|quote|credit|attribute)\b
 const PARAMETER_PROCESS_VERB_RE =
   /^(?:use|apply|follow|work within|keep|limit|stay within|maintain|ensure|separate|write|draft|format|organize|complete|explain|compare|analyze|base|ground)\b\s*/i;
 
-function parameterCriterionName(parameter, ordinal) {
+function parameterCriterionName(parameter, ordinal, lesson = {}) {
   const text = stripTerminalPunctuation(cleanText(parameter));
   let core = text;
   let suffix = 'addressed as specified';
@@ -17132,7 +17174,12 @@ function parameterCriterionName(parameter, ordinal) {
     .replace(/^(?:only|at least|at most|no more than|exactly|up to)\s+/i, '')
     .replace(/^(?:one|two|three|four|five|six|a|an|the)\s+/i, '');
   const lead = sentenceCase(conciseClause(core, text, 56));
-  return `${lead} — ${suffix} (per brief parameter ${ordinal})`;
+  return lessonVariant(lesson, [
+    `${lead} — ${suffix} (per brief parameter ${ordinal})`,
+    `${lead} — verified in the submitted work (brief requirement ${ordinal})`,
+    `${lead} — shown with inspectable evidence (requirement ${ordinal})`,
+    `${lead} — completed to the stated standard (task parameter ${ordinal})`,
+  ]);
 }
 
 // Split an integer weight total across n criteria (largest-first remainder),
@@ -17148,7 +17195,7 @@ function buildParameterCriterionRow({ parameter, ordinal, weight, assessment, le
   const artifact = stripTerminalPunctuation(assessment.artifact || assessment.title);
   const verbatim = stripTerminalPunctuation(cleanText(parameter));
   const shortForm = conciseClause(verbatim, verbatim, 90, { ellipsis: true });
-  const criterion = parameterCriterionName(parameter, ordinal);
+  const criterion = parameterCriterionName(parameter, ordinal, lesson);
   const priority = `brief parameter ${ordinal} fidelity`;
   const evidenceSignal = lessonVariant(lesson, [
     `The brief requires: "${verbatim}". Look for visible evidence in ${artifact} that this parameter is satisfied, accurate, and integrated with the surrounding work.`,
@@ -17797,13 +17844,32 @@ const TONE_MARKED_PINYIN_TOKEN_RE = /[a-zü]*[āáǎàēéěèīíǐìōóǒòū
 
 /**
  * Recover one already-admitted learner-language pair from the lesson kernel.
- * Scion's Mandarin contract guarantees facts in the form
- * "你好 (nǐ hǎo) means hello.". Some valid kernels use Latin-script key
- * terms, though, so the study-guide projection used to hide that pair. This
- * parser never transliterates or supplies a meaning; it only republishes
- * evidence that already cleared kernel admission.
+ * New kernels keep the pair structured beside the immutable source-fact
+ * ledger; legacy kernels may still carry "你好 (nǐ hǎo) means hello." as a
+ * fact. This parser never transliterates or supplies a meaning—it republishes
+ * evidence that already cleared target-language admission.
  */
 function admittedLanguagePairTerm(lesson = {}) {
+  const pair = lesson?.enrichment?.targetLanguagePair;
+  const pairScript = cleanText(pair?.hanzi);
+  const pairRomanization = cleanText(pair?.pinyin);
+  const pairMeaning = cleanText(pair?.english).replace(/[.!?]+$/, '');
+  if (
+    pairScript &&
+    pairRomanization &&
+    pairMeaning &&
+    CJK_SCRIPT_RE.test(pairScript) &&
+    TONE_MARKED_PINYIN_TOKEN_RE.test(pairRomanization)
+  ) {
+    return {
+      term: `${pairScript} (${pairRomanization})`,
+      scriptTerm: pairScript,
+      romanization: pairRomanization,
+      definition: `${pairScript} means ${pairMeaning}.`,
+      example: `${pairScript} (${pairRomanization}) means ${pairMeaning}.`,
+      enrichmentSource: 'admitted-language-pair',
+    };
+  }
   const facts = Array.isArray(lesson?.enrichment?.kernel?.facts) ? lesson.enrichment.kernel.facts : [];
   for (const fact of facts) {
     const match = cleanText(fact).match(CJK_PINYIN_PAIR_RE);
@@ -17829,6 +17895,29 @@ function hasVisibleLanguagePair(terms = []) {
     const name = cleanText(term?.term);
     return CJK_SCRIPT_RE.test(name) && TONE_MARKED_PINYIN_TOKEN_RE.test(`${name} ${cleanText(term?.romanization)}`);
   });
+}
+
+function admittedLanguagePairModel(pair) {
+  return `Target-language model: ${pair.example}`;
+}
+
+function appendAdmittedLanguagePairInstruction(value, pair) {
+  return `${cleanText(value)} Have students say ${pair.term}, identify its meaning, and write it once before applying it in the lesson task.`.trim();
+}
+
+function applyAdmittedLanguagePairToSlides(slides = [], lesson = {}) {
+  const pair = admittedLanguagePairTerm(lesson);
+  if (!pair) return;
+  const target =
+    slides.find(
+      (slide) =>
+        slide?.type === 'content' &&
+        ['lesson-content-enrichment', 'deterministic-content-floor'].includes(slide.enrichmentSource),
+    ) || slides.find((slide) => slide?.type === 'content');
+  if (!target) return;
+  target.bullets = unique([...(target.bullets || []), admittedLanguagePairModel(pair)], 6);
+  target.notes = appendAdmittedLanguagePairInstruction(target.notes, pair);
+  target.enrichmentSource ||= 'admitted-language-pair';
 }
 
 function enrichedKeyTermsForLesson(lesson, { fallback }) {
@@ -18245,11 +18334,14 @@ function compileStudyGuides(blueprint) {
           // and rehearses a real authored fact — not a generic note format.
           ...(cleanText(lesson.enrichment?.kernel?.scenario?.materials)
             ? [
-                `Work directly with ${stripTerminalPunctuation(cleanText(lesson.enrichment.kernel.scenario.materials))}: mark the detail that best supports the ${primaryConcept} claim, the detail that complicates it, and the decision each one points to.${
-                  lesson.enrichment?.kernel?.facts?.[1]
-                    ? ` Check your reading against this: ${stripTerminalPunctuation(lesson.enrichment.kernel.facts[1])}.`
-                    : ''
-                }`,
+                lessonVariant(lesson, [
+                  `Work directly with ${stripTerminalPunctuation(cleanText(lesson.enrichment.kernel.scenario.materials))}: mark the detail that best supports the ${primaryConcept} claim, the detail that complicates it, and the decision each one points to.${lesson.enrichment?.kernel?.facts?.[1] ? ` Check your reading against this: ${stripTerminalPunctuation(lesson.enrichment.kernel.facts[1])}.` : ''}`,
+                  `Inspect ${stripTerminalPunctuation(cleanText(lesson.enrichment.kernel.scenario.materials))}. Identify the strongest ${primaryConcept} evidence, one counter-detail, and the judgment that follows.${lesson.enrichment?.kernel?.facts?.[1] ? ` Test that judgment against this course statement: ${stripTerminalPunctuation(lesson.enrichment.kernel.facts[1])}.` : ''}`,
+                  `Annotate ${stripTerminalPunctuation(cleanText(lesson.enrichment.kernel.scenario.materials))} for one ${primaryConcept} signal and one complication. Explain which interpretation survives the comparison.${lesson.enrichment?.kernel?.facts?.[1] ? ` Use this fact as the boundary check: ${stripTerminalPunctuation(lesson.enrichment.kernel.facts[1])}.` : ''}`,
+                  `Use ${stripTerminalPunctuation(cleanText(lesson.enrichment.kernel.scenario.materials))} to separate supporting evidence from uncertainty about ${primaryConcept}. Record the conclusion each detail permits.${lesson.enrichment?.kernel?.facts?.[1] ? ` Reconcile your note with this statement: ${stripTerminalPunctuation(lesson.enrichment.kernel.facts[1])}.` : ''}`,
+                  `Compare the relevant details in ${stripTerminalPunctuation(cleanText(lesson.enrichment.kernel.scenario.materials))}. Choose the evidence that best warrants a ${primaryConcept} claim and name what could weaken it.${lesson.enrichment?.kernel?.facts?.[1] ? ` Then check the claim against: ${stripTerminalPunctuation(lesson.enrichment.kernel.facts[1])}.` : ''}`,
+                  `Trace a ${primaryConcept} claim through ${stripTerminalPunctuation(cleanText(lesson.enrichment.kernel.scenario.materials))}: cite its strongest support, surface a limiting detail, and revise the judgment accordingly.${lesson.enrichment?.kernel?.facts?.[1] ? ` Keep this admitted fact in view: ${stripTerminalPunctuation(lesson.enrichment.kernel.facts[1])}.` : ''}`,
+                ]),
               ]
             : []),
           ...(isDataScience
@@ -19168,11 +19260,16 @@ export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
     : overlayEnrichedQuizItems(framed, lesson);
   // A partially admitted kernel may contain one excellent authored item and
   // five empty slots. Preserve that item, but do not fill the other slots
-  // with subject-free answer keys. Source-bound constructed responses are
-  // honest about the missing knowledge and work for every model provider.
+  // with subject-free answer keys. Prefer deterministic assessment items built
+  // from already admitted lesson atoms; only genuinely missing knowledge falls
+  // back to source-bound review prompts that are honest about the gap.
   const knowledgeWasRequested = Number(blueprint?.enrichment?.coverage?.requestedLessons) > 0;
-  const sourceBoundFillers =
+  const admittedKernelFillers =
     knowledgeWasRequested && !machineScored
+      ? buildAdmittedKernelAssessmentFillers({ lesson, blueprint, quizPlan, assessment })
+      : [];
+  const sourceBoundFillers =
+    knowledgeWasRequested && !machineScored && lessonNeedsSourceBoundRecovery(lesson, blueprint)
       ? buildSourceBoundRecoveryQuizAtoms({
           lesson,
           blueprint,
@@ -19183,8 +19280,10 @@ export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
         })
       : [];
   const knowledgeSafe =
-    sourceBoundFillers.length > 0
-      ? overlaid.map((atom, index) => (atom.enrichmentSource ? atom : sourceBoundFillers[index] || atom))
+    admittedKernelFillers.length > 0 || sourceBoundFillers.length > 0
+      ? overlaid.map((atom, index) =>
+          atom.enrichmentSource ? atom : admittedKernelFillers[index] || sourceBoundFillers[index] || atom,
+        )
       : overlaid;
   const bloomAligned = knowledgeSafe.map((atom) => {
     const stemLevel = bloomLevelFromStemVerb(atom.question);
@@ -19622,6 +19721,8 @@ function buildExamEssayItem({ blueprint, assessment, covered, lens, examSlug, or
   const decisionFocus = /\bdecision$/i.test(cleanText(lens.decisionNoun))
     ? cleanText(lens.decisionNoun).replace(/\bdecision$/i, 'decision-making')
     : cleanText(lens.decisionNoun);
+  const exampleConceptLabel =
+    exampleConcepts.length === 2 ? `${exampleConcepts[0]} and ${exampleConcepts[1]}` : `two ideas from ${span}`;
   return withQuizPlan(
     {
       id: `${examSlug}-q${ordinal}`,
@@ -19632,18 +19733,55 @@ function buildExamEssayItem({ blueprint, assessment, covered, lens, examSlug, or
       points: 10,
       objectiveAligned: last.outcomes?.[0] || '',
       intendedUse: `Summative synthesis for ${assessment.title}; score with the rubric hints below.`,
-      question: `Synthesize the covered material (${span}): choose the two concepts that most changed your approach to ${decisionFocus} in ${blueprint.courseName}, justify the choice with course ${lens.evidenceNoun}, and name one limitation of each.`,
+      question: singleLesson
+        ? lessonVariant(last, [
+            `Synthesize the covered material (${span}): choose the two concepts that most changed your approach to ${decisionFocus} in ${blueprint.courseName}, justify the choice with course ${lens.evidenceNoun}, and name one limitation of each.`,
+            `Evaluate ${exampleConceptLabel} in ${span}: explain how each shapes ${decisionFocus}, support both with course ${lens.evidenceNoun}, and state where each interpretation is limited.`,
+            `Build an evidence-backed synthesis of ${exampleConceptLabel} for ${span}. Show how they interact in ${decisionFocus} and identify one boundary for each claim.`,
+            `Compare ${exampleConceptLabel} as tools for ${decisionFocus} in ${blueprint.courseName}. Use specific ${lens.evidenceNoun}, connect the two, and qualify both conclusions.`,
+            `Use ${exampleConceptLabel} to explain a consequential ${decisionFocus} in ${span}. Defend the relationship with ${lens.evidenceNoun} and test the limits of each idea.`,
+            `Develop a synthesis of ${span} around ${exampleConceptLabel}: cite the ${lens.evidenceNoun} that links them, explain the resulting ${decisionFocus}, and name two defensible boundaries.`,
+          ])
+        : `Synthesize the covered material (${span}): choose the two concepts that most changed your approach to ${decisionFocus} in ${blueprint.courseName}, justify the choice with course ${lens.evidenceNoun}, and name one limitation of each.`,
       rubricHints: singleLesson
-        ? `Strong responses distinguish two concepts from the covered lesson, support each with specific ${lens.evidenceNoun}, connect them, and name a real limitation for each.`
+        ? lessonVariant(last, [
+            `Strong responses distinguish two concepts from the covered lesson, ground each in specific ${lens.evidenceNoun}, explain their relationship, and identify a genuine limit for both.`,
+            `A strong response accurately separates ${exampleConceptLabel}, supports each with ${lens.evidenceNoun}, connects the reasoning, and tests one boundary per concept.`,
+            `Credit-worthy work uses two distinct lesson ideas, cites concrete ${lens.evidenceNoun} for each, synthesizes them, and qualifies both claims.`,
+            `Strong essays make two covered concepts meaningfully different, show the ${lens.evidenceNoun} behind each, link them, and state where each stops applying.`,
+            `The response should distinguish ${exampleConceptLabel}, justify both with specific ${lens.evidenceNoun}, explain the connection, and give each an evidence-based limitation.`,
+            `High-quality work distinguishes and relates two covered ideas, anchors both in ${lens.evidenceNoun}, and names the boundary of each conclusion.`,
+          ])
         : `Strong responses pick two concepts from different covered lessons, support each with specific ${lens.evidenceNoun}, connect them, and name a real limitation for each.`,
       sampleAnswer: singleLesson
-        ? `A strong response selects two covered concepts${exampleConcepts.length === 2 ? `, such as ${exampleConcepts[0]} and ${exampleConcepts[1]},` : ''} shows with concrete source evidence how each changes an interpretation, connects the two, and closes with one limitation per concept.`
+        ? lessonVariant(last, [
+            `A strong response selects ${exampleConceptLabel}, shows with concrete source evidence how each changes an interpretation, connects the two, and closes with one limitation per concept.`,
+            `A complete answer defines ${exampleConceptLabel} in context, uses specific ${lens.evidenceNoun} to relate them, and explains the boundary of each conclusion.`,
+            `A defensible synthesis traces how ${exampleConceptLabel} work together, cites the decisive evidence for both, and qualifies each claim separately.`,
+            `The response should compare ${exampleConceptLabel}, show which source details support the comparison, and identify what neither idea proves on its own.`,
+            `Strong work applies ${exampleConceptLabel} to the same interpretive problem, explains their relationship through evidence, and states where both readings stop.`,
+            `An effective essay uses ${exampleConceptLabel} accurately, connects them through course evidence, and ends with two specific limits rather than a broad disclaimer.`,
+          ])
         : `A strong response selects two covered concepts (for example, ${concept} and one earlier idea), shows with concrete source evidence how each changes a decision, connects the two, and closes with one limitation per concept.`,
       explanation: singleLesson
-        ? `The essay is scored for synthesis within the covered lesson, not for listing its vocabulary.`
+        ? lessonVariant(last, [
+            `Scoring rewards synthesis inside the lesson rather than a list of its terms.`,
+            `The task checks whether students can relate covered ideas, not merely recall their labels.`,
+            `A vocabulary inventory is insufficient; the response must connect evidence, concepts, and limits.`,
+            `Students earn credit for an evidence-backed relationship between ideas, not for term repetition.`,
+            `The essay measures integrated reasoning within this lesson instead of isolated definitions.`,
+            `Evaluation focuses on how the lesson ideas work together and where their evidence stops.`,
+          ])
         : `The essay is scored for synthesis across the covered range, not for restating any single lesson.`,
       scoringGuidance: singleLesson
-        ? `Full credit requires two accurately distinguished concepts from the lesson, evidence for each, an explicit connection, and two limitations. Partial credit when concepts are accurate but unconnected.`
+        ? lessonVariant(last, [
+            `Full credit requires two accurately distinguished lesson concepts, evidence for each, a stated relationship, and a limitation for both. Partial credit applies when accurate ideas remain unconnected.`,
+            `Award full credit when two distinct concepts are supported, synthesized, and bounded separately. Give partial credit for accurate but disconnected explanations.`,
+            `Complete responses use two covered ideas accurately, cite evidence for both, explain their connection, and qualify each one. Unconnected accuracy earns partial credit.`,
+            `Full credit depends on conceptual distinction, two evidence links, one explicit synthesis, and two defensible limits. Partial credit covers correct ideas without synthesis.`,
+            `Score fully when the response differentiates two concepts, supports and connects them, and states where each claim is limited. Accurate listing alone is partial.`,
+            `A complete answer relates two accurately used concepts through evidence and supplies a boundary for each; partial credit is appropriate when the relationship is missing.`,
+          ])
         : `Full credit requires two accurately used concepts from different lessons, evidence for each, an explicit connection, and two limitations. Partial credit when concepts are accurate but unconnected.`,
       tags: ['exam', 'essay', concept].filter(Boolean),
     },
@@ -19669,19 +19807,6 @@ function buildExamEssayItem({ blueprint, assessment, covered, lens, examSlug, or
 // option unambiguously correct (concept → specific decision → named
 // evidence) while staying under template frequency; no two variants share an
 // 8-word chunk, the audit's shingle size.
-const EXAM_UNDERSTAND_CORRECT_TEMPLATES = [
-  ({ concept, lessonFocus }) =>
-    `${sentenceCase(concept)} explains a specific ${lessonFocus} decision and names the evidence that supports it.`,
-  ({ concept, lessonFocus }) =>
-    `The response uses ${concept} to justify one concrete ${lessonFocus} decision, citing the evidence behind it.`,
-  ({ concept, lessonFocus }) =>
-    `A specific ${lessonFocus} decision is explained through ${concept}, with the supporting evidence named.`,
-  ({ concept, lessonFocus }) =>
-    `The answer connects one ${lessonFocus} decision to ${concept} and points out its supporting evidence.`,
-  ({ concept, lessonFocus }) =>
-    `Applying ${concept} accounts for a particular ${lessonFocus} decision and the evidence used to make it.`,
-];
-
 // ── v0.16 exam-item content fix (meta-template exams) ───────────────────────
 // The live Linear Algebra package shipped EVERY exam MC item as one
 // recognition meta-template — "Which statement most accurately connects
@@ -19740,11 +19865,13 @@ function examAtomDistractors({ lesson, covered, coveredIndex }) {
 function buildExamAtomOptions({ lesson, index, correct, distractors, concept, lessonFocus }) {
   const correctLetter = correctLetterForQuestion(lesson, index);
   const sourceCue = lesson?.evidencePlan?.sourceCue || 'the assigned course materials';
-  const padding = [
-    `${sentenceCase(concept)} is another name for the whole of ${lessonFocus}, so any statement about the lesson describes it.`,
-    `${sentenceCase(concept)} is defined by whichever example from ${sourceCue} appears first in the notes.`,
-    `${sentenceCase(concept)} means the same thing in every lesson, so earlier definitions can be reused unchanged.`,
-  ];
+  const padding = examAtomPaddingOptions({
+    concept,
+    lessonFocus,
+    sourceCue,
+    lessonNumber: lesson?.lessonNumber,
+    questionIndex: index,
+  });
   const correctText = cleanText(correct);
   const filled = unique(
     [...distractors, ...padding].filter((option) => cleanText(option) && cleanText(option) !== correctText),
@@ -19823,6 +19950,12 @@ function buildExamFactItem({ lesson, covered, coveredIndex, index, objective, as
     concept,
     lessonFocus,
   });
+  const copy = examFactCopy({
+    lessonNumber: lesson.lessonNumber,
+    assessmentTitle: assessment.title,
+    lessonFocus,
+    answer,
+  });
   return withQuizPlan(
     {
       id: quizQuestionId(lesson, index),
@@ -19832,17 +19965,175 @@ function buildExamFactItem({ lesson, covered, coveredIndex, index, objective, as
       estimatedMinutes: 2,
       points: 2,
       objectiveAligned: objective,
-      intendedUse: `Summative accuracy item on ${assessment.title}; students separate the authored ${lessonFocus} fact from documented misconceptions.`,
-      question: `Which statement about ${lessonFocus} is accurate, according to the course materials?`,
+      intendedUse: copy.intendedUse,
+      question: copy.question,
       options,
       answer,
-      distractorRationale: `Distractors are documented misconceptions from the covered lessons — false claims a prepared student must rule out; the correct option is the authored course fact.`,
-      explanation: `${answer} states the authored course fact for ${lessonFocus}; the other options are documented misconceptions, not course claims.`,
+      distractorRationale: copy.distractorRationale,
+      explanation: copy.explanation,
       enrichmentSource: 'lesson-content-enrichment',
       tags: unique(['exam', 'fact check', concept, lessonFocus], 6),
     },
     plan,
   );
+}
+
+function rotateAdmittedAssessmentKnowledge(lesson, offset = 0) {
+  const rotate = (values = []) => {
+    if (values.length < 2) return values;
+    const start = offset % values.length;
+    return [...values.slice(start), ...values.slice(0, start)];
+  };
+  return {
+    ...lesson,
+    enrichment: {
+      ...lesson?.enrichment,
+      keyTerms: rotate(lesson?.enrichment?.keyTerms || []),
+      kernel: {
+        ...lesson?.enrichment?.kernel,
+        facts: rotate(lesson?.enrichment?.kernel?.facts || []),
+      },
+    },
+  };
+}
+
+// A complete, admitted kernel must never fall through to source-bound
+// recovery merely because one generated MC option set fails admission. This
+// constructed-response atom quotes the admitted fact directly, connects it to
+// an admitted term, and asks students to bound the claim. It is intentionally
+// simpler than trying to synthesize another plausible distractor set from a
+// one-lesson evidence pool: the answer remains inspectable without pretending
+// the lesson's knowledge is missing.
+function buildAdmittedKernelEvidenceItem({ lesson, quizPlan, index, offset = 0 }) {
+  const terms = examLessonTerms(lesson);
+  const facts = (lesson?.enrichment?.kernel?.facts || []).map(cleanText).filter(Boolean);
+  // Genome-authored terms carry the lesson concept. Quiz-projected terms
+  // (for example, an answer option promoted as "water") are useful retrieval
+  // atoms but can have a definition whose scope is broader than the label.
+  // Prefer the primary, non-projected term for a cross-fact analysis prompt.
+  const term =
+    terms.find(
+      (candidate) =>
+        candidate?.derivedFromQuizIndex == null && cleanText(candidate?.source) !== 'verified-quiz-projection',
+    ) ||
+    terms[0] ||
+    null;
+  const fact = facts[offset % Math.max(1, facts.length)] || cleanText(term?.definition);
+  const concept = cleanText(term?.term) || primaryConceptForLesson(lesson);
+  const definition = cleanText(term?.definition);
+  if (!concept || !fact) return null;
+
+  const plan = quizPlan[index] || quizPlan[0] || {};
+  const quotedFact = stripTerminalPunctuation(fact);
+  const definitionCue = definition
+    ? `${joinTermDefinition(concept, definition, { separator: ' means ', lowercaseTail: true })}.`
+    : `${sentenceCase(concept)} is the concept students should use to interpret the quoted evidence.`;
+  return withQuizPlan(
+    {
+      id: quizQuestionId(lesson, index),
+      type: 'short_answer',
+      bloomsLevel: 'Analyze',
+      difficulty: plan.difficulty || 'Medium',
+      estimatedMinutes: 5,
+      points: 4,
+      objectiveAligned: plan.objective || lesson.outcomes?.[0] || '',
+      intendedUse: `Weekly source-grounded evidence check for ${lesson.title}; score the relationship and claim boundary against the admitted lesson kernel.`,
+      question: `Analyze this course statement: “${quotedFact}.” In 2-3 sentences, explain how the evidence relates to ${concept}, then name one conclusion the statement does not establish by itself.`,
+      answer: `A complete answer accurately connects the quoted statement to ${concept}, explains the relationship it establishes, and keeps the conclusion within the supplied evidence.`,
+      sampleAnswer: `${definitionCue} The evidence supports that concept by showing that ${lowercaseSentenceLead(quotedFact)}. It does not support a conclusion that adds a nutrient, quantity, cause, or outcome not stated in the quotation.`,
+      explanation: `This item checks whether students can interpret an admitted ${concept} fact and distinguish its supported relationship from an overclaim.`,
+      scoringGuidance: `Award full credit for accurate use of ${concept}, an explicit explanation of the quoted relationship, and one defensible boundary. Partial credit when the response repeats the fact without explaining or limiting it.`,
+      tags: unique(['quiz', 'short answer', concept, 'source evidence', 'claim boundary'], 8),
+      enrichmentSource: 'admitted-kernel-assessment',
+    },
+    {
+      ...plan,
+      source: 'source-grounded-quiz-plan',
+      role: 'admitted-kernel-evidence-analysis',
+      bloom: 'Analyze',
+      difficulty: plan.difficulty || 'Medium',
+      use: 'weekly source-grounded evidence check',
+      questionIndex: index,
+      bloomSource: 'admitted lesson fact and claim-boundary demand',
+      sourceSignal: quotedFact,
+      objectiveAlignmentStrategy: plan.objectiveAlignmentStrategy || 'lesson-primary-objective',
+      objectiveAlignmentRationale:
+        plan.objectiveAlignmentRationale || 'Question applies an admitted lesson fact to the lesson objective.',
+    },
+  );
+}
+
+function buildAdmittedKernelAssessmentFillers({ lesson, blueprint, quizPlan, assessment }) {
+  if (lessonNeedsSourceBoundRecovery(lesson, blueprint) || (!examLessonTerm(lesson) && !examLessonFact(lesson))) {
+    return [];
+  }
+  const weeklyAssessment = {
+    ...assessment,
+    title: cleanText(assessment?.title) || `${lesson.title} weekly knowledge check`,
+  };
+  const covered = [lesson];
+  const weeklyize = (item, index) => {
+    if (!item) return null;
+    if (
+      item.type === 'multiple_choice' &&
+      lintItemAdmission({
+        question: item.question,
+        options: item.options.map((option) => option.replace(/^[A-D]\.\s*/, '')),
+        answerIndex: QUIZ_ANSWER_LETTERS.indexOf(item.answer),
+        explanation: item.explanation,
+      }).length > 0
+    ) {
+      return null;
+    }
+    return {
+      ...item,
+      intendedUse: lessonVariant(lesson, [
+        `Weekly source-grounded knowledge check for ${lesson.title}; each answer choice is built from admitted lesson atoms.`,
+        `Use this ${lesson.title} knowledge check to assess distinctions supported by the admitted lesson evidence.`,
+        `Weekly retrieval for ${lesson.title}; the keyed response and alternatives stay within the admitted kernel.`,
+        `This ${lesson.title} check tests course knowledge using only admitted facts, terms, and misconception evidence.`,
+        `Source-grounded practice for ${lesson.title}; score the answer against the lesson atoms already admitted.`,
+        `Weekly ${lesson.title} assessment item grounded in the lesson's verified knowledge kernel.`,
+      ]),
+      enrichmentSource: 'admitted-kernel-assessment',
+      tags: (item.tags || []).map((tag) => (tag === 'exam' ? 'quiz' : tag)),
+      quizPlan: { ...item.quizPlan, ...quizPlan[index], questionIndex: index },
+    };
+  };
+  const build = (builder, index, offset = 0) => {
+    const sourceLesson = rotateAdmittedAssessmentKnowledge(lesson, offset);
+    return weeklyize(
+      builder({
+        lesson: sourceLesson,
+        covered,
+        coveredIndex: 0,
+        index,
+        objective: quizPlan[index]?.objective || lesson.outcomes?.[0] || '',
+        assessment: weeklyAssessment,
+        plan: quizPlan[index],
+      }),
+      index,
+    );
+  };
+  const fillers = [];
+  fillers[0] = build(buildExamDefinitionItem, 0) || build(buildExamFactItem, 0);
+  fillers[1] = build(buildExamMisconceptionItem, 1) || build(buildExamFactItem, 1, 1);
+  fillers[2] =
+    build(buildExamFactItem, 2) ||
+    build(buildExamDefinitionItem, 2, 1) ||
+    buildAdmittedKernelEvidenceItem({ lesson, quizPlan, index: 2, offset: 1 });
+  fillers[4] =
+    build(buildExamMisconceptionItem, 4, 1) || build(buildExamFactItem, 4, 1) || build(buildExamDefinitionItem, 4, 1);
+  const examArgs = {
+    blueprint,
+    assessment: weeklyAssessment,
+    covered,
+    lens: blueprintLens(blueprint),
+    examSlug: `lesson-${lesson.lessonNumber}-weekly`,
+  };
+  fillers[3] = weeklyize(buildExamShortAnswerItem({ ...examArgs, ordinal: 4 }), 3);
+  fillers[5] = weeklyize(buildExamEssayItem({ ...examArgs, ordinal: 6 }), 5);
+  return fillers;
 }
 
 // Misconception vs corrective: the stem quotes the documented wrong claim;
@@ -19894,7 +20185,7 @@ function buildExamMisconceptionItem({ lesson, covered, coveredIndex, index, obje
       points: 2,
       objectiveAligned: objective,
       intendedUse: `Summative misconception check on ${assessment.title}; students pick the corrective over the documented wrong turn.`,
-      question: `A classmate preparing for ${assessment.title} claims: “${stripTerminalPunctuation(claim)}.” Which statement about ${concept} corrects this?`,
+      question: `A classmate preparing for ${assessment.title} claims: “${stripTerminalPunctuation(claim)}.” Which response best addresses this claim about ${concept} using the course evidence?`,
       options,
       answer,
       distractorRationale: `The lead distractor endorses ${concept}'s documented misconception; the rest are claims about other covered concepts that never address it.`,
@@ -19972,9 +20263,11 @@ function buildRegistryExamEntry(blueprint, assessment, examOrdinal) {
           concept,
           use: 'summative exam evidence',
           prompt: `Which statement most accurately connects ${concept} to the work in ${frameFocus}?`,
-          correct: EXAM_UNDERSTAND_CORRECT_TEMPLATES[
-            (coveredIndex + examOrdinal) % EXAM_UNDERSTAND_CORRECT_TEMPLATES.length
-          ]({ concept, lessonFocus: frameFocus }),
+          correct: examUnderstandCorrectText({
+            concept,
+            lessonFocus: frameFocus,
+            variant: coveredIndex + examOrdinal,
+          }),
           plan: plan(indexBase, 'Understand', 'Medium', 'summative exam evidence'),
         }),
     );
@@ -20142,10 +20435,10 @@ function buildReviewWeekQuizAtoms(lesson, blueprint, options = {}) {
       `A practice problem from ${sourceFocus} resurfaces in ${reviewFocus}. Which response shows ${concept} transfers to new evidence?`,
     ];
     const corrects = [
-      `Re-apply ${concept} to a fresh example from ${sourceCue} and confirm the same decision logic holds for ${reviewArtifact}.`,
-      `Use ${concept} to work one ${sourceFocus} example end-to-end, then check the result against ${sourceCue}.`,
-      `Explain ${concept} from memory, then verify the explanation against ${sourceCue} before relying on it in ${reviewArtifact}.`,
-      `Apply ${concept} to the new evidence first, and only then compare the answer with the original ${sourceFocus} work.`,
+      `Re-apply the named method to a fresh covered example and confirm the same decision logic holds for the current task.`,
+      `Use the named method to work one covered example end-to-end, then check the result against the assigned source.`,
+      `Explain the named method from memory, then verify the explanation against the assigned source before relying on it in the current task.`,
+      `Apply the named method to the new evidence first, and only then compare the answer with the original work.`,
     ];
     return buildMultipleChoiceQuestion({
       lesson: hybrid,
@@ -21236,11 +21529,25 @@ function slideVisual(lesson, slide) {
         }
       : /common pitfalls/i.test(title)
         ? {
-            // v0.14.3 D1(a): the pitfalls slide's bullets ARE the visual —
-            // tempting claim vs corrective, run as a vote-then-reveal.
-            kind: 'misconception vote-and-reveal',
+            // The same admitted misconception/correction pairs that author
+            // the bullets also form a native two-column comparison. No
+            // content is inferred by the exporter.
+            kind: 'misconception comparison table',
+            columnLabels: ['MISCONCEPTION', 'CORRECTION'],
             purpose: `Surface the tempting ${concept} misreadings before they reach ${artifact}.`,
             evidenceUse: `Vote on each tempting claim, then test it against the corrective and ${source}.`,
+            tableLead: lessonVariant(lesson, [
+              'Vote first, then compare each tempting claim with its evidence-based correction.',
+              'Commit to a judgment before revealing why each misconception needs revision.',
+              'Use the comparison to separate a plausible error from the corrective supported by the lesson.',
+              'Test each tempting statement, then trace the evidence behind the stronger explanation.',
+            ]),
+            rows: lessonMisconceptionPairs(lesson)
+              .slice(0, 3)
+              .map((pair) => [
+                conciseClause(pair.misconception, pair.misconception, 42, { ellipsis: true }),
+                conciseClause(pair.corrective, pair.corrective, 130, { ellipsis: true }),
+              ]),
           }
         : {
             kind: /limit|honest|gap/i.test(title) ? 'constraint map' : 'evidence table',
@@ -21358,6 +21665,10 @@ function slideVisual(lesson, slide) {
     ...(selected.hub && Array.isArray(selected.spokes) ? { hub: selected.hub, spokes: selected.spokes } : {}),
     // v0.14.1 (5.2c): pre-paired claim/evidence rows for the evidence table.
     ...(Array.isArray(selected.rows) && selected.rows.length >= 2 ? { rows: selected.rows } : {}),
+    ...(selected.tableLead ? { tableLead: selected.tableLead } : {}),
+    ...(Array.isArray(selected.columnLabels) && selected.columnLabels.length === 2
+      ? { columnLabels: selected.columnLabels }
+      : {}),
     // v0.14.5 (C2): worked-example plot pairs for the native bar chart.
     ...(selected.wePlot ? { wePlot: selected.wePlot } : {}),
     visualPlan,
@@ -21375,7 +21686,12 @@ function slideTypeFocus(type, lesson, lens) {
   switch (type) {
     case 'title':
       return {
-        opening: `Frame ${displayTitle} as a working session on ${slideConceptList(lesson)}, with ${artifact} as the visible product.`,
+        opening: titleSlideOpening({
+          lessonNumber: lesson.lessonNumber,
+          displayTitle,
+          concepts: slideConceptList(lesson),
+          artifact,
+        }),
         evidence: `Preview the ${lens.evidenceNoun} from ${source} that students will inspect before they revise ${artifact}.`,
         misconception: `Set the expectation that ${displayTitle} ends with one concrete ${concept} move students can use in ${artifact}.`,
       };
@@ -21519,7 +21835,12 @@ function slideTypeFocus(type, lesson, lens) {
           `Prompt students to identify the evidence cue they can now defend inside ${artifact}.`,
           `Close by having students name the strongest support they will carry into ${artifact}.`,
         ]),
-        misconception: `If they can only repeat vocabulary, prompt for the specific ${artifact} revision or next step they can now justify.`,
+        misconception: lessonVariant(lesson, [
+          `If students only repeat vocabulary, ask which specific ${artifact} revision the evidence now justifies.`,
+          `When the self-check stops at definitions, require one concrete next move for ${artifact}.`,
+          `If students can name the term but not use it, ask what should change first in ${artifact} and why.`,
+          `Turn vocabulary-only responses into transfer by asking for one evidence-backed ${artifact} decision.`,
+        ]),
       };
     case 'closing':
       return {
@@ -21545,7 +21866,14 @@ function slideTypeFocus(type, lesson, lens) {
     default:
       return {
         opening: `Use this slide to keep ${displayTitle} tied to ${slideConceptList(lesson)}.`,
-        evidence: `Connect the slide to one visible ${lens.evidenceNoun} move in ${artifact}.`,
+        evidence: lessonVariant(lesson, [
+          `Connect the slide to one visible ${lens.evidenceNoun} move in ${artifact}.`,
+          `Ask students which ${lens.evidenceNoun} detail from this slide belongs in ${artifact}.`,
+          `Make the slide actionable by naming the ${lens.evidenceNoun} choice it changes in ${artifact}.`,
+          `Trace one claim on the slide into an inspectable evidence decision for ${artifact}.`,
+          `Use the slide to surface the source detail students should carry into ${artifact}.`,
+          `End the slide by identifying which evidence link in ${artifact} is now stronger or needs revision.`,
+        ]),
         misconception: lessonVariant(lesson, [
           `Redirect abstract discussion back to the evidence and decision work students must complete in ${artifact}.`,
           `If the slide becomes too general, ask which evidence move would change ${artifact}.`,
@@ -21560,15 +21888,13 @@ function slideNoteAnchor({ type, anchor, concept, artifact, displayTitle, lesson
   const safeAnchor = slideNoteAnchorText(anchor, type, lesson);
   switch (type) {
     case 'title':
-      return `Start the ${displayTitle} working session by connecting ${safeAnchor} to ${shortArtifactReference(
-        slideArtifact(lesson),
-        Number(lesson?.lessonNumber) || 0,
-      )}. ${lessonVariant(lesson, [
-        `Students should be able to name the ${concept} decision the product will capture.`,
-        `Ask students to point to the ${concept} evidence that will guide the next artifact move.`,
-        `By the transition, students should state which ${concept} choice their work will test.`,
-        `Have students identify the ${concept} decision they will defend before the first practice step.`,
-      ])}`;
+      return titleSlideNote({
+        lessonNumber: lesson.lessonNumber,
+        displayTitle,
+        safeAnchor,
+        concept,
+        artifactReference: shortArtifactReference(slideArtifact(lesson), Number(lesson?.lessonNumber) || 0),
+      });
     case 'agenda':
       return lessonVariant(lesson, [
         `Keep the ${displayTitle} pacing visible and point to the first ${concept} checkpoint: ${anchor}. Students should leave knowing which evidence cue changes ${shortArtifactReference(
@@ -22397,7 +22723,14 @@ function buildDiscussionFollowUps(lesson, phrase) {
   return [
     `What evidence from ${lesson.title} most strongly supports your position on ${concept}?`,
     positions.length >= 2
-      ? `A classmate will argue: “${positions[1]}.” What evidence would you need to answer them — or to concede — before revising ${artifact}?`
+      ? lessonVariant(lesson, [
+          `A classmate argues: “${positions[1]}.” What evidence would make you answer them — or concede — before revising ${artifact}?`,
+          `Another reader objects: “${positions[1]}.” Which source detail would resolve the disagreement before you revise ${artifact}?`,
+          `Test this counterclaim: “${positions[1]}.” What evidence would strengthen it or require a change to ${artifact}?`,
+          `Suppose a peer says: “${positions[1]}.” What would you need to verify before defending or revising ${artifact}?`,
+          `The opposing position is: “${positions[1]}.” Which evidence could change your response and the next ${artifact} move?`,
+          `A seminar partner proposes: “${positions[1]}.” Where does the evidence support or limit that view in ${artifact}?`,
+        ])
       : lessonVariant(lesson, [
           `Which alternative reading of the same evidence about ${concept} would challenge your claim, and why might another student prefer it for ${artifact}?`,
           `What source detail could weaken your ${concept} interpretation, and how would that change the next ${artifact} move?`,
@@ -22406,7 +22739,14 @@ function buildDiscussionFollowUps(lesson, phrase) {
         ]),
     `If the ${concept} evidence changed, what part of ${artifact} would you revise first?`,
     tension
-      ? `The live tension: ${tension}. Which side does your evidence actually support, and what finding would change your mind?`
+      ? lessonVariant(lesson, [
+          `The live tension: ${tension}. Which side does your evidence actually support, and what finding would change your mind?`,
+          `Use this tension: ${tension}. Where is the stronger source support, and what detail could reverse your judgment?`,
+          `The unresolved question is ${tension}. Defend the reading the evidence favors, then name the evidence that would unsettle it.`,
+          `Test the competing views through this tension: ${tension}. What warrants your position, and where should confidence stop?`,
+          `Return to the central tension—${tension}. Which claim survives the source check, and what remains uncertain?`,
+          `The debate turns on this tension: ${tension}. Identify the decisive evidence and one finding that would require revision.`,
+        ])
       : lessonVariant(lesson, [
           `Which limit, risk, or ethical concern should change how you frame ${artifact}?`,
           `Which assumption in your ${artifact} reasoning needs the clearest evidence check before you revise?`,
@@ -23639,6 +23979,7 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
     artifact,
   });
   applyMusicIntervalSlideIntegrity(slides, lesson, { objectiveOne, objectiveTwo });
+  applyAdmittedLanguagePairToSlides(slides, lesson);
   const slideMinutes = slides.reduce((sum, slide) => sum + Number(slide.minutes || 0), 0);
   const slideTimingFit = {
     slideMinutes,
@@ -23758,6 +24099,7 @@ function compileSlideDecks(blueprint) {
           'kernel-misconception-pitfalls',
           'kernel-mc-walkthrough',
           'deterministic-content-floor',
+          'admitted-language-pair',
           MUSIC_INTERVAL_SLIDE_FRAME_SOURCE,
           // v0.16 exam-day fix: exam-day logistics bullets are authored
           // exam-procedure text — the display rewriter must not reshape them.
@@ -23815,7 +24157,19 @@ function compileSlideDecks(blueprint) {
               return `${compressed.charAt(0).toUpperCase()}${compressed.slice(1)}`;
             }),
             notes: `Quick retrieval practice: students saw this routine earlier in the course. Ask them to reconstruct the steps for ${scaffold.term} before revealing the bullets, then apply one step to today's material.`,
-            visual: null,
+            visual: {
+              kind: 'expert reasoning table',
+              tableLead: `Reconstruct the ${scaffold.term} routine before revealing each expert move.`,
+              columnLabels: ['STEP', 'EXPERT MOVE'],
+              rows: moves
+                .slice(0, 3)
+                .map((move, moveIndex) => [
+                  `Step ${moveIndex + 1}`,
+                  sentenceCase(conciseClause(move, move, 125, { ellipsis: true })),
+                ]),
+              description: `Retrieval table for the expert reasoning sequence behind ${scaffold.term}.`,
+              altText: `Three-step expert reasoning routine for ${scaffold.term}.`,
+            },
             activityType: 'retrieval practice',
             timer: '2 min',
             bloomsLevel: 'Apply',
@@ -23837,7 +24191,19 @@ function compileSlideDecks(blueprint) {
             ...moves.map((m) => `${m.charAt(0).toUpperCase()}${m.slice(1)}`),
           ]),
           notes: `Model this routine aloud on a worked example before students try it: walk through "${moves.join('", then "')}". Naming the steps an expert runs — instead of only showing the answer — is what makes the thinking transferable.`,
-          visual: null,
+          visual: {
+            kind: 'expert reasoning table',
+            tableLead: `Follow the ${scaffold.term} reasoning routine in order, then apply it to the worked example.`,
+            columnLabels: ['STEP', 'EXPERT MOVE'],
+            rows: moves
+              .slice(0, 4)
+              .map((move, moveIndex) => [
+                `Step ${moveIndex + 1}`,
+                sentenceCase(conciseClause(move, move, 125, { ellipsis: true })),
+              ]),
+            description: `Ordered expert reasoning sequence for ${scaffold.term} as ${structure}.`,
+            altText: `Table listing the expert reasoning steps used for ${scaffold.term}.`,
+          },
           activityType: 'worked example',
           timer: '4 min',
           bloomsLevel: 'Apply',
@@ -23872,7 +24238,19 @@ function compileSlideDecks(blueprint) {
             ...pairBullets,
           ],
           notes: `Draw the analogy explicitly: ${bridge.note} Ask students to predict one place where the analogy breaks down — naming the limit of a structural mapping deepens transfer.`,
-          visual: null,
+          visual: {
+            kind: 'structural mapping table',
+            tableLead: `Compare the earlier and current concepts through their shared ${bridge.archetypeName.toLowerCase()} structure.`,
+            columnLabels: ['EARLIER STRUCTURE', 'CURRENT STRUCTURE'],
+            rows: bridge.mappingPairs
+              .slice(0, 4)
+              .map((pair) => [
+                conciseClause(pair.from, pair.from, 42, { ellipsis: true }),
+                conciseClause(pair.to, pair.to, 125, { ellipsis: true }),
+              ]),
+            description: `Structural mapping between ${bridge.fromTerm} and ${bridge.toTerm}.`,
+            altText: `Table pairing the shared structural roles in ${bridge.fromTerm} and ${bridge.toTerm}.`,
+          },
           activityType: 'discussion',
           timer: '4 min',
           bloomsLevel: 'Analyze',
@@ -24105,7 +24483,14 @@ function compileCourseFaq(blueprint, config = {}) {
       if (taskDescription) {
         return {
           q: `How does ${stripLessonPrefix(lesson.title)} connect to graded work?`,
-          an: `${lesson.title} feeds directly into the graded task: ${stripTerminalPunctuation(taskDescription)}. Use the ${safeCourseFaqPrimaryConcept(lesson)} success criteria to test your work against that task before submitting.`,
+          an: lessonVariant(lesson, [
+            `${lesson.title} feeds directly into the graded task: ${stripTerminalPunctuation(taskDescription)}. Use the ${safeCourseFaqPrimaryConcept(lesson)} success criteria to test your work against that task before submitting.`,
+            `The graded-work link for ${lesson.title} is explicit: ${stripTerminalPunctuation(taskDescription)}. Before submitting, check the evidence and boundary against the ${safeCourseFaqPrimaryConcept(lesson)} criteria.`,
+            `${lesson.title} prepares the assigned task this way: ${stripTerminalPunctuation(taskDescription)}. Use the ${safeCourseFaqPrimaryConcept(lesson)} evidence standard to revise any unsupported part.`,
+            `Carry ${lesson.title} into the graded work by following this brief: ${stripTerminalPunctuation(taskDescription)}. Then verify that the ${safeCourseFaqPrimaryConcept(lesson)} reasoning is visible to a scorer.`,
+            `The assessment asks you to transfer ${lesson.title} directly: ${stripTerminalPunctuation(taskDescription)}. Self-check the source detail, conclusion, and limitation before release.`,
+            `For graded work, apply ${lesson.title} through this task: ${stripTerminalPunctuation(taskDescription)}. Compare the result with the ${safeCourseFaqPrimaryConcept(lesson)} success criteria and revise the weakest link.`,
+          ]),
           ca: 'Assignment Clarification',
           rc: ['success criteria', ...safeCourseFaqConcepts(lesson).slice(0, 2)],
           df: 'Intermediate',
@@ -24415,6 +24800,9 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
     8,
   ).slice(0, 5);
   const kernelFact = kernelFacts[0] || '';
+  const kernelFactLedger = kernelFacts
+    .map((fact, index) => `${index + 1}) ${ensureSentenceCompiler(stripTerminalPunctuation(fact))}`)
+    .join(' ');
   const kernelScenario = kernelPayload?.kernel?.scenario || null;
   const kernelWorkedExample = kernelPayload?.workedExample || null;
   const lessonPlanEvidenceRoutine = compactCompleteEvidenceRoutine(
@@ -24433,10 +24821,11 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
     deep && cleanText(kernelPayload?.discussionPrompt?.prompt) ? kernelPayload.discussionPrompt : null;
   const kernelTermA = deep ? (kernelPayload?.keyTerms || [])[0] || null : null;
   const kernelCitation = deep
-    ? cleanText(
+    ? humanSourceCueLabel(
         (kernelPayload?.conceptProvenance?.citations || [])[0] ||
           (kernelPayload?.keyTerms || []).find((term) => cleanText(term.source))?.source ||
           '',
+        '',
       )
     : '';
 
@@ -24506,11 +24895,10 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
       instructorNotes: kernelWorkedExample
         ? `Solution path: ${kernelWorkedExample.steps.join(' → ')}. Result: ${kernelWorkedExample.result}. Have students annotate each step, then assign one variation with different numbers.`
         : kernelFacts.length > 0
-          ? `Teach from the admitted source-grounded fact set: ${kernelFacts
-              .map((fact, index) => `${index + 1}) ${ensureSentenceCompiler(stripTerminalPunctuation(fact))}`)
-              .join(
-                ' ',
-              )} Keep these claims visible during the model, then ask students to identify which fact supports each practice decision.`
+          ? kernelFactInstructorNote({
+              lessonNumber: lesson.lessonNumber,
+              kernelFactLedger,
+            })
           : lessonVariant(lesson, [
               `Keep the model concrete: point to ${evidencePlan?.sourceCue || 'one source cue'}, then model the reasoning move students will transfer into ${artifact}.`,
               `Use ${evidencePlan?.sourceCue || 'one source cue'} as the worked anchor and name the inference students should carry into ${artifact}.`,
@@ -24773,6 +25161,18 @@ function compileLessonPlans(blueprint, options = {}) {
         {};
       const classSessionPlan = lesson.classSessionPlan || buildClassSessionPlan({ lesson, modalityDecode: modality });
       const outline = buildLessonPlanOutline(blueprint, { ...lesson, classSessionPlan }, { depth: lessonDepth });
+      const admittedPair = admittedLanguagePairTerm(lesson);
+      if (admittedPair) {
+        const targetLanguageStep = outline.find((step) => step?.type === 'Mini-lesson') || outline[0];
+        if (targetLanguageStep) {
+          targetLanguageStep.description =
+            `${cleanText(targetLanguageStep.description)} ${admittedLanguagePairModel(admittedPair)}`.trim();
+          targetLanguageStep.instructorNotes = appendAdmittedLanguagePairInstruction(
+            targetLanguageStep.instructorNotes,
+            admittedPair,
+          );
+        }
+      }
       const outlineMinutes = outline.reduce((sum, item) => sum + (Number.parseInt(item.time, 10) || 0), 0);
       const dryRunRow =
         compilerProofBundle.classroomDryRunPlan?.lessonRows?.find((row) => row.lessonNumber === lesson.lessonNumber) ||

@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-teacher-capture-v1",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "packetSha256": "f9dd6210c2f93c8d83766c83f37938db313b3bb201179636f09bb6b4c39cf6b9",
+  "resultSha256": "2bd88ed65c25c168845cbd41585081e0ac0e21eae1058be4dc19aabb8b57a234",
+  "reviser": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-source-cleanroom"
+  },
+  "calls": [
+    {
+      "caseId": "scion-kernel-5edc63b53c12793b089d95e4",
+      "caseSha256": "5edc63b53c12793b089d95e493d8c465270ba8d1558103756c3869f6d4a0cc99",
+      "arm": "teacher-revision",
+      "model": {
+        "model": "gpt-5.6-sol",
+        "revision": "codex-cli 0.144.5",
+        "runtime": "codex-cli-ephemeral-source-cleanroom"
+      },
+      "sourceContextSha256": "373e2d9cbec113fd565448de8986664b947ceac3e7340e44b1abef5de1ca60b6",
+      "originalArtifactSha256": "b90c939c820a088da7b4bd6da5f7920967ba2cb73273567d80fcb9d8db751358",
+      "artifact": {
+        "lessonId": "lesson-8",
+        "facts": [
+          "In the circular flow of income, money that households earn returns to firms as spending unless it leaks out of the flow as saving, taxes, or spending on imports.",
+          "Leakages are balanced by injections such as investment, government spending, and exports that add spending back into the flow.",
+          "When total leakages equal total injections, the circular flow is in balance and national income neither rises nor falls."
+        ],
+        "keyTerms": [
+          {
+            "tr": "circular flow",
+            "df": "The circular flow describes household earnings returning to firms as spending unless they leak out.",
+            "eg": "Money that households earn returns to firms as spending in the circular flow.",
+            "mi": "The circular flow requires household earnings to become saving, taxes, or spending on imports.",
+            "cx": "Household earnings return to firms as spending unless they leak out through those categories."
+          },
+          {
+            "tr": "leakages",
+            "df": "Leakages are saving, taxes, or spending on imports that leave the circular flow.",
+            "eg": "Saving, taxes, and spending on imports are leakages.",
+            "mi": "Investment, government spending, and exports are leakages from the circular flow.",
+            "cx": "Those categories are injections that add spending back into the flow."
+          },
+          {
+            "tr": "injections",
+            "df": "Injections are investment, government spending, and exports that add spending back into the flow.",
+            "eg": "Investment, government spending, and exports are injections.",
+            "mi": "Injections consist of saving, taxes, and spending on imports.",
+            "cx": "Saving, taxes, and spending on imports are leakages rather than injections."
+          }
+        ],
+        "scenario": {
+          "su": "An analyst must classify whether the circular flow is in balance while relying on recorded totals that show total leakages equal total injections. The analyst must also account for a household spending record showing earnings returning to firms and category records listing saving, taxes, imports, investment, government spending, and exports.",
+          "ma": "household spending record, leakage category record, injection category record, equal-totals notation"
+        },
+        "mc": [
+          {
+            "q": "A record groups saving, taxes, and spending on imports together, while another groups investment, government spending, and exports together. How should the two groups be classified in the circular flow?",
+            "op": [
+              "First group leakages; second group injections",
+              "Both groups add spending back into flow",
+              "Saving and taxes belong with injections",
+              "Exports and investment belong with leakages"
+            ],
+            "ai": 0,
+            "fi": [
+              0,
+              1
+            ],
+            "ex": "The first group contains saving, taxes, and spending on imports that leak out, while the second contains injections that add spending back. Exports and investment are injections, not leakages."
+          },
+          {
+            "q": "A record shows that total leakages equal total injections. An analyst must identify both the condition of the circular flow and the direction of national income. Which conclusion follows?",
+            "op": [
+              "Flow is balanced; national income neither rises nor falls",
+              "Flow is balanced; national income rises",
+              "Flow is balanced; national income falls",
+              "Flow is not in balance; income neither rises nor falls"
+            ],
+            "ai": 0,
+            "fi": [
+              2
+            ],
+            "ex": "Equal total leakages and total injections make the flow balanced, and national income neither rises nor falls. A balanced flow therefore does not mean that national income rises."
+          }
+        ]
+      },
+      "artifactSha256": "6e33fdc68a39b3639ebaa2d9b3276dc506782a8a35e453c5119a1eb8e461332a",
+      "admission": {
+        "needsRetry": true,
+        "issues": [
+          "lesson-8:mc-1:source-fact-key-mismatch"
+        ]
+      },
+      "compilerRepairs": [],
+      "revisionEvidence": {
+        "packetSha256": "f9dd6210c2f93c8d83766c83f37938db313b3bb201179636f09bb6b4c39cf6b9",
+        "sessionId": "scion-v01654-teacher-batch-004-cb473acbf6-part-01-7e532767-4db0-48a0-a7d9-0cb696a4c6ac",
+        "changeSummary": [
+          "Re-authored both multiple-choice items with the uniquely supported option first and complete source-fact citations.",
+          "Replaced the duplicated wrong proposition in the second option set with distinct alternatives."
+        ],
+        "addressedDiagnoses": [
+          "Removed the duplicated wrong proposition identified in the second option set.",
+          "Improved choice discriminability while preserving source fidelity and assessment correctness."
+        ]
+      }
+    }
+  ],
+  "summary": {
+    "cases": 1,
+    "compilerAdmitted": 0,
+    "compilerRejected": 1
+  },
+  "claimBoundary": "These source-constrained model revisions cleared only deterministic compiler admission where stated. They are not judge preferences, human evidence, adapter wins, or training authorization.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "986e69ca715f69fa3967e242c8b1278eaf9244b82db0442eae7a0e4608b08e01"
+  }
+}

@@ -92,9 +92,31 @@ export function selectNativeContentSources(lessonIndices, lessonContent = {}, pa
 
 export function pickNativeKernel(previous, candidate) {
   if (!previous) return candidate;
-  return assessProjectedKernelCoverage(candidate).score >= assessProjectedKernelCoverage(previous).score
-    ? candidate
-    : previous;
+  // Thin genome overlays deliberately remain in `lessonContent` while the
+  // model authors the missing semantic backbone. Comparing only the seven
+  // optional-surface checks let a citation-rich but unusable partial outrank
+  // a compact model kernel that becomes usable after deterministic surface
+  // completion. Recovery then generated the same lesson again and discarded
+  // it again. Rank the state users can actually receive: usability after the
+  // compiler's evidence-preserving completion comes before saturation score.
+  const rank = (payload) => {
+    const completed = completeNativeKernelSurfaces(payload);
+    const coverage = assessProjectedKernelCoverage(completed);
+    return [
+      coverage.usable ? 1 : 0,
+      coverage.complete ? 1 : 0,
+      coverage.score,
+      Math.min(8, coverage.factCount + coverage.keyTermCount),
+      Math.min(4, coverage.quizItemCount),
+    ];
+  };
+  const previousRank = rank(previous);
+  const candidateRank = rank(candidate);
+  for (let index = 0; index < candidateRank.length; index += 1) {
+    if (candidateRank[index] > previousRank[index]) return candidate;
+    if (candidateRank[index] < previousRank[index]) return previous;
+  }
+  return candidate;
 }
 
 /**
@@ -108,6 +130,13 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
   if (!payload || typeof payload !== 'object') return payload;
   const sections = asArray(courseMapLesson?.sections);
   const title = cleanText(courseMapLesson?.title, 140).replace(/^lesson\s+\d+\s*[:.-]\s*/i, '');
+  const lessonOrdinal = Math.max(
+    1,
+    Number(courseMapLesson?.lessonNumber) ||
+      Number(cleanText(courseMapLesson?.title, 140).match(/^lesson\s+(\d+)/i)?.[1]) ||
+      1,
+  );
+  const lessonVariant = (variants) => variants[(lessonOrdinal - 1) % variants.length];
   const topic = sections
     .map((section) => cleanText(section?.topicSection, 120).replace(/^\d+(?:\.\d+)*\s*[:.-]\s*/i, ''))
     .find(Boolean);
@@ -204,11 +233,32 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
   if (!completed.discussionPrompt) {
     const discussionPrompt = {
       prompt: `Which interpretation of ${concept} is best supported by ${materials}, and what detail could change that conclusion?`,
-      tension: `One position prioritizes the strongest observed ${concept} pattern, while another prioritizes the remaining uncertainty.`,
+      tension: lessonVariant([
+        `One reading gives the strongest observed ${concept} pattern priority; another treats the unresolved detail as decisive.`,
+        `The debate is whether the available ${concept} evidence warrants a leading interpretation or only a provisional one.`,
+        `One side emphasizes what the ${concept} evidence already supports, while the other emphasizes what remains unknown.`,
+        `The central tension is how much confidence the present ${concept} evidence can bear before another detail is checked.`,
+        `Readers must decide whether the clearest ${concept} pattern outweighs the uncertainty still present in the materials.`,
+        `The competing views differ over whether the current ${concept} evidence is sufficient or should remain conditional.`,
+      ]),
       positions: [
         `Use ${anchorClause} as the leading interpretation.`,
-        `Prefer an alternative explanation until the uncertainty about ${concept} is resolved.`,
-        `Use a conditional conclusion that changes when the missing ${concept} detail becomes available.`,
+        lessonVariant([
+          `Keep an alternative explanation open until the unresolved ${concept} detail is checked.`,
+          `Treat the current reading as provisional because the missing ${concept} evidence could change it.`,
+          `Give the competing interpretation priority until the uncertain ${concept} claim has stronger support.`,
+          `Withhold a firm conclusion while the available ${concept} materials leave a plausible counter-reading.`,
+          `Challenge the leading account by asking whether another ${concept} explanation fits the same evidence.`,
+          `Retain the rival reading unless the decisive ${concept} detail rules it out.`,
+        ]),
+        lessonVariant([
+          `State a conditional conclusion and identify the ${concept} finding that would require revision.`,
+          `Name the present interpretation together with the missing ${concept} evidence that could overturn it.`,
+          `Frame the claim around what is supported now and how a new ${concept} detail would change it.`,
+          `Offer a bounded conclusion whose confidence depends on resolving the remaining ${concept} uncertainty.`,
+          `Separate the defensible ${concept} claim from the unanswered question that limits it.`,
+          `Use a qualified interpretation and specify which additional ${concept} observation would shift the judgment.`,
+        ]),
       ],
     };
     if (lintEnrichedDiscussionPrompt(discussionPrompt).length === 0) {
@@ -219,13 +269,52 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
 
   if (!completed.assignmentCore) {
     const assignmentCore = {
-      taskDescription: `Analyze ${materials} through ${concept}. Produce ${product} that states the best-supported conclusion, cites the decisive detail, and names one limit.`,
-      parameters: [
-        `Scope: use the named ${concept} case or example only.`,
-        `Format: submit ${product} in the instructor-approved format.`,
-        `Required Evidence/Source: cite at least one detail from ${materials}.`,
-        'Length or Time: follow the local requirement confirmed by the instructor before release.',
-      ],
+      taskDescription: lessonVariant([
+        `Analyze ${materials} through ${concept}. Produce ${product} that states the best-supported conclusion, cites the decisive detail, and names one limit.`,
+        `Use ${concept} to interpret ${materials}. In ${product}, defend the strongest conclusion, point to the evidence behind it, and qualify the claim.`,
+        `Examine ${materials} with the ${concept} lens, then build ${product} around one supported interpretation, its key detail, and its boundary.`,
+        `Test a ${concept} claim against ${materials}. Submit ${product} that explains the evidence, the resulting judgment, and what remains uncertain.`,
+        `Compare the plausible readings of ${materials} through ${concept}. Make ${product} defend one, cite the deciding evidence, and state where it may not hold.`,
+        `Develop ${product} from the ${concept} evidence in ${materials}: identify the strongest conclusion, justify it with a specific detail, and avoid overclaiming.`,
+      ]),
+      parameters: lessonVariant([
+        [
+          `Scope: use the named ${concept} case or example only.`,
+          `Format: submit ${product} in the instructor-approved format.`,
+          `Required Evidence/Source: cite at least one detail from ${materials}.`,
+          'Length or Time: follow the local requirement confirmed by the instructor before release.',
+        ],
+        [
+          `Scope: focus the response on ${concept} and the assigned materials.`,
+          `Format: present ${product} in the locally approved submission form.`,
+          `Evidence: quote or cite one specific point from ${materials}.`,
+          'Length/Time: confirm the course-specific limit with the instructor before submission.',
+        ],
+        [
+          `Boundary: keep the analysis within the supplied ${concept} example.`,
+          `Submission format: organize the work as ${product} using the instructor's required medium.`,
+          `Source use: identify the exact detail from ${materials} that warrants the conclusion.`,
+          'Extent: use the local word, page, or time limit announced for this task.',
+        ],
+        [
+          `Case limit: analyze only the named ${concept} situation and avoid unsupported extensions.`,
+          `Deliverable: turn in ${product} through the format and channel confirmed for the course.`,
+          `Required support: anchor the reasoning in a visible detail from ${materials}.`,
+          'Length or duration: verify the applicable local constraint before finalizing the work.',
+        ],
+        [
+          `Analytical scope: apply ${concept} to the provided case rather than inventing a new one.`,
+          `Output: complete ${product} in the instructor-specified document, presentation, or recording form.`,
+          `Evidence requirement: point to at least one inspectable detail in ${materials}.`,
+          'Scale: follow the task-specific length or time guidance supplied in class.',
+        ],
+        [
+          `Focus: keep every claim tied to the assigned ${concept} materials.`,
+          `Product form: prepare ${product} in the approved course format.`,
+          `Source trail: name the detail from ${materials} that supports the judgment.`,
+          'Completion boundary: check the instructor-confirmed word, page, or time expectation before release.',
+        ],
+      ]),
     };
     if (lintEnrichedAssignmentCore(assignmentCore).length === 0) {
       completed.assignmentCore = assignmentCore;
@@ -1451,6 +1540,76 @@ function uniqueResourceId(preferredId, seenIds) {
   return candidate;
 }
 
+/**
+ * Repair the resource-id collision briefly produced when a re-derived graph
+ * preserved a source-backed resource's old id after that id had already been
+ * assigned to a different syllabus resource. Existing project files must keep
+ * their authored enrichment, so restore repairs this narrow structural defect
+ * instead of rejecting the entire graph and deriving a content-thin fallback.
+ */
+export function repairCourseGraphResourceIds(inputGraph) {
+  if (!inputGraph || typeof inputGraph !== 'object' || !Array.isArray(inputGraph.resources)) return inputGraph;
+
+  const occupiedIds = new Set();
+  for (const collection of ['concepts', 'outcomes', 'assessments', 'sessions', 'readings']) {
+    for (const entity of inputGraph[collection] || []) {
+      if (entity?.id) occupiedIds.add(entity.id);
+    }
+  }
+
+  const assignmentsByOriginalId = new Map();
+  let changed = false;
+  const resources = inputGraph.resources.map((resource) => {
+    const originalId = cleanText(resource?.id) || 'resource';
+    const assignedId = uniqueResourceId(originalId, occupiedIds);
+    occupiedIds.add(assignedId);
+    if (assignedId !== resource?.id) changed = true;
+    const assignment = { id: assignedId, sessionRefs: resource?.sessionRefs || [] };
+    const assignments = assignmentsByOriginalId.get(originalId) || [];
+    assignments.push(assignment);
+    assignmentsByOriginalId.set(originalId, assignments);
+    return assignedId === resource?.id ? resource : { ...resource, id: assignedId };
+  });
+
+  if (!changed) return inputGraph;
+  const graph = { ...inputGraph, resources };
+  graph.sessions = (inputGraph.sessions || []).map((session) => ({
+    ...session,
+    sections: (session.sections || []).map((section) => ({
+      ...section,
+      ...(Array.isArray(section.resourceRefs)
+        ? {
+            resourceRefs: [
+              ...new Set(
+                section.resourceRefs.flatMap((resourceId) => {
+                  const assignments = assignmentsByOriginalId.get(String(resourceId)) || [];
+                  if (assignments.length <= 1) return assignments[0]?.id || resourceId;
+                  const sessionMatches = assignments.filter((assignment) =>
+                    assignment.sessionRefs.some((ref) => sessionMatchesRef(session, ref)),
+                  );
+                  return (sessionMatches.length > 0 ? sessionMatches : assignments.slice(0, 1)).map(
+                    (assignment) => assignment.id,
+                  );
+                }),
+              ),
+            ],
+          }
+        : {}),
+    })),
+  }));
+  return graph;
+}
+
+export function restoreCourseGraphForProject(saved = {}) {
+  const restoredGraph = repairCourseGraphResourceIds(saved.courseGraph);
+  if (restoredGraph && validateCourseGraph(restoredGraph).valid) return restoredGraph;
+  try {
+    return saved?.courseMap?.lessons ? deriveCourseGraphFromCourseMap(saved.courseMap) : null;
+  } catch {
+    return null;
+  }
+}
+
 function sessionMatchesRef(session = {}, ref) {
   const key = String(ref ?? '');
   return key && (key === String(session.id ?? '') || key === String(session.number ?? ''));
@@ -1491,19 +1650,40 @@ function preserveResourceMetadata(oldGraph, graph) {
   }
 
   const resourceRemap = new Map();
-  const seenIds = new Set((graph.resources || []).map((resource) => resource.id).filter(Boolean));
+  const seenIds = new Set();
+  for (const collection of ['concepts', 'outcomes', 'assessments', 'sessions', 'readings']) {
+    for (const entity of graph[collection] || []) {
+      if (entity?.id) seenIds.add(entity.id);
+    }
+  }
   const matchedOldIds = new Set();
-  graph.resources = graph.resources.map((resource) => {
-    const match = oldByKey.get(normalizedResourceKey(resource));
-    if (!match) return resource;
-    matchedOldIds.add(match.id);
-    if (match.id && resource.id && match.id !== resource.id) resourceRemap.set(resource.id, match.id);
-    seenIds.delete(resource.id);
-    seenIds.add(match.id);
+  const resourceRecords = graph.resources.map((resource) => ({
+    resource,
+    match: oldByKey.get(normalizedResourceKey(resource)) || null,
+    originalId: resource.id,
+    assignedId: null,
+  }));
+
+  // Matched resources claim their stable old ids first. An unrelated new
+  // resource whose derived id collides is renamed below and its section refs
+  // follow through resourceRemap.
+  for (const record of resourceRecords.filter(({ match }) => match)) {
+    record.assignedId = uniqueResourceId(record.match.id || record.originalId, seenIds);
+    seenIds.add(record.assignedId);
+    if (record.match.id) matchedOldIds.add(record.match.id);
+  }
+  for (const record of resourceRecords.filter(({ match }) => !match)) {
+    record.assignedId = uniqueResourceId(record.originalId, seenIds);
+    seenIds.add(record.assignedId);
+  }
+
+  graph.resources = resourceRecords.map(({ resource, match, originalId, assignedId }) => {
+    if (originalId && assignedId !== originalId) resourceRemap.set(originalId, assignedId);
+    if (!match) return assignedId === originalId ? resource : { ...resource, id: assignedId };
     return {
       ...resource,
       ...match,
-      id: match.id || resource.id,
+      id: assignedId,
       sessionRefs: mergeRefs(match.sessionRefs || [], resource.sessionRefs || []),
     };
   });

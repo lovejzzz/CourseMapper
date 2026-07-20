@@ -88,6 +88,12 @@ The registry is `evaluation/scion-model-candidates.json`; promotion evidence is 
 
 The adapter lane evaluates a learned delta separately from both the public Gemma 4 E2B base and the Scion compiler. Its architecture, exact base revisions, browser limitations, and milestone exits are defined in `docs/SCION_ADAPTER_ROADMAP.md`.
 
+V0.16.62 narrows the learned contract after the first production adapter diagnostic exposed a real task mismatch. `lesson-kernel-synthesis` is shared base work: it turns the open course brief into candidate lesson facts. Once those facts pass compiler admission, the compiler freezes them into the numbered source-ledger contract. Only that second `source-grounded-lesson-kernel` stage may activate the adapter. The former umbrella `lesson-kernel` task family is retained only as historical provenance and is always routed base-only.
+
+The same diagnostic exposed an accounting gap. One outer local-server request can contain an initial native generation plus internal repair generations. Route traces now retain `routeModelCalls`, and compiler-burden, paired-evidence, and promotion audits use total native inference attempts. Browser-local execution already records one route per native attempt. A candidate cannot pass the efficiency gate by hiding retries behind one transport request.
+
+The first 200-iteration training artifact is therefore diagnostic-only even though its validation loss improved: it was packaged under the old broad scope and was exercised outside the exact source-ledger distribution. The stopped run has no score, paired evidence, or inherited win. Its retained evidence is `scion-adapters/evidence/production-task-mismatch-diagnostic-v0.16.62.json`. The replacement dataset contains 100 production rows from 102 qualified preferences across seven domains and is bound to frozen benchmark V11; the exact-scope candidate must be retrained before a new comparison.
+
 ```bash
 npm run build:scion:adapter-dataset
 npm run audit:scion:adapter:training:contract
@@ -121,7 +127,7 @@ The historical v0.16.35 A/B workbook remains byte-reconstructable through `npm r
 
 The browser-device boundary is now semantic too. `evaluation/scion-adapters/browser-device-matrix-protocol-v1.json` freezes four profiles: Chrome on integrated 8 GB hardware, Edge on integrated 16 GB hardware, Chrome or Edge on a discrete GPU with at least 8 GB VRAM, and Chrome on Apple Silicon with at least 16 GB unified memory. `npm run audit:scion:browser-device-matrix -- --manifest ... --evidence ...` recomputes the immutable adapter-package identity, checks the exact base/runtime/scale, evaluates load, completion, activation, rollback, memory, interruption, storage, device-loss, and repeat-run requirements, and verifies every retained artifact byte. The adapter promotion audit reruns this semantic verifier after checking the evidence file SHA-256; a hash-correct JSON label can no longer satisfy the device gate. The non-promotable scale-16 smoke now passes the real Apple-Silicon profile, making the matrix 1/4; no promotable candidate has any passing profile.
 
-The promotion ruler is `evaluation/scion-adapters/held-out-course-benchmark-v2.json`. It freezes World Languages, World Literature, Psychology, Nutrition, and Astronomy before another candidate is trained. Every course has 12–15 lessons and binds its complete prompt-only course input and source packet. The ruler binds the exact QAT base contract plus a canonical transitive receipt over the grader wrapper and every relative implementation module. The historical v1 ruler hashed only the wrapper entry; it remains useful for diagnostic artifact comparison but is explicitly ineligible for promotion. Any benchmark domain or course group present in the candidate dataset blocks the run instead of triggering a convenient fixture substitution.
+The current promotion ruler is `evaluation/scion-adapters/held-out-course-benchmark-v13.json`. It preserves the five disjoint World Languages, World Literature, Psychology, Nutrition, and Astronomy courses, task routes, course inputs, source packets, and native-attempt boundary from V12, then freezes deep-quality grader 1.10.23 and texture metric 1.1.0. Candidate runs must prove adapter use for `source-grounded-lesson-kernel`; both arms must prove base-only `course-map` and `lesson-kernel-synthesis` routes; unclassified work is forbidden. Every course has 12–15 lessons and binds its complete prompt-only course input and source packet. The ruler binds the exact QAT base contract plus a canonical transitive receipt over the grader wrapper and every relative implementation module. Older rulers remain historical diagnostics and cannot provide a V13 score or promotion result. Any benchmark domain or course group present in the candidate dataset blocks the run instead of triggering a convenient fixture substitution.
 
 Run the two arms from the same clean commit, with the same pair-run ID and the appropriate Local server state:
 
@@ -129,7 +135,7 @@ Run the two arms from the same clean commit, with the same pair-run ID and the a
 npm run crucible -- \
   --llm local \
   --courses mandarin,world-lit-readings,psych-101,nutrition-101,astro-101 \
-  --scion-benchmark evaluation/scion-adapters/held-out-course-benchmark-v2.json \
+  --scion-benchmark evaluation/scion-adapters/held-out-course-benchmark-v11.json \
   --scion-dataset-manifest /absolute/path/to/dataset-manifest.json \
   --scion-adapter-manifest /absolute/path/to/scion-adapter.json \
   --scion-arm base-only \

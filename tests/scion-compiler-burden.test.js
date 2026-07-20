@@ -109,6 +109,39 @@ describe('Scion compiler burden audit', () => {
     });
   });
 
+  it('counts real native inference attempts from route receipts', () => {
+    const candidate = summarizeScionCompilerBurden(
+      [
+        { type: 'scionAdapterRoute', taskFamily: 'lesson-kernel-synthesis', routeMode: 'adapter', routeModelCalls: 3 },
+        { type: 'scionAdapterRoute', taskFamily: 'compiler-repair', routeMode: 'base-only', routeModelCalls: 1 },
+      ],
+      { lessonCount: 1 },
+    );
+    const control = summarizeScionCompilerBurden(
+      [
+        {
+          type: 'scionAdapterRoute',
+          taskFamily: 'lesson-kernel-synthesis',
+          routeMode: 'base-only',
+          routeModelCalls: 2,
+        },
+        { type: 'scionAdapterRoute', taskFamily: 'compiler-repair', routeMode: 'base-only', routeModelCalls: 1 },
+      ],
+      { lessonCount: 1 },
+    );
+    expect(candidate.nativeInference).toMatchObject({
+      attempts: 4,
+      attemptsPerLesson: 4,
+      byTaskFamily: { 'lesson-kernel-synthesis': 3, 'compiler-repair': 1 },
+      byRouteMode: { adapter: 3, 'base-only': 1 },
+    });
+    expect(compareScionCompilerBurden(candidate, control)).toMatchObject({
+      inferenceAmplification: 1.333,
+      candidateInferenceAttemptDelta: 1,
+      findings: expect.arrayContaining([expect.objectContaining({ code: 'candidate-native-inference-amplification' })]),
+    });
+  });
+
   it('treats excess compensation and shared rejected depth drafts as compiler findings', () => {
     const candidate = {
       lessonCount: 12,

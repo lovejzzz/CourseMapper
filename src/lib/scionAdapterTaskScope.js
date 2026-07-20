@@ -1,10 +1,16 @@
 export const SCION_ADAPTER_TASK_SCOPE_PROTOCOL = 'scion-adapter-task-scope-v1';
 export const SCION_ADAPTER_TASK_SCOPE_IDENTITY_ALGORITHM = 'sha256-canonical-scion-adapter-task-scope-v1';
 export const SCION_LESSON_KERNEL_PROMPT_PROTOCOL = 'production-lesson-kernel-prompt-v1';
+export const SCION_LESSON_KERNEL_SYNTHESIS_PROMPT_PROTOCOL = 'production-lesson-kernel-synthesis-prompt-v1';
 
 export const SCION_ADAPTER_TASK_FAMILIES = Object.freeze({
   SOURCE_KEY_TERM_ATOM: 'source-key-term-atom',
   SOURCE_MC_ITEM_ATOM: 'source-mc-item-atom',
+  SOURCE_GROUNDED_LESSON_KERNEL: 'source-grounded-lesson-kernel',
+  LESSON_KERNEL_SYNTHESIS: 'lesson-kernel-synthesis',
+  // Historical manifests used this broad family for two materially different
+  // jobs. Keep it parseable for provenance, but current runtime requests never
+  // route to it; an adapter must declare the exact prompt contract it learned.
   LESSON_KERNEL: 'lesson-kernel',
   COURSE_MAP: 'course-map',
   AGENT_ADVISORY: 'agent-advisory',
@@ -37,16 +43,18 @@ export function scionAdapterTaskFamilyForPairKind(value) {
       return SCION_ADAPTER_TASK_FAMILIES.SOURCE_MC_ITEM_ATOM;
     case 'lesson':
     case 'lesson-kernel':
-      return SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL;
+      return SCION_ADAPTER_TASK_FAMILIES.SOURCE_GROUNDED_LESSON_KERNEL;
     default:
       return SCION_ADAPTER_TASK_FAMILIES.UNCLASSIFIED;
   }
 }
 
-export function scionAdapterTaskFamilyForProviderTask(value) {
+export function scionAdapterTaskFamilyForProviderTask(value, { promptProtocol } = {}) {
   const task = clean(value).toLowerCase();
   if (['blueprintenrichment', 'lesson-kernel', 'lessonkernel'].includes(task)) {
-    return SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL;
+    return clean(promptProtocol) === SCION_LESSON_KERNEL_PROMPT_PROTOCOL
+      ? SCION_ADAPTER_TASK_FAMILIES.SOURCE_GROUNDED_LESSON_KERNEL
+      : SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL_SYNTHESIS;
   }
   if (['course-map', 'coursemap', 'native-skeleton', 'nativeskeleton', 'course-ir', 'courseir'].includes(task)) {
     return SCION_ADAPTER_TASK_FAMILIES.COURSE_MAP;
@@ -131,18 +139,36 @@ export function resolveScionAdapterTaskRoute({ manifest, taskFamily, promptProto
       issues: [],
     };
   }
+  if (family === SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL) {
+    return {
+      mode: 'base-only',
+      adapterActive: false,
+      taskFamily: family,
+      reason: 'legacy-task-family-too-broad',
+      issues: [],
+    };
+  }
   const eligible = manifest.training.taskScope.families.some((entry) => entry.id === family);
-  if (
-    eligible &&
-    family === SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL &&
-    clean(promptProtocol) !== SCION_LESSON_KERNEL_PROMPT_PROTOCOL
-  ) {
+  const groundedStageAvailable =
+    !eligible &&
+    family === SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL_SYNTHESIS &&
+    clean(promptProtocol) === SCION_LESSON_KERNEL_SYNTHESIS_PROMPT_PROTOCOL &&
+    manifest.training.taskScope.families.some(
+      (entry) => entry.id === SCION_ADAPTER_TASK_FAMILIES.SOURCE_GROUNDED_LESSON_KERNEL,
+    );
+  const requiredPromptProtocol =
+    family === SCION_ADAPTER_TASK_FAMILIES.SOURCE_GROUNDED_LESSON_KERNEL
+      ? SCION_LESSON_KERNEL_PROMPT_PROTOCOL
+      : family === SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL_SYNTHESIS
+        ? SCION_LESSON_KERNEL_SYNTHESIS_PROMPT_PROTOCOL
+        : '';
+  if (eligible && requiredPromptProtocol && clean(promptProtocol) !== requiredPromptProtocol) {
     return {
       mode: 'base-only',
       adapterActive: false,
       taskFamily: family,
       reason: 'prompt-protocol-mismatch',
-      expectedPromptProtocol: SCION_LESSON_KERNEL_PROMPT_PROTOCOL,
+      expectedPromptProtocol: requiredPromptProtocol,
       promptProtocol: clean(promptProtocol) || null,
       scopeIdentitySha256: manifest.training.taskScope.identity.sha256,
       issues: [],
@@ -162,7 +188,7 @@ export function resolveScionAdapterTaskRoute({ manifest, taskFamily, promptProto
         mode: 'base-only',
         adapterActive: false,
         taskFamily: family,
-        reason: 'task-family-out-of-scope',
+        reason: groundedStageAvailable ? 'grounded-stage-available' : 'task-family-out-of-scope',
         promptProtocol: clean(promptProtocol) || null,
         scopeIdentitySha256: manifest.training.taskScope.identity.sha256,
         issues: [],

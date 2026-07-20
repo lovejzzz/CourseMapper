@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-teacher-revision-result-v1",
+  "packetSha256": "9236ea65b411223a4ad482d7fb9d4e80584fca1639f6d882113139bc9a3837f3",
+  "sessionId": "scion-v01662-teacher-pass1-batch-001-2b9cebbe29-b9d5cd80-f699-4b10-815b-208c3a33a8d2",
+  "reviser": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-source-cleanroom"
+  },
+  "completedAt": "2026-07-19T22:01:25.000Z",
+  "attestations": {
+    "suppliedClaimsOnly": true,
+    "noExternalFacts": true,
+    "noTrainingAuthorization": true
+  },
+  "revisions": [
+    {
+      "caseId": "scion-kernel-1ed0d7927b7ef600197320d3",
+      "originalArtifactSha256": "72983e37fab046247d100c7fc5f95b49853e944f7860546d8727117a2f8eed9a",
+      "lessonKernel": {
+        "lessonId": "lesson-6",
+        "facts": [
+          "A class defines a type of object with attributes (data) and methods (behavior); it is a blueprint, and each object built from it is an instance.",
+          "A class is a blueprint for creating objects.",
+          "Individual objects created from a class are called instances.",
+          "Each instance carries its own copy of the attributes, while the methods defined by the class are shared by every instance."
+        ],
+        "keyTerms": [
+          {
+            "tr": "class",
+            "df": "A class defines a type of object and serves as its blueprint.",
+            "eg": "A class is used as the blueprint for creating objects.",
+            "mi": "A class is an individual object created from a blueprint.",
+            "cx": "The created individual is an instance; the class supplies the blueprint."
+          },
+          {
+            "tr": "objects",
+            "df": "Objects are entities built from a class, with each one called an instance.",
+            "eg": "Objects created from a class are individual instances.",
+            "mi": "Objects define the methods shared by every instance.",
+            "cx": "The class defines the shared methods, while objects are built from that class."
+          },
+          {
+            "tr": "instances",
+            "df": "Instances are individual objects whose attributes are carried as their own copies.",
+            "eg": "Each instance carries its own copy of the attributes.",
+            "mi": "Instances define the methods that the class shares.",
+            "cx": "Methods come from the class and are shared by its instances."
+          }
+        ],
+        "scenario": {
+          "su": "Students must classify a class and two objects as either a blueprint or instances before a deadline. They must also distinguish the separate attribute copies from the methods shared by both objects.",
+          "ma": "class passage stating that it is a blueprint for creating objects, object passages identifying two individual objects created from the class, attribute observation showing each instance carrying its own copy, method observation showing class-defined methods shared by both instances"
+        },
+        "mc": [
+          {
+            "q": "An object is observed being built from a class, and the task is to label the class and the built object. Which comparison uses the source terms correctly?",
+            "op": [
+              "Class is blueprint; built object is instance",
+              "Class is instance; built object is method",
+              "Class is attribute; built object is blueprint",
+              "Class is method; built object is class"
+            ],
+            "ai": 0,
+            "fi": [
+              0
+            ],
+            "ex": "The class serves as the blueprint, and an object built from it is an instance. Describing the class as an instance confuses the blueprint with the individual object built from it."
+          },
+          {
+            "q": "Two objects have separate attribute copies and use methods defined by their class. Which account correctly connects the observed objects, attributes, methods, and class?",
+            "op": [
+              "Instances carry attribute copies and share class methods",
+              "Instances share attribute copies and define class methods",
+              "Instances define attribute copies and carry class methods",
+              "Instances create class methods and share blueprints"
+            ],
+            "ai": 0,
+            "fi": [
+              3
+            ],
+            "ex": "Each instance carries its own attribute copy, while methods defined by the class are shared by the instances. Saying instances share attribute copies and define class methods reverses both stated relationships."
+          }
+        ]
+      },
+      "changeSummary": [
+        "Re-authored both multiple-choice items to remove equivalent or partially supported distractors while preserving the source-grounded distinctions."
+      ],
+      "addressedDiagnoses": [
+        "Addressed the diagnosed weak choice discriminability by making each distractor distinct and inapplicable under the cited claims."
+      ]
+    }
+  ]
+}

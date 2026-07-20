@@ -24,11 +24,13 @@ MODE=${1:-}
 SMOKE=false
 RESEARCH=false
 LESSON_KERNEL_V01654=false
+LESSON_KERNEL_V01662=false
 [ "$MODE" = "--smoke" ] && SMOKE=true
 [ "$MODE" = "--research" ] && RESEARCH=true
 [ "$MODE" = "--lesson-kernel-v0.16.54" ] && LESSON_KERNEL_V01654=true
-if [ -n "$MODE" ] && ! $SMOKE && ! $RESEARCH && ! $LESSON_KERNEL_V01654; then
-  echo "REFUSING: unknown mode $MODE (expected --smoke, --research, or --lesson-kernel-v0.16.54)."
+[ "$MODE" = "--lesson-kernel-v0.16.62" ] && LESSON_KERNEL_V01662=true
+if [ -n "$MODE" ] && ! $SMOKE && ! $RESEARCH && ! $LESSON_KERNEL_V01654 && ! $LESSON_KERNEL_V01662; then
+  echo "REFUSING: unknown mode $MODE (expected --smoke, --research, --lesson-kernel-v0.16.54, or --lesson-kernel-v0.16.62)."
   exit 1
 fi
 
@@ -45,6 +47,7 @@ $RESEARCH && LANE=research
 COMMIT=$(git rev-parse HEAD^{commit})
 DATASET_KEY=$LANE-$COMMIT
 $LESSON_KERNEL_V01654 && DATASET_KEY=lesson-kernel-v01654-$COMMIT
+$LESSON_KERNEL_V01662 && DATASET_KEY=lesson-kernel-v01662-$COMMIT
 DATASET_DIR=${SCION_ADAPTER_DATASET:-$HOME/.cache/coursemapper/scion-datasets/$DATASET_KEY}
 GENERATED_AT=$(git show -s --format=%cI HEAD)
 
@@ -72,6 +75,11 @@ elif $LESSON_KERNEL_V01654; then
     --profile lesson-kernel-v0.16.54 \
     --output "$DATASET_DIR" \
     --generated-at "$GENERATED_AT"
+elif $LESSON_KERNEL_V01662; then
+  node scripts/scionAdapterDataset.mjs \
+    --profile lesson-kernel-v0.16.62 \
+    --output "$DATASET_DIR" \
+    --generated-at "$GENERATED_AT"
 else
   node scripts/scionAdapterDataset.mjs --output "$DATASET_DIR" --generated-at "$GENERATED_AT"
 fi
@@ -94,12 +102,16 @@ fi
 
 DEFAULT_ITERS=600
 $LESSON_KERNEL_V01654 && DEFAULT_ITERS=200
+$LESSON_KERNEL_V01662 && DEFAULT_ITERS=200
 ITERS=${ITERS:-$DEFAULT_ITERS}
 $SMOKE && ITERS=10
 MAX_SEQUENCE_LENGTH=4096
 # The sealed v0.16.54 corpus has a measured maximum of 2,575 tokens. Keep a
 # five-token safety margin while refusing any future silent truncation.
 $LESSON_KERNEL_V01654 && MAX_SEQUENCE_LENGTH=2580
+# The v0.16.62 production corpus has a measured maximum of 2,870 tokens
+# across all 200 chosen/rejected sequences. Preserve a five-token margin.
+$LESSON_KERNEL_V01662 && MAX_SEQUENCE_LENGTH=2875
 
 BASE_PATH=$(
   "$PYTHON" trellis/tendril/distill/prepare_adapter_base.py \

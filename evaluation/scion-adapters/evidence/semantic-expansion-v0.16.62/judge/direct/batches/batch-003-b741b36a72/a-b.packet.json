@@ -1,0 +1,1631 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-packet-v1",
+  "order": "A/B",
+  "generatedAt": "2026-07-19T21:41:00.000Z",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "prompt": {
+    "path": "evaluation/scion-adapters/lesson-kernel-judge-prompt-v0.16.54.md",
+    "sha256": "37844b86736335db54b561d8c031660ef71679c55ae1108e2e999e746f2a1c96"
+  },
+  "dimensions": [
+    "sourceFidelity",
+    "knowledgePrecision",
+    "scenarioReadiness",
+    "assessmentCorrectness",
+    "choiceDiscriminability",
+    "feedbackInstructionality",
+    "internalCoherence"
+  ],
+  "cases": [
+    {
+      "caseId": "scion-kernel-469cae031b9e2cc9d18a7ad7",
+      "pairId": "scion-kernel-pair-4608b4242c3d548a8558f650",
+      "domain": "music-theory",
+      "failureFamilies": [
+        "answer-feedback-consistency",
+        "answer-key-correctness",
+        "choice-discriminability",
+        "feedback-instructionality",
+        "misconception-validity"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-6",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Seventh-chord functions",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: A seventh chord adds a seventh above a triad, and its function depends on its scale degree and its pull within a tonal progression. Claim 1: The supertonic seventh chord functions as a terminal pre-dominant with a strong pull toward the dominant. Claim 2: Adding a seventh to the dominant increases the chord's pull toward the tonic.",
+        "readings": "Justin Rubin, Music Composition & Theory (2024), chapter 25, University of Minnesota Libraries Publishing"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "ffabcbcf6dc1ecf2545741964b1895f8405b48fa982afc1b44b4166d1a25d025",
+        "kernelId": "music-ccby/seventh-chord-functions",
+        "term": "Seventh-chord functions",
+        "claims": [
+          "A seventh chord adds a seventh above a triad, and its function depends on its scale degree and its pull within a tonal progression.",
+          "The supertonic seventh chord functions as a terminal pre-dominant with a strong pull toward the dominant.",
+          "Adding a seventh to the dominant increases the chord's pull toward the tonic."
+        ],
+        "anchors": [
+          {
+            "src": "https://open.lib.umn.edu/musiccomposition/chapter/common-practice-era-scales-intervals-and-chord-functions/",
+            "loc": "25 Common Practice Era Scales, Seventh Chords",
+            "quote": "any triad can have a seventh added"
+          },
+          {
+            "src": "https://open.lib.umn.edu/musiccomposition/chapter/common-practice-era-scales-intervals-and-chord-functions/",
+            "loc": "25 Common Practice Era Scales, Seventh Chords",
+            "quote": "the ii7 functions as a terminal pre-dominant chord"
+          },
+          {
+            "src": "https://open.lib.umn.edu/musiccomposition/chapter/common-practice-era-scales-intervals-and-chord-functions/",
+            "loc": "25 Common Practice Era Scales, Seventh Chords",
+            "quote": "increases the force of the chord towards the tonic"
+          }
+        ],
+        "attribution": [
+          "Justin Rubin, Music Composition & Theory (2024), chapter 25, University of Minnesota Libraries Publishing"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "b67b29f1aff5fbc5b80acea7c98d2be5f501f9f8f3548a9f30307f1c2584134a",
+          "lessonKernel": {
+            "lessonId": "lesson-6",
+            "facts": [
+              "A seventh chord adds a seventh above a triad, and its function depends on its scale degree and its pull within a tonal progression.",
+              "The supertonic seventh chord functions as a terminal pre-dominant with a strong pull toward the dominant.",
+              "Adding a seventh to the dominant increases the chord's pull toward the tonic."
+            ],
+            "keyTerms": [
+              {
+                "tr": "seventh chord adds seventh",
+                "df": "A seventh chord is defined as a triad with an added seventh, and its function is determined by its scale degree and its pull within a tonal progression.",
+                "eg": "The supertonic seventh chord functions as a terminal pre-dominant with a strong pull toward the dominant.",
+                "mi": "Seventh chords always function as a pre-dominant because they add a seventh above a triad.",
+                "cx": "Seventh chords function based on scale degree and pull within a tonal progression, not always as a pre-dominant."
+              },
+              {
+                "tr": "supertonic seventh chord",
+                "df": "The supertonic seventh chord possesses the specific function of a terminal pre-dominant characterized by a strong pull toward the dominant.",
+                "eg": "The supertonic seventh chord functions as a terminal pre-dominant with a strong pull toward the dominant.",
+                "mi": "The supertonic seventh chord is simply a seventh chord that pulls strongly toward the tonic.",
+                "cx": "The supertonic seventh chord's function is specifically as a terminal pre-dominant with a strong pull toward the dominant."
+              },
+              {
+                "tr": "dominant seventh chord",
+                "df": "Adding a seventh to the dominant chord results in an increased pull toward the tonic, which is a specific functional outcome.",
+                "eg": "Adding a seventh to the dominant increases the chord's pull toward the tonic.",
+                "mi": "Adding a seventh to the dominant chord decreases its pull toward the tonic.",
+                "cx": "Adding a seventh to the dominant increases the chord's pull toward the tonic, not decreases it."
+              }
+            ],
+            "scenario": {
+              "su": "A composer is analyzing a progression where the supertonic seventh chord appears before the dominant chord. The composer must determine the chord's role in the progression while ensuring the overall tonal pull remains consistent. The constraint is that the analysis must rely solely on the chord's pull within the tonal progression.",
+              "ma": "Analyze the progression: Cmaj7 -> Bb7 -> G7. Compare the pull of the Bb7 chord to the G7 chord."
+            },
+            "mc": [
+              {
+                "q": "When analyzing a progression, how is the supertonic seventh chord functionally distinguished from other seventh chords based on its pull toward the dominant?",
+                "op": [
+                  "It functions as a terminal pre-dominant with a strong pull toward the dominant.",
+                  "It functions as a terminal pre-dominant with a strong pull toward the tonic.",
+                  "It functions as a pre-dominant with a weak pull toward the dominant.",
+                  "It functions as a dominant chord with a strong pull toward the tonic."
+                ],
+                "ai": 0,
+                "fi": [
+                  1
+                ],
+                "ex": "The supertonic seventh chord functions as a terminal pre-dominant with a strong pull toward the dominant, which is supported by the fact that the supertonic seventh chord functions as a terminal pre-dominant with a strong pull toward the dominant."
+              },
+              {
+                "q": "Given the observation that adding a seventh to the dominant chord increases its pull toward the tonic, what is the resulting functional change in the chord?",
+                "op": [
+                  "The chord's pull toward the tonic decreases significantly.",
+                  "The chord's pull toward the tonic remains unchanged.",
+                  "The chord's pull toward the tonic increases.",
+                  "The chord's pull toward the tonic shifts toward the dominant."
+                ],
+                "ai": 0,
+                "fi": [
+                  2
+                ],
+                "ex": "Adding a seventh to the dominant increases the chord's pull toward the tonic, which is supported by the fact that adding a seventh to the dominant increases the chord's pull toward the tonic."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "8d3d7cfc57a38f893655740fcc065f03a1036740a9433fea43fbcc7c4ccd10fb",
+          "lessonKernel": {
+            "lessonId": "lesson-6",
+            "facts": [
+              "A seventh chord adds a seventh above a triad, and its function depends on its scale degree and its pull within a tonal progression.",
+              "The supertonic seventh chord functions as a terminal pre-dominant with a strong pull toward the dominant.",
+              "Adding a seventh to the dominant increases the chord's pull toward the tonic."
+            ],
+            "keyTerms": [
+              {
+                "tr": "seventh chord",
+                "df": "A seventh chord belongs to the category of chords formed by adding a seventh above a triad.",
+                "eg": "A dominant with an added seventh has increased pull toward the tonic.",
+                "mi": "Every seventh chord has the same function within a tonal progression.",
+                "cx": "Scale degree and progression pull distinguish how seventh chords function."
+              },
+              {
+                "tr": "supertonic seventh chord",
+                "df": "The supertonic seventh chord is distinguished as a terminal pre-dominant that pulls strongly toward the dominant.",
+                "eg": "A tonal progression shows the supertonic seventh chord pulling toward the dominant.",
+                "mi": "The supertonic seventh chord has increased pull toward the tonic.",
+                "cx": "Its stated destination is the dominant, whereas increased tonic pull belongs to the dominant with an added seventh."
+              },
+              {
+                "tr": "scale degree",
+                "df": "Scale degree is one stated basis on which the function of a seventh chord depends.",
+                "eg": "The supertonic scale degree identifies a seventh chord with a strong pull toward the dominant.",
+                "mi": "Scale degree cannot help distinguish the function of seventh chords.",
+                "cx": "Seventh-chord function depends in part on where the chord stands by scale degree."
+              }
+            ],
+            "scenario": {
+              "su": "A student must assign distinct functional labels to two seventh-chord entries before a deadline. Both add a seventh above a triad, but one is marked supertonic with terminal pre-dominant pull and the other is marked dominant with increased tonic pull.",
+              "ma": "supertonic scale-degree notation, terminal pre-dominant label, strong pull-toward-dominant observation, dominant-with-added-seventh notation, increased pull-toward-tonic observation"
+            },
+            "mc": [
+              {
+                "q": "Two notations show a supertonic seventh chord pulling strongly toward the dominant and a dominant gaining a seventh; which comparison correctly distinguishes their tonal pulls?",
+                "op": [
+                  "Supertonic pulls dominant; dominant seventh pulls tonic",
+                  "Supertonic pulls tonic; dominant seventh pulls dominant",
+                  "Both seventh chords pull toward the dominant",
+                  "Both seventh chords pull toward the tonic"
+                ],
+                "ai": 0,
+                "fi": [
+                  1,
+                  2
+                ],
+                "ex": "The supertonic seventh chord pulls strongly toward the dominant, while adding a seventh to the dominant increases its pull toward the tonic. The supertonic does not exchange its destination with the dominant seventh."
+              },
+              {
+                "q": "A progression record identifies a supertonic seventh chord with a strong pull toward the dominant, but the analyst must choose one functional label; which label fits the observation?",
+                "op": [
+                  "Terminal pre-dominant pulling toward the dominant",
+                  "Dominant chord pulling toward the tonic",
+                  "Terminal pre-dominant pulling toward the tonic",
+                  "Dominant chord pulling toward the supertonic"
+                ],
+                "ai": 0,
+                "fi": [
+                  1
+                ],
+                "ex": "A supertonic seventh chord with strong pull toward the dominant functions as a terminal pre-dominant. Calling it a dominant chord incorrectly swaps the supplied chord and function relationship."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-469cae031b9e2cc9d18a7ad7",
+        "pairId": "scion-kernel-pair-4608b4242c3d548a8558f650",
+        "artifactSha256": {
+          "A": "b67b29f1aff5fbc5b80acea7c98d2be5f501f9f8f3548a9f30307f1c2584134a",
+          "B": "8d3d7cfc57a38f893655740fcc065f03a1036740a9433fea43fbcc7c4ccd10fb"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    },
+    {
+      "caseId": "scion-kernel-4bf5c84b6335f81e9c0eb777",
+      "pairId": "scion-kernel-pair-9432ebbc79d2f88036db26d0",
+      "domain": "user-experience-design",
+      "failureFamilies": [
+        "source-coverage"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-4",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Task flow analysis",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: A task flow analysis diagrams the steps and decision points through which a user interacts with a system to reach a defined goal. Claim 1: Task flow analysis can validate the team's understanding of user goals, common scenarios, and tasks. Claim 2: A task flow should show how a user progresses through tasks to accomplish a goal. Claim 3: Task flow analysis should surface obstacles that stand between users and their goals. Claim 4: The diagram may include multiple possible paths, task sequences, and decision points.",
+        "readings": "Digital.gov, U.S. General Services Administration"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "55810138f44b132a506c48e324abae61faab42bb035796fd7728e36106eaf51e",
+        "kernelId": "ux/task-flow-analysis",
+        "term": "Task flow analysis",
+        "claims": [
+          "A task flow analysis diagrams the steps and decision points through which a user interacts with a system to reach a defined goal.",
+          "Task flow analysis can validate the team's understanding of user goals, common scenarios, and tasks.",
+          "A task flow should show how a user progresses through tasks to accomplish a goal.",
+          "Task flow analysis should surface obstacles that stand between users and their goals.",
+          "The diagram may include multiple possible paths, task sequences, and decision points."
+        ],
+        "anchors": [
+          {
+            "src": "digitalgov:task-flow",
+            "loc": "What",
+            "quote": "A task flow analysis is a step-by-step diagram showing how a user interacts with a system to reach a goal."
+          },
+          {
+            "src": "digitalgov:task-flow",
+            "loc": "Why",
+            "quote": "Validate your understanding of users' goals, common scenarios, and tasks"
+          },
+          {
+            "src": "digitalgov:task-flow",
+            "loc": "Why",
+            "quote": "Illustrate the overall flow of tasks through which a user progresses to accomplish a goal"
+          },
+          {
+            "src": "digitalgov:task-flow",
+            "loc": "Why",
+            "quote": "Surface obstacles in the way of users achieving their goal"
+          },
+          {
+            "src": "digitalgov:task-flow",
+            "loc": "Why",
+            "quote": "The diagram traces a user's possible paths through sequences of tasks and decision points to meet their goal."
+          }
+        ],
+        "attribution": [
+          "Digital.gov, U.S. General Services Administration"
+        ],
+        "license": "U.S. Government Work"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "62e82fae4b3b6047fd77e8b4b34245873069498b19b610c0ec5c35fa571b25be",
+          "lessonKernel": {
+            "lessonId": "lesson-4",
+            "facts": [
+              "A task flow analysis diagrams the steps and decision points through which a user interacts with a system to reach a defined goal. ",
+              "Task flow analysis can validate the team's understanding of user goals, common scenarios, and tasks. ",
+              "A task flow should show how a user progresses through tasks to accomplish a goal. ",
+              "Task flow analysis should surface obstacles that stand between users and their goals. ",
+              "The diagram may include multiple possible paths, task sequences, and decision points."
+            ],
+            "keyTerms": [
+              {
+                "tr": "task flow analysis",
+                "df": "A task flow analysis diagrams the steps and decision points through which a user interacts with a system to reach a defined goal. ",
+                "eg": "A diagram illustrating the sequence of clicks a user makes to complete a purchase. ",
+                "mi": "Task flow analysis is simply a list of every single action a user takes without showing the decision points. ",
+                "cx": "Task flow analysis shows the decision points through which a user interacts with a system to reach a defined goal."
+              },
+              {
+                "tr": "user goals",
+                "df": "Task flow analysis can validate the team's understanding of user goals, common scenarios, and tasks. ",
+                "eg": "Validating the team's understanding of user goals through a flow diagram for a specific application. ",
+                "mi": "User goals are only the final destination a user wants to reach, not the intermediate steps taken to get there. ",
+                "cx": "User goals are validated by task flow analysis which includes understanding common scenarios and tasks."
+              },
+              {
+                "tr": "obstacles",
+                "df": "Task flow analysis should surface obstacles that stand between users and their goals. ",
+                "eg": "Identifying a point in the flow where a user might get stuck due to a missing piece of information. ",
+                "mi": "Obstacles are only technical errors within the system that prevent a user from completing a task. ",
+                "cx": "Obstacles are anything that stands between users and their goals, including user confusion or missing information."
+              }
+            ],
+            "scenario": {
+              "su": "A user attempts to complete a form submission on a website, and the team needs to understand the process. The team must identify where the user might get stuck during the process. ",
+              "ma": "Compare the sequence of steps in the provided form submission process with the identified obstacles in the task flow analysis."
+            },
+            "mc": [
+              {
+                "q": "When analyzing a task flow, what is the primary function of showing how a user progresses through tasks to accomplish a goal? ",
+                "op": [
+                  "To list every single action a user takes without showing decision points.",
+                  "To surface obstacles that stand between users and their goals.",
+                  "To show how a user progresses through tasks to accomplish a goal.",
+                  "To validate the team's understanding of user goals and common scenarios."
+                ],
+                "ai": 2,
+                "fi": [
+                  2
+                ],
+                "ex": "A task flow should show how a user progresses through tasks to accomplish a goal, which is supported by the fact that a task flow should show how a user progresses through tasks to accomplish a goal."
+              },
+              {
+                "q": "Given the task flow analysis, what is the primary distinction between validating team understanding and showing task progression? ",
+                "op": [
+                  "Validating team understanding focuses on common scenarios while progression focuses on task sequences.",
+                  "Validating team understanding focuses on decision points while progression focuses on user goals.",
+                  "Validating team understanding focuses on obstacles while progression focuses on task sequences.",
+                  "Validating team understanding focuses on task sequences while progression focuses on user goals."
+                ],
+                "ai": 0,
+                "fi": [
+                  1,
+                  3
+                ],
+                "ex": "Task flow analysis can validate the team's understanding of user goals, common scenarios, and tasks, while a task flow should show how a user progresses through tasks to accomplish a goal."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "28893a0876618ad8d112238ecea2e2078d5322d8ac715ac04e2902e4120e1027",
+          "lessonKernel": {
+            "lessonId": "lesson-4",
+            "facts": [
+              "A task flow analysis diagrams the steps and decision points through which a user interacts with a system to reach a defined goal.",
+              "Task flow analysis can validate the team's understanding of user goals, common scenarios, and tasks.",
+              "A task flow should show how a user progresses through tasks to accomplish a goal.",
+              "Task flow analysis should surface obstacles that stand between users and their goals.",
+              "The diagram may include multiple possible paths, task sequences, and decision points."
+            ],
+            "keyTerms": [
+              {
+                "tr": "task flow analysis",
+                "df": "Task flow analysis diagrams steps and decision points in a user's interaction with a system toward a defined goal.",
+                "eg": "The team uses task flow analysis to validate its understanding of user goals, common scenarios, and tasks.",
+                "mi": "Task flow analysis validates obstacles between users and their goals.",
+                "cx": "It can validate the team's understanding and should surface the obstacles standing between users and their goals."
+              },
+              {
+                "tr": "decision points",
+                "df": "Decision points are elements that may appear with multiple possible paths and task sequences in the diagram.",
+                "eg": "The diagram includes decision points within the paths through which a user progresses toward a goal.",
+                "mi": "Decision points are the obstacles standing between users and their goals.",
+                "cx": "They may occur within the diagram, while obstacles are what task flow analysis should surface."
+              },
+              {
+                "tr": "user goals",
+                "df": "User goals belong to the understanding that task flow analysis can validate alongside common scenarios and tasks.",
+                "eg": "The team compares user goals, common scenarios, and tasks when validating its understanding.",
+                "mi": "User goals are the decision points included in the diagram.",
+                "cx": "Goals are what users seek to accomplish, whereas decision points may occur along possible paths."
+              }
+            ],
+            "scenario": {
+              "su": "A team must decide whether a task flow analysis represents progression toward a defined goal before a deadline. The draft contains three task sequences and two decision points, while one notation marks an obstacle between users and their goals.",
+              "ma": "three task-sequence notations, two decision-point notations, one obstacle notation"
+            },
+            "mc": [
+              {
+                "q": "A team compares a diagram of interaction steps and decision points with a review of its understanding of user goals, common scenarios, and tasks; what specifically distinguishes the diagram?",
+                "op": [
+                  "It diagrams interaction toward a defined goal",
+                  "It diagrams understanding of common scenarios",
+                  "It validates steps and decision points",
+                  "It validates interaction toward a defined goal"
+                ],
+                "ai": 0,
+                "fi": [
+                  0
+                ],
+                "ex": "The steps and decision points diagram how a user interacts with a system to reach a defined goal. Validation applies to the team's understanding of user goals, common scenarios, and tasks, so it does not validate interaction toward the goal."
+              },
+              {
+                "q": "Before a deadline, a team observes that its diagram contains several possible paths, task sequences, and decision points; which assessment is directly supported by those recorded details?",
+                "op": [
+                  "The diagram includes multiple possible paths",
+                  "The diagram surfaces multiple task sequences",
+                  "The diagram validates multiple possible paths",
+                  "The diagram includes obstacles between users"
+                ],
+                "ai": 0,
+                "fi": [
+                  4
+                ],
+                "ex": "The recorded possible paths directly support that the diagram may include multiple possible paths. Validation concerns the team's understanding of user goals, common scenarios, and tasks, so the paths themselves do not establish validation."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-4bf5c84b6335f81e9c0eb777",
+        "pairId": "scion-kernel-pair-9432ebbc79d2f88036db26d0",
+        "artifactSha256": {
+          "A": "62e82fae4b3b6047fd77e8b4b34245873069498b19b610c0ec5c35fa571b25be",
+          "B": "28893a0876618ad8d112238ecea2e2078d5322d8ac715ac04e2902e4120e1027"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    },
+    {
+      "caseId": "scion-kernel-4d4159fe0d91fa8538d63235",
+      "pairId": "scion-kernel-pair-b83a116814535f56195cb209",
+      "domain": "economics",
+      "failureFamilies": [
+        "choice-discriminability",
+        "source-fidelity"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-6",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Economic model",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: An economic model is a simplified representation of reality that keeps the features relevant to a question and discards the rest. Claim 1: Models such as supply and demand make assumptions, like rational choice or perfect competition, that do not hold exactly. Claim 2: A model is useful when its assumptions are close enough for the question at hand, and misleading when a key assumption breaks.",
+        "readings": "OpenStax Principles of Microeconomics 3e, Ch. 1"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "13a691e562b5c8e8cd8780917c95852a4fc9041b68384de9a7efc063d90a6f05",
+        "kernelId": "econ/economic-model",
+        "term": "Economic model",
+        "claims": [
+          "An economic model is a simplified representation of reality that keeps the features relevant to a question and discards the rest.",
+          "Models such as supply and demand make assumptions, like rational choice or perfect competition, that do not hold exactly.",
+          "A model is useful when its assumptions are close enough for the question at hand, and misleading when a key assumption breaks."
+        ],
+        "anchors": [
+          {
+            "src": "openstax:microeconomics-3e#1",
+            "loc": "1.2",
+            "quote": "a simplified representation of reality that keeps the features relevant to a question and discards the rest"
+          },
+          {
+            "src": "openstax:microeconomics-3e#1",
+            "loc": "1.2",
+            "quote": "make assumptions, like rational choice or perfect competition, that do not hold exactly"
+          },
+          {
+            "src": "openstax:microeconomics-3e#1",
+            "loc": "1.2",
+            "quote": "useful when its assumptions are close enough for the question at hand, and misleading when a key assumption breaks"
+          }
+        ],
+        "attribution": [
+          "OpenStax Principles of Microeconomics 3e, Ch. 1"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "2b74efffe9e9c14fed1c0c22e0fcf61f8c81249e98e4297583022b0a663c84b3",
+          "lessonKernel": {
+            "lessonId": "lesson-6",
+            "facts": [
+              "An economic model is a simplified representation of reality that keeps the features relevant to a question and discards the rest. ",
+              "Models such as supply and demand make assumptions, like rational choice or perfect competition, that do not hold exactly. ",
+              "A model is useful when its assumptions are close enough for the question at hand, and misleading when a key assumption breaks."
+            ],
+            "keyTerms": [
+              {
+                "tr": "economic model",
+                "df": "A simplified representation of reality that retains relevant features for a specific question while discarding others.",
+                "eg": "A supply and demand graph used to predict market price changes.",
+                "mi": "An economic model is a perfect, exact replica of the real world that contains all possible data points.",
+                "cx": "A model is a simplified representation that discards features irrelevant to the specific question being asked."
+              },
+              {
+                "tr": "assumptions",
+                "df": "Specific conditions, such as rational choice or perfect competition, that models impose which may not perfectly reflect reality.",
+                "eg": "The assumption of perfect competition in a model ignores real-world market imperfections.",
+                "mi": "Assumptions are always true statements that perfectly describe the actual economic situation.",
+                "cx": "Assumptions are conditions that models impose which may not hold exactly in the real world."
+              },
+              {
+                "tr": "model usefulness",
+                "df": "The utility of a model is determined by how closely its underlying assumptions align with the specific question being analyzed.",
+                "eg": "A model is useful if its assumptions are close enough to the actual situation.",
+                "mi": "A model is useful only if it is perfectly accurate and contains no simplifying assumptions.",
+                "cx": "A model is useful when its assumptions are close enough for the question at hand, and misleading when a key assumption breaks."
+              }
+            ],
+            "scenario": {
+              "su": "A central bank is developing a new inflation model for a volatile economy. The model simplifies complex monetary policy decisions by assuming rational choice among agents. The constraint is that the model must remain useful for short-term policy adjustments despite imperfect assumptions.",
+              "ma": "Compare the model's utility when assuming rational choice versus assuming perfect competition in predicting the impact of a sudden interest rate hike on consumer spending."
+            },
+            "mc": [
+              {
+                "q": "When analyzing market behavior, what distinguishes a useful economic model from an inaccurate one based on its underlying structure?",
+                "op": [
+                  "A model is useful when its assumptions are close enough for the question at hand.",
+                  "A model is useful when all its assumptions are perfectly true.",
+                  "A model is useful when it discards all features irrelevant to the question.",
+                  "A model is useful when it perfectly replicates the real world."
+                ],
+                "ai": 0,
+                "fi": [
+                  0,
+                  1
+                ],
+                "ex": "A model is useful when its assumptions are close enough for the question at hand, and misleading when a key assumption breaks. A model is useful when all its assumptions are perfectly true, because a model is useful when its assumptions are close enough for the question at hand, and misleading when a key assumption breaks."
+              },
+              {
+                "q": "A researcher uses a supply and demand model to predict a price change, but the model's prediction fails because a key assumption is violated. Which statement best describes this situation?",
+                "op": [
+                  "The model is useful because it keeps features relevant to the question.",
+                  "The model is useful because it discards irrelevant features.",
+                  "The model is misleading because a key assumption breaks.",
+                  "The model is useful because it perfectly replicates reality."
+                ],
+                "ai": 0,
+                "fi": [
+                  1
+                ],
+                "ex": "A model is misleading when a key assumption breaks. The model is useful when its assumptions are close enough for the question at hand, and misleading when a key assumption breaks."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "02b14fe1af9d288ab2f266d87218f2d7522e8e561b249cf87239002ca16e24ac",
+          "lessonKernel": {
+            "lessonId": "lesson-6",
+            "facts": [
+              "An economic model is a simplified representation of reality that keeps the features relevant to a question and discards the rest.",
+              "Models such as supply and demand make assumptions, like rational choice or perfect competition, that do not hold exactly.",
+              "A model is useful when its assumptions are close enough for the question at hand, and misleading when a key assumption breaks."
+            ],
+            "keyTerms": [
+              {
+                "tr": "economic model",
+                "df": "An economic model is a simplified representation of reality shaped around a question.",
+                "eg": "Supply and demand keeps relevant features and discards the rest.",
+                "mi": "An economic model must discard features relevant to its question.",
+                "cx": "Features relevant to the question are kept rather than discarded."
+              },
+              {
+                "tr": "rational choice",
+                "df": "Rational choice is an assumption made by models such as supply and demand.",
+                "eg": "Rational choice does not hold exactly in a supply and demand model.",
+                "mi": "Rational choice must hold exactly whenever a model is useful.",
+                "cx": "Usefulness requires assumptions to be close enough, not to hold exactly."
+              },
+              {
+                "tr": "key assumption",
+                "df": "A key assumption distinguishes a useful model from a misleading model when it breaks.",
+                "eg": "A key assumption can break for the question at hand.",
+                "mi": "A model becomes useful when a key assumption breaks.",
+                "cx": "Breaking a key assumption makes the model misleading for that question."
+              }
+            ],
+            "scenario": {
+              "su": "A student must classify an economic model as useful or misleading for a question at hand. Its assumptions record says they are close enough, but a separate observation says a key assumption breaks, creating a tension the student must resolve.",
+              "ma": "Students compare the question notation, the retained-and-discarded-features passage, the rational-choice and perfect-competition assumptions record, the broken-key-assumption observation."
+            },
+            "mc": [
+              {
+                "q": "A representation keeps features relevant to a question, while supply and demand uses rational choice or perfect competition assumptions that do not hold exactly. Which comparison matches these observations?",
+                "op": [
+                  "Keeps relevant features; assumptions do not hold exactly",
+                  "Discards relevant features; assumptions hold exactly",
+                  "Keeps relevant features; assumptions hold exactly",
+                  "Discards relevant features; assumptions do not hold exactly"
+                ],
+                "ai": 0,
+                "fi": [
+                  0,
+                  1
+                ],
+                "ex": "An economic model keeps relevant features, while models such as supply and demand make assumptions that do not hold exactly. Saying those assumptions hold exactly reverses the stated observation."
+              },
+              {
+                "q": "A model’s assumptions record says they are close enough for the question, but an observation shows that a key assumption breaks. Under this constraint, how should the model be classified?",
+                "op": [
+                  "Misleading because a key assumption breaks",
+                  "Useful because a key assumption breaks",
+                  "Misleading because assumptions are close enough",
+                  "Useful because assumptions are close enough"
+                ],
+                "ai": 0,
+                "fi": [
+                  2
+                ],
+                "ex": "The model is misleading because the observation shows that a key assumption breaks. Close-enough assumptions support usefulness, but that description does not resolve the recorded break."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-4d4159fe0d91fa8538d63235",
+        "pairId": "scion-kernel-pair-b83a116814535f56195cb209",
+        "artifactSha256": {
+          "A": "2b74efffe9e9c14fed1c0c22e0fcf61f8c81249e98e4297583022b0a663c84b3",
+          "B": "02b14fe1af9d288ab2f266d87218f2d7522e8e561b249cf87239002ca16e24ac"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    },
+    {
+      "caseId": "scion-kernel-52964fc20ca887179f1a8f82",
+      "pairId": "scion-kernel-pair-213786c8191c2e255e11beb0",
+      "domain": "anatomy",
+      "failureFamilies": [
+        "feedback-instructionality",
+        "misconception-validity"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-3",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Nervous tissue",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: Nervous tissue is excitable tissue made mainly of neurons and neuroglia; neurons propagate information through electrochemical impulses called action potentials. Claim 1: Nervous tissue sends and receives electrochemical signals that provide the body with information. Claim 2: Neuroglia support neurons and modulate information propagation.",
+        "readings": "OpenStax Anatomy and Physiology 2e"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "99b636e83ccce56ab48e09397a5c61aecef640f11ce7bc0c3e5c4ff34d84f634",
+        "kernelId": "anatomy/nervous-tissue",
+        "term": "Nervous tissue",
+        "claims": [
+          "Nervous tissue is excitable tissue made mainly of neurons and neuroglia; neurons propagate information through electrochemical impulses called action potentials.",
+          "Nervous tissue sends and receives electrochemical signals that provide the body with information.",
+          "Neuroglia support neurons and modulate information propagation."
+        ],
+        "anchors": [
+          {
+            "src": "openstax:anatomy-and-physiology-2e#4-5",
+            "loc": "4.5",
+            "quote": "Two main classes of cells make up nervous tissue: the neuron and neuroglia"
+          },
+          {
+            "src": "openstax:anatomy-and-physiology-2e#4-5",
+            "loc": "4.5",
+            "quote": "capable of sending and receiving electrochemical signals that provide the body with information"
+          },
+          {
+            "src": "openstax:anatomy-and-physiology-2e#4-5",
+            "loc": "4.5",
+            "quote": "Neuroglia play an essential role in supporting neurons and modulating their information propagation"
+          }
+        ],
+        "attribution": [
+          "OpenStax Anatomy and Physiology 2e"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "a197b409ba3e1b58c3fb64858cd27e3f04abfcc7b296933de19d1fd762f6845f",
+          "lessonKernel": {
+            "lessonId": "lesson-3",
+            "facts": [
+              "Nervous tissue is excitable tissue made mainly of neurons and neuroglia; neurons propagate information through electrochemical impulses called action potentials. ",
+              "Nervous tissue sends and receives electrochemical signals that provide the body with information. ",
+              "Neuroglia support neurons and modulate information propagation."
+            ],
+            "keyTerms": [
+              {
+                "tr": "Nervous tissue",
+                "df": "Nervous tissue is defined as excitable tissue composed primarily of neurons and neuroglia that facilitates electrochemical signaling.",
+                "eg": "Neurons propagate information through electrochemical impulses called action potentials.",
+                "mi": "Nervous tissue is only made of neurons that send signals.",
+                "cx": "Nervous tissue is made mainly of neurons and neuroglia, not exclusively neurons."
+              },
+              {
+                "tr": "Neurons",
+                "df": "Neurons are the primary excitable cells within nervous tissue responsible for propagating information via action potentials.",
+                "eg": "Neurons propagate information through electrochemical impulses called action potentials.",
+                "mi": "Neurons are the only cells that receive electrochemical signals.",
+                "cx": "Neurons propagate information, and neuroglia also modulate information propagation."
+              },
+              {
+                "tr": "Neuroglia",
+                "df": "Neuroglia function to support neurons and modulate the propagation of information within the nervous system.",
+                "eg": "Neuroglia support neurons and modulate information propagation.",
+                "mi": "Neuroglia are the cells that generate action potentials.",
+                "cx": "Neuroglia support neurons and modulate information propagation, they do not generate action potentials."
+              }
+            ],
+            "scenario": {
+              "su": "A patient presents with impaired sensory input, and a technician observes that glial cells are physically interacting with a neuron's axon. The constraint is that the technician must determine the primary function of the tissue based only on the provided facts. ",
+              "ma": "Compare the observation that neurons propagate information through electrochemical impulses called action potentials with the observation that neuroglia support neurons and modulate information propagation."
+            },
+            "mc": [
+              {
+                "q": "Which statement accurately distinguishes the role of neurons from neuroglia in the nervous system based on the provided facts?",
+                "op": [
+                  "Neurons propagate information through electrochemical impulses called action potentials.",
+                  "Neuroglia send and receive electrochemical signals that provide the body with information.",
+                  "Neuroglia are the primary excitable tissue that generates action potentials.",
+                  "Neurons support neurons and modulate information propagation."
+                ],
+                "ai": 0,
+                "fi": [
+                  0,
+                  2
+                ],
+                "ex": "Neurons propagate information through electrochemical impulses called action potentials, while neuroglia support neurons and modulate information propagation, which distinguishes their primary roles."
+              },
+              {
+                "q": "A researcher notes that a specific type of nervous tissue is responsible for sending and receiving electrochemical signals that provide the body with information. Which fact supports this observation?",
+                "op": [
+                  "Nervous tissue is excitable tissue made mainly of neurons and neuroglia.",
+                  "Neurons propagate information through electrochemical impulses called action potentials.",
+                  "Nervous tissue sends and receives electrochemical signals that provide the body with information.",
+                  "Neuroglia support neurons and modulate information propagation."
+                ],
+                "ai": 2,
+                "fi": [
+                  1
+                ],
+                "ex": "Nervous tissue sends and receives electrochemical signals that provide the body with information, which is the direct statement supporting this observation."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "bc5ddf7fe7d2fde8d35da656821899c31e5b4b3641ba598c0ba73151e88726dc",
+          "lessonKernel": {
+            "lessonId": "lesson-3",
+            "facts": [
+              "Nervous tissue is excitable tissue made mainly of neurons and neuroglia; neurons propagate information through electrochemical impulses called action potentials.",
+              "Nervous tissue sends and receives electrochemical signals that provide the body with information.",
+              "Neuroglia support neurons and modulate information propagation."
+            ],
+            "keyTerms": [
+              {
+                "tr": "Nervous tissue",
+                "df": "Nervous tissue is excitable tissue made mainly of neurons and neuroglia.",
+                "eg": "Nervous tissue sends and receives electrochemical signals.",
+                "mi": "Nervous tissue is an electrochemical impulse called an action potential.",
+                "cx": "It is excitable tissue, whereas an action potential is an electrochemical impulse."
+              },
+              {
+                "tr": "neurons",
+                "df": "Neurons are a main component of nervous tissue that propagate information through action potentials.",
+                "eg": "Neurons propagate information through electrochemical impulses called action potentials.",
+                "mi": "Neurons support neuroglia and modulate information propagation.",
+                "cx": "Support of neurons and modulation of information propagation belong to neuroglia."
+              },
+              {
+                "tr": "Neuroglia",
+                "df": "Neuroglia are a main component of nervous tissue that support neurons and modulate information propagation.",
+                "eg": "Neuroglia support neurons while modulating information propagation.",
+                "mi": "Neuroglia propagate information through action potentials.",
+                "cx": "Propagation through action potentials belongs to neurons, while neuroglia support them."
+              }
+            ],
+            "scenario": {
+              "su": "A student must classify two passages before a deadline using only their stated relations. One passage describes sending and receiving electrochemical signals, while another describes supporting neurons and modulating information propagation.",
+              "ma": "signal passage notation recording sent and received electrochemical signals, neuroglia passage notation recording support of neurons and modulation of information propagation"
+            },
+            "mc": [
+              {
+                "q": "A comparison notes that one subject propagates information through action potentials, while another supports the first and modulates information propagation. Which distinction matches neurons and neuroglia?",
+                "op": [
+                  "Neuroglia propagate information; neurons support and modulate",
+                  "Neurons support neuroglia; neuroglia modulate information",
+                  "Neuroglia support neurons; neurons modulate information",
+                  "Neurons propagate information; neuroglia support and modulate"
+                ],
+                "ai": 3,
+                "fi": [
+                  0,
+                  2
+                ],
+                "ex": "Neurons propagate information through action potentials, while neuroglia support neurons and modulate information propagation. Neuroglia, rather than neurons, perform the stated support and modulation."
+              },
+              {
+                "q": "Under a deadline, a student sees one passage reporting sent and received electrochemical signals and another reporting support of neurons plus modulation of information propagation. Which pairing best labels the passages?",
+                "op": [
+                  "Signal passage: neuroglia; support passage: nervous tissue",
+                  "Signal passage: neurons; support passage: action potentials",
+                  "Signal passage: action potentials; support passage: neurons",
+                  "Signal passage: nervous tissue; support passage: neuroglia"
+                ],
+                "ai": 3,
+                "fi": [
+                  1,
+                  2
+                ],
+                "ex": "Nervous tissue sends and receives electrochemical signals, and neuroglia support neurons and modulate information propagation. Neuroglia are not identified as the sender and receiver in the signal passage."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-52964fc20ca887179f1a8f82",
+        "pairId": "scion-kernel-pair-213786c8191c2e255e11beb0",
+        "artifactSha256": {
+          "A": "a197b409ba3e1b58c3fb64858cd27e3f04abfcc7b296933de19d1fd762f6845f",
+          "B": "bc5ddf7fe7d2fde8d35da656821899c31e5b4b3641ba598c0ba73151e88726dc"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    },
+    {
+      "caseId": "scion-kernel-59a07c63e1457ae09f1974c7",
+      "pairId": "scion-kernel-pair-bd5af31fefe3f4ded28e8916",
+      "domain": "economics",
+      "failureFamilies": [
+        "choice-discriminability",
+        "source-fidelity"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-2",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Demand curve",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: A demand curve shows the quantity of a good consumers are willing and able to purchase at each price, holding other factors constant. Claim 1: Demand curves typically slope downward, reflecting the law of demand. Claim 2: A change in price causes a movement along the demand curve, while a change in income or tastes shifts the curve.",
+        "readings": "OpenStax Principles of Microeconomics 3e, Ch. 3"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "13a691e562b5c8e8cd8780917c95852a4fc9041b68384de9a7efc063d90a6f05",
+        "kernelId": "econ/demand-curve",
+        "term": "Demand curve",
+        "claims": [
+          "A demand curve shows the quantity of a good consumers are willing and able to purchase at each price, holding other factors constant.",
+          "Demand curves typically slope downward, reflecting the law of demand.",
+          "A change in price causes a movement along the demand curve, while a change in income or tastes shifts the curve."
+        ],
+        "anchors": [
+          {
+            "src": "openstax:microeconomics-3e#3",
+            "loc": "3.1",
+            "quote": "the quantity of a good that consumers are willing and able to purchase at each price, holding all other factors constant"
+          },
+          {
+            "src": "openstax:microeconomics-3e#3",
+            "loc": "3.1",
+            "quote": "Demand curves typically slope downward, reflecting the law of demand"
+          },
+          {
+            "src": "openstax:microeconomics-3e#3",
+            "loc": "3.2",
+            "quote": "A change in price causes a movement along the demand curve"
+          }
+        ],
+        "attribution": [
+          "OpenStax Principles of Microeconomics 3e, Ch. 3"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "1c479bd76b86faaef08c193fa34d0d923a2b523cb42c54a7c7491b84102f2af0",
+          "lessonKernel": {
+            "lessonId": "lesson-2",
+            "facts": [
+              "A demand curve shows the quantity of a good consumers are willing and able to purchase at each price, holding other factors constant. ",
+              "Demand curves typically slope downward, reflecting the law of demand. ",
+              "A change in price causes a movement along the demand curve, while a change in income or tastes shifts the curve."
+            ],
+            "keyTerms": [
+              {
+                "tr": "demand curve",
+                "df": "A demand curve illustrates the quantity of a good consumers are willing and able to purchase at each price, holding other factors constant. ",
+                "eg": "A graph showing how many units of a product people buy at different prices. ",
+                "mi": "A demand curve shows the total quantity of a good consumers are willing and able to purchase regardless of price changes. ",
+                "cx": "A demand curve shows the quantity of a good consumers are willing and able to purchase at each price, holding other factors constant."
+              },
+              {
+                "tr": "law of demand",
+                "df": "The law of demand is reflected in the property that demand curves typically slope downward. ",
+                "eg": "The downward slope of a graph representing consumer desire for a product. ",
+                "mi": "The law of demand means that as the price of a good increases, the quantity demanded increases. ",
+                "cx": "The law of demand means that demand curves typically slope downward, reflecting the law of demand."
+              },
+              {
+                "tr": "change in price",
+                "df": "A change in price results in a movement along the demand curve, indicating a change in quantity demanded. ",
+                "eg": "Moving from one point to another on a demand graph due to a price adjustment. ",
+                "mi": "A change in price causes the entire demand curve to shift to a new position on the graph. ",
+                "cx": "A change in price causes a movement along the demand curve, while a change in income or tastes shifts the curve."
+              }
+            ],
+            "scenario": {
+              "su": "A consumer observes that when the price of a specific electronic device increases, the quantity they purchase decreases. This observation occurs while their income remains constant. The consumer must determine the correct graphical representation of this relationship. ",
+              "ma": "Compare the demand curve's behavior when the price changes versus when consumer income changes."
+            },
+            "mc": [
+              {
+                "q": "When a consumer's income changes, which action correctly describes the effect on the demand curve?",
+                "op": [
+                  "A shift in the curve due to income change.",
+                  "A movement along the curve due to income change.",
+                  "A movement along the curve due to price change.",
+                  "A shift in the curve due to price change."
+                ],
+                "ai": 0,
+                "fi": [
+                  2
+                ],
+                "ex": "A change in income or tastes shifts the curve, which is the correct description of the effect on the demand curve."
+              },
+              {
+                "q": "If a consumer changes the price of a good, what graphical representation accurately depicts the resulting change?",
+                "op": [
+                  "A shift in the curve due to price change.",
+                  "A movement along the curve due to price change.",
+                  "A shift in the curve due to income change.",
+                  "A movement along the curve due to income change."
+                ],
+                "ai": 0,
+                "fi": [
+                  1
+                ],
+                "ex": "A change in price causes a movement along the demand curve, which is the correct description of the effect on the demand curve."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "f4af3ebaf3ed9c70e33cfc50b6f7c6153b554ff94b17d21fb54e94affbe4fd21",
+          "lessonKernel": {
+            "lessonId": "lesson-2",
+            "facts": [
+              "A demand curve shows the quantity of a good consumers are willing and able to purchase at each price, holding other factors constant.",
+              "Demand curves typically slope downward, reflecting the law of demand.",
+              "A change in price causes a movement along the demand curve, while a change in income or tastes shifts the curve."
+            ],
+            "keyTerms": [
+              {
+                "tr": "demand curve",
+                "df": "A demand curve represents quantity consumers are willing and able to purchase at each price, holding other factors constant.",
+                "eg": "For a good, consumers compare quantity at each price on a curve that typically slopes downward.",
+                "mi": "A demand curve shows price at each quantity consumers purchase.",
+                "cx": "The curve associates each price with the quantity consumers are willing and able to purchase."
+              },
+              {
+                "tr": "law of demand",
+                "df": "The law of demand is the relationship reflected by the typical downward slope of demand curves.",
+                "eg": "A demand curve that slopes downward reflects the law of demand.",
+                "mi": "The law of demand is reflected when income shifts the demand curve.",
+                "cx": "Income changes shift the curve; its typical downward slope reflects the law of demand."
+              },
+              {
+                "tr": "price",
+                "df": "Price is a value at which the demand curve shows a quantity consumers are willing and able to purchase.",
+                "eg": "A change in price produces movement along a downward-sloping demand curve.",
+                "mi": "A price change shifts the demand curve in the way a change in tastes does.",
+                "cx": "Price changes produce movement along the curve, while changes in tastes shift it."
+              }
+            ],
+            "scenario": {
+              "su": "A reviewer receives a demand-curve sketch with a price-change annotation and a separate passage describing a change in income. Before review closes, the reviewer must label each as movement or shift despite their shared reference to the demand curve.",
+              "ma": "price-change annotation beside movement along the demand curve, income-change passage beside a shifted curve, tastes-change notation beside a shifted curve"
+            },
+            "mc": [
+              {
+                "q": "A curve record shows a price change beside movement along the demand curve, while an income note accompanies a shifted curve; which distinction matches these observations?",
+                "op": [
+                  "Price moves along; income shifts the curve",
+                  "Income moves along; price shifts the curve",
+                  "Price and income move along the curve",
+                  "Price and income shift the demand curve"
+                ],
+                "ai": 0,
+                "fi": [
+                  2
+                ],
+                "ex": "A change in price causes movement along the demand curve, while a change in income shifts the curve. Treating income as movement and price as a shift reverses that distinction."
+              },
+              {
+                "q": "A record links quantities consumers are willing and able to purchase with each price while holding other factors constant, and its curve slopes downward; which description fits the record?",
+                "op": [
+                  "Demand curve shows quantity and slopes downward",
+                  "Demand curve shows price at each quantity",
+                  "Demand curve shows quantity at each price",
+                  "Demand curve typically slopes downward"
+                ],
+                "ai": 0,
+                "fi": [
+                  0,
+                  1
+                ],
+                "ex": "The record is a demand curve because it shows quantity at each price while other factors are held constant, and its typical downward slope reflects the law of demand. The quantity-at-each-price description omits the observed downward slope."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-59a07c63e1457ae09f1974c7",
+        "pairId": "scion-kernel-pair-bd5af31fefe3f4ded28e8916",
+        "artifactSha256": {
+          "A": "1c479bd76b86faaef08c193fa34d0d923a2b523cb42c54a7c7491b84102f2af0",
+          "B": "f4af3ebaf3ed9c70e33cfc50b6f7c6153b554ff94b17d21fb54e94affbe4fd21"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    },
+    {
+      "caseId": "scion-kernel-5af741177e6cf537a280f948",
+      "pairId": "scion-kernel-pair-3ac5e207dd6dc3eccf1f13c9",
+      "domain": "anatomy",
+      "failureFamilies": [
+        "feedback-instructionality",
+        "misconception-validity",
+        "source-fidelity"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-9",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Sensory receptors and perception",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: Sensory receptors detect internal or external stimuli and convert them into nervous-system signals; perception is the central processing of those signals into meaningful patterns. Claim 1: Receptors are cells or structures that detect sensations. Claim 2: Stimuli are changed into electrochemical signals of the nervous system.",
+        "readings": "OpenStax Anatomy and Physiology 2e"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "c7c91fd6e67090a9c77348bed5c1ef57a5d982ad0def5beb8851dcf171faef66",
+        "kernelId": "anatomy/sensory-perception",
+        "term": "Sensory receptors and perception",
+        "claims": [
+          "Sensory receptors detect internal or external stimuli and convert them into nervous-system signals; perception is the central processing of those signals into meaningful patterns.",
+          "Receptors are cells or structures that detect sensations.",
+          "Stimuli are changed into electrochemical signals of the nervous system."
+        ],
+        "anchors": [
+          {
+            "src": "openstax:anatomy-and-physiology-2e#14-1",
+            "loc": "14.1",
+            "quote": "Perception is the central processing of sensory stimuli into a meaningful pattern"
+          },
+          {
+            "src": "openstax:anatomy-and-physiology-2e#14-1",
+            "loc": "14.1",
+            "quote": "Receptors are the cells or structures that detect sensations"
+          },
+          {
+            "src": "openstax:anatomy-and-physiology-2e#14-1",
+            "loc": "14.1",
+            "quote": "Stimuli from varying sources, and of different types, are received and changed into the electrochemical signals of the nervous system"
+          }
+        ],
+        "attribution": [
+          "OpenStax Anatomy and Physiology 2e"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "9fb9920a62112b21a23010deda007767aca1c5f393411d73d69685a53f376639",
+          "lessonKernel": {
+            "lessonId": "lesson-9",
+            "facts": [
+              "Sensory receptors detect internal or external stimuli and convert them into nervous-system signals; perception is the central processing of those signals into meaningful patterns.",
+              "Receptors are cells or structures that detect sensations.",
+              "Stimuli are changed into electrochemical signals of the nervous system."
+            ],
+            "keyTerms": [
+              {
+                "tr": "Sensory receptors",
+                "df": "Receptors are cells or structures that detect sensations.",
+                "eg": "A receptor detects a specific external stimulus like heat.",
+                "mi": "Sensory receptors are the central processing of signals into patterns.",
+                "cx": "Sensory receptors are the cells or structures that detect sensations."
+              },
+              {
+                "tr": "Perception",
+                "df": "Perception is the central processing of those signals into meaningful patterns.",
+                "eg": "Perception processes nervous system signals into meaningful patterns.",
+                "mi": "Perception is the detection of internal or external stimuli.",
+                "cx": "Perception is the central processing of those signals into meaningful patterns."
+              },
+              {
+                "tr": "Stimuli",
+                "df": "Stimuli are changed into electrochemical signals of the nervous system.",
+                "eg": "A stimulus causes a change into an electrochemical signal.",
+                "mi": "Stimuli are the central processing of those signals into patterns.",
+                "cx": "Stimuli are changed into electrochemical signals of the nervous system."
+              }
+            ],
+            "scenario": {
+              "su": "A patient reports feeling a sharp pain when touching a hot surface, and a technician observes the skin's response to the heat. The technician must determine the role of the receptors in this process.",
+              "ma": "Patient report: sharp pain from hot surface. Observation: skin response to heat. Decision: Identify the structure responsible for detecting the sensation."
+            },
+            "mc": [
+              {
+                "q": "Which statement correctly distinguishes the role of sensory receptors from perception in signal processing?",
+                "op": [
+                  "Receptors detect stimuli; perception processes those signals into patterns.",
+                  "Receptors process signals; perception detects internal or external stimuli.",
+                  "Receptors change stimuli into signals; perception detects sensations.",
+                  "Receptors process patterns; perception detects electrochemical signals."
+                ],
+                "ai": 0,
+                "fi": [
+                  0,
+                  1
+                ],
+                "ex": "Sensory receptors detect internal or external stimuli and convert them into nervous-system signals; perception is the central processing of those signals into meaningful patterns. Receptors are cells or structures that detect sensations."
+              },
+              {
+                "q": "A researcher is analyzing data where stimuli are changed into electrochemical signals of the nervous system. If a specific receptor detects a stimulus, what is the immediate next step in the process?",
+                "op": [
+                  "The stimulus becomes a meaningful pattern.",
+                  "The receptor processes the electrochemical signal.",
+                  "The signal becomes a cell structure.",
+                  "The pattern is converted into a sensation."
+                ],
+                "ai": 0,
+                "fi": [
+                  2
+                ],
+                "ex": "Stimuli are changed into electrochemical signals of the nervous system. Receptors are cells or structures that detect sensations."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "4ec5ef503e0745a0f19beafa3af3d65c58518aa7b283499a7c965f3ffe6abfee",
+          "lessonKernel": {
+            "lessonId": "lesson-9",
+            "facts": [
+              "Sensory receptors detect internal or external stimuli and convert them into nervous-system signals; perception is the central processing of those signals into meaningful patterns.",
+              "Receptors are cells or structures that detect sensations.",
+              "Stimuli are changed into electrochemical signals of the nervous system."
+            ],
+            "keyTerms": [
+              {
+                "tr": "Sensory receptors",
+                "df": "Sensory receptors are cells or structures distinguished by detecting sensations.",
+                "eg": "Internal or external stimuli meet detection by sensory receptors.",
+                "mi": "Sensory receptors centrally process signals into meaningful patterns.",
+                "cx": "Central processing into meaningful patterns is perception, whereas receptors detect stimuli."
+              },
+              {
+                "tr": "perception",
+                "df": "Perception is central processing distinguished by forming meaningful patterns from nervous-system signals.",
+                "eg": "The notation “signals into meaningful patterns” is labeled perception.",
+                "mi": "Perception detects internal or external stimuli as cells or structures.",
+                "cx": "Detection belongs to receptors; perception processes nervous-system signals centrally."
+              },
+              {
+                "tr": "Stimuli",
+                "df": "Stimuli are internal or external and are changed into electrochemical signals of the nervous system.",
+                "eg": "The passage links stimuli with electrochemical signals of the nervous system.",
+                "mi": "Stimuli centrally process nervous-system signals into meaningful patterns.",
+                "cx": "Meaningful-pattern processing is perception; stimuli are changed into nervous-system signals."
+              }
+            ],
+            "scenario": {
+              "su": "A student editor must label two notations as sensory receptors or perception before a deadline. One notation describes cells or structures detecting sensations, while the other describes central processing of nervous-system signals into meaningful patterns; each notation must receive one label.",
+              "ma": "receptor-detection notation, central-processing passage, one-label-per-notation design"
+            },
+            "mc": [
+              {
+                "q": "A comparison shows cells or structures detecting sensations in one notation and central processing turning nervous-system signals into meaningful patterns in another. Which distinction correctly labels sensory receptors and perception?",
+                "op": [
+                  "Sensory receptors centrally process meaningful patterns",
+                  "Perception detects internal or external stimuli",
+                  "Perception detects; sensory receptors centrally process",
+                  "Sensory receptors detect; perception centrally processes"
+                ],
+                "ai": 3,
+                "fi": [
+                  0,
+                  1
+                ],
+                "ex": "Sensory receptors are cells or structures that detect sensations, while perception centrally processes nervous-system signals into meaningful patterns. The reversed account wrongly assigns detection to perception and central processing to receptors."
+              },
+              {
+                "q": "A notation states that stimuli are changed into electrochemical signals of the nervous system, and a deadline allows one classification. Which classification is supported by that observation?",
+                "op": [
+                  "Perception becomes an electrochemical signal",
+                  "Stimuli become nervous-system electrochemical signals",
+                  "Nervous-system signals become internal stimuli",
+                  "Stimuli centrally process meaningful patterns"
+                ],
+                "ai": 1,
+                "fi": [
+                  2
+                ],
+                "ex": "The notation describes stimuli changing into electrochemical signals of the nervous system. The reversed description wrongly treats nervous-system signals as changing into stimuli."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-5af741177e6cf537a280f948",
+        "pairId": "scion-kernel-pair-3ac5e207dd6dc3eccf1f13c9",
+        "artifactSha256": {
+          "A": "9fb9920a62112b21a23010deda007767aca1c5f393411d73d69685a53f376639",
+          "B": "4ec5ef503e0745a0f19beafa3af3d65c58518aa7b283499a7c965f3ffe6abfee"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    }
+  ],
+  "claimBoundary": "This packet contains anonymous source-bound artifacts only. It contains no provider identity, model identity, route, admission outcome, retry history, compiler receipt, preference, or training authorization.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "eef620eddbf1404482f2c5fe6ad4806969964981112cf61d028b45b13374075e"
+  }
+}

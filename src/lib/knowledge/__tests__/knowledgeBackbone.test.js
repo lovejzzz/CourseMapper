@@ -202,6 +202,26 @@ describe('reading-list engine (P2)', () => {
     expect(attachGenomeResources(graph)).toBe(0);
   });
 
+  it('does not turn an internal quiz-projection marker into bibliography debt', () => {
+    const graph = genomeLinkedGraph();
+    graph.enrichmentOverlay.lessonContent = {
+      'lesson-1': {
+        keyTerms: [
+          {
+            term: 'Energy balance',
+            definition: 'A definition projected from an already admitted quiz explanation.',
+            source: 'verified-quiz-projection',
+          },
+        ],
+        conceptProvenance: { source: 'model-authored', citations: [] },
+      },
+    };
+
+    expect(attachGenomeResources(graph)).toBe(0);
+    expect(graph.resources).toEqual([]);
+    expect(graph.sessions[0].sections[0].resourceRefs).toBeUndefined();
+  });
+
   it('preserves explicit government-guidance URL, license, and attribution metadata', () => {
     const graph = genomeLinkedGraph();
     graph.enrichmentOverlay.lessonContent['lesson-1'].conceptProvenance.citations = [

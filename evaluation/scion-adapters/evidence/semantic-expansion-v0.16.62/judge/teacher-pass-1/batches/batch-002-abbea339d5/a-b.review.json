@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-review-v1",
+  "order": "A/B",
+  "packetSha256": "e97eab11a281ce29dead1ced88004ff3e533836fb7e56db1b47c7203fd16ee31",
+  "sessionId": "scion-v01662-teacher-judge-pass1-batch-002-abbea339d5-a-b-f8d81d83-3826-478d-b8a8-fad5dbcd71be",
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "completedAt": "2026-07-19T22:25:00Z",
+  "attestations": {
+    "anonymousArtifactsOnly": true,
+    "otherOrderUnavailable": true,
+    "organizerMappingUnavailable": true
+  },
+  "decisions": [
+    {
+      "caseId": "scion-kernel-f6694acc8a391b1aa629bdee",
+      "pairId": "scion-kernel-pair-5dcf40c159b8511cb1ba79b6",
+      "artifactSha256": {
+        "A": "d8ea22b1bba8571d680b5e107c3ace894546c806e9ed54a37296b8ff8789f5b3",
+        "B": "766a0bbc472fd33b3d0000fe3121032a4afb1512dc2fdd848dc5013ec7bd0bf6"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "The facts reproduce all three supplied claims, but both declared answers contradict the supplied area-and-separation relationship."
+          },
+          "knowledgePrecision": {
+            "score": 2,
+            "evidence": "The capacitance definition is accurate, while the stored-charge and potential-difference entries are vague restatements rather than precise distinctions."
+          },
+          "scenarioReadiness": {
+            "score": 2,
+            "evidence": "The scenario supplies plate areas and equal separation, but its constant-charge constraint is unsupported, irrelevant to the stated comparison, and not used."
+          },
+          "assessmentCorrectness": {
+            "score": 0,
+            "evidence": "Question one keys decreasing rather than increasing, and question two keys no change even though both stated design changes increase capacitance."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "The second question has four distinct outcomes, but the first question's stored-charge option is not parallel to its three capacitance-effect options."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "Both explanations repeat the area claim, but they contradict the declared answers, omit meaningful distractor repair, and ignore separation in question two."
+          },
+          "internalCoherence": {
+            "score": 0,
+            "evidence": "Each answer index selects an option that directly conflicts with its own explanation and with the artifact's third fact."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "The facts, definitions, examples, scenario, questions, answers, and explanations remain within the three supplied capacitance claims."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "The three terms distinctly cover the charge-to-potential ratio, field-stored energy, and the effect of plate area, with direct misconception corrections."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The team must assign opposing capacitance labels from inspectable area and separation changes under a concrete review-deadline constraint."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "The first key correctly selects ratio and field-stored energy, while the second correctly selects area raises and separation lowers capacitance."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "Both questions provide four distinct, parallel paired classifications that systematically test reversals and confusions among the supplied relationships."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation states the supporting relationship and explicitly repairs the closest reversal without relying on an answer position."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "Facts, terms, scenario evidence, answer indices, cited fact indices, and explanations consistently express the same three source relationships."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "The first question declares \"Increasing plate area decreases capacitance\" correct, while the cited fact and explanation say increasing area increases capacitance.",
+          "The second question declares \"Capacitance remains the same\" correct even though doubled area and halved separation both have the stated direction of increasing capacitance; its explanation also conflicts with that key."
+        ],
+        "B": []
+      },
+      "decision": "B",
+      "rationale": "Artifact B is fully source-bound, precise, scenario-ready, correctly keyed, and internally coherent. Artifact A reproduces the source facts but contains two incorrect declared answers and direct answer-explanation contradictions, so B is the clear winner."
+    }
+  ]
+}

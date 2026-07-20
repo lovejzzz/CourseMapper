@@ -61,6 +61,10 @@ export function revalidatePersistedLessonContent(lessonContent = {}, courseMap =
     const lessonNumber = Number(String(lessonId).match(/^lesson-(\d+)$/)?.[1]);
     const lesson = Number.isFinite(lessonNumber) ? courseMap?.lessons?.[lessonNumber - 1] : null;
     receipt.lessonsChecked += 1;
+    if (!lesson) {
+      receipt.droppedLessonIds.push(lessonId);
+      continue;
+    }
 
     const rejectedTerms = [];
     const keyTerms = (Array.isArray(payload.keyTerms) ? payload.keyTerms : []).filter((term) => {
@@ -99,6 +103,48 @@ export function revalidatePersistedLessonContent(lessonContent = {}, courseMap =
   }
 
   return { lessonContent: sanitized, receipt };
+}
+
+/**
+ * Reuse an accepted project overlay for a full compiler run only when every
+ * requested lesson still survives today's admission policy. Partial or stale
+ * overlays return null so the caller can refresh knowledge normally.
+ */
+export function restoreCompleteEnrichmentOverlay(enrichmentOverlay, courseMap = {}, scopeIndices = null) {
+  if (!enrichmentOverlay || typeof enrichmentOverlay !== 'object') return null;
+  const sourceLessonContent = enrichmentOverlay.lessonContent;
+  if (!sourceLessonContent || typeof sourceLessonContent !== 'object') return null;
+
+  const lessons = Array.isArray(courseMap?.lessons) ? courseMap.lessons : [];
+  const requestedIndices = Array.isArray(scopeIndices)
+    ? scopeIndices.filter((index) => Number.isInteger(index) && index >= 0 && index < lessons.length)
+    : lessons.map((_, index) => index);
+  if (requestedIndices.length === 0) return null;
+
+  const { lessonContent, receipt } = revalidatePersistedLessonContent(sourceLessonContent, courseMap);
+  const missingLessons = requestedIndices
+    .filter((index) => !lessonContent[`lesson-${index + 1}`])
+    .map((index) => index + 1);
+  if (missingLessons.length > 0) return null;
+
+  return {
+    enrichment: {
+      ...enrichmentOverlay,
+      lessonContent,
+      coverage: {
+        ...(enrichmentOverlay.coverage || {}),
+        requestedLessons: requestedIndices.length,
+        enrichedLessons: requestedIndices.length,
+        missingLessons: [],
+      },
+      stageDecisions: {
+        ...(enrichmentOverlay.stageDecisions || {}),
+        modelStage: 'restored',
+      },
+    },
+    receipt,
+    enrichedLessonIds: requestedIndices.map((index) => `lesson-${index + 1}`),
+  };
 }
 
 /**

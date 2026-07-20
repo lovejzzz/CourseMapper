@@ -221,6 +221,43 @@ describe('D1(1) — synthetic calibration: slot-varied stamps vs varied prose', 
     expect(normalized).toBe('Students compare the pitch spelling before they count semitones.');
   });
 
+  it('ignores lesson schedule and Bloom ledgers without hiding repeated instructional prose', () => {
+    const schedule = [
+      'LESSON PLANS',
+      'Lesson 1: Evidence Workshop',
+      '75 MINUTES · WEEK 1',
+      "Bloom's Levels: Remember, Understand, Apply, Analyze, Evaluate, Create",
+      'LEARNING OBJECTIVES',
+      'WARM-UP',
+      'Retrieval and framing · 10 minutes',
+      'SESSION OUTLINE',
+      'Time',
+      'Activity',
+      'Description & Notes',
+      '9 minutes',
+      'Misconception poll · Warm-up · Bloom: Apply',
+    ];
+    const variedPlans = VARIED_WRITERS.slice(0, 8).map((write, index) => ({
+      id: `plan-${index + 1}`,
+      feature: 'lessonPlans',
+      text: [...schedule, write(TOPICS[index])].join('\n'),
+    }));
+    const varied = computeTexture(variedPlans, { slotValues: TOPICS });
+    const evidence = varied.evidence.map((item) => item.shingle).join('\n');
+
+    expect(evidence).not.toMatch(/minutes week|bloom|misconception poll warm-up/i);
+    expect(normalizeTextureText(schedule.join('\n'))).toBe('');
+
+    const repeated = computeTexture(
+      variedPlans.map((doc) => ({
+        ...doc,
+        text: `${doc.text}\nStudents compare the same evidence checklist, defend one claim, identify one limitation, and record one revision before leaving class.`,
+      })),
+      { slotValues: TOPICS },
+    );
+    expect(repeated.evidence.some((item) => /compare the same evidence checklist/.test(item.shingle))).toBe(true);
+  });
+
   it('ignores assignment ledger metadata while still catching repeated assignment body prose', () => {
     const ledgerOnly = computeTexture(
       Array.from({ length: 12 }, (_, index) => ({
@@ -658,7 +695,7 @@ describe('D1(3)+(4) — weight-0 invariance and the report row on a real package
   });
 
   it('keeps every pre-texture weight and gives texture a score-bearing weight that can cost the A band', () => {
-    expect(GRADER_VERSION).toBe('1.10.20');
+    expect(GRADER_VERSION).toBe('1.10.23');
     expect(DIMENSION_WEIGHTS).toEqual({
       identity: 20,
       substance: 20,

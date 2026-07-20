@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { deriveCourseGraphFromCourseMap } from '../courseGraph/deriveFromCourseMap.js';
 import { renderCourseMapFromGraph } from '../courseGraph/renderCourseMap.js';
-import { matchEntityIds, preserveSourceProof } from '../nativeGraphAuthoring.js';
+import {
+  matchEntityIds,
+  preserveSourceProof,
+  repairCourseGraphResourceIds,
+  restoreCourseGraphForProject,
+} from '../nativeGraphAuthoring.js';
+import { validateCourseGraph } from '../courseGraph/schema.js';
 
 function sourceBackedMap() {
   return {
@@ -150,5 +156,68 @@ describe('nativeGraphAuthoring matchEntityIds', () => {
     );
     expect(preserved.sourceFinderMiniShard).toEqual(oldGraph.sourceFinderMiniShard);
     expect(preserved.sessions[0].sections[0].resourceRefs).toContain('sf1');
+  });
+
+  it('keeps resource ids unique when a preserved id collides with a newly derived resource', () => {
+    const oldGraph = deriveCourseGraphFromCourseMap(sourceBackedMap());
+    oldGraph.resources[0].id = 'r4';
+    oldGraph.resources[0].origin = 'source-finder';
+    oldGraph.sessions[0].sections[0].resourceRefs = ['r4'];
+
+    const expandedMap = sourceBackedMap();
+    expandedMap.lessons[0].sections[0].supportingResources = [
+      'Instructor placeholder',
+      'New resource B',
+      'New resource C',
+      'New resource D',
+    ].join('; ');
+    const rederived = deriveCourseGraphFromCourseMap(expandedMap);
+    const preserved = preserveSourceProof(oldGraph, rederived);
+
+    expect(new Set(preserved.resources.map((resource) => resource.id)).size).toBe(4);
+    expect(preserved.resources.find((resource) => resource.citation === 'Instructor placeholder')).toMatchObject({
+      id: 'r4',
+      origin: 'source-finder',
+    });
+    expect(preserved.resources.find((resource) => resource.citation === 'New resource D')?.id).not.toBe('r4');
+    expect(validateCourseGraph(preserved)).toMatchObject({ valid: true, issues: [] });
+  });
+
+  it('repairs duplicate resource ids in an existing saved graph without dropping lesson links', () => {
+    const graph = deriveCourseGraphFromCourseMap({
+      courseName: 'Mandarin Foundations',
+      lessons: [
+        {
+          title: 'Lesson 1',
+          sections: [{ topicSection: 'Pinyin', supportingResources: 'Pinyin guide' }],
+        },
+        {
+          title: 'Lesson 2',
+          sections: [{ topicSection: 'Greetings', supportingResources: 'Greetings guide' }],
+        },
+      ],
+    });
+    graph.resources[1].id = graph.resources[0].id;
+    graph.sessions[1].sections[0].resourceRefs = [graph.resources[0].id];
+
+    expect(validateCourseGraph(graph).valid).toBe(false);
+    const repaired = repairCourseGraphResourceIds(graph);
+
+    expect(validateCourseGraph(repaired)).toMatchObject({ valid: true, issues: [] });
+    expect(repaired.resources.map((resource) => resource.id)).toEqual(['r1', 'r1-preserved']);
+    expect(repaired.sessions[0].sections[0].resourceRefs).toEqual(['r1']);
+    expect(repaired.sessions[1].sections[0].resourceRefs).toEqual(['r1-preserved']);
+    expect(graph.resources.map((resource) => resource.id)).toEqual(['r1', 'r1']);
+  });
+
+  it('restores a repaired enriched graph instead of deriving a content-thin fallback', () => {
+    const graph = deriveCourseGraphFromCourseMap(sourceBackedMap());
+    graph.enrichmentOverlay = { lessonContent: { 'lesson-1': { kernel: { facts: ['Verified fact.'] } } } };
+    graph.resources.push({ ...graph.resources[0] });
+
+    const restored = restoreCourseGraphForProject({ courseGraph: graph, courseMap: sourceBackedMap() });
+
+    expect(validateCourseGraph(restored).valid).toBe(true);
+    expect(restored.enrichmentOverlay).toEqual(graph.enrichmentOverlay);
   });
 });

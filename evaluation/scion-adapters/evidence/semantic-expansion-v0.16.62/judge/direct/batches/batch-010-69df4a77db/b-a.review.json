@@ -1,0 +1,182 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-review-v1",
+  "order": "B/A",
+  "packetSha256": "4077c3a13e54c1ee234244b31472c94fde88b17909f6136101529c24c166b8ba",
+  "sessionId": "scion-v01662-batch-010-69df4a77db-b-a-f9d43b04-2572-4a07-8edd-7c262d85967b",
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "completedAt": "2026-07-19T21:59:24Z",
+  "attestations": {
+    "anonymousArtifactsOnly": true,
+    "otherOrderUnavailable": true,
+    "organizerMappingUnavailable": true
+  },
+  "decisions": [
+    {
+      "caseId": "scion-kernel-f6694acc8a391b1aa629bdee",
+      "pairId": "scion-kernel-pair-a76e1065a1aca5fe749f0735",
+      "artifactSha256": {
+        "A": "93fe2a262f94b045ec895acfb22678cd2abd688b0fe4d76ab97b8274956b3e80",
+        "B": "d8ea22b1bba8571d680b5e107c3ace894546c806e9ed54a37296b8ff8789f5b3"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "The facts, definitions, examples, scenario changes, and explanations remain within the three supplied capacitance claims."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "The charge-to-potential-difference and field-energy distinction is accurate, but “potential difference divides charge” restates the correct ratio as a distractor."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The team must assign opposing capacitance labels using inspectable area and separation notations under a review deadline."
+          },
+          "assessmentCorrectness": {
+            "score": 2,
+            "evidence": "The design-classification key is uniquely correct, but the first question has two defensible statements of charge divided by potential difference."
+          },
+          "choiceDiscriminability": {
+            "score": 2,
+            "evidence": "The second option set cleanly crosses both directional relations, while the first set makes the ratio answer and “potential difference divides charge” overlap."
+          },
+          "feedbackInstructionality": {
+            "score": 3,
+            "evidence": "Both explanations state the supported relations and repair a reversal, but the first does not explain why the overlapping quotient wording should fail."
+          },
+          "internalCoherence": {
+            "score": 3,
+            "evidence": "Facts, terms, scenario, citations, keys, and explanations agree except that the first key treats a semantically correct ratio statement as incorrect."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 1,
+            "evidence": "Both declared answers contradict the supplied area relation, and the scenario adds a constant-charge condition not established by the source claims."
+          },
+          "knowledgePrecision": {
+            "score": 1,
+            "evidence": "The stored-charge and potential-difference entries are vague and circular, omit the energy distinction, and do not directly repair their flow and charge misconceptions."
+          },
+          "scenarioReadiness": {
+            "score": 3,
+            "evidence": "The scenario supplies plate areas, common separation, a baseline capacitance, and a constraint, though the constant-charge condition is irrelevant to the requested capacitance comparison."
+          },
+          "assessmentCorrectness": {
+            "score": 0,
+            "evidence": "Increasing area should select “increases,” not “decreases,” and doubling area while halving separation cannot support the declared “remains the same” answer."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "The quantitative outcomes are distinct and the first question offers three capacitance directions, although its stored-charge alternative is not parallel to them."
+          },
+          "feedbackInstructionality": {
+            "score": 0,
+            "evidence": "The first explanation supports increasing capacitance while the key declares decreasing, and the second supports an increase while the key declares no change."
+          },
+          "internalCoherence": {
+            "score": 0,
+            "evidence": "Both answer keys conflict with their explanations and with the supplied relation that greater plate area increases capacitance."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "The first question is ambiguous because “Capacitance is the ratio” and “Potential difference divides charge” both express stored charge divided by potential difference."
+        ],
+        "B": [
+          "Both questions have incorrect declared answers.",
+          "Both explanations contradict their declared answers and instead indicate that capacitance increases.",
+          "The scenario introduces a constant-stored-charge condition unsupported by the supplied claims."
+        ]
+      },
+      "decision": "A",
+      "rationale": "Artifact A faithfully teaches all three claims and provides a usable decision scenario, despite one overlapping distractor that makes its first assessment ambiguous. Artifact B has incorrect keys and answer-feedback contradictions in both questions, so A is clearly superior."
+    },
+    {
+      "caseId": "scion-kernel-fb9da96bbe4e44f5ef726a96",
+      "pairId": "scion-kernel-pair-7170b6baf42f9e296b3eb343",
+      "artifactSha256": {
+        "A": "957dfbf8d2e077dce4cbd1400ea76ac7221abc0d1f565d080fecaa2fb4cf34b5",
+        "B": "a1b3e0c768764997824385b4574c29697fbe5d14a3c22ad1b930f72df6061d97"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "Every fact, term entry, scenario detail, keyed answer, and explanation is a direct use or close paraphrase of the supplied functional-harmony claims."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "The artifact clearly distinguishes role-based classification, degree-one tonic, degree-four pre-dominant, and the strengthened major fifth-degree chord in minor."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The editor must classify two inspectable chord notations as tonic or pre-dominant and justify both choices before a deadline."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Degree one versus degree four and the raised third of the minor fifth-degree chord each have one correctly keyed, source-supported answer."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "Both questions use four parallel combinations that separately test scale-degree roles or the resulting chord quality and strengthened function."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation states the supporting rule and directly repairs the closest reversal or the mistaken retention of minor quality."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "The facts, key terms, scenario, source indices, answers, and explanations consistently apply the same three supplied claims."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "The artifact adds unsupported characterizations such as tonic being “primary,” pre-dominant being “preparatory,” and dominant being “crucial,” plus claims about guaranteed resolution."
+          },
+          "knowledgePrecision": {
+            "score": 2,
+            "evidence": "Several definitions mix supported scale-degree construction with unsupported functional generalizations, and the first assessment treats two valid pre-dominant degrees as if only one were correct."
+          },
+          "scenarioReadiness": {
+            "score": 3,
+            "evidence": "The composer has an actionable degree-six classification with inspectable evidence, but the requirement to establish dominant function elsewhere is weakly connected and unsupported."
+          },
+          "assessmentCorrectness": {
+            "score": 2,
+            "evidence": "The raised-third question is uniquely correct, but both degree-six and degree-two alternatives correctly distinguish a degree-one tonic from a supplied pre-dominant degree."
+          },
+          "choiceDiscriminability": {
+            "score": 2,
+            "evidence": "The second set is parallel and distinct, while the first contains two source-supported answers differing only in which valid pre-dominant degree is named."
+          },
+          "feedbackInstructionality": {
+            "score": 2,
+            "evidence": "The second explanation supports its answer but does not repair a misconception; the first explanation explicitly confirms both competing degree-six and degree-two alternatives."
+          },
+          "internalCoherence": {
+            "score": 2,
+            "evidence": "Most content agrees on scale-degree functions, but the first key claims uniqueness while its explanation validates two offered pre-dominant degrees."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [],
+        "B": [
+          "The first question is ambiguous because both “pre-dominant on degree six” and “pre-dominant on degree two” are supported by the source.",
+          "The first explanation confirms both competing alternatives rather than preserving a unique declared answer.",
+          "The key-term material adds unsupported factual characterizations that tonic is primary, pre-dominant is preparatory, dominant is crucial, and dominant resolution behavior defines a misconception."
+        ]
+      },
+      "decision": "A",
+      "rationale": "Artifact A is fully source-bound, precise, scenario-ready, and internally consistent across both assessments. Artifact B contains unsupported functional characterizations and a materially ambiguous first question whose own explanation confirms two answers, making A the clear winner."
+    }
+  ]
+}

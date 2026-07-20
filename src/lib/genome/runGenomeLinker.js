@@ -38,6 +38,122 @@ function respectsCourseLanguage(courseIdentity, payload) {
   );
 }
 
+const CUMULATIVE_SYNTHESIS_RE =
+  /\b(?:cumulative|comprehensive|course)\s+(?:review|synthesis|exam(?:ination)?|assessment|performance)\b|\b(?:review|synthesis)\s+(?:of|for)\b|\b(?:final|capstone|culminating)\b[^.!?]{0,80}\b(?:project|portfolio|presentation|assessment|performance|case)\b/i;
+const CUMULATIVE_SYNTHESIS_MAX_CONCEPTS = 5;
+
+function isCumulativeSynthesisLesson(courseMap, lessonIndex) {
+  const lessons = Array.isArray(courseMap?.lessons) ? courseMap.lessons : [];
+  const lesson = lessons[lessonIndex];
+  if (!lesson || lessonIndex < Math.max(3, Math.floor(lessons.length * 0.6))) return false;
+  const identity = [lesson.title, ...(lesson.sections || []).map((section) => section?.topicSection)]
+    .filter(Boolean)
+    .join(' ');
+  return CUMULATIVE_SYNTHESIS_RE.test(identity);
+}
+
+function selectCumulativeConceptRefs(entries, lessonIndex) {
+  const unique = [];
+  const seen = new Set();
+  for (const entry of entries) {
+    if (entry.lessonIndex >= lessonIndex) continue;
+    for (const ref of entry.conceptRefs || []) {
+      if (!ref?.id || seen.has(ref.id)) continue;
+      seen.add(ref.id);
+      unique.push(ref);
+    }
+  }
+  if (unique.length <= CUMULATIVE_SYNTHESIS_MAX_CONCEPTS) return unique;
+  const selected = [];
+  for (let index = 0; index < CUMULATIVE_SYNTHESIS_MAX_CONCEPTS; index += 1) {
+    const position = Math.round((index * (unique.length - 1)) / (CUMULATIVE_SYNTHESIS_MAX_CONCEPTS - 1));
+    selected.push(unique[position]);
+  }
+  // Consecutive cumulative lessons should not repeat the same paired-review
+  // questions. Rotating the same breadth sample changes the concept pairings
+  // while preserving the source set and its citations.
+  const rotation = lessonIndex % selected.length;
+  return [...selected.slice(rotation), ...selected.slice(0, rotation)];
+}
+
+function cumulativeQuizSeed(kernel) {
+  const item = (kernel?.mcBank || []).find((candidate) => {
+    const options = Array.isArray(candidate?.options)
+      ? candidate.options.map((option) => String(option || '').trim())
+      : [];
+    const answerIndex = Number(candidate?.answerIndex);
+    return (
+      String(candidate?.stem || '').trim().length >= 12 &&
+      options.length === 4 &&
+      options.every((option) => option.length >= 1 && option.length <= 48) &&
+      Number.isInteger(answerIndex) &&
+      answerIndex >= 0 &&
+      answerIndex < options.length &&
+      Number.isInteger(candidate?.explanationFactRef) &&
+      Boolean(kernel?.facts?.[candidate.explanationFactRef]?.text) &&
+      Boolean(kernel?.facts?.[candidate.explanationFactRef]?.anchor)
+    );
+  });
+  if (!item) return null;
+  const options = item.options.map((option) => String(option || '').trim());
+  const answerIndex = Number(item.answerIndex);
+  const distractorIndex = options.findIndex(
+    (option, index) => index !== answerIndex && option !== options[answerIndex],
+  );
+  if (distractorIndex < 0) return null;
+  return {
+    stem: String(item.stem || '')
+      .trim()
+      .replace(/[.!?]+$/, ''),
+    answer: options[answerIndex],
+    distractor: options[distractorIndex],
+    explanation: String(kernel.facts[item.explanationFactRef].text || '').trim(),
+  };
+}
+
+function attachCumulativeSynthesisQuiz(payload, kernels, itemPlan = []) {
+  const slots = itemPlan.filter((slot) => slot?.type === 'multiple_choice').slice(0, 2);
+  const seeds = kernels.map(cumulativeQuizSeed).filter(Boolean);
+  if (slots.length < 2 || seeds.length < 4) return payload;
+  const quizItems = [];
+  for (let index = 0; index < 2; index += 1) {
+    const left = seeds[index * 2];
+    const right = seeds[index * 2 + 1];
+    const options = [
+      `${left.answer}; ${right.answer}`,
+      `${left.distractor}; ${right.answer}`,
+      `${left.answer}; ${right.distractor}`,
+      `${left.distractor}; ${right.distractor}`,
+    ];
+    if (new Set(options.map((option) => option.toLowerCase())).size !== 4) continue;
+    quizItems.push({
+      index: slots[index]?.index ?? index,
+      type: 'multiple_choice',
+      question: `Consider these two questions: “${left.stem}?” and “${right.stem}?” Which answer pair is correct, in order?`,
+      options,
+      answerIndex: 0,
+      distractorRationales: [],
+      answer: '',
+      explanation: `${left.explanation} ${right.explanation}`,
+      scoringGuidance: '',
+      enrichmentSource: 'genome-cumulative-synthesis',
+    });
+  }
+  if (quizItems.length < 2) return payload;
+  const nonMcItems = (payload?.quizItems || []).filter((item) => item?.type !== 'multiple_choice');
+  return {
+    ...payload,
+    quizItems: [...quizItems, ...nonMcItems].sort(
+      (left, right) => Number(left?.index || 0) - Number(right?.index || 0),
+    ),
+    cumulativeSynthesis: {
+      source: 'prior-genome-concepts',
+      conceptIds: kernels.map((kernel) => kernel.id),
+      generatedQuizItems: quizItems.length,
+    },
+  };
+}
+
 export function describeGenomeLinkTelemetry(telemetry = {}, lessonCount = 0, shardIds = []) {
   const uncovered = telemetry.uncoveredDisciplines || [];
   let coverageNote =
@@ -55,7 +171,10 @@ export function describeGenomeLinkTelemetry(telemetry = {}, lessonCount = 0, sha
   const languageNote = telemetry.languageIdentityRejects
     ? ` · ${telemetry.languageIdentityRejects} cross-language link${telemetry.languageIdentityRejects === 1 ? '' : 's'} rejected`
     : '';
-  return `${telemetry.resolvedFromGenome || 0} genome + ${telemetry.resolvedFromCache || 0} cached (${telemetry.cachedGenomeBacked || 0} genome-backed) of ${lessonCount} lessons (${telemetry.conceptHits || 0} concepts, ${telemetry.citationsRendered || 0} citations, ${telemetry.bridgeCount || 0} bridges)${coverageNote}${languageNote}`;
+  const synthesisNote = telemetry.cumulativeSyntheses
+    ? ` · ${telemetry.cumulativeSyntheses} cumulative lesson${telemetry.cumulativeSyntheses === 1 ? '' : 's'} synthesized from prior cited concepts`
+    : '';
+  return `${telemetry.resolvedFromGenome || 0} genome + ${telemetry.resolvedFromCache || 0} cached (${telemetry.cachedGenomeBacked || 0} genome-backed) of ${lessonCount} lessons (${telemetry.conceptHits || 0} concepts, ${telemetry.citationsRendered || 0} citations, ${telemetry.bridgeCount || 0} bridges)${coverageNote}${languageNote}${synthesisNote}`;
 }
 
 // v0.14.1 (4.5): below this floor a genome match AUGMENTS the model instead
@@ -99,6 +218,7 @@ export function runGenomeLinker({
     misses: 0,
     conceptHits: 0,
     citationsRendered: 0,
+    cumulativeSyntheses: 0,
     tierCounts: {},
     uncoveredDisciplines: [...uncoveredDisciplines],
   };
@@ -123,6 +243,16 @@ export function runGenomeLinker({
       unresolved: conceptRefs.length === 0 ? entry.unresolved : [],
     };
   });
+  const cumulativeSynthesisLessonIndices = new Set();
+  for (const entry of perLesson) {
+    if ((entry.conceptRefs || []).length > 0 || !isCumulativeSynthesisLesson(courseMap, entry.lessonIndex)) continue;
+    const conceptRefs = selectCumulativeConceptRefs(perLesson, entry.lessonIndex);
+    if (conceptRefs.length < 4) continue;
+    entry.conceptRefs = conceptRefs;
+    entry.unresolved = [];
+    entry.cumulativeSynthesis = true;
+    cumulativeSynthesisLessonIndices.add(entry.lessonIndex);
+  }
   const lessonsWithHits = perLesson.filter((entry) => entry.conceptRefs.length > 0).length;
   const resolution = {
     ...rawResolution,
@@ -190,9 +320,17 @@ export function runGenomeLinker({
         if (composed.consumption?.workedExampleConceptId) {
           shippedWorkedExampleConcepts.add(composed.consumption.workedExampleConceptId);
         }
-        const payload = { ...composed.payload, enrichmentSource: 'genome-linked' };
+        const cumulativeSynthesis = cumulativeSynthesisLessonIndices.has(lessonIndex);
+        const composedPayload = cumulativeSynthesis
+          ? attachCumulativeSynthesisQuiz(composed.payload, conceptKernels, itemPlan)
+          : composed.payload;
+        const payload = {
+          ...composedPayload,
+          enrichmentSource: cumulativeSynthesis ? 'genome-cumulative-synthesis' : 'genome-linked',
+        };
         lessonContent[lessonId] = payload;
         telemetry.resolvedFromGenome += 1;
+        if (cumulativeSynthesis) telemetry.cumulativeSyntheses += 1;
         telemetry.conceptHits += conceptKernels.length;
         const tier = composed.conceptProvenance.tier;
         telemetry.tierCounts[tier] = (telemetry.tierCounts[tier] || 0) + 1;

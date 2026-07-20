@@ -128,7 +128,23 @@ function isCitationShapedSourceCue(text) {
 }
 
 export function humanSourceCueLabel(value, fallback) {
-  const text = stripTerminalPunctuation(cleanText(value));
+  // Knowledge kernels may carry a citation as a structured ledger row.
+  // Classroom prose needs the human label, never JavaScript's default
+  // "[object Object]" coercion.
+  const sourceValue =
+    value && typeof value === 'object' && !Array.isArray(value)
+      ? value.displayTitle ||
+        value.title ||
+        value.citation ||
+        value.attribution ||
+        value.source ||
+        value.evidence ||
+        value.locator ||
+        value.sourceUrl ||
+        value.url ||
+        ''
+      : value;
+  const text = stripTerminalPunctuation(cleanText(sourceValue));
   if (!text) return fallback;
   if (looksLikePersonNameCue(text)) return fallback;
   if (!isCitationShapedSourceCue(text)) return text;
@@ -181,7 +197,12 @@ export function humanizeQuizText(value) {
   return humanizeMachineTokens(
     sourceSafe
       .replace(/\s*§\s*[A-Za-z0-9_-]+/g, '')
-      .replace(/\s*\((?:open textbook|open license)(?:\s*,[^)]*)?\)/gi, ''),
+      .replace(/\s*\((?:open textbook|open license)(?:\s*,[^)]*)?\)/gi, '')
+      // Weak local models occasionally close a prose question with a lone
+      // math delimiter ("...supported?$"). A dollar after sentence
+      // punctuation cannot be a useful closing inline-math token, so remove
+      // it without touching legitimate prompts such as "Evaluate $x$".
+      .replace(/([.!?])\s*\$$/, '$1'),
   );
 }
 
@@ -206,9 +227,22 @@ export function removeNumberedAssessmentEchoes(value) {
 export function dedupeNumberedAssessmentEcho(value) {
   const text = removeNumberedAssessmentEchoes(value);
   const match = /^(.{8,140}?)\s*:\s*\d+\.\s*(.+)$/.exec(text);
-  if (!match) return text;
-  const lead = stripTerminalPunctuation(match[1]);
-  const tail = stripTerminalPunctuation(match[2]);
-  if (lead && tail && lead.toLowerCase() === tail.toLowerCase()) return lead;
+  if (match) {
+    const lead = stripTerminalPunctuation(match[1]);
+    const tail = stripTerminalPunctuation(match[2]);
+    if (lead && tail && lead.toLowerCase() === tail.toLowerCase()) return lead;
+  }
+
+  // A weak model can echo a complete, already-colonized title without the
+  // list number: "X: prompt.: X: prompt.". Test every colon seam rather
+  // than only the first one, because the title itself may legitimately
+  // contain a colon. Equal normalized halves collapse to one identity;
+  // ordinary "Label: prompt" titles stay untouched.
+  for (let index = text.indexOf(':'); index >= 0; index = text.indexOf(':', index + 1)) {
+    const leadText = cleanText(text.slice(0, index));
+    const lead = stripTerminalPunctuation(leadText);
+    const tail = stripTerminalPunctuation(text.slice(index + 1));
+    if (lead && tail && lead.toLowerCase() === tail.toLowerCase()) return leadText;
+  }
   return text;
 }

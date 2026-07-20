@@ -173,8 +173,33 @@ function normalizeOptionLabels(options) {
     : options;
 }
 
-function normalizeMcOptionLabels(lesson) {
+function normalizeMcSurfaces(lesson, events = []) {
   for (const item of Array.isArray(lesson?.mc) ? lesson.mc : []) {
+    if (!item || typeof item !== 'object') continue;
+    const originalQuestion = String(item.q || '');
+    const compactQuestion = originalQuestion.replace(/\s+/g, ' ').trim();
+    const withoutRedundantAnswerPrompt = compactQuestion.replace(
+      /(\?)\s+Which\s+(?:option|choice|answer)\s+is\s+supported\?\$?$/i,
+      '$1',
+    );
+    const normalizedQuestion = withoutRedundantAnswerPrompt
+      // Gemma occasionally emits a JSON-schema end marker as a literal final
+      // dollar sign ("Which statement is supported?$"). It has no subject
+      // meaning after terminal punctuation and must never reach learners.
+      .replace(/([.!?])\$$/, '$1');
+    if (normalizedQuestion !== originalQuestion) {
+      item.q = normalizedQuestion;
+      events.push({
+        pass: 'surfaceNormalization',
+        lessonId: lesson?.lessonId,
+        action: 'repaired',
+        reason:
+          withoutRedundantAnswerPrompt !== compactQuestion
+            ? 'redundant-answer-position-question'
+            : 'terminal-schema-marker',
+        trainingEligible: false,
+      });
+    }
     if (!Array.isArray(item?.op)) continue;
     item.op = normalizeOptionLabels(item.op);
   }
@@ -1118,7 +1143,9 @@ async function targetLanguageIdentityGate(lesson, promptLesson, courseName, gene
     sourceText,
     text: JSON.stringify(lesson),
   });
-  if (!before.required || before.complete) return;
+  const missingVisiblePair = before.required && !before.pinyinOnly && before.complete && !before.paired;
+  if (!before.required || (before.complete && !missingVisiblePair)) return;
+  const repairReason = missingVisiblePair ? 'hanzi-pinyin-pair' : before.missing.join(',');
   if (before.pinyinOnly) {
     events.push({
       pass: 'languageIdentity',
@@ -1149,18 +1176,18 @@ async function targetLanguageIdentityGate(lesson, promptLesson, courseName, gene
     const english = String(pair?.english || '').trim();
     const evidence = `${hanzi} (${pinyin}) means ${english}.`;
     const after = assessTargetLanguagePresence({ courseIdentity: courseName, sourceText, text: evidence });
-    if (!after.complete) throw new Error('repair did not contain a valid Hanzi/Pinyin pair');
-    if (!Array.isArray(lesson.facts)) lesson.facts = [];
-    if (!lesson.facts.some((fact) => String(fact).includes(hanzi) && String(fact).includes(pinyin))) {
-      // Keep existing indexes stable: fi citations were authored against the
-      // original facts array and must continue to name the same claims.
-      lesson.facts.push(evidence);
-    }
+    if (!after.complete || !after.paired) throw new Error('repair did not contain a valid Hanzi/Pinyin pair');
+    // Facts are the immutable warrant for every cited teaching atom. Keep the
+    // repaired language example beside that ledger instead of appending a new
+    // uncited fact (which also turned a valid five-fact compact kernel into an
+    // invalid six-fact response). The parser and compiler carry this
+    // structured pair into learner-facing vocabulary without changing fi.
+    lesson.targetLanguagePair = { hanzi, pinyin, english };
     events.push({
       pass: 'languageIdentity',
       lessonId: lesson.lessonId,
       action: 'repaired',
-      reason: before.missing.join(','),
+      reason: repairReason,
       trainingEligible: false,
     });
   } catch {
@@ -1168,7 +1195,7 @@ async function targetLanguageIdentityGate(lesson, promptLesson, courseName, gene
       pass: 'languageIdentity',
       lessonId: lesson.lessonId,
       action: 'failed',
-      reason: before.missing.join(','),
+      reason: repairReason,
       trainingEligible: false,
     });
   }
@@ -1193,6 +1220,7 @@ export async function applyScionKernelPasses(
     verifyDraftMcWithSameModel = true,
     verifyRepairMcWithSameModel = true,
     maxAdmissionRepairsPerCall = Number.POSITIVE_INFINITY,
+    skipImprovementOnlyPasses = false,
   } = {},
 ) {
   let parsed = null;
@@ -1228,7 +1256,7 @@ export async function applyScionKernelPasses(
 
   for (const lesson of lessons) {
     if (contentSourced.has(lesson?.lessonId)) continue; // library content — never touched
-    normalizeMcOptionLabels(lesson);
+    normalizeMcSurfaces(lesson, events);
     const promptLesson = promptLessons.find((entry) => entry?.lessonId === lesson?.lessonId) ?? null;
     const callLimit = Math.max(1, Math.floor(Number(maxCallsPerLesson) || SCION_PASS_CALL_BUDGET_PER_LESSON));
     let callsUsed = 0;
@@ -1288,12 +1316,22 @@ export async function applyScionKernelPasses(
     await runPass('keyTermAdmission', () =>
       keyTermAdmissionGate(lesson, promptLesson, budgetedGenerateJson, events, minimumKeyTermCount),
     );
-    await runPass('appliedDepth', () => appliedDepthGate(lesson, promptLesson, budgetedGenerateJson, events));
-    await runPass('polish', () => polishProse(lesson, budgetedGenerateJson, events));
+    if (!skipImprovementOnlyPasses) {
+      await runPass('appliedDepth', () => appliedDepthGate(lesson, promptLesson, budgetedGenerateJson, events));
+      await runPass('polish', () => polishProse(lesson, budgetedGenerateJson, events));
+    } else {
+      events.push({
+        pass: 'improvementPasses',
+        lessonId: lesson.lessonId,
+        action: 'skipped',
+        reason: `grounded-adapter-bounded-repair-policy:${callsUsed}/${callLimit}`,
+        trainingEligible: false,
+      });
+    }
     // A bounded replacement can arrive after the initial normalization. Keep
     // exporter-owned A/B/C/D labels out of the stored options regardless of
     // which repair pass authored the final item.
-    normalizeMcOptionLabels(lesson);
+    normalizeMcSurfaces(lesson, events);
   }
   return { text: JSON.stringify(parsed), events };
 }

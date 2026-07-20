@@ -63,7 +63,7 @@ import { useUI } from './contexts/UIContext';
 import { useCourse } from './contexts/CourseContext';
 import { warn } from './lib/logger';
 import { applyQualityToFinalizerResult, runDeterministicPackageFinalizer } from './lib/packageFinalizer';
-import { PUBLIC_SCION_MODEL_NAME, PUBLIC_SCION_PROVIDER_ID } from './lib/publicScionProvider';
+import { PUBLIC_SCION_MODEL_NAME, PUBLIC_SCION_PROVIDER_ID } from './lib/publicScionIdentity';
 import { verifyPackageExports } from './lib/packageExportVerifier';
 import { generateCourseHealthReport } from './lib/pedagogicalValidator';
 import { resolveRequestedClassSessionMinutes } from './lib/sourceBriefConstraints';
@@ -117,7 +117,7 @@ import {
   renderCourseMapFromGraph,
   validateCourseGraph,
 } from './lib/courseGraph';
-import { matchEntityIds, preserveSourceProof } from './lib/nativeGraphAuthoring';
+import { matchEntityIds, preserveSourceProof, restoreCourseGraphForProject } from './lib/nativeGraphAuthoring';
 import { knowledgeCoverage } from './lib/knowledge';
 import { normalizePipelineStateWithSourceBackedJudgment } from './lib/sourceBackedJudgment';
 
@@ -959,17 +959,13 @@ export default function AppFlow({
   // v0.13.1: every restore path (local session, cloud project, .coursemapper
   // file, developer snapshot) adopts the saved graph when it validates, or
   // derives a fresh one from the restored map. Invalid graphs (e.g. the
-  // tuple-edge encoding v0.13.0 briefly shipped) silently re-derive.
+  // tuple-edge encoding v0.13.0 briefly shipped) silently re-derive. The
+  // narrow duplicate-resource-id defect is repaired first so an otherwise
+  // valid enriched graph never loses its authored lesson kernels on reopen.
   const adoptCourseGraph = useCallback((saved) => {
-    if (saved?.courseGraph && validateCourseGraph(saved.courseGraph).valid) {
-      setCourseGraph(saved.courseGraph);
-      return;
-    }
-    try {
-      setCourseGraph(saved?.courseMap?.lessons ? deriveCourseGraphFromCourseMap(saved.courseMap) : null);
-    } catch {
-      setCourseGraph(null);
-    }
+    const restoredGraph = restoreCourseGraphForProject(saved);
+    courseGraphRef.current = restoredGraph;
+    setCourseGraph(restoredGraph);
   }, []);
   // v0.13 write-back: course-map edits (grid cells, agent actions, repairs)
   // re-derive the graph so it never drifts from what the instructor sees.

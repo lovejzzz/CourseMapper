@@ -1634,4 +1634,32 @@ describe('source-ledger quality checks', () => {
       ),
     ).toBe(false);
   });
+
+  it('recognizes Bopomofo as an on-discipline Mandarin citation', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'Elementary Mandarin Chinese I',
+          lessonScope: 'all',
+          requestedFeatures: ['syllabus'],
+          readiness: { status: 'ready', blockers: 0, warnings: 0, checkedSections: null },
+          files: [{ path: 'Syllabus/Elementary Mandarin Chinese I - Syllabus.txt', feature: 'syllabus' }],
+        }),
+        'Syllabus/Elementary Mandarin Chinese I - Syllabus.txt': [
+          'ELEMENTARY MANDARIN CHINESE I — SYLLABUS',
+          'WEEKLY READINGS',
+          'Week 1: Wikipedia contributors. Bopomofo. Wikipedia: https://en.wikipedia.org/wiki/Bopomofo (CC BY-SA 4.0)',
+        ].join('\n'),
+      }),
+      course: { id: 'mandarin', title: 'Elementary Mandarin Chinese I', featureIds: ['syllabus'] },
+    });
+
+    expect(
+      result.findings.some(
+        (finding) =>
+          finding.dimension === 'citations' &&
+          finding.detail === 'citation shares zero vocabulary with the course discipline (possible off-topic reading)',
+      ),
+    ).toBe(false);
+  });
 });

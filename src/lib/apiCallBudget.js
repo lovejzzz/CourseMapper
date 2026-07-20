@@ -372,6 +372,17 @@ export function applyApiCallBudgetEvent(currentBudget, event = {}) {
     // counts only. No prompt text or generated response content is retained.
     'admissionIssues',
     'kernelShape',
+    'routeProtocol',
+    'routeMode',
+    'taskFamily',
+    'routeReason',
+    'adapterId',
+    'adapterManifestSha256',
+    'adapterScopeIdentitySha256',
+    'nativeAdapterActive',
+    'adapterScale',
+    'routeModelCalls',
+    'execution',
   ].forEach((key) => {
     if (event[key] !== undefined && event[key] !== '') eventMetadata[key] = event[key];
   });
@@ -438,6 +449,16 @@ export function applyApiCallBudgetEvent(currentBudget, event = {}) {
   if (counter) {
     next[counter] = (next[counter] || 0) + (Number.isFinite(event.count) ? event.count : 1);
     if (counter === 'streamRetryCalls') next.retriedCalls = next.streamRetryCalls;
+  }
+  // The localhost benchmark server can perform several native generations
+  // behind one HTTP request while repairing a compact lesson kernel. The
+  // outer providerRequestStart already counted the first generation; add the
+  // remaining route-proven attempts so receipts and UI totals describe real
+  // inference work rather than just transport requests. Browser-local Scion
+  // emits one providerRequestStart per native attempt and needs no adjustment.
+  if (event.type === 'scionAdapterRoute' && event.execution === 'local-server') {
+    const routeModelCalls = Math.max(0, Math.floor(Number(event.routeModelCalls) || 0));
+    next.modelRequestStarts = (next.modelRequestStarts || 0) + Math.max(0, routeModelCalls - 1);
   }
   if (event.failureClass) {
     const count = Number.isFinite(event.count) ? event.count : 1;

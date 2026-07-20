@@ -21,6 +21,7 @@ function parseArgs(argv) {
     concurrency: 2,
     limit: 0,
     batches: [],
+    sessionPrefix: 'scion-v01654-teacher',
   };
   for (let index = 0; index < argv.length; index += 1) {
     const token = argv[index];
@@ -30,6 +31,7 @@ function parseArgs(argv) {
     else if (token === '--concurrency') args.concurrency = Number(argv[++index] || 0);
     else if (token === '--limit') args.limit = Number(argv[++index] || 0);
     else if (token === '--batch') args.batches.push(argv[++index] || '');
+    else if (token === '--session-prefix') args.sessionPrefix = argv[++index] || args.sessionPrefix;
     else if (token === '--help' || token === '-h') args.help = true;
     else throw new Error(`Unknown teacher revision runner option: ${token}`);
   }
@@ -114,7 +116,7 @@ async function runTask(task, args, codex, runtimeVersion) {
     return { status: 'resumed', task };
   }
   const cleanroom = await fs.mkdtemp(path.join(os.tmpdir(), `scion-teacher-${task.batchId}-`));
-  const sessionId = `scion-v01654-teacher-${task.batchId}-${crypto.randomUUID()}`;
+  const sessionId = `${args.sessionPrefix}-${task.batchId}-${crypto.randomUUID()}`;
   const reviser = { model: args.model, revision: runtimeVersion, runtime: 'codex-cli-ephemeral-source-cleanroom' };
   try {
     await Promise.all([
@@ -169,7 +171,7 @@ async function main() {
   const args = parseArgs(process.argv.slice(2));
   if (args.help) {
     console.log(
-      'Usage: node scripts/scionLessonKernelTeacherRevisionRunner.mjs [--concurrency 2] [--limit N] [--batch batch-id]',
+      'Usage: node scripts/scionLessonKernelTeacherRevisionRunner.mjs [--concurrency 2] [--limit N] [--batch batch-id] [--session-prefix scion-v01662-teacher]',
     );
     return;
   }

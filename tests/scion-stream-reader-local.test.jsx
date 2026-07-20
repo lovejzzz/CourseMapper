@@ -93,7 +93,7 @@ describe('useStreamReader Scion boundary', () => {
       });
     });
 
-    expect(result).toEqual({ fullText: '{"ok":true}', finishReason: 'stop' });
+    expect(result).toEqual({ fullText: '{"ok":true}', finishReason: 'stop', adapterRoutes: [] });
     expect(mocks.runScionLocalCompletion).toHaveBeenCalledWith(
       expect.objectContaining({
         systemPrompt: 'Verbose system',
@@ -232,6 +232,13 @@ describe('useStreamReader Scion boundary', () => {
     });
 
     expect(result.fullText).toBe('{"ok":true}');
+    expect(result.adapterRoutes).toEqual([
+      expect.objectContaining({
+        taskFamily: 'lesson-kernel',
+        routeMode: 'adapter',
+        routeModelCalls: 2,
+      }),
+    ]);
     expect(onApiCallEvent).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'scionAdapterRoute',

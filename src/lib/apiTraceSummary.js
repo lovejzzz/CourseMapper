@@ -144,6 +144,17 @@ export function buildApiTraceSummary(event = {}, budget = {}, { verbose = false 
     failureClass: event.failureClass || '',
     statusCode: event.statusCode || '',
     retryable: event.retryable,
+    routeProtocol: event.routeProtocol || '',
+    routeMode: event.routeMode || '',
+    taskFamily: event.taskFamily || '',
+    routeReason: event.routeReason || '',
+    adapterId: event.adapterId || undefined,
+    adapterManifestSha256: event.adapterManifestSha256 || undefined,
+    adapterScopeIdentitySha256: event.adapterScopeIdentitySha256 || undefined,
+    nativeAdapterActive: event.nativeAdapterActive,
+    adapterScale: Number.isFinite(event.adapterScale) ? event.adapterScale : undefined,
+    routeModelCalls: Number.isFinite(event.routeModelCalls) ? event.routeModelCalls : undefined,
+    execution: event.execution || '',
   };
 
   if (verbose) {

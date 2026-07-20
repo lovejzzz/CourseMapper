@@ -1,0 +1,551 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-paired-order-result-v1",
+  "generatedAt": "2026-07-19T21:41:00.000Z",
+  "status": "paired-orders-complete",
+  "requiredOrders": [
+    "A/B",
+    "B/A"
+  ],
+  "sessions": {
+    "A/B": "scion-v01662-batch-006-1796d98e82-a-b-7fae3336-7c39-49e9-b836-f427b5dd7e08",
+    "B/A": "scion-v01662-batch-006-1796d98e82-b-a-1ad3498f-3303-4514-bc50-64444d43c03a"
+  },
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "evidence": {
+    "prompt": {
+      "path": "evaluation/scion-adapters/lesson-kernel-judge-prompt-v0.16.54.md",
+      "sha256": "37844b86736335db54b561d8c031660ef71679c55ae1108e2e999e746f2a1c96"
+    },
+    "packets": {
+      "A/B": "90b23099f2ae68db70ec7a113cb2ca8e5532d890626752f2d7cd2c59f16e638a",
+      "B/A": "6c8eb8fcc2681f2f127cd8b834c7353f3d19b74fc636ba7bb0fd6eb7caa2851c"
+    },
+    "reviews": {
+      "A/B": "5d084b98abd9917e4ff0d51cf207be88b9914944a0733a5035cfd4c479ad3e33",
+      "B/A": "500817cdfd83398c86a591022d5fd882ff47acb640d60e201f2c0136ee488a03"
+    }
+  },
+  "issues": [],
+  "results": [
+    {
+      "caseId": "scion-kernel-8ef23dcb95e41dcdbb4e1f9b",
+      "pairId": "scion-kernel-pair-8c2d0904f8034a490d46e6d6",
+      "winners": {
+        "A/B": "15f532454445509df1c7deee0964bc783aa816fa1b9b47e4c1f62455419a7f94",
+        "B/A": "15f532454445509df1c7deee0964bc783aa816fa1b9b47e4c1f62455419a7f94"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": true,
+      "scoreQualification": {
+        "qualified": false,
+        "winnerMinimumScore": 2,
+        "minimumTotalScoreMargin": 10,
+        "winnerCriticalDefects": [
+          "Question 1's explanation says the else statements run and then contradicts itself by saying they skip.",
+          "The first explanation contradicts itself and the declared answer by saying that the else statements skip when the if condition is false."
+        ],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 3,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 2,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 2,
+              "internalCoherence": 3
+            },
+            "loserScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 3,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 1,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 1
+            },
+            "winnerMinimumScore": 2,
+            "totalScoreMargin": 10,
+            "winnerCriticalDefects": [
+              "Question 1's explanation says the else statements run and then contradicts itself by saying they skip."
+            ],
+            "loserCriticalDefects": [
+              "Both multiple-choice items have incorrect declared answers.",
+              "Both explanations contradict their declared answer indices.",
+              "Question 1 is ambiguous because options 2 and 3 are both supported parts of the requested distinction."
+            ],
+            "rationale": "B has correct, discriminating answer keys and a usable evidence-based scenario. Its one contradictory feedback sentence is serious, but A miskeys both questions and makes its first item multiply correct, so B is materially stronger.",
+            "decisionSha256": "675c143d0fe0381952ec89940ab4ff9e3078117b2cae49640b06ba3a9aa21613"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 3,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 2,
+              "internalCoherence": 3
+            },
+            "loserScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 2,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 1,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 2,
+            "totalScoreMargin": 15,
+            "winnerCriticalDefects": [
+              "The first explanation contradicts itself and the declared answer by saying that the else statements skip when the if condition is false."
+            ],
+            "loserCriticalDefects": [
+              "Both multiple-choice questions have incorrect declared answers that contradict their explanations.",
+              "The first question has multiple supported alternatives, making it ambiguous.",
+              "The first question's explanation contradicts its declared answer."
+            ],
+            "rationale": "A is substantially stronger across the lesson and both assessments; despite one contradictory feedback sentence, its declared answers are correct and its choices are discriminating, whereas B has two incorrect keys and an ambiguous item.",
+            "decisionSha256": "b9cfced3f16052dfdfe9285d6cef747d33bc8e9b3c2ac26a26605d2b4323c7cb"
+          }
+        ]
+      },
+      "trainingEligible": false
+    },
+    {
+      "caseId": "scion-kernel-8f8fe3056acd54a1003b7a52",
+      "pairId": "scion-kernel-pair-4c40ccc9ee995a44fec05c7b",
+      "winners": {
+        "A/B": "67413776e44ab21bc4f45d54a5b6b43d28ecd5bc6f3f6c5cdd2782383a143d93",
+        "B/A": "67413776e44ab21bc4f45d54a5b6b43d28ecd5bc6f3f6c5cdd2782383a143d93"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": true,
+      "scoreQualification": {
+        "qualified": true,
+        "winnerMinimumScore": 4,
+        "minimumTotalScoreMargin": 24,
+        "winnerCriticalDefects": [],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 1,
+              "knowledgePrecision": 1,
+              "scenarioReadiness": 1,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 1,
+              "feedbackInstructionality": 0,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 4,
+            "totalScoreMargin": 24,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "Both multiple-choice items have incorrect declared answers.",
+              "Question 1's explanation supports the epidermis while the key declares the dermis.",
+              "The lesson introduces unsupported factual claims about primary protection, dermal support, and a thick, tough outer layer.",
+              "Question 2 is not a complete question and contains substantially duplicate epidermis-communication alternatives.",
+              "Both feedback texts retain an unfinished template instruction instead of supplying the requested misconception correction."
+            ],
+            "rationale": "B is fully source-bound, precise, and internally coherent, with two uniquely correct assessments. A adds unsupported anatomy, miskeys both items, repeats alternatives, and leaves instructional feedback unfinished.",
+            "decisionSha256": "273480262f8bfe28c10d804b9584efe8fc1345c68b3c1aa0da19a4251663acc7"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 1,
+              "knowledgePrecision": 1,
+              "scenarioReadiness": 1,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 1,
+              "feedbackInstructionality": 0,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 4,
+            "totalScoreMargin": 24,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "Unsupported factual claims describe the epidermis as providing primary protection and a thick, tough outer layer and the dermis as supporting the epidermis.",
+              "Both multiple-choice questions have incorrect declared answers.",
+              "The first explanation contradicts its declared answer by supporting the epidermis rather than the keyed dermis.",
+              "Both explanations contain truncated template instructions: \"then correct the closest distractor.\""
+            ],
+            "rationale": "A is fully source-bound, precise, actionable, and correctly assessed. B introduces unsupported anatomy, declares two incorrect answers, contradicts its own feedback, and leaves template instructions in the explanations.",
+            "decisionSha256": "b7be695ab0045d33226d18062dafc6a146aea43d5b10027ca16c2dccf74e841f"
+          }
+        ]
+      },
+      "trainingEligible": true
+    },
+    {
+      "caseId": "scion-kernel-8fed8eae15665ac533576b47",
+      "pairId": "scion-kernel-pair-b4edab820259f72690bbe9a9",
+      "winners": {
+        "A/B": "8344e85fe60c4eb7a2177a7f27ac257f2cb176cf4999bee3f95c4dc6090d6efb",
+        "B/A": "8344e85fe60c4eb7a2177a7f27ac257f2cb176cf4999bee3f95c4dc6090d6efb"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": true,
+      "scoreQualification": {
+        "qualified": true,
+        "winnerMinimumScore": 4,
+        "minimumTotalScoreMargin": 14,
+        "winnerCriticalDefects": [],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 2,
+              "assessmentCorrectness": 1,
+              "choiceDiscriminability": 2,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 2
+            },
+            "winnerMinimumScore": 4,
+            "totalScoreMargin": 15,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "Question 2 has an incorrect declared answer and names an unsupported A() operation.",
+              "Question 2's explanation contradicts its declared answer by identifying readline() and readlines() as the relevant methods.",
+              "Question 2 is ambiguous because both repeated readline() calls and iteration over readlines() output can process entries sequentially.",
+              "Both feedback texts contain an unfinished instruction to correct a distractor instead of actually doing so."
+            ],
+            "rationale": "B covers the supplied operations with precise mappings, usable evidence, unique keys, and corrective feedback. A's second item is miskeyed, ambiguous, and built around an invented operation, while both explanations remain unfinished.",
+            "decisionSha256": "d3818fe647186deebb02774efd0d9465337d1c1c2b2a14cdb3cab8bc4ea89bb0"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 3,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 3,
+              "assessmentCorrectness": 1,
+              "choiceDiscriminability": 1,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 1
+            },
+            "winnerMinimumScore": 4,
+            "totalScoreMargin": 14,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The second question has an incorrect declared answer, naming undefined A() instead of a supported file-reading method.",
+              "The second explanation contradicts its declared answer.",
+              "The second question permits both readline() and readlines() as plausible approaches to sequential entry processing.",
+              "Both explanations contain truncated template instructions: \"then correct the closest distractor.\""
+            ],
+            "rationale": "A gives exact, coherent operation-result distinctions with two valid assessments and instructional feedback. B has one incorrect key, ambiguous alternatives, undefined giveaway wording, and unfinished feedback.",
+            "decisionSha256": "8ccece24102cd35f3cc9bcabddba5a4324feddb768bb194026c7fea7a33e0504"
+          }
+        ]
+      },
+      "trainingEligible": true
+    },
+    {
+      "caseId": "scion-kernel-901bcdec12e941126815530a",
+      "pairId": "scion-kernel-pair-1d7916c7a075504ec995a592",
+      "winners": {
+        "A/B": "e1ef15413da4258897071a217636cbc4e569dcec01de5a883819055930f56224",
+        "B/A": "e1ef15413da4258897071a217636cbc4e569dcec01de5a883819055930f56224"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": true,
+      "scoreQualification": {
+        "qualified": true,
+        "winnerMinimumScore": 3,
+        "minimumTotalScoreMargin": 8,
+        "winnerCriticalDefects": [],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 3,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 3,
+              "assessmentCorrectness": 2,
+              "choiceDiscriminability": 2,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 3
+            },
+            "winnerMinimumScore": 4,
+            "totalScoreMargin": 12,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "Question 2 is underdetermined because the stem omits the at-least-three-step condition required for the keyed suitability conclusion while another option states a separately supported fact."
+            ],
+            "rationale": "B supplies the evidence needed for each design classification and assesses it with unique, well-explained choices. A's second item lacks a required scenario fact, and its feedback largely repeats answers without teaching against misconceptions.",
+            "decisionSha256": "b210a48edfc906f7cdf5565cf8b9b860416e227be4eed0c5ca84f5d52f5c4935"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 3,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 3,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 3,
+              "assessmentCorrectness": 2,
+              "choiceDiscriminability": 2,
+              "feedbackInstructionality": 2,
+              "internalCoherence": 3
+            },
+            "winnerMinimumScore": 3,
+            "totalScoreMargin": 8,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The second question is ambiguous because both the suitability statement and the navigation-complement statement are supported and applicable alternatives."
+            ],
+            "rationale": "A provides more actionable evidence, uniquely correct assessments, stronger distractors, and genuinely corrective feedback. B is broadly accurate but its second item has multiple supported answers and its feedback is repetitive rather than instructional.",
+            "decisionSha256": "ef31022a69f70e8afb10b1502b4b5d62fe8221aa6158b435e43ad7e93bb2398e"
+          }
+        ]
+      },
+      "trainingEligible": true
+    },
+    {
+      "caseId": "scion-kernel-91d57c49e68873ad738edc77",
+      "pairId": "scion-kernel-pair-b95593c92128b753b9f886de",
+      "winners": {
+        "A/B": "5bdb6884a17b6c39604fa626e2f5fd3a1d16fed31cbdeed158fe5076ae8dffc1",
+        "B/A": "5bdb6884a17b6c39604fa626e2f5fd3a1d16fed31cbdeed158fe5076ae8dffc1"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": false,
+      "scoreQualification": {
+        "qualified": true,
+        "winnerMinimumScore": 4,
+        "minimumTotalScoreMargin": 18,
+        "winnerCriticalDefects": [],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 1,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 0,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 4,
+            "totalScoreMargin": 20,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "Both scenario fields are truncated inside malformed instructional text, leaving no usable scenario decision.",
+              "Both multiple-choice items have incorrect declared answers.",
+              "Both explanations contradict their declared answer indices by supporting option 1.",
+              "The artifact invents named battery, resistor, light-bulb, voltage, and resistance examples beyond the supplied claims."
+            ],
+            "rationale": "B is complete, source-bound, and instructionally coherent. A has a severely truncated scenario and miskeys both questions even though its own explanations identify the correct alternatives, making B decisively stronger.",
+            "decisionSha256": "3c1f7feb77290f7e55bbb343a0278991b0f7a4d6735cf8248a2e61ba58e7f4d3"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 0,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 4,
+            "totalScoreMargin": 18,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The scenario and measure are truncated by long corrupted TeX fragments and contain no usable decision.",
+              "Both multiple-choice questions have incorrect declared answers.",
+              "Both explanations contradict their declared answers by supporting option one.",
+              "Unsupported factual details introduce specific batteries, resistors, light bulbs, numeric voltages, and circuit configurations."
+            ],
+            "rationale": "A is source-faithful, complete, actionable, and fully coherent. B has a critically truncated scenario, two incorrect keys that contradict its feedback, and numerous unsupported circuit details.",
+            "decisionSha256": "8b0e250e26e87331230b8a314f29a0a10bf85a1c228999c98f462d05eacd2d83"
+          }
+        ]
+      },
+      "trainingEligible": false
+    },
+    {
+      "caseId": "scion-kernel-987da285da5f74ba181cfa92",
+      "pairId": "scion-kernel-pair-a9174b01b7b046ba55b5d456",
+      "winners": {
+        "A/B": "fa1d18269b212564b85920995e7468d8b33c232523edc810c363a081e8640170",
+        "B/A": "fa1d18269b212564b85920995e7468d8b33c232523edc810c363a081e8640170"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": true,
+      "scoreQualification": {
+        "qualified": true,
+        "winnerMinimumScore": 4,
+        "minimumTotalScoreMargin": 14,
+        "winnerCriticalDefects": [],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 2,
+              "assessmentCorrectness": 2,
+              "choiceDiscriminability": 2,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 2
+            },
+            "winnerMinimumScore": 4,
+            "totalScoreMargin": 15,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "Question 1 is ambiguous because options 0, 1, and 2 are all supported claims, and its explanation explicitly validates a competing option.",
+              "The lesson implies an unsupported requirement to consider emotional or contextual experience.",
+              "The scenario supplies no inspectable dead-end evidence and asks for a physical-map comparison despite stating that the team cannot observe the physical location."
+            ],
+            "rationale": "B provides complete source coverage, inspectable scenario evidence, unique answers, and corrective explanations. A introduces unsupported requirements, makes its first question multiply correct, and cannot support its scenario decision with the stated evidence.",
+            "decisionSha256": "fb0e7c9ab3ebdc81aa16ccb7c0c294e713963f3952454ca644293b0d8783e1c2"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 2,
+              "assessmentCorrectness": 2,
+              "choiceDiscriminability": 1,
+              "feedbackInstructionality": 2,
+              "internalCoherence": 2
+            },
+            "winnerMinimumScore": 4,
+            "totalScoreMargin": 14,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The first question is ambiguous because multiple alternatives are explicitly supported by the source and its own explanation.",
+              "The scenario says physical return steps cannot be observed, while the measure requires comparison with a map showing those physical steps."
+            ],
+            "rationale": "A is fully source-bound and provides two uniquely keyed, well-explained distinctions. B adds unsupported details, contains a scenario-evidence conflict, and makes its first assessment ambiguous by offering several true alternatives.",
+            "decisionSha256": "2200d44a062f20cc72a760d4dbeb08de13f054e34f6f1b5ad836a8231e1b961d"
+          }
+        ]
+      },
+      "trainingEligible": true
+    }
+  ],
+  "summary": {
+    "pairs": 6,
+    "stablePreferences": 4,
+    "localWins": 0,
+    "referenceWins": 6,
+    "unstable": 0,
+    "scoreRejected": 1,
+    "compilerRejected": 1
+  },
+  "claimBoundary": "These are same-identity model-judge preferences from isolated A/B and B/A orders. They are not human, instructor, independent, classroom, heldout-adapter, or production-win evidence.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "7071f693b413ce7b27d39217a2a565f52426770988c50a42692d196ec30a8b3e"
+  }
+}

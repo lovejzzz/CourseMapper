@@ -226,6 +226,12 @@ function existingCitations(graph) {
   );
 }
 
+const INTERNAL_KEY_TERM_SOURCE_MARKERS = new Set(['verified-quiz-projection']);
+
+function isInternalKeyTermSourceMarker(entry) {
+  return typeof entry === 'string' && INTERNAL_KEY_TERM_SOURCE_MARKERS.has(cleanText(entry).toLowerCase());
+}
+
 function nextResourceIdFactory(graph) {
   const taken = new Set();
   for (const collection of ['concepts', 'outcomes', 'assessments', 'sessions', 'resources']) {
@@ -295,7 +301,9 @@ export function attachGenomeResources(graph) {
     const rawEntries = [
       ...(payload.conceptProvenance?.citations || []),
       ...(payload.keyTerms || []).map((term) => term?.source),
-    ].filter((entry) => (entry && typeof entry === 'object') || cleanText(entry));
+    ].filter(
+      (entry) => !isInternalKeyTermSourceMarker(entry) && ((entry && typeof entry === 'object') || cleanText(entry)),
+    );
     const resolved = [];
     const localKeys = new Set();
     for (const entry of rawEntries) {

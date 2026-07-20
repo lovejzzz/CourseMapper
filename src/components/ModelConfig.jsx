@@ -19,7 +19,7 @@ import {
   readEnrichmentPreference,
   saveEnrichmentPreference,
 } from '../lib/enrichmentPreference';
-import { PUBLIC_SCION_MODEL_NAME, PUBLIC_SCION_PROVIDER_ID } from '../lib/publicScionProvider';
+import { PUBLIC_SCION_MODEL_NAME, PUBLIC_SCION_PROVIDER_ID } from '../lib/publicScionIdentity';
 import { isLocalProviderOptInEnabled } from '../lib/localProvider';
 import useScionRuntimeStatus from '../hooks/useScionRuntimeStatus';
 import { SCION_BROWSER_GEMMA4_DOWNLOAD_LABEL } from '../lib/scionBrowserConstants';

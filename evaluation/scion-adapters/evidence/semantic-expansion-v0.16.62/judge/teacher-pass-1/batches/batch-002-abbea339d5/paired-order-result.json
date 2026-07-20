@@ -1,0 +1,131 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-paired-order-result-v1",
+  "generatedAt": "2026-07-19T22:25:00.000Z",
+  "status": "paired-orders-complete",
+  "requiredOrders": [
+    "A/B",
+    "B/A"
+  ],
+  "sessions": {
+    "A/B": "scion-v01662-teacher-judge-pass1-batch-002-abbea339d5-a-b-f8d81d83-3826-478d-b8a8-fad5dbcd71be",
+    "B/A": "scion-v01662-teacher-judge-pass1-batch-002-abbea339d5-b-a-d8490a8c-4d00-4f07-8a80-f5b629d932a1"
+  },
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "evidence": {
+    "prompt": {
+      "path": "evaluation/scion-adapters/lesson-kernel-judge-prompt-v0.16.54.md",
+      "sha256": "37844b86736335db54b561d8c031660ef71679c55ae1108e2e999e746f2a1c96"
+    },
+    "packets": {
+      "A/B": "e97eab11a281ce29dead1ced88004ff3e533836fb7e56db1b47c7203fd16ee31",
+      "B/A": "8d75c296d2b249e4d1fb16c0749bb550a41f37f2d8d6c493a3fa80374d6a053f"
+    },
+    "reviews": {
+      "A/B": "5f113138843cbdc8f2be74415e8fbb08f021f5f13703bfa81b8fc612aeec30df",
+      "B/A": "9010a893b0867c27d711cbd4e84938cfdf2991f07dd0b7cbe32a2a19fb5fe3f6"
+    }
+  },
+  "issues": [],
+  "results": [
+    {
+      "caseId": "scion-kernel-f6694acc8a391b1aa629bdee",
+      "pairId": "scion-kernel-pair-5dcf40c159b8511cb1ba79b6",
+      "winners": {
+        "A/B": "766a0bbc472fd33b3d0000fe3121032a4afb1512dc2fdd848dc5013ec7bd0bf6",
+        "B/A": "766a0bbc472fd33b3d0000fe3121032a4afb1512dc2fdd848dc5013ec7bd0bf6"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": true,
+      "scoreQualification": {
+        "qualified": true,
+        "winnerMinimumScore": 4,
+        "minimumTotalScoreMargin": 18,
+        "winnerCriticalDefects": [],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 2,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 4,
+            "totalScoreMargin": 18,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The first question declares \"Increasing plate area decreases capacitance\" correct, while the cited fact and explanation say increasing area increases capacitance.",
+              "The second question declares \"Capacitance remains the same\" correct even though doubled area and halved separation both have the stated direction of increasing capacitance; its explanation also conflicts with that key."
+            ],
+            "rationale": "Artifact B is fully source-bound, precise, scenario-ready, correctly keyed, and internally coherent. Artifact A reproduces the source facts but contains two incorrect declared answers and direct answer-explanation contradictions, so B is the clear winner.",
+            "decisionSha256": "2e49cff935676ffc48cb64d00c179ad9c9eec38fc56d3b430e0f84377353d0f8"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 1,
+              "knowledgePrecision": 1,
+              "scenarioReadiness": 2,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 2,
+              "feedbackInstructionality": 0,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 4,
+            "totalScoreMargin": 22,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The first question declares option 0, 'Increasing plate area decreases capacitance,' although the supplied claim and explanation say increasing area increases capacitance.",
+              "The second question declares option 0, 'Capacitance remains the same,' although both specified changes increase capacitance; its explanation also contradicts that key.",
+              "The second question requires a unique quantitative multiplier even though the supplied claim establishes only directional increase or decrease."
+            ],
+            "rationale": "Artifact A faithfully covers every supplied claim, provides a usable evidence-based design decision, and has correct, coherent assessments. Artifact B has two incorrect declared answers, answer-explanation contradictions, weak misconception repair, and an unsupported quantitative assessment.",
+            "decisionSha256": "131dab5aafdf294aabcf7b7e843fb9aed0d5c426a0b15129b3be34f9b8ae193b"
+          }
+        ]
+      },
+      "trainingEligible": true
+    }
+  ],
+  "summary": {
+    "pairs": 1,
+    "stablePreferences": 1,
+    "localWins": 0,
+    "referenceWins": 1,
+    "unstable": 0,
+    "scoreRejected": 0,
+    "compilerRejected": 0
+  },
+  "claimBoundary": "These are same-identity model-judge preferences from isolated A/B and B/A orders. They are not human, instructor, independent, classroom, heldout-adapter, or production-win evidence.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "623ada12c91062fe78d3242137eb64e9f5779367e22681686dbf3ea88370b755"
+  }
+}

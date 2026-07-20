@@ -5,7 +5,7 @@ import { useAuth } from './contexts/AuthContext';
 import { useAIConfig } from './contexts/AIConfigContext';
 import { useCourse } from './contexts/CourseContext';
 import { useUI } from './contexts/UIContext';
-import { PUBLIC_SCION_PROVIDER_ID } from './lib/publicScionProvider';
+import { PUBLIC_SCION_PROVIDER_ID } from './lib/publicScionIdentity';
 import { clearSetupRecovery, readSetupRecovery, stageSetupRecovery } from './lib/setupRecovery';
 import useScionRuntimeStatus from './hooks/useScionRuntimeStatus';
 

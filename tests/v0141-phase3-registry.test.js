@@ -690,11 +690,18 @@ describe('4.7 — "How Experts Think" recap variant instead of silent drop', () 
     const [deckOne, deckTwo] = compiled.slideDecks.decks;
     const full = deckOne.slides.find((slide) => slide.title === 'How Experts Think: opportunity cost');
     expect(full).toBeTruthy();
+    expect(full.visual).toMatchObject({
+      kind: 'expert reasoning table',
+      columnLabels: ['STEP', 'EXPERT MOVE'],
+    });
+    expect(full.visual.rows).toHaveLength(3);
     const recap = deckTwo.slides.find((slide) => slide.title === 'How Experts Think: opportunity cost — recap');
     expect(recap).toBeTruthy();
     expect(recap.enrichmentSource).toBe('archetype-reasoning-recap');
     expect(recap.bullets.length).toBeLessThanOrEqual(3);
     expect(recap.bullets.length).toBeGreaterThanOrEqual(2);
+    expect(recap.visual?.kind).toBe('expert reasoning table');
+    expect(recap.visual?.rows).toHaveLength(3);
     // Compressed retrieval bullets: short, never output-gate truncation bait
     // (>= 60 chars ending in a bare lowercase word).
     for (const bullet of recap.bullets) {

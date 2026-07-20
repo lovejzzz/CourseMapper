@@ -24,7 +24,7 @@ const EVIDENCE_KINDS = [
   ['record', /\b(?:record|log|transcript|interview|survey|report|result|finding|comment|response|quote|note)s?\b/i],
   [
     'design',
-    /\b(?:prototype|wireframe|mockup|interface|screen|form|flow|map|diagram|passage|text|policy|plan|profile)s?\b/i,
+    /\b(?:prototype|wireframe|mockup|interface|screen|form|flow|map|diagram|notation|passage|text|policy|plan|profile)s?\b/i,
   ],
   ['claim', /\b(?:claim|interpretation|misconception|correction|example|case)\b/i],
 ];

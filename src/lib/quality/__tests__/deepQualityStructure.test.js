@@ -95,6 +95,34 @@ describe('deep quality package structure', () => {
     });
 
     expect(result.findings.some((finding) => /classroom clock/i.test(finding.detail))).toBe(false);
-    expect(GRADER_VERSION).toBe('1.10.20');
+    expect(GRADER_VERSION).toBe('1.10.23');
+  });
+
+  it('treats typed-object leaks and mirrored assessment identities as scored export defects', async () => {
+    const lessonPath = 'Lesson Plans/Lesson 12 - Fantastic Library - Lesson Plans.txt';
+    const title = 'Fantastic Elements transfer task: explain one example, one source detail, and one limitation.';
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          lessonScope: [12],
+          readiness: { status: 'ready', blockers: 0 },
+          files: [{ path: lessonPath, featureId: 'lessonPlans' }],
+        }),
+        [lessonPath]: [
+          'Lesson 12: Fantastic Library',
+          `${title}: ${title}`,
+          'Students tie Close reading to one defensible move from [object Object].',
+        ].join('\n'),
+      }),
+      course: { title: 'World Literature', featureIds: ['lessonPlans'] },
+      honesty: { pipeline: { judgment: 'compiler-verified fixture' } },
+    });
+
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ severity: 'P0', detail: expect.stringContaining('structured object coerced') }),
+        expect.objectContaining({ severity: 'P1', detail: expect.stringContaining('assessment title repeated') }),
+      ]),
+    );
   });
 });

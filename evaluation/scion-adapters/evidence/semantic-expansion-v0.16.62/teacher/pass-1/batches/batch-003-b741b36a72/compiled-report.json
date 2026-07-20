@@ -1,0 +1,124 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-teacher-capture-v1",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "packetSha256": "447c5cd258bc6966cde712d3e7d806ef35a9ca4cbf81c3e4527e687a49fb4695",
+  "resultSha256": "b3c5586cd9681554895d0de11053a6433b45c8a77d7a937c1286f54939f4572a",
+  "reviser": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-source-cleanroom"
+  },
+  "calls": [
+    {
+      "caseId": "scion-kernel-59a07c63e1457ae09f1974c7",
+      "caseSha256": "59a07c63e1457ae09f1974c7c1334db9f4e6d26a59df46a664d6da72d88a82f4",
+      "arm": "teacher-revision",
+      "model": {
+        "model": "gpt-5.6-sol",
+        "revision": "codex-cli 0.144.5",
+        "runtime": "codex-cli-ephemeral-source-cleanroom"
+      },
+      "sourceContextSha256": "6d8fe6057ef4179cc652ac3cf7b70a3be4c83ef727ae64f55d3b5901a333d8e5",
+      "originalArtifactSha256": "f4af3ebaf3ed9c70e33cfc50b6f7c6153b554ff94b17d21fb54e94affbe4fd21",
+      "artifact": {
+        "lessonId": "lesson-2",
+        "facts": [
+          "A demand curve shows the quantity of a good consumers are willing and able to purchase at each price, holding other factors constant.",
+          "Demand curves typically slope downward, reflecting the law of demand.",
+          "A change in price causes a movement along the demand curve, while a change in income or tastes shifts the curve."
+        ],
+        "keyTerms": [
+          {
+            "tr": "demand curve",
+            "df": "A demand curve represents quantity consumers are willing and able to purchase at each price, holding other factors constant.",
+            "eg": "For a good, consumers compare quantity at each price on a curve that typically slopes downward.",
+            "mi": "A demand curve shows price at each quantity consumers purchase.",
+            "cx": "The curve associates each price with the quantity consumers are willing and able to purchase."
+          },
+          {
+            "tr": "law of demand",
+            "df": "The law of demand is the relationship reflected by the typical downward slope of demand curves.",
+            "eg": "A demand curve that slopes downward reflects the law of demand.",
+            "mi": "The law of demand is reflected when income shifts the demand curve.",
+            "cx": "Income changes shift the curve; its typical downward slope reflects the law of demand."
+          },
+          {
+            "tr": "price",
+            "df": "Price is a value at which the demand curve shows a quantity consumers are willing and able to purchase.",
+            "eg": "A change in price produces movement along a downward-sloping demand curve.",
+            "mi": "A price change shifts the demand curve in the way a change in tastes does.",
+            "cx": "Price changes produce movement along the curve, while changes in tastes shift it."
+          }
+        ],
+        "scenario": {
+          "su": "A reviewer receives a demand-curve sketch with a price-change annotation and a separate passage describing a change in income. Before review closes, the reviewer must label each as movement or shift despite their shared reference to the demand curve.",
+          "ma": "price-change annotation beside movement along the demand curve, income-change passage beside a shifted curve, tastes-change notation beside a shifted curve"
+        },
+        "mc": [
+          {
+            "q": "A curve record shows a price change beside movement along the demand curve, while an income note accompanies a shifted curve; which distinction matches these observations?",
+            "op": [
+              "Price moves along; income shifts the curve",
+              "Income moves along; price shifts the curve",
+              "Price and income move along the curve",
+              "Price and income shift the demand curve"
+            ],
+            "ai": 0,
+            "fi": [
+              2
+            ],
+            "ex": "A change in price causes movement along the demand curve, while a change in income shifts the curve. Treating income as movement and price as a shift reverses that distinction."
+          },
+          {
+            "q": "A demand curve shows the quantity consumers are willing and able to purchase at each price while other factors are held constant, and it typically slopes downward. Which statement matches both features?",
+            "op": [
+              "Shows quantity at each price; typically slopes downward",
+              "Shows income at each price; tastes cause movement",
+              "Shows price at each taste; income causes movement",
+              "Shows quantity at each income; price shifts curve"
+            ],
+            "ai": 0,
+            "fi": [
+              0,
+              1
+            ],
+            "ex": "The demand curve shows quantity at each price while other factors are held constant, and it typically slopes downward. The income-at-each-price option also misclassifies a change in tastes as movement rather than a shift."
+          }
+        ]
+      },
+      "artifactSha256": "6fde67ee0547facfc768f700587283236c19826ed778d2cb6ef85f95355d8ced",
+      "admission": {
+        "needsRetry": true,
+        "issues": [
+          "lesson-2:mc-1:source-fact-key-mismatch"
+        ]
+      },
+      "compilerRepairs": [],
+      "revisionEvidence": {
+        "packetSha256": "447c5cd258bc6966cde712d3e7d806ef35a9ca4cbf81c3e4527e687a49fb4695",
+        "sessionId": "scion-v01654-teacher-batch-003-b741b36a72-c61a274b-487e-4634-9402-7d3b6a2c24ea",
+        "changeSummary": [
+          "Re-authored the complete second multiple-choice item so one option uniquely matches both cited claims and the distractors are false or inapplicable."
+        ],
+        "addressedDiagnoses": [
+          "Resolved lesson-2:mc-1:multiple-source-supported-options.",
+          "Resolved the diagnosis that options 0, 2, and 3 were supported descriptions of the stated record."
+        ]
+      }
+    }
+  ],
+  "summary": {
+    "cases": 1,
+    "compilerAdmitted": 0,
+    "compilerRejected": 1
+  },
+  "claimBoundary": "These source-constrained model revisions cleared only deterministic compiler admission where stated. They are not judge preferences, human evidence, adapter wins, or training authorization.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "74a8579348cb4d6185816af7876e1efa97807f4ddd753137d257d6aab7af095b"
+  }
+}

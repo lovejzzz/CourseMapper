@@ -1,0 +1,177 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-teacher-revision-packet-v1",
+  "generatedAt": "2026-07-19T22:01:25.000Z",
+  "batchId": "batch-006-1796d98e82-part-01",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "aggregateSha256": "7071f693b413ce7b27d39217a2a565f52426770988c50a42692d196ec30a8b3e",
+  "prompt": {
+    "path": "evaluation/scion-adapters/lesson-kernel-teacher-revision-prompt-v8-v0.16.60.md",
+    "sha256": "505aff4b87a07aa0d7d9d7d7b6d40bb268f654439a4b8e06f1d1efda53327eb1"
+  },
+  "cases": [
+    {
+      "caseId": "scion-kernel-8ef23dcb95e41dcdbb4e1f9b",
+      "caseSha256": "8ef23dcb95e41dcdbb4e1f9b8d2a5ea0efdea3299f00b6f05e462447aa1db111",
+      "lessonInput": {
+        "lessonId": "lesson-3",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Conditionals and boolean logic",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: A conditional statement chooses which block of code to run based on whether a condition is true; if-else takes exactly one branch, and boolean operators (and, or, not) build compound conditions. Claim 1: An if statement runs its body only when the condition is true, and skips it when the condition is false. Claim 2: An else clause holds statements that run when the if condition is false. Claim 3: and returns True only if both conditions are true; or returns True if either is true; not inverts a single condition.",
+        "readings": "OpenStax Introduction to Python Programming, §4.2 If-else statements; §4.3 Boolean operations"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "5e7862a012e6583051c6d8a7f6dc305cc23e0ba165daf802984ba9ee852ede90",
+        "kernelId": "cs/conditionals",
+        "term": "Conditionals and boolean logic",
+        "claims": [
+          "A conditional statement chooses which block of code to run based on whether a condition is true; if-else takes exactly one branch, and boolean operators (and, or, not) build compound conditions.",
+          "An if statement runs its body only when the condition is true, and skips it when the condition is false.",
+          "An else clause holds statements that run when the if condition is false.",
+          "and returns True only if both conditions are true; or returns True if either is true; not inverts a single condition."
+        ],
+        "anchors": [
+          {
+            "src": "openstax:introduction-python-programming#4.2",
+            "loc": "4.2",
+            "quote": "When an if-else statement is executed, one and only one of the branches is taken"
+          },
+          {
+            "src": "openstax:introduction-python-programming#4.2",
+            "loc": "4.2",
+            "quote": "If the condition is true, the body is executed. If the condition is false, the body is not executed"
+          },
+          {
+            "src": "openstax:introduction-python-programming#4.2",
+            "loc": "4.2",
+            "quote": "An else statement is used with an if statement and contains a body of statements that is executed when the if statement's condition is false"
+          },
+          {
+            "src": "openstax:introduction-python-programming#4.3",
+            "loc": "4.3",
+            "quote": "The and operator takes two condition operands and returns True if both conditions are true"
+          }
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §4.2 If-else statements; §4.3 Boolean operations"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "originalArtifact": {
+        "lessonId": "lesson-3",
+        "facts": [
+          "A conditional statement chooses which block of code to run based on whether a condition is true; if-else takes exactly one branch, and boolean operators (and, or, not) build compound conditions.",
+          "An if statement runs its body only when the condition is true, and skips it when the condition is false.",
+          "An else clause holds statements that run when the if condition is false.",
+          "and returns True only if both conditions are true; or returns True if either is true; not inverts a single condition."
+        ],
+        "keyTerms": [
+          {
+            "tr": "conditional statement",
+            "df": "A conditional statement selects a block according to whether its condition is true.",
+            "eg": "When a condition is true, the conditional statement chooses which block runs.",
+            "mi": "A conditional statement requires boolean operators to choose a block.",
+            "cx": "Block selection can be based on whether a condition is true; a compound condition is not required."
+          },
+          {
+            "tr": "if statement",
+            "df": "An if statement is a conditional form whose body runs when its condition is true.",
+            "eg": "When the if condition is false, the if statement skips its body.",
+            "mi": "An if statement runs its body when its condition is false.",
+            "cx": "A false condition leads the body to be skipped, not run."
+          },
+          {
+            "tr": "else clause",
+            "df": "An else clause contains statements associated with a false if condition.",
+            "eg": "If the condition is false, the statements in the else clause run.",
+            "mi": "An else clause holds statements for a true if condition.",
+            "cx": "Its statements correspond to the condition being false rather than true."
+          }
+        ],
+        "scenario": {
+          "su": "A student must label which block runs in an if-else before a deadline, with the recorded if condition marked false. The student must also distinguish a compound condition recorded as true or false, using the noted and, or, and not operators.",
+          "ma": "if condition notation marked false, if-body observation marked skipped, else-clause observation marked run, and-or-not condition table marked true or false"
+        },
+        "mc": [
+          {
+            "q": "An if statement condition is observed as false beside an else clause containing statements. Which comparison correctly distinguishes what happens to the if statement and else clause?",
+            "op": [
+              "The if body skips; else statements run",
+              "The if body runs; else statements skip",
+              "Both if and else statements run",
+              "Both if and else statements skip"
+            ],
+            "ai": 0,
+            "fi": [
+              1,
+              2
+            ],
+            "ex": "A false condition makes the if statement skip its body and makes the else clause statements run. The if body does not run while the else statements skip."
+          },
+          {
+            "q": "A compound condition records one condition as true and the other as false; students must classify both results before a deadline. Which notation correctly compares and with or?",
+            "op": [
+              "and is False; or is True",
+              "and is True; or is False",
+              "and and or are both True",
+              "and and or are both False"
+            ],
+            "ai": 0,
+            "fi": [
+              3
+            ],
+            "ex": "and returns True only when both conditions are true, while or returns True when either condition is true. They therefore do not both return True for these recorded conditions."
+          }
+        ]
+      },
+      "originalArtifactSha256": "15f532454445509df1c7deee0964bc783aa816fa1b9b47e4c1f62455419a7f94",
+      "compilerAdmission": {
+        "needsRetry": false,
+        "issues": []
+      },
+      "diagnoses": [
+        {
+          "winnerScores": {
+            "sourceFidelity": 3,
+            "knowledgePrecision": 3,
+            "scenarioReadiness": 4,
+            "assessmentCorrectness": 2,
+            "choiceDiscriminability": 4,
+            "feedbackInstructionality": 2,
+            "internalCoherence": 3
+          },
+          "criticalDefects": [
+            "Question 1's explanation says the else statements run and then contradicts itself by saying they skip."
+          ],
+          "rationale": "B has correct, discriminating answer keys and a usable evidence-based scenario. Its one contradictory feedback sentence is serious, but A miskeys both questions and makes its first item multiply correct, so B is materially stronger.",
+          "decisionSha256": "675c143d0fe0381952ec89940ab4ff9e3078117b2cae49640b06ba3a9aa21613"
+        },
+        {
+          "winnerScores": {
+            "sourceFidelity": 4,
+            "knowledgePrecision": 4,
+            "scenarioReadiness": 4,
+            "assessmentCorrectness": 3,
+            "choiceDiscriminability": 4,
+            "feedbackInstructionality": 2,
+            "internalCoherence": 3
+          },
+          "criticalDefects": [
+            "The first explanation contradicts itself and the declared answer by saying that the else statements skip when the if condition is false."
+          ],
+          "rationale": "A is substantially stronger across the lesson and both assessments; despite one contradictory feedback sentence, its declared answers are correct and its choices are discriminating, whereas B has two incorrect keys and an ambiguous item.",
+          "decisionSha256": "b9cfced3f16052dfdfe9285d6cef747d33bc8e9b3c2ac26a26605d2b4323c7cb"
+        }
+      ]
+    }
+  ],
+  "claimBoundary": "These are source packets, diagnosed reference artifacts, and compiler outcomes only. No local artifact, provider route, organizer preference, or training authorization is included.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "e4c4dbe1da09386f7d70bc85852b7be549aef1d1e2f8a0453bb7a364d3b0b773"
+  }
+}

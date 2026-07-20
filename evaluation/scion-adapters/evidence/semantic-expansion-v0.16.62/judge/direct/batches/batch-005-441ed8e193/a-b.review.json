@@ -1,0 +1,500 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-review-v1",
+  "order": "A/B",
+  "packetSha256": "c6c7e3089b28b1e3a106b10e793e3c57aba2355d41d7bf53770c1b495ed53a31",
+  "sessionId": "scion-v01662-batch-005-441ed8e193-a-b-f5aeafe2-df88-40e8-abc2-7f951955620a",
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "completedAt": "2026-07-19T21:48:47.758Z",
+  "attestations": {
+    "anonymousArtifactsOnly": true,
+    "otherOrderUnavailable": true,
+    "organizerMappingUnavailable": true
+  },
+  "decisions": [
+    {
+      "caseId": "scion-kernel-70f8f63dff436c643849d6d7",
+      "pairId": "scion-kernel-pair-14d6f95c52b38743049d6822",
+      "artifactSha256": {
+        "A": "c85a93c4a237fdb42dbb87254ab89dfde8c6f37dbe1645f251e80c736bb622c3",
+        "B": "35856d2c02610e5ecb22586e41454adaa5266b7146cdff30eed56f12e033b28b"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "The facts copy the ledger, but the scenario adds high blood sugar and a systemic regulatory diagnosis absent from the claims."
+          },
+          "knowledgePrecision": {
+            "score": 2,
+            "evidence": "Definitions are accurate but examples merely repeat them, and the assessment does not preserve the distinctions being taught."
+          },
+          "scenarioReadiness": {
+            "score": 1,
+            "evidence": "The team is told to address disturbances, but no concrete signaling decision or usable comparison rule is supplied."
+          },
+          "assessmentCorrectness": {
+            "score": 0,
+            "evidence": "Each question repeats its declared correct option verbatim as another option, so neither declared answer is unique."
+          },
+          "choiceDiscriminability": {
+            "score": 0,
+            "evidence": "Question 1 duplicates options 0 and 3, and question 2 likewise duplicates options 0 and 3."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "The explanations juxtapose source claims but never explain why a misconception fails or resolve the duplicated answers."
+          },
+          "internalCoherence": {
+            "score": 1,
+            "evidence": "The duplicate alternatives defeat the answer keys, while the patient evidence does not support the stated signaling-mechanism task."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "Facts, terms, scenario records, options, and explanations remain within bloodstream, receptor, binding, and regulation claims."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "Hormones, hormone binding, and target cells are accurately distinguished with genuinely reversed misconceptions and direct corrections."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The student must classify recorded signaling observations before a deadline using explicitly inspectable receptor and binding evidence."
+          },
+          "assessmentCorrectness": {
+            "score": 3,
+            "evidence": "Both keys follow the claims, though question 2's bloodstream-circulation alternative is also broadly true and slightly weakens uniqueness."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "The alternatives are distinct relation reversals, but one question 2 distractor remains broadly compatible with the source relation."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation states the supported relation and explicitly repairs the nearest reversal without referring to answer position."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "The facts, key terms, classification scenario, keys, cited facts, and explanations consistently preserve the same causal ordering."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "Both assessments contain exact duplicate alternatives that make the declared answers non-unique.",
+          "The scenario adds unsupported high-blood-sugar and systemic-regulatory details.",
+          "The scenario provides no usable disciplinary decision about a specific signaling mechanism."
+        ],
+        "B": []
+      },
+      "decision": "B",
+      "rationale": "B provides a source-bound, actionable classification task with coherent questions and instructional feedback. A has exact duplicate correct alternatives in both questions, unsupported scenario details, and no usable decision."
+    },
+    {
+      "caseId": "scion-kernel-7bc6165bbce8b949fcce5885",
+      "pairId": "scion-kernel-pair-e80037851ddeb88c43d056e5",
+      "artifactSha256": {
+        "A": "5461073c114d73fff4c46434c446420f0db92e43096bb98713efea2f5563e57c",
+        "B": "fddcb3b7cc4d50b0759e76d1ef2425d170defff560602f9745068b6f11f9de57"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "The ledger facts are retained, but accessibility, navigation, and content-update examples introduce details not supplied by the source."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "The persona, need, and story definitions are accurate, although some examples are invented and the second answer corrupts traceability."
+          },
+          "scenarioReadiness": {
+            "score": 2,
+            "evidence": "The team has a traceability constraint and feature-prioritization task, but the material names categories rather than inspectable records."
+          },
+          "assessmentCorrectness": {
+            "score": 1,
+            "evidence": "Question 1 is keyed correctly, but question 2 declares option 0 even though option 2 and its explanation express the source claim."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "The alternatives are distinct and mostly parallel, although several question 2 distractors are weak category substitutions."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "The first explanation largely repeats the answer, and the second teaches source-need linkage while contradicting the declared key."
+          },
+          "internalCoherence": {
+            "score": 1,
+            "evidence": "Question 2's key says interface requests while its explanation says linkage to the source need, creating a direct contradiction."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "All facts, examples, misconceptions, scenario records, and questions stay within personas, needs, stories, and traceability claims."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "Persona profiles, stable higher-level needs, and feature-oriented user stories are kept distinct with precise corrections."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The deadline, classification task, contrasting passages, and source-need linkage notation provide an actionable evidence-based decision."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both declared answers are uniquely supported by the cited distinctions and match their explanations."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "Each four-option set uses meaningful swaps of persona, need, story, and linkage roles without duplicates."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "The explanations teach the relevant distinction and directly correct the nearest role or linkage reversal."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "Terms, scenario, options, keys, citations, and explanations consistently preserve the source's category and traceability relationships."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "Question 2 has an incorrect declared answer: option 2, not option 0, states the supported source-need linkage.",
+          "Question 2's explanation directly contradicts its declared answer.",
+          "The artifact introduces unsupported accessibility, navigation, and content-update examples."
+        ],
+        "B": []
+      },
+      "decision": "B",
+      "rationale": "B accurately covers all source relationships through a concrete classification and traceability task. A contains an incorrect answer that directly contradicts its explanation and also introduces unsupported examples."
+    },
+    {
+      "caseId": "scion-kernel-813b7ee41741357e1c13a56a",
+      "pairId": "scion-kernel-pair-606b54fdc85b280cf8d987e5",
+      "artifactSha256": {
+        "A": "15eb8655e9de60c4b4ea82f01e3015c919566e24c63e8efe70f977c7af5a4d63",
+        "B": "dd28cf939a41efd0fbdc89ebdc15f1280fe3bd762b0ae0c24ac1bce1650bc709"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 1,
+            "evidence": "Although the facts reproduce the ledger, the keyed assessments assert classifications and implications not supported by those facts."
+          },
+          "knowledgePrecision": {
+            "score": 1,
+            "evidence": "Diatonic-span and semitone-distance definitions are circular, and both assessments confuse the evidence needed for interval labels."
+          },
+          "scenarioReadiness": {
+            "score": 3,
+            "evidence": "The composer has an interval-labeling decision, four semitones, three scale steps, and a source-only constraint, despite awkward material wording."
+          },
+          "assessmentCorrectness": {
+            "score": 0,
+            "evidence": "Three scale steps alone do not establish a major third, and a diminished-fifth spelling does not imply the keyed major-third answer."
+          },
+          "choiceDiscriminability": {
+            "score": 1,
+            "evidence": "Question 1 omits necessary semitone evidence, while question 2 offers no alternative that answers the requested resolution implication."
+          },
+          "feedbackInstructionality": {
+            "score": 0,
+            "evidence": "Each explanation merely repeats a source claim and fails to justify, or even align with, the declared answer."
+          },
+          "internalCoherence": {
+            "score": 0,
+            "evidence": "Both answer keys conflict with the source and explanations, and the second question asks about resolution while its options name intervals."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "Every substantive statement stays within the supplied relations among span, semitone count, labels, and tritone spellings."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "Written interval, major third, and tritone are accurately defined with concrete, source-supported examples and direct corrections."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The student must label two inspectable notations before a deadline using recorded spans, counts, and spelling."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both keys uniquely follow from the cited facts, and both explanations accurately state why the alternatives reverse or alter the evidence."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "The options distinctly test joint determination, reversed causality, and major-versus-minor semitone counts without duplication."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation identifies the decisive evidence and repairs the closest reversed relationship or semitone misconception."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "The facts, terms, scenario records, answer keys, citations, and explanations consistently use span together with semitone distance."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "Question 1 declares a major third from three scale steps alone, although the source requires semitone distance as well.",
+          "Question 2 declares that a diminished fifth implies a major third, an unsupported and incorrect answer.",
+          "Question 2 asks about resolution but supplies no alternative that states a resolution implication."
+        ],
+        "B": []
+      },
+      "decision": "B",
+      "rationale": "B accurately integrates diatonic span and semitone distance into usable interval decisions. A has two incorrect declared answers, circular terminology, and a resolution question whose alternatives do not answer the question."
+    },
+    {
+      "caseId": "scion-kernel-81d331b0407433133e3b4bac",
+      "pairId": "scion-kernel-pair-18c43e84a426ecda12d803b4",
+      "artifactSha256": {
+        "A": "74463416a57f96227806af29149f98e490500ec025d1b8b4d73dc4c9af1d1ccf",
+        "B": "6d0f015768ea1341ee8254b53dc7c53b7201d090f4235c25f4a56d7baa11fdae"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 3,
+            "evidence": "The central facts and assessments are source-bound, but some electric-force and field-magnitude misconceptions add unsupported formulations."
+          },
+          "knowledgePrecision": {
+            "score": 2,
+            "evidence": "Core definitions are accurate, but electric force is treated circularly and some alleged misconceptions are not clearly false."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The positive-x field vector and density comparison give inspectable evidence for direction and relative-strength decisions."
+          },
+          "assessmentCorrectness": {
+            "score": 3,
+            "evidence": "Both keys are supported, but question 2's explanation misidentifies which distractor concerns field-line density."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "The options distinguish direction, force per charge, force, and density, though several use imprecise entity-is-property phrasing."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "Both explanations end with an unfinished instruction to correct a distractor instead of actually teaching the correction."
+          },
+          "internalCoherence": {
+            "score": 2,
+            "evidence": "The answers follow the facts, but unfinished feedback and the question 2 distractor mismatch disrupt alignment."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "All definitions, examples, scenario evidence, options, and explanations remain within the three supplied electric-field claims."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "Force per positive test charge, acceleration direction, and relative field strength are accurately and distinctly represented."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The group must resolve swapped labels using three inspectable notations before the workshop ends."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both declared answers are uniquely correct, cited to the proper fact, and fully consistent with their explanations."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "The options use clear role swaps among field description, direction, density, and strength without duplicate meanings."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation states the supported mapping and explicitly explains why acceleration or density belongs to a different property."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "The terms, workshop task, questions, keys, fact citations, and explanations all preserve the same three-way distinction."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "Both explanations contain unfinished instructional text of the form 'then correct the closest distractor.'",
+          "Question 2's explanation says the closest distractor describes field-line density even though its cited distractor describes force per unit charge."
+        ],
+        "B": []
+      },
+      "decision": "B",
+      "rationale": "B cleanly distinguishes field description, direction, and relative strength with complete feedback. A's keys are correct, but its feedback is unfinished and internally mismatched, and several misconceptions are imprecise."
+    },
+    {
+      "caseId": "scion-kernel-8c1eab51ddaf54ae4781c812",
+      "pairId": "scion-kernel-pair-da4c48be026a4f1d2a378ede",
+      "artifactSha256": {
+        "A": "fc436615c6355bfaa5e05ec9d1146b860a3278f680a82dcdaefa1449b918e6ee",
+        "B": "8c695e25661b42a2794d370ec253ca6d8b7da0cad51ee8b13d8d07bc08bf91a1"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "The facts are copied correctly, but emotional contour and the claim that natural minor has no sixth-or-seventh alterations are not supplied."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "The harmonic and melodic minor definitions are accurate, but unsupported examples and the erroneous first key weaken the distinctions."
+          },
+          "scenarioReadiness": {
+            "score": 2,
+            "evidence": "A scale choice is requested, but the observed leading-tone function and unspecified contour do not uniquely identify a variant."
+          },
+          "assessmentCorrectness": {
+            "score": 1,
+            "evidence": "Question 1 declares option 0 even though option 1 names harmonic minor, while question 2 is keyed correctly."
+          },
+          "choiceDiscriminability": {
+            "score": 2,
+            "evidence": "The alternatives are distinct, but an unsupported natural-minor claim appears and the first question keys the wrong option."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "Both explanations leave the phrase 'then correct the closest distractor' unfinished, and the first contradicts its key."
+          },
+          "internalCoherence": {
+            "score": 1,
+            "evidence": "The first answer key conflicts with its question and explanation, while the scenario relies on evidence not mapped by the facts."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "All facts, examples, misconceptions, scenario observations, options, and explanations stay within the supplied scale-degree alterations."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "The minor system, harmonic minor, and melodic minor are distinctly defined with valid misconceptions and direct repairs."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The analyst must classify two inspectable notations before a deadline using displayed sixth- and seventh-degree alterations."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both keys uniquely match the observed alterations and agree with their cited facts and explanations."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "The alternatives use meaningful reversals, shared-alteration errors, and incomplete classifications without exact duplicates."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "The explanations identify the decisive alterations and explain why assigning paired raising to harmonic minor reverses the source."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "Definitions, evidence, questions, keys, citations, and explanations consistently distinguish raised seventh from raised sixth and seventh."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "Question 1 has an incorrect declared answer: harmonic minor is option 1, not option 0.",
+          "Question 1's explanation identifies harmonic minor and therefore directly contradicts the declared answer.",
+          "Both explanations contain unfinished instructional text instead of correcting a distractor.",
+          "The artifact adds unsupported natural-minor and emotional-contour claims."
+        ],
+        "B": []
+      },
+      "decision": "B",
+      "rationale": "B supplies a precise, inspectable classification task with correct keys and complete feedback. A has an incorrect first answer that contradicts its explanation, unfinished feedback, and unsupported claims."
+    },
+    {
+      "caseId": "scion-kernel-8ec5d77e57967fbe1a2f074b",
+      "pairId": "scion-kernel-pair-8b76905888ded529dbd8f770",
+      "artifactSha256": {
+        "A": "f45595c519dbfb00673487fea840e5bfec281050ffa3d9aef28cb7c9a8ba6b04",
+        "B": "cbc16bc0541849b0784da08681f618a0cb2c3fd263d3b6982d5ca16d2412f861"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 1,
+            "evidence": "Solenoid current, loop motion, total field lines, and an induced magnetic field are introduced beyond the supplied claims."
+          },
+          "knowledgePrecision": {
+            "score": 2,
+            "evidence": "The opposition relation is accurate, but several definitions and examples rely on outside knowledge and weak or questionable misconceptions."
+          },
+          "scenarioReadiness": {
+            "score": 1,
+            "evidence": "The scenario describes a coil event and restates a constraint but gives the learner no explicit disciplinary decision to make."
+          },
+          "assessmentCorrectness": {
+            "score": 3,
+            "evidence": "Both declared answers match the opposition claim, but their explanations are incomplete rather than fully supporting and differentiating them."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "The alternatives are distinct, though several conflate current direction with increasing, decreasing, area, or field strength."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "Each explanation states a relevant rule but ends with an unfinished command to correct the closest distractor."
+          },
+          "internalCoherence": {
+            "score": 2,
+            "evidence": "The keys align with the facts, but the unsupported scenario details and incomplete feedback do not form a coherent instructional task."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "All content remains within changing flux, induced emf, Lenz-law opposition, and the three listed ways flux can change."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "Magnetic flux, field strength, and induced-current direction are kept distinct with valid relation reversals and corrections."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The reviewer must classify which recorded change supports changing flux using inspectable field-strength, area, orientation, and flux records."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both declared answers are uniquely supported by their cited facts and agree fully with the explanations."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "The options meaningfully swap Faraday and Lenz roles or reverse and misassign the observed change relationships."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation teaches the supported causal direction and directly repairs the closest swapped or reversed relation."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "Facts, terms, laboratory records, answer keys, citations, and explanations consistently preserve the supplied flux relationships."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "The artifact introduces unsupported examples and causal claims involving a ramped solenoid, moving loop, total field lines, and an induced magnetic field.",
+          "Both assessment explanations contain unfinished instructional text.",
+          "The scenario provides no usable disciplinary decision for the learner."
+        ],
+        "B": []
+      },
+      "decision": "B",
+      "rationale": "B remains source-bound and turns recorded flux variables into a concrete classification decision with complete feedback. A adds substantial outside physics, supplies no usable scenario decision, and leaves both explanations unfinished."
+    }
+  ]
+}

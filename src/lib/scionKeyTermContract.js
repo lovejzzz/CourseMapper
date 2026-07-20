@@ -105,6 +105,115 @@ function repeatsScionKeyTermField(left, right) {
   return containment >= 0.84 && intersection / Math.max(1, union) >= 0.66;
 }
 
+function scionRelationStem(value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/(?:ies|es|s)$/, (suffix) => (suffix === 'ies' ? 'y' : ''));
+}
+
+function directionalPredicateAssignments(value) {
+  const assignments = new Map();
+  for (const match of cleanScionKeyTermText(value).matchAll(
+    /\b([a-z][a-z-]*)\s+(higher|lower|more|less|increas(?:e|es|ed|ing)|decreas(?:e|es|ed|ing))\b/gi,
+  )) {
+    const predicate = scionRelationStem(match[1]);
+    const direction = /^(?:higher|more|increas)/i.test(match[2]) ? 'up' : 'down';
+    const directions = assignments.get(predicate) || new Set();
+    directions.add(direction);
+    assignments.set(predicate, directions);
+  }
+  return assignments;
+}
+
+function interactionRoleAssignments(value) {
+  const assignments = new Map();
+  for (const match of cleanScionKeyTermText(value).matchAll(/\b(like|unlike)\s+charges?\s+(attract\w*|repel\w*)\b/gi)) {
+    assignments.set(match[1].toLowerCase(), scionRelationStem(match[2]));
+  }
+  return assignments;
+}
+
+function leadingSubject(value) {
+  const match = cleanScionKeyTermText(value).match(/^\s*(?:a|an|the)?\s*([^,.;]{2,50}?)\s+(?:is|are|does?)\b/i);
+  return match ? comparableScionKeyTermText(match[1]) : '';
+}
+
+function predicateRelationSides(value) {
+  const relations = [];
+  for (const match of cleanScionKeyTermText(value).matchAll(
+    /(^|[.;]\s*)(.+?)\b(indicat\w*|includ\w*|contain\w*)\b(.+?)(?=[.;]|$)/gi,
+  )) {
+    const left = comparableScionKeyTermTokens(match[2]);
+    const right = comparableScionKeyTermTokens(match[4]);
+    if (left.size > 0 && right.size > 0) relations.push({ left, right });
+  }
+  return relations;
+}
+
+function relationSideContained(candidate, container) {
+  const overlap = [...candidate].filter((token) => container.has(token)).length;
+  return overlap >= 2 && overlap / Math.max(1, candidate.size) >= 0.8;
+}
+
+function degreeAssignments(value) {
+  return new Set(
+    [
+      ...cleanScionKeyTermText(value).matchAll(/\b(?:scale[ -]?)?degree\s+(one|two|three|four|five|six|seven|\d+)\b/gi),
+    ].map((match) => match[1].toLowerCase()),
+  );
+}
+
+function hasRelationalMisconceptionContrast(left, right) {
+  const leftDirections = directionalPredicateAssignments(left);
+  const rightDirections = directionalPredicateAssignments(right);
+  for (const [predicate, directions] of leftDirections) {
+    const otherDirections = rightDirections.get(predicate);
+    if (otherDirections && [...directions].some((direction) => !otherDirections.has(direction))) return true;
+  }
+
+  const leftInteractions = interactionRoleAssignments(left);
+  const rightInteractions = interactionRoleAssignments(right);
+  if (
+    [...leftInteractions].some(
+      ([role, predicate]) => rightInteractions.has(role) && rightInteractions.get(role) !== predicate,
+    )
+  ) {
+    return true;
+  }
+
+  const leftRelations = predicateRelationSides(left);
+  const rightRelations = predicateRelationSides(right);
+  if (
+    leftRelations.some((leftRelation) =>
+      rightRelations.some(
+        (rightRelation) =>
+          relationSideContained(leftRelation.right, rightRelation.left) &&
+          relationSideContained(rightRelation.right, leftRelation.left),
+      ),
+    )
+  ) {
+    return true;
+  }
+
+  const leftDegrees = degreeAssignments(left);
+  const rightDegrees = degreeAssignments(right);
+  if (leftDegrees.size > 0 && rightDegrees.size > 0 && [...leftDegrees].every((degree) => !rightDegrees.has(degree))) {
+    return true;
+  }
+
+  const leftSubject = leadingSubject(left);
+  const rightSubject = leadingSubject(right);
+  const leftComparable = comparableScionKeyTermText(left);
+  const rightComparable = comparableScionKeyTermText(right);
+  return Boolean(
+    leftSubject &&
+    rightSubject &&
+    leftSubject !== rightSubject &&
+    rightComparable.includes(leftSubject) &&
+    leftComparable.includes(rightSubject),
+  );
+}
+
 function correctionAddsSpecificMisconceptionContrast(definition, misconception, correction) {
   if (!DIRECT_CONTRAST_RE.test(correction)) return false;
   const definitionTokens = comparableScionKeyTermTokens(definition);
@@ -497,6 +606,7 @@ export function assessScionKeyTermContract(
     semanticProfile === 'strict-v6' ||
     semanticProfile === 'source-strict-v6';
   const canonicalLessonTitleAdmission = semanticProfile === 'strict-v6' || semanticProfile === 'source-strict-v6';
+  const relationalMisconceptionPrecision = semanticProfile === 'strict-v6' || semanticProfile === 'source-strict-v6';
   const sourceGroundedSemanticAdmission =
     semanticProfile === 'source-strict' ||
     semanticProfile === 'source-strict-v3' ||
@@ -642,6 +752,13 @@ export function assessScionKeyTermContract(
     [normalized.example, normalized.correction, 'correction-repeats-example'],
     [normalized.misconception, normalized.correction, 'correction-repeats-misconception'],
   ]) {
+    if (
+      relationalMisconceptionPrecision &&
+      (issue.startsWith('misconception-repeats') || issue === 'correction-repeats-misconception') &&
+      hasRelationalMisconceptionContrast(left, right)
+    ) {
+      continue;
+    }
     if (
       issue === 'correction-repeats-definition' &&
       correctionAddsSpecificMisconceptionContrast(

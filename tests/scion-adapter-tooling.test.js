@@ -186,6 +186,17 @@ describe('Scion adapter tooling', () => {
       semanticProfile: 'source-strict-v6',
     });
     expect(SCION_ADAPTER_DATASET_PROFILES['lesson-kernel-v0.16.54'].sources).toHaveLength(2);
+    expect(SCION_ADAPTER_DATASET_PROFILES['lesson-kernel-v0.16.62']).toMatchObject({
+      sources: ['evaluation/scion-adapters/evidence/semantic-expansion-v0.16.62/cumulative-training-preferences.jsonl'],
+      minimumPairs: 100,
+      minimumDomains: 7,
+      minimumGroupsPerDomain: 2,
+      minimumSourceKernelsPerDomain: 6,
+      minimumModelJudgePairs: 100,
+      minimumModelJudgeDomains: 7,
+      minimumModelJudgePairsPerDomain: 8,
+      semanticProfile: 'source-strict-v6',
+    });
   });
 
   it('refuses to inflate the lesson-kernel target with two preferences for one campaign case', () => {
@@ -530,7 +541,7 @@ describe('Scion adapter tooling', () => {
       await fs.readFile('evaluation/scion-adapters/held-out-course-benchmark-v9.json', 'utf8'),
     );
     const currentGraderBenchmark = JSON.parse(
-      await fs.readFile('evaluation/scion-adapters/held-out-course-benchmark-v10.json', 'utf8'),
+      await fs.readFile('evaluation/scion-adapters/held-out-course-benchmark-v13.json', 'utf8'),
     );
     expect(validateScionHeldoutBenchmark(benchmark)).toMatchObject({
       valid: true,
@@ -609,6 +620,7 @@ describe('Scion adapter tooling', () => {
       taskFamily,
       routeMode,
       nativeAdapterActive,
+      routeModelCalls: 1,
       ...shared,
     });
     expect(
@@ -619,6 +631,14 @@ describe('Scion adapter tooling', () => {
         ...shared,
       }),
     ).toMatchObject({ valid: true, issues: [], routeCount: 2 });
+    expect(
+      assessScionAdapterRouteEvidence({
+        events: [event('course-map', 'base-only', false)],
+        policy,
+        arm: 'base-only',
+        ...shared,
+      }),
+    ).toMatchObject({ valid: true, issues: [], routeCount: 1 });
 
     const globalAdapter = assessScionAdapterRouteEvidence({
       events: [event('lesson-kernel', 'adapter', true), event('course-map', 'adapter', true)],
@@ -683,7 +703,7 @@ describe('Scion adapter tooling', () => {
 
   it('derives promotion evidence from two hash-bound Crucible rounds', async () => {
     root = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-paired-evidence-'));
-    const benchmarkPath = path.resolve('evaluation/scion-adapters/held-out-course-benchmark-v10.json');
+    const benchmarkPath = path.resolve('evaluation/scion-adapters/held-out-course-benchmark-v13.json');
     const benchmark = JSON.parse(await fs.readFile(benchmarkPath, 'utf8'));
     const benchmarkSha256 = await sha256File(benchmarkPath);
     const datasetDir = path.join(root, 'dataset');
@@ -728,7 +748,7 @@ describe('Scion adapter tooling', () => {
         taskScope: {
           protocol: 'scion-adapter-task-scope-v1',
           mode: 'allowlist',
-          families: [{ id: 'lesson-kernel', rows: 3200 }],
+          families: [{ id: 'source-grounded-lesson-kernel', rows: 3200 }],
           unclassifiedPolicy: 'base-only',
           compositePolicy: 'exact-family-only',
           identity: {
@@ -790,19 +810,33 @@ describe('Scion adapter tooling', () => {
         {
           type: 'scionAdapterRoute',
           routeProtocol: 'scion-adapter-runtime-route-v1',
-          taskFamily: 'lesson-kernel',
-          routeMode: isAdapter ? 'adapter' : 'base-only',
-          nativeAdapterActive: isAdapter,
-          adapterId: isAdapter ? built.manifest.adapter.id : null,
-          adapterManifestSha256: isAdapter ? adapterManifestSha256 : null,
-          adapterScopeIdentitySha256: isAdapter ? built.manifest.training.taskScope.identity.sha256 : null,
+          taskFamily: 'lesson-kernel-synthesis',
+          routeMode: 'base-only',
+          nativeAdapterActive: false,
+          routeModelCalls: isAdapter ? 49 : 99,
         },
+        ...(isAdapter
+          ? [
+              {
+                type: 'scionAdapterRoute',
+                routeProtocol: 'scion-adapter-runtime-route-v1',
+                taskFamily: 'source-grounded-lesson-kernel',
+                routeMode: 'adapter',
+                nativeAdapterActive: true,
+                adapterId: built.manifest.adapter.id,
+                adapterManifestSha256,
+                adapterScopeIdentitySha256: built.manifest.training.taskScope.identity.sha256,
+                routeModelCalls: 25,
+              },
+            ]
+          : []),
         {
           type: 'scionAdapterRoute',
           routeProtocol: 'scion-adapter-runtime-route-v1',
           taskFamily: 'course-map',
           routeMode: 'base-only',
           nativeAdapterActive: false,
+          routeModelCalls: 1,
         },
       ]
         .map((event) => JSON.stringify(event))
@@ -907,6 +941,7 @@ describe('Scion adapter tooling', () => {
         expect.objectContaining({
           packageValid: true,
           scionPassCalls: 75,
+          nativeInferenceAttempts: 75,
           adapterActive: true,
           evidenceProducer: 'scion-paired-evidence-v1',
           artifactReceiptSha256: expect.stringMatching(/^[a-f0-9]{64}$/),
@@ -980,6 +1015,7 @@ describe('Scion adapter tooling', () => {
           p1: 3,
           p2: 3,
           scionPassCalls: 100,
+          nativeInferenceAttempts: 100,
         }),
       ]),
     );
@@ -1088,6 +1124,9 @@ describe('Scion adapter tooling', () => {
     expect(launcher).toContain('--mlx-self-test');
     expect(launcher).toContain('$LESSON_KERNEL_V01654 && MAX_SEQUENCE_LENGTH=2580');
     expect(launcher).toContain('$LESSON_KERNEL_V01654 && DEFAULT_ITERS=200');
+    expect(launcher).toContain('--profile lesson-kernel-v0.16.62');
+    expect(launcher).toContain('$LESSON_KERNEL_V01662 && MAX_SEQUENCE_LENGTH=2875');
+    expect(launcher).toContain('$LESSON_KERNEL_V01662 && DEFAULT_ITERS=200');
     expect(launcher).toContain('mktemp "${TMPDIR:-/tmp}/scion-toolchain.XXXXXX"');
     expect(launcher).toContain('--max-sequence-length "$MAX_SEQUENCE_LENGTH"');
     expect(launcher).toContain('--max-seq-length "$MAX_SEQUENCE_LENGTH"');
@@ -1208,7 +1247,7 @@ describe('Scion adapter tooling', () => {
       splitDomainCounts: { train: 7, valid: 7, test: 7 },
       taskScope: {
         ...taskScopedManifest.training.taskScope,
-        families: [{ id: 'lesson-kernel', rows: 129 }],
+        families: [{ id: 'source-grounded-lesson-kernel', rows: 129 }],
       },
     });
     const taskScopedGate = assessScionAdapterPromotion({ manifest: taskScopedManifest });
@@ -1252,6 +1291,7 @@ describe('Scion adapter tooling', () => {
           p1: 0,
           p2: 0,
           scionPassCalls: 75,
+          nativeInferenceAttempts: 75,
           adapterActive: true,
           adapterId: manifest.adapter.id,
           adapterPackageIdentitySha256,
@@ -1282,6 +1322,7 @@ describe('Scion adapter tooling', () => {
           p1: 0,
           p2: 0,
           scionPassCalls: 100,
+          nativeInferenceAttempts: 100,
           adapterActive: false,
           adapterId: null,
           adapterPackageIdentitySha256: null,
@@ -1453,6 +1494,7 @@ describe('Scion adapter tooling', () => {
       p1: 0,
       p2: 0,
       scionPassCalls: variant === 'adapter' ? 75 : 100,
+      nativeInferenceAttempts: variant === 'adapter' ? 75 : 100,
       adapterActive: variant === 'adapter',
       adapterId: variant === 'adapter' ? manifest.adapter.id : null,
       adapterPackageIdentitySha256: variant === 'adapter' ? adapterPackageIdentitySha256 : null,

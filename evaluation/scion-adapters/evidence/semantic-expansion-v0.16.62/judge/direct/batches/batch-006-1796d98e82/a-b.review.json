@@ -1,0 +1,504 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-review-v1",
+  "order": "A/B",
+  "packetSha256": "90b23099f2ae68db70ec7a113cb2ca8e5532d890626752f2d7cd2c59f16e638a",
+  "sessionId": "scion-v01662-batch-006-1796d98e82-a-b-7fae3336-7c39-49e9-b836-f427b5dd7e08",
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "completedAt": "2026-07-19T17:50:56-04:00",
+  "attestations": {
+    "anonymousArtifactsOnly": true,
+    "otherOrderUnavailable": true,
+    "organizerMappingUnavailable": true
+  },
+  "decisions": [
+    {
+      "caseId": "scion-kernel-8ef23dcb95e41dcdbb4e1f9b",
+      "pairId": "scion-kernel-pair-8c2d0904f8034a490d46e6d6",
+      "artifactSha256": {
+        "A": "5f54229af2f8b99b5e14c50b6f7e80bd0b126b1caf5b3803b27e88c6b0391204",
+        "B": "15f532454445509df1c7deee0964bc783aa816fa1b9b47e4c1f62455419a7f94"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "Both declared answers select claims that conflict with the supplied if-else and or-operator facts."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "The term definitions mostly preserve the source distinctions, though the conditional correction overgeneralizes the exactly-one-branch property and the boolean correction is malformed."
+          },
+          "scenarioReadiness": {
+            "score": 3,
+            "evidence": "The age-threshold case supplies two inspectable values and a decision about access versus an error, but it offers little operational tension beyond the branch choice."
+          },
+          "assessmentCorrectness": {
+            "score": 0,
+            "evidence": "Question 1 keys option 0 although options 2 and 3 state the supported behaviors; question 2 keys option 0 although option 1 states the supported or result."
+          },
+          "choiceDiscriminability": {
+            "score": 1,
+            "evidence": "Question 1 separates the two parts of the correct distinction into options 2 and 3, making both true, while question 2 has a unique but unkeyed answer."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "The explanations state the correct if-else and or behaviors but contradict both declared keys and do not repair the closest misconceptions."
+          },
+          "internalCoherence": {
+            "score": 1,
+            "evidence": "The facts and terms are largely aligned, but both answer indices conflict with their questions and explanations."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 3,
+            "evidence": "Facts, terms, choices, and keys follow the supplied claims, but the first explanation ends with the false statement that the else statements skip."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "The distinctions among if, else, and, or, and not are precise except for the contradictory final sentence in the first explanation."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The labeling task supplies a false-condition record, observed branch outcomes, a compound-condition table, and a deadline-constrained classification decision."
+          },
+          "assessmentCorrectness": {
+            "score": 2,
+            "evidence": "Both declared options are uniquely correct, but question 1's explanation first says the else runs and then says the else statements skip."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "Both questions use four parallel outcome combinations, with one uniquely supported comparison in each set."
+          },
+          "feedbackInstructionality": {
+            "score": 2,
+            "evidence": "Question 2 clearly contrasts and with or, but question 1 closes with a contradiction that can teach the wrong else behavior."
+          },
+          "internalCoherence": {
+            "score": 3,
+            "evidence": "The scenario, keys, and most explanations agree; only the contradictory closing sentence in question 1 breaks coherence."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "Both multiple-choice items have incorrect declared answers.",
+          "Both explanations contradict their declared answer indices.",
+          "Question 1 is ambiguous because options 2 and 3 are both supported parts of the requested distinction."
+        ],
+        "B": [
+          "Question 1's explanation says the else statements run and then contradicts itself by saying they skip."
+        ]
+      },
+      "decision": "B",
+      "rationale": "B has correct, discriminating answer keys and a usable evidence-based scenario. Its one contradictory feedback sentence is serious, but A miskeys both questions and makes its first item multiply correct, so B is materially stronger."
+    },
+    {
+      "caseId": "scion-kernel-8f8fe3056acd54a1003b7a52",
+      "pairId": "scion-kernel-pair-4c40ccc9ee995a44fec05c7b",
+      "artifactSha256": {
+        "A": "b8f88101c7e45991d5f306708a5e635c4e4ccd4d5a501487597f874a308812d9",
+        "B": "67413776e44ab21bc4f45d54a5b6b43d28ecd5bc6f3f6c5cdd2782383a143d93"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 1,
+            "evidence": "It adds unsupported claims about primary protection, the dermis supporting the epidermis, and a thick, tough outer layer, then keys claims contrary to the supplied tissue fact."
+          },
+          "knowledgePrecision": {
+            "score": 1,
+            "evidence": "The epidermis and dermis descriptions add unsourced functions, and both assessments confuse which layer has keratinized stratified squamous epithelium."
+          },
+          "scenarioReadiness": {
+            "score": 1,
+            "evidence": "The abrasion supplies a layer-label decision, but its decisive thick-and-tough observation is not connected to either layer by the source and no real constraint is given."
+          },
+          "assessmentCorrectness": {
+            "score": 0,
+            "evidence": "Question 1 keys the dermis while its explanation supports the epidermis; question 2 keys the false claim that the dermis is keratinized stratified squamous epithelium."
+          },
+          "choiceDiscriminability": {
+            "score": 1,
+            "evidence": "Question 1 mixes layers, functions, and composition, while question 2 is not phrased as a question and repeats two epidermis-communication propositions."
+          },
+          "feedbackInstructionality": {
+            "score": 0,
+            "evidence": "Both explanations end with the unfulfilled template instruction to correct the closest distractor, and neither explains why the declared option is defensible."
+          },
+          "internalCoherence": {
+            "score": 0,
+            "evidence": "Unsupported scenario properties, incorrect keys, repeated alternatives, and unfinished feedback conflict with the otherwise source-copied facts."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "Every definition, misconception correction, scenario observation, answer, and explanation stays within the three supplied anatomy relations."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "It cleanly distinguishes the integumentary system, skin, epidermis, dermis, and the tissue composition assigned specifically to the epidermis."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The editor must assign subject labels under a deadline using three inspectable notations for system membership, skin layers, and tissue composition."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both declared option 3 answers are uniquely supported and match their cited facts and explanations."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "The options systematically test which anatomical subject owns each supplied relation without duplicates or nonparallel formulations."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation identifies the supported subject relation and directly contrasts the closest category error involving accessory structures or the dermis."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "Facts, key terms, scenario labels, questions, keys, citations, and explanations consistently preserve the same subject distinctions."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "Both multiple-choice items have incorrect declared answers.",
+          "Question 1's explanation supports the epidermis while the key declares the dermis.",
+          "The lesson introduces unsupported factual claims about primary protection, dermal support, and a thick, tough outer layer.",
+          "Question 2 is not a complete question and contains substantially duplicate epidermis-communication alternatives.",
+          "Both feedback texts retain an unfinished template instruction instead of supplying the requested misconception correction."
+        ],
+        "B": []
+      },
+      "decision": "B",
+      "rationale": "B is fully source-bound, precise, and internally coherent, with two uniquely correct assessments. A adds unsupported anatomy, miskeys both items, repeats alternatives, and leaves instructional feedback unfinished."
+    },
+    {
+      "caseId": "scion-kernel-8fed8eae15665ac533576b47",
+      "pairId": "scion-kernel-pair-b4edab820259f72690bbe9a9",
+      "artifactSha256": {
+        "A": "b2addd401b7358d418bb4307dcc31aa54e3034cbb35600135104935dee978f2d",
+        "B": "8344e85fe60c4eb7a2177a7f27ac257f2cb176cf4999bee3f95c4dc6090d6efb"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "Core definitions follow the ledger, but the artifact invents a named A() operation and a write() method not supplied by the source."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "The open() and read() distinctions are mostly accurate, but the invented A() choice and ambiguous readline/readlines application reduce precision."
+          },
+          "scenarioReadiness": {
+            "score": 2,
+            "evidence": "The scenario gives a configuration-file task and closing constraint, but its measurement only compares read() with readline() and does not support the stated update decision."
+          },
+          "assessmentCorrectness": {
+            "score": 1,
+            "evidence": "Question 1 is correctly keyed, but question 2 keys A() even though its explanation discusses readline() and readlines() as the relevant methods."
+          },
+          "choiceDiscriminability": {
+            "score": 2,
+            "evidence": "Question 1 is well separated, while question 2 includes a giveaway invented A() option and both readline() and readlines() can support sequential iteration."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "Both explanations retain the instruction 'then correct the closest distractor,' and the second never resolves its ambiguity or the incorrect key."
+          },
+          "internalCoherence": {
+            "score": 2,
+            "evidence": "The source facts and first item agree, but the scenario evidence misses its update task and the second key conflicts with its explanation."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "All file-object and read-method claims, examples, options, and explanations restate only the supplied file I/O relations."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "It distinctly assigns a file object to open(), an entire string to read(), the next line to readline(), and a list of every line to readlines()."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "A deadline-constrained reviewer must classify two explicitly recorded return values, giving a concrete decision and inspectable evidence."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Option 0 in question 1 and option 3 in question 2 are uniquely supported by the cited read-operation facts and explanations."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "Each option set uses parallel method-result comparisons or method labels and contains one clearly supported alternative."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "The explanations state the supported return type and directly correct the closest swapped-method misconception."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "Terms, recorded scenario results, choices, keys, citations, and explanations use the same method-to-result mapping throughout."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "Question 2 has an incorrect declared answer and names an unsupported A() operation.",
+          "Question 2's explanation contradicts its declared answer by identifying readline() and readlines() as the relevant methods.",
+          "Question 2 is ambiguous because both repeated readline() calls and iteration over readlines() output can process entries sequentially.",
+          "Both feedback texts contain an unfinished instruction to correct a distractor instead of actually doing so."
+        ],
+        "B": []
+      },
+      "decision": "B",
+      "rationale": "B covers the supplied operations with precise mappings, usable evidence, unique keys, and corrective feedback. A's second item is miskeyed, ambiguous, and built around an invented operation, while both explanations remain unfinished."
+    },
+    {
+      "caseId": "scion-kernel-901bcdec12e941126815530a",
+      "pairId": "scion-kernel-pair-1d7916c7a075504ec995a592",
+      "artifactSha256": {
+        "A": "1f6a0335e4fc6f726a53f204d7524a5ef59cff5084168ce6631bf0fe05c85980",
+        "B": "e1ef15413da4258897071a217636cbc4e569dcec01de5a883819055930f56224"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 3,
+            "evidence": "Most content follows the claims, but the examples add a checkout process and multi-page form details not present in the supplied source."
+          },
+          "knowledgePrecision": {
+            "score": 2,
+            "evidence": "The process-list misconception treats showing ordered steps as wholly false even though sequential instructions inherently have order, and its correction does not sharpen that distinction."
+          },
+          "scenarioReadiness": {
+            "score": 3,
+            "evidence": "The service application supplies a multi-screen flow, a progress need, and a no-color-alone constraint, though its measurement omits back/next and aria-current evidence."
+          },
+          "assessmentCorrectness": {
+            "score": 2,
+            "evidence": "Question 1 is correctly keyed, but question 2 never states that the flow has at least three steps, so the keyed suitability conclusion is not established for the described process."
+          },
+          "choiceDiscriminability": {
+            "score": 2,
+            "evidence": "Question 1 is reasonably distinct, while question 2 mixes design choices with a separately true navigation statement and omits the fact needed to choose uniquely."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "Both explanations merely repeat the keyed claim after 'then' and never explain why the closest misconception fails."
+          },
+          "internalCoherence": {
+            "score": 3,
+            "evidence": "The core distinctions remain consistent, but question 2 is underdetermined and the scenario's accessibility evidence is not carried into either assessment."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "Definitions, examples, scenario observations, answers, and explanations remain within the five supplied process-indicator and accessibility claims."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "It accurately distinguishes instructions from current position, indicator suitability from navigation, color-independent meaning, and programmatic current-step exposure."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The review provides three steps across screens, a replacement-navigation expectation, color-based evidence, aria-current notation, and a deadline for classification."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both keys uniquely combine the supplied role, suitability, and back/next-control facts and are fully supported by their explanations."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "The alternatives use parallel role reversals and indicator-versus-process-list combinations without duplication or giveaway wording."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation teaches the governing distinction and explicitly repairs the closest reversal or replacement-navigation misconception."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "The lesson terms, scenario evidence, option relations, answer indices, citations, and explanations agree throughout."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "Question 2 is underdetermined because the stem omits the at-least-three-step condition required for the keyed suitability conclusion while another option states a separately supported fact."
+        ],
+        "B": []
+      },
+      "decision": "B",
+      "rationale": "B supplies the evidence needed for each design classification and assesses it with unique, well-explained choices. A's second item lacks a required scenario fact, and its feedback largely repeats answers without teaching against misconceptions."
+    },
+    {
+      "caseId": "scion-kernel-91d57c49e68873ad738edc77",
+      "pairId": "scion-kernel-pair-b95593c92128b753b9f886de",
+      "artifactSha256": {
+        "A": "4f30c2f2a36d08a948f7356773387d4745b6f8a74df7b2f282af918193fefc0d",
+        "B": "5bdb6884a17b6c39604fa626e2f5fd3a1d16fed31cbdeed158fe5076ae8dffc1"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 1,
+            "evidence": "Although the facts are copied accurately, the examples and truncated scenario add batteries, resistors, light bulbs, numerical voltage, and resistance details absent from the claims."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "The term definitions and misconception corrections preserve the current, voltage, charge, and energy distinctions despite unsourced examples."
+          },
+          "scenarioReadiness": {
+            "score": 0,
+            "evidence": "Both scenario fields terminate inside malformed resistance notation and provide neither a complete circuit record nor a usable disciplinary decision."
+          },
+          "assessmentCorrectness": {
+            "score": 0,
+            "evidence": "Both items declare option 0 even though the supplied facts and each explanation identify option 1 as correct."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "The options are mostly parallel and uniquely distinguish the supported rules, but invented series and parallel rule labels weaken plausibility."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "The explanations mention the correct loop and parallel-voltage facts but contradict their keys and only append unrelated fact chains instead of focused correction."
+          },
+          "internalCoherence": {
+            "score": 0,
+            "evidence": "A truncated scenario and two answer-explanation contradictions overwhelm the otherwise accurate copied facts and definitions."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "Every statement, example, scenario observation, option, and explanation is confined to the supplied DC-circuit relations and conservation rules."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "It cleanly differentiates steady-current DC paths, series current, parallel voltage, junction charge conservation, and loop energy conservation."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "Students must classify a path and component relations under a deadline using inspectable steady-current, component-current, and branch-voltage records."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both option 0 keys uniquely match their cited source facts and the associated explanations."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "The choices use parallel reversals and same-relation distractors that are plausible but clearly separable from the supported comparisons."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation states the governing comparison and directly repairs the closest reversed assignment."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "Facts, terms, scenario measurements, questions, answer indices, citations, and explanations preserve identical circuit relations."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "Both scenario fields are truncated inside malformed instructional text, leaving no usable scenario decision.",
+          "Both multiple-choice items have incorrect declared answers.",
+          "Both explanations contradict their declared answer indices by supporting option 1.",
+          "The artifact invents named battery, resistor, light-bulb, voltage, and resistance examples beyond the supplied claims."
+        ],
+        "B": []
+      },
+      "decision": "B",
+      "rationale": "B is complete, source-bound, and instructionally coherent. A has a severely truncated scenario and miskeys both questions even though its own explanations identify the correct alternatives, making B decisively stronger."
+    },
+    {
+      "caseId": "scion-kernel-987da285da5f74ba181cfa92",
+      "pairId": "scion-kernel-pair-a9174b01b7b046ba55b5d456",
+      "artifactSha256": {
+        "A": "85de28979f7dffc1c6b36121dae339ac6fc88f32f705e6391d4b61c01099f584",
+        "B": "fa1d18269b212564b85920995e7468d8b33c232523edc810c363a081e8640170"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "The artifact adds unsupported emotional and contextual requirements, a faulty-product return example, and a claim that online-offline analysis is required for comprehensiveness."
+          },
+          "knowledgePrecision": {
+            "score": 2,
+            "evidence": "Its journey-mapping misconception relies on unsupplied emotional context, and the experience-map correction does not directly address the stated identical-map and positive-only errors."
+          },
+          "scenarioReadiness": {
+            "score": 2,
+            "evidence": "The team has a dead-end decision and an online-only constraint, but no observed dead end is supplied and the measurement requests a physical map the team cannot observe."
+          },
+          "assessmentCorrectness": {
+            "score": 2,
+            "evidence": "Question 2 is correctly keyed, but question 1 keys option 0 even though options 0, 1, and 2 each state a supplied distinction or journey-map capability."
+          },
+          "choiceDiscriminability": {
+            "score": 2,
+            "evidence": "Question 1 presents several simultaneously true claims rather than mutually exclusive distinctions; question 2 is more discriminating but consists mostly of other true lesson elements."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "The first explanation validates both the key and a competing option, while neither explanation directly teaches why the closest distractor fails."
+          },
+          "internalCoherence": {
+            "score": 2,
+            "evidence": "The copied facts are stable, but the scenario contradicts its own evidence constraint and the first answer key is undermined by its explanation."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "All definitions, scenario records, answer propositions, and explanations are traceable to the five supplied journey-mapping claims."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "It distinctly assigns end-to-end connected experience, visible struggle areas, research grounding, dead ends, and online-offline gaps to their supported roles."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The team must classify two map roles under a deadline using research, connected-step, struggle-point, improvement-area, and online-offline-gap records."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Question 1 uniquely keys the correct map-role distinction, and question 2 uniquely integrates research grounding with the observed dead end."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "The options use role reversals, shared-role errors, and incorrect causal pairings that remain distinct and plausibly diagnostic."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation supports the key with the relevant records and explicitly corrects the closest reversed-role or experience-map misconception."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "Facts, terms, scenario evidence, questions, keys, citations, and explanations consistently preserve the supplied journey-analysis relations."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "Question 1 is ambiguous because options 0, 1, and 2 are all supported claims, and its explanation explicitly validates a competing option.",
+          "The lesson implies an unsupported requirement to consider emotional or contextual experience.",
+          "The scenario supplies no inspectable dead-end evidence and asks for a physical-map comparison despite stating that the team cannot observe the physical location."
+        ],
+        "B": []
+      },
+      "decision": "B",
+      "rationale": "B provides complete source coverage, inspectable scenario evidence, unique answers, and corrective explanations. A introduces unsupported requirements, makes its first question multiply correct, and cannot support its scenario decision with the stated evidence."
+    }
+  ]
+}

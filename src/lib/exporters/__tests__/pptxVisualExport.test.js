@@ -544,6 +544,48 @@ describe('PPTX export — native visuals (v0.12.1)', () => {
     expect(xml).toContain('Price signal');
   });
 
+  it('uses an explicit descriptor lead for a misconception comparison table', async () => {
+    const blob = await buildSlideDeckPptxBlob(
+      {
+        decks: [
+          {
+            lessonTitle: 'Lesson 1: Evidence Boundaries',
+            slides: [
+              {
+                title: 'Common pitfalls in evidence use',
+                type: 'content',
+                bullets: [
+                  'Tempting claim: Correlation always proves causation. Correction: Other explanations must be tested.',
+                  'Weak claim: One example settles the pattern. Better reasoning: Compare several observations.',
+                ],
+                visual: {
+                  kind: 'misconception comparison table',
+                  tableLead: 'Vote first, then compare each tempting claim with its evidence-based correction.',
+                  columnLabels: ['MISCONCEPTION', 'CORRECTION'],
+                  rows: [
+                    ['Correlation proves causation', 'Other explanations must be tested'],
+                    ['One example settles the pattern', 'Compare several observations'],
+                  ],
+                },
+              },
+            ],
+          },
+        ],
+      },
+      'Test Course',
+      0,
+    );
+    const zip = await JSZip.loadAsync(await blob.arrayBuffer());
+    const xml = await zip.file('ppt/slides/slide1.xml').async('string');
+
+    expect(xml).toMatch(NATIVE_TABLE_XML);
+    expect(xml).toContain('Vote first, then compare each tempting claim with its evidence-based correction.');
+    expect(xml).toContain('MISCONCEPTION');
+    expect(xml).toContain('CORRECTION');
+    expect(xml).toContain('Correlation proves causation');
+    expect(xml).toContain('Other explanations must be tested');
+  });
+
   it('discussion slide with a decision-matrix visual renders a native grid table', () => {
     // Fixture slide index 6 = discussion with kind 'decision matrix'
     const xml = slideXmls[6];

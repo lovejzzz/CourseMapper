@@ -340,7 +340,12 @@ export function assessScionAdapterRouteEvidence({
   const adapterFamilies = Array.isArray(policy?.adapterRequiredFamilies) ? policy.adapterRequiredFamilies : [];
   const baseOnlyFamilies = Array.isArray(policy?.baseOnlyRequiredFamilies) ? policy.baseOnlyRequiredFamilies : [];
   const adapterAllowed = new Set(arm === 'adapter' ? adapterFamilies : []);
-  const allRequired = [...new Set([...adapterFamilies, ...baseOnlyFamilies])];
+  // The staged production candidate adds the source-grounded adapter pass
+  // after the shared base synthesis call. A true base-only product run has no
+  // installed adapter and therefore does not manufacture that extra route.
+  // It must still prove every shared base-only family; any adapter route that
+  // does appear below is independently forbidden.
+  const allRequired = [...new Set(arm === 'adapter' ? [...adapterFamilies, ...baseOnlyFamilies] : baseOnlyFamilies)];
   for (const family of allRequired) {
     const familyRoutes = routes.filter((route) => clean(route.taskFamily) === family);
     if (familyRoutes.length === 0) {
@@ -365,6 +370,9 @@ export function assessScionAdapterRouteEvidence({
   }
   for (const route of routes) {
     const family = clean(route.taskFamily) || 'unclassified';
+    if (!Number.isSafeInteger(route.routeModelCalls) || route.routeModelCalls < 1) {
+      issues.push(`route-model-calls:${family}`);
+    }
     if (clean(route.routeMode) === 'adapter' && !adapterAllowed.has(family)) {
       issues.push(`unexpected-adapter-route:${family}`);
     }
@@ -383,6 +391,9 @@ export function assessScionAdapterRouteEvidence({
           adapter: routes.filter((route) => clean(route.taskFamily) === family && route.routeMode === 'adapter').length,
           baseOnly: routes.filter((route) => clean(route.taskFamily) === family && route.routeMode === 'base-only')
             .length,
+          modelCalls: routes
+            .filter((route) => clean(route.taskFamily) === family)
+            .reduce((sum, route) => sum + (Number(route.routeModelCalls) || 0), 0),
         },
       ]),
     ),
@@ -767,6 +778,7 @@ async function buildCourseEvidence({
     evaluationStatus: artifactSet.kind,
     durationMs: Number(report?.run?.durationMs) || null,
     scionPassCalls: Number(task('scionPass').calls) || compilerBurden.scion.calls,
+    nativeInferenceAttempts: compilerBurden.nativeInference.attempts,
     compilerBurden,
     baseRevision: localModel.sourceRevision,
     adapterActive: localModel.adapterActive === true,

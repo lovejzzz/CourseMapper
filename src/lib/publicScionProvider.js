@@ -5,7 +5,6 @@
 // GGUF and the Scion compiler validates and expands its compact output.
 
 import { jsonrepair } from 'jsonrepair';
-import { APP_VERSION } from './appVersion.js';
 import {
   findScionExplanationKeyConflict,
   findScionCitedSourceKeyMismatch,
@@ -19,20 +18,38 @@ import {
   normalizeScionOptionIdentity,
   repairScionMcItem,
 } from './scionAnswerKeyAlignment.js';
-import { SCION_BROWSER_GEMMA4_GGUF } from './scionBrowserConstants.js';
-import { assessScionKeyTermContract } from './scionKeyTermContract.js';
+import { assessScionKeyTermContract, normalizeScionKeyTerm } from './scionKeyTermContract.js';
 import { scionFactContractForLesson } from './scionEvidenceContract.js';
 import { analyzeDecisionScenario } from './scenarioContract.js';
+import {
+  PUBLIC_SCION_MAX_COMPLETION_TOKENS,
+  PUBLIC_SCION_MODEL_ID,
+  PUBLIC_SCION_MODEL_NAME,
+  PUBLIC_SCION_PROVIDER_ID,
+} from './publicScionIdentity.js';
+
+export {
+  PUBLIC_SCION_BACKING_MODEL,
+  PUBLIC_SCION_MAX_COMPLETION_TOKENS,
+  PUBLIC_SCION_MODEL_ID,
+  PUBLIC_SCION_MODEL_NAME,
+  PUBLIC_SCION_PROVIDER_ID,
+  publicScionModelOption,
+} from './publicScionIdentity.js';
 
 const PUBLIC_SCION_TEMPLATE_RESIDUE_RE =
-  /\b(?:two lesson concepts?|lesson concept to this concrete case|replace with (?:one complete distinction question|one concrete case question|a plausible subject-specific|a plausible case-specific)|plausible methodological claim or action|plausible case interpretation or action|state the subject evidence supporting the answer,? then correct the closest distractor)\b/i;
+  /\b(?:two lesson concepts?|lesson concept to this concrete case|replace with (?:one complete distinction question|one concrete case question|a plausible subject-specific|a plausible case-specific)|plausible methodological claim or action|plausible case interpretation or action|state the subject evidence supporting the answer,? then correct the closest distractor|then correct the closest distractor)\b/i;
 const PUBLIC_SCION_TEMPLATE_RESIDUE_V01658_RE =
   /\b(?:two lesson concepts?|lesson concept to this concrete case|replace with (?:one complete distinction question|one concrete case question|a plausible subject-specific|a plausible case-specific)|plausible methodological claim or action|plausible case interpretation or action)\b/i;
+const PUBLIC_SCION_FACT_TEMPLATE_RESIDUE_RE =
+  /(?:\b(?:first specific|second distinct|third distinct|fourth distinct|fifth distinct) subject claim of twenty or more characters\b|\b(?:mc|op|ex)_\d+_[a-z0-9_]+|\bsubject_fact\s*\[[^\]]+\])/i;
 const PUBLIC_SCION_TRUNCATED_CLAIM_RE =
   /(?:-[a-z]{1,3}|\b(?:a|an|and|any|as|at|by|each|every|for|from|in|of|on|or|the|to|with|without)|\b(?:users?|students?|participants?|customers?|people)\s+(?:actual|specific|respective|relevant|related))\s*[.!?]?$/i;
 const PUBLIC_SCION_TRUNCATED_OPTION_RE =
   /(?:-[a-z]{1,3}|\b(?:a|an|and|any|as|by|each|every|for|from|in|of|on|or|the|to|with|without))$/i;
 const PUBLIC_SCION_CODE_IDENTIFIER_SENTENCE_RE = /^[\s“"'([{]*[a-z_][a-z0-9_.]*\([^)]*\)\s+\p{L}/iu;
+const PUBLIC_SCION_CODE_OPERATOR_SENTENCE_RE =
+  /^[\s“"'([{]*(?:and|or|not|in|is)\b\s+(?:returns?|evaluates?|checks?|tests?|inverts?|compares?)\b/iu;
 const PUBLIC_SCION_RELATIVE_PREPOSITION_END_RE = /\b(?:that|which|whom)\b[^.!?]*\b(?:from|to|with)\s*[.!?][\])}"']?$/i;
 const PUBLIC_SCION_ANSWER_POSITION_RE =
   /\b(?:the\s+)?key\s+(?:wins?|fits?|is|because)|\b(?:zero(?:th)?|first|second|third|fourth)(?:\s+(?:and|or)\s+(?:zero(?:th)?|first|second|third|fourth))?\s+(?:options?|choices?|answers?)\b|\b(?:option|choice|answer)\s*(?:[A-D0-4]|zero|one|two|three|four|zeroth|first|second|third|fourth)\b/i;
@@ -61,6 +78,7 @@ const PUBLIC_SCION_SENTENCE_LEAD_WORDS = new Set([
   'where',
   'which',
   'while',
+  'within',
 ]);
 const PUBLIC_SCION_SCRIPT_RE = /[\p{Script=Han}\p{Script=Cyrillic}\p{Script=Arabic}\p{Script=Devanagari}]/u;
 const PUBLIC_SCION_QUANTITY_RE =
@@ -72,7 +90,9 @@ const PUBLIC_SCION_HIGH_RISK_ISSUE_MARKERS = Object.freeze([
   'empty-response',
   'missing-lesson',
   'facts-count',
+  'duplicate-facts',
   'key-terms-count',
+  'duplicate-key-terms',
   'mc-count',
   'scenario:scenario-missing',
   'unexpected-script',
@@ -98,13 +118,16 @@ const PUBLIC_SCION_HIGH_RISK_ISSUE_MARKERS = Object.freeze([
   'multiple-source-supported-options',
   'source-fact-index',
   'source-fact-key-mismatch',
+  'template-residue',
 ]);
 const PUBLIC_SCION_CRITICAL_ISSUE_MARKERS = Object.freeze([
   'invalid-json',
   'empty-response',
   'missing-lesson',
   'facts-count',
+  'duplicate-facts',
   'key-terms-count',
+  'duplicate-key-terms',
   'mc-count',
   'scenario:scenario-missing',
   'unexpected-script',
@@ -128,6 +151,7 @@ const PUBLIC_SCION_CRITICAL_ISSUE_MARKERS = Object.freeze([
   'source-fact-key-mismatch',
   'source-direction-conflict',
   'source-fact-ledger-mismatch',
+  'template-residue',
 ]);
 const PUBLIC_SCION_RELATION_STOP_WORDS = new Set([
   'and',
@@ -146,17 +170,12 @@ const PUBLIC_SCION_RELATION_STOP_WORDS = new Set([
   'with',
 ]);
 
-export const PUBLIC_SCION_PROVIDER_ID = 'public';
-export const PUBLIC_SCION_MODEL_ID = 'scion-public';
-export const PUBLIC_SCION_MODEL_NAME = `Scion V${APP_VERSION}`;
-export const PUBLIC_SCION_BACKING_MODEL = SCION_BROWSER_GEMMA4_GGUF.runtimeArtifact.modelId;
 // A one-lesson kernel now carries only the validated knowledge core: facts,
 // key terms, a scenario, and two applied questions. The old 1,500-token clamp
 // silently overrode the 2,400-token budget requested by the compiler; real
 // WebGPU runs repeatedly ended at the same truncated tail and spent 12
 // completions recovering 0/2 lessons. Keep the cap below the 4,096-token
 // runtime ceiling while giving the compact contract enough room to close once.
-export const PUBLIC_SCION_MAX_COMPLETION_TOKENS = 2400;
 export const PUBLIC_SCION_MAX_LESSONS_PER_CALL = 3;
 export const PUBLIC_SCION_KERNEL_LESSONS_PER_CALL = 1;
 export const PUBLIC_SCION_KERNEL_CONCURRENCY = 1;
@@ -531,6 +550,7 @@ function publicScionFactIdentity(value) {
   return String(value || '')
     .normalize('NFKC')
     .toLowerCase()
+    .replace(/^\s*\d{1,2}\s*[:.)-]\s*/, '')
     .replace(/[^\p{L}\p{N}]+/gu, ' ')
     .trim();
 }
@@ -595,7 +615,12 @@ function publicScionRoleRelations(value) {
     ) {
       continue;
     }
-    const subjectTokens = publicScionRoleTokenSequence(subject.replace(/^(?:and|but|whereas|while)\s+/i, ''));
+    const grammaticalSubject = subject
+      .replace(/^(?:and|but|whereas|while)\s+/i, '')
+      .replace(/\s+\b(?:across|along|among|at|between|from|in|near|of|on|over|through|under|within|with)\b.*$/i, '')
+      .replace(/\s+\b(?:can|does?|helps?|may|will)\s*$/i, '')
+      .trim();
+    const subjectTokens = publicScionRoleTokenSequence(grammaticalSubject);
     const objectTokens = publicScionRelationTokens(object);
     if (subjectTokens.length === 0 || objectTokens.size === 0) continue;
     // A pronoun-headed continuation ("the cycle matches because it moves")
@@ -616,6 +641,10 @@ function publicScionHasSourceRoleConflict(value, sourceClaims) {
   const candidateRelations = publicScionRoleRelations(value);
   const sourceRelations = publicScionRoleRelations(sourceClaims);
   return candidateRelations.some((candidate) => {
+    // “Force per charge describes the field” is a normal definitional
+    // paraphrase of “the field describes force per charge.” Unlike causal or
+    // action predicates, `describes` does not provide a reliable role arrow.
+    if (candidate.verb.startsWith('describ')) return false;
     const predicateMatches = sourceRelations.filter((source) => {
       if (source.verb !== candidate.verb) return false;
       const objectOverlap = [...candidate.objectTokens].filter((token) => source.objectTokens.has(token)).length;
@@ -667,9 +696,12 @@ function publicScionUnsupportedQuantities(value, sourceText) {
     // one-to-four count used only to identify the compared task artifacts.
     if (
       /^(?:one|two|three|four) (?:items|observations|records)$/.test(quantity) &&
-      /\b(?:compare|distinguish|label|match)\w*\b[^.!?]{0,100}\b(?:the\s+)?(?:one|two|three|four)\s+(?:items|observations|records)\b/i.test(
+      (/\b(?:compare|distinguish|label|match)\w*\b[^.!?]{0,100}\b(?:the\s+)?(?:one|two|three|four)\s+(?:items|observations|records)\b/i.test(
         candidateText,
-      )
+      ) ||
+        /(?:^|[.!?]\s+)(?:one|two|three|four)\s+(?:items|observations|records)\s+(?:describe|present|record|show)\w*\b[^.!?]{0,180}\b(?:how|what|which)\b/i.test(
+          candidateText,
+        ))
     ) {
       return false;
     }
@@ -695,7 +727,11 @@ function publicScionLooksTruncatedClaim(value) {
 
 function publicScionStartsWithLowercaseFragment(value) {
   const text = String(value || '').trim();
-  return /^[\s“"'([{]*[a-z]/.test(text) && !PUBLIC_SCION_CODE_IDENTIFIER_SENTENCE_RE.test(text);
+  return (
+    /^[\s“"'([{]*[a-z]/.test(text) &&
+    !PUBLIC_SCION_CODE_IDENTIFIER_SENTENCE_RE.test(text) &&
+    !PUBLIC_SCION_CODE_OPERATOR_SENTENCE_RE.test(text)
+  );
 }
 
 export function assessPublicScionKernelResponse(
@@ -737,7 +773,12 @@ export function assessPublicScionKernelResponse(
       // factual source claim. Bind it only to the proper-name check.
       const namedSourceText = [sourceText, courseTitle].filter(Boolean).join(' ');
       const hasRichSourceEvidence = publicScionHasRichSourceEvidence(expected);
-      const sourceFacts = hasRichSourceEvidence ? [sourceText] : facts;
+      // A numbered ledger is already the canonical per-claim source. Keep its
+      // claims separate for semantic overlap checks even when the lesson also
+      // carries a long instructor brief; folding the ledger into one giant
+      // source blob hid affirmative facts mislabeled as misconceptions.
+      const sourceFacts =
+        factContract.mode === 'numbered-source-ledger-v1' ? facts : hasRichSourceEvidence ? [sourceText] : facts;
       if (!PUBLIC_SCION_SCRIPT_RE.test(sourceText) && PUBLIC_SCION_SCRIPT_RE.test(JSON.stringify(lesson))) {
         issues.push(`${expected.lessonId}:unexpected-script`);
       }
@@ -765,6 +806,9 @@ export function assessPublicScionKernelResponse(
         ) {
           issues.push(`${expected.lessonId}:fact-${index}:truncated-fact`);
         }
+        if (PUBLIC_SCION_FACT_TEMPLATE_RESIDUE_RE.test(String(fact || ''))) {
+          issues.push(`${expected.lessonId}:fact-${index}:template-residue`);
+        }
         if (hasRichSourceEvidence && publicScionUnsupportedQuantities(fact, sourceText).length > 0) {
           issues.push(`${expected.lessonId}:fact-${index}:source-unsupported-quantity`);
         }
@@ -785,6 +829,12 @@ export function assessPublicScionKernelResponse(
       });
       const keyTerms = Array.isArray(lesson.keyTerms) ? lesson.keyTerms : [];
       if (keyTerms.length < 3) issues.push(`${expected.lessonId}:key-terms-count:${keyTerms.length}/3`);
+      const normalizedTermNames = keyTerms
+        .map((term) => normalizeScionKeyTerm(term).term.normalize('NFKC').toLowerCase())
+        .filter(Boolean);
+      if (new Set(normalizedTermNames).size !== normalizedTermNames.length) {
+        issues.push(`${expected.lessonId}:duplicate-key-terms`);
+      }
       keyTerms.forEach((term, index) => {
         const result = assessScionKeyTermContract(term, {
           lessonTitle: expected.title || '',
@@ -976,6 +1026,15 @@ export function publicScionKernelResponseNeedsRetry(responseText, userPrompt, ta
   return assessPublicScionKernelResponse(responseText, userPrompt, task).needsRetry;
 }
 
+export function publicScionFactContractIssues(assessment = {}) {
+  const issues = Array.isArray(assessment?.issues) ? assessment.issues : [];
+  return issues.filter((issue) =>
+    /(?:^invalid-json$|^empty-response$|:missing-lesson(?:$|:)|:facts-count(?:$|:)|:duplicate-facts(?:$|:)|:fact-\d+:)/.test(
+      String(issue),
+    ),
+  );
+}
+
 export function publicScionAdmissionRisk(assessment = {}) {
   const issues = Array.isArray(assessment?.issues) ? assessment.issues : [];
   const highRiskIssues = issues.filter((issue) =>
@@ -1037,6 +1096,46 @@ export function mergePublicScionKernelAttempts(previousText, currentText, userPr
         });
         current = candidate;
       }
+
+      // A whole key-term set can be a bad swap even when two individual
+      // source-grounded terms are clear wins: the prior attempt may carry one
+      // different defect that would make the set-level merge introduce a new
+      // issue. Preserve complete term atoms independently—never splice their
+      // definition/example/misconception fields—and accept only replacements
+      // that strictly reduce the complete response's issue set without adding
+      // any new defect.
+      const currentLesson = current.lessons.find((entry) => entry?.lessonId === lesson.lessonId);
+      const priorTerms = Array.isArray(priorLesson.keyTerms) ? priorLesson.keyTerms : [];
+      const currentTerms = Array.isArray(currentLesson?.keyTerms) ? currentLesson.keyTerms : [];
+      for (let termIndex = 0; termIndex < Math.min(priorTerms.length, currentTerms.length); termIndex += 1) {
+        const activeLesson = current.lessons.find((entry) => entry?.lessonId === lesson.lessonId);
+        const activeTerms = Array.isArray(activeLesson?.keyTerms) ? activeLesson.keyTerms : [];
+        const priorTermName = normalizeScionKeyTerm(priorTerms[termIndex]).term.normalize('NFKC').toLowerCase();
+        const otherCurrentTermNames = activeTerms
+          .filter((_, index) => index !== termIndex)
+          .map((term) => normalizeScionKeyTerm(term).term.normalize('NFKC').toLowerCase())
+          .filter(Boolean);
+        if (priorTermName && otherCurrentTermNames.includes(priorTermName)) continue;
+        const before = assessPublicScionKernelResponse(JSON.stringify(current), userPrompt, 'blueprintEnrichment');
+        const candidate = structuredClone(current);
+        const candidateLesson = candidate.lessons.find((entry) => entry?.lessonId === lesson.lessonId);
+        candidateLesson.keyTerms[termIndex] = structuredClone(priorTerms[termIndex]);
+        const after = assessPublicScionKernelResponse(JSON.stringify(candidate), userPrompt, 'blueprintEnrichment');
+        const beforeIssues = new Set(before.issues || []);
+        const introduced = (after.issues || []).filter((issue) => !beforeIssues.has(issue));
+        if ((after.issues || []).length >= (before.issues || []).length || introduced.length > 0) continue;
+        repairs.push({
+          pass: 'crossAttemptAtomicRetention',
+          lessonId: lesson.lessonId,
+          field: `keyTerms[${termIndex}]`,
+          issueCountBefore: before.issues.length,
+          issueCountAfter: after.issues.length,
+          resolvedIssues: before.issues.filter((issue) => !(after.issues || []).includes(issue)),
+          trainingEligible: false,
+          preferenceEvidence: { evidenceScope: 'deterministic-contract-only', verified: false },
+        });
+        current = candidate;
+      }
     }
     return { text: JSON.stringify(current), repairs };
   } catch {
@@ -1090,6 +1189,11 @@ export function buildPublicScionRetryFeedback(assessment = {}) {
       : []),
     ...(allIssues.some((issue) => issue.includes('multiple-source-supported-options'))
       ? ['Rewrite the stem or options so exactly one option is supported by the lesson facts.']
+      : []),
+    ...(allIssues.some((issue) => /fact-\d+:template-residue/.test(issue))
+      ? [
+          'Replace every placeholder fact with a complete lesson-specific subject claim. Never copy the template fact wording.',
+        ]
       : []),
     ...(allIssues.some((issue) => issue.includes('template-residue'))
       ? [
@@ -1193,24 +1297,6 @@ export function buildPublicScionRetryFeedback(assessment = {}) {
     'Every lesson needs 3 complete keyTerms. Each cx must directly refute mi in different wording and must not repeat df.',
     ...focusedRules,
   ].join('\n');
-}
-
-export function publicScionModelOption() {
-  return {
-    id: PUBLIC_SCION_MODEL_ID,
-    name: PUBLIC_SCION_MODEL_NAME,
-    created: 1,
-    maxInputTokens: 8192,
-    maxOutputTokens: PUBLIC_SCION_MAX_COMPLETION_TOKENS,
-    source: 'browser-local',
-    capabilities: {
-      jsonMode: false,
-      jsonSchema: false,
-      toolCalling: false,
-      streaming: true,
-      temperature: true,
-    },
-  };
 }
 
 function clip(text, maxChars = 6000) {

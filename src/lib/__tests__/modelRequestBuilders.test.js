@@ -14,7 +14,7 @@ describe('modelRequestBuilders', () => {
       promptProtocol: 'production-lesson-kernel-prompt-v1',
     });
     expect(req.headers).toMatchObject({
-      'X-Scion-Task-Family': 'lesson-kernel',
+      'X-Scion-Task-Family': 'source-grounded-lesson-kernel',
       'X-Scion-Prompt-Protocol': 'production-lesson-kernel-prompt-v1',
     });
   });

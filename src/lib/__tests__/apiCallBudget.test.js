@@ -122,6 +122,19 @@ describe('apiCallBudget', () => {
     expect(JSON.stringify(receipt)).not.toContain('do not retain');
   });
 
+  it('adds localhost-native retries hidden behind one transport request', () => {
+    let budget = createApiCallBudget();
+    budget = applyApiCallBudgetEvent(budget, { type: 'providerRequestStart' });
+    budget = applyApiCallBudgetEvent(budget, {
+      type: 'scionAdapterRoute',
+      execution: 'local-server',
+      routeModelCalls: 3,
+      taskFamily: 'lesson-kernel-synthesis',
+    });
+    expect(getModelRequestTotal(budget)).toBe(3);
+    expect(budget.recentEvents[0]).toMatchObject({ routeModelCalls: 3, execution: 'local-server' });
+  });
+
   it('drains model setup calls into the next generation run', () => {
     recordPendingApiCallEvent({ type: 'modelDiscoveryCall', label: 'Fetch models' });
     recordPendingApiCallEvent({ type: 'creditCheckCall', label: 'Check credits' });

@@ -1,0 +1,216 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-paired-order-result-v1",
+  "generatedAt": "2026-07-19T21:41:00.000Z",
+  "status": "paired-orders-complete",
+  "requiredOrders": [
+    "A/B",
+    "B/A"
+  ],
+  "sessions": {
+    "A/B": "scion-v01662-batch-010-69df4a77db-a-b-e73e36c6-94fb-4ad9-842a-23b9bf9ed6ab",
+    "B/A": "scion-v01662-batch-010-69df4a77db-b-a-f9d43b04-2572-4a07-8edd-7c262d85967b"
+  },
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "evidence": {
+    "prompt": {
+      "path": "evaluation/scion-adapters/lesson-kernel-judge-prompt-v0.16.54.md",
+      "sha256": "37844b86736335db54b561d8c031660ef71679c55ae1108e2e999e746f2a1c96"
+    },
+    "packets": {
+      "A/B": "c8156038ecb65e1e8c3f8f1a98ccb06e6a8e0eecc64ed65c38d830e3a22b1a90",
+      "B/A": "4077c3a13e54c1ee234244b31472c94fde88b17909f6136101529c24c166b8ba"
+    },
+    "reviews": {
+      "A/B": "e04e09fa2f2cc1eb7f0ec998537293732c9ff3c7c85c7c3b149bf40a1e58f26f",
+      "B/A": "da15baa044bcebc853871a796abd3929b98c8f63567b3e6d8e9f056a877cd3f0"
+    }
+  },
+  "issues": [],
+  "results": [
+    {
+      "caseId": "scion-kernel-f6694acc8a391b1aa629bdee",
+      "pairId": "scion-kernel-pair-a76e1065a1aca5fe749f0735",
+      "winners": {
+        "A/B": "93fe2a262f94b045ec895acfb22678cd2abd688b0fe4d76ab97b8274956b3e80",
+        "B/A": "93fe2a262f94b045ec895acfb22678cd2abd688b0fe4d76ab97b8274956b3e80"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": true,
+      "scoreQualification": {
+        "qualified": false,
+        "winnerMinimumScore": 2,
+        "minimumTotalScoreMargin": 13,
+        "winnerCriticalDefects": [
+          "The first question is ambiguous because “Capacitance is the ratio” and “Potential difference divides charge” both express stored charge divided by potential difference."
+        ],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 3,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 3,
+              "internalCoherence": 3
+            },
+            "loserScores": {
+              "sourceFidelity": 3,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 2,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 3,
+            "totalScoreMargin": 13,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The first declared answer selects 'Increasing plate area decreases capacitance,' contradicting both the supplied fact and its own explanation.",
+              "The second declared answer selects 'Capacitance remains the same,' although doubled area and halved separation support quadrupled capacitance; its explanation also fails to support the key."
+            ],
+            "rationale": "B is source-bound, precise, scenario-ready, and keyed consistently. A has two incorrect declared answers and direct answer-feedback contradictions, which are decisive critical defects despite generally usable option sets.",
+            "decisionSha256": "65d8052b3e3415656de9d008218dcdd4025d7c59b02a28f94f403957a36bb47c"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 2,
+              "choiceDiscriminability": 2,
+              "feedbackInstructionality": 3,
+              "internalCoherence": 3
+            },
+            "loserScores": {
+              "sourceFidelity": 1,
+              "knowledgePrecision": 1,
+              "scenarioReadiness": 3,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 0,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 2,
+            "totalScoreMargin": 13,
+            "winnerCriticalDefects": [
+              "The first question is ambiguous because “Capacitance is the ratio” and “Potential difference divides charge” both express stored charge divided by potential difference."
+            ],
+            "loserCriticalDefects": [
+              "Both questions have incorrect declared answers.",
+              "Both explanations contradict their declared answers and instead indicate that capacitance increases.",
+              "The scenario introduces a constant-stored-charge condition unsupported by the supplied claims."
+            ],
+            "rationale": "Artifact A faithfully teaches all three claims and provides a usable decision scenario, despite one overlapping distractor that makes its first assessment ambiguous. Artifact B has incorrect keys and answer-feedback contradictions in both questions, so A is clearly superior.",
+            "decisionSha256": "9f80708481336c21003d5282e48c1db2f6c0be9db806d3f60d7381b9f3ff428e"
+          }
+        ]
+      },
+      "trainingEligible": false
+    },
+    {
+      "caseId": "scion-kernel-fb9da96bbe4e44f5ef726a96",
+      "pairId": "scion-kernel-pair-7170b6baf42f9e296b3eb343",
+      "winners": {
+        "A/B": "957dfbf8d2e077dce4cbd1400ea76ac7221abc0d1f565d080fecaa2fb4cf34b5",
+        "B/A": "957dfbf8d2e077dce4cbd1400ea76ac7221abc0d1f565d080fecaa2fb4cf34b5"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": true,
+      "scoreQualification": {
+        "qualified": true,
+        "winnerMinimumScore": 4,
+        "minimumTotalScoreMargin": 13,
+        "winnerCriticalDefects": [],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 3,
+              "assessmentCorrectness": 2,
+              "choiceDiscriminability": 2,
+              "feedbackInstructionality": 2,
+              "internalCoherence": 2
+            },
+            "winnerMinimumScore": 4,
+            "totalScoreMargin": 13,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The first question contains two correct alternatives: pre-dominant degree six and pre-dominant degree two are both explicitly supported by the source and by the explanation.",
+              "The term definitions add unsupported factual characterizations by calling tonic the primary role, pre-dominant preparatory, and dominant crucial."
+            ],
+            "rationale": "B is fully source-bound, coherent, and assessment-ready. A adds unsupported characterizations and, critically, gives the first question two correct alternatives while declaring only one, so B is the clear winner.",
+            "decisionSha256": "51436c314307031ccf3f52185b0f2e0ae159c7dc4ed152806ac243320cc9259d"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 3,
+              "assessmentCorrectness": 2,
+              "choiceDiscriminability": 2,
+              "feedbackInstructionality": 2,
+              "internalCoherence": 2
+            },
+            "winnerMinimumScore": 4,
+            "totalScoreMargin": 13,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The first question is ambiguous because both “pre-dominant on degree six” and “pre-dominant on degree two” are supported by the source.",
+              "The first explanation confirms both competing alternatives rather than preserving a unique declared answer.",
+              "The key-term material adds unsupported factual characterizations that tonic is primary, pre-dominant is preparatory, dominant is crucial, and dominant resolution behavior defines a misconception."
+            ],
+            "rationale": "Artifact A is fully source-bound, precise, scenario-ready, and internally consistent across both assessments. Artifact B contains unsupported functional characterizations and a materially ambiguous first question whose own explanation confirms two answers, making A the clear winner.",
+            "decisionSha256": "0f78c9a6af173c7b9cd32adf1665d899794c82081bcb37d5b1522c6cc50a3c00"
+          }
+        ]
+      },
+      "trainingEligible": true
+    }
+  ],
+  "summary": {
+    "pairs": 2,
+    "stablePreferences": 1,
+    "localWins": 0,
+    "referenceWins": 2,
+    "unstable": 0,
+    "scoreRejected": 1,
+    "compilerRejected": 0
+  },
+  "claimBoundary": "These are same-identity model-judge preferences from isolated A/B and B/A orders. They are not human, instructor, independent, classroom, heldout-adapter, or production-win evidence.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "b3143282a9d9c0dea1eeac14a54c4e4dbf28d6077c533c44595f1b9fa84626f3"
+  }
+}
