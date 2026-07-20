@@ -11,7 +11,7 @@ import {
   repairPublicScionJson,
   shufflePublicScionKernelOptions,
 } from './publicScionProvider';
-import { scionAdapterTaskFamilyForProviderTask } from './scionAdapterTaskScope';
+import { SCION_ADAPTER_TASK_FAMILIES, scionAdapterTaskFamilyForProviderTask } from './scionAdapterTaskScope';
 import { scionFactContractForLesson } from './scionEvidenceContract';
 
 export const SCION_LOCAL_MAX_GENERATION_RETRIES = PUBLIC_SCION_MIN_RETRIES;
@@ -171,6 +171,7 @@ export async function runScionLocalCompletion({
       });
     }
     let tokenCount = 0;
+    let attemptRoute = null;
     const rawText = await runtimeApi.completeScionBrowserWllama(attemptMessages, {
       maxNewTokens: outputLimit,
       temperature: attemptTemperature,
@@ -180,7 +181,10 @@ export async function runScionLocalCompletion({
       signal,
       taskFamily,
       promptProtocol,
-      onAdapterRoute,
+      onAdapterRoute: (route) => {
+        attemptRoute = route;
+        if (typeof onAdapterRoute === 'function') onAdapterRoute(route);
+      },
       onToken: (currentText) => {
         tokenCount += 1;
         if (typeof onToken === 'function') onToken(currentText, tokenCount, attempt + 1);
@@ -196,6 +200,16 @@ export async function runScionLocalCompletion({
       ? { needsRetry: true, issues: ['empty-response'] }
       : assessPublicScionKernelResponse(fullText, userPrompt, task);
     const incomplete = !empty && assessment.needsRetry;
+    // When an exact source-grounded adapter is available, the synthesis arm
+    // only needs one structurally usable fact draft. Do not spend two more
+    // base generations polishing quiz prose that the next adapter stage is
+    // specifically trained to replace. A malformed or fact-incomplete draft
+    // still fails closed and never reaches the adapter.
+    const effectiveRetryLimit =
+      taskFamily === SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL_SYNTHESIS &&
+      attemptRoute?.reason === 'grounded-stage-available'
+        ? 0
+        : retryLimit;
     if (!empty && !incomplete) {
       const shuffled = shufflePublicScionKernelOptions(fullText);
       return {
@@ -205,7 +219,7 @@ export async function runScionLocalCompletion({
         messages: attemptMessages,
         attempt: attempt + 1,
         retryCount: attempt,
-        maxRetries: retryLimit,
+        maxRetries: effectiveRetryLimit,
         tokenCount,
       };
     }
@@ -239,7 +253,7 @@ export async function runScionLocalCompletion({
     // receipt instead of regenerating the whole lesson repeatedly; the parser
     // can then keep safe facts/items and reject only the defective atoms.
     const deferAfterAttempt =
-      publicScionAdmissionRisk(assessment).highRiskIssues > 0 ? retryLimit : Math.min(1, retryLimit);
+      publicScionAdmissionRisk(assessment).highRiskIssues > 0 ? effectiveRetryLimit : Math.min(1, effectiveRetryLimit);
     if (attempt >= deferAfterAttempt && deferable) {
       const selected = bestIncomplete || {
         fullText,
@@ -259,20 +273,20 @@ export async function runScionLocalCompletion({
         attempt: attempt + 1,
         selectedAttempt: selected.attempt,
         retryCount: attempt,
-        maxRetries: retryLimit,
+        maxRetries: effectiveRetryLimit,
         tokenCount: selected.tokenCount,
         contractIncomplete: true,
         admissionIssues: selected.assessment.issues || [],
         kernelShape: selected.kernelShape,
       };
     }
-    if (attempt >= retryLimit) throw failure;
+    if (attempt >= effectiveRetryLimit) throw failure;
     for (const issue of assessment.issues || []) observedRetryIssues.add(issue);
     retryAssessment = { needsRetry: true, issues: [...observedRetryIssues] };
     retainedIncompleteText = fullText;
     const retryNumber = attempt + 1;
     const delay = publicScionRetryDelay(retryNumber);
-    if (typeof onRetry === 'function') onRetry(retryNumber, retryLimit, delay, failure);
+    if (typeof onRetry === 'function') onRetry(retryNumber, effectiveRetryLimit, delay, failure);
     await sleep(delay);
   }
 

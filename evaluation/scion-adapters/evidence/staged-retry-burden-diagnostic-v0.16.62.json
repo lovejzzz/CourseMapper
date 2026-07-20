@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-staged-retry-burden-diagnostic-v1",
+  "release": "v0.16.62",
+  "observedAt": "2026-07-20T00:41:34.581Z",
+  "status": "stopped-invalid-efficiency-evaluation",
+  "claimBoundary": "This is a deliberately stopped diagnostic, not a completed course, a benchmark score, an adapter win, or promotion evidence. No result from this run may be inherited by a later candidate or paired comparison.",
+  "repository": {
+    "commit": "cc5582120f78fca8d9cf40a4e5ae4ffde4d90e38",
+    "tree": "6c411e42c3d35afcdacfae545e63b995f4dd2d29"
+  },
+  "candidate": {
+    "adapterId": "scion-g4e2b-production-24fea2752e6edb62",
+    "manifestSha256": "e0288a9bd96b5ff1f510e55d93da586aa3b460919d61a63fa08064c61e525a08",
+    "weightsSha256": "5008a8df7b47d02b347b8e1a092be0614e8137e13ad2475bc867ecd6454bf762",
+    "taskFamily": "source-grounded-lesson-kernel",
+    "trainingRows": 100
+  },
+  "run": {
+    "benchmark": "evaluation/scion-adapters/held-out-course-benchmark-v11.json",
+    "round": "round-2026-07-20T00-41-34-581Z",
+    "courseId": "mandarin",
+    "domain": "world-languages",
+    "requestedLessons": 15,
+    "completedPackage": false,
+    "scoreProduced": false,
+    "outerProviderRequests": 21,
+    "nativeModelCalls": 38,
+    "requestsByTaskFamily": {
+      "course-map": { "outer": 1, "native": 1 },
+      "lesson-kernel-synthesis": { "outer": 6, "native": 18 },
+      "source-grounded-lesson-kernel": { "outer": 4, "native": 9 },
+      "compiler-repair": { "outer": 10, "native": 10 }
+    },
+    "adapterAttemptsPerCompletedStage": [3, 1, 2, 3],
+    "rawBodyLog": {
+      "pathAtCapture": "/tmp/scion-v11-shim-20260720-0037.jsonl",
+      "bytes": 219219,
+      "sha256": "d0e16ffc5ea433c33793c6777dea5186e00ad4d3e2d3a31831f93f22fa8e3dac",
+      "excludedLeadingProbeRequests": 2
+    },
+    "consoleLog": {
+      "bytes": 103683,
+      "sha256": "e61eb90813fc37778d70a1b099af0d2697d87f3f28788753c5c54b3187aa8041"
+    },
+    "courseInput": {
+      "bytes": 2705,
+      "sha256": "6aea3d4a1e5cc7a39d989de01062a38aeebd6f66e6929e12552c3bd91ddaf642"
+    }
+  },
+  "findings": [
+    {
+      "severity": "P1",
+      "code": "base-synthesis-overworked-before-grounded-stage",
+      "detail": "Each of the six base synthesis requests consumed three native generations polishing quiz and key-term fields, although the staged adapter would replace those fields and needed only a structurally usable fact draft."
+    },
+    {
+      "severity": "P1",
+      "code": "local-server-adapter-retry-amplification",
+      "detail": "The browser protocol requested one exact source-grounded attempt, while the local benchmark server silently used up to three. Four completed adapter stages therefore consumed 3, 1, 2, and 3 native generations."
+    },
+    {
+      "severity": "P1",
+      "code": "paired-efficiency-invalid-before-quality-score",
+      "detail": "The candidate arm had already consumed 38 native generations behind 21 transport requests before one course completed. Continuing would measure a retry-policy mismatch rather than the staged adapter architecture intended for production."
+    }
+  ],
+  "resolution": {
+    "factsFirstSynthesis": "When the route receipt proves an exact source-grounded adapter stage is available, base synthesis stops after its first structurally usable, fact-valid draft.",
+    "singleAdapterAttempt": "The exact source-grounded stage receives one native generation in both browser and local benchmark transports; failed adapter output falls back to the base draft plus deterministic compiler repair.",
+    "scopeGuard": "Only an exact source-grounded adapter manifest can activate the shortcut. Unrelated, legacy, invalid, or prompt-mismatched adapters retain the existing bounded retry policy.",
+    "nextEvidence": "A fresh clean-tree V11 run must start from zero and complete both paired arms before any efficiency, quality, or promotion claim."
+  }
+}

@@ -36,9 +36,9 @@ function ArtifactStatusMark({ status }) {
   return (
     <span
       aria-hidden="true"
-      className={`h-1.5 w-1.5 flex-shrink-0 rounded-full ${
+      className={`block h-1.5 w-1.5 flex-shrink-0 rounded-full ${
         status === 'active'
-          ? 'animate-pulse bg-indigo-500 motion-reduce:animate-none dark:bg-indigo-300'
+          ? 'animate-pulse bg-indigo-500 motion-reduce:animate-none dark:bg-indigo-400'
           : status === 'warn'
             ? 'bg-amber-500 dark:bg-amber-300'
             : status === 'settled'
@@ -199,22 +199,7 @@ export default function BuildRibbon({ model }) {
               className="flex min-w-0 items-center justify-center gap-0 sm:justify-start sm:gap-1"
             >
               <span className="hidden sm:block">
-                {step.status === 'done' ? (
-                  <StepCheck />
-                ) : (
-                  <span
-                    aria-hidden="true"
-                    className={`block h-1.5 w-1.5 flex-shrink-0 rounded-full ${
-                      step.status === 'active'
-                        ? 'animate-pulse bg-indigo-500 motion-reduce:animate-none dark:bg-indigo-400'
-                        : step.status === 'warn'
-                          ? 'bg-amber-500 dark:bg-amber-300'
-                          : step.status === 'settled'
-                            ? 'bg-slate-400 dark:bg-slate-500'
-                            : 'bg-slate-300 dark:bg-slate-600'
-                    }`}
-                  />
-                )}
+                <ArtifactStatusMark status={step.status} />
               </span>
               <span
                 className={`min-w-0 text-[12px] font-semibold tracking-tight ${

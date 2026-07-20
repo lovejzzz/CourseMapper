@@ -112,13 +112,13 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     expect(options.schema.schema.properties.lessons.items.properties.facts).toMatchObject({ minItems: 3, maxItems: 3 });
   });
 
-  it('D1: stages only an installed out-of-scope adapter after freezing valid synthesized facts', () => {
+  it('D1: stages only an exact grounded adapter after freezing valid synthesized facts', () => {
     expect(
       shouldRunScionGroundedAdapterStage([
         {
           taskFamily: 'lesson-kernel-synthesis',
           routeMode: 'base-only',
-          routeReason: 'task-family-out-of-scope',
+          routeReason: 'grounded-stage-available',
           adapterId: 'scion-source-grounded',
         },
       ]),
@@ -199,7 +199,7 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
         {
           taskFamily: 'lesson-kernel-synthesis',
           routeMode: 'base-only',
-          routeReason: 'task-family-out-of-scope',
+          routeReason: 'grounded-stage-available',
           adapterId: 'scion-source-grounded',
         },
       ],

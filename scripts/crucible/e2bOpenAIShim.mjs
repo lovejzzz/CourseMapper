@@ -33,6 +33,7 @@ import {
 } from '../../src/lib/publicScionProvider.js';
 import { closeJsonContainersAtEof } from './jsonClosureRepair.mjs';
 import { valueConformsToSchema } from './jsonSchemaValidation.mjs';
+import { scionCompactKernelMaxAttempts } from './scionCompactAttemptPolicy.mjs';
 
 const PORT = Number(process.argv[2] ?? 8799);
 // Optional autopsy log: SHIM_BODY_LOG=<path> appends one JSON line per call
@@ -261,11 +262,11 @@ async function generate({ system, user, maxTokens, schema, jsonMode, temperature
   }
 }
 
-async function generateCompactLessonKernel({ system, user, originalUser, maxTokens, schema }) {
+async function generateCompactLessonKernel({ system, user, originalUser, maxTokens, schema, maxAttempts = 3 }) {
   let retainedIncompleteText = '';
   let retryAssessment = null;
   let latestText = '';
-  for (let attempt = 0; attempt < 3; attempt += 1) {
+  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
     const retryUser = retryAssessment?.needsRetry
       ? `${user}\n\n${buildPublicScionRetryFeedback(retryAssessment)}`
       : user;
@@ -1508,6 +1509,11 @@ const server = http.createServer(async (req, res) => {
             originalUser: originalCompilerUser,
             maxTokens: requestedMaxTokens(body),
             schema: contract.schema,
+            maxAttempts: scionCompactKernelMaxAttempts({
+              taskFamily: adapterRoute.taskFamily,
+              promptProtocol,
+              routeReason: adapterRoute.reason,
+            }),
           })
         : kernel
           ? await kernelChunkedGenerate({ system, user, kernel, temperature: declaredTemperature })

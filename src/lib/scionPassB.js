@@ -25,7 +25,7 @@ export function shouldRunScionGroundedAdapterStage(routes = []) {
     (route) =>
       route?.taskFamily === SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL_SYNTHESIS &&
       route?.routeMode === 'base-only' &&
-      route?.routeReason === 'task-family-out-of-scope' &&
+      route?.routeReason === 'grounded-stage-available' &&
       Boolean(route?.adapterId),
   );
 }

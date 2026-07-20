@@ -149,6 +149,13 @@ export function resolveScionAdapterTaskRoute({ manifest, taskFamily, promptProto
     };
   }
   const eligible = manifest.training.taskScope.families.some((entry) => entry.id === family);
+  const groundedStageAvailable =
+    !eligible &&
+    family === SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL_SYNTHESIS &&
+    clean(promptProtocol) === SCION_LESSON_KERNEL_SYNTHESIS_PROMPT_PROTOCOL &&
+    manifest.training.taskScope.families.some(
+      (entry) => entry.id === SCION_ADAPTER_TASK_FAMILIES.SOURCE_GROUNDED_LESSON_KERNEL,
+    );
   const requiredPromptProtocol =
     family === SCION_ADAPTER_TASK_FAMILIES.SOURCE_GROUNDED_LESSON_KERNEL
       ? SCION_LESSON_KERNEL_PROMPT_PROTOCOL
@@ -181,7 +188,7 @@ export function resolveScionAdapterTaskRoute({ manifest, taskFamily, promptProto
         mode: 'base-only',
         adapterActive: false,
         taskFamily: family,
-        reason: 'task-family-out-of-scope',
+        reason: groundedStageAvailable ? 'grounded-stage-available' : 'task-family-out-of-scope',
         promptProtocol: clean(promptProtocol) || null,
         scopeIdentitySha256: manifest.training.taskScope.identity.sha256,
         issues: [],

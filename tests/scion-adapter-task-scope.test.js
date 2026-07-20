@@ -108,6 +108,16 @@ describe('Scion adapter task scope', () => {
         taskFamily: SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL_SYNTHESIS,
         promptProtocol: SCION_LESSON_KERNEL_SYNTHESIS_PROMPT_PROTOCOL,
       }),
+    ).toMatchObject({
+      mode: 'base-only',
+      reason: 'grounded-stage-available',
+    });
+    expect(
+      resolveScionAdapterTaskRoute({
+        manifest,
+        taskFamily: SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL_SYNTHESIS,
+        promptProtocol: SCION_LESSON_KERNEL_PROMPT_PROTOCOL,
+      }),
     ).toMatchObject({ mode: 'base-only', reason: 'task-family-out-of-scope' });
   });
 
