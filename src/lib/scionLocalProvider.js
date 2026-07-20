@@ -7,6 +7,7 @@ import {
   extractPublicScionKernelLessons,
   mergePublicScionKernelAttempts,
   publicScionAdmissionRisk,
+  publicScionFactContractIssues,
   publicScionRetryDelay,
   repairPublicScionJson,
   shufflePublicScionKernelOptions,
@@ -145,6 +146,8 @@ export async function runScionLocalCompletion({
   );
   const retryLimit = Math.max(0, Math.min(SCION_LOCAL_MAX_GENERATION_RETRIES, Math.floor(Number(maxRetries) || 0)));
   const taskFamily = scionAdapterTaskFamilyForProviderTask(task, { promptProtocol });
+  const recoveryAttempt =
+    Number(String(userPrompt || '').match(/(?:RECOVERY RETRY|Recovery attempt)\s+(\d+)/i)?.[1]) || 0;
 
   await runtimeApi.loadScionBrowserWllama({ onProgress, signal });
 
@@ -199,17 +202,18 @@ export async function runScionLocalCompletion({
     const assessment = empty
       ? { needsRetry: true, issues: ['empty-response'] }
       : assessPublicScionKernelResponse(fullText, userPrompt, task);
-    const incomplete = !empty && assessment.needsRetry;
+    const groundedSynthesis =
+      taskFamily === SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL_SYNTHESIS &&
+      attemptRoute?.reason === 'grounded-stage-available';
+    const retryIssues = groundedSynthesis ? publicScionFactContractIssues(assessment) : assessment.issues || [];
+    const retryGate = { needsRetry: empty || retryIssues.length > 0, issues: retryIssues };
+    const incomplete = !empty && retryGate.needsRetry;
     // When an exact source-grounded adapter is available, the synthesis arm
     // only needs one structurally usable fact draft. Do not spend two more
     // base generations polishing quiz prose that the next adapter stage is
     // specifically trained to replace. A malformed or fact-incomplete draft
     // still fails closed and never reaches the adapter.
-    const effectiveRetryLimit =
-      taskFamily === SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL_SYNTHESIS &&
-      attemptRoute?.reason === 'grounded-stage-available'
-        ? 0
-        : retryLimit;
+    const effectiveRetryLimit = groundedSynthesis ? (recoveryAttempt > 0 ? Math.min(2, retryLimit) : 0) : retryLimit;
     if (!empty && !incomplete) {
       const shuffled = shufflePublicScionKernelOptions(fullText);
       return {
@@ -221,6 +225,7 @@ export async function runScionLocalCompletion({
         retryCount: attempt,
         maxRetries: effectiveRetryLimit,
         tokenCount,
+        ...(assessment.needsRetry ? { contractIncomplete: true, admissionIssues: assessment.issues || [] } : {}),
       };
     }
 
@@ -243,8 +248,8 @@ export async function runScionLocalCompletion({
         attempt: attempt + 1,
         tokenCount,
       };
-      if (!bestIncomplete || publicScionAdmissionRisk(assessment).score < bestIncomplete.risk.score) {
-        bestIncomplete = { ...candidate, risk: publicScionAdmissionRisk(assessment) };
+      if (!bestIncomplete || publicScionAdmissionRisk(retryGate).score < bestIncomplete.risk.score) {
+        bestIncomplete = { ...candidate, risk: publicScionAdmissionRisk(retryGate) };
       }
     }
     // The browser transport owns syntax and envelope integrity. The canonical
@@ -253,7 +258,7 @@ export async function runScionLocalCompletion({
     // receipt instead of regenerating the whole lesson repeatedly; the parser
     // can then keep safe facts/items and reject only the defective atoms.
     const deferAfterAttempt =
-      publicScionAdmissionRisk(assessment).highRiskIssues > 0 ? effectiveRetryLimit : Math.min(1, effectiveRetryLimit);
+      publicScionAdmissionRisk(retryGate).highRiskIssues > 0 ? effectiveRetryLimit : Math.min(1, effectiveRetryLimit);
     if (attempt >= deferAfterAttempt && deferable) {
       const selected = bestIncomplete || {
         fullText,
@@ -281,7 +286,7 @@ export async function runScionLocalCompletion({
       };
     }
     if (attempt >= effectiveRetryLimit) throw failure;
-    for (const issue of assessment.issues || []) observedRetryIssues.add(issue);
+    for (const issue of retryGate.issues || []) observedRetryIssues.add(issue);
     retryAssessment = { needsRetry: true, issues: [...observedRetryIssues] };
     retainedIncompleteText = fullText;
     const retryNumber = attempt + 1;

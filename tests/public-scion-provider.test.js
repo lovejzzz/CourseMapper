@@ -634,7 +634,7 @@ describe('Scion Public provider', () => {
     const prompt = `Course: Interface Design\nLessons:\n[{"lessonId":"lesson-9","title":"Wireframes"}]\nReturn ONLY valid JSON.`;
     const lesson = completeLesson();
     lesson.facts[1] = 'movement along the task flow reveals where users abandon the current checkout process.';
-    lesson.facts[4] = lesson.facts[3];
+    lesson.facts[4] = `4: ${lesson.facts[3]}`;
     const assessment = assessPublicScionKernelResponse(
       JSON.stringify({ lessons: [lesson] }),
       prompt,
@@ -762,6 +762,57 @@ Return ONLY valid JSON.`;
     );
 
     expect(assessment.issues).toContain('lesson-13:key-term-0:misconception-repeats-known-fact');
+  });
+
+  it('rejects copied placeholder facts before they can become an immutable adapter ledger', () => {
+    const response = completeLesson({
+      lessonId: 'lesson-4',
+      facts: [
+        'A specific lesson claim explains how evidence supports a bounded disciplinary decision.',
+        'Second distinct subject claim of twenty or more characters.',
+        'A third lesson claim distinguishes evidence from an unsupported assumption in context.',
+        'A fourth lesson claim connects the observed pattern to a defensible next action.',
+        'A fifth lesson claim states the limit that keeps the conclusion appropriately bounded.',
+      ],
+    });
+    const prompt = `Course: Design\nLessons:\n[{"lessonId":"lesson-4","title":"Affinity Mapping"}]\nReturn ONLY valid JSON.`;
+
+    const assessment = assessPublicScionKernelResponse(
+      JSON.stringify({ lessons: [response] }),
+      prompt,
+      'blueprintEnrichment',
+    );
+
+    expect(assessment.issues).toContain('lesson-4:fact-1:template-residue');
+    expect(buildPublicScionRetryFeedback(assessment)).toContain('lesson-specific subject claim');
+  });
+
+  it('rejects compact-schema skeletons copied into the fact ledger', () => {
+    const response = completeLesson({
+      lessonId: 'lesson-4',
+      facts: [
+        'A specific lesson claim explains how evidence supports a bounded disciplinary decision.',
+        'mc_0_q_distinction_case_application_case_ai_0_fi.',
+        'op_0_a_b_c_d_ai_0_ex_0_a_or_b.',
+        'ex_0_a_or_b_subject_fact [0,1].',
+        'A fifth lesson claim states the limit that keeps the conclusion appropriately bounded.',
+      ],
+    });
+    const prompt = `Course: Design\nLessons:\n[{"lessonId":"lesson-4","title":"Affinity Mapping"}]\nReturn ONLY valid JSON.`;
+
+    const assessment = assessPublicScionKernelResponse(
+      JSON.stringify({ lessons: [response] }),
+      prompt,
+      'blueprintEnrichment',
+    );
+
+    expect(assessment.issues).toEqual(
+      expect.arrayContaining([
+        'lesson-4:fact-1:template-residue',
+        'lesson-4:fact-2:template-residue',
+        'lesson-4:fact-3:template-residue',
+      ]),
+    );
   });
 
   it('keeps a source-overlapping misconception when explicit contrast makes the belief false', () => {

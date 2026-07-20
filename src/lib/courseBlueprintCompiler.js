@@ -17850,6 +17850,29 @@ function hasVisibleLanguagePair(terms = []) {
   });
 }
 
+function admittedLanguagePairModel(pair) {
+  return `Target-language model: ${pair.example}`;
+}
+
+function appendAdmittedLanguagePairInstruction(value, pair) {
+  return `${cleanText(value)} Have students say ${pair.term}, identify its meaning, and write it once before applying it in the lesson task.`.trim();
+}
+
+function applyAdmittedLanguagePairToSlides(slides = [], lesson = {}) {
+  const pair = admittedLanguagePairTerm(lesson);
+  if (!pair) return;
+  const target =
+    slides.find(
+      (slide) =>
+        slide?.type === 'content' &&
+        ['lesson-content-enrichment', 'deterministic-content-floor'].includes(slide.enrichmentSource),
+    ) || slides.find((slide) => slide?.type === 'content');
+  if (!target) return;
+  target.bullets = unique([...(target.bullets || []), admittedLanguagePairModel(pair)], 6);
+  target.notes = appendAdmittedLanguagePairInstruction(target.notes, pair);
+  target.enrichmentSource ||= 'admitted-language-pair';
+}
+
 function enrichedKeyTermsForLesson(lesson, { fallback }) {
   const enriched = lesson?.enrichment?.keyTerms;
   if (!Array.isArray(enriched) || enriched.length === 0) return fallback();
@@ -23658,6 +23681,7 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
     artifact,
   });
   applyMusicIntervalSlideIntegrity(slides, lesson, { objectiveOne, objectiveTwo });
+  applyAdmittedLanguagePairToSlides(slides, lesson);
   const slideMinutes = slides.reduce((sum, slide) => sum + Number(slide.minutes || 0), 0);
   const slideTimingFit = {
     slideMinutes,
@@ -23777,6 +23801,7 @@ function compileSlideDecks(blueprint) {
           'kernel-misconception-pitfalls',
           'kernel-mc-walkthrough',
           'deterministic-content-floor',
+          'admitted-language-pair',
           MUSIC_INTERVAL_SLIDE_FRAME_SOURCE,
           // v0.16 exam-day fix: exam-day logistics bullets are authored
           // exam-procedure text — the display rewriter must not reshape them.
@@ -24792,6 +24817,18 @@ function compileLessonPlans(blueprint, options = {}) {
         {};
       const classSessionPlan = lesson.classSessionPlan || buildClassSessionPlan({ lesson, modalityDecode: modality });
       const outline = buildLessonPlanOutline(blueprint, { ...lesson, classSessionPlan }, { depth: lessonDepth });
+      const admittedPair = admittedLanguagePairTerm(lesson);
+      if (admittedPair) {
+        const targetLanguageStep = outline.find((step) => step?.type === 'Mini-lesson') || outline[0];
+        if (targetLanguageStep) {
+          targetLanguageStep.description =
+            `${cleanText(targetLanguageStep.description)} ${admittedLanguagePairModel(admittedPair)}`.trim();
+          targetLanguageStep.instructorNotes = appendAdmittedLanguagePairInstruction(
+            targetLanguageStep.instructorNotes,
+            admittedPair,
+          );
+        }
+      }
       const outlineMinutes = outline.reduce((sum, item) => sum + (Number.parseInt(item.time, 10) || 0), 0);
       const dryRunRow =
         compilerProofBundle.classroomDryRunPlan?.lessonRows?.find((row) => row.lessonNumber === lesson.lessonNumber) ||

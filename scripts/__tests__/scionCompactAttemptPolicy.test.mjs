@@ -21,6 +21,17 @@ describe('Scion compact-kernel attempt policy', () => {
     expect(scionCompactKernelMaxAttempts({ ...request, routeReason: 'task-family-out-of-scope' })).toBe(3);
   });
 
+  it('allows two issue-informed synthesis retries inside an explicit compiler recovery seat', () => {
+    expect(
+      scionCompactKernelMaxAttempts({
+        taskFamily: 'lesson-kernel-synthesis',
+        promptProtocol: 'production-lesson-kernel-synthesis-prompt-v1',
+        routeReason: 'grounded-stage-available',
+        recoveryAttempt: 1,
+      }),
+    ).toBe(3);
+  });
+
   it('keeps historical and mismatched protocols on the bounded three-attempt policy', () => {
     expect(
       scionCompactKernelMaxAttempts({

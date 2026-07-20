@@ -297,6 +297,18 @@ describe('language identity firewall', () => {
     ).toMatchObject({ required: true, complete: true });
     expect(
       assessTargetLanguagePresence({
+        courseIdentity: 'Elementary Mandarin Chinese I',
+        text: 'Students see 你好 in one activity and compare the unrelated tone word mā elsewhere.',
+      }),
+    ).toMatchObject({ required: true, complete: true, paired: false, missing: [] });
+    expect(
+      assessTargetLanguagePresence({
+        courseIdentity: 'Elementary Mandarin Chinese I',
+        text: JSON.stringify({ term: '你好', romanization: 'nǐ hǎo' }),
+      }),
+    ).toMatchObject({ required: true, complete: true, paired: true });
+    expect(
+      assessTargetLanguagePresence({
         courseIdentity: 'Comparative Mandarin and Korean Language Pedagogy',
         text: 'This lesson focuses only on Hangul.',
       }),
@@ -516,6 +528,11 @@ describe('F2 — compiled render sites (lesson plan practice block + study guide
         enrichmentSource: 'admitted-language-pair',
       }),
     );
+    const lessonPlan = compileBlueprintDeliverable('lessonPlans', blueprint, { skipLanguageFinalizer: true })
+      .lessonPlans[0];
+    const slideDeck = compileBlueprintDeliverable('slideDecks', blueprint, { skipLanguageFinalizer: true }).decks[0];
+    expect(JSON.stringify(lessonPlan)).toContain('妈 (mā) means mother.');
+    expect(JSON.stringify(slideDeck)).toContain('妈 (mā) means mother.');
   });
 
   it('projects a structured admitted Hanzi-Pinyin pair when source facts stay frozen', () => {
@@ -549,6 +566,11 @@ describe('F2 — compiled render sites (lesson plan practice block + study guide
         enrichmentSource: 'admitted-language-pair',
       }),
     );
+    const lessonPlan = compileBlueprintDeliverable('lessonPlans', blueprint, { skipLanguageFinalizer: true })
+      .lessonPlans[0];
+    const slideDeck = compileBlueprintDeliverable('slideDecks', blueprint, { skipLanguageFinalizer: true }).decks[0];
+    expect(JSON.stringify(lessonPlan)).toContain('妈 (mā) means mother.');
+    expect(JSON.stringify(slideDeck)).toContain('妈 (mā) means mother.');
   });
 
   it('keeps an admitted language pair in a cumulative exam-day guide', () => {

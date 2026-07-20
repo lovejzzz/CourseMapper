@@ -57,6 +57,9 @@ const LANGUAGE_PROFILES = [
 const CJK_RE = /[一-鿿㐀-䶿]/g;
 const CJK_PRESENT_RE = /[一-鿿㐀-䶿]/;
 const TONE_MARKED_PINYIN_RE = /[a-zü]*[āáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜ]/gi;
+const TONE_MARKED_PINYIN_PRESENT_RE = /[a-zü]*[āáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜ]/i;
+const VISIBLE_HANZI_PINYIN_PAIR_RE =
+  /[一-鿿㐀-䶿]{1,16}[，。！？、；：,.!?]?\s*[（(][^（）()]{0,64}[āáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜ][^（）()]{0,64}[）)]/i;
 const PINYIN_ONLY_SCOPE_RE =
   /\b(?:pinyin|tone contours?|four (?:main )?tones?|tone marks?|pronunciation|romanization|initials? and finals?|syllable structure)\b/i;
 const HANZI_SCOPE_RE =
@@ -125,9 +128,10 @@ export function mandarinTargetLanguageRequirements({ courseIdentity, sourceText 
 
 /**
  * Check the target-language evidence required by the instructor's actual
- * scope. Broad Mandarin lessons require Hanzi paired with tone-marked Pinyin;
- * an explicitly Pinyin/tones-only source requires tone-marked Pinyin without
- * manufacturing unsupported characters.
+ * scope. `complete` preserves the established Hanzi + tone-marked-Pinyin
+ * presence boundary; `paired` reports whether those elements are co-located
+ * for compiler projection diagnostics. An explicitly Pinyin/tones-only source
+ * requires tone-marked Pinyin without manufacturing unsupported characters.
  */
 export function assessTargetLanguagePresence({ courseIdentity, sourceText, text } = {}) {
   const requirement = mandarinTargetLanguageRequirements({ courseIdentity, sourceText });
@@ -137,6 +141,22 @@ export function assessTargetLanguagePresence({ courseIdentity, sourceText, text 
   }
   const cjkCount = (content.match(CJK_RE) || []).length;
   const pinyinCount = (content.match(TONE_MARKED_PINYIN_RE) || []).length;
+  let structuredPair = false;
+  try {
+    const visit = (value) => {
+      if (structuredPair || value === null || value === undefined) return;
+      if (Array.isArray(value)) return value.forEach(visit);
+      if (typeof value !== 'object') return;
+      const hanzi = clean(value.hanzi || value.scriptTerm || value.term || value.tr);
+      const pinyin = clean(value.pinyin || value.romanization || value.rm);
+      if (CJK_PRESENT_RE.test(hanzi) && TONE_MARKED_PINYIN_PRESENT_RE.test(pinyin)) structuredPair = true;
+      if (!structuredPair) Object.values(value).forEach(visit);
+    };
+    visit(JSON.parse(content));
+  } catch {
+    /* ordinary prose is checked by the visible-pair expression below */
+  }
+  const paired = structuredPair || VISIBLE_HANZI_PINYIN_PAIR_RE.test(content);
   const missing = requirement.elements.filter((element) =>
     element === 'hanzi' ? cjkCount === 0 : element === 'tone-marked-pinyin' ? pinyinCount === 0 : true,
   );
@@ -145,6 +165,7 @@ export function assessTargetLanguagePresence({ courseIdentity, sourceText, text 
     complete: missing.length === 0,
     cjkCount,
     pinyinCount,
+    paired,
     missing,
   };
 }

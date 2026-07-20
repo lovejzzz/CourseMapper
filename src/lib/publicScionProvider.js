@@ -28,6 +28,8 @@ const PUBLIC_SCION_TEMPLATE_RESIDUE_RE =
   /\b(?:two lesson concepts?|lesson concept to this concrete case|replace with (?:one complete distinction question|one concrete case question|a plausible subject-specific|a plausible case-specific)|plausible methodological claim or action|plausible case interpretation or action|state the subject evidence supporting the answer,? then correct the closest distractor|then correct the closest distractor)\b/i;
 const PUBLIC_SCION_TEMPLATE_RESIDUE_V01658_RE =
   /\b(?:two lesson concepts?|lesson concept to this concrete case|replace with (?:one complete distinction question|one concrete case question|a plausible subject-specific|a plausible case-specific)|plausible methodological claim or action|plausible case interpretation or action)\b/i;
+const PUBLIC_SCION_FACT_TEMPLATE_RESIDUE_RE =
+  /(?:\b(?:first specific|second distinct|third distinct|fourth distinct|fifth distinct) subject claim of twenty or more characters\b|\b(?:mc|op|ex)_\d+_[a-z0-9_]+|\bsubject_fact\s*\[[^\]]+\])/i;
 const PUBLIC_SCION_TRUNCATED_CLAIM_RE =
   /(?:-[a-z]{1,3}|\b(?:a|an|and|any|as|at|by|each|every|for|from|in|of|on|or|the|to|with|without)|\b(?:users?|students?|participants?|customers?|people)\s+(?:actual|specific|respective|relevant|related))\s*[.!?]?$/i;
 const PUBLIC_SCION_TRUNCATED_OPTION_RE =
@@ -75,6 +77,7 @@ const PUBLIC_SCION_HIGH_RISK_ISSUE_MARKERS = Object.freeze([
   'empty-response',
   'missing-lesson',
   'facts-count',
+  'duplicate-facts',
   'key-terms-count',
   'mc-count',
   'scenario:scenario-missing',
@@ -101,12 +104,14 @@ const PUBLIC_SCION_HIGH_RISK_ISSUE_MARKERS = Object.freeze([
   'multiple-source-supported-options',
   'source-fact-index',
   'source-fact-key-mismatch',
+  'template-residue',
 ]);
 const PUBLIC_SCION_CRITICAL_ISSUE_MARKERS = Object.freeze([
   'invalid-json',
   'empty-response',
   'missing-lesson',
   'facts-count',
+  'duplicate-facts',
   'key-terms-count',
   'mc-count',
   'scenario:scenario-missing',
@@ -131,6 +136,7 @@ const PUBLIC_SCION_CRITICAL_ISSUE_MARKERS = Object.freeze([
   'source-fact-key-mismatch',
   'source-direction-conflict',
   'source-fact-ledger-mismatch',
+  'template-residue',
 ]);
 const PUBLIC_SCION_RELATION_STOP_WORDS = new Set([
   'and',
@@ -534,6 +540,7 @@ function publicScionFactIdentity(value) {
   return String(value || '')
     .normalize('NFKC')
     .toLowerCase()
+    .replace(/^\s*\d{1,2}\s*[:.)-]\s*/, '')
     .replace(/[^\p{L}\p{N}]+/gu, ' ')
     .trim();
 }
@@ -789,6 +796,9 @@ export function assessPublicScionKernelResponse(
         ) {
           issues.push(`${expected.lessonId}:fact-${index}:truncated-fact`);
         }
+        if (PUBLIC_SCION_FACT_TEMPLATE_RESIDUE_RE.test(String(fact || ''))) {
+          issues.push(`${expected.lessonId}:fact-${index}:template-residue`);
+        }
         if (hasRichSourceEvidence && publicScionUnsupportedQuantities(fact, sourceText).length > 0) {
           issues.push(`${expected.lessonId}:fact-${index}:source-unsupported-quantity`);
         }
@@ -1000,6 +1010,15 @@ export function publicScionKernelResponseNeedsRetry(responseText, userPrompt, ta
   return assessPublicScionKernelResponse(responseText, userPrompt, task).needsRetry;
 }
 
+export function publicScionFactContractIssues(assessment = {}) {
+  const issues = Array.isArray(assessment?.issues) ? assessment.issues : [];
+  return issues.filter((issue) =>
+    /(?:^invalid-json$|^empty-response$|:missing-lesson(?:$|:)|:facts-count(?:$|:)|:duplicate-facts(?:$|:)|:fact-\d+:)/.test(
+      String(issue),
+    ),
+  );
+}
+
 export function publicScionAdmissionRisk(assessment = {}) {
   const issues = Array.isArray(assessment?.issues) ? assessment.issues : [];
   const highRiskIssues = issues.filter((issue) =>
@@ -1114,6 +1133,11 @@ export function buildPublicScionRetryFeedback(assessment = {}) {
       : []),
     ...(allIssues.some((issue) => issue.includes('multiple-source-supported-options'))
       ? ['Rewrite the stem or options so exactly one option is supported by the lesson facts.']
+      : []),
+    ...(allIssues.some((issue) => /fact-\d+:template-residue/.test(issue))
+      ? [
+          'Replace every placeholder fact with a complete lesson-specific subject claim. Never copy the template fact wording.',
+        ]
       : []),
     ...(allIssues.some((issue) => issue.includes('template-residue'))
       ? [

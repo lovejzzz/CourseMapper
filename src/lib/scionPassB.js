@@ -19,6 +19,7 @@ import {
   assessPublicScionKernelResponse,
   mergePublicScionKernelAttempts,
   publicScionAdmissionRisk,
+  publicScionFactContractIssues,
   repairPublicScionJson,
 } from './publicScionProvider';
 import {
@@ -27,7 +28,6 @@ import {
   SCION_LESSON_KERNEL_SYNTHESIS_PROMPT_PROTOCOL,
 } from './scionAdapterTaskScope';
 
-const FACT_CONTRACT_ISSUE = /:(?:facts-count|duplicate-facts|fact-\d+:)/;
 const UNSAFE_ADAPTER_STAGE_ISSUE = /(?:^|:)(?:invalid-json|missing-lesson|facts-count|duplicate-facts|fact-\d+:)/;
 const GROUNDED_ADAPTER_OBJECTIVE =
   'Use only the supplied claims to make a defensible distinction without adding outside facts.';
@@ -74,7 +74,7 @@ export function buildScionGroundedRefinementPrompt({ rawText, prompt, expectedLe
     return null;
   }
   const assessment = assessPublicScionKernelResponse(repaired.text, prompt.userPrompt, 'blueprintEnrichment');
-  if ((assessment.issues || []).some((issue) => FACT_CONTRACT_ISSUE.test(issue))) return null;
+  if (publicScionFactContractIssues(assessment).length > 0) return null;
   const returned = new Map(
     (Array.isArray(parsed?.lessons) ? parsed.lessons : [])
       .filter((lesson) => lesson?.lessonId)
