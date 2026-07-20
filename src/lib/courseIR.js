@@ -81,6 +81,18 @@ function uniqueStrings(values = [], limit = Infinity) {
   return result;
 }
 
+function lessonAlignmentConstraint(focus, index = 0) {
+  const templates = [
+    `Keep ${focus} aligned to its assessment, activity, and available course time.`,
+    `Check that ${focus}, its assessed work, and its learning activity fit one coherent session scope.`,
+    `Match the assessment and practice demands for ${focus} to the time actually available.`,
+    `Confirm students can complete the ${focus} activity and assessment within the planned course time.`,
+    `Keep the scope of ${focus} consistent across instruction, practice, and assessed evidence.`,
+    `Before publishing ${focus}, verify that its activity, assessment, and session length agree.`,
+  ];
+  return templates[Math.abs(Number(index) || 0) % templates.length];
+}
+
 function extractJsonObject(text) {
   const raw = String(text || '').trim();
   const start = raw.indexOf('{');
@@ -2243,7 +2255,10 @@ export function buildCourseIRFromCourseMap(courseMap = {}) {
         {
           id: `K-L${index + 1}`,
           scope: `L${index + 1}`,
-          text: `Keep ${cleanText(section.topicSection || lesson.title || `Lesson ${index + 1}`, 120)} aligned to its assessment, activity, and available course time.`,
+          text: lessonAlignmentConstraint(
+            cleanText(section.topicSection || lesson.title || `Lesson ${index + 1}`, 120),
+            index,
+          ),
           severity: 'requirement',
           sourceRefs: ['SL1'],
         },

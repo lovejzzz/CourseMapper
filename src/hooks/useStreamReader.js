@@ -5,7 +5,7 @@ import { getLocalEndpoint, localModelOption } from '../lib/localProvider';
 import { failureEventFields, toClassifiedError } from '../lib/failureClassification';
 import { GOOGLE_ENDPOINT_FAMILIES, isVertexKey } from '../lib/googleProvider';
 import { buildProviderTextRequest } from '../lib/modelRequestBuilders';
-import { PUBLIC_SCION_PROVIDER_ID, publicScionModelOption } from '../lib/publicScionProvider';
+import { PUBLIC_SCION_PROVIDER_ID, publicScionModelOption } from '../lib/publicScionIdentity';
 import {
   buildApiUsageEvent,
   extractUsageFromProviderChunk,

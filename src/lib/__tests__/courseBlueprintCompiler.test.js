@@ -2911,6 +2911,9 @@ describe('courseBlueprintCompiler', () => {
     expect(countDecksWith(/what it reveals about .* and what it does not prove/i)).toBeLessThan(4);
     expect(countDecksWith(/too early, bring them back to what the .* example actually shows/i)).toBeLessThan(4);
     expect(countPlansWith(/A secure ticket restates the correction in the student.s own words/i)).toBeLessThan(4);
+    expect(
+      countPlansWith(/Keep these claims visible during the model, then ask students to identify which fact/i),
+    ).toBe(0);
     expect(countPlansWith(/Conference against the kernel bar for .* redirect drafts drifting toward/i)).toBeLessThan(4);
     expect(
       countStudyGuidesWith(/Name one observation that backs the claim and connect it to the method decision/i),
@@ -2987,6 +2990,7 @@ describe('courseBlueprintCompiler', () => {
     expect(evidence).not.toMatch(/decision the product will capture/i);
     expect(evidence).not.toMatch(/prevent compartmentalized thinking/i);
     expect(evidence).not.toMatch(/students identify which evidence assumptions and constraints matter most/i);
+    expect(evidence).not.toMatch(/claims visible during the model then ask students to identify which fact/i);
     expect(evidence).not.toMatch(/activate prior knowledge and focus students/i);
     expect(evidence).not.toMatch(/not only topic recall/i);
     expect(evidence).not.toMatch(/independent artifact sprint/i);

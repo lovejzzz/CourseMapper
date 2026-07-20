@@ -26,6 +26,13 @@
 // ── v0.12.1 deterministic text artifacts (the original gate table) ──────────
 // Every entry mirrors a defect class shipped in the v0.12 production audit.
 export const ARTIFACT_PATTERNS = [
+  {
+    regex: /\[object Object\]/i,
+    label: 'structured object coerced into visible text',
+    name: 'object-object-text-leak',
+    severity: 'P0',
+    roadmap: 'v0.16.62',
+  },
   // Same letter twice ("A. A. Option"), not preceded by an author-list comma —
   // v0.13.5's cited references legitimately print APA initials ("H. L.",
   // "Adesope, O. O.") which the original any-two-initials pattern flagged.
@@ -103,6 +110,18 @@ export const ARTIFACT_PATTERNS = [
     name: 'echo-chain-x-x',
     severity: 'P2',
     roadmap: 'v0.12.1',
+  },
+  {
+    // Full assessment titles can contain their own colon. The corrupt join
+    // therefore looks like "Label: prompt.: Label: prompt." rather than the
+    // short X:X form above. A sentence-ending mark immediately before the
+    // seam is the distinctive signal; ordinary "Label: prompt" prose does
+    // not match.
+    regex: /\b(.{24,220}[.!?])\s*:\s*\1(?=\s|$)/,
+    label: 'complete assessment title repeated across a colon seam',
+    name: 'mirrored-assessment-title-echo',
+    severity: 'P1',
+    roadmap: 'v0.16.62',
   },
 ];
 

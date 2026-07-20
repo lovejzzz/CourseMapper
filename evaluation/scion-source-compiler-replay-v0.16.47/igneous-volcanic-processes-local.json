@@ -978,8 +978,8 @@
     "compilerSources": [
       {
         "path": "src/lib/scionAnswerKeyAlignment.js",
-        "bytes": 68304,
-        "sha256": "a6e48a2d3ecd5172f1c2b1fc4fed853c172d92ce8dad799f7a022015cff6fb0b"
+        "bytes": 77381,
+        "sha256": "8578f2f45377aaefa355ceb3bc1ac7189414d74f08131f7740523d8526025f4c"
       },
       {
         "path": "src/lib/scionPreferenceGate.js",
@@ -1021,7 +1021,7 @@
     "claimBoundary": "This derived project replays exact retained local response bytes through conservative compiler repairs. It adds no model text, supplies no preference label, and proves no adapter or paid-reference quality win.",
     "identity": {
       "algorithm": "sha256-canonical-source-compiler-replay-v1",
-      "sha256": "94aba2308a725ca2b1c1799cb49df4ae6e507d708a499b77a08961a91b8bf1ab"
+      "sha256": "2fa561a3649a5a400b59599deb00d66e1fbaa0fe3c56f4db236ce80862d11cb0"
     }
   }
 }

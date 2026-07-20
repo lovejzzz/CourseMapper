@@ -8,7 +8,7 @@ import DarkModeToggle from '../components/DarkModeToggle';
 import AppLogo from '../components/AppLogo';
 import SetupProgress from '../components/SetupProgress';
 import { LATEST_RELEASE } from '../lib/latestRelease';
-import { PUBLIC_SCION_MODEL_NAME, PUBLIC_SCION_PROVIDER_ID } from '../lib/publicScionProvider';
+import { PUBLIC_SCION_MODEL_NAME, PUBLIC_SCION_PROVIDER_ID } from '../lib/publicScionIdentity';
 
 const ACCEPTED_EXTENSIONS = [
   '.doc',

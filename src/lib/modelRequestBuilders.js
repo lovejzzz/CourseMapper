@@ -1,7 +1,7 @@
 import { getGoogleModelBaseUrl } from './googleProvider';
 import { getLocalEndpoint } from './localProvider';
 import { buildOpenAIResponsesBody, parseOpenAIResponsesStreamChunk, prefersOpenAIResponsesApi } from './openaiProvider';
-import { PUBLIC_SCION_PROVIDER_ID } from './publicScionProvider';
+import { PUBLIC_SCION_PROVIDER_ID } from './publicScionIdentity';
 import { scionAdapterTaskFamilyForProviderTask } from './scionAdapterTaskScope';
 
 function modelIsDefaultTemperatureOnly(provider, modelId) {

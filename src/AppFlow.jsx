@@ -63,7 +63,7 @@ import { useUI } from './contexts/UIContext';
 import { useCourse } from './contexts/CourseContext';
 import { warn } from './lib/logger';
 import { applyQualityToFinalizerResult, runDeterministicPackageFinalizer } from './lib/packageFinalizer';
-import { PUBLIC_SCION_MODEL_NAME, PUBLIC_SCION_PROVIDER_ID } from './lib/publicScionProvider';
+import { PUBLIC_SCION_MODEL_NAME, PUBLIC_SCION_PROVIDER_ID } from './lib/publicScionIdentity';
 import { verifyPackageExports } from './lib/packageExportVerifier';
 import { generateCourseHealthReport } from './lib/pedagogicalValidator';
 import { resolveRequestedClassSessionMinutes } from './lib/sourceBriefConstraints';

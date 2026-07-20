@@ -47,7 +47,7 @@
  * turns low texture into an actionable finding.
  */
 
-export const TEXTURE_VERSION = '1.0.0';
+export const TEXTURE_VERSION = '1.1.0';
 
 export const TEXTURE_SUBSCORE_WEIGHTS = { sameness: 0.5, openers: 0.25, tails: 0.25 };
 
@@ -57,9 +57,9 @@ const MAX_EVIDENCE = 5;
 const MIN_OPENER_SENTENCES = 4;
 const MIN_OPENER_TOKENS = 4;
 const STRUCTURAL_HEADING_PATTERN =
-  /^(?:overview|objectives?|materials?|outline|agenda|activity|activities|closing activity|purpose|prompt|deliverables?|grading criteria|rubric|criteria|criterion|question|answer|sample answer|explanation|scoring guidance|rubric hints|intended use|objective aligned|difficulty|points|estimated minutes|tags|speaker notes|suggested visual|discussion prompt|instructor notes|course faq|faq|key terms?|review questions?|practice activities|concept connections|summary|assignment brief|lesson plan|slide deck|study guide)$/i;
+  /^(?:overview|objectives?|learning objectives?|materials?(?:\s*&\s*resources)?|outline|session outline|agenda|activity|activities|closing activity|purpose|prompt|deliverables?|grading criteria|rubric|criteria|criterion|question|answer|sample answer|explanation|scoring guidance|rubric hints|intended use|objective aligned|difficulty|points|estimated minutes|tags|speaker notes|suggested visual|discussion prompt|instructor notes|course faq|faq|key terms?|review questions?|practice activities|concept connections|summary|assignment brief|lesson plans?|slide decks?|study guides?|warm-up|assessments this week|time|description\s*&\s*notes|why this works(?:\s*\(research base\))?|formative assessment|udl notes|representation|engagement|expression|homework|connection to next lesson|closing\s*&\s*wrap-up)$/i;
 const STRUCTURAL_PREFIX_PATTERN =
-  /^(?:overview|objectives?|materials?|outline|agenda|activity|activities|closing activity|purpose|prompt|deliverables?|grading criteria|rubric|criteria|criterion|exemplary|proficient|developing|beginning|question|answer|sample answer|explanation|scoring guidance|rubric hints|intended use|objective aligned|blooms? level|difficulty|points|estimated minutes|tags|speaker notes|suggested visual|discussion prompt|instructor notes|course faq|faq|key terms?|review questions?|practice activities|concept connections|summary|calibration check|bias check|source check|student transparency|post-score review|post score review|revision prompt|scorer calibration use|student-facing use|student facing use|grade policy connection|accessibility and udl|teacher notes|assessment cadence)\s*:?\s*/i;
+  /^(?:overview|objectives?|learning objectives?|materials?(?:\s*&\s*resources)?|outline|session outline|agenda|activity|activities|closing activity|purpose|prompt|deliverables?|grading criteria|rubric|criteria|criterion|exemplary|proficient|developing|beginning|question|answer|sample answer|explanation|scoring guidance|rubric hints|intended use|objective aligned|bloom(?:['’]s)? levels?|difficulty|points|estimated minutes|tags|speaker notes|suggested visual|discussion prompt|instructor notes|class format|course faq|faq|key terms?|review questions?|practice activities|concept connections|summary|calibration check|bias check|source check|student transparency|post-score review|post score review|revision prompt|scorer calibration use|student-facing use|student facing use|grade policy connection|accessibility and udl|teacher notes|assessment cadence)\s*:?\s*/i;
 const STRUCTURAL_REFERENCE_PATTERN = /\b(?:doi\b|et al\.?|https?:\/\/|isbn\b|retrieved from)\b/i;
 const STRUCTURAL_LEDGER_REFERENCE_PATTERN = /\b(?:course\s+map\s+l\d+|a\d+\.\d+)\b/i;
 const STRUCTURAL_LEDGER_NUMERIC_PATTERN = /\b(?:week\s+\d+|\d+(?:\.\d+)?\s*(?:pts?|points|%|hours?|hrs?))\b/i;
@@ -69,6 +69,15 @@ const STRUCTURAL_QUESTION_METADATA_PATTERN =
 const STRUCTURAL_QUESTION_PREFIX_PATTERN = /^q\s*\d+\s*(?:\([^)]*\))?\s*:\s*/i;
 const STRUCTURAL_DOCUMENT_CHROME_PATTERN =
   /^(?:.+?\s+-\s+)?lesson\s+\d{1,3}\s*(?::|-)\s*[^.!?]+(?:\s+—\s+.+\s+page\s+of)?$/i;
+const STRUCTURAL_LESSON_SCHEDULE_PATTERN = new RegExp(
+  [
+    '^\\d+\\s+minutes?(?:\\s*[·|•]\\s*week\\s+\\d+)?$',
+    '^[^.!?·|•]{2,80}\\s*[·|•]\\s*\\d+\\s+minutes?$',
+    "^(?:[^.!?·|•]{2,80}\\s*[·|•]\\s*){1,2}bloom(?:[’\\']s)?(?:\\s+levels?)?\\s*:\\s*(?:remember|understand|apply|analyze|evaluate|create)(?:\\s*,\\s*(?:remember|understand|apply|analyze|evaluate|create))*$",
+    "^bloom(?:[’\\']s)?\\s+levels?\\s*:\\s*(?:remember|understand|apply|analyze|evaluate|create)(?:\\s*,\\s*(?:remember|understand|apply|analyze|evaluate|create))*$",
+  ].join('|'),
+  'i',
+);
 
 // Internal mask tokens survive word tokenization as plain words; evidence
 // rendering maps them back to readable placeholders.
@@ -171,7 +180,12 @@ function isStructuralLedgerLine(line) {
 export function computeTexture(docs = [], { slotValues = [] } = {}) {
   const prepared = (Array.isArray(docs) ? docs : [])
     .map((doc, index) => {
-      const masked = maskSlots(doc?.text, slotValues);
+      // Direct callers and grader-adapted callers receive the same structural
+      // treatment. Export headings, duration rows, and Bloom/session ledgers
+      // are document chrome, not prose; counting them made a perfectly varied
+      // lesson-plan set look templated merely because every plan exposes the
+      // same useful schedule fields.
+      const masked = maskSlots(normalizeTextureText(doc?.text), slotValues);
       const tokens = tokensOf(masked);
       return {
         id: doc?.id || `doc-${index + 1}`,
@@ -322,6 +336,7 @@ export function normalizeTextureText(text) {
       let cleaned = line.replace(/\s+/g, ' ').trim();
       if (STRUCTURAL_DOCUMENT_CHROME_PATTERN.test(cleaned)) return '';
       if (STRUCTURAL_QUESTION_METADATA_PATTERN.test(cleaned)) return '';
+      if (STRUCTURAL_LESSON_SCHEDULE_PATTERN.test(cleaned)) return '';
       // Question numbers, type/point/time badges, and Bloom/difficulty rows
       // are export structure. Strip them before measuring sentence openers so
       // six genuinely different stems do not all look like “Q [n] multiple”.

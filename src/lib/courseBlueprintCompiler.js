@@ -22,6 +22,14 @@ import { finalizeCompiledDeliverableLanguage, shortArtifactReference } from './c
 import { getChunkCount } from './parallelGenerator';
 import { getCustomDeliverable } from './customDeliverableLibrary';
 import { buildObservationProtocol } from './observationProtocols';
+import {
+  examAtomPaddingOptions,
+  examFactCopy,
+  examUnderstandCorrectText,
+  kernelFactInstructorNote,
+  titleSlideNote,
+  titleSlideOpening,
+} from './courseCompilerCopyVariants';
 import { recordLegacyPathHit } from './legacyPathTelemetry';
 import { buildBayesianFallbackQuizAtoms, hasBayesianDecisionEvidence } from './bayesianQuizFrames';
 import {
@@ -13468,8 +13476,13 @@ function extractLessonBlueprint(
   const hasResources = resources.length > 0;
   const weeklyAssessmentText = extractColumn(lesson, 'weeklyAssessments');
   const evaluationDesignText = extractColumn(lesson, 'evaluateDesign');
-  const weeklyAssessmentEntries = meaningfulEntries(splitList(weeklyAssessmentText));
-  const evaluationDesignEntries = meaningfulEntries(splitList(evaluationDesignText));
+  // Normalize identity echoes at the Course Map boundary too. The registry
+  // path already cleans its title, but assessmentLink and every derived
+  // teaching field also consume the visible cell; leaving "X.: X." here
+  // let the corrupt form survive in lesson-plan prose after the registry
+  // itself had been repaired.
+  const weeklyAssessmentEntries = meaningfulEntries(splitList(weeklyAssessmentText)).map(dedupeNumberedAssessmentEcho);
+  const evaluationDesignEntries = meaningfulEntries(splitList(evaluationDesignText)).map(dedupeNumberedAssessmentEcho);
   const hasWeeklyAssessment = weeklyAssessmentEntries.length > 0 && hasMeaningfulAssessment(weeklyAssessmentText);
   const hasEvaluationDesign = evaluationDesignEntries.length > 0 && hasMeaningfulAssessment(evaluationDesignText);
   const hasAssessmentPlaceholder = containsWeakPlaceholder(weeklyAssessmentText);
@@ -19794,19 +19807,6 @@ function buildExamEssayItem({ blueprint, assessment, covered, lens, examSlug, or
 // option unambiguously correct (concept → specific decision → named
 // evidence) while staying under template frequency; no two variants share an
 // 8-word chunk, the audit's shingle size.
-const EXAM_UNDERSTAND_CORRECT_TEMPLATES = [
-  ({ concept, lessonFocus }) =>
-    `${sentenceCase(concept)} explains a specific ${lessonFocus} decision and names the evidence that supports it.`,
-  ({ concept, lessonFocus }) =>
-    `The response uses ${concept} to justify one concrete ${lessonFocus} decision, citing the evidence behind it.`,
-  ({ concept, lessonFocus }) =>
-    `A specific ${lessonFocus} decision is explained through ${concept}, with the supporting evidence named.`,
-  ({ concept, lessonFocus }) =>
-    `The answer connects one ${lessonFocus} decision to ${concept} and points out its supporting evidence.`,
-  ({ concept, lessonFocus }) =>
-    `Applying ${concept} accounts for a particular ${lessonFocus} decision and the evidence used to make it.`,
-];
-
 // ── v0.16 exam-item content fix (meta-template exams) ───────────────────────
 // The live Linear Algebra package shipped EVERY exam MC item as one
 // recognition meta-template — "Which statement most accurately connects
@@ -19865,11 +19865,13 @@ function examAtomDistractors({ lesson, covered, coveredIndex }) {
 function buildExamAtomOptions({ lesson, index, correct, distractors, concept, lessonFocus }) {
   const correctLetter = correctLetterForQuestion(lesson, index);
   const sourceCue = lesson?.evidencePlan?.sourceCue || 'the assigned course materials';
-  const padding = [
-    `${sentenceCase(concept)} is another name for the whole of ${lessonFocus}, so any statement about the lesson describes it.`,
-    `${sentenceCase(concept)} is defined by whichever example from ${sourceCue} appears first in the notes.`,
-    `${sentenceCase(concept)} means the same thing in every lesson, so earlier definitions can be reused unchanged.`,
-  ];
+  const padding = examAtomPaddingOptions({
+    concept,
+    lessonFocus,
+    sourceCue,
+    lessonNumber: lesson?.lessonNumber,
+    questionIndex: index,
+  });
   const correctText = cleanText(correct);
   const filled = unique(
     [...distractors, ...padding].filter((option) => cleanText(option) && cleanText(option) !== correctText),
@@ -19948,6 +19950,12 @@ function buildExamFactItem({ lesson, covered, coveredIndex, index, objective, as
     concept,
     lessonFocus,
   });
+  const copy = examFactCopy({
+    lessonNumber: lesson.lessonNumber,
+    assessmentTitle: assessment.title,
+    lessonFocus,
+    answer,
+  });
   return withQuizPlan(
     {
       id: quizQuestionId(lesson, index),
@@ -19957,12 +19965,12 @@ function buildExamFactItem({ lesson, covered, coveredIndex, index, objective, as
       estimatedMinutes: 2,
       points: 2,
       objectiveAligned: objective,
-      intendedUse: `Summative accuracy item on ${assessment.title}; students separate the authored ${lessonFocus} fact from documented misconceptions.`,
-      question: `Which statement about ${lessonFocus} is accurate, according to the course materials?`,
+      intendedUse: copy.intendedUse,
+      question: copy.question,
       options,
       answer,
-      distractorRationale: `Distractors are documented misconceptions from the covered lessons — false claims a prepared student must rule out; the correct option is the authored course fact.`,
-      explanation: `${answer} states the authored course fact for ${lessonFocus}; the other options are documented misconceptions, not course claims.`,
+      distractorRationale: copy.distractorRationale,
+      explanation: copy.explanation,
       enrichmentSource: 'lesson-content-enrichment',
       tags: unique(['exam', 'fact check', concept, lessonFocus], 6),
     },
@@ -20255,9 +20263,11 @@ function buildRegistryExamEntry(blueprint, assessment, examOrdinal) {
           concept,
           use: 'summative exam evidence',
           prompt: `Which statement most accurately connects ${concept} to the work in ${frameFocus}?`,
-          correct: EXAM_UNDERSTAND_CORRECT_TEMPLATES[
-            (coveredIndex + examOrdinal) % EXAM_UNDERSTAND_CORRECT_TEMPLATES.length
-          ]({ concept, lessonFocus: frameFocus }),
+          correct: examUnderstandCorrectText({
+            concept,
+            lessonFocus: frameFocus,
+            variant: coveredIndex + examOrdinal,
+          }),
           plan: plan(indexBase, 'Understand', 'Medium', 'summative exam evidence'),
         }),
     );
@@ -21676,7 +21686,12 @@ function slideTypeFocus(type, lesson, lens) {
   switch (type) {
     case 'title':
       return {
-        opening: `Frame ${displayTitle} as a working session on ${slideConceptList(lesson)}, with ${artifact} as the visible product.`,
+        opening: titleSlideOpening({
+          lessonNumber: lesson.lessonNumber,
+          displayTitle,
+          concepts: slideConceptList(lesson),
+          artifact,
+        }),
         evidence: `Preview the ${lens.evidenceNoun} from ${source} that students will inspect before they revise ${artifact}.`,
         misconception: `Set the expectation that ${displayTitle} ends with one concrete ${concept} move students can use in ${artifact}.`,
       };
@@ -21873,15 +21888,13 @@ function slideNoteAnchor({ type, anchor, concept, artifact, displayTitle, lesson
   const safeAnchor = slideNoteAnchorText(anchor, type, lesson);
   switch (type) {
     case 'title':
-      return `Start the ${displayTitle} working session by connecting ${safeAnchor} to ${shortArtifactReference(
-        slideArtifact(lesson),
-        Number(lesson?.lessonNumber) || 0,
-      )}. ${lessonVariant(lesson, [
-        `Students should be able to name the ${concept} decision the product will capture.`,
-        `Ask students to point to the ${concept} evidence that will guide the next artifact move.`,
-        `By the transition, students should state which ${concept} choice their work will test.`,
-        `Have students identify the ${concept} decision they will defend before the first practice step.`,
-      ])}`;
+      return titleSlideNote({
+        lessonNumber: lesson.lessonNumber,
+        displayTitle,
+        safeAnchor,
+        concept,
+        artifactReference: shortArtifactReference(slideArtifact(lesson), Number(lesson?.lessonNumber) || 0),
+      });
     case 'agenda':
       return lessonVariant(lesson, [
         `Keep the ${displayTitle} pacing visible and point to the first ${concept} checkpoint: ${anchor}. Students should leave knowing which evidence cue changes ${shortArtifactReference(
@@ -24152,7 +24165,7 @@ function compileSlideDecks(blueprint) {
                 .slice(0, 3)
                 .map((move, moveIndex) => [
                   `Step ${moveIndex + 1}`,
-                  conciseClause(move, move, 125, { ellipsis: true }),
+                  sentenceCase(conciseClause(move, move, 125, { ellipsis: true })),
                 ]),
               description: `Retrieval table for the expert reasoning sequence behind ${scaffold.term}.`,
               altText: `Three-step expert reasoning routine for ${scaffold.term}.`,
@@ -24184,7 +24197,10 @@ function compileSlideDecks(blueprint) {
             columnLabels: ['STEP', 'EXPERT MOVE'],
             rows: moves
               .slice(0, 4)
-              .map((move, moveIndex) => [`Step ${moveIndex + 1}`, conciseClause(move, move, 125, { ellipsis: true })]),
+              .map((move, moveIndex) => [
+                `Step ${moveIndex + 1}`,
+                sentenceCase(conciseClause(move, move, 125, { ellipsis: true })),
+              ]),
             description: `Ordered expert reasoning sequence for ${scaffold.term} as ${structure}.`,
             altText: `Table listing the expert reasoning steps used for ${scaffold.term}.`,
           },
@@ -24784,6 +24800,9 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
     8,
   ).slice(0, 5);
   const kernelFact = kernelFacts[0] || '';
+  const kernelFactLedger = kernelFacts
+    .map((fact, index) => `${index + 1}) ${ensureSentenceCompiler(stripTerminalPunctuation(fact))}`)
+    .join(' ');
   const kernelScenario = kernelPayload?.kernel?.scenario || null;
   const kernelWorkedExample = kernelPayload?.workedExample || null;
   const lessonPlanEvidenceRoutine = compactCompleteEvidenceRoutine(
@@ -24802,10 +24821,11 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
     deep && cleanText(kernelPayload?.discussionPrompt?.prompt) ? kernelPayload.discussionPrompt : null;
   const kernelTermA = deep ? (kernelPayload?.keyTerms || [])[0] || null : null;
   const kernelCitation = deep
-    ? cleanText(
+    ? humanSourceCueLabel(
         (kernelPayload?.conceptProvenance?.citations || [])[0] ||
           (kernelPayload?.keyTerms || []).find((term) => cleanText(term.source))?.source ||
           '',
+        '',
       )
     : '';
 
@@ -24875,11 +24895,10 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
       instructorNotes: kernelWorkedExample
         ? `Solution path: ${kernelWorkedExample.steps.join(' → ')}. Result: ${kernelWorkedExample.result}. Have students annotate each step, then assign one variation with different numbers.`
         : kernelFacts.length > 0
-          ? `Teach from the admitted source-grounded fact set: ${kernelFacts
-              .map((fact, index) => `${index + 1}) ${ensureSentenceCompiler(stripTerminalPunctuation(fact))}`)
-              .join(
-                ' ',
-              )} Keep these claims visible during the model, then ask students to identify which fact supports each practice decision.`
+          ? kernelFactInstructorNote({
+              lessonNumber: lesson.lessonNumber,
+              kernelFactLedger,
+            })
           : lessonVariant(lesson, [
               `Keep the model concrete: point to ${evidencePlan?.sourceCue || 'one source cue'}, then model the reasoning move students will transfer into ${artifact}.`,
               `Use ${evidencePlan?.sourceCue || 'one source cue'} as the worked anchor and name the inference students should carry into ${artifact}.`,

@@ -7,7 +7,7 @@ import {
   PUBLIC_SCION_MODEL_NAME,
   PUBLIC_SCION_PROVIDER_ID,
   publicScionModelOption,
-} from '../lib/publicScionProvider';
+} from '../lib/publicScionIdentity';
 import { isLocalProviderOptInEnabled } from '../lib/localProvider';
 
 const AIConfigContext = createContext(null);

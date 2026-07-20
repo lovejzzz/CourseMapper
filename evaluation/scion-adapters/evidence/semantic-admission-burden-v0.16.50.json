@@ -114,8 +114,8 @@
     "implementation": [
       {
         "path": "src/lib/scionAnswerKeyAlignment.js",
-        "bytes": 68304,
-        "sha256": "a6e48a2d3ecd5172f1c2b1fc4fed853c172d92ce8dad799f7a022015cff6fb0b"
+        "bytes": 77381,
+        "sha256": "8578f2f45377aaefa355ceb3bc1ac7189414d74f08131f7740523d8526025f4c"
       },
       {
         "path": "src/lib/scionPreferenceGate.js",

@@ -1068,6 +1068,30 @@ describe('CourseIR v1', () => {
     expect(compiled.courseIRProof.providerCallsDuringCompile).toBe(0);
   });
 
+  it('rotates lesson alignment constraints instead of stamping one sentence across a course', () => {
+    const ir = buildCourseIRFromCourseMap({
+      courseName: 'Evidence Seminar',
+      lessons: Array.from({ length: 14 }, (_, index) => ({
+        title: `Lesson ${index + 1}: Topic ${index + 1}`,
+        sections: [
+          {
+            topicSection: `Topic ${index + 1}`,
+            learningObjectives: `Analyze evidence for topic ${index + 1}.`,
+            weeklyAssessments: `Topic ${index + 1} evidence note`,
+            syncActivities: `Compare claims about topic ${index + 1}.`,
+          },
+        ],
+      })),
+    });
+    const constraints = ir.lessons.map((lesson) => lesson.constraints[0].text);
+    const skeletons = new Set(constraints.map((text) => text.replace(/Topic \d+/gi, '[topic]')));
+
+    expect(skeletons.size).toBe(6);
+    expect(
+      constraints.filter((text) => /aligned to its assessment, activity, and available course time/i.test(text)),
+    ).toHaveLength(3);
+  });
+
   it('plans one-call or fewest-call CourseIR generation by model capacity', () => {
     const courseMap = {
       courseName: 'Fifteen Lesson Calculus Course',

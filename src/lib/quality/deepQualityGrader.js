@@ -157,7 +157,7 @@ import { parseClassSessionMinutes } from '../sourceBriefConstraints.js';
 // surface before any adapter comparison.
 // 1.10.20 — session-outline timing accepts the ordinary min/mins abbreviations
 // emitted by lesson-plan exporters instead of falsely reading them as 0 min.
-export const GRADER_VERSION = '1.10.20';
+export const GRADER_VERSION = '1.10.23';
 
 // ── Dimension weights & letter bands (documented in the module header) ──────
 // v0.15.186: texture weight 10 → 25. At 10/120 a fully templated package

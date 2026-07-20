@@ -118,6 +118,14 @@ describe('exam kind classification is consistent compile-to-manifest', () => {
   it('strips "Title: 1. Title" transcription echoes from registry identity', () => {
     expect(dedupeNumberedAssessmentEcho('Midterm exam: 1. Midterm exam')).toBe('Midterm exam');
     expect(dedupeNumberedAssessmentEcho('Autograded quiz: 1. Autograded quiz')).toBe('Autograded quiz');
+    expect(
+      dedupeNumberedAssessmentEcho(
+        'Fantastic Elements transfer task: explain one example, one source detail, and one limitation.: Fantastic Elements transfer task: explain one example, one source detail, and one limitation.',
+      ),
+    ).toBe('Fantastic Elements transfer task: explain one example, one source detail, and one limitation.');
+    expect(dedupeNumberedAssessmentEcho('Transfer task: explain one example and one limitation.')).toBe(
+      'Transfer task: explain one example and one limitation.',
+    );
     // Real instruction tails survive — only true echoes collapse.
     expect(dedupeNumberedAssessmentEcho(LONG_EXAM_TITLE)).toBe(LONG_EXAM_TITLE);
 

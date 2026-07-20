@@ -29,7 +29,11 @@ export default defineConfig({
           if (/src\/(?:components\/BuildRibbon\.jsx|lib\/buildRibbonModel\.js)$/.test(id)) {
             return 'livingCompilerRibbon';
           }
-          if (/src\/lib\/scion(Contracts|Passes|PassB|Flywheel)\.js$/.test(id)) return 'scion';
+          // Vite 8's Rolldown graph follows transitive dependencies into a
+          // named manual chunk. Grouping scionPassB or the course compiler
+          // here captures shared landing dependencies and turns a lazy seam
+          // into an initial megabyte-scale download. Let their existing
+          // dynamic imports define both chunk boundaries automatically.
           if (
             /src\/lib\/scion(AdapterManifest|AdapterRegistry|BrowserConstants|BrowserWllama|RuntimeCanaryBridge|RuntimeCanaryGate)\.js$/.test(
               id,
@@ -37,7 +41,8 @@ export default defineConfig({
           )
             return 'scionRuntime';
           if (/src\/lib\/quality\/quizItemDepth\.js$/.test(id)) return 'quizItemDepth';
-          if (/src\/lib\/(?:bayesianQuizFrames|musicTheoryQuizFrames)\.js$/.test(id)) return 'compilerFrames';
+          if (/src\/lib\/(?:bayesianQuizFrames|musicTheoryQuizFrames|courseCompilerCopyVariants)\.js$/.test(id))
+            return 'compilerFrames';
         },
       },
     },

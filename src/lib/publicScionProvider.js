@@ -5,7 +5,6 @@
 // GGUF and the Scion compiler validates and expands its compact output.
 
 import { jsonrepair } from 'jsonrepair';
-import { APP_VERSION } from './appVersion.js';
 import {
   findScionExplanationKeyConflict,
   findScionCitedSourceKeyMismatch,
@@ -19,10 +18,24 @@ import {
   normalizeScionOptionIdentity,
   repairScionMcItem,
 } from './scionAnswerKeyAlignment.js';
-import { SCION_BROWSER_GEMMA4_GGUF } from './scionBrowserConstants.js';
 import { assessScionKeyTermContract, normalizeScionKeyTerm } from './scionKeyTermContract.js';
 import { scionFactContractForLesson } from './scionEvidenceContract.js';
 import { analyzeDecisionScenario } from './scenarioContract.js';
+import {
+  PUBLIC_SCION_MAX_COMPLETION_TOKENS,
+  PUBLIC_SCION_MODEL_ID,
+  PUBLIC_SCION_MODEL_NAME,
+  PUBLIC_SCION_PROVIDER_ID,
+} from './publicScionIdentity.js';
+
+export {
+  PUBLIC_SCION_BACKING_MODEL,
+  PUBLIC_SCION_MAX_COMPLETION_TOKENS,
+  PUBLIC_SCION_MODEL_ID,
+  PUBLIC_SCION_MODEL_NAME,
+  PUBLIC_SCION_PROVIDER_ID,
+  publicScionModelOption,
+} from './publicScionIdentity.js';
 
 const PUBLIC_SCION_TEMPLATE_RESIDUE_RE =
   /\b(?:two lesson concepts?|lesson concept to this concrete case|replace with (?:one complete distinction question|one concrete case question|a plausible subject-specific|a plausible case-specific)|plausible methodological claim or action|plausible case interpretation or action|state the subject evidence supporting the answer,? then correct the closest distractor|then correct the closest distractor)\b/i;
@@ -157,17 +170,12 @@ const PUBLIC_SCION_RELATION_STOP_WORDS = new Set([
   'with',
 ]);
 
-export const PUBLIC_SCION_PROVIDER_ID = 'public';
-export const PUBLIC_SCION_MODEL_ID = 'scion-public';
-export const PUBLIC_SCION_MODEL_NAME = `Scion V${APP_VERSION}`;
-export const PUBLIC_SCION_BACKING_MODEL = SCION_BROWSER_GEMMA4_GGUF.runtimeArtifact.modelId;
 // A one-lesson kernel now carries only the validated knowledge core: facts,
 // key terms, a scenario, and two applied questions. The old 1,500-token clamp
 // silently overrode the 2,400-token budget requested by the compiler; real
 // WebGPU runs repeatedly ended at the same truncated tail and spent 12
 // completions recovering 0/2 lessons. Keep the cap below the 4,096-token
 // runtime ceiling while giving the compact contract enough room to close once.
-export const PUBLIC_SCION_MAX_COMPLETION_TOKENS = 2400;
 export const PUBLIC_SCION_MAX_LESSONS_PER_CALL = 3;
 export const PUBLIC_SCION_KERNEL_LESSONS_PER_CALL = 1;
 export const PUBLIC_SCION_KERNEL_CONCURRENCY = 1;
@@ -1289,24 +1297,6 @@ export function buildPublicScionRetryFeedback(assessment = {}) {
     'Every lesson needs 3 complete keyTerms. Each cx must directly refute mi in different wording and must not repeat df.',
     ...focusedRules,
   ].join('\n');
-}
-
-export function publicScionModelOption() {
-  return {
-    id: PUBLIC_SCION_MODEL_ID,
-    name: PUBLIC_SCION_MODEL_NAME,
-    created: 1,
-    maxInputTokens: 8192,
-    maxOutputTokens: PUBLIC_SCION_MAX_COMPLETION_TOKENS,
-    source: 'browser-local',
-    capabilities: {
-      jsonMode: false,
-      jsonSchema: false,
-      toolCalling: false,
-      streaming: true,
-      temperature: true,
-    },
-  };
 }
 
 function clip(text, maxChars = 6000) {
