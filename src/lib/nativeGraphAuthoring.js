@@ -277,12 +277,44 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
         `Compare the plausible readings of ${materials} through ${concept}. Make ${product} defend one, cite the deciding evidence, and state where it may not hold.`,
         `Develop ${product} from the ${concept} evidence in ${materials}: identify the strongest conclusion, justify it with a specific detail, and avoid overclaiming.`,
       ]),
-      parameters: [
-        `Scope: use the named ${concept} case or example only.`,
-        `Format: submit ${product} in the instructor-approved format.`,
-        `Required Evidence/Source: cite at least one detail from ${materials}.`,
-        'Length or Time: follow the local requirement confirmed by the instructor before release.',
-      ],
+      parameters: lessonVariant([
+        [
+          `Scope: use the named ${concept} case or example only.`,
+          `Format: submit ${product} in the instructor-approved format.`,
+          `Required Evidence/Source: cite at least one detail from ${materials}.`,
+          'Length or Time: follow the local requirement confirmed by the instructor before release.',
+        ],
+        [
+          `Scope: focus the response on ${concept} and the assigned materials.`,
+          `Format: present ${product} in the locally approved submission form.`,
+          `Evidence: quote or cite one specific point from ${materials}.`,
+          'Length/Time: confirm the course-specific limit with the instructor before submission.',
+        ],
+        [
+          `Boundary: keep the analysis within the supplied ${concept} example.`,
+          `Submission format: organize the work as ${product} using the instructor's required medium.`,
+          `Source use: identify the exact detail from ${materials} that warrants the conclusion.`,
+          'Extent: use the local word, page, or time limit announced for this task.',
+        ],
+        [
+          `Case limit: analyze only the named ${concept} situation and avoid unsupported extensions.`,
+          `Deliverable: turn in ${product} through the format and channel confirmed for the course.`,
+          `Required support: anchor the reasoning in a visible detail from ${materials}.`,
+          'Length or duration: verify the applicable local constraint before finalizing the work.',
+        ],
+        [
+          `Analytical scope: apply ${concept} to the provided case rather than inventing a new one.`,
+          `Output: complete ${product} in the instructor-specified document, presentation, or recording form.`,
+          `Evidence requirement: point to at least one inspectable detail in ${materials}.`,
+          'Scale: follow the task-specific length or time guidance supplied in class.',
+        ],
+        [
+          `Focus: keep every claim tied to the assigned ${concept} materials.`,
+          `Product form: prepare ${product} in the approved course format.`,
+          `Source trail: name the detail from ${materials} that supports the judgment.`,
+          'Completion boundary: check the instructor-confirmed word, page, or time expectation before release.',
+        ],
+      ]),
     };
     if (lintEnrichedAssignmentCore(assignmentCore).length === 0) {
       completed.assignmentCore = assignmentCore;

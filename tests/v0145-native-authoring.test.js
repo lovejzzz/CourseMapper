@@ -789,6 +789,7 @@ describe('Pass B contract (B2)', () => {
     const fallbackOpponents = variedFallbacks.map((fallback) => fallback.discussionPrompt.positions[1]);
     expect(new Set(fallbackOpponents).size).toBe(6);
     expect(new Set(variedFallbacks.map((fallback) => fallback.assignmentCore.taskDescription)).size).toBe(6);
+    expect(new Set(variedFallbacks.map((fallback) => JSON.stringify(fallback.assignmentCore.parameters))).size).toBe(6);
 
     const authored = {
       ...completed,
