@@ -845,6 +845,27 @@ describe('Scion MC contract recovery', () => {
     expect(repaired.repairs[0].preferenceEvidence.supportMethod).toBe('explicit-explanation-cue');
   });
 
+  it('realigns a language item when the affirmative explanation uniquely quotes the correct utterance', () => {
+    const item = {
+      q: "When describing a past action of eating, which structure correctly incorporates the negative particle '没'?",
+      op: ['Wǒ chī le fàn', 'Wǒ bú chī fàn', 'Wǒ chī ma fàn', 'Wǒ méi chī fàn'],
+      ai: 0,
+      ex: "The lesson includes using the negative particle '没' in sentences like 'Wǒ méi chī fàn'. By contrast, “Wǒ bú chī fàn” does not express the same completed-action negation.",
+    };
+    const repaired = repairScionMcItem(item);
+
+    expect(repaired.item.ai).toBe(3);
+    expect(repaired.repairs[0]).toMatchObject({
+      pass: 'explanationKeyAlignment',
+      preferenceEvidence: {
+        supportMethod: 'explicit-explanation-cue',
+        declaredIndex: 0,
+        supportedIndex: 3,
+        explicitCues: [expect.objectContaining({ type: 'explicit-quoted-option-text' })],
+      },
+    });
+  });
+
   it.each([
     {
       name: 'morphological support for a returned file object',

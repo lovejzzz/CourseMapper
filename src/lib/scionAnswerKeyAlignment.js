@@ -891,6 +891,23 @@ function findExplicitExplanationAnswerCue(
     addPhraseCue(correction[1], 'explicit-correction-label', correction[0]);
   }
 
+  // Language-course explanations often cite the correct utterance as a
+  // quoted example instead of leading with "Option D is correct." Treat an
+  // exact, uniquely quoted displayed option in the affirmative segment as
+  // deterministic key evidence. The contrast segment has already been
+  // removed above, so a quoted distractor in "By contrast ..." cannot win.
+  const quotedOptionCues = normalized.options
+    .map((rawOption, index) => {
+      const option = normalizeOption(rawOption);
+      if (Array.from(option).length < 4) return null;
+      const match = affirmative.match(new RegExp(`["'“‘]${escapeRegExp(option)}[.!?]?["'”’]`, 'i'));
+      return match ? { index, surface: match[0] } : null;
+    })
+    .filter(Boolean);
+  if (quotedOptionCues.length === 1) {
+    addCue(quotedOptionCues[0].index, 'explicit-quoted-option-text', quotedOptionCues[0].surface);
+  }
+
   normalized.options.forEach((rawOption, index) => {
     const option = normalizeOption(rawOption);
     if (option.length < 3) return;
