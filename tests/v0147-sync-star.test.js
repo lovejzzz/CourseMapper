@@ -25,7 +25,10 @@ import {
 } from '../src/lib/compiledLessonSync.js';
 import { computeSyncBlastRadius, diffCompiledFeature } from '../src/lib/syncBlastRadius.js';
 import { buildReviewQueue } from '../src/lib/reviewQueueModel.js';
-import { sanitizeGenomeEnrichmentForLesson } from '../src/lib/lessonSemanticRelevance.js';
+import {
+  sanitizeGenomeEnrichmentForLesson,
+  sanitizeLessonTitleEchoEnrichment,
+} from '../src/lib/lessonSemanticRelevance.js';
 import {
   compileBlueprintDeliverables,
   buildCourseBlueprint,
@@ -213,6 +216,34 @@ describe('G1 — the sync compile keeps its subject matter', () => {
     expect(result.enrichment.kernel.facts).toHaveLength(2);
     expect(result.enrichment.conceptProvenance.competencies[0].aliases).toContain('functional fixedness');
     expect(result.receipt).toMatchObject({ rejectedGenomeTerms: [], resetAuthoredAtoms: false });
+  });
+
+  it('keeps a source-anchored title-shaped term but rejects an unverified title echo', () => {
+    const lesson = {
+      title: 'Lesson 8: Telescope light-gathering power and aperture',
+      sections: [{ topicSection: 'Telescope light-gathering power and aperture' }],
+    };
+    const result = sanitizeLessonTitleEchoEnrichment(lesson, {
+      keyTerms: [
+        {
+          term: 'Telescope light-gathering power',
+          definition: 'Collecting power grows with the area of the aperture rather than its diameter.',
+          source: 'OpenStax Astronomy 2e §6.1',
+          tier: 2,
+        },
+        {
+          term: 'Telescope light-gathering power and aperture',
+          definition: 'A generated restatement of the lesson title.',
+          source: 'fact-ledger-projection',
+          tier: 1,
+        },
+      ],
+      quizItems: [],
+      kernel: { facts: ['Aperture area determines light-gathering power.'] },
+    });
+
+    expect(result.enrichment.keyTerms.map((term) => term.term)).toEqual(['Telescope light-gathering power']);
+    expect(result.receipt.rejectedTitleTerms).toEqual(['Telescope light-gathering power and aperture']);
   });
 
   it('reuses a complete restored overlay without another model pass', () => {

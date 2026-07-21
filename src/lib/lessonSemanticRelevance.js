@@ -209,9 +209,14 @@ export function sanitizeLessonTitleEchoEnrichment(lesson = {}, enrichment = null
   if (!enrichment || typeof enrichment !== 'object') return { enrichment, receipt: emptyReceipt };
 
   const sourceTerms = Array.isArray(enrichment.keyTerms) ? enrichment.keyTerms : [];
+  const isSourceAnchoredTerm = (term) =>
+    Number(term?.tier) >= 2 &&
+    Boolean(cleanText(term?.source)) &&
+    !/fact-ledger-projection|model-authored/i.test(cleanText(term?.source));
   const rejectedTitleTerms = sourceTerms
+    .filter((term) => !isSourceAnchoredTerm(term))
     .map((term) => cleanText(term?.term || term?.tr))
-    .filter((term) => term && isLessonTitleEchoSemanticSurface(term, lesson));
+    .filter((termName) => termName && isLessonTitleEchoSemanticSurface(termName, lesson));
   if (rejectedTitleTerms.length === 0) return { enrichment, receipt: emptyReceipt };
 
   const rejected = new Set(rejectedTitleTerms.map(normalizedTermName));

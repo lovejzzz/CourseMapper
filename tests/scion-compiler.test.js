@@ -731,7 +731,7 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     );
   });
 
-  it('D1: still applies one fact-preserving language repair when an invalid fact ledger blocks the adapter stage', async () => {
+  it('D1: uses the local language kernel when an invalid fact ledger blocks the adapter stage', async () => {
     const lessons = [
       {
         lessonId: 'lesson-4',
@@ -799,12 +799,11 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
       ],
     });
 
-    expect(streamProvider).toHaveBeenCalledTimes(2);
-    expect(streamProvider.mock.calls[1][5]?.schema?.name).toBe('target_language_pair_repair');
+    expect(streamProvider).toHaveBeenCalledTimes(1);
     expect(JSON.parse(result).lessons[0].targetLanguagePair).toEqual({
-      hanzi: '四月',
-      pinyin: 'sì yuè',
-      english: 'April',
+      hanzi: '我今年二十岁。',
+      pinyin: 'Wǒ jīnnián èrshí suì.',
+      english: 'I am twenty years old',
     });
     expect(events).toContainEqual(
       expect.objectContaining({
@@ -815,7 +814,7 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     expect(events).toContainEqual(
       expect.objectContaining({
         label: 'Scion quality passes',
-        detail: expect.stringContaining('languageIdentity:lesson-4 repaired [hanzi-pinyin-pair]'),
+        detail: expect.stringContaining('languageIdentity:lesson-4 repaired [scion-local-language-kernel]'),
       }),
     );
   });
@@ -1219,12 +1218,19 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     const lesson = JSON.parse(result.text).lessons[0];
     expect(lesson.facts).toEqual(['The greeting nǐ hǎo uses tone marks to show pitch movement.']);
     expect(lesson.targetLanguagePair).toEqual({ hanzi: '你好', pinyin: 'nǐ hǎo', english: 'hello' });
-    expect(calls[0]).toBe('target_language_pair_repair');
+    expect(calls).toEqual([]);
     expect(result.events).toContainEqual({
       pass: 'languageIdentity',
       lessonId: 'lesson-1',
       action: 'repaired',
-      reason: 'hanzi',
+      reason: 'scion-local-language-kernel',
+      trainingEligible: false,
+    });
+    expect(result.events).toContainEqual({
+      pass: 'languageCompilerBoundary',
+      lessonId: 'lesson-1',
+      action: 'bounded',
+      reason: 'canonical-pair-only; unsupported-model-utterances-compile-out',
       trainingEligible: false,
     });
   });
@@ -1257,13 +1263,17 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
 
     const lesson = JSON.parse(result.text).lessons[0];
     expect(lesson.facts).toHaveLength(2);
-    expect(lesson.targetLanguagePair).toEqual({ hanzi: '四月', pinyin: 'sì yuè', english: 'April' });
-    expect(calls).toEqual(['target_language_pair_repair']);
+    expect(lesson.targetLanguagePair).toEqual({
+      hanzi: '我今年二十岁。',
+      pinyin: 'Wǒ jīnnián èrshí suì.',
+      english: 'I am twenty years old',
+    });
+    expect(calls).toEqual([]);
     expect(result.events).toContainEqual({
       pass: 'languageIdentity',
       lessonId: 'lesson-4',
       action: 'repaired',
-      reason: 'hanzi-pinyin-pair',
+      reason: 'scion-local-language-kernel',
       trainingEligible: false,
     });
   });
@@ -1300,16 +1310,16 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
 
     const lesson = JSON.parse(result.text).lessons[0];
     expect(lesson.targetLanguagePair).toEqual({
-      hanzi: '我喜欢米饭。',
-      pinyin: 'Wǒ xǐhuān mǐfàn.',
-      english: 'I like rice',
+      hanzi: '我喜欢吃米饭。',
+      pinyin: 'Wǒ xǐhuān chī mǐfàn.',
+      english: 'I like to eat rice',
     });
-    expect(calls).toEqual(['target_language_pair_repair']);
+    expect(calls).toEqual([]);
     expect(result.events).toContainEqual({
       pass: 'languageIdentity',
       lessonId: 'lesson-7',
       action: 'repaired',
-      reason: 'canonical-hanzi-pinyin-pair',
+      reason: 'scion-local-language-kernel',
       trainingEligible: false,
     });
   });

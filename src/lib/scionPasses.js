@@ -18,6 +18,7 @@ import { assessScionKeyTerm, assessScionMcItem } from './scionPreferenceGate.js'
 import { findScionSourceAnswerSupport } from './scionAnswerKeyAlignment.js';
 import { isAppliedQuizStem } from './quality/quizItemDepth.js';
 import { assessTargetLanguagePresence } from './languageIdentityGuard.js';
+import { resolveScionTargetLanguagePair } from './scionLanguageKnowledge.js';
 
 const APPLIED_MCQ_TARGET_PER_LESSON = 2;
 // A weak local draft can otherwise cascade through double-blind solving,
@@ -1174,6 +1175,22 @@ async function targetLanguageIdentityGate(lesson, promptLesson, courseName, gene
     });
     return;
   }
+  const compilerPair = resolveScionTargetLanguagePair({ courseName, lesson: promptLesson });
+  if (compilerPair) {
+    const evidence = `${compilerPair.hanzi} (${compilerPair.pinyin}) means ${compilerPair.english}.`;
+    const after = assessTargetLanguagePresence({ courseIdentity: courseName, sourceText, text: evidence });
+    if (after.complete && after.paired) {
+      lesson.targetLanguagePair = compilerPair;
+      events.push({
+        pass: 'languageIdentity',
+        lessonId: lesson.lessonId,
+        action: 'repaired',
+        reason: 'scion-local-language-kernel',
+        trainingEligible: false,
+      });
+      return;
+    }
+  }
   try {
     const reply = await generateJson({
       system:
@@ -1317,6 +1334,22 @@ export async function applyScionKernelPasses(
     await runPass('languageIdentity', () =>
       targetLanguageIdentityGate(lesson, promptLesson, courseName, budgetedGenerateJson, events),
     );
+    const languageProjection = assessTargetLanguagePresence({
+      courseIdentity: courseName,
+      sourceText: JSON.stringify(promptLesson || {}),
+      text: JSON.stringify(lesson),
+    });
+    if (languageProjection.required && !languageProjection.pinyinOnly) {
+      events.push({
+        pass: 'languageCompilerBoundary',
+        lessonId: lesson.lessonId,
+        action: 'bounded',
+        reason: 'canonical-pair-only; unsupported-model-utterances-compile-out',
+        trainingEligible: false,
+      });
+      normalizeMcSurfaces(lesson, events);
+      continue;
+    }
     if (verifyDraftMcWithSameModel) {
       await runPass('mcVerify', () => verifyMcAnswers(lesson, promptLesson, budgetedGenerateJson, events));
     } else {
