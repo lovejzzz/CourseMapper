@@ -23,6 +23,7 @@ import { getChunkCount } from './parallelGenerator';
 import { getCustomDeliverable } from './customDeliverableLibrary';
 import { buildObservationProtocol } from './observationProtocols';
 import {
+  assignmentSelfAssessmentEvidenceCheck,
   compactAssignmentBriefBodyReferences,
   compactCourseCopyEmbeddedReference,
   compactCourseCopyFocus,
@@ -17209,16 +17210,21 @@ function compileAssignments(blueprint) {
               weight: '',
               evidenceSignal: 'Criterion evidence needs review.',
             }))
-        ).map((entry) => {
+        ).map((entry, entryIndex) => {
           // 220 chars fits the full evidence sentence; tighter caps cut the
           // sentence right after the quoted criterion name. The bullet already
           // starts with the criterion name, so the quoted restatement inside
           // the evidence sentence collapses to "this criterion".
           const evidenceCheck = conciseClause(
-            String(entry.evidenceSignal || entry.evidenceNeeded || '').replace(
-              `"${entry.criterion}"`,
-              'this criterion',
-            ),
+            assignmentSelfAssessmentEvidenceCheck({
+              evidenceSignal: String(entry.evidenceSignal || entry.evidenceNeeded || '').replace(
+                `"${entry.criterion}"`,
+                'this criterion',
+              ),
+              index: entryIndex,
+              lessonFocus: stripLessonPrefix(lesson.title),
+              assignmentType: submissionProfile.assignmentType,
+            }),
             'Show criterion-specific evidence',
             220,
           );

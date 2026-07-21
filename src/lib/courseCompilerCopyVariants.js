@@ -130,6 +130,29 @@ export function compactAssignmentBriefBodyReferences({ brief = {}, lesson = {}, 
   return compacted;
 }
 
+const GENERIC_SELF_ASSESSMENT_SIGNAL_RE =
+  /^(?:criterion\b|strong evidence addresses\b|a strong signal addresses\b|look for evidence about\b|look for a concrete change\b|revise\b.+\bfor (?:this|the) criterion\b|mark the feedback-informed change\b)/i;
+
+export function assignmentSelfAssessmentEvidenceCheck({
+  evidenceSignal,
+  index = 0,
+  lessonFocus,
+  assignmentType,
+}) {
+  const signal = cleanText(evidenceSignal);
+  if (signal && !GENERIC_SELF_ASSESSMENT_SIGNAL_RE.test(signal)) return signal;
+
+  const focus = stripTerminalPunctuation(cleanText(lessonFocus, 'the lesson concept'));
+  const artifact = stripTerminalPunctuation(cleanText(assignmentType, 'assignment')).toLowerCase();
+  const checks = [
+    `Identify one inspectable ${focus} detail from the lesson materials, explain the ${artifact} decision it supports, and state one limitation`,
+    `Trace the reasoning from ${focus} evidence to the ${artifact} decision and name the assumption or tradeoff that could change it`,
+    `Make the evidence, decision, and limitation easy for a reader to locate in the ${artifact}`,
+    `Name one feedback-informed revision to the ${artifact} and explain how it strengthened the evidence or reasoning`,
+  ];
+  return checks[Math.max(0, Math.min(checks.length - 1, Number(index) || 0))];
+}
+
 const EXAM_UNDERSTAND_CORRECT_TEMPLATES = [
   ({ concept, lessonFocus }) =>
     `${sentenceCase(concept)} explains a specific ${lessonFocus} decision and names the evidence that supports it.`,
