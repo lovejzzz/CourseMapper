@@ -353,6 +353,7 @@ describe('composeLessonFromConcepts', () => {
 
     expect(conceptProvenance.source).toBe('genome-linked');
     expect(conceptProvenance.conceptIds).toEqual(['econ/price-elasticity-of-demand']);
+    expect(conceptProvenance.competencies[0].aliases).toEqual(['PED', 'demand elasticity']);
     expect(conceptProvenance.tier).toBe(TRUST_TIERS.SOURCE_ANCHORED);
     expect(conceptProvenance.citations.some((cite) => cite.includes('OpenStax'))).toBe(true);
   });

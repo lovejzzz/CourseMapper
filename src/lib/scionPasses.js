@@ -537,7 +537,10 @@ async function topicGate(lesson, promptLesson, generateJson, events) {
         rejected: item,
         chosen: fresh,
         prompt: `System: ${system}\nUser: ${user}`,
-        trainingEligible: true,
+        // Two solves from the same model establish consistency, not an
+        // independent semantic win. Keep the telemetry, but never bank it as
+        // adapter-training preference evidence.
+        trainingEligible: false,
         preferenceEvidence: {
           kind: 'topic-and-key-repair',
           verified: true,
@@ -1143,9 +1146,24 @@ async function targetLanguageIdentityGate(lesson, promptLesson, courseName, gene
     sourceText,
     text: JSON.stringify(lesson),
   });
+  const canonicalPair = lesson?.targetLanguagePair;
+  const canonicalEvidence = canonicalPair
+    ? `${String(canonicalPair.hanzi || '').trim()} (${String(canonicalPair.pinyin || '').trim()}) means ${String(
+        canonicalPair.english || '',
+      ).trim()}.`
+    : '';
+  const canonicalPresence = canonicalEvidence
+    ? assessTargetLanguagePresence({ courseIdentity: courseName, sourceText, text: canonicalEvidence })
+    : null;
+  const missingCanonicalPair =
+    before.required && !before.pinyinOnly && (!canonicalPresence?.complete || !canonicalPresence?.paired);
   const missingVisiblePair = before.required && !before.pinyinOnly && before.complete && !before.paired;
-  if (!before.required || (before.complete && !missingVisiblePair)) return;
-  const repairReason = missingVisiblePair ? 'hanzi-pinyin-pair' : before.missing.join(',');
+  if (!before.required || (before.complete && !missingVisiblePair && !missingCanonicalPair)) return;
+  const repairReason = missingVisiblePair
+    ? 'hanzi-pinyin-pair'
+    : before.complete && missingCanonicalPair
+      ? 'canonical-hanzi-pinyin-pair'
+      : before.missing.join(',');
   if (before.pinyinOnly) {
     events.push({
       pass: 'languageIdentity',

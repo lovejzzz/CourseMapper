@@ -1268,6 +1268,52 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     });
   });
 
+  it('D3: repairs the canonical language pair even when a quiz option masks its absence', async () => {
+    const calls = [];
+    const result = await applyScionKernelPasses(
+      JSON.stringify({
+        lessons: [
+          {
+            lessonId: 'lesson-7',
+            facts: ['Students compare a food preference question and response.'],
+            mc: [
+              {
+                q: 'Which response says that the speaker likes rice?',
+                op: ['我喜欢米饭。 (Wǒ xǐhuān mǐfàn.)', 'I do not like rice.', 'I am busy today.', 'What time is it?'],
+                ai: 0,
+                ex: '我喜欢米饭。 (Wǒ xǐhuān mǐfàn.) is the matching preference statement.',
+              },
+            ],
+          },
+        ],
+      }),
+      {
+        courseName: 'Elementary Mandarin Chinese I',
+        promptLessons: [{ lessonId: 'lesson-7', title: 'Food and Dining', topics: 'Food preferences; ordering' }],
+        maxCallsPerLesson: 1,
+        generateJson: async ({ schemaProfile }) => {
+          calls.push(schemaProfile.name);
+          return JSON.stringify({ hanzi: '我喜欢米饭。', pinyin: 'Wǒ xǐhuān mǐfàn.', english: 'I like rice' });
+        },
+      },
+    );
+
+    const lesson = JSON.parse(result.text).lessons[0];
+    expect(lesson.targetLanguagePair).toEqual({
+      hanzi: '我喜欢米饭。',
+      pinyin: 'Wǒ xǐhuān mǐfàn.',
+      english: 'I like rice',
+    });
+    expect(calls).toEqual(['target_language_pair_repair']);
+    expect(result.events).toContainEqual({
+      pass: 'languageIdentity',
+      lessonId: 'lesson-7',
+      action: 'repaired',
+      reason: 'canonical-hanzi-pinyin-pair',
+      trainingEligible: false,
+    });
+  });
+
   it('D3: never guesses a missing lesson id when the response or prompt is ambiguous', async () => {
     const raw = JSON.stringify({ lessons: [{ goal: 'First' }] });
     const result = await applyScionKernelPasses(raw, {
@@ -1613,6 +1659,7 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     const repairs = result.events.filter((event) => event.pass === 'topicGate' && event.action === 'regenerated');
     expect(repairs).toHaveLength(2);
     expect(repairs.every((event) => event.preferenceEvidence?.chosenAnswers.join(',') === '0,0')).toBe(true);
+    expect(repairs.every((event) => event.trainingEligible === false)).toBe(true);
   });
 
   it('D3: admits a cumulative-review item when it matches a prior canonical topic anchor', async () => {

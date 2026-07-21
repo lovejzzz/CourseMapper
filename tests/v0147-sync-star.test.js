@@ -25,6 +25,7 @@ import {
 } from '../src/lib/compiledLessonSync.js';
 import { computeSyncBlastRadius, diffCompiledFeature } from '../src/lib/syncBlastRadius.js';
 import { buildReviewQueue } from '../src/lib/reviewQueueModel.js';
+import { sanitizeGenomeEnrichmentForLesson } from '../src/lib/lessonSemanticRelevance.js';
 import {
   compileBlueprintDeliverables,
   buildCourseBlueprint,
@@ -160,6 +161,58 @@ describe('G1 — the sync compile keeps its subject matter', () => {
       removedSlides: 1,
       removedFacts: 1,
     });
+  });
+
+  it('keeps a source-anchored genome kernel when the lesson matches a curated exact alias', () => {
+    const courseMap = {
+      courseName: 'Introduction to Psychology',
+      lessons: [
+        {
+          title: 'Lesson 1: Functional fixedness and mental set',
+          sections: [
+            {
+              topicSection: 'functional fixedness; mental set',
+              learningObjectives: 'Apply functional fixedness and mental set to a problem-solving example.',
+            },
+          ],
+        },
+      ],
+    };
+    const result = sanitizeGenomeEnrichmentForLesson(courseMap.lessons[0], {
+      enrichmentSource: 'genome-linked',
+      keyTerms: [
+        {
+          term: 'Problem-solving strategies',
+          definition: 'Algorithms and heuristics are two families of problem-solving strategy.',
+          source: 'OpenStax Psychology 2e §7.3',
+        },
+      ],
+      quizItems: [],
+      kernel: {
+        facts: [
+          'A mental set persists with an approach that worked before but is not working now.',
+          'Functional fixedness limits an object to its conventional use.',
+        ],
+      },
+      conceptProvenance: {
+        source: 'genome-linked',
+        conceptIds: ['psych/problem-solving-strategies'],
+        competencies: [
+          {
+            term: 'Problem-solving strategies',
+            aliases: ['algorithms and heuristics', 'mental set', 'functional fixedness'],
+            bloom: 'Apply',
+            standards: [],
+          },
+        ],
+        citations: ['OpenStax Psychology 2e §7.3'],
+        fullyAnchored: true,
+      },
+    });
+
+    expect(result.enrichment.kernel.facts).toHaveLength(2);
+    expect(result.enrichment.conceptProvenance.competencies[0].aliases).toContain('functional fixedness');
+    expect(result.receipt).toMatchObject({ rejectedGenomeTerms: [], resetAuthoredAtoms: false });
   });
 
   it('reuses a complete restored overlay without another model pass', () => {

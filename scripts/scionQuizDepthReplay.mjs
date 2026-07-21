@@ -137,6 +137,13 @@ if (!projectPath) {
           ).length,
           sourceReviewRequired: compiledQuestionSeats.filter((item) => item.sourceReviewRequired === true).length,
           provenance: summarizeProvenance(compiledQuestionSeats),
+          sourceBoundRecoverySamples: compiledQuestionSeats
+            .filter((item) => item.enrichmentSource === 'source-bound-recovery')
+            .map((item) => ({
+              lessonNumber: item.lessonNumber,
+              type: item.type,
+              question: item.question,
+            })),
         },
         compiledAdmissionIssues: compiledAdmissionIssues(compiledItems),
         compiledAuthoredItems: summarize(compiledAuthoredItems),

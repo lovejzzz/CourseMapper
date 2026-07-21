@@ -176,6 +176,33 @@ describe('constructed-response compiler depth', () => {
     expect(JSON.stringify(compilerItems)).not.toMatch(/source use without fabricating|kernel failed admission/i);
   });
 
+  it('treats an admitted fact ledger as knowledge even when no glossary term survives projection', () => {
+    const blueprint = evidenceCourseBlueprint();
+    blueprint.lessons[0].enrichment = {
+      keyTerms: [],
+      kernel: {
+        facts: [
+          'Repeated task failures under the same interface condition support a bounded usability claim.',
+          'A single observation can motivate a follow-up but does not establish a universal conclusion.',
+          'Independent observations strengthen a revision decision when they point to the same breakdown.',
+        ],
+      },
+      quizItems: [],
+    };
+    blueprint.enrichment = {
+      coverage: { requestedLessons: 1, enrichedLessons: 1, missingLessons: [] },
+      stageDecisions: { modelStage: 'ran' },
+    };
+
+    const items = buildQuizAtomsForLesson(blueprint.lessons[0], blueprint, { assessment: {} });
+
+    expect(items).toHaveLength(6);
+    expect(items.every((item) => item.enrichmentSource !== 'source-bound-recovery')).toBe(true);
+    expect(items.every((item) => item.sourceReviewRequired !== true)).toBe(true);
+    expect(items.some((item) => item.enrichmentSource === 'admitted-kernel-assessment')).toBe(true);
+    expect(JSON.stringify(items)).toMatch(/Repeated task failures|single observation/i);
+  });
+
   it('never mislabels an admitted Nutrition kernel as missing when one MC filler is rejected', () => {
     const blueprint = buildCourseBlueprint({
       courseName: 'Human Nutrition',

@@ -315,7 +315,15 @@ export function sanitizeGenomeEnrichmentForLesson(lesson = {}, enrichment = null
   const rejectedGenomeTerms = [];
   competencies.forEach((competency, index) => {
     const term = cleanText(competency?.term);
-    if (!term || isLessonRelevantSemanticSurface(term, lesson)) return;
+    const identitySurfaces = [term, ...(Array.isArray(competency?.aliases) ? competency.aliases : [])]
+      .map(cleanText)
+      .filter(Boolean);
+    if (
+      identitySurfaces.length === 0 ||
+      identitySurfaces.some((surface) => isLessonRelevantSemanticSurface(surface, lesson))
+    ) {
+      return;
+    }
     rejectedCompetencyIndexes.add(index);
     rejectedGenomeTerms.push(term);
   });

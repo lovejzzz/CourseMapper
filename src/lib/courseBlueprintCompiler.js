@@ -17813,6 +17813,59 @@ function disciplineSafeAssessmentRegistry(registry = null, lessons = []) {
   return { registry: changed ? repaired : registry, changed };
 }
 
+const UNADMITTED_TARGET_LANGUAGE_SCRIPT_RE = /[\u3400-\u4dbf\u4e00-\u9fff]{2,}/;
+const UNADMITTED_TARGET_LANGUAGE_PINYIN_RE = /\b[a-zü]*[āáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜ][a-zü]*\b/i;
+
+function containsUnadmittedTargetLanguageExample(value, pair = null) {
+  if (!value || !pair) return false;
+  let text = JSON.stringify(value);
+  for (const admitted of [pair.hanzi, pair.pinyin]) {
+    const exact = cleanText(admitted);
+    if (exact) text = text.split(exact).join('');
+  }
+  return UNADMITTED_TARGET_LANGUAGE_SCRIPT_RE.test(text) || UNADMITTED_TARGET_LANGUAGE_PINYIN_RE.test(text);
+}
+
+// A browser model is not an independent language authority. Once a Mandarin
+// lesson has earned one canonical Hanzi/Pinyin/meaning triple, learner-facing
+// enrichment may reuse that exact pair but may not invent additional
+// utterances that no source or verifier established. Unsupported examples are
+// removed at the compiler boundary; the admitted fact-ledger frames then fill
+// the vacated assessment and activity slots without another provider call.
+function enforceAdmittedTargetLanguageEnrichment(enrichment = null) {
+  if (!enrichment || typeof enrichment !== 'object') return enrichment;
+  const pair = enrichment.targetLanguagePair;
+  if (!cleanText(pair?.hanzi) || !cleanText(pair?.pinyin) || !cleanText(pair?.english)) return enrichment;
+  let changed = false;
+  const safeArray = (items) => {
+    if (!Array.isArray(items)) return items;
+    const safe = items.filter((item) => !containsUnadmittedTargetLanguageExample(item, pair));
+    if (safe.length !== items.length) changed = true;
+    return safe;
+  };
+  const next = {
+    ...enrichment,
+    quizItems: safeArray(enrichment.quizItems),
+    keyTerms: safeArray(enrichment.keyTerms),
+    slideContent: safeArray(enrichment.slideContent),
+    dialogue: safeArray(enrichment.dialogue),
+  };
+  if (enrichment.kernel && typeof enrichment.kernel === 'object') {
+    const facts = safeArray(enrichment.kernel.facts);
+    const scenario = containsUnadmittedTargetLanguageExample(enrichment.kernel.scenario, pair)
+      ? null
+      : enrichment.kernel.scenario;
+    if (scenario !== enrichment.kernel.scenario) changed = true;
+    next.kernel = { ...enrichment.kernel, facts, scenario };
+  }
+  for (const field of ['discussionPrompt', 'assignmentCore', 'studyGuide', 'workedExample']) {
+    if (!containsUnadmittedTargetLanguageExample(enrichment[field], pair)) continue;
+    next[field] = undefined;
+    changed = true;
+  }
+  return changed ? next : enrichment;
+}
+
 // Known-domain compiler admission. A browser model can produce syntactically
 // perfect JSON whose overloaded word "interval" silently switches from music
 // theory to real-analysis language. For interval lessons, the compiler owns a
@@ -17822,7 +17875,8 @@ function disciplineSafeAssessmentRegistry(registry = null, lessons = []) {
 function enforceDisciplineSafeEnrichment(lesson = {}, enrichment = null) {
   const titleSafe = sanitizeLessonTitleEchoEnrichment(lesson, enrichment).enrichment;
   const semanticSafe = sanitizeGenomeEnrichmentForLesson(lesson, titleSafe).enrichment;
-  return enforceMusicIntervalEnrichment(lesson, semanticSafe);
+  const targetLanguageSafe = enforceAdmittedTargetLanguageEnrichment(semanticSafe);
+  return enforceMusicIntervalEnrichment(lesson, targetLanguageSafe);
 }
 
 function disciplineSafeBlueprintEnrichment(enrichment = null, lessons = []) {
@@ -17882,7 +17936,15 @@ function lessonNeedsSourceBoundRecovery(lesson = {}, blueprint = {}) {
           !isUnsafeLessonArtifactPhrase(displayKeyTermName(term)),
       )
     : [];
-  if (lesson?.enrichment && admittedTerms.length === 0) return true;
+  const admittedFacts = Array.isArray(lesson?.enrichment?.kernel?.facts)
+    ? lesson.enrichment.kernel.facts.map((fact) => cleanText(fact)).filter(Boolean)
+    : [];
+  // Ledger-first Scion deliberately admits exact facts even when every
+  // glossary label is later screened as a long lesson-title echo. Those facts
+  // are still a valid knowledge contract and can power conservative
+  // deterministic assessment items. Treat the lesson as missing only when it
+  // has neither a reusable teaching term nor an admitted fact.
+  if (lesson?.enrichment && admittedTerms.length === 0 && admittedFacts.length === 0) return true;
   const modelStage = cleanText(blueprint?.enrichment?.stageDecisions?.modelStage).toLowerCase();
   if (!/^(?:failed|rejected)\s*:/.test(modelStage)) return false;
   return !lesson?.enrichment;

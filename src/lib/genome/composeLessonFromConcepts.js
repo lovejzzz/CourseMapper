@@ -320,6 +320,12 @@ export function composeLessonFromConcepts(conceptKernels = [], courseLayer = {},
   // Course Competency Map — Bloom level (owned data) + curated standards tags.
   const competencies = kernels.map((kernel) => ({
     term: cleanText(kernel.term),
+    // A lesson may resolve through a curated exact alias (for example,
+    // "functional fixedness" into the broader source-anchored
+    // "Problem-solving strategies" kernel). Preserve that identity evidence
+    // so downstream semantic admission does not mistake a valid subtopic for
+    // stale cross-lesson content.
+    aliases: Array.isArray(kernel.aliases) ? kernel.aliases.map(cleanText).filter(Boolean) : [],
     bloom: cleanText(kernel.bloomCeiling) || 'Analyze',
     standards: Array.isArray(kernel.standards) ? kernel.standards : [],
   }));

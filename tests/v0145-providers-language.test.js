@@ -573,6 +573,49 @@ describe('F2 — compiled render sites (lesson plan practice block + study guide
     expect(JSON.stringify(slideDeck)).toContain('妈 (mā) means mother.');
   });
 
+  it('drops unsupported model-invented Mandarin examples before they reach learner surfaces', () => {
+    const blueprint = buildCourseBlueprint(mandarinCourseMap(), {
+      enrichment: {
+        source: 'test-enrichment',
+        coverage: { requestedLessons: 1, admittedLessons: 1, missingLessons: [] },
+        lessonContent: {
+          'lesson-1': {
+            targetLanguagePair: { hanzi: '你好', pinyin: 'nǐ hǎo', english: 'hello' },
+            kernel: {
+              facts: ['Tone contours can distinguish lexical meaning in Mandarin.'],
+              scenario: {
+                setup: "A learner is told that 'Wǒ xué fàn' means I study.",
+                materials: 'Compare the invented sentence with the lesson model.',
+              },
+            },
+            quizItems: [
+              {
+                index: 0,
+                type: 'multiple_choice',
+                question: "Which option means 'I do not study'?",
+                options: ['Wǒ bù xué fàn', 'Wǒ xué fàn', 'Wǒ méi xué fàn', 'Wǒ xué ma'],
+                answerIndex: 0,
+                explanation: "'Wǒ bù xué fàn' means I do not study.",
+              },
+            ],
+            discussionPrompt: {
+              prompt: "Explain why 'Wǒ xué fàn' means I study.",
+              tension: 'Compare two readings.',
+              positions: ['One', 'Two', 'Three'],
+            },
+          },
+        },
+      },
+    });
+
+    const quiz = compileBlueprintDeliverable('quizBank', blueprint, { skipLanguageFinalizer: true });
+    const discussions = compileBlueprintDeliverable('discussions', blueprint, { skipLanguageFinalizer: true });
+    const learnerJson = JSON.stringify({ quiz, discussions });
+    expect(learnerJson).not.toContain('Wǒ xué fàn');
+    expect(learnerJson).not.toContain('Wǒ bù xué fàn');
+    expect(learnerJson).toContain('Greetings and Self-Introductions');
+  });
+
   it('keeps an admitted language pair in a cumulative exam-day guide', () => {
     const courseMap = mandarinCourseMap();
     courseMap.lessons.push({
