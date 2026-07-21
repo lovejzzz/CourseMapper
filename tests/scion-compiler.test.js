@@ -137,7 +137,7 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
       expect.objectContaining({
         pass: 'passBudget',
         action: 'bounded',
-        reason: '0/0-calls-used-before-languageIdentity',
+        reason: '0/0-calls-used-before-admissionGate',
       }),
     );
   });
@@ -1205,6 +1205,7 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
       {
         courseName: 'Elementary Mandarin Chinese I',
         promptLessons: [{ lessonId: 'lesson-1', title: 'Greetings', topics: 'Greetings and introductions' }],
+        maxCallsPerLesson: 0,
         generateJson: async ({ schemaProfile }) => {
           calls.push(schemaProfile.name);
           if (schemaProfile.name === 'target_language_pair_repair') {

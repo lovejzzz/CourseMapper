@@ -1331,9 +1331,14 @@ export async function applyScionKernelPasses(
     // then answer correctness, admission, focus, and terminology. Applied
     // depth and cosmetic polish use only capacity the higher-value checks did
     // not need.
-    await runPass('languageIdentity', () =>
-      targetLanguageIdentityGate(lesson, promptLesson, courseName, budgetedGenerateJson, events),
-    );
+    // The local language kernel is a deterministic compiler lookup, not a
+    // provider pass. Always let it run even when a bound fact ledger sets the
+    // model-call budget to zero; budgetedGenerateJson still prevents the
+    // fallback model repair from spending a call. Gating this whole step on
+    // callLimit=0 silently removed the compiler-owned Hanzi/Pinyin pair and
+    // caused canonical admission to reject every otherwise valid language
+    // ledger at the outer firewall.
+    await targetLanguageIdentityGate(lesson, promptLesson, courseName, budgetedGenerateJson, events);
     const languageProjection = assessTargetLanguagePresence({
       courseIdentity: courseName,
       sourceText: JSON.stringify(promptLesson || {}),
