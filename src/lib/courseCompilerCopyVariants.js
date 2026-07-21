@@ -81,17 +81,32 @@ export function compactAssignmentBriefBodyReferences({ brief = {}, lesson = {}, 
       ? titleRemainder
       : fallbackArtifact;
   const shortArtifact = stripTerminalPunctuation(rawArtifact.split(/\s*[:;–—]\s*/)[0]);
+  const canonicalLead = stripTerminalPunctuation(canonicalTitle.split(/\s*[:;–—]\s*/)[0]);
   const genre = stripTerminalPunctuation(
     cleanText(lesson?.artifactGenre?.label || lesson?.artifactGenre?.genre || brief?.assignmentType || 'assignment'),
   );
+  const weekNumber =
+    Number(lesson?.lessonNumber) ||
+    Number(cleanText(brief?.dueWeek).match(/\bweek\s+(\d+)\b/i)?.[1]) ||
+    Number(cleanText(shortArtifact).match(/^week\s+(\d+)\b/i)?.[1]) ||
+    0;
+  const artifactWithoutWeek = stripTerminalPunctuation(shortArtifact.replace(/^week\s+\d+\s*/i, ''));
+  const artifactRepeatsCanonicalLead =
+    cleanText(artifactWithoutWeek).toLowerCase() === cleanText(canonicalLead).toLowerCase();
+  const genericAssessmentAlias =
+    artifactRepeatsCanonicalLead &&
+    /\b(?:application check|evidence check|transfer task|exit note|course decision|visible product)\b/i.test(
+      artifactWithoutWeek,
+    );
   const artifactLabel =
-    shortArtifact && courseCopySurfaceWords(shortArtifact).length <= 6 ? shortArtifact : genre || 'assignment';
-  const week = Number.isFinite(Number(lesson?.lessonNumber)) ? `Week ${lesson.lessonNumber}` : '';
+    artifactWithoutWeek && courseCopySurfaceWords(artifactWithoutWeek).length <= 6 && !genericAssessmentAlias
+      ? artifactWithoutWeek
+      : genre || 'assignment';
+  const week = weekNumber > 0 ? `Week ${weekNumber}` : '';
   const shortReference =
     week && !new RegExp(`^${escapeRegexLiteral(week)}\\b`, 'i').test(artifactLabel)
       ? `${week} ${artifactLabel.charAt(0).toLowerCase()}${artifactLabel.slice(1)}`
       : artifactLabel;
-  const canonicalLead = stripTerminalPunctuation(canonicalTitle.split(/\s*[:;–—]\s*/)[0]);
   const aliases = unique(
     [
       week && canonicalTitle ? `${week} ${canonicalTitle}` : '',
