@@ -700,7 +700,7 @@ describe('B1 — buildRibbonModel selector', () => {
           detail: 'passBudget:lesson-2 bounded [5/5-calls-used-before-keyTermAdmission]',
         },
       ]),
-    ).toBe('Quality call budget reached · continuing safely');
+    ).toBe('Lesson checks complete · compiling locally');
     expect(
       latestKnowledgeActivity([
         { type: 'pipelineDecision', label: 'Scion pass call', detail: 'key_term_admission_batch' },

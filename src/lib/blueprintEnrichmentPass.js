@@ -1427,6 +1427,7 @@ export function buildLessonKernelPrompt(courseMap, lessonIndices, options = {}) 
   const systemPrompt = [
     LESSON_CONTENT_SYSTEM_PROMPT,
     `For every lesson in the request, return one knowledge kernel: 5-8 facts, ${keyTermsPerLesson} keyTerms, one scenario, one discussionPrompt, one assignmentCore, one studyGuide block, and exactly ${mcCount} mc items.`,
+    "Every fact must explain this requested lesson's own title, topics, or objective. Never copy facts from an earlier or later lesson merely to reach the fact count; a true fact about the course is still invalid when it does not belong to the requested lesson.",
     `The mc items follow this cognitive plan (matching list order): ${itemPlan
       .filter((slot) => slot.type === 'multiple_choice')
       .map((slot) => `${slot.bloom} (${slot.note})`)

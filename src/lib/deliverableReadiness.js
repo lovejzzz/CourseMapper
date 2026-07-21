@@ -830,15 +830,21 @@ const UX_DESIGN_COURSE_MAP_RE =
 // ("Trace Python code using Linear equations", "Python interpreter or
 // notebook" as required technology; the July 2026 field audit's worst P0).
 // The profile now needs an UNAMBIGUOUS signal; weak tokens only count when
-// at least two distinct ones appear alongside a mention of code.
+// at least two distinct ones appear alongside a mention of code. Python and
+// "coding" are not unambiguous by themselves: research-methods courses use
+// Python notebooks as instruments and qualitative coding is not software
+// development. Treat those as programming only when the surrounding text
+// names an actual software-building practice.
 const COMPUTER_SCIENCE_STRONG_RE =
-  /\b(?:computer\s+science|python\b|programming|coding|software\s+(?:engineering|development)|algorithms?\b|data\s+structures?|debugging|file\s+(?:input|output|i\/o)|final\s+python\s+project|source\s+code|pseudocode)\b/i;
+  /\b(?:computer\s+science|programming|software\s+(?:engineering|development)|algorithms?\b|data\s+structures?|debugging|file\s+(?:input|output|i\/o)|final\s+python\s+project|source\s+code|pseudocode|coding\s+(?:lab|course|exercise|project|assignment|challenge))\b/i;
+const PYTHON_PROGRAMMING_CONTEXT_RE =
+  /\b(?:introduction\s+to\s+python|python\s+(?:programming|fundamentals|basics|course|code|script|application|project)|(?:write|run|debug|test|refactor|execute)\s+(?:a\s+)?python\s+(?:program|script|code)|python\s+(?:function|class|module|package|syntax))\b/i;
 const COMPUTER_SCIENCE_WEAK_RE =
   /\b(?:variables?|data\s+types?|conditionals?|loops?|functions?|lists?|dictionar(?:y|ies)|strings?|testing)\b/gi;
 const COMPUTER_SCIENCE_COURSE_MAP_RE = {
   test(context) {
     const text = String(context || '');
-    if (COMPUTER_SCIENCE_STRONG_RE.test(text)) return true;
+    if (COMPUTER_SCIENCE_STRONG_RE.test(text) || PYTHON_PROGRAMMING_CONTEXT_RE.test(text)) return true;
     const weakHits = new Set((text.match(COMPUTER_SCIENCE_WEAK_RE) || []).map((hit) => hit.toLowerCase()));
     return weakHits.size >= 2 && /\bcode\b/i.test(text);
   },
@@ -1307,9 +1313,22 @@ function getCourseMapFallbackValue(key, courseMap, lesson, section, lessonIndex)
   const sectionNumberMatch = text(section?.topicSection).match(/^\s*\d+\.(\d+)/);
   const inferredSectionIndex = sectionNumberMatch ? Math.max(0, Number(sectionNumberMatch[1]) - 1) : 0;
   const directSectionIndex = sections.indexOf(section);
-  const sectionIndex = directSectionIndex >= 0 ? directSectionIndex : inferredSectionIndex;
+  const matchedSectionIndex = sections.findIndex(
+    (candidate) => text(candidate?.topicSection) && text(candidate?.topicSection) === text(section?.topicSection),
+  );
+  const sectionIndex =
+    directSectionIndex >= 0
+      ? directSectionIndex
+      : matchedSectionIndex >= 0
+        ? matchedSectionIndex
+        : inferredSectionIndex;
   const variantIndex = (Number(lessonIndex) || 0) * Math.max(1, sections.length) + sectionIndex;
   const pick = (variants) => variants[variantIndex % variants.length];
+  // One lesson-level submitted task is enough. Missing assessment cells in
+  // later sections are formative checks, not new graded artifacts. Naming
+  // that intent here keeps a late CourseMap→Graph derivation from promising
+  // two extra assignment briefs the compiler never scheduled.
+  const formativeAssessmentPrefix = sectionIndex > 0 ? 'In-class ' : '';
   const profile = inferCourseMapFallbackProfile(courseMap, lesson, section);
   const fieldFallbacks =
     profile === 'history'
@@ -1338,10 +1357,10 @@ function getCourseMapFallbackValue(key, courseMap, lesson, section, lessonIndex)
                       `Analyze an example using ${topic} and name one limitation or open question.`,
                     ]),
                     weeklyAssessments: pick([
-                      `${displayCourseMapTopic(topic)} application check: choose evidence that supports one course decision.`,
-                      `${displayCourseMapTopic(topic)} transfer task: explain one example, one source detail, and one limitation.`,
-                      `${displayCourseMapTopic(topic)} exit note connecting the activity to one visible product.`,
-                      `${displayCourseMapTopic(topic)} short response that names the claim, example, and next question.`,
+                      `${formativeAssessmentPrefix}${displayCourseMapTopic(topic)} evidence check: state one supported, bounded conclusion.`,
+                      `${formativeAssessmentPrefix}Apply ${displayCourseMapTopic(topic)} to one example and name one limitation.`,
+                      `${formativeAssessmentPrefix}${displayCourseMapTopic(topic)} exit reflection: connect evidence to the lesson task.`,
+                      `${formativeAssessmentPrefix}${displayCourseMapTopic(topic)} short analysis: claim, evidence, and next question.`,
                     ]),
                     asyncActivities: pick([
                       `Annotate the instructor-provided resource for ${topic} and bring one usable example.`,
@@ -1367,10 +1386,10 @@ function getCourseMapFallbackValue(key, courseMap, lesson, section, lessonIndex)
                       'Opening question, structured practice, and a closing artifact review.',
                     ]),
                     supportingResources: pick([
-                      `Source excerpt, example, or activity prompt aligned to ${topic}.`,
-                      `Short resource excerpt, model response, or practice handout for ${topic}.`,
-                      `Course example and response guide students can use to explain ${topic}.`,
-                      `Activity prompt, reference note, and feedback guide connected to ${topic}.`,
+                      `Instructor-selected ${topic} reading or evidence excerpt with an activity prompt.`,
+                      `Short ${topic} reading, worked model, or practice handout.`,
+                      `${topic} worked example and response guide for student reference.`,
+                      `${topic} activity directions, reference note, and feedback guide.`,
                     ]),
                     evaluateDesign: pick([
                       `Check that the ${topic} resource, activity, and assessment all ask for one visible product.`,

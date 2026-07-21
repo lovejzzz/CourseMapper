@@ -221,6 +221,40 @@ describe('ExportSidePanel readiness repair timing', () => {
     expect(container.querySelector('[data-testid="export-download-zip"]')?.disabled).toBe(false);
   });
 
+  it('portals the quality report to the viewport instead of clipping it inside the export panel', async () => {
+    await renderPanel({
+      courseMapInput: cleanCourseMap,
+      preferPackageScope: true,
+      packageQualityPass: {
+        status: 'ready',
+        blockers: 0,
+        warnings: 0,
+        receipt: { exportWarningCount: 0 },
+        quality: {
+          status: 'graded',
+          score: 96,
+          grade: 'A',
+          graderVersion: '1.10.27',
+          findingCounts: { p0: 0, p1: 1, p2: 0 },
+          findings: [{ id: 'one', severity: 'P1', dimension: 'citations', detail: 'Review one citation.' }],
+          dimensions: { citations: 90, structure: 100 },
+        },
+      },
+    });
+
+    await act(async () => {
+      container
+        .querySelector('[data-testid="quality-stamp"]')
+        ?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+
+    const modal = document.body.querySelector('[data-testid="quality-report-modal"]');
+    expect(modal).not.toBeNull();
+    expect(modal?.parentElement).toBe(document.body);
+    expect(container.querySelector('[data-testid="quality-report-modal"]')).toBeNull();
+    expect(modal?.textContent).toContain('Package quality — 96/100 (A)');
+  });
+
   it('names the ZIP preparation work while the package is being assembled', async () => {
     downloadCourseMaterialsZip.mockImplementationOnce(() => new Promise(() => {}));
     await renderPanel({
@@ -248,6 +282,8 @@ describe('ExportSidePanel readiness repair timing', () => {
 
     expect(zipButton?.textContent).toContain('Preparing ZIP…');
     expect(zipButton?.disabled).toBe(true);
+    expect(zipButton?.getAttribute('aria-busy')).toBe('true');
+    expect(container.textContent).toContain('Assembling the verified course files locally');
   });
 
   it('blocks ZIP download when the finish receipt records an export verification failure', async () => {
@@ -289,7 +325,9 @@ describe('ExportSidePanel readiness repair timing', () => {
     await act(async () => {
       zipButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     });
-    await act(async () => {});
+    await act(async () => {
+      await vi.runAllTimersAsync();
+    });
 
     expect(downloadCourseMaterialsZip).not.toHaveBeenCalled();
   });
@@ -345,7 +383,9 @@ describe('ExportSidePanel readiness repair timing', () => {
     await act(async () => {
       zipButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     });
-    await act(async () => {});
+    await act(async () => {
+      await vi.runAllTimersAsync();
+    });
 
     expect(onFinishPackage).not.toHaveBeenCalled();
     expect(downloadCourseMaterialsZip).toHaveBeenCalledTimes(1);
@@ -385,7 +425,9 @@ describe('ExportSidePanel readiness repair timing', () => {
     await act(async () => {
       zipButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     });
-    await act(async () => {});
+    await act(async () => {
+      await vi.runAllTimersAsync();
+    });
 
     expect(downloadCourseMaterialsZip).toHaveBeenCalledTimes(1);
     const readiness = downloadCourseMaterialsZip.mock.calls[0][0].readiness;

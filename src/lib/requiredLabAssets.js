@@ -154,6 +154,40 @@ function collectAnatomyPhysiologyAssets() {
 }
 
 function collectWetLabAssets(text) {
+  if (/\b(?:genetic\w*|genom\w*|meiosis|model[- ]organism|phenotype|allele|dna|rna)\b/i.test(text)) {
+    return [
+      {
+        id: 'model-organism-materials',
+        label: 'Model-organism materials and source sheet',
+        formats: ['physical', '.pdf'],
+        note: 'Name the approved organism, strain or sample source, handling conditions, and the exact traits students observe.',
+      },
+      {
+        id: 'genetics-lab-protocols',
+        label: 'Genetics investigation protocols',
+        formats: ['.docx', '.pdf'],
+        note: 'Attach the microscopy, phenotype-counting, crossing, or simulation procedure used in each investigation.',
+      },
+      {
+        id: 'genetics-observation-tools',
+        label: 'Microscopy or phenotype-observation tools',
+        formats: ['physical', 'app'],
+        note: 'Provide the microscope, approved image set, counting tool, or simulator the course actually uses.',
+      },
+      {
+        id: 'lab-safety',
+        label: 'Organism handling and lab safety briefing',
+        formats: ['physical', '.pdf'],
+        note: 'State PPE, containment, cleanup, disposal, and institution-specific handling rules before physical lab work begins.',
+      },
+      {
+        id: 'genetics-data-sheet',
+        label: 'Phenotype and genotype data sheet',
+        formats: ['.xlsx', '.csv', '.docx'],
+        note: 'Give students a structured place to record counts, calculate ratios or frequencies, and distinguish observations from interpretations.',
+      },
+    ];
+  }
   return [
     {
       id: 'specimen-kit',

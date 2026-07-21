@@ -217,4 +217,46 @@ describe('buildDeliverableDocxBlob', () => {
     expect(text).toContain('ANSWER A defensible position');
     expect(text).not.toContain('ANSWERA defensible position');
   });
+
+  it('prints exact assigned-reading identities in quiz and study-guide DOCX files', async () => {
+    const reading = 'Textbook Chapter: DNA Structure and Replication';
+    const quizBlob = await buildDeliverableDocxBlob(
+      'quizBank',
+      {
+        quizzes: [
+          {
+            lessonTitle: 'Lesson 3: DNA Structure and Replication',
+            assignedReadings: [reading],
+            questions: [{ type: 'short_answer', question: 'Explain replication.', answer: 'Use source evidence.' }],
+          },
+        ],
+      },
+      'Introduction to Genetics',
+    );
+    const guideBlob = await buildDeliverableDocxBlob(
+      'studyGuides',
+      {
+        studyGuides: [
+          {
+            lessonTitle: 'Lesson 3: DNA Structure and Replication',
+            assignedReadings: [reading],
+            summary: 'Connect nucleotide structure to semi-conservative replication.',
+          },
+        ],
+      },
+      'Introduction to Genetics',
+    );
+
+    const quizText = (
+      await extractedDocxParagraphs(quizBlob, 'Quiz & Exam Bank/Lesson 03 - DNA Structure and Replication.docx')
+    ).join('\n');
+    const guideText = (
+      await extractedDocxParagraphs(guideBlob, 'Study Guides/Lesson 03 - DNA Structure and Replication.docx')
+    ).join('\n');
+
+    expect(quizText).toContain(`Assigned Reading: ${reading}`);
+    expect(guideText).toContain(reading);
+    expect(quizText).not.toContain('the DNA Structure Replication focus');
+    expect(guideText).not.toContain('the DNA Structure Replication focus');
+  });
 });

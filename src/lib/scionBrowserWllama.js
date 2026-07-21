@@ -91,7 +91,13 @@ function runtimeError(code, message, cause) {
 }
 
 function isFatalWllamaError(error, signal) {
-  if (signal?.aborted || error?.name === 'AbortError') return false;
+  // Only the caller's signal means the user actually stopped the course.
+  // llama.cpp can also surface an AbortError when its worker stops internally
+  // (sometimes with an empty message). Treat that as a recoverable runtime
+  // failure so the cached model is restarted instead of canceling every
+  // lesson queued behind the failed completion.
+  if (signal?.aborted) return false;
+  if (error?.name === 'AbortError') return true;
   return /(?:received abort signal from llama\.cpp|cannot find waiting task with callbackid|null function|runtimeerror:\s*unreachable)/i.test(
     String(error?.message || error || ''),
   );
@@ -225,7 +231,7 @@ export async function loadScionBrowserWllama({
             message:
               total > 0
                 ? progress >= 1
-                  ? 'Public Gemma 4 base ready · loading Scion…'
+                  ? 'Model download complete · preparing Scion…'
                   : `Downloading the public Gemma 4 base (${Math.floor(progress * 100)}%)…`
                 : status.message,
           },

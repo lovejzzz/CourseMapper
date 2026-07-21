@@ -292,6 +292,48 @@ describe('3.2 — compiler consumes the registry (Geology)', () => {
     expect(titles.some((title) => /and map activity/i.test(title))).toBe(false);
   });
 
+  it('does not borrow another lesson assignment when a registry lesson has only an in-class check', () => {
+    const map = {
+      courseName: 'Genetics Lab',
+      lessons: [
+        {
+          title: 'Lesson 1: Mendelian Inheritance Basics',
+          sections: [
+            {
+              topicSection: '1.1: Mendelian Inheritance Basics',
+              learningObjectives: 'Apply Mendelian ratios to one cross.',
+              weeklyAssessments: 'Inheritance problem set',
+              supportingResources: 'Genetics problem packet',
+            },
+          ],
+        },
+        {
+          title: 'Lesson 2: Meiosis and Gamete Formation',
+          sections: [
+            {
+              topicSection: '2.1: Meiosis and Gamete Formation',
+              learningObjectives: 'Explain how meiosis produces gametes.',
+              weeklyAssessments: 'Quick evidence check: compare two gamete outcomes.',
+              supportingResources:
+                'Constraint: confirm local timing, modality, accessibility, source permissions, and grading policy before publishing.',
+            },
+          ],
+        },
+      ],
+    };
+    const graph = deriveCourseGraphFromCourseMap(map);
+    const blueprint = buildBlueprintFromGraph(graph);
+    const plans = compileBlueprintDeliverables(blueprint, ['lessonPlans']).lessonPlans.lessonPlans;
+    const second = plans[1];
+
+    expect(graph.assessments.find((entry) => entry.dueSession === 2)?.kind).toBe('in-class');
+    expect(second.homework.title).toMatch(/retrieval notes/i);
+    expect(second.homework.description).toMatch(/not a separate submission/i);
+    expect(second.weeklySubmissionCriteria).toMatch(/no separate take-home submission/i);
+    expect(JSON.stringify(second.materials)).not.toMatch(/constraint:|before publishing/i);
+    expect(JSON.stringify(second.homework)).not.toContain('Inheritance problem set');
+  });
+
   it('ships no fused interior-lowercase titles anywhere in briefs, rubrics, or the grading table', () => {
     const surfaces = [
       ...compiled.assignments.assignments.map((brief) => brief.title),
@@ -645,6 +687,28 @@ describe('3.3d — package manifest carries the registry; per-lesson files route
     // Weight metadata rides along.
     expect(byId.get('A7.3').weightPct).toBeGreaterThan(0);
   }, 120000);
+});
+
+describe('registry reconciliation after compact storage', () => {
+  it('rebuilds a healthy-looking native subset when the canonical registry promises more artifacts', () => {
+    const graph = deriveCourseGraphFromCourseMap(geologyCourseMap());
+    const complete = buildBlueprintFromGraph(graph);
+    const retainedLessonNumbers = new Set();
+    const incompleteNativeSubset = complete.assessments.filter((assessment) => {
+      const lessonNumber = assessment.lessonNumbers?.[0];
+      if (retainedLessonNumbers.has(lessonNumber)) return false;
+      retainedLessonNumbers.add(lessonNumber);
+      return true;
+    });
+    const compact = compactBlueprintForStorage({ ...complete, assessments: incompleteNativeSubset });
+    const compiled = compileBlueprintDeliverables(compact, ['assignments']);
+    const expectedBriefIds = complete.assessments
+      .filter((assessment) => assessment.kind !== 'exam')
+      .map((assessment) => assessment.registryId)
+      .sort();
+
+    expect(compiled.assignments.assignments.map((brief) => brief.assessmentId).sort()).toEqual(expectedBriefIds);
+  });
 });
 
 // ── (7) 4.7 — expert-slide recap variant on repeat concepts ────────────────

@@ -95,7 +95,7 @@ describe('deep quality package structure', () => {
     });
 
     expect(result.findings.some((finding) => /classroom clock/i.test(finding.detail))).toBe(false);
-    expect(GRADER_VERSION).toBe('1.10.26');
+    expect(GRADER_VERSION).toBe('1.10.27');
   });
 
   it('treats typed-object leaks and mirrored assessment identities as scored export defects', async () => {
@@ -122,6 +122,109 @@ describe('deep quality package structure', () => {
       expect.arrayContaining([
         expect.objectContaining({ severity: 'P0', detail: expect.stringContaining('structured object coerced') }),
         expect.objectContaining({ severity: 'P1', detail: expect.stringContaining('assessment title repeated') }),
+      ]),
+    );
+  });
+
+  it('blocks a manifest-promised assignment whose document is only a no-brief handoff', async () => {
+    const assignmentPath = 'Assignment Briefs/Lesson 01 - Mendelian Inheritance - Assignment Briefs.txt';
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          lessonScope: [1],
+          readiness: { status: 'ready', blockers: 0 },
+          assessments: [
+            {
+              id: 'A1.2',
+              title: 'Monohybrid Cross Analysis',
+              kind: 'graded-artifact',
+              lesson: 1,
+              artifact: assignmentPath,
+            },
+          ],
+          files: [{ path: assignmentPath, featureId: 'assignments' }],
+        }),
+        [assignmentPath]: [
+          'No standalone assignment brief scheduled',
+          'Status: No submitted assignment brief was generated for this lesson in the current package.',
+          'Course Map L1',
+        ].join('\n'),
+      }),
+      course: { title: 'Introduction to Genetics', featureIds: ['assignments'] },
+      honesty: { pipeline: { judgment: 'compiler-verified fixture' } },
+    });
+
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          severity: 'P0',
+          detail: expect.stringContaining('contains a no-brief handoff'),
+        }),
+      ]),
+    );
+  });
+
+  it('flags a brief that stamps its full lesson title through the student-facing body', async () => {
+    const assignmentPath = 'Assignment Briefs/Lesson 02 - Meiosis and Gamete Formation - Assignment Briefs.txt';
+    const repeatedTitle = 'Meiosis and Gamete Formation';
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          lessonScope: [2],
+          readiness: { status: 'ready', blockers: 0 },
+          files: [{ path: assignmentPath, featureId: 'assignments' }],
+        }),
+        [assignmentPath]: [
+          'Course Map L2',
+          ...Array.from({ length: 10 }, (_, index) => `${repeatedTitle} instruction ${index + 1} uses evidence.`),
+        ].join('\n'),
+      }),
+      course: { title: 'Introduction to Genetics', featureIds: ['assignments'] },
+      honesty: { pipeline: { judgment: 'compiler-verified fixture' } },
+    });
+
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          severity: 'P2',
+          dimension: 'texture',
+          detail: expect.stringContaining('mail-merge texture'),
+        }),
+      ]),
+    );
+  });
+
+  it('flags repeated lesson-plan titles and compiler constraints leaked as materials', async () => {
+    const lessonPath = 'Lesson Plans/Lesson 01 - Mendelian Inheritance Basics - Lesson Plans.txt';
+    const repeatedTitle = 'Mendelian Inheritance Basics';
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          lessonScope: [1],
+          readiness: { status: 'ready', blockers: 0 },
+          files: [{ path: lessonPath, featureId: 'lessonPlans' }],
+        }),
+        [lessonPath]: [
+          ...Array.from({ length: 14 }, (_, index) => `${repeatedTitle} teaching move ${index + 1}.`),
+          'Constraint: Review local grading policy before publishing.',
+        ].join('\n'),
+      }),
+      course: { title: 'Introduction to Genetics', featureIds: ['lessonPlans'] },
+      honesty: { pipeline: { judgment: 'compiler-verified fixture' } },
+    });
+
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          severity: 'P2',
+          dimension: 'texture',
+          detail: expect.stringContaining('lesson plan repeats its full lesson title'),
+        }),
+        expect.objectContaining({
+          severity: 'P1',
+          dimension: 'substance',
+          detail: expect.stringContaining('internal compiler constraint'),
+        }),
       ]),
     );
   });

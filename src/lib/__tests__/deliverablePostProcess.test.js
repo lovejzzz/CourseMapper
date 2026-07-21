@@ -511,6 +511,9 @@ describe('Course FAQ post-processing', () => {
     const technicalAnswers = fallback.faqs.map(
       (lesson) => lesson.qs.find((question) => question.ca === 'Technical Help')?.an || '',
     );
+    const technicalQuestions = fallback.faqs.map(
+      (lesson) => lesson.qs.find((question) => question.ca === 'Technical Help')?.q || '',
+    );
     const assessmentActions = fallback.faqs.map(
       (lesson) => lesson.qs.find((question) => question.ca === 'Assessment Prep' && question.sa)?.sa || '',
     );
@@ -518,6 +521,9 @@ describe('Course FAQ post-processing', () => {
 
     expect(fallback.faqs.every((lesson) => lesson.qs.length === 8)).toBe(true);
     expect(new Set(technicalAnswers).size).toBeGreaterThanOrEqual(3);
+    expect(
+      new Set(technicalQuestions.map((question) => question.replace(/Studio Decision \d+/g, '[lesson]'))).size,
+    ).toBe(4);
     expect(new Set(assessmentActions).size).toBeGreaterThanOrEqual(4);
     expect(text).not.toMatch(/return to the assigned learning materials/i);
     expect(text).not.toMatch(/carry forward the vocabulary, examples, and evidence habits/i);

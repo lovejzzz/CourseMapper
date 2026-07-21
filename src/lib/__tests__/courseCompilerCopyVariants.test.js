@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   assignmentSelfAssessmentEvidenceCheck,
   compactAssignmentBriefBodyReferences,
+  compactRepeatedCourseFocusReferences,
+  examAtomPaddingOptions,
 } from '../courseCompilerCopyVariants';
 import { examFactCopy } from '../courseCompilerPolish';
 import { isAppliedQuizStem } from '../quality/quizItemDepth';
@@ -51,6 +53,77 @@ describe('course compiler copy variants', () => {
     expect(result.title).toBe(canonicalTitle);
     expect(body).not.toContain(longBodyAlias);
     expect(body).toContain('Week 3 memo');
+  });
+
+  it('keeps assignment identity visible without stamping the full lesson title through the body', () => {
+    const focus = 'Meiosis and Gamete Formation';
+    const result = compactAssignmentBriefBodyReferences({
+      brief: {
+        title: 'Stages of Meiosis short analysis',
+        dueWeek: 'Week 2',
+        assignmentType: 'Analysis log',
+        overview: `${focus} asks students to connect ${focus} evidence to a decision.`,
+        instructions: [
+          `Review the ${focus} materials.`,
+          `Choose evidence for ${focus}.`,
+          `Trace the ${focus} reasoning and qualify the ${focus} claim.`,
+          `Organize the response around ${focus}.`,
+        ],
+        gradingCriteria: [`Source-backed ${focus} reasoning`, `${focus} evidence quality`],
+      },
+      lesson: { lessonNumber: 2 },
+      fullFocus: focus,
+      fallbackArtifact: 'Week 2 analysis',
+    });
+
+    const body = JSON.stringify([result.overview, result.instructions, result.gradingCriteria]);
+    expect((body.match(/Meiosis and Gamete Formation/g) || []).length).toBeLessThanOrEqual(4);
+    expect(body).toContain('Meiosis Gamete Formation–specific reasoning');
+    expect(body).toContain('the Meiosis Gamete Formation work');
+    expect(result.title).toBe('Stages of Meiosis short analysis');
+  });
+
+  it('compacts repeated lesson-plan focus while preserving grammatical course-material references', () => {
+    const focus = 'Mendelian Inheritance Basics';
+    const result = compactRepeatedCourseFocusReferences(
+      {
+        opening: `${focus} introduces the model. ${focus} gives students a shared vocabulary.`,
+        source: `${focus} course materials support the first claim.`,
+        practice: [`Review ${focus}.`, `Use evidence from ${focus}.`, `Revise the ${focus} reasoning.`],
+      },
+      focus,
+      { limit: 2 },
+    );
+
+    const text = JSON.stringify(result);
+    expect((text.match(/Mendelian Inheritance Basics/g) || []).length).toBe(2);
+    expect(result.source).toContain("Mendelian Inheritance lesson's course materials");
+    expect(result.practice.join(' ')).toContain('the Mendelian Inheritance work');
+    expect(result.practice.join(' ')).toContain('Mendelian Inheritance–specific reasoning');
+  });
+
+  it('does not hide a full three-word title inside every compact replacement', () => {
+    const focus = 'DNA Structure Fundamentals';
+    const result = compactRepeatedCourseFocusReferences(
+      {
+        materials: [`the ${focus} materials`, `${focus} preparation brief`, `${focus} notes`, `${focus} source packet`],
+        teaching: [
+          `Use the ${focus} focus to frame the example.`,
+          `Trace ${focus} evidence to a decision.`,
+          `Revise the ${focus} reasoning.`,
+          `Return to ${focus} for the final check.`,
+          `Close with the ${focus} focus.`,
+        ],
+      },
+      focus,
+      { limit: 2 },
+    );
+
+    const text = JSON.stringify(result);
+    expect((text.match(/DNA Structure Fundamentals/g) || []).length).toBe(2);
+    expect(text).toContain('DNA Structure–specific evidence');
+    expect(text).toContain('the DNA Structure focus');
+    expect(text).not.toContain('the the DNA Structure focus');
   });
 
   it('turns generic rubric echoes into complete student self-checks', () => {
@@ -116,5 +189,19 @@ describe('course compiler copy variants', () => {
 
     expect(new Set(questions).size).toBe(4);
     expect(questions[0]).toContain('lab team');
+  });
+
+  it('keeps compound and plural concept labels grammatical in padded quiz options', () => {
+    const options = examAtomPaddingOptions({
+      concept: 'Dominant and recessive alleles',
+      lessonFocus: 'Mendelian inheritance',
+      sourceCue: 'the assigned lesson evidence',
+      lessonNumber: 1,
+      questionIndex: 0,
+    });
+    const text = options.join(' ');
+
+    expect(text).toContain('the phrase “Dominant and recessive alleles”');
+    expect(text).not.toMatch(/Dominant and recessive alleles (?:is|covers|requires|needs)\b/i);
   });
 });

@@ -138,7 +138,12 @@ export function classifyError(error, context = {}) {
     };
   }
 
-  if (lower.includes('readiness') || lower.includes('quality') || lower.includes('coverage')) {
+  if (
+    lower.includes('readiness') ||
+    lower.includes('quality') ||
+    lower.includes('coverage') ||
+    /course map generation stopped at \d+ of \d+ lessons/.test(lower)
+  ) {
     return {
       failureClass: FAILURE_CLASSES.QUALITY,
       statusCode,

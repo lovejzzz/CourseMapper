@@ -59,7 +59,7 @@ export async function runNativeSkeletonGenerationFlow(input = [], output = []) {
     // required, concise titles directed.
     let skeletonSystemPrompt = nativeSkeletonPrompts.NATIVE_SKELETON_SYSTEM_PROMPT;
     let skeletonSchema = null;
-    if (provider === 'local' && detected?.expected) {
+    if ((provider === 'local' || provider === 'public') && detected?.expected) {
       const contracts = await import('./scionContracts.js');
       skeletonSchema = contracts.skeletonSchemaProfile({ sessionCount: detected.expected });
       skeletonSystemPrompt += contracts.SCION_SKELETON_DIRECTIVE;

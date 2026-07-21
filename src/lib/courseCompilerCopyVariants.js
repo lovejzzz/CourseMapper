@@ -68,6 +68,76 @@ function compactAssignmentBriefBodyValue(value, fullFocus, aliases) {
   );
 }
 
+function compactRepeatedLessonFocus(value, fullFocus, state) {
+  if (typeof value === 'string') {
+    const focus = cleanText(fullFocus);
+    if (!focus) return value;
+    return value.replace(new RegExp(escapeRegexLiteral(focus), 'gi'), (match, offset, source) => {
+      state.count += 1;
+      // Keep a few explicit identity anchors near the beginning of the brief;
+      // after that, use grammatical local references instead of stamping the
+      // full lesson title through every instruction, criterion, and milestone.
+      if (state.count <= state.limit) return match;
+      const before = source.slice(Math.max(0, offset - 24), offset);
+      const after = source.slice(offset + match.length, offset + match.length + 28);
+      const topic = state.topicKeyword || 'lesson';
+      const determinerAlreadyPresent = /\b(?:a|an|the|this|that)\s*$/i.test(before);
+      if (/^\s+course materials\b/i.test(after)) return `${topic} lesson's`;
+      if (/^\s+(?:materials?|notes?|resources?|readings?|packet)\b/i.test(after)) return topic;
+      if (
+        /^\s+(?:evidence|reasoning|analysis|claim|decision|concept|detail|source|response|criteria|task|work)\b/i.test(
+          after,
+        )
+      ) {
+        return `${topic}${topic.includes(' ') ? '–' : '-'}specific`;
+      }
+      if (/(?:\bfor|\bin|\bfrom|\babout|\bon|\bof|\bto|\bwith|\busing|\baround)\s*$/i.test(before)) {
+        return `${determinerAlreadyPresent ? '' : 'the '}${topic} work`;
+      }
+      return `${determinerAlreadyPresent ? '' : 'the '}${topic} focus`;
+    });
+  }
+  if (Array.isArray(value)) return value.map((item) => compactRepeatedLessonFocus(item, fullFocus, state));
+  if (!value || typeof value !== 'object') return value;
+  return Object.fromEntries(
+    Object.entries(value).map(([key, child]) => [key, compactRepeatedLessonFocus(child, fullFocus, state)]),
+  );
+}
+
+export function compactRepeatedCourseFocusReferences(value, fullFocus, { limit = 6 } = {}) {
+  const focus = cleanText(fullFocus);
+  const wordCount = (focus.match(/[A-Za-z0-9][A-Za-z0-9'-]*/g) || []).length;
+  // Short labels such as "Usability testing" or "Policy Topic 1" are useful
+  // vocabulary, not the long mail-merge strings this reducer targets.
+  if (focus.length < 24 && wordCount < 5) return value;
+  const originalWords = focus.match(/[A-Za-z0-9][A-Za-z0-9'-]*/g) || [];
+  const filteredTopicSurfaces = courseCopySurfaceWords(focus).filter(
+    (word) =>
+      !/^(?:\d+|advanced|analy[sz]e|apply|basics?|blocks?|compare|cumulative|evaluate|explain|explore|foundations?|fundamentals?|introduc\w*|lessons?|methods?|modeling|modern|overview|principles?|process|projects?|review|sessions?|study|techniques?|theory|understand|units?|use|using|weeks?)$/.test(
+        word,
+      ),
+  );
+  const firstThreeTopicSurfaces = filteredTopicSurfaces.slice(0, 3);
+  // Never let the local reference equal a three-or-more-word lesson title.
+  // Otherwise a replacement such as "<full title>–specific" still counts
+  // as the exact mail-merge phrase in the exported DOCX. Preserve a useful
+  // three-word phrase when stop-word removal already makes it distinct;
+  // otherwise use two topic words.
+  const topicSurfaces =
+    firstThreeTopicSurfaces.join(' ').toLowerCase() === focus.toLowerCase()
+      ? firstThreeTopicSurfaces.slice(0, 2)
+      : firstThreeTopicSurfaces;
+  const topicKeyword =
+    topicSurfaces
+      .map((surface) => originalWords.find((word) => word.toLowerCase() === surface.toLowerCase()) || surface)
+      .join(' ') || 'lesson';
+  return compactRepeatedLessonFocus(value, focus, {
+    count: 0,
+    limit: Math.max(1, Number(limit) || 6),
+    topicKeyword,
+  });
+}
+
 function compactArtifactHeadReference(value, lessonNumber = 0) {
   const label = stripTerminalPunctuation(cleanText(value).split(/\s*[:;–—]\s*/)[0]).replace(/^week\s+\d+\s*/i, '');
   // Prefer the actual submission genre over a generic trailing noun. A long
@@ -82,6 +152,32 @@ function compactArtifactHeadReference(value, lessonNumber = 0) {
 
 export function compactAssignmentBriefBodyReferences({ brief = {}, lesson = {}, fullFocus, fallbackArtifact }) {
   const compacted = { ...brief };
+  const protectedReadingTitles = (Array.isArray(lesson?.instructorNamedReadings) ? lesson.instructorNamedReadings : [])
+    .map((title) => cleanText(title))
+    .filter(Boolean);
+  const transformProtectedReadings = (value, transform) => {
+    if (typeof value === 'string') return transform(value);
+    if (Array.isArray(value)) return value.map((item) => transformProtectedReadings(item, transform));
+    if (!value || typeof value !== 'object') return value;
+    return Object.fromEntries(
+      Object.entries(value).map(([key, child]) => [key, transformProtectedReadings(child, transform)]),
+    );
+  };
+  const readingMasks = protectedReadingTitles.map((title, index) => ({
+    title,
+    token: `__SCION_NAMED_READING_${index}__`,
+  }));
+  const maskProtectedReadings = (value) =>
+    transformProtectedReadings(value, (text) =>
+      readingMasks.reduce(
+        (masked, { title, token }) => masked.replace(new RegExp(escapeRegexLiteral(title), 'gi'), token),
+        text,
+      ),
+    );
+  const restoreProtectedReadings = (value) =>
+    transformProtectedReadings(value, (text) =>
+      readingMasks.reduce((restored, { title, token }) => restored.replaceAll(token, title), text),
+    );
   const canonicalTitle = stripTerminalPunctuation(cleanText(brief?.title));
   const titleRemainder = stripTerminalPunctuation(
     canonicalTitle.replace(new RegExp(`^${escapeRegexLiteral(fullFocus)}(?:\\s*[:–—-]\\s*|\\s+)`, 'i'), ''),
@@ -143,10 +239,21 @@ export function compactAssignmentBriefBodyReferences({ brief = {}, lesson = {}, 
   ).map((source) => [source, shortReference]);
   for (const field of ASSIGNMENT_BRIEF_BODY_FIELDS) {
     if (compacted[field] !== undefined) {
-      compacted[field] = compactAssignmentBriefBodyValue(compacted[field], fullFocus, aliases);
+      const dealiased = compactAssignmentBriefBodyValue(maskProtectedReadings(compacted[field]), fullFocus, aliases);
+      compacted[field] = dealiased;
     }
   }
-  return compacted;
+  const compactedBody = Object.fromEntries(
+    ASSIGNMENT_BRIEF_BODY_FIELDS.filter((field) => compacted[field] !== undefined).map((field) => [
+      field,
+      compacted[field],
+    ]),
+  );
+  // Two prose anchors are enough once the heading, related-lesson identity,
+  // and named reading remain exact. Four body mentions still crossed the
+  // rendered mail-merge threshold after the filename and identities counted.
+  const reducedBody = compactRepeatedCourseFocusReferences(compactedBody, fullFocus, { limit: 2 });
+  return { ...compacted, ...restoreProtectedReadings(reducedBody) };
 }
 
 const GENERIC_SELF_ASSESSMENT_SIGNAL_RE =
@@ -189,29 +296,29 @@ export function examUnderstandCorrectText({ concept, lessonFocus, variant = 0 })
 
 const EXAM_ATOM_PADDING_TEMPLATES = [
   ({ concept, lessonFocus }) =>
-    `${sentenceCase(concept)} covers every idea in ${lessonFocus}, so evidence never changes how it should be applied.`,
+    `The phrase “${concept}” is treated as covering every idea in ${lessonFocus}, so evidence never changes how it should be applied.`,
   ({ concept, sourceCue }) =>
-    `${sentenceCase(concept)} is determined by the first example in ${sourceCue}, even when later evidence contradicts it.`,
+    `The first example in ${sourceCue} is treated as determining the meaning of ${concept}, even when later evidence contradicts it.`,
   ({ concept, lessonFocus }) =>
-    `Once ${concept} is named in ${lessonFocus}, its meaning can be carried into any context without checking limits.`,
+    `Once the phrase “${concept}” appears in ${lessonFocus}, its meaning is carried into any context without checking limits.`,
   ({ concept, lessonFocus }) =>
-    `${sentenceCase(concept)} requires no distinction among claims in ${lessonFocus}; every example supports it equally.`,
+    `Using the phrase “${concept}” requires no distinction among claims in ${lessonFocus}; every example supports it equally.`,
   ({ concept, lessonFocus }) =>
     `Any mention of ${lessonFocus} demonstrates ${concept}, even when the source offers no relevant evidence.`,
   ({ concept, sourceCue }) =>
-    `${sentenceCase(concept)} stays correct whenever the same wording appears in ${sourceCue}, regardless of the claim being tested.`,
+    `An interpretation of ${concept} stays correct whenever the same wording appears in ${sourceCue}, regardless of the claim being tested.`,
   ({ concept, lessonFocus }) =>
     `Treating ${concept} as a label is sufficient for ${lessonFocus}; no relationship needs to be explained.`,
   ({ concept, sourceCue }) =>
     `${sentenceCase(sourceCue)} makes every ${concept} interpretation equally defensible, even when the interpretations conflict.`,
   ({ concept, lessonFocus }) =>
-    `A claim about ${lessonFocus} counts as ${concept} evidence merely because it uses the course vocabulary.`,
+    `A claim about ${lessonFocus} counts as evidence for ${concept} merely because it uses the course vocabulary.`,
   ({ concept, sourceCue }) =>
     `${sentenceCase(concept)} can be applied before examining ${sourceCue}; source details cannot alter the conclusion.`,
   ({ concept, lessonFocus }) =>
     `The broadest statement about ${lessonFocus} is always the strongest use of ${concept}.`,
   ({ concept, lessonFocus }) =>
-    `${sentenceCase(concept)} needs only a familiar ${lessonFocus} example, not a reason connecting it to the question.`,
+    `A familiar ${lessonFocus} example is treated as enough to apply ${concept}, without a reason connecting it to the question.`,
 ];
 
 export function examAtomPaddingOptions({ concept, lessonFocus, sourceCue, lessonNumber, questionIndex }) {

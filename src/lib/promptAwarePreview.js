@@ -21,15 +21,22 @@ export function derivePromptPreviewTitle(promptText) {
   const text = clean(promptText);
   if (!text) return 'Your course';
 
+  // Explicit title syntax outranks later quoted resources. A brief such as
+  // `course titled Introduction to Genetics ... reading “Textbook Chapter:
+  // DNA Structure”` must show the course identity from the first frame, not
+  // temporarily promote the last quoted reading into the workspace header.
+  const explicitlyNamedCourse = text.match(
+    /\b(?:course|class|seminar|workshop)\s+(?:called|titled|named)\s+["“]?([^"”,.;!?]{4,90})["”]?/i,
+  );
+  if (explicitlyNamedCourse?.[1]) return removeBriefQualifiers(explicitlyNamedCourse[1]);
+
   // Straight apostrophes are word punctuation, not a safe title delimiter:
   // “Faraday's law … Maxwell's equations” otherwise looks like one quoted
   // course title while a streaming workspace is still mapping.
   const quoted = text.match(/["“]([^"”]{4,90})["”]/);
   if (quoted?.[1]) return quoted[1].trim();
 
-  const namedCourse = text.match(
-    /\b(?:course|class|seminar|workshop)\s+(?:called|titled|named|on|about)\s+([^,.;!?]{4,90})/i,
-  );
+  const namedCourse = text.match(/\b(?:course|class|seminar|workshop)\s+(?:on|about)\s+([^,.;!?]{4,90})/i);
   if (namedCourse?.[1]) {
     return removeBriefQualifiers(namedCourse[1]);
   }
@@ -45,7 +52,7 @@ export function derivePromptPreviewTitle(promptText) {
   if (beforeDashedCourseShape?.[1]) return beforeDashedCourseShape[1].trim();
 
   const beforeCourseShape = text.match(
-    /^([^,.;!?]{4,90}?)(?:,|\s+-\s+)\s*\d+(?:[-\s]+)(?:lessons?|weeks?|modules?|sessions?)/i,
+    /^([^,.;!?]{4,90}?)(?:,|\s+-\s+)\s*(?:an?\s+)?\d+(?:[-\s]+)(?:lessons?|weeks?|modules?|sessions?)/i,
   );
   if (beforeCourseShape?.[1]) return beforeCourseShape[1].trim();
 

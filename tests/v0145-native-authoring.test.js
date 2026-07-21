@@ -316,6 +316,172 @@ describe('Pass A skeleton contract (B1)', () => {
     });
   });
 
+  it('promotes distinct authored subtopics when a compact brief produces repeated titles and assessment filler', () => {
+    const sourceText =
+      'Introduction to Genetics, a 15-lesson undergraduate biology course with problem sets, a model-organism lab, two midterms, and a final. Covers Mendelian inheritance, meiosis, linkage and gene mapping, the molecular structure of DNA, gene expression, mutation, population genetics, epigenetics, and modern genetic technologies.';
+    const titles = [
+      'Mendelian inheritance',
+      'Meiosis',
+      'Linkage and mapping',
+      'Molecular DNA structure',
+      'Gene expression',
+      'Mutation',
+      'Population genetics',
+      'Epigenetics',
+      'Modern genetic technologies',
+      'Mendelian inheritance',
+      'Meiosis',
+      'Linkage and mapping',
+      'Molecular DNA structure',
+      'Gene expression',
+      'Final assessment',
+    ];
+    const sectionTitles = [
+      ['Dominant and recessive alleles'],
+      ['Gamete formation'],
+      ['Recombination frequency'],
+      ['Nucleotide sequence'],
+      ['Translation mechanisms'],
+      ['Mutational spectrum'],
+      ['Hardy-Weinberg equilibrium'],
+      ['DNA methylation'],
+      ['Genome editing'],
+      ['Review of complex traits', 'Application of Mendelian principles'],
+      ['Advanced meiotic disorders', 'Cytogenetic analysis'],
+      ['Advanced mapping problems', 'Population genetics review'],
+      ['Molecular genetics applications', 'Structure-function relationship'],
+      ['Regulatory elements', 'Systems biology overview'],
+      ['Comprehensive final review', 'Final synthesis'],
+    ];
+    const skeleton = parseNativeSkeletonResponse(
+      JSON.stringify({
+        course: { name: 'Introduction to Genetics', term: 'TBD' },
+        sessions: titles.map((title, index) => ({
+          id: `s${index + 1}`,
+          order: index + 1,
+          title,
+          sectionTitles: sectionTitles[index],
+        })),
+      }),
+      { expectedLessons: 15, sourceText },
+    );
+
+    expect(skeleton.sessions.map((session) => session.title)).toEqual([
+      ...titles.slice(0, 9),
+      'complex traits',
+      'meiotic disorders',
+      'mapping problems',
+      'Molecular genetics applications',
+      'Regulatory elements',
+      'Model-Organism Genetics Investigation',
+    ]);
+    expect(new Set(skeleton.sessions.map((session) => session.title.toLowerCase())).size).toBe(15);
+    expect(skeleton.sessions.map((session) => session.title).join(' ')).not.toMatch(/final assessment/i);
+    expect(skeleton.sessionSequenceRecovery).toMatchObject({
+      kind: 'model-authored-distinct-subtopics',
+      recoveredCount: 6,
+      reason: 'repeated-titles',
+    });
+  });
+
+  it('replaces compact-brief midterm reviews and repeated generic evaluations with teachable topic sessions', () => {
+    const sourceText =
+      'Introduction to Genetics, a 15-lesson undergraduate biology course with two midterms, a final, and a model-organism lab. Covers Mendelian inheritance, meiosis, linkage and mapping, DNA structure, gene expression, mutation, population genetics, epigenetics, and modern genetic technologies.';
+    const baseTopics = [
+      'Mendelian inheritance',
+      'Meiosis',
+      'Linkage and mapping',
+      'DNA structure',
+      'Gene expression',
+      'Mutation',
+      'Population genetics',
+      'Epigenetics',
+      'Modern genetic technologies',
+    ];
+    const sessions = [
+      ...baseTopics.map((title, index) => ({ order: index + 1, title, sectionTitles: [title] })),
+      {
+        order: 10,
+        title: 'Midterm 1 Review',
+        sectionTitles: ['Review of inheritance', 'Review of molecular structure'],
+      },
+      {
+        order: 11,
+        title: 'Midterm 2 Review',
+        sectionTitles: ['Review of meiosis and mapping', 'Review of gene expression'],
+      },
+      { order: 12, title: 'Model-organism lab', sectionTitles: ['Practical investigation'] },
+      ...[13, 14, 15].map((order) => ({
+        order,
+        title: 'Comprehensive course evaluation',
+        sectionTitles: ['Comprehensive course evaluation'],
+      })),
+    ];
+    const skeleton = parseNativeSkeletonResponse(
+      JSON.stringify({ course: { name: 'Introduction to Genetics' }, sessions }),
+      { expectedLessons: 15, sourceText },
+    );
+
+    expect(skeleton.sessions.slice(9).map((session) => session.title)).toEqual([
+      'inheritance and molecular structure',
+      'meiosis and mapping',
+      'Model-organism lab',
+      'gene expression: mechanisms and evidence',
+      'mutation: methods and applications',
+      'population genetics: interpretation and limitations',
+    ]);
+    expect(skeleton.sessions.slice(12).flatMap((session) => session.sectionTitles)).not.toContain(
+      'Comprehensive course evaluation',
+    );
+  });
+
+  it('promotes unused model-authored subtopics before using generic compact-brief deepening titles', () => {
+    const sourceText =
+      'Introduction to Genetics, a 15-lesson undergraduate biology course with problem sets, a model-organism lab, two midterms, and a final. Covers Mendelian inheritance, meiosis, linkage and mapping, DNA structure, gene expression, mutation, population genetics, epigenetics, and modern genetic technologies.';
+    const authoredTopics = [
+      ['Mendelian inheritance', ['Dominance patterns', 'Punnett square analysis']],
+      ['Meiosis', ['Chromosome segregation', 'Recombination mechanisms']],
+      ['Linkage and mapping', ['Recombination frequency', 'Gene mapping techniques']],
+      ['DNA structure', ['Nucleotide structure', 'DNA replication']],
+      ['Gene expression', ['Transcription regulation', 'Protein synthesis']],
+      ['Mutation', ['DNA repair', 'Mutational effects']],
+      ['Population genetics', ['Allele frequencies', 'Genetic drift']],
+      ['Epigenetics', ['DNA methylation', 'Chromatin remodeling']],
+      ['Modern genetic technologies', ['Genome editing', 'Sequencing methods']],
+    ];
+    const sessions = [
+      ...authoredTopics.map(([title, sectionTitles], index) => ({
+        order: index + 1,
+        title,
+        sectionTitles,
+      })),
+      ...Array.from({ length: 6 }, (_, index) => ({
+        order: index + 10,
+        title: index === 5 ? 'Comprehensive' : `Assessment ${index + 1}`,
+        sectionTitles: ['Review'],
+      })),
+    ];
+
+    const skeleton = parseNativeSkeletonResponse(
+      JSON.stringify({ course: { name: 'Introduction to Genetics' }, sessions }),
+      { expectedLessons: 15, sourceText },
+    );
+
+    expect(skeleton.sessions.slice(9).map((session) => session.title)).toEqual([
+      'Model-Organism Genetics Investigation',
+      'Dominance patterns',
+      'Punnett square analysis',
+      'Chromosome segregation',
+      'Recombination mechanisms',
+      'Recombination frequency',
+    ]);
+    expect(skeleton.sessions[0].sectionTitles).toEqual(['Mendelian inheritance']);
+    expect(skeleton.sessions[1].sectionTitles).toEqual(['Meiosis']);
+    expect(skeleton.sessions.map((session) => session.title).join(' ')).not.toMatch(
+      /(?:synthesis|comprehensive|review|assessment)/i,
+    );
+  });
+
   it('restores omitted and shifted explicit topics even when every authored title is unique', () => {
     const sourceText =
       'Introduction to Astronomy, a 12-lesson course. Lessons cover: diurnal motion and the apparent daily motion of the sky; the celestial sphere and celestial coordinates; the seasons and axial tilt with solstice and equinox; phases of the Moon; Kepler’s third law and the laws of planetary motion; the electromagnetic spectrum and wavelengths of light; spectral lines, absorption and emission spectra of stars; telescope light-gathering power and aperture; stellar parallax and celestial distances measured in parsecs; apparent magnitude and the brightness of stars; the solar nebula hypothesis and the formation of the solar system; and Hubble’s law and the expanding universe with a course review.';
@@ -456,9 +622,9 @@ describe('Pass A skeleton contract (B1)', () => {
 
     const wireMap = buildNativeWireMap(skeleton);
     expect(wireMap.lessons.map((lesson) => lesson.sections[0].weeklyAssessments?.[0])).toEqual([
-      'Lesson 1 evidence check: Electric charge (34%)',
-      'Lesson 2 applied problem: Electric fields (33%)',
-      "Lesson 3 practice brief: Gauss's law (33%)",
+      'Electric charge analysis (34%)',
+      'Electric fields application (33%)',
+      "Gauss's law comparison (33%)",
     ]);
   });
 
@@ -588,6 +754,34 @@ describe('Pass A skeleton contract (B1)', () => {
       '{"course":{"name":"Business Ethics"},"sessions":[{"order":1,"title":"Frameworks"}],"assessments":[{"title":"Mid';
     expect(recoverTruncatedSkeletonObject(truncated)).toBeNull();
     expect(() => parseNativeSkeletonResponse(truncated)).toThrowError(NativeAuthoringError);
+  });
+
+  it('keeps a compact brief on the typed path when Gemma is one session short', () => {
+    const sourceText =
+      'Introduction to Genetics, a 15-lesson undergraduate biology course with problem sets, a model-organism lab, two midterms, and a final. Covers Mendelian inheritance, meiosis, linkage and mapping, DNA structure, gene expression, mutation, population genetics, epigenetics, and modern genetic technologies.';
+    const sessions = Array.from({ length: 14 }, (_, index) => ({
+      order: index + 1,
+      title: `Genetics topic ${index + 1}`,
+      sectionTitles: [`Genetics topic ${index + 1}`],
+    }));
+    const skeleton = parseNativeSkeletonResponse(
+      JSON.stringify({
+        course: { name: 'Introduction to Genetics, a 15-lesson undergraduate biology' },
+        sessions,
+        resources: [{ title: 'model-organism lab' }],
+      }),
+      { expectedLessons: 15, sourceText },
+    );
+
+    expect(skeleton.course.name).toBe('Introduction to Genetics');
+    expect(skeleton.sessions).toHaveLength(15);
+    expect(skeleton.sessions[14].title).toBe('Model-Organism Genetics Investigation');
+    expect(skeleton.resources[0].dueSession).toBe(15);
+    expect(skeleton.sessions.map((session) => session.title).join(' ')).not.toMatch(/Assessment 15/);
+    expect(skeleton.sessionSequenceRecovery).toMatchObject({
+      kind: 'model-authored-distinct-subtopics',
+      countRecovered: 1,
+    });
   });
 
   it('degraded-plan guard: malformed skeletons throw the TYPED error', () => {

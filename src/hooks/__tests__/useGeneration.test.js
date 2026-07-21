@@ -4,10 +4,26 @@ import {
   buildIncompleteCourseMapErrorMessage,
   constrainHighConfidenceLessonCount,
   getCourseMapExamineScan,
+  getCourseMapContinuationPolicy,
   getLessonCount,
 } from '../useGeneration';
 
 describe('useGeneration completion guards', () => {
+  it('lets browser-local Scion finish while progress continues without unbounded retries', () => {
+    expect(getCourseMapContinuationPolicy('public', 6, 12)).toEqual({
+      maxAttempts: 6,
+      maxConsecutiveNoProgress: 2,
+    });
+    expect(getCourseMapContinuationPolicy('public', 11, 12)).toEqual({
+      maxAttempts: 2,
+      maxConsecutiveNoProgress: 2,
+    });
+    expect(getCourseMapContinuationPolicy('openai', 6, 12)).toEqual({
+      maxAttempts: 2,
+      maxConsecutiveNoProgress: 1,
+    });
+  });
+
   it('counts generated lessons defensively', () => {
     expect(getLessonCount({ lessons: [{ title: 'One' }, { title: 'Two' }] })).toBe(2);
     expect(getLessonCount({ lessons: null })).toBe(0);

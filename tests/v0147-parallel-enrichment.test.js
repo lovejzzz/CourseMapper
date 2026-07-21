@@ -114,11 +114,19 @@ describe('WS-A (2) — the rewritten loop keeps its contract (source pins)', () 
     expect(runner).toContain('Content enrichment stopped early: call cap');
   });
 
-  it('course-level block rides only the first chunk and AbortError still propagates', () => {
+  it('course-level block rides only the first chunk and only a caller abort cancels the stage', () => {
     const runner = hookSource.split('const runEnrichmentChunk')[1].split('const enrichmentConcurrency')[0];
     expect(runner).toContain('includeCourseLevel: isFirstChunk');
     expect(runner).toContain('if (isFirstChunk && parsedKernels.courseLevel)');
-    expect(runner).toContain("if (chunkErr?.name === 'AbortError') throw chunkErr;");
+    expect(runner).toContain("if (chunkErr?.name === 'AbortError' && controller.signal.aborted) throw chunkErr;");
+  });
+
+  it('schedules public Scion native kernels serially while retaining cloud concurrency', () => {
+    const nativeRunner = hookSource.split('const nativePassBConcurrency =')[1].split('const runBatchSafely')[0];
+    expect(nativeRunner).toContain('provider === PUBLIC_SCION_PROVIDER_ID');
+    expect(nativeRunner).toContain('PUBLIC_SCION_KERNEL_CONCURRENCY');
+    expect(nativeRunner).toContain('getFeatureConcurrency(generationPlan)');
+    expect(hookSource).toContain("if (batchErr?.name === 'AbortError' && controller.signal.aborted) throw batchErr;");
   });
 
   it('the recovery pass stays serial (small, sequential by design)', () => {
@@ -143,8 +151,8 @@ describe('WS-A (2) — the rewritten loop keeps its contract (source pins)', () 
   it('native Pass B delegates bounded recovery and counts its calls', () => {
     const nativeRecoverySource = hookSource.split('const nativeRecovery = await runNativeKernelRecovery({')[1];
 
-    expect(nativeRecoverySource).toContain('recoveryCallLimit: enrichmentRecoveryCallLimit');
-    expect(nativeRecoverySource).toContain('${recoveryAttempt}/${enrichmentRecoveryCallLimit}');
+    expect(nativeRecoverySource).toContain('recoveryCallLimit: nativeRecoveryCallLimit');
+    expect(nativeRecoverySource).toContain('${recoveryAttempt}/${nativeRecoveryCallLimit}');
     expect(nativeRecoverySource).toContain('const nativeRecoveryCalls = nativeRecovery.recoveryCalls');
     expect(nativeRecoverySource).toContain('retrying with stricter instructions');
     expect(hookSource).toContain(

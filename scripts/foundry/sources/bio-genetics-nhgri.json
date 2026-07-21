@@ -1,0 +1,968 @@
+{
+  "_comment": "Source-backed introductory genetics kernels from the U.S. National Human Genome Research Institute. NHGRI states that its text is public domain unless otherwise indicated.",
+  "references": {
+    "nhgri:mendelian-inheritance": {
+      "displayTitle": "Mendelian Inheritance",
+      "sourceUrl": "https://www.genome.gov/genetics-glossary/Mendelian-Inheritance"
+    },
+    "nhgri:meiosis": {
+      "displayTitle": "Meiosis",
+      "sourceUrl": "https://www.genome.gov/genetics-glossary/Meiosis"
+    },
+    "nhgri:dna": {
+      "displayTitle": "Deoxyribonucleic Acid (DNA)",
+      "sourceUrl": "https://www.genome.gov/genetics-glossary/Deoxyribonucleic-Acid-DNA"
+    },
+    "nhgri:dna-replication": {
+      "displayTitle": "DNA Replication",
+      "sourceUrl": "https://www.genome.gov/genetics-glossary/DNA-Replication"
+    },
+    "nhgri:transcription": {
+      "displayTitle": "Transcription",
+      "sourceUrl": "https://www.genome.gov/genetics-glossary/Transcription"
+    },
+    "nhgri:ribosome": {
+      "displayTitle": "Ribosome",
+      "sourceUrl": "https://www.genome.gov/genetics-glossary/Ribosome"
+    },
+    "nhgri:promoter": {
+      "displayTitle": "Promoter",
+      "sourceUrl": "https://www.genome.gov/genetics-glossary/Promoter"
+    },
+    "nhgri:mutation": {
+      "displayTitle": "Mutation",
+      "sourceUrl": "https://www.genome.gov/genetics-glossary/Mutation"
+    },
+    "nhgri:pcr": {
+      "displayTitle": "Polymerase Chain Reaction (PCR)",
+      "sourceUrl": "https://www.genome.gov/genetics-glossary/Polymerase-Chain-Reaction-PCR"
+    },
+    "nhgri:electrophoresis": {
+      "displayTitle": "Electrophoresis",
+      "sourceUrl": "https://www.genome.gov/genetics-glossary/Electrophoresis"
+    },
+    "nhgri:genetic-engineering": {
+      "displayTitle": "Genetic Engineering",
+      "sourceUrl": "https://www.genome.gov/genetics-glossary/Genetic-Engineering"
+    },
+    "nhgri:genetic-drift": {
+      "displayTitle": "Genetic Drift",
+      "sourceUrl": "https://www.genome.gov/genetics-glossary/Genetic-Drift"
+    },
+    "nhgri:genetic-architecture": {
+      "displayTitle": "Genetic Architecture",
+      "sourceUrl": "https://www.genome.gov/genetics-glossary/Genetic-Architecture"
+    },
+    "nhgri:epigenomics": {
+      "displayTitle": "Epigenomics Fact Sheet",
+      "sourceUrl": "https://www.genome.gov/about-genomics/fact-sheets/Epigenomics-Fact-Sheet"
+    },
+    "nhgri:genomics": {
+      "displayTitle": "Genomics",
+      "sourceUrl": "https://www.genome.gov/genetics-glossary/genomics"
+    }
+  },
+  "sourceSnapshots": {
+    "nhgri:mendelian-inheritance": "Mendelian inheritance refers to certain patterns of how traits are passed from parents to offspring. These general patterns were established by the Austrian monk Gregor Mendel, who performed thousands of experiments with pea plants in the 19th century. Mendel’s discoveries of how traits (such as color and shape) are passed down from one generation to the next introduced the concept of dominant and recessive modes of inheritance.",
+    "nhgri:meiosis": "Meiosis is a type of cell division in sexually reproducing organisms that reduces the number of chromosomes in gametes (the sex cells, or egg and sperm). In humans, body (or somatic) cells are diploid, containing two sets of chromosomes (one from each parent). To maintain this state, the egg and sperm that unite during fertilization must be haploid, with a single set of chromosomes. During meiosis, each diploid cell undergoes two rounds of division to yield four haploid daughter cells — the gametes.",
+    "nhgri:dna": "Deoxyribonucleic acid (abbreviated DNA) is the molecule that carries genetic information for the development and functioning of an organism. DNA is made of two linked strands that wind around each other to resemble a twisted ladder — a shape known as a double helix. Each strand has a backbone made of alternating sugar (deoxyribose) and phosphate groups. Attached to each sugar is one of four bases: adenine (A), cytosine (C), guanine (G) or thymine (T).",
+    "nhgri:dna-replication": "DNA replication is the process by which the genome’s DNA is copied in cells. Before a cell divides, it must first copy (or replicate) its entire genome so that each resulting daughter cell ends up with its own complete genome.",
+    "nhgri:transcription": "Transcription, as related to genomics, is the process of making an RNA copy of a gene’s DNA sequence. This copy, called messenger RNA (mRNA), carries the gene’s protein information encoded in DNA. In humans and other complex organisms, mRNA moves from the cell nucleus to the cell cytoplasm (watery interior), where it is used for synthesizing the encoded protein.",
+    "nhgri:ribosome": "A ribosome is an intercellular structure made of both RNA and protein, and it is the site of protein synthesis in the cell. The ribosome reads the messenger RNA (mRNA) sequence and translates that genetic code into a specified string of amino acids, which grow into long chains that fold to form proteins.",
+    "nhgri:promoter": "A promoter, as related to genomics, is a region of DNA upstream of a gene where relevant proteins (such as RNA polymerase and transcription factors) bind to initiate transcription of that gene. The resulting transcription produces an RNA molecule (such as mRNA).",
+    "nhgri:mutation": "A mutation is a change in the DNA sequence of an organism. Mutations can result from errors in DNA replication during cell division, exposure to mutagens or a viral infection. Germline mutations (that occur in eggs and sperm) can be passed on to offspring, while somatic mutations (that occur in body cells) are not passed on.",
+    "nhgri:pcr": "Polymerase chain reaction (abbreviated PCR) is a laboratory technique for rapidly producing (amplifying) millions to billions of copies of a specific segment of DNA, which can then be studied in greater detail. PCR involves using short synthetic DNA fragments called primers to select a segment of the genome to be amplified, and then multiple rounds of DNA synthesis to amplify that segment.",
+    "nhgri:electrophoresis": "Electrophoresis is a laboratory technique used to separate DNA, RNA or protein molecules based on their size and electrical charge. An electric current is used to move the molecules through a gel or other matrix. Pores in the gel or matrix work like a sieve, allowing smaller molecules to move faster than larger molecules. To determine the size of the molecules in a sample, standards of known sizes are separated on the same gel and then compared to the sample.",
+    "nhgri:genetic-engineering": "Genetic engineering (also called genetic modification) is a process that uses laboratory-based technologies to alter the DNA makeup of an organism. This may involve changing a single base pair (A-T or C-G), deleting a region of DNA or adding a new segment of DNA. For example, genetic engineering may involve adding a gene from one species to an organism from a different species to produce a desired trait.",
+    "nhgri:genetic-drift": "Genetic drift is a mechanism of evolution characterized by random fluctuations in the frequency of a particular version of a gene (allele) in a population. Though it primarily affects small, isolated populations, the effects of genetic drift can be strong, sometimes causing traits to become overwhelmingly frequent or to disappear from a population.",
+    "nhgri:genetic-architecture": "Genetic architecture describes the combined contribution of all genetic influences on the trait. This includes how many genes are involved, how common different versions or variants of those genes are in a population, what the individual effect of each variant is on the trait as well as how those variants act together. Mapping out the genetic architecture of a trait can help us understand its evolution and underlying biology.",
+    "nhgri:epigenomics": "Epigenomics is a field in which researchers chart the locations and understand the functions of all the chemical tags that mark the genome. The epigenome is made up of chemical compounds and proteins that can attach to DNA and direct such actions as turning genes on or off, controlling the production of proteins in particular cells. These marks do not change the sequence of the DNA. Rather, they change the way cells use the DNA's instructions. The first type of mark, called DNA methylation, directly affects the DNA in a genome. The second kind of mark, called histone modification, affects DNA indirectly.",
+    "nhgri:genomics": "Genomics is a field of biology focused on studying all the DNA of an organism — that is, its genome. Such work includes identifying and characterizing all the genes and functional elements in an organism’s genome as well as how they interact."
+  },
+  "kernels": [
+    {
+      "id": "bio/mendelian-inheritance",
+      "term": "Mendelian inheritance",
+      "aliases": ["Mendelian Inheritance Basics", "Dominance and Recessivity", "Monohybrid Crosses"],
+      "tags": ["genetics", "heredity", "inheritance patterns"],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Apply",
+      "definition": {
+        "text": "Mendelian inheritance describes recurring patterns by which traits pass from parents to offspring, including dominant and recessive modes.",
+        "anchor": {
+          "src": "nhgri:mendelian-inheritance",
+          "loc": "Definition",
+          "quote": "Mendelian inheritance refers to certain patterns of how traits are passed from parents to offspring"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "Mendel's pea-plant experiments established general inheritance patterns involving dominant and recessive traits.",
+          "anchor": {
+            "src": "nhgri:mendelian-inheritance",
+            "loc": "Definition",
+            "quote": "introduced the concept of dominant and recessive modes of inheritance"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students may assume every inherited trait follows one simple dominant-recessive pattern.",
+          "corrective": "Use a Mendelian model only when the evidence and stated assumptions support that inheritance pattern."
+        }
+      ],
+      "examples": [
+        {
+          "text": "A monohybrid cross predicts offspring categories under a stated dominant-recessive model.",
+          "domain": "genetics"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "Which claim is supported by a basic Mendelian inheritance model?",
+          "options": [
+            "Every trait is controlled by one allele",
+            "Some traits follow dominant and recessive patterns",
+            "Environment never affects a phenotype",
+            "All offspring must show the same trait"
+          ],
+          "answerIndex": 1,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": {},
+      "license": "U.S. Government Work",
+      "attribution": ["National Human Genome Research Institute"]
+    },
+    {
+      "id": "bio/meiosis",
+      "term": "Meiosis",
+      "aliases": ["Meiosis Mechanics", "Chromosomal Segregation", "Crossing Over"],
+      "tags": ["genetics", "gametes", "chromosome division"],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "Meiosis is the cell-division process that reduces chromosome number to produce haploid gametes in sexually reproducing organisms.",
+        "anchor": {
+          "src": "nhgri:meiosis",
+          "loc": "Definition",
+          "quote": "reduces the number of chromosomes in gametes"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "One diploid cell undergoes two meiotic divisions to yield four haploid daughter cells.",
+          "anchor": {
+            "src": "nhgri:meiosis",
+            "loc": "Definition",
+            "quote": "each diploid cell undergoes two rounds of division to yield four haploid daughter cells"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students may treat meiosis as chromosome copying without a reduction in chromosome number.",
+          "corrective": "Track ploidy and chromosome sets through both rounds of division."
+        }
+      ],
+      "examples": [
+        {
+          "text": "A chromosome diagram traces one diploid precursor through two divisions to four haploid gametes.",
+          "domain": "genetics"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "What is the direct outcome of meiosis described by the source?",
+          "options": [
+            "Two diploid body cells",
+            "Four haploid daughter cells",
+            "One cell with twice the chromosomes",
+            "Four genetically identical diploid cells"
+          ],
+          "answerIndex": 1,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": { "requires": ["bio/mendelian-inheritance"] },
+      "license": "U.S. Government Work",
+      "attribution": ["National Human Genome Research Institute"]
+    },
+    {
+      "id": "bio/dna-structure",
+      "term": "Deoxyribonucleic acid double helix",
+      "aliases": ["DNA Structure and Replication", "Nucleotide Composition", "DNA base pairing"],
+      "tags": ["genetics", "double helix", "nucleotides"],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Apply",
+      "definition": {
+        "text": "DNA carries genetic information and consists of two linked strands arranged as a double helix.",
+        "anchor": {
+          "src": "nhgri:dna",
+          "loc": "Definition",
+          "quote": "DNA is made of two linked strands that wind around each other to resemble a twisted ladder"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "Each DNA strand has a sugar-phosphate backbone and uses the bases adenine, cytosine, guanine, and thymine.",
+          "anchor": {
+            "src": "nhgri:dna",
+            "loc": "Definition",
+            "quote": "Attached to each sugar is one of four bases: adenine (A), cytosine (C), guanine (G) or thymine (T)"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students may confuse the sugar-phosphate backbone with the nucleotide bases that encode information.",
+          "corrective": "Distinguish the repeating backbone from the ordered A, C, G, and T bases."
+        }
+      ],
+      "examples": [
+        {
+          "text": "A labeled model separates the backbone from the ordered bases on each DNA strand.",
+          "domain": "genetics"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "Which feature belongs to the structure of a DNA strand?",
+          "options": [
+            "A sugar-phosphate backbone",
+            "Only amino acid subunits",
+            "A single type of nucleotide base",
+            "No repeating molecular framework"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": {},
+      "license": "U.S. Government Work",
+      "attribution": ["National Human Genome Research Institute"]
+    },
+    {
+      "id": "bio/dna-replication",
+      "term": "Deoxyribonucleic acid replication",
+      "aliases": ["Semi-conservative Replication", "genome copying"],
+      "tags": ["genetics", "DNA copying", "cell division"],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "DNA replication is the process by which a cell copies its genomic DNA before division.",
+        "anchor": {
+          "src": "nhgri:dna-replication",
+          "loc": "Definition",
+          "quote": "DNA replication is the process by which the genome’s DNA is copied in cells"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "Replication gives each resulting daughter cell a complete copy of the genome.",
+          "anchor": {
+            "src": "nhgri:dna-replication",
+            "loc": "Definition",
+            "quote": "each resulting daughter cell ends up with its own complete genome"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students may place genome copying after cell division rather than before it.",
+          "corrective": "Sequence the process: the genome is copied before the cell divides."
+        }
+      ],
+      "examples": [
+        {
+          "text": "A timeline places DNA copying before the separation of one cell into daughter cells.",
+          "domain": "genetics"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "Why must a cell replicate its DNA before it divides?",
+          "options": [
+            "To remove every chromosome",
+            "To give each daughter cell a complete genome",
+            "To stop all gene expression",
+            "To convert DNA entirely into protein"
+          ],
+          "answerIndex": 1,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": { "requires": ["bio/dna-structure"] },
+      "license": "U.S. Government Work",
+      "attribution": ["National Human Genome Research Institute"]
+    },
+    {
+      "id": "bio/transcription",
+      "term": "Transcription",
+      "aliases": ["Transcription Processes", "RNA Synthesis"],
+      "tags": ["genetics", "messenger RNA", "gene expression"],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Apply",
+      "definition": {
+        "text": "Transcription makes an RNA copy of a gene's DNA sequence.",
+        "anchor": {
+          "src": "nhgri:transcription",
+          "loc": "Definition",
+          "quote": "the process of making an RNA copy of a gene’s DNA sequence"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "Messenger RNA carries protein information encoded in DNA and can be used to synthesize the encoded protein.",
+          "anchor": {
+            "src": "nhgri:transcription",
+            "loc": "Definition",
+            "quote": "messenger RNA (mRNA), carries the gene’s protein information encoded in DNA"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students may describe transcription as the direct assembly of a protein from DNA.",
+          "corrective": "Identify the immediate product as an RNA copy, then distinguish later protein synthesis."
+        }
+      ],
+      "examples": [
+        {
+          "text": "A process diagram follows information from a DNA sequence to its messenger RNA copy.",
+          "domain": "genetics"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "What is produced directly during transcription?",
+          "options": [
+            "An RNA copy of a gene",
+            "A complete daughter cell",
+            "A chromosome-free nucleus",
+            "A chain made only of lipids"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": { "requires": ["bio/dna-structure"] },
+      "license": "U.S. Government Work",
+      "attribution": ["National Human Genome Research Institute"]
+    },
+    {
+      "id": "bio/translation",
+      "term": "Translation",
+      "aliases": ["Translation Mechanisms", "Codon Reading Frame"],
+      "tags": ["genetics", "ribosome", "protein synthesis"],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "Translation occurs at ribosomes, which read messenger RNA and build a specified amino-acid chain.",
+        "anchor": {
+          "src": "nhgri:ribosome",
+          "loc": "Definition",
+          "quote": "The ribosome reads the messenger RNA (mRNA) sequence and translates that genetic code into a specified string of amino acids"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "The amino-acid chains produced during protein synthesis fold to form proteins.",
+          "anchor": {
+            "src": "nhgri:ribosome",
+            "loc": "Definition",
+            "quote": "amino acids, which grow into long chains that fold to form proteins"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students may say the ribosome copies DNA directly into a finished protein.",
+          "corrective": "Follow the messenger RNA sequence as the template translated into an amino-acid chain."
+        }
+      ],
+      "examples": [
+        {
+          "text": "A codon-by-codon model connects an mRNA sequence to an ordered amino-acid chain.",
+          "domain": "genetics"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "What information does a ribosome read during translation?",
+          "options": [
+            "The messenger RNA sequence",
+            "Only the cell membrane",
+            "A list of environmental temperatures",
+            "The chromosome count after meiosis"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": { "requires": ["bio/transcription"] },
+      "license": "U.S. Government Work",
+      "attribution": ["National Human Genome Research Institute"]
+    },
+    {
+      "id": "bio/gene-regulation",
+      "term": "Gene regulation",
+      "aliases": ["Gene Regulation Control", "Promoter Recognition", "Operon Structure", "Transcriptional Factors"],
+      "tags": ["genetics", "promoter", "transcription factors"],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "A promoter is an upstream DNA region where RNA polymerase and transcription factors bind to initiate gene transcription.",
+        "anchor": {
+          "src": "nhgri:promoter",
+          "loc": "Definition",
+          "quote": "a region of DNA upstream of a gene where relevant proteins (such as RNA polymerase and transcription factors) bind to initiate transcription"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "Initiating transcription at a promoter produces an RNA molecule such as messenger RNA.",
+          "anchor": {
+            "src": "nhgri:promoter",
+            "loc": "Definition",
+            "quote": "The resulting transcription produces an RNA molecule (such as mRNA)"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students may describe a promoter as a protein-coding product rather than a regulatory DNA region.",
+          "corrective": "Locate the promoter on DNA and identify the proteins that bind there to initiate transcription."
+        }
+      ],
+      "examples": [
+        {
+          "text": "A gene diagram labels the promoter upstream of the transcribed region and marks polymerase binding.",
+          "domain": "genetics"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "Which event occurs at a gene promoter?",
+          "options": [
+            "Relevant proteins bind to initiate transcription",
+            "A cell completes two meiotic divisions",
+            "A gel separates molecules by size",
+            "A ribosome copies the entire genome"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": { "requires": ["bio/transcription"] },
+      "license": "U.S. Government Work",
+      "attribution": ["National Human Genome Research Institute"]
+    },
+    {
+      "id": "bio/mutation",
+      "term": "Mutation",
+      "aliases": ["Mutation Types", "Point Mutations", "Chromosomal Rearrangements"],
+      "tags": ["genetics", "DNA sequence change", "genetic variation"],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "A mutation is a change in an organism's DNA sequence.",
+        "anchor": {
+          "src": "nhgri:mutation",
+          "loc": "Definition",
+          "quote": "A mutation is a change in the DNA sequence of an organism"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "Germline mutations can pass to offspring, whereas somatic mutations are not passed on in that way.",
+          "anchor": {
+            "src": "nhgri:mutation",
+            "loc": "Definition",
+            "quote": "Germline mutations (that occur in eggs and sperm) can be passed on to offspring, while somatic mutations (that occur in body cells) are not passed on"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students may assume every mutation is inherited by an organism's offspring.",
+          "corrective": "Distinguish germline mutations from mutations confined to somatic cells."
+        }
+      ],
+      "examples": [
+        {
+          "text": "A case comparison asks whether a DNA change arose in a germ cell or a body cell.",
+          "domain": "genetics"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "Which mutation can be passed directly to offspring?",
+          "options": [
+            "A germline mutation in an egg or sperm",
+            "A somatic mutation limited to a skin cell",
+            "Any temporary change in protein shape",
+            "Every environmental exposure"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": { "requires": ["bio/dna-replication"] },
+      "license": "U.S. Government Work",
+      "attribution": ["National Human Genome Research Institute"]
+    },
+    {
+      "id": "bio/polymerase-chain-reaction",
+      "term": "Polymerase chain reaction",
+      "aliases": ["Molecular Genetics Methods", "PCR Amplification", "PCR"],
+      "tags": ["genetics", "laboratory methods", "DNA amplification"],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Apply",
+      "definition": {
+        "text": "PCR rapidly amplifies millions to billions of copies of a selected DNA segment for further study.",
+        "anchor": {
+          "src": "nhgri:pcr",
+          "loc": "Definition",
+          "quote": "rapidly producing (amplifying) millions to billions of copies of a specific segment of DNA"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "PCR uses short synthetic primers to select the genomic segment amplified through repeated rounds of DNA synthesis.",
+          "anchor": {
+            "src": "nhgri:pcr",
+            "loc": "Definition",
+            "quote": "using short synthetic DNA fragments called primers to select a segment of the genome to be amplified"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students may assume PCR copies every DNA segment in a sample equally.",
+          "corrective": "Connect primer choice to the specific segment selected for amplification."
+        }
+      ],
+      "examples": [
+        {
+          "text": "A primer-pair design identifies the boundaries of the DNA segment that a PCR assay will amplify.",
+          "domain": "genetics"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "What determines the DNA segment selected in a PCR assay?",
+          "options": [
+            "The short synthetic primers",
+            "The color of the sample tube",
+            "The number of ribosomes present",
+            "The chromosome count after meiosis"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": { "requires": ["bio/dna-replication"] },
+      "license": "U.S. Government Work",
+      "attribution": ["National Human Genome Research Institute"]
+    },
+    {
+      "id": "bio/electrophoresis",
+      "term": "Electrophoresis",
+      "aliases": ["Gel Electrophoresis", "molecular separation"],
+      "tags": ["genetics", "laboratory methods", "molecule separation"],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "Electrophoresis separates DNA, RNA, or protein molecules according to their size and electrical charge.",
+        "anchor": {
+          "src": "nhgri:electrophoresis",
+          "loc": "Definition",
+          "quote": "used to separate DNA, RNA or protein molecules based on their size and electrical charge"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "In a gel or matrix, smaller molecules move through the pores faster than larger molecules.",
+          "anchor": {
+            "src": "nhgri:electrophoresis",
+            "loc": "Definition",
+            "quote": "allowing smaller molecules to move faster than larger molecules"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students may infer that a larger fragment travels farther through the gel than a smaller fragment.",
+          "corrective": "Use the sieve model: smaller molecules move through matrix pores faster."
+        }
+      ],
+      "examples": [
+        {
+          "text": "A sample lane is compared with known-size standards to estimate fragment sizes.",
+          "domain": "genetics"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "Which molecule generally moves faster through an electrophoresis gel?",
+          "options": [
+            "A smaller molecule",
+            "A larger molecule",
+            "Every molecule at the same rate",
+            "Only a molecule with no charge"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": {},
+      "license": "U.S. Government Work",
+      "attribution": ["National Human Genome Research Institute"]
+    },
+    {
+      "id": "bio/genetic-engineering",
+      "term": "Genetic engineering",
+      "aliases": ["Genome Editing Techniques", "CRISPR Application", "Gene Knockout", "genome editing"],
+      "tags": ["genetics", "DNA alteration", "laboratory technology"],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Evaluate",
+      "definition": {
+        "text": "Genetic engineering uses laboratory technologies to alter an organism's DNA makeup.",
+        "anchor": {
+          "src": "nhgri:genetic-engineering",
+          "loc": "Definition",
+          "quote": "uses laboratory-based technologies to alter the DNA makeup of an organism"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "A genetic-engineering intervention may change one base pair, delete a DNA region, or add a DNA segment.",
+          "anchor": {
+            "src": "nhgri:genetic-engineering",
+            "loc": "Definition",
+            "quote": "changing a single base pair (A-T or C-G), deleting a region of DNA or adding a new segment of DNA"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students may treat every DNA-editing intervention as the same kind of sequence change.",
+          "corrective": "Specify whether the intervention changes, deletes, or adds DNA and identify the evidence for that claim."
+        }
+      ],
+      "examples": [
+        {
+          "text": "An experiment distinguishes a targeted deletion from a single-base change before interpreting the phenotype.",
+          "domain": "genetics"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "Which action is an example of genetic engineering?",
+          "options": [
+            "Deleting a selected DNA region",
+            "Counting cells without altering them",
+            "Recording an organism's temperature",
+            "Observing a trait with no intervention"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": { "requires": ["bio/dna-structure"] },
+      "license": "U.S. Government Work",
+      "attribution": ["National Human Genome Research Institute"]
+    },
+    {
+      "id": "bio/population-genetic-drift",
+      "term": "Genetic drift",
+      "aliases": ["Population Genetics Theory", "Allele Frequencies", "population genetic variation"],
+      "tags": ["genetics", "population genetics", "allele frequency"],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "Genetic drift is random fluctuation in the frequency of an allele within a population.",
+        "anchor": {
+          "src": "nhgri:genetic-drift",
+          "loc": "Definition",
+          "quote": "random fluctuations in the frequency of a particular version of a gene (allele) in a population"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "Genetic drift primarily affects small, isolated populations and can make a trait very frequent or remove it from a population.",
+          "anchor": {
+            "src": "nhgri:genetic-drift",
+            "loc": "Definition",
+            "quote": "it primarily affects small, isolated populations"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students may explain every allele-frequency change as an adaptive response to the environment.",
+          "corrective": "Test whether random sampling effects, especially in a small population, can explain the observed change."
+        }
+      ],
+      "examples": [
+        {
+          "text": "A simulation compares allele-frequency trajectories in small and large isolated populations.",
+          "domain": "genetics"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "In which population is genetic drift expected to have the strongest effect?",
+          "options": [
+            "A small isolated population",
+            "An infinitely large population",
+            "A population with no alleles",
+            "Every population with exactly equal strength"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": {},
+      "license": "U.S. Government Work",
+      "attribution": ["National Human Genome Research Institute"]
+    },
+    {
+      "id": "bio/genetic-architecture",
+      "term": "Genetic architecture",
+      "aliases": [
+        "Quantitative Genetics Principles",
+        "Phenotypic Variation",
+        "Heritability Estimation",
+        "Complex Trait Mapping",
+        "Epistatic Interactions"
+      ],
+      "tags": ["genetics", "quantitative genetics", "complex traits"],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Evaluate",
+      "definition": {
+        "text": "Genetic architecture describes the combined contribution of genetic influences to a trait.",
+        "anchor": {
+          "src": "nhgri:genetic-architecture",
+          "loc": "Definition",
+          "quote": "Genetic architecture describes the combined contribution of all genetic influences on the trait"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "Genetic architecture includes the number of genes involved, variant frequencies, individual effects, and interactions among variants.",
+          "anchor": {
+            "src": "nhgri:genetic-architecture",
+            "loc": "Definition",
+            "quote": "how many genes are involved, how common different versions or variants of those genes are in a population"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students may reduce a complex trait to one gene without considering variant frequencies or interactions.",
+          "corrective": "State which genetic influences and interactions the evidence supports, and keep unmeasured contributors explicit."
+        }
+      ],
+      "examples": [
+        {
+          "text": "A trait model compares the effects of several variants and tests whether their combined pattern fits observations.",
+          "domain": "genetics"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "Which evidence belongs in an analysis of a trait's genetic architecture?",
+          "options": [
+            "Variant frequencies and their combined effects",
+            "Only the trait's everyday name",
+            "A single observation with no genotype data",
+            "The laboratory wall color"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": {},
+      "license": "U.S. Government Work",
+      "attribution": ["National Human Genome Research Institute"]
+    },
+    {
+      "id": "bio/epigenomics",
+      "term": "Epigenomics",
+      "aliases": ["Epigenetic Modifications", "DNA Methylation", "Histone Modification"],
+      "tags": ["genetics", "gene expression", "epigenetic marks"],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "Epigenomics studies chemical tags that mark the genome and influence how cells use DNA instructions.",
+        "anchor": {
+          "src": "nhgri:epigenomics",
+          "loc": "What is the epigenome?",
+          "quote": "chemical compounds and proteins that can attach to DNA and direct such actions as turning genes on or off"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "DNA methylation directly affects DNA, whereas histone modification affects DNA indirectly through associated proteins.",
+          "anchor": {
+            "src": "nhgri:epigenomics",
+            "loc": "What makes up the epigenome?",
+            "quote": "The first type of mark, called DNA methylation, directly affects the DNA in a genome. The second kind of mark, called histone modification, affects DNA indirectly"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students may assume an epigenetic mark must change the DNA nucleotide sequence.",
+          "corrective": "Separate sequence changes from chemical marks that alter how cells use DNA instructions."
+        }
+      ],
+      "examples": [
+        {
+          "text": "A comparison distinguishes a DNA methylation mark from a mutation in the underlying sequence.",
+          "domain": "genetics"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "Which statement correctly distinguishes an epigenetic mark from a mutation?",
+          "options": [
+            "The mark can change DNA use without changing its sequence",
+            "The mark always removes one chromosome from the genome",
+            "The mark replaces each DNA base with a different base",
+            "The mark prevents every cell division in the organism"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": { "requires": ["bio/gene-regulation"] },
+      "license": "U.S. Government Work",
+      "attribution": ["National Human Genome Research Institute"]
+    },
+    {
+      "id": "bio/genomics-investigation",
+      "term": "Genomics",
+      "aliases": [
+        "Model-Organism Investigation",
+        "Experimental Design",
+        "Phenotype Analysis",
+        "Cumulative Genetics Investigation",
+        "Advanced Genetic Application",
+        "Systems Biology Integration",
+        "Future Directions"
+      ],
+      "tags": ["genetics", "genome investigation", "systems biology"],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Evaluate",
+      "definition": {
+        "text": "Genomics studies all of an organism's DNA, including genes, functional elements, and their interactions.",
+        "anchor": {
+          "src": "nhgri:genomics",
+          "loc": "Definition",
+          "quote": "focused on studying all the DNA of an organism — that is, its genome"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "A genomics investigation can identify and characterize genes and functional elements and examine how they interact.",
+          "anchor": {
+            "src": "nhgri:genomics",
+            "loc": "Definition",
+            "quote": "identifying and characterizing all the genes and functional elements in an organism’s genome as well as how they interact"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students may describe a genomics investigation as the study of one isolated DNA fragment only.",
+          "corrective": "Connect the specific evidence to the wider set of genes, functional elements, or interactions the investigation addresses."
+        }
+      ],
+      "examples": [
+        {
+          "text": "A model-organism study links a measured phenotype to candidate genomic elements and states what further evidence is needed.",
+          "domain": "genetics"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "Which question best reflects a genomics investigation?",
+          "options": [
+            "How do genes and functional elements interact across a genome?",
+            "What is the color of one unlabeled tube?",
+            "How can every source of variation be ignored?",
+            "Which conclusion requires no biological evidence?"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": {},
+      "license": "U.S. Government Work",
+      "attribution": ["National Human Genome Research Institute"]
+    }
+  ]
+}

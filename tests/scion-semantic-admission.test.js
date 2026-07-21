@@ -10,7 +10,7 @@ describe('Scion semantic admission replay', () => {
 
     expect(report).toMatchObject({
       protocol: 'scion-semantic-admission-replay-v1',
-      release: 'v0.16.47',
+      release: 'v0.16.66',
       evidenceClass: 'single-model-judge-same-identity-paired-order-replay',
       summary: {
         reviewedStableLosses: 46,

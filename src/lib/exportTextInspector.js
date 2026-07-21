@@ -11,6 +11,9 @@ export const INTERNAL_EXPORT_TEXT_PATTERNS = [
   { label: 'source-review-required', pattern: /\bsource[- ]review[- ]required\b/i },
   { label: 'proof packet', pattern: /\bproof packet\b/i },
   { label: 'audit gate', pattern: /\baudit gate\b/i },
+  { label: 'fact-ledger projection', pattern: /\bfact[- ]ledger[- ]projection\b/i },
+  { label: 'verified-quiz projection', pattern: /\bverified[- ]quiz[- ]projection\b/i },
+  { label: 'course-map source placeholder', pattern: /\bexisting course map fields\b/i },
 ];
 
 export const OFFICE_TEXT_PATH_PATTERNS = {
@@ -36,7 +39,10 @@ export function sanitizeInternalExportLanguage(value) {
     .replace(/\blocal[- ]review\b/gi, 'local confirmation')
     .replace(/\bsource[- ]review[- ]required\b/gi, 'source confirmation needed')
     .replace(/\bproof packet\b/gi, 'review packet')
-    .replace(/\baudit gate\b/gi, 'quality checkpoint');
+    .replace(/\baudit gate\b/gi, 'quality checkpoint')
+    .replace(/\bfact[- ]ledger[- ]projection\b/gi, 'course evidence')
+    .replace(/\bverified[- ]quiz[- ]projection\b/gi, 'course evidence')
+    .replace(/\bexisting course map fields\b/gi, 'course plan and instructor notes');
 }
 
 export function findInternalTextInString(text) {

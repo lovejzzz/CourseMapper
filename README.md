@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.65
+**Current release:** v0.16.66
 
 ---
 
@@ -31,7 +31,7 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.65**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts a new foundation model. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
+The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.66**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts a new foundation model. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
 
 In plain language, **Scion Vx is the whole local authoring system, not just the base model**:
 
@@ -43,7 +43,7 @@ Today the adapter term is infrastructure only: the trained research adapter has 
 
 ### Adapter work in progress
 
-The V0.16.65 research corpus remains beyond its first real training threshold: 102 qualified source-grounded preferences rebuild into 100 usable production rows, split by complete course group across seven domains. One 200-iteration adapter training run completed against the pinned Gemma base, reduced validation loss from 1.555 to 1.089, and produced a 105 MB learned delta. That artifact is **not** a quality win and is not active on the website.
+The V0.16.66 research corpus remains beyond its first real training threshold: 102 qualified source-grounded preferences rebuild into 100 usable production rows, split by complete course group across seven domains. One 200-iteration adapter training run completed against the pinned Gemma base, reduced validation loss from 1.555 to 1.089, and produced a 105 MB learned delta. That artifact is **not** a quality win and is not active on the website.
 
 The first live held-out attempt found an evaluation error before a score could be claimed. Every training row transformed a supplied three-to-five-fact source ledger, while the old broad `lesson-kernel` route also asked the adapter to invent the initial facts. The run was stopped: ten lesson requests expanded into 52 native generations, and the adapter repeatedly produced truncated or conflicting kernels outside its learned distribution. Scion now records that attempt as a failed diagnostic rather than a benchmark result.
 
@@ -58,6 +58,10 @@ A fresh full package still grades **89/B** with zero P0, two P1, and one P2 find
 The rejected whole-kernel pairing gate remains rejected: it regressed coverage to 5/15. Pair visibility will be repaired at the compiler projection layer; it will not be allowed to discard otherwise-admitted lesson knowledge.
 
 ### Living Course Compiler
+
+V0.16.66 also fixes the exact 12-week Research Methods failure captured from production. The public base had already produced 11 valid lessons in three successful model calls, but an old fixed continuation limit stopped the build, discarded the useful partial map, and classified the result as an unknown non-retryable failure. Public Scion continuation is now progress-aware and bounded by the number of missing lessons: every accepted lesson earns another attempt, two consecutive no-progress responses stop honestly, and an incomplete `X of Y` map is classified as a retryable quality failure instead of an unrecoverable crash. Captured bare compact-wire fields are repaired before they can leak into visible objectives.
+
+The exact brief was regenerated from a clean browser session on the release candidate. It completed **12/12 lessons**, **12/12 admitted knowledge kernels**, **9/9 material families**, and the full **Model → Map → Enrich → Compile → Verify → Grade** ribbon in **89 seconds**. The result graded **99/A**, with **texture 93** and **0 P0 / 0 P1 / 0 P2 findings**. Its fresh **1.92 MB ZIP** contains **99 material files plus the manifest and two reports**, passes all **38 export checks** with **zero failures and zero warnings**, and extracts without archive errors. The compiler also keeps qualitative research “coding” and optional Python notebooks in the research-methods domain instead of silently turning the course into a programming lab; assessment alignment, research-method citations, FAQ language, teaching notes, transfer tasks, and technical-help fallbacks were audited in the same run. The retained receipt is `docs/evidence/SCION_V01666_RESEARCH_METHODS_RECOVERY.json`.
 
 V0.16.65 follows the production failure all the way to a new course rather than stopping at a code-level repair. The attached V0.16.61 Genetics log ran for 1,756,578 ms, made 64 browser-local provider requests and 38 stream retries, admitted only three repeated topic identities across 15 lessons, linked zero genome concepts, grounded 13.9% of the package, and disabled ZIP download even after 38/38 file checks passed. The failure had several causes: continuation lost the prior lesson boundary, the small model was repeatedly asked for compiler-owned structure, a mismatched genome shard contributed no concepts, and the UI treated editorial review and physical archive validity as the same state.
 

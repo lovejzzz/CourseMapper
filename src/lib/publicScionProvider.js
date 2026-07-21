@@ -2089,6 +2089,7 @@ export function buildPublicScionMessages(
   const kernelTask = task === 'blueprintEnrichment';
   const voiceTask = task === 'voicePass';
   const compilerRepairTask = task === 'scionPass';
+  const nativeSkeletonTask = task === 'nativeSkeleton';
   const conversationalTask = task === 'chat' || task === 'agent';
   if (conversationalTask) {
     const role =
@@ -2130,6 +2131,26 @@ export function buildPublicScionMessages(
           .join('\n'),
       },
       { role: 'user', content: clip(userPrompt, 6200) },
+    ];
+  }
+  if (nativeSkeletonTask) {
+    return [
+      {
+        role: 'system',
+        content: [
+          'Reasoning: low.',
+          'You are CourseMapper Scion, a precise browser-local typed course-structure planner.',
+          'Separate teaching sessions from assessments, readings, and resources. Cover the requested session count with a coherent progression of distinct subject-matter topics.',
+          'Return only one valid JSON object with no Markdown, preamble, or trailing commentary.',
+          schema
+            ? 'The response is constrained by the supplied skeleton schema; include every required field and exact array count.'
+            : '',
+          clip(systemPrompt, 6200),
+        ]
+          .filter(Boolean)
+          .join('\n'),
+      },
+      { role: 'user', content: clip(userPrompt, 7200) },
     ];
   }
   const system = [

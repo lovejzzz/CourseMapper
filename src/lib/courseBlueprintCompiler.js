@@ -7,6 +7,7 @@ import {
   humanizeClassroomSourceCue,
   humanizeQuizText,
   humanSourceCueLabel,
+  isInternalSourceCue,
   removeNumberedAssessmentEchoes,
   isObjectiveStemOnly,
   normalizeObjectiveText,
@@ -27,6 +28,7 @@ import {
   compactAssignmentBriefBodyReferences,
   compactCourseCopyEmbeddedReference,
   compactCourseCopyFocus,
+  compactRepeatedCourseFocusReferences,
   courseCopySurfaceWords,
   examAtomPaddingOptions,
   examUnderstandCorrectText,
@@ -98,6 +100,7 @@ import {
 // manifest so compile-time and manifest-time never disagree about exams.
 import { classifyAssessmentKind } from './courseGraph/deriveFromCourseMap.js';
 import { recordContentFallbackHit } from './contentFallbackTelemetry';
+import { normalizeFactLedgerFeedback } from './factLedgerFeedback.js';
 import { lintItemAdmission } from './itemAdmissionLint';
 import { isAppliedQuizStem, isClaimEvidenceBoundaryShortAnswer } from './quality/quizItemDepth';
 import { whyThisWorksNote, buildMethodsStatement } from './knowledge/pedagogyEvidence';
@@ -840,7 +843,18 @@ function isUnsafeSourceCuePhrase(value) {
   // evidence historical interpretations of") into the source-cue slot. A
   // source label is a noun/title, not an instruction; fall back to the
   // lesson's honest source label rather than projecting the broken clause.
-  return !text || DANGLING_TAIL_RE.test(text) || (OBJECTIVE_LIKE_ASSESSMENT_LABEL_RE.test(text) && !/["':]/.test(text));
+  return (
+    !text ||
+    isInternalSourceCue(text) ||
+    /^(?:source excerpt(?:,?\s+example)?|short resource excerpt|course example and response guide|activity prompt,?\s+reference note)\b/i.test(
+      text,
+    ) ||
+    DANGLING_TAIL_RE.test(text) ||
+    // Short named classroom resources can legitimately begin with a verb
+    // ("Design brief", "Use case", "Model card"). Only quarantine the
+    // long, sentence-shaped form that can actually be a clipped objective.
+    (wordCount(text) >= 7 && OBJECTIVE_LIKE_ASSESSMENT_LABEL_RE.test(text) && !/["':]/.test(text))
+  );
 }
 
 function conciseClause(value, fallback = 'source evidence', maxLength = 120, { ellipsis = false } = {}) {
@@ -1022,9 +1036,13 @@ function hasProgrammingLabEvidence(text = '') {
       text,
     );
   const hasCodePractice =
-    /\b(code|coding|debug|debugging|unit test|test suite|automated test|repository|repo|git|commit|pull request|code review|implementation|algorithm|function|module|script|notebook|refactor|edge case)\b/.test(
+    /\b(debug|debugging|unit test|test suite|automated test|repository|repo|git|commit|pull request|code review|algorithm|function|module|script|refactor|edge case|source code|test[-\s]?driven)\b/.test(
       text,
     );
+  // Python, notebooks, "implementation," and "coding" also occur in
+  // statistics and qualitative research. They are tools or research methods,
+  // not enough evidence to reframe an entire course as software engineering.
+  // Programming modality requires an inspectable software-workflow cue.
   return hasProgrammingDomain && hasCodePractice;
 }
 
@@ -1422,6 +1440,19 @@ function inferDisciplineLens(courseName, concepts = []) {
       'implementation decision',
       'software developer',
       'code review scenario',
+    );
+  }
+  if (
+    /\b(?:biology|biological science|genetics?|genomics?|molecular biology|cell biology|microbiology|ecology|evolution|inheritance|alleles?|chromosomes?|meiosis|dna|rna|gene expression)\b/.test(
+      text,
+    )
+  ) {
+    return disciplineLens(
+      'biological science inquiry',
+      'experimental and genetic evidence',
+      'biological explanation',
+      'biologist',
+      'organism and inheritance case',
     );
   }
   if (
@@ -5208,7 +5239,7 @@ function buildReadinessSupportPlan({ title, concepts, artifact, evidencePlan, le
     diagnosticPrompt: lessonVariant(lessonStub, [
       `Before the main task, ask students to explain ${concept} using one concrete detail from ${sourceCue}.`,
       `Open with a quick ${concept} check: students choose one ${sourceCue} detail and say what it supports.`,
-      `Before drafting, have students mark a ${sourceCue} clue and connect it to the ${concept} decision.`,
+      `Before drafting, have students mark one clue in ${sourceCue} and connect it to the ${concept} decision.`,
       `Use a two-minute readiness prompt: what does ${sourceCue} prove, limit, or complicate about ${concept}?`,
     ]),
     readinessEvidence: `Students are ready when they can cite inspectable evidence, explain why it matters, and connect it to ${artifactName}.`,
@@ -5321,7 +5352,6 @@ function buildPrerequisitePlan({ lesson, previous }) {
   const concept = safeLessonPrimaryConcept(lesson);
   const artifactName = compactLessonArtifactReference(lesson);
   const previousConcept = previous ? safeLessonPrimaryConcept(previous) : 'prior course experience';
-  const previousArtifact = previous ? compactLessonArtifactReference(previous, 'work') : 'prior course work';
   const assumedKnowledge = previous
     ? unique([previousConcept, ...safeLessonConcepts(previous, { limit: 3 }).slice(1, 3)], 3)
     : unique(
@@ -5335,16 +5365,16 @@ function buildPrerequisitePlan({ lesson, previous }) {
   return {
     assumedKnowledge,
     prerequisiteEvidence: previous
-      ? `Students should bring forward ${previousConcept} evidence from ${previousArtifact} before working on ${artifactName}.`
+      ? `Students should connect ${previousConcept} to ${concept} before working on ${artifactName}.`
       : `Students should be able to name one prior example, course goal, or baseline experience that makes ${concept} meaningful before working on ${artifactName}.`,
     diagnosticCheck: previous
-      ? `Ask students to explain how ${previousConcept} from ${previousArtifact} changes today's ${concept} decision.`
+      ? `Ask students to explain one relationship and one difference between ${previousConcept} and ${concept}.`
       : `Ask students to define ${concept} in their own words and connect it to one concrete example before new instruction begins.`,
     studentReadinessCheck: previous
-      ? `Before drafting, explain in your own words how ${previousConcept} from ${previousArtifact} shapes today's ${concept} decision.`
+      ? `Before drafting, write one sentence connecting ${previousConcept} to ${concept}, then name one important difference.`
       : `Before drafting, define ${concept} in your own words and connect it to one concrete example.`,
     reteachMove: previous
-      ? `If students cannot use ${previousConcept}, revisit one strong ${previousArtifact} example and annotate the evidence move before starting ${artifactName}.`
+      ? `If the connection is unclear, revisit one concrete ${previousConcept} example and model how it relates to ${concept} before starting ${artifactName}.`
       : `If students cannot explain ${concept}, model one source-backed example and give a sentence frame before starting ${artifactName}.`,
     accelerationMove: previous
       ? `If students are ready, ask them to compare how ${previousConcept} and ${concept} change the next decision in ${artifactName}.`
@@ -5369,7 +5399,14 @@ function buildLearningTransferPlan({ lesson, previous, next }) {
       `Use a later quiz, guide prompt, or discussion check to make students reuse the ${concept} evidence move from ${artifactName}.`,
       `Schedule one short retrieval touchpoint after ${artifactName} so ${concept} transfers into the next substantial artifact.`,
     ]),
-    transferTask: `Students carry one ${concept} evidence move from ${artifactName} into ${stripTerminalPunctuation(nextTarget)}.`,
+    transferTask: lessonVariant(lesson, [
+      `Students carry one ${concept} evidence move from ${artifactName} into ${stripTerminalPunctuation(nextTarget)}.`,
+      `Students reuse one ${concept} evidence decision from ${artifactName} while preparing ${stripTerminalPunctuation(nextTarget)}.`,
+      `Before starting ${stripTerminalPunctuation(nextTarget)}, students identify which ${concept} reasoning move still applies and why.`,
+      `Students adapt one ${concept} evidence choice from ${artifactName} to the demands of ${stripTerminalPunctuation(nextTarget)}.`,
+      `The handoff to ${stripTerminalPunctuation(nextTarget)} asks students to preserve one ${concept} support and revise one condition.`,
+      `Students explain how the ${concept} work in ${artifactName} changes their first decision for ${stripTerminalPunctuation(nextTarget)}.`,
+    ]),
     cumulativeConnection: next
       ? `${artifactName} prepares students for ${stripTerminalPunctuation(nextTarget)} by making ${nextConcept} easier to justify with evidence.`
       : `${artifactName} closes the course arc by helping students synthesize evidence, feedback, and revision into a final transfer explanation.`,
@@ -5628,6 +5665,28 @@ function lessonArtifactGenre(lesson = {}) {
   if (/\bautograd|\bmachine[- ]scored\b/.test(title)) return 'autograded-quiz';
   if (/\b(?:lab|practical|problem set|coding exercise|worksheet)\b/.test(title)) return 'lab';
   return 'written';
+}
+
+function lessonLabWorkflow(blueprint = {}, lesson = {}) {
+  if (lessonArtifactGenre(lesson) !== 'lab') return '';
+  const mode = cleanText(lesson?.modalityDecode?.mode || blueprint?.courseModalityProfile?.primaryMode).toLowerCase();
+  if (mode === 'programming-lab') return 'programming';
+  if (mode === 'data-science-lab') return 'computational-analysis';
+  const evidence = [
+    blueprint?.courseName,
+    lesson?.title,
+    lesson?.studentArtifact,
+    lesson?.activityPattern,
+    ...(lesson?.keyConcepts || []),
+    ...(lesson?.readings || []),
+    ...(lesson?.resources || []),
+  ]
+    .map(cleanText)
+    .join(' ')
+    .toLowerCase();
+  if (hasProgrammingLabEvidence(evidence)) return 'programming';
+  if (hasDataScienceLabEvidence(evidence)) return 'computational-analysis';
+  return 'empirical';
 }
 
 function safeLessonPlanArtifact(lesson = {}, fallbackKind = 'artifact') {
@@ -7391,6 +7450,66 @@ function contextualizeModalityRoutine(kind, base, { lesson = {}, concept = '', a
   if (!routine) return '';
   const title = stripLessonPrefix(lesson.title) || `Lesson ${lesson.lessonNumber || 1}`;
   const secondary = alternateLessonConcept(lesson, concept);
+  // A modality routine is a teaching invariant, not prose that should be
+  // stamped verbatim into every lesson. The applied-lab defaults used to
+  // preserve the same 11-word core in all slide decks (the live Research
+  // Methods replay scored that phrase in 12/12 documents). Rotate the actual
+  // pedagogical move before adding lesson context so the invariant survives
+  // while each lesson reads like a deliberately authored session.
+  if (
+    kind === 'signaturePractice' &&
+    /\brun a hands-on analysis or evidence-log check using the lesson data or instrument\b/i.test(routine)
+  ) {
+    routine = lessonVariant(lesson, [
+      'inspect the lesson data, record one defensible observation, and test what the evidence can support',
+      'rehearse the method with the assigned instrument, then justify one collection or analysis decision',
+      'compare two evidence records, locate the consequential difference, and revise the interpretation',
+      'apply the lesson procedure to a bounded case and document the result, limitation, and next check',
+      'audit a field note, dataset, or instrument output before choosing the claim it can sustain',
+      'move from raw observation through method choice to an evidence-backed conclusion students can defend',
+    ]);
+  }
+  if (
+    kind === 'evidenceRoutine' &&
+    /\brecord the data choice, observation, field note, or instrument decision that supports the claim\b/i.test(routine)
+  ) {
+    routine = lessonVariant(lesson, [
+      'preserve the observation and method choice that warrant the lesson conclusion',
+      'link the instrument decision to the resulting evidence and name one uncertainty',
+      'annotate the field note or dataset detail that changes the interpretation',
+      'show the procedure, result, and limitation behind the claim students submit',
+      'separate raw evidence from inference before students defend the next decision',
+      'trace the conclusion back to an inspectable record and a method-fit check',
+    ]);
+  }
+  if (
+    kind === 'feedbackRoutine' &&
+    /\bcompare evidence logs for accuracy, method fit, limitation language, and interpretation quality\b/i.test(routine)
+  ) {
+    routine = lessonVariant(lesson, [
+      'check whether the recorded evidence is accurate enough to support the stated interpretation',
+      'review method fit and require students to qualify the conclusion where uncertainty remains',
+      'compare evidence records and repair the weakest link between observation and claim',
+      'use result, limitation, and interpretation criteria to target one substantive revision',
+      'test whether another analyst could follow the record and reach the bounded conclusion',
+      'calibrate feedback around evidence quality, methodological choice, and defensible inference',
+    ]);
+  }
+  if (
+    kind === 'instructorMove' &&
+    /\bmodel one technical decision, then ask students to justify the next step with inspectable evidence\b/i.test(
+      routine,
+    )
+  ) {
+    routine = lessonVariant(lesson, [
+      'model how one observation changes a method decision, then ask students to identify the decisive evidence',
+      'pause at the instrument choice and have students defend the next procedural step',
+      'contrast a weak and strong evidence record before students revise their own interpretation',
+      'think aloud through one result-to-claim boundary, then invite students to qualify the conclusion',
+      'surface a plausible competing explanation and ask what additional record would distinguish it',
+      'demonstrate one method-fit check before students apply the same reasoning to their artifact',
+    ]);
+  }
   if (
     kind === 'signaturePractice' &&
     /\bhumanities interpretation seminar\b/i.test(routine) &&
@@ -7473,6 +7592,20 @@ function contextualizeModalityRoutine(kind, base, { lesson = {}, concept = '', a
       'ask students to predict the correction before showing how the worked example resolves it',
       'invite a quick vote on which clue matters, then connect that clue to the corrected answer',
       'surface the likely wrong answer first and ask what evidence would repair the reasoning',
+    ]);
+  }
+  if (
+    kind === 'instructorMove' &&
+    /\bpause the simulation to model a safer phrase\b/i.test(routine) &&
+    /\brestart the encounter\b/i.test(routine)
+  ) {
+    routine = lessonVariant(lesson, [
+      'pause the simulation at one communication risk, model a safer phrase, and let students retry the exchange',
+      'freeze the encounter after a consequential response, ask what the patient may hear, and coach a clearer reattempt',
+      'replay one difficult turn with a more accurate and culturally responsive phrase before continuing the scenario',
+      'stop at a safety or rapport cue, compare two response options, and restart with the stronger communication move',
+      'use one observed phrase as a coaching point, have the student revise it aloud, and resume the encounter',
+      'briefly interrupt the role-play to name the communication criterion, model it, and require an immediate second try',
     ]);
   }
   if (
@@ -8316,8 +8449,14 @@ function buildArtifactGenreDecode(lesson = {}, profile = {}, modalityDecode = {}
       evidenceRequirement:
         'data choice, method decision, observation, calculation, or instrument change tied to the claim',
       qualityFocus: 'method fit, evidence traceability, limitation language, and interpretation accuracy',
-      reviewProtocol:
-        'trace the evidence step-by-step, verify the method choice, and ask for one limitation or correction',
+      reviewProtocol: lessonVariant(lesson, [
+        'trace the evidence step by step, verify the method choice, and ask for one limitation or correction',
+        'check the data or observation trail, test whether the method fits the question, and mark one claim that needs qualification',
+        'reconstruct the analysis from the recorded evidence, challenge the interpretation, and require one corrected or bounded conclusion',
+        'inspect the instrument, calculation, or coding decision, confirm what supports the claim, and identify the strongest remaining uncertainty',
+        'follow one result back to its source evidence, compare it with an alternative explanation, and revise the conclusion where needed',
+        'audit the method decision and evidence trail, then add one limitation that changes how the result should be interpreted',
+      ]),
       commonFailure: 'students complete procedures without explaining why the evidence supports the conclusion',
     },
     'music-interval-analysis': {
@@ -8598,7 +8737,7 @@ function buildArtifactGenreDecode(lesson = {}, profile = {}, modalityDecode = {}
       evidenceRequirement: 'selected answer or short response plus reasoning, misconception check, and correction path',
       qualityFocus: 'concept accuracy, retrieval strength, explanation quality, and readiness for the next artifact',
       reviewProtocol:
-        'sort responses by misconception pattern, reteach the weakest concept, and require a corrected explanation',
+        'compare the response with the answer rationale, correct the weakest explanation, and submit the revised reasoning',
       commonFailure: 'students choose an answer without explaining the reasoning or correcting the misconception',
     },
     'language-performance': {
@@ -8680,7 +8819,7 @@ function buildArtifactGenreDecode(lesson = {}, profile = {}, modalityDecode = {}
               `concept accuracy, retrieval strength, explanation quality, and readiness for the next artifact in ${artifact}`,
               `accurate ${concept} use, corrected reasoning, transfer readiness, and a clear next-study move for ${artifact}`,
               `${artifact} should show the selected answer, why it holds, what misconception was avoided, and what students should practice next`,
-              `review ${artifact} for defensible reasoning, misconception repair, and evidence that students can transfer the concept forward`,
+              `review ${artifact} for defensible reasoning, correction of inaccurate claims, and evidence that students can transfer the concept forward`,
             ])
           : `${details.qualityFocus} for ${artifact}`,
     reviewProtocol: `${details.reviewProtocol} for ${stripLessonPrefix(lesson.title)}.`,
@@ -11868,6 +12007,17 @@ function shouldRebuildAssessmentAnchors(lessons = [], assessments = [], assessme
   if (Array.isArray(assessmentRegistry) && assessmentRegistry.length > 0) {
     if (!Array.isArray(assessments) || assessments.length === 0) return true;
     if (!assessments.every((assessment) => assessment?.registryId)) return true;
+    // A native skeleton may carry one assessment entity per lesson while the
+    // canonical Course Map registry contains several promised artifacts in a
+    // lesson. Compact storage can preserve both collections, so checking only
+    // that the retained anchors are individually healthy silently accepts the
+    // incomplete subset. Reconcile the complete graded registry identity set
+    // before compilation: every promised non-classroom assessment must own a
+    // downstream brief, oral sheet, or exam artifact.
+    const gradedRegistry = assessmentRegistry.filter((entry) => entry?.kind !== 'in-class');
+    if (assessments.length !== gradedRegistry.length) return true;
+    const anchorIds = new Set(assessments.map((assessment) => cleanText(assessment?.registryId)).filter(Boolean));
+    if (gradedRegistry.some((entry) => !anchorIds.has(cleanText(entry?.id)))) return true;
     return assessments.some(anchorNeedsRebuild);
   }
   // v0.14.3 C1, v0.14.5 WS-D (D3) verdict: zero hits across all 11 live
@@ -12026,10 +12176,19 @@ function deriveRoutineFieldsForLesson(lesson = {}, index = 0, context = {}) {
         )
       : [];
   const outcomes = suppliedOutcomes.length > 0 ? suppliedOutcomes : [objectiveForLesson(title, safeConcepts)];
-  const candidateReadings =
+  const rawCandidateReadings =
     Array.isArray(lesson.readings) && lesson.readings.length > 0
       ? lesson.readings
       : ['Class notes and assigned source materials'];
+  const readingFallback = `${stripLessonPrefix(title)} instructor-provided materials`;
+  const normalizedReadingCues = unique(
+    rawCandidateReadings
+      .map((reading) => stripTerminalPunctuation(cleanText(reading)))
+      .filter((reading) => reading && !isInternalSourceCue(reading))
+      .map((reading) => (isUnsafeSourceCuePhrase(reading) ? readingFallback : reading)),
+    8,
+  );
+  const candidateReadings = normalizedReadingCues.length > 0 ? normalizedReadingCues : [readingFallback];
   const readings = disciplineSafeReadingsForLesson(
     { ...lesson, title, outcomes, keyConcepts: safeConcepts },
     candidateReadings,
@@ -12103,6 +12262,7 @@ function deriveRoutineFieldsForLesson(lesson = {}, index = 0, context = {}) {
     !domainRepairApplied &&
     !protectedCueNeedsRepair &&
     lesson.evidencePlan?.sourceCue &&
+    !isUnsafeSourceCuePhrase(lesson.evidencePlan.sourceCue) &&
     lesson.evidencePlan?.evidenceRequirement &&
     lesson.evidencePlan?.limitationCue
       ? lesson.evidencePlan
@@ -12119,6 +12279,9 @@ function deriveRoutineFieldsForLesson(lesson = {}, index = 0, context = {}) {
     !protectedCueNeedsRepair &&
     Array.isArray(lesson.sourceUsePlan?.approvedSources) &&
     lesson.sourceUsePlan.approvedSources.length > 0 &&
+    !lesson.sourceUsePlan.approvedSources.some(
+      (source) => isInternalSourceCue(source) || isUnsafeSourceCuePhrase(source),
+    ) &&
     lesson.sourceUsePlan?.noInventedSources
       ? lesson.sourceUsePlan
       : buildSourceUsePlan({
@@ -13246,14 +13409,29 @@ function assignmentChecklistResourceLabel({ submissionProfile = {}, lesson = {},
   ]);
 }
 
-function assignmentSupportResourcesForLesson({ lesson = {}, assessment = {}, submissionProfile = {} } = {}) {
+function assignedReadingTitlesForLesson(blueprint = {}, lesson = {}) {
+  return unique(
+    [
+      ...registryReadingTitlesForLesson(blueprint.readingsRegistry, lesson.lessonNumber),
+      ...(Array.isArray(lesson.instructorNamedReadings) ? lesson.instructorNamedReadings : []),
+    ],
+    4,
+  );
+}
+
+function assignmentSupportResourcesForLesson({
+  lesson = {},
+  assessment = {},
+  submissionProfile = {},
+  assignedReadings = [],
+} = {}) {
   const lessonLabel = assessment.relatedLessons?.[0] || lesson.title || 'Lesson materials';
   const assessmentTitle = stripTerminalPunctuation(assessment.title || 'the assessment');
   const artifactLabel = stripTerminalPunctuation(
     submissionProfile.artifact || submissionProfile.assignmentType || assessment.artifact || assessmentTitle,
   );
   const checklist = assignmentChecklistResourceLabel({ submissionProfile, lesson, assessment });
-  return lessonVariant(lesson, [
+  const generatedResources = lessonVariant(lesson, [
     [
       `${lessonLabel} notes and assigned examples`,
       `Rubric criteria for ${assessmentTitle}`,
@@ -13273,7 +13451,7 @@ function assignmentSupportResourcesForLesson({ lesson = {}, assessment = {}, sub
       checklist,
     ],
     [
-      `${lessonLabel} examples, critique notes, or studio/lab artifacts`,
+      `${lessonLabel} examples and annotated source materials`,
       checklist,
       `Weighting guide for ${assessmentTitle}`,
       'Course-site submission guidance',
@@ -13291,6 +13469,11 @@ function assignmentSupportResourcesForLesson({ lesson = {}, assessment = {}, sub
       checklist,
     ],
   ]);
+  // Instructor-specified readings are curriculum identities, not optional
+  // metadata. Carry their exact titles into the assignment handoff so the
+  // learner can trace the task back to the same source named in the lesson
+  // plan, slides, discussion, quiz, and study guide.
+  return unique([...assignedReadings, ...generatedResources], 6);
 }
 
 function assignmentDeliverablesForLesson({ lesson = {}, assessment = {}, submissionProfile = {}, lens = {} } = {}) {
@@ -13309,7 +13492,7 @@ function assignmentDeliverablesForLesson({ lesson = {}, assessment = {}, submiss
     `${evidenceNoun} or citation notes tied to ${relatedLesson} course materials.`,
     `Source notes that identify the ${relatedLesson} evidence used in the response.`,
     `Brief evidence log naming the reading, activity, case, data, or course note that supports ${assessmentTitle}.`,
-    `Citation or artifact notes showing where the main claim gets its support.`,
+    `Source notes showing where the main claim gets its support.`,
   ]);
   const revisionLine = lessonVariant(lesson, [
     `Brief reflection naming one revision decision for ${assessmentTitle}.`,
@@ -14940,6 +15123,17 @@ function buildAssessmentAnchorExamples(lesson, criteria, criterionEvidenceMap, v
 
 const REGISTRY_ASSESSMENT_KINDS = new Set(['graded-artifact', 'exam', 'oral', 'in-class']);
 
+function normalizeGeneratedAssessmentTitle(value) {
+  return dedupeNumberedAssessmentEcho(cleanText(value))
+    .replace(/\s+application check:\s*choose evidence that supports one course decision\.?$/i, ' evidence check')
+    .replace(
+      /\s+transfer task:\s*explain one example, one source detail, and one limitation\.?$/i,
+      ' evidence application',
+    )
+    .replace(/\s+exit note connecting the activity to one visible product\.?$/i, ' exit reflection')
+    .replace(/\s+short response that names the claim, example, and next question\.?$/i, ' short analysis');
+}
+
 function normalizeAssessmentRegistry(registry) {
   if (!Array.isArray(registry)) return null;
   const entries = registry
@@ -16434,8 +16628,9 @@ function syllabusWeeklyReadings(lesson) {
   const isMintedPacket = (reading) =>
     /\bfor Lesson \d+\s*:|:\s*Lesson \d+\b/i.test(cleanText(reading)) &&
     cleanText(reading).toLowerCase() === cleanText(lesson.throughlineCase?.evidencePacket).toLowerCase();
-  const real = readings.filter((reading) => !isMintedPacket(reading));
-  return real.length > 0 ? real : readings;
+  const publicReadings = readings.filter((reading) => !isInternalSourceCue(reading));
+  const real = publicReadings.filter((reading) => !isMintedPacket(reading));
+  return real.length > 0 ? real : publicReadings;
 }
 
 function syllabusCourseDescription(blueprint) {
@@ -17251,7 +17446,12 @@ function compileAssignments(blueprint) {
         ],
         gradingCriteria: assessment.criteria,
         weightedGradingCriteria: assessment.criterionWeightPlan || [],
-        supportResources: assignmentSupportResourcesForLesson({ lesson, assessment, submissionProfile }),
+        supportResources: assignmentSupportResourcesForLesson({
+          lesson,
+          assessment,
+          submissionProfile,
+          assignedReadings: assignedReadingTitlesForLesson(blueprint, lesson),
+        }),
         progressTracking: lessonVariant(lesson, [
           `Use the ${assessmentTitle} milestone notes, rubric criteria, ${submissionProfile.assignmentType.toLowerCase()} format, and ${submissionProfile.workload.outOfClassEstimate} to monitor readiness before submission for ${assessment.relatedLessons[0]}.`,
           `Track ${assessmentTitle} with the rubric, the ${submissionProfile.assignmentType.toLowerCase()} format, and the workload estimate so the evidence is ready for ${assessment.relatedLessons[0]}.`,
@@ -17962,7 +18162,8 @@ function enforceDisciplineSafeEnrichment(lesson = {}, enrichment = null) {
   const titleSafe = sanitizeLessonTitleEchoEnrichment(lesson, enrichment).enrichment;
   const semanticSafe = sanitizeGenomeEnrichmentForLesson(lesson, titleSafe).enrichment;
   const targetLanguageSafe = enforceAdmittedTargetLanguageEnrichment(semanticSafe);
-  return enforceMusicIntervalEnrichment(lesson, targetLanguageSafe);
+  const feedbackSafe = normalizeFactLedgerFeedback(lesson, targetLanguageSafe);
+  return enforceMusicIntervalEnrichment(lesson, feedbackSafe);
 }
 
 function disciplineSafeBlueprintEnrichment(enrichment = null, lessons = []) {
@@ -18187,20 +18388,23 @@ function enrichedKeyTermsForLesson(lesson, { fallback }) {
   // CurriculumOS V1: a genome-linked term carries a source citation; surface it
   // so the study guide can render "Source: …". Compiler-only terms have none.
   const linked = lesson?.enrichment?.conceptProvenance?.source === 'genome-linked';
-  const projected = safeEnriched.map((term) => ({
-    term: displayKeyTermName(term),
-    // v0.14.5 (F1): keep the STRUCTURED script/romanization pair alongside the
-    // display form so package-time consumers (the generated pronunciation
-    // reference in requiredLabAssets.js) read fields, not parsed parentheses.
-    // The docx/csv exporters ignore unknown keyTerm fields.
-    ...(cleanText(term?.romanization)
-      ? { scriptTerm: cleanText(term.term), romanization: cleanText(term.romanization) }
-      : {}),
-    definition: term.definition,
-    example: term.example || '',
-    ...(term.source ? { source: term.source } : {}),
-    enrichmentSource: linked ? 'genome-linked' : 'lesson-content-enrichment',
-  }));
+  const projected = safeEnriched.map((term) => {
+    const classroomSource = humanSourceCueLabel(term.source, '');
+    return {
+      term: displayKeyTermName(term),
+      // v0.14.5 (F1): keep the STRUCTURED script/romanization pair alongside the
+      // display form so package-time consumers (the generated pronunciation
+      // reference in requiredLabAssets.js) read fields, not parsed parentheses.
+      // The docx/csv exporters ignore unknown keyTerm fields.
+      ...(cleanText(term?.romanization)
+        ? { scriptTerm: cleanText(term.term), romanization: cleanText(term.romanization) }
+        : {}),
+      definition: term.definition,
+      example: term.example || '',
+      ...(classroomSource ? { source: classroomSource } : {}),
+      enrichmentSource: linked ? 'genome-linked' : 'lesson-content-enrichment',
+    };
+  });
   const admittedPair = admittedLanguagePairTerm(lesson);
   return admittedPair && !hasVisibleLanguagePair(projected) ? [...projected, admittedPair] : projected;
 }
@@ -18411,6 +18615,7 @@ function compileStudyGuides(blueprint) {
         : [];
       return {
         lessonTitle: lesson.title,
+        assignedReadings: assignedReadingTitlesForLesson(blueprint, lesson),
         examScope: `Use this guide to prepare for Week ${lesson.lessonNumber} checks on ${phrase.context} and later assessments.${
           inClassChecks.length > 0
             ? ` In-class checks this week: ${inClassChecks
@@ -20035,9 +20240,12 @@ function buildExamEssayItem({ blueprint, assessment, covered, lens, examSlug, or
   const span = singleLesson
     ? compactLessonFocusReference(last)
     : `${compactLessonFocusReference(covered[0])} through ${compactLessonFocusReference(last)}`;
-  const decisionFocus = /\bdecision$/i.test(cleanText(lens.decisionNoun))
-    ? cleanText(lens.decisionNoun).replace(/\bdecision$/i, 'decision-making')
-    : cleanText(lens.decisionNoun);
+  const rawDecisionFocus = cleanText(lens.decisionNoun);
+  const decisionFocus = /\b(?:professional|course) decision(?:-making)?\b/i.test(rawDecisionFocus)
+    ? 'interpreting the covered evidence'
+    : /\bdecision$/i.test(rawDecisionFocus)
+      ? rawDecisionFocus.replace(/\bdecision$/i, 'decision-making')
+      : rawDecisionFocus;
   const exampleConceptLabel =
     exampleConcepts.length === 2 ? `${exampleConcepts[0]} and ${exampleConcepts[1]}` : `two ideas from ${span}`;
   return withQuizPlan(
@@ -20328,7 +20536,6 @@ function rotateAdmittedAssessmentKnowledge(lesson, offset = 0) {
 // the lesson's knowledge is missing.
 function buildAdmittedKernelEvidenceItem({ lesson, quizPlan, index, offset = 0 }) {
   const terms = examLessonTerms(lesson);
-  const facts = (lesson?.enrichment?.kernel?.facts || []).map(cleanText).filter(Boolean);
   // Genome-authored terms carry the lesson concept. Quiz-projected terms
   // (for example, an answer option promoted as "water") are useful retrieval
   // atoms but can have a definition whose scope is broader than the label.
@@ -20340,8 +20547,23 @@ function buildAdmittedKernelEvidenceItem({ lesson, quizPlan, index, offset = 0 }
     ) ||
     terms[0] ||
     null;
-  const fact = facts[offset % Math.max(1, facts.length)] || cleanText(term?.definition);
   const concept = cleanText(term?.term) || primaryConceptForLesson(lesson);
+  const lessonTokens = new Set(
+    semanticIdentityTokens(
+      [
+        concept,
+        stripLessonPrefix(lesson?.title),
+        ...(lesson?.sectionTopics || []),
+        ...(lesson?.keyConcepts || []),
+      ].join(' '),
+    ),
+  );
+  const allFacts = (lesson?.enrichment?.kernel?.facts || []).map(cleanText).filter(Boolean);
+  const alignedFacts = allFacts.filter((candidate) =>
+    semanticIdentityTokens(candidate).some((token) => lessonTokens.has(token)),
+  );
+  const facts = alignedFacts.length >= 2 ? alignedFacts : allFacts;
+  const fact = facts[offset % Math.max(1, facts.length)] || cleanText(term?.definition);
   const definition = cleanText(term?.definition);
   if (!concept || !fact) return null;
 
@@ -20350,6 +20572,22 @@ function buildAdmittedKernelEvidenceItem({ lesson, quizPlan, index, offset = 0 }
   const definitionCue = definition
     ? `${joinTermDefinition(concept, definition, { separator: ' means ', lowercaseTail: true })}.`
     : `${sentenceCase(concept)} is the concept students should use to interpret the quoted evidence.`;
+  const question =
+    index === 4
+      ? `A peer uses this course statement to support a broader conclusion: “${quotedFact}.” In 2-3 sentences, state the strongest conclusion the evidence supports, identify the course concept that best justifies that boundary, cite the detail that matters, and explain the current limitation plus one additional fact needed before accepting the broader claim.`
+      : `Analyze this course statement: “${quotedFact}.” In 2-3 sentences, identify the course concept that best interprets the statement, cite one detail from the evidence, and name one limitation or conclusion the statement does not establish by itself.`;
+  const answer =
+    index === 4
+      ? `A complete answer states a conclusion no broader than the quoted evidence, uses ${concept} to justify that boundary, and names a specific additional fact needed to test the peer's broader claim.`
+      : `A complete answer accurately connects the quoted statement to ${concept}, explains the relationship it establishes, and keeps the conclusion within the supplied evidence.`;
+  const sampleAnswer =
+    index === 4
+      ? `${definitionCue} The statement supports a bounded conclusion because ${lowercaseSentenceLead(quotedFact)}. Accepting a broader claim would require another course fact that directly establishes the added cause, mechanism, population, or outcome.`
+      : `${definitionCue} The evidence supports that concept by showing that ${lowercaseSentenceLead(quotedFact)}. It does not support a conclusion that adds a cause, mechanism, population, or outcome not stated in the quotation.`;
+  const scoringGuidance =
+    index === 4
+      ? `Award full credit for a bounded supported conclusion, accurate use of ${concept}, and one specific additional fact that would test the broader claim. Partial credit when the response rejects the claim without naming the missing evidence.`
+      : `Award full credit for accurate use of ${concept}, an explicit explanation of the quoted relationship, and one defensible boundary. Partial credit when the response repeats the fact without explaining or limiting it.`;
   return withQuizPlan(
     {
       id: quizQuestionId(lesson, index),
@@ -20360,11 +20598,11 @@ function buildAdmittedKernelEvidenceItem({ lesson, quizPlan, index, offset = 0 }
       points: 4,
       objectiveAligned: plan.objective || lesson.outcomes?.[0] || '',
       intendedUse: `Weekly source-grounded evidence check for ${lesson.title}; score the relationship and claim boundary against the admitted lesson kernel.`,
-      question: `Analyze this course statement: “${quotedFact}.” In 2-3 sentences, identify the course concept that best interprets the statement, cite one detail from the evidence, and name one limitation or conclusion the statement does not establish by itself.`,
-      answer: `A complete answer accurately connects the quoted statement to ${concept}, explains the relationship it establishes, and keeps the conclusion within the supplied evidence.`,
-      sampleAnswer: `${definitionCue} The evidence supports that concept by showing that ${lowercaseSentenceLead(quotedFact)}. It does not support a conclusion that adds a nutrient, quantity, cause, or outcome not stated in the quotation.`,
+      question,
+      answer,
+      sampleAnswer,
       explanation: `This item checks whether students can interpret an admitted ${concept} fact and distinguish its supported relationship from an overclaim.`,
-      scoringGuidance: `Award full credit for accurate use of ${concept}, an explicit explanation of the quoted relationship, and one defensible boundary. Partial credit when the response repeats the fact without explaining or limiting it.`,
+      scoringGuidance,
       tags: unique(['quiz', 'short answer', concept, 'source evidence', 'claim boundary'], 8),
       enrichmentSource: 'admitted-kernel-assessment',
     },
@@ -20391,7 +20629,9 @@ function buildAdmittedKernelAssessmentFillers({ lesson, blueprint, quizPlan, ass
   }
   const weeklyAssessment = {
     ...assessment,
-    title: cleanText(assessment?.title) || `${lesson.title} weekly knowledge check`,
+    title: /\b(?:quiz|test|knowledge check)\b/i.test(cleanText(assessment?.title))
+      ? normalizeGeneratedAssessmentTitle(assessment.title)
+      : `the Week ${lesson.lessonNumber} knowledge check`,
   };
   const covered = [lesson];
   const weeklyize = (item, index) => {
@@ -20446,6 +20686,9 @@ function buildAdmittedKernelAssessmentFillers({ lesson, blueprint, quizPlan, ass
     buildAdmittedKernelEvidenceItem({ lesson, quizPlan, index: 2, offset: 1 });
   fillers[4] =
     build(buildExamMisconceptionItem, 4, 1) || build(buildExamFactItem, 4, 1) || build(buildExamDefinitionItem, 4, 1);
+  if (cleanText(fillers[4]?.question).toLowerCase() === cleanText(fillers[1]?.question).toLowerCase()) {
+    fillers[4] = buildAdmittedKernelEvidenceItem({ lesson, quizPlan, index: 4, offset: 2 });
+  }
   const examArgs = {
     blueprint,
     assessment: weeklyAssessment,
@@ -20467,7 +20710,10 @@ function buildExamMisconceptionItem({ lesson, covered, coveredIndex, index, obje
   const candidates = lessonTeachingKeyTerms(lesson).filter(
     (entry) => cleanText(entry?.term) && examMisconceptionClaim(entry),
   );
-  const term = candidates.find((entry) => entry !== definitionTerm) || candidates[0];
+  const term =
+    candidates.length > 1
+      ? candidates[Math.abs(Number(index) || 0) % candidates.length]
+      : candidates.find((entry) => entry !== definitionTerm) || candidates[0];
   if (!term) return null;
   const lessonFocus = compactLessonFocusReference(lesson);
   const concept = cleanText(term.term);
@@ -21339,6 +21585,7 @@ function compileQuizBank(blueprint, config = {}) {
       // like registry exam entries so filtering never guesses by position.
       lessonNumber: lesson.lessonNumber,
       lessonTitle: lesson.title,
+      assignedReadings: assignedReadingTitlesForLesson(blueprint, lesson),
       totalQuestions: questions.length,
       totalPoints,
       ...(gradingSpec ? { gradingSpec } : {}),
@@ -22119,7 +22366,12 @@ function slideTypeFocus(type, lesson, lens) {
           `Treat the example as a diagnostic: what would a practitioner see, question, or verify about ${concept}?`,
           `Frame the scenario as a decision point where ${concept} changes what counts as usable evidence.`,
         ]),
-        evidence: `Pause on the example long enough for students to identify which detail counts as usable ${lens.evidenceNoun} for ${artifact}.`,
+        evidence: lessonVariant(lesson, [
+          `Pause on the example long enough for students to identify which detail counts as usable ${lens.evidenceNoun} for ${artifact}.`,
+          `Ask students to mark the scenario detail that supplies credible ${lens.evidenceNoun} before they apply it to ${artifact}.`,
+          `Hold on the evidence moment: which observable detail supports the ${concept} claim, and how should it change ${artifact}?`,
+          `Have students separate what the example directly shows from what they still need to verify before revising ${artifact}.`,
+        ]),
         misconception: lessonVariant(lesson, [
           `If students jump to recommendations about ${artifact} too early, bring them back to what the ${concept} example actually shows.`,
           `When students rush from example to advice, ask which ${concept} detail is visible and which claim still needs support.`,
@@ -23593,6 +23845,17 @@ function countLessonContentBearingSlides(slides, lesson) {
 
 const MIN_CONTENT_BEARING_SLIDES = 5;
 
+function contentFloorTeachingNote(lesson, { first, second, third }) {
+  return lessonVariant(lesson, [
+    `Have students ${first}. They then ${second}. Close by having them ${third}. Before moving on, invite one student to challenge the evidence and another to name a limitation.`,
+    `Begin with a short check in which students ${first}. After that, they ${second}. Use the final minute to ${third}.`,
+    `Make the work visible: students ${first}. Ask them to ${second}, then have each learner ${third}. End by asking a partner to point out one unsupported leap and suggest a stronger trace.`,
+    `Use an individual-to-pair cycle. First, students ${first}; next, they ${second}; finally, they ${third}. Compare the paired explanations and revise one sentence that overstates the evidence.`,
+    `Frame this as an evidence checkpoint. Students ${first}, test the result as they ${second}, and then ${third}.`,
+    `Pause the explanation for a concrete trace. Learners ${first}; a partner checks how they ${second}; students then ${third}.`,
+  ]);
+}
+
 function buildContentFloorSlides(lesson, { concept, secondary, objective, artifact }) {
   const candidates = slideConceptCandidates(lesson);
   const tertiary =
@@ -23615,7 +23878,11 @@ function buildContentFloorSlides(lesson, { concept, secondary, objective, artifa
         `${secondary} shows the condition, input, source detail, or design choice that changes the result.`,
         `Students explain how ${concept} and ${secondary} change the next ${artifact} decision.`,
       ],
-      notes: `Teach this as a visible trace rather than a definition check. Ask students to mark where ${concept} appears, identify how ${secondary} changes the reasoning, and state the consequence for ${artifact}. Then have one pair explain the trace before students continue.`,
+      notes: contentFloorTeachingNote(lesson, {
+        first: `mark where ${concept} appears`,
+        second: `explain how ${secondary} changes the reasoning`,
+        third: `state the consequence for ${artifact}`,
+      }),
       minutes: 5,
       bloom: 'Analyze',
       objective,
@@ -23630,7 +23897,11 @@ function buildContentFloorSlides(lesson, { concept, secondary, objective, artifa
         `Name what ${secondary} does not prove yet, even if the answer looks plausible.`,
         `Revise the claim so the ${concept} boundary is visible before submission.`,
       ],
-      notes: `Use this slide to slow down overclaiming. Students first write the strongest defensible claim about ${concept}, then add the limit created by ${secondary}, and finally revise one sentence in ${artifact} so the boundary is explicit.`,
+      notes: contentFloorTeachingNote(lesson, {
+        first: `write the strongest defensible claim about ${concept}`,
+        second: `add the limit created by ${secondary}`,
+        third: `revise one sentence in ${artifact} so the boundary is explicit`,
+      }),
       minutes: 5,
       bloom: 'Evaluate',
       objective,
@@ -23647,7 +23918,11 @@ function buildContentFloorSlides(lesson, { concept, secondary, objective, artifa
           ? `Use the ${assessmentCue} requirement to decide which ${tertiary} detail matters most.`
           : `Use the next ${artifact} requirement to decide which ${tertiary} detail matters most.`,
       ],
-      notes: `Frame this as the transfer move for the lesson. Students identify one part of ${tertiary}, connect it to ${concept}, and explain whether ${secondary} changes the action they would take in ${artifact}. Collect one answer as the transition to practice.`,
+      notes: contentFloorTeachingNote(lesson, {
+        first: `identify one usable part of ${tertiary}`,
+        second: `connect it to ${concept}`,
+        third: `explain whether ${secondary} changes the action they would take in ${artifact}`,
+      }),
       minutes: 5,
       bloom: 'Apply',
       objective,
@@ -23662,7 +23937,11 @@ function buildContentFloorSlides(lesson, { concept, secondary, objective, artifa
         `Separate the ${secondary} evidence from guesses or unstated assumptions.`,
         `Record the detail that should appear in ${artifact}.`,
       ],
-      notes: `Keep the source work inspectable. Students point to the exact ${concept} detail in ${sourceCue}, explain how it relates to ${secondary}, and record the sentence or data point they will carry into ${artifact}.`,
+      notes: contentFloorTeachingNote(lesson, {
+        first: `point to the exact ${concept} detail in ${sourceCue}`,
+        second: `explain how it relates to ${secondary}`,
+        third: `record the sentence or data point they will carry into ${artifact}`,
+      }),
       minutes: 5,
       bloom: 'Analyze',
       objective,
@@ -23677,7 +23956,11 @@ function buildContentFloorSlides(lesson, { concept, secondary, objective, artifa
         `Point to the ${lessonFocus} detail that makes the decision defensible.`,
         `Name how ${tertiary} would change the next ${artifact} attempt.`,
       ],
-      notes: `Use this as the final teaching-body check before activity. Students make one ${concept} decision, cite the ${lessonFocus} detail that supports it, and explain how ${secondary} or ${tertiary} would change their next ${artifact} revision.`,
+      notes: contentFloorTeachingNote(lesson, {
+        first: `make one ${concept} decision`,
+        second: `cite the ${lessonFocus} detail that supports it`,
+        third: `explain how ${secondary} or ${tertiary} would change their next ${artifact} revision`,
+      }),
       minutes: 5,
       bloom: 'Apply',
       objective,
@@ -24780,7 +25063,14 @@ function compileCourseFaq(blueprint, config = {}) {
         ) || terms.find((entry) => cleanText(entry?.term) && cleanText(entry?.definition));
       if (!term) return null;
       return {
-        q: `What does ${term.term} actually mean, and when do I use it in ${stripLessonPrefix(lesson.title)}?`,
+        q: lessonVariant(lesson, [
+          `What does ${term.term} actually mean in ${stripLessonPrefix(lesson.title)}, and when should I apply it?`,
+          `When should I use ${term.term} in ${stripLessonPrefix(lesson.title)}, and how can I tell I am using it correctly?`,
+          `Can you explain ${term.term} in plain language and show where it matters in ${stripLessonPrefix(lesson.title)}?`,
+          `How is ${term.term} used in ${stripLessonPrefix(lesson.title)}, beyond simply defining it?`,
+          `What problem does ${term.term} help me solve in ${stripLessonPrefix(lesson.title)}?`,
+          `How do I recognize ${term.term} in ${stripLessonPrefix(lesson.title)} and decide when it applies?`,
+        ]),
         an: `${sentenceCase(term.term)} means ${lowercaseSentenceLead(stripTerminalPunctuation(term.definition))}.${term.example ? ` A concrete case: ${faqExampleLead(term.example)}.` : ''}`,
         ca: 'Concept Explanation',
         rc: [term.term],
@@ -24822,7 +25112,7 @@ function compileCourseFaq(blueprint, config = {}) {
       return {
         q: `What matters most in ${lesson.title}?`,
         an: lessonVariant(lesson, [
-          `Prioritize ${safeConcepts.slice(0, 3).join(', ')}, then connect those ideas to ${artifact}. Use a concrete detail from ${evidenceCue} to explain the decision, limitation, and next revision.`,
+          `Prioritize ${safeConcepts.slice(0, 3).join(', ')}, then connect those ideas to ${artifact}. Use source evidence—a concrete detail from ${evidenceCue}—to explain the decision, limitation, and next revision.`,
           `Start with ${safeConcepts.slice(0, 3).join(', ')}, then show how they shape ${artifact}. The clearest answer names evidence from ${evidenceCue} and explains what action follows.`,
           `Focus first on ${safeConcepts.slice(0, 3).join(', ')}. Link each idea to ${artifact} by citing ${evidenceCue}, naming the reasoning step, and revising the part that remains vague.`,
           `Treat ${safeConcepts.slice(0, 3).join(', ')} as the priority concepts. Your answer should connect them to ${artifact}, point to ${evidenceCue}, and state the implication for your course work.`,
@@ -25086,26 +25376,19 @@ function formatDuration(minutes) {
   return `${minutes} minutes`;
 }
 
-const GENERIC_PUBLICATION_REVIEW_PATTERN =
-  /\bconfirm local timing, modality, accessibility, source permissions, and grading policy before publishing\b/i;
-
-function lessonPlanPublicationReviewMaterial(lesson) {
-  const focus = stripLessonPrefix(lesson?.title) || 'this lesson';
-  return lessonVariant(lesson, [
-    `Review ${focus} for local schedule, delivery mode, accessibility needs, source permissions, and grading policy before publishing.`,
-    `Before publishing ${focus}, verify timing, modality, accommodations, source permissions, and grading rules.`,
-    `Check ${focus} against the local calendar, delivery format, accessibility requirements, source permissions, and grading policy before release.`,
-    `Confirm ${focus} fits the local schedule, modality, accessibility needs, source permissions, and grading rules before students see it.`,
-  ]);
-}
+const PUBLICATION_REVIEW_MATERIAL_PATTERN =
+  /\b(?:before publishing|before release|grading (?:policy|rules?) before|source permissions?.*before)\b/i;
 
 function normalizeLessonPlanMaterial(material, lesson) {
   const text = cleanText(material);
   if (!text) return '';
-  if (!GENERIC_PUBLICATION_REVIEW_PATTERN.test(text)) return text;
-  const hasConstraintPrefix = /^\s*constraint\s*:/i.test(text);
-  const repaired = lessonPlanPublicationReviewMaterial(lesson);
-  return hasConstraintPrefix ? `Constraint: ${repaired}` : repaired;
+  if (isInternalSourceCue(text)) return '';
+  // Publication checks and compiler constraints are reviewer instructions,
+  // never classroom materials. Letting one into `readings` also made it the
+  // evidence source for UDL copy ("visual organizer tied to grading policy
+  // before publishing"), so reject it at the source boundary.
+  if (/^\s*constraint\s*:/i.test(text) || PUBLICATION_REVIEW_MATERIAL_PATTERN.test(text)) return '';
+  return text;
 }
 
 function buildLessonPlanMaterials(lesson) {
@@ -25140,6 +25423,72 @@ function buildLessonPlanMaterials(lesson) {
   return dedupeCompilerMaterials(materials);
 }
 
+const LESSON_PLAN_VISIBLE_REPEAT_FIELDS = [
+  'evidenceBase',
+  'studentFacingSummary',
+  'artifactLength',
+  'prerequisiteKnowledge',
+  'commonMisconceptions',
+  'weeklySubmissionCriteria',
+  'localCaseReplacementNote',
+  'calibrationCue',
+  'assessmentCriteria',
+  'materials',
+  'warmUp',
+  'outline',
+  'formativeCheck',
+  'udlNotes',
+  'homework',
+  'closingActivity',
+  'readyToTeachSupport',
+];
+
+function compactLessonPlanBodyReferences(plan, lesson) {
+  const focus = stripLessonPrefix(lesson?.title);
+  if (!focus) return plan;
+  const originalMaterials = Array.isArray(plan.materials) ? [...plan.materials] : [];
+  const protectedReadingTitles = (Array.isArray(lesson?.instructorNamedReadings) ? lesson.instructorNamedReadings : [])
+    .map((title) => cleanText(title))
+    .filter(Boolean);
+  const visibleBody = Object.fromEntries(
+    LESSON_PLAN_VISIBLE_REPEAT_FIELDS.filter((field) => plan[field] !== undefined).map((field) => [field, plan[field]]),
+  );
+  const compactedBody = compactRepeatedCourseFocusReferences(visibleBody, focus, { limit: 6 });
+  // The repetition pass may rewrite a lesson focus inside prose, but a named
+  // reading is an immutable identifier. Restore the exact original material
+  // string at its position so titles such as "DNA Structure and Replication"
+  // cannot become "the DNA Structure Replication focus" in the final DOCX.
+  if (protectedReadingTitles.length > 0 && Array.isArray(compactedBody.materials)) {
+    compactedBody.materials = compactedBody.materials.map((material, index) => {
+      const original = cleanText(originalMaterials[index]);
+      const containsProtectedTitle = protectedReadingTitles.some((title) =>
+        original.toLocaleLowerCase().includes(title.toLocaleLowerCase()),
+      );
+      return containsProtectedTitle ? originalMaterials[index] : material;
+    });
+  }
+  return { ...plan, ...compactedBody };
+}
+
+function sanitizeLessonPlanPublicationConstraints(value) {
+  if (typeof value === 'string') {
+    return value
+      .replace(
+        /\bConstraint:\s*Confirm local timing, modality, accessibility, source permissions, and grading policy before publishing\.?/gi,
+        'Instructor review: confirm the official readings and classroom resources.',
+      )
+      .replace(
+        /\bConfirm local timing, modality, accessibility, source permissions, and grading policy before publishing\.?/gi,
+        'Confirm the official readings and classroom resources.',
+      );
+  }
+  if (Array.isArray(value)) return value.map(sanitizeLessonPlanPublicationConstraints);
+  if (!value || typeof value !== 'object') return value;
+  return Object.fromEntries(
+    Object.entries(value).map(([key, child]) => [key, sanitizeLessonPlanPublicationConstraints(child)]),
+  );
+}
+
 function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
   const lens = blueprintLens(blueprint);
   const phrase = lessonPhrase(blueprint, lesson);
@@ -25157,6 +25506,7 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
     lesson,
     artifact,
   );
+  const labWorkflow = lessonLabWorkflow(blueprint, lesson);
   // v0.13.3: kernel-aware teaching script — when this lesson carries authored
   // or genome-linked subject matter, the script teaches THAT content instead
   // of the generic process frame (the v0.13.1 live audit's weakest surface).
@@ -25384,7 +25734,11 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
         lessonArtifactGenre(lesson) === 'autograded-quiz'
           ? 'Independent practice round'
           : lessonArtifactGenre(lesson) === 'lab'
-            ? 'Independent lab build'
+            ? labWorkflow === 'programming'
+              ? 'Independent coding build'
+              : labWorkflow === 'computational-analysis'
+                ? 'Independent analysis lab'
+                : 'Independent lab investigation'
             : lessonVariant(lesson, [
                 'Independent artifact sprint',
                 'Studio build checkpoint',
@@ -25405,12 +25759,26 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
               `Students quiz each other with items in the style of ${artifact}, keeping score and flagging any question whose answer they cannot justify from today's material.`,
             ])
           : lessonArtifactGenre(lesson) === 'lab'
-            ? lessonVariant(lesson, [
-                `Students build the ${artifact} deliverable step by step, running their work as they go and fixing errors before adding the next piece.`,
-                `Students work through ${artifact} at their own pace, testing each step and noting the error message and fix for anything that breaks.`,
-                `Students complete ${artifact}, verifying output at each checkpoint; finished students extend the build with one variation of their own.`,
-                `Students implement ${artifact} incrementally — run early, run often — and record the one bug that taught them the most.`,
-              ])
+            ? labWorkflow === 'programming'
+              ? lessonVariant(lesson, [
+                  `Students build the ${artifact} deliverable step by step, running their work as they go and fixing errors before adding the next piece.`,
+                  `Students work through ${artifact} at their own pace, testing each step and noting the error message and fix for anything that breaks.`,
+                  `Students complete ${artifact}, verifying output at each checkpoint; finished students extend the build with one variation of their own.`,
+                  `Students implement ${artifact} incrementally — run early, run often — and record the one bug that taught them the most.`,
+                ])
+              : labWorkflow === 'computational-analysis'
+                ? lessonVariant(lesson, [
+                    `Students complete ${artifact} in stages, inspect the output at each checkpoint, and document how one result changes the next analytic step.`,
+                    `Students work through ${artifact}, verify each transformation or calculation, and record one adjustment they made after inspecting the output.`,
+                    `Students complete ${artifact}, compare intermediate results with the expected pattern, and explain any analytic decision they revise.`,
+                    `Students build the ${artifact} analysis incrementally, checking data, results, and interpretation before moving to the next stage.`,
+                  ])
+                : lessonVariant(lesson, [
+                    `Students carry out ${artifact} step by step, record observations or measurements at each checkpoint, and document any deviation from the procedure.`,
+                    `Students complete ${artifact} using the stated procedure, verify controls or comparison conditions, and connect the recorded evidence to a bounded conclusion.`,
+                    `Students work through ${artifact}, check materials and procedure at each stage, and annotate the observations that support their interpretation.`,
+                    `Students conduct ${artifact}, preserve an evidence trail of measurements and observations, and note one limitation before drawing a conclusion.`,
+                  ])
             : deep && kernelWorkedExample
               ? `Students draft ${artifact}, mirroring the worked example's solution path on their own case — every move the board model made needs an analog in the draft.`
               : deep && kernelTermA?.definition
@@ -25482,7 +25850,7 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
           : lessonVariant(lesson, [
               `${stripTerminalPunctuation(modality.feedbackRoutine)}; ground the debrief in ${artifact} evidence about ${concept}. Use closure responses to plan the next review move.`,
               `Ask students to point to the feedback that changed ${artifact}; sort the responses by secure, partial, and missing ${concept} evidence.`,
-              `Compare two revision notes aloud, then use the class pattern to decide whether ${concept} needs retrieval practice next lesson.`,
+              `Compare two revision notes aloud, then use the class pattern to decide whether students need more retrieval practice with ${concept} next lesson.`,
               `Collect the closure notes as evidence: look for a visible ${concept} decision, a justified ${artifact} change, and one unresolved question.`,
               `Use the final ${artifact} comparisons to identify which ${concept} move is secure and which needs a short follow-up example.`,
               `End by sampling revision rationales; carry the most common ${concept} gap into the next lesson’s opening check.`,
@@ -25527,10 +25895,17 @@ function compileLessonPlans(blueprint, options = {}) {
       const artifactGenre = lesson.artifactGenre || {};
       const materials = buildLessonPlanMaterials(lesson);
       const misconceptionMap = Array.isArray(lesson.misconceptionMap) ? lesson.misconceptionMap : [];
+      const matchedAssessment = blueprint.assessments.find((item) =>
+        (item.lessonNumbers || []).includes(lesson.lessonNumber),
+      );
+      // Registry-backed arrays are sparse by design: lessons with only an
+      // in-class check do not have a standalone graded brief. Positional
+      // fallback borrowed the next lesson's assignment and mislabeled the
+      // in-class check as homework. Legacy one-assessment-per-lesson inputs
+      // retain their positional behavior.
       const assessment =
-        blueprint.assessments.find((item) => (item.lessonNumbers || []).includes(lesson.lessonNumber)) ||
-        blueprint.assessments[index] ||
-        {};
+        matchedAssessment || (!Array.isArray(blueprint.assessmentRegistry) ? blueprint.assessments[index] : null) || {};
+      const hasStandaloneAssessment = Boolean(matchedAssessment);
       const classSessionPlan = lesson.classSessionPlan || buildClassSessionPlan({ lesson, modalityDecode: modality });
       const outline = buildLessonPlanOutline(blueprint, { ...lesson, classSessionPlan }, { depth: lessonDepth });
       const admittedPair = admittedLanguagePairTerm(lesson);
@@ -25613,13 +25988,23 @@ function compileLessonPlans(blueprint, options = {}) {
         courseModalityProfile: blueprint.courseModalityProfile,
         studentFacingSummary: {
           beforeClass: `Review ${materials[0]} and arrive ready to ${phrase.evidenceMove}.`,
-          duringClass: `Use class discussion and practice time to ${phrase.decisionMove} with peers before drafting your own response.`,
-          afterClass:
-            lesson.feedbackCycle?.studentRevisionAction ||
-            `Revise your work using the feedback notes and submit the final ${artifact}.`,
+          duringClass: lessonVariant(lesson, [
+            `Use class discussion and practice time to ${phrase.decisionMove} with peers before drafting your own response.`,
+            `Test ${phrase.evidenceMove} with a partner, then ${phrase.decisionMove} in an individual draft.`,
+            `Compare two evidence choices in class, explain which one is stronger, and use that decision in your own response.`,
+            `Rehearse the ${concept} reasoning with peers, note where the evidence changes the decision, and then draft independently.`,
+            `Use the guided example and peer check to refine one ${concept} claim before completing your own work.`,
+            `Work through the lesson evidence in class, challenge one assumption with peers, and carry the stronger reasoning into your response.`,
+          ]),
+          afterClass: hasStandaloneAssessment
+            ? lesson.feedbackCycle?.studentRevisionAction ||
+              `Revise your work using the feedback notes and submit the final ${artifact}.`
+            : `Review the ${concept} feedback from class and bring one corrected example to the next lesson; no separate submission is due.`,
           submittedArtifact: artifact,
         },
-        artifactLength: `One focused ${stripLessonPrefix(lesson.title)} artifact, usually 350-500 words or an equivalent applied format that demonstrates ${concept}. Artifact genre format: ${artifactGenre.outputFormat || 'course-specific applied artifact with evidence and revision trace'}.`,
+        artifactLength: hasStandaloneAssessment
+          ? `One focused ${stripLessonPrefix(lesson.title)} artifact, usually 350-500 words or an equivalent applied format that demonstrates ${concept}. Artifact genre format: ${artifactGenre.outputFormat || 'course-specific applied artifact with evidence and revision trace'}.`
+          : `One focused in-class response that demonstrates ${concept}; no standalone take-home artifact is assigned.`,
         prerequisiteKnowledge:
           lesson.prerequisitePlan?.prerequisiteEvidence ||
           `Students should know the core terms from earlier course materials and be ready to connect them to ${stripLessonPrefix(lesson.title)}.`,
@@ -25634,8 +26019,9 @@ function compileLessonPlans(blueprint, options = {}) {
                 `Listing evidence without explaining why it matters for ${artifact}.`,
                 `Using generic claims instead of course-specific examples or criteria for ${concept}.`,
               ],
-        weeklySubmissionCriteria:
-          `Submit ${artifact} with concrete evidence, a clear claim or recommendation, and one explicit revision move based on feedback. ${artifactGenre.evidenceRequirement || ''} Quality focus: ${artifactGenre.qualityFocus || 'concept accuracy, evidence specificity, decision logic, and revision quality'}.`.trim(),
+        weeklySubmissionCriteria: hasStandaloneAssessment
+          ? `Submit ${artifact} with concrete evidence, a clear claim or recommendation, and one explicit revision move based on feedback. ${artifactGenre.evidenceRequirement || ''} Quality focus: ${artifactGenre.qualityFocus || 'concept accuracy, evidence specificity, decision logic, and revision quality'}.`.trim()
+          : `Complete the in-class check with accurate ${concept} evidence and clear reasoning. No separate take-home submission is due.`,
         localCaseReplacementNote: `Check whether the named case for ${stripLessonPrefix(lesson.title)} fits the local setting. If ${stripLessonPrefix(lesson.title)} does not fit, replace it with a similar ${lens.exampleNoun}. Students must still use ${concept} evidence and defend the same decision moves.`,
         // v0.14.1 (3.2d): the lesson plan lists EVERY registry assessment for
         // this lesson — graded artifacts with their weights, in-class
@@ -25745,21 +26131,22 @@ function compileLessonPlans(blueprint, options = {}) {
             `Allow students to show ${artifact} progress through a memo, slide, table, or annotated outline when the same criteria are met.`,
         },
         homework: {
-          title: artifact,
+          title: hasStandaloneAssessment ? artifact : `${concept} retrieval notes`,
           // v0.15.188 grounding slice 1: the enrichment's authored assignment
           // task IS this week's homework — say what the task actually is
           // ("write a program that…") instead of the generic complete-and-note
           // frame. Template stays as the kernel-less fallback.
-          description:
-            cleanText(lesson.enrichment?.assignmentCore?.taskDescription) ||
-            lesson.feedbackCycle?.closureCheck ||
-            `Complete ${artifact}, test it against the lesson criteria, and add one note explaining how feedback changed your draft.`,
+          description: hasStandaloneAssessment
+            ? cleanText(lesson.enrichment?.assignmentCore?.taskDescription) ||
+              lesson.feedbackCycle?.closureCheck ||
+              `Complete ${artifact}, test it against the lesson criteria, and add one note explaining how feedback changed your draft.`
+            : `Review the ${concept} notes from class, correct one missed example, and write one question to bring to the next lesson. This is preparation, not a separate submission.`,
           estimatedTime: `${lesson.workloadEstimate.afterClassMinutes} minutes`,
           connectionToNext:
             lesson.learningTransferPlan?.transferTask ||
             lesson.feedbackCycle?.nextUse ||
             `Bring your submitted work forward so the next lesson can build on today’s ${concept} reasoning.`,
-          ...(cleanText(lesson.enrichment?.assignmentCore?.taskDescription)
+          ...(hasStandaloneAssessment && cleanText(lesson.enrichment?.assignmentCore?.taskDescription)
             ? { enrichmentSource: 'lesson-content-enrichment' }
             : {}),
         },
@@ -25955,7 +26342,10 @@ function compileLessonPlans(blueprint, options = {}) {
             `Keep the ${stripLessonPrefix(lesson.title)} directions chunked, provide plain-language criteria, and let students choose an equivalent response format that still demonstrates ${concept}.`,
         },
       };
-      return sanitizeGenericArtifactLabelsInValue(plan, artifact);
+      return sanitizeGenericArtifactLabelsInValue(
+        sanitizeLessonPlanPublicationConstraints(compactLessonPlanBodyReferences(plan, lesson)),
+        artifact,
+      );
     }),
   };
 }

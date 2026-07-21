@@ -15,7 +15,7 @@ function valueAfter(flag) {
 
 const projectPath = valueAfter('--project') || process.argv[2];
 if (!projectPath) {
-  console.error('Usage: node scripts/scionLanguageProjectionReplay.mjs --project /path/to/project.json');
+  console.error('Usage: npx vite-node scripts/scionLanguageProjectionReplay.mjs --project /path/to/project.json');
   process.exitCode = 2;
 } else {
   const absolutePath = path.resolve(projectPath);

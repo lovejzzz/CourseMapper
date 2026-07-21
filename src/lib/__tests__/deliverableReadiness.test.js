@@ -6,6 +6,7 @@ import {
   repairWorkspaceReadiness,
   scopeDeliverableDataToLessons,
 } from '../deliverableReadiness';
+import { classifyAssessmentKind } from '../courseGraph/deriveFromCourseMap';
 
 const courseMap = {
   courseName: 'Readiness Course',
@@ -731,6 +732,68 @@ describe('repairCourseMapReadiness', () => {
     expect(serialized).not.toMatch(/interpreter or notebook/i);
   });
 
+  it('keeps Python notebooks and qualitative coding as research tools instead of programming-course identity', () => {
+    const result = repairCourseMapReadiness({
+      courseMap: {
+        courseName: 'Research Methods in the Social Sciences',
+        lessons: [
+          {
+            title: 'Lesson 1: Qualitative Coding and Mixed-Methods Integration',
+            sections: [
+              {
+                topicSection: '1.1: Qualitative coding and mixed-methods integration',
+                learningGoals: '',
+                learningObjectives:
+                  'Use a Python notebook to compare coded qualitative evidence with a bounded quantitative result.',
+                weeklyAssessments: '',
+                asyncActivities: '',
+                syncActivities: '',
+                technologyNeeded: '',
+                presentationFormat: '',
+                supportingResources: 'Interview transcript, codebook, and instructor-provided Python notebook.',
+                evaluateDesign: '',
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    const serialized = JSON.stringify(result.courseMap);
+    expect(serialized).toMatch(/Python notebook/i);
+    expect(serialized).not.toMatch(/program state|debugging evidence|short Python example|Python interpreter/i);
+    expect(serialized).not.toMatch(/starter code|failing test|console output|pair debugging|software implementation/i);
+  });
+
+  it('still gives an explicit Python programming course code-lab fallbacks', () => {
+    const result = repairCourseMapReadiness({
+      courseMap: {
+        courseName: 'Introduction to Python Programming',
+        lessons: [
+          {
+            title: 'Lesson 1: Variables and data types',
+            sections: [
+              {
+                topicSection: '1.1: Variables and data types',
+                learningGoals: '',
+                learningObjectives: '',
+                weeklyAssessments: '',
+                asyncActivities: '',
+                syncActivities: '',
+                technologyNeeded: '',
+                supportingResources: '',
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    const serialized = JSON.stringify(result.courseMap);
+    expect(serialized).toMatch(/Python|program state|code tracing/i);
+    expect(serialized).toMatch(/interpreter|runtime|sandbox|code editor/i);
+  });
+
   it('repairs generic Week N lesson labels before they become package topics', () => {
     const result = repairCourseMapReadiness({
       courseMap: {
@@ -961,6 +1024,28 @@ describe('repairCourseMapReadiness', () => {
 });
 
 describe('repairWorkspaceReadiness', () => {
+  it('marks synthesized later-section checks as in-class so they do not promise extra briefs', () => {
+    const result = repairCourseMapReadiness({
+      courseMap: {
+        courseName: 'Introduction to Genetics',
+        lessons: [
+          {
+            title: 'Lesson 1: Mendelian Inheritance',
+            sections: [
+              { topicSection: 'Monohybrid Crosses', weeklyAssessments: 'Weekly inheritance analysis' },
+              { topicSection: 'Dihybrid Crosses', weeklyAssessments: '' },
+            ],
+          },
+        ],
+      },
+    });
+
+    const [primary, formative] = result.courseMap.lessons[0].sections;
+    expect(primary.weeklyAssessments).toBe('Weekly inheritance analysis');
+    expect(formative.weeklyAssessments).toMatch(/^In-class /);
+    expect(classifyAssessmentKind(formative.weeklyAssessments)).toBe('in-class');
+  });
+
   it('repairs course map placeholders before warnings reach export', () => {
     const placeholderMap = {
       courseName: 'Psychology 101',

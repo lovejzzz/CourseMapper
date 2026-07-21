@@ -501,6 +501,21 @@ export function validateObjectiveAlignment(courseMap, deliverables) {
     const assessmentAlignments = [];
     let assessmentItemSeen = false;
 
+    // The Course Map's weekly-assessment cells are real alignment evidence.
+    // The validator previously ignored them and inspected only compiled quiz,
+    // assignment, and rubric metadata. That produced a false "add an
+    // assessment" note even when the exact objective topic already had an
+    // in-class evidence check in the map (the live Sampling Techniques run).
+    // Admit the map text only when it names a genuine assessment cue; an
+    // explicit "no graded assessment" row still does not satisfy coverage.
+    if (lessonHasAssessmentCue(lesson)) {
+      const courseMapAssessment = getLessonAssessmentText(lesson);
+      if (courseMapAssessment) {
+        assessmentItemSeen = true;
+        assessmentAlignments.push(norm(courseMapAssessment));
+      }
+    }
+
     const quizzes = getDelivArray(deliverables, 'quizBank');
     if (quizzes && quizzes[li]) {
       assessmentItemSeen = true;

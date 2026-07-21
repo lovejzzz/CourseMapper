@@ -1,7 +1,7 @@
 {
   "version": "2026-07-21",
   "generator": "curriculumos-foundry-v1",
-  "conceptCount": 287,
+  "conceptCount": 302,
   "shards": [
     {
       "id": "anatomy-intro",
@@ -24,8 +24,8 @@
       "discipline": "bio",
       "level": "intro",
       "path": "bio-intro.json",
-      "conceptCount": 8,
-      "hash": "619f292cd4893b44"
+      "conceptCount": 23,
+      "hash": "ac5070a50403c773"
     },
     {
       "id": "chem-intro",
@@ -162,6 +162,66 @@
     "hash": "9edcd75e86f39585"
   },
   "references": {
+    "nhgri:mendelian-inheritance": {
+      "displayTitle": "Mendelian Inheritance",
+      "sourceUrl": "https://www.genome.gov/genetics-glossary/Mendelian-Inheritance"
+    },
+    "nhgri:meiosis": {
+      "displayTitle": "Meiosis",
+      "sourceUrl": "https://www.genome.gov/genetics-glossary/Meiosis"
+    },
+    "nhgri:dna": {
+      "displayTitle": "Deoxyribonucleic Acid (DNA)",
+      "sourceUrl": "https://www.genome.gov/genetics-glossary/Deoxyribonucleic-Acid-DNA"
+    },
+    "nhgri:dna-replication": {
+      "displayTitle": "DNA Replication",
+      "sourceUrl": "https://www.genome.gov/genetics-glossary/DNA-Replication"
+    },
+    "nhgri:transcription": {
+      "displayTitle": "Transcription",
+      "sourceUrl": "https://www.genome.gov/genetics-glossary/Transcription"
+    },
+    "nhgri:ribosome": {
+      "displayTitle": "Ribosome",
+      "sourceUrl": "https://www.genome.gov/genetics-glossary/Ribosome"
+    },
+    "nhgri:promoter": {
+      "displayTitle": "Promoter",
+      "sourceUrl": "https://www.genome.gov/genetics-glossary/Promoter"
+    },
+    "nhgri:mutation": {
+      "displayTitle": "Mutation",
+      "sourceUrl": "https://www.genome.gov/genetics-glossary/Mutation"
+    },
+    "nhgri:pcr": {
+      "displayTitle": "Polymerase Chain Reaction (PCR)",
+      "sourceUrl": "https://www.genome.gov/genetics-glossary/Polymerase-Chain-Reaction-PCR"
+    },
+    "nhgri:electrophoresis": {
+      "displayTitle": "Electrophoresis",
+      "sourceUrl": "https://www.genome.gov/genetics-glossary/Electrophoresis"
+    },
+    "nhgri:genetic-engineering": {
+      "displayTitle": "Genetic Engineering",
+      "sourceUrl": "https://www.genome.gov/genetics-glossary/Genetic-Engineering"
+    },
+    "nhgri:genetic-drift": {
+      "displayTitle": "Genetic Drift",
+      "sourceUrl": "https://www.genome.gov/genetics-glossary/Genetic-Drift"
+    },
+    "nhgri:genetic-architecture": {
+      "displayTitle": "Genetic Architecture",
+      "sourceUrl": "https://www.genome.gov/genetics-glossary/Genetic-Architecture"
+    },
+    "nhgri:epigenomics": {
+      "displayTitle": "Epigenomics Fact Sheet",
+      "sourceUrl": "https://www.genome.gov/about-genomics/fact-sheets/Epigenomics-Fact-Sheet"
+    },
+    "nhgri:genomics": {
+      "displayTitle": "Genomics",
+      "sourceUrl": "https://www.genome.gov/genetics-glossary/genomics"
+    },
     "epa:water-quality-parameters": {
       "displayTitle": "Factsheets on Water Quality Parameters",
       "sourceUrl": "https://www.epa.gov/awma/factsheets-water-quality-parameters"

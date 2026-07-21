@@ -160,7 +160,9 @@ import { parseClassSessionMinutes } from '../sourceBriefConstraints.js';
 // 1.10.26 — genetics citations are checked against discipline vocabulary such
 // as Mendelian inheritance, Hardy-Weinberg equilibrium, alleles, and genotype;
 // legitimate genetics readings no longer receive a zero-vocabulary warning.
-export const GRADER_VERSION = '1.10.26';
+// 1.10.27 — manifest-promised graded briefs may not resolve to a no-brief
+// shell, and repeated full lesson-title mail merge is a texture finding.
+export const GRADER_VERSION = '1.10.27';
 
 // ── Dimension weights & letter bands (documented in the module header) ──────
 // v0.15.186: texture weight 10 → 25. At 10/120 a fully templated package
@@ -498,6 +500,10 @@ function quote(text, limit = 200) {
     .slice(0, limit);
 }
 
+function escapeRegexLiteral(value) {
+  return String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 function checkPromptArtifactContamination(findings, { files, manifest }, course) {
   if (isInstructionalDesignPackage(course, manifest)) return;
   const hits = [];
@@ -689,7 +695,9 @@ function isWetLabCourse(course, manifest) {
   ) {
     return false;
   }
-  return /\b(geology|chemistry|biology|microbiology|anatomy|physiology|wet lab|laboratory)\b/.test(text);
+  return /\b(geology|chemistry|biology|microbiology|genetics|genomics|anatomy|physiology|wet lab|laboratory)\b/.test(
+    text,
+  );
 }
 
 function isAnatomyPhysiologyCourse(course, manifest) {
@@ -788,6 +796,20 @@ function checkIdentity(findings, { files, manifest }, _course) {
       .trim();
   const fileByPath = new Map(files.map((file) => [file.path, file]));
   for (const assessment of assessments) {
+    if (!assessment?.artifact || !['graded-artifact', 'oral'].includes(assessment.kind)) continue;
+    const artifactFile = fileByPath.get(assessment.artifact);
+    if (!artifactFile) continue; // the missing-file check above owns this case
+    if (/No standalone assignment brief scheduled/i.test(artifactFile.text)) {
+      findings.add({
+        severity: 'P0',
+        dimension: 'identity',
+        file: assessment.artifact,
+        detail: `registered ${assessment.kind} artifact contains a no-brief handoff instead of student directions: ${assessment.id || 'assessment'} "${assessment.title}"`,
+        evidence: quote(artifactFile.text, 180),
+      });
+    }
+  }
+  for (const assessment of assessments) {
     if (assessment.kind !== 'exam' || !assessment.artifact) continue;
     const artifactFile = fileByPath.get(assessment.artifact);
     if (!artifactFile) continue; // (a) already flagged the missing file
@@ -831,6 +853,20 @@ function checkIdentity(findings, { files, manifest }, _course) {
         evidence: quote(file.text, 160),
       });
     }
+    const lessonTitle = file.path.match(/Lesson\s+\d+\s+-\s+(.+?)\s+-\s+Assignment Briefs\.(?:docx|txt)$/i)?.[1];
+    const lessonTitleWordCount = lessonTitle?.match(/[A-Za-z0-9][A-Za-z0-9'-]*/g)?.length || 0;
+    if (lessonTitle && lessonTitle.length >= 24 && lessonTitleWordCount >= 3 && !isExplicitNoBriefNote) {
+      const titleHits = file.text.match(new RegExp(escapeRegexLiteral(lessonTitle), 'gi'))?.length || 0;
+      if (titleHits > 8) {
+        findings.add({
+          severity: 'P2',
+          dimension: 'texture',
+          file: file.path,
+          detail: `assignment brief repeats its full lesson title ${titleHits} times (mail-merge texture)`,
+          evidence: lessonTitle,
+        });
+      }
+    }
   }
   for (const file of files.filter((file) => file.featureId === 'assignments' && file.kind === 'docx')) {
     if (!/Course Map\s+L?\d+/i.test(file.text) && !/Course Map row\s+\d+/i.test(file.text)) {
@@ -840,6 +876,39 @@ function checkIdentity(findings, { files, manifest }, _course) {
         file: file.path,
         detail: 'assignment brief carries no "Course Map L<N>" reverse stamp',
         evidence: quote(file.text, 120),
+      });
+    }
+  }
+
+  // Lesson plans need the same mail-merge and boundary protection as briefs.
+  // A compiler/reviewer constraint in the classroom materials list is not a
+  // teaching resource, and dozens of exact title echoes are visible prose
+  // damage even when every structural field is present.
+  for (const file of files.filter((file) => file.featureId === 'lessonPlans' && ['docx', 'text'].includes(file.kind))) {
+    const lessonTitle = file.path.match(/Lesson\s+\d+\s+-\s+(.+?)\s+-\s+Lesson Plans\.(?:docx|txt)$/i)?.[1];
+    const lessonTitleWordCount = lessonTitle?.match(/[A-Za-z0-9][A-Za-z0-9'-]*/g)?.length || 0;
+    if (lessonTitle && lessonTitle.length >= 24 && lessonTitleWordCount >= 3) {
+      const titleHits = file.text.match(new RegExp(escapeRegexLiteral(lessonTitle), 'gi'))?.length || 0;
+      if (titleHits > 12) {
+        findings.add({
+          severity: 'P2',
+          dimension: 'texture',
+          file: file.path,
+          detail: `lesson plan repeats its full lesson title ${titleHits} times (mail-merge texture)`,
+          evidence: lessonTitle,
+        });
+      }
+    }
+    const leakedConstraint = (file.paragraphs || String(file.text || '').split(/\r?\n/)).find((line) =>
+      /^\s*Constraint\s*:/i.test(line),
+    );
+    if (leakedConstraint) {
+      findings.add({
+        severity: 'P1',
+        dimension: 'substance',
+        file: file.path,
+        detail: 'lesson plan exposes an internal compiler constraint as classroom material',
+        evidence: quote(leakedConstraint, 160),
       });
     }
   }
@@ -2011,6 +2080,7 @@ function disciplineProbeVocab(probe) {
   if (probe === 'astro') return ASTRO_VOCAB;
   if (probe === 'business-ethics') return BUSINESS_ETHICS_CITATION_VOCAB;
   if (probe === 'genetics') return GENETICS_CITATION_VOCAB;
+  if (probe === 'research-methods') return RESEARCH_METHODS_CITATION_VOCAB;
   return [];
 }
 
@@ -2809,9 +2879,45 @@ const BUSINESS_ETHICS_CITATION_VOCAB = [
 // only: it prevents a false off-topic warning without creating a discipline
 // density quota for arbitrary biology courses.
 const GENETICS_CITATION_VOCAB =
-  'genetics gene genome DNA RNA inheritance Mendel allele genotype phenotype chromosome meiosis linkage recombination mutation expression Hardy Weinberg epigenetic CRISPR'.split(
+  'genetics gene genome DNA RNA inheritance Mendel allele genotype phenotype chromosome meiosis mitosis cell division cytokinesis linkage recombination mutation expression Hardy Weinberg epigenetic CRISPR'.split(
     ' ',
   );
+
+// Citation-relevance vocabulary for social-science research methods. Canonical
+// source titles often name the instrument or participant-protection concept
+// ("Questionnaire", "Informed consent") without repeating the course label
+// "Research Methods". These terms are citation context only; they do not add a
+// genome-density quota or excuse a source with an explicit wrong-field marker.
+const RESEARCH_METHODS_CITATION_VOCAB = [
+  'research methods',
+  'methodology',
+  'study design',
+  'qualitative research',
+  'quantitative research',
+  'mixed methods',
+  'sampling',
+  'sample',
+  'survey',
+  'questionnaire',
+  'interview',
+  'focus group',
+  'observation',
+  'field notes',
+  'coding',
+  'thematic analysis',
+  'data analysis',
+  'validity',
+  'reliability',
+  'triangulation',
+  'research ethics',
+  'informed consent',
+  'human subjects',
+  'participant protection',
+  'institutional review board',
+  'IRB',
+  'confidentiality',
+  'anonymity',
+];
 
 function inferDisciplineProbe(course) {
   // A course's expectGenome discipline (set in courses.mjs) takes precedence so
@@ -2840,6 +2946,7 @@ function inferDisciplineProbe(course) {
   if (/nutrition|dietetic/.test(text) || course?.id === 'nutrition-101') return 'nutrition';
   if (/business ethics|corporate ethics/.test(text) || course?.id === 'business-ethics') return 'business-ethics';
   if (/genetic|genomic|heredity|mendel/.test(text) || course?.id === 'genetics') return 'genetics';
+  if (/research methods?|social science research|mixed.methods methodology/.test(text)) return 'research-methods';
   if (
     /astronom|astrophysic|cosmolog|celestial|telescope|night sky|planetary|galax/.test(text) ||
     course?.id === 'astro-101'

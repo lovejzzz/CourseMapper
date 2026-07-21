@@ -109,11 +109,33 @@ function renderLearningObjectives(items) {
 const JSON_SPLICE_RE = /"\s*:\s*["[]/;
 const JSON_KEY_FRAGMENT_RE =
   /\b(?:topicSection|learningGoals|learningObjectives|weeklyAssessments|asyncActivities|syncActivities|technologyNeeded|presentationFormat|supportingResources|evaluateDesign|specialTools|readings)"/;
+const LEAN_WIRE_FIELD_NAMES = [
+  'topicSection',
+  'learningGoals',
+  'learningObjectives',
+  'weeklyAssessments',
+  'asyncActivities',
+  'syncActivities',
+  'technologyNeeded',
+  'presentationFormat',
+  'supportingResources',
+  'evaluateDesign',
+  'specialTools',
+  'readings',
+];
+const LEAN_WIRE_FIELD_SOURCE = LEAN_WIRE_FIELD_NAMES.join('|');
+const JSON_BARE_KEY_FRAGMENT_RE = new RegExp(`(?:^|,)\\s*(?:${LEAN_WIRE_FIELD_SOURCE})\\s*,?\\s*:\\s*,?`, 'i');
 
 function textLooksLikeJsonFragment(value) {
   const textValue = String(value ?? '');
   if (!textValue) return false;
-  if (JSON_SPLICE_RE.test(textValue) || JSON_KEY_FRAGMENT_RE.test(textValue)) return true;
+  if (
+    JSON_SPLICE_RE.test(textValue) ||
+    JSON_KEY_FRAGMENT_RE.test(textValue) ||
+    JSON_BARE_KEY_FRAGMENT_RE.test(textValue)
+  ) {
+    return true;
+  }
   // Structural imbalance betrays a spliced fragment — but only when paired
   // with wire-format residue, so prose with a stray quote stays untouched.
   const quoteCount = (textValue.match(/"/g) || []).length;
@@ -124,8 +146,53 @@ function textLooksLikeJsonFragment(value) {
 }
 
 export function leanSectionValueIsCorrupt(value) {
-  if (Array.isArray(value)) return value.some((atom) => textLooksLikeJsonFragment(atom));
+  if (Array.isArray(value)) {
+    return value.some((atom) => textLooksLikeJsonFragment(atom)) || textLooksLikeJsonFragment(value.join(','));
+  }
   return typeof value === 'string' && textLooksLikeJsonFragment(value);
+}
+
+function recoveredWireAtoms(value) {
+  return String(value || '')
+    .split(',')
+    .map((atom) => atom.replace(/^[\s"'\[\]{}]+|[\s"'\[\]{}]+$/g, '').trim())
+    .filter((atom) => atom && atom !== ':');
+}
+
+function hasLeanWireValue(value) {
+  return Array.isArray(value) ? value.some((atom) => cleanAtom(atom)) : Boolean(cleanAtom(value));
+}
+
+/**
+ * Recover the exact bare-key splice Gemma can emit when an array closer is
+ * lost, for example learningObjectives:["A","B",weeklyAssessments,:,"Quiz…"].
+ * The repair activates only when a known field name is followed by a colon,
+ * never on ordinary course prose. If recovery is not possible, the corruption
+ * guard below still quarantines the entire value.
+ */
+export function recoverLeanSectionWireSplice(section = {}) {
+  for (const [sourceKey, sourceValue] of Object.entries(section)) {
+    if (!Array.isArray(sourceValue)) continue;
+    const serialized = sourceValue.map(cleanAtom).join(',');
+    const markerPattern = new RegExp(`(?:^|,)\\s*(${LEAN_WIRE_FIELD_SOURCE})\\s*,?\\s*:\\s*,?`, 'gi');
+    const markers = [...serialized.matchAll(markerPattern)];
+    if (markers.length === 0) continue;
+
+    const next = { ...section };
+    const prefix = serialized.slice(0, markers[0].index).replace(/,\s*$/, '');
+    next[sourceKey] = recoveredWireAtoms(prefix);
+    for (let index = 0; index < markers.length; index += 1) {
+      const marker = markers[index];
+      const fieldKey = LEAN_WIRE_FIELD_NAMES.find((name) => name.toLowerCase() === marker[1].toLowerCase());
+      if (!fieldKey) continue;
+      const start = marker.index + marker[0].length;
+      const end = markers[index + 1]?.index ?? serialized.length;
+      const atoms = recoveredWireAtoms(serialized.slice(start, end));
+      if (atoms.length > 0 && !hasLeanWireValue(next[fieldKey])) next[fieldKey] = atoms;
+    }
+    return { section: next, recovered: true };
+  }
+  return { section, recovered: false };
 }
 
 export function expandLeanSectionField(key, value) {
@@ -156,9 +223,11 @@ export function expandLeanCourseMap(courseMap) {
     let lessonChanged = false;
     const sections = lesson.sections.map((section) => {
       if (!section || typeof section !== 'object') return section;
-      let sectionChanged = false;
+      const wireRecovery = recoverLeanSectionWireSplice(section);
+      const sourceSection = wireRecovery.section;
+      let sectionChanged = wireRecovery.recovered;
       const next = {};
-      for (const [key, value] of Object.entries(section)) {
+      for (const [key, value] of Object.entries(sourceSection)) {
         // v0.14.5 (A1): readings is strictly additive — a malformed or
         // corrupt readings value NEVER breaks or degrades the run. Anything
         // that is not a clean array of verbatim title strings is dropped

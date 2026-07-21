@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 1,
+  "release": "0.16.66",
+  "date": "2026-07-21",
+  "status": "verified-local-browser-and-export",
+  "sourceIncident": {
+    "logPath": "/Users/tianxing/Downloads/edutool.dev-1784651319629.log",
+    "appVersion": "0.16.65",
+    "runId": "run-1784651276094",
+    "course": "Research Methods in the Social Sciences",
+    "requestedLessons": 12,
+    "acceptedLessonsByCall": [6, 8, 11],
+    "pipelineCalls": 3,
+    "modelRequests": 3,
+    "inputTokens": 3506,
+    "outputTokens": 1316,
+    "totalTokens": 4822,
+    "visibleFailure": "Course map generation stopped at 11 of 12 lessons.",
+    "failureClass": "unknown",
+    "retryable": false,
+    "unrelatedConsoleNoise": ["chrome-extension content.js config error", "chrome-extension privUrl runtime error"]
+  },
+  "rootCause": {
+    "summary": "The model returned useful new lessons on both continuations, but the course-map loop had a fixed maximum of two continuation attempts and stopped one lesson early.",
+    "dataLossRisk": "A terminal throw discarded the useful eleven-lesson partial map from the user-visible build.",
+    "classificationDefect": "An explicit incomplete-map quality condition was classified as unknown and non-retryable."
+  },
+  "fixes": [
+    "Public Scion continuation budget is derived from remaining lesson scope and capped at twelve attempts.",
+    "Every accepted lesson preserves progress; two consecutive no-progress responses terminate bounded recovery.",
+    "Accepted continuation output is sliced to the remaining requested lesson scope.",
+    "Cloud-provider course-map continuation retains its existing two-attempt policy.",
+    "Incomplete X-of-Y course maps are classified as retryable quality failures.",
+    "Captured compact-wire splices are repaired before raw field keys can enter visible lesson prose.",
+    "Qualitative research coding and optional Python notebooks no longer misclassify a research-methods course as a programming lab.",
+    "Research-method citations, weekly-assessment alignment, FAQ technical-help variation, speaker notes, and study-guide transfer language are calibrated at compiler and grader boundaries.",
+    "ZIP assembly yields a visible preparing frame and exposes aria-busy state before synchronous archive work."
+  ],
+  "exactBrowserReplay": {
+    "brief": "Research Methods in the Social Sciences, 12-week graduate seminar with scaffolded proposal milestones, peer review workshops, mixed-methods labs, and a final research design portfolio. Covers qualitative and quantitative approaches, sampling, survey design, interviews, focus groups, observation, research ethics, mixed-methods integration, data analysis, and proposal development.",
+    "provider": "public Scion browser-local base",
+    "adapterActive": false,
+    "appVersion": "0.16.66",
+    "runId": "run-1784655930042",
+    "finishRunId": "finish-mruy454x-0k85a",
+    "elapsedSeconds": 89,
+    "courseMap": "12/12 lessons",
+    "knowledgeKernels": "12/12",
+    "materialFamilies": "9/9",
+    "livingCompilerProgressPercent": 100,
+    "checks": "Verified",
+    "quality": {
+      "score": 99,
+      "grade": "A",
+      "texture": 93,
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "graderVersion": "1.10.27",
+      "citationScore": 100,
+      "disciplineScore": 100
+    }
+  },
+  "downloadedPackage": {
+    "pathAtAudit": "/Users/tianxing/Downloads/Research Methods in the Social Sciences - Course Materials (4).zip",
+    "bytes": 1923779,
+    "extractedAuditPath": "/tmp/scion-research-methods-v01666-final-1349",
+    "physicalFileCountIncludingReports": 101,
+    "manifestMaterialFileCount": 99,
+    "exportChecked": 38,
+    "exportFailed": 0,
+    "exportWarnings": 0,
+    "archiveIntegrity": "No errors detected in compressed data",
+    "readiness": "ready",
+    "blockers": 0,
+    "warnings": 0
+  },
+  "releaseVerification": {
+    "unit": "432 files passed; 5265 tests passed; 162 intentionally skipped; 0 failed",
+    "browserE2e": "147/147 Chromium scenarios passed",
+    "goldCompilerContract": "40/40 course fixtures passed across 5, 8, and 14 lesson scopes",
+    "layeredEvaluation": "pass; claim status compiler-contract-only",
+    "semanticAdmission": "20/46 stable judged losses intercepted: 5 conservatively repaired and 15 rejected",
+    "genomeBuild": "19 shards, 302 source-anchored concepts, 16 archetypes",
+    "pipelineAudit": "pass",
+    "releaseHistoryAudit": "10/10 current release claims verified",
+    "format": "pass",
+    "lint": "pass",
+    "productionBuild": "pass",
+    "bundleBudget": "pass; initial landing JavaScript 250.7 KiB raw and 79.4 KiB gzip"
+  },
+  "claimBoundary": {
+    "weightsChanged": false,
+    "adapterActive": false,
+    "backendModelStoreAdded": false,
+    "humanValidation": false,
+    "factualValidation": false,
+    "classroomOutcomeValidation": false,
+    "scope": "This is a causal software, compiler, browser, and exported-package proof for the exact incident shape, not a promise that every generated course is factually or pedagogically perfect."
+  }
+}

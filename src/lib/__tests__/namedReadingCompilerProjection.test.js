@@ -56,4 +56,57 @@ describe('named reading compiler projection', () => {
       expect(rendered, featureId).not.toContain('selected poems of Li Bai Du');
     }
   });
+
+  it('protects a named reading whose title contains the full lesson focus', () => {
+    const readingTitle = 'Textbook Chapter: DNA Structure and Replication';
+    const courseMap = {
+      courseName: 'Introduction to Genetics',
+      lessons: [
+        {
+          title: 'Lesson 1: DNA Structure and Replication',
+          sections: [
+            {
+              topicSection: 'Nucleotide Composition; Semi-conservative Replication',
+              learningObjectives: 'Explain DNA structure and replication; apply replication concepts',
+              weeklyAssessments: 'DNA Structure and Replication Quiz (10%)',
+              asyncActivities: `Annotate ${readingTitle}`,
+              syncActivities: 'Compare two replication models using source evidence',
+              supportingResources: readingTitle,
+            },
+          ],
+        },
+      ],
+    };
+    const blueprint = buildCourseBlueprint(courseMap, {
+      readingsRegistry: [
+        {
+          id: 'R1.1',
+          title: readingTitle,
+          kind: 'chapter',
+          dueSession: 1,
+          instructorProvided: true,
+        },
+      ],
+    });
+
+    const compiled = compileBlueprintDeliverables(
+      blueprint,
+      ['lessonPlans', 'slideDecks', 'assignments', 'discussions', 'quizBank', 'studyGuides'],
+      {},
+    );
+
+    const lessonPlan = compiled.lessonPlans.lessonPlans[0];
+    const assignment = compiled.assignments.assignments[0];
+    const quiz = compiled.quizBank.quizzes[0];
+    const studyGuide = compiled.studyGuides.studyGuides[0];
+
+    expect(lessonPlan.materials).toContain(readingTitle);
+    expect(lessonPlan.materials.join(' ')).not.toContain('Textbook Chapter: the DNA Structure Replication focus');
+    expect(assignment.supportResources).toContain(readingTitle);
+    expect(JSON.stringify(assignment)).not.toContain('Textbook Chapter: the DNA Structure Replication focus');
+    expect(quiz.assignedReadings).toContain(readingTitle);
+    expect(studyGuide.assignedReadings).toContain(readingTitle);
+    expect(JSON.stringify(compiled.slideDecks.decks[0].slides)).toContain(readingTitle);
+    expect(JSON.stringify(compiled.discussions.discussions[0])).toContain(readingTitle);
+  });
 });

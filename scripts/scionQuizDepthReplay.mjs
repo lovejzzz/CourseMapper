@@ -10,6 +10,7 @@ import {
   isClaimEvidenceBoundaryShortAnswer,
   isConceptCuedCompilerShortAnswer,
 } from '../src/lib/quality/quizItemDepth.js';
+import { verifyPackageExports } from '../src/lib/packageExportVerifier.js';
 
 function valueAfter(flag) {
   const index = process.argv.indexOf(flag);
@@ -45,6 +46,41 @@ function summarizeProvenance(items) {
   return Object.fromEntries([...counts.entries()].sort(([left], [right]) => left.localeCompare(right)));
 }
 
+function normalizedQuestion(value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
+
+function summarizeExactDuplicates(quizzes) {
+  const groups = [];
+  for (const quiz of quizzes) {
+    const byStem = new Map();
+    for (const item of quiz.questions || []) {
+      const stem = normalizedQuestion(item.question);
+      if (!stem) continue;
+      const matches = byStem.get(stem) || [];
+      matches.push(item);
+      byStem.set(stem, matches);
+    }
+    for (const matches of byStem.values()) {
+      if (matches.length < 2) continue;
+      groups.push({
+        lessonNumber: quiz.lessonNumber ?? null,
+        count: matches.length,
+        question: matches[0].question,
+        ids: matches.map((item) => item.id || null),
+      });
+    }
+  }
+  return {
+    groupCount: groups.length,
+    duplicatedSeatCount: groups.reduce((sum, group) => sum + group.count, 0),
+    groups,
+  };
+}
+
 function compiledAdmissionIssues(items) {
   return items.flatMap((item) => {
     const issues = lintItemAdmission({
@@ -74,7 +110,9 @@ function compiledAdmissionIssues(items) {
 
 const projectPath = valueAfter('--project') || process.argv[2];
 if (!projectPath) {
-  console.error('Usage: npx vite-node scripts/scionQuizDepthReplay.mjs --project /path/to/project.json');
+  console.error(
+    'Usage: npx vite-node scripts/scionQuizDepthReplay.mjs --project /path/to/project.json [--verify-export]',
+  );
   process.exitCode = 2;
 } else {
   const absolutePath = path.resolve(projectPath);
@@ -112,10 +150,19 @@ if (!projectPath) {
     const items = (quiz.questions || []).filter((item) => item?.type === 'multiple_choice');
     return { lessonNumber: quiz.lessonNumber ?? null, ...summarize(items) };
   });
+  const verifyExport = process.argv.includes('--verify-export');
+  const exactDuplicates = summarizeExactDuplicates(weeklyQuizzes);
+  const exportVerification = verifyExport
+    ? await verifyPackageExports({
+        courseMap: project.courseMap,
+        deliverables: { quizBank: { status: 'done', data: compiled.quizBank } },
+        selectedFeatures: ['quizBank'],
+      })
+    : null;
   console.log(
     JSON.stringify(
       {
-        schemaVersion: 2,
+        schemaVersion: 3,
         projectPath: absolutePath,
         courseName: blueprint.courseName || graph.course?.name || '',
         sourceModelItems: summarize(sourceItems),
@@ -146,6 +193,7 @@ if (!projectPath) {
             })),
         },
         compiledAdmissionIssues: compiledAdmissionIssues(compiledItems),
+        compiledExactDuplicates: exactDuplicates,
         compiledAuthoredItems: summarize(compiledAuthoredItems),
         compiledConstructedItems: summarizeConstructed(compiledConstructedItems),
         compiledConstructedSamples: compiledConstructedItems.map((item) => ({
@@ -156,9 +204,22 @@ if (!projectPath) {
           enrichmentSource: item.enrichmentSource || null,
         })),
         byLesson,
+        ...(exportVerification
+          ? {
+              exportVerification: {
+                status: exportVerification.status,
+                checked: exportVerification.checked,
+                failed: exportVerification.failed,
+                warningCount: exportVerification.warningCount,
+                findings: exportVerification.checks.filter((check) => check.status !== 'passed'),
+              },
+            }
+          : {}),
       },
       null,
       2,
     ),
   );
+  if (exportVerification && exportVerification.status !== 'passed') process.exitCode = 1;
+  if (exactDuplicates.groupCount > 0) process.exitCode = 1;
 }

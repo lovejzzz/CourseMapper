@@ -144,6 +144,21 @@ export function displayGenerationModelName(provider, modelName) {
   return provider === 'public' || modelName === 'scion-public' ? 'Scion' : modelName;
 }
 
+export function getCourseMapContinuationPolicy(provider, actualCount, expectedCount) {
+  const missing = Math.max(0, Number(expectedCount) - Number(actualCount));
+  if (provider === PUBLIC_SCION_PROVIDER_ID) {
+    // Browser-local Scion emits small bounded windows. Keep going while those
+    // windows make real admission progress, but stop after two consecutive
+    // no-progress responses. The hard cap still prevents runaway generation:
+    // even in the worst case it is one continuation per missing lesson.
+    return {
+      maxAttempts: Math.min(12, Math.max(2, missing)),
+      maxConsecutiveNoProgress: 2,
+    };
+  }
+  return { maxAttempts: 2, maxConsecutiveNoProgress: 1 };
+}
+
 function recordClassifiedFailedCall(recordApiCallEvent, err, event = {}, context = {}) {
   if (err?.apiCallBudgetRecorded) return;
   recordApiCallEvent({
@@ -666,12 +681,13 @@ export default function useGeneration({
     initialModelName,
     systemPromptOverride,
   ) {
-    // A deterministic browser model will usually repeat the same bad topic
-    // after focused feedback. Two bounded attempts are enough to use an exact
-    // uncovered source topic and then fail honestly; four identical calls
-    // added minutes without adding a new course-map atom.
-    const MAX_ATTEMPTS_PER_MODEL = 2;
     let workingMap = currentMap;
+    const continuationPolicy = getCourseMapContinuationPolicy(
+      provider,
+      workingMap?.lessons?.length || 0,
+      expectedCount,
+    );
+    let consecutiveNoProgress = 0;
 
     const model = { id: initialModelId, name: initialModelName, backend: provider, apiKey };
     const modelDisplayName = displayGenerationModelName(provider, model.name);
@@ -696,7 +712,7 @@ export default function useGeneration({
       if (workingMap.lessons.length >= expectedCount) return workingMap;
     }
 
-    for (let attempt = 0; attempt < MAX_ATTEMPTS_PER_MODEL; attempt++) {
+    for (let attempt = 0; attempt < continuationPolicy.maxAttempts; attempt++) {
       const actual = workingMap.lessons.length;
       if (actual >= expectedCount) break;
 
@@ -731,16 +747,29 @@ export default function useGeneration({
           // next bounded attempt, never rows we silently append.
           const normalized = normalizeLessons(contResult.lessons, colDefs);
           const admission = admitCourseMapContinuationLessons(workingMap.lessons, normalized);
-          const sanitized = admission.lessons;
+          const remaining = Math.max(0, expectedCount - workingMap.lessons.length);
+          const sanitized = admission.lessons.slice(0, remaining);
           rejectedTopics = [...new Set([...rejectedTopics, ...admission.rejectedTopics])].slice(-12);
+          recordApiCallEvent({
+            type: 'courseMapAdmission',
+            label: 'Course-map continuation admission',
+            detail: `${sanitized.length}/${normalized.length} accepted · ${admission.rejectedTopics.length} repeated · ${workingMap.lessons.length + sanitized.length}/${expectedCount} mapped`,
+          });
           if (sanitized.length === 0) {
+            consecutiveNoProgress += 1;
             addLog(
               modelDisplayName,
-              `Rejected a repeated continuation${attempt + 1 < MAX_ATTEMPTS_PER_MODEL ? ' — asking for distinct topics' : ''}`,
+              `Rejected a repeated continuation${
+                consecutiveNoProgress < continuationPolicy.maxConsecutiveNoProgress
+                  ? ' — asking once more for distinct topics'
+                  : ''
+              }`,
               'warning',
             );
+            if (consecutiveNoProgress >= continuationPolicy.maxConsecutiveNoProgress) break;
             continue;
           }
+          consecutiveNoProgress = 0;
           workingMap = {
             ...workingMap,
             lessons: [...workingMap.lessons, ...sanitized],
@@ -751,8 +780,9 @@ export default function useGeneration({
           addLog(modelDisplayName, `Added ${added} lessons (${prevCount + 1}–${workingMap.lessons.length})`, 'success');
           pushVersion(workingMap, `${modelDisplayName}: added lessons ${prevCount + 1}–${workingMap.lessons.length}`);
         } else {
+          consecutiveNoProgress += 1;
           addLog(modelDisplayName, `No new lessons produced`, 'warning');
-          break; // this model can't help, try next
+          if (consecutiveNoProgress >= continuationPolicy.maxConsecutiveNoProgress) break;
         }
       } catch (contErr) {
         if (contErr.name === 'AbortError') throw contErr;

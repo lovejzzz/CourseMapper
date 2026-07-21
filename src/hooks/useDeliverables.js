@@ -1357,12 +1357,20 @@ export default function useDeliverables({
             // "new content" and the live run's exhausted final retry seat.
             const initialAuthoringIndices = scionProvider ? subjectLessonIndices : allLessonIndices;
             let absorbedCourseLevel = null;
-            const chunkSize = nativeBatching.getAdaptiveNativePassBBatchSize({
-              lessonCount: allLessonIndices.length,
-              maxOutputTokens,
-              generationPlan,
-              modelCapabilities,
-            });
+            // The public browser model's compact contract is intentionally
+            // one lesson per call. Its message builder selects one lesson so
+            // passing a four-lesson native batch made lessons 2-4 impossible
+            // to return, triggering a retry storm and 1/15 enrichment. Keep
+            // the adaptive multi-lesson batcher for servers and paid models.
+            const chunkSize =
+              provider === PUBLIC_SCION_PROVIDER_ID
+                ? PUBLIC_SCION_KERNEL_LESSONS_PER_CALL
+                : nativeBatching.getAdaptiveNativePassBBatchSize({
+                    lessonCount: allLessonIndices.length,
+                    maxOutputTokens,
+                    generationPlan,
+                    modelCapabilities,
+                  });
             const batches = [];
             for (let start = 0; start < initialAuthoringIndices.length; start += chunkSize) {
               batches.push(initialAuthoringIndices.slice(start, start + chunkSize));
@@ -1496,7 +1504,16 @@ export default function useDeliverables({
               }
             };
 
-            const limit = pLimit(getFeatureConcurrency(generationPlan));
+            // A browser owns one local llama.cpp instance. Its runtime already
+            // serializes completions, so launching fourteen more Pass B jobs
+            // as if Scion were a cloud API only creates a hidden pending queue
+            // and lets one transient worker stop strand the course at 1/N.
+            // Paid/server providers retain adaptive parallelism.
+            const nativePassBConcurrency =
+              provider === PUBLIC_SCION_PROVIDER_ID
+                ? PUBLIC_SCION_KERNEL_CONCURRENCY
+                : getFeatureConcurrency(generationPlan);
+            const limit = pLimit(nativePassBConcurrency);
             const runBatchSafely = async (chunk, batchIndex) => {
               if (!hasProviderCallBudget()) {
                 appendLog('⚠ Native Pass B stopped early: call cap', 'warn');
@@ -1505,7 +1522,11 @@ export default function useDeliverables({
               try {
                 await runPassBBatch(chunk, { includeCourseLevel: batchIndex === 0 });
               } catch (batchErr) {
-                if (batchErr?.name === 'AbortError') throw batchErr;
+                // An AbortError is course-wide only when this controller was
+                // actually aborted. Internal llama.cpp stops are recovered by
+                // the runtime; if recovery still fails, preserve the failure
+                // as one missing kernel and continue the remaining lessons.
+                if (batchErr?.name === 'AbortError' && controller.signal.aborted) throw batchErr;
                 appendLog(`⚠ Native Pass B batch failed: ${batchErr.message || 'model error'}`, 'warn');
               }
             };
@@ -1560,20 +1581,28 @@ export default function useDeliverables({
             // local generations after a good kernel had already arrived.
             const listMissingAuthoredIndices = () =>
               scionProvider ? [] : allLessonIndices.filter((lessonIdx) => !nativeAuthored[lessonIdOf(lessonIdx)]);
+            // Public Scion already gives each initial ledger one corrective
+            // transport retry. One course-level recovery call is enough to
+            // salvage a remaining lesson; repeating the same missing lesson
+            // four times produced 12 redundant browser-model requests.
+            const nativeRecoveryCallLimit =
+              provider === PUBLIC_SCION_PROVIDER_ID
+                ? Math.min(1, enrichmentRecoveryCallLimit)
+                : enrichmentRecoveryCallLimit;
             const nativeRecovery = await runNativeKernelRecovery({
               lessonIndices: allLessonIndices,
               lessonContent,
               lessonIdOf,
               kernelIsUsable,
               listMissingAuthoredIndices,
-              recoveryCallLimit: enrichmentRecoveryCallLimit,
+              recoveryCallLimit: nativeRecoveryCallLimit,
               hasProviderCallBudget,
               selectRecoveryChunk: selectEnrichmentRecoveryChunk,
               chunkSize,
               runRecoveryBatch: async (retryChunk, recoveryAttempt) => {
                 await runPassBBatch(retryChunk, {
                   includeCourseLevel: false,
-                  recoveryLabel: `Author lesson batch (native recovery ${recoveryAttempt}/${enrichmentRecoveryCallLimit})`,
+                  recoveryLabel: `Author lesson batch (native recovery ${recoveryAttempt}/${nativeRecoveryCallLimit})`,
                   recoveryAttempt,
                 });
               },
@@ -1908,7 +1937,7 @@ export default function useDeliverables({
                 }
               }
             } catch (chunkErr) {
-              if (chunkErr?.name === 'AbortError') throw chunkErr;
+              if (chunkErr?.name === 'AbortError' && controller.signal.aborted) throw chunkErr;
               appendLog(`⚠ Content enrichment chunk failed: ${chunkErr.message || 'model error'}`, 'warn');
             }
           };

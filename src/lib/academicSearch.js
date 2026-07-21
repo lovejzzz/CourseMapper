@@ -2,12 +2,14 @@
  * academicSearch.js — Free academic API wrappers for the AI teaching agent.
  *
  * Two search sources, both free and keyless:
- *   - Crossref (DOI and citation metadata — CORS-friendly, no API key)
+ *   - Crossref (DOI and citation metadata — Node/build-time only; no API key)
  *   - Wikipedia (topic overviews with confirmed CORS)
  *
  * Usage:
  *   const { results, formatted } = await executeResearch({ query: 'Bloom taxonomy', sources: ['papers', 'wiki'] });
  */
+
+import { canFetchCrossrefDirectly } from './crossrefRuntime.js';
 
 // ── Scholarly papers (Crossref, backend-free) ────────────────────────────────
 
@@ -58,6 +60,7 @@ export async function searchWikipedia(query, limit = 3, signal) {
 // ── CrossRef ─────────────────────────────────────────────────────────────────
 
 export async function searchCrossRef(query, limit = 5, signal) {
+  if (!canFetchCrossrefDirectly()) return { works: [] };
   try {
     const url = `https://api.crossref.org/works?query=${encodeURIComponent(query)}&rows=${limit}&select=DOI,title,author,published-print,is-referenced-by-count,publisher&mailto=coursemapper@nyu.edu`;
     const res = await fetch(url, { signal });

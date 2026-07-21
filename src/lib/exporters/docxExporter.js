@@ -767,6 +767,8 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         // ("Covers Lessons 1–7: …") — print it so the exam document states
         // its covered range; the field never rendered before.
         if (quiz.examScope) children.push(makeBold('Exam Scope', quiz.examScope));
+        if (quiz.assignedReadings?.length)
+          children.push(makeBold('Assigned Reading', quiz.assignedReadings.join('; ')));
         // v0.16 A2: the machine-scoring statement, printed where a reviewer
         // decides whether "autograded" is honest.
         if (quiz.gradingSpec) children.push(makeBold('Grading', quiz.gradingSpec));
@@ -1054,6 +1056,10 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
       for (const g of expanded[key] || []) {
         children.push(makeHeading(g.lessonTitle || 'Study Guide'));
         if (g.examScope) children.push(makeText(g.examScope));
+        if (g.assignedReadings?.length) {
+          children.push(makeSubHeading('Assigned Readings'));
+          g.assignedReadings.forEach((reading) => children.push(makeBullet(reading)));
+        }
         if (g.summary) {
           children.push(makeSubHeading('Concept Summary'));
           children.push(makeText(g.summary));

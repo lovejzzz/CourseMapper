@@ -148,6 +148,7 @@ export function deliverableToCsvRows(featureId, data) {
       const quizzes = expanded[key] || [];
       const headers = [
         'Lesson',
+        'Assigned Readings',
         'Type',
         "Bloom's",
         'Difficulty',
@@ -163,6 +164,7 @@ export function deliverableToCsvRows(featureId, data) {
         for (const q of quiz.questions || []) {
           rows.push([
             quiz.lessonTitle || '',
+            (quiz.assignedReadings || []).join('; '),
             q.type || '',
             q.bloomsLevel || '',
             q.difficulty || '',
@@ -272,6 +274,7 @@ export function deliverableToCsvRows(featureId, data) {
       const guides = expanded[key] || [];
       const headers = [
         'Lesson',
+        'Assigned Readings',
         'Summary',
         'Key Terms',
         'Concept Connections',
@@ -297,6 +300,7 @@ export function deliverableToCsvRows(featureId, data) {
           : g.examTips || '';
         return [
           g.lessonTitle || '',
+          (g.assignedReadings || []).join('; '),
           g.summary || '',
           (g.keyTerms || [])
             .map((t) => `${t.term}: ${t.definition}${t.example ? ' (e.g., ' + t.example + ')' : ''}`)

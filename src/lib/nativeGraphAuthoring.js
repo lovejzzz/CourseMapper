@@ -53,8 +53,9 @@ import { dedupeNumberedAssessmentEcho } from './compilerText.js';
 import { assessTargetLanguagePresence, detectForeignLanguageTeachingContent } from './languageIdentityGuard.js';
 import { projectKernelToSurfaces } from './kernelProjection';
 import { NATIVE_PASS_B_AUTHORING_ADDITION } from './prompts';
-import { extractExplicitLessonSequence } from './explicitLessonSequence';
+import { extractExplicitCoverageTopics, extractExplicitLessonSequence } from './explicitLessonSequence';
 import { semanticIdentityTokens } from './lessonSemanticRelevance';
+import { buildFactLedgerFeedback } from './factLedgerFeedback.js';
 export { AUTHORING_MODE_STORAGE_KEY, readAuthoringMode, saveAuthoringMode } from './authoringMode.js';
 
 // ── Typed failure: the degraded-plan guard ──────────────────────────────────
@@ -111,6 +112,22 @@ function selectConceptAlignedFact(facts = [], concept = '') {
     }
   });
   return best;
+}
+
+function factsAlignedToLesson(facts = [], courseMapLesson = {}, concept = '') {
+  const lessonCue = [
+    concept,
+    cleanText(courseMapLesson?.title, 180).replace(/^lesson\s+\d+\s*[:.-]\s*/i, ''),
+    ...asArray(courseMapLesson?.sections).map((section) =>
+      cleanText(section?.topicSection || section?.topic, 160).replace(/^\d+(?:\.\d+)*\s*[:.-]\s*/i, ''),
+    ),
+  ].join(' ');
+  const lessonTokens = new Set(semanticIdentityTokens(lessonCue));
+  if (lessonTokens.size === 0) return facts;
+  const aligned = facts.filter((fact) => semanticIdentityTokens(fact).some((token) => lessonTokens.has(token)));
+  // Two aligned statements can support a real comparison. Keep the original
+  // ledger only when semantic tokenization cannot establish even that much.
+  return aligned.length >= 2 ? aligned : facts;
 }
 
 export function isNativeContentSourcedKernel(payload, partialOverlay) {
@@ -259,11 +276,14 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
   const facts = asArray(payload?.kernel?.facts)
     .map((fact) => cleanTextAtBoundary(fact, 220))
     .filter(Boolean);
+  const surfaceFacts = factsAlignedToLesson(facts, courseMapLesson, concept);
   const anchorFact =
-    selectConceptAlignedFact(facts, concept) ||
+    selectConceptAlignedFact(surfaceFacts, concept) ||
     definition ||
     `${concept} requires a claim grounded in inspectable details.`;
-  const projectionFacts = anchorFact ? [anchorFact, ...facts.filter((fact) => fact !== anchorFact)] : facts;
+  const projectionFacts = anchorFact
+    ? [anchorFact, ...surfaceFacts.filter((fact) => fact !== anchorFact)]
+    : surfaceFacts;
   const anchorClause = anchorFact.replace(/[.!?]+$/, '');
   const scenario = payload?.kernel?.scenario || {};
   const materials =
@@ -297,12 +317,17 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
   // remain traceable to the accepted fact/scenario atoms.
   if (keyTerms.filter(substantiveTerm).length === 0 && facts.length >= 3) {
     const comparisonExample = `Compare the supplied claims: ${projectionFacts.slice(0, 2).join(' ')}`;
+    const { misconception, correction } = buildFactLedgerFeedback({ lesson: courseMapLesson, concept });
     const fallbackTerm = {
       term: cleanText(concept, 60),
       definition: anchorFact,
       example: scenarioExample || cleanTextAtBoundary(comparisonExample, 300),
-      misconception: `The first supplied claim alone settles every question about ${cleanText(concept, 60)}.`,
-      correction: 'Use all supplied claims to state a bounded conclusion and identify what they do not establish.',
+      // Put the lesson identity before the reusable reasoning frame. Besides
+      // making the feedback more useful to a learner, this prevents one
+      // generic eight-word sentence from being stamped across a cumulative
+      // quiz bank when many lessons need fact-ledger terminology recovery.
+      misconception,
+      correction,
       source: 'fact-ledger-projection',
       tier: 1,
     };
@@ -965,6 +990,210 @@ function hasExcessiveSessionTitleReuse(sessions = []) {
   return [...counts.values()].some((count) => count >= 3);
 }
 
+const ASSESSMENT_ONLY_SESSION_TITLE_RE =
+  /^(?:final(?: assessment| exam(?:ination)?| test)?(?: review)?|midterm(?: exam(?:ination)?)?(?: \d+)?(?: review)?|quiz(?: \d+)?(?: review)?|problem sets?|assessment(?: \d+)?|comprehensive(?: course)?(?: evaluation| review)?|course (?:assessment|evaluation|review))$/i;
+const GENERIC_SESSION_SECTION_RE =
+  /^(?:application(?:s| of concepts?)?|comprehensive final(?: review)?|comprehensive review|final (?:review|synthesis)|overview|review|synthesis)$/i;
+
+function normalizedSessionTitle(value) {
+  return cleanText(value, 160)
+    .replace(/^lesson\s+\d+\s*[:.-]?\s*/i, '')
+    .toLowerCase();
+}
+
+function courseSubjectTitle(value) {
+  return cleanText(value, 120)
+    .replace(/^(?:an?\s+)?(?:introduction|intro)\s+to\s+/i, '')
+    .replace(/\s+course$/i, '')
+    .trim();
+}
+
+function compactBriefCourseName(value, sourceText) {
+  const name = cleanText(value, 160);
+  if (!isCompactCourseBrief(sourceText)) return name;
+  return name.replace(/,\s+(?:an?\s+)?\d+\s*[-–—]?\s*(?:lesson|week|session|module)s?\b(?:\s+.*)?$/i, '').trim();
+}
+
+function isCompactCourseBrief(sourceText) {
+  const source = String(sourceText || '').trim();
+  if (!source || source.length > 1800) return false;
+  return !/^\s*(?:lesson|week|session|module)\s+\d+\s*[:.)-]/im.test(source);
+}
+
+function distinctiveSectionTitles(session, usedTitles) {
+  const original = normalizedSessionTitle(session?.title);
+  const candidates = [];
+  for (const value of asArray(session?.sectionTitles)) {
+    const candidate = cleanText(value, 100)
+      .replace(/^\d+(?:\.\d+)?\s*[:.-]\s*/, '')
+      .replace(/^(?:advanced|review of)\s+/i, '')
+      .replace(/\s+(?:overview|review)$/i, '')
+      .trim();
+    const key = normalizedSessionTitle(candidate);
+    if (!candidate || key === original || usedTitles.has(key) || GENERIC_SESSION_SECTION_RE.test(candidate)) continue;
+    if (!candidates.some((entry) => normalizedSessionTitle(entry) === key)) candidates.push(candidate);
+    if (candidates.length >= 2) break;
+  }
+  return candidates;
+}
+
+function compactBriefLabTitle(sourceText) {
+  const source = cleanText(sourceText, 1800);
+  const match = source.match(
+    /\b(?:an?|the)\s+((?:[a-z0-9][a-z0-9–—-]*\s+){0,4}(?:lab(?:oratory)?|studio|practicum|fieldwork))\b/i,
+  );
+  if (!match?.[1]) return '';
+  return cleanText(match[1], 100)
+    .replace(/\blaboratory\b/i, 'lab')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function labInvestigationTitle(labTitle, subject = '') {
+  let title = cleanText(labTitle, 100)
+    .replace(/\b(?:laboratory|lab)\b/i, 'investigation')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (/^model[- ]organism investigation$/i.test(title) && subject && !/^course$/i.test(subject)) {
+    title = `model-organism ${subject} investigation`;
+  }
+  return title.replace(/(?:^|[\s-])([a-z])/g, (match, letter) => match.replace(letter, letter.toUpperCase()));
+}
+
+function coverageDeepeningTitle(coverageTopics, ordinal, subject) {
+  if (coverageTopics.length === 0) return `${subject}: evidence and application ${ordinal + 1}`;
+  const topic = coverageTopics[(Math.floor(coverageTopics.length / 2) + ordinal) % coverageTopics.length];
+  const focus = ['mechanisms and evidence', 'methods and applications', 'interpretation and limitations'][ordinal % 3];
+  return `${topic}: ${focus}`;
+}
+
+function combineSessionTopics(first, second) {
+  if (!/\sand\s/i.test(first)) return `${first} and ${second}`;
+  return `${first.replace(/\sand\s(?=[^,]+$)/i, ', ')}, and ${second}`;
+}
+
+/**
+ * Small models sometimes obey the requested session count by repeating early
+ * titles even though their own section titles already describe distinct later
+ * material. Preserve those authored subtopics and promote the first distinct
+ * one into the session title. Compact briefs can also turn a named final into
+ * a filler session; keep the assessment in its registry and name the teaching
+ * session as a subject synthesis instead. No factual content is invented.
+ */
+export function repairNativeSkeletonSessionTitles(
+  sessions = [],
+  courseName = '',
+  { compactBrief = false, coverageTopics = [], sourceText = '' } = {},
+) {
+  const seen = new Set();
+  let repeatedTitleCount = 0;
+  let assessmentTitleCount = 0;
+  let fallbackOrdinal = 0;
+  const subject = courseSubjectTitle(courseName) || 'Course';
+  const originalTitleKeys = new Set(sessions.map((session) => normalizedSessionTitle(session?.title)).filter(Boolean));
+  const promotableSubtopics = [];
+  const promotableLimit = Math.min(sessions.length, Math.max(coverageTopics.length, 1));
+  sessions.slice(0, promotableLimit).forEach((session, parentIndex) => {
+    const parentKey = normalizedSessionTitle(session?.title);
+    asArray(session?.sectionTitles).forEach((value) => {
+      const title = cleanText(value, 100)
+        .replace(/^\d+(?:\.\d+)?\s*[:.-]\s*/, '')
+        .replace(/^(?:advanced|review of)\s+/i, '')
+        .replace(/\s+(?:overview|review)$/i, '')
+        .trim();
+      const key = normalizedSessionTitle(title);
+      if (
+        !title ||
+        !key ||
+        key === parentKey ||
+        originalTitleKeys.has(key) ||
+        GENERIC_SESSION_SECTION_RE.test(title) ||
+        ASSESSMENT_ONLY_SESSION_TITLE_RE.test(key) ||
+        promotableSubtopics.some((entry) => entry.key === key)
+      ) {
+        return;
+      }
+      promotableSubtopics.push({ title, key, parentIndex });
+    });
+  });
+
+  const namedLab = compactBrief ? compactBriefLabTitle(sourceText) : '';
+  const namedLabKey = normalizedSessionTitle(namedLab);
+  const sourceLabMissing = Boolean(
+    namedLab &&
+    !sessions.some((session) => {
+      const title = normalizedSessionTitle(session?.title);
+      return title === namedLabKey || (title.includes('lab') && namedLabKey.includes(title));
+    }),
+  );
+  let sourceLabPromoted = false;
+  const promotedByParent = new Map();
+
+  const consumePromotableTitle = () => {
+    while (promotableSubtopics.length > 0) {
+      const candidate = promotableSubtopics.shift();
+      if (seen.has(candidate.key)) continue;
+      const promoted = promotedByParent.get(candidate.parentIndex) || new Set();
+      promoted.add(candidate.key);
+      promotedByParent.set(candidate.parentIndex, promoted);
+      return candidate.title;
+    }
+    return '';
+  };
+
+  const repaired = sessions.map((session) => {
+    const key = normalizedSessionTitle(session?.title);
+    const repeated = Boolean(key && seen.has(key));
+    const assessmentOnly = compactBrief && ASSESSMENT_ONLY_SESSION_TITLE_RE.test(key);
+    let title = cleanText(session?.title, 160);
+    let sectionTitles = session?.sectionTitles;
+    if (repeated || assessmentOnly) {
+      const distinctSections = distinctiveSectionTitles(session, seen);
+      if (assessmentOnly && distinctSections.length >= 2) {
+        title = combineSessionTopics(distinctSections[0], distinctSections[1]);
+        sectionTitles = distinctSections;
+      } else if (distinctSections.length > 0) {
+        title = distinctSections[0];
+      } else if (sourceLabMissing && !sourceLabPromoted) {
+        title = labInvestigationTitle(namedLab, subject);
+        sectionTitles = [title];
+        sourceLabPromoted = true;
+      } else {
+        title = consumePromotableTitle();
+        if (title) sectionTitles = [title];
+      }
+      if (!title || normalizedSessionTitle(title) === key) {
+        title = coverageDeepeningTitle(coverageTopics, fallbackOrdinal, subject);
+        sectionTitles = [title];
+        fallbackOrdinal += 1;
+      }
+      if (repeated && normalizedSessionTitle(title) !== key) repeatedTitleCount += 1;
+      if (assessmentOnly && normalizedSessionTitle(title) !== key) assessmentTitleCount += 1;
+    }
+    let nextKey = normalizedSessionTitle(title);
+    if (seen.has(nextKey)) {
+      title = consumePromotableTitle() || coverageDeepeningTitle(coverageTopics, fallbackOrdinal, subject);
+      sectionTitles = [title];
+      fallbackOrdinal += 1;
+      nextKey = normalizedSessionTitle(title);
+      if (repeated) repeatedTitleCount += 1;
+    }
+    seen.add(nextKey);
+    return title === session?.title && sectionTitles === session?.sectionTitles
+      ? session
+      : { ...session, title, sectionTitles };
+  });
+  const finalSessions = repaired.map((session, sessionIndex) => {
+    const promotedKeys = promotedByParent.get(sessionIndex);
+    if (!promotedKeys?.size) return session;
+    const remaining = asArray(session?.sectionTitles).filter(
+      (value) => !promotedKeys.has(normalizedSessionTitle(value)),
+    );
+    return { ...session, sectionTitles: remaining.length > 0 ? remaining : [session.title] };
+  });
+  return { sessions: finalSessions, repeatedTitleCount, assessmentTitleCount };
+}
+
 /** Tolerant outer-object JSON extraction (code fences / surrounding prose). */
 function extractJsonObject(text) {
   const raw = String(text || '').trim();
@@ -1119,10 +1348,10 @@ function distributeWeightPercent(count) {
 
 function synthesizeSessionAssessments(sessions) {
   const weights = distributeWeightPercent(sessions.length);
-  const stems = ['evidence check', 'applied problem', 'practice brief', 'concept transfer'];
+  const stems = ['analysis', 'application', 'comparison', 'interpretation'];
   return sessions.map((session, index) => ({
     id: `a${index + 1}`,
-    title: `Lesson ${session.order} ${stems[index % stems.length]}: ${session.title}`,
+    title: `${session.title} ${stems[index % stems.length]}`,
     kind: 'graded-artifact',
     dueSession: session.order,
     weightPct: weights[index],
@@ -1220,6 +1449,26 @@ export function parseNativeSkeletonResponse(text, { expectedLessons = null, sour
       sectionTitles: entry.sectionTitles,
     }));
 
+  let compactSessionCountRecovery = 0;
+  if (Number.isInteger(expectedLessons) && expectedLessons > 0 && sessions.length < expectedLessons) {
+    const missingCount = expectedLessons - sessions.length;
+    if (isCompactCourseBrief(sourceText) && missingCount <= 2) {
+      const start = sessions.length;
+      sessions = [
+        ...sessions,
+        ...Array.from({ length: missingCount }, (_, index) => ({
+          id: `s${start + index + 1}`,
+          order: start + index + 1,
+          // This deliberate parser-only marker is consumed by the compact
+          // title repair below. It can never reach the learner package.
+          title: `Assessment ${start + index + 1}`,
+          sectionTitles: [],
+        })),
+      ];
+      compactSessionCountRecovery = missingCount;
+    }
+  }
+
   const titledSessions = sessions.filter((session) => !/^Lesson \d+$/.test(session.title)).length;
   if (titledSessions === 0) {
     throw new NativeAuthoringError('skeleton-untitled', 'Pass A skeleton has no titled sessions');
@@ -1251,12 +1500,48 @@ export function parseNativeSkeletonResponse(text, { expectedLessons = null, sour
       authoredTitles,
       misalignedOrders,
     };
+  } else if (sourceLessonSequence.length === 0) {
+    const titleRepair = repairNativeSkeletonSessionTitles(
+      sessions,
+      compactBriefCourseName(parsed?.course?.name, sourceText),
+      {
+        compactBrief: isCompactCourseBrief(sourceText),
+        coverageTopics: extractExplicitCoverageTopics(sourceText),
+        sourceText,
+      },
+    );
+    if (titleRepair.repeatedTitleCount > 0 || titleRepair.assessmentTitleCount > 0) {
+      const authoredTitles = sessions.map((session) => session.title);
+      sessions = titleRepair.sessions;
+      sessionSequenceRecovery = {
+        kind: 'model-authored-distinct-subtopics',
+        recoveredCount: titleRepair.repeatedTitleCount + titleRepair.assessmentTitleCount,
+        reason: titleRepair.repeatedTitleCount > 0 ? 'repeated-titles' : 'assessment-filler-title',
+        authoredTitles,
+        misalignedOrders: [],
+        ...(compactSessionCountRecovery > 0 ? { countRecovered: compactSessionCountRecovery } : {}),
+      };
+    }
   }
 
   const clampDue = (value) => {
     const due = Number(value);
     if (!Number.isFinite(due)) return 1;
     return Math.max(1, Math.min(sessions.length, Math.round(due)));
+  };
+  const resolveDueSession = (entry, title) => {
+    if (Number.isFinite(Number(entry?.dueSession))) return clampDue(entry.dueSession);
+    const itemTokens = new Set(lessonSequenceTokens(title));
+    let bestOrder = 1;
+    let bestOverlap = 0;
+    sessions.forEach((session) => {
+      const overlap = lessonSequenceTokens(session?.title).filter((token) => itemTokens.has(token)).length;
+      if (overlap > bestOverlap) {
+        bestOverlap = overlap;
+        bestOrder = session.order;
+      }
+    });
+    return bestOverlap > 0 ? bestOrder : 1;
   };
 
   const assessmentListRecovery = {
@@ -1316,7 +1601,7 @@ export function parseNativeSkeletonResponse(text, { expectedLessons = null, sour
     .map((entry, index) => {
       const title = cleanText(entry?.title, 240);
       if (!title) return null;
-      return { id: cleanText(entry?.id, 24) || `r${index + 1}`, title, dueSession: clampDue(entry?.dueSession) };
+      return { id: cleanText(entry?.id, 24) || `r${index + 1}`, title, dueSession: resolveDueSession(entry, title) };
     })
     .filter(Boolean);
   const recoveredReadings =
@@ -1330,13 +1615,13 @@ export function parseNativeSkeletonResponse(text, { expectedLessons = null, sour
     .map((entry, index) => {
       const title = cleanText(entry?.title, 240);
       if (!title) return null;
-      return { id: cleanText(entry?.id, 24) || `m${index + 1}`, title, dueSession: clampDue(entry?.dueSession) };
+      return { id: cleanText(entry?.id, 24) || `m${index + 1}`, title, dueSession: resolveDueSession(entry, title) };
     })
     .filter(Boolean);
 
   return {
     course: {
-      name: cleanText(parsed.course?.name, 160) || 'Untitled Course',
+      name: compactBriefCourseName(parsed.course?.name, sourceText) || 'Untitled Course',
       term: cleanText(parsed.course?.term, 24) || 'TBD',
       goals: asArray(parsed.course?.goals)
         .map((goal) => cleanText(goal, 160))

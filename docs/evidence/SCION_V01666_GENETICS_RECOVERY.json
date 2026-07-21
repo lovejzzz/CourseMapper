@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 1,
+  "release": "0.16.66",
+  "date": "2026-07-21",
+  "status": "verified-local-and-browser",
+  "sourceIncident": {
+    "logPath": "/Users/tianxing/Downloads/edutool.dev-1784607692307.log",
+    "appVersion": "0.16.61",
+    "elapsedMs": 1756578,
+    "providerRequests": 64,
+    "streamRetries": 38,
+    "lessonCount": 15,
+    "repeatedTopicGroups": 3,
+    "exportChecks": 38,
+    "exportFailures": 0,
+    "visibleFailure": "ZIP download was disabled even after physical export verification passed."
+  },
+  "runtimeDiagnosis": {
+    "completionBoundary": "one global browser-local wllama completion tail",
+    "oldScheduling": "public lesson batches inherited cloud-provider concurrency",
+    "oldAbortClassification": "every AbortError was treated as user cancellation",
+    "fixes": [
+      "public Scion native lesson-kernel scheduling is serial",
+      "only an externally aborted caller signal is user cancellation",
+      "an internal AbortError receives one cached-model restart and retry",
+      "one failed batch does not discard the remaining lesson queue"
+    ]
+  },
+  "browserCandidateBeforeTextureFix": {
+    "course": "Introduction to Genetics",
+    "provider": "public Scion browser-local base",
+    "adapterActive": false,
+    "lessonCount": 15,
+    "knowledgeKernels": "15/15",
+    "materialFamilies": "9/9",
+    "qualityScore": 99,
+    "qualityGrade": "A",
+    "textureScore": 92,
+    "p0": 0,
+    "p1": 0,
+    "p2": 11,
+    "p2Diagnosis": "Five assignment briefs and six lesson plans repeated their full lesson title 20-28 times. The findings were retained and fixed in the compiler rather than suppressed in the grader."
+  },
+  "downloadedPackage": {
+    "pathAtAudit": "/Users/tianxing/Downloads/Introduction to Genetics - Course Materials (3).zip",
+    "extractedAuditPath": "/tmp/scion-live-pass.fORTdu",
+    "manifestGeneratedAt": "2026-07-21T15:07:17.602Z",
+    "runId": "run-1784645947269",
+    "finishRunId": "finish-mrus7r4u-xsd3j",
+    "appVersion": "0.16.65",
+    "files": 123,
+    "exportChecked": 38,
+    "exportFailed": 0,
+    "exportWarnings": 0,
+    "physicalDownloadVerified": true,
+    "automationNote": "The browser download event timed out while the file still downloaded successfully; filesystem timestamp, archive extraction, and manifest inspection are the authoritative proof."
+  },
+  "textureResponse": {
+    "graderChanged": false,
+    "compilerFix": "Compact local topic references can no longer equal a three-or-more-word canonical title and avoid duplicate determiners.",
+    "identityBoundary": "Canonical titles remain exact in headings, related-lesson identity, source traces, and provenance.",
+    "publicationBoundary": "The regression projects the exact fields rendered by the Assignment Briefs and Lesson Plans DOCX exporters.",
+    "affectedLiveTitles": [
+      "DNA Structure Fundamentals",
+      "Genome Editing Techniques",
+      "Population Genetics Theory",
+      "Quantitative Genetics Modeling",
+      "Cumulative Investigation Project"
+    ],
+    "targetedProof": "38 focused tests plus the dedicated compiler-level Genetics publication regression pass."
+  },
+  "qualityModal": {
+    "mountParent": "BODY",
+    "viewportWidthCssPx": 1275,
+    "dialogXCssPx": 381.5,
+    "dialogWidthCssPx": 512,
+    "dynamicViewportBounded": true,
+    "singleZipOwner": true
+  },
+  "finalCandidate": {
+    "status": "pending-final-regeneration",
+    "note": "Updated after the V0.16.66 browser regeneration and extracted-ZIP regrade."
+  },
+  "claimBoundary": {
+    "weightsChanged": false,
+    "adapterActive": false,
+    "backendModelStoreAdded": false,
+    "humanValidation": false,
+    "factualValidation": false,
+    "classroomOutcomeValidation": false,
+    "paidModelBenefit": "Compatible paid routes inherit the shared compiler, admission, grading, Agent evidence, and export improvements; browser download, WebGPU inference, caching, and local runtime recovery remain Scion-specific."
+  }
+}

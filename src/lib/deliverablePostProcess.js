@@ -163,6 +163,7 @@ export function normalizeCourseFaqQuestionCounts(data, config = {}, courseMap = 
           title: rawTitle,
           shortTitle,
           target,
+          lessonIndex: index,
         });
         const additions = fallbackQuestions.slice(questions.length, target);
         if (additions.length > 0) {
@@ -363,7 +364,7 @@ function extractCourseFaqConcepts(lesson, title) {
   return concepts.slice(0, 5);
 }
 
-function buildFallbackFaqQuestions({ lesson, title, shortTitle, target }) {
+function buildFallbackFaqQuestions({ lesson, title, shortTitle, target, lessonIndex = 0 }) {
   const topic = compactText(getLessonField(lesson, 'topicSection'), shortTitle, 140);
   const objectives = compactText(
     getLessonField(lesson, 'learningObjectives') || getLessonField(lesson, 'learningGoals'),
@@ -388,6 +389,12 @@ function buildFallbackFaqQuestions({ lesson, title, shortTitle, target }) {
     'the lesson assessment',
     90,
   );
+  const supportQuestion = [
+    `What should I do if I get stuck during ${shortTitle}?`,
+    `Where should I start when ${shortTitle} is not making sense?`,
+    `Which course resource should I check first when I need help with ${shortTitle}?`,
+    `How can I identify what is blocking my work on ${shortTitle}?`,
+  ][Math.abs(lessonIndex) % 4];
 
   const questions = [
     {
@@ -422,7 +429,7 @@ function buildFallbackFaqQuestions({ lesson, title, shortTitle, target }) {
       df: 'Intermediate',
     },
     {
-      q: `What should I do if I get stuck during ${shortTitle}?`,
+      q: supportQuestion,
       an: `First, return to the assigned learning materials and locate the part that matches the confusing term or task. Then review the activity directions: ${activities}. If the problem is technical, document what you tried and ask for help with the exact step that failed.`,
       ca: 'Technical Help',
       rc: related.slice(0, 3),
@@ -799,7 +806,7 @@ export function buildFallbackCourseFaq(courseMap, config = {}, scopeIndices = nu
     return {
       lt: title,
       tg: extractCourseFaqConcepts(lesson, title),
-      qs: buildFallbackFaqQuestions({ lesson, title, shortTitle, target }),
+      qs: buildFallbackFaqQuestions({ lesson, title, shortTitle, target, lessonIndex: originalIndex }),
     };
   });
 

@@ -112,6 +112,17 @@ const CLASSROOM_SOURCE_LABELS = {
   w3c: 'W3C',
 };
 
+const INTERNAL_SOURCE_CUE_PATTERNS = [
+  /^(?:fact[- ]ledger|verified[- ]quiz|language[- ]pair)[- ]projection$/i,
+  /^(?:model|compiler)[- ]authored$/i,
+  /^existing course map fields$/i,
+];
+
+export function isInternalSourceCue(value) {
+  const text = stripTerminalPunctuation(cleanText(value));
+  return Boolean(text && INTERNAL_SOURCE_CUE_PATTERNS.some((pattern) => pattern.test(text)));
+}
+
 function looksLikePersonNameCue(value) {
   const text = cleanText(value);
   if (!text || /[\d:/@]/.test(text)) return false;
@@ -146,6 +157,7 @@ export function humanSourceCueLabel(value, fallback) {
       : value;
   const text = stripTerminalPunctuation(cleanText(sourceValue));
   if (!text) return fallback;
+  if (isInternalSourceCue(text)) return fallback;
   if (looksLikePersonNameCue(text)) return fallback;
   if (!isCitationShapedSourceCue(text)) return text;
   const segments = text

@@ -380,10 +380,10 @@ describe('deliverableToCsvRows — quizBank', () => {
     expect(headers).toContain('Question');
     expect(headers).toContain('Options');
     expect(rows).toHaveLength(2);
-    expect(rows[0][4]).toBe('What is ML?');
-    expect(rows[0][5]).toBe('A; B; C');
-    expect(rows[0][8]).toBe('5');
-    expect(rows[1][9]).toBe('CNNs are...');
+    expect(rows[0][5]).toBe('What is ML?');
+    expect(rows[0][6]).toBe('A; B; C');
+    expect(rows[0][9]).toBe('5');
+    expect(rows[1][10]).toBe('CNNs are...');
   });
 
   it('supports "quizBank" key', () => {
@@ -419,6 +419,7 @@ describe('deliverableToCsvRows — quizBank', () => {
     expect(rows).toHaveLength(1);
     expect(rows[0]).toEqual([
       'Lesson 1: Compact Quiz',
+      '',
       'multiple_choice',
       'Analyze',
       'Medium',
@@ -612,11 +613,11 @@ describe('deliverableToCsvRows — studyGuides', () => {
     const { rows } = deliverableToCsvRows('studyGuides', data);
     expect(rows).toHaveLength(1);
     expect(rows[0][0]).toBe('Week 1 Guide');
-    expect(rows[0][2]).toContain('ML: Machine Learning');
-    expect(rows[0][2]).toContain('e.g., Image classification');
-    expect(rows[0][3]).toContain('ML');
-    expect(rows[0][4]).toContain('AI = ML');
-    expect(rows[0][7]).toContain('Supervised learning');
+    expect(rows[0][3]).toContain('ML: Machine Learning');
+    expect(rows[0][3]).toContain('e.g., Image classification');
+    expect(rows[0][4]).toContain('ML');
+    expect(rows[0][5]).toContain('AI = ML');
+    expect(rows[0][8]).toContain('Supervised learning');
   });
 
   it('supports "guides" key alias', () => {
@@ -638,9 +639,9 @@ describe('deliverableToCsvRows — studyGuides', () => {
       ],
     };
     const { rows } = deliverableToCsvRows('studyGuides', data);
-    expect(rows[0][4]).toBe('AI is magic');
-    expect(rows[0][5]).toBe('What is ML?');
-    expect(rows[0][6]).toBe('Code a model');
+    expect(rows[0][5]).toBe('AI is magic');
+    expect(rows[0][6]).toBe('What is ML?');
+    expect(rows[0][7]).toBe('Code a model');
   });
 
   it('expands compact study guide keys before building rows', () => {
@@ -686,16 +687,16 @@ describe('deliverableToCsvRows — studyGuides', () => {
 
     expect(rows).toHaveLength(1);
     expect(rows[0][0]).toBe('Lesson 1: Compact Study Guide');
-    expect(rows[0][1]).toContain('generated artifacts are ready');
-    expect(rows[0][2]).toContain('Artifact audit: A structured check');
-    expect(rows[0][3]).toContain('Readiness warnings connect');
-    expect(rows[0][4]).toContain('Reviewers still need to inspect fields.');
-    expect(rows[0][5]).toContain('Which field proves a compact guide survived export?');
-    expect(rows[0][6]).toContain('reconstruct the export checklist');
-    expect(rows[0][7]).toContain('Topics: Artifact audit, Readiness report');
-    expect(rows[0][7]).toContain('Time: Spend two minutes');
-    expect(rows[0][7]).toContain('Errors: Students often skip speaker notes');
-    expect(rows[0][7]).toContain('Strategy: Use spaced retrieval');
+    expect(rows[0][2]).toContain('generated artifacts are ready');
+    expect(rows[0][3]).toContain('Artifact audit: A structured check');
+    expect(rows[0][4]).toContain('Readiness warnings connect');
+    expect(rows[0][5]).toContain('Reviewers still need to inspect fields.');
+    expect(rows[0][6]).toContain('Which field proves a compact guide survived export?');
+    expect(rows[0][7]).toContain('reconstruct the export checklist');
+    expect(rows[0][8]).toContain('Topics: Artifact audit, Readiness report');
+    expect(rows[0][8]).toContain('Time: Spend two minutes');
+    expect(rows[0][8]).toContain('Errors: Students often skip speaker notes');
+    expect(rows[0][8]).toContain('Strategy: Use spaced retrieval');
   });
 });
 

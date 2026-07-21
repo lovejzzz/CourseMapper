@@ -7,14 +7,14 @@ import process from 'node:process';
 import { pathToFileURL } from 'node:url';
 
 export const SCION_SEMANTIC_ADMISSION_PROTOCOL = 'scion-semantic-admission-replay-v1';
-export const SCION_SEMANTIC_ADMISSION_RELEASE = 'v0.16.47';
+export const SCION_SEMANTIC_ADMISSION_RELEASE = 'v0.16.66';
 export const SCION_SEMANTIC_ADMISSION_CORPUS =
   'evaluation/scion-adapters/evidence/codex-approved-preferences-v0.16.42.jsonl';
 export const SCION_SEMANTIC_ADMISSION_CAMPAIGN = 'evaluation/scion-adapters/evidence/judge-campaign-v0.16.42.json';
 export const SCION_SEMANTIC_ADMISSION_BASELINE =
   'evaluation/scion-adapters/evidence/semantic-admission-baseline-v0.16.42.json';
 export const SCION_SEMANTIC_ADMISSION_RECEIPT =
-  'evaluation/scion-adapters/evidence/semantic-admission-replay-v0.16.47.json';
+  'evaluation/scion-adapters/evidence/semantic-admission-replay-v0.16.66.json';
 export const SCION_SEMANTIC_ADMISSION_PREVIOUS_RECEIPT =
   'evaluation/scion-adapters/evidence/semantic-admission-replay-v0.16.46.json';
 export const SCION_SEMANTIC_ADMISSION_SOURCE_WORKBOOK_RECEIPT =

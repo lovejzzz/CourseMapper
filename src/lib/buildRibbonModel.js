@@ -333,7 +333,7 @@ export function latestKnowledgeActivity(events = []) {
   }
   if (activity?.label === 'Scion quality passes') {
     const detail = String(activity.detail);
-    if (detail.includes('passBudget:')) return 'Quality call budget reached · continuing safely';
+    if (detail.includes('passBudget:')) return 'Lesson checks complete · compiling locally';
     if (detail.includes('identityRepair:')) return 'Linking lesson to course map';
     if (detail.includes('keyTermAdmission:')) return 'Key terms checked';
     if (detail.includes('appliedDepth:')) return 'Applied questions checked';

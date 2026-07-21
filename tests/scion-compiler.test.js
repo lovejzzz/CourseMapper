@@ -877,10 +877,18 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     expect(runtime).toContain('Scion time-planner');
   });
 
-  it('D2: anonymous Scion skips unsupported native skeleton authoring (source wiring)', () => {
+  it('D2: public Scion uses typed skeleton authoring without the larger CourseIR attempt (source wiring)', () => {
     const runtime = fs.readFileSync('src/lib/courseIRAuthoringRuntime.js', 'utf8');
     expect(runtime).toContain("if (provider === 'public') {");
-    expect(runtime).toContain('public Scion uses the compact course-map contract');
+    expect(runtime).toContain('public Scion · one typed skeleton call');
+    expect(runtime).toContain("if (provider !== 'public' && expectedLessonCount) {");
+  });
+
+  it('D2: public native Pass B keeps the one-lesson contract used by its message builder', () => {
+    const runtime = fs.readFileSync('src/hooks/useDeliverables.js', 'utf8');
+    expect(runtime).toContain('provider === PUBLIC_SCION_PROVIDER_ID');
+    expect(runtime).toContain('PUBLIC_SCION_KERNEL_LESSONS_PER_CALL');
+    expect(runtime).toContain('passing a four-lesson native batch made lessons 2-4 impossible');
   });
 
   it('D3: passes fix keys, gate topics, and polish prose through the callback', async () => {

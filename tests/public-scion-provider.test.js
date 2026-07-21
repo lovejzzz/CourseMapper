@@ -162,6 +162,24 @@ describe('Scion Public provider', () => {
     expect(messages.map((message) => message.content).join('\n')).not.toContain('SOURCE:');
   });
 
+  it('preserves the typed native-skeleton contract instead of rewriting it as a compact course-map task', () => {
+    const system =
+      'Return sessions, assessments, readings, and resources. ASSESSMENTS ARE NOT FILLER SESSIONS. Return only JSON.';
+    const user =
+      'The course has exactly 15 sessions. SOURCE MATERIALS: Introduction to Genetics with two midterms and a final.';
+    const messages = buildPublicScionMessages(system, user, {
+      task: 'nativeSkeleton',
+      schema: { name: 'course_skeleton', schema: { type: 'object' }, strict: true },
+    });
+
+    expect(messages[0].content).toContain('browser-local typed course-structure planner');
+    expect(messages[0].content).toContain('ASSESSMENTS ARE NOT FILLER SESSIONS');
+    expect(messages[0].content).toContain('exact array count');
+    expect(messages[1].content).toBe(user);
+    expect(messages.map((message) => message.content).join('\n')).not.toContain('compact lean atoms');
+    expect(messages.map((message) => message.content).join('\n')).not.toContain('TEMPLATE TO FILL');
+  });
+
   it('retries incomplete public kernel envelopes instead of accepting cached empty output', () => {
     const prompt = `Course: Interface Design\nLessons:\n[{"lessonId":"lesson-9","title":"Wireframes"}]\nReturn ONLY valid JSON.`;
     expect(publicScionKernelResponseNeedsRetry('{"lessons":[]}', prompt, 'blueprintEnrichment')).toBe(true);

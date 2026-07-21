@@ -476,7 +476,7 @@ Create an Environmental Chemistry course with 10 lessons. Cover atmospheric chem
     expect(runtime.completeScionBrowserWllama.mock.calls[1][0].at(-1).content).toContain('duplicate-facts');
   });
 
-  it('reserves two issue-informed retries when the compiler explicitly recovers a failed synthesis ledger', async () => {
+  it('accepts a usable recovery ledger immediately instead of re-authoring the same lesson', async () => {
     const invalidFacts = JSON.parse(completeKernelResponse());
     invalidFacts.lessons[0].facts = invalidFacts.lessons[0].facts.slice(0, 4);
     const runtime = runtimeWith([JSON.stringify(invalidFacts), completeKernelResponse()], {
@@ -500,10 +500,10 @@ Create an Environmental Chemistry course with 10 lessons. Cover atmospheric chem
       sleep: async () => {},
     });
 
-    expect(result).toMatchObject({ attempt: 2, retryCount: 1, maxRetries: 2 });
-    expect(runtime.completeScionBrowserWllama).toHaveBeenCalledTimes(2);
+    expect(result).toMatchObject({ attempt: 1, retryCount: 0, maxRetries: 1, contractIncomplete: true });
+    expect(runtime.completeScionBrowserWllama).toHaveBeenCalledTimes(1);
     expect(runtime.completeScionBrowserWllama.mock.calls[0][1]).toMatchObject({ temperature: 0.45, seed: 7 });
-    expect(runtime.completeScionBrowserWllama.mock.calls[1][0].at(-1).content).toContain('facts-count:4/5');
+    expect(result.admissionIssues).toContain('lesson-4:facts-count:4/5');
   });
 
   it('carries an earlier defect into corrective feedback before a low-risk atomic deferral', async () => {

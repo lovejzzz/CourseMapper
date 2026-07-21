@@ -12,6 +12,8 @@ import {
 } from '../nativeGraphAuthoring.js';
 import { assessProjectedKernelCoverage } from '../blueprintEnrichmentPass.js';
 import { validateCourseGraph } from '../courseGraph/schema.js';
+import { findWorstPhraseRepetition } from '../exportRenderedTextAudit.js';
+import { normalizeFactLedgerFeedback } from '../factLedgerFeedback.js';
 
 function sourceBackedMap() {
   return {
@@ -275,6 +277,112 @@ describe('completeNativeKernelSurfaces', () => {
         }),
       ]),
     );
+  });
+
+  it('keeps fact-ledger misconception feedback lesson-specific across a full course', () => {
+    const paragraphs = Array.from({ length: 15 }, (_, index) => {
+      const lessonNumber = index + 1;
+      const title = `Genetics topic ${lessonNumber}`;
+      const completed = completeNativeKernelSurfaces(
+        {
+          keyTerms: [],
+          quizItems: [],
+          kernel: {
+            facts: [
+              `${title} fact one names an inspectable biological relationship.`,
+              `${title} fact two distinguishes the closest competing explanation.`,
+              `${title} fact three limits the conclusion to the supplied evidence.`,
+            ],
+            scenario: {
+              setup: `Learners compare the three supplied claims about ${title} before choosing a conclusion.`,
+              materials: `${title} evidence packet`,
+            },
+          },
+        },
+        {
+          lessonNumber,
+          title: `Lesson ${lessonNumber}: ${title}`,
+          sections: [{ topicSection: title }],
+        },
+      );
+      const recovered = completed.keyTerms.find((term) => term.source === 'fact-ledger-projection');
+      return `${recovered.misconception} ${recovered.correction}`;
+    });
+
+    const repetition = findWorstPhraseRepetition(paragraphs);
+    expect(repetition.count, `repeated phrase: ${repetition.shingle}`).toBeLessThan(repetition.limit);
+    expect(new Set(paragraphs).size).toBe(15);
+  });
+
+  it('does not project true but wrong-lesson padding facts into learner surfaces', () => {
+    const completed = completeNativeKernelSurfaces(
+      {
+        keyTerms: [],
+        quizItems: [],
+        kernel: {
+          facts: [
+            'Model-organism labs apply genetic principles to observations of living systems.',
+            'Data collection in a model-organism study requires precise measurement of observable traits.',
+            'Mendelian ratios describe segregation in a single-gene cross.',
+            'A DNA double helix contains deoxyribose sugars and nitrogenous bases.',
+            'Genome editing uses molecular tools to alter genetic material.',
+          ],
+        },
+      },
+      {
+        lessonNumber: 14,
+        title: 'Lesson 14: Model-organism lab',
+        sections: [{ topicSection: '14.1: Lab procedures' }, { topicSection: '14.2: Data collection' }],
+      },
+    );
+
+    const projected = JSON.stringify({
+      slides: completed.slideContent,
+      quizItems: completed.quizItems,
+      scenario: completed.kernel.scenario,
+    });
+    expect(projected).toContain('Model-organism');
+    expect(projected).toContain('Data collection');
+    expect(projected).not.toContain('Mendelian ratios');
+    expect(projected).not.toContain('DNA double helix');
+    expect(projected).not.toContain('Genome editing');
+  });
+
+  it('upgrades persisted legacy fact-ledger feedback without changing authored terms', () => {
+    const authored = {
+      term: 'Allele frequency',
+      misconception: 'Instructor-authored misconception.',
+      correction: 'Instructor-authored correction.',
+      source: 'lesson-content-enrichment',
+    };
+    const legacy = {
+      term: 'Hardy-Weinberg equilibrium',
+      misconception: 'The first supplied claim alone settles every question about Hardy-Weinberg equilibrium.',
+      correction: 'Use all supplied claims to state a bounded conclusion and identify what they do not establish.',
+      source: 'fact-ledger-projection',
+    };
+    const legacyMaterials = 'Hardy-Weinberg equilibrium examples and the named reading or activity';
+
+    const normalized = normalizeFactLedgerFeedback(
+      { lessonNumber: 7, title: 'Lesson 7: Population genetics' },
+      {
+        keyTerms: [authored, legacy],
+        discussionPrompt: {
+          prompt: `Which interpretation is best supported by ${legacyMaterials}?`,
+        },
+        assignmentBrief: {
+          task: `Analyze ${legacyMaterials} and state one limitation.`,
+        },
+      },
+    );
+
+    expect(normalized.keyTerms[0]).toBe(authored);
+    expect(normalized.keyTerms[1]).not.toBe(legacy);
+    expect(normalized.keyTerms[1].misconception).toContain('Population genetics');
+    expect(normalized.keyTerms[1].misconception).not.toContain('first supplied claim alone');
+    expect(JSON.stringify(normalized)).not.toContain(legacyMaterials);
+    expect(normalized.discussionPrompt.prompt).toContain('examples and source material for Population genetics');
+    expect(normalized.assignmentBrief.task).toContain('examples and source material for Population genetics');
   });
 });
 

@@ -2,10 +2,10 @@
  * knowledge/providers.js — v0.13.5 P0: the Open Knowledge Backbone's
  * runtime provider layer.
  *
- * One contract over the keyless, CORS-friendly open-knowledge APIs the
- * browser may call at run time: OpenAlex (scholarly works), ERIC (education
- * research), Open Library (book metadata), Crossref, Wikipedia, Library of
- * Congress, and Internet Archive metadata. Build-time-only systems
+ * One contract over keyless open-knowledge APIs. Browser-safe providers may
+ * run at course-build time; Crossref remains available to Node/build-time
+ * callers but is skipped in the browser because its API no longer supplies a
+ * reliable CORS header. Build-time-only systems
  * (OpenStax full text, CORE) live in the foundry, never here.
  *
  * Hard rules (docs/V0.13.5_OPEN_KNOWLEDGE_BACKBONE_ROADMAP.md P0):
@@ -18,6 +18,8 @@
  *  - OpenAlex requests stay bounded because anonymous access has a small
  *    daily allowance; mailto no longer changes the quota pool.
  */
+
+import { canFetchCrossrefDirectly } from '../crossrefRuntime.js';
 
 const CACHE_PREFIX = 'cm-knowledge:';
 const OPENALEX_MAILTO = 'coursemapper@nyu.edu';
@@ -387,7 +389,7 @@ function yearFromDateParts(...partsList) {
  */
 export async function searchCrossrefWorks(query, { limit = 3, signal } = {}) {
   const q = cleanText(query);
-  if (!q) return [];
+  if (!q || !canFetchCrossrefDirectly()) return [];
   try {
     const url =
       `https://api.crossref.org/works?query.bibliographic=${encodeURIComponent(q)}` +

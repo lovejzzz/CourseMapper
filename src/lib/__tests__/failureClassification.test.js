@@ -2,6 +2,13 @@ import { describe, expect, it } from 'vitest';
 import { classifyError, failureEventFields, FAILURE_CLASSES, toClassifiedError } from '../failureClassification';
 
 describe('failureClassification', () => {
+  it('classifies an incomplete course-map scope as a retryable quality failure', () => {
+    expect(classifyError(new Error('Course map generation stopped at 11 of 12 lessons.'))).toMatchObject({
+      failureClass: FAILURE_CLASSES.QUALITY,
+      retryable: true,
+    });
+  });
+
   it('classifies provider auth and permission failures as non-retryable', () => {
     expect(classifyError(new Error('Invalid API key [401]'))).toMatchObject({
       failureClass: FAILURE_CLASSES.AUTH,

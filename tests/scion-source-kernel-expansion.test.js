@@ -42,7 +42,11 @@ describe('Scion v0.16.47 source-kernel expansion', () => {
     );
     expect(manifest).toMatchObject({
       version: '2026-07-16',
-      conceptCount: 295,
+      // The Genetics shard added 15 source-anchored concepts after this
+      // expansion fixture was introduced. The source-kernel expansion must
+      // preserve that current manifest total instead of restoring the old
+      // pre-Genetics count.
+      conceptCount: 310,
       references: {
         'omt:texture': expect.objectContaining({ sourceUrl: expect.stringContaining('openmusictheory') }),
         'uswds:step-indicator': expect.objectContaining({ sourceUrl: expect.stringContaining('step-indicator') }),

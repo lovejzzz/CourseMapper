@@ -177,6 +177,84 @@ describe('constructed-response compiler depth', () => {
     expect(JSON.stringify(compilerItems)).not.toMatch(/source use without fabricating|kernel failed admission/i);
   });
 
+  it('replaces a repeated single-misconception item with a distinct evidence-bound task', () => {
+    const blueprint = evidenceCourseBlueprint();
+    blueprint.lessons[0].enrichment = {
+      keyTerms: [
+        {
+          term: 'Evidence triangulation',
+          definition: 'Evidence triangulation combines independent observations before choosing a revision.',
+          misconception: 'One striking observation proves the interface fails for every user.',
+          correction: 'One observation motivates a follow-up; repeated independent evidence supports a bounded claim.',
+          source: 'fact-ledger-projection',
+        },
+      ],
+      kernel: {
+        facts: [
+          'Repeated task failures under the same interface condition support a bounded usability claim.',
+          'A single observation can motivate a follow-up but does not establish a universal conclusion.',
+          'Independent observations strengthen a revision decision when they point to the same breakdown.',
+        ],
+      },
+      quizItems: [],
+    };
+    blueprint.enrichment = {
+      coverage: { requestedLessons: 1, enrichedLessons: 1, missingLessons: [] },
+      stageDecisions: { modelStage: 'ran' },
+    };
+
+    const items = buildQuizAtomsForLesson(blueprint.lessons[0], blueprint, { assessment: {} });
+    const normalizedStems = items.map((item) =>
+      item.question
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, ' ')
+        .trim(),
+    );
+
+    expect(items).toHaveLength(6);
+    expect(new Set(normalizedStems).size).toBe(items.length);
+    expect(items[4]).toMatchObject({
+      type: 'short_answer',
+      enrichmentSource: 'admitted-kernel-assessment',
+    });
+    expect(items[4].question).toMatch(/strongest conclusion.*additional fact/i);
+    expect(isClaimEvidenceBoundaryShortAnswer(items[4].question)).toBe(true);
+    expect(items[4].scoringGuidance).toMatch(/specific additional fact/i);
+  });
+
+  it('keeps the distinct evidence-bound task inside the current lesson', () => {
+    const blueprint = evidenceCourseBlueprint();
+    blueprint.lessons[0].enrichment = {
+      keyTerms: [
+        {
+          term: 'Usability evidence',
+          definition: 'Usability evidence records inspectable behavior during a representative task.',
+          misconception: 'One striking observation proves the interface fails for every user.',
+          correction: 'One observation motivates a follow-up; repeated evidence supports a bounded claim.',
+          source: 'fact-ledger-projection',
+        },
+      ],
+      kernel: {
+        facts: [
+          'Usability evidence records inspectable behavior during a representative task.',
+          'Repeated usability breakdowns under the same condition strengthen a bounded revision claim.',
+          'Mendelian ratios describe segregation in a single-gene cross.',
+          'A DNA double helix contains deoxyribose sugars and nitrogenous bases.',
+          'Genome editing uses molecular tools to alter genetic material.',
+        ],
+      },
+      quizItems: [],
+    };
+    blueprint.enrichment = {
+      coverage: { requestedLessons: 1, enrichedLessons: 1, missingLessons: [] },
+      stageDecisions: { modelStage: 'ran' },
+    };
+
+    const items = buildQuizAtomsForLesson(blueprint.lessons[0], blueprint, { assessment: {} });
+    expect(items[4].question).toMatch(/usability/i);
+    expect(items[4].question).not.toMatch(/Mendelian|DNA double helix|Genome editing/i);
+  });
+
   it('preserves the admitted two-claim synthesis through the downstream quiz overlay', () => {
     const blueprint = evidenceCourseBlueprint();
     const facts = [

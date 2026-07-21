@@ -38,4 +38,67 @@ describe('compiled classroom copy polish', () => {
     expect(lessonPlanCopy).not.toMatch(/Press for [^."]*—[^."]* evidence\b/i);
     expect(lessonPlanCopy).not.toMatch(/Close by having students name[^."]*—[^."]*\./i);
   });
+
+  it('uses an empirical workflow for a biology lab and hides internal provenance from classroom surfaces', () => {
+    const blueprint = buildCourseBlueprint({
+      courseName: 'Introduction to Genetics',
+      lessons: [
+        {
+          title: 'Lesson 1: Model Organism Investigation',
+          sections: [
+            {
+              topicSection: 'Model organisms and inheritance evidence',
+              learningGoals: 'Use observations from a model organism to explain an inheritance pattern.',
+              learningObjectives: 'Record phenotypes and interpret the resulting inheritance evidence.',
+              weeklyAssessments: 'Model organism lab report with observations, controls, and a bounded conclusion.',
+              syncActivities: 'Conduct the model-organism investigation and compare phenotypes.',
+              supportingResources: 'Source excerpt, example, or activity prompt aligned to model organisms.',
+              evaluateDesign: 'Score procedural accuracy, recorded observations, and interpretation.',
+            },
+          ],
+        },
+      ],
+    });
+    blueprint.lessons[0].readings = [
+      'Existing course map fields.',
+      'Source excerpt, example, or activity prompt aligned to model organisms.',
+    ];
+    blueprint.lessons[0].enrichment = {
+      keyTerms: [
+        {
+          term: 'Allele segregation',
+          definition: 'Allele pairs separate during gamete formation.',
+          example: 'Offspring phenotypes can reveal the segregation pattern.',
+          source: 'fact-ledger-projection',
+        },
+      ],
+      kernel: { facts: ['Allele pairs separate during gamete formation.'] },
+    };
+
+    const compiled = compileBlueprintDeliverables(blueprint, ['lessonPlans', 'syllabus', 'studyGuides', 'quizBank']);
+    const classroomCopy = JSON.stringify({
+      materials: compiled.lessonPlans.lessonPlans[0].materials,
+      outline: compiled.lessonPlans.lessonPlans[0].outline,
+      weeklySchedule: compiled.syllabus.syllabus.weeklySchedule,
+      keyTerms: compiled.studyGuides.studyGuides[0].keyTerms,
+      quizBank: compiled.quizBank.quizzes.map((quiz) =>
+        quiz.questions.map((question) => ({
+          question: question.question,
+          options: question.options,
+          answer: question.answer,
+          sampleAnswer: question.sampleAnswer,
+        })),
+      ),
+    });
+
+    expect(blueprint.enrichment.lens).toMatchObject({
+      domain: 'biological science inquiry',
+      decisionNoun: 'biological explanation',
+    });
+    expect(classroomCopy).not.toMatch(
+      /fact-ledger-projection|Existing course map fields|Source excerpt,? example|professional decision-making/i,
+    );
+    expect(classroomCopy).not.toMatch(/error message|\bbug\b|run early|running their work/i);
+    expect(classroomCopy).toMatch(/observations|measurements|procedure|controls/i);
+  });
 });

@@ -2170,6 +2170,8 @@ describe('packageZipExporter', () => {
     expect(manifest.sourceReport).toMatchObject({ path: 'SOURCE_REPORT.md', sourceCount: 0, sourceReviewCount: 1 });
     expect(sourceReport).toContain('Source Review Notes');
     expect(sourceReport).toContain('trustedBibliography=false');
+    expect(sourceReport).toContain('course plan and instructor notes');
+    expect(sourceReport).not.toContain('Existing course map fields');
     expect(sourceReport).not.toContain('## Source Ledger');
   });
 

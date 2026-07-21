@@ -233,7 +233,6 @@ export async function runScionLocalCompletion({
     const retryGate = { needsRetry: empty || retryIssues.length > 0, issues: retryIssues };
     const compilerFactCoreUsable =
       factLedgerOnly &&
-      recoveryAttempt === 0 &&
       !empty &&
       publicScionCompilerFactCoreUsable(fullText, assessment, {
         minimumFacts: targetLanguageKernel ? 2 : 3,
@@ -246,11 +245,7 @@ export async function runScionLocalCompletion({
     // retry so an exact duplicate cannot consume one of the two course-level
     // recovery seats and strand a whole lesson. Explicit recovery retains its
     // two-retry ceiling for a stubborn malformed ledger.
-    const effectiveRetryLimit = factLedgerOnly
-      ? recoveryAttempt > 0
-        ? Math.min(2, retryLimit)
-        : Math.min(1, retryLimit)
-      : retryLimit;
+    const effectiveRetryLimit = factLedgerOnly ? Math.min(1, retryLimit) : retryLimit;
     if (!empty && !incomplete) {
       const admittedText = compilerFactCoreUsable ? stripPublicScionInvalidFactAtoms(fullText, assessment) : fullText;
       const shuffled = shufflePublicScionKernelOptions(admittedText);

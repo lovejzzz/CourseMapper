@@ -1691,6 +1691,96 @@ describe('source-ledger quality checks', () => {
     ).toBe(false);
   });
 
+  it('recognizes cell division as an on-discipline genetics citation', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'Introduction to Genetics',
+          lessonScope: 'all',
+          requestedFeatures: ['syllabus'],
+          readiness: { status: 'ready', blockers: 0, warnings: 0, checkedSections: null },
+          files: [{ path: 'Syllabus/Introduction to Genetics - Syllabus.txt', feature: 'syllabus' }],
+        }),
+        'Syllabus/Introduction to Genetics - Syllabus.txt': [
+          'INTRODUCTION TO GENETICS — SYLLABUS',
+          'WEEKLY READINGS',
+          'Week 2: Wikipedia contributors. Cell division. Wikipedia: https://en.wikipedia.org/wiki/Cell_division (CC BY-SA 4.0)',
+        ].join('\n'),
+      }),
+      course: { id: 'genetics', title: 'Introduction to Genetics', featureIds: ['syllabus'] },
+    });
+
+    expect(
+      result.findings.some(
+        (finding) =>
+          finding.dimension === 'citations' &&
+          finding.detail === 'citation shares zero vocabulary with the course discipline (possible off-topic reading)',
+      ),
+    ).toBe(false);
+  });
+
+  it('recognizes questionnaire and informed-consent readings in a social-science research-methods course', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'Research Methods in the Social Sciences',
+          lessonScope: 'all',
+          requestedFeatures: ['syllabus'],
+          readiness: { status: 'ready', blockers: 0, warnings: 0, checkedSections: null },
+          files: [
+            {
+              path: 'Syllabus/Research Methods in the Social Sciences - Syllabus.txt',
+              feature: 'syllabus',
+            },
+          ],
+        }),
+        'Syllabus/Research Methods in the Social Sciences - Syllabus.txt': [
+          'RESEARCH METHODS IN THE SOCIAL SCIENCES — SYLLABUS',
+          'WEEKLY READINGS',
+          'Week 3: Wikipedia contributors. Questionnaire. Wikipedia: https://en.wikipedia.org/wiki/Questionnaire (CC BY-SA 4.0)',
+          'Week 7: Wikipedia contributors. Informed consent. Wikipedia: https://en.wikipedia.org/wiki/Informed_consent (CC BY-SA 4.0)',
+        ].join('\n'),
+      }),
+      course: { id: 'research-methods', title: 'Research Methods in the Social Sciences', featureIds: ['syllabus'] },
+    });
+
+    const citationFindings = result.findings.filter((finding) => finding.dimension === 'citations');
+    expect(citationFindings.some((finding) => /Questionnaire/i.test(finding.evidence || ''))).toBe(false);
+    expect(citationFindings.some((finding) => /Informed consent/i.test(finding.evidence || ''))).toBe(false);
+  });
+
+  it('accepts physical model-organism assets for a genetics course', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'Introduction to Genetics',
+          lessonScope: 'all',
+          requestedFeatures: [],
+          readiness: { status: 'ready', blockers: 0, warnings: 0, checkedSections: null },
+          files: [
+            {
+              path: 'Required Assets/Introduction to Genetics - Required Lab Assets.md',
+              feature: 'requiredAssets',
+            },
+          ],
+        }),
+        'Required Assets/Introduction to Genetics - Required Lab Assets.md': [
+          '# Required assets',
+          '- Model-organism materials and source sheet (physical)',
+          '- Organism handling and lab safety briefing (physical, PDF)',
+        ].join('\n'),
+      }),
+      course: { id: 'genetics', title: 'Introduction to Genetics', featureIds: [] },
+    });
+
+    expect(
+      result.findings.some(
+        (finding) =>
+          finding.detail === 'Required Assets list cites physical wet-lab materials for a non-wet-lab course',
+      ),
+    ).toBe(false);
+  });
+
   it('recognizes the Dodd-Frank Act as a consumer-protection reading in Business Ethics', async () => {
     const result = await grade({
       fileProvider: createMemoryFileProvider({

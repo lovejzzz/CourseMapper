@@ -112,7 +112,7 @@ describe('v0.15.134 lesson plan texture variation', () => {
 
     expect(text).not.toContain(GENERIC_PUBLICATION_CONSTRAINT);
     expect(text).not.toContain(WORKSHOP_SHINGLE);
-    expect(count(materialsText, /source permissions/gi)).toBeGreaterThanOrEqual(UX_TOPICS.length);
+    expect(materialsText).not.toMatch(/(?:constraint:|before publishing|source permissions)/i);
     expect(
       count(
         text,

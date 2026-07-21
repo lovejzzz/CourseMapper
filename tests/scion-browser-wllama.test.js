@@ -141,7 +141,9 @@ describe('Scion WebGPU GGUF runtime', () => {
     expect(
       progress.some(
         (entry) =>
-          entry.phase === 'loading-model' && entry.progress === 1 && /base ready · loading Scion/.test(entry.message),
+          entry.phase === 'loading-model' &&
+          entry.progress === 1 &&
+          /Model download complete · preparing Scion/.test(entry.message),
       ),
     ).toBe(true);
     expect(published.map((entry) => entry.phase)).toContain('loading-runtime');
@@ -175,6 +177,25 @@ describe('Scion WebGPU GGUF runtime', () => {
     await expect(completeScionBrowserWllama('Recover this request.')).resolves.toBe('Recovered base answer.');
     expect(completion).toHaveBeenCalledTimes(2);
     expect(browser.runtimeLoader).toHaveBeenCalledTimes(1);
+    expect(getScionBrowserWllamaStatus()).toMatchObject({
+      phase: 'ready',
+      adapter: { mode: 'base-only', active: false },
+    });
+  });
+
+  it('recovers an internal AbortError when the caller did not stop the course', async () => {
+    const completion = vi
+      .spyOn(FakeWllama.prototype, 'createCompletion')
+      .mockRejectedValueOnce(new DOMException('', 'AbortError'))
+      .mockResolvedValueOnce('Recovered after internal abort.');
+    const controller = new AbortController();
+    await loadScionBrowserWllama({ ...browser, signal: controller.signal });
+
+    await expect(completeScionBrowserWllama('Continue the course.', { signal: controller.signal })).resolves.toBe(
+      'Recovered after internal abort.',
+    );
+    expect(controller.signal.aborted).toBe(false);
+    expect(completion).toHaveBeenCalledTimes(2);
     expect(getScionBrowserWllamaStatus()).toMatchObject({
       phase: 'ready',
       adapter: { mode: 'base-only', active: false },

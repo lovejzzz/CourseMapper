@@ -1,5 +1,5 @@
 import { buildReadinessReport, scopeCourseMapToLessons, scopeDeliverableDataToLessons } from './deliverableReadiness';
-import { assertOfficeExportHasNoInternalText } from './exportTextInspector';
+import { assertOfficeExportHasNoInternalText, sanitizeInternalExportLanguage } from './exportTextInspector';
 import { resolveFeatureLabel } from './exporters/exporterUtils.js';
 import {
   buildSourceLedgerFromCourseGraph,
@@ -1824,11 +1824,13 @@ export async function buildCourseMaterialsZip({
           ...(finalPipelineState || {}),
         }
       : null;
-  const sourceReportMarkdown = buildSourceReportMarkdown({
-    courseName: safeCourseName,
-    sourceLedger: sourceLedgerBundle,
-    sourceRefCoverage,
-  });
+  const sourceReportMarkdown = sanitizeInternalExportLanguage(
+    buildSourceReportMarkdown({
+      courseName: safeCourseName,
+      sourceLedger: sourceLedgerBundle,
+      sourceRefCoverage,
+    }),
+  );
   let sourceReport = null;
   if (sourceReportMarkdown) {
     const sourceReportPath = 'SOURCE_REPORT.md';
@@ -1999,6 +2001,7 @@ export async function buildCourseMaterialsZip({
   });
 
   if (qualityReportMarkdown) {
+    qualityReportMarkdown = sanitizeInternalExportLanguage(qualityReportMarkdown);
     // A3: the package carries its own audit at the zip root. Like the
     // manifest's own entry, the report is NOT listed in manifest.files (the
     // manifest is finalized first); the returned `files` array carries it.

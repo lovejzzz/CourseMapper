@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import FocusTrap from 'focus-trap-react';
 import { useCourse } from '../contexts/CourseContext';
 import { safeImport } from '../lib/safeImport';
@@ -111,6 +112,16 @@ const CLOUD_FORMATS = [
   { id: 'gdocs', label: 'Google Docs', color: 'gdocs' },
   { id: 'gsheets', label: 'Google Sheets', color: 'gsheets' },
 ];
+
+function yieldForExportPaint() {
+  return new Promise((resolve) => {
+    if (typeof requestAnimationFrame === 'function') {
+      requestAnimationFrame(() => setTimeout(resolve, 0));
+      return;
+    }
+    setTimeout(resolve, 0);
+  });
+}
 
 // ── Spinner ──────────────────────────────────────────────────────────────────
 function Spin() {
@@ -645,11 +656,11 @@ function QualityReportModal({ quality, onClose }) {
   const dimensions = Object.entries(quality.dimensions || {});
   const findings = Array.isArray(quality.findings) ? quality.findings : [];
   const counts = quality.findingCounts || {};
-  return (
+  const modal = (
     <FocusTrap focusTrapOptions={{ clickOutsideDeactivates: true, escapeDeactivates: false }}>
       <div
         data-testid="quality-report-modal"
-        className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/30 backdrop-blur-sm animate-in fade-in duration-200"
+        className="fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden bg-black/30 p-4 backdrop-blur-sm animate-in fade-in duration-200"
         onClick={onClose}
       >
         <div
@@ -657,7 +668,7 @@ function QualityReportModal({ quality, onClose }) {
           aria-modal="true"
           aria-labelledby="quality-report-title"
           aria-describedby="quality-report-summary"
-          className="bg-white/95 backdrop-blur-lg rounded-lg shadow-2xl border border-slate-200/60 w-full max-w-lg mx-4 max-h-[80vh] flex flex-col animate-in slide-in-from-bottom-4 duration-300"
+          className="flex max-h-[calc(100dvh-2rem)] w-full max-w-lg flex-col overflow-hidden rounded-lg border border-slate-200/60 bg-white/95 shadow-2xl backdrop-blur-lg animate-in slide-in-from-bottom-4 duration-300 sm:max-h-[80vh]"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
@@ -768,6 +779,11 @@ function QualityReportModal({ quality, onClose }) {
       </div>
     </FocusTrap>
   );
+  // The export panel lives inside responsive/transformed workspace shells.
+  // A fixed descendant of those shells can be clipped and positioned against
+  // the side panel instead of the viewport. Portal the report to <body> so it
+  // is genuinely viewport-centered at every desktop/mobile layout.
+  return typeof document === 'undefined' ? modal : createPortal(modal, document.body);
 }
 
 // v0.14.4 WS-B3: ReadinessFinalizingPanel removed — the in-panel stage
@@ -1173,6 +1189,11 @@ export default function ExportSidePanel({
     setBusy(format);
     setLastError('');
     setLastOk('');
+    // ZIP assembly is intentionally local, but Office rendering and
+    // compression can occupy the main thread for several seconds. Yield one
+    // paint before starting so the click releases, the spinner appears, and
+    // the user sees an honest local-work status instead of a dead button.
+    if (format === 'zip') await yieldForExportPaint();
     try {
       if (exportScope === 'all') {
         // All mode: only ZIP is available
@@ -1567,6 +1588,7 @@ export default function ExportSidePanel({
                 data-testid="export-download-zip"
                 onClick={() => doExport('zip')}
                 disabled={zipDownloadDisabled}
+                aria-busy={busy === 'zip'}
                 className="tactile flex w-full items-center justify-center gap-2 rounded-lg bg-slate-950 py-2.5 text-xs font-bold text-white shadow-sm transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200 dark:disabled:bg-slate-800 dark:disabled:text-slate-500"
               >
                 {busy === 'zip' ? (
@@ -1583,6 +1605,11 @@ export default function ExportSidePanel({
                 )}
                 {zipButtonLabel}
               </button>
+              {busy === 'zip' && (
+                <p role="status" aria-live="polite" className="mt-2 text-xs leading-5 text-slate-500">
+                  Assembling the verified course files locally. Large packages can take 10–20 seconds.
+                </p>
+              )}
             </div>
 
             {/* v0.14.7.1: Save .coursemapper moved to the header's one More

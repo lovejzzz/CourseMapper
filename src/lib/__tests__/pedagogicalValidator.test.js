@@ -249,6 +249,40 @@ describe('validateObjectiveAlignment', () => {
     expect(findings.filter((finding) => finding.category === 'alignment')).toEqual([]);
   });
 
+  it('recognizes section-level Course Map assessments as objective coverage', () => {
+    const courseMap = {
+      lessons: [
+        {
+          title: 'Lesson 2: Sampling Techniques',
+          sections: [
+            {
+              topicSection: '2.1: Probability Sampling',
+              learningObjectives: 'Analyze probability sampling and name one limitation.',
+              weeklyAssessments: 'Probability Sampling short analysis: claim, evidence, and next question.',
+            },
+            {
+              topicSection: '2.2: Non-Probability Methods',
+              learningObjectives:
+                'Explain the key ideas in Non-Probability Methods and apply them in course activities.',
+              weeklyAssessments:
+                'In-class Non-Probability Methods evidence check: state one supported, bounded conclusion.',
+            },
+          ],
+        },
+      ],
+    };
+    const deliverables = {
+      quizBank: doneDeliv({
+        quizzes: [{ questions: [{ objectiveAligned: 'Analyze probability sampling and name one limitation.' }] }],
+      }),
+    };
+
+    const findings = validateObjectiveAlignment(courseMap, deliverables);
+
+    expect(findings.map((finding) => finding.id)).not.toContain('alignment-uncovered-L0-O1');
+    expect(findings.some((finding) => /Non-Probability Methods/.test(finding.suggestedPrompt || ''))).toBe(false);
+  });
+
   it('matches flat rubrics by lesson title instead of array position', () => {
     const courseMap = {
       lessons: [

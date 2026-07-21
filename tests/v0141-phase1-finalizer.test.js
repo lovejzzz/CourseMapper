@@ -293,6 +293,37 @@ describe('1.14 — objectives round-trip with goal labels intact and honest repa
 });
 
 describe('1.15 — JSON corruption never reaches a course-map cell', () => {
+  it('recovers bare wire keys spliced into a lean objective array', () => {
+    const capturedProductionShape = {
+      courseName: 'Research Methods in the Social Sciences',
+      lessons: [
+        {
+          title: 'Lesson 2: Sampling and Survey Design',
+          sections: [
+            {
+              topicSection: '2.1: Sampling and Survey Design',
+              learningObjectives: [
+                'Apply sampling techniques',
+                'Design survey',
+                'weeklyAssessments',
+                ':',
+                'Quiz: apply sampling techniques,Task: design survey,asyncActivities,:,Practice: apply sampling techniques,Draft: design survey,syncActivities,:,Workshop: design survey,Peer review: apply sampling techniques,supportingResources,:,Research Methods in the Social Sciences',
+              ],
+            },
+          ],
+        },
+      ],
+    };
+
+    const section = expandLeanCourseMap(capturedProductionShape).lessons[0].sections[0];
+    expect(section.learningObjectives).toBe('Apply sampling techniques\nDesign survey');
+    expect(section.weeklyAssessments).toBe('1. Quiz: apply sampling techniques\n2. Task: design survey');
+    expect(section.asyncActivities).toBe('1. Practice: apply sampling techniques\n2. Draft: design survey');
+    expect(section.syncActivities).toBe('1. Workshop: design survey\n2. Peer review: apply sampling techniques');
+    expect(section.supportingResources).toBe('1. Research Methods in the Social Sciences');
+    expect(JSON.stringify(section)).not.toMatch(/weeklyAssessments,:,|asyncActivities,:,/);
+  });
+
   it('rejects a lean section value carrying spliced JSON and repairs it from the clean template', () => {
     const corruptLean = {
       courseName: 'Elementary Mandarin Chinese I',

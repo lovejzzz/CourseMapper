@@ -2,7 +2,7 @@
   "schemaVersion": 3,
   "id": "scion-held-out-course-benchmark-v16",
   "protocolVersion": "scion-adapter-course-pair-v1",
-  "frozenAt": "2026-07-21T05:40:00Z",
+  "frozenAt": "2026-07-21T13:45:00Z",
   "minimumDomains": 5,
   "minimumLessonsPerCourse": 12,
   "selectionPolicy": {
@@ -11,7 +11,7 @@
     "sameCompilerCommitRequired": true,
     "sameCompilerConfigRequired": true,
     "sameGraderRequired": true,
-    "claimBoundary": "These five prompt-only Crucible fixtures preserve the V15 course, source, runtime-task, and native-attempt boundary. V16 freezes deep-quality grader 1.10.26 and texture metric 1.1.0. The grader recognizes legitimate genetics vocabulary, including Mendelian inheritance and Hardy-Weinberg equilibrium, so relevant readings no longer receive a false zero-vocabulary warning. No V15 score, adapter win, or promotion is inherited."
+    "claimBoundary": "These five prompt-only Crucible fixtures preserve the V15 course, source, runtime-task, and native-attempt boundary. V16 freezes deep-quality grader 1.10.27 and texture metric 1.1.0. The grader recognizes legitimate genetics vocabulary and now rejects manifest-promised graded artifacts that resolve to no-brief shells plus long-title mail-merge texture. No V15 score, adapter win, or promotion is inherited."
   },
   "runtimeTaskPolicy": {
     "protocol": "scion-adapter-runtime-task-policy-v1",
@@ -26,11 +26,11 @@
     "contractSha256": "4083e41165cd6637cf645fff00b7ad9940f46da36c3de212c0718768d79b0410"
   },
   "grader": {
-    "id": "deep-quality-grader-v1.10.26",
+    "id": "deep-quality-grader-v1.10.27",
     "path": "tests/lib/deepQualityGrader.js",
     "sha256": "d19641f8492fafa979c47ee8ea178f7277d0c09e485908b4dfa326a3d9bfbfea",
     "implementationReceiptProtocol": "module-implementation-receipt-v1",
-    "implementationSha256": "4330927c4e31c2600db31eba82454b7857237607a200b70e5d37e7938d013ab9",
+    "implementationSha256": "18b4fb6a2de9d809dc060023ecf0cf71228f2c51e4007cd36cfc601a715eea98",
     "implementationFileCount": 13
   },
   "courses": [

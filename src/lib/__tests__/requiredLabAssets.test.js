@@ -130,6 +130,35 @@ describe('collectRequiredLabAssets', () => {
     );
   });
 
+  it('uses genetics-specific assets for a model-organism and microscopy course', () => {
+    const requirements = collectRequiredLabAssets({
+      courseMap: {
+        courseName: 'Introduction to Genetics',
+        lessons: [
+          {
+            title: 'Lesson 10: Meiotic Data Analysis Lab',
+            sections: [
+              {
+                topicSection: 'Microscopic observation and phenotype counting',
+                learningObjectives: 'Compare model-organism phenotypes and calculate inheritance ratios.',
+                weeklyAssessments: 'Model-organism observation log and data interpretation.',
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    expect(requirements.map((item) => item.id)).toEqual([
+      'model-organism-materials',
+      'genetics-lab-protocols',
+      'genetics-observation-tools',
+      'lab-safety',
+      'genetics-data-sheet',
+    ]);
+    expect(requirements.map((item) => item.note).join(' ')).not.toMatch(/rock|mineral|streak plate|hand lens/i);
+  });
+
   it('uses anatomy and physiology lab assets instead of geology field-lab assets', () => {
     const requirements = collectRequiredLabAssets({
       courseMap: {

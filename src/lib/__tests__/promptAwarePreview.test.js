@@ -15,6 +15,11 @@ describe('prompt-aware setup previews', () => {
     expect(derivePromptPreviewTitle('User Experience Design Studio, 12-week project-based undergraduate course')).toBe(
       'User Experience Design Studio',
     );
+    expect(
+      derivePromptPreviewTitle(
+        'Introduction to Genetics, a 15-lesson undergraduate biology course with problem sets and a model-organism lab.',
+      ),
+    ).toBe('Introduction to Genetics');
     expect(derivePromptPreviewTitle('Create a 10-week course called “World Literature” for first-year students.')).toBe(
       'World Literature',
     );
@@ -30,6 +35,11 @@ describe('prompt-aware setup previews', () => {
         'Elementary Mandarin — one lesson: Pinyin and Tones for adult beginners. Use only these instructor-provided facts: Pinyin uses Latin letters.',
       ),
     ).toBe('Elementary Mandarin');
+    expect(
+      derivePromptPreviewTitle(
+        'Create a rigorous 15-lesson undergraduate course titled Introduction to Genetics. For Lesson 3 use the exact reading title “Textbook Chapter: DNA Structure and Replication”.',
+      ),
+    ).toBe('Introduction to Genetics');
   });
 
   it('uses the active course in every built-in material preview', () => {

@@ -1643,12 +1643,21 @@ describe('courseBlueprintCompiler', () => {
       ...sourceCourseMap,
       lessons: sourceCourseMap.lessons.slice(0, 14),
     });
+    const compiled = compileBlueprintDeliverables(blueprint, ['slideDecks'], {
+      enforceCompilerContract: false,
+    });
+    const slideTexts = compiled.slideDecks.decks.map((deck) => JSON.stringify(deck));
 
     expect(blueprint.courseModalityProfile.primaryMode).toBe('applied-lab');
     expect(blueprint.courseModalityProfile.primaryMode).not.toBe('lecture-exam');
     expect(blueprint.courseModalityProfile.primaryMode).not.toBe('competency-based');
     expect(blueprint.courseModalityProfile.modalitySignals.labScore).toBeGreaterThan(
       blueprint.courseModalityProfile.modalitySignals.lectureExamScore,
+    );
+    expect(slideTexts.filter((text) => /hands-on analysis or evidence-log check/i.test(text))).toHaveLength(0);
+    expect(slideTexts.filter((text) => /visible trace rather than a definition check/i.test(text))).toHaveLength(0);
+    expect(new Set(blueprint.lessons.map((lesson) => lesson.modalityDecode.signaturePractice)).size).toBe(
+      blueprint.lessons.length,
     );
   });
 
@@ -3018,6 +3027,13 @@ describe('courseBlueprintCompiler', () => {
       countFaqsWith(/concept accuracy, retrieval strength, explanation quality, and readiness for the next artifact/i),
     ).toBeLessThan(4);
     expect(
+      new Set(
+        compiled.courseFaq.faqs.map(
+          (faq) => faq.qs.find((item) => item.ca === 'Concept Explanation' && item.enrichmentSource)?.q || '',
+        ),
+      ).size,
+    ).toBeGreaterThan(3);
+    expect(
       countDecksWith(/against live .* evidence for .*Clarify that preparation, practice, and debrief/i),
     ).toBeLessThan(4);
     expect(countDecksWith(/all support .* rather than disconnected tasks. Use the agenda/i)).toBeLessThan(4);
@@ -3074,6 +3090,8 @@ describe('courseBlueprintCompiler', () => {
     expect(evidence).not.toMatch(/too early bring them back/i);
     expect(evidence).not.toMatch(/backs the claim and connect it to/i);
     expect(evidence).not.toMatch(/readiness for the next artifact/i);
+    expect(evidence).not.toMatch(/what does .* actually mean and when do/i);
+    expect(evidence).not.toMatch(/students carry one .* evidence move from .* into/i);
     expect(evidence).not.toMatch(/redirect drafts drifting/i);
     expect(evidence).not.toMatch(/against live .* evidence for .* clarify that/i);
     expect(evidence).not.toMatch(/ai use when it contributes to the submission do not invent authors/i);
@@ -4174,9 +4192,9 @@ describe('courseBlueprintCompiler', () => {
     });
     expect(blueprint.lessons[1].prerequisitePlan).toMatchObject({
       assumedKnowledge: expect.arrayContaining(['Policy Topic 1']),
-      prerequisiteEvidence: expect.stringContaining('Policy memo checkpoint 1'),
+      prerequisiteEvidence: expect.stringContaining('Policy memo checkpoint 2'),
       diagnosticCheck: expect.stringContaining('Policy Topic 1'),
-      reteachMove: expect.stringContaining('Policy memo checkpoint 1'),
+      reteachMove: expect.stringContaining('Policy memo checkpoint 2'),
     });
     expect(blueprint.lessons[0].instructionalRationale).toMatchObject({
       sequenceRationale: expect.stringContaining('diagnostic evidence work'),
@@ -6356,6 +6374,38 @@ describe('courseBlueprintCompiler', () => {
     );
   });
 
+  it('does not mistake qualitative coding plus Python analysis for a programming course', () => {
+    const researchMethodsMap = {
+      courseName: 'Research Methods in the Social Sciences',
+      semester: 'Fall 2026',
+      lessons: [
+        ['Qualitative Coding', 'Code interview transcripts and compare themes.'],
+        ['Survey Design', 'Implement a sampling plan and pilot a survey.'],
+        ['Quantitative Data Analysis', 'Use a Python notebook to summarize survey responses.'],
+        ['Research Proposal', 'Defend the final research design and implementation plan.'],
+      ].map(([title, activity], index) => ({
+        title: `Lesson ${index + 1}: ${title}`,
+        sections: [
+          {
+            topicSection: title,
+            learningGoals: `Understand ${title}.`,
+            learningObjectives: `Analyze ${title} evidence and justify one research decision.`,
+            weeklyAssessments: `${title} evidence memo.`,
+            asyncActivities: activity,
+            syncActivities: `Peer-review the ${title} research decision.`,
+            supportingResources: `${title} methods guide.`,
+          },
+        ],
+      })),
+    };
+
+    const blueprint = buildCourseBlueprint(researchMethodsMap);
+    const compiled = compileBlueprintDeliverables(blueprint, ['slideDecks', 'lessonPlans']);
+
+    expect(blueprint.courseModalityProfile.primaryMode).not.toBe('programming-lab');
+    expect(JSON.stringify(compiled)).not.toMatch(/test-driven coding cycle|failing test|repository commit/i);
+  });
+
   it('decodes data science courses as analytics notebooks with validation and bias evidence', () => {
     const blueprint = buildCourseBlueprint(makeDataScienceLabCourseMap());
     const compiled = compileBlueprintDeliverables(blueprint, ['lessonPlans', 'assignments', 'discussions']);
@@ -6548,6 +6598,11 @@ describe('courseBlueprintCompiler', () => {
       'redesign review',
       'verification handoff',
     ]);
+    expect(blueprint.lessons[0].evidencePlan.sourceCue).toBe('Design brief');
+    expect(compiled.lessonPlans.lessonPlans[0].blueprintGrounding.evidencePlan.evidenceRequirement).toBe(
+      blueprint.lessons[0].evidencePlan.evidenceRequirement,
+    );
+    expect(JSON.stringify(compiled.lessonPlans.lessonPlans[0].blueprintGrounding)).not.toMatch(/source packet/i);
     expect(compiled.lessonPlans.lessonPlans[0].readyToTeachSupport.modalityPractice).toContain(
       'design-build-test cycle',
     );

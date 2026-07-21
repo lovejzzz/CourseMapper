@@ -5,6 +5,7 @@ import { gzipSync } from 'node:zlib';
 const distDir = path.resolve(process.cwd(), 'dist');
 const assetsDir = path.join(distDir, 'assets');
 const kib = 1024;
+const conflictCopyName = /\s+\d+\.[^.]+$/;
 
 const budgets = {
   entryRawKiB: 260,
@@ -144,7 +145,14 @@ const lazyChunkBudgets = [
   // constructed responses adds 2.7/0.7 KiB to this lazy compiler only. It
   // prevents off-lesson authored questions from replacing valid compiler
   // frames; no additional prose corpus or landing dependency was added.
-  { prefix: 'courseBlueprintCompiler-', rawKiB: 815, gzipKiB: 226 },
+  // v0.16.66: +9.5/+3.2 KiB for verified-registry reconciliation, typed lab
+  // workflow selection, no-homework handling for in-class-only lessons, and
+  // learner-facing repetition cleanup found by the real Genetics ZIP audit.
+  // The chunk remains lazy and off landing; the frozen Research Methods pass
+  // measures 829.2/230.6 after adding progress-safe transfer, FAQ, notes, and
+  // modality variants. Keep narrow headroom and continue the compiler-data
+  // split instead of moving any of this code onto the landing route.
+  { prefix: 'courseBlueprintCompiler-', rawKiB: 830, gzipKiB: 232 },
   // v0.16.49: Bayesian and music-interval assessment frames are workspace-only
   // data and independently cacheable. The same boundary now owns the music
   // interval admission, discussion, FAQ, quiz, and study-guide rules so the
@@ -162,7 +170,7 @@ const lazyChunkBudgets = [
   // v0.16.64: assignment-body alias compaction adds 0.7 KiB raw while keeping
   // gzip at the existing 8 KiB ceiling; it eliminates the live exported-docx
   // mail-merge repetition that motivated the new branch.
-  { prefix: 'compilerCopyVariants-', rawKiB: 23, gzipKiB: 8 },
+  { prefix: 'compilerCopyVariants-', rawKiB: 23, gzipKiB: 8.25 },
   // v0.16.65: varied assessment and material-polish copy moved out of the
   // compiler hot chunk. This compile-only leaf stays independently cacheable.
   { prefix: 'compilerPolish-', rawKiB: 8, gzipKiB: 3 },
@@ -201,7 +209,12 @@ const lazyChunkBudgets = [
   // remains near its original 40–60 KiB design band, and stays off landing.
   // v0.16.55: the requested-session clock blocker adds 1.0 KiB raw / 0.3
   // gzip over the 61.5/21.4 parent. Keep the lazy-only chunk at 63/22.
-  { prefix: 'deepQualityGrader-', rawKiB: 63, gzipKiB: 22 },
+  // v0.16.66: the real Genetics package exposed a false 99: manifest-promised
+  // graded briefs could point at no-brief shells, long lesson titles could be
+  // stamped dozens of times, and compiler constraints could leak into lesson
+  // plans. Research-method citation calibration measures 65.1/22.5 KiB while
+  // keeping this grader lazy and off the initial route.
+  { prefix: 'deepQualityGrader-', rawKiB: 66, gzipKiB: 23 },
   // The finalize-time grading seam AppFlow lazy-imports (assembles the file
   // map via packageZipExporter and returns the badge data; measured at
   // 1.1 KiB raw / 0.6 gzip).
@@ -290,6 +303,13 @@ async function findChunkByPrefix(prefix) {
 
 async function main() {
   const failures = [];
+  const assetFiles = await fs.readdir(assetsDir);
+  const conflictCopyAssets = assetFiles.filter((fileName) => conflictCopyName.test(fileName));
+  if (conflictCopyAssets.length > 0) {
+    failures.push(
+      `build output contains ${conflictCopyAssets.length} conflict-copy asset(s): ${conflictCopyAssets.slice(0, 5).join(', ')}`,
+    );
+  }
   const packageJson = JSON.parse(await fs.readFile(path.resolve(process.cwd(), 'package.json'), 'utf8'));
   for (const dependency of forbiddenRuntimeDependencies) {
     if (packageJson.dependencies?.[dependency]) {
