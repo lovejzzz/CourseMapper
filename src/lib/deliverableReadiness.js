@@ -834,9 +834,14 @@ const UX_DESIGN_COURSE_MAP_RE =
 // "coding" are not unambiguous by themselves: research-methods courses use
 // Python notebooks as instruments and qualitative coding is not software
 // development. Treat those as programming only when the surrounding text
-// names an actual software-building practice.
+// names an actual software-building practice. "Algorithm" is also not an
+// unambiguous signal: cognitive-psychology courses explicitly compare
+// algorithms and heuristics. Let an algorithms COURSE name opt in below, but
+// never let one psychology lesson relabel its fallback pedagogy as Python.
 const COMPUTER_SCIENCE_STRONG_RE =
-  /\b(?:computer\s+science|programming|software\s+(?:engineering|development)|algorithms?\b|data\s+structures?|debugging|file\s+(?:input|output|i\/o)|final\s+python\s+project|source\s+code|pseudocode|coding\s+(?:lab|course|exercise|project|assignment|challenge))\b/i;
+  /\b(?:computer\s+science|programming|software\s+(?:engineering|development)|data\s+structures?|debugging|file\s+(?:input|output|i\/o)|final\s+python\s+project|source\s+code|pseudocode|coding\s+(?:lab|course|exercise|project|assignment|challenge))\b/i;
+const ALGORITHMS_COURSE_IDENTITY_RE =
+  /\b(?:introduction\s+to\s+algorithms?|algorithm\s+(?:design|analysis|engineering)|analysis\s+of\s+algorithms?|algorithms?\s+and\s+data\s+structures?)\b/i;
 const PYTHON_PROGRAMMING_CONTEXT_RE =
   /\b(?:introduction\s+to\s+python|python\s+(?:programming|fundamentals|basics|course|code|script|application|project)|(?:write|run|debug|test|refactor|execute)\s+(?:a\s+)?python\s+(?:program|script|code)|python\s+(?:function|class|module|package|syntax))\b/i;
 const COMPUTER_SCIENCE_WEAK_RE =
@@ -872,7 +877,9 @@ function inferCourseMapFallbackProfile(courseMap, lesson, section) {
     .join(' ');
   if (PROJECT_MANAGEMENT_COURSE_RE.test(context)) return 'project-management';
   if (UX_DESIGN_COURSE_MAP_RE.test(context)) return 'ux-design';
-  if (COMPUTER_SCIENCE_COURSE_MAP_RE.test(context)) return 'computer-science';
+  if (COMPUTER_SCIENCE_COURSE_MAP_RE.test(context) || ALGORITHMS_COURSE_IDENTITY_RE.test(text(courseMap?.courseName))) {
+    return 'computer-science';
+  }
   if (LITERATURE_COURSE_MAP_RE.test(context)) return 'literature';
   if (
     /\b(?:music theory|aural skills?|ear training|interval quality|semitones?|pitch(?:es)?|notated|notation|inversion number|compound intervals?)\b/i.test(

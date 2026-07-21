@@ -1152,7 +1152,10 @@ export function lintEnrichedSlideContent(slide) {
   }
   const bullets = asArray(slide?.bullets).map(cleanText).filter(Boolean);
   if (bullets.length < 2 || bullets.length > 4) issues.push('bullet-count');
-  if (bullets.some((bullet) => words(bullet).length > 18)) issues.push('bullet-too-long');
+  // Canonical fact admission permits complete facts through 24 words (Scion's
+  // browser prompt targets 8-20). Projected slides must accept that same
+  // evidence boundary or a valid cited fact can make the lesson incomplete.
+  if (bullets.some((bullet) => words(bullet).length > 24)) issues.push('bullet-too-long');
   if ([slide?.title, ...bullets].some((text) => META_SURFACE_RE.test(cleanText(text)))) issues.push('meta-slide');
   return issues;
 }

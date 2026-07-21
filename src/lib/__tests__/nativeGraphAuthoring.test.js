@@ -348,6 +348,68 @@ describe('completeNativeKernelSurfaces', () => {
     expect(projected).not.toContain('Genome editing');
   });
 
+  it('keeps a valid 22-word cited psychology fact usable when projecting its slide core', () => {
+    const completed = completeNativeKernelSurfaces(
+      {
+        quizItems: [
+          {
+            index: 0,
+            type: 'multiple_choice',
+            question: 'Which problem-solving pattern repeats a previously successful approach after it stops working?',
+            options: ['Mental set', 'Algorithm', 'Heuristic', 'Working backward'],
+            answerIndex: 0,
+            explanation: 'A mental set persists with an approach that worked before even when it now fails.',
+          },
+          {
+            index: 1,
+            type: 'multiple_choice',
+            question: 'Which strategy follows a defined sequence of steps toward a solution?',
+            options: ['Algorithm', 'Mental set', 'Functional fixedness', 'Guessing'],
+            answerIndex: 0,
+            explanation: 'An algorithm supplies a defined step-by-step procedure for solving a problem.',
+          },
+        ],
+        keyTerms: [
+          {
+            term: 'Problem-solving strategies',
+            definition:
+              'Problem-solving strategies include exact algorithms and flexible heuristics selected for different constraints.',
+            example: 'Working backward from a deadline can organize intermediate milestones.',
+            misconception: 'Heuristics are merely careless substitutes for reliable algorithms.',
+            correction: 'Heuristics are adaptive frameworks used when exhaustive procedures are impractical.',
+            source: 'OpenStax Psychology 2e',
+            tier: 2,
+          },
+        ],
+        kernel: {
+          facts: [
+            'An algorithm provides step-by-step instructions for reaching a defined solution.',
+            'A heuristic is a flexible problem-solving framework rather than an exact recipe.',
+            'People reach for heuristics under specific conditions — for example, when faced with too much information or when decision time is limited.',
+            'A mental set is persisting with an approach that worked in the past but is clearly not working now.',
+            'Functional fixedness restricts how a familiar object is perceived and used.',
+          ],
+          scenario: {
+            setup: 'An analyst compares two problem-solving records before selecting a strategy.',
+            materials: 'algorithm trace and heuristic decision note',
+          },
+        },
+      },
+      {
+        lessonNumber: 13,
+        title: 'Lesson 13: problem-solving strategies with algorithms and heuristics',
+        sections: [{ topicSection: '13.1: problem-solving strategies with algorithms and heuristics' }],
+      },
+    );
+
+    const coverage = assessProjectedKernelCoverage(completed);
+    expect(completed.slideContent.length).toBeGreaterThanOrEqual(1);
+    expect(completed.slideContent.flatMap((slide) => slide.bullets)).toContain(
+      'People reach for heuristics under specific conditions — for example, when faced with too much information or when decision time is limited',
+    );
+    expect(coverage.usable).toBe(true);
+  });
+
   it('upgrades persisted legacy fact-ledger feedback without changing authored terms', () => {
     const authored = {
       term: 'Allele frequency',

@@ -765,6 +765,56 @@ describe('repairCourseMapReadiness', () => {
     expect(serialized).not.toMatch(/starter code|failing test|console output|pair debugging|software implementation/i);
   });
 
+  it('keeps algorithms and heuristics inside psychology instead of inventing a Python lab', () => {
+    const result = repairCourseMapReadiness({
+      courseMap: {
+        courseName: 'Introduction to Psychology',
+        lessons: [
+          {
+            title: 'Lesson 13: problem-solving strategies with algorithms and heuristics',
+            sections: [
+              {
+                topicSection: '13.1: problem-solving strategies with algorithms and heuristics',
+                learningGoals: '',
+                learningObjectives: '',
+                weeklyAssessments: 'problem-solving strategies with algorithms and heuristics analysis (6%)',
+                asyncActivities: '',
+                syncActivities: '',
+                technologyNeeded: '',
+                presentationFormat: '',
+                supportingResources: '',
+                evaluateDesign: '',
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    const section = result.courseMap.lessons[0].sections[0];
+    const serialized = JSON.stringify(section);
+    expect(serialized).toMatch(/algorithms and heuristics/i);
+    expect(serialized).not.toMatch(
+      /Python|program state|code trace|starter notebook|debugging|syntax|console output|edge-case run/i,
+    );
+  });
+
+  it('still recognizes an algorithms course as computer science', () => {
+    const result = repairCourseMapReadiness({
+      courseMap: {
+        courseName: 'Introduction to Algorithms',
+        lessons: [
+          {
+            title: 'Lesson 1: Greedy Algorithms',
+            sections: [{ topicSection: '1.1: Greedy Algorithms', learningGoals: '', learningObjectives: '' }],
+          },
+        ],
+      },
+    });
+
+    expect(JSON.stringify(result.courseMap)).toMatch(/Python|program|code/i);
+  });
+
   it('still gives an explicit Python programming course code-lab fallbacks', () => {
     const result = repairCourseMapReadiness({
       courseMap: {

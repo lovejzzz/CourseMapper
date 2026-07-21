@@ -217,7 +217,12 @@ function pickBullets(candidates, count) {
   const bullets = [];
   for (const candidate of candidates) {
     const text = stripTerminalPeriod(candidate);
-    if (!text || wordCount(text) > 18 || wordCount(text) < 3) continue;
+    // Canonical fact admission accepts complete facts through 24 words (the
+    // browser prompt asks for a tighter 8-20). The projector used to reject
+    // 19-24 word facts here, so a valid ledger or cited genome kernel could
+    // produce no slide, fail kernel usability, and buy two futile retries.
+    // Keep the slide boundary identical to the model/admission boundary.
+    if (!text || wordCount(text) > 24 || wordCount(text) < 3) continue;
     if (bullets.some((existing) => existing.toLowerCase() === text.toLowerCase())) continue;
     bullets.push(DANGLING_TAIL_RE.test(text) ? `${text}.` : text);
     if (bullets.length >= count) break;
