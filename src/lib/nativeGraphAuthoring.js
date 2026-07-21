@@ -595,6 +595,206 @@ export function completeNativeLessonSurfaces(lessonContent, courseMapLessons = [
   return message;
 }
 
+// A cumulative assessment is not a new subject lesson. Asking a compact model
+// to invent a fresh knowledge kernel for "Midterm 1" or "Final Exam" both
+// wastes an inference call and encourages assessment logistics to masquerade
+// as disciplinary content. Project these sessions from previously admitted
+// lesson evidence instead. The projection copies facts and key-term atoms
+// verbatim; the compiler adds only review instructions and provenance.
+const CUMULATIVE_ASSESSMENT_TITLE_RE =
+  /\b(?:midterm(?:\s+(?:exam|assessment|\d+))?|final\s+(?:exam|examination|assessment)|cumulative\s+(?:exam|examination|assessment|review)|comprehensive\s+(?:exam|examination|assessment|review)|exam\s+review|problem\s+sets?)\b/i;
+
+export function isCumulativeAssessmentLesson(lesson = {}) {
+  const title = typeof lesson === 'string' ? lesson : lesson?.title;
+  const sectionTitles =
+    typeof lesson === 'string'
+      ? ''
+      : asArray(lesson?.sections)
+          .map((section) => section?.topicSection || section?.topic)
+          .join(' ');
+  return CUMULATIVE_ASSESSMENT_TITLE_RE.test(`${cleanText(title, 180)} ${cleanText(sectionTitles, 300)}`);
+}
+
+export function partitionCumulativeAssessmentLessons(courseMapLessons = [], lessonIndices = []) {
+  const cumulativeAssessmentLessonIndices = [];
+  const subjectLessonIndices = [];
+  for (const lessonIndex of asArray(lessonIndices)) {
+    if (isCumulativeAssessmentLesson(courseMapLessons?.[lessonIndex])) {
+      cumulativeAssessmentLessonIndices.push(lessonIndex);
+    } else {
+      subjectLessonIndices.push(lessonIndex);
+    }
+  }
+  return { subjectLessonIndices, cumulativeAssessmentLessonIndices };
+}
+
+function cumulativeSourceEntries(lessonContent, courseMapLessons, assessmentIndex) {
+  const entries = [];
+  for (let lessonIndex = 0; lessonIndex < assessmentIndex; lessonIndex += 1) {
+    const lesson = courseMapLessons?.[lessonIndex];
+    if (isCumulativeAssessmentLesson(lesson)) continue;
+    const lessonId = `lesson-${lessonIndex + 1}`;
+    const payload = lessonContent?.[lessonId];
+    if (!payload || !assessProjectedKernelCoverage(payload).usable) continue;
+    entries.push({ lessonIndex, lessonId, lesson, payload });
+  }
+  return entries;
+}
+
+function projectedCumulativeFacts(entries, limit = 7) {
+  const firstPass = entries.map((entry) => asArray(entry.payload?.kernel?.facts).find((fact) => cleanText(fact, 500)));
+  const remaining = entries.flatMap((entry) => asArray(entry.payload?.kernel?.facts).slice(1));
+  return uniqueStrings([...firstPass, ...remaining], limit).map((fact) => cleanTextAtBoundary(fact, 220));
+}
+
+function projectedCumulativeTerms(entries, limit = 5) {
+  const candidates = entries.flatMap((entry) =>
+    asArray(entry.payload?.keyTerms).map((term) => ({
+      ...term,
+      sourceLessonId: entry.lessonId,
+      projectionSource: 'previously-admitted-lesson',
+    })),
+  );
+  const seen = new Set();
+  const terms = [];
+  for (const term of candidates) {
+    const name = cleanText(term?.term, 80);
+    const definition = cleanText(term?.definition, 500);
+    if (!name || !definition || seen.has(name.toLowerCase())) continue;
+    seen.add(name.toLowerCase());
+    terms.push(term);
+    if (terms.length >= limit) break;
+  }
+  return terms;
+}
+
+/**
+ * Fill assessment-only lesson kernels from earlier admitted subject lessons.
+ * Returns only projections that satisfy the same instructional-usability gate
+ * as model-authored kernels; otherwise the caller may still use its bounded
+ * provider recovery path.
+ */
+export function projectCumulativeAssessmentKernels({
+  lessonContent = {},
+  courseMapLessons = [],
+  lessonIndices = [],
+  onComplete,
+} = {}) {
+  const projectedLessonIndices = [];
+  const skippedLessonIndices = [];
+  for (const lessonIndex of asArray(lessonIndices)) {
+    const lesson = courseMapLessons?.[lessonIndex];
+    if (!isCumulativeAssessmentLesson(lesson)) continue;
+    const lessonId = `lesson-${lessonIndex + 1}`;
+    if (assessProjectedKernelCoverage(lessonContent?.[lessonId]).usable) continue;
+
+    const entries = cumulativeSourceEntries(lessonContent, courseMapLessons, lessonIndex);
+    const facts = projectedCumulativeFacts(entries);
+    const keyTerms = projectedCumulativeTerms(entries);
+    if (facts.length < 3 || keyTerms.length < 1) {
+      skippedLessonIndices.push(lessonIndex);
+      continue;
+    }
+
+    const sourceLessonIds = entries.map((entry) => entry.lessonId);
+    const coveredLessonNumbers = entries.map((entry) => entry.lessonIndex + 1);
+    const coveredSpan =
+      coveredLessonNumbers.length > 1
+        ? `Lessons ${coveredLessonNumbers[0]}-${coveredLessonNumbers.at(-1)}`
+        : `Lesson ${coveredLessonNumbers[0]}`;
+    const assessmentTitle = cleanText(lesson?.title, 160).replace(/^lesson\s+\d+\s*[:.-]\s*/i, '');
+    const termNames = keyTerms.map((term) => cleanText(term.term, 80)).filter(Boolean);
+    const draft = {
+      enrichmentSource: 'cumulative-review-projection',
+      projectionKind: 'cumulative-assessment',
+      sourceLessonIds,
+      kernel: {
+        facts,
+        scenario: {
+          setup: `Students prepare for ${assessmentTitle || 'the cumulative assessment'} by comparing claims already established across ${coveredSpan}.`,
+          materials: `course notes, worked examples, and returned practice from ${coveredSpan}`,
+        },
+        provenance: {
+          source: 'previously-admitted-lesson-kernels',
+          sourceLessonIds,
+          copiedFactsVerbatim: true,
+        },
+      },
+      keyTerms,
+      studyGuide: {
+        summary: facts
+          .slice(0, 4)
+          .map((fact, index) => `${termNames[index] || `Review focus ${index + 1}`}: ${fact}`)
+          .join(' '),
+        reviewStrategy: `Use retrieval practice across ${coveredSpan}: explain each named term without notes, solve one prior example, then revisit only the evidence you could not reconstruct.`,
+      },
+    };
+    const projected = completeNativeKernelSurfaces(draft, lesson);
+    if (!assessProjectedKernelCoverage(projected).usable) {
+      skippedLessonIndices.push(lessonIndex);
+      continue;
+    }
+    lessonContent[lessonId] = projected;
+    projectedLessonIndices.push(lessonIndex);
+  }
+
+  if (projectedLessonIndices.length > 0 && typeof onComplete === 'function') {
+    onComplete(
+      `Compiled ${projectedLessonIndices.length} cumulative assessment session${projectedLessonIndices.length === 1 ? '' : 's'} from previously admitted lesson evidence`,
+      'progress',
+    );
+  }
+  return { projectedLessonIndices, skippedLessonIndices };
+}
+
+export function prepareCumulativeAssessmentKernels(
+  lessonContent,
+  courseMapLessons,
+  subjectLessonIndices,
+  cumulativeAssessmentLessonIndices,
+  contentSourcedSet,
+  onComplete,
+  chunkSize = 1,
+) {
+  completeNativeLessonSurfaces(lessonContent, courseMapLessons, subjectLessonIndices, onComplete);
+  const result = projectCumulativeAssessmentKernels({
+    lessonContent,
+    courseMapLessons,
+    lessonIndices: cumulativeAssessmentLessonIndices,
+    onComplete,
+  });
+  result.projectedLessonIndices.forEach((index) => contentSourcedSet?.add(`lesson-${index + 1}`));
+  const batches = [];
+  for (let start = 0; start < result.skippedLessonIndices.length; start += chunkSize) {
+    batches.push(result.skippedLessonIndices.slice(start, start + chunkSize));
+  }
+  return batches;
+}
+
+export async function resolveCumulativeAssessmentKernels(
+  lessonContent,
+  courseMapLessons,
+  subjectLessonIndices,
+  assessmentLessonIndices,
+  contentSourcedSet,
+  onComplete,
+  chunkSize,
+  limit,
+  runBatch,
+  batchOffset = 0,
+) {
+  const batches = prepareCumulativeAssessmentKernels(
+    lessonContent,
+    courseMapLessons,
+    subjectLessonIndices,
+    assessmentLessonIndices,
+    contentSourcedSet,
+    onComplete,
+    chunkSize,
+  );
+  await Promise.all(batches.map((chunk, index) => limit(() => runBatch(chunk, batchOffset + index))));
+}
+
 const MODALITY_ONLY_SECTION_TITLES = new Set([
   'activity',
   'activities',

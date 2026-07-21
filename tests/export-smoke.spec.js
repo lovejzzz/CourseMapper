@@ -1564,11 +1564,11 @@ test.describe('Export smoke', () => {
     await page.getByTestId('export-download-zip').click();
     await expect(page.getByTestId('readiness-confirm')).toContainText('Needs attention before export');
     await expect(page.getByTestId('readiness-confirm')).toContainText('Course FAQ failed to generate');
+    await expect(page.getByTestId('readiness-confirm')).toContainText('Automatic finishing ran');
     await expect(page.getByTestId('readiness-export-anyway')).toHaveCount(0);
-    await expect(page.getByTestId('export-notice')).toContainText('Automatic finishing ran');
   });
 
-  test('blocks ZIP export when generated quiz content needs review notes', async ({ page }) => {
+  test('downloads an explicitly labeled draft ZIP when generated quiz content needs review notes', async ({ page }) => {
     await restoreExportWorkspace(page, (snapshot) => {
       snapshot.selectedFeatures = ['courseMap', 'quizBank'];
       snapshot.deliverables = {
@@ -1621,13 +1621,22 @@ test.describe('Export smoke', () => {
     await expect(page.getByTestId('readiness-panel')).not.toContainText('missing answer guidance');
     await expect(page.getByTestId('readiness-panel')).toContainText('Lesson 2 quiz keys every multiple-choice answer');
     await expect(page.getByTestId('export-download-zip')).toContainText('Finish package');
-
     await page.getByTestId('export-download-zip').click();
-    await expect(page.getByTestId('readiness-confirm')).toContainText('Needs attention before export');
-    await expect(page.getByTestId('readiness-confirm')).toContainText(
-      'Lesson 2 quiz keys every multiple-choice answer',
-    );
-    await expect(page.getByTestId('readiness-export-anyway')).toHaveCount(0);
+    await expect(page.getByTestId('export-download-zip')).toContainText('Download draft ZIP');
+
+    const zipDownload = await expectDownload(page, () => page.getByTestId('export-download-zip').click(), {
+      extension: 'zip',
+      nameIncludes: 'Export Smoke Course',
+      minBytes: 1000,
+    });
+    const zip = await JSZip.loadAsync(await fs.readFile(zipDownload.path));
+    const manifest = JSON.parse(await zip.file('PACKAGE_MANIFEST.json').async('string'));
+    const qualityReport = await zip.file('QUALITY_REPORT.md').async('string');
+    const readinessReport = await zip.file('READINESS_REPORT.txt').async('string');
+    expect(manifest.readiness).toMatchObject({ status: 'blocked', isBlocked: true });
+    expect(readinessReport).toContain('Lesson 2 quiz keys every multiple-choice answer');
+    expect(qualityReport).toContain('package readiness reports 1 blocker');
+    await expect(page.getByTestId('readiness-confirm')).toBeHidden();
   });
 
   test('downloads ZIP when discussion guidance only has review notes', async ({ page }) => {

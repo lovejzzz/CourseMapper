@@ -359,6 +359,23 @@ export default function useChatRouter({
     });
 
     if (chatRoute === 'agent') {
+      let courseAnswer = null;
+      if (provider === 'public' && !preparedSend.silent && !agentPromptOverride && attachedFiles.length === 0) {
+        const { buildScionCourseAnswer } = await import('../../lib/scionCourseAnswer');
+        courseAnswer = buildScionCourseAnswer({
+          question: trimmed,
+          courseMap: courseMapRef.current,
+          deliverables: delivRef.current,
+        });
+      }
+      if (courseAnswer) {
+        setMessages((prev) => [
+          ...prev,
+          { role: 'user', text: displayTextOverride || trimmed },
+          { role: 'assistant', text: courseAnswer.text, source: courseAnswer.kind },
+        ]);
+        return;
+      }
       if (!agentProviderReady) {
         if (!preparedSend.silent) appendAgentUnavailableMessage(displayTextOverride || trimmed);
         return;

@@ -1,4 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
+import {
+  ribbonArtifactMarkClass,
+  ribbonNarrative,
+  ribbonProgressLabel,
+  ribbonSignalClass,
+} from '../lib/buildRibbonFailureModel';
 
 /**
  * BuildRibbon — v0.14.4 WS-B1: the ONE status spine under the workspace
@@ -36,15 +42,7 @@ function ArtifactStatusMark({ status }) {
   return (
     <span
       aria-hidden="true"
-      className={`block h-1.5 w-1.5 flex-shrink-0 rounded-full ${
-        status === 'active'
-          ? 'animate-pulse bg-indigo-500 motion-reduce:animate-none dark:bg-indigo-400'
-          : status === 'warn'
-            ? 'bg-amber-500 dark:bg-amber-300'
-            : status === 'settled'
-              ? 'bg-slate-400 dark:bg-slate-500'
-              : 'bg-slate-300 dark:bg-slate-600'
-      }`}
+      className={`block h-1.5 w-1.5 flex-shrink-0 rounded-full ${ribbonArtifactMarkClass(status)}`}
     />
   );
 }
@@ -116,13 +114,7 @@ export default function BuildRibbon({ model }) {
   if (!model) return null;
 
   const compilerState = model.compilerState || 'live';
-  const stageNarrative =
-    model.stageLabel ||
-    (compilerState === 'complete'
-      ? 'Course package is ready.'
-      : compilerState === 'review'
-        ? 'Review the highlighted notes before export.'
-        : 'Preparing the next course material…');
+  const stageNarrative = model.stageLabel || ribbonNarrative(compilerState);
   const compactStepLabels = {
     model: 'AI',
     map: 'Map',
@@ -143,13 +135,7 @@ export default function BuildRibbon({ model }) {
             data-testid="living-compiler-signal"
             data-state={compilerState}
             aria-hidden="true"
-            className={`h-2 w-2 rounded-full ${
-              compilerState === 'complete'
-                ? 'bg-emerald-500 dark:bg-emerald-400'
-                : compilerState === 'review'
-                  ? 'bg-amber-500 dark:bg-amber-300'
-                  : 'animate-pulse bg-indigo-500 shadow-[0_0_0_4px_rgba(99,102,241,0.10)] motion-reduce:animate-none dark:bg-indigo-300'
-            }`}
+            className={`h-2 w-2 rounded-full ${ribbonSignalClass(compilerState)}`}
           />
           <span
             className="min-w-0 truncate whitespace-nowrap text-[12px] font-bold tracking-tight text-slate-600 dark:text-slate-300"
@@ -172,11 +158,7 @@ export default function BuildRibbon({ model }) {
           data-testid="ribbon-progress-label"
           className="ml-2 shrink-0 text-[12px] font-bold tabular-nums text-indigo-600 sm:ml-0 dark:text-indigo-300"
         >
-          {visibleProgress >= 100
-            ? compilerState === 'review'
-              ? 'Review required'
-              : 'Build complete'
-            : `Build ${visibleProgress}%`}
+          {ribbonProgressLabel(compilerState, visibleProgress)}
           {activeElapsed && (
             <span data-testid="ribbon-active-elapsed" className="font-medium text-slate-400 dark:text-slate-500">
               {' · '}

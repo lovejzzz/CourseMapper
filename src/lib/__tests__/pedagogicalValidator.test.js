@@ -130,6 +130,29 @@ describe('validateBloomsAlignment', () => {
     const findings = validateBloomsAlignment(courseMap, {});
     expect(findings).toEqual([]);
   });
+
+  it('does not mislabel the mixed cognitive levels in a cumulative final as a progression regression', () => {
+    const courseMap = {
+      lessons: [
+        { title: 'Lesson 9: Environmental Justice', sections: [{ learningObjectives: 'Evaluate evidence' }] },
+        {
+          title: 'Lesson 10: Cumulative Final Exam',
+          sections: [{ learningObjectives: 'Analyze cumulative course evidence' }],
+        },
+      ],
+    };
+    const deliverables = {
+      quizBank: doneDeliv({
+        quizzes: [
+          { qs: [{ bl: 'Evaluate' }, { bl: 'Create' }] },
+          { qs: [{ bl: 'Remember' }, { bl: 'Understand' }, { bl: 'Analyze' }] },
+        ],
+      }),
+    };
+
+    const findings = validateBloomsAlignment(courseMap, deliverables);
+    expect(findings.map((finding) => finding.id)).not.toContain('blooms-regression-L1');
+  });
 });
 
 // ── validateObjectiveAlignment ──────────────────────────────────────────────

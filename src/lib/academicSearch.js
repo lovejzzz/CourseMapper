@@ -1,18 +1,18 @@
 /**
  * academicSearch.js — Free academic API wrappers for the AI teaching agent.
  *
- * Three search sources, all free and keyless:
- *   - OpenAlex (250M+ works, abstracts, citations — CORS-friendly)
+ * Two search sources, both free and keyless:
+ *   - Crossref (DOI and citation metadata — CORS-friendly, no API key)
  *   - Wikipedia (topic overviews with confirmed CORS)
- *   - CrossRef (DOI/citation metadata)
  *
  * Usage:
  *   const { results, formatted } = await executeResearch({ query: 'Bloom taxonomy', sources: ['papers', 'wiki'] });
  */
 
-// ── OpenAlex (replaces Semantic Scholar — browser CORS-friendly) ─────────────
+// ── Scholarly papers (Crossref, backend-free) ────────────────────────────────
 
-// Reconstruct abstract from OpenAlex's inverted index format
+// Legacy helper for persisted academic-search results that used an inverted
+// abstract index. New Crossref results already carry normalized abstracts.
 export function reconstructAbstract(invertedIndex) {
   if (!invertedIndex || typeof invertedIndex !== 'object') return null;
   const words = [];
@@ -25,31 +25,13 @@ export function reconstructAbstract(invertedIndex) {
 }
 
 export async function searchPapers(query, limit = 5, signal) {
-  try {
-    const url = `https://api.openalex.org/works?search=${encodeURIComponent(query)}&per_page=${limit}&select=id,display_name,authorships,publication_year,cited_by_count,doi,primary_location,abstract_inverted_index&mailto=coursemapper@nyu.edu`;
-    const res = await fetch(url, { signal });
-    if (!res.ok) throw new Error(`OpenAlex: ${res.status}`);
-    const json = await res.json();
-    const papers = (json.results || []).map((p) => ({
-      id: p.id,
-      title: p.display_name || 'Untitled',
-      authors: (p.authorships || [])
-        .map((a) => a.author?.display_name)
-        .filter(Boolean)
-        .slice(0, 3)
-        .join(', '),
-      year: p.publication_year,
-      citationCount: p.cited_by_count || 0,
-      doi: p.doi || null,
-      url: p.primary_location?.landing_page_url || p.doi || p.id,
-      abstract: reconstructAbstract(p.abstract_inverted_index),
-    }));
-    return { papers };
-  } catch (err) {
-    if (err.name === 'AbortError') throw err;
-    console.warn('[CM] OpenAlex search failed:', err.message);
-    return { papers: [] };
-  }
+  const { works } = await searchCrossRef(query, limit, signal);
+  return {
+    papers: works.map((work) => ({
+      id: work.doi || work.url || work.title,
+      ...work,
+    })),
+  };
 }
 
 // ── Wikipedia ────────────────────────────────────────────────────────────────
@@ -91,6 +73,12 @@ export async function searchCrossRef(query, limit = 5, signal) {
       doi: item.DOI,
       citationCount: item['is-referenced-by-count'] || 0,
       publisher: item.publisher || '',
+      url: item.URL || (item.DOI ? `https://doi.org/${item.DOI}` : ''),
+      abstract: String(item.abstract || '')
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .slice(0, 300),
     }));
     return { works };
   } catch (err) {
@@ -313,7 +301,7 @@ export async function executeResearch({ query, sources = ['papers'], limit }, si
       switch (source) {
         case 'papers': {
           const { papers } = await searchPapers(query, limit || 5, signal);
-          return { source: 'OpenAlex', items: papers };
+          return { source: 'CrossRef', items: papers };
         }
         case 'wiki': {
           const { articles } = await searchWikipedia(query, limit || 3, signal);

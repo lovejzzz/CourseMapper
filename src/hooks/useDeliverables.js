@@ -999,7 +999,7 @@ export default function useDeliverables({
 
         // Source retrieval runs once after the authoritative graph is built.
         // A speculative prefetch here raced cache writes and doubled anonymous
-        // OpenAlex requests on larger courses.
+        // scholarly-source requests on larger courses.
 
         // ── Stage 1: CurriculumOS genome linker — free, deterministic, and
         // independent of the enrichment flag and model availability. Library
@@ -1309,7 +1309,9 @@ export default function useDeliverables({
                 buildNativePassBPrompt,
                 completeNativeLessonSurfaces,
                 parseNativePassBResponse,
+                partitionCumulativeAssessmentLessons,
                 pickNativeKernel,
+                resolveCumulativeAssessmentKernels,
                 runNativeKernelRecovery,
                 selectNativeContentSources,
               },
@@ -1344,6 +1346,16 @@ export default function useDeliverables({
             const contentSourcedSet = new Set(
               selectNativeContentSources(allLessonIndices, lessonContent, partialOverlays),
             );
+            const scionProvider = provider === 'local' || provider === PUBLIC_SCION_PROVIDER_ID;
+            const { subjectLessonIndices, cumulativeAssessmentLessonIndices } = partitionCumulativeAssessmentLessons(
+              blueprintCourseMap.lessons,
+              allLessonIndices,
+            );
+            // Paid/general models retain the authored assessment path. Scion
+            // compiles assessment-only sessions from already-admitted subject
+            // kernels after those subject calls finish, avoiding both invented
+            // "new content" and the live run's exhausted final retry seat.
+            const initialAuthoringIndices = scionProvider ? subjectLessonIndices : allLessonIndices;
             let absorbedCourseLevel = null;
             const chunkSize = nativeBatching.getAdaptiveNativePassBBatchSize({
               lessonCount: allLessonIndices.length,
@@ -1352,14 +1364,10 @@ export default function useDeliverables({
               modelCapabilities,
             });
             const batches = [];
-            for (let start = 0; start < allLessonIndices.length; start += chunkSize) {
-              batches.push(allLessonIndices.slice(start, start + chunkSize));
+            for (let start = 0; start < initialAuthoringIndices.length; start += chunkSize) {
+              batches.push(initialAuthoringIndices.slice(start, start + chunkSize));
             }
-            appendLog(
-              `Authoring lesson content onto the Pass A skeleton (${batches.length} parallel batch${batches.length === 1 ? '' : 'es'}, ${contentSourcedSet.size} lesson(s) content-sourced from the curriculum library)...`,
-              'progress',
-            );
-            const scionProvider = provider === 'local' || provider === PUBLIC_SCION_PROVIDER_ID;
+            appendLog('Authoring...', 'progress');
 
             const runPassBBatch = async (chunk, { includeCourseLevel, recoveryLabel = null, recoveryAttempt = 0 }) => {
               const requestedLessonIds = chunk.map(lessonIdOf);
@@ -1516,6 +1524,21 @@ export default function useDeliverables({
             await Promise.all(
               fanOut.map((chunk, position) => limit(() => runBatchSafely(chunk, warmFirst ? position + 1 : position))),
             );
+
+            if (scionProvider && cumulativeAssessmentLessonIndices.length > 0) {
+              await resolveCumulativeAssessmentKernels(
+                lessonContent,
+                blueprintCourseMap.lessons,
+                subjectLessonIndices,
+                cumulativeAssessmentLessonIndices,
+                contentSourcedSet,
+                appendLog,
+                chunkSize,
+                limit,
+                runBatchSafely,
+                batches.length,
+              );
+            }
 
             // Compact Scion intentionally authors only the semantic kernel.
             // Complete compiler-owned discussion, assignment, and study-guide
@@ -2458,7 +2481,7 @@ export default function useDeliverables({
                   type: 'knowledgeBackboneProgress',
                   stage: 'knowledge-backbone',
                   label: 'Checking open readings',
-                  detail: `${completed}/${total} lessons checked${provider === 'crossref fallback' ? ' · using fallback source' : ''}`,
+                  detail: `${completed}/${total} lessons checked${provider === 'crossref' ? ' · checking Crossref' : ''}`,
                 });
               },
             });
@@ -2475,10 +2498,10 @@ export default function useDeliverables({
                 maxTopics: 8,
                 limitPerTopic: 3,
                 timeoutMs: 12_000,
-                // The reading-list pass above already queried OpenAlex. Source
-                // finder should use complementary providers, not spend the same
-                // anonymous quota again for the same lesson topics.
-                providers: { openalex: async () => [] },
+                // The reading-list pass above already queried Crossref. Source
+                // finder should use complementary providers, not repeat the
+                // same scholarly request for the same lesson topics.
+                providers: { crossref: async () => [] },
                 onProgress: ({ completed, total }) => {
                   recordGenerationApiCallEvent({
                     type: 'knowledgeBackboneProgress',

@@ -36,4 +36,27 @@ describe('v0.16.54 resilient editable text', () => {
     expect(html).toContain('Evidence checklist');
     expect(html).not.toContain('[object Object]');
   });
+
+  it('renders grading-criteria arrays as readable bullets instead of serialized JSON', () => {
+    const html = renderToStaticMarkup(
+      <AssignmentsView
+        data={{
+          assignments: [
+            {
+              title: 'Chemistry Lab Analysis',
+              gradingCriteria: [
+                'Measurement accuracy and evidence selection',
+                'Chemical interpretation and uncertainty',
+              ],
+            },
+          ],
+        }}
+      />,
+    );
+
+    expect(html).toContain('Measurement accuracy and evidence selection');
+    expect(html).toContain('Chemical interpretation and uncertainty');
+    expect(html).not.toContain('[&quot;Measurement accuracy');
+    expect(html).not.toContain('["Measurement accuracy');
+  });
 });

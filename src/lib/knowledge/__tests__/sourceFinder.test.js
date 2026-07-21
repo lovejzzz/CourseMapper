@@ -100,6 +100,25 @@ describe('source finder mini-shard', () => {
     expect(topics[0].query).toContain('velocity');
   });
 
+  it('keeps unauthenticated OpenAlex out of the backend-free browser provider plan', async () => {
+    const miniShard = await findCourseSources(sampleGraph(), {
+      storage: memoryStorage(),
+      maxTopics: 1,
+      minUsefulSources: 1,
+      providers: {
+        crossref: vi.fn(async (query) => [source('crossref', `Crossref ${query}`)]),
+        wikipedia: vi.fn(async (query) => [source('wikipedia', `Wikipedia ${query}`)]),
+        openlibrary: vi.fn(async () => []),
+        loc: vi.fn(async () => []),
+        internetarchive: vi.fn(async () => []),
+      },
+    });
+
+    expect(miniShard.topics[0].providerPlan.primary).not.toContain('openalex');
+    expect(miniShard.topics[0].providerPlan.secondary).not.toContain('openalex');
+    expect(miniShard.topics[0].providerPlan.primary).toEqual(expect.arrayContaining(['crossref', 'wikipedia']));
+  });
+
   it('caches by course + topic and stores only compact source snippets', async () => {
     const storage = memoryStorage();
     const onProgress = vi.fn();
@@ -126,7 +145,7 @@ describe('source finder mini-shard', () => {
     });
 
     expect(first.temporary).toBe(true);
-    expect(first.id).toContain('source-finder-v10');
+    expect(first.id).toContain('source-finder-v11');
     expect(first.stats).toMatchObject({ topics: 2, topicsWithSources: 2, sources: 4, cacheHits: 0 });
     expect(second.stats.cacheHits).toBe(2);
     expect(providers.searchScholarlyReadings).toHaveBeenCalledTimes(2);

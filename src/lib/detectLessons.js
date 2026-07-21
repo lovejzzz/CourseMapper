@@ -95,6 +95,21 @@ export function detectExpectedLessons(text) {
     }
   }
 
+  // Pattern 1b.4: exact counts often carry pedagogical and duration
+  // modifiers between the number and unit, e.g. "10 distinct 75-minute
+  // lessons" or "eight weekly studio sessions". Keep the window short so
+  // unrelated quantities elsewhere in the brief cannot become scope. A bare
+  // duration such as "75-minute lessons" cannot match because the count must
+  // be followed by whitespace rather than a hyphen.
+  const describedUnitCountPat = new RegExp(
+    `\\b(${SMALL_COUNT_TOKEN})\\s+(?:(?!lessons?\\b|modules?\\b|sessions?\\b)[a-z0-9]+(?:[-–—][a-z0-9]+)?\\s+){1,4}(lesson|module|session)s?\\b`,
+    'gi',
+  );
+  for (const match of text.matchAll(describedUnitCountPat)) {
+    const n = parseSmallCount(match[1]);
+    if (n >= 1 && n <= 52) return { expected: n, confidence: 'high', source: `"${match[0]}"` };
+  }
+
   // Pattern 2: Explicit "Weeks 1-15" or "Weeks 1 through 15"
   const rangePatterns = [
     /weeks?\s+(\d{1,2})\s*[-–—to]+\s*(\d{1,2})/gi,

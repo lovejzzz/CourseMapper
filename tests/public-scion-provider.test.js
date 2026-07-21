@@ -3,7 +3,11 @@ import { buildProviderTextRequest } from '../src/lib/modelRequestBuilders';
 import { estimateUsageCost } from '../src/lib/apiUsageCost';
 import { createBaseModelCapabilities, createGenerationPlan } from '../src/lib/modelCapabilities';
 import { buildLessonKernelPrompt } from '../src/lib/blueprintEnrichmentPass';
+import { repairCourseMapReadiness } from '../src/lib/deliverableReadiness';
 import {
+  applyPublicScionBriefDirectives,
+  applyPublicScionCourseMapTopicPlan,
+  buildPublicScionPlannedCourseMapLessons,
   PUBLIC_SCION_BACKING_MODEL,
   PUBLIC_SCION_ENRICHMENT_RECOVERY_CALLS,
   PUBLIC_SCION_KERNEL_CONCURRENCY,
@@ -1177,6 +1181,162 @@ Generate lessons 4 through 6 now as JSON:`;
     expect(messages[1].content).toContain('- Lesson 4: unemployment and labor markets');
     expect(messages[1].content).toContain('- Lesson 6: fiscal and monetary policy comparison');
     expect(messages[1].content).toContain('substitution is not');
+  });
+
+  it('targets the exact uncovered topic from a comma-delimited coverage contract', () => {
+    const source =
+      'Create an undergraduate Environmental Chemistry course with 10 distinct 75-minute lessons. Cover atmospheric chemistry, water quality, soil contaminants, toxicology, fate and transport, green chemistry, environmental sampling, risk assessment, and environmental justice. Include a midterm and cumulative final exam.';
+    const continuation = `This Course Map has 9 of 10 lessons.
+
+Existing lessons:
+1. Lesson 1: Atmospheric Chemistry
+2. Lesson 2: Water Quality
+3. Lesson 3: Soil Contaminants
+4. Lesson 4: Environmental Sampling
+5. Lesson 5: Risk Assessment
+6. Lesson 6: Environmental Justice
+7. Lesson 7: Fate and Transport
+8. Lesson 8: Green Chemistry
+9. Lesson 9: Course Review and Synthesis
+
+Generate ONLY Lessons 10-10.
+
+LATER SYLLABUS CONTENT:
+${source}`;
+    const messages = buildPublicScionMessages('system', continuation, { task: 'course-map' });
+    expect(messages[1].content).toContain('REQUIRED TOPIC PLAN (one exact focus per lesson)');
+    expect(messages[1].content).toContain('- Lesson 10: toxicology');
+    expect(messages[1].content).not.toContain('- Lesson 10: environmental justice');
+  });
+
+  it('uses an explicitly requested cumulative final when every coverage topic is already mapped', () => {
+    const source =
+      'Create an Environmental Chemistry course with 10 lessons. Cover atmospheric chemistry, water quality, soil contaminants, toxicology, fate and transport, green chemistry, environmental sampling, risk assessment, and environmental justice. Include a midterm and a cumulative final exam.';
+    const continuation = `This Course Map has 9 of 10 lessons.
+
+Existing lessons:
+1. Lesson 1: Atmospheric Chemistry
+2. Lesson 2: Water Quality
+3. Lesson 3: Soil Contaminants
+4. Lesson 4: Toxicology
+5. Lesson 5: Fate and Transport
+6. Lesson 6: Green Chemistry
+7. Lesson 7: Environmental Sampling
+8. Lesson 8: Risk Assessment
+9. Lesson 9: Environmental Justice
+
+Generate ONLY Lessons 10-10.
+
+LATER SYLLABUS CONTENT:
+${source}`;
+    const messages = buildPublicScionMessages('system', continuation, { task: 'course-map' });
+    expect(messages[1].content).toContain('- Lesson 10: Cumulative Final Exam');
+    expect(messages[1].content).toContain('Lesson 10 MUST use the exact final focus "Cumulative Final Exam"');
+    expect(messages[1].content).not.toContain('Lesson 10 MUST name the final source outline item');
+
+    const projected = applyPublicScionCourseMapTopicPlan(
+      JSON.stringify({
+        lessons: [
+          {
+            title: 'Lesson 1: Environmental Justice',
+            sections: [{ topicSection: '1.1: Environmental Justice' }],
+          },
+        ],
+      }),
+      continuation,
+    );
+    const projectedLesson = JSON.parse(projected.text).lessons[0];
+    expect(projected.repairs).toEqual(['course-map-topic-plan']);
+    expect(projectedLesson.title).toBe('Lesson 10: Cumulative Final Exam');
+    expect(projectedLesson.sections[0].topicSection).toBe('10.1: Cumulative Final Exam');
+    expect(projectedLesson.sections[0].weeklyAssessments).toContain(
+      'Cumulative Final Exam: analyze cumulative course evidence',
+    );
+    expect(projectedLesson.sections[0].supportingResources).toEqual(['Course readings and completed assessments']);
+    expect(JSON.stringify(projectedLesson)).not.toMatch(/evidence portfolio/i);
+  });
+
+  it('fills the first bounded continuation chunk with exact uncovered topics', () => {
+    const prompt = `This Course Map has 6 of 10 lessons.
+
+Existing lessons:
+1. Lesson 1: Atmospheric Chemistry
+2. Lesson 2: Water Quality
+3. Lesson 3: Soil Contaminants
+4. Lesson 4: Toxicology
+5. Lesson 5: Fate and Transport
+6. Lesson 6: Green Chemistry
+
+Generate ONLY Lessons 7-10.
+
+LATER SYLLABUS CONTENT:
+Create an Environmental Chemistry course with 10 lessons. Cover atmospheric chemistry, water quality, soil contaminants, toxicology, fate and transport, green chemistry, environmental sampling, risk assessment, and environmental justice. Include a midterm and a cumulative final exam.`;
+
+    expect(buildPublicScionPlannedCourseMapLessons(prompt).map((lesson) => lesson.title)).toEqual([
+      'Lesson 7: Environmental Sampling',
+      'Lesson 8: Risk Assessment',
+      'Lesson 9: Environmental Justice',
+    ]);
+    const projected = buildPublicScionPlannedCourseMapLessons(prompt);
+    expect(projected[0].sections[0].asyncActivities).toContain('Draft an Environmental Sampling memo');
+    expect(projected[1].sections[0]).toMatchObject({
+      learningGoals: ['Understand Risk Assessment'],
+      learningObjectives: ['Analyze Risk Assessment evidence', 'Evaluate Risk Assessment decisions'],
+    });
+    expect(JSON.stringify(projected[1])).not.toMatch(/cumulative course evidence|complete the risk assessment/i);
+  });
+
+  it('preserves an explicit weekly lab routine and midterm across the complete Scion map', () => {
+    const brief =
+      'Create an undergraduate Environmental Chemistry course with 10 distinct 75-minute lessons. Include weekly evidence-based lab analysis, a midterm, and a cumulative final exam.';
+    const topics = [
+      'Atmospheric Chemistry',
+      'Water Quality',
+      'Soil Contaminants',
+      'Toxicology',
+      'Fate and Transport',
+      'Green Chemistry',
+      'Environmental Sampling',
+      'Risk Assessment',
+      'Environmental Justice',
+      'Cumulative Final Exam',
+    ];
+    const courseMap = {
+      courseName: 'Environmental Chemistry',
+      lessons: Array.from({ length: 10 }, (_, index) => ({
+        title: `Lesson ${index + 1}: ${topics[index]}`,
+        sections: [
+          {
+            learningGoals: ['Use chemistry evidence'],
+            topicSection: `${index + 1}.1: ${topics[index]}`,
+            learningObjectives: ['Explain observed chemistry', 'Model a bounded reaction'],
+            weeklyAssessments: index % 2 === 0 ? ['Quiz: concept check', 'Generic task'] : ['Generic task'],
+            asyncActivities: ['Prepare the data table'],
+            syncActivities: ['Discuss the topic'],
+            technologyNeeded: ['LMS and lab instruments'],
+            supportingResources: ['Topic examples'],
+          },
+        ],
+      })),
+    };
+
+    const aligned = applyPublicScionBriefDirectives(courseMap, brief);
+    const topicalSections = aligned.lessons.slice(0, 9).map((lesson) => lesson.sections[0]);
+    expect(topicalSections.every((section) => JSON.stringify(section).includes('lab analysis'))).toBe(true);
+    expect(topicalSections.every((section) => section.presentationFormat.includes('Lab demonstration'))).toBe(true);
+    expect(topicalSections[4].weeklyAssessments).toContain(
+      'Midterm examination: analyze course evidence and defend a chemical interpretation',
+    );
+    expect(topicalSections[0].weeklyAssessments).toEqual([
+      'Atmospheric Chemistry lab analysis — explain observed chemistry; model a bounded reaction',
+    ]);
+    expect(JSON.stringify(topicalSections)).not.toMatch(/choose evidence that supports one course decision/i);
+    const readinessResult = repairCourseMapReadiness({ courseMap: aligned, columns: [] });
+    expect(
+      readinessResult.courseMap.lessons[0].sections[0].weeklyAssessments,
+      readinessResult.repairedFields.join(' | '),
+    ).toEqual(topicalSections[0].weeklyAssessments);
+    expect(aligned.lessons[9]).toEqual(courseMap.lessons[9]);
   });
 
   it('treats a user-authored “with these lessons” list as the exact Scion plan', () => {

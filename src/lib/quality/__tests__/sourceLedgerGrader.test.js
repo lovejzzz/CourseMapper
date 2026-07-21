@@ -1663,6 +1663,34 @@ describe('source-ledger quality checks', () => {
     ).toBe(false);
   });
 
+  it('recognizes the Hardy-Weinberg principle as an on-discipline genetics citation', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'Introduction to Genetics',
+          lessonScope: 'all',
+          requestedFeatures: ['syllabus'],
+          readiness: { status: 'ready', blockers: 0, warnings: 0, checkedSections: null },
+          files: [{ path: 'Syllabus/Introduction to Genetics - Syllabus.txt', feature: 'syllabus' }],
+        }),
+        'Syllabus/Introduction to Genetics - Syllabus.txt': [
+          'INTRODUCTION TO GENETICS — SYLLABUS',
+          'WEEKLY READINGS',
+          'Week 7: Wikipedia contributors. Hardy-Weinberg principle. Wikipedia: https://en.wikipedia.org/wiki/Hardy%E2%80%93Weinberg_principle (CC BY-SA 4.0)',
+        ].join('\n'),
+      }),
+      course: { id: 'genetics', title: 'Introduction to Genetics', featureIds: ['syllabus'] },
+    });
+
+    expect(
+      result.findings.some(
+        (finding) =>
+          finding.dimension === 'citations' &&
+          finding.detail === 'citation shares zero vocabulary with the course discipline (possible off-topic reading)',
+      ),
+    ).toBe(false);
+  });
+
   it('recognizes the Dodd-Frank Act as a consumer-protection reading in Business Ethics', async () => {
     const result = await grade({
       fileProvider: createMemoryFileProvider({

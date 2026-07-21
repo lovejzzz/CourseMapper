@@ -1,6 +1,7 @@
 import {
   PUBLIC_SCION_MAX_COMPLETION_TOKENS,
   PUBLIC_SCION_MIN_RETRIES,
+  applyPublicScionCourseMapTopicPlan,
   assessPublicScionKernelResponse,
   buildPublicScionMessages,
   buildPublicScionRetryFeedback,
@@ -12,6 +13,7 @@ import {
   publicScionRetryDelay,
   repairPublicScionJson,
   shufflePublicScionKernelOptions,
+  stripPublicScionInvalidFactAtoms,
 } from './publicScionProvider';
 import {
   SCION_ADAPTER_TASK_FAMILIES,
@@ -154,6 +156,12 @@ export async function runScionLocalCompletion({
     taskFamily === SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL_SYNTHESIS &&
     promptProtocol === SCION_LESSON_KERNEL_SYNTHESIS_PROMPT_PROTOCOL;
   const targetLanguageKernel = explicitCourseLanguageIds(`${systemPrompt}\n${userPrompt}`).length > 0;
+  const expectedKernelLessons = extractPublicScionKernelLessons(userPrompt).filter((lesson) => lesson?.lessonId);
+  const exactSourceLedger =
+    expectedKernelLessons.length > 0 &&
+    expectedKernelLessons.every(
+      (lesson) => scionFactContractForLesson(lesson, { userPrompt }).mode === 'numbered-source-ledger-v1',
+    );
   const messages = buildPublicScionMessages(systemPrompt, userPrompt, { schema, task, factLedgerOnly });
   const requestedOutputLimit = Math.max(
     1,
@@ -208,9 +216,14 @@ export async function runScionLocalCompletion({
       },
     });
     const repaired = repairPublicScionJson(rawText, { userPrompt });
+    const plannedCourseMap =
+      task === 'course-map'
+        ? applyPublicScionCourseMapTopicPlan(repaired.text, userPrompt)
+        : { text: repaired.text, repairs: [] };
+    const baseRepairs = [...repaired.repairs, ...plannedCourseMap.repairs];
     const merged = retainedIncompleteText
-      ? mergePublicScionKernelAttempts(retainedIncompleteText, repaired.text, userPrompt)
-      : { text: repaired.text, repairs: [] };
+      ? mergePublicScionKernelAttempts(retainedIncompleteText, plannedCourseMap.text, userPrompt)
+      : { text: plannedCourseMap.text, repairs: [] };
     const fullText = merged.text;
     const empty = !fullText.trim();
     const assessment = empty
@@ -220,9 +233,12 @@ export async function runScionLocalCompletion({
     const retryGate = { needsRetry: empty || retryIssues.length > 0, issues: retryIssues };
     const compilerFactCoreUsable =
       factLedgerOnly &&
-      targetLanguageKernel &&
+      recoveryAttempt === 0 &&
       !empty &&
-      publicScionCompilerFactCoreUsable(fullText, assessment, { minimumFacts: 2 });
+      publicScionCompilerFactCoreUsable(fullText, assessment, {
+        minimumFacts: targetLanguageKernel ? 2 : 3,
+        exactFactCountRequired: exactSourceLedger,
+      });
     const incomplete = !empty && retryGate.needsRetry && !compilerFactCoreUsable;
     // When an exact source-grounded adapter is available, the synthesis arm
     // only needs one structurally usable fact draft. A valid fact ledger exits
@@ -236,11 +252,12 @@ export async function runScionLocalCompletion({
         : Math.min(1, retryLimit)
       : retryLimit;
     if (!empty && !incomplete) {
-      const shuffled = shufflePublicScionKernelOptions(fullText);
+      const admittedText = compilerFactCoreUsable ? stripPublicScionInvalidFactAtoms(fullText, assessment) : fullText;
+      const shuffled = shufflePublicScionKernelOptions(admittedText);
       return {
         fullText: shuffled.text,
         rawText,
-        repairs: [...repaired.repairs, ...merged.repairs, ...shuffled.repairs],
+        repairs: [...baseRepairs, ...merged.repairs, ...shuffled.repairs],
         messages: attemptMessages,
         attempt: attempt + 1,
         retryCount: attempt,
@@ -262,7 +279,7 @@ export async function runScionLocalCompletion({
       const candidate = {
         fullText,
         rawText,
-        repairs: [...repaired.repairs, ...merged.repairs],
+        repairs: [...baseRepairs, ...merged.repairs],
         messages: attemptMessages,
         assessment,
         kernelShape: failure.kernelShape,
@@ -284,7 +301,7 @@ export async function runScionLocalCompletion({
       const selected = bestIncomplete || {
         fullText,
         rawText,
-        repairs: [...repaired.repairs, ...merged.repairs],
+        repairs: [...baseRepairs, ...merged.repairs],
         messages: attemptMessages,
         assessment,
         kernelShape: failure.kernelShape,

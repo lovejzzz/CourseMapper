@@ -34,6 +34,25 @@ describe('detectExpectedLessons', () => {
     expect(result.confidence).toBe('high');
   });
 
+  it('treats a modified numeric lesson count as an exact scope contract', () => {
+    const result = detectExpectedLessons(
+      'Create an undergraduate Environmental Chemistry course with 10 distinct 75-minute lessons.',
+    );
+    expect(result).toMatchObject({ expected: 10, confidence: 'high' });
+    expect(result.source).toContain('10 distinct 75-minute lessons');
+  });
+
+  it('detects word counts through short instructional modifiers without treating duration as scope', () => {
+    expect(detectExpectedLessons('Build eight weekly studio sessions on interaction design.')).toMatchObject({
+      expected: 8,
+      confidence: 'high',
+    });
+    expect(detectExpectedLessons('Create 75-minute lessons on environmental sampling.')).toMatchObject({
+      expected: null,
+      confidence: 'low',
+    });
+  });
+
   it('detects number-word mini-course scopes without asking the model to guess', () => {
     expect(detectExpectedLessons('A one-lesson workshop on usability findings.')).toMatchObject({
       expected: 1,

@@ -1543,8 +1543,8 @@ export default function ChatPanel({
     [landingContextSummary],
   );
   const packageReceiptSummary = useMemo(
-    () => buildPackageReceiptSummary(packageQualityPass, courseMap, selectedFeatures, deliverables),
-    [courseMap, deliverables, packageQualityPass, selectedFeatures],
+    () => (error ? null : buildPackageReceiptSummary(packageQualityPass, courseMap, selectedFeatures, deliverables)),
+    [courseMap, deliverables, error, packageQualityPass, selectedFeatures],
   );
   const displayedMessages = useMemo(() => {
     const packageReceiptMessage = buildPackageReceiptMessage(packageReceiptSummary, packageQualityPass);
@@ -2888,6 +2888,7 @@ export default function ChatPanel({
           messages={chat.messages}
           agentDryRun={chat.agentDryRun}
           isAgentProviderReady={chat.isAgentProviderReady}
+          generationError={error}
         />
       )}
 

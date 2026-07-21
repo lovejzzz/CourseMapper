@@ -77,7 +77,7 @@ export default function PackageSummaryCard({ summary, embedded = false }) {
   const badgeText = summary.ready ? 'Done' : summary.tone === 'blocked' ? 'Action needed' : 'Notes saved';
   const repairText =
     summary.repairsApplied > 0
-      ? `${summary.repairsApplied} safe repair${summary.repairsApplied === 1 ? '' : 's'} applied`
+      ? `${summary.repairsApplied} safe repair pass${summary.repairsApplied === 1 ? '' : 'es'} applied`
       : 'No automatic repairs needed';
   const issueText =
     summary.blockerCount > 0
@@ -184,7 +184,7 @@ export default function PackageSummaryCard({ summary, embedded = false }) {
             )}
             {expanded && repairEvidenceText && summary.repairsApplied > 0 && (
               <p className="mt-1 text-[10px] font-medium leading-snug text-slate-500">
-                Auto-fixed: {repairEvidenceText}
+                Fields adjusted in those passes: {repairEvidenceText}
               </p>
             )}
             {expanded && reviewText && (

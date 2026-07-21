@@ -42,7 +42,7 @@ describe('Scion v0.16.47 source-kernel expansion', () => {
     );
     expect(manifest).toMatchObject({
       version: '2026-07-16',
-      conceptCount: 292,
+      conceptCount: 295,
       references: {
         'omt:texture': expect.objectContaining({ sourceUrl: expect.stringContaining('openmusictheory') }),
         'uswds:step-indicator': expect.objectContaining({ sourceUrl: expect.stringContaining('step-indicator') }),

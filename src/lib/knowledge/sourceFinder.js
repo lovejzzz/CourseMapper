@@ -42,7 +42,12 @@ export const SOURCE_FINDER_ORIGIN = 'source-finder';
 // v10 adds a Business Ethics boundary after the stranger proof admitted
 // "Fair game (Scientology)" for a fair-employment lesson. Cached v9 results
 // must be re-screened because the homonym had already passed topical ranking.
-const SOURCE_FINDER_VERSION = 'source-finder-v10';
+// v11 retires unauthenticated OpenAlex calls from the default browser plan.
+// OpenAlex made API keys mandatory for production use in February 2026; a
+// static, backend-free app cannot safely ship a shared key. Crossref and the
+// existing open providers remain the zero-configuration path. Callers that
+// explicitly inject an OpenAlex provider still opt into it.
+const SOURCE_FINDER_VERSION = 'source-finder-v11';
 const CACHE_PREFIX = 'cm-source-finder:';
 const SNIPPET_LIMIT = 320;
 const DEFAULT_MAX_TOPICS = 8;
@@ -561,17 +566,36 @@ export function sourceTopicsFromCourse(input, options = {}) {
     : sourceTopicsFromCourseMap(input, options);
 }
 
-function providerPlan(courseName, topic) {
+function providerPlan(courseName, topic, { includeOpenAlex = false } = {}) {
   const text = `${courseName} ${topic.topic} ${topic.query}`.toLowerCase();
   const isEducation = /\b(education|teaching|learning|classroom|pedagogy|assessment|psychology)\b/.test(text);
   const isHistory = /\b(history|civilization|ancient|medieval|modern|war|empire|colonial|revolution|archive)\b/.test(
     text,
   );
   const isTextbookish = /\b(literature|writing|textbook|reading|philosophy|theory)\b/.test(text);
-  if (isEducation) return { primary: ['openalex', 'eric', 'crossref'], secondary: ['wikipedia', 'openlibrary'] };
-  if (isHistory) return { primary: ['loc', 'internetarchive', 'wikipedia'], secondary: ['crossref', 'openalex'] };
-  if (isTextbookish) return { primary: ['openalex', 'crossref', 'openlibrary'], secondary: ['wikipedia'] };
-  return { primary: ['openalex', 'crossref', 'wikipedia'], secondary: ['openlibrary', 'loc', 'internetarchive'] };
+  const primaryWithOptionalOpenAlex = (providers) => (includeOpenAlex ? ['openalex', ...providers] : providers);
+  if (isEducation) {
+    return {
+      primary: primaryWithOptionalOpenAlex(['eric', 'crossref']),
+      secondary: ['wikipedia', 'openlibrary'],
+    };
+  }
+  if (isHistory) {
+    return {
+      primary: ['loc', 'internetarchive', 'wikipedia'],
+      secondary: includeOpenAlex ? ['crossref', 'openalex'] : ['crossref'],
+    };
+  }
+  if (isTextbookish) {
+    return {
+      primary: primaryWithOptionalOpenAlex(['crossref', 'openlibrary']),
+      secondary: ['wikipedia'],
+    };
+  }
+  return {
+    primary: primaryWithOptionalOpenAlex(['crossref', 'wikipedia']),
+    secondary: ['openlibrary', 'loc', 'internetarchive'],
+  };
 }
 
 function providerFunctions(overrides = {}) {
@@ -694,7 +718,9 @@ function dedupeAndRankSources(rawSources, topic, limit) {
 async function retrieveTopicSources(topic, options = {}) {
   const { courseName, providers, limitPerTopic = DEFAULT_LIMIT_PER_TOPIC, signal, minUsefulSources = 2 } = options;
   const fns = providerFunctions(providers);
-  const plan = providerPlan(courseName, topic);
+  const plan = providerPlan(courseName, topic, {
+    includeOpenAlex: Boolean(providers?.openalex || providers?.searchScholarlyReadings),
+  });
   const rawSources = [];
 
   let rateLimited = false;

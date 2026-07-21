@@ -1,7 +1,7 @@
 {
-  "version": "2026-07-16",
+  "version": "2026-07-21",
   "generator": "curriculumos-foundry-v1",
-  "conceptCount": 284,
+  "conceptCount": 287,
   "shards": [
     {
       "id": "anatomy-intro",
@@ -32,8 +32,8 @@
       "discipline": "chem",
       "level": "intro",
       "path": "chem-intro.json",
-      "conceptCount": 3,
-      "hash": "e5b827b832dcaa7c"
+      "conceptCount": 6,
+      "hash": "118c7792d8fbbe74"
     },
     {
       "id": "cs-intro",
@@ -162,6 +162,18 @@
     "hash": "9edcd75e86f39585"
   },
   "references": {
+    "epa:water-quality-parameters": {
+      "displayTitle": "Factsheets on Water Quality Parameters",
+      "sourceUrl": "https://www.epa.gov/awma/factsheets-water-quality-parameters"
+    },
+    "epa:dissolved-oxygen": {
+      "displayTitle": "Dissolved Oxygen",
+      "sourceUrl": "https://www.epa.gov/caddis/dissolved-oxygen"
+    },
+    "epa:sampling-design": {
+      "displayTitle": "Guidance on Choosing a Sampling Design for Environmental Data Collection",
+      "sourceUrl": "https://www.epa.gov/quality/guidance-choosing-sampling-design-environmental-data-collection-use-developing-quality"
+    },
     "writing-about-literature:reference": {
       "displayTitle": "Writing About Literature",
       "sourceUrl": "https://human.libretexts.org/Bookshelves/Literature_and_Literacy"
@@ -281,38 +293,6 @@
     "w3c:involving-users": {
       "displayTitle": "Involving Users in Evaluating Web Accessibility",
       "sourceUrl": "https://www.w3.org/WAI/test-evaluate/involving-users/"
-    },
-    "omt:texture": {
-      "displayTitle": "Open Music Theory — Texture",
-      "sourceUrl": "https://viva.pressbooks.pub/openmusictheory/chapter/texture/"
-    },
-    "omt:other-notation": {
-      "displayTitle": "Open Music Theory — Other Aspects of Notation",
-      "sourceUrl": "https://viva.pressbooks.pub/openmusictheory/chapter/other-aspects-of-notation/"
-    },
-    "omt:phrase-archetypes": {
-      "displayTitle": "Open Music Theory — The Phrase, Archetypes, and Unique Forms",
-      "sourceUrl": "https://viva.pressbooks.pub/openmusictheory/chapter/phrase-archetypes-unique-forms/"
-    },
-    "omt:modulation": {
-      "displayTitle": "Open Music Theory — Extended Tonicization and Modulation",
-      "sourceUrl": "https://viva.pressbooks.pub/openmusictheory/chapter/extended-tonicization-and-modulation-to-closely-related-keys/"
-    },
-    "digitalgov:journeys": {
-      "displayTitle": "Digital.gov — Map your users’ and system’s journeys",
-      "sourceUrl": "https://digital.gov/guides/research-collaboration/user-needs/journeys"
-    },
-    "digitalgov:user-interaction": {
-      "displayTitle": "Digital.gov — User interactions",
-      "sourceUrl": "https://digital.gov/guides/research-collaboration/designing/user-interaction"
-    },
-    "digitalgov:usability-testing": {
-      "displayTitle": "Digital.gov — Usability testing",
-      "sourceUrl": "https://digital.gov/guides/research-collaboration/testing/usability"
-    },
-    "uswds:step-indicator": {
-      "displayTitle": "U.S. Web Design System — Step indicator",
-      "sourceUrl": "https://designsystem.digital.gov/components/step-indicator/"
     }
   }
 }

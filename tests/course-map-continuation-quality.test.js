@@ -6,6 +6,7 @@ import {
   displayGenerationModelName,
 } from '../src/hooks/useGeneration.js';
 import { findDuplicateLessonTitleGroups, normalizeLessonTitleIdentity } from '../src/lib/lessonTitleIdentity.js';
+import { extractExplicitCoverageTopics } from '../src/lib/explicitLessonSequence.js';
 
 describe('course-map continuation quality', () => {
   it('normalizes numbered titles and common acronym expansions before comparing topics', () => {
@@ -72,5 +73,23 @@ describe('course-map continuation quality', () => {
     expect(prompt).toContain('previous continuation was rejected');
     expect(prompt).toContain('Lesson 1: DNA Structure');
     expect(prompt).toContain('Do not return them again');
+  });
+
+  it('extracts coverage requirements without misclassifying them as a fixed lesson schedule', () => {
+    expect(
+      extractExplicitCoverageTopics(
+        'Cover atmospheric chemistry, water quality, soil contaminants, toxicology, fate and transport, green chemistry, environmental sampling, risk assessment, and environmental justice. Include weekly labs.',
+      ),
+    ).toEqual([
+      'atmospheric chemistry',
+      'water quality',
+      'soil contaminants',
+      'toxicology',
+      'fate and transport',
+      'green chemistry',
+      'environmental sampling',
+      'risk assessment',
+      'environmental justice',
+    ]);
   });
 });

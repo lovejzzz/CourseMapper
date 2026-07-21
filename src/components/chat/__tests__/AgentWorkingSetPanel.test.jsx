@@ -278,6 +278,22 @@ describe('AgentWorkingSetPanel', () => {
     expect(html).not.toContain('Excellent');
   });
 
+  it('names a generation failure as a stopped build instead of a finish review', () => {
+    const props = {
+      courseMap,
+      selectedFeatures: ['courseMap', 'lessonPlans'],
+      deliverables: {},
+      packageQualityPass: { status: 'blocked', blockers: 1 },
+      generationError: 'AI generation failed: Course map generation stopped at 2 of 3 lessons.',
+    };
+    const summary = buildAgentWorkingSetSummary(props);
+    const html = renderToStaticMarkup(<AgentWorkingSetPanel {...props} />);
+
+    expect(summary.packageStatus.label).toBe('Build stopped');
+    expect(html).toContain('Build stopped');
+    expect(html).not.toContain('Review before export');
+  });
+
   it('does not render before the workspace has course or deliverable context', () => {
     const html = renderToStaticMarkup(<AgentWorkingSetPanel deliverables={{}} selectedFeatures={[]} />);
 

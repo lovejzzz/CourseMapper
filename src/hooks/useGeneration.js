@@ -26,7 +26,11 @@ import {
 import { validateCourseMap } from '../lib/validateCourseMap';
 import { preserveMaterializedLessonNumbers } from '../lib/materializedLessonScope';
 import { getScionReviewFailureMessage } from '../lib/scionUserFacingError';
-import { normalizeLessonTitleIdentity } from '../lib/lessonTitleIdentity';
+import { PUBLIC_SCION_PROVIDER_ID } from '../lib/publicScionIdentity';
+import { applyPublicScionBriefDirectives, projectPublicScionCourseMapContinuations } from '../lib/publicScionProvider';
+import { admitCourseMapContinuationLessons, buildCourseMapContinuationPrompt } from '../lib/courseMapContinuation';
+
+export { admitCourseMapContinuationLessons, buildCourseMapContinuationPrompt } from '../lib/courseMapContinuation';
 
 function cellText(value) {
   if (value == null) return '';
@@ -138,95 +142,6 @@ export function constrainHighConfidenceLessonCount(courseMap, expectedInfo) {
 
 export function displayGenerationModelName(provider, modelName) {
   return provider === 'public' || modelName === 'scion-public' ? 'Scion' : modelName;
-}
-
-export function buildCourseMapContinuationPrompt(
-  workingMap,
-  expectedCount,
-  syllabusText = '',
-  colDefs = [],
-  rejectedTopics = [],
-) {
-  const actual = workingMap.lessons.length;
-  const existingTitles = workingMap.lessons.map((lesson, index) => `${index + 1}. ${lesson.title}`).join('\n');
-  const sampleFields = colDefs.map((key) => `"${key}": "..."`).join(', ');
-  let continuationSyllabus;
-  if (syllabusText.length > 20000) {
-    const halfLength = Math.floor(syllabusText.length / 2);
-    continuationSyllabus = syllabusText.slice(Math.max(0, halfLength - 2000));
-  } else {
-    continuationSyllabus = syllabusText;
-  }
-  return `This Course Map has ${actual} of ${expectedCount} lessons.
-
-Existing lessons:
-${existingTitles}
-
-Generate ONLY Lessons ${actual + 1}-${expectedCount}.
-
-RULES:
-- Return one JSON object whose "lessons" array contains only the new lessons.
-- New topics must differ from every existing and new topic; renamed duplicates are forbidden.
-- Compare without lesson numbers and with acronyms expanded (CPI = Consumer Price Index).
-- Split broad topics by an explicit progression such as measurement, causes, policy application, or synthesis, with different objectives.
-- Each lesson needs "title" and "sections".
-- Each section is an object with these keys: ${colDefs.join(', ')}.
-- Use 2-5 sections per lesson. Leave no field empty.
-${
-  rejectedTopics.length > 0
-    ? `- A previous continuation was rejected for repeating these topics: ${rejectedTopics.join('; ')}. Do not return them again.`
-    : ''
-}
-
-FORMAT:
-{"lessons": [{"title": "Lesson ${actual + 1}: Title Here", "sections": [{${sampleFields}}]}]}
-
-LATER SYLLABUS CONTENT:
-${continuationSyllabus}`;
-}
-
-function rebaseContinuationLesson(lesson, lessonNumber) {
-  const rawTitle = String(lesson?.title || '').trim();
-  const topic = rawTitle.replace(/^(?:lesson|week|module)\s*\d+\s*[:.\-–—]?\s*/i, '').trim();
-  if (!topic) return null;
-  const sections = Array.isArray(lesson?.sections)
-    ? lesson.sections.map((section) => {
-        if (!section || typeof section !== 'object') return section;
-        const topicSection = String(section.topicSection || '').replace(
-          /^\s*\d+\.(\d+)\s*[:.\-–—]?\s*/,
-          `${lessonNumber}.$1: `,
-        );
-        return topicSection && topicSection !== section.topicSection ? { ...section, topicSection } : section;
-      })
-    : lesson?.sections;
-  return {
-    ...lesson,
-    title: `Lesson ${lessonNumber}: ${topic}`,
-    ...(sections ? { sections } : {}),
-  };
-}
-
-/**
- * A continuation is untrusted until its topic identity is new. The production
- * Genetics run appended the same deterministic three-lesson response four
- * times, creating a complete-looking 15-row map that could never pass finish.
- */
-export function admitCourseMapContinuationLessons(existingLessons = [], candidateLessons = []) {
-  const seen = new Set(existingLessons.map((lesson) => normalizeLessonTitleIdentity(lesson?.title)).filter(Boolean));
-  const lessons = [];
-  const rejectedTopics = [];
-  for (const candidate of candidateLessons) {
-    const rebased = rebaseContinuationLesson(candidate, existingLessons.length + lessons.length + 1);
-    const identity = normalizeLessonTitleIdentity(rebased?.title);
-    if (!rebased || !identity || seen.has(identity)) {
-      const title = String(candidate?.title || '').trim();
-      if (title) rejectedTopics.push(title);
-      continue;
-    }
-    seen.add(identity);
-    lessons.push(rebased);
-  }
-  return { lessons, rejectedTopics: [...new Set(rejectedTopics)] };
 }
 
 function recordClassifiedFailedCall(recordApiCallEvent, err, event = {}, context = {}) {
@@ -713,12 +628,12 @@ export default function useGeneration({
               `${displayGenerationModelName(useProvider, modelName)} generated ${newCount} of ${expectedCount} lessons…`,
             );
             setStreamProgress(Math.round((newCount / expectedCount) * 85));
-            // Live-merge continuation lessons into preview (normalize flat→nested sections)
-            const liveLessons = normalizeLessons(partial.lessons, colDefs).map((l, idx) => ({
-              ...l,
-              title: l.title || `Lesson ${actual + idx + 1}`,
-            }));
-            setCourseMap({ ...workingMap, lessons: [...workingMap.lessons, ...liveLessons] });
+            // Do not publish streaming continuation rows before topic-identity
+            // admission. A real Scion run briefly showed a repeated tenth
+            // lesson, then failed the admission gate while the untrusted row
+            // remained in React state and made the UI claim 10/10 mapped.
+            // The progress copy can describe the candidate count; the preview
+            // updates only after `admitCourseMapContinuationLessons` accepts it.
           }
         },
         onRetry: (att, max, delay) => {
@@ -751,13 +666,35 @@ export default function useGeneration({
     initialModelName,
     systemPromptOverride,
   ) {
-    const MAX_ATTEMPTS_PER_MODEL = 4;
+    // A deterministic browser model will usually repeat the same bad topic
+    // after focused feedback. Two bounded attempts are enough to use an exact
+    // uncovered source topic and then fail honestly; four identical calls
+    // added minutes without adding a new course-map atom.
+    const MAX_ATTEMPTS_PER_MODEL = 2;
     let workingMap = currentMap;
 
     const model = { id: initialModelId, name: initialModelName, backend: provider, apiKey };
     const modelDisplayName = displayGenerationModelName(provider, model.name);
     setActiveModelName(modelDisplayName);
     let rejectedTopics = [];
+
+    // Source-locked Scion continuations are compiler work, not provider
+    // retries. A public call is intentionally capped at three lessons, so a
+    // ten-lesson map may need more than two deterministic chunks. Project all
+    // exact user-authored chunks first without spending the model retry budget.
+    if (provider === PUBLIC_SCION_PROVIDER_ID) {
+      const projection = projectPublicScionCourseMapContinuations({
+        currentMap: workingMap,
+        expectedCount,
+        buildPrompt: (map, rejected) =>
+          buildCourseMapContinuationPrompt(map, expectedCount, syllabusText, colDefs, rejected),
+        normalizeLessons: (lessons) => normalizeLessons(lessons, colDefs),
+        admitLessons: admitCourseMapContinuationLessons,
+      });
+      workingMap = projection.workingMap;
+      rejectedTopics = projection.rejectedTopics;
+      if (workingMap.lessons.length >= expectedCount) return workingMap;
+    }
 
     for (let attempt = 0; attempt < MAX_ATTEMPTS_PER_MODEL; attempt++) {
       const actual = workingMap.lessons.length;
@@ -1255,6 +1192,12 @@ export default function useGeneration({
                 'warning',
               );
             }
+            setCourseMap(finalResult);
+            courseMapRef.current = finalResult;
+          }
+
+          if (provider === PUBLIC_SCION_PROVIDER_ID) {
+            finalResult = applyPublicScionBriefDirectives(finalResult, combinedText);
             setCourseMap(finalResult);
             courseMapRef.current = finalResult;
           }

@@ -157,7 +157,10 @@ import { parseClassSessionMinutes } from '../sourceBriefConstraints.js';
 // surface before any adapter comparison.
 // 1.10.20 — session-outline timing accepts the ordinary min/mins abbreviations
 // emitted by lesson-plan exporters instead of falsely reading them as 0 min.
-export const GRADER_VERSION = '1.10.24';
+// 1.10.26 — genetics citations are checked against discipline vocabulary such
+// as Mendelian inheritance, Hardy-Weinberg equilibrium, alleles, and genotype;
+// legitimate genetics readings no longer receive a zero-vocabulary warning.
+export const GRADER_VERSION = '1.10.26';
 
 // ── Dimension weights & letter bands (documented in the module header) ──────
 // v0.15.186: texture weight 10 → 25. At 10/120 a fully templated package
@@ -2007,6 +2010,7 @@ function disciplineProbeVocab(probe) {
   if (probe === 'nutrition') return NUTRITION_VOCAB;
   if (probe === 'astro') return ASTRO_VOCAB;
   if (probe === 'business-ethics') return BUSINESS_ETHICS_CITATION_VOCAB;
+  if (probe === 'genetics') return GENETICS_CITATION_VOCAB;
   return [];
 }
 
@@ -2799,6 +2803,16 @@ const BUSINESS_ETHICS_CITATION_VOCAB = [
   'governance',
 ];
 
+// Citation-relevance vocabulary for genetics. Named principles and historical
+// researchers legitimately appear in source titles without repeating the word
+// "genetics" (for example, "Hardy-Weinberg principle"). Keep this citation-
+// only: it prevents a false off-topic warning without creating a discipline
+// density quota for arbitrary biology courses.
+const GENETICS_CITATION_VOCAB =
+  'genetics gene genome DNA RNA inheritance Mendel allele genotype phenotype chromosome meiosis linkage recombination mutation expression Hardy Weinberg epigenetic CRISPR'.split(
+    ' ',
+  );
+
 function inferDisciplineProbe(course) {
   // A course's expectGenome discipline (set in courses.mjs) takes precedence so
   // the probe always matches the genome the round expects.
@@ -2825,6 +2839,7 @@ function inferDisciplineProbe(course) {
   if (/nursing|nurse/.test(text) || course?.id === 'nursing-fundamentals') return 'nursing';
   if (/nutrition|dietetic/.test(text) || course?.id === 'nutrition-101') return 'nutrition';
   if (/business ethics|corporate ethics/.test(text) || course?.id === 'business-ethics') return 'business-ethics';
+  if (/genetic|genomic|heredity|mendel/.test(text) || course?.id === 'genetics') return 'genetics';
   if (
     /astronom|astrophysic|cosmolog|celestial|telescope|night sky|planetary|galax/.test(text) ||
     course?.id === 'astro-101'

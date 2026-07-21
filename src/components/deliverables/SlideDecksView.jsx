@@ -18,6 +18,19 @@ import {
   FEATURE_META,
 } from './shared/SharedComponents';
 
+export function compactSlideThumbnailText(value, maxLength = 44) {
+  const text = String(value || 'Concept')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (text.length <= maxLength) return text;
+
+  const candidate = text.slice(0, maxLength + 1);
+  const lastSpace = candidate.lastIndexOf(' ');
+  const minimumUsefulCut = Math.floor(maxLength * 0.6);
+  const wordSafeCut = lastSpace >= minimumUsefulCut ? candidate.slice(0, lastSpace) : text.slice(0, maxLength);
+  return `${wordSafeCut.trim().replace(/[,:;.!?\-–—]+$/g, '')}…`;
+}
+
 // ─── Slide type detection ───
 function getSlideType(slide, index, deckTitle) {
   if (!slide) return 'content';
@@ -1158,7 +1171,7 @@ function SlideThumbnail({ slide, slideIndex, deckTitle, deckIndex, themeIndex })
               style={{ borderColor: theme.secondary + '40' }}
             >
               <p className="text-[5px] font-bold leading-tight" style={{ color: theme.primary }}>
-                {(bullets[0] || slide?.title || 'Concept').substring(0, 40)}
+                {compactSlideThumbnailText(slide?.title || bullets[0] || 'Concept')}
               </p>
             </div>
           </div>

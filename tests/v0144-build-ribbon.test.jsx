@@ -1130,6 +1130,37 @@ describe('B1 — buildRibbonModel selector', () => {
     expect(model.steps.map((step) => step.status)).not.toContain('active');
   });
 
+  it('renders an incomplete map as a nonterminal error with honest progress and counts', () => {
+    const budget = applyEvents(createApiCallBudget(), [
+      { type: 'reset', runId: 'run-ribbon-incomplete-map' },
+      { type: 'courseMapCall', label: 'Course-map generation' },
+    ]);
+    const model = buildBuildRibbonModel({
+      budget,
+      generation: {
+        progressStep: 'error',
+        isStreaming: false,
+        mappedLessonCount: 9,
+        expectedLessonCount: 10,
+        error: 'AI generation failed: Course map generation stopped at 9 of 10 lessons.',
+      },
+      deliverables: NO_DELIVERABLES,
+      packageQualityPass: { status: 'blocked', blockers: 1 },
+    });
+
+    expect(model.compilerState).toBe('error');
+    expect(model.progressPct).toBeLessThan(100);
+    expect(model.stageLabel).toBe('Course map generation stopped at 9 of 10 lessons.');
+    expect(model.steps.find((step) => step.id === 'map')?.status).toBe('error');
+    expect(model.compilerArtifacts.find((artifact) => artifact.id === 'map')).toMatchObject({
+      value: '9/10 lessons mapped',
+      status: 'error',
+    });
+    expect(model.compilerArtifacts.find((artifact) => artifact.id === 'checks')?.value).toBe(
+      'Not run · course map incomplete',
+    );
+  });
+
   it('verify stage while the finish pass runs — grade still pending', () => {
     const budget = applyEvents(createApiCallBudget(), [
       { type: 'reset', runId: 'run-ribbon-1' },
@@ -1150,6 +1181,27 @@ describe('B1 — buildRibbonModel selector', () => {
     expect(model.stage).toBe('verify');
     expect(model.stageLabel).toBe('Finishing package: checking, repairing, and preparing export...');
     expect(model.steps.map((step) => step.status)).toEqual(['settled', 'settled', 'settled', 'active', 'pending']);
+  });
+
+  it('narrates the bounded compile-to-verify handoff instead of leaving the 75% frame blank', () => {
+    const budget = applyEvents(createApiCallBudget(), [
+      { type: 'reset', runId: 'run-ribbon-handoff' },
+      ...MAP_EVENTS,
+      ...COMPILE_EVENTS,
+    ]);
+    const model = buildBuildRibbonModel({
+      budget,
+      generation: DONE_GENERATION,
+      deliverables: { isGenerating: false, doneCount: 9, totalCount: 9 },
+      packageQualityPass: { status: 'running', phase: 'generation' },
+    });
+
+    expect(model.stage).toBe('verify');
+    expect(model.running).toBe(false);
+    // The UI's monotonic high-water mark preserves the prior 75% compiler
+    // frame; the selector itself truthfully reports the three settled stages.
+    expect(model.progressPct).toBe(66);
+    expect(model.stageLabel).toBe('Preparing package checks');
   });
 
   it('ready: all steps done, pipeline chips from the budget, quiet elapsed + spend', () => {

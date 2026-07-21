@@ -71,13 +71,13 @@ describe('PackageSummaryCard', () => {
 
     expect(html).toContain('Ready to download');
     expect(html).toContain('Done');
-    expect(html).toContain('3 safe repairs applied');
+    expect(html).toContain('3 safe repair passes applied');
     expect(html).toContain('Exports verified');
     expect(html).toContain('Details');
     expect(html).not.toContain('Course source');
     expect(html).not.toContain('Model-generated');
     expect(html).not.toContain('Confirm the official calendar before publication.');
-    expect(html).not.toContain('Auto-fixed: Lesson 2 title; Lesson 4 learning goals');
+    expect(html).not.toContain('Fields adjusted in those passes: Lesson 2 title; Lesson 4 learning goals');
     expect(html).not.toContain('Cost drivers');
     expect(html).not.toContain('Compiled from the course map');
     expect(html).not.toMatch(/\bscore\b/i);

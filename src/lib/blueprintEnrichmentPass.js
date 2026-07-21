@@ -1144,7 +1144,12 @@ export function lintEnrichedKeyTerm(term, { lessonTitle = '', knownFacts = [] } 
 
 export function lintEnrichedSlideContent(slide) {
   const issues = [];
-  if (cleanText(slide?.title).length < 12) issues.push('title-too-short');
+  const title = cleanText(slide?.title);
+  if (title.length < 12) issues.push('title-too-short');
+  if (title.length > 88 || words(title).length > 14) issues.push('title-too-long');
+  if (/\b(?:a|an|and|as|at|by|for|from|in|of|on|or|the|to|with|[a-z])\s*$/i.test(title)) {
+    issues.push('title-incomplete');
+  }
   const bullets = asArray(slide?.bullets).map(cleanText).filter(Boolean);
   if (bullets.length < 2 || bullets.length > 4) issues.push('bullet-count');
   if (bullets.some((bullet) => words(bullet).length > 18)) issues.push('bullet-too-long');
@@ -1516,6 +1521,9 @@ export function lintKernelFact(fact) {
   const text = cleanText(fact);
   if (text.length < 20) issues.push('fact-too-short');
   if (text.split(/\s+/).length > 24) issues.push('fact-too-long');
+  if (/\b(?:a|an|and|as|at|by|for|from|in|of|on|or|the|to|with|[a-z])\s*[.!?]?$/i.test(text)) {
+    issues.push('fact-incomplete');
+  }
   if (META_SURFACE_RE.test(text)) issues.push('meta-fact');
   return issues;
 }
@@ -1873,7 +1881,20 @@ export function parseLessonKernelResponse(text, { prompt, expectedLessonIds } = 
     // language pair makes the remaining core usable without pretending a bad
     // model sentence was repaired or source-verified.
     const targetLanguageFactCore = Boolean(targetLanguagePair && facts.length >= 2);
-    if (keyTerms.length === 0 && mc.length === 0 && !exactSourceLedgerFacts && !targetLanguageFactCore) {
+    // The public base now authors a compact fact ledger before the compiler
+    // owns teaching-surface projection. Keep three or more canonically clean
+    // ordinary facts even when one sibling fact was quarantined. Discarding
+    // the whole lesson because keyTerms/MC were intentionally absent turned a
+    // single truncated sentence into 0/N knowledge coverage and another full
+    // model retry. Explicit source ledgers remain exact-match only.
+    const standardFactCore = factContract.mode !== 'numbered-source-ledger-v1' && facts.length >= 3;
+    if (
+      keyTerms.length === 0 &&
+      mc.length === 0 &&
+      !exactSourceLedgerFacts &&
+      !targetLanguageFactCore &&
+      !standardFactCore
+    ) {
       // The whole lesson falls back to template — say so with a row of its
       // own, not just the per-atom rows above (which only count atoms).
       issues.push({
@@ -1904,6 +1925,15 @@ export function parseLessonKernelResponse(text, { prompt, expectedLessonIds } = 
         reason: 'target-language-fact-core',
         atomIssueCount: issues.length - issueCountAtEntryStart,
         problems: ['invalid-fact-atoms-dropped'],
+      });
+    } else if (standardFactCore && keyTerms.length === 0 && mc.length === 0) {
+      issues.push({
+        lessonId,
+        surface: 'lesson',
+        index: entryIndex,
+        reason: 'compiler-fact-core',
+        atomIssueCount: issues.length - issueCountAtEntryStart,
+        problems: ['compiler-projected-from-admitted-facts'],
       });
     }
 

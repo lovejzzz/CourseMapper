@@ -113,6 +113,47 @@ describe('Scion browser-local provider', () => {
     expect(onToken).toHaveBeenCalled();
   });
 
+  it('enforces an exact source-backed final topic before continuation admission', async () => {
+    const repeated = JSON.stringify({
+      lessons: [
+        {
+          title: 'Lesson 1: Environmental Justice',
+          sections: [{ topicSection: '1.1: Environmental Justice' }],
+        },
+      ],
+    });
+    const runtime = runtimeWith([repeated]);
+    const prompt = `This Course Map has 9 of 10 lessons.
+
+Existing lessons:
+1. Lesson 1: Atmospheric Chemistry
+2. Lesson 2: Water Quality
+3. Lesson 3: Soil Contaminants
+4. Lesson 4: Toxicology
+5. Lesson 5: Fate and Transport
+6. Lesson 6: Green Chemistry
+7. Lesson 7: Environmental Sampling
+8. Lesson 8: Risk Assessment
+9. Lesson 9: Environmental Justice
+
+Generate ONLY Lessons 10-10.
+
+LATER SYLLABUS CONTENT:
+Create an Environmental Chemistry course with 10 lessons. Cover atmospheric chemistry, water quality, soil contaminants, toxicology, fate and transport, green chemistry, environmental sampling, risk assessment, and environmental justice. Include a midterm and a cumulative final exam.`;
+
+    const result = await runScionLocalCompletion({
+      userPrompt: prompt,
+      task: 'course-map',
+      runtimeLoader: async () => runtime,
+    });
+
+    expect(result.repairs).toContain('course-map-topic-plan');
+    expect(JSON.parse(result.fullText).lessons[0]).toMatchObject({
+      title: 'Lesson 10: Cumulative Final Exam',
+      sections: [{ topicSection: '10.1: Cumulative Final Exam' }],
+    });
+  });
+
   it('retries only incomplete kernel envelopes with bounded temperature escalation', async () => {
     const runtime = runtimeWith(['{"lessons":[]}', completeKernelResponse()]);
     const delays = [];
@@ -366,6 +407,45 @@ describe('Scion browser-local provider', () => {
     expect(runtime.completeScionBrowserWllama).toHaveBeenCalledTimes(1);
     expect(result).toMatchObject({ attempt: 1, retryCount: 0, contractIncomplete: true });
     expect(result.admissionIssues).toEqual(expect.arrayContaining(['lesson-5:fact-2:meta-fact']));
+  });
+
+  it('keeps three clean ordinary facts after one bad fact instead of retrying the whole lesson', async () => {
+    const route = {
+      mode: 'base-only',
+      taskFamily: 'lesson-kernel-synthesis',
+      reason: 'no-adapter-installed',
+      adapterId: null,
+      nativeAdapterActive: false,
+    };
+    const ledger = JSON.stringify({
+      lessons: [
+        {
+          lessonId: 'lesson-4',
+          facts: [
+            'Affinity mapping groups related observations into visible patterns.',
+            'Cluster labels summarize patterns without replacing the underlying observations.',
+            'Outliers remain visible when they do not fit a supported pattern.',
+            'Teams revisit cluster boundaries when new evidence changes the pattern.',
+            'an unfinished sentence about',
+          ],
+        },
+      ],
+    });
+    const runtime = runtimeWith([ledger], { route, plannedRoute: route });
+
+    const result = await runScionLocalCompletion({
+      userPrompt:
+        'Course: Design\nLessons:\n[{"lessonId":"lesson-4","title":"Affinity Mapping"}]\nReturn ONLY valid JSON.',
+      task: 'blueprintEnrichment',
+      promptProtocol: 'production-lesson-kernel-synthesis-prompt-v1',
+      maxRetries: 2,
+      runtimeLoader: async () => runtime,
+      sleep: async () => {},
+    });
+
+    expect(runtime.completeScionBrowserWllama).toHaveBeenCalledTimes(1);
+    expect(result).toMatchObject({ attempt: 1, retryCount: 0, contractIncomplete: true });
+    expect(result.admissionIssues).toContain('lesson-4:fact-4:truncated-fact');
   });
 
   it('uses the conditional synthesis retry when the first grounded-stage fact ledger is invalid', async () => {

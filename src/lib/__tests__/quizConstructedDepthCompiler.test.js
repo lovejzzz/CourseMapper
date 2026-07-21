@@ -162,7 +162,7 @@ describe('constructed-response compiler depth', () => {
     expect(items.every((item) => item.enrichmentSource !== 'source-bound-recovery')).toBe(true);
     expect(items.every((item) => item.sourceReviewRequired !== true)).toBe(true);
     expect(multipleChoice).toHaveLength(4);
-    expect(multipleChoice.filter((item) => isAppliedQuizStem(item.question))).toHaveLength(2);
+    expect(multipleChoice.filter((item) => isAppliedQuizStem(item.question))).toHaveLength(3);
     expect(
       multipleChoice.flatMap((item) =>
         lintItemAdmission({

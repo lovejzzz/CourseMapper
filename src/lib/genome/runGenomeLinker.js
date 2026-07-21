@@ -280,11 +280,23 @@ export function runGenomeLinker({
     const lesson = courseMap?.lessons?.[lessonIndex];
     if (!lesson) continue;
     const lessonId = lessonIdFor(lessonIndex);
+    const refs = byLesson.get(lessonIndex)?.conceptRefs || [];
+    const conceptKernels = refs.map((ref) => library.getKernel(ref.id)).filter(Boolean);
+    // A complete source-backed composition is a stronger reusable artifact
+    // than an older model-only cache entry. Three cited concepts satisfy the
+    // same breadth floor the composer uses for three key terms, so newly
+    // shipped genome coverage can upgrade a previously generated course
+    // instead of being hidden forever behind its local cache.
+    const hasCompleteGenomeCandidate = conceptKernels.length >= FULL_RESOLUTION_MIN_KEY_TERMS;
 
     // Tier 1 — own-kernel cache (same course regenerated/revised).
     const cached = cache?.get ? cache.get(lesson) : null;
     const titleSafeCached = cached ? sanitizeLessonTitleEchoEnrichment(lesson, cached).enrichment : null;
-    if (titleSafeCached && respectsCourseLanguage(courseMap?.courseName, titleSafeCached)) {
+    const titleSafeCacheAllowed =
+      titleSafeCached &&
+      respectsCourseLanguage(courseMap?.courseName, titleSafeCached) &&
+      (isGenomeBackedPayload(titleSafeCached) || !hasCompleteGenomeCandidate);
+    if (titleSafeCacheAllowed) {
       lessonContent[lessonId] = {
         ...titleSafeCached,
         enrichmentSource: titleSafeCached.enrichmentSource || 'own-kernel-cache',
@@ -293,11 +305,11 @@ export function runGenomeLinker({
       if (isGenomeBackedPayload(titleSafeCached)) telemetry.cachedGenomeBacked += 1;
       continue;
     }
-    if (cached) telemetry.languageIdentityRejects += 1;
+    if (cached && titleSafeCached && !respectsCourseLanguage(courseMap?.courseName, titleSafeCached)) {
+      telemetry.languageIdentityRejects += 1;
+    }
 
     // Tier 2 — genome concept composition.
-    const refs = byLesson.get(lessonIndex)?.conceptRefs || [];
-    const conceptKernels = refs.map((ref) => library.getKernel(ref.id)).filter(Boolean);
     if (conceptKernels.length > 0) {
       const composed = composeLessonFromConcepts(
         conceptKernels,

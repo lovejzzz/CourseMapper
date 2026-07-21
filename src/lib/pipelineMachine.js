@@ -20,6 +20,7 @@
  *   grading    deterministic package quality grading runs
  *   ready      finish pass completed clean
  *   blocked    finish pass completed with blockers (reason carried)
+ *   error      course-map generation stopped before the requested map existed
  *   lull       between phases (e.g. map done, deliverables not started) —
  *              state carries the NEXT pending stage; running is false
  *
@@ -78,7 +79,7 @@ function isEnrichmentActivity(event) {
  * the ONE pipeline truth every surface renders.
  *
  * @returns {{
- *   state: 'idle'|'syncing'|'mapping'|'enriching'|'compiling'|'verifying'|'grading'|'ready'|'blocked'|'lull',
+ *   state: 'idle'|'syncing'|'mapping'|'enriching'|'compiling'|'verifying'|'grading'|'ready'|'blocked'|'error'|'lull',
  *   running: boolean,
  *   nextStep: string|null,          // lull only: the first not-done step id
  *   done: { map, enrich, compile, verify, grade },
@@ -94,6 +95,12 @@ export function derivePipelineState({
   sync = null,
 } = {}) {
   const finishStatus = packageQualityPass?.status || 'idle';
+  const expectedLessonCount = Math.max(0, Number(generation.expectedLessonCount) || 0);
+  const mappedLessonCount = Math.max(0, Number(generation.mappedLessonCount) || 0);
+  const generationFailed =
+    generation.progressStep === 'error' &&
+    (expectedLessonCount > mappedLessonCount ||
+      /stopped at\s+\d+\s+of\s+\d+\s+lessons/i.test(String(generation.error || '')));
   const mapRunning = Boolean(generation.isStreaming) || MAP_RUNNING_STEPS.has(generation.progressStep);
   const delivRunning = Boolean(deliverables.isGenerating);
   const syncRunning = Boolean(sync?.isSyncing);
@@ -106,10 +113,12 @@ export function derivePipelineState({
   const totalCount = Number(deliverables.totalCount) || 0;
   const grading = finishRunning && packageQualityPass?.phase === 'grade';
   const done = {
-    map: generation.progressStep === 'done' || delivRunning || finishRunning || finishComplete,
-    compile: finishComplete || finishRunning || (totalCount > 0 && doneCount >= totalCount && !delivRunning),
-    verify: finishComplete || grading,
-    grade: finishComplete && Boolean(packageQualityPass?.quality),
+    map: !generationFailed && (generation.progressStep === 'done' || delivRunning || finishRunning || finishComplete),
+    compile:
+      !generationFailed &&
+      (finishComplete || finishRunning || (totalCount > 0 && doneCount >= totalCount && !delivRunning)),
+    verify: !generationFailed && (finishComplete || grading),
+    grade: !generationFailed && finishComplete && Boolean(packageQualityPass?.quality),
   };
   done.enrich = done.compile || Boolean(budget.enrichmentOutcome);
 
@@ -134,6 +143,9 @@ export function derivePipelineState({
     return { ...base, state: 'compiling', activity: activity || null };
   }
   if (finishRunning) return { ...base, state: grading ? 'grading' : 'verifying' };
+  if (generationFailed) {
+    return { ...base, state: 'error', running: false, blockedReason: 'course map incomplete' };
+  }
   if (finishComplete) {
     if (finishStatus === 'blocked') {
       const blockers = Number(packageQualityPass?.blockers) || 0;
@@ -169,6 +181,7 @@ export function deriveStepStatuses(pipeline) {
     syncing: null,
     ready: null,
     blocked: null,
+    error: null,
     idle: null,
     lull: null,
   };

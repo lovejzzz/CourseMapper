@@ -2,7 +2,21 @@
 
 **Architecture:** public Gemma 4 E2B base + small Scion adapter + Scion compiler = Scion Vx
 
-**Status:** the exact-QAT base, hash-bound training and conversion chain, browser adapter lifecycle, source-strict semantic compiler gates, frozen holdout firewall, and paired-order preference protocol are implemented. The research corpus still contains 102 qualified source-grounded preferences and rebuilds into 100 group-isolated production rows across seven domains. One real 200-iteration adapter run lowered validation loss, and a later five-course diagnostic reduced inference burden, but neither established a held-out quality win; the candidate remains inactive. V0.16.64 repairs the reproduced Genetics production failure with compact fact-ledger synthesis, duplicate-safe continuation, verified draft export, and a smaller landing graph. The exact browser replay is materially faster and returns its ZIP, but it is still 89/B and not publish-ready.
+**Status:** the exact-QAT base, hash-bound training and conversion chain, browser adapter lifecycle, source-strict semantic compiler gates, frozen holdout firewall, and paired-order preference protocol are implemented. The research corpus still contains 102 qualified source-grounded preferences and rebuilds into 100 group-isolated production rows across seven domains. One real 200-iteration adapter run lowered validation loss, and a later five-course diagnostic reduced inference burden, but neither established a held-out quality win; the candidate remains inactive. V0.16.65 extends the V0.16.64 production recovery into a source-anchored Environmental Chemistry browser proof: 39 seconds with 10/10 kernels, 9/9 materials, 99/A quality, texture 94, a course-evidence Agent fast path, and 25/25 real export scenarios. Gemma weights are unchanged; the measured lift remains compiler, orchestration, UX, and export work.
+
+## V0.16.65 — Turn a Failed Run Into a Living Course
+
+**Goal:** prove that the architecture which recovered the 29-minute Genetics failure works on a new domain, remove every visible defect exposed by the frame audit, and make supported Agent questions immediate without weakening evidence boundaries.
+
+**New-domain proof:** a source-anchored Environmental Chemistry shard covers atmospheric chemistry, water quality, and the requested environmental course arc. The exact browser brief produces ten distinct lessons, weekly evidence-based lab analyses, a Lesson 5 midterm, and a Lesson 10 cumulative final. A cached-base run reaches ready in 39 seconds with 10/10 admitted knowledge kernels, 9/9 material families, 99/A quality, texture 94, and zero visible quality findings.
+
+**Compiler quality:** assessment identity remains exact in the Course Map and headings, while lesson-plan prose uses concise week-scoped lab references. Equivalent resources deduplicate canonically, syllabus delivery language is sentence-cased, incomplete knowledge tails are refused, and slide thumbnails shorten at word boundaries. Lesson-aware readiness, feedback, rubric, and distractor variants remove every repeated-boilerplate warning from the 5/8/14-lesson messy-import stress matrix.
+
+**Agent path:** explicit read-only questions that name one lesson and a comparison pair already present in compiled course evidence return directly from the course content index. Missing lesson identity, unsupported synthesis, edit intent, or an absent pair refuses the fast path and continues through the normal Scion Agent route. The browser-verified Lesson 2 question correctly compares dissolved oxygen and temperature without starting another local generation.
+
+**Export proof:** the Chromium export suite passes 25/25 ZIP, DOCX, CSV, PPTX, scope, draft-with-notes, auto-repair, and failure-blocking scenarios. Physical archive validity is independent of editorial publish readiness, so a safe draft can be downloaded with its notes instead of losing completed work.
+
+**Release Boundary:** the complete unit surface covers 5,375 tests, but this is one bounded browser course—not factual verification, instructor approval, classroom evidence, or a promise that every run earns 99/A. Gemma weights are unchanged; the roughly 105 MB research adapter is inactive until an exact-lineage candidate beats base-only Scion on the frozen multi-domain ruler with no unacceptable inference, download, memory, or latency regression.
 
 ## V0.16.64 — Make Every Build Return Its Work
 

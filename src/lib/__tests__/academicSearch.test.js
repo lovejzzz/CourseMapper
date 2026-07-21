@@ -52,30 +52,34 @@ describe('reconstructAbstract', () => {
 // ── searchPapers ─────────────────────────────────────────────────────────────
 
 describe('searchPapers', () => {
-  const openAlexFixture = {
-    results: [
-      {
-        id: 'W123',
-        display_name: 'Test Paper',
-        authorships: [{ author: { display_name: 'Alice' } }, { author: { display_name: 'Bob' } }],
-        publication_year: 2023,
-        cited_by_count: 42,
-        doi: 'https://doi.org/10.1234/test',
-        primary_location: { landing_page_url: 'https://example.com/paper' },
-        abstract_inverted_index: { This: [0], is: [1], abstract: [2] },
-      },
-    ],
+  const crossrefFixture = {
+    message: {
+      items: [
+        {
+          title: ['Test Paper'],
+          author: [
+            { given: 'Alice', family: 'Scholar' },
+            { given: 'Bob', family: 'Writer' },
+          ],
+          'published-print': { 'date-parts': [[2023]] },
+          'is-referenced-by-count': 42,
+          DOI: '10.1234/test',
+          URL: 'https://doi.org/10.1234/test',
+          abstract: '<jats:p>This is abstract</jats:p>',
+        },
+      ],
+    },
   };
 
-  it('returns parsed papers from OpenAlex response', async () => {
+  it('returns parsed papers from the backend-free Crossref response', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
-      json: async () => openAlexFixture,
+      json: async () => crossrefFixture,
     });
     const { papers } = await searchPapers('bloom taxonomy');
     expect(papers).toHaveLength(1);
     expect(papers[0].title).toBe('Test Paper');
-    expect(papers[0].authors).toBe('Alice, Bob');
+    expect(papers[0].authors).toBe('Alice Scholar, Bob Writer');
     expect(papers[0].year).toBe(2023);
     expect(papers[0].citationCount).toBe(42);
     expect(papers[0].abstract).toBe('This is abstract');
@@ -435,23 +439,21 @@ describe('executeResearch', () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({
-        results: [
-          {
-            id: 'W999',
-            display_name: 'Research Paper',
-            authorships: [{ author: { display_name: 'Researcher' } }],
-            publication_year: 2024,
-            cited_by_count: 5,
-            doi: null,
-            primary_location: null,
-            abstract_inverted_index: null,
-          },
-        ],
+        message: {
+          items: [
+            {
+              title: ['Research Paper'],
+              author: [{ given: 'Rae', family: 'Searcher' }],
+              published: { 'date-parts': [[2024]] },
+              'is-referenced-by-count': 5,
+            },
+          ],
+        },
       }),
     });
     const result = await executeResearch({ query: 'test topic', sources: ['papers'] });
     expect(result.results).toHaveLength(1);
-    expect(result.results[0].source).toBe('OpenAlex');
+    expect(result.results[0].source).toBe('CrossRef');
     expect(result.results[0].items).toHaveLength(1);
     expect(result.results[0].items[0].title).toBe('Research Paper');
   });
@@ -459,11 +461,11 @@ describe('executeResearch', () => {
   it('defaults to papers when no sources specified', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ results: [] }),
+      json: async () => ({ message: { items: [] } }),
     });
     const result = await executeResearch({ query: 'test' });
     expect(result.results).toHaveLength(1);
-    expect(result.results[0].source).toBe('OpenAlex');
+    expect(result.results[0].source).toBe('CrossRef');
   });
 
   it('includes formatted citations for DOI-backed results without extra network calls', async () => {

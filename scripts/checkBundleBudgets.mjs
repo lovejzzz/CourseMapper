@@ -88,6 +88,8 @@ const lazyChunkBudgets = [
   // 69.6 KiB raw. The one-field post-build marker did not grow this chunk;
   // move the stale ratchet to 70/22 without granting feature-growth room.
   { prefix: 'livingCompilerRibbon-', rawKiB: 70, gzipKiB: 22 },
+  { prefix: 'livingCompilerFailure-', rawKiB: 3, gzipKiB: 2 },
+  { prefix: 'courseMapContinuation-', rawKiB: 5, gzipKiB: 3 },
   // v0.9.0: +12 KiB raw / +4 KiB gzip for the course-native agent (content
   // index + renderer reuse, digest card, journal — measured at 341.0 KiB raw
   // / 92.8 gzip). Deliberate feature growth; gzip headroom unchanged.
@@ -161,6 +163,9 @@ const lazyChunkBudgets = [
   // gzip at the existing 8 KiB ceiling; it eliminates the live exported-docx
   // mail-merge repetition that motivated the new branch.
   { prefix: 'compilerCopyVariants-', rawKiB: 23, gzipKiB: 8 },
+  // v0.16.65: varied assessment and material-polish copy moved out of the
+  // compiler hot chunk. This compile-only leaf stays independently cacheable.
+  { prefix: 'compilerPolish-', rawKiB: 8, gzipKiB: 3 },
   { prefix: 'DeliverableView-', rawKiB: 170, gzipKiB: 35 },
   { prefix: 'DeveloperModePanel-', rawKiB: 130, gzipKiB: 35 },
   // v0.9.1: +3 KiB raw for the pre-export checklist (localization gaps +
@@ -209,8 +214,11 @@ const forbiddenInitialChunks = [
   // this off landing; lock that behavior so a bundler change cannot silently
   // restore the extra startup download.
   /livingCompilerRibbon/i,
+  /livingCompilerFailure/i,
+  /courseMapContinuation/i,
   /compilerFrames/i,
   /compilerCopyVariants/i,
+  /compilerPolish/i,
   /webllm/i,
   /deepQualityGrader/i,
   /finalizeQualityGate/i,

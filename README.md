@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.64
+**Current release:** v0.16.65
 
 ---
 
@@ -31,11 +31,19 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.64**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts a new foundation model. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
+The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.65**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts a new foundation model. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
+
+In plain language, **Scion Vx is the whole local authoring system, not just the base model**:
+
+```text
+public Gemma 4 E2B base + optional integrity-checked Scion adapter + Scion compiler → Scion Vx
+```
+
+Today the adapter term is infrastructure only: the trained research adapter has not beaten the pinned base on the frozen held-out ruler and is inactive. Users download the public base from its immutable source; Course Mapper does not host a second copy of Gemma or change its weights. The compiler is where the current production quality lift lives—course identity, source linking, semantic admission, lesson sequencing, deterministic teaching-material compilation, repetition control, grading, Agent course evidence, and export recovery. Those shared stages also improve compatible paid-model output. Browser download, WebGPU inference, local caching, and browser-runtime recovery remain specific to Scion.
 
 ### Adapter work in progress
 
-The V0.16.64 research corpus remains beyond its first real training threshold: 102 qualified source-grounded preferences rebuild into 100 usable production rows, split by complete course group across seven domains. One 200-iteration adapter training run completed against the pinned Gemma base, reduced validation loss from 1.555 to 1.089, and produced a 105 MB learned delta. That artifact is **not** a quality win and is not active on the website.
+The V0.16.65 research corpus remains beyond its first real training threshold: 102 qualified source-grounded preferences rebuild into 100 usable production rows, split by complete course group across seven domains. One 200-iteration adapter training run completed against the pinned Gemma base, reduced validation loss from 1.555 to 1.089, and produced a 105 MB learned delta. That artifact is **not** a quality win and is not active on the website.
 
 The first live held-out attempt found an evaluation error before a score could be claimed. Every training row transformed a supplied three-to-five-fact source ledger, while the old broad `lesson-kernel` route also asked the adapter to invent the initial facts. The run was stopped: ten lesson requests expanded into 52 native generations, and the adapter repeatedly produced truncated or conflicting kernels outside its learned distribution. Scion now records that attempt as a failed diagnostic rather than a benchmark result.
 
@@ -50,6 +58,14 @@ A fresh full package still grades **89/B** with zero P0, two P1, and one P2 find
 The rejected whole-kernel pairing gate remains rejected: it regressed coverage to 5/15. Pair visibility will be repaired at the compiler projection layer; it will not be allowed to discard otherwise-admitted lesson knowledge.
 
 ### Living Course Compiler
+
+V0.16.65 follows the production failure all the way to a new course rather than stopping at a code-level repair. The attached V0.16.61 Genetics log ran for 1,756,578 ms, made 64 browser-local provider requests and 38 stream retries, admitted only three repeated topic identities across 15 lessons, linked zero genome concepts, grounded 13.9% of the package, and disabled ZIP download even after 38/38 file checks passed. The failure had several causes: continuation lost the prior lesson boundary, the small model was repeatedly asked for compiler-owned structure, a mismatched genome shard contributed no concepts, and the UI treated editorial review and physical archive validity as the same state.
+
+The replacement architecture spends model time on compact knowledge. Scion retains usable facts and stronger complete sections across partial attempts, freezes admitted facts, and compiles nine teaching-material families locally. Continuations reject duplicate lesson identities before canonical admission. Verified drafts remain downloadable with their review notes instead of being trapped behind a publish-readiness message. The built-in Agent can answer conservative explicit lesson comparisons directly from compiled course evidence, avoiding another model run when the answer already exists.
+
+A fresh cached-base Environmental Chemistry browser build completed in **39 seconds** with **10 distinct lessons**, **10/10 lesson kernels**, **9/9 material families**, **99/A quality**, and **texture 94**. The course preserves weekly evidence-based labs, a Lesson 5 midterm, and a Lesson 10 cumulative final. Frame-level inspection caught and removed a severed slide-thumbnail word, broken lesson-plan prose caused by long assessment titles, duplicate-equivalent materials, lowercase delivery language, and repeated stress-fixture feedback and distractor templates. The Chromium export suite passes **25/25** ZIP, DOCX, CSV, PPTX, scope, repair, and blocking scenarios; the complete unit suite covers **5,375 tests**. The evidence receipt is `docs/evidence/SCION_V01665_PRODUCTION_LOG_RECOVERY.json`.
+
+This is a measured compiler, orchestration, Agent, UX, and export improvement—not proof that Gemma's weights changed, that the research adapter is better, that every generated fact is correct, or that every course will score 99/A. The adapter remains inactive. Compatible paid-model routes inherit the shared compiler improvements; Scion additionally provides the no-key browser-local runtime.
 
 V0.16.64 fixes a production failure in which a 15-lesson Genetics request ran for 29 minutes, made 64 provider requests, repeated the same three lesson identities five times, passed all 38 physical export checks, and still left the ZIP button disabled. Course-map continuation now receives the real prior lesson titles, stays on the `course-map` task route, rejects duplicate candidates before they enter the canonical map, renumbers accepted lessons, and feeds rejected topics back into the next bounded attempt.
 

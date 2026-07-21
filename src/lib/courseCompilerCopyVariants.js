@@ -5,7 +5,7 @@ function variantIndex(lessonNumber, length) {
   return (Math.max(1, ordinal) - 1) % length;
 }
 
-function selectVariant(lessonNumber, variants) {
+export function selectVariant(lessonNumber, variants) {
   return variants[variantIndex(lessonNumber, variants.length)];
 }
 
@@ -227,43 +227,6 @@ export function examAtomPaddingOptions({ concept, lessonFocus, sourceCue, lesson
   );
 }
 
-export function examFactCopy({ lessonNumber, assessmentTitle, lessonFocus, answer }) {
-  return {
-    intendedUse: selectVariant(lessonNumber, [
-      `Summative accuracy item on ${assessmentTitle}; students separate the authored ${lessonFocus} fact from documented misconceptions.`,
-      `Use in ${assessmentTitle} to distinguish the supported ${lessonFocus} claim from familiar but incorrect alternatives.`,
-      `${assessmentTitle} accuracy check: identify which ${lessonFocus} statement the course evidence actually supports.`,
-      `Summative ${lessonFocus} check for ${assessmentTitle}; students rule out documented misconceptions with course evidence.`,
-      `Use this ${assessmentTitle} item to test whether students can recognize an evidence-backed ${lessonFocus} claim.`,
-      `${assessmentTitle} concept check: separate the admitted ${lessonFocus} fact from unsupported interpretations.`,
-    ]),
-    question: selectVariant(lessonNumber, [
-      `Which statement about ${lessonFocus} is accurate, according to the course materials?`,
-      `Which option matches the course's supported account of ${lessonFocus}?`,
-      `Based on the course evidence, which claim about ${lessonFocus} is defensible?`,
-      `Which claim correctly represents ${lessonFocus} in this course?`,
-      `Select the statement about ${lessonFocus} that the assigned materials support.`,
-      `Which description of ${lessonFocus} aligns with the evidence used in class?`,
-    ]),
-    distractorRationale: selectVariant(lessonNumber, [
-      `The wrong options preserve documented misconceptions from covered lessons; only one option states the admitted ${lessonFocus} fact.`,
-      `Each distractor is a recorded misconception or a claim about a different lesson, while the key matches the ${lessonFocus} evidence.`,
-      `Incorrect choices sound course-relevant but conflict with the admitted ${lessonFocus} fact or apply another lesson's idea.`,
-      `The distractors test whether students can reject familiar ${lessonFocus} errors instead of choosing by vocabulary alone.`,
-      `Wrong answers reuse documented misunderstandings; the keyed statement is the one supported by the ${lessonFocus} source atom.`,
-      `Only the key survives comparison with the admitted ${lessonFocus} evidence; the alternatives preserve known misconceptions.`,
-    ]),
-    explanation: selectVariant(lessonNumber, [
-      `${answer} gives the admitted ${lessonFocus} fact; the remaining choices conflict with the course evidence.`,
-      `The course materials support ${answer} for ${lessonFocus}, while the alternatives reproduce misconceptions or unrelated claims.`,
-      `${answer} matches the evidence-backed account of ${lessonFocus}; each other option fails that source check.`,
-      `Choose ${answer} because it represents ${lessonFocus} as taught; the distractors preserve documented errors.`,
-      `The admitted ${lessonFocus} evidence uniquely supports ${answer}, not the competing interpretations.`,
-      `${answer} is consistent with the course's ${lessonFocus} fact set; the other statements are unsupported here.`,
-    ]),
-  };
-}
-
 export function titleSlideOpening({ lessonNumber, displayTitle, concepts, artifact }) {
   return selectVariant(lessonNumber, [
     `Frame ${displayTitle} as a working session on ${concepts}, with ${artifact} as the visible product.`,
@@ -311,7 +274,7 @@ export function studyGuideArtifactConnection({ lessonNumber, lessonTitle, studyA
 export function studyGuideCoreQuestion({ lessonNumber, lessonFocus, week, evidenceNoun, sourceCue }) {
   return selectVariant(lessonNumber, [
     `How would you explain the central idea of ${lessonFocus} for ${week} using ${evidenceNoun} from ${sourceCue}?`,
-    `Which claim about ${lessonFocus} can you defend from ${sourceCue}, and what ${evidenceNoun} makes it credible for ${week}?`,
+    `Which claim about ${lessonFocus} can you defend from ${sourceCue}, and which evidence makes it credible for ${week}?`,
     `Using ${sourceCue}, trace the ${evidenceNoun} that changes your interpretation of ${lessonFocus} in ${week}.`,
     `What does ${sourceCue} establish about ${lessonFocus}? Explain the reasoning and one limit of that ${week} claim.`,
     `For ${week}, compare two details in ${sourceCue} and decide which better explains ${lessonFocus}.`,

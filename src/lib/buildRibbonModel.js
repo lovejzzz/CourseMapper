@@ -24,6 +24,7 @@ import { getApiCallBudgetTotal } from './apiCallBudget';
 // this module is now a RENDER of machine state (labels, chips, cost), and
 // re-derives no phase truth of its own.
 import { derivePipelineState, deriveStepStatuses } from './pipelineMachine';
+import { buildRibbonFailureState, preparingRibbonStageLabel } from './buildRibbonFailureModel';
 
 // "9, 10, 11, 12" → "9–12"; non-contiguous lists keep the comma form.
 export function formatLessonRange(listText = '') {
@@ -225,7 +226,8 @@ function isKnowledgeProgressEvent(event) {
   );
 }
 
-function artifactStatus({ active = false, done = false, settled = false, warn = false } = {}) {
+function artifactStatus({ active = false, done = false, settled = false, warn = false, error = false } = {}) {
+  if (error) return 'error';
   if (warn) return 'warn';
   if (active) return 'active';
   if (done) return 'done';
@@ -395,6 +397,8 @@ export function buildLivingCompilerArtifacts({
   const scionRuntime = generation.scionRuntimeStatus || {};
   const scionPreparing =
     generation.isScion && ['loading-runtime', 'loading-model'].includes(String(scionRuntime.phase || ''));
+  const generationFailed = pipeline?.state === 'error';
+  const failure = generationFailed ? buildRibbonFailureState({ generation, mappedLessonCount }) : null;
   const mappingLesson = Math.max(
     0,
     Number(String(generation.streamDetail || '').match(/(?:Mapping|Starting)\s+Lesson\s+(\d+)/i)?.[1]) || 0,
@@ -408,7 +412,7 @@ export function buildLivingCompilerArtifacts({
         ? `Mapping lesson ${mappingLesson} · ${Math.max(mappedLessonCount, mappingLesson)} mapped so far`
         : 'Mapping in progress';
   } else if (mappedLessonCount > 0) {
-    mapValue = `${mappedLessonCount} lesson${mappedLessonCount === 1 ? '' : 's'} mapped`;
+    mapValue = failure?.partialMapValue || `${mappedLessonCount} lesson${mappedLessonCount === 1 ? '' : 's'} mapped`;
   } else if (pipeline?.done?.map) mapValue = 'Mapped';
 
   const knowledgeParts = [];
@@ -420,7 +424,8 @@ export function buildLivingCompilerArtifacts({
       : knowledgeParts.join(' · ') || (pipeline?.done?.enrich ? 'Knowledge pass complete' : 'Waiting');
 
   let checksValue = 'Waiting';
-  if (finishStatus === 'blocked') checksValue = `${blockers || 1} blocker${blockers === 1 ? '' : 's'} to review`;
+  if (generationFailed) checksValue = 'Not run · course map incomplete';
+  else if (finishStatus === 'blocked') checksValue = `${blockers || 1} blocker${blockers === 1 ? '' : 's'} to review`;
   else if (finishStatus === 'ready') checksValue = grade ? `Verified · Grade ${grade}` : 'Verified';
   else if (pipeline?.state === 'grading') checksValue = 'Grading package';
   else if (pipeline?.state === 'verifying') checksValue = 'Checking and repairing';
@@ -434,6 +439,7 @@ export function buildLivingCompilerArtifacts({
         active: !scionPreparing && pipeline?.state === 'mapping',
         done: terminalReady && pipeline?.done?.map,
         settled: !scionPreparing && pipeline?.done?.map,
+        error: generationFailed,
       }),
     },
     {
@@ -466,7 +472,7 @@ export function buildLivingCompilerArtifacts({
       status: artifactStatus({
         active: ['verifying', 'grading'].includes(pipeline?.state),
         done: finishStatus === 'ready',
-        warn: finishStatus === 'blocked',
+        warn: !generationFailed && finishStatus === 'blocked',
       }),
     },
   ];
@@ -488,6 +494,8 @@ export function deriveRibbonProgress({ pipeline, budget = {}, generation = {}, d
   }
   const state = pipeline?.state || 'idle';
   if (state === 'ready' || state === 'blocked' || state === 'syncing') return 100;
+  if (state === 'error')
+    return buildRibbonFailureState({ generation, mappedLessonCount: generation.mappedLessonCount }).progressPct;
   if (state === 'mapping') {
     const streamed = Math.max(0, Math.min(100, Number(generation.streamProgress) || 0));
     return Math.max(16, Math.round(15 + streamed * 0.15));
@@ -610,7 +618,8 @@ export function buildBuildRibbonModel({
   const knowledgeRequested = Math.max(0, Number(enrichmentOutcome?.requestedLessons) || 0);
   const knowledgeEnriched = Math.max(0, Number(enrichmentOutcome?.enrichedLessons) || 0);
   const knowledgeReviewNeeded = knowledgeRequested > 0 && knowledgeEnriched < knowledgeRequested;
-  switch (pipeline.state) {
+  const pipelineState = pipeline.state;
+  switch (pipelineState) {
     case 'mapping':
       stage = 'map';
       stageLabel = String(generation.streamDetail || '').trim() || 'Generating the course map';
@@ -649,11 +658,16 @@ export function buildBuildRibbonModel({
       stage = 'ready';
       stageLabel = knowledgeReviewNeeded ? 'Ready with review notes' : 'Ready to export';
       break;
+    case 'error':
+      stage = 'map';
+      stageLabel = buildRibbonFailureState({ generation }).stageLabel;
+      break;
     default:
       // lull (and the unreachable idle-with-activity) — show progress so
       // far without a pulse; the machine names the next pending step.
       stage = pipeline.nextStep || 'map';
       running = false;
+      stageLabel = preparingRibbonStageLabel(stage);
   }
 
   const done = pipeline.done;
@@ -667,8 +681,11 @@ export function buildBuildRibbonModel({
       ...steps.map((step) => (scionPreparing ? { ...step, status: 'pending' } : step)),
     ];
   }
-  if (knowledgeReviewNeeded && ['ready', 'blocked'].includes(pipeline.state)) {
+  if (knowledgeReviewNeeded && ['ready', 'blocked'].includes(pipelineState)) {
     steps = steps.map((step) => (step.id === 'enrich' ? { ...step, status: 'warn' } : step));
+  }
+  if (pipelineState === 'error') {
+    steps = buildRibbonFailureState({ steps }).steps;
   }
   if (scionPreparing) {
     stage = 'model';
@@ -709,7 +726,7 @@ export function buildBuildRibbonModel({
     done,
     progressPct,
     compilerArtifacts,
-    compilerState: pipeline.state === 'blocked' ? 'review' : pipeline.state === 'ready' ? 'complete' : 'live',
+    compilerState: { error: 'error', blocked: 'review', ready: 'complete' }[pipelineState] || 'live',
     pipelineChips: stage === 'ready' ? allPipelineChips : allPipelineChips.filter((chip) => chip.warn),
   };
 }

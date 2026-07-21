@@ -11,6 +11,7 @@ import {
   buildQuizItemPlan,
   lintEnrichedQuizItem,
   lintEnrichedSlideContent,
+  lintKernelFact,
   normalizeAbsorbedCourseLevel,
   parseLessonKernelResponse,
   selectEnrichmentRecoveryChunk,
@@ -181,6 +182,18 @@ describe('buildSlideContentFromKernel', () => {
     // Bullets ending on content words stay period-free (bullet style).
     const content = bullets.find((bullet) => bullet.includes('one at a time in a loop'));
     expect(content).toBe('Generators produce items one at a time in a loop');
+  });
+});
+
+describe('truncated knowledge-atom admission', () => {
+  it('rejects visibly chopped facts and slide titles before projection', () => {
+    expect(lintKernelFact('Modeling chemical reactions allows for t')).toContain('fact-incomplete');
+    expect(
+      lintEnrichedSlideContent({
+        title: 'Modeling chemical reactions allows for t',
+        bullets: ['One complete evidence statement', 'A second complete evidence statement'],
+      }),
+    ).toContain('title-incomplete');
   });
 });
 

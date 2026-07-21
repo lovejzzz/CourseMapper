@@ -124,8 +124,13 @@ describe('Scion WebGPU GGUF runtime', () => {
     expect(FakeWllama.last.paths).toEqual({
       'jspi/single-thread/wllama.wasm': 'https://edutool.dev/scion/runtime/v1/jspi-single-thread/wllama.wasm',
     });
-    expect(FakeWllama.last.config).toMatchObject({ backend: 'webgpu' });
+    expect(FakeWllama.last.config).toMatchObject({
+      backend: 'webgpu',
+      suppressNativeLog: true,
+      logger: expect.objectContaining({ warn: expect.any(Function), error: expect.any(Function) }),
+    });
     expect(FakeWllama.last.options.signal).toBe(controller.signal);
+    expect(FakeWllama.last.options.n_threads).toBe(1);
     expect(FakeWllama.last.prompts.at(-1)).toBe('<|turn>user\nExplain formative assessment.<turn|>\n<|turn>model\n');
     expect(getScionBrowserWllamaStatus()).toMatchObject({
       phase: 'ready',

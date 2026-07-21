@@ -58,3 +58,32 @@ export function extractExplicitLessonSequence(source = '', { expectedCount = nul
   if (numbered.length < 2 || (Number.isInteger(expectedCount) && numbered.length !== expectedCount)) return [];
   return numbered.slice(0, 52);
 }
+
+const COVERAGE_LIST_HEADER_RE =
+  /\b(?:cover|covers|covering|include|includes|including)\s+([^.!?\n]{8,800})[.!?](?:\s|$)/i;
+
+/**
+ * Extract a source-authored coverage list without pretending it is an ordered
+ * one-topic-per-session schedule. This deliberately accepts comma lists such
+ * as "Cover atmospheric chemistry, water quality, ... and environmental
+ * justice." only when at least three bounded topic phrases are present.
+ *
+ * The distinction from `extractExplicitLessonSequence` is important: nine
+ * required topics may legitimately live inside a ten-session course. The
+ * course-map continuation controller uses this list only to name topics that
+ * the current map has not covered; it never assigns the list to lesson slots
+ * wholesale.
+ */
+export function extractExplicitCoverageTopics(source = '') {
+  const text = String(source || '');
+  const match = COVERAGE_LIST_HEADER_RE.exec(text);
+  if (!match?.[1]) return [];
+  const block = match[1].replace(/\s*,\s*and\s+/gi, ', ');
+  if (!block.includes(',')) return [];
+  const topics = block
+    .split(/\s*,\s*/)
+    .map(cleanSequenceItem)
+    .filter((topic) => topic.length >= 3 && topic.length <= 120)
+    .filter((topic) => !/^(?:assessments?|assignments?|activities|materials?|rubrics?|readings?)\b/i.test(topic));
+  return topics.length >= 3 ? [...new Set(topics.map((topic) => topic.toLowerCase()))].slice(0, 24) : [];
+}

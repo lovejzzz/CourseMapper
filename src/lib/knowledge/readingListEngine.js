@@ -8,10 +8,11 @@
  *     anchor sections (the OpenStax/OER § the kernel quotes were admitted
  *     from). These come straight from conceptProvenance — zero cost,
  *     always available, always first in the list.
- *  2. RUNTIME (optional, cached, keyless): one open-access peer-reviewed
- *     reading per lesson from OpenAlex, plus course-level book metadata
- *     from Open Library. Failures degrade to nothing — the compiled
- *     course never blocks on the network.
+ *  2. RUNTIME (optional, cached, keyless): one reusable scholarly reading
+ *     per lesson from Crossref metadata, plus course-level book metadata from
+ *     Open Library. Failures degrade to nothing — the compiled course never
+ *     blocks on the network. OpenAlex remains available only through an
+ *     explicitly supplied keyed provider.
  *
  * Resources land as graph entities ({ id, citation, kind, sessionRefs,
  * origin, url, license, attribution }) with section resourceRefs, so the
@@ -20,7 +21,7 @@
  * through the existing supportingResources path — one write, every surface.
  */
 
-import { searchScholarlyReadings, searchCrossrefWorks, searchBookMetadata } from './providers.js';
+import { searchCrossrefWorks, searchBookMetadata } from './providers.js';
 import { isCourseAwareWeakSource, isLicenseAmbiguous } from './sourceLedger.js';
 // V0.14.1 round-2: the same discipline inference the genome linker uses maps
 // the course onto an OpenAlex field/domain allowlist (no import cycle —
@@ -834,21 +835,23 @@ function hasExplicitReuseLicense(work) {
 }
 
 /**
- * Runtime pass: one open-access peer-reviewed reading per session (OpenAlex)
- * and course-level book metadata (Open Library). All fetches run through the
- * cached, degrading provider layer; this never throws. Returns the count
- * attached.
+ * Runtime pass: one reusable scholarly reading per session plus course-level
+ * book metadata. Crossref is the backend-free default. OpenAlex made API keys
+ * mandatory for production use in February 2026, so the browser path uses it
+ * only when a caller explicitly supplies a provider wrapper. All fetches run
+ * through the cached, degrading provider layer; this never throws.
  */
 export async function attachOpenReadings(graph, { providers = {}, signal, maxSessions = 24, onProgress } = {}) {
   if (!graph || typeof graph !== 'object' || !Array.isArray(graph.resources)) return 0;
-  const fetchReadings = providers.searchScholarlyReadings || searchScholarlyReadings;
-  // Crossref is the no-key continuity path when OpenAlex's anonymous daily
-  // allowance is unavailable. A Crossref result does not get a trust pass:
-  // it still faces the exact topic-fit and explicit-reuse-license gates below.
-  // Custom test/caller providers opt in explicitly, which prevents an injected
-  // fixture returning [] from accidentally reaching the real network.
-  const fetchFallbackReadings =
-    providers.searchCrossrefWorks || (!providers.searchScholarlyReadings ? searchCrossrefWorks : null);
+  const explicitOpenAlex = typeof providers.searchScholarlyReadings === 'function';
+  const fetchReadings = explicitOpenAlex
+    ? providers.searchScholarlyReadings
+    : providers.searchCrossrefWorks || searchCrossrefWorks;
+  // Explicit provider fixtures stay hermetic. If a caller deliberately opts
+  // into OpenAlex and also supplies Crossref, Crossref remains its continuity
+  // fallback; the default browser path never probes OpenAlex and therefore
+  // never leaks a predictable 429 into DevTools.
+  const fetchFallbackReadings = explicitOpenAlex ? providers.searchCrossrefWorks || null : null;
   const fetchBooks = providers.searchBookMetadata || searchBookMetadata;
   // v0.14.5 (A4): the provenance principle — what the instructor already
   // said outranks what we can retrieve. Sessions whose registry slot is
@@ -902,7 +905,7 @@ export async function attachOpenReadings(graph, { providers = {}, signal, maxSes
   const lessonResults = await Promise.allSettled(
     sessions.map(async (session) => {
       const query = readingQueryForSession(graph, session);
-      let provider = 'openalex';
+      let provider = explicitOpenAlex ? 'openalex' : 'crossref';
       try {
         if (!query) return { session, works: [] };
         // V0.14.1 B: request several candidates (per relevance ranking) and

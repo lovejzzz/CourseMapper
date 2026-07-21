@@ -21,7 +21,7 @@ import {
 import { assessScionKeyTermContract, normalizeScionKeyTerm } from './scionKeyTermContract.js';
 import { scionFactContractForLesson } from './scionEvidenceContract.js';
 import { analyzeDecisionScenario } from './scenarioContract.js';
-import { extractExplicitLessonSequence } from './explicitLessonSequence.js';
+import { extractExplicitCoverageTopics, extractExplicitLessonSequence } from './explicitLessonSequence.js';
 import { isMetaSurfaceText } from './metaSurfaceAdmission.js';
 import {
   PUBLIC_SCION_MAX_COMPLETION_TOKENS,
@@ -1040,17 +1040,20 @@ export function publicScionFactContractIssues(assessment = {}) {
   );
 }
 
-export function publicScionCompilerFactCoreUsable(responseText, assessment = {}, { minimumFacts = 2 } = {}) {
+export function publicScionCompilerFactCoreUsable(
+  responseText,
+  assessment = {},
+  { minimumFacts = 2, exactFactCountRequired = false } = {},
+) {
   const issues = publicScionFactContractIssues(assessment);
   if (
     issues.some((issue) =>
-      /(?:^invalid-json$|^empty-response$|:missing-lesson(?:$|:)|:facts-count(?:$|:)|:duplicate-facts(?:$|:))/.test(
-        String(issue),
-      ),
+      /(?:^invalid-json$|^empty-response$|:missing-lesson(?:$|:)|:duplicate-facts(?:$|:))/.test(String(issue)),
     )
   ) {
     return false;
   }
+  if (exactFactCountRequired && issues.some((issue) => /:facts-count(?:$|:)/.test(String(issue)))) return false;
   let parsed;
   try {
     parsed = JSON.parse(responseText);
@@ -1077,6 +1080,44 @@ export function publicScionCompilerFactCoreUsable(responseText, assessment = {},
     );
     return facts.length - invalidIndexes.size >= Math.max(1, Number(minimumFacts) || 1);
   });
+}
+
+/**
+ * Remove only fact atoms that transport admission identified by index. This
+ * runs solely on the fact-ledger route, before any model-authored MC citations
+ * exist, so removing a bad fact cannot silently reindex an answer. The caller
+ * retains the original issue receipt for auditability.
+ */
+export function stripPublicScionInvalidFactAtoms(responseText, assessment = {}) {
+  let parsed;
+  try {
+    parsed = JSON.parse(responseText);
+  } catch {
+    return responseText;
+  }
+  const issues = publicScionFactContractIssues(assessment);
+  let changed = false;
+  for (const lesson of Array.isArray(parsed?.lessons) ? parsed.lessons : []) {
+    const lessonId = String(lesson?.lessonId || '');
+    if (!lessonId || !Array.isArray(lesson?.facts)) continue;
+    const prefix = `${lessonId}:fact-`;
+    const invalid = new Set(
+      issues
+        .filter((issue) => String(issue).startsWith(prefix))
+        .map((issue) =>
+          Number(
+            String(issue)
+              .slice(prefix.length)
+              .match(/^(\d+):/)?.[1],
+          ),
+        )
+        .filter(Number.isInteger),
+    );
+    if (invalid.size === 0) continue;
+    lesson.facts = lesson.facts.filter((_, index) => !invalid.has(index));
+    changed = true;
+  }
+  return changed ? JSON.stringify(parsed) : responseText;
 }
 
 export function publicScionAdmissionRisk(assessment = {}) {
@@ -1421,14 +1462,311 @@ export function extractPublicScionExplicitTopicSequence(source = '') {
   return extractExplicitLessonSequence(source).map(cleanPublicScionTopicItem).slice(0, 24);
 }
 
-function buildCompactPublicScionPrompt(userPrompt) {
+function publicScionTopicTokens(value = '') {
+  return new Set(
+    (
+      String(value)
+        .toLowerCase()
+        .match(/[a-z0-9]{3,}/g) || []
+    ).filter((token) => !['and', 'course', 'final', 'lesson', 'review', 'the', 'with'].includes(token)),
+  );
+}
+
+function publicScionTopicIsCovered(topic, priorLessonTitles = []) {
+  const expected = publicScionTopicTokens(topic);
+  if (expected.size === 0) return false;
+  return priorLessonTitles.some((title) => {
+    const actual = publicScionTopicTokens(title);
+    const overlap = [...expected].filter((token) => actual.has(token)).length;
+    return overlap >= Math.max(1, Math.ceil(expected.size * 0.6));
+  });
+}
+
+function publicScionAssessmentFocus(source = '', priorLessonTitles = []) {
+  const text = String(source || '');
+  const candidates = [
+    {
+      pattern: /\bcumulative\s+final\s+(?:exam|examination|assessment)\b/i,
+      focus: 'Cumulative Final Exam',
+    },
+    {
+      pattern: /\bcomprehensive\s+final\s+(?:exam|examination|assessment)\b/i,
+      focus: 'Comprehensive Final Exam',
+    },
+    { pattern: /\bfinal\s+(?:exam|examination|assessment)\b/i, focus: 'Final Exam' },
+    { pattern: /\bmidterm(?:\s+(?:exam|examination|assessment))?\b/i, focus: 'Midterm Assessment' },
+  ];
+  return (
+    candidates.find(({ pattern, focus }) => pattern.test(text) && !publicScionTopicIsCovered(focus, priorLessonTitles))
+      ?.focus || ''
+  );
+}
+
+export function publicScionCourseMapTopicPlan(userPrompt = '') {
   const source = extractPublicScionSource(userPrompt);
   const { start, count, continuation } = extractPublicScionLessonWindow(userPrompt);
   const totalLessonCount = extractPublicScionTotalLessonCount(userPrompt);
   const isFinalWindow = continuation && totalLessonCount && start + count - 1 >= totalLessonCount;
   const priorLessonTitles = continuation ? extractPublicScionPriorLessonTitles(userPrompt) : [];
   const explicitTopicSequence = extractPublicScionExplicitTopicSequence(source);
-  const requiredTopicPlan = explicitTopicSequence.slice(start - 1, start - 1 + count);
+  const uncoveredCoverageTopics = continuation
+    ? extractExplicitCoverageTopics(source).filter((topic) => !publicScionTopicIsCovered(topic, priorLessonTitles))
+    : [];
+  const assessmentFocus = continuation ? publicScionAssessmentFocus(source, priorLessonTitles) : '';
+  const continuationTopicPlan = [
+    ...uncoveredCoverageTopics,
+    ...(assessmentFocus && !publicScionTopicIsCovered(assessmentFocus, priorLessonTitles) ? [assessmentFocus] : []),
+  ];
+  const requiredTopicPlan =
+    explicitTopicSequence.length > 0
+      ? explicitTopicSequence.slice(start - 1, start - 1 + count)
+      : continuationTopicPlan.slice(0, count);
+  const finalWindowFocus = requiredTopicPlan.length === count ? requiredTopicPlan[count - 1] : '';
+  return {
+    source,
+    start,
+    count,
+    continuation,
+    totalLessonCount,
+    isFinalWindow,
+    priorLessonTitles,
+    requiredTopicPlan,
+    finalWindowFocus,
+  };
+}
+
+function compilerProjectedCourseMapSection(focus, lessonNumber) {
+  const assessmentLesson =
+    /\b(?:exam|examination|midterm)\b/i.test(focus) || /\b(?:cumulative|final|summative)\s+assessment\b/i.test(focus);
+  if (assessmentLesson) {
+    return {
+      learningGoals: ['Synthesize course evidence'],
+      topicSection: `${lessonNumber}.1: ${focus}`,
+      learningObjectives: ['Analyze cumulative course evidence', 'Defend an environmental decision'],
+      weeklyAssessments: [
+        `${focus}: analyze cumulative course evidence`,
+        'Evidence synthesis memo: defend an environmental decision',
+      ],
+      asyncActivities: ['Prepare an evidence map', 'Draft the synthesis memo'],
+      syncActivities: [`Complete the ${focus}`, 'Defend the synthesis decision'],
+      supportingResources: ['Course readings and completed assessments'],
+    };
+  }
+  const indefiniteArticle = /^[aeiou]/i.test(String(focus || '').trim()) ? 'an' : 'a';
+  return {
+    learningGoals: [`Understand ${focus}`],
+    topicSection: `${lessonNumber}.1: ${focus}`,
+    learningObjectives: [`Analyze ${focus} evidence`, `Evaluate ${focus} decisions`],
+    weeklyAssessments: [`Evidence check: ${focus}`, `Decision memo: ${focus}`],
+    asyncActivities: [`Annotate ${focus} evidence`, `Draft ${indefiniteArticle} ${focus} memo`],
+    syncActivities: [`Workshop ${focus} evidence`, `Review the ${focus} memo`],
+    supportingResources: [`${focus} course evidence`],
+  };
+}
+
+function displayPublicScionTopicFocus(value = '') {
+  const minorWords = new Set(['a', 'an', 'and', 'as', 'at', 'by', 'for', 'from', 'in', 'of', 'on', 'or', 'the', 'to']);
+  return String(value || '')
+    .trim()
+    .split(/\s+/)
+    .map((word, index) => {
+      if (/^[A-Z0-9-]{2,}$/.test(word)) return word;
+      const lower = word.toLowerCase();
+      if (index > 0 && minorWords.has(lower)) return lower;
+      return `${lower.charAt(0).toUpperCase()}${lower.slice(1)}`;
+    })
+    .join(' ');
+}
+
+export function buildPublicScionPlannedCourseMapLessons(userPrompt = '') {
+  const plan = publicScionCourseMapTopicPlan(userPrompt);
+  if (plan.requiredTopicPlan.length !== plan.count) return [];
+  return plan.requiredTopicPlan.map((focus, index) => {
+    const lessonNumber = plan.start + index;
+    const displayFocus = displayPublicScionTopicFocus(focus);
+    return {
+      title: `Lesson ${lessonNumber}: ${displayFocus}`,
+      sections: [compilerProjectedCourseMapSection(displayFocus, lessonNumber)],
+    };
+  });
+}
+
+/**
+ * Project every source-locked continuation batch before a public-model retry.
+ * Keeping this orchestration beside the planner keeps the workspace route
+ * small; callers retain admission and UI ownership through explicit hooks.
+ */
+export function projectPublicScionCourseMapContinuations({
+  currentMap,
+  expectedCount,
+  buildPrompt,
+  normalizeLessons,
+  admitLessons,
+} = {}) {
+  let workingMap = currentMap;
+  let rejectedTopics = [];
+  const maxPasses = Math.max(1, expectedCount - (workingMap?.lessons?.length || 0));
+  for (let pass = 0; pass < maxPasses && workingMap.lessons.length < expectedCount; pass += 1) {
+    const projected = buildPublicScionPlannedCourseMapLessons(buildPrompt(workingMap, rejectedTopics));
+    if (projected.length === 0) break;
+    const admission = admitLessons(workingMap.lessons, normalizeLessons(projected));
+    rejectedTopics = [...new Set([...rejectedTopics, ...admission.rejectedTopics])].slice(-12);
+    if (admission.lessons.length === 0) break;
+    workingMap = { ...workingMap, lessons: [...workingMap.lessons, ...admission.lessons] };
+  }
+  return { workingMap, rejectedTopics };
+}
+
+function publicScionCourseMapCellEntries(value) {
+  if (Array.isArray(value)) return value.map((entry) => String(entry || '').trim()).filter(Boolean);
+  return String(value || '')
+    .split(/\n+|\s*;\s*/)
+    .map((entry) => entry.replace(/^\s*\d+[.)]\s*/, '').trim())
+    .filter(Boolean);
+}
+
+function publicScionIsAssessmentLesson(title = '') {
+  return (
+    /\b(?:exam|examination|midterm)\b/i.test(title) || /\b(?:cumulative|final|summative)\s+assessment\b/i.test(title)
+  );
+}
+
+/**
+ * Preserve explicit structural promises from the user's brief after the small
+ * model has mapped the topics. The model may omit a repeated weekly routine or
+ * a mid-course exam even when those requirements are unambiguous. This pass is
+ * deliberately narrow: it only activates for exact lab-analysis and midterm
+ * language and never invents a requirement the user did not request.
+ */
+export function applyPublicScionBriefDirectives(courseMap = {}, userPrompt = '') {
+  const source = extractPublicScionSource(userPrompt);
+  const weeklyLabRequested =
+    /\b(?:weekly|each\s+(?:lesson|week))\b[^.\n]{0,80}\b(?:lab|laboratory)\b[^.\n]{0,50}\banalys(?:is|es)\b/i.test(
+      source,
+    ) ||
+    /\b(?:lab|laboratory)\b[^.\n]{0,50}\banalys(?:is|es)\b[^.\n]{0,80}\b(?:weekly|each\s+(?:lesson|week))\b/i.test(
+      source,
+    );
+  const midtermRequested = /\bmidterm(?:\s+(?:exam|examination|assessment))?\b/i.test(source);
+  if ((!weeklyLabRequested && !midtermRequested) || !Array.isArray(courseMap?.lessons)) return courseMap;
+
+  const topicalLessonIndices = courseMap.lessons
+    .map((lesson, index) => ({ index, title: lesson?.title || '' }))
+    .filter(({ title }) => !publicScionIsAssessmentLesson(title))
+    .map(({ index }) => index);
+  const midpointLessonIndex = topicalLessonIndices[Math.max(0, Math.ceil(topicalLessonIndices.length / 2) - 1)];
+
+  return {
+    ...courseMap,
+    lessons: courseMap.lessons.map((lesson, lessonIndex) => {
+      const assessmentLesson = publicScionIsAssessmentLesson(lesson?.title);
+      const focus = displayPublicScionTopicFocus(
+        String(lesson?.title || '').replace(/^\s*(?:Lesson|Week)\s*\d+\s*[:.\-–—]?\s*/i, ''),
+      );
+      const sections = Array.isArray(lesson?.sections) ? lesson.sections : [];
+      return {
+        ...lesson,
+        sections: sections.map((section) => {
+          let weeklyAssessments = publicScionCourseMapCellEntries(section?.weeklyAssessments);
+          let syncActivities = publicScionCourseMapCellEntries(section?.syncActivities);
+          let supportingResources = publicScionCourseMapCellEntries(section?.supportingResources);
+          let presentationFormat = section?.presentationFormat;
+          let evaluateDesign = section?.evaluateDesign;
+
+          if (weeklyLabRequested && !assessmentLesson) {
+            const objectives = publicScionCourseMapCellEntries(section?.learningObjectives)
+              .map((entry) => entry.replace(/[.?!]+$/g, '').trim())
+              .map((entry) => `${entry.charAt(0).toLowerCase()}${entry.slice(1)}`)
+              .filter(Boolean);
+            const labAssessment = `${focus} lab analysis — ${
+              objectives.length > 0 ? objectives.join('; ') : 'interpret the assigned evidence'
+            }`;
+            // The lab is the explicit weekly assessment contract. Keeping a
+            // vague model-authored “application check” beside it caused the
+            // readiness pass to classify the whole cell as generic scaffold
+            // and replace both entries, silently deleting the requested lab.
+            weeklyAssessments = [labAssessment];
+            syncActivities = [
+              `Conduct an evidence-based ${focus} lab analysis using the assigned measurements or observations`,
+              `Debrief the ${focus} evidence, uncertainty, and conclusion`,
+            ];
+            supportingResources = [
+              ...supportingResources.filter((entry) => !/\b(?:course evidence|examples?)\b/i.test(entry)).slice(0, 2),
+              `${focus} lab protocol and data sheet`,
+            ];
+            presentationFormat = 'Lab demonstration + guided analysis + evidence debrief';
+            evaluateDesign = `Score measurement accuracy, evidence use, chemical interpretation, uncertainty, and the bounded ${focus} conclusion.`;
+          }
+
+          if (midtermRequested && lessonIndex === midpointLessonIndex && !assessmentLesson) {
+            weeklyAssessments = [
+              ...weeklyAssessments.filter((entry) => !/\bmidterm\b/i.test(entry)),
+              'Midterm examination: analyze course evidence and defend a chemical interpretation',
+            ];
+          }
+
+          return {
+            ...section,
+            weeklyAssessments,
+            syncActivities,
+            supportingResources,
+            ...(presentationFormat ? { presentationFormat } : {}),
+            ...(evaluateDesign ? { evaluateDesign } : {}),
+          };
+        }),
+      };
+    }),
+  };
+}
+
+/**
+ * Apply an exact source-authorized continuation plan after generation. This is
+ * deliberately narrow: it runs only when the planner can account for every
+ * returned lesson from a user-authored topic contract. The model still supplies
+ * the JSON envelope, while the compiler prevents a repeated earlier topic from
+ * overriding the missing topic the user explicitly requested.
+ */
+export function applyPublicScionCourseMapTopicPlan(responseText = '', userPrompt = '') {
+  const plan = publicScionCourseMapTopicPlan(userPrompt);
+  if (plan.requiredTopicPlan.length !== plan.count) return { text: responseText, repairs: [] };
+  try {
+    const parsed = JSON.parse(responseText);
+    if (!Array.isArray(parsed?.lessons) || parsed.lessons.length !== plan.count) {
+      return { text: responseText, repairs: [] };
+    }
+    let changed = false;
+    const lessons = parsed.lessons.map((lesson, index) => {
+      const focus = plan.requiredTopicPlan[index];
+      if (publicScionTopicIsCovered(focus, [lesson?.title])) return lesson;
+      changed = true;
+      const lessonNumber = plan.start + index;
+      const displayFocus = displayPublicScionTopicFocus(focus);
+      return {
+        ...lesson,
+        title: `Lesson ${lessonNumber}: ${displayFocus}`,
+        sections: [compilerProjectedCourseMapSection(displayFocus, lessonNumber)],
+      };
+    });
+    return changed
+      ? { text: JSON.stringify({ ...parsed, lessons }), repairs: ['course-map-topic-plan'] }
+      : { text: responseText, repairs: [] };
+  } catch {
+    return { text: responseText, repairs: [] };
+  }
+}
+
+function buildCompactPublicScionPrompt(userPrompt) {
+  const {
+    source,
+    start,
+    count,
+    continuation,
+    totalLessonCount,
+    isFinalWindow,
+    priorLessonTitles,
+    requiredTopicPlan,
+    finalWindowFocus,
+  } = publicScionCourseMapTopicPlan(userPrompt);
   const lessonsLabel = count === 1 ? `Lesson ${start}` : `Lesson ${start} through Lesson ${start + count - 1}`;
   const wrapper = continuation
     ? 'Return this JSON shape: {"lessons":[...new lesson objects only...]}.'
@@ -1456,7 +1794,13 @@ ${source}
 
 ${priorLessonTitles.length > 0 ? `PRIOR LESSONS (do not repeat):\n${priorLessonTitles.map((title) => `- ${title}`).join('\n')}\n` : ''}
 ${requiredTopicPlan.length === count ? `REQUIRED TOPIC PLAN (one exact focus per lesson):\n${requiredTopicPlan.map((topic, index) => `- Lesson ${start + index}: ${topic}`).join('\n')}\n` : ''}
-${isFinalWindow ? `FINAL WINDOW: Lessons ${start}-${start + count - 1} of ${totalLessonCount}. Work backward from the end of SOURCE so Lesson ${totalLessonCount} names the final source outline item.\n` : ''}
+${
+  isFinalWindow
+    ? finalWindowFocus
+      ? `FINAL WINDOW: Lessons ${start}-${start + count - 1} of ${totalLessonCount}. Lesson ${totalLessonCount} MUST use the exact final focus "${finalWindowFocus}".\n`
+      : `FINAL WINDOW: Lessons ${start}-${start + count - 1} of ${totalLessonCount}. Work backward from the end of SOURCE so Lesson ${totalLessonCount} names the final source outline item.\n`
+    : ''
+}
 
 TASK:
 Create ${count} compact CourseMapper lesson${count === 1 ? '' : 's'} for ${lessonsLabel}. ${wrapper}
@@ -1483,7 +1827,13 @@ Rules:
 - Advance through later source concepts; never recycle an earlier topic as a new lesson title.
 - Treat concepts joined by "and" inside one source outline item as one combined lesson and name both concepts in its title.
 - In continuation windows, prioritize the later unused SOURCE items.
-${isFinalWindow ? `- This is the FINAL WINDOW: Lesson ${totalLessonCount} MUST name the final source outline item; never place an earlier concept after it.\n` : ''}- Omit readings and specialTools unless the source names them.
+${
+  isFinalWindow
+    ? finalWindowFocus
+      ? `- This is the FINAL WINDOW: Lesson ${totalLessonCount} MUST be "${finalWindowFocus}"; never substitute a prior topic.\n`
+      : `- This is the FINAL WINDOW: Lesson ${totalLessonCount} MUST name the final source outline item; never place an earlier concept after it.\n`
+    : ''
+}- Omit readings and specialTools unless the source names them.
 - Preserve the template nesting: lessons[] contains only objects, never strings.
 
 TEMPLATE TO FILL:

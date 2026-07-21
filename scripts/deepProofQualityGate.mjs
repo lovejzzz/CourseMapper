@@ -33,6 +33,7 @@ const QUALITY_GATES = [
     label: 'Independent instructor benchmark',
     command: 'npm',
     args: ['run', 'audit:benchmark:strict'],
+    blocking: false,
     reports: [
       'verification-output/independent-benchmark/latest.md',
       'verification-output/independent-benchmark/latest.json',
@@ -142,7 +143,7 @@ function runGate(gate) {
     child.on('close', (code, signal) => {
       const durationMs = Date.now() - startedAt;
       const exitCode = code ?? 1;
-      const status = exitCode === 0 ? 'pass' : 'fail';
+      const status = exitCode === 0 ? 'pass' : gate.blocking === false ? 'unverified' : 'fail';
       console.log(`[deep-proof:quality] ${status} ${gate.label} elapsed=${formatDuration(durationMs)}`);
       resolve({
         ...gate,
@@ -158,13 +159,16 @@ function runGate(gate) {
 function renderMarkdown(payload) {
   const gateRows = payload.gates.map(
     (gate) =>
-      `| ${gate.label} | ${gate.status} | ${gate.exitCode} | ${formatDuration(gate.durationMs)} | ${
+      `| ${gate.label} | ${gate.status} | ${gate.blocking ? 'yes' : 'evidence only'} | ${gate.exitCode} | ${formatDuration(gate.durationMs)} | ${
         gate.existingReports.length > 0 ? gate.existingReports.join('<br>') : ''
       } |`,
   );
   const failedRows = payload.gates
-    .filter((gate) => gate.status !== 'pass')
+    .filter((gate) => gate.blocking && gate.status !== 'pass')
     .map((gate) => `- ${gate.label}: exit ${gate.exitCode}${gate.signal ? `, signal ${gate.signal}` : ''}`);
+  const evidenceRows = payload.gates
+    .filter((gate) => !gate.blocking && gate.status !== 'pass')
+    .map((gate) => `- ${gate.label}: ${gate.status}; no external quality claim is allowed.`);
 
   return [
     '# Deep Proof Quality Gate',
@@ -173,18 +177,23 @@ function renderMarkdown(payload) {
     `Mode: ${payload.meta.mode}`,
     `Status: ${payload.summary.status}`,
     `Failed gates: ${payload.summary.failedCount}`,
+    `Unverified evidence boundaries: ${payload.summary.evidenceGapCount}`,
     '',
-    'Schedule policy: advisory mode records educational-quality regressions as reports and warnings. Strict mode is used for manual pre-release checks and release branches.',
+    'Schedule policy: advisory mode records educational-quality regressions as reports and warnings. Strict mode is used for manual pre-release checks and release branches. External human evidence remains visible but non-blocking until the project has qualified independent reviewers; it never supports a quality claim while unverified.',
     '',
     '## Gates',
     '',
-    '| Gate | Status | Exit Code | Duration | Reports |',
-    '| --- | --- | ---: | ---: | --- |',
+    '| Gate | Status | Release Blocking | Exit Code | Duration | Reports |',
+    '| --- | --- | --- | ---: | ---: | --- |',
     ...gateRows,
     '',
     '## Failures',
     '',
     ...(failedRows.length > 0 ? failedRows : ['- None.']),
+    '',
+    '## Evidence boundaries',
+    '',
+    ...(evidenceRows.length > 0 ? evidenceRows : ['- None.']),
     '',
   ].join('\n');
 }
@@ -209,11 +218,14 @@ async function main() {
   const results = [];
   for (const gate of QUALITY_GATES) {
     const result = await runGate(gate);
+    result.blocking = gate.blocking !== false;
+    if (!result.blocking && result.status !== 'pass') result.status = 'unverified';
     result.existingReports = await existingReports(gate.reports);
     results.push(result);
   }
 
-  const failed = results.filter((result) => result.status !== 'pass');
+  const failed = results.filter((result) => result.blocking && result.status !== 'pass');
+  const evidenceGaps = results.filter((result) => !result.blocking && result.status !== 'pass');
   const payload = {
     meta: {
       generatedAt: new Date().toISOString(),
@@ -224,12 +236,14 @@ async function main() {
       status: failed.length > 0 ? 'fail' : 'pass',
       gateCount: results.length,
       failedCount: failed.length,
+      evidenceGapCount: evidenceGaps.length,
       advisory: args.mode === 'advisory',
     },
     gates: results.map((result) => ({
       label: result.label,
       command: [result.command, ...result.args].join(' '),
       status: result.status,
+      blocking: result.blocking,
       exitCode: result.exitCode,
       signal: result.signal || null,
       durationMs: result.durationMs,

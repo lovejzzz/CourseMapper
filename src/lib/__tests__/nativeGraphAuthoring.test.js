@@ -4,10 +4,13 @@ import { renderCourseMapFromGraph } from '../courseGraph/renderCourseMap.js';
 import {
   completeNativeKernelSurfaces,
   matchEntityIds,
+  partitionCumulativeAssessmentLessons,
   preserveSourceProof,
+  projectCumulativeAssessmentKernels,
   repairCourseGraphResourceIds,
   restoreCourseGraphForProject,
 } from '../nativeGraphAuthoring.js';
+import { assessProjectedKernelCoverage } from '../blueprintEnrichmentPass.js';
 import { validateCourseGraph } from '../courseGraph/schema.js';
 
 function sourceBackedMap() {
@@ -272,5 +275,96 @@ describe('completeNativeKernelSurfaces', () => {
         }),
       ]),
     );
+  });
+});
+
+describe('cumulative assessment kernel projection', () => {
+  const lessonTitles = [
+    'Mendelian inheritance',
+    'Meiosis',
+    'Linkage and gene mapping',
+    'DNA structure',
+    'Gene expression',
+    'Mutation',
+    'Population genetics',
+    'Epigenetics',
+    'Modern genetic technologies',
+    'Midterm 1',
+    'Midterm 2',
+    'Final Exam',
+    'Problem Sets',
+    'Model-organism lab',
+    'Final Assessment',
+  ];
+  const lessons = lessonTitles.map((title, index) => ({
+    title: `Lesson ${index + 1}: ${title}`,
+    lessonNumber: index + 1,
+    sections: [{ topicSection: title, weeklyAssessments: `${title} evidence check` }],
+  }));
+
+  function admittedSubjectKernel(index) {
+    return completeNativeKernelSurfaces(
+      {
+        enrichmentSource: 'scion-model',
+        kernel: {
+          facts: [
+            `Lesson ${index + 1} fact A is bounded by the supplied course evidence and named example.`,
+            `Lesson ${index + 1} fact B connects the observed pattern to one defensible conclusion.`,
+            `Lesson ${index + 1} fact C identifies the limit that keeps the conclusion from overreaching.`,
+          ],
+          scenario: {
+            setup: `Students inspect the Lesson ${index + 1} worked example before choosing a conclusion.`,
+            materials: `Lesson ${index + 1} notes and worked example`,
+          },
+        },
+        keyTerms: [
+          {
+            term: lessonTitles[index],
+            definition: `This is the course-bounded definition for ${lessonTitles[index]} established in Lesson ${index + 1}.`,
+            example: `The Lesson ${index + 1} worked example applies ${lessonTitles[index]} to the supplied evidence.`,
+            misconception: `A common error treats every example of ${lessonTitles[index]} as supporting the same conclusion.`,
+            correction: `Check the Lesson ${index + 1} evidence boundary before extending the ${lessonTitles[index]} claim.`,
+          },
+        ],
+      },
+      lessons[index],
+    );
+  }
+
+  it('separates assessment-only sessions from the model-organism lab', () => {
+    const partition = partitionCumulativeAssessmentLessons(
+      lessons,
+      lessons.map((_, index) => index),
+    );
+    expect(partition.cumulativeAssessmentLessonIndices).toEqual([9, 10, 11, 12, 14]);
+    expect(partition.subjectLessonIndices).toContain(13);
+  });
+
+  it('reuses admitted subject facts verbatim and produces usable assessment kernels without touching the lab', () => {
+    const lessonContent = {};
+    for (let index = 0; index < 9; index += 1) {
+      lessonContent[`lesson-${index + 1}`] = admittedSubjectKernel(index);
+      expect(assessProjectedKernelCoverage(lessonContent[`lesson-${index + 1}`]).usable).toBe(true);
+    }
+    const sourceFactSet = new Set(Object.values(lessonContent).flatMap((payload) => payload.kernel.facts));
+
+    const result = projectCumulativeAssessmentKernels({
+      lessonContent,
+      courseMapLessons: lessons,
+      lessonIndices: [9, 10, 11, 12, 13, 14],
+    });
+
+    expect(result.projectedLessonIndices).toEqual([9, 10, 11, 12, 14]);
+    expect(lessonContent['lesson-14']).toBeUndefined();
+    for (const lessonIndex of result.projectedLessonIndices) {
+      const payload = lessonContent[`lesson-${lessonIndex + 1}`];
+      expect(payload).toMatchObject({
+        enrichmentSource: 'cumulative-review-projection',
+        projectionKind: 'cumulative-assessment',
+      });
+      expect(assessProjectedKernelCoverage(payload).usable).toBe(true);
+      expect(payload.kernel.facts.every((fact) => sourceFactSet.has(fact))).toBe(true);
+      expect(payload.sourceLessonIds.every((lessonId) => Number(lessonId.replace('lesson-', '')) <= 9)).toBe(true);
+    }
   });
 });

@@ -1,4 +1,4 @@
-import { cleanText, unique } from './compilerText';
+import { cleanText, unique } from './compilerText.js';
 const FEATURE_LABELS = {
   syllabus: 'Syllabus',
   lessonPlans: 'Lesson Plans',

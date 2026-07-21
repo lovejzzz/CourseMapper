@@ -1,0 +1,252 @@
+{
+  "_comment": "Source-backed environmental chemistry kernels from U.S. EPA public guidance.",
+  "references": {
+    "epa:water-quality-parameters": {
+      "displayTitle": "Factsheets on Water Quality Parameters",
+      "sourceUrl": "https://www.epa.gov/awma/factsheets-water-quality-parameters"
+    },
+    "epa:dissolved-oxygen": {
+      "displayTitle": "Dissolved Oxygen",
+      "sourceUrl": "https://www.epa.gov/caddis/dissolved-oxygen"
+    },
+    "epa:sampling-design": {
+      "displayTitle": "Guidance on Choosing a Sampling Design for Environmental Data Collection",
+      "sourceUrl": "https://www.epa.gov/quality/guidance-choosing-sampling-design-environmental-data-collection-use-developing-quality"
+    }
+  },
+  "sourceSnapshots": {
+    "epa:water-quality-parameters": "The water quality parameter factsheets provide an introduction to monitoring common parameters: Temperature, Dissolved Oxygen, pH, Turbidity, Macroinvertebrates, E. coli, Nutrients, Habitat Assessment and Metals. They are useful for training new water quality monitoring staff and explaining water quality sampling to outside partners.",
+    "epa:dissolved-oxygen": "The concentration of oxygen in water is often reported either as the concentration in mg/L or as the percent saturation. DO concentrations and percent saturation are related, but not equivalent. Saturation level varies naturally, as water can contain more DO at lower temperatures, higher pressures, and lower salinities. Biochemical oxygen demand and chemical oxygen demand are measures of the potential consumption of oxygen by microbial respiration and the oxidation of chemicals in the water, respectively. Documentation of DO concentrations over a 24-hour period may be useful for identifying diurnal patterns and may reveal information about DO depletion.",
+    "epa:sampling-design": "The sampling design is a fundamental part of data collection for scientifically based decision making. A well-developed sampling design plays a critical role in ensuring that data are sufficient to draw the conclusions needed. Of these issues, representativeness is addressed through the sampling design. Developing a sampling design is a crucial step in collecting appropriate and defensible data that accurately represent the problem being investigated. The methods used in sample handling and extraction are equally important to the quality of the data."
+  },
+  "kernels": [
+    {
+      "id": "chem/water-quality-monitoring",
+      "term": "Water quality",
+      "aliases": ["water quality monitoring", "water quality parameters", "water quality indicators"],
+      "tags": ["environmental chemistry", "field monitoring", "water analysis"],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Evaluate",
+      "definition": {
+        "text": "Water quality monitoring combines physical, chemical, and biological parameters to evaluate environmental condition and support a stated management or scientific decision.",
+        "anchor": {
+          "src": "epa:water-quality-parameters",
+          "loc": "Water quality parameter factsheets",
+          "quote": "an introduction to monitoring common parameters"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "A defensible monitoring plan selects parameters that can answer the study question rather than treating every available measurement as equally informative.",
+          "anchor": {
+            "src": "epa:water-quality-parameters",
+            "loc": "Water quality parameter factsheets",
+            "quote": "Temperature, Dissolved Oxygen, pH, Turbidity, Macroinvertebrates, E. coli, Nutrients, Habitat Assessment and Metals"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Water quality evidence can include temperature, dissolved oxygen, pH, turbidity, nutrients, habitat, and metals.",
+          "anchor": {
+            "src": "epa:water-quality-parameters",
+            "loc": "Water quality parameter factsheets",
+            "quote": "Temperature, Dissolved Oxygen, pH, Turbidity"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Monitoring documentation must make the selected parameter and its decision use understandable to people outside the sampling team.",
+          "anchor": {
+            "src": "epa:water-quality-parameters",
+            "loc": "Water quality parameter factsheets",
+            "quote": "explaining water quality sampling to outside partners"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students may treat one convenient measurement as a complete water quality judgment.",
+          "corrective": "Choose a parameter set that fits the question, environmental system, and intended decision."
+        }
+      ],
+      "examples": [
+        {
+          "text": "A stream team pairs dissolved oxygen and temperature with nutrient and habitat observations before judging a suspected impairment.",
+          "domain": "environmental chemistry"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "A stream team must investigate a suspected nutrient-related impairment. Which evidence plan is most defensible?",
+          "options": [
+            "Measure one convenient parameter once",
+            "Select complementary parameters tied to the question",
+            "Replace field observations with a general opinion",
+            "Report every available value without a decision rule"
+          ],
+          "answerIndex": 1,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": {},
+      "license": "U.S. Government Work",
+      "attribution": ["U.S. Environmental Protection Agency"]
+    },
+    {
+      "id": "chem/dissolved-oxygen",
+      "term": "Dissolved oxygen",
+      "aliases": ["water quality", "water quality dissolved oxygen", "DO monitoring"],
+      "tags": ["environmental chemistry", "aquatic systems", "oxygen demand"],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "Dissolved oxygen describes oxygen available in water and is interpreted using both concentration and saturation while accounting for environmental conditions.",
+        "anchor": {
+          "src": "epa:dissolved-oxygen",
+          "loc": "Ways to Measure",
+          "quote": "reported either as the concentration in mg/L or as the percent saturation"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "Dissolved oxygen concentration and percent saturation are related measurements but are not interchangeable.",
+          "anchor": {
+            "src": "epa:dissolved-oxygen",
+            "loc": "Ways to Measure",
+            "quote": "DO concentrations and percent saturation are related, but not equivalent"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Temperature, pressure, and salinity change the saturation level used to interpret a dissolved oxygen result.",
+          "anchor": {
+            "src": "epa:dissolved-oxygen",
+            "loc": "Ways to Measure",
+            "quote": "more DO at lower temperatures, higher pressures, and lower salinities"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Measurements across a full day can reveal diurnal oxygen patterns that one sampling time would miss.",
+          "anchor": {
+            "src": "epa:dissolved-oxygen",
+            "loc": "Ways to Measure",
+            "quote": "useful for identifying diurnal patterns"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students may compare dissolved oxygen readings without checking temperature, pressure, salinity, or sampling time.",
+          "corrective": "Interpret each reading in its physical context and distinguish concentration from percent saturation."
+        }
+      ],
+      "examples": [
+        {
+          "text": "A team compares pre-dawn and afternoon measurements before attributing a low oxygen result to a discharge.",
+          "domain": "environmental chemistry"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "Two sites report the same dissolved oxygen concentration at different temperatures. What should an analyst compare next?",
+          "options": [
+            "Only the site names",
+            "Their percent saturation and environmental conditions",
+            "The number of report pages",
+            "Whether both samples used identical labels"
+          ],
+          "answerIndex": 1,
+          "explanationFactRef": 1,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": {},
+      "license": "U.S. Government Work",
+      "attribution": ["U.S. Environmental Protection Agency"]
+    },
+    {
+      "id": "chem/water-sampling-design",
+      "term": "Water quality sampling",
+      "aliases": ["water quality", "environmental sampling", "representative sampling design"],
+      "tags": ["environmental chemistry", "data quality", "representativeness"],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Evaluate",
+      "definition": {
+        "text": "An environmental sampling design specifies where, when, and how measurements will be collected so the resulting data can support the intended conclusion.",
+        "anchor": {
+          "src": "epa:sampling-design",
+          "loc": "Why selecting a sampling design matters",
+          "quote": "The sampling design is a fundamental part of data collection for scientifically based decision making"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "The sampling design must produce enough relevant data to support the conclusion the study is intended to draw.",
+          "anchor": {
+            "src": "epa:sampling-design",
+            "loc": "Why selecting a sampling design matters",
+            "quote": "data are sufficient to draw the conclusions needed"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Representativeness depends on the sampling design, not only on the precision of the laboratory instrument.",
+          "anchor": {
+            "src": "epa:sampling-design",
+            "loc": "Why selecting a sampling design matters",
+            "quote": "representativeness is addressed through the sampling design"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Sample handling and extraction can affect data quality even when sampling locations were selected appropriately.",
+          "anchor": {
+            "src": "epa:sampling-design",
+            "loc": "Sampling design limitations",
+            "quote": "The methods used in sample handling and extraction are equally important to the quality of the data"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students may assume that more samples automatically make a study representative.",
+          "corrective": "Choose locations, timing, handling, and sample count from the decision and target population."
+        }
+      ],
+      "examples": [
+        {
+          "text": "A lagoon study changes from three pipe-adjacent samples to a site-wide design when the decision shifts to average concentration.",
+          "domain": "environmental chemistry"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "A team samples only beside an old discharge pipe but claims the result is the lagoon-wide average. What is the main flaw?",
+          "options": [
+            "The design does not represent the stated target",
+            "The samples contain too many written labels",
+            "The report uses a scientific objective",
+            "The team preserved the handling record"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 1,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": {},
+      "license": "U.S. Government Work",
+      "attribution": ["U.S. Environmental Protection Agency"]
+    }
+  ]
+}

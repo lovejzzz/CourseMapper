@@ -22,6 +22,23 @@ let pendingProbe = null;
 let completionTail = Promise.resolve();
 let runtimeLoadOptions = null;
 const statusListeners = new Set();
+const EXPECTED_WEBGPU_RUNTIME_WARNING_RE =
+  /(?:multi-threads are not supported|missing paths to multi-thread build|falling back single-thread|disabling multi-threading when using webgpu backend)/i;
+
+// wllama emits CPU-thread fallback warnings before it applies its WebGPU
+// backend choice. Scion deliberately ships only the JSPI single-thread WASM
+// because WebGPU disables CPU multithreading anyway. Filter those expected,
+// non-actionable messages while preserving every other runtime warning/error.
+const scionRuntimeLogger = {
+  debug: () => {},
+  log: (...args) => console.log(...args),
+  info: (...args) => console.info(...args),
+  warn: (...args) => {
+    if (EXPECTED_WEBGPU_RUNTIME_WARNING_RE.test(args.map(String).join(' '))) return;
+    console.warn(...args);
+  },
+  error: (...args) => console.error(...args),
+};
 
 function initialStatus() {
   return {
@@ -189,13 +206,14 @@ export async function loadScionBrowserWllama({
     const wasmUrl = absoluteAsset(SCION_BROWSER_WLLAMA_WASM_PATH, locationLike);
     const candidate = new runtimeModule.Wllama(
       { 'jspi/single-thread/wllama.wasm': wasmUrl },
-      { backend: 'webgpu', suppressNativeLog: true },
+      { backend: 'webgpu', suppressNativeLog: true, logger: scionRuntimeLogger },
     );
     loadingRuntime = candidate;
     publish({ phase: 'loading-model', message: 'Downloading the public Gemma 4 base…' }, onProgress);
     await candidate.loadModelFromUrl(modelUrl, {
       useCache: true,
       n_ctx: contextSize,
+      n_threads: 1,
       seed: 424242,
       signal,
       progressCallback: ({ loaded, total }) => {

@@ -455,7 +455,7 @@ export async function runVoicePass({
     const selfCheck = { pre: preTexture.score, post: preTexture.score, verdict: 'skipped' };
     emit({
       type: 'voicePassDone',
-      detail: `voiced 0 surface(s), 0 fallback(s) (~$0.000) — voice-surface texture ${preTexture.score} already at ceiling; skipped ${skipped.length} rewrite(s)`,
+      detail: `voiced 0 surface(s), 0 fallback(s) (model cost $0.000) — voice-surface texture ${preTexture.score} already at ceiling; skipped ${skipped.length} rewrite(s)`,
     });
     return {
       deliverables,
@@ -463,6 +463,7 @@ export async function runVoicePass({
       fallbacks: [],
       skipped,
       spentUsd: 0,
+      costEstimated: false,
       exhausted: false,
       selfCheck,
     };
@@ -473,6 +474,7 @@ export async function runVoicePass({
   const fallbacks = [];
   const usedOpeners = new Map(); // trigram → surfaceId that claimed it
   let spentUsd = 0;
+  let costEstimated = false;
   let exhausted = false;
   const batches = [];
   for (let start = 0; start < surfaces.length; start += VOICE_BATCH_SIZE) {
@@ -502,13 +504,20 @@ export async function runVoicePass({
     } catch (err) {
       if (err?.name === 'AbortError') throw err;
       spentUsd += VOICE_ASSUMED_BATCH_COST_USD;
+      costEstimated = true;
       for (const surface of batch) {
         fallbacks.push({ surfaceId: surface.surfaceId, reason: `model call failed: ${err?.message || 'error'}` });
       }
       continue;
     }
     const usageCost = Number(response?.usage?.costUsd);
-    spentUsd += Number.isFinite(usageCost) && usageCost > 0 ? usageCost : VOICE_ASSUMED_BATCH_COST_USD;
+    if (Number.isFinite(usageCost)) {
+      // Zero is a real reported cost for local Scion, not missing telemetry.
+      spentUsd += Math.max(0, usageCost);
+    } else {
+      spentUsd += VOICE_ASSUMED_BATCH_COST_USD;
+      costEstimated = true;
+    }
     const fullText = typeof response === 'string' ? response : response?.fullText || '';
     const rewrites = parseVoiceResponse(fullText);
     if (!rewrites) {
@@ -570,11 +579,11 @@ export async function runVoicePass({
 
   emit({
     type: 'voicePassDone',
-    detail: `voiced ${voiced.length} surface(s), ${fallbacks.length} fallback(s) (~$${spentUsd.toFixed(3)})${
+    detail: `voiced ${voiced.length} surface(s), ${fallbacks.length} fallback(s) (model cost ${costEstimated ? 'estimated ' : ''}$${spentUsd.toFixed(3)})${
       selfCheck ? ` — voice-surface texture ${selfCheck.pre}→${selfCheck.post} (${selfCheck.verdict})` : ''
     }${exhausted ? ' — budget exhausted' : ''}`,
   });
-  return { deliverables: current, voiced, fallbacks, spentUsd, exhausted, selfCheck };
+  return { deliverables: current, voiced, fallbacks, spentUsd, costEstimated, exhausted, selfCheck };
 }
 
 // ── D4 disclosure stash ─────────────────────────────────────────────────────

@@ -227,6 +227,7 @@ export function buildAgentWorkingSetSummary({
   packageQualityPass = null,
   messages = [],
   isAgentProviderReady = true,
+  generationError = '',
 } = {}) {
   const lessonCount = Array.isArray(courseMap?.lessons) ? courseMap.lessons.length : 0;
   const selectedDeliverableIds = uniqueValues(selectedFeatures).filter((featureId) => featureId !== 'courseMap');
@@ -259,7 +260,9 @@ export function buildAgentWorkingSetSummary({
   });
 
   const activeTarget = activeTab && activeTab !== 'courseMap' ? resolveLabel(activeTab) : 'Course Map';
-  const packageStatus = buildPackageStatus(packageQualityPass);
+  const packageStatus = generationError
+    ? { label: 'Build stopped', tone: BAD_TONE }
+    : buildPackageStatus(packageQualityPass);
   const briefStatus = buildBriefStatus(messages);
   const planStatus = buildPlanStatus(messages);
   const activityStatus = buildRecentActivityStatus(messages);
@@ -309,19 +312,21 @@ export default function AgentWorkingSetPanel(props) {
   const needsAttention = summary.packageStatus.label === 'Needs attention' || summary.failedFeatureCount > 0;
   const localOnly = summary.toolStateLabel !== 'AI connected';
   const headline =
-    summary.packageStatus.label === 'Building'
-      ? 'Building package'
-      : summary.packageStatus.label === 'Finishing'
-        ? 'Finishing package'
-        : readyWithNotes
-          ? 'Ready to export'
-          : needsAttention
-            ? 'Review before export'
-            : summary.packageStatus.label === 'Ready'
-              ? 'Ready to export'
-              : localOnly
-                ? 'Workspace open'
-                : 'Workspace ready';
+    summary.packageStatus.label === 'Build stopped'
+      ? 'Build stopped'
+      : summary.packageStatus.label === 'Building'
+        ? 'Building package'
+        : summary.packageStatus.label === 'Finishing'
+          ? 'Finishing package'
+          : readyWithNotes
+            ? 'Ready to export'
+            : needsAttention
+              ? 'Review before export'
+              : summary.packageStatus.label === 'Ready'
+                ? 'Ready to export'
+                : localOnly
+                  ? 'Workspace open'
+                  : 'Workspace ready';
   const supportLine = [
     summary.scopeLabel,
     quietMaterialParts.length > 0 ? quietMaterialParts.join(', ') : 'No generated materials yet',

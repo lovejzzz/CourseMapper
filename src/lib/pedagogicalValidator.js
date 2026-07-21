@@ -408,7 +408,11 @@ export function validateBloomsAlignment(courseMap, deliverables) {
 
     const maxAssessLevel = Math.max(...assessmentLevels);
     const avgAssessLevel = assessmentLevels.reduce((s, v) => s + v, 0) / assessmentLevels.length;
-    lessonAvgs.push({ li, avg: avgAssessLevel });
+    const assessmentLesson =
+      /\b(?:midterm|final)\s+(?:exam|examination|assessment)\b|\b(?:cumulative|comprehensive)\s+(?:exam|examination|assessment)\b/i.test(
+        String(lesson?.title || ''),
+      );
+    lessonAvgs.push({ li, avg: avgAssessLevel, assessmentLesson });
 
     // Check: objectives require L4+ but ALL assessments are L1-2
     if (maxObjLevel >= 4 && maxAssessLevel <= 2) {
@@ -441,6 +445,10 @@ export function validateBloomsAlignment(courseMap, deliverables) {
   for (let i = 1; i < lessonAvgs.length; i++) {
     const prev = lessonAvgs[i - 1];
     const curr = lessonAvgs[i];
+    // A cumulative exam intentionally mixes recall, application, and
+    // higher-order items. Its mean Bloom label is not a lesson-progression
+    // regression and should not become an alarming instructor note.
+    if (prev.assessmentLesson || curr.assessmentLesson) continue;
     if (prev.avg - curr.avg > 1.0) {
       findings.push({
         id: `blooms-regression-L${curr.li}`,

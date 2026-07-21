@@ -1,3 +1,20 @@
+import {
+  applyScionBrowserWllamaAdapter,
+  completeScionBrowserWllama,
+  getScionBrowserWllamaStatus,
+  loadScionBrowserWllama,
+  probeScionBrowserWllamaAdapter,
+  rollbackScionBrowserWllamaAdapter,
+  unloadScionBrowserWllama,
+} from './scionBrowserWllama';
+import {
+  activateInstalledScionAdapter,
+  createScionAdapterMemoryStore,
+  deactivateInstalledScionAdapter,
+  installScionBrowserAdapter,
+  verifyInstalledScionAdapter,
+} from './scionAdapterRegistry';
+
 export const SCION_RUNTIME_CANARY_QUERY = 'scion-runtime-canary';
 
 const LOCAL_CANARY_HOSTS = new Set(['127.0.0.1', 'localhost', '[::1]']);
@@ -166,22 +183,20 @@ function installDomCanaryTransport(api, documentLike = globalThis.document) {
 export function installScionRuntimeCanaryBridge({
   locationLike = globalThis.location,
   globalLike = globalThis,
-  loadRuntime = async () => {
-    const [browserRuntime, manifestRuntime, registryRuntime] = await Promise.all([
-      import('./scionBrowserWllama'),
-      import('./scionAdapterManifest'),
-      import('./scionAdapterRegistry'),
-    ]);
-    return {
-      ...browserRuntime,
-      ...manifestRuntime,
-      createScionAdapterMemoryStore: registryRuntime.createScionAdapterMemoryStore,
-      installScionBrowserAdapter: registryRuntime.installScionBrowserAdapter,
-      verifyInstalledScionAdapter: registryRuntime.verifyInstalledScionAdapter,
-      activateInstalledScionAdapter: registryRuntime.activateInstalledScionAdapter,
-      deactivateInstalledScionAdapter: registryRuntime.deactivateInstalledScionAdapter,
-    };
-  },
+  loadRuntime = async () => ({
+    loadScionBrowserWllama,
+    completeScionBrowserWllama,
+    applyScionBrowserWllamaAdapter,
+    probeScionBrowserWllamaAdapter,
+    rollbackScionBrowserWllamaAdapter,
+    unloadScionBrowserWllama,
+    getScionBrowserWllamaStatus,
+    createScionAdapterMemoryStore,
+    installScionBrowserAdapter,
+    verifyInstalledScionAdapter,
+    activateInstalledScionAdapter,
+    deactivateInstalledScionAdapter,
+  }),
 } = {}) {
   if (!isScionRuntimeCanaryLocation(locationLike)) return null;
   const ready = Promise.resolve()

@@ -1541,6 +1541,102 @@ describe('courseBlueprintCompiler', () => {
     });
   });
 
+  it('keeps environmental chemistry in a chemistry lab register instead of generic study design', () => {
+    const blueprint = buildCourseBlueprint({
+      courseName: 'Environmental Chemistry',
+      semester: 'Fall 2026',
+      lessons: [
+        {
+          title: 'Lesson 1: Atmospheric Chemistry',
+          sections: [
+            {
+              topicSection: 'Atmospheric reactions, ozone chemistry, reaction pathways, and source evidence',
+              learningObjectives: 'Analyze an atmospheric reaction pathway and evaluate its environmental effect.',
+              learningGoals: 'Connect chemical reactions to measured atmospheric change.',
+              weeklyAssessments: 'Lab analysis with a reaction model, measurement evidence, and interpretation.',
+              asyncActivities: 'Review atmospheric measurements and annotate the reaction pathway.',
+              syncActivities: 'Complete a chemistry lab analysis and compare interpretations of the measurements.',
+              supportingResources: 'Atmospheric chemistry data; reaction-model guide',
+              evaluateDesign: 'Score chemical accuracy, evidence use, interpretation, and limitation.',
+            },
+          ],
+        },
+        {
+          title: 'Lesson 2: Water Quality',
+          sections: [
+            {
+              topicSection: 'Dissolved oxygen, pH, contaminants, water sampling, and measurement uncertainty',
+              learningObjectives: 'Analyze water-quality measurements and defend a sampling decision.',
+              learningGoals: 'Use chemical measurements to interpret water quality.',
+              weeklyAssessments: 'Water-quality lab memo with measurements, uncertainty, and a risk decision.',
+              asyncActivities: 'Inspect a water-quality dataset and identify measurement limitations.',
+              syncActivities: 'Run a sampling lab and compare chemical interpretations.',
+              supportingResources: 'Water sampling protocol; dissolved-oxygen reference',
+              evaluateDesign: 'Score measurement use, chemical interpretation, and risk reasoning.',
+            },
+          ],
+        },
+        {
+          title: 'Lesson 3: Environmental Justice',
+          sections: [
+            {
+              topicSection: 'Environmental justice evidence, exposure burden, community data, and uncertainty',
+              learningObjectives: 'Analyze Environmental Justice evidence and evaluate an exposure claim.',
+              learningGoals: 'Connect chemical exposure measurements to an environmental justice decision.',
+              weeklyAssessments: 'Exposure-analysis memo with measurements, evidence, and a bounded claim.',
+              asyncActivities: 'Annotate community exposure evidence and identify a missing measurement.',
+              syncActivities: 'Compare exposure patterns and defend a bounded interpretation.',
+              supportingResources: 'Community exposure data; environmental justice reading',
+              evaluateDesign: 'Score measurement use, evidence, interpretation, and limitation.',
+            },
+          ],
+        },
+      ],
+    });
+    const compiled = compileBlueprintDeliverables(
+      blueprint,
+      ['syllabus', 'lessonPlans', 'slideDecks', 'rubrics', 'discussions', 'studyGuides', 'courseFaq'],
+      {
+        enforceCompilerContract: false,
+      },
+    );
+    const studentFacingText = JSON.stringify({
+      lessonPlans: compiled.lessonPlans.lessonPlans,
+      slideDecks: compiled.slideDecks.decks,
+    });
+
+    expect(blueprint.enrichment.lens).toMatchObject({
+      domain: 'environmental and laboratory chemistry',
+      evidenceNoun: 'chemical measurements and source evidence',
+      learnerRole: 'chemistry analyst',
+      exampleNoun: 'sampling, reaction, or contaminant case',
+    });
+    expect(blueprint.courseModalityProfile.primaryMode).toBe('applied-lab');
+    expect(blueprint.courseModalityProfile.primaryMode).not.toBe('competency-based');
+    expect(studentFacingText).toMatch(/chemical measurements|chemical interpretation|chemistry analyst/i);
+    expect(studentFacingText).not.toMatch(/study-design scenario|methodological decision|research practitioner/i);
+    expect(compiled.syllabus.syllabus.courseDescription).toContain('Students return to the lesson materials');
+    expect(compiled.syllabus.syllabus.courseDescription).not.toMatch(/course audience/i);
+    const visibleSyllabusText = JSON.stringify({
+      courseDescription: compiled.syllabus.syllabus.courseDescription,
+      courseRequirements: compiled.syllabus.syllabus.courseRequirements,
+      outcomeAlignmentMatrix: compiled.syllabus.syllabus.outcomeAlignmentMatrix,
+      weeklySchedule: compiled.syllabus.syllabus.weeklySchedule,
+    });
+    expect(visibleSyllabusText).not.toMatch(/evidence evidence/i);
+    const rubricText = JSON.stringify(compiled.rubrics);
+    expect(rubricText).not.toMatch(/measurements and source evidence (?:changes|supports)\b/i);
+    expect(rubricText).not.toMatch(/one important chemical measurements and source evidence/i);
+    expect(JSON.stringify(compiled.discussions)).not.toMatch(/how does .+(?:processes|concepts) strengthen/i);
+    const studyGuideText = JSON.stringify(compiled.studyGuides);
+    expect(studyGuideText).not.toMatch(/practice by use\b|(?:processes|concepts) shifts the decision/i);
+    expect(studyGuideText).not.toMatch(/chemical measurements and source evidence makes\b/i);
+    expect(studyGuideText).not.toMatch(/one chemical measurements and source evidence source/i);
+    const faqText = JSON.stringify(compiled.courseFaq);
+    expect(faqText).not.toMatch(/one chemical measurements and source evidence point/i);
+    expect(faqText).not.toMatch(/lesson materials evidence about/i);
+  });
+
   it('keeps full research-methods courses in applied-lab when later lessons mention tests and portfolios', () => {
     const sourceCourseMap = DEFAULT_AUDIT_PROJECTS[0].courseMap;
     const blueprint = buildCourseBlueprint({
@@ -6520,6 +6616,26 @@ describe('courseBlueprintCompiler', () => {
     expect(validation.valid, validation.blockers.join('; ')).toBe(true);
   });
 
+  it('keeps fallback misconception guidance specific across a full semester', () => {
+    const courseMap = makeCourseMap(14);
+    courseMap.lessons.forEach((lesson, index) => {
+      lesson.title = `Lesson ${index + 1}: AI Pedagogy`;
+      lesson.sections[0].topicSection = 'AI pedagogy';
+      lesson.sections[0].weeklyAssessments = `AI course design artifact ${index + 1}`;
+    });
+    const blueprint = buildCourseBlueprint(courseMap);
+    const compiled = compileBlueprintDeliverables(blueprint, ['courseFaq'], {
+      configMap: { courseFaq: { questionsPerLesson: 7 } },
+    });
+    const misconceptionAnswers = compiled.courseFaq.faqs.map(
+      (faq) => faq.qs.find((item) => /common mistake/i.test(item.q))?.an || '',
+    );
+
+    expect(misconceptionAnswers.every(Boolean)).toBe(true);
+    expect(new Set(misconceptionAnswers).size).toBe(14);
+    expect(misconceptionAnswers[0]).toContain('Lesson 1: AI Pedagogy');
+  });
+
   it('produces deliverables that pass existing generation validators', () => {
     const courseMap = makeCourseMap(5);
     const blueprint = buildCourseBlueprint(courseMap);
@@ -6741,8 +6857,8 @@ describe('courseBlueprintCompiler', () => {
     const syllabus = compiled.syllabus.syllabus;
     const serialized = JSON.stringify(syllabus);
 
-    expect(blueprint.semester).toBe('Official term to confirm locally');
-    expect(syllabus.semester).toBe('Official term to confirm locally');
+    expect(blueprint.semester).toBe('Term and dates: confirm in the course site');
+    expect(syllabus.semester).toBe('Term and dates: confirm in the course site');
     expect(serialized).not.toMatch(/\bTBD\b|to be determined|\[semester year\]/i);
     expect(syllabus.classroomHandoffPlan.publishBoundary).toMatch(/official dates/i);
     expect(syllabus.blueprintQualityReceipt.compilerPath.reviewPolicy).toMatch(/official dates|source inputs/i);

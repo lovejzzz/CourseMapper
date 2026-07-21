@@ -257,6 +257,13 @@ describe('exam-lesson compilation (v0.16 exam fixes)', () => {
     const discussionText = JSON.stringify(examDiscussion);
     expect(discussionText).not.toMatch(/during (the )?(Midterm|Final) exam/i);
     expect(discussionText).not.toMatch(/two visible contributions/i);
+    expect(examDiscussion.followUpProbes).toHaveLength(3);
+    expect(examDiscussion.evaluationCriteria.length).toBeGreaterThanOrEqual(2);
+    expect(examDiscussion.facilitationTips).toMatchObject({
+      opening: expect.any(String),
+      ifStalls: expect.any(String),
+      closure: expect.any(String),
+    });
   });
 
   it('exam slide deck is a short review/logistics deck (bug 2)', () => {

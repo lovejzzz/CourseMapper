@@ -157,6 +157,33 @@ describe('parseLessonKernelResponse per-lesson drop tracking (P2.1)', () => {
     expect(parsed.lessons['lesson-2'].keyTerms.length).toBeGreaterThanOrEqual(3);
     expect(parsed.issues.some((issue) => issue.reason === 'all-atoms-linted-out')).toBe(true);
   });
+
+  it('retains a standard fact-only core and quarantines its one malformed sibling', () => {
+    const response = JSON.stringify({
+      lessons: [
+        {
+          lessonId: 'lesson-1',
+          facts: [
+            'Atmospheric reactions transform primary pollutants into secondary pollutants over time.',
+            'Temperature inversions can trap polluted air near the ground.',
+            'Photochemical smog forms through sunlight-driven reactions involving nitrogen oxides.',
+            'Emission controls target precursor compounds before they form secondary pollutants.',
+            'unfinished',
+          ],
+        },
+      ],
+    });
+    const parsed = parseLessonKernelResponse(response, { prompt, expectedLessonIds: ['lesson-1'] });
+
+    expect(parsed.lessons['lesson-1'].kernel.facts).toHaveLength(4);
+    expect(parsed.issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ lessonId: 'lesson-1', surface: 'facts', index: 4 }),
+        expect.objectContaining({ lessonId: 'lesson-1', reason: 'compiler-fact-core' }),
+      ]),
+    );
+    expect(parsed.issues.some((issue) => issue.reason === 'all-atoms-linted-out')).toBe(false);
+  });
 });
 
 // ── 2.2 Coverage string ──

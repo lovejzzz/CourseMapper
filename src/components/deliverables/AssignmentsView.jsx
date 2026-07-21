@@ -87,6 +87,11 @@ export default function AssignmentsView({
     const currentTier = localTiers[i] || 'standard';
     const a =
       currentTier !== 'standard' && baseA.tiers?.[currentTier] ? { ...baseA, ...baseA.tiers[currentTier] } : baseA;
+    const gradingCriteriaEntries = Array.isArray(a.gradingCriteria)
+      ? a.gradingCriteria.filter((criterion) => criterion != null && String(criterion).trim())
+      : a.gradingCriteria
+        ? [a.gradingCriteria]
+        : [];
     const subtitle = [
       a.dueWeek || a.dueDate,
       a.estimatedTime,
@@ -364,17 +369,32 @@ export default function AssignmentsView({
               )}
 
               {/* Grading criteria — internal, hidden in student view */}
-              {a.gradingCriteria && !isStudentView && (
+              {gradingCriteriaEntries.length > 0 && !isStudentView && (
                 <div>
                   <SectionHeading>Grading Criteria Summary</SectionHeading>
-                  <p className="text-xs text-slate-600 leading-relaxed">
-                    <E
-                      value={a.gradingCriteria}
-                      path={['assignments', i, 'gradingCriteria']}
-                      onEdit={onEdit}
-                      multiline
-                    />
-                  </p>
+                  {Array.isArray(a.gradingCriteria) ? (
+                    <ul className="space-y-1 text-xs text-slate-600">
+                      {gradingCriteriaEntries.map((criterion, criterionIndex) => (
+                        <li key={criterionIndex} className="flex items-start gap-2">
+                          <span className="text-amber-400 flex-shrink-0">•</span>
+                          <E
+                            value={criterion}
+                            path={['assignments', i, 'gradingCriteria', criterionIndex]}
+                            onEdit={onEdit}
+                          />
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-xs text-slate-600 leading-relaxed">
+                      <E
+                        value={a.gradingCriteria}
+                        path={['assignments', i, 'gradingCriteria']}
+                        onEdit={onEdit}
+                        multiline
+                      />
+                    </p>
+                  )}
                 </div>
               )}
 

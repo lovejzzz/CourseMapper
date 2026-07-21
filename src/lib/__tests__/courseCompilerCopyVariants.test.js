@@ -3,6 +3,8 @@ import {
   assignmentSelfAssessmentEvidenceCheck,
   compactAssignmentBriefBodyReferences,
 } from '../courseCompilerCopyVariants';
+import { examFactCopy } from '../courseCompilerPolish';
+import { isAppliedQuizStem } from '../quality/quizItemDepth';
 
 describe('course compiler copy variants', () => {
   it('keeps the canonical assignment heading but compacts its week-prefixed body alias', () => {
@@ -85,5 +87,34 @@ describe('course compiler copy variants', () => {
         assignmentType: 'Analysis worksheet',
       }),
     ).toBe(signal);
+  });
+
+  it('uses a concrete evidence decision for the first rotating fact-check variant', () => {
+    const item = examFactCopy({
+      lessonNumber: 1,
+      assessmentTitle: 'Environmental Chemistry final',
+      lessonFocus: 'Atmospheric Chemistry',
+      answer: 'Photochemical reactions transform primary pollutants.',
+    });
+
+    expect(item.question).toContain('lab team');
+    expect(item.question).toContain('course evidence');
+    expect(isAppliedQuizStem(item.question)).toBe(true);
+  });
+
+  it('rotates fact-check stems across question seats in the same lesson', () => {
+    const questions = [0, 1, 2, 4].map(
+      (questionIndex) =>
+        examFactCopy({
+          lessonNumber: 1,
+          questionIndex,
+          assessmentTitle: 'Environmental Chemistry final',
+          lessonFocus: 'Atmospheric Chemistry',
+          answer: 'Photochemical reactions transform primary pollutants.',
+        }).question,
+    );
+
+    expect(new Set(questions).size).toBe(4);
+    expect(questions[0]).toContain('lab team');
   });
 });

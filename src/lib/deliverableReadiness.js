@@ -606,10 +606,14 @@ function hasRepeatedShortTopicReference(value, courseMap) {
 function weakCourseMapTopicIdentities(courseMap) {
   const identities = new Set([...repeatedShortCourseMapTopicIdentities(courseMap)]);
   asArray(courseMap?.lessons).forEach((lesson) => {
-    [
-      lesson?.title,
-      ...asArray(lesson?.sections).flatMap((section) => [section?.topicSection, section?.weeklyAssessments]),
-    ]
+    // Only identity-bearing fields can establish a weak *topic* identity.
+    // Weekly assessments are often complete sentences by design; feeding
+    // them through isSentenceShapedCourseMapTopic made every substantive
+    // assessment define itself as weak and then replace itself with a generic
+    // application-check fallback. Assessments may still reference a weak
+    // title/topic below, and explicit malformed assessment labels keep their
+    // dedicated identity check.
+    [lesson?.title, ...asArray(lesson?.sections).map((section) => section?.topicSection)]
       .map(normalizeCourseMapTopicIdentity)
       .filter(Boolean)
       .forEach((candidate) => {
