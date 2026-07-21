@@ -86,7 +86,9 @@ export function isConceptCuedCompilerShortAnswer(stem) {
 export function isClaimEvidenceBoundaryShortAnswer(stem) {
   const text = normalizeStem(stem);
   const selectsConcept =
-    /\b(?:identify|select|choose|name)\b.{0,80}\b(?:concept|method|framework|principle|rule|lens)\b/i.test(text);
+    /\b(?:identify|select|choose|name)\b.{0,80}\b(?:concepts?|methods?|frameworks?|principles?|rules?|lenses)\b/i.test(
+      text,
+    );
   const usesEvidence =
     /\b(?:cite|use|reference|point to|draw on)\b.{0,80}\b(?:evidence|detail|observation|result|quote|case)\b/i.test(
       text,

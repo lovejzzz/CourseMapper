@@ -226,7 +226,7 @@ function existingCitations(graph) {
   );
 }
 
-const INTERNAL_KEY_TERM_SOURCE_MARKERS = new Set(['verified-quiz-projection']);
+const INTERNAL_KEY_TERM_SOURCE_MARKERS = new Set(['verified-quiz-projection', 'fact-ledger-projection']);
 
 function isInternalKeyTermSourceMarker(entry) {
   return typeof entry === 'string' && INTERNAL_KEY_TERM_SOURCE_MARKERS.has(cleanText(entry).toLowerCase());

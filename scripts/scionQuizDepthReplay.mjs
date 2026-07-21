@@ -148,6 +148,13 @@ if (!projectPath) {
         compiledAdmissionIssues: compiledAdmissionIssues(compiledItems),
         compiledAuthoredItems: summarize(compiledAuthoredItems),
         compiledConstructedItems: summarizeConstructed(compiledConstructedItems),
+        compiledConstructedSamples: compiledConstructedItems.map((item) => ({
+          lessonNumber: item.lessonNumber,
+          question: item.question,
+          conceptCued: isConceptCuedCompilerShortAnswer(item.question),
+          claimEvidenceBoundary: isClaimEvidenceBoundaryShortAnswer(item.question),
+          enrichmentSource: item.enrichmentSource || null,
+        })),
         byLesson,
       },
       null,

@@ -246,6 +246,52 @@ describe('G1 — the sync compile keeps its subject matter', () => {
     expect(result.receipt.rejectedTitleTerms).toEqual(['Telescope light-gathering power and aperture']);
   });
 
+  it('projects a source-anchored title fragment as subject knowledge in the study guide', () => {
+    const courseMap = {
+      courseName: 'Introduction to Astronomy',
+      lessons: [
+        {
+          title: 'Lesson 8: Telescope light-gathering power and aperture',
+          sections: [
+            {
+              topicSection: 'Telescope light-gathering power and aperture',
+              learningObjectives: 'Analyze telescope aperture and name one limitation.',
+            },
+          ],
+        },
+      ],
+    };
+    const blueprint = buildCourseBlueprint(courseMap, {
+      enrichment: {
+        source: 'test-enrichment',
+        lessonContent: {
+          'lesson-1': {
+            keyTerms: [
+              {
+                term: 'Telescope light-gathering power',
+                definition: 'Collecting power grows with the area of the aperture rather than its diameter.',
+                example: 'A four-meter mirror collects sixteen times as much light as a one-meter mirror.',
+                source: 'OpenStax Astronomy 2e §6.1',
+                tier: 2,
+              },
+            ],
+            kernel: { facts: ['Aperture area determines light-gathering power.'] },
+          },
+        },
+      },
+    });
+
+    const guide = compileBlueprintDeliverables(blueprint, ['studyGuides'], { skipLanguageFinalizer: true }).studyGuides
+      .studyGuides[0];
+    expect(guide.keyTerms).toContainEqual(
+      expect.objectContaining({
+        term: 'Telescope light-gathering power',
+        definition: 'Collecting power grows with the area of the aperture rather than its diameter.',
+      }),
+    );
+    expect(JSON.stringify(guide)).not.toContain('names the evidence focus');
+  });
+
   it('reuses a complete restored overlay without another model pass', () => {
     const courseMap = geologyMap();
     const fullOverlay = {

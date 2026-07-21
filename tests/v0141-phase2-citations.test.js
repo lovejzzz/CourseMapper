@@ -255,6 +255,21 @@ describe('shard-key display names (4.8)', () => {
     expect(url).toBe('https://openstax.org/books/astronomy-2e');
     expect(license).toBe('CC BY 4.0');
   });
+
+  it('never turns an internal fact-ledger marker into a bibliography row', () => {
+    const graph = literatureGraph(['OpenStax astronomy 2e §2.1']);
+    graph.enrichmentOverlay.lessonContent['lesson-1'].keyTerms = [
+      {
+        term: 'Close Reading',
+        source: 'fact-ledger-projection',
+      },
+    ];
+
+    expect(attachGenomeResources(graph)).toBe(1);
+    expect(graph.resources).toHaveLength(1);
+    expect(graph.resources[0].citation).toContain('OpenStax astronomy 2e §2.1');
+    expect(JSON.stringify(graph.resources)).not.toContain('fact-ledger-projection');
+  });
 });
 
 // ── D: citation string hygiene (provider layer) ───────────────────────────

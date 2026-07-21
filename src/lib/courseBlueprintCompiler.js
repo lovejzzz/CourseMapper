@@ -5442,7 +5442,12 @@ function isLessonTitleEchoConcept(value, lesson = {}) {
 
 function lessonTeachingKeyTerms(lesson = {}) {
   return (lesson?.enrichment?.keyTerms || []).filter(
-    (entry) => cleanText(entry?.term) && !isLessonTitleEchoConcept(entry.term, lesson),
+    (entry) =>
+      cleanText(entry?.term) &&
+      ((Number(entry?.tier) >= 2 &&
+        cleanText(entry?.source) &&
+        !/fact-ledger-projection|model-authored/i.test(cleanText(entry.source))) ||
+        !isLessonTitleEchoConcept(entry.term, lesson)),
   );
 }
 
@@ -19817,24 +19822,9 @@ function buildExamShortAnswerItem({ blueprint, assessment, covered, lens, examSl
   const grounded = Boolean(distinctConcepts && (compositeGrounded || (!usesCompositePair && termA && termB)));
   const anchorFact = examLessonFact(last) || examLessonFact(first);
   const firstTitle = compactLessonFocusReference(first);
-  const normalizedPairTitle = cleanText(firstTitle).toLowerCase();
-  const titleIsConceptPair = [
-    `${conceptA} and ${conceptB}`,
-    `${conceptB} and ${conceptA}`,
-    `${conceptA} versus ${conceptB}`,
-    `${conceptB} versus ${conceptA}`,
-  ]
-    .map((value) => value.toLowerCase())
-    .includes(normalizedPairTitle);
-  const comparisonPrompt = sameLesson
-    ? titleIsConceptPair
-      ? `${conceptA} and ${conceptB} as contrasting explanatory lenses`
-      : `${conceptA} and ${conceptB} in ${firstTitle}`
-    : `${conceptA} (${stripLessonPrefix(first.title)}) with ${conceptB} (${stripLessonPrefix(last.title)})`;
-  const singleConceptPrompt =
-    cleanText(firstTitle).toLowerCase() === conceptA.toLowerCase()
-      ? `${conceptA} as a course lens`
-      : `${conceptA} in ${firstTitle}`;
+  const comparisonEvidenceScope = sameLesson
+    ? firstTitle
+    : `${stripLessonPrefix(first.title)} and ${stripLessonPrefix(last.title)}`;
   return withQuizPlan(
     {
       id: `${examSlug}-q${ordinal}`,
@@ -19846,37 +19836,37 @@ function buildExamShortAnswerItem({ blueprint, assessment, covered, lens, examSl
       objectiveAligned: last.outcomes?.[0] || '',
       intendedUse: `Summative item on ${assessment.title}; score against the answer guide below.`,
       question: distinctConcepts
-        ? `In 3-4 sentences, compare ${comparisonPrompt}: explain one way they differ or connect, cite one course detail, and state one decision each supports in ${blueprint.courseName}.`
-        : `In 3-4 sentences, analyze ${singleConceptPrompt}: cite one course detail, explain two different decisions it could support, and state one limitation.`,
+        ? `In 3-4 sentences, use one course detail from ${comparisonEvidenceScope} as evidence: identify the two course concepts it connects, explain how their roles differ, and state one limitation or conclusion the detail does not establish.`
+        : `In 3-4 sentences, use one course detail from ${firstTitle} as evidence: identify the course concept it best illustrates, explain one decision that evidence supports, and state one limitation or conclusion it does not establish.`,
       answer: distinctConcepts
         ? grounded
           ? compositeGrounded
-            ? `A complete answer accurately distinguishes ${conceptA} and ${conceptB} using the authored course definition — ${stripTerminalPunctuation(compositeDefinition)} — cites a course detail, names a concrete relationship, and states one decision each supports.`
-            : `A complete answer uses both definitions accurately — ${joinTermDefinition(conceptA, termA.definition)}; ${joinTermDefinition(conceptB, termB.definition)} — cites a course detail, names a concrete relationship, and states one decision each supports.`
-          : `A complete answer defines both concepts accurately, cites a course detail, names a concrete relationship between ${conceptA} and ${conceptB}, and states one decision each supports.`
-        : `A complete answer defines ${conceptA} accurately, cites a specific course detail, explains two genuinely different decisions the evidence could support, and states one limitation.`,
+            ? `A complete answer accurately selects and distinguishes ${conceptA} and ${conceptB} using the authored course definition — ${stripTerminalPunctuation(compositeDefinition)} — cites a course detail, names a concrete relationship, and bounds the conclusion.`
+            : `A complete answer selects and uses both definitions accurately — ${joinTermDefinition(conceptA, termA.definition)}; ${joinTermDefinition(conceptB, termB.definition)} — cites a course detail, names a concrete relationship, and bounds the conclusion.`
+          : `A complete answer independently identifies both concepts, cites a course detail, names a concrete relationship between ${conceptA} and ${conceptB}, and bounds the conclusion.`
+        : `A complete answer independently identifies ${conceptA}, cites a specific course detail, explains one decision the evidence supports, and states one limitation.`,
       sampleAnswer: distinctConcepts
         ? grounded
           ? compositeGrounded
-            ? `${sentenceCase(compositeDefinition)} The response should then identify the concepts' different explanatory roles and one decision each supports.${
+            ? `${sentenceCase(compositeDefinition)} The response should then identify the concepts' different explanatory roles and one limitation of the cited evidence.${
                 anchorFact
                   ? ` Key supporting evidence: ${lowercaseSentenceLead(stripTerminalPunctuation(anchorFact))}.`
                   : ''
               }`
-            : `${sentenceCase(joinTermDefinition(conceptA, termA.definition, { separator: ' means ', lowercaseTail: true }))}, while ${joinTermDefinition(conceptB, termB.definition, { separator: ' means ', lowercaseTail: true })}. The concepts differ in what they explain, and each supports a different course decision.${
+            : `${sentenceCase(joinTermDefinition(conceptA, termA.definition, { separator: ' means ', lowercaseTail: true }))}, while ${joinTermDefinition(conceptB, termB.definition, { separator: ' means ', lowercaseTail: true })}. The concepts differ in what they explain, and the cited detail does not establish a broader conclusion.${
                 anchorFact
                   ? ` Key supporting evidence: ${lowercaseSentenceLead(stripTerminalPunctuation(anchorFact))}.`
                   : ''
               }`
-          : `${sentenceCase(conceptA)} and ${conceptB} differ in what each explains. A specific course detail should show why each concept supports a different decision.`
-        : `${sentenceCase(conceptA)} can support two different decisions when the response ties each decision to a specific course detail and marks what that evidence cannot establish.`,
+          : `${sentenceCase(conceptA)} and ${conceptB} differ in what each explains. A specific course detail should connect them while the response states what that evidence cannot establish.`
+        : `${sentenceCase(conceptA)} is the best-fitting course concept. The response should cite the exact course detail, connect it to one decision, and mark what that evidence cannot establish.`,
       ...(grounded ? { enrichmentSource: 'lesson-content-enrichment' } : {}),
       explanation: distinctConcepts
-        ? `Exam synthesis: the item checks whether students can distinguish and relate ${conceptA} and ${conceptB} instead of recalling each in isolation.`
-        : `Exam application: the item checks whether students can use ${conceptA} with evidence across two decisions and keep the claim bounded.`,
+        ? `Exam synthesis: the item checks whether students can select, distinguish, and relate ${conceptA} and ${conceptB} from evidence while bounding the claim.`
+        : `Exam application: the item checks whether students can select ${conceptA} from course evidence, support a decision, and keep the claim bounded.`,
       scoringGuidance: distinctConcepts
-        ? `Full credit requires both concepts used accurately, one course detail, one explicit relationship, and one decision per concept. Partial credit when only one concept is applied with evidence.`
-        : `Full credit requires accurate ${conceptA} use, one course detail, two distinct decisions, and a limitation. Partial credit when only one decision is supported.`,
+        ? `Full credit requires independent selection and accurate use of both concepts, one cited course detail, one explicit relationship, and a defensible limitation. Partial credit when only one concept is applied with evidence.`
+        : `Full credit requires independent selection and accurate use of ${conceptA}, one cited course detail, one supported decision, and a limitation. Partial credit when the concept is named without connecting the evidence to the decision.`,
       tags: unique(['exam', 'short answer', conceptA, conceptB].filter(Boolean), 8),
     },
     {
@@ -20230,7 +20220,7 @@ function buildAdmittedKernelEvidenceItem({ lesson, quizPlan, index, offset = 0 }
       points: 4,
       objectiveAligned: plan.objective || lesson.outcomes?.[0] || '',
       intendedUse: `Weekly source-grounded evidence check for ${lesson.title}; score the relationship and claim boundary against the admitted lesson kernel.`,
-      question: `Analyze this course statement: “${quotedFact}.” In 2-3 sentences, explain how the evidence relates to ${concept}, then name one conclusion the statement does not establish by itself.`,
+      question: `Analyze this course statement: “${quotedFact}.” In 2-3 sentences, identify the course concept that best interprets the statement, cite one detail from the evidence, and name one limitation or conclusion the statement does not establish by itself.`,
       answer: `A complete answer accurately connects the quoted statement to ${concept}, explains the relationship it establishes, and keeps the conclusion within the supplied evidence.`,
       sampleAnswer: `${definitionCue} The evidence supports that concept by showing that ${lowercaseSentenceLead(quotedFact)}. It does not support a conclusion that adds a nutrient, quantity, cause, or outcome not stated in the quotation.`,
       explanation: `This item checks whether students can interpret an admitted ${concept} fact and distinguish its supported relationship from an overclaim.`,

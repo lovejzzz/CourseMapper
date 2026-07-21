@@ -297,8 +297,12 @@ describe('constructed-response compiler depth', () => {
     });
     expect(items[2].bloomsLevel).toBe('Analyze');
     expect(items[2].question).toMatch(/Analyze this course statement/);
-    expect(items[2].question).toMatch(/relates to The six classes of nutrients/);
+    expect(items[2].question).toMatch(/identify the course concept/i);
+    expect(items[2].question).toMatch(/cite one detail from the evidence/i);
+    expect(items[2].question).toMatch(/one limitation/i);
     expect(items[2].question).not.toMatch(/relates to water/);
+    expect(isConceptCuedCompilerShortAnswer(items[2].question)).toBe(false);
+    expect(isClaimEvidenceBoundaryShortAnswer(items[2].question)).toBe(true);
   });
 
   it('uses two distinct admitted concepts for a one-lesson exam and removes doubled decision language', () => {
@@ -338,8 +342,10 @@ describe('constructed-response compiler depth', () => {
     const essay = exam.questions.find((item) => item.type === 'essay');
 
     expect(exam.examScope).toBe('Covers Lesson 1: Usability Evidence.');
-    expect(shortAnswer.question).toMatch(/compare Evidence triangulation and Task failure pattern/i);
-    expect(shortAnswer.question).not.toMatch(/compare (.+?)\b with \1\b/i);
+    expect(shortAnswer.question).toMatch(/identify the two course concepts/i);
+    expect(shortAnswer.question).toMatch(/one course detail from Usability Evidence as evidence/i);
+    expect(isConceptCuedCompilerShortAnswer(shortAnswer.question)).toBe(false);
+    expect(isClaimEvidenceBoundaryShortAnswer(shortAnswer.question)).toBe(true);
     expect(essay.question).not.toMatch(/\bdecision decisions\b/i);
     expect(essay.question).not.toMatch(/(.+?) through \1/i);
     expect(essay.rubricHints).toMatch(/two concepts from the covered lesson/i);
@@ -416,9 +422,12 @@ describe('constructed-response compiler depth', () => {
     const shortAnswer = exam.questions.find((item) => item.type === 'short_answer');
     const essay = exam.questions.find((item) => item.type === 'essay');
 
-    expect(shortAnswer.question).toMatch(/compare Realism and Liberalism as contrasting explanatory lenses/i);
+    expect(shortAnswer.question).toMatch(/one course detail from Realism and Liberalism as evidence/i);
+    expect(shortAnswer.question).toMatch(/identify the two course concepts/i);
     expect(shortAnswer.question).not.toMatch(/Realism and Liberalism in Realism and Liberalism/i);
     expect(shortAnswer.question).not.toMatch(/Anarchic structure/i);
+    expect(isConceptCuedCompilerShortAnswer(shortAnswer.question)).toBe(false);
+    expect(isClaimEvidenceBoundaryShortAnswer(shortAnswer.question)).toBe(true);
     expect(shortAnswer.answer).toMatch(/authored course definition/i);
     expect(essay.question).toMatch(/approach to interpretive judgment/i);
     expect(essay.question).not.toMatch(/professional decision/i);
@@ -435,8 +444,8 @@ describe('constructed-response compiler depth', () => {
       .find((quiz) => quiz.kind === 'exam')
       .questions.find((item) => item.type === 'short_answer');
 
-    expect(defensiveShortAnswer.question).toMatch(/compare Realism and Liberalism as contrasting explanatory lenses/i);
-    expect(defensiveShortAnswer.answer).toMatch(/defines both concepts accurately/i);
+    expect(defensiveShortAnswer.question).toMatch(/identify the two course concepts/i);
+    expect(defensiveShortAnswer.answer).toMatch(/independently identifies both concepts/i);
     expect(defensiveShortAnswer.answer).not.toMatch(/Liberalism:\s*The anarchic structure/i);
   });
 });
