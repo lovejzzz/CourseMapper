@@ -25,6 +25,7 @@ import {
 } from './scionAnswerKeyAlignment';
 import { assessScionKeyTermContract } from './scionKeyTermContract';
 import { scionFactContractForLesson } from './scionEvidenceContract';
+import { META_SURFACE_RE } from './metaSurfaceAdmission';
 
 const DEFAULT_MAX_LESSONS = 12;
 const MAX_TEXT_CHARS = 320;
@@ -778,9 +779,6 @@ const LESSON_CONTENT_SYSTEM_PROMPT = [
   'Grounding: rely only on the listed readings/topics; do not invent citations, URLs, page numbers, statistics, or named studies beyond them.',
   'Return strict JSON only — no markdown fences, no commentary.',
 ].join(' ');
-
-const META_SURFACE_RE =
-  /\b(?:evidence move|success criteri\w*|course evidence|lesson evidence|rubric|the (?:Week\s*\d+|weekly) \w+|this (?:course|lesson)|the lesson|artifact|submission|checkpoint)\b/i;
 
 const CUMULATIVE_REVIEW_RE =
   /\b(?:course|cumulative|comprehensive|midterm|final)\s+(?:review|synthesis|exam(?:ination)?|assessment|performance)\b|\b(?:review|synthesis)\s+(?:for\s+)?(?:the\s+)?(?:midterm|final|course)\b/i;

@@ -14,6 +14,7 @@ import {
   PUBLIC_SCION_MODEL_NAME,
   PUBLIC_SCION_PROVIDER_ID,
   publicScionEnrichmentRecoveryCallLimit,
+  publicScionFactContractIssues,
   publicScionAdmissionRisk,
   assessPublicScionKernelResponse,
   buildPublicScionRetryFeedback,
@@ -1868,6 +1869,41 @@ Return ONLY valid JSON.`;
     expect(ledgerPrompt).toContain('Never write course metadata');
     expect(ledgerPrompt).toContain('at least three must define or distinguish a concept');
     expect(ledgerPrompt.length).toBeLessThan(full.at(-1).content.length / 2);
+  });
+
+  it('rejects meta facts at compact transport admission before canonical parsing', () => {
+    const prompt = buildLessonKernelPrompt(
+      {
+        courseName: 'Elementary Mandarin Chinese I',
+        lessons: [
+          {
+            title: 'Lesson 5: Family and Possession',
+            sections: [{ topicSection: 'Family members and possession with de' }],
+          },
+        ],
+      },
+      [0],
+      { questionsPerLesson: 2 },
+    );
+    const response = JSON.stringify({
+      lessons: [
+        {
+          lessonId: 'lesson-1',
+          facts: [
+            'Family terms distinguish older and younger relatives in common Mandarin descriptions.',
+            'The particle de links a possessor to the noun that follows it.',
+            'The lesson introduces vocabulary for common family relationships in Mandarin.',
+            'Possessive noun phrases place the possessor before de and the possessed noun.',
+            'Kinship titles can encode generation, age, and family-side distinctions.',
+          ],
+        },
+      ],
+    });
+    const assessment = assessPublicScionKernelResponse(response, prompt.userPrompt, 'blueprintEnrichment');
+
+    expect(assessment.issues).toContain('lesson-1:fact-2:meta-fact');
+    expect(publicScionFactContractIssues(assessment)).toContain('lesson-1:fact-2:meta-fact');
+    expect(buildPublicScionRetryFeedback(assessment)).toContain('Rewrite course-process descriptions');
   });
 
   it('activates the exact fact ledger for explicit instructor-only facts in the production prompt', () => {

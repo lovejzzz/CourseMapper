@@ -22,6 +22,7 @@ import { assessScionKeyTermContract, normalizeScionKeyTerm } from './scionKeyTer
 import { scionFactContractForLesson } from './scionEvidenceContract.js';
 import { analyzeDecisionScenario } from './scenarioContract.js';
 import { extractExplicitLessonSequence } from './explicitLessonSequence.js';
+import { isMetaSurfaceText } from './metaSurfaceAdmission.js';
 import {
   PUBLIC_SCION_MAX_COMPLETION_TOKENS,
   PUBLIC_SCION_MODEL_ID,
@@ -810,6 +811,9 @@ export function assessPublicScionKernelResponse(
         if (PUBLIC_SCION_FACT_TEMPLATE_RESIDUE_RE.test(String(fact || ''))) {
           issues.push(`${expected.lessonId}:fact-${index}:template-residue`);
         }
+        if (!sourceLedgerFact && isMetaSurfaceText(fact)) {
+          issues.push(`${expected.lessonId}:fact-${index}:meta-fact`);
+        }
         if (hasRichSourceEvidence && publicScionUnsupportedQuantities(fact, sourceText).length > 0) {
           issues.push(`${expected.lessonId}:fact-${index}:source-unsupported-quantity`);
         }
@@ -1240,6 +1244,11 @@ export function buildPublicScionRetryFeedback(assessment = {}) {
     ...(allIssues.some((issue) => issue.includes('source-fact-ledger-mismatch'))
       ? [
           'The facts array is a compiler-owned source ledger. Copy every supplied numbered claim exactly, in order, without changing or adding any word.',
+        ]
+      : []),
+    ...(allIssues.some((issue) => issue.includes('meta-fact'))
+      ? [
+          'Rewrite course-process descriptions as direct subject claims. Never start a fact with “The lesson,” “This lesson,” or “The course.”',
         ]
       : []),
     ...(allIssues.some((issue) => issue.includes('scenario-'))
