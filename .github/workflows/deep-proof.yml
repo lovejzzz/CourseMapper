@@ -124,7 +124,7 @@ jobs:
 
       - name: Upload app proof reports
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: deep-proof-app-reports
           path: |
@@ -161,7 +161,7 @@ jobs:
 
       - name: Upload quality reports
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: deep-proof-quality-reports
           path: |

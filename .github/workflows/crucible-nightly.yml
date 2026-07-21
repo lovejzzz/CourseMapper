@@ -69,7 +69,7 @@ jobs:
 
       - name: Upload round artifacts
         if: always() && steps.guard.outputs.run_crucible == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: crucible-round
           path: verification-output/crucible/round-*
