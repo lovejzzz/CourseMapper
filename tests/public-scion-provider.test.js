@@ -15,6 +15,7 @@ import {
   PUBLIC_SCION_PROVIDER_ID,
   publicScionEnrichmentRecoveryCallLimit,
   publicScionFactContractIssues,
+  publicScionCompilerFactCoreUsable,
   publicScionAdmissionRisk,
   assessPublicScionKernelResponse,
   buildPublicScionRetryFeedback,
@@ -1122,6 +1123,30 @@ Continue generating the REMAINING lessons (Lesson 4 through Lesson 12).`;
     expect(messages[1].content).toContain('normal spaced words');
   });
 
+  it('carries the exact continuation prompt emitted by useGeneration into the public planner', () => {
+    const prompt = `This Course Map has 3 of 15 lessons.
+
+Existing lessons:
+1. Lesson 1: Mendelian Inheritance
+2. Lesson 2: DNA Structure
+3. Lesson 3: Gene Expression
+
+Generate ONLY Lessons 4-15.
+
+LATER SYLLABUS CONTENT:
+Genetics covers inheritance, meiosis, linkage, mutation, population genetics, epigenetics, and genetic technologies.`;
+
+    expect(extractPublicScionPriorLessonTitles(prompt)).toEqual([
+      'Lesson 1: Mendelian Inheritance',
+      'Lesson 2: DNA Structure',
+      'Lesson 3: Gene Expression',
+    ]);
+    const messages = buildPublicScionMessages('system', prompt, { task: 'course-map' });
+    expect(messages[1].content).toContain('PRIOR LESSONS (do not repeat)');
+    expect(messages[1].content).toContain('- Lesson 3: Gene Expression');
+    expect(messages[1].content).toContain('Lesson 4 through Lesson 6');
+  });
+
   it('turns an explicit source topic list into an indexed plan for each bounded window', () => {
     const source =
       'Create a 6-week course. Use six distinct weekly focuses: scarcity and choice; supply and demand; measuring inflation with CPI; unemployment and labor markets; aggregate demand and aggregate supply; fiscal and monetary policy comparison.';
@@ -1903,6 +1928,7 @@ Return ONLY valid JSON.`;
 
     expect(assessment.issues).toContain('lesson-1:fact-2:meta-fact');
     expect(publicScionFactContractIssues(assessment)).toContain('lesson-1:fact-2:meta-fact');
+    expect(publicScionCompilerFactCoreUsable(response, assessment, { minimumFacts: 2 })).toBe(true);
     expect(buildPublicScionRetryFeedback(assessment)).toContain('Rewrite course-process descriptions');
   });
 

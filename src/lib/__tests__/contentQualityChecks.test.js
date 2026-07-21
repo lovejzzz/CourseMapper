@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { auditDeliverableContentQuality } from '../contentQualityChecks.js';
+import { auditDeliverableContentQuality, hasDanglingClauseSeam } from '../contentQualityChecks.js';
 import {
   auditOfficeBlobRepetition,
   findWorstPhraseRepetition,
@@ -283,6 +283,34 @@ describe('compiledLanguageFinalizer', () => {
     expect(text).toContain('Week 1');
   });
 
+  it('does not amputate a coordinated lesson title after a stranded preposition', () => {
+    const philosophyBlueprint = {
+      lessons: [
+        {
+          lessonNumber: 7,
+          title: 'Lesson 7: Arguments for and against God',
+          studentArtifact: 'Theism exit note connecting the activity to one visible product',
+          readings: [],
+        },
+      ],
+    };
+    const data = {
+      assignments: [
+        {
+          lessonNumber: 7,
+          progressTracking:
+            'Review Lesson 7: Arguments for and against God once. Revisit Lesson 7: Arguments for and against God with feedback. Monitor readiness for Lesson 7: Arguments for and against God.',
+        },
+      ],
+    };
+
+    finalizeCompiledDeliverableLanguage('assignments', data, philosophyBlueprint);
+
+    expect(data.assignments[0].progressTracking).toContain('Arguments for and against God.');
+    expect(data.assignments[0].progressTracking).not.toContain('Arguments for.');
+    expect(hasDanglingClauseSeam(data.assignments[0].progressTracking)).toBe(false);
+  });
+
   it('repairs article agreement and double periods at template seams', () => {
     const data = {
       items: [
@@ -297,6 +325,18 @@ describe('compiledLanguageFinalizer', () => {
     expect(data.items[0].note).toContain('an Energy decision');
     expect(data.items[0].note).not.toContain('..');
     expect(data.items[0].note).not.toContain('Define project management: Define project management');
+  });
+
+  it('collapses identical week labels created where schedule and artifact references meet', () => {
+    const data = {
+      items: [
+        {
+          note: 'Submit the Week 2 Week 2 oral response, then revise the Week 2 the Week 2 evidence memo.',
+        },
+      ],
+    };
+    finalizeCompiledDeliverableLanguage('assignments', data, { lessons: [] });
+    expect(data.items[0].note).toBe('Submit the Week 2 oral response, then revise the Week 2 evidence memo.');
   });
 
   it('repairs assignment parameter scaffolds before prompt-artifact grading', () => {

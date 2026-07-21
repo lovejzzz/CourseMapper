@@ -45,8 +45,10 @@ import {
 import { recordLegacyPathHit } from './legacyPathTelemetry';
 import {
   isLessonTitleEchoSemanticSurface,
+  isLessonRelevantSemanticSurface,
   sanitizeGenomeEnrichmentForLesson,
   sanitizeLessonTitleEchoEnrichment,
+  semanticIdentityTokens,
 } from './lessonSemanticRelevance';
 import { buildBayesianFallbackQuizAtoms, hasBayesianDecisionEvidence } from './bayesianQuizFrames';
 import {
@@ -86,7 +88,7 @@ import {
 import { classifyAssessmentKind } from './courseGraph/deriveFromCourseMap.js';
 import { recordContentFallbackHit } from './contentFallbackTelemetry';
 import { lintItemAdmission } from './itemAdmissionLint';
-import { isAppliedQuizStem } from './quality/quizItemDepth';
+import { isAppliedQuizStem, isClaimEvidenceBoundaryShortAnswer } from './quality/quizItemDepth';
 import { whyThisWorksNote, buildMethodsStatement } from './knowledge/pedagogyEvidence';
 import { buildCompetencyMap } from './knowledge/competencyMap';
 import {
@@ -211,6 +213,11 @@ function wordsFromConcepts(values, limit = 8) {
     'will',
     'able',
     'their',
+    'them',
+    'they',
+    'these',
+    'those',
+    'themselves',
     'this',
     'that',
     'through',
@@ -5440,15 +5447,58 @@ function isLessonTitleEchoConcept(value, lesson = {}) {
   return isLessonTitleEchoSemanticSurface(value, lesson);
 }
 
+function semanticTokenEquivalent(left, right) {
+  if (left === right) return true;
+  if (!left || !right || left.length < 4 || right.length < 4) return false;
+  const shorter = left.length <= right.length ? left : right;
+  const longer = left.length > right.length ? left : right;
+  // The shared lightweight normalizer intentionally strips common suffixes,
+  // but English e-restoration and plural forms can leave a one-character
+  // seam (frame/framing -> frame/fram; narrative/narratives ->
+  // narrative/narrativ). Treat only that narrow terminal difference as the
+  // same identity token.
+  return longer.length - shorter.length === 1 && longer.startsWith(shorter);
+}
+
 function lessonTeachingKeyTerms(lesson = {}) {
-  return (lesson?.enrichment?.keyTerms || []).filter(
-    (entry) =>
-      cleanText(entry?.term) &&
-      ((Number(entry?.tier) >= 2 &&
-        cleanText(entry?.source) &&
-        !/fact-ledger-projection|model-authored/i.test(cleanText(entry.source))) ||
-        !isLessonTitleEchoConcept(entry.term, lesson)),
+  const titleTokens = new Set(semanticIdentityTokens(stripLessonPrefix(lesson?.title || '')));
+  return (lesson?.enrichment?.keyTerms || [])
+    .filter(
+      (entry) =>
+        cleanText(entry?.term) &&
+        ((Number(entry?.tier) >= 2 &&
+          cleanText(entry?.source) &&
+          !/fact-ledger-projection|model-authored/i.test(cleanText(entry.source))) ||
+          !isLessonTitleEchoConcept(entry.term, lesson)),
+    )
+    .map((entry, index) => {
+      const termTokens = [...new Set(semanticIdentityTokens(entry.term))];
+      const titleMatches = termTokens.filter((token) =>
+        [...titleTokens].some((titleToken) => semanticTokenEquivalent(token, titleToken)),
+      ).length;
+      return {
+        entry,
+        index,
+        titleMatches,
+        titleCoverage: termTokens.length > 0 ? titleMatches / termTokens.length : 0,
+      };
+    })
+    .sort(
+      (a, b) =>
+        b.titleMatches - a.titleMatches ||
+        b.titleCoverage - a.titleCoverage ||
+        Number(b.entry?.tier || 0) - Number(a.entry?.tier || 0) ||
+        a.index - b.index,
+    )
+    .map(({ entry }) => entry);
+}
+
+function lessonPrimaryTeachingKeyTerms(lesson = {}) {
+  const terms = lessonTeachingKeyTerms(lesson);
+  const primary = terms.filter(
+    (entry) => entry?.supplemental !== true && cleanText(entry?.augmentationRole) !== 'genome-supplement',
   );
+  return primary.length > 0 ? primary : terms;
 }
 
 // Repeated teaching prose should name the artifact, not recite a long lesson
@@ -6003,7 +6053,7 @@ function buildEvidenceResponseMap(lessons = []) {
 
 function isWeakConcept(value) {
   if (isObjectiveStemOnly(value)) return true;
-  return /^(?:tbd|to be determined|none|n\/a|lesson|week|topic|topic\s*\d+|lesson\s*\d+\s*focus|block|clinical|community|health|studio|seminar|placement)$/i.test(
+  return /^(?:tbd|to be determined|none|n\/a|them|they|these|those|themselves|lesson|week|topic|topic\s*\d+|lesson\s*\d+\s*focus|block|clinical|community|health|studio|seminar|placement)$/i.test(
     cleanText(value),
   );
 }
@@ -17246,7 +17296,11 @@ function compileAssignments(blueprint) {
         brief: labeledBrief,
         lesson,
         fullFocus: lessonFocusFallback(lesson),
-        fallbackArtifact: compactLessonArtifactReference(lesson, 'assignment'),
+        // Registry twins share one lesson, but each brief owns its own
+        // artifact identity. Using the lesson's central artifact here
+        // reintroduced the proof-set sibling after the code-lab relabel pass.
+        fallbackArtifact:
+          cleanText(assessment.title || assessment.artifact) || compactLessonArtifactReference(lesson, 'assignment'),
       });
     }),
   };
@@ -18096,7 +18150,7 @@ function applyAdmittedLanguagePairToSlides(slides = [], lesson = {}) {
 }
 
 function enrichedKeyTermsForLesson(lesson, { fallback }) {
-  const enriched = lessonTeachingKeyTerms(lesson);
+  const enriched = lessonPrimaryTeachingKeyTerms(lesson);
   if (enriched.length === 0) return fallback();
   const safeEnriched = enriched.filter((term) => {
     const display = displayKeyTermName(term);
@@ -18269,9 +18323,24 @@ function compileStudyGuides(blueprint) {
       const keyTerms = studyGuideTermsForLesson(lesson);
       const sourceBoundRecovery =
         lessonNeedsSourceBoundRecovery(lesson, blueprint) && !isDataScience && musicTheoryGuides.length === 0;
+      // A fact-only kernel may safely power summaries and conservative
+      // assessment prompts, but facts are not glossary definitions. Keep the
+      // teaching surfaces rather than discarding the lesson, while leaving
+      // the glossary empty and asking for source review instead of inventing
+      // course-process definitions around extracted concept labels.
+      const definitionReviewRequired =
+        Boolean(lesson?.enrichment) &&
+        lessonPrimaryTeachingKeyTerms(lesson).filter(
+          (term) =>
+            cleanText(term?.term) &&
+            cleanText(term?.definition) &&
+            !isUnsafeLessonConceptPhrase(displayKeyTermName(term)) &&
+            !isUnsafeLessonArtifactPhrase(displayKeyTermName(term)),
+        ).length === 0;
+      const keyTermRecoveryRequired = sourceBoundRecovery || definitionReviewRequired;
       const dataScienceEvidenceCue =
         'validation metrics, model-performance evidence, data-quality checks, threshold tradeoffs, and fairness or limitation evidence';
-      const enrichedMisconceptions = lessonTeachingKeyTerms(lesson)
+      const enrichedMisconceptions = lessonPrimaryTeachingKeyTerms(lesson)
         .filter((term) => !isUnsafeLessonConceptPhrase(displayKeyTermName(term)))
         .filter((term) => term.misconception)
         .slice(0, 3)
@@ -18350,7 +18419,7 @@ function compileStudyGuides(blueprint) {
         anchorExampleSet: assessment.anchorExampleSet || null,
         learningTransferPlan: lesson.learningTransferPlan,
         teachingIntent: lesson.teachingIntent,
-        keyTerms: sourceBoundRecovery
+        keyTerms: keyTermRecoveryRequired
           ? []
           : useVerifiedMusicIntervalFrame && musicTheoryGuides.length > 0
             ? musicTheoryGuides
@@ -18362,7 +18431,7 @@ function compileStudyGuides(blueprint) {
                       ? musicTheoryGuides
                       : keyTerms.map((term, termIndex) => generalTermGuide(term, lesson, lens, termIndex)),
               }),
-        ...(sourceBoundRecovery
+        ...(keyTermRecoveryRequired
           ? {
               sourceReviewRequired:
                 'Scion could not verify disciplinary definitions for this lesson. Confirm key terms against the named source before publishing; no definitions were invented.',
@@ -19646,6 +19715,42 @@ function authoredMcFitsQuizFrame(item, atom) {
   return isAppliedQuizStem(item?.question);
 }
 
+function authoredConstructedResponseFitsLesson(item, lesson) {
+  const question = cleanText(item?.question);
+  if (!question || !isLessonRelevantSemanticSurface(question, lesson)) return false;
+  // A linked genome can contribute a reusable method such as Close Reading,
+  // but its stock scenario must not displace the lesson's newly admitted
+  // fact-ledger identity (Frame Narratives, Oral Epic Forms, and so on).
+  // When that lesson-specific atom exists, require the authored response to
+  // name it or quote its admitted definition; otherwise fall back to the
+  // compiler's primary concept. Quoting the definition matters for natural
+  // labels such as "Defining Philosophy", whose fact begins "Philosophy…".
+  const lessonSpecificTerm = lessonTeachingKeyTerms(lesson).find((entry) =>
+    /fact-ledger-projection|model-authored/i.test(cleanText(entry?.source)),
+  );
+  const lessonSpecificConcept = cleanText(lessonSpecificTerm?.term);
+  const primaryConcept = lessonSpecificConcept || safeLessonPrimaryConcept(lesson);
+  const conceptTokens = [...new Set(semanticIdentityTokens(primaryConcept))];
+  const questionTokens = new Set(semanticIdentityTokens(question));
+  const conceptMatches = conceptTokens.filter((token) =>
+    [...questionTokens].some((questionToken) => semanticTokenEquivalent(token, questionToken)),
+  ).length;
+  const namesPrimaryConcept =
+    cleanText(primaryConcept) &&
+    (question.toLowerCase().includes(cleanText(primaryConcept).toLowerCase()) ||
+      (conceptTokens.length > 0 &&
+        conceptMatches >= Math.min(2, conceptTokens.length) &&
+        conceptMatches / conceptTokens.length >= 0.5));
+  const primaryDefinition = cleanText(lessonSpecificTerm?.definition);
+  const quotesPrimaryDefinition =
+    primaryDefinition.length >= 20 && question.toLowerCase().includes(primaryDefinition.toLowerCase());
+  if (!namesPrimaryConcept && !quotesPrimaryDefinition) return false;
+  if ((item?.type || '').toLowerCase() === 'short_answer') {
+    return isClaimEvidenceBoundaryShortAnswer(question);
+  }
+  return true;
+}
+
 function overlayEnrichedQuizItems(framedAtoms, lesson, { itemFilter = () => true } = {}) {
   const enrichedItems = lesson?.enrichment?.quizItems;
   if (!Array.isArray(enrichedItems) || enrichedItems.length === 0) return framedAtoms;
@@ -19689,7 +19794,14 @@ function overlayEnrichedQuizItems(framedAtoms, lesson, { itemFilter = () => true
     // Constructed-response frames (non-autograded quizzes, exams): overlay
     // question + answer unit only when the authored item carries an answer.
     const enriched = constructed.get(index);
-    if (!enriched || OPINION_STEM_RE.test(cleanText(enriched.question)) || !cleanText(enriched.answer)) return atom;
+    if (
+      !enriched ||
+      OPINION_STEM_RE.test(cleanText(enriched.question)) ||
+      !cleanText(enriched.answer) ||
+      !authoredConstructedResponseFitsLesson(enriched, lesson)
+    ) {
+      return atom;
+    }
     const next = { ...atom, question: enriched.question, enrichmentSource: 'lesson-content-enrichment' };
     next.answer = enriched.answer;
     next.sampleAnswer = enriched.answer;
@@ -24605,7 +24717,7 @@ function compileCourseFaq(blueprint, config = {}) {
     // phrased as the student asks it, and the plain "what does X actually
     // mean" question. Both quote the kernel's own vocabulary.
     (lesson) => {
-      const term = lessonTeachingKeyTerms(lesson).find(
+      const term = lessonPrimaryTeachingKeyTerms(lesson).find(
         (entry) => cleanText(entry?.term) && cleanText(entry?.misconception),
       );
       if (!term) return null;
@@ -24620,7 +24732,7 @@ function compileCourseFaq(blueprint, config = {}) {
       };
     },
     (lesson) => {
-      const terms = lessonTeachingKeyTerms(lesson);
+      const terms = lessonPrimaryTeachingKeyTerms(lesson);
       const misconceptionTerm = terms.find((entry) => cleanText(entry?.term) && cleanText(entry?.misconception));
       const term =
         terms.find(
@@ -24780,7 +24892,7 @@ function compileCourseFaq(blueprint, config = {}) {
       // v0.15.187 atom routing: the kernel authored the ACTUAL common
       // misunderstanding and its correction — the canonical answer to this
       // question. The generic "don't just summarize" advice is the fallback.
-      const contested = lessonTeachingKeyTerms(lesson).find(
+      const contested = lessonPrimaryTeachingKeyTerms(lesson).find(
         (term) => cleanText(term?.misconception) && cleanText(term?.correction),
       );
       if (contested) {
@@ -24856,7 +24968,7 @@ function compileCourseFaq(blueprint, config = {}) {
       // v0.15.187 atom routing: readiness = can you state the authored
       // definition and apply it — quote the kernel's term/definition when
       // present so the self-check has real content to check against.
-      const termWithDefinition = lessonTeachingKeyTerms(lesson).find(
+      const termWithDefinition = lessonPrimaryTeachingKeyTerms(lesson).find(
         (term) => cleanText(term?.term) && cleanText(term?.definition),
       );
       if (termWithDefinition) {

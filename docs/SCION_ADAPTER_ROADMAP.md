@@ -2,7 +2,27 @@
 
 **Architecture:** public Gemma 4 E2B base + small Scion adapter + Scion compiler = Scion Vx
 
-**Status:** the exact-QAT base, hash-bound training and conversion chain, browser adapter lifecycle, source-strict semantic compiler gates, frozen holdout firewall, and paired-order preference protocol are implemented. The research corpus still contains 102 qualified source-grounded preferences and rebuilds into 100 group-isolated production rows across seven domains. One real 200-iteration adapter run lowered validation loss, and a later five-course diagnostic reduced inference burden, but neither established a held-out quality win; the candidate remains inactive. V0.16.63 now closes lesson-identity, explicit-sequence, and source-relevance defects found by exact twin and live-browser package audits. Those changes freeze benchmark V14 under grader 1.10.24 without inheriting a V13 score.
+**Status:** the exact-QAT base, hash-bound training and conversion chain, browser adapter lifecycle, source-strict semantic compiler gates, frozen holdout firewall, and paired-order preference protocol are implemented. The research corpus still contains 102 qualified source-grounded preferences and rebuilds into 100 group-isolated production rows across seven domains. One real 200-iteration adapter run lowered validation loss, and a later five-course diagnostic reduced inference burden, but neither established a held-out quality win; the candidate remains inactive. V0.16.64 repairs the reproduced Genetics production failure with compact fact-ledger synthesis, duplicate-safe continuation, verified draft export, and a smaller landing graph. The exact browser replay is materially faster and returns its ZIP, but it is still 89/B and not publish-ready.
+
+## V0.16.64 — Make Every Build Return Its Work
+
+**Goal:** turn the attached 29-minute Genetics failure into a bounded, observable course build that preserves distinct lesson identities and always returns a physically verified archive, without disguising review-blocked work as publish-ready.
+
+**Production reconstruction:** the V0.16.61 console log records 1,756,578 ms, 64 provider requests, 38 stream retries, four course-map continuations, and three topic identities repeated across five positions each. Its files passed 38/38 export checks at 89/B with zero P0 findings, yet the ZIP remained disabled because pedagogical readiness and archive validity shared one gate.
+
+**Better architecture:** normal lesson synthesis now asks the base model for a compact fact ledger, freezes admitted facts, and lets deterministic projection own the rich lesson, assessment, slide, rubric, and export structures. Retry is decided after projection. Course-map continuation remains on the course-map task route, receives the real prior titles, rejects duplicate identities before admission, rebases accepted numbering, and supplies rejected topics to the next bounded attempt.
+
+**Return-work contract:** publish readiness remains strict. A package with unresolved instructor decisions stays blocked, but a completed archive that passes physical verification with zero failures exposes `Download draft ZIP` and carries its blocked status and quality notes inside. New receipts persist `exportStatus`; older V0.16.61–V0.16.63 receipts recover exportability only from a positive checked count and zero failed checks.
+
+**Exact browser result:** the retained Genetics replay completes generation in 186,729 ms and the browser harness in 200 seconds. It uses 26 transport requests / 19 logical calls, produces 15 distinct lesson titles, downloads a 2,393,572-byte ZIP, extracts 126 files, and passes all 38 export checks. The grader reports 89/B, texture 95, zero P0, two P1, and one P2. Fourteen of fifteen lesson kernels are enriched; one compiler fallback remains an explicit review blocker.
+
+**Load-time correction:** artifact-reference logic no longer pulls the full language finalizer into the landing dependency graph. Initial JavaScript falls from 703.0 KiB raw / 215.9 KiB gzip to 251.7 / 79.5 KiB while compiler and export code remain lazy.
+
+**Lane:** fact admission, continuation, semantic checks, deterministic compilation, grading, readiness, and export are model-neutral and benefit compatible paid-provider routes. Browser WebGPU model download, local caching, and inference remain Scion-specific.
+
+**Next gates:** eliminate the remaining Genetics fallback without reopening retry inflation; rerun the exact multi-domain V15 benchmark after the compiler freeze; activate no adapter unless it beats base-only Scion with equal or lower native attempts, stable order reversal, and acceptable download, memory, and latency.
+
+**Release Boundary:** Gemma weights are unchanged and the research adapter remains inactive. This release proves recovery of the reproduced Genetics failure into a faster, distinct, downloadable draft; it does not prove factual correctness, instructor approval, classroom outcomes, human preference, adapter superiority, or paid-model parity.
 
 ## V0.16.63 — Keep Every Lesson in Its Own World
 

@@ -86,15 +86,15 @@ export function isConceptCuedCompilerShortAnswer(stem) {
 export function isClaimEvidenceBoundaryShortAnswer(stem) {
   const text = normalizeStem(stem);
   const selectsConcept =
-    /\b(?:identify|select|choose|name)\b.{0,80}\b(?:concepts?|methods?|frameworks?|principles?|rules?|lenses)\b/i.test(
+    /\b(?:identify|select|choose|name)\b.{0,80}\b(?:concepts?|methods?|frameworks?|principles?|rules?|lens(?:es)?)\b/i.test(
       text,
     );
   const usesEvidence =
-    /\b(?:cite|use|reference|point to|draw on)\b.{0,80}\b(?:evidence|detail|observation|result|quote|case)\b/i.test(
+    /\b(?:cite|use|reference|point to|draw on|support)\b.{0,80}\b(?:evidence|detail|observation|result|quote|case|claim(?:-card)?|card)s?\b/i.test(
       text,
     );
   const boundsClaim =
-    /\b(?:limit(?:ation)?|boundary|alternative|next piece of evidence|additional evidence|does not prove)\b/i.test(
+    /\b(?:limit(?:ation)?|boundary|alternative|next piece of evidence|additional evidence|does not (?:prove|establish)|do not (?:prove|establish))\b/i.test(
       text,
     );
   return selectsConcept && usesEvidence && boundsClaim;

@@ -7,6 +7,7 @@ import {
   extractPublicScionKernelLessons,
   mergePublicScionKernelAttempts,
   publicScionAdmissionRisk,
+  publicScionCompilerFactCoreUsable,
   publicScionFactContractIssues,
   publicScionRetryDelay,
   repairPublicScionJson,
@@ -18,6 +19,7 @@ import {
   scionAdapterTaskFamilyForProviderTask,
 } from './scionAdapterTaskScope';
 import { scionFactContractForLesson } from './scionEvidenceContract';
+import { explicitCourseLanguageIds } from './languageIdentityGuard';
 
 export const SCION_LOCAL_MAX_GENERATION_RETRIES = PUBLIC_SCION_MIN_RETRIES;
 
@@ -151,6 +153,7 @@ export async function runScionLocalCompletion({
   const factLedgerOnly =
     taskFamily === SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL_SYNTHESIS &&
     promptProtocol === SCION_LESSON_KERNEL_SYNTHESIS_PROMPT_PROTOCOL;
+  const targetLanguageKernel = explicitCourseLanguageIds(`${systemPrompt}\n${userPrompt}`).length > 0;
   const messages = buildPublicScionMessages(systemPrompt, userPrompt, { schema, task, factLedgerOnly });
   const requestedOutputLimit = Math.max(
     1,
@@ -215,7 +218,12 @@ export async function runScionLocalCompletion({
       : assessPublicScionKernelResponse(fullText, userPrompt, task);
     const retryIssues = factLedgerOnly ? publicScionFactContractIssues(assessment) : assessment.issues || [];
     const retryGate = { needsRetry: empty || retryIssues.length > 0, issues: retryIssues };
-    const incomplete = !empty && retryGate.needsRetry;
+    const compilerFactCoreUsable =
+      factLedgerOnly &&
+      targetLanguageKernel &&
+      !empty &&
+      publicScionCompilerFactCoreUsable(fullText, assessment, { minimumFacts: 2 });
+    const incomplete = !empty && retryGate.needsRetry && !compilerFactCoreUsable;
     // When an exact source-grounded adapter is available, the synthesis arm
     // only needs one structurally usable fact draft. A valid fact ledger exits
     // above without another call; an invalid ledger gets one issue-informed

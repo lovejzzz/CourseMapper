@@ -26,6 +26,7 @@ import {
 import { validateCourseMap } from '../lib/validateCourseMap';
 import { preserveMaterializedLessonNumbers } from '../lib/materializedLessonScope';
 import { getScionReviewFailureMessage } from '../lib/scionUserFacingError';
+import { normalizeLessonTitleIdentity } from '../lib/lessonTitleIdentity';
 
 function cellText(value) {
   if (value == null) return '';
@@ -139,7 +140,13 @@ export function displayGenerationModelName(provider, modelName) {
   return provider === 'public' || modelName === 'scion-public' ? 'Scion' : modelName;
 }
 
-export function buildCourseMapContinuationPrompt(workingMap, expectedCount, syllabusText = '', colDefs = []) {
+export function buildCourseMapContinuationPrompt(
+  workingMap,
+  expectedCount,
+  syllabusText = '',
+  colDefs = [],
+  rejectedTopics = [],
+) {
   const actual = workingMap.lessons.length;
   const existingTitles = workingMap.lessons.map((lesson, index) => `${index + 1}. ${lesson.title}`).join('\n');
   const sampleFields = colDefs.map((key) => `"${key}": "..."`).join(', ');
@@ -165,12 +172,61 @@ RULES:
 - Each lesson needs "title" and "sections".
 - Each section is an object with these keys: ${colDefs.join(', ')}.
 - Use 2-5 sections per lesson. Leave no field empty.
+${
+  rejectedTopics.length > 0
+    ? `- A previous continuation was rejected for repeating these topics: ${rejectedTopics.join('; ')}. Do not return them again.`
+    : ''
+}
 
 FORMAT:
 {"lessons": [{"title": "Lesson ${actual + 1}: Title Here", "sections": [{${sampleFields}}]}]}
 
 LATER SYLLABUS CONTENT:
 ${continuationSyllabus}`;
+}
+
+function rebaseContinuationLesson(lesson, lessonNumber) {
+  const rawTitle = String(lesson?.title || '').trim();
+  const topic = rawTitle.replace(/^(?:lesson|week|module)\s*\d+\s*[:.\-–—]?\s*/i, '').trim();
+  if (!topic) return null;
+  const sections = Array.isArray(lesson?.sections)
+    ? lesson.sections.map((section) => {
+        if (!section || typeof section !== 'object') return section;
+        const topicSection = String(section.topicSection || '').replace(
+          /^\s*\d+\.(\d+)\s*[:.\-–—]?\s*/,
+          `${lessonNumber}.$1: `,
+        );
+        return topicSection && topicSection !== section.topicSection ? { ...section, topicSection } : section;
+      })
+    : lesson?.sections;
+  return {
+    ...lesson,
+    title: `Lesson ${lessonNumber}: ${topic}`,
+    ...(sections ? { sections } : {}),
+  };
+}
+
+/**
+ * A continuation is untrusted until its topic identity is new. The production
+ * Genetics run appended the same deterministic three-lesson response four
+ * times, creating a complete-looking 15-row map that could never pass finish.
+ */
+export function admitCourseMapContinuationLessons(existingLessons = [], candidateLessons = []) {
+  const seen = new Set(existingLessons.map((lesson) => normalizeLessonTitleIdentity(lesson?.title)).filter(Boolean));
+  const lessons = [];
+  const rejectedTopics = [];
+  for (const candidate of candidateLessons) {
+    const rebased = rebaseContinuationLesson(candidate, existingLessons.length + lessons.length + 1);
+    const identity = normalizeLessonTitleIdentity(rebased?.title);
+    if (!rebased || !identity || seen.has(identity)) {
+      const title = String(candidate?.title || '').trim();
+      if (title) rejectedTopics.push(title);
+      continue;
+    }
+    seen.add(identity);
+    lessons.push(rebased);
+  }
+  return { lessons, rejectedTopics: [...new Set(rejectedTopics)] };
 }
 
 function recordClassifiedFailedCall(recordApiCallEvent, err, event = {}, context = {}) {
@@ -608,9 +664,16 @@ export default function useGeneration({
     syllabusText,
     colDefs,
     systemPromptOverride,
+    rejectedTopics = [],
   ) {
     const actual = workingMap.lessons.length;
-    const contPrompt = buildCourseMapContinuationPrompt(workingMap, expectedCount, syllabusText, colDefs);
+    const contPrompt = buildCourseMapContinuationPrompt(
+      workingMap,
+      expectedCount,
+      syllabusText,
+      colDefs,
+      rejectedTopics,
+    );
 
     fullTextRef.current = '';
     lastGoodParseRef.current = null;
@@ -632,7 +695,10 @@ export default function useGeneration({
         maxOutputTokens: generationPlan?.courseMapOutputTokens || maxOutputTokens,
         modelCapabilities,
         generationPlan,
-        task: 'repair',
+        // This is still course planning, not semantic repair. The old label
+        // routed every continuation through the compiler-repair family and
+        // made browser-local Scion repeat its first three lessons verbatim.
+        task: 'course-map',
         onApiCallEvent: recordApiCallEvent,
         onChunk: (text) => {
           fullTextRef.current = text;
@@ -691,6 +757,7 @@ export default function useGeneration({
     const model = { id: initialModelId, name: initialModelName, backend: provider, apiKey };
     const modelDisplayName = displayGenerationModelName(provider, model.name);
     setActiveModelName(modelDisplayName);
+    let rejectedTopics = [];
 
     for (let attempt = 0; attempt < MAX_ATTEMPTS_PER_MODEL; attempt++) {
       const actual = workingMap.lessons.length;
@@ -717,15 +784,26 @@ export default function useGeneration({
           syllabusText,
           colDefs,
           systemPromptOverride,
+          rejectedTopics,
         );
 
         if (contResult && contResult.lessons && contResult.lessons.length > 0) {
           const prevCount = workingMap.lessons.length;
-          // Normalize flat→nested sections, ensure every lesson has a title
-          const sanitized = normalizeLessons(contResult.lessons, colDefs).map((l, idx) => ({
-            ...l,
-            title: l.title || `Lesson ${prevCount + idx + 1}`,
-          }));
+          // Normalize flat→nested sections, then reject any topic identity the
+          // course already owns. Repeated local responses are feedback for the
+          // next bounded attempt, never rows we silently append.
+          const normalized = normalizeLessons(contResult.lessons, colDefs);
+          const admission = admitCourseMapContinuationLessons(workingMap.lessons, normalized);
+          const sanitized = admission.lessons;
+          rejectedTopics = [...new Set([...rejectedTopics, ...admission.rejectedTopics])].slice(-12);
+          if (sanitized.length === 0) {
+            addLog(
+              modelDisplayName,
+              `Rejected a repeated continuation${attempt + 1 < MAX_ATTEMPTS_PER_MODEL ? ' — asking for distinct topics' : ''}`,
+              'warning',
+            );
+            continue;
+          }
           workingMap = {
             ...workingMap,
             lessons: [...workingMap.lessons, ...sanitized],

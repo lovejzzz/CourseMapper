@@ -216,6 +216,20 @@ export const groundingCourses = [
   },
 ];
 
+// Production regressions are intentionally opt-in. They preserve the smallest
+// prompt that reproduced a real user-visible failure without changing the
+// release-comparable `all`, `extended`, or rotating stranger suites.
+export const regressionCourses = [
+  {
+    id: 'genetics-production-regression',
+    title: 'Introduction to Genetics',
+    lessonCount: 15,
+    probeProfile: 'generic',
+    prompt:
+      'Introduction to Genetics, a 15-lesson undergraduate biology course with problem sets, a model-organism lab, two midterms, and a final. Covers Mendelian inheritance, meiosis, linkage and gene mapping, the molecular structure of DNA, gene expression, mutation, population genetics, epigenetics, and modern genetic technologies.',
+  },
+];
+
 export const smokePool = referenceCourses.filter((course) => course.id === 'cs-python');
 
 // The original four audit courses — 'all' resolves to exactly these so release
@@ -226,6 +240,7 @@ export function getCourseById(id) {
   return (
     referenceCourses.find((course) => course.id === id) ||
     groundingCourses.find((course) => course.id === id) ||
+    regressionCourses.find((course) => course.id === id) ||
     strangerPool.find((course) => course.id === id) ||
     null
   );
@@ -269,7 +284,9 @@ export function resolveCourses(spec) {
   const courses = ids.map((id) => {
     const course = getCourseById(id);
     if (!course) {
-      const known = [...referenceCourses, ...groundingCourses, ...strangerPool].map((c) => c.id).join(', ');
+      const known = [...referenceCourses, ...groundingCourses, ...regressionCourses, ...strangerPool]
+        .map((c) => c.id)
+        .join(', ');
       throw new Error(`Unknown course id "${id}" — known ids: ${known} (or "all"/"extended"/"smoke")`);
     }
     return course;

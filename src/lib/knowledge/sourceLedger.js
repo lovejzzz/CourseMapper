@@ -41,6 +41,13 @@ const PLACEHOLDER_RESOURCE_RE =
   /\b(?:course materials students need|worked examples,\s*readings,\s*or activity sheets|instructor-approved readings,\s*examples,\s*or lab materials|assigned materials|class notes and assigned materials|lms access|shared files|discipline-specific tools|required for this lesson|document,\s*slide,\s*lab,\s*or analysis tool|local examples need instructor confirmation|local source list pending)\b/i;
 const USER_EXPERIENCE_COURSE_RE =
   /\b(?:user\s+experience|ux\b|human[-\s]?centered\s+design|interaction\s+design|interface\s+design|usability|design\s+studio)\b/i;
+const WORLD_LITERATURE_COURSE_RE =
+  /\b(?:world\s+literature|comparative\s+literature|literary\s+studies|literature\s+seminar)\b/i;
+const WORLD_LITERATURE_SOURCE_ANCHOR_RE =
+  /\b(?:literature|literatures|literary|poetry|poems?|epics?|drama(?:tic)?|novels?|fiction|narrative|story|stories|authors?|writers?|genre|close\s+reading|interpret(?:ation|ive)|comparative\s+literature)\b/i;
+const BUSINESS_ETHICS_COURSE_RE = /\b(?:business\s+ethics|corporate\s+ethics)\b/i;
+const BUSINESS_ETHICS_SOURCE_ANCHOR_RE =
+  /\b(?:business|corporat(?:e|ion)|ethic(?:al|s)?|moral(?:ity)?|utilitarian(?:ism)?|deontolog(?:y|ical)|virtue\s+ethics|stakeholders?|whistleblow(?:ing|er)|conflicts?\s+of\s+interest|employment|workplace|labor|civil\s+rights|discrimination|harassment|consumer\s+protection|consumer\s+rights|product\s+safety|dodd[–—-]frank|financial\s+reform|fiduciary|governance|compliance|sustainab(?:ility|le)|environmental\s+responsibility|marketing\s+ethics|advertising\s+ethics)\b/i;
 const USER_EXPERIENCE_SOURCE_ANCHOR_RE =
   /\b(?:user[-\s]+experience|ux\b|human[-\s]?centered\s+design|human[-\s]?computer\s+interaction|human[-\s]?ai\s+interaction|hci\b|hai\b|user\s+interfaces?|interface\s+design|usability|design\s+research|user\s+research|personas?\b(?!\s*5)|journey\s+maps?|customer\s+journey|information\s+architecture|wirefram|prototype|prototyping|iterative\s+design|interaction\s+design|accessibility|inclusive\s+design|design\s+handoff|design\s+studio|co[-\s]?design|service\s+design|material\s+experience|design\s+patterns?|screen\s+flows?|navigation|portfolio\s+case\s+study|critique\s+session|a\/b\s+test(?:ing)?)\b/i;
 const USER_EXPERIENCE_FALSE_FRIEND_RE =
@@ -726,11 +733,23 @@ export function isMusicTheoryIntervalWeakSource(source, courseGraph) {
   return isMusicIntervalWeakSource(sourceSearchText(source), courseText(courseGraph), sourceConceptText(source));
 }
 
+export function isWorldLiteratureWeakSource(source, courseGraph) {
+  if (!WORLD_LITERATURE_COURSE_RE.test(courseText(courseGraph))) return false;
+  return !WORLD_LITERATURE_SOURCE_ANCHOR_RE.test(sourceSearchText(source));
+}
+
+export function isBusinessEthicsWeakSource(source, courseGraph) {
+  if (!BUSINESS_ETHICS_COURSE_RE.test(courseText(courseGraph))) return false;
+  return !BUSINESS_ETHICS_SOURCE_ANCHOR_RE.test(sourceSearchText(source));
+}
+
 export function isCourseAwareWeakSource(source, courseGraph) {
   return (
     hasOnlyArtifactConceptLinks(source) ||
     isUserExperienceWeakSource(source, courseGraph) ||
     isComputerScienceWeakSource(source, courseGraph) ||
+    isWorldLiteratureWeakSource(source, courseGraph) ||
+    isBusinessEthicsWeakSource(source, courseGraph) ||
     isMusicTheoryIntervalWeakSource(source, courseGraph)
   );
 }

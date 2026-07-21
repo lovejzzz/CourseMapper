@@ -215,6 +215,58 @@ describe('lesson content enrichment contracts', () => {
     );
   });
 
+  it('retains a Mandarin pair plus two clean facts when meta facts are quarantined', () => {
+    const prompt = {
+      courseName: 'Elementary Mandarin Chinese I',
+      userPrompt: 'Course: Elementary Mandarin Chinese I',
+      lessons: [
+        {
+          lessonId: 'lesson-5',
+          title: 'Lesson 5: Family and Possession',
+          topics: 'Family members; possession with de',
+        },
+      ],
+      itemPlan: [],
+    };
+    const cleanFacts = [
+      'Mandarin kinship terms distinguish generation, age, and family-side relationships.',
+      'Possessive noun phrases place the possessor before de and the possessed noun.',
+    ];
+    const parsed = parseLessonKernelResponse(
+      JSON.stringify({
+        lessons: [
+          {
+            lessonId: 'lesson-5',
+            targetLanguagePair: {
+              hanzi: '这是我的妈妈。',
+              pinyin: 'Zhè shì wǒ de māma.',
+              english: 'This is my mother.',
+            },
+            facts: [
+              ...cleanFacts,
+              'The lesson introduces vocabulary for common family relationships in Mandarin.',
+              'The lesson covers the particle de for expressing possession.',
+              'This lesson provides character-writing practice for family words.',
+            ],
+            keyTerms: [],
+            mc: [],
+          },
+        ],
+      }),
+      { prompt, expectedLessonIds: ['lesson-5'] },
+    );
+
+    expect(parsed.lessons['lesson-5'].kernel.facts).toEqual(cleanFacts);
+    expect(parsed.lessons['lesson-5'].targetLanguagePair).toEqual({
+      hanzi: '这是我的妈妈。',
+      pinyin: 'Zhè shì wǒ de māma.',
+      english: 'This is my mother.',
+    });
+    expect(parsed.issues).toEqual(
+      expect.arrayContaining([expect.objectContaining({ reason: 'target-language-fact-core' })]),
+    );
+  });
+
   it('lint distinguishes a meta definition from a true circular definition', () => {
     expect(lintEnrichedKeyTerm(GOOD_TERM, { lessonTitle: COURSE_MAP.lessons[0].title })).toHaveLength(0);
     const circular = {

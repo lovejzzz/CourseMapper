@@ -294,7 +294,7 @@ describe('ExportSidePanel readiness repair timing', () => {
     expect(downloadCourseMaterialsZip).not.toHaveBeenCalled();
   });
 
-  it('keeps a terminal quality blocker honest in both the card and ZIP action', async () => {
+  it('keeps a terminal quality blocker honest while allowing a verified draft ZIP', async () => {
     const onFinishPackage = vi.fn(async () => {
       throw new Error('finish should not rerun for a terminal reviewed package');
     });
@@ -311,6 +311,8 @@ describe('ExportSidePanel readiness repair timing', () => {
         receipt: {
           exportWarningCount: 0,
           finalStatus: 'blocked',
+          exportStatus: 'passed',
+          exportFailed: 0,
         },
         quality: {
           status: 'graded',
@@ -337,8 +339,8 @@ describe('ExportSidePanel readiness repair timing', () => {
 
     const zipButton = container.querySelector('[data-testid="export-download-zip"]');
     expect(container.querySelector('[data-testid="readiness-panel"]')?.textContent).toContain('Finish package');
-    expect(zipButton?.textContent).toContain('Needs attention');
-    expect(zipButton?.disabled).toBe(true);
+    expect(zipButton?.textContent).toContain('Download draft ZIP');
+    expect(zipButton?.disabled).toBe(false);
 
     await act(async () => {
       zipButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
@@ -346,6 +348,48 @@ describe('ExportSidePanel readiness repair timing', () => {
     await act(async () => {});
 
     expect(onFinishPackage).not.toHaveBeenCalled();
-    expect(downloadCourseMaterialsZip).not.toHaveBeenCalled();
+    expect(downloadCourseMaterialsZip).toHaveBeenCalledTimes(1);
+  });
+
+  it('downloads a repeated-topic draft after export verification and preserves blocked readiness', async () => {
+    const repeatedCourseMap = {
+      courseName: 'Genetics',
+      lessons: [
+        { ...cleanCourseMap.lessons[0], title: 'Lesson 1: DNA Structure' },
+        { ...cleanCourseMap.lessons[0], title: 'Lesson 2: DNA Structure' },
+      ],
+    };
+    await renderPanel({
+      courseMapInput: repeatedCourseMap,
+      preferPackageScope: true,
+      packageQualityPass: {
+        status: 'blocked',
+        blockers: 1,
+        warnings: 0,
+        // Legacy v0.16.61-0.16.63 receipt: exportStatus was omitted even
+        // though the verifier persisted its counters.
+        receipt: { finalStatus: 'blocked', exportChecked: 38, exportFailed: 0 },
+        quality: {
+          status: 'graded',
+          score: 89,
+          grade: 'B',
+          findingCounts: { p0: 0, p1: 2, p2: 1 },
+        },
+      },
+    });
+
+    const zipButton = container.querySelector('[data-testid="export-download-zip"]');
+    expect(zipButton?.textContent).toContain('Download draft ZIP');
+    expect(zipButton?.disabled).toBe(false);
+
+    await act(async () => {
+      zipButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+    await act(async () => {});
+
+    expect(downloadCourseMaterialsZip).toHaveBeenCalledTimes(1);
+    const readiness = downloadCourseMaterialsZip.mock.calls[0][0].readiness;
+    expect(readiness.status).toBe('blocked');
+    expect(readiness.blockers.length).toBeGreaterThan(0);
   });
 });

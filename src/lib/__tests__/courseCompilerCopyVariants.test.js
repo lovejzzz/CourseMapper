@@ -28,6 +28,29 @@ describe('course compiler copy variants', () => {
     expect(result.overview).not.toContain('Week 13 Week 13');
   });
 
+  it('uses the discipline-aware genre when a week-prefixed artifact alias is still too long', () => {
+    const canonicalTitle =
+      "Homer's Epic Structure evidence memo: explain how form, language, or context changes the reading.";
+    const longBodyAlias = "Week 3 Homer's Epic Structure evidence memo";
+    const result = compactAssignmentBriefBodyReferences({
+      brief: {
+        title: canonicalTitle,
+        dueWeek: 'Week 3',
+        assignmentType: 'Interpretive analysis portfolio',
+        overview: `${longBodyAlias} asks students to cite a passage. Revise ${longBodyAlias} before submission.`,
+        instructions: [`Use the rubric for ${longBodyAlias}.`],
+      },
+      lesson: { lessonNumber: 3, artifactGenre: { label: 'Interpretive analysis portfolio' } },
+      fullFocus: 'Homeric Epic',
+      fallbackArtifact: longBodyAlias,
+    });
+
+    const body = JSON.stringify([result.overview, result.instructions]);
+    expect(result.title).toBe(canonicalTitle);
+    expect(body).not.toContain(longBodyAlias);
+    expect(body).toContain('Week 3 memo');
+  });
+
   it('turns generic rubric echoes into complete student self-checks', () => {
     const shared = {
       lessonFocus: 'Statistical Inference Review',

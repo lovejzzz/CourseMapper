@@ -72,7 +72,11 @@ const lazyChunkBudgets = [
   // The Vite 8 graph correction also moved Scion's public identity into a
   // 0.3 KiB landing leaf. That removes 1.75 MiB from the initial route while
   // shifting 0.2/0.3 KiB into AppFlow's lazy ownership. Keep sub-KiB margin.
-  { prefix: 'AppFlow-', rawKiB: 277, gzipKiB: 84 },
+  // v0.16.64: +1.1 KiB raw for the verified-draft export contract and legacy
+  // receipt recovery. This is workspace-only and keeps gzip under the prior
+  // cap; the same release removed 451 KiB raw / 136 KiB gzip from landing by
+  // repairing an accidental compiler-finalizer preload.
+  { prefix: 'AppFlow-', rawKiB: 279, gzipKiB: 84 },
   // v0.16.47: the Living Course Compiler component and pure selector gained
   // an independently cacheable route boundary instead of raising AppFlow's
   // long-standing ratchet. Clean measurement: AppFlow 251.6/75.9; ribbon
@@ -134,7 +138,11 @@ const lazyChunkBudgets = [
   // landing fix. Course copy variants were extracted below so this core is
   // 6.2 KiB smaller than the unsplit candidate; 812/225 is the measured floor,
   // not an allowance to put prose back into the 1.4 MB source file.
-  { prefix: 'courseBlueprintCompiler-', rawKiB: 812, gzipKiB: 225 },
+  // v0.16.64: bounded semantic admission for fact-ledger key terms and
+  // constructed responses adds 2.7/0.7 KiB to this lazy compiler only. It
+  // prevents off-lesson authored questions from replacing valid compiler
+  // frames; no additional prose corpus or landing dependency was added.
+  { prefix: 'courseBlueprintCompiler-', rawKiB: 815, gzipKiB: 226 },
   // v0.16.49: Bayesian and music-interval assessment frames are workspace-only
   // data and independently cacheable. The same boundary now owns the music
   // interval admission, discussion, FAQ, quiz, and study-guide rules so the
@@ -149,7 +157,10 @@ const lazyChunkBudgets = [
   // not compiler control flow. It is isolated from compilerFrames so writing
   // texture can evolve without invalidating disciplinary logic. The chunk is
   // workspace-only and first loads with compilation (measured 21.2/7.4).
-  { prefix: 'compilerCopyVariants-', rawKiB: 22, gzipKiB: 8 },
+  // v0.16.64: assignment-body alias compaction adds 0.7 KiB raw while keeping
+  // gzip at the existing 8 KiB ceiling; it eliminates the live exported-docx
+  // mail-merge repetition that motivated the new branch.
+  { prefix: 'compilerCopyVariants-', rawKiB: 23, gzipKiB: 8 },
   { prefix: 'DeliverableView-', rawKiB: 170, gzipKiB: 35 },
   { prefix: 'DeveloperModePanel-', rawKiB: 130, gzipKiB: 35 },
   // v0.9.1: +3 KiB raw for the pre-export checklist (localization gaps +

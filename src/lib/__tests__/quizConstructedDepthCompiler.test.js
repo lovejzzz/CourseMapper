@@ -6,6 +6,7 @@ import {
   compileBlueprintDeliverable,
 } from '../courseBlueprintCompiler.js';
 import { lintItemAdmission } from '../itemAdmissionLint.js';
+import { projectKernelToSurfaces } from '../kernelProjection.js';
 import {
   isAppliedQuizStem,
   isClaimEvidenceBoundaryShortAnswer,
@@ -157,7 +158,7 @@ describe('constructed-response compiler depth', () => {
     const multipleChoice = items.filter((item) => item.type === 'multiple_choice');
 
     expect(items).toHaveLength(6);
-    expect(compilerItems).toHaveLength(4);
+    expect(compilerItems).toHaveLength(6);
     expect(items.every((item) => item.enrichmentSource !== 'source-bound-recovery')).toBe(true);
     expect(items.every((item) => item.sourceReviewRequired !== true)).toBe(true);
     expect(multipleChoice).toHaveLength(4);
@@ -174,6 +175,227 @@ describe('constructed-response compiler depth', () => {
     ).toEqual([]);
     expect(JSON.stringify(compilerItems)).toMatch(/Repeated task failures|One observation motivates a follow-up/i);
     expect(JSON.stringify(compilerItems)).not.toMatch(/source use without fabricating|kernel failed admission/i);
+  });
+
+  it('preserves the admitted two-claim synthesis through the downstream quiz overlay', () => {
+    const blueprint = evidenceCourseBlueprint();
+    const facts = [
+      'Evidence triangulation combines independent observations before choosing a revision.',
+      'A task failure pattern is a repeated observable breakdown under the same interface condition.',
+      'A single observation can motivate a follow-up but does not establish a universal conclusion.',
+    ];
+    blueprint.lessons[0].enrichment = projectKernelToSurfaces(
+      {
+        facts,
+        keyTerms: [
+          {
+            term: 'Evidence triangulation',
+            definition: facts[0],
+            example: `Compare the supplied claims: ${facts[0]} ${facts[1]}`,
+            misconception: 'The first supplied claim alone settles every question about Evidence triangulation.',
+            correction: 'Use all supplied claims to state a bounded conclusion.',
+            source: 'fact-ledger-projection',
+          },
+        ],
+        scenario: null,
+        discussionPrompt: null,
+        mc: [],
+      },
+      {
+        itemPlan: [
+          { index: 3, type: 'short_answer', bloom: 'Analyze' },
+          { index: 5, type: 'essay', bloom: 'Create' },
+        ],
+      },
+    );
+    blueprint.lessons[0].enrichment.keyTerms[0].source = 'fact-ledger-projection';
+    blueprint.enrichment = {
+      coverage: { requestedLessons: 1, enrichedLessons: 1, missingLessons: [] },
+      stageDecisions: { modelStage: 'ran' },
+    };
+
+    const items = buildQuizAtomsForLesson(blueprint.lessons[0], blueprint, { assessment: {} });
+    const shortAnswer = items.find(
+      (item) => item.type === 'short_answer' && item.enrichmentSource === 'lesson-content-enrichment',
+    );
+
+    expect(shortAnswer?.question).toContain(`Claim A: ${facts[0]}`);
+    expect(shortAnswer?.question).toContain(`Claim B: ${facts[1]}`);
+    expect(shortAnswer?.question).toMatch(/Identify the course concept that best organizes these claims/);
+    expect(shortAnswer?.question).not.toMatch(/In 3-4 sentences, use one course detail/);
+    expect(shortAnswer?.sampleAnswer).toContain(facts[0]);
+    expect(shortAnswer?.sampleAnswer).toContain(facts[1]);
+    expect(isClaimEvidenceBoundaryShortAnswer(shortAnswer?.question)).toBe(true);
+  });
+
+  it('preserves a fact-ledger item that quotes the primary definition when the natural label has an extra modifier', () => {
+    const blueprint = evidenceCourseBlueprint();
+    blueprint.courseName = 'Introduction to Philosophy';
+    blueprint.lessons[0].title = 'Lesson 1: What philosophy is';
+    blueprint.lessons[0].semanticIdentityTerms = [
+      'What philosophy is',
+      'Defining Philosophy',
+      'Explain what philosophy studies and how arguments are read.',
+    ];
+    blueprint.lessons[0].keyConcepts = ['Defining Philosophy'];
+    const definition =
+      'Philosophy is the systematic and critical study of questions about existence, knowledge, and value.';
+    blueprint.lessons[0].enrichment = projectKernelToSurfaces(
+      {
+        facts: [
+          definition,
+          'Reading arguments requires distinguishing deductive from inductive reasoning.',
+          'Knowledge theory examines what counts as justified belief.',
+        ],
+        keyTerms: [
+          {
+            term: 'Defining Philosophy',
+            definition,
+            example: 'Compare the supplied claims about philosophy and argument reading.',
+            misconception: 'The first claim settles every question about philosophy.',
+            correction: 'Use both claims and limit the conclusion.',
+            source: 'fact-ledger-projection',
+          },
+        ],
+        scenario: null,
+        discussionPrompt: null,
+        mc: [],
+      },
+      {
+        itemPlan: [
+          { index: 3, type: 'short_answer', bloom: 'Analyze' },
+          { index: 5, type: 'essay', bloom: 'Create' },
+        ],
+      },
+    );
+    blueprint.lessons[0].enrichment.keyTerms[0].source = 'fact-ledger-projection';
+    blueprint.enrichment = {
+      coverage: { requestedLessons: 1, enrichedLessons: 1, missingLessons: [] },
+      stageDecisions: { modelStage: 'ran' },
+    };
+
+    const shortAnswer = buildQuizAtomsForLesson(blueprint.lessons[0], blueprint, { assessment: {} }).find(
+      (item) => item.type === 'short_answer' && item.enrichmentSource === 'lesson-content-enrichment',
+    );
+    expect(shortAnswer?.question).toContain(definition);
+    expect(shortAnswer?.question).not.toMatch(/In 3-4 sentences, use one course detail/);
+  });
+
+  it('rejects a deep but unrelated genome response and projects the lesson-specific fact core instead', () => {
+    const blueprint = buildCourseBlueprint({
+      courseName: 'World Literature',
+      lessons: [
+        {
+          title: 'Lesson 1: Oral Epic Tradition',
+          sections: [
+            {
+              topicSection: 'Oral Epic Forms',
+              learningObjectives: 'Analyze how oral performance shapes epic form and transmission.',
+            },
+          ],
+        },
+      ],
+    });
+    blueprint.lessons[0].enrichment = {
+      keyTerms: [
+        {
+          term: 'Close reading',
+          definition: 'Close reading tests an interpretation against precise textual details.',
+          source: 'literary close reading §1',
+          tier: 2,
+        },
+        {
+          term: 'Oral Epic Forms',
+          definition: 'Oral epic forms use recurring formulas and performance patterns to support transmission.',
+          source: 'fact-ledger-projection',
+          tier: 1,
+        },
+      ],
+      kernel: {
+        facts: [
+          'Recurring formulas help performers compose and remember long oral epic narratives.',
+          'Performance context can change the wording while preserving recognizable narrative patterns.',
+        ],
+      },
+      quizItems: [
+        {
+          index: 3,
+          type: 'short_answer',
+          question:
+            'A homeowner notices two locked doors. Name the most defensible Close Reading lens, point to two case details, and state one boundary or next piece of evidence.',
+          answer: 'The two locked doors support a bounded close-reading claim, but their cause requires more evidence.',
+        },
+      ],
+    };
+    blueprint.enrichment = {
+      coverage: { requestedLessons: 1, enrichedLessons: 1, missingLessons: [] },
+      stageDecisions: { modelStage: 'ran' },
+    };
+
+    const items = buildQuizAtomsForLesson(blueprint.lessons[0], blueprint, { assessment: {} });
+    const constructed = items.find((item) => item.type === 'short_answer');
+
+    expect(constructed.question).toMatch(/Oral Epic/i);
+    expect(JSON.stringify(constructed)).toMatch(/Oral Epic Forms/i);
+    expect(constructed.question).not.toMatch(/homeowner|locked doors|Close Reading/i);
+    expect(isClaimEvidenceBoundaryShortAnswer(constructed.question)).toBe(true);
+  });
+
+  it('does not let a reusable close-reading scenario replace a Frame Narratives assessment', () => {
+    const blueprint = buildCourseBlueprint({
+      courseName: 'World Literature',
+      lessons: [
+        {
+          title: 'Lesson 6: Frame Narratives',
+          sections: [
+            {
+              topicSection: 'Narrative Framing',
+              learningObjectives: 'Analyze how a frame narrative structures perspective and embedded stories.',
+            },
+          ],
+        },
+      ],
+    });
+    blueprint.lessons[0].enrichment = {
+      keyTerms: [
+        {
+          term: 'Close reading',
+          definition: 'Close reading tests an interpretation against precise textual details.',
+          source: 'literary close reading §1',
+          tier: 2,
+        },
+        {
+          term: 'Narrative Framing',
+          definition: 'Narrative framing structures a story through an encompassing narrative and embedded stories.',
+          source: 'fact-ledger-projection',
+          tier: 1,
+        },
+      ],
+      kernel: {
+        facts: [
+          'Frame narratives embed one or more stories inside an encompassing narrative situation.',
+          'The relation between the frame and embedded story can shape perspective and interpretation.',
+        ],
+      },
+      quizItems: [
+        {
+          index: 3,
+          type: 'short_answer',
+          question:
+            "A reviewer examines a repeated image of locked doors that tracks a heroine's loss of freedom. Name the most defensible Close Reading lens, point to two case details, and state one boundary or next piece of evidence.",
+          answer: 'Close reading connects the image to the whole work while bounding the interpretation.',
+        },
+      ],
+    };
+    blueprint.enrichment = {
+      coverage: { requestedLessons: 1, enrichedLessons: 1, missingLessons: [] },
+      stageDecisions: { modelStage: 'ran' },
+    };
+
+    const items = buildQuizAtomsForLesson(blueprint.lessons[0], blueprint, { assessment: {} });
+    const constructed = items.find((item) => item.type === 'short_answer');
+    expect(constructed.question).not.toMatch(/locked doors|heroine|Close Reading/i);
+    expect(JSON.stringify(constructed)).toMatch(/Narrative Framing|Frame Narratives/i);
   });
 
   it('treats an admitted fact ledger as knowledge even when no glossary term survives projection', () => {

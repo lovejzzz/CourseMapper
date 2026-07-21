@@ -825,7 +825,8 @@ export function scoreReadingRelevance(work, terms) {
 function formatScholarlyCitation(work) {
   const authors = work.authors || work.attribution || 'Open source metadata';
   const year = work.year ? ` (${work.year})` : '';
-  return `${authors}${year}. ${work.title}. Open-access via ${work.url} (${work.license})`;
+  const title = cleanText(work.title).replace(/[.!?]+$/g, '');
+  return `${authors}${year}. ${title}. Open-access via ${work.url} (${work.license})`;
 }
 
 function hasExplicitReuseLicense(work) {

@@ -1040,6 +1040,45 @@ export function publicScionFactContractIssues(assessment = {}) {
   );
 }
 
+export function publicScionCompilerFactCoreUsable(responseText, assessment = {}, { minimumFacts = 2 } = {}) {
+  const issues = publicScionFactContractIssues(assessment);
+  if (
+    issues.some((issue) =>
+      /(?:^invalid-json$|^empty-response$|:missing-lesson(?:$|:)|:facts-count(?:$|:)|:duplicate-facts(?:$|:))/.test(
+        String(issue),
+      ),
+    )
+  ) {
+    return false;
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(responseText);
+  } catch {
+    return false;
+  }
+  const lessons = Array.isArray(parsed?.lessons) ? parsed.lessons : [];
+  if (lessons.length === 0) return false;
+  return lessons.every((lesson) => {
+    const lessonId = String(lesson?.lessonId || '');
+    const facts = Array.isArray(lesson?.facts) ? lesson.facts : [];
+    const issuePrefix = `${lessonId}:fact-`;
+    const invalidIndexes = new Set(
+      issues
+        .filter((issue) => String(issue).startsWith(issuePrefix))
+        .map((issue) =>
+          Number(
+            String(issue)
+              .slice(issuePrefix.length)
+              .match(/^(\d+):/)?.[1],
+          ),
+        )
+        .filter(Number.isInteger),
+    );
+    return facts.length - invalidIndexes.size >= Math.max(1, Number(minimumFacts) || 1);
+  });
+}
+
 export function publicScionAdmissionRisk(assessment = {}) {
   const issues = Array.isArray(assessment?.issues) ? assessment.issues : [];
   const highRiskIssues = issues.filter((issue) =>
@@ -1360,7 +1399,7 @@ export function extractPublicScionTotalLessonCount(userPrompt = '') {
 export function extractPublicScionPriorLessonTitles(userPrompt = '') {
   const text = String(userPrompt || '');
   const block = text.match(
-    /Here are the lessons already generated:\s*\n([\s\S]*?)(?:\n\s*Continue generating the REMAINING lessons|$)/i,
+    /(?:Here are the lessons already generated|Existing lessons):\s*\n([\s\S]*?)(?:\n\s*(?:Continue generating the REMAINING lessons|Generate ONLY Lessons)|$)/i,
   );
   if (!block?.[1]) return [];
   return block[1]

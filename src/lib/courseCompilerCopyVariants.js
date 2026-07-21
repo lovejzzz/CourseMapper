@@ -68,6 +68,18 @@ function compactAssignmentBriefBodyValue(value, fullFocus, aliases) {
   );
 }
 
+function compactArtifactHeadReference(value, lessonNumber = 0) {
+  const label = stripTerminalPunctuation(cleanText(value).split(/\s*[:;–—]\s*/)[0]).replace(/^week\s+\d+\s*/i, '');
+  // Prefer the actual submission genre over a generic trailing noun. A long
+  // title such as "Warm-up performance recording with vocal evidence" must
+  // compact to "Week 1 recording", not "Week 1 evidence"; the latter erases
+  // the performing-arts modality that the brief is supposed to preserve.
+  const recordedPerformanceHead = label.match(/\brecording\b/i)?.[0];
+  const head = recordedPerformanceHead?.toLowerCase() || label.match(/[A-Za-z][A-Za-z'-]*$/)?.[0]?.toLowerCase() || '';
+  if (!head || /^(?:week|lesson|artifact|task|item|work)$/.test(head)) return '';
+  return `${lessonNumber > 0 ? `Week ${lessonNumber}` : 'weekly'} ${head}`;
+}
+
 export function compactAssignmentBriefBodyReferences({ brief = {}, lesson = {}, fullFocus, fallbackArtifact }) {
   const compacted = { ...brief };
   const canonicalTitle = stripTerminalPunctuation(cleanText(brief?.title));
@@ -98,10 +110,17 @@ export function compactAssignmentBriefBodyReferences({ brief = {}, lesson = {}, 
     /\b(?:application check|evidence check|transfer task|exit note|course decision|visible product)\b/i.test(
       artifactWithoutWeek,
     );
+  const compactKindReference = compactArtifactHeadReference(artifactWithoutWeek, weekNumber);
   const artifactLabel =
-    artifactWithoutWeek && courseCopySurfaceWords(artifactWithoutWeek).length <= 6 && !genericAssessmentAlias
+    // Five- and six-word aliases become eight-word rendered shingles once a
+    // week label and possessive tokenization are added (for example,
+    // "Week 3 Homer's Epic Structure evidence memo"). Repeating that phrase
+    // through every brief field reads like mail merge and trips the Office
+    // export audit. Keep compact, distinctive artifact names; otherwise use
+    // the already discipline-aware genre label.
+    artifactWithoutWeek && courseCopySurfaceWords(artifactWithoutWeek).length <= 4 && !genericAssessmentAlias
       ? artifactWithoutWeek
-      : genre || 'assignment';
+      : compactKindReference || genre || 'assignment';
   const week = weekNumber > 0 ? `Week ${weekNumber}` : '';
   const shortReference =
     week && !new RegExp(`^${escapeRegexLiteral(week)}\\b`, 'i').test(artifactLabel)
@@ -133,12 +152,7 @@ export function compactAssignmentBriefBodyReferences({ brief = {}, lesson = {}, 
 const GENERIC_SELF_ASSESSMENT_SIGNAL_RE =
   /^(?:criterion\b|strong evidence addresses\b|a strong signal addresses\b|look for evidence about\b|look for a concrete change\b|revise\b.+\bfor (?:this|the) criterion\b|mark the feedback-informed change\b)/i;
 
-export function assignmentSelfAssessmentEvidenceCheck({
-  evidenceSignal,
-  index = 0,
-  lessonFocus,
-  assignmentType,
-}) {
+export function assignmentSelfAssessmentEvidenceCheck({ evidenceSignal, index = 0, lessonFocus, assignmentType }) {
   const signal = cleanText(evidenceSignal);
   if (signal && !GENERIC_SELF_ASSESSMENT_SIGNAL_RE.test(signal)) return signal;
 

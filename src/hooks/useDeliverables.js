@@ -1310,6 +1310,7 @@ export default function useDeliverables({
                 completeNativeLessonSurfaces,
                 parseNativePassBResponse,
                 pickNativeKernel,
+                runNativeKernelRecovery,
                 selectNativeContentSources,
               },
               {
@@ -1536,53 +1537,42 @@ export default function useDeliverables({
             // local generations after a good kernel had already arrived.
             const listMissingAuthoredIndices = () =>
               scionProvider ? [] : allLessonIndices.filter((lessonIdx) => !nativeAuthored[lessonIdOf(lessonIdx)]);
-            let nativeRecoveryCalls = 0;
-            const attemptedNativeRecoveryIndices = [];
-            while (
-              nativeRecoveryCalls < enrichmentRecoveryCallLimit &&
-              (listMissingKernelIndices().length > 0 || listMissingAuthoredIndices().length > 0) &&
-              hasProviderCallBudget()
-            ) {
-              const beforeSignature = JSON.stringify({
-                kernel: listMissingKernelIndices(),
-                authored: listMissingAuthoredIndices(),
-              });
-              const recoveryCandidates = [
-                ...new Set([...listMissingKernelIndices(), ...listMissingAuthoredIndices()]),
-              ].sort((a, b) => a - b);
-              const retryChunk = selectEnrichmentRecoveryChunk(
-                recoveryCandidates,
-                attemptedNativeRecoveryIndices,
-                chunkSize,
-              );
-              if (retryChunk.length === 0) break;
-              attemptedNativeRecoveryIndices.push(...retryChunk);
-              nativeRecoveryCalls += 1;
-              try {
+            const nativeRecovery = await runNativeKernelRecovery({
+              lessonIndices: allLessonIndices,
+              lessonContent,
+              lessonIdOf,
+              kernelIsUsable,
+              listMissingAuthoredIndices,
+              recoveryCallLimit: enrichmentRecoveryCallLimit,
+              hasProviderCallBudget,
+              selectRecoveryChunk: selectEnrichmentRecoveryChunk,
+              chunkSize,
+              runRecoveryBatch: async (retryChunk, recoveryAttempt) => {
                 await runPassBBatch(retryChunk, {
                   includeCourseLevel: false,
-                  recoveryLabel: `Author lesson batch (native recovery ${nativeRecoveryCalls}/${enrichmentRecoveryCallLimit})`,
-                  recoveryAttempt: nativeRecoveryCalls,
+                  recoveryLabel: `Author lesson batch (native recovery ${recoveryAttempt}/${enrichmentRecoveryCallLimit})`,
+                  recoveryAttempt,
                 });
-              } catch (recoveryErr) {
-                if (recoveryErr?.name === 'AbortError') throw recoveryErr;
+              },
+              projectRecoveredSurfaces: (retryChunk) => {
+                completeNativeLessonSurfaces(lessonContent, blueprintCourseMap.lessons, retryChunk, appendLog);
+              },
+              onRecoveryError: (recoveryErr) => {
                 appendLog(`⚠ Native Pass B recovery failed: ${recoveryErr.message || 'model error'}`, 'warn');
-              }
-              const afterSignature = JSON.stringify({
-                kernel: listMissingKernelIndices(),
-                authored: listMissingAuthoredIndices(),
-              });
-              if (afterSignature === beforeSignature) {
-                if (nativeRecoveryCalls >= enrichmentRecoveryCallLimit || !hasProviderCallBudget()) {
+              },
+              onStalled: ({ terminal }) => {
+                if (terminal) {
                   appendLog('⚠ Native Pass B stalled; template kept', 'warn');
-                  break;
+                  return;
                 }
                 appendLog('⚠ Native Pass B stalled; retrying with stricter instructions', 'warn');
-              }
-            }
+              },
+            });
+            const nativeRecoveryCalls = nativeRecovery.recoveryCalls;
 
-            // v0.14.1 P4.5: fold genome partials back in — cited terms first,
-            // model fills to par; provenance preserved for genomeLink edges.
+            // Fold genome partials back in as cited supplements. The current
+            // lesson's admitted facts and constructed responses keep identity
+            // priority; source-verified genome MC atoms remain authoritative.
             if (Object.keys(partialOverlays).length > 0) {
               const { mergeLessonPayloads } = await import('../lib/genome/composeLessonFromConcepts');
               for (const [lessonId, partial] of Object.entries(partialOverlays)) {
@@ -2073,9 +2063,8 @@ export default function useDeliverables({
             }
           }
 
-          // v0.14.1 P4.5: fold the genome partials back in — genome keyTerms
-          // first (they carry citations), model terms fill to par, provenance
-          // preserved so the graph's genomeLink edges still get written. A
+          // Fold genome partials back in as cited supplements while preserving
+          // provenance so the graph's genomeLink edges still get written. A
           // lesson whose model call failed keeps its thin genome payload
           // (cited content beats template). Merged payloads replace the raw
           // model entry in the own-kernel cache so revisions stay cited.
@@ -2098,7 +2087,7 @@ export default function useDeliverables({
             }
             if (mergedCount > 0) {
               appendLog(
-                `✓ Genome citations merged into ${mergedCount} model-enriched lesson${mergedCount === 1 ? '' : 's'} (genome terms first, model fills to par)`,
+                `✓ Genome citations merged into ${mergedCount} model-enriched lesson${mergedCount === 1 ? '' : 's'} (lesson facts lead; genome knowledge supplements)`,
                 'done',
               );
             }

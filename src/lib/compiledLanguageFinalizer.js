@@ -14,6 +14,9 @@
 
 import { isInternalExportMetadataKey } from './exporters/exporterUtils';
 import { recordLegacyPathHit } from './legacyPathTelemetry';
+import { artifactKindOf, shortArtifactReference, shortReferenceForKind, titleHeadNoun } from './artifactReference';
+
+export { shortArtifactReference } from './artifactReference';
 
 const TITLE_LIKE_KEY_RE =
   /^(?:id|key|slug|tags|anchor|sourceColumns|relatedLessons|lessonNumbers|format|type|category|difficulty|bloomsLevel|weight|points)$/i;
@@ -25,36 +28,6 @@ const TITLE_LIKE_KEY_RE =
 // as generic guidance.
 const REPLACEMENT_EXEMPT_KEY_RE =
   /^(?:notes|speakerNotes|instructorNotes|localReviewAction|reviewerAction|reviewFocus|localConfirmationCue|localReviewNeeded)$/i;
-
-const ARTIFACT_KIND_PATTERNS = [
-  [/\bdiscussion\b.*\bquiz\b|\bquiz\b.*\bdiscussion\b/, 'discussion-and-quiz'],
-  [/\bdiscussion post\b|\bdiscussion\b/, 'discussion post'],
-  [/\bquiz(?:zes)?\b/, 'quiz'],
-  [/\bcheck for understanding\b|\blow-stakes check\b|\bcheck-in\b|\bcheck\b/, 'check'],
-  [/\bmemo\b/, 'memo'],
-  [/\bpresentation\b/, 'presentation'],
-  [/\bportfolio\b/, 'portfolio'],
-  [/\bexam\b|\bmidterm\b|\bfinal test\b/, 'exam'],
-  [/\bessay\b|\bpaper\b/, 'paper'],
-  [/\bnotebook\b|\blab\b|\bworksheet\b/, 'lab work'],
-  [/\brecording\b/, 'recording'],
-  [/\bperformance\b|\brehearsal\b/, 'performance'],
-  [/\breflection\b/, 'reflection'],
-  [/\bproject\b/, 'project'],
-  [/\baction plan\b|\bplan\b/, 'plan'],
-  [/\bbrief\b/, 'brief'],
-  [/\breport\b/, 'report'],
-  [/\bmap\b/, 'mapping work'],
-  [/\banalysis\b/, 'analysis'],
-];
-
-function artifactKindOf(artifactTitle = '') {
-  const text = String(artifactTitle).toLowerCase();
-  for (const [pattern, kind] of ARTIFACT_KIND_PATTERNS) {
-    if (pattern.test(text)) return kind;
-  }
-  return 'artifact';
-}
 
 // ── v0.14.5 WS-D (D1): registry-keyed reference nouns ───────────────────────
 // Targets that carry registry identity (assessmentId — the Phase 3a fields)
@@ -80,20 +53,6 @@ const REGISTRY_KIND_FALLBACK_NOUNS = {
 // Label words that name the schedule slot, not the artifact genre — a
 // pre-colon label like "Week 3" must never yield "the Week 3 week" — plus
 // heads too generic to identify anything ("… artifact 4" → 'artifact').
-const HEAD_NOUN_BLOCKLIST_RE = /^(?:week|lesson|session|module|unit|part|day|artifact|task|item|work)$/;
-
-// Head noun of a label: the last word, trailing numerals stripped
-// ("Lab Practical 2" → 'practical'); empty when the word is too short or
-// names a schedule slot instead of a genre.
-function titleHeadNoun(label) {
-  const match = String(label || '')
-    .replace(/[\s\d.)#-]+$/g, '')
-    .match(/[A-Za-z][A-Za-z'-]*$/);
-  const head = match ? match[0].toLowerCase() : '';
-  if (head.length < 3 || HEAD_NOUN_BLOCKLIST_RE.test(head)) return '';
-  return head;
-}
-
 function registryArtifactNoun(kind, title) {
   const fallback = REGISTRY_KIND_FALLBACK_NOUNS[kind] || '';
   // Unknown/missing kind: no derivation — the caller falls back to the
@@ -116,47 +75,6 @@ function registryArtifactNoun(kind, title) {
   // graded-artifact / in-class: the pre-colon label IS the authored genre.
   const head = colonIndex > 0 ? titleHeadNoun(text.slice(0, colonIndex)) : '';
   return head || fallback;
-}
-
-const GENERIC_ARTIFACT_REFERENCE_NOUNS = [
-  'lesson assessment',
-  'evidence task',
-  'application task',
-  'practice check',
-  'synthesis task',
-  'decision brief',
-  'reflection task',
-  'source-use task',
-  'planning task',
-  'checkpoint task',
-  'revision task',
-  'case task',
-];
-
-function genericArtifactReference(lessonNumber = 0) {
-  if (lessonNumber <= 0) return 'the recurring assessment task';
-  const index = (lessonNumber - 1) % GENERIC_ARTIFACT_REFERENCE_NOUNS.length;
-  return `the ${GENERIC_ARTIFACT_REFERENCE_NOUNS[index]}`;
-}
-
-function shortReferenceForKind(kind, lessonNumber = 0, artifactTitle = '') {
-  const week = lessonNumber > 0 ? `Week ${lessonNumber}` : 'weekly';
-  if (kind === 'discussion-and-quiz') return `the ${week} discussion and quiz`;
-  if (!kind || kind === 'artifact') {
-    // No recognizable kind: the artifact's OWN head noun is still more
-    // lesson-specific than any canned rotation noun — "Peer feedback
-    // protocol draft" reads back as "the Week 4 draft", not "the lesson
-    // assessment". The rotation survives only for titles whose head word
-    // is a schedule slot or too short to carry meaning.
-    const head = titleHeadNoun(artifactTitle);
-    if (head) return `the ${week} ${head}`;
-    return genericArtifactReference(lessonNumber);
-  }
-  return `the ${week} ${kind || 'artifact'}`;
-}
-
-export function shortArtifactReference(artifactTitle = '', lessonNumber = 0) {
-  return shortReferenceForKind(artifactKindOf(artifactTitle), lessonNumber, artifactTitle);
 }
 
 // v0.14.1 (1.1): artifact references no longer bake a week number into the
@@ -249,6 +167,11 @@ function fixMechanicalSeams(value) {
   text = text.replace(/[ \t]+([.,;:!?])(?=\s|$)/g, '$1');
   // Doubled connectives produced by reference replacement ("the the Week 2 check").
   text = text.replace(/\b(the|a|an|to|of|for|and|or|in|on|with|at|by)\s+\1\b/gi, '$1');
+  // A due-window label can meet an artifact short reference after repetition
+  // compaction ("Week 2" + "the Week 2 response"). Keep the one canonical
+  // schedule label; this is an exact same-number seam, never a cross-week
+  // reference.
+  text = text.replace(/\b(Week\s+(\d{1,3}))\s+(?:the\s+)?\1\b/gi, '$1');
   // Article stacking when a short reference lands inside a noun phrase:
   // "the next the Week 1 check" → "the next Week 1 check".
   text = text.replace(/\b((?:the|a|an)\s+\w+\s+)the\s+(?=(?:Week|Lesson)\b)/gi, '$1');
@@ -387,7 +310,16 @@ function buildReferenceTargets(blueprint = {}) {
     // Community Resilience Basics") so later mentions stay lesson-specific
     // instead of collapsing into a generic "Lesson N" that reads mechanical
     // and erases the per-lesson language the readiness gates look for.
-    const firstTopicUnit = (topic.split(/,|\band\b|[:—–]/i)[0] || '').trim();
+    const firstTopicUnitCandidate = (topic.split(/,|\band\b|[:—–]/i)[0] || '').trim();
+    // A coordinating "and" is not always a safe phrase boundary. In titles
+    // such as "Arguments for and against God", splitting on it leaves the
+    // preposition "for" stranded and changes the topic's meaning. Fall back
+    // to the complete short title when the candidate cannot stand alone.
+    const firstTopicUnit = /\b(?:and|or|for|of|to|with|in|on|from|against|between|through)$/i.test(
+      firstTopicUnitCandidate,
+    )
+      ? ''
+      : firstTopicUnitCandidate;
     let topicShort;
     if (firstTopicUnit.length >= 8 && firstTopicUnit.length <= 42) {
       topicShort = firstTopicUnit;

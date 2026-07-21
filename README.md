@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.63
+**Current release:** v0.16.64
 
 ---
 
@@ -31,11 +31,11 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.63**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts a new foundation model. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
+The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.64**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts a new foundation model. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
 
 ### Adapter work in progress
 
-The V0.16.63 research corpus remains beyond its first real training threshold: 102 qualified source-grounded preferences rebuild into 100 usable production rows, split by complete course group across seven domains. One 200-iteration adapter training run completed against the pinned Gemma base, reduced validation loss from 1.555 to 1.089, and produced a 105 MB learned delta. That artifact is **not** a quality win and is not active on the website.
+The V0.16.64 research corpus remains beyond its first real training threshold: 102 qualified source-grounded preferences rebuild into 100 usable production rows, split by complete course group across seven domains. One 200-iteration adapter training run completed against the pinned Gemma base, reduced validation loss from 1.555 to 1.089, and produced a 105 MB learned delta. That artifact is **not** a quality win and is not active on the website.
 
 The first live held-out attempt found an evaluation error before a score could be claimed. Every training row transformed a supplied three-to-five-fact source ledger, while the old broad `lesson-kernel` route also asked the adapter to invent the initial facts. The run was stopped: ten lesson requests expanded into 52 native generations, and the adapter repeatedly produced truncated or conflicting kernels outside its learned distribution. Scion now records that attempt as a failed diagnostic rather than a benchmark result.
 
@@ -50,6 +50,14 @@ A fresh full package still grades **89/B** with zero P0, two P1, and one P2 find
 The rejected whole-kernel pairing gate remains rejected: it regressed coverage to 5/15. Pair visibility will be repaired at the compiler projection layer; it will not be allowed to discard otherwise-admitted lesson knowledge.
 
 ### Living Course Compiler
+
+V0.16.64 fixes a production failure in which a 15-lesson Genetics request ran for 29 minutes, made 64 provider requests, repeated the same three lesson identities five times, passed all 38 physical export checks, and still left the ZIP button disabled. Course-map continuation now receives the real prior lesson titles, stays on the `course-map` task route, rejects duplicate candidates before they enter the canonical map, renumbers accepted lessons, and feeds rejected topics back into the next bounded attempt.
+
+The export contract now separates two promises that the older UI conflated. “Ready to publish” still fails closed when content needs instructor review; “safe to archive” succeeds when the finished files pass export verification. A blocked but physically valid package therefore exposes **Download draft ZIP**, and the ZIP preserves the blocked readiness state plus its quality report instead of disguising the draft as clean. Legacy V0.16.61–V0.16.63 receipts are recovered from their persisted checked/failed counters, so a user can retrieve an already-finished project without paying for another generation.
+
+The compiler no longer asks the small model to rewrite complete lesson packages until a rich contract happens to pass. Scion's local synthesis route produces a compact fact ledger; semantic admission freezes usable model facts; and deterministic projection builds the lesson, assessment, and export surfaces. A real base-only 15-lesson Genetics regression completed the generation digest in 187 seconds instead of 1,757 seconds, used 26 transport requests / 19 logical pipeline calls instead of 64, produced 15 distinct lesson identities, and downloaded a 2.3 MB ZIP containing 126 extracted files. The package graded 89/B with zero P0 findings and honestly retained one review blocker because lesson 15 used compiler fallback. That is a successful recovery and export proof—not a claim that every package is publish-ready.
+
+The same release repairs an accidental loading regression. A small artifact-label helper had pulled a 461 KiB compiler-finalizer chunk onto the landing route. The helper now lives behind a lightweight boundary: initial JavaScript measures 251.7 KiB raw / 79.5 KiB gzip instead of 703.0 KiB / 215.9 KiB. The complete local release gate passes 423 test files and 5,178 tests, format, lint, production build, bundle budgets, and the real browser ZIP audit.
 
 V0.16.63 makes lesson identity a compiler invariant. Model enrichment is revalidated against the current lesson's title, objectives, topics, and instructor-named readings before it may persist, survive a cache restore, compile, or render. Rejected concepts leave with their dependent facts, citations, scenarios, questions, rationales, and derived references. In an exact World Literature twin, measured Shakespeare, `directorial reading`, `title as doorway`, and unrelated poetry-form leakage fell from **40, 52, 33, and 29** document occurrences to **zero**, while compiler texture improved from **90 to 94**.
 

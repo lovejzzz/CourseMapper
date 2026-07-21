@@ -626,6 +626,10 @@ describe('WS-B1 — course resolution', () => {
   it('comma ids resolve any subset, including genome and stranger ids', () => {
     expect(resolveCourses('econ-intro,astro-101').map((c) => c.id)).toEqual(['econ-intro', 'astro-101']);
     expect(resolveCourses('art-history').map((c) => c.id)).toEqual(['art-history']);
+    expect(resolveCourses('genetics-production-regression')[0]).toMatchObject({
+      lessonCount: 15,
+      probeProfile: 'generic',
+    });
   });
 
   it('an unknown id throws with the known-id list', () => {

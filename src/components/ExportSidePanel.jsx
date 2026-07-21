@@ -325,6 +325,28 @@ function hasPackageExportFailure(packageQualityPass) {
   return (Number.isFinite(failed) && failed > 0) || String(receipt.exportStatus || '').toLowerCase() === 'failed';
 }
 
+/**
+ * Content readiness and file exportability are different promises. A finished
+ * package may still need instructor edits while its already-built files have
+ * passed every export check. Keep that package visibly blocked for publishing,
+ * but never trap the user's work in the browser: the draft ZIP carries the
+ * same blocked readiness and quality report for offline repair.
+ */
+export function hasDownloadableVerifiedDraft(packageQualityPass, finishOutcome = null) {
+  const verification = finishOutcome?.exportVerification || null;
+  const receipt = finishOutcome?.receipt || packageQualityPass?.receipt || {};
+  const checked = Number(verification?.checked ?? receipt.exportChecked ?? 0);
+  const warningCount = Number(verification?.warningCount ?? receipt.exportWarningCount ?? 0);
+  const explicitStatus = String(verification?.status || receipt.exportStatus || '').toLowerCase();
+  // v0.16.61-0.16.63 receipts persisted the checked/failed counters but
+  // accidentally omitted exportStatus. Recover those already-finished
+  // projects without making the user regenerate a course.
+  const status = explicitStatus || (checked > 0 ? (warningCount > 0 ? 'warnings' : 'passed') : '');
+  const failed = Number(verification?.failed ?? receipt.exportFailed ?? 0);
+  const finished = Boolean(finishOutcome) || hasFinishedPackageReceipt(packageQualityPass);
+  return finished && ['passed', 'warnings'].includes(status) && Number.isFinite(failed) && failed === 0;
+}
+
 function ReadinessPanel({
   readiness,
   onIssueClick,
@@ -1042,13 +1064,15 @@ export default function ExportSidePanel({
     let exportReadiness = getReadinessSnapshot({ exportCourseMap, exportDeliverables, exportScope });
     let repairsApplied = pendingExport?.repairsApplied || 0;
     let finishOutcome = null;
+    const verifiedDraftAvailableAtStart =
+      format === 'zip' && exportScope === 'all' && hasDownloadableVerifiedDraft(packageQualityPass);
 
     const shouldFinishPackageBeforeExport =
       exportScope === 'all' &&
       typeof onFinishPackage === 'function' &&
       (Boolean(pendingExport) ||
         !hasFinishedPackageReceipt(packageQualityPass) ||
-        hasBlockingReadinessIssues(exportReadiness));
+        (hasBlockingReadinessIssues(exportReadiness) && !verifiedDraftAvailableAtStart));
 
     if (shouldFinishPackageBeforeExport) {
       setPendingReadinessExport(null);
@@ -1100,7 +1124,9 @@ export default function ExportSidePanel({
       exportReadiness = getReadinessSnapshot({ exportCourseMap, exportDeliverables, exportScope });
     }
 
-    if (hasBlockingReadinessIssues(exportReadiness)) {
+    const verifiedDraftAvailable =
+      format === 'zip' && exportScope === 'all' && hasDownloadableVerifiedDraft(packageQualityPass, finishOutcome);
+    if (hasBlockingReadinessIssues(exportReadiness) && !verifiedDraftAvailable) {
       const canFinishPackageAgain =
         !finishOutcome || ((finishOutcome.retryActions?.length || 0) > 0 && !finishOutcome.retryExhausted);
       const pendingExport = {
@@ -1129,7 +1155,10 @@ export default function ExportSidePanel({
       return;
     }
 
-    const downloadReadiness = getDownloadReadiness(exportReadiness);
+    // Preserve blockers in a reviewed draft. PACKAGE_MANIFEST.json and
+    // QUALITY_REPORT.md must explain why it is not ready to publish even
+    // though its physical files passed export verification.
+    const downloadReadiness = verifiedDraftAvailable ? exportReadiness : getDownloadReadiness(exportReadiness);
     setPendingReadinessExport(null);
     setLastNotice(
       repairsApplied > 0
@@ -1168,7 +1197,11 @@ export default function ExportSidePanel({
             // QUALITY_REPORT.md ride the download).
             quality: qualityContext,
           });
-          setLastOk(`ZIP downloaded with ${zipResult.files.length} file${zipResult.files.length === 1 ? '' : 's'}.`);
+          setLastOk(
+            `${verifiedDraftAvailable ? 'Draft ZIP' : 'ZIP'} downloaded with ${zipResult.files.length} file${
+              zipResult.files.length === 1 ? '' : 's'
+            }.${verifiedDraftAvailable ? ' Review notes are included in the package.' : ''}`,
+          );
         }
       } else {
         // Current tab
@@ -1296,6 +1329,8 @@ export default function ExportSidePanel({
     featureLabels: FEATURE_LABELS,
   });
   const zipHasTerminalTrustBlocker = scope === 'all' && terminalPackageTrust.blocked;
+  const zipCanDownloadReviewedDraft =
+    scope === 'all' && zipHasTerminalTrustBlocker && hasDownloadableVerifiedDraft(packageQualityPass);
   const zipPendingNeedsAttention = zipPendingReadiness && pendingReadinessExport?.canFinishPackageAgain === false;
   const zipCanFinishPackage =
     scope === 'all' &&
@@ -1311,24 +1346,28 @@ export default function ExportSidePanel({
         ? 'Finishing package'
         : zipCanFinishPackage
           ? 'Finish package'
-          : zipPendingNeedsAttention || zipHasExportFailure || zipHasTerminalTrustBlocker
-            ? 'Needs attention'
-            : zipPendingReadiness
-              ? 'Finish package'
-              : 'Download ZIP';
+          : zipCanDownloadReviewedDraft
+            ? 'Download draft ZIP'
+            : zipPendingNeedsAttention || zipHasExportFailure || zipHasTerminalTrustBlocker
+              ? 'Needs attention'
+              : zipPendingReadiness
+                ? 'Finish package'
+                : 'Download ZIP';
   // The export panel is the single ZIP owner.
   const zipDownloadDisabled =
     !!busy ||
     isPackageQualityRunning ||
     finishPackageBusy ||
     zipHasExportFailure ||
-    zipHasTerminalTrustBlocker ||
+    (zipHasTerminalTrustBlocker && !zipCanDownloadReviewedDraft) ||
     (zipPendingReadiness && !canFinishPackage) ||
     zipPendingNeedsAttention ||
     allReadyCount === 0 ||
     !courseMap ||
     (selectedLessons !== null && selectedLessons.length === 0);
-  const panelTitle = ['Download ZIP', 'Preparing ZIP…'].includes(zipButtonLabel) ? 'Export package' : 'Finish package';
+  const panelTitle = ['Download ZIP', 'Download draft ZIP', 'Preparing ZIP…'].includes(zipButtonLabel)
+    ? 'Export package'
+    : 'Finish package';
   return (
     <div
       data-testid="export-side-panel"

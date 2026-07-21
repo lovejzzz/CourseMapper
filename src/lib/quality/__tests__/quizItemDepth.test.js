@@ -154,6 +154,18 @@ describe('quiz item depth', () => {
     expect(isClaimEvidenceBoundaryShortAnswer(boundedTask)).toBe(true);
   });
 
+  it('recognizes a singular course lens in a claim-evidence-boundary task', () => {
+    const task =
+      'Name the most defensible course lens, point to two case details, and state one boundary or next piece of evidence.';
+    expect(isClaimEvidenceBoundaryShortAnswer(task)).toBe(true);
+  });
+
+  it('recognizes a two-card synthesis that independently selects a concept and bounds the relationship', () => {
+    const task =
+      'Claim A states one course proposition. Claim B states a related proposition. Identify the course concept that best organizes these claims, explain how they differ or connect, and state what they do not establish. Use both claim cards and keep the conclusion bounded.';
+    expect(isClaimEvidenceBoundaryShortAnswer(task)).toBe(true);
+  });
+
   it('extracts and summarizes short-answer reasoning depth', () => {
     const files = [
       {

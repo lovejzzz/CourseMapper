@@ -54,6 +54,7 @@ import { assessTargetLanguagePresence, detectForeignLanguageTeachingContent } fr
 import { projectKernelToSurfaces } from './kernelProjection';
 import { NATIVE_PASS_B_AUTHORING_ADDITION } from './prompts';
 import { extractExplicitLessonSequence } from './explicitLessonSequence';
+import { semanticIdentityTokens } from './lessonSemanticRelevance';
 export { AUTHORING_MODE_STORAGE_KEY, readAuthoringMode, saveAuthoringMode } from './authoringMode.js';
 
 // ── Typed failure: the degraded-plan guard ──────────────────────────────────
@@ -94,6 +95,24 @@ function cleanTextAtBoundary(value, max = 300) {
   return (wordEnd >= Math.floor(max * 0.55) ? slice.slice(0, wordEnd) : text.slice(0, max)).trim();
 }
 
+function selectConceptAlignedFact(facts = [], concept = '') {
+  const conceptTokens = new Set(semanticIdentityTokens(concept));
+  if (conceptTokens.size === 0) return facts[0] || '';
+  let best = facts[0] || '';
+  let bestScore = -1;
+  facts.forEach((fact, index) => {
+    const factTokens = new Set(semanticIdentityTokens(fact));
+    const overlap = [...conceptTokens].filter((token) => factTokens.has(token)).length;
+    const coverage = overlap / conceptTokens.size;
+    const score = overlap * 10 + coverage - index / 1000;
+    if (score > bestScore) {
+      best = fact;
+      bestScore = score;
+    }
+  });
+  return best;
+}
+
 export function isNativeContentSourcedKernel(payload, partialOverlay) {
   if (!payload) return false;
   const coverage = assessProjectedKernelCoverage(payload);
@@ -109,6 +128,80 @@ export function selectNativeContentSources(lessonIndices, lessonContent = {}, pa
   return asArray(lessonIndices)
     .map((lessonIndex) => `lesson-${lessonIndex + 1}`)
     .filter((lessonId) => isNativeContentSourcedKernel(lessonContent[lessonId], partialOverlays[lessonId]));
+}
+
+/**
+ * Run the bounded native-kernel recovery loop.
+ *
+ * The projection callback intentionally runs inside the loop, immediately
+ * after a provider response. Compact Scion may return only an immutable fact
+ * ledger; those facts are not instructionally usable until the compiler has
+ * projected its safe quiz/term/slide surfaces. Deciding progress before that
+ * projection spent a second provider call on an already recovered lesson.
+ */
+export async function runNativeKernelRecovery({
+  lessonIndices = [],
+  lessonContent = {},
+  lessonIdOf = (lessonIndex) => `lesson-${lessonIndex + 1}`,
+  kernelIsUsable,
+  listMissingAuthoredIndices = () => [],
+  recoveryCallLimit = 0,
+  hasProviderCallBudget = () => true,
+  selectRecoveryChunk,
+  chunkSize = 1,
+  runRecoveryBatch,
+  projectRecoveredSurfaces = () => {},
+  onRecoveryError = () => {},
+  onStalled = () => {},
+}) {
+  const allLessonIndices = asArray(lessonIndices);
+  const listMissingKernelIndices = () =>
+    allLessonIndices.filter((lessonIndex) => !kernelIsUsable(lessonContent[lessonIdOf(lessonIndex)]));
+  let recoveryCalls = 0;
+  const attemptedLessonIndices = [];
+
+  while (
+    recoveryCalls < recoveryCallLimit &&
+    (listMissingKernelIndices().length > 0 || listMissingAuthoredIndices().length > 0) &&
+    hasProviderCallBudget()
+  ) {
+    const beforeSignature = JSON.stringify({
+      kernel: listMissingKernelIndices(),
+      authored: listMissingAuthoredIndices(),
+    });
+    const recoveryCandidates = [...new Set([...listMissingKernelIndices(), ...listMissingAuthoredIndices()])].sort(
+      (left, right) => left - right,
+    );
+    const retryChunk = selectRecoveryChunk(recoveryCandidates, attemptedLessonIndices, chunkSize);
+    if (retryChunk.length === 0) break;
+    attemptedLessonIndices.push(...retryChunk);
+    recoveryCalls += 1;
+
+    try {
+      await runRecoveryBatch(retryChunk, recoveryCalls);
+      projectRecoveredSurfaces(retryChunk);
+    } catch (error) {
+      if (error?.name === 'AbortError') throw error;
+      onRecoveryError(error);
+    }
+
+    const afterSignature = JSON.stringify({
+      kernel: listMissingKernelIndices(),
+      authored: listMissingAuthoredIndices(),
+    });
+    if (afterSignature === beforeSignature) {
+      const terminal = recoveryCalls >= recoveryCallLimit || !hasProviderCallBudget();
+      onStalled({ terminal, recoveryCalls });
+      if (terminal) break;
+    }
+  }
+
+  return {
+    recoveryCalls,
+    attemptedLessonIndices,
+    missingKernelIndices: listMissingKernelIndices(),
+    missingAuthoredIndices: listMissingAuthoredIndices(),
+  };
 }
 
 export function pickNativeKernel(previous, candidate) {
@@ -166,7 +259,11 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
   const facts = asArray(payload?.kernel?.facts)
     .map((fact) => cleanTextAtBoundary(fact, 220))
     .filter(Boolean);
-  const anchorFact = facts[0] || definition || `${concept} requires a claim grounded in inspectable details.`;
+  const anchorFact =
+    selectConceptAlignedFact(facts, concept) ||
+    definition ||
+    `${concept} requires a claim grounded in inspectable details.`;
+  const projectionFacts = anchorFact ? [anchorFact, ...facts.filter((fact) => fact !== anchorFact)] : facts;
   const anchorClause = anchorFact.replace(/[.!?]+$/, '');
   const scenario = payload?.kernel?.scenario || {};
   const materials =
@@ -199,14 +296,13 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
   // The compiler adds only instructional framing; definition and example
   // remain traceable to the accepted fact/scenario atoms.
   if (keyTerms.filter(substantiveTerm).length === 0 && facts.length >= 3) {
+    const comparisonExample = `Compare the supplied claims: ${projectionFacts.slice(0, 2).join(' ')}`;
     const fallbackTerm = {
       term: cleanText(concept, 60),
       definition: anchorFact,
-      example:
-        scenarioExample ||
-        `In the supplied case, the learner compares the named ${cleanText(materials, 120)} before deciding.`,
-      misconception: `A common mistake is to apply ${cleanText(concept, 60)} without checking the named evidence.`,
-      correction: `Apply ${cleanText(concept, 60)} only after comparing the evidence with the stated subject relation.`,
+      example: scenarioExample || cleanTextAtBoundary(comparisonExample, 300),
+      misconception: `The first supplied claim alone settles every question about ${cleanText(concept, 60)}.`,
+      correction: 'Use all supplied claims to state a bounded conclusion and identify what they do not establish.',
       source: 'fact-ledger-projection',
       tier: 1,
     };
@@ -241,7 +337,19 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
         continue;
       }
       const definition = cleanText(item.explanation, 380).split(/(?<=[.!?])\s+/)[0];
-      const example = cleanText(item.question, 300);
+      const question = cleanText(item.question, 300);
+      const correctOption = cleanText(item.options[answerIndex], 120);
+      // A verified MC stem can be a sentence-completion prompt (for example,
+      // "A close reading connects a detail to …"). The correct option is part
+      // of that evidence atom. Saving the bare stem as a key-term example
+      // creates a dangling clause later in the FAQ and study guide, so retain
+      // the answer-bearing completion. Normal question stems get an explicit
+      // answer sentence instead of being misrepresented as prose.
+      const example = /(?:\b(?:to|from|with|for|of|by|through|against|into|as|than)|[:–—-])$/i.test(question)
+        ? `${question} ${correctOption}`
+        : /[?]$/.test(question)
+          ? `For ${question.replace(/[?]+$/, '')}, the supported answer is ${correctOption}.`
+          : question;
       if (wordCount(definition) < 8 || wordCount(example) < 5) continue;
       const wrongOption = cleanText(
         item.options.find((option, optionIndex) => optionIndex !== answerIndex && cleanText(option)),
@@ -296,7 +404,7 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
   if (needsFactProjection) {
     const factProjection = projectKernelToSurfaces(
       {
-        facts,
+        facts: projectionFacts,
         keyTerms,
         scenario: existingScenario,
       },

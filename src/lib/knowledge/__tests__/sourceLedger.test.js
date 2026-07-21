@@ -2291,4 +2291,120 @@ describe('trusted source ledger', () => {
 
     expect(ledger).toBeNull();
   });
+
+  it('omits literacy-instruction false friends from a World Literature source ledger', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'World Literature' },
+        concepts: [{ id: 'c1', term: 'comparative reading strategies' }],
+        sessions: [
+          {
+            id: 's8',
+            number: 8,
+            title: 'Comparative Reading Methods',
+            sections: [{ id: 'sec8', topic: 'comparative reading strategies', conceptRefs: ['c1'] }],
+          },
+        ],
+        resources: [],
+        readings: [],
+        sourceFinderMiniShard: {
+          topics: [
+            {
+              sessionId: 's8',
+              lessonNumber: 8,
+              topic: 'comparative reading strategies',
+              sources: [
+                {
+                  provider: 'wikipedia',
+                  kind: 'encyclopedia background',
+                  title: 'Phonics',
+                  url: 'https://en.wikipedia.org/wiki/Phonics',
+                  license: 'CC BY-SA 4.0',
+                  snippet: 'A method for teaching beginning reading through letters, sounds, and syllables.',
+                },
+                {
+                  provider: 'crossref',
+                  kind: 'journal article',
+                  title: 'World Reading Strategies: Border Reading',
+                  url: 'https://doi.org/10.1000/world-reading',
+                  doi: '10.1000/world-reading',
+                  license: 'CC BY 4.0',
+                  snippet: 'Comparative interpretation of world literatures, literary form, and historical context.',
+                },
+              ],
+            },
+          ],
+        },
+      },
+      { checkedAt: '2026-07-21T00:00:00.000Z' },
+    );
+
+    expect(ledger.rows.map((row) => row.title)).toEqual(['World Reading Strategies: Border Reading']);
+    expect(ledger.reviewRows || []).toHaveLength(0);
+  });
+
+  it('omits a business-ethics homonym while retaining Dodd-Frank consumer-protection evidence', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'Business Ethics' },
+        concepts: [
+          { id: 'c7', term: 'Fair Employment Practices' },
+          { id: 'c8', term: 'Consumer Protection Laws' },
+        ],
+        sessions: [
+          {
+            id: 's7',
+            number: 7,
+            title: 'Fair Employment and Workplace Rights',
+            sections: [{ topic: 'Fair Employment Practices', conceptRefs: ['c7'] }],
+          },
+          {
+            id: 's8',
+            number: 8,
+            title: 'Consumer Protection and Product Safety',
+            sections: [{ topic: 'Consumer Protection Laws', conceptRefs: ['c8'] }],
+          },
+        ],
+        resources: [],
+        readings: [],
+        sourceFinderMiniShard: {
+          topics: [
+            {
+              sessionId: 's7',
+              lessonNumber: 7,
+              topic: 'Fair Employment Practices',
+              sources: [
+                {
+                  provider: 'wikipedia',
+                  title: 'Fair game (Scientology)',
+                  url: 'https://en.wikipedia.org/wiki/Fair_game_(Scientology)',
+                  license: 'CC BY-SA 4.0',
+                  snippet: 'Church of Scientology policies toward perceived enemies.',
+                },
+              ],
+            },
+            {
+              sessionId: 's8',
+              lessonNumber: 8,
+              topic: 'Consumer Protection Laws',
+              sources: [
+                {
+                  provider: 'wikipedia',
+                  title: 'Dodd–Frank Act',
+                  url: 'https://en.wikipedia.org/wiki/Dodd%E2%80%93Frank_Act',
+                  license: 'CC BY-SA 4.0',
+                  snippet:
+                    'The Dodd-Frank Wall Street Reform and Consumer Protection Act established federal consumer-financial protections.',
+                },
+              ],
+            },
+          ],
+        },
+      },
+      { checkedAt: '2026-07-21T00:00:00.000Z' },
+    );
+
+    expect(ledger.rows.map((row) => row.title)).toEqual(['Dodd–Frank Act']);
+    expect(ledger.reviewRows || []).toHaveLength(0);
+  });
 });

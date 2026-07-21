@@ -19,6 +19,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { applyApiCallBudgetEvent, createApiCallBudget, getApiCallBudgetTotal } from '../src/lib/apiCallBudget.js';
+import { assessProjectedKernelCoverage, selectEnrichmentRecoveryChunk } from '../src/lib/blueprintEnrichmentPass.js';
+import { completeNativeLessonSurfaces, runNativeKernelRecovery } from '../src/lib/nativeGraphAuthoring.js';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const hookSource = fs.readFileSync(path.join(repoRoot, 'src/hooks/useDeliverables.js'), 'utf8');
@@ -138,21 +140,18 @@ describe('WS-A (2) — the rewritten loop keeps its contract (source pins)', () 
     expect(recoverySource).toContain("type: 'repairRetryCall'");
   });
 
-  it('native Pass B recovery can spend the second reserved call after a no-progress retry', () => {
-    const nativeRecoverySource = hookSource
-      .split('let nativeRecoveryCalls = 0;')[1]
-      .split('// v0.14.1 P4.5: fold genome partials back in')[0];
+  it('native Pass B delegates bounded recovery and counts its calls', () => {
+    const nativeRecoverySource = hookSource.split('const nativeRecovery = await runNativeKernelRecovery({')[1];
 
-    expect(nativeRecoverySource).toContain('recoveryAttempt: nativeRecoveryCalls');
-    expect(nativeRecoverySource).toContain('nativeRecoveryCalls < enrichmentRecoveryCallLimit');
-    expect(nativeRecoverySource).toContain('${nativeRecoveryCalls}/${enrichmentRecoveryCallLimit}');
+    expect(nativeRecoverySource).toContain('recoveryCallLimit: enrichmentRecoveryCallLimit');
+    expect(nativeRecoverySource).toContain('${recoveryAttempt}/${enrichmentRecoveryCallLimit}');
+    expect(nativeRecoverySource).toContain('const nativeRecoveryCalls = nativeRecovery.recoveryCalls');
     expect(nativeRecoverySource).toContain('retrying with stricter instructions');
     expect(hookSource).toContain(
       'allLessonIndices.filter((lessonIdx) => !kernelIsUsable(lessonContent[lessonIdOf(lessonIdx)]))',
     );
-    expect(nativeRecoverySource).toContain('selectEnrichmentRecoveryChunk(');
-    expect(nativeRecoverySource).toContain('attemptedNativeRecoveryIndices');
-    expect(nativeRecoverySource).not.toContain('let previousRecoverySignature');
+    expect(nativeRecoverySource).toContain('selectRecoveryChunk: selectEnrichmentRecoveryChunk');
+    expect(nativeRecoverySource).toContain('projectRecoveredSurfaces: (retryChunk)');
   });
 
   it('defers optional voice polish when enrichment coverage is still partial', () => {
@@ -161,5 +160,62 @@ describe('WS-A (2) — the rewritten loop keeps its contract (source pins)', () 
     expect(voiceSource.indexOf('enrichmentOutcome.missingLessons?.length')).toBeLessThan(
       voiceSource.indexOf('voicePassLib.runVoicePass({'),
     );
+  });
+});
+
+describe('WS-A (3) — native recovery admits projected fact-ledger success before buying another call', () => {
+  const lesson = {
+    title: 'Lesson 1: Contemporary Global Art',
+    sections: [{ topicSection: 'Contemporary global art and artistic media' }],
+  };
+  const factsOnlyResponse = {
+    keyTerms: [],
+    quizItems: [],
+    kernel: {
+      facts: [
+        'Contemporary art includes artistic expressions created from the mid-twentieth century onward.',
+        'Global art studies artistic production originating from various geographical regions.',
+        'Contemporary art can be analyzed through painting, sculpture, and digital art.',
+        'Contemporary global art examines relationships between local and international artistic scenes.',
+        'Artistic media provide inspectable details for comparing contemporary practices.',
+      ],
+      scenario: {
+        setup: 'A curator compares works from three regions before revising an exhibition interpretation.',
+        materials: 'painting details, sculpture notes, digital-art observations',
+      },
+    },
+  };
+
+  async function runFactsOnlyRecovery({ projectInsideLoop }) {
+    const lessonContent = {};
+    let providerCalls = 0;
+    const result = await runNativeKernelRecovery({
+      lessonIndices: [0],
+      lessonContent,
+      kernelIsUsable: (payload) => assessProjectedKernelCoverage(payload).usable,
+      recoveryCallLimit: 2,
+      selectRecoveryChunk: selectEnrichmentRecoveryChunk,
+      chunkSize: 1,
+      runRecoveryBatch: async () => {
+        providerCalls += 1;
+        lessonContent['lesson-1'] = structuredClone(factsOnlyResponse);
+      },
+      projectRecoveredSurfaces: projectInsideLoop
+        ? (retryChunk) => completeNativeLessonSurfaces(lessonContent, [lesson], retryChunk)
+        : () => {},
+    });
+    if (!projectInsideLoop) completeNativeLessonSurfaces(lessonContent, [lesson], [0]);
+    return { lessonContent, providerCalls, result };
+  }
+
+  it('keeps the identical learner-facing kernel while removing the redundant second provider call', async () => {
+    const oldOrder = await runFactsOnlyRecovery({ projectInsideLoop: false });
+    const correctedOrder = await runFactsOnlyRecovery({ projectInsideLoop: true });
+
+    expect(oldOrder.providerCalls).toBe(2);
+    expect(correctedOrder.providerCalls).toBe(1);
+    expect(correctedOrder.result.missingKernelIndices).toEqual([]);
+    expect(assessProjectedKernelCoverage(correctedOrder.lessonContent['lesson-1']).usable).toBe(true);
+    expect(correctedOrder.lessonContent).toEqual(oldOrder.lessonContent);
   });
 });

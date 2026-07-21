@@ -30,12 +30,14 @@ import {
   extractPublicScionKernelLessons,
   mergePublicScionKernelAttempts,
   publicScionAdmissionRisk,
+  publicScionCompilerFactCoreUsable,
   publicScionFactContractIssues,
   repairPublicScionJson,
   shufflePublicScionKernelOptions,
 } from '../../src/lib/publicScionProvider.js';
 import { compactFactLedgerSchemaProfile } from '../../src/lib/scionContracts.js';
 import { scionFactCountForPrompt } from '../../src/lib/scionEvidenceContract.js';
+import { explicitCourseLanguageIds } from '../../src/lib/languageIdentityGuard.js';
 import { closeJsonContainersAtEof } from './jsonClosureRepair.mjs';
 import { valueConformsToSchema } from './jsonSchemaValidation.mjs';
 import { scionCompactKernelMaxAttempts } from './scionCompactAttemptPolicy.mjs';
@@ -277,6 +279,7 @@ async function generateCompactLessonKernel({
   maxAttempts = 3,
   temperature = 0,
   deferToCompilerProjection = false,
+  allowCompilerFactCore = false,
 }) {
   let retainedIncompleteText = '';
   let retryAssessment = null;
@@ -311,7 +314,12 @@ async function generateCompactLessonKernel({
         ...(deferToCompilerProjection ? { factIssueCount: retryIssues.length } : {}),
       }),
     );
-    if (!retryGate.needsRetry) return shufflePublicScionKernelOptions(latestText).text;
+    if (
+      !retryGate.needsRetry ||
+      (allowCompilerFactCore && publicScionCompilerFactCoreUsable(latestText, assessment, { minimumFacts: 2 }))
+    ) {
+      return shufflePublicScionKernelOptions(latestText).text;
+    }
     const risk = publicScionAdmissionRisk(retryGate);
     if (!bestIncomplete || risk.score < bestIncomplete.risk.score) {
       bestIncomplete = { text: latestText, attempt: attempt + 1, risk };
@@ -1515,6 +1523,7 @@ const server = http.createServer(async (req, res) => {
     SCION_LEDGER_FIRST &&
     adapterRoute.taskFamily === SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL_SYNTHESIS &&
     promptProtocol === SCION_LESSON_KERNEL_SYNTHESIS_PROMPT_PROTOCOL;
+  const targetLanguageKernel = explicitCourseLanguageIds(originalCompilerUser).length > 0;
   if (compactLessonKernelRequest) {
     // Match the production browser boundary exactly. The public provider
     // converts the rich compiler prompt into the compact protocol used by the
@@ -1590,6 +1599,7 @@ const server = http.createServer(async (req, res) => {
                 }),
             temperature: declaredTemperature,
             deferToCompilerProjection: factLedgerFirstRequest,
+            allowCompilerFactCore: factLedgerFirstRequest && targetLanguageKernel,
           })
         : kernel
           ? await kernelChunkedGenerate({ system, user, kernel, temperature: declaredTemperature })

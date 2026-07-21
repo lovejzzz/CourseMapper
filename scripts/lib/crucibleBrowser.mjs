@@ -12,6 +12,7 @@ import net from 'node:net';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { PROVIDER_KEY_RULES, pickApiKeyFromEnvText } from './crucibleRound.mjs';
+import { DOWNLOAD_ZIP_ACTION_PATTERN, isDownloadablePackageState } from './packageDownloadState.mjs';
 import { APP_VERSION } from '../../src/lib/appVersion.js';
 
 const moduleDir = path.dirname(fileURLToPath(import.meta.url));
@@ -394,7 +395,7 @@ async function getZipAction(page) {
     return sidePanelZip.first();
   }
 
-  const headerZip = page.getByTestId('primary-cta').filter({ hasText: /Download ZIP/i });
+  const headerZip = page.getByTestId('primary-cta').filter({ hasText: DOWNLOAD_ZIP_ACTION_PATTERN });
   if (
     (await headerZip.count()) > 0 &&
     (await headerZip
@@ -449,7 +450,7 @@ async function waitForExportSidePanel(page, timeoutMs) {
 
 // Borrowed from scripts/liveBrowserQualityLoop.mjs (ensurePackageReady):
 // switch scope to the full package, then click through "Finish package"
-// states until the ZIP button reads "Download ZIP".
+// states until the ZIP button offers a verified package or reviewed draft.
 export async function ensurePackageReady(page, remaining) {
   await waitForExportSidePanel(page, remaining(600_000));
   await page.getByTestId('export-scope-all').click();
@@ -459,7 +460,7 @@ export async function ensurePackageReady(page, remaining) {
     const status = await safeText(page.getByTestId('readiness-status'));
     const zipButton = await getZipAction(page);
     const zipLabel = await safeText(zipButton);
-    if (/Ready to download|Ready/i.test(status) && /Download ZIP/i.test(zipLabel)) return;
+    if (isDownloadablePackageState(status, zipLabel)) return;
 
     const inlineFinish = page.getByTestId('readiness-finish-package');
     if (
@@ -490,7 +491,7 @@ export async function ensurePackageReady(page, remaining) {
 // Borrowed from scripts/liveBrowserQualityLoop.mjs (downloadZip).
 export async function downloadZip(page, destinationPath, remaining) {
   const zipButton = await getZipAction(page);
-  await expect(zipButton).toContainText(/Download ZIP/, { timeout: remaining(30_000) });
+  await expect(zipButton).toContainText(DOWNLOAD_ZIP_ACTION_PATTERN, { timeout: remaining(30_000) });
   const [download] = await Promise.all([
     page.waitForEvent('download', { timeout: remaining(120_000) }),
     zipButton.click(),

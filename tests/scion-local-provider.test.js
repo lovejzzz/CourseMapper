@@ -328,6 +328,46 @@ describe('Scion browser-local provider', () => {
     expect(onAdapterRoute).toHaveBeenCalledWith(expect.objectContaining({ factLedgerOnly: true }));
   });
 
+  it('keeps a clean Mandarin fact core after one call and leaves bad atoms for compiler quarantine', async () => {
+    const route = {
+      mode: 'base-only',
+      taskFamily: 'lesson-kernel-synthesis',
+      reason: 'no-adapter-installed',
+      adapterId: null,
+      nativeAdapterActive: false,
+    };
+    const ledger = JSON.stringify({
+      lessons: [
+        {
+          lessonId: 'lesson-5',
+          facts: [
+            'Mandarin kinship terms distinguish generation, age, and family-side relationships.',
+            'Possessive noun phrases place the possessor before de and the possessed noun.',
+            'The lesson introduces vocabulary for common family relationships in Mandarin.',
+            'The lesson covers the particle de for expressing possession.',
+            'This lesson provides character-writing practice for family words.',
+          ],
+        },
+      ],
+    });
+    const runtime = runtimeWith([ledger], { route, plannedRoute: route });
+
+    const result = await runScionLocalCompletion({
+      userPrompt:
+        'Course: Elementary Mandarin Chinese I\nLessons:\n[{"lessonId":"lesson-5","title":"Family and Possession"}]\nReturn ONLY valid JSON.',
+      task: 'blueprintEnrichment',
+      promptProtocol: 'production-lesson-kernel-synthesis-prompt-v1',
+      maxOutputTokens: 2400,
+      maxRetries: 2,
+      runtimeLoader: async () => runtime,
+      sleep: async () => {},
+    });
+
+    expect(runtime.completeScionBrowserWllama).toHaveBeenCalledTimes(1);
+    expect(result).toMatchObject({ attempt: 1, retryCount: 0, contractIncomplete: true });
+    expect(result.admissionIssues).toEqual(expect.arrayContaining(['lesson-5:fact-2:meta-fact']));
+  });
+
   it('uses the conditional synthesis retry when the first grounded-stage fact ledger is invalid', async () => {
     const invalidFacts = JSON.parse(completeKernelResponse());
     invalidFacts.lessons[0].facts[2] = invalidFacts.lessons[0].facts[1];

@@ -126,7 +126,7 @@ describe('source finder mini-shard', () => {
     });
 
     expect(first.temporary).toBe(true);
-    expect(first.id).toContain('source-finder-v8');
+    expect(first.id).toContain('source-finder-v10');
     expect(first.stats).toMatchObject({ topics: 2, topicsWithSources: 2, sources: 4, cacheHits: 0 });
     expect(second.stats.cacheHits).toBe(2);
     expect(providers.searchScholarlyReadings).toHaveBeenCalledTimes(2);
@@ -864,6 +864,117 @@ describe('source finder mini-shard', () => {
     expect(graph.resources.map((resource) => resource.title)).toEqual([
       'Basic Chinese characters for beginning Mandarin reading',
     ]);
+  }, 15000);
+
+  it('rejects literacy-instruction false friends for World Literature during search and stale-shard attachment', async () => {
+    const graph = createEmptyCourseGraph({ courseName: 'World Literature' });
+    graph.sessions = [
+      {
+        id: 's8',
+        number: 8,
+        title: 'Lesson 8: Comparative Reading Methods',
+        sections: [{ topic: 'Comparative Reading Strategies' }],
+      },
+    ];
+
+    const phonics = source('wikipedia', 'Phonics', {
+      abstract:
+        'Phonics is a method for teaching reading and writing to beginners through letters, sounds, and syllables.',
+    });
+    const literary = source('crossref', 'World Reading Strategies: Border Reading', {
+      abstract:
+        'A methodology for reading world literatures through comparative interpretation, literary form, and historical context.',
+    });
+    const providers = {
+      searchScholarlyReadings: vi.fn(async () => []),
+      searchCrossrefWorks: vi.fn(async () => [literary]),
+      searchWikipediaPages: vi.fn(async () => [phonics]),
+      searchBookMetadata: vi.fn(async () => []),
+      searchLibraryOfCongress: vi.fn(async () => []),
+      searchInternetArchiveTexts: vi.fn(async () => []),
+    };
+
+    const miniShard = await findCourseSources(graph, {
+      storage: memoryStorage(),
+      maxTopics: 1,
+      limitPerTopic: 2,
+      minUsefulSources: 1,
+      providers,
+    });
+
+    expect(miniShard.topics[0].sources.map((item) => item.title)).toEqual(['World Reading Strategies: Border Reading']);
+
+    const attached = attachSourceFinderResources(graph, {
+      ...miniShard,
+      topics: [{ ...miniShard.topics[0], sources: [phonics, literary] }],
+    });
+    expect(attached).toBe(1);
+    expect(graph.resources.map((resource) => resource.title)).toEqual(['World Reading Strategies: Border Reading']);
+  }, 15000);
+
+  it('rejects business-ethics homonyms while retaining consumer-protection law', async () => {
+    const graph = createEmptyCourseGraph({ courseName: 'Business Ethics' });
+    graph.sessions = [
+      {
+        id: 's7',
+        number: 7,
+        title: 'Lesson 7: Fair Employment and Workplace Rights',
+        sections: [{ topic: 'Fair Employment Practices' }],
+      },
+      {
+        id: 's8',
+        number: 8,
+        title: 'Lesson 8: Consumer Protection and Product Safety',
+        sections: [{ topic: 'Consumer Protection Laws' }],
+      },
+    ];
+
+    const fairGame = source('wikipedia', 'Fair game (Scientology)', {
+      abstract:
+        'Fair game describes policies and practices of the Church of Scientology toward people it perceives as enemies.',
+    });
+    const employmentCase = source(
+      'wikipedia',
+      'California Department of Fair Employment and Housing v. Activision Blizzard',
+      {
+        abstract:
+          'A civil-rights employment lawsuit alleging workplace discrimination, harassment, and management misconduct.',
+      },
+    );
+    const doddFrank = source('wikipedia', 'Dodd–Frank Act', {
+      abstract:
+        'The Dodd-Frank Wall Street Reform and Consumer Protection Act created federal consumer-financial protections.',
+    });
+    const providers = {
+      searchScholarlyReadings: vi.fn(async () => []),
+      searchCrossrefWorks: vi.fn(async () => []),
+      searchWikipediaPages: vi.fn(async (query) =>
+        /employment/i.test(query) ? [fairGame, employmentCase] : [doddFrank],
+      ),
+      searchBookMetadata: vi.fn(async () => []),
+      searchLibraryOfCongress: vi.fn(async () => []),
+      searchInternetArchiveTexts: vi.fn(async () => []),
+    };
+
+    const miniShard = await findCourseSources(graph, {
+      storage: memoryStorage(),
+      maxTopics: 2,
+      limitPerTopic: 2,
+      minUsefulSources: 1,
+      providers,
+    });
+
+    expect(miniShard.topics.flatMap((topic) => topic.sources.map((item) => item.title))).toEqual([
+      'California Department of Fair Employment and Housing v. Activision Blizzard',
+      'Dodd–Frank Act',
+    ]);
+
+    const attached = attachSourceFinderResources(graph, {
+      ...miniShard,
+      topics: [{ ...miniShard.topics[0], sources: [fairGame, employmentCase] }, miniShard.topics[1]],
+    });
+    expect(attached).toBe(2);
+    expect(graph.resources.map((resource) => resource.title)).not.toContain('Fair game (Scientology)');
   }, 15000);
 
   it('rejects temporal and biomedical interval false friends for an abstractly titled music course', async () => {

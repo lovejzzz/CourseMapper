@@ -1,0 +1,163 @@
+{
+  "schemaVersion": 1,
+  "release": "0.16.64",
+  "date": "2026-07-21",
+  "status": "production-failure-reproduced-browser-zip-recovery-verified",
+  "modelBoundary": {
+    "providerDisplay": "Scion",
+    "modelDisplay": "Scion V0.16.64",
+    "publicBaseFamily": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+    "adapterActive": false,
+    "adapterState": "base-only",
+    "backendGenerationSpendUsd": 0,
+    "gemmaWeightsChanged": false
+  },
+  "productionIncident": {
+    "appVersion": "0.16.61",
+    "consoleLogSha256": "df8782b35d706f9df1c3d8a9a4fd2f05e90457b695b4ca5ab32a63494c5f3814",
+    "screenshotSha256": "d935a5e851274c5616535abc898c1fddc3ed4c5095adebba16eeda8ca8d8b930",
+    "elapsedMs": 1756578,
+    "providerRequests": 64,
+    "streamRetries": 38,
+    "courseMapCalls": 1,
+    "courseMapContinuationCalls": 4,
+    "lessonEnrichmentCalls": 16,
+    "finalStatus": "blocked",
+    "blockers": 3,
+    "duplicateTopicGroups": 3,
+    "duplicatePattern": "Three Genetics topic identities were each repeated across five lesson positions.",
+    "export": { "status": "passed", "checked": 38, "failed": 0, "warnings": 0 },
+    "quality": { "score": 89, "grade": "B", "p0": 0, "p1": 2, "p2": 1 },
+    "userVisibleFailure": "The package ZIP action remained disabled as Needs attention even though physical export verification passed."
+  },
+  "rootCauses": [
+    {
+      "id": "rich-contract-retry-loop",
+      "finding": "Normal lesson synthesis repeatedly rejected usable knowledge because the small model was also required to author compiler-owned rich surfaces.",
+      "fix": "The lesson-kernel-synthesis route emits a compact fact ledger, freezes admitted facts, projects downstream surfaces deterministically, and decides retry after projection."
+    },
+    {
+      "id": "continuation-prior-title-parser-mismatch",
+      "finding": "The public continuation parser did not recognize the production prompt's Existing lessons / Generate ONLY Lessons boundary, so prior titles were absent from the model request.",
+      "fix": "The parser accepts the production boundary and continuation calls retain the course-map task family."
+    },
+    {
+      "id": "duplicate-continuation-admission",
+      "finding": "Continuation output was appended without a normalized identity admission step.",
+      "fix": "Candidates duplicate against existing or same-batch lesson identities are rejected, accepted lessons are rebased, and rejected topics are supplied to the next bounded attempt."
+    },
+    {
+      "id": "readiness-exportability-conflation",
+      "finding": "A pedagogical review blocker disabled a physically valid archive and trapped the user's work in the browser.",
+      "fix": "Publish readiness remains blocked, while a finished archive with passed/warning export verification and zero failures exposes Download draft ZIP with blocked readiness preserved inside."
+    },
+    {
+      "id": "missing-export-status-receipt",
+      "finding": "V0.16.61-V0.16.63 receipts persisted exportChecked/exportFailed but omitted exportStatus.",
+      "fix": "New receipts persist exportStatus and legacy receipts infer a verified status only when checked is positive and failed is zero."
+    },
+    {
+      "id": "landing-compiler-preload",
+      "finding": "A narrow artifact-label helper imported the full compiled-language finalizer into the landing graph.",
+      "fix": "Artifact reference logic is isolated behind a lightweight module and the compiler-finalizer stays lazy."
+    }
+  ],
+  "candidateBrowserRun": {
+    "round": "round-2026-07-21T04-46-31-180Z",
+    "course": "Introduction to Genetics",
+    "lessons": 15,
+    "generationDigestElapsedMs": 186729,
+    "endToEndHarnessSeconds": 200,
+    "providerRequests": 26,
+    "logicalPipelineCalls": 19,
+    "nativeSkeletonCalls": 1,
+    "blueprintEnrichmentCalls": 17,
+    "lessonKernels": { "admitted": 14, "requested": 15, "compilerFallback": 1 },
+    "distinctLessonTitles": [
+      "Mendelian inheritance",
+      "Meiosis",
+      "Linkage and gene mapping",
+      "Molecular structure of DNA",
+      "Gene expression",
+      "Mutation",
+      "Population genetics",
+      "Epigenetics",
+      "Modern genetic technologies",
+      "Midterm 1",
+      "Midterm 2",
+      "Final Exam",
+      "Problem Sets",
+      "Model-organism lab",
+      "Final Assessment"
+    ],
+    "quality": { "score": 89, "grade": "B", "textureScore": 95, "p0": 0, "p1": 2, "p2": 1 },
+    "readiness": {
+      "status": "blocked",
+      "blockers": 1,
+      "reason": "Lesson 15 used compiler fallback after the bounded repair budget; the draft is downloadable but not represented as publish-ready."
+    },
+    "export": {
+      "status": "passed",
+      "checked": 38,
+      "failed": 0,
+      "warnings": 0,
+      "zipBytes": 2393572,
+      "zipSha256": "fc30b70737b4e266803dea52fdb0928f2a50833e3324f4606eb8a9f9bd51857f",
+      "extractedFiles": 126,
+      "gradedFiles": 124,
+      "digestSha256": "62ac175c49ba6883507c5f550c111bb9b44a1e185ae6a296b6dc99df08869dc9",
+      "reportSha256": "6544e64dd022275c737c7c8dcf3a9ff99977057b87aa1f05141e077019675883"
+    }
+  },
+  "measuredDelta": {
+    "generationElapsedReductionPercent": 89.37,
+    "transportRequestReductionPercent": 59.38,
+    "logicalCallReductionVersusProductionRequestsPercent": 70.31,
+    "duplicateTopicGroups": { "before": 3, "after": 0 },
+    "zipAvailable": { "before": false, "after": true },
+    "landingBundle": {
+      "beforeRawKiB": 703.0,
+      "afterRawKiB": 251.7,
+      "rawReductionPercent": 64.2,
+      "beforeGzipKiB": 215.9,
+      "afterGzipKiB": 79.5,
+      "gzipReductionPercent": 63.18
+    }
+  },
+  "localVerification": {
+    "status": "passed",
+    "focusedRegression": { "filesPassed": 5, "testsPassed": 165, "failures": 0 },
+    "fullUnitSuite": {
+      "status": "passed",
+      "filesPassed": 423,
+      "filesSkipped": 16,
+      "testsPassed": 5178,
+      "testsSkipped": 162,
+      "failures": 0,
+      "durationSeconds": 62.19
+    },
+    "otherGates": {
+      "format": "passed",
+      "lint": "passed",
+      "productionBuild": "passed",
+      "bundleBudgets": {
+        "status": "passed",
+        "initialRawKiB": 251.7,
+        "initialGzipKiB": 79.5,
+        "appFlowRawKiB": 278.1,
+        "courseCompilerRawKiB": 814.7,
+        "courseCompilerGzipKiB": 225.7,
+        "compilerCopyVariantsRawKiB": 22.8
+      },
+      "manualBrowserConsoleErrors": 0,
+      "realBrowserZipDownloaded": true,
+      "realBrowserZipExtracted": true
+    }
+  },
+  "remainingGap": {
+    "quality": "The exact Genetics proof is 89/B, not publish-ready; one lesson uses compiler fallback and one citation relevance finding remains.",
+    "model": "The research adapter has not beaten base-only Scion on the frozen held-out multi-domain benchmark and remains inactive.",
+    "validation": "Deterministic quality and archive checks do not establish factual correctness, instructor approval, accessibility conformance, classroom outcomes, or superiority to a paid frontier model."
+  },
+  "claimBoundary": "V0.16.64 proves that the unchanged public Gemma base plus the Scion compiler can recover the reproduced Genetics failure into 15 distinct lessons, finish roughly 89% faster, and return a physically verified draft ZIP without misrepresenting it as publish-ready. It does not prove adapter quality, factual correctness, human acceptance, classroom effectiveness, or paid-model parity."
+}

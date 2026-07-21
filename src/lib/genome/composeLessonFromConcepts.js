@@ -360,14 +360,11 @@ export function composeLessonFromConcepts(conceptKernels = [], courseLayer = {},
  * lessons shipping 1 key term while model-enriched neighbours got 3-4.
  *
  * Merge rules:
- *  - keyTerms: genome terms FIRST (they carry citations), model terms fill
- *    to par, deduped by term name. Misconceptions/corrections ride inside
- *    the terms, so the dedup unions them too.
- *  - quizItems: genome-first within each item type, deduped by stem, slotted
- *    back onto the item plan's indices (the quiz overlay maps strictly by
- *    slot index and type). A model item shadowed by a genome item in the same
- *    seat is discarded instead of being appended as a duplicate alternative;
- *    genuine genome overflow still ships because its linker cursor has moved.
+ *  - keyTerms: lesson-specific model/fact-ledger terms lead. Genome terms
+ *    remain cited supplements instead of displacing the lesson identity.
+ *  - quizItems: verified genome multiple-choice atoms retain priority; for
+ *    constructed responses, the lesson-specific model/fact-ledger item leads
+ *    so a reusable genome scenario cannot become every lesson's writing task.
  *  - genome-only blocks (reasoningScaffolds, prerequisitePrimers, structural
  *    bridges, worked example) are preserved; scaffolds union by archetype.
  *  - enrichmentSource becomes 'genome-augmented' and conceptProvenance is
@@ -384,11 +381,47 @@ export function mergeLessonPayloads(genomePartial, modelPayload) {
   const termKey = (term) => cleanText(term?.term).toLowerCase();
   const keyTerms = [];
   const seenTerms = new Set();
-  for (const term of [...(genomePartial.keyTerms || []), ...(modelPayload.keyTerms || [])]) {
-    const key = termKey(term);
-    if (!key || seenTerms.has(key)) continue;
-    seenTerms.add(key);
-    keyTerms.push(term);
+  const termIndexByKey = new Map();
+  const modelTerms = modelPayload.keyTerms || [];
+  const genomeTerms = genomePartial.keyTerms || [];
+  for (const [origin, terms] of [
+    ['lesson', modelTerms],
+    ['genome', genomeTerms],
+  ]) {
+    for (const term of terms) {
+      const key = termKey(term);
+      if (!key) continue;
+      if (seenTerms.has(key)) {
+        // The lesson-authored definition keeps identity priority, but a
+        // duplicate genome concept can still supply the citation that made
+        // it trustworthy. Preserve that provenance without replacing the
+        // lesson-specific wording or reclassifying the term as supplemental.
+        if (origin === 'genome') {
+          const existingIndex = termIndexByKey.get(key);
+          const existing = keyTerms[existingIndex];
+          if (existing) {
+            keyTerms[existingIndex] = {
+              ...term,
+              ...existing,
+              ...(cleanText(term?.source) ? { source: term.source } : {}),
+              ...(cleanText(term?.citation) ? { citation: term.citation } : {}),
+              ...(cleanText(term?.sourceUrl) ? { sourceUrl: term.sourceUrl } : {}),
+              ...(cleanText(term?.doi) ? { doi: term.doi } : {}),
+              ...(cleanText(term?.license) ? { license: term.license } : {}),
+              ...(Number.isFinite(Number(term?.sourceTier)) ? { sourceTier: Number(term.sourceTier) } : {}),
+            };
+          }
+        }
+        continue;
+      }
+      seenTerms.add(key);
+      termIndexByKey.set(key, keyTerms.length);
+      keyTerms.push({
+        ...term,
+        augmentationRole: origin === 'lesson' ? 'lesson-primary' : 'genome-supplement',
+        ...(origin === 'genome' && modelTerms.length > 0 ? { supplemental: true } : {}),
+      });
+    }
   }
 
   // Slot map: the model payload was projected with the live item plan, so its
@@ -402,19 +435,40 @@ export function mergeLessonPayloads(genomePartial, modelPayload) {
   const stemKey = (item) => cleanText(item?.question).toLowerCase();
   const queuesByType = new Map();
   const seenStems = new Set();
-  for (const [origin, items] of [
-    ['genome', genomePartial.quizItems || []],
-    ['model', modelPayload.quizItems || []],
-  ]) {
-    for (const item of items) {
+  const appendItems = (origin, items) => {
+    for (const item of items || []) {
       const key = stemKey(item);
       if (!key || seenStems.has(key)) continue;
       seenStems.add(key);
       const type = item.type || 'multiple_choice';
       if (!queuesByType.has(type)) queuesByType.set(type, []);
-      queuesByType.get(type).push({ item, origin });
+      queuesByType.get(type).push({
+        item: {
+          ...item,
+          augmentationRole: origin === 'model' ? 'lesson-primary' : 'genome-supplement',
+        },
+        origin,
+      });
     }
-  }
+  };
+  // Source-verified MC knowledge remains authoritative. Constructed response
+  // scenarios are contextual, so the current lesson's fact ledger owns them.
+  appendItems(
+    'genome',
+    (genomePartial.quizItems || []).filter((item) => (item.type || 'multiple_choice') === 'multiple_choice'),
+  );
+  appendItems(
+    'model',
+    (modelPayload.quizItems || []).filter((item) => (item.type || 'multiple_choice') === 'multiple_choice'),
+  );
+  appendItems(
+    'model',
+    (modelPayload.quizItems || []).filter((item) => (item.type || 'multiple_choice') !== 'multiple_choice'),
+  );
+  appendItems(
+    'genome',
+    (genomePartial.quizItems || []).filter((item) => (item.type || 'multiple_choice') !== 'multiple_choice'),
+  );
   const quizItems = [];
   const slotIndices = [...slotTypeByIndex.keys()].sort((a, b) => a - b);
   for (const index of slotIndices) {
@@ -437,7 +491,7 @@ export function mergeLessonPayloads(genomePartial, modelPayload) {
       (scaffold) => !genomeScaffolds.some((genome) => genome.archetypeName === scaffold.archetypeName),
     ),
   ];
-  const facts = [...new Set([...(genomePartial.kernel?.facts || []), ...(modelPayload.kernel?.facts || [])])];
+  const facts = [...new Set([...(modelPayload.kernel?.facts || []), ...(genomePartial.kernel?.facts || [])])];
 
   return {
     ...modelPayload,

@@ -388,7 +388,53 @@ function scenarioEvidenceRequirement(setup, evidenceNoun = 'case') {
  * four moves the stem asks them to make: select the concept, bound the claim,
  * cite the case, and state what more evidence would be needed.
  */
-function composeEvidenceBoundedShortAnswer(scenario, term, fact, seed = 0) {
+function composeFactLedgerComparisonAnswer(term, facts, scenario, seed = 0) {
+  const termName = cleanText(term?.term);
+  const claims = Array.isArray(facts)
+    ? facts
+        .map((claim) => stripTerminalPeriod(claim))
+        .filter(Boolean)
+        .slice(0, 3)
+    : [];
+  if (cleanText(term?.source) !== 'fact-ledger-projection' || !termName || claims.length < 3) return '';
+
+  if (/\btwo supplied claim cards\b/i.test(cleanText(scenario?.materials))) {
+    return projectionVariant(seed, [
+      `The relevant concept is ${termName}. Claim A provides its direct definition: ${claims[0]}. Claim B adds this related proposition: ${claims[1]}. The bounded conclusion is that Claim A supplies the definition while Claim B introduces a second claim to analyze alongside it. The cards do not establish that one follows from the other; that relationship requires an argument or evidence.`,
+      `Use ${termName} to organize the response. The definition card is Claim A: ${claims[0]}. Claim B contributes a separate but related claim: ${claims[1]}. These statements can be compared, but neither card demonstrates how the second follows from the first. A defensible synthesis must remain provisional until an argument or evidence links them.`,
+      `The course concept is ${termName}. Start with Claim A: ${claims[0]}. Then add Claim B: ${claims[1]}. Together, the cards identify two ideas for analysis. They do not prove a logical connection between them, so any stronger synthesis needs an argument or additional evidence.`,
+    ]);
+  }
+
+  return [
+    'A qualified answer is warranted until the supplied claims are tested.',
+    ensureSentence(`Use ${termName} as the relevant lens`),
+    ensureSentence(`Claim A states: ${claims[0]}`),
+    ensureSentence(`Claim B states: ${claims[1]}`),
+    'These are the decisive details. The cards state positions; they do not prove any position correct.',
+    'Claim C must also test the conclusion.',
+    'Resolving the issue requires evidence, not repetition.',
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .replace(/\.{2,}/g, '.')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
+
+function composeEvidenceBoundedShortAnswer(
+  scenario,
+  term,
+  fact,
+  seed = 0,
+  facts = [],
+  { compactFactLedgerAnswers = true } = {},
+) {
+  const factLedgerAnswer = compactFactLedgerAnswers
+    ? composeFactLedgerComparisonAnswer(term, facts, scenario, seed)
+    : '';
+  if (factLedgerAnswer) return factLedgerAnswer;
+
   const sentences = [];
   const termName = cleanText(term?.term);
   const definition = definitionAsClause(term);
@@ -471,7 +517,7 @@ function composeEvidenceBoundedShortAnswer(scenario, term, fact, seed = 0) {
     .trim();
 }
 
-function buildShortAnswerItem(kernel, index, seed = 0) {
+function buildShortAnswerItem(kernel, index, seed = 0, { compactFactLedgerAnswers = true } = {}) {
   const term = bestShortAnswerTerm(kernel);
   if (!term || !cleanText(term.term)) return null;
   const setup = cleanText(kernel?.scenario?.setup);
@@ -484,7 +530,12 @@ function buildShortAnswerItem(kernel, index, seed = 0) {
   if (!setup && !exampleAnchor) return null;
   const materials =
     stripTerminalPeriod(kernel?.scenario?.materials) || (setup ? 'the scenario evidence' : 'the lesson example');
-  const evidenceRequirement = scenarioEvidenceRequirement(setup || exampleAnchor, setup ? 'case' : 'example');
+  const compactFactLedgerScenario =
+    cleanText(term?.source) === 'fact-ledger-projection' && /\btwo supplied claim cards\b/i.test(materials);
+  const evidenceRequirement = scenarioEvidenceRequirement(
+    setup || exampleAnchor,
+    compactFactLedgerScenario ? 'claim-card' : setup ? 'case' : 'example',
+  );
   const variantSeed = projectionTextSeed(seed, term.term, setup, materials, evidenceRequirement, index);
   const scoringGuidance = projectionVariant(variantSeed, [
     `Full credit requires four visible moves: name ${term.term}; state a bounded conclusion; cite ${materials}; and identify one limitation or next piece of evidence. Do not award full credit for merely defining the term.`,
@@ -494,16 +545,22 @@ function buildShortAnswerItem(kernel, index, seed = 0) {
     `A complete response identifies ${term.term}, ties its conclusion to ${materials}, limits the claim, and names what evidence would change the decision.`,
     `Full-credit work makes the reasoning trace visible: ${term.term} → conclusion → evidence in ${materials} → boundary or next evidence.`,
   ]);
-  const questionTail = setup
+  const questionTail = compactFactLedgerScenario
     ? projectionVariant(variantSeed + 1, [
-        `Without assuming a hidden cause, identify the most relevant course concept or method, state the best-supported conclusion, cite ${evidenceRequirement}, and name one limitation or next piece of evidence.`,
-        `Select the course concept or method that best fits, give a bounded conclusion, cite ${evidenceRequirement}, and identify one limitation or additional evidence need.`,
-        `Name the most defensible course lens, explain what the case supports, point to ${evidenceRequirement}, and state one boundary or next piece of evidence.`,
-        `Choose the relevant concept or method without inferring hidden motives, use ${evidenceRequirement} to justify the conclusion, and name one limitation.`,
-        `Identify the course principle that should guide the decision, cite ${evidenceRequirement}, distinguish support from assumption, and request one next piece of evidence.`,
-        `Identify the course method that best explains the evidence, state a case-bounded conclusion, reference ${evidenceRequirement}, and name one alternative or limitation.`,
+        'Use both cards in the answer and keep the conclusion bounded.',
+        'Support the comparison with both cards and avoid claiming more than they establish.',
+        'Cite both cards, then keep the synthesis within the evidence provided.',
       ])
-    : `Identify the most relevant course concept or method, explain the best-supported conclusion, cite ${evidenceRequirement}, and name one boundary or next piece of evidence.`;
+    : setup
+      ? projectionVariant(variantSeed + 1, [
+          `Without assuming a hidden cause, identify the most relevant course concept or method, state the best-supported conclusion, cite ${evidenceRequirement}, and name one limitation or next piece of evidence.`,
+          `Select the course concept or method that best fits, give a bounded conclusion, cite ${evidenceRequirement}, and identify one limitation or additional evidence need.`,
+          `Name the most defensible course lens, explain what the case supports, point to ${evidenceRequirement}, and state one boundary or next piece of evidence.`,
+          `Choose the relevant concept or method without inferring hidden motives, use ${evidenceRequirement} to justify the conclusion, and name one limitation.`,
+          `Identify the course principle that should guide the decision, cite ${evidenceRequirement}, distinguish support from assumption, and request one next piece of evidence.`,
+          `Identify the course method that best explains the evidence, state a case-bounded conclusion, reference ${evidenceRequirement}, and name one alternative or limitation.`,
+        ])
+      : `Identify the most relevant course concept or method, explain the best-supported conclusion, cite ${evidenceRequirement}, and name one boundary or next piece of evidence.`;
   return {
     index,
     type: 'short_answer',
@@ -513,7 +570,9 @@ function buildShortAnswerItem(kernel, index, seed = 0) {
     distractorRationales: [],
     // v0.14.1 (1.5): the model answer engages the scenario instead of gluing
     // anchor-fact + definition.
-    answer: composeEvidenceBoundedShortAnswer(kernel?.scenario, term, fact, variantSeed),
+    answer: composeEvidenceBoundedShortAnswer(kernel?.scenario, term, fact, variantSeed, kernel?.facts, {
+      compactFactLedgerAnswers,
+    }),
     explanation: '',
     scoringGuidance,
   };
@@ -579,8 +638,11 @@ function buildEssayItem(kernel, index, seed = 0) {
  * @param {object} options — { itemPlan } the compiler's 6-slot quiz plan
  * @returns {object} payload consumed by the existing overlay machinery
  */
-export function projectKernelToSurfaces(kernel, { itemPlan = [] } = {}) {
-  const resolvedScenario = resolveDecisionScenario(kernel);
+export function projectKernelToSurfaces(
+  kernel,
+  { itemPlan = [], compactFactLedgerAnswers = true, compactFactLedgerScenarios = true } = {},
+) {
+  const resolvedScenario = resolveDecisionScenario(kernel, { compactFactLedgerScenarios });
   const resolvedKernel = { ...kernel, scenario: resolvedScenario };
   const mcSlots = itemPlan.filter((slot) => slot.type === 'multiple_choice');
   const shortAnswerSlot = itemPlan.find((slot) => slot.type === 'short_answer');
@@ -662,7 +724,9 @@ export function projectKernelToSurfaces(kernel, { itemPlan = [] } = {}) {
       resolvedKernel?.keyTerms?.[0]?.term,
       resolvedKernel?.discussionPrompt?.prompt,
     );
-    const shortAnswer = buildShortAnswerItem(resolvedKernel, shortAnswerSlot.index, lessonSeed);
+    const shortAnswer = buildShortAnswerItem(resolvedKernel, shortAnswerSlot.index, lessonSeed, {
+      compactFactLedgerAnswers,
+    });
     if (shortAnswer) quizItems.push(shortAnswer);
   }
   if (essaySlot) {

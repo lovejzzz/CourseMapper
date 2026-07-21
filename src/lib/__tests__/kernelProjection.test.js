@@ -480,6 +480,97 @@ describe('projectKernelToSurfaces', () => {
       fallbackKernel.keyTerms[0].example,
     );
   });
+
+  it('answers a fact-ledger comparison without copying the three-claim scenario back to the learner', () => {
+    const facts = [
+      'Theism posits the existence of a personal, transcendent God as the primary metaphysical explanation for reality.',
+      'Theism requires a divine being to account for the existence of objective moral truths and ultimate meaning.',
+      'Atheism is the philosophical position that there is no evidence supporting the existence of a deity.',
+    ];
+    const kernel = {
+      facts,
+      keyTerms: [
+        {
+          term: 'Theism',
+          definition: 'Theism treats a personal, transcendent God as the primary metaphysical explanation for reality.',
+          example: `Compare the supplied claims: ${facts[0]} ${facts[1]}`,
+          misconception: 'The first supplied claim alone settles every question about Theism.',
+          correction: 'Use all supplied claims to state a bounded conclusion and identify what they do not establish.',
+          source: 'fact-ledger-projection',
+        },
+      ],
+      scenario: null,
+      discussionPrompt: null,
+      mc: [],
+    };
+    const payload = projectKernelToSurfaces(kernel, { itemPlan, compactFactLedgerScenarios: false });
+    const legacyPayload = projectKernelToSurfaces(kernel, {
+      itemPlan,
+      compactFactLedgerAnswers: false,
+      compactFactLedgerScenarios: false,
+    });
+    const shortAnswer = payload.quizItems.find((item) => item.type === 'short_answer');
+    const legacyShortAnswer = legacyPayload.quizItems.find((item) => item.type === 'short_answer');
+
+    expect(shortAnswer?.question).toMatch(/Claim A:|Claim B:|Claim C:/);
+    expect(shortAnswer?.answer).toContain('Claim A states:');
+    expect(shortAnswer?.answer).toContain('Claim B states:');
+    expect(shortAnswer?.answer).toContain('Claim C');
+    expect(shortAnswer?.answer).not.toMatch(
+      /A student is evaluating|three supplied claims|must decide whether the claims support/i,
+    );
+    expect(shortAnswer?.answer.split(/\s+/).length).toBeLessThanOrEqual(90);
+    expect(legacyShortAnswer?.question).toBe(shortAnswer?.question);
+    expect(legacyShortAnswer?.answer).toMatch(
+      /A student is evaluating|three supplied claims|must decide whether the claims support/i,
+    );
+    expect(legacyShortAnswer?.answer.split(/\s+/).length - shortAnswer?.answer.split(/\s+/).length).toBeGreaterThan(40);
+  });
+
+  it('replaces the repeated three-claim pseudo-case with a two-claim synthesis task on identical facts', () => {
+    const facts = [
+      'Theism posits the existence of a personal, transcendent God as the primary metaphysical explanation for reality.',
+      'Theism requires a divine being to account for the existence of objective moral truths and ultimate meaning.',
+      'Atheism is the philosophical position that there is no evidence supporting the existence of a deity.',
+    ];
+    const kernel = {
+      facts,
+      keyTerms: [
+        {
+          term: 'Theism',
+          definition: facts[0],
+          example: `Compare the supplied claims: ${facts[0]} ${facts[1]}`,
+          misconception: 'The first supplied claim alone settles every question about Theism.',
+          correction: 'Use all supplied claims to state a bounded conclusion and identify what they do not establish.',
+          source: 'fact-ledger-projection',
+        },
+      ],
+      scenario: null,
+      discussionPrompt: null,
+      mc: [],
+    };
+    const improved = projectKernelToSurfaces(kernel, { itemPlan });
+    const disabled = projectKernelToSurfaces(kernel, {
+      itemPlan,
+      compactFactLedgerAnswers: false,
+      compactFactLedgerScenarios: false,
+    });
+    const improvedItem = improved.quizItems.find((item) => item.type === 'short_answer');
+    const disabledItem = disabled.quizItems.find((item) => item.type === 'short_answer');
+
+    expect(improvedItem?.question).toContain(`Claim A: ${facts[0]}`);
+    expect(improvedItem?.question).toContain(`Claim B: ${facts[1]}`);
+    expect(improvedItem?.question).toMatch(/Identify the course concept that best organizes these claims/);
+    expect(isClaimEvidenceBoundaryShortAnswer(improvedItem?.question)).toBe(true);
+    expect(improvedItem?.question).not.toMatch(/Claim C:|A student is evaluating|three supplied claims/i);
+    expect(improvedItem?.answer).toContain(facts[0]);
+    expect(improvedItem?.answer).toContain(facts[1]);
+    expect(improvedItem?.answer).toMatch(/do not (?:establish|prove)|neither card demonstrates/i);
+    expect(improvedItem?.answer).not.toContain('Claim C');
+    expect(improvedItem?.answer).not.toMatch(/\bTheism:\s*Theism\b/i);
+    expect(disabledItem?.question.split(/\s+/).length - improvedItem?.question.split(/\s+/).length).toBeGreaterThan(30);
+    expect(disabledItem?.answer.split(/\s+/).length - improvedItem?.answer.split(/\s+/).length).toBeGreaterThan(30);
+  });
 });
 
 describe('kernel parse → project → compile (end to end)', () => {

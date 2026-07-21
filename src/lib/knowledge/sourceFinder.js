@@ -35,7 +35,14 @@ export const SOURCE_FINDER_ORIGIN = 'source-finder';
 // summary (for example, Richard Lindzen for an atmospheric-layers lesson).
 // v8 also carries the lesson title into retrieval and tightens single-token
 // domain matches exposed by the K-12 Earth Science field run.
-const SOURCE_FINDER_VERSION = 'source-finder-v8';
+// v9 adds a literature-domain anchor after a live World Literature run
+// accepted a Phonics page merely because its snippet repeated the generic
+// query words "reading" and "method". Cached v8 mini-shards have already
+// passed ranking, so they must not survive the stricter boundary.
+// v10 adds a Business Ethics boundary after the stranger proof admitted
+// "Fair game (Scientology)" for a fair-employment lesson. Cached v9 results
+// must be re-screened because the homonym had already passed topical ranking.
+const SOURCE_FINDER_VERSION = 'source-finder-v10';
 const CACHE_PREFIX = 'cm-source-finder:';
 const SNIPPET_LIMIT = 320;
 const DEFAULT_MAX_TOPICS = 8;
@@ -232,6 +239,25 @@ const DISCIPLINE_ANCHOR_GATES = [
     applies: /\b(?:genetics?|genes?|genom(?:e|es|ic|ics)|dna|crispr|inheritance|heredity|traits?|ancestry)\b/i,
     source:
       /\b(?:genetics?|genes?|genom(?:e|es|ic|ics)|dna|crispr|cas9|inheritance|heredity|traits?|ancestry|alleles?|chromosomes?|heritability)\b/i,
+  },
+  {
+    // "reading", "method", "strategy", and "text" also describe literacy
+    // instruction. A World/Comparative Literature source therefore needs a
+    // genuinely literary identity rather than two generic query-token hits.
+    applies: /\b(?:world\s+literature|comparative\s+literature|literary|literature|poetry|drama|novel)\b/i,
+    source:
+      /\b(?:literature|literatures|literary|poetry|poems?|epics?|drama(?:tic)?|novels?|fiction|narrative|story|stories|authors?|writers?|genre|close\s+reading|interpret(?:ation|ive)|comparative\s+literature)\b/i,
+  },
+  {
+    // Business-ethics lessons contain collision-prone words such as "fair",
+    // "rights", "interest", and "responsibility". Require the candidate to
+    // identify an actual organizational, workplace, consumer, governance, or
+    // moral-analysis context. This keeps Dodd-Frank/consumer protection while
+    // rejecting the live "Fair game (Scientology)" false friend.
+    applies:
+      /\b(?:business\s+ethics|corporate\s+ethics|corporate\s+social\s+responsibility|stakeholder\s+theory|whistleblowing|conflicts?\s+of\s+interest|fair\s+employment|workplace\s+rights|consumer\s+protection|product\s+safety|environmental\s+responsibility|marketing\s+ethics)\b/i,
+    source:
+      /\b(?:business|corporat(?:e|ion)|ethic(?:al|s)?|moral(?:ity)?|utilitarian(?:ism)?|deontolog(?:y|ical)|virtue\s+ethics|stakeholders?|whistleblow(?:ing|er)|conflicts?\s+of\s+interest|employment|workplace|labor|civil\s+rights|discrimination|harassment|consumer\s+protection|consumer\s+rights|product\s+safety|dodd[–—-]frank|financial\s+reform|fiduciary|governance|compliance|sustainab(?:ility|le)|environmental\s+responsibility|marketing\s+ethics|advertising\s+ethics)\b/i,
   },
 ];
 
@@ -887,10 +913,19 @@ function sourceFinderCandidateForReview(source = {}, topic = {}) {
 
 function attachableTopicSources(graph, miniShard, topic) {
   const courseContext = sourceFinderCourseContext(graph, miniShard);
+  const topicWithCourse = {
+    ...topic,
+    courseName: miniShard?.courseName || topic?.courseName || courseContext.courseName || '',
+  };
   return (topic.sources || []).filter(
     (source) =>
       (source?.url || source?.doi) &&
       !isLicenseAmbiguous(source?.license) &&
+      // Cached shards already passed query-level ranking. Re-run the durable
+      // discipline boundary here so an old cache cannot restore a known
+      // cross-domain false friend, while preserving valid adjacent concepts
+      // such as A/B testing attached to a UX test-planning lesson.
+      sourcePassesDisciplineAnchor(source, topicWithCourse) &&
       !detectForeignLanguageTeachingContent({
         courseIdentity: miniShard?.courseName || topic?.courseName || '',
         text: sourceContext(source),

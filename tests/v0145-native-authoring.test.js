@@ -928,6 +928,15 @@ describe('Pass B contract (B2)', () => {
       },
     );
     expect(factsOnly.kernel.scenario).toMatchObject({ source: 'derived-kernel-fallback' });
+    expect(factsOnly.kernel.scenario.setup).toContain(
+      'Claim A: Contemporary global art examines relationships between local and international artistic scenes.',
+    );
+    expect(factsOnly.kernel.scenario.setup).toContain(
+      'Claim B: Contemporary art includes artistic expressions created from the mid-twentieth century onward.',
+    );
+    expect(factsOnly.kernel.scenario.setup).toContain('Identify the course concept that best organizes these claims');
+    expect(factsOnly.kernel.scenario.setup).not.toMatch(/learner compares|named reading or activity/i);
+    expect(JSON.stringify(factsOnly.quizItems)).not.toMatch(/learner compares|named reading or activity/i);
     expect(factsOnly.quizItems).toHaveLength(2);
     expect(factsOnly.coreFallbacks).toEqual(
       expect.arrayContaining([
@@ -936,6 +945,36 @@ describe('Pass B contract (B2)', () => {
       ]),
     );
     expect(assessProjectedKernelCoverage(factsOnly).usable).toBe(true);
+
+    const meaningFact = 'The meaning of life is a philosophical inquiry into purpose and value within existence.';
+    const misorderedFacts = completeNativeKernelSurfaces(
+      {
+        keyTerms: [],
+        quizItems: [],
+        kernel: {
+          facts: [
+            'Existentialism asserts that individual existence precedes any predetermined essence.',
+            'Argument analysis examines the logical structure and validity of a philosophical argument.',
+            meaningFact,
+            'Knowledge theory asks what constitutes justified belief.',
+          ],
+          scenario: null,
+        },
+      },
+      {
+        title: 'Lesson 11: Meaning of life',
+        sections: [{ topicSection: 'Meaning of Life' }],
+      },
+    );
+    expect(misorderedFacts.keyTerms[0]).toMatchObject({
+      term: 'Meaning of Life',
+      definition: meaningFact,
+      source: 'fact-ledger-projection',
+    });
+    expect(misorderedFacts.kernel.scenario.setup).toContain(`Claim A: ${meaningFact}`);
+    expect(misorderedFacts.quizItems.find((item) => item.type === 'short_answer')?.answer).not.toMatch(
+      /Meaning of Life:\s*Existentialism/i,
+    );
   });
 
   it('parses kernels through the existing linters and rejects out-of-chunk ids', () => {

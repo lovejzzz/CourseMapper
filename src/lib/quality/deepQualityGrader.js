@@ -2783,6 +2783,11 @@ const BUSINESS_ETHICS_CITATION_VOCAB = [
   'consumer protection',
   'consumer rights',
   'product safety',
+  // Named laws and regulatory vocabulary can be legitimate consumer-ethics
+  // readings even when the canonical title omits the generic course label.
+  'Dodd-Frank',
+  'financial reform',
+  'consumer financial protection',
   'safety organization',
   'liability',
   'environmental responsibility',

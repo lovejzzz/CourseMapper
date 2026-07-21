@@ -152,7 +152,43 @@ function scenarioSeed(parts) {
   return hash;
 }
 
-export function deriveDecisionScenario(kernel) {
+function deriveFactLedgerComparisonScenario(term, facts, { compactFactLedgerScenarios = true } = {}) {
+  if (term?.source !== 'fact-ledger-projection' || facts.length < 3) return null;
+  if (compactFactLedgerScenarios) {
+    const [claimA, claimB] = facts;
+    const derived = {
+      setup: [
+        ensureSentence(`Claim A: ${claimA}`),
+        ensureSentence(`Claim B: ${claimB}`),
+        ensureSentence(
+          'Identify the course concept that best organizes these claims, explain how the claims differ or connect, and state what they do not establish',
+        ),
+      ].join(' '),
+      materials: 'the two supplied claim cards labeled Claim A and Claim B',
+      source: 'derived-kernel-fallback',
+    };
+    return analyzeDecisionScenario(derived).ready ? derived : null;
+  }
+
+  const claims = facts.slice(0, 3);
+  const labeledClaims = claims.map((fact, index) =>
+    ensureSentence(`Claim ${String.fromCharCode(65 + index)}: ${fact}`),
+  );
+  const derived = {
+    setup: [
+      ensureSentence(`A student is evaluating three supplied claims about ${text(term.term)}`),
+      ...labeledClaims,
+      ensureSentence(
+        'The student must decide whether the claims support one conclusion, expose a tension, or require a qualified answer, then identify what remains unresolved',
+      ),
+    ].join(' '),
+    materials: 'the three supplied claim cards labeled Claim A, Claim B, and Claim C',
+    source: 'derived-kernel-fallback',
+  };
+  return analyzeDecisionScenario(derived).ready ? derived : null;
+}
+
+export function deriveDecisionScenario(kernel, { compactFactLedgerScenarios = true } = {}) {
   const terms = Array.isArray(kernel?.keyTerms) ? kernel.keyTerms : [];
   const term = terms.find(
     (candidate) =>
@@ -163,6 +199,9 @@ export function deriveDecisionScenario(kernel) {
   );
   const facts = Array.isArray(kernel?.facts) ? kernel.facts.map(text).filter(Boolean) : [];
   if (!term || facts.length === 0) return null;
+
+  const factLedgerScenario = deriveFactLedgerComparisonScenario(term, facts, { compactFactLedgerScenarios });
+  if (factLedgerScenario) return factLedgerScenario;
 
   const fact = [...facts].sort(
     (left, right) =>
@@ -199,7 +238,7 @@ export function deriveDecisionScenario(kernel) {
   return analyzeDecisionScenario(derived).ready ? derived : null;
 }
 
-export function resolveDecisionScenario(kernel) {
+export function resolveDecisionScenario(kernel, { compactFactLedgerScenarios = true } = {}) {
   const existing = analyzeDecisionScenario(kernel?.scenario);
   if (existing.ready) {
     return {
@@ -208,5 +247,5 @@ export function resolveDecisionScenario(kernel) {
       source: existing.source,
     };
   }
-  return deriveDecisionScenario(kernel);
+  return deriveDecisionScenario(kernel, { compactFactLedgerScenarios });
 }

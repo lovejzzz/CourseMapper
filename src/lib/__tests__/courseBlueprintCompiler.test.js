@@ -7534,6 +7534,37 @@ describe('courseBlueprintCompiler', () => {
     ).toEqual(expect.objectContaining({ label: 'discussion prompts' }));
   });
 
+  it('does not promote an objective pronoun into Business Ethics study-guide concepts', () => {
+    const blueprint = buildCourseBlueprint({
+      courseName: 'Business Ethics',
+      semester: 'Fall 2026',
+      lessons: [
+        {
+          title: 'Lesson 1: Business Ethics',
+          sections: [
+            {
+              topicSection: 'Definition of Business Ethics',
+              learningGoals: 'Use business-ethics evidence to explain a course decision.',
+              learningObjectives:
+                'Explain the key ideas in Definition of Business Ethics and apply them in course activities.',
+              weeklyAssessments: 'Business ethics evidence check',
+              syncActivities: 'Compare two business decisions using the lesson framework.',
+              supportingResources: 'Business ethics source excerpt',
+              evaluateDesign: 'Score the ethical claim, evidence, and stated limitation.',
+            },
+          ],
+        },
+      ],
+    });
+    const compiled = compileBlueprintDeliverables(blueprint, ['studyGuides']);
+    const guide = compiled.studyGuides.studyGuides[0];
+
+    expect(blueprint.lessons[0].keyConcepts.map((concept) => concept.toLowerCase())).not.toContain('them');
+    expect(guide.examScope).not.toMatch(/,\s*them\b/i);
+    expect(JSON.stringify(guide.examPrep)).not.toMatch(/vague [^".]*,\s*them definitions/i);
+    expect(JSON.stringify(guide.reviewQuestions)).not.toMatch(/name [^".]*,\s*them,? then/i);
+  });
+
   it('honors an explicit 50-minute session and scales every teaching phase to the real clock', () => {
     const blueprint = buildCourseBlueprint(makeWorldLanguageCourseMap(), { sessionMinutes: 50 });
     const firstLesson = blueprint.lessons[0];

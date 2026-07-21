@@ -1877,7 +1877,7 @@ describe('packageZipExporter', () => {
                   week: 'Week 1',
                   topic: 'Fundraising stages',
                   readings:
-                    'Susan Kay-Williams (2000). The five stages of fundraising. Crossref: https://doi.org/10.1002/nvsm.115 (http://onlinelibrary.wiley.com/termsAndConditions#vor)',
+                    'Susan Kay-Williams (2000). The five stages of fundraising. Crossref: https://doi.org/10.1002/nvsm.115 (https://creativecommons.org/licenses/by/4.0/)',
                   assignments: 'Funding memo',
                 },
               ],
@@ -1903,7 +1903,7 @@ describe('packageZipExporter', () => {
             kind: 'scholarly work',
             url: 'https://doi.org/10.1002/nvsm.115',
             doi: '10.1002/nvsm.115',
-            license: 'http://onlinelibrary.wiley.com/termsAndConditions#vor',
+            license: 'https://creativecommons.org/licenses/by/4.0/',
             sessionRefs: ['s1'],
           },
         ],
@@ -1924,7 +1924,7 @@ describe('packageZipExporter', () => {
       id: 'sf2',
       doi: '10.1002/nvsm.115',
       provider: 'source-finder',
-      license: 'http://onlinelibrary.wiley.com/termsAndConditions#vor',
+      license: 'https://creativecommons.org/licenses/by/4.0/',
       accessStatus: 'reference-present',
       conceptLinks: expect.arrayContaining([expect.objectContaining({ label: 'Fundraising stages' })]),
     });

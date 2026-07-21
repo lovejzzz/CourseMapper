@@ -226,6 +226,7 @@ function buildQualityReceipt({
     autoFixedCount: repairsApplied,
     retriedCount: retryCount,
     humanDecisionCount,
+    exportStatus: exportVerification?.status || '',
     exportChecked: exportVerification?.checked || 0,
     exportFailed: exportVerification?.failed || 0,
     exportWarningCount: exportVerification?.warningCount || 0,

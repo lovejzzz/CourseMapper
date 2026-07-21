@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { deriveCourseGraphFromCourseMap } from '../courseGraph/deriveFromCourseMap.js';
 import { renderCourseMapFromGraph } from '../courseGraph/renderCourseMap.js';
 import {
+  completeNativeKernelSurfaces,
   matchEntityIds,
   preserveSourceProof,
   repairCourseGraphResourceIds,
@@ -219,5 +220,57 @@ describe('nativeGraphAuthoring matchEntityIds', () => {
 
     expect(validateCourseGraph(restored).valid).toBe(true);
     expect(restored.enrichmentOverlay).toEqual(graph.enrichmentOverlay);
+  });
+});
+
+describe('completeNativeKernelSurfaces', () => {
+  it('completes a sentence-completion MC stem before projecting it as a key-term example', () => {
+    const completed = completeNativeKernelSurfaces(
+      {
+        keyTerms: [],
+        quizItems: [
+          {
+            index: 0,
+            type: 'multiple_choice',
+            question: 'A strong close reading connects a textual detail to',
+            options: [
+              'an interpretive claim about the whole work',
+              'the total number of words on the page',
+              "the author's documented daily writing schedule",
+              'a rule that every metaphor must mean the same thing',
+            ],
+            answerIndex: 0,
+            explanation:
+              'A close reading earns an interpretive claim by showing how specific passages support it, rather than cataloguing details for their own sake.',
+          },
+        ],
+        kernel: {
+          facts: [
+            'Close reading connects textual detail to a bounded interpretive claim.',
+            'Specific passages provide the evidence for that claim.',
+            'A defensible reading distinguishes interpretation from a catalogue of details.',
+          ],
+          scenario: {
+            setup: 'A reader compares two passages before deciding which interpretation the evidence supports.',
+            materials: 'two assigned passages',
+          },
+        },
+      },
+      {
+        title: 'Lesson 2: Oral Epic Tradition',
+        lessonNumber: 2,
+        sections: [{ topicSection: 'Oral Epic Forms' }],
+      },
+    );
+
+    expect(completed.keyTerms).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          term: 'interpretive claim about the whole work',
+          example: 'A strong close reading connects a textual detail to an interpretive claim about the whole work',
+          source: 'verified-quiz-projection',
+        }),
+      ]),
+    );
   });
 });

@@ -8,6 +8,10 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 
+import { DOWNLOAD_ZIP_ACTION_PATTERN, isDownloadablePackageState } from './lib/packageDownloadState.mjs';
+
+export { isDownloadablePackageState } from './lib/packageDownloadState.mjs';
+
 const execFileAsync = promisify(execFile);
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(scriptDir, '..');
@@ -328,7 +332,7 @@ async function getZipAction(page) {
     return sidePanelZip.first();
   }
 
-  const headerZip = page.getByTestId('primary-cta').filter({ hasText: /Download ZIP/i });
+  const headerZip = page.getByTestId('primary-cta').filter({ hasText: DOWNLOAD_ZIP_ACTION_PATTERN });
   if (
     (await headerZip.count()) > 0 &&
     (await headerZip
@@ -340,18 +344,6 @@ async function getZipAction(page) {
   }
 
   return sidePanelZip.first();
-}
-
-export function isDownloadablePackageState(status, zipLabel) {
-  if (!/Download ZIP/i.test(String(zipLabel || ''))) return false;
-  const normalizedStatus = String(status || '');
-  return (
-    /\bReady to download\b/i.test(normalizedStatus) ||
-    /\bReview before download\b/i.test(normalizedStatus) ||
-    /\bReady with notes\b/i.test(normalizedStatus) ||
-    /\bReview recommended\b/i.test(normalizedStatus) ||
-    /^\s*Ready\s*$/i.test(normalizedStatus)
-  );
 }
 
 async function waitForExportIdle(page, timeoutMs = 240_000) {
@@ -534,7 +526,7 @@ async function downloadZip(page, destinationPath) {
   const zipButton = await getZipAction(page);
   await zipButton.waitFor({ state: 'visible', timeout: 30_000 });
   const zipLabel = await zipButton.innerText({ timeout: 30_000 });
-  if (!/Download ZIP/i.test(zipLabel)) {
+  if (!DOWNLOAD_ZIP_ACTION_PATTERN.test(zipLabel)) {
     throw new Error(`Package ZIP action was not ready to download: ${zipLabel}`);
   }
   const [download] = await Promise.all([page.waitForEvent('download', { timeout: 120_000 }), zipButton.click()]);

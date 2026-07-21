@@ -197,4 +197,56 @@ describe('source-backed music quiz bank', () => {
     expect(merged.quizItems).toHaveLength(4);
     expect(merged.quizItems.every((item) => !item.question.startsWith('Unverified'))).toBe(true);
   });
+
+  it('keeps lesson-specific facts and constructed responses ahead of reusable genome context', () => {
+    const genome = {
+      keyTerms: [
+        {
+          term: 'Close reading',
+          definition: 'Close reading relates textual details to the whole work.',
+          example: 'A repeated image of locked doors tracks a heroine’s loss of freedom.',
+          source: 'literary close reading §1',
+          tier: 2,
+        },
+      ],
+      quizItems: [
+        {
+          index: 3,
+          type: 'short_answer',
+          question: 'Use the locked-doors scenario to explain Close reading.',
+          answer: 'Relate the image to the whole work.',
+        },
+      ],
+      kernel: { facts: ['A close reading relates parts to the whole.'] },
+      conceptProvenance: { source: 'genome-linked', conceptIds: ['lit/close-reading'] },
+    };
+    const model = {
+      keyTerms: [
+        {
+          term: 'Narrative Framing',
+          definition: 'Narrative framing embeds stories inside an encompassing narrative situation.',
+          source: 'fact-ledger-projection',
+          tier: 1,
+        },
+      ],
+      quizItems: [
+        {
+          index: 3,
+          type: 'short_answer',
+          question: 'Use one Frame Narratives detail to identify and bound the best-supported concept.',
+          answer: 'Select Narrative Framing and bound the conclusion to the supplied detail.',
+        },
+      ],
+      kernel: { facts: ['Frame narratives embed one or more stories inside an encompassing narrative.'] },
+    };
+
+    const merged = mergeLessonPayloads(genome, model);
+
+    expect(merged.keyTerms.map((term) => term.term)).toEqual(['Narrative Framing', 'Close reading']);
+    expect(merged.keyTerms[0]).toMatchObject({ augmentationRole: 'lesson-primary' });
+    expect(merged.keyTerms[1]).toMatchObject({ augmentationRole: 'genome-supplement', supplemental: true });
+    expect(merged.quizItems[0].question).toContain('Frame Narratives');
+    expect(merged.quizItems[0]).toMatchObject({ augmentationRole: 'lesson-primary' });
+    expect(merged.kernel.facts[0]).toContain('Frame narratives embed');
+  });
 });

@@ -3,7 +3,12 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { lintKernelFact } from '../src/lib/blueprintEnrichmentPass.js';
-import { assessPublicScionKernelResponse } from '../src/lib/publicScionProvider.js';
+import {
+  assessPublicScionKernelResponse,
+  extractPublicScionKernelLessons,
+  publicScionFactContractIssues,
+} from '../src/lib/publicScionProvider.js';
+import { buildScionGroundedRefinementPrompt } from '../src/lib/scionPassB.js';
 
 function valueAfter(flag, fallback = '') {
   const index = process.argv.indexOf(flag);
@@ -43,11 +48,30 @@ if (!logPath) {
       row.originalCompilerUser || row.user || '',
       'blueprintEnrichment',
     );
+    const compilerUser = row.originalCompilerUser || row.user || '';
+    const prompt = {
+      courseName:
+        String(compilerUser)
+          .match(/^Course:\s*(.+)$/im)?.[1]
+          ?.trim() || '',
+      lessons: extractPublicScionKernelLessons(compilerUser),
+      userPrompt: compilerUser,
+      systemPrompt: '',
+    };
+    const expectedLessonIds = prompt.lessons.map((entry) => entry.lessonId).filter(Boolean);
     results.push({
       rowIndex: rowIndex + skip,
       lessonId: lesson.lessonId || null,
       modelCalls: Number(row?.adapterRoute?.modelCalls) || 0,
       transportIssues: transport.issues || [],
+      factContractIssues: publicScionFactContractIssues(transport),
+      bindsFactLedger: Boolean(
+        buildScionGroundedRefinementPrompt({
+          rawText: row.response || '',
+          prompt,
+          expectedLessonIds,
+        }),
+      ),
       canonicalFactIssues: factResults.filter((entry) => entry.issues.length > 0),
       canonicalFactCount: factResults.filter((entry) => entry.issues.length === 0).length,
       factCount: factResults.length,

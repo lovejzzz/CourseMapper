@@ -305,6 +305,28 @@ describe('reading-list engine (P2)', () => {
     expect(providers.searchBookMetadata).not.toHaveBeenCalled();
   });
 
+  it('normalizes terminal punctuation before joining a scholarly title to its access note', async () => {
+    const graph = genomeLinkedGraph();
+    const providers = {
+      searchScholarlyReadings: vi.fn(async (query) => [
+        {
+          title: `Studies of ${query}.`,
+          abstract: `${query} evidence and classroom application for astronomy learning.`,
+          authors: 'A. Researcher',
+          year: 2024,
+          url: 'https://doi.org/10.1234/punctuated-title',
+          license: 'cc-by',
+        },
+      ]),
+      searchBookMetadata: vi.fn(async () => []),
+    };
+
+    expect(await attachOpenReadings(graph, { providers, maxSessions: 1 })).toBe(1);
+    const citation = graph.resources.find((resource) => resource.origin === 'openalex')?.citation || '';
+    expect(citation).toContain('Studies of celestial sphere. Open-access via');
+    expect(citation).not.toContain('.. Open-access via');
+  });
+
   it('rejects the real UX architectural-studio and sonification false friends before attachment', async () => {
     const graph = createEmptyCourseGraph({ courseName: 'User Experience Design Studio' });
     graph.sessions = [

@@ -121,6 +121,7 @@ describe('recorded workflow assertions', () => {
     expect(isDownloadablePackageState('Review before download', 'Download ZIP')).toBe(true);
     expect(isDownloadablePackageState('Ready with notes', 'Download ZIP')).toBe(true);
     expect(isDownloadablePackageState('Ready to download', 'Download ZIP')).toBe(true);
+    expect(isDownloadablePackageState('Finish package', 'Download draft ZIP')).toBe(true);
     expect(isDownloadablePackageState('Not ready', 'Download ZIP')).toBe(false);
     expect(isDownloadablePackageState('Review before download', 'Finish package')).toBe(false);
   });

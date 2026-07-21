@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { buildCourseMapContinuationPrompt, displayGenerationModelName } from '../src/hooks/useGeneration.js';
+import {
+  admitCourseMapContinuationLessons,
+  buildCourseMapContinuationPrompt,
+  displayGenerationModelName,
+} from '../src/hooks/useGeneration.js';
 import { findDuplicateLessonTitleGroups, normalizeLessonTitleIdentity } from '../src/lib/lessonTitleIdentity.js';
 
 describe('course-map continuation quality', () => {
@@ -35,5 +39,38 @@ describe('course-map continuation quality', () => {
   it('never exposes the internal public model identifier in progress copy', () => {
     expect(displayGenerationModelName('public', 'scion-public')).toBe('Scion');
     expect(displayGenerationModelName('openai', 'GPT-5 mini')).toBe('GPT-5 mini');
+  });
+
+  it('rejects repeated continuation topics and rebases accepted lesson numbering', () => {
+    const admission = admitCourseMapContinuationLessons(
+      [
+        { title: 'Lesson 1: Mendelian Inheritance' },
+        { title: 'Lesson 2: DNA Structure' },
+        { title: 'Lesson 3: Gene Expression' },
+      ],
+      [
+        { title: 'Lesson 1: Mendelian Inheritance', sections: [{ topicSection: '1.1: Inheritance' }] },
+        { title: 'Lesson 2: Meiosis', sections: [{ topicSection: '2.1: Chromosome Segregation' }] },
+        { title: 'Lesson 3: Mutation', sections: [{ topicSection: '3.1: Mutation Types' }] },
+      ],
+    );
+
+    expect(admission.rejectedTopics).toEqual(['Lesson 1: Mendelian Inheritance']);
+    expect(admission.lessons.map((lesson) => lesson.title)).toEqual(['Lesson 4: Meiosis', 'Lesson 5: Mutation']);
+    expect(admission.lessons[0].sections[0].topicSection).toBe('4.1: Chromosome Segregation');
+  });
+
+  it('feeds rejected deterministic repeats back into the next bounded continuation prompt', () => {
+    const prompt = buildCourseMapContinuationPrompt(
+      { lessons: [{ title: 'Lesson 1: DNA Structure' }] },
+      4,
+      'Later weeks cover mutation and population genetics.',
+      ['topicSection', 'learningObjectives'],
+      ['Lesson 1: DNA Structure'],
+    );
+
+    expect(prompt).toContain('previous continuation was rejected');
+    expect(prompt).toContain('Lesson 1: DNA Structure');
+    expect(prompt).toContain('Do not return them again');
   });
 });

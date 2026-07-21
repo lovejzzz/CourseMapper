@@ -1662,4 +1662,32 @@ describe('source-ledger quality checks', () => {
       ),
     ).toBe(false);
   });
+
+  it('recognizes the Dodd-Frank Act as a consumer-protection reading in Business Ethics', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'Business Ethics',
+          lessonScope: 'all',
+          requestedFeatures: ['syllabus'],
+          readiness: { status: 'ready', blockers: 0, warnings: 0, checkedSections: null },
+          files: [{ path: 'Syllabus/Business Ethics - Syllabus.txt', feature: 'syllabus' }],
+        }),
+        'Syllabus/Business Ethics - Syllabus.txt': [
+          'BUSINESS ETHICS — SYLLABUS',
+          'WEEKLY READINGS',
+          'Week 8: Wikipedia contributors. Dodd–Frank Act. Wikipedia: https://en.wikipedia.org/wiki/Dodd%E2%80%93Frank_Act (CC BY-SA 4.0)',
+        ].join('\n'),
+      }),
+      course: { id: 'business-ethics', title: 'Business Ethics', featureIds: ['syllabus'] },
+    });
+
+    expect(
+      result.findings.some(
+        (finding) =>
+          finding.dimension === 'citations' &&
+          finding.detail === 'citation shares zero vocabulary with the course discipline (possible off-topic reading)',
+      ),
+    ).toBe(false);
+  });
 });

@@ -1865,7 +1865,15 @@ export function parseLessonKernelResponse(text, { prompt, expectedLessonIds } = 
       factContract.mode === 'numbered-source-ledger-v1' &&
       facts.length === factContract.factCount &&
       facts.every((fact, index) => cleanText(fact) === cleanText(factContract.claims[index]));
-    if (keyTerms.length === 0 && mc.length === 0 && !exactSourceLedgerFacts) {
+    // A compiler-admitted target-language pair is itself a third inspectable
+    // knowledge atom. When the compact base ledger contains at least two
+    // canonically clean subject facts, retain that safe subset and drop its
+    // meta/truncated siblings instead of throwing away the entire lesson.
+    // This is the same per-atom quarantine policy used by rich kernels; the
+    // language pair makes the remaining core usable without pretending a bad
+    // model sentence was repaired or source-verified.
+    const targetLanguageFactCore = Boolean(targetLanguagePair && facts.length >= 2);
+    if (keyTerms.length === 0 && mc.length === 0 && !exactSourceLedgerFacts && !targetLanguageFactCore) {
       // The whole lesson falls back to template — say so with a row of its
       // own, not just the per-atom rows above (which only count atoms).
       issues.push({
@@ -1887,6 +1895,15 @@ export function parseLessonKernelResponse(text, { prompt, expectedLessonIds } = 
         reason: 'source-ledger-facts-only',
         atomIssueCount: issues.length - issueCountAtEntryStart,
         problems: ['source-ledger-facts-only'],
+      });
+    } else if (targetLanguageFactCore && keyTerms.length === 0 && mc.length === 0) {
+      issues.push({
+        lessonId,
+        surface: 'lesson',
+        index: entryIndex,
+        reason: 'target-language-fact-core',
+        atomIssueCount: issues.length - issueCountAtEntryStart,
+        problems: ['invalid-fact-atoms-dropped'],
       });
     }
 
