@@ -12,8 +12,13 @@ import {
   repairPublicScionJson,
   shufflePublicScionKernelOptions,
 } from './publicScionProvider';
-import { SCION_ADAPTER_TASK_FAMILIES, scionAdapterTaskFamilyForProviderTask } from './scionAdapterTaskScope';
+import {
+  SCION_ADAPTER_TASK_FAMILIES,
+  SCION_LESSON_KERNEL_SYNTHESIS_PROMPT_PROTOCOL,
+  scionAdapterTaskFamilyForProviderTask,
+} from './scionAdapterTaskScope';
 import { scionFactContractForLesson } from './scionEvidenceContract';
+import { explicitCourseLanguageIds } from './languageIdentityGuard';
 
 export const SCION_LOCAL_MAX_GENERATION_RETRIES = PUBLIC_SCION_MIN_RETRIES;
 
@@ -141,13 +146,14 @@ export async function runScionLocalCompletion({
     Number(String(userPrompt || '').match(/(?:RECOVERY RETRY|Recovery attempt)\s+(\d+)/i)?.[1]) || 0;
 
   await runtimeApi.loadScionBrowserWllama({ onProgress, signal });
-  const plannedRoute =
-    typeof runtimeApi.prepareScionBrowserWllamaTaskRoute === 'function'
-      ? await runtimeApi.prepareScionBrowserWllamaTaskRoute({ taskFamily, promptProtocol })
-      : null;
+  if (typeof runtimeApi.prepareScionBrowserWllamaTaskRoute === 'function') {
+    await runtimeApi.prepareScionBrowserWllamaTaskRoute({ taskFamily, promptProtocol });
+  }
+  const targetLanguageKernel = explicitCourseLanguageIds(`${systemPrompt}\n${userPrompt}`).length > 0;
   const factLedgerOnly =
     taskFamily === SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL_SYNTHESIS &&
-    plannedRoute?.reason === 'grounded-stage-available';
+    promptProtocol === SCION_LESSON_KERNEL_SYNTHESIS_PROMPT_PROTOCOL &&
+    !targetLanguageKernel;
   const messages = buildPublicScionMessages(systemPrompt, userPrompt, { schema, task, factLedgerOnly });
   const requestedOutputLimit = Math.max(
     1,
@@ -193,8 +199,8 @@ export async function runScionLocalCompletion({
       taskFamily,
       promptProtocol,
       onAdapterRoute: (route) => {
-        attemptRoute = route;
-        if (typeof onAdapterRoute === 'function') onAdapterRoute(route);
+        attemptRoute = { ...route, factLedgerOnly };
+        if (typeof onAdapterRoute === 'function') onAdapterRoute(attemptRoute);
       },
       onToken: (currentText) => {
         tokenCount += 1;
@@ -210,10 +216,7 @@ export async function runScionLocalCompletion({
     const assessment = empty
       ? { needsRetry: true, issues: ['empty-response'] }
       : assessPublicScionKernelResponse(fullText, userPrompt, task);
-    const groundedSynthesis =
-      taskFamily === SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL_SYNTHESIS &&
-      attemptRoute?.reason === 'grounded-stage-available';
-    const retryIssues = groundedSynthesis ? publicScionFactContractIssues(assessment) : assessment.issues || [];
+    const retryIssues = factLedgerOnly ? publicScionFactContractIssues(assessment) : assessment.issues || [];
     const retryGate = { needsRetry: empty || retryIssues.length > 0, issues: retryIssues };
     const incomplete = !empty && retryGate.needsRetry;
     // When an exact source-grounded adapter is available, the synthesis arm
@@ -222,7 +225,7 @@ export async function runScionLocalCompletion({
     // retry so an exact duplicate cannot consume one of the two course-level
     // recovery seats and strand a whole lesson. Explicit recovery retains its
     // two-retry ceiling for a stubborn malformed ledger.
-    const effectiveRetryLimit = groundedSynthesis
+    const effectiveRetryLimit = factLedgerOnly
       ? recoveryAttempt > 0
         ? Math.min(2, retryLimit)
         : Math.min(1, retryLimit)

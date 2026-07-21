@@ -92,6 +92,15 @@ export function shouldRunScionGroundedAdapterStage(routes = []) {
   );
 }
 
+export function shouldBindScionFactLedgerRoute(routes = []) {
+  return routes.some(
+    (route) =>
+      route?.taskFamily === SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL_SYNTHESIS &&
+      route?.routeMode === 'base-only' &&
+      route?.factLedgerOnly === true,
+  );
+}
+
 function buildGroundedAdapterLesson(lesson, facts) {
   if (!Array.isArray(facts) || facts.length < 3 || facts.length > 5 || facts.some((fact) => typeof fact !== 'string')) {
     return null;
@@ -261,8 +270,37 @@ export async function runScionPasses({
     let groundedAdapterWasProven = false;
     let groundedAdapterWasBlocked = false;
     let hasBoundFactLedger = false;
+    let factLedgerRouteBlocked = false;
+    if (shouldBindScionFactLedgerRoute(runtimeRoutes)) {
+      const boundPrompt = buildScionGroundedRefinementPrompt({ rawText, prompt, expectedLessonIds });
+      if (boundPrompt) {
+        hasBoundFactLedger = true;
+        workingPrompt = boundPrompt;
+        if (typeof onResolvedPrompt === 'function') onResolvedPrompt(boundPrompt);
+        recordEvent({
+          type: 'pipelineDecision',
+          label: 'Scion fact-ledger boundary',
+          detail: 'bound · model facts frozen before deterministic compiler projection',
+          stage: 'scionFactLedgerStage',
+          featureId: 'blueprintEnrichment',
+          task: 'blueprintEnrichment',
+        });
+      } else {
+        factLedgerRouteBlocked = true;
+        recordEvent({
+          type: 'pipelineDecision',
+          label: 'Scion fact-ledger boundary',
+          detail: 'rejected · fact-only response did not satisfy the immutable ledger contract',
+          stage: 'scionFactLedgerStage',
+          featureId: 'blueprintEnrichment',
+          task: 'blueprintEnrichment',
+        });
+      }
+    }
     if (shouldRunScionGroundedAdapterStage(runtimeRoutes)) {
-      let groundedPrompt = buildScionGroundedRefinementPrompt({ rawText, prompt, expectedLessonIds });
+      let groundedPrompt = hasBoundFactLedger
+        ? workingPrompt
+        : buildScionGroundedRefinementPrompt({ rawText, prompt, expectedLessonIds });
       if (!groundedPrompt) {
         // One compact retry is reserved for the only failure the compiler
         // cannot repair safely: an absent, short, or duplicated fact ledger.
@@ -496,13 +534,20 @@ export async function runScionPasses({
       // rejected by that same admission boundary, so do not spend another
       // inference call on it. A blocked or losing adapter still leaves one
       // seat for the safer base fallback (notably target-language identity).
-      ...(workingUsesGroundedAdapter || groundedAdapterWasProven || groundedAdapterWasBlocked || hasBoundFactLedger
+      ...(workingUsesGroundedAdapter ||
+      groundedAdapterWasProven ||
+      groundedAdapterWasBlocked ||
+      hasBoundFactLedger ||
+      factLedgerRouteBlocked
         ? {
             // Once the canonical parser is bound to a validated fact ledger,
             // another same-model MC rewrite cannot add trustworthy knowledge.
             // The only retained one-call exception is target-language identity
             // when no valid ledger could be established at all.
-            maxCallsPerLesson: hasBoundFactLedger || explicitCourseLanguageIds(courseName).length === 0 ? 0 : 1,
+            maxCallsPerLesson:
+              hasBoundFactLedger || factLedgerRouteBlocked || explicitCourseLanguageIds(courseName).length === 0
+                ? 0
+                : 1,
             skipImprovementOnlyPasses: true,
           }
         : {}),

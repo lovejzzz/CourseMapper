@@ -214,6 +214,7 @@ describe('useStreamReader Scion boundary', () => {
       nativeAdapterActive: true,
       adapterScale: 1,
       modelCalls: 2,
+      factLedgerOnly: true,
     };
     const body = [
       `data: ${JSON.stringify({ choices: [{ delta: { content: '{"ok":true}' } }], scion_adapter_route: route })}`,
@@ -237,6 +238,7 @@ describe('useStreamReader Scion boundary', () => {
         taskFamily: 'lesson-kernel',
         routeMode: 'adapter',
         routeModelCalls: 2,
+        factLedgerOnly: true,
       }),
     ]);
     expect(onApiCallEvent).toHaveBeenCalledWith(
@@ -250,6 +252,7 @@ describe('useStreamReader Scion boundary', () => {
         adapterScopeIdentitySha256: 'b'.repeat(64),
         nativeAdapterActive: true,
         routeModelCalls: 2,
+        factLedgerOnly: true,
         execution: 'local-server',
       }),
     );

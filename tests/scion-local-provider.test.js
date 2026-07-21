@@ -239,6 +239,50 @@ describe('Scion browser-local provider', () => {
     expect(result.admissionIssues).toContain('lesson-4:key-terms-count:0/3');
   });
 
+  it('plans the same ledger-only contract for a non-language base model without an adapter', async () => {
+    const route = {
+      mode: 'base-only',
+      taskFamily: 'lesson-kernel-synthesis',
+      reason: 'no-adapter-installed',
+      adapterId: null,
+      nativeAdapterActive: false,
+    };
+    const ledger = JSON.stringify({
+      lessons: [
+        {
+          lessonId: 'lesson-4',
+          facts: [
+            'Observed task failures reveal where an interface blocks a user goal.',
+            'Interview comments explain expectations but cannot replace observed behavior.',
+            'Audience evidence should guide which supporting details a speaker selects.',
+            'A prototype represents chosen interactions before production details are complete.',
+            'Specific feedback supports revision when it identifies an observable breakdown.',
+          ],
+        },
+      ],
+    });
+    const runtime = runtimeWith([ledger], { route, plannedRoute: route });
+    const onAdapterRoute = vi.fn();
+    const prompt = `Course: Design\nLessons:\n[{"lessonId":"lesson-4","title":"Affinity Mapping"}]\nReturn ONLY valid JSON.`;
+
+    await runScionLocalCompletion({
+      userPrompt: prompt,
+      task: 'blueprintEnrichment',
+      promptProtocol: 'production-lesson-kernel-synthesis-prompt-v1',
+      maxOutputTokens: 2400,
+      maxRetries: 2,
+      onAdapterRoute,
+      runtimeLoader: async () => runtime,
+      sleep: async () => {},
+    });
+
+    const [messages, options] = runtime.completeScionBrowserWllama.mock.calls[0];
+    const template = JSON.parse(messages.at(-1).content.split('TEMPLATE TO FILL:\n')[1]);
+    expect(Object.keys(template.lessons[0])).toEqual(['lessonId', 'facts']);
+    expect(options.maxNewTokens).toBe(800);
+    expect(onAdapterRoute).toHaveBeenCalledWith(expect.objectContaining({ factLedgerOnly: true }));
+  });
+
   it('uses the conditional synthesis retry when the first grounded-stage fact ledger is invalid', async () => {
     const invalidFacts = JSON.parse(completeKernelResponse());
     invalidFacts.lessons[0].facts[2] = invalidFacts.lessons[0].facts[1];

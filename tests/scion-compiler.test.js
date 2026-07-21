@@ -19,6 +19,7 @@ import {
   runScionPasses,
   scionCallOpts,
   selectScionGroundedAdapterDraft,
+  shouldBindScionFactLedgerRoute,
   shouldRunScionGroundedAdapterStage,
 } from '../src/lib/scionPassB';
 import {
@@ -306,6 +307,59 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
 
     expect(grounded).not.toBeNull();
     expect(grounded.lessons[0].topics).toBe(facts.map((fact, index) => `Claim ${index}: ${fact}`).join(' '));
+  });
+
+  it('D1: binds a declared base-only fact ledger and skips same-model teaching-surface repairs', async () => {
+    const lessons = JSON.parse(SCION_LESSON_KERNEL_PILOT_PROMPT.match(/Lessons:\n(\[.*\])\nReturn/s)[1]);
+    const facts = SCION_LESSON_KERNEL_REFERENCE_PILOT_RESPONSE.lessons[0].facts;
+    const prompt = {
+      courseName: 'Geology Inference and Feedback Audit',
+      lessons,
+      userPrompt: SCION_LESSON_KERNEL_PILOT_PROMPT,
+      systemPrompt: 'Write a compact knowledge kernel.',
+    };
+    const rawText = JSON.stringify({ lessons: [{ lessonId: 'lesson-3', facts }] });
+    const streamProvider = vi.fn();
+    const events = [];
+    let resolvedPrompt = null;
+    const runtimeRoutes = [
+      {
+        taskFamily: 'lesson-kernel-synthesis',
+        routeMode: 'base-only',
+        routeReason: 'no-adapter-installed',
+        factLedgerOnly: true,
+      },
+    ];
+
+    expect(shouldBindScionFactLedgerRoute(runtimeRoutes)).toBe(true);
+    const result = await runScionPasses({
+      rawText,
+      streamProvider,
+      provider: 'local',
+      apiKey: '',
+      modelId: 'scion-1',
+      modelCapabilities: {},
+      generationPlan: {},
+      recordEvent: (event) => events.push(event),
+      prompt,
+      expectedLessonIds: ['lesson-3'],
+      contentSourcedLessonIds: [],
+      courseName: prompt.courseName,
+      runtimeRoutes,
+      onResolvedPrompt: (nextPrompt) => {
+        resolvedPrompt = nextPrompt;
+      },
+    });
+
+    expect(streamProvider).not.toHaveBeenCalled();
+    expect(JSON.parse(result)).toEqual(JSON.parse(rawText));
+    expect(resolvedPrompt?.lessons?.[0]?.sourceFactPolicy).toBe('numbered-source-ledger-v1');
+    expect(events).toContainEqual(
+      expect.objectContaining({
+        label: 'Scion fact-ledger boundary',
+        detail: expect.stringContaining('model facts frozen'),
+      }),
+    );
   });
 
   it('D1: admits a proven source-grounded adapter stage and keeps its frozen fact ledger', async () => {

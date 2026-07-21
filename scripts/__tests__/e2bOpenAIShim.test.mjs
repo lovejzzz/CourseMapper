@@ -498,6 +498,7 @@ input.on('line', (line) => {
     mode: 'base-only',
     taskFamily: 'lesson-kernel-synthesis',
     promptProtocol: 'production-lesson-kernel-synthesis-prompt-v1',
+    factLedgerOnly: true,
     // The fake worker repeats the same schema-derived fact, so the fact-only
     // contract spends its one focused retry and then stops.
     modelCalls: 2,
@@ -537,6 +538,7 @@ input.on('line', (line) => {
     mode: 'base-only',
     taskFamily: 'lesson-kernel-synthesis',
     promptProtocol: 'production-lesson-kernel-synthesis-prompt-v1',
+    factLedgerOnly: false,
   });
 
   const rows = (await fs.readFile(bodyLogPath, 'utf8'))

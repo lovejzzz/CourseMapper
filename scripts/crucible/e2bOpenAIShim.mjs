@@ -1629,6 +1629,11 @@ const server = http.createServer(async (req, res) => {
   }
   const routeEvidence = {
     ...adapterRoute,
+    // Tell the browser compiler which response contract was actually
+    // executed. Without this bit, a valid fact-only synthesis is mistaken for
+    // a malformed full kernel and triggers the same-model repair cascade the
+    // ledger-first architecture is designed to remove.
+    factLedgerOnly: factLedgerFirstRequest,
     nativeAdapterActive: routeProofs.length > 0 && routeProofs.every((proof) => proof.nativeAdapterActive === true),
     adapterScale:
       routeProofs.length > 0 && routeProofs.every((proof) => proof.adapterScale === routeProofs[0].adapterScale)
