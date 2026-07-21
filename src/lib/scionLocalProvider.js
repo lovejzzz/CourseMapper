@@ -18,7 +18,6 @@ import {
   scionAdapterTaskFamilyForProviderTask,
 } from './scionAdapterTaskScope';
 import { scionFactContractForLesson } from './scionEvidenceContract';
-import { explicitCourseLanguageIds } from './languageIdentityGuard';
 
 export const SCION_LOCAL_MAX_GENERATION_RETRIES = PUBLIC_SCION_MIN_RETRIES;
 
@@ -149,11 +148,9 @@ export async function runScionLocalCompletion({
   if (typeof runtimeApi.prepareScionBrowserWllamaTaskRoute === 'function') {
     await runtimeApi.prepareScionBrowserWllamaTaskRoute({ taskFamily, promptProtocol });
   }
-  const targetLanguageKernel = explicitCourseLanguageIds(`${systemPrompt}\n${userPrompt}`).length > 0;
   const factLedgerOnly =
     taskFamily === SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL_SYNTHESIS &&
-    promptProtocol === SCION_LESSON_KERNEL_SYNTHESIS_PROMPT_PROTOCOL &&
-    !targetLanguageKernel;
+    promptProtocol === SCION_LESSON_KERNEL_SYNTHESIS_PROMPT_PROTOCOL;
   const messages = buildPublicScionMessages(systemPrompt, userPrompt, { schema, task, factLedgerOnly });
   const requestedOutputLimit = Math.max(
     1,

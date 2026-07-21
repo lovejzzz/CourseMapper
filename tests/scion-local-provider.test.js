@@ -283,6 +283,51 @@ describe('Scion browser-local provider', () => {
     expect(onAdapterRoute).toHaveBeenCalledWith(expect.objectContaining({ factLedgerOnly: true }));
   });
 
+  it('uses the compact fact ledger for Mandarin now that the compiler owns the admitted language pair', async () => {
+    const route = {
+      mode: 'base-only',
+      taskFamily: 'lesson-kernel-synthesis',
+      reason: 'no-adapter-installed',
+      adapterId: null,
+      nativeAdapterActive: false,
+    };
+    const ledger = JSON.stringify({
+      lessons: [
+        {
+          lessonId: 'lesson-4',
+          facts: [
+            'Mandarin numbers combine place-value words in a regular spoken sequence.',
+            'Age questions use a number together with the age word sui.',
+            'Calendar dates order the year, month, and day before optional time information.',
+            'Tone marks distinguish the pronunciation of otherwise similar pinyin syllables.',
+            'A complete beginner response pairs an intended meaning with its spoken form.',
+          ],
+        },
+      ],
+    });
+    const runtime = runtimeWith([ledger], { route, plannedRoute: route });
+    const onAdapterRoute = vi.fn();
+
+    await runScionLocalCompletion({
+      userPrompt:
+        'Course: Elementary Mandarin Chinese I\nLessons:\n[{"lessonId":"lesson-4","title":"Numbers and Dates"}]\nReturn ONLY valid JSON.',
+      task: 'blueprintEnrichment',
+      promptProtocol: 'production-lesson-kernel-synthesis-prompt-v1',
+      maxOutputTokens: 2400,
+      maxRetries: 2,
+      onAdapterRoute,
+      runtimeLoader: async () => runtime,
+      sleep: async () => {},
+    });
+
+    const [messages, options] = runtime.completeScionBrowserWllama.mock.calls[0];
+    const template = JSON.parse(messages.at(-1).content.split('TEMPLATE TO FILL:\n')[1]);
+    expect(Object.keys(template.lessons[0])).toEqual(['lessonId', 'facts']);
+    expect(messages.at(-1).content).toContain('factual ledger');
+    expect(options.maxNewTokens).toBe(800);
+    expect(onAdapterRoute).toHaveBeenCalledWith(expect.objectContaining({ factLedgerOnly: true }));
+  });
+
   it('uses the conditional synthesis retry when the first grounded-stage fact ledger is invalid', async () => {
     const invalidFacts = JSON.parse(completeKernelResponse());
     invalidFacts.lessons[0].facts[2] = invalidFacts.lessons[0].facts[1];

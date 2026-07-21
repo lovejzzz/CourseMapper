@@ -528,17 +528,15 @@ input.on('line', (line) => {
       response_format: { type: 'json_schema', json_schema: mandarinProfile },
     }),
   }).then((result) => result.json());
-  expect(JSON.parse(mandarin.choices[0].message.content).lessons[0]).toMatchObject({
+  expect(JSON.parse(mandarin.choices[0].message.content).lessons[0]).toEqual({
     lessonId: 'lesson-6',
-    keyTerms: expect.any(Array),
-    scenario: expect.any(Object),
-    mc: expect.any(Array),
+    facts: expect.any(Array),
   });
   expect(mandarin.scion_adapter_route).toMatchObject({
     mode: 'base-only',
     taskFamily: 'lesson-kernel-synthesis',
     promptProtocol: 'production-lesson-kernel-synthesis-prompt-v1',
-    factLedgerOnly: false,
+    factLedgerOnly: true,
   });
 
   const rows = (await fs.readFile(bodyLogPath, 'utf8'))
@@ -558,7 +556,7 @@ input.on('line', (line) => {
   expect(rows[4].originalCompilerUser).toContain('Course: Testing Basics');
   expect(rows[4].originalCompilerUser).toContain('courseLevel object once');
   expect(rows[5].user).toContain('factual ledger');
-  expect(rows[6].user).not.toContain('factual ledger');
+  expect(rows[6].user).toContain('factual ledger');
 
   const schemas = (await fs.readFile(schemaLogPath, 'utf8'))
     .trim()

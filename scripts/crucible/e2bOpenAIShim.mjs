@@ -36,7 +36,6 @@ import {
 } from '../../src/lib/publicScionProvider.js';
 import { compactFactLedgerSchemaProfile } from '../../src/lib/scionContracts.js';
 import { scionFactCountForPrompt } from '../../src/lib/scionEvidenceContract.js';
-import { explicitCourseLanguageIds } from '../../src/lib/languageIdentityGuard.js';
 import { closeJsonContainersAtEof } from './jsonClosureRepair.mjs';
 import { valueConformsToSchema } from './jsonSchemaValidation.mjs';
 import { scionCompactKernelMaxAttempts } from './scionCompactAttemptPolicy.mjs';
@@ -1506,19 +1505,16 @@ const server = http.createServer(async (req, res) => {
     // adapter even though the compact response contract remains executable.
     (adapterRoute.taskFamily === SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL &&
       promptProtocol === SCION_LESSON_KERNEL_PROMPT_PROTOCOL);
-  const targetLanguageKernel = explicitCourseLanguageIds(originalCompilerUser).length > 0;
+  // Base-only Scion previously requested the complete lesson surface, then
+  // spent dozens of same-model repair calls on fields the compiler can
+  // project safely from admitted facts. Use the same compact ledger boundary
+  // with or without an installed adapter. Target-language identity is now a
+  // compiler-owned admitted pair, so asking the model to regenerate that
+  // deterministic surface only adds latency and untrusted utterances.
   const factLedgerFirstRequest =
     SCION_LEDGER_FIRST &&
     adapterRoute.taskFamily === SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL_SYNTHESIS &&
-    promptProtocol === SCION_LESSON_KERNEL_SYNTHESIS_PROMPT_PROTOCOL &&
-    // Base-only Scion previously requested the complete lesson surface, then
-    // spent dozens of same-model repair calls on fields the compiler can
-    // project safely from admitted facts. Use the same compact ledger boundary
-    // with or without an installed adapter. Target-language kernels are the
-    // exception until the ledger contract can carry the required native-script
-    // and romanization pair; the richer base path is currently the measured
-    // fidelity-preserving route for those lessons.
-    (adapterRoute.reason === 'grounded-stage-available' || !targetLanguageKernel);
+    promptProtocol === SCION_LESSON_KERNEL_SYNTHESIS_PROMPT_PROTOCOL;
   if (compactLessonKernelRequest) {
     // Match the production browser boundary exactly. The public provider
     // converts the rich compiler prompt into the compact protocol used by the
