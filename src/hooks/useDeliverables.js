@@ -2485,6 +2485,7 @@ export default function useDeliverables({
               const sourceMiniShard = await knowledge.findCourseSources(courseGraph, {
                 maxTopics: 8,
                 limitPerTopic: 3,
+                timeoutMs: 12_000,
                 // The reading-list pass above already queried OpenAlex. Source
                 // finder should use complementary providers, not spend the same
                 // anonymous quota again for the same lesson topics.
@@ -2498,6 +2499,14 @@ export default function useDeliverables({
                   });
                 },
               });
+              if (sourceMiniShard?.stats?.timedOut) {
+                recordGenerationApiCallEvent({
+                  type: 'pipelineDecision',
+                  stage: 'knowledge-backbone',
+                  label: 'Complementary sources bounded',
+                  detail: `${sourceMiniShard.stats.completedTopics}/${sourceMiniShard.stats.topics} lessons checked before the 12-second optional-source deadline · course generation continued`,
+                });
+              }
               sourceFinderCount = knowledge.attachSourceFinderResources(courseGraph, sourceMiniShard, {
                 maxSourcesPerTopic: 1,
               });

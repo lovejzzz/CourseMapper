@@ -65,6 +65,29 @@ function source(provider, title, extra = {}) {
 }
 
 describe('source finder mini-shard', () => {
+  it('releases the course pipeline when a complementary provider ignores abort signals', async () => {
+    const never = vi.fn(() => new Promise(() => {}));
+    const startedAt = Date.now();
+    const miniShard = await findCourseSources(sampleGraph(), {
+      storage: memoryStorage(),
+      maxTopics: 2,
+      topicConcurrency: 1,
+      timeoutMs: 20,
+      providers: {
+        searchScholarlyReadings: never,
+        searchCrossrefWorks: never,
+        searchWikipediaPages: never,
+        searchBookMetadata: never,
+        searchInternetArchiveTexts: never,
+      },
+    });
+
+    expect(Date.now() - startedAt).toBeLessThan(500);
+    expect(miniShard.stats).toMatchObject({ timedOut: true, completedTopics: 0, topics: 2, sources: 0 });
+    expect(miniShard.topics).toHaveLength(2);
+    expect(miniShard.topics.every((topic) => topic.degraded === true && topic.timedOut === true)).toBe(true);
+  });
+
   it('builds course/topic queries from graph sessions and concepts', () => {
     const topics = sourceTopicsFromCourse(sampleGraph(), { maxTopics: 2 });
     expect(topics).toHaveLength(2);

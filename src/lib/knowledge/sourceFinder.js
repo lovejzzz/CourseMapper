@@ -718,6 +718,7 @@ export async function findCourseSources(input, options = {}) {
     minUsefulSources = 2,
     topicConcurrency = 2,
     onProgress,
+    timeoutMs = 12_000,
   } = options;
   const topics = sourceTopicsFromCourse(input, { maxTopics });
   const courseName = cleanText(topics[0]?.courseName || input?.course?.name || input?.courseName || 'Untitled Course');
@@ -726,9 +727,31 @@ export async function findCourseSources(input, options = {}) {
   let nextTopicIndex = 0;
   let completedTopics = 0;
   const workerCount = Math.max(1, Math.min(topics.length || 1, Number(topicConcurrency) || 1));
+  const deadlineController = new AbortController();
+  const lookupSignal = deadlineController.signal;
+  let timedOut = false;
+  let stopped = false;
+  let releaseStop;
+  const stopPromise = new Promise((resolve) => {
+    releaseStop = resolve;
+  });
+  const stop = (reason) => {
+    if (stopped) return;
+    stopped = true;
+    timedOut = reason === 'timeout';
+    deadlineController.abort(reason);
+    releaseStop();
+  };
+  const onExternalAbort = () => stop('aborted');
+  if (signal?.aborted) onExternalAbort();
+  else signal?.addEventListener?.('abort', onExternalAbort, { once: true });
+  const timeout =
+    Number.isFinite(Number(timeoutMs)) && Number(timeoutMs) > 0
+      ? setTimeout(() => stop('timeout'), Number(timeoutMs))
+      : null;
 
   async function retrieveNextTopic() {
-    while (nextTopicIndex < topics.length) {
+    while (!lookupSignal.aborted && nextTopicIndex < topics.length) {
       const index = nextTopicIndex;
       nextTopicIndex += 1;
       const topic = topics[index];
@@ -748,9 +771,10 @@ export async function findCourseSources(input, options = {}) {
         courseName,
         providers,
         limitPerTopic,
-        signal,
+        signal: lookupSignal,
         minUsefulSources,
       });
+      if (lookupSignal.aborted) break;
       const cachedValue = {
         sources: retrieved.sources,
         searchLinks: retrieved.searchLinks,
@@ -767,7 +791,29 @@ export async function findCourseSources(input, options = {}) {
     }
   }
 
-  await Promise.all(Array.from({ length: workerCount }, () => retrieveNextTopic()));
+  const workers = Promise.all(Array.from({ length: workerCount }, () => retrieveNextTopic()));
+  // Source retrieval is additive. A provider that ignores AbortSignal must
+  // not hold a fully authored course hostage, so the global deadline races
+  // the workers as well as aborting normal fetches. Late workers only retain
+  // local data; the returned mini-shard is already isolated from them.
+  await Promise.race([workers, stopPromise]);
+  workers.catch(() => {});
+  if (timeout) clearTimeout(timeout);
+  signal?.removeEventListener?.('abort', onExternalAbort);
+
+  const settledTopics = topics.map((topic, index) =>
+    results[index]
+      ? results[index]
+      : {
+          ...topic,
+          sources: [],
+          searchLinks: [],
+          providerPlan: providerPlan(courseName, topic),
+          cacheHit: false,
+          degraded: true,
+          timedOut,
+        },
+  );
 
   return {
     id: `${SOURCE_FINDER_VERSION}:${stableHash(`${courseName}:${week}`)}`,
@@ -776,12 +822,14 @@ export async function findCourseSources(input, options = {}) {
     temporary: true,
     courseName,
     cacheWeek: week,
-    topics: results,
+    topics: settledTopics,
     stats: {
-      topics: results.length,
-      topicsWithSources: results.filter((topic) => (topic.sources || []).length > 0).length,
-      sources: results.reduce((count, topic) => count + (topic.sources || []).length, 0),
-      cacheHits: results.filter((topic) => topic.cacheHit).length,
+      topics: settledTopics.length,
+      topicsWithSources: settledTopics.filter((topic) => (topic.sources || []).length > 0).length,
+      sources: settledTopics.reduce((count, topic) => count + (topic.sources || []).length, 0),
+      cacheHits: settledTopics.filter((topic) => topic.cacheHit).length,
+      timedOut,
+      completedTopics,
     },
   };
 }
