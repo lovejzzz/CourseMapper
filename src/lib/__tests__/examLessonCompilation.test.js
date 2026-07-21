@@ -18,6 +18,7 @@
  */
 import { describe, expect, it, vi } from 'vitest';
 import { buildCourseBlueprint, compileBlueprintDeliverables } from '../courseBlueprintCompiler';
+import { findWorstPhraseRepetition } from '../exportRenderedTextAudit';
 
 vi.mock('../customDeliverableLibrary', () => ({
   getCustomDeliverable: vi.fn(() => null),
@@ -209,6 +210,73 @@ describe('exam-lesson compilation (v0.16 exam fixes)', () => {
     const misconceptionItem = mcItems.find((item) => /claims:/i.test(item.question));
     expect(misconceptionItem).toBeTruthy();
     expect(misconceptionItem.options.join(' ')).toMatch(/never change the solution set|depend on order|invertible/i);
+  });
+
+  it('keeps cumulative-exam definition framing below the rendered repetition limit', () => {
+    const contentLessons = Array.from({ length: 12 }, (_, index) => ({
+      title: `Lesson ${index + 1}: Physics Concept ${index + 1}`,
+      sections: [
+        {
+          topicSection: `Physics Concept ${index + 1}; worked calculation ${index + 1}`,
+          learningObjectives: `Apply Physics Concept ${index + 1} to a bounded calculation.`,
+          learningGoals: `Explain and calculate with Physics Concept ${index + 1}.`,
+          weeklyAssessments: `Problem set ${index + 1}: Physics Concept ${index + 1}`,
+          asyncActivities: `Annotate the worked example for Physics Concept ${index + 1}.`,
+          syncActivities: `Solve a boundary case for Physics Concept ${index + 1}.`,
+          supportingResources: `Physics source packet ${index + 1}`,
+        },
+      ],
+    }));
+    const blueprint = buildCourseBlueprint({
+      courseName: 'Introductory Physics II',
+      lessons: [
+        ...contentLessons,
+        {
+          title: 'Lesson 13: Final Exam',
+          sections: [
+            {
+              topicSection: 'Cumulative final exam',
+              learningObjectives: 'Apply covered physics concepts under exam conditions.',
+              learningGoals: 'Demonstrate cumulative physics mastery.',
+              weeklyAssessments: 'Final Exam (40%)',
+              asyncActivities: 'Review the cumulative guide.',
+              syncActivities: 'Complete the final exam.',
+              supportingResources: 'Equation sheet; exam policy',
+            },
+          ],
+        },
+      ],
+    });
+    blueprint.lessons.slice(0, 12).forEach((lesson, index) => {
+      lesson.enrichment = {
+        keyTerms: [
+          {
+            term: `Physics Concept ${index + 1}`,
+            definition: `Physics Concept ${index + 1} relates measured quantity ${index + 1} to a bounded physical system.`,
+            misconception: `Physics Concept ${index + 1} applies without boundary conditions.`,
+            correction: `Physics Concept ${index + 1} requires the stated boundary conditions.`,
+          },
+        ],
+        kernel: { facts: [`Measured quantity ${index + 1} changes only under the stated physical conditions.`] },
+      };
+    });
+    const exam = compileBlueprintDeliverables(blueprint, ['quizBank'], {
+      enforceCompilerContract: false,
+    }).quizBank.quizzes.find((entry) => entry.kind === 'exam');
+    const renderedParagraphs = exam.questions.flatMap((question) => [question.intendedUse, question.question]);
+    const before = findWorstPhraseRepetition(
+      Array.from(
+        { length: 12 },
+        (_, index) => `Which statement gives the course's working definition of Physics Concept ${index + 1}?`,
+      ),
+    );
+    const after = findWorstPhraseRepetition(renderedParagraphs);
+
+    expect(before.count).toBeGreaterThanOrEqual(before.limit);
+    expect(after.count).toBeLessThan(after.limit);
+    expect(
+      new Set(exam.questions.filter((question) => question.type === 'multiple_choice').map((q) => q.question)).size,
+    ).toBeGreaterThanOrEqual(6);
   });
 
   it('exam day gets the exam paper only - no weekly quiz on exam day (bug 4)', () => {

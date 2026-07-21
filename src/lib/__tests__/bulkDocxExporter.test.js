@@ -88,6 +88,42 @@ describe('buildDeliverableDocxBlob', () => {
     expect(xml).not.toContain('Grouping: Independent studio work with brief evidence check-ins');
   });
 
+  it('renders cited prerequisite definitions without X:X echoes', async () => {
+    const definition = 'Electric current is the rate at which charge passes through a surface.';
+    const baseline = `Electric current: ${definition}`;
+    const echoPattern = /\b([A-Z][\w &'-]{3,50}): \1\b/;
+    expect(baseline).toMatch(echoPattern);
+
+    const blob = await buildDeliverableDocxBlob(
+      'lessonPlans',
+      {
+        lessonPlans: [
+          {
+            lessonTitle: 'Lesson 2: Electric Fields',
+            prerequisiteCheck: {
+              note: 'Confirm students have this background before teaching.',
+              primers: Array.from({ length: 2 }, () => ({
+                term: 'Electric current',
+                definition,
+                source: 'OpenStax university physics volume 2 §9.1',
+              })),
+            },
+          },
+        ],
+      },
+      'Introductory Physics II – Electricity and Magnetism',
+    );
+
+    const paragraphs = await extractedDocxParagraphs(
+      blob,
+      'Lesson Plans/Lesson 02 - Electric Fields - Lesson Plans.docx',
+    );
+    const rendered = paragraphs.join('\n');
+    expect(rendered).toContain(`${definition} (Source: OpenStax university physics volume 2 §9.1)`);
+    expect(rendered.match(/Electric current is the rate at which charge passes/g)).toHaveLength(1);
+    expect(rendered).not.toMatch(echoPattern);
+  });
+
   it('uses Word list structure instead of literal bullet glyphs for slide-deck bullets', async () => {
     const blob = await buildDeliverableDocxBlob(
       'slideDecks',

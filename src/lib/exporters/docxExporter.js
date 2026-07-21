@@ -335,6 +335,39 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         new TextRun({ text: text || '', size: BODY_SIZE, font: FONT, color: '404040' }),
       ],
     });
+  const makeTermDefinition = (term, definition, source) => {
+    const cleanTerm = String(term || '').trim();
+    const cleanDefinition = String(definition || '').trim();
+    const sourceSuffix = source ? ` (Source: ${source})` : '';
+    const definitionLeadsWithTerm =
+      cleanTerm.length > 0 &&
+      cleanDefinition.toLowerCase().startsWith(cleanTerm.toLowerCase()) &&
+      !/\w/.test(cleanDefinition.charAt(cleanTerm.length));
+
+    if (!definitionLeadsWithTerm) return makeBold(cleanTerm, `${cleanDefinition}${sourceSuffix}`);
+
+    // Preserve the term's bold visual cue without printing the redundant
+    // "Electric current: Electric current ..." seam caught in the live
+    // Physics ZIP. The definition already supplies the semantic label.
+    return new Paragraph({
+      spacing: { line: SINGLE_SP, before: 40, after: 60 },
+      children: [
+        new TextRun({
+          text: cleanDefinition.slice(0, cleanTerm.length),
+          bold: true,
+          size: BODY_SIZE,
+          font: FONT,
+          color: theme.headingColor,
+        }),
+        new TextRun({
+          text: `${cleanDefinition.slice(cleanTerm.length)}${sourceSuffix}`,
+          size: BODY_SIZE,
+          font: FONT,
+          color: '404040',
+        }),
+      ],
+    });
+  };
   // v0.12.1: borderless two-column layout table for label/value blocks
   // (study-guide key terms, lesson-plan assessment and homework, FAQ
   // see-also) — real structure instead of glued label paragraphs.
@@ -597,10 +630,14 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         if (p.prerequisiteCheck?.primers?.length) {
           children.push(makeSubHeading('Prerequisite Check'));
           if (p.prerequisiteCheck.note) children.push(makeText(p.prerequisiteCheck.note));
+          const renderedPrimers = new Set();
           p.prerequisiteCheck.primers.forEach((primer) => {
-            children.push(
-              makeBold(primer.term, `${primer.definition}${primer.source ? ` (Source: ${primer.source})` : ''}`),
-            );
+            // A prerequisite can reach one lesson through multiple concept
+            // edges. It belongs in the document once, at its render boundary.
+            const primerKey = [primer.term, primer.definition, primer.source].join('|').toLowerCase();
+            if (renderedPrimers.has(primerKey)) return;
+            renderedPrimers.add(primerKey);
+            children.push(makeTermDefinition(primer.term, primer.definition, primer.source));
             if (primer.keyFact) children.push(makeBullet(primer.keyFact));
             if (primer.why) children.push(makeItalic(primer.why));
           });

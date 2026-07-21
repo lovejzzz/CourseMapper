@@ -48,6 +48,7 @@ import {
   assessmentRevisionCriterion,
   environmentalChemistryLens,
   environmentalChemistryThroughline,
+  examDefinitionCopy,
   examFactCopy,
   examDayDiscussionExtras,
   finalMilestoneFeedback as buildFinalMilestoneFeedback,
@@ -17876,10 +17877,9 @@ function compileRubrics(blueprint) {
       }
       const rubricEntry = {
         title: `${assessment.title} Rubric`,
+        ...(Number.isInteger(assessment.lessonNumbers?.[0]) ? { lessonNumber: assessment.lessonNumbers[0] } : {}),
         // v0.14.1 (3.2e): id-linked rubric identity on the registry path.
-        ...(assessment.registryId
-          ? { assessmentId: assessment.registryId, lessonNumber: assessment.lessonNumbers[0] }
-          : {}),
+        ...(assessment.registryId ? { assessmentId: assessment.registryId } : {}),
         lessonTitle: assessment.relatedLessons.join(', '),
         gradedWork: assessment.artifact,
         assessmentType: assessment.kind === 'oral' ? 'Oral performance (speaking rubric)' : 'Assignment',
@@ -20425,6 +20425,18 @@ function buildExamDefinitionItem({ lesson, covered, coveredIndex, index, objecti
   const distractors = examAtomDistractors({ lesson, covered, coveredIndex });
   const { answer, options } = buildExamAtomOptions({ lesson, index, correct, distractors, concept, lessonFocus });
   const fromClause = concept.toLowerCase() === lessonFocus.toLowerCase() ? '' : ` (from ${lessonFocus})`;
+  // A cumulative exam can render one definition-recognition item for every
+  // covered lesson in the SAME document section. One fixed stem and one fixed
+  // purpose sentence therefore repeated 12-15 times and correctly tripped the
+  // rendered-text audit. Rotate the visible framing by covered position while
+  // keeping the knowledge demand, keyed definition, and source identity
+  // unchanged. This removes template stamping without weakening the audit.
+  const copy = examDefinitionCopy({
+    coveredIndex,
+    concept,
+    fromClause,
+    assessmentTitle: assessment.title,
+  });
   return withQuizPlan(
     {
       id: quizQuestionId(lesson, index),
@@ -20434,8 +20446,8 @@ function buildExamDefinitionItem({ lesson, covered, coveredIndex, index, objecti
       estimatedMinutes: 2,
       points: 2,
       objectiveAligned: objective,
-      intendedUse: `Summative recognition item on ${assessment.title}; students identify the course's working definition of ${concept}.`,
-      question: `Which statement gives the course's working definition of ${concept}${fromClause}?`,
+      intendedUse: copy.intendedUse,
+      question: copy.question,
       options,
       answer,
       distractorRationale: `Distractors pair ${concept}'s documented misconception with authored definitions from other covered lessons, so choosing correctly requires knowing which definition belongs to ${concept}.`,

@@ -205,6 +205,40 @@ describe('packageZipExporter', () => {
     expect(result.manifest.lessonScope).toEqual([5]);
   });
 
+  it('keeps a labeled Lesson 5 rubric out of the Lesson 3 package file', async () => {
+    const courseMap = {
+      courseName: 'Introductory Physics II - Electricity and Magnetism',
+      lessons: Array.from({ length: 5 }, (_, index) => ({
+        title: `Lesson ${index + 1}: ${['Charge', 'Gauss Law', 'Electric Potential', 'Capacitance', 'Current and Resistance'][index]}`,
+        sections: [{ learningObjectives: `Apply lesson ${index + 1}.` }],
+      })),
+    };
+    await buildCourseMaterialsZip({
+      courseMap,
+      deliverables: {
+        rubrics: {
+          status: 'done',
+          data: {
+            rubrics: [
+              { lessonNumber: 2, lessonTitle: 'Lesson 2: Gauss Law', title: 'Gauss Law Rubric' },
+              { lessonNumber: 4, lessonTitle: 'Lesson 4: Capacitance', title: 'Capacitance Rubric' },
+              { lessonTitle: 'Lesson 5: Current and Resistance', title: 'Current and Resistance Rubric' },
+            ],
+          },
+        },
+      },
+      featureIds: ['courseMap', 'rubrics'],
+      quality: false,
+    });
+
+    const rubricCalls = buildDeliverableDocxBlob.mock.calls.filter(([featureId]) => featureId === 'rubrics');
+    expect(rubricCalls).toHaveLength(5);
+    expect(rubricCalls[2][1].rubrics).toEqual([]);
+    expect(rubricCalls[4][1].rubrics).toEqual([
+      expect.objectContaining({ lessonTitle: 'Lesson 5: Current and Resistance' }),
+    ]);
+  });
+
   it('uses precomputed finish quality for ZIP reports instead of requiring a second grade pass', async () => {
     const result = await buildCourseMaterialsZip({
       courseMap: makeCourseMap('Browser Export Course'),

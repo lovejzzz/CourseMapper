@@ -38,10 +38,60 @@ const COURSE = {
 describe('exam kind classification is consistent compile-to-manifest', () => {
   it('classifies the long instruction-style exam title as an exam', () => {
     expect(classifyAssessmentKind(LONG_EXAM_TITLE)).toBe('exam');
+    // v0.16.67 live Physics catch: "Midterm Examination II (25%)" was
+    // misrouted to Assignment Briefs, then suppressed as quiz-like, leaving
+    // a manifest-promised A15.1 with a no-brief handoff (P0).
+    expect(classifyAssessmentKind('Midterm Examination II (25%)')).toBe('exam');
+    expect(classifyAssessmentKind('Final Examination: cumulative assessment')).toBe('exam');
     // The calibrated false-positive rules stay intact: prep/review artifacts
     // are not exams even when the exam noun leads the title.
     expect(classifyAssessmentKind('Practice Set: midterm preparation')).not.toBe('exam');
     expect(classifyAssessmentKind('exam review guide 3: evidence table and rationale')).toBe('graded-artifact');
+    expect(classifyAssessmentKind('Examination review guide: worked practice')).toBe('graded-artifact');
+  });
+
+  it('routes an examination-named assessment to a real exam paper, not an empty assignment handoff', () => {
+    const course = {
+      courseName: 'Introductory Physics II',
+      lessons: [
+        {
+          title: 'Lesson 1: Electric Charge and Fields',
+          sections: [
+            {
+              topicSection: 'Electric field definition and calculation',
+              learningGoals: 'Use electric fields to explain charge interactions.',
+              learningObjectives: 'Calculate an electric field and justify the sign.',
+              weeklyAssessments: 'Problem set 1: electric field calculations',
+              asyncActivities: 'Read the field chapter and annotate an example.',
+              syncActivities: 'Solve field problems in groups.',
+              supportingResources: 'Physics text chapter 21; equation sheet',
+            },
+          ],
+        },
+        {
+          title: 'Lesson 2: Midterm Examination II',
+          sections: [
+            {
+              topicSection: 'Midterm examination session',
+              learningGoals: 'Demonstrate cumulative command of electric fields.',
+              learningObjectives: 'Apply electric-field concepts under exam conditions.',
+              weeklyAssessments: 'Midterm Examination II (25%)',
+              asyncActivities: 'Review the study guide.',
+              syncActivities: 'Complete the examination.',
+              supportingResources: 'Equation sheet; exam policy',
+            },
+          ],
+        },
+      ],
+    };
+    const blueprint = buildBlueprintFromGraph(deriveCourseGraphFromCourseMap(course));
+    const compiled = compileBlueprintDeliverables(blueprint, ['assignments', 'quizBank'], {});
+    const exam = compiled.quizBank.quizzes.find((entry) => entry.kind === 'exam');
+
+    expect(blueprint.assessments.find((entry) => /Midterm Examination II/.test(entry.title)).kind).toBe('exam');
+    expect(exam?.lessonTitle).toContain('Midterm Examination II (25%)');
+    expect(exam?.questions.length).toBeGreaterThanOrEqual(3);
+    expect(compiled.assignments.assignments.some((entry) => /Midterm Examination II/.test(entry.title))).toBe(false);
   });
 
   it('does not turn exam-preparation artifacts or integration lessons into exam papers', () => {

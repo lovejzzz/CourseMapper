@@ -1753,6 +1753,13 @@ function lessonHasRubricWorthyAssessment(lesson) {
   const text = getLessonAssessmentText(lesson);
   if (!text.trim()) return false;
   if (/\b(no assessment|none|n\/a|not applicable|optional only)\b/i.test(text)) return false;
+  const assessmentItems = splitStructuredListItems(text);
+  const isCompilerFormativeItem = (item) =>
+    /^\s*in[-\s]?class\b/i.test(item) || /\bevidence check:\s*state one supported,\s*bounded conclusion\b/i.test(item);
+  // Native authoring deliberately places these checks in the lesson plan as
+  // ungraded practice. A generic word such as "analysis" inside the prompt
+  // must not make the finalizer invent a standalone rubric for it.
+  if (assessmentItems.length > 0 && assessmentItems.every(isCompilerFormativeItem)) return false;
   return /\b(assignment|paper|project|presentation|exam|quiz|test|portfolio|brief|report|case study|problem set|reflection|proposal|analysis|essay|final|midterm|checklist|critique|exercise|worksheet|model|dashboard|memo|checkpoint|exit ticket|lab)\b/i.test(
     text,
   );
@@ -1813,6 +1820,7 @@ function buildFallbackRubric(lesson, lessonIndex) {
 
   return {
     title,
+    lessonNumber: lessonIndex + 1,
     lessonTitle,
     gradedWork: assessmentName,
     assessmentType: 'Analytic Rubric',

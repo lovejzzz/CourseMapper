@@ -61,15 +61,17 @@ const ASSESSMENT_KIND_RULES = [
 // rule classified "Practice Set: midterm preparation" as kind 'exam' — a
 // PRACTICE artifact got 5% exam weight and a full compiled exam paper. Exam
 // kind now requires the exam noun as the OPERATIVE HEAD of the title:
-//  - "midterm exam" / "final exam" / "exam:" / "comprehensive exam|assessment";
+//  - "midterm exam|examination" / "final exam|examination" /
+//    "exam|examination:" / "comprehensive exam|examination|assessment";
 //  - a standalone "midterm"/"final" still counts (the word itself is the
 //    artifact) UNLESS a prep/review qualifier follows it (same for a bare
 //    "exam" head: "exam review guide" is a review artifact) — those force
 //    graded-artifact ("in-class" when it is a review session) — or another
 //    artifact noun is the head ("Final Project", "Final Oral Performance").
 const EXAM_PREP_QUALIFIER_RE =
-  /\b(?:(?:midterm|final)s?(?:\s+exam)?|exam)\s+(?:preparation|prep|review|readiness|practice|study|checklist|reflection|blueprint|integration)\b|\bexam[\s-]+style\b/i;
-const EXAM_HEAD_RE = /\b(?:midterm|final)\s+exam\b|\bexam\s*:|^\s*exam\b|\bcomprehensive\s+(?:exam|assessment)\b/i;
+  /\b(?:(?:midterm|final)s?(?:\s+exam(?:ination)?)?|exam(?:ination)?)\s+(?:preparation|prep|review|readiness|practice|study|checklist|reflection|blueprint|integration)\b|\bexam(?:ination)?[\s-]+style\b/i;
+const EXAM_HEAD_RE =
+  /\b(?:midterm|final)\s+exam(?:ination)?\b|\bexam(?:ination)?\s*:|^\s*exam(?:ination)?\b|\bcomprehensive\s+(?:exam(?:ination)?|assessment)\b/i;
 const BARE_MIDTERM_FINAL_RE = /^\s*(?:midterm|final)s?\s*(?:\(\s*\d+(?:\.\d+)?\s*%\s*\))?\s*$/i;
 const NON_EXAM_ASSESSMENT_HEAD_RE =
   /\b(problem set|computational lab|lab|notebook|worksheet|project|report|essay|assignment|brief|reflection|study guide|checklist|practice set)\b/i;
@@ -78,7 +80,7 @@ function nonExamAssessmentHead(title) {
   const head = String(title || '')
     .split(':')[0]
     .trim();
-  return NON_EXAM_ASSESSMENT_HEAD_RE.test(head) && !/\bexam\b/i.test(head);
+  return NON_EXAM_ASSESSMENT_HEAD_RE.test(head) && !/\bexam(?:ination)?\b/i.test(head);
 }
 
 export function classifyAssessmentKind(title) {

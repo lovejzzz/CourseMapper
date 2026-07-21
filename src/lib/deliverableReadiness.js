@@ -280,11 +280,32 @@ function filterLessonArray(items, lessonIndices) {
  * v0.14.1 (3.2): registry-mode deliverables break the one-item-per-lesson
  * positional assumption (N briefs per lesson, exam entries appended to the
  * quiz bank). Items that declare their own integer `lessonNumber` scope by
- * it; items without one keep positional scoping against their ORIGINAL
- * index, so legacy arrays (no lessonNumber anywhere) filter byte-identically
- * to filterLessonArray, and mixed arrays (weekly quizzes + appended exams)
- * route each item correctly.
+ * it. Older items often carry the same identity only in `lessonTitle`,
+ * `week`, or `relatedLessons`; read those before using positional legacy
+ * scoping so a repair-appended Lesson 5 item at array index 2 can never leak
+ * into the Lesson 3 export.
  */
+function lessonAwareItemNumber(item) {
+  if (!item || typeof item !== 'object') return null;
+  for (const value of [item.lessonNumber, item.ln, item.sourceLessonNumber]) {
+    const number = Number(value);
+    if (Number.isInteger(number) && number > 0) return number;
+  }
+  const identityText = [
+    item.lessonTitle,
+    item.lt,
+    item.weekNumber,
+    item.week,
+    item.dueWeek,
+    ...(Array.isArray(item.relatedLessons) ? item.relatedLessons : []),
+    ...(Array.isArray(item.rl) ? item.rl : []),
+  ]
+    .filter(Boolean)
+    .join(' ');
+  const match = identityText.match(/\b(?:lesson|week|module|unit|session)\s*(\d{1,3})\b/i);
+  return match ? Number(match[1]) : null;
+}
+
 function filterLessonAwareArray(items, lessonIndices, courseMap = null) {
   if (!Array.isArray(items)) return items;
   const lessonNumbers = new Set(
@@ -293,9 +314,10 @@ function filterLessonAwareArray(items, lessonIndices, courseMap = null) {
       return Number.isInteger(sourceNumber) && sourceNumber > 0 ? [index + 1, sourceNumber] : [index + 1];
     }),
   );
-  return items.filter((item, index) =>
-    Number.isInteger(item?.lessonNumber) ? lessonNumbers.has(item.lessonNumber) : lessonIndices.includes(index),
-  );
+  return items.filter((item, index) => {
+    const explicitLessonNumber = lessonAwareItemNumber(item);
+    return explicitLessonNumber ? lessonNumbers.has(explicitLessonNumber) : lessonIndices.includes(index);
+  });
 }
 
 // Features whose registry-mode arrays can hold several items per lesson.

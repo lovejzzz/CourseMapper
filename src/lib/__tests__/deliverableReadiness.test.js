@@ -442,6 +442,23 @@ describe('evaluateWorkspaceReadiness', () => {
     );
   });
 
+  it('never leaks an explicitly labeled fallback rubric into another lesson by array position', () => {
+    const data = {
+      rubrics: [
+        { lessonNumber: 2, lessonTitle: 'Lesson 2: Gauss Law', title: 'Lesson 2 Rubric' },
+        { lessonNumber: 4, lessonTitle: 'Lesson 4: Capacitance', title: 'Lesson 4 Rubric' },
+        // Exact v0.16.66 failure shape: a repair-added Lesson 5 rubric was at
+        // array index 2, so the old mixed-array fallback exported it as L3.
+        { lessonTitle: 'Lesson 5: Current and Resistance', title: 'Lesson 5 Rubric' },
+      ],
+    };
+
+    expect(scopeDeliverableDataToLessons('rubrics', data, [2]).rubrics).toEqual([]);
+    expect(scopeDeliverableDataToLessons('rubrics', data, [4]).rubrics).toEqual([
+      expect.objectContaining({ lessonTitle: 'Lesson 5: Current and Resistance' }),
+    ]);
+  });
+
   it('warns on syllabus exports that still contain unresolved publishability placeholders', () => {
     const readiness = evaluateWorkspaceReadiness({
       courseMap,
@@ -1294,6 +1311,7 @@ describe('repairWorkspaceReadiness', () => {
     expect(repaired.deliverables.rubrics.data.rubrics.map((rubric) => rubric.lessonTitle)).toContain(
       'Lesson 2: Advocacy Application',
     );
+    expect(repaired.deliverables.rubrics.data.rubrics.find((rubric) => rubric.lessonNumber === 2)).toBeTruthy();
 
     const after = evaluateWorkspaceReadiness({
       courseMap: checklistCourseMap,
@@ -1301,5 +1319,52 @@ describe('repairWorkspaceReadiness', () => {
       deliverables: repaired.deliverables,
     });
     expect(after.warnings.map((issue) => issue.message).join(' ')).not.toContain('Rubrics are missing assessed');
+  });
+
+  it('does not invent a rubric for native in-class evidence checks', () => {
+    const physicsCourseMap = {
+      courseName: 'Introductory Physics II - Electricity and Magnetism',
+      lessons: [
+        {
+          title: 'Lesson 1: Electric Charge and Fields',
+          sections: [{ weeklyAssessments: 'In-class Apply Electric Field Definition to one example.' }],
+        },
+        {
+          title: "Lesson 2: Gauss's Law Application",
+          sections: [{ weeklyAssessments: 'Problem set: Symmetry and flux calculation.' }],
+        },
+        {
+          title: 'Lesson 3: Electric Potential Concepts',
+          sections: [{ weeklyAssessments: 'In-class Apply Potential Difference Calculation to one example.' }],
+        },
+        {
+          title: 'Lesson 4: Capacitance Mechanisms',
+          sections: [{ weeklyAssessments: 'Reflection: Dielectric effects on capacitors.' }],
+        },
+        {
+          title: 'Lesson 5: Current and Resistance',
+          sections: [
+            {
+              weeklyAssessments:
+                "Ohm's Law and Resistivity evidence check: state one supported, bounded conclusion.\nIn-class Apply Circuit Components Analysis to one example and name one limitation.",
+            },
+          ],
+        },
+      ],
+    };
+    const originalRubrics = [
+      { lessonNumber: 2, lessonTitle: "Lesson 2: Gauss's Law Application", title: 'Gauss Law Rubric' },
+      { lessonNumber: 4, lessonTitle: 'Lesson 4: Capacitance Mechanisms', title: 'Capacitance Rubric' },
+    ];
+    const deliverables = { rubrics: { status: 'done', data: { rubrics: originalRubrics } } };
+
+    const repaired = repairWorkspaceReadiness({
+      courseMap: physicsCourseMap,
+      selectedFeatures: ['rubrics'],
+      deliverables,
+    });
+
+    expect(repaired.deliverables.rubrics.data.rubrics).toHaveLength(2);
+    expect(repaired.deliverables.rubrics.data.rubrics.some((rubric) => rubric.lessonNumber === 5)).toBe(false);
   });
 });

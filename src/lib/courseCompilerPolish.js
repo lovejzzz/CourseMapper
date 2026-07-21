@@ -1,6 +1,27 @@
 import { cleanText } from './compilerText';
 import { selectVariant } from './courseCompilerCopyVariants';
 
+export function examDefinitionCopy({ coveredIndex, concept, fromClause, assessmentTitle }) {
+  const seed = Number(coveredIndex) + 1;
+  const question = selectVariant(seed, [
+    `Which statement gives the course's working definition of ${concept}${fromClause}?`,
+    `According to the course materials, how is ${concept}${fromClause} defined?`,
+    `Select the statement that most accurately defines ${concept}${fromClause}.`,
+    `Which description best represents ${concept}${fromClause} as taught in this course?`,
+    `For ${concept}${fromClause}, identify the definition used throughout the course.`,
+    `In this course, what does ${concept}${fromClause} mean?`,
+  ]);
+  const intendedUse = selectVariant(seed, [
+    `Summative recognition item on ${assessmentTitle}; identify the course definition of ${concept}.`,
+    `Definition check for ${assessmentTitle}; distinguish ${concept} from nearby course ideas.`,
+    `Use this ${assessmentTitle} item to verify accurate recognition of ${concept}.`,
+    `This ${assessmentTitle} question tests the taught meaning of ${concept}.`,
+    `Course-language recognition for ${assessmentTitle}; select the documented definition of ${concept}.`,
+    `On ${assessmentTitle}, this item checks whether students can identify what ${concept} means.`,
+  ]);
+  return { question, intendedUse };
+}
+
 export function examFactCopy({ lessonNumber, questionIndex = 0, assessmentTitle, lessonFocus, answer }) {
   const seed = Number(lessonNumber || 1) + Number(questionIndex || 0);
   return {
