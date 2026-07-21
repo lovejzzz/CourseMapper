@@ -84,6 +84,28 @@ describe('collectRequiredLabAssets', () => {
     expect(requirements).toEqual([]);
   });
 
+  it('does not turn a nursing survey course with physiology topics into an anatomy lab', () => {
+    const requirements = collectRequiredLabAssets({
+      courseMap: {
+        courseName: 'Foundations for Nursing Practice',
+        lessons: [
+          {
+            title: 'Lesson 1: Homeostasis',
+            sections: [
+              {
+                topicSection: 'Cells, tissues, organs, and feedback regulation',
+                learningObjectives: 'Explain how physiology informs safe nursing observations.',
+                weeklyAssessments: 'Patient-observation case note.',
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    expect(requirements).toEqual([]);
+  });
+
   it('keeps physical wet-lab requirements when concrete lab evidence is present', () => {
     const requirements = collectRequiredLabAssets({
       courseMap: {

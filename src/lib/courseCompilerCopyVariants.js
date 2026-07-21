@@ -91,10 +91,20 @@ export function compactAssignmentBriefBodyReferences({ brief = {}, lesson = {}, 
     week && !new RegExp(`^${escapeRegexLiteral(week)}\\b`, 'i').test(artifactLabel)
       ? `${week} ${artifactLabel.charAt(0).toLowerCase()}${artifactLabel.slice(1)}`
       : artifactLabel;
+  const canonicalLead = stripTerminalPunctuation(canonicalTitle.split(/\s*[:;–—]\s*/)[0]);
   const aliases = unique(
-    [brief?.title, lesson?.studentArtifact, lesson?.assessmentAnchor?.title, lesson?.assessmentAnchor?.artifact]
+    [
+      week && canonicalTitle ? `${week} ${canonicalTitle}` : '',
+      brief?.title,
+      week && canonicalLead ? `${week} ${canonicalLead}` : '',
+      canonicalLead,
+      lesson?.studentArtifact,
+      lesson?.assessmentAnchor?.title,
+      lesson?.assessmentAnchor?.artifact,
+    ]
       .map((value) => stripTerminalPunctuation(cleanText(value)))
-      .filter((value) => value && courseCopySurfaceWords(value).length >= 7),
+      .filter((value) => value && courseCopySurfaceWords(value).length >= 5)
+      .sort((left, right) => right.length - left.length),
     8,
   ).map((source) => [source, shortReference]);
   for (const field of ASSIGNMENT_BRIEF_BODY_FIELDS) {

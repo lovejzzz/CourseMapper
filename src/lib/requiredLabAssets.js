@@ -98,8 +98,9 @@ function hasLanguageCourseSignal(identityText, text) {
 const WET_LAB_SIGNAL =
   /\b(wet lab|lab safety|bench lab|bench experiment\w*|laboratory methods?|titration|spectroscop\w+|chromatograph\w+|microscop\w+|chemical synthesis|organic synthesis|reagent|specimen|dissect\w+|assay|recrystalliz\w+|pipette|beaker|streak plate|hand lens|field notebook|(?:rock|mineral|biological|chemical)\s+samples?|sample kit)\b/i;
 
-const ANATOMY_PHYSIOLOGY_SIGNAL =
-  /\b(?:anatomy|physiology|a&p|histology|tissue types?|integumentary|skeletal system|muscular system|nervous system|sensory physiology|homeostasis|feedback regulation|microscope labs?|lab practicals?|anatomical models?)\b/i;
+const ANATOMY_PHYSIOLOGY_IDENTITY_SIGNAL = /\b(?:anatomy|physiology|a&p|histology)\b/i;
+const ANATOMY_PHYSIOLOGY_LAB_SIGNAL =
+  /\b(?:microscope labs?|lab practicals?|anatomical models?|histology (?:slides?|images?)|prepared slides?|tissue identification lab|dissect\w*)\b/i;
 
 /**
  * Which asset genre this course belongs to. Exported so tests (and the
@@ -112,7 +113,13 @@ export function classifyCourseAssetGenre({ courseMap }) {
   const identityText = courseIdentityText(courseMap);
   if (hasDataScienceCourseSignal(identityText, text)) return 'data-science';
   if (hasLanguageCourseSignal(identityText, text)) return 'language';
-  if (ANATOMY_PHYSIOLOGY_SIGNAL.test(`${identityText} ${text}`)) return 'anatomy-physiology';
+  // Nursing, psychology, and health courses legitimately discuss
+  // homeostasis, tissues, and body systems without requiring a physical A&P
+  // lab. Require either an identity-level A&P claim or explicit lab practice
+  // before emitting microscopes, specimens, and model-handling policies.
+  if (ANATOMY_PHYSIOLOGY_IDENTITY_SIGNAL.test(identityText) || ANATOMY_PHYSIOLOGY_LAB_SIGNAL.test(text)) {
+    return 'anatomy-physiology';
+  }
   if (WET_LAB_SIGNAL.test(text)) return 'wet-lab';
   return 'general';
 }
