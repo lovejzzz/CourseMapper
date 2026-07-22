@@ -308,6 +308,30 @@ describe('Scion adapter training receipts', () => {
     expect(result.plan.trainer.command).toEqual(expect.arrayContaining(['--max-seq-length', '2580']));
   });
 
+  it('binds a compact LoRA rank and matching alpha into the plan identity and trainer command', async () => {
+    root = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-training-rank-'));
+    const dataset = await buildSmokeDataset(path.join(root, 'dataset'));
+    const baseSnapshotPath = path.join(root, SCION_GEMMA4_E2B_BASE.revision);
+    await fs.mkdir(baseSnapshotPath);
+    const result = await createScionAdapterTrainingPlan({
+      lane: 'smoke',
+      datasetManifestPath: dataset.manifestPath,
+      baseSnapshotPath,
+      toolchainReceipt: await toolchainReceipt(),
+      outputRoot: path.join(root, 'adapters'),
+      codeRoot: process.cwd(),
+      scionVersion: '0.16.31',
+      seed: 16031,
+      loraRank: 8,
+      loraAlpha: 8,
+      generatedAt: '2026-07-15T01:00:00.000Z',
+      repository: { commit: 'a'.repeat(40), tree: 'b'.repeat(40), dirty: false },
+    });
+
+    expect(result.plan.trainer.hyperparameters).toMatchObject({ loraRank: 8, loraAlpha: 8 });
+    expect(result.plan.trainer.command).toEqual(expect.arrayContaining(['--lora-rank', '8', '--lora-alpha', '8']));
+  });
+
   it('completes and verifies a byte-bound run, then rejects weight or dataset mutation', async () => {
     const fixture = await createPlanFixture();
     await fs.writeFile(path.join(fixture.outputDir, 'adapter_config.json'), '{"rank":16}\n');

@@ -523,6 +523,8 @@ export async function createScionAdapterTrainingPlan({
   seed = 16031,
   iterations,
   maxSequenceLength,
+  loraRank,
+  loraAlpha,
   generatedAt = new Date().toISOString(),
   repository,
   toolchainPolicyPath = path.resolve(codeRoot, DEFAULT_TOOLCHAIN_POLICY),
@@ -555,6 +557,9 @@ export async function createScionAdapterTrainingPlan({
     ...SCION_ORPO_DEFAULTS,
     iterations: iterations == null ? (lane === 'smoke' ? 10 : SCION_ORPO_DEFAULTS.iterations) : Number(iterations),
     maxSequenceLength: maxSequenceLength == null ? SCION_ORPO_DEFAULTS.maxSequenceLength : Number(maxSequenceLength),
+    loraRank: loraRank == null ? SCION_ORPO_DEFAULTS.loraRank : Number(loraRank),
+    loraAlpha:
+      loraAlpha == null ? (loraRank == null ? SCION_ORPO_DEFAULTS.loraAlpha : Number(loraRank)) : Number(loraAlpha),
   };
   const hyperparameterIssues = validateHyperparameters(hyperparameters, lane, Number(seed));
   if (hyperparameterIssues.length > 0)
@@ -810,6 +815,8 @@ function parseArgs(argv) {
     else if (arg === '--seed') args.seed = Number(argv[++index]);
     else if (arg === '--iterations') args.iterations = Number(argv[++index]);
     else if (arg === '--max-sequence-length') args.maxSequenceLength = Number(argv[++index]);
+    else if (arg === '--lora-rank') args.loraRank = Number(argv[++index]);
+    else if (arg === '--lora-alpha') args.loraAlpha = Number(argv[++index]);
     else if (arg === '--python') args.python = argv[++index];
   }
   return args;

@@ -41,6 +41,16 @@ MODEL_CACHE=${SCION_MODEL_CACHE:-$HOME/.cache/coursemapper/scion-models}
 OUTPUT_ROOT=${SCION_ADAPTER_OUTPUT_ROOT:-$HOME/.cache/coursemapper/scion-adapters}
 RESEARCH_PREFERENCE_SOURCE=${SCION_RESEARCH_PREFERENCE_SOURCE:-evaluation/scion-adapters/evidence/codex-approved-preferences-v0.16.47-readiness-gap.jsonl}
 SEED=${SCION_TRAIN_SEED:-16031}
+LORA_RANK=${SCION_TRAIN_LORA_RANK:-16}
+LORA_ALPHA=${SCION_TRAIN_LORA_ALPHA:-$LORA_RANK}
+if [[ "$LORA_RANK" != <-> ]] || [ "$LORA_RANK" -le 0 ]; then
+  echo "REFUSING: SCION_TRAIN_LORA_RANK must be a positive integer."
+  exit 1
+fi
+if [[ "$LORA_ALPHA" != <-> ]] || [ "$LORA_ALPHA" -le 0 ]; then
+  echo "REFUSING: SCION_TRAIN_LORA_ALPHA must be a positive integer."
+  exit 1
+fi
 LANE=production
 $SMOKE && LANE=smoke
 $RESEARCH && LANE=research
@@ -133,7 +143,9 @@ PLAN_JSON=$(node scripts/scionAdapterTrainingRun.mjs \
   --output-root "$OUTPUT_ROOT" \
   --seed "$SEED" \
   --iterations "$ITERS" \
-  --max-sequence-length "$MAX_SEQUENCE_LENGTH")
+  --max-sequence-length "$MAX_SEQUENCE_LENGTH" \
+  --lora-rank "$LORA_RANK" \
+  --lora-alpha "$LORA_ALPHA")
 OUTPUT=$(node -e 'const value=JSON.parse(process.argv[1]); process.stdout.write(value.outputDir)' "$PLAN_JSON")
 RUN_ID=$(node -e 'const value=JSON.parse(process.argv[1]); process.stdout.write(value.adapterId)' "$PLAN_JSON")
 PLAN="$OUTPUT/training-plan.json"
@@ -158,8 +170,8 @@ set +e
   --grad-checkpoint \
   --train-on-completions \
   --gradient-accumulation-steps 2 \
-  --lora-rank 16 \
-  --lora-alpha 16 \
+  --lora-rank "$LORA_RANK" \
+  --lora-alpha "$LORA_ALPHA" \
   --lora-dropout 0 \
   --beta 0.1 \
   --eps 0.00000001 \
