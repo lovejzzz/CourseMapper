@@ -23,6 +23,8 @@ export function compactCourseCopyFocus(focus) {
   const cleanFocus = cleanText(focus);
   const literalWordCount = (cleanFocus.match(/[A-Za-z0-9][A-Za-z0-9'-]*/g) || []).length;
   if (courseCopySurfaceWords(cleanFocus).length < 4 && literalWordCount < 5) return cleanFocus;
+  const subjectPrefix = stripTerminalPunctuation(cleanFocus.split(/\s+and\s+/i)[0]);
+  if (courseCopySurfaceWords(subjectPrefix).length >= 2) return subjectPrefix;
   const methodPrefix = stripTerminalPunctuation(cleanFocus.split(/\s+using\s+/i)[0]);
   return methodPrefix && courseCopySurfaceWords(methodPrefix).length <= 4 ? methodPrefix : cleanFocus;
 }
@@ -118,17 +120,9 @@ export function compactRepeatedCourseFocusReferences(value, fullFocus, { limit =
     !/^(?:\d+|advanced|analy[sz]e|apply|basics?|blocks?|compare|cumulative|evaluate|explain|explore|foundations?|fundamentals?|in|introduc\w*|lessons?|methods?|modeling|modern|of|on|overview|principles?|process|projects?|review|sessions?|study|techniques?|theory|to|understand|units?|use|using|weeks?)$/.test(
       word,
     );
-  const filteredTopicSurfaces = courseCopySurfaceWords(focus).filter(isTopicSurface);
-  // Prefer a meaningful first clause over an adjective pile assembled across
-  // a conjunction: "diurnal motion and the apparent daily motion ..." reads
-  // naturally as "diurnal motion", not "diurnal motion apparent". A
-  // one-word first clause ("Meiosis and Gamete Formation") is too lossy, so
-  // it keeps the broader topic candidate.
-  const firstClauseTopicSurfaces = /\s+and\s+/i.test(focus)
-    ? courseCopySurfaceWords(focus.split(/\s+and\s+/i)[0]).filter(isTopicSurface)
-    : [];
-  const topicCandidates = firstClauseTopicSurfaces.length >= 2 ? firstClauseTopicSurfaces : filteredTopicSurfaces;
-  const firstThreeTopicSurfaces = topicCandidates.slice(0, 3);
+  const firstThreeTopicSurfaces = courseCopySurfaceWords(compactCourseCopyFocus(focus))
+    .filter(isTopicSurface)
+    .slice(0, 3);
   // Never let the local reference equal a three-or-more-word lesson title.
   // Otherwise a replacement such as "<full title>–specific" still counts
   // as the exact mail-merge phrase in the exported DOCX. Preserve a useful

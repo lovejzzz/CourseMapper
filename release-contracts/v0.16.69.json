@@ -27,7 +27,7 @@
     "liveProvider": {
       "status": "success",
       "url": "docs/evidence/SCION_V01669_SOURCE_LEDGER_FREEZE.json",
-      "note": "The pinned base-only Scion route completes all five frozen courses with zero findings, blockers, warnings, model failures, or archive failures."
+      "note": "The pinned base-only Scion route completes all five frozen courses plus a fresh Physical Geology regression with zero findings, blockers, warnings, model failures, or archive failures."
     },
     "manualHuman": {
       "status": "not-applicable",
@@ -36,7 +36,7 @@
     "manualBrowser": {
       "status": "success",
       "url": "docs/evidence/SCION_V01669_SOURCE_LEDGER_FREEZE.json",
-      "note": "Representative DOCX files, console receipts, manifests, quality reports, and all five physical ZIPs were inspected."
+      "note": "Representative DOCX files, every-DOCX defect scans, console receipts, manifests, quality reports, and all six physical ZIPs were inspected."
     }
   },
   "claims": [
@@ -91,15 +91,18 @@
       "id": "v01669-artifact-rendering-repairs",
       "status": "verified-current",
       "changelogHighlightIndex": 3,
-      "summary": "Exported assessment weights, misconception options, constructed-response keys, and shortened references render without duplication, broken narrators, prompt echo, article collisions, lowercase sentence starts, preposition-only labels, or broken possessives.",
+      "summary": "Exported assessment weights, misconception options, constructed-response keys, and shortened references render without duplication, broken narrators, prompt echo, article collisions, lowercase sentence starts, missing apostrophes, possessive-plus-article seams, or cross-conjunction focus fragments.",
       "anchors": [
         "src/lib/exporters/docxExporter.js",
         "src/lib/kernelProjection.js",
         "src/lib/courseBlueprintCompiler.js",
-        "src/lib/__tests__/docxExporter.test.js"
+        "src/lib/compiledLanguageFinalizer.js",
+        "src/lib/courseCompilerCopyVariants.js",
+        "src/lib/__tests__/docxExporter.test.js",
+        "src/lib/__tests__/courseCompilerCopyVariants.test.js"
       ],
       "proofCommands": [
-        "npx vitest run src/lib/__tests__/docxExporter.test.js src/lib/__tests__/kernelProjection.test.js src/lib/__tests__/courseBlueprintCompiler.test.js"
+        "npx vitest run src/lib/__tests__/docxExporter.test.js src/lib/__tests__/kernelProjection.test.js src/lib/__tests__/courseBlueprintCompiler.test.js src/lib/__tests__/courseCompilerCopyVariants.test.js"
       ],
       "proofScopes": ["unit", "compiled-output", "browser-live"]
     },
@@ -107,14 +110,14 @@
       "id": "v01669-five-domain-zero-finding-freeze",
       "status": "verified-current",
       "changelogHighlightIndex": 4,
-      "summary": "Five frozen base-only courses each complete ten material sections, 38 export checks, and valid archives at 99/A with zero findings, blockers, or warnings.",
+      "summary": "Five frozen base-only courses and a fresh Physical Geology regression each complete ten material sections, 38 export checks, and valid archives at 99/A with zero findings, blockers, or warnings.",
       "anchors": [
         "docs/evidence/SCION_V01669_SOURCE_LEDGER_FREEZE.json",
         "evaluation/scion-adapters/held-out-course-benchmark-v17.json",
         "scripts/crucible.mjs"
       ],
       "proofCommands": [
-        "node scripts/crucible.mjs --courses astro-101,mandarin,nutrition-101,psych-101,world-lit-readings --llm local --authoring native --concurrency 1"
+        "node scripts/crucible.mjs --courses astro-101,geology,mandarin,nutrition-101,psych-101,world-lit-readings --llm local --authoring native --concurrency 1"
       ],
       "proofScopes": ["browser-live", "gold-audit", "compiled-output"]
     },
@@ -122,14 +125,14 @@
       "id": "v01669-bounded-native-inference",
       "status": "verified-current",
       "changelogHighlightIndex": 5,
-      "summary": "The exact five-course build uses 30 actual Gemma generations with zero failures rather than reopening the old 72-call per-course architecture.",
+      "summary": "The exact five-course build uses 31 actual Gemma generations, including one bounded content retry, and Geology adds four for a six-course total of 35 with zero failures rather than reopening the old 72-call per-course architecture.",
       "anchors": [
         "docs/evidence/SCION_V01669_SOURCE_LEDGER_FREEZE.json",
         "scripts/crucible/e2bOpenAIShim.mjs",
         "src/lib/scionPassB.js"
       ],
       "proofCommands": [
-        "node scripts/crucible.mjs --courses astro-101,mandarin,nutrition-101,psych-101,world-lit-readings --llm local --authoring native --concurrency 1"
+        "node scripts/crucible.mjs --courses astro-101,geology,mandarin,nutrition-101,psych-101,world-lit-readings --llm local --authoring native --concurrency 1"
       ],
       "proofScopes": ["browser-live", "static-audit"]
     },
