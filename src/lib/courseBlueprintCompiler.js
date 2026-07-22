@@ -1020,15 +1020,41 @@ function hasLectureExamEvidence(text = '') {
 }
 
 function hasWorldLanguageEvidence(text = '') {
-  const hasLanguageDomain =
-    /\b(world language|foreign language|second language|language proficiency|spanish|french|mandarin|chinese|arabic|german|italian|japanese|korean|asl|american sign language|esl|english language learner|bilingual|heritage speaker)\b/.test(
+  const hasExplicitLanguageCourseDomain =
+    /\b(world language|foreign language|second language|language proficiency|asl|american sign language|esl|english language learner|bilingual|heritage speaker)\b/.test(
       text,
     );
-  const hasCommunicativePractice =
-    /\b(conversation|dialogue|oral proficiency|speaking|listening|pronunciation|grammar|vocabulary|interpersonal|interpretive|presentational|cultural comparison|language function|can[-\s]?do statement|proficiency task|comprehensible input|pinyin|tones?|hanzi|characters?|greetings?|self[-\s]?introductions?|oral performance)\b/.test(
-      text,
-    );
-  return hasLanguageDomain && hasCommunicativePractice;
+  const hasNamedLanguage = /\b(spanish|french|mandarin|chinese|arabic|german|italian|japanese|korean)\b/.test(text);
+  // A literature/history course can legitimately mention Chinese poetry,
+  // Arabic narrative, French film, or dialogue and interpretation. Those
+  // references are not evidence of language-acquisition pedagogy. Require
+  // two distinct acquisition practices for a merely named language; an
+  // explicitly labeled language course still needs one real practice cue.
+  const acquisitionPracticePatterns = [
+    /\bconversation\b/,
+    /\bdialogue\b/,
+    /\boral proficiency\b/,
+    /\bspeaking\b/,
+    /\blistening(?: comprehension)?\b/,
+    /\bpronunciation\b/,
+    /\bgrammar\b/,
+    /\bvocabulary\b/,
+    /\binterpersonal\b/,
+    /\bpresentational\b/,
+    /\blanguage function\b/,
+    /\bcan[-\s]?do statement\b/,
+    /\bproficiency task\b/,
+    /\bcomprehensible input\b/,
+    /\btarget[-\s]?language\b/,
+    /\bpinyin\b/,
+    /\btones?\b/,
+    /\bhanzi\b/,
+    /\bcharacters?\b/,
+    /\bgreetings?\b/,
+    /\bself[-\s]?introductions?\b/,
+  ];
+  const practiceCueCount = acquisitionPracticePatterns.filter((pattern) => pattern.test(text)).length;
+  return (hasExplicitLanguageCourseDomain && practiceCueCount >= 1) || (hasNamedLanguage && practiceCueCount >= 2);
 }
 
 function hasProgrammingLabEvidence(text = '') {

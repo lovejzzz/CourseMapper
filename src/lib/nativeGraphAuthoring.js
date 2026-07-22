@@ -277,7 +277,14 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
   const facts = asArray(payload?.kernel?.facts)
     .map((fact) => cleanTextAtBoundary(fact, 220))
     .filter(Boolean);
-  const surfaceFacts = factsAlignedToLesson(facts, courseMapLesson, concept);
+  // A genuine compiler-owned review/synthesis session intentionally compares
+  // admitted claims across earlier lessons. Applying the ordinary single-
+  // lesson relevance filter here can retain only two claims, below the three-
+  // fact floor needed to compile its slide core. Preserve the full immutable
+  // ledger only for this explicit projection kind; normal lessons still drop
+  // wrong-topic padding through `factsAlignedToLesson`.
+  const surfaceFacts =
+    payload?.projectionKind === 'cumulative-assessment' ? facts : factsAlignedToLesson(facts, courseMapLesson, concept);
   const anchorFact =
     selectConceptAlignedFact(surfaceFacts, concept) ||
     definition ||
@@ -628,7 +635,7 @@ export function completeNativeLessonSurfaces(lessonContent, courseMapLessons = [
 // lesson evidence instead. The projection copies facts and key-term atoms
 // verbatim; the compiler adds only review instructions and provenance.
 const CUMULATIVE_ASSESSMENT_TITLE_RE =
-  /\b(?:midterm(?:\s+(?:exam|assessment|\d+))?|final\s+(?:exam|examination|assessment)|cumulative\s+(?:exam|examination|assessment|review)|comprehensive\s+(?:exam|examination|assessment|review)|exam\s+review|problem\s+sets?|course\s+synthesis|vocabulary\s+recall)\b/i;
+  /\b(?:midterm(?:\s+(?:exam|assessment|\d+))?|final\s+(?:exam|examination|assessment)|cumulative\s+(?:exam|examination|assessment|review)|comprehensive\s+(?:exam|examination|assessment|review)|exam\s+review|problem\s+sets?|course\s+synthesis|vocabulary\s+recall|comparative\s+(?:reading(?:\s+(?:methods?|strategies))?|essays?(?:\s+(?:proposal|planning|workshop))?))\b/i;
 
 export function isCumulativeAssessmentLesson(lesson = {}) {
   const title = typeof lesson === 'string' ? lesson : lesson?.title;

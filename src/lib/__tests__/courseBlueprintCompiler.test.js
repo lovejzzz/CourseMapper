@@ -6199,6 +6199,43 @@ describe('courseBlueprintCompiler', () => {
     });
   });
 
+  it('does not turn literature with a named language and dramatic dialogue into language instruction', () => {
+    const literatureMap = {
+      courseName: 'World Literature',
+      semester: 'Fall 2026',
+      learningOutcomes:
+        'Build interpretive claims through close reading, textual evidence, comparative analysis, and source context.',
+      lessons: [
+        {
+          title: 'Lesson 1: Tang Poetry and Classical Chinese Poetry',
+          sections: [
+            {
+              topicSection: 'Tang poetry, Classical Chinese poetry, dramatic dialogue, and comparative form',
+              learningObjectives:
+                'Compare two poems through quoted textual evidence and revise one interpretive claim.',
+              learningGoals: 'Use close reading to connect poetic form, imagery, and historical context.',
+              weeklyAssessments: 'Comparative close-reading memo with passage evidence and a counter-reading.',
+              asyncActivities: 'Annotate the assigned poems for form, imagery, and translation choices.',
+              syncActivities: 'Debate two interpretations and revise the claim against passage evidence.',
+              supportingResources: 'Assigned poems; Classical Chinese poetry context note; close-reading guide',
+              evaluateDesign: 'Score textual evidence, interpretive reasoning, source restraint, and revision.',
+            },
+          ],
+        },
+      ],
+    };
+
+    const blueprint = buildCourseBlueprint(literatureMap);
+    const compiled = compileBlueprintDeliverables(blueprint, ['lessonPlans', 'assignments', 'discussions']);
+    const learnerFacing = JSON.stringify(compiled);
+
+    expect(blueprint.courseModalityProfile.primaryMode).toBe('interpretive-humanities');
+    expect(blueprint.lessons[0].artifactGenre.genre).toBe('close-reading-analysis');
+    expect(learnerFacing).not.toMatch(
+      /Communicative language performance|target-language|language-use evidence|revised target-language|World language/i,
+    );
+  });
+
   it.each([
     {
       courseName: 'Elementary Mandarin Chinese I',
@@ -7825,7 +7862,8 @@ describe('courseBlueprintCompiler', () => {
       },
       studyGuide: {
         summary: 'Compare the sentence parts and explain how word order changes meaning.',
-        reviewStrategy: 'Label each sentence part, rehearse the pattern, and check the result against the lesson source.',
+        reviewStrategy:
+          'Label each sentence part, rehearse the pattern, and check the result against the lesson source.',
       },
     };
 

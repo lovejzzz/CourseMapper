@@ -230,6 +230,35 @@ describe('nativeGraphAuthoring matchEntityIds', () => {
 });
 
 describe('completeNativeKernelSurfaces', () => {
+  it('keeps the admitted cross-lesson ledger for an explicit cumulative projection', () => {
+    const completed = completeNativeKernelSurfaces(
+      {
+        projectionKind: 'cumulative-assessment',
+        sourceLessonIds: ['lesson-1', 'lesson-2', 'lesson-3'],
+        kernel: {
+          facts: [
+            'Comparative reading identifies a defensible relation between details from two assigned texts.',
+            'An essay proposal states the comparison and names the evidence each text contributes.',
+            'Oral epics use patterned language to support performance and collective memory.',
+            'Tang poetry often develops meaning through compressed imagery and patterned form.',
+            'Classical drama presents conflict through staged speech, action, and audience knowledge.',
+          ],
+        },
+      },
+      {
+        title: 'Lesson 8: Comparative Reading Methods',
+        sections: [
+          { topicSection: 'Comparative Reading Strategies' },
+          { topicSection: 'Developing Comparative Essays' },
+        ],
+      },
+    );
+
+    expect(completed.kernel.facts).toHaveLength(5);
+    expect(completed.slideContent.length).toBeGreaterThanOrEqual(1);
+    expect(assessProjectedKernelCoverage(completed).usable).toBe(true);
+  });
+
   it('completes a sentence-completion MC stem before projecting it as a key-term example', () => {
     const completed = completeNativeKernelSurfaces(
       {
@@ -526,15 +555,77 @@ describe('cumulative assessment kernel projection', () => {
         sections: [{ topicSection: 'Vocabulary Recall' }, { topicSection: 'Grammar' }],
       },
       {
+        title: 'Lesson 8: Comparative Reading Methods',
+        sections: [{ topicSection: 'Developing Comparative Essays' }, { topicSection: 'Proposal Drafting' }],
+      },
+      {
+        title: 'Lesson 8: Developing Comparative Essays',
+        sections: [{ topicSection: 'Proposal Drafting' }],
+      },
+      {
         title: 'Lesson 7: Vocabulary Building and Grammar',
         sections: [{ topicSection: 'New sentence patterns' }],
       },
     ];
 
-    expect(partitionCumulativeAssessmentLessons(reviewLessons, [0, 1, 2, 3])).toEqual({
-      subjectLessonIndices: [0, 3],
-      cumulativeAssessmentLessonIndices: [1, 2],
+    expect(partitionCumulativeAssessmentLessons(reviewLessons, [0, 1, 2, 3, 4, 5])).toEqual({
+      subjectLessonIndices: [0, 5],
+      cumulativeAssessmentLessonIndices: [1, 2, 3, 4],
     });
+  });
+
+  it('projects a comparative-reading integrator from earlier admitted texts instead of shipping review placeholders', () => {
+    const comparativeLessons = [
+      { title: 'Lesson 1: Oral Epic Tradition', sections: [{ topicSection: 'Epic transmission' }] },
+      { title: 'Lesson 2: Classical Drama', sections: [{ topicSection: 'Dramatic conflict' }] },
+      {
+        title: 'Lesson 3: Comparative Reading Methods',
+        sections: [
+          { topicSection: 'Comparative Reading Strategies', weeklyAssessments: 'Comparative essay proposal' },
+          { topicSection: 'Proposal Drafting', weeklyAssessments: 'Evidence plan' },
+        ],
+      },
+    ];
+    const lessonContent = {
+      'lesson-1': {
+        kernel: {
+          facts: [
+            'Oral epics use patterned language to support performance and memory.',
+            'Performance context changes how an audience encounters an epic narrative.',
+            'Written editions preserve some features while reframing others.',
+          ],
+        },
+      },
+      'lesson-2': {
+        kernel: {
+          facts: [
+            'Classical drama develops conflict through staged speech and action.',
+            'A dramatic scene gives an audience evidence through language, structure, and performance.',
+            'Comparing scenes requires a bounded claim supported by details from each text.',
+          ],
+        },
+      },
+    };
+
+    const result = projectCumulativeAssessmentKernels({
+      lessonContent,
+      courseMapLessons: comparativeLessons,
+      lessonIndices: [2],
+      courseName: 'World Literature',
+    });
+
+    expect(result).toEqual({ projectedLessonIndices: [2], skippedLessonIndices: [] });
+    expect(lessonContent['lesson-3']).toMatchObject({
+      enrichmentSource: 'cumulative-review-projection',
+      projectionKind: 'cumulative-assessment',
+      sourceLessonIds: ['lesson-1', 'lesson-2'],
+    });
+    expect(assessProjectedKernelCoverage(lessonContent['lesson-3']).usable).toBe(true);
+    expect(
+      lessonContent['lesson-3'].kernel.facts.every((fact) =>
+        ['lesson-1', 'lesson-2'].some((lessonId) => lessonContent[lessonId].kernel.facts.includes(fact)),
+      ),
+    ).toBe(true);
   });
 
   it('projects course synthesis from admitted compact fact ledgers before optional surfaces exist', () => {
