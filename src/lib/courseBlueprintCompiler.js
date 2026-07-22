@@ -18156,9 +18156,12 @@ const UNADMITTED_TARGET_LANGUAGE_PINYIN_RE = /\b[a-zü]*[āáǎàēéěèīíǐ�
 
 function containsUnadmittedTargetLanguageExample(value, pair = null) {
   if (!value || !pair) return false;
-  let text = JSON.stringify(value);
+  // The source-ledger contract canonicalizes Unicode with NFKC. Compare the
+  // admitted pair on that same boundary so full-width Chinese punctuation
+  // (多少钱？) and its canonical form (多少钱?) remain the same utterance.
+  let text = JSON.stringify(value).normalize('NFKC');
   for (const admitted of [pair.hanzi, pair.pinyin]) {
-    const exact = cleanText(admitted);
+    const exact = cleanText(admitted).normalize('NFKC');
     if (exact) text = text.split(exact).join('');
   }
   return UNADMITTED_TARGET_LANGUAGE_SCRIPT_RE.test(text) || UNADMITTED_TARGET_LANGUAGE_PINYIN_RE.test(text);
@@ -19285,6 +19288,8 @@ function buildMultipleChoiceOptions({ lesson, index, concept, artifact, use, cor
 // A distractor built from the concept's authored genome misconception. Strips
 // "students…" meta-language (the honesty gate rejects it) and presents the
 // wrong belief as an answer choice. Returns '' when no matching misconception.
+const STUDENT_NARRATOR_RE = /^students?(?:\s*(?:\(\s*)?and\s+(?:teacher|instructor|educator)s?\s*\)?)?\s+/i;
+
 function kernelMisconceptionDistractor(lesson, concept) {
   const conceptNorm = cleanText(concept).toLowerCase();
   const conceptTokens = new Set(conceptNorm.split(/\s+/).filter((t) => t.length > 3));
@@ -19312,10 +19317,12 @@ function kernelMisconceptionDistractor(lesson, concept) {
   // distractor. Meta-framed misconceptions that don't reduce to an action are
   // skipped rather than mangled.
   const clause = stripTerminalPunctuation(
-    cleanText(term.misconception).replace(
-      /^students?\s+(?:often\s+|sometimes\s+|frequently\s+|commonly\s+|usually\s+|tend to\s+|may\s+|might\s+|will\s+|typically\s+)*/i,
-      '',
-    ),
+    cleanText(term.misconception)
+      .replace(STUDENT_NARRATOR_RE, '')
+      .replace(
+        /^(?:often\s+|sometimes\s+|frequently\s+|commonly\s+|usually\s+|tend to\s+|may\s+|might\s+|will\s+|typically\s+)*/i,
+        '',
+      ),
   );
   if (!clause || wordCount(clause) < 4) return '';
   // Needs an action verb up front to read as a choice ("Treat…", "Read…").
@@ -20409,10 +20416,12 @@ function buildExamEssayItem({ blueprint, assessment, covered, lens, examSlug, or
 // normal answer option instead of announcing itself.
 function examMisconceptionClaim(term) {
   const clause = stripTerminalPunctuation(
-    cleanText(term?.misconception).replace(
-      /^students?\s+(?:often\s+|sometimes\s+|frequently\s+|commonly\s+|usually\s+|tend to\s+|may\s+|might\s+|will\s+|typically\s+)*(?:believe\s+|think\s+|assume\s+|expect\s+|conclude\s+)?(?:that\s+)?/i,
-      '',
-    ),
+    cleanText(term?.misconception)
+      .replace(STUDENT_NARRATOR_RE, '')
+      .replace(
+        /^(?:often\s+|sometimes\s+|frequently\s+|commonly\s+|usually\s+|tend to\s+|may\s+|might\s+|will\s+|typically\s+)*(?:believe\s+|think\s+|assume\s+|expect\s+|conclude\s+)?(?:that\s+)?/i,
+        '',
+      ),
   );
   if (!clause || wordCount(clause) < 3) return '';
   return `${sentenceCase(clause)}.`;

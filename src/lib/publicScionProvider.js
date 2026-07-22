@@ -484,6 +484,7 @@ function publicScionSourceText(expected = {}) {
     expected.objectives,
     expected.topics,
     expected.readings,
+    ...(Array.isArray(expected.sourceFacts) ? expected.sourceFacts : []),
     ...(Array.isArray(expected.reviewAnchors) ? expected.reviewAnchors : []),
   ]
     .map((value) => String(value || '').trim())
@@ -1861,6 +1862,23 @@ export function extractPublicScionKernelLessons(userPrompt = '') {
   } catch {
     return [];
   }
+}
+
+/**
+ * Project a direct instructor/compiler source ledger without asking the
+ * language model to copy it. Derived Claim-N ledgers intentionally do not
+ * qualify: those are the frozen input to the optional grounded adapter stage.
+ */
+export function buildPublicScionExactSourceLedgerResponse(userPrompt = '') {
+  const lessons = extractPublicScionKernelLessons(userPrompt).filter((lesson) => lesson?.lessonId);
+  if (lessons.length === 0) return '';
+  const projected = lessons.map((lesson) => {
+    if (!Array.isArray(lesson.sourceFacts)) return null;
+    const factContract = scionFactContractForLesson(lesson, { userPrompt });
+    if (factContract.mode !== 'numbered-source-ledger-v1') return null;
+    return { lessonId: lesson.lessonId, facts: [...factContract.claims] };
+  });
+  return projected.some((lesson) => !lesson) ? '' : JSON.stringify({ lessons: projected });
 }
 
 function buildPublicScionKernelPrompt(userPrompt) {

@@ -1,0 +1,172 @@
+{
+  "evidenceVersion": 1,
+  "release": "0.16.69",
+  "generatedAt": "2026-07-22T09:16:00.000Z",
+  "claimBoundary": "Deterministic source, admission, compiler, browser, archive, and encoded package-defect evidence only. This is not factual validation, instructor approval, classroom evidence, human preference, adapter superiority, paid-model parity, or proof that every course reaches the same score.",
+  "model": {
+    "provider": "local production-compatible Scion route",
+    "baseModel": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+    "baseRevision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
+    "gemmaWeightsChanged": false,
+    "researchAdapterActive": false,
+    "adapterQualified": false
+  },
+  "mandarinSourceContract": {
+    "sourceTitle": "CHN101 Elementary Mandarin I",
+    "author": "Carl Polley, Kapiʻolani Community College",
+    "license": "CC BY-NC-SA",
+    "url": "https://human.libretexts.org/Courses/Kapiolani_Community_College/CHN101%3A_Elementary_Mandarin_I_(Polley)",
+    "requestedLessonIdentities": 15,
+    "matchedLessonIdentities": 15,
+    "canonicalFactsPerLesson": 3,
+    "instructorFactsRemainHigherPriority": true,
+    "exactLedgerModelCalls": 0
+  },
+  "candidateMatrix": {
+    "appVersionDuringProof": "0.16.68",
+    "releaseVersionAfterStamp": "0.16.69",
+    "round": "round-2026-07-22T08-50-15-135Z",
+    "actualNativeGenerations": 28,
+    "modelFailures": 0,
+    "providerRetries": 0,
+    "courses": [
+      {
+        "id": "mandarin",
+        "domain": "Mandarin",
+        "seconds": 55,
+        "score": 99,
+        "grade": "A",
+        "p0": 0,
+        "p1": 0,
+        "p2": 0,
+        "blockers": 0,
+        "warnings": 0,
+        "sections": "10/10",
+        "exportChecks": "38/38",
+        "archiveFiles": 127
+      },
+      {
+        "id": "world-lit-readings",
+        "domain": "World Literature",
+        "seconds": 115,
+        "score": 99,
+        "grade": "A",
+        "p0": 0,
+        "p1": 0,
+        "p2": 0,
+        "blockers": 0,
+        "warnings": 0,
+        "sections": "10/10",
+        "exportChecks": "38/38",
+        "archiveFiles": 117
+      },
+      {
+        "id": "psych-101",
+        "domain": "Psychology",
+        "seconds": 46,
+        "score": 99,
+        "grade": "A",
+        "p0": 0,
+        "p1": 0,
+        "p2": 0,
+        "blockers": 0,
+        "warnings": 0,
+        "sections": "10/10",
+        "exportChecks": "38/38",
+        "archiveFiles": 125
+      },
+      {
+        "id": "nutrition-101",
+        "domain": "Nutrition",
+        "seconds": 41,
+        "score": 99,
+        "grade": "A",
+        "p0": 0,
+        "p1": 0,
+        "p2": 0,
+        "blockers": 0,
+        "warnings": 0,
+        "sections": "10/10",
+        "exportChecks": "38/38",
+        "archiveFiles": 117
+      },
+      {
+        "id": "astro-101",
+        "domain": "Astronomy",
+        "seconds": 68,
+        "score": 99,
+        "grade": "A",
+        "p0": 0,
+        "p1": 0,
+        "p2": 0,
+        "blockers": 0,
+        "warnings": 0,
+        "sections": "10/10",
+        "exportChecks": "38/38",
+        "archiveFiles": 101
+      }
+    ],
+    "allArchivesOpened": true,
+    "consoleWarnings": 0,
+    "consoleErrors": 0
+  },
+  "postMatrixArtifactInspection": {
+    "round": "round-2026-07-22T09-03-27-654Z",
+    "defectsFoundDespite99A": [
+      "World Literature rendered an assessment title that already contained (7%) and appended the same weight again.",
+      "Psychology stripped only part of the narrator from a misconception, leaving a visible '(and teachers) assume' fragment.",
+      "Psychology constructed-response keys copied the full learner prompt and could begin a retained fact with lowercase punctuation."
+    ],
+    "causalRepairs": [
+      "DOCX assessment rendering appends a weight only when the source title does not already contain it.",
+      "Misconception normalization removes complete student, instructor, teacher, and educator narrator phrases.",
+      "Kernel projection selects the first decisive scenario sentence, keeps admitted course evidence, and capitalizes a standalone material lead."
+    ],
+    "psychologyVerificationRound": "round-2026-07-22T09-14-09-885Z",
+    "psychologyVerification": {
+      "score": 99,
+      "grade": "A",
+      "blockers": 0,
+      "warnings": 0,
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "exportChecks": "38/38",
+      "archiveFiles": 125,
+      "archiveTest": "passed",
+      "consoleWarnings": 0,
+      "consoleErrors": 0
+    }
+  },
+  "sharedBenefitBoundary": {
+    "compatiblePaidProvidersBenefitFrom": [
+      "Unicode semantic admission",
+      "answer-key evidence compaction",
+      "misconception grammar repair",
+      "assessment-weight rendering",
+      "deterministic compilation",
+      "grading and export verification"
+    ],
+    "scionSpecific": [
+      "trusted Mandarin compiler ledger",
+      "zero-call exact-ledger provider route",
+      "browser WebGPU runtime",
+      "public model download and local cache"
+    ]
+  },
+  "tests": {
+    "full": {
+      "filesPassed": 434,
+      "filesSkipped": 16,
+      "testsPassed": 5321,
+      "testsSkipped": 162
+    },
+    "gates": [
+      "npm run format:check",
+      "npm run lint",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history"
+    ]
+  }
+}

@@ -124,6 +124,46 @@ describe('useStreamReader Scion boundary', () => {
     );
   });
 
+  it('records a deterministic source-ledger projection as zero model calls', async () => {
+    mocks.runScionLocalCompletion.mockImplementation(async (options) => {
+      options.onAdapterRoute({
+        protocol: 'scion-adapter-runtime-route-v1',
+        mode: 'base-only',
+        taskFamily: 'lesson-kernel-synthesis',
+        reason: 'no-adapter-installed',
+        factLedgerOnly: true,
+        exactSourceLedger: true,
+        modelCalls: 0,
+      });
+      return {
+        fullText: '{"lessons":[]}',
+        messages: [],
+        attempt: 0,
+        retryCount: 0,
+        maxRetries: 0,
+        tokenCount: 0,
+        repairs: [],
+      };
+    });
+    const onApiCallEvent = vi.fn();
+
+    await act(async () => {
+      await reader.streamProvider('public', '', 'scion-public', 'System', 'Course: Design', {
+        task: 'blueprintEnrichment',
+        onApiCallEvent,
+      });
+    });
+
+    expect(onApiCallEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'scionAdapterRoute',
+        factLedgerOnly: true,
+        routeModelCalls: 0,
+        execution: 'browser-local',
+      }),
+    );
+  });
+
   it('records semantic issue and kernel-shape evidence on a local retry', async () => {
     mocks.runScionLocalCompletion.mockImplementation(async (options) => {
       const error = Object.assign(new Error('Incomplete kernel'), {

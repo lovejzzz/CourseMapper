@@ -25,6 +25,7 @@ import {
 } from './scionAnswerKeyAlignment';
 import { assessScionKeyTermContract } from './scionKeyTermContract';
 import { scionFactContractForLesson } from './scionEvidenceContract';
+import { resolveScionTargetLanguageKnowledge } from './scionLanguageKnowledge';
 import { META_SURFACE_RE } from './metaSurfaceAdmission';
 
 const DEFAULT_MAX_LESSONS = 12;
@@ -842,16 +843,52 @@ function selectInstructorFactsForLesson(instructorProvidedFacts, lesson) {
 
 function summarizeLessonsForContent(courseMap, lessonIndices, sourceBrief = '', instructorProvidedFacts = []) {
   const privateSourceBrief = truncateText(cleanText(sourceBrief), 900);
+  const mandarinScope = mandarinTargetLanguageRequirements({
+    courseIdentity: courseMap?.courseName,
+    sourceText: JSON.stringify(courseMap?.lessons || []),
+  });
   return asArray(lessonIndices)
     .map((lessonIndex) => {
       const lesson = courseMap?.lessons?.[lessonIndex];
       if (!lesson) return null;
       const section = lesson.sections?.[0] || {};
       const reviewAnchors = cumulativeReviewAnchors(courseMap, lessonIndex);
-      const sourceFacts = selectInstructorFactsForLesson(instructorProvidedFacts, lesson);
+      const instructorFacts = selectInstructorFactsForLesson(instructorProvidedFacts, lesson);
+      // A one-scope Pinyin/tones course explicitly does not authorize Hanzi.
+      // Decide that boundary from the instructor/course map before adding any
+      // compiler facts; otherwise the built-in Hanzi ledger would become its
+      // own evidence that Hanzi was requested. A broader Mandarin course may
+      // still use the Pinyin lesson ledger because another requested lesson
+      // explicitly establishes character work for the course.
+      const languageKnowledge = mandarinScope.pinyinOnly
+        ? null
+        : resolveScionTargetLanguageKnowledge({
+            courseName: courseMap?.courseName,
+            lesson: {
+              title: lesson.title,
+              topics: asArray(lesson.sections)
+                .map((entry) => entry?.topicSection)
+                .filter(Boolean)
+                .join('; '),
+              reviewAnchors,
+            },
+          });
+      // Instructor evidence always wins. When none exists, a matched beginner
+      // Mandarin lesson gets a small cited compiler ledger. This turns a
+      // stochastic "invent five facts from the title" request into an exact
+      // copy boundary and prevents one weak language response from blocking
+      // an otherwise complete course.
+      const sourceFacts = instructorFacts.length >= 3 ? instructorFacts : languageKnowledge?.facts || [];
+      const languageSource = instructorFacts.length >= 3 ? null : languageKnowledge?.source || null;
       return {
         lessonId: `lesson-${lessonIndex + 1}`,
-        ...(sourceFacts.length >= 3 ? { sourceFactPolicy: 'numbered-source-ledger-v1', sourceFacts } : {}),
+        ...(sourceFacts.length >= 3
+          ? {
+              sourceFactPolicy: 'numbered-source-ledger-v1',
+              sourceFacts,
+              ...(languageSource ? { sourceLedgerAttribution: languageSource } : {}),
+            }
+          : {}),
         title: truncateText(lesson.title || `Lesson ${lessonIndex + 1}`, 140),
         objectives: truncateText(String(section.learningObjectives || ''), 700),
         topics: truncateText(
@@ -869,6 +906,8 @@ function summarizeLessonsForContent(courseMap, lessonIndices, sourceBrief = '', 
           [
             String(section.supportingResources || ''),
             privateSourceBrief && `Instructor source brief: ${privateSourceBrief}`,
+            languageSource &&
+              `Compiler knowledge source: ${languageSource.title} by ${languageSource.author} (${languageSource.license}) — ${languageSource.url}`,
           ]
             .filter(Boolean)
             .join('\n'),

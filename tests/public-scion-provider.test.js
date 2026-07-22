@@ -8,6 +8,7 @@ import {
   applyPublicScionBriefDirectives,
   applyPublicScionCourseMapTopicPlan,
   buildPublicScionPlannedCourseMapLessons,
+  buildPublicScionExactSourceLedgerResponse,
   PUBLIC_SCION_BACKING_MODEL,
   PUBLIC_SCION_ENRICHMENT_RECOVERY_CALLS,
   PUBLIC_SCION_KERNEL_CONCURRENCY,
@@ -2080,8 +2081,8 @@ Return ONLY valid JSON.`;
         courseName: 'Elementary Mandarin Chinese I',
         lessons: [
           {
-            title: 'Lesson 5: Family and Possession',
-            sections: [{ topicSection: 'Family members and possession with de' }],
+            title: 'Lesson 5: Conversation Workshop',
+            sections: [{ topicSection: 'Open-ended conversation practice' }],
           },
         ],
       },
@@ -2140,5 +2141,37 @@ Return ONLY valid JSON.`;
     });
     expect(messages[1].content).toContain('SOURCE FACT LEDGER');
     expect(messages[1].content).toContain('Copy that facts array exactly');
+    expect(JSON.parse(buildPublicScionExactSourceLedgerResponse(prompt.userPrompt))).toEqual({
+      lessons: [{ lessonId: 'lesson-1', facts }],
+    });
+  });
+
+  it('does not bypass generation for an authored or Claim-N derived ledger', () => {
+    const authored = 'Course: Design\nLessons:\n[{"lessonId":"lesson-1","title":"Testing"}]\nReturn ONLY valid JSON.';
+    const derived =
+      'Course: Design\nLessons:\n[{"lessonId":"lesson-1","sourceFactPolicy":"numbered-source-ledger-v1","topics":"Claim 0: First complete source claim has enough detail. Claim 1: Second complete source claim has enough detail. Claim 2: Third complete source claim has enough detail."}]\nReturn ONLY valid JSON.';
+    expect(buildPublicScionExactSourceLedgerResponse(authored)).toBe('');
+    expect(buildPublicScionExactSourceLedgerResponse(derived)).toBe('');
+  });
+
+  it('projects the canonical normalized form of direct Chinese source facts', () => {
+    const sourceFacts = [
+      '这个多少钱？ (Zhège duōshao qián?) asks the price question "How much is this?" in English.',
+      '这个 (zhège) identifies the item whose price the speaker wants to know.',
+      '多少钱 (duōshao qián) asks for an amount of money and supplies the price question.',
+    ];
+    const prompt = `Course: Mandarin\nLessons:\n${JSON.stringify([
+      {
+        lessonId: 'lesson-10',
+        sourceFactPolicy: 'numbered-source-ledger-v1',
+        sourceFacts,
+      },
+    ])}\nReturn ONLY valid JSON.`;
+    const projected = JSON.parse(buildPublicScionExactSourceLedgerResponse(prompt));
+    expect(projected.lessons[0]).toMatchObject({ lessonId: 'lesson-10' });
+    expect(projected.lessons[0].facts).toHaveLength(3);
+    expect(projected.lessons[0].facts[0]).toContain('这个多少钱?');
+    const assessment = assessPublicScionKernelResponse(JSON.stringify(projected), prompt, 'blueprintEnrichment');
+    expect(publicScionFactContractIssues(assessment)).toEqual([]);
   });
 });

@@ -221,15 +221,30 @@ export function selectScionGroundedAdapterDraft({ baseText, adapterText, grounde
 export function scionCallOpts({ prompt, expectedLessonIds, recoveryAttempt }) {
   const factCount = scionFactCountForPrompt(prompt, expectedLessonIds);
   const sourceLedger = scionPromptUsesSourceLedger(prompt, expectedLessonIds);
+  const expected = new Set(expectedLessonIds.filter(Boolean));
+  const promptLessons = (Array.isArray(prompt?.lessons) ? prompt.lessons : []).filter(
+    (lesson) => expected.size === 0 || expected.has(lesson?.lessonId),
+  );
+  const directSourceLedger =
+    sourceLedger &&
+    promptLessons.length > 0 &&
+    promptLessons.every((lesson) => Array.isArray(lesson?.sourceFacts) && lesson.sourceFacts.length >= 3);
   return {
     schema: compactLessonKernelSchemaProfile({ expectedLessonIds, factCount }),
-    promptProtocol: sourceLedger ? SCION_LESSON_KERNEL_PROMPT_PROTOCOL : SCION_LESSON_KERNEL_SYNTHESIS_PROMPT_PROTOCOL,
+    // A direct instructor/compiler ledger is already the trusted knowledge
+    // source. Route it through the compact synthesis boundary so the base
+    // copies only those claims and the compiler freezes them before any
+    // optional adapter stage. The derived grounded prompt deliberately drops
+    // `sourceFacts`; that second-stage shape keeps the exact adapter protocol.
+    promptProtocol:
+      sourceLedger && !directSourceLedger
+        ? SCION_LESSON_KERNEL_PROMPT_PROTOCOL
+        : SCION_LESSON_KERNEL_SYNTHESIS_PROMPT_PROTOCOL,
     temperature: recoveryAttempt > 0 ? 0.7 : 0,
-    // Seven fresh cross-domain captures produced zero admitted base-model
-    // source-ledger kernels. Repeating the same strict request did not add a
-    // usable atom, but made a three-lesson browser build take 441 seconds.
-    // Keep one honest model attempt; the compiler then preserves only admitted
-    // atoms and exposes review notes instead of spending a futile retry storm.
+    // A direct source ledger needs one exact copy attempt; a grounded adapter
+    // kernel needs one honest authoring attempt. Repeating either strict
+    // request did not add usable atoms and once stretched three lessons to
+    // 441 seconds.
     ...(sourceLedger ? { maxRetries: 0 } : {}),
   };
 }

@@ -791,6 +791,47 @@ Return ONLY valid JSON.`;
     expect(runtime.completeScionBrowserWllama).toHaveBeenCalledTimes(1);
   });
 
+  it('projects an exact direct source ledger with zero model calls', async () => {
+    const sourceFacts = [
+      'A usability test observes representative users attempting realistic tasks with a product or service.',
+      'A test script gives each session a repeatable structure without turning the moderator into a teacher.',
+      'Recruitment identifies appropriate users and obtains consent before the session.',
+    ];
+    const route = {
+      protocol: 'scion-adapter-runtime-route-v1',
+      mode: 'base-only',
+      taskFamily: 'lesson-kernel-synthesis',
+      reason: 'no-adapter-installed',
+      adapterId: null,
+      nativeAdapterActive: false,
+    };
+    const runtime = runtimeWith([], { plannedRoute: route });
+    const onAdapterRoute = vi.fn();
+    const prompt = `Course: Design\nLessons:\n${JSON.stringify([
+      {
+        lessonId: 'lesson-1',
+        title: 'Usability Testing',
+        sourceFactPolicy: 'numbered-source-ledger-v1',
+        sourceFacts,
+      },
+    ])}\nReturn ONLY valid JSON.`;
+
+    const result = await runScionLocalCompletion({
+      userPrompt: prompt,
+      task: 'blueprintEnrichment',
+      promptProtocol: 'production-lesson-kernel-synthesis-prompt-v1',
+      onAdapterRoute,
+      runtimeLoader: async () => runtime,
+    });
+
+    expect(result).toMatchObject({ attempt: 0, retryCount: 0, maxRetries: 0, tokenCount: 0 });
+    expect(JSON.parse(result.fullText)).toEqual({ lessons: [{ lessonId: 'lesson-1', facts: sourceFacts }] });
+    expect(runtime.completeScionBrowserWllama).not.toHaveBeenCalled();
+    expect(onAdapterRoute).toHaveBeenCalledWith(
+      expect.objectContaining({ factLedgerOnly: true, exactSourceLedger: true, modelCalls: 0 }),
+    );
+  });
+
   it('returns compiler repair provenance with the repaired browser-local text', async () => {
     const response = JSON.stringify({
       lessons: [

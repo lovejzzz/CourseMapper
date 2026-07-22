@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.68
+**Current release:** v0.16.69
 
 ---
 
@@ -21,7 +21,7 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 8. **Multi-model support — including a free Scion path.** Supports OpenAI, Anthropic, Google, and DeepSeek with native tool calling per provider, plus **Scion**, the keyless Course Mapper authoring route (see “Scion” below). Auto-detects key format and auto-rotates through compatible cloud models on failure.
 9. **Privacy-first model paths.** There is no Course Mapper application backend in the default flow. BYOK requests go directly from the browser to the selected paid provider. Scion runs the pinned public Gemma 4 model in the browser, so course prompts and generated text stay on the device; only the model weights are downloaded from Hugging Face.
 
-> **What Course Mapper does NOT claim:** It does not fact-check content or verify citations. It does not replace instructor expertise. It is a drafting and productivity tool — it generates the scaffold, the instructor refines it.
+> **What Course Mapper does NOT claim:** It does not fact-check content or verify citations. It does not replace instructor expertise. It is a course-authoring and productivity tool — it generates the structured workspace, and the instructor remains the final authority.
 
 ---
 
@@ -31,7 +31,7 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.68**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts a new foundation model. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
+The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.69**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts a new foundation model. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
 
 In plain language, **Scion Vx is the whole local authoring system, not just the base model**:
 
@@ -43,11 +43,11 @@ Today the adapter term is infrastructure only: the trained research adapter has 
 
 ### Adapter work in progress
 
-V0.16.68 keeps the research corpus beyond its first real training threshold: 102 qualified source-grounded preferences rebuild into 100 usable production rows, split by complete course group across seven domains. One 200-iteration adapter training run completed against the pinned Gemma base, reduced validation loss from 1.555 to 1.089, and produced a 105 MB learned delta. That artifact is **not** a quality win and is not active on the website.
+V0.16.69 keeps the research corpus beyond its first real training threshold: 102 qualified source-grounded preferences rebuild into 100 usable production rows, split by complete course group across seven domains. One 200-iteration adapter training run completed against the pinned Gemma base, reduced validation loss from 1.555 to 1.089, and produced a 105 MB learned delta. That artifact is **not** a quality win and is not active on the website.
 
 The first live held-out attempt found an evaluation error before a score could be claimed. Every training row transformed a supplied three-to-five-fact source ledger, while the old broad `lesson-kernel` route also asked the adapter to invent the initial facts. The run was stopped: ten lesson requests expanded into 52 native generations, and the adapter repeatedly produced truncated or conflicting kernels outside its learned distribution. Scion now records that attempt as a failed diagnostic rather than a benchmark result.
 
-The replacement pipeline uses exact task boundaries. Base Gemma performs `lesson-kernel-synthesis`; the compiler admits and freezes its facts; the adapter is eligible only for `source-grounded-lesson-kernel`; and only a fully admitted adapter result may replace the base draft. The legacy broad family is blocked. Route receipts retain every native model attempt—including hidden server retries—and the promotion gate compares total native inference rather than only browser transport requests. A fresh adapter must be retrained with this exact lineage and beat base-only Scion on the frozen V13 multi-domain ruler before activation.
+The replacement pipeline uses exact task boundaries. Base Gemma performs `lesson-kernel-synthesis`; the compiler admits and freezes its facts; the adapter is eligible only for `source-grounded-lesson-kernel`; and only a fully admitted adapter result may replace the base candidate. The legacy broad family is blocked. Route receipts retain every native model attempt—including hidden server retries—and the promotion gate compares total native inference rather than only browser transport requests. A fresh adapter must be retrained with this exact lineage and beat base-only Scion on the frozen V13 multi-domain ruler before activation.
 
 The first complete staged-architecture browser canary is a real positive systems result, but not yet an adapter-win result. On a 15-lesson Mandarin course, the pinned Gemma revision plus the external experimental adapter and current compiler exported 127 files, admitted knowledge kernels for 15/15 lessons, and passed at 89/B with zero P0 findings. It completed 50 native generations with zero model failures or worker restarts in 798 seconds at $0 API cost. The preceding compiler state blocked at 74/C with one P0 and only 13/15 admitted kernels. The valid claim is that fact-focused recovery and compiler projection fixed the complete pipeline; there is no matched base-only arm in this canary, so it does not prove that the adapter beats Gemma.
 
@@ -58,6 +58,16 @@ A fresh full package still grades **89/B** with zero P0, two P1, and one P2 find
 The rejected whole-kernel pairing gate remains rejected: it regressed coverage to 5/15. Pair visibility will be repaired at the compiler projection layer; it will not be allowed to discard otherwise-admitted lesson knowledge.
 
 ### Living Course Compiler
+
+V0.16.69 closes the current five-domain base-only quality freeze with artifact-level evidence instead of trusting the green score alone. Mandarin now receives a compiler-owned, attributed source ledger from the open CHN101 Elementary Mandarin I text for all 15 requested lesson identities. Those exact facts are projected without another model inference, while Gemma remains responsible for the course skeleton and the limited generative surfaces where a model adds value. NFKC normalization keeps full-width Chinese punctuation from causing a valid Shopping kernel to be deleted during language-safety admission.
+
+The production candidate completed Mandarin, World Literature, Psychology, Nutrition, and Astronomy at **99/A each**, with **0 P0 / 0 P1 / 0 P2 findings**, **zero blockers**, **zero warnings**, all **10 material sections**, and **38/38 export checks** per course. The five valid ZIPs contain 127, 117, 125, 117, and 101 extracted files. Across the full matrix, the route made **28 actual Gemma generations with zero model failures**—far below the former 72-call single-course failure shape. Mandarin itself completed with two actual Gemma generations because its 15 trusted lesson ledgers were already owned by the compiler.
+
+Direct document inspection then found defects the 99/A score did not: a World Literature assessment weight rendered twice; a Psychology misconception option began with a severed narrator fragment; and a short-answer key copied the whole case prompt instead of selecting its decisive evidence. The compiler now deduplicates visible weights, removes narrator phrases without breaking grammar, and writes compact evidence-backed model answers. These repairs are deterministic, regression-tested, and shared with compatible paid-model routes. Current Scion-facing copy says **AI-generated materials**, never **AI draft**, and the package action remains the single premium **Download ZIP** control.
+
+The model claim remains exact. Gemma weights did not change, the research adapter remains inactive, and no factual, instructor, classroom, or universal-score claim is inferred. V0.16.69 improves the source boundary, admission, projection, compilation, assessment rendering, export verification, and evidence trail around the pinned public base.
+
+The complete local release gate passes **434 test files and 5,321 tests**, with 16 files and 162 tests intentionally skipped, plus formatting, lint, production build, the locked bundle budget, release-history audit, real browser generation, document inspection, and archive testing.
 
 V0.16.68 follows the attached 14-lesson Physical Geology package from its visible red state to a new base-only Scion archive. The received ZIP was physically valid, but it graded **74/C**: the broad nutrition classifier treated the word “mineral” as proof of a nutrition course and spread diet-analysis language through Geology materials; a model-supplied `graded-artifact` label overrode the title **Final (50%)**, so the manifest promised an exam that the compiler never wrote; Lesson 14 then fell into source-bound assessment recovery; and the compact autosave retry still carried the full course graph, allowing local storage to fail twice.
 

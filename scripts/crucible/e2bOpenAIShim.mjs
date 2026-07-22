@@ -25,6 +25,7 @@ import {
 } from '../../src/lib/scionAdapterTaskScope.js';
 import {
   assessPublicScionKernelResponse,
+  buildPublicScionExactSourceLedgerResponse,
   buildPublicScionMessages,
   buildPublicScionRetryFeedback,
   extractPublicScionKernelLessons,
@@ -1524,6 +1525,9 @@ const server = http.createServer(async (req, res) => {
     adapterRoute.taskFamily === SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL_SYNTHESIS &&
     promptProtocol === SCION_LESSON_KERNEL_SYNTHESIS_PROMPT_PROTOCOL;
   const targetLanguageKernel = explicitCourseLanguageIds(originalCompilerUser).length > 0;
+  const exactSourceLedgerText = factLedgerFirstRequest
+    ? buildPublicScionExactSourceLedgerResponse(originalCompilerUser)
+    : '';
   if (compactLessonKernelRequest) {
     // Match the production browser boundary exactly. The public provider
     // converts the rich compiler prompt into the compact protocol used by the
@@ -1580,40 +1584,42 @@ const server = http.createServer(async (req, res) => {
   const modelMetrics = { modelCalls: 0, completedModelCalls: 0, failedModelCalls: 0 };
   try {
     text = await requestMetrics.run({ metrics: modelMetrics, adapterRoute, routeProofs }, async () => {
-      let generated = compactLessonKernelRequest
-        ? await generateCompactLessonKernel({
-            system,
-            user,
-            originalUser: originalCompilerUser,
-            maxTokens: factLedgerFirstRequest ? Math.min(800, requestedMaxTokens(body)) : requestedMaxTokens(body),
-            schema: contract.schema,
-            maxAttempts: factLedgerFirstRequest
-              ? recoveryAttempt > 0
-                ? 3
-                : 2
-              : scionCompactKernelMaxAttempts({
-                  taskFamily: adapterRoute.taskFamily,
-                  promptProtocol,
-                  routeReason: adapterRoute.reason,
-                  recoveryAttempt,
-                }),
-            temperature: declaredTemperature,
-            deferToCompilerProjection: factLedgerFirstRequest,
-            allowCompilerFactCore: factLedgerFirstRequest && targetLanguageKernel,
-          })
-        : kernel
-          ? await kernelChunkedGenerate({ system, user, kernel, temperature: declaredTemperature })
-          : await generate({
+      let generated = exactSourceLedgerText
+        ? exactSourceLedgerText
+        : compactLessonKernelRequest
+          ? await generateCompactLessonKernel({
               system,
               user,
-              maxTokens: requestedMaxTokens(body),
-              ...contract,
-              ...(declaredTemperature > 0
-                ? { temperature: declaredTemperature }
-                : temperature > 0
-                  ? { temperature }
-                  : {}),
-            });
+              originalUser: originalCompilerUser,
+              maxTokens: factLedgerFirstRequest ? Math.min(800, requestedMaxTokens(body)) : requestedMaxTokens(body),
+              schema: contract.schema,
+              maxAttempts: factLedgerFirstRequest
+                ? recoveryAttempt > 0
+                  ? 3
+                  : 2
+                : scionCompactKernelMaxAttempts({
+                    taskFamily: adapterRoute.taskFamily,
+                    promptProtocol,
+                    routeReason: adapterRoute.reason,
+                    recoveryAttempt,
+                  }),
+              temperature: declaredTemperature,
+              deferToCompilerProjection: factLedgerFirstRequest,
+              allowCompilerFactCore: factLedgerFirstRequest && targetLanguageKernel,
+            })
+          : kernel
+            ? await kernelChunkedGenerate({ system, user, kernel, temperature: declaredTemperature })
+            : await generate({
+                system,
+                user,
+                maxTokens: requestedMaxTokens(body),
+                ...contract,
+                ...(declaredTemperature > 0
+                  ? { temperature: declaredTemperature }
+                  : temperature > 0
+                    ? { temperature }
+                    : {}),
+              });
       if (hasJsonContract && generated) {
         const closure = closeJsonContainersAtEof(generated, { schema: contract.schema || null });
         generated = closure.text;

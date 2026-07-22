@@ -3,6 +3,7 @@ import {
   PUBLIC_SCION_MIN_RETRIES,
   applyPublicScionCourseMapTopicPlan,
   assessPublicScionKernelResponse,
+  buildPublicScionExactSourceLedgerResponse,
   buildPublicScionMessages,
   buildPublicScionRetryFeedback,
   extractPublicScionKernelLessons,
@@ -149,9 +150,10 @@ export async function runScionLocalCompletion({
     Number(String(userPrompt || '').match(/(?:RECOVERY RETRY|Recovery attempt)\s+(\d+)/i)?.[1]) || 0;
 
   await runtimeApi.loadScionBrowserWllama({ onProgress, signal });
-  if (typeof runtimeApi.prepareScionBrowserWllamaTaskRoute === 'function') {
-    await runtimeApi.prepareScionBrowserWllamaTaskRoute({ taskFamily, promptProtocol });
-  }
+  const plannedRoute =
+    typeof runtimeApi.prepareScionBrowserWllamaTaskRoute === 'function'
+      ? await runtimeApi.prepareScionBrowserWllamaTaskRoute({ taskFamily, promptProtocol })
+      : null;
   const factLedgerOnly =
     taskFamily === SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL_SYNTHESIS &&
     promptProtocol === SCION_LESSON_KERNEL_SYNTHESIS_PROMPT_PROTOCOL;
@@ -163,6 +165,34 @@ export async function runScionLocalCompletion({
       (lesson) => scionFactContractForLesson(lesson, { userPrompt }).mode === 'numbered-source-ledger-v1',
     );
   const messages = buildPublicScionMessages(systemPrompt, userPrompt, { schema, task, factLedgerOnly });
+  const exactLedgerText = factLedgerOnly ? buildPublicScionExactSourceLedgerResponse(userPrompt) : '';
+  if (exactLedgerText) {
+    const assessment = assessPublicScionKernelResponse(exactLedgerText, userPrompt, task);
+    const route = plannedRoute
+      ? { ...plannedRoute, factLedgerOnly: true, exactSourceLedger: true, modelCalls: 0 }
+      : null;
+    if (route && typeof onAdapterRoute === 'function') onAdapterRoute(route);
+    return {
+      fullText: exactLedgerText,
+      rawText: exactLedgerText,
+      repairs: [
+        {
+          pass: 'compilerOwnedExactSourceLedger',
+          action: 'projected-exact-source-ledger',
+          lessonIds: expectedKernelLessons.map((lesson) => lesson.lessonId),
+          trainingEligible: false,
+        },
+      ],
+      messages,
+      attempt: 0,
+      retryCount: 0,
+      maxRetries: 0,
+      tokenCount: 0,
+      contractIncomplete: assessment.needsRetry,
+      admissionIssues: assessment.issues || [],
+      kernelShape: summarizeKernelShape(exactLedgerText, userPrompt),
+    };
+  }
   const requestedOutputLimit = Math.max(
     1,
     Math.min(

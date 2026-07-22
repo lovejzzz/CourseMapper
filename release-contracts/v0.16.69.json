@@ -1,0 +1,174 @@
+{
+  "version": "0.16.69",
+  "date": "July 22, 2026",
+  "title": "Prove the Package Behind the Green Light",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test",
+      "npm run format:check",
+      "npm run lint",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification reruns release, format, lint, unit, build, and bundle gates after push."
+    },
+    "ciDeep": {
+      "status": "not-current",
+      "note": "No adapter-versus-base promotion or external quality claim is made in this compiler release."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Production deployment remains downstream of the successful main verification run."
+    },
+    "liveProvider": {
+      "status": "success",
+      "url": "docs/evidence/SCION_V01669_SOURCE_LEDGER_FREEZE.json",
+      "note": "The pinned base-only Scion route completes all five frozen courses with zero findings, blockers, warnings, model failures, or archive failures."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No instructor, classroom, human-preference, factual, or independent-model validation is claimed."
+    },
+    "manualBrowser": {
+      "status": "success",
+      "url": "docs/evidence/SCION_V01669_SOURCE_LEDGER_FREEZE.json",
+      "note": "Representative DOCX files, console receipts, manifests, quality reports, and all five physical ZIPs were inspected."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01669-mandarin-trusted-source-ledger",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "All fifteen requested Mandarin lesson identities receive exact attributed CHN101 facts from one trusted compiler-owned source contract.",
+      "anchors": [
+        "src/lib/scionLanguageKnowledge.js",
+        "src/lib/blueprintEnrichmentPass.js",
+        "src/lib/__tests__/scionLanguageKnowledge.test.js",
+        "docs/evidence/SCION_V01669_SOURCE_LEDGER_FREEZE.json"
+      ],
+      "proofCommands": [
+        "npx vitest run src/lib/__tests__/scionLanguageKnowledge.test.js src/lib/__tests__/lessonContentEnrichment.test.js"
+      ],
+      "proofScopes": ["unit", "compiled-output", "browser-live"]
+    },
+    {
+      "id": "v01669-zero-call-exact-ledger-route",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Public, local, and shim routes project direct trusted facts with zero native model calls and truthful telemetry.",
+      "anchors": [
+        "src/lib/publicScionProvider.js",
+        "src/lib/scionLocalProvider.js",
+        "src/hooks/useStreamReader.js",
+        "scripts/crucible/e2bOpenAIShim.mjs"
+      ],
+      "proofCommands": [
+        "npx vitest run tests/public-scion-provider.test.js tests/scion-local-provider.test.js tests/scion-stream-reader-local.test.jsx"
+      ],
+      "proofScopes": ["unit", "browser-live"]
+    },
+    {
+      "id": "v01669-unicode-and-identity-admission",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "NFKC comparison and boundary-aware identity matching preserve valid Chinese knowledge without cross-lesson false matches.",
+      "anchors": [
+        "src/lib/courseBlueprintCompiler.js",
+        "src/lib/scionLanguageKnowledge.js",
+        "src/lib/__tests__/courseBlueprintCompiler.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run src/lib/__tests__/courseBlueprintCompiler.test.js src/lib/__tests__/scionLanguageKnowledge.test.js"
+      ],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01669-artifact-rendering-repairs",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Exported assessment weights, misconception options, and constructed-response keys render without duplication, broken narrators, or prompt echo.",
+      "anchors": [
+        "src/lib/exporters/docxExporter.js",
+        "src/lib/kernelProjection.js",
+        "src/lib/courseBlueprintCompiler.js",
+        "src/lib/__tests__/docxExporter.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run src/lib/__tests__/docxExporter.test.js src/lib/__tests__/kernelProjection.test.js src/lib/__tests__/courseBlueprintCompiler.test.js"
+      ],
+      "proofScopes": ["unit", "compiled-output", "browser-live"]
+    },
+    {
+      "id": "v01669-five-domain-zero-finding-freeze",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "Five frozen base-only courses each complete ten material sections, 38 export checks, and valid archives at 99/A with zero findings, blockers, or warnings.",
+      "anchors": [
+        "docs/evidence/SCION_V01669_SOURCE_LEDGER_FREEZE.json",
+        "evaluation/scion-adapters/held-out-course-benchmark-v17.json",
+        "scripts/crucible.mjs"
+      ],
+      "proofCommands": [
+        "node scripts/crucible.mjs --courses astro-101,mandarin,nutrition-101,psych-101,world-lit-readings --llm local --authoring native --concurrency 1"
+      ],
+      "proofScopes": ["browser-live", "gold-audit", "compiled-output"]
+    },
+    {
+      "id": "v01669-bounded-native-inference",
+      "status": "verified-current",
+      "changelogHighlightIndex": 5,
+      "summary": "The five-course candidate uses 28 actual Gemma generations with zero failures rather than reopening the old 72-call per-course architecture.",
+      "anchors": [
+        "docs/evidence/SCION_V01669_SOURCE_LEDGER_FREEZE.json",
+        "scripts/crucible/e2bOpenAIShim.mjs",
+        "src/lib/scionPassB.js"
+      ],
+      "proofCommands": [
+        "node scripts/crucible.mjs --courses astro-101,mandarin,nutrition-101,psych-101,world-lit-readings --llm local --authoring native --concurrency 1"
+      ],
+      "proofScopes": ["browser-live", "static-audit"]
+    },
+    {
+      "id": "v01669-premium-current-language",
+      "status": "verified-current",
+      "changelogHighlightIndex": 6,
+      "summary": "Current Scion safety copy uses AI-generated materials and the package surface retains one finished Download ZIP action.",
+      "anchors": ["src/screens/Config.jsx", "src/components/ExportSidePanel.jsx", "README.md"],
+      "proofCommands": [
+        "npx vitest run src/components/__tests__/ExportSidePanel.readiness.test.jsx",
+        "rg -n 'every AI draft|Download draft ZIP' src/screens/Config.jsx src/components/ExportSidePanel.jsx"
+      ],
+      "proofScopes": ["unit", "browser-smoke", "doc"]
+    },
+    {
+      "id": "v01669-causal-regression-net",
+      "status": "verified-current",
+      "changelogHighlightIndex": 7,
+      "summary": "The complete local release gate passes, with focused regressions binding source routing, telemetry, Unicode admission, answer compaction, renderer output, provider parity, and the production shim.",
+      "anchors": [
+        "src/lib/__tests__/scionLanguageKnowledge.test.js",
+        "src/lib/__tests__/kernelProjection.test.js",
+        "src/lib/__tests__/docxExporter.test.js",
+        "tests/scion-compiler.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run src/lib/__tests__/scionLanguageKnowledge.test.js src/lib/__tests__/lessonContentEnrichment.test.js src/lib/__tests__/courseBlueprintCompiler.test.js src/lib/__tests__/kernelProjection.test.js src/lib/__tests__/docxExporter.test.js tests/scion-compiler.test.js tests/public-scion-provider.test.js tests/scion-local-provider.test.js tests/scion-stream-reader-local.test.jsx"
+      ],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01669-model-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 8,
+      "summary": "Gemma weights remain unchanged, the adapter remains inactive, and only model-neutral compiler repairs are claimed for compatible paid providers.",
+      "anchors": ["README.md", "docs/SCION_ADAPTER_ROADMAP.md", "docs/evidence/SCION_V01669_SOURCE_LEDGER_FREEZE.json"],
+      "proofCommands": ["npm run audit:release-history"],
+      "proofScopes": ["static-audit", "doc"]
+    }
+  ]
+}

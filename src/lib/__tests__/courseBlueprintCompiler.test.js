@@ -7917,4 +7917,108 @@ describe('courseBlueprintCompiler', () => {
       }),
     );
   });
+
+  it('keeps a source-ledger shopping kernel when canonical punctuation differs from its display pair', () => {
+    const oneLessonMap = makeWorldLanguageCourseMap();
+    oneLessonMap.courseName = 'Elementary Mandarin Chinese I';
+    oneLessonMap.lessons = [
+      {
+        ...oneLessonMap.lessons[0],
+        title: 'Lesson 10: Shopping and Money',
+        sections: [
+          {
+            ...oneLessonMap.lessons[0].sections[0],
+            topicSection: 'Shopping Vocabulary; Asking Prices',
+            learningObjectives: 'Ask and answer a basic price question.',
+          },
+        ],
+      },
+    ];
+    const facts = [
+      '这个多少钱? (Zhège duōshao qián?) asks the price question "How much is this?" in English.',
+      '这个 (zhège) identifies the item whose price the speaker wants to know.',
+      '多少钱 (duōshao qián) asks for an amount of money and supplies the price question.',
+    ];
+    const blueprint = buildCourseBlueprint(oneLessonMap, {
+      enrichment: {
+        coverage: { requestedLessons: 1, enrichedLessons: 1, missingLessons: [] },
+        stageDecisions: { modelStage: 'ran' },
+        lessonContent: {
+          'lesson-1': {
+            targetLanguagePair: {
+              hanzi: '这个多少钱？',
+              pinyin: 'Zhège duōshao qián?',
+              english: 'How much is this',
+            },
+            keyTerms: [
+              {
+                term: 'Shopping Vocabulary',
+                definition: facts[0],
+                example: facts[1],
+                misconception: 'A price question does not need an item.',
+                correction: facts[1],
+              },
+            ],
+            kernel: { facts },
+          },
+        },
+      },
+    });
+
+    const compiled = compileBlueprintDeliverables(blueprint, ['quizBank']);
+    const questions = compiled.quizBank.quizzes[0].questions;
+    expect(JSON.stringify(questions)).toContain('这个多少钱?');
+    expect(questions.every((question) => question.enrichmentSource !== 'source-bound-recovery')).toBe(true);
+  });
+
+  it('keeps parenthetical misconception narrators out of learner-facing quiz fragments', () => {
+    const blueprint = buildCourseBlueprint({
+      courseName: 'Introduction to Psychology',
+      semester: 'Fall 2026',
+      lessons: [
+        {
+          title: 'Lesson 1: Intrinsic and Extrinsic Motivation',
+          sections: [
+            {
+              topicSection: 'Intrinsic motivation; extrinsic motivation; overjustification effect',
+              learningGoals: 'Distinguish intrinsic and extrinsic motivation in a bounded case.',
+              learningObjectives: 'Analyze how external rewards can change intrinsic motivation.',
+              weeklyAssessments: 'Motivation evidence check',
+              asyncActivities: 'Read the motivation case and annotate the reward change.',
+              syncActivities: 'Compare two reward cases and defend the stronger explanation.',
+              supportingResources: 'Open psychology text and motivation case packet',
+              evaluateDesign: 'Score concept accuracy, case evidence, and limitation language.',
+            },
+          ],
+        },
+      ],
+    });
+    Object.assign(blueprint.lessons[0], {
+      keyConcepts: ['overjustification effect'],
+      enrichment: {
+        keyTerms: [
+          {
+            term: 'overjustification effect',
+            definition:
+              'The overjustification effect can reduce intrinsic motivation when an expected external reward reframes an already enjoyable activity.',
+            misconception: 'Students (and teachers) assume adding rewards always strengthens motivation.',
+            correction:
+              'Expected rewards can diminish the intrinsic motivation that previously sustained an enjoyable activity.',
+          },
+        ],
+        kernel: {
+          facts: [
+            'Intrinsic motivation comes from the satisfaction of performing the activity itself.',
+            'Extrinsic motivation is directed toward an external consequence or reward.',
+            'Expected rewards can diminish prior intrinsic interest under some conditions.',
+          ],
+        },
+      },
+    });
+
+    const compiled = compileBlueprintDeliverables(blueprint, ['quizBank']);
+    const optionText = compiled.quizBank.quizzes[0].questions.flatMap((question) => question.options || []).join(' ');
+    expect(optionText).toMatch(/assume adding rewards always strengthens motivation/i);
+    expect(optionText).not.toMatch(/\(and teachers\)/i);
+  });
 });

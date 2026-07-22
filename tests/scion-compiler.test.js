@@ -199,7 +199,7 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     expect(lesson.properties.mc.items.properties.fi).toMatchObject({ minItems: 1, maxItems: 2 });
   });
 
-  it('D1: exact source ledgers get one honest base attempt instead of a futile retry storm', () => {
+  it('D1: direct source ledgers use the compact freeze-first route with no retry storm', () => {
     const sourceFacts = [
       'Currents produce magnetic fields around a conducting path.',
       'Field lines form closed loops around an electrical current.',
@@ -221,7 +221,7 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     });
 
     expect(options.maxRetries).toBe(0);
-    expect(options.promptProtocol).toBe('production-lesson-kernel-prompt-v1');
+    expect(options.promptProtocol).toBe('production-lesson-kernel-synthesis-prompt-v1');
     expect(options.schema.schema.properties.lessons.items.properties.facts).toMatchObject({ minItems: 3, maxItems: 3 });
   });
 

@@ -444,6 +444,42 @@ describe('projectKernelToSurfaces', () => {
     expect(shortAnswer.scoringGuidance).not.toContain('mockups..');
   });
 
+  it('keeps a long decision record out of the model answer and capitalizes standalone material leads', () => {
+    const setup =
+      'A reviewer examines this case: A reading-for-pizza program gets reluctant readers started, but a child who already devours novels may read less once reading becomes a transaction. One interpretation applies intrinsic and extrinsic motivation. The reviewer must decide which interpretation the evidence supports and what it cannot establish.';
+    const payload = projectKernelToSurfaces(
+      {
+        facts: [
+          'Intrinsic motivation comes from the sense of personal satisfaction a behavior brings; extrinsic motivation aims to receive something from others.',
+          'Expected rewards can diminish prior intrinsic interest under some conditions.',
+          'The overjustification effect does not establish that every external reward reduces motivation.',
+        ],
+        keyTerms: [
+          {
+            term: 'Intrinsic and extrinsic motivation',
+            definition:
+              'Motivation describes wants or needs that direct behavior toward a goal; intrinsically motivated behavior is performed for personal satisfaction, while extrinsically motivated behavior seeks an external outcome.',
+            example: 'A reading-for-pizza program changes the incentive attached to reading.',
+            misconception: 'Students (and teachers) assume adding rewards always strengthens motivation.',
+            correction: 'Expected rewards can sometimes diminish prior intrinsic motivation.',
+          },
+        ],
+        scenario: {
+          setup,
+          materials:
+            'the Intrinsic and extrinsic motivation case example, the related source claim, and the misconception-correction pair',
+        },
+        discussionPrompt: null,
+        mc: [],
+      },
+      { itemPlan },
+    );
+    const shortAnswer = payload.quizItems.find((item) => item.type === 'short_answer');
+    expect(shortAnswer?.answer).toContain('reading-for-pizza');
+    expect(shortAnswer?.answer).not.toContain('The reviewer must decide');
+    expect(shortAnswer?.answer).not.toMatch(/\.\s+the Intrinsic and extrinsic motivation case example can support/);
+  });
+
   it('builds a misconception-tension essay when the discussion prompt is missing but a correction exists', () => {
     const correctedTerms = [
       {

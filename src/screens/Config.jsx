@@ -2019,7 +2019,7 @@ export default function Config({
           </svg>
           <span>
             Scion runs locally in this browser and needs no API key. The first generation may download the model. Like
-            every AI draft, review the course before publishing.
+            all AI-generated materials, review the course before publishing.
           </span>
         </div>
       )}

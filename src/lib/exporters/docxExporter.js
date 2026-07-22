@@ -84,6 +84,23 @@ function inferLessonFromExportTitle(title) {
   };
 }
 
+export function formatAssessmentBlockEntry(entry = {}) {
+  const title = String(entry.title || '').trim();
+  const weight = String(entry.weight || '').trim();
+  if (!weight) return title;
+  if (weight.toLowerCase() === 'in class') return `${title} — in class`;
+
+  // The compiler keeps source-facing assessment titles intact. When a title
+  // already carries the same trailing percentage, do not print that weight a
+  // second time in the lesson-plan DOCX ("Interpretation (7%) (7%)").
+  const trailingWeight = /\(\s*(\d+(?:\.\d+)?\s*%)\s*\)\s*$/.exec(title)?.[1] || '';
+  const comparable = (value) =>
+    String(value || '')
+      .replace(/\s+/g, '')
+      .toLowerCase();
+  return trailingWeight && comparable(trailingWeight) === comparable(weight) ? title : `${title} (${weight})`;
+}
+
 /**
  * Shared DOCX content builder — used by both exportDeliverableDocx and buildDeliverableDocxBlob.
  * Generates comprehensive content matching ALL fields shown in the UI.
@@ -565,13 +582,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         // graded artifacts with weights, in-class activities marked as such.
         if (Array.isArray(p.assessmentBlock) && p.assessmentBlock.length > 0) {
           children.push(makeSubHeading('Assessments This Week'));
-          p.assessmentBlock.forEach((entry) =>
-            children.push(
-              makeBullet(
-                `${entry.title}${entry.weight === 'in class' ? ' — in class' : entry.weight ? ` (${entry.weight})` : ''}`,
-              ),
-            ),
-          );
+          p.assessmentBlock.forEach((entry) => children.push(makeBullet(formatAssessmentBlockEntry(entry))));
         }
         // Session Outline — as a table
         if (p.outline?.length) {

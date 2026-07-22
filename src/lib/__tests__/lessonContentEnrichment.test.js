@@ -72,6 +72,64 @@ describe('lesson content enrichment contracts', () => {
     expect(prompt.userPrompt).toContain('four distinct parameters');
   });
 
+  it('binds matched Mandarin lessons to an exact cited compiler ledger', () => {
+    const prompt = buildLessonContentEnrichmentPrompt(
+      {
+        courseName: 'Elementary Mandarin Chinese I',
+        lessons: [
+          {
+            title: 'Lesson 10: Shopping and Money',
+            sections: [
+              {
+                topicSection: '10.1: Shopping Vocabulary; 10.2: Asking Prices',
+                learningObjectives: 'Ask and answer a basic price question.',
+                supportingResources: '',
+              },
+            ],
+          },
+        ],
+      },
+      [0],
+    );
+    expect(prompt.lessons[0]).toMatchObject({
+      sourceFactPolicy: 'numbered-source-ledger-v1',
+      sourceFacts: [
+        expect.stringContaining('这个多少钱'),
+        expect.stringContaining('这个 (zhège)'),
+        expect.stringContaining('多少钱 (duōshao qián)'),
+      ],
+      sourceLedgerAttribution: {
+        title: 'CHN101: Elementary Mandarin I',
+        license: 'CC BY-NC-SA',
+        url: expect.stringContaining('libretexts.org'),
+      },
+    });
+    expect(prompt.lessons[0].readings).toContain('Compiler knowledge source: CHN101: Elementary Mandarin I');
+  });
+
+  it('keeps instructor facts ahead of the built-in Mandarin ledger', () => {
+    const instructorProvidedFacts = [
+      'Instructor claim one contains enough detail to remain a complete sentence.',
+      'Instructor claim two contains enough detail to remain a complete sentence.',
+      'Instructor claim three contains enough detail to remain a complete sentence.',
+    ];
+    const prompt = buildLessonContentEnrichmentPrompt(
+      {
+        courseName: 'Elementary Mandarin Chinese I',
+        lessons: [
+          {
+            title: 'Lesson 10: Shopping and Money',
+            sections: [{ topicSection: 'Asking Prices', learningObjectives: 'Ask a price.' }],
+          },
+        ],
+      },
+      [0],
+      { instructorProvidedFacts },
+    );
+    expect(prompt.lessons[0].sourceFacts).toEqual(instructorProvidedFacts);
+    expect(prompt.lessons[0]).not.toHaveProperty('sourceLedgerAttribution');
+  });
+
   it('lint accepts a well-formed disciplinary item and rejects meta/process items', () => {
     expect(lintEnrichedQuizItem(GOOD_ITEM, { groundingText: '' })).toHaveLength(0);
     const meta = {

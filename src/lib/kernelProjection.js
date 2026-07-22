@@ -448,7 +448,11 @@ function composeEvidenceBoundedShortAnswer(
   const sentences = [];
   const termName = cleanText(term?.term);
   const definition = definitionAsClause(term);
-  const setup = stripTerminalPeriod(cleanText(scenario?.setup)).replace(
+  // The question already presents the complete decision record. The model
+  // answer should cite its decisive case detail, not paste the entire prompt
+  // (including the learner directions) back into the answer key.
+  const fullSetup = stripTerminalPeriod(cleanText(scenario?.setup));
+  const setup = (compactFactLedgerAnswers ? firstSentenceOf(fullSetup) : fullSetup).replace(
     /^(?:consider|imagine|suppose(?:\s+that)?|picture|examine)\s+/i,
     '',
   );
@@ -511,7 +515,7 @@ function composeEvidenceBoundedShortAnswer(
           projectionVariant(variantSeed + 3, [
             `Use ${lowercaseLead(materials)} to test this interpretation; the supplied evidence supports a bounded next decision, not a broader causal claim without additional evidence`,
             `Check the conclusion against ${lowercaseLead(materials)}. Those materials justify the next decision but cannot establish a wider cause without more evidence`,
-            `${materials} can support this limited recommendation; those materials do not prove that the same explanation applies beyond the case`,
+            `${sentenceCase(materials)} can support this limited recommendation; those materials do not prove that the same explanation applies beyond the case`,
             `Test the claim with ${lowercaseLead(materials)}, then keep the boundary explicit: the evidence guides this decision, while broader generalization needs another source`,
             `The evidence check is ${lowercaseLead(materials)}. It supports a case-specific action, not an unrestricted causal conclusion`,
             `Ground the recommendation in ${lowercaseLead(materials)} and name the remaining limitation before extending the claim`,

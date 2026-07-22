@@ -282,7 +282,7 @@ export default function useStreamReader() {
               adapterManifestSha256: route?.manifestSha256 || null,
               adapterScopeIdentitySha256: route?.scopeIdentitySha256 || null,
               nativeAdapterActive: route?.nativeAdapterActive === true,
-              routeModelCalls: 1,
+              routeModelCalls: Number.isFinite(Number(route?.modelCalls)) ? Math.max(0, Number(route.modelCalls)) : 1,
               execution: 'browser-local',
             };
             observedAdapterRoutes.push(routeEvent);
