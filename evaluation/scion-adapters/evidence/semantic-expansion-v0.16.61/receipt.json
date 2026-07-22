@@ -16,7 +16,7 @@
     "scripts/scionLessonKernelJudgeBatches.mjs": "edb0d15e606d4b78d4c56b988b129812f9a9adcc7b4579209904679429783e93",
     "scripts/scionLessonKernelJudgeRunner.mjs": "ac243a641bde1073cecc7a4feaad3884cc0dfa996662bf2317bf4e115ec2088d",
     "src/lib/scionAnswerKeyAlignment.js": "30223daabe4b1a15a3f9deb0b669b8dad77c5e804550dbab653224b0ece92fab",
-    "src/lib/publicScionProvider.js": "7a1c38e92fe489335f7f72d237215d7571300d9d996b50546944ce8dc25a41d5",
+    "src/lib/publicScionProvider.js": "1c77f0941f72394a2b97ead939e95de5a2a6c08343ab74f8284fd30e5509adc2",
     "evaluation/scion-adapters/lesson-kernel-teacher-revision-prompt-v8-v0.16.60.md": "505aff4b87a07aa0d7d9d7d7b6d40bb268f654439a4b8e06f1d1efda53327eb1"
   },
   "evidenceFiles": {
@@ -354,6 +354,6 @@
   "claimBoundary": "These are source-constrained same-identity model-teacher and model-judge preferences from separate isolated sessions with reversed-order controls. They are not human, instructor, classroom, independent-judge, held-out-adapter, production-win, or model-weight-improvement evidence. The public Gemma 4 E2B base remained unmodified and no Scion adapter was trained or active.",
   "identity": {
     "algorithm": "sha256-canonical-json",
-    "sha256": "6afe7a27b046698dcbcb22fc6f75c77ee2885765347e85365806d4fa2cbeeb5f"
+    "sha256": "00eca5766315913bb2d3594c5f6eea04020c42fb91f2328786d9e494ba91ccb0"
   }
 }
