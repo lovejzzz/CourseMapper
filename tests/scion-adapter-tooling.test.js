@@ -22,6 +22,7 @@ import { auditScionAdapterTaskScope } from '../scripts/scionAdapterTaskScopeAudi
 import {
   assessScionAdapterRouteEvidence,
   assessHeldoutDatasetBoundary,
+  captureCompilerProvenance,
   prepareScionBenchmarkRun,
   produceScionPairedEvidence,
   sha256Value,
@@ -173,6 +174,37 @@ function bindSyntheticTrainingRun(manifest, lane = 'production') {
 }
 
 describe('Scion adapter tooling', () => {
+  it('binds dirty-tree evidence to executable compiler paths without scanning archived outputs', async () => {
+    root = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-compiler-provenance-'));
+    await execFile('git', ['init'], { cwd: root });
+    await execFile('git', ['config', 'user.email', 'scion-test@edutool.dev'], { cwd: root });
+    await execFile('git', ['config', 'user.name', 'Scion Test'], { cwd: root });
+    await fs.mkdir(path.join(root, 'src'), { recursive: true });
+    await fs.mkdir(path.join(root, 'verification-output'), { recursive: true });
+    await fs.writeFile(path.join(root, 'src', 'compiler.js'), 'export const compiler = 1;\n');
+    await fs.writeFile(path.join(root, 'verification-output', 'archive.json'), '{"historical":true}\n');
+    await execFile('git', ['add', '.'], { cwd: root });
+    await execFile('git', ['commit', '-m', 'fixture'], { cwd: root });
+
+    await expect(captureCompilerProvenance(root)).resolves.toMatchObject({
+      dirty: false,
+      trackedChanges: [],
+      affectingUntracked: [],
+    });
+
+    await fs.writeFile(path.join(root, 'verification-output', 'archive.json'), '{"historical":false}\n');
+    await expect(captureCompilerProvenance(root)).resolves.toMatchObject({ dirty: false });
+
+    await fs.writeFile(path.join(root, 'src', 'compiler.js'), 'export const compiler = 2;\n');
+    await fs.writeFile(path.join(root, 'src', 'runtime.js'), 'export const runtime = true;\n');
+    await fs.writeFile(path.join(root, 'src', 'runtime.test.js'), 'throw new Error("not runtime");\n');
+    await expect(captureCompilerProvenance(root)).resolves.toMatchObject({
+      dirty: true,
+      trackedChanges: ['src/compiler.js'],
+      affectingUntracked: ['src/runtime.js'],
+    });
+  });
+
   it('allows the exact source-strict V6 production admission profile for task-matched datasets', () => {
     expect(SCION_ADAPTER_SEMANTIC_PROFILES).toContain('source-strict-v6');
     expect(SCION_ADAPTER_DATASET_PROFILES['lesson-kernel-v0.16.54']).toMatchObject({

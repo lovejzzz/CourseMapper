@@ -56,6 +56,7 @@ import { NATIVE_PASS_B_AUTHORING_ADDITION } from './prompts';
 import { extractExplicitCoverageTopics, extractExplicitLessonSequence } from './explicitLessonSequence';
 import { semanticIdentityTokens } from './lessonSemanticRelevance';
 import { buildFactLedgerFeedback } from './factLedgerFeedback.js';
+import { resolveScionCumulativeTargetLanguagePair } from './scionLanguageKnowledge.js';
 export { AUTHORING_MODE_STORAGE_KEY, readAuthoringMode, saveAuthoringMode } from './authoringMode.js';
 
 // ── Typed failure: the degraded-plan guard ──────────────────────────────────
@@ -703,6 +704,7 @@ export function projectCumulativeAssessmentKernels({
   lessonContent = {},
   courseMapLessons = [],
   lessonIndices = [],
+  courseName = '',
   onComplete,
 } = {}) {
   const projectedLessonIndices = [];
@@ -729,10 +731,17 @@ export function projectCumulativeAssessmentKernels({
         : `Lesson ${coveredLessonNumbers[0]}`;
     const assessmentTitle = cleanText(lesson?.title, 160).replace(/^lesson\s+\d+\s*[:.-]\s*/i, '');
     const termNames = keyTerms.map((term) => cleanText(term.term, 80)).filter(Boolean);
+    // Cumulative-review lessons bypass the model-backed Scion pass that adds
+    // the course's canonical target-language pair. Preserve the same language
+    // contract at this compiler-owned boundary: prefer a lesson-specific
+    // local pair, then reuse one already admitted in the reviewed lessons.
+    // This is evidence projection, not new model-authored language content.
+    const targetLanguagePair = resolveScionCumulativeTargetLanguagePair({ courseName, lesson, entries });
     const draft = {
       enrichmentSource: 'cumulative-review-projection',
       projectionKind: 'cumulative-assessment',
       sourceLessonIds,
+      ...(targetLanguagePair ? { targetLanguagePair: { ...targetLanguagePair } } : {}),
       kernel: {
         facts,
         scenario: {
@@ -780,12 +789,14 @@ export function prepareCumulativeAssessmentKernels(
   contentSourcedSet,
   onComplete,
   chunkSize = 1,
+  courseName = '',
 ) {
   completeNativeLessonSurfaces(lessonContent, courseMapLessons, subjectLessonIndices, onComplete);
   const result = projectCumulativeAssessmentKernels({
     lessonContent,
     courseMapLessons,
     lessonIndices: cumulativeAssessmentLessonIndices,
+    courseName,
     onComplete,
   });
   result.projectedLessonIndices.forEach((index) => contentSourcedSet?.add(`lesson-${index + 1}`));
@@ -807,6 +818,7 @@ export async function resolveCumulativeAssessmentKernels(
   limit,
   runBatch,
   batchOffset = 0,
+  courseName = '',
 ) {
   const batches = prepareCumulativeAssessmentKernels(
     lessonContent,
@@ -816,6 +828,7 @@ export async function resolveCumulativeAssessmentKernels(
     contentSourcedSet,
     onComplete,
     chunkSize,
+    courseName,
   );
   await Promise.all(batches.map((chunk, index) => limit(() => runBatch(chunk, batchOffset + index))));
 }

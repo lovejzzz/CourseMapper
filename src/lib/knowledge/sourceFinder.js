@@ -246,6 +246,16 @@ const DISCIPLINE_ANCHOR_GATES = [
       /\b(?:genetics?|genes?|genom(?:e|es|ic|ics)|dna|crispr|cas9|inheritance|heredity|traits?|ancestry|alleles?|chromosomes?|heritability)\b/i,
   },
   {
+    // Beginner Mandarin lesson topics such as "numbers", "time", "family",
+    // and "health" are highly cross-disciplinary. A topic-only match can
+    // otherwise attach a generic Abacus or clinical-health page that teaches
+    // nothing about the target language. Require the source itself to carry
+    // a Chinese-language identity; "China" alone is geographic, not enough.
+    applies: /\b(?:mandarin|chinese\s+language|pinyin|hanzi|chinese\s+characters?)\b/i,
+    source:
+      /\b(?:mandarin|chinese|pinyin|hanzi|chinese\s+characters?|simplified\s+chinese|traditional\s+chinese|sinograms?)\b/i,
+  },
+  {
     // "reading", "method", "strategy", and "text" also describe literacy
     // instruction. A World/Comparative Literature source therefore needs a
     // genuinely literary identity rather than two generic query-token hits.

@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import crypto from 'node:crypto';
+import { lstatSync, readFileSync, readlinkSync } from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
@@ -214,31 +215,114 @@ async function gitOutput(cwd, args) {
   return stdout.trim();
 }
 
-function untrackedCanAffectCompiler(filePath) {
-  return (
-    /^(src|scripts|tests|public|evaluation|release-contracts|trellis|runtime)\//.test(filePath) ||
-    /^(index\.html|firebase\.json|package(?:-lock)?\.json|vite\.config\.|vitest\.config\.|eslint\.config\.|tailwind\.config\.|postcss\.config\.)/.test(
-      filePath,
-    )
+// A paired run binds the whole committed tree by SHA, while dirty-tree proof
+// only needs to inspect files that can change the executable compiler, grader,
+// browser harness, or local inference runtime. Scanning every tracked archive
+// under verification-output made a cold worktree hash gigabytes of historical
+// evidence before a run could start; those archives cannot affect generation.
+// The benchmark, dataset, adapter, grader implementation, and package lock are
+// also hashed independently below, so narrowing this pathspec does not weaken
+// their identity boundary.
+export const SCION_COMPILER_PROVENANCE_PATHS = Object.freeze([
+  'src',
+  'scripts/crucible.mjs',
+  'scripts/crucible',
+  'scripts/lib/crucibleBrowser.mjs',
+  'scripts/lib/crucibleResume.mjs',
+  'scripts/lib/crucibleRound.mjs',
+  'scripts/lib/moduleImplementationReceipt.mjs',
+  'scripts/lib/scionBrowserDeviceMatrix.mjs',
+  'scripts/lib/scionCompilerBurden.mjs',
+  'scripts/scionAdapterPackage.mjs',
+  'scripts/scionAdapterPairedEvidence.mjs',
+  'public',
+  'trellis/tendril/sModel.mjs',
+  'trellis/tendril/distill/serve_g4.py',
+  'index.html',
+  'firebase.json',
+  'package.json',
+  'package-lock.json',
+  'playwright.config.js',
+  'vite.config.js',
+  'vitest.quality-benchmark.config.js',
+  'eslint.config.js',
+  'tailwind.config.js',
+  'postcss.config.js',
+]);
+
+function excludedCompilerProvenancePath(filePath) {
+  return /(^|\/)__tests__\//.test(filePath) || /\.(?:test|spec)\.[^/]+$/.test(filePath);
+}
+
+function splitNullTerminated(value) {
+  return String(value || '')
+    .split('\0')
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+}
+
+function gitBlobSha1(body) {
+  return crypto.createHash('sha1').update(`blob ${body.length}\0`).update(body).digest('hex');
+}
+
+function worktreeBlobReceipt(cwd, entry) {
+  const absolutePath = path.join(cwd, entry.filePath);
+  try {
+    const stats = lstatSync(absolutePath);
+    const body = stats.isSymbolicLink()
+      ? Buffer.from(readlinkSync(absolutePath), 'utf8')
+      : readFileSync(absolutePath);
+    const worktreeMode = stats.isSymbolicLink()
+      ? '120000'
+      : stats.isFile()
+        ? stats.mode & 0o111
+          ? '100755'
+          : '100644'
+        : 'unsupported';
+    return {
+      filePath: entry.filePath,
+      changed: worktreeMode !== entry.mode || gitBlobSha1(body) !== entry.objectId,
+    };
+  } catch {
+    return { filePath: entry.filePath, changed: true };
+  }
+}
+
+async function scopedTrackedChanges(cwd) {
+  const { stdout } = await execFile(
+    'git',
+    ['ls-tree', '-rz', 'HEAD', '--', ...SCION_COMPILER_PROVENANCE_PATHS],
+    { cwd, encoding: 'utf8', maxBuffer: 5_000_000 },
   );
+  const entries = splitNullTerminated(stdout)
+    .map((line) => {
+      const match = /^(\d+) blob ([a-f0-9]{40})\t(.+)$/.exec(line);
+      if (!match) throw new Error(`Unsupported compiler provenance tree entry: ${line}`);
+      return { mode: match[1], objectId: match[2], filePath: match[3] };
+    })
+    .filter((entry) => !excludedCompilerProvenancePath(entry.filePath));
+  const receipts = entries.map((entry) => worktreeBlobReceipt(cwd, entry));
+  return receipts.filter((entry) => entry.changed).map((entry) => entry.filePath);
 }
 
 export async function captureCompilerProvenance(cwd) {
-  const [commit, tree, statusResult] = await Promise.all([
+  const [commit, tree, trackedChanges, untrackedResult] = await Promise.all([
     gitOutput(cwd, ['rev-parse', 'HEAD']),
     gitOutput(cwd, ['rev-parse', 'HEAD^{tree}']),
-    execFile('git', ['status', '--porcelain=v1', '-z', '--untracked-files=all'], {
-      cwd,
-      encoding: 'utf8',
-      maxBuffer: 2_000_000,
-    }),
+    scopedTrackedChanges(cwd),
+    execFile(
+      'git',
+      ['ls-files', '--others', '--exclude-standard', '-z', '--', ...SCION_COMPILER_PROVENANCE_PATHS],
+      {
+        cwd,
+        encoding: 'utf8',
+        maxBuffer: 2_000_000,
+      },
+    ),
   ]);
-  const statusEntries = statusResult.stdout.split('\0').filter(Boolean);
-  const trackedChanges = statusEntries.filter((entry) => !entry.startsWith('?? '));
-  const affectingUntracked = statusEntries
-    .filter((entry) => entry.startsWith('?? '))
-    .map((entry) => entry.slice(3))
-    .filter(untrackedCanAffectCompiler);
+  const affectingUntracked = splitNullTerminated(untrackedResult.stdout).filter(
+    (filePath) => !excludedCompilerProvenancePath(filePath),
+  );
   return {
     commit,
     tree,

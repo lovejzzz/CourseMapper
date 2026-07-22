@@ -1558,6 +1558,7 @@ export default function useDeliverables({
                 limit,
                 runBatchSafely,
                 batches.length,
+                blueprintCourseMap.courseName,
               );
             }
 

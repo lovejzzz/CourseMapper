@@ -60,3 +60,18 @@ export function resolveScionTargetLanguagePair({ courseName = '', lesson = {} } 
   const match = BEGINNER_MANDARIN_PAIRS.find((entry) => entry.match.test(identity));
   return match ? { ...match.pair } : null;
 }
+
+/**
+ * Cumulative review lessons are compiler projections, so they bypass the
+ * model-backed language-identity pass. Resolve the lesson-specific local pair
+ * when one exists; otherwise reuse a pair already admitted in the reviewed
+ * lessons. Returning a copy keeps the projection from mutating its source.
+ */
+export function resolveScionCumulativeTargetLanguagePair({ courseName = '', lesson = {}, entries = [] } = {}) {
+  const direct = resolveScionTargetLanguagePair({ courseName, lesson });
+  if (direct) return direct;
+  const inherited = (Array.isArray(entries) ? entries : [])
+    .map((entry) => entry?.payload?.targetLanguagePair)
+    .find((pair) => pair?.hanzi && pair?.pinyin && pair?.english);
+  return inherited ? { ...inherited } : null;
+}
