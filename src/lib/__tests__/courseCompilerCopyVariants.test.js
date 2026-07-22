@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { assignmentSelfAssessmentEvidenceCheck } from '../courseCompilerRubricCopy';
+import { buildGenericCriterionPerformanceBand } from '../courseCompilerRubricCopy';
+import { assignmentSelfAssessmentEvidenceCheck } from '../courseCompilerSelfAssessmentCopy';
 import {
   compactAssignmentBriefBodyReferences,
   compactRepeatedCourseFocusReferences,
@@ -256,6 +257,37 @@ describe('course compiler copy variants', () => {
       'Name one feedback-informed revision to the checkpoint response and explain how it strengthened the evidence or reasoning',
     ]);
     expect(results.join(' ')).not.toMatch(/\b(?:Look|choose evidence)\.$/i);
+  });
+
+  it('varies every analysis and revision performance band across lesson-scoped rubrics', () => {
+    const build = (priority, variantIndex) =>
+      buildGenericCriterionPerformanceBand({
+        priority,
+        concept: 'invocation',
+        artifact: 'close-reading response',
+        evidenceNoun: 'passage evidence',
+        sourceCue: 'The Odyssey',
+        evidenceSignal: 'Identify the formal detail that warrants the interpretation.',
+        calibrationUse: 'Can two scorers locate the same warrant?',
+        revisionTarget: 'Revise the evidence-to-claim link.',
+        commonPitfall: 'Plot summary without formal analysis.',
+        formatLabel: 'interpretive response',
+        pick: (variants) => variants[variantIndex],
+      });
+
+    const analysis = [0, 1, 2, 3].map((index) => build('analysis and decision logic', index));
+    const revision = [0, 1, 2, 3].map((index) => build('feedback-informed revision', index));
+    const communication = [0, 1, 2, 3].map((index) => build('professional communication and format fit', index));
+
+    for (const field of ['exemplary', 'proficient', 'developing', 'beginning']) {
+      expect(new Set(analysis.map((band) => band[field])).size).toBe(4);
+    }
+    for (const field of ['exemplary', 'proficient', 'developing', 'beginning']) {
+      expect(new Set(revision.map((band) => band[field])).size).toBe(4);
+    }
+    for (const field of ['exemplary', 'proficient', 'developing', 'beginning']) {
+      expect(new Set(communication.map((band) => band[field])).size).toBe(4);
+    }
   });
 
   it('preserves domain-specific evidence signals', () => {

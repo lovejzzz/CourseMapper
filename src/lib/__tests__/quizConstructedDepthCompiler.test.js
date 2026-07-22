@@ -217,7 +217,7 @@ describe('constructed-response compiler depth', () => {
       type: 'short_answer',
       enrichmentSource: 'admitted-kernel-assessment',
     });
-    expect(items[4].question).toMatch(/strongest conclusion.*additional fact/i);
+    expect(items[4].question).toMatch(/strongest conclusion.*another course fact/i);
     expect(isClaimEvidenceBoundaryShortAnswer(items[4].question)).toBe(true);
     expect(items[4].scoringGuidance).toMatch(/specific additional fact/i);
   });
@@ -643,9 +643,11 @@ describe('constructed-response compiler depth', () => {
 
     expect(exam.examScope).toBe('Covers Lesson 1: Usability Evidence.');
     expect(shortAnswer.question).toMatch(/identify the two course concepts/i);
-    expect(shortAnswer.question).toMatch(/one course detail from Usability Evidence as evidence/i);
+    expect(shortAnswer.question).toMatch(/one course detail for each concept from Usability Evidence/i);
     expect(isConceptCuedCompilerShortAnswer(shortAnswer.question)).toBe(false);
     expect(isClaimEvidenceBoundaryShortAnswer(shortAnswer.question)).toBe(true);
+    expect(shortAnswer.sampleAnswer).toMatch(/Repeated task failures support a bounded usability claim/i);
+    expect(shortAnswer.sampleAnswer).toMatch(/distinguishes what each concept explains/i);
     expect(essay.question).not.toMatch(/\bdecision decisions\b/i);
     expect(essay.question).not.toMatch(/(.+?) through \1/i);
     expect(essay.rubricHints).toMatch(/two concepts from the covered lesson/i);
@@ -722,7 +724,7 @@ describe('constructed-response compiler depth', () => {
     const shortAnswer = exam.questions.find((item) => item.type === 'short_answer');
     const essay = exam.questions.find((item) => item.type === 'essay');
 
-    expect(shortAnswer.question).toMatch(/one course detail from Realism and Liberalism as evidence/i);
+    expect(shortAnswer.question).toMatch(/one course detail for each concept from Realism and Liberalism/i);
     expect(shortAnswer.question).toMatch(/identify the two course concepts/i);
     expect(shortAnswer.question).not.toMatch(/Realism and Liberalism in Realism and Liberalism/i);
     expect(shortAnswer.question).not.toMatch(/Anarchic structure/i);

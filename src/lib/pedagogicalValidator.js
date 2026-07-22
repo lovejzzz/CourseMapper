@@ -1051,6 +1051,10 @@ const READABILITY_IGNORED_KEYS = new Set([
   'iu',
   'pointPlan',
   'pp',
+  // Compiler planning and instructor-only feedback are not rendered in the
+  // learner question paper. Do not score them at a student reading level.
+  'assessmentBlueprint',
+  'formativeFeedbackNote',
   'objectiveAligned',
   'oa',
   'relatedLessons',

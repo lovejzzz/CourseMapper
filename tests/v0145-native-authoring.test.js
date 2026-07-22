@@ -523,6 +523,63 @@ describe('Pass A skeleton contract (B1)', () => {
     });
   });
 
+  it('fills the cited Mandarin review bridge when fifteen lessons name fourteen ordered topics', () => {
+    const sourceText =
+      'Elementary Mandarin Chinese I, a 15-lesson college language course. Lessons cover: the pinyin system and the four tones; greetings and self-introductions; classroom language; numbers, age, and dates; family members and possession with 的; daily routines and telling time; core SVO sentence patterns with 不, 没, and 吗; basic characters and short reading passages; food and dining; shopping and money; weather and clothing; transportation and directions; health and feelings; and a course review leading to a final oral performance.';
+    const authoredTitles = [
+      'Pinyin and Tones',
+      'Phonetic System',
+      'Greetings and Self-Introductions',
+      'Social Etiquette',
+      'Classroom Language',
+      'Academic Discourse',
+      'Numbers, Age, and Dates',
+      'Numerals and Time',
+      'Family and Possession with',
+      'Possession Structures',
+      'Daily Routines and Telling Time',
+      'Temporal Expressions',
+      'Core SVO Patterns: 不 and',
+      'Negation Structures',
+      'Core SVO Patterns',
+    ];
+    const skeleton = parseNativeSkeletonResponse(
+      JSON.stringify({
+        course: { name: 'Elementary Mandarin Chinese I' },
+        sessions: authoredTitles.map((title, index) => ({
+          order: index + 1,
+          title,
+          sectionTitles: [title],
+        })),
+      }),
+      { expectedLessons: 15, sourceText },
+    );
+
+    expect(skeleton.sessions.map((session) => session.title)).toEqual([
+      'pinyin system and the four tones',
+      'greetings and self-introductions',
+      'classroom language',
+      'numbers, age, and dates',
+      'family members and possession with 的',
+      'daily routines and telling time',
+      'core SVO sentence patterns with 不, 没, and 吗',
+      'Vocabulary Recall and Grammar Review',
+      'basic characters and short reading passages',
+      'food and dining',
+      'shopping and money',
+      'weather and clothing',
+      'transportation and directions',
+      'health and feelings',
+      'course review leading to a final oral performance',
+    ]);
+    expect(skeleton.sessionSequenceRecovery).toMatchObject({
+      kind: 'explicit-source-lesson-sequence',
+      recoveredCount: 15,
+      reason: 'ordered-topic-misalignment',
+      misalignedOrders: expect.arrayContaining([2, 3, 8, 15]),
+    });
+  });
+
   it('restores the exact “with these lessons” sequence before Pass B authors content', () => {
     const sourceText =
       'Create a 6-week college World Literature course with these lessons: World Literature Scope; Oral Epic Tradition using Gilgamesh; Homeric Epic using The Odyssey; Classical Drama using Antigone; Tang Poetry using selected poems by Li Bai and Du Fu; and Frame Narratives using The Thousand and One Nights. Focus on textual analysis.';
@@ -1210,6 +1267,40 @@ describe('Pass B contract (B2)', () => {
     expect(completed.quizItems).toHaveLength(2);
     expect(completed.slideContent.length).toBeGreaterThanOrEqual(1);
     expect(assessProjectedKernelCoverage(completed).usable).toBe(true);
+
+    const mandarinFactsOnly = completeNativeKernelSurfaces(
+      {
+        targetLanguagePair: {
+          hanzi: '我不喜欢苹果。',
+          pinyin: 'Wǒ bù xǐhuān píngguǒ.',
+          english: 'I do not like apples',
+        },
+        keyTerms: [],
+        quizItems: [],
+        kernel: {
+          facts: [
+            '我不喜欢苹果。 (Wǒ bù xǐhuān píngguǒ.) means "I do not like apples".',
+            '不 (bù) appears before the verb 喜欢 (xǐhuān) to negate "like".',
+            'The sentence follows subject-negation-verb-object order: 我 + 不 + 喜欢 + 苹果.',
+          ],
+          scenario: null,
+        },
+      },
+      {
+        title: 'Lesson 7: Core SVO Sentence Patterns with 不, 没, and 吗',
+        sections: [{ topicSection: 'Core SVO sentence patterns with 不, 没, and 吗' }],
+      },
+    );
+    expect(mandarinFactsOnly.keyTerms).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          term: 'Core SVO sentence patterns with 不, 没, and 吗',
+          source: 'fact-ledger-projection',
+        }),
+      ]),
+    );
+    expect(mandarinFactsOnly.quizItems).toHaveLength(2);
+    expect(assessProjectedKernelCoverage(mandarinFactsOnly).usable).toBe(true);
 
     const factsOnly = completeNativeKernelSurfaces(
       {

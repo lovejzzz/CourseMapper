@@ -28,10 +28,17 @@ import {
   buildLiteratureLongFormProfile,
   buildWeeklyReadingResponseProfile,
 } from './courseCompilerReadingProfiles';
+import { buildGenericCriterionPerformanceBand } from './courseCompilerRubricCopy';
+import { assignmentSelfAssessmentEvidenceCheck } from './courseCompilerSelfAssessmentCopy';
 import {
-  assignmentSelfAssessmentEvidenceCheck,
-  buildGenericCriterionPerformanceBand,
-} from './courseCompilerRubricCopy';
+  additionalEvidenceRequirementCopy,
+  closeReadingDiscussionCopy,
+  constructedResponseRelationshipSampleCopy,
+  faqCoreClaimsCopy,
+  prerequisiteDiagnosticCopy,
+  shortAnswerGuidanceCopy,
+  shortAnswerSampleCopy,
+} from './courseCompilerInstructionalCopy';
 import {
   compactAssignmentBriefBodyReferences,
   compactCourseCopyEmbeddedReference,
@@ -5416,7 +5423,7 @@ function buildPrerequisitePlan({ lesson, previous }) {
       ? `Students should connect ${previousConcept} to ${concept} before working on ${artifactName}.`
       : `Students should be able to name one prior example, course goal, or baseline experience that makes ${concept} meaningful before working on ${artifactName}.`,
     diagnosticCheck: previous
-      ? `Ask students to explain one relationship and one difference between ${previousConcept} and ${concept}.`
+      ? prerequisiteDiagnosticCopy({ lessonNumber: lesson.lessonNumber, previousConcept, concept })
       : `Ask students to define ${concept} in their own words and connect it to one concrete example before new instruction begins.`,
     studentReadinessCheck: previous
       ? `Before drafting, write one sentence connecting ${previousConcept} to ${concept}, then name one important difference.`
@@ -19362,24 +19369,20 @@ function buildShortAnswerQuestion({ lesson, index, bloom, objective, concept, le
     lesson.throughlineCase?.evidencePacket || `${lessonFocus} evidence`,
     lesson,
   );
-  const answerGuidance = lessonVariant(lesson, [
-    `${concept} should guide the evidence students select and the decision they justify in ${artifact}. A strong ${lessonFocus} answer names one inspectable ${sourceCue} clue, explains why it fits, and states how the evidence changes the next step.`,
-    `A complete ${lessonFocus} response uses ${concept} to choose evidence from ${sourceCue}, explains the evidence boundary, and names the decision it supports in ${artifact}.`,
-    `Strong work connects ${concept} to a source detail from ${sourceCue}, then explains what the detail proves, limits, or changes for ${artifact}.`,
-    `The response should treat ${concept} as a reasoning move: select evidence from ${sourceCue}, explain its fit, and state the implication for ${artifact}.`,
-  ]);
-  const explanation = lessonVariant(lesson, [
-    `A complete response links ${concept}, ${artifact}, and a concrete source detail instead of only defining the term.`,
-    `Credit depends on using ${concept} to interpret evidence for ${artifact}, not on restating vocabulary.`,
-    `The answer should make the evidence-to-decision link visible: what evidence was used, why it matters, and how ${artifact} changes.`,
-    `This item checks whether students can move from ${concept} recall into evidence-backed reasoning for ${artifact}.`,
-  ]);
-  const scoringGuidance = lessonVariant(lesson, [
-    `Full credit requires accurate use of ${concept}, one concrete evidence source, a decision implication, and a limitation or next evidence need. Partial credit is appropriate when the answer names ${concept} but omits the evidence, implication, or boundary. Flag answers that summarize ${stripLessonPrefix(lesson.title)} without applying it.`,
-    `Award full credit when the response uses ${concept} accurately, cites a source detail, explains the effect on ${artifact}, and states what the evidence cannot establish. Give partial credit for accurate concept language without enough evidence or decision logic.`,
-    `Full-credit responses name the evidence, explain how ${concept} works, state what changes for ${artifact}, and identify one limitation or next source to inspect. Responses that only summarize ${lessonFocus} need revision or partial credit.`,
-    `Score for concept accuracy, evidence grounding, decision use, and a bounded claim: the response should show what ${sourceCue} adds to ${artifact} and what still needs confirmation, not only mention ${concept}.`,
-  ]);
+  const guidance = shortAnswerGuidanceCopy({
+    lessonNumber: lesson.lessonNumber,
+    concept,
+    artifact,
+    sourceCue,
+  });
+  const sampleAnswer = shortAnswerSampleCopy({
+    lessonNumber: lesson.lessonNumber,
+    lessonFocus,
+    concept,
+    sourceCue,
+    artifact,
+    decisionNoun: lens.decisionNoun,
+  });
   return withQuizPlan(
     {
       id: quizQuestionId(lesson, index),
@@ -19390,11 +19393,11 @@ function buildShortAnswerQuestion({ lesson, index, bloom, objective, concept, le
       points: 4,
       objectiveAligned: objective,
       intendedUse: `Formative written check after ${lessonFocus}; use responses to identify review needs before ${artifact}.`,
-      question: `In 2-3 sentences, explain which course concept or method should shape ${artifact}. Name that concept or method, cite one evidence detail from ${sourceCue} to support your claim, then state one limitation or next piece of evidence.`,
-      answer: answerGuidance,
-      sampleAnswer: `For ${lessonFocus}, I would select ${concept} because one exact source detail from ${sourceCue} supports the change I propose for ${artifact}. In ${lessonFocus}, that detail supports the ${lens.decisionNoun}, but it does not establish a broader conclusion; I would inspect one additional source before extending the claim.`,
-      explanation,
-      scoringGuidance,
+      question: `In 2-3 sentences, name the course concept or method that should shape ${artifact}. Cite one evidence detail from ${sourceCue}. State one limit or next piece of evidence.`,
+      answer: guidance.answer,
+      sampleAnswer,
+      explanation: guidance.explanation,
+      scoringGuidance: guidance.scoringGuidance,
       tags: quizTags(lesson, 'short_answer', bloom, 'formative check'),
     },
     plan,
@@ -19434,19 +19437,19 @@ function buildEssayQuestion({ lesson, index, bloom, objective, concept, lens, pl
       intendedUse: `Summative or exam-prep synthesis for ${lessonFocus}; score with the rubric hints before students revise related work.`,
       question: `${promptLead} In 2-3 organized paragraphs, use ${concept}, cite lesson evidence, and explain one limitation.`,
       rubricHints: lessonVariant(lesson, [
-        `Strong responses define ${concept}, use at least two pieces of ${lens.evidenceNoun}, justify a ${lens.decisionNoun}, and acknowledge a limitation or risk.`,
-        `High-scoring essays connect ${concept} to multiple ${lens.evidenceNoun} examples, defend the ${lens.decisionNoun}, and state what the evidence cannot prove.`,
-        `Look for a clear ${concept} claim, two inspectable evidence moves, a defensible ${lens.decisionNoun}, and one honest boundary on the recommendation.`,
-        `The strongest work turns ${lens.evidenceNoun} into a reasoned ${lens.decisionNoun}, then explains the tradeoff or uncertainty the decision still carries.`,
-        `Score highest when the response uses ${concept} to compare evidence, choose a justified ${lens.decisionNoun}, and name the remaining uncertainty.`,
-        `A strong essay makes the ${concept} reasoning visible: source detail, interpretation, decision consequence, and one bounded claim.`,
-        `Look for synthesis across ${lens.evidenceNoun}: the answer should weigh evidence, defend the decision, and identify what needs confirmation.`,
+        `Strong responses define ${concept} and use two pieces of ${lens.evidenceNoun}. They justify a ${lens.decisionNoun} and acknowledge a limit or risk.`,
+        `High-scoring essays connect ${concept} to several ${lens.evidenceNoun} examples. They defend the ${lens.decisionNoun} and state what the evidence cannot prove.`,
+        `Look for a clear ${concept} claim and two inspectable evidence moves. The response also needs a defensible ${lens.decisionNoun} and one honest boundary.`,
+        `The strongest work turns ${lens.evidenceNoun} into a reasoned ${lens.decisionNoun}. It then explains the tradeoff or remaining uncertainty.`,
+        `Score highest when the response uses ${concept} to compare evidence. It must choose a justified ${lens.decisionNoun} and name the remaining uncertainty.`,
+        `A strong essay makes the ${concept} reasoning visible. It includes a source detail, an interpretation, a decision effect, and one bounded claim.`,
+        `Look for synthesis across ${lens.evidenceNoun}. The answer should weigh evidence, defend the decision, and identify what needs confirmation.`,
       ]),
       sampleAnswer: lessonVariant(lesson, [
-        `A strong response for ${lessonFocus} would identify how ${concept} changes the artifact, cite evidence from ${compactLessonEmbeddedReference(lesson.throughlineCase?.evidencePacket || 'the lesson activity or readings', lesson)}, and propose a next step that is feasible for ${artifact}. It would also name a ${lessonFocus} limitation so the recommendation is not overstated.`,
-        `For ${lessonFocus}, a strong answer explains what ${concept} changes, anchors the recommendation in ${compactLessonEmbeddedReference(lesson.throughlineCase?.evidencePacket || 'the lesson activity or readings', lesson)}, and names the ${artifact} move that should happen next. It also states what the evidence cannot settle.`,
-        `A high-quality ${lessonFocus} response uses ${concept} to choose an action for ${artifact}, points to the source detail behind that action, and marks one risk or missing fact before recommending next work.`,
-        `The strongest answer ties ${concept} to the ${artifact} recommendation, shows which evidence made the choice defensible, and identifies one boundary that keeps the recommendation honest.`,
+        `A strong response for ${lessonFocus} explains how ${concept} changes the artifact. It cites evidence from ${compactLessonEmbeddedReference(lesson.throughlineCase?.evidencePacket || 'the lesson activity or readings', lesson)}. It proposes a feasible next step for ${artifact} and names one limit.`,
+        `For ${lessonFocus}, explain what ${concept} changes. Anchor the recommendation in ${compactLessonEmbeddedReference(lesson.throughlineCase?.evidencePacket || 'the lesson activity or readings', lesson)}. Name the next ${artifact} move and what the evidence cannot settle.`,
+        `Use ${concept} to choose an action for ${artifact}. Point to the source detail behind that action. Mark one risk or missing fact before recommending next work.`,
+        `Tie ${concept} to the ${artifact} recommendation. Show which evidence makes the choice defensible. Identify one boundary that keeps the recommendation honest.`,
       ]),
       explanation,
       scoringGuidance: lessonVariant(lesson, [
@@ -20149,6 +20152,23 @@ function examLessonFact(lesson) {
   return cleanText(lesson?.enrichment?.kernel?.facts?.[0]);
 }
 
+function examLessonFactForConcept(lesson, concept, definition = '', excludedFacts = new Set()) {
+  const facts = (lesson?.enrichment?.kernel?.facts || []).map(cleanText).filter(Boolean);
+  if (facts.length === 0) return '';
+  const cueTokens = new Set(semanticIdentityTokens(`${concept} ${definition}`));
+  const ranked = facts
+    .filter((fact) => !excludedFacts.has(fact))
+    .map((fact, index) => ({
+      fact,
+      index,
+      score: semanticIdentityTokens(fact).reduce((total, token) => total + (cueTokens.has(token) ? 1 : 0), 0),
+    }))
+    .sort((left, right) => right.score - left.score || left.index - right.index);
+  return (
+    ranked[0]?.fact || facts.find((fact) => !excludedFacts.has(fact)) || (excludedFacts.size === 0 ? facts[0] : '')
+  );
+}
+
 function buildExamShortAnswerItem({ blueprint, assessment, covered, lens, examSlug, ordinal }) {
   const first = covered[0];
   const last = covered[covered.length - 1];
@@ -20184,7 +20204,16 @@ function buildExamShortAnswerItem({ blueprint, assessment, covered, lens, examSl
     compositePair.every((member) => compositeDefinition.toLowerCase().includes(member.toLowerCase())),
   );
   const grounded = Boolean(distinctConcepts && (compositeGrounded || (!usesCompositePair && termA && termB)));
-  const anchorFact = examLessonFact(last) || examLessonFact(first);
+  const firstConceptLesson = first;
+  const secondConceptLesson = sameLesson ? first : last;
+  const factA = examLessonFactForConcept(firstConceptLesson, conceptA, termA?.definition);
+  const factB = examLessonFactForConcept(
+    secondConceptLesson,
+    conceptB,
+    termB?.definition,
+    sameLesson && factA ? new Set([factA]) : new Set(),
+  );
+  const anchorFact = factB || factA || examLessonFact(last) || examLessonFact(first);
   const firstTitle = compactLessonFocusReference(first);
   const comparisonEvidenceScope = sameLesson
     ? firstTitle
@@ -20200,14 +20229,21 @@ function buildExamShortAnswerItem({ blueprint, assessment, covered, lens, examSl
       objectiveAligned: last.outcomes?.[0] || '',
       intendedUse: `Summative item on ${assessment.title}; score against the answer guide below.`,
       question: distinctConcepts
-        ? `Use one course detail from ${comparisonEvidenceScope} as evidence. Identify the two course concepts it connects and explain how their roles differ. Then state one limitation or conclusion the detail does not establish.`
+        ? lessonVariant(last, [
+            `Use one course detail for each concept from ${comparisonEvidenceScope}. Identify the two course concepts, explain how their roles differ, and state one conclusion the paired evidence still does not establish.`,
+            `Choose two course concepts from ${comparisonEvidenceScope}. Cite one evidence detail for each, compare their explanatory roles, and state one boundary the paired evidence cannot cross.`,
+            `Select the two course concepts that best organize ${comparisonEvidenceScope}. Cite a distinct evidence detail for each, explain the relationship, and state what the evidence does not prove.`,
+            `Name the two course concepts that best fit ${comparisonEvidenceScope}. Use one supporting detail for each, distinguish their roles, and state one limitation on the conclusion.`,
+            `Identify the two course concepts supported by details from ${comparisonEvidenceScope}. Cite one evidence detail for each, compare the concepts, and state one limitation on the combined inference.`,
+            `Choose the two course concepts that create the strongest contrast in ${comparisonEvidenceScope}. Cite one course detail for each, connect their roles, and name one extension the evidence does not establish.`,
+          ])
         : `Use one course detail from ${firstTitle} as evidence. Identify the course concept it best illustrates and explain one decision that evidence supports. Then state one limitation or conclusion it does not establish.`,
       answer: distinctConcepts
         ? grounded
           ? compositeGrounded
-            ? `A complete answer distinguishes ${conceptA} from ${conceptB} using the authored course definition. ${sentenceCase(stripTerminalPunctuation(compositeDefinition))}. It then cites one course detail, names the relationship, and bounds the conclusion.`
-            : `A complete answer uses both definitions accurately. ${sentenceCase(stripTerminalPunctuation(joinTermDefinition(conceptA, termA.definition)))}. ${sentenceCase(stripTerminalPunctuation(joinTermDefinition(conceptB, termB.definition)))}. It then cites one course detail, names the relationship, and bounds the conclusion.`
-          : `A complete answer independently identifies both concepts, cites a course detail, names a concrete relationship between ${conceptA} and ${conceptB}, and bounds the conclusion.`
+            ? `A complete answer distinguishes ${conceptA} from ${conceptB} using the authored course definition. ${sentenceCase(stripTerminalPunctuation(compositeDefinition))}. It then cites one relevant course detail for each concept, names the relationship, and bounds the conclusion.`
+            : `A complete answer uses both definitions accurately. ${sentenceCase(stripTerminalPunctuation(joinTermDefinition(conceptA, termA.definition)))}. ${sentenceCase(stripTerminalPunctuation(joinTermDefinition(conceptB, termB.definition)))}. It then cites one relevant course detail for each concept, names the relationship, and bounds the conclusion.`
+          : `A complete answer independently identifies both concepts, cites a relevant course detail for each, names a concrete relationship between ${conceptA} and ${conceptB}, and bounds the conclusion.`
         : `A complete answer independently identifies ${conceptA}, cites a specific course detail, explains one decision the evidence supports, and states one limitation.`,
       sampleAnswer: distinctConcepts
         ? grounded
@@ -20217,11 +20253,15 @@ function buildExamShortAnswerItem({ blueprint, assessment, covered, lens, examSl
                   ? ` Key supporting evidence: ${lowercaseSentenceLead(stripTerminalPunctuation(anchorFact))}.`
                   : ''
               }`
-            : `${sentenceCase(stripTerminalPunctuation(joinTermDefinition(conceptA, termA.definition, { separator: ' means ', lowercaseTail: true })))}. ${sentenceCase(stripTerminalPunctuation(joinTermDefinition(conceptB, termB.definition, { separator: ' means ', lowercaseTail: true })))}. The concepts differ in what they explain, and the cited detail does not establish a broader conclusion.${
-                anchorFact
-                  ? ` Key supporting evidence: ${lowercaseSentenceLead(stripTerminalPunctuation(anchorFact))}.`
-                  : ''
-              }`
+            : constructedResponseRelationshipSampleCopy({
+                lessonNumber: last.lessonNumber,
+                conceptA,
+                conceptB,
+                definitionA: termA.definition,
+                definitionB: termB.definition,
+                factA,
+                factB,
+              })
           : `${sentenceCase(conceptA)} and ${conceptB} differ in what each explains. A specific course detail should connect them while the response states what that evidence cannot establish.`
         : `${sentenceCase(conceptA)} is the best-fitting course concept. The response should cite the exact course detail, connect it to one decision, and mark what that evidence cannot establish.`,
       ...(grounded ? { enrichmentSource: 'lesson-content-enrichment' } : {}),
@@ -20229,7 +20269,7 @@ function buildExamShortAnswerItem({ blueprint, assessment, covered, lens, examSl
         ? `Exam synthesis: the item checks whether students can select, distinguish, and relate ${conceptA} and ${conceptB} from evidence while bounding the claim.`
         : `Exam application: the item checks whether students can select ${conceptA} from course evidence, support a decision, and keep the claim bounded.`,
       scoringGuidance: distinctConcepts
-        ? `Full credit requires independent selection and accurate use of both concepts, one cited course detail, one explicit relationship, and a defensible limitation. Partial credit when only one concept is applied with evidence.`
+        ? `Full credit requires accurate use of both concepts, one relevant course detail for each, an explicit relationship between their roles, and a defensible limitation. Partial credit when only one concept is applied with evidence.`
         : `Full credit requires independent selection and accurate use of ${conceptA}, one cited course detail, one supported decision, and a limitation. Partial credit when the concept is named without connecting the evidence to the decision.`,
       tags: unique(['exam', 'short answer', conceptA, conceptB].filter(Boolean), 8),
     },
@@ -20455,6 +20495,8 @@ function buildExamDefinitionItem({ lesson, covered, coveredIndex, index, objecti
   // unchanged. This removes template stamping without weakening the audit.
   const copy = examDefinitionCopy({
     coveredIndex,
+    lessonNumber: lesson.lessonNumber,
+    questionIndex: index,
     concept,
     fromClause,
     assessmentTitle: assessment.title,
@@ -20568,7 +20610,7 @@ function rotateAdmittedAssessmentKnowledge(lesson, offset = 0) {
 // simpler than trying to synthesize another plausible distractor set from a
 // one-lesson evidence pool: the answer remains inspectable without pretending
 // the lesson's knowledge is missing.
-function buildAdmittedKernelEvidenceItem({ lesson, quizPlan, index, offset = 0 }) {
+function buildAdmittedKernelEvidenceItem({ lesson, blueprint, quizPlan, index, offset = 0 }) {
   const terms = examLessonTerms(lesson);
   // Genome-authored terms carry the lesson concept. Quiz-projected terms
   // (for example, an answer option promoted as "water") are useful retrieval
@@ -20606,21 +20648,53 @@ function buildAdmittedKernelEvidenceItem({ lesson, quizPlan, index, offset = 0 }
   const definitionCue = definition
     ? `${sentenceCase(concept)} is the relevant concept. ${sentenceCase(stripTerminalPunctuation(definition))}.`
     : `${sentenceCase(concept)} is the concept students should use to interpret the quoted evidence.`;
+  const additionalEvidence = additionalEvidenceRequirementCopy({
+    lessonNumber: lesson.lessonNumber,
+    mode: cleanText(lesson?.modalityDecode?.mode || blueprint?.courseModalityProfile?.primaryMode).toLowerCase(),
+  });
   const question =
     index === 4
-      ? `Consider this course statement: ${sentenceCase(stripTerminalPunctuation(quotedFact))}. A peer uses it to support a broader conclusion. State the strongest conclusion the evidence supports and identify the course concept that justifies that boundary. Then cite the detail that matters, name the current limitation, and identify one additional fact needed before accepting the broader claim.`
+      ? lessonVariant(lesson, [
+          `Consider this course statement: ${sentenceCase(stripTerminalPunctuation(quotedFact))}. A peer uses it to support a broader conclusion. State the strongest conclusion the evidence supports and identify the course concept that justifies that boundary. Then cite the decisive detail, name the current limitation, and identify ${additionalEvidence} before accepting the broader claim.`,
+          `A reader extends this statement beyond its evidence: ${sentenceCase(stripTerminalPunctuation(quotedFact))}. Use the relevant course concept to give the strongest warranted conclusion, explain the present limit, and specify the missing support: ${additionalEvidence}.`,
+          `Start from the admitted evidence: ${sentenceCase(stripTerminalPunctuation(quotedFact))}. Bound the conclusion with the course concept that controls its scope. Cite what supports your answer, state the limitation, and name what could justify a broader claim: ${additionalEvidence}.`,
+          `Review this source-backed claim: ${sentenceCase(stripTerminalPunctuation(quotedFact))}. Identify the concept that explains it, distinguish the supported inference from an overclaim, and describe what would move past the current limitation: ${additionalEvidence}.`,
+          `Test the boundary of this statement: ${sentenceCase(stripTerminalPunctuation(quotedFact))}. State what the evidence establishes, use one course concept to explain why, and identify the limiting gap. The additional requirement is ${additionalEvidence}.`,
+          `An interpretation begins with this fact: ${sentenceCase(stripTerminalPunctuation(quotedFact))}. Explain the strongest defensible conclusion through the relevant course concept, cite the key support, and specify both the limitation and the evidence required for the wider reading: ${additionalEvidence}.`,
+        ])
       : `Analyze this course statement: ${sentenceCase(stripTerminalPunctuation(quotedFact))}. Identify the course concept that best interprets it and cite one detail from the evidence. Then name one limitation or conclusion the statement does not establish by itself.`;
   const answer =
     index === 4
-      ? `A complete answer states a conclusion no broader than the quoted evidence, uses ${concept} to justify that boundary, and names a specific additional fact needed to test the peer's broader claim.`
+      ? lessonVariant(lesson, [
+          `A complete answer states a conclusion no broader than the quoted evidence, uses ${concept} to justify that boundary, and names a specific additional fact needed to test the broader claim.`,
+          `Full-credit work uses ${concept} to separate the warranted conclusion from the extension, explains the limitation, and identifies the missing evidence.`,
+          `The response must connect the quoted fact to ${concept}, bound the inference it supports, and specify what new evidence could justify going further.`,
+          `A successful answer interprets the fact through ${concept}, rejects the unsupported generalization, and names the source-backed support the broader claim still needs.`,
+          `Strong work gives the narrowest defensible conclusion, explains its ${concept} boundary, and identifies evidence capable of addressing the remaining gap.`,
+          `To earn full credit, cite the decisive detail, apply ${concept} accurately, state the present limit, and describe the evidence required for the wider conclusion.`,
+        ])
       : `A complete answer accurately connects the quoted statement to ${concept}, explains the relationship it establishes, and keeps the conclusion within the supplied evidence.`;
   const sampleAnswer =
     index === 4
-      ? `${definitionCue} The statement supports a bounded conclusion because ${lowercaseSentenceLead(quotedFact)}. Accepting a broader claim would require another course fact that directly establishes the added cause, mechanism, population, or outcome.`
+      ? lessonVariant(lesson, [
+          `${definitionCue} The statement supports a bounded conclusion because ${lowercaseSentenceLead(quotedFact)}. Accepting a broader claim would require ${additionalEvidence}.`,
+          `${definitionCue} Here, ${lowercaseSentenceLead(quotedFact)} supplies the support. The conclusion must stop at that relationship until the reader adds ${additionalEvidence}.`,
+          `${definitionCue} The decisive evidence is that ${lowercaseSentenceLead(quotedFact)}. It warrants only the stated relationship; extending the interpretation requires ${additionalEvidence}.`,
+          `${definitionCue} Because ${lowercaseSentenceLead(quotedFact)}, the concept supports a limited inference rather than the proposed generalization. The missing support is ${additionalEvidence}.`,
+          `${definitionCue} This fact establishes the bounded claim: ${lowercaseSentenceLead(quotedFact)}. The wider conclusion remains unproven without ${additionalEvidence}.`,
+          `${definitionCue} Read the evidence narrowly: ${lowercaseSentenceLead(quotedFact)}. That detail justifies the present conclusion, while ${additionalEvidence} would be needed to defend the broader one.`,
+        ])
       : `${definitionCue} The evidence supports that concept by showing that ${lowercaseSentenceLead(quotedFact)}. It does not support a conclusion that adds a cause, mechanism, population, or outcome not stated in the quotation.`;
   const scoringGuidance =
     index === 4
-      ? `Award full credit for a bounded supported conclusion, accurate use of ${concept}, and one specific additional fact that would test the broader claim. Partial credit when the response rejects the claim without naming the missing evidence.`
+      ? lessonVariant(lesson, [
+          `Award full credit for a bounded supported conclusion, accurate use of ${concept}, and one specific additional fact that would test the broader claim. Partial credit when the response rejects the claim without naming the missing evidence.`,
+          `Full credit requires correct use of ${concept}, a warranted conclusion, an explicit limitation, and a concrete description of the missing support. Give partial credit when the boundary is named but not evidenced.`,
+          `Score the answer as complete when it cites the fact, applies ${concept}, limits the inference, and proposes relevant additional evidence. A generic call for “more research” is only partial.`,
+          `Credit all points when the response separates support from overclaim through ${concept} and names evidence that could actually test the extension. An unsupported rejection earns partial credit.`,
+          `Complete responses show the ${concept} reasoning, state the bounded conclusion, diagnose the gap, and identify a usable next source or fact. Naming a limit without the next evidence is partial.`,
+          `Use full credit for an evidence-linked ${concept} interpretation with a precise boundary and a relevant test for the broader claim; reduce credit when the proposed evidence is vague or unrelated.`,
+        ])
       : `Award full credit for accurate use of ${concept}, an explicit explanation of the quoted relationship, and one defensible boundary. Partial credit when the response repeats the fact without explaining or limiting it.`;
   return withQuizPlan(
     {
@@ -20635,7 +20709,14 @@ function buildAdmittedKernelEvidenceItem({ lesson, quizPlan, index, offset = 0 }
       question,
       answer,
       sampleAnswer,
-      explanation: `This item checks whether students can interpret an admitted ${concept} fact and distinguish its supported relationship from an overclaim.`,
+      explanation: lessonVariant(lesson, [
+        `This item checks whether students can interpret an admitted ${concept} fact and distinguish its supported relationship from an overclaim.`,
+        `The task measures whether students can use ${concept} to keep a conclusion inside the supplied evidence.`,
+        `Students demonstrate ${concept} reasoning by locating the claim boundary and naming evidence that could move it.`,
+        `The response reveals whether ${concept} guides a source-backed inference rather than a topic-level generalization.`,
+        `This source check asks students to connect ${concept}, evidence scope, limitation, and the next needed fact.`,
+        `Success requires an accurate ${concept} interpretation, a bounded claim, and a relevant evidence test.`,
+      ]),
       scoringGuidance,
       tags: unique(['quiz', 'short answer', concept, 'source evidence', 'claim boundary'], 8),
       enrichmentSource: 'admitted-kernel-assessment',
@@ -20717,11 +20798,11 @@ function buildAdmittedKernelAssessmentFillers({ lesson, blueprint, quizPlan, ass
   fillers[2] =
     build(buildExamFactItem, 2) ||
     build(buildExamDefinitionItem, 2, 1) ||
-    buildAdmittedKernelEvidenceItem({ lesson, quizPlan, index: 2, offset: 1 });
+    buildAdmittedKernelEvidenceItem({ lesson, blueprint, quizPlan, index: 2, offset: 1 });
   fillers[4] =
     build(buildExamMisconceptionItem, 4, 1) || build(buildExamFactItem, 4, 1) || build(buildExamDefinitionItem, 4, 1);
   if (cleanText(fillers[4]?.question).toLowerCase() === cleanText(fillers[1]?.question).toLowerCase()) {
-    fillers[4] = buildAdmittedKernelEvidenceItem({ lesson, quizPlan, index: 4, offset: 2 });
+    fillers[4] = buildAdmittedKernelEvidenceItem({ lesson, blueprint, quizPlan, index: 4, offset: 2 });
   }
   const examArgs = {
     blueprint,
@@ -20787,11 +20868,25 @@ function buildExamMisconceptionItem({ lesson, covered, coveredIndex, index, obje
       points: 2,
       objectiveAligned: objective,
       intendedUse: `Summative misconception check on ${assessment.title}; students pick the corrective over the documented wrong turn.`,
-      question: `For ${stripTerminalPunctuation(assessment.title)}, consider this classmate's claim. ${sentenceCase(stripTerminalPunctuation(claim))}. Which response best uses course evidence to correct the claim about ${concept}?`,
+      question: lessonVariant(lesson, [
+        `For ${stripTerminalPunctuation(assessment.title)}, consider this classmate's claim. ${sentenceCase(stripTerminalPunctuation(claim))}. Which response best uses course evidence to correct the claim about ${concept}?`,
+        `A classmate claims during ${stripTerminalPunctuation(assessment.title)}: ${sentenceCase(stripTerminalPunctuation(claim))}. Which response gives the evidence-backed ${concept} correction?`,
+        `A student argues that ${lowercaseSentenceLead(stripTerminalPunctuation(claim))}. Which response best repairs the ${concept} misunderstanding with course evidence?`,
+        `During ${stripTerminalPunctuation(assessment.title)}, a reader proposes this interpretation: ${sentenceCase(stripTerminalPunctuation(claim))}. Which response is supported by the lesson's ${concept} evidence?`,
+        `A study group records this statement: ${sentenceCase(stripTerminalPunctuation(claim))}. Which response corrects the ${concept} error after checking the course materials?`,
+        `An analyst of ${lessonFocus} claims that ${lowercaseSentenceLead(stripTerminalPunctuation(claim))}. Which response fixes the error using admitted ${concept} evidence?`,
+      ]),
       options,
       answer,
       distractorRationale: `The lead distractor endorses ${concept}'s documented misconception; the rest are claims about other covered concepts that never address it.`,
-      explanation: `${answer} is correct: it names and repairs the documented ${concept} misconception instead of endorsing it or answering about a different concept.`,
+      explanation: lessonVariant(lesson, [
+        `${answer} is correct: it repairs the documented ${concept} misconception instead of endorsing it or answering about a different concept.`,
+        `Choose ${answer}; it uses the admitted ${concept} correction while the other options preserve the error or change the subject.`,
+        `The evidence-backed correction is ${answer}. It addresses the specific ${concept} misunderstanding rather than repeating it.`,
+        `${answer} survives the source check because it corrects the recorded ${concept} error; the distractors do not.`,
+        `Course evidence supports ${answer}, which replaces the ${concept} misconception with the documented corrective.`,
+        `Only ${answer} resolves the stated ${concept} error using the admitted lesson knowledge.`,
+      ]),
       enrichmentSource: 'lesson-content-enrichment',
       misconceptionSourced: true,
       tags: unique(['exam', 'misconception', concept, lessonFocus], 6),
@@ -22952,6 +23047,7 @@ function buildDiscussionProtocol({ lesson = {}, blueprint = {}, phrase = {}, len
   const decisionMove = stripTerminalPunctuation(
     phrase.decisionMove || `make a defensible ${lens.decisionNoun || 'course decision'} for ${artifact}`,
   ).toLowerCase();
+  const closeReadingCopy = closeReadingDiscussionCopy({ lessonNumber: lesson.lessonNumber, concept });
   const protocolByGenre = {
     'clinical-placement-evidence': {
       format: 'Clinical Placement Conference',
@@ -23132,10 +23228,9 @@ function buildDiscussionProtocol({ lesson = {}, blueprint = {}, phrase = {}, len
     },
     'close-reading-analysis': {
       format: 'Interpretive Evidence Seminar',
-      participationPattern:
-        'passage or scene annotation, context boundary check, competing interpretation challenge, source-integrity review, and revised claim',
+      participationPattern: closeReadingCopy.participationPattern,
       artifactUse: `Students test the evidence, context boundary, counter-reading, and revised interpretive claim in ${artifact}.`,
-      reviewFocus: `evidence specificity, claim arguability, context restraint, source integrity, counter-interpretation, and revision for ${concept}`,
+      reviewFocus: closeReadingCopy.reviewFocus,
     },
     'field-evidence': {
       format: 'Field Evidence Roundtable',
@@ -25132,7 +25227,12 @@ function compileCourseFaq(blueprint, config = {}) {
                 sourceCue: evidenceCue,
                 inversionLesson: isMusicIntervalInversionLesson(lesson),
               })
-            : `${facts.map((fact) => `${stripTerminalPunctuation(fact)}.`).join(' ')} Those are the load-bearing claims — connect each one to ${artifact}, and be ready to say what evidence from ${evidenceCue} supports it.`,
+            : faqCoreClaimsCopy({
+                lessonNumber: lesson.lessonNumber,
+                facts,
+                artifact,
+                evidenceCue,
+              }),
           ca: 'Concept Explanation',
           rc: safeConcepts.slice(0, 4),
           df: 'Basic',

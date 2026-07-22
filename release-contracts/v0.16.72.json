@@ -1,0 +1,170 @@
+{
+  "version": "0.16.72",
+  "date": "July 22, 2026",
+  "title": "Freeze Five Domains at Truly Green",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test",
+      "npm run format:check",
+      "npm run lint",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification reruns release, format, lint, unit, build, and bundle gates after push."
+    },
+    "ciDeep": {
+      "status": "not-current",
+      "note": "The adapter remains inactive and no paid-reference parity claim is made."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Production deployment remains downstream of the successful main verification run."
+    },
+    "liveProvider": {
+      "status": "success",
+      "url": "docs/evidence/SCION_V01672_FIVE_DOMAIN_FREEZE.json",
+      "note": "The exact pinned base completes the five-domain browser freeze with every package ready and zero encoded findings."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "Codex is the declared judge. No instructor, classroom, human-preference, or universal factual-validity claim is made."
+    },
+    "manualBrowser": {
+      "status": "success",
+      "url": "docs/evidence/SCION_V01672_FIVE_DOMAIN_FREEZE.json",
+      "note": "Crucible exercised generation, finalization, grading, download, extraction, screenshot capture, and archive verification for all five courses."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01672-five-domain-clean-freeze",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "All five frozen courses finish at 99/A with complete lesson and kernel coverage and zero blockers, warnings, findings, retries, or export failures.",
+      "anchors": ["docs/evidence/SCION_V01672_FIVE_DOMAIN_FREEZE.json", "scripts/crucible.mjs"],
+      "proofCommands": [
+        "node scripts/crucible.mjs --courses mandarin,world-lit-readings,psych-101,nutrition-101,astro-101 --rounds 1 --concurrency 1 --llm local --authoring native"
+      ],
+      "proofScopes": ["browser-live", "compiled-output"]
+    },
+    {
+      "id": "v01672-five-valid-archives",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Five packages pass 190/190 aggregate export checks and physical ZIP testing and contain 587 extracted files.",
+      "anchors": ["docs/evidence/SCION_V01672_FIVE_DOMAIN_FREEZE.json", "scripts/lib/crucibleBrowser.mjs"],
+      "proofCommands": ["node scripts/crucible.mjs --help"],
+      "proofScopes": ["browser-live", "compiled-output"]
+    },
+    {
+      "id": "v01672-literature-integrator-projection",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Comparative literature integrators project only prior admitted assigned-text facts, removing the missing kernel and source-bound quiz recovery.",
+      "anchors": [
+        "src/lib/nativeGraphAuthoring.js",
+        "src/lib/scionLiteratureKnowledge.js",
+        "src/lib/__tests__/scionLiteratureKnowledge.test.js",
+        "docs/evidence/SCION_V01672_FIVE_DOMAIN_FREEZE.json"
+      ],
+      "proofCommands": [
+        "npx vitest run tests/v0145-native-authoring.test.js src/lib/__tests__/scionLiteratureKnowledge.test.js"
+      ],
+      "proofScopes": ["unit", "browser-live", "compiled-output"]
+    },
+    {
+      "id": "v01672-mandarin-sequence-unicode-projection",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "The exact fourteen-clause/fifteen-lesson Mandarin contract is reconciled and Unicode-aware substantiveness keeps valid Hanzi evidence in a usable kernel.",
+      "anchors": [
+        "src/lib/scionLanguageKnowledge.js",
+        "src/lib/nativeGraphAuthoring.js",
+        "src/lib/__tests__/scionLanguageKnowledge.test.js",
+        "tests/v0145-native-authoring.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run tests/v0145-native-authoring.test.js src/lib/__tests__/scionLanguageKnowledge.test.js"
+      ],
+      "proofScopes": ["unit", "browser-live", "compiled-output"]
+    },
+    {
+      "id": "v01672-psychology-false-blocker-removal",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "Artifact-cue ordering and stable assessment IDs remove the Psychology false blocker and missing-artifact warning without weakening readiness.",
+      "anchors": [
+        "src/lib/quality/artifactDefectPatterns.js",
+        "src/lib/packageFinalizer.js",
+        "tests/v0163-compiler-texture.test.js",
+        "tests/v0141-phase2-reconciliation.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run tests/v0163-compiler-texture.test.js tests/v0141-phase2-reconciliation.test.js"
+      ],
+      "proofScopes": ["unit", "browser-live", "compiled-output"]
+    },
+    {
+      "id": "v01672-learner-paper-readability",
+      "status": "verified-current",
+      "changelogHighlightIndex": 5,
+      "summary": "Readability measures learner-visible quiz paper and visible constructed-response prose uses shorter sentences, clearing the real Psychology warning.",
+      "anchors": [
+        "src/lib/pedagogicalValidator.js",
+        "src/lib/courseBlueprintCompiler.js",
+        "src/lib/__tests__/pedagogicalValidator.test.js",
+        "src/lib/__tests__/quizConstructedDepthCompiler.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run src/lib/__tests__/pedagogicalValidator.test.js src/lib/__tests__/quizConstructedDepthCompiler.test.js"
+      ],
+      "proofScopes": ["unit", "browser-live", "compiled-output"]
+    },
+    {
+      "id": "v01672-evidence-bounded-exam-frames",
+      "status": "verified-current",
+      "changelogHighlightIndex": 6,
+      "summary": "Every cross-concept exam frame explicitly requires concept selection, distinct evidence, relationship analysis, and a claim boundary.",
+      "anchors": [
+        "src/lib/courseBlueprintCompiler.js",
+        "src/lib/quality/__tests__/quizItemDepth.test.js",
+        "src/lib/__tests__/courseBlueprintCompiler.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run src/lib/quality/__tests__/quizItemDepth.test.js src/lib/__tests__/courseBlueprintCompiler.test.js"
+      ],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01672-bounded-call-architecture",
+      "status": "verified-current",
+      "changelogHighlightIndex": 7,
+      "summary": "The five complete courses use 40 provider calls and zero retries rather than the former 72-call single-course repair shape.",
+      "anchors": ["docs/evidence/SCION_V01672_FIVE_DOMAIN_FREEZE.json", "src/hooks/useDeliverables.js"],
+      "proofCommands": ["npm test"],
+      "proofScopes": ["browser-live", "unit"]
+    },
+    {
+      "id": "v01672-blocked-artifact-forensics",
+      "status": "verified-current",
+      "changelogHighlightIndex": 8,
+      "summary": "The browser harness preserves blocked in-memory ZIP evidence and waits through autosave before capturing a finalization failure.",
+      "anchors": ["scripts/lib/crucibleBrowser.mjs", "docs/evidence/SCION_V01672_FIVE_DOMAIN_FREEZE.json"],
+      "proofCommands": ["npm test"],
+      "proofScopes": ["browser-live", "static-audit"]
+    },
+    {
+      "id": "v01672-model-provider-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 9,
+      "summary": "Gemma weights remain unchanged and the adapter inactive; shared compiler repairs benefit compatible providers without creating unsupported quality claims.",
+      "anchors": ["README.md", "docs/SCION_ADAPTER_ROADMAP.md", "docs/evidence/SCION_V01672_FIVE_DOMAIN_FREEZE.json"],
+      "proofCommands": ["npm run audit:release-history"],
+      "proofScopes": ["static-audit", "doc"]
+    }
+  ]
+}

@@ -151,6 +151,33 @@ describe('buildAssessmentReconciliationIssues — Mandarin L15 oral case (P2.5)'
 // ── Fully resolved and fusion-only cases ──
 
 describe('buildAssessmentReconciliationIssues — resolved courses (P2.5)', () => {
+  it('uses the stable Course Map assessment id when compiler-facing artifact wording changes', () => {
+    const graph = graphWithAssessments([
+      { title: 'Apply conditioning to one example and name one limitation', dueSession: 2 },
+    ]);
+    graph.assessments[0].id = 'A2.1';
+    const deliverables = {
+      assignments: {
+        status: 'done',
+        data: {
+          assignments: [
+            {
+              title: 'weekly reading quizzes: operant conditioning',
+              dueWeek: 'Week 2',
+              assessmentId: 'A2.1',
+            },
+          ],
+        },
+      },
+    };
+
+    expect(buildAssessmentReconciliationIssues({ courseGraph: graph, deliverables })).toEqual([]);
+    deliverables.assignments.data.assignments[0].assessmentId = 'A3.1';
+    expect(buildAssessmentReconciliationIssues({ courseGraph: graph, deliverables })).toEqual([
+      expect.objectContaining({ severity: 'info', assessmentTitles: [graph.assessments[0].title] }),
+    ]);
+  });
+
   it('stays quiet when every graph assessment has a downstream artifact', () => {
     const graph = graphWithAssessments([
       { title: 'Lesson 1 analysis memo', dueSession: 1 },

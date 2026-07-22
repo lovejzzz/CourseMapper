@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { resolveScionTargetLanguageKnowledge, resolveScionTargetLanguagePair } from '../scionLanguageKnowledge.js';
+import {
+  recoverScionMandarinLessonSequence,
+  resolveScionTargetLanguageKnowledge,
+  resolveScionTargetLanguagePair,
+} from '../scionLanguageKnowledge.js';
 
 describe('Scion compiler-owned Mandarin knowledge', () => {
   it('returns the same canonical pair with three complete cited source facts', () => {
@@ -59,5 +63,38 @@ describe('Scion compiler-owned Mandarin knowledge', () => {
         lesson: { title: 'Shopping and Money', topics: 'Asking Prices' },
       }),
     ).toBeNull();
+  });
+
+  it('admits only the exact fifteen-lesson beginner sequence gap', () => {
+    const explicitTopics = [
+      'pinyin system and the four tones',
+      'greetings and self-introductions',
+      'classroom language',
+      'numbers, age, and dates',
+      'family members and possession with 的',
+      'daily routines and telling time',
+      'core SVO sentence patterns with 不, 没, and 吗',
+      'basic characters and short reading passages',
+      'food and dining',
+      'shopping and money',
+      'weather and clothing',
+      'transportation and directions',
+      'health and feelings',
+      'course review leading to a final oral performance',
+    ];
+    const recovered = recoverScionMandarinLessonSequence({
+      courseName: 'Elementary Mandarin Chinese I',
+      expectedLessons: 15,
+      explicitTopics,
+    });
+    expect(recovered).toHaveLength(15);
+    expect(recovered[7]).toBe('Vocabulary Recall and Grammar Review');
+    expect(
+      recoverScionMandarinLessonSequence({
+        courseName: 'Advanced Mandarin',
+        expectedLessons: 15,
+        explicitTopics,
+      }),
+    ).toEqual([]);
   });
 });

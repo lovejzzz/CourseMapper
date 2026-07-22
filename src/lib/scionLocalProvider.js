@@ -167,7 +167,9 @@ export async function runScionLocalCompletion({
   const messages = buildPublicScionMessages(systemPrompt, userPrompt, { schema, task, factLedgerOnly });
   const exactLedgerText = factLedgerOnly ? buildPublicScionExactSourceLedgerResponse(userPrompt) : '';
   if (exactLedgerText) {
-    const assessment = assessPublicScionKernelResponse(exactLedgerText, userPrompt, task);
+    const assessment = assessPublicScionKernelResponse(exactLedgerText, userPrompt, task, {
+      exactSourceProjection: true,
+    });
     const route = plannedRoute
       ? { ...plannedRoute, factLedgerOnly: true, exactSourceLedger: true, modelCalls: 0 }
       : null;

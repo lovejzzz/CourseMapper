@@ -5582,10 +5582,11 @@ describe('courseBlueprintCompiler', () => {
         }),
       ]),
     });
-    // v0.14.1 (5.4): coverage states only the levels actually present on the
-    // items (stem-verb derived), deduped and in taxonomy order — the old pin
-    // byte-encoded the audited "all five levels in every quiz" defect.
-    expect(compiled.quizBank.quizzes[0].bloomsCoverage).toEqual(['Understand', 'Apply', 'Create']);
+    // Coverage states only the levels actually present on the items
+    // (stem-verb derived), deduped and in taxonomy order. The prerequisite
+    // diagnostic now asks a genuine recall question, so Remember belongs in
+    // the coverage instead of being disguised as Understand.
+    expect(compiled.quizBank.quizzes[0].bloomsCoverage).toEqual(['Remember', 'Understand', 'Apply', 'Create']);
     expect(compiled.quizBank.quizzes[0].quizBlueprint.questionPlan).toEqual(
       expect.arrayContaining([
         expect.objectContaining({

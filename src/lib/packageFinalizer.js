@@ -634,22 +634,23 @@ function parseLessonNumberFromText(value) {
  */
 function collectDownstreamAssessmentCandidates({ blueprint, deliverables }) {
   const candidates = [];
-  const push = (title, lessons) => {
+  const push = (title, lessons, assessmentId = '') => {
     const normalized = normalizeAssessmentTitle(title);
     if (!normalized) return;
     const lessonNumbers = (Array.isArray(lessons) ? lessons : [lessons]).filter(Number.isInteger);
     candidates.push({
       normalized,
       tokens: new Set(normalized.split(' ')),
+      assessmentId: String(assessmentId || '').trim(),
       // null = course-level surface (syllabus grading row): matches any lesson.
       lessonNumbers: lessonNumbers.length > 0 ? lessonNumbers : null,
     });
   };
 
   for (const assessment of blueprint?.assessments || []) {
-    push(assessment?.title, assessment?.lessonNumbers);
+    push(assessment?.title, assessment?.lessonNumbers, assessment?.registryId || assessment?.assessmentId);
     if (assessment?.artifact && assessment.artifact !== assessment.title) {
-      push(assessment.artifact, assessment?.lessonNumbers);
+      push(assessment.artifact, assessment?.lessonNumbers, assessment?.registryId || assessment?.assessmentId);
     }
   }
 
@@ -659,14 +660,20 @@ function collectDownstreamAssessmentCandidates({ blueprint, deliverables }) {
   };
 
   const assignments = doneData('assignments');
-  for (const brief of assignments?.assignments || []) push(brief?.title, parseLessonNumberFromText(brief?.dueWeek));
-  for (const row of assignments?.courseAssignmentMap || []) push(row?.artifact, parseLessonNumberFromText(row?.week));
+  for (const brief of assignments?.assignments || []) {
+    push(brief?.title, parseLessonNumberFromText(brief?.dueWeek), brief?.assessmentId);
+  }
+  for (const row of assignments?.courseAssignmentMap || []) {
+    push(row?.artifact, parseLessonNumberFromText(row?.week), row?.assessmentId);
+  }
 
   const rubrics = doneData('rubrics');
-  for (const rubric of rubrics?.rubrics || []) push(rubric?.title, parseLessonNumberFromText(rubric?.lessonTitle));
+  for (const rubric of rubrics?.rubrics || []) {
+    push(rubric?.title, parseLessonNumberFromText(rubric?.lessonTitle), rubric?.assessmentId);
+  }
 
   const syllabus = doneData('syllabus');
-  for (const row of syllabus?.requirements || []) push(row?.name, null);
+  for (const row of syllabus?.requirements || []) push(row?.name, null, row?.assessmentId);
 
   return candidates;
 }
@@ -696,6 +703,7 @@ function assessmentResolvesDownstream(assessment, candidates) {
     if (dueSession !== null && candidate.lessonNumbers !== null && !candidate.lessonNumbers.includes(dueSession)) {
       return false;
     }
+    if (assessment?.id && candidate.assessmentId === assessment.id) return true;
     if (candidate.normalized === normalized) return true;
     if (tokens.length > 0 && tokens.every((token) => candidate.tokens.has(token))) return true;
     return labelTokens.length > 0 && labelTokens.every((token) => candidate.tokens.has(token));

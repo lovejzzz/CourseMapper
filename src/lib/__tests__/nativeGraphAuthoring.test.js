@@ -311,6 +311,11 @@ describe('completeNativeKernelSurfaces', () => {
         expect.objectContaining({ question: expect.stringContaining('formal feature') }),
       ]),
     );
+    expect(completed.discussionPrompt).toMatchObject({
+      prompt: expect.stringContaining('locatable passage from The Odyssey'),
+      positions: expect.arrayContaining([expect.stringContaining('credible counter-reading')]),
+    });
+    expect(completed.discussionPrompt.prompt).not.toMatch(/case example|analyst reviews/i);
     expect(JSON.stringify(completed.quizItems)).not.toMatch(/Claim A:|supplied claim cards/i);
   });
 

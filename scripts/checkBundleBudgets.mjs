@@ -171,6 +171,13 @@ const lazyChunkBudgets = [
   // gzip at the existing 8 KiB ceiling; it eliminates the live exported-docx
   // mail-merge repetition that motivated the new branch.
   { prefix: 'compilerCopyVariants-', rawKiB: 23, gzipKiB: 8.25 },
+  // v0.16.72: lesson-rotated assessment, prerequisite, close-reading, and
+  // FAQ language is data rather than compiler control flow. Keep it in a
+  // compile-only leaf so deeper examples do not inflate the core compiler.
+  { prefix: 'compilerInstructionalCopy-', rawKiB: 16, gzipKiB: 5 },
+  // v0.16.72: assignment self-check rotations are another compile-only data
+  // leaf; rubric performance bands remain cacheable without carrying them.
+  { prefix: 'compilerSelfAssessmentCopy-', rawKiB: 6, gzipKiB: 2.5 },
   // v0.16.71: literature submission profiles are substantial instructional
   // data, not compiler control flow. They load only with compilation.
   { prefix: 'compilerReadingProfiles-', rawKiB: 30, gzipKiB: 9 },
@@ -240,6 +247,8 @@ const forbiddenInitialChunks = [
   /courseMapContinuation/i,
   /compilerFrames/i,
   /compilerCopyVariants/i,
+  /compilerInstructionalCopy/i,
+  /compilerSelfAssessmentCopy/i,
   /compilerReadingProfiles/i,
   /compilerRubricCopy/i,
   /compilerPolish/i,

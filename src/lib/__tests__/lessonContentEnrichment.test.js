@@ -107,6 +107,44 @@ describe('lesson content enrichment contracts', () => {
     expect(prompt.lessons[0].readings).toContain('Compiler knowledge source: CHN101: Elementary Mandarin I');
   });
 
+  it('binds a canonical named reading to exact attributed facts and analytical concepts', () => {
+    const prompt = buildLessonContentEnrichmentPrompt(
+      {
+        courseName: 'World Literature',
+        lessons: [
+          {
+            title: 'Lesson 3: The Homeric Epic',
+            sections: [
+              {
+                topicSection: 'Epic structure and invocation',
+                learningObjectives: 'Interpret The Odyssey through a consequential formal tension.',
+                readings: ['The Odyssey'],
+              },
+            ],
+          },
+        ],
+      },
+      [0],
+    );
+
+    expect(prompt.lessons[0]).toMatchObject({
+      sourceFactPolicy: 'numbered-source-ledger-v1',
+      sourceFacts: [expect.stringMatching(/Muse|invocation/i), ...Array(4).fill(expect.any(String))],
+      sourceConcepts: [
+        expect.objectContaining({ term: 'invocation' }),
+        expect.objectContaining({ term: 'hospitality' }),
+        expect.objectContaining({ term: 'recognition scene' }),
+        expect.objectContaining({ term: 'embedded narration' }),
+      ],
+      sourceLedgerAttribution: {
+        title: 'The Odyssey of Homer',
+        license: 'Public domain in the USA',
+        url: expect.stringContaining('gutenberg.org'),
+      },
+    });
+    expect(prompt.lessons[0].readings).toContain('Compiler knowledge source: The Odyssey of Homer');
+  });
+
   it('keeps instructor facts ahead of the built-in Mandarin ledger', () => {
     const instructorProvidedFacts = [
       'Instructor claim one contains enough detail to remain a complete sentence.',

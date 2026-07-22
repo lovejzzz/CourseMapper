@@ -362,6 +362,65 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     );
   });
 
+  it('D1: preserves assigned-reading metadata for canonical projection after binding the adapter ledger', async () => {
+    const lessons = JSON.parse(SCION_LESSON_KERNEL_PILOT_PROMPT.match(/Lessons:\n(\[.*\])\nReturn/s)[1]);
+    const facts = SCION_LESSON_KERNEL_REFERENCE_PILOT_RESPONSE.lessons[0].facts;
+    const sourceConcepts = [{ term: 'invocation' }, { term: 'hospitality' }, { term: 'recognition scene' }];
+    const prompt = {
+      courseName: 'World Literature',
+      lessons: [
+        {
+          ...lessons[0],
+          sourceFactPolicy: 'numbered-source-ledger-v1',
+          sourceFacts: facts,
+          sourceConcepts,
+          requiredReadings: ['The Odyssey'],
+          sourceLedgerAttribution: { title: 'The Odyssey of Homer' },
+        },
+      ],
+      userPrompt: SCION_LESSON_KERNEL_PILOT_PROMPT,
+      systemPrompt: 'Write a compact knowledge kernel.',
+    };
+    const rawText = JSON.stringify({ lessons: [{ lessonId: 'lesson-3', facts }] });
+    let resolvedPrompt = null;
+
+    await runScionPasses({
+      rawText,
+      streamProvider: vi.fn(),
+      provider: 'local',
+      apiKey: '',
+      modelId: 'scion-1',
+      modelCapabilities: {},
+      generationPlan: {},
+      recordEvent: vi.fn(),
+      prompt,
+      expectedLessonIds: ['lesson-3'],
+      contentSourcedLessonIds: [],
+      courseName: prompt.courseName,
+      runtimeRoutes: [
+        {
+          taskFamily: 'lesson-kernel-synthesis',
+          routeMode: 'base-only',
+          routeReason: 'no-adapter-installed',
+          factLedgerOnly: true,
+        },
+      ],
+      onResolvedPrompt: (nextPrompt) => {
+        resolvedPrompt = nextPrompt;
+      },
+    });
+
+    expect(resolvedPrompt?.lessons?.[0]).toMatchObject({
+      sourceFactPolicy: 'numbered-source-ledger-v1',
+      sourceFacts: facts,
+      sourceConcepts,
+      requiredReadings: ['The Odyssey'],
+      sourceLedgerAttribution: { title: 'The Odyssey of Homer' },
+      topics: expect.stringContaining('Claim 0:'),
+    });
+    expect(resolvedPrompt.userPrompt).not.toContain('sourceConcepts');
+  });
+
   it('D1: admits a proven source-grounded adapter stage and keeps its frozen fact ledger', async () => {
     const lessons = JSON.parse(SCION_LESSON_KERNEL_PILOT_PROMPT.match(/Lessons:\n(\[.*\])\nReturn/s)[1]);
     const prompt = {

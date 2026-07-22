@@ -953,9 +953,21 @@ export async function runCourseInBrowser({
     // deliverables + quality report) is the only way to re-grade a blocked
     // package headlessly — screenshots alone made the exam-content P0
     // undiagnosable from round artifacts.
+    // Generation can reach the quality gate before the 3s project-save
+    // debounce fires. Wait through that boundary here too; otherwise the
+    // fastest failures are paradoxically the ones with no forensic state.
+    await page.waitForTimeout(3500).catch(() => {});
     const projectDump = await page.evaluate(() => localStorage.getItem('coursemapper-project')).catch(() => null);
     if (projectDump) {
       await fs.writeFile(path.join(outDir, `project-at-failure-${phase}.json`), projectDump).catch(() => {});
+    }
+    // A quality-blocked package can still expose its in-memory archive for
+    // forensic inspection. Preserve that archive under an unmistakably test-
+    // only name so the exact rendered evidence—not a screenshot paraphrase—
+    // is available to diagnose the gate that stopped release.
+    if (phase === 'finalizing-package') {
+      const forensicZip = path.join(outDir, 'blocked-package-forensics.zip');
+      await downloadZip(page, forensicZip, () => 120_000).catch(() => {});
     }
   } finally {
     browserRunClosed = true;

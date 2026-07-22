@@ -768,7 +768,7 @@ export function assessPublicScionKernelResponse(
   responseText,
   userPrompt,
   task,
-  { applyCompilerRepairs = true, admissionProfile = 'current' } = {},
+  { applyCompilerRepairs = true, admissionProfile = 'current', exactSourceProjection = false } = {},
 ) {
   if (task !== 'blueprintEnrichment') return { needsRetry: false, issues: [] };
   const expectedLessons = extractPublicScionKernelLessons(userPrompt).filter((lesson) => lesson?.lessonId);
@@ -794,6 +794,10 @@ export function assessPublicScionKernelResponse(
       }
       const facts = Array.isArray(lesson.facts) ? lesson.facts : [];
       const factContract = scionFactContractForLesson(expected, { userPrompt });
+      const compilerOwnedExactSourceProjection =
+        exactSourceProjection &&
+        factContract.mode === 'numbered-source-ledger-v1' &&
+        Array.isArray(expected.sourceFacts);
       const sourceText = publicScionSourceText(expected);
       const courseTitle =
         String(userPrompt || '')
@@ -868,7 +872,13 @@ export function assessPublicScionKernelResponse(
         }
       });
       const keyTerms = Array.isArray(lesson.keyTerms) ? lesson.keyTerms : [];
-      if (keyTerms.length < 3) issues.push(`${expected.lessonId}:key-terms-count:${keyTerms.length}/3`);
+      const expectedSourceConcepts = Array.isArray(expected.sourceConcepts)
+        ? expected.sourceConcepts.map((term) => normalizeScionKeyTerm(term))
+        : [];
+      const minimumKeyTermCount = compilerOwnedExactSourceProjection ? (expectedSourceConcepts.length >= 3 ? 3 : 0) : 3;
+      if (keyTerms.length < minimumKeyTermCount) {
+        issues.push(`${expected.lessonId}:key-terms-count:${keyTerms.length}/${minimumKeyTermCount}`);
+      }
       const normalizedTermNames = keyTerms
         .map((term) => normalizeScionKeyTerm(term).term.normalize('NFKC').toLowerCase())
         .filter(Boolean);
@@ -892,6 +902,18 @@ export function assessPublicScionKernelResponse(
           issues.push(`${expected.lessonId}:key-term-${index}:source-unsupported-quantity`);
         }
       });
+      if (
+        compilerOwnedExactSourceProjection &&
+        expectedSourceConcepts.length >= 3 &&
+        JSON.stringify(keyTerms.map((term) => normalizeScionKeyTerm(term))) !== JSON.stringify(expectedSourceConcepts)
+      ) {
+        issues.push(`${expected.lessonId}:source-concepts-ledger-mismatch`);
+      }
+      // This response is authored entirely from the compiler's exact source
+      // ledger. Scenario and quiz surfaces are deliberately compiled after
+      // admission, so treating their absence as a model failure creates a
+      // false deferred-admission event and loses the zero-call benefit.
+      if (compilerOwnedExactSourceProjection) continue;
       const scenario = analyzeDecisionScenario(lesson.scenario || {}, {
         evaluationProfile: admissionProfile === 'v0.16.58' ? 'v0.16.58' : 'current',
       });
@@ -1915,7 +1937,18 @@ export function buildPublicScionExactSourceLedgerResponse(userPrompt = '') {
     if (!Array.isArray(lesson.sourceFacts)) return null;
     const factContract = scionFactContractForLesson(lesson, { userPrompt });
     if (factContract.mode !== 'numbered-source-ledger-v1') return null;
-    return { lessonId: lesson.lessonId, facts: [...factContract.claims] };
+    const sourceConcepts = (Array.isArray(lesson.sourceConcepts) ? lesson.sourceConcepts : [])
+      .map((concept) => normalizeScionKeyTerm(concept))
+      .filter(
+        (concept) =>
+          concept.term && concept.definition && concept.example && concept.misconception && concept.correction,
+      )
+      .slice(0, 6);
+    return {
+      lessonId: lesson.lessonId,
+      facts: [...factContract.claims],
+      ...(sourceConcepts.length >= 3 ? { keyTerms: sourceConcepts } : {}),
+    };
   });
   return projected.some((lesson) => !lesson) ? '' : JSON.stringify({ lessons: projected });
 }

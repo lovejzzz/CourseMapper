@@ -56,7 +56,10 @@ import { NATIVE_PASS_B_AUTHORING_ADDITION } from './prompts';
 import { extractExplicitCoverageTopics, extractExplicitLessonSequence } from './explicitLessonSequence';
 import { semanticIdentityTokens } from './lessonSemanticRelevance';
 import { buildFactLedgerFeedback } from './factLedgerFeedback.js';
-import { resolveScionCumulativeTargetLanguagePair } from './scionLanguageKnowledge.js';
+import {
+  recoverScionMandarinLessonSequence,
+  resolveScionCumulativeTargetLanguagePair,
+} from './scionLanguageKnowledge.js';
 export { AUTHORING_MODE_STORAGE_KEY, readAuthoringMode, saveAuthoringMode } from './authoringMode.js';
 
 // ── Typed failure: the degraded-plan guard ──────────────────────────────────
@@ -413,7 +416,13 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
   const product = assessment || `${concept} analysis`;
   const fallbackFields = [];
   const keyTermFallbacks = [];
-  const wordCount = (value) => cleanText(value, 1000).match(/[A-Za-z0-9]+(?:['’-][A-Za-z0-9]+)*/g)?.length || 0;
+  // Count learner-language words too. The former ASCII-only counter treated
+  // a precise Mandarin grammar claim such as “我 + 不 + 喜欢 + 苹果” as if those
+  // four inspectable terms did not exist. That made an admitted cited ledger
+  // look too thin to project, then spent two provider retries on the same
+  // already-safe lesson. Unicode letters/numbers keep the threshold honest
+  // for Hanzi and every other non-Latin language without lowering it.
+  const wordCount = (value) => cleanText(value, 1000).match(/[\p{L}\p{N}]+(?:['’-][\p{L}\p{N}]+)*/gu)?.length || 0;
   const substantiveTerm = (term) =>
     wordCount(term?.definition) >= 8 &&
     wordCount(term?.example) >= 5 &&
@@ -619,36 +628,46 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
   }
 
   if (!completed.discussionPrompt) {
-    const discussionPrompt = {
-      prompt: `Which interpretation of ${concept} is best supported by ${materials}, and what detail could change that conclusion?`,
-      tension: lessonVariant([
-        `One reading gives the strongest observed ${concept} pattern priority; another treats the unresolved detail as decisive.`,
-        `The debate is whether the available ${concept} evidence warrants a leading interpretation or only a provisional one.`,
-        `One side emphasizes what the ${concept} evidence already supports, while the other emphasizes what remains unknown.`,
-        `The central tension is how much confidence the present ${concept} evidence can bear before another detail is checked.`,
-        `Readers must decide whether the clearest ${concept} pattern outweighs the uncertainty still present in the materials.`,
-        `The competing views differ over whether the current ${concept} evidence is sufficient or should remain conditional.`,
-      ]),
-      positions: [
-        `Use ${anchorClause} as the leading interpretation.`,
-        lessonVariant([
-          `Keep an alternative explanation open until the unresolved ${concept} detail is checked.`,
-          `Treat the current reading as provisional because the missing ${concept} evidence could change it.`,
-          `Give the competing interpretation priority until the uncertain ${concept} claim has stronger support.`,
-          `Withhold a firm conclusion while the available ${concept} materials leave a plausible counter-reading.`,
-          `Challenge the leading account by asking whether another ${concept} explanation fits the same evidence.`,
-          `Retain the rival reading unless the decisive ${concept} detail rules it out.`,
-        ]),
-        lessonVariant([
-          `State a conditional conclusion and identify the ${concept} finding that would require revision.`,
-          `Name the present interpretation together with the missing ${concept} evidence that could overturn it.`,
-          `Frame the claim around what is supported now and how a new ${concept} detail would change it.`,
-          `Offer a bounded conclusion whose confidence depends on resolving the remaining ${concept} uncertainty.`,
-          `Separate the defensible ${concept} claim from the unanswered question that limits it.`,
-          `Use a qualified interpretation and specify which additional ${concept} observation would shift the judgment.`,
-        ]),
-      ],
-    };
+    const discussionPrompt = interpretiveReadingLesson
+      ? {
+          prompt: `How does a locatable passage from ${assignedReading} complicate an interpretation centered on ${concept}? Identify one formal detail, defend the strongest reading, and test a credible counter-reading against the same passage or its immediate context.`,
+          tension: `The question is whether the selected formal detail reinforces the working account of ${concept} or exposes a limit that changes how the passage should be read.`,
+          positions: [
+            `Read the formal detail as evidence that strengthens the working interpretation of ${concept}.`,
+            `Read the same detail as complicating or limiting that interpretation through a credible counter-reading.`,
+            `Use the passage's immediate context to qualify the claim when neither reading fully accounts for the evidence.`,
+          ],
+        }
+      : {
+          prompt: `Which interpretation of ${concept} is best supported by ${materials}, and what detail could change that conclusion?`,
+          tension: lessonVariant([
+            `One reading gives the strongest observed ${concept} pattern priority; another treats the unresolved detail as decisive.`,
+            `The debate is whether the available ${concept} evidence warrants a leading interpretation or only a provisional one.`,
+            `One side emphasizes what the ${concept} evidence already supports, while the other emphasizes what remains unknown.`,
+            `The central tension is how much confidence the present ${concept} evidence can bear before another detail is checked.`,
+            `Readers must decide whether the clearest ${concept} pattern outweighs the uncertainty still present in the materials.`,
+            `The competing views differ over whether the current ${concept} evidence is sufficient or should remain conditional.`,
+          ]),
+          positions: [
+            `Use ${anchorClause} as the leading interpretation.`,
+            lessonVariant([
+              `Keep an alternative explanation open until the unresolved ${concept} detail is checked.`,
+              `Treat the current reading as provisional because the missing ${concept} evidence could change it.`,
+              `Give the competing interpretation priority until the uncertain ${concept} claim has stronger support.`,
+              `Withhold a firm conclusion while the available ${concept} materials leave a plausible counter-reading.`,
+              `Challenge the leading account by asking whether another ${concept} explanation fits the same evidence.`,
+              `Retain the rival reading unless the decisive ${concept} detail rules it out.`,
+            ]),
+            lessonVariant([
+              `State a conditional conclusion and identify the ${concept} finding that would require revision.`,
+              `Name the present interpretation together with the missing ${concept} evidence that could overturn it.`,
+              `Frame the claim around what is supported now and how a new ${concept} detail would change it.`,
+              `Offer a bounded conclusion whose confidence depends on resolving the remaining ${concept} uncertainty.`,
+              `Separate the defensible ${concept} claim from the unanswered question that limits it.`,
+              `Use a qualified interpretation and specify which additional ${concept} observation would shift the judgment.`,
+            ]),
+          ],
+        };
     if (lintEnrichedDiscussionPrompt(discussionPrompt).length === 0) {
       completed.discussionPrompt = discussionPrompt;
       fallbackFields.push('discussionPrompt');
@@ -1056,9 +1075,16 @@ function uniqueStrings(values = [], limit = Infinity) {
   return result;
 }
 
-function recoverExplicitLessonSequence(sourceText, expectedCount) {
+function recoverExplicitLessonSequence(sourceText, expectedCount, courseName = '') {
   if (!Number.isInteger(expectedCount) || expectedCount < 2) return [];
-  return extractExplicitLessonSequence(sourceText, { expectedCount });
+  const exact = extractExplicitLessonSequence(sourceText, { expectedCount });
+  if (exact.length === expectedCount) return exact;
+  return recoverScionMandarinLessonSequence({
+    courseName,
+    sourceText,
+    expectedLessons: expectedCount,
+    explicitTopics: extractExplicitLessonSequence(sourceText),
+  });
 }
 
 const EXPLICIT_READING_LIST_HEADER_RE =
@@ -1747,7 +1773,7 @@ export function parseNativeSkeletonResponse(text, { expectedLessons = null, sour
     );
   }
   let sessionSequenceRecovery = null;
-  const sourceLessonSequence = recoverExplicitLessonSequence(sourceText, sessions.length);
+  const sourceLessonSequence = recoverExplicitLessonSequence(sourceText, sessions.length, parsed?.course?.name);
   const repeatedSessionTitles = hasExcessiveSessionTitleReuse(sessions);
   const misalignedOrders =
     sourceLessonSequence.length === sessions.length

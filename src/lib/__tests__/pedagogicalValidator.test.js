@@ -561,6 +561,23 @@ describe('validateReadability', () => {
     expect(findings.filter((f) => f.featureId === 'courseFaq' && f.severity === 'error')).toEqual([]);
   });
 
+  it('ignores quiz planning and instructor feedback that are not rendered in the learner paper', () => {
+    const deliverables = {
+      quizBank: doneDeliv({
+        quizzes: [
+          {
+            description: simpleText,
+            assessmentBlueprint: complexText,
+            formativeFeedbackNote: complexText,
+          },
+        ],
+      }),
+    };
+
+    const findings = validateReadability({ courseName: 'Intro to Psychology' }, deliverables);
+    expect(findings.filter((f) => f.featureId === 'quizBank')).toEqual([]);
+  });
+
   it('does not block concise technical checklist fragments as severe readability failures', () => {
     const technicalFragments = [
       'Chromatography purification checkpoint.',

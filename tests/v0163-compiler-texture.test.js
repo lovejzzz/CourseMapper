@@ -123,6 +123,15 @@ describe('v0.16.3 compiler texture', () => {
     expect(JSON.stringify(visualMetadata)).toMatch(/Week 4 quiz/i);
   });
 
+  it('does not mistake a legitimate quiz revision note for a lesson-concept artifact', () => {
+    const note =
+      'Nonvisual summary: memory encoding evidence supports weekly reading quizzes. Frame the bridge as a quick check on what students can already use before revising the Week 4 quiz.';
+    expect(findPromptArtifactContamination(note)).toBeNull();
+    expect(
+      findPromptArtifactContamination('Concept summary: Lesson 1 focuses on lesson plans and slide decks.'),
+    ).toEqual(expect.objectContaining({ label: 'lesson plans' }));
+  });
+
   it('routes quiz checks to the quiz bank instead of minting fake assignment briefs', () => {
     const courseMap = studioCourseMap();
     courseMap.lessons = [

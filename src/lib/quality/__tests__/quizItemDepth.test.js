@@ -166,6 +166,20 @@ describe('quiz item depth', () => {
     expect(isClaimEvidenceBoundaryShortAnswer(task)).toBe(true);
   });
 
+  it('recognizes every compiler cross-concept exam variant as evidence-bound reasoning', () => {
+    const scope = 'measurement and protocol revision';
+    const stems = [
+      `Use one course detail for each concept from ${scope}. Identify the two course concepts, explain how their roles differ, and state one conclusion the paired evidence still does not establish.`,
+      `Choose two course concepts from ${scope}. Cite one evidence detail for each, compare their explanatory roles, and state one boundary the paired evidence cannot cross.`,
+      `Select the two course concepts that best organize ${scope}. Cite a distinct evidence detail for each, explain the relationship, and state what the evidence does not prove.`,
+      `Name the two course concepts that best fit ${scope}. Use one supporting detail for each, distinguish their roles, and state one limitation on the conclusion.`,
+      `Identify the two course concepts supported by details from ${scope}. Cite one evidence detail for each, compare the concepts, and state one limitation on the combined inference.`,
+      `Choose the two course concepts that create the strongest contrast in ${scope}. Cite one course detail for each, connect their roles, and name one extension the evidence does not establish.`,
+    ];
+    expect(stems.every(isClaimEvidenceBoundaryShortAnswer)).toBe(true);
+    expect(stems.some(isConceptCuedCompilerShortAnswer)).toBe(false);
+  });
+
   it('extracts and summarizes short-answer reasoning depth', () => {
     const files = [
       {

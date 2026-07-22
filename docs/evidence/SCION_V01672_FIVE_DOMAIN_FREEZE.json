@@ -1,0 +1,208 @@
+{
+  "evidenceVersion": 1,
+  "release": "0.16.72",
+  "generatedAt": "2026-07-22T23:12:00.000Z",
+  "claimBoundary": "Automated artifact inspection, deterministic compiler regression, real browser generation, saved-digest inspection, export verification, and physical archive testing only. This does not prove universal factual correctness, accessibility, teachability, instructor approval, classroom outcomes, human preference, statistical confidence, adapter superiority, or paid-reference parity.",
+  "model": {
+    "baseModel": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+    "baseRevision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
+    "route": "local/scion-1",
+    "authoring": "native",
+    "gemmaWeightsChanged": false,
+    "productionAdapterActive": false
+  },
+  "causalInterventions": [
+    {
+      "defect": "A World Literature comparative-reading integrator failed lesson-kernel admission, leaving Lesson 8 missing and six quiz items on source-bound recovery.",
+      "change": "Recognize only genuine comparative-reading and comparative-essay integrators, copy disciplinary facts verbatim from earlier admitted assigned-text kernels, and preserve projection provenance.",
+      "artifactDelta": "World Literature moved from 89/B with one blocker and two P1 findings to 99/A with 14/14 admitted kernels, no recovery items, and zero findings.",
+      "extraModelCalls": 0
+    },
+    {
+      "defect": "The Mandarin brief requested fifteen lessons but named fourteen content clauses; model-authored splitting shifted identities, and an ASCII-only substantiveness counter ignored Hanzi in a valid grammar fact.",
+      "change": "Reconcile the exact contract through one bounded retrieval bridge and count Unicode letters/numbers when deciding whether admitted language evidence can support a teaching kernel.",
+      "artifactDelta": "Mandarin moved from 14/15 enrichment, one blocker, two retries, and 89/B to 15/15, zero retries, 99/A, and zero findings.",
+      "extraModelCalls": -2
+    },
+    {
+      "defect": "Psychology paired an earlier artifact term with a later focus cue and falsely reported prompt contamination; downstream artifact reconciliation compared rewritten titles but ignored exact assessment IDs.",
+      "change": "Require the focus cue to precede and remain near the artifact term, and resolve stable assessment IDs before display-title matching.",
+      "artifactDelta": "The false blocker and false missing-artifact warning disappear; the real browser package is 99/A with zero findings or flagged checks.",
+      "extraModelCalls": 0
+    },
+    {
+      "defect": "Quiz readability counted hidden blueprint and instructor-feedback metadata, while visible constructed-response directions used unnecessarily long sentences.",
+      "change": "Exclude non-rendered planning fields from learner-paper readability and shorten visible question, answer-guidance, sample-answer, rubric-hint, and scoring sentences.",
+      "artifactDelta": "The Psychology quiz grade-level warning disappears in the exported learner paper without hiding a visible field.",
+      "extraModelCalls": 0
+    },
+    {
+      "defect": "Five of six cross-concept exam frames implied concept selection and evidence boundaries but did not state both requirements explicitly.",
+      "change": "Every variant now requires independent concept selection, one distinct evidence detail per concept, an explicit relationship, and a limitation or unsupported extension.",
+      "artifactDelta": "Mandarin moves from 4/16 explicitly bounded short answers and one P2 to no constructed-response depth finding.",
+      "extraModelCalls": 0
+    }
+  ],
+  "preservedFailureEvidence": {
+    "mandarin": {
+      "round": "round-2026-07-22T22-16-27-875Z",
+      "quality": "89/B",
+      "coverage": "14/15",
+      "blockers": 1,
+      "retryCalls": 2,
+      "artifact": "blocked-package-forensics.zip"
+    },
+    "psychology": {
+      "round": "round-2026-07-22T22-01-09-351Z",
+      "artifact": "blocked-package-forensics.zip",
+      "rootCause": "false prompt-artifact contamination plus stable-assessment-ID reconciliation gap"
+    }
+  },
+  "freeze": {
+    "round": "round-2026-07-22T23-04-02-354Z",
+    "status": "passed",
+    "courses": 5,
+    "totalProviderCalls": 40,
+    "totalRetryCalls": 0,
+    "totalExportChecks": 190,
+    "totalExportFailures": 0,
+    "totalExtractedFiles": 587,
+    "relevantConsoleErrors": 0,
+    "coursesEvidence": [
+      {
+        "id": "mandarin--native--local",
+        "lessons": 15,
+        "providerCalls": 16,
+        "wallSeconds": 46.847,
+        "quality": "99/A",
+        "texture": 96,
+        "coverage": 1,
+        "blockers": 0,
+        "warnings": 0,
+        "p0": 0,
+        "p1": 0,
+        "p2": 0,
+        "retries": 0,
+        "export": "38/38",
+        "extractedFiles": 127,
+        "archiveEntries": 138,
+        "archiveSha256": "2f5256567331d335e9f55b14f4d7d165f02016252f851af0431d44b8865a29b5"
+      },
+      {
+        "id": "world-lit-readings--native--local",
+        "lessons": 14,
+        "providerCalls": 14,
+        "wallSeconds": 107.633,
+        "quality": "99/A",
+        "texture": 92,
+        "coverage": 1,
+        "blockers": 0,
+        "warnings": 0,
+        "p0": 0,
+        "p1": 0,
+        "p2": 0,
+        "retries": 0,
+        "export": "38/38",
+        "extractedFiles": 117,
+        "archiveEntries": 127,
+        "archiveSha256": "a987ed6dfcd81845b5a8c4382460c62b59c12d5a34daebc1087f4209d5d45d70"
+      },
+      {
+        "id": "psych-101--native--local",
+        "lessons": 15,
+        "providerCalls": 2,
+        "wallSeconds": 36.603,
+        "quality": "99/A",
+        "texture": 96,
+        "coverage": 1,
+        "blockers": 0,
+        "warnings": 0,
+        "p0": 0,
+        "p1": 0,
+        "p2": 0,
+        "retries": 0,
+        "export": "38/38",
+        "extractedFiles": 125,
+        "archiveEntries": 135,
+        "archiveSha256": "7df9465d74def4c3ba6e44ec645128acb2c652b37a8350e194bd7e0732f17699"
+      },
+      {
+        "id": "nutrition-101--native--local",
+        "lessons": 14,
+        "providerCalls": 1,
+        "wallSeconds": 35.752,
+        "quality": "99/A",
+        "texture": 96,
+        "coverage": 1,
+        "blockers": 0,
+        "warnings": 0,
+        "p0": 0,
+        "p1": 0,
+        "p2": 0,
+        "retries": 0,
+        "export": "38/38",
+        "extractedFiles": 117,
+        "archiveEntries": 127,
+        "archiveSha256": "1871992e36b9154ad45a5011d6d9631bb87c86463c4ce354c801e7af1714aa99"
+      },
+      {
+        "id": "astro-101--native--local",
+        "lessons": 12,
+        "providerCalls": 7,
+        "wallSeconds": 64.039,
+        "quality": "99/A",
+        "texture": 96,
+        "coverage": 1,
+        "blockers": 0,
+        "warnings": 0,
+        "p0": 0,
+        "p1": 0,
+        "p2": 0,
+        "retries": 0,
+        "export": "38/38",
+        "extractedFiles": 101,
+        "archiveEntries": 111,
+        "archiveSha256": "348a9a9c1f701ee8effb61f734413f63039d63b11b05d1e7f809f778ea53753f"
+      }
+    ],
+    "evidencePaths": [
+      "verification-output/crucible/round-2026-07-22T23-04-02-354Z/ROUND_REPORT.md",
+      "verification-output/crucible/round-2026-07-22T23-04-02-354Z/mandarin--native--local/workspace-ready.png",
+      "verification-output/crucible/round-2026-07-22T23-04-02-354Z/world-lit-readings--native--local/workspace-ready.png",
+      "verification-output/crucible/round-2026-07-22T23-04-02-354Z/psych-101--native--local/workspace-ready.png",
+      "verification-output/crucible/round-2026-07-22T23-04-02-354Z/nutrition-101--native--local/workspace-ready.png",
+      "verification-output/crucible/round-2026-07-22T23-04-02-354Z/astro-101--native--local/workspace-ready.png"
+    ]
+  },
+  "releaseGate": {
+    "status": "passed",
+    "passed": [
+      "format: passed",
+      "lint: passed",
+      "unit: 435 files and 5,374 tests passed; 16 files and 162 tests skipped",
+      "browser: 147/147 Playwright tests passed",
+      "production build: passed",
+      "bundle budgets: passed",
+      "release history: 10/10 claims verified",
+      "five-domain live browser freeze: 5/5 at 99/A with zero blockers, warnings, normalized findings, retries, or export failures",
+      "five physical ZIP integrity checks: passed",
+      "manual production landing and materials navigation: passed with zero captured console warnings or errors",
+      "visual inspection: five V0.16.72 ready-state captures show one Download ZIP action and no draft or blocker state",
+      "artifact inspection: five substantial domain-specific exported documents checked"
+    ],
+    "bundleKiB": {
+      "compilerCore": { "raw": 829.5, "gzip": 231.1 },
+      "compilerRubricCopy": { "raw": 8.5, "gzip": 2.8 },
+      "compilerInstructionalCopy": { "raw": 10.5, "gzip": 4.0 },
+      "compilerSelfAssessmentCopy": { "raw": 2.4, "gzip": 1.1 },
+      "landingInitial": { "raw": 251.0, "gzip": 79.5 }
+    },
+    "artifactSpotChecks": [
+      "Mandarin Lesson 7 lesson plan: target-language SVO negation example and bounded practice sequence present",
+      "World Literature Lesson 6 discussion: assigned-text passage, counter-reading, evidence boundary, and facilitation protocol present",
+      "Psychology Lesson 5 quiz: case details, answer key, explanation, scoring guidance, and limitation present",
+      "Nutrition Lesson 10 assignment: energy-balance evidence, milestones, criteria, accessibility, and integrity guidance present",
+      "Astronomy Lesson 5 study guide: Kepler worked example computes 1.88^2 and cube root to approximately 1.52 AU"
+    ]
+  }
+}

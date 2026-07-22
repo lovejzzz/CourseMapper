@@ -26,6 +26,7 @@ import {
 import { assessScionKeyTermContract } from './scionKeyTermContract';
 import { scionFactContractForLesson } from './scionEvidenceContract';
 import { resolveScionTargetLanguageKnowledge } from './scionLanguageKnowledge';
+import { resolveScionLiteratureKnowledge } from './scionLiteratureKnowledge';
 import { META_SURFACE_RE } from './metaSurfaceAdmission';
 
 const DEFAULT_MAX_LESSONS = 12;
@@ -892,20 +893,25 @@ function summarizeLessonsForContent(courseMap, lessonIndices, sourceBrief = '', 
               reviewAnchors,
             },
           });
+      const literatureKnowledge = resolveScionLiteratureKnowledge({ readings: requiredReadings });
       // Instructor evidence always wins. When none exists, a matched beginner
-      // Mandarin lesson gets a small cited compiler ledger. This turns a
+      // Mandarin lesson or canonical named reading gets a small cited compiler
+      // ledger. This turns a
       // stochastic "invent five facts from the title" request into an exact
       // copy boundary and prevents one weak language response from blocking
       // an otherwise complete course.
-      const sourceFacts = instructorFacts.length >= 3 ? instructorFacts : languageKnowledge?.facts || [];
-      const languageSource = instructorFacts.length >= 3 ? null : languageKnowledge?.source || null;
+      const compilerKnowledge = languageKnowledge || literatureKnowledge;
+      const sourceFacts = instructorFacts.length >= 3 ? instructorFacts : compilerKnowledge?.facts || [];
+      const sourceConcepts = instructorFacts.length >= 3 ? [] : compilerKnowledge?.concepts || [];
+      const compilerKnowledgeSource = instructorFacts.length >= 3 ? null : compilerKnowledge?.source || null;
       return {
         lessonId: `lesson-${lessonIndex + 1}`,
         ...(sourceFacts.length >= 3
           ? {
               sourceFactPolicy: 'numbered-source-ledger-v1',
               sourceFacts,
-              ...(languageSource ? { sourceLedgerAttribution: languageSource } : {}),
+              ...(sourceConcepts.length >= 3 ? { sourceConcepts } : {}),
+              ...(compilerKnowledgeSource ? { sourceLedgerAttribution: compilerKnowledgeSource } : {}),
             }
           : {}),
         title: truncateText(lesson.title || `Lesson ${lessonIndex + 1}`, 140),
@@ -932,8 +938,8 @@ function summarizeLessonsForContent(courseMap, lessonIndices, sourceBrief = '', 
           [
             requiredReadings.length > 0 && `Required reading: ${requiredReadings.join('; ')}`,
             String(section.supportingResources || ''),
-            languageSource &&
-              `Compiler knowledge source: ${languageSource.title} by ${languageSource.author} (${languageSource.license}) — ${languageSource.url}`,
+            compilerKnowledgeSource &&
+              `Compiler knowledge source: ${compilerKnowledgeSource.title} by ${compilerKnowledgeSource.author} (${compilerKnowledgeSource.license}) — ${compilerKnowledgeSource.url}`,
           ]
             .filter(Boolean)
             .join('\n'),
@@ -1868,8 +1874,23 @@ export function parseLessonKernelResponse(text, { prompt, expectedLessonIds } = 
       }
     }
 
-    let scenario = null;
-    if (entry?.scenario && !quarantineForeignAtom('scenario', 0, entry.scenario)) {
+    const assignedReading =
+      preservesExactSourceLedger && keyTerms.length >= 3
+        ? asArray(promptLesson?.requiredReadings).map(cleanText).find(Boolean) || ''
+        : '';
+    // A compiler-owned literary ledger already knows the assigned work and
+    // several admitted analytical concepts. Preserve that evidence boundary
+    // as a passage-centered interpretation task instead of sending the
+    // generic decision-case fallback downstream. Students choose the passage;
+    // the compiler never invents quotations, page numbers, or scenes.
+    let scenario = assignedReading
+      ? {
+          setup: `A reader selects a locatable passage from ${assignedReading}. Two plausible interpretations emphasize ${keyTerms[0].term} and ${keyTerms[1].term}. The reader must identify one formal detail, explain which interpretation it supports more strongly, test the best counter-reading, and state what another passage could change.`,
+          materials: `a locatable passage from the assigned edition of ${assignedReading}, its surrounding context, and the two course interpretations`,
+          source: 'assigned-reading-projection',
+        }
+      : null;
+    if (!scenario && entry?.scenario && !quarantineForeignAtom('scenario', 0, entry.scenario)) {
       const problems = lintKernelScenario(entry.scenario);
       if (problems.length > 0) issues.push({ lessonId, surface: 'scenario', index: 0, problems });
       else scenario = { setup: cleanText(entry.scenario.setup), materials: cleanText(entry.scenario.materials) };

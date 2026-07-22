@@ -101,6 +101,21 @@ export function shouldBindScionFactLedgerRoute(routes = []) {
   );
 }
 
+function canonicalAdmissionPrompt(boundPrompt, sourcePrompt) {
+  const sourceLessons = new Map(
+    (Array.isArray(sourcePrompt?.lessons) ? sourcePrompt.lessons : [])
+      .filter((lesson) => lesson?.lessonId)
+      .map((lesson) => [lesson.lessonId, lesson]),
+  );
+  return {
+    ...boundPrompt,
+    lessons: (Array.isArray(boundPrompt?.lessons) ? boundPrompt.lessons : []).map((lesson) => ({
+      ...(sourceLessons.get(lesson?.lessonId) || {}),
+      ...lesson,
+    })),
+  };
+}
+
 function buildGroundedAdapterLesson(lesson, facts) {
   if (!Array.isArray(facts) || facts.length < 3 || facts.length > 5 || facts.some((fact) => typeof fact !== 'string')) {
     return null;
@@ -291,7 +306,16 @@ export async function runScionPasses({
       if (boundPrompt) {
         hasBoundFactLedger = true;
         workingPrompt = boundPrompt;
-        if (typeof onResolvedPrompt === 'function') onResolvedPrompt(boundPrompt);
+        // The adapter's learned contract deliberately receives only the
+        // claim ledger. Canonical compiler admission is a different trust
+        // boundary: it must retain assigned-reading, source-attribution, and
+        // target-language metadata from the original lesson so deterministic
+        // projection can author the right learner-facing task. Conflating the
+        // two representations reduced an Odyssey close reading to a generic
+        // "analyst reviews a case" frame even though the exact facts survived.
+        if (typeof onResolvedPrompt === 'function') {
+          onResolvedPrompt(canonicalAdmissionPrompt(boundPrompt, prompt));
+        }
         recordEvent({
           type: 'pipelineDecision',
           label: 'Scion fact-ledger boundary',
@@ -416,7 +440,9 @@ export async function runScionPasses({
       if (!groundedAdapterWasBlocked && groundedPrompt) {
         hasBoundFactLedger = true;
         workingPrompt = groundedPrompt;
-        if (typeof onResolvedPrompt === 'function') onResolvedPrompt(groundedPrompt);
+        if (typeof onResolvedPrompt === 'function') {
+          onResolvedPrompt(canonicalAdmissionPrompt(groundedPrompt, prompt));
+        }
         recordEvent({
           type: 'blueprintEnrichmentCall',
           label: 'Scion source-grounded adapter stage',

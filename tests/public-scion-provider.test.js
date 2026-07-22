@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { buildProviderTextRequest } from '../src/lib/modelRequestBuilders';
 import { estimateUsageCost } from '../src/lib/apiUsageCost';
 import { createBaseModelCapabilities, createGenerationPlan } from '../src/lib/modelCapabilities';
-import { buildLessonKernelPrompt } from '../src/lib/blueprintEnrichmentPass';
+import { buildLessonKernelPrompt, parseLessonKernelResponse } from '../src/lib/blueprintEnrichmentPass';
 import { repairCourseMapReadiness } from '../src/lib/deliverableReadiness';
 import {
   applyPublicScionBriefDirectives,
@@ -2265,7 +2265,101 @@ Return ONLY valid JSON.`;
     expect(projected.lessons[0]).toMatchObject({ lessonId: 'lesson-10' });
     expect(projected.lessons[0].facts).toHaveLength(3);
     expect(projected.lessons[0].facts[0]).toContain('这个多少钱?');
-    const assessment = assessPublicScionKernelResponse(JSON.stringify(projected), prompt, 'blueprintEnrichment');
+    expect(assessPublicScionKernelResponse(JSON.stringify(projected), prompt, 'blueprintEnrichment').needsRetry).toBe(
+      true,
+    );
+    const assessment = assessPublicScionKernelResponse(JSON.stringify(projected), prompt, 'blueprintEnrichment', {
+      exactSourceProjection: true,
+    });
     expect(publicScionFactContractIssues(assessment)).toEqual([]);
+  });
+
+  it('projects compiler-owned source concepts with an exact fact ledger', () => {
+    const sourceFacts = [
+      'The Odyssey opens with an invocation that frames its narrative subject.',
+      'Hospitality tests reciprocal duties among hosts, guests, and households.',
+      'Recognition depends on interpreted signs rather than visual familiarity alone.',
+    ];
+    const sourceConcepts = [
+      {
+        term: 'invocation',
+        definition: 'An invocation is an epic opening address that frames the subject and requests inspiration.',
+        example: 'A reader compares the opening appeal with the poem’s later account of return.',
+        misconception: 'An invocation simply lists every event that will occur in sequence.',
+        correction: 'It establishes narrative authority and priorities without summarizing every episode.',
+      },
+      {
+        term: 'hospitality',
+        definition: 'Hospitality is a reciprocal practice governing obligations among hosts, guests, and strangers.',
+        example: 'A reader compares two arrivals and evaluates how each household treats its visitor.',
+        misconception: 'Hospitality is private politeness without ethical or political consequences.',
+        correction: 'Treatment of strangers tests household legitimacy, obligation, status, and communal order.',
+      },
+      {
+        term: 'recognition scene',
+        definition:
+          'A recognition scene establishes identity through interpreted signs, knowledge, or embodied evidence.',
+        example: 'A character tests a private sign before accepting the returning figure’s identity.',
+        misconception: 'Recognition is automatic whenever one familiar character sees another.',
+        correction: 'The narrative delays recognition until characters verify signs or privileged knowledge.',
+      },
+    ];
+    const prompt = `Course: World Literature\nLessons:\n${JSON.stringify([
+      {
+        lessonId: 'lesson-3',
+        sourceFactPolicy: 'numbered-source-ledger-v1',
+        sourceFacts,
+        sourceConcepts,
+        requiredReadings: ['The Odyssey'],
+      },
+    ])}\nReturn ONLY valid JSON.`;
+
+    const projected = JSON.parse(buildPublicScionExactSourceLedgerResponse(prompt));
+    expect(projected.lessons[0]).toMatchObject({
+      lessonId: 'lesson-3',
+      facts: sourceFacts,
+      keyTerms: sourceConcepts,
+    });
+    expect(assessPublicScionKernelResponse(JSON.stringify(projected), prompt, 'blueprintEnrichment').needsRetry).toBe(
+      true,
+    );
+    const assessment = assessPublicScionKernelResponse(JSON.stringify(projected), prompt, 'blueprintEnrichment', {
+      exactSourceProjection: true,
+    });
+    expect(assessment.issues).toEqual([]);
+    expect(assessment.needsRetry).toBe(false);
+    expect(publicScionFactContractIssues(assessment)).toEqual([]);
+
+    const parsed = parseLessonKernelResponse(JSON.stringify(projected), {
+      prompt: {
+        userPrompt: prompt,
+        lessons: [
+          {
+            lessonId: 'lesson-3',
+            sourceFactPolicy: 'numbered-source-ledger-v1',
+            sourceFacts,
+            sourceConcepts,
+            requiredReadings: ['The Odyssey'],
+          },
+        ],
+        itemPlan: [
+          { index: 3, type: 'short_answer', bloom: 'Analyze' },
+          { index: 5, type: 'essay', bloom: 'Create' },
+        ],
+      },
+      expectedLessonIds: ['lesson-3'],
+    });
+    expect(parsed.lessons['lesson-3'].kernel.facts).toEqual(sourceFacts);
+    expect(parsed.lessons['lesson-3'].keyTerms.map((term) => term.term)).toEqual([
+      'invocation',
+      'hospitality',
+      'recognition scene',
+    ]);
+    expect(parsed.lessons['lesson-3'].kernel.scenario).toMatchObject({
+      source: 'assigned-reading-projection',
+      materials: expect.stringContaining('locatable passage from the assigned edition of The Odyssey'),
+    });
+    expect(parsed.lessons['lesson-3'].quizItems.map((item) => item.question).join(' ')).toMatch(/locatable passage/i);
+    expect(parsed.lessons['lesson-3'].quizItems.map((item) => item.question).join(' ')).not.toMatch(/analyst reviews/i);
   });
 });

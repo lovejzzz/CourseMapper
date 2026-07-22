@@ -1,53 +1,3 @@
-import { cleanText, stripTerminalPunctuation } from './compilerText';
-
-// Rubric self-assessment copy is independently cacheable data. It remains a
-// deterministic leaf so stronger evidence checks do not enlarge compiler code.
-const GENERIC_SELF_ASSESSMENT_SIGNAL_RE =
-  /^(?:criterion\b|strong evidence addresses\b|a strong signal addresses\b|look for evidence about\b|look for a concrete change\b|revise\b.+\bfor (?:this|the) criterion\b|mark the feedback-informed change\b)/i;
-
-export function assignmentSelfAssessmentEvidenceCheck({
-  evidenceSignal,
-  index = 0,
-  lessonNumber,
-  lessonFocus,
-  assignmentType,
-}) {
-  const signal = cleanText(evidenceSignal);
-  if (signal && !GENERIC_SELF_ASSESSMENT_SIGNAL_RE.test(signal)) return signal;
-
-  const focus = stripTerminalPunctuation(cleanText(lessonFocus, 'the lesson concept'));
-  const artifact = stripTerminalPunctuation(cleanText(assignmentType, 'assignment')).toLowerCase();
-  const checkFamilies = [
-    [
-      `Identify one inspectable ${focus} detail from the lesson materials, explain the ${artifact} decision it supports, and state one limitation`,
-      `Point to a concrete ${focus} detail, connect it to a visible choice in the ${artifact}, and mark the boundary of the evidence`,
-      `Use one verifiable ${focus} example to support the ${artifact}; show why it matters and what it cannot establish`,
-      `Locate the specific ${focus} evidence behind the ${artifact} choice and distinguish the supported claim from an assumption`,
-    ],
-    [
-      `Trace the reasoning from ${focus} evidence to the ${artifact} decision and name the assumption or tradeoff that could change it`,
-      `Show each step from the ${focus} evidence to the main ${artifact} judgment, including the strongest competing explanation`,
-      `Explain why the selected ${focus} evidence warrants the ${artifact} choice and identify the condition that would alter it`,
-      `Connect the ${focus} source detail to the ${artifact} conclusion, then test the weakest link in that reasoning chain`,
-    ],
-    [
-      `Make the evidence, decision, and limitation easy for a reader to locate in the ${artifact}`,
-      `Organize the ${artifact} so a reader can find the claim, supporting ${focus} detail, and evidence boundary without guessing`,
-      `Use headings or transitions to reveal where the ${artifact} moves from ${focus} evidence to interpretation and qualification`,
-      `Check that the ${artifact} clearly signals its evidence, main judgment, and the point where the conclusion becomes provisional`,
-    ],
-    [
-      `Name one feedback-informed revision to the ${artifact} and explain how it strengthened the evidence or reasoning`,
-      `Mark the part of the ${artifact} changed after review and explain why the new version uses ${focus} evidence more effectively`,
-      `Record one revision decision in the ${artifact}, the feedback behind it, and the reasoning improvement it produced`,
-      `Compare the earlier and current ${artifact} reasoning, identifying the feedback that changed the evidence link or conclusion`,
-    ],
-  ];
-  const criterionIndex = Math.max(0, Math.min(checkFamilies.length - 1, Number(index) || 0));
-  const hasLessonNumber = Number.isFinite(Number(lessonNumber));
-  const lessonVariantIndex = hasLessonNumber ? Math.max(0, Math.trunc(Number(lessonNumber)) - 1) % 4 : 0;
-  return checkFamilies[criterionIndex][lessonVariantIndex];
-}
 export function buildGenericCriterionPerformanceBand({
   priority,
   concept,
@@ -69,9 +19,24 @@ export function buildGenericCriterionPerformanceBand({
         `Uses inspectable ${evidenceNoun} to justify the ${artifact} choice, tests the strongest competing explanation, and identifies the condition that could change the judgment.`,
         `Makes the reasoning chain visible from ${concept} evidence to the ${artifact} decision, including the consequential tradeoff and one unresolved evidence need.`,
       ]),
-      proficient: `Connects relevant ${evidenceNoun} for ${concept} to the main ${artifact} decision with mostly clear reasoning and only minor gaps in limitation language.`,
-      developing: `Mentions ${evidenceNoun} or ${concept} but leaves part of the decision logic, tradeoff, or limitation implicit in ${artifact}.`,
-      beginning: `Lists ideas or opinions about ${concept} without linking inspectable ${evidenceNoun} to the decision required by ${artifact}.`,
+      proficient: pick([
+        `Connects relevant ${evidenceNoun} for ${concept} to the main ${artifact} decision with mostly clear reasoning and only minor gaps in limitation language.`,
+        `Explains the main reasoning move in ${artifact} with appropriate ${concept} evidence, while one tradeoff or evidence boundary still needs clarification.`,
+        `Supports the ${artifact} judgment with relevant ${evidenceNoun} and a clear rationale, though the competing interpretation is handled only briefly.`,
+        `Makes the ${concept} evidence-to-decision link visible in ${artifact}; a small gap remains in testing the alternative or qualifying the conclusion.`,
+      ]),
+      developing: pick([
+        `Mentions ${evidenceNoun} or ${concept} but leaves part of the decision logic, tradeoff, or limitation implicit in ${artifact}.`,
+        `Includes relevant ${concept} material, yet ${artifact} does not fully explain how that evidence warrants the selected judgment.`,
+        `Points to useful ${evidenceNoun} in ${artifact} without tracing the consequential reasoning step or testing a plausible alternative.`,
+        `States a ${concept} conclusion for ${artifact}, but the evidence path and conditions that would change it remain underdeveloped.`,
+      ]),
+      beginning: pick([
+        `Lists ideas or opinions about ${concept} without linking inspectable ${evidenceNoun} to the decision required by ${artifact}.`,
+        `Offers a conclusion in ${artifact} without showing which ${concept} evidence supports it or how the reasoning works.`,
+        `Uses broad ${concept} language but provides no inspectable evidence-to-decision chain for ${artifact}.`,
+        `Leaves the ${artifact} judgment unsupported because neither the decisive ${evidenceNoun} nor the reasoning is visible.`,
+      ]),
       performanceBandEvidence: {
         priority,
         evidenceSignal,
@@ -96,7 +61,12 @@ export function buildGenericCriterionPerformanceBand({
         `Names the feedback used, makes a visible revision in ${artifact}, and connects the change to the main ${evidenceNoun} move.`,
         `Shows that feedback shaped ${artifact}, though the explanation of the improved ${concept} reasoning may need one sharper detail.`,
       ]),
-      developing: `Refers to feedback or revision but does not make the change, rationale, or connection to ${artifact} fully visible.`,
+      developing: pick([
+        `Refers to feedback or revision but does not make the change, rationale, or connection to ${artifact} fully visible.`,
+        `Names feedback used on ${artifact}, yet the revised passage or the reasoning improvement is difficult to locate.`,
+        `Shows that ${artifact} changed after review without explaining which feedback prompted the change or why it strengthened the work.`,
+        `Describes a revision to ${artifact}, but the before-and-after evidence link remains only partly demonstrated.`,
+      ]),
       beginning: pick([
         `Submits ${artifact} with little evidence that feedback was reviewed, applied, or used to improve the criterion.`,
         `Leaves the prior ${artifact} approach essentially unchanged and does not identify which feedback shaped the submission.`,
@@ -115,7 +85,12 @@ export function buildGenericCriterionPerformanceBand({
 
   if (priority === 'professional communication and format fit') {
     return {
-      exemplary: `Organizes ${artifact} in the expected ${formatLabel} format so the ${concept} claim, ${evidenceNoun}, limitation, and next action are easy to locate.`,
+      exemplary: pick([
+        `Organizes ${artifact} in the expected ${formatLabel} format so the ${concept} claim, ${evidenceNoun}, limitation, and next action are easy to locate.`,
+        `Uses the ${formatLabel} form purposefully: readers can trace the ${concept} claim, inspect its ${evidenceNoun}, find the qualification, and identify the next action.`,
+        `Shapes ${artifact} for its audience and genre, making the ${concept} evidence path, bounded conclusion, and required response immediately legible.`,
+        `Presents ${artifact} with precise reader guidance so the central ${concept} judgment, supporting ${evidenceNoun}, limit, and follow-through are unmistakable.`,
+      ]),
       proficient: pick([
         `Uses a clear structure for ${artifact} and communicates the main ${evidenceNoun} for ${concept} with only minor gaps in format, headings, or audience fit.`,
         `Presents ${artifact} in an organized format; the ${concept} evidence is findable, though one heading, transition, or audience cue may need tightening.`,

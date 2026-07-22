@@ -1,8 +1,15 @@
 import { cleanText } from './compilerText';
 import { selectVariant } from './courseCompilerCopyVariants';
 
-export function examDefinitionCopy({ coveredIndex, concept, fromClause, assessmentTitle }) {
-  const seed = Number(coveredIndex) + 1;
+export function examDefinitionCopy({
+  coveredIndex,
+  lessonNumber = 1,
+  questionIndex = 0,
+  concept,
+  fromClause,
+  assessmentTitle,
+}) {
+  const seed = Number(coveredIndex) + Number(lessonNumber || 1) + Number(questionIndex || 0);
   const question = selectVariant(seed, [
     `Which statement gives the course's working definition of ${concept}${fromClause}?`,
     `According to the course materials, how is ${concept}${fromClause} defined?`,

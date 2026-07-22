@@ -390,8 +390,9 @@ export function findPromptArtifactContamination(line) {
   const focusMatch = value.match(PROMPT_ARTIFACT_FOCUS_RE);
   if (!focusMatch) return null;
   const focusIndex = focusMatch.index || 0;
+  const focusEnd = focusIndex + focusMatch[0].length;
   const nearbyTopicMatch = Array.from(value.matchAll(PROMPT_ARTIFACT_FOCUS_TOPIC_GLOBAL_RE)).find(
-    (topicMatch) => Math.abs((topicMatch.index || 0) - focusIndex) <= 140,
+    (topicMatch) => (topicMatch.index || 0) >= focusEnd && (topicMatch.index || 0) - focusEnd <= 140,
   );
   const match = nearbyTopicMatch || null;
   return match ? { evidence: value, label: String(match[1] || '').toLowerCase() } : null;
