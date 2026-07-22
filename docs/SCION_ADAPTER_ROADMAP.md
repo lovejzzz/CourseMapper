@@ -18,7 +18,7 @@
 
 **Premium language:** the current Scion safety note says `AI-generated materials`, the export panel owns one `Download ZIP` action, and a verified archive is never branded as unfinished. Readiness remains strict: the UI reaches green only after compilation, verification, grading, real ZIP creation, archive testing, and the zero-blocker gate agree.
 
-**Exact proof:** Mandarin, World Literature, Psychology, Nutrition, and Astronomy each complete every requested lesson, all ten material sections, and 38/38 export checks at 99/A with zero P0/P1/P2 findings, blockers, or warnings. Their tested archives contain 127, 117, 125, 117, and 101 extracted files. Console receipts contain no warning or error events. The local release gate passes 434 test files and 5,322 tests, format, lint, production build, locked bundle budgets, and release-history audit.
+**Exact proof:** Mandarin, World Literature, Psychology, Nutrition, and Astronomy each complete every requested lesson, all ten material sections, and 38/38 export checks at 99/A with zero P0/P1/P2 findings, blockers, or warnings. Their tested archives contain 127, 117, 125, 117, and 101 extracted files. Console receipts contain no warning or error events. The local release gate passes 434 test files and 5,324 tests, format, lint, production build, locked bundle budgets, and release-history audit.
 
 **Lane:** Unicode admission, source projection, answer-key compaction, assessment rendering, deterministic compilation, grading, and export are model-neutral and benefit compatible paid-provider output. The exact Mandarin ledger is compiler-owned Scion knowledge; browser WebGPU loading, public-weight download, caching, and local inference remain Scion-specific.
 

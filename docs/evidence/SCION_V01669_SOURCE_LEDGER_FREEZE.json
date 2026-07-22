@@ -116,13 +116,15 @@
       "World Literature rendered an assessment title that already contained (7%) and appended the same weight again.",
       "Psychology stripped only part of the narrator from a misconception, leaving a visible '(and teachers) assume' fragment.",
       "Psychology constructed-response keys copied the full learner prompt and could begin a retained fact with lowercase punctuation.",
-      "World Literature shortened assessment references could render doubled articles such as 'one the' or begin a new sentence with a lowercase article."
+      "Shortened assessment references could render doubled articles such as 'one the' or begin a new sentence with a lowercase article.",
+      "Repetition compaction could reduce introductory or possessive lesson titles to fragments such as 'to Earth Systems', 'of nutrient functions', or 'Erikson s'."
     ],
     "causalRepairs": [
       "DOCX assessment rendering appends a weight only when the source title does not already contain it.",
       "Misconception normalization removes complete student, instructor, teacher, and educator narrator phrases.",
       "Kernel projection selects the first decisive scenario sentence, keeps admitted course evidence, and capitalizes a standalone material lead.",
-      "Artifact compaction strips a leading article before embedding a reference, and final reader-visible normalization removes determiner collisions while restoring sentence-start capitalization."
+      "Artifact compaction strips a leading article before embedding a reference, and final reader-visible normalization removes determiner collisions while restoring sentence-start capitalization.",
+      "Focus compaction removes introductory prepositions and possessive suffix fragments before selecting a short lesson-specific label."
     ],
     "psychologyVerificationRound": "round-2026-07-22T09-14-09-885Z",
     "psychologyVerification": {

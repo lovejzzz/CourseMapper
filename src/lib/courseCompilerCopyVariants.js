@@ -12,6 +12,7 @@ export function selectVariant(lessonNumber, variants) {
 export function courseCopySurfaceWords(value) {
   return cleanText(value)
     .replace(/^(?:lesson|week)\s*\d+\s*[:.\-–—]\s*/i, '')
+    .replace(/[’']s\b/gi, '')
     .toLowerCase()
     .replace(/[^a-z0-9\s]/g, ' ')
     .split(/\s+/)
@@ -110,10 +111,10 @@ export function compactRepeatedCourseFocusReferences(value, fullFocus, { limit =
   // Short labels such as "Usability testing" or "Policy Topic 1" are useful
   // vocabulary, not the long mail-merge strings this reducer targets.
   if (focus.length < 24 && wordCount < 5) return value;
-  const originalWords = focus.match(/[A-Za-z0-9][A-Za-z0-9'-]*/g) || [];
+  const originalWords = focus.replace(/[’']s\b/gi, '').match(/[A-Za-z0-9][A-Za-z0-9'-]*/g) || [];
   const filteredTopicSurfaces = courseCopySurfaceWords(focus).filter(
     (word) =>
-      !/^(?:\d+|advanced|analy[sz]e|apply|basics?|blocks?|compare|cumulative|evaluate|explain|explore|foundations?|fundamentals?|introduc\w*|lessons?|methods?|modeling|modern|overview|principles?|process|projects?|review|sessions?|study|techniques?|theory|understand|units?|use|using|weeks?)$/.test(
+      !/^(?:\d+|advanced|analy[sz]e|apply|basics?|blocks?|compare|cumulative|evaluate|explain|explore|foundations?|fundamentals?|in|introduc\w*|lessons?|methods?|modeling|modern|of|on|overview|principles?|process|projects?|review|sessions?|study|techniques?|theory|to|understand|units?|use|using|weeks?)$/.test(
         word,
       ),
   );

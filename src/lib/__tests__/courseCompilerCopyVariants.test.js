@@ -6,6 +6,7 @@ import {
   examAtomPaddingOptions,
 } from '../courseCompilerCopyVariants';
 import { examFactCopy } from '../courseCompilerPolish';
+import { finalizeCompiledDeliverableLanguage } from '../compiledLanguageFinalizer';
 import { isAppliedQuizStem } from '../quality/quizItemDepth';
 
 describe('course compiler copy variants', () => {
@@ -124,6 +125,45 @@ describe('course compiler copy variants', () => {
     expect(text).toContain('DNA Structure–specific evidence');
     expect(text).toContain('the DNA Structure focus');
     expect(text).not.toContain('the the DNA Structure focus');
+  });
+
+  it('drops introductory prepositions and possessive fragments from compact focus labels', () => {
+    for (const [focus, expected] of [
+      ['Introduction to Earth Systems', 'Earth Systems focus'],
+      ['Review of Nutrient Functions', 'Nutrient Functions focus'],
+      ['Erikson’s Psychosocial Development', 'Erikson Psychosocial Development focus'],
+    ]) {
+      const result = compactRepeatedCourseFocusReferences(
+        Array.from({ length: 8 }, () => `${focus} supports the next decision.`),
+        focus,
+        { limit: 1 },
+      );
+      const text = result.join(' ');
+      expect(text).toContain(expected);
+      expect(text).not.toMatch(/(?:to Earth|of Nutrient|Erikson s) focus/i);
+    }
+  });
+
+  it('repairs reader-visible sentence starts, determiner collisions, and plural agreement', () => {
+    const data = {
+      lessonPlans: [
+        {
+          lessonNumber: 1,
+          outline: [
+            {
+              instructorNotes:
+                'Watch for this misconception. the classical conditioning focus is only a definition. Students name the next the lesson assessment revision. The key ideas in diurnal motion is only a definition to memorize.',
+            },
+          ],
+        },
+      ],
+    };
+
+    finalizeCompiledDeliverableLanguage('lessonPlans', data, {});
+    const text = data.lessonPlans[0].outline[0].instructorNotes;
+    expect(text).toContain('Watch for this misconception. The classical conditioning focus');
+    expect(text).toContain('Students name the next lesson assessment revision.');
+    expect(text).toContain('The key ideas in diurnal motion are only a definition to memorize.');
   });
 
   it('turns generic rubric echoes into complete student self-checks', () => {

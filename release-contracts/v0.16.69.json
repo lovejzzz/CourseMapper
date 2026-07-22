@@ -91,7 +91,7 @@
       "id": "v01669-artifact-rendering-repairs",
       "status": "verified-current",
       "changelogHighlightIndex": 3,
-      "summary": "Exported assessment weights, misconception options, constructed-response keys, and shortened references render without duplication, broken narrators, prompt echo, article collisions, or lowercase sentence starts.",
+      "summary": "Exported assessment weights, misconception options, constructed-response keys, and shortened references render without duplication, broken narrators, prompt echo, article collisions, lowercase sentence starts, preposition-only labels, or broken possessives.",
       "anchors": [
         "src/lib/exporters/docxExporter.js",
         "src/lib/kernelProjection.js",

@@ -167,8 +167,9 @@ function fixMechanicalSeams(value) {
   text = text.replace(/[ \t]+([.,;:!?])(?=\s|$)/g, '$1');
   // Doubled connectives produced by reference replacement ("the the Week 2 check").
   text = text.replace(/\b(the|a|an|to|of|for|and|or|in|on|with|at|by)\s+\1\b/gi, '$1');
-  text = text.replace(/\b(one targeted|a guided|one)\s+the\s+(?=[A-Z])/gi, '$1 ');
-  text = text.replace(/(^|[.!?]\s+)the(?=\s+[A-Z])/g, '$1The');
+  text = text.replace(/\b(one targeted|a guided|one|the next)\s+the\s+(?=[A-Za-z])/gi, '$1 ');
+  text = text.replace(/(^|[.!?]\s+)the(?=\s+[A-Za-z])/g, '$1The');
+  text = text.replace(/\b(The key ideas in [^.!?]{2,60}) is only\b/g, '$1 are only');
   text = text.replace(/\bexplain the psychological explanation\b/gi, 'explain the psychological account');
   // A due-window label can meet an artifact short reference after repetition
   // compaction ("Week 2" + "the Week 2 response"). Keep the one canonical
