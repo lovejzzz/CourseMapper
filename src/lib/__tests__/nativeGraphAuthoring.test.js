@@ -14,6 +14,7 @@ import { assessProjectedKernelCoverage } from '../blueprintEnrichmentPass.js';
 import { validateCourseGraph } from '../courseGraph/schema.js';
 import { findWorstPhraseRepetition } from '../exportRenderedTextAudit.js';
 import { normalizeFactLedgerFeedback } from '../factLedgerFeedback.js';
+import { assessTargetLanguagePresence } from '../languageIdentityGuard.js';
 
 function sourceBackedMap() {
   return {
@@ -510,6 +511,32 @@ describe('cumulative assessment kernel projection', () => {
     expect(partition.subjectLessonIndices).toContain(13);
   });
 
+  it('projects explicitly named review and synthesis sessions without classifying ordinary instruction as cumulative', () => {
+    const reviewLessons = [
+      {
+        title: 'Lesson 13: Contemporary Global Fiction',
+        sections: [{ topicSection: 'Global Voices' }],
+      },
+      {
+        title: 'Lesson 14: Course Synthesis',
+        sections: [{ topicSection: 'Final Paper Workshop' }],
+      },
+      {
+        title: 'Lesson 14: Vocabulary Recall and Grammar',
+        sections: [{ topicSection: 'Vocabulary Recall' }, { topicSection: 'Grammar' }],
+      },
+      {
+        title: 'Lesson 7: Vocabulary Building and Grammar',
+        sections: [{ topicSection: 'New sentence patterns' }],
+      },
+    ];
+
+    expect(partitionCumulativeAssessmentLessons(reviewLessons, [0, 1, 2, 3])).toEqual({
+      subjectLessonIndices: [0, 3],
+      cumulativeAssessmentLessonIndices: [1, 2],
+    });
+  });
+
   it('reuses admitted subject facts verbatim and produces usable assessment kernels without touching the lab', () => {
     const lessonContent = {};
     for (let index = 0; index < 9; index += 1) {
@@ -536,5 +563,97 @@ describe('cumulative assessment kernel projection', () => {
       expect(payload.kernel.facts.every((fact) => sourceFactSet.has(fact))).toBe(true);
       expect(payload.sourceLessonIds.every((lessonId) => Number(lessonId.replace('lesson-', '')) <= 9)).toBe(true);
     }
+  });
+
+  it('preserves the target-language contract in compiler-projected cumulative review lessons', () => {
+    const mandarinLessons = [
+      {
+        title: 'Lesson 1: Greetings and Introductions',
+        sections: [{ topicSection: 'Greetings and Introductions', weeklyAssessments: 'Dialogue check' }],
+      },
+      {
+        title: 'Lesson 2: Final Oral Performance',
+        sections: [
+          { topicSection: 'Integrated Speaking Task', weeklyAssessments: 'Final oral performance' },
+          { topicSection: 'Final Assessment', weeklyAssessments: 'Cumulative oral assessment' },
+        ],
+      },
+    ];
+    const source = completeNativeKernelSurfaces(
+      {
+        enrichmentSource: 'scion-model',
+        targetLanguagePair: { hanzi: '你好', pinyin: 'nǐ hǎo', english: 'hello' },
+        kernel: {
+          facts: [
+            'Mandarin greetings use conventional phrases to acknowledge another speaker.',
+            'A self-introduction names the speaker and supports a short interpersonal exchange.',
+            'Tone-marked Pinyin records pronunciation alongside the matching Hanzi.',
+          ],
+          scenario: {
+            setup: 'Students compare two greeting exchanges before performing one.',
+            materials: 'course dialogue and pronunciation guide',
+          },
+        },
+        keyTerms: [
+          {
+            term: 'greeting',
+            definition: 'A conventional phrase used to acknowledge another speaker.',
+            example: '你好 (nǐ hǎo) means hello.',
+            misconception: 'Pinyin can replace the matching Hanzi in every learning artifact.',
+            correction: 'Pair tone-marked Pinyin with its matching Hanzi.',
+          },
+        ],
+      },
+      mandarinLessons[0],
+    );
+    const lessonContent = { 'lesson-1': source };
+
+    const result = projectCumulativeAssessmentKernels({
+      lessonContent,
+      courseMapLessons: mandarinLessons,
+      lessonIndices: [1],
+      courseName: 'Elementary Mandarin Chinese I',
+    });
+
+    expect(result.projectedLessonIndices).toEqual([1]);
+    expect(lessonContent['lesson-2'].targetLanguagePair).toEqual({
+      hanzi: '你好，我叫李明。',
+      pinyin: 'Nǐ hǎo, wǒ jiào Lǐ Míng.',
+      english: 'Hello, my name is Li Ming',
+    });
+    expect(
+      assessTargetLanguagePresence({
+        courseIdentity: 'Elementary Mandarin Chinese I',
+        text: JSON.stringify(lessonContent['lesson-2']),
+      }),
+    ).toMatchObject({ complete: true, paired: true });
+  });
+
+  it('uses a topical Hanzi and tone-marked Pinyin pair for vocabulary-recall projections', () => {
+    const mandarinLessons = [
+      {
+        title: 'Lesson 1: Sentence Patterns',
+        sections: [{ topicSection: 'Basic sentence patterns' }],
+      },
+      {
+        title: 'Lesson 2: Vocabulary Recall and Grammar',
+        sections: [{ topicSection: 'Vocabulary Recall' }, { topicSection: 'Grammar' }],
+      },
+    ];
+    const lessonContent = { 'lesson-1': admittedSubjectKernel(0) };
+
+    const result = projectCumulativeAssessmentKernels({
+      lessonContent,
+      courseMapLessons: mandarinLessons,
+      lessonIndices: [1],
+      courseName: 'Elementary Mandarin Chinese I',
+    });
+
+    expect(result.projectedLessonIndices).toEqual([1]);
+    expect(lessonContent['lesson-2'].targetLanguagePair).toEqual({
+      hanzi: '我喜欢苹果。',
+      pinyin: 'Wǒ xǐhuān píngguǒ.',
+      english: 'I like apples',
+    });
   });
 });

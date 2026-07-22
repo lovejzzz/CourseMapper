@@ -25,6 +25,10 @@ const BEGINNER_MANDARIN_PAIRS = [
     pair: { hanzi: '我喜欢苹果。', pinyin: 'Wǒ xǐhuān píngguǒ.', english: 'I like apples' },
   },
   {
+    match: /(?:vocabulary recall|grammar review)/i,
+    pair: { hanzi: '我喜欢苹果。', pinyin: 'Wǒ xǐhuān píngguǒ.', english: 'I like apples' },
+  },
+  {
     match: /(?:basic characters?|short reading|reading passages?)/i,
     pair: { hanzi: '我是学生。', pinyin: 'Wǒ shì xuésheng.', english: 'I am a student' },
   },
