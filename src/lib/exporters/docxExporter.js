@@ -282,6 +282,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
     TableLayoutType,
     BorderStyle,
     PageBreak,
+    AlignmentType,
   } = docx;
 
   const theme = activeTheme();
@@ -488,7 +489,8 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
     });
   const NO_BORDER = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' };
   const HAIRLINE = { style: BorderStyle.SINGLE, size: 4, color: theme.ruleColor };
-  const makeTableFn = (colDXA, headerTexts, dataRows, { cantSplit = false } = {}) => {
+  const makeTableFn = (colDXA, headerTexts, dataRows, { cantSplit = false, centeredColumns = [] } = {}) => {
+    const centeredColumnSet = new Set(centeredColumns);
     const hdr = new TableRow({
       tableHeader: true,
       children: headerTexts.map(
@@ -499,6 +501,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
             margins: { top: 80, bottom: 80, left: 120, right: 120 },
             children: [
               new Paragraph({
+                alignment: centeredColumnSet.has(idx) ? AlignmentType.CENTER : undefined,
                 children: [new TextRun({ text: h, bold: true, size: 20, font: FONT, color: 'FFFFFF' })],
               }),
             ],
@@ -518,6 +521,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
                 verticalAlign: 'top',
                 children: [
                   new Paragraph({
+                    alignment: centeredColumnSet.has(idx) ? AlignmentType.CENTER : undefined,
                     spacing: { line: SINGLE_SP },
                     children: [new TextRun({ text: String(v || ''), size: BODY_SIZE, font: FONT, color: '333333' })],
                   }),
@@ -707,7 +711,10 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
     // ─── RUBRICS ────────────────────────────────────────────────
     case 'rubrics': {
       const expanded = expandKeys('rubrics', data);
-      const COL_DXA = [2060, 750, 1640, 1640, 1640, 1630];
+      // Keep the numeric weight column wide enough for its heading to remain
+      // on one line in Word/LibreOffice while preserving the full 9360-DXA
+      // landscape text width.
+      const COL_DXA = [1880, 930, 1640, 1640, 1640, 1630];
       // v0.16.1: a lesson slice with no rubric entries (e.g. legacy saves
       // where the exam lesson compiled no rubric) must never ship as a
       // title-only shell — emit the same instructor handoff pattern the
@@ -746,6 +753,11 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           continue;
         }
         if (r.taskDirections) children.push(makeBold('Task Directions', r.taskDirections));
+        if (Array.isArray(r.submissionRequirements) && r.submissionRequirements.length > 0) {
+          children.push(makeSubHeading('Submission Requirements (unweighted)'));
+          if (r.submissionRequirementPolicy) children.push(makeItalic(r.submissionRequirementPolicy));
+          r.submissionRequirements.forEach((requirement) => children.push(makeBullet(requirement)));
+        }
         if (r.instructorFacilitationNote)
           children.push(makeBold('Instructor Facilitation', r.instructorFacilitationNote));
         if (r.accessibilityAndUDL) children.push(makeBold('Accessibility & UDL', r.accessibilityAndUDL));
@@ -770,7 +782,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
               ]),
               // Level cells run to ~280 chars — a row split across a page
               // break is unreadable.
-              { cantSplit: true },
+              { cantSplit: true, centeredColumns: [1] },
             ),
           );
         }

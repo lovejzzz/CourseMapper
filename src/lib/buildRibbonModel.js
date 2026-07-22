@@ -425,7 +425,7 @@ export function buildLivingCompilerArtifacts({
 
   let checksValue = 'Waiting';
   if (generationFailed) checksValue = 'Not run · course map incomplete';
-  else if (finishStatus === 'blocked') checksValue = `${blockers || 1} blocker${blockers === 1 ? '' : 's'} to review`;
+  else if (finishStatus === 'blocked') checksValue = `${blockers || 1} item${blockers === 1 ? '' : 's'} to refine`;
   else if (finishStatus === 'ready') checksValue = grade ? `Verified · Grade ${grade}` : 'Verified';
   else if (pipeline?.state === 'grading') checksValue = 'Grading package';
   else if (pipeline?.state === 'verifying') checksValue = 'Checking and repairing';
@@ -651,7 +651,8 @@ export function buildBuildRibbonModel({
     case 'blocked': {
       stage = 'ready';
       const blockers = Number(packageQualityPass?.blockers) || 0;
-      stageLabel = blockers > 0 ? `Needs review — ${blockers} blocker${blockers === 1 ? '' : 's'}` : 'Needs review';
+      stageLabel =
+        blockers > 0 ? `Refining package — ${blockers} item${blockers === 1 ? '' : 's'}` : 'Refining package';
       break;
     }
     case 'ready':

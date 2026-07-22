@@ -647,7 +647,7 @@ describe('B1 — buildRibbonModel selector', () => {
     expect(blocked.find((artifact) => artifact.id === 'checks')).toEqual({
       id: 'checks',
       label: 'Checks',
-      value: '2 blockers to review',
+      value: '2 items to refine',
       status: 'warn',
     });
   });
@@ -1126,7 +1126,7 @@ describe('B1 — buildRibbonModel selector', () => {
 
     expect(model.stage).toBe('ready');
     expect(model.running).toBe(false);
-    expect(model.stageLabel).toBe('Needs review — 1 blocker');
+    expect(model.stageLabel).toBe('Refining package — 1 item');
     expect(model.steps.map((step) => step.status)).not.toContain('active');
   });
 
@@ -1304,7 +1304,7 @@ describe('B1 — buildRibbonModel selector', () => {
       packageQualityPass: { status: 'blocked', message: 'Blocked.', blockers: 2, warnings: 0, quality: null },
     });
     expect(model.stage).toBe('ready');
-    expect(model.stageLabel).toBe('Needs review — 2 blockers');
+    expect(model.stageLabel).toBe('Refining package — 2 items');
     expect(model.elapsedDisplay).toBe('');
     expect(model.done.grade).toBe(false); // no quality attached
   });
@@ -1480,7 +1480,7 @@ describe('B1 — BuildRibbon render', () => {
         packageQualityPass: readyPass({ status: 'blocked', blockers: 1 }),
       }),
     );
-    expect(html).toContain('Needs review — 1 blocker');
+    expect(html).toContain('Refining package — 1 item');
     expect(html).toContain('Review required');
     expect(html).not.toContain('Build complete');
     expect(html).toContain('data-state="review"');

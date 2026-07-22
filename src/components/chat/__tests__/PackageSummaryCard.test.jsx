@@ -109,10 +109,10 @@ describe('PackageSummaryCard', () => {
       />,
     );
 
-    expect(html).toContain('Review before export');
-    expect(html).toContain('Action needed');
+    expect(html).toContain('Package refinement');
+    expect(html).toContain('Refine');
     expect(html).toContain('1 issue to fix');
-    expect(html).toContain('Needs attention');
+    expect(html).toContain('Items to refine');
     expect(html).toContain('Quiz Bank');
     expect(html).not.toContain('Assessment weights');
     expect(html).not.toContain('Confirm the official grading weight.');

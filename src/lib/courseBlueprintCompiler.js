@@ -17586,14 +17586,11 @@ function compileAssignments(blueprint) {
   };
 }
 
-// ── v0.14.3 D2: rubric criteria quote the task ──────────────────────────────
-// When the assessment's brief carries structured parameters ("Work within
-// these parameters: …" — Phase-1C authored content on
-// lesson.enrichment.assignmentCore.parameters), the rubric grades THOSE
-// requirements: one criterion per parameter (cap 3), phrased as an
-// assessable outcome, plus the two most defensible generic criteria
-// (evidence quality + communication). Weights redistribute to the rubric's
-// existing total. Parameterless briefs keep today's rubric untouched.
+// ── Rubric submission checks ────────────────────────────────────────────────
+// Structured brief parameters remain verbatim, inspectable requirements.
+// They are rendered before the rubric as zero-weight checks; assessed learning
+// criteria retain the full 100-point construct instead of being displaced by
+// administrative scope, format, citation, or length instructions.
 
 const PARAMETER_PRESENCE_VERB_RE =
   /^(?:include|provide|add|attach|incorporate|report|state|name|list|show|present|submit)\b\s*/i;
@@ -17757,19 +17754,6 @@ function discussionInstructorPreferenceNote(preference, lesson = {}) {
   ]);
 }
 
-// The two most defensible generic criteria to keep beside parameter-derived
-// ones: evidence quality and communication (analysis logic is implicit in
-// evidence use; feedback/revision documentation is process, not task).
-function selectKeptGenericCriteria(criteria = []) {
-  const evidenceCriterion =
-    criteria.find((criterion) => /\b(accuracy|evidence|source)\b/i.test(criterion)) || criteria[0];
-  const communicationCriterion =
-    criteria.find(
-      (criterion) => criterion !== evidenceCriterion && /\b(communication|organization|format)\b/i.test(criterion),
-    ) || criteria.find((criterion) => criterion !== evidenceCriterion);
-  return [evidenceCriterion, communicationCriterion].filter(Boolean);
-}
-
 function compileRubrics(blueprint) {
   const lens = blueprintLens(blueprint);
   const preference = featurePreference(blueprint, 'rubrics');
@@ -17868,65 +17852,26 @@ function compileRubrics(blueprint) {
           performanceBandEvidence: performanceBand.performanceBandEvidence,
         };
       };
-      // v0.14.3 D2: the brief's structured student requirements become the
-      // leading rubric criteria. A brief with no parameters keeps today's
-      // rubric verbatim.
-      // v0.16.1: code-lab rubrics keep their own lab criteria (correctness,
-      // code clarity, test evidence) — the lesson's brief parameters
-      // describe the sibling proof submission and would re-clone the rubric.
+      // Brief parameters are submission constraints, not independent learning
+      // outcomes. Keep them visible as unweighted pre-score checks without
+      // replacing evidence, analysis, communication, or revision criteria.
+      // Code labs and interval-analysis tasks already carry specialized
+      // validity criteria, so their sibling brief parameters stay out here.
       const briefParameters =
-        isCodeLab || isMusicIntervalLesson(lesson) ? [] : assignmentCoreParametersForStudent(lesson).slice(0, 3);
-      let criteria;
-      let effectiveWeightPlan = criterionWeightPlan;
-      if (briefParameters.length > 0) {
-        const keptGenericCriteria = selectKeptGenericCriteria(assessment.criteria);
-        const totalWeight = criterionWeightPlan.reduce((sum, entry) => sum + Number(entry.weight || 0), 0) || 100;
-        const weights = splitWeightTotal(totalWeight, briefParameters.length + keptGenericCriteria.length);
-        const objectives = (assessment.objectives || []).filter(Boolean);
-        const parameterRows = briefParameters.map((parameter, parameterIndex) => {
-          const objective =
-            objectives
-              .map((candidate, objectiveIndex) => ({
-                candidate,
-                objectiveIndex,
-                score: objectiveOverlapScore(parameter, candidate),
-              }))
-              .sort((a, b) => b.score - a.score || a.objectiveIndex - b.objectiveIndex)[0]?.candidate ||
-            objectives[0] ||
-            '';
-          return buildParameterCriterionRow({
-            parameter,
-            ordinal: parameterIndex + 1,
-            weight: weights[parameterIndex],
-            assessment,
-            lesson,
-            objective,
-          });
-        });
-        const keptRows = keptGenericCriteria.map((criterion, keptIndex) =>
-          buildStandardCriterionRow(
-            criterion,
-            assessment.criteria.indexOf(criterion),
-            weights[briefParameters.length + keptIndex],
-          ),
-        );
-        criteria = [...parameterRows, ...keptRows];
-        // The rubric's weight plan must describe the criteria it actually
-        // grades — guidance, architecture, and grounding all read this plan.
-        effectiveWeightPlan = criteria.map((row) => ({
-          criterion: row.criterion,
-          priority: row.priority || `Criterion ${criteria.indexOf(row) + 1}`,
-          weight: row.weight,
-          points: row.points,
-          rationale: row.weightingRationale || `Weight reflects the relative grading importance of "${row.criterion}".`,
-          evidenceSignal: row.evidenceSignal || '',
-          calibrationUse: row.calibrationUse || '',
-          feedbackUse: row.feedbackUse || '',
-          studentTransparency: `Tell students that "${row.criterion}" is worth ${row.weight}% before they draft, and show the evidence signal used for scoring.`,
-        }));
-      } else {
-        criteria = assessment.criteria.map((criterion, index) => buildStandardCriterionRow(criterion, index));
-      }
+        isCodeLab || isMusicIntervalLesson(lesson) ? [] : assignmentCoreParametersForStudent(lesson).slice(0, 4);
+      const zeroWeights = splitWeightTotal(0, briefParameters.length);
+      const submissionRequirementChecks = briefParameters.map((parameter, parameterIndex) =>
+        buildParameterCriterionRow({
+          parameter,
+          ordinal: parameterIndex + 1,
+          weight: zeroWeights[parameterIndex],
+          assessment,
+          lesson,
+          objective: assessment.objectives?.[0] || '',
+        }),
+      );
+      const criteria = assessment.criteria.map((criterion, index) => buildStandardCriterionRow(criterion, index));
+      const effectiveWeightPlan = criterionWeightPlan;
       const rubricEntry = {
         title: `${assessment.title} Rubric`,
         ...(Number.isInteger(assessment.lessonNumbers?.[0]) ? { lessonNumber: assessment.lessonNumbers[0] } : {}),
@@ -17984,6 +17929,12 @@ function compileRubrics(blueprint) {
           developing: '70-79%',
           beginning: 'Below 70%',
         },
+        submissionRequirements: briefParameters,
+        submissionRequirementChecks,
+        submissionRequirementPolicy:
+          briefParameters.length > 0
+            ? 'Check these brief requirements before scoring. They are unweighted constraints and do not replace evidence, analysis, communication, or revision criteria.'
+            : '',
         criteria,
         assessmentValidity: validityEvidence,
         gradingCalibrationPlan: assessment.calibrationPlan,

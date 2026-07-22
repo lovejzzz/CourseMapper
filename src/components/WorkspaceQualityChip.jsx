@@ -69,26 +69,26 @@ export default function WorkspaceQualityChip({ packageQualityPass, onOpenReport 
   const issues = issueCount(quality);
   const textureScore = Number.isFinite(quality.texture?.score) ? quality.texture.score : null;
   if (trustStatus.blocked) {
-    const blockers = Math.max(1, Number(trustStatus.blockerCount) || Number(packageQualityPass?.blockers) || 0);
-    const blockerText = `${blockers} blocker${blockers === 1 ? '' : 's'}`;
+    const refinementItems = Math.max(1, Number(trustStatus.blockerCount) || Number(packageQualityPass?.blockers) || 0);
+    const refinementText = `${refinementItems} item${refinementItems === 1 ? '' : 's'} to refine`;
     return (
       <button
         type="button"
         data-testid="workspace-quality-chip"
         onClick={onOpenReport}
-        aria-label={`Package quality: export blocked by ${blockerText}; grade result ${quality.score} out of 100, grade ${
+        aria-label={`Package quality: export paused for ${refinementText}; grade result ${quality.score} out of 100, grade ${
           quality.grade
         }${p0 > 0 ? `, including ${p0} critical` : ''}${
           textureScore !== null ? `, texture ${textureScore} out of 100` : ''
         } — open the quality report`}
-        title={`Export is blocked by ${blockerText}. The deterministic grade result is ${quality.score}/100 (${
+        title={`Export is paused for ${refinementText}. The deterministic grade result is ${quality.score}/100 (${
           quality.grade
         })${p0 > 0 ? ` including ${p0} critical finding${p0 === 1 ? '' : 's'}` : ''}${
           textureScore !== null ? ` · Texture ${textureScore}/100` : ''
         }; click for the quality report and remaining action.`}
         className={`${CHIP_BASE} border-red-200 bg-red-50 text-red-700 tactile transition-colors hover:brightness-95`}
       >
-        <span>{p0 > 0 ? 'Fix required' : 'Needs review'}</span>
+        <span>Quality refinement</span>
         {textureScore !== null && (
           <span data-testid="workspace-texture-meter" className="font-semibold text-slate-500 dark:text-slate-400">
             · Texture {textureScore}

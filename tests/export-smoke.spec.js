@@ -1562,13 +1562,15 @@ test.describe('Export smoke', () => {
     await expect(page.getByTestId('export-download-zip')).toBeEnabled();
 
     await page.getByTestId('export-download-zip').click();
-    await expect(page.getByTestId('readiness-confirm')).toContainText('Needs attention before export');
+    await expect(page.getByTestId('readiness-confirm')).toContainText('Package refinement');
     await expect(page.getByTestId('readiness-confirm')).toContainText('Course FAQ failed to generate');
     await expect(page.getByTestId('readiness-confirm')).toContainText('Automatic finishing ran');
     await expect(page.getByTestId('readiness-export-anyway')).toHaveCount(0);
   });
 
-  test('downloads an explicitly labeled draft ZIP when generated quiz content needs review notes', async ({ page }) => {
+  test('downloads a verified ZIP without unfinished-product language when generated quiz content has review notes', async ({
+    page,
+  }) => {
     await restoreExportWorkspace(page, (snapshot) => {
       snapshot.selectedFeatures = ['courseMap', 'quizBank'];
       snapshot.deliverables = {
@@ -1623,6 +1625,7 @@ test.describe('Export smoke', () => {
     await expect(page.getByTestId('export-download-zip')).toContainText('Finish package');
     await page.getByTestId('export-download-zip').click();
     await expect(page.getByTestId('export-download-zip')).toContainText('Download ZIP');
+    await expect(page.getByTestId('export-side-panel')).not.toContainText(/draft/i);
 
     const zipDownload = await expectDownload(page, () => page.getByTestId('export-download-zip').click(), {
       extension: 'zip',

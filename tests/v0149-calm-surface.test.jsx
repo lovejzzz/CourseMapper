@@ -62,7 +62,7 @@ describe('B2 — the two-number Seal', () => {
       />,
     );
     expect(blocked).toContain('border-red-200');
-    expect(blocked).toContain('Fix required');
+    expect(blocked).toContain('Quality refinement');
     expect(blocked).toContain('including 1 critical');
     expect(blocked).toContain('· Texture 90');
   });

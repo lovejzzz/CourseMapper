@@ -1,0 +1,238 @@
+{
+  "evidenceVersion": 1,
+  "release": "0.16.70",
+  "generatedAt": "2026-07-22T14:54:30.000Z",
+  "sourceCommitBeforeIntervention": "391aeec72580024a4d2bcf3080d692d1dfa7923d",
+  "claimBoundary": "Anonymous artifact comparison, deterministic compiler comparison, browser generation, archive, and rendered-DOCX evidence only. This is not factual validation of every package, instructor approval, classroom evidence, paid-model parity, statistical confidence, or proof that every possible course receives the same score.",
+  "model": {
+    "baseModel": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+    "baseRevision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
+    "gemmaWeightsChanged": false,
+    "productionAdapterActive": false
+  },
+  "selectiveAdapterDecision": {
+    "candidateId": "scion-g4e2b-production-24fea2752e6edb62",
+    "manifestSha256": "e0288a00026c73744e6ba083a8ec1fcf73bb15d4f068d90104af3fbfa0f25a08",
+    "packageIdentitySha256": "f5d8fc20fe1f4bcc67a2f56cf3ed50f5b23c3d3638a12093129e92f764c8be96",
+    "adapterBytes": 105459677,
+    "browserAdapterBudgetBytes": 67108864,
+    "decision": "rejected",
+    "reason": "The candidate produced no aggregate cross-domain artifact-quality win, introduced factual and assessment defects, used 1.90 times the native generations and 2.81 times the measured runtime, and exceeded the browser adapter budget.",
+    "productionStatus": "inactive"
+  },
+  "pairedFiveDomainRun": {
+    "benchmark": "evaluation/scion-adapters/held-out-course-benchmark-v17.json",
+    "pairRunId": "v17-391aeec7-20260722",
+    "courses": ["Elementary Mandarin Chinese", "World Literature", "Psychology", "Nutrition", "Astronomy"],
+    "base": {
+      "round": "round-2026-07-22T13-46-50-852Z",
+      "durationMs": 369133,
+      "transportEntries": 40,
+      "nativeGenerations": 31,
+      "failedNativeGenerations": 0,
+      "coursesAt99A": 5,
+      "p0": 0,
+      "p1": 0
+    },
+    "candidate": {
+      "round": "round-2026-07-22T13-53-45-801Z",
+      "durationMs": 1037897,
+      "transportEntries": 68,
+      "nativeGenerations": 59,
+      "failedNativeGenerations": 0,
+      "coursesAt99A": 5,
+      "p0": 0,
+      "p1": 0
+    },
+    "candidateRuntimeMultiplier": 2.8117,
+    "candidateNativeGenerationMultiplier": 1.9032,
+    "summaryScoreFinding": "The deterministic 99/A score was saturated: it reported both arms as equal while complete learner-facing artifacts contained decisive factuality and instructional-quality differences."
+  },
+  "anonymousReversedBlindReview": {
+    "protocol": "Complete syllabus plus every learner-facing artifact for the three lessons with the largest changed surface count; anonymous A/B followed by reversed B/A in separate Codex judge sessions.",
+    "worldLiterature": {
+      "selectedLessons": [7, 11, 14],
+      "baseWins": [
+        { "base": 64, "candidate": 46 },
+        { "base": 57, "candidate": 44 }
+      ],
+      "candidateDefects": [
+        "Separated fragmentation from modernist verse and overstated stream of consciousness for The Waste Land.",
+        "Introduced malformed pseudo-source labels and an impossible quiz evidence requirement."
+      ]
+    },
+    "astronomy": {
+      "selectedLessons": [1, 5, 9],
+      "baseWins": [
+        { "base": 71, "candidate": 55 },
+        { "base": 61, "candidate": 50 }
+      ],
+      "candidateDefects": [
+        "Repeatedly claimed that Kepler's third law is not one of the laws of planetary motion.",
+        "Mishandled multiple-body gravity and inserted unrelated Hubble's-law content into the parallax lesson."
+      ]
+    },
+    "mandarin": {
+      "selectedLessons": [1, 10, 12],
+      "orderOne": { "winner": "base", "base": 41, "candidate": 39 },
+      "orderTwo": { "winner": "candidate", "candidate": 45, "base": 41 },
+      "conclusion": "Order-sensitive, therefore not a credible win.",
+      "candidateDefects": [
+        "Taught that 地铁 is the destination in 我坐地铁去学校 even though 学校 is the destination and 地铁 is the transport mode.",
+        "Propagated that error through the FAQ, lesson plan, and study guide.",
+        "Produced a tone multiple-choice item whose keyed option omitted the taught high-level contour."
+      ]
+    },
+    "unchangedLearnerFacingPackages": ["Psychology", "Nutrition"],
+    "decision": "No adapter promotion."
+  },
+  "largestCompilerDefect": {
+    "surface": "Rubrics",
+    "baseline": {
+      "observedIn": ["Astronomy", "Mandarin", "World Literature"],
+      "behavior": "Structured brief parameters replaced three of the four actual assessment criteria.",
+      "weightedComplianceSharePct": 60,
+      "weightedComplianceCriteria": ["scope", "format or output", "evidence presence"],
+      "preservedLearningCriteria": ["evidence accuracy", "communication"],
+      "missingLearningCriteria": ["analysis logic", "feedback-informed revision"]
+    },
+    "causalHypothesis": "Brief parameters are submission constraints, not independent learning constructs. Keeping them visible but unweighted while preserving the assessment's full criterion plan improves construct validity without another model call.",
+    "intervention": {
+      "boundary": "src/lib/courseBlueprintCompiler.js compileRubrics",
+      "submissionRequirements": "Up to four brief parameters remain verbatim as pre-score checks.",
+      "submissionRequirementWeights": [0, 0, 0, 0],
+      "scoredCriteria": [
+        { "name": "evidence accuracy", "weight": 30 },
+        { "name": "analysis logic", "weight": 30 },
+        { "name": "professional communication", "weight": 20 },
+        { "name": "feedback-informed revision", "weight": 20 }
+      ],
+      "additionalModelCalls": 0,
+      "providerScope": "model-neutral; compatible Scion, local, and paid-provider packages benefit"
+    }
+  },
+  "artifactDelta": {
+    "astronomyLessonFive": {
+      "beforeDocxSha256": "1f9cd7cd6a553064ba5822c0cbbc7f541edf28e3297052c19cda34b55b831ebe",
+      "afterDocxSha256": "e76427446e27e59818f51015b3f2ac29c4534d51ad27369020ec5af650c832ad",
+      "beforePackageSha256": "91c5775185b101f8caf33ebe5985ae1d243bc1271cebc1b1fa183c1ec3758428",
+      "afterPackageSha256": "43fbfff163e873cf2b5069ca1bbbe8682c584dab5f1db37a294168c742750db7",
+      "beforeScoredCriteria": 5,
+      "beforeLearningCriteria": 2,
+      "afterScoredCriteria": 4,
+      "afterLearningCriteria": 4,
+      "afterSubmissionChecks": 4
+    },
+    "renderingRepair": {
+      "defect": "The narrow numeric column wrapped the heading Weight into Weig / ht.",
+      "repair": "The weight column expands from 750 to 930 DXA, the criterion column contracts by the same amount, the total landscape width remains 9360 DXA, and numeric weights are centered.",
+      "renderedPagesInspected": 6,
+      "documentsInspected": ["Astronomy Lesson 5 rubric", "Mandarin Lesson 1 rubric"],
+      "result": "No clipping, overlap, missing header, broken table, or split Weight heading across all inspected pages."
+    }
+  },
+  "freshBrowserProof": {
+    "astronomy": {
+      "round": "round-2026-07-22T14-44-08-597Z",
+      "seconds": 70,
+      "nativeGenerations": 7,
+      "providerRetries": 0,
+      "score": 99,
+      "grade": "A",
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "blockers": 0,
+      "warnings": 0,
+      "exportChecks": "38/38",
+      "archiveFiles": 101,
+      "archiveSha256": "43fbfff163e873cf2b5069ca1bbbe8682c584dab5f1db37a294168c742750db7"
+    },
+    "mandarin": {
+      "round": "round-2026-07-22T14-47-15-643Z",
+      "seconds": 59,
+      "nativeGenerations": 2,
+      "providerRetries": 0,
+      "score": 99,
+      "grade": "A",
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "blockers": 0,
+      "warnings": 0,
+      "exportChecks": "38/38",
+      "archiveFiles": 127,
+      "archiveSha256": "4e02ca840a99bee8bce411e3a562c3c4aecf29f79893e9cceb98bbf86bff46cb"
+    }
+  },
+  "attachedPhysicalGeologyClosure": {
+    "attachedArtifact": {
+      "appVersion": "0.16.67",
+      "archiveIntegrity": "passed",
+      "archiveFiles": 115,
+      "exportChecks": "38/38",
+      "score": 74,
+      "grade": "C",
+      "p0": 1,
+      "rootCause": "The registry promised A14.2 Final (50%), but the Lesson 14 Quiz & Exam Bank document contained no corresponding final-exam content. The export layer was healthy; the assessment classifier and compiler contract were not."
+    },
+    "deterministicRegression": {
+      "test": "tests/v015187-exam-kind-classifier.test.js",
+      "contract": "A Physical Geology Final (50%) assessment with a contradictory graded-artifact kind must compile as an exam with at least three questions."
+    },
+    "correctedBrowserProof": {
+      "sourceRelease": "0.16.69",
+      "evidence": "docs/evidence/SCION_V01669_SOURCE_LEDGER_FREEZE.json",
+      "score": 99,
+      "grade": "A",
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "blockers": 0,
+      "warnings": 0,
+      "exportChecks": "38/38",
+      "archiveFiles": 117,
+      "archiveIntegrity": "passed",
+      "consoleWarnings": 0,
+      "consoleErrors": 0,
+      "nativeGenerations": 4
+    }
+  },
+  "premiumProductLanguage": {
+    "primaryLabels": ["Quality refinement", "Package refinement", "Refine package", "Download ZIP"],
+    "verifiedArchiveDraftLabelCount": 0,
+    "honestyBoundary": "The copy removes unfinished-product branding; it does not hide unresolved quality state from the deterministic report or package manifest.",
+    "componentProof": {
+      "filesPassed": 7,
+      "testsPassed": 104
+    },
+    "chromiumProof": {
+      "testsPassed": 1,
+      "test": "tests/export-smoke.spec.js — downloads a verified ZIP without unfinished-product language when generated quiz content has review notes"
+    }
+  },
+  "focusedTests": {
+    "filesPassed": 4,
+    "testsPassed": 129,
+    "command": "npx vitest run src/lib/__tests__/courseBlueprintCompiler.test.js src/lib/__tests__/docxExporter.test.js src/lib/__tests__/bulkDocxExporter.test.js tests/v0143-depth-slice.test.js"
+  },
+  "releaseGate": {
+    "unit": {
+      "filesPassed": 434,
+      "filesSkipped": 16,
+      "testsPassed": 5327,
+      "testsSkipped": 162
+    },
+    "passed": [
+      "npm run format:check",
+      "npm run lint",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history"
+    ],
+    "initialLandingJavaScript": {
+      "rawKiB": 250.7,
+      "gzipKiB": 79.3
+    }
+  }
+}

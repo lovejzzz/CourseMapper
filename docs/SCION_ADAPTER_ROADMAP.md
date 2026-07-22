@@ -2,7 +2,29 @@
 
 **Architecture:** public Gemma 4 E2B base + small Scion adapter + Scion compiler = Scion Vx
 
-**Status:** the exact-QAT base, hash-bound training and conversion chain, browser adapter lifecycle, source-strict semantic compiler gates, frozen holdout firewall, and paired-order preference protocol are implemented. The research corpus still contains 102 qualified source-grounded preferences and rebuilds into 100 group-isolated production rows across seven domains. One real 200-iteration adapter run lowered validation loss, and a later five-course diagnostic reduced inference burden, but neither established a held-out quality win; the candidate remains inactive. V0.16.69 gives the 15-lesson Mandarin benchmark an exact attributed source ledger, removes deterministic model calls when Course Mapper already owns the facts, and fixes artifact defects found only by opening the exported documents. The five-domain pinned-base matrix closes at 99/A with zero findings, blockers, warnings, or archive failures in every domain while using 30 actual Gemma generations. A sixth Physical Geology regression run closes the same gate with four more generations; the entire run has zero retries and model failures. Gemma weights are unchanged; the measured lift remains source, admission, compiler, evaluator, UX, and export work.
+**Status:** the exact-QAT base, hash-bound training and conversion chain, browser adapter lifecycle, source-strict semantic compiler gates, frozen holdout firewall, and paired-order preference protocol are implemented. The research corpus still contains 102 qualified source-grounded preferences and rebuilds into 100 group-isolated production rows across seven domains. V0.16.70 runs the first complete task-scoped candidate against the clean V17 base with anonymous reversed-order artifact review. It does not win: World Literature and Astronomy prefer base in both orders, Mandarin is order-sensitive and exposes a candidate factual error, Psychology and Nutrition are learner-facing ties, runtime rises 2.81×, and the 105 MB delta exceeds the browser budget. The candidate remains inactive. That experiment exposes a grader-saturating compiler defect and yields a model-neutral rubric repair: submission parameters stay visible but unweighted while evidence, analysis, communication, and revision keep the full score. Gemma weights are unchanged; current production lift remains source, admission, compiler, evaluator, UX, and export work.
+
+## V0.16.70 — Grade Learning, Not Submission Compliance
+
+**Goal:** evaluate the task-scoped adapter on complete learner-facing artifacts, keep it inactive unless it earns a real win, and improve the earliest shared compiler boundary exposed by the comparison.
+
+**Matched adapter result:** the V17 base and candidate arms use the same five held-out inputs, pinned Gemma revision, compiler, grader, and selective route. Both summary reports read 99/A, but reversed anonymous artifact review prefers base twice in World Literature and Astronomy. Mandarin reverses with order and the candidate teaches the false claim that 地铁 is the destination in `我坐地铁去学校`; Psychology and Nutrition do not change. The candidate uses 59 native generations versus 31 and 1,037,897 ms versus 369,133 ms. Its 105,459,677-byte delta is also above the 64 MiB browser budget. It is rejected and inactive.
+
+**Evaluator finding:** equal green scores hid decisive factuality, source-fidelity, assessment, and disciplinary-depth differences. Complete-artifact review therefore remains the promotion authority; aggregate structural grade alone cannot activate an adapter.
+
+**Compiler intervention:** the old rubric compiler promoted three brief parameters into weighted criteria, so scope, output format, and evidence presence consumed 60% while analysis and feedback-informed revision disappeared. Those parameters now render verbatim as zero-weight pre-score checks. The assessment's evidence, analysis, communication, and revision criteria retain 30/30/20/20. This is deterministic and adds no model call.
+
+**Document intervention:** the landscape rubric grid remains 9360 DXA, but Weight grows from 750 to 930 DXA and its heading and values center. Three Astronomy pages and three Mandarin pages render with clean repeated headers, no split Weight label, and no clipping, overlap, or broken table.
+
+**Exact package proof:** fresh pinned-base Astronomy and Mandarin packages complete in 70 and 59 seconds, use seven and two real Gemma generations, reach 99/A with zero P0/P1/P2 findings, blockers, warnings, or retries, pass 38/38 export checks, and open to 101 and 127 files.
+
+**Attached Geology closure:** the supplied V0.16.67 ZIP is physically valid and passes 38/38 export checks, but its `Final (50%)` registry entry has no corresponding exam content, producing the visible 74/C P0. The exact contradictory-kind case is locked by `tests/v015187-exam-kind-classifier.test.js`; the fresh corrected Geology browser package reaches 99/A with zero findings, blockers, warnings, console errors, or archive errors and opens to 117 files.
+
+**Premium language:** the primary quality, Agent, compiler ribbon, and export surfaces say `Quality refinement`, `Package refinement`, `Refine package`, and `Download ZIP`. The reviewed archive path never says `draft`; a Chromium ZIP regression proves the label and download behavior together. Internal severity remains strict and the package report still carries any real unresolved finding.
+
+**Lane:** rubric construction and DOCX rendering are model-neutral and benefit compatible paid-provider output. Adapter selection, manifest verification, browser WebGPU loading, public-weight download, caching, and local inference remain Scion-specific.
+
+**Release Boundary:** this release proves the adapter rejection, the measured rubric defect, the deterministic correction, and two fresh package/render paths. It does not prove universal factual correctness, instructor approval, classroom outcomes, human preference, statistical confidence, paid-model parity, or a universal 99/A result.
 
 ## V0.16.69 — Prove the Package Behind the Green Light
 

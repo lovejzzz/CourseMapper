@@ -150,6 +150,46 @@ describe('buildDeliverableDocxBlob', () => {
     expect(xml).not.toContain('• Review the generated DOCX.');
   });
 
+  it('renders brief constraints separately from the scored rubric with readable weight geometry', async () => {
+    const blob = await buildDeliverableDocxBlob(
+      'rubrics',
+      {
+        rubrics: [
+          {
+            lessonTitle: 'Lesson 5: Kepler’s third law',
+            title: 'Kepler analysis rubric',
+            totalPoints: 100,
+            taskDirections: 'Score the analysis using the learning criteria below.',
+            submissionRequirements: ['Scope: use the named case only.', 'Format: submit a two-page memo.'],
+            submissionRequirementPolicy:
+              'Check these brief requirements before scoring. They are unweighted constraints.',
+            criteria: [
+              {
+                criterion: 'Evidence accuracy',
+                weight: 30,
+                excellent: 'Uses precise evidence.',
+                proficient: 'Uses relevant evidence.',
+                developing: 'Uses partial evidence.',
+                beginning: 'Uses no inspectable evidence.',
+              },
+            ],
+          },
+        ],
+      },
+      'Introduction to Astronomy',
+    );
+
+    const xml = await docxDocumentXml(blob);
+
+    expect(xml).toContain('SUBMISSION REQUIREMENTS (UNWEIGHTED)');
+    expect(xml).toContain('Scope: use the named case only.');
+    expect(xml).toContain('Evidence accuracy');
+    expect(xml).toContain('30%');
+    expect(xml).toContain('<w:gridCol w:w="1880"/>');
+    expect(xml).toContain('<w:gridCol w:w="930"/>');
+    expect(xml).toMatch(/<w:jc w:val="center"\/>[\s\S]*?Weight/);
+  });
+
   it('renders a handoff note instead of a title-only DOCX for empty assignment slices', async () => {
     const blob = await buildDeliverableDocxBlob(
       'assignments',

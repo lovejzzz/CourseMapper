@@ -383,24 +383,9 @@ describe('D1b — second application slide from an unused bank item', () => {
   });
 });
 
-// ── (3) D2: rubrics quote the task ──────────────────────────────────────────
+// ── (3) D2: rubrics retain task checks without replacing learning criteria ──
 
-function contentTokens(text) {
-  return new Set(
-    String(text || '')
-      .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, ' ')
-      .split(/\s+/)
-      .filter((word) => word.length > 3),
-  );
-}
-
-function sharedTokenCount(a, b) {
-  const tokensB = contentTokens(b);
-  return [...contentTokens(a)].filter((token) => tokensB.has(token)).length;
-}
-
-describe('D2 — parameter-derived rubric criteria', () => {
+describe('D2 — construct-valid rubric criteria', () => {
   const blueprint = buildRichBlueprint();
   const rubrics = compileBlueprintDeliverable('rubrics', blueprint, { skipLanguageFinalizer: true });
   const parameters = richLessonPayload().assignmentCore.parameters;
@@ -409,28 +394,25 @@ describe('D2 — parameter-derived rubric criteria', () => {
   const lessonOneRubrics = rubrics.rubrics.filter((rubric) => /Lesson 1:/.test(rubric.lessonTitle));
   const lessonTwoRubrics = rubrics.rubrics.filter((rubric) => /Lesson 2:/.test(rubric.lessonTitle));
 
-  it('creates one criterion per brief parameter (cap 3) and each shares >= 2 content tokens with it', () => {
+  it('keeps brief parameters verbatim as unweighted submission checks', () => {
     for (const rubric of lessonOneRubrics) {
-      const parameterRows = rubric.criteria.filter((row) => row.briefParameter);
-      expect(parameterRows).toHaveLength(3);
-      parameterRows.forEach((row, index) => {
-        expect(row.criterion).toContain(`per brief parameter ${index + 1}`);
-        // The criterion name AND its bands quote the parameter's content.
-        expect(sharedTokenCount(row.criterion, parameters[index])).toBeGreaterThanOrEqual(2);
-        expect(row.exemplary).toContain(parameters[index]);
-        expect(sharedTokenCount(row.evidenceSignal, parameters[index])).toBeGreaterThanOrEqual(2);
-      });
+      expect(rubric.submissionRequirements).toEqual(parameters);
+      expect(rubric.submissionRequirementChecks).toHaveLength(parameters.length);
+      expect(rubric.submissionRequirementChecks.map((row) => row.briefParameter)).toEqual(parameters);
+      expect(rubric.submissionRequirementChecks.map((row) => row.weight)).toEqual([0, 0, 0]);
+      expect(rubric.submissionRequirementPolicy).toMatch(/unweighted constraints/i);
     }
   });
 
-  it('keeps the two most defensible generic criteria (evidence quality + communication)', () => {
+  it('preserves all four learning criteria, including analysis and revision', () => {
     for (const rubric of lessonOneRubrics) {
-      const genericRows = rubric.criteria.filter((row) => !row.briefParameter);
-      expect(genericRows).toHaveLength(2);
-      expect(genericRows[0].criterion).toMatch(/accuracy and evidence selection/i);
-      expect(genericRows[1].criterion).toMatch(/professional communication/i);
-      expect(rubric.criteria.length).toBeGreaterThanOrEqual(3);
-      expect(rubric.criteria.length).toBeLessThanOrEqual(5);
+      expect(rubric.criteria).toHaveLength(4);
+      expect(rubric.criteria.some((row) => row.briefParameter)).toBe(false);
+      expect(rubric.criteria[0].criterion).toMatch(/accuracy and evidence selection/i);
+      expect(rubric.criteria[1].criterion).toMatch(/analysis logic/i);
+      expect(rubric.criteria[2].criterion).toMatch(/professional communication/i);
+      expect(rubric.criteria[3].criterion).toMatch(/revision|feedback/i);
+      expect(rubric.criteria.map((row) => row.weight)).toEqual([30, 30, 20, 20]);
     }
   });
 

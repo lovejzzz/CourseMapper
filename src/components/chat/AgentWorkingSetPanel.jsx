@@ -54,7 +54,7 @@ function buildPackageStatus(packageQualityPass) {
     return { label: 'Building', tone: MUTED_TONE };
   if (status === 'running') return { label: 'Finishing', tone: WARN_TONE };
   if (trustStatus.clean) return { label: 'Ready', tone: GOOD_TONE };
-  if (trustStatus.blocked) return { label: 'Needs attention', tone: BAD_TONE };
+  if (trustStatus.blocked) return { label: 'Refine', tone: BAD_TONE };
   if (trustStatus.review) return { label: 'Review notes', tone: NOTE_TONE, readyWithNotes: true };
   return { label: 'Not checked', tone: MUTED_TONE };
 }
@@ -309,7 +309,7 @@ export default function AgentWorkingSetPanel(props) {
   ].filter(Boolean);
   const latestActivity = summary.activityStatus.activities[0];
   const readyWithNotes = Boolean(summary.packageStatus.readyWithNotes);
-  const needsAttention = summary.packageStatus.label === 'Needs attention' || summary.failedFeatureCount > 0;
+  const needsAttention = summary.packageStatus.label === 'Refine' || summary.failedFeatureCount > 0;
   const localOnly = summary.toolStateLabel !== 'AI connected';
   const headline =
     summary.packageStatus.label === 'Build stopped'
@@ -321,7 +321,7 @@ export default function AgentWorkingSetPanel(props) {
           : readyWithNotes
             ? 'Ready to export'
             : needsAttention
-              ? 'Review before export'
+              ? 'Package refinement'
               : summary.packageStatus.label === 'Ready'
                 ? 'Ready to export'
                 : localOnly

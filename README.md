@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.69
+**Current release:** v0.16.70
 
 ---
 
@@ -31,7 +31,7 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.69**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts a new foundation model. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
+The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.70**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts a new foundation model. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
 
 In plain language, **Scion Vx is the whole local authoring system, not just the base model**:
 
@@ -42,6 +42,14 @@ public Gemma 4 E2B base + optional integrity-checked Scion adapter + Scion compi
 Today the adapter term is infrastructure only: the trained research adapter has not beaten the pinned base on the frozen held-out ruler and is inactive. Users download the public base from its immutable source; Course Mapper does not host a second copy of Gemma or change its weights. The compiler is where the current production quality lift lives—course identity, source linking, semantic admission, lesson sequencing, deterministic teaching-material compilation, repetition control, grading, Agent course evidence, and export recovery. Those shared stages also improve compatible paid-model output. Browser download, WebGPU inference, local caching, and browser-runtime recovery remain specific to Scion.
 
 ### Adapter work in progress
+
+V0.16.70 gives the selective adapter its strictest matched test so far—and rejects it. Base-only Scion and the task-scoped candidate used the same V17 five-domain inputs, compiler, pinned Gemma revision, and grader. Both arms received the same saturated 99/A summary score, but anonymous complete-artifact review separated them: base won both review orders in World Literature and Astronomy, while Mandarin reversed with presentation order and the candidate introduced a false destination analysis for `我坐地铁去学校`. Psychology and Nutrition had no learner-facing change. The candidate also needed 59 native generations versus 31, took 1,037,897 ms versus 369,133 ms (2.81×), and its 105,459,677-byte delta exceeds the current 64 MiB browser-adapter budget. It remains inactive.
+
+That failed promotion produced a useful compiler finding. The old rubric compiler replaced three of four real learning criteria with brief-administration parameters, so 60% of a rubric could reward scope, file format, and evidence presence while omitting analysis and feedback-informed revision. V0.16.70 keeps those parameters visible as unweighted submission checks and restores the actual 30/30/20/20 evidence, analysis, communication, and revision plan. This is a zero-model-call, model-neutral improvement: Scion and compatible paid providers receive the same better construct-valid rubric. Fresh Astronomy and Mandarin browser packages remain 99/A with zero findings, blockers, warnings, or retries, pass 38/38 export checks, and contain 101 and 127 verified files. Six rendered rubric pages were inspected after widening and centering the Weight column; none clip, overlap, split the heading, or lose the repeated table header.
+
+The attached V0.16.67 Physical Geology package was also audited directly. Its archive was physically healthy and passed 38/38 export checks, but the registered `Final (50%)` assessment was absent from the exam document, correctly producing 74/C and one P0 finding. The exact contradictory assessment-kind case now has a deterministic compiler regression, and a fresh pinned-base Geology package completes at 99/A with zero findings, blockers, warnings, console errors, or archive errors, 38/38 export checks, and 117 extracted files. The primary workspace now uses finished-product language throughout this path: **Quality refinement**, **Package refinement**, **Refine package**, and **Download ZIP**. A verified ZIP is never labeled as a draft; real quality state remains available in the report rather than being hidden.
+
+The complete V0.16.70 release gate passes 434 test files and 5,327 tests, with 16 files and 162 tests intentionally skipped, plus formatting, lint, production build, the locked bundle budget, and the release-history audit. The initial landing JavaScript remains inside budget at 250.7 KiB raw / 79.3 KiB gzip.
 
 V0.16.69 keeps the research corpus beyond its first real training threshold: 102 qualified source-grounded preferences rebuild into 100 usable production rows, split by complete course group across seven domains. One 200-iteration adapter training run completed against the pinned Gemma base, reduced validation loss from 1.555 to 1.089, and produced a 105 MB learned delta. That artifact is **not** a quality win and is not active on the website.
 

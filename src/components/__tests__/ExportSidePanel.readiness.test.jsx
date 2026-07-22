@@ -315,11 +315,11 @@ describe('ExportSidePanel readiness repair timing', () => {
 
     const panel = container.querySelector('[data-testid="readiness-panel"]');
     expect(panel?.textContent).toContain('Finish package');
-    expect(panel?.textContent).toContain('1 blocker');
+    expect(panel?.textContent).toContain('1 item to refine');
     expect(panel?.textContent).toContain('Quiz & Exam Bank: 1 export issue must be fixed before the ZIP is available.');
 
     const zipButton = container.querySelector('[data-testid="export-download-zip"]');
-    expect(zipButton?.textContent).toContain('Needs attention');
+    expect(zipButton?.textContent).toContain('Refine package');
     expect(zipButton?.disabled).toBe(true);
 
     await act(async () => {
@@ -332,7 +332,7 @@ describe('ExportSidePanel readiness repair timing', () => {
     expect(downloadCourseMaterialsZip).not.toHaveBeenCalled();
   });
 
-  it('keeps a terminal quality blocker honest while allowing a verified draft ZIP', async () => {
+  it('keeps a terminal quality finding honest while allowing a verified ZIP', async () => {
     const onFinishPackage = vi.fn(async () => {
       throw new Error('finish should not rerun for a terminal reviewed package');
     });
@@ -378,6 +378,7 @@ describe('ExportSidePanel readiness repair timing', () => {
     const zipButton = container.querySelector('[data-testid="export-download-zip"]');
     expect(container.querySelector('[data-testid="readiness-panel"]')?.textContent).toContain('Finish package');
     expect(zipButton?.textContent).toContain('Download ZIP');
+    expect(container.textContent).not.toMatch(/draft zip/i);
     expect(zipButton?.disabled).toBe(false);
 
     await act(async () => {

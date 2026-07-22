@@ -66,7 +66,7 @@ describe('AgentWorkingSetPanel', () => {
       missingFeatureCount: 1,
       staleFeatureCount: 1,
       failedFeatureCount: 1,
-      packageStatus: expect.objectContaining({ label: 'Needs attention' }),
+      packageStatus: expect.objectContaining({ label: 'Refine' }),
       planStatus: expect.objectContaining({ hasPlan: true, label: '1 done, 1 sent' }),
     });
     expect(summary.selectedFeatureLabels).toEqual(['Lesson Plans', 'Slide Decks', 'Quiz & Exam Bank']);
@@ -291,7 +291,7 @@ describe('AgentWorkingSetPanel', () => {
 
     expect(summary.packageStatus.label).toBe('Build stopped');
     expect(html).toContain('Build stopped');
-    expect(html).not.toContain('Review before export');
+    expect(html).not.toContain('Package refinement');
   });
 
   it('does not render before the workspace has course or deliverable context', () => {

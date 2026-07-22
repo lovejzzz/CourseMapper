@@ -73,8 +73,8 @@ export default function PackageSummaryCard({ summary, embedded = false }) {
     ? 'Ready to download'
     : summary.downloadable
       ? 'Package notes'
-      : 'Review before export';
-  const badgeText = summary.ready ? 'Done' : summary.tone === 'blocked' ? 'Action needed' : 'Notes saved';
+      : 'Package refinement';
+  const badgeText = summary.ready ? 'Done' : summary.tone === 'blocked' ? 'Refine' : 'Notes saved';
   const repairText =
     summary.repairsApplied > 0
       ? `${summary.repairsApplied} safe repair pass${summary.repairsApplied === 1 ? '' : 'es'} applied`
@@ -209,7 +209,7 @@ export default function PackageSummaryCard({ summary, embedded = false }) {
         {showTopIssues && summary.topIssues?.length > 0 && (
           <div className="mt-2 border-t border-white/70 pt-2">
             <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-500">
-              {summary.tone === 'blocked' ? 'Needs attention' : 'Saved notes'}
+              {summary.tone === 'blocked' ? 'Items to refine' : 'Saved notes'}
             </p>
             <div className="space-y-1">
               {summary.topIssues.map((issue, index) => (

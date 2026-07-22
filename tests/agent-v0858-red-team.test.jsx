@@ -186,8 +186,8 @@ describe('v0.8.58 agent safety invariants', () => {
       />,
     );
 
-    expect(html).toContain('Review before export');
-    expect(html).toContain('Action needed');
+    expect(html).toContain('Package refinement');
+    expect(html).toContain('Refine');
     expect(html).toContain('Rubrics');
     expect(html).not.toContain('retryActionCount');
     expect(html).not.toContain('toolName');

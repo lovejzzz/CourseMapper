@@ -504,7 +504,7 @@ describe('B2 — WorkspaceQualityChip header states', () => {
     });
     expect(withP0).toContain('border-red-200');
     expect(withP0).not.toContain('emerald');
-    expect(withP0).toContain('Fix required');
+    expect(withP0).toContain('Quality refinement');
     expect(withP0).toContain('including 1 critical');
 
     const gradeC = render({
@@ -528,9 +528,9 @@ describe('B2 — WorkspaceQualityChip header states', () => {
       }),
     });
     expect(html).toContain('workspace-quality-chip');
-    expect(html).toContain('Needs review');
+    expect(html).toContain('Quality refinement');
     expect(html).toContain('border-red-200');
-    expect(html).toContain('export blocked by 1 blocker');
+    expect(html).toContain('export paused for 1 item to refine');
     expect(html).toContain('grade result 100 out of 100');
     expect(html).toContain('Texture 94');
     expect(html).not.toContain('Quality 100');

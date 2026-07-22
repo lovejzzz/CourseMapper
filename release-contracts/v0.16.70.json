@@ -1,0 +1,178 @@
+{
+  "version": "0.16.70",
+  "date": "July 22, 2026",
+  "title": "Grade Learning, Not Submission Compliance",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test",
+      "npm run format:check",
+      "npm run lint",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification reruns release, format, lint, unit, build, and bundle gates after push."
+    },
+    "ciDeep": {
+      "status": "not-current",
+      "note": "The matched adapter experiment ran locally from frozen exact-lineage artifacts; no adapter promotion or paid-reference claim is made."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Production deployment remains downstream of the successful main verification run."
+    },
+    "liveProvider": {
+      "status": "success",
+      "url": "docs/evidence/SCION_V01670_ADAPTER_REJECTION_AND_RUBRIC_VALIDITY.json",
+      "note": "Fresh pinned-base Astronomy and Mandarin packages complete with zero findings, blockers, warnings, retries, or archive failures after the rubric intervention."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "Codex is the declared judge. No instructor, classroom, factual, human-preference, or statistical-confidence claim is made."
+    },
+    "manualBrowser": {
+      "status": "success",
+      "url": "docs/evidence/SCION_V01670_ADAPTER_REJECTION_AND_RUBRIC_VALIDITY.json",
+      "note": "Two complete browser packages and six rendered rubric pages were inspected, including archive extraction, table geometry, repeated headers, and reader-visible criterion changes."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01670-selective-adapter-rejected",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "Matched reversed-order artifact review does not show a credible cross-domain adapter win, and the candidate introduces factual defects, so production activation remains off.",
+      "anchors": [
+        "docs/evidence/SCION_V01670_ADAPTER_REJECTION_AND_RUBRIC_VALIDITY.json",
+        "evaluation/scion-adapters/held-out-course-benchmark-v17.json",
+        "docs/SCION_ADAPTER_ROADMAP.md"
+      ],
+      "proofCommands": ["npx vitest run tests/scion-adapter-task-scope.test.js tests/scion-adapter-manifest.test.js"],
+      "proofScopes": ["browser-live", "gold-audit", "static-audit"]
+    },
+    {
+      "id": "v01670-adapter-runtime-and-download-rejection",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "The candidate needs 59 versus 31 native generations, takes 2.81 times the runtime, and exceeds the 64 MiB adapter budget.",
+      "anchors": [
+        "docs/evidence/SCION_V01670_ADAPTER_REJECTION_AND_RUBRIC_VALIDITY.json",
+        "scripts/crucible/e2bOpenAIShim.mjs",
+        "src/lib/scionAdapterManifest.js"
+      ],
+      "proofCommands": ["npx vitest run scripts/__tests__/e2bOpenAIShim.test.mjs tests/scion-adapter-manifest.test.js"],
+      "proofScopes": ["browser-live", "static-audit"]
+    },
+    {
+      "id": "v01670-rubric-baseline-defect",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Complete artifact review proves that the old rubric substituted compliance parameters for analysis and revision despite an unchanged 99/A aggregate score.",
+      "anchors": [
+        "docs/evidence/SCION_V01670_ADAPTER_REJECTION_AND_RUBRIC_VALIDITY.json",
+        "src/lib/courseBlueprintCompiler.js"
+      ],
+      "proofCommands": ["npx vitest run src/lib/__tests__/courseBlueprintCompiler.test.js"],
+      "proofScopes": ["compiled-output", "gold-audit"]
+    },
+    {
+      "id": "v01670-construct-valid-rubric-compiler",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Brief parameters remain visible as zero-weight checks while the assessment's evidence, analysis, communication, and revision criteria retain the full 100-point construct.",
+      "anchors": [
+        "src/lib/courseBlueprintCompiler.js",
+        "src/lib/exporters/docxExporter.js",
+        "src/lib/__tests__/courseBlueprintCompiler.test.js",
+        "src/lib/__tests__/bulkDocxExporter.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run src/lib/__tests__/courseBlueprintCompiler.test.js src/lib/__tests__/docxExporter.test.js src/lib/__tests__/bulkDocxExporter.test.js"
+      ],
+      "proofScopes": ["unit", "compiled-output", "browser-live"]
+    },
+    {
+      "id": "v01670-rubric-docx-geometry",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The landscape rubric grid keeps its exact width while a wider centered Weight column prevents heading splits across repeated table headers.",
+      "anchors": [
+        "src/lib/exporters/docxExporter.js",
+        "src/lib/__tests__/bulkDocxExporter.test.js",
+        "docs/evidence/SCION_V01670_ADAPTER_REJECTION_AND_RUBRIC_VALIDITY.json"
+      ],
+      "proofCommands": ["npx vitest run src/lib/__tests__/bulkDocxExporter.test.js"],
+      "proofScopes": ["unit", "compiled-output", "browser-live"]
+    },
+    {
+      "id": "v01670-browser-package-proof",
+      "status": "verified-current",
+      "changelogHighlightIndex": 5,
+      "summary": "Fresh Astronomy and Mandarin packages finish ready at 99/A, pass all 38 export checks, and open to 101 and 127 files without findings, blockers, warnings, or retries.",
+      "anchors": ["docs/evidence/SCION_V01670_ADAPTER_REJECTION_AND_RUBRIC_VALIDITY.json", "scripts/crucible.mjs"],
+      "proofCommands": [
+        "node scripts/crucible.mjs --courses astro-101,mandarin --rounds 1 --concurrency 1 --llm local --authoring native"
+      ],
+      "proofScopes": ["browser-live", "compiled-output"]
+    },
+    {
+      "id": "v01670-rendered-document-proof",
+      "status": "verified-current",
+      "changelogHighlightIndex": 6,
+      "summary": "All six pages of representative Astronomy and Mandarin rubric documents render without clipping, overlap, broken tables, missing headers, or split Weight labels.",
+      "anchors": [
+        "docs/evidence/SCION_V01670_ADAPTER_REJECTION_AND_RUBRIC_VALIDITY.json",
+        "src/lib/exporters/docxExporter.js"
+      ],
+      "proofCommands": ["npx vitest run src/lib/__tests__/bulkDocxExporter.test.js"],
+      "proofScopes": ["browser-live", "compiled-output"]
+    },
+    {
+      "id": "v01670-model-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 7,
+      "summary": "Gemma weights are unchanged, the adapter remains inactive, and the shared compiler and renderer repair benefits compatible providers without becoming a universal quality claim.",
+      "anchors": [
+        "README.md",
+        "docs/SCION_ADAPTER_ROADMAP.md",
+        "docs/evidence/SCION_V01670_ADAPTER_REJECTION_AND_RUBRIC_VALIDITY.json"
+      ],
+      "proofCommands": ["npm run audit:release-history"],
+      "proofScopes": ["static-audit", "doc"]
+    },
+    {
+      "id": "v01670-attached-geology-closure",
+      "status": "verified-current",
+      "changelogHighlightIndex": 8,
+      "summary": "The attached V0.16.67 Physical Geology P0 is traced to missing registered Final (50%) exam content, covered by an exact compiler regression, and closed by a fresh 99/A zero-finding browser package.",
+      "anchors": [
+        "docs/evidence/SCION_V01670_ADAPTER_REJECTION_AND_RUBRIC_VALIDITY.json",
+        "docs/evidence/SCION_V01669_SOURCE_LEDGER_FREEZE.json",
+        "tests/v015187-exam-kind-classifier.test.js"
+      ],
+      "proofCommands": ["npx vitest run tests/v015187-exam-kind-classifier.test.js"],
+      "proofScopes": ["unit", "browser-live", "compiled-output"]
+    },
+    {
+      "id": "v01670-premium-terminal-language",
+      "status": "verified-current",
+      "changelogHighlightIndex": 9,
+      "summary": "Primary quality, compiler, Agent, and export surfaces use finished-product refinement language, and a verified ZIP is downloadable without a draft label.",
+      "anchors": [
+        "src/components/WorkspaceQualityChip.jsx",
+        "src/lib/buildRibbonModel.js",
+        "src/components/chat/PackageSummaryCard.jsx",
+        "src/components/chat/AgentWorkingSetPanel.jsx",
+        "src/components/ExportSidePanel.jsx",
+        "tests/export-smoke.spec.js"
+      ],
+      "proofCommands": [
+        "npx playwright test tests/export-smoke.spec.js --grep 'without unfinished-product language' --project=chromium"
+      ],
+      "proofScopes": ["unit", "browser-smoke", "browser-live"]
+    }
+  ]
+}

@@ -8070,4 +8070,30 @@ describe('courseBlueprintCompiler', () => {
     expect(planText).not.toMatch(/Watch for this misconception\. the /);
     expect(planText).toMatch(/Watch for this misconception\. The Comparative Reading focus/);
   });
+
+  it('keeps brief parameters as unweighted checks without replacing assessment criteria', () => {
+    const blueprint = buildCourseBlueprint(makeCourseMap(1));
+    blueprint.lessons[0].enrichment = {
+      assignmentCore: {
+        taskDescription: 'Analyze the policy case and defend one evidence-backed recommendation.',
+        parameters: [
+          'Scope: use the named policy case only.',
+          'Format: submit a two-page memo.',
+          'Evidence: cite one inspectable source detail.',
+          'Length: use 700-900 words.',
+        ],
+      },
+    };
+
+    const compiled = compileBlueprintDeliverables(blueprint, ['rubrics']);
+    const rubric = compiled.rubrics.rubrics[0];
+
+    expect(rubric.criteria.map((row) => row.criterion)).toEqual(blueprint.assessments[0].criteria);
+    expect(rubric.criteria.map((row) => row.weight)).toEqual([30, 30, 20, 20]);
+    expect(rubric.criteria.some((row) => row.briefParameter)).toBe(false);
+    expect(rubric.submissionRequirements).toHaveLength(4);
+    expect(rubric.submissionRequirements[0]).toContain('Scope: use the named policy case only');
+    expect(rubric.submissionRequirementChecks.map((row) => row.weight)).toEqual([0, 0, 0, 0]);
+    expect(rubric.submissionRequirementPolicy).toContain('unweighted constraints');
+  });
 });
