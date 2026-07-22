@@ -11,7 +11,7 @@ export const CURRENT_RELEASE = {
     'Unicode NFKC normalization at the language-safety boundary keeps full-width Chinese punctuation from deleting an otherwise valid Shopping lesson kernel, while direct identity matching outranks broad review anchors and word boundaries prevent false matches such as “age” inside “Passages.”',
     'Artifact inspection fixes defects that a 99/A score did not reveal: duplicated assessment weights, a severed misconception narrator, short-answer keys that copied learner directions, and shortened references with doubled articles, lowercase sentence starts, missing apostrophes, possessive-plus-article collisions, or cross-conjunction focus fragments.',
     'The frozen base-only matrix completes Mandarin, World Literature, Psychology, Nutrition, and Astronomy at 99/A each with zero P0/P1/P2 findings, zero blockers, zero warnings, all ten material sections, 38/38 export checks per course, and five valid archives; a fresh Physical Geology run meets the same gate in a sixth valid archive.',
-    'The five-course route uses 31 actual Gemma generations, including one bounded content retry, and the six-course proof uses 35 with zero model failures. This is a bounded architecture result, not a return to the former 72-call single-course failure shape.',
+    'The five-course route uses 30 actual Gemma generations, and the six-course proof uses 34 with zero retries or model failures. This is a bounded architecture result, not a return to the former 72-call single-course failure shape.',
     'The current Scion experience uses finished-product language: AI-generated materials instead of AI draft, one Download ZIP action, and no unfinished label on a verified archive.',
     'The complete local gate passes 434 test files and 5,324 tests plus format, lint, production build, the locked bundle budget, and release-history audit; focused regressions bind source routing, telemetry, Unicode admission, answer compaction, rendering, provider parity, and the production shim.',
     'Gemma weights remain unchanged and the research adapter remains inactive. Compatible paid providers inherit the model-neutral admission, projection, compiler, assessment, and export repairs; browser download and local inference remain Scion-specific.',
@@ -23,7 +23,7 @@ export const CURRENT_RELEASE = {
     'Answer keys select evidence instead of echoing instructions.',
     'Assessment weights and misconception options render cleanly.',
     'Five frozen domains reach 99/A with zero findings and valid ZIPs.',
-    'The six-course proof uses 35 Gemma generations with zero failures.',
+    'The six-course proof uses 34 Gemma generations with zero retries or failures.',
     'The full suite passes 5,324 tests and every local release gate.',
     'The interface says AI-generated materials and Download ZIP.',
     'Gemma weights are unchanged and the adapter remains inactive.',
@@ -61,7 +61,7 @@ export const CURRENT_RELEASE_CHANGELOG = {
       items: [
         'The provider, browser-local runtime, and production-compatible shim all recognize an exact compiler-owned source ledger and return its admitted facts without another native completion.',
         'Telemetry records those routes as zero model calls instead of turning deterministic work into misleading provider usage.',
-        'The fresh Mandarin package completes with two actual Gemma generations; the final five-domain matrix uses 31 actual generations, including one bounded content retry, and the Geology regression adds four for a six-course total of 35 with no model failures.',
+        'The fresh Mandarin package completes with two actual Gemma generations; the final five-domain matrix uses 30 actual generations, and the Geology regression adds four for a six-course total of 34 with no retries or model failures.',
       ],
     },
     {

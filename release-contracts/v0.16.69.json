@@ -125,7 +125,7 @@
       "id": "v01669-bounded-native-inference",
       "status": "verified-current",
       "changelogHighlightIndex": 5,
-      "summary": "The exact five-course build uses 31 actual Gemma generations, including one bounded content retry, and Geology adds four for a six-course total of 35 with zero failures rather than reopening the old 72-call per-course architecture.",
+      "summary": "The exact five-course build uses 30 actual Gemma generations, and Geology adds four for a six-course total of 34 with zero retries or failures rather than reopening the old 72-call per-course architecture.",
       "anchors": [
         "docs/evidence/SCION_V01669_SOURCE_LEDGER_FREEZE.json",
         "scripts/crucible/e2bOpenAIShim.mjs",

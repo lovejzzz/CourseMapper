@@ -1,7 +1,7 @@
 {
   "evidenceVersion": 1,
   "release": "0.16.69",
-  "generatedAt": "2026-07-22T09:16:00.000Z",
+  "generatedAt": "2026-07-22T11:20:33.877Z",
   "claimBoundary": "Deterministic source, admission, compiler, browser, archive, and encoded package-defect evidence only. This is not factual validation, instructor approval, classroom evidence, human preference, adapter superiority, paid-model parity, or proof that every course reaches the same score.",
   "model": {
     "provider": "local production-compatible Scion route",
@@ -23,9 +23,9 @@
     "exactLedgerModelCalls": 0
   },
   "exactCommitMatrix": {
-    "commit": "c5aa4792",
+    "commit": "b659cbbd",
     "appVersionDuringProof": "0.16.69",
-    "round": "round-2026-07-22T09-41-58-809Z",
+    "round": "round-2026-07-22T11-13-59-697Z",
     "actualNativeGenerations": 30,
     "modelFailures": 0,
     "providerRetries": 0,
@@ -33,7 +33,7 @@
       {
         "id": "mandarin",
         "domain": "Mandarin",
-        "seconds": 65,
+        "seconds": 56,
         "score": 99,
         "grade": "A",
         "p0": 0,
@@ -48,7 +48,7 @@
       {
         "id": "world-lit-readings",
         "domain": "World Literature",
-        "seconds": 125,
+        "seconds": 123,
         "score": 99,
         "grade": "A",
         "p0": 0,
@@ -63,7 +63,7 @@
       {
         "id": "psych-101",
         "domain": "Psychology",
-        "seconds": 46,
+        "seconds": 47,
         "score": 99,
         "grade": "A",
         "p0": 0,
@@ -78,7 +78,7 @@
       {
         "id": "nutrition-101",
         "domain": "Nutrition",
-        "seconds": 40,
+        "seconds": 41,
         "score": 99,
         "grade": "A",
         "p0": 0,
@@ -93,7 +93,7 @@
       {
         "id": "astro-101",
         "domain": "Astronomy",
-        "seconds": 67,
+        "seconds": 68,
         "score": 99,
         "grade": "A",
         "p0": 0,
@@ -140,7 +140,57 @@
       "archiveTest": "passed",
       "consoleWarnings": 0,
       "consoleErrors": 0
+    },
+    "finalSixCourseArtifactScan": {
+      "commit": "b659cbbd",
+      "round": "round-2026-07-22T11-13-59-697Z",
+      "docxFilesWithKnownDefects": 0,
+      "patternsChecked": [
+        "duplicated assessment weights",
+        "doubled or collided articles",
+        "lowercase sentence starts after misconception labels",
+        "introductory-preposition focus fragments",
+        "possessive-suffix fragments",
+        "singular agreement for plural key ideas",
+        "missing apostrophes in title-case possessives",
+        "possessive-plus-article collisions",
+        "cross-conjunction focus fragments"
+      ]
     }
+  },
+  "physicalGeologyRegression": {
+    "attachedFailure": {
+      "sourceAppVersion": "0.16.67",
+      "observedExportChecks": "38/38",
+      "observedScore": 74,
+      "observedGrade": "C",
+      "observedBlocker": "The registered Final (50%) exam was missing from the generated package."
+    },
+    "exactCompilerRegression": {
+      "test": "tests/v015187-exam-kind-classifier.test.js",
+      "coverage": "Builds Physical Geology with a Final (50%) assessment carrying a contradictory graded-artifact kind, then proves the classifier emits it as an exam with at least three questions."
+    },
+    "finalBrowserProof": {
+      "commit": "b659cbbd",
+      "round": "round-2026-07-22T11-13-59-697Z",
+      "profile": "geology--native--local",
+      "seconds": 54,
+      "score": 99,
+      "grade": "A",
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "blockers": 0,
+      "warnings": 0,
+      "sections": "10/10",
+      "exportChecks": "38/38",
+      "archiveFiles": 117,
+      "archiveTest": "passed",
+      "consoleWarnings": 0,
+      "consoleErrors": 0,
+      "actualNativeGenerations": 4
+    },
+    "claimBoundary": "The browser Geology profile is a fresh stochastic course. The exact Final (50%) title and contradictory-kind failure is covered by the deterministic compiler regression, not by a claim that the fresh browser run reproduced the same model wording."
   },
   "sharedBenefitBoundary": {
     "compatiblePaidProvidersBenefitFrom": [
@@ -162,7 +212,7 @@
     "full": {
       "filesPassed": 434,
       "filesSkipped": 16,
-      "testsPassed": 5321,
+      "testsPassed": 5324,
       "testsSkipped": 162
     },
     "gates": [
