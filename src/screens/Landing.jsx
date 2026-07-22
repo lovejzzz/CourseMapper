@@ -794,7 +794,7 @@ export default function Landing({
                         </svg>
                       </button>
                     )}
-                    <ModelConfig />
+                    <ModelConfig reserveTrailingActionSpace />
                   </div>
                 )}
               </div>

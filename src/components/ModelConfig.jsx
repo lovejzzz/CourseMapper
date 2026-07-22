@@ -197,7 +197,7 @@ export async function checkCredits(provider, apiKey, modelId, onApiCallEvent, op
   }
 }
 
-export default function ModelConfig() {
+export default function ModelConfig({ reserveTrailingActionSpace = false }) {
   const {
     provider,
     setProvider,
@@ -599,7 +599,11 @@ export default function ModelConfig() {
 
   return (
     <div className="glass panel-glow rounded-squircle shadow-glass p-7 animate-stagger-1">
-      <h2 className="text-[15px] font-bold text-slate-800 mb-5 flex items-center gap-3">
+      <h2
+        className={`text-[15px] font-bold text-slate-800 mb-5 flex items-center gap-3 ${
+          reserveTrailingActionSpace ? 'pr-12' : ''
+        }`}
+      >
         AI Configuration
         {apiStatus === 'connected' && (
           <span className="ml-auto flex items-center gap-1.5 text-[10px] font-semibold text-emerald-600 bg-emerald-50/60 px-2.5 py-1 rounded-pill border border-emerald-100/50">

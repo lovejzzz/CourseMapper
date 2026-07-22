@@ -12,7 +12,7 @@ export const CURRENT_RELEASE = {
     'Artifact inspection fixes defects that a 99/A score did not reveal: duplicated assessment weights, a severed misconception narrator, short-answer keys that copied learner directions, and shortened references with doubled articles, lowercase sentence starts, missing apostrophes, possessive-plus-article collisions, or cross-conjunction focus fragments.',
     'The frozen base-only matrix completes Mandarin, World Literature, Psychology, Nutrition, and Astronomy at 99/A each with zero P0/P1/P2 findings, zero blockers, zero warnings, all ten material sections, 38/38 export checks per course, and five valid archives; a fresh Physical Geology run meets the same gate in a sixth valid archive.',
     'The five-course route uses 30 actual Gemma generations, and the six-course proof uses 34 with zero retries or model failures. This is a bounded architecture result, not a return to the former 72-call single-course failure shape.',
-    'The current Scion experience uses finished-product language: AI-generated materials instead of AI draft, one Download ZIP action, and no unfinished label on a verified archive.',
+    'The current Scion experience uses finished-product language: AI-generated materials instead of AI draft, one Download ZIP action, no unfinished label on a verified archive, and a fully visible Connected status beside the landing configuration control.',
     'The complete local gate passes 434 test files and 5,324 tests plus format, lint, production build, the locked bundle budget, and release-history audit; focused regressions bind source routing, telemetry, Unicode admission, answer compaction, rendering, provider parity, and the production shim.',
     'Gemma weights remain unchanged and the research adapter remains inactive. Compatible paid providers inherit the model-neutral admission, projection, compiler, assessment, and export repairs; browser download and local inference remain Scion-specific.',
   ],
@@ -25,7 +25,7 @@ export const CURRENT_RELEASE = {
     'Five frozen domains reach 99/A with zero findings and valid ZIPs.',
     'The six-course proof uses 34 Gemma generations with zero retries or failures.',
     'The full suite passes 5,324 tests and every local release gate.',
-    'The interface says AI-generated materials and Download ZIP.',
+    'The interface says AI-generated materials and Download ZIP, with an unclipped Connected status.',
     'Gemma weights are unchanged and the adapter remains inactive.',
   ],
   proof: {
