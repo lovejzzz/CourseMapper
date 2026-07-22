@@ -1,106 +1,24 @@
-import {
-  COURSE_IR_SYSTEM_PROMPT,
-  assessCourseIRDirectAuthoring,
-  buildCourseIRPromptPayload,
-  courseIRToCourseGraph,
-  courseIRToCourseMap,
-  parseCourseIRResponse,
-  planCourseIRGeneration,
-  stashCourseIR,
-  takeCourseIR,
-  validateCourseIR,
-} from './courseIR';
+import { assessCourseIRDirectAuthoring, courseIRToCourseGraph, takeCourseIR, validateCourseIR } from './courseIR';
 
-export async function tryAuthorDirectCourseIR({
-  expectedLessonCount,
-  sourceText,
-  provider,
-  apiKey,
-  modelId,
-  maxOutputTokens,
-  modelCapabilities,
-  generationPlan,
-  currentModelName,
-  streamProvider,
-  recordApiCallEvent,
-  updateGenerationProgress,
-  fullTextRef,
-} = {}) {
+export async function tryAuthorDirectCourseIR({ expectedLessonCount, streamProvider, recordApiCallEvent } = {}) {
   if (!expectedLessonCount || !streamProvider) return { ok: false, skipped: true };
-  // Scion (V2.1 D2): CourseIR direct authoring has never once passed the
-  // acceptance gate on the house model (nor on paid mini) — on Scion the
-  // call costs 60-90s of deterministic fallback, so the time-planner skips
-  // straight to the skeleton path. Disclosed as a pipeline decision.
-  if (provider === 'local') {
-    recordApiCallEvent?.({
-      type: 'pipelineDecision',
-      stage: 'courseIRAuthoring',
-      label: 'CourseIR direct authoring plan',
-      detail:
-        'skipped: Scion time-planner (direct authoring never passes acceptance; skeleton path is the measured optimum)',
-    });
-    return { ok: false, skipped: true };
-  }
-  const courseIRPlan = planCourseIRGeneration({
-    courseMap: { courseName: '', lessons: [] },
-    sourceText,
-    modelId,
-    maxOutputTokens,
-    generationPlan,
-    modelCapabilities,
-    expectedLessons: expectedLessonCount,
-  });
+  // The whole-course CourseIR experiment has never passed its own acceptance
+  // gate on Scion, paid mini, or the pinned GPT-5.6-Sol reference. The Sol
+  // run spent 139 seconds and $0.35 producing 48k discarded characters before
+  // the exact same native skeleton path ran. Skip that measured dead branch
+  // for every provider: compiler architecture must not penalize a paid model.
+  const courseIRPlan = {
+    strategy: 'native-skeleton-measured',
+    plannedCalls: 0,
+    lessonCount: expectedLessonCount,
+  };
   recordApiCallEvent?.({
     type: 'pipelineDecision',
     stage: 'courseIRAuthoring',
     label: 'CourseIR direct authoring plan',
-    detail: `${courseIRPlan.strategy} · ${courseIRPlan.plannedCalls} planned call${
-      courseIRPlan.plannedCalls === 1 ? '' : 's'
-    } · ${courseIRPlan.lessonCount} expected lessons`,
+    detail: 'skipped: measured native skeleton path (whole-course CourseIR acceptance remains unproven)',
   });
-  if (courseIRPlan.strategy !== 'whole-course-ir') return { ok: false, skipped: true, courseIRPlan };
-
-  const payload = buildCourseIRPromptPayload({
-    courseMap: { courseName: '', lessons: [] },
-    sourceText,
-    expectedLessons: expectedLessonCount,
-  });
-  if (fullTextRef) fullTextRef.current = '';
-  recordApiCallEvent?.({
-    type: 'courseIRCall',
-    label: 'CourseIR direct authoring',
-    detail: `${currentModelName} · whole-course CurriculumV1 object`,
-  });
-  const result = await streamProvider(provider, apiKey, modelId, COURSE_IR_SYSTEM_PROMPT, JSON.stringify(payload), {
-    maxOutputTokens: courseIRPlan.outputLimit || generationPlan?.courseMapOutputTokens || maxOutputTokens,
-    modelCapabilities,
-    generationPlan,
-    task: 'courseIR',
-    onApiCallEvent: recordApiCallEvent,
-    onChunk: (text, count) => {
-      if (fullTextRef) fullTextRef.current = text;
-      updateGenerationProgress?.(text, count);
-    },
-  });
-  const parsedIR = parseCourseIRResponse(result?.fullText || '', { expectedLessons: expectedLessonCount });
-  if (!parsedIR.acceptance.accepted) {
-    return {
-      ok: false,
-      skipped: false,
-      courseIRPlan,
-      fallbackReason: `CourseIR failed direct-authoring acceptance: ${parsedIR.acceptance.reason}`,
-      parsedIR,
-    };
-  }
-  stashCourseIR(parsedIR.ir);
-  return {
-    ok: true,
-    courseIRPlan,
-    courseMap: courseIRToCourseMap(parsedIR.ir),
-    courseIR: parsedIR.ir,
-    validation: parsedIR.validation,
-    repair: parsedIR.repair,
-  };
+  return { ok: false, skipped: true, courseIRPlan };
 }
 
 export function applyDirectCourseIRGenerationResult({

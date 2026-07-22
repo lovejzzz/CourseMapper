@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
+import { assignmentSelfAssessmentEvidenceCheck } from '../courseCompilerRubricCopy';
 import {
-  assignmentSelfAssessmentEvidenceCheck,
   compactAssignmentBriefBodyReferences,
   compactRepeatedCourseFocusReferences,
   examAtomPaddingOptions,
 } from '../courseCompilerCopyVariants';
-import { examFactCopy } from '../courseCompilerPolish';
+import { assessmentRevisionCriterion, examFactCopy } from '../courseCompilerPolish';
 import { finalizeCompiledDeliverableLanguage } from '../compiledLanguageFinalizer';
 import { isAppliedQuizStem } from '../quality/quizItemDepth';
 
@@ -78,10 +78,31 @@ describe('course compiler copy variants', () => {
     });
 
     const body = JSON.stringify([result.overview, result.instructions, result.gradingCriteria]);
-    expect((body.match(/Meiosis and Gamete Formation/g) || []).length).toBeLessThanOrEqual(4);
+    expect(body).not.toContain('Meiosis and Gamete Formation');
     expect(body).toContain('Meiosis Gamete Formation–specific reasoning');
     expect(body).toContain('the Meiosis Gamete Formation work');
     expect(result.title).toBe('Stages of Meiosis short analysis');
+  });
+
+  it('keeps exact identity in headings while removing it from every body in a multi-brief lesson', () => {
+    const focus = 'Comparative Reading Methods';
+    const result = compactAssignmentBriefBodyReferences({
+      brief: {
+        title: 'comparative essay proposal: Comparative Reading Methods',
+        relatedLessons: [`Lesson 8: ${focus}`],
+        overview: `${focus} asks students to compare two readings through ${focus}.`,
+        instructions: [`Review ${focus}.`, `Revise the ${focus} claim.`],
+        supportResources: [`${focus} source packet`],
+      },
+      lesson: { lessonNumber: 8 },
+      fullFocus: focus,
+      fallbackArtifact: 'comparative essay proposal',
+    });
+
+    const body = JSON.stringify([result.overview, result.instructions, result.supportResources]);
+    expect(result.title).toContain(focus);
+    expect(result.relatedLessons).toContain(`Lesson 8: ${focus}`);
+    expect(body).not.toContain(focus);
   });
 
   it('compacts repeated lesson-plan focus while preserving grammatical course-material references', () => {
@@ -127,6 +148,20 @@ describe('course compiler copy variants', () => {
     expect(text).not.toContain('the the DNA Structure focus');
   });
 
+  it('does not hide an article-led full title inside compact local references', () => {
+    const focus = 'The Medieval Journey Narrative';
+    const result = compactRepeatedCourseFocusReferences(
+      Array.from({ length: 10 }, () => `Use ${focus} evidence, then revise the ${focus} claim.`),
+      focus,
+      { limit: 2 },
+    );
+
+    const text = result.join(' ');
+    expect((text.match(/The Medieval Journey Narrative/gi) || []).length).toBe(2);
+    expect(text).toContain('Medieval Journey–specific claim');
+    expect(text).not.toContain('the Medieval Journey Narrative focus');
+  });
+
   it('drops introductory prepositions and possessive fragments from compact focus labels', () => {
     for (const [focus, expected] of [
       ['Introduction to Earth Systems', 'Earth Systems focus'],
@@ -153,7 +188,7 @@ describe('course compiler copy variants', () => {
           outline: [
             {
               instructorNotes:
-                "Watch for this misconception. the classical conditioning focus is only a definition. Students name the next the lesson assessment revision. The key ideas in diurnal motion is only a definition to memorize. Use today's the Erikson focus to separate a solid the key ideas detail from Instructor-selected Earth s Structure reading evidence. Focus students on the central The six classes of nutrients decision.",
+                "Watch for this misconception. the classical conditioning focus is only a definition. Students name the next the lesson assessment revision. The key ideas in diurnal motion is only a definition to memorize. Use today's the Erikson focus to separate a solid the key ideas detail from Instructor-selected Earth s Structure reading evidence. Focus students on the central The six classes of nutrients decision. Use Family and Family Members Vocabulary. A trainer rewards closer and closer approximations. Make the Week 5 assignment defend one interpretation. Present it in the locally approved submission form.",
             },
           ],
         },
@@ -168,6 +203,35 @@ describe('course compiler copy variants', () => {
     expect(text).toContain("Use today's Erikson focus to separate a solid key ideas detail");
     expect(text).toContain("Instructor-selected Earth's Structure reading evidence.");
     expect(text).toContain('the central six classes of nutrients decision.');
+    expect(text).toContain('Use Family Members Vocabulary.');
+    expect(text).toContain('closer and closer approximations.');
+    expect(text).toContain('Use the Week 5 assignment to defend one interpretation.');
+    expect(text).toContain('submission format specified in the course site.');
+    expect(text).not.toContain('locally approved submission form');
+  });
+
+  it('repairs an echo introduced by study-guide title compression', () => {
+    const data = {
+      studyGuides: [
+        {
+          lessonNumber: 5,
+          lessonTitle: 'Lesson 5: Family and Possession',
+          overview: 'Family and Possession frames the evidence. Family and Possession supports revision.',
+          reviewQuestions: [
+            {
+              hint: 'Use Family and Possession and Family Members Vocabulary in your explanation.',
+            },
+          ],
+        },
+      ],
+    };
+    const blueprint = {
+      lessons: [{ lessonNumber: 5, title: 'Family and Possession', topic: 'Family' }],
+    };
+
+    finalizeCompiledDeliverableLanguage('studyGuides', data, blueprint);
+
+    expect(JSON.stringify(data)).not.toMatch(/Family and Family Members Vocabulary/i);
   });
 
   it('turns generic rubric echoes into complete student self-checks', () => {
@@ -206,6 +270,22 @@ describe('course compiler copy variants', () => {
     ).toBe(signal);
   });
 
+  it('rotates repaired self-check copy by lesson while preserving the criterion intent', () => {
+    const shared = {
+      evidenceSignal: 'A strong signal addresses professional communication.',
+      index: 2,
+      lessonFocus: 'Close Reading',
+      assignmentType: 'Interpretive memo',
+    };
+    const checks = [1, 2, 3, 4].map((lessonNumber) =>
+      assignmentSelfAssessmentEvidenceCheck({ ...shared, lessonNumber }),
+    );
+
+    expect(new Set(checks).size).toBe(4);
+    expect(checks.join(' ')).toMatch(/evidence/i);
+    expect(checks.join(' ')).toMatch(/interpretive memo/i);
+  });
+
   it('uses a concrete evidence decision for the first rotating fact-check variant', () => {
     const item = examFactCopy({
       lessonNumber: 1,
@@ -214,9 +294,20 @@ describe('course compiler copy variants', () => {
       answer: 'Photochemical reactions transform primary pollutants.',
     });
 
-    expect(item.question).toContain('lab team');
+    expect(item.question).toContain('study group');
     expect(item.question).toContain('course evidence');
     expect(isAppliedQuizStem(item.question)).toBe(true);
+  });
+
+  it('removes leading articles from embedded revision-criterion labels', () => {
+    const criterion = assessmentRevisionCriterion({
+      title: 'Lesson 8: Comparative Reading Methods',
+      concept: 'the Comparative Reading focus',
+      artifact: 'the Week 8 assignment',
+    });
+
+    expect(criterion).not.toMatch(/Feedback-informed the |in the the /i);
+    expect(criterion).toMatch(/Comparative Reading focus/);
   });
 
   it('rotates fact-check stems across question seats in the same lesson', () => {
@@ -232,7 +323,7 @@ describe('course compiler copy variants', () => {
     );
 
     expect(new Set(questions).size).toBe(4);
-    expect(questions[0]).toContain('lab team');
+    expect(questions[0]).toContain('study group');
   });
 
   it('keeps compound and plural concept labels grammatical in padded quiz options', () => {

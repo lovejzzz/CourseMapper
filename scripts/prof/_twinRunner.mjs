@@ -38,6 +38,22 @@ async function main() {
   const saved = JSON.parse(await fs.readFile(args.project, 'utf8'));
   if (!saved.courseMap || !Array.isArray(saved.courseMap.lessons)) throw new Error('project.json has no courseMap.');
   const graph = saved.courseGraph || (saved.courseGraphJson ? JSON.parse(saved.courseGraphJson) : null);
+  const projectDir = path.dirname(args.project);
+  const readJsonIfPresent = async (candidate) => {
+    try {
+      return JSON.parse(await fs.readFile(candidate, 'utf8'));
+    } catch {
+      return null;
+    }
+  };
+  // Crucible captures these beside project.json. Reusing their disclosure
+  // lets a compiler twin receive the same manifest/honesty checks as the
+  // original browser download without another provider call.
+  const [capturedManifest, capturedDigest, capturedCourse] = await Promise.all([
+    readJsonIfPresent(path.join(projectDir, 'extracted', 'PACKAGE_MANIFEST.json')),
+    readJsonIfPresent(path.join(projectDir, 'digest.json')),
+    readJsonIfPresent(path.join(projectDir, 'course.json')),
+  ]);
 
   const {
     buildCourseBlueprint,
@@ -58,7 +74,11 @@ async function main() {
     const { buildBlueprintFromGraph } = await import(
       path.join(worktreeRoot, 'src/lib/courseGraph/blueprintFromGraph.js')
     );
-    blueprint = compactBlueprintForStorage(buildBlueprintFromGraph(graph));
+    blueprint = compactBlueprintForStorage(
+      buildBlueprintFromGraph(graph, {
+        sessionMinutes: capturedManifest?.generationConstraints?.sessionMinutes || undefined,
+      }),
+    );
   } else {
     blueprint = compactBlueprintForStorage(buildCourseBlueprint(saved.courseMap));
   }
@@ -75,8 +95,18 @@ async function main() {
     courseMap: saved.courseMap,
     deliverables: deliverableState,
     featureIds: ['courseMap', ...featureIds],
+    courseGraph: graph,
+    readiness: { status: 'ready', blockers: 0, warnings: 0, issues: [] },
+    pipelineState: capturedManifest?.pipeline || capturedDigest?.pipeline || null,
     assembleOnly: true,
-    quality: false,
+    quality: {
+      budget: saved.apiCallBudgetReceipt || null,
+      digest: capturedDigest || null,
+      courseId: capturedCourse?.id || saved.projectId || '',
+      coursePrompt: capturedCourse?.prompt || saved.promptText || '',
+      expectedSessionMinutes: capturedManifest?.generationConstraints?.sessionMinutes || null,
+      timeoutMs: 120000,
+    },
   });
   const extracted = await extractPackage(createMemoryFileProvider(assembled.fileContents));
 
@@ -84,6 +114,15 @@ async function main() {
     label: `twin-${args.ref || 'unknown-ref'}`,
     builtAt: new Date().toISOString(),
     twin: { generationId: args.generationId || null, compilerRef: args.ref || null, projectPath: args.project },
+    quality: assembled.quality || null,
+    qualityFindings: assembled.qualityResult?.findings || [],
+    manifestSummary: assembled.manifest
+      ? {
+          readiness: assembled.manifest.readiness || null,
+          assessmentSummary: assembled.manifest.assessmentSummary || null,
+          readingCount: Array.isArray(assembled.manifest.readings) ? assembled.manifest.readings.length : 0,
+        }
+      : null,
     files: extracted.files.map((file) => ({
       path: file.path,
       featureId: file.featureId,
@@ -97,7 +136,7 @@ async function main() {
   await fs.mkdir(path.dirname(args.out), { recursive: true });
   await fs.writeFile(args.out, JSON.stringify(fixture, null, 2));
   console.log(
-    `[twin-runner] ${args.ref || '?'}: ${fixture.files.length} files (${substantive} substantive) → ${args.out}`,
+    `[twin-runner] ${args.ref || '?'}: ${fixture.files.length} files (${substantive} substantive) · quality ${fixture.quality?.score ?? 'n/a'}/${fixture.quality?.grade ?? '—'} · findings ${fixture.qualityFindings.length} → ${args.out}`,
   );
 }
 

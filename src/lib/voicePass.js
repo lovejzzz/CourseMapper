@@ -72,6 +72,12 @@ export const VOICE_BATCH_SIZE = 8;
 // v2: asymmetric selection cap — uneven emphasis is the point; voicing all
 // 52 surfaces in one register was its own template.
 export const VOICE_MAX_SURFACES = 8;
+// Gemma 4 E2B reliably completes three independent rewrites in one browser
+// decode. Larger batches have repeatedly returned only the first three,
+// creating fallbacks without improving additional learner copy. Larger paid
+// models retain the broader eight-surface ceiling.
+export const SCION_VOICE_MAX_SURFACES = 3;
+export const VOICE_TEXTURE_TARGET = 90;
 // v2: NO meaningful floor — padding is the enemy; voice may shorten. The
 // tiny floor only rejects degenerate one-liners.
 export const VOICE_REWRITE_MIN_WORDS = 20;
@@ -190,11 +196,18 @@ export function selectVoiceSurfaces({
       // supplied a stronger known-domain treatment.
       if (/\bintervals?\b/i.test(groundingText) && MUSIC_INTERVAL_GROUNDING_RE.test(groundingText)) return;
 
+      // A discussion prompt is an assessment instrument, not connective
+      // prose. Small local models often answer the question while trying to
+      // "improve" it, or delete the exact reading anchor. Both moves make the
+      // activity worse. Keep source-anchored questions compiler-authored;
+      // voice can still refine lower-risk assignment and study-guide prose.
+      if (kind.featureId === 'discussions' && originalText.includes(FROZEN_LINE_MARKER)) return;
+
       let priority = 0;
       if (kind.featureId === 'assignments' && lessonNumber === 1) priority += 5; // the door of the course
       const examFlavored = EXAM_TITLE_RE.test(String(item?.title || item?.lessonTitle || '') + (item?.examScope || ''));
       if (kind.featureId === 'studyGuides' && examFlavored) priority += 4; // highest-stakes reading
-      if (kind.featureId === 'discussions' && originalText.includes(FROZEN_LINE_MARKER)) priority += 4; // real material
+      if (kind.featureId === 'discussions') priority += 1;
       if (grounding.kernel) priority += 2; // verified substance available
       if (kind.featureId === 'assignments' && lessonNumber > 1) priority += 1;
 
@@ -299,6 +312,22 @@ function extractCapitalizedSequences(text) {
   return String(text || '').match(/\b[A-Z][A-Za-z'’-]+(?:\s+[A-Z][A-Za-z'’-]+)+\b/g) || [];
 }
 
+function normalizeEntityComparison(value) {
+  return String(value || '')
+    .normalize('NFKC')
+    .toLowerCase()
+    .replace(/[’']/g, "'")
+    .replace(/'s\b/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function normalizeVoiceRewriteText(value) {
+  return String(value || '')
+    .replace(/\*{1,2}([^*\n]+)\*{1,2}/g, '$1')
+    .trim();
+}
+
 export function openingTrigram(text) {
   return String(text || '')
     .toLowerCase()
@@ -311,7 +340,7 @@ export function openingTrigram(text) {
 
 export function lintVoiceResult(surface, rewrittenText) {
   const originalText = String(surface?.originalText || '');
-  const text = typeof rewrittenText === 'string' ? rewrittenText.trim() : '';
+  const text = typeof rewrittenText === 'string' ? normalizeVoiceRewriteText(rewrittenText) : '';
   if (!text) return { ok: false, reason: 'empty rewrite' };
   if (/^#{1,6}\s/m.test(text)) return { ok: false, reason: 'markdown header in rewrite' };
   const wordCount = text.split(/\s+/).filter(Boolean).length;
@@ -346,9 +375,10 @@ export function lintVoiceResult(surface, rewrittenText) {
   // No-new-facts proxy — the corpus includes the grounding (and through it
   // the kernel terms/definitions/sources), so verified substance passes and
   // "Professor Quantumfield" still rejects.
-  const corpus = `${originalText}\n${JSON.stringify(surface?.grounding || {})}`.toLowerCase();
+  const corpus = normalizeEntityComparison(`${originalText}\n${JSON.stringify(surface?.grounding || {})}`);
   for (const sequence of new Set(extractCapitalizedSequences(text))) {
-    const lowered = sequence.toLowerCase();
+    const lowered = normalizeEntityComparison(sequence);
+    if (/^(?:for|in|on|at|by|from|during|after|before) (?:week|lesson|unit|module)$/.test(lowered)) continue;
     // Sentence-initial articles glue onto real entities ("The Bowen Reaction
     // Series") — strip them before declaring the entity new.
     const deArticled = lowered.replace(/^(?:the|a|an)\s+/, '');
@@ -367,7 +397,8 @@ export function applyVoiceResults({ deliverables = {}, results = [] } = {}) {
   for (const result of results) {
     const surface = result?.surface;
     if (!surface) continue;
-    const verdict = lintVoiceResult(surface, result.text);
+    const normalizedText = normalizeVoiceRewriteText(result.text);
+    const verdict = lintVoiceResult(surface, normalizedText);
     if (!verdict.ok) {
       fallbacks.push({ surfaceId: surface.surfaceId, reason: verdict.reason });
       continue;
@@ -382,7 +413,7 @@ export function applyVoiceResults({ deliverables = {}, results = [] } = {}) {
       continue;
     }
     const nextItems = items.map((item, index) =>
-      index === surface.itemIndex ? { ...item, [surface.field]: result.text.trim() } : item,
+      index === surface.itemIndex ? { ...item, [surface.field]: normalizedText } : item,
     );
     const nextData = { ...data, [kind.arrayKey]: nextItems };
     next[surface.featureId] = wrapped ? { ...entry, data: nextData } : nextData;
@@ -427,6 +458,7 @@ export async function runVoicePass({
   callModel,
   budgetUsd = 0.05,
   maxSurfaces = VOICE_MAX_SURFACES,
+  skipTextureTarget = VOICE_TEXTURE_TARGET,
   onEvent,
 } = {}) {
   const emit = (event) => {
@@ -443,19 +475,18 @@ export async function runVoicePass({
   const slotValues = textureSlotValues(courseMap);
   const preTexture = computeTexture(textureDocsFor(deliverables, touchedFeatures), { slotValues });
 
-  // A bounded 100-point ruler has no headroom above 100. Calling the model in
-  // that state can only tie or regress, after which the self-check must revert
-  // the work. Skip the impossible rewrite up front instead of spending time,
-  // tokens, and battery to prove the same ceiling again.
-  if (surfaces.length > 0 && preTexture.score >= 100) {
+  // Voice is a repair pass, not a ritual model call. Once the compiler's
+  // touched surfaces meet the release-grade texture target, a rewrite has no
+  // encoded defect to fix and commonly ties or regresses. Skip it up front.
+  if (surfaces.length > 0 && preTexture.score >= skipTextureTarget) {
     const skipped = surfaces.map((surface) => ({
       surfaceId: surface.surfaceId,
-      reason: 'voice-surface texture already at the 100-point ceiling',
+      reason: `voice-surface texture already meets the ${skipTextureTarget}-point release target`,
     }));
     const selfCheck = { pre: preTexture.score, post: preTexture.score, verdict: 'skipped' };
     emit({
       type: 'voicePassDone',
-      detail: `voiced 0 surface(s), 0 fallback(s) (model cost $0.000) — voice-surface texture ${preTexture.score} already at ceiling; skipped ${skipped.length} rewrite(s)`,
+      detail: `voiced 0 surface(s), 0 fallback(s) (model cost $0.000) — voice-surface texture ${preTexture.score} already meets target; skipped ${skipped.length} rewrite(s)`,
     });
     return {
       deliverables,

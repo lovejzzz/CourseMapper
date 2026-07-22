@@ -968,7 +968,7 @@ export default function useDeliverables({
           },
         }));
         appendLog(
-          `⚠ ${label}: model output was not usable (${reason}); created a course-map-based FAQ draft instead`,
+          `⚠ ${label}: model output was not usable (${reason}); created a course-map-based FAQ instead`,
           'warn',
         );
         return true;
@@ -1313,6 +1313,7 @@ export default function useDeliverables({
                 partitionCumulativeAssessmentLessons,
                 pickNativeKernel,
                 projectCumulativeAssessmentKernels,
+                requireNativeAuthorshipForNamedReadings,
                 resolveCumulativeAssessmentKernels,
                 runNativeKernelRecovery,
                 selectNativeContentSources,
@@ -1337,6 +1338,26 @@ export default function useDeliverables({
             const lessonIdOf = (lessonIdx) => `lesson-${lessonIdx + 1}`;
             const kernelIsComplete = (payload) => assessProjectedKernelCoverage(payload).complete;
             const kernelIsUsable = (payload) => assessProjectedKernelCoverage(payload).usable;
+            const namedReadingAuthorshipIds = requireNativeAuthorshipForNamedReadings(
+              allLessonIndices,
+              lessonContent,
+              partialOverlays,
+              blueprintCourseMap.lessons,
+            );
+            if (namedReadingAuthorshipIds.length > 0) {
+              recordGenerationApiCallEvent({
+                type: 'pipelineDecision',
+                stage: 'genomeLinker',
+                label: 'Named-reading authorship boundary',
+                detail: `${namedReadingAuthorshipIds.join(', ')} · generic library/cache kernels cannot replace instructor-assigned primary texts`,
+                featureId: 'blueprintEnrichment',
+                task: 'blueprintEnrichment',
+              });
+              appendLog(
+                `Protected ${namedReadingAuthorshipIds.length} instructor-assigned reading lesson${namedReadingAuthorshipIds.length === 1 ? '' : 's'} from generic curriculum substitution`,
+                'progress',
+              );
+            }
             // Fill safe, evidence-derived core surfaces before deciding
             // whether a genome/cache kernel needs model authorship. This can
             // make a rich partial usable, but never invents subject facts or
@@ -2912,6 +2933,10 @@ export default function useDeliverables({
                   admittedCompilerBlueprint?.enrichment?.lessonContent ||
                   lastEnrichmentOverlayRef.current?.lessonContent ||
                   null,
+                maxSurfaces:
+                  provider === 'local' || provider === PUBLIC_SCION_PROVIDER_ID
+                    ? voicePassLib.SCION_VOICE_MAX_SURFACES
+                    : undefined,
                 callModel,
                 onEvent: (event) => {
                   if (event?.type === 'voicePassCall') {
@@ -5809,6 +5834,7 @@ export default function useDeliverables({
           deliverables: compiledForVoice,
           courseMap: courseMap || null,
           kernels: lastEnrichmentOverlayRef.current?.lessonContent || null,
+          maxSurfaces: provider === PUBLIC_SCION_PROVIDER_ID ? voicePassLib.SCION_VOICE_MAX_SURFACES : undefined,
           callModel,
         });
         const voicedFeatureIds = new Set(voiceResult.voiced.map((surfaceId) => String(surfaceId).split(':')[0]));

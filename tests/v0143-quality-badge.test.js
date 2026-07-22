@@ -487,7 +487,17 @@ describe('B2 — WorkspaceQualityChip header states', () => {
     expect(html).toContain('aria-label="Package quality: 100 out of 100, grade A, 0 issues — open the quality report"');
   });
 
-  it('turns amber when the grade has findings, score loss, or texture loss', () => {
+  it('keeps a zero-finding A green while findings or a low grade remain amber', () => {
+    const cleanNonPerfectA = render({
+      status: 'ready',
+      quality: gradedQuality({ score: 99, grade: 'A', findingCounts: { p0: 0, p1: 0, p2: 0 }, texture: { score: 95 } }),
+      receipt: { exportWarningCount: 0 },
+    });
+    expect(cleanNonPerfectA).toContain('emerald');
+    expect(cleanNonPerfectA).not.toContain('amber');
+    expect(cleanNonPerfectA).toContain('Quality 99');
+    expect(cleanNonPerfectA).toContain('Texture 95');
+
     const caveatedA = render({
       status: 'ready',
       quality: gradedQuality({ score: 97, grade: 'A', findingCounts: { p0: 0, p1: 2, p2: 0 }, texture: { score: 93 } }),

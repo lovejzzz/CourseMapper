@@ -168,6 +168,16 @@ describe('3.1 — registry schema (derive)', () => {
     expect(classifyAssessmentKind('Practice response that names the evidence needed for decision making.')).toBe(
       'in-class',
     );
+    expect(
+      classifyAssessmentKind(
+        'Translation and circulation interpretive response: test one reading against a specific passage and one alternative.',
+      ),
+    ).toBe('in-class');
+    expect(
+      classifyAssessmentKind(
+        'Canon formation evidence memo: explain how form, language, or context changes the reading.',
+      ),
+    ).toBe('in-class');
   });
 
   it('v0.14.1 round 2: exam kind requires the exam noun as the operative head (live CS Round-2 atoms)', () => {
@@ -258,6 +268,33 @@ describe('3.1 — registry schema (derive)', () => {
     expect(otherLessons + lessonSevenTotal).toBe(100);
   });
 
+  it('gives a source-named final artifact meaningful provisional weight when percentages are absent', () => {
+    const milestoneGraph = deriveCourseGraphFromCourseMap({
+      courseName: 'World Literature',
+      lessons: [
+        {
+          title: 'Lesson 1: Epic',
+          sections: [{ topicSection: 'Epic form', weeklyAssessments: 'weekly reading response: Epic' }],
+        },
+        {
+          title: 'Lesson 2: Synthesis',
+          sections: [
+            {
+              topicSection: 'Comparative synthesis',
+              weeklyAssessments: 'weekly reading response: Synthesis\nfinal paper',
+            },
+          ],
+        },
+      ],
+    });
+    const finalPaper = milestoneGraph.assessments.find((assessment) => assessment.title === 'final paper');
+    const weekly = milestoneGraph.assessments.find((assessment) => assessment.title.includes('weekly reading'));
+
+    expect(finalPaper.weightPct).toBeGreaterThan(weekly.weightPct);
+    expect(finalPaper.weightPct).toBeGreaterThanOrEqual(40);
+    expect(milestoneGraph.assessments.reduce((sum, assessment) => sum + assessment.weightPct, 0)).toBe(100);
+  });
+
   it('validates (kind whitelist) and serializes without nested arrays (Firestore rule)', () => {
     expect(validateCourseGraph(graph).valid).toBe(true);
     const offenders = [];
@@ -332,6 +369,50 @@ describe('3.2 — compiler consumes the registry (Geology)', () => {
     expect(second.weeklySubmissionCriteria).toMatch(/no separate take-home submission/i);
     expect(JSON.stringify(second.materials)).not.toMatch(/constraint:|before publishing/i);
     expect(JSON.stringify(second.homework)).not.toContain('Inheritance problem set');
+  });
+
+  it('downgrades stale saved compiler checks instead of compiling one brief per repaired section', () => {
+    const map = {
+      courseName: 'World Literature',
+      lessons: [
+        {
+          title: 'Lesson 1: What Counts as World Literature',
+          sections: [
+            {
+              topicSection: '1.1: Definitions',
+              learningObjectives: 'Define world literature using one assigned passage.',
+              weeklyAssessments: 'weekly reading responses: What Counts as World Literature',
+            },
+          ],
+        },
+      ],
+    };
+    const staleRegistry = [
+      {
+        id: 'A1.1',
+        title: 'weekly reading responses: What Counts as World Literature',
+        kind: 'graded-artifact',
+        dueSession: 1,
+        weightPct: 50,
+      },
+      {
+        id: 'A1.2',
+        title:
+          'Translation and circulation interpretive response: test one reading against a specific passage and one alternative.',
+        kind: 'graded-artifact',
+        dueSession: 1,
+        weightPct: 50,
+      },
+    ];
+
+    const blueprint = buildCourseBlueprint(map, { assessmentRegistry: staleRegistry });
+    const compiled = compileBlueprintDeliverables(blueprint, ['assignments', 'lessonPlans']);
+
+    expect(blueprint.assessmentRegistry.find((entry) => entry.id === 'A1.2')?.kind).toBe('in-class');
+    expect(compiled.assignments.assignments.map((brief) => brief.assessmentId)).toEqual(['A1.1']);
+    expect(compiled.lessonPlans.lessonPlans[0].assessmentBlock).toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: 'A1.2', kind: 'in-class' })]),
+    );
   });
 
   it('ships no fused interior-lowercase titles anywhere in briefs, rubrics, or the grading table', () => {
@@ -686,6 +767,56 @@ describe('3.3d — package manifest carries the registry; per-lesson files route
     expect(byId.get('A7.4').note).toContain('in-class');
     // Weight metadata rides along.
     expect(byId.get('A7.3').weightPct).toBeGreaterThan(0);
+  }, 120000);
+
+  it('keeps a stale saved formative kind aligned with the compiler and assemble-only file map', async () => {
+    const map = {
+      courseName: 'World Literature',
+      lessons: [
+        {
+          title: 'Lesson 1: What Counts as World Literature',
+          sections: [
+            {
+              topicSection: 'Definitions',
+              learningObjectives: 'Define world literature from one passage.',
+              weeklyAssessments: 'weekly reading responses: What Counts as World Literature',
+            },
+            {
+              topicSection: 'Translation and circulation',
+              learningObjectives: 'Compare two circulation contexts.',
+              weeklyAssessments:
+                'Translation and circulation interpretive response: test one reading against a specific passage and one alternative.',
+            },
+          ],
+        },
+      ],
+    };
+    const graph = deriveCourseGraphFromCourseMap(map);
+    graph.assessments.find((entry) => entry.id === 'A1.2').kind = 'graded-artifact';
+    const blueprint = buildBlueprintFromGraph(graph);
+    const compiled = compileBlueprintDeliverables(blueprint, ['lessonPlans', 'assignments']);
+    const { buildCourseMaterialsZip } = await import('../src/lib/packageZipExporter.js');
+    const result = await buildCourseMaterialsZip({
+      courseMap: map,
+      courseGraph: graph,
+      deliverables: {
+        lessonPlans: { status: 'done', data: compiled.lessonPlans },
+        assignments: { status: 'done', data: compiled.assignments },
+      },
+      featureIds: ['courseMap', 'lessonPlans', 'assignments'],
+      quality: false,
+      assembleOnly: true,
+    });
+
+    expect(result.manifest.assessments.find((entry) => entry.id === 'A1.2')).toMatchObject({
+      kind: 'in-class',
+      weightPct: 0,
+      note: expect.stringContaining('in-class'),
+    });
+    expect(result.manifest.assessmentSummary).toMatchObject({ total: 2, graded: 1, inClass: 1 });
+    expect(JSON.parse(result.fileContents['PACKAGE_MANIFEST.json']).assessmentSummary).toEqual(
+      result.manifest.assessmentSummary,
+    );
   }, 120000);
 });
 

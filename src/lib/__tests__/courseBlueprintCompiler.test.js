@@ -5679,7 +5679,7 @@ describe('courseBlueprintCompiler', () => {
       'Strong Policy memo checkpoint 1 anchor',
     );
     expect(compiled.courseFaq.faqs[0].qs[2].an).toContain('Policy brief');
-    expect(compiled.courseFaq.faqs[0].qs[2].an).toContain('Strong Policy memo checkpoint 1 anchor');
+    expect(compiled.courseFaq.faqs[0].qs[2].an).toContain('A strong example of Policy memo checkpoint 1');
     expect(compiled.courseFaq.faqs[0].sourceGrounding.courseModalityProfile.primaryMode).toBe('policy-analysis');
     expect(compiled.courseFaq.faqs[0].teachingIntent.feedbackDecision).toContain('criterion-level feedback');
   });
@@ -6943,6 +6943,75 @@ describe('courseBlueprintCompiler', () => {
     expect(identityText).toContain(exactLessonFocus);
     expect(bodyText).not.toContain(exactLessonFocus);
     expect(bodyText).toMatch(/Tang Poetry|close-reading/i);
+  });
+
+  it('gives recurring literature assessments distinct, task-complete directions', () => {
+    const courseMap = makeCourseMap(3);
+    courseMap.courseName = 'World Literature';
+    const assessmentTitles = ['weekly reading responses', 'close-reading checks', 'comparative essay proposal'];
+    courseMap.lessons = courseMap.lessons.map((lesson, index) => ({
+      ...lesson,
+      title: `Lesson ${index + 1}: ${['Homeric Epic', 'Tang Poetry', 'Comparative Reading Methods'][index]}`,
+      sections: lesson.sections.map((section) => ({
+        ...section,
+        topicSection: ['Themes in the Odyssey', 'Characteristics of Tang Verse', 'Comparative Reading Strategies'][
+          index
+        ],
+        weeklyAssessments: assessmentTitles[index],
+        readings: index === 0 ? ['The Odyssey'] : index === 1 ? ['selected poems of Li Bai and Du Fu'] : [],
+      })),
+    }));
+
+    const blueprint = buildCourseBlueprint(courseMap);
+    const assignments = compileBlueprintDeliverables(blueprint, ['assignments']).assignments.assignments;
+    const byType = new Map(assignments.map((assignment) => [assignment.assignmentType, assignment]));
+    const response = byType.get('Weekly reading response');
+    const closeReading = byType.get('Close-reading check');
+    const proposal = byType.get('Comparative essay proposal');
+
+    expect(response.instructions.join(' ')).toMatch(/arguable claim|counter-reading/i);
+    expect(response.formatRequirements.format).toMatch(/focused response/i);
+    expect(closeReading.instructions.join(' ')).toMatch(
+      /formal (?:feature|choice)|alternative reading|plausible alternative/i,
+    );
+    expect(closeReading.formatRequirements.format).toMatch(/annotated passage/i);
+    expect(proposal.instructions.join(' ')).toMatch(/two assigned texts|paired evidence/i);
+    expect(proposal.formatRequirements.format).toMatch(/two-text proposal/i);
+    expect(new Set(assignments.map((assignment) => JSON.stringify(assignment.instructions))).size).toBe(3);
+    expect(JSON.stringify(assignments)).not.toMatch(/locally approved submission form|feedback-based the /i);
+  });
+
+  it('varies recurring weekly reading-response prose without changing its four required reasoning moves', () => {
+    const courseMap = makeCourseMap(8);
+    courseMap.courseName = 'World Literature';
+    courseMap.lessons = courseMap.lessons.map((lesson, index) => ({
+      ...lesson,
+      title: `Lesson ${index + 1}: Literary Work ${index + 1}`,
+      sections: lesson.sections.map((section) => ({
+        ...section,
+        topicSection: `Formal feature ${index + 1}`,
+        weeklyAssessments: 'weekly reading responses',
+        readings: [`Assigned text ${index + 1}`],
+      })),
+    }));
+
+    const blueprint = buildCourseBlueprint(courseMap);
+    const assignments = compileBlueprintDeliverables(blueprint, ['assignments']).assignments.assignments;
+    expect(assignments).toHaveLength(8);
+    expect(new Set(assignments.map((assignment) => assignment.overview)).size).toBeGreaterThanOrEqual(6);
+    expect(
+      new Set(assignments.map((assignment) => JSON.stringify(assignment.instructions))).size,
+    ).toBeGreaterThanOrEqual(6);
+    expect(new Set(assignments.map((assignment) => assignment.formatRequirements.format)).size).toBeGreaterThanOrEqual(
+      6,
+    );
+    for (const assignment of assignments) {
+      const learnerCopy = `${assignment.overview} ${assignment.instructions.join(' ')} ${assignment.formatRequirements.format}`;
+      expect(learnerCopy).toMatch(/claim|interpretation/i);
+      expect(learnerCopy).toMatch(/passage|textual|evidence|language|form/i);
+      expect(learnerCopy).toMatch(/counter|alternative|competing|rival/i);
+      expect(learnerCopy).toMatch(/revis|refin|adjust/i);
+    }
   });
 
   it('replaces placeholder course terms with local confirmation language in compiled syllabi', () => {

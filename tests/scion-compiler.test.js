@@ -856,6 +856,8 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     expect(profile.schema.required).toContain('assessments');
     expect(profile.schema.properties.assessments.minItems).toBe(7);
     expect(SCION_SKELETON_DIRECTIVE).toContain('concise 2-4 word topic names');
+    expect(SCION_SKELETON_DIRECTIVE).toContain('conceptual spine');
+    expect(SCION_SKELETON_DIRECTIVE).toContain('Themes in X');
   });
 
   it('D2: local requests are greedy by default and sample only on override', () => {
@@ -871,10 +873,11 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     expect(buildProviderTextRequest({ ...base, temperatureOverride: 0.7 }).body.temperature).toBe(0.7);
   });
 
-  it('D2: CourseIR direct authoring is skipped for the local provider (source wiring)', () => {
+  it('D2: the rejected whole-CourseIR experiment is skipped for every provider (source wiring)', () => {
     const runtime = fs.readFileSync('src/lib/courseIRAuthoringRuntime.js', 'utf8');
-    expect(runtime).toContain("if (provider === 'local') {");
-    expect(runtime).toContain('Scion time-planner');
+    expect(runtime).toContain("strategy: 'native-skeleton-measured'");
+    expect(runtime).toContain('whole-course CourseIR acceptance remains unproven');
+    expect(runtime).not.toContain("task: 'courseIR'");
   });
 
   it('D2: public Scion uses typed skeleton authoring without the larger CourseIR attempt (source wiring)', () => {

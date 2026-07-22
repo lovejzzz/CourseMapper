@@ -149,6 +149,38 @@ export function selectNativeContentSources(lessonIndices, lessonContent = {}, pa
 }
 
 /**
+ * A general curriculum-library kernel may not displace an instructor-named
+ * primary text. The World Literature holdout linked a strong Homeric-epic
+ * kernel, skipped Pass B, and consequently taught mostly Iliad authorship in
+ * the week that explicitly assigned The Odyssey. Remove the pre-authored
+ * candidate at this boundary so the configured model authors against the
+ * lesson-local reading contract. Verified sources can still be attached later
+ * as bibliography; they simply cannot silently become the lesson itself.
+ */
+export function requireNativeAuthorshipForNamedReadings(
+  lessonIndices,
+  lessonContent = {},
+  partialOverlays = {},
+  courseMapLessons = [],
+) {
+  const clearedLessonIds = [];
+  for (const lessonIndex of asArray(lessonIndices)) {
+    const readings = asArray(courseMapLessons?.[lessonIndex]?.sections).flatMap((section) =>
+      (Array.isArray(section?.readings) ? section.readings : section?.readings ? [section.readings] : [])
+        .map((reading) => cleanText(reading, 240))
+        .filter(Boolean),
+    );
+    if (readings.length === 0) continue;
+    const lessonId = `lesson-${lessonIndex + 1}`;
+    if (!lessonContent[lessonId] && !partialOverlays[lessonId]) continue;
+    delete lessonContent[lessonId];
+    delete partialOverlays[lessonId];
+    clearedLessonIds.push(lessonId);
+  }
+  return clearedLessonIds;
+}
+
+/**
  * Run the bounded native-kernel recovery loop.
  *
  * The projection callback intentionally runs inside the loop, immediately
@@ -297,10 +329,33 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
       1,
   );
   const lessonVariant = (variants) => variants[(lessonOrdinal - 1) % variants.length];
-  const topic = sections
+  const topics = sections
     .map((section) => cleanText(section?.topicSection, 120).replace(/^\d+(?:\.\d+)*\s*[:.-]\s*/i, ''))
-    .find(Boolean);
-  const concept = cleanText(payload?.keyTerms?.[0]?.term || topic || title || 'the central concept', 80);
+    .filter(Boolean);
+  const namedReadings = asArray(sections)
+    .flatMap((section) => asArray(section?.readings))
+    .map((reading) => cleanText(reading, 160))
+    .filter(Boolean);
+  const semanticLabel = (value) =>
+    semanticIdentityTokens(value)
+      .filter(
+        (token) =>
+          !['and', 'assigned', 'of', 'poem', 'poems', 'reading', 'readings', 'selected', 'the'].includes(token),
+      )
+      .sort()
+      .join(' ');
+  const namedReadingLabels = new Set(namedReadings.map(semanticLabel).filter(Boolean));
+  const isNamedReadingLabel = (value) => namedReadingLabels.has(semanticLabel(value));
+  // A primary text is the evidence boundary, not automatically a disciplinary
+  // concept. Calling “selected poems of Li Bai and Du Fu” a definition caused
+  // nonsensical quiz stems and FAQ mail merge. Prefer an authored/key concept
+  // or section concept that is distinct from the work title; the reading still
+  // remains exact in `readings`, prompts, source traces, and evidence tasks.
+  const authoredConcept = asArray(payload?.keyTerms)
+    .map((term) => cleanText(term?.term, 80))
+    .find((term) => term && !isNamedReadingLabel(term));
+  const topic = topics.find((candidate) => !isNamedReadingLabel(candidate)) || topics[0];
+  const concept = cleanText(authoredConcept || topic || title || 'the central concept', 80);
   const definition = cleanTextAtBoundary(payload?.keyTerms?.[0]?.definition, 260);
   const facts = asArray(payload?.kernel?.facts)
     .map((fact) => cleanTextAtBoundary(fact, 220))
@@ -321,7 +376,31 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
     ? [anchorFact, ...surfaceFacts.filter((fact) => fact !== anchorFact)]
     : surfaceFacts;
   const anchorClause = anchorFact.replace(/[.!?]+$/, '');
-  const scenario = payload?.kernel?.scenario || {};
+  const interpretiveReadingLesson =
+    namedReadings.length > 0 &&
+    /\b(?:literature|literary|poetry|poem|epic|drama|novel|fiction|narrative|realism|fantastic|close reading|textual interpretation)\b/i.test(
+      [title, ...topics, ...sections.flatMap((section) => [section?.learningGoals, section?.learningObjectives])]
+        .filter(Boolean)
+        .join(' '),
+    );
+  const assignedReading = namedReadings[0] || '';
+  // When the compact browser model's scenario is quarantined, a literature
+  // lesson should fall back to the actual assigned text—not synthetic Claim A
+  // and Claim B cards. The course facts remain a bounded interpretive frame;
+  // students supply the locatable passage from their assigned edition.
+  const assignedReadingScenario =
+    interpretiveReadingLesson && projectionFacts.length >= 2
+      ? {
+          setup: `A reader must decide how a passage from ${assignedReading} supports or complicates two course claims: ${projectionFacts[0]} ${projectionFacts[1]} Select a locatable passage, identify one formal feature, defend the stronger interpretation, and state what another passage could change.`,
+          materials: `a locatable passage from the assigned edition of ${assignedReading}, its surrounding context, and the two course claims`,
+          source: 'assigned-reading-projection',
+        }
+      : null;
+  const authoredScenario = payload?.kernel?.scenario;
+  const scenario =
+    cleanTextAtBoundary(authoredScenario?.setup, 500) && cleanTextAtBoundary(authoredScenario?.materials, 300)
+      ? authoredScenario
+      : assignedReadingScenario || {};
   const materials =
     cleanTextAtBoundary(scenario?.materials, 180) || `${concept} examples and the named reading or activity`;
   const assessment = sections
@@ -352,8 +431,16 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
   // The compiler adds only instructional framing; definition and example
   // remain traceable to the accepted fact/scenario atoms.
   if (keyTerms.filter(substantiveTerm).length === 0 && facts.length >= 3) {
-    const comparisonExample = `Compare the supplied claims: ${projectionFacts.slice(0, 2).join(' ')}`;
-    const { misconception, correction } = buildFactLedgerFeedback({ lesson: courseMapLesson, concept });
+    const comparisonExample = assignedReadingScenario
+      ? `Test ${projectionFacts[0]} against a locatable passage from ${assignedReading}, then compare it with this course claim: ${projectionFacts[1]}`
+      : `Compare the supplied claims: ${projectionFacts.slice(0, 2).join(' ')}`;
+    const factLedgerFeedback = buildFactLedgerFeedback({ lesson: courseMapLesson, concept });
+    const misconception = assignedReadingScenario
+      ? `A plot summary of ${assignedReading} is sufficient evidence for ${concept}.`
+      : factLedgerFeedback.misconception;
+    const correction = assignedReadingScenario
+      ? `Name a formal feature in a locatable passage, explain its interpretive effect, and test a counter-reading.`
+      : factLedgerFeedback.correction;
     const fallbackTerm = {
       term: cleanText(concept, 60),
       definition: anchorFact,
@@ -452,9 +539,20 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
   // teaching core from the admitted facts and terminology instead. The two
   // assessment seats are constructed response, so the compiler never invents
   // distractors or a new correct answer.
-  const existingQuizItems = asArray(completed.quizItems);
+  const existingQuizItems = asArray(completed.quizItems).filter(
+    (item) =>
+      !assignedReadingScenario ||
+      !(
+        cleanText(item?.enrichmentSource) === 'fact-ledger-projection' ||
+        /\b(?:Claim A:|supplied claim cards?)\b/i.test(cleanText(item?.question, 600))
+      ),
+  );
   const existingSlides = asArray(completed.slideContent);
   const existingScenario = completed?.kernel?.scenario;
+  const projectionScenario =
+    cleanTextAtBoundary(existingScenario?.setup, 500) && cleanTextAtBoundary(existingScenario?.materials, 300)
+      ? existingScenario
+      : scenario;
   const needsFactProjection =
     facts.length >= 3 &&
     keyTerms.filter(substantiveTerm).length >= 1 &&
@@ -467,7 +565,7 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
       {
         facts: projectionFacts,
         keyTerms,
-        scenario: existingScenario,
+        scenario: projectionScenario,
       },
       {
         itemPlan: [
@@ -564,45 +662,45 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
         `Use ${concept} to interpret ${materials}. In ${product}, defend the strongest conclusion, point to the evidence behind it, and qualify the claim.`,
         `Examine ${materials} with the ${concept} lens, then build ${product} around one supported interpretation, its key detail, and its boundary.`,
         `Test a ${concept} claim against ${materials}. Submit ${product} that explains the evidence, the resulting judgment, and what remains uncertain.`,
-        `Compare the plausible readings of ${materials} through ${concept}. Make ${product} defend one, cite the deciding evidence, and state where it may not hold.`,
+        `Compare the plausible readings of ${materials} through ${concept}. Use ${product} to defend one, cite the deciding evidence, and state where it may not hold.`,
         `Develop ${product} from the ${concept} evidence in ${materials}: identify the strongest conclusion, justify it with a specific detail, and avoid overclaiming.`,
       ]),
       parameters: lessonVariant([
         [
           `Scope: use the named ${concept} case or example only.`,
-          `Format: submit ${product} in the instructor-approved format.`,
+          `Format: use the submission format listed for ${product} in the course site.`,
           `Required Evidence/Source: cite at least one detail from ${materials}.`,
-          'Length or Time: follow the local requirement confirmed by the instructor before release.',
+          `Length or Time: follow the requirement listed with ${product} in the course site.`,
         ],
         [
           `Scope: focus the response on ${concept} and the assigned materials.`,
-          `Format: present ${product} in the locally approved submission form.`,
+          `Format: use the submission format listed for ${product} in the course site.`,
           `Evidence: quote or cite one specific point from ${materials}.`,
-          'Length/Time: confirm the course-specific limit with the instructor before submission.',
+          `Length/Time: follow the limit listed with ${product} in the course site.`,
         ],
         [
           `Boundary: keep the analysis within the supplied ${concept} example.`,
-          `Submission format: organize the work as ${product} using the instructor's required medium.`,
+          `Submission format: organize ${product} in the medium listed for the task.`,
           `Source use: identify the exact detail from ${materials} that warrants the conclusion.`,
-          'Extent: use the local word, page, or time limit announced for this task.',
+          `Extent: use the word, page, or time limit listed for ${product}.`,
         ],
         [
           `Case limit: analyze only the named ${concept} situation and avoid unsupported extensions.`,
-          `Deliverable: turn in ${product} through the format and channel confirmed for the course.`,
+          `Deliverable: submit ${product} through the format and channel listed for the task.`,
           `Required support: anchor the reasoning in a visible detail from ${materials}.`,
-          'Length or duration: verify the applicable local constraint before finalizing the work.',
+          `Length or duration: follow the constraint listed with ${product}.`,
         ],
         [
           `Analytical scope: apply ${concept} to the provided case rather than inventing a new one.`,
-          `Output: complete ${product} in the instructor-specified document, presentation, or recording form.`,
+          `Output: complete ${product} in the document, presentation, or recording form listed for the task.`,
           `Evidence requirement: point to at least one inspectable detail in ${materials}.`,
-          'Scale: follow the task-specific length or time guidance supplied in class.',
+          `Scale: follow the task-specific length or time guidance listed with ${product}.`,
         ],
         [
           `Focus: keep every claim tied to the assigned ${concept} materials.`,
-          `Product form: prepare ${product} in the approved course format.`,
+          `Product form: prepare ${product} in the format listed for the task.`,
           `Source trail: name the detail from ${materials} that supports the judgment.`,
-          'Completion boundary: check the instructor-confirmed word, page, or time expectation before release.',
+          `Completion boundary: meet the word, page, or time expectation listed with ${product}.`,
         ],
       ]),
     };
@@ -713,14 +811,30 @@ function cumulativeSourceEntries(lessonContent, courseMapLessons, assessmentInde
   return entries;
 }
 
+function evenlySpacedEntries(entries, limit) {
+  const list = asArray(entries);
+  const count = Math.max(1, Math.min(list.length, Number(limit) || 1));
+  if (list.length <= count) return list;
+  if (count === 1) return [list.at(-1)];
+  const indexes = Array.from({ length: count }, (_, index) => Math.round((index * (list.length - 1)) / (count - 1)));
+  return [...new Set(indexes)].map((index) => list[index]);
+}
+
 function projectedCumulativeFacts(entries, limit = 7) {
-  const firstPass = entries.map((entry) => asArray(entry.payload?.kernel?.facts).find((fact) => cleanText(fact, 500)));
+  const representativeEntries = evenlySpacedEntries(entries, limit);
+  const representative = representativeEntries.map((entry) =>
+    asArray(entry.payload?.kernel?.facts).find((fact) => cleanText(fact, 500)),
+  );
   const remaining = entries.flatMap((entry) => asArray(entry.payload?.kernel?.facts).slice(1));
-  return uniqueStrings([...firstPass, ...remaining], limit).map((fact) => cleanTextAtBoundary(fact, 220));
+  return uniqueStrings([...representative, ...remaining], limit).map((fact) => cleanTextAtBoundary(fact, 220));
 }
 
 function projectedCumulativeTerms(entries, limit = 5) {
-  const candidates = entries.flatMap((entry) =>
+  // Use the same course-span sample as facts. The former first-five flatten
+  // paired early-course term labels with later-course facts in the final
+  // study guide (for example, a Greek-drama label preceding an Odyssey fact).
+  const representativeEntries = evenlySpacedEntries(entries, limit);
+  const candidates = representativeEntries.flatMap((entry) =>
     asArray(entry.payload?.keyTerms).map((term) => ({
       ...term,
       sourceLessonId: entry.lessonId,
@@ -763,7 +877,7 @@ export function projectCumulativeAssessmentKernels({
 
     const entries = cumulativeSourceEntries(lessonContent, courseMapLessons, lessonIndex);
     const facts = projectedCumulativeFacts(entries);
-    const keyTerms = projectedCumulativeTerms(entries);
+    const keyTerms = projectedCumulativeTerms(entries, facts.length);
     if (facts.length < 3) {
       skippedLessonIndices.push(lessonIndex);
       continue;
@@ -802,11 +916,10 @@ export function projectCumulativeAssessmentKernels({
       },
       keyTerms,
       studyGuide: {
-        summary: facts
-          .slice(0, 4)
-          .map((fact, index) => `${termNames[index] || `Review focus ${index + 1}`}: ${fact}`)
-          .join(' '),
-        reviewStrategy: `Use retrieval practice across ${coveredSpan}: explain each named term without notes, solve one prior example, then revisit only the evidence you could not reconstruct.`,
+        summary: evenlySpacedEntries(facts, 4).join(' '),
+        reviewStrategy: `Use retrieval practice across ${coveredSpan}: explain ${
+          termNames.length > 0 ? termNames.join(', ') : 'each selected concept'
+        } without notes, connect each claim to its source lesson, then revisit only the evidence you could not reconstruct.`,
       },
     };
     const projected = completeNativeKernelSurfaces(draft, lesson);
@@ -1335,8 +1448,103 @@ const SKELETON_ASSESSMENT_KINDS = new Set(['graded-artifact', 'in-class', 'exam'
 // and an assessment-identity noun on every part. Ordinary titles such as
 // "Project phase 2. Analysis" remain untouched.
 const WEIGHTED_ASSESSMENT_IDENTITY_RE =
-  /\b(?:assignments?|briefs?|case stud(?:y|ies)|discussions?|exams?|final|journals?|labs?|laborator(?:y|ies)|midterms?|oral|papers?|performances?|portfolios?|problem sets?|projects?|quiz(?:zes)?|reflections?|reports?|responses?|tests?|worksheets?)\b/i;
+  /\b(?:assignments?|briefs?|case stud(?:y|ies)|discussions?|essays?|exams?|final|journals?|labs?|laborator(?:y|ies)|midterms?|oral|papers?|performances?|portfolios?|problem sets?|projects?|proposals?|quiz(?:zes)?|reflections?|reports?|responses?|tests?|worksheets?)\b/i;
 const EXPLICIT_ASSESSMENT_PERCENT_RE = /\(\s*(\d{1,3}(?:\.\d+)?)\s*%\s*\)/;
+
+// A compact brief can state a real assessment *plan* more reliably than a
+// small model transcribes it.  In the World Literature holdout, for example,
+// the source says "weekly reading responses and close-reading checks" while
+// Pass A returned one invented "topic comparison" per week.  That changed the
+// course's pedagogy before any lesson prose was written.  Recover only a
+// frequency-marked, assessment-identity phrase from the instructor's own
+// text; bare "weekly readings" or "weekly meetings" are deliberately not
+// assessment cadences.
+const RECURRING_ASSESSMENT_IDENTITY_RE =
+  /^(.*?\b(?:close[- ]reading checks?|reading responses?|discussion posts?|problem sets?|case briefs?|lab reports?|laboratory reports?|homework|assignments?|checks?|journals?|labs?|portfolios?|quizzes|reflections?|reports?|responses?|tests?|worksheets?)\b)/i;
+const ONE_OFF_ASSESSMENT_IDENTITY_RE =
+  /^(.*?\b(?:comparative essay proposal|essay proposal|final paper|final project|midterm exam(?:ination)?|papers?|projects?|proposals?|presentations?|portfolios?|performances?|reports?|exams?|tests?)\b)/i;
+
+function assessmentPhraseFromSource(value, { recurring = false } = {}) {
+  const text = cleanText(value, 180)
+    .replace(/^[,;:\-–—\s]+/, '')
+    .replace(/[.!?]+$/, '')
+    .trim();
+  if (!text) return '';
+  const match = (recurring ? RECURRING_ASSESSMENT_IDENTITY_RE : ONE_OFF_ASSESSMENT_IDENTITY_RE).exec(text);
+  if (!match) return '';
+  const phrase = cleanText(match[1], 120);
+  if (!phrase || (!recurring && !WEIGHTED_ASSESSMENT_IDENTITY_RE.test(phrase))) return '';
+  return phrase;
+}
+
+/**
+ * Recover explicit recurring assessment names from clauses such as
+ * "with weekly reading responses and close-reading checks".  A later list
+ * item inherits "weekly" only when it has no one-off determiner ("a
+ * midterm" is therefore not expanded fourteen times).
+ */
+export function recoverExplicitRecurringAssessmentCadences(sourceText) {
+  const source = String(sourceText || '');
+  const recovered = [];
+  const seen = new Set();
+  for (const match of source.matchAll(/\bweekly\s+([^.;\n]{1,220})/gi)) {
+    const parts = match[1].split(/\s*(?:,|\band\b|&)\s*/i);
+    parts.forEach((part, index) => {
+      if (!part || (index > 0 && /^(?:an?|one|two|three|the)\b/i.test(part.trim()))) return;
+      const phrase = assessmentPhraseFromSource(part, { recurring: true });
+      if (!phrase) return;
+      const title = index === 0 ? `weekly ${phrase}` : phrase;
+      const key = title.toLowerCase();
+      if (seen.has(key)) return;
+      seen.add(key);
+      recovered.push(title);
+    });
+  }
+  return recovered;
+}
+
+function recoverExplicitOneOffAssessments(sourceText, sessions) {
+  const topics = recoverExplicitLessonSequence(sourceText, sessions.length);
+  if (topics.length !== sessions.length) return [];
+  const recovered = [];
+  const seen = new Set();
+  const add = (title, dueSession) => {
+    const clean = cleanText(title, 140).replace(/^(?:an?|the)\s+/i, '');
+    const key = `${dueSession}:${clean.toLowerCase()}`;
+    if (!clean || seen.has(key)) return;
+    seen.add(key);
+    recovered.push({ title: clean, dueSession });
+  };
+  topics.forEach((topic, index) => {
+    const culmination = topic.match(/\bculminating\s+in\s+([^;,.]+)/i)?.[1];
+    const culminationTitle = assessmentPhraseFromSource(culmination);
+    if (culminationTitle) add(culminationTitle, index + 1);
+
+    // A final/midterm item named inside an explicit ordered lesson sequence is
+    // a due-date signal, not permission to turn the assessment into a second
+    // filler lesson. Keep the source's concise identity only.
+    const scheduled = topic.match(
+      /\b((?:final|midterm)\s+(?:essay proposal|paper|project|exam(?:ination)?|presentation|portfolio|performance|report|test))\b/i,
+    )?.[1];
+    if (scheduled) add(scheduled, index + 1);
+  });
+  return recovered;
+}
+
+function sourceSupportsNamedAssessmentTitle(title, sourceText) {
+  const source = cleanText(sourceText, 8000).toLowerCase();
+  const core = cleanText(title, 240)
+    .replace(EXPLICIT_ASSESSMENT_PERCENT_RE, '')
+    .replace(/\s*:\s*.+$/, '')
+    .trim()
+    .toLowerCase();
+  if (!source || !core || !WEIGHTED_ASSESSMENT_IDENTITY_RE.test(core)) return false;
+  if (source.includes(core)) return true;
+  const compactIdentity = core.match(
+    /\b(?:final\s+(?:paper|project|exam(?:ination)?|presentation|portfolio|performance|report|test)|midterm(?:\s+(?:exam(?:ination)?|test))?|comparative\s+essay\s+proposal)\b/i,
+  )?.[0];
+  return Boolean(compactIdentity && source.includes(compactIdentity.toLowerCase()));
+}
 
 function splitFusedWeightedAssessmentTitle(value) {
   let text = cleanText(value, 500);
@@ -1650,13 +1858,72 @@ export function parseNativeSkeletonResponse(text, { expectedLessons = null, sour
       });
     })
     .filter(Boolean);
-  // A recovered response has an incomplete assessment registry by
-  // construction. Use the compiler's complete deterministic cadence instead
-  // of treating an arbitrary prefix as the whole grading plan.
-  const assessments =
-    !recoveredFromTruncation && parsedAssessments.length > 0
-      ? parsedAssessments
-      : synthesizeSessionAssessments(sessions);
+  const recurringAssessmentCadences = recoverExplicitRecurringAssessmentCadences(sourceText);
+  const explicitOneOffAssessments = recoverExplicitOneOffAssessments(sourceText, sessions);
+  let assessmentCadenceRecovery = null;
+  let assessments;
+  if (!recoveredFromTruncation && recurringAssessmentCadences.length > 0) {
+    // The source is the grading-plan authority. Replace model-invented
+    // per-topic work with one deterministic row per explicit cadence and
+    // session, then retain only genuinely source-named one-off assessments.
+    // This is transcription, not content generation.
+    const recurring = sessions.flatMap((session) =>
+      recurringAssessmentCadences.map((cadence) => ({
+        title: `${cadence}: ${session.title}`,
+        kind: classifyAssessmentKind(cadence),
+        dueSession: session.order,
+      })),
+    );
+    const oneOff = explicitOneOffAssessments.map((entry) => ({
+      ...entry,
+      kind: classifyAssessmentKind(entry.title),
+    }));
+    const recoveredKeys = new Set(
+      [...recurring, ...oneOff].map(
+        (entry) =>
+          `${entry.dueSession}:${cleanText(entry.title, 240)
+            .toLowerCase()
+            .replace(/\s*:\s*.+$/, '')}`,
+      ),
+    );
+    const retained = parsedAssessments.filter((entry) => {
+      if (!sourceSupportsNamedAssessmentTitle(entry.title, sourceText)) return false;
+      const entryStem = cleanText(entry.title, 240)
+        .replace(EXPLICIT_ASSESSMENT_PERCENT_RE, '')
+        .replace(/\s*:\s*.+$/, '')
+        .trim()
+        .toLowerCase();
+      if (recurringAssessmentCadences.some((cadence) => cadence.toLowerCase() === entryStem)) return false;
+      const key = `${entry.dueSession}:${cleanText(entry.title, 240)
+        .toLowerCase()
+        .replace(/\s*:\s*.+$/, '')}`;
+      return !recoveredKeys.has(key);
+    });
+    const seen = new Set();
+    assessments = [...recurring, ...oneOff, ...retained]
+      .filter((entry) => {
+        const key = `${entry.dueSession}:${cleanText(entry.title, 240).toLowerCase()}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
+      .map((entry, index) => ({ id: `a${index + 1}`, ...entry }));
+    assessmentCadenceRecovery = {
+      kind: 'explicit-source-recurring-assessment-plan',
+      cadenceCount: recurringAssessmentCadences.length,
+      recoveredItemCount: recurring.length + oneOff.length,
+      oneOffCount: oneOff.length,
+      droppedUnsupportedItemCount: Math.max(0, parsedAssessments.length - retained.length),
+    };
+  } else {
+    // A recovered response has an incomplete assessment registry by
+    // construction. Use the compiler's complete deterministic cadence instead
+    // of treating an arbitrary prefix as the whole grading plan.
+    assessments =
+      !recoveredFromTruncation && parsedAssessments.length > 0
+        ? parsedAssessments
+        : synthesizeSessionAssessments(sessions);
+  }
 
   const parsedReadings = asArray(parsed.readings)
     .map((entry, index) => {
@@ -1668,6 +1935,41 @@ export function parseNativeSkeletonResponse(text, { expectedLessons = null, sour
   const recoveredReadings =
     parsedReadings.length === 0 ? recoverExplicitNamedReadings(sourceText, sessions.length) : [];
   const readings = parsedReadings.length > 0 ? parsedReadings : recoveredReadings;
+  let readingTopicRecovery = null;
+  let readingAlignedSessionCount = 0;
+  sessions = sessions.map((session) => {
+    const assigned = readings.filter((reading) => reading.dueSession === session.order);
+    if (assigned.length === 0) return session;
+    const readingTokens = new Set(
+      assigned
+        .flatMap((reading) => semanticIdentityTokens(reading.title))
+        .filter(
+          (token) =>
+            !['and', 'assigned', 'of', 'poem', 'poems', 'reading', 'readings', 'selected', 'the'].includes(token),
+        ),
+    );
+    const matchIndex = session.sectionTitles.findIndex((title) =>
+      semanticIdentityTokens(title).some((token) => readingTokens.has(token)),
+    );
+    let sectionTitles = session.sectionTitles;
+    if (matchIndex > 0) {
+      // Anything before the first assigned-reading match has already proved
+      // able to steer the compact model toward a different work. Keep the
+      // matching and subsequent topical structure only.
+      sectionTitles = sectionTitles.slice(matchIndex);
+    } else if (matchIndex < 0) {
+      sectionTitles = uniqueStrings([...assigned.map((reading) => reading.title), ...sectionTitles], 5);
+    }
+    if (JSON.stringify(sectionTitles) === JSON.stringify(session.sectionTitles)) return session;
+    readingAlignedSessionCount += 1;
+    return { ...session, sectionTitles };
+  });
+  if (readingAlignedSessionCount > 0) {
+    readingTopicRecovery = {
+      kind: 'instructor-named-reading-topic-boundary',
+      recoveredCount: readingAlignedSessionCount,
+    };
+  }
 
   // v0.14.7 WS-B1: per-session supporting resources/materials — same shape
   // and discipline as readings (verbatim titles, clamped dueSession, ids
@@ -1710,7 +2012,9 @@ export function parseNativeSkeletonResponse(text, { expectedLessons = null, sour
           },
         }
       : {}),
+    ...(readingTopicRecovery ? { readingTopicRecovery } : {}),
     ...(assessmentListRecovery.fusedEntryCount > 0 ? { assessmentListRecovery } : {}),
+    ...(assessmentCadenceRecovery ? { assessmentCadenceRecovery } : {}),
     // Only stamped when the caller supplied the brief text — absent means
     // "signal unknown" and the missing-resources lint stays un-armed (old
     // call sites and stashed skeletons keep today's behavior exactly).

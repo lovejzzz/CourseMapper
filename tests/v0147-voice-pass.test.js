@@ -23,8 +23,10 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import {
+  SCION_VOICE_MAX_SURFACES,
   VOICE_BATCH_SIZE,
   VOICE_MAX_SURFACES,
+  VOICE_TEXTURE_TARGET,
   applyVoiceResults,
   buildVoicePrompt,
   clearVoicePassOutcome,
@@ -172,6 +174,25 @@ describe('selectVoiceSurfaces — asymmetric, capped, kernel-aware', () => {
     const surfaces = selectVoiceSurfaces({ deliverables, courseMap, maxSurfaces: 3 });
     expect(surfaces).toHaveLength(3);
     expect(surfaces.map((surface) => surface.surfaceId)).toContain('assignments:lesson-1:overview');
+  });
+
+  it('keeps Scion voice work inside its reliable three-surface decode band', () => {
+    const surfaces = selectVoiceSurfaces({
+      deliverables,
+      courseMap,
+      maxSurfaces: SCION_VOICE_MAX_SURFACES,
+    });
+    expect(SCION_VOICE_MAX_SURFACES).toBe(3);
+    expect(surfaces).toHaveLength(3);
+  });
+
+  it('keeps source-anchored discussion questions compiler-authored', () => {
+    const surfaces = selectVoiceSurfaces({ deliverables, courseMap });
+    expect(
+      surfaces.some(
+        (surface) => surface.featureId === 'discussions' && surface.originalText.includes('Anchor your post in'),
+      ),
+    ).toBe(false);
   });
 
   it('uses the real quiz brief when a quiz-only course has no richer task', () => {
@@ -364,6 +385,22 @@ describe('lintVoiceResult — never-rename, kernel-aware, no padding floor', () 
     expect(verdict.reason).toContain('Professor Quantumfield');
   });
 
+  it('does not mistake sentence leads or curly possessives for invented entities', () => {
+    const literatureSurface = {
+      ...surface,
+      originalText:
+        "Write Week 5 reading responses about Li Bai's poetry and explain how one image shapes the interpretation.",
+      grounding: {
+        lessonTitle: 'Lesson 5: Tang Poetry',
+        keyConcepts: ['Li Bai', 'imagery'],
+      },
+    };
+    const rewrite =
+      'For Week 5, read Li Bai’s poetry closely and choose one image that changes the interpretation. ' +
+      'Explain the language that creates that effect, then revise the claim so it stays within the evidence.';
+    expect(lintVoiceResult(literatureSurface, rewrite)).toEqual({ ok: true, reason: '' });
+  });
+
   it('rejects markdown headers', () => {
     expect(lintVoiceResult(surface, `## Discussion\n${honest}`).ok).toBe(false);
   });
@@ -457,7 +494,7 @@ describe('runVoicePass — honest budgets and the v2 variety/texture gates', () 
     expect(events.find((event) => event.type === 'voicePassDone')?.detail).not.toContain('~$');
   });
 
-  it('skips the provider call when selected prose is already at the texture ceiling', async () => {
+  it('skips the provider call when selected prose already meets the release texture target', async () => {
     const { courseMap, deliverables } = compiledFixture(1);
     const selected = selectVoiceSurfaces({ deliverables, courseMap });
     expect(selected.length).toBeGreaterThan(0);
@@ -473,6 +510,7 @@ describe('runVoicePass — honest budgets and the v2 variety/texture gates', () 
     });
 
     expect(calls).toBe(0);
+    expect(VOICE_TEXTURE_TARGET).toBe(90);
     expect(result.spentUsd).toBe(0);
     expect(result.selfCheck).toEqual({ pre: 100, post: 100, verdict: 'skipped' });
     expect(result.skipped).toHaveLength(selected.length);
@@ -510,6 +548,7 @@ describe('runVoicePass — honest budgets and the v2 variety/texture gates', () 
       callModel,
       budgetUsd: 0.05,
       maxSurfaces: VOICE_MAX_SURFACES + 4,
+      skipTextureTarget: 101,
       onEvent: (event) => events.push(event.type),
     });
 
@@ -533,6 +572,7 @@ describe('runVoicePass — honest budgets and the v2 variety/texture gates', () 
         throw new Error('provider 500');
       },
       budgetUsd: 0.05,
+      skipTextureTarget: 101,
     });
     expect(result.exhausted).toBe(false);
     expect(result.voiced).toHaveLength(0);
@@ -551,7 +591,14 @@ describe('runVoicePass — honest budgets and the v2 variety/texture gates', () 
         rewrites: allSurfaces.map((surface) => ({ surfaceId: surface.surfaceId, text: clone })),
       }),
     });
-    const result = await runVoicePass({ deliverables, courseMap, callModel, budgetUsd: 0.05, maxSurfaces: 2 });
+    const result = await runVoicePass({
+      deliverables,
+      courseMap,
+      callModel,
+      budgetUsd: 0.05,
+      maxSurfaces: 2,
+      skipTextureTarget: 101,
+    });
     const duplicate = result.fallbacks.find((fallback) => /duplicate opening/.test(fallback.reason));
     expect(duplicate).toBeTruthy();
     expect(openingTrigram(clone)).toBe('start with the');
@@ -576,7 +623,13 @@ describe('runVoicePass — honest budgets and the v2 variety/texture gates', () 
         }),
       };
     };
-    const result = await runVoicePass({ deliverables, courseMap, callModel, budgetUsd: 0.05 });
+    const result = await runVoicePass({
+      deliverables,
+      courseMap,
+      callModel,
+      budgetUsd: 0.05,
+      skipTextureTarget: 101,
+    });
     expect(result.selfCheck).toBeTruthy();
     expect(result.selfCheck.verdict).toBe('reverted');
     expect(result.voiced).toHaveLength(0);
@@ -602,7 +655,13 @@ describe('runVoicePass — honest budgets and the v2 variety/texture gates', () 
         }),
       };
     };
-    const result = await runVoicePass({ deliverables, courseMap, callModel, budgetUsd: 0.05 });
+    const result = await runVoicePass({
+      deliverables,
+      courseMap,
+      callModel,
+      budgetUsd: 0.05,
+      skipTextureTarget: 101,
+    });
     expect(result.selfCheck).toBeTruthy();
     expect(result.selfCheck.verdict).toBe('improved');
     expect(result.selfCheck.post).toBeGreaterThan(result.selfCheck.pre);

@@ -81,7 +81,7 @@ describe('modelCapabilities', () => {
     const plan = createGenerationPlan(profile);
     expect(profile.quality).toBe('high');
     expect(getPrimaryModelFitLabel(profile, plan)).toBe('Best for full courses');
-    expect(getModelFitBadges(profile, plan).map((b) => b.label)).not.toContain('Fast draft');
+    expect(getModelFitBadges(profile, plan).map((b) => b.label)).not.toContain('Fast build');
   });
 
   it('keeps economy families (Haiku) labeled as fast drafts', () => {
@@ -92,12 +92,12 @@ describe('modelCapabilities', () => {
       capabilities: { jsonMode: true, toolCalling: true, streaming: true },
     });
     expect(profile.quality).toBe('fast');
-    expect(getPrimaryModelFitLabel(profile)).toBe('Fast draft');
+    expect(getPrimaryModelFitLabel(profile)).toBe('Fast build');
   });
 
   it('never labels an unrecognized future model as a fast draft by default', () => {
     // No economy or flagship name signal, modest reported output: a brand-new
-    // line must not be silently downgraded to "Fast draft".
+    // line must not be silently downgraded to "Fast build".
     const profile = createBaseModelCapabilities('anthropic', {
       id: 'claude-aurora-7',
       name: 'Claude Aurora 7',
@@ -105,7 +105,7 @@ describe('modelCapabilities', () => {
       capabilities: { jsonMode: false, toolCalling: true, streaming: true },
     });
     expect(profile.quality).not.toBe('fast');
-    expect(getPrimaryModelFitLabel(profile)).not.toBe('Fast draft');
+    expect(getPrimaryModelFitLabel(profile)).not.toBe('Fast build');
   });
 
   it('probes selected model JSON behavior once and reuses the cached profile', async () => {

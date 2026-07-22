@@ -116,6 +116,30 @@ export async function runNativeSkeletonGenerationFlow(input = [], output = []) {
         'warning',
       );
     }
+    if (skeleton.readingTopicRecovery) {
+      recordApiCallEvent?.({
+        type: 'nativeSkeletonRecovered',
+        label: 'Aligned lesson topics to assigned readings',
+        detail: `${skeleton.readingTopicRecovery.recoveredCount} lesson topic sets now begin at the instructor-named primary text boundary`,
+      });
+      addLog?.(
+        currentModelName,
+        `Aligned ${skeleton.readingTopicRecovery.recoveredCount} lesson topic sets to their instructor-assigned readings`,
+        'success',
+      );
+    }
+    if (skeleton.assessmentCadenceRecovery) {
+      recordApiCallEvent?.({
+        type: 'nativeSkeletonRecovered',
+        label: 'Preserved instructor assessment plan',
+        detail: `${skeleton.assessmentCadenceRecovery.cadenceCount} recurring assessment streams · ${skeleton.assessmentCadenceRecovery.oneOffCount} source-named milestones · ${skeleton.assessmentCadenceRecovery.droppedUnsupportedItemCount} unsupported model entries removed`,
+      });
+      addLog?.(
+        currentModelName,
+        `Preserved the instructor's assessment plan across all ${skeleton.sessions.length} lessons`,
+        'success',
+      );
+    }
     const nativeMap = nativeAuthoring.buildNativeWireMap(skeleton);
     nativeAuthoring.stashNativeSkeleton(skeleton);
     return completeCourseMapGeneration(

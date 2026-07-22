@@ -21,7 +21,7 @@ export const TRUST_TIERS = {
 };
 
 export const TRUST_TIER_LABELS = {
-  0: 'AI-drafted — review before use',
+  0: 'AI-generated — review before use',
   1: 'machine-verified',
   2: 'source-cited',
   3: 'instructor-verified',

@@ -23,6 +23,7 @@ import { scionFactContractForLesson } from './scionEvidenceContract.js';
 import { analyzeDecisionScenario } from './scenarioContract.js';
 import { extractExplicitCoverageTopics, extractExplicitLessonSequence } from './explicitLessonSequence.js';
 import { isMetaSurfaceText } from './metaSurfaceAdmission.js';
+import { collapseMechanicalContentWordEchoes } from './mechanicalTextSeams.js';
 import {
   PUBLIC_SCION_MAX_COMPLETION_TOKENS,
   PUBLIC_SCION_MODEL_ID,
@@ -120,6 +121,7 @@ const PUBLIC_SCION_HIGH_RISK_ISSUE_MARKERS = Object.freeze([
   'multiple-source-supported-options',
   'source-fact-index',
   'source-fact-key-mismatch',
+  'named-reading-unanchored',
   'template-residue',
 ]);
 const PUBLIC_SCION_CRITICAL_ISSUE_MARKERS = Object.freeze([
@@ -152,6 +154,7 @@ const PUBLIC_SCION_CRITICAL_ISSUE_MARKERS = Object.freeze([
   'source-fact-index',
   'source-fact-key-mismatch',
   'source-direction-conflict',
+  'named-reading-unanchored',
   'source-fact-ledger-mismatch',
   'template-residue',
 ]);
@@ -293,20 +296,34 @@ function repairPublicScionFactSentences(parsed) {
   for (const lesson of parsed.lessons) {
     if (!Array.isArray(lesson?.facts)) continue;
     lesson.facts = lesson.facts.map((fact, factIndex) => {
-      const value = String(fact || '').trim();
+      const original = String(fact || '').trim();
+      // Collapse only an exact adjacent content-word echo (for example,
+      // “classical allusion and allusion”). This preserves the claim while
+      // avoiding another full lesson inference for a mechanical defect.
+      const value = collapseMechanicalContentWordEchoes(original);
+      if (value !== original) {
+        repairs.push({
+          pass: 'collapseAdjacentFactEcho',
+          lessonId: lesson.lessonId || null,
+          item: factIndex,
+          before: original,
+          after: value,
+          trainingEligible: false,
+        });
+      }
       const alreadyValid =
         publicScionWordCount(value) >= 8 &&
         publicScionWordCount(value) <= 20 &&
         /[.!?][\])}"']?$/.test(value) &&
         !publicScionLooksTruncatedClaim(value);
-      if (alreadyValid) return fact;
+      if (alreadyValid) return value;
       const replacement = (value.match(/[^.!?]+[.!?]+/g) || [])
         .map((sentence) => sentence.trim())
         .find((sentence) => {
           const words = publicScionWordCount(sentence);
           return sentence.length >= 20 && words >= 8 && words <= 20;
         });
-      if (!replacement || replacement === value) return fact;
+      if (!replacement || replacement === value) return value;
       repairs.push({
         pass: 'completeFactSentence',
         lessonId: lesson.lessonId || null,
@@ -558,6 +575,16 @@ function publicScionFactIdentity(value) {
     .trim();
 }
 
+function publicScionNamedReadingAnchorCount(facts = [], requiredReadings = []) {
+  const readingList = Array.isArray(requiredReadings) ? requiredReadings : [];
+  const anchors = publicScionTopicTokens(readingList.join(' '));
+  if (anchors.size === 0) return 0;
+  return (Array.isArray(facts) ? facts : []).filter((fact) => {
+    const factTokens = publicScionTopicTokens(fact);
+    return [...anchors].some((token) => factTokens.has(token));
+  }).length;
+}
+
 function publicScionRelationTokens(value) {
   return new Set(
     String(value || '')
@@ -791,6 +818,13 @@ export function assessPublicScionKernelResponse(
       const factIdentities = facts.map(publicScionFactIdentity);
       if (new Set(factIdentities.filter(Boolean)).size !== factIdentities.filter(Boolean).length) {
         issues.push(`${expected.lessonId}:duplicate-facts`);
+      }
+      if (
+        Array.isArray(expected.requiredReadings) &&
+        expected.requiredReadings.length > 0 &&
+        publicScionNamedReadingAnchorCount(facts, expected.requiredReadings) === 0
+      ) {
+        issues.push(`${expected.lessonId}:named-reading-unanchored`);
       }
       facts.forEach((fact, index) => {
         const wordCount = publicScionWordCount(fact);
@@ -1035,7 +1069,7 @@ export function publicScionKernelResponseNeedsRetry(responseText, userPrompt, ta
 export function publicScionFactContractIssues(assessment = {}) {
   const issues = Array.isArray(assessment?.issues) ? assessment.issues : [];
   return issues.filter((issue) =>
-    /(?:^invalid-json$|^empty-response$|:missing-lesson(?:$|:)|:facts-count(?:$|:)|:duplicate-facts(?:$|:)|:fact-\d+:)/.test(
+    /(?:^invalid-json$|^empty-response$|:missing-lesson(?:$|:)|:facts-count(?:$|:)|:duplicate-facts(?:$|:)|:named-reading-unanchored(?:$|:)|:fact-\d+:)/.test(
       String(issue),
     ),
   );
@@ -1315,6 +1349,11 @@ export function buildPublicScionRetryFeedback(assessment = {}) {
     ...(allIssues.some((issue) => issue.includes('source-direction-conflict'))
       ? [
           'A comparative fact reverses a supplied increase/decrease relationship. Re-author it from the exact source claim without guessing.',
+        ]
+      : []),
+    ...(allIssues.some((issue) => issue.includes('named-reading-unanchored'))
+      ? [
+          'The facts ignored requiredReadings. Rewrite the ledger around the exact assigned work or author, name it directly, and remove analysis of any different titled work.',
         ]
       : []),
     ...(allIssues.some((issue) => issue.includes('source-role-conflict'))
@@ -2055,6 +2094,8 @@ ${
     : '- Write exactly 5 distinct facts per lesson. Each fact is one complete 8-20 word sentence, at least 20 characters, with terminal punctuation.\n'
 }- State subject knowledge, not teaching process, assignments, rubrics, evidence moves, or what students will do.
 - Treat a familiar title or topic as permission to state stable, widely accepted disciplinary knowledge about it. Ground every claim in the listed title, topics, objectives, readings, or instructor source brief, but do not merely report that those inputs mention or cover the topic.
+- NAMED READING OVERRIDE: when requiredReadings is present, the exact assigned work or author outranks a conflicting generic topic label. At least three facts must directly name or describe that assigned reading. Never substitute or analyze a different titled work, author, or tradition unless it also appears in requiredReadings. When no passage or edition is supplied, use only stable work-level knowledge: established characters, broad plot structure, themes, and formal features are allowed; never invent quotations, page or line locations, or edition-specific details.
+- Prefer inspectable relations over praise words. Avoid calling a work seminal, foundational, rich, complex, sophisticated, or important unless the same sentence names the exact feature or relationship that makes the claim useful.
 - Write facts that can support teaching decisions: at least three must define or distinguish a concept, and at least two must state a concrete feature, relation, or application that can be compared with another fact.
 - Never write course metadata such as "the course structure includes", "the instructor source brief indicates", "the readings suggest", "the lesson covers", or "students will learn". State the underlying subject claim directly instead.
 - Do not invent citations, URLs, page numbers, statistics, named studies, people, places, products, organizations, or events.

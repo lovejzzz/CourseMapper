@@ -21,10 +21,16 @@ export function buildQualityReviewIssue(quality) {
   const p0 = compactCount(counts.p0);
   const findingCount = countQualityFindings(quality);
   const score = Number(quality.score);
-  const textureScore = Number(quality.texture?.score);
-  const scoreNeedsReview = Number.isFinite(score) && score < 100;
-  const textureNeedsReview = Number.isFinite(textureScore) && textureScore < 100;
-  if (findingCount === 0 && !scoreNeedsReview && !textureNeedsReview) return null;
+  const grade = String(quality.grade || '')
+    .trim()
+    .toUpperCase();
+  const lowGradeNeedsReview = (grade && !['A', 'B'].includes(grade)) || (Number.isFinite(score) && score < 85);
+  // A score or texture meter below a mathematically perfect 100 is not, by
+  // itself, an actionable package issue. The old rule turned a zero-finding
+  // 99/A package into an amber "review" state even after every export check
+  // passed. Preserve the score as transparent evidence, but reserve warning
+  // language for an actual finding or a genuinely low grade.
+  if (findingCount === 0 && !lowGradeNeedsReview) return null;
 
   return {
     label: 'Package notes',
@@ -32,7 +38,7 @@ export function buildQualityReviewIssue(quality) {
       p0 > 0
         ? 'One content issue needs a fix before this package is ready to share.'
         : 'Some generated content should get a quick instructor review before publishing.',
-    count: Math.max(1, findingCount || Number(scoreNeedsReview) + Number(textureNeedsReview)),
+    count: Math.max(1, findingCount || Number(lowGradeNeedsReview)),
     severity: p0 > 0 ? 'blocker' : 'warning',
   };
 }

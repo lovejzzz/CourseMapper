@@ -459,6 +459,22 @@ describe('evaluateWorkspaceReadiness', () => {
     ]);
   });
 
+  it('scopes an assignment by its related lesson instead of its later due week', () => {
+    const data = {
+      assignments: [
+        {
+          title: 'Export audit',
+          relatedLessons: ['Lesson 1: Export Reliability'],
+          dueWeek: 'Week 4',
+          percentOfGrade: '100%',
+        },
+      ],
+    };
+
+    expect(scopeDeliverableDataToLessons('assignments', data, [0], courseMap).assignments).toHaveLength(1);
+    expect(scopeDeliverableDataToLessons('assignments', data, [1], courseMap).assignments).toHaveLength(0);
+  });
+
   it('warns on syllabus exports that still contain unresolved publishability placeholders', () => {
     const readiness = evaluateWorkspaceReadiness({
       courseMap,
@@ -1111,6 +1127,31 @@ describe('repairWorkspaceReadiness', () => {
     expect(primary.weeklyAssessments).toBe('Weekly inheritance analysis');
     expect(formative.weeklyAssessments).toMatch(/^In-class /);
     expect(classifyAssessmentKind(formative.weeklyAssessments)).toBe('in-class');
+  });
+
+  it('applies the in-class safeguard after literature-specific repair copy is selected', () => {
+    const result = repairCourseMapReadiness({
+      courseMap: {
+        courseName: 'World Literature',
+        lessons: [
+          {
+            title: 'Lesson 1: What Counts as World Literature',
+            sections: [
+              {
+                topicSection: 'Definitions of world literature',
+                weeklyAssessments: 'weekly reading responses: What Counts as World Literature',
+              },
+              { topicSection: 'Translation and circulation', weeklyAssessments: '' },
+            ],
+          },
+        ],
+      },
+    });
+
+    const formative = result.courseMap.lessons[0].sections[1].weeklyAssessments;
+    expect(formative).toMatch(/^In-class /);
+    expect(formative).toMatch(/passage|reading|tradition|form|language/i);
+    expect(classifyAssessmentKind(formative)).toBe('in-class');
   });
 
   it('repairs course map placeholders before warnings reach export', () => {

@@ -76,6 +76,7 @@ import {
 import { computeTexture, textureDocsFromFiles, buildTextureAdvisories, TEXTURE_VERSION } from './textureMetric.js';
 import { addPackageQuizDepthFindings } from './quizItemDepth.js';
 import { detectForeignLanguageTeachingContent, mandarinTargetLanguageRequirements } from '../languageIdentityGuard.js';
+import { buildAdditionalSubstanceFindings } from './deepQualitySubstanceDetails.js';
 import { parseClassSessionMinutes } from '../sourceBriefConstraints.js';
 
 // v0.14.3 WS-A A3: the grader version stamped into manifest.quality. Bump on
@@ -162,7 +163,18 @@ import { parseClassSessionMinutes } from '../sourceBriefConstraints.js';
 // legitimate genetics readings no longer receive a zero-vocabulary warning.
 // 1.10.27 — manifest-promised graded briefs may not resolve to a no-brief
 // shell, and repeated full lesson-title mail merge is a texture finding.
-export const GRADER_VERSION = '1.10.27';
+// 1.10.28 — learner-facing adjacent-word echoes and triplicated study-guide
+// misconceptions are substance failures; interpretive literature courses may
+// not silently inherit a creative-writing portfolio rubric.
+// 1.10.29 — citation relevance consumes the exported instructor-named reading
+// registry, keeping browser self-grading and offline regrading in lockstep.
+// 1.10.30 — adjacent-word echo detection distinguishes a legitimate paired
+// noun boundary ("frame narrative and narrative authority") from an actual
+// mechanical echo ("allusion and allusion in...").
+// 1.10.31 — the grader and compiler now share the same final-boundary echo
+// classifier, including intentional comparative repetition such as "closer
+// and closer".
+export const GRADER_VERSION = '1.10.31';
 
 // ── Dimension weights & letter bands (documented in the module header) ──────
 // v0.15.186: texture weight 10 → 25. At 10/120 a fully templated package
@@ -1846,9 +1858,9 @@ function blacklistYieldsForCitation(cite, lessonConceptTokenSets, disciplineToke
   return offenderYieldsToTopicalOverlap(titleTokenSet, conceptSet, { disciplineNameTokens: disciplineTokens });
 }
 
-function checkCitations(findings, { files }, course) {
+function checkCitations(findings, { files, manifest }, course) {
   const citationFiles = files.filter((file) => ['syllabus', 'lessonPlans'].includes(file.featureId));
-  const disciplineVocab = buildDisciplineVocab(course, files);
+  const disciplineVocab = buildDisciplineVocab(course, files, manifest);
   const citationStrings = [];
   for (const file of citationFiles) {
     for (const cite of extractCitationStrings(file)) {
@@ -2089,12 +2101,28 @@ function disciplineProbeVocab(probe) {
   return [];
 }
 
-function buildDisciplineVocab(course, files) {
+function buildDisciplineVocab(course, files, manifest = null) {
   const vocab = new Set();
   const add = (text) => {
     for (const token of contentTokens(String(text || '').replace(/[-–—/]/g, ' '))) vocab.add(token);
   };
   add(course?.title || '');
+  // The instructor brief is the strongest available relevance boundary in an
+  // offline Crucible run. It often names primary works and authors that do not
+  // appear in the generic discipline probe (Li Bai, The Odyssey, or a newly
+  // assigned contemporary work). Excluding it made legitimate source entries
+  // look off-topic while still allowing the same names everywhere else in the
+  // package. This does not trust generated prose: `course.prompt` is the
+  // caller-supplied course specification.
+  add(course?.prompt || '');
+  // The browser self-grader does not retain the private instructor prompt,
+  // but the exported manifest carries the exact, provenance-tagged reading
+  // registry. Use those titles as the same authoritative relevance boundary
+  // so in-app and offline grading cannot disagree about Li Bai, The Odyssey,
+  // or any newly assigned primary work.
+  for (const reading of Array.isArray(manifest?.readings) ? manifest.readings : []) {
+    add(reading?.title || '');
+  }
   // Lesson titles from BOTH the document covers and the file paths (the path
   // carries the canonical "Lesson NN - <Title> - <Deliverable>" naming even
   // when a cover line is too long to infer).
@@ -2176,8 +2204,11 @@ const PROCESS_GLOSSARY_PATTERN =
   /names the evidence focus|helps students separate description from evidence-backed reasoning|as a self-check|is the part of the lesson students must apply to the weekly artifact/gi;
 const TEMPLATE_QUIZ_RESIDUE_PATTERN =
   /two lesson concepts?|lesson concept to this concrete case|replace with (?:one complete distinction question|one concrete case question|a plausible subject-specific|a plausible case-specific)|plausible methodological claim or action|plausible case interpretation or action/gi;
-
 function checkSubstance(findings, { files }, course = {}) {
+  for (const finding of buildAdditionalSubstanceFindings({ files, course, quoteEvidence: quote })) {
+    findings.add(finding);
+  }
+
   // (1) cross-lesson boilerplate ratio per deliverable type.
   for (const [featureId, thresholds] of Object.entries(SUBSTANCE_BOILERPLATE_THRESHOLDS)) {
     const lessonFiles = files.filter((file) => file.featureId === featureId && file.lessonNumber != null);
@@ -3462,7 +3493,7 @@ function checkFormat(findings, { files }) {
   ];
   for (const file of files) {
     const templateArtifact =
-      /\b(this this lesson|this the lesson|the lesson criterion|(?:Proof-based problem set|Computational lab in Python):\s*(?:This|The)\s+lesson)\b/i.exec(
+      /\b(this this lesson|this the lesson|the lesson criterion|feedback-(?:based|informed)\s+the\s+|make\s+[^.!?]{1,100}\s+defend\s+one|strong\s+[^.!?]{1,100}\s+anchor\.|(?:Proof-based problem set|Computational lab in Python):\s*(?:This|The)\s+lesson)\b/i.exec(
         file.text || '',
       );
     if (templateArtifact) {
@@ -3472,6 +3503,20 @@ function checkFormat(findings, { files }) {
         file: file.path,
         detail: 'generic lesson placeholder leaked into student-facing artifact wording',
         evidence: templateArtifact[0],
+      });
+    }
+    const legacyLocalPlaceholder =
+      /\b(?:locally approved submission form|confirm the course-specific limit with the instructor)\b/i.exec(
+        file.text || '',
+      );
+    if (legacyLocalPlaceholder) {
+      findings.add({
+        severity: 'P2',
+        dimension: 'format',
+        file: file.path,
+        detail:
+          'assignment directions expose a compiler-era local-confirmation placeholder instead of polished task language',
+        evidence: legacyLocalPlaceholder[0],
       });
     }
     // FORMAT text patterns are scanned PER paragraph/cell line, never on the

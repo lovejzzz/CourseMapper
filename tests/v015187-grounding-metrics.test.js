@@ -220,6 +220,25 @@ describe('courseFaq atom routing (v0.15.187)', () => {
     expect(answers).toContain('requires independent corroboration');
   });
 
+  it('keeps a correction that starts with a term tail out of the "X: For X" echo shape', () => {
+    const echoEnrichment = JSON.parse(JSON.stringify(FULL_KERNEL_ENRICHMENT));
+    echoEnrichment.lessonContent['lesson-1'].keyTerms[0] = {
+      term: 'Concepts of the Fantastic',
+      definition: 'The fantastic challenges stable categories of narrative and reality.',
+      example: 'A library that contains every possible book makes order and meaning unstable.',
+      misconception: 'Students may treat the first clue as resolving every question.',
+      correction: 'For Fantastic and Infinite Library, connect the claims and preserve the open question.',
+    };
+    const blueprint = buildCourseBlueprint(KERNEL_COURSE, { enrichment: echoEnrichment });
+    const compiled = compileBlueprintDeliverables(blueprint, ['courseFaq'], {
+      configMap: { courseFaq: { questionsPerLesson: 10 } },
+    });
+    const answers = compiled.courseFaq.faqs[0].qs.map((item) => item.an).join('\n');
+
+    expect(answers).toContain('That is the trap for Concepts of the Fantastic. For Fantastic and Infinite Library');
+    expect(answers).not.toMatch(/\b([A-Z][\w &'-]{3,50}): For \1\b/);
+  });
+
   // Live crucible round 6 P1: the slide evidence-table cell composed
   // "definition — e.g., Example" without terminal punctuation; an example
   // ending on a preposition then read as a truncated bullet in the PPTX

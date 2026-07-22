@@ -1,0 +1,172 @@
+{
+  "version": "0.16.71",
+  "date": "July 22, 2026",
+  "title": "Make Ready Mean Ready",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test",
+      "npm run format:check",
+      "npm run lint",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification reruns release, format, lint, unit, build, and bundle gates after push."
+    },
+    "ciDeep": {
+      "status": "not-current",
+      "note": "No adapter is promoted and no paid-reference parity claim is made."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Production deployment remains downstream of the successful main verification run."
+    },
+    "liveProvider": {
+      "status": "success",
+      "url": "docs/evidence/SCION_V01671_PREMIUM_ZERO_BLOCKER.json",
+      "note": "The exact supplied Physical Geology failure is closed by a fresh pinned-base 99/A zero-finding browser package with a valid ZIP."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "Codex is the declared judge. No instructor, classroom, human-preference, or universal factual-validity claim is made."
+    },
+    "manualBrowser": {
+      "status": "success",
+      "url": "docs/evidence/SCION_V01671_PREMIUM_ZERO_BLOCKER.json",
+      "note": "Desktop and phone-width app surfaces were inspected, while Crucible exercised the complete generation, finalization, export, archive, and screenshot path."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01671-attached-geology-root-cause",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The supplied Geology package is physically healthy but lacks the registered Final (50%) exam content, which is the real 74/C P0.",
+      "anchors": ["docs/evidence/SCION_V01671_PREMIUM_ZERO_BLOCKER.json", "tests/v015187-exam-kind-classifier.test.js"],
+      "proofCommands": ["npx vitest run tests/v015187-exam-kind-classifier.test.js"],
+      "proofScopes": ["compiled-output", "unit"]
+    },
+    {
+      "id": "v01671-geology-zero-blocker-browser-proof",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "A fresh pinned-base Geology browser build completes at 99/A with zero findings, blockers, warnings, retries, console errors, or archive errors and passes 38/38 export checks.",
+      "anchors": ["docs/evidence/SCION_V01671_PREMIUM_ZERO_BLOCKER.json", "scripts/crucible.mjs"],
+      "proofCommands": [
+        "node scripts/crucible.mjs --courses geology --rounds 1 --concurrency 1 --llm local --authoring native"
+      ],
+      "proofScopes": ["browser-live", "compiled-output"]
+    },
+    {
+      "id": "v01671-clean-trust-state",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Zero-finding A/B packages receive a green success state without hiding their exact score, while actionable findings and failures retain review or blocked treatment.",
+      "anchors": [
+        "src/lib/packageTrustStatus.js",
+        "src/components/WorkspaceQualityChip.jsx",
+        "src/components/ExportSidePanel.jsx",
+        "tests/v0143-quality-badge.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run tests/v0143-quality-badge.test.js src/components/__tests__/ExportSidePanel.readiness.test.jsx"
+      ],
+      "proofScopes": ["unit", "browser-smoke"]
+    },
+    {
+      "id": "v01671-premium-package-language",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "The primary package experience uses one Download ZIP owner, Ready to download success copy, AI-generated provenance, and related-lesson-first assignment export identity without unfinished archive branding.",
+      "anchors": [
+        "src/components/ExportSidePanel.jsx",
+        "src/lib/genome/kernelSchema.js",
+        "src/components/chat/ChatPanel.jsx",
+        "src/lib/deliverableReadiness.js",
+        "src/lib/__tests__/deliverableReadiness.test.js",
+        "tests/export-smoke.spec.js"
+      ],
+      "proofCommands": ["npx playwright test tests/export-smoke.spec.js --project=chromium"],
+      "proofScopes": ["browser-smoke", "static-audit"]
+    },
+    {
+      "id": "v01671-local-save-recovery",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "Quota recovery persists a compact re-compilable course-map snapshot instead of losing the map or requiring another model run.",
+      "anchors": ["src/lib/projectAutosave.js", "src/lib/__tests__/projectAutosave.test.js"],
+      "proofCommands": ["npx vitest run src/lib/__tests__/projectAutosave.test.js"],
+      "proofScopes": ["unit", "browser-smoke"]
+    },
+    {
+      "id": "v01671-literature-compiler-depth",
+      "status": "verified-current",
+      "changelogHighlightIndex": 5,
+      "summary": "World Literature gains passage-based tasks, stronger reading-specific concepts, criterion-varied rubrics, and a meaningful final-paper weight through shared compiler changes.",
+      "anchors": [
+        "src/lib/courseBlueprintCompiler.js",
+        "src/lib/blueprintEnrichmentPass.js",
+        "src/lib/courseCompilerCopyVariants.js",
+        "docs/evidence/SCION_V01671_PREMIUM_ZERO_BLOCKER.json"
+      ],
+      "proofCommands": [
+        "npx vitest run src/lib/__tests__/courseBlueprintCompiler.test.js src/lib/__tests__/courseCompilerCopyVariants.test.js"
+      ],
+      "proofScopes": ["unit", "compiled-output", "browser-live"]
+    },
+    {
+      "id": "v01671-literature-zero-finding-replay",
+      "status": "verified-current",
+      "changelogHighlightIndex": 6,
+      "summary": "The final no-model World Literature compiler replay reaches 98/A with zero encoded findings after the fresh browser archive proves the full generation and export path.",
+      "anchors": [
+        "docs/evidence/SCION_V01671_PREMIUM_ZERO_BLOCKER.json",
+        "src/lib/mechanicalTextSeams.js",
+        "src/lib/quality/deepQualityGrader.js"
+      ],
+      "proofCommands": [
+        "npx vitest run src/lib/quality/__tests__/deepQualityStructure.test.js tests/v0147-texture-metric.test.js"
+      ],
+      "proofScopes": ["compiled-output", "unit", "browser-live"]
+    },
+    {
+      "id": "v01671-honest-paid-reference-gap",
+      "status": "verified-current",
+      "changelogHighlightIndex": 7,
+      "summary": "The paid reference wins both reversed-order complete-artifact reviews, so V0.16.71 makes no parity claim and records the next substantive compiler targets.",
+      "anchors": [
+        "docs/evidence/SCION_V01671_PREMIUM_ZERO_BLOCKER.json",
+        "scripts/prof/buildAnonymousCoursePair.mjs",
+        "scripts/prof/coursePairJudge.schema.json"
+      ],
+      "proofCommands": ["node scripts/prof/buildAnonymousCoursePair.mjs --help"],
+      "proofScopes": ["gold-audit", "static-audit"]
+    },
+    {
+      "id": "v01671-efficient-compiler-architecture",
+      "status": "verified-current",
+      "changelogHighlightIndex": 8,
+      "summary": "Geology uses three provider calls and World Literature thirteen actual generations while deterministic compilation produces all nine downstream material families.",
+      "anchors": ["docs/evidence/SCION_V01671_PREMIUM_ZERO_BLOCKER.json", "src/lib/courseBlueprintCompiler.js"],
+      "proofCommands": ["npm test"],
+      "proofScopes": ["browser-live", "compiled-output"]
+    },
+    {
+      "id": "v01671-model-and-provider-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 9,
+      "summary": "Gemma weights remain unchanged and the adapter inactive; shared compiler and trust repairs benefit compatible providers without creating a universal quality claim.",
+      "anchors": [
+        "README.md",
+        "docs/SCION_ADAPTER_ROADMAP.md",
+        "evaluation/scion-adapters/held-out-course-benchmark-v18.json",
+        "docs/evidence/SCION_V01671_PREMIUM_ZERO_BLOCKER.json"
+      ],
+      "proofCommands": ["npm run audit:release-history"],
+      "proofScopes": ["static-audit", "doc"]
+    }
+  ]
+}

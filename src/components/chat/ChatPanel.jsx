@@ -2388,7 +2388,7 @@ export default function ChatPanel({
           }),
           {
             role: 'assistant',
-            text: `I can set scope within the existing ${currentLessonCount} lessons locally. Expanding to ${targetLessonCount} lessons needs the Agent to draft new course-map lessons.`,
+            text: `I can set scope within the existing ${currentLessonCount} lessons locally. Expanding to ${targetLessonCount} lessons needs the Agent to create new course-map lessons.`,
           },
         ]);
         return true;

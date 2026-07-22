@@ -1692,6 +1692,47 @@ describe('source-ledger quality checks', () => {
     ).toBe(false);
   });
 
+  it('uses the exported reading registry to recognize newly assigned works in browser and offline grading', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'World Literature',
+          lessonScope: 'all',
+          requestedFeatures: ['syllabus'],
+          readiness: { status: 'ready', blockers: 0, warnings: 0, checkedSections: null },
+          readings: [
+            { id: 'R3.1', title: 'The Odyssey', lesson: 3, provenance: 'instructor-named' },
+            {
+              id: 'R5.1',
+              title: 'selected poems of Li Bai and Du Fu',
+              lesson: 5,
+              provenance: 'instructor-named',
+            },
+          ],
+          files: [{ path: 'Syllabus/World Literature - Syllabus.txt', feature: 'syllabus' }],
+        }),
+        'Syllabus/World Literature - Syllabus.txt': [
+          'WORLD LITERATURE — SYLLABUS',
+          'SOURCES & LICENSES',
+          'Wikipedia contributors. Li Bai. Wikipedia: https://en.wikipedia.org/wiki/Li_Bai (CC BY-SA 4.0)',
+          'Wikipedia contributors. Translations of the Odyssey. Wikipedia: https://en.wikipedia.org/wiki/Translations_of_the_Odyssey (CC BY-SA 4.0)',
+        ].join('\n'),
+      }),
+      course: {
+        title: 'World Literature',
+        featureIds: ['syllabus'],
+      },
+    });
+
+    expect(
+      result.findings.some(
+        (finding) =>
+          finding.dimension === 'citations' &&
+          finding.detail === 'citation shares zero vocabulary with the course discipline (possible off-topic reading)',
+      ),
+    ).toBe(false);
+  });
+
   it('recognizes the Hardy-Weinberg principle as an on-discipline genetics citation', async () => {
     const result = await grade({
       fileProvider: createMemoryFileProvider({

@@ -128,17 +128,22 @@ export function compactRepeatedCourseFocusReferences(value, fullFocus, { limit =
   // as the exact mail-merge phrase in the exported DOCX. Preserve a useful
   // three-word phrase when stop-word removal already makes it distinct;
   // otherwise use two topic words.
-  const topicSurfaces =
-    firstThreeTopicSurfaces.join(' ').toLowerCase() === focus.toLowerCase()
-      ? firstThreeTopicSurfaces.slice(0, 2)
-      : firstThreeTopicSurfaces;
+  const threeSurfaceCandidate = firstThreeTopicSurfaces.join(' ');
+  // Leading articles are removed by courseCopySurfaceWords. Without this
+  // containment check, "The Medieval Journey Narrative" compacted to "the
+  // Medieval Journey Narrative focus" — visually different, but still the
+  // exact full title repeated in every sentence. Test the grammatical local
+  // reference we are about to emit, not only the bare candidate.
+  const preservesFullFocus =
+    threeSurfaceCandidate && new RegExp(escapeRegexLiteral(focus), 'i').test(`the ${threeSurfaceCandidate} focus`);
+  const topicSurfaces = preservesFullFocus ? firstThreeTopicSurfaces.slice(0, 2) : firstThreeTopicSurfaces;
   const topicKeyword =
     topicSurfaces
       .map((surface) => originalWords.find((word) => word.toLowerCase() === surface.toLowerCase()) || surface)
       .join(' ') || 'lesson';
   return compactRepeatedLessonFocus(value, focus, {
     count: 0,
-    limit: Math.max(1, Number(limit) || 6),
+    limit: Math.max(0, Number.isFinite(Number(limit)) ? Number(limit) : 6),
     topicKeyword,
   });
 }
@@ -254,29 +259,13 @@ export function compactAssignmentBriefBodyReferences({ brief = {}, lesson = {}, 
       compacted[field],
     ]),
   );
-  // Two prose anchors are enough once the heading, related-lesson identity,
-  // and named reading remain exact. Four body mentions still crossed the
-  // rendered mail-merge threshold after the filename and identities counted.
-  const reducedBody = compactRepeatedCourseFocusReferences(compactedBody, fullFocus, { limit: 2 });
+  // The heading and Related Lessons line already preserve exact identity for
+  // every brief. A lesson may carry three legitimate briefs, so even one extra
+  // full-title mention per body crosses the rendered mail-merge threshold.
+  // Body prose therefore uses grammatical local references while named
+  // readings remain protected and exact.
+  const reducedBody = compactRepeatedCourseFocusReferences(compactedBody, fullFocus, { limit: 0 });
   return { ...compacted, ...restoreProtectedReadings(reducedBody) };
-}
-
-const GENERIC_SELF_ASSESSMENT_SIGNAL_RE =
-  /^(?:criterion\b|strong evidence addresses\b|a strong signal addresses\b|look for evidence about\b|look for a concrete change\b|revise\b.+\bfor (?:this|the) criterion\b|mark the feedback-informed change\b)/i;
-
-export function assignmentSelfAssessmentEvidenceCheck({ evidenceSignal, index = 0, lessonFocus, assignmentType }) {
-  const signal = cleanText(evidenceSignal);
-  if (signal && !GENERIC_SELF_ASSESSMENT_SIGNAL_RE.test(signal)) return signal;
-
-  const focus = stripTerminalPunctuation(cleanText(lessonFocus, 'the lesson concept'));
-  const artifact = stripTerminalPunctuation(cleanText(assignmentType, 'assignment')).toLowerCase();
-  const checks = [
-    `Identify one inspectable ${focus} detail from the lesson materials, explain the ${artifact} decision it supports, and state one limitation`,
-    `Trace the reasoning from ${focus} evidence to the ${artifact} decision and name the assumption or tradeoff that could change it`,
-    `Make the evidence, decision, and limitation easy for a reader to locate in the ${artifact}`,
-    `Name one feedback-informed revision to the ${artifact} and explain how it strengthened the evidence or reasoning`,
-  ];
-  return checks[Math.max(0, Math.min(checks.length - 1, Number(index) || 0))];
 }
 
 const EXAM_UNDERSTAND_CORRECT_TEMPLATES = [

@@ -59,6 +59,9 @@ export default defineConfig({
           // Keep it independently cacheable so adding texture does not make
           // the disciplinary frame chunk pay the parsing/invalidation cost.
           if (/src\/lib\/courseCompilerCopyVariants\.js$/.test(id)) return 'compilerCopyVariants';
+          if (/src\/lib\/courseCompilerReadingProfiles\.js$/.test(id)) return 'compilerReadingProfiles';
+          if (/src\/lib\/courseCompilerRubricCopy\.js$/.test(id)) return 'compilerRubricCopy';
+          if (/src\/lib\/quality\/deepQualitySubstanceDetails\.js$/.test(id)) return 'deepQualitySubstanceDetails';
         },
       },
     },

@@ -8,6 +8,7 @@ import {
   partitionCumulativeAssessmentLessons,
   preserveSourceProof,
   projectCumulativeAssessmentKernels,
+  requireNativeAuthorshipForNamedReadings,
   repairCourseGraphResourceIds,
   restoreCourseGraphForProject,
 } from '../nativeGraphAuthoring.js';
@@ -259,6 +260,58 @@ describe('completeNativeKernelSurfaces', () => {
     expect(completed.kernel.facts).toHaveLength(5);
     expect(completed.slideContent.length).toBeGreaterThanOrEqual(1);
     expect(assessProjectedKernelCoverage(completed).usable).toBe(true);
+  });
+
+  it('projects an interpretive reading task from a named text instead of synthetic claim cards', () => {
+    const completed = completeNativeKernelSurfaces(
+      {
+        keyTerms: [],
+        quizItems: [
+          {
+            index: 3,
+            type: 'short_answer',
+            question: 'Claim A: homecoming. Claim B: identity. Compare the supplied claim cards.',
+            enrichmentSource: 'fact-ledger-projection',
+          },
+          {
+            index: 5,
+            type: 'essay',
+            question: 'Evaluate the supplied claim cards.',
+            enrichmentSource: 'fact-ledger-projection',
+          },
+        ],
+        kernel: {
+          facts: [
+            'Homeric narrative form organizes The Odyssey around a difficult homecoming.',
+            'Nostos makes return, identity, and recognition part of the epic interpretation.',
+            'Repeated epithets connect oral-form technique to characterization in epic poetry.',
+            'A counter-reading can test whether cunning strengthens or complicates heroic identity.',
+            'Another passage may limit a claim drawn from one episode of the assigned work.',
+          ],
+        },
+      },
+      {
+        lessonNumber: 3,
+        title: 'Lesson 3: Homeric Epic',
+        sections: [
+          {
+            topicSection: 'Homeric Narrative Form',
+            learningObjectives: 'Interpret formal choices in epic poetry.',
+            readings: ['The Odyssey'],
+          },
+        ],
+      },
+    );
+
+    expect(completed.kernel.scenario).toMatchObject({ source: 'assigned-reading-projection' });
+    expect(completed.kernel.scenario.materials).toContain('assigned edition of The Odyssey');
+    expect(completed.quizItems.filter((item) => item.type !== 'multiple_choice')).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ question: expect.stringContaining('locatable passage') }),
+        expect.objectContaining({ question: expect.stringContaining('formal feature') }),
+      ]),
+    );
+    expect(JSON.stringify(completed.quizItems)).not.toMatch(/Claim A:|supplied claim cards/i);
   });
 
   it('completes a sentence-completion MC stem before projecting it as a key-term example', () => {
@@ -580,6 +633,32 @@ describe('completeNativeKernelSurfaces', () => {
   });
 });
 
+describe('named-reading authorship boundary', () => {
+  it('removes a generic library kernel before it can replace an instructor-assigned primary text', () => {
+    const lessonContent = {
+      'lesson-1': { enrichmentSource: 'genome-linked', kernel: { facts: ['A generic epic fact.'] } },
+      'lesson-2': { enrichmentSource: 'genome-linked', kernel: { facts: ['A general literature fact.'] } },
+    };
+    const partialOverlays = {
+      'lesson-1': { enrichmentSource: 'genome-partial', keyTerms: [{ term: 'composite authorship' }] },
+    };
+    const lessons = [
+      {
+        title: 'Lesson 1: Homeric Epic',
+        sections: [{ topicSection: 'Epic form', readings: ['The Odyssey'] }],
+      },
+      { title: 'Lesson 2: Literary Circulation', sections: [{ topicSection: 'Circulation' }] },
+    ];
+
+    expect(requireNativeAuthorshipForNamedReadings([0, 1], lessonContent, partialOverlays, lessons)).toEqual([
+      'lesson-1',
+    ]);
+    expect(lessonContent['lesson-1']).toBeUndefined();
+    expect(partialOverlays['lesson-1']).toBeUndefined();
+    expect(lessonContent['lesson-2']).toBeTruthy();
+  });
+});
+
 describe('cumulative assessment kernel projection', () => {
   const lessonTitles = [
     'Mendelian inheritance',
@@ -777,6 +856,57 @@ describe('cumulative assessment kernel projection', () => {
     expect(assessProjectedKernelCoverage(lessonContent['lesson-3']).usable).toBe(true);
   });
 
+  it('samples the full taught span and never labels one lesson fact with another lesson term', () => {
+    const spanLessons = [
+      ...Array.from({ length: 13 }, (_, index) => ({
+        title: `Lesson ${index + 1}: Topic ${index + 1}`,
+        sections: [{ topicSection: `Topic ${index + 1}` }],
+      })),
+      { title: 'Lesson 14: Course Synthesis', sections: [{ topicSection: 'Final Paper Workshop' }] },
+    ];
+    const lessonContent = Object.fromEntries(
+      Array.from({ length: 13 }, (_, index) => [
+        `lesson-${index + 1}`,
+        {
+          kernel: {
+            facts: [
+              `Topic ${index + 1} establishes a distinct course claim supported by its assigned evidence.`,
+              `Topic ${index + 1} also establishes one bounded interpretive limitation for comparison.`,
+              `Topic ${index + 1} requires evidence before extending its conclusion to another text.`,
+            ],
+          },
+          keyTerms: [
+            {
+              term: `Term ${index + 1}`,
+              definition: `Term ${index + 1} is the precise concept established by Topic ${index + 1}.`,
+              example: `The Topic ${index + 1} example applies Term ${index + 1} to assigned evidence.`,
+              misconception: `A reader may apply Term ${index + 1} without checking the assigned evidence.`,
+              correction: `Use the Topic ${index + 1} evidence boundary when applying Term ${index + 1}.`,
+            },
+          ],
+        },
+      ]),
+    );
+
+    const result = projectCumulativeAssessmentKernels({
+      lessonContent,
+      courseMapLessons: spanLessons,
+      lessonIndices: [13],
+      courseName: 'World Literature',
+    });
+
+    expect(result.projectedLessonIndices).toEqual([13]);
+    const finalLesson = lessonContent['lesson-14'];
+    expect(finalLesson.kernel.facts).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('Topic 1 establishes'),
+        expect.stringContaining('Topic 13 establishes'),
+      ]),
+    );
+    expect(finalLesson.studyGuide.summary).not.toMatch(/Term \d+:/);
+    expect(finalLesson.studyGuide.reviewStrategy).toContain('connect each claim to its source lesson');
+  });
+
   it('reuses admitted subject facts verbatim and produces usable assessment kernels without touching the lab', () => {
     const lessonContent = {};
     for (let index = 0; index < 9; index += 1) {
@@ -803,6 +933,41 @@ describe('cumulative assessment kernel projection', () => {
       expect(payload.kernel.facts.every((fact) => sourceFactSet.has(fact))).toBe(true);
       expect(payload.sourceLessonIds.every((lessonId) => Number(lessonId.replace('lesson-', '')) <= 9)).toBe(true);
     }
+  });
+
+  it('treats an instructor-named primary text as evidence rather than a glossary definition', () => {
+    const result = completeNativeKernelSurfaces(
+      {
+        enrichmentSource: 'scion-model',
+        kernel: {
+          facts: [
+            'Li Bai often uses expansive natural imagery and an exuberant lyric voice.',
+            'Du Fu often connects compressed poetic form to social and historical pressures.',
+            'Tang regulated verse balances tonal and structural constraints with concentrated imagery.',
+          ],
+          scenario: {
+            setup: 'Readers compare two assigned Tang poems and mark the formal evidence behind each interpretation.',
+            materials: 'selected poems of Li Bai and Du Fu',
+          },
+        },
+      },
+      {
+        lessonNumber: 5,
+        title: 'Lesson 5: Tang Poetry',
+        sections: [
+          {
+            topicSection: '5.1: selected poems of Li Bai and Du Fu',
+            readings: ['selected poems of Li Bai and Du Fu'],
+            weeklyAssessments: 'close-reading check',
+          },
+          { topicSection: '5.2: Characteristics of Tang Verse', readings: ['selected poems of Li Bai and Du Fu'] },
+        ],
+      },
+    );
+
+    expect(result.keyTerms[0].term).toBe('Characteristics of Tang Verse');
+    expect(result.keyTerms[0].term).not.toBe('selected poems of Li Bai and Du Fu');
+    expect(result.assignmentCore.taskDescription).toContain('Characteristics of Tang Verse');
   });
 
   it('preserves the target-language contract in compiler-projected cumulative review lessons', () => {

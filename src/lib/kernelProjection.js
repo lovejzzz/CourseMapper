@@ -545,6 +545,19 @@ function buildShortAnswerItem(kernel, index, seed = 0, { compactFactLedgerAnswer
   if (!setup && !exampleAnchor) return null;
   const materials =
     stripTerminalPeriod(kernel?.scenario?.materials) || (setup ? 'the scenario evidence' : 'the lesson example');
+  if (cleanText(kernel?.scenario?.source) === 'assigned-reading-projection') {
+    return {
+      index,
+      type: 'short_answer',
+      question: `Using ${materials}, state a defensible interpretation of ${cleanText(term.term)}. Identify one formal detail, explain its effect, test a counter-reading, and name what another passage could change.`,
+      options: [],
+      answerIndex: 0,
+      distractorRationales: [],
+      answer: `Answers will vary with the selected passage. A strong response identifies a locatable formal detail, explains how it warrants the interpretation of ${cleanText(term.term)}, tests one plausible counter-reading against the same passage, and keeps the conclusion open to revision by another passage.`,
+      explanation: '',
+      scoringGuidance: `Score four visible moves: locatable passage evidence, a named formal feature, an interpretive warrant, and a tested counter-reading or evidence boundary. Plot summary alone is incomplete.`,
+    };
+  }
   const compactFactLedgerScenario =
     cleanText(term?.source) === 'fact-ledger-projection' && /\btwo supplied claim cards\b/i.test(materials);
   const evidenceRequirement = scenarioEvidenceRequirement(
@@ -596,6 +609,22 @@ function buildShortAnswerItem(kernel, index, seed = 0, { compactFactLedgerAnswer
 function buildEssayItem(kernel, index, seed = 0) {
   const discussion = kernel?.discussionPrompt;
   const terms = Array.isArray(kernel?.keyTerms) ? kernel.keyTerms : [];
+  if (cleanText(kernel?.scenario?.source) === 'assigned-reading-projection' && terms.length > 0) {
+    const term = terms[1] || terms[0];
+    const materials = stripTerminalPeriod(kernel?.scenario?.materials) || 'the assigned text';
+    return {
+      index,
+      type: 'essay',
+      question: `Compare two plausible interpretations of ${cleanText(term.term)} using ${materials}. Defend the stronger reading through a formal feature, answer the best counter-reading, and limit the conclusion to what the selected passage supports.`,
+      options: [],
+      answerIndex: 0,
+      distractorRationales: [],
+      answer: `Answers will vary with the selected passage. Strong work makes the two interpretations genuinely distinct, shows how a formal feature favors one reading, treats the counter-reading fairly, and narrows the conclusion where the passage or its context remains inconclusive.`,
+      explanation: '',
+      scoringGuidance:
+        'Look for a contestable claim, locatable passage evidence, analysis of form, a substantive counter-reading, and an evidence-bounded conclusion. Summary or unsupported preference does not earn full credit.',
+    };
+  }
   let prompt = cleanText(discussion?.prompt);
   let term = terms[1] || terms[0];
   let positions = Array.isArray(discussion?.positions) ? discussion.positions.map(cleanText).filter(Boolean) : [];

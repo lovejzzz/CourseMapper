@@ -171,6 +171,12 @@ const lazyChunkBudgets = [
   // gzip at the existing 8 KiB ceiling; it eliminates the live exported-docx
   // mail-merge repetition that motivated the new branch.
   { prefix: 'compilerCopyVariants-', rawKiB: 23, gzipKiB: 8.25 },
+  // v0.16.71: literature submission profiles are substantial instructional
+  // data, not compiler control flow. They load only with compilation.
+  { prefix: 'compilerReadingProfiles-', rawKiB: 30, gzipKiB: 9 },
+  // v0.16.71: evidence-check rotations and criterion-level performance bands
+  // are a separate compile-only leaf (measured 9.1/3.2 KiB).
+  { prefix: 'compilerRubricCopy-', rawKiB: 10, gzipKiB: 3.5 },
   // v0.16.65: varied assessment and material-polish copy moved out of the
   // compiler hot chunk. This compile-only leaf stays independently cacheable.
   { prefix: 'compilerPolish-', rawKiB: 8, gzipKiB: 3 },
@@ -215,6 +221,9 @@ const lazyChunkBudgets = [
   // plans. Research-method citation calibration measures 65.1/22.5 KiB while
   // keeping this grader lazy and off the initial route.
   { prefix: 'deepQualityGrader-', rawKiB: 66, gzipKiB: 23 },
+  // v0.16.71: premium finish checks remain finalize-only and independently
+  // cacheable from the grader's scoring/control-flow implementation.
+  { prefix: 'deepQualitySubstanceDetails-', rawKiB: 8, gzipKiB: 3 },
   // The finalize-time grading seam AppFlow lazy-imports (assembles the file
   // map via packageZipExporter and returns the badge data; measured at
   // 1.1 KiB raw / 0.6 gzip).
@@ -231,9 +240,12 @@ const forbiddenInitialChunks = [
   /courseMapContinuation/i,
   /compilerFrames/i,
   /compilerCopyVariants/i,
+  /compilerReadingProfiles/i,
+  /compilerRubricCopy/i,
   /compilerPolish/i,
   /webllm/i,
   /deepQualityGrader/i,
+  /deepQualitySubstanceDetails/i,
   /finalizeQualityGate/i,
   /citation-js/i,
   /exceljs/i,

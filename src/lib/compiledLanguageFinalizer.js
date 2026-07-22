@@ -15,6 +15,7 @@
 import { isInternalExportMetadataKey } from './exporters/exporterUtils';
 import { recordLegacyPathHit } from './legacyPathTelemetry';
 import { artifactKindOf, shortArtifactReference, shortReferenceForKind, titleHeadNoun } from './artifactReference';
+import { collapseMechanicalContentWordEchoes } from './mechanicalTextSeams.js';
 
 export { shortArtifactReference } from './artifactReference';
 
@@ -139,6 +140,18 @@ const SHORT_CODE_WORD_RE = /^(?:a|an|and|or|not|in|is|if|as|for|on|at|to|by|of|d
 
 function fixMechanicalSeams(value) {
   let text = repairPromptParameterScaffolds(value);
+  text = collapseMechanicalContentWordEchoes(text);
+  // Compact-restored projects can carry historical fallback clauses that
+  // were correct as internal constraints but read like unfinished compiler
+  // notes. Repair them at the final reader-visible boundary without another
+  // model call or any change to the underlying requirement.
+  text = text
+    .replace(/\blocally approved submission form\b/gi, 'submission format specified in the course site')
+    .replace(
+      /\bconfirm the course-specific limit with the instructor\b/gi,
+      'follow the stated scope and length requirements',
+    )
+    .replace(/\bMake\s+([^.!?]{1,100}?)\s+defend\s+one\b/gi, 'Use $1 to defend one');
   // v0.14.1 (5.1): markdown code spans render their backticks verbatim in
   // Office text ("`{'name': 'Ava', 'age': 19}` maps labels to data" shipped
   // on slides in the OUTPUT-V014 audit) — enriched key-term examples carry
@@ -644,6 +657,11 @@ function compressStudyGuideTitleMentions(guide) {
 function rewriteStudyGuideScope(guide, targets, contextLessonNumber = 0) {
   rewriteScope(guide, targets, contextLessonNumber);
   compressStudyGuideTitleMentions(guide);
+  // Title compression can itself create an adjacent echo when a compact
+  // topic meets the next named concept (for example, "Family and Family
+  // Members Vocabulary"). Keep mechanical cleanup at the true final
+  // reader-visible boundary rather than assuming earlier passes stay final.
+  walkAndRewrite(guide, (value) => fixMechanicalSeams(value));
 }
 
 function rewriteDeckScope(deck, targets, contextLessonNumber = 0) {

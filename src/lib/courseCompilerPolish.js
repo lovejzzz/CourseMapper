@@ -34,7 +34,7 @@ export function examFactCopy({ lessonNumber, questionIndex = 0, assessmentTitle,
       `${assessmentTitle} concept check: separate the admitted ${lessonFocus} fact from unsupported interpretations.`,
     ]),
     question: selectVariant(seed, [
-      `A lab team compares four claims about ${lessonFocus} with its course evidence. Which claim is defensible?`,
+      `A study group compares four claims about ${lessonFocus} with the course evidence. Which claim is defensible?`,
       `Which option matches the course's supported account of ${lessonFocus}?`,
       `Based on the course evidence, which claim about ${lessonFocus} is defensible?`,
       `Which claim correctly represents ${lessonFocus} in this course?`,
@@ -150,11 +150,13 @@ export function polishedCourseThroughline(context, firstTitle, lastTitle, fallba
 }
 
 export function assessmentRevisionCriterion({ title, concept, artifact }) {
+  const criterionConcept = cleanText(concept).replace(/^(?:a|an|the)\s+/i, '');
+  const criterionArtifact = cleanText(artifact).replace(/^(?:a|an|the)\s+/i, '');
   const variants = [
-    `Feedback-informed ${concept} revision evidence for ${artifact}`,
-    `${concept} revision rationale and feedback uptake in ${artifact}`,
-    `Documented feedback response that improves the ${concept} reasoning in ${artifact}`,
-    `Revision note showing how feedback changed the ${concept} decision in ${artifact}`,
+    `Feedback-informed revision evidence for ${criterionConcept} in ${criterionArtifact}`,
+    `${criterionConcept} revision rationale and feedback uptake in ${criterionArtifact}`,
+    `Documented feedback response that improves the ${criterionConcept} reasoning in ${criterionArtifact}`,
+    `Revision note showing how feedback changed the ${criterionConcept} decision in ${criterionArtifact}`,
   ];
   const seed = Array.from(cleanText(`${title} ${concept} ${artifact}`)).reduce(
     (sum, char) => sum + char.charCodeAt(0),

@@ -76,6 +76,16 @@ const BARE_MIDTERM_FINAL_RE = /^\s*(?:midterm|final)s?\s*(?:\(\s*\d+(?:\.\d+)?\s
 const NON_EXAM_ASSESSMENT_HEAD_RE =
   /\b(problem set|computational lab|lab|notebook|worksheet|project|report|essay|assignment|brief|reflection|study guide|checklist|practice set)\b/i;
 
+// Readiness repair used these exact literature-specific frames to fill an
+// otherwise empty section-level check. They are practice inside a lesson,
+// not extra graded submissions. Older saved projects predate the explicit
+// "In-class" prefix, so recognize the compiler-owned sentence signatures at
+// the graph boundary as well as at compile time. The suffixes are deliberately
+// precise: ordinary instructor-named responses, memos, and comparisons keep
+// their normal graded-artifact classification.
+const SYNTHESIZED_FORMATIVE_ASSESSMENT_RE =
+  /(?:\bcomparative close-reading:\s*compare two passages by the selected writers, synthesize one claim, and support it with quoted details|\bcomparison:\s*connect two passages, authors, or traditions through a defensible claim|\bevidence memo:\s*explain how form, language, or context changes the reading|\binterpretive response:\s*test one reading against a specific passage and one alternative)\.?$/i;
+
 function nonExamAssessmentHead(title) {
   const head = String(title || '')
     .split(':')[0]
@@ -92,6 +102,7 @@ export function classifyAssessmentKind(title) {
     return 'graded-artifact';
   }
   if (EXAM_HEAD_RE.test(text)) return 'exam';
+  if (SYNTHESIZED_FORMATIVE_ASSESSMENT_RE.test(text)) return 'in-class';
   const bareMidtermOrFinal = BARE_MIDTERM_FINAL_RE.test(text);
   const explicitPercent = parseExplicitPercent(text) !== null;
   for (const [kind, pattern] of ASSESSMENT_KIND_RULES) {
@@ -168,6 +179,23 @@ function readingAtoms(value) {
 // than weekly artifacts; in-class activities carry no grade weight.
 const KIND_WEIGHT_UNITS = { exam: 3, oral: 2, 'graded-artifact': 1, 'in-class': 0 };
 
+function assessmentWeightUnits(assessment = {}) {
+  if (assessment.kind === 'in-class') return 0;
+  const title = cleanText(assessment.title).toLowerCase();
+  // When the instructor names a culminating artifact but supplies no official
+  // percentages, equal splitting can make a final paper worth less than a
+  // weekly check. Preserve explicit percentages above; this hierarchy is only
+  // the compiler's provisional distribution for unweighted registry rows.
+  if (
+    /\b(?:final|capstone)\s+(?:paper|essay|project|portfolio|presentation|report|performance)\b|\bthesis\b/.test(title)
+  ) {
+    return 6;
+  }
+  if (assessment.kind === 'exam' && /\b(?:final|comprehensive)\b/.test(title)) return 6;
+  if (/\bproposal\b/.test(title)) return 2;
+  return KIND_WEIGHT_UNITS[assessment.kind] || 1;
+}
+
 /** Largest-remainder integer split of `total` across `units` (0-unit → 0). */
 function distributeIntegerWeights(total, units) {
   const sum = units.reduce((acc, unit) => acc + unit, 0);
@@ -223,14 +251,14 @@ function allocateRegistryWeights(assessments) {
     }
     const lessonNumbers = [...byLesson.keys()].sort((a, b) => a - b);
     const lessonUnits = lessonNumbers.map((number) =>
-      byLesson.get(number).reduce((acc, assessment) => acc + (KIND_WEIGHT_UNITS[assessment.kind] || 1), 0),
+      byLesson.get(number).reduce((acc, assessment) => acc + assessmentWeightUnits(assessment), 0),
     );
     const lessonShares = distributeIntegerWeights(remaining, lessonUnits);
     lessonNumbers.forEach((number, lessonIndex) => {
       const group = byLesson.get(number);
       const weights = distributeIntegerWeights(
         lessonShares[lessonIndex],
-        group.map((assessment) => KIND_WEIGHT_UNITS[assessment.kind] || 1),
+        group.map((assessment) => assessmentWeightUnits(assessment)),
       );
       group.forEach((assessment, index) => {
         assessment.weightPct = weights[index];

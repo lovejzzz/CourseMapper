@@ -1522,6 +1522,47 @@ Return ONLY valid JSON.`;
     ]);
   });
 
+  it('removes an exact adjacent content-word echo without spending another model call', () => {
+    const response = {
+      lessons: [
+        {
+          lessonId: 'lesson-tang',
+          facts: [
+            'Tang verse often combines regulated form with classical allusion and allusion in compressed imagery.',
+          ],
+        },
+      ],
+    };
+
+    const repaired = repairPublicScionJson(JSON.stringify(response));
+    expect(JSON.parse(repaired.text).lessons[0].facts[0]).toBe(
+      'Tang verse often combines regulated form with classical allusion in compressed imagery.',
+    );
+    expect(repaired.repairs).toEqual([
+      expect.objectContaining({
+        pass: 'collapseAdjacentFactEcho',
+        lessonId: 'lesson-tang',
+        item: 0,
+        trainingEligible: false,
+      }),
+    ]);
+  });
+
+  it('preserves a legitimate repeated comparative phrase in an admitted fact', () => {
+    const response = {
+      lessons: [
+        {
+          lessonId: 'lesson-shaping',
+          facts: ['A trainer rewards closer and closer approximations of the target behavior during shaping.'],
+        },
+      ],
+    };
+
+    const repaired = repairPublicScionJson(JSON.stringify(response));
+    expect(JSON.parse(repaired.text).lessons[0].facts[0]).toContain('closer and closer approximations');
+    expect(repaired.repairs.some((entry) => entry.pass === 'collapseAdjacentFactEcho')).toBe(false);
+  });
+
   it('keeps one complete definition when a local decode continues into redundant or truncated prose', () => {
     const firstSentence =
       'Recursion is a problem-solving technique that reduces a complex problem into a simpler version of itself.';
@@ -2008,7 +2049,7 @@ Return ONLY valid JSON.`;
     expect(text).toMatch(/appears verbatim in at least one of that lesson's facts/);
   });
 
-  it('carries the private instructor brief into the kernel source without changing the visible map', () => {
+  it('carries compact course context separately from lesson-local readings without changing the visible map', () => {
     const courseMap = {
       courseName: 'Elementary Mandarin',
       lessons: [
@@ -2031,7 +2072,8 @@ Return ONLY valid JSON.`;
       task: 'blueprintEnrichment',
     });
 
-    expect(extracted[0].readings).toContain(`Instructor source brief: ${sourceBrief}`);
+    expect(extracted[0].courseContext).toBe(sourceBrief);
+    expect(extracted[0].readings).toBe('Tone recording set.');
     expect(messages[1].content).toContain(sourceBrief);
     expect(courseMap.lessons[0].sections[0].supportingResources).toBe('Tone recording set.');
   });
@@ -2073,6 +2115,58 @@ Return ONLY valid JSON.`;
     expect(ledgerPrompt).toContain('Never write course metadata');
     expect(ledgerPrompt).toContain('at least three must define or distinguish a concept');
     expect(ledgerPrompt.length).toBeLessThan(full.at(-1).content.length / 2);
+  });
+
+  it('makes an instructor-named reading override a conflicting generic lesson topic in the compact ledger prompt', () => {
+    const prompt = buildLessonKernelPrompt(
+      {
+        courseName: 'World Literature',
+        lessons: [
+          {
+            title: 'Lesson 3: Homeric Epic',
+            sections: [
+              {
+                topicSection: 'Structure of the Iliad',
+                learningObjectives: 'Analyze epic form in the assigned work.',
+                readings: ['The Odyssey'],
+              },
+            ],
+          },
+        ],
+      },
+      [0],
+      { questionsPerLesson: 6 },
+    );
+    const ledger = buildPublicScionMessages(prompt.systemPrompt, prompt.userPrompt, {
+      task: 'blueprintEnrichment',
+      factLedgerOnly: true,
+    });
+    const ledgerPrompt = ledger.at(-1).content;
+
+    expect(ledgerPrompt).toContain('requiredReadings');
+    expect(ledgerPrompt).toContain('The Odyssey');
+    expect(ledgerPrompt).toContain('NAMED READING OVERRIDE');
+    expect(ledgerPrompt).toContain('At least three facts must directly name or describe that assigned reading');
+    expect(ledgerPrompt).toContain('Never substitute or analyze a different titled work');
+
+    const wrongWork = JSON.stringify({
+      lessons: [
+        {
+          lessonId: 'lesson-1',
+          facts: [
+            'The Iliad is a foundational epic poem organized around conflict and heroic warfare.',
+            'The Iliad develops its structure through connected events and changing character motivations.',
+            'The Iliad foregrounds martial action and the consequences of heroic anger.',
+            'Epic conventions include recurring epithets and extended similes within oral-formulaic traditions.',
+            'Homeric narration can shift between battlefield action, speeches, and divine interventions.',
+          ],
+        },
+      ],
+    });
+    const assessment = assessPublicScionKernelResponse(wrongWork, prompt.userPrompt, 'blueprintEnrichment');
+    expect(assessment.issues).toContain('lesson-1:named-reading-unanchored');
+    expect(publicScionFactContractIssues(assessment)).toContain('lesson-1:named-reading-unanchored');
+    expect(buildPublicScionRetryFeedback(assessment)).toContain('exact assigned work or author');
   });
 
   it('rejects meta facts at compact transport admission before canonical parsing', () => {

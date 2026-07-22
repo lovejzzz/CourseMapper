@@ -842,7 +842,18 @@ function selectInstructorFactsForLesson(instructorProvidedFacts, lesson) {
 }
 
 function summarizeLessonsForContent(courseMap, lessonIndices, sourceBrief = '', instructorProvidedFacts = []) {
-  const privateSourceBrief = truncateText(cleanText(sourceBrief), 900);
+  // Carry only course-level framing into every lesson. Repeating the complete
+  // brief (including all fourteen lesson titles and all named readings) gave
+  // a one-lesson model legal-looking context for the wrong work: Odyssey work
+  // drifted into the Iliad, Borges into generic fantasy, and the final lesson
+  // reopened Homeric authorship. Lesson-local readings below are the hard
+  // evidence boundary.
+  const privateCourseContext = truncateText(
+    cleanText(sourceBrief).split(
+      /\b(?:lessons?\s+cover|required|assigned)\s+(?:readings?|texts?)?\s*:|\blessons?\s+cover\s*:/i,
+    )[0],
+    320,
+  );
   const mandarinScope = mandarinTargetLanguageRequirements({
     courseIdentity: courseMap?.courseName,
     sourceText: JSON.stringify(courseMap?.lessons || []),
@@ -854,6 +865,14 @@ function summarizeLessonsForContent(courseMap, lessonIndices, sourceBrief = '', 
       const section = lesson.sections?.[0] || {};
       const reviewAnchors = cumulativeReviewAnchors(courseMap, lessonIndex);
       const instructorFacts = selectInstructorFactsForLesson(instructorProvidedFacts, lesson);
+      const requiredReadings = [
+        ...new Set(
+          asArray(lesson.sections)
+            .flatMap((entry) => asArray(entry?.readings))
+            .map(cleanText)
+            .filter(Boolean),
+        ),
+      ].slice(0, 8);
       // A one-scope Pinyin/tones course explicitly does not authorize Hanzi.
       // Decide that boundary from the instructor/course map before adding any
       // compiler facts; otherwise the built-in Hanzi ledger would become its
@@ -893,19 +912,26 @@ function summarizeLessonsForContent(courseMap, lessonIndices, sourceBrief = '', 
         objectives: truncateText(String(section.learningObjectives || ''), 700),
         topics: truncateText(
           asArray(lesson.sections)
-            .map((entry) => entry?.topicSection)
+            // Numeric map coordinates are transport identity, not subject
+            // matter. Gemma sometimes copied `1.2:` as a fact and then
+            // continued with malformed decimal-like fragments. The lesson id
+            // already preserves position, so the knowledge prompt receives
+            // clean topic labels only.
+            .map((entry) => cleanText(entry?.topicSection).replace(/^\d+(?:\.\d+)*\s*[:.)-]\s*/i, ''))
             .filter(Boolean)
             .join('; '),
           400,
         ),
-        // The instructor's original brief is private generation context, not
-        // an assigned reading. Carry it only inside this model-facing summary
-        // so source facts survive the Course Map compression without leaking
-        // into the visible Supporting resources cell.
+        ...(requiredReadings.length > 0 ? { requiredReadings } : {}),
+        ...(privateCourseContext ? { courseContext: privateCourseContext } : {}),
+        // Assigned readings are a first-class scope constraint. Supporting
+        // resources may help explain the lesson, but they may never replace a
+        // named primary text. The full cross-course source brief is excluded
+        // here so another lesson's titles cannot contaminate this kernel.
         readings: truncateText(
           [
+            requiredReadings.length > 0 && `Required reading: ${requiredReadings.join('; ')}`,
             String(section.supportingResources || ''),
-            privateSourceBrief && `Instructor source brief: ${privateSourceBrief}`,
             languageSource &&
               `Compiler knowledge source: ${languageSource.title} by ${languageSource.author} (${languageSource.license}) — ${languageSource.url}`,
           ]
@@ -1465,11 +1491,23 @@ export function buildLessonKernelPrompt(courseMap, lessonIndices, options = {}) 
     courseIdentity: courseMap?.courseName,
     sourceText: JSON.stringify(lessons),
   });
+  const interpretiveLiteratureCourse =
+    /\b(?:world|comparative|english|american|global|classical)\s+literature\b|\b(?:literary studies|poetry|fiction|drama|close reading)\b/i.test(
+      [courseMap?.courseName, courseMap?.learningOutcomes, courseMap?.outcomes].filter(Boolean).join(' '),
+    );
 
   const systemPrompt = [
     LESSON_CONTENT_SYSTEM_PROMPT,
     `For every lesson in the request, return one knowledge kernel: 5-8 facts, ${keyTermsPerLesson} keyTerms, one scenario, one discussionPrompt, one assignmentCore, one studyGuide block, and exactly ${mcCount} mc items.`,
     "Every fact must explain this requested lesson's own title, topics, or objective. Never copy facts from an earlier or later lesson merely to reach the fact count; a true fact about the course is still invalid when it does not belong to the requested lesson.",
+    'NAMED-READING CONTRACT: when a lesson has requiredReadings, that exact work or author is the lesson evidence boundary. Anchor the facts, scenario, assignment, and study guide to that named reading; never substitute a different titled work, author, tradition, or generic genre example. If no passage text or edition is supplied, tell students to select and cite a passage from the assigned edition—do not invent quotations, page numbers, line numbers, scenes, characters, or plot details.',
+    ...(interpretiveLiteratureCourse
+      ? [
+          'INTERPRETIVE-LITERATURE CONTRACT: build a conceptual spine, not a list of unit labels. Across the facts and keyTerms, name at least one formal device or structural feature, one interpretive effect, one consequential tension or counter-reading, and one evidence boundary or comparative lens grounded in the assigned work.',
+          'Literature keyTerms must be distinct analytical concepts, formal devices, or interpretive relationships. Never use the lesson title, "Themes in X", "Concepts of X", "Introduction to X", "X exploration", or "X possibilities" as a key term. Do not treat an instructional process such as comparison, synthesis, proposal writing, or final-paper development as if it were a primary text.',
+          'Do not use empirical-research filler such as cause, mechanism, population, or outcome unless the actual course material is empirical. Phrase evidence decisions as interpretations, claims, counter-readings, passage choices, formal effects, or contextual limits.',
+        ]
+      : []),
     `The mc items follow this cognitive plan (matching list order): ${itemPlan
       .filter((slot) => slot.type === 'multiple_choice')
       .map((slot) => `${slot.bloom} (${slot.note})`)

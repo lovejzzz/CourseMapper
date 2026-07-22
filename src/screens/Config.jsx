@@ -1761,7 +1761,7 @@ function DeliverableConfigContent({
               label="Include scaffolding milestones"
               value={config.includeScaffolding !== false}
               onChange={(v) => set('includeScaffolding', v)}
-              description="Draft checkpoints and submission stages."
+              description="Revision checkpoints and submission stages."
             />
             <Toggle
               label="Include academic integrity statement"

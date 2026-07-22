@@ -1021,7 +1021,7 @@ export function getModelFitBadges(profile = {}, plan = createGenerationPlan(prof
   if (quality === 'high' && !fastModel && strongRepair) {
     badges.push({ label: 'Best for full courses', tone: 'emerald' });
   }
-  if (fastModel || quality === 'fast') badges.push({ label: 'Fast draft', tone: 'blue' });
+  if (fastModel || quality === 'fast') badges.push({ label: 'Fast build', tone: 'blue' });
   if (strongRepair) badges.push({ label: 'Strong repair', tone: 'violet' });
   if (longOutput) badges.push({ label: 'Long output', tone: 'indigo' });
   if (badges.length === 0) badges.push({ label: 'Balanced course build', tone: 'slate' });
@@ -1031,6 +1031,6 @@ export function getModelFitBadges(profile = {}, plan = createGenerationPlan(prof
 
 export function getPrimaryModelFitLabel(profile = {}, plan = createGenerationPlan(profile)) {
   const badges = getModelFitBadges(profile, plan);
-  const priority = ['Best for full courses', 'Fast draft', 'Strong repair', 'Long output', 'Balanced course build'];
+  const priority = ['Best for full courses', 'Fast build', 'Strong repair', 'Long output', 'Balanced course build'];
   return priority.find((label) => badges.some((badge) => badge.label === label)) || badges[0]?.label || 'Course build';
 }

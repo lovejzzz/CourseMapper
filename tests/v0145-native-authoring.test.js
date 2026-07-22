@@ -47,6 +47,7 @@ import {
   matchEntityIds,
   parseNativePassBResponse,
   parseNativeSkeletonResponse,
+  recoverExplicitRecurringAssessmentCadences,
   recoverExplicitNamedReadings,
   pickNativeKernel,
   readAuthoringMode,
@@ -215,7 +216,7 @@ describe('Pass A skeleton contract (B1)', () => {
     expect(NATIVE_SKELETON_SYSTEM_PROMPT).toMatch(/VERBATIM/);
     expect(NATIVE_SKELETON_SYSTEM_PROMPT).toMatch(/never invent/i);
     expect(NATIVE_SKELETON_SYSTEM_PROMPT).toMatch(/"sessions"/);
-    expect(NATIVE_SKELETON_SYSTEM_PROMPT).toMatch(/subject-matter subtopics only/i);
+    expect(NATIVE_SKELETON_SYSTEM_PROMPT).toMatch(/conceptual spine/i);
     expect(NATIVE_SKELETON_SYSTEM_PROMPT).toMatch(/Never use delivery modes/i);
   });
 
@@ -587,6 +588,33 @@ describe('Pass A skeleton contract (B1)', () => {
       kind: 'explicit-source-reading-list',
       recoveredCount: 10,
     });
+    expect(parsed.sessions[2].sectionTitles[0]).toBe('The Odyssey');
+    expect(parsed.readingTopicRecovery).toEqual({
+      kind: 'instructor-named-reading-topic-boundary',
+      recoveredCount: 10,
+    });
+  });
+
+  it('drops a conflicting pre-reading subtopic before the named primary-text boundary', () => {
+    const sourceText = 'World Literature, a 3-lesson seminar. Required readings: Week 3 reads The Odyssey.';
+    const parsed = parseNativeSkeletonResponse(
+      JSON.stringify({
+        course: { name: 'World Literature' },
+        sessions: [
+          { order: 1, title: 'World Literature Scope' },
+          { order: 2, title: 'Oral Epic Tradition' },
+          {
+            order: 3,
+            title: 'Homeric Epic',
+            sectionTitles: ['Structure of the Iliad', 'Themes in the Odyssey', 'Epic Conventions'],
+          },
+        ],
+      }),
+      { expectedLessons: 3, sourceText },
+    );
+
+    expect(parsed.sessions[2].sectionTitles).toEqual(['Themes in the Odyssey', 'Epic Conventions']);
+    expect(parsed.readingTopicRecovery).toMatchObject({ recoveredCount: 1 });
   });
 
   it('refuses to infer reading titles from unlabeled prose or a malformed explicit list', () => {
@@ -597,6 +625,75 @@ describe('Pass A skeleton contract (B1)', () => {
         14,
       ),
     ).toEqual([]);
+  });
+
+  it("restores the instructor's two weekly assessment streams and named milestones when Pass A invents one generic task per lesson", () => {
+    const sourceText =
+      'World Literature, a 14-lesson undergraduate seminar with weekly reading responses and close-reading checks; the syllabus assigns a named primary text nearly every week and course materials must name those texts. Lessons cover: what counts as world literature; the oral epic tradition; the Homeric epic; classical drama; Tang poetry; frame narratives; the medieval journey narrative; comparative reading methods culminating in a comparative essay proposal; postcolonial literature; magical realism; modernist poetry; the fantastic and the infinite library; contemporary global fiction; and a final paper with course synthesis.';
+    const titles = [
+      'What Counts as World Literature',
+      'The Oral Epic Tradition',
+      'The Homeric Epic',
+      'Classical Drama',
+      'Tang Poetry',
+      'Frame Narratives',
+      'The Medieval Journey Narrative',
+      'Comparative Reading Methods',
+      'Postcolonial Literature',
+      'Magical Realism',
+      'Modernist Poetry',
+      'The Fantastic and the Infinite Library',
+      'Contemporary Global Fiction',
+      'Course Synthesis',
+    ];
+    const parsed = parseNativeSkeletonResponse(
+      JSON.stringify({
+        course: { name: 'World Literature' },
+        sessions: titles.map((title, index) => ({ order: index + 1, title })),
+        assessments: titles.map((title, index) => ({
+          title: `${title} ${['analysis', 'application', 'comparison', 'interpretation'][index % 4]}`,
+          dueSession: index + 1,
+        })),
+      }),
+      { expectedLessons: 14, sourceText },
+    );
+
+    expect(parsed.assessments).toHaveLength(30);
+    expect(parsed.assessments.filter((entry) => entry.dueSession === 1).map((entry) => entry.title)).toEqual([
+      'weekly reading responses: What Counts as World Literature',
+      'close-reading checks: What Counts as World Literature',
+    ]);
+    expect(parsed.assessments.filter((entry) => entry.dueSession === 8).map((entry) => entry.title)).toEqual([
+      'weekly reading responses: Comparative Reading Methods',
+      'close-reading checks: Comparative Reading Methods',
+      'comparative essay proposal',
+    ]);
+    expect(parsed.assessments.filter((entry) => entry.dueSession === 14).map((entry) => entry.title)).toEqual([
+      'weekly reading responses: Course Synthesis',
+      'close-reading checks: Course Synthesis',
+      'final paper',
+    ]);
+    expect(parsed.assessments.map((entry) => entry.title).join(' ')).not.toMatch(
+      /Homeric Epic comparison|Course Synthesis application/,
+    );
+    expect(parsed.assessmentCadenceRecovery).toEqual({
+      kind: 'explicit-source-recurring-assessment-plan',
+      cadenceCount: 2,
+      recoveredItemCount: 30,
+      oneOffCount: 2,
+      droppedUnsupportedItemCount: 14,
+    });
+  });
+
+  it('does not mistake assigned weekly readings or a one-off midterm for recurring assessment streams', () => {
+    expect(
+      recoverExplicitRecurringAssessmentCadences(
+        'A seminar with weekly readings and a midterm. Students discuss each assigned text.',
+      ),
+    ).toEqual([]);
+    expect(recoverExplicitRecurringAssessmentCadences('A seminar with weekly quizzes and a midterm.')).toEqual([
+      'weekly quizzes',
+    ]);
   });
 
   it('synthesizes one weighted assessment per session when Pass A omits assessments', () => {
@@ -665,15 +762,21 @@ describe('Pass A skeleton contract (B1)', () => {
       { expectedLessons: 14, sourceText },
     );
 
+    expect(skeleton.assessments).toHaveLength(16);
+    expect(skeleton.assessments.slice(0, 14).map(({ title, dueSession }) => ({ title, dueSession }))).toEqual(
+      Array.from({ length: 14 }, (_, index) => ({
+        title: `weekly diet-analysis labs: Nutrition topic ${index + 1}`,
+        dueSession: index + 1,
+      })),
+    );
     expect(
-      skeleton.assessments.map(({ title, kind, dueSession, weightPct }) => ({
+      skeleton.assessments.slice(14).map(({ title, kind, dueSession, weightPct }) => ({
         title,
         kind,
         dueSession,
         weightPct,
       })),
     ).toEqual([
-      { title: 'weekly diet-analysis labs (20%)', kind: 'graded-artifact', dueSession: 1, weightPct: 20 },
       { title: 'midterm (20%)', kind: 'exam', dueSession: 7, weightPct: 20 },
       { title: 'final diet-analysis project (30%)', kind: 'graded-artifact', dueSession: 14, weightPct: 30 },
     ]);
@@ -684,11 +787,18 @@ describe('Pass A skeleton contract (B1)', () => {
     });
 
     const graph = deriveCourseGraphFromCourseMap(buildNativeWireMap(skeleton));
-    expect(graph.assessments.map(({ title, kind, dueSession }) => ({ title, kind, dueSession }))).toEqual([
-      { title: 'weekly diet-analysis labs (20%)', kind: 'graded-artifact', dueSession: 1 },
-      { title: 'midterm (20%)', kind: 'exam', dueSession: 7 },
-      { title: 'final diet-analysis project (30%)', kind: 'graded-artifact', dueSession: 14 },
-    ]);
+    expect(graph.assessments).toHaveLength(16);
+    expect(graph.assessments).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ title: 'weekly diet-analysis labs: Nutrition topic 1', dueSession: 1 }),
+        expect.objectContaining({ title: 'midterm (20%)', kind: 'exam', dueSession: 7 }),
+        expect.objectContaining({
+          title: 'final diet-analysis project (30%)',
+          kind: 'graded-artifact',
+          dueSession: 14,
+        }),
+      ]),
+    );
     const compiled = compileBlueprintDeliverables(buildBlueprintFromGraph(graph), ['quizBank'], {
       enforceCompilerContract: false,
     });
@@ -1754,17 +1864,16 @@ describe('Pass A resource transcription (v0.14.7 WS-B1)', () => {
     expect(resolveNativeAssembly({ skeleton: unstamped, passBBySession: makePassBFixture() }).ok).toBe(true);
   });
 
-  it('CourseIR repair resolves degenerate assessment coverage before resource lint can force prose fallback', () => {
+  it('source cadence recovery prevents a degenerate assessment plan before CourseIR repair is needed', () => {
     const skeleton = makeSkeletonFixture({
       sourceText: RESOURCE_BRIEF,
       assessments: [{ id: 'a1', title: 'Final project integrating the full semester', dueSession: 15 }],
     });
     const resolution = resolveNativeAssembly({ skeleton, passBBySession: makePassBFixture() });
     expect(resolution.ok).toBe(true);
-    expect(resolution.graph.nativeRepair).toMatchObject({
-      code: 'degenerate-skeleton-repaired',
-      source: 'curriculumv1',
-    });
+    expect(skeleton.assessments).toHaveLength(30);
+    expect(skeleton.assessmentCadenceRecovery).toMatchObject({ cadenceCount: 2, recoveredItemCount: 30 });
+    expect(resolution.graph.nativeRepair).toBeUndefined();
     expect(isDegenerateNativeGraph(resolution.graph)).toBe(false);
   });
 

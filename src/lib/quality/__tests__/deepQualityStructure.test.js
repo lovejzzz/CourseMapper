@@ -95,7 +95,7 @@ describe('deep quality package structure', () => {
     });
 
     expect(result.findings.some((finding) => /classroom clock/i.test(finding.detail))).toBe(false);
-    expect(GRADER_VERSION).toBe('1.10.27');
+    expect(GRADER_VERSION).toBe('1.10.31');
   });
 
   it('treats typed-object leaks and mirrored assessment identities as scored export defects', async () => {
@@ -224,6 +224,130 @@ describe('deep quality package structure', () => {
           severity: 'P1',
           dimension: 'substance',
           detail: expect.stringContaining('internal compiler constraint'),
+        }),
+      ]),
+    );
+  });
+
+  it('scores adjacent word echoes and repeated study-guide content as learner-facing substance failures', async () => {
+    const guidePath = 'Study Guides/Lesson 05 - Tang Poetry - Study Guide.txt';
+    const repeatedMisconception =
+      'A reader may treat every classical allusion as decorative instead of testing its relation to the poem’s argument.';
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          lessonScope: [5],
+          readiness: { status: 'ready', blockers: 0 },
+          files: [{ path: guidePath, featureId: 'studyGuides' }],
+        }),
+        [guidePath]: [
+          'Lesson 5: Tang Poetry',
+          'Tang verse combines regulated form with classical allusion and allusion in compressed imagery.',
+          repeatedMisconception,
+          repeatedMisconception,
+          repeatedMisconception,
+        ].join('\n'),
+      }),
+      course: { title: 'World Literature', featureIds: ['studyGuides'] },
+      honesty: { pipeline: { judgment: 'compiler-verified fixture' } },
+    });
+
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          severity: 'P1',
+          dimension: 'substance',
+          detail: expect.stringContaining('same content word'),
+        }),
+        expect.objectContaining({
+          severity: 'P1',
+          dimension: 'substance',
+          detail: expect.stringContaining('same substantive paragraph 3 times'),
+        }),
+      ]),
+    );
+  });
+
+  it('does not mistake a legitimate paired noun boundary for a mechanical word echo', async () => {
+    const guidePath = 'Study Guides/Lesson 06 - Narrative Authority - Study Guide.txt';
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          lessonScope: [6],
+          readiness: { status: 'ready', blockers: 0 },
+          files: [{ path: guidePath, featureId: 'studyGuides' }],
+        }),
+        [guidePath]:
+          'Students compare frame narrative and narrative authority using two passages. A trainer rewards closer and closer approximations.',
+      }),
+      course: { title: 'World Literature', featureIds: ['studyGuides'] },
+      honesty: { pipeline: { judgment: 'compiler-verified fixture' } },
+    });
+
+    expect(result.findings.some((finding) => /same content word/i.test(finding.detail))).toBe(false);
+  });
+
+  it('rejects creative-portfolio criteria in an interpretive literature course', async () => {
+    const faqPath = 'Course FAQ/Course FAQ.txt';
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          lessonScope: 'all',
+          readiness: { status: 'ready', blockers: 0 },
+          files: [{ path: faqPath, featureId: 'courseFaq' }],
+        }),
+        [faqPath]:
+          'For the Creative portfolio, reviewers prioritize craft intentionality, risk-taking, and a polished artist statement.',
+      }),
+      course: {
+        title: 'World Literature',
+        prompt: 'Interpret assigned primary texts through weekly close readings and a comparative final paper.',
+        featureIds: ['courseFaq'],
+      },
+      honesty: { pipeline: { judgment: 'compiler-verified fixture' } },
+    });
+
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          severity: 'P1',
+          dimension: 'discipline',
+          detail: expect.stringContaining('creative-writing portfolio genre'),
+        }),
+      ]),
+    );
+  });
+
+  it('scores malformed assignment grammar and legacy local-confirmation placeholders', async () => {
+    const assignmentPath = 'Assignment Briefs/Lesson 08 - Comparative Reading - Assignment Briefs.txt';
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          lessonScope: [8],
+          readiness: { status: 'ready', blockers: 0 },
+          files: [{ path: assignmentPath, featureId: 'assignments' }],
+        }),
+        [assignmentPath]: [
+          'Make the Week 8 assignment defend one interpretation.',
+          'Transfer the feedback-based the Comparative Reading focus revision into the next task.',
+          'Format: present the response in the locally approved submission form.',
+        ].join('\n'),
+      }),
+      course: { title: 'World Literature', featureIds: ['assignments'] },
+      honesty: { pipeline: { judgment: 'compiler-verified fixture' } },
+    });
+
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          severity: 'P1',
+          dimension: 'format',
+          detail: expect.stringContaining('generic lesson placeholder'),
+        }),
+        expect.objectContaining({
+          severity: 'P2',
+          dimension: 'format',
+          detail: expect.stringContaining('local-confirmation placeholder'),
         }),
       ]),
     );

@@ -10,6 +10,7 @@ import {
   summarizeSourceLedgerRows,
 } from './knowledge/sourceLedger.js';
 import { dedupeNumberedAssessmentEcho } from './compilerText.js';
+import { classifyAssessmentKind } from './courseGraph/deriveFromCourseMap.js';
 import { safeImport } from './safeImport';
 import { normalizePipelineStateWithSourceBackedJudgment } from './sourceBackedJudgment.js';
 import { peekVoicePassOutcome } from './voicePass.js';
@@ -479,7 +480,16 @@ function buildManifestAssessments({ registry, files, lessonNumbers = null }) {
       files.find((file) => file.featureId === featureId && file.path.split('/').pop().startsWith(prefix))?.path || null
     );
   };
-  const rows = registry.filter((assessment) => assessment?.title && Number.isInteger(assessment?.dueSession));
+  const rows = registry
+    .filter((assessment) => assessment?.title && Number.isInteger(assessment?.dueSession))
+    .map((assessment) => {
+      const title = dedupeNumberedAssessmentEcho(assessment.title);
+      // The compiler reclassifies old generated section checks as in-class;
+      // the manifest must cross the same boundary or it will promise briefs
+      // that the correctly compiled package intentionally does not contain.
+      const kind = classifyAssessmentKind(title) === 'in-class' ? 'in-class' : assessment.kind;
+      return { ...assessment, title, kind };
+    });
   const bridge = bridgeManifestRegistryWeights(
     rows,
     Array.isArray(lessonNumbers) ? lessonNumbers : rows.map((assessment) => assessment.dueSession),
@@ -499,14 +509,20 @@ function buildManifestAssessments({ registry, files, lessonNumbers = null }) {
       // transcription echoes — the manifest must present the same deduped
       // identity the compiler renders, or the grader searches artifacts
       // for a string no document contains (exam-content P0).
-      title: dedupeNumberedAssessmentEcho(assessment.title),
+      title: assessment.title,
       kind,
       lesson: assessment.dueSession,
       // v0.16.1: graded rows carry the BRIDGED weight (the number the
       // syllabus grading table and the briefs' course-map stamps render);
       // in-class and out-of-scope rows keep their raw registry value.
       weightPct:
-        bridgedWeight !== null ? bridgedWeight : Number.isFinite(assessment.weightPct) ? assessment.weightPct : null,
+        kind === 'in-class'
+          ? 0
+          : bridgedWeight !== null
+            ? bridgedWeight
+            : Number.isFinite(assessment.weightPct)
+              ? assessment.weightPct
+              : null,
       artifact,
       ...(kind === 'in-class' ? { note: 'in-class activity — listed in the lesson plan' } : {}),
     };
@@ -1993,6 +2009,11 @@ export async function buildCourseMaterialsZip({
 
   const manifestText = JSON.stringify(manifest, null, 2);
   zip.file('PACKAGE_MANIFEST.json', manifestText);
+  // Artifact-Bridge callers receive exactly the same file map as the ZIP.
+  // The old assemble-only path omitted the manifest even though its contract
+  // said otherwise, so deterministic compiler replays could not be graded
+  // under the same registry/readiness/provenance checks as a download.
+  fileContents['PACKAGE_MANIFEST.json'] = manifestText;
   files.push({
     path: 'PACKAGE_MANIFEST.json',
     featureId: 'manifest',

@@ -291,19 +291,23 @@ function lessonAwareItemNumber(item) {
     const number = Number(value);
     if (Number.isInteger(number) && number > 0) return number;
   }
-  const identityText = [
+  // Assignment due dates are scheduling metadata, not lesson identity. Prefer
+  // explicit lesson links before week-like fallback fields; otherwise a brief
+  // linked to Lesson 1 but due in Week 4 disappears from a two-lesson export.
+  const linkedIdentityText = [
     item.lessonTitle,
     item.lt,
-    item.weekNumber,
-    item.week,
-    item.dueWeek,
     ...(Array.isArray(item.relatedLessons) ? item.relatedLessons : []),
     ...(Array.isArray(item.rl) ? item.rl : []),
   ]
     .filter(Boolean)
     .join(' ');
-  const match = identityText.match(/\b(?:lesson|week|module|unit|session)\s*(\d{1,3})\b/i);
-  return match ? Number(match[1]) : null;
+  const linkedMatch = linkedIdentityText.match(/\b(?:lesson|module|unit|session)\s*(\d{1,3})\b/i);
+  if (linkedMatch) return Number(linkedMatch[1]);
+
+  const scheduleIdentityText = [item.weekNumber, item.week].filter(Boolean).join(' ');
+  const scheduleMatch = scheduleIdentityText.match(/\b(?:lesson|week|module|unit|session)\s*(\d{1,3})\b/i);
+  return scheduleMatch ? Number(scheduleMatch[1]) : null;
 }
 
 function filterLessonAwareArray(items, lessonIndices, courseMap = null) {
@@ -1351,7 +1355,13 @@ function getCourseMapFallbackValue(key, courseMap, lesson, section, lessonIndex)
       : matchedSectionIndex >= 0
         ? matchedSectionIndex
         : inferredSectionIndex;
-  const variantIndex = (Number(lessonIndex) || 0) * Math.max(1, sections.length) + sectionIndex;
+  // Use coprime-ish strides rather than multiplying by the section count.
+  // The old formula aliased every first section in a four-section literature
+  // course to variant 0 (`lessonIndex * 4 mod 4`), stamping the same objective
+  // across the syllabus. Five and three keep adjacent lessons and sections
+  // moving through even small four-item copy pools.
+  const lessonStride = sections.length === 1 ? 1 : 5;
+  const variantIndex = (Number(lessonIndex) || 0) * lessonStride + sectionIndex * 3;
   const pick = (variants) => variants[variantIndex % variants.length];
   // One lesson-level submitted task is enough. Missing assessment cells in
   // later sections are formative checks, not new graded artifacts. Naming
@@ -1427,7 +1437,20 @@ function getCourseMapFallbackValue(key, courseMap, lesson, section, lessonIndex)
                       `Make the ${topic} practice task produce evidence students can reuse in the assessment.`,
                     ]),
                   };
-  const value = fieldFallbacks[key] || `Instructor-confirmed material for ${topic}.`;
+  let value = fieldFallbacks[key] || `Instructor-confirmed material for ${topic}.`;
+  // Every missing check after the lesson's first section is formative. This
+  // applies after the domain profile is selected so literature, history, UX,
+  // project-management, music, and programming frames cannot bypass the
+  // generic branch's existing in-class safeguard and accidentally mint a
+  // separate assignment brief and rubric for every repaired section.
+  if (
+    key === 'weeklyAssessments' &&
+    sectionIndex > 0 &&
+    classifyAssessmentKind(value) !== 'exam' &&
+    !/^\s*in[\s-]?class\b/i.test(value)
+  ) {
+    value = `In-class ${value}`;
+  }
   // Belt: no minted assessment title may register as an exam, whatever the
   // frame pool produced.
   if (key === 'weeklyAssessments' && classifyAssessmentKind(value) === 'exam') {

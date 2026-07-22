@@ -980,7 +980,7 @@ export default function ModelConfig({ reserveTrailingActionSpace = false }) {
       {hasSelectableModels && provider === PUBLIC_SCION_PROVIDER_ID && (
         <div
           className="mt-4 rounded-squircle-xs border border-indigo-100/80 bg-indigo-50/50 px-3.5 py-3 text-xs leading-relaxed text-slate-700 dark:border-indigo-400/20 dark:bg-indigo-400/10 dark:text-slate-200"
-          data-testid="scion-draft-boundary"
+          data-testid="scion-model-boundary"
         >
           <p>
             Scion is EduTool&apos;s customized local course-building AI. It combines a compact Gemma 4 model with a
