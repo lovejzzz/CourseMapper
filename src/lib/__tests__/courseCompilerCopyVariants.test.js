@@ -131,7 +131,8 @@ describe('course compiler copy variants', () => {
     for (const [focus, expected] of [
       ['Introduction to Earth Systems', 'Earth Systems focus'],
       ['Review of Nutrient Functions', 'Nutrient Functions focus'],
-      ['Erikson’s Psychosocial Development', 'Erikson Psychosocial Development focus'],
+      ['Erikson’s Psychosocial Development', 'Psychosocial Development focus'],
+      ['Diurnal motion and the apparent daily motion of the sky', 'Diurnal motion focus'],
     ]) {
       const result = compactRepeatedCourseFocusReferences(
         Array.from({ length: 8 }, () => `${focus} supports the next decision.`),
@@ -152,7 +153,7 @@ describe('course compiler copy variants', () => {
           outline: [
             {
               instructorNotes:
-                'Watch for this misconception. the classical conditioning focus is only a definition. Students name the next the lesson assessment revision. The key ideas in diurnal motion is only a definition to memorize.',
+                "Watch for this misconception. the classical conditioning focus is only a definition. Students name the next the lesson assessment revision. The key ideas in diurnal motion is only a definition to memorize. Use today's the Erikson focus to separate a solid the key ideas detail from Instructor-selected Earth s Structure reading evidence. Focus students on the central The six classes of nutrients decision.",
             },
           ],
         },
@@ -164,6 +165,9 @@ describe('course compiler copy variants', () => {
     expect(text).toContain('Watch for this misconception. The classical conditioning focus');
     expect(text).toContain('Students name the next lesson assessment revision.');
     expect(text).toContain('The key ideas in diurnal motion are only a definition to memorize.');
+    expect(text).toContain("Use today's Erikson focus to separate a solid key ideas detail");
+    expect(text).toContain("Instructor-selected Earth's Structure reading evidence.");
+    expect(text).toContain('the central six classes of nutrients decision.');
   });
 
   it('turns generic rubric echoes into complete student self-checks', () => {

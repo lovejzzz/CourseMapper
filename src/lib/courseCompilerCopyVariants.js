@@ -112,13 +112,23 @@ export function compactRepeatedCourseFocusReferences(value, fullFocus, { limit =
   // vocabulary, not the long mail-merge strings this reducer targets.
   if (focus.length < 24 && wordCount < 5) return value;
   const originalWords = focus.replace(/[’']s\b/gi, '').match(/[A-Za-z0-9][A-Za-z0-9'-]*/g) || [];
-  const filteredTopicSurfaces = courseCopySurfaceWords(focus).filter(
-    (word) =>
-      !/^(?:\d+|advanced|analy[sz]e|apply|basics?|blocks?|compare|cumulative|evaluate|explain|explore|foundations?|fundamentals?|in|introduc\w*|lessons?|methods?|modeling|modern|of|on|overview|principles?|process|projects?|review|sessions?|study|techniques?|theory|to|understand|units?|use|using|weeks?)$/.test(
-        word,
-      ),
-  );
-  const firstThreeTopicSurfaces = filteredTopicSurfaces.slice(0, 3);
+  const possessiveOwner = cleanText(focus.match(/^([A-Za-z][A-Za-z'-]*)[’']s\b/i)?.[1]).toLowerCase();
+  const isTopicSurface = (word) =>
+    word !== possessiveOwner &&
+    !/^(?:\d+|advanced|analy[sz]e|apply|basics?|blocks?|compare|cumulative|evaluate|explain|explore|foundations?|fundamentals?|in|introduc\w*|lessons?|methods?|modeling|modern|of|on|overview|principles?|process|projects?|review|sessions?|study|techniques?|theory|to|understand|units?|use|using|weeks?)$/.test(
+      word,
+    );
+  const filteredTopicSurfaces = courseCopySurfaceWords(focus).filter(isTopicSurface);
+  // Prefer a meaningful first clause over an adjective pile assembled across
+  // a conjunction: "diurnal motion and the apparent daily motion ..." reads
+  // naturally as "diurnal motion", not "diurnal motion apparent". A
+  // one-word first clause ("Meiosis and Gamete Formation") is too lossy, so
+  // it keeps the broader topic candidate.
+  const firstClauseTopicSurfaces = /\s+and\s+/i.test(focus)
+    ? courseCopySurfaceWords(focus.split(/\s+and\s+/i)[0]).filter(isTopicSurface)
+    : [];
+  const topicCandidates = firstClauseTopicSurfaces.length >= 2 ? firstClauseTopicSurfaces : filteredTopicSurfaces;
+  const firstThreeTopicSurfaces = topicCandidates.slice(0, 3);
   // Never let the local reference equal a three-or-more-word lesson title.
   // Otherwise a replacement such as "<full title>–specific" still counts
   // as the exact mail-merge phrase in the exported DOCX. Preserve a useful

@@ -168,6 +168,18 @@ function fixMechanicalSeams(value) {
   // Doubled connectives produced by reference replacement ("the the Week 2 check").
   text = text.replace(/\b(the|a|an|to|of|for|and|or|in|on|with|at|by)\s+\1\b/gi, '$1');
   text = text.replace(/\b(one targeted|a guided|one|the next)\s+the\s+(?=[A-Za-z])/gi, '$1 ');
+  // Compacted proper-name surfaces can lose an apostrophe at an upstream
+  // token boundary ("Earth s Structure", "Erikson s Psychosocial"). Restore
+  // only the narrow title-case shape so ordinary plural words remain intact.
+  text = text.replace(/\b([A-Z][A-Za-z]{2,})\s+s(?=\s+[A-Z][A-Za-z])/g, "$1's");
+  // Template joins sometimes put a title's leading article inside an
+  // existing noun phrase ("central The six classes", "today's the Erikson
+  // work", "a solid the key ideas detail"). These are not stylistic issues:
+  // they are visible grammar breaks in exported Office documents.
+  text = text.replace(/\b(today|tonight|tomorrow|yesterday)'s\s+the\s+(?=[A-Za-z])/gi, "$1's ");
+  text = text.replace(/\b(a|an)\s+(solid|clear|strong|specific|defensible)\s+the\s+(?=[A-Za-z])/gi, '$1 $2 ');
+  text = text.replace(/\b(central|core|primary)\s+The(?=\s+[a-z])/g, '$1');
+  text = text.replace(/\bThe(?=\s+[a-z])/g, (match, offset) => (isSentenceStart(text, offset) ? match : 'the'));
   text = text.replace(/(^|[.!?]\s+)the(?=\s+[A-Za-z])/g, '$1The');
   text = text.replace(/\b(The key ideas in [^.!?]{2,60}) is only\b/g, '$1 are only');
   text = text.replace(/\bexplain the psychological explanation\b/gi, 'explain the psychological account');
