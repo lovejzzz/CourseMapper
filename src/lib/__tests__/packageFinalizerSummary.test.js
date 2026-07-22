@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildCompactPackageTrustReceipt,
   buildPackageTrustBoundarySummary,
+  buildQualityReceipt,
   classifyFinalizePackageStepStatus,
   formatPackageSummaryForHistory,
   normalizePackageSummary,
@@ -120,6 +121,39 @@ describe('packageFinalizerSummary', () => {
       { id: 'confirmations', label: 'Local confirmations', value: 'official dates; source permissions' },
       { id: 'live-calls', label: 'Live calls', value: '1' },
       { id: 'budget', label: 'Budget', value: '$0.02 estimated' },
+    ]);
+  });
+
+  it('builds the finish receipt outside the AppFlow route chunk', () => {
+    const receipt = buildQualityReceipt({
+      result: {
+        readiness: {
+          blockers: [{ severity: 'blocker', featureId: 'courseMap', message: 'Repair the course map.' }],
+          warnings: [{ featureId: 'syllabus', message: 'Confirm the calendar.' }],
+        },
+        repairs: [{ changes: ['Lesson sequence'] }],
+      },
+      exportVerification: { status: 'passed', checked: 4, failed: 0, warningCount: 0, checks: [] },
+      repairsApplied: 1,
+      retryCount: 0,
+      selectedFeatureIds: ['courseMap', 'syllabus'],
+      courseMap: { lessons: [{}, {}] },
+      apiSpendSummary: { label: 'within budget' },
+      compilerSummary: { compiledFeatureCount: 2 },
+      labelForFeature: (featureId) => ({ courseMap: 'Course Map', syllabus: 'Syllabus' })[featureId],
+    });
+
+    expect(receipt.checkedSections).toBe('2/2');
+    expect(receipt.lessonCount).toBe(2);
+    expect(receipt.autoFixedCount).toBe(1);
+    expect(receipt.humanDecisionCount).toBe(2);
+    expect(receipt.topIssues).toEqual([
+      { severity: 'error', label: 'Course Map', message: 'Repair the course map.' },
+      { severity: 'warning', label: 'Syllabus', message: 'Confirm the calendar.' },
+    ]);
+    expect(receipt.reviewActions).toEqual([
+      { label: 'Course Map', action: 'Repair the course map.' },
+      { label: 'Syllabus', action: 'Confirm the calendar.' },
     ]);
   });
 

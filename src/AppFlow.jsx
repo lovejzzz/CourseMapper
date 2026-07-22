@@ -104,9 +104,9 @@ import {
   summarizeApiUsageBudget,
   summarizeCompilerSavings,
 } from './lib/apiUsageCost';
-import { buildCompactPackageTrustReceipt, buildPackageTrustBoundarySummary } from './lib/packageFinalizerSummary';
+import { buildQualityReceipt } from './lib/packageFinalizerSummary';
 import { getChunkCount, pLimit } from './lib/parallelGenerator';
-import { buildHumanReviewRecommendation, summarizeRepairEvidence } from './lib/packageTrust';
+import { buildHumanReviewRecommendation } from './lib/packageTrust';
 import { traceLog } from './lib/traceLog';
 import { getPackageTrustStatus } from './lib/packageTrustStatus';
 import { resolveWorkspaceCourseTitle } from './lib/promptAwarePreview';
@@ -196,85 +196,6 @@ function getReceiptFeatureLabel(featureId) {
   if (builtIn?.label) return builtIn.label;
   if (featureId?.startsWith('custom_')) return getCustomDeliverable(featureId)?.name || 'Custom Deliverable';
   return featureId;
-}
-
-function buildQualityReceipt({
-  result,
-  exportVerification,
-  repairsApplied = 0,
-  retryCount = 0,
-  selectedFeatureIds = [],
-  courseMap,
-  includeWarnings = true,
-  apiSpendSummary = null,
-  compilerSummary = null,
-}) {
-  const readiness = result?.readiness || {};
-  const blockers = Array.isArray(readiness.blockers) ? readiness.blockers : [];
-  const warnings = Array.isArray(readiness.warnings) ? readiness.warnings : [];
-  const exportWarning = (exportVerification?.checks || []).find((check) => check.status === 'warning');
-  const topIssues = [...blockers, ...(includeWarnings ? warnings : [])]
-    .map(summarizeReceiptIssue)
-    .filter(Boolean)
-    .slice(0, 3);
-  const checkedFeatureCount = Array.isArray(selectedFeatureIds) ? selectedFeatureIds.length : 0;
-  const repairSummary = summarizeRepairEvidence(result?.repairs || []);
-  const humanDecisionCount = blockers.length + (includeWarnings ? warnings.length : 0);
-  return {
-    checkedSections: checkedFeatureCount > 0 ? `${checkedFeatureCount}/${checkedFeatureCount}` : '',
-    lessonCount: courseMap?.lessons?.length || 0,
-    autoFixedCount: repairsApplied,
-    retriedCount: retryCount,
-    humanDecisionCount,
-    exportStatus: exportVerification?.status || '',
-    exportChecked: exportVerification?.checked || 0,
-    exportFailed: exportVerification?.failed || 0,
-    exportWarningCount: exportVerification?.warningCount || 0,
-    exportWarning: exportWarning?.message || '',
-    repairSummary,
-    trustBoundary: buildPackageTrustBoundarySummary({
-      lessonCount: courseMap?.lessons?.length || 0,
-      compilerSummary,
-      repairsApplied,
-      apiSpendSummary,
-      reviewRequiredCount:
-        humanDecisionCount + (exportVerification?.failed || 0) + (exportVerification?.warningCount || 0),
-      externalProofStatus: 'not attached',
-    }),
-    compactTrustReceipt: buildCompactPackageTrustReceipt({
-      lessonCount: courseMap?.lessons?.length || 0,
-      compilerSummary,
-      selectedFeatureCount: checkedFeatureCount,
-      deterministicRepairCount: repairsApplied,
-      reviewRequiredCount:
-        humanDecisionCount + (exportVerification?.failed || 0) + (exportVerification?.warningCount || 0),
-      exportVerification,
-      studentFacingCleanlinessStatus:
-        exportVerification?.failed || exportVerification?.warningCount ? 'review flagged' : 'clean',
-      localConfirmationChecklist: ['official dates', 'institution policies', 'copyrighted readings'],
-      budgetStatus: apiSpendSummary?.label || 'within configured budget',
-    }),
-    reviewRecommendation: buildHumanReviewRecommendation({
-      blockerCount: blockers.length + (exportVerification?.failed || 0),
-      warningCount: (includeWarnings ? warnings.length : 0) + (exportVerification?.warningCount || 0),
-      repaired: repairSummary !== 'none',
-    }),
-    reviewActions:
-      topIssues.length > 0
-        ? topIssues.map((issue) => ({
-            label: issue.label,
-            action: issue.message,
-          }))
-        : [
-            { label: 'Official dates', action: 'Confirm the official calendar and due dates before publication.' },
-            { label: 'Local policy', action: 'Confirm institution policy language and accommodation wording.' },
-            {
-              label: 'Source permissions',
-              action: 'Confirm copied readings, media, cases, and datasets are approved.',
-            },
-          ],
-    topIssues,
-  };
 }
 
 function isVerboseTraceEnabled() {
@@ -1804,6 +1725,7 @@ export default function AppFlow({
           includeWarnings: finalStatus !== 'ready',
           apiSpendSummary,
           compilerSummary,
+          labelForFeature: getReceiptFeatureLabel,
         });
         let receiptWithSpend = {
           ...receipt,
@@ -1931,6 +1853,7 @@ export default function AppFlow({
           includeWarnings: finalStatus !== 'ready',
           apiSpendSummary,
           compilerSummary,
+          labelForFeature: getReceiptFeatureLabel,
         });
         receiptWithSpend = {
           ...receipt,

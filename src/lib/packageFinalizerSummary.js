@@ -149,6 +149,83 @@ export function buildCompactPackageTrustReceipt({
   return { fields };
 }
 
+function summarizeQualityReceiptIssue(issue, labelForFeature) {
+  if (!issue) return null;
+  return {
+    severity: issue.severity === 'blocker' ? 'error' : issue.severity || 'warning',
+    label: issue.label || labelForFeature?.(issue.featureId) || issue.featureId || 'Package',
+    message: issue.message || 'Needs attention before export.',
+  };
+}
+
+export function buildQualityReceipt({
+  result,
+  exportVerification,
+  repairsApplied = 0,
+  retryCount = 0,
+  selectedFeatureIds = [],
+  courseMap,
+  includeWarnings = true,
+  apiSpendSummary = null,
+  compilerSummary = null,
+  labelForFeature,
+} = {}) {
+  const readiness = result?.readiness || {};
+  const blockers = Array.isArray(readiness.blockers) ? readiness.blockers : [];
+  const warnings = Array.isArray(readiness.warnings) ? readiness.warnings : [];
+  const exportWarning = (exportVerification?.checks || []).find((check) => check.status === 'warning');
+  const topIssues = [...blockers, ...(includeWarnings ? warnings : [])]
+    .map((issue) => summarizeQualityReceiptIssue(issue, labelForFeature))
+    .filter(Boolean)
+    .slice(0, 3);
+  const checkedFeatureCount = Array.isArray(selectedFeatureIds) ? selectedFeatureIds.length : 0;
+  const repairSummary = summarizeRepairEvidence(result?.repairs || []);
+  const humanDecisionCount = blockers.length + (includeWarnings ? warnings.length : 0);
+  const lessonCount = courseMap?.lessons?.length || 0;
+  const reviewRequiredCount =
+    humanDecisionCount + (exportVerification?.failed || 0) + (exportVerification?.warningCount || 0);
+  return {
+    checkedSections: checkedFeatureCount > 0 ? `${checkedFeatureCount}/${checkedFeatureCount}` : '',
+    lessonCount,
+    autoFixedCount: repairsApplied,
+    retriedCount: retryCount,
+    humanDecisionCount,
+    exportStatus: exportVerification?.status || '',
+    exportChecked: exportVerification?.checked || 0,
+    exportFailed: exportVerification?.failed || 0,
+    exportWarningCount: exportVerification?.warningCount || 0,
+    exportWarning: exportWarning?.message || '',
+    repairSummary,
+    trustBoundary: buildPackageTrustBoundarySummary({
+      lessonCount,
+      compilerSummary,
+      repairsApplied,
+      apiSpendSummary,
+      reviewRequiredCount,
+      externalProofStatus: 'not attached',
+    }),
+    compactTrustReceipt: buildCompactPackageTrustReceipt({
+      lessonCount,
+      compilerSummary,
+      selectedFeatureCount: checkedFeatureCount,
+      deterministicRepairCount: repairsApplied,
+      reviewRequiredCount,
+      exportVerification,
+      studentFacingCleanlinessStatus:
+        exportVerification?.failed || exportVerification?.warningCount ? 'review flagged' : 'clean',
+      localConfirmationChecklist: ['official dates', 'institution policies', 'copyrighted readings'],
+      budgetStatus: apiSpendSummary?.label || 'within configured budget',
+    }),
+    reviewRecommendation: buildHumanReviewRecommendation({
+      blockerCount: blockers.length + (exportVerification?.failed || 0),
+      warningCount: (includeWarnings ? warnings.length : 0) + (exportVerification?.warningCount || 0),
+      repaired: repairSummary !== 'none',
+    }),
+    reviewActions: buildReviewActionsFromIssues(topIssues),
+    topIssues,
+  };
+}
+
 export function normalizePackageSummary(result = {}) {
   const confidence = result.confidence || (result.error ? 'Needs attention' : 'Good with assumptions');
   const readiness = result.readiness || {};

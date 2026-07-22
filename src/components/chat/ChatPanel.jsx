@@ -1092,7 +1092,7 @@ export function getWorkspaceModelStatus({
       title: 'Change provider, API key, or model',
       heading: 'Model connection failed',
       message:
-        'Model-backed edits are paused because the saved provider, key, or model could not be validated. Local Audit and Plan still work.',
+        'Model-backed edits are paused because this setup could not be validated. Local Audit and Plan still work.',
       actionLabel: 'Change key/model',
       blocked: true,
     };
@@ -1105,7 +1105,7 @@ export function getWorkspaceModelStatus({
       title: 'Add credits or change provider, API key, or model',
       heading: 'Model credits unavailable',
       message:
-        'Model-backed edits are paused because this key has no available credits. Add credits or switch provider/key/model here.',
+        'Model-backed edits are paused because this key has no credits. Add credits or switch the AI setup here.',
       actionLabel: 'Change key/model',
       blocked: true,
     };
