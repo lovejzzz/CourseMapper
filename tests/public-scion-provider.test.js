@@ -1563,6 +1563,15 @@ Return ONLY valid JSON.`;
     expect(repaired.repairs.some((entry) => entry.pass === 'collapseAdjacentFactEcho')).toBe(false);
   });
 
+  it('preserves case-distinct identifiers in an exact source fact', () => {
+    const fact = 'Variable names are case-sensitive, so total and Total are two different variables.';
+    const response = { lessons: [{ lessonId: 'lesson-variables', facts: [fact] }] };
+
+    const repaired = repairPublicScionJson(JSON.stringify(response));
+    expect(JSON.parse(repaired.text).lessons[0].facts[0]).toBe(fact);
+    expect(repaired.repairs.some((entry) => entry.pass === 'collapseAdjacentFactEcho')).toBe(false);
+  });
+
   it('keeps one complete definition when a local decode continues into redundant or truncated prose', () => {
     const firstSentence =
       'Recursion is a problem-solving technique that reduces a complex problem into a simpler version of itself.';

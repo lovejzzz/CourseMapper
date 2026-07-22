@@ -51,6 +51,7 @@ const SOURCE_SEMANTIC_ALIASES = new Map([
   ['objectives', 'objective'],
   ['parts', 'condition'],
   ['prototypes', 'prototype'],
+  ['production', 'produce'],
   ['represented', 'represent'],
   ['representation', 'represent'],
   ['represents', 'represent'],
@@ -141,10 +142,10 @@ function leadingSubject(value) {
 function predicateRelationSides(value) {
   const relations = [];
   for (const match of cleanScionKeyTermText(value).matchAll(
-    /(^|[.;]\s*)(.+?)\b(indicat\w*|includ\w*|contain\w*)\b(.+?)(?=[.;]|$)/gi,
+    /(^|[.;]\s*)(.+?)\b(affect\w*|caus\w*|contain\w*|creat\w*|defin\w*|determin\w*|form\w*|includ\w*|indicat\w*|initiat\w*|produc\w*|propagat\w*|protect\w*|provid\w*|pull\w*|regulat\w*|retriev\w*|stor\w*|support\w*)\b(.+?)(?=[.;]|$)/gi,
   )) {
-    const left = comparableScionKeyTermTokens(match[2]);
-    const right = comparableScionKeyTermTokens(match[4]);
+    const left = sourceSemanticTokenSet(match[2]);
+    const right = sourceSemanticTokenSet(match[4]);
     if (left.size > 0 && right.size > 0) relations.push({ left, right });
   }
   return relations;
@@ -152,7 +153,7 @@ function predicateRelationSides(value) {
 
 function relationSideContained(candidate, container) {
   const overlap = [...candidate].filter((token) => container.has(token)).length;
-  return overlap >= 2 && overlap / Math.max(1, candidate.size) >= 0.8;
+  return overlap >= Math.min(2, candidate.size) && overlap / Math.max(1, candidate.size) >= 0.8;
 }
 
 function degreeAssignments(value) {
@@ -216,19 +217,35 @@ function hasRelationalMisconceptionContrast(left, right) {
 
 function correctionAddsSpecificMisconceptionContrast(definition, misconception, correction) {
   if (!DIRECT_CONTRAST_RE.test(correction)) return false;
-  const definitionTokens = comparableScionKeyTermTokens(definition);
-  const misconceptionTokens = comparableScionKeyTermTokens(misconception);
-  const correctionTokens = comparableScionKeyTermTokens(correction);
+  const definitionTokens = sourceSemanticTokenSet(definition);
+  const misconceptionTokens = sourceSemanticTokenSet(misconception);
+  const correctionTokens = sourceSemanticTokenSet(correction);
   const misconceptionOnlyTokens = [...misconceptionTokens].filter((token) => !definitionTokens.has(token));
   return misconceptionOnlyTokens.some((token) => correctionTokens.has(token));
 }
 
-function misconceptionRestatesKnownFact(misconception, knownFacts, { strict = false, compact = false } = {}) {
+function misconceptionRestatesKnownFact(
+  misconception,
+  knownFacts,
+  { strict = false, compact = false, allowRelationalContrast = false, correction = '' } = {},
+) {
   const candidate = cleanScionKeyTermText(misconception).replace(MISCONCEPTION_CUE_RE, '');
   if (candidate.length < 24) return false;
   if (!strict && MISCONCEPTION_CONTRAST_RE.test(candidate)) return false;
   const candidateTokens = comparableScionKeyTermTokens(candidate);
+  if (allowRelationalContrast && knownFacts.some((fact) => hasRelationalMisconceptionContrast(candidate, fact))) {
+    return false;
+  }
   return knownFacts.some((fact) => {
+    if (allowRelationalContrast) {
+      const candidateSubject = leadingSubject(candidate);
+      const factSubject = leadingSubject(fact);
+      // A source predicate deliberately assigned to a different named subject
+      // is a teachable misconception, not an affirmative restatement. Keep the
+      // exact-subject case below so a genuine source fact mislabeled as a
+      // misconception is still rejected.
+      if (candidateSubject && factSubject && candidateSubject !== factSubject) return false;
+    }
     // A real polarity reversal is a plausible misconception even when most
     // vocabulary comes from the source. Mere absolutist wording ("always" or
     // "only") is not an exemption when the source states the same rule.
@@ -247,6 +264,26 @@ function misconceptionRestatesKnownFact(misconception, knownFacts, { strict = fa
     // admissible above, so "must include every detail" is not confused with a
     // source claim that a prototype works without every production detail.
     const wholeSentenceOverlap = intersection / Math.max(1, union);
+    if (allowRelationalContrast) {
+      const candidateComparable = comparableScionKeyTermText(candidate);
+      const factComparable = comparableScionKeyTermText(fact);
+      const exactAffirmativeRestatement =
+        candidateComparable.includes(factComparable) || factComparable.includes(candidateComparable);
+      const correctionTokens = comparableScionKeyTermTokens(correction);
+      const correctionOverlap = [...candidateTokens].filter((token) => correctionTokens.has(token)).length;
+      const compactUnrepairedFactRestatement =
+        compact &&
+        candidateTokens.size <= 5 &&
+        intersection >= 3 &&
+        containment >= 0.75 &&
+        wholeSentenceOverlap >= 0.25 &&
+        correctionOverlap < 2;
+      // V6 is a high-precision deterministic gate. Factual paraphrase remains
+      // the bound judge's job; using the older compact-overlap shortcut here
+      // rejected deliberate relation reversals and cross-concept swaps simply
+      // because they reused source vocabulary.
+      return exactAffirmativeRestatement || compactUnrepairedFactRestatement;
+    }
     // Compact factual statements naturally have lower Jaccard overlap with a
     // longer explanatory source sentence. When a purported misconception has
     // at most five content tokens, three source tokens covering at least 75%
@@ -435,6 +472,12 @@ function correctionBorrowsUnrelatedSourcePredicate(term, correction, knownFacts)
   // Longer corrections can resolve the misconception first and then add a
   // second, true source fact; that is useful teaching, not concept drift.
   if (cleanCorrection.length > 90) return false;
+
+  const termHead = sourceSemanticTokens(term).at(-1) || '';
+  if (termHead) {
+    const escapedHead = termHead.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    if (new RegExp(`\\b(?:that|this|the)\\s+${escapedHead}s?\\b`, 'i').test(cleanCorrection)) return false;
+  }
 
   const termTokens = sourceSemanticTokens(term);
   const termFacts = knownFacts.filter((fact) => {
@@ -771,13 +814,21 @@ export function assessScionKeyTermContract(
     }
     if (repeatsScionKeyTermField(left, right)) issues.push(issue);
   }
-  if (
-    misconceptionRestatesKnownFact(
-      normalized.misconception,
-      (Array.isArray(knownFacts) ? knownFacts : []).map(cleanScionKeyTermText).filter(Boolean),
-      { strict: strictSemanticAdmission, compact: judgeInformedSemanticAdmission },
-    )
-  ) {
+  const misconceptionRepeatsFact = misconceptionRestatesKnownFact(normalized.misconception, cleanKnownFacts, {
+    strict: strictSemanticAdmission,
+    compact: judgeInformedSemanticAdmission,
+    allowRelationalContrast: relationalMisconceptionPrecision,
+    correction: normalized.correction,
+  });
+  const correctionEstablishesContrast =
+    relationalMisconceptionPrecision &&
+    (hasRelationalMisconceptionContrast(normalized.misconception, normalized.correction) ||
+      correctionAddsSpecificMisconceptionContrast(
+        normalized.definition,
+        normalized.misconception,
+        normalized.correction,
+      ));
+  if (misconceptionRepeatsFact && !correctionEstablishesContrast) {
     issues.push('misconception-repeats-known-fact');
   }
   return {

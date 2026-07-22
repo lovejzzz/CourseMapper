@@ -339,12 +339,50 @@ describe('Scion strict semantic admission', () => {
     expect(assessScionKeyTerm(term, { knownFacts, semanticProfile: 'source-strict-v3' }).issues).toContain(
       'misconception-repeats-known-fact',
     );
+    expect(assessScionKeyTerm(term, { knownFacts, semanticProfile: 'source-strict-v6' }).issues).toContain(
+      'misconception-repeats-known-fact',
+    );
     expect(assessScionKeyTerm(contrasted, { knownFacts, semanticProfile: 'source-strict-v3' }).issues).not.toContain(
       'misconception-repeats-known-fact',
     );
     expect(assessScionKeyTerm(term, { knownFacts, semanticProfile: 'source-strict' }).issues).not.toContain(
       'misconception-repeats-known-fact',
     );
+  });
+
+  it('keeps corrected relation reversals and cross-concept swaps eligible in the V6 source profile', () => {
+    const magneticFacts = [
+      'A magnetic field determines magnetic forces on moving charges and currents.',
+      'Currents produce magnetic fields.',
+    ];
+    const reversedRelation = {
+      tr: 'Currents',
+      df: 'Currents are distinguished here by their production of magnetic fields.',
+      eg: 'A current produces a magnetic field.',
+      mi: 'A magnetic field produces currents.',
+      cx: 'Production runs from currents toward magnetic fields, not in the reversed direction.',
+    };
+    const anatomyFacts = [
+      'A cell is the smallest independently functioning unit of a living organism.',
+      'Organs are anatomically distinct structures made of two or more tissue types.',
+    ];
+    const swappedConcept = {
+      tr: 'cell',
+      df: 'A cell is the smallest independently functioning unit of a living organism.',
+      eg: 'A cell represents an independently functioning unit within body structure.',
+      mi: 'A cell is made of two or more tissue types.',
+      cx: 'The independently functioning unit is the cell; the tissue-type description applies to organs.',
+    };
+
+    expect(
+      assessScionKeyTerm(reversedRelation, {
+        knownFacts: magneticFacts,
+        semanticProfile: 'source-strict-v6',
+      }).issues,
+    ).not.toContain('misconception-repeats-known-fact');
+    expect(
+      assessScionKeyTerm(swappedConcept, { knownFacts: anatomyFacts, semanticProfile: 'source-strict-v6' }).issues,
+    ).not.toContain('misconception-repeats-known-fact');
   });
 
   it('keeps a clean applied item eligible', () => {
@@ -630,6 +668,24 @@ describe('Scion source-strict-v4 key-term coherence', () => {
     expect(
       assessScionKeyTerm(coherent, { knownFacts: facts, semanticProfile: 'source-strict-v4' }).issues,
     ).not.toContain('correction-borrows-unrelated-source-predicate');
+  });
+
+  it('keeps a correction that refers back to the term head with a demonstrative', () => {
+    const facts = [
+      'With a negative externality, the price excludes the spillover cost.',
+      'Correcting an externality makes decision-makers face the costs the market leaves out.',
+    ];
+    const term = {
+      tr: 'spillover cost',
+      df: 'A spillover cost is a cost excluded from the price in a negative externality.',
+      eg: 'With pollution, the price excludes the spillover cost.',
+      mi: 'A spillover cost is included in the market price.',
+      cx: 'The market price leaves that cost out, so decision-makers do not face it.',
+    };
+
+    expect(assessScionKeyTerm(term, { knownFacts: facts, semanticProfile: 'source-strict-v6' }).issues).not.toContain(
+      'correction-borrows-unrelated-source-predicate',
+    );
   });
 
   it('requires a correction to name a technical API that the misconception misstates', () => {

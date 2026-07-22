@@ -51,7 +51,13 @@ function isContentContextWord(value) {
 }
 
 function isMechanicalEcho(text, match) {
-  const repeatedWord = String(match?.[1] || '').toLowerCase();
+  const repeatedSurface = String(match?.[1] || '');
+  const secondSurface = String(match?.[0] || '').match(/(?:and|or)\s+([\p{L}\p{N}][\p{L}\p{N}'’-]*)$/iu)?.[1] || '';
+  // Case can carry meaning in identifiers and proper names (for example,
+  // Python's `total` and `Total`). A case-insensitive regex finds the seam,
+  // but only identical surface forms are safe to collapse.
+  if (!repeatedSurface || repeatedSurface !== secondSurface) return false;
+  const repeatedWord = repeatedSurface.toLowerCase();
   if (LEGITIMATE_REPEATED_CONJUNCTION_WORDS.has(repeatedWord)) return false;
   const before = immediateContextWord(text.slice(0, match.index), 'before');
   const after = immediateContextWord(text.slice((match.index || 0) + match[0].length), 'after');
