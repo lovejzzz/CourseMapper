@@ -8021,4 +8021,53 @@ describe('courseBlueprintCompiler', () => {
     expect(optionText).toMatch(/assume adding rewards always strengthens motivation/i);
     expect(optionText).not.toMatch(/\(and teachers\)/i);
   });
+
+  it('removes leading articles from embedded artifact references and starts misconception sentences cleanly', () => {
+    const blueprint = buildCourseBlueprint({
+      courseName: 'World Literature',
+      semester: 'Fall 2026',
+      lessons: [
+        {
+          title: 'Lesson 8: Comparative Reading Methods',
+          sections: [
+            {
+              topicSection: 'Comparative Reading Strategies; textual interpretation',
+              learningGoals: 'Compare interpretive claims across two readings.',
+              learningObjectives: 'Compare two moments using quoted textual evidence and a clear interpretive claim.',
+              weeklyAssessments: 'the Comparative Reading focus interpretation (7%)',
+              asyncActivities: 'Annotate two passages and mark the evidence behind each interpretation.',
+              syncActivities: 'Compare the passages and defend the stronger bounded interpretation.',
+              supportingResources: 'Comparative reading packet and close-reading guide',
+              evaluateDesign: 'Score the claim, quoted evidence, comparison, and limitation.',
+            },
+          ],
+        },
+      ],
+    });
+    blueprint.lessons[0].enrichment = {
+      keyTerms: [
+        {
+          term: 'comparative reading',
+          definition: 'Comparative reading interprets a shared question through evidence from more than one text.',
+          misconception: 'the Comparative Reading focus matters only as vocabulary, not as evidence for a decision.',
+          correction: 'Comparative reading uses textual evidence to test and bound an interpretive claim.',
+        },
+      ],
+      kernel: {
+        facts: [
+          'Comparative reading places evidence from more than one text into one interpretive frame.',
+          'A defensible comparison identifies both a meaningful relationship and a bounded difference.',
+          'Quoted textual details make the basis for an interpretive comparison inspectable.',
+        ],
+      },
+    };
+
+    const [lessonPlan] = compileBlueprintDeliverables(blueprint, ['lessonPlans']).lessonPlans.lessonPlans;
+    const planText = JSON.stringify(lessonPlan.outline);
+    expect(planText).not.toMatch(/one targeted the /i);
+    expect(planText).not.toMatch(/a guided the /i);
+    expect(planText).not.toMatch(/one the lesson assessment/i);
+    expect(planText).not.toMatch(/Watch for this misconception\. the /);
+    expect(planText).toMatch(/Watch for this misconception\. The Comparative Reading focus/);
+  });
 });

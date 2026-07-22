@@ -9,11 +9,11 @@ export const CURRENT_RELEASE = {
     'Mandarin now receives an attributed, compiler-owned source ledger from the open CHN101 Elementary Mandarin I text for every one of its 15 requested lesson identities, with canonical facts, source URL, license, and attribution kept together.',
     'Direct trusted facts are projected deterministically with zero additional model inference; Gemma remains responsible for the course skeleton and limited generative surfaces. The Mandarin proof therefore needs two actual Gemma generations, not dozens of per-material rewrites.',
     'Unicode NFKC normalization at the language-safety boundary keeps full-width Chinese punctuation from deleting an otherwise valid Shopping lesson kernel, while direct identity matching outranks broad review anchors and word boundaries prevent false matches such as “age” inside “Passages.”',
-    'Artifact inspection fixes three defects that a 99/A score did not reveal: duplicated assessment weights, a severed misconception narrator, and short-answer keys that copied learner directions instead of selecting the decisive case evidence.',
+    'Artifact inspection fixes defects that a 99/A score did not reveal: duplicated assessment weights, a severed misconception narrator, short-answer keys that copied learner directions, and shortened references with doubled articles or lowercase sentence starts.',
     'The frozen base-only matrix completes Mandarin, World Literature, Psychology, Nutrition, and Astronomy at 99/A each with zero P0/P1/P2 findings, zero blockers, zero warnings, all ten material sections, 38/38 export checks per course, and five valid archives.',
-    'The five-course route uses 28 actual Gemma generations with zero model failures. This is a bounded architecture result, not a return to the former 72-call single-course failure shape.',
+    'The five-course route uses 30 actual Gemma generations with zero model failures. This is a bounded architecture result, not a return to the former 72-call single-course failure shape.',
     'The current Scion experience uses finished-product language: AI-generated materials instead of AI draft, one Download ZIP action, and no unfinished label on a verified archive.',
-    'The complete local gate passes 434 test files and 5,321 tests plus format, lint, production build, the locked bundle budget, and release-history audit; focused regressions bind source routing, telemetry, Unicode admission, answer compaction, rendering, provider parity, and the production shim.',
+    'The complete local gate passes 434 test files and 5,322 tests plus format, lint, production build, the locked bundle budget, and release-history audit; focused regressions bind source routing, telemetry, Unicode admission, answer compaction, rendering, provider parity, and the production shim.',
     'Gemma weights remain unchanged and the research adapter remains inactive. Compatible paid providers inherit the model-neutral admission, projection, compiler, assessment, and export repairs; browser download and local inference remain Scion-specific.',
   ],
   landingHighlights: [
@@ -23,8 +23,8 @@ export const CURRENT_RELEASE = {
     'Answer keys select evidence instead of echoing instructions.',
     'Assessment weights and misconception options render cleanly.',
     'Five frozen domains reach 99/A with zero findings and valid ZIPs.',
-    'The matrix uses 28 actual Gemma generations with zero failures.',
-    'The full suite passes 5,321 tests and every local release gate.',
+    'The matrix uses 30 actual Gemma generations with zero failures.',
+    'The full suite passes 5,322 tests and every local release gate.',
     'The interface says AI-generated materials and Download ZIP.',
     'Gemma weights are unchanged and the adapter remains inactive.',
   ],
@@ -61,7 +61,7 @@ export const CURRENT_RELEASE_CHANGELOG = {
       items: [
         'The provider, browser-local runtime, and production-compatible shim all recognize an exact compiler-owned source ledger and return its admitted facts without another native completion.',
         'Telemetry records those routes as zero model calls instead of turning deterministic work into misleading provider usage.',
-        'The fresh Mandarin package completes with two actual Gemma generations; the full five-domain matrix uses 28 actual generations with no model failures.',
+        'The fresh Mandarin package completes with two actual Gemma generations; the full five-domain matrix uses 30 actual generations with no model failures.',
       ],
     },
     {
@@ -82,6 +82,7 @@ export const CURRENT_RELEASE_CHANGELOG = {
         'World Literature assessment text no longer renders a source weight twice when the title already contains it.',
         'Psychology misconception options strip narrator phrases as complete grammatical units, including parenthetical teacher references.',
         'Constructed-response keys retain the decisive case sentence and admitted source claim while excluding copied learner directions and broken sentence starts.',
+        'Final reader-visible normalization removes article collisions such as “one the” and restores capitalization when a shortened reference begins a sentence.',
       ],
     },
     {

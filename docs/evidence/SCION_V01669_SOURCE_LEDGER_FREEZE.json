@@ -22,18 +22,18 @@
     "instructorFactsRemainHigherPriority": true,
     "exactLedgerModelCalls": 0
   },
-  "candidateMatrix": {
-    "appVersionDuringProof": "0.16.68",
-    "releaseVersionAfterStamp": "0.16.69",
-    "round": "round-2026-07-22T08-50-15-135Z",
-    "actualNativeGenerations": 28,
+  "exactCommitMatrix": {
+    "commit": "c5aa4792",
+    "appVersionDuringProof": "0.16.69",
+    "round": "round-2026-07-22T09-41-58-809Z",
+    "actualNativeGenerations": 30,
     "modelFailures": 0,
     "providerRetries": 0,
     "courses": [
       {
         "id": "mandarin",
         "domain": "Mandarin",
-        "seconds": 55,
+        "seconds": 65,
         "score": 99,
         "grade": "A",
         "p0": 0,
@@ -48,7 +48,7 @@
       {
         "id": "world-lit-readings",
         "domain": "World Literature",
-        "seconds": 115,
+        "seconds": 125,
         "score": 99,
         "grade": "A",
         "p0": 0,
@@ -78,7 +78,7 @@
       {
         "id": "nutrition-101",
         "domain": "Nutrition",
-        "seconds": 41,
+        "seconds": 40,
         "score": 99,
         "grade": "A",
         "p0": 0,
@@ -93,7 +93,7 @@
       {
         "id": "astro-101",
         "domain": "Astronomy",
-        "seconds": 68,
+        "seconds": 67,
         "score": 99,
         "grade": "A",
         "p0": 0,
@@ -115,12 +115,14 @@
     "defectsFoundDespite99A": [
       "World Literature rendered an assessment title that already contained (7%) and appended the same weight again.",
       "Psychology stripped only part of the narrator from a misconception, leaving a visible '(and teachers) assume' fragment.",
-      "Psychology constructed-response keys copied the full learner prompt and could begin a retained fact with lowercase punctuation."
+      "Psychology constructed-response keys copied the full learner prompt and could begin a retained fact with lowercase punctuation.",
+      "World Literature shortened assessment references could render doubled articles such as 'one the' or begin a new sentence with a lowercase article."
     ],
     "causalRepairs": [
       "DOCX assessment rendering appends a weight only when the source title does not already contain it.",
       "Misconception normalization removes complete student, instructor, teacher, and educator narrator phrases.",
-      "Kernel projection selects the first decisive scenario sentence, keeps admitted course evidence, and capitalizes a standalone material lead."
+      "Kernel projection selects the first decisive scenario sentence, keeps admitted course evidence, and capitalizes a standalone material lead.",
+      "Artifact compaction strips a leading article before embedding a reference, and final reader-visible normalization removes determiner collisions while restoring sentence-start capitalization."
     ],
     "psychologyVerificationRound": "round-2026-07-22T09-14-09-885Z",
     "psychologyVerification": {

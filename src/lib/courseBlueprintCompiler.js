@@ -5617,7 +5617,7 @@ function compactLessonArtifactReference(lesson = {}, fallbackKind = 'artifact') 
   if (!remainder || remainder.toLowerCase() === artifact.toLowerCase() || genericLessonPhrase(remainder)) {
     return artifact;
   }
-  return remainder;
+  return remainder.replace(/^(?:an?|the)\s+/i, '');
 }
 
 function safeLessonConcepts(lesson = {}, { limit = 8 } = {}) {
@@ -25745,7 +25745,7 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
             `Students choose the constraint that matters first and name the evidence behind that choice.`,
             `Students test the available evidence against the next ${artifact} decision.`,
           ])}`,
-      instructorNotes: `${ensureSentenceCompiler(readableSentences(modality.instructorMove))} Press for ${artifact} evidence about ${concept}. Watch for this misconception. ${ensureSentenceCompiler(readableMisconception(misconception?.misconception || `students may use ${concept} without evidence`))}`,
+      instructorNotes: `${ensureSentenceCompiler(readableSentences(modality.instructorMove))} Press for ${artifact} evidence about ${concept}. Watch for this misconception. ${ensureSentenceCompiler(sentenceCase(readableMisconception(misconception?.misconception || `students may use ${concept} without evidence`)))}`,
       instructorRole: `Coach ${modalityEvidenceRoutineLabel(modality.mode)} and press for specificity in ${artifact}.`,
       grouping: lessonVariant(lesson, [
         'Pairs with instructor check-ins',

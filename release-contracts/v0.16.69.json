@@ -91,7 +91,7 @@
       "id": "v01669-artifact-rendering-repairs",
       "status": "verified-current",
       "changelogHighlightIndex": 3,
-      "summary": "Exported assessment weights, misconception options, and constructed-response keys render without duplication, broken narrators, or prompt echo.",
+      "summary": "Exported assessment weights, misconception options, constructed-response keys, and shortened references render without duplication, broken narrators, prompt echo, article collisions, or lowercase sentence starts.",
       "anchors": [
         "src/lib/exporters/docxExporter.js",
         "src/lib/kernelProjection.js",
@@ -122,7 +122,7 @@
       "id": "v01669-bounded-native-inference",
       "status": "verified-current",
       "changelogHighlightIndex": 5,
-      "summary": "The five-course candidate uses 28 actual Gemma generations with zero failures rather than reopening the old 72-call per-course architecture.",
+      "summary": "The exact five-course build uses 30 actual Gemma generations with zero failures rather than reopening the old 72-call per-course architecture.",
       "anchors": [
         "docs/evidence/SCION_V01669_SOURCE_LEDGER_FREEZE.json",
         "scripts/crucible/e2bOpenAIShim.mjs",
