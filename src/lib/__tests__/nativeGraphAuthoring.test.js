@@ -537,6 +537,53 @@ describe('cumulative assessment kernel projection', () => {
     });
   });
 
+  it('projects course synthesis from admitted compact fact ledgers before optional surfaces exist', () => {
+    const synthesisLessons = [
+      { title: 'Lesson 1: Defining World Literature', sections: [{ topicSection: 'Selection criteria' }] },
+      { title: 'Lesson 2: Oral Epic Traditions', sections: [{ topicSection: 'Epic transmission' }] },
+      { title: 'Lesson 3: Course Synthesis', sections: [{ topicSection: 'Final Paper Workshop' }] },
+    ];
+    const lessonContent = {
+      'lesson-1': {
+        kernel: {
+          facts: [
+            'World literature compares texts across languages, regions, and histories.',
+            'Selection criteria shape which works enter a comparative corpus.',
+            'Translation choices can alter a reader’s access to form and context.',
+          ],
+        },
+      },
+      'lesson-2': {
+        kernel: {
+          facts: [
+            'Oral epics use patterned language to support performance and memory.',
+            'Performance context changes how an audience encounters an epic narrative.',
+            'Written editions preserve some features while reframing others.',
+          ],
+        },
+      },
+      'lesson-3': {
+        enrichmentSource: 'model-recovery-fallback',
+        kernel: { facts: ['One incomplete synthesis claim.'] },
+      },
+    };
+
+    const result = projectCumulativeAssessmentKernels({
+      lessonContent,
+      courseMapLessons: synthesisLessons,
+      lessonIndices: [2],
+      courseName: 'World Literature',
+    });
+
+    expect(result).toEqual({ projectedLessonIndices: [2], skippedLessonIndices: [] });
+    expect(lessonContent['lesson-3']).toMatchObject({
+      enrichmentSource: 'cumulative-review-projection',
+      projectionKind: 'cumulative-assessment',
+      sourceLessonIds: ['lesson-1', 'lesson-2'],
+    });
+    expect(assessProjectedKernelCoverage(lessonContent['lesson-3']).usable).toBe(true);
+  });
+
   it('reuses admitted subject facts verbatim and produces usable assessment kernels without touching the lab', () => {
     const lessonContent = {};
     for (let index = 0; index < 9; index += 1) {

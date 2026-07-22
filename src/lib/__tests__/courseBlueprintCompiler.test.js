@@ -7798,4 +7798,47 @@ describe('courseBlueprintCompiler', () => {
     expect(text).not.toContain('The checkout is.');
     expect(text).not.toContain('Students submit one visible.');
   });
+
+  it('keeps an admitted Hanzi and tone-marked Pinyin pair when glossary definitions require source review', () => {
+    const oneLessonMap = makeWorldLanguageCourseMap();
+    oneLessonMap.courseName = 'Elementary Mandarin Chinese I';
+    oneLessonMap.lessons = [
+      {
+        ...oneLessonMap.lessons[0],
+        title: 'Lesson 1: Core Sentence Patterns',
+      },
+    ];
+    const blueprint = buildCourseBlueprint(oneLessonMap);
+    blueprint.lessons[0].enrichment = {
+      targetLanguagePair: {
+        hanzi: '我喜欢苹果。',
+        pinyin: 'Wǒ xǐhuān píngguǒ.',
+        english: 'I like apples',
+      },
+      keyTerms: [],
+      kernel: {
+        facts: [
+          'The standard basic sentence structure in Mandarin follows a subject-verb-object pattern.',
+          'A negative marker appears before the main verb in a basic negative sentence.',
+          'Word order helps a listener identify the subject, action, and object.',
+        ],
+      },
+      studyGuide: {
+        summary: 'Compare the sentence parts and explain how word order changes meaning.',
+        reviewStrategy: 'Label each sentence part, rehearse the pattern, and check the result against the lesson source.',
+      },
+    };
+
+    const compiled = compileBlueprintDeliverables(blueprint, ['studyGuides']);
+    const guide = compiled.studyGuides.studyGuides[0];
+
+    expect(guide.sourceReviewRequired).toMatch(/confirm key terms/i);
+    expect(guide.keyTerms).toContainEqual(
+      expect.objectContaining({
+        term: '我喜欢苹果。 (Wǒ xǐhuān píngguǒ.)',
+        romanization: 'Wǒ xǐhuān píngguǒ.',
+        enrichmentSource: 'admitted-language-pair',
+      }),
+    );
+  });
 });

@@ -18569,6 +18569,11 @@ function compileStudyGuides(blueprint) {
             !isUnsafeLessonArtifactPhrase(displayKeyTermName(term)),
         ).length === 0;
       const keyTermRecoveryRequired = sourceBoundRecovery || definitionReviewRequired;
+      // A rejected glossary definition must not erase the lesson's separately
+      // admitted target-language pair. The pair is compiler-owned, structured
+      // evidence and remains safe to show while the source-review notice stays
+      // visible for any unverified disciplinary definitions.
+      const admittedPairOnly = admittedLanguagePairTerm(lesson);
       const dataScienceEvidenceCue =
         'validation metrics, model-performance evidence, data-quality checks, threshold tradeoffs, and fairness or limitation evidence';
       const enrichedMisconceptions = lessonPrimaryTeachingKeyTerms(lesson)
@@ -18652,7 +18657,9 @@ function compileStudyGuides(blueprint) {
         learningTransferPlan: lesson.learningTransferPlan,
         teachingIntent: lesson.teachingIntent,
         keyTerms: keyTermRecoveryRequired
-          ? []
+          ? admittedPairOnly
+            ? [admittedPairOnly]
+            : []
           : useVerifiedMusicIntervalFrame && musicTheoryGuides.length > 0
             ? musicTheoryGuides
             : enrichedKeyTermsForLesson(lesson, {

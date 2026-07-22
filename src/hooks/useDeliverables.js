@@ -1311,6 +1311,7 @@ export default function useDeliverables({
                 parseNativePassBResponse,
                 partitionCumulativeAssessmentLessons,
                 pickNativeKernel,
+                projectCumulativeAssessmentKernels,
                 resolveCumulativeAssessmentKernels,
                 runNativeKernelRecovery,
                 selectNativeContentSources,
@@ -1649,6 +1650,25 @@ export default function useDeliverables({
             // and retain explicit provenance so no fallback becomes a model
             // preference record.
             completeNativeLessonSurfaces(lessonContent, blueprintCourseMap.lessons, allLessonIndices, appendLog);
+
+            // A cumulative session must never ship as a failed model fallback.
+            // The first projection happens immediately after the subject
+            // batches; if compact-ledger admission or bounded recovery fills a
+            // source lesson later, make one final compiler-only projection now.
+            // This replaces only a missing/unusable cumulative payload and
+            // cannot overwrite an already usable authored lesson.
+            if (scionProvider && cumulativeAssessmentLessonIndices.length > 0) {
+              const finalCumulativeProjection = projectCumulativeAssessmentKernels({
+                lessonContent,
+                courseMapLessons: blueprintCourseMap.lessons,
+                lessonIndices: cumulativeAssessmentLessonIndices,
+                courseName: blueprintCourseMap.courseName,
+                onComplete: appendLog,
+              });
+              finalCumulativeProjection.projectedLessonIndices.forEach((lessonIndex) =>
+                contentSourcedSet.add(lessonIdOf(lessonIndex)),
+              );
+            }
 
             const missingLessonNumbers = listMissingKernelIndices().map((lessonIdx) => lessonIdx + 1);
             if (missingLessonNumbers.length > 0) {

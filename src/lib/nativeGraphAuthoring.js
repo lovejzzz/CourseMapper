@@ -661,7 +661,18 @@ function cumulativeSourceEntries(lessonContent, courseMapLessons, assessmentInde
     if (isCumulativeAssessmentLesson(lesson)) continue;
     const lessonId = `lesson-${lessonIndex + 1}`;
     const payload = lessonContent?.[lessonId];
-    if (!payload || !assessProjectedKernelCoverage(payload).usable) continue;
+    // Compact Scion freezes admitted facts before compiler-owned glossary,
+    // assessment, and study-guide surfaces are projected. A cumulative
+    // session runs at that boundary, so requiring the *finished* optional
+    // surface contract here can discard every valid source lesson and send
+    // the capstone back through model recovery. Admit only payloads with an
+    // actual semantic atom; the cumulative draft still has to clear the
+    // normal usability gate below before it can ship.
+    const admittedFactCount = asArray(payload?.kernel?.facts).filter((fact) => cleanText(fact, 500)).length;
+    const admittedTermCount = asArray(payload?.keyTerms).filter(
+      (term) => cleanText(term?.term, 80) && cleanText(term?.definition, 500),
+    ).length;
+    if (!payload || (admittedFactCount === 0 && admittedTermCount === 0)) continue;
     entries.push({ lessonIndex, lessonId, lesson, payload });
   }
   return entries;
@@ -718,7 +729,7 @@ export function projectCumulativeAssessmentKernels({
     const entries = cumulativeSourceEntries(lessonContent, courseMapLessons, lessonIndex);
     const facts = projectedCumulativeFacts(entries);
     const keyTerms = projectedCumulativeTerms(entries);
-    if (facts.length < 3 || keyTerms.length < 1) {
+    if (facts.length < 3) {
       skippedLessonIndices.push(lessonIndex);
       continue;
     }
