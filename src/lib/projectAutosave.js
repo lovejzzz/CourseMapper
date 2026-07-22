@@ -35,3 +35,36 @@ export function buildLocalAutosavePayload({
     payload: JSON.stringify(compactSnapshot || {}),
   };
 }
+
+/**
+ * Last-resort browser autosave. A generated package can exceed an origin's
+ * localStorage quota even after its deliverables are omitted because the
+ * serialized course graph remains large. Preserve the authored course map
+ * and configuration so reopening can deterministically recompile the
+ * package; omit the graph, histories, and generated artifacts.
+ */
+export function buildCourseMapRecoveryAutosavePayload(snapshot = {}) {
+  const promptText = typeof snapshot.promptText === 'string' ? snapshot.promptText.slice(0, 8_000) : '';
+  return JSON.stringify({
+    projectId: snapshot.projectId,
+    courseMap: snapshot.courseMap,
+    columns: snapshot.columns,
+    hasGenerated: true,
+    provider: snapshot.provider,
+    modelId: snapshot.modelId,
+    modelName: snapshot.modelName,
+    fileNames: snapshot.fileNames,
+    selectedFeatures: snapshot.selectedFeatures,
+    deliverableConfig: snapshot.deliverableConfig,
+    lessonScope: snapshot.lessonScope,
+    promptText,
+    activeTab: snapshot.activeTab,
+    slideTheme: snapshot.slideTheme,
+    deliverableFeatureIds: snapshot.deliverableFeatureIds,
+    deliverableManifest: snapshot.deliverableManifest,
+    deliverables: {},
+    deliverableSaveMode: 'recompile-on-open',
+    localSaveMode: 'course-map-recovery-autosave',
+    savedAt: snapshot.savedAt || Date.now(),
+  });
+}

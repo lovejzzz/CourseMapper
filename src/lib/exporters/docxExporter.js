@@ -1449,6 +1449,8 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         if (syl.sourcesAndLicenses.note) children.push(makeText(syl.sourcesAndLicenses.note));
         syl.sourcesAndLicenses.groups.forEach((group) => {
           children.push(makeSubHeading(group.label));
+          const sharedLicenseTail = [group.license, group.attribution].filter(Boolean).join(' · ');
+          if (sharedLicenseTail) children.push(makeText(`License and attribution: ${sharedLicenseTail}.`));
           group.entries.forEach((entry) => {
             const licenseTail = [entry.license, entry.attribution].filter(Boolean).join(' · ');
             children.push(makeBullet(`${entry.citation}${licenseTail ? ` — ${licenseTail}` : ''}`));

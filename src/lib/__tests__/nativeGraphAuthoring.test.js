@@ -4,12 +4,14 @@ import { renderCourseMapFromGraph } from '../courseGraph/renderCourseMap.js';
 import {
   completeNativeKernelSurfaces,
   matchEntityIds,
+  mergeNativePartialOverlays,
   partitionCumulativeAssessmentLessons,
   preserveSourceProof,
   projectCumulativeAssessmentKernels,
   repairCourseGraphResourceIds,
   restoreCourseGraphForProject,
 } from '../nativeGraphAuthoring.js';
+import { mergeLessonPayloads } from '../genome/composeLessonFromConcepts.js';
 import { assessProjectedKernelCoverage } from '../blueprintEnrichmentPass.js';
 import { validateCourseGraph } from '../courseGraph/schema.js';
 import { findWorstPhraseRepetition } from '../exportRenderedTextAudit.js';
@@ -306,6 +308,106 @@ describe('completeNativeKernelSurfaces', () => {
           source: 'verified-quiz-projection',
         }),
       ]),
+    );
+  });
+
+  it('completes a determiner-ended MC stem before projecting it as a key-term example', () => {
+    const completed = completeNativeKernelSurfaces(
+      {
+        keyTerms: [],
+        quizItems: [
+          {
+            index: 0,
+            type: 'multiple_choice',
+            question: 'Most nutrient absorption takes place in the',
+            options: ['small intestine', 'stomach', 'large intestine', 'esophagus'],
+            answerIndex: 0,
+            explanation:
+              'Nutrient absorption takes place mainly in the small intestine because its folds, villi, and microvilli create a large exchange surface.',
+          },
+        ],
+        kernel: {
+          facts: [
+            'The small intestine is the main site of nutrient absorption.',
+            'Villi and microvilli increase the surface available for absorption.',
+            'The stomach begins digestion but absorbs relatively few nutrients.',
+          ],
+          scenario: { setup: 'Trace a meal through the digestive tract.', materials: 'digestive-system diagram' },
+        },
+      },
+      {
+        title: 'Lesson 9: Digestion and absorption in the GI tract',
+        lessonNumber: 9,
+        sections: [{ topicSection: 'Digestion and absorption' }],
+      },
+    );
+
+    expect(completed.keyTerms).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          term: 'small intestine',
+          example: 'Most nutrient absorption takes place in the small intestine',
+        }),
+      ]),
+    );
+  });
+
+  it('uses verified partial overlays before recovery can spend another model call', () => {
+    const lessonContent = {
+      'lesson-2': {
+        kernel: {
+          facts: [
+            'The celestial sphere is an apparent dome used to map positions in the sky.',
+            'Right ascension and declination locate objects on the celestial sphere.',
+          ],
+          scenario: { setup: 'Locate a star on a coordinate chart.', materials: 'star chart' },
+        },
+        keyTerms: [],
+      },
+    };
+    const partialOverlays = {
+      'lesson-2': {
+        enrichmentSource: 'genome-partial',
+        kernel: {
+          facts: ['Declination measures angular distance north or south of the celestial equator.'],
+          scenario: { setup: 'Compare two mapped stars.', materials: 'star chart' },
+        },
+        keyTerms: [
+          {
+            term: 'declination',
+            definition: 'Declination is angular distance north or south of the celestial equator.',
+            example: 'A star with positive declination lies north of the celestial equator.',
+            source: 'OpenStax Astronomy 2e',
+          },
+        ],
+        quizItems: [
+          {
+            index: 0,
+            type: 'multiple_choice',
+            question: 'Declination is measured relative to the',
+            options: ['celestial equator', 'ecliptic only', 'local horizon only', 'Moon'],
+            answerIndex: 0,
+            explanation: 'Declination uses the celestial equator as its reference.',
+          },
+          {
+            index: 1,
+            type: 'short_answer',
+            question: 'How does declination locate a star?',
+            answer: "It gives the star's angular distance north or south of the celestial equator.",
+          },
+        ],
+      },
+    };
+
+    expect(mergeNativePartialOverlays(lessonContent, partialOverlays, mergeLessonPayloads)).toEqual(['lesson-2']);
+    const completed = completeNativeKernelSurfaces(lessonContent['lesson-2'], {
+      title: 'Lesson 2: The Celestial Sphere and Sky Coordinates',
+      lessonNumber: 2,
+      sections: [{ topicSection: 'Celestial sphere, right ascension, and declination' }],
+    });
+    expect(assessProjectedKernelCoverage(completed).usable).toBe(true);
+    expect(completed.kernel.facts).toContain(
+      'Declination measures angular distance north or south of the celestial equator.',
     );
   });
 

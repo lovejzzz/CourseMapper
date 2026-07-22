@@ -377,7 +377,7 @@ describe('ExportSidePanel readiness repair timing', () => {
 
     const zipButton = container.querySelector('[data-testid="export-download-zip"]');
     expect(container.querySelector('[data-testid="readiness-panel"]')?.textContent).toContain('Finish package');
-    expect(zipButton?.textContent).toContain('Download draft ZIP');
+    expect(zipButton?.textContent).toContain('Download ZIP');
     expect(zipButton?.disabled).toBe(false);
 
     await act(async () => {
@@ -391,7 +391,7 @@ describe('ExportSidePanel readiness repair timing', () => {
     expect(downloadCourseMaterialsZip).toHaveBeenCalledTimes(1);
   });
 
-  it('downloads a repeated-topic draft after export verification and preserves blocked readiness', async () => {
+  it('downloads a repeated-topic package after export verification and preserves blocked readiness', async () => {
     const repeatedCourseMap = {
       courseName: 'Genetics',
       lessons: [
@@ -419,7 +419,7 @@ describe('ExportSidePanel readiness repair timing', () => {
     });
 
     const zipButton = container.querySelector('[data-testid="export-download-zip"]');
-    expect(zipButton?.textContent).toContain('Download draft ZIP');
+    expect(zipButton?.textContent).toContain('Download ZIP');
     expect(zipButton?.disabled).toBe(false);
 
     await act(async () => {

@@ -1622,7 +1622,7 @@ test.describe('Export smoke', () => {
     await expect(page.getByTestId('readiness-panel')).toContainText('Lesson 2 quiz keys every multiple-choice answer');
     await expect(page.getByTestId('export-download-zip')).toContainText('Finish package');
     await page.getByTestId('export-download-zip').click();
-    await expect(page.getByTestId('export-download-zip')).toContainText('Download draft ZIP');
+    await expect(page.getByTestId('export-download-zip')).toContainText('Download ZIP');
 
     const zipDownload = await expectDownload(page, () => page.getByTestId('export-download-zip').click(), {
       extension: 'zip',

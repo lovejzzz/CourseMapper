@@ -51,7 +51,12 @@ function citationLabel(anchor) {
 function citationProvenance(anchor, kernel, sourceReferences = {}) {
   const label = citationLabel(anchor);
   if (!label) return null;
-  const metadata = sourceReferences?.[anchor?.src];
+  // Foundry anchors may carry a section fragment in `src` while the genome
+  // manifest stores one verified bibliographic row for the underlying work.
+  // Resolve both identities so a precise `#3.1` content anchor does not lose
+  // the book URL and fall into the exported source-review quarantine.
+  const sourceKey = String(anchor?.src || '');
+  const metadata = sourceReferences?.[sourceKey] || sourceReferences?.[sourceKey.replace(/#.*$/, '')];
   if (!metadata?.sourceUrl) return label;
   const locator = cleanText(anchor?.loc);
   const displayTitle = cleanText(metadata.displayTitle) || label;

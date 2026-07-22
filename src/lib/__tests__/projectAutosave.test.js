@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildLocalAutosavePayload } from '../projectAutosave';
+import { buildCourseMapRecoveryAutosavePayload, buildLocalAutosavePayload } from '../projectAutosave';
 
 describe('buildLocalAutosavePayload', () => {
   it('v0.15: prunes history but KEEPS deliverables before ever falling to compact', () => {
@@ -75,5 +75,30 @@ describe('buildLocalAutosavePayload', () => {
     expect(saved.apiCallBudgetReceipt.enrichmentOutcome.enrichedLessons).toBe(1);
     expect(saved.deliverables).toEqual({});
     expect(result.payload).not.toContain(largeBody);
+  });
+});
+
+describe('buildCourseMapRecoveryAutosavePayload', () => {
+  it('preserves a re-compilable course while omitting quota-heavy graph and artifact data', () => {
+    const payload = buildCourseMapRecoveryAutosavePayload({
+      projectId: 'geo-1',
+      courseMap: { courseName: 'Physical Geology', lessons: [{ title: 'Lesson 1: Minerals' }] },
+      courseGraphJson: 'graph'.repeat(10_000),
+      deliverables: { quizBank: { data: 'quiz'.repeat(10_000) } },
+      selectedFeatures: ['courseMap', 'quizBank'],
+      deliverableManifest: { quizBank: { status: 'done' } },
+      promptText: 'syllabus '.repeat(2_000),
+    });
+    const saved = JSON.parse(payload);
+
+    expect(saved.courseMap.courseName).toBe('Physical Geology');
+    expect(saved.selectedFeatures).toEqual(['courseMap', 'quizBank']);
+    expect(saved.deliverableManifest.quizBank.status).toBe('done');
+    expect(saved.deliverables).toEqual({});
+    expect(saved.deliverableSaveMode).toBe('recompile-on-open');
+    expect(saved.localSaveMode).toBe('course-map-recovery-autosave');
+    expect(saved.promptText.length).toBeLessThanOrEqual(8_000);
+    expect(payload).not.toContain('graphgraph');
+    expect(payload).not.toContain('quizquiz');
   });
 });

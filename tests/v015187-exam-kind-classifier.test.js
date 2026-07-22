@@ -256,4 +256,37 @@ describe('exam kind classification is consistent compile-to-manifest', () => {
     const exams = (compiled.quizBank.quizzes || []).filter((entry) => entry.kind === 'exam');
     expect(exams).toHaveLength(1);
   });
+
+  it('lets an exam title override a contradictory model-provided kind', () => {
+    const blueprint = buildCourseBlueprint({
+      courseName: 'Physical Geology',
+      lessons: [
+        ...COURSE.lessons.slice(0, 2),
+        {
+          title: 'Lesson 3: Final Examination',
+          sections: [
+            {
+              topicSection: 'Cumulative geology examination',
+              learningGoals: 'Demonstrate cumulative geologic reasoning.',
+              learningObjectives: 'Interpret rock, map, and process evidence under exam conditions.',
+              weeklyAssessments: 'Final (50%)',
+              asyncActivities: 'Review the course study guide.',
+              syncActivities: 'Complete the final examination.',
+              supportingResources: 'Course notes; geologic maps; rock identification key',
+            },
+          ],
+        },
+      ],
+    });
+    const final = blueprint.assessments.find((assessment) => assessment.title === 'Final (50%)');
+    final.kind = 'graded-artifact';
+
+    const compiled = compileBlueprintDeliverables(blueprint, ['quizBank'], {});
+    const finalArtifacts = compiled.quizBank.quizzes.filter((entry) => entry.lessonNumber === 3);
+
+    expect(finalArtifacts).toHaveLength(1);
+    expect(finalArtifacts[0].kind).toBe('exam');
+    expect(finalArtifacts[0].lessonTitle).toContain('Final (50%)');
+    expect(finalArtifacts[0].questions.length).toBeGreaterThanOrEqual(3);
+  });
 });

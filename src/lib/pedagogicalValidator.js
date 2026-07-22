@@ -14,6 +14,7 @@ import { getArrayKey } from './syncDependencies';
 import { isProvenanceMirrorKey } from './compiledLanguageFinalizer';
 import { parseClassSessionMinutes } from './sourceBriefConstraints';
 import { findDuplicateLessonTitleGroups } from './lessonTitleIdentity';
+import { isInternalDeliverableMetadataKey } from './internalDeliverableMetadata';
 import readability from 'text-readability';
 
 // ── Bloom's Taxonomy ─────────────────────────────────────────────────────────
@@ -1134,6 +1135,7 @@ function isIgnoredReadabilityKey(key = '') {
 }
 
 function isIgnoredReadabilitySubtree(key = '') {
+  if (isInternalDeliverableMetadataKey(key)) return true;
   const normalized = normalizedReadabilityKey(key);
   return [...READABILITY_IGNORED_SUBTREE_KEYS].some((ignored) => normalizedReadabilityKey(ignored) === normalized);
 }

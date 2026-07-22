@@ -6258,6 +6258,11 @@ describe('courseBlueprintCompiler', () => {
       decisionNoun: 'diet-analysis conclusion',
     },
     {
+      courseName: 'Physical Geology',
+      topic: 'Mineral identification, rock cycle, plate tectonics, weathering, and erosion',
+      decisionNoun: 'geologic interpretation',
+    },
+    {
       courseName: 'Introduction to Astronomy',
       topic: 'Celestial coordinates, Moon phases, stellar parallax, solar nebula, and Hubble law',
       decisionNoun: 'astronomical explanation',
@@ -6954,6 +6959,39 @@ describe('courseBlueprintCompiler', () => {
     expect(serialized).not.toMatch(/\bTBD\b|to be determined|\[semester year\]/i);
     expect(syllabus.classroomHandoffPlan.publishBoundary).toMatch(/official dates/i);
     expect(syllabus.blueprintQualityReceipt.compilerPath.reviewPolicy).toMatch(/official dates|source inputs/i);
+  });
+
+  it('groups repeated open-resource attribution once while preserving every cited section', () => {
+    const blueprint = buildCourseBlueprint(makeCourseMap(2));
+    blueprint.knowledgeResources = [
+      {
+        origin: 'genome',
+        citation: 'UH OER human nutrition 2e §Ch. 2 — The Digestive System',
+        license: 'CC BY 4.0',
+        attribution: "University of Hawai'i at Mānoa Food Science and Human Nutrition Program",
+        url: 'https://pressbooks.oer.hawaii.edu/humannutrition2/',
+      },
+      {
+        origin: 'genome',
+        citation: 'UH OER human nutrition 2e §Ch. 3 — Water and Electrolytes',
+        license: 'CC BY 4.0',
+        attribution: "University of Hawai'i at Mānoa Food Science and Human Nutrition Program",
+        url: 'https://pressbooks.oer.hawaii.edu/humannutrition2/',
+      },
+    ];
+
+    const syllabus = compileBlueprintDeliverables(blueprint, ['syllabus']).syllabus.syllabus;
+    const group = syllabus.sourcesAndLicenses.groups.find((entry) => entry.origin === 'genome');
+
+    expect(group).toMatchObject({
+      license: 'CC BY 4.0',
+      attribution: "University of Hawai'i at Mānoa Food Science and Human Nutrition Program",
+    });
+    expect(group.entries.map((entry) => entry.citation)).toEqual([
+      'UH OER human nutrition 2e §Ch. 2 — The Digestive System',
+      'UH OER human nutrition 2e §Ch. 3 — Water and Electrolytes',
+    ]);
+    expect(group.entries.every((entry) => !entry.license && !entry.attribution)).toBe(true);
   });
 
   it('preserves explicit source grading weights and labels compiler-distributed weights as draft policy', () => {

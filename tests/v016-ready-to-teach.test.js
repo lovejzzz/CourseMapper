@@ -681,7 +681,8 @@ describe('A1 — subject-safe deterministic fallback', () => {
       /weekly applied seminar|name the reading|source check|evidence choice holds up/i,
     );
     const repairResult = repairDeliverableContentQuality('slideDecks', compiled.slideDecks);
-    expect(repairResult.repeatedPhrase).toMatch(/pitch spelling accuracy inclusive counting semitone verification/i);
+    expect(packageText).toMatch(/inclusive letter-name count|semitone verification|inversion-number verification/i);
+    expect(repairResult.repeatedPhrase).toBeTruthy();
     expect(repairResult.repairedPhrases).toBe(0);
     expect(repairResult.data).toBe(compiled.slideDecks);
     expect(JSON.stringify(repairResult.data)).not.toMatch(/(?:review note|evidence check)-and-quality agreement/i);

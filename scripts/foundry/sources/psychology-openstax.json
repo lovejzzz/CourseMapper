@@ -899,7 +899,7 @@
             "mapping": {
               "process": "cognitive development from infancy to adulthood",
               "stages": "sensorimotor, preoperational, concrete operational, formal operational",
-              "dependency": "each stage's mental operations are built from the schemata consolidated in the stage before",
+              "dependency": "each stage's mental operations build on schemata consolidated during the previous stage",
               "failure if skipped": "instruction pitched above the child's stage produces imitation without understanding"
             }
           }

@@ -544,6 +544,14 @@ describe('validateReadability', () => {
             blueprintGrounding: {
               compilerDecision: complexText,
             },
+            discussionProtocol: {
+              facilitationModel: complexText,
+            },
+            slideDeckSequenceGuide: {
+              sequenceRationale: complexText,
+            },
+            modalityFit: complexText,
+            artifactGenreFit: complexText,
           },
         ],
       }),

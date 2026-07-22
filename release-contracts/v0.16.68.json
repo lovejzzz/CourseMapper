@@ -1,0 +1,176 @@
+{
+  "version": "0.16.68",
+  "date": "July 22, 2026",
+  "title": "Make Every Package Feel Finished",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test",
+      "npm run format:check",
+      "npm run lint",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification reruns release, format, lint, unit, build, and bundle gates after push."
+    },
+    "ciDeep": {
+      "status": "not-current",
+      "note": "No adapter-versus-base promotion or external quality claim is made in this compiler incident release."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Production deployment remains downstream of the successful main verification run."
+    },
+    "liveProvider": {
+      "status": "success",
+      "url": "docs/evidence/SCION_V01668_GEOLOGY_ZERO_BLOCKER.json",
+      "note": "The browser-local Scion route completes Physical Geology with four model calls, no retries, and a zero-finding downloadable package."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No instructor, classroom, human-preference, factual, or independent-model validation is claimed."
+    },
+    "manualBrowser": {
+      "status": "success",
+      "url": "docs/evidence/SCION_V01668_GEOLOGY_ZERO_BLOCKER.json",
+      "note": "The final export panel, physical ZIP, source ledger, archive integrity, and independent regrade were inspected."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01668-geology-incident-reproduction",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The attached Geology package is traced to discipline classification, assessment typing, source metadata, and local persistence defects.",
+      "anchors": [
+        "docs/evidence/SCION_V01668_GEOLOGY_ZERO_BLOCKER.json",
+        "src/lib/courseBlueprintCompiler.js",
+        "src/lib/courseIR.js",
+        "src/lib/projectAutosave.js"
+      ],
+      "proofCommands": [
+        "npx vitest run src/lib/__tests__/courseBlueprintCompiler.test.js tests/v015187-exam-kind-classifier.test.js src/lib/__tests__/projectAutosave.test.js"
+      ],
+      "proofScopes": ["browser-live", "compiled-output", "unit"]
+    },
+    {
+      "id": "v01668-geology-discipline-lens",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Physical Geology has its own domain lens and bare mineral language no longer triggers Nutrition.",
+      "anchors": ["src/lib/courseBlueprintCompiler.js", "src/lib/__tests__/courseBlueprintCompiler.test.js"],
+      "proofCommands": ["npx vitest run src/lib/__tests__/courseBlueprintCompiler.test.js"],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01668-explicit-exam-title",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "An explicit final or exam title overrides a contradictory generic kind across graph, IR, registry, and compiler boundaries.",
+      "anchors": [
+        "src/lib/nativeGraphAuthoring.js",
+        "src/lib/courseIR.js",
+        "src/lib/courseBlueprintCompiler.js",
+        "tests/v015187-exam-kind-classifier.test.js"
+      ],
+      "proofCommands": ["npx vitest run tests/v015187-exam-kind-classifier.test.js"],
+      "proofScopes": ["unit", "course-graph", "compiled-output"]
+    },
+    {
+      "id": "v01668-source-fragment-metadata",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Section-fragment source ids inherit URL, attribution, and license from the exact base bibliography entry.",
+      "anchors": [
+        "src/lib/genome/composeLessonFromConcepts.js",
+        "src/lib/genome/__tests__/runGenomeLinker.test.js",
+        "docs/evidence/SCION_V01668_GEOLOGY_ZERO_BLOCKER.json"
+      ],
+      "proofCommands": ["npx vitest run src/lib/genome/__tests__/runGenomeLinker.test.js"],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01668-local-save-recovery",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "Quota recovery preserves a small recompile-capable course-map snapshot rather than retrying another oversized graph payload.",
+      "anchors": [
+        "src/lib/projectAutosave.js",
+        "src/hooks/useProjectPersistence.js",
+        "src/lib/__tests__/projectAutosave.test.js"
+      ],
+      "proofCommands": ["npx vitest run src/lib/__tests__/projectAutosave.test.js"],
+      "proofScopes": ["unit", "browser-smoke"]
+    },
+    {
+      "id": "v01668-premium-export-language",
+      "status": "verified-current",
+      "changelogHighlightIndex": 5,
+      "summary": "The reviewed archive uses one Download ZIP action and a finished-package success confirmation.",
+      "anchors": [
+        "src/components/ExportSidePanel.jsx",
+        "src/components/__tests__/ExportSidePanel.readiness.test.jsx",
+        "tests/export-smoke.spec.js"
+      ],
+      "proofCommands": ["npx vitest run src/components/__tests__/ExportSidePanel.readiness.test.jsx"],
+      "proofScopes": ["unit", "browser-smoke"]
+    },
+    {
+      "id": "v01668-geology-browser-zip-proof",
+      "status": "verified-current",
+      "changelogHighlightIndex": 6,
+      "summary": "Physical Geology reaches 99/A with zero findings and downloads a valid 117-file ZIP after four model calls and zero retries.",
+      "anchors": [
+        "docs/evidence/SCION_V01668_GEOLOGY_ZERO_BLOCKER.json",
+        "src/lib/packageZipExporter.js",
+        "src/lib/quality/deepQualityGrader.js"
+      ],
+      "proofCommands": [
+        "jq empty docs/evidence/SCION_V01668_GEOLOGY_ZERO_BLOCKER.json",
+        "npx vitest run src/lib/__tests__/packageZipExporter.test.js"
+      ],
+      "proofScopes": ["browser-live", "browser-smoke", "compiled-output"]
+    },
+    {
+      "id": "v01668-frozen-base-only-matrix",
+      "status": "verified-current",
+      "changelogHighlightIndex": 7,
+      "summary": "Astronomy, Mandarin, Nutrition, Psychology, and World Literature each reach 99/A with zero findings on the pinned base and inactive adapter.",
+      "anchors": [
+        "docs/evidence/SCION_V01668_GEOLOGY_ZERO_BLOCKER.json",
+        "evaluation/scion-adapters/held-out-course-benchmark-v17.json",
+        "src/lib/quality/deepQualityGrader.js",
+        "src/lib/quality/__tests__/sourceLedgerGrader.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run src/lib/quality/__tests__/sourceLedgerGrader.test.js",
+        "node scripts/crucible.mjs --courses astro-101,mandarin,nutrition-101,psych-101,world-lit-readings --llm local --authoring native --concurrency 1"
+      ],
+      "proofScopes": ["browser-live", "gold-audit", "unit"]
+    },
+    {
+      "id": "v01668-release-gates-and-model-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 8,
+      "summary": "All local release gates pass; Gemma weights are unchanged, the adapter remains inactive, and compatible paid routes inherit the shared compiler fixes.",
+      "anchors": [
+        "README.md",
+        "package.json",
+        "scripts/checkBundleBudgets.mjs",
+        "tests/v0155-release-truth-ledger.test.js"
+      ],
+      "proofCommands": [
+        "npm test",
+        "npm run format:check",
+        "npm run lint",
+        "npm run build",
+        "npm run bundle:check",
+        "npm run audit:release-history"
+      ],
+      "proofScopes": ["unit", "format", "lint", "build", "static-audit", "doc"]
+    }
+  ]
+}

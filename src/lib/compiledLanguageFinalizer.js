@@ -167,6 +167,7 @@ function fixMechanicalSeams(value) {
   text = text.replace(/[ \t]+([.,;:!?])(?=\s|$)/g, '$1');
   // Doubled connectives produced by reference replacement ("the the Week 2 check").
   text = text.replace(/\b(the|a|an|to|of|for|and|or|in|on|with|at|by)\s+\1\b/gi, '$1');
+  text = text.replace(/\bexplain the psychological explanation\b/gi, 'explain the psychological account');
   // A due-window label can meet an artifact short reference after repetition
   // compaction ("Week 2" + "the Week 2 response"). Keep the one canonical
   // schedule label; this is an exact same-number seam, never a cross-week
@@ -216,6 +217,18 @@ function fixMechanicalSeams(value) {
 function isSentenceStart(text, offset) {
   if (offset === 0) return true;
   return /[.!?:]\s+$|\n\s*$/.test(text.slice(Math.max(0, offset - 3), offset));
+}
+
+function firstStableTopicUnit(topic = '') {
+  const text = String(topic || '').trim();
+  // “Including …” commonly introduces examples, not the identity of the
+  // lesson. Keeping the entire example list made every discussion and guide
+  // repeat titles such as “theories of intelligence including general
+  // intelligence and multiple intelligences.”
+  const includingLead = (text.split(/\s+including\b/i)[0] || '').trim();
+  const candidateSource = includingLead.length >= 8 && includingLead.length < text.length ? includingLead : text;
+  const candidate = (candidateSource.split(/,|\band\b|[:—–]/i)[0] || '').trim();
+  return /\b(?:and|or|for|of|to|with|in|on|from|against|between|through)$/i.test(candidate) ? '' : candidate;
 }
 
 function buildReferenceTargets(blueprint = {}) {
@@ -310,7 +323,7 @@ function buildReferenceTargets(blueprint = {}) {
     // Community Resilience Basics") so later mentions stay lesson-specific
     // instead of collapsing into a generic "Lesson N" that reads mechanical
     // and erases the per-lesson language the readiness gates look for.
-    const firstTopicUnitCandidate = (topic.split(/,|\band\b|[:—–]/i)[0] || '').trim();
+    const firstTopicUnitCandidate = firstStableTopicUnit(topic);
     // A coordinating "and" is not always a safe phrase boundary. In titles
     // such as "Arguments for and against God", splitting on it leaves the
     // preposition "for" stranded and changes the topic's meaning. Fall back
@@ -530,11 +543,7 @@ function compressNoteLessonTitleMentions(note, lessonTitle) {
 // examScope/assessment-name fields stay exact — those surfaces are scanned
 // by identity and readiness gates and must keep canonical wording.
 function studyGuideTopicCompression(topic) {
-  const units = String(topic || '')
-    .split(/,|\band\b|[:—–]/i)
-    .map((part) => part.trim())
-    .filter((part) => part.length >= 8);
-  return units[0] || topic;
+  return firstStableTopicUnit(topic) || topic;
 }
 // Only the guide's OWN prose fields are compressed. Everything else is out of
 // scope by construction:

@@ -226,7 +226,9 @@ function normalizeAssessment(rawAssessment, index) {
   // the export manifest re-classified them 'exam' — the grader then found a
   // registered exam with no exam paper (P0). One classifier everywhere: the
   // title-based rule the manifest derivation uses.
-  const kind = VALID_ASSESSMENT_KINDS.has(rawAssessment?.kind) ? rawAssessment.kind : classifyAssessmentKind(title);
+  const titleKind = classifyAssessmentKind(title);
+  const kind =
+    titleKind === 'exam' ? 'exam' : VALID_ASSESSMENT_KINDS.has(rawAssessment?.kind) ? rawAssessment.kind : titleKind;
   const rubricDimensions = uniqueStrings(rawAssessment?.rubricDimensions || rawAssessment?.dimensions || [], 8);
   const rawRubricCriteria = asArray(rawAssessment?.rubricCriteria || rawAssessment?.rubric || rawAssessment?.criteria);
   const rubricCriteria = rawRubricCriteria
@@ -1094,7 +1096,12 @@ function lessonAssessmentFromTemplate(template, lesson, index, id) {
     ...template,
     id,
     title,
-    kind: VALID_ASSESSMENT_KINDS.has(template?.kind) ? template.kind : classifyAssessmentKind(title || ''),
+    kind:
+      classifyAssessmentKind(title || '') === 'exam'
+        ? 'exam'
+        : VALID_ASSESSMENT_KINDS.has(template?.kind)
+          ? template.kind
+          : classifyAssessmentKind(title || ''),
     lessonIds: [lesson.id],
     coverageConceptIds: lesson.conceptIds,
     prompt,

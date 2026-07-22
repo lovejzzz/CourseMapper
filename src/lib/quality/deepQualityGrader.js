@@ -1981,6 +1981,11 @@ const CITATION_AUTHOR_HEAD =
   /(?:[A-ZÀ-Þ][\wÀ-ÿ’'-]+,\s+[A-ZÀ-Þ]\.|[A-ZÀ-Þ]\.\s*[A-ZÀ-Þ]?\.?\s+[A-ZÀ-Þ][\wÀ-ÿ’'-]+|[A-ZÀ-Þ][\wÀ-ÿ’'-]+\s+[A-ZÀ-Þ]\.\s|\bet al\.)/;
 function isScholarlyCitationLine(line) {
   const text = String(line);
+  // Exporters may place shared Creative Commons attribution in its own
+  // paragraph before the source entries. "Wikipedia contributors" makes that
+  // paragraph look citation-like, but it names no work and therefore cannot be
+  // judged for topical relevance independently of the entries that follow it.
+  if (/^License and attribution\s*:/i.test(text)) return false;
   const hasYear = CITATION_YEAR.test(text);
   const hasAuthorHead = CITATION_AUTHOR_HEAD.test(text);
   const hasIsbn = /\bISBN\b/i.test(text) || /openlibrary\.org/i.test(text);

@@ -269,9 +269,7 @@ function worktreeBlobReceipt(cwd, entry) {
   const absolutePath = path.join(cwd, entry.filePath);
   try {
     const stats = lstatSync(absolutePath);
-    const body = stats.isSymbolicLink()
-      ? Buffer.from(readlinkSync(absolutePath), 'utf8')
-      : readFileSync(absolutePath);
+    const body = stats.isSymbolicLink() ? Buffer.from(readlinkSync(absolutePath), 'utf8') : readFileSync(absolutePath);
     const worktreeMode = stats.isSymbolicLink()
       ? '120000'
       : stats.isFile()
@@ -289,11 +287,11 @@ function worktreeBlobReceipt(cwd, entry) {
 }
 
 async function scopedTrackedChanges(cwd) {
-  const { stdout } = await execFile(
-    'git',
-    ['ls-tree', '-rz', 'HEAD', '--', ...SCION_COMPILER_PROVENANCE_PATHS],
-    { cwd, encoding: 'utf8', maxBuffer: 5_000_000 },
-  );
+  const { stdout } = await execFile('git', ['ls-tree', '-rz', 'HEAD', '--', ...SCION_COMPILER_PROVENANCE_PATHS], {
+    cwd,
+    encoding: 'utf8',
+    maxBuffer: 5_000_000,
+  });
   const entries = splitNullTerminated(stdout)
     .map((line) => {
       const match = /^(\d+) blob ([a-f0-9]{40})\t(.+)$/.exec(line);
@@ -310,15 +308,11 @@ export async function captureCompilerProvenance(cwd) {
     gitOutput(cwd, ['rev-parse', 'HEAD']),
     gitOutput(cwd, ['rev-parse', 'HEAD^{tree}']),
     scopedTrackedChanges(cwd),
-    execFile(
-      'git',
-      ['ls-files', '--others', '--exclude-standard', '-z', '--', ...SCION_COMPILER_PROVENANCE_PATHS],
-      {
-        cwd,
-        encoding: 'utf8',
-        maxBuffer: 2_000_000,
-      },
-    ),
+    execFile('git', ['ls-files', '--others', '--exclude-standard', '-z', '--', ...SCION_COMPILER_PROVENANCE_PATHS], {
+      cwd,
+      encoding: 'utf8',
+      maxBuffer: 2_000_000,
+    }),
   ]);
   const affectingUntracked = splitNullTerminated(untrackedResult.stdout).filter(
     (filePath) => !excludedCompilerProvenancePath(filePath),

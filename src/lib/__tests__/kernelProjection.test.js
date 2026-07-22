@@ -440,6 +440,7 @@ describe('projectKernelToSurfaces', () => {
     const shortAnswer = payload.quizItems.find((item) => item.type === 'short_answer');
     expect(shortAnswer.answer).toContain('Navigation Structure');
     expect(shortAnswer.answer).not.toContain('Card Sorting is the most relevant');
+    expect(shortAnswer.answer.split(/(?<=[.!?])\s+/).length).toBeGreaterThanOrEqual(3);
     expect(shortAnswer.scoringGuidance).not.toContain('mockups..');
   });
 

@@ -78,6 +78,11 @@ function stripTerminalPeriod(text) {
   return cleanText(text).replace(/\.+$/, '');
 }
 
+function sentenceCase(text) {
+  const cleaned = cleanText(text);
+  return cleaned ? `${cleaned.charAt(0).toUpperCase()}${cleaned.slice(1)}` : '';
+}
+
 function projectionVariant(seed, variants = []) {
   if (!variants.length) return '';
   const index = Math.max(0, Number(seed) || 0);
@@ -455,15 +460,16 @@ function composeEvidenceBoundedShortAnswer(
     sentences.push(
       ensureSentence(
         projectionVariant(variantSeed, [
-          `The best-supported conclusion is that ${termName} is the most relevant concept for interpreting the case: ${lowercaseLead(definition)}`,
-          `${termName} is the strongest interpretive lens here because ${lowercaseLead(definition)}`,
-          `The evidence points first to ${termName}: ${lowercaseLead(definition)}`,
-          `Use ${termName} to frame the conclusion because ${lowercaseLead(definition)}`,
-          `The most defensible method is ${termName}, which ${lowercaseLead(definition)}`,
-          `${termName} best fits the decision in this case: ${lowercaseLead(definition)}`,
+          `The best-supported concept is ${termName}`,
+          `${termName} is the strongest interpretive lens here`,
+          `The evidence points first to ${termName}`,
+          `Use ${termName} to frame the conclusion`,
+          `The most defensible method is ${termName}`,
+          `${termName} best fits the decision in this case`,
         ]),
       ),
     );
+    sentences.push(ensureSentence(sentenceCase(definition)));
   } else if (termName) {
     sentences.push(ensureSentence(`The most relevant concept or method is ${termName}`));
   } else if (definition) {
@@ -474,12 +480,12 @@ function composeEvidenceBoundedShortAnswer(
     sentences.push(
       ensureSentence(
         projectionVariant(variantSeed + 1, [
-          `The decisive case evidence is that ${lowercaseLead(setup)}`,
-          `The case establishes that ${lowercaseLead(setup)}`,
-          `Start from the observable situation: ${lowercaseLead(setup)}`,
-          `The relevant decision context is that ${lowercaseLead(setup)}`,
-          `The supplied case shows that ${lowercaseLead(setup)}`,
-          `The interpretation rests on this case detail: ${lowercaseLead(setup)}`,
+          `The decisive evidence comes from this case. ${sentenceCase(setup)}`,
+          `The case establishes the relevant context. ${sentenceCase(setup)}`,
+          `Start with this observable situation. ${sentenceCase(setup)}`,
+          `This context defines the decision. ${sentenceCase(setup)}`,
+          `The supplied case sets the boundary. ${sentenceCase(setup)}`,
+          `This detail anchors the interpretation. ${sentenceCase(setup)}`,
         ]),
       ),
     );
@@ -543,12 +549,12 @@ function buildShortAnswerItem(kernel, index, seed = 0, { compactFactLedgerAnswer
   );
   const variantSeed = projectionTextSeed(seed, term.term, setup, materials, evidenceRequirement, index);
   const scoringGuidance = projectionVariant(variantSeed, [
-    `Full credit requires four visible moves: name ${term.term}; state a bounded conclusion; cite ${materials}; and identify one limitation or next piece of evidence. Do not award full credit for merely defining the term.`,
-    `Award full credit only when the response selects ${term.term}, makes a case-bounded claim, uses ${materials}, and states a limitation or additional evidence need. A definition alone is insufficient.`,
-    `Look for concept selection (${term.term}), a defensible conclusion, explicit use of ${materials}, and one boundary or next evidence request. Missing any move keeps the answer incomplete.`,
-    `Score four moves: relevant method, bounded conclusion, case evidence from ${materials}, and a limitation. Do not treat terminology recall as analysis.`,
-    `A complete response identifies ${term.term}, ties its conclusion to ${materials}, limits the claim, and names what evidence would change the decision.`,
-    `Full-credit work makes the reasoning trace visible: ${term.term} → conclusion → evidence in ${materials} → boundary or next evidence.`,
+    `Full credit requires four visible moves. Name ${term.term} and state a bounded conclusion. Cite ${materials}, then identify one limitation or next piece of evidence. A definition alone is not enough.`,
+    `Full credit requires ${term.term} and a case-bounded claim. The response must use ${materials} and state a limitation or additional evidence need. A definition alone is not enough.`,
+    `Look for ${term.term}, a defensible conclusion, and explicit use of ${materials}. The response also needs one boundary or next evidence request. Missing any move keeps the answer incomplete.`,
+    `Score four moves: a relevant method, a bounded conclusion, case evidence from ${materials}, and a limitation. Terminology recall alone is not analysis.`,
+    `A complete response identifies ${term.term} and ties its conclusion to ${materials}. It limits the claim and names what evidence would change the decision.`,
+    `Full-credit work shows this reasoning trace: ${term.term} → conclusion → evidence in ${materials}. It ends with a boundary or next evidence request.`,
   ]);
   const questionTail = compactFactLedgerScenario
     ? projectionVariant(variantSeed + 1, [

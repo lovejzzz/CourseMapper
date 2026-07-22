@@ -1308,6 +1308,7 @@ export default function useDeliverables({
               {
                 buildNativePassBPrompt,
                 completeNativeLessonSurfaces,
+                mergeNativePartialOverlays,
                 parseNativePassBResponse,
                 partitionCumulativeAssessmentLessons,
                 pickNativeKernel,
@@ -1505,6 +1506,20 @@ export default function useDeliverables({
               }
             };
 
+            const foldVerifiedPartialOverlays = async () => {
+              if (Object.keys(partialOverlays).length === 0) return [];
+              const { mergeLessonPayloads } = await import('../lib/genome/composeLessonFromConcepts');
+              const mergedLessonIds = mergeNativePartialOverlays(lessonContent, partialOverlays, mergeLessonPayloads);
+              if (lessonKernelCache) {
+                for (const lessonId of mergedLessonIds) {
+                  const lessonIdx = Number(String(lessonId).replace('lesson-', '')) - 1;
+                  const lesson = blueprintCourseMap.lessons?.[lessonIdx];
+                  if (lesson) lessonKernelCache.set(lesson, lessonContent[lessonId]);
+                }
+              }
+              return mergedLessonIds;
+            };
+
             // A browser owns one local llama.cpp instance. Its runtime already
             // serializes completions, so launching fourteen more Pass B jobs
             // as if Scion were a cloud API only creates a hidden pending queue
@@ -1546,6 +1561,12 @@ export default function useDeliverables({
             await Promise.all(
               fanOut.map((chunk, position) => limit(() => runBatchSafely(chunk, warmFirst ? position + 1 : position))),
             );
+
+            // Source-verified curriculum overlays are part of the available
+            // evidence, so fold them in before deciding that another model
+            // call is necessary. This turns partial-but-grounded astronomy
+            // kernels into usable lessons without weakening admission.
+            await foldVerifiedPartialOverlays();
 
             if (scionProvider && cumulativeAssessmentLessonIndices.length > 0) {
               await resolveCumulativeAssessmentKernels(
@@ -1627,22 +1648,9 @@ export default function useDeliverables({
             // Fold genome partials back in as cited supplements. The current
             // lesson's admitted facts and constructed responses keep identity
             // priority; source-verified genome MC atoms remain authoritative.
-            if (Object.keys(partialOverlays).length > 0) {
-              const { mergeLessonPayloads } = await import('../lib/genome/composeLessonFromConcepts');
-              for (const [lessonId, partial] of Object.entries(partialOverlays)) {
-                const modelPayload = lessonContent[lessonId];
-                if (!modelPayload || modelPayload === partial || modelPayload.enrichmentSource === 'genome-linked') {
-                  continue;
-                }
-                const merged = mergeLessonPayloads(partial, modelPayload);
-                lessonContent[lessonId] = merged;
-                if (lessonKernelCache) {
-                  const lessonIdx = Number(String(lessonId).replace('lesson-', '')) - 1;
-                  const lesson = blueprintCourseMap.lessons?.[lessonIdx];
-                  if (lesson) lessonKernelCache.set(lesson, merged);
-                }
-              }
-            }
+            // A lesson that was wholly absent before recovery may now have a
+            // model backbone. Fold its verified overlay once before compile.
+            await foldVerifiedPartialOverlays();
 
             // Scion next-level: atomic admission can drop an optional model
             // surface while retaining a strong kernel. Complete those holes

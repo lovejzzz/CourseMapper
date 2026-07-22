@@ -885,6 +885,52 @@ describe('source finder mini-shard', () => {
     ]);
   }, 15000);
 
+  it('rejects topic-only number sources that do not teach Mandarin during search and stale-shard attachment', async () => {
+    const graph = createEmptyCourseGraph({ courseName: 'Elementary Mandarin Chinese I' });
+    graph.sessions = [
+      {
+        id: 's4',
+        number: 4,
+        title: 'Lesson 4: Numbers and Time',
+        sections: [{ topic: '4.1: Counting and Numerals' }],
+      },
+    ];
+    graph.concepts = [{ id: 'c4', term: 'Counting and Numerals' }];
+    graph.edges.teaches = [{ from: 's4', to: 'c4' }];
+
+    const abacus = source('wikipedia', 'Abacus', {
+      abstract:
+        'An abacus is a hand-operated calculating tool used in the ancient Near East, Europe, China, and Russia.',
+    });
+    const chineseNumerals = source('wikipedia', 'Chinese numerals', {
+      abstract:
+        'Chinese numerals are words and characters used to denote numbers in written and spoken Mandarin Chinese.',
+    });
+    const miniShard = await findCourseSources(graph, {
+      storage: memoryStorage(),
+      maxTopics: 1,
+      limitPerTopic: 2,
+      minUsefulSources: 1,
+      providers: {
+        searchScholarlyReadings: vi.fn(async () => []),
+        searchCrossrefWorks: vi.fn(async () => []),
+        searchWikipediaPages: vi.fn(async () => [abacus, chineseNumerals]),
+      },
+    });
+
+    const titles = miniShard.topics.flatMap((topic) => topic.sources.map((item) => item.title));
+    expect(titles).toContain('Chinese numerals');
+    expect(titles).not.toContain('Abacus');
+
+    const staleShard = {
+      ...miniShard,
+      topics: [{ ...miniShard.topics[0], sources: [abacus, chineseNumerals] }],
+    };
+    const attached = attachSourceFinderResources(graph, staleShard, { maxSourcesPerTopic: 2 });
+    expect(attached).toBe(1);
+    expect(graph.resources.map((resource) => resource.title)).toEqual(['Chinese numerals']);
+  }, 15000);
+
   it('rejects literacy-instruction false friends for World Literature during search and stale-shard attachment', async () => {
     const graph = createEmptyCourseGraph({ courseName: 'World Literature' });
     graph.sessions = [

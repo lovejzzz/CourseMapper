@@ -1219,7 +1219,7 @@ export default function ExportSidePanel({
             quality: qualityContext,
           });
           setLastOk(
-            `${verifiedDraftAvailable ? 'Draft ZIP' : 'ZIP'} downloaded with ${zipResult.files.length} file${
+            `ZIP downloaded with ${zipResult.files.length} file${
               zipResult.files.length === 1 ? '' : 's'
             }.${verifiedDraftAvailable ? ' Review notes are included in the package.' : ''}`,
           );
@@ -1368,7 +1368,7 @@ export default function ExportSidePanel({
         : zipCanFinishPackage
           ? 'Finish package'
           : zipCanDownloadReviewedDraft
-            ? 'Download draft ZIP'
+            ? 'Download ZIP'
             : zipPendingNeedsAttention || zipHasExportFailure || zipHasTerminalTrustBlocker
               ? 'Needs attention'
               : zipPendingReadiness
@@ -1386,9 +1386,7 @@ export default function ExportSidePanel({
     allReadyCount === 0 ||
     !courseMap ||
     (selectedLessons !== null && selectedLessons.length === 0);
-  const panelTitle = ['Download ZIP', 'Download draft ZIP', 'Preparing ZIP…'].includes(zipButtonLabel)
-    ? 'Export package'
-    : 'Finish package';
+  const panelTitle = ['Download ZIP', 'Preparing ZIP…'].includes(zipButtonLabel) ? 'Export package' : 'Finish package';
   return (
     <div
       data-testid="export-side-panel"

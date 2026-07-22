@@ -35,7 +35,7 @@ import {
   newProjectId,
 } from '../lib/cloudStorage';
 import { sanitizeMessagesForPersistence } from '../lib/messageSanitizer';
-import { buildLocalAutosavePayload } from '../lib/projectAutosave';
+import { buildCourseMapRecoveryAutosavePayload, buildLocalAutosavePayload } from '../lib/projectAutosave';
 import { prepareProjectSnapshotForRestore, sanitizeProjectSnapshot } from '../lib/projectSnapshotSanitizer';
 import { restorePersistedPackageEvidence, selectPersistablePackageEvidence } from '../lib/packageQualityPersistence';
 import { compileCompactProjectDeliverables } from '../lib/projectRestoreCompiler';
@@ -431,11 +431,12 @@ export default function useProjectPersistence({
   const saveLocalProjectSnapshot = useCallback(
     (extra = {}) => {
       if (!hasGenerated || !courseMap) return false;
+      const compactSnapshot = buildCloudProjectSnapshot({ ...extra, localSaveMode: 'compact-autosave' });
       try {
         setLocalSaveStatus('saving');
         const { payload } = buildLocalAutosavePayload({
           fullSnapshot: buildProjectSnapshot(extra),
-          compactSnapshot: buildCloudProjectSnapshot({ ...extra, localSaveMode: 'compact-autosave' }),
+          compactSnapshot,
         });
         localStorage.setItem(STORAGE_KEY, payload);
         setLocalSaveStatus('saved');
@@ -445,10 +446,7 @@ export default function useProjectPersistence({
       } catch (e) {
         try {
           localStorage.removeItem(STORAGE_KEY);
-          localStorage.setItem(
-            STORAGE_KEY,
-            JSON.stringify(buildCloudProjectSnapshot({ ...extra, localSaveMode: 'compact-autosave-fallback' })),
-          );
+          localStorage.setItem(STORAGE_KEY, buildCourseMapRecoveryAutosavePayload(compactSnapshot));
           setLocalSaveStatus('saved');
           clearTimeout(localStatusTimerRef.current);
           localStatusTimerRef.current = setTimeout(() => setLocalSaveStatus('idle'), 3000);

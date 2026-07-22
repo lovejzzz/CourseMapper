@@ -1306,7 +1306,20 @@ function inferDisciplineLens(courseName, concepts = []) {
       'state-action or institution case',
     );
   }
-  if (/\b(nutrition|nutrients?|dietary|carbohydrates?|proteins?|lipids?|vitamins?|minerals?)\b/.test(text)) {
+  if (
+    /\b(physical geology|geology|geologic|rock cycle|igneous|sedimentary|metamorphic|plate tectonics?|mineral identification)\b/.test(
+      text,
+    )
+  ) {
+    return disciplineLens(
+      'physical geology and Earth systems',
+      'field, sample, and process evidence',
+      'geologic interpretation',
+      'geoscience analyst',
+      'rock, map, or field-site case',
+    );
+  }
+  if (/\b(nutrition|nutrients?|dietary|carbohydrates?|proteins?|lipids?|vitamins?|electrolytes?)\b/.test(text)) {
     return disciplineLens(
       'human nutrition science',
       'nutrient and dietary evidence',
@@ -16479,6 +16492,29 @@ function buildSourcesAndLicenses(blueprint) {
   if (resources.length === 0) return null;
   const groups = [];
   const grouped = new Set();
+  const normalizeEntries = (entries) => {
+    const normalized = entries.map((resource) => ({
+      citation: cleanText(resource.citation).replace(/\s*\(open textbook.*$/i, ''),
+      license: cleanText(resource.license),
+      attribution: cleanText(resource.attribution),
+      url: resource.url,
+    }));
+    const sharedValue = (field) => {
+      const values = [...new Set(normalized.map((entry) => entry[field]).filter(Boolean))];
+      return values.length === 1 ? values[0] : '';
+    };
+    const license = sharedValue('license');
+    const attribution = sharedValue('attribution');
+    return {
+      ...(license ? { license } : {}),
+      ...(attribution ? { attribution } : {}),
+      entries: normalized.map((entry) => ({
+        ...entry,
+        ...(license ? { license: '' } : {}),
+        ...(attribution ? { attribution: '' } : {}),
+      })),
+    };
+  };
   for (const [origin, label] of Object.entries(KNOWLEDGE_ORIGIN_LABELS)) {
     const entries = resources.filter((resource) => resource.origin === origin);
     if (entries.length === 0) continue;
@@ -16486,12 +16522,7 @@ function buildSourcesAndLicenses(blueprint) {
     groups.push({
       origin,
       label,
-      entries: entries.map((resource) => ({
-        citation: cleanText(resource.citation).replace(/\s*\(open textbook.*$/i, ''),
-        license: resource.license,
-        attribution: resource.attribution,
-        url: resource.url,
-      })),
+      ...normalizeEntries(entries),
     });
   }
   const other = resources.filter((resource) => !grouped.has(resource));
@@ -16499,12 +16530,7 @@ function buildSourcesAndLicenses(blueprint) {
     groups.push({
       origin: 'other',
       label: 'Other course resources',
-      entries: other.map((resource) => ({
-        citation: cleanText(resource.citation).replace(/\s*\(open textbook.*$/i, ''),
-        license: resource.license,
-        attribution: resource.attribution,
-        url: resource.url,
-      })),
+      ...normalizeEntries(other),
     });
   }
   return {
@@ -20213,13 +20239,13 @@ function buildExamShortAnswerItem({ blueprint, assessment, covered, lens, examSl
       objectiveAligned: last.outcomes?.[0] || '',
       intendedUse: `Summative item on ${assessment.title}; score against the answer guide below.`,
       question: distinctConcepts
-        ? `In 3-4 sentences, use one course detail from ${comparisonEvidenceScope} as evidence: identify the two course concepts it connects, explain how their roles differ, and state one limitation or conclusion the detail does not establish.`
-        : `In 3-4 sentences, use one course detail from ${firstTitle} as evidence: identify the course concept it best illustrates, explain one decision that evidence supports, and state one limitation or conclusion it does not establish.`,
+        ? `Use one course detail from ${comparisonEvidenceScope} as evidence. Identify the two course concepts it connects and explain how their roles differ. Then state one limitation or conclusion the detail does not establish.`
+        : `Use one course detail from ${firstTitle} as evidence. Identify the course concept it best illustrates and explain one decision that evidence supports. Then state one limitation or conclusion it does not establish.`,
       answer: distinctConcepts
         ? grounded
           ? compositeGrounded
-            ? `A complete answer accurately selects and distinguishes ${conceptA} and ${conceptB} using the authored course definition — ${stripTerminalPunctuation(compositeDefinition)} — cites a course detail, names a concrete relationship, and bounds the conclusion.`
-            : `A complete answer selects and uses both definitions accurately — ${joinTermDefinition(conceptA, termA.definition)}; ${joinTermDefinition(conceptB, termB.definition)} — cites a course detail, names a concrete relationship, and bounds the conclusion.`
+            ? `A complete answer distinguishes ${conceptA} from ${conceptB} using the authored course definition. ${sentenceCase(stripTerminalPunctuation(compositeDefinition))}. It then cites one course detail, names the relationship, and bounds the conclusion.`
+            : `A complete answer uses both definitions accurately. ${sentenceCase(stripTerminalPunctuation(joinTermDefinition(conceptA, termA.definition)))}. ${sentenceCase(stripTerminalPunctuation(joinTermDefinition(conceptB, termB.definition)))}. It then cites one course detail, names the relationship, and bounds the conclusion.`
           : `A complete answer independently identifies both concepts, cites a course detail, names a concrete relationship between ${conceptA} and ${conceptB}, and bounds the conclusion.`
         : `A complete answer independently identifies ${conceptA}, cites a specific course detail, explains one decision the evidence supports, and states one limitation.`,
       sampleAnswer: distinctConcepts
@@ -20230,7 +20256,7 @@ function buildExamShortAnswerItem({ blueprint, assessment, covered, lens, examSl
                   ? ` Key supporting evidence: ${lowercaseSentenceLead(stripTerminalPunctuation(anchorFact))}.`
                   : ''
               }`
-            : `${sentenceCase(joinTermDefinition(conceptA, termA.definition, { separator: ' means ', lowercaseTail: true }))}, while ${joinTermDefinition(conceptB, termB.definition, { separator: ' means ', lowercaseTail: true })}. The concepts differ in what they explain, and the cited detail does not establish a broader conclusion.${
+            : `${sentenceCase(stripTerminalPunctuation(joinTermDefinition(conceptA, termA.definition, { separator: ' means ', lowercaseTail: true })))}. ${sentenceCase(stripTerminalPunctuation(joinTermDefinition(conceptB, termB.definition, { separator: ' means ', lowercaseTail: true })))}. The concepts differ in what they explain, and the cited detail does not establish a broader conclusion.${
                 anchorFact
                   ? ` Key supporting evidence: ${lowercaseSentenceLead(stripTerminalPunctuation(anchorFact))}.`
                   : ''
@@ -20293,14 +20319,14 @@ function buildExamEssayItem({ blueprint, assessment, covered, lens, examSlug, or
       intendedUse: `Summative synthesis for ${assessment.title}; score with the rubric hints below.`,
       question: singleLesson
         ? lessonVariant(last, [
-            `Synthesize the covered material (${span}): choose the two concepts that most changed your approach to ${decisionFocus} in ${blueprint.courseName}, justify the choice with course ${lens.evidenceNoun}, and name one limitation of each.`,
-            `Evaluate ${exampleConceptLabel} in ${span}: explain how each shapes ${decisionFocus}, support both with course ${lens.evidenceNoun}, and state where each interpretation is limited.`,
-            `Build an evidence-backed synthesis of ${exampleConceptLabel} for ${span}. Show how they interact in ${decisionFocus} and identify one boundary for each claim.`,
-            `Compare ${exampleConceptLabel} as tools for ${decisionFocus} in ${blueprint.courseName}. Use specific ${lens.evidenceNoun}, connect the two, and qualify both conclusions.`,
-            `Use ${exampleConceptLabel} to explain a consequential ${decisionFocus} in ${span}. Defend the relationship with ${lens.evidenceNoun} and test the limits of each idea.`,
-            `Develop a synthesis of ${span} around ${exampleConceptLabel}: cite the ${lens.evidenceNoun} that links them, explain the resulting ${decisionFocus}, and name two defensible boundaries.`,
+            `Synthesize the covered material from ${span}. Choose the two concepts that most changed your approach to ${decisionFocus} in ${blueprint.courseName}. Justify both choices with course ${lens.evidenceNoun}. Name one limitation of each.`,
+            `Evaluate ${exampleConceptLabel} in ${span}. Explain how each shapes ${decisionFocus}. Support both with course ${lens.evidenceNoun}. State where each interpretation is limited.`,
+            `Build an evidence-backed synthesis of ${exampleConceptLabel} for ${span}. Show how they interact in ${decisionFocus}. Identify one boundary for each claim.`,
+            `Compare ${exampleConceptLabel} as tools for ${decisionFocus} in ${blueprint.courseName}. Use specific ${lens.evidenceNoun}. Connect the two ideas and qualify both conclusions.`,
+            `Use ${exampleConceptLabel} to explain a consequential ${decisionFocus} in ${span}. Defend the relationship with ${lens.evidenceNoun}. Test the limits of each idea.`,
+            `Develop a synthesis of ${span} around ${exampleConceptLabel}. Cite the ${lens.evidenceNoun} that links them. Explain the resulting ${decisionFocus} and name two defensible boundaries.`,
           ])
-        : `Synthesize the covered material (${span}): choose the two concepts that most changed your approach to ${decisionFocus} in ${blueprint.courseName}, justify the choice with course ${lens.evidenceNoun}, and name one limitation of each.`,
+        : `Synthesize the covered material from ${span}. Choose the two concepts that most changed your approach to ${decisionFocus} in ${blueprint.courseName}. Justify both choices with course ${lens.evidenceNoun}, then name one limitation of each.`,
       rubricHints: singleLesson
         ? lessonVariant(last, [
             `Strong responses distinguish two concepts from the covered lesson, ground each in specific ${lens.evidenceNoun}, explain their relationship, and identify a genuine limit for both.`,
@@ -20615,12 +20641,12 @@ function buildAdmittedKernelEvidenceItem({ lesson, quizPlan, index, offset = 0 }
   const plan = quizPlan[index] || quizPlan[0] || {};
   const quotedFact = stripTerminalPunctuation(fact);
   const definitionCue = definition
-    ? `${joinTermDefinition(concept, definition, { separator: ' means ', lowercaseTail: true })}.`
+    ? `${sentenceCase(concept)} is the relevant concept. ${sentenceCase(stripTerminalPunctuation(definition))}.`
     : `${sentenceCase(concept)} is the concept students should use to interpret the quoted evidence.`;
   const question =
     index === 4
-      ? `A peer uses this course statement to support a broader conclusion: “${quotedFact}.” In 2-3 sentences, state the strongest conclusion the evidence supports, identify the course concept that best justifies that boundary, cite the detail that matters, and explain the current limitation plus one additional fact needed before accepting the broader claim.`
-      : `Analyze this course statement: “${quotedFact}.” In 2-3 sentences, identify the course concept that best interprets the statement, cite one detail from the evidence, and name one limitation or conclusion the statement does not establish by itself.`;
+      ? `Consider this course statement: ${sentenceCase(stripTerminalPunctuation(quotedFact))}. A peer uses it to support a broader conclusion. State the strongest conclusion the evidence supports and identify the course concept that justifies that boundary. Then cite the detail that matters, name the current limitation, and identify one additional fact needed before accepting the broader claim.`
+      : `Analyze this course statement: ${sentenceCase(stripTerminalPunctuation(quotedFact))}. Identify the course concept that best interprets it and cite one detail from the evidence. Then name one limitation or conclusion the statement does not establish by itself.`;
   const answer =
     index === 4
       ? `A complete answer states a conclusion no broader than the quoted evidence, uses ${concept} to justify that boundary, and names a specific additional fact needed to test the peer's broader claim.`
@@ -20798,7 +20824,7 @@ function buildExamMisconceptionItem({ lesson, covered, coveredIndex, index, obje
       points: 2,
       objectiveAligned: objective,
       intendedUse: `Summative misconception check on ${assessment.title}; students pick the corrective over the documented wrong turn.`,
-      question: `A classmate preparing for ${stripTerminalPunctuation(assessment.title)} claims: “${stripTerminalPunctuation(claim)}.” Which response best addresses this claim about ${concept} using the course evidence?`,
+      question: `For ${stripTerminalPunctuation(assessment.title)}, consider this classmate's claim. ${sentenceCase(stripTerminalPunctuation(claim))}. Which response best uses course evidence to correct the claim about ${concept}?`,
       options,
       answer,
       distractorRationale: `The lead distractor endorses ${concept}'s documented misconception; the rest are claims about other covered concepts that never address it.`,
@@ -21092,8 +21118,8 @@ function buildReviewWeekQuizAtoms(lesson, blueprint, options = {}) {
         points: 4,
         objectiveAligned: pairA.outcomes?.[0] || quizPlan[3].objective,
         intendedUse: `Formative written check during ${reviewFocus}; use responses to target re-teaching before ${reviewArtifact}.`,
-        question: `In 2-3 sentences, name the most important difference between ${conceptA} (${stripLessonPrefix(pairA.title)}) and ${conceptB} (${stripLessonPrefix(pairB.title)}), and state one check from your ${reviewFocus} preparation that would catch a mix-up between them.`,
-        answer: `A complete answer states one accurate difference between ${conceptA} and ${conceptB} and names a concrete self-check (a worked example, a ${lens.evidenceNoun} comparison, or a practice item) that distinguishes them.`,
+        question: `Name the most important difference between ${conceptA} (${stripLessonPrefix(pairA.title)}) and ${conceptB} (${stripLessonPrefix(pairB.title)}). Then state one check from your ${reviewFocus} preparation that would catch a mix-up between them.`,
+        answer: `A complete answer states one accurate difference between ${conceptA} and ${conceptB}. It names a concrete self-check that distinguishes them, such as a worked example, a ${lens.evidenceNoun} comparison, or a practice item.`,
         sampleAnswer: `${sentenceCase(conceptA)} and ${conceptB} differ in what each one explains; re-working one example of each side by side during ${reviewFocus} exposes any mix-up before ${reviewArtifact}.`,
         explanation: `Review retrieval: the item checks discrimination between two covered concepts rather than recall of either in isolation.`,
         scoringGuidance: `Full credit requires an accurate difference plus a concrete check. Partial credit when the difference is right but the check is generic. Flag answers that define both terms without contrasting them.`,
@@ -21112,9 +21138,9 @@ function buildReviewWeekQuizAtoms(lesson, blueprint, options = {}) {
         points: 8,
         objectiveAligned: covered[covered.length - 1].outcomes?.[0] || quizPlan[5].objective,
         intendedUse: `Exam-prep synthesis for ${reviewFocus}; score with the rubric hints before students revise their study plan.`,
-        question: `Plan your strongest preparation for ${reviewArtifact}: pick the two concepts from ${span} you most need to re-verify, justify each choice with course ${lens.evidenceNoun}, and describe the practice you will use to close each gap.`,
+        question: `Plan your strongest preparation for ${reviewArtifact}. Pick the two concepts from ${span} you most need to re-verify. Justify each choice with course ${lens.evidenceNoun}, then describe the practice you will use to close each gap.`,
         rubricHints: `Strong responses pick two concepts from different covered lessons, give an honest evidence-based reason each needs re-verification, and name a concrete practice step per concept.`,
-        sampleAnswer: `A strong response names two covered concepts (for example, ${conceptA} and ${conceptB}), cites the course ${lens.evidenceNoun} that exposed each gap, and commits to one re-work exercise per concept before ${reviewArtifact}.`,
+        sampleAnswer: `A strong response names two covered concepts, such as ${conceptA} and ${conceptB}. It cites the course ${lens.evidenceNoun} that exposed each gap. It commits to one re-work exercise per concept before ${reviewArtifact}.`,
         explanation: `The essay is scored for metacognitive synthesis across the covered range, not for restating any single lesson.`,
         scoringGuidance: `Full credit requires two accurately described concepts, an evidence-based justification for each, and a concrete practice plan. Partial credit when the concepts are accurate but the plan is generic.`,
         tags: unique(['review', 'essay', conceptA, conceptB], 8),
@@ -21201,12 +21227,14 @@ function spreadReviewQuizAnswerKeys(atoms, lesson) {
 // ("Lesson 7: Midterm review") keep their full teaching materials — the
 // classifier's prep/review qualifiers already route them away from 'exam'.
 
+function assessmentIsExam(assessment) {
+  return assessment?.kind === 'exam' || classifyAssessmentKind(assessment?.title || '') === 'exam';
+}
+
 function examAssessmentForLesson(blueprint, lesson) {
   return (
     (blueprint?.assessments || []).find(
-      (assessment) =>
-        (assessment.lessonNumbers || []).includes(lesson?.lessonNumber) &&
-        (assessment.kind === 'exam' || (!assessment.kind && classifyAssessmentKind(assessment.title || '') === 'exam')),
+      (assessment) => (assessment.lessonNumbers || []).includes(lesson?.lessonNumber) && assessmentIsExam(assessment),
     ) || null
   );
 }
@@ -21570,15 +21598,11 @@ function compileQuizBank(blueprint, config = {}) {
   const examEntries = [];
   blueprint.assessments
     // v0.15.187 (live crucible catch): non-registry blueprints carry no
-    // stored kind, but the export manifest re-derives kinds from titles —
-    // an exam-titled assessment with ABSENT kind must compile an exam paper
-    // or the grader flags a registered exam with no exam content. An
-    // explicit non-exam kind is always respected (the "Practice Set:
-    // midterm preparation" false-positive rule lives in the classifier).
-    .filter(
-      (assessment) =>
-        assessment.kind === 'exam' || (!assessment.kind && classifyAssessmentKind(assessment.title || '') === 'exam'),
-    )
+    // stored kind, but the export manifest re-derives kinds from titles.
+    // Title-classified exams therefore win over a contradictory model kind;
+    // otherwise the manifest promises an exam the compiler never creates.
+    // The classifier itself protects review/preparation false positives.
+    .filter(assessmentIsExam)
     .forEach((assessment, examOrdinal) => {
       const examEntry = buildRegistryExamEntry(blueprint, assessment, examOrdinal);
       if (examEntry) examEntries.push(examEntry);
@@ -22097,12 +22121,7 @@ function slideVisual(lesson, slide) {
   const modality = lesson.modalityDecode || {};
   const artifactGenre = lesson.artifactGenre || {};
   const modalityFit =
-    contextualizeModalityRoutine('signaturePractice', modality.signaturePractice, {
-      lesson,
-      concept,
-      artifact,
-      mode: modality.mode || 'practice',
-    }) ||
+    cleanText(modality.signaturePractice) ||
     contextualizeModalityRoutine('evidenceRoutine', modality.evidenceRoutine, {
       lesson,
       concept,
@@ -25187,15 +25206,16 @@ function compileCourseFaq(blueprint, config = {}) {
         };
       }
       if (taskDescription) {
+        const taskSentence = sentenceCase(stripTerminalPunctuation(taskDescription));
         return {
           q: `How does ${stripLessonPrefix(lesson.title)} connect to graded work?`,
           an: lessonVariant(lesson, [
-            `${lesson.title} feeds directly into the graded task: ${stripTerminalPunctuation(taskDescription)}. Use the ${safeCourseFaqPrimaryConcept(lesson)} success criteria to test your work against that task before submitting.`,
-            `The graded-work link for ${lesson.title} is explicit: ${stripTerminalPunctuation(taskDescription)}. Before submitting, check the evidence and boundary against the ${safeCourseFaqPrimaryConcept(lesson)} criteria.`,
-            `${lesson.title} prepares the assigned task this way: ${stripTerminalPunctuation(taskDescription)}. Use the ${safeCourseFaqPrimaryConcept(lesson)} evidence standard to revise any unsupported part.`,
-            `Carry ${lesson.title} into the graded work by following this brief: ${stripTerminalPunctuation(taskDescription)}. Then verify that the ${safeCourseFaqPrimaryConcept(lesson)} reasoning is visible to a scorer.`,
-            `The assessment asks you to transfer ${lesson.title} directly: ${stripTerminalPunctuation(taskDescription)}. Self-check the source detail, conclusion, and limitation before release.`,
-            `For graded work, apply ${lesson.title} through this task: ${stripTerminalPunctuation(taskDescription)}. Compare the result with the ${safeCourseFaqPrimaryConcept(lesson)} success criteria and revise the weakest link.`,
+            `${lesson.title} feeds directly into the graded task. ${taskSentence}. Use the ${safeCourseFaqPrimaryConcept(lesson)} success criteria to test your work before submitting.`,
+            `The graded-work link for ${lesson.title} is explicit. ${taskSentence}. Before submitting, check the evidence and boundary against the ${safeCourseFaqPrimaryConcept(lesson)} criteria.`,
+            `${lesson.title} prepares you for the assigned task. ${taskSentence}. Use the ${safeCourseFaqPrimaryConcept(lesson)} evidence standard to revise any unsupported part.`,
+            `Carry ${lesson.title} into the graded work. ${taskSentence}. Then verify that the ${safeCourseFaqPrimaryConcept(lesson)} reasoning is visible to a scorer.`,
+            `The assessment asks you to transfer ${lesson.title} directly. ${taskSentence}. Self-check the source detail, conclusion, and limitation before release.`,
+            `For graded work, use the task from ${lesson.title}. ${taskSentence}. Compare the result with the ${safeCourseFaqPrimaryConcept(lesson)} success criteria and revise the weakest link.`,
           ]),
           ca: 'Assignment Clarification',
           rc: ['success criteria', ...safeCourseFaqConcepts(lesson).slice(0, 2)],

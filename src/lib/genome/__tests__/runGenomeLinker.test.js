@@ -132,6 +132,42 @@ describe('runGenomeLinker', () => {
     });
   });
 
+  it('resolves a fragment-specific content anchor through its base bibliography key', () => {
+    const library = createKernelLibrary({ storage: memoryStorage() });
+    library.addKernel({
+      ...ELASTICITY,
+      definition: {
+        ...ELASTICITY.definition,
+        anchor: {
+          ...ELASTICITY.definition.anchor,
+          src: 'opengeology:introduction-to-geology#3.1',
+          loc: '3.1',
+        },
+      },
+      license: 'CC-BY-NC-SA-4.0',
+      attribution: ['An Introduction to Geology'],
+    });
+
+    const result = runGenomeLinker({
+      courseMap: COURSE,
+      lessonIndices: [0],
+      library,
+      itemPlan,
+      sourceReferences: {
+        'opengeology:introduction-to-geology': {
+          displayTitle: 'An Introduction to Geology',
+          sourceUrl: 'https://opengeology.org/textbook/',
+        },
+      },
+    });
+
+    expect(result.lessonContent['lesson-1'].conceptProvenance.citations[0]).toMatchObject({
+      displayTitle: 'An Introduction to Geology §3.1',
+      sourceUrl: 'https://opengeology.org/textbook/',
+      license: 'CC-BY-NC-SA-4.0',
+    });
+  });
+
   it('serves the own-kernel cache before the genome (free revision path)', () => {
     const library = createKernelLibrary({ storage: memoryStorage() });
     const cache = createLessonKernelCache({ storage: memoryStorage() });

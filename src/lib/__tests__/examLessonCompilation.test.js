@@ -207,7 +207,7 @@ describe('exam-lesson compilation (v0.16 exam fixes)', () => {
     ).toBe(true);
     // Misconception items pit the documented wrong claim against its
     // authored corrective.
-    const misconceptionItem = mcItems.find((item) => /claims:/i.test(item.question));
+    const misconceptionItem = mcItems.find((item) => item.misconceptionSourced === true);
     expect(misconceptionItem).toBeTruthy();
     expect(misconceptionItem.options.join(' ')).toMatch(/never change the solution set|depend on order|invertible/i);
   });

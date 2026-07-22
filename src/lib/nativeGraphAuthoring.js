@@ -252,6 +252,34 @@ export function pickNativeKernel(previous, candidate) {
 }
 
 /**
+ * Merge verified curriculum-library overlays into admitted model kernels
+ * before the recovery decision. The linker used to run this merge only after
+ * recovery, so a lesson with two admitted subject facts plus a cited genome
+ * supplement bought another local-model call even though its evidence was
+ * already sufficient. Mutates the shared lesson-content map intentionally and
+ * returns the ids that changed so callers can refresh their cache.
+ */
+export function mergeNativePartialOverlays(lessonContent = {}, partialOverlays = {}, mergeLessonPayloads) {
+  if (typeof mergeLessonPayloads !== 'function') return [];
+  const mergedLessonIds = [];
+  for (const [lessonId, partial] of Object.entries(partialOverlays || {})) {
+    const modelPayload = lessonContent?.[lessonId];
+    if (
+      !modelPayload ||
+      modelPayload === partial ||
+      ['genome-linked', 'genome-augmented'].includes(modelPayload.enrichmentSource)
+    ) {
+      continue;
+    }
+    const merged = mergeLessonPayloads(partial, modelPayload);
+    if (!merged) continue;
+    lessonContent[lessonId] = merged;
+    mergedLessonIds.push(lessonId);
+  }
+  return mergedLessonIds;
+}
+
+/**
  * A weak-model kernel may pass atomic admission while one optional authored
  * surface was dropped by its own linter. Complete those surfaces from the
  * admitted lesson facts and canonical map row, without another provider call.
@@ -378,7 +406,7 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
       // creates a dangling clause later in the FAQ and study guide, so retain
       // the answer-bearing completion. Normal question stems get an explicit
       // answer sentence instead of being misrepresented as prose.
-      const example = /(?:\b(?:to|from|with|for|of|by|through|against|into|as|than)|[:–—-])$/i.test(question)
+      const example = /(?:\b(?:to|from|with|for|of|by|through|against|into|as|than|the|a|an)|[:–—-])$/i.test(question)
         ? `${question} ${correctOption}`
         : /[?]$/.test(question)
           ? `For ${question.replace(/[?]+$/, '')}, the supported answer is ${correctOption}.`
@@ -1610,9 +1638,11 @@ export function parseNativeSkeletonResponse(text, { expectedLessons = null, sour
             title,
             ...(wasFused
               ? { kind: classifyAssessmentKind(title) }
-              : SKELETON_ASSESSMENT_KINDS.has(entry?.kind)
-                ? { kind: entry.kind }
-                : {}),
+              : classifyAssessmentKind(title) === 'exam'
+                ? { kind: 'exam' }
+                : SKELETON_ASSESSMENT_KINDS.has(entry?.kind)
+                  ? { kind: entry.kind }
+                  : {}),
             dueSession: clampDue(entry?.dueSession),
             ...(weight !== null ? { weightPct: weight } : {}),
           },

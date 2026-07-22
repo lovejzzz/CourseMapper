@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.67
+**Current release:** v0.16.68
 
 ---
 
@@ -31,7 +31,7 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.67**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts a new foundation model. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
+The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.68**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts a new foundation model. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
 
 In plain language, **Scion Vx is the whole local authoring system, not just the base model**:
 
@@ -43,7 +43,7 @@ Today the adapter term is infrastructure only: the trained research adapter has 
 
 ### Adapter work in progress
 
-V0.16.67 keeps the research corpus beyond its first real training threshold: 102 qualified source-grounded preferences rebuild into 100 usable production rows, split by complete course group across seven domains. One 200-iteration adapter training run completed against the pinned Gemma base, reduced validation loss from 1.555 to 1.089, and produced a 105 MB learned delta. That artifact is **not** a quality win and is not active on the website.
+V0.16.68 keeps the research corpus beyond its first real training threshold: 102 qualified source-grounded preferences rebuild into 100 usable production rows, split by complete course group across seven domains. One 200-iteration adapter training run completed against the pinned Gemma base, reduced validation loss from 1.555 to 1.089, and produced a 105 MB learned delta. That artifact is **not** a quality win and is not active on the website.
 
 The first live held-out attempt found an evaluation error before a score could be claimed. Every training row transformed a supplied three-to-five-fact source ledger, while the old broad `lesson-kernel` route also asked the adapter to invent the initial facts. The run was stopped: ten lesson requests expanded into 52 native generations, and the adapter repeatedly produced truncated or conflicting kernels outside its learned distribution. Scion now records that attempt as a failed diagnostic rather than a benchmark result.
 
@@ -58,6 +58,14 @@ A fresh full package still grades **89/B** with zero P0, two P1, and one P2 find
 The rejected whole-kernel pairing gate remains rejected: it regressed coverage to 5/15. Pair visibility will be repaired at the compiler projection layer; it will not be allowed to discard otherwise-admitted lesson knowledge.
 
 ### Living Course Compiler
+
+V0.16.68 follows the attached 14-lesson Physical Geology package from its visible red state to a new base-only Scion archive. The received ZIP was physically valid, but it graded **74/C**: the broad nutrition classifier treated the word “mineral” as proof of a nutrition course and spread diet-analysis language through Geology materials; a model-supplied `graded-artifact` label overrode the title **Final (50%)**, so the manifest promised an exam that the compiler never wrote; Lesson 14 then fell into source-bound assessment recovery; and the compact autosave retry still carried the full course graph, allowing local storage to fail twice.
+
+The repair gives Physical Geology its own domain lens, removes bare “mineral” from nutrition detection, lets explicit exam titles override contradictory generic kinds at every graph/IR/compiler boundary, resolves section-fragment source keys back to their trusted base bibliography entries, and saves a small course-map recovery snapshot when the full local save exceeds browser quota. Export language now presents a finished package: the reviewed archive button is **Download ZIP**, its success message is **ZIP downloaded**, and quality notes remain inside the package without branding the work as unfinished.
+
+A fresh production-bundle run using the exact pinned public Gemma base with the adapter inactive completed **14/14 lessons**, **14/14 admitted knowledge kernels**, **9/9 material families**, and **38/38 export checks** in **57 seconds** with **four model calls** and no retries. It graded **99/A**, with texture 94, citation score 100, and **0 P0 / 0 P1 / 0 P2 findings**; the ZIP contains 117 extracted files and passes archive testing. The frozen five-domain base-only matrix also closes at **99/A with zero findings in Astronomy, Mandarin, Nutrition, Psychology, and World Literature**. A matrix-only false positive that treated a shared Creative Commons attribution paragraph as a reading was fixed and regression-tested without weakening checks on actual off-topic Wikipedia entries.
+
+The complete local release gate passes **432 test files and 5,292 tests**, with 16 files and 162 tests intentionally skipped, plus format, lint, production build, bundle budgets, browser DOM/export inspection, archive extraction, and independent package regrading. These are compiler, persistence, evaluator, and export guarantees—not factual validation, instructor approval, classroom evidence, or a promise that every course will receive the same score. Gemma weights remain unchanged and the research adapter remains inactive; compatible paid-model routes inherit the shared domain, assessment, source, compiler, persistence, and grading fixes.
 
 V0.16.67 follows the attached 15-week Physics package all the way from its red blocker to a new downloaded archive. The old package passed physical export checks but graded **74/C** because three compiler defects survived presentation: a Lesson 5 fallback rubric leaked into Lesson 3 through positional array slicing; **Midterm Examination II** was treated as a graded assignment instead of an exam; and a cumulative exam repeated one definition-question frame twelve times. Cited prerequisite definitions also rendered mechanical `X: X` echoes such as `Electric current: Electric current…`.
 
