@@ -11,6 +11,7 @@ import { generateCourseHealthReport } from './pedagogicalValidator';
 import { repairMisappliedObservationProtocols } from './observationProtocols';
 import { normalizeReadinessIssue, normalizeReadinessIssues } from './readinessIssueSchema';
 import { compactCompilerOwnedAssessmentIdentity } from './compilerAssessmentIdentity';
+import { compactAssignmentBriefBodyReferences } from './courseCompilerCopyVariants';
 
 const FULL_PACKAGE_QUALITY_FEATURES = [
   'courseMap',
@@ -340,6 +341,54 @@ function repairAssignmentIdentitiesFromCourseMap(courseMap, deliverables = {}) {
   };
 }
 
+function repairAssignmentBriefTextureFromCourseMap(courseMap, deliverables = {}) {
+  const lessons = Array.isArray(courseMap?.lessons) ? courseMap.lessons : [];
+  const assignmentEntry = deliverables?.assignments;
+  const data = assignmentEntry?.status === 'done' ? assignmentEntry.data : null;
+  const assignments = Array.isArray(data?.assignments) ? data.assignments : null;
+  if (!assignments || lessons.length === 0) {
+    return { changed: false, deliverables, repairedCount: 0 };
+  }
+
+  let repairedCount = 0;
+  const nextAssignments = assignments.map((assignment) => {
+    const lessonIndex = assignmentLessonIndex(assignment, lessons);
+    if (lessonIndex === null) return assignment;
+    const lesson = lessons[lessonIndex];
+    const compacted = compactAssignmentBriefBodyReferences({
+      brief: assignment,
+      lesson: {
+        ...lesson,
+        lessonNumber: Number(lesson?.lessonNumber) || lessonIndex + 1,
+      },
+      fullFocus: courseMapLessonFocus(lesson, lessonIndex),
+      fallbackArtifact: compactFinalizerText(assignment?.title || assignment?.t || 'assignment'),
+    });
+    if (JSON.stringify(compacted) === JSON.stringify(assignment)) return assignment;
+    repairedCount += 1;
+    return compacted;
+  });
+
+  if (repairedCount === 0) {
+    return { changed: false, deliverables, repairedCount: 0 };
+  }
+
+  return {
+    changed: true,
+    repairedCount,
+    deliverables: {
+      ...deliverables,
+      assignments: {
+        ...assignmentEntry,
+        data: {
+          ...data,
+          assignments: nextAssignments,
+        },
+      },
+    },
+  };
+}
+
 function applyDeterministicRepairs({
   courseMap,
   sourceBrief = '',
@@ -426,6 +475,21 @@ function applyDeterministicRepairs({
       label: featureLabel('assignments'),
       changes: [`course-map identity: ${assignmentIdentityRepair.repairedCount} assignment brief(s) repaired`],
       message: `${featureLabel('assignments')} repaired: ${assignmentIdentityRepair.repairedCount} assignment brief identity mismatch(es) aligned to the Course Map`,
+    });
+  }
+
+  // Saved projects can predate the compiler's current repetition controls.
+  // Re-run the same body-only compactor during finalization so legacy
+  // assignments receive current learner-facing copy without touching their
+  // canonical heading/Related Lessons identity or spending a provider call.
+  const assignmentTextureRepair = repairAssignmentBriefTextureFromCourseMap(nextCourseMap, nextDeliverables);
+  if (assignmentTextureRepair.changed) {
+    nextDeliverables = assignmentTextureRepair.deliverables;
+    repairs.push({
+      featureId: 'assignments',
+      label: featureLabel('assignments'),
+      changes: [`legacy copy texture: ${assignmentTextureRepair.repairedCount} assignment brief(s) compacted`],
+      message: `${featureLabel('assignments')} repaired: ${assignmentTextureRepair.repairedCount} legacy repeated-title surface(s) compacted`,
     });
   }
 

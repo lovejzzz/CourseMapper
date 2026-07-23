@@ -8,6 +8,7 @@ import {
   getModelRequestTotal,
   recordPendingApiCallEvent,
 } from '../apiCallBudget';
+import { resolveProviderCallCount } from '../packageFinalizerSummary';
 
 function ensureSessionStorage() {
   if (globalThis.sessionStorage?.clear) {
@@ -257,6 +258,55 @@ describe('apiCallBudget', () => {
       compiledFeatureCount: 3,
       savedProviderCalls: 3,
     });
+  });
+
+  it('replaces a stale compiler failure receipt after successful local compilation', () => {
+    let budget = createApiCallBudget();
+    budget = applyApiCallBudgetEvent(budget, {
+      type: 'pipelineDecision',
+      stage: 'blueprintCompiler',
+      detail: 'Contract blocked compilation: assessmentCoverage L5, assessmentCoverage L7',
+    });
+    budget = applyApiCallBudgetEvent(budget, {
+      type: 'compiledDeliverable',
+      featureIds: ['assignments', 'rubrics', 'quizBank', 'studyGuides'],
+      compilerSource: 'enriched-blueprint',
+      detail: 'Compiled 4 recovered materials with the current course blueprint',
+    });
+
+    expect(budget.pipeline.blueprintCompiler).toBe(
+      'Recovered locally: 4 materials compiled from the current blueprint',
+    );
+    expect(budget.pipeline.blueprintCompiler).not.toMatch(/contract blocked/i);
+
+    budget = applyApiCallBudgetEvent(budget, {
+      type: 'compiledDeliverable',
+      featureIds: ['courseFaq'],
+      compilerSource: 'enriched-blueprint',
+    });
+    expect(budget.pipeline.blueprintCompiler).toBe(
+      'Recovered locally: 4 materials compiled from the current blueprint',
+    );
+
+    let healthy = createApiCallBudget();
+    healthy = applyApiCallBudgetEvent(healthy, {
+      type: 'pipelineDecision',
+      stage: 'blueprintCompiler',
+      detail: 'Assessment registry bridge admitted all lessons',
+    });
+    healthy = applyApiCallBudgetEvent(healthy, {
+      type: 'compiledDeliverable',
+      featureIds: ['assignments'],
+      compilerSource: 'enriched-blueprint',
+    });
+    expect(healthy.pipeline.blueprintCompiler).toBe('Assessment registry bridge admitted all lessons');
+  });
+
+  it('uses reported provider calls instead of estimated local recovery work', () => {
+    expect(resolveProviderCallCount({ providerCallCount: 0 }, 6)).toBe(0);
+    expect(resolveProviderCallCount({ providerCallsUsed: 2 }, 6)).toBe(2);
+    expect(resolveProviderCallCount(undefined, 6)).toBe(6);
+    expect(resolveProviderCallCount({ providerCallCount: -2 }, 6)).toBe(0);
   });
 
   it('stores cost plans as cumulative limits for the current run', () => {

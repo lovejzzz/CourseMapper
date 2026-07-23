@@ -10,6 +10,12 @@ function count(value) {
   return Number.isFinite(value) ? value : 0;
 }
 
+export function resolveProviderCallCount(result = null, fallbackCount = 0) {
+  const reported = Number(result?.providerCallCount ?? result?.providerCallsUsed);
+  const resolved = Number.isFinite(reported) ? reported : Number(fallbackCount);
+  return Number.isFinite(resolved) ? Math.max(0, Math.floor(resolved)) : 0;
+}
+
 function pluralize(countValue, singular, plural = `${singular}s`) {
   return `${countValue} ${countValue === 1 ? singular : plural}`;
 }

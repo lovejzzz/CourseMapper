@@ -1,0 +1,166 @@
+{
+  "schemaVersion": 1,
+  "release": "0.16.75",
+  "recordedAt": "2026-07-23",
+  "judge": {
+    "identity": "Codex",
+    "method": "retained-project browser import, frame-by-frame finish inspection, physical ZIP integrity testing, manifest inspection, learner-facing DOCX text inspection, and automated release gates"
+  },
+  "scenario": {
+    "course": "World Literature Survey",
+    "sourceProject": "/Users/tianxing/Downloads/World Literature Survey - CourseMapper Project (4).coursemapper",
+    "originalProvider": "OpenAI",
+    "originalModel": "gpt-5.4-mini",
+    "apiKeyPresentDuringRecovery": false,
+    "baseline": {
+      "lessons": "8/8",
+      "knowledgeKernels": "8/8",
+      "materialFamiliesReady": "5/9",
+      "failedMaterialFamilies": ["Discussion Prompts", "Quiz & Exam Bank", "Study Guides", "Course FAQ"],
+      "downloadReady": false,
+      "staleCompilerReceipt": "Contract blocked compilation"
+    }
+  },
+  "causalChain": [
+    {
+      "codeChange": "Partition standard blueprint-compiled feature retries from provider-dependent retries and batch all local features into one zero-provider generateAll call.",
+      "changedDecision": "The missing four families remain runnable without the original OpenAI key and share one blueprint build.",
+      "learnerFacingDelta": "The saved package moves from 5/9 with four failures to 9/9 ready materials.",
+      "measuredDelta": "One local finish task, about 39 seconds, zero provider calls."
+    },
+    {
+      "codeChange": "Return observed providerCallCount from deliverable generation and resolve actual counts before decrementing the finalizer budget.",
+      "changedDecision": "Estimated repair actions no longer masquerade as paid provider work.",
+      "learnerFacingDelta": "Recovery completes offline without misleading call/spend accounting.",
+      "measuredDelta": "Four planned local actions; zero actual provider calls."
+    },
+    {
+      "codeChange": "Apply assignment-body title compaction to existing deliverables during package finalization.",
+      "changedDecision": "Legacy copy receives the current safe deterministic repair before grading and export.",
+      "learnerFacingDelta": "The Lesson 8 assignment brief stops repeating the full Borges title through its instruction body.",
+      "measuredDelta": "Nine full-title occurrences before; two exact identity/provenance occurrences in the exported DOCX."
+    },
+    {
+      "codeChange": "Replace a failed blueprintCompiler pipeline receipt after a successful compiledDeliverable event.",
+      "changedDecision": "Current successful recovery outranks stale historical failure wording.",
+      "learnerFacingDelta": "The package manifest describes successful local recovery.",
+      "measuredDelta": "Recovered locally: 4 materials compiled from the current blueprint."
+    }
+  ],
+  "browserResult": {
+    "runId": "run-1784836149963",
+    "finishRunId": "finish-mry0ak4m-8iie8",
+    "finishTaskSeconds": 39,
+    "finishRoute": "Local tools",
+    "providerCallsDuringRecovery": 0,
+    "materialCoverageBefore": "5/9",
+    "materialCoverageAfter": "9/9",
+    "livingCompilerFinalState": "Ready to export",
+    "overallProgress": "100%",
+    "quality": {
+      "score": 99,
+      "grade": "A",
+      "texture": 92,
+      "graderVersion": "1.10.35",
+      "findings": {
+        "p0": 0,
+        "p1": 0,
+        "p2": 0
+      }
+    },
+    "readiness": {
+      "status": "ready",
+      "checkedSections": "10/10",
+      "blockers": 0,
+      "warnings": 0
+    },
+    "downloadActions": 1,
+    "downloadButtonCount": 1,
+    "downloadButtonEnabled": true,
+    "console": {
+      "status": "not-remeasured",
+      "note": "This acceptance does not make a current-run console-count claim; the browser showed no visible runtime failure."
+    }
+  },
+  "archive": {
+    "downloadedPath": "/Users/tianxing/Downloads/World Literature Survey - Course Materials (20).zip",
+    "bytes": 1333120,
+    "sha256": "4d79d93a976da8c07de9086bdd6be0788b69c39b926cf245e7f12d03297f91c7",
+    "entriesIncludingDirectories": 79,
+    "trackedFiles": 67,
+    "unzipTest": "passed",
+    "manifestExporterVersion": "0.16.75",
+    "readings": 8,
+    "readiness": {
+      "status": "ready",
+      "checkedSections": "10/10",
+      "blockers": 0,
+      "warnings": 0
+    },
+    "quality": {
+      "score": 99,
+      "grade": "A",
+      "texture": 92,
+      "p0": 0,
+      "p1": 0,
+      "p2": 0
+    },
+    "exportVerification": {
+      "status": "passed",
+      "checked": 38,
+      "failed": 0,
+      "warnings": 0
+    },
+    "pipelineReceipt": {
+      "blueprintCompiler": "Recovered locally: 4 materials compiled from the current blueprint"
+    },
+    "lesson8Assignment": {
+      "file": "Assignment Briefs/Lesson 08 - Borges’s “The Library of Babel” - Assignment Briefs.docx",
+      "exactTitleOccurrences": 2,
+      "relatedLessonsPreserved": true
+    }
+  },
+  "verification": {
+    "focusedRegression": {
+      "status": "passed",
+      "testFilesPassed": 4,
+      "testsPassed": 146
+    },
+    "format": "passed",
+    "lint": "passed",
+    "productionBuild": "passed",
+    "bundleBudgets": {
+      "status": "passed",
+      "initialRawKiB": 255.9,
+      "initialGzipKiB": 81.3,
+      "appFlowRawKiB": 280.0,
+      "livingCompilerRawKiB": 70.3,
+      "budgetIncrease": false
+    },
+    "fullStableSuite": {
+      "status": "passed",
+      "testFilesPassed": 448,
+      "testFilesSkipped": 16,
+      "testsPassed": 5500,
+      "testsSkipped": 162
+    }
+  },
+  "adapter": {
+    "status": "inactive",
+    "qualified": false,
+    "weightsChanged": false
+  },
+  "sharedBenefitBoundary": {
+    "modelNeutral": [
+      "legacy assignment migration",
+      "blueprint compiler recovery",
+      "finalizer retry partitioning",
+      "actual provider-call accounting",
+      "readiness",
+      "grading",
+      "export"
+    ],
+    "scionSpecific": ["public model download", "WebGPU inference", "browser-local model cache"]
+  },
+  "claimBoundary": "This is one retained-project browser and artifact recovery proof. It is not proof of universal factual correctness, accessibility, teachability, instructor approval, classroom outcomes, adapter superiority, statistical confidence, or paid-reference parity."
+}

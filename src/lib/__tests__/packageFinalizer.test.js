@@ -79,6 +79,75 @@ function makeIntroPsychCourseMap(lessonCount = 15) {
 }
 
 describe('packageFinalizer', () => {
+  it('applies current assignment copy compaction to a legacy saved project without changing canonical identity', () => {
+    const fullFocus = 'Borges’s “The Library of Babel”';
+    const courseMap = {
+      courseName: 'World Literature Survey',
+      lessons: Array.from({ length: 8 }, (_, index) => ({
+        title: index === 7 ? `Lesson 8: ${fullFocus}` : `Lesson ${index + 1}: Reading ${index + 1}`,
+        instructorNamedReadings: index === 7 ? [fullFocus] : [`Reading ${index + 1}`],
+        sections: [
+          {
+            topicSection: index === 7 ? fullFocus : `Reading ${index + 1}`,
+            learningGoals: `Interpret the assigned text for week ${index + 1}.`,
+            learningObjectives: `Use textual evidence in a comparative interpretation for week ${index + 1}.`,
+            weeklyAssessments: `Week ${index + 1} evidence memo.`,
+          },
+        ],
+      })),
+    };
+    const legacyAssignment = {
+      title: 'Week 8 evidence memo',
+      dueWeek: 'Week 8',
+      relatedLessons: [`Lesson 8: ${fullFocus}`],
+      overview: `${fullFocus} asks students to trace a structural pattern in ${fullFocus}.`,
+      instructions: [
+        `Select one passage from ${fullFocus}.`,
+        `Explain how ${fullFocus} changes the reader’s sense of knowledge.`,
+        `Compare the passage from ${fullFocus} with an earlier course text.`,
+      ],
+      selfAssessmentRubric: [`I make a specific claim about ${fullFocus}.`, `I use evidence from ${fullFocus}.`],
+      supportResources: [`Return to the course map and reading notes for ${fullFocus}.`],
+    };
+
+    const first = runDeterministicPackageFinalizer({
+      courseMap,
+      selectedFeatures: ['assignments'],
+      includeClassroomReadiness: false,
+      includePedagogicalValidation: false,
+      retryWarnings: false,
+      deliverables: {
+        assignments: {
+          status: 'done',
+          data: { assignments: [legacyAssignment] },
+        },
+      },
+    });
+
+    const repaired = first.deliverables.assignments.data.assignments[0];
+    const repairedBody = JSON.stringify({
+      overview: repaired.overview,
+      instructions: repaired.instructions,
+      selfAssessmentRubric: repaired.selfAssessmentRubric,
+      supportResources: repaired.supportResources,
+    });
+    expect(first.repairs.map((repair) => repair.message).join(' ')).toMatch(/legacy repeated-title surface/i);
+    expect(repaired.title).toBe('Week 8 evidence memo');
+    expect(repaired.relatedLessons).toEqual([`Lesson 8: ${fullFocus}`]);
+    expect(repairedBody.match(new RegExp(fullFocus.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) || []).toHaveLength(1);
+
+    const second = runDeterministicPackageFinalizer({
+      courseMap,
+      selectedFeatures: ['assignments'],
+      includeClassroomReadiness: false,
+      includePedagogicalValidation: false,
+      retryWarnings: false,
+      deliverables: first.deliverables,
+    });
+    expect(second.deliverables.assignments.data.assignments[0]).toEqual(repaired);
+    expect(second.repairs.map((repair) => repair.message).join(' ')).not.toMatch(/legacy repeated-title surface/i);
+  });
+
   it('repairs stale assignment identity against the Course Map before export', () => {
     const courseMap = {
       courseName: 'Introduction to Computer Science with Python',

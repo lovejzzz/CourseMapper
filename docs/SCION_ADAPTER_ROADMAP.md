@@ -2,7 +2,25 @@
 
 **Architecture:** public Gemma 4 E2B base + small Scion adapter + Scion compiler = Scion Vx
 
-**Status:** the exact-QAT base, hash-bound training and conversion chain, browser adapter lifecycle, source-strict semantic compiler gates, frozen holdout firewall, and paired-order preference protocol are implemented. The research corpus still contains 102 qualified source-grounded preferences and rebuilds into 100 group-isolated production rows across seven domains. The first complete task-scoped candidate remains rejected and inactive: it produced no cross-domain learner-facing win, added factual defects, ran 2.81× longer, and exceeded the browser adapter budget. V0.16.74 therefore keeps production on exact base-only Scion, makes an exact instructor contract survive generation, Agent questioning, oversized anonymous persistence, version-to-version resume, and physical export, and concentrates the next model work on selective task-scoped evidence rather than always-on activation. Anonymous World Literature review still prefers the paid reference in both presentation orders, so paid-reference parity remains an explicit unearned gate. Gemma weights are unchanged.
+**Status:** the exact-QAT base, hash-bound training and conversion chain, browser adapter lifecycle, source-strict semantic compiler gates, frozen holdout firewall, and paired-order preference protocol are implemented. The research corpus still contains 102 qualified source-grounded preferences and rebuilds into 100 group-isolated production rows across seven domains. The first complete task-scoped candidate remains rejected and inactive: it produced no cross-domain learner-facing win, added factual defects, ran 2.81× longer, and exceeded the browser adapter budget. V0.16.75 keeps production on exact base-only Scion and proves that a saved paid-provider project can inherit current compiler recovery and migration without another provider call. Anonymous World Literature review still prefers the paid reference in both presentation orders, so paid-reference parity remains an explicit unearned gate. Gemma weights are unchanged.
+
+## V0.16.75 — Recover the Package Without Paying Twice
+
+**Goal:** make saved projects inherit the newest safe compiler behavior even when their original paid-provider key is unavailable, while reporting actual provider work rather than estimates and finishing in one calm green state.
+
+**Legacy incident:** the retained GPT-5.4 Mini World Literature project opens with 8/8 lessons and knowledge kernels but only 5/9 generated material families. Discussion Prompts, Quiz & Exam Bank, Study Guides, and Course FAQ carry failed states. The OpenAI key is intentionally absent, so any recovery that depends on the original provider is invalid.
+
+**Local compiler lane:** the finalizer recognizes the nine standard downstream material families as deterministic blueprint-compiler work. It partitions local actions from genuine model-dependent retries and submits all missing compiler-owned families in one `generateAll` batch with a hard zero-provider-call allowance. The real browser moves from 5/9 to 9/9, grades 99/A with texture 92 and zero P0/P1/P2 findings, and ends at Ready to download. The local finish task completes in about 39 seconds instead of rebuilding the whole blueprint separately for each missing family.
+
+**Migration lane:** finalization applies the current assignment-title compaction rule to legacy saved deliverables before quality evaluation. The Lesson 8 Borges brief falls from nine full-title repetitions to two exact identity/provenance mentions. Its title and Related Lessons remain intact, and a second pass makes no further change.
+
+**Accounting and provenance lane:** generation routes return observed provider calls. The finalizer decrements provider budget and records retry calls from that observed count rather than `estimatedCalls`; four local repair actions therefore record zero provider calls. A successful compiler recovery replaces the stale failure receipt with `Recovered locally: 4 materials compiled from the current blueprint`.
+
+**Browser and archive proof:** the recovered workspace presents one enabled Download ZIP action. The resulting 1.33 MB archive contains 79 entries, passes compressed-data testing, preserves all eight named readings, reports 10/10 checked sections, zero blockers and warnings, and 38/38 export verification. The learner-facing assignment DOCX contains only the two intended exact Borges-title mentions.
+
+**Lane:** blueprint compilation, legacy copy migration, finalizer routing, actual-call accounting, readiness, grading, and export are model-neutral and benefit compatible local and paid-provider projects. Public model download, WebGPU inference, cache management, and browser-local model execution remain Scion-specific.
+
+**Release Boundary:** this release proves one retained paid-provider project can be recovered and exported by the shared compiler without another provider call. It does not prove universal factual correctness, accessibility, teachability, instructor approval, classroom outcomes, adapter superiority, statistical confidence, or paid-reference parity. The adapter remains inactive and Gemma weights are unchanged.
 
 ## V0.16.74 — Make the Exact Course Survive the Whole Journey
 

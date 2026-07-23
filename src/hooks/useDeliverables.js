@@ -4975,6 +4975,7 @@ export default function useDeliverables({
         completedFeatureIds: completed,
         failedFeatureIds: failed,
         deliverables: generatedDeliverables,
+        providerCallCount: providerCallsUsed,
       };
     },
     [

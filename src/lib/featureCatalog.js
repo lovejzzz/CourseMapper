@@ -98,6 +98,30 @@ export const FEATURES_BASE = [
 
 export const FEATURES = FEATURES_BASE;
 
+export const STANDARD_BLUEPRINT_COMPILED_FEATURE_IDS = Object.freeze(
+  FEATURES_BASE.map((feature) => feature.id).filter((featureId) => featureId !== 'courseMap'),
+);
+
+const STANDARD_BLUEPRINT_COMPILED_FEATURES = new Set(STANDARD_BLUEPRINT_COMPILED_FEATURE_IDS);
+
+export function isStandardBlueprintCompiledFeature(featureId) {
+  return STANDARD_BLUEPRINT_COMPILED_FEATURES.has(featureId);
+}
+
+export function isLocalBlueprintCompilerRetryAction(action = null) {
+  return action?.scope === 'feature' && isStandardBlueprintCompiledFeature(action?.featureId);
+}
+
+export function partitionFinalizerRetryActions(actions = []) {
+  const localCompilerActions = [];
+  const remainingActions = [];
+  for (const action of actions) {
+    if (isLocalBlueprintCompilerRetryAction(action)) localCompilerActions.push(action);
+    else remainingActions.push(action);
+  }
+  return { localCompilerActions, remainingActions };
+}
+
 export const COLOR_MAP = {
   indigo: {
     bg: 'bg-indigo-50/60',

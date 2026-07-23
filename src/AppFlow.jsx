@@ -47,7 +47,7 @@ import {
   getCanonicalPatchFieldLabel,
   projectArtifactEditToCourseMapPatch,
 } from './lib/artifactBlueprintProjection';
-import { FEATURES } from './lib/featureCatalog';
+import { FEATURES, isLocalBlueprintCompilerRetryAction, partitionFinalizerRetryActions } from './lib/featureCatalog';
 import {
   listCustomDeliverables,
   getCustomDeliverable,
@@ -108,7 +108,7 @@ import {
   summarizeApiUsageBudget,
   summarizeCompilerSavings,
 } from './lib/apiUsageCost';
-import { buildQualityReceipt } from './lib/packageFinalizerSummary';
+import { buildQualityReceipt, resolveProviderCallCount } from './lib/packageFinalizerSummary';
 import { getChunkCount, pLimit } from './lib/parallelGenerator';
 import { buildHumanReviewRecommendation } from './lib/packageTrust';
 import { traceLog } from './lib/traceLog';
@@ -275,14 +275,16 @@ function estimateRetryActionCallCost(action, courseMap, lessonFilter, generation
 
 function selectRetryActionsWithinCallBudget(
   actions = [],
-  { courseMap, lessonFilter, generationPlan, maxCalls = 4 } = {},
+  { courseMap, lessonFilter, generationPlan, maxCalls = 4, isFreeAction = null } = {},
 ) {
   const limit = Math.max(0, Number(maxCalls) || 0);
   let usedCalls = 0;
   const selected = [];
   const skipped = [];
   for (const action of actions) {
-    const estimatedCalls = estimateRetryActionCallCost(action, courseMap, lessonFilter, generationPlan);
+    const estimatedCalls = isFreeAction?.(action)
+      ? 0
+      : estimateRetryActionCallCost(action, courseMap, lessonFilter, generationPlan);
     const annotated = { ...action, estimatedCalls };
     if (estimatedCalls <= limit - usedCalls) {
       selected.push(annotated);
@@ -1313,10 +1315,13 @@ export default function AppFlow({
           blockers: 0,
         });
 
-        const canRetryWeakSpots =
-          retry &&
-          canFinishPackageWithAgent &&
-          (typeof regenerateLessonRef.current === 'function' || typeof regenerateFeatureRef.current === 'function');
+        // Compiler-owned feature recovery is local and must remain available
+        // when an imported paid-model project no longer has its API key.
+        // Provider readiness gates only the actions that genuinely need a
+        // model; it must not gate deterministic blueprint compilation.
+        const retryHandlersAvailable =
+          typeof regenerateLessonRef.current === 'function' || typeof regenerateFeatureRef.current === 'function';
+        const canRetryWeakSpots = retry && retryHandlersAvailable;
 
         const finalizerCostPlan = buildApiCostPlan({
           source: `finalizer:${source}`,
@@ -1327,7 +1332,7 @@ export default function AppFlow({
           includeCourseMap: false,
           includeDeliverableChunks: false,
           includeRepairRetryReserve: false,
-          finalizerRetryCallBudget: canRetryWeakSpots ? maxRetryCallBudget : 0,
+          finalizerRetryCallBudget: canRetryWeakSpots && canFinishPackageWithAgent ? maxRetryCallBudget : 0,
         });
         recordApiCallEvent({
           type: 'costPlan',
@@ -1335,7 +1340,7 @@ export default function AppFlow({
           label: 'Package finalizer call plan',
           detail:
             finalizerCostPlan.finalizerRetryReserve > 0
-              ? `${finalizerCostPlan.finalizerRetryReserve} finish retry call${
+              ? `Up to ${finalizerCostPlan.finalizerRetryReserve} finish provider call${
                   finalizerCostPlan.finalizerRetryReserve === 1 ? '' : 's'
                 } reserved`
               : 'No provider calls planned for deterministic final checks',
@@ -1373,11 +1378,12 @@ export default function AppFlow({
           result.retryActions.length > 0 &&
           canRetryWeakSpots &&
           retryPassCount < retryPassLimit &&
-          remainingRetryCallBudget > 0
+          (remainingRetryCallBudget > 0 || result.retryActions.some(isLocalBlueprintCompilerRetryAction))
         ) {
           const costControl =
             apiCallBudgetRef.current?.costControl || evaluateApiCostControl(apiCallBudgetRef.current || {});
-          if (costControl.shouldStopRetries) {
+          const hasLocalCompilerRetry = result.retryActions.some(isLocalBlueprintCompilerRetryAction);
+          if (costControl.shouldStopRetries && !hasLocalCompilerRetry) {
             retryBudgetExhausted = true;
             tracePackageFinish(
               finishRunId,
@@ -1399,11 +1405,17 @@ export default function AppFlow({
             break;
           }
 
-          const retryActionsNotSuppressed = result.retryActions.filter(
+          const providerRetriesAllowed = canFinishPackageWithAgent && !costControl.shouldStopRetries;
+          const runnableRetryActions = result.retryActions.filter(
+            (action) => isLocalBlueprintCompilerRetryAction(action) || providerRetriesAllowed,
+          );
+          if (runnableRetryActions.length === 0) break;
+
+          const retryActionsNotSuppressed = runnableRetryActions.filter(
             (action) =>
               !suppressedPackageRetryKeysRef.current.has(getSuppressedRetryActionKey(action, provider, modelId)),
           );
-          const newlySuppressedRetryActionCount = result.retryActions.length - retryActionsNotSuppressed.length;
+          const newlySuppressedRetryActionCount = runnableRetryActions.length - retryActionsNotSuppressed.length;
           if (newlySuppressedRetryActionCount > 0) {
             suppressedRetryActionCount += newlySuppressedRetryActionCount;
             skippedRetryActionCount += newlySuppressedRetryActionCount;
@@ -1413,7 +1425,7 @@ export default function AppFlow({
               {
                 retryPassCount,
                 suppressedRetryActionCount: newlySuppressedRetryActionCount,
-                suppressed: result.retryActions
+                suppressed: runnableRetryActions
                   .filter((action) =>
                     suppressedPackageRetryKeysRef.current.has(getSuppressedRetryActionKey(action, provider, modelId)),
                   )
@@ -1483,8 +1495,13 @@ export default function AppFlow({
             lessonFilter: effectiveLessonFilter,
             generationPlan,
             maxCalls: remainingRetryCallBudget,
+            isFreeAction: isLocalBlueprintCompilerRetryAction,
           });
           const retryActionsToRun = retryBudget.selected;
+          const { localCompilerActions, remainingActions: nonLocalRetryActions } =
+            partitionFinalizerRetryActions(retryActionsToRun);
+          const localCompilerActionCount = localCompilerActions.length;
+          const providerRetryActionCount = nonLocalRetryActions.length;
           skippedRetryActionCount += retryBudget.skipped.length;
           skippedRetryCallCount += retryBudget.skipped.reduce((sum, action) => sum + (action.estimatedCalls || 1), 0);
 
@@ -1531,16 +1548,19 @@ export default function AppFlow({
             status: 'running',
             phase: 'finish',
             message:
-              retryActionsToRun.length > 0
-                ? `Finishing package: retry pass ${retryPassCount}/${retryPassLimit}, fixing ${retryActionsToRun.length} weak area${
+              providerRetryActionCount === 0
+                ? `Finishing package: pass ${retryPassCount}/${retryPassLimit}, rebuilding ${localCompilerActionCount} material${
+                    localCompilerActionCount === 1 ? '' : 's'
+                  } locally...`
+                : `Finishing package: retry pass ${retryPassCount}/${retryPassLimit}, fixing ${retryActionsToRun.length} weak area${
                     retryActionsToRun.length === 1 ? '' : 's'
-                  } (${retryBudget.usedCalls} call${retryBudget.usedCalls === 1 ? '' : 's'})...`
-                : 'Finishing package: retry plan is over the call budget; checking remaining issues...',
+                  } (up to ${retryBudget.usedCalls} provider call${retryBudget.usedCalls === 1 ? '' : 's'})...`,
             repairsApplied: totalRepairsApplied,
             warnings: 0,
             blockers: 0,
           });
 
+          let retryProviderCallsThisPass = 0;
           const runRetryAction = async (action) => {
             const retryActionKey = getRetryActionKey(action);
             attemptedRetryKeys.add(retryActionKey);
@@ -1552,8 +1572,10 @@ export default function AppFlow({
               estimatedCalls: action.estimatedCalls || 1,
               message: action.message || '',
             });
+            let retryResult = null;
+            let retryResultTrace = {};
             if (action.scope === 'feature') {
-              const retryResult = await regenerateFeatureRef.current?.(
+              retryResult = await regenerateFeatureRef.current?.(
                 result.courseMap || courseMapRef.current,
                 [action.featureId],
                 effectiveLessonFilter,
@@ -1562,13 +1584,10 @@ export default function AppFlow({
                   maxProviderCalls: action.estimatedCalls || 1,
                 },
               );
-              tracePackageFinish(finishRunId, 'retry_action_done', {
-                key: retryActionKey,
-                featureId: action.featureId,
-                scope: action.scope,
+              retryResultTrace = {
                 status: retryResult?.status || 'unknown',
                 returnedDeliverables: Object.keys(retryResult?.deliverables || {}),
-              });
+              };
               if (retryResult?.deliverables) {
                 finalizerDeliverables = {
                   ...finalizerDeliverables,
@@ -1577,7 +1596,7 @@ export default function AppFlow({
                 deliverablesRef.current = finalizerDeliverables;
               }
             } else {
-              const retryResult = await regenerateLessonRef.current?.(
+              retryResult = await regenerateLessonRef.current?.(
                 action.featureId,
                 result.courseMap || courseMapRef.current,
                 action.lessonIndex,
@@ -1592,15 +1611,11 @@ export default function AppFlow({
                   currentData: finalizerDeliverables[action.featureId]?.data || null,
                 },
               );
-              tracePackageFinish(finishRunId, 'retry_action_done', {
-                key: retryActionKey,
-                featureId: action.featureId,
-                lessonIndex: action.lessonIndex,
-                scope: action.scope,
+              retryResultTrace = {
                 status: retryResult?.status || 'unknown',
                 itemCount: retryResult?.itemCount,
                 hasData: Boolean(retryResult?.data),
-              });
+              };
               if (retryResult?.data) {
                 finalizerDeliverables = {
                   ...finalizerDeliverables,
@@ -1615,8 +1630,18 @@ export default function AppFlow({
                 deliverablesRef.current = finalizerDeliverables;
               }
             }
+            const providerCallCount = resolveProviderCallCount(retryResult, action.estimatedCalls || 1);
+            tracePackageFinish(finishRunId, 'retry_action_done', {
+              key: retryActionKey,
+              featureId: action.featureId,
+              lessonIndex: action.lessonIndex,
+              scope: action.scope,
+              providerCallCount,
+              ...retryResultTrace,
+            });
             retryCount += 1;
-            retryCallCount += action.estimatedCalls || 1;
+            retryCallCount += providerCallCount;
+            retryProviderCallsThisPass += providerCallCount;
             await new Promise((resolve) => window.setTimeout(resolve, 0));
             // The finalizer result is the authoritative package view. A React
             // render triggered by feature regeneration can briefly expose the
@@ -1625,13 +1650,41 @@ export default function AppFlow({
             finalizerCourseMap = result.courseMap || finalizerCourseMap;
             finalizerDeliverables = deliverablesRef.current || finalizerDeliverables;
           };
+          const runLocalCompilerRetryBatch = async (actions) => {
+            if (actions.length === 0) return;
+            const featureIdsToCompile = [...new Set(actions.map((action) => action.featureId).filter(Boolean))];
+            actions.forEach((action) => attemptedRetryKeys.add(getRetryActionKey(action)));
+            const retryResult = await regenerateFeatureRef.current?.(
+              result.courseMap || courseMapRef.current,
+              featureIdsToCompile,
+              effectiveLessonFilter,
+              {
+                mode: 'finalizerRetry',
+                // Every feature in this batch is compiler-owned. Fail closed
+                // instead of silently falling back to a provider.
+                maxProviderCalls: 0,
+              },
+            );
+            if (retryResult?.deliverables) {
+              finalizerDeliverables = {
+                ...finalizerDeliverables,
+                ...retryResult.deliverables,
+              };
+              deliverablesRef.current = finalizerDeliverables;
+            }
+            retryCount += actions.length;
+            await new Promise((resolve) => window.setTimeout(resolve, 0));
+            finalizerCourseMap = result.courseMap || finalizerCourseMap;
+            finalizerDeliverables = deliverablesRef.current || finalizerDeliverables;
+          };
+          await runLocalCompilerRetryBatch(localCompilerActions);
           // v0.15.186: retry actions used to run strictly one at a time.
           // Actions on DIFFERENT features are independent — run the feature
           // groups concurrently (limit 3) and keep actions WITHIN a feature
           // sequential, so a lesson regen always sees the data the previous
           // action for that feature just wrote (the :1455 stale-data rule).
           const retryActionsByFeature = new Map();
-          for (const action of retryActionsToRun) {
+          for (const action of nonLocalRetryActions) {
             const featureKey = action.featureId || 'package';
             if (!retryActionsByFeature.has(featureKey)) retryActionsByFeature.set(featureKey, []);
             retryActionsByFeature.get(featureKey).push(action);
@@ -1647,7 +1700,7 @@ export default function AppFlow({
             ),
           );
 
-          remainingRetryCallBudget = Math.max(0, remainingRetryCallBudget - retryBudget.usedCalls);
+          remainingRetryCallBudget = Math.max(0, remainingRetryCallBudget - retryProviderCallsThisPass);
           const preparedRetryScope = prepareMaterializedPackageScope({
             courseMap: finalizerCourseMap,
             deliverables: finalizerDeliverables,
@@ -1730,6 +1783,9 @@ export default function AppFlow({
         }
 
         const unresolvedRetryCount = result.status === 'needs_retry' ? result.retryActions.length : 0;
+        const unresolvedProviderRetryCount = result.retryActions.filter(
+          (action) => !isLocalBlueprintCompilerRetryAction(action) && !canFinishPackageWithAgent,
+        ).length;
         const exportFailures = exportVerification?.failed || 0;
         const exportWarnings = exportVerification?.warningCount || 0;
         let blockers = result.readiness.blockers.length + exportFailures;
@@ -1741,8 +1797,8 @@ export default function AppFlow({
         let warnings = reviewWarningCount;
         const retryText = retryCount > 0 ? `Retried ${retryCount} weak area${retryCount === 1 ? '' : 's'}. ` : '';
         const skippedRetryText =
-          unresolvedRetryCount > 0 && !canRetryWeakSpots
-            ? `AI setup is needed to retry ${unresolvedRetryCount} weak area${unresolvedRetryCount === 1 ? '' : 's'}. `
+          unresolvedProviderRetryCount > 0
+            ? `AI setup is needed to retry ${unresolvedProviderRetryCount} model-dependent weak area${unresolvedProviderRetryCount === 1 ? '' : 's'}. `
             : retryNoProgress
               ? suppressedRetryActionCount > 0 && retryCount === 0
                 ? `Automatic retry already ran without progress; not spending another model call on the same weak area. `

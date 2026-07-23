@@ -142,20 +142,11 @@ import {
   normalizeInstructorPreferenceProfile,
   summarizeInstructorPreferenceProfile,
 } from './instructorPreferenceProfile';
+import { STANDARD_BLUEPRINT_COMPILED_FEATURE_IDS } from './featureCatalog';
 
 export { humanSourceCueLabel };
 
-export const BLUEPRINT_COMPILED_FEATURES = new Set([
-  'syllabus',
-  'lessonPlans',
-  'slideDecks',
-  'rubrics',
-  'assignments',
-  'discussions',
-  'quizBank',
-  'studyGuides',
-  'courseFaq',
-]);
+export const BLUEPRINT_COMPILED_FEATURES = new Set(STANDARD_BLUEPRINT_COMPILED_FEATURE_IDS);
 
 const CUSTOM_REFLECTION_PATTERN = /\b(reflection|reflective|check[-\s]?in|journal|exit ticket|debrief)\b/i;
 const CUSTOM_READING_RESPONSE_PATTERN =

@@ -556,6 +556,16 @@ export function applyApiCallBudgetEvent(currentBudget, event = {}) {
       savedProviderCalls: (Number(previous.savedProviderCalls) || 0) + Math.max(0, savedProviderCalls),
       lastAt: at,
     };
+    const previousCompilerReceipt = String(next.pipeline?.blueprintCompiler || '');
+    if (/\b(?:blocked|failed|failure|error)\b/i.test(previousCompilerReceipt)) {
+      const compiledCount = compiledFeatureIds.length || 1;
+      next.pipeline = {
+        ...next.pipeline,
+        blueprintCompiler: `Recovered locally: ${compiledCount} material${
+          compiledCount === 1 ? '' : 's'
+        } compiled from the current blueprint`,
+      };
+    }
   }
 
   return {
