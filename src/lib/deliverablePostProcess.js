@@ -1,5 +1,7 @@
 import { getArrayKey } from './syncDependencies';
 import { findPublishabilityPlaceholders } from './publishabilityPlaceholders';
+import { getNotApplicableDisposition } from './deliverableApplicability';
+import { classifyAssessmentKind } from './courseGraph/deriveFromCourseMap';
 
 export const COURSE_FAQ_CATEGORIES = [
   'Course Logistics',
@@ -529,16 +531,28 @@ function faqAssignmentTitleFromDeliverables(deliverables = null, lessonIndex = 0
 }
 
 function faqCourseLooksTechnical(courseLesson = null) {
-  const text = [
+  const coreText = [
     getLessonField(courseLesson, 'topicSection'),
     getLessonField(courseLesson, 'learningObjectives'),
+  ].join(' ');
+  const text = [
+    coreText,
     getLessonField(courseLesson, 'asyncActivities'),
     getLessonField(courseLesson, 'syncActivities'),
     getLessonField(courseLesson, 'supportingResources'),
   ].join(' ');
-  return /\b(?:code|coding|program|software|command|terminal|browser|file format|spreadsheet|dataset|database|notebook|api|lms|upload|download)\b/i.test(
-    text,
-  );
+  const strongToolSignal = /\b(?:code|coding|programming|command|terminal|database|api|sql|python)\b/i.test(coreText);
+  const toolWorkflowSignal =
+    (/\b(?:software|browser)\b/i.test(coreText) &&
+      /\b(?:configure|install|debug|troubleshoot|file format|upload|download)\b/i.test(coreText)) ||
+    (/\bspreadsheet\b/i.test(coreText) && /\b(?:formula|cell|workbook|pivot)\b/i.test(coreText)) ||
+    (/\blms\b/i.test(coreText) && /\b(?:upload|submit|file format)\b/i.test(coreText));
+  const dataWorkflowSignal =
+    (/\bdataset\b/i.test(coreText) &&
+      /\b(?:analy[sz]e|clean|compute|query|run|execute|python|sql|formula|variable|column)\b/i.test(text)) ||
+    (/\bnotebook\b/i.test(text) &&
+      /\b(?:jupyter|python|sql|code|coding|programming|execute|formula|variable|column)\b/i.test(text));
+  return strongToolSignal || toolWorkflowSignal || dataWorkflowSignal;
 }
 
 function buildFaqQuestionRepair({
@@ -552,7 +566,7 @@ function buildFaqQuestionRepair({
   const shortTitle = stripLessonPrefix(lessonTitle) || `Lesson ${lessonIndex + 1}`;
   const topic = compactText(getLessonField(courseLesson, 'topicSection'), shortTitle, 90);
   const assessmentText = getLessonField(courseLesson, 'weeklyAssessments');
-  const assessment = compactText(assessmentText, 'the lesson assessment', 120);
+  const assessment = stripTerminalPunctuation(compactText(assessmentText, 'the lesson assessment', 120));
   const objective = compactText(
     getLessonField(courseLesson, 'learningObjectives') || getLessonField(courseLesson, 'learningGoals'),
     `apply ${shortTitle} concepts`,
@@ -568,9 +582,10 @@ function buildFaqQuestionRepair({
     90,
   );
   const compiledAssessmentLabel = faqAssignmentTitleFromDeliverables(deliverables, lessonIndex);
-  const assessmentLabel =
+  const assessmentLabel = stripTerminalPunctuation(
     compiledAssessmentLabel ||
-    (UNSAFE_FAQ_ASSESSMENT_RE.test(rawAssessmentLabel) ? `${shortTitle} assessment` : rawAssessmentLabel);
+      (UNSAFE_FAQ_ASSESSMENT_RE.test(rawAssessmentLabel) ? `${shortTitle} assessment` : rawAssessmentLabel),
+  );
   const category = getFaqQuestionCategory(question);
   const technicalCourse = faqCourseLooksTechnical(courseLesson);
   const templates = {
@@ -634,15 +649,15 @@ function buildFaqQuestionRepair({
       : [
           {
             q: `What should I do if I cannot use the ${shortTitle} lesson materials?`,
-            an: `Name the exact reading, recording, example, or activity you cannot access, where the problem occurs, and what you already tried. Explain how it blocks ${assessmentLabel} so the instructor can give targeted help.`,
+            an: `Name the exact reading, recording, example, or activity you cannot access, where the problem occurs, and what you already tried. Explain what it prevents you from completing in ${assessmentLabel} so the instructor can give targeted help.`,
           },
           {
-            q: `How should I report a materials blocker during ${shortTitle}?`,
-            an: `Identify the exact source or example, the point where access or interpretation breaks down, and the last step you could complete. Connect the blocker to ${assessmentLabel} so support stays focused on the course task.`,
+            q: `How should I report a materials problem during ${shortTitle}?`,
+            an: `Identify the exact source or example, the point where access or interpretation breaks down, and the last step you could complete. Connect that difficulty to ${assessmentLabel} so support stays focused on the course task.`,
           },
           {
             q: `What should I check before asking for help on ${shortTitle}?`,
-            an: `Reopen the assigned source, compare the directions with ${stripTerminalPunctuation(objective)}, and record the exact point that remains unclear. Send that evidence with your question about ${assessmentLabel}.`,
+            an: `Reopen the assigned source and the directions for ${shortTitle}. Record the exact point that remains unclear, then send that evidence with your question about ${assessmentLabel}.`,
           },
         ],
     'Assessment Prep': [
@@ -710,7 +725,13 @@ export function normalizeCourseFaqQuestionVariety(data, courseMap = null, delive
       const genericPrep = /^how should i prepare for the assessment in this lesson\??$/i.test(
         String(currentQuestion || '').trim(),
       );
-      if (!repeated && !genericPrep && !repeatedBoilerplateAnswer && !repeatedTextureAnswer) return question;
+      const nonTechnicalBlocker =
+        getFaqQuestionCategory(question) === 'Technical Help' &&
+        !faqCourseLooksTechnical(courseLesson) &&
+        /\bblocker\b/i.test(String(currentQuestion || ''));
+      if (!repeated && !genericPrep && !repeatedBoilerplateAnswer && !repeatedTextureAnswer && !nonTechnicalBlocker) {
+        return question;
+      }
 
       const repair = buildFaqQuestionRepair({
         question,
@@ -724,7 +745,7 @@ export function normalizeCourseFaqQuestionVariety(data, courseMap = null, delive
       changed = true;
       const nextQuestion = {
         ...question,
-        [qKey]: repeated || genericPrep ? repair.q : currentQuestion,
+        [qKey]: repeated || genericPrep || nonTechnicalBlocker ? repair.q : currentQuestion,
         [answerKey]: repair.an,
       };
       const actionKey =
@@ -1331,6 +1352,24 @@ export function validateDeliverableGeneration(featureId, data, options = {}) {
     return { valid: false, blockers, warnings, retryableLessonIndices, arrayKey: null, itemCount: 0 };
   }
 
+  const notApplicable = getNotApplicableDisposition(featureId, data);
+  if (notApplicable) {
+    const { arrayKey, items } = getPrimaryArray(featureId, data);
+    if (!arrayKey || !Array.isArray(items) || items.length > 0) {
+      blockers.push(`The ${featureId} not-applicable receipt does not match its item array.`);
+      return { valid: false, blockers, warnings, retryableLessonIndices, arrayKey, itemCount: 0 };
+    }
+    return {
+      valid: true,
+      blockers,
+      warnings,
+      retryableLessonIndices,
+      arrayKey,
+      itemCount: 0,
+      notApplicable,
+    };
+  }
+
   if (Object.keys(data).length === 0 || getMeaningfulWordCount(data) < 4) {
     blockers.push('The generated JSON object is empty.');
     return { valid: false, blockers, warnings, retryableLessonIndices, arrayKey: null, itemCount: 0 };
@@ -1755,7 +1794,9 @@ function lessonHasRubricWorthyAssessment(lesson) {
   if (/\b(no assessment|none|n\/a|not applicable|optional only)\b/i.test(text)) return false;
   const assessmentItems = splitStructuredListItems(text);
   const isCompilerFormativeItem = (item) =>
-    /^\s*in[-\s]?class\b/i.test(item) || /\bevidence check:\s*state one supported,\s*bounded conclusion\b/i.test(item);
+    classifyAssessmentKind(item) === 'in-class' ||
+    /^\s*in[-\s]?class\b/i.test(item) ||
+    /\bevidence check:\s*state one supported,\s*bounded conclusion\b/i.test(item);
   // Native authoring deliberately places these checks in the lesson plan as
   // ungraded practice. A generic word such as "analysis" inside the prompt
   // must not make the finalizer invent a standalone rubric for it.

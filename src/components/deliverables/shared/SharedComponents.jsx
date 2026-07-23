@@ -483,6 +483,44 @@ export function EmptyState({ featureId, onGenerate }) {
   );
 }
 
+export function NotApplicableState({ disposition }) {
+  const routeLabel = disposition?.routeLabel || 'the related course material';
+  const openRoute = () => {
+    if (!disposition?.routeFeatureId) return;
+    window.dispatchEvent(
+      new CustomEvent('coursemapper:focus-deliverable', {
+        detail: { featureId: disposition.routeFeatureId },
+      }),
+    );
+  };
+
+  return (
+    <div className="flex items-center justify-center px-6 py-16">
+      <div className="w-full max-w-lg rounded-squircle-sm border border-emerald-200/80 bg-emerald-50/70 p-7 text-center shadow-sm dark:border-emerald-800/60 dark:bg-emerald-950/20">
+        <div className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300">
+          <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m5 12 4 4L19 6" />
+          </svg>
+        </div>
+        <p className="text-base font-semibold text-slate-800 dark:text-slate-100">{disposition?.summary}</p>
+        {disposition?.detail && (
+          <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{disposition.detail}</p>
+        )}
+        {disposition?.routeFeatureId && (
+          <button
+            type="button"
+            onClick={openRoute}
+            className="mt-5 inline-flex items-center gap-2 rounded-lg border border-emerald-300 bg-white px-4 py-2 text-sm font-semibold text-emerald-800 transition hover:border-emerald-400 hover:bg-emerald-50 dark:border-emerald-700 dark:bg-slate-900 dark:text-emerald-200 dark:hover:bg-emerald-950/40"
+          >
+            Open {routeLabel}
+            <span aria-hidden="true">→</span>
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // Shared focus: DeliverableView provides { report(itemIndex) } so the chat
 // agent knows which lesson card the instructor is working in.
 export const ViewportContext = React.createContext(null);

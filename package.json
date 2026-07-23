@@ -1,11 +1,12 @@
 {
   "name": "course-mapper",
-  "version": "0.16.72",
+  "version": "0.16.73",
   "type": "module",
   "description": "AI-powered course syllabus to course map generator",
   "scripts": {
+    "predev": "node scripts/buildScionRuntime.mjs",
     "dev": "vite",
-    "prebuild": "node scripts/cleanDist.mjs",
+    "prebuild": "node scripts/cleanDist.mjs && node scripts/buildScionRuntime.mjs",
     "build": "vite build",
     "start": "vite preview --host 0.0.0.0",
     "preview": "vite preview",

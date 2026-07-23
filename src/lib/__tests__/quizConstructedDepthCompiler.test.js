@@ -535,9 +535,8 @@ describe('constructed-response compiler depth', () => {
           term: 'water',
           definition:
             'Nutrients are substances required by the body to perform its basic functions, and they must be obtained from the diet because the body does not synthesize them.',
-          misconception: 'A common error is choosing fiber without checking the details named in the question.',
-          correction:
-            'The admitted explanation supports water after the named details are checked against every option.',
+          misconception: 'Choosing fiber conflicts with the evidence for water in this item.',
+          correction: 'Check the water evidence against fiber before selecting an answer.',
           source: 'verified-quiz-projection',
           derivedFromQuizIndex: 0,
         },
@@ -545,9 +544,8 @@ describe('constructed-response compiler depth', () => {
           term: 'lipids',
           definition:
             'Lipids are the most energy-dense class at nine kilocalories per gram — more than double carbohydrates.',
-          misconception: 'A common error is choosing carbohydrates without checking the details named in the question.',
-          correction:
-            'The admitted explanation supports lipids after the named details are checked against every option.',
+          misconception: 'Choosing carbohydrates conflicts with the evidence for lipids in this item.',
+          correction: 'Check the lipids evidence against carbohydrates before selecting an answer.',
           source: 'verified-quiz-projection',
           derivedFromQuizIndex: 1,
         },

@@ -341,6 +341,7 @@ function repairAssignmentIdentitiesFromCourseMap(courseMap, deliverables = {}) {
 
 function applyDeterministicRepairs({
   courseMap,
+  sourceBrief = '',
   deliverables = {},
   selectedFeatures = null,
   columns = [],
@@ -442,6 +443,7 @@ function applyDeterministicRepairs({
       const protocolRepair = repairMisappliedObservationProtocols({
         courseName: nextCourseMap?.courseName,
         lessons: selectedCourseMapLessons(nextCourseMap, lessonFilter),
+        sourceText: sourceBrief,
         data: entry.data,
       });
       if (protocolRepair.changed) {
@@ -802,6 +804,7 @@ function getFinalizerStatus(readiness, repairQueue) {
 
 export function runDeterministicPackageFinalizer({
   courseMap,
+  sourceBrief = '',
   deliverables = {},
   selectedFeatures = null,
   columns = [],
@@ -821,6 +824,7 @@ export function runDeterministicPackageFinalizer({
 } = {}) {
   const repairResult = applyDeterministicRepairs({
     courseMap,
+    sourceBrief,
     deliverables,
     selectedFeatures,
     columns,

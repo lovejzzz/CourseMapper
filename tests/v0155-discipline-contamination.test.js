@@ -66,6 +66,42 @@ describe('discipline-safe observation protocols', () => {
     expect(protocol?.logFields.join(' ')).toMatch(/telescope|limiting magnitude/i);
   });
 
+  it('preserves an observing promise from the source brief when a small model compresses it out of the map', () => {
+    const compressedMap = {
+      courseName: 'Introduction to Astronomy',
+      lessons: [
+        {
+          title: 'Lesson 1: Diurnal Motion Mechanics',
+          sections: [
+            {
+              topicSection: "1.1: Earth's Rotation Vector",
+              learningObjectives: "Explain Earth's rotation.",
+              weeklyAssessments: 'Quick evidence check.',
+            },
+          ],
+        },
+      ],
+    };
+    const blueprint = buildCourseBlueprint(compressedMap, {
+      sourceBrief:
+        'Introduction to Astronomy, with diurnal motion, seasons, phases of the Moon, and evening observing sessions.',
+    });
+    const compiled = compileBlueprintDeliverables(blueprint, ['syllabus', 'lessonPlans']);
+
+    expect(blueprint.coursePromises).toEqual({ skyObservation: true });
+    expect(compiled.lessonPlans.lessonPlans[0].observationProtocol?.cloudyAlternative).toMatch(/Stellarium/);
+    expect(compiled.lessonPlans.lessonPlans[0].observationProtocol?.logFields.join(' ')).toMatch(
+      /observing location|limiting magnitude/i,
+    );
+    expect(compiled.syllabus.syllabus.signatureExperience).toMatchObject({
+      title: 'Evening Observation Sessions',
+    });
+    expect(JSON.stringify(compiled.syllabus.syllabus.signatureExperience)).toMatch(
+      /observing log|cloudy-night|Stellarium|partner/i,
+    );
+    expect(compiled.syllabus.syllabus.weeklySchedule[0].assignments).toMatch(/Evening observation:/);
+  });
+
   it('repairs stale sky protocols in non-sky lesson plan data only', () => {
     const data = {
       lessonPlans: [
@@ -91,9 +127,65 @@ describe('discipline-safe observation protocols', () => {
     expect(astronomy.changed).toBe(false);
     expect(astronomy.data.lessonPlans[0].observationProtocol).toBeDefined();
   });
+
+  it('keeps a promised protocol through finalization when the small model compresses observing out of the map', () => {
+    const compressedMap = {
+      courseName: 'Introduction to Astronomy',
+      lessons: [
+        {
+          title: 'Lesson 1: Diurnal Motion',
+          sections: [{ topicSection: 'Earth rotation', learningObjectives: 'Explain apparent daily motion.' }],
+        },
+      ],
+    };
+    const data = {
+      lessonPlans: [
+        {
+          lessonTitle: 'Lesson 1: Diurnal Motion',
+          observationProtocol: buildObservationProtocol({
+            courseName: compressedMap.courseName,
+            lessons: compressedMap.lessons,
+            lesson: compressedMap.lessons[0],
+            promised: true,
+          }),
+        },
+      ],
+    };
+
+    const repaired = repairMisappliedObservationProtocols({
+      courseName: compressedMap.courseName,
+      lessons: compressedMap.lessons,
+      sourceText: 'Astronomy with evening observing sessions.',
+      data,
+    });
+
+    expect(repaired.changed).toBe(false);
+    expect(repaired.data.lessonPlans[0].observationProtocol?.cloudyAlternative).toMatch(/Stellarium/);
+  });
 });
 
 describe('foreign-domain contamination quality gate', () => {
+  it('blocks the canned linear-algebra fallback inside an astronomy deck', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'Slide Decks/Lesson 01 - Diurnal Motion - Slide Decks.txt':
+          'Worked example: Solve the system x + y = 3 and x - y = 1. Step 1: Add the equations: 2x = 4. Step 2: Solve x = 2. The solution is (2, 1).',
+      }),
+      course: { title: 'Introduction to Astronomy' },
+    });
+
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          severity: 'P0',
+          dimension: 'discipline',
+          detail: expect.stringMatching(/foreign linear-algebra worked example/i),
+        }),
+      ]),
+    );
+    expect(result.overall.grade).not.toBe('A');
+  });
+
   it('grades leaked astronomy observation protocol as a P0 in Educational Psychology', async () => {
     const result = await grade({
       fileProvider: createMemoryFileProvider({

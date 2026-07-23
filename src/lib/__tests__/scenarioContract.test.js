@@ -163,6 +163,25 @@ describe('evidence-to-decision scenario contract', () => {
     expect(analyzeDecisionScenario(scenario).ready).toBe(true);
   });
 
+  it('removes classroom narrator language from learner-facing misconception scenarios', () => {
+    const scenario = deriveDecisionScenario({
+      facts: ['Earth is closest to the Sun in January, during Northern Hemisphere winter.'],
+      keyTerms: [
+        {
+          term: 'Seasons and axial tilt',
+          definition: 'Axial tilt changes sun angle and day length.',
+          example: 'Australia has summer in December and winter in June, opposite to the Northern Hemisphere.',
+          misconception: "Students think seasons are caused mainly by Earth's changing distance from the Sun.",
+          correction: 'Seasons come from changing sun angle and day length.',
+        },
+      ],
+    });
+
+    expect(scenario.setup).toMatch(/Seasons are caused mainly by Earth's changing distance/i);
+    expect(scenario.setup).not.toMatch(/\bStudents think\b/i);
+    expect(analyzeDecisionScenario(scenario).ready).toBe(true);
+  });
+
   it('preserves an authored scenario and uses fallback for a weak or missing one', () => {
     const authored = {
       setup:

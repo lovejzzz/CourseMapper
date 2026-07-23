@@ -1289,6 +1289,15 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         children.push(makeHeading('Course Description'));
         children.push(makeText(syl.courseDescription));
       }
+      if (syl.signatureExperience) {
+        children.push(makeHeading(syl.signatureExperience.title || 'Signature Course Experience'));
+        if (syl.signatureExperience.summary) children.push(makeText(syl.signatureExperience.summary));
+        if (syl.signatureExperience.logExpectation)
+          children.push(makeBold('Observing Log', syl.signatureExperience.logExpectation));
+        if (syl.signatureExperience.fallback)
+          children.push(makeBold('Cloudy-Night Option', syl.signatureExperience.fallback));
+        if (syl.signatureExperience.safety) children.push(makeItalic(`Safety: ${syl.signatureExperience.safety}`));
+      }
       if (syl.gettingStarted) {
         children.push(makeHeading('Getting Started'));
         children.push(makeText(syl.gettingStarted));

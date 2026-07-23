@@ -41,6 +41,7 @@ export default defineConfig({
           }
           if (/src\/lib\/buildRibbonFailureModel\.js$/.test(id)) return 'livingCompilerFailure';
           if (/src\/lib\/courseMapContinuation\.js$/.test(id)) return 'courseMapContinuation';
+          if (/src\/lib\/workspaceSaveStatus\.js$/.test(id)) return 'workspaceSaveStatus';
           // Vite 8's Rolldown graph follows transitive dependencies into a
           // named manual chunk. Grouping scionPassB or the course compiler
           // here captures shared landing dependencies and turns a lazy seam
@@ -53,6 +54,11 @@ export default defineConfig({
           )
             return 'scionRuntime';
           if (/src\/lib\/quality\/quizItemDepth\.js$/.test(id)) return 'quizItemDepth';
+          // Exact target-language quiz and lesson-plan frames are sizeable
+          // compile-only data. Keep them beside the lazy compiler as an
+          // independently cacheable leaf instead of inflating its control-flow
+          // chunk or the landing route.
+          if (/src\/lib\/scionLanguageCompilerFrames\.js$/.test(id)) return 'scionLanguageCompilerFrames';
           if (/src\/lib\/(?:bayesianQuizFrames|musicTheoryQuizFrames)\.js$/.test(id)) return 'compilerFrames';
           if (/src\/lib\/courseCompilerPolish\.js$/.test(id)) return 'compilerPolish';
           // Rotating instructional prose is data, not compiler control flow.
@@ -72,7 +78,13 @@ export default defineConfig({
     port: 5173,
   },
   test: {
-    testTimeout: 15000,
+    // The suite contains several hash-bound replay and zero-token compiler
+    // integrations. Running hundreds of files with Vitest's CPU-count worker
+    // default starves those I/O-heavy proofs and creates false 15-second
+    // failures. Four workers is faster end-to-end on the release machine and
+    // keeps the expensive assertions deterministic.
+    maxWorkers: 4,
+    testTimeout: 120000,
     // Background-task worktrees are separate checkouts with their own test
     // trees — never collect them from the parent repo's run.
     // verification-output holds prof twin worktrees (full checkouts) while a

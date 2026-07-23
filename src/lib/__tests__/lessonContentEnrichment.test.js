@@ -255,6 +255,11 @@ describe('lesson content enrichment contracts', () => {
     );
 
     expect(parsed.lessons['lesson-1'].kernel.facts).toEqual(sourceFacts);
+    expect(parsed.lessons['lesson-1'].kernel.provenance).toEqual({
+      source: 'compiler-owned-exact-source-ledger',
+      copiedFactsVerbatim: true,
+      factCount: 3,
+    });
     expect(parsed.issues).toEqual(
       expect.arrayContaining([expect.objectContaining({ reason: 'source-ledger-facts-only' })]),
     );

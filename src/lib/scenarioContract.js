@@ -63,6 +63,19 @@ function ensureSentence(value) {
   return cleaned ? `${cleaned}.` : '';
 }
 
+function learnerFacingMisconception(value) {
+  const raw = text(value).replace(/[.!?]+$/, '');
+  const withoutNarrator = raw
+    .replace(/^(?:students?|learners?)\s+(?:(?:often|sometimes|may|might|mistakenly)\s+)?/i, '')
+    .replace(/^(?:assume|think|believe|expect|conclude)(?:\s+that)?\s+/i, '');
+  return withoutNarrator || raw;
+}
+
+function sentenceCase(value) {
+  const cleaned = text(value);
+  return cleaned ? cleaned.charAt(0).toUpperCase() + cleaned.slice(1) : '';
+}
+
 function contentWords(value) {
   return new Set(
     text(value)
@@ -208,6 +221,7 @@ export function deriveDecisionScenario(kernel, { compactFactLedgerScenarios = tr
       overlap(`${term.term} ${term.definition} ${term.example}`, right) -
       overlap(`${term.term} ${term.definition} ${term.example}`, left),
   )[0];
+  const misconception = learnerFacingMisconception(term.misconception);
   const variant = scenarioSeed([term.term, term.example, fact]) % 3;
   const caseSentence = [
     `A reviewer examines this case: ${text(term.example)}`,
@@ -215,9 +229,9 @@ export function deriveDecisionScenario(kernel, { compactFactLedgerScenarios = tr
     `An analyst reviews the following case: ${text(term.example)}`,
   ][variant];
   const comparisonSentence = [
-    `One interpretation applies ${text(term.term)}; a competing interpretation repeats the misconception that ${text(term.misconception)}`,
-    `The evidence must distinguish ${text(term.term)} from the misconception that ${text(term.misconception)}`,
-    `Two readings are on the table: ${text(term.term)}, or the misconception that ${text(term.misconception)}`,
+    `One interpretation applies ${text(term.term)}; a competing interpretation follows this mistaken claim: ${sentenceCase(misconception)}`,
+    `The evidence must distinguish ${text(term.term)} from this misconception: ${sentenceCase(misconception)}`,
+    `Two readings are on the table: ${text(term.term)}, or this misconception: ${sentenceCase(misconception)}`,
   ][variant];
   const decisionSentence = [
     'The reviewer must decide which interpretation the evidence supports and what it cannot establish',

@@ -184,6 +184,9 @@ describe('A1 — header', () => {
     expect(region.getAttribute('aria-describedby')).toBe('course-map-scroll-help');
     expect(container.querySelector('#course-map-scroll-help')?.textContent).toContain('Swipe the table');
     expect(region.className).toContain('focus-visible:ring-2');
+    const table = region.querySelector('table');
+    expect(table?.className).toContain('min-w-[1100px]');
+    expect(table?.className).not.toContain('sm:min-w-full');
   });
 
   it('replaces the navy block with a sticky light header in sentence case', () => {

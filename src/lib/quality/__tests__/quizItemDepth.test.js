@@ -180,6 +180,16 @@ describe('quiz item depth', () => {
     expect(stems.some(isConceptCuedCompilerShortAnswer)).toBe(false);
   });
 
+  it('recognizes applied and bounded beginner-language assessment tasks', () => {
+    const appliedCard =
+      'A student is preparing a three-column language card for this lesson. Which response correctly completes the written-form, tone-marked-Pinyin, and English-meaning columns?';
+    const boundedLanguageTask =
+      'Choose the language principle—pronunciation, written form, grammar, or meaning—that best organizes this lesson detail: “在 (zài) locates 图书馆 relative to 食堂.” Cite the exact detail as evidence, explain what it establishes about 图书馆在食堂旁边, and state one boundary: what the detail does not establish about other Mandarin forms.';
+    expect(isAppliedQuizStem(appliedCard)).toBe(true);
+    expect(isConceptCuedCompilerShortAnswer(boundedLanguageTask)).toBe(false);
+    expect(isClaimEvidenceBoundaryShortAnswer(boundedLanguageTask)).toBe(true);
+  });
+
   it('extracts and summarizes short-answer reasoning depth', () => {
     const files = [
       {

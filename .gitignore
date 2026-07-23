@@ -1,5 +1,6 @@
 node_modules/
 dist/
+public/scion/runtime/v2/wllama.js
 __pycache__/
 *.py[cod]
 .DS_Store

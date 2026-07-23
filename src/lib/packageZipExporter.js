@@ -11,11 +11,13 @@ import {
 } from './knowledge/sourceLedger.js';
 import { dedupeNumberedAssessmentEcho } from './compilerText.js';
 import { classifyAssessmentKind } from './courseGraph/deriveFromCourseMap.js';
+import { isDeliverableNotApplicable } from './deliverableApplicability.js';
 import { safeImport } from './safeImport';
 import { normalizePipelineStateWithSourceBackedJudgment } from './sourceBackedJudgment.js';
 import { peekVoicePassOutcome } from './voicePass.js';
 import { APP_VERSION } from './appVersion.js';
 import { SCION_BROWSER_GEMMA4_GGUF } from './scionBrowserConstants.js';
+import { resolveScionLiteratureSourceProfiles } from './scionLiteratureKnowledge.js';
 
 const MIN_EXPORT_BYTES = 128;
 export const DEFAULT_PACKAGE_QUALITY_TIMEOUT_MS = 30000;
@@ -1237,6 +1239,69 @@ function buildCuratedMusicIntervalSourceProofGraph({ courseName, courseMap, cour
   };
 }
 
+function buildCuratedLiteratureSourceProofGraph({ courseName, courseGraph, fallbackCourseGraph, readings }) {
+  const declaredReadings = [
+    ...(Array.isArray(readings) ? readings : []),
+    ...(Array.isArray(courseGraph?.readings) ? courseGraph.readings : []),
+    ...(Array.isArray(fallbackCourseGraph?.readings) ? fallbackCourseGraph.readings : []),
+  ]
+    .map((reading) => (reading && typeof reading === 'object' ? reading.title || reading.name : reading))
+    .filter(Boolean);
+  const profiles = resolveScionLiteratureSourceProfiles({ readings: declaredReadings });
+  if (profiles.length === 0) return null;
+
+  const concepts = [];
+  const resources = [];
+  const sessions = [];
+  for (const [profileIndex, profile] of profiles.entries()) {
+    const sourceNumber = profileIndex + 1;
+    const sourceId = `literature-curated-source-${sourceNumber}`;
+    const sessionId = `literature-curated-source-proof-${sourceNumber}`;
+    const conceptRefs = profile.concepts.map((concept, conceptIndex) => {
+      const id = `literature-curated-concept-${sourceNumber}-${conceptIndex + 1}`;
+      concepts.push({ id, term: cleanSourceText(concept.term, 120) });
+      return id;
+    });
+    resources.push({
+      id: sourceId,
+      title: profile.source.title,
+      author: profile.source.author,
+      provider: profile.source.provider,
+      origin: profile.source.provider,
+      kind:
+        profile.source.provider === 'gutenberg'
+          ? 'public-domain literary primary text'
+          : 'licensed literary reading reference',
+      url: profile.source.url,
+      license: profile.source.license,
+      evidence: profile.source.title,
+      sessionRefs: [sessionId],
+    });
+    sessions.push({
+      id: sessionId,
+      number: sourceNumber,
+      title: `Reading source proof: ${profile.source.title}`,
+      sections: [
+        {
+          id: `literature-curated-source-section-${sourceNumber}`,
+          topic: profile.source.title,
+          conceptRefs,
+          resourceRefs: [sourceId],
+        },
+      ],
+    });
+  }
+
+  return {
+    course: { name: courseName },
+    courseName,
+    concepts,
+    resources,
+    readings: [],
+    sessions,
+  };
+}
+
 function cleanSourceText(value, maxLength = 1200) {
   const text = String(value ?? '')
     .replace(/<[^>]+>/g, ' ')
@@ -1614,7 +1679,12 @@ export async function buildCourseMaterialsZip({
       continue;
     }
 
-    const shouldSplitByLesson = SPLIT_BY_LESSON_FEATURES.has(featureId);
+    // A compiler-routed empty material is one course-level handoff, not one
+    // repeated empty document per lesson. Repeating the same "no assignment"
+    // note inflated the package, lowered texture quality, and made absence
+    // look like three unfinished artifacts.
+    const shouldSplitByLesson =
+      SPLIT_BY_LESSON_FEATURES.has(featureId) && !isDeliverableNotApplicable(featureId, entry.data);
     const exportSlices = shouldSplitByLesson
       ? lessonIndices.map((lessonIndex) => ({
           lessonIndex,
@@ -1805,12 +1875,24 @@ export async function buildCourseMaterialsZip({
       courseGraph: sourceManifestGraph || courseGraph,
       fallbackCourseGraph,
     });
-    if (curatedUxSourceProofGraph || curatedPythonSourceProofGraph || curatedMusicIntervalSourceProofGraph) {
+    const curatedLiteratureSourceProofGraph = buildCuratedLiteratureSourceProofGraph({
+      courseName: safeCourseName,
+      courseGraph: sourceManifestGraph || courseGraph,
+      fallbackCourseGraph,
+      readings: readingsRegistry,
+    });
+    if (
+      curatedUxSourceProofGraph ||
+      curatedPythonSourceProofGraph ||
+      curatedMusicIntervalSourceProofGraph ||
+      curatedLiteratureSourceProofGraph
+    ) {
       sourceLedgerBundle = mergeSourceLedgerBundles(
         sourceLedgerBundle,
         buildSourceLedgerFromCourseGraph(curatedUxSourceProofGraph, { checkedAt: generatedAt }),
         buildSourceLedgerFromCourseGraph(curatedPythonSourceProofGraph, { checkedAt: generatedAt }),
         buildSourceLedgerFromCourseGraph(curatedMusicIntervalSourceProofGraph, { checkedAt: generatedAt }),
+        buildSourceLedgerFromCourseGraph(curatedLiteratureSourceProofGraph, { checkedAt: generatedAt }),
       );
     }
   }

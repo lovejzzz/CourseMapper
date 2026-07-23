@@ -1069,6 +1069,7 @@ const READABILITY_IGNORED_KEYS = new Set([
 
 const READABILITY_IGNORED_SUBTREE_KEYS = new Set([
   'adaptiveRepairPlan',
+  'artifactGenre',
   'assessmentArchitecture',
   'assessmentCadence',
   'assessmentValidity',
@@ -1123,8 +1124,14 @@ const READABILITY_IGNORED_SUBTREE_KEYS = new Set([
   'sourceGrounding',
   'sourceUsePlan',
   'sourceRiskRegister',
+  'slideTimingFit',
   'teacherNotes',
   'teachingIntent',
+  // These fields drive rendering and accessibility, but their planning prose
+  // is not projected as slide copy or speaker notes. Scoring it made a concise
+  // introductory deck look harder than the material a learner or instructor
+  // actually reads.
+  'visualPlan',
 ]);
 
 function normalizedReadabilityKey(key = '') {

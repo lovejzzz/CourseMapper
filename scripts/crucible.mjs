@@ -957,13 +957,15 @@ async function readRoundSummary(dirName) {
   };
 }
 
-async function scanRoundHistory() {
-  const summaries = [];
-  for (const dirName of await listStoredRoundDirNames()) {
-    const summary = await readRoundSummary(dirName);
-    if (summary) summaries.push(summary);
-  }
-  return summaries;
+async function scanRoundHistory({ limit = Number.POSITIVE_INFINITY } = {}) {
+  const dirNames = (await listStoredRoundDirNames())
+    .sort(
+      (left, right) =>
+        (parseRoundDirTimestamp(right)?.getTime?.() || 0) - (parseRoundDirTimestamp(left)?.getTime?.() || 0),
+    )
+    .slice(0, Number.isFinite(limit) ? Math.max(0, limit) : undefined);
+  const summaries = (await Promise.all(dirNames.map((dirName) => readRoundSummary(dirName)))).filter(Boolean);
+  return summaries.sort((left, right) => (left.timestamp?.getTime?.() || 0) - (right.timestamp?.getTime?.() || 0));
 }
 
 function renderHistoryMarkdown(summaries) {
@@ -1068,7 +1070,11 @@ async function finishRound({ roundDir, roundLabel, modelId, entries, baseline, s
   // v0.15.3 D2: followed by the per-course judge MEANS — the variance note's
   // KPI — so the ruler reads itself on every round.
   try {
-    const summaries = await scanRoundHistory();
+    // A round report is a release artifact, not an unbounded database query.
+    // Keep a useful recent trajectory while `--history` remains the explicit
+    // full-history command. This prevents years of local evidence from adding
+    // minutes of unrelated disk I/O after a browser build has already passed.
+    const summaries = await scanRoundHistory({ limit: 24 });
     if (summaries.length > 0) {
       await fs.appendFile(
         path.join(roundDir, 'ROUND_REPORT.md'),
@@ -1861,6 +1867,11 @@ async function runLiveRounds(options) {
           return { course, runResult, gradeResult };
         }
 
+        // A dead shared preview server is a round-infrastructure failure, not
+        // five independent model/course failures. Check immediately before
+        // pulling expensive browser work so later courses cannot inherit a
+        // poisoned server.
+        await server.assertHealthy();
         log(`  generating ${course.id} (${course.lessonCount} lessons)...`);
         const attempts = [];
         let runResult = null;
@@ -1873,6 +1884,7 @@ async function runLiveRounds(options) {
             modelName,
             outDir: courseDir,
             headed,
+            captureTimeline: Boolean(options.filmstrip),
             // WS-B3: seed 'coursemapper-authoring-mode' alongside the other
             // localStorage keys ('prose'/undefined seeds nothing — default).
             authoringMode: course.authoring,
@@ -1898,6 +1910,12 @@ async function runLiveRounds(options) {
           }
         }
         const attemptSummary = summarizeCourseAttempts(attempts);
+        if (runResult?.failureClass === 'preview-infrastructure') {
+          throw new Error(
+            `Crucible preview infrastructure failed during ${course.id} (${runResult.phase}); ` +
+              `the round was stopped before later courses could be misreported.\n${runResult.error || ''}`,
+          );
+        }
         spendState.spentUsd += attemptSummary.spendUsd;
         runResult.statusLabel = attemptSummary.statusLabel;
         runResult.retried = attemptSummary.retried;

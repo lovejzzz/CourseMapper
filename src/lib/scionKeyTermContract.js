@@ -269,20 +269,20 @@ function misconceptionRestatesKnownFact(
       const factComparable = comparableScionKeyTermText(fact);
       const exactAffirmativeRestatement =
         candidateComparable.includes(factComparable) || factComparable.includes(candidateComparable);
-      const correctionTokens = comparableScionKeyTermTokens(correction);
-      const correctionOverlap = [...candidateTokens].filter((token) => correctionTokens.has(token)).length;
-      const compactUnrepairedFactRestatement =
+      const compactFactRestatement =
         compact &&
         candidateTokens.size <= 5 &&
         intersection >= 3 &&
         containment >= 0.75 &&
-        wholeSentenceOverlap >= 0.25 &&
-        correctionOverlap < 2;
+        wholeSentenceOverlap >= 0.25;
       // V6 is a high-precision deterministic gate. Factual paraphrase remains
       // the bound judge's job; using the older compact-overlap shortcut here
       // rejected deliberate relation reversals and cross-concept swaps simply
-      // because they reused source vocabulary.
-      return exactAffirmativeRestatement || compactUnrepairedFactRestatement;
+      // because they reused source vocabulary. The caller separately exempts
+      // a misconception only when the correction establishes an actual
+      // relation contrast; repeating the same true fact in the correction is
+      // not evidence that the misconception was repaired.
+      return exactAffirmativeRestatement || compactFactRestatement;
     }
     // Compact factual statements naturally have lower Jaccard overlap with a
     // longer explanatory source sentence. When a purported misconception has

@@ -358,6 +358,53 @@ describe('source-ledger quality checks', () => {
     expect(details).not.toContain('source ledger row SL1 has ambiguous or missing license');
   });
 
+  it('accepts Project Gutenberg and licensed reading references as trusted literature proof', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'World Literature Seminar',
+          lessonScope: 'all',
+          requestedFeatures: [],
+          readiness: { status: 'ready', blockers: 0, warnings: 0, checkedSections: null },
+          sourceLedger: [
+            {
+              id: 'odyssey',
+              title: 'The Odyssey of Homer',
+              provider: 'gutenberg',
+              url: 'https://www.gutenberg.org/ebooks/1727',
+              license: 'public domain',
+              conceptLinks: [{ id: 'c1', label: 'recognition scene' }],
+            },
+            {
+              id: 'babel',
+              title: 'The Library of Babel',
+              provider: 'wikipedia',
+              url: 'https://en.wikipedia.org/wiki/The_Library_of_Babel',
+              license: 'CC BY-SA 4.0',
+              conceptLinks: [{ id: 'c2', label: 'combinatorial totality' }],
+            },
+          ],
+          sourceReviewRows: [
+            {
+              id: 'reader-copy',
+              title: 'Instructor course-reader copy',
+              provider: 'instructor',
+              license: 'instructor review required',
+            },
+          ],
+          sourceReport: { path: 'SOURCE_REPORT.md', sourceCount: 2, sourceReviewCount: 1 },
+          files: [],
+        }),
+        'SOURCE_REPORT.md': '# Source Report\n\n## Source Ledger\n- The Odyssey\n- The Library of Babel\n',
+      }),
+      course: { title: 'World Literature Seminar', featureIds: [] },
+    });
+
+    const details = result.findings.map((finding) => finding.detail);
+    expect(details).not.toContain('source review row reader-copy is not trusted bibliography proof');
+    expect(details).not.toContain('source ledger row odyssey has ambiguous or missing license');
+  });
+
   it('accepts hydrated OpenStax section rows as trusted concept-linked source proof', async () => {
     const result = await grade({
       fileProvider: createMemoryFileProvider({
@@ -1678,6 +1725,34 @@ describe('source-ledger quality checks', () => {
           'ELEMENTARY MANDARIN CHINESE I — SYLLABUS',
           'WEEKLY READINGS',
           'Week 1: Wikipedia contributors. Bopomofo. Wikipedia: https://en.wikipedia.org/wiki/Bopomofo (CC BY-SA 4.0)',
+        ].join('\n'),
+      }),
+      course: { id: 'mandarin', title: 'Elementary Mandarin Chinese I', featureIds: ['syllabus'] },
+    });
+
+    expect(
+      result.findings.some(
+        (finding) =>
+          finding.dimension === 'citations' &&
+          finding.detail === 'citation shares zero vocabulary with the course discipline (possible off-topic reading)',
+      ),
+    ).toBe(false);
+  });
+
+  it('recognizes Languages of China as on-discipline for a Mandarin Chinese course', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'Elementary Mandarin Chinese I',
+          lessonScope: 'all',
+          requestedFeatures: ['syllabus'],
+          readiness: { status: 'ready', blockers: 0, warnings: 0, checkedSections: null },
+          files: [{ path: 'Syllabus/Elementary Mandarin Chinese I - Syllabus.txt', feature: 'syllabus' }],
+        }),
+        'Syllabus/Elementary Mandarin Chinese I - Syllabus.txt': [
+          'ELEMENTARY MANDARIN CHINESE I — SYLLABUS',
+          'WEEKLY READINGS',
+          'Wikipedia contributors. Languages of China. Wikipedia: https://en.wikipedia.org/wiki/Languages_of_China (CC BY-SA 4.0)',
         ].join('\n'),
       }),
       course: { id: 'mandarin', title: 'Elementary Mandarin Chinese I', featureIds: ['syllabus'] },

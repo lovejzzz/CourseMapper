@@ -23,6 +23,7 @@ import { runGenomeLinker } from '../src/lib/genome/runGenomeLinker.js';
 import { buildQuizItemPlan } from '../src/lib/blueprintEnrichmentPass.js';
 import { buildCourseBlueprint, compileBlueprintDeliverables } from '../src/lib/courseBlueprintCompiler.js';
 import { inferCourseDisciplines } from '../src/lib/genome/libraryShardLoader.js';
+import { inspectDeliverableReadability } from '../src/lib/pedagogicalValidator.js';
 
 function memoryStorage() {
   const map = new Map();
@@ -84,7 +85,14 @@ describe('astronomy shard proof (v0.13.3)', () => {
   const blueprint = buildCourseBlueprint(ASTRONOMY_COURSE, {
     enrichment: { lessonContent: linked.lessonContent, quality: { source: 'genome-only' } },
   });
-  const compiled = compileBlueprintDeliverables(blueprint, ['lessonPlans', 'studyGuides', 'slideDecks', 'quizBank']);
+  const compiled = compileBlueprintDeliverables(blueprint, [
+    'lessonPlans',
+    'studyGuides',
+    'slideDecks',
+    'quizBank',
+    'courseFaq',
+    'discussions',
+  ]);
 
   it('routes astronomy courses to the astro shard and resolves most lessons (G1)', () => {
     expect(inferCourseDisciplines(ASTRONOMY_COURSE)).toContain('astro');
@@ -104,6 +112,7 @@ describe('astronomy shard proof (v0.13.3)', () => {
     expect(kepler.workedExample.result).toMatch(/1\.52\s*AU/);
     const keplerGuide = compiled.studyGuides.studyGuides.find((guide) => /kepler/i.test(guide.lessonTitle));
     expect(keplerGuide.workedExample?.result).toMatch(/1\.52/);
+    expect(JSON.stringify(compiled.studyGuides)).not.toMatch(/\bSeasons's\b/i);
   });
 
   it('teaches the kernel content in the lesson-plan script (G3)', () => {
@@ -142,6 +151,31 @@ describe('astronomy shard proof (v0.13.3)', () => {
     }
   });
 
+  it('puts admitted astronomy facts into the learner-facing teaching slides', () => {
+    const seasons = compiled.slideDecks.decks.find((deck) => /seasons/i.test(deck.lessonTitle));
+    const moon = compiled.slideDecks.decks.find((deck) => /moon/i.test(deck.lessonTitle));
+    const seasonsText = JSON.stringify(seasons);
+    const moonText = JSON.stringify(moon);
+
+    expect(seasonsText).toMatch(/23\.5|sun angle|day length|January/i);
+    expect(moonText).toMatch(/half illuminated|sunlit|phase|shadow/i);
+    expect(`${seasonsText} ${moonText}`).not.toMatch(/\bsky visibly\.|\bobjects were\.|…/i);
+    expect(`${seasonsText} ${moonText}`).not.toMatch(/\blecture-exam\b|Concept trace|Boundary check/i);
+    expect(`${seasonsText} ${moonText}`).not.toMatch(/\bPhases of the Moon improves\b/i);
+  });
+
+  it('keeps projected slide copy and speaker notes readable without scoring renderer plans', () => {
+    const slideReadability = inspectDeliverableReadability({
+      slideDecks: { status: 'done', data: compiled.slideDecks },
+    }).find((entry) => entry.featureId === 'slideDecks');
+
+    expect(slideReadability?.grade).toBeLessThanOrEqual(12);
+    expect(slideReadability?.longestStrings.every((entry) => entry.words < 80)).toBe(true);
+    expect(JSON.stringify(compiled.slideDecks)).not.toMatch(
+      /Teach from the admitted lesson knowledge:[^.!?]{180,}Ask students/,
+    );
+  });
+
   it('ships the observing protocol with weekly focus and cloudy-night alternative (G6)', () => {
     const plans = compiled.lessonPlans.lessonPlans;
     expect(plans.every((plan) => plan.observationProtocol)).toBe(true);
@@ -164,5 +198,52 @@ describe('astronomy shard proof (v0.13.3)', () => {
         ),
       ),
     ).toBe(true);
+    expect(
+      JSON.stringify(
+        allQuestions.map(({ question, options }) => ({
+          question,
+          options,
+        })),
+      ),
+    ).not.toMatch(/\b(?:misconception that )?Students (?:assume|think|believe|expect|conclude)\b/i);
+  });
+
+  it('phrases misconception FAQs in the learner voice', () => {
+    const faqQuestions = compiled.courseFaq.faqs.flatMap((faq) => faq.qs || []).map((item) => item.q);
+    const faqAnswers = compiled.courseFaq.faqs.flatMap((faq) => faq.qs || []).map((item) => item.an);
+    expect(faqQuestions.some((question) => /^I thought /i.test(question))).toBe(true);
+    expect(faqQuestions.join(' ')).not.toMatch(/\bI thought (?:students?|learners?)\b/i);
+    expect(faqAnswers.join(' ')).not.toMatch(/\b([A-Za-z][A-Za-z -]{2,40}) means \1 (?:is|means)\b/i);
+    expect(faqAnswers.join(' ')).not.toMatch(/\breflection\.\s+is formative\b/i);
+    expect(faqAnswers.join(' ')).not.toMatch(/\b(?:For example|A concrete case):\s+[a-z]/);
+    expect(faqAnswers.join(' ')).not.toMatch(/\busing,/i);
+  });
+
+  it('grounds discussions in lesson facts without malformed possessives', () => {
+    const discussions = compiled.discussions.discussions;
+    const moon = discussions.find((discussion) => /moon/i.test(discussion.lessonTitle));
+
+    expect(moon.prompt).toMatch(/moon|half illuminated|shadow|phase/i);
+    expect(moon.prompt).not.toMatch(/Which interpretation of the lesson is best supported by the lesson case example/i);
+    expect(JSON.stringify(discussions)).not.toMatch(/\bMechanics's\b/i);
+    expect(JSON.stringify(discussions)).not.toMatch(/\bone the lesson\b/i);
+  });
+
+  it('repairs a generic discussion atom from the admitted key-term definition', () => {
+    const genericPromptBlueprint = structuredClone(blueprint);
+    const moonLesson = genericPromptBlueprint.lessons.find((lesson) => /moon/i.test(lesson.title));
+    moonLesson.enrichment.discussionPrompt = {
+      ...(moonLesson.enrichment.discussionPrompt || {}),
+      prompt:
+        'Which interpretation of the lesson is best supported by the lesson case example, and what detail could change that conclusion?',
+    };
+    if (moonLesson.enrichment.kernel) moonLesson.enrichment.kernel.facts = [];
+
+    const repaired = compileBlueprintDeliverables(genericPromptBlueprint, ['discussions']).discussions.discussions.find(
+      (discussion) => /moon/i.test(discussion.lessonTitle),
+    );
+
+    expect(repaired.prompt).toMatch(/moon|sunlit|shadow|phase/i);
+    expect(repaired.prompt).not.toBe(genericPromptBlueprint.lessons[5].enrichment.discussionPrompt.prompt);
   });
 });

@@ -13,6 +13,7 @@ const MANDARIN_SOURCE = {
 const BEGINNER_MANDARIN_PAIRS = [
   {
     match: /\b(?:pinyin|four tones?|tone contours?)\b/i,
+    projectionLabel: 'Pinyin and Tones',
     pair: { hanzi: '妈', pinyin: 'mā', english: 'mother' },
     facts: [
       '妈 (mā) means "mother" and carries a first-tone mark over the vowel.',
@@ -22,6 +23,7 @@ const BEGINNER_MANDARIN_PAIRS = [
   },
   {
     match: /\b(?:greetings?|self-introductions?)\b/i,
+    projectionLabel: 'Greetings and Self-Introductions',
     pair: { hanzi: '你好', pinyin: 'nǐ hǎo', english: 'hello' },
     facts: [
       '你好 (nǐ hǎo) is a common Mandarin greeting meaning "hello".',
@@ -30,7 +32,8 @@ const BEGINNER_MANDARIN_PAIRS = [
     ],
   },
   {
-    match: /\bclassroom language\b/i,
+    match: /\bclassroom (?:language|expressions?|phrases?)\b/i,
+    projectionLabel: 'Classroom Expressions',
     pair: { hanzi: '请再说一遍。', pinyin: 'Qǐng zài shuō yí biàn.', english: 'Please say it again' },
     facts: [
       '请再说一遍。 (Qǐng zài shuō yí biàn.) means "Please say it again".',
@@ -40,6 +43,7 @@ const BEGINNER_MANDARIN_PAIRS = [
   },
   {
     match: /\b(?:numbers?|age|dates?)\b/i,
+    projectionLabel: 'Numbers, Dates, and Age',
     pair: { hanzi: '我今年二十岁。', pinyin: 'Wǒ jīnnián èrshí suì.', english: 'I am twenty years old' },
     facts: [
       '我今年二十岁。 (Wǒ jīnnián èrshí suì.) means "I am twenty years old this year".',
@@ -49,6 +53,7 @@ const BEGINNER_MANDARIN_PAIRS = [
   },
   {
     match: /\b(?:family|possession)\b/i,
+    projectionLabel: 'Family and Possession',
     pair: { hanzi: '这是我的妈妈。', pinyin: 'Zhè shì wǒ de māma.', english: 'This is my mother' },
     facts: [
       '这是我的妈妈。 (Zhè shì wǒ de māma.) means "This is my mother".',
@@ -58,6 +63,7 @@ const BEGINNER_MANDARIN_PAIRS = [
   },
   {
     match: /\b(?:daily routines?|telling time)\b/i,
+    projectionLabel: 'Daily Routines and Time',
     pair: { hanzi: '我每天七点起床。', pinyin: 'Wǒ měitiān qī diǎn qǐchuáng.', english: 'I get up at seven every day' },
     facts: [
       '我每天七点起床。 (Wǒ měitiān qī diǎn qǐchuáng.) means "I get up at seven every day".',
@@ -67,6 +73,7 @@ const BEGINNER_MANDARIN_PAIRS = [
   },
   {
     match: /\b(?:sentence patterns?|SVO|negation)\b/i,
+    projectionLabel: 'Sentence Patterns and Negation',
     pair: { hanzi: '我不喜欢苹果。', pinyin: 'Wǒ bù xǐhuān píngguǒ.', english: 'I do not like apples' },
     facts: [
       '我不喜欢苹果。 (Wǒ bù xǐhuān píngguǒ.) means "I do not like apples".',
@@ -76,6 +83,7 @@ const BEGINNER_MANDARIN_PAIRS = [
   },
   {
     match: /\b(?:vocabulary recall|grammar review)\b/i,
+    projectionLabel: 'Vocabulary and Grammar Review',
     pair: { hanzi: '我喜欢苹果。', pinyin: 'Wǒ xǐhuān píngguǒ.', english: 'I like apples' },
     facts: [
       '我喜欢苹果。 (Wǒ xǐhuān píngguǒ.) means "I like apples".',
@@ -85,6 +93,7 @@ const BEGINNER_MANDARIN_PAIRS = [
   },
   {
     match: /\b(?:basic characters?|short reading|reading passages?)\b/i,
+    projectionLabel: 'Basic Characters and Reading',
     pair: { hanzi: '我是学生。', pinyin: 'Wǒ shì xuésheng.', english: 'I am a student' },
     facts: [
       '我是学生。 (Wǒ shì xuésheng.) means "I am a student".',
@@ -94,6 +103,7 @@ const BEGINNER_MANDARIN_PAIRS = [
   },
   {
     match: /\b(?:food|dining|restaurant)\b/i,
+    projectionLabel: 'Food and Dining',
     pair: { hanzi: '我喜欢吃米饭。', pinyin: 'Wǒ xǐhuān chī mǐfàn.', english: 'I like to eat rice' },
     facts: [
       '我喜欢吃米饭。 (Wǒ xǐhuān chī mǐfàn.) means "I like to eat rice".',
@@ -103,6 +113,7 @@ const BEGINNER_MANDARIN_PAIRS = [
   },
   {
     match: /\b(?:shopping|money|price)\b/i,
+    projectionLabel: 'Shopping and Money',
     pair: { hanzi: '这个多少钱？', pinyin: 'Zhège duōshao qián?', english: 'How much is this' },
     facts: [
       '这个多少钱？ (Zhège duōshao qián?) asks "How much is this?".',
@@ -112,6 +123,7 @@ const BEGINNER_MANDARIN_PAIRS = [
   },
   {
     match: /\b(?:weather|clothing)\b/i,
+    projectionLabel: 'Weather and Clothing',
     pair: { hanzi: '今天天气很冷。', pinyin: 'Jīntiān tiānqì hěn lěng.', english: 'The weather is cold today' },
     facts: [
       '今天天气很冷。 (Jīntiān tiānqì hěn lěng.) means "The weather is cold today".',
@@ -121,6 +133,7 @@ const BEGINNER_MANDARIN_PAIRS = [
   },
   {
     match: /\b(?:transportation|directions?|subway)\b/i,
+    projectionLabel: 'Transportation and Directions',
     pair: { hanzi: '我坐地铁去学校。', pinyin: 'Wǒ zuò dìtiě qù xuéxiào.', english: 'I take the subway to school' },
     facts: [
       '我坐地铁去学校。 (Wǒ zuò dìtiě qù xuéxiào.) means "I take the subway to school".',
@@ -130,6 +143,7 @@ const BEGINNER_MANDARIN_PAIRS = [
   },
   {
     match: /\b(?:health|feelings?)\b/i,
+    projectionLabel: 'Health and Feelings',
     pair: { hanzi: '我今天不舒服。', pinyin: 'Wǒ jīntiān bù shūfu.', english: 'I do not feel well today' },
     facts: [
       '我今天不舒服。 (Wǒ jīntiān bù shūfu.) means "I do not feel well today".',
@@ -139,11 +153,43 @@ const BEGINNER_MANDARIN_PAIRS = [
   },
   {
     match: /\b(?:course review|final oral|oral performance)\b/i,
+    projectionLabel: 'Course Review and Oral Performance',
     pair: { hanzi: '你好，我叫李明。', pinyin: 'Nǐ hǎo, wǒ jiào Lǐ Míng.', english: 'Hello, my name is Li Ming' },
     facts: [
       '你好，我叫李明。 (Nǐ hǎo, wǒ jiào Lǐ Míng.) means "Hello, my name is Li Ming".',
       '你好 (nǐ hǎo) opens the introduction with the greeting "hello".',
       '我叫 (wǒ jiào) introduces the speaker’s name before the example name 李明.',
+    ],
+  },
+];
+
+// Common first-semester topic choices that sit beside the canonical fifteen-
+// lesson sequence. They use the same cited beginner-Mandarin source boundary,
+// but remain outside BEGINNER_MANDARIN_PAIRS so adding one elective topic can
+// never change the exact legacy sequence-recovery count below.
+const BEGINNER_MANDARIN_SUPPLEMENTAL_PAIRS = [
+  {
+    match: /\b(?:hobbies?|leisure|free[- ]time activities?)\b/i,
+    projectionLabel: 'Hobbies and Leisure',
+    pair: { hanzi: '我喜欢听音乐。', pinyin: 'Wǒ xǐhuān tīng yīnyuè.', english: 'I like listening to music' },
+    facts: [
+      '我喜欢听音乐。 (Wǒ xǐhuān tīng yīnyuè.) means "I like listening to music".',
+      '喜欢 (xǐhuān) introduces the activity the speaker likes: 听音乐 (tīng yīnyuè).',
+      '听 (tīng) means "to listen," and 音乐 (yīnyuè) means "music".',
+    ],
+  },
+  {
+    match: /\b(?:school and campus|campus places?|campus locations?|school locations?)\b/i,
+    projectionLabel: 'School and Campus',
+    pair: {
+      hanzi: '图书馆在食堂旁边。',
+      pinyin: 'Túshūguǎn zài shítáng pángbiān.',
+      english: 'The library is next to the dining hall',
+    },
+    facts: [
+      '图书馆在食堂旁边。 (Túshūguǎn zài shítáng pángbiān.) means "The library is next to the dining hall".',
+      '在 (zài) locates 图书馆 (túshūguǎn), "library," relative to 食堂 (shítáng), "dining hall".',
+      '旁边 (pángbiān) means "beside" or "next to" and follows the reference place 食堂.',
     ],
   },
 ];
@@ -205,10 +251,11 @@ function resolveBeginnerMandarinEntry(lesson = {}) {
   // Prefer the lesson itself. Review anchors are supporting context and must
   // never let an earlier lesson steal a later lesson's canonical identity.
   const directIdentity = [lesson?.title, lesson?.topics].filter(Boolean).join(' ');
-  const direct = BEGINNER_MANDARIN_PAIRS.find((entry) => entry.match.test(directIdentity));
+  const knowledgePairs = [...BEGINNER_MANDARIN_PAIRS, ...BEGINNER_MANDARIN_SUPPLEMENTAL_PAIRS];
+  const direct = knowledgePairs.find((entry) => entry.match.test(directIdentity));
   if (direct) return direct;
   const reviewIdentity = (Array.isArray(lesson?.reviewAnchors) ? lesson.reviewAnchors : []).filter(Boolean).join(' ');
-  return BEGINNER_MANDARIN_PAIRS.find((entry) => entry.match.test(reviewIdentity)) || null;
+  return knowledgePairs.find((entry) => entry.match.test(reviewIdentity)) || null;
 }
 
 export function resolveScionTargetLanguagePair({ courseName = '', lesson = {} } = {}) {
@@ -224,6 +271,7 @@ export function resolveScionTargetLanguageKnowledge({ courseName = '', lesson = 
   return {
     pair: { ...match.pair },
     facts: match.facts.map((fact) => String(fact)),
+    projectionLabel: String(match.projectionLabel),
     source: { ...MANDARIN_SOURCE },
   };
 }

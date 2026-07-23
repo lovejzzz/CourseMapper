@@ -8,6 +8,7 @@ const TRUSTED_PROVIDERS = new Set([
   'openlibrary',
   'openstax',
   'open-music-theory',
+  'gutenberg',
   'eric',
   'instructor',
   'instructor-provided',
@@ -15,7 +16,7 @@ const TRUSTED_PROVIDERS = new Set([
 ]);
 
 const ACADEMIC_PROVIDERS = new Set(['openalex', 'eric', 'crossref']);
-const OER_PROVIDERS = new Set(['openstax', 'open-music-theory', 'genome', 'genome-prerequisite']);
+const OER_PROVIDERS = new Set(['openstax', 'open-music-theory', 'gutenberg', 'genome', 'genome-prerequisite']);
 const METADATA_ONLY_PROVIDERS = new Set(['openlibrary']);
 const LICENSED_BACKGROUND_PROVIDERS = new Set(['wikipedia']);
 const REVIEW_ONLY_PROVIDERS = new Set(['courseir', 'instructor', 'instructor-provided', 'openlibrary']);
@@ -377,6 +378,7 @@ function inferProviderFromText(value) {
   if (text.includes('openstax.org') || /\bopenstax\b/.test(text)) return 'openstax';
   if (text.includes('openalex.org') || /\bopenalex\b/.test(text)) return 'openalex';
   if (text.includes('openlibrary.org') || /\bopen library\b/.test(text)) return 'openlibrary';
+  if (text.includes('gutenberg.org') || /\bproject gutenberg\b/.test(text)) return 'gutenberg';
   if (text.includes('eric.ed.gov') || /\beric\b/.test(text)) return 'eric';
   if (text.includes('wikipedia.org') || /\bwikipedia\b/.test(text)) return 'wikipedia';
   if (text.includes('crossref.org') || /\bcrossref\b/.test(text)) return 'crossref';

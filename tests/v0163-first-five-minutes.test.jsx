@@ -105,5 +105,7 @@ describe('v0.16.3 first-five-minutes UX contract', () => {
     expect(harness).toContain("page.getByTestId('landing-quick-start')");
     expect(harness).toContain('Test the real primary journey when available.');
     expect(harness).toContain('Customize package');
+    expect(harness).toContain('captureTimelineFrame');
+    expect(harness).toContain('timeline.json');
   });
 });

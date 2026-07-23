@@ -216,7 +216,11 @@ export function isFinishPassActive(packageQualityPass) {
 
 /** The package finished and is exportable. */
 export function isPackageReady(packageQualityPass) {
-  return packageQualityPass?.status === 'ready';
+  return (
+    packageQualityPass?.status === 'ready' &&
+    (Number(packageQualityPass?.blockers) || 0) === 0 &&
+    (Number(packageQualityPass?.warnings) || 0) === 0
+  );
 }
 
 /** The finish pass parked the package on blockers. */

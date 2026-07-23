@@ -10,6 +10,7 @@ import {
   ErrorState,
   WaitingState,
   EmptyState,
+  NotApplicableState,
   CollapsibleCard,
   Badge,
   BloomsTag,
@@ -78,6 +79,9 @@ export default function AssignmentsView({
     groupRefs.current[key]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, []);
   if (!data) return isStreaming ? <StreamingBanner /> : <EmptyState />;
+  if (data.deliverableDisposition?.status === 'not-applicable') {
+    return <NotApplicableState disposition={data.deliverableDisposition} />;
+  }
   const assignments = data.assignments || [];
   if (assignments.length === 0 && !isStreaming) return <EmptyState />;
   const groups = groupItemsByLesson(assignments, assignmentLessonNumber);

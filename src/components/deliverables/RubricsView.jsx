@@ -11,6 +11,7 @@ import {
   ErrorState,
   WaitingState,
   EmptyState,
+  NotApplicableState,
   CollapsibleCard,
   Badge,
   BloomsTag,
@@ -42,6 +43,15 @@ function rubricIdentityLine(rubric) {
   return identity || null;
 }
 
+function isAnswerKeyScoredRubric(rubric) {
+  return (
+    (rubric?.criteria || []).length === 0 &&
+    /\b(exam|answer key|scored by answer key)\b/i.test(
+      [rubric?.assessmentType, rubric?.teacherNotes, rubric?.title].filter(Boolean).join(' '),
+    )
+  );
+}
+
 // ─── Rubrics ───
 export default function RubricsView({
   data,
@@ -65,18 +75,22 @@ export default function RubricsView({
     groupRefs.current[key]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, []);
   if (!data) return isStreaming ? <StreamingBanner /> : <EmptyState />;
+  if (data.deliverableDisposition?.status === 'not-applicable') {
+    return <NotApplicableState disposition={data.deliverableDisposition} />;
+  }
   const rubrics = data.rubrics || [];
   if (rubrics.length === 0 && !isStreaming) return <EmptyState />;
   const groups = groupItemsByLesson(rubrics, resolveLessonNumber);
 
   // D1: rubric → brief round-trip; the focus router switches the tab and
   // DeliverableView's listener scrolls to the matching brief anchor.
-  const viewBrief = (rubric) => {
+  const viewAssessmentSource = (rubric) => {
     const lessonNumber = resolveLessonNumber(rubric);
+    const answerKeyScored = isAnswerKeyScoredRubric(rubric);
     window.dispatchEvent(
       new CustomEvent('coursemapper:focus-deliverable', {
         detail: {
-          featureId: 'assignments',
+          featureId: answerKeyScored ? 'quizBank' : 'assignments',
           ...(rubric.assessmentId ? { assessmentId: rubric.assessmentId } : {}),
           ...(Number.isInteger(lessonNumber) ? { lessonNumber } : {}),
           title: rubricBriefTitle(rubric),
@@ -86,6 +100,7 @@ export default function RubricsView({
   };
 
   const renderRubric = (rubric, i) => {
+    const answerKeyScored = isAnswerKeyScoredRubric(rubric);
     const gradedWork = rubric.gradedWork || rubric.gw || rubric.assignmentTitle || rubric.title || '';
     const subtitle = [
       rubric.lessonTitle,
@@ -148,9 +163,13 @@ export default function RubricsView({
                   <button
                     type="button"
                     data-view-brief="true"
-                    onClick={() => viewBrief(rubric)}
+                    onClick={() => viewAssessmentSource(rubric)}
                     className="tactile inline-flex items-center gap-1 text-[12px] font-semibold px-2 py-0.5 rounded-full text-slate-500 dark:text-slate-400 bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/60 hover:text-indigo-600 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 hover:border-indigo-200/60 dark:hover:border-indigo-800/60 transition-all duration-150"
-                    title="Open the assignment brief this rubric grades"
+                    title={
+                      answerKeyScored
+                        ? 'Open the exam paper and answer key'
+                        : 'Open the assignment brief this rubric grades'
+                    }
                   >
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
@@ -160,7 +179,7 @@ export default function RubricsView({
                         d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                       />
                     </svg>
-                    View brief
+                    {answerKeyScored ? 'View exam' : 'View brief'}
                   </button>
                   {onShowInCourseMap && (
                     <button
@@ -226,98 +245,120 @@ export default function RubricsView({
                 </div>
               )}
 
-              {/* Rubric table */}
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs border border-slate-100 rounded-lg overflow-hidden">
-                  <thead>
-                    <tr className="bg-emerald-50/60">
-                      <th className="text-left px-3 py-2 font-semibold text-slate-600 min-w-[120px]">Criterion</th>
-                      <th className="text-center px-2 py-2 font-semibold text-slate-600 w-12">Wt %</th>
-                      <th className="text-center px-2 py-2 font-semibold text-slate-600 w-10">Pts</th>
-                      <th className="text-left px-3 py-2 font-semibold text-emerald-700 min-w-[140px]">Exemplary</th>
-                      <th className="text-left px-3 py-2 font-semibold text-sky-700 min-w-[140px]">Proficient</th>
-                      <th className="text-left px-3 py-2 font-semibold text-amber-700 min-w-[140px]">Developing</th>
-                      <th className="text-left px-3 py-2 font-semibold text-red-700 min-w-[140px]">Beginning</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(rubric.criteria || []).length === 0 && isStreaming && (
-                      <tr>
-                        <td colSpan={7} className="px-3 py-4 text-center text-xs text-slate-400 italic">
-                          Generating criteria...
-                        </td>
+              {/* A selected-response exam is scored by its answer key, not an
+                  empty analytic rubric. Make that contract explicit instead
+                  of rendering a criterion grid with no rows. */}
+              {answerKeyScored ? (
+                <div className="rounded-xl border border-sky-100 bg-sky-50/55 p-3.5">
+                  <div className="flex items-start gap-3">
+                    <span
+                      aria-hidden="true"
+                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-sm text-sky-700 shadow-sm"
+                    >
+                      ✓
+                    </span>
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-700">Scored with the exam answer key</h4>
+                      <p className="mt-1 text-xs leading-relaxed text-slate-600">
+                        The complete question paper, correct responses, and per-question points are in Quiz &amp; Exam
+                        Bank. No separate criterion rubric is needed for this assessment.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs border border-slate-100 rounded-lg overflow-hidden">
+                    <thead>
+                      <tr className="bg-emerald-50/60">
+                        <th className="text-left px-3 py-2 font-semibold text-slate-600 min-w-[120px]">Criterion</th>
+                        <th className="text-center px-2 py-2 font-semibold text-slate-600 w-12">Wt %</th>
+                        <th className="text-center px-2 py-2 font-semibold text-slate-600 w-10">Pts</th>
+                        <th className="text-left px-3 py-2 font-semibold text-emerald-700 min-w-[140px]">Exemplary</th>
+                        <th className="text-left px-3 py-2 font-semibold text-sky-700 min-w-[140px]">Proficient</th>
+                        <th className="text-left px-3 py-2 font-semibold text-amber-700 min-w-[140px]">Developing</th>
+                        <th className="text-left px-3 py-2 font-semibold text-red-700 min-w-[140px]">Beginning</th>
                       </tr>
-                    )}
-                    {(rubric.criteria || []).map((c, j) => (
-                      <tr key={j} className={j % 2 === 0 ? 'bg-white/50' : 'bg-slate-50/30'}>
-                        <td className="px-3 py-2 align-top">
-                          <span className="font-semibold text-slate-800 block">
-                            <E
-                              value={c.criterion || c.name}
-                              path={['rubrics', i, 'criteria', j, 'criterion']}
-                              onEdit={onEdit}
-                            />
-                          </span>
-                          {c.objectiveAligned && (
-                            <span className="text-xs text-indigo-400 block mt-0.5 leading-tight">
-                              ↳{' '}
+                    </thead>
+                    <tbody>
+                      {(rubric.criteria || []).length === 0 && isStreaming && (
+                        <tr>
+                          <td colSpan={7} className="px-3 py-4 text-center text-xs text-slate-400 italic">
+                            Generating criteria...
+                          </td>
+                        </tr>
+                      )}
+                      {(rubric.criteria || []).map((c, j) => (
+                        <tr key={j} className={j % 2 === 0 ? 'bg-white/50' : 'bg-slate-50/30'}>
+                          <td className="px-3 py-2 align-top">
+                            <span className="font-semibold text-slate-800 block">
                               <E
-                                value={c.objectiveAligned}
-                                path={['rubrics', i, 'criteria', j, 'objectiveAligned']}
+                                value={c.criterion || c.name}
+                                path={['rubrics', i, 'criteria', j, 'criterion']}
                                 onEdit={onEdit}
-                                className="text-xs text-indigo-400"
                               />
                             </span>
-                          )}
-                        </td>
-                        <td className="px-2 py-2 text-center font-bold text-slate-500 align-top">
-                          <E
-                            value={String(c.weight ?? '')}
-                            path={['rubrics', i, 'criteria', j, 'weight']}
-                            onEdit={onEdit}
-                          />
-                          %
-                        </td>
-                        <td className="px-2 py-2 text-center font-semibold text-emerald-600 align-top">
-                          {c.points ?? ''}
-                        </td>
-                        <td className="px-3 py-2 text-slate-600 align-top leading-relaxed">
-                          <E
-                            value={c.excellent || c.exemplary}
-                            path={['rubrics', i, 'criteria', j, c.excellent ? 'excellent' : 'exemplary']}
-                            onEdit={onEdit}
-                            multiline
-                          />
-                        </td>
-                        <td className="px-3 py-2 text-slate-600 align-top leading-relaxed">
-                          <E
-                            value={c.proficient}
-                            path={['rubrics', i, 'criteria', j, 'proficient']}
-                            onEdit={onEdit}
-                            multiline
-                          />
-                        </td>
-                        <td className="px-3 py-2 text-slate-600 align-top leading-relaxed">
-                          <E
-                            value={c.developing}
-                            path={['rubrics', i, 'criteria', j, 'developing']}
-                            onEdit={onEdit}
-                            multiline
-                          />
-                        </td>
-                        <td className="px-3 py-2 text-slate-600 align-top leading-relaxed">
-                          <E
-                            value={c.beginning}
-                            path={['rubrics', i, 'criteria', j, 'beginning']}
-                            onEdit={onEdit}
-                            multiline
-                          />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                            {c.objectiveAligned && (
+                              <span className="text-xs text-indigo-400 block mt-0.5 leading-tight">
+                                ↳{' '}
+                                <E
+                                  value={c.objectiveAligned}
+                                  path={['rubrics', i, 'criteria', j, 'objectiveAligned']}
+                                  onEdit={onEdit}
+                                  className="text-xs text-indigo-400"
+                                />
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-2 py-2 text-center font-bold text-slate-500 align-top">
+                            <E
+                              value={String(c.weight ?? '')}
+                              path={['rubrics', i, 'criteria', j, 'weight']}
+                              onEdit={onEdit}
+                            />
+                            %
+                          </td>
+                          <td className="px-2 py-2 text-center font-semibold text-emerald-600 align-top">
+                            {c.points ?? ''}
+                          </td>
+                          <td className="px-3 py-2 text-slate-600 align-top leading-relaxed">
+                            <E
+                              value={c.excellent || c.exemplary}
+                              path={['rubrics', i, 'criteria', j, c.excellent ? 'excellent' : 'exemplary']}
+                              onEdit={onEdit}
+                              multiline
+                            />
+                          </td>
+                          <td className="px-3 py-2 text-slate-600 align-top leading-relaxed">
+                            <E
+                              value={c.proficient}
+                              path={['rubrics', i, 'criteria', j, 'proficient']}
+                              onEdit={onEdit}
+                              multiline
+                            />
+                          </td>
+                          <td className="px-3 py-2 text-slate-600 align-top leading-relaxed">
+                            <E
+                              value={c.developing}
+                              path={['rubrics', i, 'criteria', j, 'developing']}
+                              onEdit={onEdit}
+                              multiline
+                            />
+                          </td>
+                          <td className="px-3 py-2 text-slate-600 align-top leading-relaxed">
+                            <E
+                              value={c.beginning}
+                              path={['rubrics', i, 'criteria', j, 'beginning']}
+                              onEdit={onEdit}
+                              multiline
+                            />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
 
               {/* Teacher notes */}
               {rubric.teacherNotes && (

@@ -9,7 +9,9 @@ import {
   isAppServerPortFree,
   isDistFresh,
   isFatalAppConsoleMessage,
+  isPreviewInfrastructureError,
   normalizeLlmShimResponse,
+  stageProductionDist,
 } from '../scripts/lib/crucibleBrowser.mjs';
 
 const roots = [];
@@ -78,6 +80,23 @@ describe('Crucible production-bundle freshness', () => {
 });
 
 describe('Crucible preview isolation', () => {
+  it('serves a verified temporary snapshot rather than mutable worktree bytes', async () => {
+    const root = await fixture();
+    await fs.mkdir(path.join(root, 'dist', 'assets'), { recursive: true });
+    await fs.writeFile(path.join(root, 'dist', 'assets', 'app.js'), 'production bytes');
+    const staged = await stageProductionDist({
+      sourceDist: path.join(root, 'dist'),
+      tempRoot: os.tmpdir(),
+      attempts: 1,
+    });
+    roots.push(staged.stageRoot);
+
+    expect(staged.stageRoot.startsWith(os.tmpdir())).toBe(true);
+    expect(await fs.readFile(path.join(staged.distDir, 'assets', 'app.js'), 'utf8')).toBe('production bytes');
+    await fs.writeFile(path.join(root, 'dist', 'assets', 'app.js'), 'changed after staging');
+    expect(await fs.readFile(path.join(staged.distDir, 'assets', 'app.js'), 'utf8')).toBe('production bytes');
+  });
+
   it('never selects the browser-forbidden ManageSieve port', async () => {
     expect(await isAppServerPortFree(4190)).toBe(false);
   });
@@ -119,6 +138,15 @@ describe('Crucible preview isolation', () => {
         appOrigin,
       }),
     ).toBe(false);
+  });
+
+  it('separates preview transport failures from model or content failures', () => {
+    expect(
+      isPreviewInfrastructureError(
+        'CourseMapper preview request failed: http://127.0.0.1:4173/scion/runtime/wllama.wasm (net::ERR_EMPTY_RESPONSE)',
+      ),
+    ).toBe(true);
+    expect(isPreviewInfrastructureError('Package was not ready to download after finalization')).toBe(false);
   });
 });
 

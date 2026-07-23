@@ -19,6 +19,7 @@
  */
 
 import { resolveDecisionScenario } from './scenarioContract';
+import { EXACT_SOURCE_LEDGER_PROVENANCE } from './sourceLedgerProvenance';
 
 const STOP_WORDS = new Set([
   'about',
@@ -432,6 +433,116 @@ function composeFactLedgerComparisonAnswer(term, facts, scenario, seed = 0) {
     .trim();
 }
 
+const FACT_RELATION_VERB_RE =
+  /^(.{1,100}?)\s+(?:means?|refers?\s+to|records?|states?|expresses?|marks?|identifies?|locates?|names?|indicates?|represents?|describes?|is|are)\b/i;
+
+function compactSemanticText(value) {
+  return cleanText(value)
+    .normalize('NFKC')
+    .toLowerCase()
+    .replace(/[^\p{L}\p{M}\p{N}]+/gu, '');
+}
+
+function relationSubject(fact) {
+  const match = stripTerminalPeriod(fact).match(FACT_RELATION_VERB_RE);
+  if (!match?.[1]) return '';
+  const subject = cleanText(match[1]).replace(/^["“”']+|["“”',:;]+$/g, '');
+  const tokens = subject.match(/[\p{L}\p{M}\p{N}]+/gu) || [];
+  return tokens.length >= 1 && tokens.length <= 10 ? subject : '';
+}
+
+function relationSubjectAppearsInAnchor(subject, anchor) {
+  const compactSubject = compactSemanticText(subject);
+  const compactAnchor = compactSemanticText(anchor);
+  if (!compactSubject || !compactAnchor) return false;
+  if (compactSubject.length >= 4 && compactAnchor.includes(compactSubject)) return true;
+
+  const fragments = (
+    cleanText(subject)
+      .normalize('NFKC')
+      .toLowerCase()
+      .match(/[\p{L}\p{M}\p{N}]+/gu) || []
+  ).filter((fragment) => fragment.length > 1 || /[^\x00-\x7f]/.test(fragment));
+  if (fragments.length < 2) return false;
+  const matched = fragments.filter((fragment) => compactAnchor.includes(compactSemanticText(fragment)));
+  return matched.length >= 2 && matched.length / fragments.length >= 0.75;
+}
+
+/**
+ * Find two independently stated relations that are visibly present inside a
+ * broader anchor fact. This is deliberately narrower than semantic
+ * similarity: if the exact subjects cannot be traced into the anchor, the
+ * generic evidence-bounded projection remains in control.
+ */
+function factLedgerRelationContext(kernel) {
+  const terms = Array.isArray(kernel?.keyTerms) ? kernel.keyTerms : [];
+  const projectionTerm = terms.find((term) => cleanText(term?.source) === 'fact-ledger-projection');
+  const facts = Array.isArray(kernel?.facts) ? kernel.facts.map(stripTerminalPeriod).filter(Boolean) : [];
+  if (facts.length < 3) return null;
+  const exactLedger =
+    kernel?.provenance?.source === EXACT_SOURCE_LEDGER_PROVENANCE &&
+    kernel?.provenance?.copiedFactsVerbatim === true &&
+    Number(kernel?.provenance?.factCount) === facts.length;
+  if (!projectionTerm && !exactLedger) return null;
+  const termName = cleanText(projectionTerm?.term || kernel?.projectionLabel || terms[0]?.term);
+  if (!termName) return null;
+
+  for (let anchorIndex = 0; anchorIndex < facts.length; anchorIndex += 1) {
+    const anchor = facts[anchorIndex];
+    const supports = facts
+      .map((fact, factIndex) => ({ fact, factIndex, subject: relationSubject(fact) }))
+      .filter(
+        ({ factIndex, subject }) =>
+          factIndex !== anchorIndex && subject && relationSubjectAppearsInAnchor(subject, anchor),
+      );
+    for (let leftIndex = 0; leftIndex < supports.length; leftIndex += 1) {
+      for (let rightIndex = leftIndex + 1; rightIndex < supports.length; rightIndex += 1) {
+        const left = supports[leftIndex];
+        const right = supports[rightIndex];
+        if (compactSemanticText(left.subject) === compactSemanticText(right.subject)) continue;
+        return { anchor, left, right, termName };
+      }
+    }
+  }
+  return null;
+}
+
+function buildFactLedgerRelationShortAnswer(kernel, index) {
+  const relation = factLedgerRelationContext(kernel);
+  if (!relation) return null;
+  const { anchor, left, right } = relation;
+  return {
+    index,
+    type: 'short_answer',
+    projectionKind: 'fact-ledger-relation-analysis',
+    question: `Use the exact course evidence to identify the role of each concept—${left.subject} and ${right.subject}—in “${anchor}.” Explain the different information each contributes, then state one limitation on what the combined statement establishes.`,
+    options: [],
+    answerIndex: 0,
+    distractorRationales: [],
+    answer: `For ${left.subject}, the ledger states: ${ensureSentence(left.fact)} For ${right.subject}, it states: ${ensureSentence(right.fact)} These are distinct parts of the complete statement: ${ensureSentence(anchor)} The ledger establishes only those stated contributions, not an unstated use or interpretation.`,
+    explanation: '',
+    scoringGuidance: `Full credit requires three visible moves: accurately explain ${left.subject} from its cited fact, accurately explain ${right.subject} from its cited fact, and connect both to the complete statement without swapping or expanding their roles.`,
+  };
+}
+
+function buildFactLedgerRelationEssay(kernel, index) {
+  const relation = factLedgerRelationContext(kernel);
+  if (!relation) return null;
+  const { anchor, left, right, termName } = relation;
+  return {
+    index,
+    type: 'essay',
+    projectionKind: 'fact-ledger-relation-synthesis',
+    question: `Reconstruct ${termName} through “${anchor}” as an evidence chain. First explain ${left.subject}; then explain ${right.subject}; finally show how the two stated relations account for different parts of the complete statement. Use only the course fact ledger.`,
+    options: [],
+    answerIndex: 0,
+    distractorRationales: [],
+    answer: `The first link is ${ensureSentence(left.fact)} The second link is ${ensureSentence(right.fact)} Together, the links preserve two different contributions within the anchor statement: ${ensureSentence(anchor)}`,
+    explanation: '',
+    scoringGuidance: `A complete response keeps ${left.subject} and ${right.subject} distinct, cites both supporting facts accurately, and reconnects them to the anchor without adding an unstated disciplinary claim.`,
+  };
+}
+
 function composeEvidenceBoundedShortAnswer(
   scenario,
   term,
@@ -535,6 +646,8 @@ function composeEvidenceBoundedShortAnswer(
 function buildShortAnswerItem(kernel, index, seed = 0, { compactFactLedgerAnswers = true } = {}) {
   const term = bestShortAnswerTerm(kernel);
   if (!term || !cleanText(term.term)) return null;
+  const relationItem = buildFactLedgerRelationShortAnswer(kernel, index);
+  if (relationItem) return relationItem;
   const setup = cleanText(kernel?.scenario?.setup);
   const fact = bestFactFor(term, kernel.facts) || kernel.facts?.[0] || '';
   // Genome-linked lessons often arrive without a course-layer scenario
@@ -625,6 +738,8 @@ function buildEssayItem(kernel, index, seed = 0) {
         'Look for a contestable claim, locatable passage evidence, analysis of form, a substantive counter-reading, and an evidence-bounded conclusion. Summary or unsupported preference does not earn full credit.',
     };
   }
+  const relationItem = buildFactLedgerRelationEssay(kernel, index);
+  if (relationItem) return relationItem;
   let prompt = cleanText(discussion?.prompt);
   let term = terms[1] || terms[0];
   let positions = Array.isArray(discussion?.positions) ? discussion.positions.map(cleanText).filter(Boolean) : [];

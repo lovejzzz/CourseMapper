@@ -7,6 +7,7 @@
  */
 import { describe, it, expect, vi } from 'vitest';
 import { getChatOpener, resolveLabel, FEATURE_LABELS, STEPS } from '../../components/chat/constants';
+import { buildNotApplicableDisposition } from '../deliverableApplicability';
 
 // Mock dependencies to isolate pure logic
 vi.mock('../customDeliverableLibrary', () => ({
@@ -226,7 +227,70 @@ describe('getChatOpener — Tier 3 (agent mode)', () => {
     expect(result.starters).not.toEqual(
       expect.arrayContaining([expect.objectContaining({ action: 'finish-package' })]),
     );
-    expect(result.starters).toEqual(expect.arrayContaining([expect.objectContaining({ action: 'local-audit' })]));
+    expect(result.starters).toEqual([
+      { text: 'Summarize the course sequence', icon: 'chat' },
+      { text: 'Explain the assessment strategy', icon: 'chat' },
+    ]);
+    expect(result.starters.map((starter) => starter.text).join(' ')).not.toMatch(/\bgaps?\b/i);
+  });
+
+  it('treats a ready pass with saved review notes as finished and explains a routed empty material', () => {
+    const cm = makeCourseMap();
+    const deliverables = {
+      ...makeDoneDeliverables(),
+      assignments: {
+        status: 'done',
+        data: {
+          deliverableDisposition: buildNotApplicableDisposition('assignments', {
+            reasonCode: 'no-standalone-assessment',
+            summary: 'No separate assignment brief is needed for this course.',
+            routeFeatureId: 'quizBank',
+            routeLabel: 'Quiz & Exam Bank',
+          }),
+          assignments: [],
+        },
+      },
+    };
+    const result = getChatOpener(
+      cm,
+      true,
+      'assignments',
+      deliverables,
+      false,
+      false,
+      true,
+      { hasContext: true },
+      { status: 'ready', blockers: 0, warnings: 4, quality: { status: 'graded', score: 99, grade: 'A' } },
+    );
+
+    expect(result.greeting).toContain('Your package is ready');
+    expect(result.starters).toEqual([
+      { text: 'Explain why this course has no Assignment Briefs', icon: 'chat' },
+      { text: 'Summarize Quiz & Exam Bank', icon: 'chat' },
+    ]);
+    expect(result.starters).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ action: 'finish-package' })]),
+    );
+  });
+
+  it('uses grammatical explanatory starters on a ready deliverable tab', () => {
+    const cm = makeCourseMap();
+    const result = getChatOpener(
+      cm,
+      true,
+      'rubrics',
+      { ...makeDoneDeliverables(), rubrics: { status: 'done', data: { rubrics: [] } } },
+      false,
+      false,
+      true,
+      { hasContext: true },
+      { status: 'ready', warnings: 0, blockers: 0, quality: { status: 'graded', score: 99, grade: 'A' } },
+    );
+
+    expect(result.starters).toEqual([
+      { text: 'Summarize Rubrics', icon: 'chat' },
+      { text: 'Explain the role of Rubrics', icon: 'chat' },
+    ]);
   });
 
   it('provides tab-specific starters for quizBank', () => {

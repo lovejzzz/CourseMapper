@@ -448,6 +448,32 @@ describe('lessonKernelCache', () => {
     expect(reopened.get(lesson).keyTerms[0].term).toBe('Market clearing');
   });
 
+  it('does not reuse a payload after the kernel contract changes', () => {
+    const storage = memoryStorage();
+    const lesson = {
+      title: 'Lesson 13: Transportation and Directions',
+      sections: [{ learningObjectives: 'Analyze a bounded Mandarin transportation statement.' }],
+    };
+    const courseMap = { courseName: 'Elementary Mandarin Chinese I', lessons: [lesson] };
+    const legacy = createLessonKernelCache({
+      storage,
+      courseMap,
+      provider: 'scion-public',
+      modelId: 'scion-public',
+      contractVersion: 'scion-kernel-v4',
+    });
+    legacy.set(lesson, { facts: ['One legacy fact.'] });
+
+    const current = createLessonKernelCache({
+      storage,
+      courseMap,
+      provider: 'scion-public',
+      modelId: 'scion-public',
+      contractVersion: 'scion-kernel-v7',
+    });
+    expect(current.get(lesson)).toBeNull();
+  });
+
   it('does not reuse identical lesson prose across course or model scopes', () => {
     const storage = memoryStorage();
     const lesson = {
@@ -498,6 +524,19 @@ describe('lessonKernelCache', () => {
 
     expect(cache.get(lesson)).toBeNull();
     expect(storage.getItem(LESSON_KERNEL_CACHE_KEY)).toBeNull();
+  });
+
+  it('removes retired cache buckets to recover browser quota', () => {
+    const storage = memoryStorage();
+    storage.setItem('coursemapper-lesson-kernels-v4', JSON.stringify({ stale: { payload: 'legacy' } }));
+    storage.setItem('coursemapper-lesson-kernels-v5', JSON.stringify({ stale: { payload: 'legacy' } }));
+    storage.setItem('coursemapper-lesson-kernels-v6', JSON.stringify({ stale: { payload: 'legacy' } }));
+
+    createLessonKernelCache({ storage });
+
+    expect(storage.getItem('coursemapper-lesson-kernels-v4')).toBeNull();
+    expect(storage.getItem('coursemapper-lesson-kernels-v5')).toBeNull();
+    expect(storage.getItem('coursemapper-lesson-kernels-v6')).toBeNull();
   });
 
   it('does not cache generic Week N lessons that can collide across courses', () => {

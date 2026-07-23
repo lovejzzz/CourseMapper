@@ -227,10 +227,17 @@ function existingCitations(graph) {
   );
 }
 
-const INTERNAL_KEY_TERM_SOURCE_MARKERS = new Set(['verified-quiz-projection', 'fact-ledger-projection']);
+const INTERNAL_KEY_TERM_SOURCE_MARKERS = new Set([
+  'verified-quiz-projection',
+  'fact-ledger-projection',
+  'previously-admitted-lesson',
+  'model-authored',
+]);
 
 function isInternalKeyTermSourceMarker(entry) {
-  return typeof entry === 'string' && INTERNAL_KEY_TERM_SOURCE_MARKERS.has(cleanText(entry).toLowerCase());
+  if (typeof entry !== 'string') return false;
+  const normalized = cleanText(entry).toLowerCase();
+  return INTERNAL_KEY_TERM_SOURCE_MARKERS.has(normalized) || /(?:^|-)projection$/.test(normalized);
 }
 
 function nextResourceIdFactory(graph) {

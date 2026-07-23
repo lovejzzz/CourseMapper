@@ -56,9 +56,11 @@ import { NATIVE_PASS_B_AUTHORING_ADDITION } from './prompts';
 import { extractExplicitCoverageTopics, extractExplicitLessonSequence } from './explicitLessonSequence';
 import { semanticIdentityTokens } from './lessonSemanticRelevance';
 import { buildFactLedgerFeedback } from './factLedgerFeedback.js';
+import { hasExactSourceLedgerProvenance } from './sourceLedgerProvenance.js';
 import {
   recoverScionMandarinLessonSequence,
   resolveScionCumulativeTargetLanguagePair,
+  resolveScionTargetLanguageKnowledge,
 } from './scionLanguageKnowledge.js';
 export { AUTHORING_MODE_STORAGE_KEY, readAuthoringMode, saveAuthoringMode } from './authoringMode.js';
 
@@ -137,12 +139,17 @@ function factsAlignedToLesson(facts = [], courseMapLesson = {}, concept = '') {
 export function isNativeContentSourcedKernel(payload, partialOverlay) {
   if (!payload) return false;
   const coverage = assessProjectedKernelCoverage(payload);
+  const hasSemanticCore =
+    coverage.factCount >= 3 || coverage.keyTermCount >= 3 || (coverage.factCount >= 2 && coverage.keyTermCount >= 2);
   // A usable partial genome composition already contains a real semantic
   // lesson, so Pass B should preserve it as content-sourced instead of
-  // re-authoring it merely to reach optional MC/slide saturation. Thin
-  // partials still go to the model; legacy fully linked genome payloads keep
-  // their historical displacement behavior.
-  return coverage.complete || coverage.usable || (!partialOverlay && payload.enrichmentSource === 'genome-linked');
+  // re-authoring it merely to reach optional MC/slide saturation. Optional
+  // surface saturation alone is not knowledge depth: the former legacy rule
+  // exempted every `genome-linked` payload, including a one-fact Mandarin
+  // kernel, and prevented Scion's exact three-fact ledger from ever running.
+  // Thin library/cache hits now augment the authored kernel instead of
+  // silently displacing it.
+  return hasSemanticCore && (coverage.complete || coverage.usable || !partialOverlay);
 }
 
 export function selectNativeContentSources(lessonIndices, lessonContent = {}, partialOverlays = {}) {
@@ -259,6 +266,15 @@ export async function runNativeKernelRecovery({
 
 export function pickNativeKernel(previous, candidate) {
   if (!previous) return candidate;
+  // A compiler-owned exact ledger is a stronger evidence boundary than a
+  // generated or cached payload, even when the latter has more optional
+  // surfaces. The old score-first choice silently replaced two of three exact
+  // Mandarin facts with a richer-looking one-fact genome overlay, so the final
+  // quiz regressed to generic prompts despite a correct provider response.
+  const previousIsExactLedger = hasExactSourceLedgerProvenance(previous);
+  const candidateIsExactLedger = hasExactSourceLedgerProvenance(candidate);
+  if (candidateIsExactLedger && !previousIsExactLedger) return candidate;
+  if (previousIsExactLedger && !candidateIsExactLedger) return previous;
   // Thin genome overlays deliberately remain in `lessonContent` while the
   // model authors the missing semantic backbone. Comparing only the seven
   // optional-surface checks let a citation-rich but unusable partial outrank
@@ -358,7 +374,15 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
     .map((term) => cleanText(term?.term, 80))
     .find((term) => term && !isNamedReadingLabel(term));
   const topic = topics.find((candidate) => !isNamedReadingLabel(candidate)) || topics[0];
-  const concept = cleanText(authoredConcept || topic || title || 'the central concept', 80);
+  // An exact compiler-owned ledger must also own the label used to project
+  // glossary, quiz, FAQ, and slide surfaces. The course map remains useful
+  // structural context, but a weak map phrase may not rename source-backed
+  // knowledge after canonical admission (for example, a noisy Pinyin topic
+  // once became “Invasive Pinyin System” across an otherwise-correct course).
+  const sourceProjectionLabel = hasExactSourceLedgerProvenance(payload)
+    ? cleanText(payload?.kernel?.projectionLabel, 80)
+    : '';
+  const concept = cleanText(authoredConcept || sourceProjectionLabel || topic || title || 'the central concept', 80);
   const definition = cleanTextAtBoundary(payload?.keyTerms?.[0]?.definition, 260);
   const facts = asArray(payload?.kernel?.facts)
     .map((fact) => cleanTextAtBoundary(fact, 220))
@@ -516,8 +540,14 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
         term,
         definition,
         example,
-        misconception: `A common error is choosing ${wrongOption || 'a nearby distractor'} without checking the details named in the question.`,
-        correction: `The admitted explanation supports ${term} after the named details are checked against every option.`,
+        // Keep both sides of the contrast inside the sentence. The old
+        // "without checking the details named in the question" suffix was
+        // stamped verbatim into every projected term, then multiplied through
+        // a lesson's answer key until a single DOCX repeated it 20+ times.
+        // This version remains honest about its quiz-derived provenance while
+        // making the specific wrong/correct pair the grammatical backbone.
+        misconception: `Choosing ${wrongOption || 'a nearby distractor'} conflicts with the evidence for ${term} in this item.`,
+        correction: `Check the ${term} evidence against ${wrongOption || 'each distractor'} before selecting an answer.`,
         source: 'verified-quiz-projection',
         tier: 1,
         derivedFromQuizIndex: Number(item.index) || 0,
@@ -548,14 +578,29 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
   // teaching core from the admitted facts and terminology instead. The two
   // assessment seats are constructed response, so the compiler never invents
   // distractors or a new correct answer.
-  const existingQuizItems = asArray(completed.quizItems).filter(
-    (item) =>
+  const replaceExactLedgerConstructedResponses = hasExactSourceLedgerProvenance(completed);
+  const existingQuizItems = asArray(completed.quizItems).filter((item) => {
+    // Canonical admission has no course-map lesson context, so a facts-only
+    // exact ledger initially receives safe generic constructed responses. At
+    // native completion the lesson concept and compiler-created terminology
+    // are available; replace those two seats so relation-bearing facts become
+    // precise learner questions instead of treating generic occupancy as
+    // evidence that projection already finished.
+    if (
+      replaceExactLedgerConstructedResponses &&
+      ['short_answer', 'essay'].includes(item?.type) &&
+      [3, 5].includes(Number(item?.index))
+    ) {
+      return false;
+    }
+    return (
       !assignedReadingScenario ||
       !(
         cleanText(item?.enrichmentSource) === 'fact-ledger-projection' ||
         /\b(?:Claim A:|supplied claim cards?)\b/i.test(cleanText(item?.question, 600))
-      ),
-  );
+      )
+    );
+  });
   const existingSlides = asArray(completed.slideContent);
   const existingScenario = completed?.kernel?.scenario;
   const projectionScenario =
@@ -565,7 +610,8 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
   const needsFactProjection =
     facts.length >= 3 &&
     keyTerms.filter(substantiveTerm).length >= 1 &&
-    (existingQuizItems.length < 2 ||
+    (replaceExactLedgerConstructedResponses ||
+      existingQuizItems.length < 2 ||
       existingSlides.length < 1 ||
       !existingScenario?.setup ||
       !existingScenario?.materials);
@@ -575,6 +621,8 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
         facts: projectionFacts,
         keyTerms,
         scenario: projectionScenario,
+        provenance: completed?.kernel?.provenance,
+        projectionLabel: concept,
       },
       {
         itemPlan: [
@@ -873,6 +921,105 @@ function projectedCumulativeTerms(entries, limit = 5) {
   return terms;
 }
 
+const COMPARATIVE_READING_TITLE_RE = /\bcomparative\s+(?:reading|essay)\b/i;
+const COMPARATIVE_FORMAL_LENSES = [
+  {
+    id: 'narrative perspective',
+    pattern:
+      /\b(?:embedded narrat|first-person|third-person|narrat(?:e|ed|es|ing|ion|ive|or)|perspective|point of view|storytell|frame narrat)/i,
+  },
+  { id: 'structure', pattern: /\b(?:episodic|form(?:al)?|genre|structure|structural)\b/i },
+  { id: 'imagery', pattern: /\b(?:description|imagery|image|landscape|visual)\b/i },
+  { id: 'voice', pattern: /\b(?:address|chorus|dialogue|invocation|speaker|speech|voice)\b/i },
+];
+
+function namedReadingFromCumulativeEntry(entry = {}) {
+  return asArray(entry?.lesson?.sections)
+    .flatMap((section) => asArray(section?.readings))
+    .map((reading) => cleanText(reading, 160))
+    .find(Boolean);
+}
+
+function bestFormalFactForLens(entry, lens) {
+  return asArray(entry?.payload?.kernel?.facts)
+    .map((fact) => cleanTextAtBoundary(fact, 220))
+    .filter((fact) => fact && lens.pattern.test(fact))
+    .map((fact) => ({
+      fact,
+      score: (fact.match(new RegExp(lens.pattern.source, `${lens.pattern.flags.includes('i') ? 'i' : ''}g`)) || [])
+        .length,
+    }))
+    .sort((a, b) => b.score - a.score || b.fact.length - a.fact.length)[0];
+}
+
+function selectComparativeReadingPair(entries = []) {
+  let best = null;
+  for (const lens of COMPARATIVE_FORMAL_LENSES) {
+    const candidates = asArray(entries)
+      .map((entry) => {
+        const reading = namedReadingFromCumulativeEntry(entry);
+        const formalFact = reading ? bestFormalFactForLens(entry, lens) : null;
+        return reading && formalFact ? { entry, reading, ...formalFact } : null;
+      })
+      .filter(Boolean);
+    for (let leftIndex = 0; leftIndex < candidates.length; leftIndex += 1) {
+      for (let rightIndex = leftIndex + 1; rightIndex < candidates.length; rightIndex += 1) {
+        const left = candidates[leftIndex];
+        const right = candidates[rightIndex];
+        const score = left.score + right.score;
+        if (!best || score > best.score) best = { lens: lens.id, left, right, score };
+      }
+    }
+  }
+  return best;
+}
+
+function buildComparativeReadingMethodTerm(pair) {
+  if (!pair) return null;
+  const { left, right, lens } = pair;
+  return {
+    term: 'comparative reading',
+    definition:
+      'Comparative reading tests one interpretive claim against formal evidence from two texts while preserving each text’s context.',
+    example: `Compare a locatable passage from ${left.reading} with one from ${right.reading}; use ${lens} evidence to explain a meaningful similarity or difference.`,
+    misconception: 'Two plot summaries become a comparison simply because they appear beside each other.',
+    correction:
+      'Name a shared formal question, analyze one locatable detail from each text, and explain how the relationship changes the interpretation.',
+    tier: 1,
+    sourceLessonIds: [left.entry.lessonId, right.entry.lessonId],
+    projectionSource: 'previously-admitted-lesson',
+  };
+}
+
+function buildComparativeReadingDiscussion(pair) {
+  if (!pair) return null;
+  const { left, right, lens } = pair;
+  return {
+    prompt: `How does ${lens} shape interpretation differently in ${left.reading} and ${right.reading}? Analyze one locatable passage from each assigned edition, explain a meaningful similarity and difference, and test a credible counter-reading.`,
+    tension: `The comparison must decide whether a shared ${lens} technique matters more than the different work each text asks that technique to do.`,
+    positions: [
+      `Treat the shared ${lens} technique as the strongest basis for comparison.`,
+      `Give the consequential difference in how each text uses ${lens} greater interpretive weight.`,
+      `Qualify both readings until the paired passages establish which relationship the evidence can support.`,
+    ],
+  };
+}
+
+function buildComparativeReadingAssignment(pair, product = 'comparative essay proposal') {
+  if (!pair) return null;
+  const { left, right, lens } = pair;
+  return {
+    taskDescription: `Compare how ${lens} operates in ${left.reading} and ${right.reading}. Submit ${product} with a focused comparative question, a working thesis, one locatable passage from each assigned edition, a credible counter-reading, and a statement of what the paired evidence cannot establish.`,
+    parameters: [
+      `Scope: compare ${left.reading} and ${right.reading} through one shared ${lens} question.`,
+      `Format: organize ${product} as a comparative question, working thesis, paired passage plan, counter-reading, and next evidence step.`,
+      `Required Evidence/Source: identify one locatable passage from each assigned edition and explain the formal detail each passage contributes.`,
+      `Boundary: preserve each passage’s surrounding context and state where the comparison remains provisional.`,
+    ],
+    canonicalAssessment: product,
+  };
+}
+
 /**
  * Fill assessment-only lesson kernels from earlier admitted subject lessons.
  * Returns only projections that satisfy the same instructional-usability gate
@@ -895,8 +1042,19 @@ export function projectCumulativeAssessmentKernels({
     if (assessProjectedKernelCoverage(lessonContent?.[lessonId]).usable) continue;
 
     const entries = cumulativeSourceEntries(lessonContent, courseMapLessons, lessonIndex);
-    const facts = projectedCumulativeFacts(entries);
-    const keyTerms = projectedCumulativeTerms(entries, facts.length);
+    const comparativePair = COMPARATIVE_READING_TITLE_RE.test(cleanText(lesson?.title, 180))
+      ? selectComparativeReadingPair(entries)
+      : null;
+    const baseFacts = projectedCumulativeFacts(entries);
+    const facts = comparativePair
+      ? uniqueStrings([comparativePair.left.fact, comparativePair.right.fact, ...baseFacts], 7).map((fact) =>
+          cleanTextAtBoundary(fact, 220),
+        )
+      : baseFacts;
+    const comparativeMethodTerm = buildComparativeReadingMethodTerm(comparativePair);
+    const keyTerms = comparativeMethodTerm
+      ? [comparativeMethodTerm, ...projectedCumulativeTerms(entries, facts.length)].slice(0, facts.length)
+      : projectedCumulativeTerms(entries, facts.length);
     if (facts.length < 3) {
       skippedLessonIndices.push(lessonIndex);
       continue;
@@ -909,6 +1067,13 @@ export function projectCumulativeAssessmentKernels({
         ? `Lessons ${coveredLessonNumbers[0]}-${coveredLessonNumbers.at(-1)}`
         : `Lesson ${coveredLessonNumbers[0]}`;
     const assessmentTitle = cleanText(lesson?.title, 160).replace(/^lesson\s+\d+\s*[:.-]\s*/i, '');
+    const lessonAssessments = asArray(lesson?.sections)
+      .flatMap((section) => asArray(section?.weeklyAssessments))
+      .map((value) => cleanText(value, 140))
+      .filter(Boolean);
+    const comparativeProduct =
+      lessonAssessments.find((value) => /\bcomparative\b.*\b(?:essay|proposal)\b/i.test(value)) ||
+      'comparative essay proposal';
     const termNames = keyTerms.map((term) => cleanText(term.term, 80)).filter(Boolean);
     // Cumulative-review lessons bypass the model-backed Scion pass that adds
     // the course's canonical target-language pair. Preserve the same language
@@ -924,8 +1089,12 @@ export function projectCumulativeAssessmentKernels({
       kernel: {
         facts,
         scenario: {
-          setup: `Students prepare for ${assessmentTitle || 'the cumulative assessment'} by comparing claims already established across ${coveredSpan}.`,
-          materials: `course notes, worked examples, and returned practice from ${coveredSpan}`,
+          setup: comparativePair
+            ? `Students compare ${comparativePair.lens} in ${comparativePair.left.reading} and ${comparativePair.right.reading}. They test these two admitted claims: ${comparativePair.left.fact} ${comparativePair.right.fact} Each student selects one locatable passage from each assigned edition, analyzes a formal detail, defends a comparative interpretation, and states its limit.`
+            : `Students prepare for ${assessmentTitle || 'the cumulative assessment'} by comparing claims already established across ${coveredSpan}.`,
+          materials: comparativePair
+            ? `locatable passages from the assigned editions of ${comparativePair.left.reading} and ${comparativePair.right.reading}, their surrounding contexts, and the two admitted formal claims`
+            : `course notes, worked examples, and returned practice from ${coveredSpan}`,
         },
         provenance: {
           source: 'previously-admitted-lesson-kernels',
@@ -934,6 +1103,12 @@ export function projectCumulativeAssessmentKernels({
         },
       },
       keyTerms,
+      ...(comparativePair
+        ? {
+            discussionPrompt: buildComparativeReadingDiscussion(comparativePair),
+            assignmentCore: buildComparativeReadingAssignment(comparativePair, comparativeProduct),
+          }
+        : {}),
       studyGuide: {
         summary: evenlySpacedEntries(facts, 4).join(' '),
         reviewStrategy: `Use retrieval practice across ${coveredSpan}: explain ${
@@ -1463,6 +1638,8 @@ export function recoverTruncatedSkeletonObject(text) {
 }
 
 const SKELETON_ASSESSMENT_KINDS = new Set(['graded-artifact', 'in-class', 'exam', 'oral']);
+const NATIVE_SKELETON_INSTRUCTION_PLACEHOLDER_RE =
+  /\b(?:assessment title|reading\/work title|supporting material\/resource title|exact source title)\b.*\b(?:verbatim|as named in the source|copied from source materials)\b/i;
 
 // Weak local models occasionally serialize two weighted list items into one
 // assessment title, for example:
@@ -1531,7 +1708,6 @@ export function recoverExplicitRecurringAssessmentCadences(sourceText) {
 
 function recoverExplicitOneOffAssessments(sourceText, sessions) {
   const topics = recoverExplicitLessonSequence(sourceText, sessions.length);
-  if (topics.length !== sessions.length) return [];
   const recovered = [];
   const seen = new Set();
   const add = (title, dueSession) => {
@@ -1541,18 +1717,48 @@ function recoverExplicitOneOffAssessments(sourceText, sessions) {
     seen.add(key);
     recovered.push({ title: clean, dueSession });
   };
-  topics.forEach((topic, index) => {
-    const culmination = topic.match(/\bculminating\s+in\s+([^;,.]+)/i)?.[1];
-    const culminationTitle = assessmentPhraseFromSource(culmination);
-    if (culminationTitle) add(culminationTitle, index + 1);
+  if (topics.length === sessions.length) {
+    topics.forEach((topic, index) => {
+      const culmination = topic.match(/\bculminating\s+in\s+([^;,.]+)/i)?.[1];
+      const culminationTitle = assessmentPhraseFromSource(culmination);
+      if (culminationTitle) add(culminationTitle, index + 1);
 
-    // A final/midterm item named inside an explicit ordered lesson sequence is
-    // a due-date signal, not permission to turn the assessment into a second
-    // filler lesson. Keep the source's concise identity only.
-    const scheduled = topic.match(
-      /\b((?:final|midterm)\s+(?:essay proposal|paper|project|exam(?:ination)?|presentation|portfolio|performance|report|test))\b/i,
-    )?.[1];
-    if (scheduled) add(scheduled, index + 1);
+      // A final/midterm item named inside an explicit ordered lesson sequence is
+      // a due-date signal, not permission to turn the assessment into a second
+      // filler lesson. Keep the source's concise identity only.
+      const scheduled = topic.match(
+        /\b((?:final|midterm)\s+(?:essay proposal|paper|project|exam(?:ination)?|presentation|portfolio|performance|report|test))\b/i,
+      )?.[1];
+      if (scheduled) add(scheduled, index + 1);
+    });
+  }
+
+  // Compact briefs often name a bare "midterm" or "final exam" without a
+  // week-by-week schedule. That source phrase is still a real assessment
+  // identity. Recover it directly instead of accepting the small model's
+  // schema-example title or inventing a per-lesson assessment.
+  const source = cleanText(sourceText, 8000);
+  const unscheduled = [
+    ...source.matchAll(
+      /\b(midterm(?:\s+(?:exam(?:ination)?|test))?|final\s+(?:essay proposal|paper|project|exam(?:ination)?|presentation|portfolio|performance|report|test))\b/gi,
+    ),
+  ];
+  unscheduled.forEach((match) => {
+    const title = match[1];
+    const identity = /^(midterm|final)\b/i.exec(title)?.[1]?.toLowerCase();
+    if (
+      recovered.some((entry) => {
+        const existing = cleanText(entry.title, 140);
+        return (
+          existing.toLowerCase() === title.toLowerCase() ||
+          (identity && new RegExp(`^${identity}\\b`, 'i').test(existing))
+        );
+      })
+    ) {
+      return;
+    }
+    const dueSession = /^midterm\b/i.test(title) ? Math.max(1, Math.ceil(sessions.length / 2)) : sessions.length;
+    add(title, dueSession);
   });
   return recovered;
 }
@@ -1570,6 +1776,29 @@ function sourceSupportsNamedAssessmentTitle(title, sourceText) {
     /\b(?:final\s+(?:paper|project|exam(?:ination)?|presentation|portfolio|performance|report|test)|midterm(?:\s+(?:exam(?:ination)?|test))?|comparative\s+essay\s+proposal)\b/i,
   )?.[0];
   return Boolean(compactIdentity && source.includes(compactIdentity.toLowerCase()));
+}
+
+function normalizedAssessmentSourceIdentity(title) {
+  const normalized = cleanText(title, 240)
+    .replace(EXPLICIT_ASSESSMENT_PERCENT_RE, '')
+    .replace(/^(?:an?|the)\s+/i, '')
+    .replace(/\s*:\s*.+$/, '')
+    .trim()
+    .toLowerCase();
+  // A compact source may say only "a midterm" while the base model expands
+  // that identity to "Midterm Assessment (50%)". They are one source event,
+  // not two assessments. Keep final artifact nouns distinct (final paper vs
+  // final exam), but collapse harmless midterm exam/assessment suffixes.
+  if (/^midterm(?:\s+(?:assessment|exam(?:ination)?|test))?$/.test(normalized)) return 'midterm';
+  return normalized;
+}
+
+function assessmentRegistryDeduplicationKey(entry) {
+  const identity = normalizedAssessmentSourceIdentity(entry?.title);
+  // One-off source events must remain unique even when the model guesses a
+  // different due lesson. Source recovery owns the placement.
+  if (identity === 'midterm' || /^final\s+/.test(identity)) return `one-off:${identity}`;
+  return `${entry?.dueSession}:${identity}`;
 }
 
 function splitFusedWeightedAssessmentTitle(value) {
@@ -1774,22 +2003,46 @@ export function parseNativeSkeletonResponse(text, { expectedLessons = null, sour
   }
   let sessionSequenceRecovery = null;
   const sourceLessonSequence = recoverExplicitLessonSequence(sourceText, sessions.length, parsed?.course?.name);
+  const explicitSourceLessonSequence = extractExplicitLessonSequence(sourceText, { expectedCount: sessions.length });
+  const sourceSequenceIsAuthoritative = explicitSourceLessonSequence.length === sessions.length;
   const repeatedSessionTitles = hasExcessiveSessionTitleReuse(sessions);
   const misalignedOrders =
     sourceLessonSequence.length === sessions.length
       ? explicitLessonSequenceMisalignments(sessions, sourceLessonSequence)
       : [];
-  if (sourceLessonSequence.length === sessions.length && (repeatedSessionTitles || misalignedOrders.length >= 2)) {
+  if (
+    sourceLessonSequence.length === sessions.length &&
+    (sourceSequenceIsAuthoritative || repeatedSessionTitles || misalignedOrders.length >= 2)
+  ) {
     const authoredTitles = sessions.map((session) => session.title);
-    sessions = sessions.map((session, index) => ({
-      ...session,
-      title: sourceLessonSequence[index],
-      sectionTitles: [sourceLessonSequence[index]],
-    }));
+    const restoreSourceTitles = repeatedSessionTitles || misalignedOrders.length >= 2;
+    sessions = sessions.map((session, index) => {
+      const sourceTitle = sourceLessonSequence[index];
+      const canonicalSourceTitle = cleanText(
+        resolveScionTargetLanguageKnowledge({
+          courseName: parsed?.course?.name,
+          lesson: { title: sourceTitle, topics: sourceTitle },
+        })?.projectionLabel,
+        160,
+      );
+      const title = canonicalSourceTitle || (restoreSourceTitles ? sourceTitle : session.title);
+      return {
+        ...session,
+        title,
+        // When the authored session identity is already aligned, retain its
+        // human-friendly casing but still remove speculative section
+        // renamings. Otherwise bind both levels to the explicit source.
+        sectionTitles: [title],
+      };
+    });
     sessionSequenceRecovery = {
       kind: 'explicit-source-lesson-sequence',
       recoveredCount: sessions.length,
-      reason: repeatedSessionTitles ? 'repeated-titles' : 'ordered-topic-misalignment',
+      reason: repeatedSessionTitles
+        ? 'repeated-titles'
+        : misalignedOrders.length >= 2
+          ? 'ordered-topic-misalignment'
+          : 'source-authored-sequence',
       authoredTitles,
       misalignedOrders,
     };
@@ -1848,7 +2101,7 @@ export function parseNativeSkeletonResponse(text, { expectedLessons = null, sour
       // titles arrive as "Title: 1. Title" echoes — dedupe at birth (the
       // registry title is the package-wide identity).
       const rawTitle = cleanText(entry?.title, 500);
-      if (!rawTitle) return [];
+      if (!rawTitle || NATIVE_SKELETON_INSTRUCTION_PLACEHOLDER_RE.test(rawTitle)) return [];
       const titleParts = splitFusedWeightedAssessmentTitle(rawTitle);
       const wasFused = titleParts.length > 1;
       if (wasFused) assessmentListRecovery.fusedEntryCount += 1;
@@ -1900,18 +2153,16 @@ export function parseNativeSkeletonResponse(text, { expectedLessons = null, sour
         dueSession: session.order,
       })),
     );
-    const oneOff = explicitOneOffAssessments.map((entry) => ({
-      ...entry,
-      kind: classifyAssessmentKind(entry.title),
-    }));
-    const recoveredKeys = new Set(
-      [...recurring, ...oneOff].map(
-        (entry) =>
-          `${entry.dueSession}:${cleanText(entry.title, 240)
-            .toLowerCase()
-            .replace(/\s*:\s*.+$/, '')}`,
-      ),
+    const parsedOneOffIdentities = new Set(
+      parsedAssessments.map((entry) => normalizedAssessmentSourceIdentity(entry.title)),
     );
+    const oneOff = explicitOneOffAssessments
+      .filter((entry) => !parsedOneOffIdentities.has(normalizedAssessmentSourceIdentity(entry.title)))
+      .map((entry) => ({
+        ...entry,
+        kind: classifyAssessmentKind(entry.title),
+      }));
+    const recoveredKeys = new Set([...recurring, ...oneOff].map(assessmentRegistryDeduplicationKey));
     const retained = parsedAssessments.filter((entry) => {
       if (!sourceSupportsNamedAssessmentTitle(entry.title, sourceText)) return false;
       const entryStem = cleanText(entry.title, 240)
@@ -1920,15 +2171,13 @@ export function parseNativeSkeletonResponse(text, { expectedLessons = null, sour
         .trim()
         .toLowerCase();
       if (recurringAssessmentCadences.some((cadence) => cadence.toLowerCase() === entryStem)) return false;
-      const key = `${entry.dueSession}:${cleanText(entry.title, 240)
-        .toLowerCase()
-        .replace(/\s*:\s*.+$/, '')}`;
+      const key = assessmentRegistryDeduplicationKey(entry);
       return !recoveredKeys.has(key);
     });
     const seen = new Set();
     assessments = [...recurring, ...oneOff, ...retained]
       .filter((entry) => {
-        const key = `${entry.dueSession}:${cleanText(entry.title, 240).toLowerCase()}`;
+        const key = assessmentRegistryDeduplicationKey(entry);
         if (seen.has(key)) return false;
         seen.add(key);
         return true;
@@ -1942,25 +2191,52 @@ export function parseNativeSkeletonResponse(text, { expectedLessons = null, sour
       droppedUnsupportedItemCount: Math.max(0, parsedAssessments.length - retained.length),
     };
   } else {
+    const recoveredOneOff = explicitOneOffAssessments.map((entry) => ({
+      ...entry,
+      kind: classifyAssessmentKind(entry.title),
+    }));
+    const sourceBoundParsed =
+      typeof sourceText === 'string' && sourceText.trim()
+        ? parsedAssessments.filter((entry) => sourceSupportsNamedAssessmentTitle(entry.title, sourceText))
+        : parsedAssessments;
+    const seen = new Set();
+    // Recovered source identities lead so their source-grounded title and
+    // placement win over a model-expanded duplicate.
+    const sourceBoundAssessments = [...recoveredOneOff, ...sourceBoundParsed]
+      .filter((entry) => {
+        const key = assessmentRegistryDeduplicationKey(entry);
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
+      .map((entry, index) => ({ id: `a${index + 1}`, ...entry }));
     // A recovered response has an incomplete assessment registry by
     // construction. Use the compiler's complete deterministic cadence instead
     // of treating an arbitrary prefix as the whole grading plan.
     assessments =
-      !recoveredFromTruncation && parsedAssessments.length > 0
-        ? parsedAssessments
+      !recoveredFromTruncation && sourceBoundAssessments.length > 0
+        ? sourceBoundAssessments
         : synthesizeSessionAssessments(sessions);
   }
 
   const parsedReadings = asArray(parsed.readings)
     .map((entry, index) => {
       const title = cleanText(entry?.title, 240);
-      if (!title) return null;
+      if (!title || NATIVE_SKELETON_INSTRUCTION_PLACEHOLDER_RE.test(title)) return null;
       return { id: cleanText(entry?.id, 24) || `r${index + 1}`, title, dueSession: resolveDueSession(entry, title) };
     })
     .filter(Boolean);
-  const recoveredReadings =
-    parsedReadings.length === 0 ? recoverExplicitNamedReadings(sourceText, sessions.length) : [];
-  const readings = parsedReadings.length > 0 ? parsedReadings : recoveredReadings;
+  // Pass A is a transcriber, not a reading recommender. When the caller
+  // supplies the source brief, its explicit reading list is authoritative.
+  // A weak local model once promoted “Compare two examples…” into a required
+  // reading, and that fake title then contaminated every quiz item.
+  const recoveredReadings = recoverExplicitNamedReadings(sourceText, sessions.length);
+  const readings =
+    typeof sourceText === 'string' && sourceText.trim()
+      ? recoveredReadings
+      : parsedReadings.length > 0
+        ? parsedReadings
+        : recoveredReadings;
   let readingTopicRecovery = null;
   let readingAlignedSessionCount = 0;
   sessions = sessions.map((session) => {
@@ -2000,13 +2276,18 @@ export function parseNativeSkeletonResponse(text, { expectedLessons = null, sour
   // v0.14.7 WS-B1: per-session supporting resources/materials — same shape
   // and discipline as readings (verbatim titles, clamped dueSession, ids
   // defaulted "m1"… from order).
-  const resources = asArray(parsed.resources)
+  const parsedResources = asArray(parsed.resources)
     .map((entry, index) => {
       const title = cleanText(entry?.title, 240);
-      if (!title) return null;
+      if (!title || NATIVE_SKELETON_INSTRUCTION_PLACEHOLDER_RE.test(title)) return null;
       return { id: cleanText(entry?.id, 24) || `m${index + 1}`, title, dueSession: resolveDueSession(entry, title) };
     })
     .filter(Boolean);
+  // Apply the same source-authority boundary to supporting resources. If the
+  // brief names no resource class, discard model-invented materials; verified
+  // curriculum-library resources can still join through the knowledge layer.
+  const resources =
+    typeof sourceText === 'string' && sourceText.trim() && !briefNamesResources(sourceText) ? [] : parsedResources;
 
   return {
     course: {
@@ -2079,10 +2360,15 @@ function distributeAcross(items, parts) {
  * preview run on while Pass B authors content.
  */
 export function buildNativeWireMap(skeleton, passBBySession = {}) {
-  const explicitWeightSuffix = (assessment) =>
-    Number.isFinite(assessment.weightPct) && !/\d{1,3}\s*%/.test(assessment.title)
-      ? `${assessment.title} (${assessment.weightPct}%)`
-      : assessment.title;
+  const explicitWeightSuffix = (assessment) => {
+    const displayTitle = cleanText(assessment.title, 180).replace(
+      /^character writing homework\b/i,
+      'Character Writing Homework',
+    );
+    return Number.isFinite(assessment.weightPct) && !/\d{1,3}\s*%/.test(displayTitle)
+      ? `${displayTitle} (${assessment.weightPct}%)`
+      : displayTitle;
+  };
 
   const lessons = skeleton.sessions.map((session) => {
     const authored = passBBySession[sessionLessonId(session)] || {};

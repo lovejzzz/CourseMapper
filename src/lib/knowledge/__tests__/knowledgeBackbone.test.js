@@ -222,6 +222,26 @@ describe('reading-list engine (P2)', () => {
     expect(graph.sessions[0].sections[0].resourceRefs).toBeUndefined();
   });
 
+  it('does not turn any compiler-owned projection marker into a fake open textbook', () => {
+    const graph = genomeLinkedGraph();
+    graph.enrichmentOverlay.lessonContent = {
+      'lesson-1': {
+        keyTerms: [
+          {
+            term: 'Comparative reading',
+            definition: 'A compiler-owned method term projected from earlier admitted lesson evidence.',
+            source: 'comparative-method-projection',
+          },
+        ],
+        conceptProvenance: { source: 'model-authored', citations: [] },
+      },
+    };
+
+    expect(attachGenomeResources(graph)).toBe(0);
+    expect(graph.resources).toEqual([]);
+    expect(graph.sessions[0].sections[0].resourceRefs).toBeUndefined();
+  });
+
   it('preserves explicit government-guidance URL, license, and attribution metadata', () => {
     const graph = genomeLinkedGraph();
     graph.enrichmentOverlay.lessonContent['lesson-1'].conceptProvenance.citations = [

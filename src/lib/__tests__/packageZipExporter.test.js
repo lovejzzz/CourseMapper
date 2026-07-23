@@ -10,6 +10,7 @@ import { buildDeliverableDocxBlob } from '../exporters/bulkDocxExporter';
 import { buildSlideDeckPptxBlob } from '../exporters/pptxExporter';
 import { buildXlsxBuffer } from '../xlsxGenerator';
 import { saveAs } from 'file-saver';
+import { buildNotApplicableDisposition } from '../deliverableApplicability';
 
 vi.mock('../customDeliverableLibrary', () => ({
   getCustomDeliverable: vi.fn((id) => (id === 'custom_weeklyReflection' ? { name: 'Weekly Reflection' } : null)),
@@ -175,6 +176,36 @@ describe('packageZipExporter', () => {
     expect(buildXlsxBuffer).toHaveBeenCalledOnce();
     expect(buildDeliverableDocxBlob).toHaveBeenCalledTimes(2);
     expect(buildSlideDeckPptxBlob).toHaveBeenCalledTimes(2);
+  });
+
+  it('exports one course-level handoff for a compiler-routed empty material', async () => {
+    const courseMap = makeCourseMap('Exam Only Course');
+    const data = {
+      deliverableDisposition: buildNotApplicableDisposition('assignments', {
+        reasonCode: 'no-standalone-assessment',
+        summary: 'No separate assignment brief is needed for this course.',
+        routeFeatureId: 'quizBank',
+        routeLabel: 'Quiz & Exam Bank',
+      }),
+      assignments: [],
+    };
+
+    const result = await buildCourseMaterialsZip({
+      courseMap,
+      deliverables: { assignments: { status: 'done', data } },
+      featureIds: ['courseMap', 'assignments'],
+      quality: false,
+    });
+
+    const assignmentFiles = result.files.filter((file) => file.featureId === 'assignments');
+    expect(assignmentFiles).toHaveLength(1);
+    expect(assignmentFiles[0].path).toBe('Assignment Briefs/Exam Only Course - Assignment Briefs.docx');
+    const assignmentCalls = buildDeliverableDocxBlob.mock.calls.filter(([featureId]) => featureId === 'assignments');
+    expect(assignmentCalls).toHaveLength(1);
+    expect(assignmentCalls[0][1]).toMatchObject({
+      deliverableDisposition: expect.objectContaining({ status: 'not-applicable' }),
+      assignments: [],
+    });
   });
 
   it('preserves the source lesson number in focused-workspace paths and manifest scope', async () => {
@@ -1193,6 +1224,100 @@ describe('packageZipExporter', () => {
     expect(sourceReport).toContain('CC BY-SA 4.0');
     expect(sourceReport).not.toContain('Source Review Notes');
     expect(sourceReport).not.toContain('Existing course map fields');
+  });
+
+  it('projects exact named-reading knowledge into trusted literature bibliography rows', async () => {
+    const courseMap = {
+      courseName: 'World Literature Seminar',
+      lessons: [
+        {
+          title: 'Lesson 1: Homeric Epic',
+          sections: [{ topicSection: 'The Odyssey', learningObjectives: 'Analyze recognition and hospitality.' }],
+        },
+        {
+          title: 'Lesson 2: Infinite Libraries',
+          sections: [
+            {
+              topicSection: 'The Library of Babel',
+              learningObjectives: 'Evaluate combinatorial totality and epistemic uncertainty.',
+            },
+          ],
+        },
+      ],
+    };
+    const readings = [
+      { id: 'R1', title: 'The Odyssey', lesson: 1, provenance: 'instructor-named' },
+      { id: 'R2', title: 'The Library of Babel', lesson: 2, provenance: 'instructor-named' },
+    ];
+    const result = await buildCourseMaterialsZip({
+      courseMap,
+      deliverables: {
+        lessonPlans: {
+          status: 'done',
+          data: {
+            lessonPlans: [
+              { lessonTitle: 'Lesson 1: Homeric Epic', objectives: ['Analyze recognition and hospitality.'] },
+              { lessonTitle: 'Lesson 2: Infinite Libraries', objectives: ['Evaluate combinatorial totality.'] },
+            ],
+          },
+        },
+      },
+      featureIds: ['courseMap', 'lessonPlans'],
+      courseGraph: {
+        course: { name: 'World Literature Seminar' },
+        concepts: [
+          { id: 'c1', term: 'recognition scene' },
+          { id: 'c2', term: 'combinatorial totality' },
+        ],
+        sessions: [
+          {
+            id: 's1',
+            number: 1,
+            title: 'Homeric Epic',
+            sections: [{ id: 'sec1', topic: 'The Odyssey', conceptRefs: ['c1'], resourceRefs: [] }],
+          },
+          {
+            id: 's2',
+            number: 2,
+            title: 'Infinite Libraries',
+            sections: [{ id: 'sec2', topic: 'The Library of Babel', conceptRefs: ['c2'], resourceRefs: [] }],
+          },
+        ],
+        resources: [],
+        readings,
+      },
+      quality: false,
+    });
+
+    const zip = await JSZip.loadAsync(await result.blob.arrayBuffer());
+    const manifest = JSON.parse(await zip.file('PACKAGE_MANIFEST.json').async('string'));
+    const sourceReport = await zip.file('SOURCE_REPORT.md').async('string');
+
+    expect(manifest.sourceLedger).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          title: 'The Odyssey of Homer',
+          provider: 'gutenberg',
+          license: 'public domain',
+          url: 'https://www.gutenberg.org/ebooks/1727',
+          conceptLinks: expect.arrayContaining([expect.objectContaining({ label: 'recognition scene' })]),
+        }),
+        expect.objectContaining({
+          title: 'The Library of Babel',
+          provider: 'wikipedia',
+          license: 'CC BY-SA 4.0',
+          url: 'https://en.wikipedia.org/wiki/The_Library_of_Babel',
+          conceptLinks: expect.arrayContaining([expect.objectContaining({ label: 'combinatorial totality' })]),
+        }),
+      ]),
+    );
+    expect(manifest.sourceLedgerSummary).toMatchObject({
+      trustedCount: 2,
+      trustedConceptLinkedCount: 2,
+      providers: ['gutenberg', 'wikipedia'],
+    });
+    expect(sourceReport).toContain('The Odyssey of Homer');
+    expect(sourceReport).toContain('The Library of Babel');
   });
 
   it('recovers Python sourceRef proof with licensed OpenStax sections when provider proof collapses to CourseIR review rows', async () => {

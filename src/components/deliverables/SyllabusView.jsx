@@ -149,6 +149,66 @@ export default function SyllabusView({ data, isStreaming, onEdit }) {
         </div>
       )}
 
+      {syl.signatureExperience && (
+        <div className="rounded-xl border border-cyan-100 bg-cyan-50/45 p-4">
+          <div className="mb-1.5 flex items-center gap-2">
+            <span aria-hidden="true" className="text-sm">
+              ✦
+            </span>
+            <h3 className="text-sm font-bold text-slate-700">
+              <E
+                value={syl.signatureExperience.title || 'Signature Course Experience'}
+                path={['syllabus', 'signatureExperience', 'title']}
+                onEdit={onEdit}
+              />
+            </h3>
+          </div>
+          {syl.signatureExperience.summary && (
+            <p className="text-xs leading-relaxed text-slate-700">
+              <E
+                value={syl.signatureExperience.summary}
+                path={['syllabus', 'signatureExperience', 'summary']}
+                onEdit={onEdit}
+                multiline
+              />
+            </p>
+          )}
+          {syl.signatureExperience.logExpectation && (
+            <p className="mt-2 text-xs leading-relaxed text-slate-600">
+              <span className="font-semibold text-slate-700">Observing log:</span>{' '}
+              <E
+                value={syl.signatureExperience.logExpectation}
+                path={['syllabus', 'signatureExperience', 'logExpectation']}
+                onEdit={onEdit}
+                multiline
+              />
+            </p>
+          )}
+          {syl.signatureExperience.fallback && (
+            <p className="mt-2 text-xs leading-relaxed text-slate-600">
+              <span className="font-semibold text-slate-700">Cloudy-night option:</span>{' '}
+              <E
+                value={syl.signatureExperience.fallback}
+                path={['syllabus', 'signatureExperience', 'fallback']}
+                onEdit={onEdit}
+                multiline
+              />
+            </p>
+          )}
+          {syl.signatureExperience.safety && (
+            <p className="mt-2 text-xs leading-relaxed text-slate-500">
+              <span className="font-semibold text-slate-600">Safety:</span>{' '}
+              <E
+                value={syl.signatureExperience.safety}
+                path={['syllabus', 'signatureExperience', 'safety']}
+                onEdit={onEdit}
+                multiline
+              />
+            </p>
+          )}
+        </div>
+      )}
+
       {/* ── Learning Outcomes ──────────────────────────────────── */}
       {syl.learningOutcomes?.length > 0 && (
         <div>
@@ -175,8 +235,8 @@ export default function SyllabusView({ data, isStreaming, onEdit }) {
         <div>
           <h3 className="text-sm font-bold text-slate-700 mb-1.5">Outcome ↔ Assessment Alignment</h3>
           <p className="text-xs text-slate-400 mb-2">
-            Every listed outcome is mapped to the graded artifacts that measure it and the lessons where students
-            practice before being assessed.
+            Every listed outcome is mapped to the formative checks or graded artifacts that measure it, plus the lessons
+            where students practice it.
           </p>
           <div className="overflow-x-auto">
             <table className="w-full text-xs border-collapse">

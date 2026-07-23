@@ -1,5 +1,6 @@
 import { getArrayKey } from './syncDependencies';
 import { READINESS_BLOCKER, READINESS_FEATURE_LABELS, READINESS_WARNING } from './deliverableReadiness';
+import { isDeliverableNotApplicable } from './deliverableApplicability';
 import { normalizeReadinessIssue, normalizeReadinessIssues } from './readinessIssueSchema';
 
 const DEFAULT_FEATURES = [
@@ -905,6 +906,9 @@ export function evaluateClassroomReadiness({
     }
 
     checkedFeatures.push({ featureId, label: labelFor(featureId) });
+    if (isDeliverableNotApplicable(featureId, entry.data)) {
+      continue;
+    }
     runFeatureSpecificChecks(featureId, entry.data, courseMap, lessonIndices, issues);
   }
 

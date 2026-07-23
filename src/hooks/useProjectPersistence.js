@@ -35,7 +35,16 @@ import {
   newProjectId,
 } from '../lib/cloudStorage';
 import { sanitizeMessagesForPersistence } from '../lib/messageSanitizer';
-import { buildCourseMapRecoveryAutosavePayload, buildLocalAutosavePayload } from '../lib/projectAutosave';
+import {
+  buildCourseMapRecoveryAutosavePayload,
+  buildIndexedDbAutosaveMarker,
+  buildLocalAutosavePayload,
+} from '../lib/projectAutosave';
+import {
+  loadProjectIndexedDbAutosave,
+  removeProjectIndexedDbAutosave,
+  saveProjectIndexedDbAutosave,
+} from '../lib/projectIndexedDbAutosave';
 import { prepareProjectSnapshotForRestore, sanitizeProjectSnapshot } from '../lib/projectSnapshotSanitizer';
 import { restorePersistedPackageEvidence, selectPersistablePackageEvidence } from '../lib/packageQualityPersistence';
 import { compileCompactProjectDeliverables } from '../lib/projectRestoreCompiler';
@@ -112,6 +121,7 @@ export default function useProjectPersistence({
   const cloudStatusTimerRef = useRef(null);
   const localStatusTimerRef = useRef(null);
   const saveTimerRef = useRef(null);
+  const indexedDbSaveQueueRef = useRef(Promise.resolve());
   const [isStartingNewProject, setIsStartingNewProject] = useState(false);
   const [newProjectError, setNewProjectError] = useState('');
   const [newProjectCloudSaveFailed, setNewProjectCloudSaveFailed] = useState(false);
@@ -431,11 +441,12 @@ export default function useProjectPersistence({
   const saveLocalProjectSnapshot = useCallback(
     (extra = {}) => {
       if (!hasGenerated || !courseMap) return false;
+      const fullSnapshot = buildProjectSnapshot(extra);
       const compactSnapshot = buildCloudProjectSnapshot({ ...extra, localSaveMode: 'compact-autosave' });
       try {
         setLocalSaveStatus('saving');
         const { payload } = buildLocalAutosavePayload({
-          fullSnapshot: buildProjectSnapshot(extra),
+          fullSnapshot,
           compactSnapshot,
         });
         localStorage.setItem(STORAGE_KEY, payload);
@@ -444,20 +455,41 @@ export default function useProjectPersistence({
         localStatusTimerRef.current = setTimeout(() => setLocalSaveStatus('idle'), 3000);
         return true;
       } catch (e) {
-        try {
-          localStorage.removeItem(STORAGE_KEY);
-          localStorage.setItem(STORAGE_KEY, buildCourseMapRecoveryAutosavePayload(compactSnapshot));
-          setLocalSaveStatus('saved');
-          clearTimeout(localStatusTimerRef.current);
-          localStatusTimerRef.current = setTimeout(() => setLocalSaveStatus('idle'), 3000);
-          return true;
-        } catch (fallbackError) {
-          warn('Save failed:', fallbackError);
-          setLocalSaveStatus('error');
-          clearTimeout(localStatusTimerRef.current);
-          localStatusTimerRef.current = setTimeout(() => setLocalSaveStatus('idle'), 5000);
-          return false;
-        }
+        // localStorage is an origin-wide ~5 MB bucket shared with caches and
+        // conversations. Preserve the exact project in IndexedDB rather than
+        // deleting unrelated user data or showing a false terminal failure.
+        indexedDbSaveQueueRef.current = indexedDbSaveQueueRef.current
+          .catch(() => {})
+          .then(async () => {
+            await saveProjectIndexedDbAutosave(JSON.stringify(fullSnapshot));
+            try {
+              localStorage.removeItem(STORAGE_KEY);
+              localStorage.setItem(STORAGE_KEY, buildIndexedDbAutosaveMarker(fullSnapshot));
+            } catch {
+              // IndexedDB remains the source of truth even if an unusually
+              // saturated origin cannot accept the small resume pointer.
+            }
+            setLocalSaveStatus('saved');
+            clearTimeout(localStatusTimerRef.current);
+            localStatusTimerRef.current = setTimeout(() => setLocalSaveStatus('idle'), 3000);
+          })
+          .catch(async (indexedDbError) => {
+            // Older/private browsers can disable IndexedDB. Keep the former
+            // course-map-only recovery belt as the last available option.
+            try {
+              localStorage.removeItem(STORAGE_KEY);
+              localStorage.setItem(STORAGE_KEY, buildCourseMapRecoveryAutosavePayload(compactSnapshot));
+              setLocalSaveStatus('saved');
+              clearTimeout(localStatusTimerRef.current);
+              localStatusTimerRef.current = setTimeout(() => setLocalSaveStatus('idle'), 3000);
+            } catch (fallbackError) {
+              warn('Save failed:', fallbackError, indexedDbError);
+              setLocalSaveStatus('error');
+              clearTimeout(localStatusTimerRef.current);
+              localStatusTimerRef.current = setTimeout(() => setLocalSaveStatus('idle'), 5000);
+            }
+          });
+        return true;
       }
     },
     [buildCloudProjectSnapshot, buildProjectSnapshot, courseMap, hasGenerated],
@@ -533,12 +565,25 @@ export default function useProjectPersistence({
 
   // ── Detect saved session on mount ──
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return;
-      const saved = prepareProjectSnapshotForRestore(JSON.parse(raw));
-      if (saved.courseMap) setHasSavedSession(true);
-    } catch {}
+    let cancelled = false;
+    async function detectSavedSession() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const saved = prepareProjectSnapshotForRestore(JSON.parse(raw));
+          if (saved.courseMap && !cancelled) setHasSavedSession(true);
+          return;
+        }
+        const indexedDbPayload = await loadProjectIndexedDbAutosave();
+        if (!indexedDbPayload || cancelled) return;
+        const saved = prepareProjectSnapshotForRestore(JSON.parse(indexedDbPayload));
+        if (saved.courseMap) setHasSavedSession(true);
+      } catch {}
+    }
+    detectSavedSession();
+    return () => {
+      cancelled = true;
+    };
     // Intentionally runs only on mount: checks localStorage once for a saved session.
     // STORAGE_KEY and setHasSavedSession are stable (constant / useState setter) so
     // omitting them from deps is safe and avoids misleading the reader.
@@ -547,7 +592,13 @@ export default function useProjectPersistence({
   // ── Restore saved session ──
   async function doRestoreSession() {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      let raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const marker = JSON.parse(raw);
+        if (marker?.indexedDbAutosave) raw = await loadProjectIndexedDbAutosave();
+      } else {
+        raw = await loadProjectIndexedDbAutosave();
+      }
       if (!raw) return;
       const saved = prepareProjectSnapshotForRestore(JSON.parse(raw));
       if (!saved.courseMap) return;
@@ -764,6 +815,10 @@ export default function useProjectPersistence({
     try {
       localStorage.removeItem(STORAGE_KEY);
     } catch {}
+    indexedDbSaveQueueRef.current = indexedDbSaveQueueRef.current
+      .catch(() => {})
+      .then(() => removeProjectIndexedDbAutosave())
+      .catch(() => {});
     // 4. Reset all state
     gen.resetGeneration();
     rev.resetRevision();

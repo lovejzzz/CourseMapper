@@ -2686,6 +2686,7 @@ export default function useDeliverables({
         const blueprint = compactBlueprintForStorage(
           courseGraphLib.buildBlueprintFromGraph(courseGraph, {
             scopeIndices,
+            sourceBrief,
             localization: (await import('../lib/professorProfile')).getProfile(),
             ...(courseMapAssessmentRegistry ? { assessmentRegistry: courseMapAssessmentRegistry } : {}),
             ...(courseMapReadingsRegistry ? { readingsRegistry: courseMapReadingsRegistry } : {}),

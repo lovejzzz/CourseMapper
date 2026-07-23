@@ -1,4 +1,5 @@
 import { scopeCourseMapToLessons, scopeDeliverableDataToLessons } from './deliverableReadiness';
+import { isDeliverableNotApplicable } from './deliverableApplicability';
 import {
   assertTableRowsHaveNoInternalExportLanguage,
   findInternalExportText,
@@ -59,6 +60,26 @@ function getFailureFormat(featureId) {
   if (featureId === 'courseMap') return 'xlsx/pdf';
   if (featureId === 'slideDecks') return 'pptx/pdf/csv';
   return 'docx/pdf/csv';
+}
+
+function isNarrativeOnlyExport(featureId, data) {
+  if (isDeliverableNotApplicable(featureId, data)) return true;
+  if (featureId !== 'rubrics') return false;
+  const rubrics = expandKeys('rubrics', data)?.rubrics || [];
+  return (
+    rubrics.length > 0 &&
+    rubrics.every((rubric) => {
+      const criteria = Array.isArray(rubric?.criteria) ? rubric.criteria : [];
+      const handoffText = [
+        rubric?.title,
+        rubric?.gradedWork,
+        rubric?.assessmentType,
+        rubric?.taskDirections,
+        rubric?.teacherNotes,
+      ].join(' ');
+      return criteria.length === 0 && /\b(?:exam|quiz)\b/i.test(handoffText) && /\banswer key\b/i.test(handoffText);
+    })
+  );
 }
 
 function toStr(value) {
@@ -299,6 +320,19 @@ async function verifyDeliverableExport({ featureId, entry, courseMap, lessonFilt
       contentQuality.findings.length > 0 ? { findings: contentQuality.findings.slice(0, 10) } : undefined,
     ),
   );
+
+  if (isNarrativeOnlyExport(featureId, scopedData)) {
+    checks.push(
+      createCheck(
+        featureId,
+        'applicability',
+        'passed',
+        `${resolveFeatureLabel(featureId)} is intentionally narrative-only; empty tabular CSV and PDF variants are omitted.`,
+      ),
+    );
+    checks.push(await verifyDocxExport(featureId, scopedData, courseName));
+    return checks;
+  }
 
   checks.push(await verifyCsvExport(featureId, scopedData));
   if (featureId === 'slideDecks') {

@@ -28,6 +28,7 @@ import { scionFactContractForLesson } from './scionEvidenceContract';
 import { resolveScionTargetLanguageKnowledge } from './scionLanguageKnowledge';
 import { resolveScionLiteratureKnowledge } from './scionLiteratureKnowledge';
 import { META_SURFACE_RE } from './metaSurfaceAdmission';
+import { EXACT_SOURCE_LEDGER_PROVENANCE } from './sourceLedgerProvenance';
 
 const DEFAULT_MAX_LESSONS = 12;
 const MAX_TEXT_CHARS = 320;
@@ -910,6 +911,10 @@ function summarizeLessonsForContent(courseMap, lessonIndices, sourceBrief = '', 
           ? {
               sourceFactPolicy: 'numbered-source-ledger-v1',
               sourceFacts,
+              ...(compilerKnowledge?.pair ? { targetLanguagePair: { ...compilerKnowledge.pair } } : {}),
+              ...(compilerKnowledge?.projectionLabel
+                ? { sourceProjectionLabel: truncateText(compilerKnowledge.projectionLabel, 80) }
+                : {}),
               ...(sourceConcepts.length >= 3 ? { sourceConcepts } : {}),
               ...(compilerKnowledgeSource ? { sourceLedgerAttribution: compilerKnowledgeSource } : {}),
             }
@@ -2043,6 +2048,19 @@ export function parseLessonKernelResponse(text, { prompt, expectedLessonIds } = 
       { facts, keyTerms, scenario, discussionPrompt, assignmentCore, mc, workedExample },
       { itemPlan },
     );
+    if (exactSourceLedgerFacts) {
+      const sourceProjectionLabel = cleanText(promptLesson?.sourceProjectionLabel);
+      payload.kernel = {
+        ...(payload.kernel || {}),
+        ...(sourceProjectionLabel ? { projectionLabel: sourceProjectionLabel } : {}),
+        provenance: {
+          source: EXACT_SOURCE_LEDGER_PROVENANCE,
+          copiedFactsVerbatim: true,
+          factCount: facts.length,
+        },
+      };
+      payload.enrichmentSource = EXACT_SOURCE_LEDGER_PROVENANCE;
+    }
     if (targetLanguagePair) payload.targetLanguagePair = targetLanguagePair;
     // v0.14.5 (F2): the optional language-course dialogue rides the payload
     // beside the projected surfaces. Malformed turns were dropped above the

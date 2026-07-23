@@ -197,6 +197,7 @@ test.describe('Generated workspace mobile layout', () => {
   for (const viewport of [
     { label: 'phone', width: 390, height: 844 },
     { label: 'tablet', width: 768, height: 1024 },
+    { label: 'compact laptop', width: 1024, height: 768 },
   ]) {
     test(`keeps content, agent, and export panels within a ${viewport.label} viewport`, async ({ page }) => {
       await page.setViewportSize({ width: viewport.width, height: viewport.height });
@@ -336,10 +337,11 @@ test.describe('Generated workspace mobile layout', () => {
       }
 
       const collapseLessonTarget = await page.getByRole('button', { name: 'Collapse lesson 1' }).boundingBox();
-      // Chromium may report an exact 44px CSS target a fraction below 44
-      // after device-pixel conversion (for example 43.99997px at 768px).
-      expect(collapseLessonTarget.width).toBeGreaterThanOrEqual(43.9);
-      expect(collapseLessonTarget.height).toBeGreaterThanOrEqual(43.9);
+      // Touch viewports use the 44px platform floor; compact pointer
+      // viewports still retain a deliberate 32px desktop target.
+      const minimumCollapseTarget = viewport.width <= 768 ? 43.9 : 31.9;
+      expect(collapseLessonTarget.width).toBeGreaterThanOrEqual(minimumCollapseTarget);
+      expect(collapseLessonTarget.height).toBeGreaterThanOrEqual(minimumCollapseTarget);
 
       await page.getByTestId('mobile-workspace-switcher').getByRole('button', { name: 'Agent' }).click();
       await expect(

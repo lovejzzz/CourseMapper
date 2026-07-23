@@ -122,6 +122,24 @@ describe('E3 — retry bookkeeping', () => {
     );
   });
 
+  it('does not retry a whole course after the shared preview server dies', () => {
+    expect(
+      shouldRetryCourseAttempt({
+        status: 'failed',
+        phase: 'finalizing-package',
+        failureClass: 'preview-infrastructure',
+        error: 'CourseMapper preview request failed: net::ERR_EMPTY_RESPONSE',
+      }),
+    ).toBe(false);
+    expect(
+      shouldRetryCourseAttempt({
+        status: 'failed',
+        phase: 'loading-landing',
+        error: 'page.goto: net::ERR_CONNECTION_REFUSED',
+      }),
+    ).toBe(false);
+  });
+
   it('single passing attempt: plain "passed", no retry', () => {
     const summary = summarizeCourseAttempts([{ status: 'passed', digest: digestOf(0.1), durationMs: 1000 }]);
     expect(summary).toMatchObject({ statusLabel: 'passed', status: 'passed', retried: false, attemptCount: 1 });

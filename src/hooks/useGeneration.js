@@ -262,6 +262,14 @@ export default function useGeneration({
     }
 
     const partial = parsePartialJSON(fullText);
+    if (String(fullText || '').trim()) {
+      const expected = Number(expectedLessonsRef.current?.expected);
+      setStreamDetail(
+        Number.isInteger(expected) && expected > 0
+          ? `Writing the ${expected}-lesson course structure on this device…`
+          : 'Writing the course structure on this device…',
+      );
+    }
     if (partial && partial.lessons) {
       lastGoodParseRef.current = partial;
       setCourseMap({ ...partial });
@@ -271,8 +279,12 @@ export default function useGeneration({
         const sections = lastLesson.sections || [];
         const lastSection = sections[sections.length - 1];
         const lessonNum = lessons.length;
-        const estTotal = Math.max(fullText.length * 1.3, 8000);
-        setStreamProgress(Math.min(Math.round((fullText.length / estTotal) * 90), 90));
+        const expected = Number(expectedLessonsRef.current);
+        const observedProgress =
+          Number.isInteger(expected) && expected > 0
+            ? Math.round((Math.min(lessons.length, expected) / expected) * 90)
+            : Math.min(Math.round((fullText.length / Math.max(fullText.length * 1.3, 8000)) * 90), 90);
+        setStreamProgress(observedProgress);
         if (lastSection) {
           const filledKeys = Object.keys(lastSection).filter((k) => lastSection[k]);
           const lastKey = filledKeys[filledKeys.length - 1];
@@ -975,7 +987,11 @@ export default function useGeneration({
         if (parseWarning) setError(parseWarning);
 
         setIsStreaming(true);
-        setStreamDetail('');
+        setStreamDetail(
+          detected?.expected
+            ? `Scion is reading your brief and planning ${detected.expected} lessons on this device…`
+            : 'Scion is reading your brief and planning the course on this device…',
+        );
         setStreamProgress(0);
 
         // Build column keys for continuation prompts

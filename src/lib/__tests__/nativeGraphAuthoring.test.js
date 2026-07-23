@@ -814,6 +814,91 @@ describe('cumulative assessment kernel projection', () => {
     ).toBe(true);
   });
 
+  it('builds a real two-text formal comparison when earlier lessons name assigned readings', () => {
+    const comparativeLessons = [
+      {
+        title: 'Lesson 1: Homeric Epic',
+        sections: [{ topicSection: 'Epic form', readings: ['The Odyssey'] }],
+      },
+      {
+        title: 'Lesson 2: Frame Narratives',
+        sections: [{ topicSection: 'Frame narrative', readings: ['The Thousand and One Nights'] }],
+      },
+      {
+        title: 'Lesson 3: Comparative Reading Methods',
+        sections: [{ topicSection: 'Comparative Reading Strategies', weeklyAssessments: 'Comparative essay proposal' }],
+      },
+    ];
+    const lessonContent = {
+      'lesson-1': {
+        kernel: {
+          facts: [
+            'The Odyssey opens with an invocation that frames the poem’s subject.',
+            'Odysseus embeds a first-person account inside the poem’s broader third-person narration.',
+            'Recognition depends on characters interpreting signs and privileged knowledge.',
+          ],
+        },
+        keyTerms: [
+          {
+            term: 'embedded narration',
+            definition: 'Embedded narration places one speaker’s account inside a broader narrative frame.',
+            example: 'A reader compares Odysseus’s account with scenes presented by the external narrator.',
+            misconception: 'Every event is narrated from the same perspective.',
+            correction: 'Separate the embedded speaker from the broader narrator before interpreting authority.',
+          },
+        ],
+      },
+      'lesson-2': {
+        kernel: {
+          facts: [
+            'The Thousand and One Nights uses a frame narrative with multiple layers of storytelling.',
+            'Its episodic structure places stories inside a larger narrative situation.',
+            'Changes in perspective affect how readers evaluate a storyteller’s purpose.',
+          ],
+        },
+        keyTerms: [
+          {
+            term: 'frame narrative',
+            definition: 'A frame narrative places one or more stories inside a larger storytelling situation.',
+            example: 'A reader tracks the outer situation while interpreting an embedded story.',
+            misconception: 'The inner and outer stories always have the same narrator.',
+            correction: 'Identify each narrative level and the speaker who controls its information.',
+          },
+        ],
+      },
+    };
+
+    const result = projectCumulativeAssessmentKernels({
+      lessonContent,
+      courseMapLessons: comparativeLessons,
+      lessonIndices: [2],
+      courseName: 'World Literature',
+    });
+
+    expect(result).toEqual({ projectedLessonIndices: [2], skippedLessonIndices: [] });
+    const comparison = lessonContent['lesson-3'];
+    expect(comparison.keyTerms[0].term).toBe('comparative reading');
+    expect(comparison.keyTerms[0].source).toBeUndefined();
+    expect(comparison.kernel.facts.slice(0, 2)).toEqual([
+      'Odysseus embeds a first-person account inside the poem’s broader third-person narration.',
+      'The Thousand and One Nights uses a frame narrative with multiple layers of storytelling.',
+    ]);
+    expect(comparison.kernel.scenario.setup).toContain(
+      'Students compare narrative perspective in The Odyssey and The Thousand and One Nights.',
+    );
+    expect(comparison.kernel.scenario.setup).toContain('one locatable passage from each assigned edition');
+    expect(comparison.kernel.scenario.materials).not.toContain('returned practice');
+    expect(comparison.discussionPrompt.prompt).toContain(
+      'How does narrative perspective shape interpretation differently in The Odyssey and The Thousand and One Nights?',
+    );
+    expect(comparison.assignmentCore).toMatchObject({
+      canonicalAssessment: 'comparative essay proposal',
+    });
+    expect(comparison.assignmentCore.taskDescription).toContain('The Odyssey');
+    expect(comparison.assignmentCore.taskDescription).toContain('The Thousand and One Nights');
+    expect(comparison.assignmentCore.taskDescription).toContain('one locatable passage from each assigned edition');
+  });
+
   it('projects course synthesis from admitted compact fact ledgers before optional surfaces exist', () => {
     const synthesisLessons = [
       { title: 'Lesson 1: Defining World Literature', sections: [{ topicSection: 'Selection criteria' }] },

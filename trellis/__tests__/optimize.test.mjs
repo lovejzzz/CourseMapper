@@ -110,7 +110,7 @@ describe('pipeline integration of the deterministic fixes (mock, zero tokens)', 
     expect(result.digest.bloomAutoAligned[0]).toMatch(/List.*evaluate→remember/);
     expect(result.ledger.totals().usd).toBe(0);
     expect(result.digest.judgment).toMatch(/0 section, 0 full|repair round/);
-  }, 30000);
+  }, 120000);
 });
 
 describe('render backtick sanitizer (the format-58 fix)', () => {

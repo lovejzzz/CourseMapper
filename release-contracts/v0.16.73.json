@@ -1,0 +1,170 @@
+{
+  "version": "0.16.73",
+  "date": "July 23, 2026",
+  "title": "Make Green Agree Everywhere",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test",
+      "npm run format:check",
+      "npm run lint",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history",
+      "npx playwright test tests/workspace-mobile.spec.js tests/local-autosave.spec.js"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification reruns release, format, lint, unit, build, and bundle gates after push."
+    },
+    "ciDeep": {
+      "status": "not-current",
+      "note": "The adapter remains inactive and no paid-reference parity claim is made."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Production deployment remains downstream of the successful main verification run."
+    },
+    "liveProvider": {
+      "status": "success",
+      "url": "docs/evidence/SCION_V01673_BROWSER_ACCEPTANCE.json",
+      "note": "The browser-local Scion route completed a fresh Astronomy package at 99/A and produced a warning-free physical ZIP."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "Codex is the declared judge. No instructor, classroom, human-preference, or universal factual-validity claim is made."
+    },
+    "manualBrowser": {
+      "status": "success",
+      "url": "docs/evidence/SCION_V01673_BROWSER_ACCEPTANCE.json",
+      "note": "The controlled browser audit inspected ten material families, the Agent answer, three compact workspace modes, and the downloaded archive."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01673-browser-package-green",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "A fresh browser-local Astronomy build finishes at 99/A with zero findings and downloads a valid warning-free package.",
+      "anchors": ["docs/evidence/SCION_V01673_BROWSER_ACCEPTANCE.json", "src/lib/packageZipExporter.js"],
+      "proofCommands": ["npm test"],
+      "proofScopes": ["browser-live", "compiled-output", "unit"]
+    },
+    {
+      "id": "v01673-frame-and-responsive-audit",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "The browser review covers every material family and gives 1024px Content, Agent, and Export modes a readable full-width presentation.",
+      "anchors": [
+        "docs/evidence/SCION_V01673_BROWSER_ACCEPTANCE.json",
+        "src/AppFlow.jsx",
+        "src/index.css",
+        "tests/workspace-mobile.spec.js"
+      ],
+      "proofCommands": ["npx playwright test tests/workspace-mobile.spec.js"],
+      "proofScopes": ["browser-live", "unit"]
+    },
+    {
+      "id": "v01673-astronomy-content",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Direct learner-facing review preserves the axial-tilt, lunar-phase, and observation-alternative facts encoded by the Astronomy package.",
+      "anchors": [
+        "docs/evidence/SCION_V01673_BROWSER_ACCEPTANCE.json",
+        "tests/astronomy-shard-proof.test.js",
+        "src/lib/__tests__/courseBlueprintCompiler.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run tests/astronomy-shard-proof.test.js src/lib/__tests__/courseBlueprintCompiler.test.js"
+      ],
+      "proofScopes": ["browser-live", "compiled-output", "unit"]
+    },
+    {
+      "id": "v01673-faq-domain-routing",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "FAQ classification requires genuine technical context instead of treating isolated dataset or notebook words as software support signals.",
+      "anchors": [
+        "src/lib/courseBlueprintCompiler.js",
+        "tests/v0163-compiler-texture.test.js",
+        "docs/evidence/SCION_V01673_BROWSER_ACCEPTANCE.json"
+      ],
+      "proofCommands": ["npx vitest run tests/v0163-compiler-texture.test.js tests/astronomy-shard-proof.test.js"],
+      "proofScopes": ["unit", "browser-live"]
+    },
+    {
+      "id": "v01673-agent-compiled-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The Agent answers from compiled course evidence without another provider call or leaking internal facilitation choreography.",
+      "anchors": [
+        "src/lib/scionCourseAnswer.js",
+        "src/components/chat/ChatPanel.jsx",
+        "docs/evidence/SCION_V01673_BROWSER_ACCEPTANCE.json"
+      ],
+      "proofCommands": [
+        "npx vitest run src/lib/__tests__/scionCourseAnswer.test.js src/components/chat/__tests__/ChatPanel.agentCommands.test.jsx"
+      ],
+      "proofScopes": ["unit", "browser-live"]
+    },
+    {
+      "id": "v01673-export-applicability",
+      "status": "verified-current",
+      "changelogHighlightIndex": 5,
+      "summary": "Intentionally non-applicable assignments and rubric handoffs export one polished narrative artifact without meaningless empty format warnings.",
+      "anchors": [
+        "src/lib/deliverableApplicability.js",
+        "src/lib/deliverableExporters.js",
+        "src/lib/__tests__/packageZipExporter.test.js",
+        "src/lib/__tests__/packageExportVerifier.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run src/lib/__tests__/packageZipExporter.test.js src/lib/__tests__/packageExportVerifier.test.js"
+      ],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01673-artifact-defect-gates",
+      "status": "verified-current",
+      "changelogHighlightIndex": 6,
+      "summary": "Artifact gates catch visible prose seams and internal instructional language while preserving valid citation and abbreviation punctuation.",
+      "anchors": ["src/lib/quality/artifactDefectPatterns.js", "tests/v0163-compiler-texture.test.js"],
+      "proofCommands": ["npx vitest run tests/v0163-compiler-texture.test.js"],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01673-bounded-stable-suite",
+      "status": "verified-current",
+      "changelogHighlightIndex": 7,
+      "summary": "The stable suite runs with bounded worker concurrency and realistic integration timeouts instead of turning machine saturation into a false product failure.",
+      "anchors": [
+        "vite.config.js",
+        "trellis/__tests__/pipeline-mock.test.mjs",
+        "docs/evidence/SCION_V01673_BROWSER_ACCEPTANCE.json"
+      ],
+      "proofCommands": ["npm test"],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v01673-exact-grader-receipt",
+      "status": "verified-current",
+      "changelogHighlightIndex": 8,
+      "summary": "Grader 1.10.34 and held-out benchmark V20 bind the new defect checks to an exact implementation receipt while the adapter remains inactive.",
+      "anchors": [
+        "src/lib/quality/deepQualityGrader.js",
+        "evaluation/scion-adapters/held-out-course-benchmark-v20.json"
+      ],
+      "proofCommands": ["npm test"],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01673-shared-compiler-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 9,
+      "summary": "Shared compiler repairs benefit compatible providers while Scion's model download, local runtime, cache, and exact ledgers remain route-specific.",
+      "anchors": ["README.md", "docs/SCION_ADAPTER_ROADMAP.md", "docs/evidence/SCION_V01673_BROWSER_ACCEPTANCE.json"],
+      "proofCommands": ["npm run audit:release-history"],
+      "proofScopes": ["static-audit", "doc"]
+    }
+  ]
+}

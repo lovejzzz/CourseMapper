@@ -5,6 +5,7 @@ import {
   evaluateClassroomReadiness,
   summarizeClassroomReadiness,
 } from '../classroomReadiness';
+import { buildNotApplicableDisposition } from '../deliverableApplicability';
 
 function makeCourseMap(lessonCount = 4) {
   return {
@@ -22,6 +23,31 @@ function makeCourseMap(lessonCount = 4) {
 }
 
 describe('classroomReadiness', () => {
+  it('does not invent a classroom blocker for a compiler-routed empty Assignment Brief', () => {
+    const result = evaluateClassroomReadiness({
+      courseMap: makeCourseMap(2),
+      selectedFeatures: ['assignments'],
+      deliverables: {
+        assignments: {
+          status: 'done',
+          data: {
+            deliverableDisposition: buildNotApplicableDisposition('assignments', {
+              reasonCode: 'no-standalone-assessment',
+              summary: 'No separate assignment brief is needed for this course.',
+              routeFeatureId: 'quizBank',
+              routeLabel: 'Quiz & Exam Bank',
+            }),
+            assignments: [],
+          },
+        },
+      },
+    });
+
+    expect(result.status).toBe('ready');
+    expect(result.blockers).toHaveLength(0);
+    expect(result.checkedFeatureCount).toBe(1);
+  });
+
   it('flags incomplete or generic materials before classroom handoff', () => {
     const courseMap = makeCourseMap(4);
     const repeated =

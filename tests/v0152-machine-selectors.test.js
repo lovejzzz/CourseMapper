@@ -39,6 +39,8 @@ describe('the selectors', () => {
     expect(isFinishPassActive({ status: 'ready' })).toBe(false);
     expect(isFinishPassActive(null)).toBe(false);
     expect(isPackageReady({ status: 'ready' })).toBe(true);
+    expect(isPackageReady({ status: 'ready', warnings: 1 })).toBe(false);
+    expect(isPackageReady({ status: 'ready', blockers: 1 })).toBe(false);
     expect(isPackageReady({ status: 'blocked' })).toBe(false);
     expect(isPackageBlocked({ status: 'blocked' })).toBe(true);
     expect(finishStatusOf(null)).toBe('idle');

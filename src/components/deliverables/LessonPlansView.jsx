@@ -261,6 +261,84 @@ export default function LessonPlansView({
                   </div>
                 )}
 
+                {/* Sky-observation courses promise work outside the classroom.
+                    Keep the executable protocol visible in the workspace—not
+                    only inside the downloaded DOCX—so users can verify the
+                    weekly target, log fields, safety basics, and cloudy-night
+                    fallback before export. */}
+                {plan.observationProtocol && (
+                  <div className="rounded-xl border border-cyan-100 bg-cyan-50/45 p-3.5">
+                    <div className="mb-2 flex items-center gap-2">
+                      <span aria-hidden="true" className="text-sm">
+                        ✦
+                      </span>
+                      <SectionHeading>Evening Observation</SectionHeading>
+                      <span className="ml-auto rounded-full bg-white/80 px-2 py-0.5 text-xs font-semibold text-cyan-700">
+                        Field protocol
+                      </span>
+                    </div>
+                    {plan.observationProtocol.weeklyFocus && (
+                      <div className="rounded-lg border border-cyan-100/80 bg-white/70 p-3">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-cyan-700">This week</p>
+                        <p className="mt-1 text-xs leading-relaxed text-slate-700">
+                          <E
+                            value={plan.observationProtocol.weeklyFocus}
+                            path={[key, i, 'observationProtocol', 'weeklyFocus']}
+                            onEdit={onEdit}
+                            multiline
+                          />
+                        </p>
+                      </div>
+                    )}
+                    {plan.observationProtocol.logFields?.length > 0 && (
+                      <div className="mt-3">
+                        <p className="text-xs font-semibold text-slate-600">Record in the observing log</p>
+                        <ul className="mt-1.5 grid gap-1.5 sm:grid-cols-2">
+                          {plan.observationProtocol.logFields.map((field, fieldIndex) => (
+                            <li
+                              key={fieldIndex}
+                              className="flex gap-2 rounded-md bg-white/45 px-2.5 py-2 text-xs leading-relaxed text-slate-600"
+                            >
+                              <span aria-hidden="true" className="mt-0.5 text-cyan-500">
+                                ✓
+                              </span>
+                              <E
+                                value={field}
+                                path={[key, i, 'observationProtocol', 'logFields', fieldIndex]}
+                                onEdit={onEdit}
+                              />
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {plan.observationProtocol.cloudyAlternative && (
+                      <div className="mt-3 rounded-lg border border-slate-200/70 bg-white/65 p-3">
+                        <p className="text-xs font-semibold text-slate-700">If the sky is cloudy</p>
+                        <p className="mt-1 text-xs leading-relaxed text-slate-600">
+                          <E
+                            value={plan.observationProtocol.cloudyAlternative}
+                            path={[key, i, 'observationProtocol', 'cloudyAlternative']}
+                            onEdit={onEdit}
+                            multiline
+                          />
+                        </p>
+                      </div>
+                    )}
+                    {plan.observationProtocol.observingBasics && (
+                      <p className="mt-2.5 text-xs leading-relaxed text-slate-500">
+                        <span className="font-semibold text-slate-600">Observe safely:</span>{' '}
+                        <E
+                          value={plan.observationProtocol.observingBasics}
+                          path={[key, i, 'observationProtocol', 'observingBasics']}
+                          onEdit={onEdit}
+                          multiline
+                        />
+                      </p>
+                    )}
+                  </div>
+                )}
+
                 {/* Formative Assessment */}
                 {plan.formativeCheck && (
                   <div className="bg-sky-50/50 rounded-lg p-3 border border-sky-100/60">

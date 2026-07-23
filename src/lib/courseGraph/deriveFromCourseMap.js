@@ -49,7 +49,7 @@ const ASSESSMENT_KIND_RULES = [
   ['oral', /\b(oral|speaking|presentation|performance)\b/i],
   [
     'in-class',
-    /\b(role[\s-]?play|drill|poll|exit ticket|warm[\s-]?up|sketch|pair work|think[\s-]?pair|gallery walk|map activity|in[\s-]?class|participation|cold call|discussion(?!\s+post)|quick evidence check|evidence check|practice response)\b/i,
+    /\b(role[\s-]?play|drill|poll|exit ticket|exit reflection|warm[\s-]?up|sketch|pair work|think[\s-]?pair|gallery walk|map activity|in[\s-]?class|participation|cold call|discussion(?!\s+post)|quick evidence check|evidence check|practice response)\b/i,
   ],
   [
     'graded-artifact',

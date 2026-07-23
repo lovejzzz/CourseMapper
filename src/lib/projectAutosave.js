@@ -1,4 +1,5 @@
 export const LOCAL_FULL_AUTOSAVE_MAX_CHARS = 4_000_000;
+export const INDEXED_DB_AUTOSAVE_MODE = 'indexeddb-autosave';
 
 /**
  * v0.15 (sync-test finding): the old two-tier fallback jumped straight from
@@ -65,6 +66,28 @@ export function buildCourseMapRecoveryAutosavePayload(snapshot = {}) {
     deliverables: {},
     deliverableSaveMode: 'recompile-on-open',
     localSaveMode: 'course-map-recovery-autosave',
+    savedAt: snapshot.savedAt || Date.now(),
+  });
+}
+
+/**
+ * A tiny localStorage pointer keeps the existing synchronous landing-page
+ * resume check working while the exact project payload lives in IndexedDB.
+ * The preview courseMap is deliberately not used for restore.
+ */
+export function buildIndexedDbAutosaveMarker(snapshot = {}) {
+  const lessons = Array.isArray(snapshot?.courseMap?.lessons) ? snapshot.courseMap.lessons : [];
+  return JSON.stringify({
+    formatVersion: snapshot.formatVersion || 2,
+    hasGenerated: true,
+    courseMap: {
+      courseName: snapshot?.courseMap?.courseName || snapshot?.courseMap?.title || 'Saved course',
+      semester: snapshot?.courseMap?.semester || '',
+      lessons: [],
+    },
+    lessonCount: lessons.length,
+    indexedDbAutosave: true,
+    localSaveMode: INDEXED_DB_AUTOSAVE_MODE,
     savedAt: snapshot.savedAt || Date.now(),
   });
 }

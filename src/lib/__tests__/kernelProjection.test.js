@@ -525,7 +525,9 @@ describe('projectKernelToSurfaces', () => {
     const payload = projectKernelToSurfaces(fallbackKernel, { itemPlan });
     expect(payload.kernel.scenario.source).toBe('derived-kernel-fallback');
     expect(payload.kernel.scenario.setup).toContain(fallbackKernel.keyTerms[0].example);
-    expect(payload.kernel.scenario.setup).toContain(fallbackKernel.keyTerms[0].misconception);
+    expect(payload.kernel.scenario.setup).toMatch(
+      new RegExp(fallbackKernel.keyTerms[0].misconception.replace(/^Students often believe\s+/i, ''), 'i'),
+    );
     expect(payload.quizItems.find((item) => item.type === 'short_answer')?.question).toContain(
       fallbackKernel.keyTerms[0].example,
     );

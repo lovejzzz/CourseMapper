@@ -28,6 +28,7 @@ const TRUST_ELIGIBLE_PROVIDERS = new Set([
   'openalex',
   'openstax',
   'open-music-theory',
+  'gutenberg',
   'eric',
   'source-finder',
   'crossref',

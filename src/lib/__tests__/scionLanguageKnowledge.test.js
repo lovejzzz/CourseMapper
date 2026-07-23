@@ -14,6 +14,7 @@ describe('Scion compiler-owned Mandarin knowledge', () => {
     const knowledge = resolveScionTargetLanguageKnowledge(input);
     expect(knowledge.pair).toEqual(resolveScionTargetLanguagePair(input));
     expect(knowledge.facts).toHaveLength(3);
+    expect(knowledge.projectionLabel).toBe('Shopping and Money');
     expect(knowledge.facts.every((fact) => fact.length >= 20 && /[.!?]$/.test(fact))).toBe(true);
     expect(knowledge.source).toMatchObject({ license: 'CC BY-NC-SA', url: expect.stringMatching(/^https:\/\//) });
   });
@@ -22,6 +23,7 @@ describe('Scion compiler-owned Mandarin knowledge', () => {
     ['Pinyin and Four Tones', '妈'],
     ['Greetings and Introductions', '你好'],
     ['Classroom Language', '请再说一遍。'],
+    ['Classroom Expressions', '请再说一遍。'],
     ['Numbers, Age, and Dates', '我今年二十岁。'],
     ['Family and Possession', '这是我的妈妈。'],
     ['Daily Routines and Telling Time', '我每天七点起床。'],
@@ -34,6 +36,8 @@ describe('Scion compiler-owned Mandarin knowledge', () => {
     ['Transportation and Directions', '我坐地铁去学校。'],
     ['Health and Feelings', '我今天不舒服。'],
     ['Course Review and Final Oral Performance', '你好，我叫李明。'],
+    ['Hobbies and Leisure', '我喜欢听音乐。'],
+    ['School and Campus', '图书馆在食堂旁边。'],
   ])('admits every canonical lesson ledger: %s', (title, hanzi) => {
     const knowledge = resolveScionTargetLanguageKnowledge({
       courseName: 'Elementary Mandarin Chinese I',

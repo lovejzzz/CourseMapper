@@ -14,12 +14,19 @@
  * See docs/CURRICULUMOS_V1_DESIGN.md §10 Phase A.
  */
 
-// v4 deliberately ignores v1-v3 entries. v3 preserved resolved genome URLs
-// and licenses, but not the exact kernel concept, source excerpt, or source
-// tier behind each citation. A cache miss is cheaper than re-exporting source
-// proof whose lesson-level relevance cannot be audited.
-export const LESSON_KERNEL_CACHE_KEY = 'coursemapper-lesson-kernels-v4';
-export const LESSON_KERNEL_CONTRACT_VERSION = 'scion-kernel-v4';
+// v7 deliberately ignores v1-v6 entries. v5-v6 predate provenance-priority and
+// relation-aware completion for compiler-owned exact source ledgers, so a
+// returning browser could keep serving the same one-fact Mandarin payload
+// after the current compiler had earned and preserved all three facts. A
+// one-time cache miss is cheaper than silently compiling a stale learner
+// artifact forever.
+export const LESSON_KERNEL_CACHE_KEY = 'coursemapper-lesson-kernels-v7';
+export const LESSON_KERNEL_CONTRACT_VERSION = 'scion-kernel-v7';
+const LEGACY_LESSON_KERNEL_CACHE_KEYS = [
+  'coursemapper-lesson-kernels-v4',
+  'coursemapper-lesson-kernels-v5',
+  'coursemapper-lesson-kernels-v6',
+];
 const MAX_ENTRIES = 400;
 const WEAK_CACHE_WORDS = new Set([
   'activity',
@@ -148,6 +155,13 @@ export function fingerprintLessonKernelScope({ courseMap, provider = '', modelId
 export function createLessonKernelCache({ storage, courseMap, provider, modelId, contractVersion } = {}) {
   const store = getStore(storage);
   const scope = fingerprintLessonKernelScope({ courseMap, provider, modelId, contractVersion });
+  if (store) {
+    try {
+      for (const legacyKey of LEGACY_LESSON_KERNEL_CACHE_KEYS) store.removeItem(legacyKey);
+    } catch {
+      /* best-effort quota recovery */
+    }
+  }
 
   function entryKey(lesson) {
     return `${scope}:${fingerprintLesson(lesson)}`;

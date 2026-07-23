@@ -8,6 +8,7 @@ const ODYSSEY_SOURCE = {
   title: 'The Odyssey of Homer',
   author: 'Homer; translated by S. H. Butcher and A. Lang',
   license: 'Public domain in the USA',
+  provider: 'gutenberg',
   url: 'https://www.gutenberg.org/ebooks/1727',
 };
 
@@ -15,6 +16,7 @@ const LIBRARY_OF_BABEL_SOURCE = {
   title: 'The Library of Babel',
   author: 'Wikipedia contributors',
   license: 'CC BY-SA 4.0',
+  provider: 'wikipedia',
   url: 'https://en.wikipedia.org/wiki/The_Library_of_Babel',
 };
 
@@ -140,21 +142,27 @@ function canonicalReading(value) {
     .trim();
 }
 
-function resolveProfile(readings = []) {
+function resolveProfiles(readings = []) {
   const identities = (Array.isArray(readings) ? readings : [readings]).map(canonicalReading).filter(Boolean);
-  return (
-    READING_PROFILES.find((profile) =>
-      profile.aliases.some((alias) => identities.some((identity) => identity === canonicalReading(alias))),
-    ) || null
+  return READING_PROFILES.filter((profile) =>
+    profile.aliases.some((alias) => identities.some((identity) => identity === canonicalReading(alias))),
   );
 }
 
-export function resolveScionLiteratureKnowledge({ readings = [] } = {}) {
-  const profile = resolveProfile(readings);
-  if (!profile) return null;
+function copyProfile(profile) {
   return {
     facts: profile.facts.map(String),
     concepts: profile.concepts.map((concept) => ({ ...concept })),
     source: { ...profile.source },
   };
+}
+
+export function resolveScionLiteratureSourceProfiles({ readings = [] } = {}) {
+  return resolveProfiles(readings).map(copyProfile);
+}
+
+export function resolveScionLiteratureKnowledge({ readings = [] } = {}) {
+  const [profile] = resolveProfiles(readings);
+  if (!profile) return null;
+  return copyProfile(profile);
 }

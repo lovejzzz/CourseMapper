@@ -240,6 +240,26 @@ describe('B1 — buildRibbonModel selector', () => {
     ]);
     expect(mapping.compilerArtifacts.find((artifact) => artifact.id === 'map')?.value).toBe('Mapping in progress');
 
+    const planning = buildBuildRibbonModel({
+      budget: applyEvents(createApiCallBudget(), [{ type: 'reset', runId: 'run-scion-plan' }, ...MAP_EVENTS]),
+      generation: {
+        progressStep: 'generating',
+        isStreaming: true,
+        streamDetail: 'Scion is reading your brief and planning 3 lessons on this device…',
+        streamProgress: 0,
+        lessonCount: 0,
+        mappedLessonCount: 0,
+        isScion: true,
+        scionRuntimeStatus: { phase: 'ready', progress: 1, message: 'Scion is ready.' },
+      },
+      deliverables: NO_DELIVERABLES,
+      packageQualityPass: { status: 'idle' },
+    });
+    expect(planning.stageLabel).toBe('Scion is reading your brief and planning 3 lessons on this device…');
+    expect(planning.compilerArtifacts.find((artifact) => artifact.id === 'map')?.value).toBe(
+      'Scion is reading your brief and planning 3 lessons on this device…',
+    );
+
     const streamingLesson = buildBuildRibbonModel({
       budget: applyEvents(createApiCallBudget(), [{ type: 'reset', runId: 'run-scion-stream-map' }, ...MAP_EVENTS]),
       generation: {
@@ -524,6 +544,7 @@ describe('B1 — buildRibbonModel selector', () => {
     ).toBe(58);
     expect(deriveRibbonProgress({ pipeline: { state: 'verifying' } })).toBe(85);
     expect(deriveRibbonProgress({ pipeline: { state: 'grading' } })).toBe(95);
+    expect(deriveRibbonProgress({ pipeline: { state: 'blocked' } })).toBe(99);
     expect(deriveRibbonProgress({ pipeline: { state: 'ready' } })).toBe(100);
   });
 

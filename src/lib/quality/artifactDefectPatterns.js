@@ -66,6 +66,51 @@ export const ARTIFACT_PATTERNS = [
     severity: 'P2',
     roadmap: 'v0.12.1',
   },
+  {
+    regex: /\b(?:bring|choose|cite|compare|identify|mark|provide|review|use)\s+one the\b/i,
+    label: 'slot grammar such as "cite one the lesson example"',
+    name: 'slot-grammar-one-the',
+    severity: 'P2',
+    roadmap: 'v0.16.72',
+  },
+  {
+    regex: /\b[A-Z][A-Za-z-]*s's\b/,
+    label: 'malformed possessive such as "Seasons\'s"',
+    name: 'malformed-plural-possessive',
+    severity: 'P2',
+    roadmap: 'v0.16.72',
+  },
+  {
+    regex: /\b(?:[Cc]heck|[Rr]eflection|[Qq]uiz|[Ee]xam|[Aa]ssessment)\.\s+(?:is|are|should|can|will)\b/,
+    label: 'sentence seam inside an assessment reference',
+    name: 'assessment-sentence-seam',
+    severity: 'P2',
+    roadmap: 'v0.16.72',
+  },
+  {
+    regex: /\bWhich interpretation of the lesson is best supported by the lesson case example\b/i,
+    label: 'generic discussion prompt without subject matter',
+    name: 'generic-discussion-prompt',
+    severity: 'P2',
+    roadmap: 'v0.16.72',
+  },
+  {
+    regex: /\blecture-exam\b/i,
+    label: 'internal modality id "lecture-exam"',
+    name: 'internal-lecture-exam',
+    severity: 'P2',
+    roadmap: 'v0.16.72',
+  },
+  {
+    // Require a substantive token so conventional citation punctuation such
+    // as "et al.," and "e.g.," is not mistaken for a compiler join. The
+    // browser-discovered defect was a full content word ("task.,").
+    regex: /\b[\w')]{4,}\.,/,
+    label: 'period immediately before a comma',
+    name: 'period-comma-seam',
+    severity: 'P2',
+    roadmap: 'v0.16.72',
+  },
   { regex: /[a-z]\.\.(?!\.)/, label: 'double period', name: 'double-period', severity: 'P2', roadmap: 'v0.12.1' },
   {
     regex: /Learning {2}Objectives/,

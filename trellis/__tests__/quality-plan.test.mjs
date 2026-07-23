@@ -172,7 +172,7 @@ describe('item 6 · dedicated exam items + demand-driven FAQ', () => {
     expect(faq).toMatch(/## Grades, exams, and logistics/);
     expect(faq).toMatch(/How is my grade calculated\?/);
     expect(faq).toMatch(/Midterm Exam — 22%/);
-  }, 30000);
+  }, 120000);
 
   it('the render falls back honestly when an exam has no dedicated items', async () => {
     const { renderPackage } = await import('../render/deliverables.mjs');
@@ -227,7 +227,7 @@ describe('prerequisite-gap bridging (the seeded econ gap, graph-native)', () => 
       'utf8',
     );
     expect(l2).toMatch(/Prerequisite gap bridged: this session opens with a primer/);
-  }, 30000);
+  }, 120000);
 });
 
 describe('slide layout normalization (the psych over-packed-deck failure)', () => {

@@ -237,6 +237,97 @@ describe('Pass A skeleton contract (B1)', () => {
     expect(skeleton.readings[0]).toMatchObject({ title: 'OpenStax Ch. 4: Igneous Rocks', dueSession: 3 });
   });
 
+  it('rejects copied schema-example titles and recovers a source-named bare midterm', () => {
+    const sourceText =
+      'Introduction to Astronomy, a 3-lesson course covering diurnal motion, seasons and axial tilt, and phases of the Moon, with a midterm.';
+    const skeleton = parseNativeSkeletonResponse(
+      JSON.stringify({
+        course: { name: 'Introduction to Astronomy' },
+        sessions: [
+          { order: 1, title: 'Diurnal Motion Mechanics' },
+          { order: 2, title: 'Axial Tilt Effects' },
+          { order: 3, title: 'Lunar Phase Cycles' },
+        ],
+        assessments: [
+          {
+            id: 'a1',
+            title: 'Assessment title VERBATIM as named in the source',
+            kind: 'graded-artifact',
+            dueSession: 3,
+            weightPct: 100,
+          },
+        ],
+        readings: [{ id: 'r1', title: 'Reading/work title VERBATIM as named in the source', dueSession: 3 }],
+        resources: [
+          {
+            id: 'm1',
+            title: 'Supporting material/resource title VERBATIM as named in the source',
+            dueSession: 3,
+          },
+        ],
+      }),
+      { expectedLessons: 3, sourceText },
+    );
+
+    expect(skeleton.assessments).toEqual([expect.objectContaining({ title: 'midterm', kind: 'exam', dueSession: 2 })]);
+    expect(skeleton.readings).toEqual([]);
+    expect(skeleton.resources).toEqual([]);
+    expect(JSON.stringify(skeleton)).not.toMatch(/VERBATIM|as named in the source/i);
+  });
+
+  it('lets one source-named midterm own both identity and placement over a model-expanded duplicate', () => {
+    const sourceText =
+      'Introduction to Astronomy, a 3-lesson course covering diurnal motion, seasons and axial tilt, and phases of the Moon, with evening observing sessions and a midterm.';
+    const skeleton = parseNativeSkeletonResponse(
+      JSON.stringify({
+        course: { name: 'Introduction to Astronomy' },
+        sessions: [
+          { order: 1, title: 'Diurnal Motion Mechanics' },
+          { order: 2, title: 'Seasons and Axial Tilt' },
+          { order: 3, title: 'Phases of the Moon' },
+        ],
+        assessments: [
+          {
+            id: 'a1',
+            title: 'Midterm Assessment (50%)',
+            kind: 'exam',
+            dueSession: 3,
+            weightPct: 50,
+          },
+        ],
+      }),
+      { expectedLessons: 3, sourceText },
+    );
+
+    expect(skeleton.assessments).toEqual([expect.objectContaining({ title: 'midterm', kind: 'exam', dueSession: 2 })]);
+  });
+
+  it('drops model-invented reading and resource titles when the source names neither', () => {
+    const sourceText =
+      'Introduction to Astronomy, a 3-lesson course covering diurnal motion, seasons and axial tilt, and phases of the Moon, with evening observing sessions and a midterm.';
+    const skeleton = parseNativeSkeletonResponse(
+      JSON.stringify({
+        course: { name: 'Introduction to Astronomy' },
+        sessions: [
+          { order: 1, title: 'Diurnal Motion Mechanics' },
+          { order: 2, title: 'Seasons and Axial Tilt' },
+          { order: 3, title: 'Phases of the Moon' },
+        ],
+        readings: [
+          {
+            title: "Compare two examples of Earth's Rotation Vector and explain which evidence is stronger.",
+            dueSession: 1,
+          },
+        ],
+        resources: [{ title: 'Generic activity worksheet', dueSession: 1 }],
+      }),
+      { expectedLessons: 3, sourceText },
+    );
+
+    expect(skeleton.readings).toEqual([]);
+    expect(skeleton.resources).toEqual([]);
+  });
+
   it('drops modality-only section titles before they become course-map topics', () => {
     const skeleton = parseNativeSkeletonResponse(
       JSON.stringify({
@@ -255,6 +346,25 @@ describe('Pass A skeleton contract (B1)', () => {
     expect(wireMap.lessons[0].sections.map((section) => section.topicSection)).toEqual(['1.1: learning']);
     expect(wireMap.lessons[1].sections.map((section) => section.topicSection)).toEqual(['2.1: Memory']);
     expect(JSON.stringify(wireMap)).not.toMatch(/\b(?:lecture|lab)\b/i);
+  });
+
+  it('presents a recovered character-writing assessment as a polished title', () => {
+    const skeleton = parseNativeSkeletonResponse(
+      JSON.stringify({
+        course: { name: 'Elementary Mandarin Chinese I' },
+        sessions: [{ order: 1, title: 'Pinyin and Tones' }],
+        assessments: [
+          {
+            title: 'character writing homework: Pinyin and Tones',
+            kind: 'graded-artifact',
+            dueSession: 1,
+          },
+        ],
+      }),
+    );
+
+    const wireMap = buildNativeWireMap(skeleton);
+    expect(wireMap.lessons[0].sections[0].weeklyAssessments).toEqual(['Character Writing Homework: Pinyin and Tones']);
   });
 
   it('re-normalizes duplicate/gapped session orders to 1..N', () => {
@@ -314,6 +424,47 @@ describe('Pass A skeleton contract (B1)', () => {
       recoveredCount: 14,
       reason: 'repeated-titles',
       authoredTitles: expect.arrayContaining(['Final project']),
+    });
+  });
+
+  it('keeps an exact source sequence authoritative when a model title looks aligned but its section is noisy', () => {
+    const sourceText =
+      'Elementary Mandarin Chinese I, a 2-lesson course. Lessons cover: Pinyin and Tones; and Greetings and Self-Introductions.';
+    const skeleton = parseNativeSkeletonResponse(
+      JSON.stringify({
+        course: { name: 'Elementary Mandarin Chinese I' },
+        sessions: [
+          {
+            order: 1,
+            title: 'Pinyin and Tones',
+            sectionTitles: ['Invasive Pinyin System', 'Four Tones Mechanism'],
+          },
+          {
+            order: 2,
+            title: 'Greetings and Self-Introductions',
+            sectionTitles: ['Basic Salutations', 'Self-Introduction Formula'],
+          },
+        ],
+      }),
+      { expectedLessons: 2, sourceText },
+    );
+
+    expect(skeleton.sessions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          title: 'Pinyin and Tones',
+          sectionTitles: ['Pinyin and Tones'],
+        }),
+        expect.objectContaining({
+          title: 'Greetings and Self-Introductions',
+          sectionTitles: ['Greetings and Self-Introductions'],
+        }),
+      ]),
+    );
+    expect(JSON.stringify(skeleton)).not.toMatch(/Invasive Pinyin System|Four Tones Mechanism/i);
+    expect(skeleton.sessionSequenceRecovery).toMatchObject({
+      kind: 'explicit-source-lesson-sequence',
+      reason: 'source-authored-sequence',
     });
   });
 
@@ -556,21 +707,21 @@ describe('Pass A skeleton contract (B1)', () => {
     );
 
     expect(skeleton.sessions.map((session) => session.title)).toEqual([
-      'pinyin system and the four tones',
-      'greetings and self-introductions',
-      'classroom language',
-      'numbers, age, and dates',
-      'family members and possession with 的',
-      'daily routines and telling time',
-      'core SVO sentence patterns with 不, 没, and 吗',
-      'Vocabulary Recall and Grammar Review',
-      'basic characters and short reading passages',
-      'food and dining',
-      'shopping and money',
-      'weather and clothing',
-      'transportation and directions',
-      'health and feelings',
-      'course review leading to a final oral performance',
+      'Pinyin and Tones',
+      'Greetings and Self-Introductions',
+      'Classroom Expressions',
+      'Numbers, Dates, and Age',
+      'Family and Possession',
+      'Daily Routines and Time',
+      'Sentence Patterns and Negation',
+      'Vocabulary and Grammar Review',
+      'Basic Characters and Reading',
+      'Food and Dining',
+      'Shopping and Money',
+      'Weather and Clothing',
+      'Transportation and Directions',
+      'Health and Feelings',
+      'Course Review and Oral Performance',
     ]);
     expect(skeleton.sessionSequenceRecovery).toMatchObject({
       kind: 'explicit-source-lesson-sequence',
@@ -989,10 +1140,10 @@ describe('skeleton stash handoff', () => {
 // ── B2: Pass B prompt + parser ──────────────────────────────────────────────
 
 describe('Pass B contract (B2)', () => {
-  it('only exempts real genome content or complete caches from kernel authoring', () => {
+  it('only exempts content with a real semantic core from kernel authoring', () => {
     const sparse = { enrichmentSource: 'own-kernel-cache', quizItems: [], keyTerms: [] };
     expect(isNativeContentSourcedKernel(sparse, null)).toBe(false);
-    expect(isNativeContentSourcedKernel({ ...sparse, enrichmentSource: 'genome-linked' }, null)).toBe(true);
+    expect(isNativeContentSourcedKernel({ ...sparse, enrichmentSource: 'genome-linked' }, null)).toBe(false);
     expect(isNativeContentSourcedKernel({ ...sparse, enrichmentSource: 'genome-linked' }, {})).toBe(false);
 
     const complete = {
@@ -1005,6 +1156,16 @@ describe('Pass B contract (B2)', () => {
       studyGuide: { summary: 'A substantive summary.', reviewStrategy: 'A specific review strategy.' },
     };
     expect(isNativeContentSourcedKernel(complete, null)).toBe(true);
+    const oneFactGenome = {
+      ...complete,
+      keyTerms: complete.keyTerms.slice(0, 1),
+      kernel: {
+        ...complete.kernel,
+        facts: ['我坐地铁去学校。 means I take the subway to school.'],
+      },
+      enrichmentSource: 'genome-linked',
+    };
+    expect(isNativeContentSourcedKernel(oneFactGenome, null)).toBe(false);
     const richPartial = {
       ...complete,
       quizItems: complete.quizItems.slice(0, 2),
@@ -1935,7 +2096,7 @@ describe('Pass A resource transcription (v0.14.7 WS-B1)', () => {
 
   it('lint: registry readings alone satisfy the resource surface (the render leads cells with them)', () => {
     const skeleton = makeSkeletonFixture({
-      sourceText: 'Required readings as named on the syllabus drive weekly discussion.',
+      sourceText: 'Required readings as named on the syllabus: Week 2 reads Gilgamesh, Tablets I–IV.',
       readings: [{ id: 'r1', title: 'Gilgamesh, Tablets I–IV', dueSession: 2 }],
     });
     expect(skeleton.sourceNamesResources).toBe(true);

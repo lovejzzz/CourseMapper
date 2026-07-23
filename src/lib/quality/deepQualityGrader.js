@@ -174,7 +174,13 @@ import { parseClassSessionMinutes } from '../sourceBriefConstraints.js';
 // 1.10.31 — the grader and compiler now share the same final-boundary echo
 // classifier, including intentional comparative repetition such as "closer
 // and closer".
-export const GRADER_VERSION = '1.10.31';
+// 1.10.32 — the deterministic linear-algebra fallback is a discipline P0
+// outside a linear-algebra course; an overloaded word such as astronomy's
+// "Earth rotation vector" can no longer hide an algebra worksheet in slides.
+// 1.10.33 — a compiler-owned, course-level no-brief handoff is exempt from a
+// lesson reverse stamp; it has no lesson by design and is already guarded
+// against replacing any registered graded artifact.
+export const GRADER_VERSION = '1.10.34';
 
 // ── Dimension weights & letter bands (documented in the module header) ──────
 // v0.15.186: texture weight 10 → 25. At 10/120 a fully templated package
@@ -881,7 +887,8 @@ function checkIdentity(findings, { files, manifest }, _course) {
     }
   }
   for (const file of files.filter((file) => file.featureId === 'assignments' && file.kind === 'docx')) {
-    if (!/Course Map\s+L?\d+/i.test(file.text) && !/Course Map row\s+\d+/i.test(file.text)) {
+    const isExplicitNoBriefNote = /No standalone assignment brief scheduled/i.test(file.text);
+    if (!isExplicitNoBriefNote && !/Course Map\s+L?\d+/i.test(file.text) && !/Course Map row\s+\d+/i.test(file.text)) {
       findings.add({
         severity: 'P2',
         dimension: 'identity',
@@ -2451,6 +2458,10 @@ const TONE_PINYIN_RE = /[a-zü]+[āáǎàēéěèīíǐìōóǒòūúǔùǖǘǚ�
 const MANDARIN_CITATION_VOCAB = [
   'mandarin',
   'chinese',
+  // Geographic noun for citation titles such as "Languages of China". The
+  // course title usually carries the demonym "Chinese" instead, and the
+  // generic five-character stemmer cannot connect that legitimate pair.
+  'china',
   'pinyin',
   'hanzi',
   'bopomofo',
@@ -2874,6 +2885,10 @@ const MUSIC_INTERVAL_MATH_CONTAMINATION_TERMS = [
   },
   { label: 'numeric endpoints', re: /\bstart point of \d+[^.?!]{0,80}end point of \d+\b/i },
 ];
+const LINEAR_ALGEBRA_FALLBACK_CONTAMINATION_RE =
+  /\bSolve the system x \+ y = 3 and x - y = 1\b|\bAdd the equations:\s*2x = 4\b|\bThe solution is \(2,\s*1\)\b/i;
+const LINEAR_ALGEBRA_COURSE_RE =
+  /\b(linear algebra|matrix theory|vector spaces?|systems? of linear equations|row reduction)\b/i;
 
 // Citation-relevance vocabulary only. Business Ethics is intentionally not a
 // genome-density probe: unfamiliar disciplines should not inherit a coverage
@@ -3049,6 +3064,16 @@ function checkForeignDomainContamination(findings, { files }, probe, course) {
   const musicIdentityHits = MUSIC_IDENTITY_TERMS.filter((pattern) => pattern.test(packageText));
   const packageIsMusic = MUSIC_COURSE_RE.test(courseTitle) || musicIdentityHits.length >= 3;
   for (const file of files.filter((entry) => entry.featureId && entry.text)) {
+    if (!LINEAR_ALGEBRA_COURSE_RE.test(courseTitle) && LINEAR_ALGEBRA_FALLBACK_CONTAMINATION_RE.test(file.text)) {
+      findings.add({
+        severity: 'P0',
+        dimension: 'discipline',
+        file: file.path,
+        detail: `foreign linear-algebra worked example appears in ${probe || 'a non-linear-algebra'} package`,
+        evidence: quoteAroundMatch(file.text, LINEAR_ALGEBRA_FALLBACK_CONTAMINATION_RE),
+      });
+      return;
+    }
     const languageContamination = detectForeignLanguageTeachingContent({
       courseIdentity: courseTitle,
       text: file.text,

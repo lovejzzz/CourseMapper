@@ -9,6 +9,7 @@ import { chromium, expect } from '@playwright/test';
 import { spawn } from 'node:child_process';
 import fs from 'node:fs/promises';
 import net from 'node:net';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { PROVIDER_KEY_RULES, pickApiKeyFromEnvText } from './crucibleRound.mjs';
@@ -18,6 +19,32 @@ import { APP_VERSION } from '../../src/lib/appVersion.js';
 const moduleDir = path.dirname(fileURLToPath(import.meta.url));
 export const repoRoot = path.resolve(moduleDir, '..', '..');
 export const defaultApiEnvPath = path.join(repoRoot, 'API-dontComit', 'api.ev');
+
+const SYSTEM_CHROME_PATHS = Object.freeze(
+  process.platform === 'darwin'
+    ? ['/Applications/Google Chrome.app/Contents/MacOS/Google Chrome']
+    : process.platform === 'win32'
+      ? [
+          'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+          'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+        ]
+      : ['/usr/bin/google-chrome', '/usr/bin/google-chrome-stable'],
+);
+
+async function scionBrowserLaunchOptions() {
+  const explicitPath = String(process.env.COURSEMAPPER_SCION_BROWSER_EXECUTABLE || '').trim();
+  const candidates = explicitPath ? [explicitPath] : SYSTEM_CHROME_PATHS;
+  for (const executablePath of candidates) {
+    if (
+      await fs
+        .access(executablePath)
+        .then(() => true)
+        .catch(() => false)
+    )
+      return { executablePath };
+  }
+  return {};
+}
 
 const MODEL_DISPLAY_NAMES = {
   'gpt-5.4-mini': 'GPT-5.4 mini',
@@ -188,6 +215,109 @@ async function runViteBuild() {
   });
 }
 
+async function distInventory(root) {
+  const files = [];
+  const stack = [root];
+  while (stack.length > 0) {
+    const current = stack.pop();
+    const entries = await fs.readdir(current, { withFileTypes: true });
+    for (const entry of entries) {
+      const fullPath = path.join(current, entry.name);
+      if (entry.isDirectory()) {
+        stack.push(fullPath);
+        continue;
+      }
+      if (!entry.isFile()) continue;
+      const stat = await fs.stat(fullPath);
+      files.push({
+        relativePath: path.relative(root, fullPath),
+        size: stat.size,
+      });
+    }
+  }
+  return files.sort((a, b) => a.relativePath.localeCompare(b.relativePath));
+}
+
+function inventoriesMatch(source, staged) {
+  if (source.length !== staged.length) return false;
+  return source.every(
+    (entry, index) =>
+      entry.relativePath === staged[index]?.relativePath && Number(entry.size) === Number(staged[index]?.size),
+  );
+}
+
+async function copyDistBytes(sourceDist, stagedDist, sourceFiles) {
+  for (const file of sourceFiles) {
+    const sourcePath = path.join(sourceDist, file.relativePath);
+    const stagedPath = path.join(stagedDist, file.relativePath);
+    await fs.mkdir(path.dirname(stagedPath), { recursive: true });
+    // Avoid fs.cp/copyFile here. On macOS FileProvider, their clone/stream
+    // path can hang while a plain bounded read succeeds immediately. Reading
+    // every asset into memory also proves the exact bytes are resident before
+    // Vite is allowed to announce that the audit server is ready.
+    const bytes = await fs.readFile(sourcePath, { signal: AbortSignal.timeout(30_000) });
+    if (bytes.byteLength !== file.size) {
+      throw new Error(
+        `source changed while staging ${file.relativePath} (${bytes.byteLength} bytes read; expected ${file.size})`,
+      );
+    }
+    await fs.writeFile(stagedPath, bytes, { signal: AbortSignal.timeout(30_000) });
+  }
+}
+
+/**
+ * Copy the exact production bundle to local temporary storage before serving
+ * it to a long-running browser audit. macOS FileProvider can time out a stream
+ * opened inside an iCloud-backed worktree after the preview server has already
+ * started. A bounded, verified copy makes that hydration an explicit startup
+ * operation instead of a mid-generation failure.
+ */
+export async function stageProductionDist({
+  sourceDist = path.join(repoRoot, 'dist'),
+  tempRoot = os.tmpdir(),
+  attempts = 3,
+} = {}) {
+  const sourceIndex = await fs.stat(path.join(sourceDist, 'index.html')).catch(() => null);
+  if (!sourceIndex?.isFile()) throw new Error(`Cannot stage production build: ${sourceDist}/index.html is missing`);
+
+  const sourceFiles = await distInventory(sourceDist);
+  let lastError = null;
+  const maxAttempts = Math.max(1, Number(attempts) || 1);
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    const stageRoot = await fs.mkdtemp(path.join(tempRoot, 'coursemapper-crucible-dist-'));
+    const stagedDist = path.join(stageRoot, 'dist');
+    try {
+      await copyDistBytes(sourceDist, stagedDist, sourceFiles);
+      const stagedFiles = await distInventory(stagedDist);
+      if (!inventoriesMatch(sourceFiles, stagedFiles)) {
+        throw new Error(
+          `staged bundle inventory mismatch (${stagedFiles.length} files copied; expected ${sourceFiles.length})`,
+        );
+      }
+      return {
+        stageRoot,
+        distDir: stagedDist,
+        fileCount: stagedFiles.length,
+        totalBytes: stagedFiles.reduce((sum, entry) => sum + entry.size, 0),
+        async cleanup() {
+          await fs.rm(stageRoot, { recursive: true, force: true });
+        },
+      };
+    } catch (error) {
+      lastError = error;
+      await fs.rm(stageRoot, { recursive: true, force: true }).catch(() => {});
+      if (attempt < maxAttempts) {
+        await new Promise((resolve) => setTimeout(resolve, attempt * 500));
+      }
+    }
+  }
+  throw new Error(
+    `Could not stage the production build outside the worktree after ${maxAttempts} attempts: ${
+      lastError?.message || lastError
+    }`,
+  );
+}
+
 /**
  * Start a vite preview server against the existing dist/ build.
  *
@@ -197,7 +327,8 @@ async function runViteBuild() {
  *   reuse dist/ when it is newer than the newest src file, else `vite build`.
  * @param {number} [options.port=4173] preferred port (first free port wins).
  * @param {string} [options.logPath] optional file for preview-server output.
- * @returns {Promise<{ baseUrl: string, port: number, didBuild: boolean, stop: () => Promise<void> }>}
+ * @returns {Promise<{ baseUrl: string, port: number, didBuild: boolean, stagedDistDir: string,
+ *   assertHealthy: () => Promise<void>, stop: () => Promise<void> }>}
  */
 export async function startAppServer({ build = 'auto', port: preferredPort = 4173, logPath } = {}) {
   let didBuild = false;
@@ -213,15 +344,34 @@ export async function startAppServer({ build = 'auto', port: preferredPort = 417
     didBuild = true;
   }
 
+  const staged = await stageProductionDist();
+  let stageCleaned = false;
+  const cleanupStage = async () => {
+    if (stageCleaned) return;
+    stageCleaned = true;
+    await staged.cleanup();
+  };
   const port = await findFreePort(preferredPort);
   const output = logPath ? await fs.open(logPath, 'a') : null;
+  await output
+    ?.write(
+      `[crucible] staged production bundle outside worktree: ${staged.fileCount} files, ${staged.totalBytes} bytes\n`,
+    )
+    .catch(() => {});
   const viteExecutable = path.join(repoRoot, 'node_modules', '.bin', 'vite');
-  const child = spawn(viteExecutable, ['preview', '--host', '127.0.0.1', '--port', String(port), '--strictPort'], {
-    cwd: repoRoot,
-    env: { ...process.env, BROWSER: 'none' },
-    stdio: ['ignore', 'pipe', 'pipe'],
-    detached: true,
-  });
+  const child = spawn(
+    viteExecutable,
+    ['preview', '--host', '127.0.0.1', '--port', String(port), '--strictPort', '--outDir', staged.distDir],
+    {
+      // Keep Vite configuration resolution in the repo (notably preview
+      // security headers), while --outDir points every response at the
+      // non-iCloud snapshot.
+      cwd: repoRoot,
+      env: { ...process.env, BROWSER: 'none' },
+      stdio: ['ignore', 'pipe', 'pipe'],
+      detached: true,
+    },
+  );
   let startupOutput = '';
   let startupSettled = false;
   let resolveStartup;
@@ -300,6 +450,7 @@ export async function startAppServer({ build = 'auto', port: preferredPort = 417
     }
     await Promise.race([exited, new Promise((resolve) => setTimeout(resolve, 3_000))]);
     await closeOutput();
+    await cleanupStage().catch(() => {});
     throw error;
   } finally {
     clearTimeout(startupTimer);
@@ -321,6 +472,7 @@ export async function startAppServer({ build = 'auto', port: preferredPort = 417
     }
     await Promise.race([exited, new Promise((resolve) => setTimeout(resolve, 3_000))]);
     await closeOutput();
+    await cleanupStage().catch(() => {});
     throw error;
   }
 
@@ -328,6 +480,7 @@ export async function startAppServer({ build = 'auto', port: preferredPort = 417
     baseUrl: `http://127.0.0.1:${port}/`,
     port,
     didBuild,
+    stagedDistDir: staged.distDir,
     exited,
     async assertHealthy() {
       if (exitInfo) {
@@ -357,8 +510,16 @@ export async function startAppServer({ build = 'auto', port: preferredPort = 417
         await Promise.race([exited, new Promise((resolve) => setTimeout(resolve, 1_000))]);
       }
       await closeOutput();
+      await cleanupStage();
     },
   };
+}
+
+export function isPreviewInfrastructureError(value) {
+  const message = String(value?.stack || value?.message || value || '');
+  return /CourseMapper preview (?:request failed|server became unreachable)|vite preview is no longer running|ERR_(?:CONNECTION_REFUSED|EMPTY_RESPONSE|ADDRESS_UNREACHABLE|NAME_NOT_RESOLVED)/i.test(
+    message,
+  );
 }
 
 export function isFatalAppConsoleMessage({ type, text, url, appOrigin }) {
@@ -619,6 +780,7 @@ async function forwardToLlmShim(route, llmShimUrl) {
  * @param {string} [options.modelName] display name (defaults from modelId).
  * @param {string} options.outDir artifact directory for this course run.
  * @param {boolean} [options.headed=false]
+ * @param {boolean} [options.captureTimeline=false] preserve viewport frames throughout the real workflow.
  * @param {boolean} [options.disableScionFlywheel=false] isolate held-out evaluation from corpus capture.
  * @param {import('@playwright/test').Browser} [options.browser] optional shared browser.
  * @param {number} [options.overallTimeoutMs=720000] hard 12-minute budget per course.
@@ -633,6 +795,7 @@ export async function runCourseInBrowser({
   modelName,
   outDir,
   headed = false,
+  captureTimeline = false,
   browser: sharedBrowser,
   overallTimeoutMs = 12 * 60_000,
   // V0.15.1 post-flip: undefined seeds nothing so the app's current default
@@ -674,15 +837,34 @@ export async function runCourseInBrowser({
     consoleWriteQueue = consoleWriteQueue.then(() => consoleHandle.write(`${line}\n`)).catch(() => {});
   };
 
-  const browser = sharedBrowser || (await chromium.launch({ headless: !headed }));
-  const context = await browser.newContext({
+  // Browser-local Scion needs a regular persistent profile. Playwright's
+  // default BrowserContext is incognito-like and Chrome 145 caps its OPFS
+  // writes below the 3.35 GB Gemma artifact, producing a false product crash.
+  // A disposable persistent profile exercises the same storage class as the
+  // website while remaining isolated and cold for every Crucible attempt.
+  const usePersistentScionProfile = provider === 'public' && !sharedBrowser;
+  const persistentProfileDir = usePersistentScionProfile
+    ? await fs.mkdtemp(path.join(os.tmpdir(), 'coursemapper-scion-crucible-'))
+    : null;
+  const contextOptions = {
     acceptDownloads: true,
     viewport: headed ? { width: 1440, height: 960 } : { width: 1500, height: 1000 },
-  });
+  };
+  const context = usePersistentScionProfile
+    ? await chromium.launchPersistentContext(persistentProfileDir, {
+        ...contextOptions,
+        headless: !headed,
+        ...(await scionBrowserLaunchOptions()),
+      })
+    : null;
+  const browser = usePersistentScionProfile
+    ? context.browser()
+    : sharedBrowser || (await chromium.launch({ headless: !headed }));
+  const activeContext = context || (await browser.newContext(contextOptions));
   if (llmShimUrl) {
-    await context.route('https://api.openai.com/**', (route) => forwardToLlmShim(route, llmShimUrl));
+    await activeContext.route('https://api.openai.com/**', (route) => forwardToLlmShim(route, llmShimUrl));
   }
-  const page = await context.newPage();
+  const page = activeContext.pages()[0] || (await activeContext.newPage());
   const appOrigin = new URL(baseUrl).origin;
   let browserRunClosed = false;
   let fatalPageError = null;
@@ -739,19 +921,23 @@ export async function runCourseInBrowser({
   // A fully loaded SPA can survive for minutes after its preview server dies,
   // then fail only when a lazy export/view chunk is requested. Probe the exact
   // origin throughout the run so infrastructure death fails in seconds rather
-  // than looking like slow local inference.
+  // than looking like slow local inference. A timeout by itself is not proof
+  // of server death during browser-local WebGPU inference: on constrained
+  // devices the model can briefly starve a loopback probe while the already
+  // loaded SPA continues correctly. Real connection failures still count.
   let heartbeatFailures = 0;
   let heartbeatInFlight = false;
   const heartbeat = globalThis.setInterval(async () => {
     if (browserRunClosed || heartbeatInFlight) return;
     heartbeatInFlight = true;
     const controller = new AbortController();
-    const timeout = globalThis.setTimeout(() => controller.abort(), 5_000);
+    const timeout = globalThis.setTimeout(() => controller.abort(), provider === 'public' ? 15_000 : 5_000);
     try {
       const response = await fetch(baseUrl, { cache: 'no-store', signal: controller.signal });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       heartbeatFailures = 0;
     } catch (error) {
+      if (provider === 'public' && controller.signal.aborted) return;
       heartbeatFailures += 1;
       if (heartbeatFailures >= 2) {
         failPage(new Error(`CourseMapper preview server became unreachable: ${error.message || error}`));
@@ -769,6 +955,69 @@ export async function runCourseInBrowser({
   let legacyPathTelemetry = null;
   // v0.14.9 C2: --voice ab twin output ({ voicedZipPath, outcome }) or null.
   let voiceAb = null;
+  const timelineDir = captureTimeline ? path.join(outDir, 'timeline') : null;
+  const timelineFrames = [];
+  let timelineFrame = 0;
+  let timelineQueue = Promise.resolve();
+  let timelineTimer = null;
+  const captureTimelineFrame = (label) => {
+    if (!timelineDir || browserRunClosed) return Promise.resolve();
+    const capturedPhase = phase;
+    const frameIndex = ++timelineFrame;
+    const safeLabel = String(label || capturedPhase)
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '')
+      .slice(0, 48);
+    const fileName = `${String(frameIndex).padStart(3, '0')}-${safeLabel || 'frame'}.png`;
+    timelineQueue = timelineQueue
+      .catch(() => {})
+      .then(async () => {
+        const capturedAt = new Date().toISOString();
+        try {
+          await fs.mkdir(timelineDir, { recursive: true });
+          await page.screenshot({ path: path.join(timelineDir, fileName), fullPage: false });
+          const visibleSignals = await page
+            .evaluate(() =>
+              String(document.body?.innerText || '')
+                .split('\n')
+                .map((line) => line.trim())
+                .filter(
+                  (line) =>
+                    line &&
+                    /(?:Scion|Living Course Compiler|Downloading|Preparing|Building|Mapped|Knowledge|Materials|Checks|Ready|Complete|Export|ZIP)/i.test(
+                      line,
+                    ),
+                )
+                .slice(0, 18),
+            )
+            .catch(() => []);
+          timelineFrames.push({
+            index: frameIndex,
+            fileName,
+            label,
+            phase: capturedPhase,
+            capturedAt,
+            visibleSignals,
+          });
+        } catch (error) {
+          timelineFrames.push({
+            index: frameIndex,
+            fileName: null,
+            label,
+            phase: capturedPhase,
+            capturedAt,
+            captureError: redactSecrets(error?.message || String(error)),
+          });
+        }
+      });
+    return timelineQueue;
+  };
+  if (captureTimeline) {
+    timelineTimer = globalThis.setInterval(() => {
+      captureTimelineFrame(`interval-${phase}`).catch(() => {});
+    }, 5_000);
+  }
 
   try {
     phase = 'loading-landing';
@@ -820,10 +1069,12 @@ export async function runCourseInBrowser({
       },
     );
     await guardPage(page.goto(baseUrl, { waitUntil: 'domcontentloaded' }));
+    await captureTimelineFrame('landing-loaded');
 
     phase = 'validating-provider';
     // "Connected" badge — src/screens/Landing.jsx:694 (selector borrowed from liveBrowserQualityLoop.mjs).
     await guardPage(expect(page.getByText('Connected').first()).toBeVisible({ timeout: remaining(120_000) }));
+    await captureTimelineFrame('provider-ready');
 
     phase = 'submitting-prompt';
     // aria-label "Describe your course" — src/screens/Landing.jsx:567.
@@ -866,6 +1117,7 @@ export async function runCourseInBrowser({
       await expect(generateButton).toBeEnabled({ timeout: remaining(60_000) });
       await generateButton.click();
     }
+    await captureTimelineFrame('generation-submitted');
 
     phase = 'generating-workspace';
     // Generation can take 5+ minutes; bounded by the overall budget. On-device
@@ -878,13 +1130,17 @@ export async function runCourseInBrowser({
     // 45-minute course budget.
     const stepCap = llmShimUrl || localEndpoint ? () => remaining() : remaining;
     await guardPage(page.getByTestId('workspace-shell').waitFor({ timeout: stepCap(600_000) }));
+    await captureTimelineFrame('workspace-opened');
 
-    phase = 'finalizing-package';
+    phase = 'building-package';
     await guardPage(ensurePackageReady(page, stepCap));
+    phase = 'finalizing-package';
+    await captureTimelineFrame('package-ready');
 
     phase = 'downloading-zip';
     zipPath = path.join(outDir, `${course.id}-package.zip`);
     await guardPage(downloadZip(page, zipPath, remaining));
+    await captureTimelineFrame('zip-downloaded');
 
     // v0.14.9 C2: --voice ab — the same-generation A/B. The generation above
     // ran with the voice flag OFF, so the zip just saved is the QUIET twin.
@@ -970,12 +1226,33 @@ export async function runCourseInBrowser({
       await downloadZip(page, forensicZip, () => 120_000).catch(() => {});
     }
   } finally {
+    if (timelineTimer) globalThis.clearInterval(timelineTimer);
+    await timelineQueue.catch(() => {});
     browserRunClosed = true;
     globalThis.clearInterval(heartbeat);
-    await context.close().catch(() => {});
-    if (!sharedBrowser) await browser.close().catch(() => {});
+    await activeContext.close().catch(() => {});
+    if (!sharedBrowser && !usePersistentScionProfile) await browser.close().catch(() => {});
+    if (persistentProfileDir) await fs.rm(persistentProfileDir, { recursive: true, force: true }).catch(() => {});
     await consoleWriteQueue.catch(() => {});
     await consoleHandle.close().catch(() => {});
+  }
+
+  if (timelineDir) {
+    await fs
+      .writeFile(
+        path.join(timelineDir, 'timeline.json'),
+        `${JSON.stringify(
+          {
+            courseId: course.id,
+            capturedAt: new Date().toISOString(),
+            frameCount: timelineFrames.length,
+            frames: timelineFrames,
+          },
+          null,
+          2,
+        )}\n`,
+      )
+      .catch(() => {});
   }
 
   let digestPath = null;
@@ -996,5 +1273,8 @@ export async function runCourseInBrowser({
     voiceAb,
   };
   if (errorText) result.error = errorText;
+  if (errorText && isPreviewInfrastructureError(errorText)) {
+    result.failureClass = 'preview-infrastructure';
+  }
   return result;
 }

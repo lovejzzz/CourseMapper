@@ -167,6 +167,8 @@ describe('exam kind classification is consistent compile-to-manifest', () => {
   // package whose exam paper was fine. The echo dies where the row is born.
   it('strips "Title: 1. Title" transcription echoes from registry identity', () => {
     expect(dedupeNumberedAssessmentEcho('Midterm exam: 1. Midterm exam')).toBe('Midterm exam');
+    expect(dedupeNumberedAssessmentEcho('midterm: 1. midterm')).toBe('midterm');
+    expect(dedupeNumberedAssessmentEcho('Quiz: 1. Quiz')).toBe('Quiz');
     expect(dedupeNumberedAssessmentEcho('Autograded quiz: 1. Autograded quiz')).toBe('Autograded quiz');
     expect(
       dedupeNumberedAssessmentEcho(

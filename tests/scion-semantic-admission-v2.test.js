@@ -335,6 +335,11 @@ describe('Scion strict semantic admission', () => {
       mi: 'A seventh chord must contain seven notes.',
       cx: 'The name refers to the added seventh interval, not to seven total notes.',
     };
+    const repeatedInCorrection = {
+      ...term,
+      mi: 'A triad, which consists of three notes.',
+      cx: 'A triad is a set of three notes, whereas a seventh chord includes an additional note.',
+    };
 
     expect(assessScionKeyTerm(term, { knownFacts, semanticProfile: 'source-strict-v3' }).issues).toContain(
       'misconception-repeats-known-fact',
@@ -342,6 +347,9 @@ describe('Scion strict semantic admission', () => {
     expect(assessScionKeyTerm(term, { knownFacts, semanticProfile: 'source-strict-v6' }).issues).toContain(
       'misconception-repeats-known-fact',
     );
+    expect(
+      assessScionKeyTerm(repeatedInCorrection, { knownFacts, semanticProfile: 'source-strict-v6' }).issues,
+    ).toContain('misconception-repeats-known-fact');
     expect(assessScionKeyTerm(contrasted, { knownFacts, semanticProfile: 'source-strict-v3' }).issues).not.toContain(
       'misconception-repeats-known-fact',
     );

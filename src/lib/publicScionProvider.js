@@ -1947,6 +1947,15 @@ export function buildPublicScionExactSourceLedgerResponse(userPrompt = '') {
     return {
       lessonId: lesson.lessonId,
       facts: [...factContract.claims],
+      ...(lesson?.targetLanguagePair?.hanzi && lesson?.targetLanguagePair?.pinyin && lesson?.targetLanguagePair?.english
+        ? {
+            targetLanguagePair: {
+              hanzi: String(lesson.targetLanguagePair.hanzi),
+              pinyin: String(lesson.targetLanguagePair.pinyin),
+              english: String(lesson.targetLanguagePair.english),
+            },
+          }
+        : {}),
       ...(sourceConcepts.length >= 3 ? { keyTerms: sourceConcepts } : {}),
     };
   });
@@ -2197,7 +2206,12 @@ export function buildPublicScionMessages(
           'Answer the user directly in concise Markdown.',
           'Ground the answer in the supplied workspace context. Never invent sources, citations, or completed edits.',
           task === 'agent'
-            ? 'You are advisory in this local mode: explain what you recommend, but never claim that you changed the workspace. Return only the reply text; never emit JSON, respond(...), function calls, tool_calls, or analysis.'
+            ? [
+                'You are advisory in this local mode: explain what you recommend, but never claim that you changed the workspace.',
+                'For a summary or explanation, synthesize 3-6 concrete points from the workspace: describe how lessons, activities, or assessments connect instead of merely listing their titles.',
+                'Use complete sentences and clean Markdown. A list item begins with "- " on its own line; never mix asterisks with bullet markers.',
+                'Return only the reply text; never emit JSON, respond(...), function calls, tool_calls, or analysis.',
+              ].join('\n')
             : '',
           clip(systemPrompt, 5200),
         ]

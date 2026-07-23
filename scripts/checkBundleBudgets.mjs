@@ -77,7 +77,10 @@ const lazyChunkBudgets = [
   // receipt recovery. This is workspace-only and keeps gzip under the prior
   // cap; the same release removed 451 KiB raw / 136 KiB gzip from landing by
   // repairing an accidental compiler-finalizer preload.
-  { prefix: 'AppFlow-', rawKiB: 279, gzipKiB: 84 },
+  // v0.16.73: exact project recovery, IndexedDB autosave ownership, finish
+  // receipts, and the compact Content/Agent/Export switch add 0.5/0.1 KiB to
+  // the lazy workspace shell. Keep the ceiling within 0.5/0.9 KiB.
+  { prefix: 'AppFlow-', rawKiB: 280, gzipKiB: 85 },
   // v0.16.47: the Living Course Compiler component and pure selector gained
   // an independently cacheable route boundary instead of raising AppFlow's
   // long-standing ratchet. Clean measurement: AppFlow 251.6/75.9; ribbon
@@ -88,9 +91,13 @@ const lazyChunkBudgets = [
   // v0.16.55 remeasurement: both the clean parent and current release are
   // 69.6 KiB raw. The one-field post-build marker did not grow this chunk;
   // move the stale ratchet to 70/22 without granting feature-growth room.
-  { prefix: 'livingCompilerRibbon-', rawKiB: 70, gzipKiB: 22 },
+  // v0.16.73 measured 70.0/21.7; retain only sub-KiB raw variance.
+  { prefix: 'livingCompilerRibbon-', rawKiB: 70.5, gzipKiB: 22 },
   { prefix: 'livingCompilerFailure-', rawKiB: 3, gzipKiB: 2 },
   { prefix: 'courseMapContinuation-', rawKiB: 5, gzipKiB: 3 },
+  // Anonymous-save presentation is route-only state. It stays isolated so
+  // quota fallback wording cannot grow the AppFlow control chunk.
+  { prefix: 'workspaceSaveStatus-', rawKiB: 1, gzipKiB: 1 },
   // v0.9.0: +12 KiB raw / +4 KiB gzip for the course-native agent (content
   // index + renderer reuse, digest card, journal — measured at 341.0 KiB raw
   // / 92.8 gzip). Deliberate feature growth; gzip headroom unchanged.
@@ -102,7 +109,15 @@ const lazyChunkBudgets = [
   // v0.16.59: the read-only Scion Agent receives compact live workspace
   // context and rejects tool envelopes. The measured raw delta is below
   // 1 KiB and gzip stays far under the existing ceiling.
-  { prefix: 'ChatPanel-', rawKiB: 355, gzipKiB: 105 },
+  // v0.16.73 measured 355.0/97.8 after package-readiness and compiled-answer
+  // receipts; preserve the existing generous gzip ceiling.
+  { prefix: 'ChatPanel-', rawKiB: 356, gzipKiB: 105 },
+  // Read-only answers are loaded only after a user asks the compiled course a
+  // question. The leaf now owns exact Mandarin ledger answers as well as the
+  // original lesson-scoped comparison answer.
+  // v0.16.73 adds evidence ranking and choreography rejection so the Agent can
+  // answer locally without exposing lesson-plan internals (8.0/3.5 measured).
+  { prefix: 'scionCourseAnswer-', rawKiB: 8.5, gzipKiB: 3.75 },
   // v0.15.187: the compiler chunk was the LARGEST in dist (measured 711 KiB
   // raw / 192 KiB gzip on July 1) and the only large chunk with no ratchet —
   // which is how it grew 31× in 5.5 weeks unnoticed. Budget set just above
@@ -152,7 +167,15 @@ const lazyChunkBudgets = [
   // measures 829.2/230.6 after adding progress-safe transfer, FAQ, notes, and
   // modality variants. Keep narrow headroom and continue the compiler-data
   // split instead of moving any of this code onto the landing route.
-  { prefix: 'courseBlueprintCompiler-', rawKiB: 830, gzipKiB: 232 },
+  // v0.16.73 adds context-sensitive FAQ classification, applicable-artifact
+  // routing, punctuation normalization, and sentence-safe slide notes. The
+  // lazy chunk measures 837.8/233.9; keep narrow 2.2/1.1 KiB headroom while
+  // the compiler-data split remains the next structural reduction.
+  { prefix: 'courseBlueprintCompiler-', rawKiB: 840, gzipKiB: 235 },
+  // Exact target-language assessment and lesson-plan frames are substantial
+  // compile-only data. They remain cacheable beside the compiler without
+  // weakening the compiler's long-standing size ratchet.
+  { prefix: 'scionLanguageCompilerFrames-', rawKiB: 17, gzipKiB: 6.25 },
   // v0.16.49: Bayesian and music-interval assessment frames are workspace-only
   // data and independently cacheable. The same boundary now owns the music
   // interval admission, discussion, FAQ, quiz, and study-guide rules so the
@@ -187,7 +210,8 @@ const lazyChunkBudgets = [
   // v0.16.65: varied assessment and material-polish copy moved out of the
   // compiler hot chunk. This compile-only leaf stays independently cacheable.
   { prefix: 'compilerPolish-', rawKiB: 8, gzipKiB: 3 },
-  { prefix: 'DeliverableView-', rawKiB: 170, gzipKiB: 35 },
+  // v0.16.73 learner-visible not-applicable states measure 163.8/35.2.
+  { prefix: 'DeliverableView-', rawKiB: 170, gzipKiB: 35.5 },
   { prefix: 'DeveloperModePanel-', rawKiB: 130, gzipKiB: 35 },
   // v0.9.1: +3 KiB raw for the pre-export checklist (localization gaps +
   // compiler-flagged local reviews, measured at 38.0 KiB raw / 10.x gzip).
@@ -227,7 +251,9 @@ const lazyChunkBudgets = [
   // stamped dozens of times, and compiler constraints could leak into lesson
   // plans. Research-method citation calibration measures 65.1/22.5 KiB while
   // keeping this grader lazy and off the initial route.
-  { prefix: 'deepQualityGrader-', rawKiB: 66, gzipKiB: 23 },
+  // v0.16.73 adds the exact reader-visible punctuation and internal-language
+  // gates behind grader 1.10.34 (66.3/22.9 measured).
+  { prefix: 'deepQualityGrader-', rawKiB: 67, gzipKiB: 23.25 },
   // v0.16.71: premium finish checks remain finalize-only and independently
   // cacheable from the grader's scoring/control-flow implementation.
   { prefix: 'deepQualitySubstanceDetails-', rawKiB: 8, gzipKiB: 3 },

@@ -1,6 +1,7 @@
 import { getCustomDeliverable } from '../../lib/customDeliverableLibrary';
 import { generateCourseHealthReport } from '../../lib/pedagogicalValidator';
 import { isPackageReady } from '../../lib/pipelineMachine';
+import { getNotApplicableDisposition } from '../../lib/deliverableApplicability';
 import { getArrayKey } from '../../lib/syncDependencies';
 
 // ── Feature labels ──────────────────────────────────────────────────────────
@@ -41,6 +42,10 @@ export const STEPS = [
 
 const SUB_ARRAY_KEYS = { quizBank: 'qs', slideDecks: 'sl', courseFaq: 'qs', rubrics: 'cr' };
 
+function hasCompletedReadyPass(packageQualityPass) {
+  return packageQualityPass?.status === 'ready' && (Number(packageQualityPass?.blockers) || 0) === 0;
+}
+
 function buildActiveTabSecondaryStarter(activeTab, tabLabel) {
   const starters = {
     quizBank: { text: 'Check quiz timing and difficulty', icon: 'search' },
@@ -76,8 +81,33 @@ function buildAdaptiveStarters(courseMap, activeTab, deliverables, packageQualit
   // A completed finish pass already verified, repaired, graded, and prepared
   // the package. Offering "Finish package" again in that state reruns an
   // expensive operation and makes a ready workspace feel unfinished.
-  if (doneFeatureCount > 0 && !isPackageReady(packageQualityPass)) {
+  const finishPassReady = hasCompletedReadyPass(packageQualityPass);
+  if (doneFeatureCount > 0 && !finishPassReady) {
     starters.push({ text: 'Finish package', icon: 'search', action: 'finish-package' });
+  }
+
+  // A verified package should not immediately imply that the system knows of
+  // hidden "gaps." Keep the connected Scion agent useful with positive,
+  // explanatory prompts; actual review findings continue to live in the
+  // finish receipt and review queue.
+  if (finishPassReady || isPackageReady(packageQualityPass)) {
+    const disposition = getNotApplicableDisposition(activeTab, deliverables?.[activeTab]?.data);
+    if (disposition) {
+      return [
+        { text: `Explain why this course has no ${tabLabel}`, icon: 'chat' },
+        { text: `Summarize ${disposition.routeLabel || 'the routed material'}`, icon: 'chat' },
+      ];
+    }
+    if (activeTab && activeTab !== 'courseMap') {
+      return [
+        { text: `Summarize ${tabLabel}`, icon: 'chat' },
+        { text: `Explain the role of ${tabLabel}`, icon: 'chat' },
+      ];
+    }
+    return [
+      { text: 'Summarize the course sequence', icon: 'chat' },
+      { text: 'Explain the assessment strategy', icon: 'chat' },
+    ];
   }
 
   // 1. Active-tab-specific starter — prioritize what the user is currently viewing
@@ -256,7 +286,7 @@ export function getChatOpener(
         ],
       };
     }
-    const packageReady = isPackageReady(packageQualityPass);
+    const packageReady = hasCompletedReadyPass(packageQualityPass) || isPackageReady(packageQualityPass);
     const starters = buildAdaptiveStarters(courseMap, activeTab, deliverables, packageQualityPass);
     return {
       greeting: packageReady

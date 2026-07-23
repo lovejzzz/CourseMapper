@@ -165,6 +165,14 @@ describe('3.1 — registry schema (derive)', () => {
     expect(classifyAssessmentKind('Exit ticket using encoding to justify one course-relevant decision.')).toBe(
       'in-class',
     );
+    expect(
+      classifyAssessmentKind('Illumination Geometry exit reflection: connect evidence to Illumination Geometry task.'),
+    ).toBe('in-class');
+    expect(
+      classifyAssessmentKind(
+        'Illumination Geometry exit reflection: connect evidence to Illumination Geometry task. (10%)',
+      ),
+    ).toBe('graded-artifact');
     expect(classifyAssessmentKind('Practice response that names the evidence needed for decision making.')).toBe(
       'in-class',
     );

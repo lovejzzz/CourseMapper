@@ -6,6 +6,7 @@ import { useAIConfig } from './contexts/AIConfigContext';
 import { useCourse } from './contexts/CourseContext';
 import { useUI } from './contexts/UIContext';
 import { PUBLIC_SCION_PROVIDER_ID } from './lib/publicScionIdentity';
+import { removeProjectIndexedDbAutosave } from './lib/projectIndexedDbAutosave';
 import { clearSetupRecovery, readSetupRecovery, stageSetupRecovery } from './lib/setupRecovery';
 import useScionRuntimeStatus from './hooks/useScionRuntimeStatus';
 
@@ -92,6 +93,7 @@ export default function App() {
     try {
       localStorage.removeItem(STORAGE_KEY);
     } catch {}
+    removeProjectIndexedDbAutosave().catch(() => {});
     setHasSavedSession(false);
     resetGeneratedProjectState();
     startFlow({ type: 'continue' }, 'features');
@@ -105,6 +107,7 @@ export default function App() {
     try {
       localStorage.removeItem(STORAGE_KEY);
     } catch {}
+    removeProjectIndexedDbAutosave().catch(() => {});
     setHasSavedSession(false);
     resetGeneratedProjectState();
     startFlow({ type: 'quickStart' });
@@ -155,6 +158,7 @@ export default function App() {
     try {
       localStorage.removeItem(STORAGE_KEY);
     } catch {}
+    removeProjectIndexedDbAutosave().catch(() => {});
     resetGeneratedProjectState();
     setHasSavedSession(false);
   }, [resetGeneratedProjectState]);

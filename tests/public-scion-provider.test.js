@@ -142,6 +142,8 @@ describe('Scion Public provider', () => {
     });
     expect(agent[0].content).toContain('browser-local course workspace agent');
     expect(agent[0].content).toContain('never claim that you changed the workspace');
+    expect(agent[0].content).toContain('instead of merely listing their titles');
+    expect(agent[0].content).toContain('A list item begins with "- "');
     expect(agent[1].content).toBe('Audit the activities.');
   });
 
@@ -2268,10 +2270,20 @@ Return ONLY valid JSON.`;
         lessonId: 'lesson-10',
         sourceFactPolicy: 'numbered-source-ledger-v1',
         sourceFacts,
+        targetLanguagePair: {
+          hanzi: '这个多少钱？',
+          pinyin: 'Zhège duōshao qián?',
+          english: 'How much is this',
+        },
       },
     ])}\nReturn ONLY valid JSON.`;
     const projected = JSON.parse(buildPublicScionExactSourceLedgerResponse(prompt));
     expect(projected.lessons[0]).toMatchObject({ lessonId: 'lesson-10' });
+    expect(projected.lessons[0].targetLanguagePair).toEqual({
+      hanzi: '这个多少钱？',
+      pinyin: 'Zhège duōshao qián?',
+      english: 'How much is this',
+    });
     expect(projected.lessons[0].facts).toHaveLength(3);
     expect(projected.lessons[0].facts[0]).toContain('这个多少钱?');
     expect(assessPublicScionKernelResponse(JSON.stringify(projected), prompt, 'blueprintEnrichment').needsRetry).toBe(

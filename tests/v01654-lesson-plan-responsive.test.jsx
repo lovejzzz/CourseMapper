@@ -25,6 +25,12 @@ const DATA = {
           instructorNotes: 'Ask for evidence from a real file.',
         },
       ],
+      observationProtocol: {
+        weeklyFocus: 'Track one bright star twice in one evening and once on a second evening.',
+        logFields: ['Date, time, and observing location', 'Sky conditions and cloud cover'],
+        cloudyAlternative: 'Use the same time and location in a planetarium simulation and mark the entry simulated.',
+        observingBasics: 'Observe with a partner and protect night vision with a red light.',
+      },
     },
   ],
 };
@@ -39,5 +45,9 @@ describe('v0.16.54 responsive lesson-plan outlines', () => {
     expect(html).toContain('Ask for evidence from a real file.');
     expect(html).toContain('<table');
     expect(html).toContain('Description &amp; Notes');
+    expect(html).toContain('Evening Observation');
+    expect(html).toContain('Record in the observing log');
+    expect(html).toContain('If the sky is cloudy');
+    expect(html).toContain('Observe safely');
   });
 });

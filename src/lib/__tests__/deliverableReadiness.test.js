@@ -7,6 +7,7 @@ import {
   scopeDeliverableDataToLessons,
 } from '../deliverableReadiness';
 import { classifyAssessmentKind } from '../courseGraph/deriveFromCourseMap';
+import { buildNotApplicableDisposition } from '../deliverableApplicability';
 
 const courseMap = {
   courseName: 'Readiness Course',
@@ -112,6 +113,31 @@ describe('evaluateWorkspaceReadiness', () => {
 
     expect(readiness.status).toBe('ready');
     expect(readiness.blockers).toHaveLength(0);
+  });
+
+  it('treats a compiler-routed empty Assignment Brief as complete', () => {
+    const readiness = evaluateWorkspaceReadiness({
+      courseMap,
+      selectedFeatures: ['assignments'],
+      deliverables: {
+        assignments: {
+          status: 'done',
+          data: {
+            deliverableDisposition: buildNotApplicableDisposition('assignments', {
+              reasonCode: 'no-standalone-assessment',
+              summary: 'No separate assignment brief is needed for this course.',
+              routeFeatureId: 'quizBank',
+              routeLabel: 'Quiz & Exam Bank',
+            }),
+            assignments: [],
+          },
+        },
+      },
+    });
+
+    expect(readiness.status).toBe('ready');
+    expect(readiness.blockers).toHaveLength(0);
+    expect(readiness.doneFeatureCount).toBe(1);
   });
 
   it('does not require registry-linked assignment briefs to duplicate quiz-bank weights', () => {
@@ -371,6 +397,40 @@ describe('evaluateWorkspaceReadiness', () => {
     });
 
     expect(readiness.warnings.map((issue) => issue.message).join(' ')).not.toContain('missing assessed lesson');
+  });
+
+  it('does not demand rubrics for compiler-authored in-class evidence checks', () => {
+    const formativeCourseMap = {
+      courseName: 'Introduction to Astronomy',
+      lessons: [
+        {
+          title: 'Lesson 1: Diurnal Motion Mechanics',
+          sections: [
+            { weeklyAssessments: "Earth's Rotation Vector evidence check: state one supported conclusion." },
+            { weeklyAssessments: 'In-class Celestial Sphere Projection short analysis: claim and evidence.' },
+            { weeklyAssessments: 'In-class Time and Coordinate Systems exit reflection: connect evidence.' },
+          ],
+        },
+        {
+          title: 'Lesson 2: Seasons and Axial Tilt',
+          sections: [{ weeklyAssessments: 'midterm' }],
+        },
+      ],
+    };
+    const readiness = evaluateWorkspaceReadiness({
+      courseMap: formativeCourseMap,
+      columns,
+      selectedFeatures: ['rubrics'],
+      deliverables: {
+        rubrics: {
+          status: 'done',
+          data: { rubrics: [] },
+        },
+      },
+    });
+
+    expect(readiness.warnings.map((issue) => issue.message).join(' ')).not.toContain('missing assessed lesson');
+    expect(readiness.blockers.map((issue) => issue.message).join(' ')).not.toContain('Rubrics are missing');
   });
 
   it('treats ordered rubric arrays as lesson coverage when one item lacks an explicit lesson number', () => {
@@ -1068,6 +1128,40 @@ describe('repairCourseMapReadiness', () => {
     expect(repaired).not.toMatch(/discipline-specific tools/i);
     expect(repaired).not.toMatch(/course task or example/i);
     expect(repaired).toMatch(/historical|primary-source|source|map|timeline/i);
+  });
+
+  it('uses world-language repairs for a sparse Mandarin course map', () => {
+    const result = repairCourseMapReadiness({
+      courseMap: {
+        courseName: 'Elementary Mandarin Chinese I',
+        lessons: [
+          {
+            title: 'Lesson 1: Pinyin and Tones',
+            sections: [
+              {
+                topicSection: '1.1: Pinyin and Tones',
+                learningGoals: 'TBD',
+                learningObjectives: '',
+                weeklyAssessments: 'character writing homework: Pinyin and Tones',
+                asyncActivities: '',
+                syncActivities: '',
+                technologyNeeded: '',
+                presentationFormat: '',
+                supportingResources: '',
+                evaluateDesign: '',
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    const repaired = JSON.stringify(result.courseMap);
+    expect(result.changed).toBe(true);
+    expect(repaired).toMatch(/pronounce|pronunciation|form.sound.meaning|spoken response/i);
+    expect(repaired).toMatch(/audio|recording/i);
+    expect(repaired).toContain('Character Writing Homework: Pinyin and Tones');
+    expect(repaired).not.toMatch(/course problem|course task or example|evidence-backed account/i);
   });
 
   it('replaces generic Scion scaffolds and a course-title pseudo-resource in a music map', () => {

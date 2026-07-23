@@ -12,6 +12,7 @@ import {
   validateCompilerOutputContract,
 } from '../courseBlueprintCompiler';
 import { evaluateClassroomReadiness } from '../classroomReadiness';
+import { deriveCourseGraphFromCourseMap } from '../courseGraph/deriveFromCourseMap';
 import { validateDeliverableGeneration } from '../deliverablePostProcess';
 import { deliverableToCsvRows } from '../exporters/csvExporter';
 import { buildInstructorPreferenceProfile } from '../instructorPreferenceProfile';
@@ -47,6 +48,13 @@ const makeCourseMap = (lessonCount = 6) => ({
 });
 
 const countWords = (value) => (String(value || '').match(/[A-Za-z][A-Za-z'-]*/g) || []).length;
+
+const countExactPhrase = (value, phrase) =>
+  (
+    JSON.stringify(value)
+      .toLowerCase()
+      .match(new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) || []
+  ).length;
 
 const makeBiologyLabCourseMap = () => ({
   courseName: 'Biology Laboratory Methods',
@@ -2536,6 +2544,101 @@ describe('courseBlueprintCompiler', () => {
     expect(text).not.toMatch(/\bevidence-backed the logic/i);
     expect(text).not.toMatch(/\bthis the logic/i);
     expect(text).not.toMatch(/\bthe the logic/i);
+  });
+
+  it('keeps one exact long lesson title as the discussion heading without stamping it through the body', () => {
+    const focus = 'seasons and axial tilt with solstice and equinox';
+    const blueprint = buildCourseBlueprint({
+      courseName: 'Introduction to Astronomy',
+      semester: 'Fall 2026',
+      lessons: [
+        {
+          title: `Lesson 1: ${focus}`,
+          sections: [
+            {
+              topicSection: focus,
+              learningObjectives: `Explain the astronomical account of ${focus}.`,
+              learningGoals: `Use observational evidence to distinguish the cause of ${focus}.`,
+              weeklyAssessments: `${focus} exit reflection: connect evidence to ${focus} task`,
+              asyncActivities: `Review a source on ${focus}.`,
+              syncActivities: `Compare explanations of ${focus}.`,
+              supportingResources: `${focus} reading and observation notes`,
+              evaluateDesign: `Score evidence use and misconception repair for ${focus}.`,
+            },
+          ],
+        },
+      ],
+    });
+    blueprint.lessons[0].enrichment = {
+      keyTerms: [
+        {
+          term: 'Seasons and axial tilt',
+          definition:
+            "Earth's seasons are caused by axial tilt, which changes sunlight angle and daylight duration through the year.",
+          misconception: 'Students may attribute the seasons to changing Earth-Sun distance.',
+          correction: 'Axial tilt, not orbital distance, explains the seasonal pattern.',
+          source: 'OpenStax Astronomy 2e',
+          tier: 2,
+        },
+      ],
+      discussionPrompt: {
+        prompt:
+          'Which interpretation of seasons is best supported by the observation record, and what would change that conclusion?',
+        tension: 'One account emphasizes axial tilt while the competing account emphasizes orbital distance.',
+        positions: [
+          'Use the axial-tilt account as the leading explanation.',
+          'Retain the distance account until the decisive observation is checked.',
+        ],
+      },
+    };
+
+    const discussion = compileBlueprintDeliverables(blueprint, ['discussions'], {
+      enforceCompilerContract: false,
+    }).discussions.discussions[0];
+    const exportedBody = {
+      lessonTitle: discussion.lessonTitle,
+      prompt: discussion.prompt,
+      context: discussion.context,
+      evidenceRequirement: discussion.evidenceRequirement,
+      sourceArtifacts: discussion.sourceArtifacts,
+      followUpProbes: discussion.followUpProbes,
+      facilitationTips: discussion.facilitationTips,
+      responseStarters: discussion.responseStarters,
+      evaluationCriteria: discussion.evaluationCriteria,
+      equityConsiderations: discussion.equityConsiderations,
+      guidelines: discussion.guidelines,
+    };
+
+    expect(discussion.lessonTitle).toBe(`Lesson 1: ${focus}`);
+    // One heading + up to three body anchors + the exact canonical assessment
+    // locator (which may itself name the focus twice) remains below the
+    // rendered-text repetition gate.
+    expect(countExactPhrase(exportedBody, focus)).toBeLessThanOrEqual(6);
+    expect(JSON.stringify(exportedBody)).toMatch(/seasons axial tilt|Seasons and axial tilt/);
+    expect(JSON.stringify(exportedBody)).toContain('Week 1 reflection');
+    expect(discussion.sourceArtifacts[1].locator.toLowerCase()).toContain(`${focus} exit reflection`);
+  });
+
+  it('does not promote a classroom direction into a source title or break possessive punctuation', () => {
+    const blueprint = buildCourseBlueprint({
+      courseName: 'Introduction to Astronomy',
+      lessons: [
+        {
+          title: 'Lesson 1: Diurnal Motion Mechanics',
+          sections: [
+            {
+              topicSection: "1.1: Earth's Rotation Vector",
+              learningObjectives: "Explain how Earth's rotation produces apparent daily sky motion.",
+              supportingResources:
+                "Compare two examples of Earth's Rotation Vector and explain which evidence is stronger.",
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(blueprint.lessons[0].evidencePlan.sourceCue).toBe('Diurnal Motion Mechanics source packet');
+    expect(JSON.stringify(blueprint.lessons[0].evidencePlan)).not.toContain('Earth s');
   });
 
   it('varies UX assignment critique instructions instead of repeating the before-after scaffold', () => {
@@ -8088,8 +8191,8 @@ describe('courseBlueprintCompiler', () => {
 
     const compiled = compileBlueprintDeliverables(blueprint, ['quizBank']);
     const optionText = compiled.quizBank.quizzes[0].questions.flatMap((question) => question.options || []).join(' ');
-    expect(optionText).toMatch(/assume adding rewards always strengthens motivation/i);
-    expect(optionText).not.toMatch(/\(and teachers\)/i);
+    expect(optionText).toMatch(/Adding rewards always strengthens motivation/i);
+    expect(optionText).not.toMatch(/\b(?:students?|teachers?|learners?)\b|\b(?:assume|think|believe)\b/i);
   });
 
   it('removes leading articles from embedded artifact references and starts misconception sentences cleanly', () => {
@@ -8119,7 +8222,7 @@ describe('courseBlueprintCompiler', () => {
         {
           term: 'comparative reading',
           definition: 'Comparative reading interprets a shared question through evidence from more than one text.',
-          misconception: 'the Comparative Reading focus matters only as vocabulary, not as evidence for a decision.',
+          misconception: 'two plot summaries become a comparison simply because they appear beside each other.',
           correction: 'Comparative reading uses textual evidence to test and bound an interpretive claim.',
         },
       ],
@@ -8138,7 +8241,8 @@ describe('courseBlueprintCompiler', () => {
     expect(planText).not.toMatch(/a guided the /i);
     expect(planText).not.toMatch(/one the lesson assessment/i);
     expect(planText).not.toMatch(/Watch for this misconception\. the /);
-    expect(planText).toMatch(/Watch for this misconception\. The Comparative Reading focus/);
+    expect(planText).toMatch(/Watch for this misconception\. Two plot summaries/);
+    expect(planText).not.toMatch(/matters only as vocabulary/);
   });
 
   it('keeps brief parameters as unweighted checks without replacing assessment criteria', () => {
@@ -8165,5 +8269,119 @@ describe('courseBlueprintCompiler', () => {
     expect(rubric.submissionRequirements[0]).toContain('Scope: use the named policy case only');
     expect(rubric.submissionRequirementChecks.map((row) => row.weight)).toEqual([0, 0, 0, 0]);
     expect(rubric.submissionRequirementPolicy).toContain('unweighted constraints');
+  });
+
+  it('routes an exam-only course away from standalone Assignment Briefs without failing the package', () => {
+    const examOnlyMap = {
+      courseName: 'Introduction to Astronomy',
+      lessons: [
+        {
+          title: 'Lesson 1: Diurnal Motion',
+          sections: [
+            {
+              learningGoals: 'Explain apparent daily motion using Earth rotation.',
+              topicSection: 'Earth rotation and apparent sky motion',
+              learningObjectives: 'Predict the direction of apparent stellar motion.',
+              weeklyAssessments: 'In-class diurnal-motion evidence check',
+              asyncActivities: 'Record the direction of apparent sky motion.',
+              syncActivities: 'Model Earth rotation with a celestial globe.',
+              supportingResources: 'Instructor-provided celestial-sphere diagram.',
+            },
+          ],
+        },
+        {
+          title: 'Lesson 2: Seasons and Axial Tilt',
+          sections: [
+            {
+              learningGoals: 'Explain how axial tilt changes solar angle and day length.',
+              topicSection: 'Axial tilt and seasonal insolation',
+              learningObjectives: 'Predict the season from an Earth-Sun geometry diagram.',
+              weeklyAssessments: 'Midterm',
+              asyncActivities: 'Compare solstice diagrams with daylight observations.',
+              syncActivities: 'Model axial tilt with a lamp and globe.',
+              supportingResources: 'Instructor-provided seasons diagram.',
+            },
+          ],
+        },
+      ],
+    };
+    const graph = deriveCourseGraphFromCourseMap(examOnlyMap);
+    const blueprint = buildCourseBlueprint(examOnlyMap, { assessmentRegistry: graph.assessments });
+    const compiled = compileBlueprintDeliverables(blueprint, [
+      'assignments',
+      'quizBank',
+      'slideDecks',
+      'rubrics',
+      'discussions',
+      'courseFaq',
+      'syllabus',
+    ]);
+    const validation = validateDeliverableGeneration('assignments', compiled.assignments, {
+      expectedLessonCount: 2,
+    });
+
+    expect(compiled.assignments.assignments).toEqual([]);
+    expect(compiled.assignments.deliverableDisposition).toMatchObject({
+      status: 'not-applicable',
+      reasonCode: 'no-standalone-assessment',
+      routeFeatureId: 'quizBank',
+    });
+    expect(validation.valid).toBe(true);
+    expect(compiled.quizBank.quizzes.some((quiz) => quiz.kind === 'exam')).toBe(true);
+    const seasonsQuiz = compiled.quizBank.quizzes.find(
+      (quiz) => quiz.kind !== 'exam' && quiz.lessonTitle === 'Lesson 2: Seasons and Axial Tilt',
+    );
+    const diurnalQuiz = compiled.quizBank.quizzes.find(
+      (quiz) => quiz.kind !== 'exam' && quiz.lessonTitle === 'Lesson 1: Diurnal Motion',
+    );
+    expect(
+      JSON.stringify(
+        (diurnalQuiz?.questions || []).map(({ objectiveAligned, objective }) => ({
+          objectiveAligned,
+          objective,
+        })),
+      ),
+    ).toMatch(/apparent stellar motion/i);
+    expect(
+      JSON.stringify(
+        (diurnalQuiz?.questions || []).map(({ objectiveAligned, objective }) => ({
+          objectiveAligned,
+          objective,
+        })),
+      ),
+    ).not.toMatch(/season|axial tilt|insolation/i);
+    expect(JSON.stringify(seasonsQuiz)).toMatch(/seasons|axial tilt|insolation/i);
+    expect(
+      JSON.stringify(
+        (seasonsQuiz?.questions || []).map(({ question, options, answer, explanation }) => ({
+          question,
+          options,
+          answer,
+          explanation,
+        })),
+      ),
+    ).not.toMatch(/diurnal motion/i);
+    expect(JSON.stringify(compiled.slideDecks)).not.toMatch(
+      /solve the system x \+ y|add the equations: 2x|the solution is \(2, 1\)/i,
+    );
+    const diurnalDeck = compiled.slideDecks.decks.find((deck) => deck.lessonTitle === 'Lesson 1: Diurnal Motion');
+    expect(JSON.stringify(diurnalDeck)).toMatch(/Concept practice: test .* with evidence|Formative concept practice/i);
+    expect(JSON.stringify(diurnalDeck)).not.toMatch(/lecture[- ]exam|before the next submission/i);
+    expect(JSON.stringify(diurnalDeck)).not.toMatch(/\b\w+(?: and \w+)* improves\b/i);
+    expect(compiled.rubrics.rubrics).toHaveLength(1);
+    expect(JSON.stringify(compiled.rubrics)).toMatch(/midterm/i);
+    expect(JSON.stringify(compiled.rubrics)).not.toMatch(/diurnal-motion evidence check rubric/i);
+    const diurnalDiscussion = compiled.discussions.discussions.find(
+      (discussion) => discussion.lessonTitle === 'Lesson 1: Diurnal Motion',
+    );
+    expect(JSON.stringify(diurnalDiscussion.sourceArtifacts)).toMatch(/Practice Check|formative practice/i);
+    expect(JSON.stringify(diurnalDiscussion.sourceArtifacts)).not.toMatch(/Assessment Brief/i);
+    expect(diurnalDiscussion.format).not.toBe('Exam Readiness Clinic');
+    expect(JSON.stringify(diurnalDiscussion)).not.toMatch(/\bone the lesson\b/i);
+    const diurnalFaq = compiled.courseFaq.faqs.find((faq) => faq.lt === 'Lesson 1: Diurnal Motion');
+    expect(JSON.stringify(diurnalFaq)).toMatch(/formative practice|course checks/i);
+    expect(JSON.stringify(diurnalFaq)).not.toMatch(/connect to graded work|feeds directly into the graded task/i);
+    expect(compiled.syllabus.syllabus.outcomeAlignmentMatrix.every((row) => row.assessedBy.length > 0)).toBe(true);
+    expect(JSON.stringify(compiled.syllabus.syllabus.outcomeAlignmentMatrix)).toMatch(/Formative:/i);
   });
 });

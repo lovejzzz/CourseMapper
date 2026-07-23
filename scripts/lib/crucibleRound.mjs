@@ -54,7 +54,15 @@ export function spendGuardDecision({
  */
 export function shouldRetryCourseAttempt(attempt) {
   if (!attempt || attempt.status === 'passed') return false;
+  if (attempt.failureClass === 'preview-infrastructure') return false;
   const error = String(attempt.error || '');
+  if (
+    /CourseMapper preview (?:request failed|server became unreachable)|vite preview is no longer running|ERR_(?:CONNECTION_REFUSED|EMPTY_RESPONSE)/i.test(
+      error,
+    )
+  ) {
+    return false;
+  }
   if (/Package was not ready to download after finalization/i.test(error)) return false;
   return true;
 }

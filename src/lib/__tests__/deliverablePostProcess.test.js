@@ -29,6 +29,7 @@ import {
   normalizeSyllabusPublishability,
   validateDeliverableGeneration,
 } from '../deliverablePostProcess.js';
+import { buildNotApplicableDisposition } from '../deliverableApplicability.js';
 import { findPublishabilityPlaceholders } from '../publishabilityPlaceholders.js';
 
 describe('Course FAQ post-processing', () => {
@@ -377,6 +378,126 @@ describe('Course FAQ post-processing', () => {
     expect(text).not.toMatch(/one example, one source detail, and one limitation/i);
     expect(text).not.toMatch(/platform|command|screen|file version|required tool/i);
     expect(text).toMatch(/source or example|assigned source/i);
+  });
+
+  it('does not mistake a conceptual astronomy dataset for a software workflow', () => {
+    const data = {
+      faqs: [
+        {
+          lt: 'Lesson 1: Diurnal Motion',
+          qs: [
+            {
+              q: 'Where should I ask for help?',
+              an: 'Bring one specific question about the topic or assessment to class, office hours, or a study group.',
+              ca: 'Technical Help',
+            },
+          ],
+        },
+      ],
+    };
+    const courseMap = {
+      lessons: [
+        {
+          title: 'Lesson 1: Diurnal Motion',
+          sections: [
+            {
+              topicSection: 'Earth rotation and apparent sky motion',
+              learningObjectives: 'Predict the direction of apparent stellar motion from observations.',
+              weeklyAssessments: 'In-class evidence check.',
+              asyncActivities: 'Analyze a dataset of recorded star positions.',
+              syncActivities: 'Model apparent motion with a globe and sky chart.',
+              supportingResources: 'Stellarium planetarium software and a downloadable night-sky dataset.',
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = normalizeCourseFaqQuestionVariety(data, courseMap);
+    const text = JSON.stringify(result.data);
+
+    expect(result.rewrittenQuestions).toBe(1);
+    expect(text).toMatch(/reading|source|materials|example/i);
+    expect(text).not.toMatch(/file, tool|platform|command|screen|required tool|exact error/i);
+  });
+
+  it('does not mistake an observing notebook plus analysis activity for a coding notebook', () => {
+    const data = {
+      faqs: [
+        {
+          lt: 'Lesson 1: Diurnal Motion Mechanics',
+          qs: [
+            {
+              q: 'Where should I ask for help?',
+              an: 'Bring one specific question about the topic or assessment to class, office hours, or a study group.',
+              ca: 'Technical Help',
+            },
+          ],
+        },
+      ],
+    };
+    const courseMap = {
+      lessons: [
+        {
+          title: 'Lesson 1: Diurnal Motion Mechanics',
+          sections: [
+            {
+              topicSection: "Earth's Rotation Vector; Celestial Sphere Projection; Time and Coordinate Systems",
+              learningObjectives: 'Explain apparent sky motion from Earth rotation.',
+              weeklyAssessments: 'In-class evidence check.',
+              asyncActivities: 'Analyze a sequence of recorded star positions.',
+              syncActivities: 'Compare observations with a globe and sky chart.',
+              supportingResources: 'Evening observing notebook and star chart.',
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = normalizeCourseFaqQuestionVariety(data, courseMap);
+    const text = JSON.stringify(result.data);
+
+    expect(result.rewrittenQuestions).toBe(1);
+    expect(text).toMatch(/assigned source|lesson materials|reading|recording|example|activity/i);
+    expect(text).not.toMatch(/file version|required tool|exact error|command|platform/i);
+  });
+
+  it('uses learner language and complete prose for nontechnical materials help', () => {
+    const data = {
+      faqs: [
+        {
+          lt: 'Lesson 1: Diurnal Motion Mechanics',
+          qs: [
+            {
+              q: 'How should I report a blocker?',
+              an: 'Bring one specific question about the topic or assessment to class, office hours, or a study group.',
+              ca: 'Technical Help',
+            },
+          ],
+        },
+      ],
+    };
+    const courseMap = {
+      lessons: [
+        {
+          title: 'Lesson 1: Diurnal Motion Mechanics',
+          sections: [
+            {
+              topicSection: "Earth's Rotation Vector",
+              learningObjectives: 'Analyze an example using',
+              weeklyAssessments: "Earth's Rotation Vector evidence check.",
+              supportingResources: 'Evening observing notebook and star chart.',
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = normalizeCourseFaqQuestionVariety(data, courseMap);
+    const text = JSON.stringify(result.data);
+
+    expect(text).toMatch(/lesson materials|materials problem|that difficulty|directions for Diurnal Motion Mechanics/i);
+    expect(text).not.toMatch(/\bblocker\b|using,/i);
   });
 
   it('uses the concise assessment label before a colon instead of clipping directions mid-sentence', () => {
@@ -1023,6 +1144,26 @@ describe('Deliverable generation validation', () => {
     expect(result.blockers.join(' ')).toMatch(/empty/i);
   });
 
+  it('accepts a compiler-owned not-applicable assignment receipt with an empty item array', () => {
+    const result = validateDeliverableGeneration(
+      'assignments',
+      {
+        deliverableDisposition: buildNotApplicableDisposition('assignments', {
+          reasonCode: 'no-standalone-assessment',
+          summary: 'No separate assignment brief is needed for this course.',
+          routeFeatureId: 'quizBank',
+          routeLabel: 'Quiz & Exam Bank',
+        }),
+        assignments: [],
+      },
+      { expectedLessonCount: 3 },
+    );
+
+    expect(result.valid).toBe(true);
+    expect(result.itemCount).toBe(0);
+    expect(result.notApplicable?.reasonCode).toBe('no-standalone-assessment');
+  });
+
   it('blocks incomplete per-lesson outputs with retryable lesson indices', () => {
     const result = validateDeliverableGeneration(
       'lessonPlans',
@@ -1332,6 +1473,34 @@ describe('Rubric and assignment post-processing', () => {
     expect(result.missingLessonNumbers).toEqual([2, 3]);
     expect(result.data.rubrics[1].gradedWork).toContain('Visualization critique');
     expect(result.data.rubrics[2].gradedWork).toContain('Spreadsheet model exercise');
+  });
+
+  it('does not invent a rubric for a compiler-owned formative reflection', () => {
+    const data = {
+      rubrics: [{ title: 'Midterm Rubric', lessonTitle: 'Lesson 2: Seasons', criteria: [] }],
+    };
+    const courseMap = {
+      lessons: [
+        {
+          title: 'Lesson 1: Diurnal Motion',
+          sections: [{ weeklyAssessments: 'In-class evidence check: explain one observed sky-motion pattern.' }],
+        },
+        {
+          title: 'Lesson 2: Seasons',
+          sections: [{ weeklyAssessments: 'Midterm' }],
+        },
+        {
+          title: 'Lesson 3: Phases of the Moon',
+          sections: [{ weeklyAssessments: 'Exit reflection: explain one phase pattern and remaining question.' }],
+        },
+      ],
+    };
+
+    const result = normalizeRubricCoverage(data, courseMap);
+
+    expect(result.addedRubrics).toBe(0);
+    expect(result.missingLessonNumbers).toEqual([]);
+    expect(result.data.rubrics).toHaveLength(1);
   });
 
   it('does not add fallback rubrics when compact rubrics already cover assessed lessons', () => {

@@ -9,17 +9,17 @@
     "scripts/scionLessonKernelCapture.mjs": "6ffa9a6d42670204c4f408ecf3ede3a0c9b84eaac331d1e578ec9f1c80a71dc2",
     "scripts/scionLessonKernelAdmissionReplay.mjs": "fb55089d7393b3bdd119a6ec703edda2e132b01af00c6d01239f1d6c805c512a",
     "src/lib/scionEvidenceContract.js": "cd516f6eaaf961459c1e0bfd770f7cfa2ae11c3f6ab112c845a6ce30dab99ae5",
-    "src/lib/scionContracts.js": "b351badc1a6b7d8d6dd4ee9261e5cde3d71aedccf2e9a040d471430cf227396b",
-    "src/lib/scionLocalProvider.js": "007922aa2aff7af65fc7483bd57daec1670044815229c78202b2a56e899a4f90",
-    "src/lib/scionPassB.js": "5fea034c0e1cacb88a11a36617ea8608ebe45369a4d015c653155672d63186df",
-    "src/lib/publicScionProvider.js": "eecc83c41a7b58f6a6397f257d9952250a9e611ef0979aa86ba4b5f109a6e8d8",
-    "src/lib/scionAnswerKeyAlignment.js": "c5aff075c25ee6f1bf6de87d52991d1b354e741c188e1290f3fa3c4282750423",
-    "src/lib/scionKeyTermContract.js": "995c0f357e0b35785090a85f79d7c6c56931aea8a450bd8536583c5982aadcd5",
-    "src/lib/scenarioContract.js": "03e320ab6f7d501585f832e280e1268482c77d20f4c2313a09415c82f9b54304",
+    "src/lib/scionContracts.js": "5e7837f1906d6ddc1341d1e6a4a37c94d867e6d99855ffcf060b47eeb89e58ff",
+    "src/lib/scionLocalProvider.js": "06888fd5ab1b02e677ae6dbc0fd35464b3527d5ad7476afe8e8fbc6a56c5a585",
+    "src/lib/scionPassB.js": "a0c22d5071b79fe39ce843157b6fde5449370c64df068f38a57b02c74a7af405",
+    "src/lib/publicScionProvider.js": "1c77f0941f72394a2b97ead939e95de5a2a6c08343ab74f8284fd30e5509adc2",
+    "src/lib/scionAnswerKeyAlignment.js": "9abc34551f60bb8623ce0b329c17d72644ac509456b8df733a0c7a364e7288cf",
+    "src/lib/scionKeyTermContract.js": "906ea61925d4f35d61423067fdc07520fa661d87a84da5e93f4c92c347e3fbd4",
+    "src/lib/scenarioContract.js": "8ab47fe4368bc95877ec6fd0ca6c74a9cbbcdaf8048f4d7463574dc7e1e8ac6a",
     "src/lib/itemAdmissionLint.js": "b8267ee39ac97e5b7a5963628d18358b70a37bb34033e6af0f00f3b150c5dff6",
-    "src/lib/blueprintEnrichmentPass.js": "b568470b202f5c76c74b78516e32f5422c1e0b08f567fa6feaaca076f5bc631a",
-    "src/lib/courseBlueprintCompiler.js": "8aeb322022c18814f8e4b81bbc6c7ffa12b9f8280b32d239477d4a77c7298f05",
-    "src/hooks/useDeliverables.js": "13134fcd5bac5ac11b959f684447683753d55cd4cd9132c4e97d829d79040444"
+    "src/lib/blueprintEnrichmentPass.js": "90c072d42bf57d7b4566e6744fb8097dc4e100e378d173b72b1dc6017d34c513",
+    "src/lib/courseBlueprintCompiler.js": "07ce53259ec50e0d5a6ddce43c45c2a965b51e2dde513a439c83adc3c286b777",
+    "src/hooks/useDeliverables.js": "83e7ceba56ec27449f059bdff90d95815da2223fce9ff1fe7d56f285240ba3d0"
   },
   "evidenceFiles": {
     "batch-1/judge/batches/batch-001-bf5ef77abb/a-b.packet.json": "f0bf2206f03ba2b7a57ed38159a1e6ad52c3828a5d4814198b36ca37a604886d",
@@ -142,6 +142,6 @@
   "claimBoundary": "This is deterministic current-compiler replay plus same-identity model-judge evidence from seven bounded source-ledger pairs. Three judged winners cleared the earlier score and admission boundary; the stricter current replay retains two as training-eligible full-lesson preferences. This is not human, instructor, classroom, independent-judge, adapter-improvement, held-out, or production-win evidence.",
   "identity": {
     "algorithm": "sha256-canonical-json",
-    "sha256": "9cceb8ea0be57fc531bc3a93d3a2991853a6618d5a22af4a063ec63ea40fa377"
+    "sha256": "d8d1d818f5b2278f59c92af5193dc3857c1dbd3060034597127128ac34abfc34"
   }
 }

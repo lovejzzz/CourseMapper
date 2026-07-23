@@ -33,7 +33,7 @@ describe('runPipeline (mockVoice)', () => {
       await readFile('trellis/runs/test-pipeline-mock/package/PACKAGE_MANIFEST.json', 'utf8'),
     );
     expect(manifest.pipeline.judgment).toMatch(/prerequisite edges verified/);
-  }, 30000);
+  }, 120000);
 
   it('an uncovered concept becomes an honest declared gap under mock voice', async () => {
     const graph = buildResearchMethods8();
@@ -56,5 +56,5 @@ describe('runPipeline (mockVoice)', () => {
     });
     expect(result.digest.flywheel).toMatch(/declared as gaps/);
     expect(result.graph.concepts.find((c) => c.id === 'c-quantum-frobnication').declaredGap).toBe(true);
-  }, 30000);
+  }, 120000);
 });

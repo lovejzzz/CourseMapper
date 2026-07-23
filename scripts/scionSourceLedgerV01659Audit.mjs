@@ -321,13 +321,13 @@ export async function buildScionSourceLedgerV01659Audit({ cwd = process.cwd() } 
   return report;
 }
 
-export async function runScionSourceLedgerV01659Audit({ build = false, cwd = process.cwd() } = {}) {
+export async function runScionSourceLedgerV01659Audit({ build = false, write = false, cwd = process.cwd() } = {}) {
   const root = path.resolve(cwd);
   if (build) await copyEvidence();
   const report = await buildScionSourceLedgerV01659Audit({ cwd: root });
   const receipt = path.join(root, RECEIPT);
   const serialized = `${JSON.stringify(report, null, 2)}\n`;
-  if (build) await atomicWriteJson(receipt, report);
+  if (build || write) await atomicWriteJson(receipt, report);
   else if ((await fs.readFile(receipt, 'utf8')) !== serialized)
     throw new Error('Tracked v0.16.59 source-ledger receipt is stale');
   return { report, receipt };
@@ -335,9 +335,12 @@ export async function runScionSourceLedgerV01659Audit({ build = false, cwd = pro
 
 async function main() {
   const args = new Set(process.argv.slice(2));
-  if ([...args].some((arg) => !['--build', '--audit'].includes(arg)))
+  if ([...args].some((arg) => !['--build', '--write', '--audit'].includes(arg)))
     throw new Error('Unknown source-ledger audit option');
-  const result = await runScionSourceLedgerV01659Audit({ build: args.has('--build') });
+  const result = await runScionSourceLedgerV01659Audit({
+    build: args.has('--build'),
+    write: args.has('--write'),
+  });
   console.log(
     `Scion source ledger: ${result.report.crossDomain.pairedJudge.referenceWins}/7 reference wins; ${result.report.crossDomain.trainingPreferences.rows} score-qualified rows.`,
   );

@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { buildCourseMapRecoveryAutosavePayload, buildLocalAutosavePayload } from '../projectAutosave';
+import {
+  buildCourseMapRecoveryAutosavePayload,
+  buildIndexedDbAutosaveMarker,
+  buildLocalAutosavePayload,
+} from '../projectAutosave';
 
 describe('buildLocalAutosavePayload', () => {
   it('v0.15: prunes history but KEEPS deliverables before ever falling to compact', () => {
@@ -100,5 +104,31 @@ describe('buildCourseMapRecoveryAutosavePayload', () => {
     expect(saved.promptText.length).toBeLessThanOrEqual(8_000);
     expect(payload).not.toContain('graphgraph');
     expect(payload).not.toContain('quizquiz');
+  });
+});
+
+describe('buildIndexedDbAutosaveMarker', () => {
+  it('keeps the landing resume signal tiny without duplicating the project payload', () => {
+    const marker = buildIndexedDbAutosaveMarker({
+      formatVersion: 2,
+      courseMap: {
+        courseName: 'Elementary Mandarin Chinese I',
+        semester: 'Fall 2026',
+        lessons: Array.from({ length: 15 }, (_, index) => ({
+          title: `Lesson ${index + 1}`,
+          body: 'large learner artifact '.repeat(10_000),
+        })),
+      },
+      deliverables: { quizBank: { body: 'quiz'.repeat(50_000) } },
+    });
+    const saved = JSON.parse(marker);
+
+    expect(saved.indexedDbAutosave).toBe(true);
+    expect(saved.localSaveMode).toBe('indexeddb-autosave');
+    expect(saved.courseMap.courseName).toBe('Elementary Mandarin Chinese I');
+    expect(saved.courseMap.lessons).toEqual([]);
+    expect(saved.lessonCount).toBe(15);
+    expect(marker.length).toBeLessThan(500);
+    expect(marker).not.toContain('large learner artifact');
   });
 });

@@ -47,9 +47,10 @@ function isLeakedSkyProtocol(value) {
 }
 
 /** Does this course's own language promise sky observation work? */
-export function detectSkyObservationCourse({ courseName = '', lessons = [] } = {}) {
+export function detectSkyObservationCourse({ courseName = '', lessons = [], sourceText = '' } = {}) {
   const text = [
     courseName,
+    sourceText,
     ...lessons.flatMap((lesson) => [
       lesson?.title,
       lesson?.activityPattern,
@@ -133,8 +134,14 @@ const OBSERVING_BASICS =
  * Build the lesson's observation protocol. Returns null when the course is
  * not a sky-observation course.
  */
-export function buildObservationProtocol({ courseName = '', lessons = [], lesson = null } = {}) {
-  if (!detectSkyObservationCourse({ courseName, lessons })) return null;
+export function buildObservationProtocol({
+  courseName = '',
+  lessons = [],
+  lesson = null,
+  sourceText = '',
+  promised = false,
+} = {}) {
+  if (!promised && !detectSkyObservationCourse({ courseName, lessons, sourceText })) return null;
   const conceptText = [lesson?.title, ...(lesson?.keyConcepts || [])].map(cleanText).join(' ');
   const weekly = WEEKLY_FOCI.find((entry) => entry.match.test(conceptText));
   return {
@@ -168,9 +175,17 @@ function repairLessonPlanArray(plans, stats) {
  * This is a deterministic legacy repair for packages generated before the
  * detector required both sky context and observing intent.
  */
-export function repairMisappliedObservationProtocols({ courseName = '', lessons = [], data = null } = {}) {
+export function repairMisappliedObservationProtocols({
+  courseName = '',
+  lessons = [],
+  sourceText = '',
+  promised = false,
+  data = null,
+} = {}) {
   if (!data || typeof data !== 'object') return { data, changed: false, removedCount: 0 };
-  if (detectSkyObservationCourse({ courseName, lessons })) return { data, changed: false, removedCount: 0 };
+  if (promised || detectSkyObservationCourse({ courseName, lessons, sourceText })) {
+    return { data, changed: false, removedCount: 0 };
+  }
 
   const stats = { removedCount: 0 };
   if (Array.isArray(data)) {

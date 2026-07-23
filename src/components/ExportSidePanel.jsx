@@ -417,10 +417,10 @@ function ReadinessPanel({
         }
       : hasWarnings
         ? {
-            wrap: 'border-amber-100 bg-amber-50/70 text-amber-700 dark:border-amber-800/50 dark:bg-amber-950/30 dark:text-amber-200',
-            icon: 'bg-amber-100 text-amber-600 dark:bg-amber-900/70 dark:text-amber-200',
-            title: 'Review recommended',
-            meta: 'Notes in Agent',
+            wrap: 'border-sky-100 bg-sky-50/70 text-sky-800 dark:border-sky-800/50 dark:bg-sky-950/30 dark:text-sky-200',
+            icon: 'bg-sky-100 text-sky-700 dark:bg-sky-900/70 dark:text-sky-200',
+            title: 'Ready to download',
+            meta: 'Notes saved in Agent',
           }
         : {
             wrap: 'border-emerald-100 bg-emerald-50/70 text-emerald-700 dark:border-emerald-800/50 dark:bg-emerald-950/30 dark:text-emerald-200',
@@ -435,7 +435,7 @@ function ReadinessPanel({
         <span
           className={`mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full text-xs ${tone.icon}`}
         >
-          {isBlocked ? '!' : hasPackageOnlyReview ? 'i' : hasWarnings ? '•' : '✓'}
+          {isBlocked ? '!' : hasPackageOnlyReview || hasWarnings ? 'i' : '✓'}
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
@@ -450,7 +450,7 @@ function ReadinessPanel({
                 quality={quality}
                 onOpen={onOpenQuality}
                 trustStatus={trustStatus}
-                informational={hasPackageOnlyReview}
+                informational={hasPackageOnlyReview || hasWarnings}
               />
             )}
           </div>
@@ -1078,7 +1078,9 @@ export default function ExportSidePanel({
     let exportDeliverables = deliverables || {};
     let exportCourseGraph = courseGraph;
     let exportReadiness = getReadinessSnapshot({ exportCourseMap, exportDeliverables, exportScope });
-    let repairsApplied = pendingExport?.repairsApplied || 0;
+    let repairsApplied =
+      pendingExport?.repairsApplied ??
+      (hasFinishedPackageReceipt(packageQualityPass) ? Number(packageQualityPass?.repairsApplied) || 0 : 0);
     let finishOutcome = null;
     const verifiedPackageAvailableAtStart =
       format === 'zip' && exportScope === 'all' && hasDownloadableVerifiedPackage(packageQualityPass);
@@ -1129,7 +1131,12 @@ export default function ExportSidePanel({
       } finally {
         setFinishPackageBusy(false);
       }
-    } else if (typeof onAutoRepairReadiness === 'function') {
+    } else if (!verifiedPackageAvailableAtStart && typeof onAutoRepairReadiness === 'function') {
+      // A package that already earned a ready finish receipt and 38/38 export
+      // verification is immutable at download time. Running another repair
+      // here could make the ZIP differ from the state that was verified and
+      // would make the green card and download receipt report different
+      // repair counts.
       const repairResult = onAutoRepairReadiness({
         selectedFeatureIds: getExportFeatureIds(exportScope),
         lessonFilter: exportScope === 'all' ? effectiveLessonFilter : null,
@@ -1176,11 +1183,11 @@ export default function ExportSidePanel({
     // even though its physical files passed export verification.
     const downloadReadiness = verifiedPackageAvailable ? exportReadiness : getDownloadReadiness(exportReadiness);
     setPendingReadinessExport(null);
-    setLastNotice(
-      repairsApplied > 0
-        ? `Auto-fixed ${repairsApplied} safe issue${repairsApplied === 1 ? '' : 's'} before export.`
-        : '',
-    );
+    // Safe automatic repairs are a successful system outcome, not an amber
+    // attention state. The completed download receipt below reports them in
+    // the green success message; amber remains reserved for an unresolved
+    // decision or export warning.
+    setLastNotice('');
     // For Google exports we must open a tab BEFORE any await (popup blocker)
     // Course map exports open their own tab internally via useExport → saveToGoogleDocs/Sheets
     const needsTab = (format === 'gdocs' || format === 'gsheets' || format === 'gslides') && activeTab !== 'courseMap';
@@ -1221,7 +1228,9 @@ export default function ExportSidePanel({
           setLastOk(
             `ZIP downloaded with ${zipResult.files.length} file${
               zipResult.files.length === 1 ? '' : 's'
-            }.${verifiedPackageAvailable ? ' Review notes are included in the package.' : ''}`,
+            }.${repairsApplied > 0 ? ` ${repairsApplied} safe fix${repairsApplied === 1 ? '' : 'es'} applied.` : ''}${
+              verifiedPackageAvailable ? ' Review notes are included in the package.' : ''
+            }`,
           );
         }
       } else {

@@ -1242,23 +1242,25 @@ body {
   color: rgb(203 213 225);
 }
 
-@media (max-width: 1023px) {
+@media (max-width: 1279px) {
   .workspace-shell {
     min-height: auto !important;
   }
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 1280px) {
   .workspace-chat-panel {
     width: var(--workspace-chat-width, 360px);
     height: calc(100vh - 160px);
   }
 }
 
-/* Tablet (641px – 1023px): Export is its own workspace mode, so give the
+/* Compact workspace (641px – 1279px): Export is its own workspace mode, so give the
    handoff card a readable centered measure instead of the old 200px rail
-   that belonged to the former side-by-side layout. */
-@media (min-width: 641px) and (max-width: 1023px) {
+   that belonged to the former side-by-side layout. This includes 1024px
+   laptop windows, where three simultaneous rails left the course content
+   unreadable even though the page technically did not overflow. */
+@media (min-width: 641px) and (max-width: 1279px) {
   [data-testid='workspace-export-panel'] {
     width: 100%;
   }
@@ -1288,6 +1290,14 @@ body {
     display: inline-flex;
     min-height: 44px;
     align-items: center;
+  }
+
+  /* The table disclosure owns a compact desktop utility class. Preserve the
+     platform touch floor on phones and tablets with a deliberately stronger
+     selector instead of letting that desktop class win the cascade. */
+  .workspace-shell button[data-lesson-toggle='true'] {
+    min-width: 44px;
+    min-height: 44px;
   }
 }
 

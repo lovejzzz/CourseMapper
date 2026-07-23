@@ -5,6 +5,7 @@ import { buildXlsxBuffer } from '../xlsxGenerator';
 import { deliverableToCsvRows } from '../exporters/csvExporter';
 import { buildDeliverableDocxBlob } from '../exporters/bulkDocxExporter';
 import { buildSlideDeckPptxBlob } from '../exporters/pptxExporter';
+import { buildNotApplicableDisposition } from '../deliverableApplicability';
 
 vi.mock('../customDeliverableLibrary', () => ({
   getCustomDeliverable: vi.fn((id) => {
@@ -78,6 +79,67 @@ describe('verifyPackageExports', () => {
     expect(result.checked).toBe(6);
     expect(result.failed).toBe(0);
     expect(result.checks.map((check) => check.format)).toEqual(['xlsx', 'pdf', 'content', 'csv', 'docx', 'pdf']);
+  });
+
+  it('treats compiler-routed non-applicable materials as complete without empty CSV or PDF warnings', async () => {
+    const result = await verifyPackageExports({
+      courseMap: {
+        courseName: 'Introduction to Astronomy',
+        lessons: [{ title: 'Lesson 1', sections: [{ weeklyAssessments: 'In-class evidence check.' }] }],
+      },
+      deliverables: {
+        assignments: {
+          status: 'done',
+          data: {
+            assignments: [],
+            deliverableDisposition: buildNotApplicableDisposition('assignments', {
+              reasonCode: 'no-standalone-assignment',
+              summary: 'No separate assignment brief is needed for this course.',
+              routeFeatureId: 'quizBank',
+              routeLabel: 'Quiz & Exam Bank',
+            }),
+          },
+        },
+      },
+      selectedFeatures: ['assignments'],
+    });
+
+    expect(result.status).toBe('passed');
+    expect(result.warningCount).toBe(0);
+    expect(result.checks.map((check) => check.format)).toEqual(['content', 'applicability', 'docx']);
+    expect(deliverableToCsvRows).not.toHaveBeenCalled();
+  });
+
+  it('treats an answer-key rubric handoff as narrative-only instead of warning about empty tables', async () => {
+    const result = await verifyPackageExports({
+      courseMap: {
+        courseName: 'Introduction to Astronomy',
+        lessons: [{ title: 'Lesson 2: Seasons and Axial Tilt', sections: [{ weeklyAssessments: 'Midterm.' }] }],
+      },
+      deliverables: {
+        rubrics: {
+          status: 'done',
+          data: {
+            rubrics: [
+              {
+                title: 'Midterm — Answer Key Handoff',
+                lessonTitle: 'Lesson 2: Seasons and Axial Tilt',
+                gradedWork: 'Midterm',
+                assessmentType: 'Exam (scored by answer key)',
+                criteria: [],
+                teacherNotes: 'Open the Quiz & Exam Bank for the answer key and per-question point values.',
+              },
+            ],
+          },
+        },
+      },
+      selectedFeatures: ['rubrics'],
+    });
+
+    expect(result.status).toBe('passed');
+    expect(result.warningCount).toBe(0);
+    expect(result.checks.map((check) => check.format)).toEqual(['content', 'applicability', 'docx']);
+    expect(deliverableToCsvRows).not.toHaveBeenCalled();
   });
 
   it('fails honestly when the course map export has no lessons', async () => {

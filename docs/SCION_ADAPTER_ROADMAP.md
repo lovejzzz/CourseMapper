@@ -2,7 +2,25 @@
 
 **Architecture:** public Gemma 4 E2B base + small Scion adapter + Scion compiler = Scion Vx
 
-**Status:** the exact-QAT base, hash-bound training and conversion chain, browser adapter lifecycle, source-strict semantic compiler gates, frozen holdout firewall, and paired-order preference protocol are implemented. The research corpus still contains 102 qualified source-grounded preferences and rebuilds into 100 group-isolated production rows across seven domains. The first complete task-scoped candidate remains rejected and inactive: it produced no cross-domain learner-facing win, added factual defects, ran 2.81× longer, and exceeded the browser adapter budget. V0.16.72 therefore keeps the production path on exact base-only Scion, freezes a clean five-domain package baseline, and concentrates the next model work on selective task-scoped evidence rather than always-on activation. Anonymous World Literature review still prefers the paid reference in both presentation orders, so paid-reference parity remains an explicit unearned gate. Gemma weights are unchanged.
+**Status:** the exact-QAT base, hash-bound training and conversion chain, browser adapter lifecycle, source-strict semantic compiler gates, frozen holdout firewall, and paired-order preference protocol are implemented. The research corpus still contains 102 qualified source-grounded preferences and rebuilds into 100 group-isolated production rows across seven domains. The first complete task-scoped candidate remains rejected and inactive: it produced no cross-domain learner-facing win, added factual defects, ran 2.81× longer, and exceeded the browser adapter budget. V0.16.73 therefore keeps the production path on exact base-only Scion, audits the learner-facing browser and physical package behind the score, and concentrates the next model work on selective task-scoped evidence rather than always-on activation. Anonymous World Literature review still prefers the paid reference in both presentation orders, so paid-reference parity remains an explicit unearned gate. Gemma weights are unchanged.
+
+## V0.16.73 — Make Green Agree Everywhere
+
+**Goal:** require the browser, the Agent, the readiness state, the exported files, and the physical ZIP to tell the same story. A high summary score alone is insufficient; the actual learner-facing artifacts must be readable, contextual, internally clean, and warning-free.
+
+**Browser and artifact proof:** a fresh exact-base Astronomy run completes Model, Map, Enrich, Compile, Verify, and Grade in 25 seconds. It maps 3/3 lessons, admits 3/3 lesson kernels, compiles 9/9 requested generated material families, grades 99/A with texture 92 and zero P0/P1/P2 findings, verifies 36 export checks, and downloads a valid 25-file package with ten checked material sections, zero blockers, and zero warnings. The retained acceptance record inspects every material family, the Living Course Compiler, the Agent answer, and the extracted package rather than relying on the badge.
+
+**Learner-facing quality lane:** FAQ domain routing now requires genuine technical context instead of treating isolated words such as “dataset” or “notebook” as evidence of a software workflow. Artifact checks catch true punctuation seams, malformed prompt fragments, assessment-label joins, generic discussion scaffolds, and leaked lecture/exam choreography while preserving legitimate `et al.,` and `e.g.,` punctuation. Hidden slide-planning metadata is excluded from learner readability, and speaker-note facts are separated into complete sentences.
+
+**Agent and applicability lane:** the built-in Agent answers a course question from compiled evidence without another provider call and without exposing timed facilitation notes, group choreography, narrator arrows, or internal prompts. Intentionally non-applicable assignments and criterionless rubric handoffs produce a polished narrative artifact instead of meaningless empty CSV/PDF variants or false export warnings.
+
+**Responsive lane:** at compact laptop width, Content, Agent, and Export become three explicit full-width workspace modes. This removes the technically non-overflowing but practically unreadable three-rail squeeze while keeping every function available.
+
+**Frozen ruler V20:** deep-quality grader 1.10.34 binds the current fifteen-file implementation receipt at `7d1327759fad615e214fa98e5bd53f8b68c8a95f9d3dccc4b42e717f6ab25991`. The ruler is an exact implementation identity and defect-conformance boundary; it does not inherit or manufacture a model-quality win.
+
+**Lane:** FAQ classification, evidence projection, compiler copy, Agent evidence retrieval, readability, applicability, grading, and export verification are model-neutral and benefit compatible paid-provider output. The public GGUF download, WebGPU runtime, local cache, and exact route ledger remain Scion-specific.
+
+**Release Boundary:** this release proves bounded automated browser, package, and encoded artifact-defect behavior for the recorded Astronomy run. It does not prove universal factual correctness, accessibility, teachability, instructor approval, classroom outcomes, human preference, adapter superiority, statistical confidence, or paid-reference parity. The adapter remains inactive and Gemma weights are unchanged.
 
 ## V0.16.72 — Freeze Five Domains at Truly Green
 

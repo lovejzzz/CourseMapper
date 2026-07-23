@@ -68,6 +68,8 @@ import { verifyPackageExports } from './lib/packageExportVerifier';
 import { generateCourseHealthReport } from './lib/pedagogicalValidator';
 import { resolveRequestedClassSessionMinutes } from './lib/sourceBriefConstraints';
 import { prepareMaterializedPackageScope, remapLessonFilterToMaterializedScope } from './lib/materializedLessonScope';
+import { removeProjectIndexedDbAutosave } from './lib/projectIndexedDbAutosave';
+import { getWorkspaceSavePresentation } from './lib/workspaceSaveStatus';
 // HelpDrawer removed — merged into ChatPanel
 import { requestNotificationPermission } from './lib/notifyDone';
 import { parseFiles } from './lib/fileParser';
@@ -1228,6 +1230,7 @@ export default function AppFlow({
         const runFinalizer = (retryLimit) =>
           runDeterministicPackageFinalizer({
             courseMap: finalizerCourseMap,
+            sourceBrief: promptText,
             deliverables: finalizerDeliverables,
             selectedFeatures: featureIds,
             columns,
@@ -1676,7 +1679,10 @@ export default function AppFlow({
         let blockers = result.readiness.blockers.length + exportFailures;
         let reviewWarningCount = result.readiness.warnings.length + unresolvedRetryCount + exportWarnings;
         let finalStatus = blockers > 0 ? 'blocked' : 'ready';
-        let warnings = finalStatus === 'ready' ? 0 : reviewWarningCount;
+        // Readiness warnings are evidence, not visual noise. Preserve the
+        // count so trust surfaces cannot display a clean green package while
+        // the digest names an unresolved defect.
+        let warnings = reviewWarningCount;
         const retryText = retryCount > 0 ? `Retried ${retryCount} weak area${retryCount === 1 ? '' : 's'}. ` : '';
         const skippedRetryText =
           unresolvedRetryCount > 0 && !canRetryWeakSpots
@@ -1833,7 +1839,7 @@ export default function AppFlow({
         blockers = (result.readiness?.blockers?.length || 0) + exportFailures;
         reviewWarningCount = (result.readiness?.warnings?.length || 0) + unresolvedRetryCount + exportWarnings;
         finalStatus = blockers > 0 ? 'blocked' : 'ready';
-        warnings = finalStatus === 'ready' ? 0 : reviewWarningCount;
+        warnings = reviewWarningCount;
         finalizerMessage =
           finalStatus === 'ready'
             ? PACKAGE_READY_MESSAGE
@@ -1963,6 +1969,7 @@ export default function AppFlow({
       slideTheme,
       generationPlan,
       modelId,
+      promptText,
       provider,
       recordApiCallEvent,
     ],
@@ -2795,6 +2802,7 @@ export default function AppFlow({
             try {
               localStorage.removeItem(STORAGE_KEY);
             } catch {}
+            removeProjectIndexedDbAutosave().catch(() => {});
             setHasSavedSession(false);
           }}
           onImportCourseMap={handleImport}
@@ -2817,6 +2825,7 @@ export default function AppFlow({
                   try {
                     localStorage.removeItem(STORAGE_KEY);
                   } catch {}
+                  removeProjectIndexedDbAutosave().catch(() => {});
                   setHasSavedSession(false);
                   if (deletedId === projectIdRef.current) {
                     setProjectId(null);
@@ -2932,38 +2941,26 @@ export default function AppFlow({
   const workspaceLessonCountLabel = workspaceMappingInProgress
     ? `${workspaceLessonCount} lesson${workspaceLessonCount === 1 ? '' : 's'} mapped so far`
     : `${workspaceLessonCount} lesson${workspaceLessonCount === 1 ? '' : 's'}`;
-  const workspaceSaveText =
-    cloudSaveStatus === 'saving'
-      ? 'Saving'
-      : cloudSaveStatus === 'error'
-        ? 'Cloud save failed'
-        : localSaveStatus === 'saving'
-          ? 'Saving'
-          : localSaveStatus === 'error'
-            ? 'Local save failed'
-            : user
-              ? 'Autosaved to My Projects'
-              : 'Autosaved locally';
+  const isPackageGenerationRunning = packageGenerationBusy || gen.isStreaming || deliv.isGenerating;
+  // A large anonymous package can briefly exceed the synchronous browser
+  // save quota while its graph and deliverables are still changing. The
+  // persistence hook retries with progressively smaller recoverable
+  // snapshots; do not present that recoverable, in-flight condition as a red
+  // workspace failure while the compiler is still running.
+  const workspaceSavePresentation = getWorkspaceSavePresentation({
+    cloudStatus: cloudSaveStatus,
+    localStatus: localSaveStatus,
+    user,
+    generationRunning: isPackageGenerationRunning,
+  });
+  const workspaceSaveFailed = workspaceSavePresentation.failed;
+  const workspaceSaveText = workspaceSavePresentation.text;
   // Steady-state autosave is not news — a bold pill that never changes reads
   // as an unclickable button. Only saving/error states earn chip treatment;
   // the resting state renders as quiet meta text.
-  const workspaceSaveQuiet =
-    cloudSaveStatus !== 'error' &&
-    localSaveStatus !== 'error' &&
-    cloudSaveStatus !== 'saving' &&
-    localSaveStatus !== 'saving';
-  const workspaceSaveTone =
-    cloudSaveStatus === 'error' || localSaveStatus === 'error'
-      ? 'border-red-200 bg-red-50 text-red-700'
-      : 'border-slate-200 bg-white text-slate-600';
-  const workspaceSaveTextTone =
-    cloudSaveStatus === 'error' || localSaveStatus === 'error'
-      ? 'text-red-600'
-      : cloudSaveStatus === 'saving' || localSaveStatus === 'saving'
-        ? 'text-slate-500'
-        : user
-          ? 'text-emerald-600'
-          : 'text-slate-500';
+  const workspaceSaveQuiet = workspaceSavePresentation.quiet;
+  const workspaceSaveTone = workspaceSavePresentation.tone;
+  const workspaceSaveTextTone = workspaceSavePresentation.textTone;
   const workspaceModelName =
     provider === PUBLIC_SCION_PROVIDER_ID ? PUBLIC_SCION_MODEL_NAME : gen.activeModelName || modelName;
   const workspaceModelLabel = workspaceModelName || modelId || '';
@@ -2972,7 +2969,6 @@ export default function AppFlow({
     : 'Anonymous projects autosave only in this browser. Export .coursemapper for a portable backup.';
   const canRunPackageFinalizer =
     Boolean(courseMap) && gen.progressStep === 'done' && typeof handleFinishPackageFromExport === 'function';
-  const isPackageGenerationRunning = packageGenerationBusy || gen.isStreaming || deliv.isGenerating;
   const confirmDeleteDeliverable = () => {
     const target = deleteTabConfirm;
     if (!target || target.id === 'courseMap') return;
@@ -3735,7 +3731,7 @@ export default function AppFlow({
           {/* Mobile workspace mode switcher */}
           <div
             data-testid="mobile-workspace-switcher"
-            className="lg:hidden sticky top-3 z-20 flex gap-1 rounded-2xl border border-slate-200/60 bg-white/85 p-1 shadow-glass backdrop-blur-xl"
+            className="xl:hidden sticky top-3 z-20 flex gap-1 rounded-2xl border border-slate-200/60 bg-white/85 p-1 shadow-glass backdrop-blur-xl"
           >
             {mobileWorkspaceViews.map((view) => (
               <button
@@ -3757,13 +3753,13 @@ export default function AppFlow({
           {/* ── Tab content + Chat panel + Export panel ── */}
           <div
             data-testid="workspace-shell"
-            className="workspace-shell flex flex-col gap-3 items-stretch lg:flex-row lg:gap-0"
+            className="workspace-shell flex flex-col gap-3 items-stretch xl:flex-row xl:gap-0"
             style={{ minHeight: 'calc(100vh - 220px)' }}
           >
             {/* ── Left: Resizable Chat Panel ── */}
             <div
               data-testid="workspace-agent-panel"
-              className={`workspace-chat-panel min-w-0 ${mobileWorkspaceView === 'agent' ? 'block' : 'hidden'} lg:block lg:flex-shrink-0 lg:sticky lg:top-4`}
+              className={`workspace-chat-panel min-w-0 ${mobileWorkspaceView === 'agent' ? 'block' : 'hidden'} xl:block xl:flex-shrink-0 xl:sticky xl:top-4`}
               style={{ '--workspace-chat-width': `${chatWidth}px` }}
             >
               <ErrorBoundary>
@@ -3844,14 +3840,14 @@ export default function AppFlow({
             </div>
 
             {/* ── Resize Handle ── */}
-            <div className="hidden lg:block self-stretch">
+            <div className="hidden xl:block self-stretch">
               <ResizeHandle width={chatWidth} onWidthChange={setChatWidth} />
             </div>
 
             {/* ── Main content area ── */}
             <div
               data-testid="workspace-content-panel"
-              className={`${mobileWorkspaceView === 'content' ? 'block' : 'hidden'} lg:block flex-1 min-w-0 space-y-4 px-0 lg:px-4`}
+              className={`${mobileWorkspaceView === 'content' ? 'block' : 'hidden'} xl:block flex-1 min-w-0 space-y-4 px-0 xl:px-4`}
             >
               {/* Course Map tab */}
               {activeTab === 'courseMap' && (
@@ -4047,7 +4043,7 @@ export default function AppFlow({
             {courseMap && gen.progressStep === 'done' && (
               <div
                 data-testid="workspace-export-panel"
-                className={`${mobileWorkspaceView === 'export' ? 'block' : 'hidden'} lg:block lg:flex-shrink-0 min-w-0`}
+                className={`${mobileWorkspaceView === 'export' ? 'block' : 'hidden'} xl:block xl:flex-shrink-0 min-w-0`}
               >
                 <ExportSidePanel
                   activeTab={activeTab}
@@ -4122,6 +4118,7 @@ export default function AppFlow({
                   try {
                     localStorage.removeItem(STORAGE_KEY);
                   } catch {}
+                  removeProjectIndexedDbAutosave().catch(() => {});
                   setHasSavedSession(false);
                   if (deletedId === projectIdRef.current) {
                     setProjectId(null);

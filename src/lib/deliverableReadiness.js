@@ -1,5 +1,6 @@
 import { getArrayKey } from './syncDependencies';
 import { classifyAssessmentKind } from './courseGraph/deriveFromCourseMap.js';
+import { isDeliverableNotApplicable } from './deliverableApplicability';
 import { deriveEvaluateDesign } from './leanCourseMap.js';
 import { findPublishabilityPlaceholders } from './publishabilityPlaceholders';
 import { normalizeReadinessIssue, normalizeReadinessIssues } from './readinessIssueSchema';
@@ -850,6 +851,9 @@ const LITERATURE_COURSE_MAP_RE =
 const UX_DESIGN_COURSE_MAP_RE =
   /\b(?:user experience|ux|design studio|design research|user research|usability|prototype|prototyping|wireframe|journey map|personas?|accessibility|portfolio review|case study|critique session|design journals?)\b/i;
 
+const WORLD_LANGUAGE_COURSE_MAP_RE =
+  /\b(?:world language|foreign language|second language|language proficiency|mandarin|chinese|pinyin|tones?|hanzi|characters?|greetings?|self-introductions?|classroom expressions?|oral performance|speaking practice|listening drills?)\b/i;
+
 // v0.16.1: the CS profile used to fire on generic tokens every quantitative
 // course contains — "variables", "functions", "testing", "lists" — which is
 // how a pure Linear Algebra course got a Python-programming course map
@@ -903,6 +907,7 @@ function inferCourseMapFallbackProfile(courseMap, lesson, section) {
     .join(' ');
   if (PROJECT_MANAGEMENT_COURSE_RE.test(context)) return 'project-management';
   if (UX_DESIGN_COURSE_MAP_RE.test(context)) return 'ux-design';
+  if (WORLD_LANGUAGE_COURSE_MAP_RE.test(context)) return 'world-language';
   if (COMPUTER_SCIENCE_COURSE_MAP_RE.test(context) || ALGORITHMS_COURSE_IDENTITY_RE.test(text(courseMap?.courseName))) {
     return 'computer-science';
   }
@@ -1017,6 +1022,58 @@ function getLiteratureCourseMapFallbacks(topic, pick) {
       `Primary literary text, brief context source, and evidence checklist for ${topic}.`,
     ]),
     evaluateDesign: `Check that the ${topic} reading, discussion, and assessment require students to support the same interpretive claim with textual evidence.`,
+  };
+}
+
+function getWorldLanguageCourseMapFallbacks(topic, pick) {
+  const displayTopic = displayCourseMapTopic(topic);
+  return {
+    learningGoals: pick([
+      `Recognize, pronounce, interpret, and use the target language in ${topic} during a short beginner interaction.`,
+      `Connect the written forms, pronunciation cues, and meanings introduced in ${topic}.`,
+      `Build accurate listening, speaking, and character recognition for ${topic}.`,
+    ]),
+    topicSection: topic,
+    learningObjectives: pick([
+      `Match the target written forms in ${topic} to their pronunciation and meaning.`,
+      `Use the target expression from ${topic} accurately in a brief spoken and written response.`,
+      `Interpret a short instructor-approved example from ${topic} and reproduce its key form from memory.`,
+      `Distinguish the written form, pronunciation guide, and English meaning used in ${topic}.`,
+    ]),
+    weeklyAssessments: pick([
+      `${displayTopic} form–sound–meaning check with one short spoken response.`,
+      `${displayTopic} listening and retrieval check followed by one corrected repetition.`,
+      `${displayTopic} micro-performance using the exact target form and meaning.`,
+      `${displayTopic} character, pronunciation, and meaning match with instructor feedback.`,
+    ]),
+    asyncActivities: pick([
+      `Listen to the instructor-approved ${topic} model, mark pronunciation cues, and rehearse the target form twice.`,
+      `Review the ${topic} form–sound–meaning card and record one careful practice attempt.`,
+      `Copy the target ${topic} form once, add its pronunciation and meaning, and check all three fields.`,
+      `Complete a short retrieval practice for ${topic}, then correct the first mismatched field.`,
+    ]),
+    syncActivities: pick([
+      `Practice the ${topic} pronunciation and meaning in pairs, switch roles, and complete a short exchange.`,
+      `Listen, repeat, and compare two ${topic} attempts before one independent response.`,
+      `Use a model–guided practice–partner check sequence for the target ${topic} expression.`,
+      `Perform the target ${topic} form, receive one correction, and repeat it accurately.`,
+    ]),
+    technologyNeeded: pick([
+      'Course site, instructor-approved audio playback, and an optional voice-recording tool.',
+      'Displayed target-language model, speakers or headphones, and a simple recording workspace.',
+      'Course platform, accessible transcript, pronunciation audio, and optional Chinese input support.',
+    ]),
+    presentationFormat: pick([
+      'Retrieval warm-up, instructor pronunciation model, guided practice, partner exchange, and exit performance.',
+      'Listen and notice, repeat with feedback, use in pairs, then reproduce independently.',
+      'Form–sound–meaning model, controlled practice, communicative rehearsal, and rapid accuracy check.',
+    ]),
+    supportingResources: pick([
+      `Instructor-approved ${topic} audio and transcript plus a written-form, pronunciation, and meaning card.`,
+      `${displayTopic} model, pronunciation guide, character reference, and one short practice sequence.`,
+      `Accessible audio, transcript, and form–sound–meaning reference for ${topic}.`,
+    ]),
+    evaluateDesign: `Confirm that the ${topic} model, practice, and assessment verify the same written form, pronunciation, meaning, and beginner use context.`,
   };
 }
 
@@ -1374,69 +1431,71 @@ function getCourseMapFallbackValue(key, courseMap, lesson, section, lessonIndex)
       ? getHistoryCourseMapFallbacks(topic, pick)
       : profile === 'literature'
         ? getLiteratureCourseMapFallbacks(topic, pick)
-        : profile === 'project-management'
-          ? getProjectManagementCourseMapFallbacks(topic, pick)
-          : profile === 'ux-design'
-            ? getUxDesignCourseMapFallbacks(topic, pick)
-            : profile === 'computer-science'
-              ? getComputerScienceCourseMapFallbacks(topic, pick)
-              : profile === 'music-theory'
-                ? getMusicTheoryCourseMapFallbacks(topic, pick, lesson, section, courseMap)
-                : {
-                    learningGoals: pick([
-                      `Use ${topic} to explain a course problem and prepare evidence for the next assessment.`,
-                      `Trace how ${topic} changes what students can observe, label, calculate, or decide.`,
-                      `Develop an evidence-backed account of ${topic} for course applications.`,
-                    ]),
-                    topicSection: topic,
-                    learningObjectives: pick([
-                      `Explain the key ideas in ${topic} and apply them in course activities.`,
-                      `Apply the main concepts from ${topic} to a course task or example.`,
-                      `Connect ${topic} to the week's work and explain one supporting evidence source.`,
-                      `Analyze an example using ${topic} and name one limitation or open question.`,
-                    ]),
-                    weeklyAssessments: pick([
-                      `${formativeAssessmentPrefix}${displayCourseMapTopic(topic)} evidence check: state one supported, bounded conclusion.`,
-                      `${formativeAssessmentPrefix}Apply ${displayCourseMapTopic(topic)} to one example and name one limitation.`,
-                      `${formativeAssessmentPrefix}${displayCourseMapTopic(topic)} exit reflection: connect evidence to the lesson task.`,
-                      `${formativeAssessmentPrefix}${displayCourseMapTopic(topic)} short analysis: claim, evidence, and next question.`,
-                    ]),
-                    asyncActivities: pick([
-                      `Annotate the instructor-provided resource for ${topic} and bring one usable example.`,
-                      `Prepare a source note that names one claim, example, or question about ${topic}.`,
-                      `Compare the lesson resource with a sample response and mark where ${topic} appears.`,
-                      `Draft one question about ${topic} that can be answered with course evidence.`,
-                    ]),
-                    syncActivities: pick([
-                      `Compare two examples of ${topic} and explain which evidence is stronger.`,
-                      `Practice applying ${topic} in pairs, then revise one response from feedback.`,
-                      `Use a guided case, text, dataset, or demonstration to test ${topic}.`,
-                      `Share one ${topic} claim and identify the evidence that would make it stronger.`,
-                    ]),
-                    technologyNeeded: pick([
-                      'Course site, instructor-provided resource, and the tool used for the lesson activity.',
-                      'Shared reading, example file, or activity handout plus a workspace for responses.',
-                      'Instructor-provided materials and the classroom tool named for the lesson task.',
-                      'Course platform, accessible resource file, and response workspace for the checkpoint.',
-                    ]),
-                    presentationFormat: pick([
-                      'Instructor framing, guided student work, and a short synthesis.',
-                      'Brief setup, worked example or demonstration, then student application.',
-                      'Opening question, structured practice, and a closing artifact review.',
-                    ]),
-                    supportingResources: pick([
-                      `Instructor-selected ${topic} reading or evidence excerpt with an activity prompt.`,
-                      `Short ${topic} reading, worked model, or practice handout.`,
-                      `${topic} worked example and response guide for student reference.`,
-                      `${topic} activity directions, reference note, and feedback guide.`,
-                    ]),
-                    evaluateDesign: pick([
-                      `Check that the ${topic} resource, activity, and assessment all ask for one visible product.`,
-                      `Confirm students use the same source detail or example for ${topic} practice and assessment.`,
-                      `Align the ${topic} activity with one observable response, artifact, or explanation.`,
-                      `Make the ${topic} practice task produce evidence students can reuse in the assessment.`,
-                    ]),
-                  };
+        : profile === 'world-language'
+          ? getWorldLanguageCourseMapFallbacks(topic, pick)
+          : profile === 'project-management'
+            ? getProjectManagementCourseMapFallbacks(topic, pick)
+            : profile === 'ux-design'
+              ? getUxDesignCourseMapFallbacks(topic, pick)
+              : profile === 'computer-science'
+                ? getComputerScienceCourseMapFallbacks(topic, pick)
+                : profile === 'music-theory'
+                  ? getMusicTheoryCourseMapFallbacks(topic, pick, lesson, section, courseMap)
+                  : {
+                      learningGoals: pick([
+                        `Use ${topic} to explain a course problem and prepare evidence for the next assessment.`,
+                        `Trace how ${topic} changes what students can observe, label, calculate, or decide.`,
+                        `Develop an evidence-backed account of ${topic} for course applications.`,
+                      ]),
+                      topicSection: topic,
+                      learningObjectives: pick([
+                        `Explain the key ideas in ${topic} and apply them in course activities.`,
+                        `Apply the main concepts from ${topic} to a course task or example.`,
+                        `Connect ${topic} to the week's work and explain one supporting evidence source.`,
+                        `Analyze an example using ${topic} and name one limitation or open question.`,
+                      ]),
+                      weeklyAssessments: pick([
+                        `${formativeAssessmentPrefix}${displayCourseMapTopic(topic)} evidence check: state one supported, bounded conclusion.`,
+                        `${formativeAssessmentPrefix}Apply ${displayCourseMapTopic(topic)} to one example and name one limitation.`,
+                        `${formativeAssessmentPrefix}${displayCourseMapTopic(topic)} exit reflection: connect evidence to the lesson task.`,
+                        `${formativeAssessmentPrefix}${displayCourseMapTopic(topic)} short analysis: claim, evidence, and next question.`,
+                      ]),
+                      asyncActivities: pick([
+                        `Annotate the instructor-provided resource for ${topic} and bring one usable example.`,
+                        `Prepare a source note that names one claim, example, or question about ${topic}.`,
+                        `Compare the lesson resource with a sample response and mark where ${topic} appears.`,
+                        `Draft one question about ${topic} that can be answered with course evidence.`,
+                      ]),
+                      syncActivities: pick([
+                        `Compare two examples of ${topic} and explain which evidence is stronger.`,
+                        `Practice applying ${topic} in pairs, then revise one response from feedback.`,
+                        `Use a guided case, text, dataset, or demonstration to test ${topic}.`,
+                        `Share one ${topic} claim and identify the evidence that would make it stronger.`,
+                      ]),
+                      technologyNeeded: pick([
+                        'Course site, instructor-provided resource, and the tool used for the lesson activity.',
+                        'Shared reading, example file, or activity handout plus a workspace for responses.',
+                        'Instructor-provided materials and the classroom tool named for the lesson task.',
+                        'Course platform, accessible resource file, and response workspace for the checkpoint.',
+                      ]),
+                      presentationFormat: pick([
+                        'Instructor framing, guided student work, and a short synthesis.',
+                        'Brief setup, worked example or demonstration, then student application.',
+                        'Opening question, structured practice, and a closing artifact review.',
+                      ]),
+                      supportingResources: pick([
+                        `Instructor-selected ${topic} reading or evidence excerpt with an activity prompt.`,
+                        `Short ${topic} reading, worked model, or practice handout.`,
+                        `${topic} worked example and response guide for student reference.`,
+                        `${topic} activity directions, reference note, and feedback guide.`,
+                      ]),
+                      evaluateDesign: pick([
+                        `Check that the ${topic} resource, activity, and assessment all ask for one visible product.`,
+                        `Confirm students use the same source detail or example for ${topic} practice and assessment.`,
+                        `Align the ${topic} activity with one observable response, artifact, or explanation.`,
+                        `Make the ${topic} practice task produce evidence students can reuse in the assessment.`,
+                      ]),
+                    };
   let value = fieldFallbacks[key] || `Instructor-confirmed material for ${topic}.`;
   // Every missing check after the lesson's first section is formative. This
   // applies after the domain profile is selected so literature, history, UX,
@@ -1585,6 +1644,9 @@ function normalizeLessonRangeReferences(value, lessonCount) {
 
 function normalizeCourseMapCellValue(key, value, lessonCount) {
   let next = key === 'learningObjectives' ? normalizeCourseMapObjectives(value) : value;
+  if (key === 'weeklyAssessments' && typeof next === 'string') {
+    next = next.replace(/^\s*character writing homework\b/i, 'Character Writing Homework');
+  }
   next = normalizeLessonRangeReferences(next, lessonCount);
   return next;
 }
@@ -2385,22 +2447,23 @@ function checkPerLessonFeature(featureId, data, courseMap, lessonIndices, issues
 // disagree — a final-exam-only lesson warned "Rubrics are missing assessed
 // lesson(s): 14" forever, a warning no generation could ever satisfy. A
 // lesson whose ONLY assessment is an exam is not rubric-assessed.
-function lessonAssessmentsAreExamOnly(lesson) {
-  const assessment = lessonAssessmentText(lesson);
-  if (!/\b(exam|midterm|final)\b/i.test(assessment)) return false;
-  const withoutExamPhrases = assessment.replace(/[^.;\n]*\b(exam|midterm|final)\b[^.;\n]*/gi, ' ');
-  return !/\b(assignment|paper|project|presentation|quiz|portfolio|brief|report|case study|problem set|reflection|proposal|essay|checklist)\b/i.test(
-    withoutExamPhrases,
-  );
+function lessonHasRubricAssessedWork(lesson) {
+  const assessmentEntries = asArray(lesson?.sections)
+    .map((section) => text(section?.weeklyAssessments || section?.assessment).trim())
+    .filter(Boolean);
+  if (assessmentEntries.length === 0) return false;
+  return assessmentEntries.some((entry) => {
+    if (/\b(no assessment|none|n\/a|not applicable|optional only)\b/i.test(entry)) return false;
+    const kind = classifyAssessmentKind(entry);
+    return kind !== 'exam' && kind !== 'in-class';
+  });
 }
 
 function checkRubrics(data, courseMap, lessonIndices, issues) {
   const rubrics = getFeatureArray('rubrics', data);
   const lessons = asArray(courseMap?.lessons);
   const assessedLessonNumbers = lessonIndices
-    .filter(
-      (lessonIndex) => lessonHasAssessment(lessons[lessonIndex]) && !lessonAssessmentsAreExamOnly(lessons[lessonIndex]),
-    )
+    .filter((lessonIndex) => lessonHasRubricAssessedWork(lessons[lessonIndex]))
     .map((lessonIndex) => lessonIndex + 1);
 
   if (assessedLessonNumbers.length === 0) return;
@@ -2535,6 +2598,9 @@ export function evaluateWorkspaceReadiness({
     }
     if (!entry.data) {
       issues.push(makeIssue(READINESS_BLOCKER, featureId, `${labelFor(featureId)} has no generated data.`));
+      continue;
+    }
+    if (isDeliverableNotApplicable(featureId, entry.data)) {
       continue;
     }
     if (entry.stale) {

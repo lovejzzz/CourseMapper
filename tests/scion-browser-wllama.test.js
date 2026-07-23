@@ -120,7 +120,7 @@ describe('Scion WebGPU GGUF runtime', () => {
     const output = await completeScionBrowserWllama('Explain formative assessment.', { maxNewTokens: 32 });
 
     expect(output).toBe('Base general answer.');
-    expect(browser.runtimeLoader).toHaveBeenCalledWith('https://edutool.dev/scion/runtime/v1/wllama.js');
+    expect(browser.runtimeLoader).toHaveBeenCalledWith('https://edutool.dev/scion/runtime/v2/wllama.js');
     expect(FakeWllama.last.paths).toEqual({
       'jspi/single-thread/wllama.wasm': 'https://edutool.dev/scion/runtime/v1/jspi-single-thread/wllama.wasm',
     });

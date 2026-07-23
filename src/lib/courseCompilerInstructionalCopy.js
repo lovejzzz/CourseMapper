@@ -142,10 +142,12 @@ export function closeReadingDiscussionCopy({ lessonNumber, concept }) {
 
 export function faqCoreClaimsCopy({ lessonNumber, facts, artifact, evidenceCue }) {
   const claims = facts.map((fact) => `${stripTerminalPunctuation(fact)}.`).join(' ');
+  const artifactLabel = stripTerminalPunctuation(cleanText(artifact));
+  const evidenceLabel = stripTerminalPunctuation(cleanText(evidenceCue));
   return `${claims} ${selectVariant(lessonNumber, [
-    `Those are the load-bearing claims — connect each one to ${artifact}, and be ready to say what evidence from ${evidenceCue} supports it.`,
-    `Treat these as the lesson's working claims. Show where each appears in ${artifact}, then identify the detail from ${evidenceCue} that warrants it.`,
-    `Use these claims as an evidence map: trace them into ${artifact}, test the strongest alternative, and ground the conclusion in ${evidenceCue}.`,
-    `Build ${artifact} around these claims, making the source trail from ${evidenceCue} visible and qualifying anything the selected evidence cannot establish.`,
+    `Those are the load-bearing claims — connect each one to ${artifactLabel}, and be ready to say what evidence from ${evidenceLabel} supports it.`,
+    `Treat these as the lesson's working claims. Show where each appears in ${artifactLabel}, then identify the detail from ${evidenceLabel} that warrants it.`,
+    `Use these claims as an evidence map: trace them into ${artifactLabel}, test the strongest alternative, and ground the conclusion in ${evidenceLabel}.`,
+    `Build ${artifactLabel} around these claims, making the source trail from ${evidenceLabel} visible and qualifying anything the selected evidence cannot establish.`,
   ])}`;
 }

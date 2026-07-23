@@ -711,7 +711,13 @@ export default function CourseMapPreview({
         tabIndex={0}
         className="overflow-auto rounded-squircle-sm max-h-[70vh] border border-white/30 bg-white/60 shadow-glass outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/60 focus-visible:ring-offset-2 dark:border-slate-700/80 dark:bg-slate-900/65 dark:focus-visible:ring-indigo-300/70 dark:focus-visible:ring-offset-slate-950"
       >
-        <table className="min-w-[1100px] table-fixed sm:min-w-full" role="grid" aria-label="Course Map">
+        {/* Keep the semantic table wide enough for readable prose at every
+            breakpoint. `sm:min-w-full` used to override the 1100px floor on
+            desktop workspaces; between the agent and export rails that
+            compressed ten columns into ~700px and broke ordinary words every
+            few characters. The labelled region already owns horizontal
+            scrolling, so preserve legibility and let users pan deliberately. */}
+        <table className="min-w-[1100px] table-fixed" role="grid" aria-label="Course Map">
           {/* A1: width hierarchy lives in the colgroup (table-fixed reads the
               first row) — slim fixed section column, objectives widest, manual
               drag-resize still wins via colWidths. */}
@@ -1108,7 +1114,7 @@ export default function CourseMapPreview({
                         aria-expanded={!isLessonCollapsed}
                         aria-label={`${isLessonCollapsed ? 'Expand' : 'Collapse'} lesson ${li + 1}`}
                         data-lesson-toggle="true"
-                        className="p-0.5 text-indigo-400 hover:text-indigo-600 dark:text-indigo-500 dark:hover:text-indigo-300 transition-colors flex-shrink-0"
+                        className="inline-flex min-h-8 min-w-8 flex-shrink-0 items-center justify-center rounded-md text-indigo-400 transition-colors hover:bg-indigo-100/70 hover:text-indigo-600 dark:text-indigo-500 dark:hover:bg-indigo-900/50 dark:hover:text-indigo-300"
                       >
                         <svg
                           className={`w-3.5 h-3.5 transition-transform duration-200 ${isLessonCollapsed ? '-rotate-90' : ''}`}

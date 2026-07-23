@@ -230,15 +230,19 @@ export function escapeRegexLiteral(value) {
 // searched artifacts for a string no document ever renders (exam-content P0).
 export function removeNumberedAssessmentEchoes(value) {
   return cleanText(value)
-    .replace(/\b(Lesson\s+\d+\s+[^.;\n]{8,160}?\(\d{1,3}%\)):\s*\d+\.\s*\1(?=$|[\s,.;:])/gi, '$1')
-    .replace(/\b([^.;\n]{8,160}?\(\d{1,3}%\)):\s*\d+\.\s*\1(?=$|[\s,.;:])/gi, '$1')
+    .replace(/\b(Lesson\s+\d+\s+[^.;\n]{3,160}?\(\d{1,3}%\)):\s*\d+\.\s*\1(?=$|[\s,.;:])/gi, '$1')
+    .replace(/\b([^.;\n]{3,160}?\(\d{1,3}%\)):\s*\d+\.\s*\1(?=$|[\s,.;:])/gi, '$1')
     .replace(/\s{2,}/g, ' ')
     .trim();
 }
 
 export function dedupeNumberedAssessmentEcho(value) {
   const text = removeNumberedAssessmentEchoes(value);
-  const match = /^(.{8,140}?)\s*:\s*\d+\.\s*(.+)$/.exec(text);
+  // Short, legitimate identities such as "Quiz", "Exam", and "Midterm"
+  // can be echoed by the same weak-model list transcription. Requiring an
+  // eight-character lead let "midterm: 1. midterm" escape into every
+  // learner-facing artifact even though longer titles were repaired.
+  const match = /^(.{3,140}?)\s*:\s*\d+\.\s*(.+)$/.exec(text);
   if (match) {
     const lead = stripTerminalPunctuation(match[1]);
     const tail = stripTerminalPunctuation(match[2]);

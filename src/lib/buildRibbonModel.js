@@ -399,6 +399,7 @@ export function buildLivingCompilerArtifacts({
     generation.isScion && ['loading-runtime', 'loading-model'].includes(String(scionRuntime.phase || ''));
   const generationFailed = pipeline?.state === 'error';
   const failure = generationFailed ? buildRibbonFailureState({ generation, mappedLessonCount }) : null;
+  const mapStreamDetail = String(generation.streamDetail || '').trim();
   const mappingLesson = Math.max(
     0,
     Number(String(generation.streamDetail || '').match(/(?:Mapping|Starting)\s+Lesson\s+(\d+)/i)?.[1]) || 0,
@@ -410,7 +411,7 @@ export function buildLivingCompilerArtifacts({
     mapValue =
       mappingLesson > 0
         ? `Mapping lesson ${mappingLesson} · ${Math.max(mappedLessonCount, mappingLesson)} mapped so far`
-        : 'Mapping in progress';
+        : mapStreamDetail || 'Mapping in progress';
   } else if (mappedLessonCount > 0) {
     mapValue = failure?.partialMapValue || `${mappedLessonCount} lesson${mappedLessonCount === 1 ? '' : 's'} mapped`;
   } else if (pipeline?.done?.map) mapValue = 'Mapped';
@@ -493,7 +494,11 @@ export function deriveRibbonProgress({ pipeline, budget = {}, generation = {}, d
     return Math.round(modelProgress * 15);
   }
   const state = pipeline?.state || 'idle';
-  if (state === 'ready' || state === 'blocked' || state === 'syncing') return 100;
+  if (state === 'ready' || state === 'syncing') return 100;
+  // A blocked finish pass has completed its checks, but the course package
+  // has not completed the user journey. Reserve 100% for a clean, exportable
+  // result so the meter never visually contradicts "Review required".
+  if (state === 'blocked') return 99;
   if (state === 'error')
     return buildRibbonFailureState({ generation, mappedLessonCount: generation.mappedLessonCount }).progressPct;
   if (state === 'mapping') {

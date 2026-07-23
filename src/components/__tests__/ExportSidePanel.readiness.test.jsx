@@ -108,6 +108,10 @@ describe('ExportSidePanel readiness repair timing', () => {
 
   beforeEach(() => {
     vi.useFakeTimers();
+    downloadCourseMaterialsZip.mockReset().mockResolvedValue({
+      fileName: 'Review Surface Course - Course Materials.zip',
+      files: ['PACKAGE_MANIFEST.json', 'QUALITY_REPORT.md'],
+    });
     container = document.createElement('div');
     document.body.appendChild(container);
     root = createRoot(container);
@@ -284,6 +288,72 @@ describe('ExportSidePanel readiness repair timing', () => {
     expect(zipButton?.disabled).toBe(true);
     expect(zipButton?.getAttribute('aria-busy')).toBe('true');
     expect(container.textContent).toContain('Assembling the verified course files locally');
+  });
+
+  it('reports safe automatic fixes as part of the green download receipt, not an amber warning', async () => {
+    let finishDownload;
+    const onAutoRepairReadiness = vi.fn(() => ({
+      applied: 7,
+      courseMap: cleanCourseMap,
+      deliverables: {},
+    }));
+    downloadCourseMaterialsZip.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          finishDownload = resolve;
+        }),
+    );
+    vi.spyOn(globalThis, 'requestAnimationFrame').mockImplementation((callback) => {
+      callback(0);
+      return 1;
+    });
+    await renderPanel({
+      courseMapInput: cleanCourseMap,
+      preferPackageScope: true,
+      onAutoRepairReadiness,
+      packageQualityPass: {
+        status: 'ready',
+        blockers: 0,
+        warnings: 0,
+        repairsApplied: 1,
+        receipt: {
+          finalStatus: 'ready',
+          exportStatus: 'passed',
+          exportChecked: 38,
+          exportFailed: 0,
+          exportWarningCount: 0,
+        },
+        quality: {
+          status: 'graded',
+          score: 99,
+          grade: 'A',
+          findingCounts: { p0: 0, p1: 0, p2: 0 },
+        },
+      },
+    });
+
+    await act(async () => {
+      container
+        .querySelector('[data-testid="export-download-zip"]')
+        ?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      await vi.advanceTimersByTimeAsync(1);
+      await Promise.resolve();
+    });
+    expect(downloadCourseMaterialsZip).toHaveBeenCalledTimes(1);
+    expect(onAutoRepairReadiness).not.toHaveBeenCalled();
+    await act(async () => {
+      finishDownload({
+        fileName: 'Review Surface Course - Course Materials.zip',
+        files: ['PACKAGE_MANIFEST.json', 'QUALITY_REPORT.md'],
+      });
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    const success = container.querySelector('[data-testid="export-success"]');
+    expect(success?.textContent).toContain('1 safe fix applied');
+    expect(success?.className).toContain('emerald');
+    expect(container.querySelector('[data-testid="export-notice"]')).toBeNull();
   });
 
   it('blocks ZIP download when the finish receipt records an export verification failure', async () => {
