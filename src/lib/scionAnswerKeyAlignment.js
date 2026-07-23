@@ -1500,6 +1500,7 @@ export function findScionMultipleExplanationSupportedOptions(item = {}) {
           best = { score, containment, clause, exactPhrase };
         }
       }
+      const codeReturnAligned = alignedCodeReturnRelation(option, best.clause);
       return {
         index,
         ...best,
@@ -1507,12 +1508,31 @@ export function findScionMultipleExplanationSupportedOptions(item = {}) {
           best.exactPhrase ||
           (best.score >= 4 &&
             best.containment >= 0.8 &&
-            orderedSemanticTokenCoverage(optionTokens, best.clause) >= 0.8 &&
-            distinctTokens.some((token) => semanticOptionTokens(best.clause).has(token))),
+            (orderedSemanticTokenCoverage(optionTokens, best.clause) >= 0.8 || codeReturnAligned) &&
+            (codeReturnAligned || distinctTokens.some((token) => semanticOptionTokens(best.clause).has(token)))),
       };
     })
     .filter((entry) => entry.eligible);
   return supported.length >= 2 ? { supported, supportMethod: 'multiple-affirmative-explanation-options' } : null;
+}
+
+function alignedCodeReturnRelation(option, clause) {
+  const parse = (value) => {
+    const match = clean(stripOptionLabel(value)).match(
+      /^(?<subject>[a-z_][a-z0-9_.]*\(\))\s+[^.!?]*?\breturns?\s+(?<object>[^.!?]+)[.!?]?$/i,
+    );
+    if (!match?.groups?.subject || !match.groups.object) return null;
+    return {
+      subject: match.groups.subject.toLowerCase(),
+      objectTokens: semanticOptionTokens(match.groups.object),
+      contextTokens: semanticOptionTokens(value),
+    };
+  };
+  const expected = parse(option);
+  const observed = parse(clause);
+  if (!expected || !observed || expected.subject !== observed.subject) return false;
+  const overlap = tokenOverlap(expected.objectTokens, observed.contextTokens);
+  return overlap >= 2 && overlap / Math.max(1, expected.objectTokens.size) >= 0.7;
 }
 
 /**

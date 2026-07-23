@@ -281,6 +281,24 @@ describe('Scion MC contract recovery', () => {
     });
   });
 
+  it('rejects the live adapter question that leaves two file-return choices supported', () => {
+    const item = {
+      q: 'A program sees a file and must choose between read() and readlines() before a deadline. Which choice matches the observed return and the required result?',
+      op: [
+        'read() returns a single string for the file contents',
+        'readlines() returns a single string for the file contents',
+        'read() returns a list with every line of the file',
+        'readlines() returns a list with every line of the file contents',
+      ],
+      ai: 0,
+      ex: 'read() reads the entire file contents and returns a single string. readlines() returns a list with every line of the file.',
+    };
+    expect(findScionMultipleExplanationSupportedOptions(item)).toMatchObject({
+      supportMethod: 'multiple-affirmative-explanation-options',
+      supported: expect.arrayContaining([expect.objectContaining({ index: 0 }), expect.objectContaining({ index: 3 })]),
+    });
+  });
+
   it('detects two source-supported artifacts in a relevant-artifact question', () => {
     expect(
       findScionMultipleSourceSupportedOptions(

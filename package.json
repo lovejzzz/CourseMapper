@@ -316,6 +316,7 @@
     "audit:scion:adapter:corpus-readiness:v0.16.40": "node scripts/scionAdapterCorpusReadinessAudit.mjs --profile v0.16.40",
     "audit:scion:adapter:training:contract": "node scripts/scionAdapterTrainingRun.mjs --audit-contract",
     "audit:scion:adapter:training:toolchain": "node scripts/scionAdapterTrainingRun.mjs --audit-toolchain",
+    "probe:scion:adapter:checkpoint": "vite-node --script scripts/scionAdapterCheckpointProbe.mjs",
     "test:scion:adapter:training": "vitest run tests/scion-adapter-training-run.test.js",
     "package:scion:adapter": "node scripts/scionAdapterPackage.mjs",
     "package:scion:adapter:browser": "node scripts/scionAdapterBrowserPackage.mjs",
