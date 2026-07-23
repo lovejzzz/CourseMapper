@@ -185,9 +185,10 @@ export function compactAssignmentBriefBodyReferences({ brief = {}, lesson = {}, 
   const protectedReadingTitles = (Array.isArray(lesson?.instructorNamedReadings) ? lesson.instructorNamedReadings : [])
     .map((title) => cleanText(title))
     .filter(Boolean);
-  const normalizedFocus = courseCopySurfaceWords(fullFocus).join(' ').toLowerCase();
+  const cleanFocus = cleanText(fullFocus);
+  const normalizedFocus = courseCopySurfaceWords(cleanFocus).join(' ');
   const focusReadingTitle = protectedReadingTitles.find((title) => {
-    const normalizedTitle = courseCopySurfaceWords(title).join(' ').toLowerCase();
+    const normalizedTitle = courseCopySurfaceWords(title).join(' ');
     return normalizedTitle && normalizedFocus.includes(normalizedTitle);
   });
   const focusIsNamedReading = Boolean(focusReadingTitle);
@@ -202,11 +203,10 @@ export function compactAssignmentBriefBodyReferences({ brief = {}, lesson = {}, 
   const maskSpecs = protectedReadingTitles.map((title) => ({ match: title, restore: title }));
   // Preserve a semantically identical title even when punctuation migrated
   // across a closing quote during course-map normalization.
-  if (focusIsNamedReading && cleanText(focusReadingTitle) !== cleanText(fullFocus)) {
-    maskSpecs.push({ match: cleanText(fullFocus), restore: focusReadingTitle });
+  if (focusIsNamedReading && focusReadingTitle !== cleanFocus) {
+    maskSpecs.push({ match: cleanFocus, restore: focusReadingTitle });
   }
   const readingMasks = maskSpecs
-    .filter((entry) => entry.match)
     .sort((left, right) => right.match.length - left.match.length)
     .map((entry, index) => ({
       ...entry,
