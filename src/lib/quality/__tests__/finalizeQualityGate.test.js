@@ -4,7 +4,7 @@ import { buildCourseMaterialsZip, DEFAULT_PACKAGE_QUALITY_TIMEOUT_MS } from '../
 import { gradePackageAtFinalize, PACKAGE_FINALIZE_QUALITY_TIMEOUT_MS } from '../finalizeQualityGate.js';
 
 vi.mock('../../packageZipExporter.js', () => ({
-  DEFAULT_PACKAGE_QUALITY_TIMEOUT_MS: 30000,
+  DEFAULT_PACKAGE_QUALITY_TIMEOUT_MS: 60000,
   buildCourseMaterialsZip: vi.fn(async () => ({
     quality: {
       status: 'graded',
@@ -36,7 +36,7 @@ describe('gradePackageAtFinalize', () => {
 
     expect(result.status).toBe('graded');
     expect(PACKAGE_FINALIZE_QUALITY_TIMEOUT_MS).toBe(DEFAULT_PACKAGE_QUALITY_TIMEOUT_MS);
-    expect(PACKAGE_FINALIZE_QUALITY_TIMEOUT_MS).toBeGreaterThanOrEqual(30000);
+    expect(PACKAGE_FINALIZE_QUALITY_TIMEOUT_MS).toBe(60000);
     expect(buildCourseMaterialsZip).toHaveBeenCalledWith(
       expect.objectContaining({
         quality: expect.objectContaining({

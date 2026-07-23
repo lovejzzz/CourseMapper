@@ -319,6 +319,45 @@ describe('completeNativeKernelSurfaces', () => {
     expect(JSON.stringify(completed.quizItems)).not.toMatch(/Claim A:|supplied claim cards/i);
   });
 
+  it('keeps the full Course Map formative direction while using a concise native artifact identity', () => {
+    const fullDirection =
+      'Epic Structure: Gilgamesh Narrative Arc comparative close-reading: compare two passages by the selected writers, synthesize one claim, and support it with quoted details.';
+    const courseMapLesson = {
+      lessonNumber: 1,
+      title: 'Lesson 1: Narrative Structure: Gilgamesh',
+      sections: [
+        {
+          topicSection: 'Epic Structure: Gilgamesh Narrative Arc',
+          weeklyAssessments: fullDirection,
+        },
+      ],
+    };
+
+    const completed = completeNativeKernelSurfaces(
+      {
+        keyTerms: [],
+        kernel: {
+          facts: [
+            'Epic narrative structure connects a sequence of trials to a changing account of power and mortality.',
+            'A locatable passage can support one interpretation without establishing that every episode works identically.',
+            'A counter-reading should explain the same formal detail rather than merely state a different preference.',
+          ],
+          scenario: {
+            setup: 'Students compare two locatable passages from the assigned edition.',
+            materials: 'two assigned passages and annotation notes',
+          },
+        },
+      },
+      courseMapLesson,
+    );
+
+    expect(courseMapLesson.sections[0].weeklyAssessments).toBe(fullDirection);
+    expect(completed.assignmentCore.canonicalAssessment).toBe(
+      'Epic Structure: Gilgamesh Narrative Arc close-reading check',
+    );
+    expect(JSON.stringify(completed)).not.toContain('support it with before publishing');
+  });
+
   it('completes a sentence-completion MC stem before projecting it as a key-term example', () => {
     const completed = completeNativeKernelSurfaces(
       {

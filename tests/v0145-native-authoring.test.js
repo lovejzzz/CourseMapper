@@ -30,7 +30,11 @@ import { deriveCourseGraphFromCourseMap } from '../src/lib/courseGraph/deriveFro
 import { renderCourseMapFromGraph } from '../src/lib/courseGraph/renderCourseMap.js';
 import { validateCourseGraph } from '../src/lib/courseGraph/schema.js';
 import { buildBlueprintFromGraph } from '../src/lib/courseGraph/blueprintFromGraph.js';
-import { compactBlueprintForStorage, compileBlueprintDeliverables } from '../src/lib/courseBlueprintCompiler';
+import {
+  BLUEPRINT_COMPILE_CONTEXT,
+  compactBlueprintForStorage,
+  compileBlueprintDeliverables,
+} from '../src/lib/courseBlueprintCompiler';
 import { repairNativeFallbackWithCurriculumV1 } from '../src/lib/curriculumV1Repair';
 import { assessProjectedKernelCoverage } from '../src/lib/blueprintEnrichmentPass';
 import {
@@ -300,6 +304,95 @@ describe('Pass A skeleton contract (B1)', () => {
     );
 
     expect(skeleton.assessments).toEqual([expect.objectContaining({ title: 'midterm', kind: 'exam', dueSession: 2 })]);
+  });
+
+  it('rejects model-invented grading percentages when the source names artifacts but no weights', () => {
+    const sourceText =
+      'Build an 8-week World Literature Survey. Use weekly passage annotations, two comparative reading responses, a comparative essay proposal, and a final comparative paper.';
+    const skeleton = parseNativeSkeletonResponse(
+      JSON.stringify({
+        course: { name: 'World Literature Survey' },
+        sessions: [
+          'Gilgamesh',
+          'The Odyssey',
+          'Antigone',
+          'Li Bai and Du Fu',
+          'The Thousand and One Nights',
+          'Dante’s Inferno',
+          'Things Fall Apart',
+          'Borges',
+        ].map((title, index) => ({ order: index + 1, title })),
+        assessments: [
+          {
+            id: 'a1',
+            title: 'Comparative Reading Responses (15%)',
+            kind: 'graded-artifact',
+            dueSession: 2,
+            weightPct: 15,
+          },
+          {
+            id: 'a2',
+            title: 'Comparative Essay Proposal (20%)',
+            kind: 'graded-artifact',
+            dueSession: 3,
+            weightPct: 20,
+          },
+          {
+            id: 'a3',
+            title: 'Final Comparative Paper (25%)',
+            kind: 'graded-artifact',
+            dueSession: 8,
+            weightPct: 25,
+          },
+        ],
+      }),
+      { expectedLessons: 8, sourceText },
+    );
+
+    expect(skeleton.assessments).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ title: 'Comparative Reading Responses' }),
+        expect.objectContaining({ title: 'Comparative Essay Proposal' }),
+        expect.objectContaining({ title: 'Final Comparative Paper' }),
+      ]),
+    );
+    expect(JSON.stringify(skeleton.assessments)).not.toMatch(/15%|20%|25%|weightPct/);
+  });
+
+  it('recovers an explicitly named close-reading sequence as the lesson-local reading registry', () => {
+    const sourceText =
+      'Build an 8-week survey. Include close reading of The Epic of Gilgamesh, The Odyssey, Antigone, selected poems by Li Bai and Du Fu, The Thousand and One Nights, Dante’s Inferno, Things Fall Apart, and Borges’s “The Library of Babel.”';
+    const skeleton = parseNativeSkeletonResponse(
+      JSON.stringify({
+        course: { name: 'World Literature Survey' },
+        sessions: [
+          'Narrative Structure: Gilgamesh',
+          'Narrative Structure: The Odyssey',
+          'Narrative Structure: Antigone',
+          'Poetry: Li Bai and Du Fu',
+          'Narrative Structure: The Thousand and One Nights',
+          'Narrative Structure: Dante’s Inferno',
+          'Narrative Structure: Things Fall Apart',
+          "Narrative Structure: Borges's Library",
+        ].map((title, index) => ({ order: index + 1, title })),
+      }),
+      { expectedLessons: 8, sourceText },
+    );
+
+    expect(skeleton.readings).toEqual([
+      { id: 'r1', title: 'The Epic of Gilgamesh', dueSession: 1 },
+      { id: 'r2', title: 'The Odyssey', dueSession: 2 },
+      { id: 'r3', title: 'Antigone', dueSession: 3 },
+      { id: 'r4', title: 'selected poems by Li Bai and Du Fu', dueSession: 4 },
+      { id: 'r5', title: 'The Thousand and One Nights', dueSession: 5 },
+      { id: 'r6', title: 'Dante’s Inferno', dueSession: 6 },
+      { id: 'r7', title: 'Things Fall Apart', dueSession: 7 },
+      { id: 'r8', title: 'The Library of Babel', dueSession: 8 },
+    ]);
+    expect(skeleton.readingTopicRecovery).toMatchObject({
+      kind: 'instructor-named-reading-topic-boundary',
+      recoveredCount: 8,
+    });
   });
 
   it('drops model-invented reading and resource titles when the source names neither', () => {
@@ -985,8 +1078,8 @@ describe('Pass A skeleton contract (B1)', () => {
         weightPct,
       })),
     ).toEqual([
-      { title: 'midterm (20%)', kind: 'exam', dueSession: 7, weightPct: 20 },
-      { title: 'final diet-analysis project (30%)', kind: 'graded-artifact', dueSession: 14, weightPct: 30 },
+      { title: 'midterm', kind: 'exam', dueSession: 7, weightPct: undefined },
+      { title: 'final diet-analysis project', kind: 'graded-artifact', dueSession: 14, weightPct: undefined },
     ]);
     expect(skeleton.assessmentListRecovery).toEqual({
       fusedEntryCount: 2,
@@ -999,9 +1092,9 @@ describe('Pass A skeleton contract (B1)', () => {
     expect(graph.assessments).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ title: 'weekly diet-analysis labs: Nutrition topic 1', dueSession: 1 }),
-        expect.objectContaining({ title: 'midterm (20%)', kind: 'exam', dueSession: 7 }),
+        expect.objectContaining({ title: 'midterm', kind: 'exam', dueSession: 7 }),
         expect.objectContaining({
-          title: 'final diet-analysis project (30%)',
+          title: 'final diet-analysis project',
           kind: 'graded-artifact',
           dueSession: 14,
         }),
@@ -1012,7 +1105,7 @@ describe('Pass A skeleton contract (B1)', () => {
     });
     const exams = (compiled.quizBank.quizzes || []).filter((entry) => entry.kind === 'exam');
     expect(exams).toHaveLength(1);
-    expect(exams[0].lessonTitle).toContain('midterm (20%)');
+    expect(exams[0].lessonTitle).toContain('midterm');
     expect(exams[0].questions.length).toBeGreaterThanOrEqual(5);
   });
 
@@ -1948,11 +2041,10 @@ describe('degenerate-skeleton gate (defect 1 → CurriculumV1 repair)', () => {
 });
 
 describe('the hang class: contract-blocked compile (defect 2)', () => {
-  it('REPRODUCTION: the degenerate 1-assessment blueprint is BLOCKED with a throw (what hung the live runs)', () => {
-    // The exact live state: assembly succeeded, 1 registry assessment for
-    // 15 sessions, and compileBlueprintDeliverables THREW the contract
-    // error nothing caught. The gate above keeps this graph from ever
-    // reaching compile; this pin documents the throw class it guards.
+  it('repairs the former one-assessment hang input before contract validation', () => {
+    // This is the exact former live failure state: assembly succeeds with one
+    // registry assessment for 15 sessions. Compiler hydration must now repair
+    // its coverage before validation so the package completes with no blocker.
     const skeleton = makeSkeletonFixture({
       assessments: [{ id: 'a1', title: 'Final project integrating the full semester', dueSession: 15 }],
     });
@@ -1960,9 +2052,12 @@ describe('the hang class: contract-blocked compile (defect 2)', () => {
     expect(graph.assessments).toHaveLength(1);
     expect(isDegenerateNativeGraph(graph)).toBe(true);
     const blueprint = compactBlueprintForStorage(buildBlueprintFromGraph(graph, {}));
-    expect(() => compileBlueprintDeliverables(blueprint, ['syllabus'], { configMap: {} })).toThrowError(
-      /contract blocked compilation.*assessmentCoverage/i,
-    );
+    const compiled = compileBlueprintDeliverables(blueprint, ['syllabus'], { configMap: {} });
+    const compilerContext = compiled[BLUEPRINT_COMPILE_CONTEXT];
+
+    expect(compiled.syllabus).toBeTruthy();
+    expect(compilerContext.semanticContract).toMatchObject({ status: 'pass', blockerCount: 0 });
+    expect(compilerContext.assessments).toHaveLength(15);
   });
 
   it('a healthy assembled graph compiles exactly once without throwing', () => {

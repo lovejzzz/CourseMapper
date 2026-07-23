@@ -1,5 +1,6 @@
 import {
   SCION_BROWSER_GEMMA4_GGUF,
+  SCION_BROWSER_GEMMA4_DOWNLOAD_LABEL,
   SCION_BROWSER_GEMMA4_GGUF_URL,
   SCION_BROWSER_MAX_NEW_TOKENS,
   SCION_BROWSER_WLLAMA_MODULE_PATH,
@@ -24,6 +25,11 @@ let runtimeLoadOptions = null;
 const statusListeners = new Set();
 const EXPECTED_WEBGPU_RUNTIME_WARNING_RE =
   /(?:multi-threads are not supported|missing paths to multi-thread build|falling back single-thread|disabling multi-threading when using webgpu backend)/i;
+const SCION_MODEL_STORAGE_HEADROOM_BYTES = 512 * 1024 * 1024;
+const SCION_MODEL_STORAGE_ERROR_RE =
+  /(?:browser storage is full|quotaexceeded|not enough space|no space|4294967288|wrote -8 of)/i;
+const SCION_MODEL_CACHE_ERROR_RE =
+  /(?:model file not found|failed to open file|model may be invalid|cached \d+ bytes but expected|opfs worker: wrote)/i;
 
 // wllama emits CPU-thread fallback warnings before it applies its WebGPU
 // backend choice. Scion deliberately ships only the JSPI single-thread WASM
@@ -55,6 +61,7 @@ function initialStatus() {
       fullDigestEvidence: 'evaluation/scion-adapters/base-contracts/gemma-4-e2b.json',
     },
     adapter: { mode: 'base-only', active: false, id: null, manifestSha256: null },
+    storage: null,
   };
 }
 
@@ -88,6 +95,81 @@ function runtimeError(code, message, cause) {
   const error = new Error(message, cause ? { cause } : undefined);
   error.code = code;
   return error;
+}
+
+function errorMessage(error) {
+  return String(error?.message || error || '');
+}
+
+export function classifyScionBrowserModelLoadError(error) {
+  const detail = errorMessage(error);
+  if (SCION_MODEL_STORAGE_ERROR_RE.test(detail)) {
+    return {
+      code: 'SCION_WLLAMA_STORAGE_FULL',
+      kind: 'storage-full',
+      clearCache: true,
+      message:
+        `Scion needs ${SCION_BROWSER_GEMMA4_DOWNLOAD_LABEL} of browser storage plus working space. ` +
+        'Free at least 4 GB on this device, then try again. The incomplete model download was removed.',
+    };
+  }
+  if (SCION_MODEL_CACHE_ERROR_RE.test(detail)) {
+    return {
+      code: 'SCION_WLLAMA_CACHE_INCOMPLETE',
+      kind: 'cache-incomplete',
+      clearCache: true,
+      message: 'Scion removed an incomplete local model download. Try again to download a clean copy.',
+    };
+  }
+  return {
+    code: error?.code || 'SCION_WLLAMA_LOAD',
+    kind: 'other',
+    clearCache: false,
+    message: detail || 'Scion local Gemma 4 could not start.',
+  };
+}
+
+export async function estimateScionBrowserModelStorage(navigatorLike = globalThis.navigator) {
+  try {
+    const estimate = await navigatorLike?.storage?.estimate?.();
+    const quota = Number(estimate?.quota);
+    const usage = Number(estimate?.usage);
+    if (!Number.isFinite(quota) || !Number.isFinite(usage)) return null;
+    return {
+      quota,
+      usage,
+      available: Math.max(0, quota - usage),
+      required: SCION_BROWSER_GEMMA4_GGUF.browserDelivery.bytes + SCION_MODEL_STORAGE_HEADROOM_BYTES,
+    };
+  } catch {
+    return null;
+  }
+}
+
+async function clearCandidateModelCache(candidate) {
+  try {
+    await candidate?.modelManager?.clear?.();
+    return true;
+  } catch {
+    try {
+      await candidate?.cacheManager?.clear?.();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+}
+
+async function hasCachedCandidateModel(candidate, modelUrl) {
+  try {
+    const models = (await candidate?.modelManager?.getModels?.()) || [];
+    return models.some((model) => model?.url === modelUrl && model?.size > 0);
+  } catch {
+    // A split download without every metadata record makes ModelManager throw
+    // while enumerating it. Remove that poisoned set before starting again.
+    await clearCandidateModelCache(candidate);
+    return false;
+  }
 }
 
 function isFatalWllamaError(error, signal) {
@@ -212,33 +294,58 @@ export async function loadScionBrowserWllama({
     const wasmUrl = absoluteAsset(SCION_BROWSER_WLLAMA_WASM_PATH, locationLike);
     const candidate = new runtimeModule.Wllama(
       { 'jspi/single-thread/wllama.wasm': wasmUrl },
-      { backend: 'webgpu', suppressNativeLog: true, logger: scionRuntimeLogger },
+      {
+        backend: 'webgpu',
+        suppressNativeLog: true,
+        logger: scionRuntimeLogger,
+        // The pinned runtime gives all shard workers one abort boundary and
+        // settles them before cleanup, so parallel transfer stays both fast
+        // and atomic.
+        parallelDownloads: 3,
+      },
     );
     loadingRuntime = candidate;
+    const cachedModel = await hasCachedCandidateModel(candidate, modelUrl);
+    const storage = await estimateScionBrowserModelStorage(navigatorLike);
+    publish({ storage }, onProgress);
+    if (!cachedModel && storage && storage.available < storage.required) {
+      await clearCandidateModelCache(candidate);
+      throw runtimeError(
+        'SCION_WLLAMA_STORAGE_FULL',
+        `Scion needs ${SCION_BROWSER_GEMMA4_DOWNLOAD_LABEL} of browser storage plus working space. ` +
+          'Free at least 4 GB on this device, then try again.',
+      );
+    }
     publish({ phase: 'loading-model', message: 'Downloading the public Gemma 4 base…' }, onProgress);
-    await candidate.loadModelFromUrl(modelUrl, {
-      useCache: true,
-      n_ctx: contextSize,
-      n_threads: 1,
-      seed: 424242,
-      signal,
-      progressCallback: ({ loaded, total }) => {
-        const progress = total > 0 ? Math.min(1, Math.max(0, loaded / total)) : status.progress;
-        publish(
-          {
-            phase: 'loading-model',
-            progress,
-            message:
-              total > 0
-                ? progress >= 1
-                  ? 'Model download complete · preparing Scion…'
-                  : `Downloading the public Gemma 4 base (${Math.floor(progress * 100)}%)…`
-                : status.message,
-          },
-          onProgress,
-        );
-      },
-    });
+    try {
+      await candidate.loadModelFromUrl(modelUrl, {
+        useCache: true,
+        n_ctx: contextSize,
+        n_threads: 1,
+        seed: 424242,
+        signal,
+        progressCallback: ({ loaded, total }) => {
+          const progress = total > 0 ? Math.min(1, Math.max(0, loaded / total)) : status.progress;
+          publish(
+            {
+              phase: 'loading-model',
+              progress,
+              message:
+                total > 0
+                  ? progress >= 1
+                    ? 'Model download complete · preparing Scion…'
+                    : `Downloading the public Gemma 4 base (${Math.floor(progress * 100)}%)…`
+                  : status.message,
+            },
+            onProgress,
+          );
+        },
+      });
+    } catch (error) {
+      const classified = classifyScionBrowserModelLoadError(error);
+      if (classified.clearCache) await clearCandidateModelCache(candidate);
+      throw runtimeError(classified.code, classified.message, error);
+    }
     const metadata = validateLoadedBase(candidate);
     const nativeAdapter = await candidate.getLoraAdapterStatus();
     if (nativeAdapter?.active) {

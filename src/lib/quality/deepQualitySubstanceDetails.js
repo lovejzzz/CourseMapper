@@ -15,6 +15,47 @@ function repeatedLongParagraphs(file, minimumCopies = 3) {
   return [...counts.entries()].filter(([, count]) => count >= minimumCopies).sort((left, right) => right[1] - left[1]);
 }
 
+export function comparativeAssessmentContractFinding({ assessment = {}, artifactText = '', readingTitles = [] }) {
+  const assessmentTitle = String(assessment.title || '').toLowerCase();
+  const text = String(artifactText || '');
+  const normalizedText = text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+  const namedReadingHits = readingTitles.filter((title) =>
+    normalizedText.includes(
+      String(title || '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, ' ')
+        .trim(),
+    ),
+  );
+  if (/\bcomparative reading responses?\b/.test(assessmentTitle)) {
+    const complete =
+      namedReadingHits.length >= 2 &&
+      /\b(?:two comparative reading responses|response 1)\b/i.test(text) &&
+      /\bresponse 2\b/i.test(text) &&
+      /\b(?:locatable|passage|formal feature)\b/i.test(text) &&
+      /\b(?:counter-reading|alternative reading|competing interpretation)\b/i.test(text) &&
+      /\b(?:explicit limit|cannot establish|evidence limit|claim limit)\b/i.test(text);
+    return complete
+      ? null
+      : 'comparative reading responses do not compile as two explicit text pairings with locatable evidence, a credible counter-reading, and a claim limit';
+  }
+  if (/\bfinal\s+(?:comparative\s+)?(?:paper|essay)\b/.test(assessmentTitle)) {
+    const complete =
+      /\b(?:sustained comparative|comparative thesis|comparative argument)\b/i.test(text) &&
+      /\b(?:multiple assigned texts|two assigned texts|every text central|each central text)\b/i.test(text) &&
+      /\b(?:locatable|cite and analyze passages|textual evidence)\b/i.test(text) &&
+      /\b(?:counter-reading|counterargument|competing interpretation)\b/i.test(text) &&
+      /\b(?:explicit claim limits?|evidence limit|cannot establish|cannot sustain)\b/i.test(text);
+    return complete
+      ? null
+      : 'final comparative paper lacks a sustained multi-text argument contract with paired evidence, a credible counter-reading, and explicit claim limits';
+  }
+  return null;
+}
+
 export function buildAdditionalSubstanceFindings({ files = [], course = {}, quoteEvidence }) {
   const findings = [];
   // Mechanical echoes are small on screen but expensive in perceived

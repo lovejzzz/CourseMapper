@@ -151,6 +151,41 @@ describe('buildAssessmentReconciliationIssues — Mandarin L15 oral case (P2.5)'
 // ── Fully resolved and fusion-only cases ──
 
 describe('buildAssessmentReconciliationIssues — resolved courses (P2.5)', () => {
+  it('treats compiler-owned formative signatures as in-class even when an older graph kind is stale', () => {
+    const graph = graphWithAssessments([
+      {
+        title:
+          'Epic Structure: Gilgamesh Narrative Arc comparative close-reading: compare two passages by the selected writers, synthesize one claim, and support it with quoted details.',
+        dueSession: 1,
+      },
+      {
+        title:
+          'Frame Narrative: Nights Structure evidence memo: explain how form, language, or context changes the reading.',
+        dueSession: 5,
+      },
+    ]);
+    graph.assessments.forEach((assessment) => {
+      assessment.kind = 'graded-artifact';
+      assessment.weightPct = 0;
+    });
+
+    expect(
+      buildAssessmentReconciliationIssues({
+        courseGraph: graph,
+        blueprint: {
+          assessments: [
+            {
+              id: 'assessment-8',
+              title: 'Final Comparative Paper',
+              artifact: 'Final Comparative Paper',
+              lessonNumbers: [8],
+            },
+          ],
+        },
+      }),
+    ).toEqual([]);
+  });
+
   it('uses the stable Course Map assessment id when compiler-facing artifact wording changes', () => {
     const graph = graphWithAssessments([
       { title: 'Apply conditioning to one example and name one limitation', dueSession: 2 },

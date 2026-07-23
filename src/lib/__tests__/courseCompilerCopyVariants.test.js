@@ -106,6 +106,99 @@ describe('course compiler copy variants', () => {
     expect(body).not.toContain(focus);
   });
 
+  it('keeps a named literary reading locatable without stamping its full title through the brief body', () => {
+    const focus = 'The Thousand and One Nights';
+    const repeated = Array.from(
+      { length: 12 },
+      (_, index) => `${focus} evidence move ${index + 1} supports the comparison.`,
+    );
+    const result = compactAssignmentBriefBodyReferences({
+      brief: {
+        title: 'comparative reading response',
+        relatedLessons: [`Lesson 5: ${focus}`],
+        dueWeek: 'Week 5',
+        assignmentType: 'Comparative close-reading response',
+        overview: repeated.slice(0, 3).join(' '),
+        instructions: repeated.slice(3, 8),
+        supportResources: repeated.slice(8),
+      },
+      lesson: {
+        lessonNumber: 5,
+        instructorNamedReadings: [focus],
+      },
+      fullFocus: focus,
+      fallbackArtifact: 'comparative reading response',
+    });
+
+    const body = JSON.stringify([result.overview, result.instructions, result.supportResources]);
+    expect(result.relatedLessons).toContain(`Lesson 5: ${focus}`);
+    expect((body.match(/The Thousand and One Nights/g) || []).length).toBe(1);
+    expect(body).toContain('Thousand One Nights–specific evidence');
+  });
+
+  it('recognizes quoted-title punctuation variants as the same named reading', () => {
+    const courseFocus = 'Borges’s “The Library of Babel.”';
+    const registryTitle = 'Borges’s “The Library of Babel”';
+    const repeated = Array.from(
+      { length: 12 },
+      (_, index) => `${courseFocus} evidence move ${index + 1} supports the comparison.`,
+    );
+    const result = compactAssignmentBriefBodyReferences({
+      brief: {
+        title: 'final comparative paper',
+        relatedLessons: [`Lesson 8: ${registryTitle}`],
+        dueWeek: 'Week 8',
+        assignmentType: 'Final comparative paper',
+        overview: repeated.slice(0, 3).join(' '),
+        instructions: repeated.slice(3, 8),
+        supportResources: repeated.slice(8),
+      },
+      lesson: {
+        lessonNumber: 8,
+        instructorNamedReadings: [registryTitle],
+      },
+      fullFocus: courseFocus,
+      fallbackArtifact: 'final comparative paper',
+    });
+
+    const body = JSON.stringify([result.overview, result.instructions, result.supportResources]);
+    expect(result.relatedLessons).toContain(`Lesson 8: ${registryTitle}`);
+    expect((body.match(/Borges’s “The Library of Babel”/g) || []).length).toBe(1);
+    expect(body).toContain('Library Babel–specific evidence');
+  });
+
+  it('recognizes an author-prefixed lesson title as the same named reading', () => {
+    const focus = 'Borges’s “The Library of Babel”';
+    const registryTitle = 'The Library of Babel';
+    const repeated = Array.from(
+      { length: 12 },
+      (_, index) => `${focus} evidence move ${index + 1} supports the comparison.`,
+    );
+    const result = compactAssignmentBriefBodyReferences({
+      brief: {
+        title: 'final comparative paper',
+        relatedLessons: [`Lesson 8: ${focus}`],
+        dueWeek: 'Week 8',
+        assignmentType: 'Final comparative paper',
+        overview: repeated.slice(0, 3).join(' '),
+        instructions: repeated.slice(3, 8),
+        supportResources: repeated.slice(8),
+      },
+      lesson: {
+        lessonNumber: 8,
+        instructorNamedReadings: [registryTitle],
+      },
+      fullFocus: focus,
+      fallbackArtifact: 'final comparative paper',
+    });
+
+    const body = JSON.stringify([result.overview, result.instructions, result.supportResources]);
+    expect(result.relatedLessons).toContain(`Lesson 8: ${focus}`);
+    expect(body).not.toContain(focus);
+    expect((body.match(/The Library of Babel/g) || []).length).toBe(1);
+    expect(body).toContain('Library Babel–specific evidence');
+  });
+
   it('compacts repeated lesson-plan focus while preserving grammatical course-material references', () => {
     const focus = 'Mendelian Inheritance Basics';
     const result = compactRepeatedCourseFocusReferences(

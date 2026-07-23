@@ -187,12 +187,15 @@ function assessmentWeightUnits(assessment = {}) {
   // weekly check. Preserve explicit percentages above; this hierarchy is only
   // the compiler's provisional distribution for unweighted registry rows.
   if (
-    /\b(?:final|capstone)\s+(?:paper|essay|project|portfolio|presentation|report|performance)\b|\bthesis\b/.test(title)
+    /\b(?:final|capstone)(?:\s+\w+){0,2}\s+(?:paper|essay|project|portfolio|presentation|report|performance)\b|\bthesis\b/.test(
+      title,
+    )
   ) {
-    return 6;
+    return 11;
   }
-  if (assessment.kind === 'exam' && /\b(?:final|comprehensive)\b/.test(title)) return 6;
-  if (/\bproposal\b/.test(title)) return 2;
+  if (assessment.kind === 'exam' && /\b(?:final|comprehensive)\b/.test(title)) return 11;
+  if (/\bproposal\b/.test(title)) return 3;
+  if (/\b(?:comparative|weekly)\s+reading responses?\b|\breading responses\b/.test(title)) return 6;
   return KIND_WEIGHT_UNITS[assessment.kind] || 1;
 }
 

@@ -53,4 +53,40 @@ describe('Scion named-reading knowledge', () => {
       }),
     ]);
   });
+
+  it('covers the complete browser-audit World Literature reading sequence with attributed ledgers', () => {
+    const profiles = resolveScionLiteratureSourceProfiles({
+      readings: [
+        'The Epic of Gilgamesh',
+        'The Odyssey',
+        'Antigone',
+        'selected poems by Li Bai and Du Fu',
+        'The Thousand and One Nights',
+        'Dante’s Inferno',
+        'Things Fall Apart',
+        'The Library of Babel',
+      ],
+    });
+
+    expect(profiles.map((profile) => profile.source.title)).toEqual([
+      'Epic of Gilgamesh',
+      'The Odyssey of Homer',
+      'Antigone (Sophocles play)',
+      'Tang poetry',
+      'One Thousand and One Nights',
+      'Inferno (Dante)',
+      'Things Fall Apart',
+      'The Library of Babel',
+    ]);
+    profiles.forEach((profile) => {
+      expect(profile.facts).toHaveLength(5);
+      expect(profile.concepts).toHaveLength(4);
+      expect(profile.source).toMatchObject({
+        provider: expect.stringMatching(/gutenberg|wikipedia/),
+        license: expect.any(String),
+        url: expect.stringMatching(/^https:\/\//),
+      });
+      expect(JSON.stringify(profile)).not.toMatch(/\b(?:page|line)\s+\d+|“[^”]{20,}”/i);
+    });
+  });
 });

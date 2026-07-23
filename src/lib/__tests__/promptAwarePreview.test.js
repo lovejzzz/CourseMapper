@@ -40,6 +40,16 @@ describe('prompt-aware setup previews', () => {
         'Create a rigorous 15-lesson undergraduate course titled Introduction to Genetics. For Lesson 3 use the exact reading title “Textbook Chapter: DNA Structure and Replication”.',
       ),
     ).toBe('Introduction to Genetics');
+    expect(
+      derivePromptPreviewTitle(
+        'Course title: World Literature Survey\nBuild an 8-week course using Borges’s “The Library of Babel.”',
+      ),
+    ).toBe('World Literature Survey');
+    expect(
+      derivePromptPreviewTitle(
+        'World Literature: Epic, Drama, Poetry, and Global Fiction. Build an 8-week survey using Borges’s “The Library of Babel.”',
+      ),
+    ).toBe('World Literature: Epic, Drama, Poetry, and Global Fiction');
   });
 
   it('uses the active course in every built-in material preview', () => {

@@ -31,7 +31,8 @@ describe('Scion browser runtime stream cache', () => {
 
     expect(patched).toContain('let writePosition = 0;');
     expect(patched).toContain('Number(accessHandle.write(source, { at: writePosition }))');
-    expect(patched).toContain('count !== source.byteLength');
+    expect(patched).toContain('signedCount !== source.byteLength');
+    expect(patched).toContain('signedCount === -8');
     expect(patched).toContain('writePosition += source.byteLength;');
     expect(patched).toContain('if (persistedSize !== writePosition)');
     expect(patched).not.toContain('async function writeFile(buf) {\\n  accessHandle.write(buf);\\n}');

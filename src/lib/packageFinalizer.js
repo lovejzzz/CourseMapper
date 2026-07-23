@@ -10,6 +10,7 @@ import { repairDeliverableContentQuality } from './contentQualityRepair';
 import { generateCourseHealthReport } from './pedagogicalValidator';
 import { repairMisappliedObservationProtocols } from './observationProtocols';
 import { normalizeReadinessIssue, normalizeReadinessIssues } from './readinessIssueSchema';
+import { compactCompilerOwnedAssessmentIdentity } from './compilerAssessmentIdentity';
 
 const FULL_PACKAGE_QUALITY_FEATURES = [
   'courseMap',
@@ -742,7 +743,14 @@ export function buildAssessmentReconciliationIssues({ courseGraph, blueprint, de
     if (!title) continue;
     if (assessmentResolvesDownstream(assessment, candidates)) continue;
     const dueSession = Number.isInteger(assessment?.dueSession) ? assessment.dueSession : null;
-    if (assessment?.kind === 'in-class') continue;
+    // The browser authoring route can preserve an older registry kind even
+    // after the compiler has recognized one of its own formative sentence
+    // signatures. Reconcile against the same semantic classifier used by the
+    // manifest/export boundary so a lesson-plan check is not misreported as a
+    // missing standalone artifact.
+    if (assessment?.kind === 'in-class' || compactCompilerOwnedAssessmentIdentity(title) !== title) {
+      continue;
+    }
     if (HIGH_STAKES_ASSESSMENT_RE.test(title)) {
       issues.push(
         normalizeReadinessIssue({

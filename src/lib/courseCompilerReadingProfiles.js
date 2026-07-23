@@ -2,6 +2,31 @@
 // this leaf preserves the compiler's control-flow budget and lets copy evolve
 // without invalidating the core compiler chunk.
 
+export function buildRequiredTextsFromReadingRegistry(registry = []) {
+  const texts = [];
+  const seen = new Set();
+  const clean = (value) =>
+    String(value || '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  for (const entry of Array.isArray(registry) ? registry : []) {
+    const title = clean(entry?.title);
+    if (!title || seen.has(title.toLowerCase())) continue;
+    seen.add(title.toLowerCase());
+    texts.push({
+      title,
+      author: clean(entry?.author),
+      edition: '',
+      isbn: clean(entry?.isbn),
+      note:
+        entry?.kind === 'media'
+          ? 'Instructor-named required media. Confirm access and the assigned version with the instructor.'
+          : 'Instructor-named required reading. Confirm the assigned edition or translation with the instructor.',
+    });
+  }
+  return texts;
+}
+
 export function buildCloseReadingCheckProfile({
   assessment = {},
   sourceLabel = 'the assigned text',
@@ -120,6 +145,116 @@ export function buildCloseReadingCheckProfile({
     ],
   };
 }
+function distinctReadingTitles(values = []) {
+  const seen = new Set();
+  return values
+    .map((value) =>
+      String(value || '')
+        .replace(/\s+/g, ' ')
+        .trim(),
+    )
+    .filter((value) => {
+      const key = value.toLowerCase();
+      if (!value || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+}
+
+function comparativeResponsePairs(courseReadingTitles = [], dueSession = 1) {
+  const readings = distinctReadingTitles(courseReadingTitles);
+  if (readings.length < 2) {
+    return [
+      ['the first selected course text', 'a second selected course text'],
+      ['one assigned course text', 'another assigned course text'],
+    ];
+  }
+  if (readings.length < 4) {
+    return [
+      [readings[0], readings[1]],
+      [readings[0], readings[readings.length - 1]],
+    ];
+  }
+
+  // Start with the work assigned beside the response milestone, then bridge
+  // forward into a later unit. A second, non-duplicated pair creates a real
+  // two-response sequence instead of two copies of one single-text prompt.
+  const start = Math.max(0, Math.min(readings.length - 1, Number(dueSession || 1) - 1));
+  const firstLater = (start + Math.ceil(readings.length / 3)) % readings.length;
+  let secondStart = (start + 1) % readings.length;
+  let secondLater = (secondStart + Math.ceil(readings.length / 2)) % readings.length;
+  if (secondStart === firstLater) secondStart = (secondStart + 1) % readings.length;
+  if (secondLater === secondStart || secondLater === start) {
+    secondLater = (secondLater + 1) % readings.length;
+  }
+  return [
+    [readings[start], readings[firstLater]],
+    [readings[secondStart], readings[secondLater]],
+  ];
+}
+
+export function buildLiteratureAssessmentCriteria(assessmentTitle = '') {
+  const title = String(assessmentTitle || '').toLowerCase();
+  if (/\bcomparative reading responses?\b/.test(title)) {
+    return [
+      'Paired, locatable passage evidence from both assigned works in each response',
+      'Comparative claim and close analysis that make both texts necessary',
+      'Credible counter-reading tested against the same paired evidence',
+      'Explicit claim limit and evidence-informed revision in each response',
+    ];
+  }
+  if (/\bcomparative essay proposal\b/.test(title)) {
+    return [
+      'Focused comparative question and analytically productive two-text rationale',
+      'Arguable working thesis that states a meaningful relationship and difference',
+      'Feasible paired passage plan with locatable evidence from both assigned texts',
+      'Credible counter-reading, explicit scope limit, and actionable next evidence step',
+    ];
+  }
+  if (/\bfinal\s+(?:comparative\s+)?(?:paper|essay)\b/.test(title)) {
+    return [
+      'Sustained comparative thesis and paragraph-level synthesis across assigned texts',
+      'Close analysis of locatable textual evidence from every work central to the thesis',
+      'Credible counter-reading tested against the paper’s strongest paired evidence',
+      'Source integrity, explicit claim limits, coherent organization, and substantive revision',
+    ];
+  }
+  return null;
+}
+
+export function buildComparativeReadingResponseProfile({ assessment = {}, courseReadingTitles = [] } = {}) {
+  const artifact = assessment.artifact || assessment.title || 'Comparative Reading Responses';
+  const [[firstA, firstB], [secondA, secondB]] = comparativeResponsePairs(courseReadingTitles, assessment.dueSession);
+  return {
+    assignmentType: 'Comparative reading response sequence',
+    expectedFormat:
+      `two comparative reading responses: Response 1 compares ${firstA} and ${firstB}; ` +
+      `Response 2 compares ${secondA} and ${secondB}. Each response includes a focused comparative claim, paired passage analysis, a credible counter-reading, and an evidence-bounded revision`,
+    evidenceRequirement:
+      'each response must cite one locatable passage or formal feature from each paired work and explain how the two pieces of evidence change the comparison',
+    qualityFocus:
+      'comparative reasoning, paired textual evidence, close analysis, credible counter-reading, explicit claim limits, and substantive revision',
+    reviewProtocol:
+      'verify both passages, confirm that the claim depends on the comparison, test a credible counter-reading, and narrow any conclusion the paired evidence cannot support',
+    taskOverview:
+      `Complete ${artifact} as two distinct comparisons. Response 1 pairs ${firstA} with ${firstB}; ` +
+      `Response 2 pairs ${secondA} with ${secondB}. In each response, make both texts necessary to the claim, analyze locatable evidence from each, address a credible counter-reading, and state the interpretation's limit.`,
+    parameterLines: [
+      `Response 1 pairing: compare ${firstA} and ${firstB}.`,
+      `Response 2 pairing: compare ${secondA} and ${secondB}.`,
+      'Evidence: in each response, cite and analyze one locatable passage or formal feature from each paired work.',
+      'Interpretive contract: advance one comparative claim, address a credible counter-reading, and state explicitly what the selected evidence cannot establish.',
+    ],
+    instructionSteps: [
+      `For Response 1, formulate a focused question that requires comparing ${firstA} with ${firstB}, not two parallel summaries.`,
+      `For Response 2, formulate a different focused question that requires comparing ${secondA} with ${secondB}.`,
+      'In each response, cite one locatable passage or formal feature from each work and explain the consequential similarity or difference.',
+      'Test the comparative claim against one credible counter-reading that accounts for the same paired evidence.',
+      'Revise the claim after that test and end with an explicit limit: name what the selected passages cannot establish on their own.',
+    ],
+  };
+}
+
 export function buildLiteratureLongFormProfile(assessmentTitle = '') {
   return /\bcomparative essay proposal\b/.test(assessmentTitle)
     ? {
@@ -147,29 +282,30 @@ export function buildLiteratureLongFormProfile(assessmentTitle = '') {
           'Identify a plausible counter-reading or scope risk, then name the next evidence check needed before writing the paper.',
         ],
       }
-    : /\bfinal paper\b/.test(assessmentTitle)
+    : /\bfinal\s+(?:comparative\s+)?(?:paper|essay)\b/.test(assessmentTitle)
       ? {
-          assignmentType: 'Final paper',
+          assignmentType: 'Final comparative paper',
           expectedFormat:
-            'sustained comparative literary argument with a clear thesis, organized textual analysis, counter-reading, source notes, and a revision rationale',
+            'sustained comparative literary argument with a clear thesis, organized textual analysis, counter-reading, explicit claim limits, source notes, and a revision rationale',
           evidenceRequirement:
             'precisely cited evidence from multiple assigned texts, with each passage analyzed rather than used as illustration alone',
           qualityFocus:
-            'thesis strength, comparative synthesis, close analysis, counterargument, source integrity, organization, and revision',
+            'thesis strength, comparative synthesis, close analysis, counterargument, explicit claim limits, source integrity, organization, and revision',
           reviewProtocol:
-            'trace every major claim to textual evidence, test the comparative thesis against a counter-reading, check paragraph-level synthesis, and revise the weakest inference',
+            'trace every major claim to textual evidence, test the comparative thesis against a counter-reading, check paragraph-level synthesis, and state the evidence limit on every major interpretation',
           taskOverview:
-            'Complete the final paper as a sustained comparative argument across multiple assigned texts: defend a focused thesis through close analysis, address a counter-reading, and document the revision that most strengthened the argument.',
+            'Complete the final paper as a sustained comparative argument across multiple assigned texts: defend a focused thesis through close analysis, address a counter-reading, state an explicit evidence limit for every major interpretation, and document the revision that most strengthened the argument.',
           parameterLines: [
             'Scope: sustain one comparative argument across multiple assigned course texts.',
             'Format: organize the paper around a focused thesis, analytical sections, a counter-reading, and a revision rationale.',
             'Evidence: cite and analyze passages from every text central to the thesis.',
             'Synthesis: make each section develop the comparison rather than treating the texts separately.',
+            'Limits: state what the selected evidence cannot establish for every major interpretation.',
           ],
           instructionSteps: [
             'State a focused comparative thesis and map the evidence each section will use to advance it.',
             'Analyze each cited passage at the level of language or form, then explain its role in the comparison.',
-            'Address one credible counter-reading and revise any inference the evidence cannot sustain.',
+            'Address one credible counter-reading and state explicitly what the evidence cannot sustain for each major interpretation.',
             'Document the revision that most strengthened the paper’s comparative argument.',
           ],
         }

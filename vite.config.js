@@ -69,6 +69,9 @@ export default defineConfig({
           if (/src\/lib\/courseCompilerSelfAssessmentCopy\.js$/.test(id)) return 'compilerSelfAssessmentCopy';
           if (/src\/lib\/courseCompilerReadingProfiles\.js$/.test(id)) return 'compilerReadingProfiles';
           if (/src\/lib\/courseCompilerRubricCopy\.js$/.test(id)) return 'compilerRubricCopy';
+          if (/src\/lib\/courseCompilerComparativeRubricBands\.js$/.test(id)) {
+            return 'compilerComparativeRubricBands';
+          }
           if (/src\/lib\/quality\/deepQualitySubstanceDetails\.js$/.test(id)) return 'deepQualitySubstanceDetails';
         },
       },

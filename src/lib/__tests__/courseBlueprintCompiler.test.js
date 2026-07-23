@@ -12,6 +12,7 @@ import {
   validateCompilerOutputContract,
 } from '../courseBlueprintCompiler';
 import { evaluateClassroomReadiness } from '../classroomReadiness';
+import { auditDeliverableContentQuality } from '../contentQualityChecks';
 import { deriveCourseGraphFromCourseMap } from '../courseGraph/deriveFromCourseMap';
 import { validateDeliverableGeneration } from '../deliverablePostProcess';
 import { deliverableToCsvRows } from '../exporters/csvExporter';
@@ -45,6 +46,273 @@ const makeCourseMap = (lessonCount = 6) => ({
       },
     ],
   })),
+});
+
+describe('discipline-safe deterministic worked examples', () => {
+  it('does not turn an information-literacy synthesis matrix into linear algebra', () => {
+    const blueprint = buildCourseBlueprint(
+      {
+        courseName: 'Information Literacy and Library Research',
+        lessons: [
+          {
+            title: 'Lesson 1: Synthesis Matrix and Gap Analysis',
+            sections: [
+              {
+                topicSection: 'Synthesis matrix, source comparison, source limitation, evidence relationship',
+                learningObjectives:
+                  'Compare sources in a synthesis matrix and identify an evidence gap without overstating the record.',
+                weeklyAssessments: 'Synthesis matrix with source comparison and a bounded gap statement.',
+                syncActivities:
+                  'Compare two scholarly sources, revise one matrix row, and defend the resulting source-use decision.',
+                supportingResources: 'Synthesis matrix template; source-comparison guide',
+              },
+            ],
+          },
+        ],
+      },
+      {
+        enrichment: {
+          lens: {
+            domain: 'information literacy and library research',
+            evidenceNoun: 'source evidence',
+            decisionNoun: 'source-use decision',
+            learnerRole: 'student researcher',
+            exampleNoun: 'database search scenario',
+          },
+        },
+      },
+    );
+
+    const deck = compileBlueprintDeliverables(blueprint, ['slideDecks'], {
+      enforceCompilerContract: false,
+    }).slideDecks.decks[0];
+    const deckText = JSON.stringify(deck.slides);
+
+    expect(deckText).not.toContain('Identify the shape of A = [[1, 2, 3], [4, 5, 6]]');
+    expect(deckText).not.toMatch(/\b2 by 3 matrix with 6 entries\b/i);
+    expect(deck.slideTimingFit).toMatchObject({
+      status: 'fits-session-with-activity-time',
+      sessionMinutes: 75,
+    });
+  });
+});
+
+describe('comparative literature assessment contracts', () => {
+  it('varies evidence coaching across kernel-authored slide decks instead of repeating one stock note', () => {
+    const blueprint = buildCourseBlueprint(makeCourseMap(8));
+    blueprint.lessons.forEach((lesson, index) => {
+      const focus = `Policy evidence boundary ${index + 1}`;
+      lesson.enrichment = {
+        keyTerms: [
+          {
+            term: focus,
+            definition: `${focus} distinguishes an observed implementation detail from the conclusion it can support.`,
+            example: `Case ${index + 1} compares a documented outcome with one competing explanation.`,
+          },
+        ],
+        kernel: {
+          facts: [
+            `${focus} requires a locatable implementation record.`,
+            `The record for case ${index + 1} supports one bounded conclusion.`,
+            `A competing explanation remains plausible until additional evidence is collected.`,
+          ],
+        },
+      };
+    });
+
+    const decks = compileBlueprintDeliverables(blueprint, ['slideDecks']).slideDecks.decks;
+    const deckNotes = decks.map((deck) =>
+      deck.slides
+        .filter((slide) => slide.enrichmentSource === 'kernel-subject-matter')
+        .map((slide) => slide.notes)
+        .join(' '),
+    );
+
+    expect(deckNotes).toHaveLength(8);
+    expect(deckNotes.every(Boolean)).toBe(true);
+    expect(deckNotes.join(' ')).not.toMatch(
+      /identify which statement is a claim, which detail is evidence, and what the evidence does not establish/i,
+    );
+    expect(new Set(deckNotes.map((notes) => notes.split('. ').at(-1))).size).toBe(8);
+  });
+
+  it('compiles the named response sequence and final paper as real comparative work', () => {
+    const readings = [
+      'The Epic of Gilgamesh',
+      'The Odyssey',
+      'Antigone',
+      'selected poems by Li Bai and Du Fu',
+      'The Thousand and One Nights',
+      'Dante’s Inferno',
+      'Things Fall Apart',
+      'Borges’s “The Library of Babel”',
+    ];
+    const assessmentByLesson = new Map([
+      [2, 'Comparative Reading Responses'],
+      [3, 'Comparative Essay Proposal'],
+      [8, 'Final Comparative Paper'],
+    ]);
+    const courseMap = {
+      courseName: 'World Literature Survey',
+      lessons: readings.map((reading, index) => ({
+        title: `Lesson ${index + 1}: ${reading}`,
+        sections: [
+          {
+            topicSection: `${reading}: narrative structure, voice, imagery, historical context, and translation`,
+            learningObjectives: `Analyze a passage from ${reading} and explain how one formal choice shapes its meaning.`,
+            learningGoals: 'Develop evidence-bounded comparative literary judgment.',
+            weeklyAssessments:
+              assessmentByLesson.get(index + 1) ||
+              `${reading} comparison: connect two passages, authors, or traditions through a defensible claim.`,
+            readings: [reading],
+            asyncActivities: `Annotate one locatable passage from ${reading}.`,
+            syncActivities: 'Compare two interpretations and revise one claim.',
+            supportingResources: reading,
+          },
+        ],
+      })),
+    };
+    const graph = deriveCourseGraphFromCourseMap(courseMap);
+    const blueprint = buildCourseBlueprint(courseMap, {
+      assessmentRegistry: graph.assessments,
+      readingsRegistry: graph.readings,
+    });
+    const compiled = compileBlueprintDeliverables(blueprint, [
+      'syllabus',
+      'lessonPlans',
+      'assignments',
+      'rubrics',
+      'discussions',
+      'studyGuides',
+    ]);
+    const assignmentByTitle = new Map(compiled.assignments.assignments.map((entry) => [entry.title, entry]));
+    const rubricFor = (title) => compiled.rubrics.rubrics.find((entry) => String(entry.title || '').includes(title));
+    const responses = assignmentByTitle.get('Comparative Reading Responses');
+    const finalPaper = assignmentByTitle.get('Final Comparative Paper');
+
+    expect(blueprint.assessments.map((assessment) => assessment.weightPercent)).toEqual([30, 15, 55]);
+    expect(JSON.stringify(responses)).toContain('The Odyssey');
+    expect(JSON.stringify(responses)).toContain('The Thousand and One Nights');
+    expect(JSON.stringify(responses)).toMatch(/Response 1[\s\S]*Response 2/i);
+    expect(JSON.stringify(responses)).toMatch(
+      /locatable passage[\s\S]*counter-reading[\s\S]*(?:explicit limit|cannot establish)/i,
+    );
+    expect(responses.assignmentType).toBe('Comparative reading response sequence');
+    expect(finalPaper.assignmentType).toBe('Final comparative paper');
+    expect(JSON.stringify(finalPaper)).toMatch(/sustained comparative argument[\s\S]*multiple assigned texts/i);
+    expect(JSON.stringify(finalPaper)).toMatch(/counter-reading[\s\S]*(?:explicit evidence limit|cannot sustain)/i);
+    expect(JSON.stringify(rubricFor('Comparative Reading Responses'))).toMatch(
+      /Paired, locatable passage evidence[\s\S]*Credible counter-reading[\s\S]*Explicit claim limit/i,
+    );
+    expect(JSON.stringify(rubricFor('Final Comparative Paper'))).toMatch(
+      /Sustained comparative thesis[\s\S]*every work central[\s\S]*explicit claim limits/i,
+    );
+    expect(compiled.syllabus.syllabus.requiredTexts.map((entry) => entry.title)).toEqual(readings);
+    expect(JSON.stringify(compiled.syllabus.syllabus)).not.toContain('Instructor-provided course reading packet');
+    expect(JSON.stringify(compiled.syllabus.syllabus.courseRequirements)).toMatch(
+      /Paired, locatable passage evidence[\s\S]*Sustained comparative thesis/i,
+    );
+    expect(JSON.stringify(rubricFor('Comparative Reading Responses').criteria)).toMatch(
+      /Both responses analyze one locatable passage or formal feature from each assigned work[\s\S]*Each response tests a credible counter-reading/i,
+    );
+    expect(JSON.stringify(rubricFor('Final Comparative Paper').criteria)).toMatch(
+      /sustains an arguable comparative thesis[\s\S]*Every work central to the thesis[\s\S]*strongest credible counter-reading/i,
+    );
+    expect(JSON.stringify(compiled.discussions)).not.toMatch(/unresolved question is the question is/i);
+    expect(JSON.stringify(compiled.studyGuides)).toContain('The Thousand and One Nights');
+    expect(JSON.stringify(compiled.studyGuides)).not.toContain('The Thousand, One Nights');
+    const thousandNightsPlan = compiled.lessonPlans.lessonPlans[4];
+    const thousandNightsPlanText = JSON.stringify(
+      [
+        'evidenceBase',
+        'studentFacingSummary',
+        'artifactLength',
+        'prerequisiteKnowledge',
+        'commonMisconceptions',
+        'weeklySubmissionCriteria',
+        'localCaseReplacementNote',
+        'calibrationCue',
+        'assessmentCriteria',
+        'materials',
+        'warmUp',
+        'outline',
+        'formativeCheck',
+        'udlNotes',
+        'homework',
+        'closingActivity',
+        'readyToTeachSupport',
+      ].map((field) => thousandNightsPlan[field]),
+    );
+    expect((thousandNightsPlanText.match(/The Thousand and One Nights/g) || []).length).toBeGreaterThanOrEqual(1);
+    expect((thousandNightsPlanText.match(/The Thousand and One Nights/g) || []).length).toBeLessThanOrEqual(6);
+    const borgesBriefText = JSON.stringify(
+      compiled.assignments.assignments
+        .filter((entry) => String(entry.relatedLessons || '').includes('Lesson 8'))
+        .map((entry) => ({
+          title: entry.title,
+          relatedLessons: entry.relatedLessons,
+          overview: entry.overview,
+          description: entry.description,
+          speakingPrompts: entry.speakingPrompts,
+          objectives: entry.objectives,
+          instructions: entry.instructions,
+          formatRequirements: entry.formatRequirements,
+          deliverables: entry.deliverables,
+          submissionFormat: entry.submissionFormat,
+          gradingCriteria: entry.gradingCriteria,
+          progressTracking: entry.progressTracking,
+          accessibilityAndUDL: entry.accessibilityAndUDL,
+          selfAssessmentRubric: entry.selfAssessmentRubric,
+          feedbackLoop: entry.feedbackLoop,
+          scaffoldingMilestones: entry.scaffoldingMilestones,
+          supportResources: entry.supportResources,
+          academicIntegrityStatement: entry.academicIntegrityStatement,
+        })),
+    );
+    // The package grader also counts the rendered file name, so keep the
+    // document surface at seven or fewer canonical mentions.
+    expect((borgesBriefText.match(/Borges’s “The Library of Babel/g) || []).length).toBeLessThanOrEqual(7);
+  });
+
+  it('removes an article-plus-term stutter when a definition already names its own term', () => {
+    const courseMap = {
+      courseName: 'World Literature Survey',
+      lessons: [
+        {
+          title: 'Lesson 1: Epic Openings',
+          sections: [
+            {
+              topicSection: 'Invocation and narrative voice',
+              learningObjectives: 'Analyze how an invocation frames narrative authority.',
+              weeklyAssessments: 'Invocation close-reading check.',
+              readings: ['The Odyssey'],
+            },
+          ],
+        },
+      ],
+    };
+    const blueprint = buildCourseBlueprint(courseMap);
+    blueprint.lessons[0].enrichment = {
+      keyTerms: [
+        {
+          term: 'Invocation',
+          definition: 'An invocation is an epic opening address to a muse or divine source.',
+          misconception: 'An invocation is only a decorative greeting.',
+          correction: 'It frames the source and authority of the narrative voice.',
+        },
+      ],
+      kernel: {
+        facts: [
+          'The opening address establishes a relationship between the speaker, the audience, and poetic authority.',
+        ],
+      },
+    };
+
+    const faq = compileBlueprintDeliverables(blueprint, ['courseFaq']).courseFaq;
+    const text = JSON.stringify(faq);
+    expect(text).toContain('Invocation is an epic opening address');
+    expect(text).not.toMatch(/Invocation means an invocation is/i);
+  });
 });
 
 const countWords = (value) => (String(value || '').match(/[A-Za-z][A-Za-z'-]*/g) || []).length;
@@ -3798,7 +4066,7 @@ describe('courseBlueprintCompiler', () => {
     expect(blueprint.courseWorkload.averagePerLessonHours).toBeGreaterThan(2);
     expect(blueprint.courseWorkload).toMatchObject({
       timingStatus: 'fits-session',
-      averagePlannedClassMinutes: 110,
+      averagePlannedClassMinutes: 75,
       workloadBalanceStatus: 'balanced',
       workloadReviewCount: 0,
       timingReviewCount: 0,
@@ -4069,7 +4337,7 @@ describe('courseBlueprintCompiler', () => {
           modalityCue: expect.stringContaining('policy-analysis'),
           modalityDecodeCue: expect.stringContaining('stakeholder'),
           artifactGenreCue: 'policy-brief',
-          classSessionCue: expect.stringContaining('110/110 minutes'),
+          classSessionCue: expect.stringContaining('75/75 minutes'),
         }),
       ]),
     });
@@ -4206,7 +4474,7 @@ describe('courseBlueprintCompiler', () => {
     expect(blueprint.alignmentMatrix[0].modalityDecodeCue).toContain('stakeholder');
     expect(blueprint.alignmentMatrix[0].artifactGenreCue).toBe('policy-brief');
     expect(blueprint.alignmentMatrix[0].artifactGenreOutputFormat).toContain('Policy memo checkpoint 1');
-    expect(blueprint.alignmentMatrix[0].classSessionCue).toContain('110/110 minutes');
+    expect(blueprint.alignmentMatrix[0].classSessionCue).toContain('75/75 minutes');
     expect(blueprint.alignmentMatrix[0].assessmentRoleCue).toBe('Diagnostic checkpoint');
     expect(blueprint.alignmentMatrix[0].assessmentCadenceCue).toContain('next class session');
     expect(blueprint.alignmentMatrix[0].criterionWeightCue).toContain('source-grounded concept evidence: 30%');
@@ -4221,12 +4489,12 @@ describe('courseBlueprintCompiler', () => {
         level: 'high',
       },
       workloadEstimate: {
-        inClassMinutes: 110,
+        inClassMinutes: 75,
       },
       classSessionPlan: {
         feasibilityStatus: 'fits-session',
-        plannedClassMinutes: 110,
-        sessionMinutes: 110,
+        plannedClassMinutes: 75,
+        sessionMinutes: 75,
         segmentCount: 6,
       },
       difficultyProfile: {
@@ -5139,8 +5407,8 @@ describe('courseBlueprintCompiler', () => {
     expect(compiled.lessonPlans.lessonPlans[0].evidenceResponsePlan.partialMove).toContain('criterion-level feedback');
     expect(compiled.lessonPlans.lessonPlans[0].classSessionPlan).toMatchObject({
       feasibilityStatus: 'fits-session',
-      plannedClassMinutes: 110,
-      sessionMinutes: 110,
+      plannedClassMinutes: 75,
+      sessionMinutes: 75,
     });
     expect(compiled.lessonPlans.lessonPlans[0].classroomDryRun).toMatchObject({
       lessonNumber: 1,
@@ -5164,7 +5432,7 @@ describe('courseBlueprintCompiler', () => {
       calibrationCue: expect.stringContaining('strong and one partial'),
     });
     expect(compiled.lessonPlans.lessonPlans[0].outlineTiming).toMatchObject({
-      outlineMinutes: 110,
+      outlineMinutes: 75,
       status: 'fits-session',
     });
     expect(compiled.lessonPlans.lessonPlans[0].prerequisiteKnowledge).toContain('prior example');
@@ -5213,7 +5481,7 @@ describe('courseBlueprintCompiler', () => {
       modalityPractice: expect.stringContaining('stakeholder'),
       modalityEvidenceRoutine: expect.stringContaining('stakeholder/equity effect'),
       modalityFeedbackRoutine: expect.stringContaining('implementation risk'),
-      timingFit: expect.stringContaining('110/110 live minutes'),
+      timingFit: expect.stringContaining('75/75 live minutes'),
       artifactGenreFit: expect.stringContaining('policy-brief'),
       genreReviewProtocol: expect.stringContaining('problem definition and authority'),
       genreCommonFailure: expect.stringContaining('without a precise public problem'),
@@ -5254,11 +5522,11 @@ describe('courseBlueprintCompiler', () => {
     });
     expect(compiled.slideDecks.decks[0].slideDeckSequenceGuide.classSessionPlan).toMatchObject({
       feasibilityStatus: 'fits-session',
-      plannedClassMinutes: 110,
+      plannedClassMinutes: 75,
     });
     expect(compiled.slideDecks.decks[0].slideTimingFit).toMatchObject({
       status: 'fits-session-with-activity-time',
-      sessionMinutes: 110,
+      sessionMinutes: 75,
     });
     expect(compiled.slideDecks.decks[0].slides[3].visual).toMatchObject({
       kind: 'learning-thread timeline',
@@ -5354,7 +5622,7 @@ describe('courseBlueprintCompiler', () => {
         },
       },
       timingStatus: 'fits-session',
-      averagePlannedClassMinutes: 110,
+      averagePlannedClassMinutes: 75,
       compilerContract: {
         status: 'pass',
         blockerCount: 0,
@@ -5396,7 +5664,7 @@ describe('courseBlueprintCompiler', () => {
       modalityCue: expect.stringContaining('policy-analysis'),
       modalityDecodeCue: expect.stringContaining('stakeholder'),
       artifactGenreCue: 'policy-brief',
-      classSessionCue: expect.stringContaining('110/110 minutes'),
+      classSessionCue: expect.stringContaining('75/75 minutes'),
     });
     expect(compiled.syllabus.syllabus.sourceUsePolicy.noInventedSources).toContain('Do not invent authors');
     expect(compiled.syllabus.syllabus.lessonAlignmentMatrix[0]).toMatchObject({
@@ -5419,7 +5687,7 @@ describe('courseBlueprintCompiler', () => {
       modalityDecodeCue: expect.stringContaining('stakeholder'),
       artifactGenreCue: 'policy-brief',
       artifactGenreOutputFormat: expect.stringContaining('Policy memo checkpoint 1'),
-      classSessionCue: expect.stringContaining('110/110 minutes'),
+      classSessionCue: expect.stringContaining('75/75 minutes'),
       assessmentRoleCue: 'Diagnostic checkpoint',
       assessmentCadenceCue: expect.stringContaining('next class session'),
       criterionWeightCue: expect.stringContaining('source-grounded concept evidence: 30%'),
@@ -7049,6 +7317,167 @@ describe('courseBlueprintCompiler', () => {
     expect(bodyText).toMatch(/Tang Poetry|close-reading/i);
   });
 
+  it('keeps Scion formative directions in the map while compiling concise artifact identities', () => {
+    const formativeFrames = [
+      'Epic Structure: Gilgamesh Narrative Arc comparative close-reading: compare two passages by the selected writers, synthesize one claim, and support it with quoted details.',
+      'Contextual Analysis of Antigone comparison: connect two passages, authors, or traditions through a defensible claim.',
+      'Historical Context and Interpretation evidence memo: explain how form, language, or context changes the reading.',
+      'Translation Choices in Narrative interpretive response: test one reading against a specific passage and one alternative.',
+    ];
+    const courseMap = {
+      courseName: 'World Literature Survey',
+      lessons: formativeFrames.map((weeklyAssessments, index) => ({
+        title: `Lesson ${index + 1}: Literary Focus ${index + 1}`,
+        sections: [
+          {
+            topicSection: `Literary method ${index + 1}`,
+            learningObjectives: 'Analyze a passage and support a bounded interpretation with textual evidence.',
+            learningGoals: 'Develop comparative close-reading judgment.',
+            weeklyAssessments,
+            asyncActivities: 'Annotate a passage and identify one formal choice.',
+            syncActivities: 'Compare interpretations and revise one claim.',
+            supportingResources: 'Assigned literary text; close-reading guide',
+          },
+        ],
+      })),
+    };
+
+    const graph = deriveCourseGraphFromCourseMap(courseMap);
+    // Native graph assembly formerly clipped this exact identity at a hard
+    // character boundary and retained the stale graded kind. The compiler
+    // must still recognize its own bounded signature without weakening
+    // arbitrary instructor-authored assessment titles.
+    graph.assessments[0].title =
+      'Epic Structure: Gilgamesh Narrative Arc comparative close-reading: compare two passages by the selected writers, synthesize one claim, and support it with';
+    graph.assessments[0].kind = 'graded-artifact';
+    const blueprint = buildCourseBlueprint(courseMap, { assessmentRegistry: graph.assessments });
+    const compiled = compileBlueprintDeliverables(blueprint, [
+      'syllabus',
+      'lessonPlans',
+      'slideDecks',
+      'quizBank',
+      'studyGuides',
+    ]);
+    const compiledText = JSON.stringify(compiled);
+
+    // The visible map remains explicit, while reusable artifact identity is a
+    // compact noun phrase instead of a 20-30 word classroom direction.
+    expect(courseMap.lessons[0].sections[0].weeklyAssessments).toContain('support it with quoted details');
+    expect(blueprint.lessons.map((lesson) => lesson.studentArtifact)).toEqual([
+      'Epic Structure: Gilgamesh Narrative Arc close-reading check',
+      'Contextual Analysis of Antigone comparison',
+      'Historical Context and Interpretation evidence memo',
+      'Translation Choices in Narrative interpretive response',
+    ]);
+    expect(compiledText).not.toContain('support it with before publishing');
+
+    for (const [featureId, data] of Object.entries(compiled)) {
+      const audit = auditDeliverableContentQuality(featureId, data);
+      expect(
+        audit.findings.filter((finding) => finding.code === 'dangling-clause'),
+        `${featureId}: ${audit.findings.map((finding) => `${finding.path}: ${finding.sample}`).join(' | ')}`,
+      ).toEqual([]);
+    }
+  });
+
+  it('reconciles sparse model assessment registries before compiling every material family', () => {
+    const gradedByLesson = new Map([
+      [3, 'two comparative reading responses'],
+      [6, 'comparative essay proposal'],
+      [8, 'final comparative paper'],
+    ]);
+    const courseMap = {
+      courseName: 'World Literature Survey',
+      lessons: Array.from({ length: 8 }, (_, index) => {
+        const lessonNumber = index + 1;
+        const focus = `Literary Focus ${lessonNumber}`;
+        return {
+          title: `Lesson ${lessonNumber}: ${focus}`,
+          sections: [
+            {
+              topicSection: `${focus}: form, voice, imagery, and context`,
+              learningObjectives: `Analyze a passage from ${focus} and explain one formal choice.`,
+              learningGoals: 'Develop evidence-bounded comparative literary judgment.',
+              weeklyAssessments:
+                gradedByLesson.get(lessonNumber) ||
+                `${focus} evidence memo: explain how form, language, or context changes the reading.`,
+              asyncActivities: `Annotate one locatable passage from ${focus}.`,
+              syncActivities: 'Compare two interpretations and revise one claim.',
+              supportingResources: `${focus} assigned text`,
+            },
+          ],
+        };
+      }),
+    };
+    const sparseRegistry = [...gradedByLesson].map(([lessonNumber, title], index) => ({
+      id: `A${lessonNumber}.${index + 1}`,
+      title,
+      kind: 'graded-artifact',
+      dueSession: lessonNumber,
+      weightPct: null,
+    }));
+
+    const blueprint = buildCourseBlueprint(courseMap, { assessmentRegistry: sparseRegistry });
+    const compiled = compileBlueprintDeliverables(blueprint, [
+      'syllabus',
+      'lessonPlans',
+      'slideDecks',
+      'assignments',
+      'rubrics',
+      'discussions',
+      'quizBank',
+      'studyGuides',
+      'courseFaq',
+    ]);
+
+    expect([...new Set(blueprint.assessmentRegistry.map((entry) => entry.dueSession))]).toEqual([
+      1, 2, 3, 4, 5, 6, 7, 8,
+    ]);
+    expect(blueprint.assessmentRegistry.filter((entry) => entry.compilerReconciled)).toHaveLength(5);
+    expect(blueprint.assessments.map((entry) => entry.lessonNumbers[0])).toEqual([3, 6, 8]);
+    expect(blueprint.semanticContract.status).toBe('pass');
+    expect(Object.keys(compiled)).toEqual(
+      expect.arrayContaining([
+        'syllabus',
+        'lessonPlans',
+        'slideDecks',
+        'assignments',
+        'rubrics',
+        'discussions',
+        'quizBank',
+        'studyGuides',
+        'courseFaq',
+      ]),
+    );
+  });
+
+  it('keeps the complete predicate object in long literature slide objectives and readiness checks', () => {
+    const courseMap = {
+      courseName: 'World Literature Survey',
+      lessons: [
+        {
+          title: 'Lesson 1: Narrative Structure: Gilgamesh',
+          sections: [
+            {
+              topicSection: 'Epic Structure: Gilgamesh Narrative Arc',
+              learningObjectives:
+                'Analyze a passage from Epic Structure: Gilgamesh Narrative Arc and explain how one formal choice shapes its meaning.',
+              learningGoals: 'Develop evidence-bounded close-reading judgment.',
+              weeklyAssessments: 'Epic Structure close-reading check.',
+              readings: ['The Epic of Gilgamesh'],
+            },
+          ],
+        },
+      ],
+    };
+
+    const compiled = compileBlueprintDeliverables(buildCourseBlueprint(courseMap), ['slideDecks']);
+    const deckText = JSON.stringify(compiled.slideDecks.decks[0]);
+    expect(deckText).toContain('explain how one formal choice shapes its meaning');
+    expect(deckText).not.toMatch(/\bone formal choice(?: shapes)?[.!?]"/i);
+    expect(auditDeliverableContentQuality('slideDecks', compiled.slideDecks).findings).toEqual([]);
+  });
+
   it('gives recurring literature assessments distinct, task-complete directions', () => {
     const courseMap = makeCourseMap(3);
     courseMap.courseName = 'World Literature';
@@ -8243,6 +8672,44 @@ describe('courseBlueprintCompiler', () => {
     expect(planText).not.toMatch(/Watch for this misconception\. the /);
     expect(planText).toMatch(/Watch for this misconception\. Two plot summaries/);
     expect(planText).not.toMatch(/matters only as vocabulary/);
+  });
+
+  it('shows synthesis work in cumulative syllabus rows without repeating arbitrary earlier facts', () => {
+    const blueprint = buildCourseBlueprint(makeCourseMap(2));
+    Object.assign(blueprint.lessons[0], {
+      title: 'Lesson 1: The Odyssey',
+      enrichment: {
+        kernel: {
+          facts: [
+            'The poem opens with an invocation after Odysseus’s wanderings are underway.',
+            'Recognition becomes socially actionable only after characters interpret evidence.',
+          ],
+        },
+      },
+    });
+    Object.assign(blueprint.lessons[1], {
+      title: 'Lesson 2: Comparative Reading Methods',
+      enrichment: {
+        projectionKind: 'cumulative-assessment',
+        kernel: {
+          facts: [
+            'The poem opens with an invocation after Odysseus’s wanderings are underway.',
+            'A frame narrative organizes stories inside a larger narrative situation.',
+          ],
+          scenario: {
+            setup: 'Students prepare for Comparative Reading Methods by comparing claims across Lessons 1-7.',
+          },
+        },
+      },
+    });
+
+    const schedule = compileBlueprintDeliverables(blueprint, ['syllabus']).syllabus.syllabus.weeklySchedule;
+
+    expect(schedule[0].coreIdeas).toContain('The poem opens with an invocation');
+    expect(schedule[1].coreIdeas).toContain('revisits admitted evidence from Lessons 1-7');
+    expect(schedule[1].coreIdeas).toContain('Comparative synthesis connects evidence');
+    expect(schedule[1].coreIdeas).not.toContain('The poem opens with an invocation');
+    expect(schedule[1].coreIdeas).not.toContain('A frame narrative organizes stories');
   });
 
   it('keeps brief parameters as unweighted checks without replacing assessment criteria', () => {

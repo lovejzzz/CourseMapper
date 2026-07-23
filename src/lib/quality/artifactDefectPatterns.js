@@ -23,6 +23,8 @@
  *   the flat text blob.
  */
 
+import { MALFORMED_CLEAR_PLURAL_POSSESSIVE_PATTERN } from '../compilerText.js';
+
 // ── v0.12.1 deterministic text artifacts (the original gate table) ──────────
 // Every entry mirrors a defect class shipped in the v0.12 production audit.
 export const ARTIFACT_PATTERNS = [
@@ -74,7 +76,7 @@ export const ARTIFACT_PATTERNS = [
     roadmap: 'v0.16.72',
   },
   {
-    regex: /\b[A-Z][A-Za-z-]*s's\b/,
+    regex: MALFORMED_CLEAR_PLURAL_POSSESSIVE_PATTERN,
     label: 'malformed possessive such as "Seasons\'s"',
     name: 'malformed-plural-possessive',
     severity: 'P2',
@@ -93,6 +95,13 @@ export const ARTIFACT_PATTERNS = [
     name: 'generic-discussion-prompt',
     severity: 'P2',
     roadmap: 'v0.16.72',
+  },
+  {
+    regex: /\b(?:explain how one formal choice|one formal choice shapes)\s*[.!?]\s*$/im,
+    label: 'learning objective clipped after "one formal choice"',
+    name: 'clipped-formal-choice-objective',
+    severity: 'P2',
+    roadmap: 'v0.16.74',
   },
   {
     regex: /\blecture-exam\b/i,

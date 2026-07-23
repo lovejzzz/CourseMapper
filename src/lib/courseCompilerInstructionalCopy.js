@@ -27,6 +27,19 @@ export function prerequisiteDiagnosticCopy({ lessonNumber, previousConcept, conc
   ]);
 }
 
+export function kernelSlideEvidenceDiscussionCopy({ lessonNumber, slideIndex = 0 }) {
+  return selectVariant(Number(lessonNumber || 1) + slideIndex, [
+    'Have students label the assertion, point to the supporting detail, and mark the boundary the source cannot cross.',
+    'Invite students to match each conclusion to its strongest support, then identify an inference the source would not warrant.',
+    'Ask pairs to separate observation from interpretation and write one sentence that limits the resulting claim.',
+    'Pause for an evidence audit: what is supported, how is it supported, and where must the interpretation stop?',
+    'Have students challenge the claim with the source detail most likely to qualify it, then revise the wording.',
+    'Ask students to rank the evidence by relevance and explain which conclusion remains uncertain.',
+    'Use a claim-support-limit check: underline the claim, box its evidence, and annotate one unresolved question.',
+    'Have students name a plausible counter-reading, test it against the same evidence, and state which interpretation is better bounded.',
+  ]);
+}
+
 export function shortAnswerSampleCopy({ lessonNumber, lessonFocus, concept, sourceCue, artifact, decisionNoun }) {
   return selectVariant(lessonNumber, [
     `For ${lessonFocus}, I would select ${concept}. One exact source detail from ${sourceCue} supports my proposed change to ${artifact}. It supports the ${decisionNoun}, but does not establish a broader conclusion. I would inspect one more source before extending the claim.`,

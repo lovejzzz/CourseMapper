@@ -361,6 +361,33 @@ export default function useChatRouter({
     if (chatRoute === 'agent') {
       let courseAnswer = null;
       if (provider === 'public' && !preparedSend.silent && !agentPromptOverride && attachedFiles.length === 0) {
+        if (
+          /\b(?:course|weekly|week-by-week|lesson-by-lesson)\s+(?:arc|outline|overview|progression|schedule|sequence)\b|\b(?:outline|summarize)\b.{0,80}\b(?:weeks?|lessons?|course)\b/i.test(
+            trimmed,
+          )
+        ) {
+          const { buildScionCourseSequenceAnswer } = await import('../../lib/scionCourseSequenceAnswer');
+          courseAnswer = buildScionCourseSequenceAnswer({
+            question: trimmed,
+            courseMap: courseMapRef.current,
+            deliverables: delivRef.current,
+          });
+        } else if (/\b(?:compare|comparison|comparative|versus|vs\.?|paired?|both|connect)\b/i.test(trimmed)) {
+          const { buildScionNamedReadingAnswer } = await import('../../lib/scionNamedReadingAnswer');
+          courseAnswer = buildScionNamedReadingAnswer({
+            question: trimmed,
+            courseMap: courseMapRef.current,
+            deliverables: delivRef.current,
+          });
+        }
+      }
+      if (
+        provider === 'public' &&
+        !courseAnswer &&
+        !preparedSend.silent &&
+        !agentPromptOverride &&
+        attachedFiles.length === 0
+      ) {
         const { buildScionCourseAnswer } = await import('../../lib/scionCourseAnswer');
         courseAnswer = buildScionCourseAnswer({
           question: trimmed,

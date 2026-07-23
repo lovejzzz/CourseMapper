@@ -50,6 +50,7 @@ import { attachEnrichmentToGraph } from './courseGraph/blueprintFromGraph.js';
 import { buildCourseIRFromCourseMap, courseIRToCourseGraph, validateCourseIR } from './courseIR.js';
 import { repairNativeFallbackWithCurriculumV1 } from './curriculumV1Repair.js';
 import { dedupeNumberedAssessmentEcho } from './compilerText.js';
+import { compactCompilerOwnedAssessmentIdentity } from './compilerAssessmentIdentity.js';
 import { assessTargetLanguagePresence, detectForeignLanguageTeachingContent } from './languageIdentityGuard.js';
 import { projectKernelToSurfaces } from './kernelProjection';
 import { NATIVE_PASS_B_AUTHORING_ADDITION } from './prompts';
@@ -435,7 +436,12 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
       const value = section?.weeklyAssessments;
       return Array.isArray(value) ? value : value ? [value] : [];
     })
-    .map((value) => cleanText(value, 140))
+    // Assessment identities are not prose snippets. The former 140-character
+    // slice clipped a complete Scion formative direction at "support it
+    // with", then every compiled surface inherited the dangling fragment.
+    // Preserve the full map atom and compact only exact compiler-owned
+    // classroom frames into reusable noun phrases.
+    .map((value) => compactCompilerOwnedAssessmentIdentity(cleanText(value, 300)))
     .find(Boolean);
   const product = assessment || `${concept} analysis`;
   const fallbackFields = [];
@@ -776,10 +782,17 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
       fallbackFields.push('assignmentCore');
     }
   }
-  if (completed.assignmentCore && assessment && !completed.assignmentCore.canonicalAssessment) {
+  const canonicalAssessment = compactCompilerOwnedAssessmentIdentity(
+    completed.assignmentCore?.canonicalAssessment || assessment,
+  );
+  if (
+    completed.assignmentCore &&
+    canonicalAssessment &&
+    completed.assignmentCore.canonicalAssessment !== canonicalAssessment
+  ) {
     completed.assignmentCore = {
       ...completed.assignmentCore,
-      canonicalAssessment: assessment,
+      canonicalAssessment,
     };
   }
 
@@ -1069,7 +1082,7 @@ export function projectCumulativeAssessmentKernels({
     const assessmentTitle = cleanText(lesson?.title, 160).replace(/^lesson\s+\d+\s*[:.-]\s*/i, '');
     const lessonAssessments = asArray(lesson?.sections)
       .flatMap((section) => asArray(section?.weeklyAssessments))
-      .map((value) => cleanText(value, 140))
+      .map((value) => compactCompilerOwnedAssessmentIdentity(cleanText(value, 300)))
       .filter(Boolean);
     const comparativeProduct =
       lessonAssessments.find((value) => /\bcomparative\b.*\b(?:essay|proposal)\b/i.test(value)) ||
@@ -1265,6 +1278,49 @@ function recoverExplicitLessonSequence(sourceText, expectedCount, courseName = '
 const EXPLICIT_READING_LIST_HEADER_RE =
   /\b(?:required|assigned)\s+(?:readings?|texts?)(?:\s+as\s+named\s+on\s+the\s+syllabus)?\s*:\s*/i;
 const EXPLICIT_READING_ENTRY_RE = /^(?:week|lesson|session)\s+(\d{1,2})\s+(?:reads?|assigns?|uses?)\s+(.+?)\s*[.!?]?$/i;
+const EXPLICIT_CLOSE_READING_LIST_RE = /\b(?:include|use|assign)\s+close[- ]readings?\s+(?:of|from)\s+([^.!?]+[.!?]?)/i;
+
+function recoverExplicitCloseReadingList(sourceText, sessions = []) {
+  if (!Array.isArray(sessions) || sessions.length < 2) return [];
+  const match = EXPLICIT_CLOSE_READING_LIST_RE.exec(String(sourceText || ''));
+  if (!match?.[1]) return [];
+  const titles = match[1]
+    .replace(/[.!?]+$/, '')
+    .split(/\s*,\s*/)
+    .map((value) =>
+      cleanText(value, 240)
+        .replace(/^(?:and\s+)/i, '')
+        .replace(/^[^“”"]+[’']s\s+[“"]([^”"]+)[”"]?$/i, '$1')
+        .trim(),
+    )
+    .filter(Boolean);
+  if (titles.length < 2 || titles.length > sessions.length) return [];
+
+  const unusedSessions = new Set(sessions.map((session) => session.order));
+  const recovered = [];
+  for (const title of titles) {
+    const titleTokens = new Set(
+      lessonSequenceTokens(title).filter(
+        (token) => !['close', 'poem', 'poetry', 'reading', 'selected', 'structure'].includes(token),
+      ),
+    );
+    const ranked = sessions
+      .filter((session) => unusedSessions.has(session.order))
+      .map((session) => ({
+        session,
+        score: lessonSequenceTokens(session.title).filter((token) => titleTokens.has(token)).length,
+      }))
+      .sort((left, right) => right.score - left.score || left.session.order - right.session.order);
+    if (!ranked[0] || ranked[0].score < 1) return [];
+    unusedSessions.delete(ranked[0].session.order);
+    recovered.push({
+      id: `r${recovered.length + 1}`,
+      title,
+      dueSession: ranked[0].session.order,
+    });
+  }
+  return recovered.sort((left, right) => left.dueSession - right.dueSession);
+}
 
 /**
  * Recover only instructor-explicit named readings from a compact source list.
@@ -1272,11 +1328,11 @@ const EXPLICIT_READING_ENTRY_RE = /^(?:week|lesson|session)\s+(\d{1,2})\s+(?:rea
  * marker on every semicolon-delimited entry, so ordinary topic prose can
  * never become a title by inference.
  */
-export function recoverExplicitNamedReadings(sourceText, sessionCount) {
+export function recoverExplicitNamedReadings(sourceText, sessionCount, sessions = []) {
   if (!Number.isSafeInteger(sessionCount) || sessionCount < 1) return [];
   const source = String(sourceText || '');
   const header = EXPLICIT_READING_LIST_HEADER_RE.exec(source);
-  if (!header) return [];
+  if (!header) return recoverExplicitCloseReadingList(source, sessions);
   const listBlock = source
     .slice(header.index + header[0].length)
     .split(/\n\s*\n/)[0]
@@ -1850,11 +1906,33 @@ function sourceSupportsSplitAssessment(title, sourceText) {
   return signals.length === 0 || signals.some((signal) => signal.source.test(sourceText));
 }
 
-function explicitAssessmentWeight(title, fallback) {
+function sourceSupportsAssessmentWeight(value, sourceText) {
+  if (typeof sourceText !== 'string' || !sourceText.trim()) return true;
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric) || numeric <= 0 || numeric > 100) return false;
+  const escaped = String(numeric).replace('.', '\\.');
+  return new RegExp(`\\b${escaped}(?:0+)?\\s*(?:%|percent\\b)`, 'i').test(sourceText);
+}
+
+function stripUnsupportedAssessmentWeight(title, sourceText) {
+  const text = cleanText(title, 240);
+  const matched = text.match(EXPLICIT_ASSESSMENT_PERCENT_RE);
+  if (!matched || sourceSupportsAssessmentWeight(matched[1], sourceText)) return text;
+  return cleanText(text.replace(EXPLICIT_ASSESSMENT_PERCENT_RE, ''), 240);
+}
+
+function explicitAssessmentWeight(title, fallback, sourceText) {
   const matched = cleanText(title, 240).match(EXPLICIT_ASSESSMENT_PERCENT_RE);
   const value = Number(matched?.[1]);
-  if (Number.isFinite(value) && value > 0 && value <= 100) return Math.round(value);
-  return Number.isFinite(fallback) && fallback > 0 && fallback <= 100 ? Math.round(fallback) : null;
+  if (Number.isFinite(value) && value > 0 && value <= 100 && sourceSupportsAssessmentWeight(value, sourceText)) {
+    return Math.round(value);
+  }
+  return Number.isFinite(fallback) &&
+    fallback > 0 &&
+    fallback <= 100 &&
+    sourceSupportsAssessmentWeight(fallback, sourceText)
+    ? Math.round(fallback)
+    : null;
 }
 
 function distributeWeightPercent(count) {
@@ -2116,9 +2194,9 @@ export function parseNativeSkeletonResponse(text, { expectedLessons = null, sour
       const entryWeight = Number(entry?.weightPct);
       const baseId = cleanText(entry?.id, 18) || `a${index + 1}`;
       return supportedParts.flatMap((part, partIndex) => {
-        const title = dedupeNumberedAssessmentEcho(part);
+        const title = stripUnsupportedAssessmentWeight(dedupeNumberedAssessmentEcho(part), sourceText);
         if (!title) return [];
-        const weight = explicitAssessmentWeight(title, entryWeight);
+        const weight = explicitAssessmentWeight(title, entryWeight, sourceText);
         return [
           {
             id: wasFused ? `${baseId}.${partIndex + 1}` : baseId,
@@ -2230,7 +2308,7 @@ export function parseNativeSkeletonResponse(text, { expectedLessons = null, sour
   // supplies the source brief, its explicit reading list is authoritative.
   // A weak local model once promoted “Compare two examples…” into a required
   // reading, and that fake title then contaminated every quiz item.
-  const recoveredReadings = recoverExplicitNamedReadings(sourceText, sessions.length);
+  const recoveredReadings = recoverExplicitNamedReadings(sourceText, sessions.length, sessions);
   const readings =
     typeof sourceText === 'string' && sourceText.trim()
       ? recoveredReadings

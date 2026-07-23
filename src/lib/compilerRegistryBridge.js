@@ -16,12 +16,13 @@ export function bridgeCompilerRegistries({ courseGraph, courseMap, runId, trace,
       source: 'course-map-derived-registry',
       nativeAssessmentCount: stats.graphAssessmentCount,
       courseMapAssessmentCount: stats.mapAssessmentCount,
+      missingAssessmentCount: stats.missingAssessmentCount,
     });
     recordEvent?.({
       type: 'pipelineDecision',
       stage: 'blueprintCompiler',
       label: 'Assessment registry bridge',
-      detail: `Compiler using ${stats.mapAssessmentCount} Course Map assessment row(s) instead of ${stats.graphAssessmentCount} native graph row(s) so promised assessments get downstream artifacts.`,
+      detail: `Compiler using ${stats.mapAssessmentCount} complete Course Map assessment row(s) because ${stats.missingAssessmentCount} canonical assessment identit${stats.missingAssessmentCount === 1 ? 'y was' : 'ies were'} missing or clipped in native assembly.`,
     });
   }
   if (bridges.readingsRegistry) {

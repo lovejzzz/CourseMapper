@@ -1,3 +1,5 @@
+import { detectRequestedClassSessionMinutes, parseClassSessionMinutes } from './sourceBriefConstraints';
+
 const SECRET_FIELD_NAMES = new Set([
   'apikey',
   'xapikey',
@@ -73,8 +75,89 @@ function migrateRestoredDeliverables(snapshot) {
 
   for (const entry of Object.values(snapshot.deliverables)) {
     if (entry?.stale && !entry?.staleConfidence) {
-      entry.staleConfidence = { level: 'high', maxWeight: 1.0, dominantField: null };
+      entry.staleConfidence = {
+        level: 'high',
+        maxWeight: 1.0,
+        dominantField: null,
+      };
     }
+  }
+  return snapshot;
+}
+
+function formatSessionLength(minutes) {
+  if (minutes === 120) return '2 hr';
+  if (minutes === 180) return '3 hr';
+  return `${minutes} min`;
+}
+
+function getSavedLessonPlans(snapshot) {
+  const data = snapshot?.deliverables?.lessonPlans?.data;
+  if (Array.isArray(data)) return data;
+  if (!data || typeof data !== 'object') return [];
+  for (const key of ['lessonPlans', 'plans', 'lessons']) {
+    if (Array.isArray(data[key])) return data[key];
+  }
+  return [];
+}
+
+/**
+ * Legacy exact autosaves did not carry the generation clock separately.
+ * Recover it only when every saved plan agrees; a partial or inconsistent
+ * package must not be blessed by migration.
+ */
+export function inferSavedLessonPlanSessionMinutes(snapshot) {
+  const plans = getSavedLessonPlans(snapshot);
+  if (plans.length === 0) return null;
+  const minutesByPlan = plans.map((plan) => {
+    const candidates = [
+      parseClassSessionMinutes(plan?.classSessionPlan?.sessionMinutes),
+      parseClassSessionMinutes(plan?.outlineTiming?.sessionMinutes),
+      parseClassSessionMinutes(plan?.duration || plan?.dur),
+    ].filter(Boolean);
+    if (candidates.length === 0 || new Set(candidates).size !== 1) return null;
+    return candidates[0];
+  });
+  if (minutesByPlan.some((minutes) => !minutes) || new Set(minutesByPlan).size !== 1) return null;
+  return minutesByPlan[0];
+}
+
+/**
+ * Restore the classroom clock before compact recompilation or finalization.
+ * Explicit configuration and an explicit instructor brief remain
+ * authoritative. The saved generation receipt is next; only legacy snapshots
+ * with no receipt may infer a clock from a complete, internally consistent
+ * set of lesson plans.
+ */
+export function restoreProjectGenerationConstraints(snapshot) {
+  const explicitMinutes = parseClassSessionMinutes(snapshot?.deliverableConfig?.lessonPlans?.sessionLength);
+  const briefMinutes = detectRequestedClassSessionMinutes(snapshot?.promptText);
+  const persistedMinutes = parseClassSessionMinutes(snapshot?.generationConstraints?.sessionMinutes);
+  const inferredMinutes =
+    explicitMinutes || briefMinutes || persistedMinutes ? null : inferSavedLessonPlanSessionMinutes(snapshot);
+  const sessionMinutes = explicitMinutes || briefMinutes || persistedMinutes || inferredMinutes;
+  if (!sessionMinutes) return snapshot;
+
+  const source = explicitMinutes
+    ? 'deliverable-config'
+    : briefMinutes
+      ? 'course-brief'
+      : persistedMinutes
+        ? snapshot?.generationConstraints?.sessionMinutesSource || 'saved-generation'
+        : 'legacy-exact-package';
+  snapshot.generationConstraints = {
+    ...(snapshot.generationConstraints || {}),
+    sessionMinutes,
+    sessionMinutesSource: source,
+  };
+  if (!explicitMinutes) {
+    snapshot.deliverableConfig = {
+      ...(snapshot.deliverableConfig || {}),
+      lessonPlans: {
+        ...(snapshot.deliverableConfig?.lessonPlans || {}),
+        sessionLength: formatSessionLength(sessionMinutes),
+      },
+    };
   }
   return snapshot;
 }
@@ -93,5 +176,5 @@ export function prepareProjectSnapshotForRestore(snapshot) {
     }
   }
   delete restored.courseGraphJson;
-  return migrateRestoredDeliverables(restored);
+  return restoreProjectGenerationConstraints(migrateRestoredDeliverables(restored));
 }

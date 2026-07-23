@@ -20,6 +20,7 @@ import StudyGuidesView from './deliverables/StudyGuidesView';
 import SyllabusView from './deliverables/SyllabusView';
 import CourseFaqView from './deliverables/CourseFaqView';
 import { normalizeRubricCoverage, normalizeRubricSupport } from '../lib/deliverablePostProcess';
+import { classifyAssessmentKind } from '../lib/courseGraph/deriveFromCourseMap';
 
 // ── v0.14.1 (3.5): assessment focus helpers ─────────────────────────────────
 // "Lesson 7" / "Week 7" mentions on a deliverable item resolve its lesson
@@ -43,7 +44,20 @@ export function parseItemLessonNumber(item) {
 
 const FOCUS_HIGHLIGHT_CLASSES = ['ring-2', 'ring-amber-400', 'ring-inset', 'rounded-squircle-xs'];
 
-function getCoverageGap(featureId, data, courseMap) {
+function courseMapAssessmentAtoms(courseMap) {
+  return (courseMap?.lessons || []).flatMap((lesson, lessonIndex) =>
+    (lesson?.sections || []).flatMap((section) => {
+      const value = section?.weeklyAssessments;
+      const atoms = Array.isArray(value) ? value : String(value || '').split(/\n|;/);
+      return atoms
+        .map((title) => String(title || '').trim())
+        .filter(Boolean)
+        .map((title) => ({ lessonNumber: lessonIndex + 1, title }));
+    }),
+  );
+}
+
+export function getCoverageGap(featureId, data, courseMap) {
   if (!data || !courseMap) return null;
 
   if (featureId === 'rubrics') {
@@ -78,7 +92,13 @@ function getCoverageGap(featureId, data, courseMap) {
   });
   if (coveredNums.size === 0) return null;
 
-  const missing = Array.from({ length: totalLessons }, (_, i) => i + 1).filter((n) => !coveredNums.has(n));
+  const scheduledGradedLessons = new Set(
+    courseMapAssessmentAtoms(courseMap)
+      .filter((entry) => classifyAssessmentKind(entry.title) !== 'in-class')
+      .map((entry) => entry.lessonNumber),
+  );
+  if (scheduledGradedLessons.size === 0) return null;
+  const missing = [...scheduledGradedLessons].filter((lessonNumber) => !coveredNums.has(lessonNumber));
   return missing.length > 0 ? { missing, autoRepairable: false } : null;
 }
 

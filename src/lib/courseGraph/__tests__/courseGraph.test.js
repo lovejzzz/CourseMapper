@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { COURSE_GRAPH_VERSION, courseGraphStats, createEmptyCourseGraph, validateCourseGraph } from '../schema.js';
 import { deriveCourseGraphFromCourseMap } from '../deriveFromCourseMap.js';
 import { renderCourseMapFromGraph } from '../renderCourseMap.js';
-import { enrichmentFromGraph } from '../blueprintFromGraph.js';
+import { enrichmentFromGraph, selectCompilerRegistryBridges } from '../blueprintFromGraph.js';
 import { lintCourseGraphAlignment } from '../alignmentLint.js';
 
 function fixtureMap() {
@@ -89,6 +89,39 @@ describe('courseGraph (v0.13 P0)', () => {
     expect(rendered.lessons[1].sections[0].customColumn).toBe('Custom value survives the round trip.');
     // The v0.12.1 stem rule holds at render time: no stem in the cell.
     expect(section.learningObjectives).not.toContain('Students will be able to');
+  });
+
+  it('bridges a complete Course Map assessment when native assembly clipped the identity without changing count', () => {
+    const fullFormativeTitle =
+      'Epic Structure: Gilgamesh Narrative Arc comparative close-reading: compare two passages by the selected writers, synthesize one claim, and support it with quoted details.';
+    const mapDerivedGraph = deriveCourseGraphFromCourseMap({
+      courseName: 'World Literature Survey',
+      lessons: [
+        {
+          title: 'Lesson 1: Narrative Structure: Gilgamesh',
+          sections: [
+            {
+              topicSection: '1.1: Epic Structure: Gilgamesh Narrative Arc',
+              learningObjectives: 'Analyze a passage and support a bounded interpretation with textual evidence.',
+              weeklyAssessments: fullFormativeTitle,
+            },
+          ],
+        },
+      ],
+    });
+    const nativeGraph = structuredClone(mapDerivedGraph);
+    nativeGraph.assessments[0].title =
+      'Epic Structure: Gilgamesh Narrative Arc comparative close-reading: compare two passages by the selected writers, synthesize one claim, and support it with';
+
+    const bridges = selectCompilerRegistryBridges(nativeGraph, mapDerivedGraph);
+
+    expect(nativeGraph.assessments).toHaveLength(mapDerivedGraph.assessments.length);
+    expect(bridges.assessmentRegistry).toEqual(mapDerivedGraph.assessments);
+    expect(bridges.stats).toMatchObject({
+      graphAssessmentCount: 1,
+      mapAssessmentCount: 1,
+      missingAssessmentCount: 1,
+    });
   });
 
   it('renders manual overrides verbatim over entity rendering', () => {

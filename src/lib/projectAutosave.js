@@ -59,6 +59,7 @@ export function buildCourseMapRecoveryAutosavePayload(snapshot = {}) {
     deliverableConfig: snapshot.deliverableConfig,
     lessonScope: snapshot.lessonScope,
     promptText,
+    generationConstraints: snapshot.generationConstraints,
     activeTab: snapshot.activeTab,
     slideTheme: snapshot.slideTheme,
     deliverableFeatureIds: snapshot.deliverableFeatureIds,

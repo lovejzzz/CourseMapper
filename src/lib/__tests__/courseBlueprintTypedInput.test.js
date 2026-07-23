@@ -35,6 +35,7 @@ describe('typed compiler inputs', () => {
   it('keeps assessment identity singular and renders structured citation labels as text', () => {
     const graph = deriveCourseGraphFromCourseMap(makeWorldLiteratureMap());
     const title = 'Fantastic Elements transfer task: explain one example, one source detail, and one limitation.';
+    const compactTitle = 'Fantastic Elements evidence application';
     const targetAssessment = graph.assessments.find((assessment) => assessment.dueSession === 12);
     targetAssessment.title = `${title}: ${title}`;
     graph.enrichmentOverlay = {
@@ -62,14 +63,16 @@ describe('typed compiler inputs', () => {
     };
 
     const blueprint = compactBlueprintForStorage(buildBlueprintFromGraph(graph));
-    expect(blueprint.lessons[11].studentArtifact).toBe(title);
-    expect(blueprint.assessmentRegistry.find((assessment) => assessment.dueSession === 12)?.title).toBe(title);
+    expect(blueprint.lessons[11].studentArtifact).toBe(compactTitle);
+    expect(blueprint.assessmentRegistry.find((assessment) => assessment.dueSession === 12)?.title).toBe(compactTitle);
 
     const compiled = compileBlueprintDeliverables(blueprint, ['lessonPlans'], {
       configMap: { lessonPlans: { depth: 'deep' } },
     });
     const lessonPlan = compiled.lessonPlans.lessonPlans[11];
-    expect(lessonPlan.assessmentBlock.find((assessment) => assessment.id === targetAssessment.id)?.title).toBe(title);
+    expect(lessonPlan.assessmentBlock.find((assessment) => assessment.id === targetAssessment.id)?.title).toBe(
+      compactTitle,
+    );
     const text = JSON.stringify({
       assessmentBlock: lessonPlan.assessmentBlock,
       warmUp: lessonPlan.warmUp,

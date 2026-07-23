@@ -9,13 +9,27 @@ describe('buildLocalAutosavePayload', () => {
   it('v0.15: prunes history but KEEPS deliverables before ever falling to compact', () => {
     const fullSnapshot = {
       courseMap: { lessons: [] },
-      chatHistory: Array.from({ length: 200 }, (_, i) => ({ role: 'assistant', text: 'x'.repeat(50) + i })),
-      versionHistory: Array.from({ length: 30 }, () => ({ map: 'y'.repeat(100) })),
+      chatHistory: Array.from({ length: 200 }, (_, i) => ({
+        role: 'assistant',
+        text: 'x'.repeat(50) + i,
+      })),
+      versionHistory: Array.from({ length: 30 }, () => ({
+        map: 'y'.repeat(100),
+      })),
       userEdits: [{ key: 'title' }],
-      deliverables: { rubrics: { status: 'done', data: { body: 'the package itself' } } },
+      deliverables: {
+        rubrics: { status: 'done', data: { body: 'the package itself' } },
+      },
     };
-    const compactSnapshot = { deliverableSaveMode: 'recompile-on-open', deliverables: {} };
-    const result = buildLocalAutosavePayload({ fullSnapshot, compactSnapshot, maxFullChars: 5_000 });
+    const compactSnapshot = {
+      deliverableSaveMode: 'recompile-on-open',
+      deliverables: {},
+    };
+    const result = buildLocalAutosavePayload({
+      fullSnapshot,
+      compactSnapshot,
+      maxFullChars: 5_000,
+    });
     expect(result.mode).toBe('pruned');
     const parsed = JSON.parse(result.payload);
     expect(parsed.deliverables.rubrics.data.body).toBe('the package itself');
@@ -58,7 +72,11 @@ describe('buildLocalAutosavePayload', () => {
       courseMap: { lessons: [{ lessonNumber: 1, title: 'Foundations' }] },
       apiCallBudgetReceipt: {
         pipeline: { judgment: 'not evaluated (0 genome-linked lessons)' },
-        enrichmentOutcome: { modelStage: 'ran', requestedLessons: 1, enrichedLessons: 1 },
+        enrichmentOutcome: {
+          modelStage: 'ran',
+          requestedLessons: 1,
+          enrichedLessons: 1,
+        },
       },
       deliverableSaveMode: 'recompile-on-open',
       deliverableManifest: { rubrics: { status: 'done' } },
@@ -86,11 +104,18 @@ describe('buildCourseMapRecoveryAutosavePayload', () => {
   it('preserves a re-compilable course while omitting quota-heavy graph and artifact data', () => {
     const payload = buildCourseMapRecoveryAutosavePayload({
       projectId: 'geo-1',
-      courseMap: { courseName: 'Physical Geology', lessons: [{ title: 'Lesson 1: Minerals' }] },
+      courseMap: {
+        courseName: 'Physical Geology',
+        lessons: [{ title: 'Lesson 1: Minerals' }],
+      },
       courseGraphJson: 'graph'.repeat(10_000),
       deliverables: { quizBank: { data: 'quiz'.repeat(10_000) } },
       selectedFeatures: ['courseMap', 'quizBank'],
       deliverableManifest: { quizBank: { status: 'done' } },
+      generationConstraints: {
+        sessionMinutes: 90,
+        sessionMinutesSource: 'deliverable-config',
+      },
       promptText: 'syllabus '.repeat(2_000),
     });
     const saved = JSON.parse(payload);
@@ -98,6 +123,10 @@ describe('buildCourseMapRecoveryAutosavePayload', () => {
     expect(saved.courseMap.courseName).toBe('Physical Geology');
     expect(saved.selectedFeatures).toEqual(['courseMap', 'quizBank']);
     expect(saved.deliverableManifest.quizBank.status).toBe('done');
+    expect(saved.generationConstraints).toEqual({
+      sessionMinutes: 90,
+      sessionMinutesSource: 'deliverable-config',
+    });
     expect(saved.deliverables).toEqual({});
     expect(saved.deliverableSaveMode).toBe('recompile-on-open');
     expect(saved.localSaveMode).toBe('course-map-recovery-autosave');

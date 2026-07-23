@@ -20,6 +20,7 @@ const VALID_TERMINAL_PARTICLE_RE =
 const LEADING_COLON_RE = /^\s*:/;
 const ARTICLE_A_VOWEL_RE = /\ba\s+[AEIOU][a-z]{3,}/;
 const DOUBLE_PERIOD_RE = /[a-z]\.\.(?!\.)/;
+const CLIPPED_FORMAL_CHOICE_RE = /\b(?:explain how one formal choice|one formal choice shapes)\s*[.!?]\s*$/i;
 const RUN_TOGETHER_RE = /\b(?:work|criteria) (?:Names|Uses|Explains|Shows|Cites)\b/;
 const INSTRUCTOR_VOICE_RE = /\b(?:Ask students\b|Share the .{0,80}\bbefore students\b)/;
 
@@ -55,6 +56,9 @@ function checkSentenceIntegrity(findings, featureId, data) {
     if (!trimmed) continue;
     if (LEADING_COLON_RE.test(trimmed)) pushFinding(findings, 'leading-colon-label', path, trimmed);
     if (hasDanglingClauseSeam(trimmed)) {
+      pushFinding(findings, 'dangling-clause', path, trimmed);
+    }
+    if (CLIPPED_FORMAL_CHOICE_RE.test(trimmed)) {
       pushFinding(findings, 'dangling-clause', path, trimmed);
     }
     if (ARTICLE_A_VOWEL_RE.test(trimmed)) pushFinding(findings, 'article-agreement', path, trimmed);

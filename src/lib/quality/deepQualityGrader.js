@@ -76,7 +76,10 @@ import {
 import { computeTexture, textureDocsFromFiles, buildTextureAdvisories, TEXTURE_VERSION } from './textureMetric.js';
 import { addPackageQuizDepthFindings } from './quizItemDepth.js';
 import { detectForeignLanguageTeachingContent, mandarinTargetLanguageRequirements } from '../languageIdentityGuard.js';
-import { buildAdditionalSubstanceFindings } from './deepQualitySubstanceDetails.js';
+import {
+  buildAdditionalSubstanceFindings,
+  comparativeAssessmentContractFinding,
+} from './deepQualitySubstanceDetails.js';
 import { parseClassSessionMinutes } from '../sourceBriefConstraints.js';
 
 // v0.14.3 WS-A A3: the grader version stamped into manifest.quality. Bump on
@@ -180,7 +183,10 @@ import { parseClassSessionMinutes } from '../sourceBriefConstraints.js';
 // 1.10.33 — a compiler-owned, course-level no-brief handoff is exempt from a
 // lesson reverse stamp; it has no lesson by design and is already guarded
 // against replacing any registered graded artifact.
-export const GRADER_VERSION = '1.10.34';
+// 1.10.35 — comparative response sequences and final comparative papers must
+// carry their full multi-text evidence/counter-reading/claim-limit contract;
+// a generic single-text brief can no longer retain a false 99/A.
+export const GRADER_VERSION = '1.10.35';
 
 // ── Dimension weights & letter bands (documented in the module header) ──────
 // v0.15.186: texture weight 10 → 25. At 10/120 a fully templated package
@@ -756,6 +762,13 @@ function checkAssessmentLabelLessonIdentity(findings, files) {
 // IDENTITY — the assessment registry (v0.14.1 Phase 3).
 function checkIdentity(findings, { files, manifest }, _course) {
   const assessments = Array.isArray(manifest?.assessments) ? manifest.assessments : [];
+  const readingTitles = (Array.isArray(manifest?.readings) ? manifest.readings : [])
+    .map((entry) =>
+      String(entry?.title || '')
+        .replace(/\s+/g, ' ')
+        .trim(),
+    )
+    .filter(Boolean);
   const filePaths = new Set(files.map((file) => file.path));
   const HIGH_STAKES = /\b(midterm|final|exam|oral|performance)\b/i;
 
@@ -824,6 +837,21 @@ function checkIdentity(findings, { files, manifest }, _course) {
         file: assessment.artifact,
         detail: `registered ${assessment.kind} artifact contains a no-brief handoff instead of student directions: ${assessment.id || 'assessment'} "${assessment.title}"`,
         evidence: quote(artifactFile.text, 180),
+      });
+    }
+    const artifactText = String(artifactFile.text || '');
+    const comparativeContractFinding = comparativeAssessmentContractFinding({
+      assessment,
+      artifactText,
+      readingTitles,
+    });
+    if (comparativeContractFinding) {
+      findings.add({
+        severity: 'P1',
+        dimension: 'substance',
+        file: assessment.artifact,
+        detail: comparativeContractFinding,
+        evidence: quote(artifactText, 220),
       });
     }
   }
@@ -2095,7 +2123,7 @@ function overlapsVocab(tokens, vocab) {
 function disciplineProbeVocab(probe) {
   if (probe === 'mandarin') return MANDARIN_CITATION_VOCAB;
   if (probe === 'geology') return GEOLOGY_VOCAB;
-  if (probe === 'world-lit') return WORLD_LIT_NAMES;
+  if (probe === 'world-lit') return WORLD_LIT_CITATION_VOCAB;
   if (probe === 'econ') return ECON_VOCAB;
   if (probe === 'stats') return STATS_VOCAB;
   if (probe === 'psych') return PSYCH_VOCAB;
@@ -2535,6 +2563,33 @@ const WORLD_LIT_NAMES = [
   'Confucius',
   'Sappho',
   'Pushkin',
+];
+// Citation relevance needs genre and method vocabulary as well as canonical
+// names. A World Literature syllabus legitimately cites a genre overview such
+// as "Tragedy" for Antigone even when the citation title itself does not repeat
+// "literature", "Sophocles", or the work title. Keep these terms separate from
+// WORLD_LIT_NAMES: the discipline-content probe must still require a real
+// author/text identity and cannot pass on the generic word "tragedy" alone.
+const WORLD_LIT_CITATION_VOCAB = [
+  ...WORLD_LIT_NAMES,
+  'tragedy',
+  'comedy',
+  'drama',
+  'epic',
+  'poetry',
+  'poem',
+  'novel',
+  'fiction',
+  'narrative',
+  'allegory',
+  'myth',
+  'mythology',
+  'translation',
+  'verse',
+  'genre',
+  'imagery',
+  'metaphor',
+  'character',
 ];
 const GEOLOGY_VOCAB = [
   'mineral',

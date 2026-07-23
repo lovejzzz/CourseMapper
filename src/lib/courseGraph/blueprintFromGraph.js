@@ -280,15 +280,25 @@ export function selectCompilerRegistryBridges(graph, mapDerivedGraph) {
   const mapAssessments = Array.isArray(mapDerivedGraph?.assessments) ? mapDerivedGraph.assessments : [];
   const graphReadings = Array.isArray(graph?.readings) ? graph.readings : [];
   const mapReadings = Array.isArray(mapDerivedGraph?.readings) ? mapDerivedGraph.readings : [];
+  const graphAssessmentKeys = new Set(graphAssessments.map(registryEntityKey));
+  const missingAssessments = mapAssessments.filter((entry) => !graphAssessmentKeys.has(registryEntityKey(entry)));
   const graphReadingKeys = new Set(graphReadings.map(registryEntityKey));
   const missingReadings = mapReadings.filter((entry) => !graphReadingKeys.has(registryEntityKey(entry)));
 
   return {
-    ...(mapAssessments.length > graphAssessments.length ? { assessmentRegistry: mapAssessments } : {}),
+    // Count equality is not identity equality. Native small-model assembly
+    // can preserve the number of assessments while clipping a long formative
+    // direction at its output-field boundary. The visible Course Map still
+    // owns the complete text in that conflict; bridge whenever even one
+    // canonical map identity is absent, not only when the graph has fewer
+    // rows. This also lets the compiler classify and shorten its own
+    // formative signatures before they become reusable artifact titles.
+    ...(missingAssessments.length > 0 ? { assessmentRegistry: mapAssessments } : {}),
     ...(missingReadings.length > 0 ? { readingsRegistry: mapReadings } : {}),
     stats: {
       graphAssessmentCount: graphAssessments.length,
       mapAssessmentCount: mapAssessments.length,
+      missingAssessmentCount: missingAssessments.length,
       graphReadingCount: graphReadings.length,
       mapReadingCount: mapReadings.length,
       missingReadingCount: missingReadings.length,

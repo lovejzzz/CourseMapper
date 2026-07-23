@@ -83,6 +83,7 @@ export default function useProjectPersistence({
   setLessonScope,
   promptText,
   setPromptText,
+  expectedSessionMinutes,
   packageQualityPass,
   setPackageQualityPass,
   lastRunDigest,
@@ -156,7 +157,10 @@ export default function useProjectPersistence({
     (extra = {}) => {
       const safeCourseMap =
         courseMap && typeof courseMap === 'object' && Array.isArray(courseMap.lessons) ? courseMap : { lessons: [] };
-      const packageEvidence = selectPersistablePackageEvidence({ packageQualityPass, lastRunDigest });
+      const packageEvidence = selectPersistablePackageEvidence({
+        packageQualityPass,
+        lastRunDigest,
+      });
       return sanitizeProjectSnapshot({
         // v0.13 formatVersion 2: the CourseGraph rides along as the source
         // of truth; v1 projects (no graph) derive one on restore.
@@ -183,6 +187,12 @@ export default function useProjectPersistence({
         deliverableConfig,
         lessonScope,
         promptText,
+        generationConstraints: {
+          sessionMinutes: expectedSessionMinutes,
+          sessionMinutesSource: deliverableConfig?.lessonPlans?.sessionLength
+            ? 'deliverable-config'
+            : 'resolved-generation-default',
+        },
         activeTab,
         deliverables: deliv.deliverables,
         slideTheme,
@@ -207,6 +217,7 @@ export default function useProjectPersistence({
       deliverableConfig,
       lessonScope,
       promptText,
+      expectedSessionMinutes,
       packageQualityPass,
       lastRunDigest,
       activeTab,
@@ -442,13 +453,44 @@ export default function useProjectPersistence({
     (extra = {}) => {
       if (!hasGenerated || !courseMap) return false;
       const fullSnapshot = buildProjectSnapshot(extra);
-      const compactSnapshot = buildCloudProjectSnapshot({ ...extra, localSaveMode: 'compact-autosave' });
+      const compactSnapshot = buildCloudProjectSnapshot({
+        ...extra,
+        localSaveMode: 'compact-autosave',
+      });
       try {
         setLocalSaveStatus('saving');
-        const { payload } = buildLocalAutosavePayload({
+        const { mode, payload } = buildLocalAutosavePayload({
           fullSnapshot,
           compactSnapshot,
         });
+        if (mode === 'compact') {
+          // A compact snapshot intentionally omits the generated package and
+          // its completed quality evidence. Keep the exact workspace in
+          // IndexedDB instead, and leave only a tiny synchronous resume marker
+          // in localStorage. Recompiling on refresh can drift from the package
+          // the user actually reviewed and can turn a green workspace back
+          // into a long repair run.
+          indexedDbSaveQueueRef.current = indexedDbSaveQueueRef.current
+            .catch(() => {})
+            .then(async () => {
+              const { persistOversizedProjectSnapshot } = await import('../lib/projectExactAutosave');
+              await persistOversizedProjectSnapshot({
+                fullSnapshot,
+                compactSnapshot,
+                compactPayload: payload,
+              });
+              setLocalSaveStatus('saved');
+              clearTimeout(localStatusTimerRef.current);
+              localStatusTimerRef.current = setTimeout(() => setLocalSaveStatus('idle'), 3000);
+            })
+            .catch((autosaveError) => {
+              warn('Save failed:', autosaveError);
+              setLocalSaveStatus('error');
+              clearTimeout(localStatusTimerRef.current);
+              localStatusTimerRef.current = setTimeout(() => setLocalSaveStatus('idle'), 5000);
+            });
+          return true;
+        }
         localStorage.setItem(STORAGE_KEY, payload);
         setLocalSaveStatus('saved');
         clearTimeout(localStatusTimerRef.current);
@@ -709,7 +751,9 @@ export default function useProjectPersistence({
     try {
       const courseName = courseMap?.courseName || 'Course';
       const state = buildProjectSnapshot({ deliverableConfig, version: '1.5' });
-      const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+      const blob = new Blob([JSON.stringify(state, null, 2)], {
+        type: 'application/json',
+      });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;

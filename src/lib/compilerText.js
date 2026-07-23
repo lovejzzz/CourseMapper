@@ -18,8 +18,21 @@ export function asArray(value) {
   return Array.isArray(value) ? value : value === undefined || value === null || value === '' ? [] : [value];
 }
 
+// A compact model can attach a second singular possessive marker to an
+// obviously plural classroom/title noun ("Seasons's", "Nights's"). Keep the
+// repair deliberately lexical: singular names that end in s ("Odysseus's",
+// "James's") are grammatical and must not be rewritten by a suffix guess.
+export const MALFORMED_CLEAR_PLURAL_POSSESSIVE_PATTERN =
+  /\b(?:seasons|nights|methods|strategies|systems|stories|years|weeks|lessons|responses|checks|works|texts|readings|materials|facts|concepts|terms)(?:'|’)s\b/i;
+
+export function repairMalformedClearPluralPossessives(value) {
+  return String(value ?? '').replace(new RegExp(MALFORMED_CLEAR_PLURAL_POSSESSIVE_PATTERN.source, 'gi'), (match) =>
+    match.slice(0, -1),
+  );
+}
+
 export function cleanText(value, fallback = '') {
-  return String(value ?? fallback)
+  return repairMalformedClearPluralPossessives(value ?? fallback)
     .replace(/\s+/g, ' ')
     .trim();
 }

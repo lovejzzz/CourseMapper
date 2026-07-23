@@ -329,13 +329,18 @@ describe('A2 inheritance — verbatim on every surface', () => {
     expect(cell.split('\n')[0]).toBe(`1. ${NAMED_TITLE}`);
   });
 
-  it('syllabus week row lists the title first; registry book seeds Required Texts only when unambiguous', () => {
+  it('syllabus week row and Required Texts preserve instructor-named titles, with or without parsed authors', () => {
     const week8 = compiled.syllabus.syllabus.weeklySchedule.find((row) => row.week === 'Week 8');
-    expect(week8.readings.startsWith(NAMED_TITLE)).toBe(true);
-    // Bare title (kind 'other', no author) must NOT seed Required Texts —
-    // only an unambiguous registry book with an author does.
+    expect(week8.readings).toBe(NAMED_TITLE);
+    expect(week8.readings).not.toMatch(/Prerequisite concept|Wikipedia|CC BY-SA|assigned text/i);
+    // Instructor-named bare titles are still real assigned readings. Keep
+    // them visible and ask the instructor to confirm edition/translation
+    // rather than silently dropping them from the materials contract.
     const requiredTitles = compiled.syllabus.syllabus.requiredTexts.map((text) => text.title);
-    expect(requiredTitles).not.toContain(NAMED_TITLE);
+    expect(requiredTitles).toContain(NAMED_TITLE);
+    expect(compiled.syllabus.syllabus.requiredTexts.find((text) => text.title === NAMED_TITLE)?.note).toMatch(
+      /instructor-named|required reading|edition|translation/i,
+    );
 
     const bookGraph = deriveCourseGraphFromCourseMap(
       repairedWorldLitMap({ lesson8Readings: ['Achebe, Chinua. Things Fall Apart'] }),

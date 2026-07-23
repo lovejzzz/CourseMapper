@@ -49,10 +49,11 @@ export async function compileCompactProjectDeliverables(saved) {
     // it rode along (formatVersion 2); the bare-map path stays as the
     // legacy belt for v1 snapshots only.
     let blueprint = null;
+    const sessionMinutes = Number(saved?.generationConstraints?.sessionMinutes) || undefined;
     if (saved.courseGraph && Array.isArray(saved.courseGraph.sessions)) {
       try {
         const { buildBlueprintFromGraph } = await import('./courseGraph');
-        blueprint = compactBlueprintForStorage(buildBlueprintFromGraph(saved.courseGraph));
+        blueprint = compactBlueprintForStorage(buildBlueprintFromGraph(saved.courseGraph, { sessionMinutes }));
       } catch (graphErr) {
         warn('[Project] compact restore: graph compile failed, falling back to map:', graphErr);
         blueprint = null;
@@ -61,6 +62,7 @@ export async function compileCompactProjectDeliverables(saved) {
     if (!blueprint) {
       blueprint = compactBlueprintForStorage(
         buildCourseBlueprint(saved.courseMap, {
+          sessionMinutes,
           compilerPath: {
             mode: 'compact-restore',
             reason: 'Restored from a compact CourseMapper project.',

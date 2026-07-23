@@ -1,0 +1,226 @@
+{
+  "schemaVersion": 1,
+  "release": "0.16.74",
+  "recordedAt": "2026-07-23",
+  "judge": {
+    "identity": "Codex",
+    "method": "controlled Chrome journey, frame-by-frame progress inspection, direct learner-facing content queries, compiled-evidence Agent query, exact IndexedDB resume, phone-size responsive audit, physical ZIP inspection, and automated release gates"
+  },
+  "scenario": {
+    "course": "World Literature Survey",
+    "prompt": "Course title: World Literature Survey\nBuild an 8-week undergraduate survey for first-year students. Include close reading of The Epic of Gilgamesh, The Odyssey, Antigone, selected poems by Li Bai and Du Fu, The Thousand and One Nights, Dante’s Inferno, Things Fall Apart, and Borges’s “The Library of Babel.” Students should analyze narrative structure, voice, imagery, historical context, translation choices, and evidence-based comparison. Use weekly passage annotations, two comparative reading responses, a comparative essay proposal, and a final comparative paper. Require locatable textual evidence, a credible counter-reading, and explicit limits on every major interpretation. Keep all readings edition-neutral and do not invent page numbers or quotations.",
+    "lessonsRequested": 8,
+    "materialFamiliesRequested": 10,
+    "requiredAssessmentWeights": [30, 15, 55]
+  },
+  "runtime": {
+    "provider": "public",
+    "model": "scion-public",
+    "product": "Scion V0.16.74",
+    "localOnly": true,
+    "trainingBase": {
+      "modelId": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+      "revision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce"
+    },
+    "runtimeArtifact": {
+      "modelId": "google/gemma-4-E2B-it-qat-q4_0-gguf",
+      "revision": "69536a21d70340464240401ba38223d805f6a709",
+      "sha256": "3646b4c147cd235a44d91df1546d3b7d8e29b547dbe4e1f80856419aa455e6fd"
+    },
+    "adapter": {
+      "status": "base-only",
+      "qualified": false,
+      "weightsChanged": false
+    }
+  },
+  "browserResult": {
+    "runId": "run-1784829695800",
+    "finishRunId": "finish-mrxtjqrh-ulnvx",
+    "firstUseDurationSeconds": 161,
+    "cachedFreshDurationSeconds": 51,
+    "providerCalls": 9,
+    "providerCallShape": {
+      "courseSkeleton": 1,
+      "lessonEnrichment": 8,
+      "repairOrRewrite": 0,
+      "agentAnswer": 0
+    },
+    "livingCompilerStages": ["Model", "Map", "Enrich", "Compile", "Verify", "Grade"],
+    "lessonCoverage": "8/8",
+    "knowledgeCoverage": "8/8",
+    "materialCoverage": "9/9",
+    "quality": {
+      "score": 99,
+      "grade": "A",
+      "texture": 93,
+      "graderVersion": "1.10.35",
+      "graderImplementationReceipt": {
+        "protocol": "module-implementation-receipt-v1",
+        "fileCount": 13,
+        "sha256": "42b67270f7b17916857eb6ce583d5cc1400e1120f8a7733c859b4f948e7c0f40"
+      },
+      "findings": {
+        "p0": 0,
+        "p1": 0,
+        "p2": 0
+      }
+    },
+    "readiness": {
+      "status": "ready",
+      "checkedSections": "10/10",
+      "blockers": 0,
+      "warnings": 0
+    },
+    "exportVerification": {
+      "status": "passed",
+      "checked": 38,
+      "failed": 0,
+      "warnings": 0
+    },
+    "console": {
+      "warnings": 0,
+      "errors": 0
+    },
+    "downloadActions": 1
+  },
+  "contentAudit": {
+    "readingTitles": [
+      "The Epic of Gilgamesh",
+      "The Odyssey",
+      "Antigone",
+      "selected poems by Li Bai and Du Fu",
+      "The Thousand and One Nights",
+      "Dante’s Inferno",
+      "Things Fall Apart",
+      "The Library of Babel"
+    ],
+    "weightedAssessments": [
+      {
+        "title": "Comparative Reading Responses",
+        "weightPct": 30
+      },
+      {
+        "title": "Comparative Essay Proposal",
+        "weightPct": 15
+      },
+      {
+        "title": "Final Comparative Paper",
+        "weightPct": 55
+      }
+    ],
+    "comparativeReadingResponses": {
+      "response1": ["The Odyssey", "The Thousand and One Nights"],
+      "response2": ["Antigone", "Things Fall Apart"],
+      "requiresPairedLocatableEvidence": true,
+      "requiresCredibleCounterReading": true,
+      "requiresEvidenceBoundedRevision": true,
+      "requiresExplicitClaimLimit": true
+    },
+    "defectQueries": {
+      "genericCoursePacketSubstitution": 0,
+      "brokenThousandAndOneNightsConjunction": 0,
+      "duplicateQuestionPhrase": 0,
+      "singleTextComparativeRubric": 0,
+      "unfinishedDraftLabel": 0
+    }
+  },
+  "agentAudit": {
+    "question": "Where do students compare The Odyssey and The Thousand and One Nights, and what textual evidence, counter-reading, and claim limit must they use?",
+    "answer": "Comparative Reading Responses schedules the comparison between The Odyssey and The Thousand and One Nights in Lesson 2: Narrative Structure: The Odyssey, under Assignment Briefs. Students must analyze one locatable passage or formal feature from each work, make a comparative claim that needs both texts, test a credible counter-reading against the same paired evidence, revise the claim, and state explicitly what the selected passages cannot establish on their own.",
+    "providerCallRequired": false,
+    "locationCorrect": true,
+    "contractComplete": true,
+    "articleStutter": false
+  },
+  "persistenceAudit": {
+    "exactSnapshotCharacters": 5545164,
+    "localStorageMarkerCharacters": 232,
+    "storage": "IndexedDB exact snapshot plus compact localStorage recovery marker",
+    "resumedQuality": "99/A",
+    "resumedMaterialCoverage": "9/9",
+    "measuredResumeSeconds": 1.9,
+    "recompileRequired": false,
+    "providerCallRequired": false
+  },
+  "archive": {
+    "downloadedPath": "/Users/tianxing/Downloads/World Literature Survey - Course Materials (11).zip",
+    "bytes": 1289976,
+    "entriesIncludingDirectories": 79,
+    "extractedFileCount": 69,
+    "unzipTest": "passed",
+    "dittoExtraction": "passed",
+    "manifestExporterVersion": "0.16.74",
+    "manifestGenerationVersion": "0.16.73",
+    "manifestScionProduct": "Scion V0.16.74",
+    "manifestAdapter": "base-only",
+    "adoptionAuditBlockingReasons": 0,
+    "adoptionAuditCap": "Missing external professor, public-source benchmark, and independent reviewer evidence; no package defect."
+  },
+  "responsiveAudit": {
+    "viewport": "390x844",
+    "modeSwitcher": ["Content", "Agent", "Export"],
+    "headerReadable": true,
+    "livingCompilerReadable": true,
+    "courseContentReachable": true,
+    "agentReachable": true,
+    "exportReachable": true,
+    "singleDownloadAction": true,
+    "viewportResetAfterAudit": true
+  },
+  "crossDomainCompilerAudit": {
+    "status": "passed",
+    "fixturesPassed": 40,
+    "fixturesTotal": 40,
+    "scopes": [5, 8, 14],
+    "finding": {
+      "course": "Information Literacy and Library Research",
+      "lesson": "Synthesis Matrix and Gap Analysis",
+      "before": "Bare matrix language activated a linear-algebra worked example, expanded the deck to 17 slides, and left 0 minutes for live practice.",
+      "repair": "Treat matrix as ambiguous unless explicit mathematical context or a named linear-algebra construct is present.",
+      "after": "The exact Information Literacy contract passes with 0 blockers and 0 warnings; quantitative neighboring contracts remain green."
+    }
+  },
+  "verification": {
+    "focusedRegression": {
+      "status": "passed",
+      "testFilesPassed": 5,
+      "testsPassed": 154
+    },
+    "fullStableSuite": {
+      "status": "passed",
+      "testFilesPassed": 447,
+      "testFilesSkipped": 16,
+      "testsPassed": 5494,
+      "testsSkipped": 162
+    },
+    "bundleAudit": {
+      "status": "passed",
+      "initialRawKiB": 255.9,
+      "initialGzipKiB": 81.3,
+      "courseAnswerRawKiB": 8,
+      "courseAnswerGzipKiB": 3.5,
+      "courseSequenceAnswerRawKiB": 1.7,
+      "courseSequenceAnswerGzipKiB": 0.9,
+      "budgetIncrease": false
+    },
+    "assessmentCoverageRecovery": {
+      "status": "passed",
+      "inputAssessmentAnchors": 1,
+      "compiledAssessmentAnchors": 15,
+      "semanticBlockers": 0,
+      "syllabusCompiled": true
+    },
+    "releaseGates": {
+      "status": "passed",
+      "lint": "passed",
+      "format": "passed",
+      "productionBuild": "passed",
+      "bundleBudgets": "passed",
+      "physicalZip": "passed",
+      "browserConsole": "passed",
+      "responsiveBrowser": "passed",
+      "crossDomainCompilerContract": "passed"
+    }
+  },
+  "claimBoundary": "This is automated browser and artifact evidence. It is not proof of universal factual correctness, accessibility, teachability, instructor approval, classroom outcomes, adapter superiority, or paid-reference parity."
+}

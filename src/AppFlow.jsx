@@ -26,7 +26,9 @@ const AIContextMenu = lazy(() => import('./components/AIContextMenu'));
 const ProjectPicker = lazy(() => import('./components/ProjectPicker'));
 const DeveloperModePanel = lazy(() => import('./components/DeveloperModePanel'));
 const CustomDeliverableBuilder = lazy(() =>
-  import('./screens/FeatureSelect').then((module) => ({ default: module.CustomDeliverableBuilder })),
+  import('./screens/FeatureSelect').then((module) => ({
+    default: module.CustomDeliverableBuilder,
+  })),
 );
 import useVersionHistory from './hooks/useVersionHistory';
 import useExport from './hooks/useExport';
@@ -338,7 +340,11 @@ function AddDeliverableButton({ unselected, showAddDeliverable, setShowAddDelive
             <div
               data-testid="add-deliverable-menu"
               className="fixed z-[9999] max-h-[70vh] overflow-y-auto rounded-lg border border-slate-200/60 bg-white/95 p-2 shadow-xl backdrop-blur-xl animate-spring-in dark:border-slate-700/70 dark:bg-slate-900/95"
-              style={{ top: dropPos.top, left: dropPos.left, width: dropPos.width }}
+              style={{
+                top: dropPos.top,
+                left: dropPos.left,
+                width: dropPos.width,
+              }}
             >
               {builtIn.length > 0 && (
                 <>
@@ -604,7 +610,11 @@ export default function AppFlow({
       setActiveTab('courseMap');
       setMobileWorkspaceView('content');
       window.setTimeout(() => {
-        window.dispatchEvent(new CustomEvent('coursemapper:focus-coursemap-cell', { detail: target }));
+        window.dispatchEvent(
+          new CustomEvent('coursemapper:focus-coursemap-cell', {
+            detail: target,
+          }),
+        );
       }, 160);
     },
     [setActiveTab],
@@ -613,7 +623,12 @@ export default function AppFlow({
   // v0.14.1 (3.5): assessment chips in the course map open the matching
   // deliverable tab; "Show in course map" from a deliverable reroutes through
   // focusCourseMapTarget while the map tab is hidden.
-  useDeliverableFocusRouter({ activeTab, setActiveTab, setMobileWorkspaceView, focusCourseMapTarget });
+  useDeliverableFocusRouter({
+    activeTab,
+    setActiveTab,
+    setMobileWorkspaceView,
+    focusCourseMapTarget,
+  });
 
   const focusExamPatch = useCallback(
     (patch) => {
@@ -624,7 +639,11 @@ export default function AppFlow({
         return;
       }
       if (patch.field === 'title' && patch.lessonIndex != null) {
-        focusCourseMapTarget({ type: 'courseMapCell', lessonIndex: patch.lessonIndex, field: 'title' });
+        focusCourseMapTarget({
+          type: 'courseMapCell',
+          lessonIndex: patch.lessonIndex,
+          field: 'title',
+        });
         return;
       }
       if (patch.lessonIndex != null && patch.sectionIndex != null && patch.field) {
@@ -751,7 +770,11 @@ export default function AppFlow({
           tabButtonRefs.current.set(featureId, node);
           if (activeTabRef.current === featureId) {
             window.requestAnimationFrame(() => {
-              node.scrollIntoView({ behavior: 'auto', block: 'nearest', inline: 'nearest' });
+              node.scrollIntoView({
+                behavior: 'auto',
+                block: 'nearest',
+                inline: 'nearest',
+              });
             });
           }
         } else {
@@ -800,7 +823,11 @@ export default function AppFlow({
         updateWorkspaceTabScrollCues();
         return;
       }
-      button.scrollIntoView({ behavior: 'auto', block: 'nearest', inline: 'nearest' });
+      button.scrollIntoView({
+        behavior: 'auto',
+        block: 'nearest',
+        inline: 'nearest',
+      });
       cueFrame = window.requestAnimationFrame(updateWorkspaceTabScrollCues);
     };
 
@@ -831,7 +858,12 @@ export default function AppFlow({
   const packageGenerationInFlightRef = useRef(false);
   const [packageGenerationBusy, setPackageGenerationBusy] = useState(false);
   const suppressedPackageRetryKeysRef = useRef(new Set());
-  const canFinishPackageWithAgent = isAgentProviderReady({ provider, apiKey, apiStatus, modelId });
+  const canFinishPackageWithAgent = isAgentProviderReady({
+    provider,
+    apiKey,
+    apiStatus,
+    modelId,
+  });
   const version = useVersionHistory(setCourseMap, setDownloadedFile);
   const handleAIAction = useCallback((prompt) => {
     // Handle "__FOCUS__" prefix — pre-fill chat with context but let user type
@@ -909,7 +941,9 @@ export default function AppFlow({
       // a freshly pushed render never triggers a spurious re-derivation.
       // The canonical render is also accepted: maps from pre-registry saves
       // and repair pushes carry no suffixes.
-      const renderedDisplay = renderCourseMapFromGraph(courseGraphRef.current, { assessmentReferences: true });
+      const renderedDisplay = renderCourseMapFromGraph(courseGraphRef.current, {
+        assessmentReferences: true,
+      });
       const mapJson = JSON.stringify(courseMap);
       if (JSON.stringify(renderedDisplay) === mapJson) return;
       const rendered = renderCourseMapFromGraph(courseGraphRef.current);
@@ -1111,7 +1145,9 @@ export default function AppFlow({
     // Mirror the quality chip's mobile handling: the drawer lives in the
     // export panel's subtree, so bring that view forward first.
     setMobileWorkspaceView('export');
-    setReviewQueueRequest({ focusId: typeof focusId === 'string' && focusId ? focusId : null });
+    setReviewQueueRequest({
+      focusId: typeof focusId === 'string' && focusId ? focusId : null,
+    });
   }, []);
   const handleOpenReviewQueueFromObservation = useCallback(
     (observationId) => handleReviewQueueOpenChange(true, observationId || null),
@@ -1169,20 +1205,31 @@ export default function AppFlow({
       // because an 'auto' pass fired mid-sync and the post-sync regrade
       // JOINED it. Auto/manual passes wait for the sync's own regrade.
       if (smartSyncRef.current?.isSyncing && source !== 'sync') {
-        tracePackageFinish('skipped', 'skip_while_syncing', { source, selectedFeatureIds });
+        tracePackageFinish('skipped', 'skip_while_syncing', {
+          source,
+          selectedFeatureIds,
+        });
         return Promise.resolve(null);
       }
       if (packageFinalizerInFlightRef.current) {
         if (source === 'sync') {
           // The in-flight pass may have started mid-sync (stale inputs) —
           // chain a FRESH pass behind it instead of adopting its verdict.
-          tracePackageFinish('existing', 'chain_after_existing', { source, selectedFeatureIds });
+          tracePackageFinish('existing', 'chain_after_existing', {
+            source,
+            selectedFeatureIds,
+          });
           const prior = packageFinalizerInFlightRef.current;
           return prior
             .catch(() => {})
             .then(() =>
               packageFinalizerRef.current
-                ? packageFinalizerRef.current({ retry: false, source: 'sync', selectedFeatureIds, lessonFilter })
+                ? packageFinalizerRef.current({
+                    retry: false,
+                    source: 'sync',
+                    selectedFeatureIds,
+                    lessonFilter,
+                  })
                 : null,
             );
         }
@@ -1226,7 +1273,10 @@ export default function AppFlow({
         // is done and packaging begins — the proof artifact for cost-shift work.
         const costReport = buildGenerationCostReport(apiCallBudgetRef.current || {});
         const costReportText = formatGenerationCostReport(costReport);
-        if (costReportText) traceLog(`[CM][COST]\n${costReportText}`, { runId: costReport.runId });
+        if (costReportText)
+          traceLog(`[CM][COST]\n${costReportText}`, {
+            runId: costReport.runId,
+          });
         const runFinalizer = (retryLimit) =>
           runDeterministicPackageFinalizer({
             courseMap: finalizerCourseMap,
@@ -1507,7 +1557,10 @@ export default function AppFlow({
                 result.courseMap || courseMapRef.current,
                 [action.featureId],
                 effectiveLessonFilter,
-                { mode: 'finalizerRetry', maxProviderCalls: action.estimatedCalls || 1 },
+                {
+                  mode: 'finalizerRetry',
+                  maxProviderCalls: action.estimatedCalls || 1,
+                },
               );
               tracePackageFinish(finishRunId, 'retry_action_done', {
                 key: retryActionKey,
@@ -1517,7 +1570,10 @@ export default function AppFlow({
                 returnedDeliverables: Object.keys(retryResult?.deliverables || {}),
               });
               if (retryResult?.deliverables) {
-                finalizerDeliverables = { ...finalizerDeliverables, ...retryResult.deliverables };
+                finalizerDeliverables = {
+                  ...finalizerDeliverables,
+                  ...retryResult.deliverables,
+                };
                 deliverablesRef.current = finalizerDeliverables;
               }
             } else {
@@ -1811,7 +1867,10 @@ export default function AppFlow({
 
         let packageQuality = null;
         if ((exportVerification?.failed || 0) > 0) {
-          packageQuality = { status: 'not-graded', reason: 'export verification failed' };
+          packageQuality = {
+            status: 'not-graded',
+            reason: 'export verification failed',
+          };
         } else {
           try {
             const { gradePackageAtFinalize } = await import('./lib/quality/finalizeQualityGate');
@@ -1830,7 +1889,10 @@ export default function AppFlow({
               expectedSessionMinutes,
             });
           } catch (err) {
-            packageQuality = { status: 'not-graded', reason: err?.message || 'grading unavailable' };
+            packageQuality = {
+              status: 'not-graded',
+              reason: err?.message || 'grading unavailable',
+            };
           }
         }
         // P0 quality findings update the same readiness object the export
@@ -2003,10 +2065,18 @@ export default function AppFlow({
       const validRequests = Array.isArray(requests) ? requests.filter(Boolean) : [];
       if (validRequests.length === 0) return { patches: [], providerCallCount: 0 };
       if (provider !== 'webllm' && provider !== 'local' && provider !== PUBLIC_SCION_PROVIDER_ID && !apiKey) {
-        return { patches: [], providerCallCount: 0, error: 'No connected AI provider for blueprint patch mapping.' };
+        return {
+          patches: [],
+          providerCallCount: 0,
+          error: 'No connected AI provider for blueprint patch mapping.',
+        };
       }
       if (!modelId) {
-        return { patches: [], providerCallCount: 0, error: 'No model selected for blueprint patch mapping.' };
+        return {
+          patches: [],
+          providerCallCount: 0,
+          error: 'No model selected for blueprint patch mapping.',
+        };
       }
 
       const baseCourseMap = sourceCourseMap || courseMapRef.current;
@@ -2148,12 +2218,19 @@ export default function AppFlow({
     const handler = () => {
       Promise.resolve(runVoicePassPostHocRef.current?.(courseMapRef.current))
         .then((result) => {
-          window.dispatchEvent(new CustomEvent('coursemapper:dev-voice-pass-done', { detail: result || null }));
+          window.dispatchEvent(
+            new CustomEvent('coursemapper:dev-voice-pass-done', {
+              detail: result || null,
+            }),
+          );
         })
         .catch((err) => {
           window.dispatchEvent(
             new CustomEvent('coursemapper:dev-voice-pass-done', {
-              detail: { ran: false, reason: err?.message || 'voice pass failed' },
+              detail: {
+                ran: false,
+                reason: err?.message || 'voice pass failed',
+              },
             }),
           );
         });
@@ -2237,6 +2314,7 @@ export default function AppFlow({
     setLessonScope,
     promptText,
     setPromptText,
+    expectedSessionMinutes,
     packageQualityPass,
     setPackageQualityPass,
     lastRunDigest,
@@ -2679,13 +2757,22 @@ export default function AppFlow({
     const parseLandingFilesForContext = async () => {
       if (files.length === 0) return { combinedText: promptText, parsed: [] };
       const parsed = await parseFiles(files);
-      setChatHistory((prev) => upsertLandingAgentContextMessages(prev, { promptText, files, parsedFiles: parsed }));
+      setChatHistory((prev) =>
+        upsertLandingAgentContextMessages(prev, {
+          promptText,
+          files,
+          parsedFiles: parsed,
+        }),
+      );
       const fileText = parsed
         .filter((f) => f.text)
         .map((f) => f.text)
         .join('\n\n')
         .slice(0, 20000);
-      return { combinedText: [promptText, fileText].filter(Boolean).join('\n\n'), parsed };
+      return {
+        combinedText: [promptText, fileText].filter(Boolean).join('\n\n'),
+        parsed,
+      };
     };
 
     // Start with a regex scan of promptText for instant feedback
@@ -2726,7 +2813,11 @@ export default function AppFlow({
           }
         }
         // Only call AI when regex couldn't confidently determine lesson count
-        const aiCount = await detectLessonsWithAI(combinedText, { provider, apiKey, modelId });
+        const aiCount = await detectLessonsWithAI(combinedText, {
+          provider,
+          apiKey,
+          modelId,
+        });
         if (aiCount) setLessonCount(aiCount);
       } catch {
         /* silent — regex fallback is fine */
@@ -2925,7 +3016,10 @@ export default function AppFlow({
     },
     packageQualityPass,
     // v0.14.7 WS-G3: an executing sync owns the ribbon narrative.
-    sync: { isSyncing: smartSync.isSyncing, pendingCount: smartSync.pendingSyncCount },
+    sync: {
+      isSyncing: smartSync.isSyncing,
+      pendingCount: smartSync.pendingSyncCount,
+    },
   });
   const packageTrustStatus = getPackageTrustStatus({ packageQualityPass });
   const packageReady = packageTrustStatus.canDownload;
@@ -3127,7 +3221,8 @@ export default function AppFlow({
                             title="Download kernels."
                             className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50"
                           >
-                            Contribute {extractedKernelCount} extracted kernel{extractedKernelCount === 1 ? '' : 's'}
+                            Contribute {extractedKernelCount} extracted kernel
+                            {extractedKernelCount === 1 ? '' : 's'}
                           </button>
                         )}
                         <div className="my-1 border-t border-slate-100" />
@@ -3897,7 +3992,11 @@ export default function AppFlow({
                               handleCascadeHover(null);
                               return;
                             }
-                            handleCascadeHover({ featureId: null, fieldKey: info.fieldKey, position: info.position });
+                            handleCascadeHover({
+                              featureId: null,
+                              fieldKey: info.fieldKey,
+                              position: info.position,
+                            });
                           }}
                         />
                       </ErrorBoundary>
@@ -3976,7 +4075,9 @@ export default function AppFlow({
                             canonicalPatch
                               ? { canonicalPatches: [canonicalPatch] }
                               : canonicalPatchRequest
-                                ? { canonicalPatchRequests: [canonicalPatchRequest] }
+                                ? {
+                                    canonicalPatchRequests: [canonicalPatchRequest],
+                                  }
                                 : null,
                           );
                         }
@@ -4066,7 +4167,11 @@ export default function AppFlow({
                   getPipelineState={getManifestPipelineState}
                   getQualityContext={() => ({
                     budget: apiCallBudgetRef.current || {},
-                    digest: lastRunDigestRef.current,
+                    // A restored anonymous project hydrates the persisted
+                    // digest into state. The ref is populated only by a finish
+                    // run in this mounted session, so fall back to state or the
+                    // resumed ZIP silently loses its passed export receipt.
+                    digest: lastRunDigestRef.current || lastRunDigest,
                     expectedSessionMinutes,
                   })}
                   reviewQueue={reviewQueue}

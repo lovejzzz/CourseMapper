@@ -7,7 +7,7 @@ import { summarizeReadiness } from '../lib/deliverableReadiness';
 import { evaluateStrictPackageReadiness } from '../lib/packageFinalizer';
 import { normalizeReadinessIssue } from '../lib/readinessIssueSchema';
 import ReviewQueue from './ReviewQueue';
-import { isFinishPassActive, isPackageBlocked, isPackageReady } from '../lib/pipelineMachine';
+import { finishStatusOf, isFinishPassActive, isPackageBlocked, isPackageReady } from '../lib/pipelineMachine';
 import NoticeBanner from './NoticeBanner';
 import {
   exportDeliverableCsv,
@@ -327,6 +327,13 @@ function getDownloadReadiness(readiness) {
 
 function hasFinishedPackageReceipt(packageQualityPass) {
   if (isPackageReady(packageQualityPass)) return true;
+  // A terminal ready package may retain calm review notes. Those notes are
+  // carried in `warnings`, so isPackageReady() (which intentionally means
+  // pristine green) returns false even though export verification already
+  // produced a receipt. Treat the receipt—not a zero-warning presentation
+  // state—as the proof that finishing completed. Otherwise clicking ZIP
+  // starts the complete finalizer again after the UI said "Ready to export".
+  if (finishStatusOf(packageQualityPass) === 'ready' && packageQualityPass?.receipt) return true;
   return isPackageBlocked(packageQualityPass) && Boolean(packageQualityPass?.quality || packageQualityPass?.receipt);
 }
 
@@ -974,6 +981,12 @@ export default function ExportSidePanel({
     typeof onAutoRepairReadiness === 'function' &&
     Boolean(readinessIssueSignature) &&
     !isPackageWorkflowRunning &&
+    // A package whose files already passed export verification is immutable
+    // at download time, even when its saved review queue still contains a
+    // content note. Auto-repairing that note here races the user's click,
+    // flips "Download ZIP" back to "Finishing package", and can make the
+    // archive differ from the receipt that certified it.
+    !(scope === 'all' && hasDownloadableVerifiedPackage(packageQualityPass)) &&
     !readinessRepairAttempts.has(readinessIssueSignature);
   const showReadinessFinalizing =
     canAutoRepairReadiness || autoRepairingReadiness || isPackageWorkflowRunning || finishPackageBusy;
@@ -1359,8 +1372,8 @@ export default function ExportSidePanel({
     featureLabels: FEATURE_LABELS,
   });
   const zipHasTerminalTrustBlocker = scope === 'all' && terminalPackageTrust.blocked;
-  const zipCanDownloadReviewedPackage =
-    scope === 'all' && zipHasTerminalTrustBlocker && hasDownloadableVerifiedPackage(packageQualityPass);
+  const zipHasVerifiedReceipt = scope === 'all' && hasDownloadableVerifiedPackage(packageQualityPass);
+  const zipCanDownloadReviewedPackage = scope === 'all' && zipHasTerminalTrustBlocker && zipHasVerifiedReceipt;
   const zipPendingNeedsAttention = zipPendingReadiness && pendingReadinessExport?.canFinishPackageAgain === false;
   const zipCanFinishPackage =
     scope === 'all' &&
@@ -1368,7 +1381,8 @@ export default function ExportSidePanel({
     canFinishPackage &&
     !zipPendingNeedsAttention &&
     !zipHasExportFailure &&
-    !zipHasTerminalTrustBlocker;
+    !zipHasTerminalTrustBlocker &&
+    !zipHasVerifiedReceipt;
   const zipButtonLabel =
     busy === 'zip'
       ? 'Preparing ZIP…'

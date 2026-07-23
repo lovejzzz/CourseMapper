@@ -356,6 +356,103 @@ describe('ExportSidePanel readiness repair timing', () => {
     expect(container.querySelector('[data-testid="export-notice"]')).toBeNull();
   });
 
+  it('does not race a verified reviewed package back into auto-repair before ZIP download', async () => {
+    const onAutoRepairReadiness = vi.fn();
+    await renderPanel({
+      // This map intentionally retains a strict-readiness issue. The verified
+      // export receipt must still freeze the package at download time.
+      courseMapInput: courseMapWithObjectiveStem,
+      preferPackageScope: true,
+      onAutoRepairReadiness,
+      packageQualityPass: {
+        status: 'blocked',
+        blockers: 1,
+        warnings: 0,
+        receipt: {
+          finalStatus: 'blocked',
+          exportStatus: 'passed',
+          exportChecked: 38,
+          exportFailed: 0,
+          exportWarningCount: 0,
+        },
+        quality: {
+          status: 'graded',
+          score: 89,
+          grade: 'B',
+          findingCounts: { p0: 0, p1: 1, p2: 0 },
+        },
+      },
+    });
+
+    await act(async () => {
+      await vi.runAllTimersAsync();
+    });
+    expect(onAutoRepairReadiness).not.toHaveBeenCalled();
+
+    const zipButton = container.querySelector('[data-testid="export-download-zip"]');
+    expect(zipButton?.textContent).toContain('Download ZIP');
+    expect(zipButton?.disabled).toBe(false);
+
+    await act(async () => {
+      zipButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      await vi.runAllTimersAsync();
+    });
+    expect(onAutoRepairReadiness).not.toHaveBeenCalled();
+    expect(downloadCourseMaterialsZip).toHaveBeenCalledTimes(1);
+  });
+
+  it('downloads a ready package with a saved review note without rerunning the finalizer', async () => {
+    const onAutoRepairReadiness = vi.fn();
+    const onFinishPackage = vi.fn(async () => {
+      throw new Error('finish should not rerun after a verified ready receipt');
+    });
+    await renderPanel({
+      courseMapInput: courseMapWithObjectiveStem,
+      preferPackageScope: true,
+      canFinishPackage: true,
+      onAutoRepairReadiness,
+      onFinishPackage,
+      packageQualityPass: {
+        status: 'ready',
+        blockers: 0,
+        // Saved review notes are honest package metadata, not evidence that
+        // the already-verified physical export is unfinished.
+        warnings: 1,
+        receipt: {
+          finalStatus: 'ready',
+          exportStatus: 'passed',
+          exportChecked: 38,
+          exportFailed: 0,
+          exportWarningCount: 0,
+        },
+        quality: {
+          status: 'graded',
+          score: 99,
+          grade: 'A',
+          findingCounts: { p0: 0, p1: 0, p2: 1 },
+        },
+      },
+    });
+
+    await act(async () => {
+      await vi.runAllTimersAsync();
+    });
+    expect(onAutoRepairReadiness).not.toHaveBeenCalled();
+
+    const zipButton = container.querySelector('[data-testid="export-download-zip"]');
+    expect(zipButton?.textContent).toContain('Download ZIP');
+    expect(zipButton?.disabled).toBe(false);
+
+    await act(async () => {
+      zipButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      await vi.runAllTimersAsync();
+    });
+
+    expect(onFinishPackage).not.toHaveBeenCalled();
+    expect(onAutoRepairReadiness).not.toHaveBeenCalled();
+    expect(downloadCourseMaterialsZip).toHaveBeenCalledTimes(1);
+  });
+
   it('blocks ZIP download when the finish receipt records an export verification failure', async () => {
     await renderPanel({
       courseMapInput: cleanCourseMap,

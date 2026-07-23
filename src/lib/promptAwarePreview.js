@@ -18,8 +18,15 @@ const removeBriefQualifiers = (value) =>
     .trim();
 
 export function derivePromptPreviewTitle(promptText) {
+  const rawText = String(promptText || '').trim();
   const text = clean(promptText);
   if (!text) return 'Your course';
+
+  // A structured brief may put the authoritative title on its own first
+  // line. Read that line before whitespace normalization and before scanning
+  // quoted reading titles later in the prompt.
+  const labeledCourseTitle = rawText.match(/^(?:course\s+title|title)\s*:\s*["“]?([^"”\r\n]{4,90})["”]?\s*$/im);
+  if (labeledCourseTitle?.[1]) return removeBriefQualifiers(labeledCourseTitle[1]);
 
   // Explicit title syntax outranks later quoted resources. A brief such as
   // `course titled Introduction to Genetics ... reading “Textbook Chapter:
@@ -29,6 +36,14 @@ export function derivePromptPreviewTitle(promptText) {
     /\b(?:course|class|seminar|workshop)\s+(?:called|titled|named)\s+["“]?([^"”,.;!?]{4,90})["”]?/i,
   );
   if (explicitlyNamedCourse?.[1]) return removeBriefQualifiers(explicitlyNamedCourse[1]);
+
+  // Many users lead with a plain title sentence before the request itself.
+  // Preserve that course identity before considering quoted works in the
+  // reading list ("The Library of Babel", for example).
+  const leadingTitleSentence = rawText.match(
+    /^([^.!?\r\n]{4,90})[.!?]\s+(?:build|create|design|generate|make|prepare)\b/i,
+  );
+  if (leadingTitleSentence?.[1]) return removeBriefQualifiers(leadingTitleSentence[1]);
 
   // Straight apostrophes are word punctuation, not a safe title delimiter:
   // “Faraday's law … Maxwell's equations” otherwise looks like one quoted

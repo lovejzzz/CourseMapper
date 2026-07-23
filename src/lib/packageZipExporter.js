@@ -20,7 +20,11 @@ import { SCION_BROWSER_GEMMA4_GGUF } from './scionBrowserConstants.js';
 import { resolveScionLiteratureSourceProfiles } from './scionLiteratureKnowledge.js';
 
 const MIN_EXPORT_BYTES = 128;
-export const DEFAULT_PACKAGE_QUALITY_TIMEOUT_MS = 30000;
+// A full package pass assembles the same DOCX/PPTX/XLSX payload that users
+// download before the deterministic grader reads it. Real browser runs on
+// modest laptops can spend more than 30 seconds in that export+grade boundary
+// even when grading is healthy, so keep the honest ceiling at one minute.
+export const DEFAULT_PACKAGE_QUALITY_TIMEOUT_MS = 60000;
 const ZIP_GENERATION_OPTIONS = { type: 'blob', compression: 'STORE', streamFiles: true };
 const QUALITY_DIMENSION_ORDER = [
   'identity',
@@ -61,11 +65,13 @@ function buildManifestGenerator(digest, pipelineState) {
   const models = [
     ...new Set((Array.isArray(digest?.run?.models) ? digest.run.models : []).map(String).filter(Boolean)),
   ];
-  const appVersion = String(digest?.appVersion || APP_VERSION);
+  const generationAppVersion = String(digest?.appVersion || '').trim();
+  const appVersion = APP_VERSION;
   const isScion = provider === 'public' || models.some((model) => /scion/i.test(model));
   const generator = {
     app: 'CourseMapper',
     appVersion,
+    ...(generationAppVersion && generationAppVersion !== appVersion ? { generationAppVersion } : {}),
     ...(digest?.runId ? { runId: String(digest.runId) } : {}),
     ...(digest?.finishRunId ? { finishRunId: String(digest.finishRunId) } : {}),
     ...(provider ? { provider } : {}),

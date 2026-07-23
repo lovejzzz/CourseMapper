@@ -1808,6 +1808,35 @@ describe('source-ledger quality checks', () => {
     ).toBe(false);
   });
 
+  it('accepts a literary-genre citation without weakening the off-topic citation control', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'World Literature Survey',
+          lessonScope: 'all',
+          requestedFeatures: ['syllabus'],
+          readiness: { status: 'ready', blockers: 0, warnings: 0, checkedSections: null },
+          files: [{ path: 'Syllabus/World Literature Survey - Syllabus.txt', feature: 'syllabus' }],
+        }),
+        'Syllabus/World Literature Survey - Syllabus.txt': [
+          'WORLD LITERATURE SURVEY — SYLLABUS',
+          'WEEKLY READINGS',
+          'Week 3: Wikipedia contributors. Tragedy. Wikipedia: https://en.wikipedia.org/wiki/Tragedy (CC BY-SA 4.0)',
+          'Week 4: Wikipedia contributors. Quantum chromodynamics. Wikipedia: https://en.wikipedia.org/wiki/Quantum_chromodynamics (CC BY-SA 4.0)',
+        ].join('\n'),
+      }),
+      course: { id: 'world-lit', title: 'World Literature Survey', featureIds: ['syllabus'] },
+    });
+
+    const zeroOverlap = result.findings.filter(
+      (finding) =>
+        finding.dimension === 'citations' &&
+        finding.detail === 'citation shares zero vocabulary with the course discipline (possible off-topic reading)',
+    );
+    expect(zeroOverlap.some((finding) => /Tragedy/i.test(finding.evidence || ''))).toBe(false);
+    expect(zeroOverlap.some((finding) => /Quantum chromodynamics/i.test(finding.evidence || ''))).toBe(true);
+  });
+
   it('recognizes the Hardy-Weinberg principle as an on-discipline genetics citation', async () => {
     const result = await grade({
       fileProvider: createMemoryFileProvider({

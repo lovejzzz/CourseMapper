@@ -1,6 +1,26 @@
 import { describe, expect, it } from 'vitest';
 
-import { humanizeQuizText, humanSourceCueLabel, isInternalSourceCue } from '../compilerText.js';
+import {
+  cleanText,
+  humanizeQuizText,
+  humanSourceCueLabel,
+  isInternalSourceCue,
+  repairMalformedClearPluralPossessives,
+} from '../compilerText.js';
+
+describe('learner-facing possessives', () => {
+  it('repairs a duplicated possessive marker on clearly plural title nouns', () => {
+    expect(repairMalformedClearPluralPossessives("The Thousand and One Nights's narrative framing")).toBe(
+      "The Thousand and One Nights' narrative framing",
+    );
+    expect(cleanText("  Seasons's   evidence  ")).toBe("Seasons' evidence");
+  });
+
+  it('preserves grammatical singular names ending in s', () => {
+    expect(cleanText("Odysseus's account and James's notes")).toBe("Odysseus's account and James's notes");
+    expect(cleanText('Odysseus’s account')).toBe('Odysseus’s account');
+  });
+});
 
 describe('humanizeQuizText', () => {
   it('removes a dangling math delimiter after sentence punctuation', () => {

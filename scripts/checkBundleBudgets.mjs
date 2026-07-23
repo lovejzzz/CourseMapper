@@ -118,6 +118,9 @@ const lazyChunkBudgets = [
   // v0.16.73 adds evidence ranking and choreography rejection so the Agent can
   // answer locally without exposing lesson-plan internals (8.0/3.5 measured).
   { prefix: 'scionCourseAnswer-', rawKiB: 8.5, gzipKiB: 3.75 },
+  // V0.16.74 keeps full-course schedule/readings answers behind their own
+  // question-triggered leaf instead of charging every Agent question for it.
+  { prefix: 'scionCourseSequenceAnswer-', rawKiB: 3, gzipKiB: 1.5 },
   // v0.15.187: the compiler chunk was the LARGEST in dist (measured 711 KiB
   // raw / 192 KiB gzip on July 1) and the only large chunk with no ratchet —
   // which is how it grew 31× in 5.5 weeks unnoticed. Budget set just above
@@ -207,6 +210,9 @@ const lazyChunkBudgets = [
   // v0.16.71: evidence-check rotations and criterion-level performance bands
   // are a separate compile-only leaf (measured 9.1/3.2 KiB).
   { prefix: 'compilerRubricCopy-', rawKiB: 10, gzipKiB: 3.5 },
+  // v0.16.74: assessment-specific comparative literature bands are compile-
+  // only instructional data, kept out of the compiler control-flow chunk.
+  { prefix: 'compilerComparativeRubricBands-', rawKiB: 10, gzipKiB: 3.5 },
   // v0.16.65: varied assessment and material-polish copy moved out of the
   // compiler hot chunk. This compile-only leaf stays independently cacheable.
   { prefix: 'compilerPolish-', rawKiB: 8, gzipKiB: 3 },
@@ -273,10 +279,12 @@ const forbiddenInitialChunks = [
   /courseMapContinuation/i,
   /compilerFrames/i,
   /compilerCopyVariants/i,
+  /scionCourseSequenceAnswer/i,
   /compilerInstructionalCopy/i,
   /compilerSelfAssessmentCopy/i,
   /compilerReadingProfiles/i,
   /compilerRubricCopy/i,
+  /compilerComparativeRubricBands/i,
   /compilerPolish/i,
   /webllm/i,
   /deepQualityGrader/i,

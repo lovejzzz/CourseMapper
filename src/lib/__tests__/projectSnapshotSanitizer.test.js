@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  inferSavedLessonPlanSessionMinutes,
   prepareProjectSnapshotForRestore,
   restoreAuthoredOverlayForSnapshot,
   sanitizeProjectSnapshot,
@@ -7,9 +8,17 @@ import {
 
 describe('restoreAuthoredOverlayForSnapshot', () => {
   it('reattaches the compiler-owned overlay when a re-derived graph lost it', () => {
-    const graph = { sessions: [{ id: 's1', number: 1 }], enrichmentOverlay: null };
-    const overlay = { lessonContent: { 'lesson-1': { quizItems: [{ type: 'short_answer' }] } } };
-    expect(restoreAuthoredOverlayForSnapshot(graph, overlay)).toEqual({ ...graph, enrichmentOverlay: overlay });
+    const graph = {
+      sessions: [{ id: 's1', number: 1 }],
+      enrichmentOverlay: null,
+    };
+    const overlay = {
+      lessonContent: { 'lesson-1': { quizItems: [{ type: 'short_answer' }] } },
+    };
+    expect(restoreAuthoredOverlayForSnapshot(graph, overlay)).toEqual({
+      ...graph,
+      enrichmentOverlay: overlay,
+    });
     expect(restoreAuthoredOverlayForSnapshot({ ...graph, enrichmentOverlay: { kept: true } }, overlay)).toEqual({
       ...graph,
       enrichmentOverlay: { kept: true },
@@ -39,7 +48,13 @@ describe('sanitizeProjectSnapshot', () => {
           },
         },
       },
-      chatHistory: [{ role: 'assistant', authorization: 'Bearer hidden-token', text: 'Done.' }],
+      chatHistory: [
+        {
+          role: 'assistant',
+          authorization: 'Bearer hidden-token',
+          text: 'Done.',
+        },
+      ],
     };
 
     const sanitized = sanitizeProjectSnapshot(snapshot);
@@ -49,7 +64,11 @@ describe('sanitizeProjectSnapshot', () => {
       modelId: 'gpt-5.4-mini',
       modelName: 'GPT-5.4 Mini',
       deliverableConfig: { slideDecks: { prompt: 'Build a deck.' } },
-      deliverables: { slideDecks: { data: { generatedImage: { url: 'data:image/png;base64,abc' } } } },
+      deliverables: {
+        slideDecks: {
+          data: { generatedImage: { url: 'data:image/png;base64,abc' } },
+        },
+      },
       chatHistory: [{ role: 'assistant', text: 'Done.' }],
     });
     expect(JSON.stringify(sanitized)).not.toContain('sk-proj');
@@ -64,7 +83,11 @@ describe('sanitizeProjectSnapshot', () => {
         lessons: [
           {
             title: 'API Design',
-            sections: [{ topicSection: 'Use Bearer abcdefghijklmnopqrstuvwxyz1234567890 only in local setup.' }],
+            sections: [
+              {
+                topicSection: 'Use Bearer abcdefghijklmnopqrstuvwxyz1234567890 only in local setup.',
+              },
+            ],
           },
         ],
       },
@@ -76,7 +99,10 @@ describe('sanitizeProjectSnapshot', () => {
   });
 
   it('does not mutate the original snapshot', () => {
-    const snapshot = { apiKey: 'sk-proj-abcdefghijklmnopqrstuvwxyz123456', promptText: 'Keep course text.' };
+    const snapshot = {
+      apiKey: 'sk-proj-abcdefghijklmnopqrstuvwxyz123456',
+      promptText: 'Keep course text.',
+    };
     const sanitized = sanitizeProjectSnapshot(snapshot);
 
     expect(sanitized).toEqual({ promptText: 'Keep course text.' });
@@ -90,7 +116,9 @@ describe('sanitizeProjectSnapshot', () => {
     const timestampLike = {
       toDate: () => new Date('2026-06-01T00:00:00Z'),
     };
-    Object.setPrototypeOf(timestampLike, { constructor: { name: 'Timestamp' } });
+    Object.setPrototypeOf(timestampLike, {
+      constructor: { name: 'Timestamp' },
+    });
 
     const sanitized = sanitizeProjectSnapshot({
       updatedAt: timestampLike,
@@ -106,6 +134,77 @@ describe('sanitizeProjectSnapshot', () => {
 });
 
 describe('prepareProjectSnapshotForRestore', () => {
+  it('migrates a legacy exact package clock before the workspace is finalized again', () => {
+    const legacy = {
+      courseMap: { lessons: [{ title: 'Lesson 1' }, { title: 'Lesson 2' }] },
+      deliverables: {
+        lessonPlans: {
+          status: 'done',
+          data: {
+            lessonPlans: [1, 2].map((lessonNumber) => ({
+              lessonTitle: `Lesson ${lessonNumber}`,
+              duration: '110 minutes',
+              classSessionPlan: { sessionMinutes: 110 },
+              outlineTiming: { sessionMinutes: 110 },
+            })),
+          },
+        },
+      },
+    };
+
+    expect(inferSavedLessonPlanSessionMinutes(legacy)).toBe(110);
+    const restored = prepareProjectSnapshotForRestore(legacy);
+
+    expect(restored.generationConstraints).toEqual({
+      sessionMinutes: 110,
+      sessionMinutesSource: 'legacy-exact-package',
+    });
+    expect(restored.deliverableConfig.lessonPlans.sessionLength).toBe('110 min');
+  });
+
+  it('keeps an explicit saved generation clock authoritative over defective artifacts', () => {
+    const restored = prepareProjectSnapshotForRestore({
+      courseMap: { lessons: [{ title: 'Lesson 1' }] },
+      generationConstraints: {
+        sessionMinutes: 75,
+        sessionMinutesSource: 'resolved-generation-default',
+      },
+      deliverables: {
+        lessonPlans: {
+          data: {
+            lessonPlans: [
+              {
+                duration: '110 minutes',
+                classSessionPlan: { sessionMinutes: 110 },
+                outlineTiming: { sessionMinutes: 110 },
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    expect(restored.generationConstraints.sessionMinutes).toBe(75);
+    expect(restored.deliverableConfig.lessonPlans.sessionLength).toBe('75 min');
+  });
+
+  it('does not infer a clock from inconsistent legacy lesson plans', () => {
+    const legacy = {
+      courseMap: { lessons: [{ title: 'Lesson 1' }, { title: 'Lesson 2' }] },
+      deliverables: {
+        lessonPlans: {
+          data: {
+            lessonPlans: [{ duration: '75 minutes' }, { duration: '110 minutes' }],
+          },
+        },
+      },
+    };
+
+    expect(inferSavedLessonPlanSessionMinutes(legacy)).toBeNull();
+    const restored = prepareProjectSnapshotForRestore(legacy);
+    expect(restored).not.toHaveProperty('generationConstraints');
+  });
+
   it('sanitizes legacy project snapshots before restoring them to app state', () => {
     const legacy = {
       courseMap: {
@@ -133,7 +232,9 @@ describe('prepareProjectSnapshotForRestore', () => {
 
     expect(restored.formatVersion).toBe(1);
     expect(restored.courseMap.courseName).toBe('Legacy [redacted secret]');
-    expect(restored.courseMap.lessons[0]).toEqual({ title: 'Keep lesson title' });
+    expect(restored.courseMap.lessons[0]).toEqual({
+      title: 'Keep lesson title',
+    });
     expect(restored.promptText).toBe('Connected with [redacted secret]');
     expect(restored.deliverables.lessonPlans).toMatchObject({
       stale: true,

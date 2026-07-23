@@ -37,6 +37,26 @@ export function compactCourseCopyEmbeddedReference(value, fullFocus) {
   return text.replace(new RegExp(escapeRegexLiteral(cleanFocus), 'gi'), compactFocus);
 }
 
+export function restoreNamedReadingConjunctions(value, lesson = {}) {
+  let text = cleanText(value);
+  const readings = unique(
+    [
+      ...(Array.isArray(lesson.instructorNamedReadings) ? lesson.instructorNamedReadings : []),
+      ...(Array.isArray(lesson.readings) ? lesson.readings : []),
+    ]
+      .map((reading) => cleanText(reading))
+      .filter(Boolean),
+    12,
+  );
+  for (const reading of readings) {
+    const commaFragment = reading.replace(/\s+and\s+/gi, ', ');
+    if (commaFragment !== reading) {
+      text = text.replace(new RegExp(escapeRegexLiteral(commaFragment), 'gi'), reading);
+    }
+  }
+  return text;
+}
+
 const ASSIGNMENT_BRIEF_BODY_FIELDS = [
   'overview',
   'description',
@@ -107,12 +127,12 @@ function compactRepeatedLessonFocus(value, fullFocus, state) {
   );
 }
 
-export function compactRepeatedCourseFocusReferences(value, fullFocus, { limit = 6 } = {}) {
+export function compactRepeatedCourseFocusReferences(value, fullFocus, { limit = 6, force = false } = {}) {
   const focus = cleanText(fullFocus);
   const wordCount = (focus.match(/[A-Za-z0-9][A-Za-z0-9'-]*/g) || []).length;
   // Short labels such as "Usability testing" or "Policy Topic 1" are useful
   // vocabulary, not the long mail-merge strings this reducer targets.
-  if (focus.length < 24 && wordCount < 5) return value;
+  if (!force && focus.length < 24 && wordCount < 5) return value;
   const originalWords = focus.replace(/[’']s\b/gi, '').match(/[A-Za-z0-9][A-Za-z0-9'-]*/g) || [];
   const possessiveOwner = cleanText(focus.match(/^([A-Za-z][A-Za-z'-]*)[’']s\b/i)?.[1]).toLowerCase();
   const isTopicSurface = (word) =>
@@ -165,6 +185,12 @@ export function compactAssignmentBriefBodyReferences({ brief = {}, lesson = {}, 
   const protectedReadingTitles = (Array.isArray(lesson?.instructorNamedReadings) ? lesson.instructorNamedReadings : [])
     .map((title) => cleanText(title))
     .filter(Boolean);
+  const normalizedFocus = courseCopySurfaceWords(fullFocus).join(' ').toLowerCase();
+  const focusReadingTitle = protectedReadingTitles.find((title) => {
+    const normalizedTitle = courseCopySurfaceWords(title).join(' ').toLowerCase();
+    return normalizedTitle && normalizedFocus.includes(normalizedTitle);
+  });
+  const focusIsNamedReading = Boolean(focusReadingTitle);
   const transformProtectedReadings = (value, transform) => {
     if (typeof value === 'string') return transform(value);
     if (Array.isArray(value)) return value.map((item) => transformProtectedReadings(item, transform));
@@ -173,20 +199,29 @@ export function compactAssignmentBriefBodyReferences({ brief = {}, lesson = {}, 
       Object.entries(value).map(([key, child]) => [key, transformProtectedReadings(child, transform)]),
     );
   };
-  const readingMasks = protectedReadingTitles.map((title, index) => ({
-    title,
-    token: `__SCION_NAMED_READING_${index}__`,
-  }));
+  const maskSpecs = protectedReadingTitles.map((title) => ({ match: title, restore: title }));
+  // Preserve a semantically identical title even when punctuation migrated
+  // across a closing quote during course-map normalization.
+  if (focusIsNamedReading && cleanText(focusReadingTitle) !== cleanText(fullFocus)) {
+    maskSpecs.push({ match: cleanText(fullFocus), restore: focusReadingTitle });
+  }
+  const readingMasks = maskSpecs
+    .filter((entry) => entry.match)
+    .sort((left, right) => right.match.length - left.match.length)
+    .map((entry, index) => ({
+      ...entry,
+      token: `__SCION_NAMED_READING_${index}__`,
+    }));
   const maskProtectedReadings = (value) =>
     transformProtectedReadings(value, (text) =>
       readingMasks.reduce(
-        (masked, { title, token }) => masked.replace(new RegExp(escapeRegexLiteral(title), 'gi'), token),
+        (masked, { match, token }) => masked.replace(new RegExp(escapeRegexLiteral(match), 'gi'), token),
         text,
       ),
     );
   const restoreProtectedReadings = (value) =>
     transformProtectedReadings(value, (text) =>
-      readingMasks.reduce((restored, { title, token }) => restored.replaceAll(token, title), text),
+      readingMasks.reduce((restored, { restore, token }) => restored.replaceAll(token, restore), text),
     );
   const canonicalTitle = stripTerminalPunctuation(cleanText(brief?.title));
   const titleRemainder = stripTerminalPunctuation(
@@ -265,7 +300,25 @@ export function compactAssignmentBriefBodyReferences({ brief = {}, lesson = {}, 
   // Body prose therefore uses grammatical local references while named
   // readings remain protected and exact.
   const reducedBody = compactRepeatedCourseFocusReferences(compactedBody, fullFocus, { limit: 0 });
-  return { ...compacted, ...restoreProtectedReadings(reducedBody) };
+  const restoredBody = restoreProtectedReadings(reducedBody);
+  // Compare semantic title tokens instead of punctuation-shaped strings.
+  // Instructor input often places the terminal period inside a closing quote
+  // while the course map normalizer moves it outside (for example Borges’s
+  // “The Library of Babel.” versus Borges’s “The Library of Babel”). Those
+  // are the same named reading and must receive the same repetition control.
+  // A lesson title can itself be the instructor-named reading (for example,
+  // "The Thousand and One Nights"). Masking that title across every body
+  // field preserved source identity but also stamped the full book title into
+  // instructions, milestones, criteria, and self-review prose. Keep one exact
+  // body mention for locatable source identity; the document heading and
+  // Related Lessons line already preserve two more canonical anchors, while
+  // later references become grammatical local aliases. This stays
+  // model-neutral and prevents the filename plus rendered copy from crossing
+  // the mail-merge texture threshold.
+  const sourceBalancedBody = focusIsNamedReading
+    ? compactRepeatedCourseFocusReferences(restoredBody, focusReadingTitle || fullFocus, { limit: 1, force: true })
+    : restoredBody;
+  return { ...compacted, ...sourceBalancedBody };
 }
 
 const EXAM_UNDERSTAND_CORRECT_TEMPLATES = [

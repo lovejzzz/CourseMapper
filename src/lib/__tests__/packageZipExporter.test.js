@@ -11,6 +11,7 @@ import { buildSlideDeckPptxBlob } from '../exporters/pptxExporter';
 import { buildXlsxBuffer } from '../xlsxGenerator';
 import { saveAs } from 'file-saver';
 import { buildNotApplicableDisposition } from '../deliverableApplicability';
+import { APP_VERSION } from '../appVersion';
 
 vi.mock('../customDeliverableLibrary', () => ({
   getCustomDeliverable: vi.fn((id) => (id === 'custom_weeklyReflection' ? { name: 'Weekly Reflection' } : null)),
@@ -102,13 +103,13 @@ describe('packageZipExporter', () => {
       manifestVersion: 2,
       generator: {
         app: 'CourseMapper',
-        appVersion: '0.16.7',
+        appVersion: APP_VERSION,
         runId: 'run-provenance',
         finishRunId: 'finish-provenance',
         provider: 'public',
         models: ['scion-public'],
         scion: {
-          product: 'Scion V0.16.7',
+          product: `Scion V${APP_VERSION}`,
           localOnly: true,
           runtimeArtifact: {
             modelId: 'google/gemma-4-E2B-it-qat-q4_0-gguf',
@@ -120,6 +121,27 @@ describe('packageZipExporter', () => {
       },
       exportVerification: { status: 'passed', checked: 38, failed: 0, warnings: 0 },
       generationConstraints: { sessionMinutes: 50 },
+    });
+  });
+
+  it('records the current exporter and the original generation version after resume', async () => {
+    const result = await buildCourseMaterialsZip({
+      courseMap: makeCourseMap('Resumed Scion Course'),
+      featureIds: ['courseMap'],
+      quality: {
+        digest: {
+          appVersion: '0.16.73',
+          runId: 'run-resumed',
+          run: { provider: 'public', models: ['scion-public'] },
+          gates: { exportStatus: 'passed', exportChecked: 38, exportFailed: 0, exportWarnings: 0 },
+        },
+      },
+    });
+
+    expect(result.manifest.generator).toMatchObject({
+      appVersion: APP_VERSION,
+      generationAppVersion: '0.16.73',
+      scion: { product: `Scion V${APP_VERSION}` },
     });
   });
 

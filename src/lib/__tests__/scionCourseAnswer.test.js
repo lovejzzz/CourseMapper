@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { buildScionCourseAnswer, __private__ } from '../scionCourseAnswer';
+import { buildScionCourseSequenceAnswer } from '../scionCourseSequenceAnswer';
+import { buildScionNamedReadingAnswer } from '../scionNamedReadingAnswer';
 
 const courseMap = {
   lessons: [
@@ -217,6 +219,76 @@ describe('buildScionCourseAnswer', () => {
     expect(result).toMatchObject({ kind: 'course-evidence', sources: ['Quiz & Exam Bank'] });
   });
 
+  it('summarizes every week with the exact assigned readings from the compiled syllabus', () => {
+    const result = buildScionCourseSequenceAnswer({
+      question: 'Summarize the eight-week course sequence and name the assigned reading for each week.',
+      courseMap: {
+        courseName: 'World Literature Survey',
+        lessons: [
+          { title: 'Lesson 1: Narrative Structure: Gilgamesh', sections: [] },
+          { title: 'Lesson 2: Narrative Structure: The Odyssey', sections: [] },
+          { title: 'Lesson 3: Narrative Structure: Antigone', sections: [] },
+          { title: 'Lesson 4: Poetry: Li Bai and Du Fu', sections: [] },
+          { title: 'Lesson 5: Narrative Structure: The Thousand and One Nights', sections: [] },
+          { title: 'Lesson 6: Narrative Structure: Dante’s Inferno', sections: [] },
+          { title: 'Lesson 7: Narrative Structure: Things Fall Apart', sections: [] },
+          { title: "Lesson 8: Narrative Structure: Borges's Library", sections: [] },
+        ],
+      },
+      deliverables: {
+        syllabus: {
+          status: 'done',
+          data: {
+            syllabus: {
+              requiredTexts: [
+                { title: 'The Epic of Gilgamesh' },
+                { title: 'The Odyssey' },
+                { title: 'Antigone' },
+                { title: 'Selected poems by Li Bai and Du Fu' },
+                { title: 'The Thousand and One Nights' },
+                { title: 'Dante’s Inferno' },
+                { title: 'Things Fall Apart' },
+                { title: 'The Library of Babel' },
+              ],
+              weeklySchedule: [
+                { week: 'Week 1', topic: 'Gilgamesh', readings: 'The Epic of Gilgamesh' },
+                {
+                  week: 'Week 2',
+                  topic: 'The Odyssey',
+                  readings:
+                    'The Odyssey; Prerequisite concept: Epic Structure; Wikipedia contributors. Odyssey. Wikipedia (CC BY-SA 4.0)',
+                },
+                { week: 'Week 3', topic: 'Antigone', readings: 'Antigone' },
+                { week: 'Week 4', topic: 'Li Bai and Du Fu', readings: 'Selected poems by Li Bai and Du Fu' },
+                { week: 'Week 5', topic: 'Frame narrative', readings: 'The Thousand and One Nights' },
+                { week: 'Week 6', topic: 'Allegory', readings: 'Dante’s Inferno' },
+                { week: 'Week 7', topic: 'Form and context', readings: 'Things Fall Apart' },
+                { week: 'Week 8', topic: 'Borges’s “The Library of Babel”', readings: 'The Library of Babel' },
+              ],
+            },
+          },
+        },
+      },
+    });
+
+    expect(result?.text.match(/^\- \*\*Week \d+:/gm)).toHaveLength(8);
+    for (const reading of [
+      'The Epic of Gilgamesh',
+      'The Odyssey',
+      'Antigone',
+      'Selected poems by Li Bai and Du Fu',
+      'The Thousand and One Nights',
+      'Dante’s Inferno',
+      'Things Fall Apart',
+      'The Library of Babel',
+    ]) {
+      expect(result?.text).toContain(reading);
+    }
+    expect(result?.text).not.toContain('likely');
+    expect(result?.text).not.toMatch(/Prerequisite concept|Wikipedia|CC BY-SA/i);
+    expect(result).toMatchObject({ kind: 'course-evidence', sources: ['Syllabus', 'Course Map'] });
+  });
+
   it('keeps quoted words inside a smart-quoted Mandarin lesson fact', () => {
     const result = buildScionCourseAnswer({
       question: 'What does 你好 (nǐ hǎo) mean, and which exact Lesson 2 fact supports your answer?',
@@ -247,6 +319,126 @@ describe('buildScionCourseAnswer', () => {
     expect(result?.text).toBe(
       '你好 (nǐ hǎo) means “hello.” Use nǐ hǎo as the exact tone-marked pronunciation guide. The supporting lesson fact is: “你 (nǐ) means "you" in the greeting 你好 (nǐ hǎo).”',
     );
+  });
+
+  it('answers a named-reading comparison from the compiled task instead of inventing a location', () => {
+    const result = buildScionNamedReadingAnswer({
+      question:
+        'Where do students compare The Odyssey and The Thousand and One Nights, and what evidence, counter-reading, and claim limit must they use?',
+      courseMap: {
+        courseName: 'World Literature Survey',
+        lessons: [
+          { lessonNumber: 1, title: 'Lesson 1: Gilgamesh', sections: [{ readings: ['Gilgamesh'] }] },
+          { lessonNumber: 2, title: 'Lesson 2: The Odyssey', sections: [{ readings: ['The Odyssey'] }] },
+          { lessonNumber: 3, title: 'Lesson 3: Antigone', sections: [{ readings: ['Antigone'] }] },
+          { lessonNumber: 4, title: 'Lesson 4: Li Bai and Du Fu', sections: [{ readings: ['Li Bai and Du Fu'] }] },
+          {
+            lessonNumber: 5,
+            title: 'Lesson 5: Comparative Narrative Frames',
+            sections: [{ readings: ['The Thousand and One Nights'] }],
+          },
+        ],
+      },
+      deliverables: {
+        assignments: {
+          status: 'done',
+          data: {
+            assignments: [
+              { title: 'Gilgamesh response', overview: 'Analyze one passage from Gilgamesh.' },
+              { title: 'Odyssey response', overview: 'Analyze one passage from The Odyssey.' },
+              { title: 'Antigone response', overview: 'Analyze one passage from Antigone.' },
+              { title: 'Poetry response', overview: 'Analyze one poem by Li Bai or Du Fu.' },
+              {
+                title: 'Comparative narrative response',
+                overview:
+                  'Compare how narrative perspective operates in The Odyssey and The Thousand and One Nights. Submit a comparative response with one locatable passage from each assigned edition, a credible counter-reading, and a statement of what the paired evidence cannot establish.',
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    expect(result?.text).toContain('Lesson 5: Comparative Narrative Frames');
+    expect(result?.text).toContain('Assignment Briefs');
+    expect(result?.text).toContain('The Odyssey');
+    expect(result?.text).toContain('The Thousand and One Nights');
+    expect(result?.text).toContain('one locatable passage or formal feature from each work');
+    expect(result?.text).toContain('credible counter-reading');
+    expect(result?.text).toContain('cannot establish');
+    expect(result).toMatchObject({ kind: 'course-evidence', lessonNumber: 5 });
+  });
+
+  it('refuses to invent a named-reading pairing when the compiled package has none', () => {
+    const result = buildScionNamedReadingAnswer({
+      question: 'Where do students compare The Odyssey and Antigone?',
+      courseMap: {
+        lessons: [
+          { lessonNumber: 1, title: 'Lesson 1: The Odyssey', sections: [{ readings: ['The Odyssey'] }] },
+          { lessonNumber: 2, title: 'Lesson 2: Antigone', sections: [{ readings: ['Antigone'] }] },
+        ],
+      },
+      deliverables: {
+        assignments: {
+          status: 'done',
+          data: {
+            assignments: [
+              { lessonTitle: 'Lesson 1: The Odyssey', taskDescription: 'Analyze one passage from The Odyssey.' },
+              { lessonTitle: 'Lesson 2: Antigone', taskDescription: 'Analyze one passage from Antigone.' },
+            ],
+          },
+        },
+      },
+    });
+
+    expect(result?.text).toContain('no compiled activity explicitly pairs these readings');
+    expect(result?.text).toContain('I won’t invent a location or requirement');
+    expect(result).toMatchObject({ kind: 'course-evidence', sources: ['Course Map'] });
+  });
+
+  it('uses the assignment schedule instead of its array position for a comparative answer', () => {
+    const result = buildScionNamedReadingAnswer({
+      question:
+        'Where do students compare The Odyssey and The Thousand and One Nights, and what evidence, counter-reading, and claim limit must they use?',
+      courseMap: {
+        lessons: [
+          { lessonNumber: 1, title: 'Lesson 1: Gilgamesh', sections: [{ readings: ['The Epic of Gilgamesh'] }] },
+          { lessonNumber: 2, title: 'Lesson 2: The Odyssey', sections: [{ readings: ['The Odyssey'] }] },
+          { lessonNumber: 3, title: 'Lesson 3: Antigone', sections: [{ readings: ['Antigone'] }] },
+          { lessonNumber: 4, title: 'Lesson 4: Poetry', sections: [{ readings: ['Li Bai and Du Fu'] }] },
+          {
+            lessonNumber: 5,
+            title: 'Lesson 5: The Thousand and One Nights',
+            sections: [{ readings: ['The Thousand and One Nights'] }],
+          },
+        ],
+      },
+      deliverables: {
+        assignments: {
+          status: 'done',
+          data: {
+            assignments: [
+              {
+                title: 'Comparative Reading Responses',
+                dueWeek: 'End of Week 2',
+                overview:
+                  'Compare The Odyssey and The Thousand and One Nights with one locatable passage from each work, a credible counter-reading, and an explicit statement of what the paired evidence cannot establish.',
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    expect(result?.text).toContain(
+      'Comparative Reading Responses schedules the comparison between The Odyssey and The Thousand and One Nights',
+    );
+    expect(result?.text).not.toContain('the The Odyssey');
+    expect(result?.text).toContain('Lesson 2: The Odyssey');
+    expect(result?.text).toContain('make a comparative claim that needs both texts');
+    expect(result?.text).toContain('what the selected passages cannot establish on their own');
+    expect(result?.text).not.toContain('Lesson 1: Gilgamesh');
+    expect(result).toMatchObject({ kind: 'course-evidence', lessonNumber: 2 });
   });
 });
 
