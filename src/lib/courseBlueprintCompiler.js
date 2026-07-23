@@ -1040,7 +1040,7 @@ function splitLearnerReadableClauses(value) {
 }
 
 function readableLearnerSentence(value, { minimumWords = 14 } = {}) {
-  const text = cleanText(value);
+  const text = cleanText(value).replace(/\bcurrent\s+the\s+/gi, 'current ');
   if (!text || wordCount(text) < minimumWords) return text;
   return splitLearnerReadableClauses(text);
 }

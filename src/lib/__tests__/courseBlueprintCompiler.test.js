@@ -148,6 +148,7 @@ describe('discussion assessment references', () => {
 
     expect(workingBody).not.toContain(canonicalArtifact);
     expect(workingBody).not.toMatch(/weekly reading quizzes:/i);
+    expect(workingBody).not.toMatch(/\bcurrent the\b/i);
     expect(workingBody).toContain('the Week 1 quiz');
     expect(discussion.facilitationTips.opening).toMatch(/\.\s+Then run /);
     expect(discussion.discussionProtocol.modalityFit).not.toMatch(/\.\s+instead of/i);
