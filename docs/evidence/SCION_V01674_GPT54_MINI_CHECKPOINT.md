@@ -10,12 +10,12 @@ This file preserves the live comparison state before a Codex app update. No API 
 
 Both routes received the same eight-week World Literature brief and used the same CourseMapper compiler, verifier, grader, and ZIP exporter.
 
-| Route | Build time | Provider cost | Provider/recovery shape | Result |
-| --- | ---: | ---: | --- | --- |
-| Scion V0.16.74 | 53 s build; about 77 s including model preparation | $0 | 1 local skeleton route plus 8 bounded lesson-kernel requests; 0 retries | 99/A, texture 93, 0 P0, 0 P1, 0 P2, 38/38 exports |
-| GPT-5.4 Mini, successful run 1 | 107 s build | $0.07320885 | 4 paid calls, including 2 recovery calls | 99/A, texture 94, 0 P0, 0 P1, 1 P2 |
-| GPT-5.4 Mini, repeated run before registry fix | 176 s build | $0.0628392 | 3 paid calls before finalizer recovery | Blocked at 5/9 because sparse assessment-registry coverage was treated as fatal |
-| GPT-5.4 Mini, run after registry/title fixes | 136 s visible ready time | about $0.06 | Whole-course enrichment still required contract recovery | 99/A, texture 94, 0 P0, 0 P1, 0 P2, 38/38 exports |
+| Route                                          |                                         Build time | Provider cost | Provider/recovery shape                                                 | Result                                                                          |
+| ---------------------------------------------- | -------------------------------------------------: | ------------: | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| Scion V0.16.74                                 | 53 s build; about 77 s including model preparation |            $0 | 1 local skeleton route plus 8 bounded lesson-kernel requests; 0 retries | 99/A, texture 93, 0 P0, 0 P1, 0 P2, 38/38 exports                               |
+| GPT-5.4 Mini, successful run 1                 |                                        107 s build |   $0.07320885 | 4 paid calls, including 2 recovery calls                                | 99/A, texture 94, 0 P0, 0 P1, 1 P2                                              |
+| GPT-5.4 Mini, repeated run before registry fix |                                        176 s build |    $0.0628392 | 3 paid calls before finalizer recovery                                  | Blocked at 5/9 because sparse assessment-registry coverage was treated as fatal |
+| GPT-5.4 Mini, run after registry/title fixes   |                           136 s visible ready time |   about $0.06 | Whole-course enrichment still required contract recovery                | 99/A, texture 94, 0 P0, 0 P1, 0 P2, 38/38 exports                               |
 
 The third GPT package was downloaded and independently checked:
 
