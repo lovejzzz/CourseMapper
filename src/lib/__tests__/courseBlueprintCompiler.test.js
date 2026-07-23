@@ -152,7 +152,70 @@ describe('discussion assessment references', () => {
     expect(workingBody).toContain('the Week 1 quiz');
     expect(discussion.facilitationTips.opening).toMatch(/\.\s+Then run /);
     expect(discussion.discussionProtocol.modalityFit).not.toMatch(/\.\s+instead of/i);
-    expect(discussion.sourceArtifacts.some((artifact) => artifact.locator === canonicalArtifact)).toBe(true);
+    expect(
+      discussion.sourceArtifacts.some((artifact) => artifact.locator === canonicalArtifact),
+      JSON.stringify(discussion.sourceArtifacts),
+    ).toBe(true);
+  });
+
+  it('uses the registry identity when an earlier lesson alias already compacted the artifact title', () => {
+    const canonicalArtifact = 'weekly reading responses: Fantastic and Infinite Library';
+    const blueprint = buildCourseBlueprint(
+      {
+        courseName: 'World Literature',
+        lessons: [
+          {
+            title: 'Lesson 12: Fantastic and Infinite Library',
+            sections: [
+              {
+                topicSection: 'Fantastic and Infinite Library',
+                learningObjectives:
+                  'Evaluate competing readings of Fantastic and Infinite Library and defend the stronger interpretation.',
+                weeklyAssessments: canonicalArtifact,
+                syncActivities: 'Test two readings against the same passage.',
+                supportingResources: 'The Library of Babel',
+              },
+            ],
+          },
+        ],
+      },
+      {
+        assessmentRegistry: [
+          {
+            id: 'A1',
+            title: canonicalArtifact,
+            sourceText: canonicalArtifact,
+            dueSession: 1,
+            kind: 'graded-artifact',
+            weightPct: 100,
+          },
+        ],
+      },
+    );
+    blueprint.lessons[0].studentArtifact = 'weekly reading responses: the Fantastic Infinite Library focus';
+
+    const discussion = compileBlueprintDeliverable('discussions', blueprint, {
+      skipPrepareBlueprint: true,
+      skipCompilerContractCheck: true,
+      skipLanguageFinalizer: true,
+    }).discussions[0];
+    const workingBody = JSON.stringify([
+      discussion.prompt,
+      discussion.context,
+      discussion.evidenceRequirement,
+      discussion.followUpProbes,
+      discussion.facilitationTips,
+      discussion.responseStems,
+      discussion.evaluationCriteria,
+      discussion.guidelines,
+    ]);
+
+    expect(
+      discussion.sourceArtifacts.some((artifact) => artifact.locator === canonicalArtifact),
+      JSON.stringify(discussion.sourceArtifacts),
+    ).toBe(true);
+    expect(workingBody).toContain('the Week 1 response');
+    expect(workingBody).not.toContain('weekly reading responses: the Fantastic Infinite Library focus');
   });
 });
 
@@ -207,6 +270,54 @@ describe('pitfalls-slide sentence integrity', () => {
       'Much forgetting is encoding failure (never stored) or retrieval failure (blocking, interference).',
     );
     expect(JSON.stringify(pitfalls)).not.toMatch(/\byet be[.!]?"?/i);
+  });
+
+  it('keeps a complete coordinated correction instead of ending after "falls short"', () => {
+    const blueprint = buildCourseBlueprint({
+      courseName: 'Human Nutrition',
+      lessons: [
+        {
+          title: 'Lesson 1: Energy balance and metabolism',
+          sections: [
+            {
+              topicSection: 'Energy balance and metabolism',
+              learningObjectives: 'Apply energy-balance evidence to a bounded case.',
+              weeklyAssessments: 'Energy balance analysis',
+              syncActivities: 'Compare intake and expenditure cases.',
+              supportingResources: 'Short Human Nutrition reading',
+            },
+          ],
+        },
+      ],
+    });
+    const fullCorrection =
+      'Body weight tracks the energy ledger: it is maintained, lost, or gained according to whether intake equals, falls short of, or exceeds expenditure — whatever foods the energy comes from.';
+    blueprint.lessons[0].enrichment = {
+      keyTerms: [
+        {
+          term: 'energy balance',
+          definition: 'Energy balance compares energy intake with expenditure.',
+          misconception: 'Specific foods alone determine every change in body weight.',
+          correction: fullCorrection,
+        },
+        {
+          term: 'basal metabolism',
+          definition: 'Basal metabolism supplies much of daily energy expenditure.',
+          misconception: 'Exercise is always the largest part of daily energy expenditure.',
+          correction: 'Basal processes can consume more daily energy than planned exercise.',
+        },
+      ],
+    };
+
+    const deck = compileBlueprintDeliverable('slideDecks', blueprint, {
+      skipPrepareBlueprint: true,
+      skipCompilerContractCheck: true,
+      skipLanguageFinalizer: true,
+    }).decks[0];
+    const pitfalls = deck.slides.find((slide) => /common pitfalls/i.test(slide.title));
+
+    expect(JSON.stringify(pitfalls)).toContain(fullCorrection);
+    expect(JSON.stringify(pitfalls)).not.toContain('falls short.');
   });
 });
 

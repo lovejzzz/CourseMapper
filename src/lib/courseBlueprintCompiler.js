@@ -473,7 +473,11 @@ function readableMisconception(value) {
 
 function readableCorrection(value) {
   const text = stripTerminalPunctuation(cleanText(value).replace(/^in fact[,:]?\s*/i, ''));
-  return conciseClause(text, text || 'use the documented correction', 140);
+  // Preserve a complete, still-readable correction when it fits on a slide.
+  // The former 140-character ceiling clipped coordinated comparisons such as
+  // "intake equals, falls short of, or exceeds expenditure" after "falls
+  // short", turning accurate source content into an incomplete claim.
+  return conciseClause(text, text || 'use the documented correction', 190);
 }
 
 function readableSentences(value) {
@@ -24040,7 +24044,7 @@ function discussionArtifactReference(lesson = {}) {
     [/\b(?:reflection|reflective|exit ticket|journal|debrief)\b/i, 'reflection'],
     [/\b(?:lab|laboratory|practicum)\b/i, 'lab'],
     [/\b(?:quiz|quizzes)\b/i, 'quiz'],
-    [/\b(?:reading response|response)\b/i, 'response'],
+    [/\b(?:reading responses?|responses?)\b/i, 'response'],
     [/\b(?:homework|assignment)\b/i, 'assignment'],
     [/\b(?:evidence check|knowledge check|checkpoint)\b/i, 'check'],
     [/\b(?:memo)\b/i, 'memo'],
@@ -24071,12 +24075,13 @@ function discussionArtifactReference(lesson = {}) {
   return `the ${week} ${kind}`;
 }
 
-function prepareDiscussionLesson(lesson = {}) {
+function prepareDiscussionLesson(lesson = {}, { canonicalArtifact: sourceCanonicalArtifact = '' } = {}) {
   // Preserve the instructor/source artifact exactly for the source locator.
   // safeLessonArtifact may rewrite a long embedded lesson title into a
   // sentence-friendly alias, which is useful in prose but is no longer the
   // canonical title the instructor supplied.
-  const canonicalArtifact = cleanText(lesson?.studentArtifact) || safeLessonArtifact(lesson);
+  const canonicalArtifact =
+    cleanText(sourceCanonicalArtifact) || cleanText(lesson?.studentArtifact) || safeLessonArtifact(lesson);
   const compactArtifact = discussionArtifactReference({
     ...lesson,
     studentArtifact: canonicalArtifact,
@@ -25034,13 +25039,25 @@ function compileDiscussions(blueprint) {
             }
           : lesson;
       const assessment = assessmentForBlueprintLesson(blueprint, lesson, index);
+      const lessonRegistryAssessments = asArray(blueprint.assessmentRegistry).filter(
+        (entry) => entry?.kind !== 'in-class' && Number(entry?.dueSession) === Number(lesson.lessonNumber),
+      );
+      const registryAssessment =
+        lessonRegistryAssessments.find((entry) => assessment?.registryId && entry?.id === assessment.registryId) ||
+        lessonRegistryAssessments[0];
       const formativeCheck = asArray(blueprint.assessmentRegistry).find(
         (entry) =>
           entry.kind === 'in-class' &&
           Number(entry.dueSession) === Number(contentAdmittedDiscussionLesson.lessonNumber),
       );
       const admittedDiscussionLesson = {
-        ...prepareDiscussionLesson(contentAdmittedDiscussionLesson),
+        ...prepareDiscussionLesson(contentAdmittedDiscussionLesson, {
+          // The assessment registry remains the authoritative identity even
+          // when an earlier prose-compaction pass has shortened the lesson's
+          // studentArtifact field. Working discussion copy receives a Week N
+          // alias; SOURCE ARTIFACTS keeps this exact locatable title once.
+          canonicalArtifact: registryAssessment?.sourceText || registryAssessment?.title,
+        }),
         hasStandaloneAssessment: Boolean(assessment?.id || assessment?.registryId || assessment?.title),
         formativeCheckTitle: cleanText(formativeCheck?.title),
       };

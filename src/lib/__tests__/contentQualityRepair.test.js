@@ -61,7 +61,13 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
   });
 
   it('preserves valid phrasal verbs that end in a preposition', () => {
-    const data = { notes: ['Ask students which cue they should watch for.', 'Name the source they will work with.'] };
+    const data = {
+      notes: [
+        'Ask students which cue they should watch for.',
+        'Name the source they will work with.',
+        'The conclusion holds whatever foods the energy comes from.',
+      ],
+    };
     const result = repairDeliverableContentQuality('slideDecks', data);
 
     expect(result.changed).toBe(false);
