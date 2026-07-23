@@ -346,6 +346,12 @@ const NATIVE_VISUAL_LIMITS = {
   tableLead: 220, // max chars for the lead assertion kept as text
   tableRow: 130, // max chars per table row bullet
   tableRowLead: 42, // max chars for the split-off first cell of a row
+  // A pitfalls slide is a true two-column comparison, not a terse
+  // claim/evidence index. It gets a wider first column, smaller type, and
+  // taller rows below, so complete misconception/correction pairs can render
+  // as a useful native visual instead of falling back to dense bullets.
+  misconceptionRow: 200,
+  misconceptionRowLead: 100,
   matrixCell: 140, // max chars per decision-matrix cell
   hubLabel: 48, // max chars for the concept-map hub label
   spokeLabel: 60, // max chars per concept-map spoke phrase
@@ -477,15 +483,15 @@ function planNativeVisual(s, slideType, visKind, hasGeneratedImage, hasLatex) {
     // unrelated leftovers in all 58 audited decks; with no real rows the
     // slide keeps its plain text layout.
     const visual = s.visual || s.vi || {};
+    const isMisconceptionComparison = /\bmisconception\b/i.test(visKind);
+    const rowLeadLimit = isMisconceptionComparison
+      ? NATIVE_VISUAL_LIMITS.misconceptionRowLead
+      : NATIVE_VISUAL_LIMITS.tableRowLead;
+    const rowLimit = isMisconceptionComparison ? NATIVE_VISUAL_LIMITS.misconceptionRow : NATIVE_VISUAL_LIMITS.tableRow;
     const rows = (Array.isArray(visual.rows) ? visual.rows : [])
       .map((row) => (Array.isArray(row) ? row.map((cell) => String(cell ?? '').trim()) : []))
       .filter(
-        (row) =>
-          row.length === 2 &&
-          row[0] &&
-          row[1] &&
-          row[0].length <= NATIVE_VISUAL_LIMITS.tableRowLead &&
-          row[1].length <= NATIVE_VISUAL_LIMITS.tableRow,
+        (row) => row.length === 2 && row[0] && row[1] && row[0].length <= rowLeadLimit && row[1].length <= rowLimit,
       )
       .slice(0, 4);
     if (rows.length < 2) return null;
@@ -506,6 +512,7 @@ function planNativeVisual(s, slideType, visKind, hasGeneratedImage, hasLatex) {
       twoCol: true,
       rows,
       columnLabels: columnLabels.length === 2 ? columnLabels : ['CLAIM', 'EVIDENCE'],
+      isMisconceptionComparison,
     };
   }
 
@@ -579,7 +586,9 @@ function addEvidenceTable(pptx, slide, theme, plan, visKind, tracker) {
   const tableX = 4.95,
     tableY = 1.35;
   const tableW = SLIDE_W - tableX - 0.4;
-  const leadColW = 1.55;
+  const leadColW = plan.isMisconceptionComparison ? 2.05 : 1.55;
+  const bodyFontSize = plan.isMisconceptionComparison ? 8.5 : 10;
+  const rowH = plan.isMisconceptionComparison ? 0.9 : 0.72;
   const headerOptions = {
     fill: { color: theme.primary },
     color: 'FFFFFF',
@@ -605,7 +614,7 @@ function addEvidenceTable(pptx, slide, theme, plan, visKind, tracker) {
         fill: { color: ci === 0 ? theme.light : 'FFFFFF' },
         color: theme.bodyText,
         bold: ci === 0,
-        fontSize: 10,
+        fontSize: bodyFontSize,
         align: 'left',
         valign: 'middle',
       },
@@ -621,12 +630,18 @@ function addEvidenceTable(pptx, slide, theme, plan, visKind, tracker) {
     margin: 0.06,
     // pptxgenjs otherwise chooses a single-line default row height even when
     // evidence wraps to 2-3 lines, which makes adjacent rows collide.
-    rowH: 0.72,
+    rowH,
     autoPage: false,
     // v0.14.5 (C3): cmViz name — counts as a native visual in the grader bar.
     objectName: 'cmVizTable',
   });
-  tracker.add({ x: tableX, y: tableY, w: tableW, h: 3.4, label: 'evidence-table' });
+  tracker.add({
+    x: tableX,
+    y: tableY,
+    w: tableW,
+    h: rowH * (bodyRows.length + 1),
+    label: 'evidence-table',
+  });
 }
 
 /** Render the decision matrix grid on a discussion slide. */

@@ -11,6 +11,7 @@ import {
   isFatalAppConsoleMessage,
   isPreviewInfrastructureError,
   normalizeLlmShimResponse,
+  readProjectIndexedDbAutosaveFromPage,
   stageProductionDist,
 } from '../scripts/lib/crucibleBrowser.mjs';
 
@@ -80,6 +81,15 @@ describe('Crucible production-bundle freshness', () => {
 });
 
 describe('Crucible preview isolation', () => {
+  it('captures the full IndexedDB project payload for exact post-run inspection', async () => {
+    const payload = '{"formatVersion":1,"deliverables":{"studyGuides":{"status":"done"}}}';
+    const page = {
+      evaluate: async () => payload,
+    };
+
+    expect(await readProjectIndexedDbAutosaveFromPage(page)).toBe(payload);
+  });
+
   it('serves a verified temporary snapshot rather than mutable worktree bytes', async () => {
     const root = await fixture();
     await fs.mkdir(path.join(root, 'dist', 'assets'), { recursive: true });

@@ -586,6 +586,55 @@ describe('PPTX export — native visuals (v0.12.1)', () => {
     expect(xml).toContain('Other explanations must be tested');
   });
 
+  it('renders complete long misconception pairs in a readable native table', async () => {
+    const blob = await buildSlideDeckPptxBlob(
+      {
+        decks: [
+          {
+            lessonTitle: 'Lesson 15: Course Review',
+            slides: [
+              {
+                title: 'Common pitfalls in course review',
+                type: 'content',
+                bullets: [
+                  'Students dismiss heuristics as sloppy thinking. Heuristics can be adaptive under limited time.',
+                  'Students treat all forgetting as erased storage. Encoding and retrieval failures differ.',
+                ],
+                visual: {
+                  kind: 'misconception comparison table',
+                  tableLead: 'Vote first, then test each tempting claim against the stronger explanation.',
+                  columnLabels: ['MISCONCEPTION', 'CORRECTION'],
+                  rows: [
+                    [
+                      'Students dismiss heuristics as sloppy thinking that should always be replaced by algorithms',
+                      'Heuristics are adaptive general frameworks deliberately used when information or time is limited, while an algorithm guarantees a result only where a step-by-step formula exists',
+                    ],
+                    [
+                      'Students treat all forgetting as memories being erased from storage',
+                      'Much forgetting is encoding failure (never stored) or retrieval failure (blocking, interference)',
+                    ],
+                  ],
+                },
+              },
+            ],
+          },
+        ],
+      },
+      'Introduction to Psychology',
+      0,
+    );
+    const zip = await JSZip.loadAsync(await blob.arrayBuffer());
+    const xml = await zip.file('ppt/slides/slide1.xml').async('string');
+
+    expect(xml).toMatch(NATIVE_TABLE_XML);
+    expect(xml).toContain('Students dismiss heuristics as sloppy thinking');
+    expect(xml).toContain('Heuristics are adaptive general frameworks');
+    expect(xml).toContain('retrieval failure (blocking, interference)');
+    const rowHeights = [...xml.matchAll(/<a:tr h="(\d+)"/g)].map((match) => Number(match[1]));
+    expect(rowHeights).toHaveLength(3);
+    expect(Math.min(...rowHeights)).toBeGreaterThanOrEqual(800000);
+  });
+
   it('discussion slide with a decision-matrix visual renders a native grid table', () => {
     // Fixture slide index 6 = discussion with kind 'decision matrix'
     const xml = slideXmls[6];

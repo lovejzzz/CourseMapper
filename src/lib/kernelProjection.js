@@ -624,12 +624,12 @@ function composeEvidenceBoundedShortAnswer(
     materials
       ? ensureSentence(
           projectionVariant(variantSeed + 3, [
-            `Use ${lowercaseLead(materials)} to test this interpretation; the supplied evidence supports a bounded next decision, not a broader causal claim without additional evidence`,
+            `Use ${lowercaseLead(materials)} to test this interpretation. The supplied evidence supports a bounded next decision, not a broader causal claim without additional evidence`,
             `Check the conclusion against ${lowercaseLead(materials)}. Those materials justify the next decision but cannot establish a wider cause without more evidence`,
-            `${sentenceCase(materials)} can support this limited recommendation; those materials do not prove that the same explanation applies beyond the case`,
-            `Test the claim with ${lowercaseLead(materials)}, then keep the boundary explicit: the evidence guides this decision, while broader generalization needs another source`,
+            `${sentenceCase(materials)} can support this limited recommendation. Those materials do not prove that the same explanation applies beyond the case`,
+            `Test the claim with ${lowercaseLead(materials)}. Keep the boundary explicit. The evidence guides this decision. Broader generalization needs another source`,
             `The evidence check is ${lowercaseLead(materials)}. It supports a case-specific action, not an unrestricted causal conclusion`,
-            `Ground the recommendation in ${lowercaseLead(materials)} and name the remaining limitation before extending the claim`,
+            `Ground the recommendation in ${lowercaseLead(materials)}. Name the remaining limitation before extending the claim`,
           ]),
         )
       : 'The supplied evidence supports a bounded interpretation and next decision, not a broader causal claim without additional evidence.',
@@ -694,14 +694,14 @@ function buildShortAnswerItem(kernel, index, seed = 0, { compactFactLedgerAnswer
       ])
     : setup
       ? projectionVariant(variantSeed + 1, [
-          `Without assuming a hidden cause, identify the most relevant course concept or method, state the best-supported conclusion, cite ${evidenceRequirement}, and name one limitation or next piece of evidence.`,
-          `Select the course concept or method that best fits, give a bounded conclusion, cite ${evidenceRequirement}, and identify one limitation or additional evidence need.`,
-          `Name the most defensible course lens, explain what the case supports, point to ${evidenceRequirement}, and state one boundary or next piece of evidence.`,
-          `Choose the relevant concept or method without inferring hidden motives, use ${evidenceRequirement} to justify the conclusion, and name one limitation.`,
-          `Identify the course principle that should guide the decision, cite ${evidenceRequirement}, distinguish support from assumption, and request one next piece of evidence.`,
-          `Identify the course method that best explains the evidence, state a case-bounded conclusion, reference ${evidenceRequirement}, and name one alternative or limitation.`,
+          `Do not assume a hidden cause. Identify the most relevant course concept or method. State the best-supported conclusion. Cite ${evidenceRequirement}. Name one limitation or next piece of evidence.`,
+          `Select the course concept or method that best fits. Give a bounded conclusion. Cite ${evidenceRequirement}. Identify one limitation or additional evidence need.`,
+          `Name the most defensible course lens. Explain what the case supports. Point to ${evidenceRequirement}. State one boundary or next piece of evidence.`,
+          `Choose the relevant concept or method without inferring hidden motives. Use ${evidenceRequirement} to justify the conclusion. Name one limitation.`,
+          `Identify the course principle that should guide the decision. Cite ${evidenceRequirement}. Distinguish support from assumption. Request one next piece of evidence.`,
+          `Identify the course method that best explains the evidence. State a case-bounded conclusion. Reference ${evidenceRequirement}. Name one alternative or limitation.`,
         ])
-      : `Identify the most relevant course concept or method, explain the best-supported conclusion, cite ${evidenceRequirement}, and name one boundary or next piece of evidence.`;
+      : `Identify the most relevant course concept or method. Explain the best-supported conclusion. Cite ${evidenceRequirement}. Name one boundary or next piece of evidence.`;
   return {
     index,
     type: 'short_answer',

@@ -544,6 +544,36 @@ async function safeText(locator) {
   }
 }
 
+export async function readProjectIndexedDbAutosaveFromPage(page) {
+  return page.evaluate(
+    () =>
+      new Promise((resolve) => {
+        const request = globalThis.indexedDB.open('coursemapper-project-autosave-v1', 1);
+        request.onerror = () => resolve('');
+        request.onblocked = () => resolve('');
+        request.onsuccess = () => {
+          const database = request.result;
+          if (!database.objectStoreNames.contains('projects')) {
+            database.close();
+            resolve('');
+            return;
+          }
+          const transaction = database.transaction('projects', 'readonly');
+          const recordRequest = transaction.objectStore('projects').get('current');
+          recordRequest.onerror = () => {
+            database.close();
+            resolve('');
+          };
+          recordRequest.onsuccess = () => {
+            const payload = typeof recordRequest.result?.payload === 'string' ? recordRequest.result.payload : '';
+            database.close();
+            resolve(payload);
+          };
+        };
+      }),
+  );
+}
+
 async function getZipAction(page) {
   const sidePanelZip = page.getByTestId('export-download-zip');
   if (
@@ -1193,6 +1223,10 @@ export async function runCourseInBrowser({
     if (projectAtSuccess) {
       await fs.writeFile(path.join(outDir, 'project.json'), projectAtSuccess).catch(() => {});
     }
+    const fullProjectAtSuccess = await readProjectIndexedDbAutosaveFromPage(page).catch(() => '');
+    if (fullProjectAtSuccess) {
+      await fs.writeFile(path.join(outDir, 'project-full.json'), fullProjectAtSuccess).catch(() => {});
+    }
     // WS-C C4: read the compiler's legacy-branch telemetry while the page is alive.
     legacyPathTelemetry = await page
       .evaluate(() =>
@@ -1216,6 +1250,10 @@ export async function runCourseInBrowser({
     const projectDump = await page.evaluate(() => localStorage.getItem('coursemapper-project')).catch(() => null);
     if (projectDump) {
       await fs.writeFile(path.join(outDir, `project-at-failure-${phase}.json`), projectDump).catch(() => {});
+    }
+    const fullProjectDump = await readProjectIndexedDbAutosaveFromPage(page).catch(() => '');
+    if (fullProjectDump) {
+      await fs.writeFile(path.join(outDir, `project-full-at-failure-${phase}.json`), fullProjectDump).catch(() => {});
     }
     // A quality-blocked package can still expose its in-memory archive for
     // forensic inspection. Preserve that archive under an unmistakably test-

@@ -3,6 +3,7 @@ import {
   buildCompilerProofBundle,
   buildSlideDeckIntermediateRepresentation,
   buildCourseBlueprint,
+  compileBlueprintDeliverable,
   compileBlueprintDeliverables,
   estimateBlueprintCompilerSavings,
   getBlueprintCompiledFeatures,
@@ -18,7 +19,7 @@ import { validateDeliverableGeneration } from '../deliverablePostProcess';
 import { deliverableToCsvRows } from '../exporters/csvExporter';
 import { buildInstructorPreferenceProfile } from '../instructorPreferenceProfile';
 import { findPromptArtifactContamination } from '../quality/artifactDefectPatterns';
-import { validateSemanticContentQuality } from '../pedagogicalValidator';
+import { inspectDeliverableReadability, validateSemanticContentQuality } from '../pedagogicalValidator';
 import { computeTexture } from '../quality/textureMetric';
 import { DEFAULT_AUDIT_PROJECTS, MESSY_IMPORT_STRESS_PROJECT } from '../../../scripts/hybridPipelineAudit.mjs';
 
@@ -94,6 +95,175 @@ describe('discipline-safe deterministic worked examples', () => {
       status: 'fits-session-with-activity-time',
       sessionMinutes: 75,
     });
+  });
+});
+
+describe('discussion assessment references', () => {
+  it('keeps the canonical assessment locatable once without stamping it through the discussion body', () => {
+    const canonicalArtifact = 'weekly reading quizzes: the forgetting retrieval failure focus';
+    const blueprint = buildCourseBlueprint({
+      courseName: 'Introduction to Psychology',
+      lessons: [
+        {
+          title: 'Lesson 1: Forgetting and retrieval failure',
+          sections: [
+            {
+              topicSection: 'Encoding failure, storage decay, retrieval failure, and interference',
+              learningObjectives: 'Explain how encoding and retrieval failures produce different memory outcomes.',
+              weeklyAssessments: canonicalArtifact,
+              syncActivities: 'Compare two explanations against behavioral evidence.',
+              supportingResources: 'OpenStax Psychology memory chapter',
+            },
+          ],
+        },
+      ],
+    });
+    blueprint.lessons[0].studentArtifact = canonicalArtifact;
+    blueprint.lessons[0].enrichment = {
+      keyTerms: [
+        {
+          term: 'retrieval failure',
+          definition: 'Stored information can remain temporarily inaccessible.',
+          misconception: 'A failed recall attempt proves the memory was erased.',
+          correction: 'Retrieval cues can recover information that remained stored.',
+        },
+      ],
+    };
+
+    const discussion = compileBlueprintDeliverable('discussions', blueprint, {
+      skipPrepareBlueprint: true,
+      skipCompilerContractCheck: true,
+      skipLanguageFinalizer: true,
+    }).discussions[0];
+    const workingBody = JSON.stringify([
+      discussion.prompt,
+      discussion.context,
+      discussion.evidenceRequirement,
+      discussion.followUpProbes,
+      discussion.facilitationTips,
+      discussion.evaluationCriteria,
+      discussion.equityConsiderations,
+      discussion.guidelines,
+    ]);
+
+    expect(workingBody).not.toContain(canonicalArtifact);
+    expect(workingBody).toContain('the Week 1 quiz');
+    expect(discussion.facilitationTips.opening).toMatch(/\.\s+Then run /);
+    expect(discussion.sourceArtifacts.some((artifact) => artifact.locator === canonicalArtifact)).toBe(true);
+  });
+});
+
+describe('pitfalls-slide sentence integrity', () => {
+  it('backs up to a complete authored clause instead of cutting a correction mid-thought', () => {
+    const blueprint = buildCourseBlueprint({
+      courseName: 'Introduction to Psychology',
+      lessons: [
+        {
+          title: 'Lesson 1: Forgetting and retrieval failure',
+          sections: [
+            {
+              topicSection: 'Encoding failure, storage decay, retrieval failure, and interference',
+              learningObjectives: 'Distinguish encoding failure from retrieval failure using behavioral evidence.',
+              weeklyAssessments: 'Memory explanation check',
+              syncActivities: 'Compare two explanations against behavioral evidence.',
+              supportingResources: 'OpenStax Psychology memory chapter',
+            },
+          ],
+        },
+      ],
+    });
+    blueprint.lessons[0].enrichment = {
+      keyTerms: [
+        {
+          term: 'retrieval failure',
+          definition: 'Stored information can remain temporarily inaccessible.',
+          misconception: 'Students treat all forgetting as memories being erased from storage.',
+          correction:
+            'Much forgetting is encoding failure (never stored) or retrieval failure (blocking, interference) — the tip-of-the-tongue state proves information can remain stored yet be temporarily inaccessible.',
+        },
+        {
+          term: 'heuristic',
+          definition: 'A heuristic is an efficient strategy that does not guarantee a solution.',
+          misconception: 'Students dismiss heuristics as sloppy thinking that should always be replaced by algorithms.',
+          correction:
+            'Heuristics are adaptive general frameworks deliberately used when information or time is limited, while an algorithm guarantees a result only where a step-by-step formula exists.',
+        },
+      ],
+    };
+
+    const deck = compileBlueprintDeliverable('slideDecks', blueprint, {
+      skipPrepareBlueprint: true,
+      skipCompilerContractCheck: true,
+      skipLanguageFinalizer: true,
+    }).decks[0];
+    const pitfalls = deck.slides.find((slide) => /common pitfalls/i.test(slide.title));
+
+    expect(pitfalls).toBeTruthy();
+    expect(pitfalls.visual.rows).toHaveLength(2);
+    expect(pitfalls.visual.rows[0][1]).toBe(
+      'Much forgetting is encoding failure (never stored) or retrieval failure (blocking, interference).',
+    );
+    expect(JSON.stringify(pitfalls)).not.toMatch(/\byet be[.!]?"?/i);
+  });
+});
+
+describe('learner-readable compiler projection', () => {
+  it('drops a visibly clipped summary tail and splits dense study-guide clauses without losing content', () => {
+    const blueprint = buildCourseBlueprint({
+      courseName: 'Introduction to Psychology',
+      lessons: [
+        {
+          title: 'Lesson 1: Intrinsic and extrinsic motivation',
+          sections: [
+            {
+              topicSection: 'Intrinsic motivation, extrinsic motivation, and the overjustification effect',
+              learningObjectives: 'Compare intrinsic and extrinsic motivation using observable evidence.',
+              weeklyAssessments: 'Motivation evidence check',
+              syncActivities: 'Compare two motivation explanations against the case evidence.',
+              supportingResources: 'OpenStax Psychology motivation chapter',
+            },
+          ],
+        },
+      ],
+    });
+    blueprint.lessons[0].enrichment = {
+      studyGuide: {
+        summary:
+          'Intrinsic and extrinsic motivation explain why people pursue goals. Connect the case, source claim, and correction and keep the conclusion within the ev',
+        reviewStrategy:
+          'Compare the observed behavior with the stated reward; while doing so, record what the evidence supports and what it leaves uncertain.',
+      },
+      keyTerms: [
+        {
+          term: 'motivation',
+          definition:
+            'Intrinsic motivation comes from satisfaction in the activity, while extrinsic motivation aims at an outside consequence.',
+          misconception: 'Any reward always increases motivation.',
+          correction: 'Expected rewards can reduce an interest that was already internally sustained.',
+        },
+      ],
+      kernel: {
+        facts: [
+          'Intrinsic motivation comes from satisfaction in the activity itself.',
+          'Extrinsic motivation is directed toward an outside consequence.',
+          'Expected rewards can reduce prior intrinsic interest under some conditions.',
+        ],
+      },
+    };
+
+    const studyGuides = compileBlueprintDeliverables(blueprint, ['studyGuides']).studyGuides;
+    const guide = studyGuides.studyGuides[0];
+    const readable = inspectDeliverableReadability({
+      studyGuides: { status: 'done', data: studyGuides },
+    })[0];
+
+    expect(guide.summary).toBe('Intrinsic and extrinsic motivation explain why people pursue goals.');
+    expect(JSON.stringify(guide.keyTerms)).toContain(
+      'Intrinsic motivation comes from satisfaction in the activity. Extrinsic motivation aims at an outside consequence.',
+    );
+    expect(guide.examPrep.reviewStrategy).not.toContain(';');
+    expect(guide.examPrep.reviewStrategy).not.toMatch(/,\s+while\b/i);
+    expect(readable.longSentenceRatio).toBeLessThanOrEqual(0.12);
   });
 });
 
@@ -3554,7 +3724,10 @@ describe('courseBlueprintCompiler', () => {
     );
     const countDecksWith = (pattern) => deckTexts.filter((text) => pattern.test(text)).length;
     const countDiscussionsWith = (pattern) => discussionTexts.filter((text) => pattern.test(text)).length;
+    const learnerFacingText = [...deckTexts, ...planTexts, ...discussionTexts].join(' ');
 
+    expect(learnerFacingText).not.toMatch(/\blecture-exam\b/i);
+    expect(learnerFacingText).toMatch(/the way this course collects exam and retrieval evidence/i);
     expect(countDecksWith(/collect concept-check answers, confidence ratings, misconception patterns/i)).toBe(0);
     expect(countDecksWith(/answers confidence ratings misconception patterns and corrected explanations/i)).toBe(0);
     expect(
@@ -4334,7 +4507,7 @@ describe('courseBlueprintCompiler', () => {
           evidenceResponseCue: expect.stringContaining('criterion-level feedback'),
           evidenceSupportCue: expect.stringContaining('sentence frame'),
           evidenceExtensionCue: expect.stringContaining('compare two possible evidence choices'),
-          modalityCue: expect.stringContaining('policy-analysis'),
+          modalityCue: expect.stringContaining('stakeholder'),
           modalityDecodeCue: expect.stringContaining('stakeholder'),
           artifactGenreCue: 'policy-brief',
           classSessionCue: expect.stringContaining('75/75 minutes'),
@@ -4470,7 +4643,7 @@ describe('courseBlueprintCompiler', () => {
     expect(blueprint.alignmentMatrix[0].accessibilityCue).toContain('written or spoken response options');
     expect(blueprint.alignmentMatrix[0].feedbackCycleCue).toContain('evidence-backed Policy Topic 1 reasoning');
     expect(blueprint.alignmentMatrix[0].learningTransferCue).toContain('Policy memo checkpoint 2');
-    expect(blueprint.alignmentMatrix[0].modalityCue).toContain('policy-analysis');
+    expect(blueprint.alignmentMatrix[0].modalityCue).toContain('stakeholder');
     expect(blueprint.alignmentMatrix[0].modalityDecodeCue).toContain('stakeholder');
     expect(blueprint.alignmentMatrix[0].artifactGenreCue).toBe('policy-brief');
     expect(blueprint.alignmentMatrix[0].artifactGenreOutputFormat).toContain('Policy memo checkpoint 1');
@@ -4594,7 +4767,7 @@ describe('courseBlueprintCompiler', () => {
       cumulativeConnection: expect.stringContaining('Policy memo checkpoint 2'),
       metacognitivePrompt: expect.stringContaining('reuse'),
     });
-    expect(blueprint.lessons[0].modalityCue).toContain('policy-analysis');
+    expect(blueprint.lessons[0].modalityCue).toContain('stakeholder');
     expect(blueprint.lessons[0].modalityDecode).toMatchObject({
       mode: 'policy-analysis',
       signaturePractice: expect.stringContaining('stakeholder'),
@@ -5366,7 +5539,7 @@ describe('courseBlueprintCompiler', () => {
       teachingIntent: expect.objectContaining({
         teachingGoal: expect.stringContaining('evidence-backed Policy Topic 1 decisions'),
       }),
-      modalityCue: expect.stringContaining('policy-analysis'),
+      modalityCue: expect.stringContaining('stakeholder'),
       modalityDecode: expect.objectContaining({
         signaturePractice: expect.stringContaining('stakeholder'),
       }),
@@ -5477,7 +5650,7 @@ describe('courseBlueprintCompiler', () => {
       evidenceResponseRecheck: expect.stringContaining('what feedback changed'),
       transferTask: expect.stringContaining('Policy memo checkpoint 2'),
       teachingIntentSummary: expect.stringContaining('evidence-backed Policy Topic 1 decisions'),
-      modalityFit: expect.stringContaining('policy-analysis'),
+      modalityFit: expect.stringContaining('stakeholder'),
       modalityPractice: expect.stringContaining('stakeholder'),
       modalityEvidenceRoutine: expect.stringContaining('stakeholder/equity effect'),
       modalityFeedbackRoutine: expect.stringContaining('implementation risk'),
@@ -5515,7 +5688,7 @@ describe('courseBlueprintCompiler', () => {
     );
     expect(compiled.slideDecks.decks[0].slideDeckSequenceGuide.modalityFit).toMatchObject({
       courseModalityProfile: expect.objectContaining({ primaryMode: 'policy-analysis' }),
-      modalityCue: expect.stringContaining('policy-analysis'),
+      modalityCue: expect.stringContaining('stakeholder'),
       modalityDecode: expect.objectContaining({
         signaturePractice: expect.stringContaining('stakeholder'),
       }),
@@ -5661,7 +5834,7 @@ describe('courseBlueprintCompiler', () => {
       sourceUseCue: expect.stringContaining('Do not invent authors'),
       prerequisiteCue: expect.stringContaining('define Policy Topic 1'),
       teachingIntentCue: expect.stringContaining('evidence-backed Policy Topic 1 decisions'),
-      modalityCue: expect.stringContaining('policy-analysis'),
+      modalityCue: expect.stringContaining('stakeholder'),
       modalityDecodeCue: expect.stringContaining('stakeholder'),
       artifactGenreCue: 'policy-brief',
       classSessionCue: expect.stringContaining('75/75 minutes'),
@@ -5683,7 +5856,7 @@ describe('courseBlueprintCompiler', () => {
       feedbackCycleCue: expect.stringContaining('evidence-backed Policy Topic 1 reasoning'),
       learningTransferCue: expect.stringContaining('Policy memo checkpoint 2'),
       teachingIntentCue: expect.stringContaining('evidence-backed Policy Topic 1 decisions'),
-      modalityCue: expect.stringContaining('policy-analysis'),
+      modalityCue: expect.stringContaining('stakeholder'),
       modalityDecodeCue: expect.stringContaining('stakeholder'),
       artifactGenreCue: 'policy-brief',
       artifactGenreOutputFormat: expect.stringContaining('Policy memo checkpoint 1'),
@@ -5774,7 +5947,7 @@ describe('courseBlueprintCompiler', () => {
       'Strong Policy memo checkpoint 1 anchor',
     );
     expect(compiled.assignments.assignments[0].learnerContextCue).toContain('Policy Topic 1');
-    expect(compiled.assignments.assignments[0].modalityCue).toContain('policy-analysis');
+    expect(compiled.assignments.assignments[0].modalityCue).toContain('stakeholder');
     expect(compiled.assignments.assignments[0].modalityDecode.signaturePractice).toContain('stakeholder');
     expect(compiled.assignments.assignments[0].artifactGenre.genre).toBe('policy-brief');
     expect(compiled.assignments.assignments[0].assignmentType).toBe('Policy analysis memo');
@@ -5891,7 +6064,7 @@ describe('courseBlueprintCompiler', () => {
     expect(compiled.rubrics.rubrics[0].anchorExamples.strongSample).toContain('Strong Policy memo checkpoint 1 anchor');
     expect(compiled.rubrics.rubrics[0].anchorExamples.exemplary).toContain('Strong evidence names');
     expect(compiled.rubrics.rubrics[0].learnerContextCue).toContain('Policy Topic 1');
-    expect(compiled.rubrics.rubrics[0].modalityCue).toContain('policy-analysis');
+    expect(compiled.rubrics.rubrics[0].modalityCue).toContain('stakeholder');
     expect(compiled.rubrics.rubrics[0].modalityDecode.signaturePractice).toContain('stakeholder');
     expect(compiled.rubrics.rubrics[0].artifactGenre.genre).toBe('policy-brief');
     expect(compiled.rubrics.rubrics[0].taskDirections).toContain('Policy brief');
@@ -5899,7 +6072,7 @@ describe('courseBlueprintCompiler', () => {
     expect(compiled.discussions.discussions).toHaveLength(6);
     expect(compiled.discussions.discussions[0].sourceGrounding.evidenceRequirement).toContain('Use a concrete detail');
     expect(compiled.discussions.discussions[0].learnerContextCue).toContain('Policy Topic 1');
-    expect(compiled.discussions.discussions[0].modalityCue).toContain('policy-analysis');
+    expect(compiled.discussions.discussions[0].modalityCue).toContain('stakeholder');
     expect(compiled.discussions.discussions[0].modalityDecode.signaturePractice).toContain('stakeholder');
     expect(compiled.discussions.discussions[0].artifactGenre.genre).toBe('policy-brief');
     expect(compiled.discussions.discussions[0].format).toBe('Policy Option Clinic');
@@ -5911,7 +6084,7 @@ describe('courseBlueprintCompiler', () => {
       participationPattern: expect.stringContaining('problem definition check'),
       artifactUse: expect.stringContaining('Policy memo checkpoint 1'),
       reviewFocus: expect.stringContaining('problem framing'),
-      modalityFit: expect.stringContaining('policy-analysis'),
+      modalityFit: expect.stringContaining('stakeholder'),
       artifactGenreFit: expect.stringContaining('Policy brief'),
     });
     expect(compiled.discussions.discussions[0].prerequisitePrompt).toContain('define Policy Topic 1');
@@ -5931,7 +6104,7 @@ describe('courseBlueprintCompiler', () => {
     expect(compiled.quizBank.quizzes).toHaveLength(6);
     expect(compiled.quizBank.quizzes[0].blueprintGrounding.misconceptionFocus).toContain('definition to memorize');
     expect(compiled.quizBank.quizzes[0].learnerContextCue).toContain('Policy Topic 1');
-    expect(compiled.quizBank.quizzes[0].modalityCue).toContain('policy-analysis');
+    expect(compiled.quizBank.quizzes[0].modalityCue).toContain('stakeholder');
     expect(compiled.quizBank.quizzes[0].modalityDecode.signaturePractice).toContain('stakeholder');
     expect(compiled.quizBank.quizzes[0].artifactGenre.genre).toBe('policy-brief');
     expect(compiled.quizBank.quizzes[0].prerequisitePlan.diagnosticCheck).toContain('define Policy Topic 1');
@@ -6009,7 +6182,7 @@ describe('courseBlueprintCompiler', () => {
     expect(compiled.studyGuides.studyGuides).toHaveLength(6);
     expect(compiled.studyGuides.studyGuides[0].sourceGrounding.workloadEstimate).toBeTruthy();
     expect(compiled.studyGuides.studyGuides[0].learnerContextCue).toContain('Policy Topic 1');
-    expect(compiled.studyGuides.studyGuides[0].modalityCue).toContain('policy-analysis');
+    expect(compiled.studyGuides.studyGuides[0].modalityCue).toContain('stakeholder');
     expect(compiled.studyGuides.studyGuides[0].modalityDecode.signaturePractice).toContain('stakeholder');
     expect(compiled.studyGuides.studyGuides[0].artifactGenre.genre).toBe('policy-brief');
     expect(compiled.studyGuides.studyGuides[0].prerequisitePlan.diagnosticCheck).toContain('define Policy Topic 1');
@@ -6043,7 +6216,7 @@ describe('courseBlueprintCompiler', () => {
       learnerContextCue: expect.stringContaining('Policy Topic 1'),
     });
     expect(compiled.courseFaq.faqs[0].learnerContextCue).toContain('Policy Topic 1');
-    expect(compiled.courseFaq.faqs[0].modalityCue).toContain('policy-analysis');
+    expect(compiled.courseFaq.faqs[0].modalityCue).toContain('stakeholder');
     expect(compiled.courseFaq.faqs[0].modalityDecode.signaturePractice).toContain('stakeholder');
     expect(compiled.courseFaq.faqs[0].artifactGenre.genre).toBe('policy-brief');
     expect(compiled.courseFaq.faqs[0].prerequisitePlan.diagnosticCheck).toContain('define Policy Topic 1');

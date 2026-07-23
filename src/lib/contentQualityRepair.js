@@ -19,6 +19,8 @@ import { hasDanglingClauseSeam } from './contentQualityChecks.js';
 const DOUBLE_PERIOD_RE = /([a-z])\.\.(?!\.)/g;
 const ARTICLE_A_VOWEL_RE = /\ba(\s+)([AEIOU][a-z]{3,})/g;
 const LEADING_COLON_RE = /^\s*:\s*/;
+const PERIOD_BEFORE_COMMA_RE = /[.。](?=,|[”"’'],)/g;
+const PERIOD_COMMA_EXEMPT_RE = /\b(?:e\.g|i\.e|etc)\.$/i;
 const HIGH_CONFIDENCE_DANGLING_CLAUSE_RE =
   /\s*(?:\b(?:and|or|the)\s*|\b(?:for|in|of|to|with|before|after|around|aligned to|into|from)\s+)([.])\s*$/i;
 const DANGLING_EXEMPT_RE = /\b(?:etc|e\.g|i\.e)[.]\s*$/i;
@@ -29,14 +31,24 @@ export const MECHANICAL_FINDING_CODES = [
   'double-period',
   'article-agreement',
   'leading-colon-label',
+  'period-before-comma',
   'dangling-clause',
 ];
+
+function repairPeriodBeforeComma(value) {
+  return value.replace(PERIOD_BEFORE_COMMA_RE, (period, offset, source) => {
+    if (period === '。') return '';
+    const prefix = source.slice(0, offset + 1);
+    return PERIOD_COMMA_EXEMPT_RE.test(prefix) ? period : '';
+  });
+}
 
 function repairString(value) {
   let text = value;
   text = text.replace(DOUBLE_PERIOD_RE, '$1.');
   text = text.replace(ARTICLE_A_VOWEL_RE, 'an$1$2');
   text = text.replace(LEADING_COLON_RE, '');
+  text = repairPeriodBeforeComma(text);
   if (!DANGLING_EXEMPT_RE.test(text) && hasDanglingClauseSeam(text)) {
     // "…aligned to ." → "…." — drop the stranded connective, keep the period.
     text = text.replace(HIGH_CONFIDENCE_DANGLING_CLAUSE_RE, '$1');

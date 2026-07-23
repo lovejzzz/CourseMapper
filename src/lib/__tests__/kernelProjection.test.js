@@ -275,6 +275,7 @@ describe('projectKernelToSurfaces', () => {
     expect(shortAnswer.question).not.toContain('Greenhouse effect');
     expect(shortAnswer.question).toMatch(/(?:identify|select|choose|name).{0,80}(?:concept|method)/i);
     expect(shortAnswer.question).toMatch(/(?:limitation|boundary|next piece of evidence|additional evidence)/i);
+    expect(shortAnswer.question.split(/[.!?]+/).filter((sentence) => sentence.trim()).length).toBeGreaterThanOrEqual(5);
     expect(shortAnswer.answer.length).toBeGreaterThanOrEqual(30);
     expect(shortAnswer.answer).toContain('Greenhouse effect');
     expect(shortAnswer.answer).toMatch(

@@ -35,9 +35,29 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
   });
 
   it('does not touch abbreviation periods (e.g., etc.)', () => {
-    const data = { tip: 'Bring examples, readings, etc.' };
+    const data = { tip: 'Bring examples, readings, etc. A compact example, e.g., this one, stays intact.' };
     const { changed } = repairDeliverableContentQuality('studyGuides', data);
     expect(changed).toBe(false);
+  });
+
+  it('removes an impossible period before a comma without altering disciplinary content', () => {
+    const data = {
+      faq: [
+        'For the Week 1 check., state one accurate claim.',
+        'Use “我是学生。,” then compare the corrected example.',
+        'The source says “use the contour.”, then asks students to listen again.',
+      ],
+    };
+
+    const result = repairDeliverableContentQuality('courseFaq', data);
+
+    expect(result.changed).toBe(true);
+    expect(result.repairedStrings).toBe(3);
+    expect(result.data.faq).toEqual([
+      'For the Week 1 check, state one accurate claim.',
+      'Use “我是学生,” then compare the corrected example.',
+      'The source says “use the contour”, then asks students to listen again.',
+    ]);
   });
 
   it('preserves valid phrasal verbs that end in a preposition', () => {

@@ -959,9 +959,22 @@ function conciseClause(value, fallback = 'source evidence', maxLength = 120, { e
   // Prefer ending on a clause boundary; otherwise cut at a word boundary and
   // trim any dangling connective so the clause still reads as complete.
   const slice = text.slice(0, maxLength);
-  const clauseEnd = Math.max(slice.lastIndexOf(','), slice.lastIndexOf(';'));
-  if (clauseEnd >= Math.floor(maxLength * 0.6)) {
+  const clauseEnd = Math.max(
+    slice.lastIndexOf(','),
+    slice.lastIndexOf(';'),
+    slice.lastIndexOf('—'),
+    slice.lastIndexOf('–'),
+  );
+  if (clauseEnd >= Math.floor(maxLength * 0.45)) {
     return trimDanglingTail(stripTerminalPunctuation(slice.slice(0, clauseEnd))) || fallback;
+  }
+  // A model correction often uses a complete claim before an explanatory
+  // colon ("The opposite can happen: paying or prizing..."). When the tail
+  // overruns the surface budget, keeping that independent claim is safer than
+  // slicing the explanation into a fragment such as "can recast it".
+  const colonEnd = slice.lastIndexOf(':');
+  if (colonEnd >= Math.floor(maxLength * 0.25)) {
+    return trimDanglingTail(stripTerminalPunctuation(slice.slice(0, colonEnd))) || fallback;
   }
   const wordCut = slice.replace(/\s+\S*$/g, '');
   // v0.12.1: a word-boundary cut can still strand a phrase head ("…inspect
@@ -975,6 +988,61 @@ function conciseClause(value, fallback = 'source evidence', maxLength = 120, { e
   const candidate =
     strandedPhrase && strandedPhrase[1].length >= Math.floor(maxLength * 0.5) ? strandedPhrase[1] : wordCut;
   return trimDanglingTail(stripTerminalPunctuation(candidate)) || fallback;
+}
+
+const CLIPPED_FINAL_TOKEN_ALLOWLIST = new Set([
+  'a',
+  'i',
+  'am',
+  'an',
+  'as',
+  'at',
+  'be',
+  'by',
+  'do',
+  'go',
+  'he',
+  'if',
+  'in',
+  'is',
+  'it',
+  'me',
+  'my',
+  'no',
+  'of',
+  'on',
+  'or',
+  'so',
+  'to',
+  'up',
+  'us',
+  'we',
+]);
+
+function dropClearlyClippedFinalSentence(value) {
+  const text = cleanText(value);
+  if (!text || /[.!?]$/.test(text)) return text;
+  const finalToken = text.match(/([A-Za-z]+)$/)?.[1]?.toLowerCase() || '';
+  if (finalToken.length > 2 || CLIPPED_FINAL_TOKEN_ALLOWLIST.has(finalToken)) return text;
+  const completedPrefix = text.match(/^([\s\S]*[.!?])\s+[^.!?]*$/)?.[1];
+  return completedPrefix ? cleanText(completedPrefix) : text;
+}
+
+function splitLearnerReadableClauses(value) {
+  const safe = dropClearlyClippedFinalSentence(value);
+  if (!safe) return '';
+  const split = safe
+    .replace(/;\s+(?=[A-Za-z])/g, '. ')
+    .replace(/,\s+while\s+(?=[A-Za-z])/gi, '. ')
+    .replace(/\s+—\s+and\s+(?=this option\b)/gi, '. This option ')
+    .replace(/(^|[.!?]\s+)([a-z])/g, (_, boundary, letter) => `${boundary}${letter.toUpperCase()}`);
+  return ensureSentenceCompiler(split);
+}
+
+function readableLearnerSentence(value, { minimumWords = 14 } = {}) {
+  const text = cleanText(value);
+  if (!text || wordCount(text) < minimumWords) return text;
+  return splitLearnerReadableClauses(text);
 }
 
 function customPracticeContext(blueprint, lens) {
@@ -7586,15 +7654,15 @@ function buildCourseModalityProfile({ courseName, lessons }) {
       'Confirm whether sessions are synchronous, asynchronous, hybrid, field-based, clinical, studio, or lab-based.',
       'Confirm safety, privacy, accessibility, equipment, room, LMS, or site-specific requirements.',
     ],
-    compilerUse: `Compile lesson plans, slides, discussions, assignments, rubrics, quizzes, study guides, and FAQ so they fit a ${primaryMode} course instead of a generic lecture sequence.`,
+    compilerUse:
+      'Compile lesson plans, slides, discussions, assignments, rubrics, quizzes, study guides, and FAQ so they fit the course teaching pattern instead of a generic lecture sequence.',
   };
 }
 
 function buildLessonModalityCue(profile = {}, lesson = {}) {
-  const mode = profile.primaryMode || 'weekly-applied-seminar';
   const artifact = stripTerminalPunctuation(lesson.studentArtifact || 'the lesson artifact');
   const concept = lesson.keyConcepts?.[0] || stripLessonPrefix(lesson.title) || 'the lesson focus';
-  return `${stripLessonPrefix(lesson.title)} should run as ${mode}: students use ${profile.interactionPattern || 'guided practice and feedback'} to produce ${artifact} evidence for ${concept}.`;
+  return `${stripLessonPrefix(lesson.title)} should use ${profile.interactionPattern || 'guided practice and feedback'} so students produce ${artifact} evidence for ${concept}.`;
 }
 
 function lessonRotationIndex(lesson = {}, offset = 0) {
@@ -7835,7 +7903,7 @@ function contextualizeModalityRoutine(kind, base, { lesson = {}, concept = '', a
   const templates = {
     signaturePractice: [
       `${sentenceCase(routine)} for ${title}, with ${artifact} as the visible product.`,
-      `Use the ${mode} pattern to ${routine}, then connect the result to ${title}.`,
+      `Use ${modalityEvidenceRoutineLabel(mode)} to ${routine}, then connect the result to ${title}.`,
       `${title} adapts the course pattern: ${routine}, focused on ${concept}.`,
     ],
     evidenceRoutine: [
@@ -8058,7 +8126,7 @@ function buildLessonModalityDecode(profile = {}, lesson = {}) {
       `Treat recall as a starting point only: ${artifact} needs an observable ${concept} move from ${modalityEvidenceRoutineLabel(mode)}.`,
       `Before accepting ${artifact}, check that students used ${concept} evidence from ${modalityEvidenceRoutineLabel(mode)} rather than naming the topic.`,
     ]),
-    localReviewQuestion: `Confirm the local setting supports this ${mode} practice pattern before publishing ${stripLessonPrefix(lesson.title)}.`,
+    localReviewQuestion: `Confirm the local setting supports this course practice pattern before publishing ${stripLessonPrefix(lesson.title)}.`,
   };
 }
 
@@ -9010,7 +9078,7 @@ function buildArtifactGenreDecode(lesson = {}, profile = {}, modalityDecode = {}
       `Use this routine to revise ${artifact}: ${ensureSentenceCompiler(conciseClause(feedbackRoutine, feedbackRoutine, 150))} State what feedback changed. Name the ${concept} claim that now has better support.`,
       `For ${artifact}, convert feedback into one visible ${concept} revision. Identify what changed. Then point to the evidence link that improved.`,
     ]),
-    modalityFit: `This ${genre} should be reviewed inside the ${profile.primaryMode || 'course'} pattern, not as a generic submission.`,
+    modalityFit: `This ${genre} should be reviewed through the course practice pattern, not as a generic submission.`,
   };
 }
 
@@ -18896,6 +18964,33 @@ function musicIntervalStudyConnections(lesson, studyArtifact) {
   ];
 }
 
+function mapReadableLearnerCopy(value) {
+  if (typeof value === 'string') return readableLearnerSentence(value);
+  if (Array.isArray(value)) return value.map((item) => mapReadableLearnerCopy(item));
+  if (!value || typeof value !== 'object') return value;
+  return Object.fromEntries(Object.entries(value).map(([key, child]) => [key, mapReadableLearnerCopy(child)]));
+}
+
+function makeStudyGuideLearnerReadable(guide) {
+  const readableFields = [
+    'examScope',
+    'summary',
+    'sourceReviewRequired',
+    'keyTerms',
+    'reasoningRoutine',
+    'conceptConnections',
+    'commonMisconceptions',
+    'reviewQuestions',
+    'practiceActivities',
+    'examPrep',
+    'studentResources',
+  ];
+  return readableFields.reduce((next, field) => {
+    if (next[field] === undefined) return next;
+    return { ...next, [field]: mapReadableLearnerCopy(next[field]) };
+  }, guide);
+}
+
 function compileStudyGuides(blueprint) {
   const lens = blueprintLens(blueprint);
   return {
@@ -18992,7 +19087,7 @@ function compileStudyGuides(blueprint) {
             (entry) => entry.dueSession === lesson.lessonNumber && entry.kind === 'in-class',
           )
         : [];
-      return {
+      const guide = {
         lessonTitle: lesson.title,
         assignedReadings: assignedReadingTitlesForLesson(blueprint, lesson),
         examScope: `Use this guide to prepare for Week ${lesson.lessonNumber} checks on ${phrase.context} and later assessments.${
@@ -19271,6 +19366,7 @@ function compileStudyGuides(blueprint) {
         ]),
         tags: unique(['study guide', lesson.title, ...safeConcepts], 10),
       };
+      return makeStudyGuideLearnerReadable(guide);
     }),
   };
 }
@@ -22137,6 +22233,23 @@ function buildExamDaySlideDeckIr(blueprint, lesson) {
   );
 }
 
+function makeQuizQuestionLearnerReadable(question) {
+  return ['question', 'answer', 'scoringGuidance'].reduce((next, field) => {
+    if (typeof next[field] !== 'string') return next;
+    return { ...next, [field]: readableLearnerSentence(next[field]) };
+  }, question);
+}
+
+function makeQuizEntryLearnerReadable(quiz) {
+  return {
+    ...quiz,
+    ...(typeof quiz?.gradingSpec === 'string' ? { gradingSpec: readableLearnerSentence(quiz.gradingSpec) } : {}),
+    questions: Array.isArray(quiz?.questions)
+      ? quiz.questions.map((question) => makeQuizQuestionLearnerReadable(question))
+      : quiz?.questions,
+  };
+}
+
 function compileQuizBank(blueprint, config = {}) {
   const preference = featurePreference(blueprint, 'quizBank');
   // Exam entries are built FIRST so review-week weekly quizzes can dedup
@@ -22151,7 +22264,7 @@ function compileQuizBank(blueprint, config = {}) {
     .filter(assessmentIsExam)
     .forEach((assessment, examOrdinal) => {
       const examEntry = buildRegistryExamEntry(blueprint, assessment, examOrdinal);
-      if (examEntry) examEntries.push(examEntry);
+      if (examEntry) examEntries.push(makeQuizEntryLearnerReadable(examEntry));
     });
   const usedStems = new Set(examEntries.flatMap((entry) => entry.questions.map((question) => question.question)));
   // v0.16 exam-day fix (quiz on exam day): a session that IS the exam gets
@@ -22165,14 +22278,15 @@ function compileQuizBank(blueprint, config = {}) {
   const quizzes = weeklyQuizLessons.map((lesson, index) => {
     const assessment = assessmentForBlueprintLesson(blueprint, lesson, index);
     const reviewSources = isReviewStyleLesson(lesson, blueprint) ? reviewWeekSourceLessons(blueprint, lesson) : [];
-    const questions =
+    const questions = (
       reviewSources.length > 0
         ? buildReviewWeekQuizAtoms(lesson, blueprint, {
             covered: reviewSources,
             assessment,
             usedStems,
           })
-        : buildQuizAtomsForLesson(lesson, blueprint, { ...config, assessment });
+        : buildQuizAtomsForLesson(lesson, blueprint, { ...config, assessment })
+    ).map((question) => makeQuizQuestionLearnerReadable(question));
     questions.forEach((question) => usedStems.add(question.question));
     const totalPoints = questions.reduce((sum, question) => sum + Number(question.points || 0), 0);
     const totalMinutes = questions.reduce((sum, question) => sum + Number(question.estimatedMinutes || 0), 0);
@@ -22785,7 +22899,7 @@ function slideVisual(lesson, slide) {
         'evidence walkthrough',
         'revision workflow',
       ]),
-      purpose: `Show the ${concept} practice steps students follow during ${modality.mode || 'practice'}.`,
+      purpose: `Show the ${concept} practice steps students follow during this lesson.`,
       evidenceUse: `Connect ${modality.signaturePractice || 'practice'} to the revision evidence for ${artifact}.`,
     },
     discussion: {
@@ -23908,7 +24022,7 @@ function buildDiscussionProtocol({ lesson = {}, blueprint = {}, phrase = {}, len
     evidenceMove,
     decisionMove,
     facilitationMove: `Use ${selected.participationPattern} so students ${evidenceMove} and then ${decisionMove}.`,
-    modalityFit: `This discussion runs as ${mode}, using ${lesson.modalityDecode?.signaturePractice || 'the course practice pattern'} instead of a generic seminar exchange.`,
+    modalityFit: `This discussion uses ${lesson.modalityDecode?.signaturePractice || 'the course practice pattern'} instead of a generic seminar exchange.`,
     artifactGenreFit: `This discussion treats ${artifact} as ${lesson.artifactGenre?.label || genre}, with review focused on ${selected.reviewFocus}.`,
     localAdaptationCue: `Confirm participation mode, privacy, accessibility, and time limits before running the ${selected.format.toLowerCase()} for ${stripLessonPrefix(lesson.title)}.`,
   };
@@ -23916,14 +24030,15 @@ function buildDiscussionProtocol({ lesson = {}, blueprint = {}, phrase = {}, len
 
 function discussionArtifactReference(lesson = {}) {
   const canonical = safeLessonArtifact(lesson);
+  const classificationText = cleanText(lesson?.studentArtifact) || canonical;
   const compacted = compactLessonEmbeddedReference(canonical, lesson);
-  const surfaceWords = courseCopySurfaceWords(compacted);
-  if (surfaceWords.length <= 6 && compacted.length <= 72) return compacted;
-  const week = Number.isFinite(Number(lesson.lessonNumber)) ? `Week ${lesson.lessonNumber}` : 'Weekly';
   const categories = [
     [/\b(?:reflection|reflective|exit ticket|journal|debrief)\b/i, 'reflection'],
     [/\b(?:lab|laboratory|practicum)\b/i, 'lab'],
-    [/\b(?:quiz|evidence check|knowledge check|checkpoint|response)\b/i, 'check'],
+    [/\b(?:quiz|quizzes)\b/i, 'quiz'],
+    [/\b(?:reading response|response)\b/i, 'response'],
+    [/\b(?:homework|assignment)\b/i, 'assignment'],
+    [/\b(?:evidence check|knowledge check|checkpoint)\b/i, 'check'],
     [/\b(?:memo)\b/i, 'memo'],
     [/\b(?:brief)\b/i, 'brief'],
     [/\b(?:problem set|worksheet)\b/i, 'problem set'],
@@ -23932,8 +24047,15 @@ function discussionArtifactReference(lesson = {}) {
     [/\b(?:project)\b/i, 'project'],
     [/\b(?:report|analysis)\b/i, 'report'],
   ];
-  const kind = categories.find(([pattern]) => pattern.test(canonical))?.[1] || 'artifact';
-  return `${week} ${kind}`;
+  const classifiedKind = categories.find(([pattern]) => pattern.test(classificationText))?.[1];
+  const surfaceWords = courseCopySurfaceWords(compacted);
+  const compactedChangedIdentity = cleanText(compacted).toLowerCase() !== cleanText(classificationText).toLowerCase();
+  if (surfaceWords.length <= 6 && compacted.length <= 72 && !(classifiedKind && compactedChangedIdentity)) {
+    return compacted;
+  }
+  const week = Number.isFinite(Number(lesson.lessonNumber)) ? `Week ${lesson.lessonNumber}` : 'weekly';
+  const kind = classifiedKind || 'artifact';
+  return `the ${week} ${kind}`;
 }
 
 function prepareDiscussionLesson(lesson = {}) {
@@ -24080,7 +24202,7 @@ function buildDiscussionFacilitationTips(lesson, protocol) {
     });
   }
   return {
-    opening: `Launch with two minutes of silent note-making on which ${concept} evidence source seems strongest for ${artifact}, then name the protocol: ${protocol.participationPattern}.`,
+    opening: `Take two minutes for silent notes on the strongest ${concept} evidence for ${artifact}. Then run ${protocol.participationPattern} for ${artifact}.`,
     ifStalls: lessonVariant(lesson, [
       `Ask students to compare the strongest and weakest evidence choices for ${artifact}, or switch to a quick pair exchange before reopening the ${format.toLowerCase()}.`,
       `If momentum drops, have pairs mark one strong and one weak evidence move in ${artifact}, then reopen the ${format.toLowerCase()} from that contrast.`,
@@ -24189,10 +24311,20 @@ const DISCUSSION_VISIBLE_REPEAT_FIELDS = [
   'followUp',
 ];
 
+function mapDiscussionVisibleValue(value, transform) {
+  if (typeof value === 'string') return transform(value);
+  if (Array.isArray(value)) return value.map((item) => mapDiscussionVisibleValue(item, transform));
+  if (!value || typeof value !== 'object') return value;
+  return Object.fromEntries(
+    Object.entries(value).map(([key, child]) => [key, mapDiscussionVisibleValue(child, transform)]),
+  );
+}
+
 function compactDiscussionBodyReferences(discussion, lesson) {
   const focus = stripLessonPrefix(lesson?.title);
   if (!focus) return discussion;
   const canonicalArtifact = cleanText(lesson?.discussionCanonicalArtifact);
+  const compactArtifact = safeLessonArtifact(lesson);
   const canonicalMask = '__SCION_DISCUSSION_CANONICAL_ARTIFACT__';
   const sourceArtifacts =
     canonicalArtifact && Array.isArray(discussion.sourceArtifacts)
@@ -24209,18 +24341,34 @@ function compactDiscussionBodyReferences(discussion, lesson) {
       discussionForCompaction[field],
     ]),
   );
+  // Keep the exact assessment title once in SOURCE ARTIFACTS for
+  // traceability. Every working sentence uses the already-derived short
+  // reference ("the Week 7 check") so a long registry title does not read
+  // like mail merge in prompts, probes, facilitation, and criteria.
+  const artifactCompactedBody =
+    canonicalArtifact && compactArtifact && canonicalArtifact !== compactArtifact
+      ? mapDiscussionVisibleValue(visibleBody, (text) =>
+          text.replace(new RegExp(escapeRegExpCompiler(canonicalArtifact), 'gi'), compactArtifact),
+        )
+      : visibleBody;
   // Keep the exact title as the document heading and a few identity anchors
   // in the body. After that, local references such as "the seasons axial
   // tilt focus" are clearer than repeating a 7–12 word lesson title in every
   // probe, source note, criterion, and facilitation instruction.
-  const compactedBody = compactRepeatedCourseFocusReferences(visibleBody, focus, { limit: 3 });
-  if (canonicalArtifact && Array.isArray(compactedBody.sourceArtifacts)) {
-    compactedBody.sourceArtifacts = compactedBody.sourceArtifacts.map((artifact) => ({
+  const compactedBody = compactRepeatedCourseFocusReferences(artifactCompactedBody, focus, { limit: 3 });
+  const readableBody = Object.fromEntries(
+    Object.entries(compactedBody).map(([field, value]) => [
+      field,
+      field === 'sourceArtifacts' ? value : mapDiscussionVisibleValue(value, (text) => readableLearnerSentence(text)),
+    ]),
+  );
+  if (canonicalArtifact && Array.isArray(readableBody.sourceArtifacts)) {
+    readableBody.sourceArtifacts = readableBody.sourceArtifacts.map((artifact) => ({
       ...artifact,
       locator: artifact?.locator === canonicalMask ? canonicalArtifact : artifact?.locator,
     }));
   }
-  return { ...discussion, ...compactedBody };
+  return { ...discussion, ...readableBody };
 }
 
 function buildDiscussionGuidelinesForFormat(lesson, protocol) {
@@ -26839,7 +26987,7 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
           : lessonVariant(lesson, [
               `Students share one ${artifact} revision, the ${concept} evidence behind it, and the question they will carry into the next task.`,
               `Each learner names what changed in ${artifact}, which ${concept} signal prompted the change, and what still needs testing.`,
-              `Close with a before-and-after comparison: students point to one ${artifact} move strengthened by today’s ${modality.mode} work.`,
+              `Close with a before-and-after comparison: students point to one ${artifact} move strengthened by today’s lesson work.`,
               `Students write a two-line transfer note connecting today’s ${concept} decision to the next artifact checkpoint.`,
               `Invite one-minute reports: the revision made, the evidence preserved, and the next uncertainty in ${artifact}.`,
               `Students leave with a concrete handoff note explaining how ${concept} will shape their next ${artifact} decision.`,
