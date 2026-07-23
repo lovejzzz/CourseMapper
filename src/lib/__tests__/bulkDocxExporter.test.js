@@ -223,7 +223,7 @@ describe('buildDeliverableDocxBlob', () => {
                 options: ['A. unit elastic', 'B. inelastic', 'C. perfectly inelastic', 'D. elastic'],
                 answer: 'D',
                 explanation: 'Elasticity is 2.5, which is greater than one.',
-                tags: ['quiz', 'elasticity'],
+                tags: ['quiz', 'elasticity', '我是学生。', 'Wǒ shì xuésheng.'],
               },
               {
                 type: 'short_answer',
@@ -258,6 +258,11 @@ describe('buildDeliverableDocxBlob', () => {
     expect(xml).not.toContain('PRICE CUTS RAISE REVENUE');
     // Tags appear once per quiz, not after every question.
     expect(xml.match(/Tags: /g)?.length || 0).toBe(1);
+    // Sentence terminators are valid in taught examples but not immediately
+    // before the comma that separates tag labels.
+    expect(xml).toContain('我是学生, Wǒ shì xuésheng');
+    expect(xml).not.toContain('我是学生。,');
+    expect(xml).not.toContain('Wǒ shì xuésheng.,');
     // Tables are pct-width, never the old fixed letter-width grid.
     expect(xml).not.toContain('w:w="9360"');
     expect(xml).not.toContain('<w:spacing w:before="200" w:after="100"/></w:pPr></w:p><w:sectPr>');

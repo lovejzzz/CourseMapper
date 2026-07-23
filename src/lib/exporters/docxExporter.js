@@ -820,6 +820,15 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
       const expanded = expandKeys('quizBank', data);
       const key = expanded.quizzes ? 'quizzes' : 'quizBank';
       const stripOptionLetter = (option) => String(option ?? '').replace(/^[A-Z][.)]\s+/, '');
+      // Tags are rendered as a comma-separated metadata list, so a sentence
+      // terminator retained from a target-language example creates the
+      // learner-visible seam "我是学生。," in extracted DOCX text. Keep the
+      // example intact everywhere it is taught; normalize only its tag label.
+      const normalizeTagLabel = (tag) =>
+        String(tag ?? '')
+          .trim()
+          .replace(/[.!?。！？]+$/u, '')
+          .trim();
       const quizzes = expanded[key] || [];
       for (const [quizIndex, quiz] of quizzes.entries()) {
         children.push(makeHeading(quiz.lessonTitle || 'Quiz'));
@@ -875,7 +884,10 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           const allTags = new Set();
           for (let j = 0; j < questions.length; j++) {
             const q = questions[j];
-            (q.tags || []).forEach((tag) => allTags.add(tag));
+            (q.tags || []).forEach((tag) => {
+              const normalizedTag = normalizeTagLabel(tag);
+              if (normalizedTag) allTags.add(normalizedTag);
+            });
             const keyMeta = [q.bloomsLevel, q.difficulty].filter(Boolean);
             children.push(makeBold(`Q${j + 1}`, keyMeta.length ? `(${keyMeta.join(', ')})` : ''));
             // The callout label is rendered in tracked uppercase — only
