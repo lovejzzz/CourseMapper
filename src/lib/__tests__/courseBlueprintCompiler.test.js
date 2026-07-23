@@ -100,7 +100,7 @@ describe('discipline-safe deterministic worked examples', () => {
 
 describe('discussion assessment references', () => {
   it('keeps the canonical assessment locatable once without stamping it through the discussion body', () => {
-    const canonicalArtifact = 'weekly reading quizzes: the forgetting retrieval failure focus';
+    const canonicalArtifact = 'weekly reading quizzes: forgetting and retrieval failure';
     const blueprint = buildCourseBlueprint({
       courseName: 'Introduction to Psychology',
       lessons: [
@@ -147,8 +147,10 @@ describe('discussion assessment references', () => {
     ]);
 
     expect(workingBody).not.toContain(canonicalArtifact);
+    expect(workingBody).not.toMatch(/weekly reading quizzes:/i);
     expect(workingBody).toContain('the Week 1 quiz');
     expect(discussion.facilitationTips.opening).toMatch(/\.\s+Then run /);
+    expect(discussion.discussionProtocol.modalityFit).not.toMatch(/\.\s+instead of/i);
     expect(discussion.sourceArtifacts.some((artifact) => artifact.locator === canonicalArtifact)).toBe(true);
   });
 });

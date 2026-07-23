@@ -24022,7 +24022,11 @@ function buildDiscussionProtocol({ lesson = {}, blueprint = {}, phrase = {}, len
     evidenceMove,
     decisionMove,
     facilitationMove: `Use ${selected.participationPattern} so students ${evidenceMove} and then ${decisionMove}.`,
-    modalityFit: `This discussion uses ${lesson.modalityDecode?.signaturePractice || 'the course practice pattern'} instead of a generic seminar exchange.`,
+    modalityFit: lesson.modalityDecode?.signaturePractice
+      ? `This discussion follows the course practice pattern. ${ensureSentenceCompiler(
+          sentenceCase(lesson.modalityDecode.signaturePractice),
+        )}`
+      : 'This discussion follows the course practice pattern instead of a generic seminar exchange.',
     artifactGenreFit: `This discussion treats ${artifact} as ${lesson.artifactGenre?.label || genre}, with review focused on ${selected.reviewFocus}.`,
     localAdaptationCue: `Confirm participation mode, privacy, accessibility, and time limits before running the ${selected.format.toLowerCase()} for ${stripLessonPrefix(lesson.title)}.`,
   };
@@ -24049,8 +24053,17 @@ function discussionArtifactReference(lesson = {}) {
   ];
   const classifiedKind = categories.find(([pattern]) => pattern.test(classificationText))?.[1];
   const surfaceWords = courseCopySurfaceWords(compacted);
+  const focusWords = courseCopySurfaceWords(lessonFocusFallback(lesson));
+  const artifactWordSet = new Set(surfaceWords.map((word) => word.toLowerCase()));
+  const repeatsLessonFocus =
+    focusWords.length >= 3 &&
+    focusWords.filter((word) => artifactWordSet.has(word.toLowerCase())).length / focusWords.length >= 0.75;
   const compactedChangedIdentity = cleanText(compacted).toLowerCase() !== cleanText(classificationText).toLowerCase();
-  if (surfaceWords.length <= 6 && compacted.length <= 72 && !(classifiedKind && compactedChangedIdentity)) {
+  if (
+    surfaceWords.length <= 6 &&
+    compacted.length <= 72 &&
+    !(classifiedKind && (compactedChangedIdentity || repeatsLessonFocus))
+  ) {
     return compacted;
   }
   const week = Number.isFinite(Number(lesson.lessonNumber)) ? `Week ${lesson.lessonNumber}` : 'weekly';
@@ -24059,8 +24072,15 @@ function discussionArtifactReference(lesson = {}) {
 }
 
 function prepareDiscussionLesson(lesson = {}) {
-  const canonicalArtifact = safeLessonArtifact(lesson);
-  const compactArtifact = discussionArtifactReference(lesson);
+  // Preserve the instructor/source artifact exactly for the source locator.
+  // safeLessonArtifact may rewrite a long embedded lesson title into a
+  // sentence-friendly alias, which is useful in prose but is no longer the
+  // canonical title the instructor supplied.
+  const canonicalArtifact = cleanText(lesson?.studentArtifact) || safeLessonArtifact(lesson);
+  const compactArtifact = discussionArtifactReference({
+    ...lesson,
+    studentArtifact: canonicalArtifact,
+  });
   if (canonicalArtifact === compactArtifact) return lesson;
   return {
     ...lesson,
@@ -24191,6 +24211,7 @@ function buildDiscussionFollowUps(lesson, phrase) {
 function buildDiscussionFacilitationTips(lesson, protocol) {
   const format = protocol.format;
   const concept = safeLessonPrimaryConcept(lesson);
+  const conceptWithoutArticle = concept.replace(/^(?:a|an|the)\s+/i, '');
   const artifact = safeLessonArtifact(lesson);
   if (isMusicIntervalLesson(lesson)) {
     const source = preferredMusicIntervalSource(lesson.readings || []) || safeLessonEvidenceCue(lesson);
@@ -24210,9 +24231,9 @@ function buildDiscussionFacilitationTips(lesson, protocol) {
       `Restart the ${format.toLowerCase()} by asking each pair to bring one evidence challenge and one revision possibility for ${artifact}.`,
     ]),
     ifDominates: lessonVariant(lesson, [
-      `Pause the ${format.toLowerCase()}, invite a new voice to paraphrase the current ${concept} claim, then require the next response to add evidence or a limitation that would sharpen ${artifact}.`,
+      `Pause the ${format.toLowerCase()}, invite a new voice to paraphrase the current ${conceptWithoutArticle} claim, then require the next response to add evidence or a limitation that would sharpen ${artifact}.`,
       `Pause the ${format.toLowerCase()} and ask a quieter student to test the claim with a different source detail before the group moves on.`,
-      `Reset the exchange by having the next speaker name what evidence would weaken the current ${concept} interpretation.`,
+      `Reset the exchange by having the next speaker name what evidence would weaken the current ${conceptWithoutArticle} interpretation.`,
       `Ask the group to separate the strongest evidence from the biggest uncertainty before accepting the current ${artifact} decision.`,
     ]),
     closure: lessonVariant(lesson, [
@@ -24325,6 +24346,12 @@ function compactDiscussionBodyReferences(discussion, lesson) {
   if (!focus) return discussion;
   const canonicalArtifact = cleanText(lesson?.discussionCanonicalArtifact);
   const compactArtifact = safeLessonArtifact(lesson);
+  const workingArtifact =
+    discussionArtifactReference({
+      ...lesson,
+      studentArtifact: canonicalArtifact || compactArtifact,
+      discussionCanonicalArtifact: undefined,
+    }) || compactArtifact;
   const canonicalMask = '__SCION_DISCUSSION_CANONICAL_ARTIFACT__';
   const sourceArtifacts =
     canonicalArtifact && Array.isArray(discussion.sourceArtifacts)
@@ -24345,10 +24372,17 @@ function compactDiscussionBodyReferences(discussion, lesson) {
   // traceability. Every working sentence uses the already-derived short
   // reference ("the Week 7 check") so a long registry title does not read
   // like mail merge in prompts, probes, facilitation, and criteria.
+  const artifactAliases = unique([canonicalArtifact, compactArtifact], 2).filter(
+    (artifact) => artifact && workingArtifact && artifact !== workingArtifact,
+  );
   const artifactCompactedBody =
-    canonicalArtifact && compactArtifact && canonicalArtifact !== compactArtifact
+    artifactAliases.length > 0
       ? mapDiscussionVisibleValue(visibleBody, (text) =>
-          text.replace(new RegExp(escapeRegExpCompiler(canonicalArtifact), 'gi'), compactArtifact),
+          artifactAliases.reduce(
+            (compacted, artifact) =>
+              compacted.replace(new RegExp(escapeRegExpCompiler(artifact), 'gi'), workingArtifact),
+            text,
+          ),
         )
       : visibleBody;
   // Keep the exact title as the document heading and a few identity anchors
