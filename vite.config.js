@@ -64,6 +64,10 @@ export default defineConfig({
           // chunk or the landing route.
           if (/src\/lib\/scionLanguageCompilerFrames\.js$/.test(id)) return 'scionLanguageCompilerFrames';
           if (/src\/lib\/(?:bayesianQuizFrames|musicTheoryQuizFrames)\.js$/.test(id)) return 'compilerFrames';
+          // Exam distractor/correct-answer rotations are pure compile-only
+          // data. Keep them cacheable apart from the broader course-copy leaf
+          // so platform-specific gzip variance cannot cross either ratchet.
+          if (/src\/lib\/courseCompilerExamCopy\.js$/.test(id)) return 'compilerExamCopy';
           if (/src\/lib\/courseCompilerPolish\.js$/.test(id)) return 'compilerPolish';
           // Fact-ledger feedback normalization is shared by native authoring
           // and compilation. Keep that pure helper independently cacheable

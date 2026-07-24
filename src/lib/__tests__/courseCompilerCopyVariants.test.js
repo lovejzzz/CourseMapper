@@ -4,8 +4,8 @@ import { assignmentSelfAssessmentEvidenceCheck } from '../courseCompilerSelfAsse
 import {
   compactAssignmentBriefBodyReferences,
   compactRepeatedCourseFocusReferences,
-  examAtomPaddingOptions,
 } from '../courseCompilerCopyVariants';
+import { examAtomPaddingOptions } from '../courseCompilerExamCopy';
 import { assessmentRevisionCriterion, examFactCopy } from '../courseCompilerPolish';
 import { finalizeCompiledDeliverableLanguage } from '../compiledLanguageFinalizer';
 import { isAppliedQuizStem } from '../quality/quizItemDepth';

@@ -16,7 +16,7 @@
     "modelContractSha256": "4083e41165cd6637cf645fff00b7ad9940f46da36c3de212c0718768d79b0410",
     "compilerSnapshotCommit": "c3402d99b67279b9ce88b22a3b8900e092e0c43f",
     "compilerSnapshotTree": "669d17066afdff61c35a2b27c7b52a20dcae00ad",
-    "note": "The five-course output proof was produced at the frozen compiler snapshot. Subsequent release changes are documentation, version metadata, evidence, tests, and a slide-preview-only scaling repair; no generation, admission, compiler, grader, finalizer, or exporter behavior changed after the run."
+    "note": "The five-course output proof was produced at the frozen compiler snapshot. Subsequent release changes are documentation, version metadata, evidence, tests, a slide-preview-only scaling repair, and a behavior-preserving compile-copy module split; no generation, admission, compiler, grader, finalizer, or exporter behavior changed after the run."
   },
   "preservedRelease": {
     "tag": "v0.16.75",

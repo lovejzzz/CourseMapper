@@ -201,6 +201,10 @@ const lazyChunkBudgets = [
   // gzip at the existing 8 KiB ceiling; it eliminates the live exported-docx
   // mail-merge repetition that motivated the new branch.
   { prefix: 'compilerCopyVariants-', rawKiB: 23, gzipKiB: 8.25 },
+  // V0.16.76 moves the unchanged exam-answer and distractor rotations into a
+  // pure compile-only leaf. This gives the broader copy chunk deterministic
+  // headroom across Node/zlib platforms without raising its existing budget.
+  { prefix: 'compilerExamCopy-', rawKiB: 4, gzipKiB: 2 },
   // v0.16.72: lesson-rotated assessment, prerequisite, close-reading, and
   // FAQ language is data rather than compiler control flow. Keep it in a
   // compile-only leaf so deeper examples do not inflate the core compiler.
@@ -286,6 +290,7 @@ const forbiddenInitialChunks = [
   /courseMapContinuation/i,
   /compilerFrames/i,
   /compilerCopyVariants/i,
+  /compilerExamCopy/i,
   /scionCourseSequenceAnswer/i,
   /compilerInstructionalCopy/i,
   /compilerSelfAssessmentCopy/i,

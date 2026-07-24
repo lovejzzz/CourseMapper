@@ -51,8 +51,6 @@ import {
   compactCourseCopyFocus,
   compactRepeatedCourseFocusReferences,
   courseCopySurfaceWords,
-  examAtomPaddingOptions,
-  examUnderstandCorrectText,
   kernelFactInstructorNote,
   restoreNamedReadingConjunctions,
   slideAgendaOpening,
@@ -65,6 +63,7 @@ import {
   titleSlideOpening,
   titleSlideExpectation,
 } from './courseCompilerCopyVariants';
+import { examAtomPaddingOptions, examUnderstandCorrectText } from './courseCompilerExamCopy';
 import {
   dedupeCompilerMaterials,
   assessmentRevisionCriterion,
