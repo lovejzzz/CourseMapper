@@ -438,6 +438,15 @@ body {
   background-color: var(--color-surface-dim) !important;
 }
 
+/* Slide decks are fixed-design teaching artifacts, not dark-mode chrome.
+   Preserve the authored white cards while the surrounding workspace follows
+   the user's theme. The whole 16:9 artboard is scaled by SlideDecksView, so
+   this also keeps the browser preview faithful to the downloaded PPTX. */
+.dark .slide-preview-fixed-canvas .bg-white,
+.dark .slide-preview-fixed-canvas [class*='bg-white\/'] {
+  background-color: #ffffff !important;
+}
+
 /* Hardcoded Google brand colors → dark muted */
 .dark [class*='E8F0FE'],
 .dark [class*='D2E3FC'],

@@ -1542,7 +1542,7 @@ test.describe('Export smoke', () => {
     await expect(page.getByTestId('readiness-confirm')).toBeHidden();
   });
 
-  test('blocks ZIP export when one selected deliverable failed', async ({ page }) => {
+  test('rebuilds a compiler-owned failed deliverable before ZIP export', async ({ page }) => {
     await restoreExportWorkspace(page, (snapshot) => {
       snapshot.selectedFeatures = ['courseMap', 'lessonPlans', 'courseFaq'];
       snapshot.deliverables = {
@@ -1561,11 +1561,18 @@ test.describe('Export smoke', () => {
     await expect(page.getByTestId('readiness-panel')).toContainText('Course FAQ failed to generate');
     await expect(page.getByTestId('export-download-zip')).toBeEnabled();
 
-    await page.getByTestId('export-download-zip').click();
-    await expect(page.getByTestId('readiness-confirm')).toContainText('Package refinement');
-    await expect(page.getByTestId('readiness-confirm')).toContainText('Course FAQ failed to generate');
-    await expect(page.getByTestId('readiness-confirm')).toContainText('Automatic finishing ran');
-    await expect(page.getByTestId('readiness-export-anyway')).toHaveCount(0);
+    const zipDownload = await expectDownload(page, () => page.getByTestId('export-download-zip').click(), {
+      extension: 'zip',
+      nameIncludes: 'Export Smoke Course',
+      minBytes: 1000,
+    });
+    const audit = await auditCourseMaterialsZip(zipDownload.path, {
+      expectedFolders: ['Course Map', 'Lesson Plans', 'Course FAQ'],
+    });
+    expect(audit.issues).toEqual([]);
+    await expect(page.getByTestId('readiness-confirm')).toBeHidden();
+    await expect(page.getByTestId('readiness-status')).toContainText('Ready to download');
+    await expect(page.getByTestId('readiness-panel')).not.toContainText('Course FAQ failed to generate');
   });
 
   test('downloads a verified ZIP without unfinished-product language when generated quiz content has review notes', async ({

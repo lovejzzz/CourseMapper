@@ -344,6 +344,69 @@ function NativeConceptMapSlide({ slide, map, dataKey, deckIndex, slideIndex, onE
   );
 }
 
+const SLIDE_PREVIEW_ARTBOARD_WIDTH = 768;
+
+export function computeSlidePreviewScale(width, artboardWidth = SLIDE_PREVIEW_ARTBOARD_WIDTH) {
+  const measuredWidth = Number(width);
+  const fixedWidth = Number(artboardWidth);
+  if (!Number.isFinite(measuredWidth) || measuredWidth <= 0 || !Number.isFinite(fixedWidth) || fixedWidth <= 0) {
+    return 1;
+  }
+  return Math.min(1, measuredWidth / fixedWidth);
+}
+
+/**
+ * Keep the browser preview faithful to the fixed-size PPTX artboard.
+ *
+ * Slide typography is deliberately authored in pixels so exported and
+ * on-screen decks share one hierarchy. Letting the responsive workspace
+ * shrink only the slide box left those pixel sizes unchanged, which could
+ * turn a concept card into a tall clipped column between the Agent and Export
+ * panels. Scale the complete 768 × 432 artboard as one unit instead.
+ */
+function ResponsiveSlideCanvas(props) {
+  const frameRef = useRef(null);
+  const [scale, setScale] = useState(1);
+
+  useEffect(() => {
+    const frame = frameRef.current;
+    if (!frame) return undefined;
+
+    const updateScale = () => {
+      setScale(computeSlidePreviewScale(frame.getBoundingClientRect().width));
+    };
+    updateScale();
+
+    if (typeof ResizeObserver === 'undefined') {
+      window.addEventListener('resize', updateScale);
+      return () => window.removeEventListener('resize', updateScale);
+    }
+
+    const observer = new ResizeObserver(updateScale);
+    observer.observe(frame);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div
+      ref={frameRef}
+      className="slide-preview-fixed-canvas relative w-full aspect-[16/9] overflow-hidden rounded-xl"
+      data-testid="responsive-slide-preview"
+    >
+      <div
+        className="absolute left-0 top-0"
+        style={{
+          width: `${SLIDE_PREVIEW_ARTBOARD_WIDTH}px`,
+          transform: `scale(${scale})`,
+          transformOrigin: 'top left',
+        }}
+      >
+        <SlideCanvas {...props} />
+      </div>
+    </div>
+  );
+}
+
 // ─── Individual slide renderer ───
 function SlideCanvas({
   slide,
@@ -1395,7 +1458,7 @@ export default function SlideDecksView({ data, isStreaming, onEdit, slideTheme, 
           <div className="flex-1 flex items-center justify-center p-8 min-h-0">
             {slide ? (
               <div className="w-full max-w-3xl">
-                <SlideCanvas
+                <ResponsiveSlideCanvas
                   slide={slide}
                   slideIndex={activeSlide}
                   totalSlides={slides.length}

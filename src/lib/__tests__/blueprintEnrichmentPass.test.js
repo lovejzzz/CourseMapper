@@ -415,7 +415,11 @@ describe('blueprint enrichment pass', () => {
       'slideDecks',
     ]);
 
-    expect(compiled.studyGuides.studyGuides[0].summary).toContain('use empirical evidence to test feasibility');
+    // Learner-facing prose is sentence-cased after compilation, but the
+    // admitted enrichment phrase must remain semantically intact.
+    expect(compiled.studyGuides.studyGuides[0].summary.toLowerCase()).toContain(
+      'use empirical evidence to test feasibility',
+    );
     expect(compiled.discussions.discussions[0].context).toContain('empirical evidence');
     expect(compiled.slideDecks.decks[0].slides[4].bullets.join(' ')).toContain('method decision');
     expect(compiled.slideDecks.decks[0].slideDeckSequenceGuide.instructionalMoveGuide.practiceMove).toContain(

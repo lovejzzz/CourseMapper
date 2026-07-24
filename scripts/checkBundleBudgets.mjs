@@ -98,6 +98,10 @@ const lazyChunkBudgets = [
   // Anonymous-save presentation is route-only state. It stays isolated so
   // quota fallback wording cannot grow the AppFlow control chunk.
   { prefix: 'workspaceSaveStatus-', rawKiB: 1, gzipKiB: 1 },
+  // Completion notifications and registry-scale grouping are pure,
+  // independently cacheable workspace leaves.
+  { prefix: 'workspaceNotification-', rawKiB: 2, gzipKiB: 1 },
+  { prefix: 'deliverableLessonGrouping-', rawKiB: 3, gzipKiB: 1.5 },
   // v0.9.0: +12 KiB raw / +4 KiB gzip for the course-native agent (content
   // index + renderer reuse, digest card, journal — measured at 341.0 KiB raw
   // / 92.8 gzip). Deliberate feature growth; gzip headroom unchanged.
@@ -218,6 +222,9 @@ const lazyChunkBudgets = [
   { prefix: 'compilerPolish-', rawKiB: 8, gzipKiB: 3 },
   // v0.16.73 learner-visible not-applicable states measure 163.8/35.2.
   { prefix: 'DeliverableView-', rawKiB: 170, gzipKiB: 35.5 },
+  // Fact-ledger feedback normalization is a pure authoring/compiler helper
+  // and remains off the landing route.
+  { prefix: 'factLedgerFeedback-', rawKiB: 5, gzipKiB: 2.5 },
   { prefix: 'DeveloperModePanel-', rawKiB: 130, gzipKiB: 35 },
   // v0.9.1: +3 KiB raw for the pre-export checklist (localization gaps +
   // compiler-flagged local reviews, measured at 38.0 KiB raw / 10.x gzip).

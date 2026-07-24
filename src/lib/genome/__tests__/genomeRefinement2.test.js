@@ -245,8 +245,20 @@ describe('iteration 2 — sparse mcBank composition', () => {
     // additional compiler frames reuse the documented misconception as a
     // distractor and therefore carry truthful provenance without becoming
     // authored questions; the remaining frames stay compiler-only.
-    const authoredQuestions = new Set(payload.quizItems.map((item) => item.question));
-    expect(questions.filter((question) => authoredQuestions.has(question.question))).toHaveLength(2);
+    // Compilation sentence-cases learner-facing stems. Compare normalized
+    // text so the test still proves both authored ideas survived without
+    // treating a capitalization repair as lost provenance.
+    const normalizeStem = (value) =>
+      String(value || '')
+        .trim()
+        .replace(/[.!?]+$/g, '')
+        .toLowerCase();
+    const authoredQuestions = new Set(payload.quizItems.map((item) => normalizeStem(item.question)));
+    const preservedAuthoredQuestions = questions.filter((question) =>
+      authoredQuestions.has(normalizeStem(question.question)),
+    );
+    expect(preservedAuthoredQuestions).toHaveLength(2);
+    expect(preservedAuthoredQuestions.every((question) => question.enrichmentSource)).toBe(true);
     expect(questions.filter((question) => question.misconceptionSourced)).toHaveLength(2);
     expect(questions.filter((question) => !question.enrichmentSource).length).toBeGreaterThanOrEqual(2);
   });

@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.75
+**Current release:** v0.16.76
 
 ---
 
@@ -31,7 +31,7 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site presents **Provider: Scion**, a disabled API control because no key is needed, and the versioned product model **Scion V0.16.75**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts a new foundation model. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables. The reproducible local evaluation server uses the corresponding pinned `google/gemma-4-E2B-it-qat-q4_0-unquantized` source at revision `1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce`; the runtime formats differ, but neither route changes Gemma's weights.
+The hosted site presents **Provider: Scion**, a disabled API control because no key is needed, and the versioned product model **Scion V0.16.76**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts a new foundation model. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables. The reproducible local evaluation server uses the corresponding pinned `google/gemma-4-E2B-it-qat-q4_0-unquantized` source at revision `1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce`; the runtime formats differ, but neither route changes Gemma's weights.
 
 In plain language, **Scion Vx is the whole local authoring system, not just the base model**:
 
@@ -41,7 +41,13 @@ public Gemma 4 E2B base + optional integrity-checked Scion adapter + Scion compi
 
 Today the adapter term is infrastructure only: the trained research adapter has not beaten the pinned base on the frozen held-out ruler and is inactive. Users download the public base from its immutable source; Course Mapper does not host a second copy of Gemma or change its weights. The compiler is where the current production quality lift lives—course identity, source linking, semantic admission, lesson sequencing, deterministic teaching-material compilation, repetition control, grading, Agent course evidence, and export recovery. Those shared stages also improve compatible paid-model output. Browser download, WebGPU inference, local caching, and browser-runtime recovery remain specific to Scion.
 
-### Adapter work in progress
+### Current production proof
+
+V0.16.76 freezes the base-only route on the exact V21 held-out ruler. In one same-code run, Mandarin (15 lessons), World Literature (14), Psychology (15), Nutrition (14), and Astronomy (12) all reach **99/A** with every requested lesson, **9/9 generated material families**, **100% lesson-kernel coverage**, and **zero blockers, warnings, P0/P1/P2 findings, retries, flagged checks, failed exports, or export warnings**. Every package passes **38/38 export verification** and physical ZIP testing. The five courses use **41 actual model calls for 70 lessons**, with no repair cascade.
+
+The freeze is bound to `evaluation/scion-adapters/held-out-course-benchmark-v21.json` (SHA-256 `509a82e89936aa5dd070f57b06688e3557eab80e6bd42e9e0c0ee0a4303040c8`) and the exact unquantized source revision above. The five packages contain **589 structured teaching visuals** with explicit visual kinds, evidence sources, artifact connections, student actions, and accessibility descriptions. A separate first-use browser test downloads the public base from 0% to ready, builds a new three-lesson Epidemiology course in about **116 seconds with four model calls**, reaches **99/A with zero findings**, gets a grounded summary from the built-in Agent, and downloads a valid 39-file ZIP while the inspected console stays free of warnings and errors.
+
+This is a freeze, not a declaration that quality work is finished forever. It is the stable production base from which future changes must prove a measurable improvement without regressing these five courses. The research adapter remains inactive because it has not beaten this base on complete learner-facing artifacts under the frozen comparison protocol.
 
 V0.16.75 proves that the shared compiler can improve and recover a paid-model project without calling the paid model again. The exact saved GPT-5.4 Mini World Literature project opened with four failed material families and no API key. **Finish package** rebuilt Discussion Prompts, Quiz & Exam Bank, Study Guides, and Course FAQ together from the admitted course blueprint, reached **9/9 materials, 99/A, texture 92, zero P0/P1/P2 findings, zero blockers, and zero warnings**, and used **zero provider calls** for the recovery. The local finish task took about **39 seconds**; the prior implementation rebuilt the same blueprint separately for each missing family.
 

@@ -42,6 +42,10 @@ export default defineConfig({
           if (/src\/lib\/buildRibbonFailureModel\.js$/.test(id)) return 'livingCompilerFailure';
           if (/src\/lib\/courseMapContinuation\.js$/.test(id)) return 'courseMapContinuation';
           if (/src\/lib\/workspaceSaveStatus\.js$/.test(id)) return 'workspaceSaveStatus';
+          if (/src\/lib\/notifyDone\.js$/.test(id)) return 'workspaceNotification';
+          if (/src\/components\/deliverables\/shared\/lessonGrouping\.js$/.test(id)) {
+            return 'deliverableLessonGrouping';
+          }
           // Vite 8's Rolldown graph follows transitive dependencies into a
           // named manual chunk. Grouping scionPassB or the course compiler
           // here captures shared landing dependencies and turns a lazy seam
@@ -61,6 +65,11 @@ export default defineConfig({
           if (/src\/lib\/scionLanguageCompilerFrames\.js$/.test(id)) return 'scionLanguageCompilerFrames';
           if (/src\/lib\/(?:bayesianQuizFrames|musicTheoryQuizFrames)\.js$/.test(id)) return 'compilerFrames';
           if (/src\/lib\/courseCompilerPolish\.js$/.test(id)) return 'compilerPolish';
+          // Fact-ledger feedback normalization is shared by native authoring
+          // and compilation. Keep that pure helper independently cacheable
+          // instead of duplicating its bytes inside the compiler control-flow
+          // chunk.
+          if (/src\/lib\/factLedgerFeedback\.js$/.test(id)) return 'factLedgerFeedback';
           // Rotating instructional prose is data, not compiler control flow.
           // Keep it independently cacheable so adding texture does not make
           // the disciplinary frame chunk pay the parsing/invalidation cost.

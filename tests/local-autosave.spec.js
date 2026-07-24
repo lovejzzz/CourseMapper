@@ -120,11 +120,15 @@ function quotaPressureProject() {
   };
 }
 
-test('local autosave compacts oversized restored projects instead of failing quota', async ({ page }) => {
+test('local autosave preserves an oversized restored project exactly in IndexedDB', async ({ page }) => {
   await page.goto('/');
-  await page.evaluate((project) => {
+  await page.evaluate(async (project) => {
     localStorage.clear();
     sessionStorage.clear();
+    await new Promise((resolve) => {
+      const request = indexedDB.deleteDatabase('coursemapper-project-autosave-v1');
+      request.onsuccess = request.onerror = request.onblocked = () => resolve();
+    });
     localStorage.setItem('coursemapper-project', JSON.stringify(project));
   }, oversizedSavedProject());
   await page.reload();
@@ -136,24 +140,53 @@ test('local autosave compacts oversized restored projects instead of failing quo
   await expect
     .poll(
       async () =>
-        page.evaluate(() => {
-          const saved = JSON.parse(localStorage.getItem('coursemapper-project') || '{}');
+        page.evaluate(async () => {
+          const marker = JSON.parse(localStorage.getItem('coursemapper-project') || '{}');
+          if (marker.indexedDbAutosave !== true) {
+            return {
+              mode: marker.localSaveMode || '',
+              indexedDbAutosave: false,
+              markerHasSentinel: JSON.stringify(marker).includes('autosave-oversized-rubric-sentinel'),
+              exactRubricStatus: '',
+              exactHasSentinel: false,
+              exactDeliverableSaveMode: '',
+            };
+          }
+          const exact = await new Promise((resolve) => {
+            const open = indexedDB.open('coursemapper-project-autosave-v1', 1);
+            open.onerror = () => resolve(null);
+            open.onsuccess = () => {
+              const database = open.result;
+              const transaction = database.transaction('projects', 'readonly');
+              const read = transaction.objectStore('projects').get('current');
+              read.onerror = () => resolve(null);
+              read.onsuccess = () => {
+                try {
+                  resolve(JSON.parse(read.result?.payload || 'null'));
+                } catch {
+                  resolve(null);
+                }
+              };
+            };
+          });
           return {
-            mode: saved.localSaveMode || '',
-            deliverableSaveMode: saved.deliverableSaveMode || '',
-            deliverablesEmpty: Object.keys(saved.deliverables || {}).length === 0,
-            rubricStatus: saved.deliverableManifest?.rubrics?.status || '',
-            hasSentinel: JSON.stringify(saved).includes('autosave-oversized-rubric-sentinel'),
+            mode: marker.localSaveMode || '',
+            indexedDbAutosave: marker.indexedDbAutosave === true,
+            markerHasSentinel: JSON.stringify(marker).includes('autosave-oversized-rubric-sentinel'),
+            exactRubricStatus: exact?.deliverables?.rubrics?.status || '',
+            exactHasSentinel: JSON.stringify(exact).includes('autosave-oversized-rubric-sentinel'),
+            exactDeliverableSaveMode: exact?.deliverableSaveMode || '',
           };
         }),
       { timeout: 7000 },
     )
     .toEqual({
-      mode: 'compact-autosave',
-      deliverableSaveMode: 'recompile-on-open',
-      deliverablesEmpty: true,
-      rubricStatus: 'done',
-      hasSentinel: false,
+      mode: 'indexeddb-autosave',
+      indexedDbAutosave: true,
+      markerHasSentinel: false,
+      exactRubricStatus: 'done',
+      exactHasSentinel: true,
+      exactDeliverableSaveMode: '',
     });
 });
 

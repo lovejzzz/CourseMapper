@@ -1,6 +1,6 @@
 {
   "name": "course-mapper",
-  "version": "0.16.75",
+  "version": "0.16.76",
   "type": "module",
   "description": "AI-powered course syllabus to course map generator",
   "scripts": {
@@ -49,6 +49,7 @@
     "audit:evaluation:pr": "node scripts/evaluationSystemAudit.mjs --profile pr",
     "audit:evaluation:main": "node scripts/evaluationSystemAudit.mjs --profile main",
     "audit:evaluation:release": "node scripts/evaluationSystemAudit.mjs --profile release",
+    "audit:scion:base-freeze:v0.16.76": "node scripts/scionBaseFreezeV01676Audit.mjs",
     "audit:quiz:contrast": "node scripts/quizContrastAudit.mjs",
     "audit:scion:matrix": "node scripts/scionContrastMatrixAudit.mjs",
     "audit:scion:applied-repair": "node scripts/scionAppliedRepairProbe.mjs",
