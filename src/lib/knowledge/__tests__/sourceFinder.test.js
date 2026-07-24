@@ -441,6 +441,45 @@ describe('source finder mini-shard', () => {
     expect(titles).not.toContain('Driving under the influence');
   }, 15000);
 
+  it('rejects humanitarian-monitoring false friends for international crisis bargaining', async () => {
+    const graph = createEmptyCourseGraph({ courseName: 'International Crisis Bargaining' });
+    graph.sessions = [
+      {
+        id: 's3',
+        number: 3,
+        title: 'Lesson 3: Monitoring and Evidence',
+        sections: [{ topic: '3.1: monitoring mandates and evidence limits' }],
+      },
+    ];
+    graph.concepts = [{ id: 'c3', term: 'Monitoring and Evidence' }];
+    graph.edges.teaches = [{ from: 's3', to: 'c3' }];
+
+    const miniShard = await findCourseSources(graph, {
+      storage: memoryStorage(),
+      maxTopics: 1,
+      limitPerTopic: 2,
+      minUsefulSources: 1,
+      providers: {
+        searchScholarlyReadings: vi.fn(async () => []),
+        searchCrossrefWorks: vi.fn(async () => []),
+        searchWikipediaPages: vi.fn(async () => [
+          source('wikipedia', 'ACAPS', {
+            abstract:
+              'A humanitarian analysis organization that provides daily monitoring and evidence summaries for aid workers, donors, and non-governmental organizations.',
+          }),
+          source('wikipedia', 'Crisis bargaining', {
+            abstract:
+              'International relations and security scholarship uses monitoring evidence to study interstate crisis bargaining, deterrence, escalation, diplomacy, and negotiated outcomes.',
+          }),
+        ]),
+      },
+    });
+
+    const titles = miniShard.topics.flatMap((topic) => topic.sources.map((item) => item.title));
+    expect(titles).toContain('Crisis bargaining');
+    expect(titles).not.toContain('ACAPS');
+  }, 15000);
+
   // v0.16.1 regression: the Linear Algebra field run shipped "Independent
   // politician", "Lewis acids and bases", and "2025 Philippine general
   // election" as lesson sources because Wikipedia results were exempt from

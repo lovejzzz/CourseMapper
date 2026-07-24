@@ -556,7 +556,8 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
     case 'lessonPlans': {
       const expanded = expandKeys('lessonPlans', data);
       const key = expanded.plans ? 'plans' : 'lessonPlans';
-      for (const p of expanded[key] || []) {
+      const lessonPlans = expanded[key] || [];
+      for (const [planIndex, p] of lessonPlans.entries()) {
         children.push(makeHeading(p.lessonTitle || p.title || 'Lesson'));
         // Meta line
         const meta = [p.duration, p.weekNumber].filter(Boolean);
@@ -612,6 +613,13 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           children.push(
             makeTableFn(colDXA, ['Time', 'Activity', 'Description & Notes'], outlineRows, { cantSplit: true }),
           );
+        }
+        // Closing belongs to the live session sequence. Rendering it directly
+        // after the outline also prevents a two-line wrap-up from becoming an
+        // otherwise empty final page after research, UDL, and homework tables.
+        if (p.closingActivity) {
+          children.push(makeSubHeading('Closing & Wrap-Up'));
+          children.push(makeText(p.closingActivity));
         }
         // v0.14.5 (F2): language-course dialogue practice — 4-6 model-authored
         // turns using the lesson's vocabulary, inside the practice block.
@@ -679,16 +687,17 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         }
         // UDL Notes
         if (p.udlNotes && (p.udlNotes.representation || p.udlNotes.engagement || p.udlNotes.expression)) {
-          children.push(makeSubHeading('UDL Notes'));
-          children.push(
-            makeKeyValueTable(
-              [
-                ['Representation', p.udlNotes.representation],
-                ['Engagement', p.udlNotes.engagement],
-                ['Expression', p.udlNotes.expression],
-              ].filter(([, v]) => v),
-            ),
-          );
+          const udlClauses = [
+            ['Representation', p.udlNotes.representation],
+            ['Engagement', p.udlNotes.engagement],
+            ['Expression', p.udlNotes.expression],
+          ]
+            .filter(([, value]) => value)
+            .map(([label, value]) => `${label}: ${value}`);
+          // Keep the three UDL modes together in one compact, readable block.
+          // Three separately spaced paragraphs can orphan the last two modes
+          // on an almost-empty final page in dense experiential plans.
+          children.push(makeBold('Universal design for learning', udlClauses.join(' ')));
         }
         // Homework
         if (p.homework) {
@@ -696,22 +705,22 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           if (typeof p.homework === 'object') {
             if (p.homework.title) children.push(makeBold('Title', p.homework.title));
             if (p.homework.description) children.push(makeText(p.homework.description));
-            const hwPairs = [
-              ['Estimated Time', p.homework.estimatedTime],
-              ['Connection to Next Lesson', p.homework.connectionToNext],
-            ].filter(([, v]) => v);
-            if (hwPairs.length) children.push(makeKeyValueTable(hwPairs));
+            if (p.homework.estimatedTime) {
+              children.push(makeBold('Estimated Time', p.homework.estimatedTime));
+            }
+            if (p.homework.connectionToNext) {
+              children.push(makeBold('Connection to Next Lesson', p.homework.connectionToNext));
+            }
           } else {
             children.push(makeText(String(p.homework)));
           }
         }
-        // Closing Activity
-        if (p.closingActivity) {
-          children.push(makeSubHeading('Closing & Wrap-Up'));
-          children.push(makeText(p.closingActivity));
+        // Spacer only BETWEEN lessons. A trailing empty paragraph can spill
+        // across LibreOffice's final page boundary and create a completely
+        // blank last page in otherwise well-filled focused exports.
+        if (planIndex < lessonPlans.length - 1) {
+          children.push(new Paragraph({ spacing: { before: 200, after: 100 }, children: [] }));
         }
-        // Spacer between lessons
-        children.push(new Paragraph({ spacing: { before: 200, after: 100 }, children: [] }));
       }
       break;
     }
@@ -1022,7 +1031,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         ].forEach((item) => children.push(makeBullet(item)));
         break;
       }
-      for (const a of assignments) {
+      for (const [assignmentIndex, a] of assignments.entries()) {
         children.push(makeHeading(a.title || 'Assignment'));
         const courseMapRef = a.courseMapRef ? String(a.courseMapRef).trim() : '';
         // v0.16.1: ONE weight per header. When the course-map stamp carries
@@ -1179,7 +1188,13 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           a.supportResources.forEach((r) => children.push(makeBullet(typeof r === 'string' ? r : r.name || '')));
         }
         if (a.academicIntegrityStatement) children.push(makeBold('Academic Integrity', a.academicIntegrityStatement));
-        children.push(new Paragraph({ spacing: { before: 200, after: 100 }, children: [] }));
+        // Keep visual separation between briefs, but do not append a spacer
+        // after the final brief. A trailing empty paragraph can be pushed onto
+        // a fifth page when a dense activity packet ends near the page
+        // boundary, producing an otherwise blank exported page.
+        if (assignmentIndex < assignments.length - 1) {
+          children.push(new Paragraph({ spacing: { before: 200, after: 100 }, children: [] }));
+        }
       }
       break;
     }

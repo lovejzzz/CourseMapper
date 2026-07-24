@@ -588,7 +588,7 @@ describe('pedagogy evidence (P3)', () => {
     const note = whyThisWorksNote('peer-discussion', { anchor: 'Crisis Simulation Mechanics' });
     expect(note.note.match(/Crisis Simulation Mechanics/g)).toHaveLength(1);
     expect(note.note).not.toMatch(/For Crisis Simulation Mechanics[^.]+\. For Crisis Simulation Mechanics/i);
-    expect(note.note).toContain('support this teaching move rather than the accuracy of course-content claims');
+    expect(note.note).toContain("supports the teaching move, not the lesson's factual claims");
   });
 });
 

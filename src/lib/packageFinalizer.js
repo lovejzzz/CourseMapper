@@ -313,6 +313,11 @@ function repairAssignmentIdentitiesFromCourseMap(courseMap, deliverables = {}) {
 
   let repairedCount = 0;
   const nextAssignments = assignments.map((assignment) => {
+    // Activity packets already carry a controlled briefing → roles → update
+    // → artifact sequence. The generic assignment texture reducer can turn
+    // concrete activity names into awkward "<topic> focus" placeholders and
+    // obscure that sequence, so preserve them exactly as compiled.
+    if (assignment?.activityPacket) return assignment;
     const lessonIndex = assignmentLessonIndex(assignment, lessons);
     if (lessonIndex === null) return assignment;
     const lesson = lessons[lessonIndex];

@@ -924,6 +924,7 @@ export default function ExportSidePanel({
   const allReadyCount = getExportFeatureIds('all').filter((featureId) =>
     featureId === 'courseMap' ? Boolean(courseMap) : deliverables?.[featureId]?.status === 'done',
   ).length;
+  const allPackagePartCount = getExportFeatureIds('all').length;
 
   useEffect(() => {
     if (!preferPackageScope || scopeWasChosen || scope === 'all') return;
@@ -1409,7 +1410,11 @@ export default function ExportSidePanel({
     allReadyCount === 0 ||
     !courseMap ||
     (selectedLessons !== null && selectedLessons.length === 0);
-  const panelTitle = ['Download ZIP', 'Preparing ZIP…'].includes(zipButtonLabel) ? 'Export package' : 'Refine package';
+  const panelTitle = isPackageGenerationRunning
+    ? 'Building package'
+    : ['Download ZIP', 'Preparing ZIP…'].includes(zipButtonLabel)
+      ? 'Export package'
+      : 'Refine package';
   return (
     <div
       data-testid="export-side-panel"
@@ -1493,7 +1498,7 @@ export default function ExportSidePanel({
           ) : (
             <>
               <span className="font-semibold text-slate-600">
-                {allReadyCount} material{allReadyCount !== 1 ? 's' : ''}
+                {allReadyCount}/{allPackagePartCount} package parts
               </span>{' '}
               ready
             </>

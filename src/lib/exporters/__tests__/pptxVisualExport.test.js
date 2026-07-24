@@ -316,6 +316,9 @@ describe('PPTX export — visual placeholders', () => {
     const activityXml = await activityZip.file('ppt/slides/slide1.xml').async('string');
     expect(activityXml).toContain('Activity clock:');
     expect(activityXml.indexOf('Mobile Prototype Critique')).toBeLessThan(activityXml.indexOf('ACTIVITY'));
+    expect(activityXml).toContain('normAutofit');
+    expect(activityXml).not.toContain('buAutoNum');
+    expect(activityXml).toContain('buChar');
   });
 
   it('does not mislabel a complete four-phase activity deck as unusually thin', async () => {

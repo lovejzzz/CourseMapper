@@ -81,7 +81,8 @@ const EXPERIENTIAL_ACTIVITY_REQUIREMENTS = [
   },
   {
     label: 'evolving phases or updates',
-    pattern: /\b(?:phases? and updates?|activity phases?|phase information|new information|update)\b/i,
+    pattern:
+      /\b(?:phases? and updates?|activity phases?|phase information|later phase|new information|synchronized updates?|updates?)\b/i,
   },
   {
     label: 'a required decision, action, interpretation, or revision',
@@ -122,7 +123,12 @@ export function buildExperientialActivityFindings({ files = [], titleForFile = (
     // exported lesson plan. Treat only an activity-titled document or a
     // document carrying at least two canonical rendering markers as an
     // experiential surface.
-    if (!titleRequestsActivity && renderedMarkerCount < 2) continue;
+    // Marker-only detection must include the compiler's exact clock. Ordinary
+    // comparison lessons can mention roles, evidence, and an artifact without
+    // being experiential activities; two generic markers mislabeled those
+    // lessons as incomplete simulations in the live v0.16.77 browser audit.
+    const carriesCanonicalActivityClock = /\bactivity clock\b|\btotal time:\s*\d+\s*minutes\b/i.test(text);
+    if (!titleRequestsActivity && !(renderedMarkerCount >= 2 && carriesCanonicalActivityClock)) continue;
     const missing = EXPERIENTIAL_ACTIVITY_REQUIREMENTS.filter(({ pattern }) => !pattern.test(text)).map(
       ({ label }) => label,
     );

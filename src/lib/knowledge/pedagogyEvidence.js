@@ -18,7 +18,7 @@ export const PEDAGOGY_EVIDENCE = [
     move: 'misconception-poll',
     label: 'Misconception polls with delayed correction',
     claim:
-      'Directly eliciting and refuting misconceptions produces stronger conceptual change than presenting correct content alone; learners must notice the conflict before they revise the belief.',
+      'Eliciting and refuting misconceptions can produce stronger conceptual change than presenting corrections alone.',
     citations: [
       {
         authors: 'Posner, G. J., Strike, K. A., Hewson, P. W., & Gertzog, W. A.',
@@ -83,8 +83,7 @@ export const PEDAGOGY_EVIDENCE = [
   {
     move: 'peer-discussion',
     label: 'Peer instruction and structured discussion',
-    claim:
-      'Structured peer explanation measurably improves conceptual mastery over lecture alone, and active learning lowers failure rates across STEM disciplines.',
+    claim: 'Structured peer explanation can improve conceptual mastery, while active learning can lower failure rates.',
     citations: [
       {
         authors: 'Crouch, C. H., & Mazur, E.',
@@ -163,9 +162,14 @@ export function whyThisWorksNote(move, { anchor } = {}) {
     .join('; ');
   const claim = entry.claim.replace(/\.$/, '');
   const anchoredClaim = `${claim.charAt(0).toLowerCase()}${claim.slice(1)}`;
-  const note = anchor
-    ? `For ${anchor}, use ${entry.label.toLowerCase()}: ${anchoredClaim}; ${refs} support this teaching move rather than the accuracy of course-content claims.`
-    : `${claim}; ${refs} support this teaching move rather than the accuracy of course-content claims.`;
+  const conciseAnchor = String(anchor || '')
+    .replace(/^(?:analyze|apply|evaluate|explain|use)\s+/i, '')
+    .replace(/\s+using course evidence\b.*$/i, '')
+    .replace(/\s+and name one limitation\b.*$/i, '')
+    .trim();
+  const note = conciseAnchor
+    ? `For ${conciseAnchor}, ${anchoredClaim} (${refs}); this evidence supports the teaching move, not the lesson's factual claims.`
+    : `${claim} (${refs}); this evidence supports the teaching move, not the lesson's factual claims.`;
   return { move: entry.move, label: entry.label, note };
 }
 

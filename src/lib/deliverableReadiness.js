@@ -1452,7 +1452,7 @@ function getCourseMapFallbackValue(key, courseMap, lesson, section, lessonIndex)
                         `Explain the key ideas in ${topic} and apply them in course activities.`,
                         `Apply the main concepts from ${topic} to a course task or example.`,
                         `Connect ${topic} to the week's work and explain one supporting evidence source.`,
-                        `Analyze an example using ${topic} and name one limitation or open question.`,
+                        `Analyze ${topic} using course evidence and name one limitation or open question.`,
                       ]),
                       weeklyAssessments: pick([
                         `${formativeAssessmentPrefix}${displayCourseMapTopic(topic)} evidence check: state one supported, bounded conclusion.`,
@@ -1461,7 +1461,7 @@ function getCourseMapFallbackValue(key, courseMap, lesson, section, lessonIndex)
                         `${formativeAssessmentPrefix}${displayCourseMapTopic(topic)} short analysis: claim, evidence, and next question.`,
                       ]),
                       asyncActivities: pick([
-                        `Annotate the instructor-provided resource for ${topic} and bring one usable example.`,
+                        `Annotate the lesson resource for ${topic} and bring one usable example.`,
                         `Prepare a source note that names one claim, example, or question about ${topic}.`,
                         `Compare the lesson resource with a sample response and mark where ${topic} appears.`,
                         `Draft one question about ${topic} that can be answered with course evidence.`,
@@ -1473,9 +1473,9 @@ function getCourseMapFallbackValue(key, courseMap, lesson, section, lessonIndex)
                         `Share one ${topic} claim and identify the evidence that would make it stronger.`,
                       ]),
                       technologyNeeded: pick([
-                        'Course site, instructor-selected resource, and the response workspace used for the lesson activity.',
+                        'Course site, lesson resource, and the response workspace used for the lesson activity.',
                         'Shared reading, example file, or activity handout plus a workspace for responses.',
-                        'Instructor-provided materials and the classroom tool named for the lesson task.',
+                        'Lesson materials and the classroom tool named for the lesson task.',
                         'Course platform, accessible resource file, and response workspace for the checkpoint.',
                       ]),
                       presentationFormat: pick([
@@ -1484,8 +1484,8 @@ function getCourseMapFallbackValue(key, courseMap, lesson, section, lessonIndex)
                         'Opening question, structured practice, and a closing artifact review.',
                       ]),
                       supportingResources: pick([
-                        `Instructor-selected ${topic} reading or evidence excerpt with an activity prompt.`,
-                        `Instructor-selected reading on ${topic}, with a worked model or practice handout.`,
+                        `${topic} reading or evidence excerpt with an activity prompt.`,
+                        `Reading on ${topic}, with a worked model or practice handout.`,
                         `${topic} worked example and response guide for student reference.`,
                         `${topic} activity directions, reference note, and feedback guide.`,
                       ]),

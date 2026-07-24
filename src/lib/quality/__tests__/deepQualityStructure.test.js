@@ -95,7 +95,7 @@ describe('deep quality package structure', () => {
     });
 
     expect(result.findings.some((finding) => /classroom clock/i.test(finding.detail))).toBe(false);
-    expect(GRADER_VERSION).toBe('1.10.37');
+    expect(GRADER_VERSION).toBe('1.10.38');
   });
 
   it('treats typed-object leaks and mirrored assessment identities as scored export defects', async () => {
@@ -425,5 +425,30 @@ describe('deep quality package structure', () => {
         detail: expect.stringContaining('experiential activity lessonPlans is missing'),
       }),
     );
+  });
+
+  it('does not infer an experiential activity from generic role and artifact language without a clock', async () => {
+    const planPath = 'Lesson Plans/Lesson 05 - Crisis Strategy Comparison - Lesson Plans.txt';
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          lessonScope: [5],
+          readiness: { status: 'ready', blockers: 0 },
+          files: [{ path: planPath, featureId: 'lessonPlans' }],
+        }),
+        [planPath]: [
+          'Lesson 5: Crisis Strategy Comparison',
+          'Teams compare the two strategies using assigned working roles and explicit constraints.',
+          'Students cite inspectable evidence and submit a named artifact with requirements.',
+          'The instructor debriefs the evidence and decision limits.',
+        ].join('\n'),
+      }),
+      course: { title: 'International Crisis Bargaining', featureIds: ['lessonPlans'] },
+      honesty: { pipeline: { judgment: 'compiler-verified fixture' } },
+    });
+
+    expect(
+      result.findings.some((finding) => /experiential activity lessonPlans is missing/i.test(finding.detail)),
+    ).toBe(false);
   });
 });

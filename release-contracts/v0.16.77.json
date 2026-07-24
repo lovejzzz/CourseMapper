@@ -14,6 +14,7 @@
       "npm run audit:release-history",
       "npm run audit:contract:full",
       "npm run probe:scion:experiential",
+      "npm run test:e2e",
       "npx vitest run src/lib/__tests__/experientialActivityContract.test.js src/lib/__tests__/courseBlueprintCompiler.test.js src/lib/__tests__/kernelProjection.test.js src/lib/__tests__/bulkDocxExporter.test.js src/lib/__tests__/packageZipExporter.test.js tests/public-scion-provider.test.js tests/scion-compiler.test.js tests/v0144-deliverable-views.test.jsx tests/v0145-deck-visuals.test.js"
     ],
     "ciFast": {
@@ -31,7 +32,7 @@
     "liveProvider": {
       "status": "success",
       "url": "docs/evidence/SCION_V01677_EXPERIENTIAL_ACTIVITY_ACCEPTANCE.json",
-      "note": "One base-only local Gemma call admitted the complete activity contract in 32.88 seconds with the adapter inactive. Unrelated quiz defects remain visible and require the existing bounded lesson-kernel retry; the whole lesson kernel is not claimed as a first-pass success."
+      "note": "The final base-only local Gemma call admitted the complete activity contract in 24.878 seconds with the adapter inactive. Four unrelated quiz defects remain visible and require the existing bounded lesson-kernel retry; the whole lesson kernel is not claimed as a first-pass success."
     },
     "manualHuman": {
       "status": "not-applicable",
@@ -40,7 +41,7 @@
     "manualBrowser": {
       "status": "success",
       "url": "docs/evidence/SCION_V01677_EXPERIENTIAL_ACTIVITY_ACCEPTANCE.json",
-      "note": "A fresh Scion browser run completed in 117.957 seconds at 99/A with Texture 96, zero findings, zero finish warnings or blockers, and no warning/error console entries. The one activity remained aligned across lesson plan, four-slide sequence, student packet, DOCX, PPTX, and ZIP. The physical 469,457-byte ZIP passed integrity and structural audits and independently regraded 99/A with zero findings."
+      "note": "A fresh five-lesson International Crisis Bargaining run in local Playwright-controlled Chromium completed in 103.667 seconds with 12 provider requests, ten task calls, and eight pipeline calls. It reached 99/A with Texture 96, zero scored findings, blockers, warnings, retries, failed calls, or warning/error console entries, and 38/38 passing export checks. The maritime-crisis activity remained aligned across lesson plan, four-slide sequence, student packet, DOCX, PPTX, and ZIP. The physical 746,980-byte ZIP contains 45 files, passed compressed-data testing, and is SHA-256-bound in the acceptance receipt. Rendered export inspection confirms a four-page assignment without a blank tail, a three-page lesson plan without an orphaned UDL page, and a four-slide deck with no overflow."
     }
   },
   "claims": [
@@ -133,9 +134,37 @@
       "proofScopes": ["unit", "compiled-output"]
     },
     {
-      "id": "v01677-responsive-preview-and-export",
+      "id": "v01677-learner-facing-activity-contract",
       "status": "verified-current",
       "changelogHighlightIndex": 6,
+      "summary": "After semantic admission, deterministic compilation enforces initial-only scenarios, genuinely new updates, a course-grounded product, distinct role constraints, and inspectable initial-decision, revision, and uncertainty requirements without adding model calls or disciplinary facts.",
+      "anchors": [
+        "src/lib/compilerExperientialActivity.js",
+        "src/lib/experientialActivityContract.js",
+        "src/lib/__tests__/experientialActivityContract.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run src/lib/__tests__/experientialActivityContract.test.js src/lib/__tests__/courseBlueprintCompiler.test.js"
+      ],
+      "proofScopes": ["unit", "compiled-output", "static-audit"]
+    },
+    {
+      "id": "v01677-production-router-and-browser-proof",
+      "status": "verified-current",
+      "changelogHighlightIndex": 7,
+      "summary": "The local evaluation router recognizes the production experiential prompt, and a fresh five-lesson Chromium run completes with 12 provider requests, zero retry or failed calls, zero findings or readiness issues, and 38/38 passing export checks.",
+      "anchors": [
+        "scripts/crucible/e2bOpenAIShim.mjs",
+        "scripts/__tests__/e2bOpenAIShim.test.mjs",
+        "docs/evidence/SCION_V01677_EXPERIENTIAL_ACTIVITY_ACCEPTANCE.json"
+      ],
+      "proofCommands": ["npx vitest run scripts/__tests__/e2bOpenAIShim.test.mjs", "npm run probe:scion:experiential"],
+      "proofScopes": ["unit", "browser-live", "compiled-output"]
+    },
+    {
+      "id": "v01677-responsive-preview-and-export",
+      "status": "verified-current",
+      "changelogHighlightIndex": 8,
       "summary": "One responsive editable activity briefing reaches the assignment view, DOCX, and ZIP path without producing a duplicate lesson packet.",
       "anchors": [
         "src/components/deliverables/ExperientialActivityPanel.jsx",
@@ -150,7 +179,7 @@
     {
       "id": "v01677-honest-shared-boundary",
       "status": "verified-current",
-      "changelogHighlightIndex": 7,
+      "changelogHighlightIndex": 9,
       "summary": "The activity IR and compiler are provider-neutral; Gemma weights are unchanged and the research adapter remains inactive.",
       "anchors": ["README.md", "docs/SCION_ADAPTER_ROADMAP.md", "src/lib/scionAdapterTaskScope.js"],
       "proofCommands": ["npm run audit:release-history", "npx vitest run tests/scion-adapter-task-scope.test.js"],

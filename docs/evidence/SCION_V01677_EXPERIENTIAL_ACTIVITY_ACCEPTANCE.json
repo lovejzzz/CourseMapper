@@ -1,7 +1,7 @@
 {
   "protocol": "scion-v0.16.77-experiential-activity-acceptance-v1",
   "version": "0.16.77",
-  "generatedAt": "2026-07-24T08:43:00.000Z",
+  "generatedAt": "2026-07-24T18:36:26.000Z",
   "status": "verified-release",
   "architecture": {
     "ir": "scion-experiential-activity-v1",
@@ -63,7 +63,7 @@
     "focusedTests": {
       "status": "passed",
       "files": 11,
-      "tests": 448
+      "tests": 426
     },
     "responsiveWorkspaceTests": {
       "status": "passed",
@@ -86,10 +86,15 @@
     },
     "fullSuite": {
       "status": "passed",
-      "files": 449,
-      "tests": 5557,
+      "files": 450,
+      "tests": 5571,
       "intentionalSkippedFiles": 16,
       "intentionalSkippedTests": 162
+    },
+    "browserE2E": {
+      "status": "passed",
+      "browser": "chromium",
+      "tests": 151
     },
     "releaseGates": {
       "status": "passed",
@@ -99,7 +104,7 @@
       "bundleBudget": "passed",
       "constitutionFixtures": 5,
       "contractFixtures": 40,
-      "releaseClaims": 8
+      "releaseClaims": 10
     },
     "strictDeepProof": {
       "status": "passed",
@@ -116,28 +121,35 @@
       "model": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
       "revision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
       "adapterActive": false,
-      "durationMs": 32880,
-      "messagesSha256": "96d56e2b6d7ab31214e20e66b35bb3ca5d08b729340cb338a856c72325613fde",
-      "schemaSha256": "96bc8463bdc2f57a21f4cf441e0ddc93ad110aab689e0bafa8a4c00251644024",
-      "rawResponseSha256": "ff74efe2feeaa4d3e517310f9d784f45aa4bf9e4796ccdd73aa28d71b03ddd43",
-      "repairedResponseSha256": "c04c5f188a251caf883797b8fa0d7e731d93abf8c5c20c5c24b7b76f562bd54c",
+      "durationMs": 24878,
+      "messagesSha256": "68dfe2558c7622350dcf3974acbe84b7274a8bedebec59cdcc5d9caf3916a468",
+      "schemaSha256": "bcf0733717dd4b10cf3fd910569aab53335b43ced87a933ac221c46a3ef12783",
+      "rawResponseSha256": "37bb99b9e88f339e09d93a4ec02357ebbac3f8a2b02ab353deb17ac43384dcd9",
+      "repairedResponseSha256": "d1e90ceb4d86bd717fc37a328528fc027e53c0b7358c02eeb740e9c78e6178c0",
       "activityParserIssues": 0,
       "activityTotalMinutes": 75,
       "wholeKernelNeedsBoundedRetry": true,
-      "wholeKernelIssueCount": 7
+      "wholeKernelIssueCount": 4
     }
   },
   "browserProof": {
     "status": "passed",
-    "url": "http://127.0.0.1:5173/?audit=v01677-ir11",
-    "course": "Undergraduate UX Research",
-    "runId": "run-1784882187095",
-    "finishRunId": "finish-mryou7l0-q324f",
-    "elapsedMs": 117957,
-    "providerCalls": 8,
-    "pipelineCalls": 7,
-    "lessonKernels": "3/3",
+    "browser": "local Playwright-controlled Chromium",
+    "url": "http://127.0.0.1:4174/",
+    "course": "International Crisis Bargaining",
+    "runId": "run-1784916890062",
+    "finishRunId": "finish-mrz9hjdy-b369z",
+    "elapsedMs": 103667,
+    "digestElapsedMs": 96059,
+    "providerCalls": 12,
+    "taskCalls": 10,
+    "pipelineCalls": 8,
+    "lessonKernels": "5/5",
     "compiledMaterials": "9/9",
+    "compilerSavedProviderCalls": 11,
+    "safeDeterministicRepairs": 7,
+    "retryCalls": 0,
+    "failedCalls": 0,
     "quality": {
       "score": 99,
       "grade": "A",
@@ -155,14 +167,14 @@
       "exportWarnings": 0
     },
     "console": {
-      "info": 99,
+      "info": 125,
       "log": 1,
       "warn": 0,
       "error": 0
     },
     "activity": {
-      "lesson": 2,
-      "form": "studio critique",
+      "lesson": 4,
+      "form": "maritime-crisis simulation",
       "slides": 4,
       "sessionMinutes": 75,
       "lessonPlanClockMatches": true,
@@ -180,10 +192,11 @@
       ]
     },
     "downloadedZip": {
-      "path": "/Users/tianxing/Downloads/Undergraduate UX Research - Course Materials (1).zip",
-      "sha256": "f97214eba12e7e997ff1553e25815ec0e288f7cecb014520ae228e0400d48104",
+      "path": "verification-output/crucible/round-2026-07-24T18-14-47-637Z/experiential-ir-simulation--local/experiential-ir-simulation--local-package.zip",
+      "bytes": 746980,
+      "sha256": "ffa86abc7460ed2ef1cc5eaaaebb7f8f1372389378067f54d5a146a3ea7a0eac",
       "integrity": "passed",
-      "nonDirectoryFiles": 29,
+      "nonDirectoryFiles": 45,
       "structuralAuditIssues": 0,
       "independentRegrade": {
         "score": 99,
@@ -191,8 +204,32 @@
         "texture": 96,
         "findings": 0
       },
-      "extractedEvidence": "verification-output/scion-v01677-experiential-activity-browser-final-20260724-0839"
+      "extractedEvidence": "verification-output/crucible/round-2026-07-24T18-14-47-637Z/experiential-ir-simulation--local/extracted"
+    },
+    "frameByFrameEvidence": {
+      "frames": 26,
+      "path": "verification-output/crucible/round-2026-07-24T18-14-47-637Z/experiential-ir-simulation--local/timeline",
+      "coverage": [
+        "landing loaded",
+        "provider ready",
+        "generation submitted",
+        "workspace opened",
+        "living compiler intervals",
+        "package ready",
+        "ZIP downloaded",
+        "done"
+      ]
+    },
+    "renderedArtifactEvidence": {
+      "status": "passed",
+      "path": "verification-output/scion-v01677-final-render-round-181447",
+      "assignmentPages": 4,
+      "assignmentBlankTailPages": 0,
+      "lessonPlanPages": 3,
+      "lessonPlanOrphanPages": 0,
+      "activitySlides": 4,
+      "pptxOverflow": 0
     }
   },
-  "claimBoundary": "This receipt proves the encoded reusable architecture, cross-domain fixtures, one scoped live base-model activity admission, a fresh end-to-end browser run, and independent inspection and regrading of the downloaded package. The bounded local retry path remains part of the honest runtime behavior. This receipt does not claim universal factual correctness, instructor adoption, classroom outcomes, adapter superiority, or paid-reference parity."
+  "claimBoundary": "This receipt proves the encoded reusable architecture, cross-domain fixtures, one scoped live base-model activity admission, a fresh end-to-end run in local Playwright-controlled Chromium, frame-by-frame UI evidence, and inspection and regrading of the downloaded package. The bounded local retry path remains part of the honest runtime behavior, and the live probe still exposes four unrelated quiz defects. This is not an in-app Browser or human-instructor trial. It does not claim universal factual correctness, instructor adoption, classroom outcomes, adapter superiority, or paid-reference parity."
 }

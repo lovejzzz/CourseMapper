@@ -20,6 +20,7 @@ import {
   normalizeScionAdapterTaskFamily,
   resolveScionAdapterTaskRoute,
   SCION_ADAPTER_TASK_FAMILIES,
+  SCION_EXPERIENTIAL_ACTIVITY_PROMPT_PROTOCOL,
   SCION_LESSON_KERNEL_PROMPT_PROTOCOL,
   SCION_LESSON_KERNEL_SYNTHESIS_PROMPT_PROTOCOL,
 } from '../../src/lib/scionAdapterTaskScope.js';
@@ -1506,7 +1507,8 @@ const server = http.createServer(async (req, res) => {
   const originalCompilerUser = user;
   const compactLessonKernelRequest =
     (adapterRoute.taskFamily === SCION_ADAPTER_TASK_FAMILIES.SOURCE_GROUNDED_LESSON_KERNEL &&
-      promptProtocol === SCION_LESSON_KERNEL_PROMPT_PROTOCOL) ||
+      (promptProtocol === SCION_LESSON_KERNEL_PROMPT_PROTOCOL ||
+        promptProtocol === SCION_EXPERIENTIAL_ACTIVITY_PROMPT_PROTOCOL)) ||
     (adapterRoute.taskFamily === SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL_SYNTHESIS &&
       promptProtocol === SCION_LESSON_KERNEL_SYNTHESIS_PROMPT_PROTOCOL) ||
     // Replay-only compatibility for frozen pre-split benchmark requests. The

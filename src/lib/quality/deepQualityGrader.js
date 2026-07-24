@@ -201,7 +201,10 @@ import {
 // phases, a required action, exact clock, named artifact, debrief, and safety
 // or evidence boundary. Generic instructor-provided/selected packet language
 // is score-bearing.
-export const GRADER_VERSION = '1.10.37';
+// 1.10.38 — activity updates pluralize correctly; marker-only detection needs
+// the canonical clock; PPTX titles come from the largest heading box instead
+// of a decorative label serialized first.
+export const GRADER_VERSION = '1.10.38';
 
 // ── Dimension weights & letter bands (documented in the module header) ──────
 // v0.15.186: texture weight 10 → 25. At 10/120 a fully templated package
@@ -263,6 +266,23 @@ function paragraphLinesFromXml(xml) {
     if (line) lines.push(line);
   }
   return lines;
+}
+
+function pptxTitleFromXml(xml) {
+  let best = null;
+  for (const shapeXml of xml.match(/<p:sp\b[\s\S]*?<\/p:sp>/g) || []) {
+    const lines = paragraphLinesFromXml(shapeXml);
+    const text = lines.join(' ').replace(/\s+/g, ' ').trim();
+    if (!text) continue;
+    const sizes = [...shapeXml.matchAll(/<a:rPr\b[^>]*\bsz="(\d+)"/g)].map((match) => Number(match[1]) || 0);
+    const fontSize = sizes.length > 0 ? Math.max(...sizes) : 0;
+    const y = Number((shapeXml.match(/<a:off\b[^>]*\by="(\d+)"/) || [])[1]) || Number.MAX_SAFE_INTEGER;
+    const candidate = { text, fontSize, y };
+    if (!best || candidate.fontSize > best.fontSize || (candidate.fontSize === best.fontSize && candidate.y < best.y)) {
+      best = candidate;
+    }
+  }
+  return best?.text || paragraphLinesFromXml(xml)[0] || '';
 }
 
 async function readOfficeZip(buffer) {
@@ -372,7 +392,12 @@ async function extractPptx(buffer) {
       textParts.push(slideText);
       paragraphs.push(...paragraphLinesFromXml(xml));
       if (/slides\/slide/.test(name)) {
-        const titleMatch = paragraphLinesFromXml(xml)[0] || '';
+        // Decorative labels such as ACTIVITY are often serialized before the
+        // visible heading even when the exporter writes the heading first.
+        // The largest, highest text box is the stable title signal across our
+        // layouts and prevents two distinct activity phases from being graded
+        // as duplicate "ACTIVITY" slides.
+        const titleMatch = pptxTitleFromXml(xml);
         slides.push({ name, text: slideText, title: titleMatch });
       }
     }

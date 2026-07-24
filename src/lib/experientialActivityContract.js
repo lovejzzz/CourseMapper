@@ -53,6 +53,35 @@ const TEMPLATE_PLACEHOLDER_RESIDUE_RE =
 const META_RE = /\b(?:as an ai|language model|prompt|json|schema|compiler|generated content)\b/i;
 const GENERIC_ACTIVITY_TYPE_RE =
   /^(?:simulation(?: and decision[- ]making)?|case exercise|lab(?:oratory)?(?: investigation| practical)?|studio critique|critique|role[- ]?play|field exercise|structured debate)$/i;
+const GENERIC_ARTIFACT_TITLE_RE =
+  /^(?:role assignment|activity (?:artifact|log|response|worksheet)|(?:evidence )?analysis requirements?|final response|group response|worksheet|response|notes?)$/i;
+const FUTURE_UPDATE_REVEAL_RE =
+  /\b(?:after|when|once|following)\b[^.!?]{0,100}\b(?:new|updated|additional|later|subsequent|synchronized|evolving)\b[^.!?]{0,50}\b(?:evidence|information|condition|update|input|observation)s?\b|\b(?:will|must|should)\s+(?:revise|reconsider|update|adjust)\b[^.!?]{0,100}\b(?:after|when|once|following|based on)\b/i;
+// The small local model chooses a product form; the compiler adds the
+// course-specific subject. This closed vocabulary avoids two bad outcomes from
+// free-form schema regexes: generic section headings and grammatically valid
+// but visibly corrupted suffix-padding.
+export const CONCRETE_ACTIVITY_ARTIFACT_PRODUCTS = [
+  'decision record',
+  'protocol',
+  'analysis sheet',
+  'findings record',
+  'revision board',
+  'design specification',
+  'performance brief',
+  'field log',
+  'lab report',
+  'case recommendation',
+  'negotiation agreement',
+  'debate brief',
+  'critique record',
+  'investigation record',
+  'solution plan',
+  'evidence map',
+];
+export const CONCRETE_ACTIVITY_UPDATE_ACTIONS = [
+  'Update the artifact, cite the new evidence, and record one changed decision or conclusion.',
+];
 
 const compact = (value) =>
   String(value || '')
@@ -87,14 +116,19 @@ function hasPlaceholderContent(raw = {}) {
   );
 }
 
-function completeActivityScenario(seed, roles = [], updates = []) {
+function completeActivityScenario(seed, roles = [], evidence = []) {
   let scenario = compact(seed);
   if (scenario && !/[.!?]$/.test(scenario)) scenario = `${scenario}.`;
   const additions = [
-    { kind: 'information', value: updates[0]?.information },
-    { kind: 'decision', value: updates[0]?.requiredDecision },
     { kind: 'goal', value: roles[0]?.goal },
     { kind: 'constraint', value: roles[0]?.constraint },
+    {
+      kind: 'evidence',
+      value:
+        list(evidence).length > 0
+          ? `Participants must make the initial decision from ${list(evidence).slice(0, 2).map(compact).join(' and ')}`
+          : '',
+    },
   ];
   for (const { kind, value } of additions) {
     const sentenceCount = (scenario.match(/[.!?](?:\s|$)/g) || []).length;
@@ -107,9 +141,7 @@ function completeActivityScenario(seed, roles = [], updates = []) {
         addition,
       )
     ) {
-      if (kind === 'decision') {
-        addition = `Participants must ${addition.charAt(0).toLowerCase()}${addition.slice(1)}`;
-      } else if (kind === 'goal') {
+      if (kind === 'goal') {
         addition = `The activity goal is to ${addition.charAt(0).toLowerCase()}${addition.slice(1)}`;
       } else if (kind === 'constraint') {
         addition = `Work must honor this constraint: ${addition.charAt(0).toLowerCase()}${addition.slice(1)}`;
@@ -299,7 +331,12 @@ export function compactActivityBlueprintJsonSchema(lessonIds = []) {
             properties: {
               ti: { type: 'string', minLength: 3, maxLength: 80 },
               in: { type: 'string', minLength: 20, maxLength: 320 },
-              rd: { type: 'string', minLength: 20, maxLength: 320 },
+              rd: {
+                type: 'string',
+                enum: CONCRETE_ACTIVITY_UPDATE_ACTIONS,
+                description:
+                  'Choose the observable post-update action. The compiler grounds artifact references in the visible product title.',
+              },
             },
             required: ['ti', 'in', 'rd'],
             additionalProperties: false,
@@ -308,7 +345,12 @@ export function compactActivityBlueprintJsonSchema(lessonIds = []) {
         ar: {
           type: 'object',
           properties: {
-            ti: { type: 'string', minLength: 3, maxLength: 100 },
+            ti: {
+              type: 'string',
+              enum: CONCRETE_ACTIVITY_ARTIFACT_PRODUCTS,
+              description:
+                'Choose the inspectable product form. The compiler adds the course-specific subject to the visible title.',
+            },
             rq: {
               type: 'array',
               minItems: 3,
@@ -423,6 +465,19 @@ function hasGroundingOverlap(value, grounding) {
   return [...meaningfulTokens(value)].some((token) => groundingTokens.has(token));
 }
 
+function hasSubstantialTextOverlap(left, right) {
+  const leftText = compact(left).toLowerCase();
+  const rightText = compact(right).toLowerCase();
+  if (!leftText || !rightText) return false;
+  if (leftText.length >= 20 && rightText.includes(leftText)) return true;
+  if (rightText.length >= 20 && leftText.includes(rightText)) return true;
+  const leftTokens = meaningfulTokens(leftText);
+  const rightTokens = meaningfulTokens(rightText);
+  if (leftTokens.size < 4 || rightTokens.size < 4) return false;
+  const overlap = [...leftTokens].filter((token) => rightTokens.has(token)).length;
+  return overlap / Math.min(leftTokens.size, rightTokens.size) >= 0.75;
+}
+
 function activityTypeSubjectText(value) {
   let subject = compact(value);
   for (const { label } of EXPERIENTIAL_ACTIVITY_KINDS) {
@@ -448,6 +503,61 @@ function groundGenericActivityType(value, promptLesson = {}) {
     .slice(0, 6);
   if (titleWords.length === 0) return activityType;
   return compact(`${titleWords.join(' ')} ${activityType}`).slice(0, 80);
+}
+
+function groundActivityArtifactTitle(value, promptLesson = {}, activityType = '') {
+  const title = compact(value);
+  const authoredProduct = CONCRETE_ACTIVITY_ARTIFACT_PRODUCTS.find(
+    (candidate) => candidate.toLowerCase() === title.toLowerCase(),
+  );
+  if (!authoredProduct) return title;
+  const preferredProductByKind = {
+    simulation: 'decision record',
+    'role-play': 'decision record',
+    'case-exercise': 'case recommendation',
+    'studio-critique': 'revision board',
+    'design-exercise': 'design specification',
+    laboratory: 'lab report',
+    'field-exercise': 'field log',
+    'structured-debate': 'debate brief',
+  };
+  const [requestedKind] = requestedExperientialActivityKinds(promptLesson);
+  const product = preferredProductByKind[requestedKind] || authoredProduct;
+  const source =
+    compact(promptLesson?.title)
+      .replace(/^lesson\s*\d+\s*[:.\-–—]\s*/i, '')
+      .replace(new RegExp(EXPERIENCE_CUE_RE.source, 'gi'), ' ')
+      .replace(/[—–:;|]+/g, ' ') ||
+    activityTypeSubjectText(activityType) ||
+    compact(promptLesson?.topics);
+  const subject = compact(source).split(/\s+/).filter(Boolean).slice(0, 8).join(' ');
+  return compact(`${subject || 'Course'} ${product}`).slice(0, 100);
+}
+
+function groundActivityUpdateDecision(value, artifactTitle = '') {
+  const decision = compact(value);
+  if (!CONCRETE_ACTIVITY_UPDATE_ACTIONS.some((candidate) => candidate === decision)) return decision;
+  const groundedArtifact = artifactTitle
+    ? /^the\b/i.test(artifactTitle)
+      ? artifactTitle
+      : `the ${artifactTitle}`
+    : 'the activity product';
+  return compact(decision.replace(/\bthe artifact\b/i, groundedArtifact));
+}
+
+function normalizeDebriefPrompt(value) {
+  const text = compact(value).replace(/[.!]+$/, '');
+  if (!text || text.endsWith('?')) return text;
+  const comparison = text.match(/^compare\s+(.+?)\s+(?:and|with|to)\s+(.+)$/i);
+  if (comparison) {
+    return compact(`How did comparing ${comparison[1]} and ${comparison[2]} change the final decision?`).slice(0, 240);
+  }
+  const analysis = text.match(/^analy[sz]e\s+(.+)$/i);
+  if (analysis) {
+    return compact(`What did the analysis of ${analysis[1]} reveal, and what remained uncertain?`).slice(0, 240);
+  }
+  if (/^(?:what|how|which|why|where|when|who)\b/i.test(text)) return `${text}?`.slice(0, 240);
+  return compact(`How did ${text.charAt(0).toLowerCase()}${text.slice(1)} shape the final decision?`).slice(0, 240);
 }
 
 function collapseRepeatedRequestedActivityForm(value, promptLesson = {}) {
@@ -480,6 +590,7 @@ export function lintExperientialActivityBlueprint(
   if (scenario.length < 80) issues.push('scenario-too-thin');
   else if (scenario.length > 700) issues.push('scenario-too-long');
   else if ((scenario.match(/[.!?](?:\s|$)/g) || []).length < 2) issues.push('scenario-sentence-count');
+  if (FUTURE_UPDATE_REVEAL_RE.test(scenario)) issues.push('scenario-foreshadows-update');
 
   const roles = list(raw?.roles);
   if (roles.length < 2 || roles.length > 5) issues.push('roles-count');
@@ -513,11 +624,18 @@ export function lintExperientialActivityBlueprint(
     if (requiredDecision.length < 20 || requiredDecision.length > 320) {
       issues.push(`update-${index + 1}-decision`);
     }
+    if (hasSubstantialTextOverlap(information, requiredDecision)) {
+      issues.push(`update-${index + 1}-decision-repeats-information`);
+    }
+    if (hasSubstantialTextOverlap(scenario, information) || hasSubstantialTextOverlap(scenario, requiredDecision)) {
+      issues.push(`update-${index + 1}-leaked-in-scenario`);
+    }
   });
 
   const artifactTitle = compact(raw?.artifact?.title);
   const artifactRequirements = list(raw?.artifact?.requirements).map(compact).filter(Boolean);
   if (artifactTitle.length < 3 || artifactTitle.length > 100) issues.push('artifact-title');
+  else if (GENERIC_ARTIFACT_TITLE_RE.test(artifactTitle)) issues.push('artifact-title-generic');
   if (artifactRequirements.length < 3 || artifactRequirements.length > 5) issues.push('artifact-requirements');
   if (hasDuplicateStrings(artifactRequirements)) issues.push('artifact-requirements-duplicate');
   artifactRequirements.forEach((requirement, index) => {
@@ -548,6 +666,7 @@ export function lintExperientialActivityBlueprint(
   if (hasDuplicateStrings(debriefPrompts)) issues.push('debrief-duplicate');
   debriefPrompts.forEach((prompt, index) => {
     if (prompt.length < 12 || prompt.length > 240) issues.push(`debrief-${index + 1}-length`);
+    if (!prompt.endsWith('?')) issues.push(`debrief-${index + 1}-question-form`);
   });
   const safetyBoundary = compact(raw?.safetyBoundary);
   if (safetyBoundary.length < 20 || safetyBoundary.length > 300) issues.push('safety-boundary');
@@ -582,6 +701,7 @@ export function normalizeExperientialActivityBlueprint(
   raw = {},
   { expectedLessonIds = [], promptLesson = {}, facts = [] } = {},
 ) {
+  const artifactTitle = groundActivityArtifactTitle(raw?.artifact?.title, promptLesson, raw?.activityType);
   const roles = list(raw?.roles).map((role) => ({
     name: compact(role?.name),
     goal: compact(role?.goal),
@@ -591,7 +711,7 @@ export function normalizeExperientialActivityBlueprint(
   const updates = list(raw?.updates).map((update) => ({
     title: compact(update?.title),
     information: compact(update?.information),
-    requiredDecision: compact(update?.requiredDecision),
+    requiredDecision: groundActivityUpdateDecision(update?.requiredDecision, artifactTitle),
   }));
   const candidate = {
     protocol: EXPERIENTIAL_ACTIVITY_PROTOCOL,
@@ -600,19 +720,19 @@ export function normalizeExperientialActivityBlueprint(
       groundGenericActivityType(raw?.activityType, promptLesson),
       promptLesson,
     ),
-    scenario: completeActivityScenario(raw?.scenario, roles, updates),
+    scenario: completeActivityScenario(raw?.scenario, roles, raw?.evidence),
     roles,
     evidence: list(raw?.evidence).map(compact).filter(Boolean),
     updates,
     artifact: {
-      title: compact(raw?.artifact?.title),
+      title: artifactTitle,
       requirements: list(raw?.artifact?.requirements).map(compact).filter(Boolean),
     },
     timing: list(raw?.timing).map((row) => ({
       phase: compact(row?.phase),
       minutes: row?.minutes,
     })),
-    debriefPrompts: list(raw?.debriefPrompts).map(compact).filter(Boolean),
+    debriefPrompts: list(raw?.debriefPrompts).map(normalizeDebriefPrompt).filter(Boolean),
     safetyBoundary: compact(raw?.safetyBoundary),
   };
   const issues = lintExperientialActivityBlueprint(candidate, {

@@ -143,7 +143,7 @@ describe('Scion WebGPU GGUF runtime', () => {
         (entry) =>
           entry.phase === 'loading-model' &&
           entry.progress === 1 &&
-          /Model download complete · preparing Scion/.test(entry.message),
+          /Model ready on this device · preparing Scion/.test(entry.message),
       ),
     ).toBe(true);
     expect(published.map((entry) => entry.phase)).toContain('loading-runtime');
@@ -165,6 +165,96 @@ describe('Scion WebGPU GGUF runtime', () => {
     ).resolves.toEqual(['Base general answer.', 'Base general answer.', 'Base general answer.']);
     expect(FakeWllama.last.maxActiveCompletions).toBe(1);
     expect(FakeWllama.last.prompts).toHaveLength(3);
+  });
+
+  it('removes and redownloads one cached Scion model after a proven OPFS read failure', async () => {
+    const modelUrl = 'https://huggingface.co/scion/model-00001-of-00005.gguf';
+    let cached = true;
+    let removals = 0;
+    let loads = 0;
+    class CacheRepairWllama extends FakeWllama {
+      constructor(paths, config) {
+        super(paths, config);
+        this.modelManager = {
+          getModels: vi.fn(async () =>
+            cached
+              ? [
+                  {
+                    url: modelUrl,
+                    size: 1024,
+                    remove: vi.fn(async () => {
+                      cached = false;
+                      removals += 1;
+                    }),
+                  },
+                ]
+              : [],
+          ),
+        };
+      }
+
+      async loadModelFromUrl(url, options) {
+        loads += 1;
+        if (loads === 1) {
+          throw new DOMException(
+            "Failed to execute 'read' on 'FileSystemSyncAccessHandle': Failed to read the content",
+            'InvalidStateError',
+          );
+        }
+        return super.loadModelFromUrl(url, options);
+      }
+    }
+    const progress = [];
+
+    await expect(
+      loadScionBrowserWllama({
+        ...browser,
+        modelUrl,
+        runtimeLoader: vi.fn(async () => ({ Wllama: CacheRepairWllama })),
+        onProgress: (entry) => progress.push(entry),
+      }),
+    ).resolves.toMatchObject({ status: { phase: 'ready' } });
+
+    expect(loads).toBe(2);
+    expect(removals).toBe(1);
+    expect(progress).toContainEqual(
+      expect.objectContaining({
+        phase: 'repairing-cache',
+        progress: 0,
+        message: 'Repairing the local Scion model cache…',
+      }),
+    );
+  });
+
+  it('does not redownload or clear the model for an unrelated load failure', async () => {
+    let loads = 0;
+    let clears = 0;
+    class UnrelatedFailureWllama extends FakeWllama {
+      constructor(paths, config) {
+        super(paths, config);
+        this.modelManager = {
+          getModels: vi.fn(async () => [{ url: 'https://example.test/model.gguf', size: 1024 }]),
+          clear: vi.fn(async () => {
+            clears += 1;
+          }),
+        };
+      }
+
+      async loadModelFromUrl() {
+        loads += 1;
+        throw new Error('WebGPU device was lost while allocating tensors');
+      }
+    }
+
+    await expect(
+      loadScionBrowserWllama({
+        ...browser,
+        modelUrl: 'https://example.test/model.gguf',
+        runtimeLoader: vi.fn(async () => ({ Wllama: UnrelatedFailureWllama })),
+      }),
+    ).rejects.toThrow('WebGPU device was lost while allocating tensors');
+    expect(loads).toBe(1);
+    expect(clears).toBe(0);
   });
 
   it('restarts once from cached model state after a fatal llama.cpp worker stop', async () => {

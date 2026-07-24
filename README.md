@@ -13,7 +13,7 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 1. **Structured output, not chat.** Pasting a syllabus into ChatGPT gives you a blob of markdown. Course Mapper produces structured, editable tables and slide decks with defined schemas — ready to use immediately.
 2. **10 aligned deliverables.** Generate a Course Map, Syllabus, Lesson Plans, Slide Decks, Rubrics, Quiz Bank, Assignments, Discussion Prompts, Study Guides, and Course FAQ — all cross-referenced and pedagogically consistent.
-3. **Embedded AI agent with a 25-tool runtime.** A multi-step teaching assistant that can inspect your workspace, read deliverables, validate pedagogy, search academic literature, generate diagrams and charts, create reusable macros, and apply safe targeted edits from natural conversation.
+3. **Embedded AI agent with a 31-tool runtime.** A multi-step teaching assistant that can inspect your workspace, read deliverables, validate pedagogy, search academic literature, generate diagrams and charts, create reusable macros, and apply safe targeted edits from natural conversation.
 4. **Inline AI editing.** Right-click any cell to Improve, Expand, Simplify, or Rewrite with AI. No need to describe what you want changed — the agent sees the cell context automatically.
 5. **Cascade editing.** Edit one deliverable and the system automatically detects which other deliverables are affected and surgically regenerates just those lessons — no full regeneration.
 6. **Pedagogical validation.** Built-in Bloom's taxonomy alignment, objective coverage, cognitive load assessment, readability scoring, and difficulty progression checks — with auto-fix for common issues.
@@ -45,7 +45,9 @@ Today the adapter term is infrastructure only: the trained research adapter has 
 
 V0.16.77 makes experiential learning a first-class compiler capability instead of a one-course template. When—and only when—a lesson explicitly requests a simulation, laboratory investigation, studio critique, case exercise, structured debate, field exercise, or role-play, the existing lesson-authoring call returns one compact course-specific activity blueprint beside its knowledge kernel. There is no extra call for the lesson plan, slides, assignment, or export.
 
-The canonical activity IR contains the situation, participant or functional working roles, role goals and constraints, inspectable evidence, evolving updates or phases, required decisions or actions, one named student artifact with inspectable requirements, debrief prompts, a safety/evidence/realism boundary, and phase timing. A lesson-local selector copies the exact matching activity clause from the instructor's source brief into the kernel input without repeating the full course brief or borrowing another lesson's instructions. To protect instructor intent on the first call, the response template seeds only a topic-and-form label derived from that lesson's own title and explicit request; it adds no scenario content. The model authors the substantive activity, and admission rejects a rewritten form—so a requested simulation cannot silently become a case exercise. Both the public Scion route and compatible paid-provider route pass through the same semantic admission gate. Missing, generic, placeholder, meta, ungrounded, duplicate, overfilled, mistyped, or incomplete payloads are rejected rather than polished into a false claim of readiness.
+The canonical activity IR contains the situation, participant or functional working roles, role goals and distinct constraints, inspectable evidence, evolving updates or phases, required decisions or actions, one named student artifact with inspectable requirements, debrief prompts, a safety/evidence/realism boundary, and phase timing. A lesson-local selector copies the exact matching activity clause from the instructor's source brief into the kernel input without repeating the full course brief or borrowing another lesson's instructions. To protect instructor intent on the first call, the response template seeds only a topic-and-form label derived from that lesson's own title and explicit request; it adds no scenario content. The model authors the substantive activity, and admission rejects a rewritten form—so a requested simulation cannot silently become a case exercise. Both the public Scion route and compatible paid-provider route pass through the same semantic admission gate. Missing, generic, placeholder, meta, ungrounded, duplicate, overfilled, mistyped, or incomplete payloads are rejected rather than polished into a false claim of readiness.
+
+The production compiler then closes a second, stricter learner-facing contract without another model call. The scenario may describe only the initial conditions; an update must add genuinely new information and require an allowed response such as revising, choosing, recording, submitting, presenting, or comparing. The student product comes from a closed, course-grounded vocabulary rather than an arbitrary model label. Its requirements must preserve the initial decision and its evidence and role constraint, show the update-responsive revision with the new evidence, and record one unresolved uncertainty plus the next evidence check. Duplicate role constraints and generic assignment shells are repaired deterministically into role-specific constraints and one activity-native brief. These repairs change structure and phrasing, not disciplinary facts.
 
 After admission, the compiler normalizes the authored timing weights once to the actual class duration and projects the same activity into:
 
@@ -60,11 +62,17 @@ The compiler contributes reusable mechanics only: timing normalization, evidence
 
 Five unrelated fixtures prove the same contract at different session lengths: an international-relations negotiation (50 minutes), engineering lab (60), UX studio critique (75), counseling role-play (90), and transit-policy case (120). Accepted content is retained across the activity packet, lesson plan, slides, preview, DOCX, and ZIP path; each projected clock sums exactly to the requested session length; and title-only or hollow substitutes fail the deep grader.
 
-A fresh base-only Gemma probe then exercises the real conditional response, not a fixture. In one 32.88-second call—with the research adapter absent—it admits the complete activity group with zero activity parser issues and compiles its authored phase weights to an exact 75-minute clock. The same response still exposes unrelated quiz defects, so the release does not mislabel the entire kernel as a first-pass success; the existing bounded retry path handles those atoms while atomic retention keeps the accepted activity instead of regenerating it.
+A fresh base-only Gemma probe then exercises the real conditional response, not a fixture. In the final 24.878-second call—with the research adapter absent—it admits the complete activity group with zero activity parser issues and compiles its authored phase weights to an exact 75-minute clock. The same response still exposes four unrelated quiz defects, so the release does not mislabel the entire kernel as a first-pass success; the existing bounded retry path handles those atoms while atomic retention keeps the accepted activity instead of regenerating it.
 
-The final end-to-end proof uses a fresh three-lesson UX Research course in the in-app browser. Scion completed the full package in 117.957 seconds with eight model requests, 3/3 admitted lesson kernels, 9/9 compiled materials, Quality 99/A, Texture 96, zero findings, zero finish blockers or warnings, and no warning/error console entries. Lesson 2 retained the same 75-minute studio critique across the lesson plan, four activity slides, one student packet, DOCX, PPTX, and ZIP. The downloaded 469,457-byte archive passed integrity and structural audits and independently regraded 99/A with zero findings. The machine-readable receipt records the exact run ids, archive hash, and claim boundary in `docs/evidence/SCION_V01677_EXPERIENTIAL_ACTIVITY_ACCEPTANCE.json`.
+The final end-to-end proof uses a fresh five-lesson International Crisis Bargaining course in local Playwright-controlled Chromium against the real Scion evaluation route. Scion completed the full package in 103.667 seconds with 12 provider requests, ten task calls, and eight pipeline calls, 5/5 admitted lesson kernels, 9/9 compiled material families, Quality 99/A, Texture 96, zero scored findings, zero finish blockers or warnings, zero retry or failed calls, and no warning/error console entries. Lesson 4 retained the same 75-minute maritime-crisis simulation across the lesson plan, four activity slides, one student packet, DOCX, PPTX, and ZIP. The compiler saved an estimated 11 additional provider calls and applied seven safe deterministic repairs. The physical 746,980-byte archive contains 45 files, passes compressed-data testing, and is bound to SHA-256 `ffa86abc7460ed2ef1cc5eaaaebb7f8f1372389378067f54d5a146a3ea7a0eac`. A 26-frame filmstrip covers landing, model readiness, generation, every visible compiler interval, package readiness, and download. The final assignment renders as four used pages with no blank tail, the lesson plan as three balanced pages with no orphaned UDL page, and the four-slide deck passes overflow testing. The machine-readable receipt records the exact run ids, probe hashes, archive hash, and claim boundary in `docs/evidence/SCION_V01677_EXPERIENTIAL_ACTIVITY_ACCEPTANCE.json`.
+
+The complete V0.16.77 release gate passes **450 unit-test files and 5,571 tests**, with 16 files and 162 tests intentionally skipped, plus **151/151 Chromium E2E tests**, the **40/40** cross-domain compiler contract, formatting, lint, the production build, locked landing and lazy-chunk bundle budgets, constitution and release-history audits, the live base-model activity probe, physical ZIP verification, and rendered DOCX/PPTX inspection. Initial landing JavaScript remains inside its locked ceiling at **257.3 KiB raw / 81.8 KiB gzip**; the expanded experiential compiler stays workspace-only and off landing.
 
 This is a shared compiler improvement. Compatible paid providers benefit from the same conditional prompt, canonical IR, semantic admission, timing normalization, projections, grader, and exporters. Scion-specific behavior remains the public model download, WebGPU runtime, local cache, compact local schema, and recovery routing. Gemma weights remain unchanged, and the research adapter remains inactive until it beats the frozen base on complete learner-facing artifacts.
+
+### Recent release history
+
+The sections below are historical release evidence. Their versions, timings, test counts, and measured packages describe the named release and are intentionally preserved; the Current production proof above is the authority for v0.16.77.
 
 V0.16.76 freezes the base-only route on the exact V21 held-out ruler. In one same-code run, Mandarin (15 lessons), World Literature (14), Psychology (15), Nutrition (14), and Astronomy (12) all reach **99/A** with every requested lesson, **9/9 generated material families**, **100% lesson-kernel coverage**, and **zero blockers, warnings, P0/P1/P2 findings, retries, flagged checks, failed exports, or export warnings**. Every package passes **38/38 export verification** and physical ZIP testing. The five courses use **41 actual model calls for 70 lessons**, with no repair cascade.
 
@@ -617,7 +625,7 @@ npm run audit:scion:model-bakeoff
 
 ---
 
-## Current Pipeline (v0.16.38)
+## Current Pipeline (v0.16.77)
 
 The product ribbon and the code share one pipeline vocabulary: **Map -> Enrich -> Compile -> Verify -> Grade**. `src/lib/pipelineMachine.js` is the phase authority; UI surfaces should render from that machine instead of re-deriving state from raw generation/finalizer flags.
 
@@ -780,13 +788,13 @@ An embedded multi-step AI agent with native tool calling, not a chatbot wrapper.
 
 **5 Response Types:**
 
-| Type           | Description                                                                                              |
-| -------------- | -------------------------------------------------------------------------------------------------------- |
-| Chat reply     | Markdown text responses with pedagogical guidance                                                        |
-| Proposal cards | 2–3 pedagogically distinct options as clickable cards — pick one, review the diff, then accept or reject |
-| Diagrams       | Mermaid.js visualizations (flowcharts, concept maps, sequence diagrams, Gantt charts, state diagrams)    |
-| Charts         | Data visualizations (bar, line, pie, doughnut, radar, polar area) via QuickChart                         |
-| Image search   | AI-generated images via DALL-E 3 or Google Imagen 3                                                      |
+| Type             | Description                                                                                              |
+| ---------------- | -------------------------------------------------------------------------------------------------------- |
+| Chat reply       | Markdown text responses with pedagogical guidance                                                        |
+| Proposal cards   | 2–3 pedagogically distinct options as clickable cards — pick one, review the diff, then accept or reject |
+| Diagrams         | Mermaid.js visualizations (flowcharts, concept maps, sequence diagrams, Gantt charts, state diagrams)    |
+| Charts           | Data visualizations (bar, line, pie, doughnut, radar, polar area) via QuickChart                         |
+| Generated images | Slide illustrations via OpenAI GPT Image/DALL-E or Google Imagen                                         |
 
 **Agent Capabilities:**
 
@@ -961,7 +969,7 @@ Five pedagogical frameworks that shape all generated content:
 
 ### Session Persistence
 
-- **Auto-save** — Full session state (including all deliverables) saved to browser local storage automatically.
+- **Auto-save** — Exact completed-project state, including deliverables and the quality receipt, is saved to IndexedDB; a tiny localStorage marker keeps synchronous resume discovery fast. Browsers without IndexedDB fall back to a compact recovery snapshot.
 - **Session restore** — On next visit, the app offers to restore exactly where you left off including all generated content.
 - **.coursemapper project file** — Portable save/load for archiving or sharing complete sessions.
 
@@ -990,8 +998,8 @@ Five pedagogical frameworks that shape all generated content:
 - **Streaming generation** — Watch deliverables build in real time with stable per-feature sequential streaming (no preview flashing).
 - **Token-optimized prompts** — Minified JSON keys, adaptive chunk sizes, and compact continuation schemas reduce API costs by ~20% and cut total API calls by ~15–20%.
 - **Conditional AI review** — The app skips broad self-review when deterministic checks pass, then uses targeted repair/retry only for concrete defects.
-- **Static BYOK architecture** — No Course Mapper backend server. Work is stored in browser local storage by default, with optional Firebase cloud sync when you sign in.
-- **Google OAuth verified** — Clean consent screen for Google Drive export.
+- **Static BYOK architecture** — No Course Mapper backend server in the default path. Work is stored in browser storage by default, with optional Firebase cloud sync when you sign in.
+- **Google Drive OAuth** — Signed-in users can export DOCX, XLSX, and PPTX artifacts to Google Docs, Sheets, and Slides through the Drive integration.
 
 ---
 
@@ -1121,7 +1129,8 @@ For controlled pilots, serve `dist/` from Firebase Hosting or an equivalent stat
 
 ```
 src/
-  App.jsx                     # Main app shell: screen routing + all top-level state
+  App.jsx                     # Root application composition and context providers
+  AppFlow.jsx                 # Landing-to-workspace product flow and orchestration
   main.jsx                    # Entry point + hash router (#/faq, #/changelog, etc.)
   screens/
     Landing.jsx               # Landing page: file upload, session restore, demo buttons
@@ -1164,7 +1173,7 @@ src/
       ValidationCard.jsx       # Course validation report card
       DiagramCard.jsx          # AI-generated diagram display (Mermaid.js)
       ChartCard.jsx            # AI-generated chart display (Chart.js)
-      ImageSearchCard.jsx      # AI image generation card (DALL-E 3 / Imagen 3)
+      ImageSearchCard.jsx      # AI image generation card (GPT Image/DALL-E / Imagen)
       SyncSuggestionCard.jsx   # Cascade sync suggestion with approve/skip
       ResizeHandle.jsx         # Draggable chat panel resize handle
       useChatRouter.js         # Chat state machine: routing, streaming, native tool-calling agent loop
@@ -1204,7 +1213,7 @@ src/
     agentActions.js            # Action executor + field aliasing + pre-validator
     academicSearch.js          # Free academic search (OpenAlex, Wikipedia, CrossRef, YouTube, Open Library, Google Books)
     pedagogicalValidator.js    # Bloom's, alignment, cognitive load, readability, difficulty validators
-    imageSearch.js             # AI image generation (DALL-E 3, Imagen 3)
+    imageSearch.js             # AI image generation (GPT Image/DALL-E, Imagen)
     chartGenerator.js          # Chart data generation for Chart.js
     grammarChecker.js          # LanguageTool API integration
     editContextExtractor.js    # Extract cell context for inline AI editing

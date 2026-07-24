@@ -4200,7 +4200,9 @@ export default function AppFlow({
             {courseMap && gen.progressStep === 'done' && (
               <div
                 data-testid="workspace-export-panel"
-                className={`${mobileWorkspaceView === 'export' ? 'block' : 'hidden'} xl:block xl:flex-shrink-0 min-w-0`}
+                className={`${mobileWorkspaceView === 'export' ? 'block' : 'hidden'} ${
+                  isPackageGenerationRunning ? 'xl:hidden' : 'xl:block xl:flex-shrink-0'
+                } min-w-0`}
               >
                 <ExportSidePanel
                   activeTab={activeTab}

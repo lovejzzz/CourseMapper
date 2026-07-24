@@ -18,6 +18,29 @@ async function extractedDocxParagraphs(blob, filePath) {
 }
 
 describe('buildDeliverableDocxBlob', () => {
+  it('does not append an empty spacer paragraph after the final assignment brief', async () => {
+    const blob = await buildDeliverableDocxBlob(
+      'assignments',
+      {
+        assignments: [
+          {
+            title: 'Maritime Crisis decision record (20%)',
+            overview: 'Use the supplied evidence to make and revise one bounded decision.',
+            academicIntegrityStatement: 'Submit original work; credit outside sources and approved tools.',
+          },
+        ],
+      },
+      'International Crisis Bargaining',
+    );
+
+    const xml = await docxDocumentXml(blob);
+    const bodyBeforeSection = xml.slice(0, xml.lastIndexOf('<w:sectPr'));
+    const lastParagraph = bodyBeforeSection.slice(bodyBeforeSection.lastIndexOf('<w:p>'));
+
+    expect(lastParagraph).toContain('Academic Integrity');
+    expect(lastParagraph).not.toMatch(/<w:pPr>\s*<w:spacing[^>]*\/>\s*<\/w:pPr>\s*<\/w:p>\s*$/);
+  });
+
   it('omits internal compiler metadata from generic custom deliverable DOCX exports', async () => {
     const blob = await buildDeliverableDocxBlob(
       'custom_reflection',
@@ -86,6 +109,33 @@ describe('buildDeliverableDocxBlob', () => {
 
     expect(xml).toContain('Class format: Independent studio work with brief evidence check-ins');
     expect(xml).not.toContain('Grouping: Independent studio work with brief evidence check-ins');
+  });
+
+  it('keeps lesson-plan UDL modes in one compact export block', async () => {
+    const blob = await buildDeliverableDocxBlob(
+      'lessonPlans',
+      {
+        lessonPlans: [
+          {
+            lessonTitle: 'Lesson 4: Maritime Crisis Simulation',
+            udlNotes: {
+              representation: 'Provide the briefing, roles, evidence, phase updates, clock, and requirements.',
+              engagement: 'Offer equivalent roles in speaking, observing, evidence tracking, and documenting.',
+              expression: 'Permit accessible production methods while keeping every requirement inspectable.',
+            },
+          },
+        ],
+      },
+      'International Crisis Bargaining',
+    );
+
+    const xml = await docxDocumentXml(blob);
+
+    expect(xml).toContain('Universal design for learning');
+    expect(xml).toContain('Representation: Provide the briefing');
+    expect(xml).toContain('Engagement: Offer equivalent roles');
+    expect(xml).toContain('Expression: Permit accessible production methods');
+    expect(xml).not.toContain('UDL Notes');
   });
 
   it('renders cited prerequisite definitions without X:X echoes', async () => {

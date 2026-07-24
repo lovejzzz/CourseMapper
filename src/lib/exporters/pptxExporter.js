@@ -1734,26 +1734,61 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
     });
 
     if (s.bullets?.length > 0) {
-      const bulletText = s.bullets.map((b, bi) => ({
+      const activityBullets = s.bullets.map((bullet) => String(bullet || '').trim()).filter(Boolean);
+      const [activityLead, ...activityDetails] = activityBullets;
+      const activityBodyW = W - 2.0;
+      const activityLeadSize = autoFitFontSize(activityLead, activityBodyW, 0.68, FONT_BODY, 17, 12, 1.2);
+      slide.addText(activityLead, {
+        x: 0.9,
+        y: 1.42,
+        w: activityBodyW,
+        h: 0.68,
+        fontSize: activityLeadSize,
+        fontFace: FONT_BODY,
+        color: theme.bodyText,
+        bold: true,
+        valign: 'middle',
+        fit: 'shrink',
+      });
+      tracker.add({ x: 0.9, y: 1.42, w: activityBodyW, h: 0.68, label: 'activity-lead' });
+
+      const activityBodyY = 2.14;
+      // Bullets lose usable width to their hanging indent, and LibreOffice
+      // does not consistently honor PowerPoint's normAutofit flag. Measure
+      // against the real text column with a small vertical safety margin so
+      // the final required decision never disappears behind the card/footer.
+      const activityFitW = activityBodyW - 0.8;
+      const activityBodyH = H - activityBodyY - 0.78;
+      const activityBodySize = autoFitBullets(activityDetails, activityFitW, activityBodyH, FONT_BODY, 13, 9, 1.15, 4);
+      const bulletText = activityDetails.map((b) => ({
         text: b,
         options: {
-          bullet: { type: 'number', style: '1)', startAt: bi + 1 },
-          fontSize: 16,
+          bullet: { code: '2022' },
+          fontSize: activityBodySize,
           color: theme.bodyText,
           breakLine: true,
-          paraSpaceAfter: 12,
-          lineSpacingMultiple: 1.5,
-          bold: bi === 0,
+          paraSpaceAfter: 4,
+          lineSpacingMultiple: 1.15,
         },
       }));
-      slide.addText(bulletText, {
-        x: 0.8,
-        y: 1.35,
-        w: W - 1.6,
-        h: H - 2.0,
-        fontFace: FONT_BODY,
-        valign: 'top',
-      });
+      if (bulletText.length > 0) {
+        slide.addText(bulletText, {
+          x: 0.9,
+          y: activityBodyY,
+          w: activityBodyW,
+          h: activityBodyH,
+          fontFace: FONT_BODY,
+          valign: 'top',
+          fit: 'shrink',
+        });
+        tracker.add({
+          x: 0.9,
+          y: activityBodyY,
+          w: activityBodyW,
+          h: activityBodyH,
+          label: 'activity-details',
+        });
+      }
     }
 
     addProgressDots(pptx, slide, theme, slideIndex, totalSlides, false);
@@ -1762,10 +1797,10 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
     slide.background = { color: theme.primary };
 
     slide.addShape(pptx.ShapeType.ellipse, {
-      x: W - 2.5,
-      y: -0.8,
-      w: 3.5,
-      h: 3.5,
+      x: W - 2.3,
+      y: 0,
+      w: 2.3,
+      h: 2.3,
       fill: { color: theme.secondary, transparency: 55 },
       line: { color: theme.secondary, transparency: 55 },
       altText: 'Decorative',

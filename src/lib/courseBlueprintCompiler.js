@@ -761,7 +761,11 @@ function compactSourceCue(value, fallback = 'assigned source materials', maxWord
 
 function compactFallbackEvidencePacket(title, lessonNumber) {
   const focus = compactSourceCue(stripLessonPrefix(title), `Lesson ${lessonNumber} source`, 4);
-  return `${focus} source packet`;
+  // This is compiler-created scaffolding, not proof that the instructor
+  // supplied a packet. "Evidence brief" keeps the classroom function without
+  // inventing a source-selection fact or multiplying "specific source
+  // packet" boilerplate through lesson plans and assignment briefs.
+  return `${focus} evidence brief`;
 }
 
 const PROMPT_ARTIFACT_EVIDENCE_LABELS = [
@@ -5371,7 +5375,7 @@ function attachThroughlineCaseToLesson(lesson, context) {
       `Before explaining ${concept}, cite the exact ${context.projectName} packet item, assigned reading, class activity, or instructor note used for ${artifact}.`,
       `Students should connect each ${concept} claim in ${artifact} to a named ${context.projectName} packet item, reading, activity, or instructor note.`,
       `Before making the ${artifact} recommendation, point to the ${context.projectName} evidence source that supports the ${concept} claim.`,
-      `Label the source behind the ${concept} evidence before explaining what it changes in ${artifact}.`,
+      `Label the source behind ${concept} before explaining what it changes in ${artifact}.`,
     ]),
     noInventedSources: lessonVariant(lesson, [
       `Do not invent authors, URLs, page numbers, studies, legal authority, or real agency data when citing ${concept} sources from ${sourceCue}. Treat the ${concept} throughline case as classroom practice evidence unless the instructor replaces it with an official source.`,
@@ -26702,6 +26706,13 @@ const LESSON_PLAN_VISIBLE_REPEAT_FIELDS = [
 function compactLessonPlanBodyReferences(plan, lesson) {
   const focus = stripLessonPrefix(lesson?.title);
   if (!focus) return plan;
+  // The experiential compiler already controls terminology and repetition
+  // across its briefing, roles, update, artifact, and debrief phases. Running
+  // the generic lesson-title reducer afterward corrupts concrete activity
+  // language ("Maritime Crisis simulation" becomes "the Maritime Crisis
+  // focus") and can obscure reveal sequencing. Preserve the activity
+  // projection exactly as compiled.
+  if (resolveExperientialActivity(lesson)) return plan;
   const originalMaterials = Array.isArray(plan.materials) ? [...plan.materials] : [];
   const protectedReadingTitles = (Array.isArray(lesson?.instructorNamedReadings) ? lesson.instructorNamedReadings : [])
     .map((title) => cleanText(title))
@@ -27475,9 +27486,9 @@ function compileLessonPlans(blueprint, options = {}) {
               lesson.accessibilityPlan?.expression ||
               `Allow students to show ${artifact} progress through a memo, slide, table, or annotated outline when the same criteria are met.`,
           },
-        homework:
-          activityProfile?.homework ||
-          (admittedLanguagePlan
+        homework: activityProfile
+          ? activityProfile.homework
+          : admittedLanguagePlan
             ? {
                 ...admittedLanguagePlan.homework,
                 estimatedTime: `${lesson.workloadEstimate.afterClassMinutes} minutes`,
@@ -27501,7 +27512,7 @@ function compileLessonPlans(blueprint, options = {}) {
                 ...(hasStandaloneAssessment && cleanText(lesson.enrichment?.assignmentCore?.taskDescription)
                   ? { enrichmentSource: 'lesson-content-enrichment' }
                   : {}),
-              }),
+              },
         // v0.15.188 grounding slice 1: the exit ticket closes on a DIFFERENT
         // kernel atom than the mini-lesson opened with (facts[0]) — students
         // restate the week's second fact or key definition in their own

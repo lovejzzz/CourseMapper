@@ -515,7 +515,7 @@ test.describe('Export smoke', () => {
     });
 
     await page.getByTestId('export-scope-all').click();
-    await expect(page.getByTestId('export-side-panel')).toContainText('4 materials ready');
+    await expect(page.getByTestId('export-side-panel')).toContainText('4/4 package parts ready');
     const zipDownload = await expectDownload(page, () => page.getByTestId('export-download-zip').click(), {
       extension: 'zip',
       nameIncludes: 'Export Smoke Course',
@@ -549,7 +549,7 @@ test.describe('Export smoke', () => {
     });
 
     await page.getByTestId('export-scope-all').click();
-    await expect(page.getByTestId('export-side-panel')).toContainText('2 materials ready');
+    await expect(page.getByTestId('export-side-panel')).toContainText('2/2 package parts ready');
 
     const zipDownload = await expectDownload(page, () => page.getByTestId('export-download-zip').click(), {
       extension: 'zip',

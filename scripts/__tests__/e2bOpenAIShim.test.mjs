@@ -469,6 +469,42 @@ input.on('line', (line) => {
     modelCalls: 3,
   });
 
+  const activityProfile = compactLessonKernelSchemaProfile({
+    expectedLessonIds: ['lesson-7'],
+    activityLessonIds: ['lesson-7'],
+  });
+  const activity = await fetch(`${baseUrl}/v1/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Scion-Task-Family': 'source-grounded-lesson-kernel',
+      'X-Scion-Prompt-Protocol': 'production-experiential-activity-prompt-v1',
+    },
+    body: JSON.stringify({
+      model: 'fake-scion',
+      messages: [
+        { role: 'system', content: 'Write a rich Pass B lesson with every surface.' },
+        {
+          role: 'user',
+          content:
+            'Course: Crisis Bargaining\nLessons:\n[{"lessonId":"lesson-7","title":"Maritime Crisis Simulation","objectives":"Revise a response","topics":"Signaling and de-escalation","activityBrief":"Run a 75-minute simulation with roles, synchronized updates, a decision log, and debrief","readings":"Patrol log; convoy notice"}]',
+        },
+      ],
+      response_format: { type: 'json_schema', json_schema: activityProfile },
+    }),
+  }).then((result) => result.json());
+  const activityResponse = JSON.parse(activity.choices[0].message.content);
+  expect(activityResponse.activityBlueprints[0]).toMatchObject({ lessonId: 'lesson-7' });
+  expect(activityResponse.lessons[0]).toMatchObject({ lessonId: 'lesson-7' });
+  expect(activity.scion_adapter_route).toMatchObject({
+    mode: 'base-only',
+    taskFamily: 'source-grounded-lesson-kernel',
+    promptProtocol: 'production-experiential-activity-prompt-v1',
+    factLedgerOnly: false,
+    modelCalls: expect.any(Number),
+  });
+  expect(activity.scion_adapter_route.modelCalls).toBeGreaterThan(0);
+
   const baseLedgerProfile = compactLessonKernelSchemaProfile({ expectedLessonIds: ['lesson-5'] });
   const baseLedger = await fetch(`${baseUrl}/v1/chat/completions`, {
     method: 'POST',
@@ -543,7 +579,7 @@ input.on('line', (line) => {
     .trim()
     .split('\n')
     .map((line) => JSON.parse(line));
-  expect(rows).toHaveLength(7);
+  expect(rows).toHaveLength(8);
   expect(rows[0].modelMetrics.modelCalls).toBeGreaterThan(1);
   expect(rows[1].modelMetrics.modelCalls).toBe(1);
   expect(rows[1].jsonClosureRepair).toBe(']}');
@@ -555,8 +591,10 @@ input.on('line', (line) => {
   expect(rows[4].user).not.toContain('courseLevel object once');
   expect(rows[4].originalCompilerUser).toContain('Course: Testing Basics');
   expect(rows[4].originalCompilerUser).toContain('courseLevel object once');
-  expect(rows[5].user).toContain('factual ledger');
+  expect(rows[5].user).toContain('activityBlueprints');
+  expect(rows[5].user).toContain('Write the compact knowledge core');
   expect(rows[6].user).toContain('factual ledger');
+  expect(rows[7].user).toContain('factual ledger');
 
   const schemas = (await fs.readFile(schemaLogPath, 'utf8'))
     .trim()

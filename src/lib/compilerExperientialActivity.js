@@ -6,6 +6,8 @@ const clean = (value) =>
     .trim();
 
 const list = (value) => (Array.isArray(value) ? value : []);
+const stripTerminalListPunctuation = (value) => clean(value).replace(/[.;:,]+$/g, '');
+const escapeRegExp = (value) => String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const unique = (values, limit = Infinity) => {
   const seen = new Set();
@@ -20,6 +22,127 @@ const unique = (values, limit = Infinity) => {
   }
   return result;
 };
+
+const genericArtifactTitle =
+  /^(?:role assignment|activity (?:artifact|log|response|worksheet)|final response|group response|worksheet|response|notes?)$/i;
+
+function activityTextTokens(value) {
+  return new Set(
+    clean(value)
+      .toLowerCase()
+      .match(/[a-z][a-z0-9'-]{3,}/g)
+      ?.filter(
+        (token) =>
+          ![
+            'activity',
+            'decision',
+            'evidence',
+            'from',
+            'must',
+            'participants',
+            'record',
+            'scenario',
+            'that',
+            'their',
+            'this',
+            'with',
+          ].includes(token),
+      ) || [],
+  );
+}
+
+function activityTextOverlaps(left, right) {
+  const leftText = clean(left).toLowerCase();
+  const rightText = clean(right).toLowerCase();
+  if (!leftText || !rightText) return false;
+  if (
+    (leftText.length >= 20 && rightText.includes(leftText)) ||
+    (rightText.length >= 20 && leftText.includes(rightText))
+  ) {
+    return true;
+  }
+  const leftTokens = activityTextTokens(leftText);
+  const rightTokens = activityTextTokens(rightText);
+  if (leftTokens.size < 4 || rightTokens.size < 4) return false;
+  const overlap = [...leftTokens].filter((token) => rightTokens.has(token)).length;
+  return overlap / Math.min(leftTokens.size, rightTokens.size) >= 0.75;
+}
+
+function safeInitialScenario(activity = {}) {
+  const scenario = clean(activity.scenario);
+  const leaksUpdate = list(activity.updates).some(
+    (update) =>
+      activityTextOverlaps(scenario, update?.information) || activityTextOverlaps(scenario, update?.requiredDecision),
+  );
+  if (!leaksUpdate) return scenario;
+  const activityType = clean(activity.activityType) || 'experiential activity';
+  const evidence = unique(activity.evidence, 2).map(stripTerminalListPunctuation);
+  const evidenceCue =
+    evidence.length > 0 ? `the supplied ${evidence.length === 1 ? 'record' : 'records'}` : 'the supplied evidence';
+  return `In this ${activityType}, participants must make and document an initial decision using ${evidenceCue} while working within assigned role constraints. They must record the reasoning before any later update is released.`;
+}
+
+function concreteActivityArtifact(activity = {}) {
+  const authoredTitle = clean(activity.artifact?.title);
+  const authoredRequirements = unique(activity.artifact?.requirements, 5);
+  const contractRequirements = [
+    'Record the supplied evidence and role constraint behind the initial decision.',
+    'Show how the synchronized update changed or confirmed the final decision, citing the new evidence.',
+    'Name one unresolved uncertainty and the next evidence check.',
+  ];
+  const requirementText = authoredRequirements.join(' ');
+  const requirementsMeetContract =
+    /\b(?:evidence|record|observation|passage|measurement|data)\b/i.test(requirementText) &&
+    /\b(?:constraint|role|limitation|boundary|trade-?off)\b/i.test(requirementText) &&
+    /\b(?:update|revis(?:e|ion)|changed?|confirmed?)\b/i.test(requirementText) &&
+    /\b(?:uncertaint|next (?:evidence )?check)\b/i.test(requirementText);
+  if (authoredTitle && !genericArtifactTitle.test(authoredTitle)) {
+    return {
+      title: authoredTitle,
+      requirements: requirementsMeetContract ? authoredRequirements : contractRequirements,
+    };
+  }
+  const activityType = clean(activity.activityType) || 'Activity';
+  const subject =
+    clean(
+      activityType.replace(
+        /\b(?:simulation|role[- ]?play|case exercise|studio critique|design review|design exercise|laboratory investigation|lab(?:oratory)?|field exercise|structured debate|mock hearing|mock trial|negotiation)\b/gi,
+        ' ',
+      ),
+    ) || activityType;
+  const product = /\b(?:lab|laboratory|investigation|field)\b/i.test(activityType)
+    ? 'findings record'
+    : /\b(?:critique|design|studio)\b/i.test(activityType)
+      ? 'revision record'
+      : 'decision record';
+  return {
+    title: `${subject.charAt(0).toUpperCase()}${subject.slice(1)} ${product}`,
+    requirements: contractRequirements,
+  };
+}
+
+function normalizeActivityRoles(roles = []) {
+  const seenConstraints = new Set();
+  return list(roles).map((role) => {
+    const name = clean(role?.name);
+    const goal = clean(role?.goal);
+    const authoredConstraint = clean(role?.constraint);
+    const constraintKey = authoredConstraint.toLowerCase();
+    const statedOutcome = stripTerminalListPunctuation(goal || 'advance a defensible course of action');
+    const studentFacingOutcome = `${statedOutcome.charAt(0).toLowerCase()}${statedOutcome.slice(1)}`;
+    const constraint =
+      constraintKey && !seenConstraints.has(constraintKey)
+        ? authoredConstraint
+        : `${name || 'This role'} must prioritize this outcome: ${studentFacingOutcome}. The role must also name any supplied evidence that limits the recommendation.`;
+    if (constraintKey) seenConstraints.add(constraintKey);
+    return {
+      name,
+      goal,
+      constraint,
+      privateInformation: clean(role?.privateInformation),
+    };
+  });
+}
 
 export function resolveExperientialActivity(lesson = {}) {
   const activity = lesson?.enrichment?.experientialActivity;
@@ -83,26 +206,21 @@ export function normalizeExperientialActivityTiming(timing = [], sessionMinutes 
 export function buildExperientialActivityPacket({ activity, sessionMinutes = 75 } = {}) {
   if (!activity) return null;
   const timing = normalizeExperientialActivityTiming(activity.timing, sessionMinutes);
+  const artifact = concreteActivityArtifact(activity);
   return {
     protocol: EXPERIENTIAL_ACTIVITY_PROTOCOL,
     activityType: clean(activity.activityType),
-    scenario: clean(activity.scenario),
-    roles: list(activity.roles).map((role) => ({
-      name: clean(role?.name),
-      goal: clean(role?.goal),
-      constraint: clean(role?.constraint),
-      privateInformation: clean(role?.privateInformation),
-    })),
+    scenario: safeInitialScenario(activity),
+    roles: normalizeActivityRoles(activity.roles),
     evidence: unique(activity.evidence, 6),
     phases: list(activity.updates).map((update) => ({
       title: clean(update?.title),
       information: clean(update?.information),
-      requiredDecision: clean(update?.requiredDecision),
+      requiredDecision: activityTextOverlaps(update?.information, update?.requiredDecision)
+        ? `Record how this update changes or confirms ${artifact.title}, citing the evidence used and one remaining uncertainty.`
+        : clean(update?.requiredDecision),
     })),
-    artifact: {
-      title: clean(activity.artifact?.title),
-      requirements: unique(activity.artifact?.requirements, 5),
-    },
+    artifact,
     timing,
     totalMinutes: timing.reduce((sum, row) => sum + row.minutes, 0),
     activityLogFields: [
@@ -119,16 +237,31 @@ export function buildExperientialActivityPacket({ activity, sessionMinutes = 75 
 
 export function buildExperientialActivityMaterials({ activity, readings = [] } = {}) {
   if (!activity) return unique(readings);
+  const packet = buildExperientialActivityPacket({ activity });
+  const normalizedReadings = unique(
+    readings.map((reading) =>
+      clean(reading).replace(/^The (.+?) focus (?=(?:activity|simulation|lab|studio|case)\b)/i, '$1 '),
+    ),
+  );
+  const prunedReadings = normalizedReadings.filter(
+    (reading, index, values) =>
+      !values.some(
+        (other, otherIndex) =>
+          otherIndex !== index &&
+          other.length > reading.length + 6 &&
+          other.toLowerCase().includes(reading.toLowerCase()),
+      ),
+  );
   return unique(
     [
-      ...readings,
-      `${clean(activity.activityType)} activity briefing`,
-      `Evidence set: ${list(activity.evidence).map(clean).filter(Boolean).join('; ')}`,
-      `Participant or working-role cards: ${list(activity.roles)
+      ...prunedReadings,
+      `${packet.activityType} activity briefing`,
+      `Evidence set: ${packet.evidence.map(stripTerminalListPunctuation).join('; ')}`,
+      `Participant or working-role cards: ${packet.roles
         .map((role) => clean(role?.name))
         .filter(Boolean)
         .join(', ')}`,
-      `${clean(activity.artifact?.title)} template`,
+      `${packet.artifact.title} template`,
       'Activity timing and evidence log',
     ],
     8,
@@ -142,11 +275,11 @@ function phaseContent(packet, index) {
     return {
       activity: phase.phase,
       type: 'Activity briefing',
-      description: `Situation: ${packet.scenario} Inspect this evidence before acting: ${packet.evidence.join(
-        ' ',
-      )} Activity clock: ${packet.timing.map((row) => `${row.phase} — ${row.minutes} minutes`).join('; ')}. Total time: ${
-        packet.totalMinutes
-      } minutes.`,
+      description: `Situation: ${packet.scenario} Inspect this evidence before acting: ${packet.evidence
+        .map(stripTerminalListPunctuation)
+        .join('; ')}. Activity clock: ${packet.timing
+        .map((row) => `${row.phase} — ${row.minutes} minutes`)
+        .join('; ')}. Total time: ${packet.totalMinutes} minutes.`,
       instructorNotes: `Introduce the ${packet.activityType}. Safety and evidence boundary: ${packet.safetyBoundary}`,
       instructorRole: 'Orient participants, make the evidence visible, and confirm the activity boundary.',
       grouping: 'Whole class, then assigned participant or working roles',
@@ -179,7 +312,9 @@ function phaseContent(packet, index) {
       description: `Student artifact: ${packet.artifact.title}. Artifact requirements: ${packet.artifact.requirements.join(
         ' ',
       )}`,
-      instructorNotes: `Structured debrief: ${packet.debriefPrompts.join(' ')}`,
+      instructorNotes: `Structured debrief: ${packet.debriefPrompts
+        .map((prompt) => (/[\p{P}]$/u.test(clean(prompt)) ? clean(prompt) : `${clean(prompt)}.`))
+        .join(' ')}`,
       instructorRole: 'Collect the named artifact and debrief evidence, constraints, decisions, and revisions.',
       grouping: 'Individual or team artifact, followed by structured debrief',
       bloomsLevel: 'Evaluate',
@@ -199,9 +334,9 @@ function phaseContent(packet, index) {
     return {
       activity: phase.phase,
       type: 'Evidence and activity-log setup',
-      description: `Inspect the shared evidence before acting: ${packet.evidence.join(
-        ' ',
-      )} Activity log fields: ${packet.activityLogFields.join('; ')}.${updatesCopy}`,
+      description: `Inspect the shared evidence before acting: ${packet.evidence
+        .map(stripTerminalListPunctuation)
+        .join('; ')}. Activity log fields: ${packet.activityLogFields.join('; ')}.${updatesCopy}`,
       instructorNotes:
         'Require a visible initial record that separates supplied evidence, an active constraint or uncertainty, and the first decision or action. Release any synchronized updates named in this phase only after that initial record is visible.',
       instructorRole: 'Check the evidence record before releasing any later phase information.',
@@ -262,26 +397,22 @@ export function buildExperientialActivityLessonPlanProfile({ activity, sessionMi
     formativeCheck: {
       type: 'Activity evidence check',
       prompt: `Before the final phase, record the evidence used, the constraint that mattered, and the decision or action that follows for ${packet.artifact.title}.`,
-      objectiveAligned: outcomes[0] || `Complete ${packet.artifact.title} with an inspectable evidence trail.`,
+      objectiveAligned: `Complete ${packet.artifact.title} with an inspectable evidence trail.`,
       instructorAction:
-        'Return a response that names an outcome without showing the evidence, constraint, and reasoning that produced it.',
+        'Ask students to revise any response that names an outcome without showing the evidence, constraint, and reasoning that produced it.',
     },
     udlNotes: {
       representation:
-        'Provide the activity briefing, role or working constraints, evidence set, phase updates, timing, and artifact requirements in accessible digital and print formats.',
+        'Provide the briefing, roles, evidence, phase updates, clock, and artifact requirements in accessible digital and print formats.',
       engagement:
-        'Offer equivalent participation through speaking, observing, evidence tracking, documenting, operating tools, or presenting while preserving the same evidence and artifact requirements.',
-      expression: `Allow accessible production methods for ${packet.artifact.title} while keeping every listed requirement inspectable.`,
+        'Offer equivalent roles in speaking, observing, evidence tracking, documenting, operating tools, or presenting.',
+      expression: `Permit accessible production methods for ${packet.artifact.title} while keeping every requirement inspectable.`,
     },
-    homework: {
-      title: `${packet.artifact.title} follow-through`,
-      description:
-        'If the named artifact is not completed in class, finish only its remaining required evidence or revision trace; this is completion of the same activity artifact, not an additional assignment.',
-      estimatedTime: '15 minutes',
-      connectionToNext:
-        'Bring the activity evidence, decision or action, and debrief note forward so the next lesson can test what should be retained or revised.',
-    },
-    closingActivity: `Close with one debrief prompt: ${packet.debriefPrompts[0]}`,
+    closingActivity: `Close with one debrief prompt: ${
+      /[\p{P}]$/u.test(clean(packet.debriefPrompts[0]))
+        ? clean(packet.debriefPrompts[0])
+        : `${clean(packet.debriefPrompts[0])}.`
+    } Retain the evidence log and debrief note for the next lesson.`,
   };
 }
 
@@ -358,14 +489,138 @@ export function mergeExperientialActivityBriefs(briefs = []) {
       continue;
     }
     const existing = merged[matchIndex];
+    const packet = brief.activityPacket;
+    const rawActivityLabel = String(packet.activityType || 'experiential activity').trim();
+    const activityLabelRoot = rawActivityLabel.replace(/\s+focus$/i, '').trim() || 'course';
+    const activityLabel = /\b(?:activity|simulation|lab|studio|exercise|debate|negotiation)\b/i.test(activityLabelRoot)
+      ? activityLabelRoot
+      : `${activityLabelRoot} experiential activity`;
+    const artifactTitle = String(packet.artifact?.title || 'activity artifact').trim();
+    const artifactReference = /^the\b/i.test(artifactTitle) ? artifactTitle : `the ${artifactTitle}`;
+    const legacyTitle = clean(existing.title);
+    const weightSuffix = legacyTitle.match(/\(\s*\d+(?:\.\d+)?\s*%\s*\)\s*$/)?.[0] || '';
+    const assignmentTitle = `${artifactTitle}${weightSuffix ? ` ${weightSuffix}` : ''}`;
+    const rewriteLegacyCopy = (value) => {
+      if (Array.isArray(value)) return value.map(rewriteLegacyCopy);
+      if (value && typeof value === 'object') {
+        return Object.fromEntries(Object.entries(value).map(([key, nested]) => [key, rewriteLegacyCopy(nested)]));
+      }
+      if (typeof value !== 'string') return value;
+      let text = value;
+      if (legacyTitle) text = text.replace(new RegExp(escapeRegExp(legacyTitle), 'gi'), assignmentTitle);
+      text = text
+        .replace(/\bWeek\s+\d+\s+assignment\b/gi, artifactTitle)
+        .replace(/\b([A-Z][\w'-]*(?:\s+[A-Z][\w'-]*){0,4}) focus\b/g, '$1')
+        .replace(/\busing course evidence evidence\b/gi, 'using supplied course evidence')
+        .replace(/\bevidence evidence\b/gi, 'evidence')
+        .replace(/\bbefore (?:students|they) draft\b/gi, 'before students submit')
+        .replace(/\bdraft\b/gi, 'working version');
+      return clean(text);
+    };
+    const preserved = rewriteLegacyCopy(existing);
+    // The complete packet already supplies the briefing, clock, roles,
+    // evidence, updates, artifact, and debrief. Keep the student-facing
+    // directions native to that experience instead of wrapping them in a
+    // generic weekly-assignment template.
+    const activityInstructions = unique(
+      [
+        'Read the situation, safety or evidence boundary, and assigned role constraints before the clock starts.',
+        `Inspect the supplied evidence and record the initial decision or interpretation for ${artifactReference} before any update is released.`,
+        'Keep the activity evidence log current during every phase: name the evidence, active constraint, decision, reason, and next check.',
+        `When the synchronized update arrives, revise ${artifactReference}, cite the new evidence, and record one changed decision or conclusion.`,
+        `Complete every requirement listed for ${artifactReference}; do not add claims the supplied record cannot support.`,
+        'Answer the debrief prompts by comparing evidence use, constraints, decisions, and revisions—not personal performance.',
+        `Submit ${artifactReference}, the completed activity evidence log, and a concise debrief note.`,
+      ].filter(Boolean),
+      7,
+    );
+    const activityMilestones = [
+      {
+        milestone: 'Briefing and initial record',
+        description:
+          'Confirm the role constraint, inspect the supplied evidence, and record an initial decision before the update.',
+        feedback:
+          'The instructor checks that evidence, constraint, and initial reasoning are visible before releasing the update.',
+        uploadChecklist: ['Role constraint and initial evidence source recorded'],
+      },
+      {
+        milestone: 'Update-responsive revision',
+        description: `Revise ${artifactReference} after the synchronized update and identify the evidence that changed or confirmed the decision.`,
+        feedback: 'The instructor checks the evidence link, changed decision or conclusion, and remaining uncertainty.',
+        uploadChecklist: ['Update evidence cited', 'Changed decision or conclusion visible'],
+      },
+      {
+        milestone: 'Artifact and debrief',
+        description: `Submit ${artifactReference}, the completed activity evidence log, and a concise debrief note.`,
+        feedback: 'Feedback identifies the strongest evidence-to-decision link and one next evidence check.',
+        uploadChecklist: [`${artifactTitle} complete`, 'Activity evidence log complete', 'Debrief note complete'],
+      },
+    ];
     merged[matchIndex] = {
-      ...existing,
-      activityPacket: brief.activityPacket,
-      activityType: brief.activityPacket.activityType,
-      instructions: unique([...(existing.instructions || []), ...(brief.instructions || [])], 12),
-      deliverables: unique([...(existing.deliverables || []), ...(brief.deliverables || [])], 12),
+      ...preserved,
+      title: assignmentTitle,
+      assignmentType: 'Experiential activity',
+      bloomsLevel: brief.bloomsLevel,
+      estimatedTime: brief.estimatedTime,
+      overview: `${packet.scenario} Participants will produce ${artifactReference} with a visible trail from supplied evidence and role constraints to the initial decision and update-responsive revision.`,
+      description:
+        'This experiential activity combines the briefing, roles, evidence, phase clock, synchronized update, named artifact, and structured debrief in one coherent in-class experience.',
+      objectives: [
+        `Use supplied evidence and role constraints to complete ${artifactReference}.`,
+        'Record an initial decision or interpretation before later information is released.',
+        `Revise ${artifactReference} after the synchronized update and identify the evidence that changed or confirmed the response.`,
+        'Explain one remaining uncertainty and the next evidence check.',
+      ],
+      activityPacket: packet,
+      activityType: packet.activityType,
+      instructions: activityInstructions,
+      formatRequirements: {
+        length: `One completed ${artifactTitle}, the activity evidence log, and a concise debrief note.`,
+        format: `Use the ${artifactTitle} template and keep every artifact requirement inspectable.`,
+        citationStyle: 'Cite supplied activity evidence by its exact record, item, or update label.',
+        submissionPlatform:
+          preserved.formatRequirements?.submissionPlatform ||
+          'Submit in class or through the official course site, as directed by the instructor.',
+        latePolicy:
+          'If access, illness, or scheduling prevents participation, contact the instructor before the activity closes to arrange an equivalent evidence-based pathway.',
+      },
+      gradingCriteria: [
+        'Evidence accuracy and source traceability',
+        'Decision logic within the assigned role constraint',
+        'Update-responsive revision with one remaining uncertainty',
+        `Clarity and completeness of ${artifactReference}`,
+      ],
+      selfAssessmentRubric: [
+        'Evidence accuracy (30%): Each claim cites a supplied record or update and separates fact from assumption.',
+        'Decision logic (30%): Evidence and constraints support a clear decision with one limitation.',
+        'Update response (20%): The final version shows what changed—or remained defensible—after the synchronized update.',
+        `Artifact quality (20%): Every requirement for ${artifactReference} is complete and easy to inspect.`,
+      ],
+      feedbackLoop:
+        'Use feedback to strengthen the evidence trail, decision logic, and next evidence check in the next course activity.',
+      scaffoldingMilestones: activityMilestones,
+      supportResources: [
+        'Activity briefing, synchronized update, and supplied evidence',
+        `Participant role constraints, requirements for ${artifactReference}, and the activity evidence log`,
+        'Activity clock, debrief prompts, and scoring criteria',
+      ],
+      academicIntegrityStatement: 'Submit original work; credit outside sources and approved tools.',
+      sourceUsePlan: {
+        ...(existing.sourceUsePlan || {}),
+        studentAttributionMove:
+          'Name the supplied record, update, or course source behind each claim before explaining what it supports.',
+        noInventedSources:
+          'Use only source details that appear in the supplied activity evidence or assigned materials. Do not invent authors, URLs, pages, studies, or real-world facts.',
+        sourceEvaluationPrompt:
+          'Ask what the supplied activity evidence can support, what it cannot prove, and which uncertainty remains.',
+        localReplacementCue:
+          'If the work will be published beyond class, replace classroom case materials with the official sources required by the instructor.',
+      },
+      deliverables: [artifactTitle, 'Completed activity evidence log', 'Concise debrief note'],
+      progressTracking:
+        'Use the phase clock and activity evidence log to make each evidence, constraint, decision, and revision visible.',
       accessibilityAndUDL: brief.accessibilityAndUDL || existing.accessibilityAndUDL,
-      tags: unique([...(existing.tags || []), ...(brief.tags || [])], 10),
+      tags: unique(['experiential activity', activityLabel, artifactTitle], 6),
     };
   }
   return merged;
@@ -405,8 +660,12 @@ export function buildExperientialActivitySlideFrames({
       ];
       notes = 'Confirm that every participant can name the role goal, constraint, and available evidence.';
     } else if (index === lastIndex) {
+      const artifactRequirements = packet.artifact.requirements
+        .map(stripTerminalListPunctuation)
+        .filter(Boolean)
+        .join('; ');
       bullets = [
-        `Student artifact — ${packet.artifact.title}. Artifact requirements: ${packet.artifact.requirements.join('; ')}`,
+        `Student artifact — ${packet.artifact.title}. Artifact requirements: ${artifactRequirements}.`,
         ...packet.debriefPrompts.map((prompt) => `Structured debrief: ${prompt}`),
       ];
       notes = 'Collect the named artifact and debrief evidence, constraints, decisions, and revisions.';

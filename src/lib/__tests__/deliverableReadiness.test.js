@@ -766,6 +766,31 @@ describe('repairCourseMapReadiness', () => {
     expect(second.learningObjectives).not.toMatch(/bases/i);
   });
 
+  it('writes evidence-led fallback objectives without turning “an example using” into the lesson concept', () => {
+    const result = repairCourseMapReadiness({
+      courseMap: {
+        courseName: 'International Crisis Bargaining',
+        lessons: ['Signaling', 'Escalation', 'Monitoring', 'Maritime Crisis Simulation'].map((topic, index) => ({
+          title: `Lesson ${index + 1}: ${topic}`,
+          sections: [
+            {
+              topicSection: topic,
+              learningGoals: `Use ${topic} in a course decision.`,
+              learningObjectives: index === 3 ? '' : `Explain ${topic}.`,
+              weeklyAssessments: `${topic} evidence check.`,
+            },
+          ],
+        })),
+      },
+    });
+
+    const objective = result.courseMap.lessons[3].sections[0].learningObjectives;
+    expect(objective).toBe(
+      'Analyze Maritime Crisis Simulation using course evidence and name one limitation or open question.',
+    );
+    expect(objective).not.toMatch(/an example using/i);
+  });
+
   it('preserves source lesson numbering in a materialized scoped Course Map', () => {
     const result = repairCourseMapReadiness({
       courseMap: {

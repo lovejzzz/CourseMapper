@@ -6,6 +6,7 @@ import {
   buildExperientialActivityOutline,
   buildExperientialActivityPacket,
   buildExperientialActivitySlideFrames,
+  mergeExperientialActivityBriefs,
   normalizeExperientialActivityTiming,
 } from '../compilerExperientialActivity';
 import {
@@ -385,6 +386,10 @@ describe('experiential activity admission and deterministic projection', () => {
     const surfaceText = JSON.stringify({ packet, outline, slides, brief, profile, materials });
 
     expect(packet.totalMinutes).toBe(fixture.minutes);
+    expect(new Set(packet.roles.map((role) => role.constraint.toLowerCase())).size).toBe(packet.roles.length);
+    expect(packet.artifact.requirements.join(' ')).toMatch(
+      /evidence.*role constraint.*synchronized update.*unresolved uncertainty.*next evidence check/i,
+    );
     expect(outline.reduce((sum, row) => sum + Number.parseInt(row.time, 10), 0)).toBe(fixture.minutes);
     expect(slides.reduce((sum, slide) => sum + slide.minutes, 0)).toBe(fixture.minutes);
     expect(slides).toHaveLength(fixture.activity.timing.length);
@@ -407,6 +412,81 @@ describe('experiential activity admission and deterministic projection', () => {
     expect(surfaceText).toContain(fixture.activity.artifact.title);
     fixture.activity.debriefPrompts.forEach((prompt) => expect(surfaceText).toContain(prompt));
     expect(surfaceText).toContain(fixture.activity.safetyBoundary);
+    expect(profile.formativeCheck.instructorAction).toMatch(/^Ask students to revise/i);
+    expect(profile.udlNotes.engagement).not.toMatch(/while preserving the same evidence/i);
+  });
+
+  it('keeps a merged activity packet complete without repeating a page of generic directions', () => {
+    const fixture = ACTIVITY_CASES[0];
+    const packetBrief = buildExperientialActivityAssignmentBrief({
+      lessonNumber: 1,
+      relatedLessonTitle: fixture.lesson.title,
+      activity: fixture.activity,
+      sessionMinutes: fixture.minutes,
+      outcomes: fixture.lesson.objectives,
+    });
+    const originalInstructions = Array.from({ length: 12 }, (_, index) => `Assessment direction ${index + 1}`);
+    const merged = mergeExperientialActivityBriefs([
+      {
+        lessonNumber: 1,
+        title: 'Companion analysis.',
+        overview: 'Test a course-specific claim against a sentence fragment from the generated source.',
+        objectives: ['Analyze Maritime Crisis focus using course evidence.'],
+        instructions: originalInstructions,
+        deliverables: ['Analysis'],
+      },
+      packetBrief,
+    ]);
+
+    expect(merged).toHaveLength(1);
+    expect(merged[0].activityPacket).toBeTruthy();
+    expect(merged[0].instructions).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/situation.*role constraints.*clock/i),
+        expect.stringMatching(/supplied evidence.*initial decision.*before any update/i),
+        expect.stringMatching(/synchronized update.*changed decision or conclusion/i),
+        expect.stringMatching(/activity evidence log/i),
+      ]),
+    );
+    expect(merged[0].instructions).toHaveLength(7);
+    expect(merged[0].title).toBe(fixture.activity.artifact.title);
+    expect(merged[0].overview).toContain(fixture.activity.scenario);
+    expect(merged[0].overview).toContain(fixture.activity.artifact.title);
+    expect(merged[0].overview).toMatch(/supplied evidence.*update-responsive revision/i);
+    expect(merged[0].objectives.join(' ')).not.toMatch(/\bMaritime Crisis focus\b/i);
+    expect(merged[0].deliverables).toEqual([
+      fixture.activity.artifact.title,
+      'Completed activity evidence log',
+      'Concise debrief note',
+    ]);
+    expect(merged[0].selfAssessmentRubric).toHaveLength(4);
+    expect(merged[0].academicIntegrityStatement).toMatch(/credit outside sources and approved tools/i);
+    expect(merged[0].scaffoldingMilestones.map((entry) => entry.milestone)).toEqual([
+      'Briefing and initial record',
+      'Update-responsive revision',
+      'Artifact and debrief',
+    ]);
+    expect(JSON.stringify(merged[0])).not.toMatch(
+      /\bdraft\b|\bevidence evidence\b|\bWeek 1 assignment\b|\bMaritime Crisis focus\b/i,
+    );
+    expect(merged[0].description).toMatch(/^This experiential activity combines/i);
+    expect(merged[0].supportResources[0]).toBe('Activity briefing, synchronized update, and supplied evidence');
+  });
+
+  it('normalizes and removes redundant activity materials without losing distinct resources', () => {
+    const materials = buildExperientialActivityMaterials({
+      activity: ACTIVITY_CASES[0].activity,
+      readings: [
+        'The Maritime Crisis focus activity directions',
+        'The Maritime Crisis focus activity directions, reference note, and feedback guide',
+        'Maritime Crisis source packet',
+      ],
+    });
+
+    expect(materials).toContain('Maritime Crisis activity directions, reference note, and feedback guide');
+    expect(materials).toContain('Maritime Crisis source packet');
+    expect(materials).not.toContain('Maritime Crisis activity directions');
+    expect(materials.join(' ')).not.toMatch(/\bThe Maritime Crisis focus activity\b/);
   });
 
   it('detects only explicitly requested activity lessons', () => {
@@ -503,6 +583,9 @@ describe('experiential activity admission and deterministic projection', () => {
     );
     expect(normalizedShortScenario.issues).toEqual([]);
     expect(normalizedShortScenario.blueprint.scenario).toContain(
+      'Explain the current checkout flow and select a feasible revision direction',
+    );
+    expect(normalizedShortScenario.blueprint.scenario).not.toContain(
       'Engineering can change validation copy and confirmation hierarchy',
     );
 
@@ -578,6 +661,120 @@ describe('experiential activity admission and deterministic projection', () => {
     );
     expect(duplicateForm.issues).toEqual([]);
     expect(duplicateForm.blueprint.activityType).toBe('Maritime monitoring simulation');
+  });
+
+  it('rejects update leakage and generic artifacts, while repairing legacy packets at projection time', () => {
+    const fixture = ACTIVITY_CASES[0];
+    const leakedUpdate = fixture.activity.updates[0];
+    const invalid = normalizeExperientialActivityBlueprint(
+      {
+        ...fixture.activity,
+        scenario: `${fixture.activity.scenario} ${leakedUpdate.information} ${leakedUpdate.requiredDecision}`,
+        artifact: {
+          title: 'Role Assignment',
+          requirements: fixture.activity.artifact.requirements,
+        },
+      },
+      {
+        expectedLessonIds: [fixture.lesson.lessonId],
+        promptLesson: fixture.lesson,
+        facts: fixture.activity.evidence,
+      },
+    );
+
+    expect(invalid.blueprint).toBeNull();
+    expect(invalid.issues).toEqual(expect.arrayContaining(['update-1-leaked-in-scenario', 'artifact-title-generic']));
+
+    const vagueArtifact = normalizeExperientialActivityBlueprint(
+      {
+        ...fixture.activity,
+        artifact: {
+          title: 'Evidence Analysis Requirements',
+          requirements: fixture.activity.artifact.requirements,
+        },
+      },
+      {
+        expectedLessonIds: [fixture.lesson.lessonId],
+        promptLesson: fixture.lesson,
+        facts: fixture.activity.evidence,
+      },
+    );
+    expect(vagueArtifact.blueprint).toBeNull();
+    expect(vagueArtifact.issues).toContain('artifact-title-generic');
+
+    const genericForeshadow = normalizeExperientialActivityBlueprint(
+      {
+        ...fixture.activity,
+        scenario:
+          'Two coastal delegations dispute responsibility for a patrol collision while a civilian convoy approaches the same corridor. Participants must revise their response after synchronized evidence updates change the credible risks.',
+      },
+      {
+        expectedLessonIds: [fixture.lesson.lessonId],
+        promptLesson: fixture.lesson,
+        facts: fixture.activity.evidence,
+      },
+    );
+    expect(genericForeshadow.blueprint).toBeNull();
+    expect(genericForeshadow.issues).toContain('scenario-foreshadows-update');
+
+    const repaired = buildExperientialActivityPacket({
+      activity: {
+        ...fixture.activity,
+        scenario: `${leakedUpdate.information} ${leakedUpdate.requiredDecision}`,
+        artifact: {
+          title: 'Role Assignment',
+          requirements: fixture.activity.artifact.requirements,
+        },
+      },
+      sessionMinutes: fixture.minutes,
+    });
+    expect(repaired.scenario).toMatch(/initial decision.*later update is released/i);
+    expect(repaired.scenario).not.toContain(leakedUpdate.information);
+    expect(repaired.artifact.title).toMatch(/decision record/i);
+    expect(repaired.artifact.requirements).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/supplied evidence.*role constraint/i),
+        expect.stringMatching(/synchronized update/i),
+        expect.stringMatching(/unresolved uncertainty/i),
+      ]),
+    );
+
+    const repeatedDecision = `${leakedUpdate.information} The response must incorporate the confirmed radar outage.`;
+    const repeatedInvalid = normalizeExperientialActivityBlueprint(
+      {
+        ...fixture.activity,
+        updates: [
+          {
+            ...leakedUpdate,
+            requiredDecision: repeatedDecision,
+          },
+        ],
+      },
+      {
+        expectedLessonIds: [fixture.lesson.lessonId],
+        promptLesson: fixture.lesson,
+        facts: fixture.activity.evidence,
+      },
+    );
+    expect(repeatedInvalid.blueprint).toBeNull();
+    expect(repeatedInvalid.issues).toContain('update-1-decision-repeats-information');
+
+    const repeatedRepaired = buildExperientialActivityPacket({
+      activity: {
+        ...fixture.activity,
+        updates: [
+          {
+            ...leakedUpdate,
+            requiredDecision: repeatedDecision,
+          },
+        ],
+      },
+      sessionMinutes: fixture.minutes,
+    });
+    expect(repeatedRepaired.phases[0].requiredDecision).toMatch(
+      /changes or confirms Monitored corridor protocol.*remaining uncertainty/i,
+    );
+    expect(repeatedRepaired.phases[0].requiredDecision).not.toContain(repeatedDecision);
   });
 
   it('rejects copied activity-template instructions while accepting an exact short evidence label', () => {
@@ -805,7 +1002,15 @@ describe('experiential activity admission and deterministic projection', () => {
     expect(activitySchema.items.properties.ro).toMatchObject({ minItems: 2, maxItems: 2 });
     expect(activitySchema.items.properties.ev).toMatchObject({ minItems: 2, maxItems: 2 });
     expect(activitySchema.items.properties.up).toMatchObject({ minItems: 1, maxItems: 1 });
+    expect(activitySchema.items.properties.up.items.properties.rd.enum).toEqual([
+      'Update the artifact, cite the new evidence, and record one changed decision or conclusion.',
+    ]);
     expect(activitySchema.items.properties.ar.properties.rq).toMatchObject({ minItems: 3, maxItems: 3 });
+    const artifactTitleSchema = activitySchema.items.properties.ar.properties.ti;
+    expect(artifactTitleSchema.enum).toEqual(
+      expect.arrayContaining(['decision record', 'protocol', 'analysis sheet', 'revision board']),
+    );
+    expect(artifactTitleSchema.enum).not.toContain('Evidence Analysis Requirements');
     expect(activitySchema.items.properties.tm).toMatchObject({ minItems: 4, maxItems: 4 });
     expect(activitySchema.items.properties.tm.items.required).toEqual(['ph', 'mn']);
     expect(activitySchema.items.properties.db).toMatchObject({ minItems: 2, maxItems: 2 });
@@ -821,6 +1026,78 @@ describe('experiential activity admission and deterministic projection', () => {
     expect(profile.schema.properties.activityBlueprints.items.properties.lessonId.enum).toEqual(['lesson-ux']);
   });
 
+  it('grounds a constrained artifact product in the requested lesson subject', () => {
+    const fixture = ACTIVITY_CASES[0];
+    const result = normalizeExperientialActivityBlueprint(
+      {
+        ...fixture.activity,
+        artifact: {
+          ...fixture.activity.artifact,
+          title: 'decision record',
+        },
+      },
+      {
+        expectedLessonIds: [fixture.lesson.lessonId],
+        promptLesson: fixture.lesson,
+        facts: fixture.activity.evidence,
+      },
+    );
+
+    expect(result.issues).toEqual([]);
+    expect(result.blueprint.artifact.title).toBe('Maritime Security Negotiation decision record');
+  });
+
+  it('grounds a constrained update action in the visible artifact title', () => {
+    const fixture = ACTIVITY_CASES[0];
+    const result = normalizeExperientialActivityBlueprint(
+      {
+        ...fixture.activity,
+        updates: [
+          {
+            ...fixture.activity.updates[0],
+            requiredDecision:
+              'Update the artifact, cite the new evidence, and record one changed decision or conclusion.',
+          },
+        ],
+        artifact: {
+          ...fixture.activity.artifact,
+          title: 'decision record',
+        },
+      },
+      {
+        expectedLessonIds: [fixture.lesson.lessonId],
+        promptLesson: fixture.lesson,
+        facts: fixture.activity.evidence,
+      },
+    );
+
+    expect(result.issues).toEqual([]);
+    expect(result.blueprint.updates[0].requiredDecision).toBe(
+      'Update the Maritime Security Negotiation decision record, cite the new evidence, and record one changed decision or conclusion.',
+    );
+  });
+
+  it('turns compact debrief directives into visible questions', () => {
+    const fixture = ACTIVITY_CASES[0];
+    const result = normalizeExperientialActivityBlueprint(
+      {
+        ...fixture.activity,
+        debriefPrompts: ['Compare patrol log and convoy notice', 'Analyze signaling under uncertainty'],
+      },
+      {
+        expectedLessonIds: [fixture.lesson.lessonId],
+        promptLesson: fixture.lesson,
+        facts: fixture.activity.evidence,
+      },
+    );
+
+    expect(result.issues).toEqual([]);
+    expect(result.blueprint.debriefPrompts).toEqual([
+      'How did comparing patrol log and convoy notice change the final decision?',
+      'What did the analysis of signaling under uncertainty reveal, and what remained uncertain?',
+    ]);
+  });
+
   it.each(ACTIVITY_CASES)('deep-grades complete $name surfaces and blocks a hollow substitute', (fixture) => {
     const activity = {
       protocol: EXPERIENTIAL_ACTIVITY_PROTOCOL,
@@ -832,6 +1109,7 @@ describe('experiential activity admission and deterministic projection', () => {
       activity,
       sessionMinutes: fixture.minutes,
     });
+    expect(slides.at(-1).bullets[0]).not.toMatch(/\.\s*;/);
     const brief = buildExperientialActivityAssignmentBrief({
       lessonNumber: 1,
       relatedLessonTitle: fixture.lesson.title,

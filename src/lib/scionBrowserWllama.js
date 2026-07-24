@@ -29,7 +29,7 @@ const SCION_MODEL_STORAGE_HEADROOM_BYTES = 512 * 1024 * 1024;
 const SCION_MODEL_STORAGE_ERROR_RE =
   /(?:browser storage is full|quotaexceeded|not enough space|no space|4294967288|wrote -8 of)/i;
 const SCION_MODEL_CACHE_ERROR_RE =
-  /(?:model file not found|failed to open file|model may be invalid|cached \d+ bytes but expected|opfs worker: wrote)/i;
+  /(?:model file not found|failed to open file|model may be invalid|cached \d+ bytes but expected|opfs worker: wrote|filesystemsyncaccesshandle.+failed to read|invalid typed array length)/i;
 
 // wllama emits CPU-thread fallback warnings before it applies its WebGPU
 // backend choice. Scion deliberately ships only the JSPI single-thread WASM
@@ -160,6 +160,21 @@ async function clearCandidateModelCache(candidate) {
   }
 }
 
+async function removeCandidateModelCache(candidate, modelUrl) {
+  try {
+    const models = (await candidate?.modelManager?.getModels?.({ includeInvalid: true })) || [];
+    const model = models.find((entry) => entry?.url === modelUrl);
+    if (model?.remove) {
+      await model.remove();
+      return true;
+    }
+  } catch {
+    // Fall through to the runtime-owned cache. Scion currently stores only
+    // the pinned public base in this namespace, so this remains app-scoped.
+  }
+  return clearCandidateModelCache(candidate);
+}
+
 async function hasCachedCandidateModel(candidate, modelUrl) {
   try {
     const models = (await candidate?.modelManager?.getModels?.()) || [];
@@ -229,6 +244,21 @@ async function defaultRuntimeLoader(moduleUrl) {
   return import(/* @vite-ignore */ moduleUrl);
 }
 
+function createRuntimeCandidate(Wllama, wasmUrl) {
+  return new Wllama(
+    { 'jspi/single-thread/wllama.wasm': wasmUrl },
+    {
+      backend: 'webgpu',
+      suppressNativeLog: true,
+      logger: scionRuntimeLogger,
+      // The pinned runtime gives all shard workers one abort boundary and
+      // settles them before cleanup, so parallel transfer stays both fast
+      // and atomic.
+      parallelDownloads: 3,
+    },
+  );
+}
+
 function validateRuntimeModule(candidate) {
   if (typeof candidate?.Wllama !== 'function') {
     throw runtimeError('SCION_WLLAMA_API', 'The pinned Scion runtime does not export Wllama.');
@@ -292,20 +322,9 @@ export async function loadScionBrowserWllama({
     const moduleUrl = absoluteAsset(SCION_BROWSER_WLLAMA_MODULE_PATH, locationLike);
     runtimeModule ||= validateRuntimeModule(await runtimeLoader(moduleUrl));
     const wasmUrl = absoluteAsset(SCION_BROWSER_WLLAMA_WASM_PATH, locationLike);
-    const candidate = new runtimeModule.Wllama(
-      { 'jspi/single-thread/wllama.wasm': wasmUrl },
-      {
-        backend: 'webgpu',
-        suppressNativeLog: true,
-        logger: scionRuntimeLogger,
-        // The pinned runtime gives all shard workers one abort boundary and
-        // settles them before cleanup, so parallel transfer stays both fast
-        // and atomic.
-        parallelDownloads: 3,
-      },
-    );
+    let candidate = createRuntimeCandidate(runtimeModule.Wllama, wasmUrl);
     loadingRuntime = candidate;
-    const cachedModel = await hasCachedCandidateModel(candidate, modelUrl);
+    let cachedModel = await hasCachedCandidateModel(candidate, modelUrl);
     const storage = await estimateScionBrowserModelStorage(navigatorLike);
     publish({ storage }, onProgress);
     if (!cachedModel && storage && storage.available < storage.required) {
@@ -316,35 +335,64 @@ export async function loadScionBrowserWllama({
           'Free at least 4 GB on this device, then try again.',
       );
     }
-    publish({ phase: 'loading-model', message: 'Downloading the public Gemma 4 base…' }, onProgress);
-    try {
-      await candidate.loadModelFromUrl(modelUrl, {
-        useCache: true,
-        n_ctx: contextSize,
-        n_threads: 1,
-        seed: 424242,
-        signal,
-        progressCallback: ({ loaded, total }) => {
-          const progress = total > 0 ? Math.min(1, Math.max(0, loaded / total)) : status.progress;
-          publish(
-            {
-              phase: 'loading-model',
-              progress,
-              message:
-                total > 0
-                  ? progress >= 1
-                    ? 'Model download complete · preparing Scion…'
-                    : `Downloading the public Gemma 4 base (${Math.floor(progress * 100)}%)…`
-                  : status.message,
-            },
-            onProgress,
-          );
+    let repairedCache = false;
+    for (;;) {
+      publish(
+        {
+          phase: 'loading-model',
+          message: cachedModel ? 'Preparing Scion from this device…' : 'Downloading the public Gemma 4 base…',
         },
-      });
-    } catch (error) {
-      const classified = classifyScionBrowserModelLoadError(error);
-      if (classified.clearCache) await clearCandidateModelCache(candidate);
-      throw runtimeError(classified.code, classified.message, error);
+        onProgress,
+      );
+      try {
+        await candidate.loadModelFromUrl(modelUrl, {
+          useCache: true,
+          n_ctx: contextSize,
+          n_threads: 1,
+          seed: 424242,
+          signal,
+          progressCallback: ({ loaded, total }) => {
+            const progress = total > 0 ? Math.min(1, Math.max(0, loaded / total)) : status.progress;
+            publish(
+              {
+                phase: 'loading-model',
+                progress,
+                message:
+                  total > 0
+                    ? progress >= 1
+                      ? 'Model ready on this device · preparing Scion…'
+                      : `Downloading the public Gemma 4 base (${Math.floor(progress * 100)}%)…`
+                    : status.message,
+              },
+              onProgress,
+            );
+          },
+        });
+        break;
+      } catch (error) {
+        const classified = classifyScionBrowserModelLoadError(error);
+        const canRepair = classified.kind === 'cache-incomplete' && cachedModel && !repairedCache && !signal?.aborted;
+        if (!canRepair) {
+          if (classified.clearCache) await removeCandidateModelCache(candidate, modelUrl);
+          throw runtimeError(classified.code, classified.message, error);
+        }
+
+        repairedCache = true;
+        publish(
+          {
+            phase: 'repairing-cache',
+            progress: 0,
+            message: 'Repairing the local Scion model cache…',
+            error: null,
+          },
+          onProgress,
+        );
+        await exitRuntime(candidate);
+        await removeCandidateModelCache(candidate, modelUrl);
+        candidate = createRuntimeCandidate(runtimeModule.Wllama, wasmUrl);
+        loadingRuntime = candidate;
+        cachedModel = false;
+      }
     }
     const metadata = validateLoadedBase(candidate);
     const nativeAdapter = await candidate.getLoraAdapterStatus();

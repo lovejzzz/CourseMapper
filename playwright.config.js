@@ -35,7 +35,11 @@ export default defineConfig({
     // audit. Reusing that transient process let it vanish midway through a
     // 141-test run. The suite owns a dedicated strict port for its full life.
     reuseExistingServer: false,
-    timeout: 15000,
+    // `predev` prepares the local Scion runtime before Vite starts. A cold
+    // machine can spend more than 15 seconds in that deterministic build even
+    // though the server is healthy, so give CI the same realistic startup
+    // allowance as the production model path.
+    timeout: 60000,
   },
   projects: [{ name: 'chromium', use: { browserName: 'chromium' } }],
 });

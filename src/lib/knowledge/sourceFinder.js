@@ -274,6 +274,12 @@ const DISCIPLINE_ANCHOR_GATES = [
     source:
       /\b(?:business|corporat(?:e|ion)|ethic(?:al|s)?|moral(?:ity)?|utilitarian(?:ism)?|deontolog(?:y|ical)|virtue\s+ethics|stakeholders?|whistleblow(?:ing|er)|conflicts?\s+of\s+interest|employment|workplace|labor|civil\s+rights|discrimination|harassment|consumer\s+protection|consumer\s+rights|product\s+safety|dodd[–—-]frank|financial\s+reform|fiduciary|governance|compliance|sustainab(?:ility|le)|environmental\s+responsibility|marketing\s+ethics|advertising\s+ethics)\b/i,
   },
+  {
+    applies:
+      /\b(?:international relations|international crisis|crisis bargaining|foreign policy|security studies|diplomacy|geopolitics)\b/i,
+    source:
+      /\b(?:international relations|foreign policy|security|conflict|war|peace|interstate|states?|crisis bargaining|negotiat(?:e|ion|ions)|diploma(?:cy|tic)|deterrence|escalation|de-?escalation|geopolitic(?:s|al)?)\b/i,
+  },
 ];
 
 function topicContext(topic) {
@@ -346,6 +352,32 @@ const COURSE_SUBJECT_LEXICON = [
   {
     signal: /\b(?:user experience|ux|interaction design|design studio|usability)\b/i,
     terms: ['design', 'usability', 'prototype', 'prototyping', 'interface', 'wireframe', 'critique'],
+  },
+  {
+    // International-relations lesson labels such as "monitoring",
+    // "commitment", and "evidence" are collision-prone. A humanitarian-data
+    // organization can share those words without teaching crisis bargaining.
+    // Also improve ranking when a candidate clears the discipline gate above.
+    signal:
+      /\b(?:international relations|international crisis|crisis bargaining|foreign policy|security studies|diplomacy|geopolitics)\b/i,
+    terms: [
+      'diplomacy',
+      'diplomatic',
+      'foreign',
+      'policy',
+      'security',
+      'conflict',
+      'war',
+      'peace',
+      'state',
+      'interstate',
+      'bargain',
+      'negotiation',
+      'deterrence',
+      'escalation',
+      'deescalation',
+      'geopolitic',
+    ],
   },
   {
     signal: /\b(?:world literature|comparative literature|literary|literature|poetry|drama|novel)\b/i,

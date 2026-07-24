@@ -184,10 +184,15 @@ const lazyChunkBudgets = [
   // Experiential-activity mechanics are compiler-owned and independently
   // cacheable beside the lazy compiler. The chunk projects the canonical
   // activity clock, evidence, constraints, decisions, artifact, and debrief
-  // without carrying any fixed discipline scenario. The final clean build
-  // measured 24.6/7.8 KiB; keep less than 0.4 KiB raw headroom and preserve
-  // the tighter 8.5 KiB gzip ceiling.
-  { prefix: 'compilerExperientialActivity-', rawKiB: 25, gzipKiB: 8.5 },
+  // without carrying any fixed discipline scenario.
+  // v0.16.77 adds fail-closed scenario-leak detection, distinct role
+  // constraints, evidence-aware artifact requirements, synchronized update
+  // decisions, and learner-facing assignment/lesson projections. These are
+  // runtime contract checks rather than fixed course-copy variants. The
+  // workspace-only chunk measures 36.0/11.2 KiB and remains off landing; keep
+  // the ceiling within 2.0/0.8 KiB instead of fragmenting the same bytes into
+  // arbitrary chunks.
+  { prefix: 'compilerExperientialActivity-', rawKiB: 38, gzipKiB: 12 },
   { prefix: 'compilerFactLedgerVisuals-', rawKiB: 3, gzipKiB: 1.5 },
   // Exact target-language assessment and lesson-plan frames are substantial
   // compile-only data. They remain cacheable beside the compiler without

@@ -56,7 +56,7 @@ describe('experiential activity compilation', () => {
         courseName: 'Introduction to International Relations',
         lessons: [
           {
-            title: 'Lesson 1: Crisis Simulation Mechanics',
+            title: 'Lesson 1: Maritime Crisis Simulation',
             sections: [
               {
                 topicSection: 'Evolving event updates and stakeholder roles',
@@ -64,7 +64,8 @@ describe('experiential activity compilation', () => {
                 weeklyAssessments: 'Crisis decision memo.',
                 asyncActivities: 'Read the crisis brief and identify one uncertainty.',
                 syncActivities: 'Multi-round crisis simulation with stakeholder negotiation.',
-                supportingResources: 'Crisis packet; actor map; decision log',
+                supportingResources:
+                  'Maritime Crisis Simulation activity directions, reference note, and feedback guide; Maritime Crisis Simulation activity directions',
               },
             ],
           },
@@ -193,12 +194,17 @@ describe('experiential activity compilation', () => {
       totalMinutes: 75,
     });
     expect(plan.formativeCheck.prompt).toMatch(/evidence.*constraint.*decision or action/i);
-    expect(plan.homework).toMatchObject({
-      title: 'Strait de-escalation protocol follow-through',
-      estimatedTime: '15 minutes',
-    });
-    expect(plan.homework.description).toMatch(/same activity artifact/i);
-    expect(JSON.stringify(plan.homework)).not.toMatch(/retrieval notes/i);
+    expect(plan.homework).toBeUndefined();
+    expect(plan.closingActivity).toMatch(/Retain the evidence log and debrief note for the next lesson/i);
+    expect(plan.materials).toContain(
+      'Maritime Crisis Simulation activity directions, reference note, and feedback guide',
+    );
+    expect(plan.materials).not.toContain('Maritime Crisis Simulation activity directions');
+    expect(plan.materials.join(' ')).not.toMatch(/\bThe Maritime Crisis focus activity\b/i);
+    expect(visibleText).not.toMatch(/\bMaritime Crisis focus\b/i);
+    expect(visibleText).toContain(
+      'Inspect this evidence before acting: The collision log timestamps the impact at 06:18 but does not establish which patrol crossed first; the civilian vessel recorded two unanswered radio calls before the impact; the next convoy reaches the corridor in four hours and cannot safely reroute.',
+    );
 
     const activityDeck = buildSlideDeckIntermediateRepresentation(blueprint).decks[0];
     const activityDeckText = JSON.stringify(activityDeck.slides);
@@ -227,6 +233,10 @@ describe('experiential activity compilation', () => {
     expect(activityBrief.activityPacket.timing.reduce((sum, row) => sum + row.minutes, 0)).toBe(75);
     expect(JSON.stringify(activityBrief.activityPacket)).toMatch(/fictional classroom dispute/i);
     expect(JSON.stringify(activityBrief.activityPacket)).toMatch(/Role-only information|privateInformation/i);
+    expect(activityBrief.instructions.length).toBeLessThanOrEqual(9);
+    expect(activityBrief.title).not.toMatch(/\.$/);
+    expect(activityBrief.objectives.join(' ')).not.toMatch(/\bMaritime Crisis focus\b/i);
+    expect(JSON.stringify(activityBrief)).not.toMatch(/\bevidence evidence\b/i);
   });
 
   it('falls back honestly when an activity request has no admitted blueprint', () => {
@@ -3400,7 +3410,7 @@ describe('courseBlueprintCompiler', () => {
       ],
     });
 
-    expect(blueprint.lessons[0].evidencePlan.sourceCue).toBe('Diurnal Motion Mechanics source packet');
+    expect(blueprint.lessons[0].evidencePlan.sourceCue).toBe('Diurnal Motion Mechanics evidence brief');
     expect(JSON.stringify(blueprint.lessons[0].evidencePlan)).not.toContain('Earth s');
   });
 
