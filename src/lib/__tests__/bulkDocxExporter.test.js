@@ -205,6 +205,74 @@ describe('buildDeliverableDocxBlob', () => {
     expect(xml).toContain('add or regenerate that assignment before publishing');
   });
 
+  it('renders a complete distributable experiential activity packet instead of an empty assignment handoff', async () => {
+    const blob = await buildDeliverableDocxBlob(
+      'assignments',
+      {
+        assignments: [
+          {
+            title: 'Corridor protocol — activity packet',
+            lessonNumber: 9,
+            assignmentType: 'Experiential activity packet',
+            relatedLessons: ['Lesson 9: Crisis Simulation Mechanics'],
+            activityPacket: {
+              activityType: 'Maritime negotiation simulation',
+              scenario: 'A disputed maritime incident creates an attribution problem before a scheduled convoy.',
+              safetyBoundary: 'Use only the supplied fictional record and do not map roles onto a current conflict.',
+              evidence: [
+                'The monitoring feed stopped before the incident.',
+                'The convoy reaches the corridor at noon.',
+              ],
+              roles: [
+                {
+                  name: 'Regional organization delegation',
+                  goal: 'Restore monitoring and stop escalation.',
+                  constraint: 'No agreement without verification.',
+                  privateInformation: 'Two members will veto sanctions.',
+                },
+              ],
+              phases: [
+                {
+                  title: 'Monitoring update',
+                  information: 'New imagery weakens the original attribution.',
+                  requiredDecision: 'Revise one assumption and one proposed action.',
+                },
+              ],
+              timing: [
+                { phase: 'Briefing', minutes: 10 },
+                { phase: 'Role work', minutes: 15 },
+                { phase: 'Update', minutes: 20 },
+                { phase: 'Artifact and debrief', minutes: 15 },
+              ],
+              totalMinutes: 60,
+              activityLogFields: ['Evidence inspected', 'Decision or action'],
+              artifact: {
+                title: 'Corridor protocol',
+                requirements: ['State the route.', 'Name the monitor.', 'Set the revision threshold.'],
+              },
+              debriefPrompts: ['Which evidence changed the decision?'],
+            },
+          },
+        ],
+      },
+      'Introduction to International Relations - Lesson 09 - Crisis Simulation Mechanics',
+    );
+
+    const xml = await docxDocumentXml(blob);
+
+    expect(xml).toContain('ACTIVITY BRIEFING');
+    expect(xml).toContain('SAFETY AND EVIDENCE BOUNDARY');
+    expect(xml).toContain('PARTICIPANT OR WORKING ROLES');
+    expect(xml).toContain('Regional organization delegation');
+    expect(xml).toContain('Two members will veto sanctions');
+    expect(xml).toContain('PHASES AND UPDATES');
+    expect(xml).toContain('Monitoring update');
+    expect(xml).toContain('ACTIVITY LOG');
+    expect(xml).toContain('STUDENT ARTIFACT');
+    expect(xml).toContain('DEBRIEF');
+    expect(xml).not.toContain('No standalone assignment brief scheduled');
+  });
+
   // v0.12.1 P3: quiz exports split into a distributable question paper and a
   // page-broken answer key; option letters never double; internal enum ids
   // never print; tables are percentage-width (the fixed 9360dxa tables

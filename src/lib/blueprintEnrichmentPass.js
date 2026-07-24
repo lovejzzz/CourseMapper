@@ -29,6 +29,12 @@ import { resolveScionTargetLanguageKnowledge } from './scionLanguageKnowledge';
 import { resolveScionLiteratureKnowledge } from './scionLiteratureKnowledge';
 import { META_SURFACE_RE } from './metaSurfaceAdmission';
 import { EXACT_SOURCE_LEDGER_PROVENANCE } from './sourceLedgerProvenance';
+import {
+  compactActivityBlueprintShape,
+  experientialLessonIds,
+  normalizeExperientialActivityBlueprint,
+  requestedExperientialActivityKinds,
+} from './experientialActivityContract';
 
 const DEFAULT_MAX_LESSONS = 12;
 const MAX_TEXT_CHARS = 320;
@@ -843,6 +849,116 @@ function selectInstructorFactsForLesson(instructorProvidedFacts, lesson) {
     .map(({ fact }) => fact);
 }
 
+const ACTIVITY_BRIEF_MECHANICS_RE =
+  /\b(?:minute|participant|role|constraint|evidence|inspect|update|phase|decision|action|revise|revision|artifact|submit|debrief|safety|fictional|boundary|timing)\b/i;
+const ACTIVITY_BRIEF_FORM_RE =
+  /\b(?:simulation|mock (?:hearing|trial|briefing|negotiation|interview)|role[- ]?play|case (?:exercise|workshop|conference)|studio critique|design review|design (?:charrette|sprint)|lab(?:oratory)?(?: (?:practical|investigation|challenge))?|field (?:exercise|observation)|structured debate)\b/gi;
+const ACTIVITY_BRIEF_STOP_WORDS = new Set([
+  ...SOURCE_STOP_WORDS,
+  'exercise',
+  'critique',
+  'simulation',
+  'structured',
+  'review',
+  'studio',
+  'role',
+  'play',
+  'laboratory',
+  'field',
+  'design',
+  'case',
+  'action',
+  'artifact',
+  'boundary',
+  'constraint',
+  'decision',
+  'debrief',
+  'evidence',
+  'fictional',
+  'inspect',
+  'minute',
+  'participant',
+  'phase',
+  'response',
+  'revise',
+  'revision',
+  'safety',
+  'submit',
+  'timing',
+  'update',
+]);
+
+function activityBriefSubjectTokens(lesson) {
+  return new Set(
+    // Title and topic identity are safer routing keys than objectives, whose
+    // generic verbs and evidence language often recur across nearby lessons.
+    cleanText([lesson?.title, lesson?.topics].filter(Boolean).join(' '))
+      .replace(/^lesson\s*\d+\s*[:.\-–—]\s*/i, '')
+      .replace(ACTIVITY_BRIEF_FORM_RE, ' ')
+      .toLowerCase()
+      .match(/[a-z0-9]{4,}/g)
+      ?.filter((token) => !ACTIVITY_BRIEF_STOP_WORDS.has(token)) || [],
+  );
+}
+
+/**
+ * Carries only the source-brief clause that requests this lesson's qualifying
+ * experiential activity. This keeps unrelated lesson requirements outside the
+ * one-lesson model context while preserving instructor-authored mechanics.
+ */
+export function selectExperientialActivityBrief(sourceBrief = '', lesson = {}) {
+  const source = cleanText(sourceBrief);
+  if (!source) return '';
+
+  const requestedKinds = new Set(requestedExperientialActivityKinds(lesson));
+  const subjectTokens = activityBriefSubjectTokens(lesson);
+  const lessonNumber = Number(cleanText(lesson?.title).match(/\blesson\s*(\d+)\b/i)?.[1] || 0);
+  const fragments = source
+    .split(/\s*(?:[;\n]+|(?<=[.!?])\s+)\s*/)
+    .map(cleanText)
+    .filter(Boolean);
+
+  const candidates = fragments
+    .map((fragment, index) => {
+      const fragmentKinds = requestedExperientialActivityKinds({ title: fragment });
+      if (fragmentKinds.length === 0) return null;
+      if (requestedKinds.size > 0 && !fragmentKinds.some((kind) => requestedKinds.has(kind))) return null;
+      const fragmentLessonNumber = Number(fragment.match(/\blesson\s*(\d+)\b/i)?.[1] || 0);
+      if (lessonNumber > 0 && fragmentLessonNumber > 0 && lessonNumber !== fragmentLessonNumber) return null;
+      const fragmentTokens = new Set(fragment.toLowerCase().match(/[a-z0-9]{4,}/g) || []);
+      const subjectMatches = [...subjectTokens].filter((token) => fragmentTokens.has(token)).length;
+      const explicitLessonMatch = lessonNumber > 0 && fragmentLessonNumber > 0 && lessonNumber === fragmentLessonNumber;
+      // A course-map model may shorten "structured studio critique" to
+      // "Mobile Prototype Critique." Recover the instructor's exact form only
+      // when the source names this lesson or shares at least two substantive
+      // subject tokens; never spread one lesson's activity across the course.
+      if (requestedKinds.size === 0 && !explicitLessonMatch && subjectMatches < 2) return null;
+      const score =
+        subjectMatches * 8 +
+        (explicitLessonMatch ? 20 : 0) +
+        (ACTIVITY_BRIEF_MECHANICS_RE.test(fragment) ? 4 : 0) +
+        (/\b\d{1,3}\s*(?:-|–|—)?\s*minute\b/i.test(fragment) ? 2 : 0) +
+        Math.min(fragment.length / 200, 1);
+      return { fragment, index, score };
+    })
+    .filter(Boolean)
+    .sort((left, right) => right.score - left.score || left.index - right.index);
+
+  const selected = candidates[0];
+  if (!selected) return '';
+  const continuation = fragments[selected.index + 1];
+  const continuationHasActivity = continuation
+    ? requestedExperientialActivityKinds({ title: continuation }).length > 0
+    : false;
+  const result =
+    continuation && !continuationHasActivity && ACTIVITY_BRIEF_MECHANICS_RE.test(continuation)
+      ? `${selected.fragment}; ${continuation}`
+      : selected.fragment;
+  return cleanText(result)
+    .replace(/[.;]\s*$/, '')
+    .slice(0, 700);
+}
+
 function summarizeLessonsForContent(courseMap, lessonIndices, sourceBrief = '', instructorProvidedFacts = []) {
   // Carry only course-level framing into every lesson. Repeating the complete
   // brief (including all fourteen lesson titles and all named readings) gave
@@ -865,6 +981,22 @@ function summarizeLessonsForContent(courseMap, lessonIndices, sourceBrief = '', 
       const lesson = courseMap?.lessons?.[lessonIndex];
       if (!lesson) return null;
       const section = lesson.sections?.[0] || {};
+      const activityBrief = selectExperientialActivityBrief(sourceBrief, {
+        title: lesson.title,
+        topics: asArray(lesson.sections)
+          .map((entry) => entry?.topicSection)
+          .filter(Boolean)
+          .join('; '),
+        objectives: section.learningObjectives,
+        syncActivities: asArray(lesson.sections)
+          .map((entry) => entry?.syncActivities)
+          .filter(Boolean)
+          .join('; '),
+        asyncActivities: asArray(lesson.sections)
+          .map((entry) => entry?.asyncActivities)
+          .filter(Boolean)
+          .join('; '),
+      });
       const reviewAnchors = cumulativeReviewAnchors(courseMap, lessonIndex);
       const instructorFacts = selectInstructorFactsForLesson(instructorProvidedFacts, lesson);
       const requiredReadings = [
@@ -935,6 +1067,7 @@ function summarizeLessonsForContent(courseMap, lessonIndices, sourceBrief = '', 
         ),
         ...(requiredReadings.length > 0 ? { requiredReadings } : {}),
         ...(privateCourseContext ? { courseContext: privateCourseContext } : {}),
+        ...(activityBrief ? { activityBrief } : {}),
         // Assigned readings are a first-class scope constraint. Supporting
         // resources may help explain the lesson, but they may never replace a
         // named primary text. The full cross-course source brief is excluded
@@ -1404,10 +1537,16 @@ export function parseLessonContentEnrichmentResponse(text, { prompt } = {}) {
 // ════════════════════════════════════════════════════════════════════════════
 
 const KERNEL_KEY_LEGEND =
-  'Abbreviated JSON keys: q=question, op=options, ai=answerIndex, fi=sourceFactIndexes, ex=explanation, tr=term, df=definition, eg=example, mi=misconception, cx=correction, pr=prompt, tn=tension, po=positions, td=taskDescription, pa=parameters, su=setup, ma=materials, wp=problem, ws=steps, wr=result, sm=summary, rs=reviewStrategy.';
+  'Abbreviated JSON keys: q=question, op=options, ai=answerIndex, fi=sourceFactIndexes, ex=explanation, tr=term, df=definition, eg=example, mi=misconception, cx=correction, pr=prompt, tn=tension, po=positions, td=taskDescription, pa=parameters, su=setup, ma=materials, wp=problem, ws=steps, wr=result, sm=summary, rs=reviewStrategy. Activity blueprint keys: ty=activityType, sc=scenario, ro=roles, nm=name, go=goal, co=constraint, ev=evidence, up=updates, ti=title, in=information, rd=requiredDecision, ar=artifact, rq=requirements, tm=timing, ph=phase, mn=minutes, db=debriefPrompts, sb=safetyBoundary.';
 
-function buildKernelSchema() {
-  return {
+function buildKernelSchema(activityLessons = []) {
+  const activityLessonIds = activityLessons.map((lesson) => lesson.lessonId).filter(Boolean);
+  const schema = {
+    ...(activityLessonIds.length > 0
+      ? {
+          activityBlueprints: activityLessons.map((lesson) => compactActivityBlueprintShape(lesson.lessonId, lesson)),
+        }
+      : {}),
     lessons: [
       {
         lessonId: 'lesson-1',
@@ -1457,6 +1596,7 @@ function buildKernelSchema() {
       },
     ],
   };
+  return schema;
 }
 
 const KERNEL_COURSE_LEVEL_SCHEMA = {
@@ -1498,6 +1638,8 @@ export function buildLessonKernelPrompt(courseMap, lessonIndices, options = {}) 
     options.sourceBrief,
     options.instructorProvidedFacts,
   );
+  const activityLessonIds = experientialLessonIds(lessons);
+  const activityLessons = lessons.filter((lesson) => activityLessonIds.includes(lesson.lessonId));
   const mandarinRequirement = mandarinTargetLanguageRequirements({
     courseIdentity: courseMap?.courseName,
     sourceText: JSON.stringify(lessons),
@@ -1526,6 +1668,15 @@ export function buildLessonKernelPrompt(courseMap, lessonIndices, options = {}) 
     'Every mc item must include fi with 1-2 valid zero-based indexes into that lesson facts array. The cited facts must directly support exactly one option and the explanation must state that support.',
     'Scenario contract: setup gives a concrete context, an actionable decision or problem, inspectable evidence, and a real tension or constraint; materials names the specific evidence packet. Do not use generic labels such as "scenario evidence" or "course materials".',
     'Surface depth contract: discussionPrompt has exactly three defensible positions (main, contrast, conditional or synthesis); assignmentCore has exactly four distinct parameters (scope, format, required evidence/source, length or time).',
+    ...(activityLessonIds.length > 0
+      ? [
+          `EXPERIENTIAL ACTIVITY CONTRACT: also return activityBlueprints for exactly these lesson ids: ${activityLessonIds.join(', ')}. Do not return an activity blueprint for any other lesson.`,
+          'Each compact activity blueprint must contain exactly 2 named participant or working roles with a goal and real constraint; exactly 2 inspectable evidence items; exactly 1 evolving update with a required decision/action; one named artifact with exactly 3 inspectable requirements; exactly 4 timing rows; exactly 2 debrief prompts; and one safety/evidence boundary.',
+          'The activity template pre-fills its type from the requested lesson title and form. Copy that activity type exactly; do not rewrite it. Simulation stays simulation, lab stays lab, studio critique stays studio critique, case exercise stays case exercise, field exercise stays field exercise, structured debate stays structured debate, and role-play stays role-play. Never substitute one form for another or return a generic label such as "Simulation and decision-making." Roles may be stakeholder roles or functional working roles. Do not force stakeholder theater into a lab or studio task.',
+          'Activity content must be grounded in the same lesson title, objectives, activityBrief, readings, and fact ledger. The compiler supplies mechanics and clock normalization; you supply the domain content. Never use placeholders such as Role A, Evidence 1, generic case, evidence packet, instructor-provided materials, or TBD.',
+          'Write sb as one complete sentence naming the evidence limit, participation safety rule, or realism boundary. Never return a label, fragment, or empty string.',
+        ]
+      : []),
     KERNEL_KEY_LEGEND,
     // v0.14.1 round-2 (fix 4): language courses pair every non-Latin term
     // with its romanization (rm) so study guides can render "你好 (nǐ hǎo)".
@@ -1546,7 +1697,7 @@ export function buildLessonKernelPrompt(courseMap, lessonIndices, options = {}) 
     // it here gave chunk #1 a different system prompt than chunks 2..N,
     // splitting the shared prefix that provider prompt caches key on —
     // live telemetry showed cachedInputTokens: 0 on every kernel call.
-    JSON.stringify(buildKernelSchema()),
+    JSON.stringify(buildKernelSchema(activityLessons)),
   ]
     .filter(Boolean)
     .join('\n');
@@ -1570,6 +1721,11 @@ export function buildLessonKernelPrompt(courseMap, lessonIndices, options = {}) 
     `Course: ${truncateText(courseMap?.courseName || 'Untitled Course', 120)}`,
     'Lessons:',
     JSON.stringify(lessons),
+    ...(activityLessonIds.length > 0
+      ? [
+          `This batch contains experiential lessons ${activityLessonIds.join(', ')}. Return their compact activityBlueprints in the same JSON object.`,
+        ]
+      : []),
     ...(includeCourseLevel
       ? [
           `Also include the courseLevel object once (not per lesson), grounded in the same source facts, matching this shape: ${JSON.stringify(KERNEL_COURSE_LEVEL_SCHEMA)}`,
@@ -1595,6 +1751,7 @@ export function buildLessonKernelPrompt(courseMap, lessonIndices, options = {}) 
     userPrompt,
     courseName: truncateText(courseMap?.courseName || 'Untitled Course', 120),
     lessons,
+    activityLessonIds,
     itemPlan,
     includeCourseLevel,
     approxInputTokens: Math.ceil((systemPrompt.length + userPrompt.length) / 4),
@@ -1704,6 +1861,36 @@ export function parseLessonKernelResponse(text, { prompt, expectedLessonIds } = 
   const lessons = {};
   const issues = [];
   const repairs = [];
+  const expectedActivityIds = new Set(
+    uniqueStrings(
+      Array.isArray(prompt?.activityLessonIds) && prompt.activityLessonIds.length > 0
+        ? prompt.activityLessonIds
+        : experientialLessonIds(prompt?.lessons || []),
+    ),
+  );
+  const rawActivityByLessonId = new Map();
+  for (const [activityIndex, activity] of asArray(parsed.activityBlueprints).entries()) {
+    const activityLessonId = cleanText(activity?.lessonId);
+    if (!activityLessonId || !expectedActivityIds.has(activityLessonId)) {
+      issues.push({
+        lessonId: activityLessonId || 'unknown-activity',
+        surface: 'experientialActivity',
+        index: activityIndex,
+        problems: ['unexpected-activity-blueprint'],
+      });
+      continue;
+    }
+    if (rawActivityByLessonId.has(activityLessonId)) {
+      issues.push({
+        lessonId: activityLessonId,
+        surface: 'experientialActivity',
+        index: activityIndex,
+        problems: ['duplicate-activity-blueprint'],
+      });
+      continue;
+    }
+    rawActivityByLessonId.set(activityLessonId, activity);
+  }
 
   for (const [entryIndex, entry] of parsed.lessons.entries()) {
     const lessonId = cleanText(entry?.lessonId);
@@ -1834,6 +2021,35 @@ export function parseLessonKernelResponse(text, { prompt, expectedLessonIds } = 
       facts.push(admittedFact);
       return admittedFact;
     });
+
+    let experientialActivity = null;
+    if (expectedActivityIds.has(lessonId)) {
+      const rawActivity = rawActivityByLessonId.get(lessonId);
+      if (!rawActivity) {
+        issues.push({
+          lessonId,
+          surface: 'experientialActivity',
+          index: 0,
+          problems: ['missing-activity-blueprint'],
+        });
+      } else if (!quarantineForeignAtom('experientialActivity', 0, rawActivity)) {
+        const normalizedActivity = normalizeExperientialActivityBlueprint(rawActivity, {
+          expectedLessonIds: [...expectedActivityIds],
+          promptLesson,
+          facts,
+        });
+        if (normalizedActivity.issues.length > 0) {
+          issues.push({
+            lessonId,
+            surface: 'experientialActivity',
+            index: 0,
+            problems: normalizedActivity.issues,
+          });
+        } else {
+          experientialActivity = normalizedActivity.blueprint;
+        }
+      }
+    }
 
     const keyTerms = [];
     asArray(entry?.keyTerms).forEach((term, index) => {
@@ -2045,7 +2261,7 @@ export function parseLessonKernelResponse(text, { prompt, expectedLessonIds } = 
     }
 
     const payload = projectKernelToSurfaces(
-      { facts, keyTerms, scenario, discussionPrompt, assignmentCore, mc, workedExample },
+      { facts, keyTerms, scenario, discussionPrompt, assignmentCore, mc, workedExample, experientialActivity },
       { itemPlan },
     );
     if (exactSourceLedgerFacts) {

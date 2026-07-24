@@ -225,6 +225,28 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     expect(options.schema.schema.properties.lessons.items.properties.facts).toMatchObject({ minItems: 3, maxItems: 3 });
   });
 
+  it('D1: qualifying experiential lessons use one strict activity-aware kernel call', () => {
+    const options = scionCallOpts({
+      prompt: {
+        lessons: [
+          {
+            lessonId: 'lesson-1',
+            title: 'Checkout Flow Studio Critique',
+            topics: 'checkout usability and error recovery',
+            objectives: 'Revise a checkout flow from usability evidence.',
+            sync: ['Structured UX studio critique'],
+          },
+        ],
+      },
+      expectedLessonIds: ['lesson-1'],
+      recoveryAttempt: 0,
+    });
+
+    expect(options.promptProtocol).toBe('production-experiential-activity-prompt-v1');
+    expect(options.schema.schema.required).toContain('activityBlueprints');
+    expect(options.schema.schema.properties.activityBlueprints.items.properties.lessonId.enum).toEqual(['lesson-1']);
+  });
+
   it('D1: stages only an exact grounded adapter after freezing valid synthesized facts', () => {
     expect(
       shouldRunScionGroundedAdapterStage([

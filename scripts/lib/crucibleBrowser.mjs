@@ -812,6 +812,7 @@ async function forwardToLlmShim(route, llmShimUrl) {
  * @param {boolean} [options.headed=false]
  * @param {boolean} [options.captureTimeline=false] preserve viewport frames throughout the real workflow.
  * @param {boolean} [options.disableScionFlywheel=false] isolate held-out evaluation from corpus capture.
+ * @param {string} [options.scionProfileRoot] optional persistent browser-profile root for repeated local Scion audits.
  * @param {import('@playwright/test').Browser} [options.browser] optional shared browser.
  * @param {number} [options.overallTimeoutMs=720000] hard 12-minute budget per course.
  * @returns {Promise<{ status: 'passed'|'failed', zipPath: string|null, consoleLogPath: string,
@@ -846,6 +847,7 @@ export async function runCourseInBrowser({
   // the page so SSE keep-alive heartbeats are not buffered by Playwright.
   localEndpoint = null,
   disableScionFlywheel = false,
+  scionProfileRoot = '',
 }) {
   const startedAt = Date.now();
   const deadlineAt = startedAt + overallTimeoutMs;
@@ -873,9 +875,19 @@ export async function runCourseInBrowser({
   // A disposable persistent profile exercises the same storage class as the
   // website while remaining isolated and cold for every Crucible attempt.
   const usePersistentScionProfile = provider === 'public' && !sharedBrowser;
+  const reusableScionProfileRoot = String(scionProfileRoot || process.env.COURSEMAPPER_SCION_PROFILE_ROOT || '').trim();
+  const ownsPersistentProfile = usePersistentScionProfile && !reusableScionProfileRoot;
   const persistentProfileDir = usePersistentScionProfile
-    ? await fs.mkdtemp(path.join(os.tmpdir(), 'coursemapper-scion-crucible-'))
+    ? reusableScionProfileRoot
+      ? path.join(
+          path.resolve(reusableScionProfileRoot),
+          String(course?.id || 'course')
+            .replace(/[^a-z0-9_-]+/gi, '-')
+            .slice(0, 80),
+        )
+      : await fs.mkdtemp(path.join(os.tmpdir(), 'coursemapper-scion-crucible-'))
     : null;
+  if (persistentProfileDir) await fs.mkdir(persistentProfileDir, { recursive: true });
   const contextOptions = {
     acceptDownloads: true,
     viewport: headed ? { width: 1440, height: 960 } : { width: 1500, height: 1000 },
@@ -1270,7 +1282,9 @@ export async function runCourseInBrowser({
     globalThis.clearInterval(heartbeat);
     await activeContext.close().catch(() => {});
     if (!sharedBrowser && !usePersistentScionProfile) await browser.close().catch(() => {});
-    if (persistentProfileDir) await fs.rm(persistentProfileDir, { recursive: true, force: true }).catch(() => {});
+    if (persistentProfileDir && ownsPersistentProfile) {
+      await fs.rm(persistentProfileDir, { recursive: true, force: true }).catch(() => {});
+    }
     await consoleWriteQueue.catch(() => {});
     await consoleHandle.close().catch(() => {});
   }

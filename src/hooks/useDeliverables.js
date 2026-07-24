@@ -2551,10 +2551,10 @@ export default function useDeliverables({
               type: 'knowledgeBackboneLookup',
               stage: 'knowledge-backbone',
               label: 'Finding open readings',
-              detail: `Checking public sources for up to ${Math.min(8, courseGraph.sessions?.length || 0)} lessons`,
+              detail: `Checking public sources for up to ${Math.min(24, courseGraph.sessions?.length || 0)} lessons`,
             });
             openReadingCount = await knowledge.attachOpenReadings(courseGraph, {
-              maxSessions: 8,
+              maxSessions: 24,
               onProgress: ({ completed, total, provider }) => {
                 recordGenerationApiCallEvent({
                   type: 'knowledgeBackboneProgress',
@@ -2566,7 +2566,7 @@ export default function useDeliverables({
             });
             let coverage = knowledge.knowledgeCoverage(courseGraph);
             if (knowledge.shouldRunSourceFinder?.(coverage)) {
-              const sourceTopicCount = Math.min(8, courseGraph.sessions?.length || 0);
+              const sourceTopicCount = Math.min(24, courseGraph.sessions?.length || 0);
               recordGenerationApiCallEvent({
                 type: 'knowledgeBackboneLookup',
                 stage: 'knowledge-backbone',
@@ -2574,7 +2574,7 @@ export default function useDeliverables({
                 detail: `Checking complementary public sources for up to ${sourceTopicCount} lessons`,
               });
               const sourceMiniShard = await knowledge.findCourseSources(courseGraph, {
-                maxTopics: 8,
+                maxTopics: 24,
                 limitPerTopic: 3,
                 timeoutMs: 12_000,
                 // The reading-list pass above already queried Crossref. Source

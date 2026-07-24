@@ -142,10 +142,28 @@ import {
   summarizeInstructorPreferenceProfile,
 } from './instructorPreferenceProfile';
 import { STANDARD_BLUEPRINT_COMPILED_FEATURE_IDS } from './featureCatalog';
+import {
+  buildExperientialActivityAssignmentBrief,
+  buildExperientialActivityLessonPlanProfile,
+  buildExperientialActivityMaterials,
+  buildExperientialActivityOutline,
+  buildExperientialActivitySlideFrames,
+  hasExperientialActivity,
+  mergeExperientialActivityBriefs,
+  resolveExperientialActivity,
+} from './compilerExperientialActivity';
+import { requestsExperientialActivity } from './experientialActivityContract';
+import { buildEvidenceTableVisualDescriptor } from './compilerFactLedgerVisuals';
 
 export { humanSourceCueLabel };
 
 export const BLUEPRINT_COMPILED_FEATURES = new Set(STANDARD_BLUEPRINT_COMPILED_FEATURE_IDS);
+
+function stripEnclosingInstructionQuotes(value) {
+  const text = cleanText(value);
+  const match = text.match(/^(?:["“])([\s\S]*?)(?:["”])([.!?]?)$/);
+  return match ? `${match[1]}${match[2]}`.trim() : text;
+}
 
 const CUSTOM_REFLECTION_PATTERN = /\b(reflection|reflective|check[-\s]?in|journal|exit ticket|debrief)\b/i;
 const CUSTOM_READING_RESPONSE_PATTERN =
@@ -5002,7 +5020,7 @@ function buildSourceUsePlan({ title, concepts, resources, evidencePlan, artifact
   return {
     approvedSources,
     citationExpectation: lessonVariant(lessonStubFromTitle(title, artifactName), [
-      `Use instructor-provided materials for ${stripLessonPrefix(title)}. When source details are available, name the author, title, page, slide, case, dataset, or activity label used for ${artifactName}.`,
+      `Use the assigned course materials for ${stripLessonPrefix(title)}. When source details are available, name the author, title, page, slide, case, dataset, or activity label used for ${artifactName}.`,
       `Ground ${artifactName} in the assigned materials for ${stripLessonPrefix(title)}; cite the source label, page, slide, dataset, case, or activity when the detail is available.`,
       `Students should identify the local source behind ${artifactName} evidence, such as the reading title, slide, dataset, case packet, page, or class activity.`,
       `For ${stripLessonPrefix(title)}, source details should be traceable to instructor-approved materials rather than filled in from memory or invention.`,
@@ -12443,7 +12461,7 @@ function deriveRoutineFieldsForLesson(lesson = {}, index = 0, context = {}) {
     Array.isArray(lesson.readings) && lesson.readings.length > 0
       ? lesson.readings
       : ['Class notes and assigned source materials'];
-  const readingFallback = `${stripLessonPrefix(title)} instructor-provided materials`;
+  const readingFallback = `${stripLessonPrefix(title)} assigned course materials`;
   const normalizedReadingCues = unique(
     rawCandidateReadings
       .map((reading) => stripTerminalPunctuation(cleanText(reading)))
@@ -16846,6 +16864,15 @@ function buildSourcesAndLicenses(blueprint) {
   if (resources.length === 0) return null;
   const groups = [];
   const grouped = new Set();
+  const citationAlreadyStates = (citation, value) => {
+    const normalize = (text) =>
+      cleanText(text)
+        .toLowerCase()
+        .replace(/[^\p{L}\p{N}]+/gu, ' ')
+        .trim();
+    const normalizedValue = normalize(value);
+    return normalizedValue.length >= 4 && normalize(citation).includes(normalizedValue);
+  };
   const normalizeEntries = (entries) => {
     const normalized = entries.map((resource) => ({
       citation: cleanText(resource.citation).replace(/\s*\(open textbook.*$/i, ''),
@@ -16864,8 +16891,8 @@ function buildSourcesAndLicenses(blueprint) {
       ...(attribution ? { attribution } : {}),
       entries: normalized.map((entry) => ({
         ...entry,
-        ...(license ? { license: '' } : {}),
-        ...(attribution ? { attribution: '' } : {}),
+        ...(license || citationAlreadyStates(entry.citation, entry.license) ? { license: '' } : {}),
+        ...(attribution || citationAlreadyStates(entry.citation, entry.attribution) ? { attribution: '' } : {}),
       })),
     };
   };
@@ -17550,6 +17577,25 @@ function assessmentNeedsStandaloneAssignmentBrief(assessment = {}, _index = 0, a
   return !assessmentHasSubstantiveSibling(assessment, assessments);
 }
 
+function compileExperientialActivityAssignmentBrief(blueprint, lesson) {
+  const activity = resolveExperientialActivity(lesson);
+  if (!activity) return null;
+  const lessonNumber = Number(lesson?.lessonNumber) || 1;
+  return buildExperientialActivityAssignmentBrief({
+    lessonNumber,
+    relatedLessonTitle: lesson.title,
+    activity,
+    sessionMinutes: lesson.classSessionPlan?.sessionMinutes || DEFAULT_CLASS_SESSION_MINUTES,
+    outcomes: lesson.outcomes || [],
+    sourceGrounding: lessonSourceGrounding(lesson, {
+      evidenceRequirement: lesson.evidencePlan?.evidenceRequirement || '',
+      artifactConnection: `${activity.artifact.title}, activity evidence log, and debrief note.`,
+      learnerContextProfile: blueprint.learnerContextProfile,
+      courseModalityProfile: blueprint.courseModalityProfile,
+    }),
+  });
+}
+
 // Assignment headings and the Related Lessons line are identity surfaces: they
 // keep the exact assessment and lesson titles so a reader can trace the brief
 // back to the Course Map. Body copy is a different surface. Repeating a long
@@ -17563,8 +17609,12 @@ function compileAssignments(blueprint) {
   // documents in the quiz bank, not as assignment briefs. Legacy anchors
   // carry no kind and all keep their briefs.
   const briefAssessments = blueprint.assessments.filter(assessmentNeedsStandaloneAssignmentBrief);
+  const experientialActivityBriefs = blueprint.lessons
+    .filter(hasExperientialActivity)
+    .map((lesson) => compileExperientialActivityAssignmentBrief(blueprint, lesson))
+    .filter(Boolean);
   const deliverableDisposition =
-    briefAssessments.length === 0
+    briefAssessments.length === 0 && experientialActivityBriefs.length === 0
       ? buildNotApplicableDisposition('assignments', {
           reasonCode: 'no-standalone-assessment',
           summary: 'No separate assignment brief is needed for this course.',
@@ -17596,446 +17646,449 @@ function compileAssignments(blueprint) {
       length: 'Course-appropriate length with enough evidence to address every criterion',
       nextPortfolioUse: assessment.feedbackUse,
     })),
-    assignments: briefAssessments.map((assessment, index) => {
-      // Registry mode allows several briefs per lesson — resolve the lesson
-      // by number (identical to the positional lookup on the legacy
-      // one-anchor-per-lesson path).
-      const lesson =
-        blueprint.lessons.find((item) => item.lessonNumber === assessment.lessonNumbers?.[0]) ||
-        blueprint.lessons[index] ||
-        {};
-      const baseSubmissionProfile = buildAssignmentSubmissionProfile({
-        lesson,
-        assessment,
-        lens,
-      });
-      const submissionProfile = {
-        ...baseSubmissionProfile,
-        reviewProtocol: assignmentReviewProtocolForLesson({
+    assignments: mergeExperientialActivityBriefs([
+      ...briefAssessments.map((assessment, index) => {
+        // Registry mode allows several briefs per lesson — resolve the lesson
+        // by number (identical to the positional lookup on the legacy
+        // one-anchor-per-lesson path).
+        const lesson =
+          blueprint.lessons.find((item) => item.lessonNumber === assessment.lessonNumbers?.[0]) ||
+          blueprint.lessons[index] ||
+          {};
+        const baseSubmissionProfile = buildAssignmentSubmissionProfile({
           lesson,
           assessment,
-          submissionProfile: baseSubmissionProfile,
-        }),
-      };
-      const assessmentTitle = stripTerminalPunctuation(assessment.title);
-      const assessmentArtifact = stripTerminalPunctuation(
-        assessment.artifact || submissionProfile.artifact || assessment.title,
-      );
-      const assignmentParameters =
-        asArray(submissionProfile.parameterLines).length > 0
-          ? submissionProfile.parameterLines
-          : assignmentCoreParametersForStudent(lesson);
-      const assignmentCoreInstructions =
-        asArray(submissionProfile.instructionSteps).length > 0
-          ? submissionProfile.instructionSteps
-          : [
-              assignmentMaterialReviewInstruction({ lesson, assessment }),
-              assignmentEvidenceSelectionInstruction({
-                lesson,
-                assessment,
-                lens,
-              }),
-              lesson.sourceUsePlan?.studentAttributionMove ||
-                `Name the reading, activity, or course note used before explaining the evidence for ${assessmentTitle}.`,
-              assignmentLimitationInstruction({ lesson, assessment }),
-            ];
-      const feedbackPriority = preference
-        ? `${assessment.feedbackUse} Instructor preference: ${preferenceDisplayPhrase(preference)}.`
-        : assessment.feedbackUse;
-      const finalMilestoneFeedback = buildFinalMilestoneFeedback({
-        lessonNumber: lesson.lessonNumber,
-        assessmentTitle,
-        feedbackUse: assessment.feedbackUse,
-      });
-      const isOral = assessment.kind === 'oral';
-      const isMusicInterval = isMusicIntervalLesson(lesson);
-      const musicIntervalSource = isMusicInterval
-        ? preferredMusicIntervalSource(lesson.readings || []) || safeLessonEvidenceCue(lesson, lens)
-        : '';
-      const musicIntervalInversionTask =
-        isMusicInterval &&
-        /\b(?:simple|compound|invert|inversion|number pair|quality change)\b/i.test(
-          [lesson.title, ...(lesson.outcomes || []), ...(lesson.keyConcepts || [])].join(' '),
+          lens,
+        });
+        const submissionProfile = {
+          ...baseSubmissionProfile,
+          reviewProtocol: assignmentReviewProtocolForLesson({
+            lesson,
+            assessment,
+            submissionProfile: baseSubmissionProfile,
+          }),
+        };
+        const assessmentTitle = stripTerminalPunctuation(assessment.title);
+        const assessmentArtifact = stripTerminalPunctuation(
+          assessment.artifact || submissionProfile.artifact || assessment.title,
         );
-      // v0.16.1: code-lab twins carry a distinct brief scaffold (environment
-      // setup, computational task, verification milestone) instead of a
-      // clone of the sibling proof brief. Registry-linked assessments only —
-      // twins exist only on the registry path; legacy compiles are untouched.
-      const isCodeLab = !isOral && Boolean(assessment.registryId) && isCodeLabAssessment(assessment);
-      const brief = {
-        title: assessment.title,
-        // v0.14.1 (3.3b): the reverse stamp — every registry brief names the
-        // map cell it fulfills ("Course Map L8 · A8.1 · 5%"), rendered in the
-        // brief's meta line.
-        ...(assessment.registryId
-          ? {
-              assessmentId: assessment.registryId,
-              lessonNumber: assessment.lessonNumbers[0],
-              courseMapRef: `Course Map L${assessment.lessonNumbers[0]} · ${assessment.registryId} · ${assessment.weightPercent}%`,
-            }
-          : {}),
-        // v0.14.1 (3.2c): an oral assessment's brief is a prompt sheet — the
-        // speaking tasks come from the lesson's kernel terms and scenario.
-        ...(isOral
-          ? {
-              speakingPrompts: buildSpeakingPrompts({
-                lesson,
-                assessment,
-                lens,
-              }),
-            }
-          : {}),
-        assignmentType: isOral ? 'Oral performance prompt sheet' : submissionProfile.assignmentType,
-        relatedLessons: assessment.relatedLessons,
-        dueWeek: `Week ${assessment.lessonNumbers[0]}`,
-        estimatedTime: submissionProfile.estimatedTime,
-        totalPoints: assessment.points,
-        percentOfGrade: assessment.weight,
-        weightPercent: assessment.weightPercent,
-        assessmentRole: assessment.roleLabel,
-        assessmentStakes: assessment.stakes,
-        assessmentArchitecture: {
-          role: assessment.role,
-          roleLabel: assessment.roleLabel,
-          stakes: assessment.stakes,
-          gradingMode: assessment.gradingMode,
-          weightProvenance: compactWeightProvenance(assessment.weightProvenance),
-          roleRationale: assessment.roleRationale,
-          studentFacingPurpose: assessment.studentFacingPurpose,
-          cadence: assessment.cadence,
-          revisionUse: assessment.revisionUse,
-          criterionWeightPlan: assessment.criterionWeightPlan,
-        },
-        bloomsLevel: assessment.bloomsLevel,
-        portfolioConnection: `This artifact documents how students apply ${assessment.relatedLessons.join(', ')} to a course-relevant decision for ${assessmentTitle}.`,
-        expectedSubmissionFormat: `Submit ${submissionProfile.artifact} through the official course site using the weekly ${lens.domain} format. ${submissionProfile.submissionMode} Expected format: ${submissionProfile.expectedFormat}. Evidence standard: ${submissionProfile.evidenceRequirement}. Review before submission: ${submissionProfile.reviewProtocol}`,
-        submissionProfile,
-        highValueSuccessCriteria: assessment.successCriteria,
-        instructorFeedbackPriority: feedbackPriority,
-        sourceGrounding: lessonSourceGrounding(lesson, {
-          assessmentArtifact: assessment.artifact,
-          assessmentTitle: assessment.title,
-          submissionProfile,
+        const assignmentParameters =
+          asArray(submissionProfile.parameterLines).length > 0
+            ? submissionProfile.parameterLines
+            : assignmentCoreParametersForStudent(lesson);
+        const assignmentCoreInstructions =
+          asArray(submissionProfile.instructionSteps).length > 0
+            ? submissionProfile.instructionSteps
+            : [
+                assignmentMaterialReviewInstruction({ lesson, assessment }),
+                assignmentEvidenceSelectionInstruction({
+                  lesson,
+                  assessment,
+                  lens,
+                }),
+                lesson.sourceUsePlan?.studentAttributionMove ||
+                  `Name the reading, activity, or course note used before explaining the evidence for ${assessmentTitle}.`,
+                assignmentLimitationInstruction({ lesson, assessment }),
+              ];
+        const feedbackPriority = preference
+          ? `${assessment.feedbackUse} Instructor preference: ${preferenceDisplayPhrase(preference)}.`
+          : assessment.feedbackUse;
+        const finalMilestoneFeedback = buildFinalMilestoneFeedback({
+          lessonNumber: lesson.lessonNumber,
+          assessmentTitle,
           feedbackUse: assessment.feedbackUse,
-          feedbackCycle: assessment.feedbackCycle,
-          assessmentValidity: assessment.validityEvidence,
-          gradingCalibrationPlan: assessment.calibrationPlan,
-          criterionEvidenceMap: assessment.criterionEvidenceMap,
-          criterionWeightPlan: assessment.criterionWeightPlan,
-          criterionObjectiveAlignment: assessment.criterionObjectiveAlignment,
-          anchorExampleSet: assessment.anchorExampleSet,
+        });
+        const isOral = assessment.kind === 'oral';
+        const isMusicInterval = isMusicIntervalLesson(lesson);
+        const musicIntervalSource = isMusicInterval
+          ? preferredMusicIntervalSource(lesson.readings || []) || safeLessonEvidenceCue(lesson, lens)
+          : '';
+        const musicIntervalInversionTask =
+          isMusicInterval &&
+          /\b(?:simple|compound|invert|inversion|number pair|quality change)\b/i.test(
+            [lesson.title, ...(lesson.outcomes || []), ...(lesson.keyConcepts || [])].join(' '),
+          );
+        // v0.16.1: code-lab twins carry a distinct brief scaffold (environment
+        // setup, computational task, verification milestone) instead of a
+        // clone of the sibling proof brief. Registry-linked assessments only —
+        // twins exist only on the registry path; legacy compiles are untouched.
+        const isCodeLab = !isOral && Boolean(assessment.registryId) && isCodeLabAssessment(assessment);
+        const brief = {
+          title: assessment.title,
+          // v0.14.1 (3.3b): the reverse stamp — every registry brief names the
+          // map cell it fulfills ("Course Map L8 · A8.1 · 5%"), rendered in the
+          // brief's meta line.
+          ...(assessment.registryId
+            ? {
+                assessmentId: assessment.registryId,
+                lessonNumber: assessment.lessonNumbers[0],
+                courseMapRef: `Course Map L${assessment.lessonNumbers[0]} · ${assessment.registryId} · ${assessment.weightPercent}%`,
+              }
+            : {}),
+          // v0.14.1 (3.2c): an oral assessment's brief is a prompt sheet — the
+          // speaking tasks come from the lesson's kernel terms and scenario.
+          ...(isOral
+            ? {
+                speakingPrompts: buildSpeakingPrompts({
+                  lesson,
+                  assessment,
+                  lens,
+                }),
+              }
+            : {}),
+          assignmentType: isOral ? 'Oral performance prompt sheet' : submissionProfile.assignmentType,
+          relatedLessons: assessment.relatedLessons,
+          dueWeek: `Week ${assessment.lessonNumbers[0]}`,
+          estimatedTime: submissionProfile.estimatedTime,
+          totalPoints: assessment.points,
+          percentOfGrade: assessment.weight,
+          weightPercent: assessment.weightPercent,
+          assessmentRole: assessment.roleLabel,
+          assessmentStakes: assessment.stakes,
           assessmentArchitecture: {
             role: assessment.role,
             roleLabel: assessment.roleLabel,
             stakes: assessment.stakes,
-            cadence: assessment.cadence,
+            gradingMode: assessment.gradingMode,
             weightProvenance: compactWeightProvenance(assessment.weightProvenance),
+            roleRationale: assessment.roleRationale,
+            studentFacingPurpose: assessment.studentFacingPurpose,
+            cadence: assessment.cadence,
             revisionUse: assessment.revisionUse,
             criterionWeightPlan: assessment.criterionWeightPlan,
           },
-          learnerContextProfile: blueprint.learnerContextProfile,
+          bloomsLevel: assessment.bloomsLevel,
+          portfolioConnection: `This artifact documents how students apply ${assessment.relatedLessons.join(', ')} to a course-relevant decision for ${assessmentTitle}.`,
+          expectedSubmissionFormat: `Submit ${submissionProfile.artifact} through the official course site using the weekly ${lens.domain} format. ${submissionProfile.submissionMode} Expected format: ${submissionProfile.expectedFormat}. Evidence standard: ${submissionProfile.evidenceRequirement}. Review before submission: ${submissionProfile.reviewProtocol}`,
+          submissionProfile,
+          highValueSuccessCriteria: assessment.successCriteria,
+          instructorFeedbackPriority: feedbackPriority,
+          sourceGrounding: lessonSourceGrounding(lesson, {
+            assessmentArtifact: assessment.artifact,
+            assessmentTitle: assessment.title,
+            submissionProfile,
+            feedbackUse: assessment.feedbackUse,
+            feedbackCycle: assessment.feedbackCycle,
+            assessmentValidity: assessment.validityEvidence,
+            gradingCalibrationPlan: assessment.calibrationPlan,
+            criterionEvidenceMap: assessment.criterionEvidenceMap,
+            criterionWeightPlan: assessment.criterionWeightPlan,
+            criterionObjectiveAlignment: assessment.criterionObjectiveAlignment,
+            anchorExampleSet: assessment.anchorExampleSet,
+            assessmentArchitecture: {
+              role: assessment.role,
+              roleLabel: assessment.roleLabel,
+              stakes: assessment.stakes,
+              cadence: assessment.cadence,
+              weightProvenance: compactWeightProvenance(assessment.weightProvenance),
+              revisionUse: assessment.revisionUse,
+              criterionWeightPlan: assessment.criterionWeightPlan,
+            },
+            learnerContextProfile: blueprint.learnerContextProfile,
+            courseModalityProfile: blueprint.courseModalityProfile,
+            learnerContextCue: lessonLearnerContextCue(blueprint, lesson),
+            ...(preference ? { instructorPreference: preference } : {}),
+          }),
+          workloadEstimate: submissionProfile.workload,
+          difficultyProfile: lesson.difficultyProfile || null,
+          evidencePlan: lesson.evidencePlan || null,
+          sourceUsePlan: lesson.sourceUsePlan || null,
+          misconceptionToWatch: lesson.misconceptionMap?.[0] || null,
+          modelContrast: lesson.modelContrast || null,
+          readinessSupport: lesson.readinessSupport || null,
+          prerequisitePlan: lesson.prerequisitePlan || null,
+          instructionalRationale: lesson.instructionalRationale || null,
+          accessibilityPlan: lesson.accessibilityPlan || null,
+          feedbackCycle: assessment.feedbackCycle || lesson.feedbackCycle || null,
+          teachingIntent: lesson.teachingIntent || null,
+          modalityCue: lesson.modalityCue || '',
+          modalityDecode: lesson.modalityDecode || null,
+          artifactGenre: lesson.artifactGenre || null,
+          artifactGenreReviewProtocol: submissionProfile.reviewProtocol,
+          artifactGenreCommonFailure: submissionProfile.commonFailure,
           courseModalityProfile: blueprint.courseModalityProfile,
+          assessmentValidity: assessment.validityEvidence,
+          gradingCalibrationPlan: assessment.calibrationPlan,
+          criterionEvidenceMap: assessment.criterionEvidenceMap,
+          criterionWeightPlan: assessment.criterionWeightPlan,
+          criterionWeightGuidance: `Use the weighted criteria to prioritize feedback: ${(
+            assessment.criterionWeightPlan || []
+          )
+            .map((entry) => `${entry.priority} ${entry.weight}%`)
+            .join('; ')}.`,
+          anchorExampleSet: assessment.anchorExampleSet,
           learnerContextCue: lessonLearnerContextCue(blueprint, lesson),
-          ...(preference ? { instructorPreference: preference } : {}),
-        }),
-        workloadEstimate: submissionProfile.workload,
-        difficultyProfile: lesson.difficultyProfile || null,
-        evidencePlan: lesson.evidencePlan || null,
-        sourceUsePlan: lesson.sourceUsePlan || null,
-        misconceptionToWatch: lesson.misconceptionMap?.[0] || null,
-        modelContrast: lesson.modelContrast || null,
-        readinessSupport: lesson.readinessSupport || null,
-        prerequisitePlan: lesson.prerequisitePlan || null,
-        instructionalRationale: lesson.instructionalRationale || null,
-        accessibilityPlan: lesson.accessibilityPlan || null,
-        feedbackCycle: assessment.feedbackCycle || lesson.feedbackCycle || null,
-        teachingIntent: lesson.teachingIntent || null,
-        modalityCue: lesson.modalityCue || '',
-        modalityDecode: lesson.modalityDecode || null,
-        artifactGenre: lesson.artifactGenre || null,
-        artifactGenreReviewProtocol: submissionProfile.reviewProtocol,
-        artifactGenreCommonFailure: submissionProfile.commonFailure,
-        courseModalityProfile: blueprint.courseModalityProfile,
-        assessmentValidity: assessment.validityEvidence,
-        gradingCalibrationPlan: assessment.calibrationPlan,
-        criterionEvidenceMap: assessment.criterionEvidenceMap,
-        criterionWeightPlan: assessment.criterionWeightPlan,
-        criterionWeightGuidance: `Use the weighted criteria to prioritize feedback: ${(
-          assessment.criterionWeightPlan || []
-        )
-          .map((entry) => `${entry.priority} ${entry.weight}%`)
-          .join('; ')}.`,
-        anchorExampleSet: assessment.anchorExampleSet,
-        learnerContextCue: lessonLearnerContextCue(blueprint, lesson),
-        performanceBands: {
-          excellent: `${assessmentTitle} uses precise ${lens.evidenceNoun}, clear analysis for ${assessment.relatedLessons[0]}, polished communication, and explicit revision use.`,
-          proficient: `${assessmentTitle} includes accurate evidence and understandable analysis tied to ${assessment.relatedLessons[0]} with minor gaps in depth or polish.`,
-          revisionNeeded: `${assessmentTitle} needs stronger evidence for ${assessment.relatedLessons[0]}, clearer reasoning, or a closer connection to the listed criteria.`,
-        },
-        overview: isMusicInterval
-          ? buildMusicIntervalAssignmentOverview({
-              artifact: assessmentArtifact,
-              weight: assessment.weight,
-              source: musicIntervalSource,
-              inversionTask: musicIntervalInversionTask,
-            })
-          : submissionProfile.taskOverview
-            ? `${submissionProfile.taskOverview} This assessment is worth ${assessment.weight}. Quality target: ${submissionProfile.qualityFocus}.`
-            : lesson.enrichment?.assignmentCore?.taskDescription
-              ? `${lesson.enrichment.assignmentCore.taskDescription} ${assessmentArtifact} is worth ${assessment.weight}. Quality target: ${submissionProfile.qualityFocus}.`
-              : lessonVariant(lesson, [
-                  `${assessmentArtifact} is a ${assessment.roleLabel || 'course assessment'} worth ${assessment.weight}; it asks students to turn ${assessment.relatedLessons[0]} concepts into a concrete ${submissionProfile.assignmentType.toLowerCase()}. The task is designed to show how students use evidence for ${assessmentTitle}, make decisions, and prepare for later work. Target the following qualities: ${submissionProfile.qualityFocus}.`,
-                  `${assessmentArtifact} carries ${assessment.weight} and asks students to make the ${assessment.relatedLessons[0]} evidence visible in ${assignmentTypeWithArticle(submissionProfile.assignmentType)}. The important work is the reasoning path: which evidence matters, what decision follows, and how feedback changes the next draft. Use ${submissionProfile.qualityFocus} as the review lens.`,
-                  `In ${assessmentArtifact}, students use ${assessment.relatedLessons[0]} to produce ${assignmentTypeWithArticle(submissionProfile.assignmentType)} worth ${assessment.weight}. A strong submission shows the evidence trail, names the decision it supports, and leaves a revision trace for later work. Prioritize ${submissionProfile.qualityFocus}.`,
-                  `${assessmentArtifact} is the Week ${assessment.lessonNumbers[0]} evidence product (${assessment.weight}). Students should use the assignment format to connect source details, a defensible decision, and one feedback-informed improvement. Review for ${submissionProfile.qualityFocus}.`,
-                ]),
-        ...(lesson.enrichment?.assignmentCore ? { enrichmentSource: 'lesson-content-enrichment' } : {}),
-        gradingWeightProvenance: compactWeightProvenance(assessment.weightProvenance),
-        objectives: assessment.objectives,
-        objectiveEvidenceChecklist: objectiveEvidenceChecklist(lesson.objectiveEvidencePlan),
-        instructions: [
-          lesson.prerequisitePlan?.studentReadinessCheck ||
-            `Confirm you can connect prerequisite knowledge to ${assessmentTitle} before drafting.`,
-          // v0.16.1: the lab brief's own scaffold — setup/environment, the
-          // computational task, and a required test/verification milestone.
-          ...(isCodeLab
-            ? [
-                `Set up and record the computing environment for ${assessmentTitle}: name the language or tool version, the libraries or packages used, and how to run the submission.`,
-                `Complete the computational task for ${assessmentTitle}: implement the required computation step by step, keeping code organized into named, commented sections.`,
-                `Include at least one test or verification milestone for ${assessmentTitle}: show the check (test case, assertion, or hand-computed comparison) that confirms the results before submission.`,
-              ]
-            : []),
-          ...(assignmentParameters.length > 0
-            ? [
-                `Meet these submission requirements. ${assignmentParameters
-                  .map((parameter) => `${sentenceCase(stripTerminalPunctuation(parameter))}.`)
-                  .join(' ')}`,
-              ]
-            : []),
-          ...assignmentCoreInstructions,
-          `For ${stripLessonPrefix(lesson.title)}, ${submissionProfile.reviewProtocol}.`,
-          assessment.anchorExampleSet?.studentFacingUse ||
-            `Compare a strong and partial sample before finalizing ${assessmentTitle}.`,
-          lessonVariant(lesson, [
-            `Draft ${assessmentTitle} so each section addresses one rubric criterion.`,
-            `Organize ${assessmentTitle} so the scorer can find each rubric criterion in the evidence.`,
-            `Use the rubric as a map for ${assessmentTitle}: every criterion should point to a visible part of the draft.`,
-            `Check ${assessmentTitle} section by section and mark where each scoring category is answered.`,
+          performanceBands: {
+            excellent: `${assessmentTitle} uses precise ${lens.evidenceNoun}, clear analysis for ${assessment.relatedLessons[0]}, polished communication, and explicit revision use.`,
+            proficient: `${assessmentTitle} includes accurate evidence and understandable analysis tied to ${assessment.relatedLessons[0]} with minor gaps in depth or polish.`,
+            revisionNeeded: `${assessmentTitle} needs stronger evidence for ${assessment.relatedLessons[0]}, clearer reasoning, or a closer connection to the listed criteria.`,
+          },
+          overview: isMusicInterval
+            ? buildMusicIntervalAssignmentOverview({
+                artifact: assessmentArtifact,
+                weight: assessment.weight,
+                source: musicIntervalSource,
+                inversionTask: musicIntervalInversionTask,
+              })
+            : submissionProfile.taskOverview
+              ? `${submissionProfile.taskOverview} This assessment is worth ${assessment.weight}. Quality target: ${submissionProfile.qualityFocus}.`
+              : lesson.enrichment?.assignmentCore?.taskDescription
+                ? `${lesson.enrichment.assignmentCore.taskDescription} ${assessmentArtifact} is worth ${assessment.weight}. Quality target: ${submissionProfile.qualityFocus}.`
+                : lessonVariant(lesson, [
+                    `${assessmentArtifact} is a ${assessment.roleLabel || 'course assessment'} worth ${assessment.weight}; it asks students to turn ${assessment.relatedLessons[0]} concepts into a concrete ${submissionProfile.assignmentType.toLowerCase()}. The task is designed to show how students use evidence for ${assessmentTitle}, make decisions, and prepare for later work. Target the following qualities: ${submissionProfile.qualityFocus}.`,
+                    `${assessmentArtifact} carries ${assessment.weight} and asks students to make the ${assessment.relatedLessons[0]} evidence visible in ${assignmentTypeWithArticle(submissionProfile.assignmentType)}. The important work is the reasoning path: which evidence matters, what decision follows, and how feedback changes the next draft. Use ${submissionProfile.qualityFocus} as the review lens.`,
+                    `In ${assessmentArtifact}, students use ${assessment.relatedLessons[0]} to produce ${assignmentTypeWithArticle(submissionProfile.assignmentType)} worth ${assessment.weight}. A strong submission shows the evidence trail, names the decision it supports, and leaves a revision trace for later work. Prioritize ${submissionProfile.qualityFocus}.`,
+                    `${assessmentArtifact} is the Week ${assessment.lessonNumbers[0]} evidence product (${assessment.weight}). Students should use the assignment format to connect source details, a defensible decision, and one feedback-informed improvement. Review for ${submissionProfile.qualityFocus}.`,
+                  ]),
+          ...(lesson.enrichment?.assignmentCore ? { enrichmentSource: 'lesson-content-enrichment' } : {}),
+          gradingWeightProvenance: compactWeightProvenance(assessment.weightProvenance),
+          objectives: assessment.objectives,
+          objectiveEvidenceChecklist: objectiveEvidenceChecklist(lesson.objectiveEvidencePlan),
+          instructions: [
+            lesson.prerequisitePlan?.studentReadinessCheck ||
+              `Confirm you can connect prerequisite knowledge to ${assessmentTitle} before drafting.`,
+            // v0.16.1: the lab brief's own scaffold — setup/environment, the
+            // computational task, and a required test/verification milestone.
+            ...(isCodeLab
+              ? [
+                  `Set up and record the computing environment for ${assessmentTitle}: name the language or tool version, the libraries or packages used, and how to run the submission.`,
+                  `Complete the computational task for ${assessmentTitle}: implement the required computation step by step, keeping code organized into named, commented sections.`,
+                  `Include at least one test or verification milestone for ${assessmentTitle}: show the check (test case, assertion, or hand-computed comparison) that confirms the results before submission.`,
+                ]
+              : []),
+            ...(assignmentParameters.length > 0
+              ? [
+                  `Meet these submission requirements. ${assignmentParameters
+                    .map((parameter) => `${sentenceCase(stripTerminalPunctuation(parameter))}.`)
+                    .join(' ')}`,
+                ]
+              : []),
+            ...assignmentCoreInstructions,
+            `For ${stripLessonPrefix(lesson.title)}, ${submissionProfile.reviewProtocol}.`,
+            assessment.anchorExampleSet?.studentFacingUse ||
+              `Compare a strong and partial sample before finalizing ${assessmentTitle}.`,
+            lessonVariant(lesson, [
+              `Draft ${assessmentTitle} so each section addresses one rubric criterion.`,
+              `Organize ${assessmentTitle} so the scorer can find each rubric criterion in the evidence.`,
+              `Use the rubric as a map for ${assessmentTitle}: every criterion should point to a visible part of the draft.`,
+              `Check ${assessmentTitle} section by section and mark where each scoring category is answered.`,
+            ]),
+            lessonVariant(lesson, [
+              `Use feedback or self-review to revise one evidence link, limitation, or decision step in ${assessmentArtifact} before posting it.`,
+              `Before submission, revise one weak evidence link, missing limitation, or decision step in ${assessmentArtifact}.`,
+              `Use self-review to strengthen the ${assessmentArtifact} evidence trail before it is uploaded.`,
+              `Make one final revision to ${assessmentArtifact} that improves evidence, limitation language, or decision logic.`,
+            ]),
+          ],
+          formatRequirements: {
+            length: lessonVariant(lesson, [
+              'Enough detail to address each criterion; follow instructor length guidance when provided.',
+              'Use enough detail for each scoring criterion, and defer to any local length requirement.',
+              'Write to the depth needed for the rubric rather than a fixed word count unless the instructor supplies one.',
+              'Include enough evidence for every criterion while following the instructor-provided length target.',
+              'Use the space needed to make the claim, evidence, limitation, and revision decision inspectable.',
+              'Prioritize complete evidence and reasoning over word count; apply any course-specific length rule last.',
+              'Write enough for a scorer to verify each criterion, then trim repetition before submission.',
+            ]),
+            format: submissionProfile.expectedFormat,
+            reviewProtocol: `For ${stripLessonPrefix(lesson.title)}, ${submissionProfile.reviewProtocol}.`,
+            workloadFit: submissionProfile.workload.outOfClassEstimate,
+            citationStyle: lessonVariant(lesson, [
+              `Use the citation style specified for ${assessmentTitle} or the course assignment prompt.`,
+              `Follow the citation convention named in the ${assessmentTitle} directions or local course guide.`,
+              `Apply the course citation format for ${assessmentTitle}; ask for review if a source detail is incomplete.`,
+              `Credit sources using the required course style for ${assessmentTitle} and keep uncertain details marked.`,
+              `Use the instructor's citation rule for ${assessmentTitle}, including any tool or source-use disclosure.`,
+              `Match the local citation expectations for ${assessmentTitle} before uploading the final file.`,
+            ]),
+            submissionPlatform: 'Official course site',
+            latePolicy: lessonVariant(lesson, [
+              `For ${assessmentTitle}, follow the course late work policy and contact the instructor before the deadline when needed.`,
+              `Submit ${assessmentTitle} by the posted deadline; if timing becomes a problem, use the course late-work process before the due date.`,
+              `Late work for ${assessmentTitle} follows the local course policy. Students should flag conflicts early through the official course channel.`,
+              `Apply the course deadline rules to ${assessmentTitle}; unresolved access, illness, or scheduling issues should be raised before submission closes.`,
+              `Use the instructor's posted late-work procedure for ${assessmentTitle}, including any required notice before the deadline.`,
+              `If ${assessmentTitle} may be late, students should consult the course policy and contact the instructor through the approved channel while there is still time to adjust.`,
+            ]),
+          },
+          deliverables: assignmentDeliverablesForLesson({
+            lesson,
+            assessment,
+            submissionProfile,
+            lens,
+          }),
+          scaffoldingMilestones: [
+            {
+              milestone: lessonVariant(lesson, [
+                'Prerequisite readiness check',
+                'Starting evidence check',
+                'Entry concept check',
+                'Draft-readiness scan',
+                'Baseline evidence check',
+                'Launch preparation check',
+              ]),
+              dueDate: lessonVariant(lesson, [
+                `Before Week ${assessment.lessonNumbers[0]} work begins`,
+                `Before opening the Week ${assessment.lessonNumbers[0]} draft`,
+                `At the start of Week ${assessment.lessonNumbers[0]} assignment work`,
+                `Before Week ${assessment.lessonNumbers[0]} evidence selection`,
+                `Ahead of the Week ${assessment.lessonNumbers[0]} work session`,
+                `Before students begin the Week ${assessment.lessonNumbers[0]} artifact`,
+              ]),
+              description:
+                lesson.prerequisitePlan?.prerequisiteEvidence ||
+                `Confirm prerequisite knowledge needed for ${assessmentTitle}.`,
+              feedback:
+                lesson.prerequisitePlan?.reteachMove ||
+                `Use instructor feedback to repair prerequisite gaps before drafting ${assessmentArtifact}.`,
+              points: 0,
+              uploadChecklist: lesson.prerequisitePlan?.assumedKnowledge || [
+                `${assessment.relatedLessons[0]} prerequisite knowledge checked`,
+              ],
+            },
+            {
+              milestone: lessonVariant(lesson, [
+                'Evidence checkpoint',
+                'Source-use checkpoint',
+                'Decision evidence checkpoint',
+                'Claim-and-evidence review',
+                'Draft evidence conference',
+                'Support and limitation check',
+              ]),
+              dueDate: lessonVariant(lesson, [
+                `Before Week ${assessment.lessonNumbers[0]} submission`,
+                `Midway through Week ${assessment.lessonNumbers[0]} drafting`,
+                `Before the Week ${assessment.lessonNumbers[0]} final pass`,
+                `After initial Week ${assessment.lessonNumbers[0]} evidence selection`,
+                `Before uploading the Week ${assessment.lessonNumbers[0]} artifact`,
+                `During the Week ${assessment.lessonNumbers[0]} revision window`,
+              ]),
+              description: lessonVariant(lesson, [
+                `Identify the concept, ${lens.evidenceNoun}, and decision ${assessmentTitle} will address.`,
+                `Name the source detail, claim, and decision path that ${assessmentTitle} will make visible.`,
+                `Check that ${assessmentTitle} has one inspectable evidence cue and one defensible action or judgment.`,
+                `Connect the lesson concept to the support, limitation, and decision the submission will show.`,
+                `Mark the evidence students will use and the criterion it should help a reader verify.`,
+                `Confirm that the draft links concept, support, and revision target before final polishing.`,
+              ]),
+              feedback:
+                assessment.feedbackCycle?.feedbackMethod ||
+                `Use instructor, peer, or self-review feedback to focus ${assessmentArtifact}.`,
+              points: 10,
+              uploadChecklist: [
+                `${assessment.relatedLessons[0]} concept named`,
+                `${lens.evidenceNoun} selected`,
+                'criterion checked',
+              ],
+            },
+            {
+              milestone: 'Final submission',
+              dueDate: `Week ${assessment.lessonNumbers[0]}`,
+              description: lessonVariant(lesson, [
+                `Submit the complete ${assessmentArtifact} with all rubric criteria addressed.`,
+                `Turn in ${assessmentArtifact} with each criterion visible in the evidence or reflection.`,
+                `Submit the final ${assessmentArtifact} after checking that every scoring category can be located.`,
+                `Finalize ${assessmentArtifact} with the rubric evidence, limitation, and revision note included.`,
+              ]),
+              feedback: finalMilestoneFeedback,
+              points: 90,
+              uploadChecklist: lessonVariant(lesson, [
+                [`${assessmentTitle} complete`, 'criteria addressed', 'reflection included'],
+                [`${assessmentTitle} final file ready`, 'rubric evidence visible', 'revision note included'],
+                [`${assessmentTitle} submitted`, 'scoring categories checked', 'reflection attached'],
+                [`${assessmentTitle} ready for review`, 'evidence complete', 'feedback response included'],
+              ]),
+            },
+          ],
+          gradingCriteria: assessment.criteria,
+          weightedGradingCriteria: assessment.criterionWeightPlan || [],
+          supportResources: assignmentSupportResourcesForLesson({
+            lesson,
+            assessment,
+            submissionProfile,
+            assignedReadings: assignedReadingTitlesForLesson(blueprint, lesson),
+          }),
+          progressTracking: lessonVariant(lesson, [
+            `Use the ${assessmentTitle} milestone notes, rubric criteria, ${submissionProfile.assignmentType.toLowerCase()} format, and ${submissionProfile.workload.outOfClassEstimate} to monitor readiness before submission for ${assessment.relatedLessons[0]}.`,
+            `Track ${assessmentTitle} with the rubric, the ${submissionProfile.assignmentType.toLowerCase()} format, and the workload estimate so the evidence is ready for ${assessment.relatedLessons[0]}.`,
+            `Before uploading ${assessmentTitle}, compare the draft against the milestone notes, criterion weights, and time plan for ${assessment.relatedLessons[0]}.`,
+            `Use the review notes, rubric language, and ${submissionProfile.workload.outOfClassEstimate} plan to decide whether ${assessmentTitle} is ready for review.`,
+            `Monitor ${assessmentTitle} by checking evidence completeness, format fit, and revision status against ${assessment.relatedLessons[0]}.`,
+            `Keep the ${assessmentTitle} work plan visible: evidence chosen, criteria checked, workload managed, and final revision completed.`,
           ]),
-          lessonVariant(lesson, [
-            `Use feedback or self-review to revise one evidence link, limitation, or decision step in ${assessmentArtifact} before posting it.`,
-            `Before submission, revise one weak evidence link, missing limitation, or decision step in ${assessmentArtifact}.`,
-            `Use self-review to strengthen the ${assessmentArtifact} evidence trail before it is uploaded.`,
-            `Make one final revision to ${assessmentArtifact} that improves evidence, limitation language, or decision logic.`,
+          assessmentCadence: assessment.cadence,
+          assessmentPurpose: assessment.studentFacingPurpose,
+          assessmentRoleRationale: assessment.roleRationale,
+          revisionUse: assessment.revisionUse,
+          validityCheck: assessment.validityEvidence,
+          gradingCalibration: assessment.calibrationPlan,
+          criterionEvidenceChecklist: Array.isArray(assessment.criterionEvidenceMap)
+            ? assessment.criterionEvidenceMap
+            : [],
+          anchorExampleGuidance: [
+            assessment.anchorExampleSet?.strongSample || '',
+            assessment.anchorExampleSet?.partialSample || '',
+            assessment.anchorExampleSet?.revisionPrompt || '',
+          ].filter(Boolean),
+          citationAndSourceUse: lesson.sourceUsePlan || null,
+          academicIntegrityStatement: lessonVariant(lesson, [
+            `Submitted work must represent the student or team effort. Cite outside sources or approved tools, and disclose course-specific AI use when it contributes to the submission. ${lesson.sourceUsePlan?.noInventedSources || 'Do not invent source details; mark missing citation details for instructor review.'}`,
+            `Make authorship and source use visible in ${assessmentTitle}: name outside sources, identify any approved tool support, and keep the final reasoning accountable to the student or team. ${lesson.sourceUsePlan?.noInventedSources || 'Do not invent source details; mark missing citation details for instructor review.'}`,
+            `For ${assessmentTitle}, separate student/team reasoning from outside help. Cite sources, disclose approved AI or tool use when it shaped the work, and leave uncertain citation details for instructor review. ${lesson.sourceUsePlan?.noInventedSources || 'Do not invent source details; mark missing citation details for instructor review.'}`,
+            `For ${assessmentTitle}, the submitted decision, evidence trail, and revision choices must be the student's or team's own work. Credit outside sources and approved tools clearly. ${lesson.sourceUsePlan?.noInventedSources || 'Do not invent source details; mark missing citation details for instructor review.'}`,
           ]),
-        ],
-        formatRequirements: {
-          length: lessonVariant(lesson, [
-            'Enough detail to address each criterion; follow instructor length guidance when provided.',
-            'Use enough detail for each scoring criterion, and defer to any local length requirement.',
-            'Write to the depth needed for the rubric rather than a fixed word count unless the instructor supplies one.',
-            'Include enough evidence for every criterion while following the instructor-provided length target.',
-            'Use the space needed to make the claim, evidence, limitation, and revision decision inspectable.',
-            'Prioritize complete evidence and reasoning over word count; apply any course-specific length rule last.',
-            'Write enough for a scorer to verify each criterion, then trim repetition before submission.',
-          ]),
-          format: submissionProfile.expectedFormat,
-          reviewProtocol: `For ${stripLessonPrefix(lesson.title)}, ${submissionProfile.reviewProtocol}.`,
-          workloadFit: submissionProfile.workload.outOfClassEstimate,
-          citationStyle: lessonVariant(lesson, [
-            `Use the citation style specified for ${assessmentTitle} or the course assignment prompt.`,
-            `Follow the citation convention named in the ${assessmentTitle} directions or local course guide.`,
-            `Apply the course citation format for ${assessmentTitle}; ask for review if a source detail is incomplete.`,
-            `Credit sources using the required course style for ${assessmentTitle} and keep uncertain details marked.`,
-            `Use the instructor's citation rule for ${assessmentTitle}, including any tool or source-use disclosure.`,
-            `Match the local citation expectations for ${assessmentTitle} before uploading the final file.`,
-          ]),
-          submissionPlatform: 'Official course site',
-          latePolicy: lessonVariant(lesson, [
-            `For ${assessmentTitle}, follow the course late work policy and contact the instructor before the deadline when needed.`,
-            `Submit ${assessmentTitle} by the posted deadline; if timing becomes a problem, use the course late-work process before the due date.`,
-            `Late work for ${assessmentTitle} follows the local course policy. Students should flag conflicts early through the official course channel.`,
-            `Apply the course deadline rules to ${assessmentTitle}; unresolved access, illness, or scheduling issues should be raised before submission closes.`,
-            `Use the instructor's posted late-work procedure for ${assessmentTitle}, including any required notice before the deadline.`,
-            `If ${assessmentTitle} may be late, students should consult the course policy and contact the instructor through the approved channel while there is still time to adjust.`,
-          ]),
-        },
-        deliverables: assignmentDeliverablesForLesson({
+          accessibilityAndUDL:
+            lesson.accessibilityPlan?.accommodationReviewCue ||
+            `For ${assessmentTitle}, use accessible document structure, descriptive headings, readable contrast, and captions or alt text for media.`,
+          selfAssessmentRubric: (Array.isArray(assessment.criterionWeightPlan) &&
+          assessment.criterionWeightPlan.length > 0
+            ? assessment.criterionWeightPlan
+            : assessment.criteria.map((criterion) => ({
+                criterion,
+                weight: '',
+                evidenceSignal: 'Criterion evidence needs review.',
+              }))
+          ).map((entry, entryIndex) => {
+            // 220 chars fits the full evidence sentence; tighter caps cut the
+            // sentence right after the quoted criterion name. The bullet already
+            // starts with the criterion name, so the quoted restatement inside
+            // the evidence sentence collapses to "this criterion".
+            const evidenceCheck = conciseClause(
+              assignmentSelfAssessmentEvidenceCheck({
+                evidenceSignal: String(entry.evidenceSignal || entry.evidenceNeeded || '').replace(
+                  `"${entry.criterion}"`,
+                  'this criterion',
+                ),
+                index: entryIndex,
+                lessonNumber: lesson.lessonNumber,
+                lessonFocus: stripLessonPrefix(lesson.title),
+                assignmentType: submissionProfile.assignmentType,
+              }),
+              'Show criterion-specific evidence',
+              220,
+            );
+            return `${entry.criterion}${entry.weight ? ` (${entry.weight}%)` : ''}: ${evidenceCheck}.`;
+          }),
+          feedbackLoop: assessment.feedbackUse,
+          revisionCheck: assessment.feedbackCycle?.closureCheck || assessment.feedbackUse,
+          tags: unique(['assignment', assessment.title, ...assessment.relatedLessons, ...assessment.criteria], 10),
+        };
+        // v0.16.1: complete the twin rename — the lab brief must not carry
+        // sibling proof-artifact residue from lesson-level template text.
+        const labeledBrief = isCodeLab ? relabelLabTwinDeliverable(brief, lesson, assessment) : brief;
+        return compactAssignmentBriefBodyReferences({
+          brief: labeledBrief,
           lesson,
-          assessment,
-          submissionProfile,
-          lens,
-        }),
-        scaffoldingMilestones: [
-          {
-            milestone: lessonVariant(lesson, [
-              'Prerequisite readiness check',
-              'Starting evidence check',
-              'Entry concept check',
-              'Draft-readiness scan',
-              'Baseline evidence check',
-              'Launch preparation check',
-            ]),
-            dueDate: lessonVariant(lesson, [
-              `Before Week ${assessment.lessonNumbers[0]} work begins`,
-              `Before opening the Week ${assessment.lessonNumbers[0]} draft`,
-              `At the start of Week ${assessment.lessonNumbers[0]} assignment work`,
-              `Before Week ${assessment.lessonNumbers[0]} evidence selection`,
-              `Ahead of the Week ${assessment.lessonNumbers[0]} work session`,
-              `Before students begin the Week ${assessment.lessonNumbers[0]} artifact`,
-            ]),
-            description:
-              lesson.prerequisitePlan?.prerequisiteEvidence ||
-              `Confirm prerequisite knowledge needed for ${assessmentTitle}.`,
-            feedback:
-              lesson.prerequisitePlan?.reteachMove ||
-              `Use instructor feedback to repair prerequisite gaps before drafting ${assessmentArtifact}.`,
-            points: 0,
-            uploadChecklist: lesson.prerequisitePlan?.assumedKnowledge || [
-              `${assessment.relatedLessons[0]} prerequisite knowledge checked`,
-            ],
-          },
-          {
-            milestone: lessonVariant(lesson, [
-              'Evidence checkpoint',
-              'Source-use checkpoint',
-              'Decision evidence checkpoint',
-              'Claim-and-evidence review',
-              'Draft evidence conference',
-              'Support and limitation check',
-            ]),
-            dueDate: lessonVariant(lesson, [
-              `Before Week ${assessment.lessonNumbers[0]} submission`,
-              `Midway through Week ${assessment.lessonNumbers[0]} drafting`,
-              `Before the Week ${assessment.lessonNumbers[0]} final pass`,
-              `After initial Week ${assessment.lessonNumbers[0]} evidence selection`,
-              `Before uploading the Week ${assessment.lessonNumbers[0]} artifact`,
-              `During the Week ${assessment.lessonNumbers[0]} revision window`,
-            ]),
-            description: lessonVariant(lesson, [
-              `Identify the concept, ${lens.evidenceNoun}, and decision ${assessmentTitle} will address.`,
-              `Name the source detail, claim, and decision path that ${assessmentTitle} will make visible.`,
-              `Check that ${assessmentTitle} has one inspectable evidence cue and one defensible action or judgment.`,
-              `Connect the lesson concept to the support, limitation, and decision the submission will show.`,
-              `Mark the evidence students will use and the criterion it should help a reader verify.`,
-              `Confirm that the draft links concept, support, and revision target before final polishing.`,
-            ]),
-            feedback:
-              assessment.feedbackCycle?.feedbackMethod ||
-              `Use instructor, peer, or self-review feedback to focus ${assessmentArtifact}.`,
-            points: 10,
-            uploadChecklist: [
-              `${assessment.relatedLessons[0]} concept named`,
-              `${lens.evidenceNoun} selected`,
-              'criterion checked',
-            ],
-          },
-          {
-            milestone: 'Final submission',
-            dueDate: `Week ${assessment.lessonNumbers[0]}`,
-            description: lessonVariant(lesson, [
-              `Submit the complete ${assessmentArtifact} with all rubric criteria addressed.`,
-              `Turn in ${assessmentArtifact} with each criterion visible in the evidence or reflection.`,
-              `Submit the final ${assessmentArtifact} after checking that every scoring category can be located.`,
-              `Finalize ${assessmentArtifact} with the rubric evidence, limitation, and revision note included.`,
-            ]),
-            feedback: finalMilestoneFeedback,
-            points: 90,
-            uploadChecklist: lessonVariant(lesson, [
-              [`${assessmentTitle} complete`, 'criteria addressed', 'reflection included'],
-              [`${assessmentTitle} final file ready`, 'rubric evidence visible', 'revision note included'],
-              [`${assessmentTitle} submitted`, 'scoring categories checked', 'reflection attached'],
-              [`${assessmentTitle} ready for review`, 'evidence complete', 'feedback response included'],
-            ]),
-          },
-        ],
-        gradingCriteria: assessment.criteria,
-        weightedGradingCriteria: assessment.criterionWeightPlan || [],
-        supportResources: assignmentSupportResourcesForLesson({
-          lesson,
-          assessment,
-          submissionProfile,
-          assignedReadings: assignedReadingTitlesForLesson(blueprint, lesson),
-        }),
-        progressTracking: lessonVariant(lesson, [
-          `Use the ${assessmentTitle} milestone notes, rubric criteria, ${submissionProfile.assignmentType.toLowerCase()} format, and ${submissionProfile.workload.outOfClassEstimate} to monitor readiness before submission for ${assessment.relatedLessons[0]}.`,
-          `Track ${assessmentTitle} with the rubric, the ${submissionProfile.assignmentType.toLowerCase()} format, and the workload estimate so the evidence is ready for ${assessment.relatedLessons[0]}.`,
-          `Before uploading ${assessmentTitle}, compare the draft against the milestone notes, criterion weights, and time plan for ${assessment.relatedLessons[0]}.`,
-          `Use the review notes, rubric language, and ${submissionProfile.workload.outOfClassEstimate} plan to decide whether ${assessmentTitle} is ready for review.`,
-          `Monitor ${assessmentTitle} by checking evidence completeness, format fit, and revision status against ${assessment.relatedLessons[0]}.`,
-          `Keep the ${assessmentTitle} work plan visible: evidence chosen, criteria checked, workload managed, and final revision completed.`,
-        ]),
-        assessmentCadence: assessment.cadence,
-        assessmentPurpose: assessment.studentFacingPurpose,
-        assessmentRoleRationale: assessment.roleRationale,
-        revisionUse: assessment.revisionUse,
-        validityCheck: assessment.validityEvidence,
-        gradingCalibration: assessment.calibrationPlan,
-        criterionEvidenceChecklist: Array.isArray(assessment.criterionEvidenceMap)
-          ? assessment.criterionEvidenceMap
-          : [],
-        anchorExampleGuidance: [
-          assessment.anchorExampleSet?.strongSample || '',
-          assessment.anchorExampleSet?.partialSample || '',
-          assessment.anchorExampleSet?.revisionPrompt || '',
-        ].filter(Boolean),
-        citationAndSourceUse: lesson.sourceUsePlan || null,
-        academicIntegrityStatement: lessonVariant(lesson, [
-          `Submitted work must represent the student or team effort. Cite outside sources or approved tools, and disclose course-specific AI use when it contributes to the submission. ${lesson.sourceUsePlan?.noInventedSources || 'Do not invent source details; mark missing citation details for instructor review.'}`,
-          `Make authorship and source use visible in ${assessmentTitle}: name outside sources, identify any approved tool support, and keep the final reasoning accountable to the student or team. ${lesson.sourceUsePlan?.noInventedSources || 'Do not invent source details; mark missing citation details for instructor review.'}`,
-          `For ${assessmentTitle}, separate student/team reasoning from outside help. Cite sources, disclose approved AI or tool use when it shaped the work, and leave uncertain citation details for instructor review. ${lesson.sourceUsePlan?.noInventedSources || 'Do not invent source details; mark missing citation details for instructor review.'}`,
-          `For ${assessmentTitle}, the submitted decision, evidence trail, and revision choices must be the student's or team's own work. Credit outside sources and approved tools clearly. ${lesson.sourceUsePlan?.noInventedSources || 'Do not invent source details; mark missing citation details for instructor review.'}`,
-        ]),
-        accessibilityAndUDL:
-          lesson.accessibilityPlan?.accommodationReviewCue ||
-          `For ${assessmentTitle}, use accessible document structure, descriptive headings, readable contrast, and captions or alt text for media.`,
-        selfAssessmentRubric: (Array.isArray(assessment.criterionWeightPlan) &&
-        assessment.criterionWeightPlan.length > 0
-          ? assessment.criterionWeightPlan
-          : assessment.criteria.map((criterion) => ({
-              criterion,
-              weight: '',
-              evidenceSignal: 'Criterion evidence needs review.',
-            }))
-        ).map((entry, entryIndex) => {
-          // 220 chars fits the full evidence sentence; tighter caps cut the
-          // sentence right after the quoted criterion name. The bullet already
-          // starts with the criterion name, so the quoted restatement inside
-          // the evidence sentence collapses to "this criterion".
-          const evidenceCheck = conciseClause(
-            assignmentSelfAssessmentEvidenceCheck({
-              evidenceSignal: String(entry.evidenceSignal || entry.evidenceNeeded || '').replace(
-                `"${entry.criterion}"`,
-                'this criterion',
-              ),
-              index: entryIndex,
-              lessonNumber: lesson.lessonNumber,
-              lessonFocus: stripLessonPrefix(lesson.title),
-              assignmentType: submissionProfile.assignmentType,
-            }),
-            'Show criterion-specific evidence',
-            220,
-          );
-          return `${entry.criterion}${entry.weight ? ` (${entry.weight}%)` : ''}: ${evidenceCheck}.`;
-        }),
-        feedbackLoop: assessment.feedbackUse,
-        revisionCheck: assessment.feedbackCycle?.closureCheck || assessment.feedbackUse,
-        tags: unique(['assignment', assessment.title, ...assessment.relatedLessons, ...assessment.criteria], 10),
-      };
-      // v0.16.1: complete the twin rename — the lab brief must not carry
-      // sibling proof-artifact residue from lesson-level template text.
-      const labeledBrief = isCodeLab ? relabelLabTwinDeliverable(brief, lesson, assessment) : brief;
-      return compactAssignmentBriefBodyReferences({
-        brief: labeledBrief,
-        lesson,
-        fullFocus: lessonFocusFallback(lesson),
-        // Registry twins share one lesson, but each brief owns its own
-        // artifact identity. Using the lesson's central artifact here
-        // reintroduced the proof-set sibling after the code-lab relabel pass.
-        fallbackArtifact:
-          cleanText(assessment.title || assessment.artifact) || compactLessonArtifactReference(lesson, 'assignment'),
-      });
-    }),
+          fullFocus: lessonFocusFallback(lesson),
+          // Registry twins share one lesson, but each brief owns its own
+          // artifact identity. Using the lesson's central artifact here
+          // reintroduced the proof-set sibling after the code-lab relabel pass.
+          fallbackArtifact:
+            cleanText(assessment.title || assessment.artifact) || compactLessonArtifactReference(lesson, 'assignment'),
+        });
+      }),
+      ...experientialActivityBriefs,
+    ]).sort((a, b) => Number(a.lessonNumber || 0) - Number(b.lessonNumber || 0)),
   };
 }
 
@@ -22612,24 +22665,15 @@ function slideDeckPhrase(blueprint, lesson) {
  * (evidence) were authored together. Lengths track the exporter's native
  * table guards (lead 42 / row 130 chars).
  */
-function enrichedEvidenceTableRows(lesson) {
-  const terms = lessonTeachingKeyTerms(lesson);
-  return terms
-    .map((term) => {
-      // v0.14.1 round-2 (fix 4): the slide key-term cell pairs non-Latin
-      // terms with their romanization ("你好 (nǐ hǎo)").
-      const claim = displayKeyTermName(term);
-      const definition = stripTerminalPunctuation(cleanText(term?.definition));
-      const example = stripTerminalPunctuation(cleanText(term?.example));
-      if (!claim || !definition || !example) return null;
-      // v0.15.187 (live crucible P1): the composed cell is a full sentence —
-      // it keeps terminal punctuation and lowercases the example lead, or a
-      // preposition-final example ("…can be iterated over") reads as a
-      // truncated bullet in the PPTX text audit.
-      return [claim, `${definition} — e.g., ${lowercaseSentenceLead(example)}.`];
-    })
-    .filter((row) => row && row[0].length <= 42 && row[1].length <= 130)
-    .slice(0, 4);
+function enrichedEvidenceTableDescriptor(lesson) {
+  return buildEvidenceTableVisualDescriptor(
+    lessonTeachingKeyTerms(lesson).map((term) => [
+      displayKeyTermName(term),
+      stripTerminalPunctuation(cleanText(term?.definition)),
+      stripTerminalPunctuation(cleanText(term?.example)),
+    ]),
+    lesson?.enrichment?.kernel?.facts || [],
+  );
 }
 
 // ── v0.14.5 WS-C (C2): worked-example plot pairs ────────────────────────────
@@ -22885,8 +22929,8 @@ function slideVisual(lesson, slide) {
             // never has to fabricate pairs from display bullets.
             ...(() => {
               if (/limit|honest|gap/i.test(title)) return {};
-              const rows = enrichedEvidenceTableRows(lesson);
-              return rows.length >= 2 ? { rows } : {};
+              const descriptor = enrichedEvidenceTableDescriptor(lesson);
+              return descriptor.rows.length >= 2 ? descriptor : {};
             })(),
           },
     example: {
@@ -24599,7 +24643,7 @@ function adjustDeckLengthForContent(slides, lesson) {
  * text (the exporter no longer fabricates rows from bullets).
  */
 function applyEvidenceSlideIntegrity(slides, lesson) {
-  if (enrichedEvidenceTableRows(lesson).length >= 2) return;
+  if (enrichedEvidenceTableDescriptor(lesson).rows.length >= 2) return;
   const workedExample = lesson?.enrichment?.workedExample || deterministicWorkedExampleForLesson(lesson);
   const problem = cleanText(workedExample?.problem);
   const steps = (Array.isArray(workedExample?.steps) ? workedExample.steps : []).map(cleanText).filter(Boolean);
@@ -25438,314 +25482,325 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
     concept,
     lessonNumber: index + 1,
   });
-  const slides = [
-    {
-      type: 'title',
-      title: displayTitle,
-      bullets: [titleContext, `Today students improve: ${artifact}`],
-      minutes: 1,
-      bloom: null,
-      objective: null,
-      activity: null,
-    },
-    {
-      type: 'agenda',
-      title: 'Session Plan',
-      bullets: [
-        hasRealSource ? `Frame ${concept} through ${sourceCue}.` : `Frame ${concept} with one inspectable example.`,
-        `Model the evidence decision for ${artifact}.`,
-        `Practice with ${concept}: ${teachingMoves.practiceMove}`,
-        `Debrief against this criterion: ${successCriterion}`,
-        next
-          ? `Carry forward to ${primarySlideConcept(next)}.`
-          : 'Carry forward to final synthesis and revision planning.',
-      ],
-      minutes: 2,
-      bloom: null,
-      objective: null,
-      activity: null,
-    },
-    {
-      type: 'objectives',
-      title: 'Objectives',
-      bullets: [
-        sentenceCase(objectiveOne),
-        sentenceCase(objectiveTwo),
-        lessonVariant(lesson, [
-          `Use feedback to strengthen ${artifact}.`,
-          `Turn feedback into one revision move for ${artifact}.`,
-          `Identify the feedback that would make ${artifact} stronger.`,
-          `Apply one evidence-based suggestion to revise ${artifact}.`,
-        ]),
-      ],
-      minutes: 3,
-      bloom: null,
-      objective: objectiveOne,
-      activity: null,
-    },
-    {
-      type: 'bridge',
-      title: previous
-        ? `From ${sentenceCase(primarySlideConcept(previous))} to ${sentenceCase(concept)}`
-        : `${sentenceCase(concept)} course throughline`,
-      bullets: [
-        // v0.16 E4 (Prof department catch): Lesson 1 has no "last time" — a
-        // continuity reference in the first session reads as unproofed.
-        previous
-          ? `Last time: ${primarySlideConcept(previous)}`
-          : `This course: ${blueprint.courseName} — what we'll build across the semester`,
-        `Today: ${sentenceCase(phrase.decisionMove)}`,
-        next ? `Next: ${primarySlideConcept(next)}` : `Next: final synthesis and revision planning`,
-      ],
-      minutes: 4,
-      bloom: 'Apply',
-      objective: objectiveOne,
-      activity: null,
-    },
-    {
-      type: 'keyTerm',
-      title: `What counts as ${concept}?`,
-      bullets: [
-        lessonVariant(lesson, [
-          `${concept}: a practical lens for ${artifact}.`,
-          `${concept}: evidence students must use, not just define.`,
-          `${concept}: the reasoning move behind ${artifact}.`,
-          `${concept}: a way to test which evidence belongs in ${artifact}.`,
-        ]),
-        `Lesson ${index + 1} evidence cue. ${phrase.evidenceMove}.`,
-        `Lesson ${index + 1} decision cue. ${phrase.decisionMove}.`,
-      ],
-      minutes: 5,
-      bloom: 'Understand',
-      objective: objectiveOne,
-      activity: null,
-    },
-    {
-      type: 'content',
-      title: `Evidence that can actually support ${artifact}`,
-      bullets: [
-        `${concept} focuses attention on evidence quality, not just topic coverage.`,
-        `${secondary} helps students avoid unsupported claims in ${artifact}.`,
-        `Success criterion: ${lowercaseClauseLead(successCriterion)}`,
-      ],
-      minutes: 6,
-      bloom: 'Analyze',
-      objective: objectiveOne,
-      activity: null,
-    },
-    {
-      type: 'example',
-      title: `${sentenceCase(concept)} in a ${lens.exampleNoun}`,
-      bullets: [
-        lessonVariant(lesson, [
-          hasRealSource ? `Start with a short scenario from ${sourceCue}.` : 'Start with a short, concrete scenario.',
-          hasRealSource ? `Open with one grounded example from ${sourceCue}.` : 'Open with one grounded example.',
-          hasRealSource
-            ? `Use ${sourceCue} as the example students inspect first.`
-            : 'Use one bounded example students can inspect.',
-          hasRealSource ? `Begin from a decision point in ${sourceCue}.` : 'Begin from a concrete decision point.',
-        ]),
-        hasRealSource
-          ? `Identify the ${concept} evidence students can actually inspect in ${sourceCue}.`
-          : `Identify the ${concept} evidence students can actually inspect.`,
-        `Strong answers explain how evidence changes ${artifact}.`,
-      ],
-      minutes: 7,
-      bloom: 'Analyze',
-      objective: objectiveTwo,
-      activity: null,
-    },
-    hasStandaloneAssessment
-      ? {
-          type: 'activity',
-          title: lessonVariant(lesson, [
-            `${learnerFacingMode}: strengthen one evidence-backed ${artifact} choice`,
-            `${learnerFacingMode}: test one source-backed ${artifact} revision`,
-            `${learnerFacingMode}: choose the evidence move ${artifact} needs next`,
-            `${learnerFacingMode}: turn critique into a ${artifact} decision`,
-          ]),
-          // v0.12.1: signaturePractice and practiceMove both derive from the
-          // modality routine — when they open with the same phrase, keep only
-          // the move ("Annotated example. Annotated example: annotate…").
+  const experientialActivity = resolveExperientialActivity(lesson);
+  let slides = experientialActivity
+    ? buildExperientialActivitySlideFrames({
+        title: stripLessonPrefix(lesson.title),
+        activity: experientialActivity,
+        sessionMinutes: classSessionPlan.sessionMinutes,
+      })
+    : [
+        {
+          type: 'title',
+          title: displayTitle,
+          bullets: [titleContext, `Today students improve: ${artifact}`],
+          minutes: 1,
+          bloom: null,
+          objective: null,
+          activity: null,
+        },
+        {
+          type: 'agenda',
+          title: 'Session Plan',
           bullets: [
-            cleanText(sentenceCase(modality.signaturePractice)).slice(0, 24).toLowerCase() ===
-            cleanText(teachingMoves.practiceMove).slice(0, 24).toLowerCase()
-              ? teachingMoves.practiceMove
-              : `${sentenceCase(modality.signaturePractice)}. ${teachingMoves.practiceMove}`,
-            modality.evidenceRoutine,
+            hasRealSource ? `Frame ${concept} through ${sourceCue}.` : `Frame ${concept} with one inspectable example.`,
+            `Model the evidence decision for ${artifact}.`,
+            `Practice with ${concept}: ${teachingMoves.practiceMove}`,
+            `Debrief against this criterion: ${successCriterion}`,
+            next
+              ? `Carry forward to ${primarySlideConcept(next)}.`
+              : 'Carry forward to final synthesis and revision planning.',
+          ],
+          minutes: 2,
+          bloom: null,
+          objective: null,
+          activity: null,
+        },
+        {
+          type: 'objectives',
+          title: 'Objectives',
+          bullets: [
+            sentenceCase(objectiveOne),
+            sentenceCase(objectiveTwo),
             lessonVariant(lesson, [
-              `${teachingMoves.feedbackMove} Close by naming the revision choice for ${artifact}.`,
-              `Use the feedback routine to identify the strongest move, then mark the next ${artifact} revision.`,
-              `Before the debrief ends, record which feedback changes ${artifact} and why.`,
-              `Translate the critique into one evidence-backed ${artifact} revision and name the reason for it.`,
-              `End with a revision commitment: what will change in ${artifact}, and which evidence supports that change?`,
-              `Have each learner name the feedback they will use, the ${artifact} move it changes, and the evidence they will preserve.`,
+              `Use feedback to strengthen ${artifact}.`,
+              `Turn feedback into one revision move for ${artifact}.`,
+              `Identify the feedback that would make ${artifact} stronger.`,
+              `Apply one evidence-based suggestion to revise ${artifact}.`,
             ]),
           ],
-          // v0.12.1: real practice timing from the lesson's session plan — the
-          // hardcoded 10 printed "Duration: 10 min" on slide 8 of all 58 audited
-          // decks, regardless of modality or session length.
-          minutes: activityMinutesFromSessionPlan(classSessionPlan) || 10,
-          bloom: 'Apply',
+          minutes: 3,
+          bloom: null,
           objective: objectiveOne,
-          activity: learnerFacingMode,
-        }
-      : {
-          type: 'activity',
-          title: `Concept practice: test ${stripTerminalPunctuation(concept)} with evidence`,
-          bullets: [
-            `Answer one ${concept} concept-check question, then explain the evidence for the answer.`,
-            `Compare the rationale with ${sourceCue} and correct one misconception or unsupported step.`,
-            `Record the corrected ${concept} claim and the observation, example, or fact that supports it.`,
-          ],
-          minutes: activityMinutesFromSessionPlan(classSessionPlan) || 10,
-          bloom: 'Apply',
-          objective: objectiveOne,
-          activity: 'Formative concept practice',
-          enrichmentSource: 'deterministic-formative-practice',
+          activity: null,
         },
-    {
-      type: 'content',
-      title: lessonVariant(lesson, [
-        `Use ${secondary} to keep claims honest`,
-        `Test the boundary of ${secondary}`,
-        `Make the ${secondary} evidence claim defensible`,
-        `Narrow the ${secondary} claim before revision`,
-        `Check what ${secondary} can and cannot prove`,
-        `Use ${secondary} to qualify the artifact decision`,
-      ]),
-      bullets: lessonVariant(lesson, [
-        [
-          `${secondary} evidence sets the boundary students must name.`,
-          'Clear limits make the evidence claim more credible.',
-          `Feedback should target the ${secondary} evidence gap, not only grammar.`,
-        ],
-        [
-          `Students name what ${secondary} evidence does not prove yet.`,
-          `The claim becomes stronger when its boundary is visible in ${artifact}.`,
-          `Ask which ${secondary} claim needs another source check.`,
-        ],
-        [
-          `Students separate supported ${secondary} evidence from assumptions.`,
-          `${artifact} improves when the rationale names the weakest evidence link.`,
-          `Review notes should target the claim boundary before style edits.`,
-        ],
-        [
-          `Students qualify the ${secondary} claim before treating it as a design rule.`,
-          `A bounded claim makes the next ${artifact} revision easier to defend.`,
-          `Critique should identify what evidence would change the recommendation.`,
-        ],
-        [
-          `Students ask what ${secondary} can support, what remains uncertain, and why.`,
-          `${artifact} credibility depends on naming that uncertainty clearly.`,
-          `Feedback should connect the uncertainty to one concrete revision choice.`,
-        ],
-        [
-          `Students use ${secondary} to choose a defensible artifact decision, not a blanket claim.`,
-          `The rationale should name the evidence boundary that keeps ${artifact} honest.`,
-          `Peer review should test that boundary before accepting the revision.`,
-        ],
-      ]),
-      minutes: 6,
-      bloom: 'Evaluate',
-      objective: objectiveTwo,
-      activity: null,
-    },
-    {
-      type: 'discussion',
-      title: lessonVariant(lesson, [
-        `Which ${hasStandaloneAssessment ? learnerFacingMode.toLowerCase() : concept} evidence choice holds up?`,
-        `What evidence should guide ${artifact}?`,
-        `Which ${concept} claim survives critique?`,
-        `Which revision path has stronger support?`,
-        `What should change after the evidence check?`,
-        `Which interpretation best supports the next move?`,
-      ]),
-      bullets: lessonVariant(lesson, [
-        [
-          `Compare two evidence choices for ${artifact}.`,
-          `Vote on the stronger choice and explain why.`,
-          discussionFeedbackRoutine,
-        ],
-        [
-          `Test the strongest ${concept} evidence claim for ${artifact}.`,
-          `Name what makes the weaker choice less defensible.`,
-          discussionFeedbackRoutine,
-        ],
-        [
-          `Compare two possible responses to ${artifact}.`,
-          `Defend the ranking with one source detail and one limitation.`,
-          discussionFeedbackRoutine,
-        ],
-        [
-          `Choose the ${concept} move that should survive into ${artifact}.`,
-          `Explain which evidence, risk, or assumption changed the choice.`,
-          discussionFeedbackRoutine,
-        ],
-      ]),
-      minutes: 8,
-      bloom: 'Evaluate',
-      objective: objectiveTwo,
-      activity: 'Small Group Discussion',
-    },
-    {
-      type: 'summary',
-      title: lessonVariant(lesson, [
-        `${sentenceCase(concept)} transfer check`,
-        `${sentenceCase(concept)} evidence handoff`,
-        `${sentenceCase(concept)} next-use check`,
-        `${sentenceCase(concept)} artifact self-check`,
-      ]),
-      bullets: [
-        `Can you now ${stripTerminalPunctuation(objectiveOne).toLowerCase()}?`,
-        `Can you explain how evidence about ${concept} can strengthen ${artifact}?`,
+        {
+          type: 'bridge',
+          title: previous
+            ? `From ${sentenceCase(primarySlideConcept(previous))} to ${sentenceCase(concept)}`
+            : `${sentenceCase(concept)} course throughline`,
+          bullets: [
+            // v0.16 E4 (Prof department catch): Lesson 1 has no "last time" — a
+            // continuity reference in the first session reads as unproofed.
+            previous
+              ? `Last time: ${primarySlideConcept(previous)}`
+              : `This course: ${blueprint.courseName} — what we'll build across the semester`,
+            `Today: ${sentenceCase(phrase.decisionMove)}`,
+            next ? `Next: ${primarySlideConcept(next)}` : `Next: final synthesis and revision planning`,
+          ],
+          minutes: 4,
+          bloom: 'Apply',
+          objective: objectiveOne,
+          activity: null,
+        },
+        {
+          type: 'keyTerm',
+          title: `What counts as ${concept}?`,
+          bullets: [
+            lessonVariant(lesson, [
+              `${concept}: a practical lens for ${artifact}.`,
+              `${concept}: evidence students must use, not just define.`,
+              `${concept}: the reasoning move behind ${artifact}.`,
+              `${concept}: a way to test which evidence belongs in ${artifact}.`,
+            ]),
+            `Lesson ${index + 1} evidence cue. ${phrase.evidenceMove}.`,
+            `Lesson ${index + 1} decision cue. ${phrase.decisionMove}.`,
+          ],
+          minutes: 5,
+          bloom: 'Understand',
+          objective: objectiveOne,
+          activity: null,
+        },
+        {
+          type: 'content',
+          title: `Evidence that can actually support ${artifact}`,
+          bullets: [
+            `${concept} focuses attention on evidence quality, not just topic coverage.`,
+            `${secondary} helps students avoid unsupported claims in ${artifact}.`,
+            `Success criterion: ${lowercaseClauseLead(successCriterion)}`,
+          ],
+          minutes: 6,
+          bloom: 'Analyze',
+          objective: objectiveOne,
+          activity: null,
+        },
+        {
+          type: 'example',
+          title: `${sentenceCase(concept)} in a ${lens.exampleNoun}`,
+          bullets: [
+            lessonVariant(lesson, [
+              hasRealSource
+                ? `Start with a short scenario from ${sourceCue}.`
+                : 'Start with a short, concrete scenario.',
+              hasRealSource ? `Open with one grounded example from ${sourceCue}.` : 'Open with one grounded example.',
+              hasRealSource
+                ? `Use ${sourceCue} as the example students inspect first.`
+                : 'Use one bounded example students can inspect.',
+              hasRealSource ? `Begin from a decision point in ${sourceCue}.` : 'Begin from a concrete decision point.',
+            ]),
+            hasRealSource
+              ? `Identify the ${concept} evidence students can actually inspect in ${sourceCue}.`
+              : `Identify the ${concept} evidence students can actually inspect.`,
+            `Strong answers explain how evidence changes ${artifact}.`,
+          ],
+          minutes: 7,
+          bloom: 'Analyze',
+          objective: objectiveTwo,
+          activity: null,
+        },
         hasStandaloneAssessment
-          ? `Can you name one feedback action for ${stripTerminalPunctuation(artifact)} before the next submission?`
-          : `Can you name one feedback action to carry from ${stripTerminalPunctuation(artifact)} into the next lesson?`,
-      ],
-      minutes: 4,
-      bloom: 'Evaluate',
+          ? {
+              type: 'activity',
+              title: lessonVariant(lesson, [
+                `${learnerFacingMode}: strengthen one evidence-backed ${artifact} choice`,
+                `${learnerFacingMode}: test one source-backed ${artifact} revision`,
+                `${learnerFacingMode}: choose the evidence move ${artifact} needs next`,
+                `${learnerFacingMode}: turn critique into a ${artifact} decision`,
+              ]),
+              // v0.12.1: signaturePractice and practiceMove both derive from the
+              // modality routine — when they open with the same phrase, keep only
+              // the move ("Annotated example. Annotated example: annotate…").
+              bullets: [
+                cleanText(sentenceCase(modality.signaturePractice)).slice(0, 24).toLowerCase() ===
+                cleanText(teachingMoves.practiceMove).slice(0, 24).toLowerCase()
+                  ? teachingMoves.practiceMove
+                  : `${sentenceCase(modality.signaturePractice)}. ${teachingMoves.practiceMove}`,
+                modality.evidenceRoutine,
+                lessonVariant(lesson, [
+                  `${teachingMoves.feedbackMove} Close by naming the revision choice for ${artifact}.`,
+                  `Use the feedback routine to identify the strongest move, then mark the next ${artifact} revision.`,
+                  `Before the debrief ends, record which feedback changes ${artifact} and why.`,
+                  `Translate the critique into one evidence-backed ${artifact} revision and name the reason for it.`,
+                  `End with a revision commitment: what will change in ${artifact}, and which evidence supports that change?`,
+                  `Have each learner name the feedback they will use, the ${artifact} move it changes, and the evidence they will preserve.`,
+                ]),
+              ],
+              // v0.12.1: real practice timing from the lesson's session plan — the
+              // hardcoded 10 printed "Duration: 10 min" on slide 8 of all 58 audited
+              // decks, regardless of modality or session length.
+              minutes: activityMinutesFromSessionPlan(classSessionPlan) || 10,
+              bloom: 'Apply',
+              objective: objectiveOne,
+              activity: learnerFacingMode,
+            }
+          : {
+              type: 'activity',
+              title: `Concept practice: test ${stripTerminalPunctuation(concept)} with evidence`,
+              bullets: [
+                `Answer one ${concept} concept-check question, then explain the evidence for the answer.`,
+                `Compare the rationale with ${sourceCue} and correct one misconception or unsupported step.`,
+                `Record the corrected ${concept} claim and the observation, example, or fact that supports it.`,
+              ],
+              minutes: activityMinutesFromSessionPlan(classSessionPlan) || 10,
+              bloom: 'Apply',
+              objective: objectiveOne,
+              activity: 'Formative concept practice',
+              enrichmentSource: 'deterministic-formative-practice',
+            },
+        {
+          type: 'content',
+          title: lessonVariant(lesson, [
+            `Use ${secondary} to keep claims honest`,
+            `Test the boundary of ${secondary}`,
+            `Make the ${secondary} evidence claim defensible`,
+            `Narrow the ${secondary} claim before revision`,
+            `Check what ${secondary} can and cannot prove`,
+            `Use ${secondary} to qualify the artifact decision`,
+          ]),
+          bullets: lessonVariant(lesson, [
+            [
+              `${secondary} evidence sets the boundary students must name.`,
+              'Clear limits make the evidence claim more credible.',
+              `Feedback should target the ${secondary} evidence gap, not only grammar.`,
+            ],
+            [
+              `Students name what ${secondary} evidence does not prove yet.`,
+              `The claim becomes stronger when its boundary is visible in ${artifact}.`,
+              `Ask which ${secondary} claim needs another source check.`,
+            ],
+            [
+              `Students separate supported ${secondary} evidence from assumptions.`,
+              `${artifact} improves when the rationale names the weakest evidence link.`,
+              `Review notes should target the claim boundary before style edits.`,
+            ],
+            [
+              `Students qualify the ${secondary} claim before treating it as a design rule.`,
+              `A bounded claim makes the next ${artifact} revision easier to defend.`,
+              `Critique should identify what evidence would change the recommendation.`,
+            ],
+            [
+              `Students ask what ${secondary} can support, what remains uncertain, and why.`,
+              `${artifact} credibility depends on naming that uncertainty clearly.`,
+              `Feedback should connect the uncertainty to one concrete revision choice.`,
+            ],
+            [
+              `Students use ${secondary} to choose a defensible artifact decision, not a blanket claim.`,
+              `The rationale should name the evidence boundary that keeps ${artifact} honest.`,
+              `Peer review should test that boundary before accepting the revision.`,
+            ],
+          ]),
+          minutes: 6,
+          bloom: 'Evaluate',
+          objective: objectiveTwo,
+          activity: null,
+        },
+        {
+          type: 'discussion',
+          title: lessonVariant(lesson, [
+            `Which ${hasStandaloneAssessment ? learnerFacingMode.toLowerCase() : concept} evidence choice holds up?`,
+            `What evidence should guide ${artifact}?`,
+            `Which ${concept} claim survives critique?`,
+            `Which revision path has stronger support?`,
+            `What should change after the evidence check?`,
+            `Which interpretation best supports the next move?`,
+          ]),
+          bullets: lessonVariant(lesson, [
+            [
+              `Compare two evidence choices for ${artifact}.`,
+              `Vote on the stronger choice and explain why.`,
+              discussionFeedbackRoutine,
+            ],
+            [
+              `Test the strongest ${concept} evidence claim for ${artifact}.`,
+              `Name what makes the weaker choice less defensible.`,
+              discussionFeedbackRoutine,
+            ],
+            [
+              `Compare two possible responses to ${artifact}.`,
+              `Defend the ranking with one source detail and one limitation.`,
+              discussionFeedbackRoutine,
+            ],
+            [
+              `Choose the ${concept} move that should survive into ${artifact}.`,
+              `Explain which evidence, risk, or assumption changed the choice.`,
+              discussionFeedbackRoutine,
+            ],
+          ]),
+          minutes: 8,
+          bloom: 'Evaluate',
+          objective: objectiveTwo,
+          activity: 'Small Group Discussion',
+        },
+        {
+          type: 'summary',
+          title: lessonVariant(lesson, [
+            `${sentenceCase(concept)} transfer check`,
+            `${sentenceCase(concept)} evidence handoff`,
+            `${sentenceCase(concept)} next-use check`,
+            `${sentenceCase(concept)} artifact self-check`,
+          ]),
+          bullets: [
+            `Can you now ${stripTerminalPunctuation(objectiveOne).toLowerCase()}?`,
+            `Can you explain how evidence about ${concept} can strengthen ${artifact}?`,
+            hasStandaloneAssessment
+              ? `Can you name one feedback action for ${stripTerminalPunctuation(artifact)} before the next submission?`
+              : `Can you name one feedback action to carry from ${stripTerminalPunctuation(artifact)} into the next lesson?`,
+          ],
+          minutes: 4,
+          bloom: 'Evaluate',
+          objective: objectiveOne,
+          activity: null,
+        },
+        {
+          type: 'closing',
+          title: 'Carry Forward',
+          bullets: [
+            hasStandaloneAssessment
+              ? `Prepare or submit ${artifact}; timing is set by the instructor in the local LMS.`
+              : `Complete ${artifact} as formative practice; there is no separate submission.`,
+            next ? `Preview: ${primarySlideConcept(next)}.` : `Preview: portfolio synthesis and final reflection.`,
+            `Use feedback from ${displayTitle} to strengthen the next course task.`,
+          ],
+          minutes: 3,
+          bloom: null,
+          objective: null,
+          activity: null,
+        },
+      ];
+  if (!experientialActivity) {
+    overlayEnrichedSlideContent(slides, lesson);
+    applyKernelSubjectMatterSlides(slides, lesson);
+    adjustDeckLengthForContent(slides, lesson);
+    applyEvidenceSlideIntegrity(slides, lesson);
+    // v0.14.3 D1: depth slides AFTER the integrity pass so the worked-example
+    // fallback never targets (and overwrites) a freshly inserted depth slide.
+    applyCommonPitfallsSlide(slides, lesson, {
+      concept,
       objective: objectiveOne,
-      activity: null,
-    },
-    {
-      type: 'closing',
-      title: 'Carry Forward',
-      bullets: [
-        hasStandaloneAssessment
-          ? `Prepare or submit ${artifact}; timing is set by the instructor in the local LMS.`
-          : `Complete ${artifact} as formative practice; there is no separate submission.`,
-        next ? `Preview: ${primarySlideConcept(next)}.` : `Preview: portfolio synthesis and final reflection.`,
-        `Use feedback from ${displayTitle} to strengthen the next course task.`,
-      ],
-      minutes: 3,
-      bloom: null,
-      objective: null,
-      activity: null,
-    },
-  ];
-  overlayEnrichedSlideContent(slides, lesson);
-  applyKernelSubjectMatterSlides(slides, lesson);
-  adjustDeckLengthForContent(slides, lesson);
-  applyEvidenceSlideIntegrity(slides, lesson);
-  // v0.14.3 D1: depth slides AFTER the integrity pass so the worked-example
-  // fallback never targets (and overwrites) a freshly inserted depth slide.
-  applyCommonPitfallsSlide(slides, lesson, {
-    concept,
-    objective: objectiveOne,
-  });
-  applyMcWalkthroughSlide(slides, lesson, { concept, objective: objectiveTwo });
-  ensureMinimumContentSlideFloor(slides, lesson, {
-    concept,
-    secondary,
-    objective: objectiveOne,
-    artifact,
-  });
-  applyMusicIntervalSlideIntegrity(slides, lesson, {
-    objectiveOne,
-    objectiveTwo,
-  });
-  applyAdmittedLanguagePairToSlides(slides, lesson);
+    });
+    applyMcWalkthroughSlide(slides, lesson, { concept, objective: objectiveTwo });
+    ensureMinimumContentSlideFloor(slides, lesson, {
+      concept,
+      secondary,
+      objective: objectiveOne,
+      artifact,
+    });
+    applyMusicIntervalSlideIntegrity(slides, lesson, {
+      objectiveOne,
+      objectiveTwo,
+    });
+    applyAdmittedLanguagePairToSlides(slides, lesson);
+  }
   const slideMinutes = slides.reduce((sum, slide) => sum + Number(slide.minutes || 0), 0);
   const slideTimingFit = {
     slideMinutes,
@@ -25867,6 +25922,7 @@ function compileSlideDecks(blueprint) {
           'kernel-subject-matter',
           'deterministic-formative-practice',
           'deterministic-content-floor',
+          'scion-experiential-activity-v1',
           'admitted-language-pair',
           MUSIC_INTERVAL_SLIDE_FRAME_SOURCE,
           // v0.16 exam-day fix: exam-day logistics bullets are authored
@@ -26585,6 +26641,15 @@ function normalizeLessonPlanMaterial(material, lesson) {
 function buildLessonPlanMaterials(lesson) {
   const focus = stripLessonPrefix(lesson?.title) || 'lesson focus';
   const artifact = stripTerminalPunctuation(lesson?.studentArtifact || 'weekly artifact');
+  const experientialActivity = resolveExperientialActivity(lesson);
+  if (experientialActivity) {
+    return dedupeCompilerMaterials(
+      buildExperientialActivityMaterials({
+        activity: experientialActivity,
+        readings: lesson.readings?.map((reading) => normalizeLessonPlanMaterial(reading, lesson)) || [],
+      }),
+    );
+  }
   const materials = unique(
     [
       ...(Array.isArray(lesson.readings)
@@ -26700,6 +26765,13 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
     sessionSegments.length >= 6
       ? sessionSegments.slice(0, 6).map((segment) => Number(segment.minutes || 0))
       : buildLessonPlanDurations(lesson.classSessionPlan?.sessionMinutes || DEFAULT_CLASS_SESSION_MINUTES);
+  const experientialActivity = resolveExperientialActivity(lesson);
+  if (experientialActivity) {
+    return buildExperientialActivityOutline({
+      activity: experientialActivity,
+      sessionMinutes: lesson.classSessionPlan?.sessionMinutes || DEFAULT_CLASS_SESSION_MINUTES,
+    });
+  }
   const concept = safeLessonPrimaryConcept(lesson);
   const artifact = safeLessonPlanProseArtifact(lesson);
   const misconception = lesson.misconceptionMap?.[0];
@@ -27090,6 +27162,15 @@ function compileLessonPlans(blueprint, options = {}) {
       const phrase = lessonPhrase(blueprint, lesson);
       const artifact = safeLessonPlanArtifact(lesson);
       const concept = safeLessonPrimaryConcept(lesson);
+      const experientialActivity = resolveExperientialActivity(lesson);
+      const experientialActivityRequested = requestsExperientialActivity(lesson);
+      const activityProfile = experientialActivity
+        ? buildExperientialActivityLessonPlanProfile({
+            activity: experientialActivity,
+            sessionMinutes: lesson.classSessionPlan?.sessionMinutes || DEFAULT_CLASS_SESSION_MINUTES,
+            outcomes: lesson.outcomes || [],
+          })
+        : null;
       const modality = sanitizeLessonModalityDecode(
         lesson.modalityDecode || buildLessonModalityDecode(blueprint.courseModalityProfile || {}, lesson),
         lesson,
@@ -27175,6 +27256,14 @@ function compileLessonPlans(blueprint, options = {}) {
         lessonTitle: lesson.title,
         weekNumber: `Week ${lesson.lessonNumber}`,
         duration: `${classSessionPlan.sessionMinutes} minutes`,
+        ...(!experientialActivity && experientialActivityRequested
+          ? {
+              experientialActivityStatus: {
+                status: 'standard-lesson-fallback',
+                note: 'A course-specific activity was requested, but no validated activity blueprint was admitted. This plan uses the standard lesson structure and does not claim to include a complete simulation, lab, critique, case exercise, field exercise, debate, or role-play packet.',
+              },
+            }
+          : {}),
         blueprintGrounding: lessonSourceGrounding(lesson, {
           pacing: lesson.pacing,
           assessmentValidity: assessment.validityEvidence,
@@ -27296,34 +27385,38 @@ function compileLessonPlans(blueprint, options = {}) {
           ['Remember', 'Understand', 'Apply', 'Analyze', lesson.bloomsLevel, 'Evaluate', 'Create'],
           6,
         ),
-        objectives: admittedLanguagePlan ? [admittedLanguageObjective] : lesson.outcomes,
+        objectives:
+          activityProfile?.objectives || (admittedLanguagePlan ? [admittedLanguageObjective] : lesson.outcomes),
         objectiveEvidenceChecklist: objectiveEvidenceChecklist(lesson.objectiveEvidencePlan),
         materials: admittedLanguageMaterials,
-        warmUp: admittedLanguagePlan?.warmUp || {
-          duration: '10 minutes',
-          type: lessonVariant(lesson, [
-            'Retrieval and framing',
-            'Opening evidence check',
-            'Prior-knowledge launch',
-            'Decision setup',
-          ]),
-          prompt:
-            lesson.prerequisitePlan?.diagnosticCheck ||
-            lesson.learningTransferPlan?.retrievalCue ||
-            `What evidence best helps you ${stripTerminalPunctuation(phrase.decisionMove)}?`,
-          purpose: lessonVariant(lesson, [
-            `Activate prior knowledge and focus students on the central ${concept} decision.`,
-            `Surface prior evidence students can reuse before the ${concept} work becomes more specific.`,
-            `Move students from remembered examples into one inspectable ${concept} evidence choice.`,
-            `Set up the lesson by naming what students already know and what the ${artifact} decision still needs.`,
-          ]),
-          facilitation: lessonVariant(lesson, [
-            `${teachingMoves.openingMove} Then name the quality cue students should carry into ${artifact}.`,
-            `Start from one inspectable example, ask students which evidence they can trust, then name the quality cue for ${artifact}.`,
-            `Open with a concrete case, have students mark the evidence worth using, and connect that mark to ${artifact}.`,
-            `Use the first minutes for evidence noticing; close the warm-up by naming what strong ${artifact} work must show.`,
-          ]),
-        },
+        warmUp: activityProfile
+          ? undefined
+          : admittedLanguagePlan?.warmUp || {
+              duration: '10 minutes',
+              type: lessonVariant(lesson, [
+                'Retrieval and framing',
+                'Opening evidence check',
+                'Prior-knowledge launch',
+                'Decision setup',
+              ]),
+              prompt: stripEnclosingInstructionQuotes(
+                lesson.prerequisitePlan?.diagnosticCheck ||
+                  lesson.learningTransferPlan?.retrievalCue ||
+                  `What evidence best helps you ${stripTerminalPunctuation(phrase.decisionMove)}?`,
+              ),
+              purpose: lessonVariant(lesson, [
+                `Activate prior knowledge and focus students on the central ${concept} decision.`,
+                `Surface prior evidence students can reuse before the ${concept} work becomes more specific.`,
+                `Move students from remembered examples into one inspectable ${concept} evidence choice.`,
+                `Set up the lesson by naming what students already know and what the ${artifact} decision still needs.`,
+              ]),
+              facilitation: lessonVariant(lesson, [
+                `${teachingMoves.openingMove} Then name the quality cue students should carry into ${artifact}.`,
+                `Start from one inspectable example, ask students which evidence they can trust, then name the quality cue for ${artifact}.`,
+                `Open with a concrete case, have students mark the evidence worth using, and connect that mark to ${artifact}.`,
+                `Use the first minutes for evidence noticing; close the warm-up by naming what strong ${artifact} work must show.`,
+              ]),
+            },
         outline,
         // v0.14.5 (F2): language-course dialogue practice — rendered by the
         // docx exporter as a "Dialogue Practice" subsection inside the
@@ -27346,93 +27439,101 @@ function compileLessonPlans(blueprint, options = {}) {
           });
           return observationProtocol ? { observationProtocol } : {};
         })(),
-        formativeCheck: admittedLanguagePlan?.formativeCheck || {
-          type: 'Formative closure check',
-          // v0.15.188 grounding slice 1: the enrichment's own quiz question is
-          // the honest formative check — a real content question ("What does a
-          // Python interpreter do?") beats a claim-and-evidence frame.
-          prompt:
-            cleanText((lesson.enrichment?.quizItems || []).find((item) => cleanText(item?.question))?.question || '') ||
-            lesson.feedbackCycle?.formativeEvidence ||
-            lesson.readinessSupport?.diagnosticPrompt ||
-            `State one claim from ${stripLessonPrefix(lesson.title)} and cite the evidence that makes it credible.`,
-          objectiveAligned: lesson.outcomes[0],
-          instructorAction:
-            `${lesson.feedbackCycle?.feedbackMethod || ''} ` +
-            `${lesson.readinessSupport?.groupingCue || `Sort ${stripLessonPrefix(lesson.title)} responses into ready, partial, and needs-support groups before new content begins.`} ` +
-            `${lessonVariant(lesson, [
-              `Success criteria for ${stripLessonPrefix(lesson.title)}: accurate concept use, specific evidence, and clear reasoning with one concrete example.`,
-              `For ${stripLessonPrefix(lesson.title)}, look for accurate concept use, source evidence students can point to, and a clear reasoning link.`,
-              `Use the closure check to see whether students can name the concept, cite evidence, and explain the decision it supports.`,
-              `Review responses for a correct concept claim, one inspectable example, and reasoning that connects evidence to action.`,
-            ])} ${teachingMoves.feedbackMove}`,
-        },
-        udlNotes: admittedLanguagePlan?.udlNotes || {
-          representation:
-            lesson.accessibilityPlan?.representation ||
-            `Provide the concept model in text, spoken explanation, and one visual organizer tied to ${concept}.`,
-          engagement:
-            lesson.accessibilityPlan?.engagement ||
-            `Offer a choice between speaking, annotating, or drafting in writing during the ${stripLessonPrefix(lesson.title)} collaborative application task.`,
-          expression:
-            lesson.accessibilityPlan?.expression ||
-            `Allow students to show ${artifact} progress through a memo, slide, table, or annotated outline when the same criteria are met.`,
-        },
-        homework: admittedLanguagePlan
-          ? {
-              ...admittedLanguagePlan.homework,
-              estimatedTime: `${lesson.workloadEstimate.afterClassMinutes} minutes`,
-            }
-          : {
-              title: hasStandaloneAssessment ? artifact : `${concept} retrieval notes`,
-              // v0.15.188 grounding slice 1: the enrichment's authored assignment
-              // task IS this week's homework — say what the task actually is
-              // ("write a program that…") instead of the generic complete-and-note
-              // frame. Template stays as the kernel-less fallback.
-              description: hasStandaloneAssessment
-                ? cleanText(lesson.enrichment?.assignmentCore?.taskDescription) ||
-                  lesson.feedbackCycle?.closureCheck ||
-                  `Complete ${artifact}, test it against the lesson criteria, and add one note explaining how feedback changed your draft.`
-                : `Review the ${concept} notes from class, correct one missed example, and write one question to bring to the next lesson. This is preparation, not a separate submission.`,
-              estimatedTime: `${lesson.workloadEstimate.afterClassMinutes} minutes`,
-              connectionToNext:
-                lesson.learningTransferPlan?.transferTask ||
-                lesson.feedbackCycle?.nextUse ||
-                `Bring your submitted work forward so the next lesson can build on today’s ${concept} reasoning.`,
-              ...(hasStandaloneAssessment && cleanText(lesson.enrichment?.assignmentCore?.taskDescription)
-                ? { enrichmentSource: 'lesson-content-enrichment' }
-                : {}),
-            },
+        formativeCheck: activityProfile?.formativeCheck ||
+          admittedLanguagePlan?.formativeCheck || {
+            type: 'Formative closure check',
+            // v0.15.188 grounding slice 1: the enrichment's own quiz question is
+            // the honest formative check — a real content question ("What does a
+            // Python interpreter do?") beats a claim-and-evidence frame.
+            prompt:
+              cleanText(
+                (lesson.enrichment?.quizItems || []).find((item) => cleanText(item?.question))?.question || '',
+              ) ||
+              lesson.feedbackCycle?.formativeEvidence ||
+              lesson.readinessSupport?.diagnosticPrompt ||
+              `State one claim from ${stripLessonPrefix(lesson.title)} and cite the evidence that makes it credible.`,
+            objectiveAligned: lesson.outcomes[0],
+            instructorAction:
+              `${lesson.feedbackCycle?.feedbackMethod || ''} ` +
+              `${lesson.readinessSupport?.groupingCue || `Sort ${stripLessonPrefix(lesson.title)} responses into ready, partial, and needs-support groups before new content begins.`} ` +
+              `${lessonVariant(lesson, [
+                `Success criteria for ${stripLessonPrefix(lesson.title)}: accurate concept use, specific evidence, and clear reasoning with one concrete example.`,
+                `For ${stripLessonPrefix(lesson.title)}, look for accurate concept use, source evidence students can point to, and a clear reasoning link.`,
+                `Use the closure check to see whether students can name the concept, cite evidence, and explain the decision it supports.`,
+                `Review responses for a correct concept claim, one inspectable example, and reasoning that connects evidence to action.`,
+              ])} ${teachingMoves.feedbackMove}`,
+          },
+        udlNotes: activityProfile?.udlNotes ||
+          admittedLanguagePlan?.udlNotes || {
+            representation:
+              lesson.accessibilityPlan?.representation ||
+              `Provide the concept model in text, spoken explanation, and one visual organizer tied to ${concept}.`,
+            engagement:
+              lesson.accessibilityPlan?.engagement ||
+              `Offer a choice between speaking, annotating, or drafting in writing during the ${stripLessonPrefix(lesson.title)} collaborative application task.`,
+            expression:
+              lesson.accessibilityPlan?.expression ||
+              `Allow students to show ${artifact} progress through a memo, slide, table, or annotated outline when the same criteria are met.`,
+          },
+        homework:
+          activityProfile?.homework ||
+          (admittedLanguagePlan
+            ? {
+                ...admittedLanguagePlan.homework,
+                estimatedTime: `${lesson.workloadEstimate.afterClassMinutes} minutes`,
+              }
+            : {
+                title: hasStandaloneAssessment ? artifact : `${concept} retrieval notes`,
+                // v0.15.188 grounding slice 1: the enrichment's authored assignment
+                // task IS this week's homework — say what the task actually is
+                // ("write a program that…") instead of the generic complete-and-note
+                // frame. Template stays as the kernel-less fallback.
+                description: hasStandaloneAssessment
+                  ? cleanText(lesson.enrichment?.assignmentCore?.taskDescription) ||
+                    lesson.feedbackCycle?.closureCheck ||
+                    `Complete ${artifact}, test it against the lesson criteria, and add one note explaining how feedback changed your draft.`
+                  : `Review the ${concept} notes from class, correct one missed example, and write one question to bring to the next lesson. This is preparation, not a separate submission.`,
+                estimatedTime: `${lesson.workloadEstimate.afterClassMinutes} minutes`,
+                connectionToNext:
+                  lesson.learningTransferPlan?.transferTask ||
+                  lesson.feedbackCycle?.nextUse ||
+                  `Bring your submitted work forward so the next lesson can build on today’s ${concept} reasoning.`,
+                ...(hasStandaloneAssessment && cleanText(lesson.enrichment?.assignmentCore?.taskDescription)
+                  ? { enrichmentSource: 'lesson-content-enrichment' }
+                  : {}),
+              }),
         // v0.15.188 grounding slice 1: the exit ticket closes on a DIFFERENT
         // kernel atom than the mini-lesson opened with (facts[0]) — students
         // restate the week's second fact or key definition in their own
         // words. Generic evidence-move closers stay as the kernel-less belt.
-        closingActivity: (() => {
-          const exitFact = stripTerminalPunctuation(
-            cleanText(
-              (lesson.enrichment?.kernel?.facts || [])[1] ||
-                lessonTeachingKeyTerms(lesson)
-                  .map((term) => cleanText(term?.definition))
-                  .filter(Boolean)[1] ||
-                '',
-            ),
-          );
-          if (admittedLanguagePlan) return admittedLanguagePlan.closing;
-          if (exitFact) {
+        closingActivity:
+          activityProfile?.closingActivity ||
+          (() => {
+            const exitFact = stripTerminalPunctuation(
+              cleanText(
+                (lesson.enrichment?.kernel?.facts || [])[1] ||
+                  lessonTeachingKeyTerms(lesson)
+                    .map((term) => cleanText(term?.definition))
+                    .filter(Boolean)[1] ||
+                  '',
+              ),
+            );
+            if (admittedLanguagePlan) return admittedLanguagePlan.closing;
+            if (exitFact) {
+              return lessonVariant(lesson, [
+                `Exit ticket: restate this fact in your own words. ${ensureSentenceCompiler(exitFact)} Name where today's work on ${artifact} used it.`,
+                `Close with a one-line check. Is this fact true? ${ensureSentenceCompiler(exitFact)} Cite evidence from today's ${artifact} work.`,
+                `Explain this fact to a classmate who missed class. ${ensureSentenceCompiler(exitFact)} Use one example from today.`,
+                `Exit ticket: explain why this fact matters for ${artifact}. ${ensureSentenceCompiler(exitFact)} Add one question you still have.`,
+              ]);
+            }
             return lessonVariant(lesson, [
-              `Exit ticket: restate this fact in your own words. ${ensureSentenceCompiler(exitFact)} Name where today's work on ${artifact} used it.`,
-              `Close with a one-line check. Is this fact true? ${ensureSentenceCompiler(exitFact)} Cite evidence from today's ${artifact} work.`,
-              `Explain this fact to a classmate who missed class. ${ensureSentenceCompiler(exitFact)} Use one example from today.`,
-              `Exit ticket: explain why this fact matters for ${artifact}. ${ensureSentenceCompiler(exitFact)} Add one question you still have.`,
+              `Close by having students name one strong evidence move from today and one revision they still need before ${artifact} is fully ready.`,
+              `End with a two-part exit check: the evidence move students trust now, and the ${artifact} edit that still needs attention.`,
+              `Have students mark the strongest source-backed decision from class and write the next revision they will make to ${artifact}.`,
+              `Close the session by asking which evidence claim is ready for ${artifact} and which unsupported part needs one more revision.`,
             ]);
-          }
-          return lessonVariant(lesson, [
-            `Close by having students name one strong evidence move from today and one revision they still need before ${artifact} is fully ready.`,
-            `End with a two-part exit check: the evidence move students trust now, and the ${artifact} edit that still needs attention.`,
-            `Have students mark the strongest source-backed decision from class and write the next revision they will make to ${artifact}.`,
-            `Close the session by asking which evidence claim is ready for ${artifact} and which unsupported part needs one more revision.`,
-          ]);
-        })(),
+          })(),
         tags: unique(['lesson-plan', lesson.title, concept, lens.domain, ...lesson.keyConcepts], 10),
         readyToTeachSupport: {
           localReviewAction: lessonLocalReviewAction(lesson),

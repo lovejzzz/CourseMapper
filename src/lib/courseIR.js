@@ -5,7 +5,7 @@ import {
 } from './courseBlueprintCompiler.js';
 import { attachEnrichmentToGraph, buildBlueprintFromGraph, deriveCourseGraphFromCourseMap } from './courseGraph';
 import { classifyAssessmentKind } from './courseGraph/deriveFromCourseMap.js';
-import { dedupeNumberedAssessmentEcho } from './compilerText.js';
+import { dedupeNumberedAssessmentEcho, stripListPrefix } from './compilerText.js';
 import { validateCourseGraph } from './courseGraph/schema.js';
 import { buildQuizItemPlan } from './blueprintEnrichmentPass.js';
 import { projectKernelToSurfaces } from './kernelProjection.js';
@@ -1908,7 +1908,13 @@ export function courseIRToCourseMap(rawIR = {}) {
       ];
       const anchors = [...lesson.factualAnchors, ...linkedConcepts.flatMap((concept) => concept.factualAnchors)];
       const constraints = constraintsForLesson(ir, lesson);
-      const prerequisiteTerms = lesson.prerequisiteConceptIds.map((id) => concepts.get(id)?.term || id).filter(Boolean);
+      // Course-map numbering is an address, not the concept name. Preserve
+      // "Transnational security threats" rather than exporting a resource
+      // that later compacts to the visibly broken "Prerequisite concept:
+      // 10." on a slide.
+      const prerequisiteTerms = lesson.prerequisiteConceptIds
+        .map((id) => stripListPrefix(concepts.get(id)?.term || id))
+        .filter(Boolean);
       const { asyncActivities, syncActivities } = lessonActivitiesFromIR(lesson, linkedConcepts, constraints, index);
       const learningObjectives = uniqueStrings(
         [...lesson.outcomes.map((outcome) => outcome.statement), ...lesson.objectives],

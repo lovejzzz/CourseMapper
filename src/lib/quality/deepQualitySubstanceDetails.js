@@ -56,6 +56,88 @@ export function comparativeAssessmentContractFinding({ assessment = {}, artifact
   return null;
 }
 
+const EXPERIENTIAL_ACTIVITY_TITLE_RE =
+  /\b(?:simulation|role[- ]?play|mock (?:hearing|trial|briefing|negotiation|interview)|case (?:exercise|workshop|conference)|studio critique|design (?:charrette|sprint|review)|lab (?:practical|investigation|challenge)|field (?:exercise|observation)|structured debate)\b/i;
+const EXPERIENTIAL_ACTIVITY_RENDER_MARKERS = [
+  /\bactivity clock\b/i,
+  /\bparticipant or working roles\b/i,
+  /\bsafety and evidence boundary\b/i,
+  /\bstudent artifact\b|\bartifact requirements\b/i,
+];
+const EXPERIENTIAL_ACTIVITY_REQUIREMENTS = [
+  {
+    label: 'a course-specific situation',
+    pattern: /\b(?:situation|scenario|briefing|case|problem|challenge)\b[\s\S]{40,}/i,
+  },
+  {
+    label: 'participant or working roles with explicit constraints',
+    pattern:
+      /\b(?:participant|working|assigned|team|stakeholder|clinical|observer|operator|designer|analyst)?\s*roles?\b[\s\S]{0,700}\b(?:constraints?|responsibilit(?:y|ies)|trade-?offs?|boundary|limitations?)\b|\b(?:constraints?|responsibilit(?:y|ies)|trade-?offs?|boundary|limitations?)\b[\s\S]{0,700}\broles?\b/i,
+  },
+  {
+    label: 'inspectable evidence',
+    pattern:
+      /\b(?:inspect(?: the| this| shared)? evidence before acting|evidence set|supplied evidence|records?|observations?|measurements?|passages?|design evidence|case evidence)\b/i,
+  },
+  {
+    label: 'evolving phases or updates',
+    pattern: /\b(?:phases? and updates?|activity phases?|phase information|new information|update)\b/i,
+  },
+  {
+    label: 'a required decision, action, interpretation, or revision',
+    pattern:
+      /\b(?:required decision or action|required decision|required action|record an evidence-traceable action|decision, action, interpretation, or revision)\b/i,
+  },
+  {
+    label: 'a named student artifact with inspectable requirements',
+    pattern:
+      /\b(?:student artifact|named artifact|artifact requirements?|complete .{3,100}(?:required evidence|requirements?))\b/i,
+  },
+  {
+    label: 'a structured debrief',
+    pattern: /\bdebrief\b[\s\S]{0,500}\b(?:evidence|constraints?|decisions?|actions?|revisions?)\b/i,
+  },
+  {
+    label: 'a safety, evidence, or realism boundary',
+    pattern:
+      /\b(?:safety and evidence boundary|safety boundary|evidence boundary|realism boundary|activity boundary)\b/i,
+  },
+  {
+    label: 'an exact activity clock',
+    pattern: /\b(?:activity clock|total time|minutes across|minutes in class)\b/i,
+  },
+];
+
+export function buildExperientialActivityFindings({ files = [], titleForFile = () => '' }) {
+  const findings = [];
+  for (const file of files.filter(
+    (candidate) =>
+      ['lessonPlans', 'slideDecks', 'assignments'].includes(candidate.featureId) &&
+      (candidate.lessonNumber != null || candidate.featureId === 'assignments'),
+  )) {
+    const text = String(file.text || '');
+    const titleRequestsActivity = EXPERIENTIAL_ACTIVITY_TITLE_RE.test(titleForFile(file));
+    const renderedMarkerCount = EXPERIENTIAL_ACTIVITY_RENDER_MARKERS.filter((pattern) => pattern.test(text)).length;
+    // Course-level context can mention a later lesson's activity inside every
+    // exported lesson plan. Treat only an activity-titled document or a
+    // document carrying at least two canonical rendering markers as an
+    // experiential surface.
+    if (!titleRequestsActivity && renderedMarkerCount < 2) continue;
+    const missing = EXPERIENTIAL_ACTIVITY_REQUIREMENTS.filter(({ pattern }) => !pattern.test(text)).map(
+      ({ label }) => label,
+    );
+    if (missing.length === 0) continue;
+    findings.push({
+      severity: 'P1',
+      dimension: 'substance',
+      file: file.path,
+      detail: `experiential activity ${file.featureId} is missing ${missing.length} required run mechanic${missing.length === 1 ? '' : 's'}`,
+      evidence: missing.join('; '),
+    });
+  }
+  return findings;
+}
+
 export function buildAdditionalSubstanceFindings({ files = [], course = {}, quoteEvidence }) {
   const findings = [];
   // Mechanical echoes are small on screen but expensive in perceived

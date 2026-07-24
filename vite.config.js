@@ -7,9 +7,9 @@ export default defineConfig({
   build: {
     // The generic 500 KiB warning is redundant with bundle:check, which owns
     // tighter raw and gzip budgets for every large lazy chunk. Keep Vite's
-    // warning just above the 815 KiB compiler ratchet; bundle:check still
+    // warning just above the 842 KiB compiler ratchet; bundle:check still
     // fails on a single byte over its per-chunk ceiling.
-    chunkSizeWarningLimit: 850,
+    chunkSizeWarningLimit: 865,
     modulePreload: {
       // The ribbon belongs to the lazily loaded workspace route. Rollup can
       // identify a manual chunk as an entry dependency and otherwise add it to
@@ -85,7 +85,10 @@ export default defineConfig({
           if (/src\/lib\/courseCompilerComparativeRubricBands\.js$/.test(id)) {
             return 'compilerComparativeRubricBands';
           }
+          if (/src\/lib\/compilerExperientialActivity\.js$/.test(id)) return 'compilerExperientialActivity';
+          if (/src\/lib\/compilerFactLedgerVisuals\.js$/.test(id)) return 'compilerFactLedgerVisuals';
           if (/src\/lib\/quality\/deepQualitySubstanceDetails\.js$/.test(id)) return 'deepQualitySubstanceDetails';
+          if (/src\/lib\/quality\/deepQualityFormatDetails\.js$/.test(id)) return 'deepQualityFormatDetails';
         },
       },
     },

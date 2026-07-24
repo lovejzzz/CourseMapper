@@ -13,6 +13,7 @@
 //                             [--scion-adapter-manifest <manifest> [--scion-smoke]]
 //                             [--judge] [--dry-run] [--headed] [--skip-generate <dir>]
 //                             [--resume-round <roundDir>]
+//                             [--port 4173] [--scion-profile <profileRoot>]
 //                             [--calibrate] [--history] [--diff <roundDirA> <roundDirB>]
 //                             [--import-baseline] [--api-env <path>]
 //
@@ -1781,7 +1782,10 @@ async function runLiveRounds(options) {
     // browser, and that must fail only the current attempt rather than erase
     // every remaining course in the round. The small startup cost also makes
     // "retrying with a fresh page" an honest fresh-browser retry.
-    const server = await startAppServer({ logPath: path.join(roundDir, 'server.log') });
+    const server = await startAppServer({
+      logPath: path.join(roundDir, 'server.log'),
+      port: Math.max(1, Number(options.port) || 4173),
+    });
     log(`server up at ${server.baseUrl} (dist ${server.didBuild ? 'rebuilt' : 'reused'})`);
     // Shared spend state: completed-course spend only (in-flight runs are
     // never killed — the guard gates new STARTS at pull time).
@@ -1896,6 +1900,7 @@ async function runLiveRounds(options) {
             llmShimUrl,
             localEndpoint: options.llm === 'local' ? localServerUrl : null,
             disableScionFlywheel: Boolean(scionBenchmarkRun),
+            scionProfileRoot: typeof options.scionProfile === 'string' ? options.scionProfile : '',
             ...(localServerUrl ? { overallTimeoutMs: 45 * 60_000 } : {}),
           });
           attempts.push(runResult);

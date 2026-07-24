@@ -4,6 +4,7 @@ import {
   SCION_ADAPTER_TASK_FAMILIES,
   SCION_ADAPTER_TASK_SCOPE_IDENTITY_ALGORITHM,
   SCION_ADAPTER_TASK_SCOPE_PROTOCOL,
+  SCION_EXPERIENTIAL_ACTIVITY_PROMPT_PROTOCOL,
   SCION_LESSON_KERNEL_PROMPT_PROTOCOL,
   SCION_LESSON_KERNEL_SYNTHESIS_PROMPT_PROTOCOL,
   resolveScionAdapterTaskRoute,
@@ -37,6 +38,11 @@ describe('Scion adapter task scope', () => {
     expect(
       scionAdapterTaskFamilyForProviderTask('blueprintEnrichment', {
         promptProtocol: SCION_LESSON_KERNEL_PROMPT_PROTOCOL,
+      }),
+    ).toBe('source-grounded-lesson-kernel');
+    expect(
+      scionAdapterTaskFamilyForProviderTask('blueprintEnrichment', {
+        promptProtocol: SCION_EXPERIENTIAL_ACTIVITY_PROMPT_PROTOCOL,
       }),
     ).toBe('source-grounded-lesson-kernel');
     expect(
@@ -101,6 +107,18 @@ describe('Scion adapter task scope', () => {
       mode: 'adapter',
       reason: 'exact-task-family-match',
       promptProtocol: SCION_LESSON_KERNEL_PROMPT_PROTOCOL,
+    });
+    expect(
+      resolveScionAdapterTaskRoute({
+        manifest,
+        taskFamily: SCION_ADAPTER_TASK_FAMILIES.SOURCE_GROUNDED_LESSON_KERNEL,
+        promptProtocol: SCION_EXPERIENTIAL_ACTIVITY_PROMPT_PROTOCOL,
+      }),
+    ).toMatchObject({
+      mode: 'base-only',
+      adapterActive: false,
+      reason: 'prompt-protocol-mismatch',
+      expectedPromptProtocol: SCION_LESSON_KERNEL_PROMPT_PROTOCOL,
     });
     expect(
       resolveScionAdapterTaskRoute({

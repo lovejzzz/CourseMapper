@@ -253,6 +253,7 @@ export async function buildXlsxBuffer(courseMap, customColumns, options = {}) {
     customColumns,
     linkContext,
   );
+  const printPageBreakRow = balancedPrintPageBreakRow(courseMap);
   const buffer = await buildXlsxWorkbook({
     title: `${courseMap.courseName || 'Course'} Course Map`,
     sheets: [
@@ -273,13 +274,13 @@ export async function buildXlsxBuffer(courseMap, customColumns, options = {}) {
       },
     ],
   });
-  return await polishCourseMapWorkbook(buffer, columnName(columns.length), hyperlinks);
+  return await polishCourseMapWorkbook(buffer, columnName(columns.length), hyperlinks, printPageBreakRow);
 }
 
 // Workbook polish that the shared lightweight builder has no API for:
 // universal fonts, centered header labels, tab color, autofilter, print setup,
 // and (v0.14.1 3.4, package context only) cell hyperlinks + their rels part.
-async function polishCourseMapWorkbook(buffer, lastColumn, hyperlinks = []) {
+async function polishCourseMapWorkbook(buffer, lastColumn, hyperlinks = [], printPageBreakRow = null) {
   const JSZip = await getJSZip();
   const zip = await JSZip.loadAsync(buffer);
 
@@ -294,9 +295,10 @@ async function polishCourseMapWorkbook(buffer, lastColumn, hyperlinks = []) {
   zip.file('xl/styles.xml', styles);
 
   let sheet = await zip.file('xl/worksheets/sheet1.xml').async('string');
+  const pageSetupProperties = printPageBreakRow ? '<pageSetUpPr/>' : '<pageSetUpPr fitToPage="1"/>';
   sheet = sheet.replace(
     '<sheetViews>',
-    `<sheetPr><tabColor rgb="${HEADER_TAB_COLOR}"/><pageSetUpPr fitToPage="1"/></sheetPr><sheetViews>`,
+    `<sheetPr><tabColor rgb="${HEADER_TAB_COLOR}"/>${pageSetupProperties}</sheetPr><sheetViews>`,
   );
   sheet = sheet.replace('</sheetData>', `</sheetData><autoFilter ref="A1:${lastColumn}1"/>`);
 
@@ -329,10 +331,19 @@ async function polishCourseMapWorkbook(buffer, lastColumn, hyperlinks = []) {
     );
   }
 
+  const rowBreaks = printPageBreakRow
+    ? `<rowBreaks count="1" manualBreakCount="1"><brk id="${printPageBreakRow}" min="0" max="16383" man="1"/></rowBreaks>`
+    : '';
+  const printOptions = printPageBreakRow ? '<printOptions horizontalCentered="1" verticalCentered="1"/>' : '';
+  const pageSetup = printPageBreakRow
+    ? '<pageSetup orientation="landscape" scale="38"/>'
+    : '<pageSetup orientation="landscape" fitToWidth="1" fitToHeight="0"/>';
   sheet = sheet.replace(
     '</worksheet>',
-    '<pageMargins left="0.25" right="0.25" top="0.5" bottom="0.5" header="0.3" footer="0.3"/>' +
-      '<pageSetup orientation="landscape" fitToWidth="1" fitToHeight="0"/></worksheet>',
+    rowBreaks +
+      printOptions +
+      '<pageMargins left="0.25" right="0.25" top="0.5" bottom="0.5" header="0.3" footer="0.3"/>' +
+      `${pageSetup}</worksheet>`,
   );
   zip.file('xl/worksheets/sheet1.xml', sheet);
 
@@ -345,6 +356,39 @@ async function polishCourseMapWorkbook(buffer, lastColumn, hyperlinks = []) {
   zip.file('xl/workbook.xml', workbook);
 
   return await zip.generateAsync({ type: 'arraybuffer', mimeType: XLSX_MIME });
+}
+
+/**
+ * Long course maps are easier to use on paper when their two print pages carry
+ * comparable amounts of content. Automatic pagination can leave the second
+ * page almost empty because row heights vary. Pick the lesson boundary closest
+ * to half the section rows and emit one explicit horizontal page break.
+ */
+function balancedPrintPageBreakRow(courseMap) {
+  const lessons = Array.isArray(courseMap?.lessons) ? courseMap.lessons : [];
+  if (lessons.length < 10) return null;
+
+  const rowCounts = lessons.map((lesson) =>
+    Array.isArray(lesson?.sections) && lesson.sections.length > 0 ? lesson.sections.length : 1,
+  );
+  const totalRows = rowCounts.reduce((sum, count) => sum + count, 0);
+  if (totalRows < 16) return null;
+
+  const target = totalRows / 2;
+  let accumulated = 0;
+  let bestBoundary = null;
+  let bestDistance = Number.POSITIVE_INFINITY;
+  for (let index = 0; index < rowCounts.length - 1; index++) {
+    accumulated += rowCounts[index];
+    const distance = Math.abs(accumulated - target);
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      // Excel row 1 is the repeated header; break below the last data row
+      // belonging to the first page.
+      bestBoundary = accumulated + 1;
+    }
+  }
+  return bestBoundary;
 }
 
 function buildCourseMapSheet(courseMap, customColumns, linkContext = null) {

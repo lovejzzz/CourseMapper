@@ -21,7 +21,7 @@
  * keyTerm + clean visual-guidance notes line) holds.
  */
 
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, vi } from 'vitest';
 import JSZip from 'jszip';
 import { buildSlideDeckPptxBlob } from '../pptxExporter.js';
 
@@ -286,6 +286,97 @@ beforeAll(async () => {
 describe('PPTX export — visual placeholders', () => {
   it('produces one slide XML per fixture slide', () => {
     expect(slideXmls).toHaveLength(FIXTURE.decks[0].slides.length);
+  });
+
+  it('writes the real activity heading before its decorative badge and retains the clock', async () => {
+    const activityBlob = await buildSlideDeckPptxBlob(
+      {
+        decks: [
+          {
+            lessonTitle: 'Lesson 2: Mobile Prototype Critique',
+            slides: [
+              {
+                title: 'Mobile Prototype Critique',
+                type: 'activity',
+                bullets: [
+                  'Situation: A design team must choose one evidence-backed onboarding revision.',
+                  'Activity clock: Briefing — 19 minutes; Observation — 19 minutes; Revision — 37 minutes. Total time: 75 minutes.',
+                ],
+                timer: '19 min',
+                notes: 'Show the complete activity clock before assigning roles.',
+              },
+            ],
+          },
+        ],
+      },
+      'Interaction Design',
+      0,
+    );
+    const activityZip = await JSZip.loadAsync(await activityBlob.arrayBuffer());
+    const activityXml = await activityZip.file('ppt/slides/slide1.xml').async('string');
+    expect(activityXml).toContain('Activity clock:');
+    expect(activityXml.indexOf('Mobile Prototype Critique')).toBeLessThan(activityXml.indexOf('ACTIVITY'));
+  });
+
+  it('does not mislabel a complete four-phase activity deck as unusually thin', async () => {
+    const ordinarySlides = (prefix) =>
+      Array.from({ length: 6 }, (_, index) => ({
+        title: `${prefix} ${index + 1}`,
+        type: index === 0 ? 'title' : 'content',
+        bullets: [`${prefix} teaching point ${index + 1}`],
+      }));
+    const activitySlides = [
+      {
+        title: 'Mobile Prototype Critique',
+        type: 'activity',
+        bullets: [
+          'Situation: A design team must choose one evidence-backed onboarding revision.',
+          'Safety and evidence boundary: Keep participant observations confidential.',
+          'Activity clock: Briefing — 19 minutes; Observation — 19 minutes; Constraint Identification — 19 minutes; Revision Decision — 18 minutes. Total time: 75 minutes.',
+        ],
+      },
+      {
+        title: 'Observation',
+        type: 'activity',
+        bullets: [
+          'Participant or working roles:',
+          'Observer: Record usability evidence. Constraint: Follow the observation protocol.',
+        ],
+      },
+      {
+        title: 'Constraint Identification',
+        type: 'activity',
+        bullets: ['Evidence: Usability observations', 'Required decision or action: Identify the bounded revision.'],
+      },
+      {
+        title: 'Revision Decision',
+        type: 'closing',
+        bullets: [
+          'Student artifact — Critique decision log. Artifact requirements: name the evidence and revision.',
+          'Structured debrief: Which evidence changed the decision?',
+        ],
+      },
+    ].map((slide) => ({ ...slide, enrichmentSource: 'scion-experiential-activity-v1' }));
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      await buildSlideDeckPptxBlob(
+        {
+          decks: [
+            { lessonTitle: 'Lesson 1: Evidence', slides: ordinarySlides('Evidence') },
+            { lessonTitle: 'Lesson 2: Mobile Prototype Critique', slides: activitySlides },
+            { lessonTitle: 'Lesson 3: Transfer', slides: ordinarySlides('Transfer') },
+          ],
+        },
+        'Interaction Design',
+        0,
+      );
+      expect(warn).not.toHaveBeenCalledWith(
+        expect.stringContaining('unusually few slides'),
+        expect.arrayContaining([expect.stringContaining('Mobile Prototype Critique')]),
+      );
+    } finally {
+      warn.mockRestore();
+    }
   });
 
   it('content slide with a visual keeps the slide surface free of placeholder scaffolding (v0.8.61)', () => {

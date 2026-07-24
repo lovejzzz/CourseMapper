@@ -681,6 +681,13 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
     };
   }
 
+  // Fact-ledger projection may have just supplied a concrete, inspectable
+  // evidence packet. Use it on every downstream teaching surface. The old
+  // early-bound `materials` value survived as "<concept> examples and the
+  // named reading or activity", so one model omission became dozens of vague
+  // discussion, assignment, and study-guide sentences.
+  const teachingMaterials = cleanTextAtBoundary(completed?.kernel?.scenario?.materials, 180) || materials;
+
   if (!completed.discussionPrompt) {
     const discussionPrompt = interpretiveReadingLesson
       ? {
@@ -693,7 +700,7 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
           ],
         }
       : {
-          prompt: `Which interpretation of ${concept} is best supported by ${materials}, and what detail could change that conclusion?`,
+          prompt: `Which interpretation of ${concept} is best supported by ${teachingMaterials}, and what detail could change that conclusion?`,
           tension: lessonVariant([
             `One reading gives the strongest observed ${concept} pattern priority; another treats the unresolved detail as decisive.`,
             `The debate is whether the available ${concept} evidence warrants a leading interpretation or only a provisional one.`,
@@ -731,48 +738,48 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
   if (!completed.assignmentCore) {
     const assignmentCore = {
       taskDescription: lessonVariant([
-        `Analyze ${materials} through ${concept}. Produce ${product} that states the best-supported conclusion, cites the decisive detail, and names one limit.`,
-        `Use ${concept} to interpret ${materials}. In ${product}, defend the strongest conclusion, point to the evidence behind it, and qualify the claim.`,
-        `Examine ${materials} with the ${concept} lens, then build ${product} around one supported interpretation, its key detail, and its boundary.`,
-        `Test a ${concept} claim against ${materials}. Submit ${product} that explains the evidence, the resulting judgment, and what remains uncertain.`,
-        `Compare the plausible readings of ${materials} through ${concept}. Use ${product} to defend one, cite the deciding evidence, and state where it may not hold.`,
-        `Develop ${product} from the ${concept} evidence in ${materials}: identify the strongest conclusion, justify it with a specific detail, and avoid overclaiming.`,
+        `Analyze ${teachingMaterials} through ${concept}. Produce ${product} that states the best-supported conclusion, cites the decisive detail, and names one limit.`,
+        `Use ${concept} to interpret ${teachingMaterials}. In ${product}, defend the strongest conclusion, point to the evidence behind it, and qualify the claim.`,
+        `Examine ${teachingMaterials} with the ${concept} lens, then build ${product} around one supported interpretation, its key detail, and its boundary.`,
+        `Test a ${concept} claim against ${teachingMaterials}. Submit ${product} that explains the evidence, the resulting judgment, and what remains uncertain.`,
+        `Compare the plausible readings of ${teachingMaterials} through ${concept}. Use ${product} to defend one, cite the deciding evidence, and state where it may not hold.`,
+        `Develop ${product} from the ${concept} evidence in ${teachingMaterials}: identify the strongest conclusion, justify it with a specific detail, and avoid overclaiming.`,
       ]),
       parameters: lessonVariant([
         [
           `Scope: use the named ${concept} case or example only.`,
           `Format: use the submission format listed for ${product} in the course site.`,
-          `Required Evidence/Source: cite at least one detail from ${materials}.`,
+          `Required Evidence/Source: cite at least one detail from ${teachingMaterials}.`,
           `Length or Time: follow the requirement listed with ${product} in the course site.`,
         ],
         [
           `Scope: focus the response on ${concept} and the assigned materials.`,
           `Format: use the submission format listed for ${product} in the course site.`,
-          `Evidence: quote or cite one specific point from ${materials}.`,
+          `Evidence: quote or cite one specific point from ${teachingMaterials}.`,
           `Length/Time: follow the limit listed with ${product} in the course site.`,
         ],
         [
           `Boundary: keep the analysis within the supplied ${concept} example.`,
           `Submission format: organize ${product} in the medium listed for the task.`,
-          `Source use: identify the exact detail from ${materials} that warrants the conclusion.`,
+          `Source use: identify the exact detail from ${teachingMaterials} that warrants the conclusion.`,
           `Extent: use the word, page, or time limit listed for ${product}.`,
         ],
         [
           `Case limit: analyze only the named ${concept} situation and avoid unsupported extensions.`,
           `Deliverable: submit ${product} through the format and channel listed for the task.`,
-          `Required support: anchor the reasoning in a visible detail from ${materials}.`,
+          `Required support: anchor the reasoning in a visible detail from ${teachingMaterials}.`,
           `Length or duration: follow the constraint listed with ${product}.`,
         ],
         [
           `Analytical scope: apply ${concept} to the provided case rather than inventing a new one.`,
           `Output: complete ${product} in the document, presentation, or recording form listed for the task.`,
-          `Evidence requirement: point to at least one inspectable detail in ${materials}.`,
+          `Evidence requirement: point to at least one inspectable detail in ${teachingMaterials}.`,
           `Scale: follow the task-specific length or time guidance listed with ${product}.`,
         ],
         [
           `Focus: keep every claim tied to the assigned ${concept} materials.`,
           `Product form: prepare ${product} in the format listed for the task.`,
-          `Source trail: name the detail from ${materials} that supports the judgment.`,
+          `Source trail: name the detail from ${teachingMaterials} that supports the judgment.`,
           `Completion boundary: meet the word, page, or time expectation listed with ${product}.`,
         ],
       ]),
@@ -800,10 +807,10 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
     const summaryBase = [definition, anchorFact].filter(Boolean).join(' ');
     completed.studyGuide = {
       summary: cleanText(
-        `${summaryBase} Connect ${concept} to ${materials} and keep the conclusion within the evidence boundary.`,
+        `${summaryBase} Connect ${concept} to ${teachingMaterials} and keep the conclusion within the evidence boundary.`,
         600,
       ),
-      reviewStrategy: `Rehearse ${concept} by explaining why ${anchorClause}. Then test the explanation against ${materials}.`,
+      reviewStrategy: `Rehearse ${concept} by explaining why ${anchorClause}. Then test the explanation against ${teachingMaterials}.`,
     };
     fallbackFields.push('studyGuide');
   }

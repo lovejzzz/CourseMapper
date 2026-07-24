@@ -938,6 +938,17 @@ describe('CourseIR v1', () => {
     });
   });
 
+  it('keeps concept numbering out of prerequisite resource labels', () => {
+    const ir = makeCalculusIR();
+    ir.concepts[0].term = '1.1: Limit';
+
+    const courseMap = courseIRToCourseMap(ir);
+    const resources = courseMap.lessons[1].sections[0].supportingResources;
+
+    expect(resources).toContain('Prerequisite concept: Limit');
+    expect(resources).not.toContain('Prerequisite concept: 1.1');
+  });
+
   it('repairs repeated Python assessment scaffolds before projecting CourseIR to the Course Map', () => {
     const topics = ['Computer Science', 'Python', 'variables', 'data types', 'conditionals'];
     const repeatedTitles = [

@@ -46,7 +46,7 @@ const QUALITY_DIMENSION_WEIGHTS = {
   consistency: 10,
   structure: 10,
   format: 5,
-  texture: 10,
+  texture: 25,
 };
 const SPLIT_BY_LESSON_FEATURES = new Set([
   'lessonPlans',

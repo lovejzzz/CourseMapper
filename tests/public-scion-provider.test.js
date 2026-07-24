@@ -953,6 +953,99 @@ Return ONLY valid JSON.`;
     ]);
   });
 
+  it('retains one admitted activity blueprint atomically when a kernel retry omits it', () => {
+    const prompt = buildLessonKernelPrompt(
+      {
+        courseName: 'Interaction Design',
+        lessons: [
+          {
+            title: 'Lesson 1: Checkout Flow Studio Critique',
+            sections: [
+              {
+                topicSection: 'Checkout usability, task failures, and annotated prototypes',
+                learningObjectives:
+                  'Revise a checkout flow from the task-failure log and annotated prototype evidence.',
+                syncActivities: 'Structured UX studio critique.',
+              },
+            ],
+          },
+        ],
+      },
+      [0],
+      {
+        questionsPerLesson: 6,
+        sourceBrief:
+          'Interaction Design, a 6-lesson studio course; research synthesis; a 75-minute checkout flow studio critique in which design teams inspect a task-failure log and annotated prototype, receive a release constraint, revise the flow, submit a critique board, and debrief; design handoff.',
+      },
+    );
+    const activity = {
+      lessonId: 'lesson-1',
+      ty: 'Checkout flow studio critique',
+      sc: 'A checkout prototype repeatedly fails during the same observed task. The studio must choose and justify one bounded flow revision before the release deadline.',
+      ro: [
+        {
+          nm: 'Presenting design team',
+          go: 'Explain the current checkout flow and choose a feasible revision.',
+          co: 'May defend a choice only with visible task-failure or prototype evidence.',
+          pi: '',
+        },
+        {
+          nm: 'Critique evidence team',
+          go: 'Test whether each critique claim is supported by an observed checkout behavior.',
+          co: 'Must separate recorded task failure from personal design preference.',
+          pi: '',
+        },
+      ],
+      ev: [
+        'The task-failure log records repeated breakdowns in the checkout flow.',
+        'The annotated prototype screen shows the current checkout interaction.',
+      ],
+      up: [
+        {
+          ti: 'Release constraint',
+          in: 'The release deadline permits one checkout-flow revision before the next test.',
+          rd: 'Record the selected revision and the evidence that gives it priority.',
+        },
+      ],
+      ar: {
+        ti: 'Checkout critique revision board',
+        rq: [
+          'Pair the critique claim with task-failure evidence.',
+          'Show the selected checkout-flow revision.',
+          'Name the next prototype test question.',
+        ],
+      },
+      tm: [
+        { phase: 'Evidence walk', minutes: 15 },
+        { phase: 'Studio critique', minutes: 25 },
+        { phase: 'Revision decision', minutes: 15 },
+        { phase: 'Board and debrief', minutes: 20 },
+      ],
+      db: [
+        'Which task-failure evidence most changed the checkout revision?',
+        'Where did the critique separate observation from design preference?',
+      ],
+      sb: 'Critique the checkout work rather than its designers and use only the supplied usability record.',
+    };
+    const lesson = completeLesson({ lessonId: 'lesson-1' });
+    const merged = mergePublicScionKernelAttempts(
+      JSON.stringify({ lessons: [lesson], activityBlueprints: [activity] }),
+      JSON.stringify({ lessons: [lesson] }),
+      prompt.userPrompt,
+    );
+
+    expect(JSON.parse(merged.text).activityBlueprints).toEqual([activity]);
+    expect(merged.repairs).toContainEqual(
+      expect.objectContaining({
+        pass: 'crossAttemptAtomicRetention',
+        lessonId: 'lesson-1',
+        field: 'activityBlueprint',
+      }),
+    );
+    const mergedAssessment = assessPublicScionKernelResponse(merged.text, prompt.userPrompt, 'blueprintEnrichment');
+    expect(mergedAssessment.issues.filter((issue) => issue.includes(':activity:'))).toEqual([]);
+  });
+
   it('ships a keyless browser-local model option with prompt-only structure support', () => {
     const option = publicScionModelOption();
     expect(option.id).toBe(PUBLIC_SCION_MODEL_ID);
@@ -1026,9 +1119,10 @@ Return ONLY valid JSON matching the kernel shape from the instructions.`;
     expect(messages[1].content).toContain('LESSONS TO AUTHOR');
     expect(messages[1].content).toContain('Lesson 4: Affinity Mapping');
     expect(messages[1].content).toContain('Write exactly 2 mc items');
-    expect(messages[1].content).toContain('Every mc item includes fi=sourceFactIndexes as [n] or [n,m]');
-    expect(messages[1].content).toContain('set ai=0; the compiler shuffles answer positions after admission');
-    expect(messages[1].content).toContain('without referring to any position');
+    expect(messages[1].content).toContain('fi=sourceFactIndexes as [n] or [n,m]');
+    expect(messages[1].content).toContain('ai as the zero-based index of the one correct proposition');
+    expect(messages[1].content).toContain('Set ai to the actual correct option');
+    expect(messages[1].content).toContain('Never mention "the key", answer positions');
     expect(messages[1].content).toContain('mi is a genuinely false learner belief');
     expect(messages[1].content).toContain('Never embed field labels or internal claim numbers');
     expect(messages[1].content).toContain('Never infer motive or cause from one ambiguous observation');
@@ -1044,7 +1138,8 @@ Return ONLY valid JSON matching the kernel shape from the instructions.`;
     expect(lessonTemplate.facts).toHaveLength(5);
     expect(lessonTemplate.keyTerms).toHaveLength(3);
     expect(lessonTemplate.mc).toHaveLength(2);
-    expect(lessonTemplate.mc.every((item) => item.ai === 0)).toBe(true);
+    expect(lessonTemplate.mc.every((item) => item.op.length === 4 && item.ai === 0)).toBe(true);
+    expect(lessonTemplate.keyTerms.every((term) => term.cx.reject === '' && term.cx.replace === '')).toBe(true);
     expect(lessonTemplate.scenario.ma).toBe('REPLACE');
     expect(messages[1].content).toContain('never call them "source detail one/two"');
     expect(messages[1].content).toContain('distinct 1-4 word subject term');
@@ -1682,6 +1777,82 @@ Return ONLY valid JSON.`;
     expect(ambiguous.lessons[0].mc[0].ai).toBe(1);
   });
 
+  it('projects explicit answer and distractor fields into an unambiguous option set', () => {
+    const response = {
+      lessons: [
+        {
+          lessonId: 'lesson-2',
+          mc: [
+            {
+              q: 'Which observation distinguishes signaling from a final commitment when incomplete patrol records leave the intended response uncertain?',
+              answer: 'Signaling conveys intent without final commitment',
+              distractors: [
+                'Signaling always requires a final action',
+                'Commitment avoids every observable action',
+                'Uncertainty makes signaling and commitment identical',
+              ],
+              fi: [0],
+              ex: 'Signaling conveys intent without final commitment, while a final commitment fixes the chosen response.',
+            },
+          ],
+        },
+      ],
+    };
+    const detailed = repairPublicScionJson(JSON.stringify(response));
+    const repaired = JSON.parse(detailed.text);
+    expect(repaired.lessons[0].mc[0]).toMatchObject({
+      op: [
+        'Signaling conveys intent without final commitment',
+        'Signaling always requires a final action',
+        'Commitment avoids every observable action',
+        'Uncertainty makes signaling and commitment identical',
+      ],
+      ai: 0,
+      fi: [0],
+    });
+    expect(repaired.lessons[0].mc[0]).not.toHaveProperty('answer');
+    expect(repaired.lessons[0].mc[0]).not.toHaveProperty('distractors');
+    expect(detailed.repairs).toContainEqual(
+      expect.objectContaining({
+        pass: 'projectAnswerAndDistractors',
+        trainingEligible: false,
+      }),
+    );
+  });
+
+  it('projects a model-authored rejection and replacement into an explicit correction', () => {
+    const response = {
+      lessons: [
+        {
+          lessonId: 'lesson-2',
+          keyTerms: [
+            {
+              tr: 'commitment',
+              df: 'A stated pledge to undertake a specific course of action.',
+              eg: 'A negotiator records a promised response in the decision log.',
+              mi: 'Commitment means the promised action has already been executed.',
+              cx: {
+                reject: 'the promised action has already been executed',
+                replace: 'commitment records a pledge before the promised action occurs',
+              },
+            },
+          ],
+        },
+      ],
+    };
+    const detailed = repairPublicScionJson(JSON.stringify(response));
+    const repaired = JSON.parse(detailed.text);
+    expect(repaired.lessons[0].keyTerms[0].cx).toBe(
+      'It is incorrect that the promised action has already been executed; instead, commitment records a pledge before the promised action occurs.',
+    );
+    expect(detailed.repairs).toContainEqual(
+      expect.objectContaining({
+        pass: 'projectMisconceptionCorrection',
+        trainingEligible: false,
+      }),
+    );
+  });
+
   it('does not move a public key from an unverified question/steps paraphrase', () => {
     const response = {
       lessons: [
@@ -2048,7 +2219,11 @@ Return ONLY valid JSON.`;
         ],
       },
       [0],
-      { questionsPerLesson: 6 },
+      {
+        questionsPerLesson: 6,
+        sourceBrief:
+          'Interaction Design, a 6-lesson studio course; research synthesis; a 75-minute checkout flow studio critique in which design teams inspect a task-failure log and annotated prototype, receive a release constraint, revise the flow, submit a critique board, and debrief; design handoff.',
+      },
     );
     const messages = buildPublicScionMessages(prompt.systemPrompt, prompt.userPrompt, {
       task: 'blueprintEnrichment',
@@ -2126,6 +2301,92 @@ Return ONLY valid JSON.`;
     expect(ledgerPrompt).toContain('Never write course metadata');
     expect(ledgerPrompt).toContain('at least three must define or distinguish a concept');
     expect(ledgerPrompt.length).toBeLessThan(full.at(-1).content.length / 2);
+  });
+
+  it('keeps a qualifying experiential blueprint in the same compact lesson-authoring call', () => {
+    const prompt = buildLessonKernelPrompt(
+      {
+        courseName: 'Interaction Design',
+        lessons: [
+          {
+            title: 'Lesson 1: Checkout Flow Studio Critique',
+            sections: [
+              {
+                topicSection: 'Checkout usability and error recovery',
+                learningObjectives: 'Revise a checkout flow from observed usability evidence.',
+                syncActivities: 'Structured UX studio critique.',
+              },
+            ],
+          },
+        ],
+      },
+      [0],
+      {
+        questionsPerLesson: 6,
+        sourceBrief:
+          'Interaction Design, a 6-lesson studio course; research synthesis; a 75-minute checkout flow studio critique in which design teams inspect a task-failure log and annotated prototype, receive a release constraint, revise the flow, submit a critique board, and debrief; design handoff.',
+      },
+    );
+    const messages = buildPublicScionMessages(prompt.systemPrompt, prompt.userPrompt, {
+      task: 'blueprintEnrichment',
+    });
+    const compactPrompt = messages.at(-1).content;
+    const template = JSON.parse(compactPrompt.split('TEMPLATE TO FILL:\n')[1]);
+
+    expect(Object.keys(template)[0]).toBe('activityBlueprints');
+    expect(template.activityBlueprints).toHaveLength(1);
+    expect(template.activityBlueprints[0].lessonId).toBe('lesson-1');
+    expect(template.activityBlueprints[0].ty).toBe('Checkout Flow studio critique');
+    expect(template.activityBlueprints[0].ro).toHaveLength(2);
+    expect(template.activityBlueprints[0].ev).toHaveLength(2);
+    expect(template.activityBlueprints[0].tm).toHaveLength(4);
+    expect(template.activityBlueprints[0].ar.rq).toHaveLength(3);
+    expect(template.activityBlueprints[0].db).toHaveLength(2);
+    expect(prompt.lessons[0].activityBrief).toContain(
+      'checkout flow studio critique in which design teams inspect a task-failure log',
+    );
+    expect(compactPrompt).toContain('activityBrief');
+    expect(compactPrompt).toContain('Return activityBlueprints first, once beside lessons');
+    expect(compactPrompt).toContain('template pre-fills ty from the requested lesson title and form');
+    expect(compactPrompt).toContain('Copy that ty exactly');
+    expect(compactPrompt).toContain('Never substitute one form for another');
+    expect(compactPrompt).toContain('Simulation and decision-making');
+    expect(compactPrompt).toContain('every up item a different, specific ti title');
+    expect(compactPrompt).toContain('not merely say that evidence changed');
+    expect(compactPrompt).toContain('ph is a unique named activity step');
+    expect(compactPrompt).toContain('Do not force stakeholder theater into a lab or studio task');
+  });
+
+  it('rejects duplicate or out-of-scope top-level activity blueprints', () => {
+    const prompt = buildLessonKernelPrompt(
+      {
+        courseName: 'Cost Analysis',
+        lessons: [
+          {
+            title: 'Lesson 1: Fixed and Variable Costs',
+            sections: [{ topicSection: 'Cost behavior', learningObjectives: 'Explain cost behavior.' }],
+          },
+        ],
+      },
+      [0],
+      { questionsPerLesson: 6 },
+    );
+    const assessment = assessPublicScionKernelResponse(
+      JSON.stringify({
+        lessons: [],
+        activityBlueprints: [{ lessonId: 'lesson-1' }, { lessonId: 'lesson-1' }, { ty: 'unknown' }],
+      }),
+      prompt.userPrompt,
+      'blueprintEnrichment',
+    );
+
+    expect(assessment.issues).toEqual(
+      expect.arrayContaining([
+        'lesson-1:activity:duplicate-activity-blueprint',
+        'lesson-1:activity:unexpected-activity-blueprint',
+        'unknown-activity:activity:missing-lesson-id',
+      ]),
+    );
   });
 
   it('makes an instructor-named reading override a conflicting generic lesson topic in the compact ledger prompt', () => {

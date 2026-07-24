@@ -1586,6 +1586,14 @@ describe('Pass B contract (B2)', () => {
     expect(factsOnly.kernel.scenario.setup).toContain('Identify the course concept that best organizes these claims');
     expect(factsOnly.kernel.scenario.setup).not.toMatch(/learner compares|named reading or activity/i);
     expect(JSON.stringify(factsOnly.quizItems)).not.toMatch(/learner compares|named reading or activity/i);
+    expect(
+      JSON.stringify({
+        discussionPrompt: factsOnly.discussionPrompt,
+        assignmentCore: factsOnly.assignmentCore,
+        studyGuide: factsOnly.studyGuide,
+      }),
+    ).not.toMatch(/named reading or activity/i);
+    expect(factsOnly.discussionPrompt.prompt).toContain('two supplied claim cards');
     expect(factsOnly.quizItems).toHaveLength(2);
     expect(factsOnly.coreFallbacks).toEqual(
       expect.arrayContaining([

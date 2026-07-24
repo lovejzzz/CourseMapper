@@ -22,6 +22,8 @@ import {
 } from './shared/SharedComponents';
 import { groupItemsByLesson, lessonTitleForNumber, resolveLessonNumber } from './shared/lessonGrouping';
 
+const ExperientialActivityPanel = React.lazy(() => import('./ExperientialActivityPanel'));
+
 // v0.14.1 (3.5): the lesson number an assignment belongs to — compiled briefs
 // carry lessonNumber; AI-authored ones mention "Week N"/"Lesson N" in their
 // dueWeek/relatedLessons text. v0.14.4 (D1): shared tolerant resolver (adds
@@ -184,6 +186,17 @@ export default function AssignmentsView({
                   </p>
                 </div>
               )}
+
+              <React.Suspense
+                fallback={
+                  <div
+                    aria-label="Loading activity briefing"
+                    className="h-28 animate-pulse rounded-xl border border-indigo-200/70 bg-indigo-50/60 dark:border-indigo-400/20 dark:bg-indigo-950/20"
+                  />
+                }
+              >
+                <ExperientialActivityPanel packet={a.activityPacket} assignmentIndex={i} onEdit={onEdit} />
+              </React.Suspense>
 
               {/* Learning objectives */}
               {a.objectives?.length > 0 && (

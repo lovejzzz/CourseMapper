@@ -296,6 +296,27 @@ const enrichment = {
   wp: 'problem',
   ws: 'steps',
   wr: 'result',
+  // v0.16.77: compact experiential-activity blueprint. `activityBlueprints`
+  // and `lessonId` remain full wrapper keys; these nested atoms are expanded
+  // once at the same admission boundary as the lesson kernel.
+  ty: 'activityType',
+  sc: 'scenario',
+  ro: 'roles',
+  nm: 'name',
+  go: 'goal',
+  co: 'constraint',
+  pi: 'privateInformation',
+  ev: 'evidence',
+  up: 'updates',
+  in: 'information',
+  rd: 'requiredDecision',
+  ar: 'artifact',
+  rq: 'requirements',
+  tm: 'timing',
+  ph: 'phase',
+  mn: 'minutes',
+  db: 'debriefPrompts',
+  sb: 'safetyBoundary',
 };
 
 export const KEY_MAPS = {

@@ -28,7 +28,12 @@ export function artifactKindOf(artifactTitle = '') {
   return 'artifact';
 }
 
-const HEAD_NOUN_BLOCKLIST_RE = /^(?:week|lesson|session|module|unit|part|day|artifact|task|item|work)$/;
+// Abstract lesson-language is not a submission genre. Letting the trailing
+// noun in a long compiler title become the compact artifact reference created
+// labels such as "the Week 11 lenses" and "the Week 14 limitation" across an
+// otherwise polished package. Fall back to a real assessment genre instead.
+const HEAD_NOUN_BLOCKLIST_RE =
+  /^(?:week|lesson|session|module|unit|part|day|artifact|task|item|work|claim|concept|evidence|example|focus|lens|lenses|limitation|material|materials|reading|readings|resource|resources)$/;
 
 export function titleHeadNoun(label) {
   const match = String(label || '')

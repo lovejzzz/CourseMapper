@@ -76,6 +76,72 @@ function completeKernelResponse(lessonId = 'lesson-4') {
   });
 }
 
+function completeActivityKernelResponse({ placeholderEvidence = false } = {}) {
+  const response = JSON.parse(completeKernelResponse());
+  response.activityBlueprints = [
+    {
+      lessonId: 'lesson-4',
+      activityType: 'Checkout flow studio critique',
+      scenario:
+        'A product team must choose one revision to a mobile checkout flow after a usability review reveals repeated navigation failures before a fixed release date. The team must justify that revision without inventing evidence outside the supplied review record.',
+      roles: [
+        {
+          name: 'Evidence presenter',
+          goal: 'Connect observed checkout failures to one defensible interface revision.',
+          constraint: 'May use only the supplied observation log and annotated prototype.',
+          privateInformation: '',
+        },
+        {
+          name: 'Revision reviewer',
+          goal: 'Test whether the proposed revision addresses the strongest usability evidence.',
+          constraint: 'Must preserve the fixed release scope and identify one unresolved risk.',
+          privateInformation: '',
+        },
+      ],
+      evidence: placeholderEvidence
+        ? [
+            'Review the instructor-provided course materials before deciding which change to recommend.',
+            'The annotated prototype marks the checkout step where repeated navigation failures occurred.',
+          ]
+        : [
+            'The task-failure log records repeated navigation breakdowns at the checkout confirmation step.',
+            'The annotated prototype marks the label and control sequence used during each failed attempt.',
+          ],
+      updates: [
+        {
+          title: 'Release scope narrows',
+          information:
+            'Engineering confirms that the team can revise one label and one control sequence before the fixed release date.',
+          requiredDecision:
+            'Record which proposed revision best addresses the observed failure while staying inside the new scope.',
+        },
+      ],
+      artifact: {
+        title: 'Checkout revision memo',
+        requirements: [
+          'Name the selected interface revision.',
+          'Cite two observations that support the revision.',
+          'Record one unresolved usability risk for the next test.',
+        ],
+      },
+      timing: [
+        { phase: 'Evidence briefing', minutes: 10 },
+        { phase: 'Role preparation', minutes: 15 },
+        { phase: 'Critique and update', minutes: 30 },
+        { phase: 'Revision memo and debrief', minutes: 20 },
+      ],
+      debriefPrompts: [
+        'Which observation most changed the revision decision, and why?',
+        'Which usability risk remains unsupported by the available evidence?',
+      ],
+      safetyBoundary:
+        'Use only the fictional observation log and prototype supplied for this lesson; do not invent participant statements or identify real people.',
+    },
+  ];
+  // The compact response contract asks for activity atoms before lesson atoms.
+  return JSON.stringify({ activityBlueprints: response.activityBlueprints, lessons: response.lessons });
+}
+
 describe('Scion browser-local provider', () => {
   it('loads the pinned runtime, streams locally, and repairs the final JSON', async () => {
     const runtime = runtimeWith(['```json\n{"courseName":"Design","lessons":[]}\n```']);
@@ -583,6 +649,30 @@ Return ONLY valid JSON.`;
     expect(result).toMatchObject({ attempt: 3, retryCount: 2, contractIncomplete: true });
     expect(result.admissionIssues).toContain('lesson-4:mc-0:explanation-key-conflict');
     expect(runtime.completeScionBrowserWllama).toHaveBeenCalledTimes(3);
+  });
+
+  it('uses the full retry budget to recover an explicitly requested activity before atomic deferral', async () => {
+    const placeholder = completeActivityKernelResponse({ placeholderEvidence: true });
+    const complete = completeActivityKernelResponse();
+    const runtime = runtimeWith([placeholder, placeholder, complete]);
+    const prompt = `Course: Design
+Lessons:
+[{"lessonId":"lesson-4","title":"Checkout Flow Studio Critique","topics":["checkout usability observations","mobile prototype revision"],"objectives":["Select an evidence-backed checkout revision."],"sync":["Structured studio critique"]}]
+Return ONLY valid JSON.`;
+
+    const result = await runScionLocalCompletion({
+      userPrompt: prompt,
+      task: 'blueprintEnrichment',
+      runtimeLoader: async () => runtime,
+      sleep: async () => {},
+    });
+
+    expect(result).toMatchObject({ attempt: 3, retryCount: 2 });
+    expect(result.admissionIssues).not.toEqual(expect.arrayContaining([expect.stringContaining('lesson-4:activity:')]));
+    expect(runtime.completeScionBrowserWllama).toHaveBeenCalledTimes(3);
+    expect(runtime.completeScionBrowserWllama.mock.calls[2][0].at(-1).content).toContain(
+      'Replace generic placeholders such as Role A, course materials',
+    );
   });
 
   it('returns the lowest-risk complete attempt when a later corrective retry regresses', async () => {

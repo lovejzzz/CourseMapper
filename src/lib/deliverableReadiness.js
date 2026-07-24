@@ -1473,7 +1473,7 @@ function getCourseMapFallbackValue(key, courseMap, lesson, section, lessonIndex)
                         `Share one ${topic} claim and identify the evidence that would make it stronger.`,
                       ]),
                       technologyNeeded: pick([
-                        'Course site, instructor-provided resource, and the tool used for the lesson activity.',
+                        'Course site, instructor-selected resource, and the response workspace used for the lesson activity.',
                         'Shared reading, example file, or activity handout plus a workspace for responses.',
                         'Instructor-provided materials and the classroom tool named for the lesson task.',
                         'Course platform, accessible resource file, and response workspace for the checkpoint.',
@@ -1485,7 +1485,7 @@ function getCourseMapFallbackValue(key, courseMap, lesson, section, lessonIndex)
                       ]),
                       supportingResources: pick([
                         `Instructor-selected ${topic} reading or evidence excerpt with an activity prompt.`,
-                        `Short ${topic} reading, worked model, or practice handout.`,
+                        `Instructor-selected reading on ${topic}, with a worked model or practice handout.`,
                         `${topic} worked example and response guide for student reference.`,
                         `${topic} activity directions, reference note, and feedback guide.`,
                       ]),

@@ -49,6 +49,217 @@ const makeCourseMap = (lessonCount = 6) => ({
   })),
 });
 
+describe('experiential activity compilation', () => {
+  it('projects one admitted activity blueprint without inventing a second scenario', () => {
+    const blueprint = buildCourseBlueprint(
+      {
+        courseName: 'Introduction to International Relations',
+        lessons: [
+          {
+            title: 'Lesson 1: Crisis Simulation Mechanics',
+            sections: [
+              {
+                topicSection: 'Evolving event updates and stakeholder roles',
+                learningObjectives: 'Evaluate evidence under uncertainty and negotiate a defensible crisis response.',
+                weeklyAssessments: 'Crisis decision memo.',
+                asyncActivities: 'Read the crisis brief and identify one uncertainty.',
+                syncActivities: 'Multi-round crisis simulation with stakeholder negotiation.',
+                supportingResources: 'Crisis packet; actor map; decision log',
+              },
+            ],
+          },
+        ],
+      },
+      {
+        enrichment: {
+          lessonContent: {
+            'lesson-1': {
+              experientialActivity: {
+                protocol: 'scion-experiential-activity-v1',
+                lessonId: 'lesson-1',
+                activityType: 'Maritime crisis negotiation',
+                scenario:
+                  'Aurelia and Beleron both claim a narrow shipping corridor after a patrol collision damages a civilian research vessel. A regional mediator must preserve access while the parties decide whether to accept monitoring before the next convoy arrives.',
+                roles: [
+                  {
+                    name: 'Aurelia coastal-security delegation',
+                    goal: 'Keep the corridor open while avoiding an admission of legal responsibility.',
+                    constraint: 'Cannot accept foreign patrols inside the twelve-mile coastal zone.',
+                    privateInformation: 'Its patrol radar was offline for six minutes before the collision.',
+                  },
+                  {
+                    name: 'Beleron maritime delegation',
+                    goal: 'Secure independently monitored passage for the next civilian convoy.',
+                    constraint: 'Cannot sign an agreement that leaves the damaged vessel without inspection access.',
+                    privateInformation: 'Its escort ship has fuel for only one additional patrol cycle.',
+                  },
+                  {
+                    name: 'Regional mediation team',
+                    goal: 'Produce a monitored de-escalation protocol before the convoy deadline.',
+                    constraint: 'Has observers but no authority to impose sanctions or command either navy.',
+                    privateInformation: '',
+                  },
+                ],
+                evidence: [
+                  'The collision log timestamps the impact at 06:18 but does not establish which patrol crossed first.',
+                  'The civilian vessel recorded two unanswered radio calls before the impact.',
+                  'The next convoy reaches the corridor in four hours and cannot safely reroute.',
+                ],
+                updates: [
+                  {
+                    title: 'Radar outage confirmed',
+                    information:
+                      'A port technician confirms that one coastal radar feed was unavailable for six minutes before the collision.',
+                    requiredDecision:
+                      'Revise the opening attribution claim and record whether the new uncertainty changes the monitoring offer.',
+                  },
+                  {
+                    title: 'Convoy medical request',
+                    information:
+                      'The approaching convoy reports a passenger who requires time-sensitive transfer through the corridor.',
+                    requiredDecision:
+                      'Record a reciprocal access proposal, its verification method, and one escalation risk.',
+                  },
+                ],
+                artifact: {
+                  title: 'Strait de-escalation protocol',
+                  requirements: [
+                    'Name the permitted route and timing window.',
+                    'Assign a neutral monitoring action.',
+                    'State the evidence threshold that triggers revision.',
+                  ],
+                },
+                timing: [
+                  { phase: 'Role preparation', minutes: 10 },
+                  { phase: 'Opening positions', minutes: 15 },
+                  { phase: 'Radar update', minutes: 15 },
+                  { phase: 'Negotiation', minutes: 15 },
+                  { phase: 'Decision memo', minutes: 15 },
+                  { phase: 'Debrief', minutes: 5 },
+                ],
+                debriefPrompts: [
+                  'Which confirmed detail changed an attribution claim, and which uncertainty remained?',
+                  'Which proposal protected corridor access without erasing either delegation’s constraint?',
+                ],
+                safetyBoundary:
+                  'This is a fictional classroom dispute; use only the supplied record and do not map the roles onto a current conflict.',
+              },
+            },
+          },
+        },
+      },
+    );
+    const compiled = compileBlueprintDeliverables(blueprint, ['lessonPlans', 'slideDecks', 'assignments'], {
+      configMap: { lessonPlans: { depth: 'deep' } },
+      enforceCompilerContract: false,
+    });
+    const plan = compiled.lessonPlans.lessonPlans[0];
+    const visibleText = JSON.stringify([
+      plan.materials,
+      plan.objectives,
+      plan.outline,
+      plan.formativeCheck,
+      plan.homework,
+      plan.closingActivity,
+    ]);
+    const outlineMinutes = plan.outline.reduce((sum, row) => sum + Number.parseInt(row.time, 10), 0);
+
+    expect(visibleText).toMatch(/participant or working roles/i);
+    expect(visibleText).toMatch(/synchronized update/i);
+    expect(visibleText).toMatch(/required decision or action/i);
+    expect(visibleText).toMatch(/student artifact/i);
+    expect(visibleText).toMatch(/structured debrief/i);
+    expect(visibleText).toMatch(/Aurelia coastal-security delegation/i);
+    expect(visibleText).toMatch(/Radar outage confirmed/i);
+    expect(visibleText).toMatch(/Strait de-escalation protocol/i);
+    expect(visibleText).not.toMatch(/State A delegation/i);
+    expect(visibleText).not.toMatch(/instructor[- ](?:selected|provided)|specific source packet/i);
+    expect(plan.warmUp).toBeUndefined();
+    expect(outlineMinutes).toBe(75);
+    expect(plan.outlineTiming).toMatchObject({
+      sessionMinutes: 75,
+      outlineMinutes: 75,
+      status: 'fits-session',
+    });
+    expect(plan.objectives).toContain(
+      'Evaluate evidence under uncertainty and negotiate a defensible crisis response.',
+    );
+    const activityAssignments = compiled.assignments.assignments.filter((brief) => brief.activityPacket);
+    expect(activityAssignments).toHaveLength(1);
+    expect(activityAssignments[0].activityPacket).toMatchObject({
+      activityType: 'Maritime crisis negotiation',
+      scenario: expect.stringContaining('Aurelia and Beleron'),
+      artifact: { title: 'Strait de-escalation protocol' },
+      totalMinutes: 75,
+    });
+    expect(plan.formativeCheck.prompt).toMatch(/evidence.*constraint.*decision or action/i);
+    expect(plan.homework).toMatchObject({
+      title: 'Strait de-escalation protocol follow-through',
+      estimatedTime: '15 minutes',
+    });
+    expect(plan.homework.description).toMatch(/same activity artifact/i);
+    expect(JSON.stringify(plan.homework)).not.toMatch(/retrieval notes/i);
+
+    const activityDeck = buildSlideDeckIntermediateRepresentation(blueprint).decks[0];
+    const activityDeckText = JSON.stringify(activityDeck.slides);
+    expect(activityDeck.slides.reduce((sum, slide) => sum + Number(slide.minutes || 0), 0)).toBe(75);
+    expect(activityDeck.slides.every((slide) => slide.enrichmentSource === 'scion-experiential-activity-v1')).toBe(
+      true,
+    );
+    expect(activityDeck.sequenceGuide.slideTimingFit).toMatchObject({
+      slideMinutes: 75,
+      sessionMinutes: 75,
+      status: 'fits-session-with-activity-time',
+    });
+    expect(activityDeckText).toMatch(/Participant or working roles/i);
+    expect(activityDeckText).toMatch(/Synchronized update/i);
+    expect(activityDeckText).toMatch(/Activity log/i);
+    expect(activityDeckText).toMatch(/Student artifact/i);
+    expect(activityDeckText).not.toMatch(/state one supported|instructor[- ]provided|Fact [234]\b/i);
+
+    const activityBrief = compiled.assignments.assignments.find((brief) => brief.activityPacket);
+    expect(activityBrief).toMatchObject({
+      lessonNumber: 1,
+      assignmentType: 'Experiential activity packet',
+    });
+    expect(activityBrief.activityPacket.roles).toHaveLength(3);
+    expect(activityBrief.activityPacket.phases).toHaveLength(2);
+    expect(activityBrief.activityPacket.timing.reduce((sum, row) => sum + row.minutes, 0)).toBe(75);
+    expect(JSON.stringify(activityBrief.activityPacket)).toMatch(/fictional classroom dispute/i);
+    expect(JSON.stringify(activityBrief.activityPacket)).toMatch(/Role-only information|privateInformation/i);
+  });
+
+  it('falls back honestly when an activity request has no admitted blueprint', () => {
+    const blueprint = buildCourseBlueprint({
+      courseName: 'Materials Science',
+      lessons: [
+        {
+          title: 'Lesson 1: Tensile Testing Lab Investigation',
+          sections: [
+            {
+              topicSection: 'Stress-strain curves and measurement uncertainty',
+              learningObjectives: 'Interpret a stress-strain curve from measured load and extension.',
+              weeklyAssessments: 'Stress-strain interpretation note.',
+              syncActivities: 'Laboratory investigation with measurement and analysis roles.',
+            },
+          ],
+        },
+      ],
+    });
+    const compiled = compileBlueprintDeliverables(blueprint, ['lessonPlans', 'assignments'], {
+      enforceCompilerContract: false,
+    });
+    const plan = compiled.lessonPlans.lessonPlans[0];
+
+    expect(plan.experientialActivityStatus).toMatchObject({
+      status: 'standard-lesson-fallback',
+      note: expect.stringContaining('no validated activity blueprint was admitted'),
+    });
+    expect(compiled.assignments.assignments.some((brief) => brief.activityPacket)).toBe(false);
+    expect(JSON.stringify(compiled)).not.toMatch(/border incident|coastal-security delegation|corridor protocol/i);
+  });
+});
+
 describe('discipline-safe deterministic worked examples', () => {
   it('does not turn an information-literacy synthesis matrix into linear algebra', () => {
     const blueprint = buildCourseBlueprint(
@@ -4823,7 +5034,7 @@ describe('courseBlueprintCompiler', () => {
     expect(blueprint.lessons[0].evidencePlan.evidenceRequirement).toContain('Use a concrete detail');
     expect(blueprint.lessons[0].sourceUsePlan).toMatchObject({
       approvedSources: expect.arrayContaining(['Case packet 1']),
-      citationExpectation: expect.stringContaining('Use instructor-provided materials'),
+      citationExpectation: expect.stringContaining('Use the assigned course materials'),
       studentAttributionMove: expect.stringContaining('Before explaining Policy Topic 1'),
       noInventedSources: expect.stringContaining('Do not invent authors'),
       sourceEvaluationPrompt: expect.stringContaining('what it cannot prove'),
@@ -7880,6 +8091,34 @@ describe('courseBlueprintCompiler', () => {
       'UH OER human nutrition 2e §Ch. 2 — The Digestive System',
       'UH OER human nutrition 2e §Ch. 3 — Water and Electrolytes',
     ]);
+    expect(group.entries.every((entry) => !entry.license && !entry.attribution)).toBe(true);
+  });
+
+  it('does not repeat license or attribution already stated inside a source citation', () => {
+    const blueprint = buildCourseBlueprint(makeCourseMap(2));
+    blueprint.knowledgeResources = [
+      {
+        origin: 'other',
+        citation:
+          'Spindler, Manuela (2013). International Relations: A Self-Study Guide to Theory. Library of Congress: https://www.loc.gov/item/2020718970/ (Library of Congress public metadata; rights vary)',
+        license: 'Library of Congress public metadata; rights vary',
+        attribution: 'Library of Congress',
+        url: 'https://www.loc.gov/item/2020718970/',
+      },
+      {
+        origin: 'other',
+        citation:
+          'Wikipedia contributors. Realism (international relations). Wikipedia: https://en.wikipedia.org/wiki/Realism_(international_relations) (CC BY-SA 4.0)',
+        license: 'CC BY-SA 4.0',
+        attribution: 'Wikipedia contributors',
+        url: 'https://en.wikipedia.org/wiki/Realism_(international_relations)',
+      },
+    ];
+
+    const syllabus = compileBlueprintDeliverables(blueprint, ['syllabus']).syllabus.syllabus;
+    const group = syllabus.sourcesAndLicenses.groups.find((entry) => entry.origin === 'other');
+
+    expect(group.entries).toHaveLength(2);
     expect(group.entries.every((entry) => !entry.license && !entry.attribution)).toBe(true);
   });
 

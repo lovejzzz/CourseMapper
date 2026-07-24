@@ -176,7 +176,14 @@ function compactArtifactHeadReference(value, lessonNumber = 0) {
   // the performing-arts modality that the brief is supposed to preserve.
   const recordedPerformanceHead = label.match(/\brecording\b/i)?.[0];
   const head = recordedPerformanceHead?.toLowerCase() || label.match(/[A-Za-z][A-Za-z'-]*$/)?.[0]?.toLowerCase() || '';
-  if (!head || /^(?:week|lesson|artifact|task|item|work)$/.test(head)) return '';
+  if (
+    !head ||
+    /^(?:week|lesson|artifact|task|item|work|claim|concept|evidence|example|focus|lens|lenses|limitation|material|materials|reading|readings|resource|resources)$/.test(
+      head,
+    )
+  ) {
+    return '';
+  }
   return `${lessonNumber > 0 ? `Week ${lessonNumber}` : 'weekly'} ${head}`;
 }
 
@@ -273,6 +280,8 @@ export function compactAssignmentBriefBodyReferences({ brief = {}, lesson = {}, 
       brief?.title,
       week && canonicalLead ? `${week} ${canonicalLead}` : '',
       canonicalLead,
+      fallbackArtifact,
+      shortArtifact,
       lesson?.studentArtifact,
       lesson?.assessmentAnchor?.title,
       lesson?.assessmentAnchor?.artifact,

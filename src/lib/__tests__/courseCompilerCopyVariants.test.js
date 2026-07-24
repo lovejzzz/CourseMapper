@@ -57,6 +57,27 @@ describe('course compiler copy variants', () => {
     expect(body).toContain('Week 3 memo');
   });
 
+  it('falls back to the assessment genre instead of a trailing abstract noun', () => {
+    const longBodyAlias = 'Week 14 Core tenets of power politics limitation';
+    const result = compactAssignmentBriefBodyReferences({
+      brief: {
+        title: 'Core tenets of power politics application',
+        dueWeek: 'Week 14',
+        assignmentType: 'Checkpoint response',
+        overview: `${longBodyAlias} asks students to test a claim. Revise ${longBodyAlias} before submission.`,
+      },
+      lesson: {
+        lessonNumber: 14,
+        artifactGenre: { label: 'Checkpoint response' },
+      },
+      fullFocus: 'Core tenets of power politics',
+      fallbackArtifact: longBodyAlias,
+    });
+
+    expect(result.overview).not.toContain('Week 14 limitation');
+    expect(result.overview).toContain('Week 14 checkpoint response');
+  });
+
   it('keeps assignment identity visible without stamping the full lesson title through the body', () => {
     const focus = 'Meiosis and Gamete Formation';
     const result = compactAssignmentBriefBodyReferences({

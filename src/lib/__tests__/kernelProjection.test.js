@@ -876,6 +876,107 @@ describe('kernel parse → project → compile (end to end)', () => {
     expect(kernelPrompt.systemPrompt).not.toContain('correct 1-2 sentence definition');
   });
 
+  it('requests, admits, and projects one activity blueprint only for a qualifying lesson', () => {
+    const activityCourse = {
+      ...COURSE_MAP,
+      lessons: [
+        {
+          ...COURSE_MAP.lessons[0],
+          title: 'Lesson 1: Urban Heat Adaptation Role-Play',
+          sections: [
+            {
+              ...COURSE_MAP.lessons[0].sections[0],
+              topicSection: 'Urban heat exposure, neighborhood evidence, and adaptation trade-offs',
+              learningObjectives:
+                'Use temperature records and neighborhood heat exposure evidence in a structured role-play.',
+              syncActivities: 'Structured role-play with an evolving temperature-record update.',
+            },
+          ],
+        },
+      ],
+    };
+    const prompt = buildLessonKernelPrompt(activityCourse, [0]);
+    expect(prompt.activityLessonIds).toEqual(['lesson-1']);
+    expect(prompt.systemPrompt).toContain('EXPERIENTIAL ACTIVITY CONTRACT');
+    expect(prompt.userPrompt).toContain('activityBlueprints');
+
+    const response = JSON.parse(shortKeyResponse);
+    response.activityBlueprints = [
+      {
+        lessonId: 'lesson-1',
+        ty: 'Urban heat adaptation role-play',
+        sc: 'Two neighborhood teams must recommend one heat adaptation investment after reviewing unequal temperature exposure. A city team must choose a bounded response without treating one record as complete proof.',
+        ro: [
+          {
+            nm: 'Neighborhood evidence team',
+            go: 'Use the supplied heat exposure record to identify the most urgent need.',
+            co: 'Cannot claim that temperature records establish every cause of unequal exposure.',
+            pi: '',
+          },
+          {
+            nm: 'City adaptation team',
+            go: 'Select one feasible resilience investment from the supplied evidence.',
+            co: 'Must explain which neighborhood evidence supports the recommendation.',
+            pi: '',
+          },
+        ],
+        ev: [KERNEL.facts[5], KERNEL.facts[6]],
+        up: [
+          {
+            ti: 'Local record update',
+            in: 'A new city temperature record shows that the hotter neighborhood also has less tree cover.',
+            rd: 'Revise the adaptation recommendation or record why the existing choice remains defensible.',
+          },
+        ],
+        ar: {
+          ti: 'Heat adaptation recommendation card',
+          rq: [
+            'Name one neighborhood heat exposure pattern.',
+            'Recommend one resilience investment.',
+            'State one evidence limit that triggers review.',
+          ],
+        },
+        tm: [
+          { ph: 'Evidence briefing', mn: 10 },
+          { ph: 'Role preparation', mn: 15 },
+          { ph: 'Record update', mn: 25 },
+          { ph: 'Recommendation and debrief', mn: 25 },
+        ],
+        db: [
+          'Which temperature record most changed the adaptation recommendation?',
+          'Which evidence limit should remain visible in the final recommendation?',
+        ],
+        sb: 'Use only the supplied neighborhood records and do not treat the fictional role-play as a real city decision.',
+      },
+    ];
+
+    const parsed = parseLessonKernelResponse(JSON.stringify(response), { prompt });
+    expect(parsed.lessons['lesson-1'].experientialActivity).toMatchObject({
+      protocol: 'scion-experiential-activity-v1',
+      activityType: 'Urban heat adaptation role-play',
+      artifact: { title: 'Heat adaptation recommendation card' },
+    });
+
+    const missing = { ...response, activityBlueprints: [] };
+    const missingParsed = parseLessonKernelResponse(JSON.stringify(missing), { prompt });
+    expect(missingParsed.lessons['lesson-1'].experientialActivity).toBeUndefined();
+    expect(missingParsed.issues).toContainEqual(
+      expect.objectContaining({
+        surface: 'experientialActivity',
+        problems: ['missing-activity-blueprint'],
+      }),
+    );
+
+    const ordinaryPrompt = buildLessonKernelPrompt(COURSE_MAP, [0]);
+    const unexpectedParsed = parseLessonKernelResponse(JSON.stringify(response), { prompt: ordinaryPrompt });
+    expect(unexpectedParsed.issues).toContainEqual(
+      expect.objectContaining({
+        surface: 'experientialActivity',
+        problems: ['unexpected-activity-blueprint'],
+      }),
+    );
+  });
+
   it('grounds cumulative review lessons in prior canonical lesson topics', () => {
     const reviewCourse = {
       courseName: 'Elementary Mandarin Chinese I',

@@ -33,7 +33,7 @@ export const SCION_ADAPTER_DEFAULT_SOURCES = [
 ];
 const DEFAULT_OUTPUT = 'trellis/tendril/distill/data-g4-orpo/curated';
 const DEFAULT_DOMAIN_MAP = 'evaluation/scion-course-domain-map.json';
-export const SCION_ADAPTER_DEFAULT_HELDOUT_BENCHMARK = 'evaluation/scion-adapters/held-out-course-benchmark-v21.json';
+export const SCION_ADAPTER_DEFAULT_HELDOUT_BENCHMARK = 'evaluation/scion-adapters/held-out-course-benchmark-v22.json';
 const DEFAULT_SOURCES = SCION_ADAPTER_DEFAULT_SOURCES;
 const DEFAULT_HELDOUT_BENCHMARK = SCION_ADAPTER_DEFAULT_HELDOUT_BENCHMARK;
 export const SCION_ADAPTER_DATASET_PROFILES = Object.freeze({

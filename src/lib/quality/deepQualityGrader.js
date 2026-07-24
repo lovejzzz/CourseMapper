@@ -78,9 +78,15 @@ import { addPackageQuizDepthFindings } from './quizItemDepth.js';
 import { detectForeignLanguageTeachingContent, mandarinTargetLanguageRequirements } from '../languageIdentityGuard.js';
 import {
   buildAdditionalSubstanceFindings,
+  buildExperientialActivityFindings,
   comparativeAssessmentContractFinding,
 } from './deepQualitySubstanceDetails.js';
 import { parseClassSessionMinutes } from '../sourceBriefConstraints.js';
+import {
+  CLIPPED_SLIDE_INSTRUCTION_RE,
+  ENRICHED_DECK_TITLE_PATTERNS,
+  PACKAGE_TEMPLATE_PHRASES,
+} from './deepQualityFormatDetails.js';
 
 // v0.14.3 WS-A A3: the grader version stamped into manifest.quality. Bump on
 // any change to checks, weights, or severity penalties so a package's quality
@@ -186,7 +192,16 @@ import { parseClassSessionMinutes } from '../sourceBriefConstraints.js';
 // 1.10.35 — comparative response sequences and final comparative papers must
 // carry their full multi-text evidence/counter-reading/claim-limit contract;
 // a generic single-text brief can no longer retain a false 99/A.
-export const GRADER_VERSION = '1.10.35';
+// 1.10.36 — exported compiler placeholders, current enriched-deck visual
+// titles, visibly clipped slide instructions, and interactive simulations
+// without roles/rounds/decision artifacts are score-bearing.
+// 1.10.37 — every named experiential activity must ship one runnable protocol
+// across its lesson plan, deck, and activity brief: a concrete situation,
+// constrained participant or working roles, inspectable evidence, evolving
+// phases, a required action, exact clock, named artifact, debrief, and safety
+// or evidence boundary. Generic instructor-provided/selected packet language
+// is score-bearing.
+export const GRADER_VERSION = '1.10.37';
 
 // ── Dimension weights & letter bands (documented in the module header) ──────
 // v0.15.186: texture weight 10 → 25. At 10/120 a fully templated package
@@ -2243,6 +2258,12 @@ function checkSubstance(findings, { files }, course = {}) {
   for (const finding of buildAdditionalSubstanceFindings({ files, course, quoteEvidence: quote })) {
     findings.add(finding);
   }
+  for (const finding of buildExperientialActivityFindings({
+    files,
+    titleForFile: (file) => lessonTitleFromPath(file.path) || inferDocumentLessonTitle(file),
+  })) {
+    findings.add(finding);
+  }
 
   // (1) cross-lesson boilerplate ratio per deliverable type.
   for (const [featureId, thresholds] of Object.entries(SUBSTANCE_BOILERPLATE_THRESHOLDS)) {
@@ -2388,7 +2409,11 @@ function checkSubstance(findings, { files }, course = {}) {
 // misconception slide or the "Worked example: …" walkthrough). The pptx loses
 // the blueprint's enrichmentSource, so the slide title is the durable signal.
 function deckCarriesKernelSlide(deck) {
-  return (deck.slides || []).some((slide) => /\bcommon pitfalls\b|\bworked example\b/i.test(slide.title || ''));
+  return (deck.slides || []).some((slide) =>
+    /\bcommon pitfalls\b|\bworked example\b|:\s*core model$|^What the evidence shows about\b|^Test\b.+\bwith a concrete case$/i.test(
+      slide.title || '',
+    ),
+  );
 }
 
 // v0.14.3 D4: port of the WS-D countContentSlides counter (tests/v0143-depth-
@@ -3520,29 +3545,6 @@ const VISUAL_LAYER_MARKER = /name="cmViz/;
 const NATIVE_VISUAL_SHAPE = /name="cmViz(?:Hub|Spoke|Conn|Chart|Table|Matrix)/;
 // Kernel-derived slide titles the compiler emits deterministically — the
 // "enriched deck" signal readable from rendered XML alone.
-const ENRICHED_DECK_TITLE_PATTERNS = [/^Worked example: /i, /^Common pitfalls in /i, /^How Experts Think/i];
-
-const PACKAGE_TEMPLATE_PHRASES = [
-  { label: '"Lesson N application check"', pattern: /\bLesson\s+\d+\s+application check\b/gi, threshold: 3 },
-  { label: '"Week N covering"', pattern: /\bWeek\s+\d+\s+covering\b/gi, threshold: 6 },
-  {
-    label: '"Instructor notes and selected readings"',
-    pattern: /\bInstructor notes and selected readings\b/gi,
-    threshold: 4,
-  },
-  {
-    label: '"Course LMS and standard document tools"',
-    pattern: /\bCourse LMS and standard document tools\b/gi,
-    threshold: 4,
-  },
-  {
-    label: '"Build a working understanding"',
-    pattern: /\bBuild a working understanding of\b/gi,
-    threshold: 4,
-  },
-  { label: '"Short formative check covering"', pattern: /\bShort formative check covering\b/gi, threshold: 4 },
-];
-
 function checkDeckVisuals(findings, { files }) {
   const decks = files.filter((file) => file.featureId === 'slideDecks' && file.kind === 'pptx');
   if (!decks.some((deck) => VISUAL_LAYER_MARKER.test(deck.rawXml || ''))) return;
@@ -3573,7 +3575,7 @@ function checkFormat(findings, { files }) {
   ];
   for (const file of files) {
     const templateArtifact =
-      /\b(this this lesson|this the lesson|the lesson criterion|feedback-(?:based|informed)\s+the\s+|make\s+[^.!?]{1,100}\s+defend\s+one|strong\s+[^.!?]{1,100}\s+anchor\.|(?:Proof-based problem set|Computational lab in Python):\s*(?:This|The)\s+lesson)\b/i.exec(
+      /\b(this this lesson|this the lesson|the lesson criterion|feedback-(?:based|informed)\s+the\s+|make\s+[^.!?]{1,100}\s+defend\s+one|strong\s+[^.!?]{1,100}\s+anchor\.|(?:the\s+)?Week\s+\d+\s+(?:lenses?|limitation)\b|(?:Proof-based problem set|Computational lab in Python):\s*(?:This|The)\s+lesson)\b/i.exec(
         file.text || '',
       );
     if (templateArtifact) {
@@ -3656,6 +3658,18 @@ function checkFormat(findings, { files }) {
     // ("…the course pattern: run", "…checkpoint should point").
     if (file.featureId === 'slideDecks') {
       const titleSet = new Set((file.slides || []).map((slide) => (slide.title || '').replace(/\s+/g, ' ').trim()));
+      const clippedInstruction = (file.paragraphs || []).find((line) =>
+        CLIPPED_SLIDE_INSTRUCTION_RE.test(String(line).trim()),
+      );
+      if (clippedInstruction) {
+        findings.add({
+          severity: 'P1',
+          dimension: 'format',
+          file: file.path,
+          detail: 'slide instruction is visibly clipped before its concept or reference is complete',
+          evidence: quote(clippedInstruction),
+        });
+      }
       for (const line of file.paragraphs || []) {
         if (titleSet.has(line)) continue;
         if (isTruncatedBulletLine(line) && endsMidClause(line)) {

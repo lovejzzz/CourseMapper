@@ -15,6 +15,7 @@
 // character admission after decoding.
 
 import { LOCAL_PROVIDER_ID } from './localProvider.js';
+import { compactActivityBlueprintJsonSchema } from './experientialActivityContract.js';
 
 export function isScionProvider(provider) {
   return provider === LOCAL_PROVIDER_ID;
@@ -29,6 +30,10 @@ const str = (minLength, maxLength) => {
     pattern: `^\\S{1,24}( \\S{1,24}){${minWords - 1},${maxWords - 1}}$`,
   };
 };
+const words = (minWords, maxWords, maxWordLength = 24) => ({
+  type: 'string',
+  pattern: `^\\S{1,${maxWordLength}}( \\S{1,${maxWordLength}}){${Math.max(0, minWords - 1)},${Math.max(0, maxWords - 1)}}$`,
+});
 const arr = (items, minItems, maxItems) => ({ type: 'array', items, minItems, maxItems });
 
 function lockObjects(node) {
@@ -115,27 +120,40 @@ function kernelFieldSchemas({ mcCount = 4, keyTermCount = 4, requiresTargetLangu
  * richer paid-model Pass B schema prevents a family label from silently
  * widening the task the adapter is asked to perform.
  */
-export function compactLessonKernelSchemaProfile({ expectedLessonIds = [], factCount = 5 } = {}) {
+export function compactLessonKernelSchemaProfile({
+  expectedLessonIds = [],
+  factCount = 5,
+  activityLessonIds = [],
+} = {}) {
   const lessonIds = expectedLessonIds.filter(Boolean);
+  const activityIds = activityLessonIds.filter((lessonId) => lessonIds.includes(lessonId));
   const requiredFactCount = Math.max(3, Math.min(5, Number(factCount) || 5));
   const schema = {
     type: 'object',
     properties: {
+      ...(activityIds.length > 0 ? { activityBlueprints: compactActivityBlueprintJsonSchema(activityIds) } : {}),
       lessons: arr(
         {
           type: 'object',
           properties: {
             lessonId: lessonIds.length > 0 ? { type: 'string', enum: lessonIds } : str(3, 32),
-            facts: arr(str(20, 260), requiredFactCount, requiredFactCount),
+            facts: arr(words(8, 20), requiredFactCount, requiredFactCount),
             keyTerms: arr(
               {
                 type: 'object',
                 properties: {
-                  tr: str(2, 60),
-                  df: str(40, 380),
-                  eg: str(12, 300),
-                  mi: str(12, 300),
-                  cx: str(12, 300),
+                  tr: words(1, 4),
+                  df: words(7, 45),
+                  eg: words(5, 30),
+                  mi: words(6, 32),
+                  cx: {
+                    type: 'object',
+                    properties: {
+                      reject: words(3, 16),
+                      replace: words(5, 28),
+                    },
+                    required: ['reject', 'replace'],
+                  },
                 },
                 required: ['tr', 'df', 'eg', 'mi', 'cx'],
               },
@@ -144,18 +162,18 @@ export function compactLessonKernelSchemaProfile({ expectedLessonIds = [], factC
             ),
             scenario: {
               type: 'object',
-              properties: { su: str(45, 500), ma: str(10, 300) },
+              properties: { su: words(18, 70), ma: words(4, 32) },
               required: ['su', 'ma'],
             },
             mc: arr(
               {
                 type: 'object',
                 properties: {
-                  q: str(25, 300),
-                  op: arr(str(5, 140), 4, 4),
-                  ai: { type: 'integer', enum: [0] },
+                  q: words(20, 45),
+                  op: arr(words(4, 10), 4, 4),
+                  ai: { type: 'integer', minimum: 0, maximum: 3 },
                   fi: arr({ type: 'integer', minimum: 0, maximum: requiredFactCount - 1 }, 1, 2),
-                  ex: str(40, 380),
+                  ex: words(18, 55),
                 },
                 required: ['q', 'op', 'ai', 'fi', 'ex'],
               },
@@ -169,7 +187,7 @@ export function compactLessonKernelSchemaProfile({ expectedLessonIds = [], factC
         lessonIds.length || 1,
       ),
     },
-    required: ['lessons'],
+    required: [...(activityIds.length > 0 ? ['activityBlueprints'] : []), 'lessons'],
   };
   lockObjects(schema);
   return { name: 'scion_compact_lesson_kernel_v1', schema, strict: true };

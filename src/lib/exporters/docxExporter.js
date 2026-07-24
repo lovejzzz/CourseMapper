@@ -568,6 +568,9 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           children.push(makeSubHeading('Learning Objectives'));
           p.objectives.forEach((o) => children.push(makeBullet(o)));
         }
+        if (p.experientialActivityStatus?.status === 'standard-lesson-fallback') {
+          children.push(makeCallout('Activity readiness', p.experientialActivityStatus.note));
+        }
         // Warm-Up
         if (p.warmUp) {
           children.push(makeSubHeading('Warm-Up'));
@@ -603,7 +606,12 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
             if (row.bloomsLevel) actParts.push(`Bloom: ${row.bloomsLevel}`);
             return [row.time || '', actParts.filter(Boolean).join(' · '), desc];
           });
-          children.push(makeTableFn(colDXA, ['Time', 'Activity', 'Description & Notes'], outlineRows));
+          // A complete teaching move must stay together. Without cantSplit,
+          // Word/LibreOffice can leave "9" at the foot of one page and the
+          // orphan word "minutes" at the top of the next.
+          children.push(
+            makeTableFn(colDXA, ['Time', 'Activity', 'Description & Notes'], outlineRows, { cantSplit: true }),
+          );
         }
         // v0.14.5 (F2): language-course dialogue practice — 4-6 model-authored
         // turns using the lesson's vocabulary, inside the practice block.
@@ -1038,6 +1046,61 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         if (a.relatedLessons?.length) children.push(makeBold('Related Lessons', a.relatedLessons.join(', ')));
         if (a.overview) children.push(makeBold('Overview', a.overview));
         if (a.description) children.push(makeBold('Description', a.description));
+        if (a.activityPacket) {
+          const packet = a.activityPacket;
+          children.push(makeSubHeading('Activity Briefing'));
+          if (packet.activityType) children.push(makeBold('Activity Type', packet.activityType));
+          if (packet.scenario) children.push(makeBold('Situation', packet.scenario));
+          if (packet.safetyBoundary) children.push(makeCallout('Safety and evidence boundary', packet.safetyBoundary));
+          if (packet.evidence?.length) {
+            children.push(makeSubHeading('Inspect Before Acting'));
+            packet.evidence.forEach((item) => children.push(makeBullet(item)));
+          }
+          if (packet.roles?.length) {
+            children.push(makeSubHeading('Participant or Working Roles'));
+            packet.roles.forEach((role) => {
+              if (role.goal) children.push(makeBold(role.name || 'Activity role', role.goal, { keepNext: true }));
+              if (role.constraint) children.push(makeBold('Constraint', role.constraint, { keepNext: true }));
+              if (role.privateInformation) children.push(makeCallout('Role-only information', role.privateInformation));
+            });
+          }
+          if (packet.phases?.length) {
+            children.push(makeSubHeading('Phases and Updates'));
+            packet.phases.forEach((phase) => {
+              if (phase.information)
+                children.push(makeBold(phase.title || 'Activity phase', phase.information, { keepNext: true }));
+              if (phase.requiredDecision)
+                children.push(makeBold('Required decision or action', phase.requiredDecision));
+            });
+          }
+          if (packet.timing?.length) {
+            children.push(makeSubHeading('Activity Clock'));
+            packet.timing.forEach((row, index) =>
+              children.push(makeNumbered(index + 1, `${row.phase} — ${row.minutes} minutes`)),
+            );
+            children.push(makeBold('Total time', `${packet.totalMinutes} minutes`));
+          }
+          if (packet.activityLogFields?.length) {
+            children.push(makeSubHeading('Activity Log'));
+            children.push(
+              makeText(
+                'Record one row whenever the evidence, constraint, decision, action, or interpretation changes.',
+              ),
+            );
+            packet.activityLogFields.forEach((field) => children.push(makeBullet(field)));
+          }
+          if (packet.artifact?.title) {
+            children.push(makeSubHeading('Student Artifact'));
+            children.push(makeBold('Artifact', packet.artifact.title));
+            packet.artifact.requirements?.forEach((requirement, index) =>
+              children.push(makeNumbered(index + 1, requirement)),
+            );
+          }
+          if (packet.debriefPrompts?.length) {
+            children.push(makeSubHeading('Debrief'));
+            packet.debriefPrompts.forEach((prompt) => children.push(makeBullet(prompt)));
+          }
+        }
         // v0.14.1 (3.2c): oral prompt sheets carry their speaking tasks.
         if (Array.isArray(a.speakingPrompts) && a.speakingPrompts.length > 0) {
           children.push(makeSubHeading('Speaking Prompts'));

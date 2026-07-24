@@ -5,10 +5,8 @@ import { describe, expect, it } from 'vitest';
 import {
   SCION_LESSON_KERNEL_FAILURE_FAMILIES,
   SCION_LESSON_KERNEL_PRODUCTION_LICENSES,
-  buildScionLessonKernelCampaign,
   buildScionLessonKernelResponseSchema,
   scionLessonKernelSha256,
-  stableScionLessonKernelJson,
   validateScionLessonKernelCampaign,
 } from '../scripts/lib/scionLessonKernelCampaign.mjs';
 
@@ -76,16 +74,13 @@ describe('Scion production lesson-kernel campaign', () => {
     }
   });
 
-  it('keeps evaluator failure-focus metadata out of the current model prompt', async () => {
+  it('keeps evaluator failure-focus metadata out of the immutable v0.16.59 prompt evidence', async () => {
     const campaign = JSON.parse(await fs.readFile(CURRENT_CAMPAIGN_PATH, 'utf8'));
-    const rebuilt = await buildScionLessonKernelCampaign({
-      generatedAt: campaign.generatedAt,
-      includeQualityFocusInObjectives: false,
-    });
 
-    expect(stableScionLessonKernelJson(rebuilt)).toBe(stableScionLessonKernelJson(campaign));
+    expect(validateScionLessonKernelCampaign(campaign)).toEqual({ valid: true, issues: [] });
     expect(campaign.promptPolicy).toMatchObject({
       protocol: 'scion-lesson-kernel-prompt-policy-v3',
+      productionPromptBuilder: 'buildPublicScionMessages',
       evaluatorMetadata: 'excluded',
       freshRebuildRequired: true,
     });

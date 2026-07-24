@@ -248,6 +248,30 @@ describe('xlsxGenerator', () => {
     expect(workbook).toContain("'Course Map'!$1:$1");
   });
 
+  it('balances long course maps across two print pages at a lesson boundary', async () => {
+    const map = twoLessonMap();
+    map.lessons = Array.from({ length: 14 }, (_, lessonIndex) => ({
+      ...map.lessons[lessonIndex % map.lessons.length],
+      title: `Lesson ${lessonIndex + 1}`,
+      sections: Array.from({ length: 2 }, (_, sectionIndex) => ({
+        ...map.lessons[lessonIndex % map.lessons.length].sections[0],
+        topicSection: `${lessonIndex + 1}.${sectionIndex + 1}: Topic`,
+      })),
+    }));
+
+    const buffer = await buildXlsxBuffer(map, columns);
+    const text = await sheetText(buffer);
+
+    // Fourteen two-section lessons yield 28 data rows. The repeated header is
+    // row 1, so the balanced break falls below row 15 (after lesson seven).
+    expect(text).toContain(
+      '<rowBreaks count="1" manualBreakCount="1"><brk id="15" min="0" max="16383" man="1"/></rowBreaks>',
+    );
+    expect(text).toContain('<pageSetUpPr/>');
+    expect(text).toContain('<printOptions horizontalCentered="1" verticalCentered="1"/>');
+    expect(text).toContain('<pageSetup orientation="landscape" scale="38"/>');
+  });
+
   it('right-sizes columns from the production audit', async () => {
     const map = twoLessonMap();
     map.lessons[0].sections[0].presentationFormat = 'Slides + live demo';

@@ -95,7 +95,7 @@ describe('deep quality package structure', () => {
     });
 
     expect(result.findings.some((finding) => /classroom clock/i.test(finding.detail))).toBe(false);
-    expect(GRADER_VERSION).toBe('1.10.35');
+    expect(GRADER_VERSION).toBe('1.10.37');
   });
 
   it('treats typed-object leaks and mirrored assessment identities as scored export defects', async () => {
@@ -350,6 +350,80 @@ describe('deep quality package structure', () => {
           detail: expect.stringContaining('local-confirmation placeholder'),
         }),
       ]),
+    );
+  });
+
+  it('blocks abstract week labels and clipped slide instructions seen in the v0.16.76 IR run', async () => {
+    const slidePath = 'Slide Decks/Lesson 11 - Crisis Simulation - Slide Decks.txt';
+    const planPath = 'Lesson Plans/Lesson 11 - Crisis Simulation - Lesson Plans.txt';
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          lessonScope: [11],
+          readiness: { status: 'ready', blockers: 0 },
+          files: [
+            { path: slidePath, featureId: 'slideDecks' },
+            { path: planPath, featureId: 'lessonPlans' },
+          ],
+        }),
+        [slidePath]: ['Crisis Simulation: core model', 'Prerequisite concept: 10.', 'Applying theoretical.'].join('\n'),
+        [planPath]: 'Students improve the Week 11 lenses through the Week 11 lenses to conflict scenarios.',
+      }),
+      course: { title: 'Introduction to International Relations', featureIds: ['slideDecks', 'lessonPlans'] },
+      honesty: { pipeline: { judgment: 'compiler-verified fixture' } },
+    });
+
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          severity: 'P1',
+          dimension: 'format',
+          file: planPath,
+          detail: expect.stringContaining('generic lesson placeholder'),
+        }),
+        expect.objectContaining({
+          severity: 'P1',
+          dimension: 'format',
+          file: slidePath,
+          detail: expect.stringContaining('visibly clipped'),
+        }),
+        expect.objectContaining({
+          severity: 'P1',
+          dimension: 'substance',
+          file: slidePath,
+          detail: expect.stringContaining('experiential activity slideDecks is missing'),
+        }),
+      ]),
+    );
+  });
+
+  it('does not let an ordinary claim-card lesson masquerade as a crisis simulation', async () => {
+    const planPath = 'Lesson Plans/Lesson 11 - Crisis Simulation - Lesson Plans.txt';
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          lessonScope: [11],
+          readiness: { status: 'ready', blockers: 0 },
+          files: [{ path: planPath, featureId: 'lessonPlans' }],
+        }),
+        [planPath]: [
+          'Lesson 11: Crisis Simulation',
+          'Students compare Claim A and Claim B.',
+          'Pairs decide which claim is better supported by the source packet.',
+          'Close with an individual reflection.',
+        ].join('\n'),
+      }),
+      course: { title: 'Introduction to International Relations', featureIds: ['lessonPlans'] },
+      honesty: { pipeline: { judgment: 'compiler-verified fixture' } },
+    });
+
+    expect(result.findings).toContainEqual(
+      expect.objectContaining({
+        severity: 'P1',
+        dimension: 'substance',
+        file: planPath,
+        detail: expect.stringContaining('experiential activity lessonPlans is missing'),
+      }),
     );
   });
 });

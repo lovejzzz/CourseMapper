@@ -493,7 +493,10 @@ function planNativeVisual(s, slideType, visKind, hasGeneratedImage, hasLatex) {
       .filter(
         (row) => row.length === 2 && row[0] && row[1] && row[0].length <= rowLeadLimit && row[1].length <= rowLimit,
       )
-      .slice(0, 4);
+      // Keep the fixed-height evidence table readable. Four prose-heavy rows
+      // force PowerPoint/LibreOffice to clip the final cell even when the
+      // descriptor itself is valid.
+      .slice(0, 3);
     if (rows.length < 2) return null;
     const descriptorLead = String(visual.tableLead || '').trim();
     const lead = descriptorLead || bullets[0];
@@ -1656,6 +1659,27 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
       altText: 'Decorative',
     });
 
+    // Add the real heading before decorative label text. Export inspection
+    // uses the first text run as the slide title; writing ACTIVITY first made
+    // multiple activity frames look like duplicate-titled slides even though
+    // their visible headings were unique.
+    const actTitleText = s.title || 'Activity';
+    const actTitleW = W - 4.5,
+      actTitleH = 0.7;
+    const actTitleSize = autoFitFontSize(actTitleText, actTitleW, actTitleH, FONT_HEADING, 22, 14);
+    slide.addText(actTitleText, {
+      x: 1.9,
+      y: 0.12,
+      w: actTitleW,
+      h: actTitleH,
+      fontSize: actTitleSize,
+      color: 'FFFFFF',
+      bold: true,
+      fontFace: FONT_HEADING,
+      valign: 'middle',
+    });
+    tracker.add({ x: 1.9, y: 0.12, w: actTitleW, h: actTitleH, label: 'activity-title' });
+
     // ACTIVITY badge
     slide.addShape(pptx.ShapeType.roundRect, {
       x: 0.5,
@@ -1696,24 +1720,6 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
         fontFace: FONT_BODY,
       });
     }
-
-    // Auto-fit activity title from 22pt down to 14pt
-    const actTitleText = s.title || 'Activity';
-    const actTitleW = W - 4.5,
-      actTitleH = 0.7;
-    const actTitleSize = autoFitFontSize(actTitleText, actTitleW, actTitleH, FONT_HEADING, 22, 14);
-    slide.addText(actTitleText, {
-      x: 1.9,
-      y: 0.12,
-      w: actTitleW,
-      h: actTitleH,
-      fontSize: actTitleSize,
-      color: 'FFFFFF',
-      bold: true,
-      fontFace: FONT_HEADING,
-      valign: 'middle',
-    });
-    tracker.add({ x: 1.9, y: 0.12, w: actTitleW, h: actTitleH, label: 'activity-title' });
 
     // Activity card
     slide.addShape(pptx.ShapeType.roundRect, {
@@ -2284,6 +2290,22 @@ function resolveTheme(deckIndex, themeIndex) {
   return THEMES[deckIndex % THEMES.length];
 }
 
+function isCompleteExperientialDeck(slides = []) {
+  if (slides.length < 4) return false;
+  if (!slides.every((slide) => slide?.enrichmentSource === 'scion-experiential-activity-v1')) return false;
+  const bulletText = slides
+    .flatMap((slide) => (Array.isArray(slide?.bullets) ? slide.bullets : []))
+    .map((bullet) => String(bullet || '').trim());
+  return (
+    bulletText.some((bullet) => /^Situation:/i.test(bullet)) &&
+    bulletText.some((bullet) => /^Activity clock:/i.test(bullet) && /Total time:/i.test(bullet)) &&
+    bulletText.some((bullet) => /^Participant or working roles:/i.test(bullet)) &&
+    bulletText.some((bullet) => /^Evidence:/i.test(bullet)) &&
+    bulletText.some((bullet) => /^Student artifact\b/i.test(bullet)) &&
+    bulletText.some((bullet) => /^Structured debrief:/i.test(bullet))
+  );
+}
+
 /**
  * Create a pptx instance with all decks.
  */
@@ -2319,7 +2341,11 @@ async function createPptxWithDecks(data, courseName, themeIndex) {
       if (built?.nativeVisualType) nativeVisualCount += 1;
     }
 
-    deckAudit.push({ lesson: deck.lessonTitle || `Deck ${di + 1}`, slides: slides.length });
+    deckAudit.push({
+      lesson: deck.lessonTitle || `Deck ${di + 1}`,
+      slides: slides.length,
+      completeExperientialDeck: isCompleteExperientialDeck(slides),
+    });
   }
 
   // ── Slide deck audit logging ──
@@ -2337,7 +2363,13 @@ async function createPptxWithDecks(data, courseName, themeIndex) {
     console.log(
       `[CM] PPTX audit: ${deckAudit.length} decks, ${totalSlides} total slides, ${nativeVisualCount} native visuals (min: ${minSlides}, max: ${maxSlides}, median: ${median})`,
     );
-    const thin = deckAudit.filter((d) => d.slides < Math.max(5, Math.floor(median * 0.4)));
+    // A canonical experiential deck intentionally carries one slide per
+    // phase. Its four complete runnable frames are not comparable to the
+    // ordinary concept-deck median, so judge it by the activity contract
+    // above instead of emitting a misleading thin-deck warning.
+    const thin = deckAudit.filter(
+      (d) => !d.completeExperientialDeck && d.slides < Math.max(5, Math.floor(median * 0.4)),
+    );
     if (thin.length > 0) {
       console.warn(
         `[CM] PPTX: ${thin.length} deck(s) with unusually few slides:`,

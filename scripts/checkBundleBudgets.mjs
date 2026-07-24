@@ -178,7 +178,17 @@ const lazyChunkBudgets = [
   // routing, punctuation normalization, and sentence-safe slide notes. The
   // lazy chunk measures 837.8/233.9; keep narrow 2.2/1.1 KiB headroom while
   // the compiler-data split remains the next structural reduction.
-  { prefix: 'courseBlueprintCompiler-', rawKiB: 840, gzipKiB: 235 },
+  // The experiential-activity IR adds a small dispatch seam after moving its
+  // deterministic projections into a separate chunk. Retain narrow headroom.
+  { prefix: 'courseBlueprintCompiler-', rawKiB: 842, gzipKiB: 236 },
+  // Experiential-activity mechanics are compiler-owned and independently
+  // cacheable beside the lazy compiler. The chunk projects the canonical
+  // activity clock, evidence, constraints, decisions, artifact, and debrief
+  // without carrying any fixed discipline scenario. The final clean build
+  // measured 24.6/7.8 KiB; keep less than 0.4 KiB raw headroom and preserve
+  // the tighter 8.5 KiB gzip ceiling.
+  { prefix: 'compilerExperientialActivity-', rawKiB: 25, gzipKiB: 8.5 },
+  { prefix: 'compilerFactLedgerVisuals-', rawKiB: 3, gzipKiB: 1.5 },
   // Exact target-language assessment and lesson-plan frames are substantial
   // compile-only data. They remain cacheable beside the compiler without
   // weakening the compiler's long-standing size ratchet.
@@ -224,8 +234,9 @@ const lazyChunkBudgets = [
   // v0.16.65: varied assessment and material-polish copy moved out of the
   // compiler hot chunk. This compile-only leaf stays independently cacheable.
   { prefix: 'compilerPolish-', rawKiB: 8, gzipKiB: 3 },
-  // v0.16.73 learner-visible not-applicable states measure 163.8/35.2.
-  { prefix: 'DeliverableView-', rawKiB: 170, gzipKiB: 35.5 },
+  // v0.16.73 learner-visible not-applicable states measured 163.8/35.2.
+  // The editable activity briefing remains isolated from the main view.
+  { prefix: 'DeliverableView-', rawKiB: 170, gzipKiB: 36.5 },
   // Fact-ledger feedback normalization is a pure authoring/compiler helper
   // and remains off the landing route.
   { prefix: 'factLedgerFeedback-', rawKiB: 5, gzipKiB: 2.5 },
@@ -271,6 +282,9 @@ const lazyChunkBudgets = [
   // v0.16.73 adds the exact reader-visible punctuation and internal-language
   // gates behind grader 1.10.34 (66.3/22.9 measured).
   { prefix: 'deepQualityGrader-', rawKiB: 67, gzipKiB: 23.25 },
+  // High-signal format patterns stay finalize-only and independently
+  // cacheable from the grader control-flow chunk.
+  { prefix: 'deepQualityFormatDetails-', rawKiB: 4, gzipKiB: 2 },
   // v0.16.71: premium finish checks remain finalize-only and independently
   // cacheable from the grader's scoring/control-flow implementation.
   { prefix: 'deepQualitySubstanceDetails-', rawKiB: 8, gzipKiB: 3 },
@@ -298,8 +312,11 @@ const forbiddenInitialChunks = [
   /compilerRubricCopy/i,
   /compilerComparativeRubricBands/i,
   /compilerPolish/i,
+  /compilerExperientialActivity/i,
+  /compilerFactLedgerVisuals/i,
   /webllm/i,
   /deepQualityGrader/i,
+  /deepQualityFormatDetails/i,
   /deepQualitySubstanceDetails/i,
   /finalizeQualityGate/i,
   /citation-js/i,

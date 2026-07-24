@@ -914,6 +914,10 @@ export function projectKernelToSurfaces(
         parameters: (resolvedKernel.assignmentCore.parameters || []).map(cleanText).filter(Boolean),
       }
     : null;
+  const experientialActivity =
+    resolvedKernel?.experientialActivity && typeof resolvedKernel.experientialActivity === 'object'
+      ? resolvedKernel.experientialActivity
+      : null;
 
   // v0.13.3: optional quantitative worked example — projected into the
   // lesson-plan mini-lesson and the study guide.
@@ -945,6 +949,7 @@ export function projectKernelToSurfaces(
     ...(slideContent.length > 0 ? { slideContent } : {}),
     ...(discussionPrompt ? { discussionPrompt } : {}),
     ...(assignmentCore ? { assignmentCore } : {}),
+    ...(experientialActivity ? { experientialActivity } : {}),
     ...(workedExample ? { workedExample } : {}),
     // v0.14.3 D1(b): one genuinely unused bank item for the deck's second
     // application slide — never the same item the quiz slots consumed.

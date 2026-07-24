@@ -343,6 +343,44 @@ describe('C1/C2 — compiler slide-visual descriptors', () => {
     expect(walkthrough.visual.wePlot).toBeUndefined();
   });
 
+  it('turns a compact fact-only Scion kernel into a native fact-ledger table', async () => {
+    const factBlueprint = buildCourseBlueprint(geologyCourseMap(1), {
+      enrichment: {
+        source: 'test-enrichment',
+        lessonContent: {
+          'lesson-1': {
+            kernel: {
+              facts: [
+                'Stream discharge is the volume of water passing a cross-section per unit time.',
+                'Discharge combines channel area with flow velocity.',
+                'A rating curve estimates discharge from repeated stage and flow measurements.',
+                'A fourth long fact remains in the lesson ledger but does not crowd the fixed slide table.',
+              ],
+            },
+          },
+        },
+      },
+    });
+    const factDecks = compileBlueprintDeliverable('slideDecks', factBlueprint, { skipLanguageFinalizer: true });
+    const ledgerSlide = factDecks.decks[0].slides.find(
+      (slide) => slide.type === 'content' && slide.visual?.columnLabels?.[0] === 'SOURCE ATOM',
+    );
+
+    expect(ledgerSlide).toBeTruthy();
+    expect(ledgerSlide.visual.rows).toHaveLength(3);
+    expect(ledgerSlide.visual.rows).toEqual([
+      ['Fact 1', 'Stream discharge is the volume of water passing a cross-section per unit time.'],
+      ['Fact 2', 'Discharge combines channel area with flow velocity.'],
+      ['Fact 3', 'A rating curve estimates discharge from repeated stage and flow measurements.'],
+    ]);
+
+    const { allXml } = await unzipPptx(await buildSlideDeckPptxBlob(factDecks));
+    const pptxXml = Object.values(allXml).join('\n');
+    expect(pptxXml).toContain('cmVizTable');
+    expect(pptxXml).toContain('Discharge combines channel area with flow velocity.');
+    expect(pptxXml).toContain('A rating curve estimates discharge from repeated stage and flow measurements.');
+  });
+
   it('attaches NO descriptor when the worked example is ambiguous prose', () => {
     const payload = dischargeLessonPayload();
     payload.workedExample = {
@@ -686,6 +724,40 @@ describe('C3 — grader native-visual bar (self-arming on the cmViz marker)', ()
     expect(findings[0].severity).toBe('P2');
     expect(findings[0].dimension).toBe('format');
     expect(findings[0].evidence).toContain('Worked example');
+  });
+
+  it('recognizes current core-model deck titles as enriched visual claims', async () => {
+    const blob = await buildSlideDeckPptxBlob(
+      {
+        decks: [
+          {
+            lessonTitle: 'Lesson 11: Crisis Simulation',
+            slides: [
+              { title: 'Lesson 11', type: 'title', bullets: ['Week 11'], speakerNotes: 'Open.' },
+              {
+                title: 'Crisis Simulation: core model',
+                type: 'content',
+                bullets: ['Claim A and Claim B are presented as plain text.'],
+                speakerNotes: 'Compare the claims.',
+              },
+              {
+                title: 'What the evidence shows about Crisis Simulation',
+                type: 'content',
+                bullets: ['The slide still contains text only.'],
+                speakerNotes: 'Review the evidence.',
+              },
+            ],
+          },
+        ],
+      },
+      'Introduction to International Relations',
+      0,
+    );
+    const findings = await findingsFor(
+      await pptxFileMapFromBlob(blob, 'Slide Decks/Lesson 11 - Crisis Simulation.pptx'),
+    );
+    expect(findings).toHaveLength(1);
+    expect(findings[0].evidence).toContain('core model');
   });
 
   it('passes an armed enriched deck that renders a native visual', async () => {

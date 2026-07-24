@@ -536,4 +536,65 @@ describe('WS-D — deliverable views at registry scale', () => {
     const headers = Array.from(container.querySelectorAll('[data-lesson-group-header]'));
     expect(headers.map((header) => header.querySelector('span').textContent.trim())).toEqual(['Lesson 4', 'Ungrouped']);
   });
+
+  it('shows every distributable experiential-activity surface in the assignment workspace', () => {
+    act(() => {
+      root.render(
+        React.createElement(AssignmentsView, {
+          data: {
+            assignments: [
+              {
+                title: 'Strait de-escalation protocol — activity packet',
+                lessonNumber: 9,
+                overview: 'Run the full simulation.',
+                activityPacket: {
+                  activityType: 'Maritime crisis negotiation',
+                  totalMinutes: 75,
+                  scenario: 'A disputed border incident creates an attribution crisis.',
+                  safetyBoundary: 'This is a fictional classroom scenario.',
+                  evidence: ['The monitoring feed stopped before the incident.'],
+                  roles: [
+                    {
+                      name: 'Regional organization delegation',
+                      goal: 'Restore monitoring and stop escalation.',
+                      constraint: 'No agreement without verification.',
+                      privateInformation: 'Two members will veto sanctions.',
+                    },
+                  ],
+                  phases: [
+                    {
+                      title: 'Synchronized radar update',
+                      information: 'New imagery weakens the original attribution.',
+                      requiredDecision: 'Revise one assumption and one proposed action.',
+                    },
+                  ],
+                  timing: [
+                    { phase: 'Briefing', minutes: 10 },
+                    { phase: 'Negotiation', minutes: 65 },
+                  ],
+                  activityLogFields: ['Confirmed evidence used'],
+                  artifact: {
+                    title: 'Strait de-escalation protocol',
+                    requirements: ['State the final action in one sentence.'],
+                  },
+                  debriefPrompts: ['Which evidence changed the decision?'],
+                },
+              },
+            ],
+          },
+          isStreaming: false,
+        }),
+      );
+    });
+
+    const packet = container.querySelector('[data-experiential-activity="true"]');
+    expect(packet).toBeTruthy();
+    expect(packet.textContent).toContain('fictional classroom scenario');
+    expect(packet.textContent).toContain('Participant or Working Roles');
+    expect(packet.textContent).toContain('Two members will veto sanctions');
+    expect(packet.textContent).toContain('Synchronized radar update');
+    expect(packet.textContent).toContain('Activity Log');
+    expect(packet.textContent).toContain('Strait de-escalation protocol');
+    expect(packet.textContent).toContain('Debrief');
+  });
 });

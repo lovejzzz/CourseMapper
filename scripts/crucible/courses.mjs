@@ -221,6 +221,14 @@ export const groundingCourses = [
 // release-comparable `all`, `extended`, or rotating stranger suites.
 export const regressionCourses = [
   {
+    id: 'experiential-ir-simulation',
+    title: 'International Crisis Bargaining',
+    lessonCount: 5,
+    probeProfile: 'generic',
+    prompt:
+      'International Crisis Bargaining, a 5-lesson undergraduate course with policy memos and structured evidence review. Lessons cover: signaling and commitment under uncertainty; escalation risks and de-escalation tools; monitoring mandates and evidence limits; a 75-minute maritime crisis simulation in which participant roles inspect a fictional patrol log and civilian convoy notice, receive synchronized updates, revise a negotiated response, submit a decision log, and debrief; and a final comparison of crisis-management strategies. The fourth lesson explicitly requires the simulation and its complete participant activity packet.',
+  },
+  {
     id: 'genetics-production-regression',
     title: 'Introduction to Genetics',
     lessonCount: 15,

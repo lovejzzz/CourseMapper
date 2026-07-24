@@ -25,6 +25,12 @@ import { extractExplicitCoverageTopics, extractExplicitLessonSequence } from './
 import { isMetaSurfaceText } from './metaSurfaceAdmission.js';
 import { collapseMechanicalContentWordEchoes } from './mechanicalTextSeams.js';
 import {
+  compactActivityBlueprintShape,
+  experientialLessonIds,
+  normalizeExperientialActivityBlueprint,
+} from './experientialActivityContract.js';
+import { expandKeys } from './keyMaps.js';
+import {
   PUBLIC_SCION_MAX_COMPLETION_TOKENS,
   PUBLIC_SCION_MODEL_ID,
   PUBLIC_SCION_MODEL_NAME,
@@ -123,6 +129,11 @@ const PUBLIC_SCION_HIGH_RISK_ISSUE_MARKERS = Object.freeze([
   'source-fact-key-mismatch',
   'named-reading-unanchored',
   'template-residue',
+  // An explicitly requested experiential activity is a first-class lesson
+  // atom, not optional enrichment. Keep the full bounded local retry budget
+  // for any invalid or missing activity blueprint before per-atom admission
+  // is allowed to quarantine it.
+  ':activity:',
 ]);
 const PUBLIC_SCION_CRITICAL_ISSUE_MARKERS = Object.freeze([
   'invalid-json',
@@ -366,6 +377,80 @@ function repairPublicScionDefinitionSentences(parsed) {
   return { parsed, repairs };
 }
 
+function projectPublicScionAnswerFields(parsed) {
+  const repairs = [];
+  if (!parsed || !Array.isArray(parsed.lessons)) return { parsed, repairs };
+  for (const lesson of parsed.lessons) {
+    if (!Array.isArray(lesson?.mc)) continue;
+    lesson.mc.forEach((item, itemIndex) => {
+      if (
+        !item ||
+        typeof item !== 'object' ||
+        Array.isArray(item.op) ||
+        Array.isArray(item.options) ||
+        typeof item.answer !== 'string' ||
+        !Array.isArray(item.distractors) ||
+        item.distractors.length !== 3
+      ) {
+        return;
+      }
+      item.op = [item.answer, ...item.distractors];
+      item.ai = 0;
+      delete item.answer;
+      delete item.distractors;
+      repairs.push({
+        pass: 'projectAnswerAndDistractors',
+        lessonId: lesson.lessonId || null,
+        item: itemIndex,
+        field: 'mc',
+        answerIndex: 0,
+        trainingEligible: false,
+        preferenceEvidence: {
+          kind: 'deterministic-structural-projection',
+          verified: true,
+        },
+      });
+    });
+  }
+  return { parsed, repairs };
+}
+
+function projectPublicScionCorrectionFields(parsed) {
+  const repairs = [];
+  if (!parsed || !Array.isArray(parsed.lessons)) return { parsed, repairs };
+  for (const lesson of parsed.lessons) {
+    if (!Array.isArray(lesson?.keyTerms)) continue;
+    lesson.keyTerms.forEach((term, itemIndex) => {
+      const field = Object.prototype.hasOwnProperty.call(term || {}, 'cx') ? 'cx' : 'correction';
+      const structured = term?.[field];
+      if (!structured || typeof structured !== 'object' || Array.isArray(structured)) return;
+      const termName = String(term?.tr ?? term?.term ?? '').trim();
+      const escapedTermName = termName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const rejected = String(structured.reject || '')
+        .replace(/[.!?;:,]+$/g, '')
+        .replace(escapedTermName ? new RegExp(`^${escapedTermName}\\s+(?:is|means|refers\\s+to)\\s+`, 'i') : /$^/, '')
+        .trim();
+      const replacement = String(structured.replace || '')
+        .replace(/[.!?;:,]+$/g, '')
+        .trim();
+      if (!rejected || !replacement) return;
+      term[field] = `It is incorrect that ${rejected}; instead, ${replacement}.`;
+      repairs.push({
+        pass: 'projectMisconceptionCorrection',
+        lessonId: lesson.lessonId || null,
+        item: itemIndex,
+        field,
+        trainingEligible: false,
+        preferenceEvidence: {
+          kind: 'deterministic-structural-projection',
+          verified: true,
+        },
+      });
+    });
+  }
+  return { parsed, repairs };
+}
+
 /**
  * Repair syntax and conservative, content-preserving contract defects before
  * the normal kernel parser decides what may compile. The detailed form
@@ -412,11 +497,19 @@ export function repairPublicScionJson(text = '', { userPrompt = '' } = {}) {
   if (!parsed) return { text: raw, repairs: [] };
   const lifted = liftNestedPublicScionLessonFields(parsed);
   const factRepair = repairPublicScionFactSentences(lifted);
-  const definitionRepair = repairPublicScionDefinitionSentences(factRepair.parsed);
-  const mcRepair = repairPublicScionMcItems(definitionRepair.parsed, { userPrompt });
+  const correctionProjection = projectPublicScionCorrectionFields(factRepair.parsed);
+  const definitionRepair = repairPublicScionDefinitionSentences(correctionProjection.parsed);
+  const assessmentProjection = projectPublicScionAnswerFields(definitionRepair.parsed);
+  const mcRepair = repairPublicScionMcItems(assessmentProjection.parsed, { userPrompt });
   return {
     text: JSON.stringify(mcRepair.parsed),
-    repairs: [...factRepair.repairs, ...definitionRepair.repairs, ...mcRepair.repairs],
+    repairs: [
+      ...factRepair.repairs,
+      ...correctionProjection.repairs,
+      ...definitionRepair.repairs,
+      ...assessmentProjection.repairs,
+      ...mcRepair.repairs,
+    ],
   };
 }
 
@@ -785,7 +878,28 @@ export function assessPublicScionKernelResponse(
         .filter((lesson) => lesson?.lessonId)
         .map((lesson) => [lesson.lessonId, lesson]),
     );
+    const expectedActivityIds = new Set(experientialLessonIds(expectedLessons));
+    const expandedResponse = expandKeys('enrichment', parsed);
+    const returnedActivityBlueprints = Array.isArray(expandedResponse?.activityBlueprints)
+      ? expandedResponse.activityBlueprints
+      : [];
+    const returnedActivityIds = returnedActivityBlueprints
+      .map((activity) => String(activity?.lessonId || '').trim())
+      .filter(Boolean);
+    const returnedActivities = new Map(
+      returnedActivityBlueprints
+        .filter((activity) => activity?.lessonId)
+        .map((activity) => [activity.lessonId, activity]),
+    );
     const issues = [];
+    for (const activityId of new Set(returnedActivityIds)) {
+      const copies = returnedActivityIds.filter((candidate) => candidate === activityId).length;
+      if (copies > 1) issues.push(`${activityId}:activity:duplicate-activity-blueprint`);
+      if (!expectedActivityIds.has(activityId)) issues.push(`${activityId}:activity:unexpected-activity-blueprint`);
+    }
+    if (returnedActivityBlueprints.some((activity) => !String(activity?.lessonId || '').trim())) {
+      issues.push('unknown-activity:activity:missing-lesson-id');
+    }
     for (const expected of expectedLessons) {
       const lesson = returned.get(expected.lessonId);
       if (!lesson) {
@@ -871,6 +985,21 @@ export function assessPublicScionKernelResponse(
           issues.push(`${expected.lessonId}:fact-${index}:source-fact-ledger-mismatch`);
         }
       });
+      if (expectedActivityIds.has(expected.lessonId)) {
+        const activity = returnedActivities.get(expected.lessonId);
+        if (!activity) {
+          issues.push(`${expected.lessonId}:activity:missing-activity-blueprint`);
+        } else {
+          const normalizedActivity = normalizeExperientialActivityBlueprint(activity, {
+            expectedLessonIds: [...expectedActivityIds],
+            promptLesson: expected,
+            facts,
+          });
+          normalizedActivity.issues.forEach((issue) => {
+            issues.push(`${expected.lessonId}:activity:${issue}`);
+          });
+        }
+      }
       const keyTerms = Array.isArray(lesson.keyTerms) ? lesson.keyTerms : [];
       const expectedSourceConcepts = Array.isArray(expected.sourceConcepts)
         ? expected.sourceConcepts.map((term) => normalizeScionKeyTerm(term))
@@ -1279,6 +1408,64 @@ export function mergePublicScionKernelAttempts(previousText, currentText, userPr
         current = candidate;
       }
     }
+    const previousActivities = new Map(
+      (Array.isArray(previous?.activityBlueprints) ? previous.activityBlueprints : [])
+        .filter((activity) => activity?.lessonId)
+        .map((activity) => [activity.lessonId, activity]),
+    );
+    const expectedLessons = extractPublicScionKernelLessons(userPrompt).filter((lesson) => lesson?.lessonId);
+    const expectedActivityIds = experientialLessonIds(expectedLessons);
+    for (const [lessonId, previousActivity] of previousActivities) {
+      const promptLesson = expectedLessons.find((lesson) => lesson.lessonId === lessonId);
+      const currentActivities = Array.isArray(current.activityBlueprints) ? current.activityBlueprints : [];
+      const currentActivity = currentActivities.find((activity) => activity?.lessonId === lessonId);
+      const expandedPrevious = expandKeys('enrichment', { activityBlueprints: [previousActivity] })
+        ?.activityBlueprints?.[0];
+      const expandedCurrent = currentActivity
+        ? expandKeys('enrichment', { activityBlueprints: [currentActivity] })?.activityBlueprints?.[0]
+        : null;
+      const previousActivityIssues = promptLesson
+        ? normalizeExperientialActivityBlueprint(expandedPrevious, {
+            expectedLessonIds: expectedActivityIds,
+            promptLesson,
+            // Cross-attempt retention may not depend on a sibling fact ledger
+            // that the next attempt can replace or quarantine. A blueprint
+            // must pass against the stable lesson/source brief on its own.
+            facts: [],
+          }).issues
+        : ['missing-prompt-lesson'];
+      const currentActivityIssues =
+        promptLesson && expandedCurrent
+          ? normalizeExperientialActivityBlueprint(expandedCurrent, {
+              expectedLessonIds: expectedActivityIds,
+              promptLesson,
+              facts: [],
+            }).issues
+          : ['missing-activity-blueprint'];
+      if (previousActivityIssues.length > 0 || currentActivityIssues.length === 0) continue;
+      const before = assessPublicScionKernelResponse(JSON.stringify(current), userPrompt, 'blueprintEnrichment');
+      const candidate = structuredClone(current);
+      const activities = Array.isArray(candidate.activityBlueprints) ? candidate.activityBlueprints : [];
+      const currentIndex = activities.findIndex((activity) => activity?.lessonId === lessonId);
+      if (currentIndex >= 0) activities[currentIndex] = structuredClone(previousActivity);
+      else activities.push(structuredClone(previousActivity));
+      candidate.activityBlueprints = activities;
+      const after = assessPublicScionKernelResponse(JSON.stringify(candidate), userPrompt, 'blueprintEnrichment');
+      const beforeIssues = new Set(before.issues || []);
+      const introduced = (after.issues || []).filter((issue) => !beforeIssues.has(issue));
+      if ((after.issues || []).length >= (before.issues || []).length || introduced.length > 0) continue;
+      repairs.push({
+        pass: 'crossAttemptAtomicRetention',
+        lessonId,
+        field: 'activityBlueprint',
+        issueCountBefore: before.issues.length,
+        issueCountAfter: after.issues.length,
+        resolvedIssues: before.issues.filter((issue) => !(after.issues || []).includes(issue)),
+        trainingEligible: false,
+        preferenceEvidence: { evidenceScope: 'deterministic-contract-only', verified: false },
+      });
+      current = candidate;
+    }
     return { text: JSON.stringify(current), repairs };
   } catch {
     return { text: currentText, repairs: [] };
@@ -1434,6 +1621,13 @@ export function buildPublicScionRetryFeedback(assessment = {}) {
     ...(allIssues.some((issue) => issue.includes('explanation-supports-multiple-options'))
       ? [
           'The explanation affirmatively supports more than one option. Keep exactly one supported proposition and explicitly reject the closest distractor.',
+        ]
+      : []),
+    ...(allIssues.some((issue) => issue.includes(':activity:'))
+      ? [
+          'Write activityBlueprints first in the response, before lessons. Complete every prefilled activity field and array; do not omit, rename, nest, or postpone the activity object.',
+          'Keep the exact compact cardinalities in the template: 2 ro, 2 ev, 1 up, 3 ar.rq, 4 tm rows with ph/mn, and 2 db. Never add array items.',
+          'Replace generic placeholders such as Role A, course materials, instructor-provided materials, evidence packet, or generic scenario with specific roles, constraints, inspectable evidence items, decisions, and artifact requirements grounded in this lesson.',
         ]
       : []),
     ...(allIssues.some((issue) => issue.includes('unexpected-script'))
@@ -1913,6 +2107,7 @@ export function extractPublicScionKernelLessons(userPrompt = '') {
     '\nAlso include the courseLevel',
     '\nRomanization recovery',
     '\nRecovery attempt',
+    '\nThis batch contains experiential lessons',
     '\nReturn ONLY valid JSON',
   ];
   const boundaries = boundaryMarkers.map((marker) => tail.indexOf(marker)).filter((index) => index >= 0);
@@ -1968,6 +2163,7 @@ function buildPublicScionKernelPrompt(userPrompt) {
   const course = text.match(/^Course:\s*(.+)$/im)?.[1]?.trim() || 'Untitled Course';
   const recoveryAttempt = Math.max(0, Number(text.match(/Recovery attempt\s+(\d+)/i)?.[1]) || 0);
   const requiredLessonIds = lessons.map((lesson) => lesson.lessonId || 'lesson-1');
+  const activityLessonIds = experientialLessonIds(lessons);
   const factContracts = new Map(
     lessons.map((lesson) => [lesson.lessonId || 'lesson-1', scionFactContractForLesson(lesson)]),
   );
@@ -1994,26 +2190,26 @@ function buildPublicScionKernelPrompt(userPrompt) {
         {
           q: 'REPLACE with a 20-45 word distinction question using a concrete observation and two exact lesson terms.',
           op: [
-            'REPLACE with a plausible subject-specific option A.',
-            'REPLACE with a plausible subject-specific option B.',
-            'REPLACE with a plausible subject-specific option C.',
-            'REPLACE with a plausible subject-specific option D.',
+            'REPLACE with a plausible subject-specific option.',
+            'REPLACE with a distinct subject-specific option.',
+            'REPLACE with another subject-specific option.',
+            'REPLACE with the final subject-specific option.',
           ],
           ai: 0,
           fi: factContract.factCount > 1 ? [0, 1] : [0],
-          ex: 'State the subject evidence supporting the answer, then correct the closest distractor.',
+          ex: 'State the subject evidence supporting the selected option, then correct the closest distractor.',
         },
         {
           q: 'REPLACE with a 20-45 word case question naming exact evidence, a real constraint, and one decision.',
           op: [
-            'REPLACE with a plausible case-specific option A.',
-            'REPLACE with a plausible case-specific option B.',
-            'REPLACE with a plausible case-specific option C.',
-            'REPLACE with a plausible case-specific option D.',
+            'REPLACE with a plausible case-specific option.',
+            'REPLACE with a distinct case-specific option.',
+            'REPLACE with another case-specific option.',
+            'REPLACE with the final case-specific option.',
           ],
           ai: 0,
           fi: [Math.min(1, factContract.factCount - 1)],
-          ex: 'Apply the case evidence to support the answer, then correct the closest distractor.',
+          ex: 'Apply the case evidence to support the selected option, then correct the closest distractor.',
         },
       ],
       keyTerms: [
@@ -2022,21 +2218,21 @@ function buildPublicScionKernelPrompt(userPrompt) {
           df: 'A precise subject definition with at least forty characters.',
           eg: 'A concrete example grounded in this lesson topic.',
           mi: 'A plausible student misunderstanding about the term.',
-          cx: 'A direct correction that explains why that misunderstanding fails.',
+          cx: { reject: '', replace: '' },
         },
         {
           tr: 'second distinct source term',
           df: 'A different precise subject definition with at least forty characters.',
           eg: 'A different concrete example grounded in this lesson topic.',
           mi: 'A different plausible student misunderstanding about the term.',
-          cx: 'A different direct correction that refutes that misunderstanding.',
+          cx: { reject: '', replace: '' },
         },
         {
           tr: 'third distinct source term',
           df: 'A third precise subject definition with at least forty characters.',
           eg: 'A third concrete example grounded in this lesson topic.',
           mi: 'A third plausible student misunderstanding about the term.',
-          cx: 'A third direct correction that refutes that misunderstanding.',
+          cx: { reject: '', replace: '' },
         },
       ],
       scenario: {
@@ -2045,34 +2241,63 @@ function buildPublicScionKernelPrompt(userPrompt) {
       },
     };
   });
-  const template = { lessons: lessonTemplates };
+  const template = {
+    ...(activityLessonIds.length > 0
+      ? {
+          activityBlueprints: activityLessonIds.map((lessonId) =>
+            compactActivityBlueprintShape(
+              lessonId,
+              lessons.find((lesson) => lesson.lessonId === lessonId),
+            ),
+          ),
+        }
+      : {}),
+    lessons: lessonTemplates,
+  };
+  const activityRules =
+    activityLessonIds.length > 0
+      ? `- Return exactly ${activityLessonIds.length} activityBlueprint object${activityLessonIds.length === 1 ? '' : 's'} for: ${activityLessonIds.join(', ')}. Do not return one for any other lesson.
+- Use the exact compact shape shown: ro has exactly 2 named participant or working roles with goals and constraints; ev has exactly 2 atomic inspectable evidence items; up has exactly 1 evolving update with a required decision/action; ar has exactly 3 requirements; tm has exactly 4 {ph,mn} rows; db has exactly 2 prompts; sb has one safety/evidence boundary. Do not add array items.
+- The template pre-fills ty from the requested lesson title and form. Copy that ty exactly; do not rewrite it. Simulation stays simulation, lab stays lab, studio critique stays studio critique, case exercise stays case exercise, structured debate stays structured debate, field exercise stays field exercise, and role-play stays role-play. Never substitute one form for another or return generic labels such as "Simulation and decision-making", "Case Exercise", "Lab", "Critique", or "Role-Play". Write sc as 2-3 complete sentences that establish an actual situation, required decision/action, and constraint rather than restating the objective.
+- The empty strings in the JSON template are intentional. Author every value from the lesson. Give every up item a different, specific ti title. In each up item, in must state the actual new evidence or changed condition—not merely say that evidence changed—and rd must state the actual response participants record; never describe what those fields are for or restate the lesson objective.
+- In every tm row, ph is a unique named activity step such as Briefing or Debrief, and mn is its positive duration weight. Never put a duration in ph, and never use 1, 2, or 3 as a phase name.
+- Keep each ev item atomic. Never copy the entire readings list into one ev item and then repeat its members as separate items.
+- Write sb as one complete 20-300 character sentence naming the evidence limit, participation safety rule, or realism boundary. Never return a label, fragment, or empty string.
+- The activity may be a simulation, lab, studio critique, case exercise, field exercise, structured debate, or role-play. Roles may be stakeholder roles or functional working roles. Do not force stakeholder theater into a lab or studio task.
+- Ground every activity atom in the supplied lesson and fact ledger. You may frame a hypothetical role or deadline, but may not add a new subject mechanism, statistic, source, named real person, or factual claim. Never use Role A, Evidence 1, generic case, evidence packet, instructor-provided materials, or TBD.
+`
+      : '';
+  const activityPlacementRule =
+    activityLessonIds.length > 0
+      ? ' Return activityBlueprints first, once beside lessons, never nested inside a lesson.'
+      : '';
 
   return `COURSE: ${clip(course, 160)}
 LESSONS TO AUTHOR:
 ${JSON.stringify(lessons)}
 
 TASK:
-Write the compact knowledge core for every listed lesson. Use the exact lessonId. Use only the listed title, topics, objectives, and readings; do not invent citations, URLs, page numbers, statistics, or named studies. The local compiler will derive discussion, assignment, slides, and study-guide surfaces after validating these atoms.
+Write the compact knowledge core for every listed lesson. Use the exact lessonId. Use only the listed title, topics, objectives, activityBrief, and readings; do not invent citations, URLs, page numbers, statistics, or named studies. The local compiler will derive discussion, assignment, slides, and study-guide surfaces after validating these atoms.
 
 Rules:
 - Return ONLY valid JSON. No Markdown, commentary, or trailing text.
 - Return exactly ${lessons.length} lesson object${lessons.length === 1 ? '' : 's'}.
 - The lessons array MUST contain these exact ids: ${requiredLessonIds.join(', ')}. Returning {"lessons":[]} or an error object is invalid.
-${
-  recoveryAttempt > 0
-    ? `- RECOVERY ${recoveryAttempt}: a previous response was incomplete. Re-author the full requested lesson now; do not summarize, apologize, or repeat an empty response.\n`
-    : ''
-}${
+${activityRules}${
+    recoveryAttempt > 0
+      ? `- RECOVERY ${recoveryAttempt}: a previous response was incomplete. Re-author the full requested lesson now; do not summarize, apologize, or repeat an empty response.\n`
+      : ''
+  }${
     sourceLedgerContract?.mode === 'numbered-source-ledger-v1'
       ? `- SOURCE FACT LEDGER: the template facts array contains the ${sourceLedgerContract.factCount} supplied numbered claims in source order. Copy that facts array exactly, including every word and punctuation mark. Do not paraphrase, split, merge, omit, or add a fact. The compiler rejects any change.\n`
       : '- Write 5 facts per lesson. Each fact is 8-20 words, at least 20 characters, and states subject knowledge rather than course process.\n'
-  }- Write 3 keyTerms per lesson. Each tr is a distinct 1-4 word subject term that reuses specific words from that lesson's title, topics, or objectives AND appears verbatim in at least one of that lesson's facts; never copy the full lesson title. Every df is exactly one complete sentence of at least 40 characters and states a broader category or distinguishing property; a term-led definition is acceptable only when it adds a real distinction. eg is concrete and uses only names already present in the lesson input; mi is a genuinely false learner belief and never restates a lesson fact; cx directly refutes mi in different wording and never repeats df or eg. Every field makes a different instructional move. Never invent a named place, person, study, product, organization, or event. Never embed field labels or internal claim numbers.
-- Write one decision-ready scenario. Across su and ma, include a concrete context, an actionable subject problem, at least 2 inspectable details, and a real tension or constraint. su has exactly 2 specific sentences. ma names at least two comma-separated concrete records, observations, passages, notations, measurements, or designs students compare; never return one generic structure and never call them "source detail one/two", "inspectable details", "evidence packet", "scenario evidence", or "course materials".
+  }- Write 3 keyTerms per lesson. Each tr is a distinct 1-4 word subject term that reuses specific words from that lesson's title, topics, or objectives AND appears verbatim in at least one of that lesson's facts; never copy the full lesson title. Every df is exactly one complete sentence of at least 40 characters and states a broader category or distinguishing property; a term-led definition is acceptable only when it adds a real distinction. eg is concrete and uses only names already present in the lesson input; mi is a genuinely false learner belief and never restates a lesson fact. cx is an object: reject names the exact false claim in mi without adding a label, and replace states the source-grounded relation that should replace it. The compiler joins them as an explicit contrast. Restating df alone is not a correction. Every field makes a different instructional move. Never invent a named place, person, study, product, organization, or event. Never embed field labels or internal claim numbers.
+- Write one decision-ready scenario. Across su and ma, include a concrete context, an actionable subject problem, at least 2 inspectable details, and a real tension or constraint. su has exactly 2 specific sentences. ma names at least two comma-separated concrete records, observations, passages, notations, measurements, or designs students compare. Reuse their exact labels from the lesson input; do not append invented labels such as Entry A, Notice B, or Record C. Never return one generic structure and never call them "source detail one/two", "inspectable details", "evidence packet", "scenario evidence", or "course materials".
 - Write exactly 2 mc items: one concept distinction and one concrete case application.
-- Every mc item includes fi=sourceFactIndexes as [n] or [n,m]: one or two distinct zero-based integers from 0 through ${
+- Every mc item includes op as exactly four plausible propositions, ai as the zero-based index of the one correct proposition, and fi=sourceFactIndexes as [n] or [n,m]: one or two distinct zero-based integers from 0 through ${
     (sourceLedgerContract?.factCount || 5) - 1
-  } pointing to every fact directly needed to support the first option. Use two indexes when the answer compares two supplied claims; otherwise use one. Never write a string, duplicate index, irrelevant index, or out-of-range index.
-- Options are parallel and plausible; distractors reflect real misconceptions. Every q is 20-45 words and includes a concrete observation or comparison, not a short definition prompt; op has exactly 4 meaningfully distinct 4-10 word options, each under 80 characters. Options are compact propositions, not explanations, and never end mid-thought or on a function word. Put the single supported option first in op and set ai=0; the compiler shuffles answer positions after admission. ex states the subject evidence supporting the answer and then corrects the closest distractor without referring to any position.
+  } pointing to every fact directly needed to support the option selected by ai. Use two indexes when the correct option compares two supplied claims; otherwise use one. Never write a string, duplicate index, irrelevant index, or out-of-range index.
+- Every q is 20-45 words and includes a concrete observation or comparison, not a short definition prompt. Never place answer choices, option labels, or lettered alternatives inside q. Every op value is a distinct, parallel 4-10 word proposition under 80 characters. Options are compact propositions, not explanations, and never end mid-thought or on a function word. Set ai to the actual correct option. Begin ex with the exact text of op[ai], then explain why fi supports it and correct the closest distractor. The compiler shuffles options only after admission.
 - Never mention "the key", answer positions, option letters or numbers, fact numbers, claim numbers, or source indexes in q, op, or ex.
 - Treat the fact ledger as the exclusive factual warrant for every key term, scenario observation, option, and explanation. A hypothetical role or deadline may frame a decision, but it must not add a new subject mechanism, consequence, example, or relation. Readings provide attribution only and are never content examples.
 - Build distractors only by swapping two supplied subject-relation pairs, reversing one supplied relation, or omitting one member of a supplied composite. Never introduce an unlisted category, mode, method, entity, or property. Never assign a new property to a source entity whose behavior the ledger does not define, even as a distractor.
@@ -2082,7 +2307,7 @@ ${
 - Never infer motive or cause from one ambiguous observation. Include enough context that exactly one option is supported.
 - Never write pure vocabulary recall, tool trivia, NOT/EXCEPT questions, always/never options, or all/none of the above.
 - Never mention artifacts, evidence moves, success criteria, rubrics, submissions, "the lesson", "this lesson", or "this course".
-- Return only lessonId, facts, keyTerms, scenario, and mc inside each lesson object. Do not add courseLevel, discussionPrompt, assignmentCore, studyGuide, or workedExample.
+- Return only lessonId, facts, keyTerms, scenario, and mc inside each lesson object. Do not add courseLevel, discussionPrompt, assignmentCore, studyGuide, or workedExample.${activityPlacementRule}
 - Preserve the exact nesting and abbreviated keys shown below.
 
 TEMPLATE TO FILL:

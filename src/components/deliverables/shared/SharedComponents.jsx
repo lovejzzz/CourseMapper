@@ -618,7 +618,7 @@ export function CollapsibleCard({
               />
             ) : (
               <h3
-                className={`text-sm font-semibold truncate ${fresh && !regenerating ? 'text-emerald-700' : 'text-slate-800'} ${onTitleEdit ? 'deliverable-editable-title cursor-text px-1.5 py-0.5 rounded border transition-colors' : ''}`}
+                className={`line-clamp-2 text-sm font-semibold leading-5 sm:line-clamp-1 sm:leading-normal ${fresh && !regenerating ? 'text-emerald-700' : 'text-slate-800'} ${onTitleEdit ? 'deliverable-editable-title cursor-text px-1.5 py-0.5 rounded border transition-colors' : ''}`}
                 onClick={startTitleEdit}
                 title={onTitleEdit ? 'Click to edit title' : undefined}
               >

@@ -200,6 +200,75 @@ describe('packageZipExporter', () => {
     expect(buildSlideDeckPptxBlob).toHaveBeenCalledTimes(2);
   });
 
+  it('carries the canonical activity packet into the Assignment Briefs ZIP export', async () => {
+    const activityPacket = {
+      protocol: 'scion-experiential-activity-v1',
+      activityType: 'Checkout flow studio critique',
+      scenario:
+        'A checkout prototype loses users after an address-validation error and needs one evidence-backed revision.',
+      roles: [
+        {
+          name: 'Presenting design team',
+          goal: 'Choose one feasible checkout revision.',
+          constraint: 'Use only visible prototype or usability evidence.',
+          privateInformation: '',
+        },
+        {
+          name: 'Critique evidence team',
+          goal: 'Test whether each critique claim is observed.',
+          constraint: 'Separate user observation from design preference.',
+          privateInformation: '',
+        },
+      ],
+      evidence: ['Three participants abandon checkout after the address-validation error.'],
+      phases: [
+        {
+          title: 'Engineering constraint',
+          information: 'Validation copy can change but the address service cannot.',
+          requiredDecision: 'Prioritize one revision and record its evidence.',
+        },
+      ],
+      artifact: {
+        title: 'Checkout critique revision board',
+        requirements: ['Pair each claim with evidence.', 'Show the revision.', 'Name the next test question.'],
+      },
+      timing: [
+        { phase: 'Evidence walk', minutes: 15 },
+        { phase: 'Critique', minutes: 25 },
+        { phase: 'Update', minutes: 15 },
+        { phase: 'Revision and debrief', minutes: 20 },
+      ],
+      totalMinutes: 75,
+      activityLogFields: ['Evidence inspected', 'Revision decision'],
+      debriefPrompts: ['Which observation most changed the revision?'],
+      safetyBoundary: 'Critique the checkout work rather than its designers and protect participant privacy.',
+    };
+    const result = await buildCourseMaterialsZip({
+      courseMap: makeCourseMap('UX Studio'),
+      deliverables: {
+        assignments: {
+          status: 'done',
+          data: {
+            assignments: [
+              {
+                title: 'Checkout critique revision board — activity packet',
+                lessonNumber: 1,
+                relatedLessons: ['Lesson 1: Checkout Flow Studio Critique'],
+                activityPacket,
+              },
+            ],
+          },
+        },
+      },
+      selectedFeatures: ['assignments'],
+      featureIds: ['assignments'],
+    });
+
+    const assignmentCall = buildDeliverableDocxBlob.mock.calls.find(([featureId]) => featureId === 'assignments');
+    expect(assignmentCall?.[1]?.assignments?.[0]?.activityPacket).toEqual(activityPacket);
+    expect(result.files.some((file) => /^Assignment Briefs\/.*\.docx$/.test(file.path))).toBe(true);
+  });
+
   it('exports one course-level handoff for a compiler-routed empty material', async () => {
     const courseMap = makeCourseMap('Exam Only Course');
     const data = {
@@ -347,7 +416,8 @@ describe('packageZipExporter', () => {
     );
     expect(report).toContain('Overall: 100/100 (A)');
     expect(report).toContain('verified finish-pass quality result');
-    expect(report).toContain('| texture | 10 | 95 | A |');
+    expect(report).toContain('| texture | 25 | 95 | A |');
+    expect(report).toContain('| **overall** | 135 |');
   });
 
   it('falls back to final ZIP grading when precomputed findings reference repaired-away files', async () => {

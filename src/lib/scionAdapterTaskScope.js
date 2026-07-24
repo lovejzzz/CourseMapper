@@ -2,6 +2,7 @@ export const SCION_ADAPTER_TASK_SCOPE_PROTOCOL = 'scion-adapter-task-scope-v1';
 export const SCION_ADAPTER_TASK_SCOPE_IDENTITY_ALGORITHM = 'sha256-canonical-scion-adapter-task-scope-v1';
 export const SCION_LESSON_KERNEL_PROMPT_PROTOCOL = 'production-lesson-kernel-prompt-v1';
 export const SCION_LESSON_KERNEL_SYNTHESIS_PROMPT_PROTOCOL = 'production-lesson-kernel-synthesis-prompt-v1';
+export const SCION_EXPERIENTIAL_ACTIVITY_PROMPT_PROTOCOL = 'production-experiential-activity-prompt-v1';
 
 export const SCION_ADAPTER_TASK_FAMILIES = Object.freeze({
   SOURCE_KEY_TERM_ATOM: 'source-key-term-atom',
@@ -52,7 +53,9 @@ export function scionAdapterTaskFamilyForPairKind(value) {
 export function scionAdapterTaskFamilyForProviderTask(value, { promptProtocol } = {}) {
   const task = clean(value).toLowerCase();
   if (['blueprintenrichment', 'lesson-kernel', 'lessonkernel'].includes(task)) {
-    return clean(promptProtocol) === SCION_LESSON_KERNEL_PROMPT_PROTOCOL
+    return [SCION_LESSON_KERNEL_PROMPT_PROTOCOL, SCION_EXPERIENTIAL_ACTIVITY_PROMPT_PROTOCOL].includes(
+      clean(promptProtocol),
+    )
       ? SCION_ADAPTER_TASK_FAMILIES.SOURCE_GROUNDED_LESSON_KERNEL
       : SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL_SYNTHESIS;
   }

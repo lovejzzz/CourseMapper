@@ -392,4 +392,9 @@ describe('compiledLanguageFinalizer', () => {
       'the Week 1 discussion and quiz',
     );
   });
+
+  it('does not turn abstract lesson language into a week artifact name', () => {
+    expect(shortArtifactReference('Applying theoretical lenses', 11)).toBe('the revision task');
+    expect(shortArtifactReference('Core tenets of power politics limitation', 14)).toBe('the evidence task');
+  });
 });

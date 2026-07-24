@@ -26,10 +26,12 @@ import {
   repairPublicScionJson,
 } from './publicScionProvider';
 import {
+  SCION_EXPERIENTIAL_ACTIVITY_PROMPT_PROTOCOL,
   SCION_ADAPTER_TASK_FAMILIES,
   SCION_LESSON_KERNEL_PROMPT_PROTOCOL,
   SCION_LESSON_KERNEL_SYNTHESIS_PROMPT_PROTOCOL,
 } from './scionAdapterTaskScope';
+import { experientialLessonIds } from './experientialActivityContract';
 
 const UNSAFE_ADAPTER_STAGE_ISSUE = /(?:^|:)(?:invalid-json|missing-lesson|facts-count|duplicate-facts|fact-\d+:)/;
 const GROUNDED_ADAPTER_OBJECTIVE =
@@ -244,17 +246,20 @@ export function scionCallOpts({ prompt, expectedLessonIds, recoveryAttempt }) {
     sourceLedger &&
     promptLessons.length > 0 &&
     promptLessons.every((lesson) => Array.isArray(lesson?.sourceFacts) && lesson.sourceFacts.length >= 3);
+  const activityLessonIds = experientialLessonIds(promptLessons);
   return {
-    schema: compactLessonKernelSchemaProfile({ expectedLessonIds, factCount }),
+    schema: compactLessonKernelSchemaProfile({ expectedLessonIds, factCount, activityLessonIds }),
     // A direct instructor/compiler ledger is already the trusted knowledge
     // source. Route it through the compact synthesis boundary so the base
     // copies only those claims and the compiler freezes them before any
     // optional adapter stage. The derived grounded prompt deliberately drops
     // `sourceFacts`; that second-stage shape keeps the exact adapter protocol.
     promptProtocol:
-      sourceLedger && !directSourceLedger
-        ? SCION_LESSON_KERNEL_PROMPT_PROTOCOL
-        : SCION_LESSON_KERNEL_SYNTHESIS_PROMPT_PROTOCOL,
+      activityLessonIds.length > 0
+        ? SCION_EXPERIENTIAL_ACTIVITY_PROMPT_PROTOCOL
+        : sourceLedger && !directSourceLedger
+          ? SCION_LESSON_KERNEL_PROMPT_PROTOCOL
+          : SCION_LESSON_KERNEL_SYNTHESIS_PROMPT_PROTOCOL,
     temperature: recoveryAttempt > 0 ? 0.7 : 0,
     // A direct source ledger needs one exact copy attempt; a grounded adapter
     // kernel needs one honest authoring attempt. Repeating either strict

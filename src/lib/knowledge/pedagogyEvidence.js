@@ -164,8 +164,8 @@ export function whyThisWorksNote(move, { anchor } = {}) {
   const claim = entry.claim.replace(/\.$/, '');
   const anchoredClaim = `${claim.charAt(0).toLowerCase()}${claim.slice(1)}`;
   const note = anchor
-    ? `For ${anchor}, use ${entry.label.toLowerCase()}. For ${anchor}, ${anchoredClaim}. Evidence for ${anchor}: ${refs}.`
-    : `${entry.claim} (${refs})`;
+    ? `For ${anchor}, use ${entry.label.toLowerCase()}: ${anchoredClaim}; ${refs} support this teaching move rather than the accuracy of course-content claims.`
+    : `${claim}; ${refs} support this teaching move rather than the accuracy of course-content claims.`;
   return { move: entry.move, label: entry.label, note };
 }
 

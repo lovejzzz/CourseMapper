@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.76
+**Current release:** v0.16.77
 
 ---
 
@@ -31,7 +31,7 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site presents **Provider: Scion**, a disabled API control because no key is needed, and the versioned product model **Scion V0.16.76**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts a new foundation model. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables. The reproducible local evaluation server uses the corresponding pinned `google/gemma-4-E2B-it-qat-q4_0-unquantized` source at revision `1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce`; the runtime formats differ, but neither route changes Gemma's weights.
+The hosted site presents **Provider: Scion**, a disabled API control because no key is needed, and the versioned product model **Scion V0.16.77**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts a new foundation model. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables. The reproducible local evaluation server uses the corresponding pinned `google/gemma-4-E2B-it-qat-q4_0-unquantized` source at revision `1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce`; the runtime formats differ, but neither route changes Gemma's weights.
 
 In plain language, **Scion Vx is the whole local authoring system, not just the base model**:
 
@@ -42,6 +42,29 @@ public Gemma 4 E2B base + optional integrity-checked Scion adapter + Scion compi
 Today the adapter term is infrastructure only: the trained research adapter has not beaten the pinned base on the frozen held-out ruler and is inactive. Users download the public base from its immutable source; Course Mapper does not host a second copy of Gemma or change its weights. The compiler is where the current production quality lift lives—course identity, source linking, semantic admission, lesson sequencing, deterministic teaching-material compilation, repetition control, grading, Agent course evidence, and export recovery. Those shared stages also improve compatible paid-model output. Browser download, WebGPU inference, local caching, and browser-runtime recovery remain specific to Scion.
 
 ### Current production proof
+
+V0.16.77 makes experiential learning a first-class compiler capability instead of a one-course template. When—and only when—a lesson explicitly requests a simulation, laboratory investigation, studio critique, case exercise, structured debate, field exercise, or role-play, the existing lesson-authoring call returns one compact course-specific activity blueprint beside its knowledge kernel. There is no extra call for the lesson plan, slides, assignment, or export.
+
+The canonical activity IR contains the situation, participant or functional working roles, role goals and constraints, inspectable evidence, evolving updates or phases, required decisions or actions, one named student artifact with inspectable requirements, debrief prompts, a safety/evidence/realism boundary, and phase timing. A lesson-local selector copies the exact matching activity clause from the instructor's source brief into the kernel input without repeating the full course brief or borrowing another lesson's instructions. To protect instructor intent on the first call, the response template seeds only a topic-and-form label derived from that lesson's own title and explicit request; it adds no scenario content. The model authors the substantive activity, and admission rejects a rewritten form—so a requested simulation cannot silently become a case exercise. Both the public Scion route and compatible paid-provider route pass through the same semantic admission gate. Missing, generic, placeholder, meta, ungrounded, duplicate, overfilled, mistyped, or incomplete payloads are rejected rather than polished into a false claim of readiness.
+
+After admission, the compiler normalizes the authored timing weights once to the actual class duration and projects the same activity into:
+
+- the lesson-plan session outline and accessibility profile;
+- slide frames with the identical phase names and minutes;
+- one student activity packet inside the assignment brief;
+- the editable in-app activity briefing;
+- DOCX and ZIP exports; and
+- the score-bearing deep-quality grader.
+
+The compiler contributes reusable mechanics only: timing normalization, evidence-log fields, accessible participation modes, safe activity boundaries, and format-specific rendering. It contains no fixed actors, facts, discipline-specific scenario, or hard-coded lesson story. If a qualifying lesson has no admitted blueprint, the compiler uses its ordinary lesson structure and explicitly records that it did not produce a complete experiential activity; it never invents a generic substitute.
+
+Five unrelated fixtures prove the same contract at different session lengths: an international-relations negotiation (50 minutes), engineering lab (60), UX studio critique (75), counseling role-play (90), and transit-policy case (120). Accepted content is retained across the activity packet, lesson plan, slides, preview, DOCX, and ZIP path; each projected clock sums exactly to the requested session length; and title-only or hollow substitutes fail the deep grader.
+
+A fresh base-only Gemma probe then exercises the real conditional response, not a fixture. In one 32.88-second call—with the research adapter absent—it admits the complete activity group with zero activity parser issues and compiles its authored phase weights to an exact 75-minute clock. The same response still exposes unrelated quiz defects, so the release does not mislabel the entire kernel as a first-pass success; the existing bounded retry path handles those atoms while atomic retention keeps the accepted activity instead of regenerating it.
+
+The final end-to-end proof uses a fresh three-lesson UX Research course in the in-app browser. Scion completed the full package in 117.957 seconds with eight model requests, 3/3 admitted lesson kernels, 9/9 compiled materials, Quality 99/A, Texture 96, zero findings, zero finish blockers or warnings, and no warning/error console entries. Lesson 2 retained the same 75-minute studio critique across the lesson plan, four activity slides, one student packet, DOCX, PPTX, and ZIP. The downloaded 469,457-byte archive passed integrity and structural audits and independently regraded 99/A with zero findings. The machine-readable receipt records the exact run ids, archive hash, and claim boundary in `docs/evidence/SCION_V01677_EXPERIENTIAL_ACTIVITY_ACCEPTANCE.json`.
+
+This is a shared compiler improvement. Compatible paid providers benefit from the same conditional prompt, canonical IR, semantic admission, timing normalization, projections, grader, and exporters. Scion-specific behavior remains the public model download, WebGPU runtime, local cache, compact local schema, and recovery routing. Gemma weights remain unchanged, and the research adapter remains inactive until it beats the frozen base on complete learner-facing artifacts.
 
 V0.16.76 freezes the base-only route on the exact V21 held-out ruler. In one same-code run, Mandarin (15 lessons), World Literature (14), Psychology (15), Nutrition (14), and Astronomy (12) all reach **99/A** with every requested lesson, **9/9 generated material families**, **100% lesson-kernel coverage**, and **zero blockers, warnings, P0/P1/P2 findings, retries, flagged checks, failed exports, or export warnings**. Every package passes **38/38 export verification** and physical ZIP testing. The five courses use **41 actual model calls for 70 lessons**, with no repair cascade.
 

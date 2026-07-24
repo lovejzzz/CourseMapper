@@ -583,6 +583,13 @@ describe('pedagogy evidence (P3)', () => {
     expect(buildMethodsStatement([])).toBeNull();
     expect(evidenceForMove('peer-discussion').citations.length).toBe(2);
   });
+
+  it('anchors a research note once and states the evidence boundary', () => {
+    const note = whyThisWorksNote('peer-discussion', { anchor: 'Crisis Simulation Mechanics' });
+    expect(note.note.match(/Crisis Simulation Mechanics/g)).toHaveLength(1);
+    expect(note.note).not.toMatch(/For Crisis Simulation Mechanics[^.]+\. For Crisis Simulation Mechanics/i);
+    expect(note.note).toContain('support this teaching move rather than the accuracy of course-content claims');
+  });
 });
 
 describe('compiler integration (P2/P3/P4)', () => {
