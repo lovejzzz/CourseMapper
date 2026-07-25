@@ -1,0 +1,568 @@
+{
+  "_comment": "Environmental-policy shard source — OpenStax Principles of Microeconomics 3e, Chapter 12 (CC BY 4.0). Source snapshots are faithful condensations of the cited sections built around sentences quoted verbatim from the book (fetched 2026-07-25 from openstax.org/books/principles-microeconomics-3e). Authored to test whether an uncovered discipline can be brought into the genome through the existing admission gate; every anchor quote is mechanically verified against the snapshot below.",
+  "sourceSnapshots": {
+    "openstax:microeconomics-3e#12.1": "Economists label the costs of production that a firm pays private costs, and the costs that society pays external costs. The social costs include the private costs of production that a company incurs and the external costs of pollution that pass on to society. Pollution is a negative externality. Because externalities represent a case where markets no longer consider all social costs, but only some of them, economists commonly refer to externalities as an example of market failure. In the case of pollution, at the market output, social costs of production exceed social benefits to consumers, and the market produces too much of the product. When a market has an externality, the supply curve no longer represents all social costs, and output is not efficient.",
+    "openstax:microeconomics-3e#12.2": "Governments have often responded to pollution by passing laws that set limits on emissions. These types of laws, which specify allowable quantities of pollution and which also may detail which pollution-control technologies companies must use, fall under the category of command-and-control regulation. Such rules have reduced pollution substantially, but they carry three practical disadvantages. Command-and-control regulation offers no incentive to improve the quality of the environment beyond the standard set by a particular law. Once firms meet the standard, polluters have zero incentive to do better. Command-and-control regulation is inflexible. It usually requires the same standard for all polluters, and often the same pollution-control technology as well. Legislators and EPA analysts write the command-and-control regulations, and so they are subject to compromises in the political process. Real-world environmental laws are full of fine print, loopholes, and exceptions.",
+    "openstax:microeconomics-3e#12.3": "Market-oriented environmental policies create incentives to allow firms some flexibility in reducing pollution. A pollution charge is a tax imposed on the quantity of pollution that a firm emits. A pollution charge gives a profit-maximizing firm an incentive to determine ways to reduce its emissions. Compared with command-and-control regulation, a pollution tax reduces pollution in a more flexible and cost-effective way. When a city or state government sets up a marketable permit program (e.g., cap-and-trade), it must start by determining the overall quantity of pollution it will allow. With a system of marketable permits, the firms that find it least expensive to do so will reduce pollution the most. Property rights are another market-oriented tool. One cannot resolve this issue until one clearly defines property rights, that is, the legal rights of ownership on which others are not allowed to infringe. A clarified and strengthened idea of property rights can also strike a balance between economic activity and pollution."
+  },
+  "kernels": [
+    {
+      "id": "envpolicy/externality",
+      "rev": 1,
+      "term": "Externality",
+      "aliases": ["negative externality", "external cost", "spillover effect", "third-party effect"],
+      "tags": ["market failure", "pollution", "policy rationale"],
+      "level": "intro",
+      "difficulty": 1,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "An externality is a cost or benefit of a market exchange that falls on a third party outside the exchange; pollution is the standard negative case.",
+        "anchor": {
+          "src": "openstax:microeconomics-3e#12.1",
+          "loc": "12.1",
+          "quote": "Pollution is a negative externality"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "Pollution is the textbook example of a negative externality imposed on third parties.",
+          "anchor": {
+            "src": "openstax:microeconomics-3e#12.1",
+            "loc": "12.1",
+            "quote": "Pollution is a negative externality"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Economists separate private costs the firm pays from external costs society pays.",
+          "anchor": {
+            "src": "openstax:microeconomics-3e#12.1",
+            "loc": "12.1",
+            "quote": "Economists label the costs of production that a firm pays private costs, and the costs that society pays external costs"
+          },
+          "tier": 2
+        },
+        {
+          "text": "With an externality present the supply curve stops representing every social cost.",
+          "anchor": {
+            "src": "openstax:microeconomics-3e#12.1",
+            "loc": "12.1",
+            "quote": "the supply curve no longer represents all social costs"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students treat an externality as simply any harm a company causes to the environment.",
+          "corrective": "The defining feature is incidence, not harm: the cost lands on someone outside the transaction, so the price the buyer and seller agree never reflects it."
+        }
+      ],
+      "examples": [
+        {
+          "text": "A plant upstream discharges into a river and downstream towns pay to treat the water, though they never bought the plant's product.",
+          "domain": "policy"
+        }
+      ],
+      "workedExamples": [],
+      "mcBank": [
+        {
+          "stem": "A factory's emissions raise asthma treatment costs for a neighbouring town that buys nothing from the factory. This is best described as",
+          "options": [
+            "a negative externality",
+            "a private production cost",
+            "a progressive tax",
+            "a marketable permit"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": { "recommends": ["envpolicy/social-cost", "envpolicy/market-failure"] },
+      "variants": [],
+      "freshness": { "checked": "2026-07-25" },
+      "license": "CC BY 4.0",
+      "attribution": "OpenStax, Principles of Microeconomics 3e, §12.1"
+    },
+    {
+      "id": "envpolicy/social-cost",
+      "rev": 1,
+      "term": "Social cost",
+      "aliases": ["social costs", "private cost", "external cost", "full cost of production"],
+      "tags": ["cost accounting", "pollution", "efficiency"],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Evaluate",
+      "definition": {
+        "text": "Social cost is the sum of the private costs a firm incurs and the external costs its pollution passes on to society.",
+        "anchor": {
+          "src": "openstax:microeconomics-3e#12.1",
+          "loc": "12.1",
+          "quote": "The social costs include the private costs of production that a company incurs and the external costs of pollution that pass on to society"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "Social cost adds the firm's private production costs to the external costs society absorbs.",
+          "anchor": {
+            "src": "openstax:microeconomics-3e#12.1",
+            "loc": "12.1",
+            "quote": "The social costs include the private costs of production that a company incurs and the external costs of pollution that pass on to society"
+          },
+          "tier": 2
+        },
+        {
+          "text": "At the market output, social costs of production can exceed the social benefits consumers receive.",
+          "anchor": {
+            "src": "openstax:microeconomics-3e#12.1",
+            "loc": "12.1",
+            "quote": "social costs of production exceed social benefits to consumers, and the market produces too much of the product"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students assume a firm's accounting costs already capture the full cost of production.",
+          "corrective": "Accounting costs are the private share only; the external share is real but appears on someone else's ledger, which is why the market price understates the true cost."
+        }
+      ],
+      "examples": [
+        {
+          "text": "A power station's fuel and wages are private costs, while the respiratory illness its emissions cause is an external cost carried by the surrounding region.",
+          "domain": "policy"
+        }
+      ],
+      "workedExamples": [],
+      "mcBank": [
+        {
+          "stem": "A firm's fuel and labour bills total 80 per unit and the pollution damage borne by neighbours is 30 per unit. The social cost per unit is",
+          "options": ["110", "80", "30", "50"],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": { "recommends": ["envpolicy/market-failure", "envpolicy/pollution-charge"] },
+      "variants": [],
+      "freshness": { "checked": "2026-07-25" },
+      "license": "CC BY 4.0",
+      "attribution": "OpenStax, Principles of Microeconomics 3e, §12.1"
+    },
+    {
+      "id": "envpolicy/market-failure",
+      "rev": 1,
+      "term": "Market failure",
+      "aliases": ["inefficient output", "allocative failure", "market inefficiency"],
+      "tags": ["efficiency", "policy rationale", "externalities"],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Evaluate",
+      "definition": {
+        "text": "Market failure is the case where a market does not account for all social costs and so fails to produce an efficient quantity.",
+        "anchor": {
+          "src": "openstax:microeconomics-3e#12.1",
+          "loc": "12.1",
+          "quote": "economists commonly refer to externalities as an example of market failure"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "Externalities are the standard example economists give of market failure.",
+          "anchor": {
+            "src": "openstax:microeconomics-3e#12.1",
+            "loc": "12.1",
+            "quote": "economists commonly refer to externalities as an example of market failure"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Where pollution is unpriced the market produces too much of the polluting product.",
+          "anchor": {
+            "src": "openstax:microeconomics-3e#12.1",
+            "loc": "12.1",
+            "quote": "the market produces too much of the product"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students read market failure as meaning the market collapsed or stopped functioning.",
+          "corrective": "The market clears perfectly well; it fails only against the efficiency standard, trading a quantity that ignores costs borne outside the exchange."
+        }
+      ],
+      "examples": [
+        {
+          "text": "A congested road is heavily used and functioning, yet each driver ignores the delay imposed on everyone behind them, so traffic exceeds the efficient level.",
+          "domain": "policy"
+        }
+      ],
+      "workedExamples": [],
+      "mcBank": [
+        {
+          "stem": "An unregulated market for a polluting good reaches equilibrium and clears. An economist would still call this market failure because",
+          "options": [
+            "output ignores costs borne outside the exchange",
+            "no trades actually occurred",
+            "the supply curve slopes upward",
+            "buyers and sellers disagreed on price"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 1,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": { "recommends": ["envpolicy/command-and-control", "envpolicy/pollution-charge"] },
+      "variants": [],
+      "freshness": { "checked": "2026-07-25" },
+      "license": "CC BY 4.0",
+      "attribution": "OpenStax, Principles of Microeconomics 3e, §12.1"
+    },
+    {
+      "id": "envpolicy/command-and-control",
+      "rev": 1,
+      "term": "Command-and-control regulation",
+      "aliases": ["command and control", "emissions standard", "technology mandate", "prescriptive regulation"],
+      "tags": ["regulation", "policy instrument", "compliance"],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Evaluate",
+      "definition": {
+        "text": "Command-and-control regulation sets allowable quantities of pollution by law and may also prescribe the control technology firms must install.",
+        "anchor": {
+          "src": "openstax:microeconomics-3e#12.2",
+          "loc": "12.2",
+          "quote": "which specify allowable quantities of pollution and which also may detail which pollution-control technologies companies must use, fall under the category of command-and-control regulation"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "These laws set allowable pollution quantities and can dictate the control technology firms use.",
+          "anchor": {
+            "src": "openstax:microeconomics-3e#12.2",
+            "loc": "12.2",
+            "quote": "which specify allowable quantities of pollution and which also may detail which pollution-control technologies companies must use"
+          },
+          "tier": 2
+        },
+        {
+          "text": "The rule offers no incentive to improve the environment beyond the legal standard.",
+          "anchor": {
+            "src": "openstax:microeconomics-3e#12.2",
+            "loc": "12.2",
+            "quote": "offers no incentive to improve the quality of the environment beyond the standard set by a particular law"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Once a firm meets the standard it has zero incentive to reduce pollution further.",
+          "anchor": {
+            "src": "openstax:microeconomics-3e#12.2",
+            "loc": "12.2",
+            "quote": "Once firms meet the standard, polluters have zero incentive to do better"
+          },
+          "tier": 2
+        },
+        {
+          "text": "The approach is inflexible, usually imposing one standard and often one technology on every polluter.",
+          "anchor": {
+            "src": "openstax:microeconomics-3e#12.2",
+            "loc": "12.2",
+            "quote": "It usually requires the same standard for all polluters, and often the same pollution-control technology as well"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Because legislators and agency analysts draft them, the rules absorb political compromises.",
+          "anchor": {
+            "src": "openstax:microeconomics-3e#12.2",
+            "loc": "12.2",
+            "quote": "Real-world environmental laws are full of fine print, loopholes, and exceptions"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students assume a stricter numerical standard always produces a cleaner outcome.",
+          "corrective": "A uniform standard stops improvement at the line it draws and forces the same method on firms with very different abatement costs, so a looser but incentive-based rule can deliver more abatement per pound spent."
+        }
+      ],
+      "examples": [
+        {
+          "text": "A rule requiring every plant to install one specified scrubber leaves a plant that could cut twice as much for half the cost doing exactly the mandated minimum.",
+          "domain": "policy"
+        }
+      ],
+      "workedExamples": [],
+      "mcBank": [
+        {
+          "stem": "Two plants face the same emissions cap, but one can abate far more cheaply than the other. Under command-and-control regulation the likely result is",
+          "options": [
+            "both stop at the cap despite unequal abatement costs",
+            "the cheap abater voluntarily cuts much more",
+            "the expensive abater buys permits from the cheap one",
+            "total abatement cost is minimised across the pair"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 2,
+          "rationaleRefs": [0]
+        },
+        {
+          "stem": "Which feature of command-and-control regulation most directly explains why firms rarely reduce pollution below the legal limit?",
+          "options": [
+            "there is no reward for going beyond the standard",
+            "permits are traded on an open market",
+            "the tax rises with each unit emitted",
+            "property rights are clearly assigned"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 1,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": { "recommends": ["envpolicy/pollution-charge", "envpolicy/marketable-permits"] },
+      "variants": [],
+      "freshness": { "checked": "2026-07-25" },
+      "license": "CC BY 4.0",
+      "attribution": "OpenStax, Principles of Microeconomics 3e, §12.2"
+    },
+    {
+      "id": "envpolicy/pollution-charge",
+      "rev": 1,
+      "term": "Pollution charge",
+      "aliases": ["pollution tax", "emissions tax", "carbon tax", "Pigouvian tax"],
+      "tags": ["policy instrument", "incentives", "market-oriented"],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Evaluate",
+      "definition": {
+        "text": "A pollution charge is a tax levied on the quantity of pollution a firm emits, so every avoided unit saves money.",
+        "anchor": {
+          "src": "openstax:microeconomics-3e#12.3",
+          "loc": "12.3",
+          "quote": "A pollution charge is a tax imposed on the quantity of pollution that a firm emits"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "A pollution charge taxes the quantity of pollution a firm actually emits.",
+          "anchor": {
+            "src": "openstax:microeconomics-3e#12.3",
+            "loc": "12.3",
+            "quote": "A pollution charge is a tax imposed on the quantity of pollution that a firm emits"
+          },
+          "tier": 2
+        },
+        {
+          "text": "The charge gives a profit-maximising firm a reason to find its own ways to cut emissions.",
+          "anchor": {
+            "src": "openstax:microeconomics-3e#12.3",
+            "loc": "12.3",
+            "quote": "gives a profit-maximizing firm an incentive to determine ways to reduce its emissions"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Against command-and-control rules a pollution tax cuts pollution more flexibly and cost-effectively.",
+          "anchor": {
+            "src": "openstax:microeconomics-3e#12.3",
+            "loc": "12.3",
+            "quote": "a pollution tax reduces pollution in a more flexible and cost-effective way"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students read a pollution tax as a fine that simply punishes firms for polluting.",
+          "corrective": "A fine applies once a limit is broken; a charge prices every unit continuously, so the firm keeps saving money for each additional unit it avoids and chooses its own cheapest method."
+        }
+      ],
+      "examples": [
+        {
+          "text": "Charging a fixed amount per tonne of carbon dioxide leaves each firm free to cut by fuel switching, efficiency, or capture, whichever costs it least.",
+          "domain": "policy"
+        }
+      ],
+      "workedExamples": [
+        {
+          "problem": "A firm emits 500 tonnes and faces a charge of 40 per tonne. An efficiency retrofit costing 12,000 would cut emissions by 400 tonnes. Should the firm retrofit?",
+          "steps": [
+            "Compute the charge avoided: 400 tonnes x 40 = 16,000 per year.",
+            "Compare with the retrofit cost of 12,000.",
+            "Because 16,000 exceeds 12,000, the retrofit pays for itself and the firm abates voluntarily."
+          ]
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "A plant pays 40 for every tonne it releases, and a process change would eliminate one tonne at a cost of 25. A profit-maximising manager will most likely",
+          "options": [
+            "install the retrofit and emit less",
+            "keep releasing each tonne and pay the charge",
+            "await a mandated process change from regulators",
+            "raise output so the tonne cost is spread wider"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 1,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": { "recommends": ["envpolicy/marketable-permits", "envpolicy/social-cost"] },
+      "variants": [],
+      "freshness": { "checked": "2026-07-25" },
+      "license": "CC BY 4.0",
+      "attribution": "OpenStax, Principles of Microeconomics 3e, §12.3"
+    },
+    {
+      "id": "envpolicy/marketable-permits",
+      "rev": 1,
+      "term": "Marketable permits",
+      "aliases": ["cap and trade", "cap-and-trade", "tradable permits", "emissions trading"],
+      "tags": ["policy instrument", "market-oriented", "allocation"],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Evaluate",
+      "definition": {
+        "text": "A marketable permit program caps the total pollution allowed and lets firms trade the permits, so abatement concentrates where it is cheapest.",
+        "anchor": {
+          "src": "openstax:microeconomics-3e#12.3",
+          "loc": "12.3",
+          "quote": "it must start by determining the overall quantity of pollution it will allow"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "A cap-and-trade program begins by fixing the overall quantity of pollution allowed.",
+          "anchor": {
+            "src": "openstax:microeconomics-3e#12.3",
+            "loc": "12.3",
+            "quote": "it must start by determining the overall quantity of pollution it will allow"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Under tradable permits the firms with the cheapest abatement end up cutting the most.",
+          "anchor": {
+            "src": "openstax:microeconomics-3e#12.3",
+            "loc": "12.3",
+            "quote": "the firms that find it least expensive to do so will reduce pollution the most"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students object that selling permits lets rich firms buy the right to pollute without limit.",
+          "corrective": "The cap fixes total emissions before any trade occurs, so a purchase by one firm requires an equal cut by another; trading changes who abates, never how much."
+        }
+      ],
+      "examples": [
+        {
+          "text": "Under a regional cap a utility that would pay a great deal to abate buys permits from a plant that can cut cheaply, and the regional total still falls to the cap.",
+          "domain": "policy"
+        }
+      ],
+      "workedExamples": [],
+      "mcBank": [
+        {
+          "stem": "Under a binding cap-and-trade program, one firm buys additional permits from another. The effect on total emissions across the covered firms is",
+          "options": [
+            "unchanged, because the cap fixes the total",
+            "an increase equal to the permits purchased",
+            "a decrease equal to the permits purchased",
+            "unpredictable without knowing the tax rate"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": { "recommends": ["envpolicy/command-and-control", "envpolicy/property-rights"] },
+      "variants": [],
+      "freshness": { "checked": "2026-07-25" },
+      "license": "CC BY 4.0",
+      "attribution": "OpenStax, Principles of Microeconomics 3e, §12.3"
+    },
+    {
+      "id": "envpolicy/property-rights",
+      "rev": 1,
+      "term": "Property rights",
+      "aliases": ["ownership rights", "legal rights of ownership", "assignment of rights"],
+      "tags": ["institutions", "market-oriented", "bargaining"],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Evaluate",
+      "definition": {
+        "text": "Property rights are the legal rights of ownership others may not infringe; assigning them clearly determines who must pay to resolve a pollution conflict.",
+        "anchor": {
+          "src": "openstax:microeconomics-3e#12.3",
+          "loc": "12.3",
+          "quote": "the legal rights of ownership on which others are not allowed to infringe"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "Property rights are the legal rights of ownership that others may not infringe.",
+          "anchor": {
+            "src": "openstax:microeconomics-3e#12.3",
+            "loc": "12.3",
+            "quote": "the legal rights of ownership on which others are not allowed to infringe"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Clarifying and strengthening property rights can balance economic activity against pollution.",
+          "anchor": {
+            "src": "openstax:microeconomics-3e#12.3",
+            "loc": "12.3",
+            "quote": "A clarified and strengthened idea of property rights can also strike a balance between economic activity and pollution"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students assume the polluter must pay simply because polluting is the harmful act.",
+          "corrective": "Who pays follows from how the right is assigned: if the polluter holds the right to emit, the affected party must pay to reduce it, which is why defining the right precedes any bargain."
+        }
+      ],
+      "examples": [
+        {
+          "text": "Where a downstream community holds a clear right to clean water, an upstream mill must either treat its discharge or compensate the community for it.",
+          "domain": "policy"
+        }
+      ],
+      "workedExamples": [],
+      "mcBank": [
+        {
+          "stem": "Two parties dispute a polluting activity and bargaining is cheap. According to the property-rights approach, the first question to settle is",
+          "options": [
+            "who holds the legal right that the other may not infringe",
+            "which party emits the larger quantity",
+            "what technology the regulator prefers",
+            "how high the pollution charge should be"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": { "recommends": ["envpolicy/marketable-permits", "envpolicy/externality"] },
+      "variants": [],
+      "freshness": { "checked": "2026-07-25" },
+      "license": "CC BY 4.0",
+      "attribution": "OpenStax, Principles of Microeconomics 3e, §12.3"
+    }
+  ]
+}

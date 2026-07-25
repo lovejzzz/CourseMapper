@@ -195,6 +195,14 @@ export function inferCourseDisciplines(courseMap) {
     .join(' ')
     .toLowerCase();
   const map = [
+    // v0.16.80: the environmental-policy shard (OpenStax Microeconomics 3e
+    // ch.12 foundry run). Listed BEFORE 'econ' because a policy course matches
+    // "market" and would otherwise be pulled into the economics shard, which
+    // holds none of the instrument vocabulary these lessons teach.
+    [
+      'envpolicy',
+      /\benvironmental polic|\bpollution\b|\bexternalit|\bcap[- ]and[- ]trade\b|\bcarbon tax|\bemissions? (?:trading|permit|standard)|\bcommand[- ]and[- ]control\b|\bmarketable permit|\benvironmental (?:regulation|justice|impact)|\bcommon[- ]pool resource/,
+    ],
     ['econ', /\beconom|microecon|macroecon|market|supply|demand|inflation|wage|monetary|fiscal/],
     [
       'project-management',

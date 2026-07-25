@@ -201,10 +201,31 @@ function composeCorrection(misconception, kernel) {
   return trimmed.length >= CORRECTION_MIN_CHARS ? trimmed : '';
 }
 
+/**
+ * A concrete instance of the term. Shards differ in where they keep one:
+ * astro/psych carry `examples`, music and lang carry none but are rich in
+ * `workedExamples` and `facts`. Requiring `examples` specifically made every
+ * music, anatomy, and lang lesson uncomposable — Algi produced nothing and the
+ * compiler's template path filled the gap, which is what the study-guide
+ * boilerplate P1 actually was.
+ */
+function exampleFor(kernel) {
+  const candidates = [
+    (kernel.examples || [])[0],
+    (kernel.workedExamples || [])[0],
+    ...(kernel.facts || []).slice(0, 3),
+  ];
+  for (const candidate of candidates) {
+    const text = fitWords(sentenceOf(candidate), EG_WORDS);
+    if (text) return text;
+  }
+  return '';
+}
+
 function composeKeyTerm(kernel) {
   const term = fitWords(kernel.term, TERM_WORDS);
   const definition = fitWords(sentenceOf(kernel.definition), DEF_WORDS);
-  const example = fitWords(sentenceOf((kernel.examples || [])[0]), EG_WORDS);
+  const example = exampleFor(kernel);
   const misconception = (kernel.misconceptions || [])[0];
   const mi = fitWords(sentenceOf(misconception), MI_WORDS);
   const cx = composeCorrection(misconception, kernel);
@@ -239,7 +260,8 @@ function composeFacts(kernels, factCount) {
 
 function composeScenario(kernels) {
   for (const kernel of kernels) {
-    const source = (kernel.workedExamples || [])[0] || (kernel.examples || [])[0];
+    const source =
+      (kernel.workedExamples || [])[0] || (kernel.examples || [])[0] || (kernel.facts || [])[0] || kernel.definition;
     const su = fitWords(sentenceOf(source), SCENARIO_WORDS, sentenceOf(kernel.definition));
     const misconception = (kernel.misconceptions || [])[0];
     const ma = fitWords(misconception?.corrective || sentenceOf(kernel.definition), MOVE_WORDS);
