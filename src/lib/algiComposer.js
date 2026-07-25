@@ -20,8 +20,14 @@ const MAX_SECTION = 60;
 const MAX_COURSE_NAME = 120;
 const MIN_TITLE = 5;
 
-/** Only the Pass A skeleton is composed; every other task declines. */
-export const ALGI_COMPOSED_TASKS = new Set(['nativeSkeleton']);
+/** Tasks Algi answers itself; anything else defers to the compiler. */
+export const ALGI_COMPOSED_TASKS = new Set(['nativeSkeleton', 'blueprintEnrichment']);
+
+/** Facts-per-lesson the batch contract pins, read from the declared schema. */
+export function factCountFromSchema(schema) {
+  const facts = schema?.schema?.properties?.lessons?.items?.properties?.facts;
+  return Number(facts?.minItems) || 5;
+}
 
 function clamp(text, max, min = 0) {
   const value = String(text || '')
@@ -191,7 +197,12 @@ export function composeAlgiSkeleton(userPrompt) {
  * returns '' so the caller's existing model-unavailable path hands the work to
  * the deterministic compiler rather than to invented content.
  */
-export function composeAlgiResponse({ task, userPrompt } = {}) {
-  if (!ALGI_COMPOSED_TASKS.has(String(task || ''))) return '';
-  return composeAlgiSkeleton(userPrompt);
+export async function composeAlgiResponse({ task, userPrompt, structuredPrompt, schema } = {}) {
+  const name = String(task || '');
+  if (!ALGI_COMPOSED_TASKS.has(name)) return '';
+  if (name === 'nativeSkeleton') return composeAlgiSkeleton(userPrompt);
+  // Lesson kernels are retrieved from the genome, where the facts, key terms,
+  // misconceptions, and question banks already carry source anchors.
+  const { composeAlgiLessonKernels } = await import('./algiKernelComposer.js');
+  return composeAlgiLessonKernels({ structuredPrompt, factCount: factCountFromSchema(schema) });
 }

@@ -249,6 +249,10 @@ export function scionCallOpts({ prompt, expectedLessonIds, recoveryAttempt }) {
   const activityLessonIds = experientialLessonIds(promptLessons);
   return {
     schema: compactLessonKernelSchemaProfile({ expectedLessonIds, factCount, activityLessonIds }),
+    // Algi V0 composes this batch from the genome rather than sampling it, and
+    // needs the same structured lessons the prompt was built from. Carried
+    // here so the composer never has to re-parse prose it did not author.
+    structuredPrompt: prompt,
     // A direct instructor/compiler ledger is already the trusted knowledge
     // source. Route it through the compact synthesis boundary so the base
     // copies only those claims and the compiler freezes them before any

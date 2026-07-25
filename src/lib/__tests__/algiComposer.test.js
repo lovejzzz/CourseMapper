@@ -134,13 +134,18 @@ describe('Algi V0 skeleton composition', () => {
 });
 
 describe('Algi V0 request routing', () => {
-  it('composes the Pass A skeleton', () => {
-    expect(composeAlgiResponse({ task: 'nativeSkeleton', userPrompt: promptFor(SYLLABUS, 6) })).toContain('"sessions"');
+  it('composes the Pass A skeleton', async () => {
+    await expect(
+      composeAlgiResponse({ task: 'nativeSkeleton', userPrompt: promptFor(SYLLABUS, 6) }),
+    ).resolves.toContain('"sessions"');
   });
 
-  it('declines every other task so the compiler owns it, rather than inventing content', () => {
-    expect(composeAlgiResponse({ task: 'enrichment', userPrompt: 'anything' })).toBe('');
-    expect(composeAlgiResponse({ task: 'lessonKernel', userPrompt: 'anything' })).toBe('');
-    expect(composeAlgiResponse({})).toBe('');
+  it('declines an unknown task so the compiler owns it, rather than inventing content', async () => {
+    await expect(composeAlgiResponse({ task: 'voicePass', userPrompt: 'anything' })).resolves.toBe('');
+    await expect(composeAlgiResponse({})).resolves.toBe('');
+  });
+
+  it('returns nothing for enrichment when no structured lessons are supplied', async () => {
+    await expect(composeAlgiResponse({ task: 'blueprintEnrichment', structuredPrompt: null })).resolves.toBe('');
   });
 });

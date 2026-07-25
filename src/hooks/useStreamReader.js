@@ -176,6 +176,7 @@ export default function useStreamReader() {
       task,
       schema,
       promptProtocol,
+      structuredPrompt,
       temperature: temperatureOverride,
       onApiCallEvent,
       allowProviderFallback = true,
@@ -189,14 +190,28 @@ export default function useStreamReader() {
     // '' so the caller's existing model-unavailable path hands the work to the
     // deterministic compiler instead of to invented content.
     if (isAlgiModel(modelId)) {
-      const { composeAlgiResponse } = await import('../lib/algiComposer');
-      const fullText = composeAlgiResponse({ task, userPrompt });
+      let fullText = '';
+      let composeError = null;
+      try {
+        const { composeAlgiResponse } = await import('../lib/algiComposer');
+        fullText = await composeAlgiResponse({ task, userPrompt, structuredPrompt, schema });
+      } catch (error) {
+        // A composition failure must never masquerade as a model that chose to
+        // say nothing: record it, then let the compiler's fallback own the work.
+        composeError = error;
+      }
       recordApiCallEvent({
         type: 'algiComposed',
-        label: fullText ? 'Algi V0 — composed from source and genome' : 'Algi V0 — deferred to the compiler',
-        detail: fullText
-          ? `${task || 'request'} · no model download, no inference`
-          : `${task || 'request'} · not a composed task`,
+        label: composeError
+          ? 'Algi V0 — composition failed'
+          : fullText
+            ? 'Algi V0 — composed from source and genome'
+            : 'Algi V0 — deferred to the compiler',
+        detail: composeError
+          ? `${task || 'request'} · ${composeError?.message || 'unknown error'}`
+          : fullText
+            ? `${task || 'request'} · no model download, no inference`
+            : `${task || 'request'} · not a composed task`,
         stage: 'algi-compose',
         provider,
         modelId,
