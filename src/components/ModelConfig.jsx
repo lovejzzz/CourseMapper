@@ -20,6 +20,7 @@ import {
   saveEnrichmentPreference,
 } from '../lib/enrichmentPreference';
 import { PUBLIC_SCION_MODEL_NAME, PUBLIC_SCION_PROVIDER_ID } from '../lib/publicScionIdentity';
+import { ALGI_MODEL_NAME, isAlgiModel } from '../lib/algiIdentity';
 import { isLocalProviderOptInEnabled } from '../lib/localProvider';
 import useScionRuntimeStatus from '../hooks/useScionRuntimeStatus';
 import { SCION_BROWSER_GEMMA4_DOWNLOAD_LABEL } from '../lib/scionBrowserConstants';
@@ -218,7 +219,11 @@ export default function ModelConfig({ reserveTrailingActionSpace = false }) {
     generationPlan,
     setGenerationPlan,
   } = useAIConfig();
-  const scionRuntimeStatus = useScionRuntimeStatus(provider === PUBLIC_SCION_PROVIDER_ID);
+  // Algi V0 has no runtime to warm and no weights to fetch, so the download
+  // copy and progress bar must not speak for it.
+  const algiSelected = provider === PUBLIC_SCION_PROVIDER_ID && isAlgiModel(modelId);
+  const selectedScionModelName = algiSelected ? ALGI_MODEL_NAME : PUBLIC_SCION_MODEL_NAME;
+  const scionRuntimeStatus = useScionRuntimeStatus(provider === PUBLIC_SCION_PROVIDER_ID && !algiSelected);
   const debounceRef = useRef(null);
   const prevProviderValueRef = useRef(provider);
   const prevApiKeyRef = useRef(apiKey);
@@ -928,7 +933,7 @@ export default function ModelConfig({ reserveTrailingActionSpace = false }) {
             >
               {availableModels.map((m) => (
                 <option key={m.id} value={m.id}>
-                  {provider === PUBLIC_SCION_PROVIDER_ID ? PUBLIC_SCION_MODEL_NAME : describeModelOption(m)}
+                  {provider === PUBLIC_SCION_PROVIDER_ID ? m.name || PUBLIC_SCION_MODEL_NAME : describeModelOption(m)}
                 </option>
               ))}
             </select>
@@ -945,7 +950,7 @@ export default function ModelConfig({ reserveTrailingActionSpace = false }) {
                   : apiStatus === 'error'
                     ? validationErrorLabel
                     : provider === PUBLIC_SCION_PROVIDER_ID
-                      ? PUBLIC_SCION_MODEL_NAME
+                      ? selectedScionModelName
                       : 'Enter API key first'}
             </div>
           )}
@@ -982,16 +987,32 @@ export default function ModelConfig({ reserveTrailingActionSpace = false }) {
           className="mt-4 rounded-squircle-xs border border-indigo-100/80 bg-indigo-50/50 px-3.5 py-3 text-xs leading-relaxed text-slate-700 dark:border-indigo-400/20 dark:bg-indigo-400/10 dark:text-slate-200"
           data-testid="scion-model-boundary"
         >
-          <p>
-            Scion is EduTool&apos;s customized local course-building AI. It combines a compact Gemma 4 model with a
-            teaching-focused compiler to create aligned course materials.
-          </p>
-          <p className="mt-1.5 text-slate-600 dark:text-slate-300">
-            {scionRuntimeStatus.phase === 'ready'
-              ? 'Scion is ready on this device. Prompts and generated text stay in this browser.'
-              : `First use downloads ${SCION_BROWSER_GEMMA4_DOWNLOAD_LABEL} of public model weights and keeps them in browser storage. Prompts and generated text stay on this device.`}
-          </p>
-          {['loading-runtime', 'loading-model'].includes(scionRuntimeStatus.phase) && (
+          {algiSelected ? (
+            <>
+              <p>
+                Algi V0 builds your course from the uploaded source and EduTool&apos;s shipped teaching genome, using
+                the same compiler, checks, and exports as Scion.
+              </p>
+              <p className="mt-1.5 text-slate-600 dark:text-slate-300">
+                No model download and no inference — generation starts immediately and nothing leaves this device. It
+                transcribes and organizes what your source already says; it does not write new subject knowledge, so a
+                source with a clear lesson or week structure gives the best result.
+              </p>
+            </>
+          ) : (
+            <>
+              <p>
+                Scion is EduTool&apos;s customized local course-building AI. It combines a compact Gemma 4 model with a
+                teaching-focused compiler to create aligned course materials.
+              </p>
+              <p className="mt-1.5 text-slate-600 dark:text-slate-300">
+                {scionRuntimeStatus.phase === 'ready'
+                  ? 'Scion is ready on this device. Prompts and generated text stay in this browser.'
+                  : `First use downloads ${SCION_BROWSER_GEMMA4_DOWNLOAD_LABEL} of public model weights and keeps them in browser storage. Prompts and generated text stay on this device.`}
+              </p>
+            </>
+          )}
+          {!algiSelected && ['loading-runtime', 'loading-model'].includes(scionRuntimeStatus.phase) && (
             <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-indigo-100 dark:bg-indigo-950">
               <div
                 className="h-full rounded-full bg-indigo-500 transition-[width] duration-300"

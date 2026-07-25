@@ -6,6 +6,7 @@ import { failureEventFields, toClassifiedError } from '../lib/failureClassificat
 import { GOOGLE_ENDPOINT_FAMILIES, isVertexKey } from '../lib/googleProvider';
 import { buildProviderTextRequest } from '../lib/modelRequestBuilders';
 import { PUBLIC_SCION_PROVIDER_ID, publicScionModelOption } from '../lib/publicScionIdentity';
+import { isAlgiModel } from '../lib/algiIdentity';
 import {
   buildApiUsageEvent,
   extractUsageFromProviderChunk,
@@ -182,6 +183,31 @@ export default function useStreamReader() {
     const recordApiCallEvent = (event) => {
       if (typeof onApiCallEvent === 'function') onApiCallEvent(event);
     };
+    // Algi V0 answers from the uploaded source and the shipped genome, so it
+    // never downloads or executes weights. The composed response is returned in
+    // the same shape a sampled one would be, and an unanswerable task returns
+    // '' so the caller's existing model-unavailable path hands the work to the
+    // deterministic compiler instead of to invented content.
+    if (isAlgiModel(modelId)) {
+      const { composeAlgiResponse } = await import('../lib/algiComposer');
+      const fullText = composeAlgiResponse({ task, userPrompt });
+      recordApiCallEvent({
+        type: 'algiComposed',
+        label: fullText ? 'Algi V0 — composed from source and genome' : 'Algi V0 — deferred to the compiler',
+        detail: fullText
+          ? `${task || 'request'} · no model download, no inference`
+          : `${task || 'request'} · not a composed task`,
+        stage: 'algi-compose',
+        provider,
+        modelId,
+        featureId: featureId || task || '',
+        task: task || featureId || '',
+        modelRequests: 0,
+        spendUsd: 0,
+      });
+      onChunk?.(fullText, 1);
+      return { fullText, finishReason: 'stop' };
+    }
     const observedAdapterRoutes = [];
     const retryLimit = maxRetries;
     const recordUsage = (reportedUsage, outputText, label = 'API usage') => {
