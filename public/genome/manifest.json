@@ -1,7 +1,7 @@
 {
   "version": "2026-07-25",
   "generator": "curriculumos-foundry-v1",
-  "conceptCount": 308,
+  "conceptCount": 312,
   "shards": [
     {
       "id": "anatomy-intro",
@@ -56,8 +56,8 @@
       "discipline": "envpolicy",
       "level": "intro",
       "path": "envpolicy-intro.json",
-      "conceptCount": 6,
-      "hash": "ba304030589cef34"
+      "conceptCount": 10,
+      "hash": "9b0644af4c19eac0"
     },
     {
       "id": "geo-intro",
