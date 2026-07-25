@@ -149,6 +149,12 @@ function kernelsForLesson(lesson, index, wanted = KEY_TERMS_REQUIRED, claimed = 
     if (id && !ids.includes(id)) ids.push(id);
   }
   const unclaimed = (id) => !claimed.has(id);
+  // Every widening step stays inside the lesson's own discipline. Without this
+  // the resolver's near-misses leak across subjects on a single shared token:
+  // a music lesson on "major and minor scales" pulled in geology's "Major
+  // minerals", and one on triads pulled in "Water quality sampling".
+  const homeDiscipline = index.kernels.get(ids[0])?.discipline || null;
+  const sameDiscipline = (id) => !homeDiscipline || index.kernels.get(id)?.discipline === homeDiscipline;
   // One kernel rarely carries three distinct key terms, five in-window facts,
   // and two question items on its own, so widen deliberately — nearest first,
   // and never outside the lesson's own discipline.
@@ -157,7 +163,8 @@ function kernelsForLesson(lesson, index, wanted = KEY_TERMS_REQUIRED, claimed = 
   for (const pass of [unclaimed, () => true]) {
     for (let cursor = 0; cursor < ids.length && ids.length < target; cursor += 1) {
       for (const neighbour of edgeTargets(index.kernels.get(ids[cursor]))) {
-        if (!ids.includes(neighbour) && index.kernels.has(neighbour) && pass(neighbour)) ids.push(neighbour);
+        if (!ids.includes(neighbour) && index.kernels.has(neighbour) && sameDiscipline(neighbour) && pass(neighbour))
+          ids.push(neighbour);
         if (ids.length >= target) break;
       }
     }
@@ -166,11 +173,11 @@ function kernelsForLesson(lesson, index, wanted = KEY_TERMS_REQUIRED, claimed = 
   for (const suggestion of resolved.suggestions || []) {
     if (ids.length >= target) break;
     const id = suggestion?.conceptId || suggestion?.id;
-    if (id && !ids.includes(id) && index.kernels.has(id) && unclaimed(id)) ids.push(id);
+    if (id && !ids.includes(id) && index.kernels.has(id) && sameDiscipline(id) && unclaimed(id)) ids.push(id);
   }
   // 3. same-discipline siblings, unclaimed ones first. Still this course's
   //    subject matter, and the honest alternative to an incomplete lesson.
-  const discipline = index.kernels.get(ids[0])?.discipline;
+  const discipline = homeDiscipline;
   if (discipline) {
     for (const pass of [unclaimed, () => true]) {
       for (const [id, kernel] of index.kernels) {
@@ -233,11 +240,17 @@ function composeKeyTerm(kernel) {
   return { tr: term, df: definition, eg: example, mi, cx };
 }
 
-function composeFacts(kernels, factCount) {
+function composeFacts(kernels, factCount, offset = 0) {
   const facts = [];
   const seen = new Set();
   for (const kernel of kernels) {
-    for (const fact of kernel.facts || []) {
+    // Rotate the entry point per lesson. When a thin shard forces several
+    // lessons through the same kernels, taking the first N facts every time is
+    // what makes their study guides converge.
+    const pool = kernel.facts || [];
+    const rotated =
+      pool.length > 1 ? [...pool.slice(offset % pool.length), ...pool.slice(0, offset % pool.length)] : pool;
+    for (const fact of rotated) {
       const text = fitWords(sentenceOf(fact), FACT_WORDS);
       const key = text.toLowerCase();
       if (!text || seen.has(key)) continue;
@@ -291,14 +304,23 @@ function composeMultipleChoice(kernels, factCount) {
   return items;
 }
 
+/** Stable per-lesson rotation seed, read from the lesson id where possible. */
+export function lessonOffset(lesson, fallback = 0) {
+  const parsed = /(\d+)/.exec(String(lesson?.lessonId || ''));
+  return parsed ? Number(parsed[1]) : fallback;
+}
+
 /** Compose one lesson payload, or null when the genome cannot cover it. */
-export function composeLessonKernelFromGenome(lesson, index, { factCount = 5, claimed = new Set() } = {}) {
+export function composeLessonKernelFromGenome(lesson, index, { factCount = 5, claimed = new Set(), offset = 0 } = {}) {
   const kernels = kernelsForLesson(lesson, index, KEY_TERMS_REQUIRED, claimed);
   if (kernels.length === 0) return null;
-  const facts = composeFacts(kernels, factCount);
+  const facts = composeFacts(kernels, factCount, offset);
   if (facts.length !== factCount) return null;
   const keyTerms = [];
-  for (const kernel of kernels) {
+  // The lesson's own resolved concept stays first; the padding kernels rotate.
+  const [primary, ...rest] = kernels;
+  const spun = rest.length > 1 ? [...rest.slice(offset % rest.length), ...rest.slice(0, offset % rest.length)] : rest;
+  for (const kernel of [primary, ...spun].filter(Boolean)) {
     const keyTerm = composeKeyTerm(kernel);
     if (keyTerm && !keyTerms.some((existing) => existing.tr.toLowerCase() === keyTerm.tr.toLowerCase())) {
       keyTerms.push(keyTerm);
@@ -306,7 +328,9 @@ export function composeLessonKernelFromGenome(lesson, index, { factCount = 5, cl
     if (keyTerms.length === KEY_TERMS_REQUIRED) break;
   }
   if (keyTerms.length !== KEY_TERMS_REQUIRED) return null;
-  const scenario = composeScenario(kernels);
+  const scenario = composeScenario(
+    offset > 0 && kernels.length > 1 ? [...kernels.slice(offset % kernels.length), ...kernels] : kernels,
+  );
   if (!scenario) return null;
   const mc = composeMultipleChoice(kernels, factCount);
   if (mc.length !== MC_REQUIRED) return null;
@@ -328,8 +352,16 @@ export async function composeAlgiLessonKernels({ structuredPrompt, factCount = 5
   const composed = [];
   const uncovered = [];
   const claimed = new Set();
-  for (const lesson of lessons) {
-    const payload = composeLessonKernelFromGenome(lesson, index, { factCount, claimed });
+  for (const [position, lesson] of lessons.entries()) {
+    // The offset must be stable per LESSON, not per position in the batch:
+    // enrichment often arrives one lesson at a time, so a batch index is always
+    // 0 and the rotation silently never happens. Lesson 3 must rotate like
+    // lesson 3 whether it arrived alone or in a group of twelve.
+    const payload = composeLessonKernelFromGenome(lesson, index, {
+      factCount,
+      claimed,
+      offset: lessonOffset(lesson, position),
+    });
     if (payload) composed.push(payload);
     else uncovered.push(lesson?.lessonId || 'unknown');
   }
