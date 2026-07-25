@@ -199,10 +199,14 @@ export function composeAlgiSkeleton(userPrompt) {
  */
 export async function composeAlgiResponse({ task, userPrompt, structuredPrompt, schema } = {}) {
   const name = String(task || '');
-  if (!ALGI_COMPOSED_TASKS.has(name)) return '';
-  if (name === 'nativeSkeleton') return composeAlgiSkeleton(userPrompt);
+  if (!ALGI_COMPOSED_TASKS.has(name)) return { text: '', coverage: null };
+  if (name === 'nativeSkeleton') return { text: composeAlgiSkeleton(userPrompt), coverage: null };
   // Lesson kernels are retrieved from the genome, where the facts, key terms,
   // misconceptions, and question banks already carry source anchors.
   const { composeAlgiLessonKernels } = await import('./algiKernelComposer.js');
-  return composeAlgiLessonKernels({ structuredPrompt, factCount: factCountFromSchema(schema) });
+  const result = await composeAlgiLessonKernels({ structuredPrompt, factCount: factCountFromSchema(schema) });
+  return {
+    text: result.text,
+    coverage: { covered: result.covered, requested: result.requested, uncovered: result.uncovered },
+  };
 }

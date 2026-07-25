@@ -131,8 +131,16 @@ export function edgeTargets(kernel) {
   return targets;
 }
 
-/** Kernels backing one lesson: its resolved concept first, then its neighbours. */
-function kernelsForLesson(lesson, index, wanted = KEY_TERMS_REQUIRED) {
+/**
+ * Kernels backing one lesson: its resolved concept first, then its neighbours.
+ *
+ * `claimed` carries the kernels earlier lessons in this course already used.
+ * A lesson's OWN resolved concepts are never withheld — that is its subject —
+ * but every widening step prefers unclaimed material, because two lessons
+ * padded from the same sibling kernel is precisely how a study guide ends up
+ * repeating 45% of its lines across the course.
+ */
+function kernelsForLesson(lesson, index, wanted = KEY_TERMS_REQUIRED, claimed = new Set()) {
   if (!index) return [];
   const resolved = resolveLessonConcepts(resolverLessonShape(lesson), index, { maxConcepts: Math.max(4, wanted) });
   const ids = [];
@@ -140,33 +148,57 @@ function kernelsForLesson(lesson, index, wanted = KEY_TERMS_REQUIRED) {
     const id = ref?.conceptId || ref?.id;
     if (id && !ids.includes(id)) ids.push(id);
   }
+  const unclaimed = (id) => !claimed.has(id);
   // One kernel rarely carries three distinct key terms, five in-window facts,
   // and two question items on its own, so widen deliberately — nearest first,
   // and never outside the lesson's own discipline.
   const target = wanted + 2;
   // 1. the concept graph, breadth-first (recommends/requires neighbours).
-  for (let cursor = 0; cursor < ids.length && ids.length < target; cursor += 1) {
-    for (const neighbour of edgeTargets(index.kernels.get(ids[cursor]))) {
-      if (!ids.includes(neighbour) && index.kernels.has(neighbour)) ids.push(neighbour);
-      if (ids.length >= target) break;
+  for (const pass of [unclaimed, () => true]) {
+    for (let cursor = 0; cursor < ids.length && ids.length < target; cursor += 1) {
+      for (const neighbour of edgeTargets(index.kernels.get(ids[cursor]))) {
+        if (!ids.includes(neighbour) && index.kernels.has(neighbour) && pass(neighbour)) ids.push(neighbour);
+        if (ids.length >= target) break;
+      }
     }
   }
   // 2. the resolver's near-misses for this same lesson.
   for (const suggestion of resolved.suggestions || []) {
     if (ids.length >= target) break;
     const id = suggestion?.conceptId || suggestion?.id;
-    if (id && !ids.includes(id) && index.kernels.has(id)) ids.push(id);
+    if (id && !ids.includes(id) && index.kernels.has(id) && unclaimed(id)) ids.push(id);
   }
-  // 3. same-discipline siblings. Still this course's subject matter, and the
-  //    honest alternative to emitting an incomplete lesson.
+  // 3. same-discipline siblings, unclaimed ones first. Still this course's
+  //    subject matter, and the honest alternative to an incomplete lesson.
   const discipline = index.kernels.get(ids[0])?.discipline;
-  if (discipline && ids.length < target) {
-    for (const [id, kernel] of index.kernels) {
-      if (ids.length >= target) break;
-      if (kernel?.discipline === discipline && !ids.includes(id)) ids.push(id);
+  if (discipline) {
+    for (const pass of [unclaimed, () => true]) {
+      for (const [id, kernel] of index.kernels) {
+        if (ids.length >= target) break;
+        if (kernel?.discipline === discipline && !ids.includes(id) && pass(id)) ids.push(id);
+      }
     }
   }
   return ids.map((id) => index.kernels.get(id)).filter(Boolean);
+}
+
+// `cx` is the correction the compiler assigns straight to a key term's
+// `correction` field, so it must be ONE sentence (scionPasses pins 12-300
+// chars). The compact provider contract nests {reject, replace} and Scion's
+// passes collapse it; Algi skips those passes, so it composes the collapsed
+// form directly. Emitting the nested object here is what produced
+// "correction": "[object Object]" in the first genome-composed run.
+const CORRECTION_MIN_CHARS = 12;
+const CORRECTION_MAX_CHARS = 300;
+
+function composeCorrection(misconception, kernel) {
+  const wrong = sentenceOf(misconception).replace(/\s*[.!?]+\s*$/, '');
+  const right = String(misconception?.corrective || sentenceOf(kernel.definition)).trim();
+  if (!right) return '';
+  const sentence = wrong ? `Not that ${wrong.charAt(0).toLowerCase()}${wrong.slice(1)} — ${right}` : right;
+  const trimmed =
+    sentence.length > CORRECTION_MAX_CHARS ? `${sentence.slice(0, CORRECTION_MAX_CHARS - 1).trimEnd()}.` : sentence;
+  return trimmed.length >= CORRECTION_MIN_CHARS ? trimmed : '';
 }
 
 function composeKeyTerm(kernel) {
@@ -175,10 +207,9 @@ function composeKeyTerm(kernel) {
   const example = fitWords(sentenceOf((kernel.examples || [])[0]), EG_WORDS);
   const misconception = (kernel.misconceptions || [])[0];
   const mi = fitWords(sentenceOf(misconception), MI_WORDS);
-  const reject = fitWords(sentenceOf(misconception), REJECT_WORDS);
-  const replace = fitWords(misconception?.corrective, REPLACE_WORDS, sentenceOf(kernel.definition));
-  if (!term || !definition || !example || !mi || !reject || !replace) return null;
-  return { tr: term, df: definition, eg: example, mi, cx: { reject, replace } };
+  const cx = composeCorrection(misconception, kernel);
+  if (!term || !definition || !example || !mi || !cx) return null;
+  return { tr: term, df: definition, eg: example, mi, cx };
 }
 
 function composeFacts(kernels, factCount) {
@@ -239,8 +270,8 @@ function composeMultipleChoice(kernels, factCount) {
 }
 
 /** Compose one lesson payload, or null when the genome cannot cover it. */
-export function composeLessonKernelFromGenome(lesson, index, { factCount = 5 } = {}) {
-  const kernels = kernelsForLesson(lesson, index);
+export function composeLessonKernelFromGenome(lesson, index, { factCount = 5, claimed = new Set() } = {}) {
+  const kernels = kernelsForLesson(lesson, index, KEY_TERMS_REQUIRED, claimed);
   if (kernels.length === 0) return null;
   const facts = composeFacts(kernels, factCount);
   if (facts.length !== factCount) return null;
@@ -257,6 +288,9 @@ export function composeLessonKernelFromGenome(lesson, index, { factCount = 5 } =
   if (!scenario) return null;
   const mc = composeMultipleChoice(kernels, factCount);
   if (mc.length !== MC_REQUIRED) return null;
+  // Only claim what this lesson actually taught from, so a later lesson is
+  // steered away from the same material rather than from unused neighbours.
+  for (const kernel of kernels.slice(0, KEY_TERMS_REQUIRED)) if (kernel?.id) claimed.add(kernel.id);
   return { lessonId: lesson.lessonId, facts, keyTerms, scenario, mc };
 }
 
@@ -266,14 +300,24 @@ export function composeLessonKernelFromGenome(lesson, index, { factCount = 5 } =
  */
 export async function composeAlgiLessonKernels({ structuredPrompt, factCount = 5 } = {}) {
   const lessons = Array.isArray(structuredPrompt?.lessons) ? structuredPrompt.lessons : [];
-  if (lessons.length === 0) return '';
+  if (lessons.length === 0) return { text: '', covered: 0, requested: 0, uncovered: [] };
   const { index } = await loadGenomeIndex();
-  if (!index) return '';
+  if (!index) return { text: '', covered: 0, requested: lessons.length, uncovered: lessons.map((l) => l?.lessonId) };
   const composed = [];
+  const uncovered = [];
+  const claimed = new Set();
   for (const lesson of lessons) {
-    const payload = composeLessonKernelFromGenome(lesson, index, { factCount });
+    const payload = composeLessonKernelFromGenome(lesson, index, { factCount, claimed });
     if (payload) composed.push(payload);
+    else uncovered.push(lesson?.lessonId || 'unknown');
   }
-  if (composed.length === 0) return '';
-  return JSON.stringify({ lessons: composed });
+  return {
+    // Coverage is reported, never faked: a lesson the genome cannot teach is
+    // named so the blocked package explains itself instead of looking like a
+    // generic gate failure.
+    text: composed.length > 0 ? JSON.stringify({ lessons: composed }) : '',
+    covered: composed.length,
+    requested: lessons.length,
+    uncovered,
+  };
 }

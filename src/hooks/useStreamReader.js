@@ -191,10 +191,13 @@ export default function useStreamReader() {
     // deterministic compiler instead of to invented content.
     if (isAlgiModel(modelId)) {
       let fullText = '';
+      let algiCoverage = null;
       let composeError = null;
       try {
         const { composeAlgiResponse } = await import('../lib/algiComposer');
-        fullText = await composeAlgiResponse({ task, userPrompt, structuredPrompt, schema });
+        const composed = await composeAlgiResponse({ task, userPrompt, structuredPrompt, schema });
+        fullText = composed?.text || '';
+        algiCoverage = composed?.coverage || null;
       } catch (error) {
         // A composition failure must never masquerade as a model that chose to
         // say nothing: record it, then let the compiler's fallback own the work.
@@ -209,9 +212,13 @@ export default function useStreamReader() {
             : 'Algi V0 — deferred to the compiler',
         detail: composeError
           ? `${task || 'request'} · ${composeError?.message || 'unknown error'}`
-          : fullText
-            ? `${task || 'request'} · no model download, no inference`
-            : `${task || 'request'} · not a composed task`,
+          : algiCoverage
+            ? `${task || 'request'} · ${algiCoverage.covered}/${algiCoverage.requested} lessons composed from the genome${
+                algiCoverage.uncovered?.length ? ` · genome does not cover ${algiCoverage.uncovered.join(', ')}` : ''
+              }`
+            : fullText
+              ? `${task || 'request'} · no model download, no inference`
+              : `${task || 'request'} · not a composed task`,
         stage: 'algi-compose',
         provider,
         modelId,

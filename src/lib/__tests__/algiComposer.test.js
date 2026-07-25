@@ -135,17 +135,19 @@ describe('Algi V0 skeleton composition', () => {
 
 describe('Algi V0 request routing', () => {
   it('composes the Pass A skeleton', async () => {
-    await expect(
-      composeAlgiResponse({ task: 'nativeSkeleton', userPrompt: promptFor(SYLLABUS, 6) }),
-    ).resolves.toContain('"sessions"');
+    const composed = await composeAlgiResponse({ task: 'nativeSkeleton', userPrompt: promptFor(SYLLABUS, 6) });
+    expect(composed.text).toContain('"sessions"');
   });
 
   it('declines an unknown task so the compiler owns it, rather than inventing content', async () => {
-    await expect(composeAlgiResponse({ task: 'voicePass', userPrompt: 'anything' })).resolves.toBe('');
-    await expect(composeAlgiResponse({})).resolves.toBe('');
+    expect((await composeAlgiResponse({ task: 'voicePass', userPrompt: 'anything' })).text).toBe('');
+    expect((await composeAlgiResponse({})).text).toBe('');
   });
 
   it('returns nothing for enrichment when no structured lessons are supplied', async () => {
-    await expect(composeAlgiResponse({ task: 'blueprintEnrichment', structuredPrompt: null })).resolves.toBe('');
+    const composed = await composeAlgiResponse({ task: 'blueprintEnrichment', structuredPrompt: null });
+    expect(composed.text).toBe('');
+    // Coverage is reported even when it is zero, so a blocked package explains itself.
+    expect(composed.coverage).toEqual({ covered: 0, requested: 0, uncovered: [] });
   });
 });
