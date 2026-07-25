@@ -52,3 +52,97 @@ export const PACKAGE_TEMPLATE_PHRASES = [
 
 export const CLIPPED_SLIDE_INSTRUCTION_RE =
   /(?:\bPrerequisite concept:\s*\d+\.|(?:\bapplying|\busing|\bcomparing|\btesting)\s+(?:theoretical|conceptual|empirical|historical|quantitative|qualitative)\.)$/i;
+
+// Keep the grader's line-boundary and truncated-clause mechanics in this
+// format-only leaf. Operator enumerations and quoted tokens are complete;
+// connective tails and verbs dangling after auxiliaries are real cuts.
+const FUNCTION_WORD_TAIL = new Set([
+  'and',
+  'or',
+  'but',
+  'the',
+  'a',
+  'an',
+  'to',
+  'of',
+  'in',
+  'on',
+  'for',
+  'with',
+  'from',
+  'by',
+  'at',
+  'as',
+  'into',
+  'that',
+  'which',
+  'who',
+  'when',
+  'while',
+  'through',
+  'over',
+  'under',
+  'between',
+  'about',
+  'against',
+  'before',
+  'after',
+  'than',
+  'then',
+  'because',
+  'should',
+  'must',
+  'can',
+  'will',
+  'may',
+  'is',
+  'are',
+  'was',
+  'were',
+  'be',
+]);
+const BARE_VERB_TAIL = new Set([
+  'run',
+  'point',
+  'asks',
+  'move',
+  'show',
+  'name',
+  'list',
+  'use',
+  'apply',
+  'explain',
+  'compare',
+  'identify',
+  'plan',
+]);
+const TAIL_AUXILIARIES = new Set(['should', 'must', 'can', 'will', 'may', 'to', 'would', 'could', 'might', 'shall']);
+const TRAILING_OPERATOR_ENUM = /\b(?:and|or)(?:\s*[/&]\s*|\s+)(?:and|or)\s*$/i;
+const QUOTED_OPERATOR_TAIL = /['`][^'`]{1,12}['`]\s*$/;
+
+export function endsMidClause(line) {
+  const text = String(line);
+  if (TRAILING_OPERATOR_ENUM.test(text) || QUOTED_OPERATOR_TAIL.test(text)) return false;
+  const words = text.toLowerCase().match(/[a-z]+/g) || [];
+  const last = words[words.length - 1] || '';
+  const prev = words[words.length - 2] || '';
+  if (FUNCTION_WORD_TAIL.has(last)) return true;
+  if (!BARE_VERB_TAIL.has(last)) return false;
+  return TAIL_AUXILIARIES.has(prev) || /:\s+[a-z]+\s*$/.test(text);
+}
+
+export function formatScanUnits(file) {
+  const units = [];
+  const push = (raw) => {
+    const value = String(raw || '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (value) units.push(value);
+  };
+  if (file.kind === 'xlsx') {
+    for (const cell of file.cellTexts || []) for (const sub of String(cell).split('\n')) push(sub);
+  } else {
+    for (const paragraph of file.paragraphs || []) push(paragraph);
+  }
+  return units;
+}
