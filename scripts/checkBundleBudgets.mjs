@@ -1,5 +1,6 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { execFileSync } from 'node:child_process';
 import { gzipSync } from 'node:zlib';
 
 const distDir = path.resolve(process.cwd(), 'dist');
@@ -13,6 +14,23 @@ const budgets = {
   initialRawKiB: 610,
   initialGzipKiB: 190,
 };
+
+// V0.16.77 settlement ratchets (origin/main 682b1484, 2026-07-24).
+// These are repository-growth ceilings, not targets. Reductions are welcome;
+// raising one requires a written product/release justification beside the
+// changed value. A public patch may add exactly its one release contract.
+const repositoryBudgets = {
+  baselineVersion: '0.16.77',
+  compilerLines: 27_831,
+  npmScripts: 377,
+  releaseContractFiles: 263,
+  trackedWeightFiles: 62,
+  trackedWeightBytes: 1_053_339_981,
+  largeBinaryBytes: 1024 * 1024,
+};
+
+const trackedWeightPattern = /\.(?:safetensors|gguf|onnx|npz)$/i;
+const trackedLargeBinaryPattern = /\.(?:safetensors|gguf|onnx|npz|bin)$/i;
 
 const lazyChunkBudgets = [
   // v0.8.6: +8 KiB raw / +2 KiB gzip for PackageTrustStrip and lean course-map
@@ -358,6 +376,107 @@ function formatKiB(bytes) {
   return `${toKiB(bytes).toFixed(1)} KiB`;
 }
 
+function gitOutput(args, options = {}) {
+  return execFileSync('git', args, {
+    cwd: process.cwd(),
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+    ...options,
+  });
+}
+
+function trackedFiles() {
+  return gitOutput(['ls-files', '-z']).split('\0').filter(Boolean);
+}
+
+function lineCount(text) {
+  return (String(text).match(/\n/g) || []).length;
+}
+
+function changedFilesFromMain() {
+  try {
+    return gitOutput(['diff', '--name-only', 'origin/main', '--']).split(/\r?\n/).filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
+async function checkRepositoryBudgets(packageJson, failures) {
+  const files = trackedFiles();
+  const weightFiles = files.filter((file) => trackedWeightPattern.test(file));
+  const weightStats = await Promise.all(weightFiles.map((file) => fs.stat(path.resolve(process.cwd(), file))));
+  const weightBytes = weightStats.reduce((sum, stat) => sum + stat.size, 0);
+  const compilerPath = path.resolve(process.cwd(), 'src/lib/courseBlueprintCompiler.js');
+  const compilerLines = lineCount(await fs.readFile(compilerPath, 'utf8'));
+  const npmScripts = Object.keys(packageJson.scripts || {}).length;
+  const releaseContracts = files.filter((file) => file.startsWith('release-contracts/')).length;
+  const declaredRelease =
+    packageJson.version !== repositoryBudgets.baselineVersion &&
+    files.includes(`release-contracts/v${packageJson.version}.json`);
+  const releaseContractLimit = repositoryBudgets.releaseContractFiles + (declaredRelease ? 1 : 0);
+
+  if (weightFiles.length > repositoryBudgets.trackedWeightFiles) {
+    failures.push(
+      `Tracked model weights: ${weightFiles.length} files exceeds frozen ${repositoryBudgets.trackedWeightFiles}`,
+    );
+  }
+  if (weightBytes > repositoryBudgets.trackedWeightBytes) {
+    failures.push(
+      `Tracked model weights: ${weightBytes} bytes exceeds frozen ${repositoryBudgets.trackedWeightBytes} bytes`,
+    );
+  }
+  if (compilerLines > repositoryBudgets.compilerLines) {
+    failures.push(
+      `courseBlueprintCompiler.js: ${compilerLines} lines exceeds frozen ${repositoryBudgets.compilerLines}`,
+    );
+  }
+  if (npmScripts > repositoryBudgets.npmScripts) {
+    failures.push(`npm scripts: ${npmScripts} exceeds frozen ${repositoryBudgets.npmScripts}`);
+  }
+  if (releaseContracts > releaseContractLimit) {
+    failures.push(
+      `release contracts: ${releaseContracts} exceeds ${releaseContractLimit} (${declaredRelease ? `one declared ${packageJson.version} release` : 'no declared release'})`,
+    );
+  }
+
+  let baselineFiles = new Set();
+  try {
+    baselineFiles = new Set(
+      gitOutput(['ls-tree', '-r', '--name-only', 'origin/main', '--']).split(/\r?\n/).filter(Boolean),
+    );
+  } catch {
+    // The absolute count/byte ratchets still protect shallow or detached
+    // environments. PR/main CI fetches origin/main and also receives the
+    // stronger path-level addition check below.
+  }
+  const newLargeBinaries = [];
+  for (const file of files) {
+    if (!trackedLargeBinaryPattern.test(file) || baselineFiles.has(file)) continue;
+    const stat = await fs.stat(path.resolve(process.cwd(), file));
+    if (trackedWeightPattern.test(file) || stat.size >= repositoryBudgets.largeBinaryBytes) {
+      newLargeBinaries.push(`${file} (${stat.size} bytes)`);
+    }
+  }
+  if (newLargeBinaries.length > 0) {
+    failures.push(`New tracked model/large binaries are forbidden: ${newLargeBinaries.join(', ')}`);
+  }
+
+  const changedFiles = changedFilesFromMain();
+  console.log(
+    [
+      'Repository ratchets:',
+      `weights ${weightFiles.length}/${repositoryBudgets.trackedWeightFiles} files`,
+      `${weightBytes}/${repositoryBudgets.trackedWeightBytes} bytes`,
+      `compiler ${compilerLines}/${repositoryBudgets.compilerLines} lines`,
+      `scripts ${npmScripts}/${repositoryBudgets.npmScripts}`,
+      `release contracts ${releaseContracts}/${releaseContractLimit}`,
+    ].join(' · '),
+  );
+  if (changedFiles.length > 0) {
+    console.log(`Changed from origin/main (${changedFiles.length}): ${changedFiles.slice(0, 30).join(', ')}`);
+  }
+}
+
 async function readAsset(fileName) {
   const buffer = await fs.readFile(path.join(assetsDir, fileName));
   return {
@@ -400,6 +519,7 @@ async function main() {
     );
   }
   const packageJson = JSON.parse(await fs.readFile(path.resolve(process.cwd(), 'package.json'), 'utf8'));
+  await checkRepositoryBudgets(packageJson, failures);
   for (const dependency of forbiddenRuntimeDependencies) {
     if (packageJson.dependencies?.[dependency]) {
       failures.push(`Forbidden heavy runtime dependency is installed: ${dependency}`);

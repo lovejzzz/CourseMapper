@@ -799,6 +799,17 @@ async function forwardToLlmShim(route, llmShimUrl) {
   }
 }
 
+export async function closeCrucibleBrowserResources({ activeContext, browser, sharedBrowser, closeWithin }) {
+  await closeWithin(() => activeContext.close(), 'browser context close');
+  // launchPersistentContext() closes Chromium when its context closes, but
+  // the Browser handle can still keep Playwright's driver connection alive.
+  // This run owns that handle whenever no shared browser was supplied, so
+  // close it explicitly on both persistent and ordinary paths.
+  if (!sharedBrowser && browser) {
+    await closeWithin(() => browser.close(), 'browser close');
+  }
+}
+
 /**
  * Generate ONE course end-to-end in a real browser and collect artifacts.
  *
@@ -1277,11 +1288,32 @@ export async function runCourseInBrowser({
     }
   } finally {
     if (timelineTimer) globalThis.clearInterval(timelineTimer);
-    await timelineQueue.catch(() => {});
     browserRunClosed = true;
+    await timelineQueue.catch(() => {});
     globalThis.clearInterval(heartbeat);
-    await activeContext.close().catch(() => {});
-    if (!sharedBrowser && !usePersistentScionProfile) await browser.close().catch(() => {});
+    const closeWithin = async (close, label, timeoutMs = 15_000) => {
+      let timer;
+      const closePromise = Promise.resolve()
+        .then(close)
+        .then(
+          () => true,
+          () => true,
+        );
+      const closed = await Promise.race([
+        closePromise,
+        new Promise((resolve) => {
+          timer = globalThis.setTimeout(() => resolve(false), timeoutMs);
+        }),
+      ]);
+      if (timer) globalThis.clearTimeout(timer);
+      if (!closed) {
+        appendConsoleLine(
+          `${new Date().toISOString()} [crucible-driver] ${label} exceeded ${timeoutMs}ms cleanup budget`,
+        );
+      }
+      return closed;
+    };
+    await closeCrucibleBrowserResources({ activeContext, browser, sharedBrowser, closeWithin });
     if (persistentProfileDir && ownsPersistentProfile) {
       await fs.rm(persistentProfileDir, { recursive: true, force: true }).catch(() => {});
     }

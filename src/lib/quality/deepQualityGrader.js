@@ -73,7 +73,8 @@ import {
   blacklistYieldsToTopicalOverlap as offenderYieldsToTopicalOverlap,
 } from './artifactDefectPatterns.js';
 // V0.14.7 WS-D D1 introduced the texture metric; v0.15.6 makes it score-bearing.
-import { computeTexture, textureDocsFromFiles, buildTextureAdvisories, TEXTURE_VERSION } from './textureMetric.js';
+import { computeTexture, computeVisibleUnitTexture, textureDocsFromFiles } from './textureMetric.js';
+import { buildTextureAdvisories, TEXTURE_VERSION } from './textureMetric.js';
 import { addPackageQuizDepthFindings } from './quizItemDepth.js';
 import { detectForeignLanguageTeachingContent, mandarinTargetLanguageRequirements } from '../languageIdentityGuard.js';
 import {
@@ -3835,7 +3836,8 @@ export async function grade({
     ...(Array.isArray(pkg.manifest?.assessments) ? pkg.manifest.assessments.map((entry) => entry?.title) : []),
     ...(Array.isArray(pkg.manifest?.readings) ? pkg.manifest.readings.map((entry) => entry?.title) : []),
   ].filter(Boolean);
-  const texture = computeTexture(textureDocsFromFiles(pkg.files), { slotValues: textureSlotValues });
+  const textureDocs = textureDocsFromFiles(pkg.files);
+  const texture = computeTexture(textureDocs, { slotValues: textureSlotValues });
   checkTextureFindings(findings, texture);
 
   // Score each dimension.
@@ -3898,6 +3900,7 @@ export async function grade({
       subScores: texture.subScores,
       evidence: texture.evidence,
       groups: texture.groups,
+      visibleUnits: computeVisibleUnitTexture(textureDocs, textureSlotValues),
       advisories: buildTextureAdvisories(texture),
     },
   };

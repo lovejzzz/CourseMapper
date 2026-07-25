@@ -31,3 +31,11 @@ trellis/tendril/distill/data-g4-orpo/curated/
 trellis/tendril/distill/data-g4/
 trellis/tendril/models/tendril-s2-web/
 trellis/tendril/distill/adapters-dpo/
+
+# Settlement ratchet: model artifacts and local training environments belong
+# in immutable external storage/cache, never in new Git history.
+*.safetensors
+*.gguf
+*.onnx
+*.npz
+.venv*/

@@ -44,6 +44,7 @@ import {
   prerequisiteDiagnosticCopy,
   shortAnswerGuidanceCopy,
   shortAnswerSampleCopy,
+  slideDiscussionDecisionBullets,
 } from './courseCompilerInstructionalCopy';
 import {
   compactAssignmentBriefBodyReferences,
@@ -153,7 +154,7 @@ import {
   resolveExperientialActivity,
 } from './compilerExperientialActivity';
 import { requestsExperientialActivity } from './experientialActivityContract';
-import { buildEvidenceTableVisualDescriptor } from './compilerFactLedgerVisuals';
+import { buildEvidenceTableVisualDescriptor, slideAgendaDecisionCue } from './compilerFactLedgerVisuals';
 
 export { humanSourceCueLabel };
 
@@ -13792,7 +13793,7 @@ function assignmentSupportResourcesForLesson({
       'Course message thread for clarification',
     ],
     [
-      `${lessonLabel} source packet or activity notes`,
+      `${lessonLabel} notes, examples, or activity record`,
       checklist,
       `Scoring categories for ${assessmentTitle}`,
       'Instructor or peer feedback record',
@@ -25508,7 +25509,14 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
           title: 'Session Plan',
           bullets: [
             hasRealSource ? `Frame ${concept} through ${sourceCue}.` : `Frame ${concept} with one inspectable example.`,
-            `Model the evidence decision for ${artifact}.`,
+            slideAgendaDecisionCue({
+              lessonNumber: lesson.lessonNumber,
+              concept,
+              secondary,
+              sourceCue,
+              artifact,
+              successCriterion,
+            }),
             `Practice with ${concept}: ${teachingMoves.practiceMove}`,
             `Debrief against this criterion: ${successCriterion}`,
             next
@@ -25718,28 +25726,17 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
             `What should change after the evidence check?`,
             `Which interpretation best supports the next move?`,
           ]),
-          bullets: lessonVariant(lesson, [
-            [
-              `Compare two evidence choices for ${artifact}.`,
-              `Vote on the stronger choice and explain why.`,
-              discussionFeedbackRoutine,
-            ],
-            [
-              `Test the strongest ${concept} evidence claim for ${artifact}.`,
-              `Name what makes the weaker choice less defensible.`,
-              discussionFeedbackRoutine,
-            ],
-            [
-              `Compare two possible responses to ${artifact}.`,
-              `Defend the ranking with one source detail and one limitation.`,
-              discussionFeedbackRoutine,
-            ],
-            [
-              `Choose the ${concept} move that should survive into ${artifact}.`,
-              `Explain which evidence, risk, or assumption changed the choice.`,
-              discussionFeedbackRoutine,
-            ],
-          ]),
+          bullets: [
+            ...slideDiscussionDecisionBullets({
+              lessonNumber: lesson.lessonNumber,
+              concept,
+              secondary,
+              sourceCue,
+              artifact,
+              successCriterion,
+            }),
+            discussionFeedbackRoutine,
+          ],
           minutes: 8,
           bloom: 'Evaluate',
           objective: objectiveTwo,

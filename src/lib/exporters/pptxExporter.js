@@ -936,7 +936,12 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
     });
 
     // Main title — large, bold (auto-fit from 40pt down to 24pt)
-    const titleText = deck.lessonTitle || s.title || 'Untitled Lesson';
+    // The lesson number is already rendered as the eyebrow directly above the
+    // title. Repeating "Lesson N:" in the large heading wastes an entire line
+    // on longer titles and can push the final line into the accent rule.
+    const titleText = (deck.lessonTitle || s.title || 'Untitled Lesson')
+      .replace(/^(?:Lesson|Week)\s*\d+\s*:\s*/i, '')
+      .trim();
     const titleBoxW = W - 3.2,
       titleBoxH = 2.35;
     const titleFontSize = autoFitFontSize(titleText, titleBoxW, titleBoxH, FONT_HEADING, 36, 20, 1.1);
@@ -1630,18 +1635,26 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
     } else if (s.bullets?.length > 1) {
       // Explanatory text below card
       const explanation = s.bullets.slice(1).join('\n');
+      const explanationY = cardY + cardH + 0.2;
+      // Reserve the bottom progress rail instead of letting a fixed 14pt
+      // block extend behind it when LibreOffice wraps one line earlier than
+      // the browser preview.
+      const explanationH = H - explanationY - 0.65;
+      const explanationSize = autoFitFontSize(explanation, W - 3, explanationH, FONT_BODY, 14, 10, 1.5);
       slide.addText(explanation, {
         x: 1.5,
-        y: cardY + cardH + 0.2,
+        y: explanationY,
         w: W - 3,
-        h: H - cardY - cardH - 0.5,
-        fontSize: 14,
+        h: explanationH,
+        fontSize: explanationSize,
         fontFace: FONT_BODY,
         color: theme.bodyText,
         align: 'center',
         valign: 'top',
         lineSpacingMultiple: 1.5,
+        fit: 'shrink',
       });
+      tracker.add({ x: 1.5, y: explanationY, w: W - 3, h: explanationH, label: 'key-concept-explanation' });
     }
 
     addProgressDots(pptx, slide, theme, slideIndex, totalSlides, false);
@@ -1871,7 +1884,12 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
       // Size the complete list as one unit and keep a readable 11pt floor.
       const summaryBodyW = W - 1.5;
       const summaryBodyH = H - 3.0;
-      const summaryFontSize = autoFitBullets(summaryBullets, summaryBodyW, summaryBodyH, FONT_BODY, 16, 11, 1.5, 12);
+      // Keep a little render-engine safety margin. PowerPoint and
+      // LibreOffice reserve more horizontal space for the checkmark indent
+      // than Canvas measures, so a nominal 16pt three-item checklist can
+      // acquire one extra wrapped line and collide with the footer. 14pt is
+      // still comfortably readable at 16:9 and leaves room for that wrap.
+      const summaryFontSize = autoFitBullets(summaryBullets, summaryBodyW, summaryBodyH, FONT_BODY, 14, 11, 1.5, 12);
       const bulletText = summaryBullets.map((b) => ({
         // `breakLine` already creates the next bullet paragraph. A literal
         // trailing newline creates a second visual line inside that paragraph
@@ -2023,7 +2041,30 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
     const contentTitleText = s.title || '';
     const contentTitleW = W - 0.7,
       contentTitleH = 0.9;
-    const contentTitleSize = autoFitFontSize(contentTitleText, contentTitleW, contentTitleH, FONT_HEADING, 28, 18, 1.1);
+    // Canvas and LibreOffice wrap long Georgia headings differently. Apply a
+    // deterministic length ceiling before the measured fit so assertion
+    // titles cannot acquire an extra rendered line above the slide canvas or
+    // through the accent rule.
+    const contentTitleLength = [...contentTitleText].length;
+    const contentTitleMax =
+      contentTitleLength > 125
+        ? 14
+        : contentTitleLength > 100
+          ? 16
+          : contentTitleLength > 80
+            ? 18
+            : contentTitleLength > 60
+              ? 22
+              : 28;
+    const contentTitleSize = autoFitFontSize(
+      contentTitleText,
+      contentTitleW,
+      contentTitleH,
+      FONT_HEADING,
+      contentTitleMax,
+      Math.min(14, contentTitleMax),
+      1.1,
+    );
     const contentTitleResult = await maybeProcessLatex(contentTitleText, hasLatex, {
       color: theme.primary,
       fontSizePt: contentTitleSize,

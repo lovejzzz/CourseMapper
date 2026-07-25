@@ -31,9 +31,11 @@ import JSZip from 'jszip';
 
 import {
   computeTexture,
+  computeVisibleUnitTexture,
   maskSlots,
   buildTextureAdvisories,
   normalizeTextureText,
+  VISIBLE_UNIT_MIN_WORDS,
 } from '../src/lib/quality/textureMetric.js';
 import { buildCourseBlueprint, compileBlueprintDeliverables } from '../src/lib/courseBlueprintCompiler';
 import {
@@ -336,6 +338,114 @@ function groundedDiscussionSet({ generic }) {
     ].join(' '),
   }));
 }
+
+describe('D1(1b) — reader-visible unit occurrence metric', () => {
+  const asDocs = (lines, feature = 'lessonPlans') =>
+    lines.map((text, index) => ({ id: `${feature}-${index + 1}.docx`, feature, text }));
+
+  it('catches a noun-swapped mail-merge frame that exact matching misses', () => {
+    const slots = ['volcanic hazards', 'coastal erosion', 'groundwater contamination'];
+    const docs = asDocs(
+      slots.map(
+        (slot) => `Use the ${slot} evidence packet to justify one bounded decision before the class discussion.`,
+      ),
+      'courseFaq',
+    );
+    const result = computeVisibleUnitTexture(docs, slots);
+
+    expect(VISIBLE_UNIT_MIN_WORDS).toBe(8);
+    expect(result.exact.extraDuplicateCount).toBe(0);
+    expect(result.skeleton.extraDuplicateCount).toBe(2);
+    expect(result.skeleton.extraDuplicateRate).toBeCloseTo(2 / 3);
+    expect(result.skeleton.readerExposureRate).toBe(1);
+    expect(result.skeleton.topClusters[0].locations).toEqual([
+      { file: 'courseFaq-1.docx', unit: 1 },
+      { file: 'courseFaq-2.docx', unit: 1 },
+      { file: 'courseFaq-3.docx', unit: 1 },
+    ]);
+  });
+
+  it('does not collapse genuinely different instructional moves after masking a shared slot', () => {
+    const slot = 'coastal erosion';
+    const result = computeVisibleUnitTexture(
+      asDocs([
+        `Compare the ${slot} case with a second shoreline and defend which evidence changes the decision.`,
+        `Build a dated ${slot} process model, test its weakest causal link, and record the unresolved uncertainty.`,
+        `Interview two stakeholders about ${slot}, map their competing constraints, and propose a reversible next step.`,
+      ]),
+      [slot],
+    );
+
+    expect(result.skeleton.clusterCount).toBe(0);
+    expect(result.skeleton.extraDuplicateRate).toBe(0);
+  });
+
+  it('uses declared slots without harvesting arbitrary lowercase titles from body text', () => {
+    const lines = [
+      'Use the volcanic hazards evidence packet to justify one bounded decision before the class discussion.',
+      'Use the coastal erosion evidence packet to justify one bounded decision before the class discussion.',
+    ];
+    const withoutManifestSlots = computeVisibleUnitTexture(asDocs(lines));
+    const withManifestSlots = computeVisibleUnitTexture(asDocs(lines), ['volcanic hazards', 'coastal erosion']);
+
+    expect(withoutManifestSlots.skeleton.clusterCount).toBe(0);
+    expect(withManifestSlots.skeleton.clusterCount).toBe(1);
+  });
+
+  it('excludes structural chrome and short units before applying both pinned rate formulas', () => {
+    const repeatedA = 'Students compare the source evidence before choosing a bounded conclusion for revision.';
+    const repeatedB = 'Teams test the proposed interpretation against one counterexample before revising their claim.';
+    const result = computeVisibleUnitTexture(
+      asDocs([
+        `Rubric\nShort note here\n${repeatedA}`,
+        repeatedA,
+        repeatedA,
+        repeatedB,
+        repeatedB,
+        'Learners construct a distinct causal diagram and annotate the uncertainty in each connection.',
+      ]),
+    );
+
+    expect(result.eligibleUnitCount).toBe(6);
+    expect(result.exact.uniqueUnitCount).toBe(3);
+    expect(result.exact.clusterCount).toBe(2);
+    expect(result.exact.extraDuplicateCount).toBe(3);
+    expect(result.exact.extraDuplicateRate).toBe(0.5);
+    expect(result.exact.readerExposureCount).toBe(5);
+    expect(result.exact.readerExposureRate).toBeCloseTo(5 / 6);
+  });
+
+  it('reports deterministic per-family clusters and locations', () => {
+    const docs = [
+      ...asDocs(
+        [
+          'Students annotate the supplied claim before identifying one evidence limit in their response.',
+          'Students annotate the supplied claim before identifying one evidence limit in their response.',
+        ],
+        'discussions',
+      ),
+      ...asDocs(
+        [
+          'Use the grading criteria to revise one decision and explain the evidence behind it.',
+          'Use the grading criteria to revise one decision and explain the evidence behind it.',
+        ],
+        'assignments',
+      ),
+    ];
+    const first = computeVisibleUnitTexture(docs);
+    const second = computeVisibleUnitTexture(docs);
+
+    expect(second).toEqual(first);
+    expect(first.families.map((family) => family.feature)).toEqual(['assignments', 'discussions']);
+    expect(first.families.every((family) => family.exact.extraDuplicateCount === 1)).toBe(true);
+    expect(first.exact.topClusters.flatMap((cluster) => cluster.locations)).toEqual(
+      expect.arrayContaining([
+        { file: 'assignments-1.docx', unit: 1 },
+        { file: 'discussions-2.docx', unit: 1 },
+      ]),
+    );
+  });
+});
 
 describe('D1(2) — grounding calibration: distinct anchors outrank generic anchors', () => {
   it('ranks per-doc real reading anchors above one identical generic anchor', () => {
@@ -906,6 +1016,12 @@ describe('D1(3)+(4) — weight-0 invariance and the report row on a real package
     expect(result.texture.score).toBe(result.scores.texture);
     expect(result.texture.measured).toBe(true);
     expect(Object.keys(result.texture.subScores).sort()).toEqual(['openers', 'sameness', 'tails']);
+    expect(result.texture.visibleUnits.measured).toBe(true);
+    expect(result.texture.visibleUnits.exact.eligibleUnitCount).toBeGreaterThan(0);
+    expect(result.texture.visibleUnits.skeleton.eligibleUnitCount).toBe(
+      result.texture.visibleUnits.exact.eligibleUnitCount,
+    );
+    expect(result.texture.visibleUnits.families.length).toBeGreaterThan(0);
 
     const textureFindings = result.findings.filter((finding) => finding.dimension === 'texture');
     expect(result.stats.byDimension.texture).toBe(textureFindings.length);

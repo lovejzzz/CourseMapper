@@ -1,0 +1,185 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-v0.16.78-quality-settlement-acceptance-v1",
+  "version": "0.16.78",
+  "date": "July 25, 2026",
+  "status": "verified-local-pending-ci",
+  "sourceBaseline": {
+    "commit": "682b1484d5e3c87271f340db97c1a01e78568988",
+    "release": "0.16.77",
+    "crucibleRound": "verification-output/crucible/round-2026-07-25T03-49-16-443Z"
+  },
+  "candidate": {
+    "crucibleRound": "verification-output/crucible/round-2026-07-25T05-39-13-670Z",
+    "provider": "public",
+    "modelId": "scion-public",
+    "adapterActive": false,
+    "courseIds": [
+      "mandarin",
+      "world-lit-readings",
+      "psych-101",
+      "nutrition-101",
+      "astro-101",
+      "environmental-policy-unseen"
+    ],
+    "courseCount": 6,
+    "firstAttemptPasses": 6,
+    "fullLessonScopePasses": 6,
+    "kernelCoverage": "100% on all six courses",
+    "compiledMaterialFamilies": "9/9 on all six courses",
+    "qualityScores": [98, 99, 99, 99, 99, 99],
+    "qualityGrades": ["A", "A", "A", "A", "A", "A"],
+    "p0": 0,
+    "p1": 0,
+    "p2": 0,
+    "blockers": 0,
+    "warnings": 0,
+    "retries": 0,
+    "failedCalls": 0,
+    "exportChecks": {
+      "passedPerCourse": 38,
+      "failed": 0,
+      "warnings": 0
+    },
+    "zipSha256": {
+      "mandarin": "1a9436ef5ba5bcc6825122a05529a1e53cc49ce302358bcf08ee1d1b5c687946",
+      "world-lit-readings": "2802b63eb39483526fd873f259035450bb93a50fa942f9d60158ae0ca28b5827",
+      "psych-101": "79eb001a2de77046b4c99792c3a205a55070391913124d4216b442215a5e96c0",
+      "nutrition-101": "19b8127cbb6d33aced8146267ef44c6121310485e99c27f640a67522a5e733b0",
+      "astro-101": "ae90d6f42649c1248da3ea8feb25fdc3f5ba7265a5737da2b6f2ce5a671aa12d",
+      "environmental-policy-unseen": "d85051fcd1d3109fdce6ee07ceed2f834c4ba85f8b290bc64b7401658dd8d9a0"
+    }
+  },
+  "causalIntervention": {
+    "modelResponsesReused": true,
+    "description": "The compiler replaces repeated slide agenda, fact-ledger lead, and discussion shells with lesson-specific evidence decisions, source boundaries, criteria, counterevidence, and revision consequences. It also rejects instruction-shaped labels before they become visible headings.",
+    "newProviderCallsPerMaterial": 0,
+    "baselineProviderCalls": 29,
+    "candidateProviderCalls": 29,
+    "baselineRetries": 0,
+    "candidateRetries": 0
+  },
+  "visibleUnitMeasurement": {
+    "metricVersion": "1.2.0",
+    "status": "diagnostic-alongside-existing-score",
+    "slideDeckTargetSkeletonMedianPercent": {
+      "baseline": 22.22,
+      "candidate": 17.57,
+      "absoluteReductionPercentagePoints": 4.65,
+      "relativeReductionPercent": 20.9,
+      "courseDirection": "improved on all six courses"
+    },
+    "packageSkeletonMedianPercent": {
+      "baseline": 23.58,
+      "candidate": 22.68
+    },
+    "packageExactMedianPercent": {
+      "baseline": 14.2,
+      "candidate": 13.52
+    },
+    "claimBoundary": "The visible-unit metric measures learner-visible repetition in comparable artifact windows. It does not replace the frozen quality score, grade factual correctness, or certify teachability."
+  },
+  "blindComparison": {
+    "protocol": "scion-settlement-complete-artifact-ai-judge-v1",
+    "judge": {
+      "model": "gpt-5.6-sol",
+      "reasoningEffort": "xhigh",
+      "runtime": "two isolated ephemeral Codex CLI sessions"
+    },
+    "orders": ["A/B", "B/A"],
+    "courseOrderVerdicts": 12,
+    "candidatePreferences": 12,
+    "candidateFactualOrSourceRegressions": 0,
+    "workingEvidence": [
+      "verification-output/crucible/settlement-v01678/blind-judge/codex-gpt-5.6-sol-xhigh-ab.json",
+      "verification-output/crucible/settlement-v01678/blind-judge/codex-gpt-5.6-sol-xhigh-ba.json"
+    ],
+    "claimBoundary": "This is AI-only package-internal evidence. It is not human instructor review, independent factual verification, accessibility certification, classroom outcome evidence, or proof of paid-reference parity."
+  },
+  "renderedArtifactInspection": {
+    "pptxDecks": 18,
+    "pptxSlides": 221,
+    "docxDocuments": 6,
+    "docxPages": 30,
+    "totalRenderedFrames": 251,
+    "fixedDefects": [
+      "duplicate Lesson/Week prefix and title-rule collision",
+      "readiness-summary bullets colliding with the footer",
+      "key-concept explanation colliding with progress dots",
+      "long assertion title clipping above the slide canvas"
+    ],
+    "finalStatus": "inspected-clean-for-the-targeted-opening-middle-final-sample"
+  },
+  "manualBrowser": {
+    "url": "http://127.0.0.1:4176/",
+    "savedCourse": "Urban Ecology Field Methods",
+    "quality": 99,
+    "grade": "A",
+    "texture": 97,
+    "knowledgeKernels": "4/4",
+    "materialFamilies": "9/9",
+    "agentQuestion": "What evidence should students compare in Lesson 3, and which assignment uses it?",
+    "agentResult": "Scion identified stormwater and green-infrastructure evidence and the W3 comparison assignment in about 20 seconds.",
+    "downloadedZip": {
+      "path": "Urban Ecology Field Methods - Course Materials (1).zip",
+      "bytes": 631819,
+      "sha256": "5add992f533766d50eafc0f1a371d7b1f76b9fe8a974ce22983e74dfddb065bd",
+      "integrity": "pass"
+    },
+    "responsiveViewports": ["desktop-default", "390x844-light", "390x844-dark"],
+    "consoleWarningsOrErrors": 0
+  },
+  "performance": {
+    "baselineRoundReportedSeconds": 390,
+    "candidateRoundReportedSeconds": 1139,
+    "baselineDigestElapsedMedianMs": 49335,
+    "candidateDigestElapsedMedianMs": 169110.5,
+    "providerCallGrowth": 0,
+    "retryGrowth": 0,
+    "claimBoundary": "This campaign does not establish a latency win. The candidate round included colder and more instrumented browser capture conditions and was materially slower; future matched warm/cold timing remains required before making a speed claim."
+  },
+  "repositoryRatchets": {
+    "trackedModelWeightFiles": 62,
+    "trackedModelWeightBytes": 1053339981,
+    "courseBlueprintCompilerLines": 27828,
+    "npmScripts": 377,
+    "releaseContractsBeforeThisRelease": 263,
+    "newTrackedModelOrLargeBinaries": 0,
+    "bundleBudgetsRaised": 0
+  },
+  "automatedProof": {
+    "unit": {
+      "filesPassed": 450,
+      "filesSkipped": 16,
+      "testsPassed": 5585,
+      "testsSkipped": 162
+    },
+    "chromiumE2e": "151/151 passed",
+    "firestoreRules": "6/6 passed",
+    "compilerContract": "40/40 passed",
+    "evaluationProfile": "pr passed",
+    "format": "passed",
+    "lint": "passed",
+    "constitution": "passed",
+    "releaseHistoryBeforeBump": "passed",
+    "build": "passed",
+    "bundleBudgets": "passed"
+  },
+  "modelBoundary": {
+    "gemmaWeightsChanged": false,
+    "researchAdapterActive": false,
+    "sharedCompilerBenefitsCompatiblePaidProviders": true,
+    "scionSpecific": [
+      "public model download",
+      "WebGPU inference",
+      "browser-local cache and recovery",
+      "keyless public-model routing"
+    ]
+  },
+  "knownLimitations": [
+    "The campaign does not prove universal factual correctness, citation validity, instructor adoption, accessibility conformance, or classroom outcomes.",
+    "The AI judge found shared pre-existing weaknesses in some no-assignment placeholders, explicit discussion labeling, one Mandarin final-task alignment, and sparse source trails. The candidate did not regress these, but they remain future quality targets.",
+    "The research adapter has not beaten the pinned base and remains inactive.",
+    "The candidate campaign is a measured compiler-quality win, not a model-weight win or paid-reference-parity claim."
+  ]
+}

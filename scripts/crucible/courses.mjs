@@ -221,6 +221,15 @@ export const groundingCourses = [
 // release-comparable `all`, `extended`, or rotating stranger suites.
 export const regressionCourses = [
   {
+    // Settlement panel anti-overfitting holdout, frozen before its first run.
+    id: 'environmental-policy-unseen',
+    title: 'Introduction to Environmental Policy',
+    lessonCount: 12,
+    probeProfile: 'generic',
+    prompt:
+      'Introduction to Environmental Policy, a 12-lesson undergraduate course with policy memos, stakeholder negotiations, evidence audits, and a final policy design project. Lessons cover: how environmental problems reach public agendas; common-pool resources and collective action; environmental justice and unequal exposure; risk assessment under uncertainty; command-and-control regulation; market instruments including carbon taxes and cap-and-trade; environmental impact assessment; federalism and local implementation; Indigenous sovereignty and co-management; international climate agreements; policy monitoring and adaptive management; and a final proposal that compares alternatives, names trade-offs, and defines measurable outcomes.',
+  },
+  {
     id: 'experiential-ir-simulation',
     title: 'International Crisis Bargaining',
     lessonCount: 5,

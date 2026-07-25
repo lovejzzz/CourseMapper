@@ -6,6 +6,7 @@ import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import {
+  closeCrucibleBrowserResources,
   isAppServerPortFree,
   isDistFresh,
   isFatalAppConsoleMessage,
@@ -81,6 +82,46 @@ describe('Crucible production-bundle freshness', () => {
 });
 
 describe('Crucible preview isolation', () => {
+  it('closes both the context and owned browser handle after a persistent-profile run', async () => {
+    const closed = [];
+    const activeContext = { close: async () => closed.push('context') };
+    const browser = { close: async () => closed.push('browser') };
+    const closeWithin = async (close, label) => {
+      await close();
+      closed.push(label);
+      return true;
+    };
+
+    await closeCrucibleBrowserResources({
+      activeContext,
+      browser,
+      sharedBrowser: null,
+      closeWithin,
+    });
+
+    expect(closed).toEqual(['context', 'browser context close', 'browser', 'browser close']);
+  });
+
+  it('leaves a shared browser open while closing its per-course context', async () => {
+    const closed = [];
+    const activeContext = { close: async () => closed.push('context') };
+    const browser = { close: async () => closed.push('browser') };
+    const closeWithin = async (close, label) => {
+      await close();
+      closed.push(label);
+      return true;
+    };
+
+    await closeCrucibleBrowserResources({
+      activeContext,
+      browser,
+      sharedBrowser: browser,
+      closeWithin,
+    });
+
+    expect(closed).toEqual(['context', 'browser context close']);
+  });
+
   it('captures the full IndexedDB project payload for exact post-run inspection', async () => {
     const payload = '{"formatVersion":1,"deliverables":{"studyGuides":{"status":"done"}}}';
     const page = {
