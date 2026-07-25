@@ -123,6 +123,7 @@ import {
   buildJudgePrompt,
   clampConcurrency,
   defaultConcurrencyForProvider,
+  summarizeModelLoadPhases,
   computeJudgeMeans,
   JUDGE_MEANS_BASELINE,
   JUDGE_MEANS_TARGET,
@@ -458,7 +459,16 @@ function formatScoreDelta(current, baseline) {
   return `${current} (${sign}${Math.round(delta * 100) / 100} vs baseline ${baseline})`;
 }
 
-function buildRoundReportMd({ roundLabel, modelId, entries, baseline, totals, provider = 'openai' }) {
+function buildRoundReportMd({
+  roundLabel,
+  modelId,
+  entries,
+  baseline,
+  totals,
+  provider = 'openai',
+  runConfig = null,
+  phasesByCourseId = new Map(),
+}) {
   const lines = [
     // E1: the title carries provider+model so a provider round is identifiable
     // from the first line of its report.
@@ -470,10 +480,38 @@ function buildRoundReportMd({ roundLabel, modelId, entries, baseline, totals, pr
     `- Total generation time: ${Math.round(totals.durationMs / 1000)}s`,
     `- Total cost (from digests): $${totals.costUsd.toFixed(4)}`,
     baseline ? `- Baseline: ${baseline.dir}` : '- Baseline: none',
-    '',
-    '## Scores',
-    '',
   ];
+
+  // Comparability first: two rounds whose configs differ are measuring
+  // different things, and the reader should see that before the scores.
+  if (runConfig) {
+    lines.push(
+      `- Concurrency: ${runConfig.concurrency}${runConfig.concurrencyExplicit ? '' : ' (provider default)'}`,
+      `- Scion profile: ${runConfig.scionProfileMode}`,
+      `- Filmstrip capture: ${runConfig.filmstrip ? 'on' : 'off'}`,
+      `- Authoring / voice: ${runConfig.authoring} / ${runConfig.voice}`,
+    );
+  }
+
+  // Cold model load is not slow generation. Only rendered when a local model
+  // phase actually happened.
+  const measured = entries
+    .map((entry) => ({ id: entry.course.id, phases: phasesByCourseId.get(entry.course.id) }))
+    .filter((row) => row.phases?.measured);
+  if (measured.length > 0) {
+    lines.push('', '## Model load vs generation', '');
+    lines.push('| Course | Model load | of which download | Generation | Total |');
+    lines.push('| --- | ---: | ---: | ---: | ---: |');
+    for (const { id, phases } of measured) {
+      const s = (ms) => `${(ms / 1000).toFixed(1)}s`;
+      lines.push(
+        `| ${id} | ${s(phases.modelLoadMs)} | ${s(phases.modelDownloadMs)} | ${s(phases.generationMs)} | ${s(phases.totalMs)} |`,
+      );
+    }
+    lines.push('', '_A cold profile pays model load on every course. Compare generation, not total, across rounds._');
+  }
+
+  lines.push('', '## Scores', '');
 
   const dimensions = [];
   for (const entry of entries) {
@@ -1031,12 +1069,38 @@ async function showHistory() {
   }
 }
 
-async function finishRound({ roundDir, roundLabel, modelId, entries, baseline, spendAbortReason = null, provider }) {
+async function finishRound({
+  roundDir,
+  roundLabel,
+  modelId,
+  entries,
+  baseline,
+  spendAbortReason = null,
+  provider,
+  runConfig = null,
+}) {
   const totals = computeTotals(entries);
   // Regrades infer the provider from the course entries (course.json carries
   // it since E1); absent everywhere → openai (all pre-E1 history is openai).
   const roundProvider = provider || entries.map((entry) => entry.course?.provider).find(Boolean) || 'openai';
-  const reportMd = buildRoundReportMd({ roundLabel, modelId, entries, baseline, totals, provider: roundProvider });
+  // Two rounds are only comparable when they ran the same way. Reading the
+  // saved console log costs nothing and turns "why was this round slower?"
+  // into a lookup instead of an investigation.
+  const phasesByCourseId = new Map();
+  for (const entry of entries) {
+    const consoleLog = await fs.readFile(path.join(roundDir, entry.course.id, 'console.log'), 'utf8').catch(() => '');
+    if (consoleLog) phasesByCourseId.set(entry.course.id, summarizeModelLoadPhases(consoleLog));
+  }
+  const reportMd = buildRoundReportMd({
+    roundLabel,
+    modelId,
+    entries,
+    baseline,
+    totals,
+    provider: roundProvider,
+    runConfig,
+    phasesByCourseId,
+  });
   await fs.writeFile(path.join(roundDir, 'ROUND_REPORT.md'), reportMd);
   await writeJson(path.join(roundDir, 'round.json'), {
     label: roundLabel,
@@ -1045,9 +1109,15 @@ async function finishRound({ roundDir, roundLabel, modelId, entries, baseline, s
     finishedAt: new Date().toISOString(),
     baseline: baseline?.dir || null,
     spendAbortReason,
+    // The knobs that decide whether this round can be compared with another
+    // one. Absent on regrades, which re-score existing artifacts.
+    runConfig,
     totals,
     courses: entries.map((entry) => ({
       id: entry.course.id,
+      // Model load vs generation, so a cold round is never mistaken for a slow
+      // product (null on remote providers, which have no local model phase).
+      phases: phasesByCourseId.get(entry.course.id) || null,
       runStatus: entry.runResult?.status || null,
       runStatusLabel: entry.runResult?.statusLabel || entry.runResult?.status || null,
       attemptCount: entry.runResult?.attemptCount ?? null,
@@ -2043,6 +2113,20 @@ async function runLiveRounds(options) {
       baseline,
       spendAbortReason: spendState.abortReason,
       provider,
+      runConfig: {
+        concurrency,
+        concurrencyExplicit: options.concurrency !== undefined,
+        filmstrip: Boolean(options.filmstrip),
+        scionProfileMode:
+          provider === 'public'
+            ? typeof options.scionProfile === 'string'
+              ? 'reused-root'
+              : 'per-course-cold'
+            : 'n/a',
+        authoring,
+        voice,
+        rounds,
+      },
     });
 
     // v0.14.9 C2: the same-generation A/B verdict — appended to the round
