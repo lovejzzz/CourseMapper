@@ -159,6 +159,25 @@ export function clampConcurrency(raw, { fallback = 2, max = 3 } = {}) {
   return Math.max(1, Math.min(max, Math.floor(value)));
 }
 
+/**
+ * Default course concurrency for a round.
+ *
+ * Remote providers overlap network waits, so parallel courses are a real win.
+ * Browser-local providers ('public' Scion, '--llm local') run inference on THIS
+ * machine's single GPU, so parallel courses contend for one device instead.
+ *
+ * Measured on astro-101 (12 lessons, V0.16.78, warm profile): in-page
+ * generation is 48.6s at concurrency 1, versus 84.8s and 128.8s for two
+ * courses at concurrency 2 — and that two-course cold round took 16m01s wall
+ * where two sequential cold runs take about 4m. Concurrency did not overlap
+ * the work; it serialized it on the GPU and added contention on top.
+ *
+ * An explicit --concurrency always wins; this only moves the default.
+ */
+export function defaultConcurrencyForProvider(provider) {
+  return provider === 'public' || provider === 'local' ? 1 : 2;
+}
+
 // ── V0.14.5 WS-E (E1): provider breadth — flag parsing + course expansion ───
 
 /**

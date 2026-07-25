@@ -71,7 +71,9 @@
 //   (default)          run live rounds: server once per round → generate each course in a
 //                      real browser → unzip → grade (tests/lib/deepQualityGrader.js, lazy)
 //                      → per-course report.json/report.md → ROUND_REPORT.md. Exit 1 on any P0.
-//                      E1: up to --concurrency courses (default 2, max 3) generate in
+//                      E1: up to --concurrency courses (default 2 for remote
+//                      providers, 1 for browser-local 'public'/'local' which
+//                      share one GPU; max 3) generate in
 //                      parallel browser contexts of ONE chromium; summary order stays
 //                      course-list order. E2: --max-spend (default $2.50) aborts the round
 //                      before starting a course that could blow the cap (in-flight runs are
@@ -120,6 +122,7 @@ import {
   buildHistoryTable,
   buildJudgePrompt,
   clampConcurrency,
+  defaultConcurrencyForProvider,
   computeJudgeMeans,
   JUDGE_MEANS_BASELINE,
   JUDGE_MEANS_TARGET,
@@ -1649,8 +1652,13 @@ async function runLiveRounds(options) {
   if (provider !== 'openai') log(`provider: ${provider} (model ${modelId})`);
   const headed = Boolean(options.headed);
   // E1: parallel generation (browser CONTEXTS in one chromium; the app is
-  // stateless across tabs). --concurrency 1 is the sequential fallback.
-  const concurrency = clampConcurrency(options.concurrency, { fallback: 2, max: 3 });
+  // stateless across tabs). --concurrency 1 is the sequential fallback, and it
+  // is the DEFAULT for browser-local providers, whose courses share one GPU
+  // (see defaultConcurrencyForProvider for the measurement).
+  const concurrency = clampConcurrency(options.concurrency, {
+    fallback: defaultConcurrencyForProvider(provider),
+    max: 3,
+  });
   // E2: spend cap. A runaway round can never become a bill.
   const maxSpendUsd = options.maxSpend === undefined ? DEFAULT_MAX_SPEND_USD : Number(options.maxSpend);
   if (!Number.isFinite(maxSpendUsd) || maxSpendUsd <= 0) {

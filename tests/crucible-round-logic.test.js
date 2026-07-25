@@ -14,6 +14,7 @@ import {
   buildHistoryTable,
   buildJudgePrompt,
   clampConcurrency,
+  defaultConcurrencyForProvider,
   deriveCheckId,
   diffLedger,
   expandCoursesForAuthoring,
@@ -210,6 +211,24 @@ describe('E1 — bounded pool with deterministic ordering', () => {
     expect(clampConcurrency(1)).toBe(1);
     expect(clampConcurrency(99)).toBe(3);
     expect(clampConcurrency(0)).toBe(1);
+  });
+
+  it('defaultConcurrencyForProvider: browser-local providers run one course at a time', () => {
+    // These execute inference on this machine's single GPU, so a second course
+    // contends rather than overlaps (measured: 48.6s → 84.8s/128.8s per course).
+    expect(defaultConcurrencyForProvider('public')).toBe(1);
+    expect(defaultConcurrencyForProvider('local')).toBe(1);
+    // Remote providers still overlap network waits.
+    expect(defaultConcurrencyForProvider('openai')).toBe(2);
+    expect(defaultConcurrencyForProvider('anthropic')).toBe(2);
+    expect(defaultConcurrencyForProvider('google')).toBe(2);
+  });
+
+  it('an explicit --concurrency still overrides the browser-local default', () => {
+    const fallback = defaultConcurrencyForProvider('public');
+    expect(clampConcurrency(undefined, { fallback })).toBe(1);
+    expect(clampConcurrency(2, { fallback })).toBe(2);
+    expect(clampConcurrency(99, { fallback })).toBe(3);
   });
 });
 
