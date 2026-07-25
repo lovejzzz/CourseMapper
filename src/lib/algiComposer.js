@@ -113,10 +113,16 @@ function sectionTitlesFor(topic, order) {
 export function planSessionTopics(source, sessionCount) {
   const explicit = extractExplicitLessonSequence(source, { expectedCount: sessionCount });
   if (explicit.length === sessionCount) return explicit;
+  // The count-matched call is all-or-nothing: a brief that lists thirteen
+  // coverage areas for a fifteen-lesson course returns NOTHING, and Algi then
+  // had only "Session 3 topic" to offer. A model reading the same prose is
+  // unaffected, which is why this never surfaced on the Scion path. Take the
+  // listed topics at whatever length they come, and extend from there.
+  const listed = explicit.length > 0 ? explicit : extractExplicitLessonSequence(source);
   const coverage = extractExplicitCoverageTopics(source);
   const topics = [];
   const seen = new Set();
-  for (const topic of [...explicit, ...coverage]) {
+  for (const topic of [...listed, ...coverage]) {
     const value = clamp(titleCase(topic), MAX_TITLE, MIN_TITLE);
     const key = value.toLowerCase();
     if (!value || seen.has(key)) continue;
