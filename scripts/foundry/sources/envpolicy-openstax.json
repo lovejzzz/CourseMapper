@@ -1,91 +1,11 @@
 {
-  "_comment": "Environmental-policy shard source — OpenStax Principles of Microeconomics 3e, Chapter 12 (CC BY 4.0). Source snapshots are faithful condensations of the cited sections built around sentences quoted verbatim from the book (fetched 2026-07-25 from openstax.org/books/principles-microeconomics-3e). Authored to test whether an uncovered discipline can be brought into the genome through the existing admission gate; every anchor quote is mechanically verified against the snapshot below.",
+  "_comment": "Environmental-policy shard source — OpenStax Principles of Microeconomics 3e, Chapter 12 (CC BY 4.0). Source snapshots are faithful condensations of the cited sections built around sentences quoted verbatim from the book (fetched 2026-07-25 from openstax.org/books/principles-microeconomics-3e). Externality itself is NOT redefined here: econ/externality already owns that concept and this shard links to it. Authored to test whether an uncovered discipline can be brought into the genome through the existing admission gate; every anchor quote is mechanically verified against the snapshot below.",
   "sourceSnapshots": {
     "openstax:microeconomics-3e#12.1": "Economists label the costs of production that a firm pays private costs, and the costs that society pays external costs. The social costs include the private costs of production that a company incurs and the external costs of pollution that pass on to society. Pollution is a negative externality. Because externalities represent a case where markets no longer consider all social costs, but only some of them, economists commonly refer to externalities as an example of market failure. In the case of pollution, at the market output, social costs of production exceed social benefits to consumers, and the market produces too much of the product. When a market has an externality, the supply curve no longer represents all social costs, and output is not efficient.",
     "openstax:microeconomics-3e#12.2": "Governments have often responded to pollution by passing laws that set limits on emissions. These types of laws, which specify allowable quantities of pollution and which also may detail which pollution-control technologies companies must use, fall under the category of command-and-control regulation. Such rules have reduced pollution substantially, but they carry three practical disadvantages. Command-and-control regulation offers no incentive to improve the quality of the environment beyond the standard set by a particular law. Once firms meet the standard, polluters have zero incentive to do better. Command-and-control regulation is inflexible. It usually requires the same standard for all polluters, and often the same pollution-control technology as well. Legislators and EPA analysts write the command-and-control regulations, and so they are subject to compromises in the political process. Real-world environmental laws are full of fine print, loopholes, and exceptions.",
     "openstax:microeconomics-3e#12.3": "Market-oriented environmental policies create incentives to allow firms some flexibility in reducing pollution. A pollution charge is a tax imposed on the quantity of pollution that a firm emits. A pollution charge gives a profit-maximizing firm an incentive to determine ways to reduce its emissions. Compared with command-and-control regulation, a pollution tax reduces pollution in a more flexible and cost-effective way. When a city or state government sets up a marketable permit program (e.g., cap-and-trade), it must start by determining the overall quantity of pollution it will allow. With a system of marketable permits, the firms that find it least expensive to do so will reduce pollution the most. Property rights are another market-oriented tool. One cannot resolve this issue until one clearly defines property rights, that is, the legal rights of ownership on which others are not allowed to infringe. A clarified and strengthened idea of property rights can also strike a balance between economic activity and pollution."
   },
   "kernels": [
-    {
-      "id": "envpolicy/externality",
-      "rev": 1,
-      "term": "Externality",
-      "aliases": ["negative externality", "external cost", "spillover effect", "third-party effect"],
-      "tags": ["market failure", "pollution", "policy rationale"],
-      "level": "intro",
-      "difficulty": 1,
-      "bloomCeiling": "Analyze",
-      "definition": {
-        "text": "An externality is a cost or benefit of a market exchange that falls on a third party outside the exchange; pollution is the standard negative case.",
-        "anchor": {
-          "src": "openstax:microeconomics-3e#12.1",
-          "loc": "12.1",
-          "quote": "Pollution is a negative externality"
-        },
-        "tier": 2
-      },
-      "facts": [
-        {
-          "text": "Pollution is the textbook example of a negative externality imposed on third parties.",
-          "anchor": {
-            "src": "openstax:microeconomics-3e#12.1",
-            "loc": "12.1",
-            "quote": "Pollution is a negative externality"
-          },
-          "tier": 2
-        },
-        {
-          "text": "Economists separate private costs the firm pays from external costs society pays.",
-          "anchor": {
-            "src": "openstax:microeconomics-3e#12.1",
-            "loc": "12.1",
-            "quote": "Economists label the costs of production that a firm pays private costs, and the costs that society pays external costs"
-          },
-          "tier": 2
-        },
-        {
-          "text": "With an externality present the supply curve stops representing every social cost.",
-          "anchor": {
-            "src": "openstax:microeconomics-3e#12.1",
-            "loc": "12.1",
-            "quote": "the supply curve no longer represents all social costs"
-          },
-          "tier": 2
-        }
-      ],
-      "misconceptions": [
-        {
-          "text": "Students treat an externality as simply any harm a company causes to the environment.",
-          "corrective": "The defining feature is incidence, not harm: the cost lands on someone outside the transaction, so the price the buyer and seller agree never reflects it."
-        }
-      ],
-      "examples": [
-        {
-          "text": "A plant upstream discharges into a river and downstream towns pay to treat the water, though they never bought the plant's product.",
-          "domain": "policy"
-        }
-      ],
-      "workedExamples": [],
-      "mcBank": [
-        {
-          "stem": "A factory's emissions raise asthma treatment costs for a neighbouring town that buys nothing from the factory. This is best described as",
-          "options": [
-            "a negative externality",
-            "a private production cost",
-            "a progressive tax",
-            "a marketable permit"
-          ],
-          "answerIndex": 0,
-          "explanationFactRef": 0,
-          "rationaleRefs": [0]
-        }
-      ],
-      "edges": { "recommends": ["envpolicy/social-cost", "envpolicy/market-failure"] },
-      "variants": [],
-      "freshness": { "checked": "2026-07-25" },
-      "license": "CC BY 4.0",
-      "attribution": "OpenStax, Principles of Microeconomics 3e, §12.1"
-    },
     {
       "id": "envpolicy/social-cost",
       "rev": 1,
@@ -146,9 +66,13 @@
           "rationaleRefs": [0]
         }
       ],
-      "edges": { "recommends": ["envpolicy/market-failure", "envpolicy/pollution-charge"] },
+      "edges": {
+        "recommends": ["envpolicy/market-failure", "envpolicy/pollution-charge"]
+      },
       "variants": [],
-      "freshness": { "checked": "2026-07-25" },
+      "freshness": {
+        "checked": "2026-07-25"
+      },
       "license": "CC BY 4.0",
       "attribution": "OpenStax, Principles of Microeconomics 3e, §12.1"
     },
@@ -217,9 +141,13 @@
           "rationaleRefs": [0]
         }
       ],
-      "edges": { "recommends": ["envpolicy/command-and-control", "envpolicy/pollution-charge"] },
+      "edges": {
+        "recommends": ["envpolicy/command-and-control", "envpolicy/pollution-charge"]
+      },
       "variants": [],
-      "freshness": { "checked": "2026-07-25" },
+      "freshness": {
+        "checked": "2026-07-25"
+      },
       "license": "CC BY 4.0",
       "attribution": "OpenStax, Principles of Microeconomics 3e, §12.1"
     },
@@ -327,9 +255,13 @@
           "rationaleRefs": [0]
         }
       ],
-      "edges": { "recommends": ["envpolicy/pollution-charge", "envpolicy/marketable-permits"] },
+      "edges": {
+        "recommends": ["envpolicy/pollution-charge", "envpolicy/marketable-permits"]
+      },
       "variants": [],
-      "freshness": { "checked": "2026-07-25" },
+      "freshness": {
+        "checked": "2026-07-25"
+      },
       "license": "CC BY 4.0",
       "attribution": "OpenStax, Principles of Microeconomics 3e, §12.2"
     },
@@ -416,9 +348,13 @@
           "rationaleRefs": [0]
         }
       ],
-      "edges": { "recommends": ["envpolicy/marketable-permits", "envpolicy/social-cost"] },
+      "edges": {
+        "recommends": ["envpolicy/marketable-permits", "envpolicy/social-cost"]
+      },
       "variants": [],
-      "freshness": { "checked": "2026-07-25" },
+      "freshness": {
+        "checked": "2026-07-25"
+      },
       "license": "CC BY 4.0",
       "attribution": "OpenStax, Principles of Microeconomics 3e, §12.3"
     },
@@ -426,7 +362,7 @@
       "id": "envpolicy/marketable-permits",
       "rev": 1,
       "term": "Marketable permits",
-      "aliases": ["cap and trade", "cap-and-trade", "tradable permits", "emissions trading"],
+      "aliases": ["cap-and-trade", "tradable permits", "emissions trading"],
       "tags": ["policy instrument", "market-oriented", "allocation"],
       "level": "intro",
       "difficulty": 3,
@@ -487,9 +423,13 @@
           "rationaleRefs": [0]
         }
       ],
-      "edges": { "recommends": ["envpolicy/command-and-control", "envpolicy/property-rights"] },
+      "edges": {
+        "recommends": ["envpolicy/command-and-control", "envpolicy/property-rights"]
+      },
       "variants": [],
-      "freshness": { "checked": "2026-07-25" },
+      "freshness": {
+        "checked": "2026-07-25"
+      },
       "license": "CC BY 4.0",
       "attribution": "OpenStax, Principles of Microeconomics 3e, §12.3"
     },
@@ -558,9 +498,13 @@
           "rationaleRefs": [0]
         }
       ],
-      "edges": { "recommends": ["envpolicy/marketable-permits", "envpolicy/externality"] },
+      "edges": {
+        "recommends": ["envpolicy/marketable-permits", "econ/externality"]
+      },
       "variants": [],
-      "freshness": { "checked": "2026-07-25" },
+      "freshness": {
+        "checked": "2026-07-25"
+      },
       "license": "CC BY 4.0",
       "attribution": "OpenStax, Principles of Microeconomics 3e, §12.3"
     }

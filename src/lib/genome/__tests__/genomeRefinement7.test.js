@@ -68,6 +68,8 @@ describe('iteration 7 — genome spans deployed disciplines', () => {
         'anatomy',
         'astro',
         'econ',
+        // v0.16.80: environmental policy (OpenStax Microeconomics 3e ch.12).
+        'envpolicy',
         'stats',
         'bio',
         'chem',

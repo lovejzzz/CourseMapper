@@ -138,6 +138,12 @@ describe('iteration 16b — the alias-collision lint (foundry guardrail)', () =>
       'nursing/homeostasis<->anatomy/homeostasis-feedback',
       'anatomy/levels-of-organization<->nursing/levels-of-organization',
       'nursing/levels-of-organization<->anatomy/levels-of-organization',
+      // v0.16.80: physics's single-token alias "charge" is contained in the
+      // two-token policy term "pollution charge". Benign: the resolver scores
+      // whole-lesson vocabulary overlap, so an electricity lesson cannot prefer
+      // the policy kernel on one shared token. Kept visible rather than
+      // renamed, because "pollution charge" is the source's own term.
+      'physics/electric-charge<->envpolicy/pollution-charge',
     ]);
     const unexpected = findAliasCollisions(kernels).filter((c) => !ALLOWED.has(`${c.of}<->${c.containedIn}`));
     expect(unexpected).toEqual([]);
