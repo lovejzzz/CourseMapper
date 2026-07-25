@@ -73,7 +73,8 @@ import {
   blacklistYieldsToTopicalOverlap as offenderYieldsToTopicalOverlap,
 } from './artifactDefectPatterns.js';
 // V0.14.7 WS-D D1 introduced the texture metric; v0.15.6 makes it score-bearing.
-import { computeTexture, textureDocsFromFiles, buildTextureAdvisories, TEXTURE_VERSION } from './textureMetric.js';
+import { computeTexture, computeVisibleUnitTexture, textureDocsFromFiles } from './textureMetric.js';
+import { buildTextureAdvisories, TEXTURE_VERSION } from './textureMetric.js';
 import { addPackageQuizDepthFindings } from './quizItemDepth.js';
 import { detectForeignLanguageTeachingContent, mandarinTargetLanguageRequirements } from '../languageIdentityGuard.js';
 import {
@@ -86,6 +87,8 @@ import {
   CLIPPED_SLIDE_INSTRUCTION_RE,
   ENRICHED_DECK_TITLE_PATTERNS,
   PACKAGE_TEMPLATE_PHRASES,
+  endsMidClause,
+  formatScanUnits,
 } from './deepQualityFormatDetails.js';
 
 // v0.14.3 WS-A A3: the grader version stamped into manifest.quality. Bump on
@@ -3437,125 +3440,6 @@ function checkDiscipline(findings, { files }, course) {
   }
 }
 
-// A bullet that ends mid-clause: the last word is a connective, preposition,
-// article, subordinator, or auxiliary — the shape item 1.3's word-boundary cut
-// left behind ("…the course pattern: run", "…checkpoint should point"). Two
-// tiers keep this a TRUE-cut detector, not an awkward-phrasing detector:
-//
-//   FUNCTION_WORD_TAIL — words that can NEVER legitimately end a clause; a
-//     trailing one is always a dangling cut.
-//   BARE_VERB_TAIL — bare verbs that dangle only after a modal/auxiliary or an
-//     action-introducing colon. These same words are common NOUNS ("shopping
-//     list", "score tracker", "the point"), so a noun usage must NOT flag.
-//
-// Two complete-but-awkward shapes are explicitly exempted (FP, not a cut):
-//   - operator enumerations "…combine tests with and or" (the product strips
-//     the backticks around the `and`/`or` operators, leaving a real, complete
-//     sentence);
-//   - a tail that is a quoted operator/token "…with 'and' or 'or'".
-const FUNCTION_WORD_TAIL = new Set([
-  'and',
-  'or',
-  'but',
-  'the',
-  'a',
-  'an',
-  'to',
-  'of',
-  'in',
-  'on',
-  'for',
-  'with',
-  'from',
-  'by',
-  'at',
-  'as',
-  'into',
-  'that',
-  'which',
-  'who',
-  'when',
-  'while',
-  'through',
-  'over',
-  'under',
-  'between',
-  'about',
-  'against',
-  'before',
-  'after',
-  'than',
-  'then',
-  'because',
-  'should',
-  'must',
-  'can',
-  'will',
-  'may',
-  'is',
-  'are',
-  'was',
-  'were',
-  'be',
-]);
-const BARE_VERB_TAIL = new Set([
-  'run',
-  'point',
-  'asks',
-  'move',
-  'show',
-  'name',
-  'list',
-  'use',
-  'apply',
-  'explain',
-  'compare',
-  'identify',
-  'plan',
-]);
-const TAIL_AUXILIARIES = new Set(['should', 'must', 'can', 'will', 'may', 'to', 'would', 'could', 'might', 'shall']);
-const TRAILING_OPERATOR_ENUM = /\b(?:and|or)(?:\s*[/&]\s*|\s+)(?:and|or)\s*$/i;
-const QUOTED_OPERATOR_TAIL = /['`][^'`]{1,12}['`]\s*$/;
-function endsMidClause(line) {
-  const text = String(line);
-  // Operator enumerations / quoted-operator tails are complete, not cuts.
-  if (TRAILING_OPERATOR_ENUM.test(text) || QUOTED_OPERATOR_TAIL.test(text)) return false;
-  const words = text.toLowerCase().match(/[a-z]+/g) || [];
-  const last = words[words.length - 1] || '';
-  const prev = words[words.length - 2] || '';
-  if (FUNCTION_WORD_TAIL.has(last)) return true;
-  if (BARE_VERB_TAIL.has(last)) {
-    // A bare verb is a real cut only when it dangles after a modal/auxiliary
-    // ("should point") or a single bare verb introduced by a colon
-    // ("pattern: run"). A noun usage ("shopping list", "score tracker") is
-    // complete and must NOT flag.
-    if (TAIL_AUXILIARIES.has(prev)) return true;
-    if (/:\s+[a-z]+\s*$/.test(text)) return true;
-    return false;
-  }
-  return false;
-}
-
-// The line/cell scan units for the FORMAT text-pattern dimension. Patterns are
-// evaluated PER unit — never across a paragraph/cell join — so adjacent benign
-// lines ("…two different variables" + "Variables and assignment") can't fabricate
-// a fused-title/echo-chain match that spans the boundary (the Round-1 FP class).
-function formatScanUnits(file) {
-  const units = [];
-  const push = (raw) => {
-    const value = String(raw || '')
-      .replace(/\s+/g, ' ')
-      .trim();
-    if (value) units.push(value);
-  };
-  if (file.kind === 'xlsx') {
-    for (const cell of file.cellTexts || []) for (const sub of String(cell).split('\n')) push(sub);
-  } else {
-    for (const para of file.paragraphs || []) push(para);
-  }
-  return units;
-}
-
 // FORMAT — every artifactDefectPatterns check across text + raw XML.
 // ── v0.14.5 WS-C (C3): the native-visual bar over slide decks ───────────────
 // Enriched decks (those carrying kernel-derived slides) should render at
@@ -3835,7 +3719,8 @@ export async function grade({
     ...(Array.isArray(pkg.manifest?.assessments) ? pkg.manifest.assessments.map((entry) => entry?.title) : []),
     ...(Array.isArray(pkg.manifest?.readings) ? pkg.manifest.readings.map((entry) => entry?.title) : []),
   ].filter(Boolean);
-  const texture = computeTexture(textureDocsFromFiles(pkg.files), { slotValues: textureSlotValues });
+  const textureDocs = textureDocsFromFiles(pkg.files);
+  const texture = computeTexture(textureDocs, { slotValues: textureSlotValues });
   checkTextureFindings(findings, texture);
 
   // Score each dimension.
@@ -3898,6 +3783,7 @@ export async function grade({
       subScores: texture.subScores,
       evidence: texture.evidence,
       groups: texture.groups,
+      visibleUnits: computeVisibleUnitTexture(textureDocs, textureSlotValues),
       advisories: buildTextureAdvisories(texture),
     },
   };

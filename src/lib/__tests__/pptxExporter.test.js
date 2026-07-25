@@ -117,6 +117,35 @@ describe('pptxExporter', () => {
     expect(xml).not.toContain('Key Takeaway: Poor labeling makes even well-organized content hard to use<');
   });
 
+  it('does not repeat the lesson number in a long title-slide heading', async () => {
+    const blob = await buildSlideDeckPptxBlob(
+      {
+        decks: [
+          {
+            lessonTitle: 'Lesson 6: Electromagnetic spectrum and wavelengths of light',
+            slides: [
+              {
+                title: 'Electromagnetic spectrum and wavelengths of light',
+                type: 'title',
+                bullets: ['Use wavelength and frequency evidence to compare regions of the spectrum.'],
+                notes: 'Open the lesson.',
+              },
+            ],
+          },
+        ],
+      },
+      'Astronomy',
+      0,
+    );
+
+    const zip = await loadPptxZip(blob);
+    const xml = await zip.file('ppt/slides/slide1.xml').async('string');
+
+    expect(xml).toContain('LESSON 6');
+    expect(xml).toContain('Electromagnetic spectrum and wavelengths of light');
+    expect(xml).not.toContain('Lesson 6: Electromagnetic spectrum and wavelengths of light');
+  });
+
   it('punctuates long example-slide body bullets in rendered PPTX XML', async () => {
     const blob = await buildSlideDeckPptxBlob(
       {
@@ -310,6 +339,101 @@ describe('pptxExporter', () => {
       expect(summarySizes.length).toBeGreaterThanOrEqual(4);
       expect(new Set(summarySizes)).toEqual(new Set([1100]));
       expect(xml).not.toMatch(/following critique[^<]*\n<\/a:t>/);
+    });
+
+    it('keeps ordinary three-item readiness checks at the render-safe 14pt ceiling', async () => {
+      const blob = await buildSlideDeckPptxBlob(
+        {
+          decks: [
+            {
+              lessonTitle: 'Lesson 1: Environmental Problem Agendas',
+              slides: [
+                {
+                  title: 'Environmental Problem Agendas transfer check',
+                  type: 'summary',
+                  bullets: [
+                    'Can you now explain the key ideas in environmental problem agendas and apply them in course activities?',
+                    'Can you explain how evidence about Environmental Problem Agendas can strengthen the evidence check?',
+                    'Can you name one feedback action to carry from Environmental Problem Agendas evidence check?',
+                  ],
+                  notes: 'Close with a readiness check.',
+                },
+              ],
+            },
+          ],
+        },
+        'Introduction to Environmental Policy',
+        0,
+      );
+      const zip = await loadPptxZip(blob);
+      const xml = await zip.file('ppt/slides/slide1.xml').async('string');
+
+      const runSizes = [...xml.matchAll(/<a:rPr[^>]*\bsz="(\d+)"/g)].map((match) => Number(match[1]));
+      expect(runSizes).toContain(1400);
+      expect(runSizes).not.toContain(1600);
+    });
+
+    it('shrinks long key-concept explanations above the progress rail', async () => {
+      const blob = await buildSlideDeckPptxBlob(
+        {
+          decks: [
+            {
+              lessonTitle: 'Lesson 7: Major minerals and electrolytes',
+              slides: [
+                {
+                  title: 'Major minerals',
+                  type: 'keyTerm',
+                  bullets: [
+                    'The major minerals are sodium, potassium, chloride, calcium, phosphorus, magnesium, and sulfur.',
+                    'Calcium is the most abundant mineral in the body, with greater than 99 percent stored in bone tissue.',
+                    'Beyond bone, calcium drives nerve impulse transmission, muscle contraction, and blood clotting.',
+                  ],
+                  notes: 'Explain the major-mineral concept.',
+                },
+              ],
+            },
+          ],
+        },
+        'Human Nutrition',
+        0,
+      );
+      const zip = await loadPptxZip(blob);
+      const xml = await zip.file('ppt/slides/slide1.xml').async('string');
+
+      const runSizes = [...xml.matchAll(/<a:rPr[^>]*\bsz="(\d+)"/g)].map((match) => Number(match[1]));
+      expect(runSizes.some((size) => size >= 1000 && size < 1400)).toBe(true);
+    });
+
+    it('uses a render-safe heading ceiling for long assertion titles', async () => {
+      const longTitle =
+        'Proactive interference: old information hinders the recall of newly learned information across a later retrieval attempt';
+      const blob = await buildSlideDeckPptxBlob(
+        {
+          decks: [
+            {
+              lessonTitle: 'Lesson 8: Memory',
+              slides: [
+                {
+                  title: longTitle,
+                  type: 'content',
+                  bullets: ['Compare the current evidence with the earlier learning condition.'],
+                  notes: 'Introduce the evidence.',
+                },
+              ],
+            },
+          ],
+        },
+        'Introduction to Psychology',
+        0,
+      );
+      const zip = await loadPptxZip(blob);
+      const xml = await zip.file('ppt/slides/slide1.xml').async('string');
+      const titleIndex = xml.indexOf(`<a:t>${longTitle}</a:t>`);
+      expect(titleIndex).toBeGreaterThan(-1);
+      const beforeTitle = xml.slice(0, titleIndex);
+      const size = Number(beforeTitle.slice(beforeTitle.lastIndexOf('sz="') + 4).match(/^\d+/)[0]);
+
+      expect(size).toBeLessThanOrEqual(1600);
     });
 
     it('does not double-space dense content bullets with redundant literal newlines', async () => {

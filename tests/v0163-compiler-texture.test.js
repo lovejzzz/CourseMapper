@@ -6,6 +6,9 @@ import { deriveCourseGraphFromCourseMap } from '../src/lib/courseGraph/deriveFro
 import { buildQuizItemPlan } from '../src/lib/blueprintEnrichmentPass.js';
 import { projectKernelToSurfaces } from '../src/lib/kernelProjection.js';
 import { findPromptArtifactContamination } from '../src/lib/quality/artifactDefectPatterns.js';
+import { buildEvidenceTableVisualDescriptor, slideAgendaDecisionCue } from '../src/lib/compilerFactLedgerVisuals.js';
+import { compactSlideInstructionLabel } from '../src/lib/courseCompilerCopyVariants.js';
+import { slideDiscussionDecisionBullets } from '../src/lib/courseCompilerInstructionalCopy.js';
 import {
   isClaimEvidenceBoundaryShortAnswer,
   isConceptCuedCompilerShortAnswer,
@@ -201,6 +204,104 @@ describe('v0.16.3 compiler texture', () => {
     expect(debriefs.every(Boolean)).toBe(true);
     expect(new Set(debriefs).size).toBeGreaterThanOrEqual(4);
     expect(debriefs.filter((line) => /Debrief by naming the revision choice/i.test(line))).toHaveLength(0);
+  });
+
+  it('projects distinct admitted evidence into agenda, discussion, and fact-table instructions', () => {
+    const blueprint = buildCourseBlueprint(studioCourseMap());
+    const compiled = compileBlueprintDeliverables(blueprint, ['slideDecks'], {
+      configMap: { slideDecks: { slideCount: 12 } },
+      skipLanguageFinalizer: true,
+    });
+    const agendaDecisionCues = compiled.slideDecks.decks.map(
+      (deck) => deck.slides.find((slide) => slide.type === 'agenda')?.bullets?.[1] || '',
+    );
+    const discussionDecisionCues = compiled.slideDecks.decks.map(
+      (deck) => deck.slides.find((slide) => slide.type === 'discussion')?.bullets?.[1] || '',
+    );
+    const descriptor = buildEvidenceTableVisualDescriptor(
+      [],
+      [
+        'Observed shoreline retreat accelerates after the protective wetland is removed.',
+        'The same shoreline remains stable where the wetland dissipates wave energy.',
+        'A single storm observation cannot establish the long-term erosion rate.',
+      ],
+    );
+
+    expect(new Set(agendaDecisionCues).size).toBe(12);
+    expect(new Set(discussionDecisionCues).size).toBe(12);
+    expect(
+      agendaDecisionCues.filter(
+        (cue) =>
+          cue.length > 113 ||
+          !/decide|keep|separate|set|link|discard|identify|compare|preserve|explain/i.test(cue) ||
+          /[:;,–—-]$/.test(cue),
+      ),
+    ).toEqual([]);
+    expect(agendaDecisionCues.join(' ')).not.toMatch(/Model the evidence decision for/i);
+    expect(discussionDecisionCues.join(' ')).not.toMatch(
+      /Vote on the stronger choice|Name what makes the weaker choice|Defend the ranking/i,
+    );
+    const missingEvidenceBoundaryCues = discussionDecisionCues.filter(
+      (cue) => !/evidence|source|criterion|uncertainty|assumption/i.test(cue),
+    );
+    expect(missingEvidenceBoundaryCues).toEqual([]);
+    expect(descriptor.tableLead).toContain('shoreline retreat accelerates');
+    expect(descriptor.tableLead).not.toMatch(/Use the fact ledger to compare/i);
+  });
+
+  it('composes every slide decision variant to fit without clipped or imperative phrase fragments', () => {
+    const hostileInputs = {
+      concept: 'Environmental Impact Assessment using course evidence',
+      secondary: 'reproduce its key form from memory before choosing a response',
+      sourceCue: 'Environmental Impact Assessment worked example response guide',
+      artifact: 'Environmental Impact Assessment evidence check and reflection',
+      successCriterion: 'Uses the relevant evidence precisely and explains one limitation before revising',
+    };
+    const agendas = Array.from({ length: 12 }, (_, index) =>
+      slideAgendaDecisionCue({ lessonNumber: index + 1, ...hostileInputs }),
+    );
+    const discussions = Array.from({ length: 12 }, (_, index) =>
+      slideDiscussionDecisionBullets({ lessonNumber: index + 1, ...hostileInputs }),
+    ).flat();
+
+    expect(new Set(agendas).size).toBe(12);
+    expect(new Set(discussions).size).toBe(24);
+    expect(agendas.every((line) => line.length <= 112)).toBe(true);
+    expect(discussions.every((line) => line.length <= 118)).toBe(true);
+    expect([...agendas, ...discussions].every((line) => /[.!?]$/.test(line))).toBe(true);
+    expect([...agendas, ...discussions].join(' ')).not.toMatch(
+      /reproduce its key form|detail that changes the|before choosing the next|…/,
+    );
+    expect([...agendas, ...discussions].every((line) => !/[:;,–—-]$/.test(line))).toBe(true);
+    expect(
+      compactSlideInstructionLabel(
+        "Environmental Justice to the week's work and explain one supporting evidence source",
+        'lesson concept',
+      ),
+    ).toBe('Environmental Justice');
+    expect(
+      compactSlideInstructionLabel(
+        'Policy Monitoring exit reflection: connect evidence to Policy Monitoring task',
+        'course artifact',
+      ),
+    ).toBe('Policy Monitoring exit reflection');
+  });
+
+  it('keeps compact assignment resources concrete without inventing a specific source packet', () => {
+    const courseMap = studioCourseMap();
+    courseMap.lessons[1] = {
+      ...courseMap.lessons[1],
+      title: 'Lesson 2: Greetings and Self-Introductions',
+      sections: courseMap.lessons[1].sections.map((section) => ({
+        ...section,
+        topicSection: 'Greetings and Self-Introductions',
+        weeklyAssessments: 'Character writing homework with an evidence-backed recommendation.',
+      })),
+    };
+    const blueprint = buildCourseBlueprint(courseMap);
+    const compiled = compileBlueprintDeliverables(blueprint, ['assignments']);
+
+    expect(JSON.stringify(compiled.assignments.assignments)).not.toMatch(/\bspecific source packet\b/i);
   });
 
   it('varies flat lesson-plan closure and debrief guidance', () => {

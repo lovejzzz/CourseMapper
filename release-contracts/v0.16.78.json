@@ -1,0 +1,183 @@
+{
+  "version": "0.16.78",
+  "date": "July 25, 2026",
+  "title": "Make Every Slide Earn Its Place",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test",
+      "npm run format:check",
+      "npm run lint",
+      "npm run test:blueprint:quality:fast",
+      "npm run audit:deliverables",
+      "npm run audit:pipeline",
+      "npm run audit:evaluation:pr -- --changed-from 682b1484d5e3c87271f340db97c1a01e78568988",
+      "npm run audit:constitution",
+      "npm run audit:contract:full",
+      "npm run test:e2e",
+      "npm run test:rules",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification reruns release, format, lint, unit, proof-smoke, evaluation, build, and bundle gates after push."
+    },
+    "ciDeep": {
+      "status": "pending-push",
+      "note": "Deep proof reruns build, pipeline, Chromium, Firestore rules, bundle, and strict app proof after push."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Deployment remains downstream of the repository's successful main workflow."
+    },
+    "liveProvider": {
+      "status": "success",
+      "url": "docs/evidence/SCION_V01678_SETTLEMENT_ACCEPTANCE.json",
+      "note": "Six real public Scion browser courses pass first attempt at full scope with 29 total provider calls, zero retries, A grades, zero P0/P1/P2 findings, 38/38 export checks per package, and the adapter inactive."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "Codex is the declared judge. No instructor, classroom, human-preference, accessibility-certification, or universal factual-validity claim is made."
+    },
+    "manualBrowser": {
+      "status": "success",
+      "url": "docs/evidence/SCION_V01678_SETTLEMENT_ACCEPTANCE.json",
+      "note": "A resumed 99/A, Texture 97 project answers a fresh grounded Agent question, downloads a valid 631,819-byte ZIP, and remains readable at desktop and 390x844 in light and dark themes with no warning/error console entries."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01678-frozen-settlement-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The settlement freezes the source commit, six-course panel, tracked weights, compiler size, npm scripts, release contracts, large binaries, and bundle ceilings before the intervention.",
+      "anchors": [
+        "scripts/checkBundleBudgets.mjs",
+        "scripts/crucible/courses.mjs",
+        "docs/evidence/SCION_V01678_SETTLEMENT_ACCEPTANCE.json"
+      ],
+      "proofCommands": ["npm run build", "npm run bundle:check", "npm run crucible:dry"],
+      "proofScopes": ["build", "static-audit", "browser-live"]
+    },
+    {
+      "id": "v01678-visible-unit-texture",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Texture metric 1.2.0 measures learner-visible units and comparable windows while remaining diagnostic beside the frozen score.",
+      "anchors": [
+        "src/lib/quality/textureMetric.js",
+        "tests/v0147-texture-metric.test.js",
+        "tests/v0163-compiler-texture.test.js"
+      ],
+      "proofCommands": ["npx vitest run tests/v0147-texture-metric.test.js tests/v0163-compiler-texture.test.js"],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01678-causal-visible-copy",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "One deterministic compiler intervention varies slide agendas, fact-ledger leads, discussion decisions, and visible labels without adding provider calls or facts.",
+      "anchors": [
+        "src/lib/compilerFactLedgerVisuals.js",
+        "src/lib/courseCompilerCopyVariants.js",
+        "src/lib/courseCompilerInstructionalCopy.js",
+        "src/lib/courseBlueprintCompiler.js"
+      ],
+      "proofCommands": ["npx vitest run tests/v0163-compiler-texture.test.js"],
+      "proofScopes": ["unit", "compiled-output", "static-audit"]
+    },
+    {
+      "id": "v01678-matched-quantitative-win",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "The matched panel lowers target slide skeleton repetition from 22.22% to 17.57% on the same 29 provider calls and zero retries, with all six courses improving.",
+      "anchors": [
+        "docs/evidence/SCION_V01678_SETTLEMENT_ACCEPTANCE.json",
+        "evaluation/scion-adapters/held-out-course-benchmark-v22.json",
+        "scripts/lib/crucibleBrowser.mjs"
+      ],
+      "proofCommands": [
+        "npm run crucible -- --courses mandarin,world-lit-readings,psych-101,nutrition-101,astro-101,environmental-policy-unseen --provider public"
+      ],
+      "proofScopes": ["browser-live", "compiled-output"]
+    },
+    {
+      "id": "v01678-reversed-order-complete-package-win",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "Two isolated complete-package AI judges prefer the candidate in all twelve course-order verdicts with no candidate factual or source-boundary regression.",
+      "anchors": ["docs/evidence/SCION_V01678_SETTLEMENT_ACCEPTANCE.json", "docs/SCION_ADAPTER_ROADMAP.md"],
+      "proofCommands": ["jq empty docs/evidence/SCION_V01678_SETTLEMENT_ACCEPTANCE.json"],
+      "proofScopes": ["doc", "compiled-output"]
+    },
+    {
+      "id": "v01678-six-course-first-attempt-health",
+      "status": "verified-current",
+      "changelogHighlightIndex": 5,
+      "summary": "All six candidate courses pass first attempt at full scope with complete kernels and materials, A grades, zero findings or readiness failures, and passing exports.",
+      "anchors": [
+        "docs/evidence/SCION_V01678_SETTLEMENT_ACCEPTANCE.json",
+        "scripts/crucible/courses.mjs",
+        "tests/crucible-browser-freshness.test.js"
+      ],
+      "proofCommands": ["npx vitest run tests/crucible-browser-freshness.test.js"],
+      "proofScopes": ["unit", "browser-live", "compiled-output"]
+    },
+    {
+      "id": "v01678-rendered-export-fit",
+      "status": "verified-current",
+      "changelogHighlightIndex": 6,
+      "summary": "Rendered inspection of 221 PPTX slides and 30 DOCX pages closes four real slide-layout collisions through deterministic exporter fitting.",
+      "anchors": [
+        "src/lib/exporters/pptxExporter.js",
+        "src/lib/__tests__/pptxExporter.test.js",
+        "docs/evidence/SCION_V01678_SETTLEMENT_ACCEPTANCE.json"
+      ],
+      "proofCommands": ["npx vitest run src/lib/__tests__/pptxExporter.test.js"],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01678-agent-zip-responsive-proof",
+      "status": "verified-current",
+      "changelogHighlightIndex": 7,
+      "summary": "The current production build proves a grounded Scion Agent answer, physical valid ZIP, desktop and phone layouts, both themes, one ZIP owner, and a clean console.",
+      "anchors": [
+        "docs/evidence/SCION_V01678_SETTLEMENT_ACCEPTANCE.json",
+        "tests/workspace-mobile.spec.js",
+        "tests/export-smoke.spec.js",
+        "tests/agent-no-key.spec.js"
+      ],
+      "proofCommands": ["npm run test:e2e"],
+      "proofScopes": ["browser-live", "browser-smoke"]
+    },
+    {
+      "id": "v01678-honest-performance-and-ratchets",
+      "status": "verified-current",
+      "changelogHighlightIndex": 8,
+      "summary": "The release makes no latency claim, records the slower instrumented candidate round, and keeps compiler, bundles, weights, scripts, contracts, and large binaries within unchanged ratchets.",
+      "anchors": [
+        "scripts/checkBundleBudgets.mjs",
+        "vite.config.js",
+        "docs/evidence/SCION_V01678_SETTLEMENT_ACCEPTANCE.json"
+      ],
+      "proofCommands": ["npm run build", "npm run bundle:check"],
+      "proofScopes": ["build", "static-audit"]
+    },
+    {
+      "id": "v01678-shared-compiler-model-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 9,
+      "summary": "Gemma weights remain unchanged and the adapter remains inactive; compatible providers inherit the compiler/exporter improvement while Scion retains browser-local runtime responsibilities.",
+      "anchors": [
+        "README.md",
+        "docs/SCION_ADAPTER_ROADMAP.md",
+        "docs/evidence/SCION_V01678_SETTLEMENT_ACCEPTANCE.json",
+        "src/lib/scionAdapterTaskScope.js"
+      ],
+      "proofCommands": ["npm run audit:release-history", "npx vitest run tests/scion-adapter-task-scope.test.js"],
+      "proofScopes": ["doc", "unit", "static-audit"]
+    }
+  ]
+}

@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.77
+**Current release:** v0.16.78
 
 ---
 
@@ -31,7 +31,7 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site presents **Provider: Scion**, a disabled API control because no key is needed, and the versioned product model **Scion V0.16.77**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts a new foundation model. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables. The reproducible local evaluation server uses the corresponding pinned `google/gemma-4-E2B-it-qat-q4_0-unquantized` source at revision `1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce`; the runtime formats differ, but neither route changes Gemma's weights.
+The hosted site presents **Provider: Scion**, a disabled API control because no key is needed, and the versioned product model **Scion V0.16.78**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts a new foundation model. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables. The reproducible local evaluation server uses the corresponding pinned `google/gemma-4-E2B-it-qat-q4_0-unquantized` source at revision `1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce`; the runtime formats differ, but neither route changes Gemma's weights.
 
 In plain language, **Scion Vx is the whole local authoring system, not just the base model**:
 
@@ -42,6 +42,32 @@ public Gemma 4 E2B base + optional integrity-checked Scion adapter + Scion compi
 Today the adapter term is infrastructure only: the trained research adapter has not beaten the pinned base on the frozen held-out ruler and is inactive. Users download the public base from its immutable source; Course Mapper does not host a second copy of Gemma or change its weights. The compiler is where the current production quality lift lives—course identity, source linking, semantic admission, lesson sequencing, deterministic teaching-material compilation, repetition control, grading, Agent course evidence, and export recovery. Those shared stages also improve compatible paid-model output. Browser download, WebGPU inference, local caching, and browser-runtime recovery remain specific to Scion.
 
 ### Current production proof
+
+V0.16.78 is a measured quality settlement, not another pile of samples. It freezes one source commit, the public Scion route, the inactive-adapter state, and a six-course panel before changing the compiler. The panel contains Mandarin, World Literature, Psychology, Nutrition, Astronomy, and an unseen Environmental Policy course. Executable ratchets also freeze tracked model weights, compiler size, npm-script count, release-contract growth, new large binaries, the landing bundle, and every named lazy chunk. A release cannot “improve” by moving the ruler, adding hidden model machinery, or excluding a failed course.
+
+Texture metric 1.2.0 now measures **learner-visible units in comparable artifact windows**. It distinguishes exact repetition from structural or “skeleton” repetition and stops treating internal object structure as if students could see it. The metric is deliberately diagnostic beside the frozen quality score; this release does not silently convert a new measurement into a better grade.
+
+The one causal intervention is narrow and visible. Slide agendas no longer repeat the same “model the evidence” frame. Fact-ledger slides expose one admitted claim to test instead of naming an internal ledger routine. Discussion slides vary the source boundary, success criterion, counterevidence, artifact decision, and revision consequence across lessons. Instruction-shaped objective text is compacted before it becomes a heading, preventing clipped directions from masquerading as labels. The model responses, disciplinary facts, assessment identities, and provider-call architecture remain unchanged.
+
+On the matched six-course panel, the target slide-deck skeleton median falls from **22.22% to 17.57%**—a **4.65 percentage-point, 20.9% relative reduction**—and every course moves in the improving direction. Package-level skeleton repetition falls from **23.58% to 22.68%**, while exact repetition falls from **14.20% to 13.52%**. Baseline and candidate both use **29 provider calls and zero retries**. This is the causal result: the same bought knowledge compiles into less repetitive learner-facing instruction.
+
+Two new isolated GPT-5.6-sol XHigh sessions then judge the complete anonymous packages in opposite presentation orders. The candidate wins all **12 of 12 course-order verdicts** with no candidate factual or source-boundary regression. The result is strong AI-only package evidence, not human instructor approval, external fact-checking, accessibility certification, classroom-outcome evidence, or paid-reference parity. The judges also surface shared weaknesses that remain real future targets: some intentionally non-applicable assignment placeholders, inconsistent explicit discussion labels, one Mandarin final-task alignment seam, and sparse source trails in parts of the panel.
+
+The production candidate remains operationally healthy. All six courses pass on the first attempt at full scope with **100% knowledge-kernel coverage, 9/9 compiled material families, A grades from 98 to 99, zero P0/P1/P2 findings, zero blockers or warnings, zero retries or failed calls, and 38/38 export checks per package**. All six candidate ZIPs and all six matched baseline ZIPs pass physical archive integrity testing. The unseen Environmental Policy course passes the same gates instead of serving as a post-hoc demo.
+
+Export quality is inspected as pixels, not inferred from XML. Opening, middle, and final decks from every course plus one lesson-plan DOCX per course render to **221 PPTX slides and 30 DOCX pages**. That 251-frame pass finds and fixes four real geometry failures: duplicate Lesson/Week prefixes colliding with the title rule, readiness-summary bullets colliding with the footer, key-concept copy colliding with progress dots, and long assertion titles clipping above the canvas. The final deterministic exporter guards preserve content while fitting those layouts.
+
+The final product pass resumes a real **Urban Ecology Field Methods** browser project at **99/A with Texture 97, 4/4 kernels, and 9/9 material families**. A fresh Agent question—asking which Lesson 3 evidence students should compare and which assignment uses it—returns the correct stormwater/green-infrastructure evidence and W3 comparison assignment through Scion in about 20 seconds. The Export panel produces one real **631,819-byte ZIP** with SHA-256 `5add992f533766d50eafc0f1a371d7b1f76b9fe8a974ce22983e74dfddb065bd`; the archive passes compressed-data testing. Desktop, 390×844 light, and 390×844 dark views remain readable, the phone uses distinct Content/Agent/Export modes, and the inspected browser console contains no warnings or errors.
+
+The complete local gate passes **450 unit-test files and 5,585 tests**, with 16 files and 162 tests intentionally skipped, plus **151/151 Chromium E2E tests, 6/6 Firestore rules tests, the 40/40 cross-domain compiler contract**, the frozen evaluation profile, formatting, lint, constitution, historical evidence audits, production build, physical ZIP verification, and unchanged bundle ceilings. The module-boundary audit also caught and fixed an accidental lazy-chunk merge: fact-ledger visuals, instructional copy, and copy variants now own their bytes independently without increasing a single budget.
+
+Performance is reported without spin. The more instrumented candidate Crucible round records 1,139 seconds versus 390 seconds for the baseline, with digest medians of about 169.1 seconds versus 49.3 seconds. Provider calls and retries did not grow, and the rounds had different cold/capture conditions, so the result is not an architectural call regression—but it is also **not evidence of a latency win**. Matched warm/cold timing remains required before Scion claims this quality improvement is equally fast.
+
+Gemma weights remain unchanged, and the research adapter remains inactive because it has not beaten the pinned base under the promotion contract. The V0.16.78 win belongs to the shared compiler, quality measurement, and exporters, so compatible paid providers also benefit. Public-model download, WebGPU inference, browser-local cache and recovery, and keyless routing remain Scion-specific. The machine-readable receipt is [docs/evidence/SCION_V01678_SETTLEMENT_ACCEPTANCE.json](docs/evidence/SCION_V01678_SETTLEMENT_ACCEPTANCE.json).
+
+### Recent release history
+
+The sections below are historical release evidence. Their versions, timings, test counts, and measured packages describe the named release and are intentionally preserved; the Current production proof above is the authority for v0.16.78.
 
 V0.16.77 makes experiential learning a first-class compiler capability instead of a one-course template. When—and only when—a lesson explicitly requests a simulation, laboratory investigation, studio critique, case exercise, structured debate, field exercise, or role-play, the existing lesson-authoring call returns one compact course-specific activity blueprint beside its knowledge kernel. There is no extra call for the lesson plan, slides, assignment, or export.
 
@@ -69,10 +95,6 @@ The final end-to-end proof uses a fresh five-lesson International Crisis Bargain
 The complete V0.16.77 release gate passes **450 unit-test files and 5,571 tests**, with 16 files and 162 tests intentionally skipped, plus **151/151 Chromium E2E tests**, the **40/40** cross-domain compiler contract, formatting, lint, the production build, locked landing and lazy-chunk bundle budgets, constitution and release-history audits, the live base-model activity probe, physical ZIP verification, and rendered DOCX/PPTX inspection. Initial landing JavaScript remains inside its locked ceiling at **257.3 KiB raw / 81.8 KiB gzip**; the expanded experiential compiler stays workspace-only and off landing.
 
 This is a shared compiler improvement. Compatible paid providers benefit from the same conditional prompt, canonical IR, semantic admission, timing normalization, projections, grader, and exporters. Scion-specific behavior remains the public model download, WebGPU runtime, local cache, compact local schema, and recovery routing. Gemma weights remain unchanged, and the research adapter remains inactive until it beats the frozen base on complete learner-facing artifacts.
-
-### Recent release history
-
-The sections below are historical release evidence. Their versions, timings, test counts, and measured packages describe the named release and are intentionally preserved; the Current production proof above is the authority for v0.16.77.
 
 V0.16.76 freezes the base-only route on the exact V21 held-out ruler. In one same-code run, Mandarin (15 lessons), World Literature (14), Psychology (15), Nutrition (14), and Astronomy (12) all reach **99/A** with every requested lesson, **9/9 generated material families**, **100% lesson-kernel coverage**, and **zero blockers, warnings, P0/P1/P2 findings, retries, flagged checks, failed exports, or export warnings**. Every package passes **38/38 export verification** and physical ZIP testing. The five courses use **41 actual model calls for 70 lessons**, with no repair cascade.
 
@@ -625,7 +647,7 @@ npm run audit:scion:model-bakeoff
 
 ---
 
-## Current Pipeline (v0.16.77)
+## Current Pipeline (v0.16.78)
 
 The product ribbon and the code share one pipeline vocabulary: **Map -> Enrich -> Compile -> Verify -> Grade**. `src/lib/pipelineMachine.js` is the phase authority; UI surfaces should render from that machine instead of re-deriving state from raw generation/finalizer flags.
 

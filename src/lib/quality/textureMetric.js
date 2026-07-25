@@ -47,9 +47,10 @@
  * turns low texture into an actionable finding.
  */
 
-export const TEXTURE_VERSION = '1.1.0';
+export const TEXTURE_VERSION = '1.2.0';
 
 export const TEXTURE_SUBSCORE_WEIGHTS = { sameness: 0.5, openers: 0.25, tails: 0.25 };
+export const VISIBLE_UNIT_MIN_WORDS = 8;
 
 const SHINGLE_SIZE = 12;
 const TAIL_DOC_RATIO = 0.6;
@@ -145,6 +146,109 @@ function sentencesOf(maskedText) {
 
 function round1(value) {
   return Math.round(value * 10) / 10;
+}
+
+function visibleWordsOf(text) {
+  return String(text || '').match(/\p{Script=Han}|[\p{L}\p{N}]+(?:['’ʼ-][\p{L}\p{N}]+)*/gu) || [];
+}
+
+function normalizeVisibleUnitSource(text) {
+  return String(text || '')
+    .normalize('NFKC')
+    .replace(/[‘’ʼ]/g, "'")
+    .replace(/[“”]/g, '"')
+    .replace(/[‐‑‒–—―]/g, '-')
+    .replace(/…/g, '...')
+    .replace(/^\s*(?:\d+(?:\.\d+)*|[A-Za-z])[\s.):;-]+(?=\p{L})/u, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function visibleUnitKey(text) {
+  return normalizeVisibleUnitSource(text)
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}'-]+/gu, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function summarizeVisibleUnits(units, key, maxClusters) {
+  const byKey = new Map();
+  for (const unit of units) {
+    const value = unit[key];
+    if (!value) continue;
+    if (!byKey.has(value)) byKey.set(value, []);
+    byKey.get(value).push(unit);
+  }
+  const repeated = [...byKey.entries()]
+    .filter(([, members]) => members.length >= 2)
+    .sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0]));
+  const extraDuplicateCount = repeated.reduce((sum, [, members]) => sum + members.length - 1, 0);
+  const readerExposureCount = repeated.reduce((sum, [, members]) => sum + members.length, 0);
+  const eligibleUnitCount = units.length;
+  return {
+    eligibleUnitCount,
+    uniqueUnitCount: byKey.size,
+    clusterCount: repeated.length,
+    extraDuplicateCount,
+    extraDuplicateRate: eligibleUnitCount > 0 ? extraDuplicateCount / eligibleUnitCount : 0,
+    readerExposureCount,
+    readerExposureRate: eligibleUnitCount > 0 ? readerExposureCount / eligibleUnitCount : 0,
+    topClusters: repeated.slice(0, maxClusters).map(([value, members]) => ({
+      key: value,
+      count: members.length,
+      representative: members[0].text,
+      locations: members.map(({ file, unit }) => ({ file, unit })),
+    })),
+  };
+}
+
+/**
+ * Count repeated reader-visible paragraph frames without changing the existing
+ * score. Exact keys expose verbatim stamps; skeleton keys mask the same frozen
+ * manifest slots used by computeTexture. Both "extra" duplicates and total
+ * reader exposure are retained so reports cannot swap denominators silently.
+ */
+export function computeVisibleUnitTexture(docs = [], slotValues = []) {
+  const units = [];
+  for (const doc of Array.isArray(docs) ? docs : []) {
+    const normalized = normalizeTextureText(doc?.text);
+    normalized.split(/\n+/).forEach((line, index) => {
+      const source = normalizeVisibleUnitSource(line);
+      if (visibleWordsOf(source).length < VISIBLE_UNIT_MIN_WORDS) return;
+      const exactKey = visibleUnitKey(source);
+      const skeletonKey = visibleUnitKey(maskSlots(source, slotValues));
+      if (!exactKey || !skeletonKey) return;
+      units.push({
+        file: doc?.id || 'unknown',
+        feature: doc?.feature || 'unknown',
+        unit: index + 1,
+        text: source,
+        exactKey,
+        skeletonKey,
+      });
+    });
+  }
+  const byFeature = new Map();
+  for (const unit of units) {
+    if (!byFeature.has(unit.feature)) byFeature.set(unit.feature, []);
+    byFeature.get(unit.feature).push(unit);
+  }
+  return {
+    measured: units.length > 0,
+    minWords: VISIBLE_UNIT_MIN_WORDS,
+    eligibleUnitCount: units.length,
+    exact: summarizeVisibleUnits(units, 'exactKey', 25),
+    skeleton: summarizeVisibleUnits(units, 'skeletonKey', 25),
+    families: [...byFeature.entries()]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([feature, featureUnits]) => ({
+        feature,
+        eligibleUnitCount: featureUnits.length,
+        exact: summarizeVisibleUnits(featureUnits, 'exactKey', 25),
+        skeleton: summarizeVisibleUnits(featureUnits, 'skeletonKey', 25),
+      })),
+  };
 }
 
 function isStructuralLedgerLine(line) {

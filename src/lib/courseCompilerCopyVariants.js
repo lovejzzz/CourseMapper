@@ -29,6 +29,39 @@ export function compactCourseCopyFocus(focus) {
   return methodPrefix && courseCopySurfaceWords(methodPrefix).length <= 4 ? methodPrefix : cleanFocus;
 }
 
+const INSTRUCTION_LABEL_LEAD =
+  /^(?:analy[sz]e|annotate|apply|compare|define|describe|develop|draft|evaluate|explain|identify|listen|name|practice|prepare|read|reproduce|review|share|state|test|trace|use)\b/i;
+const DANGLING_LABEL_TAIL = /\b(?:a|an|and|at|before|for|from|in|of|or|the|to|with)\s*$/i;
+const INCOMPLETE_LABEL_QUALIFIER_TAIL =
+  /\s+(?:through|with)\s+(?:an?\s+)?(?:bounded|evidence-backed|inspectable|source-backed|supported)\s*$/i;
+const OBJECTIVE_LABEL_TAIL =
+  /\s+(?:and\s+(?:apply|connect|explain|identify|name|prepare|revise|state|use)\b|to\s+(?:the\s+)?week(?:['’]s)?\s+work\b|using\s+course(?:\s+evidence)?\b)[\s\S]*$/i;
+const COLON_INSTRUCTION_TAIL =
+  /:\s*(?:analy[sz]e|apply|compare|connect|decide|defend|describe|develop|evaluate|explain|identify|name|prepare|revise|state|test|use)\b[\s\S]*$/i;
+
+export function compactSlideInstructionLabel(
+  value,
+  fallback,
+  { maxWords = 6, maxChars = 44, rejectInstruction = false } = {},
+) {
+  let text = compactCourseCopyFocus(stripTerminalPunctuation(cleanText(value)))
+    .replace(COLON_INSTRUCTION_TAIL, '')
+    .replace(OBJECTIVE_LABEL_TAIL, '')
+    .replace(/[\s:;,–—-]+$/g, '')
+    .trim();
+  if (!text || (rejectInstruction && INSTRUCTION_LABEL_LEAD.test(text))) {
+    text = stripTerminalPunctuation(cleanText(fallback));
+  }
+  const words = text.split(/\s+/).filter(Boolean);
+  const kept = [];
+  for (const word of words) {
+    if (kept.length >= maxWords || [...kept, word].join(' ').length > maxChars) break;
+    kept.push(word);
+  }
+  const compact = kept.join(' ').replace(INCOMPLETE_LABEL_QUALIFIER_TAIL, '').replace(DANGLING_LABEL_TAIL, '').trim();
+  return compact || stripTerminalPunctuation(cleanText(fallback)) || 'course evidence';
+}
+
 export function compactCourseCopyEmbeddedReference(value, fullFocus) {
   const text = cleanText(value);
   const cleanFocus = cleanText(fullFocus);

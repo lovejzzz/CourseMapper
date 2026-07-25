@@ -2,7 +2,7 @@
   "schemaVersion": 3,
   "id": "scion-held-out-course-benchmark-v22",
   "protocolVersion": "scion-adapter-course-pair-v1",
-  "frozenAt": "2026-07-24T02:33:29Z",
+  "frozenAt": "2026-07-25T05:02:05Z",
   "minimumDomains": 5,
   "minimumLessonsPerCourse": 12,
   "selectionPolicy": {
@@ -11,7 +11,7 @@
     "sameCompilerCommitRequired": true,
     "sameCompilerConfigRequired": true,
     "sameGraderRequired": true,
-    "claimBoundary": "These five prompt-only Crucible fixtures preserve the V21 course, source, runtime-task, and native-attempt boundary. V22 freezes deep-quality grader 1.10.37 and its transitive implementation receipt after the v0.16.77 International Relations artifact audit required every named experiential activity to ship one runnable, course-specific protocol across its lesson plan, deck, and activity brief, in addition to current-deck visual, clipped-slide, and exported compiler-placeholder checks. No V21 score, adapter win, or promotion is inherited."
+    "claimBoundary": "These five prompt-only Crucible fixtures preserve the V21 course, source, runtime-task, and native-attempt boundary. V22 binds the current deep-quality grader and its transitive implementation receipt after the v0.16.77 International Relations artifact audit, including the settlement's diagnostic-only visible-unit texture receipt. The visible-unit diagnostic does not alter the frozen score or imply a new adapter result. No V21 score, adapter win, or promotion is inherited."
   },
   "runtimeTaskPolicy": {
     "protocol": "scion-adapter-runtime-task-policy-v1",
@@ -30,7 +30,7 @@
     "path": "tests/lib/deepQualityGrader.js",
     "sha256": "d19641f8492fafa979c47ee8ea178f7277d0c09e485908b4dfa326a3d9bfbfea",
     "implementationReceiptProtocol": "module-implementation-receipt-v1",
-    "implementationSha256": "eb40fdb6227c28ae36800664062d86ed9005e8f7dcf3bc95349096d4a039ffbc",
+    "implementationSha256": "c57dacee5cb5c8b69c46b0ba2b418d0f8edcb8b2d09c2f9e36d5d9ae43c83d98",
     "implementationFileCount": 13
   },
   "courses": [
