@@ -45,7 +45,9 @@ function validateAgainstSchema(skeleton, sessionCount) {
   }
   const assessments = schema.properties.assessments;
   if (skeleton.assessments.length < assessments.minItems || skeleton.assessments.length > assessments.maxItems) {
-    problems.push(`assessments ${skeleton.assessments.length} outside ${assessments.minItems}..${assessments.maxItems}`);
+    problems.push(
+      `assessments ${skeleton.assessments.length} outside ${assessments.minItems}..${assessments.maxItems}`,
+    );
   }
   const titleRule = schema.properties.sessions.items.properties.title;
   for (const session of skeleton.sessions) {
