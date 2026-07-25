@@ -3,6 +3,35 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'July 25, 2026',
+  title: 'A Round That Explains Its Own Clock',
+  landingTitle: 'Scion V0.16.79 Makes Evaluation Rounds Explain Their Own Timing',
+  highlights: [
+    'V0.16.78 recorded a 2.9× round slowdown it could not explain and therefore claimed no latency win. Six controlled runs on the same course now name the cause: cold model load plus GPU contention between concurrent courses. No product regression existed — V0.16.77 and V0.16.78 generate in 48.6 seconds each under identical warm conditions.',
+    'Browser-local providers now default to one course at a time. Public Scion and the local runtime execute inference on a single GPU, so concurrent courses contended for one device instead of overlapping network waits; remote providers keep the parallel default, and an explicit --concurrency still wins.',
+    'The same two-course cold round finishes in 5 minutes 34 seconds instead of 16 minutes 1 second — 2.87× faster — with identical 99/A grades, zero P0/P1 findings, and 101 extracted files per course. Per-course generation falls from 84.8s and 128.8s to 48.9s and 90.7s.',
+    'Every round now records the configuration that decides whether two rounds are comparable: concurrency and whether it was explicit, filmstrip capture, Scion profile mode, authoring, and voice. Rounds that measured different things can no longer look alike.',
+    'Round reports and round.json now split each course into model load, of which download, generation, and total. A cold profile pays model load on every course, so comparing totals across rounds compares cache states rather than product quality.',
+    'The timing split is derived from the console log each run already saves, by a pure function with unit coverage for cold, warm, and remote-provider cases. Nothing was added to the live browser path, so the measurement cannot perturb the timings it reports.',
+    'Gemma weights remain unchanged, the research adapter remains inactive, and no generated course content changes. This release improves evaluation honesty and round wall-clock only, and claims no quality, factual, instructor, or classroom improvement.',
+  ],
+  landingHighlights: [
+    'An unexplained 2.9× slowdown is now a measured, named cost.',
+    'Browser-local rounds run one course at a time by default.',
+    'The same cold two-course round is 2.87× faster.',
+    'Rounds record the configuration that makes them comparable.',
+    'Model load and generation are reported separately.',
+    'No course content, Gemma weights, or adapter state changes.',
+  ],
+  proof: {
+    contract: 'release-contracts/v0.16.79.json',
+    roadmap: 'docs/SCION_ADAPTER_ROADMAP.md',
+    auditCommand: 'npm run audit:release-history',
+  },
+};
+
+const V01678_RELEASE = {
+  version: '0.16.78',
+  date: 'July 25, 2026',
   title: 'Make Every Slide Earn Its Place',
   landingTitle: 'Scion V0.16.78 Makes Every Slide Earn Its Place',
   highlights: [
@@ -42,6 +71,70 @@ export const CURRENT_RELEASE_CHANGELOG = {
   date: CURRENT_RELEASE.date,
   title: CURRENT_RELEASE.title,
   highlights: CURRENT_RELEASE.highlights,
+  sections: [
+    {
+      label: 'Name the cost instead of guessing at it',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'V0.16.78 recorded a 2.9× round slowdown with an unconfirmed cause and honestly claimed no latency win.',
+        'Six controlled runs on one course separate cold model load, filmstrip capture, the code delta, and course concurrency.',
+        'Cold model load costs about 70 seconds per course; filmstrip capture costs 2 seconds; the V0.16.78 code delta costs nothing.',
+        'V0.16.77 and V0.16.78 both generate in 48.6 seconds under identical warm conditions, so no product regression existed.',
+      ],
+    },
+    {
+      label: 'Run browser-local rounds one course at a time',
+      icon: 'AI',
+      color: 'sky',
+      items: [
+        'Public Scion and the local runtime execute inference on this machine’s single GPU.',
+        'Concurrent courses contended for one device rather than overlapping network waits, roughly doubling per-course generation.',
+        'Browser-local providers now default to concurrency 1; remote providers keep the parallel default of 2.',
+        'An explicit --concurrency still wins, so the change moves only the default.',
+      ],
+    },
+    {
+      label: 'Prove the round got faster without changing output',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'The same two-course cold round finishes in 5m34s instead of 16m01s — 2.87× faster.',
+        'Per-course generation falls from 84.8s and 128.8s to 48.9s and 90.7s.',
+        'Both courses keep 99/A, zero P0/P1 findings, and 101 extracted files.',
+        'Generation now matches the clean serial baseline exactly, so the contention is removed rather than hidden.',
+      ],
+    },
+    {
+      label: 'Make every round explain its own clock',
+      icon: 'AI',
+      color: 'violet',
+      items: [
+        'round.json and the round report now record concurrency and whether it was explicit, filmstrip capture, Scion profile mode, authoring, and voice.',
+        'Each course reports model load, of which download, generation, and total instead of one blended number.',
+        'A cold profile pays model load on every course, so totals compare cache states while generation compares the product.',
+        'The split is a pure function over the console log each run already saves, with unit coverage for cold, warm, and remote-provider rounds.',
+      ],
+    },
+    {
+      label: 'Claim boundary',
+      icon: 'CHECK',
+      color: 'slate',
+      items: [
+        'Gemma weights are unchanged and the research adapter remains inactive.',
+        'No generated course content, compiler output, or quality score changes in this release.',
+        'This improves evaluation honesty and round wall-clock only.',
+        'It claims no quality, factual, instructor, accessibility, or classroom improvement.',
+      ],
+    },
+  ],
+};
+
+const V01678_RELEASE_CHANGELOG = {
+  version: V01678_RELEASE.version,
+  date: V01678_RELEASE.date,
+  title: V01678_RELEASE.title,
+  highlights: V01678_RELEASE.highlights,
   sections: [
     {
       label: 'Freeze the ruler before changing the course',
@@ -117,6 +210,7 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  V01678_RELEASE_CHANGELOG,
   {
     version: '0.16.77',
     date: 'July 24, 2026',

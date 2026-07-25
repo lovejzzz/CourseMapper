@@ -19,11 +19,20 @@ const budgets = {
 // These are repository-growth ceilings, not targets. Reductions are welcome;
 // raising one requires a written product/release justification beside the
 // changed value. A public patch may add exactly its one release contract.
+//
+// v0.16.79: releaseContractFiles rebased 263 → 264 and baselineVersion 0.16.77
+// → 0.16.78. The count is a BASELINE, and the one-contract release allowance is
+// measured from it, so the baseline has to advance as each release lands or the
+// allowance is silently consumed by the previous release. v0.16.78 shipped its
+// contract (263 → 264) without moving the baseline, so v0.16.79 failed the gate
+// at 265/264 despite adding exactly one file. This is the ratchet working: it
+// caught an unaccounted increase, and the fix is to re-freeze at the released
+// state, not to widen the allowance. Every future release must do the same.
 const repositoryBudgets = {
-  baselineVersion: '0.16.77',
+  baselineVersion: '0.16.78',
   compilerLines: 27_831,
   npmScripts: 377,
-  releaseContractFiles: 263,
+  releaseContractFiles: 264,
   trackedWeightFiles: 62,
   trackedWeightBytes: 1_053_339_981,
   largeBinaryBytes: 1024 * 1024,
