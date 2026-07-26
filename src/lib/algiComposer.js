@@ -214,6 +214,12 @@ export async function composeAlgiResponse({ task, userPrompt, structuredPrompt, 
     structuredPrompt,
     factCount: factCountFromSchema(schema),
     researchProvider: buildResearchProvider(),
+    // The Pass B prompt object carries lessons, not a course title, so the
+    // subject is read from the prose instead. Without it a lesson researches
+    // its bare title ("information architecture" returned enterprise-software
+    // pages) and, worse, the discipline cannot be inferred, so no shard kernels
+    // are available to complete the lesson's key terms.
+    courseContext: researchCourseContext(userPrompt),
   });
   return {
     text: result.text,
@@ -227,7 +233,32 @@ export async function composeAlgiResponse({ task, userPrompt, structuredPrompt, 
   };
 }
 
-/** Set to 'off' to keep Algi entirely offline. */
+/**
+ * The subject name only, for use as a search disambiguator.
+ *
+ * extractCourseName returns the whole opening sentence, which is right for
+ * titling and wrong here: prepending "UX Design Studio, a 12-lesson studio
+ * course with weekly critiques." to every lesson query buries the actual topic
+ * and returns worse results than no context at all.
+ */
+export function researchCourseContext(userPrompt) {
+  const name = String(extractCourseName(userPrompt) || '').split(/[,.;:(]/)[0];
+  return name.trim().split(/\s+/).filter(Boolean).slice(0, 5).join(' ');
+}
+
+/**
+ * Opt-in, and deliberately so.
+ *
+ * Research reaches a third-party corpus during generation and returns CC BY-SA
+ * text. Genome attribution reaches the exported documents today (OpenStax
+ * appears across eight families in a shipped package), but that runs through
+ * the readings layer, and no course that SHIPS currently contains researched
+ * content — so the same guarantee is unverified for Wikipedia-sourced atoms.
+ * Shipping share-alike text whose attribution may not render is not a default
+ * anyone should get without asking. Flip to 'on' to enable; the gate to making
+ * it default is a shipped package with a researched lesson, checked for its
+ * attribution.
+ */
 export const ALGI_RESEARCH_FLAG = 'coursemapper-algi-research';
 
 /**
@@ -238,11 +269,14 @@ export const ALGI_RESEARCH_FLAG = 'coursemapper-algi-research';
  * errors. Politeness here is a correctness property, not just etiquette.
  */
 export function buildResearchProvider({ storage = globalThis.localStorage, gapMs = 400 } = {}) {
+  let enabled = false;
   try {
-    if (storage?.getItem?.(ALGI_RESEARCH_FLAG) === 'off') return null;
+    enabled = storage?.getItem?.(ALGI_RESEARCH_FLAG) === 'on';
   } catch {
-    // Storage unavailable (private mode, headless): research stays enabled.
+    // Storage unavailable (private mode, headless): stay offline.
+    enabled = false;
   }
+  if (!enabled) return null;
   if (typeof fetch !== 'function') return null;
   let last = 0;
   const httpJson = async (url) => {

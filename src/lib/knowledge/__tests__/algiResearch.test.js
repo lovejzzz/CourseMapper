@@ -83,6 +83,25 @@ describe('entity filter (topic drift by page KIND)', () => {
     expect(looksLikeEntity('Jury Duty (2023 TV series)', 'Jury Duty is an American mockumentary comedy.')).toBe(true);
   });
 
+  it('rejects biographies, the most dangerous case', () => {
+    // A researcher's page is saturated with the topic's vocabulary, so it
+    // OUTSCORES real concepts: "Sharon Oviatt" beat every genuine article for
+    // "human-centered design foundations" and was admitted as a thing to teach.
+    expect(
+      looksLikeEntity('Sharon Oviatt', 'Sharon Oviatt is an American computer scientist known for multimodal interfaces.'),
+    ).toBe(true);
+    expect(
+      looksLikeEntity('Klaus Krippendorff', 'Klaus Krippendorff (born 1932) was a German-American communication scholar.'),
+    ).toBe(true);
+  });
+
+  it('does not mistake a concept for a person', () => {
+    expect(looksLikeEntity('Interaction design', 'Interaction design is the practice of designing interactive products.')).toBe(
+      false,
+    );
+    expect(looksLikeEntity('Ergonomics', 'Ergonomics is the study of efficiency in a working environment.')).toBe(false);
+  });
+
   it('keeps genuine concept pages', () => {
     expect(
       looksLikeEntity('Whistleblowing', 'Whistleblowing is the activity of a person who reports wrongdoing to an authority.'),
@@ -170,6 +189,18 @@ describe('researchConcept', () => {
     expect(result.ok).toBe(true);
     expect(result.tier).toBeGreaterThanOrEqual(2);
     expect(result.kernel.facts.length).toBeGreaterThanOrEqual(2);
+  });
+});
+
+describe('the research flag is opt-in', () => {
+  it('stays offline unless explicitly enabled', async () => {
+    const { buildResearchProvider, ALGI_RESEARCH_FLAG } = await import('../../algiComposer.js');
+    const store = (value) => ({ getItem: (key) => (key === ALGI_RESEARCH_FLAG ? value : null) });
+    expect(buildResearchProvider({ storage: store(null) })).toBeNull();
+    expect(buildResearchProvider({ storage: store('off') })).toBeNull();
+    // Absent storage must not be read as consent.
+    expect(buildResearchProvider({ storage: undefined })).toBeNull();
+    expect(buildResearchProvider({ storage: store('on') })).not.toBeNull();
   });
 });
 

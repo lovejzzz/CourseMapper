@@ -149,8 +149,14 @@ export function explanatoryScore(sentence, head = '') {
  * floor drop far enough to keep a correct-but-oddly-worded match like
  * Whistleblowing, which scored 0.254 while the wrong-subject Lie scored 0.457.
  */
-const ENTITY_NOUN =
-  '(?:company|corporation|firm|band|film|movie|album|song|single|novel|political party|party|magazine|newspaper|television series|TV series|video game|organization|organisation|university|college|city|town|village|river|mountain|footballer|singer|actor|actress|politician|businessman|businesswoman|athlete|musician|author|writer)';
+// People are the most dangerous entity class here, because a researcher's
+// biography is FULL of the topic's vocabulary: "Sharon Oviatt" outscored every
+// real concept for "human-centered design foundations" and was admitted as
+// something to teach. Roles are listed explicitly since a bio's lead sentence
+// is "X is an American computer scientist", not "X is a company".
+const PERSON_ROLE =
+  '(?:researcher|scientist|professor|scholar|academic|engineer|designer|architect|artist|author|writer|philosopher|economist|psychologist|sociologist|historian|journalist|executive|physician|lawyer|teacher|educator|mathematician|programmer|entrepreneur|activist|critic|producer|director)';
+const ENTITY_NOUN = `(?:company|corporation|firm|band|film|movie|album|song|single|novel|political party|party|magazine|newspaper|television series|TV series|video game|organization|organisation|university|college|city|town|village|river|mountain|footballer|singer|actor|actress|politician|businessman|businesswoman|athlete|musician|${PERSON_ROLE.slice(3, -1)})`;
 // Any parenthetical CONTAINING an entity word — real titles read "(2023 TV
 // series)", not "(TV series)", so an exact-content match caught nothing.
 const ENTITY_PARENTHETICAL = new RegExp(`\\([^)]*\\b${ENTITY_NOUN}\\b[^)]*\\)`, 'i');
@@ -163,6 +169,12 @@ export function looksLikeEntity(title = '', definition = '') {
   if (ENTITY_LEAD.test(definition)) return true;
   // Born/founded/released dates are biography and product markers, not concepts.
   if (/\b(?:born|founded|established|released|formed)\s+(?:in\s+)?\d{4}\b/i.test(definition)) return true;
+  // "(born 1958)" and "is an American computer scientist" — the two shapes a
+  // Wikipedia biography opens with, neither caught by the noun list alone.
+  if (/\(\s*born\b/i.test(definition)) return true;
+  if (new RegExp(`\\b(?:is|was)\\s+(?:a|an)\\s+(?:[A-Z][\\w'-]+|[\\w'-]+)\\s+(?:[\\w'-]+\\s+){0,2}${PERSON_ROLE}\\b`).test(definition)) {
+    return true;
+  }
   return false;
 }
 

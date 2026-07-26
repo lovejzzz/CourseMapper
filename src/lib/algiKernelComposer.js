@@ -436,6 +436,7 @@ export async function composeAlgiLessonKernels({
   factCount = 5,
   researchProvider = null,
   researchEmbed = null,
+  courseContext: courseContextInput = '',
 } = {}) {
   const lessons = Array.isArray(structuredPrompt?.lessons) ? structuredPrompt.lessons : [];
   if (lessons.length === 0) return { text: '', covered: 0, requested: 0, uncovered: [] };
@@ -452,7 +453,9 @@ export async function composeAlgiLessonKernels({
   let researched = 0;
   let composeFailures = 0;
   let researchNote = '';
-  const courseContext = String(structuredPrompt?.courseTitle || structuredPrompt?.courseName || '').trim();
+  const courseContext = String(
+    structuredPrompt?.courseTitle || structuredPrompt?.courseName || courseContextInput || '',
+  ).trim();
   for (const [position, lesson] of lessons.entries()) {
     // The offset must be stable per LESSON, not per position in the batch:
     // enrichment often arrives one lesson at a time, so a batch index is always
