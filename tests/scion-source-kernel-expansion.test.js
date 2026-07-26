@@ -48,7 +48,7 @@ describe('Scion v0.16.47 source-kernel expansion', () => {
       // pre-Genetics count.
       // v0.16.80: +7 for the environmental-policy shard (OpenStax
       // Microeconomics 3e ch.12), admitted 7/7 through the foundry gate.
-      conceptCount: 320,
+      conceptCount: 325,
       references: {
         'omt:texture': expect.objectContaining({ sourceUrl: expect.stringContaining('openmusictheory') }),
         'uswds:step-indicator': expect.objectContaining({ sourceUrl: expect.stringContaining('step-indicator') }),

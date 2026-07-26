@@ -250,6 +250,14 @@ export function inferCourseDisciplines(courseMap) {
       'history',
       /\b(?:u\.?s\.?|american|united states|world|european|western|modern|global) history|\bhistory of\b|\bhistory\s+(?:course|survey|since|to)\b|\bcivilization\b|\bprimary sources?\b|\breconstruction era|\bradical reconstruction|\bgilded age|\bprogressive era|\bnew deal\b|\bgreat depression|\bworld war\b|\bcivil war\b|\bcold war\b|\bcivil rights movement|\b(?:american|french|industrial) revolution/,
     ],
+    // v0.16.80: world literature reads across traditions and languages, which
+    // the English-canon 'lit' shard does not cover (it hit 1/14 on a world-lit
+    // course). Matched BEFORE 'lit' so a comparative/global seminar reaches the
+    // tradition-level concepts rather than Austen and Dickens.
+    [
+      'worldlit',
+      /\bworld literature\b|\bcomparative literature\b|\bglobal (?:literature|fiction)\b|\bpostcolonial\b|\bmagical? realism\b|\bframe narrative\b|\bworld lit\b/,
+    ],
     ['lit', /\bliterat|literary|poetry|poem|novel|fiction|close reading|rhetoric|composition/],
     [
       'music',

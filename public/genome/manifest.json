@@ -1,7 +1,7 @@
 {
   "version": "2026-07-25",
   "generator": "curriculumos-foundry-v1",
-  "conceptCount": 312,
+  "conceptCount": 317,
   "shards": [
     {
       "id": "anatomy-intro",
@@ -162,6 +162,14 @@
       "path": "ux-intro.json",
       "conceptCount": 6,
       "hash": "97184a577a92ba3e"
+    },
+    {
+      "id": "worldlit-intro",
+      "discipline": "worldlit",
+      "level": "intro",
+      "path": "worldlit-intro.json",
+      "conceptCount": 5,
+      "hash": "0cc75bdbe484cee5"
     }
   ],
   "archetypeShard": {

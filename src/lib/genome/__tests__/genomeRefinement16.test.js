@@ -144,6 +144,11 @@ describe('iteration 16b — the alias-collision lint (foundry guardrail)', () =>
       // the policy kernel on one shared token. Kept visible rather than
       // renamed, because "pollution charge" is the source's own term.
       'physics/electric-charge<->envpolicy/pollution-charge',
+      // v0.16.80: bio's "Translation" (protein synthesis) is contained by
+      // "literary translation". A genuine homonym across disciplines; the bare
+      // alias was removed from the world-literature kernel so only the
+      // qualified surface remains, and biology keeps the unqualified word.
+      'bio/translation<->worldlit/literary-translation',
     ]);
     const unexpected = findAliasCollisions(kernels).filter((c) => !ALLOWED.has(`${c.of}<->${c.containedIn}`));
     expect(unexpected).toEqual([]);
