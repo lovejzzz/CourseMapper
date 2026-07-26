@@ -195,6 +195,16 @@ export function inferCourseDisciplines(courseMap) {
     .join(' ')
     .toLowerCase();
   const map = [
+    // v0.16.81: the business-ethics shard (OpenStax Business Ethics foundry
+    // run). Listed first because these lessons match "market" (econ) and
+    // "environmental responsibility" (envpolicy) while teaching neither. The
+    // pattern stays business-specific on purpose: utilitarianism, deontology,
+    // and virtue ethics are kernel aliases here but NOT discipline hints, so an
+    // intro-philosophy course still resolves against its own shard.
+    [
+      'bizethics',
+      /\bbusiness ethic|\bcorporate social responsib|\bstakeholder theor|\bwhistleblow|\bconflicts? of interest|\bcorporate governance|\bprofessional ethic|\bcode of conduct\b|\bworkplace rights\b|\bconsumer protection\b|\bmarketing ethics|\bcorporate ethics|\bfiduciary\b|\bemployment at will\b|\bbusiness conduct\b/,
+    ],
     // v0.16.80: the environmental-policy shard (OpenStax Microeconomics 3e
     // ch.12 foundry run). Listed BEFORE 'econ' because a policy course matches
     // "market" and would otherwise be pulled into the economics shard, which

@@ -310,10 +310,64 @@ export function lessonOffset(lesson, fallback = 0) {
   return parsed ? Number(parsed[1]) : fallback;
 }
 
+/**
+ * A capstone, review, or final-project lesson resolves to no concept because it
+ * HAS no single concept: it revisits the term's work. Detected only after
+ * concept resolution has already failed, so a substantive lesson that happens
+ * to say "review" is never diverted here.
+ */
+const INTEGRATIVE_LESSON =
+  /\b(capstone|integrativ|synthesis|synthesiz|culminating|final (?:project|paper|report|presentation|analysis)|portfolio|showcase|wrap[- ]?up|putting it (?:all )?together|review of)\b/i;
+
+export function isIntegrativeLesson(lesson) {
+  return INTEGRATIVE_LESSON.test(String(lesson?.title || lesson?.topic || lesson?.lessonId || ''));
+}
+
+/**
+ * Kernels for an integrative lesson: a spread across what the course actually
+ * taught, deduplicated, so the capstone spans the term instead of echoing the
+ * lesson that happened to run last.
+ */
+export function integrativeKernels(used, offset = 0, wanted = 5) {
+  const seen = new Set();
+  const unique = [];
+  for (const kernel of used || []) {
+    if (kernel?.id && !seen.has(kernel.id)) {
+      seen.add(kernel.id);
+      unique.push(kernel);
+    }
+  }
+  if (unique.length === 0) return [];
+  const step = Math.max(1, Math.floor(unique.length / wanted));
+  const picked = [];
+  for (let i = 0; picked.length < wanted && i < unique.length; i += step) {
+    picked.push(unique[(i + offset) % unique.length]);
+  }
+  for (const kernel of unique) {
+    if (picked.length >= wanted) break;
+    if (!picked.includes(kernel)) picked.push(kernel);
+  }
+  return picked;
+}
+
 /** Compose one lesson payload, or null when the genome cannot cover it. */
-export function composeLessonKernelFromGenome(lesson, index, { factCount = 5, claimed = new Set(), offset = 0 } = {}) {
+export function composeLessonKernelFromGenome(
+  lesson,
+  index,
+  { factCount = 5, claimed = new Set(), offset = 0, usedOut = null } = {},
+) {
   const kernels = kernelsForLesson(lesson, index, KEY_TERMS_REQUIRED, claimed);
   if (kernels.length === 0) return null;
+  return composeLessonFromKernels(lesson, kernels, { factCount, claimed, offset, usedOut });
+}
+
+/** Compose one lesson payload from an explicit kernel set. */
+export function composeLessonFromKernels(
+  lesson,
+  kernels,
+  { factCount = 5, claimed = new Set(), offset = 0, usedOut = null } = {},
+) {
+  if (!Array.isArray(kernels) || kernels.length === 0) return null;
   const facts = composeFacts(kernels, factCount, offset);
   if (facts.length !== factCount) return null;
   const keyTerms = [];
@@ -337,6 +391,7 @@ export function composeLessonKernelFromGenome(lesson, index, { factCount = 5, cl
   // Only claim what this lesson actually taught from, so a later lesson is
   // steered away from the same material rather than from unused neighbours.
   for (const kernel of kernels.slice(0, KEY_TERMS_REQUIRED)) if (kernel?.id) claimed.add(kernel.id);
+  if (usedOut) usedOut.push(...kernels.slice(0, KEY_TERMS_REQUIRED).filter(Boolean));
   return { lessonId: lesson.lessonId, facts, keyTerms, scenario, mc };
 }
 
@@ -349,28 +404,47 @@ export async function composeAlgiLessonKernels({ structuredPrompt, factCount = 5
   if (lessons.length === 0) return { text: '', covered: 0, requested: 0, uncovered: [] };
   const { index } = await loadGenomeIndex();
   if (!index) return { text: '', covered: 0, requested: lessons.length, uncovered: lessons.map((l) => l?.lessonId) };
-  const composed = [];
+  // Slotted by position so a deferred capstone lands in its own place rather
+  // than being appended after the lessons it is supposed to conclude.
+  const composed = new Array(lessons.length).fill(null);
   const uncovered = [];
   const claimed = new Set();
+  const used = [];
+  const deferred = [];
   for (const [position, lesson] of lessons.entries()) {
     // The offset must be stable per LESSON, not per position in the batch:
     // enrichment often arrives one lesson at a time, so a batch index is always
     // 0 and the rotation silently never happens. Lesson 3 must rotate like
     // lesson 3 whether it arrived alone or in a group of twelve.
+    const offset = lessonOffset(lesson, position);
     const payload = composeLessonKernelFromGenome(lesson, index, {
       factCount,
       claimed,
-      offset: lessonOffset(lesson, position),
+      offset,
+      usedOut: used,
     });
-    if (payload) composed.push(payload);
+    if (payload) composed[position] = payload;
+    // Integrative lessons wait for the whole course to be composed, because
+    // what they integrate is precisely the concepts the other lessons used.
+    else if (isIntegrativeLesson(lesson)) deferred.push({ lesson, position, offset });
     else uncovered.push(lesson?.lessonId || 'unknown');
   }
+  for (const { lesson, position, offset } of deferred) {
+    const payload = composeLessonFromKernels(lesson, integrativeKernels(used, offset), {
+      factCount,
+      claimed,
+      offset,
+    });
+    if (payload) composed[position] = payload;
+    else uncovered.push(lesson?.lessonId || 'unknown');
+  }
+  const lessonPayloads = composed.filter(Boolean);
   return {
     // Coverage is reported, never faked: a lesson the genome cannot teach is
     // named so the blocked package explains itself instead of looking like a
     // generic gate failure.
-    text: composed.length > 0 ? JSON.stringify({ lessons: composed }) : '',
-    covered: composed.length,
+    text: lessonPayloads.length > 0 ? JSON.stringify({ lessons: lessonPayloads }) : '',
+    covered: lessonPayloads.length,
     requested: lessons.length,
     uncovered,
   };

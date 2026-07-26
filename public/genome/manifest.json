@@ -1,7 +1,7 @@
 {
-  "version": "2026-07-25",
+  "version": "2026-07-26",
   "generator": "curriculumos-foundry-v1",
-  "conceptCount": 317,
+  "conceptCount": 334,
   "shards": [
     {
       "id": "anatomy-intro",
@@ -26,6 +26,14 @@
       "path": "bio-intro.json",
       "conceptCount": 23,
       "hash": "ac5070a50403c773"
+    },
+    {
+      "id": "bizethics-intro",
+      "discipline": "bizethics",
+      "level": "intro",
+      "path": "bizethics-intro.json",
+      "conceptCount": 17,
+      "hash": "6648bdb1cb0d4b2c"
     },
     {
       "id": "chem-intro",

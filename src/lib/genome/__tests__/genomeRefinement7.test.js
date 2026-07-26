@@ -73,6 +73,10 @@ describe('iteration 7 — genome spans deployed disciplines', () => {
         // v0.16.80: world literature (Wikipedia, CC BY-SA) — tradition-level
         // concepts the English-canon 'lit' shard does not carry.
         'worldlit',
+        // v0.16.81: business ethics (OpenStax Business Ethics, CC BY 4.0) —
+        // authored so Algi stops filling an uncovered course's teaching slots
+        // with publication boilerplate.
+        'bizethics',
         'stats',
         'bio',
         'chem',
