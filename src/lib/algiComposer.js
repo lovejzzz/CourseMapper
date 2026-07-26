@@ -210,9 +210,49 @@ export async function composeAlgiResponse({ task, userPrompt, structuredPrompt, 
   // Lesson kernels are retrieved from the genome, where the facts, key terms,
   // misconceptions, and question banks already carry source anchors.
   const { composeAlgiLessonKernels } = await import('./algiKernelComposer.js');
-  const result = await composeAlgiLessonKernels({ structuredPrompt, factCount: factCountFromSchema(schema) });
+  const result = await composeAlgiLessonKernels({
+    structuredPrompt,
+    factCount: factCountFromSchema(schema),
+    researchProvider: buildResearchProvider(),
+  });
   return {
     text: result.text,
-    coverage: { covered: result.covered, requested: result.requested, uncovered: result.uncovered },
+    coverage: {
+      covered: result.covered,
+      requested: result.requested,
+      uncovered: result.uncovered,
+      researched: result.researched || 0,
+      researchNote: result.researchNote || '',
+    },
   };
+}
+
+/** Set to 'off' to keep Algi entirely offline. */
+export const ALGI_RESEARCH_FLAG = 'coursemapper-algi-research';
+
+/**
+ * Wikipedia over the app's own fetch, throttled.
+ *
+ * Requests are spaced because an unspaced burst got the harness rate-limited
+ * into a non-JSON block page, which surfaced as fifteen unexplained parse
+ * errors. Politeness here is a correctness property, not just etiquette.
+ */
+export function buildResearchProvider({ storage = globalThis.localStorage, gapMs = 400 } = {}) {
+  try {
+    if (storage?.getItem?.(ALGI_RESEARCH_FLAG) === 'off') return null;
+  } catch {
+    // Storage unavailable (private mode, headless): research stays enabled.
+  }
+  if (typeof fetch !== 'function') return null;
+  let last = 0;
+  const httpJson = async (url) => {
+    const wait = last + gapMs - Date.now();
+    if (wait > 0) await new Promise((resolve) => setTimeout(resolve, wait));
+    last = Date.now();
+    const response = await fetch(url, { headers: { Accept: 'application/json' } });
+    if (!response.ok) throw new Error(`research-http-${response.status}`);
+    return response.json();
+  };
+  // Imported lazily by the composer; built here so the network surface has one owner.
+  return { httpJson };
 }

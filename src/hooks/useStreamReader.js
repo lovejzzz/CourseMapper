@@ -213,8 +213,10 @@ export default function useStreamReader() {
         detail: composeError
           ? `${task || 'request'} · ${composeError?.message || 'unknown error'}`
           : algiCoverage
-            ? `${task || 'request'} · ${algiCoverage.covered}/${algiCoverage.requested} lessons composed from the genome${
-                algiCoverage.uncovered?.length ? ` · genome does not cover ${algiCoverage.uncovered.join(', ')}` : ''
+            ? `${task || 'request'} · ${algiCoverage.covered}/${algiCoverage.requested} lessons composed${
+                algiCoverage.researched ? ` (${algiCoverage.researched} researched)` : ''
+              }${algiCoverage.researchNote ? ` · ${algiCoverage.researchNote}` : ''}${
+                algiCoverage.uncovered?.length ? ` · not covered: ${algiCoverage.uncovered.join(', ')}` : ''
               }`
             : fullText
               ? `${task || 'request'} · no model download, no inference`

@@ -13,7 +13,7 @@
 // enrichment-coverage gate keeps its meaning.
 import { resolveLessonConcepts } from './genome/conceptResolver.js';
 import { getKernelLibrary } from './genome/kernelLibrary.js';
-import { loadGenomeManifest, loadShardsIntoLibrary } from './genome/libraryShardLoader.js';
+import { inferCourseDisciplines, loadGenomeManifest, loadShardsIntoLibrary } from './genome/libraryShardLoader.js';
 
 // Contract word bounds (scionContracts.compactLessonKernelSchemaProfile).
 const FACT_WORDS = [8, 20];
@@ -21,8 +21,6 @@ const TERM_WORDS = [1, 4];
 const DEF_WORDS = [7, 45];
 const EG_WORDS = [5, 30];
 const MI_WORDS = [6, 32];
-const REJECT_WORDS = [3, 16];
-const REPLACE_WORDS = [5, 28];
 const SCENARIO_WORDS = [18, 70];
 const MOVE_WORDS = [4, 32];
 const MC_STEM_WORDS = [20, 45];
@@ -399,7 +397,46 @@ export function composeLessonFromKernels(
  * Compose the batch response for a blueprintEnrichment request. Returns '' when
  * no lesson could be covered, so the caller's existing fallback owns the work.
  */
-export async function composeAlgiLessonKernels({ structuredPrompt, factCount = 5 } = {}) {
+/**
+ * Supporting kernels from the lesson's own discipline.
+ *
+ * Research reliably returns one or two solid concepts per lesson, not three,
+ * because most search candidates are filtered out as entities or off-topic. A
+ * lesson still needs three key terms, so the shard supplies the rest: the
+ * lesson did not resolve to a ux concept, but neighbouring ux concepts are
+ * verified content and legitimate supporting terms — the same widening the
+ * genome path already performs, and no extra network.
+ */
+function disciplineKernels(index, discipline, wanted, claimed = new Set(), exclude = []) {
+  if (!index?.kernels || !discipline || wanted <= 0) return [];
+  const excludeIds = new Set(exclude.map((kernel) => kernel?.id).filter(Boolean));
+  const picked = [];
+  for (const pass of [(id) => !claimed.has(id), () => true]) {
+    for (const [id, kernel] of index.kernels) {
+      if (picked.length >= wanted) break;
+      if (kernel?.discipline !== discipline || excludeIds.has(id)) continue;
+      if (picked.some((existing) => existing.id === id)) continue;
+      if (!pass(id)) continue;
+      picked.push(kernel);
+    }
+    if (picked.length >= wanted) break;
+  }
+  return picked;
+}
+
+/** The text a lesson is actually about, used as the research query. */
+export function lessonTopic(lesson) {
+  return String(lesson?.title || lesson?.topic || lesson?.topicSection || '')
+    .replace(/^lesson\s+\d+\s*[:.–—-]\s*/i, '')
+    .trim();
+}
+
+export async function composeAlgiLessonKernels({
+  structuredPrompt,
+  factCount = 5,
+  researchProvider = null,
+  researchEmbed = null,
+} = {}) {
   const lessons = Array.isArray(structuredPrompt?.lessons) ? structuredPrompt.lessons : [];
   if (lessons.length === 0) return { text: '', covered: 0, requested: 0, uncovered: [] };
   const { index } = await loadGenomeIndex();
@@ -411,6 +448,11 @@ export async function composeAlgiLessonKernels({ structuredPrompt, factCount = 5
   const claimed = new Set();
   const used = [];
   const deferred = [];
+  const stillUncovered = [];
+  let researched = 0;
+  let composeFailures = 0;
+  let researchNote = '';
+  const courseContext = String(structuredPrompt?.courseTitle || structuredPrompt?.courseName || '').trim();
   for (const [position, lesson] of lessons.entries()) {
     // The offset must be stable per LESSON, not per position in the batch:
     // enrichment often arrives one lesson at a time, so a batch index is always
@@ -427,16 +469,81 @@ export async function composeAlgiLessonKernels({ structuredPrompt, factCount = 5
     // Integrative lessons wait for the whole course to be composed, because
     // what they integrate is precisely the concepts the other lessons used.
     else if (isIntegrativeLesson(lesson)) deferred.push({ lesson, position, offset });
-    else uncovered.push(lesson?.lessonId || 'unknown');
+    else stillUncovered.push({ lesson, position, offset });
   }
   for (const { lesson, position, offset } of deferred) {
-    const payload = composeLessonFromKernels(lesson, integrativeKernels(used, offset), {
-      factCount,
-      claimed,
-      offset,
-    });
+    // Enrichment often arrives one lesson per call, so a capstone frequently has
+    // no course history to integrate. Falling back to its own discipline keeps it
+    // composing from verified concepts the course genuinely covers.
+    let integrative = integrativeKernels(used, offset);
+    if (integrative.length < KEY_TERMS_REQUIRED) {
+      const discipline =
+        inferCourseDisciplines({ courseName: courseContext, lessons: [{ title: lessonTopic(lesson) }] })[0] || null;
+      integrative = [
+        ...integrative,
+        ...disciplineKernels(index, discipline, KEY_TERMS_REQUIRED + 1 - integrative.length, new Set(), integrative),
+      ];
+    }
+    const payload = composeLessonFromKernels(lesson, integrative, { factCount, claimed, offset });
     if (payload) composed[position] = payload;
-    else uncovered.push(lesson?.lessonId || 'unknown');
+    else stillUncovered.push({ lesson, position, offset });
+  }
+
+  // LAST RESORT: research what the genome does not hold.
+  //
+  // A shard can only teach what someone authored into it, which is why
+  // hand-authored coverage measured 92-100% on the courses it was written for
+  // and 6.7% on the same disciplines worded by a different instructor. Research
+  // turns the lesson title into a query instead of a lookup key. It runs only
+  // here — after the genome and the integrative pass have both declined —
+  // because it is the slow path and the network is the one dependency Algi
+  // otherwise does not have.
+  if (stillUncovered.length > 0 && researchProvider) {
+    try {
+      const { researchLessonKernels, buildWikipediaProvider } = await import('./knowledge/algiResearch.js');
+      // Callers pass either a full provider (tests) or just the HTTP caller.
+      const provider =
+        typeof researchProvider.search === 'function'
+          ? researchProvider
+          : buildWikipediaProvider(researchProvider.httpJson);
+      let attempted = 0;
+      for (const { lesson, position, offset } of stillUncovered) {
+        const topic = lessonTopic(lesson);
+        if (!topic) continue;
+        attempted += 1;
+        const kernels = await researchLessonKernels(topic, {
+          provider,
+          embed: researchEmbed,
+          courseContext,
+          want: KEY_TERMS_REQUIRED + 1,
+        });
+        if (kernels.length === 0) continue;
+        // Top up from the shard so the lesson can reach three key terms and,
+        // because genome kernels carry question banks, its assessment items.
+        const discipline =
+          inferCourseDisciplines({ courseName: courseContext, lessons: [{ title: topic }] })[0] || null;
+        const support = disciplineKernels(index, discipline, KEY_TERMS_REQUIRED + 1 - kernels.length, claimed, kernels);
+        const payload = composeLessonFromKernels(lesson, [...kernels, ...support], { factCount, claimed, offset });
+        if (payload) {
+          composed[position] = payload;
+          researched += 1;
+        } else {
+          composeFailures += 1;
+        }
+      }
+      researchNote = `researched ${researched}/${attempted}`;
+      if (composeFailures > 0) researchNote += `, ${composeFailures} admitted but uncomposable`;
+    } catch (error) {
+      // Research is best-effort: a network failure must leave the lesson
+      // honestly uncovered, never half-composed. But it must never be SILENT —
+      // a swallowed error is indistinguishable from "the network had nothing",
+      // which is exactly the confusion that made the first wired run opaque.
+      researchNote = `research failed: ${error?.message || 'unknown'}`;
+    }
+  }
+
+  for (const { lesson, position } of stillUncovered) {
+    if (!composed[position]) uncovered.push(lesson?.lessonId || 'unknown');
   }
   const lessonPayloads = composed.filter(Boolean);
   return {
@@ -447,5 +554,7 @@ export async function composeAlgiLessonKernels({ structuredPrompt, factCount = 5
     covered: lessonPayloads.length,
     requested: lessons.length,
     uncovered,
+    researched,
+    researchNote,
   };
 }

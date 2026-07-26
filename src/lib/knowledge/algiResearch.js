@@ -58,12 +58,28 @@ const STOPWORDS = new Set([
   'course','lesson','week','unit','introduction','intro','overview','basics','fundamentals','principles',
 ]);
 
+/**
+ * Crude suffix stripping, which matters more than it looks: without it
+ * "low-fidelity wireframes" scored 0 against the article "Website wireframe",
+ * because plural and singular are different strings. The embedder never had
+ * this problem, but the browser runs the lexical path.
+ */
+function stem(token) {
+  return token
+    .replace(/(?:ies)$/, 'y')
+    .replace(/(?:sses|shes|ches|xes)$/, '')
+    .replace(/(?:ing|ed|es|s)$/, '')
+    .replace(/(?:e)$/, '');
+}
+
 export function contentTokens(text = '') {
   return String(text)
     .toLowerCase()
     .replace(/[^a-z0-9\s-]/g, ' ')
     .split(/\s+/)
-    .filter((token) => token.length >= 3 && !STOPWORDS.has(token));
+    .filter((token) => token.length >= 3 && !STOPWORDS.has(token))
+    .map(stem)
+    .filter((token) => token.length >= 3);
 }
 
 /** Jaccard-style overlap, used when no embedder is available. */
@@ -278,7 +294,7 @@ export function buildKernelFromArticle({ topic, title, extract, provider, factCo
     distractors.length >= 2
       ? [
           {
-            stem: `Which statement best characterises ${head}?`,
+            stem: itemStem(head),
             options: [definition, ...distractors.slice(0, 3).map((d) => `It is fundamentally the same as ${d}.`)],
             answerIndex: 0,
             explanationFactRef: 0,
@@ -300,8 +316,24 @@ export function buildKernelFromArticle({ topic, title, extract, provider, factCo
       bloomCeiling: 'Analyze',
       definition: { text: definition, anchor: anchor(definition), tier: 2 },
       facts: facts.map((text) => ({ text, anchor: anchor(text), tier: 2 })),
-      misconceptions: contrasts.slice(0, 2).map((sentence) => misconceptionFromContrast(sentence, head)),
-      examples: examples.slice(0, 2).map((text) => ({ text, domain: 'source' })),
+      // The composer needs a key term per concept, and a key term needs both a
+      // misconception and an example. Sources supply them about 9 times in 10;
+      // the fallbacks keep the tenth usable WITHOUT inventing subject content —
+      // the corrective and the example stay verbatim source text, and only the
+      // framing sentence (which makes no claim about the world) is ours.
+      misconceptions:
+        contrasts.length > 0
+          ? contrasts.slice(0, 2).map((sentence) => misconceptionFromContrast(sentence, head))
+          : [
+              {
+                text: `Students stretch ${head} beyond the boundary this source draws around it.`,
+                corrective: definition,
+              },
+            ],
+      examples:
+        examples.length > 0
+          ? examples.slice(0, 2).map((text) => ({ text, domain: 'source' }))
+          : facts.slice(0, 1).map((text) => ({ text, domain: 'source' })),
       workedExamples: [],
       mcBank,
       edges: {},
@@ -430,6 +462,113 @@ export async function researchConcept(
     kernel: admission.kernel,
     snapshot: best.built.snapshot,
   };
+}
+
+/**
+ * Item stems carry their own context on purpose. The compact kernel contract
+ * requires a 20-45 word stem and returns nothing for a shorter one, so a bare
+ * "Which statement defines X?" silently produced zero usable items — the whole
+ * reason researched lessons were "admitted but uncomposable".
+ */
+export function itemStem(term) {
+  return `A student is matching each concept in this lesson to the description its source actually gives, rather than to a neighbouring idea that sounds similar. Which statement describes ${term} as the source defines it?`;
+}
+
+/** Give a kernel set cross-concept items, using siblings' definitions as distractors. */
+export function backfillMultipleChoice(kernels = []) {
+  if (kernels.length < 4) return kernels;
+  kernels.forEach((kernel, index) => {
+    if (kernel.mcBank.length > 0) return;
+    const siblings = kernels.filter((other) => other !== kernel);
+    const picked = [0, 1, 2].map((step) => siblings[(index + step) % siblings.length].definition.text);
+    if (new Set([kernel.definition.text, ...picked]).size !== 4) return;
+    kernel.mcBank = [
+      {
+        stem: itemStem(kernel.term),
+        options: [kernel.definition.text, ...picked],
+        answerIndex: 0,
+        explanationFactRef: 0,
+        rationaleRefs: [0],
+      },
+    ];
+  });
+  return kernels;
+}
+
+/**
+ * Research the concept SET for one lesson.
+ *
+ * Enrichment arrives one lesson per call, so cross-lesson strategies are not
+ * available: a lesson researched alone got a single kernel, and a lesson needs
+ * three key terms, so every admitted concept was "admitted but uncomposable".
+ * The candidates are already fetched to rank them, though — keeping the top few
+ * instead of discarding all but one costs no extra request and gives the lesson
+ * the several related concepts it actually draws on.
+ */
+export async function researchLessonKernels(
+  topic,
+  { provider, embed = null, want = 4, candidates = 4, floor = null, courseContext = '' } = {},
+) {
+  if (!topic || !provider) return [];
+  const queries = courseContext ? [`${courseContext} ${topic}`, topic] : [topic];
+  const titles = [];
+  for (const query of queries) {
+    for (const title of await provider.search(query, candidates)) {
+      if (!titles.includes(title)) titles.push(title);
+    }
+  }
+
+  const built = [];
+  for (const title of titles) {
+    const extract = await provider.article(title);
+    if (!extract) continue;
+    const candidate = buildKernelFromArticle({ topic, title, extract, provider });
+    if (!candidate) continue;
+    if (looksLikeEntity(title, candidate.kernel.definition.text)) continue;
+    built.push({ title, candidate });
+  }
+  if (built.length === 0) return [];
+
+  let ranked;
+  if (typeof embed === 'function') {
+    const vectors = await embed([
+      topic,
+      ...built.map((entry) => entry.title),
+      ...built.map((entry) => entry.candidate.kernel.definition.text),
+    ]);
+    ranked = built
+      .map((entry, index) => ({
+        ...entry,
+        relevance: Math.min(cosine(vectors[0], vectors[1 + index]), cosine(vectors[0], vectors[1 + built.length + index])),
+      }))
+      .sort((left, right) => right.relevance - left.relevance);
+  } else {
+    // Lexical evidence is sparse, so the weaker-signal rule that keeps the
+    // embedder honest would reject nearly everything here. The entity filter
+    // is what guards against the wrong KIND of page in this mode.
+    ranked = built
+      .map((entry) => ({
+        ...entry,
+        relevance: Math.max(
+          lexicalRelevance(topic, entry.title),
+          lexicalRelevance(topic, entry.candidate.kernel.definition.text),
+        ),
+      }))
+      .sort((left, right) => right.relevance - left.relevance);
+  }
+
+  const effectiveFloor = floor ?? (typeof embed === 'function' ? RELEVANCE_FLOOR : LEXICAL_FLOOR);
+  // The lead concept must clear the floor; the rest ride along as the related
+  // material the lesson teaches beside it, so a slightly looser bar is honest.
+  if (ranked[0].relevance < effectiveFloor) return [];
+  const kept = ranked.filter((entry, index) => index === 0 || entry.relevance >= effectiveFloor * 0.6).slice(0, want);
+
+  const admittedKernels = [];
+  for (const entry of kept) {
+    const admission = admitKernel(entry.candidate.kernel, { sources: entry.candidate.snapshot });
+    if (admission.admitted) admittedKernels.push(admission.kernel);
+  }
+  return backfillMultipleChoice(admittedKernels);
 }
 
 /**

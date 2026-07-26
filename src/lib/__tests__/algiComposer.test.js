@@ -148,6 +148,7 @@ describe('Algi V0 request routing', () => {
     const composed = await composeAlgiResponse({ task: 'blueprintEnrichment', structuredPrompt: null });
     expect(composed.text).toBe('');
     // Coverage is reported even when it is zero, so a blocked package explains itself.
-    expect(composed.coverage).toEqual({ covered: 0, requested: 0, uncovered: [] });
+    // researched counts lessons the genome could not hold and the network did.
+    expect(composed.coverage).toEqual({ covered: 0, requested: 0, uncovered: [], researched: 0, researchNote: '' });
   });
 });
