@@ -1484,10 +1484,10 @@ function getCourseMapFallbackValue(key, courseMap, lesson, section, lessonIndex)
                         'Opening question, structured practice, and a closing artifact review.',
                       ]),
                       supportingResources: pick([
-                        `${topic} reading or evidence excerpt with an activity prompt.`,
-                        `Reading on ${topic}, with a worked model or practice handout.`,
-                        `${topic} worked example and response guide for student reference.`,
-                        `${topic} activity directions, reference note, and feedback guide.`,
+                        `Source packet for ${topic}: annotated excerpt plus activity prompt.`,
+                        `Practice guide for ${topic}: reading, worked model, and response handout.`,
+                        `Worked example for ${topic} with a student response guide.`,
+                        `Activity guide for ${topic} with reference notes and feedback cues.`,
                       ]),
                       evaluateDesign: pick([
                         `Check that the ${topic} resource, activity, and assessment all ask for one visible product.`,

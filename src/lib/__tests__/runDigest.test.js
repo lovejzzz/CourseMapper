@@ -62,6 +62,21 @@ describe('runDigest', () => {
     expect(text).toContain('pipeline calls: 1');
   });
 
+  it('identifies Algi even though its deterministic run has no usage-ledger rows', () => {
+    const digest = buildRunDigest({
+      budget: createApiCallBudget({ runId: 'run-algi' }),
+      generation: { provider: 'public', modelId: 'algi-v0', lessonCount: 6, featureIds: ['syllabus'] },
+    });
+
+    expect(digest.run).toMatchObject({
+      provider: 'public',
+      models: ['algi-v0'],
+      providerCalls: 0,
+      lessonCount: 6,
+    });
+    expect(formatRunDigest(digest)).toContain('model: public/algi-v0');
+  });
+
   // v0.16.1 regression: a READY run with a readiness warning must report the
   // real warning count in the digest. The Linear Algebra run zeroed warnings
   // on ready (UI calm pass) so the digest claimed "0 warnings" while its own

@@ -5,7 +5,11 @@ import { getLocalEndpoint, localModelOption } from '../lib/localProvider';
 import { failureEventFields, toClassifiedError } from '../lib/failureClassification';
 import { GOOGLE_ENDPOINT_FAMILIES, isVertexKey } from '../lib/googleProvider';
 import { buildProviderTextRequest } from '../lib/modelRequestBuilders';
-import { PUBLIC_SCION_PROVIDER_ID, publicScionModelOption } from '../lib/publicScionIdentity';
+import {
+  PUBLIC_SCION_PROVIDER_ID,
+  publicScionModelOption,
+  publicScionProviderModelOptions,
+} from '../lib/publicScionIdentity';
 import { isAlgiModel } from '../lib/algiIdentity';
 import {
   buildApiUsageEvent,
@@ -195,10 +199,17 @@ export default function useStreamReader() {
       let composeError = null;
       try {
         const { composeAlgiResponse } = await import('../lib/algiComposer');
-        const composed = await composeAlgiResponse({ task, userPrompt, structuredPrompt, schema });
+        const composed = await composeAlgiResponse({
+          task,
+          userPrompt,
+          structuredPrompt,
+          schema,
+          signal: externalSignal,
+        });
         fullText = composed?.text || '';
         algiCoverage = composed?.coverage || null;
       } catch (error) {
+        if (error?.name === 'AbortError' || externalSignal?.aborted) throw error;
         // A composition failure must never masquerade as a model that chose to
         // say nothing: record it, then let the compiler's fallback own the work.
         composeError = error;
@@ -1246,7 +1257,7 @@ export async function fetchModelsFromProvider(provider, apiKey, options = {}) {
     if (typeof onApiCallEvent === 'function') {
       onApiCallEvent({ type: 'modelDiscoveryCall', label: 'Resolve Scion local model', detail: 'browser-local' });
     }
-    return [publicScionModelOption()];
+    return publicScionProviderModelOptions();
   }
 
   if (provider === 'deepseek') {

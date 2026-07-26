@@ -11,6 +11,7 @@ const COUNT_WORD =
 const LABELED_SEQUENCE_HEADER_RE = new RegExp(
   `\\b(?:` +
     `lessons?\\s+(?:cover|include)|` +
+    `(?:build|create|generate|make)\\s+(?:exactly\\s+)?(?:${COUNT_WORD}\\s+)?(?:distinct\\s+)?(?:weekly\\s+)?(?:lessons?|sessions?|modules?)|` +
     `(?:with|use|cover|include)\\s+(?:(?:these|the)\\s+)?(?:${COUNT_WORD}\\s+)?(?:distinct\\s+)?(?:weekly\\s+)?(?:lessons?|focus(?:es)?|topics?|modules?)|` +
     `(?:distinct\\s+)?(?:weekly\\s+)?(?:lessons?|focus(?:es)?|topics?|modules?)` +
     `)\\s*:\\s*`,
@@ -22,16 +23,33 @@ function cleanSequenceItem(value) {
     String(value || '')
       .replace(/^and\s+/i, '')
       .replace(/^(?:an?|the)\s+/i, '')
-      .replace(/^\s*(?:(?:lesson|week|module)\s*)?\d{1,2}\s*[:.)\-–—]\s*/i, '')
+      .replace(/^\s*(?:(?:lesson|week|session|module)\s*)?\d{1,2}\s*[:.)\-–—]\s*/i, '')
       .replace(/[.;:,]+$/g, ''),
     160,
   );
 }
 
+function inlineNumberedSequenceItems(block = '') {
+  const text = String(block || '');
+  const markerPattern = /(?:^|,\s*|\s+and\s+)(?:(?:lesson|week|session|module)\s*)?(\d{1,2})\s*[:.)\-–—]\s*/gi;
+  const markers = [...text.matchAll(markerPattern)];
+  if (markers.length < 2) return [];
+  const ordinals = markers.map((marker) => Number(marker[1]));
+  if (!ordinals.every((ordinal, index) => ordinal === index + 1)) return [];
+  return markers
+    .map((marker, index) => {
+      const start = Number(marker.index) + marker[0].length;
+      const end = index + 1 < markers.length ? Number(markers[index + 1].index) : text.length;
+      return cleanSequenceItem(text.slice(start, end));
+    })
+    .filter(Boolean);
+}
+
 /**
  * Extract a user-authored, ordered one-topic-per-lesson contract. Admission is
- * deliberately narrow: a labelled header plus semicolon-delimited items, or
- * at least two numbered lines. Ordinary prose lists never become a schedule.
+ * deliberately narrow: a labelled header plus semicolon-delimited or inline
+ * numbered items, or at least two numbered lines. Ordinary prose lists never
+ * become a schedule.
  */
 export function extractExplicitLessonSequence(source = '', { expectedCount = null } = {}) {
   const text = String(source || '');
@@ -48,11 +66,15 @@ export function extractExplicitLessonSequence(source = '', { expectedCount = nul
         return items.slice(0, 52);
       }
     }
+    const inlineNumbered = inlineNumberedSequenceItems(listBlock);
+    if (inlineNumbered.length >= 2 && (!Number.isInteger(expectedCount) || inlineNumbered.length === expectedCount)) {
+      return inlineNumbered.slice(0, 52);
+    }
   }
 
   const numbered = text
     .split('\n')
-    .map((line) => line.match(/^\s*(?:(?:lesson|week|module)\s*)?\d{1,2}\s*[:.)\-–—]\s*(.+)$/i)?.[1])
+    .map((line) => line.match(/^\s*(?:(?:lesson|week|session|module)\s*)?\d{1,2}\s*[:.)\-–—]\s*(.+)$/i)?.[1])
     .map(cleanSequenceItem)
     .filter(Boolean);
   if (numbered.length < 2 || (Number.isInteger(expectedCount) && numbered.length !== expectedCount)) return [];

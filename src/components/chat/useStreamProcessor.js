@@ -30,6 +30,7 @@ import {
 import { resolveLabel } from './constants';
 import { runScionLocalCompletion } from '../../lib/scionLocalProvider';
 import { getLocalEndpoint } from '../../lib/localProvider';
+import { isAlgiModel } from '../../lib/algiIdentity';
 // webllm is dynamically imported only by legacy compatibility paths.
 
 // ── System prompt for Help / Tutor mode (extracted from FaqChatbot) ─────────
@@ -174,6 +175,23 @@ export async function streamChat(messages, systemPrompt, signal, apiKey, provide
   // chat UI already consumes, so no prompt or response leaves the device.
   if (provider === 'public') {
     const encoder = new TextEncoder();
+    if (isAlgiModel(modelId)) {
+      const { composeAlgiAdvisoryResponse } = await import('../../lib/algiComposer');
+      const fullText = composeAlgiAdvisoryResponse({ messages, systemPrompt });
+      const stream = new ReadableStream({
+        start(controller) {
+          controller.enqueue(
+            encoder.encode(`data: ${JSON.stringify({ choices: [{ delta: { content: fullText } }] })}\n\n`),
+          );
+          controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+          controller.close();
+        },
+      });
+      return {
+        reader: stream.getReader(),
+        parseChunk: (parsed) => parsed.choices?.[0]?.delta?.content || null,
+      };
+    }
     const conversation = messages
       .slice(-8)
       .map((message) => `${message.role === 'assistant' ? 'Assistant' : 'User'}: ${message.content}`)
@@ -394,6 +412,12 @@ export async function fetchAgentResponseNative(
   // text-only branch renders the answer without pretending workspace edits
   // occurred.
   if (provider === 'public') {
+    if (isAlgiModel(modelId)) {
+      const { composeAlgiAdvisoryResponse } = await import('../../lib/algiComposer');
+      const textContent = composeAlgiAdvisoryResponse({ messages: loopMessages, systemPrompt });
+      onThinkingText?.(textContent);
+      return { toolCalls: null, textContent, stopReason: 'stop' };
+    }
     const workspaceContext =
       systemPrompt && typeof systemPrompt === 'object'
         ? String(systemPrompt.dynamicPart || '')

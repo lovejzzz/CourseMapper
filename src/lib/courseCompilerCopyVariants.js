@@ -138,6 +138,20 @@ function compactRepeatedLessonFocus(value, fullFocus, state) {
       const after = source.slice(offset + match.length, offset + match.length + 28);
       const topic = state.topicKeyword || 'lesson';
       const determinerAlreadyPresent = /\b(?:a|an|the|this|that)\s*$/i.test(before);
+      // Compiler-owned assessment identities use a label + topic form
+      // ("Evidence explanation: Qubits and quantum states"). Appending the
+      // generic local-reference suffix after that colon produced awkward
+      // identities such as "Evidence explanation: the quantum states focus".
+      // Keep the compact topic as a title complement instead.
+      if (
+        /\b(?:application analysis|comparison brief|course synthesis|evidence explanation|worked example)\s*:\s*$/i.test(
+          before,
+        ) ||
+        /\b(?:activity guide|practice guide|source packet|worked example)\s+for\s*$/i.test(before)
+      ) {
+        return topic;
+      }
+      if (/^\s+focus\b/i.test(after)) return `${determinerAlreadyPresent ? '' : 'the '}${topic}`;
       if (/^\s+course materials\b/i.test(after)) return `${topic} lesson's`;
       if (/^\s+(?:materials?|notes?|resources?|readings?|packet)\b/i.test(after)) return topic;
       if (
@@ -190,10 +204,29 @@ export function compactRepeatedCourseFocusReferences(value, fullFocus, { limit =
   const preservesFullFocus =
     threeSurfaceCandidate && new RegExp(escapeRegexLiteral(focus), 'i').test(`the ${threeSurfaceCandidate} focus`);
   const topicSurfaces = preservesFullFocus ? firstThreeTopicSurfaces.slice(0, 2) : firstThreeTopicSurfaces;
-  const topicKeyword =
+  let topicKeyword =
     topicSurfaces
       .map((surface) => originalWords.find((word) => word.toLowerCase() === surface.toLowerCase()) || surface)
       .join(' ') || 'lesson';
+  // If a short compound title survives compactCourseCopyFocus unchanged, the
+  // stop-word removal above used to turn "Qubits and quantum states" into the
+  // ungrammatical "Qubits quantum states". Keep the more specific side of the
+  // conjunction as the local reference instead.
+  if (
+    /\s+and\s+/i.test(focus) &&
+    !/^(?:a|an|the)\b/i.test(focus) &&
+    compactCourseCopyFocus(focus).toLowerCase() === focus.toLowerCase()
+  ) {
+    const sides = focus
+      .split(/\s+and\s+/i)
+      .map((side) => ({
+        text: cleanText(side),
+        words: courseCopySurfaceWords(side),
+      }))
+      .filter((side) => side.words.length > 0)
+      .sort((left, right) => right.words.length - left.words.length);
+    if (sides[0]?.text) topicKeyword = sides[0].text;
+  }
   return compactRepeatedLessonFocus(value, focus, {
     count: 0,
     limit: Math.max(0, Number.isFinite(Number(limit)) ? Number(limit) : 6),
@@ -400,7 +433,7 @@ export function studyGuideArtifactConnection({ lessonNumber, lessonTitle, studyA
   return selectVariant(lessonNumber, [
     `Use ${studyArtifact} to show what ${lessonTitle} changed in your evidence choice.`,
     `${studyArtifact} should carry the strongest insight from ${lessonTitle} into assessed work.`,
-    `Before drafting ${studyArtifact}, identify the ${lessonTitle} idea that the evidence supports.`,
+    `Before completing ${studyArtifact}, identify the ${lessonTitle} idea that the evidence supports.`,
     `Let ${lessonTitle} shape one visible decision in ${studyArtifact}.`,
     `The assessment transfer from ${lessonTitle} becomes visible in ${studyArtifact}.`,
     `Apply the defensible ${lessonTitle} claim when revising ${studyArtifact}.`,

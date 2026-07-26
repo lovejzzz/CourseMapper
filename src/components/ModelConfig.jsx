@@ -21,6 +21,7 @@ import {
 } from '../lib/enrichmentPreference';
 import { PUBLIC_SCION_MODEL_NAME, PUBLIC_SCION_PROVIDER_ID } from '../lib/publicScionIdentity';
 import { ALGI_MODEL_NAME, isAlgiModel } from '../lib/algiIdentity';
+import { readAlgiResearchEnabled, saveAlgiResearchEnabled } from '../lib/algiResearchPolicy';
 import { isLocalProviderOptInEnabled } from '../lib/localProvider';
 import useScionRuntimeStatus from '../hooks/useScionRuntimeStatus';
 import { SCION_BROWSER_GEMMA4_DOWNLOAD_LABEL } from '../lib/scionBrowserConstants';
@@ -240,9 +241,13 @@ export default function ModelConfig({ reserveTrailingActionSpace = false }) {
   const [localProbeAttempt, setLocalProbeAttempt] = useState(0);
   // v0.12.1: user-facing subject-matter enrichment control (auto/on/off).
   const [enrichmentPref, setEnrichmentPref] = useState(readEnrichmentPreference);
+  const [algiResearchEnabled, setAlgiResearchEnabled] = useState(readAlgiResearchEnabled);
   const handleEnrichmentPref = (mode) => {
     setEnrichmentPref(mode);
     saveEnrichmentPreference(mode);
+  };
+  const handleAlgiResearchMode = (enabled) => {
+    setAlgiResearchEnabled(saveAlgiResearchEnabled(enabled));
   };
   const triggerLocalServerCheck = useCallback(() => {
     setValidationMessage('');
@@ -994,10 +999,42 @@ export default function ModelConfig({ reserveTrailingActionSpace = false }) {
                 the same compiler, checks, and exports as Scion.
               </p>
               <p className="mt-1.5 text-slate-600 dark:text-slate-300">
-                No model download and no inference — generation starts immediately and nothing leaves this device. It
-                transcribes and organizes what your source already says; it does not write new subject knowledge, so a
-                source with a clear lesson or week structure gives the best result.
+                No model download and no inference. In private mode, your source and course topics stay on this device.
+                Algi composes only knowledge supported by your source or EduTool&apos;s source-anchored teaching genome.
               </p>
+              <div
+                className="mt-3 flex flex-col gap-2 rounded-squircle-xs border border-indigo-200/70 bg-white/65 p-2.5 dark:border-indigo-300/20 dark:bg-slate-950/30"
+                data-testid="algi-research-mode"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="font-semibold text-slate-800 dark:text-slate-100">
+                      {algiResearchEnabled ? 'Source research on' : 'Private source mode'}
+                    </p>
+                    <p className="mt-0.5 text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
+                      {algiResearchEnabled
+                        ? 'Wikipedia may receive the course title and uncovered lesson topics. Returned passages keep their source link, attribution, and CC BY-SA license.'
+                        : 'No research requests are sent. If the source and shipped genome cannot support a lesson, Algi reports the gap instead of inventing content.'}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={algiResearchEnabled}
+                    aria-label="Allow Algi source research"
+                    onClick={() => handleAlgiResearchMode(!algiResearchEnabled)}
+                    className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
+                      algiResearchEnabled ? 'bg-indigo-600' : 'bg-slate-300 dark:bg-slate-600'
+                    }`}
+                  >
+                    <span
+                      className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${
+                        algiResearchEnabled ? 'translate-x-5' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+              </div>
             </>
           ) : (
             <>

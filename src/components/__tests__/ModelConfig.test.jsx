@@ -231,10 +231,12 @@ describe('checkCredits', () => {
     });
 
     let latestModelId = '';
+    let latestModelName = '';
     let latestModelIds = [];
     function StateProbe() {
-      const { modelId, availableModels } = useAIConfig();
+      const { modelId, modelName, availableModels } = useAIConfig();
       latestModelId = modelId;
+      latestModelName = modelName;
       latestModelIds = availableModels.map((model) => model.id);
       return null;
     }
@@ -331,6 +333,60 @@ describe('checkCredits', () => {
     });
     expect(latestApiStatus).toBe('connected');
     expect(fetchMock).not.toHaveBeenCalled();
+
+    act(() => {
+      root.unmount();
+    });
+    container.remove();
+  });
+
+  it('keeps Algi selected after public model discovery and exposes an explicit research boundary', async () => {
+    vi.useFakeTimers();
+    localStorage.setItem('coursemapper-provider', 'public');
+    localStorage.setItem('coursemapper-modelid', 'algi-v0');
+    localStorage.setItem('coursemapper-modelname', 'Algi V0');
+
+    let latestModelId = '';
+    let latestModelName = '';
+    let latestModelIds = [];
+    function StateProbe() {
+      const { modelId, modelName, availableModels } = useAIConfig();
+      latestModelId = modelId;
+      latestModelName = modelName;
+      latestModelIds = availableModels.map((model) => model.id);
+      return null;
+    }
+
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    const root = createRoot(container);
+    await act(async () => {
+      root.render(
+        <AIConfigProvider>
+          <StateProbe />
+          <ModelConfig />
+        </AIConfigProvider>,
+      );
+    });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(900);
+      await Promise.resolve();
+    });
+
+    expect(latestModelId).toBe('algi-v0');
+    expect(latestModelName).toBe('Algi V0');
+    expect(latestModelIds).toEqual(['scion-public', 'algi-v0']);
+    expect(container.textContent).toContain('Private source mode');
+    expect(container.textContent).toContain('No research requests are sent');
+
+    const researchSwitch = container.querySelector('[aria-label="Allow Algi source research"]');
+    expect(researchSwitch).not.toBeNull();
+    await act(async () => {
+      researchSwitch.click();
+    });
+    expect(researchSwitch.getAttribute('aria-checked')).toBe('true');
+    expect(localStorage.getItem('coursemapper-algi-research')).toBe('on');
+    expect(container.textContent).toContain('Wikipedia may receive the course title');
 
     act(() => {
       root.unmount();

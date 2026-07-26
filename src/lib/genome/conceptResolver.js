@@ -67,6 +67,26 @@ function cleanText(value) {
     .trim();
 }
 
+// Keep retrieval vocabulary outside the immutable source kernels. These
+// narrowly scoped teaching phrases are common course-map labels, but adding
+// them to a historical kernel would rewrite the source packet and invalidate
+// every prompt/evidence receipt built from that packet.
+const RESOLVER_PHRASE_EXPANSIONS = [
+  [/\buser research\b/gi, 'research planning'],
+  [/\binterview research\b/gi, 'research planning'],
+  [/\binteraction flows?\b/gi, 'task flow analysis'],
+  [/\biterative prototyping\b/gi, 'interactive prototyping'],
+];
+
+function expandResolverVocabulary(value) {
+  const text = cleanText(value);
+  const expansions = RESOLVER_PHRASE_EXPANSIONS.filter(([pattern]) => {
+    pattern.lastIndex = 0;
+    return pattern.test(text);
+  }).map(([, expansion]) => expansion);
+  return [text, ...expansions].filter(Boolean).join(' ');
+}
+
 function tokens(text) {
   return cleanText(text)
     .toLowerCase()
@@ -103,9 +123,11 @@ function lessonVocabularyText(lesson) {
     .map((entry) => entry?.topicSection)
     .filter(Boolean)
     .join(' ');
-  return [cleanText(lesson?.title).replace(/^lesson\s*\d+\s*[:.\-–—]\s*/i, ''), topics, section.learningObjectives]
-    .filter(Boolean)
-    .join(' ');
+  return expandResolverVocabulary(
+    [cleanText(lesson?.title).replace(/^lesson\s*\d+\s*[:.\-–—]\s*/i, ''), topics, section.learningObjectives]
+      .filter(Boolean)
+      .join(' '),
+  );
 }
 
 function lessonVocabulary(lesson) {

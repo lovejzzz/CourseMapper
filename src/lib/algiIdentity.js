@@ -23,6 +23,21 @@ export function isAlgiModel(modelId) {
   return String(modelId || '') === ALGI_MODEL_ID;
 }
 
+/**
+ * Algi has no sampling runtime, so sending compiled prose back through its
+ * provider route cannot produce a voice rewrite. Keep that zero-model promise
+ * explicit instead of recording a fake call, fallback, or estimated cost.
+ */
+export function supportsModelVoicePass(modelId) {
+  return !isAlgiModel(modelId);
+}
+
+/** Algi composes one course-wide enrichment batch; sampled models keep their own limit. */
+export function resolveAlgiEnrichmentBatchSize(provider, modelId, lessonCount, fallback = 1) {
+  if (provider !== ALGI_PROVIDER_ID || !isAlgiModel(modelId)) return Math.max(1, Number(fallback) || 1);
+  return Math.max(1, Number(lessonCount) || 1);
+}
+
 export function algiModelOption() {
   return {
     id: ALGI_MODEL_ID,

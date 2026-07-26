@@ -20,8 +20,8 @@ const budgets = {
 // raising one requires a written product/release justification beside the
 // changed value. A public patch may add exactly its one release contract.
 //
-// v0.16.79: releaseContractFiles rebased 263 → 264 and baselineVersion 0.16.77
-// → 0.16.78. The count is a BASELINE, and the one-contract release allowance is
+// v0.16.80: releaseContractFiles rebased 264 → 265 and baselineVersion 0.16.78
+// → 0.16.79. The count is a BASELINE, and the one-contract release allowance is
 // measured from it, so the baseline has to advance as each release lands or the
 // allowance is silently consumed by the previous release. v0.16.78 shipped its
 // contract (263 → 264) without moving the baseline, so v0.16.79 failed the gate
@@ -29,10 +29,14 @@ const budgets = {
 // caught an unaccounted increase, and the fix is to re-freeze at the released
 // state, not to widen the allowance. Every future release must do the same.
 const repositoryBudgets = {
-  baselineVersion: '0.16.78',
-  compilerLines: 27_831,
+  baselineVersion: '0.16.79',
+  // v0.16.80 adds source-before-synthesis admission, citation-local
+  // provenance, and evidence-bound assessment repair. The 127-line increase
+  // is executable contract logic covered by the Algi browser/package proof;
+  // it is not a new fixed course-copy corpus.
+  compilerLines: 27_958,
   npmScripts: 377,
-  releaseContractFiles: 264,
+  releaseContractFiles: 265,
   trackedWeightFiles: 62,
   trackedWeightBytes: 1_053_339_981,
   largeBinaryBytes: 1024 * 1024,
@@ -107,7 +111,10 @@ const lazyChunkBudgets = [
   // v0.16.73: exact project recovery, IndexedDB autosave ownership, finish
   // receipts, and the compact Content/Agent/Export switch add 0.5/0.1 KiB to
   // the lazy workspace shell. Keep the ceiling within 0.5/0.9 KiB.
-  { prefix: 'AppFlow-', rawKiB: 280, gzipKiB: 85 },
+  // v0.16.80 adds the explicit private/research Algi route and preserves its
+  // no-model-download state across workspace creation. The workspace-only
+  // shell measures 280.8/84.5; keep less than 0.2/0.5 KiB headroom.
+  { prefix: 'AppFlow-', rawKiB: 281, gzipKiB: 85 },
   // v0.16.47: the Living Course Compiler component and pure selector gained
   // an independently cacheable route boundary instead of raising AppFlow's
   // long-standing ratchet. Clean measurement: AppFlow 251.6/75.9; ribbon
@@ -207,7 +214,10 @@ const lazyChunkBudgets = [
   // the compiler-data split remains the next structural reduction.
   // The experiential-activity IR adds a small dispatch seam after moving its
   // deterministic projections into a separate chunk. Retain narrow headroom.
-  { prefix: 'courseBlueprintCompiler-', rawKiB: 842, gzipKiB: 236 },
+  // v0.16.80's source-before-synthesis boundary, mixed-source provenance, and
+  // evidence-analysis seat add 1.3 KiB raw while gzip remains under the prior
+  // ceiling. Measured 843.1/235.9; keep the increase off landing and below 844.
+  { prefix: 'courseBlueprintCompiler-', rawKiB: 844, gzipKiB: 236 },
   // Experiential-activity mechanics are compiler-owned and independently
   // cacheable beside the lazy compiler. The chunk projects the canonical
   // activity clock, evidence, constraints, decisions, artifact, and debrief

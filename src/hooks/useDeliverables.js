@@ -88,6 +88,8 @@ import {
   preserveDeliverableLessonNumbers,
   resolveMaterializedSourceLessonFilter,
 } from '../lib/materializedLessonScope';
+import { isAlgiModel, resolveAlgiEnrichmentBatchSize, supportsModelVoicePass } from '../lib/algiIdentity';
+import { allowExternalKnowledgeLookups } from '../lib/algiResearchPolicy';
 
 const PROVIDER_CALL_EVENT_TYPES = new Set([
   'deliverableChunkCall',
@@ -616,6 +618,8 @@ export default function useDeliverables({
       // plan now mirrors the actual adaptive batcher instead of over-quoting
       // provider calls for GPT-5.4-mini-class models.
       const enrichmentLessonCount = Array.isArray(scopeIndices) ? scopeIndices.length : lessonCount;
+      const algiRoute = provider === PUBLIC_SCION_PROVIDER_ID && isAlgiModel(modelId);
+      const allowExternalKnowledge = allowExternalKnowledgeLookups({ algiRoute });
       const nativeBatchingPlan =
         readAuthoringMode() === 'native' && costMode !== 'finalizerRetry' && !Array.isArray(scopeIndices)
           ? await import('../lib/adaptiveProviderBatching')
@@ -628,8 +632,12 @@ export default function useDeliverables({
             modelCapabilities,
           })
         : 4;
-      const plannedEnrichmentBatchSize =
-        provider === PUBLIC_SCION_PROVIDER_ID ? PUBLIC_SCION_KERNEL_LESSONS_PER_CALL : plannedNativePassBBatchSize;
+      const plannedEnrichmentBatchSize = resolveAlgiEnrichmentBatchSize(
+        provider,
+        modelId,
+        enrichmentLessonCount,
+        provider === PUBLIC_SCION_PROVIDER_ID ? PUBLIC_SCION_KERNEL_LESSONS_PER_CALL : plannedNativePassBBatchSize,
+      );
       const plannedEnrichmentCalls = !blueprintEnrichmentRequested
         ? 0
         : generationOptions.lessonContentEnrichment !== false
@@ -637,9 +645,11 @@ export default function useDeliverables({
           : 1;
       const enrichmentRecoveryCallLimit = scionSourceLedgerRequested
         ? 0
-        : provider === PUBLIC_SCION_PROVIDER_ID
-          ? publicScionEnrichmentRecoveryCallLimit(enrichmentLessonCount)
-          : 2;
+        : algiRoute
+          ? 0
+          : provider === PUBLIC_SCION_PROVIDER_ID
+            ? publicScionEnrichmentRecoveryCallLimit(enrichmentLessonCount)
+            : 2;
       const plannedEnrichmentRecoveryReserve =
         blueprintEnrichmentRequested && generationOptions.lessonContentEnrichment !== false
           ? enrichmentRecoveryCallLimit
@@ -1036,7 +1046,8 @@ export default function useDeliverables({
               import('../lib/blueprintEnrichmentPass'),
             ]);
             const library = getKernelLibrary();
-            const hydration = await hydrateLibraryForDisciplines(library, inferCourseDisciplines(blueprintCourseMap), {
+            const inferredDisciplines = inferCourseDisciplines(blueprintCourseMap);
+            const hydration = await hydrateLibraryForDisciplines(library, inferredDisciplines, {
               signal: controller.signal,
             });
             lessonKernelCache = createLessonKernelCache({
@@ -1054,6 +1065,10 @@ export default function useDeliverables({
               // linker telemetry so the budget event can explain a 0-link run.
               uncoveredDisciplines: hydration.uncoveredDisciplines || [],
               sourceReferences: hydration.references || {},
+              // The library is a long-lived browser singleton and may retain
+              // shards loaded by an earlier project. Resolution must stay
+              // inside the current course's inferred disciplines.
+              allowedDisciplines: inferredDisciplines,
             });
             genomeLink = {
               lessonContent: linked.lessonContent,
@@ -1385,7 +1400,10 @@ export default function useDeliverables({
             // passing a four-lesson native batch made lessons 2-4 impossible
             // to return, triggering a retry storm and 1/15 enrichment. Keep
             // the adaptive multi-lesson batcher for servers and paid models.
-            const chunkSize =
+            const chunkSize = resolveAlgiEnrichmentBatchSize(
+              provider,
+              modelId,
+              initialAuthoringIndices.length,
               provider === PUBLIC_SCION_PROVIDER_ID
                 ? PUBLIC_SCION_KERNEL_LESSONS_PER_CALL
                 : nativeBatching.getAdaptiveNativePassBBatchSize({
@@ -1393,7 +1411,8 @@ export default function useDeliverables({
                     maxOutputTokens,
                     generationPlan,
                     modelCapabilities,
-                  });
+                  }),
+            );
             const batches = [];
             for (let start = 0; start < initialAuthoringIndices.length; start += chunkSize) {
               batches.push(initialAuthoringIndices.slice(start, start + chunkSize));
@@ -1885,7 +1904,12 @@ export default function useDeliverables({
             const lessonId = `lesson-${lessonIndex + 1}`;
             return !lessonContent[lessonId] || Boolean(partialOverlays[lessonId]);
           });
-          const chunkSize = provider === PUBLIC_SCION_PROVIDER_ID ? PUBLIC_SCION_KERNEL_LESSONS_PER_CALL : 4;
+          const chunkSize = resolveAlgiEnrichmentBatchSize(
+            provider,
+            modelId,
+            lessonIndices.length,
+            provider === PUBLIC_SCION_PROVIDER_ID ? PUBLIC_SCION_KERNEL_LESSONS_PER_CALL : 4,
+          );
           // v0.14.7 WS-A: enrichment chunks are independent (kernels are
           // keyed by lessonId and the P2.1 expectedLessonIds guard prevents
           // cross-chunk overwrites), so they run CONCURRENTLY in groups of
@@ -2383,7 +2407,9 @@ export default function useDeliverables({
           stage: 'enrichmentModelStage',
           label: 'Enrichment decision',
           detail: blueprintEnrichment?.stageDecisions
-            ? `${formatEnrichmentOutcomeLabel(enrichmentOutcome)} (linker: ${blueprintEnrichment.stageDecisions.genomeLinker})`
+            ? algiRoute
+              ? `${formatEnrichmentOutcomeLabel(enrichmentOutcome)} · Algi source-and-genome composition, no model inference (linker: ${blueprintEnrichment.stageDecisions.genomeLinker})`
+              : `${formatEnrichmentOutcomeLabel(enrichmentOutcome)} (linker: ${blueprintEnrichment.stageDecisions.genomeLinker})`
             : 'deterministic compile only (no enrichment object)',
           outcome: enrichmentOutcome,
         });
@@ -2547,61 +2573,85 @@ export default function useDeliverables({
           try {
             const knowledge = await import('../lib/knowledge');
             genomeResourceCount = knowledge.attachGenomeResources(courseGraph);
-            recordGenerationApiCallEvent({
-              type: 'knowledgeBackboneLookup',
-              stage: 'knowledge-backbone',
-              label: 'Finding open readings',
-              detail: `Checking public sources for up to ${Math.min(24, courseGraph.sessions?.length || 0)} lessons`,
-            });
-            openReadingCount = await knowledge.attachOpenReadings(courseGraph, {
-              maxSessions: 24,
-              onProgress: ({ completed, total, provider }) => {
-                recordGenerationApiCallEvent({
-                  type: 'knowledgeBackboneProgress',
-                  stage: 'knowledge-backbone',
-                  label: 'Checking open readings',
-                  detail: `${completed}/${total} lessons checked${provider === 'crossref' ? ' · checking Crossref' : ''}`,
-                });
-              },
-            });
             let coverage = knowledge.knowledgeCoverage(courseGraph);
-            if (knowledge.shouldRunSourceFinder?.(coverage)) {
-              const sourceTopicCount = Math.min(24, courseGraph.sessions?.length || 0);
+            if (!allowExternalKnowledge) {
+              recordGenerationApiCallEvent({
+                type: 'pipelineDecision',
+                stage: 'knowledgeBackbone',
+                label: 'Private knowledge backbone',
+                detail: 'Private mode · shipped teaching genome only · no external course-topic requests',
+              });
+            } else if (algiRoute) {
+              // Algi's enrichment transaction has already completed the
+              // bounded source search, admitted the selected concepts, and
+              // attached revision-aware receipts to the lesson kernels.
+              // Running the legacy Crossref/OpenAlex/Open Library discovery
+              // here duplicated network work, added up to twelve seconds,
+              // and exposed a confusing partial "3/6 lessons checked" frame
+              // even though Algi had already covered all six lessons.
+              recordGenerationApiCallEvent({
+                type: 'pipelineDecision',
+                stage: 'knowledgeBackbone',
+                label: 'Algi source receipts ready',
+                detail:
+                  'Skipped duplicate open-reading discovery · Algi research sources and revision receipts are already attached',
+              });
+            } else {
               recordGenerationApiCallEvent({
                 type: 'knowledgeBackboneLookup',
                 stage: 'knowledge-backbone',
-                label: 'Finding complementary sources',
-                detail: `Checking complementary public sources for up to ${sourceTopicCount} lessons`,
+                label: 'Finding open readings',
+                detail: `Checking public sources for up to ${Math.min(24, courseGraph.sessions?.length || 0)} lessons`,
               });
-              const sourceMiniShard = await knowledge.findCourseSources(courseGraph, {
-                maxTopics: 24,
-                limitPerTopic: 3,
-                timeoutMs: 12_000,
-                // The reading-list pass above already queried Crossref. Source
-                // finder should use complementary providers, not repeat the
-                // same scholarly request for the same lesson topics.
-                providers: { crossref: async () => [] },
-                onProgress: ({ completed, total }) => {
+              openReadingCount = await knowledge.attachOpenReadings(courseGraph, {
+                maxSessions: 24,
+                onProgress: ({ completed, total, provider }) => {
                   recordGenerationApiCallEvent({
                     type: 'knowledgeBackboneProgress',
                     stage: 'knowledge-backbone',
-                    label: 'Checking complementary sources',
-                    detail: `${completed}/${total} lessons checked`,
+                    label: 'Checking open readings',
+                    detail: `${completed}/${total} lessons checked${provider === 'crossref' ? ' · checking Crossref' : ''}`,
                   });
                 },
               });
-              if (sourceMiniShard?.stats?.timedOut) {
-                recordGenerationApiCallEvent({
-                  type: 'pipelineDecision',
-                  stage: 'knowledge-backbone',
-                  label: 'Complementary sources bounded',
-                  detail: `${sourceMiniShard.stats.completedTopics}/${sourceMiniShard.stats.topics} lessons checked before the 12-second optional-source deadline · course generation continued`,
-                });
-              }
-              sourceFinderCount = knowledge.attachSourceFinderResources(courseGraph, sourceMiniShard, {
-                maxSourcesPerTopic: 1,
-              });
               coverage = knowledge.knowledgeCoverage(courseGraph);
+              if (knowledge.shouldRunSourceFinder?.(coverage)) {
+                const sourceTopicCount = Math.min(24, courseGraph.sessions?.length || 0);
+                recordGenerationApiCallEvent({
+                  type: 'knowledgeBackboneLookup',
+                  stage: 'knowledge-backbone',
+                  label: 'Finding complementary sources',
+                  detail: `Checking complementary public sources for up to ${sourceTopicCount} lessons`,
+                });
+                const sourceMiniShard = await knowledge.findCourseSources(courseGraph, {
+                  maxTopics: 24,
+                  limitPerTopic: 3,
+                  timeoutMs: 12_000,
+                  // The reading-list pass above already queried Crossref.
+                  // Source finder uses complementary providers.
+                  providers: { crossref: async () => [] },
+                  onProgress: ({ completed, total }) => {
+                    recordGenerationApiCallEvent({
+                      type: 'knowledgeBackboneProgress',
+                      stage: 'knowledge-backbone',
+                      label: 'Checking complementary sources',
+                      detail: `${completed}/${total} lessons checked`,
+                    });
+                  },
+                });
+                if (sourceMiniShard?.stats?.timedOut) {
+                  recordGenerationApiCallEvent({
+                    type: 'pipelineDecision',
+                    stage: 'knowledge-backbone',
+                    label: 'Complementary sources bounded',
+                    detail: `${sourceMiniShard.stats.completedTopics}/${sourceMiniShard.stats.topics} lessons checked before the 12-second optional-source deadline · course generation continued`,
+                  });
+                }
+                sourceFinderCount = knowledge.attachSourceFinderResources(courseGraph, sourceMiniShard, {
+                  maxSourcesPerTopic: 1,
+                });
+                coverage = knowledge.knowledgeCoverage(courseGraph);
+              }
             }
             if (coverage && genomeResourceCount + openReadingCount + sourceFinderCount > 0) {
               const lessonCountWithReadings =
@@ -2887,6 +2937,7 @@ export default function useDeliverables({
           voicePassLib.clearVoicePassOutcome();
           if (
             voicePassLib.readVoicePassMode() === 'on' &&
+            supportsModelVoicePass(modelId) &&
             blueprintEnrichmentRequested &&
             enrichmentModelAvailable &&
             !enrichmentOutcome.missingLessons?.length

@@ -4,7 +4,6 @@ import { getSecure, setSecure, removeSecure } from '../lib/secureStorage';
 import { createBaseModelCapabilities, createGenerationPlan } from '../lib/modelCapabilities';
 import {
   PUBLIC_SCION_MODEL_ID,
-  PUBLIC_SCION_MODEL_NAME,
   PUBLIC_SCION_PROVIDER_ID,
   publicScionModelOption,
   publicScionModelOptionById,
@@ -31,16 +30,24 @@ export function normalizeProjectProvider(provider) {
   return provider === 'free' || provider === 'webllm' ? PUBLIC_SCION_PROVIDER_ID : provider;
 }
 
-export function restorePublicScionAIConfig(setProvider, setApiKey, setModelId, setModelName, setApiStatus) {
+export function restorePublicScionAIConfig(
+  setProvider,
+  setApiKey,
+  setModelId,
+  setModelName,
+  setApiStatus,
+  requestedModelId = PUBLIC_SCION_MODEL_ID,
+) {
+  const selected = publicScionModelOptionById(requestedModelId);
   try {
     localStorage.setItem('coursemapper-provider', PUBLIC_SCION_PROVIDER_ID);
-    localStorage.setItem('coursemapper-modelid', PUBLIC_SCION_MODEL_ID);
-    localStorage.setItem('coursemapper-modelname', PUBLIC_SCION_MODEL_NAME);
+    localStorage.setItem('coursemapper-modelid', selected.id);
+    localStorage.setItem('coursemapper-modelname', selected.name);
   } catch {}
   setProvider(PUBLIC_SCION_PROVIDER_ID);
   setApiKey('');
-  setModelId(PUBLIC_SCION_MODEL_ID);
-  setModelName(PUBLIC_SCION_MODEL_NAME);
+  setModelId(selected.id);
+  setModelName(selected.name);
   setApiStatus('connected');
 }
 
@@ -84,7 +91,9 @@ export function AIConfigProvider({ children }) {
     try {
       const storedProvider = normalizeStoredProvider(localStorage.getItem('coursemapper-provider'));
       if (storedProvider === 'webllm' || storedProvider === 'free') return '';
-      if (storedProvider === PUBLIC_SCION_PROVIDER_ID) return PUBLIC_SCION_MODEL_NAME;
+      if (storedProvider === PUBLIC_SCION_PROVIDER_ID) {
+        return publicScionModelOptionById(localStorage.getItem('coursemapper-modelid')).name;
+      }
       return localStorage.getItem('coursemapper-modelname') || '';
     } catch {
       return '';

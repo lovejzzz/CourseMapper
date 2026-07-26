@@ -393,7 +393,7 @@ function buildFallbackFaqQuestions({ lesson, title, shortTitle, target, lessonIn
   );
   const supportQuestion = [
     `What should I do if I get stuck during ${shortTitle}?`,
-    `Where should I start when ${shortTitle} is not making sense?`,
+    `Where should I start when the ${shortTitle} lesson is not making sense?`,
     `Which course resource should I check first when I need help with ${shortTitle}?`,
     `How can I identify what is blocking my work on ${shortTitle}?`,
   ][Math.abs(lessonIndex) % 4];

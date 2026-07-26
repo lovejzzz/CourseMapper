@@ -270,4 +270,13 @@ describe('iteration 7 — discipline inference covers the new disciplines', () =
       }),
     ).toContain('lit');
   });
+
+  it('routes quantum computing to computer science before generic concepts can cross disciplines', () => {
+    expect(
+      inferCourseDisciplines({
+        courseName: 'Introduction to Quantum Computing',
+        lessons: [{ title: 'Superposition and measurement' }, { title: 'Quantum gates and circuits' }],
+      }),
+    ).toContain('cs');
+  });
 });

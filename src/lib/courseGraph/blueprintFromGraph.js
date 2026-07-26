@@ -123,6 +123,7 @@ export function attachEnrichmentToGraph(graph, enrichment) {
 // from the map path (golden equivalence).
 const KNOWLEDGE_BACKBONE_ORIGINS = new Set([
   'genome',
+  'algi-research',
   'genome-prerequisite',
   'openalex',
   'openlibrary',

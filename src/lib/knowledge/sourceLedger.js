@@ -386,6 +386,21 @@ function inferProviderFromText(value) {
   return '';
 }
 
+function sourcePublisherMismatch(entry, sourceUrl) {
+  const identityProviders = new Set(['gutenberg', 'openstax', 'wikipedia']);
+  const directProvider = cleanText(entry?.provider, 80).toLowerCase();
+  const declaredProvider = inferProviderFromText(
+    [entry?.attribution, entry?.credit, entry?.title, entry?.displayTitle, entry?.citation].filter(Boolean).join(' '),
+  );
+  const urlProvider = inferProviderFromText(sourceUrl);
+  if (identityProviders.has(directProvider) && identityProviders.has(urlProvider) && directProvider !== urlProvider) {
+    return true;
+  }
+  return Boolean(
+    identityProviders.has(declaredProvider) && identityProviders.has(urlProvider) && declaredProvider !== urlProvider,
+  );
+}
+
 function isGenericResourceProvider(provider) {
   return GENERIC_RESOURCE_PROVIDERS.has(cleanText(provider, 80).toLowerCase());
 }
@@ -428,6 +443,14 @@ export function normalizeTrustedSource(entry = {}, { fallbackId = '', checkedAt 
   const license = explicitLicense
     ? normalizeLicense(explicitLicense, { preserveUnknown: true })
     : extractLicense(sourceText) || openStaxProof?.license || '';
+  const attribution =
+    cleanText(entry.attribution || entry.credit || '', 260) ||
+    (provider === 'wikipedia' ? 'Wikipedia contributors' : '');
+  const sessionRefs = [
+    ...new Set(
+      (Array.isArray(entry.sessionRefs) ? entry.sessionRefs : []).map((ref) => cleanText(ref, 120)).filter(Boolean),
+    ),
+  ];
   const source = {
     id: sourceId(entry, fallbackId, 0),
     title,
@@ -435,6 +458,7 @@ export function normalizeTrustedSource(entry = {}, { fallbackId = '', checkedAt 
     url,
     doi,
     license,
+    ...(attribution ? { attribution } : {}),
     provider,
     sourceType: sourceType(entry),
     scope: cleanText(entry.scope || entry.path || 'course', 140),
@@ -442,6 +466,11 @@ export function normalizeTrustedSource(entry = {}, { fallbackId = '', checkedAt 
     origin: cleanText(entry.origin || entry.sourceOrigin || '', 80),
     evidence: cleanText(entry.evidence || entry.note || entry.snippet || entry.abstract || '', 360),
     ...(Number.isFinite(Number(entry.sourceTier)) ? { sourceTier: Number(entry.sourceTier) } : {}),
+    ...(entry.revisionId !== undefined && entry.revisionId !== null && cleanText(entry.revisionId, 80)
+      ? { revisionId: cleanText(entry.revisionId, 80) }
+      : {}),
+    ...(cleanText(entry.revisionTimestamp, 100) ? { revisionTimestamp: cleanText(entry.revisionTimestamp, 100) } : {}),
+    ...(sessionRefs.length > 0 ? { sessionRefs } : {}),
     conceptLinks: normalizeConceptLinks([...(conceptLinks || []), ...(entry.conceptLinks || [])]),
     checkedAt: cleanText(entry.checkedAt || checkedAt, 80),
     accessStatus: isSourceAccessible({ url, doi }) ? 'reference-present' : 'no-url-or-doi',
@@ -449,13 +478,14 @@ export function normalizeTrustedSource(entry = {}, { fallbackId = '', checkedAt 
   };
   source.citation = sourceCitationLabel(source);
   source.licenseAmbiguous = isLicenseAmbiguous(source.license);
+  source.provenanceMismatch = sourcePublisherMismatch(entry, url);
   return source;
 }
 
 export function isTrustedSourceLedgerRow(row = {}) {
   const provider = cleanText(row?.provider, 80).toLowerCase();
   if (!TRUST_ELIGIBLE_PROVIDERS.has(provider) || REVIEW_ONLY_PROVIDERS.has(provider)) return false;
-  return isSourceAccessible(row) && !isLicenseAmbiguous(row?.license);
+  return isSourceAccessible(row) && !isLicenseAmbiguous(row?.license) && !row?.provenanceMismatch;
 }
 
 export function isConceptLinkedSourceLedgerRow(row = {}) {
@@ -835,8 +865,20 @@ function pruneCoveredNonActionableReviewRows(rows, reviewRows, courseGraph) {
 
 function mergeSourceLedgerConceptLinks(existing = {}, incoming = {}) {
   const conceptLinks = normalizeConceptLinks([...(existing.conceptLinks || []), ...(incoming.conceptLinks || [])]);
+  const authors = normalizeAuthors([...(existing.authors || []), ...(incoming.authors || [])]);
+  const sessionRefs = [
+    ...new Set([...(existing.sessionRefs || []), ...(incoming.sessionRefs || [])].map((ref) => cleanText(ref, 120))),
+  ].filter(Boolean);
   return {
     ...existing,
+    ...(!existing.attribution && incoming.attribution ? { attribution: incoming.attribution } : {}),
+    ...(!existing.revisionId && incoming.revisionId ? { revisionId: incoming.revisionId } : {}),
+    ...(!existing.revisionTimestamp && incoming.revisionTimestamp
+      ? { revisionTimestamp: incoming.revisionTimestamp }
+      : {}),
+    ...(!existing.evidence && incoming.evidence ? { evidence: incoming.evidence } : {}),
+    ...(authors.length > 0 ? { authors } : {}),
+    ...(sessionRefs.length > 0 ? { sessionRefs } : {}),
     ...(conceptLinks.length > 0 ? { conceptLinks } : {}),
   };
 }
@@ -1051,7 +1093,11 @@ export function buildSourceReportMarkdown({
       const details = [
         row.provider ? `provider=${row.provider}` : '',
         row.license ? `license=${row.license}` : 'license=missing',
+        row.attribution ? `attribution=${row.attribution}` : '',
         row.url ? `url=${row.url}` : row.doi ? `doi=${row.doi}` : 'access=missing-url-or-doi',
+        row.revisionId ? `revisionId=${row.revisionId}` : '',
+        row.revisionTimestamp ? `revisionTimestamp=${row.revisionTimestamp}` : '',
+        row.sessionRefs?.length ? `sessions=${row.sessionRefs.join(',')}` : '',
         row.checkedAt ? `checkedAt=${row.checkedAt}` : '',
         row.licenseAmbiguous ? 'licenseReview=required' : '',
       ].filter(Boolean);
@@ -1070,7 +1116,11 @@ export function buildSourceReportMarkdown({
         row.provider ? `provider=${row.provider}` : '',
         row.status ? `status=${row.status}` : '',
         row.license ? `license=${row.license}` : 'license=missing',
+        row.attribution ? `attribution=${row.attribution}` : '',
         row.url ? `url=${row.url}` : row.doi ? `doi=${row.doi}` : 'access=missing-url-or-doi',
+        row.revisionId ? `revisionId=${row.revisionId}` : '',
+        row.revisionTimestamp ? `revisionTimestamp=${row.revisionTimestamp}` : '',
+        row.sessionRefs?.length ? `sessions=${row.sessionRefs.join(',')}` : '',
         row.checkedAt ? `checkedAt=${row.checkedAt}` : '',
         'trustedBibliography=false',
       ].filter(Boolean);

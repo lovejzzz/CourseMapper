@@ -3,6 +3,7 @@ import {
   buildCompilerProofBundle,
   buildSlideDeckIntermediateRepresentation,
   buildCourseBlueprint,
+  bloomLevelFromStemVerb,
   compileBlueprintDeliverable,
   compileBlueprintDeliverables,
   estimateBlueprintCompilerSavings,
@@ -28,6 +29,26 @@ let customDeliverables = {};
 vi.mock('../customDeliverableLibrary', () => ({
   getCustomDeliverable: vi.fn((id) => customDeliverables[id] || null),
 }));
+
+describe('quiz Bloom inference', () => {
+  it('recognizes synthesis and evidence-rich case reasoning without treating domain nouns as recall verbs', () => {
+    expect(
+      bloomLevelFromStemVerb(
+        'Synthesize the covered material from Qubits and quantum states. Justify both choices with course evidence.',
+      ),
+    ).toBe('Create');
+    expect(
+      bloomLevelFromStemVerb(
+        'An analyst reviews a case with multiple quantum states. Identify the principle, cite two case details, distinguish support from assumption, and request one next piece of evidence.',
+      ),
+    ).toBe('Analyze');
+    expect(
+      bloomLevelFromStemVerb(
+        'The record states a peer claim. State the strongest conclusion the evidence supports, name the limitation, and identify the evidence needed before accepting the broader claim.',
+      ),
+    ).toBe('Evaluate');
+  });
+});
 
 const makeCourseMap = (lessonCount = 6) => ({
   courseName: 'Applied Social Policy Studio',
@@ -7546,6 +7567,42 @@ describe('courseBlueprintCompiler', () => {
     });
   });
 
+  it('preserves conjunctions in compiler-owned compound resource labels', () => {
+    const blueprint = buildCourseBlueprint({
+      courseName: 'Introduction to Quantum Computing',
+      lessons: [
+        {
+          title: 'Lesson 1: Qubits and quantum states',
+          sections: [
+            {
+              topicSection: 'Qubits and quantum states',
+              learningObjectives: 'Explain how a qubit represents a quantum state.',
+              weeklyAssessments: 'Evidence explanation: Qubits and quantum states',
+              asyncActivities: 'Annotate a qubit example.',
+              syncActivities: 'Compare two quantum states.',
+              supportingResources:
+                'Source packet for Qubits and quantum states: annotated excerpt plus activity prompt.',
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(blueprint.lessons[0].evidencePlan.sourceCue).toBe('Source packet for Qubits and quantum states');
+    expect(blueprint.lessons[0].evidencePlan.sourceCue).not.toBe('Source packet for Qubits quantum states');
+    expect(blueprint.enrichment.lens).toMatchObject({
+      domain: 'quantum information science',
+      evidenceNoun: 'state, circuit, and measurement evidence',
+      learnerRole: 'quantum computing student',
+    });
+    expect(JSON.stringify(compileBlueprintDeliverables(blueprint, ['lessonPlans']))).not.toMatch(
+      /AI-supported teaching scenario|design evidence|course designer/i,
+    );
+    const quizText = JSON.stringify(compileBlueprintDeliverables(blueprint, ['quizBank']));
+    expect(quizText).toMatch(/making a quantum reasoning decision for the evidence explanation/i);
+    expect(quizText).not.toMatch(/evidence explanation quantum reasoning decision/i);
+  });
+
   it('does not misclassify disciplinary models as AI course design', () => {
     const blueprint = buildCourseBlueprint({
       courseName: 'Community Health Program Evaluation',
@@ -8949,6 +9006,53 @@ describe('courseBlueprintCompiler', () => {
     expect(JSON.stringify(guide.reviewQuestions)).not.toMatch(/name [^".]*,\s*them,? then/i);
   });
 
+  it('lets researched Algi terms replace an earlier repaired-map context', () => {
+    const blueprint = buildCourseBlueprint({
+      courseName: 'Introduction to Quantum Computing',
+      lessons: [
+        {
+          title: 'Lesson 1: Quantum Gates and Circuits',
+          sections: [
+            {
+              topicSection: 'Quantum gates and circuits',
+              learningGoals: 'Develop an evidence-backed account of quantum circuits.',
+              learningObjectives:
+                "Connect Quantum gates and circuits to the week's work and explain one supporting evidence source.",
+              weeklyAssessments: 'Quantum circuit comparison',
+              syncActivities: 'Compare two quantum circuits.',
+              supportingResources: 'Quantum circuit source excerpt',
+              evaluateDesign: 'Check the circuit explanation.',
+            },
+          ],
+        },
+      ],
+    });
+    blueprint.enrichment.lessonPhrases['lesson-1'] = {
+      context: "Quantum gates and circuits, circuits to the week's work, one supporting evidence source",
+      evidenceMove: 'compare gate behavior',
+      decisionMove: 'explain the circuit',
+    };
+    blueprint.lessons[0].enrichment = {
+      enrichmentSource: 'algi-researched',
+      conceptProvenance: { source: 'algi-researched' },
+      keyTerms: [
+        {
+          term: 'Quantum circuit',
+          definition: 'A quantum circuit is an ordered sequence of quantum gates and measurements.',
+        },
+        {
+          term: 'Quantum gate',
+          definition: 'A quantum gate is a reversible operation applied to one or more qubits.',
+        },
+      ],
+    };
+
+    const guide = compileBlueprintDeliverables(blueprint, ['studyGuides']).studyGuides.studyGuides[0];
+    expect(guide.examScope).toContain('checks on Quantum circuit, Quantum gate.');
+    expect(guide.examScope).toContain('Reuse it for later assessments.');
+    expect(guide.examScope).not.toContain("circuits to the week's work");
+  });
+
   it('honors an explicit 50-minute session and scales every teaching phase to the real clock', () => {
     const blueprint = buildCourseBlueprint(makeWorldLanguageCourseMap(), { sessionMinutes: 50 });
     const firstLesson = blueprint.lessons[0];
@@ -9158,6 +9262,98 @@ describe('courseBlueprintCompiler', () => {
     const optionText = compiled.quizBank.quizzes[0].questions.flatMap((question) => question.options || []).join(' ');
     expect(optionText).toMatch(/Adding rewards always strengthens motivation/i);
     expect(optionText).not.toMatch(/\b(?:students?|teachers?|learners?)\b|\b(?:assume|think|believe)\b/i);
+  });
+
+  it('tests each admitted misconception once instead of stamping it across the weekly quiz', () => {
+    const courseMap = {
+      courseName: 'Environmental Microbiology',
+      semester: 'Fall 2026',
+      lessons: [
+        {
+          title: 'Lesson 1: Microbial Ecology',
+          sections: [
+            {
+              topicSection: 'Microbial ecology; community interactions; field evidence',
+              learningGoals: 'Distinguish ecological evidence from neighbouring microbiology concepts.',
+              learningObjectives: 'Analyze a microbial community claim using field evidence and a stated limitation.',
+              weeklyAssessments: 'Microbial ecology evidence check',
+              asyncActivities: 'Annotate the field evidence packet and identify the claim boundary.',
+              syncActivities: 'Compare two ecological interpretations and defend the stronger one.',
+              supportingResources: 'Open microbial ecology reading and field evidence packet',
+              evaluateDesign: 'Score concept accuracy, evidence use, limitation, and revision quality.',
+            },
+          ],
+        },
+      ],
+    };
+    const sharedMisconception =
+      'Microbial ecology and oral ecology are interchangeable descriptions of the same concept.';
+    const terms = [
+      {
+        term: 'Microbial ecology',
+        definition: 'Microbial ecology studies how microorganisms interact with one another and their environments.',
+        example: 'A field survey compares microbial communities across two water samples.',
+        misconception: sharedMisconception,
+        correction:
+          'They are not interchangeable; microbial ecology studies environmental interactions while oral ecology concerns a particular habitat.',
+      },
+      {
+        term: 'Microbial community',
+        definition: 'A microbial community is a set of interacting microorganism populations in a shared environment.',
+        example: 'A biofilm contains interacting populations attached to one surface.',
+        misconception: 'A microbial community is merely a list of isolated species.',
+        correction: 'A community includes interactions among populations in a shared environment.',
+      },
+      {
+        term: 'Field evidence',
+        definition: 'Field evidence records observations collected in the environment under study.',
+        example: 'Repeated site samples document how abundance changes across a pollution gradient.',
+        misconception: 'One unreplicated observation establishes a general ecological mechanism.',
+        correction: 'A bounded ecological conclusion requires replicated observations and an explicit comparison.',
+      },
+    ];
+    const facts = [
+      'Microbial communities can change when environmental conditions alter resource availability.',
+      'Field sampling connects a microbial pattern to the environment where it was observed.',
+      'Replicated observations help distinguish a stable relationship from a one-time fluctuation.',
+      'A community contains populations whose interactions can affect measured abundance.',
+      'A defensible ecological claim states the scale and conditions represented by its evidence.',
+    ];
+    const blueprint = buildCourseBlueprint(courseMap, {
+      enrichment: {
+        coverage: { requestedLessons: 1, enrichedLessons: 1, missingLessons: [] },
+        stageDecisions: { modelStage: 'ran' },
+        lessonContent: {
+          'lesson-1': {
+            keyTerms: terms,
+            kernel: { facts },
+          },
+        },
+      },
+    });
+
+    const quiz = compileBlueprintDeliverables(blueprint, ['quizBank']).quizBank.quizzes[0];
+    const rendered = JSON.stringify(quiz).toLowerCase();
+    const exactClaimCount = rendered.split(sharedMisconception.toLowerCase()).length - 1;
+    const misconceptionItems = quiz.questions.filter((question) => question.misconceptionSourced);
+
+    expect(exactClaimCount).toBeLessThanOrEqual(2);
+    expect(misconceptionItems).toHaveLength(1);
+    expect(quiz.questions.some((question) => question.quizPlan?.role === 'admitted-kernel-evidence-analysis')).toBe(
+      true,
+    );
+  });
+
+  it('does not insert a leading article after “the relevant” in synthesized success criteria', () => {
+    const courseMap = makeCourseMap(1);
+    courseMap.lessons[0].sections[0].topicSection = 'The key ideas in microbial ecology';
+    const blueprint = buildCourseBlueprint(courseMap);
+    const rendered = JSON.stringify(
+      compileBlueprintDeliverables(blueprint, ['studyGuides']).studyGuides.studyGuides[0],
+    );
+
+    expect(rendered).not.toMatch(/the relevant (?:a|an|the) /i);
+    expect(rendered).not.toMatch(/\bexplanation draft\b/i);
   });
 
   it('removes leading articles from embedded artifact references and starts misconception sentences cleanly', () => {

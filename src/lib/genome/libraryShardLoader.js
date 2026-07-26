@@ -277,7 +277,7 @@ export function inferCourseDisciplines(courseMap) {
       'ux',
       /\buser experience\b|\bux design\b|\bhuman[- ]centered design\b|\buser research\b|\bpersona(?:s)?\b|\bjourney map(?:ping|s)?\b|\bservice blueprint(?:ing|s)?\b|\binformation architecture\b|\btask flow(?:s)?\b|\bwirefram(?:e|es|ing)\b|\busability test(?:ing)?\b|\bdesign handoff\b/,
     ],
-    ['cs', /\bcomputer science|algorithm|programming|data structure/],
+    ['cs', /\bcomputer science|\bquantum computing\b|algorithm|programming|data structure/],
     // v0.14.1 (4.2): geology + world-language inference. The v0.14 audit's
     // Physical Geology and Mandarin courses inferred NOTHING — no regex
     // existed, so the 0-link runs looked like linker failures. The 'lang'

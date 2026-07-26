@@ -2,6 +2,36 @@ import { APP_VERSION } from './appVersion.js';
 
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
+  date: 'July 26, 2026',
+  title: 'Source Before Synthesis',
+  landingTitle: 'Algi V0 Turns Source-Anchored Knowledge into a Course',
+  highlights: [
+    'Algi V0 is a selectable zero-weight course path inside the Scion provider. It answers the typed course-map and lesson-kernel contracts from uploaded material, the shipped source-anchored teaching genome, and optional consented research—without downloading a model, running inference, or scheduling model-only voice rewrites.',
+    'Privacy is explicit. Private mode sends no course-topic research requests and reports unsupported lessons instead of inventing them. Research mode is opt-in and explains that Wikipedia may receive the course title and uncovered lesson topics.',
+    'Uncovered concepts become source queries instead of dead lookup keys. Course-aware ranking, entity-kind filtering, canonical topic families, aliases, and integrative composition turn retrieved passages into mechanically admitted definitions, facts, misconceptions, examples, and assessment contrasts.',
+    'Algi and Scion now share the same CourseIR, compiler, sequence contract, quality gates, Agent evidence layer, and exporters. Reader-facing quiz, study-guide, FAQ, and course-copy defects found during browser inspection are repaired without adding model calls.',
+    'Source receipts are hardened at the trust boundary. Shipped kernels cannot invent Wikipedia URLs from section locators; mixed Wikipedia/OpenStax lessons preserve provider and origin per citation; publisher/URL disagreement is denied a trusted state.',
+    'A private three-lesson UX course finishes 3/3 at 99/A with texture 97 in about one second with no external topic requests. A researched five-lesson Environmental Microbiology course finishes 5/5 at 99/A in about three seconds, exports one valid 55-entry ZIP, records the canonical OpenStax §16.3 receipt, and leaves the browser console clean.',
+    'Algi is an evidence engine, not a universal reasoning model. Gemma weights remain unchanged and the optional research adapter remains inactive. The intended future is Algi for retrieval and adjudication, Scion for local course-specific authoring, and one shared compiler for every compatible provider.',
+  ],
+  landingHighlights: [
+    'Zero model download and zero inference.',
+    'Private mode keeps course topics on the device.',
+    'Research is explicit, source-first, and opt-in.',
+    'Algi and Scion share one compiler and export contract.',
+    'Mixed-source receipts keep the correct provider and URL.',
+    'Private UX reaches 99/A with texture 97; researched microbiology reaches 99/A.',
+    'Algi finds evidence; Scion authors from it.',
+  ],
+  proof: {
+    contract: 'release-contracts/v0.16.80.json',
+    roadmap: 'docs/ALGI_V0_PIPELINE_ASSESSMENT.md',
+    auditCommand: 'npm run audit:release-history',
+  },
+};
+
+const V01679_RELEASE = {
+  version: '0.16.79',
   date: 'July 25, 2026',
   title: 'A Round That Explains Its Own Clock',
   landingTitle: 'Scion V0.16.79 Makes Evaluation Rounds Explain Their Own Timing',
@@ -14,19 +44,6 @@ export const CURRENT_RELEASE = {
     'The timing split is derived from the console log each run already saves, by a pure function with unit coverage for cold, warm, and remote-provider cases. Nothing was added to the live browser path, so the measurement cannot perturb the timings it reports.',
     'Gemma weights remain unchanged, the research adapter remains inactive, and no generated course content changes. This release improves evaluation honesty and round wall-clock only, and claims no quality, factual, instructor, or classroom improvement.',
   ],
-  landingHighlights: [
-    'An unexplained 2.9× slowdown is now a measured, named cost.',
-    'Browser-local rounds run one course at a time by default.',
-    'The same cold two-course round is 2.87× faster.',
-    'Rounds record the configuration that makes them comparable.',
-    'Model load and generation are reported separately.',
-    'No course content, Gemma weights, or adapter state changes.',
-  ],
-  proof: {
-    contract: 'release-contracts/v0.16.79.json',
-    roadmap: 'docs/SCION_ADAPTER_ROADMAP.md',
-    auditCommand: 'npm run audit:release-history',
-  },
 };
 
 const V01678_RELEASE = {
@@ -71,6 +88,93 @@ export const CURRENT_RELEASE_CHANGELOG = {
   date: CURRENT_RELEASE.date,
   title: CURRENT_RELEASE.title,
   highlights: CURRENT_RELEASE.highlights,
+  sections: [
+    {
+      label: 'Compose from evidence without model weights',
+      icon: 'AI',
+      color: 'violet',
+      items: [
+        'Algi V0 answers the same typed course-map and lesson-kernel requests as Scion from uploaded sources and the shipped teaching genome.',
+        'The route downloads no model and performs no language-model inference.',
+        'Model-only voice rewrites are not scheduled, preventing phantom calls, fallbacks, and estimated spend on the zero-model route.',
+        'Definitions, facts, misconceptions, examples, and assessment contrasts retain source anchors through CourseIR and export.',
+        'Unsupported private-mode lessons remain explicit coverage gaps instead of becoming confident template content.',
+      ],
+    },
+    {
+      label: 'Make privacy and research a visible choice',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'Private mode sends no external course-topic request.',
+        'Research remains off until the user explicitly enables it.',
+        'The configuration explains that Wikipedia may receive the course title and uncovered lesson topics.',
+        'Returned research keeps the source URL, attribution, CC BY-SA license, and revision receipt.',
+      ],
+    },
+    {
+      label: 'Retrieve the concept, not a lexical false friend',
+      icon: 'PROOF',
+      color: 'blue',
+      items: [
+        'Course-aware queries, canonical topic families, stemming, and aliases improve held-out and paraphrased lesson coverage.',
+        'Person-page and wrong-entity filters reject biographies and other high-vocabulary false friends.',
+        'Integrative lessons compose from already admitted course concepts instead of pretending one universal concept owns a capstone.',
+        'Research runs only after uploaded-source and shipped-genome composition decline.',
+      ],
+    },
+    {
+      label: 'Share one production compiler',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'Algi, Scion, and compatible paid routes feed the same CourseIR, Course Graph, compiler, checks, Agent evidence layer, and exporters.',
+        'Explicit lesson order and identity remain authoritative across every material.',
+        'Quiz answer projection, study-guide copy, FAQ grammar, and course text use complete reader-facing sentences.',
+        'No compiler-owned object value or internal instruction phrase may leak into learner-facing files.',
+      ],
+    },
+    {
+      label: 'Make source receipts fail closed',
+      icon: 'PROOF',
+      color: 'blue',
+      items: [
+        'A shipped kernel can no longer fabricate a Wikipedia URL from a locator such as 16.3.',
+        'The foundry manifest carries canonical OpenStax book and section URLs.',
+        'Mixed research/genome lessons assign provider and origin per citation rather than per lesson.',
+        'A strong publisher identity that disagrees with its URL cannot receive a trusted ledger state.',
+      ],
+    },
+    {
+      label: 'Prove the browser and ZIP paths',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'A private three-lesson UX course reaches 3/3 kernels, 99/A, texture 97, and no external topic requests in about one second.',
+        'A researched five-lesson Environmental Microbiology course reaches 5/5 kernels, 99/A, texture 96, and zero findings in about three seconds.',
+        'The final 55-entry ZIP passes archive testing and records OpenStax Microbiology §16.3 as provider=openstax with the canonical section URL.',
+        'Desktop and 390×844 Content, Agent, and Export states remain usable; exactly one ZIP action is visible; the browser warning/error console is empty.',
+      ],
+    },
+    {
+      label: 'Keep the claim boundary honest',
+      icon: 'PROOF',
+      color: 'slate',
+      items: [
+        'Algi is an evidence and deterministic composition engine, not a neural model or universal reasoning system.',
+        'A 99/A automated report is encoded package-defect evidence, not factual, instructor, accessibility, or classroom validation.',
+        'Gemma weights remain unchanged and the optional research adapter remains inactive.',
+        'The future hybrid uses Algi for evidence retrieval and adjudication, Scion for course-specific local authoring, and the shared compiler for both.',
+      ],
+    },
+  ],
+};
+
+const V01679_RELEASE_CHANGELOG = {
+  version: V01679_RELEASE.version,
+  date: V01679_RELEASE.date,
+  title: V01679_RELEASE.title,
+  highlights: V01679_RELEASE.highlights,
   sections: [
     {
       label: 'Name the cost instead of guessing at it',
@@ -210,6 +314,7 @@ const V01678_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  V01679_RELEASE_CHANGELOG,
   V01678_RELEASE_CHANGELOG,
   {
     version: '0.16.77',

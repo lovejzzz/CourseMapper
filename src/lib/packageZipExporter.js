@@ -18,6 +18,7 @@ import { peekVoicePassOutcome } from './voicePass.js';
 import { APP_VERSION } from './appVersion.js';
 import { SCION_BROWSER_GEMMA4_GGUF } from './scionBrowserConstants.js';
 import { resolveScionLiteratureSourceProfiles } from './scionLiteratureKnowledge.js';
+import { isAlgiModel } from './algiIdentity.js';
 
 const MIN_EXPORT_BYTES = 128;
 // A full package pass assembles the same DOCX/PPTX/XLSX payload that users
@@ -67,7 +68,8 @@ function buildManifestGenerator(digest, pipelineState) {
   ];
   const generationAppVersion = String(digest?.appVersion || '').trim();
   const appVersion = APP_VERSION;
-  const isScion = provider === 'public' || models.some((model) => /scion/i.test(model));
+  const isAlgi = models.some((model) => isAlgiModel(model));
+  const isScion = !isAlgi && (provider === 'public' || models.some((model) => /scion/i.test(model)));
   const generator = {
     app: 'CourseMapper',
     appVersion,
@@ -77,6 +79,18 @@ function buildManifestGenerator(digest, pipelineState) {
     ...(provider ? { provider } : {}),
     ...(models.length > 0 ? { models } : {}),
   };
+  if (isAlgi) {
+    const pipelineText = JSON.stringify(pipelineState || {}).toLowerCase();
+    generator.algi = {
+      product: 'Algi V0',
+      architecture: 'deterministic source-and-genome course compiler',
+      modelInference: false,
+      modelWeights: false,
+      localCompiler: true,
+      sourceResearch: /source-researched|algi-research|source research/.test(pipelineText),
+    };
+    return generator;
+  }
   if (!isScion) return generator;
 
   const declaredRuntime = digest?.scionRuntime || digest?.run?.scionRuntime || pipelineState?.scionRuntime || null;
@@ -701,6 +715,10 @@ function sourceLedgerRowStrength(row = {}) {
     (license && !isLicenseAmbiguous(license) ? 24 : license ? 4 : 0) +
     (provider && !['syllabus', 'course-resource', 'course-map', 'resource'].includes(provider) ? 10 : 0) +
     (Array.isArray(row.conceptLinks) && row.conceptLinks.length > 0 ? 6 : 0) +
+    (row.attribution ? 4 : 0) +
+    (row.revisionId ? 4 : 0) +
+    (row.revisionTimestamp ? 2 : 0) +
+    (row.evidence ? 2 : 0) +
     (!/^syllabus-src-/i.test(cleanSourceText(row.id, 120)) ? 2 : 0)
   );
 }
@@ -721,12 +739,30 @@ function mergeConceptLinks(...rows) {
   return links;
 }
 
+function mergeSourceSessionRefs(...rows) {
+  return [
+    ...new Set(
+      rows
+        .flatMap((row) => row?.sessionRefs || [])
+        .map((ref) => cleanSourceText(ref, 120))
+        .filter(Boolean),
+    ),
+  ];
+}
+
 function mergeSourceLedgerRows(existing, incoming) {
   const [stronger, weaker] =
     sourceLedgerRowStrength(incoming) > sourceLedgerRowStrength(existing) ? [incoming, existing] : [existing, incoming];
   const conceptLinks = mergeConceptLinks(stronger, weaker);
+  const sessionRefs = mergeSourceSessionRefs(stronger, weaker);
   return {
     ...stronger,
+    ...(!stronger.attribution && weaker.attribution ? { attribution: weaker.attribution } : {}),
+    ...(!stronger.revisionId && weaker.revisionId ? { revisionId: weaker.revisionId } : {}),
+    ...(!stronger.revisionTimestamp && weaker.revisionTimestamp ? { revisionTimestamp: weaker.revisionTimestamp } : {}),
+    ...(!stronger.evidence && weaker.evidence ? { evidence: weaker.evidence } : {}),
+    ...(!stronger.authors?.length && weaker.authors?.length ? { authors: weaker.authors } : {}),
+    ...(sessionRefs.length > 0 ? { sessionRefs } : {}),
     ...(conceptLinks.length > 0 ? { conceptLinks } : {}),
   };
 }
@@ -901,8 +937,10 @@ const UX_COURSE_CONTEXT_RE =
 // naturally in UX studios and many other domains. Curated Python proof is
 // eligible only when the curriculum itself names the language/discipline or
 // an unmistakable programming construct.
-const PYTHON_COURSE_CONTEXT_RE =
-  /\b(?:python|computer\s+science|software\s+development|programming|coding|algorithms?|debugg(?:ing)?\s+(?:code|programs?)|data\s+types?|if[-\s]+else|for\s+loops?|while\s+loops?|recursive\s+functions?|object[-\s]?oriented\s+programming)\b/i;
+// This proof source is Python-specific. "Computer science", "algorithms",
+// or generic programming constructs do not prove that a course uses Python
+// (quantum computing exposed that false assumption in a real Algi ZIP).
+const PYTHON_COURSE_CONTEXT_RE = /\bpython\b/i;
 const MUSIC_INTERVAL_COURSE_CONTEXT_RE =
   /(?=.*\b(?:music(?:al)?(?:\s+theory)?|aural\s+skills?|ear\s+training|pitch|semitones?|notation)\b)(?=.*\bintervals?\b)/i;
 

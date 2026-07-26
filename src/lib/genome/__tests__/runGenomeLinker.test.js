@@ -102,6 +102,42 @@ describe('runGenomeLinker', () => {
     expect(result.telemetry.hitRate).toBe(0.5);
   });
 
+  it('rejects exact aliases from shards retained by an earlier course', () => {
+    const library = createKernelLibrary({ storage: memoryStorage() });
+    library.addKernel({
+      ...ELASTICITY,
+      id: 'geo/geologic-time',
+      term: 'Geologic time and relative dating',
+      aliases: ['superposition', 'superposition and measurement'],
+    });
+    library.addKernel({
+      ...ELASTICITY,
+      id: 'physics/dc-circuits',
+      term: 'DC circuits',
+      aliases: ['quantum gates and circuits'],
+    });
+    const quantumCourse = {
+      courseName: 'Introduction to Quantum Computing',
+      lessons: [
+        { title: 'Lesson 1: Superposition and measurement', sections: [{ topicSection: 'Superposition' }] },
+        { title: 'Lesson 2: Quantum gates and circuits', sections: [{ topicSection: 'Quantum gates' }] },
+      ],
+    };
+
+    const result = runGenomeLinker({
+      courseMap: quantumCourse,
+      lessonIndices: [0, 1],
+      library,
+      itemPlan,
+      allowedDisciplines: ['cs'],
+    });
+
+    expect(result.lessonContent).toEqual({});
+    expect(result.missingIndices).toEqual([0, 1]);
+    expect(result.telemetry.disciplineRejects).toBe(2);
+    expect(describeGenomeLinkTelemetry(result.telemetry, 2)).toContain('2 cross-discipline links rejected');
+  });
+
   it('preserves verified genome URLs and licenses in lesson provenance', () => {
     const library = createKernelLibrary({ storage: memoryStorage() });
     library.addKernel({ ...ELASTICITY, license: 'CC BY 4.0', attribution: ['OpenStax'] });

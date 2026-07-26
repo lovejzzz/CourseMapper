@@ -116,7 +116,7 @@ describe('v0.15.134 lesson plan texture variation', () => {
     expect(
       count(
         text,
-        /lesson evidence changed the work|evidence shifted the choice|evidence behind the changed decision|evidence that changed their next step/gi,
+        /lesson evidence changed (?:the work|it)|evidence shifted the choice|evidence behind the changed decision|evidence that changed their next step/gi,
       ),
     ).toBeGreaterThanOrEqual(UX_TOPICS.length);
   });

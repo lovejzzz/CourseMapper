@@ -229,7 +229,13 @@
       "id": "bizethics/harm-principle",
       "rev": 1,
       "term": "Harm principle",
-      "aliases": ["utilitarianism", "consequentialism", "utilitarian reasoning", "major ethical frameworks", "ethical frameworks"],
+      "aliases": [
+        "utilitarianism",
+        "consequentialism",
+        "utilitarian reasoning",
+        "major ethical frameworks",
+        "ethical frameworks"
+      ],
       "tags": ["frameworks", "consequences", "liberty"],
       "level": "intro",
       "difficulty": 3,

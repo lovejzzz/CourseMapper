@@ -1020,10 +1020,13 @@ describe('Pass A skeleton contract (B1)', () => {
 
     const wireMap = buildNativeWireMap(skeleton);
     expect(wireMap.lessons.map((lesson) => lesson.sections[0].weeklyAssessments?.[0])).toEqual([
-      'Electric charge analysis (34%)',
-      'Electric fields application (33%)',
-      "Gauss's law comparison (33%)",
+      'Evidence explanation: Electric charge',
+      'Worked example: Electric fields',
+      "Course synthesis: Gauss's law",
     ]);
+    expect(wireMap.lessons.map((lesson) => lesson.sections[0].weeklyAssessments?.[0]).join(' ')).not.toMatch(
+      /\(\d+%\)/,
+    );
   });
 
   it('splits fused weighted assessment lists, rejects unsupported parts, and restores the registered midterm exam', () => {

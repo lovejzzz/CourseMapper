@@ -32,6 +32,7 @@ import {
   SCION_LESSON_KERNEL_SYNTHESIS_PROMPT_PROTOCOL,
 } from './scionAdapterTaskScope';
 import { experientialLessonIds } from './experientialActivityContract';
+import { isAlgiModel } from './algiIdentity';
 
 const UNSAFE_ADAPTER_STAGE_ISSUE = /(?:^|:)(?:invalid-json|missing-lesson|facts-count|duplicate-facts|fact-\d+:)/;
 const GROUNDED_ADAPTER_OBJECTIVE =
@@ -296,6 +297,17 @@ export async function runScionPasses({
   runtimeRoutes = [],
   onResolvedPrompt,
 }) {
+  if (isAlgiModel(modelId)) {
+    recordEvent?.({
+      type: 'pipelineDecision',
+      stage: 'algiAdmissionStage',
+      label: 'Algi admission boundary',
+      detail: `${expectedLessonIds.length} composed lesson${expectedLessonIds.length === 1 ? '' : 's'} routed to canonical per-atom parser and compiler gates · no model repair`,
+      featureId: 'blueprintEnrichment',
+      task: 'blueprintEnrichment',
+    });
+    return rawText;
+  }
   if (!scionPassesEnabled()) return rawText;
   try {
     return await applyPasses();

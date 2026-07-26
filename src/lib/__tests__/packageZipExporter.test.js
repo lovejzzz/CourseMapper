@@ -145,6 +145,107 @@ describe('packageZipExporter', () => {
     });
   });
 
+  it('records Algi as a no-inference compiler instead of mislabeling it as Scion', async () => {
+    const result = await buildCourseMaterialsZip({
+      courseMap: makeCourseMap('Algi Manifest Course'),
+      featureIds: ['courseMap'],
+      pipelineState: {
+        knowledgeBackbone: '2/2 lessons source-researched · 4 cited open resources (algi-research: 4)',
+      },
+      quality: {
+        digest: {
+          appVersion: APP_VERSION,
+          runId: 'run-algi',
+          run: { provider: 'public', models: ['algi-v0'], providerCalls: 0 },
+          gates: { exportStatus: 'passed', exportChecked: 1, exportFailed: 0, exportWarnings: 0 },
+        },
+      },
+    });
+
+    expect(result.manifest.generator).toMatchObject({
+      provider: 'public',
+      models: ['algi-v0'],
+      algi: {
+        product: 'Algi V0',
+        architecture: 'deterministic source-and-genome course compiler',
+        modelInference: false,
+        modelWeights: false,
+        localCompiler: true,
+        sourceResearch: true,
+      },
+    });
+    expect(result.manifest.generator.scion).toBeUndefined();
+  });
+
+  it('keeps Algi research lesson references in the exported source receipt', async () => {
+    const courseMap = makeCourseMap('Algi Source Receipt Course');
+    const courseGraph = {
+      version: 1,
+      course: { name: 'Algi Source Receipt Course' },
+      concepts: [{ id: 'c1', term: 'Quantum gate' }],
+      outcomes: [],
+      assessments: [],
+      sessions: [
+        {
+          id: 's1',
+          number: 1,
+          title: 'Quantum gates',
+          sections: [{ id: 'sec1', topic: 'Quantum gates', conceptRefs: ['c1'], resourceRefs: ['kr1'] }],
+        },
+      ],
+      resources: [
+        {
+          id: 'kr1',
+          citation: 'Quantum logic gate (open encyclopedia)',
+          origin: 'algi-research',
+          provider: 'wikipedia',
+          url: 'https://en.wikipedia.org/wiki/Quantum_logic_gate',
+          license: 'CC BY-SA 4.0',
+          attribution: 'Wikipedia contributors',
+          revisionId: '202',
+          sessionRefs: ['s1'],
+        },
+      ],
+      readings: [],
+      edges: {
+        teaches: [{ from: 's1', to: 'c1' }],
+        assesses: [],
+        requires: [],
+        practicedIn: [],
+        instanceOf: [],
+        genomeLink: [],
+      },
+    };
+    const result = await buildCourseMaterialsZip({
+      courseMap,
+      courseGraph,
+      featureIds: ['courseMap'],
+      pipelineState: {
+        knowledgeBackbone: '1/1 lessons source-researched · 1 cited open resource (algi-research: 1)',
+      },
+      quality: {
+        digest: {
+          appVersion: APP_VERSION,
+          runId: 'run-algi-source-receipt',
+          run: { provider: 'public', models: ['algi-v0'], providerCalls: 0 },
+          gates: { exportStatus: 'passed', exportChecked: 1, exportFailed: 0, exportWarnings: 0 },
+        },
+      },
+    });
+
+    expect(result.manifest.sourceLedger).toEqual([
+      expect.objectContaining({
+        id: 'kr1',
+        origin: 'algi-research',
+        provider: 'wikipedia',
+        revisionId: '202',
+        sessionRefs: ['s1'],
+      }),
+    ]);
+    const zip = await JSZip.loadAsync(await result.blob.arrayBuffer());
+    expect(await zip.file('SOURCE_REPORT.md').async('string')).toContain('sessions=s1');
+  });
+
   it('builds a ZIP with selected files and a package manifest', async () => {
     const result = await buildCourseMaterialsZip({
       courseMap: makeCourseMap('Export/Smoke: Course'),
@@ -2350,6 +2451,39 @@ describe('packageZipExporter', () => {
       pipelineState: {
         enrichment: 'ran (1 lesson enriched)',
         genomeLinker: '0 genome + 0 cached of 1 lessons (0 concepts, 0 citations, 0 bridges)',
+        knowledgeBackbone: '0/1 lessons genome-linked · 0 cited open resources',
+      },
+      quality: false,
+    });
+
+    const zip = await JSZip.loadAsync(await result.blob.arrayBuffer());
+    const manifest = JSON.parse(await zip.file('PACKAGE_MANIFEST.json').async('string'));
+    const allRows = [...(manifest.sourceLedger || []), ...(manifest.sourceReviewRows || [])];
+    expect(allRows.some((row) => String(row.id || '').startsWith('python-openstax-'))).toBe(false);
+    expect(allRows.some((row) => /Introduction to Python Programming/i.test(String(row.title || '')))).toBe(false);
+  });
+
+  it('never assumes a quantum-computing course uses Python', async () => {
+    const courseMap = makeCourseMap('Introduction to Quantum Computing');
+    courseMap.lessons = [
+      {
+        title: 'Lesson 1: Quantum gates and algorithms',
+        sections: [
+          {
+            topicSection: 'Quantum circuits',
+            learningObjectives: 'Analyze a quantum algorithm and compare circuit outcomes.',
+          },
+        ],
+      },
+    ];
+    const result = await buildCourseMaterialsZip({
+      courseMap,
+      deliverables: {},
+      featureIds: ['courseMap'],
+      courseGraph: { sessions: [], resources: [], readings: [] },
+      pipelineState: {
+        enrichment: 'ran (1 lesson enriched)',
+        courseMap: 'algi-v0 · typed skeleton',
         knowledgeBackbone: '0/1 lessons genome-linked · 0 cited open resources',
       },
       quality: false,

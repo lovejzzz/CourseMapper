@@ -1,4 +1,5 @@
 import { assessCourseIRDirectAuthoring, courseIRToCourseGraph, takeCourseIR, validateCourseIR } from './courseIR';
+import { isAlgiModel } from './algiIdentity';
 
 export async function tryAuthorDirectCourseIR({ expectedLessonCount, streamProvider, recordApiCallEvent } = {}) {
   if (!expectedLessonCount || !streamProvider) return { ok: false, skipped: true };
@@ -237,11 +238,14 @@ export async function runNativeAuthoring(input = [], output = []) {
   // harness. Skip the larger whole-CourseIR experiment and go straight to
   // that measured one-call structure boundary.
   if (provider === 'public') {
+    const algiRoute = isAlgiModel(modelId);
     recordApiCallEvent?.({
       type: 'pipelineDecision',
       stage: 'courseIRAuthoring',
       label: 'Native authoring plan',
-      detail: 'public Scion · one typed skeleton call before lesson-kernel authoring',
+      detail: algiRoute
+        ? 'Algi V0 · deterministic typed skeleton before source-and-genome composition'
+        : 'public Scion · one typed skeleton call before lesson-kernel authoring',
     });
   }
 

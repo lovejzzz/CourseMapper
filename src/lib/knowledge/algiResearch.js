@@ -53,9 +53,52 @@ export const RELEVANCE_FLOOR = 0.22;
 export const LEXICAL_FLOOR = 0.28;
 
 const STOPWORDS = new Set([
-  'a','an','and','are','as','at','be','by','for','from','has','how','in','into','is','it','its','of','on','or',
-  'that','the','their','they','this','to','was','were','what','when','which','who','why','with','you','your',
-  'course','lesson','week','unit','introduction','intro','overview','basics','fundamentals','principles',
+  'a',
+  'an',
+  'and',
+  'are',
+  'as',
+  'at',
+  'be',
+  'by',
+  'for',
+  'from',
+  'has',
+  'how',
+  'in',
+  'into',
+  'is',
+  'it',
+  'its',
+  'of',
+  'on',
+  'or',
+  'that',
+  'the',
+  'their',
+  'they',
+  'this',
+  'to',
+  'was',
+  'were',
+  'what',
+  'when',
+  'which',
+  'who',
+  'why',
+  'with',
+  'you',
+  'your',
+  'course',
+  'lesson',
+  'week',
+  'unit',
+  'introduction',
+  'intro',
+  'overview',
+  'basics',
+  'fundamentals',
+  'principles',
 ]);
 
 /**
@@ -65,7 +108,16 @@ const STOPWORDS = new Set([
  * this problem, but the browser runs the lexical path.
  */
 function stem(token) {
-  return token
+  const normalized = String(token || '').toLowerCase();
+  // Scientific course language changes form aggressively while preserving the
+  // concept family: microbial / microbiology / microbiological, pathogen /
+  // pathogenic, and bio-/phyto-/mycoremediation. Treating those as unrelated
+  // made exact environmental-microbiology sources fail the lexical path even
+  // when their titles and definitions named the right mechanism.
+  if (/^microbi(?:al|olog|ome|ota)/.test(normalized)) return 'microbi';
+  if (/^pathogen/.test(normalized)) return 'pathogen';
+  if (/(?:^|[a-z])remediation$/.test(normalized)) return 'remediation';
+  return normalized
     .replace(/(?:ies)$/, 'y')
     .replace(/(?:sses|shes|ches|xes)$/, '')
     .replace(/(?:ing|ed|es|s)$/, '')
@@ -82,6 +134,111 @@ export function contentTokens(text = '') {
     .filter((token) => token.length >= 3);
 }
 
+/**
+ * Preserve both sides of a compound lesson title in a single search request.
+ * MediaWiki treats "Qubits and quantum states" as a loose bag of words and
+ * ranks hardware pages above Quantum state. Quoted OR clauses retrieve the two
+ * named concepts without adding another network round trip; relevance and
+ * source admission still decide what survives.
+ */
+export function researchQueryForTopic(topic = '', courseContext = '') {
+  const clauses = String(topic)
+    .split(/\s+(?:and|&)\s+/i)
+    .map((clause) => clause.replace(/"/g, '').trim())
+    .filter(Boolean);
+  if (clauses.length !== 2 || clauses.some((clause) => contentTokens(clause).length === 0)) return String(topic);
+  const domainToken = contentTokens(courseContext)[0] || '';
+  const alternatives = clauses.map((clause) => `"${clause}"`).join(' OR ');
+  return domainToken ? `${domainToken} (${alternatives})` : alternatives;
+}
+
+/**
+ * Candidate pages MediaWiki can resolve directly in one batched title lookup.
+ * Compound lesson names contribute both named sides, so an exact-title pass
+ * can find Qubit and Quantum state without paying for two search requests.
+ */
+export function directResearchTitles(topic = '', courseContext = '') {
+  const normalized = String(topic)
+    .replace(/^(?:an?\s+)?(?:introduction|overview|foundations?|fundamentals?)\s+(?:to|of)\s+/i, '')
+    .trim();
+  if (!normalized) return [];
+  const clauses = normalized
+    .split(/\s+(?:and|&)\s+/i)
+    .map((clause) => clause.trim())
+    .filter((clause) => contentTokens(clause).length > 0);
+  const normalizedWords = normalized.split(/\s+/).filter(Boolean);
+  // Three-plus-word pedagogical labels often wrap a canonical concept:
+  // “microbial risk assessment” should try both “risk assessment” and
+  // “microbial risk” in the same exact-title batch before spending a search.
+  const phraseWindows =
+    clauses.length === 1 && normalizedWords.length >= 3
+      ? [normalizedWords.slice(0, 2).join(' '), normalizedWords.slice(-2).join(' ')]
+      : [];
+  // Course authors name the causal agent (“waterborne pathogens”), while an
+  // encyclopedia commonly titles the same coverage area by outcome
+  // (“Waterborne disease”). Admit that narrow modifier-preserving alias
+  // without turning arbitrary related search results into exact matches.
+  const pathogenOutcomeAliases =
+    normalizedWords.length === 2 && /^pathogens?$/i.test(normalizedWords[1])
+      ? [`${normalizedWords[0]} disease`, `${normalizedWords[0]} diseases`]
+      : [];
+  // Canonical concept families for topics whose encyclopedia page naturally
+  // teaches through named sub-concepts. These are title lookups in the same
+  // batched request, not hard-coded facts: every returned page still has to
+  // pass entity rejection, topic/definition relevance, source admission, and
+  // the compiler's atom gates. The expansion replaces the former accidental
+  // strategy of borrowing any same-course page merely because it contained
+  // "microbial".
+  const conceptFamilyTitles = (() => {
+    if (/^biofilms?$/i.test(normalized)) {
+      return [
+        'Biofilm',
+        'Biofilm matrix',
+        'Microbial mat',
+        'Phototrophic biofilm',
+        'Extracellular polymeric substance',
+      ];
+    }
+    if (/^(?:bio)?remediation$/i.test(normalized)) {
+      return ['Bioremediation', 'Phytoremediation', 'Mycoremediation', 'Biodegradation'];
+    }
+    return [];
+  })();
+  const named = [
+    normalized,
+    ...(clauses.length === 2 ? clauses : []),
+    ...phraseWindows,
+    ...pathogenOutcomeAliases,
+    ...conceptFamilyTitles,
+  ];
+  const domain = contentTokens(courseContext)[0] || '';
+  const qualified = domain
+    ? clauses
+        .filter((clause) => !contentTokens(clause).includes(domain))
+        .map((clause) => `${domain.charAt(0).toUpperCase()}${domain.slice(1)} ${clause}`)
+    : [];
+  return [...new Set([...named, ...qualified])].slice(0, 8);
+}
+
+/**
+ * CirrusSearch accepts OR queries. Expanding compound topics into their named
+ * sides gives a grouped course request useful coverage instead of a single
+ * broad page for the whole pedagogical phrase.
+ */
+export function groupedResearchQuery(topics = []) {
+  const clauses = [
+    ...new Set(
+      topics.flatMap((topic) => {
+        const titles = directResearchTitles(topic);
+        return titles.length > 1 ? titles.slice(1) : titles;
+      }),
+    ),
+  ];
+  return clauses
+    .map((clause) => (/\s/.test(clause) ? `"${clause.replace(/"/g, '')}"` : clause.replace(/"/g, '')))
+    .join(' OR ');
+}
+
 /** Jaccard-style overlap, used when no embedder is available. */
 export function lexicalRelevance(topic, candidateText) {
   const a = new Set(contentTokens(topic));
@@ -92,10 +249,27 @@ export function lexicalRelevance(topic, candidateText) {
   return shared / a.size;
 }
 
+function containsTokenSequence(needle, haystack) {
+  if (needle.length === 0 || haystack.length < needle.length) return false;
+  for (let start = 0; start <= haystack.length - needle.length; start += 1) {
+    if (needle.every((token, offset) => haystack[start + offset] === token)) return true;
+  }
+  return false;
+}
+
 export function cosine(a = [], b = []) {
-  let sum = 0;
-  for (let i = 0; i < a.length && i < b.length; i += 1) sum += a[i] * b[i];
-  return sum;
+  let dot = 0;
+  let normA = 0;
+  let normB = 0;
+  for (let i = 0; i < a.length && i < b.length; i += 1) {
+    const left = Number(a[i]) || 0;
+    const right = Number(b[i]) || 0;
+    dot += left * right;
+    normA += left * left;
+    normB += right * right;
+  }
+  if (normA === 0 || normB === 0) return 0;
+  return dot / (Math.sqrt(normA) * Math.sqrt(normB));
 }
 
 /* ------------------------------------------------------------------ *
@@ -126,15 +300,27 @@ export function sentencesFrom(extract = '') {
   return out;
 }
 
-const EXPLANATORY = /\b(is|are|refers to|means|consists of|involves|describes|occurs|because|when|if|therefore|results? in|allows?|requires?)\b/i;
+const EXPLANATORY =
+  /\b(is|are|refers to|means|consists of|involves|describes|occurs|because|when|if|therefore|results? in|allows?|requires?)\b/i;
 /** Narration, not instruction: origin stories date a concept without teaching it. */
-const NARRATIVE = /\b(coined|named after|founded|born|died|in \d{4}|since \d{4}|century|first (?:used|described|published)|history of)\b/i;
+const NARRATIVE =
+  /\b(coined|named after|founded|born|died|in \d{4}|since \d{4}|century|first (?:used|described|published)|history of)\b/i;
+/**
+ * True but instructionally thin encyclopedia lead-ins. They advertise a
+ * topic's importance without explaining the mechanism, distinction, or
+ * evidence a student could reason with. Before this penalty, a quantum lesson
+ * promoted "at the heart of the disparity..." over concrete definitions and
+ * examples, then repeated it through slides and quiz keys.
+ */
+const TOPIC_PROMOTION =
+  /\b(?:at the heart of|active area of (?:current )?research|important theoretical model|widely studied topic|subject of considerable research)\b/i;
 
 export function explanatoryScore(sentence, head = '') {
   let score = 0;
   if (EXPLANATORY.test(sentence)) score += 2;
   if (head && sentence.toLowerCase().includes(head.toLowerCase())) score += 2;
   if (NARRATIVE.test(sentence)) score -= 3;
+  if (TOPIC_PROMOTION.test(sentence)) score -= 4;
   if (/\(|\)|"/.test(sentence)) score -= 1;
   if (sentence.length > 90 && sentence.length < 240) score += 1;
   return score;
@@ -155,8 +341,8 @@ export function explanatoryScore(sentence, head = '') {
 // something to teach. Roles are listed explicitly since a bio's lead sentence
 // is "X is an American computer scientist", not "X is a company".
 const PERSON_ROLE =
-  '(?:researcher|scientist|professor|scholar|academic|engineer|designer|architect|artist|author|writer|philosopher|economist|psychologist|sociologist|historian|journalist|executive|physician|lawyer|teacher|educator|mathematician|programmer|entrepreneur|activist|critic|producer|director)';
-const ENTITY_NOUN = `(?:company|corporation|firm|band|film|movie|album|song|single|novel|political party|party|magazine|newspaper|television series|TV series|video game|organization|organisation|university|college|city|town|village|river|mountain|footballer|singer|actor|actress|politician|businessman|businesswoman|athlete|musician|${PERSON_ROLE.slice(3, -1)})`;
+  '(?:researcher|scientist|bioscientist|biologist|microbiologist|ecologist|professor|scholar|academic|engineer|designer|architect|artist|author|writer|philosopher|economist|psychologist|sociologist|historian|journalist|executive|physician|lawyer|teacher|educator|mathematician|programmer|entrepreneur|activist|critic|producer|director)';
+const ENTITY_NOUN = `(?:company|corporation|firm|band|film|movie|album|song|single|novel|political party|party|magazine|newspaper|journal|television series|TV series|video game|organization|organisation|society|association|institute|council|center|centre|university|college|city|town|village|river|mountain|footballer|singer|actor|actress|politician|businessman|businesswoman|athlete|musician|${PERSON_ROLE.slice(3, -1)})`;
 // Any parenthetical CONTAINING an entity word — real titles read "(2023 TV
 // series)", not "(TV series)", so an exact-content match caught nothing.
 const ENTITY_PARENTHETICAL = new RegExp(`\\([^)]*\\b${ENTITY_NOUN}\\b[^)]*\\)`, 'i');
@@ -172,7 +358,11 @@ export function looksLikeEntity(title = '', definition = '') {
   // "(born 1958)" and "is an American computer scientist" — the two shapes a
   // Wikipedia biography opens with, neither caught by the noun list alone.
   if (/\(\s*born\b/i.test(definition)) return true;
-  if (new RegExp(`\\b(?:is|was)\\s+(?:a|an)\\s+(?:[A-Z][\\w'-]+|[\\w'-]+)\\s+(?:[\\w'-]+\\s+){0,2}${PERSON_ROLE}\\b`).test(definition)) {
+  if (
+    new RegExp(
+      `\\b(?:is|was)\\s+(?:a|an)\\s+(?:[A-Z][\\w'-]+|[\\w'-]+)\\s+(?:[\\w'-]+\\s+){0,2}${PERSON_ROLE}\\b`,
+    ).test(definition)
+  ) {
     return true;
   }
   return false;
@@ -180,10 +370,12 @@ export function looksLikeEntity(title = '', definition = '') {
 
 /** The head noun of an article title, minus any disambiguation parenthetical. */
 export function headOf(title = '') {
-  return String(title).replace(/\s*\([^)]*\)\s*$/, '').trim();
+  return String(title)
+    .replace(/\s*\([^)]*\)\s*$/, '')
+    .trim();
 }
 
-const COPULA = /\b(is|are|refers to|is defined as|describes|means|denotes)\b/i;
+const COPULA = /\b(is|are|refers to|is defined as|describes|means|denotes|comprises)\b/i;
 
 /**
  * The lead sentence of an encyclopedia article is nearly always the definition,
@@ -193,16 +385,25 @@ const COPULA = /\b(is|are|refers to|is defined as|describes|means|denotes)\b/i;
  */
 export function definitionSentence(sentences, head) {
   const term = headOf(head).toLowerCase();
+  const termTokens = contentTokens(term);
   const ranked = [];
   for (let index = 0; index < Math.min(sentences.length, 12); index += 1) {
     const sentence = sentences[index];
     const at = sentence.toLowerCase().indexOf(term);
+    // Wikipedia often introduces a subject after a short field qualifier and
+    // changes singular/plural or possessive spelling: "In quantum information
+    // science, the Bell's states ... are". Compare normalized leading tokens
+    // after that qualifier, while keeping the same subject-position rule.
+    const normalizedLead = sentence.replace(/^(?:in|within)\s+[^,]{1,70},\s*/i, '').replace(/^the\s+/i, '');
+    const tokenSubjectMatch =
+      termTokens.length > 0 &&
+      containsTokenSequence(termTokens, contentTokens(normalizedLead).slice(0, termTokens.length + 1));
     // The term must be the SUBJECT, not merely present. At 60 chars a mention
     // buried in a subordinate clause ("Some scholars argue that the wider
     // literature on deontology is inconsistent") still qualified as a definition.
-    if (at < 0 || at > 40) continue;
+    if ((at < 0 || at > 40) && !tokenSubjectMatch) continue;
     if (!COPULA.test(sentence)) continue;
-    ranked.push({ sentence, score: -index * 2 - at / 20 });
+    ranked.push({ sentence, score: -index * 2 - Math.max(0, at) / 20 });
   }
   ranked.sort((left, right) => right.score - left.score);
   return ranked[0]?.sentence || null;
@@ -231,10 +432,40 @@ export function exampleSentences(sentences, head) {
  * read it: the article says these two are confused, so students confuse them.
  */
 export function misconceptionFromContrast(sentence, term) {
+  const target = contrastTargetFromSentence(sentence);
   return {
-    text: `Students treat ${term} as interchangeable with what this source explicitly distinguishes it from.`,
+    text: target
+      ? `${term} and ${target} are interchangeable descriptions of the same concept.`
+      : `Students stretch ${term} beyond the boundary this source draws around it.`,
     corrective: sentence,
   };
+}
+
+/**
+ * Recover the concept on the other side of an explicit source contrast. Keep
+ * only a compact noun phrase; copying an entire subordinate clause would move
+ * the clipping defect into the misconception itself.
+ */
+export function contrastTargetFromSentence(sentence = '') {
+  const text = String(sentence).replace(/\s+/g, ' ').trim();
+  const match = text.match(
+    /(?:not to be confused with|often confused with|commonly confused with|should not be confused with|in contrast to|unlike|differs? from|rather than|as opposed to|is not the same as|does not (?:mean|imply|require))\s+(?:the\s+)?([^,.;:]{3,100})/i,
+  );
+  if (!match?.[1]) return '';
+  const words = match[1]
+    .replace(/\([^)]*\)/g, ' ')
+    .replace(/\b(?:because|although|while|whereas|when|which|that)\b[\s\S]*$/i, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .split(' ')
+    .slice(0, 10);
+  while (words.length > 0 && /^(?:a|an|and|as|at|by|for|from|in|of|on|or|the|to|with)$/i.test(words.at(-1))) {
+    words.pop();
+  }
+  return words
+    .join(' ')
+    .replace(/[^\p{L}\p{N})\]]+$/u, '')
+    .trim();
 }
 
 /**
@@ -260,29 +491,134 @@ export function distractorsFromContrast(sentences, term) {
  * ------------------------------------------------------------------ */
 
 export function buildWikipediaProvider(httpJson) {
+  const recordsFromQuery = (data) => {
+    const records = {};
+    for (const page of Object.values(data?.query?.pages || {})) {
+      const title = String(page?.title || '').trim();
+      if (!title || !page?.extract) continue;
+      records[title] = {
+        title,
+        extract: page.extract,
+        sourceUrl: page.fullurl || `https://en.wikipedia.org/wiki/${encodeURIComponent(title.replace(/\s+/g, '_'))}`,
+        revisionId: page.revisions?.[0]?.revid || null,
+        revisionTimestamp: page.revisions?.[0]?.timestamp || '',
+      };
+    }
+    return records;
+  };
+  const loadArticleChunk = async (unique) => {
+    // MediaWiki's extracts module defaults to ONE page even when `titles`
+    // contains a batch. Without exlimit=max the request looked batched in the
+    // network panel but only the final candidate carried text, leaving most
+    // researched lessons with zero usable concepts.
+    // `exintro=1` is essential here. MediaWiki forces whole-article extracts
+    // back to exlimit=1, but allows intro extracts to be batched. The lead is
+    // also the strongest definition/evidence region and avoids downloading
+    // several full encyclopedia articles for one lesson.
+    const url = `${WIKI_API}?action=query&prop=extracts%7Cinfo%7Crevisions&explaintext=1&exintro=1&exsectionformat=plain&exlimit=max&inprop=url&rvprop=ids%7Ctimestamp&redirects=1&titles=${encodeURIComponent(unique.join('|'))}&format=json&origin=*`;
+    const data = await httpJson(url);
+    const records = recordsFromQuery(data);
+    const aliases = new Map();
+    for (const normalized of data?.query?.normalized || []) {
+      if (normalized?.from && normalized?.to) aliases.set(String(normalized.from), String(normalized.to));
+    }
+    for (const redirect of data?.query?.redirects || []) {
+      if (redirect?.from && redirect?.to) aliases.set(String(redirect.from), String(redirect.to));
+    }
+    const resolveAlias = (title) => {
+      let current = title;
+      const seen = new Set();
+      while (aliases.has(current) && !seen.has(current)) {
+        seen.add(current);
+        current = aliases.get(current);
+      }
+      return current;
+    };
+    for (const requested of unique) {
+      const resolved = resolveAlias(requested);
+      if (!records[requested] && records[resolved]) records[requested] = records[resolved];
+    }
+    return records;
+  };
+  const loadArticles = async (titles) => {
+    const unique = [...new Set((titles || []).map((title) => String(title || '').trim()).filter(Boolean))];
+    if (unique.length === 0) return {};
+    const records = {};
+    // Anonymous MediaWiki clients may request up to 50 page titles at once.
+    // Chunking here keeps a full 15-session course bounded without truncating
+    // the candidate pool to whichever twelve titles happened to come first.
+    for (let start = 0; start < unique.length; start += 50) {
+      Object.assign(records, await loadArticleChunk(unique.slice(start, start + 50)));
+    }
+    return records;
+  };
   return {
     async search(topic, limit = 3) {
       const url = `${WIKI_API}?action=query&list=search&srsearch=${encodeURIComponent(topic)}&srlimit=${limit}&format=json&origin=*`;
       const data = await httpJson(url);
       return (data?.query?.search || []).map((hit) => hit.title).filter(Boolean);
     },
-    async article(title) {
-      const url = `${WIKI_API}?action=query&prop=extracts&explaintext=1&exsectionformat=plain&titles=${encodeURIComponent(title)}&format=json&origin=*`;
-      const data = await httpJson(url);
-      const page = Object.values(data?.query?.pages || {})[0];
-      return page?.extract || '';
+    async searchArticles(topic, limit = 12) {
+      // Generator search returns ranked titles and their lead extracts in the
+      // SAME request. This removes the last search→article fan-out that could
+      // put a six-lesson course over Wikipedia's anonymous burst limit.
+      const url = `${WIKI_API}?action=query&generator=search&gsrsearch=${encodeURIComponent(topic)}&gsrlimit=${Math.min(
+        50,
+        Math.max(1, Number(limit) || 12),
+      )}&prop=extracts%7Cinfo%7Crevisions&explaintext=1&exintro=1&exsectionformat=plain&exlimit=max&inprop=url&rvprop=ids%7Ctimestamp&redirects=1&format=json&origin=*`;
+      return recordsFromQuery(await httpJson(url));
     },
+    async article(title) {
+      const records = await loadArticles([title]);
+      return records[title] || Object.values(records)[0] || null;
+    },
+    articles: loadArticles,
     license: 'CC BY-SA 4.0',
-    attributionFor: (title) => `Wikipedia, ${title}`,
+    attributionFor: (title) => `Wikipedia contributors, “${title}”`,
     sourceIdFor: (title) => `wikipedia:${title}`,
   };
+}
+
+async function articleRecords(provider, titles, signal) {
+  if (signal?.aborted) throw signal.reason || Object.assign(new Error('Algi research stopped'), { name: 'AbortError' });
+  if (!Array.isArray(titles) || titles.length === 0) return new Map();
+  if (typeof provider?.articles === 'function') {
+    const records = await provider.articles(titles);
+    return new Map(
+      titles.map((title) => [
+        title,
+        normalizeArticleResult(
+          records?.[title] || Object.values(records || {}).find((entry) => entry?.title === title),
+        ),
+      ]),
+    );
+  }
+  const records = new Map();
+  for (const title of titles) {
+    if (signal?.aborted)
+      throw signal.reason || Object.assign(new Error('Algi research stopped'), { name: 'AbortError' });
+    records.set(title, normalizeArticleResult(await provider.article(title)));
+  }
+  return records;
 }
 
 /* ------------------------------------------------------------------ *
  * Extraction + admission
  * ------------------------------------------------------------------ */
 
-export function buildKernelFromArticle({ topic, title, extract, provider, factCount = 4 }) {
+function normalizeArticleResult(article) {
+  if (typeof article === 'string') return { extract: article };
+  if (!article || typeof article !== 'object') return { extract: '' };
+  return {
+    title: String(article.title || ''),
+    extract: String(article.extract || ''),
+    sourceUrl: String(article.sourceUrl || ''),
+    revisionId: article.revisionId || null,
+    revisionTimestamp: String(article.revisionTimestamp || ''),
+  };
+}
+
+export function buildKernelFromArticle({ topic, title, extract, provider, factCount = 4, sourceMeta = {} }) {
   const sentences = sentencesFrom(extract);
   if (sentences.length === 0) return null;
   const head = headOf(title);
@@ -296,7 +632,12 @@ export function buildKernelFromArticle({ topic, title, extract, provider, factCo
     .sort((left, right) => explanatoryScore(right, head) - explanatoryScore(left, head))
     .filter((sentence) => explanatoryScore(sentence, head) > 0)
     .slice(0, factCount);
-  if (facts.length < 2) return null;
+  // One strong explanatory fact plus the anchored definition is enough for a
+  // candidate. Course-level composition combines three concepts and still
+  // requires a five-fact ledger; rejecting a short but authoritative lead
+  // here made Waterborne disease disappear before that stronger aggregate gate
+  // could judge it.
+  if (facts.length < 1) return null;
 
   const src = provider.sourceIdFor(title);
   const anchor = (quote) => ({ src, loc: title, quote });
@@ -318,7 +659,10 @@ export function buildKernelFromArticle({ topic, title, extract, provider, factCo
   return {
     snapshot: { [src]: String(extract).replace(/\s+/g, ' ') },
     kernel: {
-      id: `researched/${head.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`,
+      id: `researched/${head
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '')}`,
       rev: 1,
       term: head,
       aliases: [topic].filter((alias) => alias && alias.toLowerCase() !== head.toLowerCase()),
@@ -353,7 +697,16 @@ export function buildKernelFromArticle({ topic, title, extract, provider, factCo
       freshness: { checked: new Date().toISOString().slice(0, 10) },
       license: provider.license,
       attribution: provider.attributionFor(title),
-      provenance: { origin: RESEARCH_ORIGIN, topic, title },
+      provenance: {
+        origin: RESEARCH_ORIGIN,
+        topic,
+        title,
+        sourceUrl:
+          sourceMeta.sourceUrl ||
+          `https://en.wikipedia.org/wiki/${encodeURIComponent(String(title || '').replace(/\s+/g, '_'))}`,
+        ...(sourceMeta.revisionId ? { revisionId: sourceMeta.revisionId } : {}),
+        ...(sourceMeta.revisionTimestamp ? { revisionTimestamp: sourceMeta.revisionTimestamp } : {}),
+      },
     },
   };
 }
@@ -369,36 +722,37 @@ export function buildKernelFromArticle({ topic, title, extract, provider, factCo
  */
 export async function researchConcept(
   topic,
-  { provider, embed = null, candidates = 3, floor = null, courseContext = '' } = {},
+  { provider, embed = null, candidates = 3, floor = null, courseContext = '', signal } = {},
 ) {
   if (!topic || !provider) return { ok: false, reason: 'no-topic-or-provider' };
 
-  // A lesson title is a pedagogical phrase, not an encyclopedia entity: "the
-  // firm and its publics" is how an instructor names stakeholder theory and is
-  // indexed nowhere. Searched bare, it returned SOM (architectural firm). The
-  // course's own subject is the disambiguator that was already on hand, so the
-  // topic is searched WITH it and candidates are pooled across both queries.
-  const queries = courseContext ? [`${courseContext} ${topic}`, topic] : [topic];
-  const titles = [];
-  for (const query of queries) {
-    for (const title of await provider.search(query, candidates)) {
-      if (!titles.includes(title)) titles.push(title);
-    }
+  // Search the specific lesson phrase first. The course subject is a fallback
+  // disambiguator for pedagogical titles such as "the firm and its publics"
+  // that are not encyclopedia entities. Leading with the whole course title
+  // buried exact compound concepts: "Qubits and quantum states" returned only
+  // broad quantum-computing pages instead of Qubit.
+  if (signal?.aborted) throw signal.reason || Object.assign(new Error('Algi research stopped'), { name: 'AbortError' });
+  let titles = [...new Set(await provider.search(researchQueryForTopic(topic, courseContext), candidates))];
+  if (titles.length === 0 && courseContext) {
+    titles = [...new Set(await provider.search(`${courseContext} ${topic}`, candidates))];
   }
   if (titles.length === 0) return { ok: false, reason: 'no-search-results', topic };
 
   const scored = [];
   const rejectedEntities = [];
+  const records = await articleRecords(provider, titles, signal);
   for (const title of titles) {
-    const extract = await provider.article(title);
+    const article = records.get(title) || { extract: '' };
+    const extract = article.extract;
     if (!extract) continue;
-    const built = buildKernelFromArticle({ topic, title, extract, provider });
+    const canonicalTitle = article.title || title;
+    const built = buildKernelFromArticle({ topic, title: canonicalTitle, extract, provider, sourceMeta: article });
     if (!built) continue;
-    if (looksLikeEntity(title, built.kernel.definition.text)) {
-      rejectedEntities.push(title);
+    if (looksLikeEntity(canonicalTitle, built.kernel.definition.text)) {
+      rejectedEntities.push(canonicalTitle);
       continue;
     }
-    scored.push({ title, extract, built });
+    scored.push({ title: canonicalTitle, extract, built });
   }
   if (scored.length === 0) {
     return {
@@ -486,18 +840,54 @@ export function itemStem(term) {
   return `A student is matching each concept in this lesson to the description its source actually gives, rather than to a neighbouring idea that sounds similar. Which statement describes ${term} as the source defines it?`;
 }
 
+/**
+ * A 4–10 word option must not be a raw ten-word slice of a definition. Extract
+ * the predicate up to a real clause boundary so the quiz shows "A basic unit
+ * of quantum information", not "a qubit … is."
+ */
+export function conciseDefinitionOption(kernel = {}) {
+  const term = String(kernel.term || '').trim();
+  const definition = String(kernel.definition?.text || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!term || !definition) return '';
+  const foundAt = definition.toLowerCase().indexOf(term.toLowerCase());
+  const subjectTail = definition.slice(foundAt >= 0 ? foundAt + term.length : 0);
+  const copula = subjectTail.match(/\b(?:is|are|refers to|means|denotes|describes|comprises)\b/i);
+  if (!copula) return '';
+  const predicate = subjectTail
+    .slice(copula.index + copula[0].length)
+    .replace(/\([^)]*\)/g, ' ')
+    .replace(/\s+/g, ' ')
+    .replace(/\s+([,.;:!?])/g, '$1')
+    .trim();
+  const boundedPredicate = predicate.split(
+    /[,;:]|\b(?:that|which|who|whose|where|when|because|although|whereas)\b/i,
+  )[0];
+  const optionSource = boundedPredicate.split(/\s+/).filter(Boolean).length >= 4 ? boundedPredicate : predicate;
+  let words = optionSource.split(' ').filter(Boolean).slice(0, 10);
+  while (words.length > 0 && /^(?:a|an|and|as|at|by|for|from|in|of|on|or|the|to|with)$/i.test(words.at(-1))) {
+    words.pop();
+  }
+  if (words.length < 4) words = [...words, 'in', 'the', 'cited', 'source'].slice(0, 10);
+  if (words.length < 4 || words.length > 10) return '';
+  const option = words.join(' ').replace(/[.!?]+$/, '');
+  return `${option.charAt(0).toUpperCase()}${option.slice(1)}.`;
+}
+
 /** Give a kernel set cross-concept items, using siblings' definitions as distractors. */
 export function backfillMultipleChoice(kernels = []) {
-  if (kernels.length < 4) return kernels;
-  kernels.forEach((kernel, index) => {
-    if (kernel.mcBank.length > 0) return;
+  if (kernels.length < 3) return kernels;
+  kernels.forEach((kernel) => {
     const siblings = kernels.filter((other) => other !== kernel);
-    const picked = [0, 1, 2].map((step) => siblings[(index + step) % siblings.length].definition.text);
-    if (new Set([kernel.definition.text, ...picked]).size !== 4) return;
+    const own = conciseDefinitionOption(kernel);
+    const picked = siblings.slice(0, 3).map(conciseDefinitionOption);
+    while (picked.length < 3) picked.push('A claim absent from the cited lesson sources.');
+    if (!own || picked.some((option) => !option) || new Set([own, ...picked]).size !== 4) return;
     kernel.mcBank = [
       {
         stem: itemStem(kernel.term),
-        options: [kernel.definition.text, ...picked],
+        options: [own, ...picked],
         answerIndex: 0,
         explanationFactRef: 0,
         rationaleRefs: [0],
@@ -519,25 +909,35 @@ export function backfillMultipleChoice(kernels = []) {
  */
 export async function researchLessonKernels(
   topic,
-  { provider, embed = null, want = 4, candidates = 4, floor = null, courseContext = '' } = {},
+  { provider, embed = null, want = 4, candidates = 12, floor = null, courseContext = '', signal } = {},
 ) {
   if (!topic || !provider) return [];
-  const queries = courseContext ? [`${courseContext} ${topic}`, topic] : [topic];
-  const titles = [];
-  for (const query of queries) {
-    for (const title of await provider.search(query, candidates)) {
-      if (!titles.includes(title)) titles.push(title);
-    }
+  if (signal?.aborted) throw signal.reason || Object.assign(new Error('Algi research stopped'), { name: 'AbortError' });
+  let titles = [...new Set(await provider.search(researchQueryForTopic(topic, courseContext), candidates))];
+  if (titles.length === 0 && courseContext) {
+    titles = [...new Set(await provider.search(`${courseContext} ${topic}`, candidates))];
   }
 
   const built = [];
+  const directTitleKeys = new Set(
+    directResearchTitles(topic, courseContext).map((title) =>
+      String(title || '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, ' ')
+        .trim(),
+    ),
+  );
+  const records = await articleRecords(provider, titles, signal);
   for (const title of titles) {
-    const extract = await provider.article(title);
+    const article = records.get(title) || { extract: '' };
+    const extract = article.extract;
     if (!extract) continue;
-    const candidate = buildKernelFromArticle({ topic, title, extract, provider });
+    const canonicalTitle = article.title || title;
+    const candidate = buildKernelFromArticle({ topic, title: canonicalTitle, extract, provider, sourceMeta: article });
     if (!candidate) continue;
-    if (looksLikeEntity(title, candidate.kernel.definition.text)) continue;
-    built.push({ title, candidate });
+    if (looksLikeEntity(canonicalTitle, candidate.kernel.definition.text)) continue;
+    if (built.some((entry) => entry.title.toLowerCase() === canonicalTitle.toLowerCase())) continue;
+    built.push({ title: canonicalTitle, candidate });
   }
   if (built.length === 0) return [];
 
@@ -551,29 +951,115 @@ export async function researchLessonKernels(
     ranked = built
       .map((entry, index) => ({
         ...entry,
-        relevance: Math.min(cosine(vectors[0], vectors[1 + index]), cosine(vectors[0], vectors[1 + built.length + index])),
-      }))
-      .sort((left, right) => right.relevance - left.relevance);
-  } else {
-    // Lexical evidence is sparse, so the weaker-signal rule that keeps the
-    // embedder honest would reject nearly everything here. The entity filter
-    // is what guards against the wrong KIND of page in this mode.
-    ranked = built
-      .map((entry) => ({
-        ...entry,
-        relevance: Math.max(
-          lexicalRelevance(topic, entry.title),
-          lexicalRelevance(topic, entry.candidate.kernel.definition.text),
+        relevance: Math.min(
+          cosine(vectors[0], vectors[1 + index]),
+          cosine(vectors[0], vectors[1 + built.length + index]),
         ),
       }))
       .sort((left, right) => right.relevance - left.relevance);
+  } else {
+    // The course title disambiguates SEARCH, but it must not dilute ADMISSION.
+    // "Introduction to Quantum Computing" adds three broad tokens to every
+    // lesson; scoring "quantum error correction" against that combined string
+    // pushed the exact article below the lexical floor simply because its title
+    // did not repeat "introduction" and "computing". Judge the returned source
+    // against the lesson topic itself. The independent title/definition signal
+    // still rejects pages that merely share the broad course domain.
+    const relevanceQuery = topic;
+    const topicTokens = new Set(contentTokens(topic));
+    const courseDomainToken = contentTokens(courseContext)[0] || '';
+    const topicTokenSequence = [...topicTokens];
+    const compoundTopic = /\s+(?:and|&)\s+/i.test(topic);
+    const topicClauseTokens = compoundTopic
+      ? String(topic)
+          .split(/\s+(?:and|&)\s+/i)
+          .map((clause) => contentTokens(clause))
+          .filter((tokens) => tokens.length > 0)
+      : [];
+    ranked = built
+      .map((entry) => {
+        const titleScore = lexicalRelevance(relevanceQuery, entry.title);
+        const defScore = lexicalRelevance(relevanceQuery, entry.candidate.kernel.definition.text);
+        const titleTokens = contentTokens(entry.title);
+        const definitionTokenSequence = contentTokens(entry.candidate.kernel.definition.text);
+        const definitionTokens = new Set(definitionTokenSequence);
+        const titleTopicMatches = [...topicTokens].filter((token) => titleTokens.includes(token)).length;
+        const definitionTopicMatches = [...topicTokens].filter((token) => definitionTokens.has(token)).length;
+        const topicSequenceMatch =
+          containsTokenSequence(topicTokenSequence, titleTokens) ||
+          containsTokenSequence(topicTokenSequence, definitionTokenSequence);
+        const definitionCoversClause = topicClauseTokens.some((clause) =>
+          clause.every((token) => definitionTokens.has(token)),
+        );
+        return {
+          ...entry,
+          titleScore,
+          defScore,
+          // A right title with an unrelated definition (or vice versa) is not
+          // enough. The stronger signal carries the candidate, but the weaker
+          // one must still provide independent evidence.
+          relevance: Math.max(titleScore, defScore),
+          secondaryRelevance: Math.min(titleScore, defScore),
+          topicTokenCount: topicTokens.size,
+          compoundTopic,
+          definitionCoversClause,
+          titleTopicMatches,
+          definitionTopicMatches,
+          topicSequenceMatch,
+          directTitleMatch: directTitleKeys.has(
+            String(entry.title || '')
+              .toLowerCase()
+              .replace(/[^a-z0-9]+/g, ' ')
+              .trim(),
+          ),
+          rankingScore: Math.min(titleScore, defScore) + Math.max(titleScore, defScore) * 0.25,
+          domainMatch:
+            !courseDomainToken || titleTokens.includes(courseDomainToken) || definitionTokens.has(courseDomainToken),
+        };
+      })
+      .sort((left, right) => right.rankingScore - left.rankingScore || right.relevance - left.relevance);
   }
 
   const effectiveFloor = floor ?? (typeof embed === 'function' ? RELEVANCE_FLOOR : LEXICAL_FLOOR);
-  // The lead concept must clear the floor; the rest ride along as the related
-  // material the lesson teaches beside it, so a slightly looser bar is honest.
-  if (ranked[0].relevance < effectiveFloor) return [];
-  const kept = ranked.filter((entry, index) => index === 0 || entry.relevance >= effectiveFloor * 0.6).slice(0, want);
+  const courseDomainToken = contentTokens(courseContext)[0] || '';
+  const domainAlignedCount =
+    typeof embed === 'function' || !courseDomainToken ? 0 : ranked.filter((entry) => entry.domainMatch).length;
+  const kept = ranked
+    .filter(
+      (entry) =>
+        entry.relevance >= effectiveFloor &&
+        (typeof embed === 'function' ||
+          domainAlignedCount < 3 ||
+          entry.domainMatch ||
+          entry.titleTopicMatches >= Math.min(2, entry.topicTokenCount) ||
+          (entry.directTitleMatch && entry.definitionTopicMatches >= 1)) &&
+        (typeof embed === 'function' ||
+          ((entry.secondaryRelevance >= effectiveFloor * 0.25 ||
+            // A curated canonical family title can legitimately name the
+            // neighbouring concept rather than repeat the lesson label
+            // ("Microbial mat" for Biofilms). It remains admissible only when
+            // its definition explicitly supplies the lesson topic.
+            (entry.directTitleMatch && entry.definitionTopicMatches >= 1) ||
+            entry.definitionTopicMatches >= 2 ||
+            (entry.compoundTopic && entry.definitionCoversClause)) &&
+            (entry.topicTokenCount <= 1 ||
+              entry.topicSequenceMatch ||
+              (entry.directTitleMatch && entry.definitionTopicMatches >= 1) ||
+              entry.titleTopicMatches >= Math.min(2, entry.topicTokenCount) ||
+              // For an explicitly compound lesson, one related named concept
+              // may explain the relationship between both sides without
+              // repeating them in its title (for example Wave function
+              // collapse under "Superposition and measurement"). Search is
+              // course-qualified, and the source definition itself must carry
+              // every topic token.
+              (entry.compoundTopic && entry.definitionCoversClause) ||
+              // Compound lesson names ("Qubits and quantum states") rarely
+              // appear verbatim as article titles. Keep a candidate when its
+              // title names one component and its definition supplies two.
+              (entry.topicTokenCount >= 3 && entry.titleTopicMatches >= 1 && entry.definitionTopicMatches >= 2)))),
+    )
+    .slice(0, want);
+  if (kept.length === 0) return [];
 
   const admittedKernels = [];
   for (const entry of kept) {
@@ -581,6 +1067,231 @@ export async function researchLessonKernels(
     if (admission.admitted) admittedKernels.push(admission.kernel);
   }
   return backfillMultipleChoice(admittedKernels);
+}
+
+function providerFromArticleRecords(provider, records, candidateTitles) {
+  const selected = [...new Set(candidateTitles)].filter(Boolean);
+  return {
+    search: async () => selected,
+    articles: async (titles) =>
+      Object.fromEntries(
+        titles.map((title) => [title, records.get(title)]).filter(([, article]) => article && article.extract),
+      ),
+    article: async (title) => records.get(title) || null,
+    license: provider.license,
+    attributionFor: provider.attributionFor,
+    sourceIdFor: provider.sourceIdFor,
+  };
+}
+
+function researchGroups(values, size) {
+  const groups = [];
+  for (let start = 0; start < values.length; start += size) groups.push(values.slice(start, start + size));
+  return groups;
+}
+
+function kernelsCoverTopic(kernels, topic) {
+  const clauses = String(topic)
+    .split(/\s+(?:and|&)\s+/i)
+    .map((clause) => contentTokens(clause))
+    .filter((tokens) => tokens.length > 0);
+  if (clauses.length === 0) return false;
+  return clauses.every((clause) =>
+    kernels.some((kernel) => {
+      // Research aliases record the QUERY topic, and a related definition can
+      // merely mention a clause without teaching it (Linear combination
+      // mentions superposition). Require an admitted article TITLE to name
+      // each explicit side before calling a compound lesson covered.
+      const kernelTokens = new Set(contentTokens(kernel?.term));
+      return clause.every((token) => kernelTokens.has(token));
+    }),
+  );
+}
+
+function needsTargetedResearch(kernels, topic, minimum) {
+  return kernels.length < minimum || !kernelsCoverTopic(kernels, topic);
+}
+
+/**
+ * Research every uncovered lesson as one bounded course transaction.
+ *
+ * V0 called search + article extraction once per lesson (12 requests for six
+ * lessons, 30 for fifteen), so the last lesson could disappear behind a 429.
+ * This path first resolves all exact titles in one request, then searches
+ * unresolved topics in OR groups of three and fetches every returned article
+ * in one chunked batch. The same per-lesson relevance and admission gates still
+ * decide what survives; only the network fan-out changes.
+ */
+export async function researchLessonKernelSets(
+  topics = [],
+  {
+    provider,
+    embed = null,
+    want = 4,
+    minimum = 3,
+    floor = null,
+    courseContext = '',
+    signal,
+    groupSize = 3,
+    candidatesPerGroup = 24,
+    maxTargetedFallbacks = 6,
+  } = {},
+) {
+  const uniqueTopics = [...new Set(topics.map((topic) => String(topic || '').trim()).filter(Boolean))];
+  const byTopic = new Map();
+  const errors = [];
+  if (!provider || uniqueTopics.length === 0) {
+    return { byTopic, errors, searchGroups: 0, articleCandidates: 0 };
+  }
+
+  const directByTopic = new Map(uniqueTopics.map((topic) => [topic, directResearchTitles(topic, courseContext)]));
+  const allDirectTitles = [...new Set([...directByTopic.values()].flat())];
+  let directRecords = new Map();
+  try {
+    directRecords = await articleRecords(provider, allDirectTitles, signal);
+  } catch (error) {
+    if (error?.name === 'AbortError' || signal?.aborted) throw error;
+    errors.push(`exact-title:${error?.message || 'failed'}`);
+  }
+
+  for (const topic of uniqueTopics) {
+    const titles = directByTopic.get(topic) || [];
+    const localProvider = providerFromArticleRecords(provider, directRecords, titles);
+    const kernels = await researchLessonKernels(topic, {
+      provider: localProvider,
+      embed,
+      want,
+      candidates: titles.length,
+      floor,
+      courseContext,
+      signal,
+    });
+    byTopic.set(topic, kernels);
+  }
+
+  const unresolved = uniqueTopics.filter((topic) => needsTargetedResearch(byTopic.get(topic) || [], topic, minimum));
+  const groups = researchGroups(unresolved, Math.max(1, groupSize));
+  const searchTitlesByTopic = new Map();
+  let searchRecords = new Map();
+  for (const group of groups) {
+    try {
+      const query = groupedResearchQuery(group);
+      let titles = [];
+      if (query && typeof provider.searchArticles === 'function') {
+        const records = await provider.searchArticles(query, candidatesPerGroup);
+        titles = [
+          ...new Set(
+            Object.values(records || {})
+              .map((record) => record?.title)
+              .filter(Boolean),
+          ),
+        ];
+        for (const title of titles) searchRecords.set(title, normalizeArticleResult(records[title]));
+      } else if (query) {
+        titles = [...new Set(await provider.search(query, candidatesPerGroup))];
+      }
+      for (const topic of group) searchTitlesByTopic.set(topic, titles);
+    } catch (error) {
+      if (error?.name === 'AbortError' || signal?.aborted) throw error;
+      errors.push(`group-search:${error?.message || 'failed'}`);
+      for (const topic of group) searchTitlesByTopic.set(topic, []);
+    }
+  }
+
+  const allSearchTitles = [...new Set([...searchTitlesByTopic.values()].flat())];
+  if (typeof provider.searchArticles !== 'function') {
+    try {
+      searchRecords = await articleRecords(provider, allSearchTitles, signal);
+    } catch (error) {
+      if (error?.name === 'AbortError' || signal?.aborted) throw error;
+      errors.push(`article-batch:${error?.message || 'failed'}`);
+    }
+  }
+  const combinedRecords = new Map([...directRecords, ...searchRecords]);
+
+  for (const topic of unresolved) {
+    const titles = [...(directByTopic.get(topic) || []), ...(searchTitlesByTopic.get(topic) || [])];
+    const localProvider = providerFromArticleRecords(provider, combinedRecords, titles);
+    const kernels = await researchLessonKernels(topic, {
+      provider: localProvider,
+      embed,
+      want,
+      candidates: titles.length,
+      floor,
+      courseContext,
+      signal,
+    });
+    byTopic.set(topic, kernels);
+  }
+
+  // A grouped search can still be dominated by one topic's popular pages.
+  // Spend a targeted search only on the small remainder, then batch those
+  // articles together. This restores topic recall without returning to the
+  // old search+article pair for every lesson.
+  const sparse = unresolved
+    .filter((topic) => needsTargetedResearch(byTopic.get(topic) || [], topic, minimum))
+    .slice(0, Math.max(0, maxTargetedFallbacks));
+  const targetedTitlesByTopic = new Map();
+  let targetedRecords = new Map();
+  for (const topic of sparse) {
+    try {
+      const query = groupedResearchQuery([topic]) || researchQueryForTopic(topic, courseContext);
+      if (typeof provider.searchArticles === 'function') {
+        const records = await provider.searchArticles(query, Math.max(12, candidatesPerGroup));
+        const titles = [
+          ...new Set(
+            Object.values(records || {})
+              .map((record) => record?.title)
+              .filter(Boolean),
+          ),
+        ];
+        targetedTitlesByTopic.set(topic, titles);
+        for (const title of titles) targetedRecords.set(title, normalizeArticleResult(records[title]));
+      } else {
+        targetedTitlesByTopic.set(topic, [...new Set(await provider.search(query, Math.max(12, candidatesPerGroup)))]);
+      }
+    } catch (error) {
+      if (error?.name === 'AbortError' || signal?.aborted) throw error;
+      errors.push(`targeted-search:${error?.message || 'failed'}`);
+      targetedTitlesByTopic.set(topic, []);
+    }
+  }
+  const targetedTitles = [...new Set([...targetedTitlesByTopic.values()].flat())];
+  if (typeof provider.searchArticles !== 'function') {
+    try {
+      targetedRecords = await articleRecords(provider, targetedTitles, signal);
+    } catch (error) {
+      if (error?.name === 'AbortError' || signal?.aborted) throw error;
+      errors.push(`targeted-articles:${error?.message || 'failed'}`);
+    }
+  }
+  const allRecords = new Map([...combinedRecords, ...targetedRecords]);
+  for (const topic of sparse) {
+    const titles = [
+      ...(directByTopic.get(topic) || []),
+      ...(searchTitlesByTopic.get(topic) || []),
+      ...(targetedTitlesByTopic.get(topic) || []),
+    ];
+    const localProvider = providerFromArticleRecords(provider, allRecords, titles);
+    const kernels = await researchLessonKernels(topic, {
+      provider: localProvider,
+      embed,
+      want,
+      candidates: titles.length,
+      floor,
+      courseContext,
+      signal,
+    });
+    byTopic.set(topic, kernels);
+  }
+
+  return {
+    byTopic,
+    errors,
+    searchGroups: groups.length,
+    targetedSearches: sparse.length,
+    articleCandidates: new Set([...allDirectTitles, ...allSearchTitles, ...targetedTitles]).size,
+  };
 }
 
 /**
@@ -605,6 +1316,7 @@ export async function researchCourse(topics = [], options = {}) {
     try {
       result = await researchConcept(topic, { ...options, courseContext });
     } catch (error) {
+      if (error?.name === 'AbortError' || options.signal?.aborted) throw error;
       result = { ok: false, reason: `error:${error?.message || 'unknown'}`, topic };
     }
     if (result.ok) admitted.push(result);

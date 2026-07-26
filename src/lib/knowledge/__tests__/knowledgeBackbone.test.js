@@ -275,6 +275,155 @@ describe('reading-list engine (P2)', () => {
     expect(graph.resources[0].citation).toContain('(open resource, Open Government Licence v3.0');
   });
 
+  it('preserves researched Wikipedia attribution as an Algi research resource', () => {
+    const graph = genomeLinkedGraph();
+    graph.enrichmentOverlay.lessonContent = {
+      'lesson-1': {
+        keyTerms: [],
+        conceptProvenance: {
+          source: 'algi-researched',
+          citations: [
+            {
+              key: 'wikipedia:Contextual inquiry',
+              displayTitle: 'Contextual inquiry',
+              sourceUrl: 'https://en.wikipedia.org/wiki/Contextual_inquiry',
+              license: 'CC BY-SA 4.0',
+              attribution: 'Wikipedia contributors, “Contextual inquiry”',
+              kind: 'open reference',
+              topic: 'Contextual interviews and observation',
+              evidence: 'Contextual inquiry is a user-centered design research method.',
+              revisionId: '1297796460',
+            },
+          ],
+        },
+      },
+    };
+
+    expect(attachGenomeResources(graph)).toBe(1);
+    expect(graph.resources[0]).toMatchObject({
+      origin: 'algi-research',
+      citation: expect.stringContaining('Contextual interviews and observation — Contextual inquiry'),
+      url: 'https://en.wikipedia.org/wiki/Contextual_inquiry',
+      license: 'CC BY-SA 4.0',
+      attribution: 'Wikipedia contributors, “Contextual inquiry”',
+      topic: 'Contextual interviews and observation',
+      kind: 'open reference',
+      evidence: 'Contextual inquiry is a user-centered design research method.',
+      revisionId: '1297796460',
+    });
+    expect(graph.sessions[0].sections[0].resourceRefs).toEqual([graph.resources[0].id]);
+    expect(attachGenomeResources(graph)).toBe(0);
+  });
+
+  it('keeps shipped OpenStax receipts distinct inside a mixed Algi research lesson', () => {
+    const graph = genomeLinkedGraph();
+    graph.enrichmentOverlay.lessonContent = {
+      'lesson-1': {
+        keyTerms: [],
+        conceptProvenance: {
+          source: 'algi-researched',
+          citations: [
+            {
+              key: 'wikipedia:Waterborne disease',
+              displayTitle: 'Waterborne disease',
+              sourceUrl: 'https://en.wikipedia.org/wiki/Waterborne_disease',
+              license: 'CC BY-SA 4.0',
+              attribution: 'Wikipedia contributors, “Waterborne disease”',
+              kind: 'open encyclopedia',
+              topic: 'Waterborne pathogens',
+              revisionId: '101',
+            },
+            {
+              key: 'OpenStax Microbiology §16.3',
+              displayTitle: 'OpenStax Microbiology §16.3',
+              sourceUrl: 'https://openstax.org/books/microbiology/pages/16-3-modes-of-disease-transmission',
+              license: 'CC BY 4.0',
+              attribution: 'OpenStax Microbiology, §16.3 Modes of Disease Transmission',
+              kind: 'open resource',
+            },
+          ],
+        },
+      },
+    };
+
+    expect(attachGenomeResources(graph)).toBe(2);
+    expect(graph.resources).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          provider: 'wikipedia',
+          origin: 'algi-research',
+          url: 'https://en.wikipedia.org/wiki/Waterborne_disease',
+        }),
+        expect.objectContaining({
+          provider: 'openstax',
+          origin: 'genome',
+          url: 'https://openstax.org/books/microbiology/pages/16-3-modes-of-disease-transmission',
+          attribution: 'OpenStax Microbiology, §16.3 Modes of Disease Transmission',
+        }),
+      ]),
+    );
+  });
+
+  it('states a Wikipedia license once per corpus while retaining every source receipt', () => {
+    const graph = genomeLinkedGraph();
+    graph.enrichmentOverlay.lessonContent = {
+      'lesson-1': {
+        keyTerms: [],
+        conceptProvenance: {
+          source: 'algi-researched',
+          citations: [
+            {
+              key: 'wikipedia:Qubit',
+              displayTitle: 'Qubit',
+              sourceUrl: 'https://en.wikipedia.org/wiki/Qubit',
+              license: 'CC BY-SA 4.0',
+              attribution: 'Wikipedia contributors, “Qubit”',
+              kind: 'open encyclopedia',
+              topic: 'Qubits and quantum states',
+              revisionId: '101',
+            },
+          ],
+        },
+      },
+      'lesson-2': {
+        keyTerms: [],
+        conceptProvenance: {
+          source: 'algi-researched',
+          citations: [
+            {
+              key: 'wikipedia:Quantum gate',
+              displayTitle: 'Quantum gate',
+              sourceUrl: 'https://en.wikipedia.org/wiki/Quantum_logic_gate',
+              license: 'CC BY-SA 4.0',
+              attribution: 'Wikipedia contributors, “Quantum gate”',
+              kind: 'open encyclopedia',
+              topic: 'Quantum gates and circuits',
+              revisionId: '202',
+            },
+          ],
+        },
+      },
+    };
+
+    expect(attachGenomeResources(graph)).toBe(2);
+    expect(graph.resources[0].citation).toContain('CC BY-SA 4.0');
+    expect(graph.resources[1].citation).toContain('(open encyclopedia)');
+    expect(graph.resources[1].citation).not.toContain('CC BY-SA 4.0');
+    expect(graph.resources[1]).toMatchObject({
+      provider: 'wikipedia',
+      url: 'https://en.wikipedia.org/wiki/Quantum_logic_gate',
+      license: 'CC BY-SA 4.0',
+      attribution: 'Wikipedia contributors, “Quantum gate”',
+      revisionId: '202',
+    });
+    expect(knowledgeCoverage(graph)).toMatchObject({
+      researchedLessons: 2,
+      openResources: 2,
+      resourcesByOrigin: { 'algi-research': 2 },
+    });
+    expect(attachGenomeResources(graph)).toBe(0);
+  });
+
   it('renders attached resources into supportingResources cells', () => {
     const graph = genomeLinkedGraph();
     attachGenomeResources(graph);

@@ -5,11 +5,11 @@ Courses chosen to span the genome coverage range: stats-intro (64% hit), ux-desi
 
 ## 1. Scores
 
-| Course | Scion | Algi |
-| --- | --- | --- |
-| stats-intro | passed 99 (A), 240s | **FAILED** no-artifacts, 14s |
-| ux-design-studio | **FAILED** no-artifacts, 211s | **FAILED** no-artifacts, 12s |
-| business-ethics | passed 99 (A), 268s | passed **89 (B)**, 0 P0, 2 P1, 40s |
+| Course           | Scion                         | Algi                               |
+| ---------------- | ----------------------------- | ---------------------------------- |
+| stats-intro      | passed 99 (A), 240s           | **FAILED** no-artifacts, 14s       |
+| ux-design-studio | **FAILED** no-artifacts, 211s | **FAILED** no-artifacts, 12s       |
+| business-ethics  | passed 99 (A), 268s           | passed **89 (B)**, 0 P0, 2 P1, 40s |
 
 Two results were not predicted by anything measured earlier in this workstream.
 

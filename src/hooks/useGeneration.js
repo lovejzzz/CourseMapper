@@ -27,6 +27,7 @@ import { validateCourseMap } from '../lib/validateCourseMap';
 import { preserveMaterializedLessonNumbers } from '../lib/materializedLessonScope';
 import { getScionReviewFailureMessage } from '../lib/scionUserFacingError';
 import { PUBLIC_SCION_PROVIDER_ID } from '../lib/publicScionIdentity';
+import { ALGI_MODEL_NAME, isAlgiModel } from '../lib/algiIdentity';
 import { applyPublicScionBriefDirectives, projectPublicScionCourseMapContinuations } from '../lib/publicScionProvider';
 import { admitCourseMapContinuationLessons, buildCourseMapContinuationPrompt } from '../lib/courseMapContinuation';
 
@@ -140,8 +141,9 @@ export function constrainHighConfidenceLessonCount(courseMap, expectedInfo) {
   };
 }
 
-export function displayGenerationModelName(provider, modelName) {
-  return provider === 'public' || modelName === 'scion-public' ? 'Scion' : modelName;
+export function displayGenerationModelName(provider, modelName, modelId = '') {
+  if (provider !== PUBLIC_SCION_PROVIDER_ID && modelName !== 'scion-public') return modelName;
+  return isAlgiModel(modelId) || /^Algi\b/i.test(String(modelName || '')) ? ALGI_MODEL_NAME : 'Scion';
 }
 
 export function getCourseMapContinuationPolicy(provider, actualCount, expectedCount) {
@@ -702,7 +704,7 @@ export default function useGeneration({
     let consecutiveNoProgress = 0;
 
     const model = { id: initialModelId, name: initialModelName, backend: provider, apiKey };
-    const modelDisplayName = displayGenerationModelName(provider, model.name);
+    const modelDisplayName = displayGenerationModelName(provider, model.name, model.id);
     setActiveModelName(modelDisplayName);
     let rejectedTopics = [];
 

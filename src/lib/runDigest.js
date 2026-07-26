@@ -94,7 +94,11 @@ export function buildRunDigest({ budget = {}, exportVerification = null, finish 
       status: check.status,
       message: String(check.message || '').slice(0, 200),
     }));
-  const models = [...new Set(ledger.map((row) => row.modelId).filter(Boolean))];
+  const models = [
+    ...new Set(
+      [generation.modelId, ...ledger.map((row) => row.modelId)].map((model) => String(model || '')).filter(Boolean),
+    ),
+  ];
 
   // v0.12.1 content-risk gate: a package whose deliverables were compiled
   // deterministically with NO enrichment contribution (no model stage, no
@@ -238,7 +242,7 @@ function pipelineLines(pipeline = {}) {
     courseMap: 'course map',
     examine: 'examine pass',
     genomeLinker: 'genome linker',
-    enrichmentModelStage: 'enrichment (model)',
+    enrichmentModelStage: 'knowledge composition',
     planHealth: 'plan health',
     courseGraph: 'course graph',
     knowledgeBackbone: 'knowledge backbone',

@@ -13,6 +13,9 @@
 // cannot answer from the source is declined so the compiler's deterministic
 // path owns it rather than a fabricated payload.
 import { extractExplicitCoverageTopics, extractExplicitLessonSequence } from './explicitLessonSequence';
+import { ALGI_RESEARCH_FLAG, readAlgiResearchEnabled } from './algiResearchPolicy';
+
+export { ALGI_RESEARCH_FLAG } from './algiResearchPolicy';
 
 // The skeleton contract caps titles at 60 chars and section titles at 60.
 const MAX_TITLE = 60;
@@ -79,7 +82,17 @@ export function extractCourseName(source) {
   }
   for (const line of lines) {
     if (/^(week|lesson|session|unit|module)\b/i.test(line)) break;
-    const value = clamp(line, MAX_COURSE_NAME, 3);
+    const briefDivider =
+      /\s+[—–-]\s+(?=(?:an?\s+)?(?:(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|\d{1,2})[- ]lesson\s+)?(?:\w+[- ]division\s+)?(?:course|class|seminar|studio)\b)/i.exec(
+        line,
+      );
+    const briefSuffix =
+      /\s*,?\s+(?=(?:an?\s+)?(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|\d{1,2})[- ]lesson\b)/i.exec(
+        line,
+      );
+    const splitAt = briefDivider?.index ?? briefSuffix?.index ?? -1;
+    const candidate = splitAt > 0 ? line.slice(0, splitAt) : line;
+    const value = clamp(candidate, MAX_COURSE_NAME, 3);
     if (value && value.split(' ').length >= 2) return value;
   }
   return 'Course';
@@ -96,7 +109,14 @@ const SECTION_SHAPES = [
 ];
 
 function sectionTitlesFor(topic, order) {
-  const subject = clamp(topic, 34, 1) || 'the topic';
+  // The longest wrapper is exactly ten characters ("How " + " works"),
+  // leaving fifty for the actual subject inside the 60-character schema.
+  // The old 34-character cap turned "information architecture and interaction
+  // flows" into the broken phrase "How information architecture and works".
+  const subject =
+    clamp(topic, MAX_SECTION - 10, 1)
+      .replace(/\b(?:and|or|of|with|for|to)$/i, '')
+      .trim() || 'the topic';
   const lowered = subject.charAt(0).toLowerCase() + subject.slice(1);
   // Rotate the opening beat so consecutive sessions do not share a frame — the
   // repetition defect the texture metric measures starts here.
@@ -199,11 +219,92 @@ export function composeAlgiSkeleton(userPrompt) {
 }
 
 /**
+ * A small, honest advisory turn for the built-in Help/Agent surface.
+ *
+ * Algi has no language model, so it must not pretend to answer open-domain
+ * questions or silently download Scion. It can still orient the user inside
+ * the course structure already present in the workspace.
+ */
+export function composeAlgiAdvisoryResponse({ messages = [], systemPrompt = '' } = {}) {
+  const workspacePromptText =
+    typeof systemPrompt === 'object' ? String(systemPrompt.dynamicPart || '') : String(systemPrompt || '');
+  const question = String([...messages].reverse().find((message) => message?.role === 'user')?.content || '').trim();
+  const courseTitle =
+    /\*\*Course Title:\*\*\s*([^\n]+)/i.exec(workspacePromptText)?.[1]?.trim() ||
+    /^## COURSE\s*\n\*\*(.+?)\*\*\s*\|/im.exec(workspacePromptText)?.[1]?.trim() ||
+    /(?:courseName|course title|workspace)\s*[:=]\s*["']?([^"'\n,}]+)/i.exec(workspacePromptText)?.[1]?.trim() ||
+    'this course';
+  // The full agent system prompt contains several other numbered rule lists.
+  // Reading every "1." line made Algi describe tool-policy prose as the first
+  // and last lessons. Scope the parser to the explicit Course Outline block;
+  // retain the narrow fallback for the compact test/legacy prompt.
+  const courseOutlineBlock =
+    /\*\*Course Outline:\*\*\s*\n([\s\S]*?)(?=\n\s*\n|\n\*\*|\n##|$)/i.exec(workspacePromptText)?.[1] || '';
+  const agentLessonBlock =
+    /\*\*Lessons:\*\*\s*\n([\s\S]*?)(?=\n\*\*Fields:\*\*|\n\*\*Active:\*\*|\n##|$)/i.exec(workspacePromptText)?.[1] ||
+    '';
+  const outline = courseOutlineBlock
+    ? [...courseOutlineBlock.matchAll(/^\s*\d+\.\s+(.+)$/gm)].map((match) => match[1].trim())
+    : agentLessonBlock
+      ? [...agentLessonBlock.matchAll(/^\s*Lesson\s+\d+\s*:\s*"([^"]+)"/gim)].map((match) => match[1].trim())
+      : [...workspacePromptText.matchAll(/^\s*\d+\.\s+(.+)$/gm)].map((match) => match[1].trim());
+  outline.splice(20);
+  const questionTokens = new Set(
+    question
+      .toLowerCase()
+      .match(/[a-z0-9]{4,}/g)
+      ?.filter((token) => !['this', 'that', 'with', 'from', 'what', 'which', 'course', 'lesson'].includes(token)) || [],
+  );
+  const nearest = outline
+    .map((title, index) => ({
+      title,
+      index,
+      score: (title.toLowerCase().match(/[a-z0-9]{4,}/g) || []).filter((token) => questionTokens.has(token)).length,
+    }))
+    .sort((left, right) => right.score - left.score || left.index - right.index)[0];
+  const focus = nearest?.score > 0 ? ` The closest mapped area is “${nearest.title}.”` : '';
+  const outlineLabels = outline.map((title) => title.replace(/^Lesson\s+\d+\s*:\s*/i, '').trim()).filter(Boolean);
+  const sequenceLabel = (() => {
+    if (outlineLabels.length <= 6) return outlineLabels.join(' → ');
+    return [...outlineLabels.slice(0, 3), '…', ...outlineLabels.slice(-2)].join(' → ');
+  })();
+  if (/\b(download|model|privacy|offline)\b|source research|research mode/i.test(question)) {
+    return 'Algi uses no model weights and performs no inference. Private mode keeps course topics on this device; optional Source research sends only the course title and uncovered lesson topics to Wikipedia, and preserves source attribution in the package.';
+  }
+  if (/\b(?:summari[sz]e|sequence|outline|progression|order)\b/i.test(question) && outlineLabels.length > 0) {
+    return `${courseTitle} has ${outlineLabels.length} mapped lesson${outlineLabels.length === 1 ? '' : 's'}: ${sequenceLabel}. The sequence is the course’s structural spine; open Course Map to inspect each lesson’s objective, activity, evidence source, and assessment alignment.`;
+  }
+  if (/\b(?:assessment|grading|grade|rubric)\b/i.test(question) && outlineLabels.length > 0) {
+    return `${courseTitle} uses one aligned checkpoint for each of the ${outlineLabels.length} lessons, moving from “${outlineLabels[0]}” to “${outlineLabels.at(-1)}”. Assignment Briefs state the student artifact, Rubrics make the success criteria inspectable, and the Quiz & Exam Bank supplies retrieval and application checks. Confirm official weights before publishing.`;
+  }
+  if (/\b(?:audit|review|gap|coverage|duplicate)\b/i.test(question) && outlineLabels.length > 0) {
+    const normalized = outlineLabels.map((title) =>
+      title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, ' ')
+        .trim(),
+    );
+    const duplicateCount = normalized.length - new Set(normalized).size;
+    const genericCount = outlineLabels.filter((title) =>
+      /^(?:untitled|session\s+\d+\s+topic|lesson\s+\d+|topic)$/i.test(title),
+    ).length;
+    if (duplicateCount > 0 || genericCount > 0) {
+      return `I found ${duplicateCount} repeated lesson title${duplicateCount === 1 ? '' : 's'} and ${genericCount} generic title${genericCount === 1 ? '' : 's'} in ${courseTitle}. Fix those structural gaps before judging source coverage or assessment alignment.`;
+    }
+    return `The ${outlineLabels.length}-lesson outline has no repeated or generic lesson titles. A deeper review should now verify four things in each row: a measurable objective, a source-backed learning activity, an observable student artifact, and a rubric criterion that measures that same artifact.${focus}`;
+  }
+  if (/\b(change|edit|rewrite|revise|update|fix)\b/i.test(question)) {
+    return `I can help inspect ${courseTitle}, but Algi’s advisory turn is source-grounded and read-only.${focus} Name the exact lesson or deliverable to revise; Course Mapper’s deterministic workspace tools will apply supported edits without inventing subject knowledge.`;
+  }
+  return `I’m connected to ${courseTitle} in Algi’s source-grounded advisory mode.${focus} I can point to course structure, coverage gaps, and export checks, but I will not invent subject facts that are absent from the uploaded source or admitted genome.`;
+}
+
+/**
  * Answer one pipeline request. Composed tasks return JSON text; everything else
  * returns '' so the caller's existing model-unavailable path hands the work to
  * the deterministic compiler rather than to invented content.
  */
-export async function composeAlgiResponse({ task, userPrompt, structuredPrompt, schema } = {}) {
+export async function composeAlgiResponse({ task, userPrompt, structuredPrompt, schema, signal } = {}) {
   const name = String(task || '');
   if (!ALGI_COMPOSED_TASKS.has(name)) return { text: '', coverage: null };
   if (name === 'nativeSkeleton') return { text: composeAlgiSkeleton(userPrompt), coverage: null };
@@ -213,13 +314,14 @@ export async function composeAlgiResponse({ task, userPrompt, structuredPrompt, 
   const result = await composeAlgiLessonKernels({
     structuredPrompt,
     factCount: factCountFromSchema(schema),
-    researchProvider: buildResearchProvider(),
+    researchProvider: buildResearchProvider({ signal }),
     // The Pass B prompt object carries lessons, not a course title, so the
     // subject is read from the prose instead. Without it a lesson researches
     // its bare title ("information architecture" returned enterprise-software
     // pages) and, worse, the discipline cannot be inferred, so no shard kernels
     // are available to complete the lesson's key terms.
     courseContext: researchCourseContext(userPrompt),
+    signal,
   });
   return {
     text: result.text,
@@ -259,8 +361,6 @@ export function researchCourseContext(userPrompt) {
  * it default is a shipped package with a researched lesson, checked for its
  * attribution.
  */
-export const ALGI_RESEARCH_FLAG = 'coursemapper-algi-research';
-
 /**
  * Wikipedia over the app's own fetch, throttled.
  *
@@ -268,25 +368,99 @@ export const ALGI_RESEARCH_FLAG = 'coursemapper-algi-research';
  * into a non-JSON block page, which surfaced as fifteen unexplained parse
  * errors. Politeness here is a correctness property, not just etiquette.
  */
-export function buildResearchProvider({ storage = globalThis.localStorage, gapMs = 400 } = {}) {
-  let enabled = false;
-  try {
-    enabled = storage?.getItem?.(ALGI_RESEARCH_FLAG) === 'on';
-  } catch {
-    // Storage unavailable (private mode, headless): stay offline.
-    enabled = false;
-  }
-  if (!enabled) return null;
-  if (typeof fetch !== 'function') return null;
+function algiAbortError(reason = 'Algi research stopped') {
+  if (reason instanceof Error) return reason;
+  return Object.assign(new Error(String(reason || 'Algi research stopped')), { name: 'AbortError' });
+}
+
+function throwIfAlgiAborted(signal) {
+  if (signal?.aborted) throw algiAbortError(signal.reason);
+}
+
+function waitForResearchGap(ms, signal) {
+  if (!(ms > 0)) return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(done, ms);
+    const onAbort = () => {
+      clearTimeout(timer);
+      signal?.removeEventListener?.('abort', onAbort);
+      reject(algiAbortError(signal?.reason));
+    };
+    function done() {
+      signal?.removeEventListener?.('abort', onAbort);
+      resolve();
+    }
+    signal?.addEventListener?.('abort', onAbort, { once: true });
+  });
+}
+
+export function buildResearchProvider({
+  storage = globalThis.localStorage,
+  gapMs = 300,
+  signal,
+  timeoutMs = 8000,
+  maxRequests = 20,
+  fetchImpl = globalThis.fetch,
+} = {}) {
+  if (!readAlgiResearchEnabled(storage)) return null;
+  if (typeof fetchImpl !== 'function') return null;
   let last = 0;
+  let requestCount = 0;
+  const cache = new Map();
   const httpJson = async (url) => {
-    const wait = last + gapMs - Date.now();
-    if (wait > 0) await new Promise((resolve) => setTimeout(resolve, wait));
-    last = Date.now();
-    const response = await fetch(url, { headers: { Accept: 'application/json' } });
-    if (!response.ok) throw new Error(`research-http-${response.status}`);
-    return response.json();
+    throwIfAlgiAborted(signal);
+    if (cache.has(url)) return cache.get(url);
+    if (requestCount >= maxRequests) throw new Error(`algi-research-budget-exhausted:${maxRequests}`);
+    const request = (async () => {
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        if (requestCount >= maxRequests) throw new Error(`algi-research-budget-exhausted:${maxRequests}`);
+        const wait = last + gapMs - Date.now();
+        await waitForResearchGap(wait, signal);
+        throwIfAlgiAborted(signal);
+        last = Date.now();
+        requestCount += 1;
+
+        const controller = new AbortController();
+        const onAbort = () => controller.abort(algiAbortError(signal?.reason));
+        signal?.addEventListener?.('abort', onAbort, { once: true });
+        const timer = setTimeout(
+          () =>
+            controller.abort(Object.assign(new Error(`algi-research-timeout:${timeoutMs}`), { name: 'TimeoutError' })),
+          timeoutMs,
+        );
+        try {
+          const response = await fetchImpl(url, {
+            headers: { Accept: 'application/json' },
+            signal: controller.signal,
+          });
+          if (response.status === 429 && attempt === 0) {
+            const retryAfterSeconds = Number(response.headers?.get?.('retry-after'));
+            const retryMs = Number.isFinite(retryAfterSeconds)
+              ? Math.min(4000, Math.max(750, retryAfterSeconds * 1000))
+              : Math.max(1200, gapMs * 4);
+            await waitForResearchGap(retryMs, signal);
+            continue;
+          }
+          if (!response.ok) throw new Error(`research-http-${response.status}`);
+          return response.json();
+        } finally {
+          clearTimeout(timer);
+          signal?.removeEventListener?.('abort', onAbort);
+        }
+      }
+      throw new Error('research-http-429');
+    })();
+    cache.set(url, request);
+    try {
+      return await request;
+    } catch (error) {
+      cache.delete(url);
+      throw error;
+    }
   };
   // Imported lazily by the composer; built here so the network surface has one owner.
-  return { httpJson };
+  return {
+    httpJson,
+    diagnostics: () => ({ requestCount, maxRequests, cachedRequestCount: cache.size }),
+  };
 }

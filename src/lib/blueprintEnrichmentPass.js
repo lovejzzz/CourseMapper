@@ -1768,6 +1768,55 @@ export function selectEnrichmentRecoveryChunk(missingLessonIndices, attemptedLes
   return (unattempted.length > 0 ? unattempted : missing).slice(0, Math.max(1, Number(limit) || 1));
 }
 
+const COMPOSED_PROVENANCE_SOURCES = new Set(['genome-linked', 'algi-researched']);
+
+function normalizeComposedConceptProvenance(value) {
+  if (!value || typeof value !== 'object') return null;
+  const source = cleanText(value.source);
+  if (!COMPOSED_PROVENANCE_SOURCES.has(source)) return null;
+  const conceptIds = uniqueStrings(value.conceptIds, 12, 160);
+  const citations = asArray(value.citations)
+    .map((entry) => {
+      if (!entry || typeof entry !== 'object') return null;
+      const sourceUrl = cleanText(entry.sourceUrl);
+      if (sourceUrl && !/^https:\/\//i.test(sourceUrl)) return null;
+      const displayTitle = truncateText(entry.displayTitle || entry.key, 240);
+      if (!displayTitle) return null;
+      const conceptLinks = asArray(entry.conceptLinks)
+        .map((link) => ({
+          id: truncateText(link?.id, 160),
+          label: truncateText(link?.label, 160),
+        }))
+        .filter((link) => link.id || link.label)
+        .slice(0, 8);
+      return {
+        key: truncateText(entry.key || displayTitle, 260),
+        displayTitle,
+        sourceUrl,
+        license: truncateText(entry.license, 100),
+        attribution: truncateText(entry.attribution, 240),
+        kind: truncateText(entry.kind || 'open resource', 80),
+        ...(entry.topic ? { topic: truncateText(entry.topic, 240) } : {}),
+        evidence: truncateText(entry.evidence, 500),
+        sourceTier: Math.max(0, Math.min(3, Number(entry.sourceTier) || 0)),
+        ...(conceptLinks.length > 0 ? { conceptLinks } : {}),
+        ...(entry.revisionId ? { revisionId: truncateText(entry.revisionId, 60) } : {}),
+        ...(entry.revisionTimestamp ? { revisionTimestamp: truncateText(entry.revisionTimestamp, 80) } : {}),
+      };
+    })
+    .filter(Boolean)
+    .slice(0, 8);
+  if (citations.length === 0) return null;
+  return {
+    source,
+    conceptIds,
+    tier: Math.max(0, Math.min(3, Number(value.tier) || 0)),
+    tierLabel: truncateText(value.tierLabel || 'source anchored', 80),
+    citations,
+    fullyAnchored: value.fullyAnchored === true,
+  };
+}
+
 export function lintKernelFact(fact) {
   const issues = [];
   const text = cleanText(fact);
@@ -2267,6 +2316,11 @@ export function parseLessonKernelResponse(text, { prompt, expectedLessonIds } = 
       { facts, keyTerms, scenario, discussionPrompt, assignmentCore, mc, workedExample, experientialActivity },
       { itemPlan },
     );
+    const composedProvenance = normalizeComposedConceptProvenance(entry?.conceptProvenance);
+    if (composedProvenance) {
+      payload.conceptProvenance = composedProvenance;
+      payload.enrichmentSource = composedProvenance.source;
+    }
     if (exactSourceLedgerFacts) {
       const sourceProjectionLabel = cleanText(promptLesson?.sourceProjectionLabel);
       payload.kernel = {

@@ -59,6 +59,45 @@ describe('trusted source ledger', () => {
     });
   });
 
+  it('refuses a green trust state when publisher attribution and URL disagree', () => {
+    const source = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'Environmental Microbiology' },
+        concepts: [{ id: 'c1', term: 'Waterborne pathogens' }],
+        sessions: [
+          {
+            id: 's1',
+            number: 1,
+            title: 'Waterborne pathogens',
+            sections: [{ topic: 'Transmission', conceptRefs: ['c1'], resourceRefs: ['kr1'] }],
+          },
+        ],
+        resources: [
+          {
+            id: 'kr1',
+            provider: 'genome',
+            origin: 'genome',
+            title: 'OpenStax Microbiology §16.3',
+            attribution: 'OpenStax Microbiology, §16.3 Modes of Disease Transmission',
+            url: 'https://en.wikipedia.org/wiki/16.3',
+            license: 'CC BY 4.0',
+            sessionRefs: [1],
+          },
+        ],
+      },
+      { checkedAt: '2026-07-26T00:00:00.000Z' },
+    );
+
+    expect(source.rows).toHaveLength(0);
+    expect(source.reviewRows).toEqual([
+      expect.objectContaining({
+        id: 'kr1',
+        provenanceMismatch: true,
+      }),
+    ]);
+    expect(isTrustedSourceLedgerRow(source.reviewRows[0])).toBe(false);
+  });
+
   it('quarantines music-interval false friends even when an abstract course title omits music', () => {
     const graph = {
       course: { name: 'Interval Evidence Studio' },
@@ -582,6 +621,8 @@ describe('trusted source ledger', () => {
           url: 'https://openstax.org/books/calculus-volume-1/pages/2-2-the-limit-of-a-function',
           license: 'CC BY-NC-SA 4.0',
           attribution: 'OpenStax, Rice University',
+          revisionId: 'openstax-calculus-v1',
+          revisionTimestamp: '2026-06-19T00:00:00Z',
           sessionRefs: ['s1'],
         },
       ],
@@ -611,6 +652,8 @@ describe('trusted source ledger', () => {
     expect(ledger.rows[0]).toMatchObject({
       id: 'kr1',
       provider: 'genome',
+      attribution: 'OpenStax, Rice University',
+      revisionId: 'openstax-calculus-v1',
       conceptLinks: [{ id: 'c1', label: 'Limits' }],
       checkedAt,
     });
@@ -635,6 +678,9 @@ describe('trusted source ledger', () => {
     expect(report).toContain('Source Ledger');
     expect(report).toContain('Source Review Notes');
     expect(report).toContain('kr1');
+    expect(report).toContain('attribution=OpenStax, Rice University');
+    expect(report).toContain('revisionId=openstax-calculus-v1');
+    expect(report).toContain('revisionTimestamp=2026-06-19T00:00:00Z');
     expect(report).toContain('trustedBibliography=false');
     expect(report).toContain('outcomes: 1/1 with sourceRefs');
   });

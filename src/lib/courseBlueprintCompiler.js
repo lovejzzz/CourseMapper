@@ -720,6 +720,21 @@ function compactSourceCue(value, fallback = 'assigned source materials', maxWord
   if (isPromptArtifactEvidenceCue(text) || isCompactNumberedArtifactList(text) || isUnsafeSourceCuePhrase(text)) {
     return fallback;
   }
+  // Compiler-authored classroom resource labels intentionally put their
+  // complete identity before the descriptive tail. Preserve the conjunction
+  // inside a short compound topic: the generic stop-word compactor turned
+  // "Source packet for Qubits and quantum states" into the visibly broken
+  // "Source packet for Qubits quantum states".
+  const classroomResourceHead = text.match(
+    /^((?:activity guide|practice guide|source packet|worked example)\s+for\s+.+?)(?::\s+|\s+with\s+(?:a|an|the)\s+)/i,
+  )?.[1];
+  if (
+    classroomResourceHead &&
+    wordCount(classroomResourceHead) <= maxWords + 2 &&
+    !isUnsafeSourceCuePhrase(classroomResourceHead)
+  ) {
+    return classroomResourceHead;
+  }
   const clauses = text
     .split(/\s*(?:[;|\n,]|\/)\s*/g)
     // A clause carved from the middle of a list keeps its conjunction
@@ -1434,6 +1449,19 @@ function inferDisciplineLens(courseName, concepts = []) {
       'sky-observation or calculation scenario',
     );
   }
+  if (
+    /\b(?:quantum comput(?:ing|ation)|quantum information|qubits?|quantum states?|superposition|entanglement|bell states?|quantum gates?|quantum circuits?|quantum algorithms?|quantum error correction)\b/.test(
+      text,
+    )
+  ) {
+    return disciplineLens(
+      'quantum information science',
+      'state, circuit, and measurement evidence',
+      'quantum reasoning decision',
+      'quantum computing student',
+      'quantum circuit or measurement case',
+    );
+  }
   if (/\b(psychology|conditioning|memory encoding|psychosocial development|overjustification)\b/.test(text)) {
     return disciplineLens(
       'psychological science',
@@ -1630,6 +1658,19 @@ function inferDisciplineLens(courseName, concepts = []) {
       'implementation decision',
       'software developer',
       'code review scenario',
+    );
+  }
+  if (
+    /\b(?:environmental microbiology|microbial ecology|waterborne pathogens?|biofilms?|bioremediation|microbial risk assessment)\b/.test(
+      text,
+    )
+  ) {
+    return disciplineLens(
+      'environmental microbiology inquiry',
+      'field, laboratory, and public-health evidence',
+      'environmental or public-health decision',
+      'environmental microbiologist',
+      'field sample, laboratory result, or exposure case',
     );
   }
   if (
@@ -2330,6 +2371,20 @@ function lessonPhrase(blueprint, lesson) {
   };
   const provided = blueprint?.enrichment?.lessonPhrases?.[lesson.id];
   const phrase = provided && typeof provided === 'object' ? provided : fallback;
+  const provenanceSource = cleanText(
+    lesson?.enrichment?.enrichmentSource || lesson?.enrichment?.conceptProvenance?.source,
+  );
+  const hasAdmittedTeachingTerms = lessonPrimaryTeachingKeyTerms(lesson).some(
+    (entry) => cleanText(entry?.term) && cleanText(entry?.definition),
+  );
+  // Course-level lesson phrases are minted before the per-lesson knowledge
+  // overlay is attached. On Algi research runs that earlier phrase can retain
+  // repaired map prose ("circuits to the week's work, one supporting evidence
+  // source") even though the later overlay owns precise, cited terms. Prefer
+  // the admitted terms once they exist; this also keeps the compiler boundary
+  // ordered correctly: source knowledge outranks an earlier fallback frame.
+  const contextCandidate =
+    hasAdmittedTeachingTerms && provenanceSource === 'algi-researched' ? fallback.context : phrase.context;
   const scrub = (value, fallbackValue) => {
     const text = cleanText(value, fallbackValue)
       .replace(/\bfield patterns?\b/gi, lens.evidenceNoun || 'source evidence')
@@ -2342,7 +2397,7 @@ function lessonPhrase(blueprint, lesson) {
   };
   return {
     ...phrase,
-    context: restoreNamedReadingConjunctions(scrub(phrase.context, fallback.context), lesson),
+    context: restoreNamedReadingConjunctions(scrub(contextCandidate, fallback.context), lesson),
     evidenceMove: scrub(phrase.evidenceMove, fallback.evidenceMove),
     decisionMove: scrub(phrase.decisionMove, fallback.decisionMove),
   };
@@ -2695,12 +2750,17 @@ const BLOOM_STEM_VERBS = [
   ['Remember', ['define', 'identify', 'list', 'name', 'recall', 'state', 'recognize']],
   ['Understand', ['explain', 'describe', 'summarize', 'classify', 'interpret', 'distinguish']],
   ['Apply', ['use', 'apply', 'demonstrate', 'solve', 'produce', 'practice', 'implement']],
-  ['Analyze', ['analyze', 'compare', 'trace', 'differentiate', 'examine', 'debug']],
-  ['Evaluate', ['evaluate', 'justify', 'critique', 'assess', 'defend']],
-  ['Create', ['create', 'design', 'compose', 'construct', 'develop', 'build']],
+  ['Analyze', ['analyze', 'compare', 'trace', 'differentiate', 'examine', 'investigate', 'diagnose', 'debug']],
+  ['Evaluate', ['evaluate', 'justify', 'critique', 'assess', 'defend', 'recommend', 'validate']],
+  ['Create', ['create', 'design', 'compose', 'construct', 'develop', 'build', 'propose', 'formulate', 'synthesize']],
 ];
 
 function bloomVerbForms(verb) {
+  // “states” is overwhelmingly a plural disciplinary noun inside case
+  // evidence (“multiple quantum states”), not a learner command. Assessment
+  // prompts use the imperative “State …”, so keep that form and the
+  // unambiguous past/progressive forms without misreading domain prose.
+  if (verb === 'state') return [verb, 'stated', 'stating'];
   if (/y$/.test(verb)) {
     const stem = verb.slice(0, -1);
     return [verb, `${stem}ies`, `${stem}ied`, `${verb}ing`];
@@ -2741,6 +2801,26 @@ export function bloomLevelFromStemVerb(text) {
     return 'Apply';
   }
   if (PROCEDURAL_MUSIC_INTERVAL_CLASSIFICATION_RE.test(stem)) return 'Apply';
+  // Evidence-rich case questions often begin with a factual scenario, then
+  // ask learners to combine several moves. A bare “identify” in that command
+  // must not flatten the whole item to recall when the response also has to
+  // weigh a conclusion, surface a limitation, or distinguish evidence from
+  // assumption.
+  const evidenceCase = /\b(?:case|record|source|evidence|detail|claim)\b/i.test(stem);
+  if (
+    evidenceCase &&
+    /\b(?:strongest|best-supported|defensible)\b.{0,80}\b(?:conclusion|claim|decision|boundary)\b/i.test(stem) &&
+    /\b(?:limitation|boundary|evidence|support)\b/i.test(stem)
+  ) {
+    return 'Evaluate';
+  }
+  if (
+    evidenceCase &&
+    /\b(?:distinguish|differentiate|compare)\b/i.test(stem) &&
+    /\b(?:support|assumption|evidence|details?)\b/i.test(stem)
+  ) {
+    return 'Analyze';
+  }
   let best = null;
   for (const { level, pattern } of BLOOM_STEM_VERB_PATTERNS) {
     const match = stem.match(pattern);
@@ -2978,11 +3058,12 @@ function objectiveForLesson(title, concepts) {
 function successCriteriaForLesson(title, concepts) {
   const rawConcept = normalizeConceptCandidates(concepts, { title, limit: 1 })[0] || 'the lesson focus';
   const concept = rawConcept.replace(/\s+evidence$/i, '').trim() || rawConcept;
+  const relevantConcept = concept.replace(/^(?:a|an|the)\s+/i, '');
   // Rotate phrasing by lesson title so synthesized criteria do not stamp the
   // identical sentence stem into every grading row and rubric in the course.
   const seed = Array.from(cleanText(title)).reduce((sum, char) => sum + char.charCodeAt(0), 0);
   const accuracyVariants = [
-    `Names the relevant ${concept} concept accurately.`,
+    `Names the relevant ${relevantConcept} concept accurately.`,
     `Uses ${concept} terminology precisely and in context.`,
     `Identifies the ${concept} idea the task depends on.`,
   ];
@@ -5470,21 +5551,21 @@ function buildReadinessSupportPlan({ title, concepts, artifact, evidencePlan, le
     diagnosticPrompt: lessonVariant(lessonStub, [
       `Before the main task, ask students to explain ${concept} using one concrete detail from ${sourceCue}.`,
       `Open with a quick ${concept} check: students choose one ${sourceCue} detail and say what it supports.`,
-      `Before drafting, have students mark one clue in ${sourceCue} and connect it to the ${concept} decision.`,
+      `Before starting, have students mark one clue in ${sourceCue} and connect it to the ${concept} decision.`,
       `Use a two-minute readiness prompt: what does ${sourceCue} prove, limit, or complicate about ${concept}?`,
     ]),
     readinessEvidence: `Students are ready when they can cite inspectable evidence, explain why it matters, and connect it to ${artifactName}.`,
-    supportMove: `In ${shortTitle}, give students a worked sentence frame if they cannot cite evidence for ${concept}. Have them mark one detail from ${sourceCue} before drafting ${artifactName}.`,
+    supportMove: `In ${shortTitle}, give students a worked sentence frame if they cannot cite evidence for ${concept}. Have them mark one detail from ${sourceCue} before developing ${artifactName}.`,
     extensionMove: readinessExtensionMove({
       lessonNumber,
       concept,
       artifact: artifactName,
     }),
     groupingCue: lessonVariant({ title, lessonNumber }, [
-      `Use the ${concept} warm-up evidence to decide who can draft ${artifactName}, who needs comparison examples, and who needs a support frame.`,
+      `Use the ${concept} warm-up evidence to decide who can begin ${artifactName}, who needs comparison examples, and who needs a support frame.`,
       `Sort the ${concept} quick-check into ready, developing, and targeted-support groups before students start ${artifactName}.`,
-      `Group students by their ${sourceCue} evidence note: ready to draft, needs one clarification, or needs a worked model for ${artifactName}.`,
-      `Use the opening ${concept} evidence check to decide who drafts independently, who compares examples, and who needs a guided ${artifactName} frame.`,
+      `Group students by their ${sourceCue} evidence note: ready to begin, needs one clarification, or needs a worked model for ${artifactName}.`,
+      `Use the opening ${concept} evidence check to decide who works independently, who compares examples, and who needs a guided ${artifactName} frame.`,
     ]),
   };
 }
@@ -14452,7 +14533,10 @@ function extractLessonBlueprint(
     feedbackMoment: feedbackCycle.nextUse,
     slideNarrative: `Introduce ${stripLessonPrefix(title)}, model the core concept, apply it to a case, and close with a decision checkpoint.`,
     quizTargets: outcomes.slice(0, 3),
-    faqNeeds: [`What should I focus on in ${title}?`, `How does ${stripLessonPrefix(title)} connect to graded work?`],
+    faqNeeds: [
+      `What should I focus on in ${title}?`,
+      `How does the ${stripLessonPrefix(title)} lesson connect to graded work?`,
+    ],
     bloomsLevel,
     bloomInference,
     confidence,
@@ -19151,7 +19235,7 @@ function compileStudyGuides(blueprint) {
       const guide = {
         lessonTitle: lesson.title,
         assignedReadings: assignedReadingTitlesForLesson(blueprint, lesson),
-        examScope: `Use this guide to prepare for Week ${lesson.lessonNumber} checks on ${phrase.context} and later assessments.${
+        examScope: `Use this guide to prepare for Week ${lesson.lessonNumber} checks on ${phrase.context}. Reuse it for later assessments.${
           inClassChecks.length > 0
             ? ` In-class checks this week: ${inClassChecks
                 .map((entry) => safeStudyGuideCheckTitle(entry, lesson))
@@ -19381,7 +19465,7 @@ function compileStudyGuides(blueprint) {
                   `Write a ${specificity.week} source-to-decision note showing how one ${lens.evidenceNoun} detail changes the lesson claim.`,
                 ]),
                 lessonVariant(lesson, [
-                  `Self-check a ${specificity.artifact} draft against this ${specificity.week} criterion: ${lesson.successCriteria[0]}`,
+                  `Self-check ${specificity.artifact} against this ${specificity.week} criterion: ${lesson.successCriteria[0]}`,
                   `Review one paragraph or step in ${specificity.artifact} and mark where it satisfies the Week ${lesson.lessonNumber} success criterion: ${lesson.successCriteria[0]}`,
                   `Use ${lesson.successCriteria[0]} as a margin note on ${specificity.artifact}: where is the evidence visible, and where is it still thin?`,
                   `Compare ${specificity.artifact} with the first success criterion, then rewrite the weakest evidence sentence.`,
@@ -20155,9 +20239,9 @@ export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
   const decisionNoun = stripTerminalPunctuation(cleanText(lens.decisionNoun || 'decision'));
   const quizArtifact =
     lessonArtifactGenre(lesson) === 'autograded-quiz' || promptLabeledArtifactKind(artifact) ? lessonFocus : artifact;
-  const quizDecision = quizArtifact.toLowerCase().includes(decisionNoun.toLowerCase())
-    ? quizArtifact
-    : `${quizArtifact} ${decisionNoun}`;
+  const quizArtifactWithArticle = assignmentTypeWithArticle(quizArtifact);
+  const quizArtifactDefinite = `the ${quizArtifact.replace(/^(?:an?|the)\s+/i, '')}`;
+  const decisionWithArticle = assignmentTypeWithArticle(decisionNoun);
   const quizPlan = buildQuizQuestionPlan({
     lesson,
     assessment,
@@ -20189,10 +20273,10 @@ export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
               objective: quizPlan[0].objective,
               concept,
               use: quizPlan[0].use,
-              prompt: `Which statement best explains why ${concept} matters for a ${quizDecision}?`,
+              prompt: `Which statement best explains why ${concept} matters when making ${decisionWithArticle} for ${quizArtifactDefinite}?`,
               correct: `${sentenceCase(concept)} helps a team choose relevant evidence and justify the ${decisionNoun}.`,
               plan: quizPlan[0],
-              artifactOverride: quizDecision,
+              artifactOverride: quizArtifact,
             }),
             buildMultipleChoiceQuestion({
               lesson,
@@ -20203,10 +20287,10 @@ export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
               concept,
               use: quizPlan[1].use,
               prompt: lessonVariant(lesson, [
-                `A student team is preparing a ${quizDecision}. Which action best applies ${concept}?`,
+                `A student team is preparing ${quizArtifactWithArticle}. Which action best applies ${concept}?`,
                 `During a ${lessonFocus} case review, which move uses ${concept} most clearly?`,
-                `Which preparation choice best uses ${concept} before recommending a ${decisionNoun}?`,
-                `A ${quizDecision} needs stronger ${concept} evidence. Which action should happen next?`,
+                `Which preparation choice best uses ${concept} before recommending ${decisionWithArticle}?`,
+                `${sentenceCase(quizArtifactDefinite)} needs stronger ${concept} evidence. Which action should happen next?`,
               ]),
               correct: lessonVariant(lesson, [
                 `Use ${concept} to select a concrete example, connect it to the objective, and revise the ${decisionNoun}.`,
@@ -20215,7 +20299,7 @@ export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
                 `Connect ${concept} to an inspectable example, then use the result to improve the ${decisionNoun}.`,
               ]),
               plan: quizPlan[1],
-              artifactOverride: quizDecision,
+              artifactOverride: quizArtifact,
             }),
             buildMultipleChoiceQuestion({
               lesson,
@@ -20228,7 +20312,7 @@ export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
               prompt: `In the ${lessonFocus} case, a student team reviews ${evidenceCue}. Which approach best applies ${secondary} before recommending a ${decisionNoun}?`,
               correct: `Compare two details from ${evidenceCue}, explain how each bears on ${secondary}, and choose the better-supported ${decisionNoun}.`,
               plan: quizPlan[2],
-              artifactOverride: quizDecision,
+              artifactOverride: quizArtifact,
             }),
             // v0.15.188 (Prof catch): when the assessment is AUTOGRADED, the weekly
             // quiz must be machine-scorable — an essay under an "autograded quiz"
@@ -20249,7 +20333,7 @@ export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
                   prompt: `Which statement most accurately describes ${concept}?`,
                   correct: `${sentenceCase(concept)} is used to ${lowercaseSentenceLead(stripTerminalPunctuation(quizPlan[3].objective || `support the ${decisionNoun}`))}.`,
                   plan: quizPlan[3],
-                  artifactOverride: quizDecision,
+                  artifactOverride: quizArtifact,
                 })
               : buildShortAnswerQuestion({
                   lesson,
@@ -20268,7 +20352,7 @@ export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
               objective: quizPlan[4].objective,
               concept,
               use: quizPlan[4].use,
-              prompt: `Which use of evidence from ${evidenceCue} best supports a claim for a ${quizDecision}?`,
+              prompt: `Which use of evidence from ${evidenceCue} best supports a claim in ${quizArtifactDefinite}?`,
               correct: lessonVariant(lesson, [
                 `Cite a specific detail from ${evidenceCue} that shows ${concept} at work, then state what it changes in the ${decisionNoun}.`,
                 `Use an inspectable ${evidenceCue} detail to show ${concept} at work, then explain the ${decisionNoun} it changes.`,
@@ -20276,7 +20360,7 @@ export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
                 `Point to the ${evidenceCue} evidence, explain how it supports ${concept}, and revise the relevant ${decisionNoun} claim.`,
               ]),
               plan: quizPlan[4],
-              artifactOverride: quizDecision,
+              artifactOverride: quizArtifact,
             }),
             machineScored
               ? buildMultipleChoiceQuestion({
@@ -20287,10 +20371,10 @@ export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
                   objective: quizPlan[5].objective,
                   concept: secondary,
                   use: quizPlan[5].use,
-                  prompt: `A classmate applies ${secondary} while preparing a ${quizDecision}. Which choice best uses it correctly?`,
+                  prompt: `A classmate applies ${secondary} while preparing ${quizArtifactWithArticle}. Which choice best uses it correctly?`,
                   correct: `Apply ${secondary} to a concrete detail from ${evidenceCue}, then revise the ${decisionNoun} it changes.`,
                   plan: quizPlan[5],
-                  artifactOverride: quizDecision,
+                  artifactOverride: quizArtifact,
                 })
               : buildEssayQuestion({
                   lesson,
@@ -21072,13 +21156,28 @@ function buildExamAtomOptions({ lesson, index, correct, distractors, concept, le
 // Definition recognition: the correct option is the covered lesson's OWN
 // authored definition; distractors are its documented misconception plus
 // other covered lessons' definitions.
-function buildExamDefinitionItem({ lesson, covered, coveredIndex, index, objective, assessment, plan }) {
+function buildExamDefinitionItem({
+  lesson,
+  covered,
+  coveredIndex,
+  index,
+  objective,
+  assessment,
+  plan,
+  avoidMisconceptionDistractors = false,
+}) {
   const term = examLessonTerm(lesson);
   if (!term) return null;
   const lessonFocus = compactLessonFocusReference(lesson);
   const concept = cleanText(term.term);
   const correct = `${stripTerminalPunctuation(cleanText(term.definition))}.`;
-  const distractors = examAtomDistractors({ lesson, covered, coveredIndex });
+  const siblingDefinitions = lessonTeachingKeyTerms(lesson)
+    .filter((candidate) => candidate !== term)
+    .map((candidate) => cleanText(candidate?.definition))
+    .filter(Boolean);
+  const distractors = avoidMisconceptionDistractors
+    ? unique(siblingDefinitions, 6)
+    : examAtomDistractors({ lesson, covered, coveredIndex });
   const { answer, options } = buildExamAtomOptions({
     lesson,
     index,
@@ -21127,15 +21226,26 @@ function buildExamDefinitionItem({ lesson, covered, coveredIndex, index, objecti
 // Fact accuracy: the correct option is an authored kernel fact; distractors
 // are documented misconceptions (false statements) only — never other
 // lessons' facts, which would be a second defensible answer.
-function buildExamFactItem({ lesson, covered, coveredIndex, index, objective, assessment, plan }) {
+function buildExamFactItem({
+  lesson,
+  covered,
+  coveredIndex,
+  index,
+  objective,
+  assessment,
+  plan,
+  avoidMisconceptionDistractors = false,
+}) {
   const fact = examLessonFact(lesson);
   if (!fact) return null;
   const lessonFocus = compactLessonFocusReference(lesson);
   const concept = primaryConceptForLesson(lesson);
   const correct = `${stripTerminalPunctuation(fact)}.`;
-  const ownClaims = lessonTeachingKeyTerms(lesson)
-    .map((term) => examMisconceptionClaim(term))
-    .filter(Boolean);
+  const ownClaims = avoidMisconceptionDistractors
+    ? []
+    : lessonTeachingKeyTerms(lesson)
+        .map((term) => examMisconceptionClaim(term))
+        .filter(Boolean);
   const rest = covered.filter((candidate) => candidate !== lesson);
   const otherClaims = [];
   for (let offset = 0; offset < rest.length; offset += 1) {
@@ -21375,7 +21485,10 @@ function buildAdmittedKernelAssessmentFillers({ lesson, blueprint, quizPlan, ass
       ]),
       enrichmentSource: 'admitted-kernel-assessment',
       tags: (item.tags || []).map((tag) => (tag === 'exam' ? 'quiz' : tag)),
-      quizPlan: { ...item.quizPlan, ...quizPlan[index], questionIndex: index },
+      // Keep the specialized item's source/bloom/role contract. The shared
+      // weekly plan supplies defaults, but must not relabel an evidence-
+      // analysis item as a generic quiz seat at the final boundary.
+      quizPlan: { ...quizPlan[index], ...item.quizPlan, questionIndex: index },
     };
   };
   const build = (builder, index, offset = 0) => {
@@ -21383,12 +21496,21 @@ function buildAdmittedKernelAssessmentFillers({ lesson, blueprint, quizPlan, ass
     return weeklyize(
       builder({
         lesson: sourceLesson,
-        covered,
+        // The rotated view is still this SAME weekly lesson. Passing the
+        // unrotated object beside it made identity-based cross-lesson logic
+        // treat the original as a different lesson and copy its misconception
+        // back into otherwise misconception-free definition/fact items.
+        covered: [sourceLesson],
         coveredIndex: 0,
         index,
         objective: quizPlan[index]?.objective || lesson.outcomes?.[0] || '',
         assessment: weeklyAssessment,
         plan: quizPlan[index],
+        // Weekly admitted-kernel quizzes already reserve slot 2 for the
+        // documented misconception. Definition/fact items should discriminate
+        // with neighbouring definitions and evidence-bound distractors instead
+        // of repeating that same wrong claim throughout the quiz.
+        avoidMisconceptionDistractors: true,
       }),
       index,
     );
@@ -21406,17 +21528,16 @@ function buildAdmittedKernelAssessmentFillers({ lesson, blueprint, quizPlan, ass
       index: 2,
       offset: 1,
     });
-  fillers[4] =
-    build(buildExamMisconceptionItem, 4, 1) || build(buildExamFactItem, 4, 1) || build(buildExamDefinitionItem, 4, 1);
-  if (cleanText(fillers[4]?.question).toLowerCase() === cleanText(fillers[1]?.question).toLowerCase()) {
-    fillers[4] = buildAdmittedKernelEvidenceItem({
-      lesson,
-      blueprint,
-      quizPlan,
-      index: 4,
-      offset: 2,
-    });
-  }
+  // One misconception, one dedicated correction check. Slot 5 asks students
+  // to interpret a different admitted fact and bound its claim, which adds an
+  // Analyze demand without restating the same error in another stem/options.
+  fillers[4] = buildAdmittedKernelEvidenceItem({
+    lesson,
+    blueprint,
+    quizPlan,
+    index: 4,
+    offset: 2,
+  });
   const examArgs = {
     blueprint,
     assessment: weeklyAssessment,
@@ -26341,7 +26462,7 @@ function compileCourseFaq(blueprint, config = {}) {
           `${safeCourseFaqPrimaryConcept(lesson)} practice check`;
         const fact = cleanText(lesson.enrichment?.kernel?.facts?.[0]);
         return {
-          q: `How does ${stripLessonPrefix(lesson.title)} connect to course checks?`,
+          q: `How does the ${stripLessonPrefix(lesson.title)} lesson connect to course checks?`,
           an: `${check} is formative practice, not a separate graded submission. ${
             fact
               ? `Use it to explain this lesson claim: ${ensureSentenceCompiler(fact)}`
@@ -26360,7 +26481,7 @@ function compileCourseFaq(blueprint, config = {}) {
           [lesson.title, ...(lesson.outcomes || []), ...(lesson.keyConcepts || [])].join(' '),
         );
         return {
-          q: `How does ${stripLessonPrefix(lesson.title)} connect to graded work?`,
+          q: `How does the ${stripLessonPrefix(lesson.title)} lesson connect to graded work?`,
           an: buildMusicIntervalFaqAssignment({
             artifact,
             source,
@@ -26375,7 +26496,7 @@ function compileCourseFaq(blueprint, config = {}) {
       if (taskDescription) {
         const taskSentence = sentenceCase(stripTerminalPunctuation(taskDescription));
         return {
-          q: `How does ${stripLessonPrefix(lesson.title)} connect to graded work?`,
+          q: `How does the ${stripLessonPrefix(lesson.title)} lesson connect to graded work?`,
           an: lessonVariant(lesson, [
             `${lesson.title} feeds directly into the graded task. ${taskSentence}. Use the ${safeCourseFaqPrimaryConcept(lesson)} success criteria to test your work before submitting.`,
             `The graded-work link for ${lesson.title} is explicit. ${taskSentence}. Before submitting, check the evidence and boundary against the ${safeCourseFaqPrimaryConcept(lesson)} criteria.`,
@@ -26391,7 +26512,7 @@ function compileCourseFaq(blueprint, config = {}) {
         };
       }
       return {
-        q: `How does ${stripLessonPrefix(lesson.title)} connect to graded work?`,
+        q: `How does the ${stripLessonPrefix(lesson.title)} lesson connect to graded work?`,
         an: lessonVariant(lesson, [
           `${lesson.title} prepares you for ${safeCourseFaqStudentArtifact(lesson)}. Use the ${safeCourseFaqPrimaryConcept(lesson)} success criteria to test the work before submitting or discussing it.`,
           `${lesson.title} feeds directly into ${safeCourseFaqStudentArtifact(lesson)}. Before you submit or speak in class, check whether your evidence actually proves the ${safeCourseFaqPrimaryConcept(lesson)} decision.`,
@@ -26825,7 +26946,7 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
   const kernelDiscussion =
     deep && cleanText(kernelPayload?.discussionPrompt?.prompt) ? kernelPayload.discussionPrompt : null;
   const kernelTermA = deep ? (kernelPayload?.keyTerms || [])[0] || null : null;
-  const kernelCitation = deep
+  const rawKernelCitation = deep
     ? humanSourceCueLabel(
         (kernelPayload?.conceptProvenance?.citations || [])[0] ||
           (kernelPayload?.keyTerms || []).find((term) => cleanText(term.source))?.source ||
@@ -26833,6 +26954,15 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
         '',
       )
     : '';
+  // A retrieved article often has the same display title as the selected
+  // concept. "Use Qubit ... from Qubit" is not useful attribution; the full
+  // source remains in the receipt and bibliography, while classroom prose
+  // omits the tautological suffix.
+  const kernelCitation =
+    rawKernelCitation &&
+    courseCopySurfaceWords(rawKernelCitation).join(' ') !== courseCopySurfaceWords(kernelTermA?.term || '').join(' ')
+      ? rawKernelCitation
+      : '';
 
   return [
     {
@@ -26908,7 +27038,7 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
               `Keep the model concrete: point to ${evidencePlan?.sourceCue || 'one source cue'}, then model the reasoning move students will transfer into ${artifact}.`,
               `Use ${evidencePlan?.sourceCue || 'one source cue'} as the worked anchor and name the inference students should carry into ${artifact}.`,
               `Tie the example to ${evidencePlan?.sourceCue || 'one source cue'} and ask students to write the reasoning move in ${artifact} language.`,
-              `Make ${evidencePlan?.sourceCue || 'one source cue'} visible, then mark the inference students can reuse when drafting ${artifact}.`,
+              `Make ${evidencePlan?.sourceCue || 'one source cue'} visible, then mark the inference students can reuse when developing ${artifact}.`,
             ]),
       // v0.16 C2 (Prof classroom catch — realistic reading compliance cost
       // the cohort 25-36% of mastery): the mini-lesson explicitly re-teaches
@@ -27025,8 +27155,8 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
             : lessonVariant(lesson, [
                 'Independent artifact sprint',
                 'Studio build checkpoint',
-                'Individual evidence draft',
-                'Draft revision workshop',
+                'Individual evidence build',
+                'Evidence revision workshop',
                 'Solo transfer work',
               ]),
       type: 'Workshop',
@@ -27063,21 +27193,21 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
                     `Students conduct ${artifact}, preserve an evidence trail of measurements and observations, and note one limitation before drawing a conclusion.`,
                   ])
             : deep && kernelWorkedExample
-              ? `Students draft ${artifact}, mirroring the worked example's solution path on their own case — every move the board model made needs an analog in the draft.`
+              ? `Students develop ${artifact}, mirroring the worked example's solution path on their own case — every move in the board model needs an analog in the submitted work.`
               : deep && kernelTermA?.definition
                 ? lessonVariant(lesson, [
-                    `Students revise ${artifact} by using ${kernelTermA.term} to justify one visible decision${kernelCitation ? ` from ${kernelCitation}` : ''}; the draft must name which lesson evidence changed the work.`,
+                    `Students revise ${artifact} by using ${kernelTermA.term} to justify one visible decision${kernelCitation ? ` from ${kernelCitation}` : ''}; the work must name which lesson evidence changed it.`,
                     `Students update ${artifact} by applying ${kernelTermA.term} to one visible choice${kernelCitation ? ` from ${kernelCitation}` : ''}; the revision note explains what evidence shifted the choice.`,
-                    `Students improve ${artifact} through ${kernelTermA.term}${kernelCitation ? ` from ${kernelCitation}` : ''}; the draft should identify the evidence behind the changed decision.`,
+                    `Students improve ${artifact} through ${kernelTermA.term}${kernelCitation ? ` from ${kernelCitation}` : ''}; the work should identify the evidence behind the changed decision.`,
                     `Students refine ${artifact} by tying ${kernelTermA.term} to one defensible move${kernelCitation ? ` from ${kernelCitation}` : ''}; the work should show the evidence that changed their next step.`,
                   ])
                 : lessonVariant(lesson, [
-                    `Students draft ${artifact}, checking each revision against the lesson criteria and one exemplar move.`,
+                    `Students develop ${artifact}, checking each revision against the lesson criteria and one exemplar move.`,
                     `Students build ${artifact} in short passes: claim, evidence, reasoning, then a feedback-led revision.`,
                     `Students create the first usable ${artifact} version and annotate where the strongest evidence changes the work.`,
                     `Students revise ${artifact} from the criteria outward, strengthening the weakest evidence-to-decision link first.`,
-                    `Students work independently on ${artifact}, pausing once to compare the draft with an exemplar and record the next edit.`,
-                    `Students produce a reviewable ${artifact} draft, apply one feedback prompt, and explain the resulting change.`,
+                    `Students work independently on ${artifact}, pausing once to compare the work with an exemplar and record the next edit.`,
+                    `Students produce a reviewable ${artifact} version, apply one feedback prompt, and explain the resulting change.`,
                   ]),
       instructorNotes:
         deep && kernelMisconception
@@ -27085,13 +27215,13 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
               `Conference against the kernel bar for ${artifact}. Flag this idea. ${ensureSentenceCompiler(readableMisconception(kernelMisconception.misconception))} Ask for this correction. ${ensureSentenceCompiler(readableCorrection(kernelMisconception.correction || kernelMisconception.definition))} ${modality.artifactCheck}`,
               `Use conferences to catch this assumption. ${ensureSentenceCompiler(readableMisconception(kernelMisconception.misconception))} Have students revise one line. Correction: ${ensureSentenceCompiler(readableCorrection(kernelMisconception.correction || kernelMisconception.definition))} ${modality.artifactCheck}`,
               `During spot coaching, ask students to point to the sentence in ${artifact} where the misconception disappears. The corrected idea is: ${readableCorrection(kernelMisconception.correction || kernelMisconception.definition)}. ${modality.artifactCheck}`,
-              `When a draft repeats this idea, require one evidence-based correction. Misconception: ${ensureSentenceCompiler(readableMisconception(kernelMisconception.misconception))} Correction: ${ensureSentenceCompiler(readableCorrection(kernelMisconception.correction || kernelMisconception.definition))} ${modality.artifactCheck}`,
+              `When the work repeats this idea, require one evidence-based correction. Misconception: ${ensureSentenceCompiler(readableMisconception(kernelMisconception.misconception))} Correction: ${ensureSentenceCompiler(readableCorrection(kernelMisconception.correction || kernelMisconception.definition))} ${modality.artifactCheck}`,
             ])
           : `Conference with students who need support on ${artifact}; redirect them to the exact ${concept} criterion and this modality check: ${modality.artifactCheck}`,
       instructorRole: `Provide targeted feedback on ${artifact} and confirm readiness for submission.`,
       grouping: lessonVariant(lesson, [
         'Independent work with spot coaching',
-        'Solo drafting with targeted conferences',
+        'Solo development with targeted conferences',
         'Individual artifact sprint plus instructor checkpoints',
         'Independent studio work with brief evidence check-ins',
       ]),
@@ -27324,10 +27454,10 @@ function compileLessonPlans(blueprint, options = {}) {
         studentFacingSummary: admittedLanguagePlan?.studentFacingSummary || {
           beforeClass: `Review ${materials[0]} and arrive ready to ${phrase.evidenceMove}.`,
           duringClass: lessonVariant(lesson, [
-            `Use class discussion and practice time to ${phrase.decisionMove} with peers before drafting your own response.`,
-            `Test ${phrase.evidenceMove} with a partner, then ${phrase.decisionMove} in an individual draft.`,
+            `Use class discussion and practice time to ${phrase.decisionMove} with peers before developing your own response.`,
+            `Test ${phrase.evidenceMove} with a partner, then ${phrase.decisionMove} in an individual response.`,
             `Compare two evidence choices in class, explain which one is stronger, and use that decision in your own response.`,
-            `Rehearse the ${concept} reasoning with peers, note where the evidence changes the decision, and then draft independently.`,
+            `Rehearse the ${concept} reasoning with peers, note where the evidence changes the decision, and then work independently.`,
             `Use the guided example and peer check to refine one ${concept} claim before completing your own work.`,
             `Work through the lesson evidence in class, challenge one assumption with peers, and carry the stronger reasoning into your response.`,
           ]),
@@ -27478,7 +27608,7 @@ function compileLessonPlans(blueprint, options = {}) {
               `Provide the concept model in text, spoken explanation, and one visual organizer tied to ${concept}.`,
             engagement:
               lesson.accessibilityPlan?.engagement ||
-              `Offer a choice between speaking, annotating, or drafting in writing during the ${stripLessonPrefix(lesson.title)} collaborative application task.`,
+              `Offer a choice between speaking, annotating, or writing during the ${stripLessonPrefix(lesson.title)} collaborative application task.`,
             expression:
               lesson.accessibilityPlan?.expression ||
               `Allow students to show ${artifact} progress through a memo, slide, table, or annotated outline when the same criteria are met.`,
@@ -27499,7 +27629,7 @@ function compileLessonPlans(blueprint, options = {}) {
                 description: hasStandaloneAssessment
                   ? cleanText(lesson.enrichment?.assignmentCore?.taskDescription) ||
                     lesson.feedbackCycle?.closureCheck ||
-                    `Complete ${artifact}, test it against the lesson criteria, and add one note explaining how feedback changed your draft.`
+                    `Complete ${artifact}, test it against the lesson criteria, and add one note explaining how feedback changed your work.`
                   : `Review the ${concept} notes from class, correct one missed example, and write one question to bring to the next lesson. This is preparation, not a separate submission.`,
                 estimatedTime: `${lesson.workloadEstimate.afterClassMinutes} minutes`,
                 connectionToNext:
@@ -27692,7 +27822,7 @@ function compileLessonPlans(blueprint, options = {}) {
             `Show a partial ${artifact} sample that summarizes without enough evidence.`,
           anchorExampleRevision:
             assessment.anchorExampleSet?.revisionPrompt ||
-            `Ask students to revise the partial sample before drafting their own ${artifact}.`,
+            `Ask students to revise the partial sample before developing their own ${artifact}.`,
           sourceIntegrityCheck:
             lesson.sourceUsePlan?.noInventedSources ||
             `Confirm students use only approved sources and flag missing citation details for local review.`,

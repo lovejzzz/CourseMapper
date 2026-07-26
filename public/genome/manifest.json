@@ -342,6 +342,18 @@
       "displayTitle": "Musical form",
       "sourceUrl": "https://en.wikipedia.org/wiki/Musical_form"
     },
+    "openstax:anatomy-and-physiology-2e": {
+      "displayTitle": "OpenStax Anatomy and Physiology 2e",
+      "sourceUrl": "https://openstax.org/details/books/anatomy-and-physiology-2e"
+    },
+    "openstax:microbiology": {
+      "displayTitle": "OpenStax Microbiology",
+      "sourceUrl": "https://openstax.org/details/books/microbiology"
+    },
+    "openstax:microbiology#16": {
+      "displayTitle": "OpenStax Microbiology",
+      "sourceUrl": "https://openstax.org/books/microbiology/pages/16-3-modes-of-disease-transmission"
+    },
     "openstax:university-physics-volume-2": {
       "displayTitle": "University Physics Volume 2",
       "sourceUrl": "https://openstax.org/details/books/university-physics-volume-2"

@@ -154,6 +154,20 @@ function normalizeEdges(raw) {
   return edges;
 }
 
+function normalizeProvenance(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+  const origin = cleanText(raw.origin);
+  if (!origin) return null;
+  return {
+    origin,
+    topic: cleanText(raw.topic),
+    title: cleanText(raw.title),
+    sourceUrl: cleanText(raw.sourceUrl),
+    ...(raw.revisionId !== undefined && raw.revisionId !== null ? { revisionId: cleanText(raw.revisionId) } : {}),
+    ...(raw.revisionTimestamp ? { revisionTimestamp: cleanText(raw.revisionTimestamp) } : {}),
+  };
+}
+
 /**
  * Validate + normalize a raw kernel. Returns the clean kernel or null with a
  * reason list. A kernel is usable when it has an id, a term, a definition, and
@@ -184,6 +198,7 @@ export function normalizeConceptKernel(raw) {
   const discipline = id.split('/')[0];
   const level = VALID_LEVELS.has(raw?.level) ? raw.level : 'intro';
   const difficulty = Math.max(1, Math.min(5, Number(raw?.difficulty) || 2));
+  const provenance = normalizeProvenance(raw?.provenance);
 
   return {
     kernel: {
@@ -221,6 +236,7 @@ export function normalizeConceptKernel(raw) {
           : { sourceEdition: '', reviewBy: '', volatility: 'low' },
       license: cleanText(raw?.license) || 'CC-BY-4.0',
       attribution: asArray(raw?.attribution).map(cleanText).filter(Boolean),
+      ...(provenance ? { provenance } : {}),
       // v0.14 P2: competency/standards tags — curated, link-checked, never
       // model-asserted. Each: { framework, code, label, url }.
       standards: asArray(raw?.standards).map(normalizeStandard).filter(Boolean),

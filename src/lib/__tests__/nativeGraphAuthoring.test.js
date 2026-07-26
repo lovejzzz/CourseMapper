@@ -168,6 +168,96 @@ describe('nativeGraphAuthoring matchEntityIds', () => {
     expect(preserved.sessions[0].sections[0].resourceRefs).toContain('sf1');
   });
 
+  it('preserves Algi research receipts when a finish repair re-derives the display map', () => {
+    const courseMap = {
+      courseName: 'Introduction to Quantum Computing',
+      lessons: [
+        {
+          title: 'Lesson 1: Qubits',
+          sections: [
+            {
+              topicSection: '1.1: Quantum states',
+              learningObjectives: 'Explain a qubit state.',
+              weeklyAssessments: 'Compare two qubit states.',
+              supportingResources: 'Instructor qubit worksheet.',
+            },
+          ],
+        },
+        {
+          title: 'Lesson 2: Quantum gates',
+          sections: [
+            {
+              topicSection: '2.1: Quantum circuits',
+              learningObjectives: 'Analyze a quantum circuit.',
+              weeklyAssessments: 'Trace a circuit outcome.',
+              supportingResources: 'Instructor circuit worksheet.',
+            },
+          ],
+        },
+      ],
+    };
+    const oldGraph = deriveCourseGraphFromCourseMap(courseMap);
+    const [qubitSession, gateSession] = oldGraph.sessions;
+    oldGraph.resources.push(
+      {
+        id: 'kr1',
+        citation: 'Qubits — Qubit (open encyclopedia, CC BY-SA 4.0 — https://en.wikipedia.org/wiki/Qubit)',
+        kind: 'open encyclopedia',
+        sessionRefs: [qubitSession.id],
+        origin: 'algi-research',
+        provider: 'wikipedia',
+        url: 'https://en.wikipedia.org/wiki/Qubit',
+        license: 'CC BY-SA 4.0',
+        attribution: 'Wikipedia contributors',
+        revisionId: '101',
+      },
+      {
+        id: 'kr2',
+        citation: 'Quantum gates — Quantum logic gate (open encyclopedia)',
+        kind: 'open encyclopedia',
+        sessionRefs: [gateSession.id],
+        origin: 'algi-research',
+        provider: 'wikipedia',
+        url: 'https://en.wikipedia.org/wiki/Quantum_logic_gate',
+        license: 'CC BY-SA 4.0',
+        attribution: 'Wikipedia contributors',
+        revisionId: '202',
+      },
+    );
+    qubitSession.sections[0].resourceRefs.push('kr1');
+    gateSession.sections[0].resourceRefs.push('kr2');
+
+    // Package finishing can repair map prose after compilation. That
+    // re-derivation intentionally contains only the repaired display cells;
+    // Algi's source receipts must survive even when their citations no longer
+    // match those cells byte-for-byte.
+    const repairedMap = renderCourseMapFromGraph(oldGraph, { assessmentReferences: true });
+    repairedMap.lessons[0].sections[0].supportingResources = 'Instructor qubit worksheet.';
+    repairedMap.lessons[1].sections[0].supportingResources = 'Instructor circuit worksheet.';
+    const rederived = deriveCourseGraphFromCourseMap(repairedMap);
+    const preserved = preserveSourceProof(oldGraph, rederived);
+
+    expect(preserved.resources).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'kr1',
+          origin: 'algi-research',
+          provider: 'wikipedia',
+          revisionId: '101',
+        }),
+        expect.objectContaining({
+          id: 'kr2',
+          origin: 'algi-research',
+          provider: 'wikipedia',
+          revisionId: '202',
+        }),
+      ]),
+    );
+    expect(preserved.sessions[0].sections[0].resourceRefs).toContain('kr1');
+    expect(preserved.sessions[1].sections[0].resourceRefs).toContain('kr2');
+    expect(validateCourseGraph(preserved)).toMatchObject({ valid: true, issues: [] });
+  });
+
   it('keeps resource ids unique when a preserved id collides with a newly derived resource', () => {
     const oldGraph = deriveCourseGraphFromCourseMap(sourceBackedMap());
     oldGraph.resources[0].id = 'r4';
@@ -447,6 +537,55 @@ describe('completeNativeKernelSurfaces', () => {
         }),
       ]),
     );
+  });
+
+  it('turns a complete MC question into a grammatical answer-bearing example', () => {
+    const question =
+      'The research team discovers during the first session that the final task link is broken. Which step would most directly have caught this?';
+    const completed = completeNativeKernelSurfaces(
+      {
+        keyTerms: [],
+        quizItems: [
+          {
+            index: 0,
+            type: 'multiple_choice',
+            question,
+            options: [
+              'Rehearsing every task the day before',
+              'Increasing the incentive amount',
+              'Adding more demographic questions',
+              'Replacing observation with a survey',
+            ],
+            answerIndex: 0,
+            explanation:
+              'Researchers should run through test tasks before a session so broken links and procedure gaps are found before participants arrive.',
+          },
+        ],
+        kernel: {
+          facts: [
+            'Researchers should run through every task before the research session.',
+            'A rehearsal can expose broken links before participants arrive.',
+            'The study setup should support the evidence the team needs to collect.',
+          ],
+          scenario: { setup: 'A research team rehearses its study.', materials: 'test script and prototype' },
+        },
+      },
+      {
+        title: 'Lesson 1: User research planning',
+        lessonNumber: 1,
+        sections: [{ topicSection: 'Research planning and rehearsal' }],
+      },
+    );
+
+    expect(completed.keyTerms).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          term: 'Rehearsing every task the day before',
+          example: `The supported answer to “${question}” is Rehearsing every task the day before.`,
+        }),
+      ]),
+    );
+    expect(JSON.stringify(completed)).not.toMatch(/For the research team discovers/i);
   });
 
   it('uses verified partial overlays before recovery can spend another model call', () => {

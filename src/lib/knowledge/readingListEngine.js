@@ -145,9 +145,12 @@ function resolveGenomeCitation(entry, { abbreviateLicense = false } = {}) {
   let explicitLicense = '';
   let explicitAttribution = '';
   let resourceKind = '';
+  let topic = '';
   let evidence = '';
   let sourceTier = null;
   let conceptLinks = [];
+  let revisionId = '';
+  let revisionTimestamp = '';
   if (entry && typeof entry === 'object') {
     rawLabel = cleanText(entry.key || entry.text || entry.label || entry.source || '');
     displayTitle = cleanText(entry.displayTitle || '');
@@ -155,9 +158,12 @@ function resolveGenomeCitation(entry, { abbreviateLicense = false } = {}) {
     explicitLicense = cleanText(entry.license || '');
     explicitAttribution = cleanText(entry.attribution || '');
     resourceKind = cleanText(entry.kind || '');
+    topic = cleanText(entry.topic || '');
     evidence = cleanText(entry.evidence || '');
     sourceTier = Number.isFinite(Number(entry.sourceTier)) ? Number(entry.sourceTier) : null;
     conceptLinks = Array.isArray(entry.conceptLinks) ? entry.conceptLinks : [];
+    revisionId = cleanText(entry.revisionId || '');
+    revisionTimestamp = cleanText(entry.revisionTimestamp || '');
   } else {
     rawLabel = cleanText(entry);
   }
@@ -166,8 +172,20 @@ function resolveGenomeCitation(entry, { abbreviateLicense = false } = {}) {
   // The license-group key: the license + the source base (book URL sans the
   // §-section suffix), so all citations of one open textbook collapse to one
   // inline license statement. Empty when there's no resolvable textbook URL.
-  const licenseGroupKey = (url, license) =>
-    url ? `${cleanText(license).toLowerCase()}|${url.replace(/[#§].*$/, '')}` : '';
+  const licenseGroupKey = (url, license, kind = '') => {
+    if (!url) return '';
+    const normalizedLicense = cleanText(license).toLowerCase();
+    const normalizedKind = cleanText(kind).toLowerCase();
+    try {
+      const parsed = new URL(url);
+      if (parsed.hostname === 'en.wikipedia.org' && ['open encyclopedia', 'open reference'].includes(normalizedKind)) {
+        return `${normalizedLicense}|${parsed.origin}`;
+      }
+    } catch {
+      /* keep the exact URL as the safe fallback */
+    }
+    return `${normalizedLicense}|${url.replace(/[#§].*$/, '')}`;
+  };
 
   if (displayTitle) {
     const { url, license: inferredLicense } = openTextbookUrl(rawLabel || displayTitle);
@@ -182,10 +200,13 @@ function resolveGenomeCitation(entry, { abbreviateLicense = false } = {}) {
       license,
       attribution: explicitAttribution || displayTitle,
       kind,
+      topic,
       evidence,
       sourceTier,
       conceptLinks,
-      licenseGroupKey: licenseGroupKey(href, license),
+      revisionId,
+      revisionTimestamp,
+      licenseGroupKey: licenseGroupKey(href, license, kind),
     };
   }
 
@@ -267,6 +288,18 @@ function attachResource(graph, session, resource) {
   }
 }
 
+function providerForResolvedCitation(citation = {}) {
+  const text = [citation.url, citation.attribution, citation.citation].filter(Boolean).join(' ');
+  if (/\bopenstax(?:\.org)?\b/i.test(text)) return 'openstax';
+  if (/\bwikipedia(?:\.org)?\b/i.test(text)) return 'wikipedia';
+  if (/\bgutenberg(?:\.org)?\b/i.test(text)) return 'gutenberg';
+  return '';
+}
+
+function originForResolvedCitation(citation = {}) {
+  return providerForResolvedCitation(citation) === 'wikipedia' ? 'algi-research' : 'genome';
+}
+
 /**
  * Deterministic pass: genome anchor sections → Resource entities.
  * Reads conceptProvenance from the enrichment overlay's per-lesson payloads
@@ -293,7 +326,7 @@ export function attachGenomeResources(graph) {
   // resource, and re-seeds both the dedup set and the license-group set.
   const seenLicenseGroups = new Set();
   for (const resource of graph.resources || []) {
-    if (resource?.origin !== 'genome') continue;
+    if (!['genome', 'algi-research'].includes(resource?.origin)) continue;
     if (resource.dedupeKey) seen.add(String(resource.dedupeKey).toLowerCase());
     if (resource.licenseGroupKey) seenLicenseGroups.add(resource.licenseGroupKey);
   }
@@ -312,6 +345,7 @@ export function attachGenomeResources(graph) {
     ].filter(
       (entry) => !isInternalKeyTermSourceMarker(entry) && ((entry && typeof entry === 'object') || cleanText(entry)),
     );
+    const resourceOrigin = payload.conceptProvenance?.source === 'algi-researched' ? 'algi-research' : 'genome';
     const resolved = [];
     const localKeys = new Set();
     for (const entry of rawEntries) {
@@ -333,23 +367,54 @@ export function attachGenomeResources(graph) {
       if (groupKey && seenLicenseGroups.has(groupKey)) {
         final = resolveGenomeCitation(entry, { abbreviateLicense: true }) || resolvedCitation;
       }
-      const { citation, url, license, attribution, kind, evidence, sourceTier, conceptLinks = [] } = final;
-      if (seen.has(citation.toLowerCase())) continue;
-      seen.add(citation.toLowerCase());
+      const {
+        citation,
+        url,
+        license,
+        attribution,
+        kind,
+        topic,
+        evidence,
+        sourceTier,
+        conceptLinks = [],
+        revisionId,
+        revisionTimestamp,
+      } = final;
+      const citationOrigin = originForResolvedCitation(final);
+      const citationProvider = providerForResolvedCitation(final);
+      // A researched article title can be a proper name ("Shor code") that is
+      // semantically relevant but shares no literal token with its lesson.
+      // Preserve the exact query relationship in the human-facing receipt so
+      // instructors and the offline grader can see why the source was chosen.
+      // The article title, URL, license, and attribution remain unchanged.
+      const normalizedTopic = cleanText(topic).replace(/^Lesson \d+:?\s*/i, '');
+      const contextualCitation =
+        citationOrigin === 'algi-research' &&
+        normalizedTopic &&
+        !citation.toLowerCase().includes(normalizedTopic.toLowerCase()) &&
+        !normalizedTopic.toLowerCase().includes(cleanText(entry?.displayTitle).toLowerCase())
+          ? `${normalizedTopic} — ${citation}`
+          : citation;
+      if (seen.has(contextualCitation.toLowerCase())) continue;
+      seen.add(contextualCitation.toLowerCase());
       seen.add(dedupeKey);
       if (groupKey) seenLicenseGroups.add(groupKey);
       attachResource(graph, session, {
         id: nextId(),
-        citation,
+        citation: contextualCitation,
         kind: kind || 'textbook section',
         sessionRefs: [],
-        origin: 'genome',
+        origin: citationOrigin,
+        ...(citationProvider ? { provider: citationProvider } : {}),
         url,
         license,
         attribution,
+        ...(normalizedTopic ? { topic: normalizedTopic } : {}),
         evidence,
         ...(sourceTier != null ? { sourceTier } : {}),
         ...(conceptLinks.length > 0 ? { conceptLinks } : {}),
+        ...(revisionId ? { revisionId } : {}),
+        ...(revisionTimestamp ? { revisionTimestamp } : {}),
         // Stable identity for idempotent re-entry (abbreviation-invariant).
         dedupeKey,
         licenseGroupKey: groupKey || '',
@@ -1136,12 +1201,24 @@ export function knowledgeCoverage(graph) {
   const genomeLessons = Object.values(lessonContent).filter(
     (payload) => payload?.conceptProvenance?.source === 'genome-linked',
   ).length;
+  const researchedPayloadLessons = Object.values(lessonContent).filter(
+    (payload) => payload?.conceptProvenance?.source === 'algi-researched',
+  ).length;
+  const researchedResourceSessions = new Set(
+    resources
+      .filter((resource) => resource?.origin === 'algi-research')
+      .flatMap((resource) => (Array.isArray(resource?.sessionRefs) ? resource.sessionRefs : [])),
+  );
+  const researchedLessons = Math.max(researchedPayloadLessons, researchedResourceSessions.size);
   const citedResources = resources.filter((resource) =>
-    ['genome', 'genome-prerequisite', 'openalex', 'openlibrary', 'openstax', 'source-finder'].includes(resource.origin),
+    ['genome', 'genome-prerequisite', 'algi-research', 'openalex', 'openlibrary', 'openstax', 'source-finder'].includes(
+      resource.origin,
+    ),
   );
   return {
     sessions: sessions.length,
     genomeLinkedLessons: genomeLessons,
+    researchedLessons,
     sessionsWithResources: sessionIdsWithResources.size,
     openResources: citedResources.length,
     resourcesByOrigin: citedResources.reduce((counts, resource) => {

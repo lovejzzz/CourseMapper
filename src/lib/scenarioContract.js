@@ -216,23 +216,37 @@ export function deriveDecisionScenario(kernel, { compactFactLedgerScenarios = tr
   const factLedgerScenario = deriveFactLedgerComparisonScenario(term, facts, { compactFactLedgerScenarios });
   if (factLedgerScenario) return factLedgerScenario;
 
-  const fact = [...facts].sort(
+  const exampleIdentity = scenarioTemplateIdentity(term.example);
+  const distinctFacts = facts.filter((candidate) => scenarioTemplateIdentity(candidate) !== exampleIdentity);
+  const fact = [...(distinctFacts.length > 0 ? distinctFacts : facts)].sort(
     (left, right) =>
       overlap(`${term.term} ${term.definition} ${term.example}`, right) -
       overlap(`${term.term} ${term.definition} ${term.example}`, left),
   )[0];
   const misconception = learnerFacingMisconception(term.misconception);
+  const syntheticPeerContrast = /\bare interchangeable descriptions(?: of the same concept)?\b/i.test(misconception);
   const variant = scenarioSeed([term.term, term.example, fact]) % 3;
   const caseSentence = [
     `A reviewer examines this case: ${text(term.example)}`,
     `A team must interpret this case: ${text(term.example)}`,
     `An analyst reviews the following case: ${text(term.example)}`,
   ][variant];
-  const comparisonSentence = [
-    `One interpretation applies ${text(term.term)}; a competing interpretation follows this mistaken claim: ${sentenceCase(misconception)}`,
-    `The evidence must distinguish ${text(term.term)} from this misconception: ${sentenceCase(misconception)}`,
-    `Two readings are on the table: ${text(term.term)}, or this misconception: ${sentenceCase(misconception)}`,
-  ][variant];
+  // Algi creates a source-grounded peer contrast when an article states no
+  // misconception of its own. That contrast already receives one dedicated
+  // correction item in the quiz. Repeating the same sentence inside the case
+  // turns the scenario into a second misconception check; use the admitted
+  // facts to test claim scope instead.
+  const comparisonSentence = syntheticPeerContrast
+    ? [
+        `One interpretation applies ${text(term.term)} only to the supplied evidence; a competing interpretation extends the conclusion to an unexamined neighbouring concept`,
+        `The evidence must distinguish a bounded use of ${text(term.term)} from a broader claim the supplied facts do not establish`,
+        `Two readings are on the table: one stays within the documented scope of ${text(term.term)}, while the other treats the evidence as universally transferable`,
+      ][variant]
+    : [
+        `One interpretation applies ${text(term.term)}; a competing interpretation follows this mistaken claim: ${sentenceCase(misconception)}`,
+        `The evidence must distinguish ${text(term.term)} from this misconception: ${sentenceCase(misconception)}`,
+        `Two readings are on the table: ${text(term.term)}, or this misconception: ${sentenceCase(misconception)}`,
+      ][variant];
   const decisionSentence = [
     'The reviewer must decide which interpretation the evidence supports and what it cannot establish',
     'The team must choose the defensible interpretation and name the boundary of the supplied evidence',
@@ -246,7 +260,11 @@ export function deriveDecisionScenario(kernel, { compactFactLedgerScenarios = tr
       ensureSentence(`The record also states: ${fact}`),
       ensureSentence(decisionSentence),
     ].join(' '),
-    materials: `the ${text(term.term)} case example, the related source claim, and the misconception-correction pair`,
+    // This label is rendered in lesson plans and study guides. Keep it useful
+    // to a learner: implementation language such as "misconception-correction
+    // pair" and repeating the term ("Connect X to the X case") made an
+    // otherwise strong source-grounded activity sound machine-assembled.
+    materials: 'the source-backed case example, related claim, and claim-boundary note',
     source: 'derived-kernel-fallback',
   };
   return analyzeDecisionScenario(derived).ready ? derived : null;
