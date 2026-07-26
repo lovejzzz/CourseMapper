@@ -1,0 +1,187 @@
+{
+  "_comment": "Statistics shard top-up — OpenStax Introductory Statistics 2e (CC BY 4.0), fetched 2026-07-25 from openstax.org/books/introductory-statistics-2e. Adds the two concepts a live stats-intro run could not cover (data displays, interval estimation); the other stats kernels live in genesis.json. Snapshots hold the chapter key-term definitions verbatim and every anchor quotes a substring of them.",
+  "sourceSnapshots": {
+    "openstax:introductory-statistics-2e#2-key-terms": "histogram: a graphical representation in x-y form of the distribution of data in a data set; x represents the data and y represents the frequency, or relative frequency. The graph consists of contiguous rectangles. frequency: the number of times a value of the data occurs. relative frequency: the ratio of the number of times a value of the data occurs in the set of all outcomes to the number of all outcomes. box plot: a graph that gives a quick picture of the middle 50% of the data. outlier: an observation that does not fit the rest of the data.",
+    "openstax:introductory-statistics-2e#8-key-terms": "confidence interval (CI): an interval estimate for an unknown population parameter. This depends on: the desired confidence level, information that is known about the distribution (for example, known standard deviation), the sample and its size. confidence level (CL): the percent expression for the probability that the confidence interval contains the true population parameter; for example, if the CL = 90%, then in 90 out of 100 samples the interval estimate will enclose the true population parameter. error bound for a population mean (EBM): the margin of error; depends on the confidence level, sample size, and known or estimated population standard deviation. point estimate: a single number computed from a sample and used to estimate a population parameter."
+  },
+  "kernels": [
+    {
+      "id": "stats/confidence-interval",
+      "rev": 1,
+      "term": "Confidence interval",
+      "aliases": ["confidence intervals", "interval estimate", "margin of error", "confidence level"],
+      "tags": ["inference", "estimation", "uncertainty"],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Evaluate",
+      "definition": {
+        "text": "A confidence interval is an interval estimate for an unknown population parameter.",
+        "anchor": {
+          "src": "openstax:introductory-statistics-2e#8-key-terms",
+          "loc": "Ch. 8 Key Terms",
+          "quote": "an interval estimate for an unknown population parameter"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "The confidence level is the percent expression for the probability that the interval contains the true population parameter.",
+          "anchor": {
+            "src": "openstax:introductory-statistics-2e#8-key-terms",
+            "loc": "Ch. 8 Key Terms",
+            "quote": "the percent expression for the probability that the confidence interval contains the true population parameter"
+          },
+          "tier": 2
+        },
+        {
+          "text": "The margin of error depends on the confidence level, the sample size, and the population standard deviation.",
+          "anchor": {
+            "src": "openstax:introductory-statistics-2e#8-key-terms",
+            "loc": "Ch. 8 Key Terms",
+            "quote": "depends on the confidence level, sample size, and known or estimated population standard deviation"
+          },
+          "tier": 2
+        },
+        {
+          "text": "A point estimate is a single number computed from a sample and used to estimate a population parameter.",
+          "anchor": {
+            "src": "openstax:introductory-statistics-2e#8-key-terms",
+            "loc": "Ch. 8 Key Terms",
+            "quote": "a single number computed from a sample and used to estimate a population parameter"
+          },
+          "tier": 2
+        },
+        {
+          "text": "A confidence interval depends on the desired confidence level, what is known about the distribution, and the sample size.",
+          "anchor": {
+            "src": "openstax:introductory-statistics-2e#8-key-terms",
+            "loc": "Ch. 8 Key Terms",
+            "quote": "the desired confidence level, information that is known about the distribution"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students read a 95% confidence interval as a 95% probability that the parameter lies inside the one interval they computed.",
+          "corrective": "The confidence level describes the procedure across repeated samples — at CL = 90%, in 90 out of 100 samples the interval estimate encloses the parameter — rather than a probability attached to a single interval already calculated."
+        }
+      ],
+      "examples": [
+        {
+          "text": "A poll reporting 46% support with a three-point margin of error at 95% confidence describes how often intervals built this way capture the true share, not the odds for this one poll.",
+          "domain": "survey research"
+        }
+      ],
+      "workedExamples": [],
+      "mcBank": [
+        {
+          "stem": "A 95% confidence level tells you that",
+          "options": [
+            "intervals built this way capture the parameter 95% of the time",
+            "this particular interval has a 95% chance of being right now",
+            "95% of the sampled observations fall inside the interval",
+            "the sample mean equals the population mean in 95% of cases"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": { "recommends": ["stats/sampling-distribution", "stats/p-value"] },
+      "variants": [],
+      "freshness": { "checked": "2026-07-25" },
+      "license": "CC BY 4.0",
+      "attribution": "OpenStax, Introductory Statistics 2e, Ch. 8 Key Terms"
+    },
+    {
+      "id": "stats/data-visualization",
+      "rev": 1,
+      "term": "Histogram",
+      "aliases": ["data visualization", "data visualizations", "graphical display", "reading data displays"],
+      "tags": ["description", "displays", "distribution"],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "A histogram is a graphical representation in x-y form of the distribution of data in a data set.",
+        "anchor": {
+          "src": "openstax:introductory-statistics-2e#2-key-terms",
+          "loc": "Ch. 2 Key Terms",
+          "quote": "a graphical representation in x-y form of the distribution of data in a data set"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "In a histogram the x-axis carries the data and the y-axis the frequency, and the graph consists of contiguous rectangles.",
+          "anchor": {
+            "src": "openstax:introductory-statistics-2e#2-key-terms",
+            "loc": "Ch. 2 Key Terms",
+            "quote": "x represents the data and y represents the frequency, or relative frequency. The graph consists of contiguous rectangles"
+          },
+          "tier": 2
+        },
+        {
+          "text": "A box plot gives a quick picture of the middle 50% of the data.",
+          "anchor": {
+            "src": "openstax:introductory-statistics-2e#2-key-terms",
+            "loc": "Ch. 2 Key Terms",
+            "quote": "a graph that gives a quick picture of the middle 50% of the data"
+          },
+          "tier": 2
+        },
+        {
+          "text": "An outlier is an observation that does not fit the rest of the data.",
+          "anchor": {
+            "src": "openstax:introductory-statistics-2e#2-key-terms",
+            "loc": "Ch. 2 Key Terms",
+            "quote": "an observation that does not fit the rest of the data"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Relative frequency is the ratio of the times a value occurs to the number of all outcomes.",
+          "anchor": {
+            "src": "openstax:introductory-statistics-2e#2-key-terms",
+            "loc": "Ch. 2 Key Terms",
+            "quote": "the ratio of the number of times a value of the data occurs in the set of all outcomes to the number of all outcomes"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students read a histogram like a bar chart of separate categories and treat the spacing between bars as meaningless decoration.",
+          "corrective": "A histogram's rectangles are contiguous because the horizontal axis carries continuous data, so a visible gap reports an interval with zero frequency rather than a break between unrelated categories."
+        }
+      ],
+      "examples": [
+        {
+          "text": "A histogram of commute times shows the shape of the whole distribution, while a box plot of the same data shows where the middle half sits and flags observations that do not fit the rest.",
+          "domain": "data analysis"
+        }
+      ],
+      "workedExamples": [],
+      "mcBank": [
+        {
+          "stem": "Histogram rectangles are drawn contiguously because",
+          "options": [
+            "the horizontal axis represents a continuous data range",
+            "every interval is required to contain at least one observation",
+            "the vertical axis always shows relative frequency",
+            "adjacent categories are unrelated to one another"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": { "recommends": ["stats/data-provenance", "stats/statistical-model"] },
+      "variants": [],
+      "freshness": { "checked": "2026-07-25" },
+      "license": "CC BY 4.0",
+      "attribution": "OpenStax, Introductory Statistics 2e, Ch. 2 Key Terms"
+    }
+  ]
+}

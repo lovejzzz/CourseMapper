@@ -1,7 +1,7 @@
 {
   "version": "2026-07-26",
   "generator": "curriculumos-foundry-v1",
-  "conceptCount": 334,
+  "conceptCount": 336,
   "shards": [
     {
       "id": "anatomy-intro",
@@ -160,8 +160,8 @@
       "discipline": "stats",
       "level": "intro",
       "path": "stats-intro.json",
-      "conceptCount": 5,
-      "hash": "d043fca784ae8f65"
+      "conceptCount": 7,
+      "hash": "37b5c3c984aa0509"
     },
     {
       "id": "ux-intro",
