@@ -28,6 +28,27 @@ describe('trusted source ledger', () => {
     expect(buildSourceReportMarkdown({ sourceLedger: { rows: [source] } })).not.toContain('..');
   });
 
+  it('recovers a clean bibliographic title from an Algi classroom source label', () => {
+    const source = normalizeTrustedSource({
+      id: 'kr1',
+      provider: 'doaj',
+      origin: 'algi-research',
+      sourceType: 'open scholarly article',
+      title:
+        'AI governance — Artificial Intelligence as a Socio-Economic Dilemma (open scholarly article, CC0 1.0 (DOAJ article metadata) — https://example.test/article)',
+      url: 'https://example.test/article',
+      doi: '10.1000/example',
+      license: 'CC0 1.0 (DOAJ article metadata)',
+      attribution: 'A. Researcher. DOAJ metadata.',
+      sessionRefs: ['s2', 2, 'lesson 2'],
+    });
+
+    expect(source.title).toBe('Artificial Intelligence as a Socio-Economic Dilemma');
+    expect(source.citation).toBe('Artificial Intelligence as a Socio-Economic Dilemma — doi:10.1000/example');
+    expect(source.sessionRefs).toEqual(['s2']);
+    expect(buildSourceReportMarkdown({ sourceLedger: { rows: [source] } })).not.toContain('— —');
+  });
+
   it('normalizes academic and OER provider results into auditable source rows', () => {
     const checkedAt = '2026-06-20T00:00:00.000Z';
     const openAlex = sourceLedgerFromOpenAlex(

@@ -1,6 +1,7 @@
 import { extractCourseName, planSessionTopics } from './algiComposer.js';
 import { composeAlgiLessonKernels } from './algiKernelComposer.js';
 import { extractExplicitLessonSequence } from './explicitLessonSequence.js';
+import { planAlgiCourseResearch, summarizeAlgiResearchPlan } from './knowledge/algiResearchPlan.js';
 
 const MIN_SESSIONS = 1;
 const MAX_SESSIONS = 20;
@@ -77,6 +78,12 @@ export async function forecastAlgiCoverage({ source = '', researchEnabled = fals
   });
   const privateCovered = lessonForecast.filter((lesson) => lesson.status === 'private-ready').length;
   const externalNeeded = lessonForecast.length - privateCovered;
+  const researchPlan = planAlgiCourseResearch({
+    courseName,
+    lessons: lessonForecast
+      .filter((lesson) => lesson.status !== 'private-ready')
+      .map((lesson) => ({ lessonId: lesson.lessonId, title: lesson.title })),
+  });
   return {
     status: 'ready',
     route: externalNeeded === 0 ? 'private-ready' : researchEnabled ? 'research-assisted' : 'private-coverage-gaps',
@@ -85,5 +92,6 @@ export async function forecastAlgiCoverage({ source = '', researchEnabled = fals
     privateCovered,
     externalNeeded,
     lessons: lessonForecast,
+    researchPlan: summarizeAlgiResearchPlan(researchPlan),
   };
 }

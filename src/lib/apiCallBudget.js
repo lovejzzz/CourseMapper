@@ -383,6 +383,12 @@ export function applyApiCallBudgetEvent(currentBudget, event = {}) {
     'adapterScale',
     'routeModelCalls',
     'execution',
+    'progress',
+    'researchPhase',
+    'providerId',
+    'researchReceipt',
+    'researchPlan',
+    'evidenceGraph',
   ].forEach((key) => {
     if (event[key] !== undefined && event[key] !== '') eventMetadata[key] = event[key];
   });

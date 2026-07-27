@@ -7444,6 +7444,223 @@ describe('courseBlueprintCompiler', () => {
     expect(classificationGuideText).toContain('model-card');
   });
 
+  it('classifies AI governance and algorithmic-audit seminars as policy analysis, not AI course design', () => {
+    const courseMap = {
+      courseName: 'Current Technology Policy',
+      semester: 'Fall 2026',
+      lessons: [
+        {
+          title: 'Lesson 1: AI governance',
+          sections: [
+            {
+              topicSection: 'AI governance foundations',
+              learningObjectives: 'Compare policy choices for governing consequential AI systems.',
+              learningGoals: 'Evaluate current technology policy evidence.',
+              weeklyAssessments: 'Decision memo comparing two policy choices.',
+              asyncActivities: 'Read a current governance source.',
+              syncActivities: 'Compare regulatory options.',
+              supportingResources: 'Assigned policy source on how public discourse has moved online through platforms.',
+              technologyNeeded: 'Course site.',
+              presentationFormat: 'Policy seminar.',
+              evaluateDesign: 'Check whether the memo cites policy evidence.',
+            },
+          ],
+        },
+        {
+          title: 'Lesson 2: Platform accountability and algorithmic audits',
+          sections: [
+            {
+              topicSection: 'Platform accountability mechanisms',
+              learningObjectives: 'Evaluate an algorithmic audit and recommend a regulatory response.',
+              learningGoals: 'Connect audit evidence to policy decisions.',
+              weeklyAssessments: 'Policy brief on platform accountability.',
+              asyncActivities: 'Annotate an algorithmic audit.',
+              syncActivities: 'Defend a policy proposal.',
+              supportingResources: 'Assigned policy source.',
+              technologyNeeded: 'Course site.',
+              presentationFormat: 'Policy seminar.',
+              evaluateDesign: 'Check the evidence-to-policy link.',
+            },
+          ],
+        },
+      ],
+    };
+
+    const blueprint = buildCourseBlueprint(courseMap);
+    const compiled = compileBlueprintDeliverables(blueprint, ['lessonPlans', 'rubrics', 'studyGuides']);
+    const text = JSON.stringify(compiled).toLowerCase();
+
+    expect(blueprint.enrichment.lens).toMatchObject({
+      domain: 'public policy analysis',
+      evidenceNoun: 'policy evidence',
+      decisionNoun: 'policy decision',
+    });
+    expect(blueprint.courseModalityProfile.primaryMode).toBe('policy-analysis');
+    expect(text).not.toContain('design evidence');
+    expect(text).not.toContain('lab-procedure and results evidence');
+  });
+
+  it('keeps synthesis facts attached to their own researched key terms', () => {
+    const blueprint = buildCourseBlueprint({
+      courseName: 'Current Technology Policy',
+      lessons: [
+        {
+          title: 'Lesson 1: Current Technology Policy synthesis',
+          sections: [
+            {
+              topicSection: 'Public policy, algorithmic accountability, and privacy law synthesis',
+              learningObjectives: 'Compare policy choices using one source detail for each concept.',
+              learningGoals: 'Synthesize current technology policy evidence without crossing source boundaries.',
+              weeklyAssessments: 'Decision memo comparing two policy choices.',
+              asyncActivities: 'Annotate current policy sources.',
+              syncActivities: 'Defend a bounded policy recommendation.',
+              supportingResources: 'Assigned public policy and algorithmic accountability sources.',
+              evaluateDesign: 'Check that each concept is paired with evidence from its own source.',
+            },
+          ],
+        },
+      ],
+    });
+    blueprint.lessons[0].enrichment = {
+      keyTerms: [
+        {
+          term: 'Public policy',
+          definition:
+            'Public policy is an institutionalized proposal or decided set of elements used to address social issues.',
+          example: 'The implementation of public policy is known as public administration.',
+          misconception:
+            'Public policy and algorithmic accountability are interchangeable descriptions of the same concept.',
+          correction: 'Public policy and algorithmic accountability have different scope and evidence.',
+        },
+        {
+          term: 'Algorithmic accountability',
+          definition:
+            'Algorithmic accountability allocates responsibility for consequences influenced by automated decisions.',
+          example: 'Responsibility for harm may lie with an algorithm or with the people who designed it.',
+          misconception:
+            'Algorithmic accountability and public policy are interchangeable descriptions of the same concept.',
+          correction: 'Algorithmic accountability concerns responsibility for automated decisions.',
+        },
+      ],
+      kernel: {
+        facts: [
+          'Algorithmic bias has been observed in search engine results and social media platforms.',
+          'Responsibility for harm may lie with an algorithm or with the people who designed it.',
+          'Privacy law establishes rules for handling personal information.',
+          'Public discourse has moved online through digital platforms.',
+          'Audit evidence can reveal a bounded procedural failure.',
+        ],
+        scenario: {
+          setup: 'Students compare one public-policy claim with one algorithmic-accountability claim.',
+          materials: 'the source-backed case example, related claim, and claim-boundary note',
+        },
+      },
+      studyGuide: {
+        summary:
+          'Algorithmic accountability concerns automated decisions. Algorithmic bias is the example for Public policy.',
+        reviewStrategy: 'Use algorithmic bias as the evidence for Public policy before comparing the concepts.',
+      },
+    };
+
+    const compiled = compileBlueprintDeliverables(blueprint, ['studyGuides', 'quizBank']);
+    const guideText = JSON.stringify(compiled.studyGuides.studyGuides[0]);
+    const quizText = JSON.stringify(compiled.quizBank);
+
+    expect(guideText).toContain('The implementation of public policy is known as public administration');
+    expect(guideText).not.toContain('connect Public policy to Public policy');
+    expect(guideText).not.toContain('Algorithmic bias is the example for Public policy');
+    expect(guideText).not.toMatch(/[.!?]”[.!?]/);
+    expect(quizText).not.toMatch(
+      /algorithmic bias[^.]{0,180}(?:supplies the evidence for|demonstrates|supports) Public policy/i,
+    );
+    expect(quizText).not.toMatch(/Public policy is the relevant concept[\s\S]{0,500}Algorithmic bias/i);
+  });
+
+  it('never creates a self-referential prerequisite when consecutive lessons share a primary concept', () => {
+    const blueprint = buildCourseBlueprint({
+      courseName: 'Current Technology Policy',
+      lessons: [
+        {
+          title: 'Lesson 1: Emerging policy proposals',
+          sections: [
+            {
+              topicSection: 'Public policy and policy analysis',
+              learningObjectives: 'Compare a public policy proposal with one policy-analysis option.',
+              weeklyAssessments: 'Policy option memo.',
+              supportingResources: 'Public policy source packet.',
+            },
+          ],
+        },
+        {
+          title: 'Lesson 2: Current Technology Policy synthesis',
+          sections: [
+            {
+              topicSection: 'Public policy and algorithmic accountability',
+              learningObjectives: 'Synthesize public policy and algorithmic-accountability evidence.',
+              weeklyAssessments: 'Technology policy decision memo.',
+              supportingResources: 'Public policy and accountability source packet.',
+            },
+          ],
+        },
+      ],
+    });
+
+    const compiled = compileBlueprintDeliverables(blueprint, ['assignments', 'lessonPlans']);
+    const text = JSON.stringify(compiled);
+
+    expect(text).not.toMatch(/connect ([^".]{2,80}) to \1 before working on/i);
+  });
+
+  it('frames claim-derived FAQ terms as source statements instead of malformed definitions', () => {
+    const blueprint = buildCourseBlueprint({
+      courseName: 'Platform Accountability',
+      lessons: [
+        {
+          title: 'Lesson 1: Platform accountability',
+          sections: [
+            {
+              topicSection: 'Algorithmic accountability and algorithmic decisions',
+              learningObjectives: 'Distinguish accountability from a documented decision effect.',
+              weeklyAssessments: 'Accountability evidence check.',
+              supportingResources: 'Assigned accountability source.',
+            },
+          ],
+        },
+      ],
+    });
+    blueprint.lessons[0].enrichment = {
+      keyTerms: [
+        {
+          term: 'Algorithmic accountability',
+          definition: 'Algorithmic accountability allocates responsibility for automated decisions.',
+          example: 'Reviewers trace a documented decision to the people and system involved.',
+          misconception: 'Algorithmic accountability and algorithmic decisions are interchangeable descriptions.',
+          correction: 'The concepts have different scope and evidence.',
+        },
+        {
+          term: 'Algorithmic decisions',
+          definition:
+            'However, adherence to this principle is not always guaranteed, and people may be adversely affected by algorithmic decisions.',
+          example: 'A documented automated decision adversely affects a person.',
+          misconception: 'Every algorithmic decision establishes accountability.',
+          correction: 'A decision effect and responsibility for that effect are separate claims.',
+        },
+      ],
+      kernel: {
+        facts: [
+          'Algorithmic accountability allocates responsibility for automated decisions.',
+          'People may be adversely affected by algorithmic decisions.',
+          'Reviewers inspect the decision record before assigning responsibility.',
+        ],
+      },
+    };
+
+    const faqText = JSON.stringify(compileBlueprintDeliverables(blueprint, ['courseFaq']).courseFaq);
+
+    expect(faqText).not.toMatch(/Algorithmic decisions means however/i);
+    expect(faqText).toContain('The source frames Algorithmic decisions through this source-backed statement');
+  });
+
   it('compiles non-data courses without objective-stem leaks, generic quiz keys, or invented lab packets', () => {
     const blueprint = buildCourseBlueprint({
       courseName: 'Introduction to Psychology',

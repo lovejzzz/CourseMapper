@@ -47,7 +47,10 @@ function clamp(text, max, min = 0) {
 function titleCase(text) {
   const value = String(text || '').trim();
   if (!value) return '';
-  return value.charAt(0).toUpperCase() + value.slice(1);
+  return (value.charAt(0).toUpperCase() + value.slice(1)).replace(
+    /\b(?:ai|api|ar|css|html|llm|lms|ml|sql|ui|ux|vr)\b/gi,
+    (word) => word.toUpperCase(),
+  );
 }
 
 /** Recover the raw source the prompt builder embedded after its instructions. */
@@ -90,7 +93,11 @@ export function extractCourseName(source) {
       /\s*,?\s+(?=(?:an?\s+)?(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|\d{1,2})[- ]lesson\b)/i.exec(
         line,
       );
-    const splitAt = briefDivider?.index ?? briefSuffix?.index ?? -1;
+    const timedBriefSuffix =
+      /\s*,?\s+(?=(?:an?\s+)?(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|\d{1,2})[- ]week\b[^,.;]{0,32}\b(?:course|class|seminar|studio|workshop)\b)/i.exec(
+        line,
+      );
+    const splitAt = briefDivider?.index ?? briefSuffix?.index ?? timedBriefSuffix?.index ?? -1;
     const candidate = splitAt > 0 ? line.slice(0, splitAt) : line;
     const value = clamp(candidate, MAX_COURSE_NAME, 3);
     if (value && value.split(' ').length >= 2) return value;
@@ -102,31 +109,55 @@ export function extractCourseName(source) {
 // owns pedagogy; this only has to name the beats distinctly enough that the
 // contract admits them and the linker can attach concepts.
 const SECTION_SHAPES = [
-  (topic) => `What ${topic} is`,
-  (topic) => `How ${topic} works`,
-  (topic) => `Applying ${topic}`,
-  (topic) => `Limits of ${topic}`,
+  (topic) => `${topic} foundations`,
+  (topic) => `${topic} mechanisms`,
+  (topic) => `${topic} practice`,
+  (topic) => `${topic} limits`,
 ];
 
 function sectionTitlesFor(topic, order) {
-  // The longest wrapper is exactly ten characters ("How " + " works"),
-  // leaving fifty for the actual subject inside the 60-character schema.
+  // The longest suffix is twelve characters (" foundations"), leaving the
+  // rest of the schema for the actual subject. Noun phrases travel cleanly
+  // through objectives, resources, rubrics, and activity directions; question
+  // frames such as "What X is" became awkward after projection ("Use What X
+  // is") even though the standalone heading was grammatical.
   // The old 34-character cap turned "information architecture and interaction
   // flows" into the broken phrase "How information architecture and works".
   const subject =
-    clamp(topic, MAX_SECTION - 10, 1)
+    clamp(topic, MAX_SECTION - 12, 1)
       .replace(/\b(?:and|or|of|with|for|to)$/i, '')
       .trim() || 'the topic';
-  const lowered = subject.charAt(0).toLowerCase() + subject.slice(1);
+  // Lowercase ordinary sentence starts ("Privacy regulation" → "privacy
+  // regulation") without corrupting initialisms ("AI governance" must never
+  // become the visibly broken "aI governance").
+  const lowered = /^[A-Z]{2}(?:\b|[A-Z])/.test(subject) ? subject : subject.charAt(0).toLowerCase() + subject.slice(1);
   // Rotate the opening beat so consecutive sessions do not share a frame — the
   // repetition defect the texture metric measures starts here.
   const rotation = order % SECTION_SHAPES.length;
   const shapes = [...SECTION_SHAPES.slice(rotation), ...SECTION_SHAPES.slice(0, rotation)];
   const titles = shapes
     .slice(0, 3)
-    .map((shape) => clamp(shape(lowered), MAX_SECTION, 3))
+    .map((shape) => clamp(shape(subject), MAX_SECTION, 3))
     .filter(Boolean);
   return titles.length >= 2 ? titles : [`Core ideas`, `Working with ${lowered}`];
+}
+
+/**
+ * Recover the named subject areas from a compact brief such as:
+ * "a six-week seminar on AI governance, platform accountability, privacy
+ * regulation, algorithmic audits, and emerging policy proposals."
+ *
+ * The shared coverage parser intentionally accepts only explicit
+ * cover/include language. Algi also needs this equally explicit "course on"
+ * form because it has no language model to infer the list before research.
+ * Reusing the shared parser keeps the same three-item and phrase-length gates.
+ */
+function extractCompactBriefCoverage(source) {
+  const match =
+    /\b(?:course|class|seminar|studio|workshop)\b[^.!?\n]{0,80}?\b(?:focused\s+on|on|about|covering|including)\s+([^.!?\n]{8,500})[.!?](?:\s|$)/i.exec(
+      String(source || ''),
+    );
+  return match?.[1] ? extractExplicitCoverageTopics(`Cover ${match[1]}.`) : [];
 }
 
 /** Topics for every session: transcribed where the source says, derived where it does not. */
@@ -139,7 +170,7 @@ export function planSessionTopics(source, sessionCount) {
   // unaffected, which is why this never surfaced on the Scion path. Take the
   // listed topics at whatever length they come, and extend from there.
   const listed = explicit.length > 0 ? explicit : extractExplicitLessonSequence(source);
-  const coverage = extractExplicitCoverageTopics(source);
+  const coverage = [...extractExplicitCoverageTopics(source), ...extractCompactBriefCoverage(source)];
   const topics = [];
   const seen = new Set();
   for (const topic of [...listed, ...coverage]) {
@@ -150,20 +181,35 @@ export function planSessionTopics(source, sessionCount) {
     topics.push(value);
     if (topics.length === sessionCount) return topics;
   }
+  // When an instructor names a substantial sequence but leaves one final
+  // meeting open, close with synthesis instead of mechanically repeating the
+  // first topic through an arbitrary lens. The kernel composer recognizes the
+  // synthesis title and reuses evidence admitted by the preceding lessons, so
+  // the capstone costs no extra source request and represents the whole course.
+  if (topics.length >= 3 && topics.length === sessionCount - 1) {
+    const synthesis = clamp(`${extractCourseName(source)} synthesis`, MAX_TITLE, MIN_TITLE);
+    const key = synthesis.toLowerCase();
+    if (synthesis && !seen.has(key)) {
+      seen.add(key);
+      topics.push(synthesis);
+      return topics;
+    }
+  }
   // Deepening passes over named coverage, never invented subject matter: each
   // remaining session revisits a named topic through a distinct lens.
   const lenses = ['in practice', 'evidence and methods', 'comparisons', 'limitations', 'applications'];
+  const baseTopics = [...topics];
   let lensIndex = 0;
   while (topics.length < sessionCount && topics.length > 0) {
-    const base = topics[(topics.length - 1) % Math.max(1, seen.size)] || topics[0];
-    const lens = lenses[lensIndex % lenses.length];
+    const base = baseTopics[lensIndex % baseTopics.length] || topics[0];
+    const lens = lenses[Math.floor(lensIndex / baseTopics.length) % lenses.length];
     lensIndex += 1;
     const candidate = clamp(`${base}: ${lens}`, MAX_TITLE, MIN_TITLE);
     const key = candidate.toLowerCase();
     if (candidate && !seen.has(key)) {
       seen.add(key);
       topics.push(candidate);
-    } else if (lensIndex > lenses.length * 3) {
+    } else if (lensIndex > lenses.length * baseTopics.length + 2) {
       break;
     }
   }
@@ -268,7 +314,69 @@ export function composeAlgiAdvisoryResponse({ messages = [], systemPrompt = '' }
     if (outlineLabels.length <= 6) return outlineLabels.join(' → ');
     return [...outlineLabels.slice(0, 3), '…', ...outlineLabels.slice(-2)].join(' → ');
   })();
-  if (/\b(download|model|privacy|offline)\b|source research|research mode/i.test(question)) {
+  const evidenceBlock =
+    /\*\*Compiled evidence cards[^:]*:\*\*\s*\n([\s\S]*?)(?=\n\*\*|\n##|$)/i.exec(workspacePromptText)?.[1] || '';
+  const evidenceCards = evidenceBlock
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line.startsWith('{'))
+    .map((line) => {
+      try {
+        return JSON.parse(line);
+      } catch {
+        return null;
+      }
+    })
+    .filter(
+      (card) =>
+        card &&
+        Number.isInteger(Number(card.lesson)) &&
+        String(card.title || '').trim() &&
+        String(card.term || '').trim() &&
+        String(card.definition || '').trim(),
+    );
+  const normalizedQuestion = question.toLowerCase();
+  const scoredEvidence = evidenceCards
+    .map((card, index) => {
+      const title = String(card.title).trim();
+      const term = String(card.term).trim();
+      const cardTokens = new Set(`${title} ${term}`.toLowerCase().match(/[a-z0-9]{4,}/g) || []);
+      const tokenOverlap = [...questionTokens].filter((token) => cardTokens.has(token)).length;
+      return {
+        ...card,
+        index,
+        score:
+          tokenOverlap +
+          (normalizedQuestion.includes(term.toLowerCase()) ? 6 : 0) +
+          (normalizedQuestion.includes(title.toLowerCase()) ? 4 : 0),
+      };
+    })
+    .filter((card) => card.score > 0)
+    .sort((left, right) => right.score - left.score || left.index - right.index);
+  const matchedEvidence = [];
+  for (const card of scoredEvidence) {
+    const sameLesson = matchedEvidence.some((match) => Number(match.lesson) === Number(card.lesson));
+    const sameTerm = matchedEvidence.some((match) => match.term.toLowerCase() === card.term.toLowerCase());
+    if (sameTerm || (sameLesson && matchedEvidence.length < 2)) continue;
+    matchedEvidence.push(card);
+    if (matchedEvidence.length >= 2) break;
+  }
+  if (/\b(?:compare|contrast|difference|different|versus|vs\.?)\b/i.test(question) && matchedEvidence.length >= 2) {
+    const [left, right] = matchedEvidence;
+    const leftDefinition = String(left.definition).replace(/[.!?]+$/, '');
+    const rightDefinition = String(right.definition).replace(/[.!?]+$/, '');
+    return `From the compiled evidence: Lesson ${left.lesson} (${left.title}) defines ${left.term} as “${leftDefinition}.” Lesson ${right.lesson} (${right.title}) defines ${right.term} as “${rightDefinition}.” These are separate evidence cards with different scopes; the package does not treat one as a substitute for the other.`;
+  }
+  if (matchedEvidence.length > 0 && /\b(?:what|explain|define|how|where|evidence|mean)\b/i.test(question)) {
+    const card = matchedEvidence[0];
+    const definition = String(card.definition).replace(/[.!?]+$/, '');
+    return `In Lesson ${card.lesson} (${card.title}), the compiled evidence defines ${card.term} as “${definition}.” Open Study Guides for the full card and its lesson example.`;
+  }
+  if (
+    /\b(download|model|offline)\b|source research|research mode|(?:data|browser|device|local)\s+privacy|privacy\s+(?:policy|mode|settings|data)/i.test(
+      question,
+    )
+  ) {
     return 'Algi uses no model weights and performs no inference. Private mode keeps course topics on this device; optional Source research sends only the course title and uncovered lesson topics to reusable open scholarly sources, then Wikipedia when needed, and preserves source attribution in the package.';
   }
   if (/\b(?:summari[sz]e|sequence|outline|progression|order)\b/i.test(question) && outlineLabels.length > 0) {
@@ -304,7 +412,14 @@ export function composeAlgiAdvisoryResponse({ messages = [], systemPrompt = '' }
  * returns '' so the caller's existing model-unavailable path hands the work to
  * the deterministic compiler rather than to invented content.
  */
-export async function composeAlgiResponse({ task, userPrompt, structuredPrompt, schema, signal } = {}) {
+export async function composeAlgiResponse({
+  task,
+  userPrompt,
+  structuredPrompt,
+  schema,
+  signal,
+  onResearchProgress = null,
+} = {}) {
   const name = String(task || '');
   if (!ALGI_COMPOSED_TASKS.has(name)) return { text: '', coverage: null };
   if (name === 'nativeSkeleton') return { text: composeAlgiSkeleton(userPrompt), coverage: null };
@@ -321,6 +436,7 @@ export async function composeAlgiResponse({ task, userPrompt, structuredPrompt, 
     // pages) and, worse, the discipline cannot be inferred, so no shard kernels
     // are available to complete the lesson's key terms.
     courseContext: researchCourseContext(userPrompt),
+    onResearchProgress,
     signal,
   });
   return {
@@ -331,6 +447,8 @@ export async function composeAlgiResponse({ task, userPrompt, structuredPrompt, 
       uncovered: result.uncovered,
       researched: result.researched || 0,
       researchNote: result.researchNote || '',
+      ...(result.cachedResearch ? { cachedResearch: result.cachedResearch } : {}),
+      ...(result.researchReceipt ? { researchReceipt: result.researchReceipt } : {}),
     },
   };
 }

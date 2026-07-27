@@ -37,6 +37,17 @@ const ACCEPTED_EXTENSIONS = [
 
 const PROJECT_EXTENSIONS = ['.coursemapper', '.json'];
 
+function formatAlgiProviderOrder(providerOrder = []) {
+  const labels = {
+    'europe-pmc': 'Europe PMC',
+    doaj: 'DOAJ',
+    wikipedia: 'Wikipedia',
+  };
+  return (Array.isArray(providerOrder) ? providerOrder : [])
+    .map((providerId) => labels[providerId] || providerId)
+    .join(' → ');
+}
+
 export const COURSE_EXAMPLES = [
   {
     label: '🧠 Intro to Psychology',
@@ -884,7 +895,9 @@ export default function Landing({
                         {algiCoverageForecast.externalNeeded === 0
                           ? 'Algi can build these lesson knowledge kernels from EduTool’s source-anchored teaching genome without an external request.'
                           : algiResearchEnabled
-                            ? 'Algi will check reusable open scholarly sources first, then Wikipedia only for lessons still missing evidence.'
+                            ? `Algi will research ${formatAlgiProviderOrder(
+                                algiCoverageForecast.researchPlan?.providerOrder,
+                              )}, verify every admitted claim against a source passage, and cache compact lesson evidence on this device. No model download is required.`
                             : 'Algi will keep the build private and report any unsupported lesson instead of inventing subject knowledge.'}
                         {files.length > 0
                           ? ' Attached files are evaluated during the build and may close additional gaps.'

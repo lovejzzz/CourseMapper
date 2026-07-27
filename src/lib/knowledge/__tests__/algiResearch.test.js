@@ -25,6 +25,7 @@ import {
   RESEARCH_ORIGIN,
   RELEVANCE_FLOOR,
 } from '../algiResearch.js';
+import { planAlgiCourseResearch } from '../algiResearchPlan.js';
 
 const provider = {
   license: 'CC BY-SA 4.0',
@@ -180,6 +181,12 @@ describe('entity filter (topic drift by page KIND)', () => {
         'Aquatic Microbial Ecology is a quarterly peer-reviewed scientific journal published for research communities.',
       ),
     ).toBe(true);
+    expect(
+      looksLikeEntity(
+        'Bureau of Cyberspace and Digital Policy',
+        'The Bureau of Cyberspace and Digital Policy is a bureau of the United States Department of State.',
+      ),
+    ).toBe(true);
   });
 
   it('does not mistake a concept for a person', () => {
@@ -236,6 +243,29 @@ describe('course-domain research alignment', () => {
         title: 'Design rationale',
         extract:
           'A design rationale records the reasons behind a design decision and connects the decision to user research evidence.',
+        provider: 'wikipedia',
+      }),
+    ).toBe(true);
+  });
+
+  it('rejects an environmental false friend from a technology-policy course', () => {
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'AI governance',
+        courseContext: 'Current Technology Policy',
+        title: 'Strategies for emerging pollutant governance using artificial intelligence technology',
+        extract:
+          'Artificial intelligence is becoming a tool for pollutant screening, wastewater management, and environmental health risk assessment.',
+        provider: 'doaj',
+      }),
+    ).toBe(false);
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'AI governance',
+        courseContext: 'Current Technology Policy',
+        title: 'Governance of artificial intelligence',
+        extract:
+          'Governance of artificial intelligence develops rules and institutions for accountability, oversight, and regulation.',
         provider: 'wikipedia',
       }),
     ).toBe(true);
@@ -335,6 +365,19 @@ describe('relevance scoring', () => {
     );
     expect(directResearchTitles('Contextual inquiry and field notes', 'User Experience Research Studio')).toEqual(
       expect.arrayContaining(['Contextual inquiry', 'Fieldnotes', 'Field research']),
+    );
+    expect(directResearchTitles('AI governance: in practice', 'Current Technology Policy')).toEqual(
+      expect.arrayContaining([
+        'AI governance',
+        'Governance of artificial intelligence',
+        'Regulation of artificial intelligence',
+      ]),
+    );
+    expect(directResearchTitles('Privacy regulation', 'Current Technology Policy')).toEqual(
+      expect.arrayContaining(['Information privacy law', 'Privacy law', 'Data protection']),
+    );
+    expect(directResearchTitles('Algorithmic audits', 'Current Technology Policy')).toEqual(
+      expect.arrayContaining(['Algorithmic accountability', 'Algorithmic bias', 'Algorithmic transparency']),
     );
   });
 
@@ -692,6 +735,41 @@ describe('open scholarly provider architecture', () => {
     expect(result.providerStats.map((entry) => entry.providerId)).toEqual(['doaj', 'wikipedia']);
     expect(result.byTopic.get('Biofilm')).toHaveLength(6);
     expect(result.providersUsed).toEqual(['doaj', 'wikipedia']);
+  });
+
+  it('uses the course research plan to skip irrelevant providers and issue a disambiguated lesson query', async () => {
+    const queries = [];
+    const noResultsProvider = (id) => ({
+      id,
+      supportsDirectTitles: false,
+      searchArticles: async (query) => {
+        queries.push([id, query]);
+        return {};
+      },
+      search: async () => [],
+      articles: async () => ({}),
+      article: async () => null,
+      license: 'CC BY 4.0',
+      attributionFor: (title) => `${id}, ${title}`,
+      sourceIdFor: (title) => `${id}:${title}`,
+    });
+    const researchPlan = planAlgiCourseResearch({
+      courseName: 'World Literature',
+      lessons: [{ lessonId: 'lesson-1', title: 'Postcolonial narrative voice' }],
+    });
+
+    const result = await researchLessonKernelSetsCascade(['Postcolonial narrative voice'], {
+      providers: [
+        { id: 'europe-pmc', provider: noResultsProvider('europe-pmc'), options: { maxTargetedFallbacks: 0 } },
+        { id: 'doaj', provider: noResultsProvider('doaj'), options: { maxTargetedFallbacks: 0 } },
+        { id: 'wikipedia', provider: noResultsProvider('wikipedia'), options: { maxTargetedFallbacks: 0 } },
+      ],
+      researchPlan,
+    });
+
+    expect(queries.some(([providerId]) => providerId === 'europe-pmc')).toBe(false);
+    expect(queries.find(([providerId]) => providerId === 'doaj')?.[1]).toContain('"Postcolonial narrative voice"');
+    expect(result.providerStats.map((entry) => entry.providerId)).toEqual(['doaj', 'wikipedia']);
   });
 });
 

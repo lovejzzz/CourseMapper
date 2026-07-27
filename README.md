@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.81
+**Current release:** v0.16.82
 
 ---
 
@@ -32,7 +32,7 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site presents **Provider: Scion**, a disabled API control because no key is needed, and two product models: **Scion V0.16.81** and **Algi V0**. Those are intentionally simple labels for EduTool's course-building systems; they are not a claim that EduTool trained or hosts a new foundation model. Scion pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its identity and metadata, and runs it through the packaged WebGPU runtime. Algi uses no model weights. Both produce compact typed knowledge that Course Mapper compiles into the selected deliverables.
+The hosted site presents **Provider: Scion**, a disabled API control because no key is needed, and two product models: **Scion V0.16.82** and **Algi V0**. Those are intentionally simple labels for EduTool's course-building systems; they are not a claim that EduTool trained or hosts a new foundation model. Scion pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its identity and metadata, and runs it through the packaged WebGPU runtime. Algi uses no model weights. Both produce compact typed knowledge that Course Mapper compiles into the selected deliverables.
 
 In plain language, **Scion Vx is the whole local authoring system, not just the base model**:
 
@@ -46,31 +46,35 @@ Today the adapter term is infrastructure only: the trained research adapter has 
 
 Algi V0 is not a renamed small model. It composes the same typed course-map and lesson-kernel contracts from uploaded material, the shipped source-anchored Curriculum Genome, and optional consented source research. It downloads no model and performs no language-model inference; model-only rewrite passes are not scheduled on this route, so they cannot create phantom calls, fallbacks, or estimated cost.
 
-In **private mode**, course topics stay on the device. Before generation, Algi forecasts which exact lessons the uploaded source and shipped genome can support; if they cannot support a lesson, it reports the coverage gap instead of inventing knowledge. In **research mode**, an explicit switch allows the course title and uncovered lesson topics to leave the device. DOAJ open scholarly metadata runs first, explicitly licensed open-access Europe PMC literature runs next, and Wikipedia supplies background only for remaining lesson-contract gaps. Every retained researched claim carries provider, URL, attribution, license, source evidence, and a claim-to-passage support receipt.
+In **private mode**, course topics stay on the device. Before generation, Algi forecasts which exact lessons the uploaded source, local project cache, and shipped genome can support; if they cannot support a lesson, it reports the coverage gap instead of inventing knowledge. In **research mode**, an explicit switch allows the course title and focused uncovered lesson queries to leave the device. Algi plans the full evidence job first, then uses DOAJ open scholarly metadata, explicitly licensed open-access Europe PMC literature, and Wikipedia background for remaining lesson-contract gaps. Every retained researched claim carries provider, URL, attribution, license, an exact source passage, and a claim-to-passage support receipt.
 
-Algi's role is evidence retrieval, admission, citation, and deterministic composition. Scion's role is browser-local generative reasoning and course-specific writing. The long-term hybrid is:
+Algi's evidence graph scores authority, currency, relevance, and entailment while preserving material conflicts instead of silently blending them. A versioned local project cache reuses inspected evidence without turning it into an unrelated global fact store. Only lesson-owned evidence that can fill the typed lesson schema enters deterministic composition.
+
+Algi's role is evidence planning, retrieval, adjudication, citation, caching, and deterministic composition. Scion's role is browser-local generative reasoning and course-specific writing. The long-term hybrid is:
 
 ```text
 brief + files → Algi evidence → Scion adaptation → shared compiler → verified package
 ```
 
-The complete assessment, limitations, browser evidence, and roadmap are in [docs/ALGI_V0_PIPELINE_ASSESSMENT.md](docs/ALGI_V0_PIPELINE_ASSESSMENT.md).
+The complete architecture is in [docs/ALGI_RESEARCH_FIRST_ARCHITECTURE.md](docs/ALGI_RESEARCH_FIRST_ARCHITECTURE.md). The assessment, limitations, and browser evidence are in [docs/ALGI_V0_PIPELINE_ASSESSMENT.md](docs/ALGI_V0_PIPELINE_ASSESSMENT.md).
 
-### V0.16.81 current production proof
+### V0.16.82 current production proof
 
-V0.16.81 makes the evidence boundary visible and executable. The setup forecast names private-ready lessons and source checks before generation. Opt-in research follows the bounded DOAJ → Europe PMC → Wikipedia cascade, and a provider is not considered successful merely because it returned records.
+V0.16.82 turns Algi from a retrieval cascade into a research-first course intelligence pipeline. The requested lesson sequence becomes a bounded research plan before provider work starts. Each lesson records focused queries, missing schema fields, provider policy, and a stable local-cache identity. The Living Course Compiler then shows planning, cached coverage, provider retrieval, evidence admission, composition, compilation, verification, and export as one continuous build.
 
-The trust layer now has two independent gates: quote admission proves that cited text exists in the retained source passage, while claim entailment proves that the compiled definition or fact is actually supported by that passage. Wrong entities, off-domain meanings, ambiguous licenses, provider/URL contradictions, and same-course but wrong-lesson filler fail closed.
+The claim evidence graph keeps sources, passages, claims, concepts, lessons, and conflicts separate. Authority, currency, course relevance, and passage entailment are independently scored; quote presence alone cannot promote a rewritten claim. Wrong entities, off-domain meanings, ambiguous licenses, provider/URL contradictions, unsupported inferences, and same-course but wrong-lesson filler fail closed. Material disagreements remain conflicts instead of being blended into one fluent answer.
 
-Readiness is judged against the real typed lesson contract—three distinct key terms, five compact facts, a scenario, and two grounded checks—not a raw search count. If the first provider prefix cannot compose that contract, later-provider candidates remain available and a bounded combination search selects a grounded set without inventing new subject claims.
+Evidence-to-kernel composition is lesson-owned and schema-complete. The real typed lesson contract—not raw search count—decides readiness. A versioned project cache can reuse inspected evidence on a repeated build without another model download or redundant provider request. Private mode remains private and reports unsupported lessons rather than treating cached or researched coverage as universal.
 
-Package proof also closes reader-facing and provenance seams: grammatical quiz framing, intact terminal references, stale digest merge prevention, source-metadata punctuation cleanup, and removal of generated fallback source rows after trusted concept-linked sources cover the same concept. The inspected five-lesson private UX package reaches **99/A with zero encoded findings**, keeps seven trusted/access/licensed/concept-linked sources, contains zero ambiguous licenses or source-review rows, and excludes the architecture-domain false friend “Evidence-based design.”
+The shared compiler now binds synthesis facts to their named concepts, distinguishes policy analysis from laboratory work, prevents adjacent concepts from creating self-referential prerequisites, frames non-definitional source claims honestly, and stops long peer contrasts from clipping into false corrections. These repairs improve Algi, Scion, and compatible paid-provider output wherever they share the same compiler and evidence boundary.
 
-A fresh five-lesson Environmental Microbiology browser run makes the full boundary visible before it spends work: **1/5 lessons ready privately and four source checks planned**. It then finishes in about **eight seconds** with **5/5 lesson kernels, 10/10 package parts, 99/A, Texture 97, zero P0/P1/P2 findings, and 38/38 export checks**. The 55-entry ZIP contains 43 graded course files and eight trusted source rows across OpenStax, DOAJ, Europe PMC, and Wikipedia; one CC BY-ND candidate is quarantined as review-only rather than used as trusted bibliography. Provider identity and research origin survive export instead of being flattened into `genome`. Desktop and 390×844 Content/Agent/Export modes pass, the Agent summarizes all five lessons from workspace evidence, and mobile exposes exactly one export-owned `Download ZIP` action. The release gate closes with **5,722/5,722 active unit tests and 151/151 Chromium E2E tests passing**.
+A fresh real-browser **Current Technology Policy** course covering AI governance, platform accountability, privacy regulation, algorithmic audits, and emerging policy proposals completed with **6/6 lesson kernels, 9/9 material families, 99/A, and zero encoded findings**. The grounded Agent compared Algorithmic accountability and Privacy law from workspace source evidence. One export-owned action downloaded a valid **63-entry ZIP containing 43 DOCX, 6 PPTX, and 1 XLSX files**. Its eight-row source report has normalized session locators, no duplicate URLs, and no malformed separator rows. Targeted inspection across all 43 DOCX files found none of the policy-domain, fact-binding, prerequisite, FAQ, clipping, punctuation, or placeholder defects fixed during the browser pass.
 
-A frozen five-domain Algi→Scion benchmark now defines immutable evidence packets, route roles, quality, source, latency, call, and export promotion rules. This is a protocol, not a result: no hybrid or adapter promotion is claimed until paired evidence exists.
+The complete local gate passes **462 unit-test files and 5,756 active tests**, with 16 files and 162 tests intentionally skipped, plus **151/151 Chromium E2E tests**, formatting, lint, production build, bundle and repository ratchets, the hybrid pipeline, teacher-ready constitution, release-history contract, and both frozen Algi benchmark audits.
 
-Gemma weights remain unchanged and the optional research adapter remains inactive. Algi is an evidence engine, not a universal reasoning model; 99/A is deterministic package-defect evidence, not factual validation, instructor approval, accessibility certification, or classroom proof.
+An executable research-first benchmark freezes eight cross-domain courses, three architecture arms, evidence and privacy lanes, quality, source, latency, provider-work, model-byte, and export rules before seeing a promotion result. This is a protocol, not a victory: research-first viability remains unproven until same-commit paired artifacts pass it.
+
+Gemma weights remain unchanged and the optional research adapter remains inactive. Algi is an evidence engine, not a universal reasoning model; 99/A is deterministic package-defect evidence, not independent factual validation, instructor approval, accessibility certification, or classroom proof.
 
 ### V0.16.78 historical production proof
 
@@ -98,7 +102,7 @@ Gemma weights remain unchanged, and the research adapter remains inactive becaus
 
 ### Recent release history
 
-The sections below are historical release evidence. Their versions, timings, test counts, and measured packages describe the named release and are intentionally preserved; the V0.16.81 production proof above is the current authority.
+The sections below are historical release evidence. Their versions, timings, test counts, and measured packages describe the named release and are intentionally preserved; the V0.16.82 production proof above is the current authority.
 
 V0.16.77 makes experiential learning a first-class compiler capability instead of a one-course template. When—and only when—a lesson explicitly requests a simulation, laboratory investigation, studio critique, case exercise, structured debate, field exercise, or role-play, the existing lesson-authoring call returns one compact course-specific activity blueprint beside its knowledge kernel. There is no extra call for the lesson plan, slides, assignment, or export.
 

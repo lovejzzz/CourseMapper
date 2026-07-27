@@ -50,6 +50,7 @@ function latestActivityEvent(budget) {
         'blueprintEnrichmentCall',
         'knowledgeBackboneLookup',
         'knowledgeBackboneProgress',
+        'algiResearchProgress',
         'deliverableChunkCall',
         'compiledDeliverable',
         'repairRetryCall',
@@ -61,7 +62,8 @@ function latestActivityEvent(budget) {
 
 function isEnrichmentActivity(event) {
   if (event?.type === 'blueprintEnrichmentCall') return true;
-  if (['knowledgeBackboneLookup', 'knowledgeBackboneProgress'].includes(event?.type)) return true;
+  if (['knowledgeBackboneLookup', 'knowledgeBackboneProgress', 'algiResearchProgress'].includes(event?.type))
+    return true;
   if (event?.type === 'scionCompilerRepair') return event?.stage === 'local-compiler';
   if (event?.type === 'pipelineDecision' && ['Scion pass call', 'Scion quality passes'].includes(event?.label)) {
     return event?.featureId === 'blueprintEnrichment' || event?.task === 'scionPass';

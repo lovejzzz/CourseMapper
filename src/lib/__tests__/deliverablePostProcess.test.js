@@ -767,6 +767,32 @@ describe('Discussion prompt post-processing', () => {
     expect(discussion.sourceArtifacts[1].title).toBe('Recruitment Flyer Excerpt');
     expect(JSON.stringify(discussion.sourceArtifacts)).not.toMatch(/Week 3 artifact/i);
   });
+
+  it('preserves meaningful locator words that begin with a generic label noun', () => {
+    const data = {
+      discussions: [
+        {
+          lt: 'Lesson 1: AI Governance',
+          pr: 'Which governance claim is supported?',
+          er: 'Use the lesson sources.',
+          af: [
+            { at: 'Reading Notes', lo: 'Source packet for AI governance foundations', ut: 'Inspect one claim.' },
+            {
+              at: 'Assessment Brief',
+              lo: 'Evidence explanation: AI governance',
+              ut: 'Check the assessment boundary.',
+            },
+          ],
+        },
+      ],
+    };
+
+    const discussion = normalizeDiscussionPromptFields(data).data.discussions[0];
+    expect(discussion.sourceArtifacts.map((artifact) => artifact.locator)).toEqual([
+      'Source packet for AI governance foundations',
+      'Evidence explanation: AI governance',
+    ]);
+  });
 });
 
 describe('Study guide post-processing', () => {

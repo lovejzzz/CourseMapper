@@ -78,6 +78,12 @@ import {
   readinessExtensionMove,
   slideDecisionMove,
 } from './courseCompilerPolish';
+import {
+  faqTermDefinitionSentence,
+  integrativeStudyGuideCopy,
+  selectConceptEvidenceFact,
+  selectDistinctPrerequisiteConcept,
+} from './compilerEvidenceCopy';
 import { recordLegacyPathHit } from './legacyPathTelemetry';
 import {
   isLessonTitleEchoSemanticSurface,
@@ -1340,7 +1346,7 @@ function hasPolicyAnalysisEvidence(text = '') {
       text,
     );
   const hasPolicyPractice =
-    /\b(policy memo|policy brief|policy option|policy options|policy evidence|policy lab|policy studio|stakeholder analysis|stakeholder mapping|stakeholder map|equity analysis|environmental justice|implementation context|implementation plan|implementation planning|implementation constraint|feasibility|cost[-\s]?benefit|impact assessment|regulatory analysis|regulatory impact|regulatory impact analysis|public comment|benefit[-\s]?cost|logic model|theory of change|program evaluation|administrative burden|public value|policy trade[-\s]?off)\b/.test(
+    /\b(policy memo|decision memo|policy brief|policy choice|policy choices|policy proposal|policy proposals|policy option|policy options|policy evidence|policy lab|policy studio|platform accountability|algorithmic audit|algorithmic audits|stakeholder analysis|stakeholder mapping|stakeholder map|equity analysis|environmental justice|implementation context|implementation plan|implementation planning|implementation constraint|feasibility|cost[-\s]?benefit|impact assessment|regulation|regulatory analysis|regulatory impact|regulatory impact analysis|public comment|benefit[-\s]?cost|logic model|theory of change|program evaluation|administrative burden|public value|policy trade[-\s]?off)\b/.test(
       text,
     );
   return hasPolicyDomain && hasPolicyPractice;
@@ -5667,7 +5673,20 @@ function buildFeedbackCycle({ title, concepts, artifact, evidencePlan }) {
 function buildPrerequisitePlan({ lesson, previous }) {
   const concept = safeLessonPrimaryConcept(lesson);
   const artifactName = compactLessonArtifactReference(lesson);
-  const previousConcept = previous ? safeLessonPrimaryConcept(previous) : 'prior course experience';
+  const previousPrimaryConcept = previous ? safeLessonPrimaryConcept(previous) : 'prior course experience';
+  // Adjacent synthesis lessons often intentionally retain the preceding
+  // lesson's primary concept. A prerequisite bridge from "Public policy" to
+  // "Public policy" teaches nothing and leaked into assignment milestones.
+  // Use the nearest distinct admitted concept from the previous lesson first,
+  // then from the synthesis lesson, before falling back to the shared label.
+  const previousConcept = previous
+    ? selectDistinctPrerequisiteConcept(
+        concept,
+        previousPrimaryConcept,
+        safeLessonConcepts(previous, { limit: 6 }),
+        safeLessonConcepts(lesson, { limit: 6 }),
+      )
+    : previousPrimaryConcept;
   const assumedKnowledge = previous
     ? unique([previousConcept, ...safeLessonConcepts(previous, { limit: 3 }).slice(1, 3)], 3)
     : unique(
@@ -6924,7 +6943,7 @@ function buildCourseModalityProfile({ courseName, lessons }) {
   const policyAnalysisPracticeScore =
     policyAnalysisCoreScore > 0
       ? countPattern(
-          /\b(policy memo|policy brief|policy option|policy options|stakeholder analysis|equity analysis|implementation plan|implementation constraint|feasibility|cost[-\s]?benefit|impact assessment|regulatory analysis|benefit[-\s]?cost|logic model|theory of change|program evaluation|administrative burden|public value|policy trade[-\s]?off)\b/g,
+          /\b(policy memo|decision memo|policy brief|policy choice|policy choices|policy proposal|policy proposals|policy option|policy options|policy evidence|platform accountability|algorithmic audit|algorithmic audits|stakeholder analysis|stakeholder mapping|stakeholder map|equity analysis|implementation plan|implementation constraint|feasibility|cost[-\s]?benefit|impact assessment|regulation|regulatory analysis|regulatory impact|public comment|benefit[-\s]?cost|logic model|theory of change|program evaluation|administrative burden|public value|policy trade[-\s]?off)\b/g,
         )
       : 0;
   const policyAnalysisScore = policyAnalysisCoreScore + policyAnalysisPracticeScore;
@@ -7019,9 +7038,15 @@ function buildCourseModalityProfile({ courseName, lessons }) {
     capstoneScore >= 2 &&
     (!hasExplicitStudioCourseSignal || capstoneScore >= studioScore + 3) &&
     capstoneScore >= Math.max(fieldScore, labScore);
+  // Topic evidence can legitimately discuss "online platforms," and nearly
+  // every in-person course can include an asynchronous activity or LMS. Those
+  // words do not establish delivery mode. Only explicit course-level delivery
+  // phrases should suppress a face-to-face discipline profile.
   const hasOnline =
-    /\b(online|asynchronous|discussion board|self[-\s]?paced|lms|remote|virtual)\b/.test(text) ||
-    lessons.some((lesson) => /asynchronous|online|discussion board|lms/i.test(lesson.activityPattern || ''));
+    /\bonline\b/.test(courseNameText) ||
+    /\b(fully online|online course|online seminar|online program|online workshop|asynchronous course|asynchronous seminar|self[-\s]?paced course|remote course|remote instruction|virtual course|virtual classroom)\b/.test(
+      text,
+    );
   const dataScienceLabShouldWin =
     dataScienceScore >= 3 &&
     (dataScienceScore >= lectureExamScore - 1 ||
@@ -19162,6 +19187,34 @@ function compileStudyGuides(blueprint) {
       const studyArtifact = specificity.artifact;
       const lessonSourceCue = safeLessonEvidenceCue(lesson, lens);
       const keyTerms = studyGuideTermsForLesson(lesson);
+      const teachingTerms = lessonPrimaryTeachingKeyTerms(lesson);
+      const primaryTeachingTerm =
+        teachingTerms.find((term) => cleanText(term?.term).toLowerCase() === cleanText(primaryConcept).toLowerCase()) ||
+        teachingTerms[0];
+      const secondaryTeachingTerm = teachingTerms.find(
+        (term) =>
+          cleanText(term?.term) &&
+          cleanText(term?.term).toLowerCase() !== cleanText(primaryTeachingTerm?.term).toLowerCase(),
+      );
+      const integrativeLesson = /\b(?:synthesis|integration|capstone)\b/i.test(stripLessonPrefix(lesson.title));
+      const integrativeCopy = integrativeLesson
+        ? integrativeStudyGuideCopy({
+            primaryName: cleanText(primaryTeachingTerm?.term) || primaryConcept,
+            primaryDefinition: cleanText(primaryTeachingTerm?.definition),
+            primaryExample: cleanText(primaryTeachingTerm?.example),
+            secondaryName: cleanText(secondaryTeachingTerm?.term),
+            artifact: studyArtifact,
+          })
+        : {};
+      const primaryAlignedFact = examLessonFactForConcept(
+        lesson,
+        cleanText(primaryTeachingTerm?.term) || primaryConcept,
+        primaryTeachingTerm?.definition,
+      );
+      const prerequisiteConnection = integrativeCopy.prerequisite
+        ? integrativeCopy.prerequisite
+        : lesson.prerequisitePlan?.prerequisiteEvidence ||
+          `Prerequisite readiness should be checked before students prepare ${studyArtifact}.`;
       const sourceBoundRecovery =
         lessonNeedsSourceBoundRecovery(lesson, blueprint) && !isDataScience && musicTheoryGuides.length === 0;
       // A fact-only kernel may safely power summaries and conservative
@@ -19246,6 +19299,7 @@ function compileStudyGuides(blueprint) {
         // at parse) beats every template variant; the rotation is the
         // fallback for un-enriched lessons.
         summary:
+          integrativeCopy.summary ||
           cleanText(lesson.enrichment?.studyGuide?.summary) ||
           (isDataScience
             ? `${lesson.title} focuses on ${conceptList}. Students should inspect ${datasetName}, read notebook outputs, use ${dataScienceEvidenceCue}, and explain how the evidence changes the modeling decision.`
@@ -19316,8 +19370,7 @@ function compileStudyGuides(blueprint) {
             lessonTitle: lesson.title,
             studyArtifact,
           }),
-          lesson.prerequisitePlan?.prerequisiteEvidence ||
-            `Prerequisite readiness should be checked before students prepare ${studyArtifact}.`,
+          prerequisiteConnection,
           assessment.anchorExampleSet?.studentFacingUse ||
             `Review strong and partial samples before preparing ${studyArtifact}.`,
           `${specificity.week} prepares students to meet the criterion for ${specificity.concept} in ${specificity.artifact}: ${lesson.successCriteria[0]}`,
@@ -19387,10 +19440,10 @@ function compileStudyGuides(blueprint) {
                 // review question asks about the SUBJECT, not the assessment
                 // process (the v0.13.1 audit's "what would strong work need
                 // to show" meta-question).
-                ...(lesson.enrichment?.kernel?.facts?.[0]
+                ...(primaryAlignedFact
                   ? [
                       {
-                        question: `For ${specificity.week}, explain why this ${specificity.concept} claim is true and what evidence supports it: “${stripTerminalPunctuation(lesson.enrichment.kernel.facts[0])}.”`,
+                        question: `For ${specificity.week}, explain why this ${specificity.concept} claim is true and what evidence supports it: “${stripTerminalPunctuation(primaryAlignedFact)}”`,
                         bloomsLevel: 'Analyze',
                         hint: lessonVariant(lesson, [
                           `Use ${conceptPair} in your explanation. Add one observable detail that supports the claim and explain how it changes the method decision.`,
@@ -19442,12 +19495,12 @@ function compileStudyGuides(blueprint) {
           ...(cleanText(lesson.enrichment?.kernel?.scenario?.materials)
             ? [
                 lessonVariant(lesson, [
-                  `Work directly with ${stripTerminalPunctuation(cleanText(lesson.enrichment.kernel.scenario.materials))}: mark the detail that best supports the ${primaryConcept} claim, the detail that complicates it, and the decision each one points to.${lesson.enrichment?.kernel?.facts?.[1] ? ` Check your reading against this: ${stripTerminalPunctuation(lesson.enrichment.kernel.facts[1])}.` : ''}`,
-                  `Inspect ${stripTerminalPunctuation(cleanText(lesson.enrichment.kernel.scenario.materials))}. Identify the strongest ${primaryConcept} evidence, one counter-detail, and the judgment that follows.${lesson.enrichment?.kernel?.facts?.[1] ? ` Test that judgment against this course statement: ${stripTerminalPunctuation(lesson.enrichment.kernel.facts[1])}.` : ''}`,
-                  `Annotate ${stripTerminalPunctuation(cleanText(lesson.enrichment.kernel.scenario.materials))} for one ${primaryConcept} signal and one complication. Explain which interpretation survives the comparison.${lesson.enrichment?.kernel?.facts?.[1] ? ` Use this fact as the boundary check: ${stripTerminalPunctuation(lesson.enrichment.kernel.facts[1])}.` : ''}`,
-                  `Use ${stripTerminalPunctuation(cleanText(lesson.enrichment.kernel.scenario.materials))} to separate supporting evidence from uncertainty about ${primaryConcept}. Record the conclusion each detail permits.${lesson.enrichment?.kernel?.facts?.[1] ? ` Reconcile your note with this statement: ${stripTerminalPunctuation(lesson.enrichment.kernel.facts[1])}.` : ''}`,
-                  `Compare the relevant details in ${stripTerminalPunctuation(cleanText(lesson.enrichment.kernel.scenario.materials))}. Choose the evidence that best warrants a ${primaryConcept} claim and name what could weaken it.${lesson.enrichment?.kernel?.facts?.[1] ? ` Then check the claim against: ${stripTerminalPunctuation(lesson.enrichment.kernel.facts[1])}.` : ''}`,
-                  `Trace a ${primaryConcept} claim through ${stripTerminalPunctuation(cleanText(lesson.enrichment.kernel.scenario.materials))}: cite its strongest support, surface a limiting detail, and revise the judgment accordingly.${lesson.enrichment?.kernel?.facts?.[1] ? ` Keep this admitted fact in view: ${stripTerminalPunctuation(lesson.enrichment.kernel.facts[1])}.` : ''}`,
+                  `Work directly with ${stripTerminalPunctuation(cleanText(lesson.enrichment.kernel.scenario.materials))}: mark the detail that best supports the ${primaryConcept} claim, the detail that complicates it, and the decision each one points to.${primaryAlignedFact ? ` Check your reading against this: ${stripTerminalPunctuation(primaryAlignedFact)}.` : ''}`,
+                  `Inspect ${stripTerminalPunctuation(cleanText(lesson.enrichment.kernel.scenario.materials))}. Identify the strongest ${primaryConcept} evidence, one counter-detail, and the judgment that follows.${primaryAlignedFact ? ` Test that judgment against this course statement: ${stripTerminalPunctuation(primaryAlignedFact)}.` : ''}`,
+                  `Annotate ${stripTerminalPunctuation(cleanText(lesson.enrichment.kernel.scenario.materials))} for one ${primaryConcept} signal and one complication. Explain which interpretation survives the comparison.${primaryAlignedFact ? ` Use this fact as the boundary check: ${stripTerminalPunctuation(primaryAlignedFact)}.` : ''}`,
+                  `Use ${stripTerminalPunctuation(cleanText(lesson.enrichment.kernel.scenario.materials))} to separate supporting evidence from uncertainty about ${primaryConcept}. Record the conclusion each detail permits.${primaryAlignedFact ? ` Reconcile your note with this statement: ${stripTerminalPunctuation(primaryAlignedFact)}.` : ''}`,
+                  `Compare the relevant details in ${stripTerminalPunctuation(cleanText(lesson.enrichment.kernel.scenario.materials))}. Choose the evidence that best warrants a ${primaryConcept} claim and name what could weaken it.${primaryAlignedFact ? ` Then check the claim against: ${stripTerminalPunctuation(primaryAlignedFact)}.` : ''}`,
+                  `Trace a ${primaryConcept} claim through ${stripTerminalPunctuation(cleanText(lesson.enrichment.kernel.scenario.materials))}: cite its strongest support, surface a limiting detail, and revise the judgment accordingly.${primaryAlignedFact ? ` Keep this admitted fact in view: ${stripTerminalPunctuation(primaryAlignedFact)}.` : ''}`,
                 ]),
               ]
             : []),
@@ -19487,6 +19540,7 @@ function compileStudyGuides(blueprint) {
           reviewStrategy:
             // v0.15.187: authored review strategy names the actual concepts
             // to rehearse; the verb-rotation template is the fallback.
+            integrativeCopy.reviewStrategy ||
             cleanText(lesson.enrichment?.studyGuide?.reviewStrategy) ||
             (isMusicTheory
               ? useVerifiedMusicIntervalFrame && /\b(?:simple|compound|invert|inversion)\b/i.test(phrase.context)
@@ -20830,18 +20884,16 @@ function examLessonFact(lesson) {
 
 function examLessonFactForConcept(lesson, concept, definition = '', excludedFacts = new Set()) {
   const facts = (lesson?.enrichment?.kernel?.facts || []).map(cleanText).filter(Boolean);
-  if (facts.length === 0) return '';
-  const cueTokens = new Set(semanticIdentityTokens(`${concept} ${definition}`));
-  const ranked = facts
-    .filter((fact) => !excludedFacts.has(fact))
-    .map((fact, index) => ({
-      fact,
-      index,
-      score: semanticIdentityTokens(fact).reduce((total, token) => total + (cueTokens.has(token) ? 1 : 0), 0),
-    }))
-    .sort((left, right) => right.score - left.score || left.index - right.index);
-  return (
-    ranked[0]?.fact || facts.find((fact) => !excludedFacts.has(fact)) || (excludedFacts.size === 0 ? facts[0] : '')
+  return selectConceptEvidenceFact(
+    facts,
+    examLessonTerms(lesson).map((term) => ({
+      term: cleanText(term?.term),
+      example: cleanText(term?.example),
+    })),
+    cleanText(concept),
+    cleanText(definition),
+    excludedFacts,
+    semanticIdentityTokens,
   );
 }
 
@@ -21335,23 +21387,14 @@ function buildAdmittedKernelEvidenceItem({ lesson, blueprint, quizPlan, index, o
     terms[0] ||
     null;
   const concept = cleanText(term?.term) || primaryConceptForLesson(lesson);
-  const lessonTokens = new Set(
-    semanticIdentityTokens(
-      [
-        concept,
-        stripLessonPrefix(lesson?.title),
-        ...(lesson?.sectionTopics || []),
-        ...(lesson?.keyConcepts || []),
-      ].join(' '),
-    ),
-  );
-  const allFacts = (lesson?.enrichment?.kernel?.facts || []).map(cleanText).filter(Boolean);
-  const alignedFacts = allFacts.filter((candidate) =>
-    semanticIdentityTokens(candidate).some((token) => lessonTokens.has(token)),
-  );
-  const facts = alignedFacts.length >= 2 ? alignedFacts : allFacts;
-  const fact = facts[offset % Math.max(1, facts.length)] || cleanText(term?.definition);
   const definition = cleanText(term?.definition);
+  // Integrative kernels contain exact facts from several source topics. A
+  // title-level token overlap ("technology", "policy", "algorithmic") is not
+  // enough to assign an arbitrary cross-topic fact to the primary key term.
+  // Reuse the same term-owned evidence selector as the exam synthesis path;
+  // if no aligned source example or fact exists, the definition is the honest
+  // fallback instead of an unrelated ledger row.
+  const fact = examLessonFactForConcept(lesson, concept, definition) || definition;
   if (!concept || !fact) return null;
 
   const plan = quizPlan[index] || quizPlan[0] || {};
@@ -26352,16 +26395,7 @@ function compileCourseFaq(blueprint, config = {}) {
       return {
         q: `I thought ${faqMisconceptionBelief(term.misconception)}. Is that wrong? How does ${term.term} actually work?`,
         an: `${correction ? `${stripTerminalPunctuation(correction)}. ` : ''}${
-          term.definition
-            ? `${ensureSentenceCompiler(
-                sentenceCase(
-                  joinTermDefinition(term.term, term.definition, {
-                    separator: ' means ',
-                    lowercaseTail: true,
-                  }),
-                ),
-              )}`
-            : ''
+          term.definition ? faqTermDefinitionSentence(term) : ''
         }${term.example ? ` For example: ${faqExampleLead(term.example)}.` : ''}`.trim(),
         ca: 'Common Confusion',
         rc: [term.term],
@@ -26389,14 +26423,9 @@ function compileCourseFaq(blueprint, config = {}) {
           `What problem does ${term.term} help me solve in ${stripLessonPrefix(lesson.title)}?`,
           `How do I recognize ${term.term} in ${stripLessonPrefix(lesson.title)} and decide when it applies?`,
         ]),
-        an: `${ensureSentenceCompiler(
-          sentenceCase(
-            joinTermDefinition(term.term, term.definition, {
-              separator: ' means ',
-              lowercaseTail: true,
-            }),
-          ),
-        )}${term.example ? ` A concrete case: ${faqExampleLead(term.example)}.` : ''}`,
+        an: `${faqTermDefinitionSentence(term)}${
+          term.example ? ` A concrete case: ${faqExampleLead(term.example)}.` : ''
+        }`,
         ca: 'Concept Explanation',
         rc: [term.term],
         df: 'Basic',

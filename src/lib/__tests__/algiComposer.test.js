@@ -22,8 +22,11 @@ import {
   composeLessonFromCandidateKernels,
   composeLessonFromKernels,
   constrainConceptIdsToDisciplines,
+  expandResearchKernelsForComposition,
   fitSourceFact,
+  fitSourceFacts,
   fitSourceSentence,
+  integrativeKernels,
   kernelTopicOverlapScore,
 } from '../algiKernelComposer.js';
 import { parseLessonKernelResponse } from '../blueprintEnrichmentPass.js';
@@ -207,9 +210,29 @@ Lesson 1: User research
 Lesson 2: Information architecture and interaction flows
 Lesson 3: Iterative prototyping`;
     const skeleton = JSON.parse(composeAlgiSkeleton(promptFor(source, 3)));
-    expect(skeleton.sessions[1].sectionTitles).toContain('How information architecture and interaction flows works');
-    expect(skeleton.sessions[1].sectionTitles.join('\n')).not.toMatch(/\band (?:is|works)\b/i);
+    expect(skeleton.sessions[1].sectionTitles).toContain('Information architecture and interaction flows mechanisms');
+    expect(skeleton.sessions[1].sectionTitles.join('\n')).not.toMatch(
+      /\band (?:foundations|mechanisms|practice|limits)\b/i,
+    );
     expect(validateAgainstSchema(skeleton, 3)).toEqual([]);
+  });
+
+  it('turns a compact course-on brief into named research topics instead of generic session slots', () => {
+    const source =
+      'Current Technology Policy, a 6-week graduate seminar on AI governance, platform accountability, privacy regulation, algorithmic audits, and emerging policy proposals. Each week uses current evidence.';
+    expect(planSessionTopics(source, 6)).toEqual([
+      'AI governance',
+      'Platform accountability',
+      'Privacy regulation',
+      'Algorithmic audits',
+      'Emerging policy proposals',
+      'Current Technology Policy synthesis',
+    ]);
+    const skeleton = JSON.parse(composeAlgiSkeleton(promptFor(source, 6)));
+    expect(skeleton.sessions.map((session) => session.title)).not.toContain('Session 1 topic');
+    expect(skeleton.sessions[0].sectionTitles.join('\n')).toContain('AI governance');
+    expect(skeleton.sessions[0].sectionTitles.join('\n')).not.toContain('aI governance');
+    expect(validateAgainstSchema(skeleton, 6)).toEqual([]);
   });
 
   it('survives a source with no recognizable outline', () => {
@@ -299,6 +322,38 @@ ${systemPrompt}
     expect(response).toContain('3 mapped lessons');
   });
 
+  it('compares two course concepts from compiled evidence instead of misrouting a privacy topic', () => {
+    const evidencePrompt = `${systemPrompt}
+
+**Compiled evidence cards (source-grounded, read-only):**
+  {"lesson":2,"title":"Platform accountability","term":"Algorithmic accountability","definition":"Algorithmic accountability refers to the allocation of responsibility for decisions influenced by algorithms."}
+  {"lesson":3,"title":"Privacy regulation","term":"General Data Protection Regulation","definition":"The General Data Protection Regulation is a European Union regulation on information privacy."}`;
+    const response = composeAlgiAdvisoryResponse({
+      messages: [
+        {
+          role: 'user',
+          content: 'Compare algorithmic accountability and privacy regulation using the course evidence.',
+        },
+      ],
+      systemPrompt: evidencePrompt,
+    });
+
+    expect(response).toContain('Lesson 2 (Platform accountability)');
+    expect(response).toContain('Lesson 3 (Privacy regulation)');
+    expect(response).toContain('allocation of responsibility');
+    expect(response).toContain('European Union regulation');
+    expect(response).not.toContain('Algi uses no model weights');
+  });
+
+  it('keeps actual product privacy questions on the privacy explanation route', () => {
+    const response = composeAlgiAdvisoryResponse({
+      messages: [{ role: 'user', content: 'How does local data privacy work in Algi?' }],
+      systemPrompt,
+    });
+    expect(response).toContain('Algi uses no model weights');
+    expect(response).toContain('keeps course topics on this device');
+  });
+
   it('detects generic titles in an Algi structural audit', () => {
     const response = composeAlgiAdvisoryResponse({
       messages: [{ role: 'user', content: 'Audit this course for gaps' }],
@@ -384,6 +439,42 @@ describe('Algi V0 source sentence compaction', () => {
         'In quantum mechanics, the measurement problem is the problem of definite outcomes: quantum systems have superpositions but measurements give one definite result.',
       ),
     ).toBe('In quantum mechanics, the measurement problem is the problem of definite outcomes.');
+  });
+
+  it('recovers complete source clauses without admitting lowercase or pronoun fragments', () => {
+    expect(
+      fitSourceFact(
+        'Algorithmic accountability refers to the allocation of responsibility for the consequences of real-world actions influenced by algorithms used in decision-making processes.',
+      ),
+    ).toBe('Algorithmic accountability refers to the allocation of responsibility.');
+    expect(
+      fitSourceFact(
+        'However, adherence to this principle is not always guaranteed, and there are instances where individuals may be adversely affected by algorithmic decisions.',
+      ),
+    ).toBe('However, adherence to this principle is not always guaranteed.');
+    expect(
+      fitSourceFacts(
+        'However, adherence to this principle is not always guaranteed, and there are instances where individuals may be adversely affected by algorithmic decisions.',
+      ),
+    ).toEqual([
+      'However, adherence to this principle is not always guaranteed.',
+      'There are instances where individuals may be adversely affected by algorithmic decisions.',
+    ]);
+    expect(
+      fitSourceFact(
+        'This article describes current governance, some inherent controversies, and ongoing debates regarding why regulation changes.',
+      ),
+    ).not.toMatch(/^(?:and|is|avoiding|researching)\b/i);
+    expect(
+      fitSourceFact(
+        'People who regularly use policy analysis in their work, particularly those who use it as a major part of their job duties are generally known as policy analysts.',
+      ),
+    ).toBe('');
+    expect(
+      fitSourceFact(
+        'Actions to solve or address relevant social issues, guided by a conception and often implemented by programs.',
+      ),
+    ).toBe('');
   });
 
   it('does not let an overlong example become a dangling clause', () => {
@@ -480,8 +571,8 @@ describe('Algi V0 source receipts', () => {
     expect(payload.keyTerms.map((entry) => entry.mi).join(' ')).not.toMatch(/stretch|boundary this source/i);
     expect(payload.keyTerms[0].mi).toContain('Concept 1 and Concept 2');
     expect(payload.keyTerms[0].cx).toContain('not interchangeable');
-    expect(payload.keyTerms[0].cx).toContain('Concept 1 refers to');
-    expect(payload.keyTerms[0].cx).toContain('Concept 2 refers to');
+    expect(payload.keyTerms[0].cx).toContain('Concept 1 is');
+    expect(payload.keyTerms[0].cx).toContain('Concept 2 is');
     expect(payload.keyTerms[0].cx).not.toMatch(/^Not that/i);
     expect(payload.conceptProvenance.citations[0]).toMatchObject({
       sourceUrl: 'https://en.wikipedia.org/wiki/Concept_1',
@@ -614,6 +705,235 @@ describe('Algi V0 source receipts', () => {
     expect(payload).not.toBeNull();
     expect(payload.keyTerms.map((entry) => entry.tr)).not.toEqual(['Concept 1', 'Concept 2', 'Concept 3']);
     expect(payload.keyTerms.map((entry) => entry.tr)).toContain('Concept 4');
+  });
+
+  it('spreads a researched synthesis across lesson topics before reusing a topic', () => {
+    const used = [kernel(1, true), kernel(2, true), kernel(3, true), kernel(4, true), kernel(5, true), kernel(6, true)];
+    [
+      'AI governance',
+      'AI governance',
+      'Privacy regulation',
+      'Algorithmic audits',
+      'Public policy',
+      'Public policy',
+    ].forEach((topic, index) => {
+      used[index].provenance.topic = topic;
+    });
+
+    const picked = integrativeKernels(used, 0, 4);
+    expect(picked.map((entry) => entry.provenance.topic)).toEqual([
+      'AI governance',
+      'Privacy regulation',
+      'Algorithmic audits',
+      'Public policy',
+    ]);
+  });
+
+  it('admits cross-topic researched evidence only for an explicit synthesis lesson', () => {
+    const kernels = [kernel(1, true), kernel(2, true), kernel(3, true), kernel(4, true)];
+    ['AI governance', 'Privacy regulation', 'Algorithmic audits', 'Public policy'].forEach((topic, index) => {
+      kernels[index].provenance.topic = topic;
+    });
+
+    expect(
+      composeLessonFromCandidateKernels(
+        { lessonId: 'lesson-6', title: 'Current Technology Policy synthesis' },
+        kernels,
+        {
+          factCount: 5,
+        },
+      ),
+    ).not.toBeNull();
+    expect(
+      composeLessonFromCandidateKernels({ lessonId: 'lesson-1', title: 'AI governance' }, kernels.slice(1), {
+        factCount: 5,
+      }),
+    ).toBeNull();
+  });
+
+  it('compiles several anchored claim subjects from one research article without inventing terms', () => {
+    const source = kernel(1, true);
+    source.term = 'AI governance';
+    source.provenance.topic = 'AI governance';
+    source.definition.text =
+      'AI governance is the system of rules and institutions used to guide artificial intelligence.';
+    const claims = [
+      'Algorithmic accountability is the obligation to explain and justify consequential automated decisions.',
+      'Impact assessment is a structured process for identifying likely harms before deployment.',
+      'Platform oversight is the monitoring of how digital services exercise delegated decision power.',
+      'Public transparency is the disclosure of evidence that lets affected people inspect governance choices.',
+      'Institutional review is a recurring check on whether safeguards still address observed risks.',
+    ];
+    source.facts = claims.map((text, index) => ({
+      text,
+      anchor: {
+        ...source.definition.anchor,
+        quote: text,
+        loc: `Claim ${index + 1}`,
+      },
+      tier: 2,
+    }));
+    const expanded = expandResearchKernelsForComposition([source], 'AI governance');
+    expect(expanded.map((entry) => entry.term)).toEqual([
+      'AI governance',
+      'Algorithmic accountability',
+      'Impact assessment',
+      'Platform oversight',
+      'Public transparency',
+      'Institutional review',
+    ]);
+    const payload = composeLessonFromCandidateKernels({ lessonId: 'lesson-1', title: 'AI governance' }, expanded, {
+      factCount: 5,
+    });
+    expect(payload).not.toBeNull();
+    expect(payload.facts).toHaveLength(5);
+    expect(payload.keyTerms).toHaveLength(3);
+    expect(payload.conceptProvenance.citations[0].sourceUrl).toContain('wikipedia.org');
+    expect(JSON.stringify(payload)).not.toContain('unsupported factual claim');
+  });
+
+  it('turns exact source-object phrases into teachable terms when the article has only one headword', () => {
+    const source = kernel(1, true);
+    source.term = 'Algorithmic accountability';
+    source.provenance.topic = 'Platform accountability';
+    source.definition.text =
+      'Algorithmic accountability refers to the allocation of responsibility for decisions influenced by algorithms.';
+    const claims = [
+      'Reviewers evaluate only relevant characteristics of the input data before accepting an automated decision.',
+      'People may be adversely affected by algorithmic decisions when source records contain hidden omissions.',
+      'Independent reviews identify procedural gaps and support bounded corrective action.',
+      'Audit teams document the decision path so later reviewers can compare the evidence.',
+      'Organizations eliminate unsupported assumptions before publishing an accountability report.',
+    ];
+    source.facts = claims.map((text, index) => ({
+      text,
+      anchor: { ...source.definition.anchor, quote: text, loc: `Claim ${index + 1}` },
+      tier: 2,
+    }));
+    const expanded = expandResearchKernelsForComposition([source], 'Platform accountability');
+    expect(expanded.map((entry) => entry.term)).toEqual(
+      expect.arrayContaining(['Algorithmic accountability', 'Relevant characteristics', 'Algorithmic decisions']),
+    );
+    const payload = composeLessonFromCandidateKernels(
+      { lessonId: 'lesson-2', title: 'Platform accountability' },
+      expanded,
+      { factCount: 5 },
+    );
+    expect(payload).not.toBeNull();
+    expect(payload.keyTerms).toHaveLength(3);
+    expect(payload.mc).toHaveLength(2);
+    expect(JSON.stringify(payload)).toContain('relevant characteristics');
+  });
+
+  it('uses an exact compound-predicate subject as the third concept in a sparse platform article set', () => {
+    const accountability = kernel(1, true);
+    accountability.term = 'Algorithmic accountability';
+    accountability.provenance.topic = 'Platform accountability';
+    accountability.definition.text =
+      'Algorithmic accountability refers to the allocation of responsibility for the consequences of real-world actions influenced by algorithms used in decision-making processes.';
+    accountability.facts = [
+      'This means they ought to evaluate only relevant characteristics of the input data, avoiding distinctions based on attributes that are generally inappropriate in social contexts.',
+      'However, adherence to this principle is not always guaranteed, and there are instances where individuals may be adversely affected by algorithmic decisions.',
+      'Responsibility for any harm resulting from a machine decision may lie with the algorithm itself or with the individuals who designed it.',
+      'Ideally, algorithms should be designed to eliminate bias from their decision-making outcomes.',
+    ].map((text, index) => ({
+      text,
+      anchor: { ...accountability.definition.anchor, quote: text, loc: `Claim ${index + 1}` },
+      tier: 2,
+    }));
+
+    const platform = kernel(2, true);
+    platform.term = 'Accountability';
+    platform.provenance.topic = 'Platform accountability';
+    platform.definition.text =
+      'Actual or potential policy interventions for the preferential treatment of public value content were studied through the analytical lens of accountability in its interaction with platforms.';
+    platform.facts = [
+      'Finally, the analyses on current accountability regimes laid out recommendations for future policy for public-interest-driven platform governance.',
+      'Public discourse has moved online, enabled by platforms, which have become an essential source and key distributor of information.',
+      'Control over public content dissemination is primarily determined by private platforms via algorithmic recommendation systems.',
+      'The paper addresses safeguards for public content delivery on digital platforms as an issue of media pluralism.',
+    ].map((text, index) => ({
+      text,
+      anchor: { ...platform.definition.anchor, quote: text, loc: `Claim ${index + 1}` },
+      tier: 2,
+    }));
+
+    const expanded = expandResearchKernelsForComposition([accountability, platform], 'Platform accountability');
+    expect(expanded.map((entry) => entry.term)).toContain('Public discourse');
+    const payload = composeLessonFromCandidateKernels(
+      { lessonId: 'lesson-2', title: 'Platform accountability' },
+      expanded,
+      { factCount: 5 },
+    );
+    expect(payload).not.toBeNull();
+    expect(payload.keyTerms.map((entry) => entry.tr)).toEqual(
+      expect.arrayContaining(['Algorithmic accountability', 'Algorithmic decisions', 'Public discourse']),
+    );
+  });
+
+  it('does not export clipped adjective or comparison edges in research answer options', () => {
+    const kernels = [kernel(1, true), kernel(2, true), kernel(3, true)];
+    const definitions = [
+      [
+        'Public policy',
+        'Public policy is an institutionalized proposal or a decided set of elements like laws, regulations, guidelines, and actions.',
+      ],
+      [
+        'Policy analysis',
+        'Policy analysis is a technique used in the public administration sub-field of political science to evaluate available options.',
+      ],
+      [
+        'Public administration',
+        'Public administration is the implementation of public policy by public institutions and accountable officials.',
+      ],
+    ];
+    kernels.forEach((candidate, index) => {
+      candidate.term = definitions[index][0];
+      candidate.definition.text = definitions[index][1];
+      candidate.provenance.topic = 'Emerging policy proposals';
+    });
+
+    const payload = composeLessonFromCandidateKernels(
+      { lessonId: 'lesson-5', title: 'Emerging policy proposals' },
+      kernels,
+      { factCount: 5 },
+    );
+    expect(payload).not.toBeNull();
+    expect(payload.mc).toHaveLength(2);
+    expect(payload.mc.flatMap((item) => item.op).join('\n')).not.toMatch(/\b(?:like|political)\.$/m);
+  });
+
+  it('uses a bounded distinction when two full source definitions exceed correction limits', () => {
+    const kernels = [kernel(1, true), kernel(2, true), kernel(3, true)];
+    const definitions = [
+      [
+        'Public policy',
+        'Public policy is an institutionalized proposal or a decided set of elements like laws, regulations, guidelines, and actions to solve or address relevant and problematic social issues, guided by a conception and often implemented by programs.',
+      ],
+      [
+        'Algorithmic accountability',
+        'Algorithmic accountability refers to the allocation of responsibility for the consequences of real-world actions influenced by algorithms used in decision-making processes.',
+      ],
+      [
+        'Privacy law',
+        'Privacy law is a broad category of statutes and common law precedents related to an individual right to privacy.',
+      ],
+    ];
+    kernels.forEach((candidate, index) => {
+      candidate.term = definitions[index][0];
+      candidate.definition.text = definitions[index][1];
+      candidate.provenance.topic = 'Current Technology Policy synthesis';
+    });
+
+    const payload = composeLessonFromCandidateKernels(
+      { lessonId: 'lesson-6', title: 'Current Technology Policy synthesis' },
+      kernels,
+      { factCount: 5 },
+    );
+    const correctionText = payload.keyTerms.map((entry) => entry.cx).join(' ');
+
+    expect(correctionText).not.toContain('Algorithmic accountability refers to the allocation.');
+    expect(correctionText).toContain('distinct concepts with different scope and evidence');
   });
 
   it('composes microbial risk assessment only from risk-matched grounded concepts', () => {

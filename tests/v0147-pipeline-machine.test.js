@@ -41,6 +41,12 @@ const SCION_COMPILER_REPAIR_EVENT = {
   stage: 'local-compiler',
 };
 const COMPILE_EVENT = { type: 'compiledDeliverable', label: 'Enriched blueprint compiler' };
+const ALGI_RESEARCH_EVENT = {
+  type: 'algiResearchProgress',
+  label: 'Researching DOAJ',
+  detail: '3 lessons',
+  progress: 0.42,
+};
 
 const statuses = (pipeline) => deriveStepStatuses(pipeline).map((step) => step.status);
 
@@ -71,6 +77,18 @@ describe('WS-C — the state matrix: every machine state and its step render', (
     });
     expect(p.state).toBe('enriching');
     expect(p.activity).toBe(ENRICH_EVENT);
+    expect(statuses(p)).toEqual(['settled', 'active', 'pending', 'pending', 'pending']);
+  });
+
+  it('keeps live Algi research in Enrich and exposes its exact evidence phase', () => {
+    const p = derivePipelineState({
+      budget: { recentEvents: [ALGI_RESEARCH_EVENT] },
+      generation: GEN_DONE,
+      deliverables: DELIV_RUNNING,
+      packageQualityPass: { status: 'running', phase: 'generation' },
+    });
+    expect(p.state).toBe('enriching');
+    expect(p.activity).toBe(ALGI_RESEARCH_EVENT);
     expect(statuses(p)).toEqual(['settled', 'active', 'pending', 'pending', 'pending']);
   });
 

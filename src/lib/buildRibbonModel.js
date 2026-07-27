@@ -213,6 +213,7 @@ function isKnowledgeProgressEvent(event) {
       'blueprintEnrichmentCall',
       'knowledgeBackboneLookup',
       'knowledgeBackboneProgress',
+      'algiResearchProgress',
       'repairRetryCall',
       'scionCompilerRepair',
     ].includes(event?.type)
@@ -221,8 +222,7 @@ function isKnowledgeProgressEvent(event) {
   if (event?.type === 'streamRetryCall' && isBlueprintEnrichmentRetry(event)) return true;
   return (
     event?.type === 'pipelineDecision' &&
-    ['Scion pass call', 'Scion quality passes', 'Language identity firewall'].includes(event?.label) &&
-    latestLessonNumber(event) > 0
+    ['Scion pass call', 'Scion quality passes', 'Language identity firewall'].includes(event?.label)
   );
 }
 
@@ -289,15 +289,7 @@ export function latestKnowledgeActivity(events = []) {
   const activeRecovery = recent.find((event) => event?.type === 'repairRetryCall' && recoveryAttemptFromEvent(event));
   const recovery = recoveryAttemptFromEvent(activeRecovery);
   const activity = recent.find(
-    (event) =>
-      ['blueprintEnrichmentCall', 'knowledgeBackboneLookup', 'knowledgeBackboneProgress', 'repairRetryCall'].includes(
-        event?.type,
-      ) ||
-      event?.type === 'scionCompilerRepair' ||
-      (event?.type === 'streamRetryCall' && isBlueprintEnrichmentRetry(event)) ||
-      (event?.type === 'pipelineDecision' &&
-        ['Scion pass call', 'Scion quality passes', 'Language identity firewall'].includes(event?.label) &&
-        event?.detail),
+    (event) => isKnowledgeProgressEvent(event) && (event?.type !== 'pipelineDecision' || event?.detail),
   );
   if (activity?.type === 'knowledgeBackboneLookup') {
     const detail = String(activity.detail || '').trim();
@@ -309,6 +301,11 @@ export function latestKnowledgeActivity(events = []) {
   if (activity?.type === 'knowledgeBackboneProgress') {
     const detail = String(activity.detail || '').trim();
     const label = String(activity.label || '').trim() || 'Checking open readings';
+    return detail ? `${label} · ${detail}` : label;
+  }
+  if (activity?.type === 'algiResearchProgress') {
+    const label = String(activity.label || 'Researching course evidence').trim();
+    const detail = String(activity.detail || '').trim();
     return detail ? `${label} · ${detail}` : label;
   }
   if (activity?.label === 'Language identity firewall') {
@@ -506,6 +503,13 @@ export function deriveRibbonProgress({ pipeline, budget = {}, generation = {}, d
     return Math.max(16, Math.round(15 + streamed * 0.15));
   }
   if (state === 'enriching') {
+    const algiResearchEvent = (Array.isArray(budget?.recentEvents) ? budget.recentEvents : []).find(
+      (event) => event?.type === 'algiResearchProgress',
+    );
+    if (algiResearchEvent) {
+      const researchProgress = Math.max(0, Math.min(1, Number(algiResearchEvent.progress) || 0));
+      return Math.round(30 + researchProgress * 19);
+    }
     // Reading retrieval runs only after local/model lesson knowledge work has
     // settled and immediately before compilation. Give that observable phase
     // the final honest checkpoint in Enrich instead of leaving the UI at the

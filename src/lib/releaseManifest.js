@@ -30,8 +30,8 @@ const V01680_RELEASE = {
   },
 };
 
-export const CURRENT_RELEASE = {
-  version: APP_VERSION,
+const V01681_RELEASE = {
+  version: '0.16.81',
   date: 'July 26, 2026',
   title: 'Evidence Must Earn the Lesson',
   landingTitle: 'Algi V0.16.81 Knows Its Coverage Before It Builds',
@@ -55,6 +55,39 @@ export const CURRENT_RELEASE = {
   proof: {
     contract: 'release-contracts/v0.16.81.json',
     roadmap: 'docs/ALGI_V0_PIPELINE_ASSESSMENT.md',
+    auditCommand: 'npm run audit:release-history',
+  },
+};
+
+export const CURRENT_RELEASE = {
+  version: APP_VERSION,
+  date: 'July 26, 2026',
+  title: 'Research First, Evidence Bound',
+  landingTitle: 'Algi V0.16.82 Researches Before It Compiles',
+  highlights: [
+    'Algi now turns the whole requested lesson sequence into a bounded research plan before compilation. Each lesson carries focused queries, schema requirements, provider policy, and progress state instead of entering an open-ended search loop.',
+    'The opt-in research lane follows the licensed DOAJ → Europe PMC → Wikipedia cascade, records exact source passages and provenance, scores authority, currency, relevance, and entailment, preserves conflicts, and admits only evidence that can satisfy the lesson contract.',
+    'Research results are stored in a versioned local project cache. Repeating the same course can reuse inspected evidence without another model download or redundant provider request, while private mode continues to send no course-topic research request.',
+    'Evidence-to-kernel composition is now lesson-owned and schema-complete: adjacent lessons cannot borrow the wrong fact, policy courses no longer inherit laboratory language, repeated concepts receive distinct prerequisite bridges, and non-definitional source claims are framed honestly.',
+    'The Living Course Compiler exposes research planning, provider retrieval, evidence admission, cache reuse, composition, verification, and export as one continuous build. The Agent answers from the same source-grounded course evidence after generation.',
+    'A real six-lesson Current Technology Policy browser run finished 6/6 kernels, 9/9 material families, 99/A, and zero findings. Its single valid ZIP contains 63 entries—43 DOCX, 6 PPTX, and 1 XLSX—and an eight-row normalized source report with no duplicate or malformed locator rows.',
+    'A frozen eight-domain research-first benchmark now audits the route, evidence, compiler, quality, latency, call, and export contracts. The architecture is implemented and tested; no claim is made yet that Algi beats Scion, a paid model, or a trained adapter.',
+    'Gemma weights remain unchanged and the optional adapter remains inactive. Algi supplies evidence and deterministic composition; Scion supplies browser-local authoring; compatible paid providers benefit from the same evidence graph, compiler safeguards, Agent layer, and exporters.',
+  ],
+  landingHighlights: [
+    'Plan the evidence job before searching.',
+    'Score claims by source, support, currency, and conflict.',
+    'Reuse inspected research from the local project cache.',
+    'Compile each lesson only from its own admitted evidence.',
+    'Watch research and compilation as one living build.',
+    'Export a source-grounded course with no model download.',
+    'Benchmark promotion without claiming an unearned win.',
+    'Scion and paid providers share the compiler gains.',
+  ],
+  proof: {
+    contract: 'release-contracts/v0.16.82.json',
+    roadmap: 'docs/ALGI_RESEARCH_FIRST_ARCHITECTURE.md',
+    browser: 'docs/ALGI_V0_PIPELINE_ASSESSMENT.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -117,6 +150,95 @@ export const CURRENT_RELEASE_CHANGELOG = {
   date: CURRENT_RELEASE.date,
   title: CURRENT_RELEASE.title,
   highlights: CURRENT_RELEASE.highlights,
+  sections: [
+    {
+      label: 'Plan research before spending requests',
+      icon: 'AI',
+      color: 'violet',
+      items: [
+        'The requested lesson sequence becomes a typed, bounded research plan before any provider request.',
+        'Every lesson declares focused queries, missing schema fields, source policy, and a stable cache identity.',
+        'Private mode still makes no external course-topic request and reports unsupported lessons honestly.',
+        'Research mode shows planning, retrieval, admission, cache, and composition progress in the Living Course Compiler.',
+      ],
+    },
+    {
+      label: 'Build a claim-level evidence graph',
+      icon: 'PROOF',
+      color: 'blue',
+      items: [
+        'DOAJ, Europe PMC, and Wikipedia retain their own provider, URL, access, license, attribution, and passage receipts.',
+        'Claims are scored for source authority, currency, course relevance, and passage entailment instead of inheriting trust from a search-result count.',
+        'Contradictory claims remain visible as conflicts rather than being silently blended into fluent prose.',
+        'Only evidence that can fill the typed lesson schema enters deterministic composition.',
+      ],
+    },
+    {
+      label: 'Reuse evidence without hiding the privacy boundary',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'A versioned local project cache stores inspected research plans and admitted evidence.',
+        'Cache keys bind the course, lesson, query, provider policy, and protocol version so stale or unrelated evidence cannot leak across projects.',
+        'A repeated build can reuse source work without downloading model weights or issuing redundant provider requests.',
+        'Changing the evidence protocol or lesson identity invalidates the corresponding cache entry.',
+      ],
+    },
+    {
+      label: 'Keep every fact with its lesson',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'Cross-topic synthesis uses concept-owned source evidence instead of an arbitrary neighboring fact.',
+        'Policy courses use policy-analysis language and no longer become laboratory courses because a source mentions online activity.',
+        'Repeated adjacent concepts receive a distinct prerequisite bridge instead of a self-referential instruction.',
+        'Non-definitional claims use source-statement framing in FAQs and teaching positions rather than malformed dictionary language.',
+        'Long peer contrasts fail closed to a bounded distinction instead of clipping into a false correction.',
+      ],
+    },
+    {
+      label: 'Verify the real course and package boundary',
+      icon: 'PROOF',
+      color: 'emerald',
+      items: [
+        'A fresh six-week Current Technology Policy course completed 6/6 lesson kernels and 9/9 material families at 99/A with zero encoded findings.',
+        'The grounded Agent compared Algorithmic accountability and Privacy law from workspace source evidence.',
+        'One export-owned action downloaded a valid 63-entry archive with 43 DOCX, 6 PPTX, and 1 XLSX files.',
+        'The eight-row source report contains normalized session locators with no duplicate URLs, doubled separators, or malformed lesson lists.',
+        'Targeted document inspection found none of the policy-domain, fact-binding, prerequisite, FAQ, clipping, punctuation, or placeholder defects repaired by this release.',
+        'The complete gate passes 462 unit-test files with 5,756 active tests and 151/151 Chromium E2E tests, plus format, lint, build, bundle, architecture, constitution, release-history, and frozen-benchmark audits.',
+      ],
+    },
+    {
+      label: 'Freeze promotion without inventing a victory',
+      icon: 'CHECK',
+      color: 'violet',
+      items: [
+        'The eight-domain research-first benchmark freezes prompts, evidence lanes, route roles, compiler and grader versions, quality, latency, provider work, and export checks.',
+        'Research-first viability remains false until same-commit paired artifacts pass the frozen gate.',
+        'The release does not claim that Algi beats Scion, paid providers, a trained adapter, independent factual review, or classroom evaluation.',
+        'Gemma weights remain unchanged and the optional adapter remains inactive.',
+      ],
+    },
+    {
+      label: 'Keep one compiler for every compatible author',
+      icon: 'AI',
+      color: 'slate',
+      items: [
+        'Algi owns evidence discovery, adjudication, local caching, and deterministic evidence-to-kernel composition.',
+        'Scion owns browser-local course-specific authoring when a generative pass is useful.',
+        'Compatible paid providers can consume the same admitted evidence and receive the same compiler, Agent, verification, and export safeguards.',
+        'The shared architecture improves every compatible route, while model loading and browser-local inference remain Scion-specific.',
+      ],
+    },
+  ],
+};
+
+const V01681_RELEASE_CHANGELOG = {
+  version: V01681_RELEASE.version,
+  date: V01681_RELEASE.date,
+  title: V01681_RELEASE.title,
+  highlights: V01681_RELEASE.highlights,
   sections: [
     {
       label: 'Know the evidence boundary before generation',
@@ -380,6 +502,7 @@ const V01678_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  V01681_RELEASE_CHANGELOG,
   V01680_RELEASE_CHANGELOG,
   V01679_RELEASE_CHANGELOG,
   V01678_RELEASE_CHANGELOG,

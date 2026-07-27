@@ -38,6 +38,11 @@ describe('Algi pre-generation coverage forecast', () => {
     expect(privateForecast.route).toBe('private-coverage-gaps');
     expect(researchForecast.route).toBe('research-assisted');
     expect(researchForecast.lessons.some((lesson) => lesson.status === 'research-planned')).toBe(true);
+    expect(researchForecast.researchPlan).toMatchObject({
+      protocol: 'algi-course-research-plan-v1',
+      lessonCount: researchForecast.externalNeeded,
+      providerOrder: ['doaj', 'wikipedia'],
+    });
   });
 
   it('recognizes the source-anchored OpenStax waterborne lesson before external research', async () => {
@@ -61,6 +66,10 @@ describe('Algi pre-generation coverage forecast', () => {
         status: 'private-ready',
       });
       expect(forecast.externalNeeded).toBe(4);
+      expect(forecast.researchPlan).toMatchObject({
+        domain: 'biomedical',
+        providerOrder: ['europe-pmc', 'doaj', 'wikipedia'],
+      });
     } finally {
       globalThis.fetch = originalFetch;
       resetAlgiGenomeCacheForTests();

@@ -710,7 +710,7 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
             `The competing views differ over whether the current ${concept} evidence is sufficient or should remain conditional.`,
           ]),
           positions: [
-            `Use ${anchorClause} as the leading interpretation.`,
+            `Treat this source claim as the leading interpretation: ${anchorClause}.`,
             lessonVariant([
               `Keep an alternative explanation open until the unresolved ${concept} detail is checked.`,
               `Treat the current reading as provisional because the missing ${concept} evidence could change it.`,

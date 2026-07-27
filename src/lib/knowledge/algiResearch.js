@@ -36,6 +36,7 @@
 
 import { admitKernel } from '../genome/foundryAdmission';
 import { attachKernelEntailmentReceipt } from './claimEntailment.js';
+import { providerQueryForLesson, providerSupportsLesson } from './algiResearchPlan.js';
 import { isCourseAwareWeakSource } from './sourceLedger.js';
 
 export const RESEARCH_ORIGIN = 'algi-research';
@@ -167,6 +168,10 @@ export function directResearchTitles(topic = '', courseContext = '') {
     .replace(/^(?:an?\s+)?(?:introduction|overview|foundations?|fundamentals?)\s+(?:to|of)\s+/i, '')
     .trim();
   if (!normalized) return [];
+  const baseTopic = normalized.replace(
+    /:\s*(?:in practice|evidence and methods|comparisons?|limitations?|applications?)\s*$/i,
+    '',
+  );
   const clauses = normalized
     .split(/\s+(?:and|&)\s+/i)
     .map((clause) => clause.trim())
@@ -238,10 +243,31 @@ export function directResearchTitles(topic = '', courseContext = '') {
       // user evidence and design rationale, not physical environments.
       return ['User research', 'User-centered design', 'Design rationale', 'Usability testing'];
     }
+    if (/\bai governance\b|\bgovernance of artificial intelligence\b/i.test(baseTopic)) {
+      return [
+        'Governance of artificial intelligence',
+        'Regulation of artificial intelligence',
+        'Algorithmic accountability',
+        'AI safety',
+      ];
+    }
+    if (/\bplatform accountability\b/i.test(baseTopic)) {
+      return ['Platform governance', 'Content moderation', 'Algorithmic accountability', 'Online service provider'];
+    }
+    if (/\bprivacy regulation\b|\bdata protection regulation\b/i.test(baseTopic)) {
+      return ['Information privacy law', 'Privacy law', 'Data protection', 'General Data Protection Regulation'];
+    }
+    if (/\balgorithmic audits?\b|\balgorithm audits?\b/i.test(baseTopic)) {
+      return ['Algorithmic accountability', 'Algorithmic bias', 'Algorithmic transparency'];
+    }
+    if (/\bemerging policy proposals?\b|\bpolicy proposals?\b/i.test(baseTopic)) {
+      return ['Public policy', 'Policy analysis', 'Policy cycle', 'Technology policy', 'Regulatory impact analysis'];
+    }
     return [];
   })();
   const named = [
     normalized,
+    ...(baseTopic !== normalized ? [baseTopic] : []),
     ...(clauses.length === 2 ? clauses : []),
     ...phraseWindows,
     ...pathogenOutcomeAliases,
@@ -273,6 +299,19 @@ export function groupedResearchQuery(topics = []) {
   return clauses
     .map((clause) => (/\s/.test(clause) ? `"${clause.replace(/"/g, '')}"` : clause.replace(/"/g, '')))
     .join(' OR ');
+}
+
+export function groupedResearchQueryFromPlan(topics = [], researchPlan = null, providerId = '') {
+  const clauses = [
+    ...new Set(
+      topics
+        .map((topic) => providerQueryForLesson(researchPlan, topic, providerId))
+        .map((query) => String(query || '').trim())
+        .filter(Boolean),
+    ),
+  ];
+  if (clauses.length === 0) return groupedResearchQuery(topics);
+  return clauses.map((clause) => `(${clause})`).join(' OR ');
 }
 
 /** Jaccard-style overlap, used when no embedder is available. */
@@ -378,7 +417,7 @@ export function explanatoryScore(sentence, head = '') {
 // is "X is an American computer scientist", not "X is a company".
 const PERSON_ROLE =
   '(?:researcher|scientist|bioscientist|biologist|microbiologist|ecologist|professor|scholar|academic|engineer|designer|architect|artist|author|writer|philosopher|economist|psychologist|sociologist|historian|journalist|executive|physician|lawyer|teacher|educator|mathematician|programmer|entrepreneur|activist|critic|producer|director)';
-const ENTITY_NOUN = `(?:company|corporation|firm|band|film|movie|album|song|single|novel|political party|party|magazine|newspaper|journal|television series|TV series|video game|organization|organisation|society|association|institute|council|center|centre|university|college|city|town|village|river|mountain|footballer|singer|actor|actress|politician|businessman|businesswoman|athlete|musician|${PERSON_ROLE.slice(3, -1)})`;
+const ENTITY_NOUN = `(?:company|corporation|firm|band|film|movie|album|song|single|novel|political party|party|magazine|newspaper|journal|television series|TV series|video game|organization|organisation|government agency|agency|bureau|department|ministry|office|society|association|institute|council|center|centre|university|college|city|town|village|river|mountain|footballer|singer|actor|actress|politician|businessman|businesswoman|athlete|musician|${PERSON_ROLE.slice(3, -1)})`;
 // Any parenthetical CONTAINING an entity word — real titles read "(2023 TV
 // series)", not "(TV series)", so an exact-content match caught nothing.
 const ENTITY_PARENTHETICAL = new RegExp(`\\([^)]*\\b${ENTITY_NOUN}\\b[^)]*\\)`, 'i');
@@ -1027,6 +1066,17 @@ export function isResearchCandidateDomainAligned({
   provider = '',
 } = {}) {
   if (!String(courseContext || '').trim()) return true;
+  const courseAndTopic = `${courseContext} ${topic}`.toLowerCase();
+  const candidate = `${title} ${definition || extract}`.toLowerCase();
+  const technologyPolicyCourse =
+    /\b(?:technology|digital|internet|platform|algorithmic|artificial intelligence|ai)\b/.test(courseAndTopic) &&
+    /\b(?:policy|governance|regulation|accountability|audit|oversight)\b/.test(courseAndTopic);
+  const unrelatedAppliedDomain =
+    /\b(?:pollutants?|pollution|environmental protection|wastewater|clinical|patients?|disease|medical|health risks?)\b/.test(
+      candidate,
+    ) && !/\b(?:environment|health|medical|clinical)\b/.test(courseAndTopic);
+  const exactTopic = candidate.includes(String(topic || '').toLowerCase());
+  if (technologyPolicyCourse && unrelatedAppliedDomain && !exactTopic) return false;
   return !isCourseAwareWeakSource(
     {
       title,
@@ -1258,11 +1308,21 @@ export function backfillMultipleChoice(kernels = []) {
  */
 export async function researchLessonKernels(
   topic,
-  { provider, embed = null, want = 4, candidates = 12, floor = null, courseContext = '', signal } = {},
+  {
+    provider,
+    embed = null,
+    want = 4,
+    candidates = 12,
+    floor = null,
+    courseContext = '',
+    plannedQuery = '',
+    signal,
+  } = {},
 ) {
   if (!topic || !provider) return [];
   if (signal?.aborted) throw signal.reason || Object.assign(new Error('Algi research stopped'), { name: 'AbortError' });
-  let titles = [...new Set(await provider.search(researchQueryForTopic(topic, courseContext), candidates))];
+  const primaryQuery = String(plannedQuery || researchQueryForTopic(topic, courseContext)).trim();
+  let titles = [...new Set(await provider.search(primaryQuery, candidates))];
   if (titles.length === 0 && courseContext) {
     titles = [...new Set(await provider.search(`${courseContext} ${topic}`, candidates))];
   }
@@ -1319,13 +1379,16 @@ export async function researchLessonKernels(
       ...built.map((entry) => entry.candidate.kernel.definition.text),
     ]);
     ranked = built
-      .map((entry, index) => ({
-        ...entry,
-        relevance: Math.min(
-          cosine(vectors[0], vectors[1 + index]),
-          cosine(vectors[0], vectors[1 + built.length + index]),
-        ),
-      }))
+      .map((entry, index) => {
+        const titleScore = cosine(vectors[0], vectors[1 + index]);
+        const defScore = cosine(vectors[0], vectors[1 + built.length + index]);
+        return {
+          ...entry,
+          titleScore,
+          defScore,
+          relevance: Math.min(titleScore, defScore),
+        };
+      })
       .sort((left, right) => right.relevance - left.relevance);
   } else {
     // The course title disambiguates SEARCH, but it must not dilute ADMISSION.
@@ -1442,7 +1505,20 @@ export async function researchLessonKernels(
 
   const admittedKernels = [];
   for (const entry of kept) {
-    const admission = admitKernel(entry.candidate.kernel, { sources: entry.candidate.snapshot });
+    const candidateKernel = {
+      ...entry.candidate.kernel,
+      provenance: {
+        ...(entry.candidate.kernel.provenance || {}),
+        research: {
+          query: primaryQuery,
+          relevance: Number(entry.relevance.toFixed(3)),
+          titleScore: Number((entry.titleScore || 0).toFixed(3)),
+          definitionScore: Number((entry.defScore || 0).toFixed(3)),
+          mode: typeof embed === 'function' ? 'semantic' : 'lexical',
+        },
+      },
+    };
+    const admission = admitKernel(candidateKernel, { sources: entry.candidate.snapshot });
     if (!admission.admitted) continue;
     const entailed = attachKernelEntailmentReceipt(admission.kernel, entry.candidate.snapshot);
     if (entailed.admitted) admittedKernels.push(entailed.kernel);
@@ -1519,6 +1595,9 @@ export async function researchLessonKernelSets(
     groupSize = 3,
     candidatesPerGroup = 24,
     maxTargetedFallbacks = 6,
+    researchPlan = null,
+    providerId = '',
+    onProgress = null,
   } = {},
 ) {
   const uniqueTopics = [...new Set(topics.map((topic) => String(topic || '').trim()).filter(Boolean))];
@@ -1527,6 +1606,14 @@ export async function researchLessonKernelSets(
   if (!provider || uniqueTopics.length === 0) {
     return { byTopic, errors, searchGroups: 0, articleCandidates: 0 };
   }
+  const effectiveProviderId = providerId || provider.id || 'research-provider';
+  onProgress?.({
+    phase: 'provider-start',
+    providerId: effectiveProviderId,
+    topics: uniqueTopics.length,
+    completed: 0,
+    total: uniqueTopics.length,
+  });
 
   const directByTopic = new Map(
     uniqueTopics.map((topic) => [
@@ -1553,6 +1640,7 @@ export async function researchLessonKernelSets(
       candidates: titles.length,
       floor,
       courseContext,
+      plannedQuery: providerQueryForLesson(researchPlan, topic, effectiveProviderId),
       signal,
     });
     byTopic.set(topic, kernels);
@@ -1564,7 +1652,7 @@ export async function researchLessonKernelSets(
   let searchRecords = new Map();
   for (const group of groups) {
     try {
-      const query = groupedResearchQuery(group);
+      const query = groupedResearchQueryFromPlan(group, researchPlan, effectiveProviderId);
       let titles = [];
       if (query && typeof provider.searchArticles === 'function') {
         const records = await provider.searchArticles(query, candidatesPerGroup);
@@ -1604,6 +1692,7 @@ export async function researchLessonKernelSets(
       candidates: titles.length,
       floor,
       courseContext,
+      plannedQuery: providerQueryForLesson(researchPlan, topic, effectiveProviderId),
       signal,
     });
     byTopic.set(topic, kernels);
@@ -1620,7 +1709,9 @@ export async function researchLessonKernelSets(
   let targetedRecords = new Map();
   for (const topic of sparse) {
     try {
-      const query = groupedResearchQuery([topic]) || researchQueryForTopic(topic, courseContext);
+      const query =
+        groupedResearchQueryFromPlan([topic], researchPlan, effectiveProviderId) ||
+        researchQueryForTopic(topic, courseContext);
       if (typeof provider.searchArticles === 'function') {
         const records = await provider.searchArticles(query, Math.max(12, candidatesPerGroup));
         const titles = Object.entries(records || {})
@@ -1661,18 +1752,28 @@ export async function researchLessonKernelSets(
       candidates: titles.length,
       floor,
       courseContext,
+      plannedQuery: providerQueryForLesson(researchPlan, topic, effectiveProviderId),
       signal,
     });
     byTopic.set(topic, kernels);
   }
 
-  return {
+  const result = {
     byTopic,
     errors,
     searchGroups: groups.length,
     targetedSearches: sparse.length,
     articleCandidates: new Set([...allDirectTitles, ...allSearchTitles, ...targetedTitles]).size,
   };
+  onProgress?.({
+    phase: 'provider-complete',
+    providerId: effectiveProviderId,
+    topics: uniqueTopics.length,
+    completed: [...byTopic.values()].filter((kernels) => kernels.length > 0).length,
+    total: uniqueTopics.length,
+    articleCandidates: result.articleCandidates,
+  });
+  return result;
 }
 
 /**
@@ -1692,6 +1793,8 @@ export async function researchLessonKernelSetsCascade(
     courseContext = '',
     isTopicReady = null,
     signal,
+    researchPlan = null,
+    onProgress = null,
   } = {},
 ) {
   const uniqueTopics = [...new Set(topics.map((topic) => String(topic || '').trim()).filter(Boolean))];
@@ -1711,16 +1814,24 @@ export async function researchLessonKernelSetsCascade(
   for (const descriptor of providers) {
     const provider = descriptor?.provider || descriptor;
     const providerId = descriptor?.id || provider?.id || `provider-${providerStats.length + 1}`;
-    const pending = uniqueTopics.filter((topic) => !topicReady(topic));
-    if (!provider || pending.length === 0) break;
+    const unresolved = uniqueTopics.filter((topic) => !topicReady(topic));
+    if (unresolved.length === 0) break;
+    if (!provider) continue;
+    const pending = unresolved.filter(
+      (topic) => !researchPlan || providerSupportsLesson(researchPlan, topic, providerId),
+    );
+    if (pending.length === 0) continue;
     const batch = await researchLessonKernelSets(pending, {
       provider,
+      providerId,
       embed,
       want,
       minimum,
       floor,
       courseContext,
       signal,
+      researchPlan,
+      onProgress,
       ...(descriptor?.options || {}),
     });
     let contributedTopics = 0;

@@ -80,6 +80,32 @@ describe('buildAgentSystemPrompt', () => {
     expect(prompt).toContain('Introduction to Machine Learning');
   });
 
+  it('includes a bounded source-grounded evidence ledger from compiled study guides', () => {
+    const prompt = buildAgentSystemPrompt(baseCourseMap, 'courseMap', {
+      ...baseDeliverables,
+      studyGuides: {
+        status: 'done',
+        data: {
+          guides: [
+            {
+              lt: 'Lesson 1: Linear Regression',
+              kt: [
+                {
+                  tm: 'Residual',
+                  df: 'A residual is the observed response minus the response predicted by the fitted model.',
+                },
+              ],
+            },
+          ],
+        },
+      },
+    });
+
+    expect(prompt).toContain('Compiled evidence cards (source-grounded, read-only)');
+    expect(prompt).toContain('"term":"Residual"');
+    expect(prompt).toContain('observed response minus the response predicted');
+  });
+
   it('includes semester in the output', () => {
     const prompt = buildAgentSystemPrompt(baseCourseMap, 'quizBank', baseDeliverables);
     expect(prompt).toContain('Fall 2026');

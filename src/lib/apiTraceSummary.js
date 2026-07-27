@@ -20,6 +20,8 @@ const EVENT_STAGE = {
   voicePassCall: 'voice-pass',
   imageGenerationCall: 'image-generation',
   failedCall: 'failure',
+  algiResearchProgress: 'algi-research',
+  algiComposed: 'algi-compose',
 };
 
 const COUNTERS = [
@@ -155,6 +157,21 @@ export function buildApiTraceSummary(event = {}, budget = {}, { verbose = false 
     adapterScale: Number.isFinite(event.adapterScale) ? event.adapterScale : undefined,
     routeModelCalls: Number.isFinite(event.routeModelCalls) ? event.routeModelCalls : undefined,
     execution: event.execution || '',
+    progress: Number.isFinite(event.progress) ? event.progress : undefined,
+    researchPhase: event.researchPhase || '',
+    providerId: event.providerId || '',
+    ...(event.researchReceipt
+      ? {
+          research: {
+            protocol: event.researchReceipt.protocol || '',
+            plan: event.researchPlan || event.researchReceipt.plan || null,
+            evidence: event.evidenceGraph || event.researchReceipt.evidence || null,
+            cache: event.researchReceipt.cache || null,
+            providersUsed: event.researchReceipt.providersUsed || [],
+            sourceRequests: Number(event.researchReceipt.sourceRequests) || 0,
+          },
+        }
+      : {}),
   };
 
   if (verbose) {

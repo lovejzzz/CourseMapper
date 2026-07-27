@@ -995,8 +995,8 @@ export default function ModelConfig({ reserveTrailingActionSpace = false }) {
           {algiSelected ? (
             <>
               <p>
-                Algi V0 builds your course from the uploaded source and EduTool&apos;s shipped teaching genome, using
-                the same compiler, checks, and exports as Scion.
+                Algi V0 builds your course without a model download. It starts with your source and EduTool&apos;s
+                trusted teaching genome, then can research current open sources for lessons that still need evidence.
               </p>
               <p className="mt-1.5 text-slate-600 dark:text-slate-300">
                 No model download and no inference. In private mode, your source and course topics stay on this device.
@@ -1009,11 +1009,11 @@ export default function ModelConfig({ reserveTrailingActionSpace = false }) {
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <p className="font-semibold text-slate-800 dark:text-slate-100">
-                      {algiResearchEnabled ? 'Source research on' : 'Private source mode'}
+                      {algiResearchEnabled ? 'Live course research on' : 'Private source mode'}
                     </p>
                     <p className="mt-0.5 text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
                       {algiResearchEnabled
-                        ? 'Open scholarly sources receive the course title and uncovered lesson topics first; Wikipedia is used only when evidence is still missing. Every admitted passage keeps its source, attribution, license, and support receipt.'
+                        ? 'Only the course title and uncovered lesson topics are sent. Algi plans each lesson search, compares admitted sources, verifies claims against passages, and saves compact evidence locally for revisions.'
                         : 'No research requests are sent. If the source and shipped genome cannot support a lesson, Algi reports the gap instead of inventing content.'}
                     </p>
                   </div>

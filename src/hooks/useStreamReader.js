@@ -205,6 +205,23 @@ export default function useStreamReader() {
           structuredPrompt,
           schema,
           signal: externalSignal,
+          onResearchProgress: (researchProgress = {}) => {
+            recordApiCallEvent({
+              type: 'algiResearchProgress',
+              label: researchProgress.label || 'Researching course evidence',
+              detail: researchProgress.detail || '',
+              stage: 'algi-research',
+              provider,
+              modelId,
+              featureId: featureId || task || '',
+              task: task || featureId || '',
+              progress: Math.max(0, Math.min(1, Number(researchProgress.progress) || 0)),
+              researchPhase: researchProgress.phase || '',
+              providerId: researchProgress.providerId || '',
+              modelRequests: 0,
+              spendUsd: 0,
+            });
+          },
         });
         fullText = composed?.text || '';
         algiCoverage = composed?.coverage || null;
@@ -226,9 +243,9 @@ export default function useStreamReader() {
           : algiCoverage
             ? `${task || 'request'} · ${algiCoverage.covered}/${algiCoverage.requested} lessons composed${
                 algiCoverage.researched ? ` (${algiCoverage.researched} researched)` : ''
-              }${algiCoverage.researchNote ? ` · ${algiCoverage.researchNote}` : ''}${
-                algiCoverage.uncovered?.length ? ` · not covered: ${algiCoverage.uncovered.join(', ')}` : ''
-              }`
+              }${algiCoverage.cachedResearch ? ` (${algiCoverage.cachedResearch} reused)` : ''}${
+                algiCoverage.researchNote ? ` · ${algiCoverage.researchNote}` : ''
+              }${algiCoverage.uncovered?.length ? ` · not covered: ${algiCoverage.uncovered.join(', ')}` : ''}`
             : fullText
               ? `${task || 'request'} · no model download, no inference`
               : `${task || 'request'} · not a composed task`,
@@ -239,6 +256,13 @@ export default function useStreamReader() {
         task: task || featureId || '',
         modelRequests: 0,
         spendUsd: 0,
+        ...(algiCoverage?.researchReceipt
+          ? {
+              researchReceipt: algiCoverage.researchReceipt,
+              researchPlan: algiCoverage.researchReceipt.plan,
+              evidenceGraph: algiCoverage.researchReceipt.evidence,
+            }
+          : {}),
       });
       onChunk?.(fullText, 1);
       return { fullText, finishReason: 'stop' };

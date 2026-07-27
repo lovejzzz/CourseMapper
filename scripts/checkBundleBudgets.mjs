@@ -29,19 +29,21 @@ const budgets = {
 // caught an unaccounted increase, and the fix is to re-freeze at the released
 // state, not to widen the allowance. Every future release must do the same.
 const repositoryBudgets = {
-  // v0.16.81 advances the frozen state through the shipped v0.16.80 contract;
-  // its own v0.16.81 contract consumes the single declared-release allowance.
-  baselineVersion: '0.16.80',
-  // v0.16.80 adds source-before-synthesis admission, citation-local
-  // provenance, and evidence-bound assessment repair. The 127-line increase
-  // is executable contract logic covered by the Algi browser/package proof;
-  // it is not a new fixed course-copy corpus.
-  compilerLines: 27_958,
+  // v0.16.82 advances the frozen state through the shipped v0.16.81 contract;
+  // its own v0.16.82 contract consumes the single declared-release allowance.
+  baselineVersion: '0.16.81',
+  // v0.16.82 adds 29 net lines of reusable compiler control logic for
+  // policy-domain separation and concept-owned evidence binding. Source-
+  // statement copy and prerequisite selection moved to a cacheable leaf; the
+  // increase is regression-covered and contains no fixed course-copy corpus.
+  compilerLines: 28_000,
   // v0.16.81 adds one executable Algi→Scion hybrid benchmark audit. It freezes
   // evidence, route, quality, call, latency, and export promotion rules; this
   // is a release gate rather than product-side script sprawl.
-  npmScripts: 378,
-  releaseContractFiles: 266,
+  // V0.16.82 adds the frozen, executable Algi research-first benchmark audit.
+  npmScripts: 379,
+  // v0.16.81 shipped the 267th release contract; v0.16.82 may add exactly one.
+  releaseContractFiles: 267,
   trackedWeightFiles: 62,
   trackedWeightBytes: 1_053_339_981,
   largeBinaryBytes: 1024 * 1024,
@@ -155,6 +157,9 @@ const lazyChunkBudgets = [
   // v0.16.73 measured 355.0/97.8 after package-readiness and compiled-answer
   // receipts; preserve the existing generous gzip ceiling.
   { prefix: 'ChatPanel-', rawKiB: 356, gzipKiB: 105 },
+  // V0.16.82: compact compiled evidence cards are independently cacheable.
+  // Keep source-grounded Agent context out of the conversation-control chunk.
+  { prefix: 'agentEvidenceCards-', rawKiB: 2, gzipKiB: 1 },
   // Read-only answers are loaded only after a user asks the compiled course a
   // question. The leaf now owns exact Mandarin ledger answers as well as the
   // original lesson-scoped comparison answer.
@@ -281,6 +286,9 @@ const lazyChunkBudgets = [
   // v0.16.65: varied assessment and material-polish copy moved out of the
   // compiler hot chunk. This compile-only leaf stays independently cacheable.
   { prefix: 'compilerPolish-', rawKiB: 8, gzipKiB: 3 },
+  // V0.16.82: synthesis-evidence copy and distinct prerequisite selection are
+  // pure, cacheable leaves instead of expanding the core compiler controller.
+  { prefix: 'compilerEvidenceCopy-', rawKiB: 3, gzipKiB: 1.5 },
   // v0.16.73 learner-visible not-applicable states measured 163.8/35.2.
   // The editable activity briefing remains isolated from the main view.
   { prefix: 'DeliverableView-', rawKiB: 170, gzipKiB: 36.5 },

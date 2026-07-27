@@ -1,6 +1,6 @@
 # Algi V0 Pipeline Assessment
 
-## V0.16.81 — Evidence Must Earn the Lesson
+## V0.16.82 — Research First, Evidence Bound
 
 ### Goal
 
@@ -12,7 +12,7 @@ Algi owns evidence retrieval, source receipts, deterministic knowledge compositi
 
 ### Release Boundary
 
-V0.16.81 proves the next trust boundary: coverage is visible before generation, research uses a licensed provider cascade, researched claims need passage-level support receipts, and retrieval does not count as success until the evidence can satisfy the lesson schema. It does not claim universal subject coverage, factual correctness, instructor approval, classroom outcomes, accessibility certification, or that Algi replaces Scion. Research remains opt-in because it sends the course title and uncovered lesson topics to third-party scholarly and reference services.
+V0.16.82 proves the research-first architecture: the entire requested lesson sequence becomes a bounded research plan, the licensed provider cascade feeds a claim-level evidence graph, authority/currency/relevance/entailment/conflict signals govern admission, inspected evidence can be reused from a versioned local project cache, and only lesson-owned evidence that satisfies the schema enters the shared compiler. It does not claim universal subject coverage, factual correctness, instructor approval, classroom outcomes, accessibility certification, that Algi replaces Scion, or that Algi beats a model route. Research remains opt-in because it sends the course title and focused uncovered lesson queries to third-party scholarly and reference services.
 
 ## Executive judgment
 
@@ -68,7 +68,47 @@ Private mode makes no external course-topic request. Research mode is an explici
 - **A green package is not factual proof.** The 99/A report measures encoded package defects and consistency; it is not an independent fact-check or classroom validation.
 - **Source pipelines can be confidently wrong.** This audit found a real mixed-source receipt that combined OpenStax attribution with a Wikipedia-shaped URL and later labeled the corrected OpenStax URL as `provider=wikipedia`. Both defects are now regression-tested.
 
-## What changed in V0.16.81
+## What changed in V0.16.82
+
+### The course becomes one bounded evidence job
+
+- The requested lesson sequence is planned before provider work begins.
+- Every lesson records focused queries, missing schema fields, provider policy, request limits, and a stable cache identity.
+- The Living Course Compiler exposes research planning, cached coverage, provider retrieval, admission, composition, compilation, verification, and export as one continuous build.
+- An open-ended provider or repair loop is not part of the architecture.
+
+### Claims live in an evidence graph
+
+- Sources, passages, claims, concepts, lessons, and conflicts remain distinct objects.
+- Authority, currency, course relevance, and passage entailment are independent signals.
+- Quote presence alone cannot promote a rewritten inference.
+- Materially conflicting claims remain visible for adjudication instead of being silently blended.
+- Exact source receipts survive composition, Agent evidence, source reporting, and export.
+
+### Reuse inspected evidence locally
+
+- Research cache protocol 4 binds course, lesson, query, provider policy, and protocol version.
+- Repeating the same project can reuse inspected source work without a model download or redundant provider request.
+- Changing the lesson identity or evidence protocol invalidates the corresponding cache entry.
+- The cache is a project-local reproducibility layer, not a universal fact store.
+
+### Keep every compiled statement with its concept
+
+- Cross-topic synthesis selects the source fact owned by the named concept rather than an arbitrary neighboring fact.
+- Policy courses no longer inherit laboratory language because a retained source mentions activity happening online.
+- Repeated adjacent concepts receive a distinct prerequisite bridge instead of a self-reference.
+- Non-definitional source claims use honest source-statement framing in FAQs and teaching positions.
+- Long peer contrasts fail closed to a bounded distinction instead of clipping into a false correction.
+- Source-ledger session locators normalize without duplicated numbers, URLs, or separators.
+
+### Freeze research-first promotion before claiming success
+
+- Eight cross-domain courses and three architecture arms are frozen before paired evidence exists.
+- The executable ruler binds privacy, evidence, unsupported claims, quality, findings, cold and warm latency, source requests, mandatory model bytes, and export integrity.
+- Research-first viability remains unproven until same-commit artifacts pass the gate.
+- No Algi-over-Scion, paid-model, or adapter superiority claim is made.
+
+## What V0.16.81 established
 
 ### Coverage is a product decision, not a late error
 
@@ -143,7 +183,32 @@ Private mode makes no external course-topic request. Research mode is an explici
 - Mixed researched/genome lessons assign provider and origin per citation rather than per lesson.
 - The source ledger refuses trusted status when a strong publisher identity in the provider or attribution disagrees with the URL.
 
-## V0.16.81 browser evidence
+## V0.16.82 browser evidence
+
+### Research mode: Current Technology Policy
+
+Brief: a six-week graduate seminar on AI governance, platform accountability, privacy regulation, algorithmic audits, and emerging policy proposals, with current evidence, policy comparisons, and practical decision-memo or audit activities.
+
+- 6/6 requested lessons
+- 6/6 lesson kernels
+- 9/9 material families
+- 99/A quality
+- zero encoded findings
+- grounded Agent comparison of Algorithmic accountability and Privacy law from workspace evidence
+- one visible export-owned ZIP action
+- valid 63-entry archive
+- 43 DOCX, 6 PPTX, and 1 XLSX files
+- eight normalized source-report rows
+- no duplicate source URLs, doubled separators, or malformed multi-session locators
+- no policy-to-laboratory domain drift
+- no sibling-fact leakage, self-referential prerequisite, malformed FAQ definition, clipped peer correction, or placeholder text in the targeted 43-DOCX inspection
+- 462 unit-test files and 5,756 active tests passing, with 16 files and 162 tests intentionally skipped
+- 151/151 Chromium E2E tests passing
+- formatting, lint, production build, repository and bundle ratchets, hybrid pipeline, constitution, release history, and both frozen Algi benchmark audits passing
+
+The successful course is a real product and package proof, not a fixture. Repeated actual generation and inspection were used to catch and repair general compiler defects before the final archive was accepted.
+
+### V0.16.81 carried evidence
 
 ### Private mode: User Experience Design Studio
 
@@ -231,13 +296,13 @@ shared compiler verifies, repairs, grades, and exports
 
 This architecture spends model capacity on interpretation and pedagogy instead of asking a small model to rediscover facts, repeat schemas, or repair files. It also lets a paid model benefit from the same evidence and compiler layer without turning Algi into a hidden provider-specific feature.
 
-## Remaining roadmap after V0.16.81
+## Remaining roadmap after V0.16.82
 
-1. **Run the frozen hybrid benchmark.** Record paired Algi, Scion, and Algi→Scion artifacts across all five domains without changing the ruler after seeing results.
+1. **Run the frozen research-first benchmark.** Record same-commit paired artifacts across all eight courses and three arms without changing the ruler after seeing results.
 2. **Promote only if earned.** Integrate the hybrid route into production only if it clears every quality, source, latency, call, and export rule; otherwise keep the protocol and diagnose the losing domains.
 3. **Small semantic-index experiment.** Measure whether a compact browser embedder earns its download and memory cost against held-out paraphrase retrieval; do not ship it on intuition.
 4. **Broaden primary/OER lanes deliberately.** Add providers only with explicit access, license, attribution, stable identifier, and CORS behavior; provider count is not itself a quality metric.
-5. **Conflict and uncertainty receipts.** Represent material source disagreements instead of choosing the most fluent claim.
+5. **Conflict and uncertainty teaching surfaces.** Turn material source disagreements into inspectable comparisons and revision activities without manufacturing a false consensus.
 6. **Human review when available.** The project currently has one human operator, so package inspection and explicit defect reports remain the human evidence. Do not rename AI-only evaluation as instructor validation.
 
 ## Decision

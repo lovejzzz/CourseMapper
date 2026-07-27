@@ -3717,9 +3717,18 @@ function getDiscussionArtifactField(artifact, fullKey, compactKey, aliases = [])
 }
 
 function cleanDiscussionArtifactLocator(value) {
-  return compactText(value, '', 180)
-    .replace(/^(?:week\s*\d+\s*)?(?:artifact|source|document|item|evidence|packet)\s*(?:[A-Z]|\d+)?\s*[:.-]?\s*/i, '')
-    .trim();
+  return (
+    compactText(value, '', 180)
+      // Strip a machine label only when a real delimiter proves it is a label.
+      // With an optional delimiter, "Source packet …" matched "Source p" and
+      // "Evidence explanation …" matched "Evidence e", exporting the visibly
+      // broken locators "acket …" and "xplanation …".
+      .replace(
+        /^(?:week\s*\d+\s*)?(?:artifact|source|document|item|evidence|packet)(?:\s+(?:[A-Z]|\d+))?\s*[:.-]\s*/i,
+        '',
+      )
+      .trim()
+  );
 }
 
 function inferDiscussionArtifactTitle(discussion, artifact, artifactIndex) {

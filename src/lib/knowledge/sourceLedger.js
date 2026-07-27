@@ -197,6 +197,12 @@ function cleanText(value, maxLength = 500) {
     : text;
 }
 
+function normalizeSessionRef(value) {
+  const ref = cleanText(value, 120);
+  const numbered = /^(?:s|session|lesson|week)?[-_\s]*(\d{1,3})$/i.exec(ref);
+  return numbered ? `s${Number(numbered[1])}` : ref;
+}
+
 function trimUrlPunctuation(value) {
   const text = cleanText(value, 600);
   if (!text) return '';
@@ -444,6 +450,7 @@ export function sourceCitationLabel(source = {}) {
 
 export function normalizeTrustedSource(entry = {}, { fallbackId = '', checkedAt = '', conceptLinks = [] } = {}) {
   const provider = sourceProvider(entry);
+  const normalizedSourceType = sourceType(entry);
   const sourceText = [entry.url, entry.sourceUrl, entry.doi, entry.citation, entry.evidence, entry.title]
     .filter(Boolean)
     .join(' ');
@@ -454,9 +461,21 @@ export function normalizeTrustedSource(entry = {}, { fallbackId = '', checkedAt 
     doi && /^https?:\/\/(?:dx\.)?doi\.org\//i.test(extractedUrl || '')
       ? `https://doi.org/${doi}`
       : extractedUrl || (doi ? `https://doi.org/${doi}` : '') || openStaxProof?.url || '';
-  const title = collapseMetadataPunctuation(
-    cleanText(entry.title || entry.displayTitle || entry.citation || entry.evidence || entry.scope, 260),
-  );
+  let rawTitle = cleanText(entry.title || entry.displayTitle || entry.citation || entry.evidence || entry.scope, 260);
+  // Algi classroom resources are intentionally human-readable strings such
+  // as "AI governance — Article title (open scholarly article, CC0 — URL)".
+  // When that display label enters the formal source ledger, recover the
+  // bibliographic title instead of appending a second URL/DOI to the entire
+  // classroom string ("— — doi:…").
+  if (cleanText(entry.origin, 80).toLowerCase() === 'algi-research' && normalizedSourceType) {
+    const metadataAt = rawTitle.toLowerCase().indexOf(` (${normalizedSourceType.toLowerCase()}`);
+    if (metadataAt > 0) {
+      rawTitle = rawTitle.slice(0, metadataAt).trim();
+      const topicDivider = rawTitle.indexOf(' — ');
+      if (topicDivider > 0) rawTitle = rawTitle.slice(topicDivider + 3).trim();
+    }
+  }
+  const title = collapseMetadataPunctuation(rawTitle);
   const explicitLicense = cleanText(entry.license || entry.rights || entry.licenseUrl, 180);
   const license = explicitLicense
     ? normalizeLicense(explicitLicense, { preserveUnknown: true })
@@ -465,9 +484,7 @@ export function normalizeTrustedSource(entry = {}, { fallbackId = '', checkedAt 
     citationSegment(cleanText(entry.attribution || entry.credit || '', 260)) ||
     (provider === 'wikipedia' ? 'Wikipedia contributors' : '');
   const sessionRefs = [
-    ...new Set(
-      (Array.isArray(entry.sessionRefs) ? entry.sessionRefs : []).map((ref) => cleanText(ref, 120)).filter(Boolean),
-    ),
+    ...new Set((Array.isArray(entry.sessionRefs) ? entry.sessionRefs : []).map(normalizeSessionRef).filter(Boolean)),
   ];
   const source = {
     id: sourceId(entry, fallbackId, 0),
@@ -478,7 +495,7 @@ export function normalizeTrustedSource(entry = {}, { fallbackId = '', checkedAt 
     license,
     ...(attribution ? { attribution } : {}),
     provider,
-    sourceType: sourceType(entry),
+    sourceType: normalizedSourceType,
     scope: cleanText(entry.scope || entry.path || 'course', 140),
     status: sourceStatus(entry),
     origin: cleanText(entry.origin || entry.sourceOrigin || '', 80),
@@ -885,7 +902,7 @@ function mergeSourceLedgerConceptLinks(existing = {}, incoming = {}) {
   const conceptLinks = normalizeConceptLinks([...(existing.conceptLinks || []), ...(incoming.conceptLinks || [])]);
   const authors = normalizeAuthors([...(existing.authors || []), ...(incoming.authors || [])]);
   const sessionRefs = [
-    ...new Set([...(existing.sessionRefs || []), ...(incoming.sessionRefs || [])].map((ref) => cleanText(ref, 120))),
+    ...new Set([...(existing.sessionRefs || []), ...(incoming.sessionRefs || [])].map(normalizeSessionRef)),
   ].filter(Boolean);
   return {
     ...existing,

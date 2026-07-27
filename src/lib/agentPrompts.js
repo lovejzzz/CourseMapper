@@ -17,6 +17,7 @@ import { buildInstitutionProfileSummary, getProfile } from './professorProfile';
 import { capRenderedText, renderDeliverableItemText } from './courseContentIndex';
 import { buildJournalContext } from './courseJournal';
 import { findDuplicateLessonTitleGroups } from './lessonTitleIdentity';
+import { buildAgentCourseSections } from './agentEvidenceCards';
 
 // ── Compact item schemas with key legends ──
 const ITEM_SCHEMAS = {
@@ -263,15 +264,16 @@ export function buildAgentSystemPrompt(
 
   // Course brief — the assessment arc, so the agent knows the course's story
   // (not just its table of contents) before any tool call.
-  const arcLines = (courseMap?.lessons || [])
-    .map((lesson, index) => {
-      const assessment = String(lesson?.sections?.[0]?.weeklyAssessments || '')
-        .split(/[.;\n]/)[0]
-        .trim();
-      return assessment ? `  W${index + 1}: ${assessment.slice(0, 90)}` : null;
-    })
-    .filter(Boolean);
-  const briefSection = arcLines.length > 0 ? `\n**Assessment arc:**\n${arcLines.join('\n')}` : '';
+  // Algi does not carry model weights and therefore cannot infer course
+  // content from lesson titles. Give every agent a small, source-grounded
+  // ledger from the already-compiled Study Guides. Paid models gain useful
+  // context too, while Algi can answer bounded factual questions without a
+  // network call or pretending it read material that was not in the package.
+  const { briefSection, evidenceSection } = buildAgentCourseSections(
+    deliverables?.studyGuides?.data,
+    courseMap?.lessons,
+    getArrayKey,
+  );
 
   // Viewport — when the UI reports which item the instructor is looking at,
   // include its rendered text so "this question" needs no disambiguation.
@@ -322,7 +324,7 @@ export function buildAgentSystemPrompt(
 **Lessons:**
 ${lessonList || '  (none)'}${(courseMap?.lessons || []).length === 0 ? '\n**Note:** No lessons yet — suggest the user create lessons or add them via addLesson.' : ''}${deterministicIssueSection}
 **Fields:** ${courseMapFields}
-**Active:** ${tabName} | **Status:** ${delivStatusLines}${briefSection}${delivContext}${viewportSection}${pathSection}${schemaSection}${otherDoneNote}${healthSection}${prefsSection}${memorySection}${journalSection}${institutionSection}`;
+**Active:** ${tabName} | **Status:** ${delivStatusLines}${briefSection}${evidenceSection}${delivContext}${viewportSection}${pathSection}${schemaSection}${otherDoneNote}${healthSection}${prefsSection}${memorySection}${journalSection}${institutionSection}`;
 
   if (_opts && _opts.onlyDynamic) return dynamic;
   return STATIC_AGENT_PROMPT + '\n\n' + dynamic;
