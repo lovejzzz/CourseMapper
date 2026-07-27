@@ -28,6 +28,7 @@ const MC_OPTION_WORDS = [4, 10];
 const MC_EXPLANATION_WORDS = [18, 55];
 const KEY_TERMS_REQUIRED = 3;
 const MC_REQUIRED = 2;
+const MAX_COMPOSITION_CANDIDATES = 16;
 
 function wordsOf(text) {
   return String(text || '')
@@ -843,7 +844,7 @@ export function lessonOffset(lesson, fallback = 0) {
  * to say "review" is never diverted here.
  */
 const INTEGRATIVE_LESSON =
-  /\b(capstone|integrativ|synthesis|synthesiz|culminating|final (?:project|paper|report|presentation|analysis)|portfolio|showcase|wrap[- ]?up|putting it (?:all )?together|review of)\b/i;
+  /\b(capstone|integrativ|synthesis|synthesiz|culminating|final (?:project|paper|report|presentation|analysis)|accountable case recommendations?|(?:course|policy|evidence-based policy) recommendations?|portfolio|showcase|wrap[- ]?up|putting it (?:all )?together|review of)\b/i;
 
 export function isIntegrativeLesson(lesson) {
   return INTEGRATIVE_LESSON.test(String(lesson?.title || lesson?.topic || lesson?.lessonId || ''));
@@ -1197,7 +1198,7 @@ export function composeLessonFromCandidateKernels(lesson, kernels, options = {})
           if (!sourceTopic || sourceTopic.toLowerCase() === String(topic || '').toLowerCase()) return true;
           return kernelSupportsTopic(kernel, topic);
         })
-        .slice(0, 12)
+        .slice(0, MAX_COMPOSITION_CANDIDATES)
     : [];
   const ranked = tryCompose(candidates);
   if (ranked || candidates.length <= KEY_TERMS_REQUIRED) {
@@ -1373,7 +1374,7 @@ export function expandResearchKernelsForComposition(kernels = [], topic = '') {
         .trim()
         .toLowerCase(),
     );
-    if (expanded.length >= 12) return expanded;
+    if (expanded.length >= MAX_COMPOSITION_CANDIDATES) return expanded;
   }
   for (const kernel of researchKernels) {
     if (kernel?.provenance?.origin !== 'algi-research') continue;
@@ -1416,11 +1417,39 @@ export function expandResearchKernelsForComposition(kernels = [], topic = '') {
             parentKernelId: kernel.id,
           },
         });
-        if (expanded.length >= 12) return expanded;
+        if (expanded.length >= MAX_COMPOSITION_CANDIDATES) return expanded;
       }
     }
   }
   return expanded;
+}
+
+/**
+ * Keep the evidence graph's highest-confidence, provider-diverse set first,
+ * but do not throw away the rest of the admitted lesson transaction before
+ * the schema composer has inspected it.
+ *
+ * Evidence confidence and schema fitness are different measurements. A dense
+ * scholarly abstract can rank first yet have no compact definition/example,
+ * while a later open reference contains the exact bounded clauses needed by
+ * the lesson contract. Every candidate here already passed source admission,
+ * entailment, lesson relevance, and the evidence graph's conflict gate.
+ */
+export function compositionCandidatesFromEvidence(
+  consolidated = [],
+  admitted = [],
+  limit = MAX_COMPOSITION_CANDIDATES,
+) {
+  const candidates = [];
+  const seen = new Set();
+  for (const kernel of [...(consolidated || []), ...(admitted || [])]) {
+    const id = String(kernel?.id || '').trim();
+    if (!id || seen.has(id)) continue;
+    seen.add(id);
+    candidates.push(kernel);
+    if (candidates.length >= Math.max(1, Number(limit) || MAX_COMPOSITION_CANDIDATES)) break;
+  }
+  return candidates;
 }
 
 /**
@@ -1881,7 +1910,7 @@ export async function composeAlgiLessonKernels({
           if (rawKernels.length > 0) composeFailures += 1;
           continue;
         }
-        const kernels = consolidated.kernels;
+        const kernels = compositionCandidatesFromEvidence(consolidated.kernels, rawKernels);
         // A narrow source page can yield one or two excellent concepts while
         // the compact lesson contract requires three. Top up only from sources
         // admitted elsewhere in this same course transaction, keeping the

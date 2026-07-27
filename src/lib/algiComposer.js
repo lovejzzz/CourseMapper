@@ -93,6 +93,10 @@ export function extractCourseName(source) {
       /\s*,?\s+(?=(?:an?\s+)?(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|\d{1,2})[- ]lesson\b)/i.exec(
         line,
       );
+    const exactLessonSuffix =
+      /\s*,?\s+(?=exactly\s+(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|\d{1,2})\s+lessons?\b)/i.exec(
+        line,
+      );
     const timedBriefSuffix =
       /\s*,?\s+(?=(?:an?\s+)?(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|\d{1,2})[- ]week\b[^,.;]{0,32}\b(?:course|class|seminar|studio|workshop)\b)/i.exec(
         line,
@@ -102,7 +106,12 @@ export function extractCourseName(source) {
         line,
       );
     const splitAt =
-      briefDivider?.index ?? timedBriefDivider?.index ?? briefSuffix?.index ?? timedBriefSuffix?.index ?? -1;
+      briefDivider?.index ??
+      timedBriefDivider?.index ??
+      exactLessonSuffix?.index ??
+      briefSuffix?.index ??
+      timedBriefSuffix?.index ??
+      -1;
     const candidate = splitAt > 0 ? line.slice(0, splitAt) : line;
     const value = clamp(candidate, MAX_COURSE_NAME, 3);
     if (value && value.split(' ').length >= 2) return value;

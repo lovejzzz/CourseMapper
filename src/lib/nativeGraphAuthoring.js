@@ -388,6 +388,14 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
   const facts = asArray(payload?.kernel?.facts)
     .map((fact) => cleanTextAtBoundary(fact, 220))
     .filter(Boolean);
+  const researchCitations = asArray(payload?.conceptProvenance?.citations);
+  const sourceBoundResearch =
+    cleanText(payload?.enrichmentSource, 80) === 'algi-researched' &&
+    researchCitations.length > 0 &&
+    researchCitations.every(
+      (citation) =>
+        cleanText(citation?.topic, 140) && cleanText(citation?.evidence, 500) && cleanText(citation?.sourceUrl, 500),
+    );
   // A genuine compiler-owned review/synthesis session intentionally compares
   // admitted claims across earlier lessons. Applying the ordinary single-
   // lesson relevance filter here can retain only two claims, below the three-
@@ -395,7 +403,9 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
   // ledger only for this explicit projection kind; normal lessons still drop
   // wrong-topic padding through `factsAlignedToLesson`.
   const surfaceFacts =
-    payload?.projectionKind === 'cumulative-assessment' ? facts : factsAlignedToLesson(facts, courseMapLesson, concept);
+    payload?.projectionKind === 'cumulative-assessment' || sourceBoundResearch
+      ? facts
+      : factsAlignedToLesson(facts, courseMapLesson, concept);
   const anchorFact =
     selectConceptAlignedFact(surfaceFacts, concept) ||
     definition ||

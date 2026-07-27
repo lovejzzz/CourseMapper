@@ -21,6 +21,7 @@ import { publicScionProviderModelOptions } from '../publicScionIdentity.js';
 import {
   composeLessonFromCandidateKernels,
   composeLessonFromKernels,
+  compositionCandidatesFromEvidence,
   constrainConceptIdsToDisciplines,
   diagnoseKeyTermCandidate,
   expandResearchKernelsForComposition,
@@ -28,6 +29,7 @@ import {
   fitSourceFacts,
   fitSourceSentence,
   integrativeKernels,
+  isIntegrativeLesson,
   kernelTopicOverlapScore,
 } from '../algiKernelComposer.js';
 import { parseLessonKernelResponse } from '../blueprintEnrichmentPass.js';
@@ -143,6 +145,14 @@ describe('Algi V0 prompt reading', () => {
 });
 
 describe('Algi V0 skeleton composition', () => {
+  it('keeps an exact-lesson instruction out of the workspace course title', () => {
+    const source =
+      'User Experience Evidence Studio, exactly five lessons: 1) research questions and study planning, 2) contextual inquiry and field notes, 3) affinity mapping and synthesis, 4) usability test design, and 5) evidence-based design recommendations.';
+    const skeleton = JSON.parse(composeAlgiSkeleton(promptFor(source, 5)));
+    expect(skeleton.course.name).toBe('User Experience Evidence Studio');
+    expect(skeleton.course.name).not.toContain('exactly five lessons');
+  });
+
   it('transcribes the instructor’s own weekly topics', () => {
     const topics = planSessionTopics(SYLLABUS, 6);
     expect(topics).toHaveLength(6);
@@ -731,6 +741,15 @@ describe('Algi V0 source receipts', () => {
     expect(payload.keyTerms.map((entry) => entry.tr)).toContain('Concept 4');
   });
 
+  it('keeps later admitted evidence available after confidence consolidation', () => {
+    const admitted = [1, 2, 3, 4, 5, 6].map((index) => kernel(index, true));
+    const consolidated = admitted.slice(0, 3);
+    const candidates = compositionCandidatesFromEvidence(consolidated, admitted);
+
+    expect(candidates.map((entry) => entry.id)).toEqual(admitted.map((entry) => entry.id));
+    expect(compositionCandidatesFromEvidence(consolidated, admitted, 4)).toHaveLength(4);
+  });
+
   it('uses a later anchored claim when an abstract lead is too dense for a key-term definition', () => {
     const source = kernel(1, true);
     source.term = 'Heat exposure';
@@ -765,6 +784,16 @@ describe('Algi V0 source receipts', () => {
       'Algorithmic audits',
       'Public policy',
     ]);
+  });
+
+  it('recognizes a bounded recommendations lesson as course synthesis', () => {
+    expect(isIntegrativeLesson({ title: 'Accountable case recommendations' })).toBe(true);
+    expect(isIntegrativeLesson({ title: 'Evidence-based policy recommendations' })).toBe(true);
+    expect(isIntegrativeLesson({ title: 'Current Technology Policy course synthesis' })).toBe(true);
+    expect(isIntegrativeLesson({ title: 'Affinity synthesis and insight quality' })).toBe(true);
+    expect(isIntegrativeLesson({ title: 'Evidence synthesis and implementation barriers' })).toBe(true);
+    expect(isIntegrativeLesson({ title: 'Evidence-based design recommendations' })).toBe(false);
+    expect(isIntegrativeLesson({ title: 'Platform governance' })).toBe(false);
   });
 
   it('admits cross-topic researched evidence only for an explicit synthesis lesson', () => {

@@ -277,7 +277,7 @@ function inferOpenStaxBookProof(value) {
   const text = cleanText(value, 1000);
   if (!/\bOpenStax\b/i.test(text)) return null;
   if (!/(?:§\s*\d|\bopen\s+textbook\b)/i.test(text)) return null;
-  const match = text.match(/\bOpenStax\s+(.+?)(?:\s+§\s*[\d.]+|\s*\(\s*open\s+textbook\s*\)|,|$)/i);
+  const match = text.match(/\bOpenStax\s*,?\s+(.+?)(?:\s*,?\s*§\s*[\d.]+|\s*\(\s*open\s+textbook\s*\)|,|$)/i);
   const rawTitle = cleanText(match?.[1] || '', 180)
     .replace(/\s*\(\s*open\s+textbook\s*\)\s*$/i, '')
     .trim();
@@ -451,7 +451,15 @@ export function sourceCitationLabel(source = {}) {
 export function normalizeTrustedSource(entry = {}, { fallbackId = '', checkedAt = '', conceptLinks = [] } = {}) {
   const provider = sourceProvider(entry);
   const normalizedSourceType = sourceType(entry);
-  const sourceText = [entry.url, entry.sourceUrl, entry.doi, entry.citation, entry.evidence, entry.title]
+  const sourceText = [
+    entry.url,
+    entry.sourceUrl,
+    entry.doi,
+    entry.citation,
+    entry.attribution,
+    entry.evidence,
+    entry.title,
+  ]
     .filter(Boolean)
     .join(' ');
   const openStaxProof = provider === 'openstax' ? inferOpenStaxBookProof(sourceText) : null;

@@ -15,6 +15,7 @@ import {
   buildJudgePrompt,
   clampConcurrency,
   defaultConcurrencyForProvider,
+  parseAlgiResearchFlag,
   summarizeModelLoadPhases,
   deriveCheckId,
   diffLedger,
@@ -223,6 +224,14 @@ describe('E1 — bounded pool with deterministic ordering', () => {
     expect(defaultConcurrencyForProvider('openai')).toBe(2);
     expect(defaultConcurrencyForProvider('anthropic')).toBe(2);
     expect(defaultConcurrencyForProvider('google')).toBe(2);
+  });
+
+  it('parseAlgiResearchFlag requires an explicit valid comparison arm', () => {
+    expect(parseAlgiResearchFlag(undefined)).toBe('default');
+    expect(parseAlgiResearchFlag('ON')).toBe('on');
+    expect(parseAlgiResearchFlag('off')).toBe('off');
+    expect(parseAlgiResearchFlag('default')).toBe('default');
+    expect(() => parseAlgiResearchFlag('maybe')).toThrow(/--algi-research must be/);
   });
 
   it('an explicit --concurrency still overrides the browser-local default', () => {
@@ -713,6 +722,15 @@ describe('WS-B1 — course resolution', () => {
       lessonCount: 15,
       probeProfile: 'generic',
     });
+  });
+
+  it('keeps the six frozen three-route cases in an explicit comparison suite', () => {
+    const comparison = resolveCourses('compare');
+    expect(comparison).toHaveLength(6);
+    expect(new Set(comparison.map((course) => course.id)).size).toBe(6);
+    expect(comparison.every((course) => course.lessonCount === 5)).toBe(true);
+    expect(resolveCourses('all').map((course) => course.id)).not.toContain(comparison[0].id);
+    expect(resolveCourses('extended').map((course) => course.id)).not.toContain(comparison[0].id);
   });
 
   it('an unknown id throws with the known-id list', () => {

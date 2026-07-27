@@ -247,6 +247,61 @@ export const regressionCourses = [
   },
 ];
 
+// ── V0.16.84: three-route comparison suite ──────────────────────────────────
+// Frozen inputs for the GPT-5.4 mini vs Scion vs Algi comparison. These stay
+// outside `all`, `extended`, and the rotating stranger pool so adding a new
+// benchmark never changes an older release bar.
+export const threeRouteComparisonCourses = [
+  {
+    id: 'compare-ux-evidence-studio-5',
+    title: 'User Experience Evidence Studio',
+    lessonCount: 5,
+    probeProfile: 'generic',
+    prompt:
+      'User Experience Evidence Studio, exactly five lessons: 1) research questions and study planning, 2) contextual inquiry and field notes, 3) affinity mapping and synthesis, 4) usability test design, and 5) evidence-based design recommendations. Students produce a traceable research report.',
+  },
+  {
+    id: 'compare-environmental-microbiology-5',
+    title: 'Environmental Microbiology',
+    lessonCount: 5,
+    probeProfile: 'generic',
+    prompt:
+      'Environmental Microbiology, exactly five lessons: 1) microbial ecology, 2) waterborne pathogens, 3) biofilms, 4) bioremediation, and 5) microbial risk assessment. Students use field evidence and state uncertainty.',
+  },
+  {
+    id: 'compare-quantum-computing-5',
+    title: 'Introduction to Quantum Computing',
+    lessonCount: 5,
+    probeProfile: 'generic',
+    prompt:
+      'Introduction to Quantum Computing, exactly five lessons: 1) qubits and quantum states, 2) superposition and measurement, 3) quantum gates and circuits, 4) entanglement, and 5) quantum error correction. Students compare classical and quantum representations without unsupported hardware claims.',
+  },
+  {
+    id: 'compare-business-ethics-5',
+    title: 'Business Ethics and Responsible Decision-Making',
+    lessonCount: 5,
+    probeProfile: 'generic',
+    prompt:
+      'Business Ethics and Responsible Decision-Making, exactly five lessons: 1) stakeholder analysis, 2) duties to workers, 3) conflicts of interest, 4) whistleblowing and retaliation, and 5) accountable case recommendations. Students justify decisions from explicit evidence.',
+  },
+  {
+    id: 'compare-technology-policy-current-5',
+    title: 'Current Technology Policy',
+    lessonCount: 5,
+    probeProfile: 'generic',
+    prompt:
+      'Current Technology Policy, exactly five lessons: 1) platform governance, 2) current artificial-intelligence regulation, 3) privacy and data protection, 4) algorithmic accountability standards, and 5) evidence-based policy recommendations. Every current claim must name its date and source.',
+  },
+  {
+    id: 'compare-public-health-programs-5',
+    title: 'Public Health Program Planning',
+    lessonCount: 5,
+    probeProfile: 'generic',
+    prompt:
+      'Public Health Program Planning, exactly five lessons: 1) community needs assessment, 2) social determinants of health, 3) intervention design, 4) implementation barriers, and 5) evaluation metrics. Students distinguish current guidance from durable background knowledge.',
+  },
+];
+
 export const smokePool = referenceCourses.filter((course) => course.id === 'cs-python');
 
 // The original four audit courses — 'all' resolves to exactly these so release
@@ -258,6 +313,7 @@ export function getCourseById(id) {
     referenceCourses.find((course) => course.id === id) ||
     groundingCourses.find((course) => course.id === id) ||
     regressionCourses.find((course) => course.id === id) ||
+    threeRouteComparisonCourses.find((course) => course.id === id) ||
     strangerPool.find((course) => course.id === id) ||
     null
   );
@@ -285,6 +341,7 @@ export function pickStranger(date = new Date(), pool = strangerPool) {
  *   'all'      → the original four audit courses (release-comparable bar).
  *   'extended' → all ten (the four audit + six genome courses).
  *   'smoke'    → the smoke pool (cs-python).
+ *   'compare'  → the six frozen GPT-5.4 mini / Scion / Algi cases.
  *   comma ids  → any subset, e.g. 'econ-intro,astro-101' or 'mandarin,geology'.
  */
 export function resolveCourses(spec) {
@@ -294,6 +351,7 @@ export function resolveCourses(spec) {
   }
   if (value === 'extended') return [...referenceCourses];
   if (value === 'smoke') return [...smokePool];
+  if (value === 'compare') return [...threeRouteComparisonCourses];
   const ids = value
     .split(',')
     .map((id) => id.trim())

@@ -7,6 +7,7 @@
 //                             [--concurrency 2] [--max-spend 2.50] [--stranger]
 //                             [--authoring prose|native|both]
 //                             [--provider openai|anthropic|google]
+//                             [--algi-research on|off|default]
 //                             [--llm local|e2b] [--shim-url http://127.0.0.1:8799]
 //                             [--scion-benchmark <manifest> --scion-arm adapter|base-only]
 //                             [--scion-pair-run <id> --scion-dataset-manifest <manifest>]
@@ -14,6 +15,8 @@
 //                             [--judge] [--dry-run] [--headed] [--skip-generate <dir>]
 //                             [--resume-round <roundDir>]
 //                             [--port 4173] [--scion-profile <profileRoot>]
+//                             [--scion-profile-dir <exactProfileDir>]
+//                             [--course-attempts 1|2]
 //                             [--calibrate] [--history] [--diff <roundDirA> <roundDirB>]
 //                             [--import-baseline] [--api-env <path>]
 //
@@ -136,6 +139,7 @@ import {
   findingProvider,
   pairAuthoringEntries,
   parseAuthoringFlag,
+  parseAlgiResearchFlag,
   parseVoiceFlag,
   parseProviderFlag,
   renderAuthoringSection,
@@ -487,6 +491,7 @@ function buildRoundReportMd({
   if (runConfig) {
     lines.push(
       `- Concurrency: ${runConfig.concurrency}${runConfig.concurrencyExplicit ? '' : ' (provider default)'}`,
+      `- Course attempts: ${runConfig.courseAttempts}`,
       `- Scion profile: ${runConfig.scionProfileMode}`,
       `- Filmstrip capture: ${runConfig.filmstrip ? 'on' : 'off'}`,
       `- Authoring / voice: ${runConfig.authoring} / ${runConfig.voice}`,
@@ -777,6 +782,7 @@ const FLOW_BUNDLE_SELECTORS = [
   'coursemapper-modelid',
   'coursemapper-authoring-mode', // WS-B3 native-authoring flag (src/lib/nativeGraphAuthoring.js)
   'coursemapper-voice-pass', // v0.14.7 WS-D2 voice-pass flag (src/lib/voicePass.js)
+  'coursemapper-algi-research', // explicit research-first Algi benchmark arm
   'Describe your course', // src/screens/Landing.jsx:567
   'Generate workspace', // src/screens/Config.jsx:2147
   'Download ZIP',
@@ -1684,6 +1690,10 @@ async function runLiveRounds(options) {
   // v0.14.7 WS-D3: --voice off|on|both — voiced/quiet twins for the voice
   // pass proof rounds (applied after authoring, before provider suffixing).
   const voice = parseVoiceFlag(options.voice);
+  const algiResearch = parseAlgiResearchFlag(options.algiResearch);
+  if (algiResearch !== 'default' && !(provider === 'public' && options.model === 'algi-v0')) {
+    throw new Error('--algi-research on|off requires --provider public --model algi-v0');
+  }
   let courses = expandCoursesForProvider(
     expandCoursesForVoice(expandCoursesForAuthoring(baseCourses, authoring), voice),
     provider,
@@ -1707,6 +1717,9 @@ async function runLiveRounds(options) {
   if (voice !== 'default') {
     log(`voice mode: ${voice} — ${courses.length} run(s) across ${baseCourses.length} course(s)`);
   }
+  if (algiResearch !== 'default') {
+    log(`Algi research: ${algiResearch} — explicit benchmark network policy`);
+  }
   const rounds = Math.max(1, Number(options.rounds) || 1);
   if (options.resumeRound && rounds !== 1) throw new Error('--resume-round supports exactly one round.');
   if (options.resumeRound && options.judge) {
@@ -1729,6 +1742,16 @@ async function runLiveRounds(options) {
     fallback: defaultConcurrencyForProvider(provider),
     max: 3,
   });
+  const courseAttempts = options.courseAttempts === undefined ? 2 : Number(options.courseAttempts);
+  if (![1, 2].includes(courseAttempts)) {
+    throw new Error(`--course-attempts must be 1 or 2 (got "${options.courseAttempts}")`);
+  }
+  if (options.scionProfileDir && provider !== 'public') {
+    throw new Error('--scion-profile-dir is only valid with --provider public');
+  }
+  if (options.scionProfileDir && concurrency !== 1) {
+    throw new Error('--scion-profile-dir requires --concurrency 1 because one Chrome profile cannot be shared');
+  }
   // E2: spend cap. A runaway round can never become a bill.
   const maxSpendUsd = options.maxSpend === undefined ? DEFAULT_MAX_SPEND_USD : Number(options.maxSpend);
   if (!Number.isFinite(maxSpendUsd) || maxSpendUsd <= 0) {
@@ -1957,7 +1980,7 @@ async function runLiveRounds(options) {
         log(`  generating ${course.id} (${course.lessonCount} lessons)...`);
         const attempts = [];
         let runResult = null;
-        for (let attempt = 1; attempt <= 2; attempt += 1) {
+        for (let attempt = 1; attempt <= courseAttempts; attempt += 1) {
           runResult = await runCourseInBrowser({
             baseUrl: server.baseUrl,
             course,
@@ -1979,7 +2002,13 @@ async function runLiveRounds(options) {
             localEndpoint: options.llm === 'local' ? localServerUrl : null,
             disableScionFlywheel: Boolean(scionBenchmarkRun),
             scionProfileRoot: typeof options.scionProfile === 'string' ? options.scionProfile : '',
-            ...(localServerUrl ? { overallTimeoutMs: 45 * 60_000 } : {}),
+            scionProfileDir: typeof options.scionProfileDir === 'string' ? options.scionProfileDir : '',
+            algiResearchMode: algiResearch,
+            ...(localServerUrl
+              ? { overallTimeoutMs: 45 * 60_000 }
+              : provider === 'public' && modelId === 'scion-public'
+                ? { overallTimeoutMs: 30 * 60_000 }
+                : {}),
           });
           attempts.push(runResult);
           if (runResult.status === 'passed') break;
@@ -1988,7 +2017,7 @@ async function runLiveRounds(options) {
             log(`  ${course.id}: package blocked by deterministic quality gates — preserving the first verdict`);
             break;
           }
-          if (attempt === 1) {
+          if (attempt === 1 && courseAttempts > 1) {
             log(`  ${course.id}: attempt 1 failed during ${runResult.phase} — retrying once with a fresh page`);
           }
         }
@@ -2116,15 +2145,19 @@ async function runLiveRounds(options) {
       runConfig: {
         concurrency,
         concurrencyExplicit: options.concurrency !== undefined,
+        courseAttempts,
         filmstrip: Boolean(options.filmstrip),
         scionProfileMode:
           provider === 'public'
-            ? typeof options.scionProfile === 'string'
-              ? 'reused-root'
-              : 'per-course-cold'
+            ? typeof options.scionProfileDir === 'string'
+              ? 'reused-direct'
+              : typeof options.scionProfile === 'string'
+                ? 'reused-root'
+                : 'per-course-cold'
             : 'n/a',
         authoring,
         voice,
+        algiResearch,
         rounds,
       },
     });

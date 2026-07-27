@@ -54,6 +54,7 @@ const MODEL_DISPLAY_NAMES = {
   'claude-haiku-4-5': 'Claude Haiku 4.5',
   'gemini-2.5-flash-lite': 'Gemini 2.5 Flash Lite',
   'scion-public': `Scion V${APP_VERSION}`,
+  'algi-v0': 'Algi V0',
 };
 
 export function modelDisplayName(modelId) {
@@ -824,6 +825,8 @@ export async function closeCrucibleBrowserResources({ activeContext, browser, sh
  * @param {boolean} [options.captureTimeline=false] preserve viewport frames throughout the real workflow.
  * @param {boolean} [options.disableScionFlywheel=false] isolate held-out evaluation from corpus capture.
  * @param {string} [options.scionProfileRoot] optional persistent browser-profile root for repeated local Scion audits.
+ * @param {string} [options.scionProfileDir] exact reusable Scion profile directory; benchmark-only, sequential use.
+ * @param {'default'|'on'|'off'} [options.algiResearchMode='default'] explicit Algi network-research arm.
  * @param {import('@playwright/test').Browser} [options.browser] optional shared browser.
  * @param {number} [options.overallTimeoutMs=720000] hard 12-minute budget per course.
  * @returns {Promise<{ status: 'passed'|'failed', zipPath: string|null, consoleLogPath: string,
@@ -859,6 +862,8 @@ export async function runCourseInBrowser({
   localEndpoint = null,
   disableScionFlywheel = false,
   scionProfileRoot = '',
+  scionProfileDir = '',
+  algiResearchMode = 'default',
 }) {
   const startedAt = Date.now();
   const deadlineAt = startedAt + overallTimeoutMs;
@@ -886,17 +891,20 @@ export async function runCourseInBrowser({
   // A disposable persistent profile exercises the same storage class as the
   // website while remaining isolated and cold for every Crucible attempt.
   const usePersistentScionProfile = provider === 'public' && !sharedBrowser;
+  const exactScionProfileDir = String(scionProfileDir || '').trim();
   const reusableScionProfileRoot = String(scionProfileRoot || process.env.COURSEMAPPER_SCION_PROFILE_ROOT || '').trim();
-  const ownsPersistentProfile = usePersistentScionProfile && !reusableScionProfileRoot;
+  const ownsPersistentProfile = usePersistentScionProfile && !reusableScionProfileRoot && !exactScionProfileDir;
   const persistentProfileDir = usePersistentScionProfile
-    ? reusableScionProfileRoot
-      ? path.join(
-          path.resolve(reusableScionProfileRoot),
-          String(course?.id || 'course')
-            .replace(/[^a-z0-9_-]+/gi, '-')
-            .slice(0, 80),
-        )
-      : await fs.mkdtemp(path.join(os.tmpdir(), 'coursemapper-scion-crucible-'))
+    ? exactScionProfileDir
+      ? path.resolve(exactScionProfileDir)
+      : reusableScionProfileRoot
+        ? path.join(
+            path.resolve(reusableScionProfileRoot),
+            String(course?.id || 'course')
+              .replace(/[^a-z0-9_-]+/gi, '-')
+              .slice(0, 80),
+          )
+        : await fs.mkdtemp(path.join(os.tmpdir(), 'coursemapper-scion-crucible-'))
     : null;
   if (persistentProfileDir) await fs.mkdir(persistentProfileDir, { recursive: true });
   const contextOptions = {
@@ -1085,6 +1093,7 @@ export async function runCourseInBrowser({
         selectedProvider,
         selectedLocalEndpoint,
         flywheelDisabled,
+        selectedAlgiResearchMode,
       }) => {
         localStorage.clear();
         sessionStorage.clear();
@@ -1101,6 +1110,11 @@ export async function runCourseInBrowser({
           if (selectedLocalEndpoint) localStorage.setItem('coursemapper-local-endpoint', selectedLocalEndpoint);
         }
         if (flywheelDisabled) localStorage.setItem('coursemapper-scion-flywheel', 'off');
+        if (selectedAlgiResearchMode === 'on') {
+          localStorage.setItem('coursemapper-algi-research', 'on');
+        } else if (selectedAlgiResearchMode === 'off') {
+          localStorage.removeItem('coursemapper-algi-research');
+        }
         // v0.15.1 (post-flip): the app defaults are native + voiced. Plain
         // rounds seed NOTHING (test what users get); explicit arms seed
         // their mode, including the opt-outs ('prose', 'off') that the
@@ -1119,6 +1133,7 @@ export async function runCourseInBrowser({
         selectedProvider: provider || 'openai',
         selectedLocalEndpoint: localEndpoint || null,
         flywheelDisabled: disableScionFlywheel,
+        selectedAlgiResearchMode: algiResearchMode,
       },
     );
     await guardPage(page.goto(baseUrl, { waitUntil: 'domcontentloaded' }));
@@ -1181,7 +1196,7 @@ export async function runCourseInBrowser({
     // wastefully restart the whole course. Cloud runs retain the tighter
     // per-stage caps; local runs may spend whatever remains of their bounded
     // 45-minute course budget.
-    const stepCap = llmShimUrl || localEndpoint ? () => remaining() : remaining;
+    const stepCap = provider === 'public' || llmShimUrl || localEndpoint ? () => remaining() : remaining;
     await guardPage(page.getByTestId('workspace-shell').waitFor({ timeout: stepCap(600_000) }));
     await captureTimelineFrame('workspace-opened');
 
