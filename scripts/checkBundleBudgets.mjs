@@ -29,9 +29,9 @@ const budgets = {
 // caught an unaccounted increase, and the fix is to re-freeze at the released
 // state, not to widen the allowance. Every future release must do the same.
 const repositoryBudgets = {
-  // v0.16.82 advances the frozen state through the shipped v0.16.81 contract;
-  // its own v0.16.82 contract consumes the single declared-release allowance.
-  baselineVersion: '0.16.81',
+  // v0.16.83 advances the frozen state through the shipped v0.16.82 contract;
+  // its own v0.16.83 contract consumes the single declared-release allowance.
+  baselineVersion: '0.16.82',
   // v0.16.82 adds 29 net lines of reusable compiler control logic for
   // policy-domain separation and concept-owned evidence binding. Source-
   // statement copy and prerequisite selection moved to a cacheable leaf; the
@@ -41,9 +41,12 @@ const repositoryBudgets = {
   // evidence, route, quality, call, latency, and export promotion rules; this
   // is a release gate rather than product-side script sprawl.
   // V0.16.82 adds the frozen, executable Algi research-first benchmark audit.
-  npmScripts: 379,
-  // v0.16.81 shipped the 267th release contract; v0.16.82 may add exactly one.
-  releaseContractFiles: 267,
+  // V0.16.83 adds one deterministic automated-readiness benchmark command.
+  // It executes three frozen fixtures without provider calls and is the
+  // release gate that prevents the primary score from drifting back to 99/A.
+  npmScripts: 380,
+  // v0.16.82 shipped the 268th release contract; v0.16.83 may add exactly one.
+  releaseContractFiles: 268,
   trackedWeightFiles: 62,
   trackedWeightBytes: 1_053_339_981,
   largeBinaryBytes: 1024 * 1024,
@@ -121,7 +124,10 @@ const lazyChunkBudgets = [
   // v0.16.80 adds the explicit private/research Algi route and preserves its
   // no-model-download state across workspace creation. The workspace-only
   // shell measures 280.8/84.5; keep less than 0.2/0.5 KiB headroom.
-  { prefix: 'AppFlow-', rawKiB: 281, gzipKiB: 85 },
+  // v0.16.83 carries exact brief/count preservation and the sealed readiness
+  // receipt through the workspace. The measured raw edge is 281.0 KiB; retain
+  // only quarter-KiB variance while keeping the existing gzip ceiling.
+  { prefix: 'AppFlow-', rawKiB: 281.25, gzipKiB: 85 },
   // v0.16.47: the Living Course Compiler component and pure selector gained
   // an independently cacheable route boundary instead of raising AppFlow's
   // long-standing ratchet. Clean measurement: AppFlow 251.6/75.9; ribbon
@@ -339,7 +345,11 @@ const lazyChunkBudgets = [
   // keeping this grader lazy and off the initial route.
   // v0.16.73 adds the exact reader-visible punctuation and internal-language
   // gates behind grader 1.10.34 (66.3/22.9 measured).
-  { prefix: 'deepQualityGrader-', rawKiB: 67, gzipKiB: 23.25 },
+  // v0.16.83 adds the five-component automated-readiness evaluator, the
+  // 69-point evidence ceiling, anti-gaming source checks, and separate report
+  // language. This finalize-only chunk measures 71.9/24.9 KiB and remains off
+  // landing; the narrow ceiling records the new ruler rather than hiding it.
+  { prefix: 'deepQualityGrader-', rawKiB: 72.25, gzipKiB: 25.25 },
   // High-signal format patterns stay finalize-only and independently
   // cacheable from the grader control-flow chunk.
   { prefix: 'deepQualityFormatDetails-', rawKiB: 4, gzipKiB: 2 },

@@ -191,8 +191,9 @@ describe('Crucible grader — healthy v0.14.1 package', () => {
       course: GEO_COURSE,
     });
     const md = renderReportMarkdown(result, { courseTitle: 'Physical Geology' });
-    expect(md).toContain('# Crucible Deep Quality Report — Physical Geology');
-    expect(md).toContain('## Scores');
+    expect(md).toContain('# CourseMapper Quality Evidence Report — Physical Geology');
+    expect(md).toContain('Automated readiness signal:');
+    expect(md).toContain('## Package conformance checks');
     expect(md).toContain('| Dimension | Weight | Score | Grade |');
     expect(md).toContain('| identity | 20 |');
     expect(md).toContain('| **overall** |');

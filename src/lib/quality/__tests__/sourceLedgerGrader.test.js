@@ -3,6 +3,42 @@ import { grade, honestyFromDigest } from '../deepQualityGrader.js';
 import { createMemoryFileProvider } from '../fileProviders.js';
 
 describe('source-ledger quality checks', () => {
+  it('rejects a many-lesson package that hides thin evidence behind missing sourceRef coverage', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'Urban Heat Resilience and Environmental Justice',
+          lessonScope: 'all',
+          requestedFeatures: [],
+          readiness: { status: 'ready', blockers: 0, warnings: 0, checkedSections: null },
+          pipeline: {
+            enrichmentModelStage: 'knowledge kernels admitted 5/5 lessons',
+            knowledgeBackbone: '0/5 lessons genome-linked · 1 cited open resource',
+          },
+          sourceLedger: [
+            {
+              id: 'wikipedia-environmental-justice',
+              title: 'Environmental justice',
+              provider: 'wikipedia',
+              url: 'https://en.wikipedia.org/wiki/Environmental_justice',
+              license: 'CC BY-SA 4.0',
+              conceptLinks: [{ id: 'lesson-2', label: 'Environmental justice' }],
+            },
+          ],
+          sourceReport: { path: 'SOURCE_REPORT.md', sourceCount: 1, sourceRefCoverage: null },
+          files: [{ path: 'SOURCE_REPORT.md', feature: 'sourceReport' }],
+        }),
+        'SOURCE_REPORT.md': '# Source Report',
+      }),
+      course: { title: 'Urban Heat Resilience and Environmental Justice', featureIds: [] },
+    });
+
+    expect(result.findings.map((finding) => finding.detail)).toContain(
+      'source evidence is too thin: 5 lesson(s) rely on 1 trusted concept-linked source row(s)',
+    );
+    expect(result.overall.score).toBeLessThanOrEqual(89);
+  });
+
   it('lets the reconciled digest override stale budget pipeline labels', () => {
     const honesty = honestyFromDigest(
       {

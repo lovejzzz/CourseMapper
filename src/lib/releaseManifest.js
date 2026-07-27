@@ -1,5 +1,39 @@
 import { APP_VERSION } from './appVersion.js';
 
+export const CURRENT_RELEASE = {
+  version: APP_VERSION,
+  date: 'July 27, 2026',
+  title: 'A Score That Knows What It Cannot Prove',
+  landingTitle: 'Scion V0.16.83 Replaces 99/A with an Honest Readiness Signal',
+  highlights: [
+    'Course Mapper no longer presents deterministic package conformance as if it were a verified teaching-quality score. The primary number is now Automated Readiness on a 0–100 scale, while structural conformance remains a separate, explicitly named result.',
+    'Automated Readiness combines curriculum fidelity, evidence grounding, instructional specificity, assessment coherence, and package integrity. Without independent review or observed use, automation is capped at 69/100 and cannot claim factual accuracy, teachability, accessibility, instructor validation, or classroom outcomes.',
+    'A locked three-case benchmark catches both generosity and pessimism: the observed generic zero-evidence Algi shape scores 26/100, the observed exact-but-source-thin Scion package scores 61/100, and an exact source-rich positive-control fixture scores 68/100. All three remain below the independent-evidence boundary.',
+    'The grounding score cannot be gamed by filling internal sourceRef fields. Those references earn grounding credit only when the package contains trusted, concept-linked source evidence, and multi-lesson packages backed by one trusted source are flagged as thin.',
+    'One finish receipt now seals the score shown in the workspace, written into PACKAGE_MANIFEST.json, and rendered in QUALITY_REPORT.md. A live browser export exposed and fixed a 54-versus-51 mismatch caused by treating logical evidence surfaces such as quizBank as missing ZIP files.',
+    'Algi now records why researched evidence could not compose a lesson, prefers exact anchored passages over a weak abstract lead, rejects duplicate evidence-based distractors, and keeps wrapper-heavy research queries focused without broadening already-specific lesson titles.',
+    'A fresh five-lesson Urban Heat Resilience browser run preserved the exact title, count, and requested sequence, but composed only 1/5 evidence kernels. The system correctly paused export refinement and reported 54/100 readiness instead of awarding a green 99/A; the verified 56-entry ZIP still downloaded and carried the same 54/100 result.',
+    'Deep grader v1.11.0 and frozen held-out ruler V25 bind the new readiness implementation without inheriting any old adapter win. Gemma weights remain unchanged, the optional adapter remains inactive, and no model, Algi, paid-provider, factual, instructor, accessibility, or classroom superiority claim is made.',
+  ],
+  landingHighlights: [
+    'Readiness and structural conformance are now different numbers.',
+    'Automated evidence is capped at 69/100.',
+    'Five components explain every readiness result.',
+    'A locked benchmark catches generous and pessimistic scoring.',
+    'Internal source references cannot fake grounding.',
+    'Workspace, manifest, and ZIP now carry one sealed score.',
+    'A weak live Algi run reports 54/100 instead of green 99/A.',
+    'The new ruler inherits no adapter or model victory.',
+  ],
+  proof: {
+    contract: 'release-contracts/v0.16.83.json',
+    roadmap: 'docs/HONEST_READINESS_BENCHMARK_V01683.md',
+    benchmark: 'evaluation/automated-readiness/v1/cases.json',
+    browser: 'README.md',
+    auditCommand: 'npm run audit:release-history',
+  },
+};
+
 const V01680_RELEASE = {
   version: '0.16.80',
   date: 'July 26, 2026',
@@ -59,8 +93,8 @@ const V01681_RELEASE = {
   },
 };
 
-export const CURRENT_RELEASE = {
-  version: APP_VERSION,
+const V01682_RELEASE = {
+  version: '0.16.82',
   date: 'July 26, 2026',
   title: 'Research First, Evidence Bound',
   landingTitle: 'Algi V0.16.82 Researches Before It Compiles',
@@ -150,6 +184,92 @@ export const CURRENT_RELEASE_CHANGELOG = {
   date: CURRENT_RELEASE.date,
   title: CURRENT_RELEASE.title,
   highlights: CURRENT_RELEASE.highlights,
+  sections: [
+    {
+      label: 'Replace the generous score with a bounded signal',
+      icon: 'PROOF',
+      color: 'blue',
+      items: [
+        'The primary workspace number is Automated Readiness on a 0–100 scale; the old deterministic grade is now labeled Package conformance.',
+        'Automation can earn at most 69 points without independent review or observed use.',
+        'The report states that automation cannot prove factual accuracy, teachability, accessibility, instructor validation, or classroom outcomes.',
+        'Blocked packages keep the real readiness number visible instead of replacing it with a vague quality-refinement label.',
+      ],
+    },
+    {
+      label: 'Make every point explainable',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'Curriculum fidelity measures requested title, lesson count, and exact-sequence preservation.',
+        'Evidence grounding measures trusted, concept-linked source breadth rather than the presence of internal reference strings.',
+        'Instructional specificity and assessment coherence measure learner-visible tasks, evidence demands, and cross-material alignment.',
+        'Package integrity measures encoded findings, export checks, and finish state without pretending those checks validate teaching.',
+      ],
+    },
+    {
+      label: 'Freeze an anti-generosity benchmark',
+      icon: 'PROOF',
+      color: 'violet',
+      items: [
+        'The observed generic zero-evidence Algi fixture must remain in the low range and currently scores 26/100.',
+        'The observed exact but source-thin Scion fixture currently scores 61/100.',
+        'An exact source-rich positive-control fixture currently scores 68/100 and cannot cross the independent-evidence boundary.',
+        'The executable audit checks ordering, ceiling, claim boundary, conformance separation, and case-specific score windows.',
+      ],
+    },
+    {
+      label: 'Seal one score across the product',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'The finish-pass result is the source of truth for the workspace chip, detailed modal, PACKAGE_MANIFEST.json, and QUALITY_REPORT.md.',
+        'Logical finding surfaces such as quizBank and slideDecks are no longer mistaken for repaired-away ZIP paths.',
+        'A live browser test reproduced a 54-versus-51 mismatch, fixed it, downloaded a second archive, and verified that both workspace and ZIP report 54/100.',
+        'The report keeps Automated Readiness, Package conformance, texture, findings, evidence class, and claim boundary visibly distinct.',
+      ],
+    },
+    {
+      label: 'Let Algi fail honestly and explain why',
+      icon: 'AI',
+      color: 'slate',
+      items: [
+        'Research composition records selected terms, required terms, candidate count, per-term declines, attempts, and reason totals.',
+        'A later exact anchored passage can rescue a concept when an abstract lead is too weak.',
+        'Duplicate evidence excerpts cannot become fake multiple-choice distractors; explicit evidence-absence choices are used instead.',
+        'Research queries remove wrapper language only for wrapper-heavy lessons and preserve already-specific lesson titles.',
+      ],
+    },
+    {
+      label: 'Verify the real low-scoring path',
+      icon: 'PROOF',
+      color: 'emerald',
+      items: [
+        'The five-lesson Urban Heat Resilience brief preserved its exact title, lesson count, and lesson sequence.',
+        'Only 1/5 researched lesson kernels cleared evidence composition, so the product paused refinement and reported 54/100 rather than green 99/A.',
+        'The verified package action remained usable and downloaded a valid 56-entry ZIP whose manifest and report retained the same 54/100 result.',
+        'The active suite passes 463 test files and 5,768 tests with 16 files and 162 tests intentionally skipped; lint, build, and the readiness benchmark also pass locally.',
+      ],
+    },
+    {
+      label: 'Move the ruler without inheriting a win',
+      icon: 'CHECK',
+      color: 'violet',
+      items: [
+        'Deep grader v1.11.0 separates conformance from Automated Readiness.',
+        'Held-out ruler V25 binds the complete 15-file transitive grader implementation receipt and inherits no V24 score or adapter result.',
+        'Gemma weights remain unchanged and the optional Scion adapter remains inactive.',
+        'This release claims no model superiority, paid-provider parity, factual certification, instructor approval, accessibility certification, or classroom outcome.',
+      ],
+    },
+  ],
+};
+
+const V01682_RELEASE_CHANGELOG = {
+  version: V01682_RELEASE.version,
+  date: V01682_RELEASE.date,
+  title: V01682_RELEASE.title,
+  highlights: V01682_RELEASE.highlights,
   sections: [
     {
       label: 'Plan research before spending requests',
@@ -502,6 +622,7 @@ const V01678_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  V01682_RELEASE_CHANGELOG,
   V01681_RELEASE_CHANGELOG,
   V01680_RELEASE_CHANGELOG,
   V01679_RELEASE_CHANGELOG,

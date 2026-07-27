@@ -12,6 +12,11 @@ describe('Algi pre-generation coverage forecast', () => {
       ),
     ).toBe(12);
     expect(estimateAlgiSessionCount('Build exactly five lessons: 1) A, 2) B, 3) C, 4) D, 5) E.')).toBe(5);
+    expect(
+      estimateAlgiSessionCount(
+        'Urban Heat Resilience — a five-week course. Use this exact lesson sequence: 1) Heat measurement; 2) Environmental justice; 3) Public-health evidence; 4) Cooling interventions; 5) Community planning.',
+      ),
+    ).toBe(5);
   });
 
   it('forecasts the private genome without making a provider request', async () => {

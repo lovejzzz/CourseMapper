@@ -55,4 +55,27 @@ describe('Algi course research planning', () => {
       intent: 'concept-and-application',
     });
   });
+
+  it('searches scholarly catalogs for concept phrases instead of an instructor wrapper sentence', () => {
+    const plan = planAlgiCourseResearch({
+      courseName: 'Urban Heat Resilience and Environmental Justice',
+      lessons: [
+        {
+          lessonId: 'lesson-4',
+          title: 'Cooling interventions, implementation trade-offs, and evaluation',
+        },
+        {
+          lessonId: 'lesson-5',
+          title: 'Community-engaged heat resilience planning',
+        },
+      ],
+    });
+
+    expect(
+      providerQueryForLesson(plan, 'Cooling interventions, implementation trade-offs, and evaluation', 'doaj'),
+    ).toBe('"cooling interventions" AND urban');
+    expect(providerQueryForLesson(plan, 'Community-engaged heat resilience planning', 'doaj')).toBe(
+      '"community-engaged heat resilience" AND urban',
+    );
+  });
 });

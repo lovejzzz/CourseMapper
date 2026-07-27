@@ -30,11 +30,11 @@ const GRADED_WITH_TEXTURE = {
 };
 
 describe('B2 — the two-number Seal', () => {
-  it('renders Quality and Texture side by side, texture in slate', () => {
+  it('renders Conformance and Texture side by side, texture in slate', () => {
     const html = renderToStaticMarkup(
       <WorkspaceQualityChip packageQualityPass={GRADED_WITH_TEXTURE} onOpenReport={() => {}} />,
     );
-    expect(html).toContain('Quality 100');
+    expect(html).toContain('Conformance 100');
     expect(html).toContain('· Texture 74');
     expect(html).toContain('data-testid="workspace-texture-meter"');
     // The meter is slate — never the chip's emerald/amber health tone.
@@ -62,7 +62,7 @@ describe('B2 — the two-number Seal', () => {
       />,
     );
     expect(blocked).toContain('border-red-200');
-    expect(blocked).toContain('Quality refinement');
+    expect(blocked).toContain('Conformance 81 · B');
     expect(blocked).toContain('including 1 critical');
     expect(blocked).toContain('· Texture 90');
   });
@@ -77,7 +77,7 @@ describe('B2 — the two-number Seal', () => {
         onOpenReport={() => {}}
       />,
     );
-    expect(html).toContain('Quality 100 · A');
+    expect(html).toContain('Conformance 100 · A');
     expect(html).not.toContain('workspace-texture-meter');
   });
 

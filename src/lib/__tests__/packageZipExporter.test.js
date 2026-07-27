@@ -505,10 +505,23 @@ describe('packageZipExporter', () => {
       quality: {
         precomputed: {
           status: 'graded',
-          score: 100,
-          grade: 'A',
+          score: 89,
+          grade: 'B',
           graderVersion: 'test-precomputed',
-          findingCounts: { p0: 0, p1: 0, p2: 0 },
+          findingCounts: { p0: 0, p1: 1, p2: 0 },
+          readiness: {
+            protocol: 'coursemapper-automated-readiness-v1',
+            score: 54,
+            maxScore: 100,
+            rawScore: 74,
+            evidenceCeiling: 69,
+            band: 'bounded-review',
+            claimBoundary:
+              'Automated signals cannot prove factual accuracy, teachability, accessibility, or instructor validation.',
+            components: {
+              evidenceGrounding: { weight: 25, score: 28 },
+            },
+          },
           dimensions: {
             identity: 100,
             substance: 100,
@@ -532,7 +545,14 @@ describe('packageZipExporter', () => {
             texture: 'A',
           },
           texture: { score: 95, version: 'test-texture' },
-          findings: [],
+          findings: [
+            {
+              severity: 'P1',
+              dimension: 'substance',
+              file: 'quizBank',
+              detail: 'lesson knowledge did not clear admission',
+            },
+          ],
           fileCount: 2,
         },
       },
@@ -544,14 +564,18 @@ describe('packageZipExporter', () => {
     expect(manifest.quality).toEqual(
       expect.objectContaining({
         status: 'graded',
-        score: 100,
-        grade: 'A',
+        score: 89,
+        grade: 'B',
         graderVersion: 'test-precomputed',
+        readiness: expect.objectContaining({ score: 54, evidenceCeiling: 69 }),
         texture: expect.objectContaining({ score: 95 }),
       }),
     );
-    expect(report).toContain('Overall: 100/100 (A)');
+    expect(report).toContain('Automated readiness signal: 54/100');
+    expect(report).toContain('Package conformance: 89/100 (B)');
     expect(report).toContain('verified finish-pass quality result');
+    expect(report).toContain('| Evidence grounding | 25 | 28/100 |');
+    expect(report).toContain('lesson knowledge did not clear admission');
     expect(report).toContain('| texture | 25 | 95 | A |');
     expect(report).toContain('| **overall** | 135 |');
   });

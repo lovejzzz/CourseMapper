@@ -2392,6 +2392,12 @@ export default function useDeliverables({
         // (digest pipeline line, PACKAGE_MANIFEST, finalizer warning).
         const enrichmentOutcome = {
           modelStage: blueprintEnrichment?.stageDecisions?.modelStage || 'none',
+          // Algi has no second authoring lane to fall back to: its admitted
+          // lesson kernels ARE the subject-matter boundary. Preserve that
+          // fact through finalization so a failed/empty research pass cannot
+          // compile generic templates and later look ready.
+          required: Boolean(algiRoute),
+          route: algiRoute ? 'algi-evidence' : 'model-enrichment',
           enrichedLessons:
             blueprintEnrichment?.coverage?.enrichedLessons ??
             (blueprintEnrichment?.lessonContent ? Object.keys(blueprintEnrichment.lessonContent).length : 0),

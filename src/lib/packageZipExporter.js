@@ -210,6 +210,10 @@ function normalizePrecomputedPackageQuality(quality) {
           subScores: quality.texture.subScores || null,
         }
       : null;
+  const readiness =
+    quality.readiness && Number.isFinite(quality.readiness.score) && Number.isFinite(quality.readiness.maxScore)
+      ? quality.readiness
+      : null;
   const block = {
     status: 'graded',
     evidenceClass: quality.evidenceClass || 'deterministic',
@@ -222,6 +226,7 @@ function normalizePrecomputedPackageQuality(quality) {
     findingCounts,
     dimensions,
     gradedAt: quality.gradedAt || new Date().toISOString(),
+    ...(readiness ? { readiness } : {}),
     ...(texture ? { texture } : {}),
   };
   return {
@@ -253,6 +258,12 @@ function precomputedQualityReferencesMissingPackageFiles(precomputed, fileConten
     const file = normalizePackagePathForQuality(finding?.file || finding?.path || '');
     if (!file || virtualFiles.has(file)) return false;
     if (/^run digest$/i.test(file) || /^console/i.test(file)) return false;
+    // Grader findings also name logical teaching surfaces such as `quizBank`,
+    // `slideDecks`, `studyGuides`, or `lesson sequence`. They are evidence
+    // channels, not literal ZIP paths. Treat only path-like or extension-
+    // bearing references as files; otherwise a valid finish receipt is thrown
+    // away and the ZIP silently computes a different readiness score.
+    if (!/[\\/]/.test(file) && !/\.[a-z0-9]{2,8}$/i.test(file)) return false;
     return !knownFiles.has(file);
   });
 }
@@ -263,10 +274,20 @@ function renderPrecomputedQualityReport(precomputed, { courseTitle = 'Course' } 
   const counts = quality.findingCounts || { p0: 0, p1: 0, p2: 0 };
   const findingCount = counts.p0 + counts.p1 + counts.p2;
   const lines = [];
-  lines.push(`# Crucible Deep Quality Report - ${courseTitle}`);
+  lines.push(`# CourseMapper Quality Evidence Report - ${courseTitle}`);
   lines.push('');
+  if (quality.readiness) {
+    lines.push(
+      `**Automated readiness signal: ${quality.readiness.score}/100 (${quality.readiness.band}; automated ceiling ${quality.readiness.evidenceCeiling || 69})**`,
+    );
+    lines.push('');
+    lines.push(
+      `${quality.readiness.claimBoundary || AUTOMATED_QUALITY_CLAIM_BOUNDARY} Scores from 70–100 require a higher evidence tier with independent review or observed use.`,
+    );
+    lines.push('');
+  }
   lines.push(
-    `**Overall: ${quality.score}/100 (${quality.grade})** · ${findingCount} findings (${counts.p0} P0 · ${counts.p1} P1 · ${counts.p2} P2)${precomputed.fileCount ? ` · ${precomputed.fileCount} files` : ''}`,
+    `**Package conformance: ${quality.score}/100 (${quality.grade})** · ${findingCount} encoded findings (${counts.p0} P0 · ${counts.p1} P1 · ${counts.p2} P2)${precomputed.fileCount ? ` · ${precomputed.fileCount} files` : ''}`,
   );
   lines.push('');
   lines.push(
@@ -277,7 +298,21 @@ function renderPrecomputedQualityReport(precomputed, { courseTitle = 'Course' } 
     'This report uses the verified finish-pass quality result already shown in the workspace. The downloaded ZIP can still be independently regraded from its files.',
   );
   lines.push('');
-  lines.push('## Scores');
+  if (quality.readiness?.components) {
+    lines.push('## Automated readiness components');
+    lines.push('');
+    lines.push('| Component | Weight | Signal |');
+    lines.push('| --- | ---: | ---: |');
+    for (const [component, value] of Object.entries(quality.readiness.components)) {
+      const label = component
+        .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+        .replace(/[-_]+/g, ' ')
+        .toLowerCase();
+      lines.push(`| ${label.charAt(0).toUpperCase()}${label.slice(1)} | ${value.weight} | ${value.score}/100 |`);
+    }
+    lines.push('');
+  }
+  lines.push('## Package conformance checks');
   lines.push('');
   lines.push('| Dimension | Weight | Score | Grade |');
   lines.push('| --- | ---: | ---: | :---: |');
@@ -2141,6 +2176,7 @@ export async function buildCourseMaterialsZip({
             findingCounts: { p0: qualityResult.stats.p0, p1: qualityResult.stats.p1, p2: qualityResult.stats.p2 },
             dimensions: qualityResult.scores,
             gradedAt: new Date().toISOString(),
+            ...(qualityResult.readiness ? { readiness: qualityResult.readiness } : {}),
             // v0.15.6: the score-bearing texture meter rides the manifest
             // and the in-app Seal; the full evidence stays in QUALITY_REPORT.md.
             ...(qualityResult.texture && Number.isFinite(qualityResult.texture.score)

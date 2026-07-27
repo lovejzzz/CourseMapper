@@ -97,7 +97,12 @@ export function extractCourseName(source) {
       /\s*,?\s+(?=(?:an?\s+)?(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|\d{1,2})[- ]week\b[^,.;]{0,32}\b(?:course|class|seminar|studio|workshop)\b)/i.exec(
         line,
       );
-    const splitAt = briefDivider?.index ?? briefSuffix?.index ?? timedBriefSuffix?.index ?? -1;
+    const timedBriefDivider =
+      /\s+[—–-]\s+(?=(?:an?\s+)?(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|\d{1,2})[- ]week\b[^,.;]{0,48}\b(?:course|class|seminar|studio|workshop)\b)/i.exec(
+        line,
+      );
+    const splitAt =
+      briefDivider?.index ?? timedBriefDivider?.index ?? briefSuffix?.index ?? timedBriefSuffix?.index ?? -1;
     const candidate = splitAt > 0 ? line.slice(0, splitAt) : line;
     const value = clamp(candidate, MAX_COURSE_NAME, 3);
     if (value && value.split(' ').length >= 2) return value;
