@@ -178,6 +178,20 @@ export function defaultConcurrencyForProvider(provider) {
   return provider === 'public' || provider === 'local' ? 1 : 2;
 }
 
+/**
+ * Parse the explicit Algi network-research arm.
+ *
+ * `default` preserves the product default and seeds no storage. Controlled
+ * comparisons must choose `on` or `off` so a private genome-only run cannot be
+ * mistaken for the research-first Algi product.
+ */
+export function parseAlgiResearchFlag(raw) {
+  if (raw === undefined || raw === null || raw === true || raw === '') return 'default';
+  const value = String(raw).toLowerCase();
+  if (['default', 'on', 'off'].includes(value)) return value;
+  throw new Error(`--algi-research must be on, off, or default (got "${raw}")`);
+}
+
 const CONSOLE_TIMESTAMP = /^(\d{4}-\d{2}-\d{2}T[\d:.]+Z)/;
 const MODEL_DOWNLOAD_LABEL = /Downloading the public [^"]*base/i;
 const MODEL_READY_LABEL = /\bis ready\.|local generation start/i;

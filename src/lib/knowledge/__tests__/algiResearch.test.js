@@ -316,6 +316,67 @@ describe('teaching atoms from the source (gap 3)', () => {
     expect(built).not.toBeNull();
     expect(built.kernel.facts).toHaveLength(1);
   });
+
+  it('prefers an exact compact lesson phrase visibly anchored in a scholarly title', () => {
+    const built = buildKernelFromArticle({
+      topic: 'intervention design',
+      title: 'Applying behavior change theory to intervention design in primary care',
+      extract: [
+        'Intervention design applies behavior change theory to a clinic-based program in primary care.',
+        'Intervention design uses stakeholder interviews to identify knowledge gaps and missing implementation resources.',
+        'Intervention design includes team training and a structured implementation checklist.',
+        'Intervention design compares the implementation plan with observed clinic workflow constraints.',
+        'Intervention design evaluation records whether each component reaches its intended primary care team.',
+      ].join('\n'),
+      provider,
+      sourceMeta: {
+        suggestedTerm: 'Applying behavior change theory to intervention design in primary care',
+        definitionMode: 'scholarly-abstract',
+      },
+    });
+
+    expect(built.kernel.term).toBe('intervention design');
+  });
+
+  it('preserves a compact topic-relevant source concept instead of collapsing every article to the lesson title', () => {
+    const built = buildKernelFromArticle({
+      topic: 'bioremediation',
+      title: 'Phytoremediation approaches to bioremediation of contaminated water',
+      extract: [
+        'Phytoremediation is the use of plants and associated microorganisms to remove or contain environmental contaminants.',
+        'Phytoremediation can treat contaminated soil, sediment, and water at or near the affected site.',
+        'Plant selection depends on the contaminant, climate, root depth, and intended removal mechanism.',
+        'Field monitoring compares contaminant concentrations before and after the treatment period.',
+      ].join('\n'),
+      provider,
+      sourceMeta: {
+        suggestedTerm: 'Phytoremediation',
+        definitionMode: 'scholarly-abstract',
+      },
+    });
+
+    expect(built.kernel.term).toBe('Phytoremediation');
+  });
+
+  it('recognizes encompasses as a source-authored definitional verb', () => {
+    const built = buildKernelFromArticle({
+      topic: 'platform governance',
+      title: 'Platform economy',
+      extract: [
+        'The platform economy encompasses economic and social activities facilitated by digital platforms.',
+        'The platform economy has experienced rapid growth and disrupted established business models.',
+        'Platform businesses rely on network effects as more users join.',
+        'Regulators examine platform market concentration, worker protection, and tax obligations.',
+      ].join('\n'),
+      provider,
+      sourceMeta: {
+        suggestedTerm: 'Platform economy',
+      },
+    });
+
+    expect(built.kernel.term).toBe('Platform economy');
+    expect(built.kernel.definition.text).toContain('encompasses economic and social activities');
+  });
 });
 
 describe('relevance scoring', () => {
@@ -342,6 +403,10 @@ describe('relevance scoring', () => {
     expect(lexicalRelevance('microbial risk', 'microbiological risk')).toBe(1);
     expect(lexicalRelevance('bioremediation', 'phytoremediation')).toBe(1);
     expect(lexicalRelevance('pathogens', 'pathogenic microorganisms')).toBeGreaterThan(0);
+  });
+
+  it('normalizes governance morphology across lesson titles and source prose', () => {
+    expect(lexicalRelevance('platform governance', 'Platforms are governed by shared rules')).toBe(1);
   });
 
   it('tries canonical phrase windows for a three-word pedagogical topic', () => {
@@ -378,6 +443,39 @@ describe('relevance scoring', () => {
     );
     expect(directResearchTitles('Algorithmic audits', 'Current Technology Policy')).toEqual(
       expect.arrayContaining(['Algorithmic accountability', 'Algorithmic bias', 'Algorithmic transparency']),
+    );
+  });
+
+  it('expands the exact frozen comparison topics into canonical source concepts', () => {
+    expect(directResearchTitles('duties to workers', 'Business Ethics and Responsible Decision-Making')).toEqual(
+      expect.arrayContaining(["Workers' rights", 'Labour law', 'Occupational safety and health']),
+    );
+    expect(
+      directResearchTitles('accountable case recommendations', 'Business Ethics and Responsible Decision-Making'),
+    ).toEqual(expect.arrayContaining(['Business ethics', 'Stakeholder theory', 'Accountability']));
+    expect(directResearchTitles('intervention design', 'Public Health Program Planning')).toEqual(
+      expect.arrayContaining(['Logic model', 'Theory of change', 'Program evaluation']),
+    );
+    expect(directResearchTitles('implementation barriers', 'Public Health Program Planning')).toEqual(
+      expect.arrayContaining(['Implementation science', 'Policy implementation', 'Implementation research']),
+    );
+    expect(directResearchTitles('evaluation metrics', 'Public Health Program Planning')).toEqual(
+      expect.arrayContaining(['Program evaluation', 'Performance indicator', 'Outcome measure']),
+    );
+    expect(directResearchTitles('current artificial-intelligence regulation', 'Current Technology Policy')).toEqual(
+      expect.arrayContaining(['Governance of artificial intelligence', 'Regulation of artificial intelligence']),
+    );
+    expect(directResearchTitles('platform governance', 'Current Technology Policy')).toEqual(
+      expect.arrayContaining(['Internet governance', 'Platform economy', 'Content moderation']),
+    );
+    expect(directResearchTitles('privacy and data protection', 'Current Technology Policy')).toEqual(
+      expect.arrayContaining(['Information privacy law', 'Privacy law', 'Data protection']),
+    );
+    expect(directResearchTitles('algorithmic accountability standards', 'Current Technology Policy')).toEqual(
+      expect.arrayContaining(['Algorithmic accountability', 'Algorithmic bias', 'Algorithmic transparency']),
+    );
+    expect(directResearchTitles('evidence-based policy recommendations', 'Current Technology Policy')).toEqual(
+      expect.arrayContaining(['Public policy', 'Policy analysis', 'Regulatory impact analysis']),
     );
   });
 

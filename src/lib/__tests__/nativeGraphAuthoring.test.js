@@ -323,6 +323,57 @@ describe('nativeGraphAuthoring matchEntityIds', () => {
 });
 
 describe('completeNativeKernelSurfaces', () => {
+  it('retains source-researched facts whose topical receipt already passed Algi admission', () => {
+    const completed = completeNativeKernelSurfaces(
+      {
+        enrichmentSource: 'algi-researched',
+        conceptProvenance: {
+          citations: [
+            {
+              topic: 'duties to workers',
+              evidence: 'Labour laws mediate relationships between workers, employers, unions, and government.',
+              sourceUrl: 'https://en.wikipedia.org/wiki/Labour_law',
+            },
+          ],
+        },
+        keyTerms: [
+          {
+            term: 'Employment standards',
+            definition: 'Employment standards define minimum socially acceptable conditions for work.',
+            example: 'A workplace rule establishes a minimum condition for employees.',
+            misconception: 'Employment standards and labour law always have identical scope.',
+            correction: 'The source treats them as related concepts with different scope and evidence.',
+          },
+        ],
+        quizItems: [
+          { index: 0, type: 'multiple_choice' },
+          { index: 1, type: 'multiple_choice' },
+        ],
+        kernel: {
+          facts: [
+            'Employment standards define minimum socially acceptable conditions for work.',
+            'Individual labour law concerns employee rights under a contract for work.',
+            'Labour laws mediate relationships between workers, employers, unions, and government.',
+            'Occupational safety addresses hazards experienced while performing work duties.',
+            'Workplace prevention programs address incidents and occupational disease.',
+          ],
+          scenario: {
+            setup: 'A reviewer compares employee protections across one workplace case and its cited rules.',
+            materials: 'the admitted labour-law and occupational-safety source passages',
+          },
+        },
+      },
+      {
+        lessonNumber: 2,
+        title: 'Lesson 2: duties to workers',
+        sections: [{ topicSection: '2.1: duties to workers', weeklyAssessments: 'Worked example' }],
+      },
+    );
+
+    expect(completed.slideContent.length).toBeGreaterThanOrEqual(1);
+    expect(assessProjectedKernelCoverage(completed).usable).toBe(true);
+  });
+
   it('keeps the admitted cross-lesson ledger for an explicit cumulative projection', () => {
     const completed = completeNativeKernelSurfaces(
       {

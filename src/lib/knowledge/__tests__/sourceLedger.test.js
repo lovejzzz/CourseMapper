@@ -98,6 +98,24 @@ describe('trusted source ledger', () => {
     });
   });
 
+  it('recovers an OpenStax book URL from exact attribution when a genome row only names the section', () => {
+    const source = normalizeTrustedSource({
+      id: 'kr1',
+      provider: 'openstax',
+      title: '3.1',
+      attribution: 'OpenStax, Business Ethics, §3.1',
+      evidence: 'Stakeholders have an interest in how an organization operates.',
+      license: 'CC BY 4.0',
+    });
+
+    expect(source).toMatchObject({
+      url: 'https://openstax.org/books/business-ethics',
+      accessStatus: 'reference-present',
+      license: 'CC BY 4.0',
+    });
+    expect(isTrustedSourceLedgerRow(source)).toBe(true);
+  });
+
   it('refuses a green trust state when publisher attribution and URL disagree', () => {
     const source = buildSourceLedgerFromCourseGraph(
       {

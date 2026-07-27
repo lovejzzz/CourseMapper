@@ -123,6 +123,7 @@ function stem(token) {
   if (/^pathogen/.test(normalized)) return 'pathogen';
   if (/^waterborne/.test(normalized)) return 'water';
   if (/(?:^|[a-z])remediation$/.test(normalized)) return 'remediation';
+  if (/^govern(?:ance|ed|ing|ment|ments|s)?$/.test(normalized)) return 'govern';
   return normalized
     .replace(/(?:ies)$/, 'y')
     .replace(/(?:sses|shes|ches|xes)$/, '')
@@ -243,7 +244,26 @@ export function directResearchTitles(topic = '', courseContext = '') {
       // user evidence and design rationale, not physical environments.
       return ['User research', 'User-centered design', 'Design rationale', 'Usability testing'];
     }
-    if (/\bai governance\b|\bgovernance of artificial intelligence\b/i.test(baseTopic)) {
+    if (/\bduties?\s+to\s+workers?\b|\bworker duties?\b/i.test(baseTopic)) {
+      return ["Workers' rights", 'Labour law', 'Occupational safety and health', 'Duty of care'];
+    }
+    if (/\baccountable\s+case\s+recommendations?\b|\baccountable\s+recommendations?\b/i.test(baseTopic)) {
+      return ['Business ethics', 'Stakeholder theory', 'Corporate social responsibility', 'Accountability'];
+    }
+    if (/\bintervention\s+design\b/i.test(baseTopic)) {
+      return ['Logic model', 'Theory of change', 'Program evaluation', 'Implementation science'];
+    }
+    if (/\bimplementation\s+barriers?\b/i.test(baseTopic)) {
+      return ['Implementation science', 'Policy implementation', 'Implementation research', 'Barrier analysis'];
+    }
+    if (/\bevaluation\s+metrics?\b/i.test(baseTopic)) {
+      return ['Program evaluation', 'Performance indicator', 'Outcome measure', 'Monitoring and evaluation'];
+    }
+    if (
+      /\bai governance\b|\bgovernance of artificial intelligence\b|\b(?:current\s+)?artificial[-\s]+intelligence\s+regulation\b/i.test(
+        baseTopic,
+      )
+    ) {
       return [
         'Governance of artificial intelligence',
         'Regulation of artificial intelligence',
@@ -251,16 +271,31 @@ export function directResearchTitles(topic = '', courseContext = '') {
         'AI safety',
       ];
     }
-    if (/\bplatform accountability\b/i.test(baseTopic)) {
-      return ['Platform governance', 'Content moderation', 'Algorithmic accountability', 'Online service provider'];
+    if (/\bplatform (?:accountability|governance)\b/i.test(baseTopic)) {
+      return [
+        'Platform governance',
+        'Internet governance',
+        'Platform economy',
+        'Content moderation',
+        'Algorithmic accountability',
+        'Online service provider',
+      ];
     }
-    if (/\bprivacy regulation\b|\bdata protection regulation\b/i.test(baseTopic)) {
+    if (
+      /\bprivacy regulation\b|\bdata protection regulation\b|\bprivacy\s+and\s+data\s+protection\b/i.test(baseTopic)
+    ) {
       return ['Information privacy law', 'Privacy law', 'Data protection', 'General Data Protection Regulation'];
     }
-    if (/\balgorithmic audits?\b|\balgorithm audits?\b/i.test(baseTopic)) {
+    if (
+      /\balgorithmic audits?\b|\balgorithm audits?\b|\balgorithmic\s+accountability\s+standards?\b/i.test(baseTopic)
+    ) {
       return ['Algorithmic accountability', 'Algorithmic bias', 'Algorithmic transparency'];
     }
-    if (/\bemerging policy proposals?\b|\bpolicy proposals?\b/i.test(baseTopic)) {
+    if (
+      /\bemerging policy proposals?\b|\bpolicy proposals?\b|\b(?:evidence[-\s]+based\s+)?policy recommendations?\b/i.test(
+        baseTopic,
+      )
+    ) {
       return ['Public policy', 'Policy analysis', 'Policy cycle', 'Technology policy', 'Regulatory impact analysis'];
     }
     return [];
@@ -450,7 +485,8 @@ export function headOf(title = '') {
     .trim();
 }
 
-const COPULA = /\b(is|are|refers to|is defined as|describes|means|denotes|comprises|has become|serves as)\b/i;
+const COPULA =
+  /\b(is|are|refers to|is defined as|describes|means|denotes|comprises|includes|encompasses|has become|serves as)\b/i;
 
 /**
  * The lead sentence of an encyclopedia article is nearly always the definition,
@@ -934,11 +970,39 @@ function normalizeArticleResult(article) {
   };
 }
 
+function sourceAnchoredTopicTerm(topic = '', title = '') {
+  const topicWords = String(topic || '')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  if (topicWords.length < 1 || topicWords.length > 4) return '';
+  const pattern = topicWords.map((word) => word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('[^\\p{L}\\p{N}]+');
+  const match = String(title || '').match(new RegExp(`(?:^|[^\\p{L}\\p{N}])(${pattern})(?=$|[^\\p{L}\\p{N}])`, 'iu'));
+  return String(match?.[1] || '')
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .trim();
+}
+
 export function buildKernelFromArticle({ topic, title, extract, provider, factCount = 4, sourceMeta = {} }) {
   const sentences = sentencesFrom(extract);
   if (sentences.length === 0) return null;
   const articleTitle = headOf(title);
-  const head = headOf(sourceMeta.suggestedTerm || articleTitle);
+  const suggestedTerm = headOf(sourceMeta.suggestedTerm || '');
+  const compactRelevantSuggestedTerm =
+    suggestedTerm &&
+    suggestedTerm.split(/\s+/).filter(Boolean).length <= 6 &&
+    lexicalRelevance(topic, suggestedTerm) >= LEXICAL_FLOOR
+      ? suggestedTerm
+      : '';
+  // Grouped scholarly searches bind one network query to several lessons, so
+  // the provider-level suggested term can reflect a neighbouring topic. When
+  // the provider already supplied a compact, topic-relevant concept (for
+  // example "Phytoremediation"), preserve that useful distinction. Otherwise,
+  // prefer the lesson's exact compact phrase when it is visibly present in the
+  // article title. Neither route invents a concept: both preserve source text.
+  const head = headOf(
+    compactRelevantSuggestedTerm || sourceAnchoredTopicTerm(topic, title) || sourceMeta.suggestedTerm || articleTitle,
+  );
   const scholarlyAbstract = sourceMeta.definitionMode === 'scholarly-abstract';
   const definition =
     definitionSentence(sentences, head) ||
@@ -1416,11 +1480,27 @@ export async function researchLessonKernels(
         const titleTokens = contentTokens(entry.title);
         const definitionTokenSequence = contentTokens(entry.candidate.kernel.definition.text);
         const definitionTokens = new Set(definitionTokenSequence);
+        const evidenceTokenSequence = contentTokens(
+          [entry.candidate.kernel.definition.text, ...(entry.candidate.kernel.facts || []).map((fact) => fact?.text)]
+            .filter(Boolean)
+            .join(' '),
+        );
+        const evidenceTokens = new Set(evidenceTokenSequence);
         const titleTopicMatches = [...topicTokens].filter((token) => titleTokens.includes(token)).length;
         const definitionTopicMatches = [...topicTokens].filter((token) => definitionTokens.has(token)).length;
+        const evidenceTopicMatches = [...topicTokens].filter((token) => evidenceTokens.has(token)).length;
+        const directTitleMatch = directTitleKeys.has(
+          String(entry.title || '')
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, ' ')
+            .trim(),
+        );
+        const evidenceScore = lexicalRelevance(relevanceQuery, evidenceTokenSequence.join(' '));
+        const relevance = Math.max(titleScore, defScore, directTitleMatch ? evidenceScore : 0);
         const topicSequenceMatch =
           containsTokenSequence(topicTokenSequence, titleTokens) ||
-          containsTokenSequence(topicTokenSequence, definitionTokenSequence);
+          containsTokenSequence(topicTokenSequence, definitionTokenSequence) ||
+          containsTokenSequence(topicTokenSequence, evidenceTokenSequence);
         const definitionCoversClause = topicClauseTokens.some((clause) =>
           clause.every((token) => definitionTokens.has(token)),
         );
@@ -1431,21 +1511,18 @@ export async function researchLessonKernels(
           // A right title with an unrelated definition (or vice versa) is not
           // enough. The stronger signal carries the candidate, but the weaker
           // one must still provide independent evidence.
-          relevance: Math.max(titleScore, defScore),
+          relevance,
+          evidenceScore,
           secondaryRelevance: Math.min(titleScore, defScore),
           topicTokenCount: topicTokens.size,
           compoundTopic,
           definitionCoversClause,
           titleTopicMatches,
           definitionTopicMatches,
+          evidenceTopicMatches,
           topicSequenceMatch,
-          directTitleMatch: directTitleKeys.has(
-            String(entry.title || '')
-              .toLowerCase()
-              .replace(/[^a-z0-9]+/g, ' ')
-              .trim(),
-          ),
-          rankingScore: Math.min(titleScore, defScore) + Math.max(titleScore, defScore) * 0.25,
+          directTitleMatch,
+          rankingScore: Math.min(titleScore, defScore) + relevance * 0.25,
           domainMatch:
             !courseDomainToken || titleTokens.includes(courseDomainToken) || definitionTokens.has(courseDomainToken),
         };
@@ -1468,25 +1545,25 @@ export async function researchLessonKernels(
           // must still clear 75% of the ordinary lexical floor.
           (typeof embed !== 'function' &&
             entry.directTitleMatch &&
-            entry.definitionTopicMatches >= 1 &&
+            entry.evidenceTopicMatches >= 1 &&
             entry.relevance >= effectiveFloor * 0.75)) &&
         (typeof embed === 'function' ||
           domainAlignedCount < 3 ||
           entry.domainMatch ||
           entry.titleTopicMatches >= Math.min(2, entry.topicTokenCount) ||
-          (entry.directTitleMatch && entry.definitionTopicMatches >= 1)) &&
+          (entry.directTitleMatch && entry.evidenceTopicMatches >= 1)) &&
         (typeof embed === 'function' ||
           ((entry.secondaryRelevance >= effectiveFloor * 0.25 ||
             // A curated canonical family title can legitimately name the
             // neighbouring concept rather than repeat the lesson label
             // ("Microbial mat" for Biofilms). It remains admissible only when
             // its definition explicitly supplies the lesson topic.
-            (entry.directTitleMatch && entry.definitionTopicMatches >= 1) ||
+            (entry.directTitleMatch && entry.evidenceTopicMatches >= 1) ||
             entry.definitionTopicMatches >= 2 ||
             (entry.compoundTopic && entry.definitionCoversClause)) &&
             (entry.topicTokenCount <= 1 ||
               entry.topicSequenceMatch ||
-              (entry.directTitleMatch && entry.definitionTopicMatches >= 1) ||
+              (entry.directTitleMatch && entry.evidenceTopicMatches >= 1) ||
               entry.titleTopicMatches >= Math.min(2, entry.topicTokenCount) ||
               // For an explicitly compound lesson, one related named concept
               // may explain the relationship between both sides without
