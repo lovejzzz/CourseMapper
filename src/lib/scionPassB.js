@@ -32,6 +32,7 @@ import {
   SCION_LESSON_KERNEL_SYNTHESIS_PROMPT_PROTOCOL,
 } from './scionAdapterTaskScope';
 import { experientialLessonIds } from './experientialActivityContract';
+import { isAlgiModel } from './algiIdentity';
 
 const UNSAFE_ADAPTER_STAGE_ISSUE = /(?:^|:)(?:invalid-json|missing-lesson|facts-count|duplicate-facts|fact-\d+:)/;
 const GROUNDED_ADAPTER_OBJECTIVE =
@@ -249,6 +250,10 @@ export function scionCallOpts({ prompt, expectedLessonIds, recoveryAttempt }) {
   const activityLessonIds = experientialLessonIds(promptLessons);
   return {
     schema: compactLessonKernelSchemaProfile({ expectedLessonIds, factCount, activityLessonIds }),
+    // Algi V0 composes this batch from the genome rather than sampling it, and
+    // needs the same structured lessons the prompt was built from. Carried
+    // here so the composer never has to re-parse prose it did not author.
+    structuredPrompt: prompt,
     // A direct instructor/compiler ledger is already the trusted knowledge
     // source. Route it through the compact synthesis boundary so the base
     // copies only those claims and the compiler freezes them before any
@@ -292,6 +297,17 @@ export async function runScionPasses({
   runtimeRoutes = [],
   onResolvedPrompt,
 }) {
+  if (isAlgiModel(modelId)) {
+    recordEvent?.({
+      type: 'pipelineDecision',
+      stage: 'algiAdmissionStage',
+      label: 'Algi admission boundary',
+      detail: `${expectedLessonIds.length} composed lesson${expectedLessonIds.length === 1 ? '' : 's'} routed to canonical per-atom parser and compiler gates · no model repair`,
+      featureId: 'blueprintEnrichment',
+      task: 'blueprintEnrichment',
+    });
+    return rawText;
+  }
   if (!scionPassesEnabled()) return rawText;
   try {
     return await applyPasses();

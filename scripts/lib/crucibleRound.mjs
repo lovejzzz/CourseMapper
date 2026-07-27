@@ -159,6 +159,73 @@ export function clampConcurrency(raw, { fallback = 2, max = 3 } = {}) {
   return Math.max(1, Math.min(max, Math.floor(value)));
 }
 
+/**
+ * Default course concurrency for a round.
+ *
+ * Remote providers overlap network waits, so parallel courses are a real win.
+ * Browser-local providers ('public' Scion, '--llm local') run inference on THIS
+ * machine's single GPU, so parallel courses contend for one device instead.
+ *
+ * Measured on astro-101 (12 lessons, V0.16.78, warm profile): in-page
+ * generation is 48.6s at concurrency 1, versus 84.8s and 128.8s for two
+ * courses at concurrency 2 — and that two-course cold round took 16m01s wall
+ * where two sequential cold runs take about 4m. Concurrency did not overlap
+ * the work; it serialized it on the GPU and added contention on top.
+ *
+ * An explicit --concurrency always wins; this only moves the default.
+ */
+export function defaultConcurrencyForProvider(provider) {
+  return provider === 'public' || provider === 'local' ? 1 : 2;
+}
+
+const CONSOLE_TIMESTAMP = /^(\d{4}-\d{2}-\d{2}T[\d:.]+Z)/;
+const MODEL_DOWNLOAD_LABEL = /Downloading the public [^"]*base/i;
+const MODEL_READY_LABEL = /\bis ready\.|local generation start/i;
+
+/**
+ * Split a course's wall clock into model load and generation, read from the
+ * console log the run already saves.
+ *
+ * A round's per-course seconds silently mixes two unrelated costs: fetching and
+ * installing the browser-local base (a cold profile pays this on EVERY course)
+ * and the generation itself. Reporting only the sum makes an ordinary cold
+ * round look like a regression — the V0.16.78 acceptance receipt recorded a
+ * 2.9x round slowdown whose cause it could not name, and the answer was cold
+ * load plus GPU contention, not any product change.
+ *
+ * Pure and defensive: remote-provider rounds never emit these events and get
+ * nulls rather than invented numbers.
+ */
+export function summarizeModelLoadPhases(consoleLogText) {
+  const empty = { measured: false, modelLoadMs: null, modelDownloadMs: null, generationMs: null, totalMs: null };
+  const events = [];
+  for (const line of String(consoleLogText || '').split('\n')) {
+    const stamp = CONSOLE_TIMESTAMP.exec(line);
+    if (!stamp) continue;
+    const at = Date.parse(stamp[1]);
+    if (!Number.isFinite(at)) continue;
+    const label = /"label":"([^"]*)"/.exec(line);
+    events.push({ at, label: label ? label[1] : '' });
+  }
+  if (events.length < 2) return empty;
+
+  const firstAt = events[0].at;
+  const lastAt = events[events.length - 1].at;
+  const ready = events.find((event) => MODEL_READY_LABEL.test(event.label));
+  if (!ready) return { ...empty, totalMs: lastAt - firstAt };
+
+  const downloads = events.filter((event) => MODEL_DOWNLOAD_LABEL.test(event.label));
+  return {
+    measured: true,
+    // Warm profiles reach ready almost immediately; the difference between a
+    // warm and a cold course is visible here and nowhere else.
+    modelLoadMs: ready.at - firstAt,
+    modelDownloadMs: downloads.length >= 2 ? downloads[downloads.length - 1].at - downloads[0].at : 0,
+    generationMs: lastAt - ready.at,
+    totalMs: lastAt - firstAt,
+  };
+}
+
 // ── V0.14.5 WS-E (E1): provider breadth — flag parsing + course expansion ───
 
 /**

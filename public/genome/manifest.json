@@ -1,7 +1,7 @@
 {
-  "version": "2026-07-22",
+  "version": "2026-07-27",
   "generator": "curriculumos-foundry-v1",
-  "conceptCount": 302,
+  "conceptCount": 338,
   "shards": [
     {
       "id": "anatomy-intro",
@@ -28,6 +28,14 @@
       "hash": "ac5070a50403c773"
     },
     {
+      "id": "bizethics-intro",
+      "discipline": "bizethics",
+      "level": "intro",
+      "path": "bizethics-intro.json",
+      "conceptCount": 17,
+      "hash": "6648bdb1cb0d4b2c"
+    },
+    {
       "id": "chem-intro",
       "discipline": "chem",
       "level": "intro",
@@ -50,6 +58,14 @@
       "path": "econ-intro.json",
       "conceptCount": 16,
       "hash": "80169c3278f2f189"
+    },
+    {
+      "id": "envpolicy-intro",
+      "discipline": "envpolicy",
+      "level": "intro",
+      "path": "envpolicy-intro.json",
+      "conceptCount": 10,
+      "hash": "9b0644af4c19eac0"
     },
     {
       "id": "geo-intro",
@@ -104,8 +120,8 @@
       "discipline": "nursing",
       "level": "intro",
       "path": "nursing-intro.json",
-      "conceptCount": 13,
-      "hash": "84c97d2003a9bc3a"
+      "conceptCount": 15,
+      "hash": "08908065515ca1a8"
     },
     {
       "id": "nutrition-intro",
@@ -144,8 +160,8 @@
       "discipline": "stats",
       "level": "intro",
       "path": "stats-intro.json",
-      "conceptCount": 5,
-      "hash": "d043fca784ae8f65"
+      "conceptCount": 7,
+      "hash": "37b5c3c984aa0509"
     },
     {
       "id": "ux-intro",
@@ -154,6 +170,14 @@
       "path": "ux-intro.json",
       "conceptCount": 6,
       "hash": "97184a577a92ba3e"
+    },
+    {
+      "id": "worldlit-intro",
+      "discipline": "worldlit",
+      "level": "intro",
+      "path": "worldlit-intro.json",
+      "conceptCount": 5,
+      "hash": "0cc75bdbe484cee5"
     }
   ],
   "archetypeShard": {
@@ -317,6 +341,18 @@
     "https://en.wikipedia.org/wiki/Musical_form": {
       "displayTitle": "Musical form",
       "sourceUrl": "https://en.wikipedia.org/wiki/Musical_form"
+    },
+    "openstax:anatomy-and-physiology-2e": {
+      "displayTitle": "OpenStax Anatomy and Physiology 2e",
+      "sourceUrl": "https://openstax.org/details/books/anatomy-and-physiology-2e"
+    },
+    "openstax:microbiology": {
+      "displayTitle": "OpenStax Microbiology",
+      "sourceUrl": "https://openstax.org/details/books/microbiology"
+    },
+    "openstax:microbiology#16": {
+      "displayTitle": "OpenStax Microbiology",
+      "sourceUrl": "https://openstax.org/books/microbiology/pages/16-3-modes-of-disease-transmission"
     },
     "openstax:university-physics-volume-2": {
       "displayTitle": "University Physics Volume 2",

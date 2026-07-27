@@ -207,7 +207,9 @@ import {
 // 1.10.38 — activity updates pluralize correctly; marker-only detection needs
 // the canonical clock; PPTX titles come from the largest heading box instead
 // of a decorative label serialized first.
-export const GRADER_VERSION = '1.10.38';
+// 1.10.39 — the reconciled same-run digest owns final knowledge-backbone
+// honesty instead of being overwritten by earlier raw budget telemetry.
+export const GRADER_VERSION = '1.10.39';
 
 // ── Dimension weights & letter bands (documented in the module header) ──────
 // v0.15.186: texture weight 10 → 25. At 10/120 a fully templated package
@@ -1416,7 +1418,10 @@ export const IN_APP_EXCLUDED_CHECKS = [
  * checks that cannot run in-app).
  */
 export function honestyFromDigest(budget = null, digest = null) {
-  const pipeline = { ...(digest?.pipeline || {}), ...(budget?.pipeline || {}) };
+  // The digest is built after manifest-pipeline reconciliation. Raw budget
+  // telemetry can retain an earlier knowledge-backbone label, so it supplies
+  // fallbacks only; it must not overwrite the later same-run digest.
+  const pipeline = { ...(budget?.pipeline || {}), ...(digest?.pipeline || {}) };
   return {
     genomeLinker: String(pipeline.genomeLinker || ''),
     knowledgeBackbone: String(pipeline.knowledgeBackbone || ''),

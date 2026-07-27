@@ -65,7 +65,7 @@ describe('source-backed UX assessment bank', () => {
     ]);
   });
 
-  it('links the five targeted weak lessons in the 12-lesson UX benchmark', () => {
+  it('links the six source-backed lessons in the 12-lesson UX benchmark', () => {
     const result = linkUxCourse();
     expect(result.telemetry.resolvedFromGenome).toBe(6);
     expect(result.telemetry.partialFromGenome).toBe(6);

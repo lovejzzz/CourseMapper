@@ -61,8 +61,8 @@
     "implementation": [
       {
         "path": "scripts/lib/scionSourceCapture.mjs",
-        "bytes": 43251,
-        "sha256": "c1c40224eccc50fe6ddfb856c4031379a8fc482988341ceccf7ada7054d78341"
+        "bytes": 51221,
+        "sha256": "b73bf283bc8a335614a2ad9b8b7b3e6096ba37a2666107ff953e78d0dbb18961"
       },
       {
         "path": "scripts/lib/scionSourceTaskIdentity.mjs",
@@ -71,8 +71,8 @@
       },
       {
         "path": "scripts/scionSourceCapture.mjs",
-        "bytes": 38769,
-        "sha256": "d46c9ef9ae4722c8e4e7373175b4c9c434978f80676a47bf6bdabd156a25e013"
+        "bytes": 39743,
+        "sha256": "d1b767a19fec350199cb7dfbd029b3bd8909d50dc67862f92da6ea171f4578eb"
       },
       {
         "path": "scripts/scionCodexTrainingPreferences.mjs",
@@ -81,13 +81,13 @@
       },
       {
         "path": "scripts/scionAdapterDataset.mjs",
-        "bytes": 38718,
-        "sha256": "1526cf433330ccc478b89d3b4c880a11d8524856c4deabc502cdc992a19fcf97"
+        "bytes": 46029,
+        "sha256": "c108ac4f105f1ba092a39cff9603af296bf56aff7c1435e2a86762360698307a"
       },
       {
         "path": "scripts/scionAdapterTrainingRun.mjs",
-        "bytes": 36838,
-        "sha256": "25da4a712b810be600ace9c83a1d7e9e813bb8cbc00e86dcb2dd29a5061e98eb"
+        "bytes": 39592,
+        "sha256": "b21f7c1c35c15f44585884bfafbff2277fd4b83bca2bfacd933f6e48f689841d"
       },
       {
         "path": "scripts/scionSourceBoundPreferenceMigration.mjs",
@@ -101,18 +101,18 @@
       },
       {
         "path": "src/lib/scionAnswerKeyAlignment.js",
-        "bytes": 33671,
-        "sha256": "763f1c62d415897d413b71d33703871e9fa4ecaa12af861783b70072c87546a4"
+        "bytes": 79214,
+        "sha256": "9abc34551f60bb8623ce0b329c17d72644ac509456b8df733a0c7a364e7288cf"
       },
       {
         "path": "src/lib/scionPreferenceGate.js",
-        "bytes": 17907,
-        "sha256": "cec8ca647c892c08c814f99a58e7d67415c8ff88e2e1fd1ad6ff34bcdbd622ab"
+        "bytes": 24360,
+        "sha256": "e60b8f420ed72e8a12d523c36d069e70b0e0e2d12b29b27155ea23d25db3c331"
       },
       {
         "path": "trellis/tendril/sModel.mjs",
-        "bytes": 8151,
-        "sha256": "bc36871ead9ec9cae32fb3bd0fde9a5b8acaa4d1d43a624eddbdc320a660ed8f"
+        "bytes": 8731,
+        "sha256": "5d4b224543a54341bc649b9a14e5e30319a7aedcddb00dd635d7f501ff1c2543"
       }
     ],
     "artifactSetSha256": "a2d8cb4df00622ba790a9f083c54239f7bbd6fa6c9b0980d224e25cc26fcb107",

@@ -1,5 +1,19 @@
 {
   "_comment": "v0.13.5 nursing/foundations-of-patient-care shard source — OpenStax Anatomy and Physiology 2e and OpenStax Microbiology (both CC BY 4.0). Source snapshots are faithful condensations of the cited sections built around sentences quoted verbatim from each book (fetched June 10, 2026); every anchored quote below appears in its snapshot and was verified against the live text. Attribution: OpenStax Anatomy and Physiology 2e, openstax.org/details/books/anatomy-and-physiology-2e; OpenStax Microbiology, openstax.org/details/books/microbiology.",
+  "references": {
+    "openstax:anatomy-and-physiology-2e": {
+      "displayTitle": "OpenStax Anatomy and Physiology 2e",
+      "sourceUrl": "https://openstax.org/details/books/anatomy-and-physiology-2e"
+    },
+    "openstax:microbiology": {
+      "displayTitle": "OpenStax Microbiology",
+      "sourceUrl": "https://openstax.org/details/books/microbiology"
+    },
+    "openstax:microbiology#16": {
+      "displayTitle": "OpenStax Microbiology",
+      "sourceUrl": "https://openstax.org/books/microbiology/pages/16-3-modes-of-disease-transmission"
+    }
+  },
   "sourceSnapshots": {
     "openstax:anatomy-and-physiology-2e#1": "Maintaining homeostasis requires that the body continuously monitor its internal conditions. A set point is the physiological value around which the normal range fluctuates. A normal range is the restricted set of values that is optimally healthful and stable. Negative feedback is a mechanism that reverses a deviation from the set point. Therefore, negative feedback maintains body parameters within their normal range. A sensor, also referred to a receptor, is a component of a feedback system that monitors a physiological value. The control center is the component in a feedback system that compares the value to the normal range. An effector is the component in a feedback system that causes a change to reverse the situation and return the value to the normal range.",
     "openstax:anatomy-and-physiology-2e#1b": "Life processes of the human body are maintained at several levels of structural organization. To study the chemical level of organization, scientists consider the simplest building blocks of matter: subatomic particles, atoms, molecules, organelles, cells, tissues, organs, organ systems, organisms and biosphere. A cell is the smallest independently functioning unit of a living organism. A tissue is a group of many similar cells (though sometimes composed of a few related types) that work together to perform a specific function. An organ is an anatomically distinct structure of the body composed of two or more tissue types. An organ system is a group of organs that work together to perform major functions or meet physiological needs of the body.",
@@ -1365,6 +1379,195 @@
             }
           }
         ]
+      },
+      "attribution": ["OpenStax Microbiology, §16.3 Modes of Disease Transmission"]
+    },
+    {
+      "id": "nursing/waterborne-vehicle-transmission",
+      "rev": 1,
+      "term": "Waterborne vehicle transmission",
+      "aliases": [
+        "waterborne pathogens",
+        "waterborne disease transmission",
+        "water transmission",
+        "pathogens in water"
+      ],
+      "tags": ["microbiology", "environmental microbiology", "pathogens", "vehicle transmission"],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "Waterborne vehicle transmission moves pathogens through water from a reservoir toward a new host.",
+        "anchor": {
+          "src": "openstax:microbiology#16",
+          "loc": "16.3",
+          "quote": "the transmission of pathogens through vehicles such as water, food, and air"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "Water is a vehicle that can transmit pathogens between reservoirs and hosts.",
+          "anchor": {
+            "src": "openstax:microbiology#16",
+            "loc": "16.3",
+            "quote": "the transmission of pathogens through vehicles such as water, food, and air"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Vehicle transmission also includes pathogen movement through food and air.",
+          "anchor": {
+            "src": "openstax:microbiology#16",
+            "loc": "16.3",
+            "quote": "the transmission of pathogens through vehicles such as water, food, and air"
+          },
+          "tier": 2
+        },
+        {
+          "text": "A transmission pathway begins with pathogens persisting in their normal reservoirs.",
+          "anchor": {
+            "src": "openstax:microbiology#16",
+            "loc": "16.3",
+            "quote": "they require reservoirs where they normally reside"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students assume every waterborne exposure requires direct contact with an infected person.",
+          "corrective": "Waterborne spread is vehicle transmission, so contaminated water can carry pathogens without direct person-to-person contact.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "A field team traces a waterborne exposure from a contaminated water source to downstream users.",
+          "domain": "environmental microbiology"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "A field investigation links illness to pathogens carried through a shared water supply. Which transmission category best describes that pathway?",
+          "options": [
+            "Waterborne vehicle transmission",
+            "Direct person-to-person contact",
+            "Arthropod vector transmission",
+            "Indirect contact through fomites"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        },
+        {
+          "stem": "Which evidence most directly supports classifying an exposure as waterborne vehicle transmission rather than direct contact transmission?",
+          "options": [
+            "Pathogens move through shared water",
+            "Two people touch one another",
+            "An arthropod carries the pathogen",
+            "A contaminated object is handled"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": {
+        "requires": ["nursing/pathogen-reservoirs"],
+        "recommends": ["nursing/disease-transmission"]
+      },
+      "attribution": ["OpenStax Microbiology, §16.3 Modes of Disease Transmission"]
+    },
+    {
+      "id": "nursing/pathogen-reservoirs",
+      "rev": 1,
+      "term": "Pathogen reservoirs",
+      "aliases": ["reservoirs of infection", "pathogen source", "waterborne pathogen reservoir"],
+      "tags": ["microbiology", "environmental microbiology", "pathogens", "transmission"],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "A pathogen reservoir is the place where a pathogen normally resides and persists before transmission.",
+        "anchor": {
+          "src": "openstax:microbiology#16",
+          "loc": "16.3",
+          "quote": "they require reservoirs where they normally reside"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "Pathogens require reservoirs where they normally reside over time.",
+          "anchor": {
+            "src": "openstax:microbiology#16",
+            "loc": "16.3",
+            "quote": "they require reservoirs where they normally reside"
+          },
+          "tier": 2
+        },
+        {
+          "text": "A reservoir is distinct from the vehicle that later carries a pathogen.",
+          "anchor": {
+            "src": "openstax:microbiology#16",
+            "loc": "16.3",
+            "quote": "The term vehicle transmission refers to the transmission of pathogens through vehicles such as water, food, and air"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Water can serve as a transmission vehicle after pathogens leave a reservoir.",
+          "anchor": {
+            "src": "openstax:microbiology#16",
+            "loc": "16.3",
+            "quote": "the transmission of pathogens through vehicles such as water, food, and air"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students treat the pathogen reservoir and its transmission vehicle as the same thing.",
+          "corrective": "The reservoir is where the pathogen normally resides; water, food, or air may become the vehicle that carries it.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "Investigators distinguish the environmental reservoir from the water pathway that delivered pathogens to exposed users.",
+          "domain": "environmental microbiology"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "During a waterborne outbreak investigation, which description correctly distinguishes a pathogen reservoir from the water transmission vehicle?",
+          "options": [
+            "The reservoir houses it; water carries it",
+            "Water houses it; contact always carries it",
+            "The host and reservoir are identical",
+            "A vector is always the reservoir"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 1,
+          "rationaleRefs": [0]
+        },
+        {
+          "stem": "Why must an investigation identify both the pathogen reservoir and the transmission vehicle when explaining a waterborne exposure pathway?",
+          "options": [
+            "They describe different links in transmission",
+            "They are interchangeable names for water",
+            "Only the vehicle contains pathogens",
+            "Only reservoirs can reach new hosts"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 1,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": {
+        "requires": [],
+        "recommends": ["nursing/waterborne-vehicle-transmission", "nursing/disease-transmission"]
       },
       "attribution": ["OpenStax Microbiology, §16.3 Modes of Disease Transmission"]
     }

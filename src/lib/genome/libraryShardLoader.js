@@ -195,6 +195,24 @@ export function inferCourseDisciplines(courseMap) {
     .join(' ')
     .toLowerCase();
   const map = [
+    // v0.16.81: the business-ethics shard (OpenStax Business Ethics foundry
+    // run). Listed first because these lessons match "market" (econ) and
+    // "environmental responsibility" (envpolicy) while teaching neither. The
+    // pattern stays business-specific on purpose: utilitarianism, deontology,
+    // and virtue ethics are kernel aliases here but NOT discipline hints, so an
+    // intro-philosophy course still resolves against its own shard.
+    [
+      'bizethics',
+      /\bbusiness ethic|\bcorporate social responsib|\bstakeholder theor|\bwhistleblow|\bconflicts? of interest|\bcorporate governance|\bprofessional ethic|\bcode of conduct\b|\bworkplace rights\b|\bconsumer protection\b|\bmarketing ethics|\bcorporate ethics|\bfiduciary\b|\bemployment at will\b|\bbusiness conduct\b/,
+    ],
+    // v0.16.80: the environmental-policy shard (OpenStax Microeconomics 3e
+    // ch.12 foundry run). Listed BEFORE 'econ' because a policy course matches
+    // "market" and would otherwise be pulled into the economics shard, which
+    // holds none of the instrument vocabulary these lessons teach.
+    [
+      'envpolicy',
+      /\benvironmental polic|\bpollution\b|\bexternalit|\bcap[- ]and[- ]trade\b|\bcarbon tax|\bemissions? (?:trading|permit|standard)|\bcommand[- ]and[- ]control\b|\bmarketable permit|\benvironmental (?:regulation|justice|impact)|\bcommon[- ]pool resource/,
+    ],
     ['econ', /\beconom|microecon|macroecon|market|supply|demand|inflation|wage|monetary|fiscal/],
     [
       'project-management',
@@ -242,6 +260,14 @@ export function inferCourseDisciplines(courseMap) {
       'history',
       /\b(?:u\.?s\.?|american|united states|world|european|western|modern|global) history|\bhistory of\b|\bhistory\s+(?:course|survey|since|to)\b|\bcivilization\b|\bprimary sources?\b|\breconstruction era|\bradical reconstruction|\bgilded age|\bprogressive era|\bnew deal\b|\bgreat depression|\bworld war\b|\bcivil war\b|\bcold war\b|\bcivil rights movement|\b(?:american|french|industrial) revolution/,
     ],
+    // v0.16.80: world literature reads across traditions and languages, which
+    // the English-canon 'lit' shard does not cover (it hit 1/14 on a world-lit
+    // course). Matched BEFORE 'lit' so a comparative/global seminar reaches the
+    // tradition-level concepts rather than Austen and Dickens.
+    [
+      'worldlit',
+      /\bworld literature\b|\bcomparative literature\b|\bglobal (?:literature|fiction)\b|\bpostcolonial\b|\bmagical? realism\b|\bframe narrative\b|\bworld lit\b/,
+    ],
     ['lit', /\bliterat|literary|poetry|poem|novel|fiction|close reading|rhetoric|composition/],
     [
       'music',
@@ -251,7 +277,7 @@ export function inferCourseDisciplines(courseMap) {
       'ux',
       /\buser experience\b|\bux design\b|\bhuman[- ]centered design\b|\buser research\b|\bpersona(?:s)?\b|\bjourney map(?:ping|s)?\b|\bservice blueprint(?:ing|s)?\b|\binformation architecture\b|\btask flow(?:s)?\b|\bwirefram(?:e|es|ing)\b|\busability test(?:ing)?\b|\bdesign handoff\b/,
     ],
-    ['cs', /\bcomputer science|algorithm|programming|data structure/],
+    ['cs', /\bcomputer science|\bquantum computing\b|algorithm|programming|data structure/],
     // v0.14.1 (4.2): geology + world-language inference. The v0.14 audit's
     // Physical Geology and Mandarin courses inferred NOTHING — no regex
     // existed, so the 0-link runs looked like linker failures. The 'lang'

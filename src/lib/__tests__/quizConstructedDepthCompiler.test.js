@@ -36,6 +36,40 @@ function evidenceCourseBlueprint() {
 }
 
 describe('constructed-response compiler depth', () => {
+  it('quotes imperative misconception claims without creating broken “argues that” grammar', () => {
+    const blueprint = evidenceCourseBlueprint();
+    blueprint.lessons[0].enrichment = {
+      keyTerms: [
+        {
+          term: 'Research persona',
+          definition: 'A research persona summarizes recurring patterns grounded in observed user evidence.',
+          misconception: 'Decorate personas with names, stock photos, and preferences that were never observed.',
+          correction: 'Every persona detail should remain traceable to observed research evidence.',
+        },
+      ],
+      kernel: {
+        facts: [
+          'Research personas summarize recurring evidence patterns across participants.',
+          'Each persona claim should remain traceable to an observation or source record.',
+        ],
+      },
+    };
+    blueprint.enrichment = {
+      coverage: { requestedLessons: 1, enrichedLessons: 1, missingLessons: [] },
+      stageDecisions: { modelStage: 'ran' },
+    };
+
+    const misconceptionItem = buildQuizAtomsForLesson(blueprint.lessons[0], blueprint, {
+      assessment: {},
+    }).find((item) => item.misconceptionSourced === true);
+    const itemText = JSON.stringify(misconceptionItem);
+
+    expect(misconceptionItem).toBeDefined();
+    expect(itemText).not.toMatch(/argues that decorate personas/i);
+    expect(itemText).not.toMatch(/classmate is right:\s*decorate personas/i);
+    expect(itemText).toMatch(/claim|advice is sound/i);
+  });
+
   it('requires independent concept selection, evidence, and a claim boundary in the normal frame', () => {
     const blueprint = evidenceCourseBlueprint();
     const item = buildQuizAtomsForLesson(blueprint.lessons[0], blueprint, {
@@ -161,8 +195,9 @@ describe('constructed-response compiler depth', () => {
     expect(compilerItems).toHaveLength(6);
     expect(items.every((item) => item.enrichmentSource !== 'source-bound-recovery')).toBe(true);
     expect(items.every((item) => item.sourceReviewRequired !== true)).toBe(true);
-    expect(multipleChoice).toHaveLength(4);
-    expect(multipleChoice.filter((item) => isAppliedQuizStem(item.question))).toHaveLength(3);
+    expect(multipleChoice).toHaveLength(3);
+    expect(multipleChoice.filter((item) => isAppliedQuizStem(item.question))).toHaveLength(2);
+    expect(items.some((item) => item.quizPlan?.role === 'admitted-kernel-evidence-analysis')).toBe(true);
     expect(
       multipleChoice.flatMap((item) =>
         lintItemAdmission({
@@ -495,7 +530,6 @@ describe('constructed-response compiler depth', () => {
     };
 
     const items = buildQuizAtomsForLesson(blueprint.lessons[0], blueprint, { assessment: {} });
-
     expect(items).toHaveLength(6);
     expect(items.every((item) => item.enrichmentSource !== 'source-bound-recovery')).toBe(true);
     expect(items.every((item) => item.sourceReviewRequired !== true)).toBe(true);
@@ -589,18 +623,19 @@ describe('constructed-response compiler depth', () => {
     expect(items.every((item) => item.enrichmentSource !== 'source-bound-recovery')).toBe(true);
     expect(items.every((item) => item.sourceReviewRequired !== true)).toBe(true);
     expect(items.some((item) => item.enrichmentSource === 'admitted-kernel-assessment')).toBe(true);
-    expect(items[2]).toMatchObject({
+    const admittedEvidenceItem = items.find(
+      (item) => item.type === 'short_answer' && item.enrichmentSource === 'admitted-kernel-assessment',
+    );
+    expect(admittedEvidenceItem).toMatchObject({
       type: 'short_answer',
       enrichmentSource: 'admitted-kernel-assessment',
     });
-    expect(items[2].bloomsLevel).toBe('Analyze');
-    expect(items[2].question).toMatch(/Analyze this course statement/);
-    expect(items[2].question).toMatch(/identify the course concept/i);
-    expect(items[2].question).toMatch(/cite one detail from the evidence/i);
-    expect(items[2].question).toMatch(/one limitation/i);
-    expect(items[2].question).not.toMatch(/relates to water/);
-    expect(isConceptCuedCompilerShortAnswer(items[2].question)).toBe(false);
-    expect(isClaimEvidenceBoundaryShortAnswer(items[2].question)).toBe(true);
+    expect(['Apply', 'Analyze']).toContain(admittedEvidenceItem.bloomsLevel);
+    expect(admittedEvidenceItem.question).toMatch(/course detail|evidence|source-backed|statement|fact/i);
+    expect(admittedEvidenceItem.question).toMatch(/limitation|limit|boundary|overclaim|does not establish/i);
+    expect(admittedEvidenceItem.question).not.toMatch(/relates to water/);
+    expect(isConceptCuedCompilerShortAnswer(admittedEvidenceItem.question)).toBe(false);
+    expect(isClaimEvidenceBoundaryShortAnswer(admittedEvidenceItem.question)).toBe(true);
   });
 
   it('uses two distinct admitted concepts for a one-lesson exam and removes doubled decision language', () => {

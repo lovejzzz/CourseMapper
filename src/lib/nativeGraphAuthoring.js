@@ -535,7 +535,7 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
       const example = /(?:\b(?:to|from|with|for|of|by|through|against|into|as|than|the|a|an)|[:–—-])$/i.test(question)
         ? `${question} ${correctOption}`
         : /[?]$/.test(question)
-          ? `For ${question.replace(/[?]+$/, '')}, the supported answer is ${correctOption}.`
+          ? `The supported answer to “${question.replace(/[?]+$/, '')}?” is ${correctOption}.`
           : question;
       if (wordCount(definition) < 8 || wordCount(example) < 5) continue;
       const wrongOption = cleanText(
@@ -710,7 +710,7 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
             `The competing views differ over whether the current ${concept} evidence is sufficient or should remain conditional.`,
           ]),
           positions: [
-            `Use ${anchorClause} as the leading interpretation.`,
+            `Treat this source claim as the leading interpretation: ${anchorClause}.`,
             lessonVariant([
               `Keep an alternative explanation open until the unresolved ${concept} detail is checked.`,
               `Treat the current reading as provisional because the missing ${concept} evidence could change it.`,
@@ -1955,13 +1955,25 @@ function distributeWeightPercent(count) {
 
 function synthesizeSessionAssessments(sessions) {
   const weights = distributeWeightPercent(sessions.length);
-  const stems = ['analysis', 'application', 'comparison', 'interpretation'];
+  const frames = [
+    (topic) => `Evidence explanation: ${topic}`,
+    (topic) => `Worked example: ${topic}`,
+    (topic) => `Comparison brief: ${topic}`,
+    (topic) => `Application analysis: ${topic}`,
+  ];
   return sessions.map((session, index) => ({
     id: `a${index + 1}`,
-    title: `${session.title} ${stems[index % stems.length]}`,
+    title:
+      index === sessions.length - 1 && sessions.length > 1
+        ? `Course synthesis: ${session.title}`
+        : frames[index % frames.length](session.title),
     kind: 'graded-artifact',
     dueSession: session.order,
     weightPct: weights[index],
+    // The percentage is a compiler distribution, not an instructor-authored
+    // identity. Keep it in the registry/manifest, but do not splice it into
+    // every learner-facing artifact name.
+    compilerSynthesized: true,
   }));
 }
 
@@ -2450,7 +2462,9 @@ export function buildNativeWireMap(skeleton, passBBySession = {}) {
       /^character writing homework\b/i,
       'Character Writing Homework',
     );
-    return Number.isFinite(assessment.weightPct) && !/\d{1,3}\s*%/.test(displayTitle)
+    return Number.isFinite(assessment.weightPct) &&
+      assessment.compilerSynthesized !== true &&
+      !/\d{1,3}\s*%/.test(displayTitle)
       ? `${displayTitle} (${assessment.weightPct}%)`
       : displayTitle;
   };
@@ -2985,11 +2999,13 @@ function normalizedResourceKey(resource = {}) {
 
 const SOURCE_BACKED_RESOURCE_ORIGINS = new Set([
   'genome',
+  'algi-research',
   'genome-prerequisite',
   'openalex',
   'openlibrary',
   'openstax',
   'source-finder',
+  'wikipedia',
 ]);
 
 function isSourceBackedResource(resource = {}) {

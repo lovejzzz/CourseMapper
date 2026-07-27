@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "id": "algi-research-first-benchmark-v1",
+  "protocolVersion": "algi-research-first-course-intelligence-v1",
+  "frozenAt": "2026-07-27T23:30:00-04:00",
+  "claimBoundary": "This freezes the no-mandatory-model-download comparison before the result exists. It is not evidence that Algi matches or beats model-only Scion until same-commit artifacts pass the executable audit.",
+  "arms": {
+    "algiResearch": "Cold Algi research-first route: no model weights, empty project research cache, consented live providers, evidence graph, deterministic compiler.",
+    "algiCached": "Warm Algi route using only the exact verified project evidence saved by algiResearch, with provider network disabled.",
+    "scionModelOnly": "Cold Scion browser-local base route with Algi source research disabled and the same compiler configuration."
+  },
+  "courses": [
+    {
+      "id": "ux-evidence-studio-5",
+      "domain": "user-experience-design",
+      "prompt": "User Experience Evidence Studio, exactly five lessons: 1) research questions and study planning, 2) contextual inquiry and field notes, 3) affinity mapping and synthesis, 4) usability test design, and 5) evidence-based design recommendations. Students produce a traceable research report."
+    },
+    {
+      "id": "environmental-microbiology-5",
+      "domain": "life-sciences",
+      "prompt": "Environmental Microbiology, exactly five lessons: 1) microbial ecology, 2) waterborne pathogens, 3) biofilms, 4) bioremediation, and 5) microbial risk assessment. Students use field evidence and state uncertainty."
+    },
+    {
+      "id": "quantum-computing-5",
+      "domain": "computer-science-and-physics",
+      "prompt": "Introduction to Quantum Computing, exactly five lessons: 1) qubits and quantum states, 2) superposition and measurement, 3) quantum gates and circuits, 4) entanglement, and 5) quantum error correction. Students compare classical and quantum representations without unsupported hardware claims."
+    },
+    {
+      "id": "business-ethics-5",
+      "domain": "business-and-ethics",
+      "prompt": "Business Ethics and Responsible Decision-Making, exactly five lessons: 1) stakeholder analysis, 2) duties to workers, 3) conflicts of interest, 4) whistleblowing and retaliation, and 5) accountable case recommendations. Students justify decisions from explicit evidence."
+    },
+    {
+      "id": "world-literature-5",
+      "domain": "humanities",
+      "prompt": "World Literature and Comparative Reading, exactly five lessons: 1) world literature and circulation, 2) oral epic, 3) frame narratives, 4) translation and cultural mediation, and 5) comparative close reading. Students ground interpretations in assigned passages and name counter-readings."
+    },
+    {
+      "id": "technology-policy-current-5",
+      "domain": "technology-and-law",
+      "prompt": "Current Technology Policy, exactly five lessons: 1) platform governance, 2) current artificial-intelligence regulation, 3) privacy and data protection, 4) algorithmic accountability standards, and 5) evidence-based policy recommendations. Every current claim must name its date and source."
+    },
+    {
+      "id": "public-health-programs-5",
+      "domain": "public-health",
+      "prompt": "Public Health Program Planning, exactly five lessons: 1) community needs assessment, 2) social determinants of health, 3) intervention design, 4) implementation barriers, and 5) evaluation metrics. Students distinguish current guidance from durable background knowledge."
+    },
+    {
+      "id": "global-art-history-5",
+      "domain": "art-history",
+      "prompt": "Global Art History and Visual Evidence, exactly five lessons: 1) object-based visual analysis, 2) colonial circulation and provenance, 3) photography and modernity, 4) protest art, and 5) comparative curatorial interpretation. Students distinguish sourced historical claims from interpretation."
+    }
+  ],
+  "executionContract": {
+    "sameCompilerCommit": true,
+    "sameCompilerConfiguration": true,
+    "sameDeviceRequired": true,
+    "freshBrowserProfileForColdArms": true,
+    "minimumDomains": 8,
+    "oneAttemptPerArm": true,
+    "algiResearchCacheEmptyAtStart": true,
+    "algiCachedNetworkDisabled": true,
+    "requiredArtifactsPerArm": ["console-log", "run-digest", "package-zip", "source-ledger", "quality-report"],
+    "requiredMetrics": [
+      "coverage",
+      "quality",
+      "p0",
+      "p1",
+      "unsupportedClaims",
+      "blockers",
+      "durationMs",
+      "mandatoryModelBytes",
+      "sourceRequests",
+      "evidenceClaims",
+      "evidenceSources",
+      "evidenceProviders"
+    ]
+  },
+  "viabilityRules": {
+    "allCasesPresent": true,
+    "algiCoverageMinimum": 1,
+    "algiP0Maximum": 0,
+    "algiP1Maximum": 0,
+    "algiUnsupportedClaimsMaximum": 0,
+    "algiBlockersMaximum": 0,
+    "algiMandatoryModelBytesMaximum": 0,
+    "algiSourceRequestsMaximum": 20,
+    "algiEvidenceSourcesMinimum": 2,
+    "algiEvidenceProvidersMinimum": 1,
+    "cachedSourceRequestsMaximum": 0,
+    "cachedMandatoryModelBytesMaximum": 0,
+    "minimumQualityWithinTwoPointsOfScion": 6,
+    "maximumMedianColdDurationRatio": 1.5,
+    "maximumMedianWarmDurationRatio": 0.35,
+    "promotionRequiresRecordedEvidence": true
+  }
+}

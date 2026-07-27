@@ -143,6 +143,29 @@ function readyPass(overrides = {}) {
 // ── B1: selector ─────────────────────────────────────────────────────────────
 
 describe('B1 — buildRibbonModel selector', () => {
+  it('renders Algi research as observable Enrich work instead of an opaque wait', () => {
+    const event = {
+      type: 'algiResearchProgress',
+      label: 'Checking claims against source passages',
+      detail: '12 admitted knowledge kernels',
+      progress: 0.74,
+    };
+    const budget = applyApiCallBudgetEvent(createApiCallBudget(), event);
+    expect(budget.recentEvents[0]).toMatchObject({
+      type: 'algiResearchProgress',
+      progress: 0.74,
+    });
+    expect(latestKnowledgeActivity([event])).toBe(
+      'Checking claims against source passages · 12 admitted knowledge kernels',
+    );
+    expect(
+      deriveRibbonProgress({
+        pipeline: { state: 'enriching', activity: event },
+        budget,
+      }),
+    ).toBe(44);
+  });
+
   it('is null (ribbon hidden) on a fresh or restored workspace with no run activity', () => {
     expect(
       buildBuildRibbonModel({

@@ -68,6 +68,15 @@ describe('iteration 7 — genome spans deployed disciplines', () => {
         'anatomy',
         'astro',
         'econ',
+        // v0.16.80: environmental policy (OpenStax Microeconomics 3e ch.12).
+        'envpolicy',
+        // v0.16.80: world literature (Wikipedia, CC BY-SA) — tradition-level
+        // concepts the English-canon 'lit' shard does not carry.
+        'worldlit',
+        // v0.16.81: business ethics (OpenStax Business Ethics, CC BY 4.0) —
+        // authored so Algi stops filling an uncovered course's teaching slots
+        // with publication boilerplate.
+        'bizethics',
         'stats',
         'bio',
         'chem',
@@ -260,5 +269,14 @@ describe('iteration 7 — discipline inference covers the new disciplines', () =
         lessons: [{ title: 'Close Reading Poetry' }],
       }),
     ).toContain('lit');
+  });
+
+  it('routes quantum computing to computer science before generic concepts can cross disciplines', () => {
+    expect(
+      inferCourseDisciplines({
+        courseName: 'Introduction to Quantum Computing',
+        lessons: [{ title: 'Superposition and measurement' }, { title: 'Quantum gates and circuits' }],
+      }),
+    ).toContain('cs');
   });
 });

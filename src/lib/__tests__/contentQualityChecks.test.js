@@ -39,6 +39,23 @@ describe('auditDeliverableContentQuality', () => {
     expect(findings.some((finding) => finding.code === 'dangling-clause')).toBe(false);
   });
 
+  it('does not flag a complete temporal phrase ending in before', () => {
+    const { findings } = auditDeliverableContentQuality('studyGuides', {
+      lessons: [
+        {
+          keyTerms: [
+            {
+              example:
+                'The supported answer to “Which step would most directly have caught this?” is Rehearsing every task the day before.',
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(findings.some((finding) => finding.code === 'dangling-clause')).toBe(false);
+  });
+
   it('flags article disagreement like "a Energy decision"', () => {
     const { findings } = auditDeliverableContentQuality('syllabus', {
       syllabus: { description: 'Explains a Energy decision, implication, or next step.' },

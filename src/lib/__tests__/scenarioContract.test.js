@@ -182,6 +182,53 @@ describe('evidence-to-decision scenario contract', () => {
     expect(analyzeDecisionScenario(scenario).ready).toBe(true);
   });
 
+  it('does not repeat the term example as the related source claim', () => {
+    const repeated =
+      'The graphical depiction of quantum circuit elements uses a variant of the Penrose graphical notation.';
+    const independent =
+      'A quantum circuit is an ordered sequence of quantum gates, measurements, and initialization steps.';
+    const scenario = deriveDecisionScenario({
+      facts: [repeated, independent],
+      keyTerms: [
+        {
+          term: 'Quantum circuit',
+          definition: 'A quantum circuit is a computational routine made from coherent quantum operations.',
+          example: repeated,
+          misconception: 'Quantum circuits and classical circuits are interchangeable descriptions.',
+          correction: 'Quantum circuits use quantum operations and measurement rather than classical Boolean signals.',
+        },
+      ],
+    });
+
+    expect((scenario.setup.match(/graphical depiction of quantum circuit elements/gi) || []).length).toBe(1);
+    expect(scenario.setup).toContain(independent);
+    expect(analyzeDecisionScenario(scenario).ready).toBe(true);
+  });
+
+  it('uses peer contrasts once in the quiz and turns the scenario into a claim-boundary case', () => {
+    const misconception = 'Biofilm and microbial mat are interchangeable descriptions of the same concept.';
+    const scenario = deriveDecisionScenario({
+      facts: [
+        'A microbial mat records community structure across layers that receive different oxygen conditions.',
+        'A biofilm matrix changes transport and exposure for attached microbial cells.',
+      ],
+      keyTerms: [
+        {
+          term: 'Biofilm',
+          definition: 'A biofilm is a community of microorganisms whose cells adhere to a surface.',
+          example: 'A stream sample contains an attached microbial layer on a submerged stone.',
+          misconception,
+          correction: 'Biofilm and microbial mat have related but distinct source definitions.',
+        },
+      ],
+    });
+
+    expect(scenario.setup).not.toContain(misconception);
+    expect(scenario.setup).toMatch(/bounded|documented scope|supplied evidence/i);
+    expect(scenario.materials).toBe('the source-backed case example, related claim, and claim-boundary note');
+    expect(analyzeDecisionScenario(scenario).ready).toBe(true);
+  });
+
   it('preserves an authored scenario and uses fallback for a weak or missing one', () => {
     const authored = {
       setup:

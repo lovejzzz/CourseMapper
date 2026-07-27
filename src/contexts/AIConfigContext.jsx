@@ -4,10 +4,12 @@ import { getSecure, setSecure, removeSecure } from '../lib/secureStorage';
 import { createBaseModelCapabilities, createGenerationPlan } from '../lib/modelCapabilities';
 import {
   PUBLIC_SCION_MODEL_ID,
-  PUBLIC_SCION_MODEL_NAME,
   PUBLIC_SCION_PROVIDER_ID,
   publicScionModelOption,
+  publicScionModelOptionById,
+  publicScionProviderModelOptions,
 } from '../lib/publicScionIdentity';
+import { ALGI_MODEL_ID, isAlgiModel } from '../lib/algiIdentity';
 import { isLocalProviderOptInEnabled } from '../lib/localProvider';
 
 const AIConfigContext = createContext(null);
@@ -28,16 +30,24 @@ export function normalizeProjectProvider(provider) {
   return provider === 'free' || provider === 'webllm' ? PUBLIC_SCION_PROVIDER_ID : provider;
 }
 
-export function restorePublicScionAIConfig(setProvider, setApiKey, setModelId, setModelName, setApiStatus) {
+export function restorePublicScionAIConfig(
+  setProvider,
+  setApiKey,
+  setModelId,
+  setModelName,
+  setApiStatus,
+  requestedModelId = PUBLIC_SCION_MODEL_ID,
+) {
+  const selected = publicScionModelOptionById(requestedModelId);
   try {
     localStorage.setItem('coursemapper-provider', PUBLIC_SCION_PROVIDER_ID);
-    localStorage.setItem('coursemapper-modelid', PUBLIC_SCION_MODEL_ID);
-    localStorage.setItem('coursemapper-modelname', PUBLIC_SCION_MODEL_NAME);
+    localStorage.setItem('coursemapper-modelid', selected.id);
+    localStorage.setItem('coursemapper-modelname', selected.name);
   } catch {}
   setProvider(PUBLIC_SCION_PROVIDER_ID);
   setApiKey('');
-  setModelId(PUBLIC_SCION_MODEL_ID);
-  setModelName(PUBLIC_SCION_MODEL_NAME);
+  setModelId(selected.id);
+  setModelName(selected.name);
   setApiStatus('connected');
 }
 
@@ -81,7 +91,9 @@ export function AIConfigProvider({ children }) {
     try {
       const storedProvider = normalizeStoredProvider(localStorage.getItem('coursemapper-provider'));
       if (storedProvider === 'webllm' || storedProvider === 'free') return '';
-      if (storedProvider === PUBLIC_SCION_PROVIDER_ID) return PUBLIC_SCION_MODEL_NAME;
+      if (storedProvider === PUBLIC_SCION_PROVIDER_ID) {
+        return publicScionModelOptionById(localStorage.getItem('coursemapper-modelid')).name;
+      }
       return localStorage.getItem('coursemapper-modelname') || '';
     } catch {
       return '';
@@ -91,21 +103,27 @@ export function AIConfigProvider({ children }) {
     try {
       const storedProvider = normalizeStoredProvider(localStorage.getItem('coursemapper-provider'));
       if (storedProvider === 'webllm' || storedProvider === 'free') return '';
-      if (storedProvider === PUBLIC_SCION_PROVIDER_ID) return PUBLIC_SCION_MODEL_ID;
+      if (storedProvider === PUBLIC_SCION_PROVIDER_ID) {
+        // The provider now offers two models. Honour an explicit Algi V0
+        // selection; anything else (including legacy snapshots with no model
+        // metadata) canonicalizes to the downloaded Scion base.
+        const storedModelId = localStorage.getItem('coursemapper-modelid') || '';
+        return isAlgiModel(storedModelId) ? ALGI_MODEL_ID : PUBLIC_SCION_MODEL_ID;
+      }
       return localStorage.getItem('coursemapper-modelid') || '';
     } catch {
       return '';
     }
   });
   const [availableModels, setAvailableModels] = useState(() =>
-    provider === PUBLIC_SCION_PROVIDER_ID ? [publicScionModelOption()] : [],
+    provider === PUBLIC_SCION_PROVIDER_ID ? publicScionProviderModelOptions() : [],
   );
   const [maxOutputTokens, setMaxOutputTokens] = useState(() =>
-    provider === PUBLIC_SCION_PROVIDER_ID ? publicScionModelOption().maxOutputTokens : 16384,
+    provider === PUBLIC_SCION_PROVIDER_ID ? publicScionModelOptionById(modelId).maxOutputTokens : 16384,
   );
   const [modelCapabilities, setModelCapabilities] = useState(() => {
     if (provider === PUBLIC_SCION_PROVIDER_ID) {
-      return createBaseModelCapabilities(PUBLIC_SCION_PROVIDER_ID, publicScionModelOption());
+      return createBaseModelCapabilities(PUBLIC_SCION_PROVIDER_ID, publicScionModelOptionById(modelId));
     }
     try {
       const raw = localStorage.getItem('coursemapper-model-capabilities-current');

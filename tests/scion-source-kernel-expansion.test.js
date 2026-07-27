@@ -46,7 +46,9 @@ describe('Scion v0.16.47 source-kernel expansion', () => {
       // expansion fixture was introduced. The source-kernel expansion must
       // preserve that current manifest total instead of restoring the old
       // pre-Genetics count.
-      conceptCount: 310,
+      // v0.16.80: +7 for the environmental-policy shard (OpenStax
+      // Microeconomics 3e ch.12), admitted 7/7 through the foundry gate.
+      conceptCount: 346,
       references: {
         'omt:texture': expect.objectContaining({ sourceUrl: expect.stringContaining('openmusictheory') }),
         'uswds:step-indicator': expect.objectContaining({ sourceUrl: expect.stringContaining('step-indicator') }),

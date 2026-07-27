@@ -15,7 +15,7 @@ const TRUSTED_PROVIDERS = new Set([
   'source-finder',
 ]);
 
-const ACADEMIC_PROVIDERS = new Set(['openalex', 'eric', 'crossref']);
+const ACADEMIC_PROVIDERS = new Set(['openalex', 'eric', 'crossref', 'doaj', 'europe-pmc']);
 const OER_PROVIDERS = new Set(['openstax', 'open-music-theory', 'gutenberg', 'genome', 'genome-prerequisite']);
 const METADATA_ONLY_PROVIDERS = new Set(['openlibrary']);
 const LICENSED_BACKGROUND_PROVIDERS = new Set(['wikipedia']);
@@ -50,7 +50,7 @@ const BUSINESS_ETHICS_COURSE_RE = /\b(?:business\s+ethics|corporate\s+ethics)\b/
 const BUSINESS_ETHICS_SOURCE_ANCHOR_RE =
   /\b(?:business|corporat(?:e|ion)|ethic(?:al|s)?|moral(?:ity)?|utilitarian(?:ism)?|deontolog(?:y|ical)|virtue\s+ethics|stakeholders?|whistleblow(?:ing|er)|conflicts?\s+of\s+interest|employment|workplace|labor|civil\s+rights|discrimination|harassment|consumer\s+protection|consumer\s+rights|product\s+safety|dodd[–—-]frank|financial\s+reform|fiduciary|governance|compliance|sustainab(?:ility|le)|environmental\s+responsibility|marketing\s+ethics|advertising\s+ethics)\b/i;
 const USER_EXPERIENCE_SOURCE_ANCHOR_RE =
-  /\b(?:user[-\s]+experience|ux\b|human[-\s]?centered\s+design|human[-\s]?computer\s+interaction|human[-\s]?ai\s+interaction|hci\b|hai\b|user\s+interfaces?|interface\s+design|usability|design\s+research|user\s+research|personas?\b(?!\s*5)|journey\s+maps?|customer\s+journey|information\s+architecture|wirefram|prototype|prototyping|iterative\s+design|interaction\s+design|accessibility|inclusive\s+design|design\s+handoff|design\s+studio|co[-\s]?design|service\s+design|material\s+experience|design\s+patterns?|screen\s+flows?|navigation|portfolio\s+case\s+study|critique\s+session|a\/b\s+test(?:ing)?)\b/i;
+  /\b(?:user[-\s]+experience|ux\b|human[-\s]?centered\s+design|user[-\s]?centered\s+design|human[-\s]?computer\s+interaction|human[-\s]?ai\s+interaction|hci\b|hai\b|user\s+interfaces?|interface\s+design|usability|design\s+research|user\s+research|contextual\s+inquiry|field\s*notes?|fieldnotes?|field\s+research|personas?\b(?!\s*5)|journey\s+maps?|customer\s+journey|information\s+architecture|wirefram|prototype|prototyping|iterative\s+design|interaction\s+design|accessibility|inclusive\s+design|design\s+rationale|design\s+handoff|design\s+studio|co[-\s]?design|service\s+design|material\s+experience|design\s+patterns?|screen\s+flows?|navigation|portfolio\s+case\s+study|critique\s+session|a\/b\s+test(?:ing)?)\b/i;
 const USER_EXPERIENCE_FALSE_FRIEND_RE =
   /(?:\bstudio\s+ghibli\b|\bspiritual\s+practice\b|\bstrategic\s+planning\b|\bchuck\s+swindoll\b|\bpre[-\s]?service\s+teachers?\b|\bteacher\s+education\b|\bprototype\s+\(video\s+game\)|\bprototype\s+\(star\s+trek:\s*voyager\)|\bstar\s+trek:\s*voyager\b|\bscience\s+fiction\s+television\s+series\b|\baction[-\s]?adventure\s+video\s+game\b|\bradical\s+entertainment\b|\bactivision\b|\bplaystation\b|\bxbox\b|\bone\s+prototype\s+three\s+prototype\s+five\s+prototype\s+seven\s+prototype\b|\bprototype[-\s]?based\s+programming\b|\bprototype[-\s]?oriented\s+programming\b|\bprototypal\s+inheritance\b|\bclassless\s+programming\b|\bobject[-\s]?oriented\s+programming\b|\bmercator\s+projection\b|\bmap\s+projection\b|\bcylindrical\s+map\s+projection\b|\brhumb\s+lines?\b|\bmechatronics\b|\bmachine\s+design\b|\bmanufacturing\b|\bdata\s+refinement\b|\bfailures[-\s]?divergences\s+refinement\b|\bvehicle\s+refinement\b|\bautomotive\s+engineering\b|\bpositive\s+feedback\b|\bnegative\s+feedback\b|\bclimate\s+change\s+feedbacks?\b|\bpersona\s+\d+(?:\s+(?:golden|revival))?\b|\bpersona\s+\(series\)|\brevelations:\s*persona\b|\bmegami\s+tensei\b|\batlus\b|\bp[-\s]?studio\b|\brole[-\s]?playing\s+video\s+game\b|\btim\s+minchin\b|\bpublic\s+persona\b|\bcelebrity\b|\bnetwork\s+of\s+enterprises?\b|\bbrief\s+interviews\s+with\s+hideous\s+men\b|\bsketches\s+of\s+spain\b|\bmiles\s+davis\b|\bstudio\s+album\b|\bjazz\s+musician\b|\bconcierto\s+de\s+aranjuez\b|\ble\s+po[eè]me\b|\bpo[eè]me\b|\bpoetry\b|\bmarxisms?\b|\bcritique\s+&\s+struggle\b|\bcritique\s+of\s+pure\s+reason\b|\bimmanuel\s+kant\b|\bmetaphysics\b|\bfamily\s+mediation\b|\bprivate\s+sessions?\s+in\s+family\s+mediation\b|\bmediators?\b|\bdisputants?\b|\bbehavior\s+therapy\b|\bbooster\s+maintenance\s+sessions?\b|\bmetropolitan\s+transportation\s+authority\b|\bdesign\s+research\s+\(store\)|\blifestyle\s+store\b|\baircraft\s+design\s+process\b|\bprocess\s+design\s+and\s+process\s+control\b|\bifac\s+workshop\b|\bshoe\s+production\s+facilities\b|\bblocplan\b|\bsystematic\s+layout\s+planning\b|\blayout\s+of\s+shoe\s+production\b|\blayout\s+editor\s+configuration\b|\bmetaverse\s+beyond\s+the\s+hype\b|\bpatterns\s+2\.0\b|\blead[-\s]?user\s+theory\b|\bcommercially\s+attractive\s+user\s+innovations\b|\bweb\s+gis\s+in\s+practice\b|\bmicrosoft\s+kinect\b|\bintralogistics\s+processes\b|\bgreen\s+studio\s+handbook\b|\benvironmental\s+strategies\s+for\s+schematic\s+design\b|\bnational\s+design\s+studio\b|\ble\s+mans\s+prototype\b|\bin\s+living\s+color\s+sketches\b|\bsketch\s+comedy\b|\bcomedy\s+sketch(?:es)?\b|\btelevision\s+sketch(?:es)?\b|\barchitectural\s+education\b|\bcollaborative\s+learning\s+in\s+architectur(?:e|al)\b)/i;
 const USER_EXPERIENCE_TOPIC_ANCHORS = [
@@ -60,9 +60,10 @@ const USER_EXPERIENCE_TOPIC_ANCHORS = [
       /\b(?:material\s+driven\s+design|design\s+process|design\s+studio|critique|design\s+journals?|studio\s+workflow|service\s+design|co[-\s]?design)\b/i,
   },
   {
-    concept: /\b(?:interviews?|observations?|synthesis)\b/i,
+    concept:
+      /\b(?:interviews?|observations?|synthesis|contextual\s+inquiry|field\s*notes?|fieldnotes?|field\s+research)\b/i,
     source:
-      /\b(?:user\s+research|user\s+interviews?|research\s+interviews?|qualitative\s+interviews?|contextual\s+inquiry|observational\s+research|affinity\s+mapping|thematic\s+synthesis)\b/i,
+      /\b(?:user\s+research|user\s+interviews?|research\s+interviews?|qualitative\s+interviews?|contextual\s+inquiry|field\s*notes?|fieldnotes?|field\s+research|observational\s+research|affinity\s+mapping|thematic\s+synthesis)\b/i,
   },
   {
     concept: /\b(?:research\s+planning|research\s+objectives?|practice\s+sessions?|study\s+setup)\b/i,
@@ -92,6 +93,11 @@ const USER_EXPERIENCE_TOPIC_ANCHORS = [
     concept: /\b(?:test\s+plans?|task\s+scenarios?|findings)\b/i,
     source:
       /\b(?:usability\s+test(?:ing)?|a\/b\s+test(?:ing)?|split\s+test(?:ing)?|test\s+plans?|task\s+scenarios?|research\s+findings?)\b/i,
+  },
+  {
+    concept: /\b(?:evidence[-\s]+based\s+design\s+recommendations?|design\s+recommendations?)\b/i,
+    source:
+      /\b(?:user[-\s]?centered\s+design|human[-\s]?centered\s+design|user\s+research|design\s+research|research\s+findings?|usability\s+test(?:ing)?|design\s+rationale)\b/i,
   },
   {
     concept: /\b(?:inclusive\s+design|evaluation|remediation|accessibility)\b/i,
@@ -189,6 +195,12 @@ function cleanText(value, maxLength = 500) {
         .replace(/\s+\S*$/, '')
         .trim()
     : text;
+}
+
+function normalizeSessionRef(value) {
+  const ref = cleanText(value, 120);
+  const numbered = /^(?:s|session|lesson|week)?[-_\s]*(\d{1,3})$/i.exec(ref);
+  return numbered ? `s${Number(numbered[1])}` : ref;
 }
 
 function trimUrlPunctuation(value) {
@@ -380,10 +392,27 @@ function inferProviderFromText(value) {
   if (text.includes('openlibrary.org') || /\bopen library\b/.test(text)) return 'openlibrary';
   if (text.includes('gutenberg.org') || /\bproject gutenberg\b/.test(text)) return 'gutenberg';
   if (text.includes('eric.ed.gov') || /\beric\b/.test(text)) return 'eric';
+  if (text.includes('doaj.org') || /\bdoaj\b/.test(text)) return 'doaj';
+  if (text.includes('europepmc.org') || /\beurope\s+pmc\b/.test(text)) return 'europe-pmc';
   if (text.includes('wikipedia.org') || /\bwikipedia\b/.test(text)) return 'wikipedia';
   if (text.includes('crossref.org') || /\bcrossref\b/.test(text)) return 'crossref';
   if (text.includes('dl.acm.org/doi') || extractDoi(text)) return 'crossref';
   return '';
+}
+
+function sourcePublisherMismatch(entry, sourceUrl) {
+  const identityProviders = new Set(['gutenberg', 'openstax', 'wikipedia']);
+  const directProvider = cleanText(entry?.provider, 80).toLowerCase();
+  const declaredProvider = inferProviderFromText(
+    [entry?.attribution, entry?.credit, entry?.title, entry?.displayTitle, entry?.citation].filter(Boolean).join(' '),
+  );
+  const urlProvider = inferProviderFromText(sourceUrl);
+  if (identityProviders.has(directProvider) && identityProviders.has(urlProvider) && directProvider !== urlProvider) {
+    return true;
+  }
+  return Boolean(
+    identityProviders.has(declaredProvider) && identityProviders.has(urlProvider) && declaredProvider !== urlProvider,
+  );
 }
 
 function isGenericResourceProvider(provider) {
@@ -402,17 +431,26 @@ function isSourceLikeResource(resource = {}, provider = '') {
   return SOURCE_SIGNAL_RE.test(cleaned);
 }
 
+function collapseMetadataPunctuation(value = '') {
+  return String(value || '').replace(/(^|[^.])\.\.(?=[^.]|$)/g, '$1.');
+}
+
+function citationSegment(value = '') {
+  return collapseMetadataPunctuation(value).replace(/[.;:]+\s*$/g, '');
+}
+
 export function sourceCitationLabel(source = {}) {
-  const title = cleanText(source.title || source.citation || source.evidence || source.id, 220);
+  const title = citationSegment(cleanText(source.title || source.citation || source.evidence || source.id, 220));
   const authors = normalizeAuthors(source.authors).slice(0, 3).join(', ');
   const year = cleanText(source.year, 20);
   const ref = cleanText(source.doi ? `doi:${normalizeDoi(source.doi)}` : source.url, 240);
-  const lead = [authors, year ? `(${year})` : ''].filter(Boolean).join(' ');
+  const lead = citationSegment([authors, year ? `(${year})` : ''].filter(Boolean).join(' '));
   return [lead, title, ref].filter(Boolean).join(lead && title ? '. ' : ' — ');
 }
 
 export function normalizeTrustedSource(entry = {}, { fallbackId = '', checkedAt = '', conceptLinks = [] } = {}) {
   const provider = sourceProvider(entry);
+  const normalizedSourceType = sourceType(entry);
   const sourceText = [entry.url, entry.sourceUrl, entry.doi, entry.citation, entry.evidence, entry.title]
     .filter(Boolean)
     .join(' ');
@@ -423,11 +461,31 @@ export function normalizeTrustedSource(entry = {}, { fallbackId = '', checkedAt 
     doi && /^https?:\/\/(?:dx\.)?doi\.org\//i.test(extractedUrl || '')
       ? `https://doi.org/${doi}`
       : extractedUrl || (doi ? `https://doi.org/${doi}` : '') || openStaxProof?.url || '';
-  const title = cleanText(entry.title || entry.displayTitle || entry.citation || entry.evidence || entry.scope, 260);
+  let rawTitle = cleanText(entry.title || entry.displayTitle || entry.citation || entry.evidence || entry.scope, 260);
+  // Algi classroom resources are intentionally human-readable strings such
+  // as "AI governance — Article title (open scholarly article, CC0 — URL)".
+  // When that display label enters the formal source ledger, recover the
+  // bibliographic title instead of appending a second URL/DOI to the entire
+  // classroom string ("— — doi:…").
+  if (cleanText(entry.origin, 80).toLowerCase() === 'algi-research' && normalizedSourceType) {
+    const metadataAt = rawTitle.toLowerCase().indexOf(` (${normalizedSourceType.toLowerCase()}`);
+    if (metadataAt > 0) {
+      rawTitle = rawTitle.slice(0, metadataAt).trim();
+      const topicDivider = rawTitle.indexOf(' — ');
+      if (topicDivider > 0) rawTitle = rawTitle.slice(topicDivider + 3).trim();
+    }
+  }
+  const title = collapseMetadataPunctuation(rawTitle);
   const explicitLicense = cleanText(entry.license || entry.rights || entry.licenseUrl, 180);
   const license = explicitLicense
     ? normalizeLicense(explicitLicense, { preserveUnknown: true })
     : extractLicense(sourceText) || openStaxProof?.license || '';
+  const attribution =
+    citationSegment(cleanText(entry.attribution || entry.credit || '', 260)) ||
+    (provider === 'wikipedia' ? 'Wikipedia contributors' : '');
+  const sessionRefs = [
+    ...new Set((Array.isArray(entry.sessionRefs) ? entry.sessionRefs : []).map(normalizeSessionRef).filter(Boolean)),
+  ];
   const source = {
     id: sourceId(entry, fallbackId, 0),
     title,
@@ -435,13 +493,19 @@ export function normalizeTrustedSource(entry = {}, { fallbackId = '', checkedAt 
     url,
     doi,
     license,
+    ...(attribution ? { attribution } : {}),
     provider,
-    sourceType: sourceType(entry),
+    sourceType: normalizedSourceType,
     scope: cleanText(entry.scope || entry.path || 'course', 140),
     status: sourceStatus(entry),
     origin: cleanText(entry.origin || entry.sourceOrigin || '', 80),
     evidence: cleanText(entry.evidence || entry.note || entry.snippet || entry.abstract || '', 360),
     ...(Number.isFinite(Number(entry.sourceTier)) ? { sourceTier: Number(entry.sourceTier) } : {}),
+    ...(entry.revisionId !== undefined && entry.revisionId !== null && cleanText(entry.revisionId, 80)
+      ? { revisionId: cleanText(entry.revisionId, 80) }
+      : {}),
+    ...(cleanText(entry.revisionTimestamp, 100) ? { revisionTimestamp: cleanText(entry.revisionTimestamp, 100) } : {}),
+    ...(sessionRefs.length > 0 ? { sessionRefs } : {}),
     conceptLinks: normalizeConceptLinks([...(conceptLinks || []), ...(entry.conceptLinks || [])]),
     checkedAt: cleanText(entry.checkedAt || checkedAt, 80),
     accessStatus: isSourceAccessible({ url, doi }) ? 'reference-present' : 'no-url-or-doi',
@@ -449,13 +513,14 @@ export function normalizeTrustedSource(entry = {}, { fallbackId = '', checkedAt 
   };
   source.citation = sourceCitationLabel(source);
   source.licenseAmbiguous = isLicenseAmbiguous(source.license);
+  source.provenanceMismatch = sourcePublisherMismatch(entry, url);
   return source;
 }
 
 export function isTrustedSourceLedgerRow(row = {}) {
   const provider = cleanText(row?.provider, 80).toLowerCase();
   if (!TRUST_ELIGIBLE_PROVIDERS.has(provider) || REVIEW_ONLY_PROVIDERS.has(provider)) return false;
-  return isSourceAccessible(row) && !isLicenseAmbiguous(row?.license);
+  return isSourceAccessible(row) && !isLicenseAmbiguous(row?.license) && !row?.provenanceMismatch;
 }
 
 export function isConceptLinkedSourceLedgerRow(row = {}) {
@@ -835,8 +900,20 @@ function pruneCoveredNonActionableReviewRows(rows, reviewRows, courseGraph) {
 
 function mergeSourceLedgerConceptLinks(existing = {}, incoming = {}) {
   const conceptLinks = normalizeConceptLinks([...(existing.conceptLinks || []), ...(incoming.conceptLinks || [])]);
+  const authors = normalizeAuthors([...(existing.authors || []), ...(incoming.authors || [])]);
+  const sessionRefs = [
+    ...new Set([...(existing.sessionRefs || []), ...(incoming.sessionRefs || [])].map(normalizeSessionRef)),
+  ].filter(Boolean);
   return {
     ...existing,
+    ...(!existing.attribution && incoming.attribution ? { attribution: incoming.attribution } : {}),
+    ...(!existing.revisionId && incoming.revisionId ? { revisionId: incoming.revisionId } : {}),
+    ...(!existing.revisionTimestamp && incoming.revisionTimestamp
+      ? { revisionTimestamp: incoming.revisionTimestamp }
+      : {}),
+    ...(!existing.evidence && incoming.evidence ? { evidence: incoming.evidence } : {}),
+    ...(authors.length > 0 ? { authors } : {}),
+    ...(sessionRefs.length > 0 ? { sessionRefs } : {}),
     ...(conceptLinks.length > 0 ? { conceptLinks } : {}),
   };
 }
@@ -1051,7 +1128,11 @@ export function buildSourceReportMarkdown({
       const details = [
         row.provider ? `provider=${row.provider}` : '',
         row.license ? `license=${row.license}` : 'license=missing',
+        row.attribution ? `attribution=${row.attribution}` : '',
         row.url ? `url=${row.url}` : row.doi ? `doi=${row.doi}` : 'access=missing-url-or-doi',
+        row.revisionId ? `revisionId=${row.revisionId}` : '',
+        row.revisionTimestamp ? `revisionTimestamp=${row.revisionTimestamp}` : '',
+        row.sessionRefs?.length ? `sessions=${row.sessionRefs.join(',')}` : '',
         row.checkedAt ? `checkedAt=${row.checkedAt}` : '',
         row.licenseAmbiguous ? 'licenseReview=required' : '',
       ].filter(Boolean);
@@ -1070,7 +1151,11 @@ export function buildSourceReportMarkdown({
         row.provider ? `provider=${row.provider}` : '',
         row.status ? `status=${row.status}` : '',
         row.license ? `license=${row.license}` : 'license=missing',
+        row.attribution ? `attribution=${row.attribution}` : '',
         row.url ? `url=${row.url}` : row.doi ? `doi=${row.doi}` : 'access=missing-url-or-doi',
+        row.revisionId ? `revisionId=${row.revisionId}` : '',
+        row.revisionTimestamp ? `revisionTimestamp=${row.revisionTimestamp}` : '',
+        row.sessionRefs?.length ? `sessions=${row.sessionRefs.join(',')}` : '',
         row.checkedAt ? `checkedAt=${row.checkedAt}` : '',
         'trustedBibliography=false',
       ].filter(Boolean);

@@ -65,7 +65,7 @@ import { useUI } from './contexts/UIContext';
 import { useCourse } from './contexts/CourseContext';
 import { warn } from './lib/logger';
 import { applyQualityToFinalizerResult, runDeterministicPackageFinalizer } from './lib/packageFinalizer';
-import { PUBLIC_SCION_MODEL_NAME, PUBLIC_SCION_PROVIDER_ID } from './lib/publicScionIdentity';
+import { PUBLIC_SCION_PROVIDER_ID } from './lib/publicScionIdentity';
 import { verifyPackageExports } from './lib/packageExportVerifier';
 import { generateCourseHealthReport } from './lib/pedagogicalValidator';
 import { resolveRequestedClassSessionMinutes } from './lib/sourceBriefConstraints';
@@ -142,13 +142,29 @@ function buildKnowledgeBackboneLabel(coverage, sourceLedgerSummary = null) {
   if (!coverage || Number(coverage.openResources || 0) <= 0) return null;
   const sessionCount = Number(coverage.sessions) || 0;
   const genomeLinkedLessons = Number(coverage.genomeLinkedLessons) || 0;
+  const researchedLessons = Number(coverage.researchedLessons) || 0;
+  const researchedResourceCount = Number(coverage.resourcesByOrigin?.['algi-research']) || 0;
   const openResources = Number(coverage.openResources) || 0;
   const sessionsWithResources = Number(coverage.sessionsWithResources) || 0;
   const displayedSessionsWithResources =
     sessionCount > 0 && sessionsWithResources > sessionCount ? sessionCount : Math.max(0, sessionsWithResources);
+  // A legacy/repaired graph can carry the researched Resource rows before its
+  // derived coverage receipt has rebuilt `researchedLessons`. When that
+  // happens, the graph's explicit Algi origin plus per-session resource
+  // coverage is the authoritative evidence; do not mislabel it as genome-only.
+  const displayedResearchedLessons =
+    researchedLessons > 0
+      ? researchedLessons
+      : researchedResourceCount > 0
+        ? Math.min(sessionCount, displayedSessionsWithResources)
+        : 0;
   const trustedSourceRows = Number(sourceLedgerSummary?.trustedConceptLinkedCount) || 0;
   const originText = formatOriginCounts(coverage.resourcesByOrigin);
-  const parts = [`${genomeLinkedLessons}/${sessionCount} lessons genome-linked`];
+  const parts = [
+    displayedResearchedLessons > 0
+      ? `${displayedResearchedLessons}/${sessionCount} lessons source-researched`
+      : `${genomeLinkedLessons}/${sessionCount} lessons genome-linked`,
+  ];
   if (trustedSourceRows > 0) {
     parts.push(pluralizeCount(trustedSourceRows, 'trusted source-ledger row'));
     if (openResources !== trustedSourceRows) {
@@ -533,10 +549,10 @@ export default function AppFlow({
   } = useAIConfig();
   const restoreProjectAIConfig = useCallback(
     (snapshot, { providerFallback } = {}) => {
-      const originalProvider = snapshot?.provider || '';
-      const nextProvider = originalProvider ? normalizeProjectProvider(originalProvider) : providerFallback;
+      const originalProvider = snapshot?.provider;
+      const nextProvider = normalizeProjectProvider(originalProvider || providerFallback);
       if (nextProvider === PUBLIC_SCION_PROVIDER_ID) {
-        restorePublicScionAIConfig(setProvider, setApiKey, setModelId, setModelName, setApiStatus);
+        restorePublicScionAIConfig(setProvider, setApiKey, setModelId, setModelName, setApiStatus, snapshot?.modelId);
         return;
       }
       const providerWasRemapped = Boolean(originalProvider && nextProvider !== originalProvider);
@@ -1902,7 +1918,8 @@ export default function AppFlow({
                 readinessWarnings: result.readiness?.warnings || [],
               },
               generation: {
-                provider: result.provider || '',
+                provider: result.provider || provider || '',
+                modelId,
                 lessonCount: Array.isArray((result.courseMap || courseMapRef.current)?.lessons)
                   ? (result.courseMap || courseMapRef.current).lessons.length
                   : null,
@@ -3062,7 +3079,7 @@ export default function AppFlow({
       expectedLessonCount: Number(gen.completenessInfo?.expected) || 0,
       lessonCount: Array.isArray(courseMap?.lessons) ? courseMap.lessons.length : lessonCount,
       mappedLessonCount: Array.isArray(courseMap?.lessons) ? courseMap.lessons.length : 0,
-      isScion: provider === PUBLIC_SCION_PROVIDER_ID,
+      isScion: modelId === 'scion-public',
       scionRuntimeStatus,
     },
     deliverables: {
@@ -3111,9 +3128,8 @@ export default function AppFlow({
   const workspaceSaveQuiet = workspaceSavePresentation.quiet;
   const workspaceSaveTone = workspaceSavePresentation.tone;
   const workspaceSaveTextTone = workspaceSavePresentation.textTone;
-  const workspaceModelName =
-    provider === PUBLIC_SCION_PROVIDER_ID ? PUBLIC_SCION_MODEL_NAME : gen.activeModelName || modelName;
-  const workspaceModelLabel = workspaceModelName || modelId || '';
+  const workspaceModelName = gen.activeModelName || modelName;
+  const workspaceModelLabel = workspaceModelName;
   const workspaceSaveTitle = user
     ? 'Signed-in projects autosave locally and to My Projects.'
     : 'Anonymous projects autosave only in this browser. Export .coursemapper for a portable backup.';

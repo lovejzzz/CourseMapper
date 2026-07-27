@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "id": "algi-scion-hybrid-benchmark-v1",
+  "protocolVersion": "algi-scion-grounded-authoring-v1",
+  "frozenAt": "2026-07-26T19:00:00-04:00",
+  "claimBoundary": "This file freezes the comparison protocol and inputs. It is not a result and carries no quality or promotion claim until a same-commit paired evidence file passes the executable audit.",
+  "arms": {
+    "algi": "Algi evidence retrieval plus deterministic compiler; zero model inference.",
+    "scion": "Current Scion base route plus the same compiler configuration.",
+    "hybrid": "Algi-admitted evidence ledger bound before one Scion grounded-authoring call, then the same compiler."
+  },
+  "courses": [
+    {
+      "id": "ux-research-studio-5",
+      "domain": "user-experience-design",
+      "prompt": "User Experience Research Studio, exactly five lessons: 1) research questions and study planning, 2) contextual inquiry and field notes, 3) affinity mapping and synthesis, 4) usability test design, and 5) evidence-based design recommendations. Students produce a traceable research report."
+    },
+    {
+      "id": "environmental-microbiology-5",
+      "domain": "life-sciences",
+      "prompt": "Environmental Microbiology, exactly five lessons: 1) microbial ecology, 2) waterborne pathogens, 3) biofilms, 4) bioremediation, and 5) microbial risk assessment. Students use field evidence and state uncertainty."
+    },
+    {
+      "id": "quantum-computing-5",
+      "domain": "computer-science-and-physics",
+      "prompt": "Introduction to Quantum Computing, exactly five lessons: 1) qubits and quantum states, 2) superposition and measurement, 3) quantum gates and circuits, 4) entanglement, and 5) quantum error correction. Students compare classical and quantum representations without unsupported hardware claims."
+    },
+    {
+      "id": "business-ethics-5",
+      "domain": "business-and-ethics",
+      "prompt": "Business Ethics and Responsible Decision-Making, exactly five lessons: 1) stakeholder analysis, 2) duties to workers, 3) conflicts of interest, 4) whistleblowing and retaliation, and 5) accountable case recommendations. Students justify decisions from explicit evidence."
+    },
+    {
+      "id": "world-literature-5",
+      "domain": "humanities",
+      "prompt": "World Literature and Comparative Reading, exactly five lessons: 1) world literature and circulation, 2) oral epic, 3) frame narratives, 4) translation and cultural mediation, and 5) comparative close reading. Students ground interpretations in assigned passages and name counter-readings."
+    }
+  ],
+  "executionContract": {
+    "sameCompilerCommit": true,
+    "sameCompilerConfiguration": true,
+    "freshBrowserProfilePerArm": true,
+    "sameDeviceRequired": true,
+    "minimumDomains": 5,
+    "requiredArtifactsPerArm": ["console-log", "run-digest", "package-zip", "source-ledger", "quality-report"],
+    "blindOrderRandomized": true,
+    "judgeCannotSeeArmIdentity": true
+  },
+  "promotionRules": {
+    "allCasesPresent": true,
+    "hybridCoverageMinimum": 1,
+    "hybridP0Maximum": 0,
+    "hybridP1Maximum": 0,
+    "hybridUnsupportedClaimsMaximum": 0,
+    "hybridBlockersMaximum": 0,
+    "hybridModelCallsNoMoreThanScion": true,
+    "minimumHybridBlindWins": 3,
+    "maximumHybridBlindLosses": 0,
+    "minimumMedianQualityDelta": 2,
+    "maximumMedianDurationRatio": 1.35,
+    "promotionRequiresRecordedEvidence": true
+  }
+}

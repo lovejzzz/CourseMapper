@@ -5,7 +5,12 @@ import { getLocalEndpoint, localModelOption } from '../lib/localProvider';
 import { failureEventFields, toClassifiedError } from '../lib/failureClassification';
 import { GOOGLE_ENDPOINT_FAMILIES, isVertexKey } from '../lib/googleProvider';
 import { buildProviderTextRequest } from '../lib/modelRequestBuilders';
-import { PUBLIC_SCION_PROVIDER_ID, publicScionModelOption } from '../lib/publicScionIdentity';
+import {
+  PUBLIC_SCION_PROVIDER_ID,
+  publicScionModelOption,
+  publicScionProviderModelOptions,
+} from '../lib/publicScionIdentity';
+import { isAlgiModel } from '../lib/algiIdentity';
 import {
   buildApiUsageEvent,
   extractUsageFromProviderChunk,
@@ -175,6 +180,7 @@ export default function useStreamReader() {
       task,
       schema,
       promptProtocol,
+      structuredPrompt,
       temperature: temperatureOverride,
       onApiCallEvent,
       allowProviderFallback = true,
@@ -182,6 +188,85 @@ export default function useStreamReader() {
     const recordApiCallEvent = (event) => {
       if (typeof onApiCallEvent === 'function') onApiCallEvent(event);
     };
+    // Algi V0 answers from the uploaded source and the shipped genome, so it
+    // never downloads or executes weights. The composed response is returned in
+    // the same shape a sampled one would be, and an unanswerable task returns
+    // '' so the caller's existing model-unavailable path hands the work to the
+    // deterministic compiler instead of to invented content.
+    if (isAlgiModel(modelId)) {
+      let fullText = '';
+      let algiCoverage = null;
+      let composeError = null;
+      try {
+        const { composeAlgiResponse } = await import('../lib/algiComposer');
+        const composed = await composeAlgiResponse({
+          task,
+          userPrompt,
+          structuredPrompt,
+          schema,
+          signal: externalSignal,
+          onResearchProgress: (researchProgress = {}) => {
+            recordApiCallEvent({
+              type: 'algiResearchProgress',
+              label: researchProgress.label || 'Researching course evidence',
+              detail: researchProgress.detail || '',
+              stage: 'algi-research',
+              provider,
+              modelId,
+              featureId: featureId || task || '',
+              task: task || featureId || '',
+              progress: Math.max(0, Math.min(1, Number(researchProgress.progress) || 0)),
+              researchPhase: researchProgress.phase || '',
+              providerId: researchProgress.providerId || '',
+              modelRequests: 0,
+              spendUsd: 0,
+            });
+          },
+        });
+        fullText = composed?.text || '';
+        algiCoverage = composed?.coverage || null;
+      } catch (error) {
+        if (error?.name === 'AbortError' || externalSignal?.aborted) throw error;
+        // A composition failure must never masquerade as a model that chose to
+        // say nothing: record it, then let the compiler's fallback own the work.
+        composeError = error;
+      }
+      recordApiCallEvent({
+        type: 'algiComposed',
+        label: composeError
+          ? 'Algi V0 — composition failed'
+          : fullText
+            ? 'Algi V0 — composed from source and genome'
+            : 'Algi V0 — deferred to the compiler',
+        detail: composeError
+          ? `${task || 'request'} · ${composeError?.message || 'unknown error'}`
+          : algiCoverage
+            ? `${task || 'request'} · ${algiCoverage.covered}/${algiCoverage.requested} lessons composed${
+                algiCoverage.researched ? ` (${algiCoverage.researched} researched)` : ''
+              }${algiCoverage.cachedResearch ? ` (${algiCoverage.cachedResearch} reused)` : ''}${
+                algiCoverage.researchNote ? ` · ${algiCoverage.researchNote}` : ''
+              }${algiCoverage.uncovered?.length ? ` · not covered: ${algiCoverage.uncovered.join(', ')}` : ''}`
+            : fullText
+              ? `${task || 'request'} · no model download, no inference`
+              : `${task || 'request'} · not a composed task`,
+        stage: 'algi-compose',
+        provider,
+        modelId,
+        featureId: featureId || task || '',
+        task: task || featureId || '',
+        modelRequests: 0,
+        spendUsd: 0,
+        ...(algiCoverage?.researchReceipt
+          ? {
+              researchReceipt: algiCoverage.researchReceipt,
+              researchPlan: algiCoverage.researchReceipt.plan,
+              evidenceGraph: algiCoverage.researchReceipt.evidence,
+            }
+          : {}),
+      });
+      onChunk?.(fullText, 1);
+      return { fullText, finishReason: 'stop' };
+    }
     const observedAdapterRoutes = [];
     const retryLimit = maxRetries;
     const recordUsage = (reportedUsage, outputText, label = 'API usage') => {
@@ -1196,7 +1281,7 @@ export async function fetchModelsFromProvider(provider, apiKey, options = {}) {
     if (typeof onApiCallEvent === 'function') {
       onApiCallEvent({ type: 'modelDiscoveryCall', label: 'Resolve Scion local model', detail: 'browser-local' });
     }
-    return [publicScionModelOption()];
+    return publicScionProviderModelOptions();
   }
 
   if (provider === 'deepseek') {

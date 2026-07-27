@@ -1,0 +1,144 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-v0.16.79-round-timing-attribution-v1",
+  "version": "0.16.79",
+  "date": "July 25, 2026",
+  "status": "verified-local-pending-ci",
+  "question": "V0.16.78 recorded a 2.9x round slowdown (baseline digest median 49,335ms, candidate 169,110ms) with an unconfirmed cause and therefore claimed no latency win. This determines the cause.",
+  "method": {
+    "course": "astro-101",
+    "lessonCount": 12,
+    "provider": "public",
+    "modelId": "scion-public",
+    "adapterActive": false,
+    "note": "One course, one machine, one session. Each run varies exactly one factor. Wall clock is the crucible's reported per-course seconds; in-page generation is derived from the saved console log by summarizeModelLoadPhases.",
+    "hardwareBoundary": "Absolute model-load seconds depend on this machine's network and disk. The ATTRIBUTION is machine-independent; the constants are not."
+  },
+  "runs": [
+    {
+      "id": "R1",
+      "code": "0.16.78",
+      "profile": "cold",
+      "filmstrip": false,
+      "concurrency": 1,
+      "wallClockSeconds": 125,
+      "modelDownloadSeconds": 61.1,
+      "modelReadyAtSeconds": 68.8,
+      "generationSeconds": 49.1,
+      "quality": "99/A",
+      "p0": 0,
+      "p1": 0
+    },
+    {
+      "id": "R2",
+      "code": "0.16.78",
+      "profile": "warm",
+      "filmstrip": false,
+      "concurrency": 1,
+      "wallClockSeconds": 55,
+      "modelReadyAtSeconds": 0.0,
+      "generationSeconds": 48.6,
+      "quality": "99/A",
+      "p0": 0,
+      "p1": 0
+    },
+    {
+      "id": "R3",
+      "code": "0.16.78",
+      "profile": "warm",
+      "filmstrip": true,
+      "concurrency": 1,
+      "wallClockSeconds": 57,
+      "generationSeconds": 48.6,
+      "capturedFrames": 18,
+      "capturedBytes": 16000000,
+      "quality": "99/A",
+      "p0": 0,
+      "p1": 0
+    },
+    {
+      "id": "R4",
+      "code": "0.16.77",
+      "profile": "warm",
+      "filmstrip": false,
+      "concurrency": 1,
+      "wallClockSeconds": 55,
+      "generationSeconds": 48.6,
+      "quality": "99/A",
+      "p0": 0,
+      "p1": 0
+    },
+    {
+      "id": "R5",
+      "code": "0.16.78",
+      "profile": "cold",
+      "filmstrip": false,
+      "concurrency": 2,
+      "roundWallClockSeconds": 961,
+      "courses": [
+        { "id": "astro-101", "wallClockSeconds": 178, "modelDownloadSeconds": 83.7, "generationSeconds": 84.8 },
+        {
+          "id": "environmental-policy-unseen",
+          "wallClockSeconds": 217,
+          "modelDownloadSeconds": 77.9,
+          "generationSeconds": 128.8
+        }
+      ],
+      "quality": "99/A on both",
+      "p0": 0,
+      "p1": 0
+    },
+    {
+      "id": "R6",
+      "code": "0.16.79",
+      "profile": "cold",
+      "filmstrip": false,
+      "concurrency": "1 (new provider default)",
+      "roundWallClockSeconds": 334.8,
+      "courses": [
+        { "id": "astro-101", "wallClockSeconds": 129, "modelDownloadSeconds": 63.7, "generationSeconds": 48.9 },
+        {
+          "id": "environmental-policy-unseen",
+          "wallClockSeconds": 200,
+          "modelDownloadSeconds": 85.8,
+          "generationSeconds": 90.7
+        }
+      ],
+      "quality": "99/A on both",
+      "p0": 0,
+      "p1": 0,
+      "extractedFilesPerCourse": 101
+    },
+    {
+      "id": "R7",
+      "code": "0.16.79",
+      "profile": "cold",
+      "filmstrip": false,
+      "concurrency": 1,
+      "purpose": "Live verification that the round now reports its own configuration and timing split.",
+      "wallClockSeconds": 128,
+      "reportedModelLoadSeconds": 72.8,
+      "reportedModelDownloadSeconds": 64.5,
+      "reportedGenerationSeconds": 47.5,
+      "quality": "99/A",
+      "p0": 0,
+      "p1": 0
+    }
+  ],
+  "attribution": {
+    "coldModelLoadSecondsPerCourse": 70,
+    "filmstripSecondsPerCourse": 2,
+    "filmstripInPageSeconds": 0,
+    "codeDeltaSecondsV01677ToV01678": 0,
+    "concurrencyTwoGenerationMultiplier": "1.7x to 2.6x",
+    "conclusion": "The V0.16.78 round-to-round difference was cold model load plus GPU contention between concurrent courses. No product latency regression exists between V0.16.77 and V0.16.78: both generate astro-101 in 48.6s under identical warm conditions."
+  },
+  "fix": {
+    "change": "Browser-local providers ('public', 'local') default to concurrency 1; remote providers keep 2; explicit --concurrency still wins.",
+    "beforeRoundWallClockSeconds": 961,
+    "afterRoundWallClockSeconds": 334.8,
+    "speedup": "2.87x",
+    "outputUnchanged": "99/A, zero P0/P1, 101 extracted files per course in both arms."
+  },
+  "claimBoundary": "This is a timing attribution on one course and one machine, plus a two-course before/after of the concurrency default. It does not measure course quality, factual correctness, teachability, adapter performance, or any other device profile. Gemma weights are unchanged and the research adapter is inactive."
+}

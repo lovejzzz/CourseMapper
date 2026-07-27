@@ -19,6 +19,11 @@ export function formatRequiredText(text) {
   if (!text) return '';
   return [text.author, text.title, text.edition && `(${text.edition})`, text.isbn && `ISBN: ${text.isbn}`, text.note]
     .filter(Boolean)
+    .map((part) =>
+      String(part)
+        .trim()
+        .replace(/[.;:]+\s*$/g, ''),
+    )
     .join('. ');
 }
 

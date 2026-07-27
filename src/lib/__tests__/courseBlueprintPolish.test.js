@@ -101,4 +101,39 @@ describe('compiled classroom copy polish', () => {
     expect(classroomCopy).not.toMatch(/error message|\bbug\b|run early|running their work/i);
     expect(classroomCopy).toMatch(/observations|measurements|procedure|controls/i);
   });
+
+  it('uses field, laboratory, and public-health evidence for environmental microbiology', () => {
+    const blueprint = buildCourseBlueprint({
+      courseName: 'Environmental Microbiology',
+      lessons: [
+        {
+          title: 'Lesson 1: Waterborne Pathogens',
+          sections: [
+            {
+              topicSection: 'Waterborne pathogens; field sampling; public-health interpretation',
+              learningGoals: 'Connect microbial evidence to an environmental decision.',
+              learningObjectives:
+                'Evaluate a field and laboratory record before making a public-health recommendation.',
+              weeklyAssessments: 'Waterborne pathogen evidence check',
+              asyncActivities: 'Annotate field observations and laboratory results.',
+              syncActivities: 'Compare two exposure interpretations and defend the bounded conclusion.',
+              supportingResources: 'Open microbiology reading, field sample record, and laboratory report',
+              evaluateDesign: 'Score evidence use, interpretation, limitation, and decision quality.',
+            },
+          ],
+        },
+      ],
+    });
+    const compiled = compileBlueprintDeliverables(blueprint, ['quizBank']);
+    const quizText = JSON.stringify(compiled.quizBank);
+
+    expect(blueprint.enrichment.lens).toMatchObject({
+      domain: 'environmental microbiology inquiry',
+      evidenceNoun: 'field, laboratory, and public-health evidence',
+      decisionNoun: 'environmental or public-health decision',
+      learnerRole: 'environmental microbiologist',
+    });
+    expect(quizText).toContain('field, laboratory, and public-health evidence');
+    expect(quizText).not.toContain('experimental and genetic evidence');
+  });
 });

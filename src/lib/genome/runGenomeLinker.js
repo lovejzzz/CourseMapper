@@ -39,6 +39,25 @@ function respectsCourseLanguage(courseIdentity, payload) {
   );
 }
 
+function respectsCourseDisciplines(payload, library, allowedDisciplines) {
+  const allowed = new Set(
+    (Array.isArray(allowedDisciplines) ? allowedDisciplines : [])
+      .map((discipline) =>
+        String(discipline || '')
+          .trim()
+          .toLowerCase(),
+      )
+      .filter(Boolean),
+  );
+  if (allowed.size === 0) return true;
+  if (!isGenomeBackedPayload(payload)) return true;
+  const conceptIds = Array.isArray(payload?.conceptProvenance?.conceptIds)
+    ? payload.conceptProvenance.conceptIds.filter(Boolean)
+    : [];
+  if (conceptIds.length === 0) return false;
+  return conceptIds.every((id) => allowed.has(String(library?.getKernel?.(id)?.discipline || '').toLowerCase()));
+}
+
 const CUMULATIVE_SYNTHESIS_RE =
   /\b(?:cumulative|comprehensive|course)\s+(?:review|synthesis|exam(?:ination)?|assessment|performance)\b|\b(?:review|synthesis)\s+(?:of|for)\b|\b(?:final|capstone|culminating)\b[^.!?]{0,80}\b(?:project|portfolio|presentation|assessment|performance|case)\b/i;
 const CUMULATIVE_SYNTHESIS_MAX_CONCEPTS = 5;
@@ -172,10 +191,13 @@ export function describeGenomeLinkTelemetry(telemetry = {}, lessonCount = 0, sha
   const languageNote = telemetry.languageIdentityRejects
     ? ` · ${telemetry.languageIdentityRejects} cross-language link${telemetry.languageIdentityRejects === 1 ? '' : 's'} rejected`
     : '';
+  const disciplineNote = telemetry.disciplineRejects
+    ? ` · ${telemetry.disciplineRejects} cross-discipline link${telemetry.disciplineRejects === 1 ? '' : 's'} rejected`
+    : '';
   const synthesisNote = telemetry.cumulativeSyntheses
     ? ` · ${telemetry.cumulativeSyntheses} cumulative lesson${telemetry.cumulativeSyntheses === 1 ? '' : 's'} synthesized from prior cited concepts`
     : '';
-  return `${telemetry.resolvedFromGenome || 0} genome + ${telemetry.resolvedFromCache || 0} cached (${telemetry.cachedGenomeBacked || 0} genome-backed) of ${lessonCount} lessons (${telemetry.conceptHits || 0} concepts, ${telemetry.citationsRendered || 0} citations, ${telemetry.bridgeCount || 0} bridges)${coverageNote}${languageNote}${synthesisNote}`;
+  return `${telemetry.resolvedFromGenome || 0} genome + ${telemetry.resolvedFromCache || 0} cached (${telemetry.cachedGenomeBacked || 0} genome-backed) of ${lessonCount} lessons (${telemetry.conceptHits || 0} concepts, ${telemetry.citationsRendered || 0} citations, ${telemetry.bridgeCount || 0} bridges)${coverageNote}${languageNote}${disciplineNote}${synthesisNote}`;
 }
 
 // v0.14.1 (4.5): below this floor a genome match AUGMENTS the model instead
@@ -204,6 +226,7 @@ export function runGenomeLinker({
   level = null,
   uncoveredDisciplines = [],
   sourceReferences = {},
+  allowedDisciplines = [],
 } = {}) {
   const lessonContent = {};
   const missingIndices = [];
@@ -227,6 +250,16 @@ export function runGenomeLinker({
   const index = library?.getIndex ? library.getIndex() : null;
   const rawResolution = index ? resolveCourseConcepts(courseMap, index, { level }) : { perLesson: [] };
   const rejectedLanguageConceptIds = new Set();
+  const rejectedDisciplineConceptIds = new Set();
+  const allowedDisciplineSet = new Set(
+    (Array.isArray(allowedDisciplines) ? allowedDisciplines : [])
+      .map((discipline) =>
+        String(discipline || '')
+          .trim()
+          .toLowerCase(),
+      )
+      .filter(Boolean),
+  );
   // The model boundary already rejects cross-language teaching content, but
   // the trusted genome used to bypass that firewall. Generic labels such as
   // "Say hello" then matched Korean kernels inside a Mandarin course. Filter
@@ -234,9 +267,13 @@ export function runGenomeLinker({
   // projection so no secondary surface can reintroduce the rejected concept.
   const perLesson = rawResolution.perLesson.map((entry) => {
     const conceptRefs = (entry.conceptRefs || []).filter((ref) => {
-      const allowed = respectsCourseLanguage(courseMap?.courseName, library.getKernel(ref.id));
-      if (!allowed) rejectedLanguageConceptIds.add(ref.id);
-      return allowed;
+      const kernel = library.getKernel(ref.id);
+      const languageAllowed = respectsCourseLanguage(courseMap?.courseName, kernel);
+      const disciplineAllowed =
+        allowedDisciplineSet.size === 0 || allowedDisciplineSet.has(String(kernel?.discipline || '').toLowerCase());
+      if (!languageAllowed) rejectedLanguageConceptIds.add(ref.id);
+      if (!disciplineAllowed) rejectedDisciplineConceptIds.add(ref.id);
+      return languageAllowed && disciplineAllowed;
     });
     return {
       ...entry,
@@ -264,6 +301,7 @@ export function runGenomeLinker({
   };
   const byLesson = new Map(resolution.perLesson.map((entry) => [entry.lessonIndex, entry]));
   telemetry.languageIdentityRejects = rejectedLanguageConceptIds.size;
+  telemetry.disciplineRejects = rejectedDisciplineConceptIds.size;
 
   // v0.14.1 (4.6): cross-lesson quiz dedupe. conceptResolver deliberately
   // allows the same concept in multiple lessons (coherence boost), but the
@@ -295,6 +333,7 @@ export function runGenomeLinker({
     const titleSafeCacheAllowed =
       titleSafeCached &&
       respectsCourseLanguage(courseMap?.courseName, titleSafeCached) &&
+      respectsCourseDisciplines(titleSafeCached, library, allowedDisciplines) &&
       (isGenomeBackedPayload(titleSafeCached) || !hasCompleteGenomeCandidate);
     if (titleSafeCacheAllowed) {
       lessonContent[lessonId] = {
@@ -307,6 +346,9 @@ export function runGenomeLinker({
     }
     if (cached && titleSafeCached && !respectsCourseLanguage(courseMap?.courseName, titleSafeCached)) {
       telemetry.languageIdentityRejects += 1;
+    }
+    if (cached && titleSafeCached && !respectsCourseDisciplines(titleSafeCached, library, allowedDisciplines)) {
+      telemetry.disciplineRejects += 1;
     }
 
     // Tier 2 — genome concept composition.

@@ -43,6 +43,7 @@ export default defineConfig({
           if (/src\/lib\/courseMapContinuation\.js$/.test(id)) return 'courseMapContinuation';
           if (/src\/lib\/workspaceSaveStatus\.js$/.test(id)) return 'workspaceSaveStatus';
           if (/src\/lib\/notifyDone\.js$/.test(id)) return 'workspaceNotification';
+          if (/src\/lib\/agentEvidenceCards\.js$/.test(id)) return 'agentEvidenceCards';
           if (/src\/components\/deliverables\/shared\/lessonGrouping\.js$/.test(id)) {
             return 'deliverableLessonGrouping';
           }
@@ -69,6 +70,7 @@ export default defineConfig({
           // so platform-specific gzip variance cannot cross either ratchet.
           if (/src\/lib\/courseCompilerExamCopy\.js$/.test(id)) return 'compilerExamCopy';
           if (/src\/lib\/courseCompilerPolish\.js$/.test(id)) return 'compilerPolish';
+          if (/src\/lib\/compilerEvidenceCopy\.js$/.test(id)) return 'compilerEvidenceCopy';
           // Fact-ledger feedback normalization is shared by native authoring
           // and compilation. Keep that pure helper independently cacheable
           // instead of duplicating its bytes inside the compiler control-flow

@@ -101,8 +101,8 @@ describe('course compiler copy variants', () => {
 
     const body = JSON.stringify([result.overview, result.instructions, result.gradingCriteria]);
     expect(body).not.toContain('Meiosis and Gamete Formation');
-    expect(body).toContain('Meiosis Gamete Formation–specific reasoning');
-    expect(body).toContain('the Meiosis Gamete Formation work');
+    expect(body).toContain('Gamete Formation–specific reasoning');
+    expect(body).toContain('the Gamete Formation work');
     expect(result.title).toBe('Stages of Meiosis short analysis');
   });
 
@@ -261,6 +261,41 @@ describe('course compiler copy variants', () => {
     expect(text).toContain('DNA Structure–specific evidence');
     expect(text).toContain('the DNA Structure focus');
     expect(text).not.toContain('the the DNA Structure focus');
+  });
+
+  it('keeps a grammatical side of a short compound lesson title', () => {
+    const result = compactRepeatedCourseFocusReferences(
+      Array.from(
+        { length: 6 },
+        () => 'Use Qubits and quantum states evidence, then revisit the Qubits and quantum states focus.',
+      ),
+      'Qubits and quantum states',
+      { limit: 1 },
+    );
+    const text = result.join(' ');
+    expect(text).toContain('quantum states–specific evidence');
+    expect(text).toContain('the quantum states focus');
+    expect(text).not.toContain('Qubits quantum states');
+  });
+
+  it('keeps compact compiler assessment identities title-shaped', () => {
+    const result = compactRepeatedCourseFocusReferences(
+      {
+        first: 'Teach Qubits and quantum states with one visible example.',
+        second: 'Revisit Qubits and quantum states before the check.',
+        artifact: 'Evidence explanation: Qubits and quantum states',
+        followUp: 'Use Evidence explanation: Qubits and quantum states during peer review.',
+        resource: 'Source packet for Qubits and quantum states: annotated excerpt plus activity prompt.',
+      },
+      'Qubits and quantum states',
+      { limit: 2 },
+    );
+
+    expect(result.artifact).toBe('Evidence explanation: quantum states');
+    expect(result.followUp).toContain('Evidence explanation: quantum states');
+    expect(result.resource).toContain('Source packet for quantum states:');
+    expect(JSON.stringify(result)).not.toContain('Evidence explanation: the quantum states focus');
+    expect(JSON.stringify(result)).not.toContain('Source packet for the quantum states work');
   });
 
   it('does not hide an article-led full title inside compact local references', () => {

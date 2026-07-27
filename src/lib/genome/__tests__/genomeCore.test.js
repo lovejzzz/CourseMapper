@@ -10,6 +10,7 @@ import { buildConceptIndex, resolveCourseConcepts, resolveLessonConcepts } from 
 import { createKernelLibrary } from '../kernelLibrary.js';
 import { composeLessonFromConcepts } from '../composeLessonFromConcepts.js';
 import { buildQuizItemPlan } from '../../blueprintEnrichmentPass.js';
+import uxGenome from '../../../../public/genome/ux-intro.json';
 
 const ANCHOR = {
   src: 'openstax:microeconomics-3e',
@@ -220,6 +221,29 @@ describe('conceptResolver', () => {
     const result = resolveCourseConcepts(courseMap, index, { level: 'intro' });
     expect(result.lessonsWithHits).toBeGreaterThanOrEqual(2);
     expect(result.hitRate).toBeGreaterThan(0);
+  });
+
+  it('resolves a compact UX studio sequence against the shipped private genome', () => {
+    const uxIndex = buildConceptIndex(uxGenome.kernels);
+    const lessons = [
+      'User research and interview synthesis',
+      'Information architecture and interaction flows',
+      'Usability testing and iterative prototyping',
+    ].map((title, index) => ({
+      title: `Lesson ${index + 1}: ${title}`,
+      sections: [{ topicSection: title, learningObjectives: `Apply ${title} to a design decision.` }],
+    }));
+
+    const result = resolveCourseConcepts({ courseName: 'User Experience Design Studio', lessons }, uxIndex, {
+      level: 'intro',
+    });
+
+    expect(result.lessonsWithHits).toBe(3);
+    expect(result.perLesson[0].conceptRefs.map((ref) => ref.id)).toContain('ux/research-planning');
+    expect(result.perLesson[1].conceptRefs.map((ref) => ref.id)).toContain('ux/task-flow-analysis');
+    expect(result.perLesson[2].conceptRefs.map((ref) => ref.id)).toEqual(
+      expect.arrayContaining(['ux/interactive-prototyping', 'ux/accessibility-usability-evaluation']),
+    );
   });
 
   it('keeps an interval course on interval quality instead of weaker clef and scale neighbours', () => {

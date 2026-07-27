@@ -19,11 +19,31 @@ const budgets = {
 // These are repository-growth ceilings, not targets. Reductions are welcome;
 // raising one requires a written product/release justification beside the
 // changed value. A public patch may add exactly its one release contract.
+//
+// v0.16.80: releaseContractFiles rebased 264 → 265 and baselineVersion 0.16.78
+// → 0.16.79. The count is a BASELINE, and the one-contract release allowance is
+// measured from it, so the baseline has to advance as each release lands or the
+// allowance is silently consumed by the previous release. v0.16.78 shipped its
+// contract (263 → 264) without moving the baseline, so v0.16.79 failed the gate
+// at 265/264 despite adding exactly one file. This is the ratchet working: it
+// caught an unaccounted increase, and the fix is to re-freeze at the released
+// state, not to widen the allowance. Every future release must do the same.
 const repositoryBudgets = {
-  baselineVersion: '0.16.77',
-  compilerLines: 27_831,
-  npmScripts: 377,
-  releaseContractFiles: 263,
+  // v0.16.82 advances the frozen state through the shipped v0.16.81 contract;
+  // its own v0.16.82 contract consumes the single declared-release allowance.
+  baselineVersion: '0.16.81',
+  // v0.16.82 adds 29 net lines of reusable compiler control logic for
+  // policy-domain separation and concept-owned evidence binding. Source-
+  // statement copy and prerequisite selection moved to a cacheable leaf; the
+  // increase is regression-covered and contains no fixed course-copy corpus.
+  compilerLines: 28_000,
+  // v0.16.81 adds one executable Algi→Scion hybrid benchmark audit. It freezes
+  // evidence, route, quality, call, latency, and export promotion rules; this
+  // is a release gate rather than product-side script sprawl.
+  // V0.16.82 adds the frozen, executable Algi research-first benchmark audit.
+  npmScripts: 379,
+  // v0.16.81 shipped the 267th release contract; v0.16.82 may add exactly one.
+  releaseContractFiles: 267,
   trackedWeightFiles: 62,
   trackedWeightBytes: 1_053_339_981,
   largeBinaryBytes: 1024 * 1024,
@@ -98,7 +118,10 @@ const lazyChunkBudgets = [
   // v0.16.73: exact project recovery, IndexedDB autosave ownership, finish
   // receipts, and the compact Content/Agent/Export switch add 0.5/0.1 KiB to
   // the lazy workspace shell. Keep the ceiling within 0.5/0.9 KiB.
-  { prefix: 'AppFlow-', rawKiB: 280, gzipKiB: 85 },
+  // v0.16.80 adds the explicit private/research Algi route and preserves its
+  // no-model-download state across workspace creation. The workspace-only
+  // shell measures 280.8/84.5; keep less than 0.2/0.5 KiB headroom.
+  { prefix: 'AppFlow-', rawKiB: 281, gzipKiB: 85 },
   // v0.16.47: the Living Course Compiler component and pure selector gained
   // an independently cacheable route boundary instead of raising AppFlow's
   // long-standing ratchet. Clean measurement: AppFlow 251.6/75.9; ribbon
@@ -134,6 +157,9 @@ const lazyChunkBudgets = [
   // v0.16.73 measured 355.0/97.8 after package-readiness and compiled-answer
   // receipts; preserve the existing generous gzip ceiling.
   { prefix: 'ChatPanel-', rawKiB: 356, gzipKiB: 105 },
+  // V0.16.82: compact compiled evidence cards are independently cacheable.
+  // Keep source-grounded Agent context out of the conversation-control chunk.
+  { prefix: 'agentEvidenceCards-', rawKiB: 2, gzipKiB: 1 },
   // Read-only answers are loaded only after a user asks the compiled course a
   // question. The leaf now owns exact Mandarin ledger answers as well as the
   // original lesson-scoped comparison answer.
@@ -198,7 +224,10 @@ const lazyChunkBudgets = [
   // the compiler-data split remains the next structural reduction.
   // The experiential-activity IR adds a small dispatch seam after moving its
   // deterministic projections into a separate chunk. Retain narrow headroom.
-  { prefix: 'courseBlueprintCompiler-', rawKiB: 842, gzipKiB: 236 },
+  // v0.16.80's source-before-synthesis boundary, mixed-source provenance, and
+  // evidence-analysis seat add 1.3 KiB raw while gzip remains under the prior
+  // ceiling. Measured 843.1/235.9; keep the increase off landing and below 844.
+  { prefix: 'courseBlueprintCompiler-', rawKiB: 844, gzipKiB: 236 },
   // Experiential-activity mechanics are compiler-owned and independently
   // cacheable beside the lazy compiler. The chunk projects the canonical
   // activity clock, evidence, constraints, decisions, artifact, and debrief
@@ -257,6 +286,12 @@ const lazyChunkBudgets = [
   // v0.16.65: varied assessment and material-polish copy moved out of the
   // compiler hot chunk. This compile-only leaf stays independently cacheable.
   { prefix: 'compilerPolish-', rawKiB: 8, gzipKiB: 3 },
+  // V0.16.82: synthesis-evidence copy, distinct prerequisite selection, and
+  // policy-signal scoring are pure, cacheable leaves instead of expanding the
+  // core compiler controller. Moving the duplicated policy patterns here
+  // reduces the hot compiler from 843.2/236.0 to 841.5/235.6 KiB; the leaf
+  // measures 3.4/1.4 and keeps only narrow platform-variance headroom.
+  { prefix: 'compilerEvidenceCopy-', rawKiB: 3.75, gzipKiB: 1.5 },
   // v0.16.73 learner-visible not-applicable states measured 163.8/35.2.
   // The editable activity briefing remains isolated from the main view.
   { prefix: 'DeliverableView-', rawKiB: 170, gzipKiB: 36.5 },

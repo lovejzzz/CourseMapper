@@ -1,8 +1,28 @@
 import { describe, expect, it } from 'vitest';
-import { grade } from '../deepQualityGrader.js';
+import { grade, honestyFromDigest } from '../deepQualityGrader.js';
 import { createMemoryFileProvider } from '../fileProviders.js';
 
 describe('source-ledger quality checks', () => {
+  it('lets the reconciled digest override stale budget pipeline labels', () => {
+    const honesty = honestyFromDigest(
+      {
+        pipeline: {
+          genomeLinker: '2 genome + 0 cached of 5 lessons (2 concepts, 8 citations, 0 bridges)',
+          knowledgeBackbone: '3/5 lessons genome-linked · 9 cited open resources',
+        },
+      },
+      {
+        pipeline: {
+          genomeLinker: '2 genome + 0 cached of 5 lessons (2 concepts, 8 citations, 0 bridges)',
+          knowledgeBackbone:
+            '2/5 lessons source-researched · 9 cited open resources (genome: 6, algi-research: 3) · 5/5 lessons with readings',
+        },
+      },
+    );
+    expect(honesty.knowledgeBackbone).toContain('source-researched');
+    expect(honesty.knowledgeBackbone).not.toContain('genome-linked');
+  });
+
   it('flags biomedical and timing false friends trusted by a music-interval ledger', async () => {
     const result = await grade({
       fileProvider: createMemoryFileProvider({
@@ -1295,6 +1315,67 @@ describe('source-ledger quality checks', () => {
         }),
       ]),
     );
+  });
+
+  it('accepts domain-aligned Algi research receipts for contextual inquiry and UX design rationale', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'User Experience Design Studio',
+          lessonScope: 'all',
+          requestedFeatures: [],
+          readiness: { status: 'ready', blockers: 0, warnings: 0, checkedSections: null },
+          sourceLedger: [
+            {
+              id: 'kr-contextual',
+              title: 'Contextual inquiry',
+              provider: 'wikipedia',
+              url: 'https://en.wikipedia.org/wiki/Contextual_inquiry',
+              license: 'CC BY-SA 4.0',
+              evidence:
+                'Contextual inquiry is a user-centered design research method that observes and interviews people in context.',
+              conceptLinks: [{ id: 'c1', label: 'contextual inquiry and field notes' }],
+            },
+            {
+              id: 'kr-field',
+              title: 'Field research',
+              provider: 'wikipedia',
+              url: 'https://en.wikipedia.org/wiki/Field_research',
+              license: 'CC BY-SA 4.0',
+              evidence: 'Field research collects observations outside a laboratory or workplace setting.',
+              conceptLinks: [{ id: 'c1', label: 'contextual inquiry and field notes' }],
+            },
+            {
+              id: 'kr-rationale',
+              title: 'Design rationale grounded in user research',
+              provider: 'doaj',
+              url: 'https://doaj.org/article/example',
+              license: 'CC0 1.0 (DOAJ article metadata)',
+              evidence:
+                'The study connects user research findings to design rationale and evidence-based interface recommendations.',
+              conceptLinks: [{ id: 'c2', label: 'evidence-based design recommendations' }],
+            },
+          ],
+          sourceReport: { path: 'SOURCE_REPORT.md', sourceCount: 3 },
+          files: [],
+        }),
+        'SOURCE_REPORT.md': [
+          '# Source Report',
+          '',
+          '## Source Ledger',
+          '- kr-contextual: Contextual inquiry',
+          '- kr-field: Field research',
+          '- kr-rationale: Design rationale grounded in user research',
+        ].join('\n'),
+      }),
+      course: { title: 'User Experience Design Studio', featureIds: [] },
+    });
+
+    const details = result.findings.map((finding) => finding.detail).join('\n');
+    expect(details).not.toMatch(/kr-contextual.*off-discipline/i);
+    expect(details).not.toMatch(/kr-field.*off-discipline/i);
+    expect(details).not.toMatch(/kr-rationale.*off-discipline/i);
+    expect(details).not.toMatch(/doaj.*not trusted/i);
   });
 
   it('flags v0.15.113 UX source-ledger false friends even when licensed and concept-linked', async () => {

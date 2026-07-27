@@ -84,6 +84,23 @@ describe('chat system prompt', () => {
     );
   });
 
+  it('keeps Algi chat model-free instead of silently downloading Scion', async () => {
+    runScionLocalCompletion.mockClear();
+    const { reader, parseChunk } = await streamChat(
+      [{ role: 'user', content: 'Is this private and offline?' }],
+      '**Course Title:** Interaction Design\n\n1. Research planning',
+      null,
+      '',
+      'public',
+      'algi-v0',
+    );
+    const { value } = await reader.read();
+    const parsed = JSON.parse(new TextDecoder().decode(value).trim().slice('data: '.length));
+
+    expect(parseChunk(parsed)).toContain('no model weights');
+    expect(runScionLocalCompletion).not.toHaveBeenCalled();
+  });
+
   it('streams keyless chat through the local Scion server', async () => {
     const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
       ok: true,
@@ -137,6 +154,26 @@ describe('chat system prompt', () => {
     const call = runScionLocalCompletion.mock.calls.at(-1)[0];
     expect(call.systemPrompt).toContain('Return only the user-facing Markdown reply');
     expect(call.systemPrompt).toContain('never emit JSON');
+  });
+
+  it('connects Agent to Algi without invoking Gemma', async () => {
+    runScionLocalCompletion.mockClear();
+    const onThinkingText = vi.fn();
+    const result = await fetchAgentResponseNative(
+      [{ role: 'user', content: 'Audit the research planning lesson' }],
+      '**Course Title:** Interaction Design\n\n1. Research planning\n2. Prototyping',
+      null,
+      '',
+      'public',
+      'algi-v0',
+      [],
+      { onThinkingText },
+    );
+
+    expect(result.textContent).toContain('Research planning');
+    expect(result.stopReason).toBe('stop');
+    expect(onThinkingText).toHaveBeenCalledWith(result.textContent);
+    expect(runScionLocalCompletion).not.toHaveBeenCalled();
   });
 
   it('connects Agent advisory turns to the local Scion server without a key', async () => {

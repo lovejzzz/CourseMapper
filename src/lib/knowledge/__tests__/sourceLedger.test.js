@@ -4,12 +4,51 @@ import {
   buildSourceReportMarkdown,
   isLicenseAmbiguous,
   isTrustedSourceLedgerRow,
+  normalizeTrustedSource,
   sourceLedgerFromOpenAlex,
   sourceLedgerFromOpenLibrary,
   sourceLedgerFromOpenStax,
 } from '../sourceLedger.js';
 
 describe('trusted source ledger', () => {
+  it('normalizes accidental sentence seams in scholarly source metadata', () => {
+    const source = normalizeTrustedSource({
+      id: 'kr1',
+      provider: 'europe-pmc',
+      title: 'A Review of Quantitative Microbial Risk Assessment.',
+      url: 'https://europepmc.org/article/PMC/13074090',
+      license: 'CC BY',
+      attribution: 'A. Researcher (2026). A Review of Quantitative Microbial Risk Assessment.. Europe PMC.',
+    });
+
+    expect(source.attribution).toBe(
+      'A. Researcher (2026). A Review of Quantitative Microbial Risk Assessment. Europe PMC',
+    );
+    expect(source.citation).not.toContain('..');
+    expect(buildSourceReportMarkdown({ sourceLedger: { rows: [source] } })).not.toContain('..');
+  });
+
+  it('recovers a clean bibliographic title from an Algi classroom source label', () => {
+    const source = normalizeTrustedSource({
+      id: 'kr1',
+      provider: 'doaj',
+      origin: 'algi-research',
+      sourceType: 'open scholarly article',
+      title:
+        'AI governance — Artificial Intelligence as a Socio-Economic Dilemma (open scholarly article, CC0 1.0 (DOAJ article metadata) — https://example.test/article)',
+      url: 'https://example.test/article',
+      doi: '10.1000/example',
+      license: 'CC0 1.0 (DOAJ article metadata)',
+      attribution: 'A. Researcher. DOAJ metadata.',
+      sessionRefs: ['s2', 2, 'lesson 2'],
+    });
+
+    expect(source.title).toBe('Artificial Intelligence as a Socio-Economic Dilemma');
+    expect(source.citation).toBe('Artificial Intelligence as a Socio-Economic Dilemma — doi:10.1000/example');
+    expect(source.sessionRefs).toEqual(['s2']);
+    expect(buildSourceReportMarkdown({ sourceLedger: { rows: [source] } })).not.toContain('— —');
+  });
+
   it('normalizes academic and OER provider results into auditable source rows', () => {
     const checkedAt = '2026-06-20T00:00:00.000Z';
     const openAlex = sourceLedgerFromOpenAlex(
@@ -57,6 +96,45 @@ describe('trusted source ledger', () => {
       license: 'CC BY-NC-SA 4.0',
       trustLevel: 'open-educational-resource',
     });
+  });
+
+  it('refuses a green trust state when publisher attribution and URL disagree', () => {
+    const source = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'Environmental Microbiology' },
+        concepts: [{ id: 'c1', term: 'Waterborne pathogens' }],
+        sessions: [
+          {
+            id: 's1',
+            number: 1,
+            title: 'Waterborne pathogens',
+            sections: [{ topic: 'Transmission', conceptRefs: ['c1'], resourceRefs: ['kr1'] }],
+          },
+        ],
+        resources: [
+          {
+            id: 'kr1',
+            provider: 'genome',
+            origin: 'genome',
+            title: 'OpenStax Microbiology §16.3',
+            attribution: 'OpenStax Microbiology, §16.3 Modes of Disease Transmission',
+            url: 'https://en.wikipedia.org/wiki/16.3',
+            license: 'CC BY 4.0',
+            sessionRefs: [1],
+          },
+        ],
+      },
+      { checkedAt: '2026-07-26T00:00:00.000Z' },
+    );
+
+    expect(source.rows).toHaveLength(0);
+    expect(source.reviewRows).toEqual([
+      expect.objectContaining({
+        id: 'kr1',
+        provenanceMismatch: true,
+      }),
+    ]);
+    expect(isTrustedSourceLedgerRow(source.reviewRows[0])).toBe(false);
   });
 
   it('quarantines music-interval false friends even when an abstract course title omits music', () => {
@@ -582,6 +660,8 @@ describe('trusted source ledger', () => {
           url: 'https://openstax.org/books/calculus-volume-1/pages/2-2-the-limit-of-a-function',
           license: 'CC BY-NC-SA 4.0',
           attribution: 'OpenStax, Rice University',
+          revisionId: 'openstax-calculus-v1',
+          revisionTimestamp: '2026-06-19T00:00:00Z',
           sessionRefs: ['s1'],
         },
       ],
@@ -611,6 +691,8 @@ describe('trusted source ledger', () => {
     expect(ledger.rows[0]).toMatchObject({
       id: 'kr1',
       provider: 'genome',
+      attribution: 'OpenStax, Rice University',
+      revisionId: 'openstax-calculus-v1',
       conceptLinks: [{ id: 'c1', label: 'Limits' }],
       checkedAt,
     });
@@ -635,6 +717,9 @@ describe('trusted source ledger', () => {
     expect(report).toContain('Source Ledger');
     expect(report).toContain('Source Review Notes');
     expect(report).toContain('kr1');
+    expect(report).toContain('attribution=OpenStax, Rice University');
+    expect(report).toContain('revisionId=openstax-calculus-v1');
+    expect(report).toContain('revisionTimestamp=2026-06-19T00:00:00Z');
     expect(report).toContain('trustedBibliography=false');
     expect(report).toContain('outcomes: 1/1 with sourceRefs');
   });
@@ -2406,5 +2491,65 @@ describe('trusted source ledger', () => {
 
     expect(ledger.rows.map((row) => row.title)).toEqual(['Dodd–Frank Act']);
     expect(ledger.reviewRows || []).toHaveLength(0);
+  });
+
+  it('promotes entailed Algi research sources into the trusted ledger for a UX course', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'User Experience Research Studio' },
+        concepts: [
+          { id: 'c1', term: 'contextual inquiry and field notes' },
+          { id: 'c2', term: 'evidence-based design recommendations' },
+        ],
+        sessions: [
+          {
+            id: 's1',
+            number: 1,
+            sections: [{ topic: 'Contextual inquiry', conceptRefs: ['c1'], resourceRefs: ['kr1'] }],
+          },
+          {
+            id: 's2',
+            number: 2,
+            sections: [{ topic: 'Design rationale', conceptRefs: ['c2'], resourceRefs: ['kr2'] }],
+          },
+        ],
+        resources: [
+          {
+            id: 'kr1',
+            provider: 'wikipedia',
+            origin: 'algi-research',
+            sourceType: 'open encyclopedia',
+            title: 'Contextual inquiry',
+            url: 'https://en.wikipedia.org/wiki/Contextual_inquiry',
+            license: 'CC BY-SA 4.0',
+            attribution: 'Wikipedia contributors, “Contextual inquiry”',
+            evidence:
+              'Contextual inquiry is a user-centered design research method that observes and interviews people in context.',
+          },
+          {
+            id: 'kr2',
+            provider: 'doaj',
+            origin: 'algi-research',
+            sourceType: 'open scholarly article',
+            title: 'Design rationale grounded in user research',
+            url: 'https://doaj.org/article/example',
+            license: 'CC0 1.0 (DOAJ article metadata)',
+            attribution: 'Article authors. DOAJ metadata.',
+            evidence:
+              'The study connects user research findings to design rationale and evidence-based interface recommendations.',
+          },
+        ],
+      },
+      { checkedAt: '2026-07-26T00:00:00.000Z' },
+    );
+
+    expect(ledger.rows.map((row) => row.provider)).toEqual(['wikipedia', 'doaj']);
+    expect(ledger.reviewRows || []).toHaveLength(0);
+    expect(ledger.summary).toMatchObject({
+      sourceCount: 2,
+      trustedCount: 2,
+      trustedConceptLinkedCount: 2,
+      providers: ['doaj', 'wikipedia'],
+    });
   });
 });

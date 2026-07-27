@@ -3,6 +3,7 @@ import {
   buildCompilerProofBundle,
   buildSlideDeckIntermediateRepresentation,
   buildCourseBlueprint,
+  bloomLevelFromStemVerb,
   compileBlueprintDeliverable,
   compileBlueprintDeliverables,
   estimateBlueprintCompilerSavings,
@@ -28,6 +29,26 @@ let customDeliverables = {};
 vi.mock('../customDeliverableLibrary', () => ({
   getCustomDeliverable: vi.fn((id) => customDeliverables[id] || null),
 }));
+
+describe('quiz Bloom inference', () => {
+  it('recognizes synthesis and evidence-rich case reasoning without treating domain nouns as recall verbs', () => {
+    expect(
+      bloomLevelFromStemVerb(
+        'Synthesize the covered material from Qubits and quantum states. Justify both choices with course evidence.',
+      ),
+    ).toBe('Create');
+    expect(
+      bloomLevelFromStemVerb(
+        'An analyst reviews a case with multiple quantum states. Identify the principle, cite two case details, distinguish support from assumption, and request one next piece of evidence.',
+      ),
+    ).toBe('Analyze');
+    expect(
+      bloomLevelFromStemVerb(
+        'The record states a peer claim. State the strongest conclusion the evidence supports, name the limitation, and identify the evidence needed before accepting the broader claim.',
+      ),
+    ).toBe('Evaluate');
+  });
+});
 
 const makeCourseMap = (lessonCount = 6) => ({
   courseName: 'Applied Social Policy Studio',
@@ -7423,6 +7444,223 @@ describe('courseBlueprintCompiler', () => {
     expect(classificationGuideText).toContain('model-card');
   });
 
+  it('classifies AI governance and algorithmic-audit seminars as policy analysis, not AI course design', () => {
+    const courseMap = {
+      courseName: 'Current Technology Policy',
+      semester: 'Fall 2026',
+      lessons: [
+        {
+          title: 'Lesson 1: AI governance',
+          sections: [
+            {
+              topicSection: 'AI governance foundations',
+              learningObjectives: 'Compare policy choices for governing consequential AI systems.',
+              learningGoals: 'Evaluate current technology policy evidence.',
+              weeklyAssessments: 'Decision memo comparing two policy choices.',
+              asyncActivities: 'Read a current governance source.',
+              syncActivities: 'Compare regulatory options.',
+              supportingResources: 'Assigned policy source on how public discourse has moved online through platforms.',
+              technologyNeeded: 'Course site.',
+              presentationFormat: 'Policy seminar.',
+              evaluateDesign: 'Check whether the memo cites policy evidence.',
+            },
+          ],
+        },
+        {
+          title: 'Lesson 2: Platform accountability and algorithmic audits',
+          sections: [
+            {
+              topicSection: 'Platform accountability mechanisms',
+              learningObjectives: 'Evaluate an algorithmic audit and recommend a regulatory response.',
+              learningGoals: 'Connect audit evidence to policy decisions.',
+              weeklyAssessments: 'Policy brief on platform accountability.',
+              asyncActivities: 'Annotate an algorithmic audit.',
+              syncActivities: 'Defend a policy proposal.',
+              supportingResources: 'Assigned policy source.',
+              technologyNeeded: 'Course site.',
+              presentationFormat: 'Policy seminar.',
+              evaluateDesign: 'Check the evidence-to-policy link.',
+            },
+          ],
+        },
+      ],
+    };
+
+    const blueprint = buildCourseBlueprint(courseMap);
+    const compiled = compileBlueprintDeliverables(blueprint, ['lessonPlans', 'rubrics', 'studyGuides']);
+    const text = JSON.stringify(compiled).toLowerCase();
+
+    expect(blueprint.enrichment.lens).toMatchObject({
+      domain: 'public policy analysis',
+      evidenceNoun: 'policy evidence',
+      decisionNoun: 'policy decision',
+    });
+    expect(blueprint.courseModalityProfile.primaryMode).toBe('policy-analysis');
+    expect(text).not.toContain('design evidence');
+    expect(text).not.toContain('lab-procedure and results evidence');
+  });
+
+  it('keeps synthesis facts attached to their own researched key terms', () => {
+    const blueprint = buildCourseBlueprint({
+      courseName: 'Current Technology Policy',
+      lessons: [
+        {
+          title: 'Lesson 1: Current Technology Policy synthesis',
+          sections: [
+            {
+              topicSection: 'Public policy, algorithmic accountability, and privacy law synthesis',
+              learningObjectives: 'Compare policy choices using one source detail for each concept.',
+              learningGoals: 'Synthesize current technology policy evidence without crossing source boundaries.',
+              weeklyAssessments: 'Decision memo comparing two policy choices.',
+              asyncActivities: 'Annotate current policy sources.',
+              syncActivities: 'Defend a bounded policy recommendation.',
+              supportingResources: 'Assigned public policy and algorithmic accountability sources.',
+              evaluateDesign: 'Check that each concept is paired with evidence from its own source.',
+            },
+          ],
+        },
+      ],
+    });
+    blueprint.lessons[0].enrichment = {
+      keyTerms: [
+        {
+          term: 'Public policy',
+          definition:
+            'Public policy is an institutionalized proposal or decided set of elements used to address social issues.',
+          example: 'The implementation of public policy is known as public administration.',
+          misconception:
+            'Public policy and algorithmic accountability are interchangeable descriptions of the same concept.',
+          correction: 'Public policy and algorithmic accountability have different scope and evidence.',
+        },
+        {
+          term: 'Algorithmic accountability',
+          definition:
+            'Algorithmic accountability allocates responsibility for consequences influenced by automated decisions.',
+          example: 'Responsibility for harm may lie with an algorithm or with the people who designed it.',
+          misconception:
+            'Algorithmic accountability and public policy are interchangeable descriptions of the same concept.',
+          correction: 'Algorithmic accountability concerns responsibility for automated decisions.',
+        },
+      ],
+      kernel: {
+        facts: [
+          'Algorithmic bias has been observed in search engine results and social media platforms.',
+          'Responsibility for harm may lie with an algorithm or with the people who designed it.',
+          'Privacy law establishes rules for handling personal information.',
+          'Public discourse has moved online through digital platforms.',
+          'Audit evidence can reveal a bounded procedural failure.',
+        ],
+        scenario: {
+          setup: 'Students compare one public-policy claim with one algorithmic-accountability claim.',
+          materials: 'the source-backed case example, related claim, and claim-boundary note',
+        },
+      },
+      studyGuide: {
+        summary:
+          'Algorithmic accountability concerns automated decisions. Algorithmic bias is the example for Public policy.',
+        reviewStrategy: 'Use algorithmic bias as the evidence for Public policy before comparing the concepts.',
+      },
+    };
+
+    const compiled = compileBlueprintDeliverables(blueprint, ['studyGuides', 'quizBank']);
+    const guideText = JSON.stringify(compiled.studyGuides.studyGuides[0]);
+    const quizText = JSON.stringify(compiled.quizBank);
+
+    expect(guideText).toContain('The implementation of public policy is known as public administration');
+    expect(guideText).not.toContain('connect Public policy to Public policy');
+    expect(guideText).not.toContain('Algorithmic bias is the example for Public policy');
+    expect(guideText).not.toMatch(/[.!?]”[.!?]/);
+    expect(quizText).not.toMatch(
+      /algorithmic bias[^.]{0,180}(?:supplies the evidence for|demonstrates|supports) Public policy/i,
+    );
+    expect(quizText).not.toMatch(/Public policy is the relevant concept[\s\S]{0,500}Algorithmic bias/i);
+  });
+
+  it('never creates a self-referential prerequisite when consecutive lessons share a primary concept', () => {
+    const blueprint = buildCourseBlueprint({
+      courseName: 'Current Technology Policy',
+      lessons: [
+        {
+          title: 'Lesson 1: Emerging policy proposals',
+          sections: [
+            {
+              topicSection: 'Public policy and policy analysis',
+              learningObjectives: 'Compare a public policy proposal with one policy-analysis option.',
+              weeklyAssessments: 'Policy option memo.',
+              supportingResources: 'Public policy source packet.',
+            },
+          ],
+        },
+        {
+          title: 'Lesson 2: Current Technology Policy synthesis',
+          sections: [
+            {
+              topicSection: 'Public policy and algorithmic accountability',
+              learningObjectives: 'Synthesize public policy and algorithmic-accountability evidence.',
+              weeklyAssessments: 'Technology policy decision memo.',
+              supportingResources: 'Public policy and accountability source packet.',
+            },
+          ],
+        },
+      ],
+    });
+
+    const compiled = compileBlueprintDeliverables(blueprint, ['assignments', 'lessonPlans']);
+    const text = JSON.stringify(compiled);
+
+    expect(text).not.toMatch(/connect ([^".]{2,80}) to \1 before working on/i);
+  });
+
+  it('frames claim-derived FAQ terms as source statements instead of malformed definitions', () => {
+    const blueprint = buildCourseBlueprint({
+      courseName: 'Platform Accountability',
+      lessons: [
+        {
+          title: 'Lesson 1: Platform accountability',
+          sections: [
+            {
+              topicSection: 'Algorithmic accountability and algorithmic decisions',
+              learningObjectives: 'Distinguish accountability from a documented decision effect.',
+              weeklyAssessments: 'Accountability evidence check.',
+              supportingResources: 'Assigned accountability source.',
+            },
+          ],
+        },
+      ],
+    });
+    blueprint.lessons[0].enrichment = {
+      keyTerms: [
+        {
+          term: 'Algorithmic accountability',
+          definition: 'Algorithmic accountability allocates responsibility for automated decisions.',
+          example: 'Reviewers trace a documented decision to the people and system involved.',
+          misconception: 'Algorithmic accountability and algorithmic decisions are interchangeable descriptions.',
+          correction: 'The concepts have different scope and evidence.',
+        },
+        {
+          term: 'Algorithmic decisions',
+          definition:
+            'However, adherence to this principle is not always guaranteed, and people may be adversely affected by algorithmic decisions.',
+          example: 'A documented automated decision adversely affects a person.',
+          misconception: 'Every algorithmic decision establishes accountability.',
+          correction: 'A decision effect and responsibility for that effect are separate claims.',
+        },
+      ],
+      kernel: {
+        facts: [
+          'Algorithmic accountability allocates responsibility for automated decisions.',
+          'People may be adversely affected by algorithmic decisions.',
+          'Reviewers inspect the decision record before assigning responsibility.',
+        ],
+      },
+    };
+
+    const faqText = JSON.stringify(compileBlueprintDeliverables(blueprint, ['courseFaq']).courseFaq);
+
+    expect(faqText).not.toMatch(/Algorithmic decisions means however/i);
+    expect(faqText).toContain('The source frames Algorithmic decisions through this source-backed statement');
+  });
+
   it('compiles non-data courses without objective-stem leaks, generic quiz keys, or invented lab packets', () => {
     const blueprint = buildCourseBlueprint({
       courseName: 'Introduction to Psychology',
@@ -7544,6 +7782,42 @@ describe('courseBlueprintCompiler', () => {
         reviewFocus: expect.stringContaining('verification readiness'),
       }),
     });
+  });
+
+  it('preserves conjunctions in compiler-owned compound resource labels', () => {
+    const blueprint = buildCourseBlueprint({
+      courseName: 'Introduction to Quantum Computing',
+      lessons: [
+        {
+          title: 'Lesson 1: Qubits and quantum states',
+          sections: [
+            {
+              topicSection: 'Qubits and quantum states',
+              learningObjectives: 'Explain how a qubit represents a quantum state.',
+              weeklyAssessments: 'Evidence explanation: Qubits and quantum states',
+              asyncActivities: 'Annotate a qubit example.',
+              syncActivities: 'Compare two quantum states.',
+              supportingResources:
+                'Source packet for Qubits and quantum states: annotated excerpt plus activity prompt.',
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(blueprint.lessons[0].evidencePlan.sourceCue).toBe('Source packet for Qubits and quantum states');
+    expect(blueprint.lessons[0].evidencePlan.sourceCue).not.toBe('Source packet for Qubits quantum states');
+    expect(blueprint.enrichment.lens).toMatchObject({
+      domain: 'quantum information science',
+      evidenceNoun: 'state, circuit, and measurement evidence',
+      learnerRole: 'quantum computing student',
+    });
+    expect(JSON.stringify(compileBlueprintDeliverables(blueprint, ['lessonPlans']))).not.toMatch(
+      /AI-supported teaching scenario|design evidence|course designer/i,
+    );
+    const quizText = JSON.stringify(compileBlueprintDeliverables(blueprint, ['quizBank']));
+    expect(quizText).toMatch(/making a quantum reasoning decision for the evidence explanation/i);
+    expect(quizText).not.toMatch(/evidence explanation quantum reasoning decision/i);
   });
 
   it('does not misclassify disciplinary models as AI course design', () => {
@@ -8949,6 +9223,53 @@ describe('courseBlueprintCompiler', () => {
     expect(JSON.stringify(guide.reviewQuestions)).not.toMatch(/name [^".]*,\s*them,? then/i);
   });
 
+  it('lets researched Algi terms replace an earlier repaired-map context', () => {
+    const blueprint = buildCourseBlueprint({
+      courseName: 'Introduction to Quantum Computing',
+      lessons: [
+        {
+          title: 'Lesson 1: Quantum Gates and Circuits',
+          sections: [
+            {
+              topicSection: 'Quantum gates and circuits',
+              learningGoals: 'Develop an evidence-backed account of quantum circuits.',
+              learningObjectives:
+                "Connect Quantum gates and circuits to the week's work and explain one supporting evidence source.",
+              weeklyAssessments: 'Quantum circuit comparison',
+              syncActivities: 'Compare two quantum circuits.',
+              supportingResources: 'Quantum circuit source excerpt',
+              evaluateDesign: 'Check the circuit explanation.',
+            },
+          ],
+        },
+      ],
+    });
+    blueprint.enrichment.lessonPhrases['lesson-1'] = {
+      context: "Quantum gates and circuits, circuits to the week's work, one supporting evidence source",
+      evidenceMove: 'compare gate behavior',
+      decisionMove: 'explain the circuit',
+    };
+    blueprint.lessons[0].enrichment = {
+      enrichmentSource: 'algi-researched',
+      conceptProvenance: { source: 'algi-researched' },
+      keyTerms: [
+        {
+          term: 'Quantum circuit',
+          definition: 'A quantum circuit is an ordered sequence of quantum gates and measurements.',
+        },
+        {
+          term: 'Quantum gate',
+          definition: 'A quantum gate is a reversible operation applied to one or more qubits.',
+        },
+      ],
+    };
+
+    const guide = compileBlueprintDeliverables(blueprint, ['studyGuides']).studyGuides.studyGuides[0];
+    expect(guide.examScope).toContain('checks on Quantum circuit, Quantum gate.');
+    expect(guide.examScope).toContain('Reuse it for later assessments.');
+    expect(guide.examScope).not.toContain("circuits to the week's work");
+  });
+
   it('honors an explicit 50-minute session and scales every teaching phase to the real clock', () => {
     const blueprint = buildCourseBlueprint(makeWorldLanguageCourseMap(), { sessionMinutes: 50 });
     const firstLesson = blueprint.lessons[0];
@@ -9158,6 +9479,98 @@ describe('courseBlueprintCompiler', () => {
     const optionText = compiled.quizBank.quizzes[0].questions.flatMap((question) => question.options || []).join(' ');
     expect(optionText).toMatch(/Adding rewards always strengthens motivation/i);
     expect(optionText).not.toMatch(/\b(?:students?|teachers?|learners?)\b|\b(?:assume|think|believe)\b/i);
+  });
+
+  it('tests each admitted misconception once instead of stamping it across the weekly quiz', () => {
+    const courseMap = {
+      courseName: 'Environmental Microbiology',
+      semester: 'Fall 2026',
+      lessons: [
+        {
+          title: 'Lesson 1: Microbial Ecology',
+          sections: [
+            {
+              topicSection: 'Microbial ecology; community interactions; field evidence',
+              learningGoals: 'Distinguish ecological evidence from neighbouring microbiology concepts.',
+              learningObjectives: 'Analyze a microbial community claim using field evidence and a stated limitation.',
+              weeklyAssessments: 'Microbial ecology evidence check',
+              asyncActivities: 'Annotate the field evidence packet and identify the claim boundary.',
+              syncActivities: 'Compare two ecological interpretations and defend the stronger one.',
+              supportingResources: 'Open microbial ecology reading and field evidence packet',
+              evaluateDesign: 'Score concept accuracy, evidence use, limitation, and revision quality.',
+            },
+          ],
+        },
+      ],
+    };
+    const sharedMisconception =
+      'Microbial ecology and oral ecology are interchangeable descriptions of the same concept.';
+    const terms = [
+      {
+        term: 'Microbial ecology',
+        definition: 'Microbial ecology studies how microorganisms interact with one another and their environments.',
+        example: 'A field survey compares microbial communities across two water samples.',
+        misconception: sharedMisconception,
+        correction:
+          'They are not interchangeable; microbial ecology studies environmental interactions while oral ecology concerns a particular habitat.',
+      },
+      {
+        term: 'Microbial community',
+        definition: 'A microbial community is a set of interacting microorganism populations in a shared environment.',
+        example: 'A biofilm contains interacting populations attached to one surface.',
+        misconception: 'A microbial community is merely a list of isolated species.',
+        correction: 'A community includes interactions among populations in a shared environment.',
+      },
+      {
+        term: 'Field evidence',
+        definition: 'Field evidence records observations collected in the environment under study.',
+        example: 'Repeated site samples document how abundance changes across a pollution gradient.',
+        misconception: 'One unreplicated observation establishes a general ecological mechanism.',
+        correction: 'A bounded ecological conclusion requires replicated observations and an explicit comparison.',
+      },
+    ];
+    const facts = [
+      'Microbial communities can change when environmental conditions alter resource availability.',
+      'Field sampling connects a microbial pattern to the environment where it was observed.',
+      'Replicated observations help distinguish a stable relationship from a one-time fluctuation.',
+      'A community contains populations whose interactions can affect measured abundance.',
+      'A defensible ecological claim states the scale and conditions represented by its evidence.',
+    ];
+    const blueprint = buildCourseBlueprint(courseMap, {
+      enrichment: {
+        coverage: { requestedLessons: 1, enrichedLessons: 1, missingLessons: [] },
+        stageDecisions: { modelStage: 'ran' },
+        lessonContent: {
+          'lesson-1': {
+            keyTerms: terms,
+            kernel: { facts },
+          },
+        },
+      },
+    });
+
+    const quiz = compileBlueprintDeliverables(blueprint, ['quizBank']).quizBank.quizzes[0];
+    const rendered = JSON.stringify(quiz).toLowerCase();
+    const exactClaimCount = rendered.split(sharedMisconception.toLowerCase()).length - 1;
+    const misconceptionItems = quiz.questions.filter((question) => question.misconceptionSourced);
+
+    expect(exactClaimCount).toBeLessThanOrEqual(2);
+    expect(misconceptionItems).toHaveLength(1);
+    expect(quiz.questions.some((question) => question.quizPlan?.role === 'admitted-kernel-evidence-analysis')).toBe(
+      true,
+    );
+  });
+
+  it('does not insert a leading article after “the relevant” in synthesized success criteria', () => {
+    const courseMap = makeCourseMap(1);
+    courseMap.lessons[0].sections[0].topicSection = 'The key ideas in microbial ecology';
+    const blueprint = buildCourseBlueprint(courseMap);
+    const rendered = JSON.stringify(
+      compileBlueprintDeliverables(blueprint, ['studyGuides']).studyGuides.studyGuides[0],
+    );
+
+    expect(rendered).not.toMatch(/the relevant (?:a|an|the) /i);
+    expect(rendered).not.toMatch(/\bexplanation draft\b/i);
   });
 
   it('removes leading articles from embedded artifact references and starts misconception sentences cleanly', () => {

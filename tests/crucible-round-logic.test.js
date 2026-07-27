@@ -14,6 +14,8 @@ import {
   buildHistoryTable,
   buildJudgePrompt,
   clampConcurrency,
+  defaultConcurrencyForProvider,
+  summarizeModelLoadPhases,
   deriveCheckId,
   diffLedger,
   expandCoursesForAuthoring,
@@ -210,6 +212,69 @@ describe('E1 — bounded pool with deterministic ordering', () => {
     expect(clampConcurrency(1)).toBe(1);
     expect(clampConcurrency(99)).toBe(3);
     expect(clampConcurrency(0)).toBe(1);
+  });
+
+  it('defaultConcurrencyForProvider: browser-local providers run one course at a time', () => {
+    // These execute inference on this machine's single GPU, so a second course
+    // contends rather than overlaps (measured: 48.6s → 84.8s/128.8s per course).
+    expect(defaultConcurrencyForProvider('public')).toBe(1);
+    expect(defaultConcurrencyForProvider('local')).toBe(1);
+    // Remote providers still overlap network waits.
+    expect(defaultConcurrencyForProvider('openai')).toBe(2);
+    expect(defaultConcurrencyForProvider('anthropic')).toBe(2);
+    expect(defaultConcurrencyForProvider('google')).toBe(2);
+  });
+
+  it('an explicit --concurrency still overrides the browser-local default', () => {
+    const fallback = defaultConcurrencyForProvider('public');
+    expect(clampConcurrency(undefined, { fallback })).toBe(1);
+    expect(clampConcurrency(2, { fallback })).toBe(2);
+    expect(clampConcurrency(99, { fallback })).toBe(3);
+  });
+});
+
+describe('model load vs generation', () => {
+  const line = (iso, label) => `${iso} [info] [CM][API] localModelProgress {"stage":"local-model","label":"${label}"}`;
+
+  it('splits a COLD course into load and generation', () => {
+    const log = [
+      line('2026-07-25T14:45:08.311Z', 'Loading the pinned Scion WebGPU runtime…'),
+      line('2026-07-25T14:45:08.330Z', 'Downloading the public Gemma 4 base…'),
+      line('2026-07-25T14:45:15.103Z', 'Downloading the public Gemma 4 base (10%)…'),
+      line('2026-07-25T14:46:09.400Z', 'Downloading the public Gemma 4 base (100%)…'),
+      line('2026-07-25T14:46:17.100Z', 'Scion local Gemma 4 is ready.'),
+      line('2026-07-25T14:47:06.000Z', 'package ready'),
+    ].join('\n');
+    const phases = summarizeModelLoadPhases(log);
+    expect(phases.measured).toBe(true);
+    expect(Math.round(phases.modelLoadMs / 1000)).toBe(69);
+    expect(Math.round(phases.modelDownloadMs / 1000)).toBe(61);
+    expect(Math.round(phases.generationMs / 1000)).toBe(49);
+  });
+
+  it('reports a WARM course as near-zero load with the same generation cost', () => {
+    const log = [
+      line('2026-07-25T14:47:40.000Z', 'Scion local Gemma 4 is ready.'),
+      line('2026-07-25T14:48:28.600Z', 'package ready'),
+    ].join('\n');
+    const phases = summarizeModelLoadPhases(log);
+    expect(phases.measured).toBe(true);
+    expect(phases.modelLoadMs).toBe(0);
+    expect(phases.modelDownloadMs).toBe(0);
+    // The point of the split: warm and cold differ in LOAD, not generation.
+    expect(Math.round(phases.generationMs / 1000)).toBe(49);
+  });
+
+  it('returns nulls rather than invented numbers when there is no local model phase', () => {
+    expect(summarizeModelLoadPhases('').measured).toBe(false);
+    expect(summarizeModelLoadPhases('no timestamps here').modelLoadMs).toBeNull();
+    const remote = ['2026-07-25T14:45:08.311Z [info] [CM][API] request', '2026-07-25T14:46:08.311Z [info] done'].join(
+      '\n',
+    );
+    const phases = summarizeModelLoadPhases(remote);
+    expect(phases.measured).toBe(false);
+    expect(phases.generationMs).toBeNull();
+    expect(phases.totalMs).toBe(60_000);
   });
 });
 

@@ -393,7 +393,7 @@ function buildFallbackFaqQuestions({ lesson, title, shortTitle, target, lessonIn
   );
   const supportQuestion = [
     `What should I do if I get stuck during ${shortTitle}?`,
-    `Where should I start when ${shortTitle} is not making sense?`,
+    `Where should I start when the ${shortTitle} lesson is not making sense?`,
     `Which course resource should I check first when I need help with ${shortTitle}?`,
     `How can I identify what is blocking my work on ${shortTitle}?`,
   ][Math.abs(lessonIndex) % 4];
@@ -3717,9 +3717,18 @@ function getDiscussionArtifactField(artifact, fullKey, compactKey, aliases = [])
 }
 
 function cleanDiscussionArtifactLocator(value) {
-  return compactText(value, '', 180)
-    .replace(/^(?:week\s*\d+\s*)?(?:artifact|source|document|item|evidence|packet)\s*(?:[A-Z]|\d+)?\s*[:.-]?\s*/i, '')
-    .trim();
+  return (
+    compactText(value, '', 180)
+      // Strip a machine label only when a real delimiter proves it is a label.
+      // With an optional delimiter, "Source packet …" matched "Source p" and
+      // "Evidence explanation …" matched "Evidence e", exporting the visibly
+      // broken locators "acket …" and "xplanation …".
+      .replace(
+        /^(?:week\s*\d+\s*)?(?:artifact|source|document|item|evidence|packet)(?:\s+(?:[A-Z]|\d+))?\s*[:.-]\s*/i,
+        '',
+      )
+      .trim()
+  );
 }
 
 function inferDiscussionArtifactTitle(discussion, artifact, artifactIndex) {

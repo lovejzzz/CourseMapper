@@ -20,6 +20,8 @@ import {
   saveEnrichmentPreference,
 } from '../lib/enrichmentPreference';
 import { PUBLIC_SCION_MODEL_NAME, PUBLIC_SCION_PROVIDER_ID } from '../lib/publicScionIdentity';
+import { ALGI_MODEL_NAME, isAlgiModel } from '../lib/algiIdentity';
+import { readAlgiResearchEnabled, saveAlgiResearchEnabled } from '../lib/algiResearchPolicy';
 import { isLocalProviderOptInEnabled } from '../lib/localProvider';
 import useScionRuntimeStatus from '../hooks/useScionRuntimeStatus';
 import { SCION_BROWSER_GEMMA4_DOWNLOAD_LABEL } from '../lib/scionBrowserConstants';
@@ -218,7 +220,11 @@ export default function ModelConfig({ reserveTrailingActionSpace = false }) {
     generationPlan,
     setGenerationPlan,
   } = useAIConfig();
-  const scionRuntimeStatus = useScionRuntimeStatus(provider === PUBLIC_SCION_PROVIDER_ID);
+  // Algi V0 has no runtime to warm and no weights to fetch, so the download
+  // copy and progress bar must not speak for it.
+  const algiSelected = provider === PUBLIC_SCION_PROVIDER_ID && isAlgiModel(modelId);
+  const selectedScionModelName = algiSelected ? ALGI_MODEL_NAME : PUBLIC_SCION_MODEL_NAME;
+  const scionRuntimeStatus = useScionRuntimeStatus(provider === PUBLIC_SCION_PROVIDER_ID && !algiSelected);
   const debounceRef = useRef(null);
   const prevProviderValueRef = useRef(provider);
   const prevApiKeyRef = useRef(apiKey);
@@ -235,9 +241,13 @@ export default function ModelConfig({ reserveTrailingActionSpace = false }) {
   const [localProbeAttempt, setLocalProbeAttempt] = useState(0);
   // v0.12.1: user-facing subject-matter enrichment control (auto/on/off).
   const [enrichmentPref, setEnrichmentPref] = useState(readEnrichmentPreference);
+  const [algiResearchEnabled, setAlgiResearchEnabled] = useState(readAlgiResearchEnabled);
   const handleEnrichmentPref = (mode) => {
     setEnrichmentPref(mode);
     saveEnrichmentPreference(mode);
+  };
+  const handleAlgiResearchMode = (enabled) => {
+    setAlgiResearchEnabled(saveAlgiResearchEnabled(enabled));
   };
   const triggerLocalServerCheck = useCallback(() => {
     setValidationMessage('');
@@ -928,7 +938,7 @@ export default function ModelConfig({ reserveTrailingActionSpace = false }) {
             >
               {availableModels.map((m) => (
                 <option key={m.id} value={m.id}>
-                  {provider === PUBLIC_SCION_PROVIDER_ID ? PUBLIC_SCION_MODEL_NAME : describeModelOption(m)}
+                  {provider === PUBLIC_SCION_PROVIDER_ID ? m.name || PUBLIC_SCION_MODEL_NAME : describeModelOption(m)}
                 </option>
               ))}
             </select>
@@ -945,7 +955,7 @@ export default function ModelConfig({ reserveTrailingActionSpace = false }) {
                   : apiStatus === 'error'
                     ? validationErrorLabel
                     : provider === PUBLIC_SCION_PROVIDER_ID
-                      ? PUBLIC_SCION_MODEL_NAME
+                      ? selectedScionModelName
                       : 'Enter API key first'}
             </div>
           )}
@@ -982,16 +992,64 @@ export default function ModelConfig({ reserveTrailingActionSpace = false }) {
           className="mt-4 rounded-squircle-xs border border-indigo-100/80 bg-indigo-50/50 px-3.5 py-3 text-xs leading-relaxed text-slate-700 dark:border-indigo-400/20 dark:bg-indigo-400/10 dark:text-slate-200"
           data-testid="scion-model-boundary"
         >
-          <p>
-            Scion is EduTool&apos;s customized local course-building AI. It combines a compact Gemma 4 model with a
-            teaching-focused compiler to create aligned course materials.
-          </p>
-          <p className="mt-1.5 text-slate-600 dark:text-slate-300">
-            {scionRuntimeStatus.phase === 'ready'
-              ? 'Scion is ready on this device. Prompts and generated text stay in this browser.'
-              : `First use downloads ${SCION_BROWSER_GEMMA4_DOWNLOAD_LABEL} of public model weights and keeps them in browser storage. Prompts and generated text stay on this device.`}
-          </p>
-          {['loading-runtime', 'loading-model'].includes(scionRuntimeStatus.phase) && (
+          {algiSelected ? (
+            <>
+              <p>
+                Algi V0 builds your course without a model download. It starts with your source and EduTool&apos;s
+                trusted teaching genome, then can research current open sources for lessons that still need evidence.
+              </p>
+              <p className="mt-1.5 text-slate-600 dark:text-slate-300">
+                No model download and no inference. In private mode, your source and course topics stay on this device.
+                Algi composes only knowledge supported by your source or EduTool&apos;s source-anchored teaching genome.
+              </p>
+              <div
+                className="mt-3 flex flex-col gap-2 rounded-squircle-xs border border-indigo-200/70 bg-white/65 p-2.5 dark:border-indigo-300/20 dark:bg-slate-950/30"
+                data-testid="algi-research-mode"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="font-semibold text-slate-800 dark:text-slate-100">
+                      {algiResearchEnabled ? 'Live course research on' : 'Private source mode'}
+                    </p>
+                    <p className="mt-0.5 text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
+                      {algiResearchEnabled
+                        ? 'Only the course title and uncovered lesson topics are sent. Algi plans each lesson search, compares admitted sources, verifies claims against passages, and saves compact evidence locally for revisions.'
+                        : 'No research requests are sent. If the source and shipped genome cannot support a lesson, Algi reports the gap instead of inventing content.'}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={algiResearchEnabled}
+                    aria-label="Allow Algi source research"
+                    onClick={() => handleAlgiResearchMode(!algiResearchEnabled)}
+                    className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
+                      algiResearchEnabled ? 'bg-indigo-600' : 'bg-slate-300 dark:bg-slate-600'
+                    }`}
+                  >
+                    <span
+                      className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${
+                        algiResearchEnabled ? 'translate-x-5' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <p>
+                Scion is EduTool&apos;s customized local course-building AI. It combines a compact Gemma 4 model with a
+                teaching-focused compiler to create aligned course materials.
+              </p>
+              <p className="mt-1.5 text-slate-600 dark:text-slate-300">
+                {scionRuntimeStatus.phase === 'ready'
+                  ? 'Scion is ready on this device. Prompts and generated text stay in this browser.'
+                  : `First use downloads ${SCION_BROWSER_GEMMA4_DOWNLOAD_LABEL} of public model weights and keeps them in browser storage. Prompts and generated text stay on this device.`}
+              </p>
+            </>
+          )}
+          {!algiSelected && ['loading-runtime', 'loading-model'].includes(scionRuntimeStatus.phase) && (
             <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-indigo-100 dark:bg-indigo-950">
               <div
                 className="h-full rounded-full bg-indigo-500 transition-[width] duration-300"

@@ -1,7 +1,115 @@
 import { APP_VERSION } from './appVersion.js';
 
+const V01680_RELEASE = {
+  version: '0.16.80',
+  date: 'July 26, 2026',
+  title: 'Source Before Synthesis',
+  landingTitle: 'Algi V0 Turns Source-Anchored Knowledge into a Course',
+  highlights: [
+    'Algi V0 is a selectable zero-weight course path inside the Scion provider. It answers the typed course-map and lesson-kernel contracts from uploaded material, the shipped source-anchored teaching genome, and optional consented research—without downloading a model, running inference, or scheduling model-only voice rewrites.',
+    'Privacy is explicit. Private mode sends no course-topic research requests and reports unsupported lessons instead of inventing them. Research mode is opt-in and explains that Wikipedia may receive the course title and uncovered lesson topics.',
+    'Uncovered concepts become source queries instead of dead lookup keys. Course-aware ranking, entity-kind filtering, canonical topic families, aliases, and integrative composition turn retrieved passages into mechanically admitted definitions, facts, misconceptions, examples, and assessment contrasts.',
+    'Algi and Scion now share the same CourseIR, compiler, sequence contract, quality gates, Agent evidence layer, and exporters. Reader-facing quiz, study-guide, FAQ, and course-copy defects found during browser inspection are repaired without adding model calls.',
+    'Source receipts are hardened at the trust boundary. Shipped kernels cannot invent Wikipedia URLs from section locators; mixed Wikipedia/OpenStax lessons preserve provider and origin per citation; publisher/URL disagreement is denied a trusted state.',
+    'A private three-lesson UX course finishes 3/3 at 99/A with texture 97 in about one second with no external topic requests. A researched five-lesson Environmental Microbiology course finishes 5/5 at 99/A in about three seconds, exports one valid 55-entry ZIP, records the canonical OpenStax §16.3 receipt, and leaves the browser console clean.',
+    'Algi is an evidence engine, not a universal reasoning model. Gemma weights remain unchanged and the optional research adapter remains inactive. The intended future is Algi for retrieval and adjudication, Scion for local course-specific authoring, and one shared compiler for every compatible provider.',
+  ],
+  landingHighlights: [
+    'Zero model download and zero inference.',
+    'Private mode keeps course topics on the device.',
+    'Research is explicit, source-first, and opt-in.',
+    'Algi and Scion share one compiler and export contract.',
+    'Mixed-source receipts keep the correct provider and URL.',
+    'Private UX reaches 99/A with texture 97; researched microbiology reaches 99/A.',
+    'Algi finds evidence; Scion authors from it.',
+  ],
+  proof: {
+    contract: 'release-contracts/v0.16.80.json',
+    roadmap: 'docs/ALGI_V0_PIPELINE_ASSESSMENT.md',
+    auditCommand: 'npm run audit:release-history',
+  },
+};
+
+const V01681_RELEASE = {
+  version: '0.16.81',
+  date: 'July 26, 2026',
+  title: 'Evidence Must Earn the Lesson',
+  landingTitle: 'Algi V0.16.81 Knows Its Coverage Before It Builds',
+  highlights: [
+    'Algi now forecasts the exact private-versus-research lesson boundary before generation. The setup card names private-ready lessons, source checks, and the provider order instead of letting a coverage miss appear only at 99%.',
+    'Opt-in research is provider-diverse and source-first: DOAJ open scholarly metadata runs first, explicitly licensed open biomedical literature from Europe PMC runs next, and Wikipedia supplies background only for remaining lesson-contract gaps.',
+    'Every researched kernel carries a claim-to-passage entailment receipt in addition to quote admission. Off-domain sources, wrong entities, unsupported claims, ambiguous licenses, and same-course but wrong-lesson filler fail closed.',
+    'The retrieval cascade now measures actual lesson-schema composability rather than raw result count. It preserves later-provider candidates, evaluates bounded grounded concept combinations, and completes the five-lesson Environmental Microbiology proof in about eight seconds without a repair storm.',
+    'The compiler and export boundary are cleaner: reader-facing quiz grammar and scholarly punctuation seams are repaired, generated fallback source rows disappear once trusted concept-linked sources cover the same concepts, and OpenStax, DOAJ, Europe PMC, and Wikipedia identities survive the ZIP without architecture-domain drift.',
+    'A frozen five-domain Algi→Scion hybrid benchmark now binds prompts, route roles, evidence receipts, compiler/grader versions, quality, latency, and call budgets. The protocol is implemented, but no hybrid or adapter promotion is claimed until paired evidence exists.',
+    'Gemma weights remain unchanged and the research adapter remains inactive. Algi owns evidence discovery and adjudication; Scion owns local course-specific authoring; both—and compatible paid providers—benefit from the shared compiler, checks, Agent evidence layer, and exporters.',
+  ],
+  landingHighlights: [
+    'See private coverage before generation.',
+    'Scholarly and biomedical evidence precede Wikipedia.',
+    'Every researched claim gets a support receipt.',
+    'Raw search count no longer masquerades as lesson readiness.',
+    'Cross-domain hybrid promotion rules are frozen and auditable.',
+    'Gemma weights stay unchanged; the adapter stays inactive.',
+  ],
+  proof: {
+    contract: 'release-contracts/v0.16.81.json',
+    roadmap: 'docs/ALGI_V0_PIPELINE_ASSESSMENT.md',
+    auditCommand: 'npm run audit:release-history',
+  },
+};
+
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
+  date: 'July 26, 2026',
+  title: 'Research First, Evidence Bound',
+  landingTitle: 'Algi V0.16.82 Researches Before It Compiles',
+  highlights: [
+    'Algi now turns the whole requested lesson sequence into a bounded research plan before compilation. Each lesson carries focused queries, schema requirements, provider policy, and progress state instead of entering an open-ended search loop.',
+    'The opt-in research lane follows the licensed DOAJ → Europe PMC → Wikipedia cascade, records exact source passages and provenance, scores authority, currency, relevance, and entailment, preserves conflicts, and admits only evidence that can satisfy the lesson contract.',
+    'Research results are stored in a versioned local project cache. Repeating the same course can reuse inspected evidence without another model download or redundant provider request, while private mode continues to send no course-topic research request.',
+    'Evidence-to-kernel composition is now lesson-owned and schema-complete: adjacent lessons cannot borrow the wrong fact, policy courses no longer inherit laboratory language, repeated concepts receive distinct prerequisite bridges, and non-definitional source claims are framed honestly.',
+    'The Living Course Compiler exposes research planning, provider retrieval, evidence admission, cache reuse, composition, verification, and export as one continuous build. The Agent answers from the same source-grounded course evidence after generation.',
+    'A real six-lesson Current Technology Policy browser run finished 6/6 kernels, 9/9 material families, 99/A, and zero findings. Its single valid ZIP contains 63 entries—43 DOCX, 6 PPTX, and 1 XLSX—and an eight-row normalized source report with no duplicate or malformed locator rows.',
+    'A frozen eight-domain research-first benchmark now audits the route, evidence, compiler, quality, latency, call, and export contracts. The architecture is implemented and tested; no claim is made yet that Algi beats Scion, a paid model, or a trained adapter.',
+    'Gemma weights remain unchanged and the optional adapter remains inactive. Algi supplies evidence and deterministic composition; Scion supplies browser-local authoring; compatible paid providers benefit from the same evidence graph, compiler safeguards, Agent layer, and exporters.',
+  ],
+  landingHighlights: [
+    'Plan the evidence job before searching.',
+    'Score claims by source, support, currency, and conflict.',
+    'Reuse inspected research from the local project cache.',
+    'Compile each lesson only from its own admitted evidence.',
+    'Watch research and compilation as one living build.',
+    'Export a source-grounded course with no model download.',
+    'Benchmark promotion without claiming an unearned win.',
+    'Scion and paid providers share the compiler gains.',
+  ],
+  proof: {
+    contract: 'release-contracts/v0.16.82.json',
+    roadmap: 'docs/ALGI_RESEARCH_FIRST_ARCHITECTURE.md',
+    browser: 'docs/ALGI_V0_PIPELINE_ASSESSMENT.md',
+    auditCommand: 'npm run audit:release-history',
+  },
+};
+
+const V01679_RELEASE = {
+  version: '0.16.79',
+  date: 'July 25, 2026',
+  title: 'A Round That Explains Its Own Clock',
+  landingTitle: 'Scion V0.16.79 Makes Evaluation Rounds Explain Their Own Timing',
+  highlights: [
+    'V0.16.78 recorded a 2.9× round slowdown it could not explain and therefore claimed no latency win. Six controlled runs on the same course now name the cause: cold model load plus GPU contention between concurrent courses. No product regression existed — V0.16.77 and V0.16.78 generate in 48.6 seconds each under identical warm conditions.',
+    'Browser-local providers now default to one course at a time. Public Scion and the local runtime execute inference on a single GPU, so concurrent courses contended for one device instead of overlapping network waits; remote providers keep the parallel default, and an explicit --concurrency still wins.',
+    'The same two-course cold round finishes in 5 minutes 34 seconds instead of 16 minutes 1 second — 2.87× faster — with identical 99/A grades, zero P0/P1 findings, and 101 extracted files per course. Per-course generation falls from 84.8s and 128.8s to 48.9s and 90.7s.',
+    'Every round now records the configuration that decides whether two rounds are comparable: concurrency and whether it was explicit, filmstrip capture, Scion profile mode, authoring, and voice. Rounds that measured different things can no longer look alike.',
+    'Round reports and round.json now split each course into model load, of which download, generation, and total. A cold profile pays model load on every course, so comparing totals across rounds compares cache states rather than product quality.',
+    'The timing split is derived from the console log each run already saves, by a pure function with unit coverage for cold, warm, and remote-provider cases. Nothing was added to the live browser path, so the measurement cannot perturb the timings it reports.',
+    'Gemma weights remain unchanged, the research adapter remains inactive, and no generated course content changes. This release improves evaluation honesty and round wall-clock only, and claims no quality, factual, instructor, or classroom improvement.',
+  ],
+};
+
+const V01678_RELEASE = {
+  version: '0.16.78',
   date: 'July 25, 2026',
   title: 'Make Every Slide Earn Its Place',
   landingTitle: 'Scion V0.16.78 Makes Every Slide Earn Its Place',
@@ -42,6 +150,283 @@ export const CURRENT_RELEASE_CHANGELOG = {
   date: CURRENT_RELEASE.date,
   title: CURRENT_RELEASE.title,
   highlights: CURRENT_RELEASE.highlights,
+  sections: [
+    {
+      label: 'Plan research before spending requests',
+      icon: 'AI',
+      color: 'violet',
+      items: [
+        'The requested lesson sequence becomes a typed, bounded research plan before any provider request.',
+        'Every lesson declares focused queries, missing schema fields, source policy, and a stable cache identity.',
+        'Private mode still makes no external course-topic request and reports unsupported lessons honestly.',
+        'Research mode shows planning, retrieval, admission, cache, and composition progress in the Living Course Compiler.',
+      ],
+    },
+    {
+      label: 'Build a claim-level evidence graph',
+      icon: 'PROOF',
+      color: 'blue',
+      items: [
+        'DOAJ, Europe PMC, and Wikipedia retain their own provider, URL, access, license, attribution, and passage receipts.',
+        'Claims are scored for source authority, currency, course relevance, and passage entailment instead of inheriting trust from a search-result count.',
+        'Contradictory claims remain visible as conflicts rather than being silently blended into fluent prose.',
+        'Only evidence that can fill the typed lesson schema enters deterministic composition.',
+      ],
+    },
+    {
+      label: 'Reuse evidence without hiding the privacy boundary',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'A versioned local project cache stores inspected research plans and admitted evidence.',
+        'Cache keys bind the course, lesson, query, provider policy, and protocol version so stale or unrelated evidence cannot leak across projects.',
+        'A repeated build can reuse source work without downloading model weights or issuing redundant provider requests.',
+        'Changing the evidence protocol or lesson identity invalidates the corresponding cache entry.',
+      ],
+    },
+    {
+      label: 'Keep every fact with its lesson',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'Cross-topic synthesis uses concept-owned source evidence instead of an arbitrary neighboring fact.',
+        'Policy courses use policy-analysis language and no longer become laboratory courses because a source mentions online activity.',
+        'Repeated adjacent concepts receive a distinct prerequisite bridge instead of a self-referential instruction.',
+        'Non-definitional claims use source-statement framing in FAQs and teaching positions rather than malformed dictionary language.',
+        'Long peer contrasts fail closed to a bounded distinction instead of clipping into a false correction.',
+      ],
+    },
+    {
+      label: 'Verify the real course and package boundary',
+      icon: 'PROOF',
+      color: 'emerald',
+      items: [
+        'A fresh six-week Current Technology Policy course completed 6/6 lesson kernels and 9/9 material families at 99/A with zero encoded findings.',
+        'The grounded Agent compared Algorithmic accountability and Privacy law from workspace source evidence.',
+        'One export-owned action downloaded a valid 63-entry archive with 43 DOCX, 6 PPTX, and 1 XLSX files.',
+        'The eight-row source report contains normalized session locators with no duplicate URLs, doubled separators, or malformed lesson lists.',
+        'Targeted document inspection found none of the policy-domain, fact-binding, prerequisite, FAQ, clipping, punctuation, or placeholder defects repaired by this release.',
+        'The complete gate passes 462 unit-test files with 5,756 active tests and 151/151 Chromium E2E tests, plus format, lint, build, bundle, architecture, constitution, release-history, and frozen-benchmark audits.',
+      ],
+    },
+    {
+      label: 'Freeze promotion without inventing a victory',
+      icon: 'CHECK',
+      color: 'violet',
+      items: [
+        'The eight-domain research-first benchmark freezes prompts, evidence lanes, route roles, compiler and grader versions, quality, latency, provider work, and export checks.',
+        'Research-first viability remains false until same-commit paired artifacts pass the frozen gate.',
+        'The release does not claim that Algi beats Scion, paid providers, a trained adapter, independent factual review, or classroom evaluation.',
+        'Gemma weights remain unchanged and the optional adapter remains inactive.',
+      ],
+    },
+    {
+      label: 'Keep one compiler for every compatible author',
+      icon: 'AI',
+      color: 'slate',
+      items: [
+        'Algi owns evidence discovery, adjudication, local caching, and deterministic evidence-to-kernel composition.',
+        'Scion owns browser-local course-specific authoring when a generative pass is useful.',
+        'Compatible paid providers can consume the same admitted evidence and receive the same compiler, Agent, verification, and export safeguards.',
+        'The shared architecture improves every compatible route, while model loading and browser-local inference remain Scion-specific.',
+      ],
+    },
+  ],
+};
+
+const V01681_RELEASE_CHANGELOG = {
+  version: V01681_RELEASE.version,
+  date: V01681_RELEASE.date,
+  title: V01681_RELEASE.title,
+  highlights: V01681_RELEASE.highlights,
+  sections: [
+    {
+      label: 'Know the evidence boundary before generation',
+      icon: 'AI',
+      color: 'violet',
+      items: [
+        'The setup flow forecasts the same private genome path the compiler will execute.',
+        'Explicit lesson sequences and requested lesson counts remain authoritative in the forecast.',
+        'The preflight card separates private-ready lessons from lessons that need external evidence.',
+        'Research mode names the planned provider order before the user starts the build.',
+        'A coverage miss is visible before generation instead of appearing for the first time at final grading.',
+      ],
+    },
+    {
+      label: 'Research through a licensed provider cascade',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'Private mode sends no external course-topic request.',
+        'DOAJ open scholarly metadata is queried first.',
+        'Europe PMC contributes only records that explicitly report open access and an article license.',
+        'Wikipedia is queried only for lesson contracts still unsupported by the scholarly lanes.',
+        'Per-origin throttling, bounded retries, request deduplication, cancellation, and a course-level request ceiling remain enforced.',
+      ],
+    },
+    {
+      label: 'Require claims and concepts to earn admission',
+      icon: 'PROOF',
+      color: 'blue',
+      items: [
+        'Quote admission proves that cited source text exists; claim-to-passage entailment separately proves that each compiled atom is supported by that passage.',
+        'Course-aware domain gates reject the architecture meaning of Evidence-based design in a UX course.',
+        'Entity filters reject biographies and other high-vocabulary false friends.',
+        'A sibling source must match the lesson head concept; a generic shared word such as microbial cannot fill microbial risk assessment.',
+        'Every retained researched kernel exports its provider, URL, license, attribution, and support receipt.',
+      ],
+    },
+    {
+      label: 'Judge the real lesson contract, not a result count',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'Three retrieved kernels no longer count as success unless they can produce three key terms, five compact facts, a scenario, and two grounded checks.',
+        'When the first provider prefix cannot compose, later-provider candidates remain available.',
+        'A bounded combination search selects a schema-complete grounded evidence set without inventing facts.',
+        'Waterborne pathogens is private-ready from shipped quote-anchored OpenStax §16.3 evidence, so research spends work only on the other four lessons.',
+      ],
+    },
+    {
+      label: 'Polish the package boundary',
+      icon: 'PROOF',
+      color: 'emerald',
+      items: [
+        'Generated syllabus-review rows are removed once trusted concept-linked sources cover the same concept keys.',
+        'The UX source report retains seven trusted, accessible, licensed, concept-linked rows and zero review rows.',
+        'Quiz distractors use grammatical direct-claim framing instead of constructions such as “argues that decorate.”',
+        'Compact instructional copy preserves complete terminal references instead of clipping to a stranded preposition.',
+        'Source and syllabus boundaries normalize scholarly punctuation seams before grading, eliminating double-period findings without hiding them.',
+        'The final Environmental Microbiology ZIP keeps OpenStax, DOAJ, Europe PMC, and Wikipedia provider identities, passes 38/38 export checks, and grades 99/A with zero P0/P1/P2 findings.',
+        'The complete release gate passes 5,722 active unit tests and 151/151 Chromium E2E tests, including mobile workspace, Agent, provider picker, and ZIP export paths.',
+      ],
+    },
+    {
+      label: 'Freeze the Algi to Scion promotion ruler',
+      icon: 'CHECK',
+      color: 'violet',
+      items: [
+        'Five frozen domains bind the exact brief, evidence lane, route, compiler, grader, quality, latency, call, and export contracts.',
+        'Hybrid inputs must carry immutable admitted-source receipts; researched kernels without entailment evidence fail the seam.',
+        'Promotion requires paired complete evidence, no domain regression, no P0/P1 or export regression, and bounded model and provider work.',
+        'The benchmark protocol is implemented and audited, but no hybrid or adapter promotion result exists yet.',
+      ],
+    },
+    {
+      label: 'Keep the claim boundary honest',
+      icon: 'PROOF',
+      color: 'slate',
+      items: [
+        'Algi is an evidence and deterministic composition engine, not a neural model or universal reasoning system.',
+        'Browser and ZIP proofs validate specific courses and encoded defects; they do not establish universal factual or classroom quality.',
+        'Gemma weights remain unchanged and the optional research adapter remains inactive.',
+        'Algi owns evidence retrieval and adjudication; Scion owns course-specific local authoring; compatible paid providers share the compiler and export gains.',
+      ],
+    },
+  ],
+};
+
+const V01680_RELEASE_CHANGELOG = {
+  version: V01680_RELEASE.version,
+  date: V01680_RELEASE.date,
+  title: V01680_RELEASE.title,
+  highlights: V01680_RELEASE.highlights,
+  sections: [
+    {
+      label: 'Compose from evidence without model weights',
+      icon: 'AI',
+      color: 'violet',
+      items: [
+        'Algi V0 answers the same typed course-map and lesson-kernel requests as Scion from uploaded sources and the shipped teaching genome.',
+        'The route downloads no model and performs no language-model inference.',
+        'Model-only voice rewrites are not scheduled, preventing phantom calls, fallbacks, and estimated spend on the zero-model route.',
+        'Definitions, facts, misconceptions, examples, and assessment contrasts retain source anchors through CourseIR and export.',
+        'Unsupported private-mode lessons remain explicit coverage gaps instead of becoming confident template content.',
+      ],
+    },
+    {
+      label: 'Make privacy and research a visible choice',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'Private mode sends no external course-topic request.',
+        'Research remains off until the user explicitly enables it.',
+        'The configuration explains that Wikipedia may receive the course title and uncovered lesson topics.',
+        'Returned research keeps the source URL, attribution, CC BY-SA license, and revision receipt.',
+      ],
+    },
+  ],
+};
+
+const V01679_RELEASE_CHANGELOG = {
+  version: V01679_RELEASE.version,
+  date: V01679_RELEASE.date,
+  title: V01679_RELEASE.title,
+  highlights: V01679_RELEASE.highlights,
+  sections: [
+    {
+      label: 'Name the cost instead of guessing at it',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'V0.16.78 recorded a 2.9× round slowdown with an unconfirmed cause and honestly claimed no latency win.',
+        'Six controlled runs on one course separate cold model load, filmstrip capture, the code delta, and course concurrency.',
+        'Cold model load costs about 70 seconds per course; filmstrip capture costs 2 seconds; the V0.16.78 code delta costs nothing.',
+        'V0.16.77 and V0.16.78 both generate in 48.6 seconds under identical warm conditions, so no product regression existed.',
+      ],
+    },
+    {
+      label: 'Run browser-local rounds one course at a time',
+      icon: 'AI',
+      color: 'sky',
+      items: [
+        'Public Scion and the local runtime execute inference on this machine’s single GPU.',
+        'Concurrent courses contended for one device rather than overlapping network waits, roughly doubling per-course generation.',
+        'Browser-local providers now default to concurrency 1; remote providers keep the parallel default of 2.',
+        'An explicit --concurrency still wins, so the change moves only the default.',
+      ],
+    },
+    {
+      label: 'Prove the round got faster without changing output',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'The same two-course cold round finishes in 5m34s instead of 16m01s — 2.87× faster.',
+        'Per-course generation falls from 84.8s and 128.8s to 48.9s and 90.7s.',
+        'Both courses keep 99/A, zero P0/P1 findings, and 101 extracted files.',
+        'Generation now matches the clean serial baseline exactly, so the contention is removed rather than hidden.',
+      ],
+    },
+    {
+      label: 'Make every round explain its own clock',
+      icon: 'AI',
+      color: 'violet',
+      items: [
+        'round.json and the round report now record concurrency and whether it was explicit, filmstrip capture, Scion profile mode, authoring, and voice.',
+        'Each course reports model load, of which download, generation, and total instead of one blended number.',
+        'A cold profile pays model load on every course, so totals compare cache states while generation compares the product.',
+        'The split is a pure function over the console log each run already saves, with unit coverage for cold, warm, and remote-provider rounds.',
+      ],
+    },
+    {
+      label: 'Claim boundary',
+      icon: 'CHECK',
+      color: 'slate',
+      items: [
+        'Gemma weights are unchanged and the research adapter remains inactive.',
+        'No generated course content, compiler output, or quality score changes in this release.',
+        'This improves evaluation honesty and round wall-clock only.',
+        'It claims no quality, factual, instructor, accessibility, or classroom improvement.',
+      ],
+    },
+  ],
+};
+
+const V01678_RELEASE_CHANGELOG = {
+  version: V01678_RELEASE.version,
+  date: V01678_RELEASE.date,
+  title: V01678_RELEASE.title,
+  highlights: V01678_RELEASE.highlights,
   sections: [
     {
       label: 'Freeze the ruler before changing the course',
@@ -117,6 +502,10 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  V01681_RELEASE_CHANGELOG,
+  V01680_RELEASE_CHANGELOG,
+  V01679_RELEASE_CHANGELOG,
+  V01678_RELEASE_CHANGELOG,
   {
     version: '0.16.77',
     date: 'July 24, 2026',
