@@ -9,6 +9,27 @@ function sentenceCase(value = '') {
   return text ? text.charAt(0).toUpperCase() + text.slice(1) : '';
 }
 
+const policyDomainPattern =
+  /\b(public policy|policy analysis|policy design|policy evaluation|policy implementation|public administration|public affairs|urban policy|social policy|education policy|health policy|environmental policy|regulatory policy|governance)\b/;
+const policyPracticeGatePattern =
+  /\b(policy memo|decision memo|policy brief|policy choice|policy choices|policy proposal|policy proposals|policy option|policy options|policy evidence|policy lab|policy studio|platform accountability|algorithmic audit|algorithmic audits|stakeholder analysis|stakeholder mapping|stakeholder map|equity analysis|environmental justice|implementation context|implementation plan|implementation planning|implementation constraint|feasibility|cost[-\s]?benefit|impact assessment|regulation|regulatory analysis|regulatory impact|regulatory impact analysis|public comment|benefit[-\s]?cost|logic model|theory of change|program evaluation|administrative burden|public value|policy trade[-\s]?off)\b/;
+const policyPracticeScorePattern =
+  /\b(policy memo|decision memo|policy brief|policy choice|policy choices|policy proposal|policy proposals|policy option|policy options|policy evidence|platform accountability|algorithmic audit|algorithmic audits|stakeholder analysis|stakeholder mapping|stakeholder map|equity analysis|implementation plan|implementation constraint|feasibility|cost[-\s]?benefit|impact assessment|regulation|regulatory analysis|regulatory impact|public comment|benefit[-\s]?cost|logic model|theory of change|program evaluation|administrative burden|public value|policy trade[-\s]?off)\b/;
+
+function matchCount(text, pattern) {
+  return (String(text || '').match(new RegExp(pattern.source, 'g')) || []).length;
+}
+
+export function hasPolicyAnalysisEvidence(text = '') {
+  return policyDomainPattern.test(text) && policyPracticeGatePattern.test(text);
+}
+
+export function policyAnalysisEvidenceScores(text = '') {
+  const core = hasPolicyAnalysisEvidence(text) ? matchCount(text, policyDomainPattern) : 0;
+  const practice = core > 0 ? matchCount(text, policyPracticeScorePattern) : 0;
+  return { core, practice };
+}
+
 export function faqTermDefinitionSentence(term = {}) {
   const name = String(term?.term || '').trim();
   const definition = String(term?.definition || '')

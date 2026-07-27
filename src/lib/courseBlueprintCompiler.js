@@ -80,7 +80,9 @@ import {
 } from './courseCompilerPolish';
 import {
   faqTermDefinitionSentence,
+  hasPolicyAnalysisEvidence,
   integrativeStudyGuideCopy,
+  policyAnalysisEvidenceScores,
   selectConceptEvidenceFact,
   selectDistinctPrerequisiteConcept,
 } from './compilerEvidenceCopy';
@@ -1338,18 +1340,6 @@ function hasAccountingFinanceEvidence(text = '') {
       text,
     );
   return hasFinanceDomain && hasFinancePractice;
-}
-
-function hasPolicyAnalysisEvidence(text = '') {
-  const hasPolicyDomain =
-    /\b(public policy|policy analysis|policy design|policy evaluation|policy implementation|public administration|public affairs|urban policy|social policy|education policy|health policy|environmental policy|regulatory policy|governance)\b/.test(
-      text,
-    );
-  const hasPolicyPractice =
-    /\b(policy memo|decision memo|policy brief|policy choice|policy choices|policy proposal|policy proposals|policy option|policy options|policy evidence|policy lab|policy studio|platform accountability|algorithmic audit|algorithmic audits|stakeholder analysis|stakeholder mapping|stakeholder map|equity analysis|environmental justice|implementation context|implementation plan|implementation planning|implementation constraint|feasibility|cost[-\s]?benefit|impact assessment|regulation|regulatory analysis|regulatory impact|regulatory impact analysis|public comment|benefit[-\s]?cost|logic model|theory of change|program evaluation|administrative burden|public value|policy trade[-\s]?off)\b/.test(
-      text,
-    );
-  return hasPolicyDomain && hasPolicyPractice;
 }
 
 function hasEconomicsAnalysisEvidence(text = '') {
@@ -6935,17 +6925,7 @@ function buildCourseModalityProfile({ courseName, lessons }) {
         )
       : 0;
   const accountingFinanceScore = accountingFinanceCoreScore + accountingFinancePracticeScore;
-  const policyAnalysisCoreScore = hasPolicyAnalysisEvidence(text)
-    ? countPattern(
-        /\b(public policy|policy analysis|policy design|policy evaluation|policy implementation|public administration|public affairs|urban policy|social policy|education policy|health policy|environmental policy|regulatory policy|governance)\b/g,
-      )
-    : 0;
-  const policyAnalysisPracticeScore =
-    policyAnalysisCoreScore > 0
-      ? countPattern(
-          /\b(policy memo|decision memo|policy brief|policy choice|policy choices|policy proposal|policy proposals|policy option|policy options|policy evidence|platform accountability|algorithmic audit|algorithmic audits|stakeholder analysis|stakeholder mapping|stakeholder map|equity analysis|implementation plan|implementation constraint|feasibility|cost[-\s]?benefit|impact assessment|regulation|regulatory analysis|regulatory impact|public comment|benefit[-\s]?cost|logic model|theory of change|program evaluation|administrative burden|public value|policy trade[-\s]?off)\b/g,
-        )
-      : 0;
+  const { core: policyAnalysisCoreScore, practice: policyAnalysisPracticeScore } = policyAnalysisEvidenceScores(text);
   const policyAnalysisScore = policyAnalysisCoreScore + policyAnalysisPracticeScore;
   const economicsAnalysisCoreScore = hasEconomicsAnalysisEvidence(text)
     ? countPattern(

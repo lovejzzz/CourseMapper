@@ -286,9 +286,12 @@ const lazyChunkBudgets = [
   // v0.16.65: varied assessment and material-polish copy moved out of the
   // compiler hot chunk. This compile-only leaf stays independently cacheable.
   { prefix: 'compilerPolish-', rawKiB: 8, gzipKiB: 3 },
-  // V0.16.82: synthesis-evidence copy and distinct prerequisite selection are
-  // pure, cacheable leaves instead of expanding the core compiler controller.
-  { prefix: 'compilerEvidenceCopy-', rawKiB: 3, gzipKiB: 1.5 },
+  // V0.16.82: synthesis-evidence copy, distinct prerequisite selection, and
+  // policy-signal scoring are pure, cacheable leaves instead of expanding the
+  // core compiler controller. Moving the duplicated policy patterns here
+  // reduces the hot compiler from 843.2/236.0 to 841.5/235.6 KiB; the leaf
+  // measures 3.4/1.4 and keeps only narrow platform-variance headroom.
+  { prefix: 'compilerEvidenceCopy-', rawKiB: 3.75, gzipKiB: 1.5 },
   // v0.16.73 learner-visible not-applicable states measured 163.8/35.2.
   // The editable activity briefing remains isolated from the main view.
   { prefix: 'DeliverableView-', rawKiB: 170, gzipKiB: 36.5 },
