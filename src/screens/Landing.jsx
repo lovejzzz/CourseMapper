@@ -9,6 +9,8 @@ import AppLogo from '../components/AppLogo';
 import SetupProgress from '../components/SetupProgress';
 import { LATEST_RELEASE } from '../lib/latestRelease';
 import { PUBLIC_SCION_MODEL_NAME, PUBLIC_SCION_PROVIDER_ID } from '../lib/publicScionIdentity';
+import { isAlgiModel } from '../lib/algiIdentity';
+import { ALGI_RESEARCH_CHANGE_EVENT, readAlgiResearchEnabled } from '../lib/algiResearchPolicy';
 
 const ACCEPTED_EXTENSIONS = [
   '.doc',
@@ -353,9 +355,53 @@ export default function Landing({
   const [isDragging, setIsDragging] = useState(false);
   const [projectDragging, setProjectDragging] = useState(false);
   const [visibleCourseExamples, setVisibleCourseExamples] = useState(() => pickCourseExamples(COURSE_EXAMPLES, 3));
+  const [algiResearchEnabled, setAlgiResearchEnabled] = useState(readAlgiResearchEnabled);
+  const [algiCoverageForecast, setAlgiCoverageForecast] = useState(null);
+  const [algiForecastStatus, setAlgiForecastStatus] = useState('idle');
   const missingRecoveryAttachments = (setupRecoveryNotice?.attachmentNames || []).filter(
     (name) => !files.some((file) => file?.name === name),
   );
+  const algiSelected = provider === PUBLIC_SCION_PROVIDER_ID && isAlgiModel(modelId);
+
+  useEffect(() => {
+    const handleResearchChange = (event) => {
+      setAlgiResearchEnabled(Boolean(event?.detail?.enabled ?? readAlgiResearchEnabled()));
+    };
+    globalThis.addEventListener?.(ALGI_RESEARCH_CHANGE_EVENT, handleResearchChange);
+    return () => globalThis.removeEventListener?.(ALGI_RESEARCH_CHANGE_EVENT, handleResearchChange);
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    if (!algiSelected || promptText.trim().length < 3) {
+      setAlgiCoverageForecast(null);
+      setAlgiForecastStatus('idle');
+      return () => {
+        active = false;
+      };
+    }
+    setAlgiForecastStatus('checking');
+    const timer = setTimeout(async () => {
+      try {
+        const { forecastAlgiCoverage } = await import('../lib/algiCoverageForecast.js');
+        const forecast = await forecastAlgiCoverage({
+          source: promptText,
+          researchEnabled: algiResearchEnabled,
+        });
+        if (!active) return;
+        setAlgiCoverageForecast(forecast);
+        setAlgiForecastStatus('ready');
+      } catch {
+        if (!active) return;
+        setAlgiCoverageForecast(null);
+        setAlgiForecastStatus('unavailable');
+      }
+    }, 300);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [algiResearchEnabled, algiSelected, promptText]);
 
   // ── Auto-collapse AI config when already connected ──
   const isReady = apiStatus === 'connected';
@@ -798,6 +844,80 @@ export default function Landing({
                   </div>
                 )}
               </div>
+
+              {algiSelected && promptText.trim().length >= 3 && (
+                <div
+                  data-testid="algi-coverage-forecast"
+                  aria-live="polite"
+                  className="mt-4 rounded-xl border border-indigo-100 bg-indigo-50/55 px-4 py-3 text-left dark:border-indigo-400/20 dark:bg-indigo-400/10"
+                >
+                  {algiForecastStatus === 'checking' ? (
+                    <div className="flex items-center gap-2 text-xs font-semibold text-indigo-700 dark:text-indigo-200">
+                      <span className="h-2 w-2 animate-pulse rounded-full bg-indigo-500" />
+                      Checking private source coverage…
+                    </div>
+                  ) : algiCoverageForecast?.status === 'ready' ? (
+                    <>
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <p className="text-xs font-semibold text-slate-800 dark:text-slate-100">
+                          {algiCoverageForecast.externalNeeded === 0
+                            ? `Private coverage ready for all ${algiCoverageForecast.requested} lessons`
+                            : `${algiCoverageForecast.privateCovered}/${algiCoverageForecast.requested} lessons ready privately`}
+                        </p>
+                        <span
+                          className={`rounded-full px-2 py-1 text-xs font-semibold ${
+                            algiCoverageForecast.externalNeeded === 0
+                              ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-400/15 dark:text-emerald-200'
+                              : algiResearchEnabled
+                                ? 'bg-blue-100 text-blue-700 dark:bg-blue-400/15 dark:text-blue-200'
+                                : 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200'
+                          }`}
+                        >
+                          {algiCoverageForecast.externalNeeded === 0
+                            ? 'No research needed'
+                            : algiResearchEnabled
+                              ? `${algiCoverageForecast.externalNeeded} source check${algiCoverageForecast.externalNeeded === 1 ? '' : 's'} planned`
+                              : `${algiCoverageForecast.externalNeeded} source gap${algiCoverageForecast.externalNeeded === 1 ? '' : 's'}`}
+                        </span>
+                      </div>
+                      <p className="mt-1 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
+                        {algiCoverageForecast.externalNeeded === 0
+                          ? 'Algi can build these lesson knowledge kernels from EduTool’s source-anchored teaching genome without an external request.'
+                          : algiResearchEnabled
+                            ? 'Algi will check reusable open scholarly sources first, then Wikipedia only for lessons still missing evidence.'
+                            : 'Algi will keep the build private and report any unsupported lesson instead of inventing subject knowledge.'}
+                        {files.length > 0
+                          ? ' Attached files are evaluated during the build and may close additional gaps.'
+                          : ''}
+                      </p>
+                      {algiCoverageForecast.externalNeeded > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {algiCoverageForecast.lessons
+                            .filter((lesson) => lesson.status !== 'private-ready')
+                            .slice(0, 4)
+                            .map((lesson) => (
+                              <span
+                                key={lesson.lessonId}
+                                className="max-w-full truncate rounded-full border border-indigo-200/80 bg-white/70 px-2 py-1 text-xs font-medium text-indigo-800 dark:border-indigo-300/20 dark:bg-slate-950/25 dark:text-indigo-100"
+                              >
+                                {lesson.title}
+                              </span>
+                            ))}
+                          {algiCoverageForecast.externalNeeded > 4 && (
+                            <span className="rounded-full px-2 py-1 text-xs font-medium text-slate-500 dark:text-slate-400">
+                              +{algiCoverageForecast.externalNeeded - 4} more
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <p className="text-xs text-slate-600 dark:text-slate-300">
+                      Coverage will be checked again when the build starts.
+                    </p>
+                  )}
+                </div>
+              )}
 
               {canQuickStart && (
                 <>

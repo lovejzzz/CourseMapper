@@ -315,6 +315,44 @@ describe('reading-list engine (P2)', () => {
     expect(attachGenomeResources(graph)).toBe(0);
   });
 
+  it('preserves scholarly provider identity instead of flattening research into genome', () => {
+    const graph = genomeLinkedGraph();
+    graph.enrichmentOverlay.lessonContent = {
+      'lesson-1': {
+        keyTerms: [],
+        conceptProvenance: {
+          source: 'algi-researched',
+          citations: [
+            {
+              key: 'doaj:biofilm-study',
+              displayTitle: 'Biofilm removal in water systems',
+              sourceUrl: 'https://example.org/open-article',
+              license: 'CC0 1.0 (DOAJ article metadata)',
+              attribution: 'A. Researcher (2026). Biofilm removal in water systems. DOAJ metadata',
+              kind: 'open scholarly article',
+            },
+            {
+              key: 'europe-pmc:PMC13074090',
+              displayTitle: 'A Review of Quantitative Microbial Risk Assessment',
+              sourceUrl: 'https://europepmc.org/article/PMC/13074090',
+              license: 'CC BY',
+              attribution: 'A. Researcher (2026). A Review of Quantitative Microbial Risk Assessment. Europe PMC',
+              kind: 'open biomedical article',
+            },
+          ],
+        },
+      },
+    };
+
+    expect(attachGenomeResources(graph)).toBe(2);
+    expect(graph.resources).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ provider: 'doaj', origin: 'algi-research' }),
+        expect.objectContaining({ provider: 'europe-pmc', origin: 'algi-research' }),
+      ]),
+    );
+  });
+
   it('keeps shipped OpenStax receipts distinct inside a mixed Algi research lesson', () => {
     const graph = genomeLinkedGraph();
     graph.enrichmentOverlay.lessonContent = {

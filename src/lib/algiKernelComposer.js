@@ -45,7 +45,27 @@ function wordsOf(text) {
 function fitWords(text, [min, max], filler = '') {
   let words = wordsOf(text);
   if (words.length > max) {
-    words = words.slice(0, max);
+    const clipped = words.slice(0, max);
+    const nextWord = String(words[max] || '').replace(/[.!?]+$/, '');
+    const strandedPreposition = /^(?:for|from|in|into|of|on|to|with)$/i.test(
+      String(clipped.at(-1) || '').replace(/[.!?]+$/, ''),
+    );
+    const recoverableObject = /^(?:it|them|this|that|these|those)$/i.test(nextWord);
+    const conjunctionIndex = clipped.findIndex(
+      (word, index) => index >= 2 && /^and$/i.test(String(word).replace(/[^\p{L}]/gu, '')),
+    );
+    if (strandedPreposition && recoverableObject && conjunctionIndex > 1) {
+      // Preserve the object of a terminal preposition without breaking the
+      // compact contract. "Define the goal and connect each step to it"
+      // becomes two parallel clauses separated by a semicolon, not the
+      // misleading fragment "connect each step to."
+      words = [...clipped];
+      words[conjunctionIndex - 1] = `${words[conjunctionIndex - 1].replace(/[,:;.!?]+$/, '')};`;
+      words.splice(conjunctionIndex, 1);
+      words.push(wordsOf(text)[max]);
+    } else {
+      words = clipped;
+    }
     const last = words[words.length - 1].replace(/[,;:—-]$/, '');
     words[words.length - 1] = /[.!?]$/.test(last) ? last : `${last}.`;
     return words.join(' ');
@@ -479,7 +499,7 @@ function researchDefinitionOption(kernel) {
   if (!term || !definition) return '';
   const foundAt = definition.toLowerCase().indexOf(term.toLowerCase());
   const subjectTail = definition.slice(foundAt >= 0 ? foundAt + term.length : 0);
-  const copula = subjectTail.match(/\b(?:is|are|refers to|means|denotes|describes|comprises)\b/i);
+  const copula = subjectTail.match(/\b(?:is|are|refers to|means|denotes|describes|comprises|has become|serves as)\b/i);
   if (!copula) return '';
   const predicate = subjectTail
     .slice(copula.index + copula[0].length)
@@ -504,7 +524,9 @@ function compactContrastDefinition(kernel) {
   if (!term || !definition || !predicateSentence) return '';
   const foundAt = definition.toLowerCase().indexOf(term.toLowerCase());
   const subjectTail = definition.slice(foundAt >= 0 ? foundAt + term.length : 0);
-  const copula = subjectTail.match(/\b(?:is|are|refers to|means|denotes|describes|comprises)\b/i)?.[0];
+  const copula = subjectTail.match(
+    /\b(?:is|are|refers to|means|denotes|describes|comprises|has become|serves as)\b/i,
+  )?.[0];
   if (!copula) return '';
   const predicate = predicateSentence.replace(/[.!?]+$/, '');
   if (!predicate) return '';
@@ -605,11 +627,13 @@ export function sourceReferenceForKernel(kernel, sourceReferences = {}) {
   const baseSourceId = sourceId.replace(/#.*$/, '');
   const metadata = sourceReferences[sourceId] || sourceReferences[baseSourceId] || {};
   const research = kernel?.provenance?.origin === 'algi-research';
+  const researchProvider = String(kernel?.provenance?.providerId || '').trim();
+  const researchKind = String(kernel?.provenance?.sourceKind || '').trim();
   const researchTitle = String(kernel?.provenance?.title || anchor.loc || kernel?.term || '').trim();
   const sourceUrl =
     metadata.sourceUrl ||
     kernel?.provenance?.sourceUrl ||
-    (research && researchTitle
+    (research && researchProvider === 'wikipedia' && researchTitle
       ? `https://en.wikipedia.org/wiki/${encodeURIComponent(researchTitle.replace(/\s+/g, '_'))}`
       : '');
   const attribution = Array.isArray(kernel?.attribution)
@@ -622,7 +646,8 @@ export function sourceReferenceForKernel(kernel, sourceReferences = {}) {
     sourceUrl,
     license: String(kernel?.license || metadata.license || '').trim(),
     attribution: attribution || displayTitle,
-    kind: research ? 'open encyclopedia' : 'open resource',
+    kind: research ? researchKind || 'open source' : 'open resource',
+    ...(researchProvider ? { provider: researchProvider } : {}),
     ...(research && kernel?.provenance?.topic ? { topic: String(kernel.provenance.topic).trim() } : {}),
     evidence: String(anchor.quote || '').trim(),
     sourceTier: Number(anchor.tier ?? kernel?.definition?.tier ?? 2),
@@ -632,6 +657,13 @@ export function sourceReferenceForKernel(kernel, sourceReferences = {}) {
     ...(kernel?.provenance?.revisionId ? { revisionId: String(kernel.provenance.revisionId) } : {}),
     ...(kernel?.provenance?.revisionTimestamp
       ? { revisionTimestamp: String(kernel.provenance.revisionTimestamp) }
+      : {}),
+    ...(kernel?.provenance?.entailment
+      ? {
+          supportReceipt: {
+            ...kernel.provenance.entailment,
+          },
+        }
       : {}),
   };
 }
@@ -771,6 +803,48 @@ export function composeLessonFromKernels(
 }
 
 /**
+ * Try the research pool as evidence combinations, not as a provider-ordered
+ * queue. A provider can return three admitted kernels whose abstract sentences
+ * are too long or context-dependent for the compact lesson contract. Treating
+ * that raw count as success made a valid later source invisible behind the
+ * first three results.
+ *
+ * The first pass preserves normal ranking. Only when it cannot compose do we
+ * inspect bounded three-kernel combinations. Admission and entailment already
+ * happened upstream; this only selects which grounded set satisfies the schema.
+ */
+export function composeLessonFromCandidateKernels(lesson, kernels, options = {}) {
+  const topic = lessonTopic(lesson);
+  const candidates = Array.isArray(kernels)
+    ? kernels
+        .filter(Boolean)
+        .filter((kernel) => {
+          if (kernel?.provenance?.origin !== 'algi-research') return true;
+          const sourceTopic = String(kernel?.provenance?.topic || '').trim();
+          if (!sourceTopic || sourceTopic.toLowerCase() === String(topic || '').toLowerCase()) return true;
+          return kernelSupportsTopic(kernel, topic);
+        })
+        .slice(0, 12)
+    : [];
+  const ranked = composeLessonFromKernels(lesson, candidates, options);
+  if (ranked || candidates.length <= KEY_TERMS_REQUIRED) return ranked;
+
+  for (let first = 0; first < candidates.length - 2; first += 1) {
+    for (let second = first + 1; second < candidates.length - 1; second += 1) {
+      for (let third = second + 1; third < candidates.length; third += 1) {
+        const payload = composeLessonFromKernels(
+          lesson,
+          [candidates[first], candidates[second], candidates[third]],
+          options,
+        );
+        if (payload) return payload;
+      }
+    }
+  }
+  return null;
+}
+
+/**
  * Compose the batch response for a blueprintEnrichment request. Returns '' when
  * no lesson could be covered, so the caller's existing fallback owns the work.
  */
@@ -806,7 +880,15 @@ function lessonSupportTokens(text) {
 }
 
 function kernelSupportsTopic(kernel, topic) {
-  return kernelTopicOverlapScore(kernel, topic) > 0;
+  const topicTokens = [...lessonSupportTokens(topic)];
+  if (topicTokens.length === 0) return false;
+  const namedTokens = lessonSupportTokens(
+    [kernel?.term, ...(kernel?.aliases || []), ...(kernel?.tags || [])].join(' '),
+  );
+  // A modifier-only definition mention is not lesson support: "Microbial mat"
+  // belongs in the course but cannot fill "Microbial risk assessment." The
+  // lesson's head concept must appear in the source's own named concept.
+  return namedTokens.has(topicTokens.at(-1));
 }
 
 export function kernelTopicOverlapScore(kernel, topic) {
@@ -847,7 +929,10 @@ function disciplineKernels(index, discipline, wanted, claimed = new Set(), exclu
         );
         return { id, kernel, indexPosition, overlap };
       })
-      .filter(({ id, kernel, overlap }) => kernel?.discipline === discipline && !excludeIds.has(id) && overlap > 0)
+      .filter(
+        ({ id, kernel }) =>
+          kernel?.discipline === discipline && !excludeIds.has(id) && kernelSupportsTopic(kernel, topic),
+      )
       // Exact lesson overlap governs; the claimed flag only breaks ties. The old
       // file-order scan chose a generic microbiology neighbour before a highly
       // relevant disease-transmission kernel that appeared later in the shard.
@@ -960,21 +1045,75 @@ export async function composeAlgiLessonKernels({
   // otherwise does not have.
   if (stillUncovered.length > 0 && researchProvider) {
     try {
-      const { researchLessonKernelSets, buildWikipediaProvider } = await import('./knowledge/algiResearch.js');
+      const {
+        researchLessonKernelSets,
+        researchLessonKernelSetsCascade,
+        buildDoajProvider,
+        buildEuropePmcProvider,
+        buildWikipediaProvider,
+      } = await import('./knowledge/algiResearch.js');
       // Callers pass either a full provider (tests) or just the HTTP caller.
-      const provider =
-        typeof researchProvider.search === 'function'
-          ? researchProvider
-          : buildWikipediaProvider(researchProvider.httpJson);
+      const directProvider = typeof researchProvider.search === 'function' ? researchProvider : null;
+      const providers =
+        !directProvider && typeof researchProvider.httpJson === 'function'
+          ? [
+              {
+                id: 'doaj',
+                provider: buildDoajProvider(researchProvider.httpJson),
+                options: {
+                  groupSize: 5,
+                  candidatesPerGroup: 24,
+                  maxTargetedFallbacks: 0,
+                },
+              },
+              {
+                id: 'europe-pmc',
+                provider: buildEuropePmcProvider(researchProvider.httpJson),
+                options: {
+                  groupSize: 5,
+                  candidatesPerGroup: 24,
+                  maxTargetedFallbacks: 2,
+                },
+              },
+              {
+                id: 'wikipedia',
+                provider: buildWikipediaProvider(researchProvider.httpJson),
+                options: {
+                  groupSize: 3,
+                  candidatesPerGroup: 24,
+                  maxTargetedFallbacks: 6,
+                },
+              },
+            ]
+          : null;
       let attempted = 0;
       const researchTargets = stillUncovered.map(({ lesson }) => lessonTopic(lesson)).filter(Boolean);
-      const researchBatch = await researchLessonKernelSets(researchTargets, {
-        provider,
-        embed: researchEmbed,
-        courseContext,
-        want: KEY_TERMS_REQUIRED + 2,
-        signal,
-      });
+      const researchLessons = new Map(stillUncovered.map(({ lesson }) => [lessonTopic(lesson), lesson]));
+      const researchReadiness = (topic, kernels) =>
+        Boolean(
+          composeLessonFromCandidateKernels(researchLessons.get(topic), kernels, {
+            factCount,
+            claimed: new Set(),
+            offset: 0,
+            sourceReferences,
+          }),
+        );
+      const researchBatch = directProvider
+        ? await researchLessonKernelSets(researchTargets, {
+            provider: directProvider,
+            embed: researchEmbed,
+            courseContext,
+            want: KEY_TERMS_REQUIRED + 2,
+            signal,
+          })
+        : await researchLessonKernelSetsCascade(researchTargets, {
+            providers,
+            embed: researchEmbed,
+            courseContext,
+            want: KEY_TERMS_REQUIRED + 2,
+            isTopicReady: researchReadiness,
+            signal,
+          });
       for (const { lesson, position, offset } of stillUncovered) {
         if (signal?.aborted)
           throw signal.reason || Object.assign(new Error('Algi research stopped'), { name: 'AbortError' });
@@ -1037,7 +1176,7 @@ export async function composeAlgiLessonKernels({
             ),
           );
         }
-        const payload = composeLessonFromKernels(lesson, [...kernels, ...uniqueSupport, ...support], {
+        const payload = composeLessonFromCandidateKernels(lesson, [...kernels, ...uniqueSupport, ...support], {
           factCount,
           claimed,
           offset,
@@ -1059,6 +1198,9 @@ export async function composeAlgiLessonKernels({
         researchNote += `, ${researchBatch.targetedSearches} targeted fallback${
           researchBatch.targetedSearches === 1 ? '' : 's'
         }`;
+      }
+      if (Array.isArray(researchBatch.providersUsed) && researchBatch.providersUsed.length > 0) {
+        researchNote += `, sources ${researchBatch.providersUsed.join(' → ')}`;
       }
       if (researchBatch.errors.length > 0) researchNote += `, ${researchBatch.errors.length} source warning(s)`;
       const diagnostics = typeof researchProvider?.diagnostics === 'function' ? researchProvider.diagnostics() : null;

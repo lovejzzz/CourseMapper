@@ -60,7 +60,7 @@ test.describe('Provider picker', () => {
     await expect(page.getByLabel('Provider').locator('option[value="local"]')).toHaveCount(0);
     await expect(page.getByLabel('API', { exact: true })).toBeDisabled();
     await expect(page.getByLabel('API', { exact: true })).toHaveValue('No API key required');
-    await expect(page.getByLabel('Model').locator('option')).toHaveText(SCION_MODEL_LABEL);
+    await expect(page.getByLabel('Model').locator('option')).toHaveText([SCION_MODEL_LABEL, 'Algi V0']);
     await expect(page.getByTestId('scion-model-boundary')).toBeVisible();
     await expect(page.getByTestId('enrichment-preference')).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Check server' })).toHaveCount(0);

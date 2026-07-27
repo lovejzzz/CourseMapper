@@ -19,6 +19,7 @@ import {
 } from '../algiIdentity.js';
 import { publicScionProviderModelOptions } from '../publicScionIdentity.js';
 import {
+  composeLessonFromCandidateKernels,
   composeLessonFromKernels,
   constrainConceptIdsToDisciplines,
   fitSourceFact,
@@ -349,6 +350,15 @@ describe('Algi V0 discipline boundary', () => {
     expect(kernelTopicOverlapScore(immunity, 'Waterborne pathogens')).toBeGreaterThan(
       kernelTopicOverlapScore(fluidBalance, 'Waterborne pathogens'),
     );
+    expect(
+      kernelTopicOverlapScore(
+        {
+          term: 'Microbial mat',
+          definition: { text: 'A microbial mat is a layered community of microorganisms.' },
+        },
+        'Microbial risk assessment',
+      ),
+    ).toBeLessThan(3);
   });
 });
 
@@ -491,6 +501,16 @@ describe('Algi V0 source receipts', () => {
     expect(parsed.lessons['lesson-1'].keyTerms).toHaveLength(3);
   });
 
+  it('preserves a terminal pronoun when compacting a coordinated quiz option', () => {
+    const kernels = [kernel(1), kernel(2), kernel(3)];
+    kernels[0].mcBank[0].options[0] = 'Define the user goal and connect each interaction step to it';
+    const payload = composeLessonFromKernels({ lessonId: 'lesson-1', title: 'Interaction decisions' }, kernels, {
+      factCount: 5,
+    });
+    expect(payload.mc[0].op[0]).toBe('Define the user goal; connect each interaction step to it.');
+    expect(payload.mc[0].op[0]).not.toMatch(/\bto\.$/i);
+  });
+
   it('never fabricates a Wikipedia URL for a shipped genome source', () => {
     const sourceKernel = kernel(1);
     sourceKernel.definition.anchor.src = 'openstax:microbiology#16';
@@ -575,5 +595,90 @@ describe('Algi V0 source receipts', () => {
     expect(payload).not.toBeNull();
     expect(payload.keyTerms.map((entry) => entry.tr)).toEqual(['Biofilm', 'Phototrophic biofilm', 'Floc']);
     expect(JSON.stringify(payload)).not.toContain('Application of biofilms in.');
+  });
+
+  it('finds a composable grounded subset behind an uncomposable provider prefix', () => {
+    const kernels = [1, 2, 3, 4, 5, 6].map((index) => kernel(index, true));
+    for (const candidate of kernels.slice(0, 3)) {
+      candidate.facts = candidate.facts.map((fact) => ({
+        ...fact,
+        text: 'A source fragment about a concept boundary without a finite instructional claim.',
+      }));
+    }
+    expect(
+      composeLessonFromKernels({ lessonId: 'lesson-1', title: 'Evidence families' }, kernels, { factCount: 5 }),
+    ).toBeNull();
+    const payload = composeLessonFromCandidateKernels({ lessonId: 'lesson-1', title: 'Evidence families' }, kernels, {
+      factCount: 5,
+    });
+    expect(payload).not.toBeNull();
+    expect(payload.keyTerms.map((entry) => entry.tr)).not.toEqual(['Concept 1', 'Concept 2', 'Concept 3']);
+    expect(payload.keyTerms.map((entry) => entry.tr)).toContain('Concept 4');
+  });
+
+  it('composes microbial risk assessment only from risk-matched grounded concepts', () => {
+    const kernels = [kernel(1, true), kernel(2, true), kernel(3, true), kernel(4, true)];
+    const concepts = [
+      {
+        term: 'Quantitative microbial risk assessment',
+        definition:
+          'Quantitative microbial risk assessment has become a central framework for estimating infection risk from environmental exposure.',
+        facts: [
+          'Quantitative microbial risk assessment estimates infection risk by combining hazard, exposure, dose-response, and risk characterization evidence.',
+          'Microbial risk estimates state assumptions and uncertainty so decision makers can interpret the resulting probability.',
+        ],
+      },
+      {
+        term: 'Biofilm',
+        definition:
+          'Biofilm is a microbial community attached to a surface and embedded within a self-produced matrix.',
+        facts: [
+          'Biofilms alter transport and microbial persistence on wet surfaces.',
+          'Biofilm structure can protect embedded cells from environmental stress.',
+        ],
+      },
+      {
+        term: 'Risk assessment',
+        definition:
+          'Risk assessment is a structured process for identifying hazards and estimating the likelihood and consequences of harm.',
+        facts: [
+          'Risk assessment separates hazard identification from exposure and consequence estimates.',
+          'A transparent risk assessment records evidence limits before supporting a management decision.',
+        ],
+      },
+      {
+        term: 'Exposure assessment',
+        definition:
+          'Exposure assessment is the process of estimating how often and how strongly people contact a microbial hazard.',
+        facts: [
+          'Exposure assessment links a microbial concentration with contact frequency, duration, and route.',
+          'Exposure scenarios make the pathway from environmental measurement to estimated dose explicit.',
+        ],
+      },
+    ];
+    kernels.forEach((candidate, index) => {
+      candidate.term = concepts[index].term;
+      candidate.definition.text = concepts[index].definition;
+      candidate.provenance.topic = index === 1 ? 'Biofilms' : 'Microbial risk assessment';
+      candidate.facts = concepts[index].facts.map((text) => ({
+        text,
+        anchor: candidate.definition.anchor,
+        tier: 2,
+      }));
+    });
+
+    const payload = composeLessonFromCandidateKernels(
+      { lessonId: 'lesson-5', title: 'Microbial risk assessment' },
+      kernels,
+      { factCount: 5 },
+    );
+
+    expect(payload).not.toBeNull();
+    expect(payload.keyTerms.map((entry) => entry.tr)).toEqual([
+      'Quantitative microbial risk assessment',
+      'Risk assessment',
+      'Exposure assessment',
+    ]);
+    expect(JSON.stringify(payload)).not.toMatch(/\bbiofilm\b/i);
   });
 });

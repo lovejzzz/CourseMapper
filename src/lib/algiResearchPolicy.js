@@ -3,6 +3,7 @@
 // policy without loading the composer or research implementation.
 export const ALGI_RESEARCH_FLAG = 'coursemapper-algi-research';
 export const ALGI_RESEARCH_ENABLED_VALUE = 'on';
+export const ALGI_RESEARCH_CHANGE_EVENT = 'coursemapper:algi-research-change';
 
 export function readAlgiResearchEnabled(storage = globalThis.localStorage) {
   try {
@@ -19,13 +20,22 @@ export function saveAlgiResearchEnabled(enabled, storage = globalThis.localStora
   } catch {
     // Private browsing and storage-denied contexts remain safely offline.
   }
+  try {
+    globalThis.dispatchEvent?.(
+      new CustomEvent(ALGI_RESEARCH_CHANGE_EVENT, {
+        detail: { enabled: Boolean(enabled) },
+      }),
+    );
+  } catch {
+    // Non-browser callers still receive the persisted boolean below.
+  }
   return Boolean(enabled);
 }
 
 /**
  * Algi's privacy toggle governs every course-topic request, not only its
- * Wikipedia kernel research. The shared reading backbone also reaches
- * Crossref/OpenAlex/Open Library, so private Algi stops those lookups at the
+ * open-source kernel research. The shared reading backbone can also reach
+ * third-party catalogs, so private Algi stops those lookups at the
  * orchestration boundary while paid/Scion providers retain their behavior.
  */
 export function allowExternalKnowledgeLookups({ algiRoute = false, storage = globalThis.localStorage } = {}) {

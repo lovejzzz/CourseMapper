@@ -29,14 +29,19 @@ const budgets = {
 // caught an unaccounted increase, and the fix is to re-freeze at the released
 // state, not to widen the allowance. Every future release must do the same.
 const repositoryBudgets = {
-  baselineVersion: '0.16.79',
+  // v0.16.81 advances the frozen state through the shipped v0.16.80 contract;
+  // its own v0.16.81 contract consumes the single declared-release allowance.
+  baselineVersion: '0.16.80',
   // v0.16.80 adds source-before-synthesis admission, citation-local
   // provenance, and evidence-bound assessment repair. The 127-line increase
   // is executable contract logic covered by the Algi browser/package proof;
   // it is not a new fixed course-copy corpus.
   compilerLines: 27_958,
-  npmScripts: 377,
-  releaseContractFiles: 265,
+  // v0.16.81 adds one executable Algi→Scion hybrid benchmark audit. It freezes
+  // evidence, route, quality, call, latency, and export promotion rules; this
+  // is a release gate rather than product-side script sprawl.
+  npmScripts: 378,
+  releaseContractFiles: 266,
   trackedWeightFiles: 62,
   trackedWeightBytes: 1_053_339_981,
   largeBinaryBytes: 1024 * 1024,

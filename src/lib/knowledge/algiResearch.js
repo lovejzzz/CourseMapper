@@ -35,11 +35,15 @@
  */
 
 import { admitKernel } from '../genome/foundryAdmission';
+import { attachKernelEntailmentReceipt } from './claimEntailment.js';
+import { isCourseAwareWeakSource } from './sourceLedger.js';
 
 export const RESEARCH_ORIGIN = 'algi-research';
 
-/** Wikipedia is the default corpus: openly licensed, CORS-open, broad. */
+/** Browser-safe source APIs, ordered from scholarly evidence to background. */
 const WIKI_API = 'https://en.wikipedia.org/w/api.php';
+const DOAJ_API = 'https://doaj.org/api/search/articles';
+const EUROPE_PMC_API = 'https://www.ebi.ac.uk/europepmc/webservices/rest/search';
 
 /**
  * Below this the source is treated as drift. Deliberately low: the entity
@@ -116,6 +120,7 @@ function stem(token) {
   // when their titles and definitions named the right mechanism.
   if (/^microbi(?:al|olog|ome|ota)/.test(normalized)) return 'microbi';
   if (/^pathogen/.test(normalized)) return 'pathogen';
+  if (/^waterborne/.test(normalized)) return 'water';
   if (/(?:^|[a-z])remediation$/.test(normalized)) return 'remediation';
   return normalized
     .replace(/(?:ies)$/, 'y')
@@ -190,6 +195,21 @@ export function directResearchTitles(topic = '', courseContext = '') {
   // strategy of borrowing any same-course page merely because it contained
   // "microbial".
   const conceptFamilyTitles = (() => {
+    if (/^waterborne\s+pathogens?$/i.test(normalized)) {
+      // The lesson is a relationship, not a single encyclopedia headword:
+      // Waterborne disease defines transmission, Pathogenic bacteria defines
+      // one agent class, and Water pollution defines the contaminated medium.
+      // These remain candidates—not authored knowledge—and still must pass
+      // relevance, source admission, and claim-to-passage entailment.
+      return ['Waterborne disease', 'Pathogenic bacteria', 'Water pollution'];
+    }
+    if (/^microbial\s+risk\s+assessment$/i.test(normalized)) {
+      // These are the explicit analytical stages surrounding a microbial
+      // hazard decision. Europe PMC can contribute QMRA studies first; the
+      // encyclopedia lane supplies stable background definitions only where
+      // the scholarly set cannot satisfy the lesson contract.
+      return ['Risk assessment', 'Exposure assessment', 'Dose–response relationship'];
+    }
     if (/^biofilms?$/i.test(normalized)) {
       return [
         'Biofilm',
@@ -201,6 +221,22 @@ export function directResearchTitles(topic = '', courseContext = '') {
     }
     if (/^(?:bio)?remediation$/i.test(normalized)) {
       return ['Bioremediation', 'Phytoremediation', 'Mycoremediation', 'Biodegradation'];
+    }
+    if (/\bcontextual inquiry\b/i.test(normalized) && /\bfield\s*notes?\b/i.test(normalized)) {
+      // Wikipedia spells Fieldnotes as one word, while instructors almost
+      // always write "field notes". Contextual inquiry and Fieldnotes give
+      // the two named concepts; Field research supplies the source-defined
+      // observation/interview context needed for a third teachable term.
+      return ['Contextual inquiry', 'Fieldnotes', 'Field research'];
+    }
+    if (
+      /\b(?:evidence[-\s]+based\s+design\s+recommendations?|design\s+recommendations?)\b/i.test(normalized) &&
+      /\b(?:user\s+experience|ux\b|user[-\s]?centered|human[-\s]?centered|interaction\s+design)\b/i.test(courseContext)
+    ) {
+      // “Evidence-based design” is primarily an architecture/healthcare term
+      // in encyclopedias. A UX lesson with the same words needs sources about
+      // user evidence and design rationale, not physical environments.
+      return ['User research', 'User-centered design', 'Design rationale', 'Usability testing'];
     }
     return [];
   })();
@@ -375,7 +411,7 @@ export function headOf(title = '') {
     .trim();
 }
 
-const COPULA = /\b(is|are|refers to|is defined as|describes|means|denotes|comprises)\b/i;
+const COPULA = /\b(is|are|refers to|is defined as|describes|means|denotes|comprises|has become|serves as)\b/i;
 
 /**
  * The lead sentence of an encyclopedia article is nearly always the definition,
@@ -553,6 +589,9 @@ export function buildWikipediaProvider(httpJson) {
     return records;
   };
   return {
+    id: 'wikipedia',
+    sourceKind: 'open encyclopedia',
+    supportsDirectTitles: true,
     async search(topic, limit = 3) {
       const url = `${WIKI_API}?action=query&list=search&srsearch=${encodeURIComponent(topic)}&srlimit=${limit}&format=json&origin=*`;
       const data = await httpJson(url);
@@ -576,6 +615,237 @@ export function buildWikipediaProvider(httpJson) {
     license: 'CC BY-SA 4.0',
     attributionFor: (title) => `Wikipedia contributors, “${title}”`,
     sourceIdFor: (title) => `wikipedia:${title}`,
+  };
+}
+
+function cleanDoajText(value = '') {
+  return String(value || '')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/\s+/g, ' ')
+    .replace(/^abstract\s+/i, '')
+    .trim();
+}
+
+function doajSuggestedTerm(bibjson = {}, query = '') {
+  const queryTokens = new Set(contentTokens(query));
+  const candidates = [
+    ...(Array.isArray(bibjson.keywords) ? bibjson.keywords : []),
+    ...String(bibjson.title || '')
+      .split(/[:;—–-]|\b(?:and|with|using|through|for|in)\b/i)
+      .map((entry) => entry.trim()),
+  ]
+    .map(cleanDoajText)
+    .filter((entry) => {
+      const words = entry.split(/\s+/).filter(Boolean);
+      return words.length >= 1 && words.length <= 4;
+    });
+  const scored = candidates
+    .map((entry, index) => {
+      const tokens = contentTokens(entry);
+      return {
+        entry,
+        index,
+        overlap: tokens.filter((token) => queryTokens.has(token)).length,
+        tokenCount: tokens.length,
+      };
+    })
+    .filter((entry) => entry.overlap > 0)
+    .sort(
+      (left, right) => right.overlap - left.overlap || left.tokenCount - right.tokenCount || left.index - right.index,
+    );
+  return scored[0]?.entry || '';
+}
+
+function doajRecord(result, query = '') {
+  const bibjson = result?.bibjson || {};
+  const title = cleanDoajText(bibjson.title);
+  const extract = cleanDoajText(bibjson.abstract);
+  if (!title || !extract) return null;
+  const doi = (bibjson.identifier || []).find((identifier) => String(identifier?.type).toLowerCase() === 'doi')?.id;
+  const sourceUrl =
+    (bibjson.link || []).find((link) => String(link?.type).toLowerCase() === 'fulltext')?.url ||
+    (doi ? `https://doi.org/${doi}` : `https://doaj.org/article/${result.id}`);
+  const authors = (bibjson.author || [])
+    .map((author) => cleanDoajText(author?.name))
+    .filter(Boolean)
+    .slice(0, 3);
+  const authorLabel =
+    authors.length === 0
+      ? 'Open-access article authors'
+      : `${authors.join(', ')}${(bibjson.author || []).length > authors.length ? ', et al.' : ''}`;
+  return {
+    title,
+    extract,
+    sourceUrl,
+    sourceId: `doaj:${result.id || doi || title}`,
+    providerId: 'doaj',
+    sourceKind: 'open scholarly article',
+    // DOAJ's terms waive rights in article-level metadata under CC0. The
+    // abstract is used as captured metadata; the linked paper keeps its own
+    // article license and is never copied wholesale.
+    license: 'CC0 1.0 (DOAJ article metadata)',
+    attribution: `${authorLabel}${bibjson.year ? ` (${bibjson.year})` : ''}. ${title}. DOAJ metadata.`,
+    revisionTimestamp: String(result?.last_updated || result?.created_date || ''),
+    suggestedTerm: doajSuggestedTerm(bibjson, query),
+    definitionMode: 'scholarly-abstract',
+  };
+}
+
+/**
+ * Browser-safe primary-research lane.
+ *
+ * DOAJ exposes broad article-level metadata under a CC0 waiver and responds
+ * with CORS headers. It is queried before Wikipedia, but its abstracts still
+ * cross the same relevance, source-anchor, and entailment gates. A paper that
+ * merely shares vocabulary is rejected rather than treated as a definition.
+ */
+export function buildDoajProvider(httpJson) {
+  const cache = new Map();
+  const load = async (query, limit = 24) => {
+    const normalizedQuery = String(query || '')
+      .replace(/"/g, '')
+      .trim();
+    if (!normalizedQuery) return {};
+    const url = `${DOAJ_API}/${encodeURIComponent(normalizedQuery)}?pageSize=${Math.min(
+      50,
+      Math.max(1, Number(limit) || 24),
+    )}`;
+    const data = await httpJson(url);
+    const records = {};
+    for (const result of data?.results || []) {
+      const record = doajRecord(result, normalizedQuery);
+      if (!record) continue;
+      records[record.title] = record;
+      cache.set(record.title, record);
+    }
+    return records;
+  };
+  return {
+    id: 'doaj',
+    sourceKind: 'open scholarly article',
+    supportsDirectTitles: false,
+    async search(query, limit = 12) {
+      return Object.keys(await load(query, limit));
+    },
+    searchArticles: load,
+    async articles(titles) {
+      return Object.fromEntries(
+        (titles || []).map((title) => [title, cache.get(title)]).filter(([, record]) => Boolean(record)),
+      );
+    },
+    async article(title) {
+      return cache.get(title) || null;
+    },
+    license: 'CC0 1.0 (DOAJ article metadata)',
+    attributionFor: (title) => `DOAJ article metadata, “${title}”`,
+    sourceIdFor: (title, sourceMeta = {}) => sourceMeta.sourceId || `doaj:${title}`,
+  };
+}
+
+function europePmcLicense(value = '') {
+  const normalized = cleanDoajText(value)
+    .toLowerCase()
+    .replace(/[_\s]+/g, ' ')
+    .trim();
+  if (!normalized) return '';
+  if (/^cc by(?:-| )nc(?:-| )nd$/.test(normalized)) return 'CC BY-NC-ND';
+  if (/^cc by(?:-| )nc(?:-| )sa$/.test(normalized)) return 'CC BY-NC-SA';
+  if (/^cc by(?:-| )nd$/.test(normalized)) return 'CC BY-ND';
+  if (/^cc by(?:-| )sa$/.test(normalized)) return 'CC BY-SA';
+  if (/^cc by(?:-| )nc$/.test(normalized)) return 'CC BY-NC';
+  if (/^cc by$/.test(normalized)) return 'CC BY';
+  if (/^cc0$/.test(normalized)) return 'CC0';
+  return cleanDoajText(value);
+}
+
+function europePmcRecord(result, query = '') {
+  const title = cleanDoajText(result?.title);
+  const extract = cleanDoajText(result?.abstractText);
+  const license = europePmcLicense(result?.license);
+  if (!title || !extract || String(result?.isOpenAccess || '').toUpperCase() !== 'Y' || !license) return null;
+  const recordId = String(result?.pmcid || result?.id || result?.doi || title);
+  const sourceUrl = result?.pmcid
+    ? `https://europepmc.org/article/PMC/${encodeURIComponent(String(result.pmcid).replace(/^PMC/i, ''))}`
+    : result?.id
+      ? `https://europepmc.org/article/MED/${encodeURIComponent(result.id)}`
+      : `https://doi.org/${result.doi}`;
+  const suggestedTerm = doajSuggestedTerm(
+    {
+      title,
+      keywords: result?.keywordList?.keyword || [],
+    },
+    query,
+  );
+  return {
+    title,
+    extract,
+    sourceUrl,
+    sourceId: `europe-pmc:${recordId}`,
+    providerId: 'europe-pmc',
+    sourceKind: 'open biomedical article',
+    license,
+    attribution: `${cleanDoajText(result?.authorString) || 'Article authors'}${
+      result?.pubYear ? ` (${result.pubYear})` : ''
+    }. ${title}. ${cleanDoajText(result?.journalTitle) || 'Europe PMC'}.`,
+    revisionTimestamp: String(result?.firstIndexDate || result?.dateOfCreation || ''),
+    suggestedTerm,
+    definitionMode: 'scholarly-abstract',
+  };
+}
+
+/**
+ * Open biomedical literature lane.
+ *
+ * Europe PMC exposes a CORS-readable search API and reports article-level
+ * open-access and license metadata. Only records that explicitly say both are
+ * present enter the candidate pool; the normal domain, admission, and
+ * entailment gates still decide whether any abstract claim may be compiled.
+ */
+export function buildEuropePmcProvider(httpJson) {
+  const cache = new Map();
+  const load = async (query, limit = 24) => {
+    const normalizedQuery = String(query || '').trim();
+    if (!normalizedQuery) return {};
+    const bounded = Math.min(50, Math.max(1, Number(limit) || 24));
+    const providerQuery = `(${normalizedQuery}) AND OPEN_ACCESS:Y AND HAS_ABSTRACT:Y`;
+    const url = `${EUROPE_PMC_API}?query=${encodeURIComponent(
+      providerQuery,
+    )}&format=json&pageSize=${bounded}&resultType=core`;
+    const data = await httpJson(url);
+    const records = {};
+    for (const result of data?.resultList?.result || []) {
+      const record = europePmcRecord(result, normalizedQuery);
+      if (!record) continue;
+      records[record.title] = record;
+      cache.set(record.title, record);
+    }
+    return records;
+  };
+  return {
+    id: 'europe-pmc',
+    sourceKind: 'open biomedical article',
+    supportsDirectTitles: false,
+    async search(query, limit = 12) {
+      return Object.keys(await load(query, limit));
+    },
+    searchArticles: load,
+    async articles(titles) {
+      return Object.fromEntries(
+        (titles || []).map((title) => [title, cache.get(title)]).filter(([, record]) => Boolean(record)),
+      );
+    },
+    async article(title) {
+      return cache.get(title) || null;
+    },
+    license: 'article-reported Creative Commons license',
+    attributionFor: (title) => `Europe PMC, “${title}”`,
+    sourceIdFor: (title, sourceMeta = {}) => sourceMeta.sourceId || `europe-pmc:${title}`,
   };
 }
 
@@ -615,14 +885,38 @@ function normalizeArticleResult(article) {
     sourceUrl: String(article.sourceUrl || ''),
     revisionId: article.revisionId || null,
     revisionTimestamp: String(article.revisionTimestamp || ''),
+    sourceId: String(article.sourceId || ''),
+    providerId: String(article.providerId || ''),
+    sourceKind: String(article.sourceKind || ''),
+    license: String(article.license || ''),
+    attribution: String(article.attribution || ''),
+    suggestedTerm: String(article.suggestedTerm || ''),
+    definitionMode: String(article.definitionMode || ''),
   };
 }
 
 export function buildKernelFromArticle({ topic, title, extract, provider, factCount = 4, sourceMeta = {} }) {
   const sentences = sentencesFrom(extract);
   if (sentences.length === 0) return null;
-  const head = headOf(title);
-  const definition = definitionSentence(sentences, head);
+  const articleTitle = headOf(title);
+  const head = headOf(sourceMeta.suggestedTerm || articleTitle);
+  const scholarlyAbstract = sourceMeta.definitionMode === 'scholarly-abstract';
+  const definition =
+    definitionSentence(sentences, head) ||
+    (scholarlyAbstract
+      ? sentences
+          .map((sentence, index) => ({
+            sentence,
+            index,
+            relevance: Math.max(lexicalRelevance(head, sentence), lexicalRelevance(topic, sentence)),
+            explanatory: explanatoryScore(sentence, head),
+          }))
+          .filter((entry) => entry.relevance >= LEXICAL_FLOOR && entry.explanatory > 0)
+          .sort(
+            (left, right) =>
+              right.relevance - left.relevance || right.explanatory - left.explanatory || left.index - right.index,
+          )[0]?.sentence
+      : null);
   if (!definition) return null;
 
   const contrasts = contrastSentences(sentences);
@@ -639,7 +933,7 @@ export function buildKernelFromArticle({ topic, title, extract, provider, factCo
   // could judge it.
   if (facts.length < 1) return null;
 
-  const src = provider.sourceIdFor(title);
+  const src = sourceMeta.sourceId || provider.sourceIdFor(title, sourceMeta);
   const anchor = (quote) => ({ src, loc: title, quote });
   const distractors = distractorsFromContrast(contrasts, head);
 
@@ -659,10 +953,13 @@ export function buildKernelFromArticle({ topic, title, extract, provider, factCo
   return {
     snapshot: { [src]: String(extract).replace(/\s+/g, ' ') },
     kernel: {
-      id: `researched/${head
+      id: `researched/${String(sourceMeta.providerId || provider.id || 'source')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')}-${String(src || head)
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-|-$/g, '')}`,
+        .replace(/^-|-$/g, '')
+        .slice(-80)}`,
       rev: 1,
       term: head,
       aliases: [topic].filter((alias) => alias && alias.toLowerCase() !== head.toLowerCase()),
@@ -695,20 +992,50 @@ export function buildKernelFromArticle({ topic, title, extract, provider, factCo
       edges: {},
       variants: [],
       freshness: { checked: new Date().toISOString().slice(0, 10) },
-      license: provider.license,
-      attribution: provider.attributionFor(title),
+      license: sourceMeta.license || provider.license,
+      attribution: sourceMeta.attribution || provider.attributionFor(title),
       provenance: {
         origin: RESEARCH_ORIGIN,
+        providerId: sourceMeta.providerId || provider.id || 'wikipedia',
+        sourceKind: sourceMeta.sourceKind || provider.sourceKind || 'open source',
         topic,
         title,
         sourceUrl:
           sourceMeta.sourceUrl ||
-          `https://en.wikipedia.org/wiki/${encodeURIComponent(String(title || '').replace(/\s+/g, '_'))}`,
+          (provider.id === 'wikipedia'
+            ? `https://en.wikipedia.org/wiki/${encodeURIComponent(String(title || '').replace(/\s+/g, '_'))}`
+            : ''),
         ...(sourceMeta.revisionId ? { revisionId: sourceMeta.revisionId } : {}),
         ...(sourceMeta.revisionTimestamp ? { revisionTimestamp: sourceMeta.revisionTimestamp } : {}),
       },
     },
   };
+}
+
+/**
+ * Reject a source whose words match the lesson but whose disciplinary meaning
+ * does not match the course. This reuses the same course-aware gate that
+ * protects the exported source ledger, so retrieval and provenance cannot
+ * disagree about whether a source is valid evidence.
+ */
+export function isResearchCandidateDomainAligned({
+  topic = '',
+  courseContext = '',
+  title = '',
+  extract = '',
+  definition = '',
+  provider = '',
+} = {}) {
+  if (!String(courseContext || '').trim()) return true;
+  return !isCourseAwareWeakSource(
+    {
+      title,
+      evidence: extract || definition,
+      provider,
+      conceptLinks: [{ label: topic }],
+    },
+    { course: { name: courseContext } },
+  );
 }
 
 /**
@@ -750,6 +1077,18 @@ export async function researchConcept(
     if (!built) continue;
     if (looksLikeEntity(canonicalTitle, built.kernel.definition.text)) {
       rejectedEntities.push(canonicalTitle);
+      continue;
+    }
+    if (
+      !isResearchCandidateDomainAligned({
+        topic,
+        courseContext,
+        title: canonicalTitle,
+        extract,
+        definition: built.kernel.definition.text,
+        provider: built.kernel.provenance?.providerId,
+      })
+    ) {
       continue;
     }
     scored.push({ title: canonicalTitle, extract, built });
@@ -816,6 +1155,16 @@ export async function researchConcept(
   if (!admission.admitted) {
     return { ok: false, reason: 'not-admitted', topic, title: best.title, rejections: admission.rejections };
   }
+  const entailed = attachKernelEntailmentReceipt(admission.kernel, best.built.snapshot);
+  if (!entailed.admitted) {
+    return {
+      ok: false,
+      reason: 'claim-not-entailed',
+      topic,
+      title: best.title,
+      entailment: entailed.entailment,
+    };
+  }
   return {
     ok: true,
     topic,
@@ -825,7 +1174,7 @@ export async function researchConcept(
     defScore: Number(best.defScore.toFixed(3)),
     mode: best.mode,
     tier: admission.tier,
-    kernel: admission.kernel,
+    kernel: entailed.kernel,
     snapshot: best.built.snapshot,
   };
 }
@@ -936,7 +1285,28 @@ export async function researchLessonKernels(
     const candidate = buildKernelFromArticle({ topic, title: canonicalTitle, extract, provider, sourceMeta: article });
     if (!candidate) continue;
     if (looksLikeEntity(canonicalTitle, candidate.kernel.definition.text)) continue;
-    if (built.some((entry) => entry.title.toLowerCase() === canonicalTitle.toLowerCase())) continue;
+    if (
+      !isResearchCandidateDomainAligned({
+        topic,
+        courseContext,
+        title: canonicalTitle,
+        extract,
+        definition: candidate.kernel.definition.text,
+        provider: candidate.kernel.provenance?.providerId,
+      })
+    ) {
+      continue;
+    }
+    if (
+      built.some(
+        (entry) =>
+          entry.title.toLowerCase() === canonicalTitle.toLowerCase() &&
+          String(entry.candidate?.kernel?.term || '').toLowerCase() ===
+            String(candidate.kernel?.term || '').toLowerCase(),
+      )
+    ) {
+      continue;
+    }
     built.push({ title: canonicalTitle, candidate });
   }
   if (built.length === 0) return [];
@@ -1027,7 +1397,16 @@ export async function researchLessonKernels(
   const kept = ranked
     .filter(
       (entry) =>
-        entry.relevance >= effectiveFloor &&
+        (entry.relevance >= effectiveFloor ||
+          // A curated concept-family title may explain one necessary side of
+          // a multi-concept lesson without repeating the full instructor
+          // phrase. Keep the relaxation narrow: the title must come from the
+          // direct family, its definition must repeat a lesson token, and it
+          // must still clear 75% of the ordinary lexical floor.
+          (typeof embed !== 'function' &&
+            entry.directTitleMatch &&
+            entry.definitionTopicMatches >= 1 &&
+            entry.relevance >= effectiveFloor * 0.75)) &&
         (typeof embed === 'function' ||
           domainAlignedCount < 3 ||
           entry.domainMatch ||
@@ -1064,7 +1443,9 @@ export async function researchLessonKernels(
   const admittedKernels = [];
   for (const entry of kept) {
     const admission = admitKernel(entry.candidate.kernel, { sources: entry.candidate.snapshot });
-    if (admission.admitted) admittedKernels.push(admission.kernel);
+    if (!admission.admitted) continue;
+    const entailed = attachKernelEntailmentReceipt(admission.kernel, entry.candidate.snapshot);
+    if (entailed.admitted) admittedKernels.push(entailed.kernel);
   }
   return backfillMultipleChoice(admittedKernels);
 }
@@ -1081,6 +1462,9 @@ function providerFromArticleRecords(provider, records, candidateTitles) {
     license: provider.license,
     attributionFor: provider.attributionFor,
     sourceIdFor: provider.sourceIdFor,
+    id: provider.id,
+    sourceKind: provider.sourceKind,
+    supportsDirectTitles: provider.supportsDirectTitles,
   };
 }
 
@@ -1090,7 +1474,7 @@ function researchGroups(values, size) {
   return groups;
 }
 
-function kernelsCoverTopic(kernels, topic) {
+export function kernelsCoverTopic(kernels, topic) {
   const clauses = String(topic)
     .split(/\s+(?:and|&)\s+/i)
     .map((clause) => contentTokens(clause))
@@ -1108,7 +1492,7 @@ function kernelsCoverTopic(kernels, topic) {
   );
 }
 
-function needsTargetedResearch(kernels, topic, minimum) {
+export function needsTargetedResearch(kernels, topic, minimum) {
   return kernels.length < minimum || !kernelsCoverTopic(kernels, topic);
 }
 
@@ -1144,7 +1528,12 @@ export async function researchLessonKernelSets(
     return { byTopic, errors, searchGroups: 0, articleCandidates: 0 };
   }
 
-  const directByTopic = new Map(uniqueTopics.map((topic) => [topic, directResearchTitles(topic, courseContext)]));
+  const directByTopic = new Map(
+    uniqueTopics.map((topic) => [
+      topic,
+      provider.supportsDirectTitles === false ? [] : directResearchTitles(topic, courseContext),
+    ]),
+  );
   const allDirectTitles = [...new Set([...directByTopic.values()].flat())];
   let directRecords = new Map();
   try {
@@ -1179,13 +1568,9 @@ export async function researchLessonKernelSets(
       let titles = [];
       if (query && typeof provider.searchArticles === 'function') {
         const records = await provider.searchArticles(query, candidatesPerGroup);
-        titles = [
-          ...new Set(
-            Object.values(records || {})
-              .map((record) => record?.title)
-              .filter(Boolean),
-          ),
-        ];
+        titles = Object.entries(records || {})
+          .filter(([, record]) => record?.title)
+          .map(([key]) => key);
         for (const title of titles) searchRecords.set(title, normalizeArticleResult(records[title]));
       } else if (query) {
         titles = [...new Set(await provider.search(query, candidatesPerGroup))];
@@ -1238,13 +1623,9 @@ export async function researchLessonKernelSets(
       const query = groupedResearchQuery([topic]) || researchQueryForTopic(topic, courseContext);
       if (typeof provider.searchArticles === 'function') {
         const records = await provider.searchArticles(query, Math.max(12, candidatesPerGroup));
-        const titles = [
-          ...new Set(
-            Object.values(records || {})
-              .map((record) => record?.title)
-              .filter(Boolean),
-          ),
-        ];
+        const titles = Object.entries(records || {})
+          .filter(([, record]) => record?.title)
+          .map(([key]) => key);
         targetedTitlesByTopic.set(topic, titles);
         for (const title of titles) targetedRecords.set(title, normalizeArticleResult(records[title]));
       } else {
@@ -1291,6 +1672,99 @@ export async function researchLessonKernelSets(
     searchGroups: groups.length,
     targetedSearches: sparse.length,
     articleCandidates: new Set([...allDirectTitles, ...allSearchTitles, ...targetedTitles]).size,
+  };
+}
+
+/**
+ * Run research providers in declared order and carry only unresolved lessons
+ * forward. Open scholarly evidence can therefore contribute first without
+ * forcing every lesson through every catalog; Wikipedia fills only the
+ * remaining contract gaps.
+ */
+export async function researchLessonKernelSetsCascade(
+  topics = [],
+  {
+    providers = [],
+    embed = null,
+    want = 4,
+    minimum = 3,
+    floor = null,
+    courseContext = '',
+    isTopicReady = null,
+    signal,
+  } = {},
+) {
+  const uniqueTopics = [...new Set(topics.map((topic) => String(topic || '').trim()).filter(Boolean))];
+  const byTopic = new Map(uniqueTopics.map((topic) => [topic, []]));
+  const errors = [];
+  const providerStats = [];
+  let searchGroups = 0;
+  let targetedSearches = 0;
+  let articleCandidates = 0;
+  const topicReady = (topic) => {
+    const kernels = byTopic.get(topic) || [];
+    return typeof isTopicReady === 'function'
+      ? Boolean(isTopicReady(topic, kernels))
+      : !needsTargetedResearch(kernels, topic, minimum);
+  };
+
+  for (const descriptor of providers) {
+    const provider = descriptor?.provider || descriptor;
+    const providerId = descriptor?.id || provider?.id || `provider-${providerStats.length + 1}`;
+    const pending = uniqueTopics.filter((topic) => !topicReady(topic));
+    if (!provider || pending.length === 0) break;
+    const batch = await researchLessonKernelSets(pending, {
+      provider,
+      embed,
+      want,
+      minimum,
+      floor,
+      courseContext,
+      signal,
+      ...(descriptor?.options || {}),
+    });
+    let contributedTopics = 0;
+    let contributedKernels = 0;
+    for (const topic of pending) {
+      const prior = byTopic.get(topic) || [];
+      const incoming = batch.byTopic.get(topic) || [];
+      const seen = new Set(prior.map((kernel) => kernel?.id).filter(Boolean));
+      const merged = [...prior];
+      for (const kernel of incoming) {
+        if (!kernel?.id || seen.has(kernel.id)) continue;
+        seen.add(kernel.id);
+        merged.push(kernel);
+        contributedKernels += 1;
+      }
+      if (merged.length > prior.length) contributedTopics += 1;
+      const enriched = backfillMultipleChoice(merged);
+      // A readiness-aware compiler needs later-provider candidates available
+      // to find a schema-complete grounded combination. Legacy callers retain
+      // their original bounded top-N result.
+      byTopic.set(topic, typeof isTopicReady === 'function' ? enriched : enriched.slice(0, want));
+    }
+    errors.push(...(batch.errors || []).map((error) => `${providerId}:${error}`));
+    searchGroups += Number(batch.searchGroups) || 0;
+    targetedSearches += Number(batch.targetedSearches) || 0;
+    articleCandidates += Number(batch.articleCandidates) || 0;
+    providerStats.push({
+      providerId,
+      attemptedTopics: pending.length,
+      contributedTopics,
+      contributedKernels,
+      searchGroups: Number(batch.searchGroups) || 0,
+      targetedSearches: Number(batch.targetedSearches) || 0,
+    });
+  }
+
+  return {
+    byTopic,
+    errors,
+    searchGroups,
+    targetedSearches,
+    articleCandidates,
+    providerStats,
+    providersUsed: providerStats.filter((entry) => entry.contributedKernels > 0).map((entry) => entry.providerId),
   };
 }
 

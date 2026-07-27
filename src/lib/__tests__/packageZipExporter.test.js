@@ -3,6 +3,7 @@ import JSZip from 'jszip';
 import {
   buildCourseMaterialsZip,
   downloadCourseMaterialsZip,
+  mergeSourceLedgerBundles,
   PackageZipExportError,
   sanitizeFilePart,
 } from '../packageZipExporter';
@@ -55,6 +56,40 @@ async function makeOfficeXmlBuffer(path, xml) {
 }
 
 describe('packageZipExporter', () => {
+  it('drops a fallback syllabus review row once trusted research covers the same concept', () => {
+    const merged = mergeSourceLedgerBundles(
+      {
+        rows: [
+          {
+            id: 'kr1',
+            provider: 'wikipedia',
+            url: 'https://en.wikipedia.org/wiki/Contextual_inquiry',
+            license: 'CC BY-SA 4.0',
+            conceptLinks: [
+              { id: 'c1', label: 'contextual inquiry and field notes' },
+              { id: 'research/contextual-inquiry', label: 'Contextual inquiry' },
+            ],
+          },
+        ],
+      },
+      {
+        reviewRows: [
+          {
+            id: 'r1',
+            origin: 'syllabus',
+            provider: 'syllabus',
+            title: 'UX example and design-journal prompt.',
+            conceptLinks: [{ id: 'c1', label: 'contextual inquiry and field notes' }],
+          },
+        ],
+      },
+    );
+
+    expect(merged.rows).toHaveLength(1);
+    expect(merged.reviewRows).toBeUndefined();
+    expect(merged.summary.reviewRequiredCount).toBeUndefined();
+  });
+
   beforeEach(async () => {
     vi.clearAllMocks();
 

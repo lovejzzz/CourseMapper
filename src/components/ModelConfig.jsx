@@ -1013,7 +1013,7 @@ export default function ModelConfig({ reserveTrailingActionSpace = false }) {
                     </p>
                     <p className="mt-0.5 text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
                       {algiResearchEnabled
-                        ? 'Wikipedia may receive the course title and uncovered lesson topics. Returned passages keep their source link, attribution, and CC BY-SA license.'
+                        ? 'Open scholarly sources receive the course title and uncovered lesson topics first; Wikipedia is used only when evidence is still missing. Every admitted passage keeps its source, attribution, license, and support receipt.'
                         : 'No research requests are sent. If the source and shipped genome cannot support a lesson, Algi reports the gap instead of inventing content.'}
                     </p>
                   </div>

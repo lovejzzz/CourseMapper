@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.80
+**Current release:** v0.16.81
 
 ---
 
@@ -20,7 +20,7 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 7. **One-click package finalizer.** Export runs deterministic repair, targeted retry, readiness checks, and file verification before a package is marked ready. Save/load complete sessions as `.coursemapper` project files.
 8. **Two free local-first paths.** **Scion** uses a pinned public Gemma 4 base for browser-local generative authoring. **Algi V0** uses uploaded material and source-anchored knowledge with no model download or inference. Both feed the same compiler and export contract.
 9. **Multi-model support.** OpenAI, Anthropic, Google, and DeepSeek routes remain available for users who bring a key. Compatible routes inherit the same CourseIR, compiler, checks, Agent evidence layer, and exporters.
-10. **Explicit privacy boundaries.** There is no Course Mapper application backend in the default flow. Scion prompts and generated text stay on the device after the public weights download. Algi private mode sends no course-topic research request; its optional research switch explains what topic metadata may be sent to Wikipedia.
+10. **Explicit privacy boundaries.** There is no Course Mapper application backend in the default flow. Scion prompts and generated text stay on the device after the public weights download. Algi private mode sends no course-topic research request; its optional research switch explains that the course title and uncovered lesson topics may be sent to DOAJ, Europe PMC, and then Wikipedia.
 
 > **What Course Mapper does NOT claim:** Automated gates check encoded package defects, alignment, source receipts, and archive integrity; they do not prove every factual claim, teaching decision, accessibility need, or classroom outcome. Course Mapper does not replace instructor expertise.
 
@@ -32,7 +32,7 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site presents **Provider: Scion**, a disabled API control because no key is needed, and two product models: **Scion V0.16.80** and **Algi V0**. Those are intentionally simple labels for EduTool's course-building systems; they are not a claim that EduTool trained or hosts a new foundation model. Scion pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its identity and metadata, and runs it through the packaged WebGPU runtime. Algi uses no model weights. Both produce compact typed knowledge that Course Mapper compiles into the selected deliverables.
+The hosted site presents **Provider: Scion**, a disabled API control because no key is needed, and two product models: **Scion V0.16.81** and **Algi V0**. Those are intentionally simple labels for EduTool's course-building systems; they are not a claim that EduTool trained or hosts a new foundation model. Scion pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its identity and metadata, and runs it through the packaged WebGPU runtime. Algi uses no model weights. Both produce compact typed knowledge that Course Mapper compiles into the selected deliverables.
 
 In plain language, **Scion Vx is the whole local authoring system, not just the base model**:
 
@@ -46,7 +46,7 @@ Today the adapter term is infrastructure only: the trained research adapter has 
 
 Algi V0 is not a renamed small model. It composes the same typed course-map and lesson-kernel contracts from uploaded material, the shipped source-anchored Curriculum Genome, and optional consented source research. It downloads no model and performs no language-model inference; model-only rewrite passes are not scheduled on this route, so they cannot create phantom calls, fallbacks, or estimated cost.
 
-In **private mode**, course topics stay on the device. Algi uses only the uploaded source and shipped genome; if those cannot support a lesson, it reports the coverage gap instead of inventing knowledge. In **research mode**, an explicit switch allows Wikipedia to receive the course title and uncovered lesson topics. Retained passages carry their URL, attribution, CC BY-SA license, and revision receipt.
+In **private mode**, course topics stay on the device. Before generation, Algi forecasts which exact lessons the uploaded source and shipped genome can support; if they cannot support a lesson, it reports the coverage gap instead of inventing knowledge. In **research mode**, an explicit switch allows the course title and uncovered lesson topics to leave the device. DOAJ open scholarly metadata runs first, explicitly licensed open-access Europe PMC literature runs next, and Wikipedia supplies background only for remaining lesson-contract gaps. Every retained researched claim carries provider, URL, attribution, license, source evidence, and a claim-to-passage support receipt.
 
 Algi's role is evidence retrieval, admission, citation, and deterministic composition. Scion's role is browser-local generative reasoning and course-specific writing. The long-term hybrid is:
 
@@ -56,18 +56,19 @@ brief + files → Algi evidence → Scion adaptation → shared compiler → ver
 
 The complete assessment, limitations, browser evidence, and roadmap are in [docs/ALGI_V0_PIPELINE_ASSESSMENT.md](docs/ALGI_V0_PIPELINE_ASSESSMENT.md).
 
-### V0.16.80 current production proof
+### V0.16.81 current production proof
 
-V0.16.80 takes Algi from a promising lookup pipeline to a browser-tested evidence engine. Uncovered concepts become course-aware source queries; entity filters reject biographies and other false friends; canonical topic families and aliases improve private coverage; researched passages are mechanically admitted against the fetched snapshot; and integrative lessons compose from knowledge already taught in the course.
+V0.16.81 makes the evidence boundary visible and executable. The setup forecast names private-ready lessons and source checks before generation. Opt-in research follows the bounded DOAJ → Europe PMC → Wikipedia cascade, and a provider is not considered successful merely because it returned records.
 
-The trust layer is now citation-local. A shipped genome kernel cannot invent a Wikipedia URL from a locator such as `16.3`; the foundry manifest carries canonical OpenStax references; a mixed researched/genome lesson preserves Wikipedia and OpenStax as different providers; and a publisher/URL disagreement cannot receive trusted source-ledger status.
+The trust layer now has two independent gates: quote admission proves that cited text exists in the retained source passage, while claim entailment proves that the compiled definition or fact is actually supported by that passage. Wrong entities, off-domain meanings, ambiguous licenses, provider/URL contradictions, and same-course but wrong-lesson filler fail closed.
 
-Two real browser paths define the release boundary:
+Readiness is judged against the real typed lesson contract—three distinct key terms, five compact facts, a scenario, and two grounded checks—not a raw search count. If the first provider prefix cannot compose that contract, later-provider candidates remain available and a bounded combination search selects a grounded set without inventing new subject claims.
 
-- A three-lesson **User Experience Design Studio** course in private mode completes 3/3 lesson kernels at **99/A**, texture 97, in about one second with no external course-topic request.
-- A five-lesson **Environmental Microbiology** course with research enabled completes 5/5 kernels at **99/A**, texture 96, in about three seconds. Its one visible ZIP action downloads a valid 55-entry archive with zero encoded findings and the correct canonical OpenStax Microbiology §16.3 receipt.
+Package proof also closes reader-facing and provenance seams: grammatical quiz framing, intact terminal references, stale digest merge prevention, source-metadata punctuation cleanup, and removal of generated fallback source rows after trusted concept-linked sources cover the same concept. The inspected five-lesson private UX package reaches **99/A with zero encoded findings**, keeps seven trusted/access/licensed/concept-linked sources, contains zero ambiguous licenses or source-review rows, and excludes the architecture-domain false friend “Evidence-based design.”
 
-Desktop and 390×844 Content, Agent, and Export states remain usable, and the inspected browser console has no warning or error entries. The same Environmental Microbiology brief in private mode honestly remains 0/5 knowledge kernels and 89/B because the shipped genome does not cover it; this is why Algi is a visible option, not a claim of universal coverage.
+A fresh five-lesson Environmental Microbiology browser run makes the full boundary visible before it spends work: **1/5 lessons ready privately and four source checks planned**. It then finishes in about **eight seconds** with **5/5 lesson kernels, 10/10 package parts, 99/A, Texture 97, zero P0/P1/P2 findings, and 38/38 export checks**. The 55-entry ZIP contains 43 graded course files and eight trusted source rows across OpenStax, DOAJ, Europe PMC, and Wikipedia; one CC BY-ND candidate is quarantined as review-only rather than used as trusted bibliography. Provider identity and research origin survive export instead of being flattened into `genome`. Desktop and 390×844 Content/Agent/Export modes pass, the Agent summarizes all five lessons from workspace evidence, and mobile exposes exactly one export-owned `Download ZIP` action. The release gate closes with **5,722/5,722 active unit tests and 151/151 Chromium E2E tests passing**.
+
+A frozen five-domain Algi→Scion benchmark now defines immutable evidence packets, route roles, quality, source, latency, call, and export promotion rules. This is a protocol, not a result: no hybrid or adapter promotion is claimed until paired evidence exists.
 
 Gemma weights remain unchanged and the optional research adapter remains inactive. Algi is an evidence engine, not a universal reasoning model; 99/A is deterministic package-defect evidence, not factual validation, instructor approval, accessibility certification, or classroom proof.
 
@@ -97,7 +98,7 @@ Gemma weights remain unchanged, and the research adapter remains inactive becaus
 
 ### Recent release history
 
-The sections below are historical release evidence. Their versions, timings, test counts, and measured packages describe the named release and are intentionally preserved; the V0.16.80 production proof above is the current authority.
+The sections below are historical release evidence. Their versions, timings, test counts, and measured packages describe the named release and are intentionally preserved; the V0.16.81 production proof above is the current authority.
 
 V0.16.77 makes experiential learning a first-class compiler capability instead of a one-course template. When—and only when—a lesson explicitly requests a simulation, laboratory investigation, studio critique, case exercise, structured debate, field exercise, or role-play, the existing lesson-authoring call returns one compact course-specific activity blueprint beside its knowledge kernel. There is no extra call for the lesson plan, slides, assignment, or export.
 
@@ -788,7 +789,7 @@ The full architecture lives in [docs/CURRICULUMOS_V1_DESIGN.md](docs/CURRICULUMO
 Go to [edutool.dev](https://edutool.dev). On the landing page:
 
 - **Scion** — Generate without an API key using the pinned public Gemma 4 model in your browser. First use downloads about 3.35 GB of weights; prompts and generated text stay on the device.
-- **Algi V0** — Generate without a model download or inference from uploaded material and the shipped teaching genome. Private mode makes no external course-topic request; optional source research is explicitly enabled in the model configuration.
+- **Algi V0** — Generate without a model download or inference from uploaded material and the shipped teaching genome. The preflight forecasts private lesson coverage before generation. Private mode makes no external course-topic request; optional source research is explicitly enabled and runs through DOAJ, licensed open-access Europe PMC records, and then Wikipedia only for unresolved lesson contracts.
 - **Bring your own key** — Select your provider (OpenAI, Anthropic, Google, or DeepSeek) and paste your API key. The app auto-detects key format and switches the provider dropdown.
 - Restored workspaces can reconfigure a missing or expired key in place from the Agent header by clicking the current model/config label.
 

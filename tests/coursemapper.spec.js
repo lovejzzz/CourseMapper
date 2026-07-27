@@ -172,7 +172,7 @@ test.describe('Landing Page', () => {
     await expect(page.getByLabel('API')).toBeDisabled();
     await expect(page.getByLabel('API')).toHaveValue('No API key required');
     await expect(page.getByLabel('Model')).toHaveValue('scion-public');
-    await expect(page.getByLabel('Model').locator('option')).toHaveText(SCION_MODEL_LABEL);
+    await expect(page.getByLabel('Model').locator('option')).toHaveText([SCION_MODEL_LABEL, 'Algi V0']);
   });
 
   test('explains missing provider credentials without blaming the course brief', async ({ page }) => {

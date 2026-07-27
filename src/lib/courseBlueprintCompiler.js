@@ -21583,7 +21583,7 @@ function buildExamMisconceptionItem({ lesson, covered, coveredIndex, index, obje
       }
     }
   }
-  const endorsement = `The classmate is right: ${lowercaseSentenceLead(stripTerminalPunctuation(claim))}.`;
+  const endorsement = `This advice is sound: ${sentenceCase(stripTerminalPunctuation(claim))}.`;
   const { answer, options } = buildExamAtomOptions({
     lesson,
     index,
@@ -21605,10 +21605,10 @@ function buildExamMisconceptionItem({ lesson, covered, coveredIndex, index, obje
       question: lessonVariant(lesson, [
         `For ${stripTerminalPunctuation(assessment.title)}, consider this classmate's claim. ${sentenceCase(stripTerminalPunctuation(claim))}. Which response best uses course evidence to correct the claim about ${concept}?`,
         `A classmate claims during ${stripTerminalPunctuation(assessment.title)}: ${sentenceCase(stripTerminalPunctuation(claim))}. Which response gives the evidence-backed ${concept} correction?`,
-        `A student argues that ${lowercaseSentenceLead(stripTerminalPunctuation(claim))}. Which response best repairs the ${concept} misunderstanding with course evidence?`,
+        `A student makes this claim: ${sentenceCase(stripTerminalPunctuation(claim))}. Which response best repairs the ${concept} misunderstanding with course evidence?`,
         `During ${stripTerminalPunctuation(assessment.title)}, a reader proposes this interpretation: ${sentenceCase(stripTerminalPunctuation(claim))}. Which response is supported by the lesson's ${concept} evidence?`,
         `A study group records this statement: ${sentenceCase(stripTerminalPunctuation(claim))}. Which response corrects the ${concept} error after checking the course materials?`,
-        `An analyst of ${lessonFocus} claims that ${lowercaseSentenceLead(stripTerminalPunctuation(claim))}. Which response fixes the error using admitted ${concept} evidence?`,
+        `An analyst of ${lessonFocus} makes this claim: ${sentenceCase(stripTerminalPunctuation(claim))}. Which response fixes the error using admitted ${concept} evidence?`,
       ]),
       options,
       answer,

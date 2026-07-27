@@ -386,7 +386,8 @@ describe('checkCredits', () => {
     });
     expect(researchSwitch.getAttribute('aria-checked')).toBe('true');
     expect(localStorage.getItem('coursemapper-algi-research')).toBe('on');
-    expect(container.textContent).toContain('Wikipedia may receive the course title');
+    expect(container.textContent).toContain('Open scholarly sources receive the course title');
+    expect(container.textContent).toContain('Wikipedia is used only when evidence is still missing');
 
     act(() => {
       root.unmount();

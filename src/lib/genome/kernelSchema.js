@@ -163,6 +163,8 @@ function normalizeProvenance(raw) {
     topic: cleanText(raw.topic),
     title: cleanText(raw.title),
     sourceUrl: cleanText(raw.sourceUrl),
+    ...(raw.providerId ? { providerId: cleanText(raw.providerId) } : {}),
+    ...(raw.sourceKind ? { sourceKind: cleanText(raw.sourceKind) } : {}),
     ...(raw.revisionId !== undefined && raw.revisionId !== null ? { revisionId: cleanText(raw.revisionId) } : {}),
     ...(raw.revisionTimestamp ? { revisionTimestamp: cleanText(raw.revisionTimestamp) } : {}),
   };

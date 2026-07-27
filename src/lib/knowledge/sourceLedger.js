@@ -15,7 +15,7 @@ const TRUSTED_PROVIDERS = new Set([
   'source-finder',
 ]);
 
-const ACADEMIC_PROVIDERS = new Set(['openalex', 'eric', 'crossref']);
+const ACADEMIC_PROVIDERS = new Set(['openalex', 'eric', 'crossref', 'doaj', 'europe-pmc']);
 const OER_PROVIDERS = new Set(['openstax', 'open-music-theory', 'gutenberg', 'genome', 'genome-prerequisite']);
 const METADATA_ONLY_PROVIDERS = new Set(['openlibrary']);
 const LICENSED_BACKGROUND_PROVIDERS = new Set(['wikipedia']);
@@ -50,7 +50,7 @@ const BUSINESS_ETHICS_COURSE_RE = /\b(?:business\s+ethics|corporate\s+ethics)\b/
 const BUSINESS_ETHICS_SOURCE_ANCHOR_RE =
   /\b(?:business|corporat(?:e|ion)|ethic(?:al|s)?|moral(?:ity)?|utilitarian(?:ism)?|deontolog(?:y|ical)|virtue\s+ethics|stakeholders?|whistleblow(?:ing|er)|conflicts?\s+of\s+interest|employment|workplace|labor|civil\s+rights|discrimination|harassment|consumer\s+protection|consumer\s+rights|product\s+safety|dodd[–—-]frank|financial\s+reform|fiduciary|governance|compliance|sustainab(?:ility|le)|environmental\s+responsibility|marketing\s+ethics|advertising\s+ethics)\b/i;
 const USER_EXPERIENCE_SOURCE_ANCHOR_RE =
-  /\b(?:user[-\s]+experience|ux\b|human[-\s]?centered\s+design|human[-\s]?computer\s+interaction|human[-\s]?ai\s+interaction|hci\b|hai\b|user\s+interfaces?|interface\s+design|usability|design\s+research|user\s+research|personas?\b(?!\s*5)|journey\s+maps?|customer\s+journey|information\s+architecture|wirefram|prototype|prototyping|iterative\s+design|interaction\s+design|accessibility|inclusive\s+design|design\s+handoff|design\s+studio|co[-\s]?design|service\s+design|material\s+experience|design\s+patterns?|screen\s+flows?|navigation|portfolio\s+case\s+study|critique\s+session|a\/b\s+test(?:ing)?)\b/i;
+  /\b(?:user[-\s]+experience|ux\b|human[-\s]?centered\s+design|user[-\s]?centered\s+design|human[-\s]?computer\s+interaction|human[-\s]?ai\s+interaction|hci\b|hai\b|user\s+interfaces?|interface\s+design|usability|design\s+research|user\s+research|contextual\s+inquiry|field\s*notes?|fieldnotes?|field\s+research|personas?\b(?!\s*5)|journey\s+maps?|customer\s+journey|information\s+architecture|wirefram|prototype|prototyping|iterative\s+design|interaction\s+design|accessibility|inclusive\s+design|design\s+rationale|design\s+handoff|design\s+studio|co[-\s]?design|service\s+design|material\s+experience|design\s+patterns?|screen\s+flows?|navigation|portfolio\s+case\s+study|critique\s+session|a\/b\s+test(?:ing)?)\b/i;
 const USER_EXPERIENCE_FALSE_FRIEND_RE =
   /(?:\bstudio\s+ghibli\b|\bspiritual\s+practice\b|\bstrategic\s+planning\b|\bchuck\s+swindoll\b|\bpre[-\s]?service\s+teachers?\b|\bteacher\s+education\b|\bprototype\s+\(video\s+game\)|\bprototype\s+\(star\s+trek:\s*voyager\)|\bstar\s+trek:\s*voyager\b|\bscience\s+fiction\s+television\s+series\b|\baction[-\s]?adventure\s+video\s+game\b|\bradical\s+entertainment\b|\bactivision\b|\bplaystation\b|\bxbox\b|\bone\s+prototype\s+three\s+prototype\s+five\s+prototype\s+seven\s+prototype\b|\bprototype[-\s]?based\s+programming\b|\bprototype[-\s]?oriented\s+programming\b|\bprototypal\s+inheritance\b|\bclassless\s+programming\b|\bobject[-\s]?oriented\s+programming\b|\bmercator\s+projection\b|\bmap\s+projection\b|\bcylindrical\s+map\s+projection\b|\brhumb\s+lines?\b|\bmechatronics\b|\bmachine\s+design\b|\bmanufacturing\b|\bdata\s+refinement\b|\bfailures[-\s]?divergences\s+refinement\b|\bvehicle\s+refinement\b|\bautomotive\s+engineering\b|\bpositive\s+feedback\b|\bnegative\s+feedback\b|\bclimate\s+change\s+feedbacks?\b|\bpersona\s+\d+(?:\s+(?:golden|revival))?\b|\bpersona\s+\(series\)|\brevelations:\s*persona\b|\bmegami\s+tensei\b|\batlus\b|\bp[-\s]?studio\b|\brole[-\s]?playing\s+video\s+game\b|\btim\s+minchin\b|\bpublic\s+persona\b|\bcelebrity\b|\bnetwork\s+of\s+enterprises?\b|\bbrief\s+interviews\s+with\s+hideous\s+men\b|\bsketches\s+of\s+spain\b|\bmiles\s+davis\b|\bstudio\s+album\b|\bjazz\s+musician\b|\bconcierto\s+de\s+aranjuez\b|\ble\s+po[eè]me\b|\bpo[eè]me\b|\bpoetry\b|\bmarxisms?\b|\bcritique\s+&\s+struggle\b|\bcritique\s+of\s+pure\s+reason\b|\bimmanuel\s+kant\b|\bmetaphysics\b|\bfamily\s+mediation\b|\bprivate\s+sessions?\s+in\s+family\s+mediation\b|\bmediators?\b|\bdisputants?\b|\bbehavior\s+therapy\b|\bbooster\s+maintenance\s+sessions?\b|\bmetropolitan\s+transportation\s+authority\b|\bdesign\s+research\s+\(store\)|\blifestyle\s+store\b|\baircraft\s+design\s+process\b|\bprocess\s+design\s+and\s+process\s+control\b|\bifac\s+workshop\b|\bshoe\s+production\s+facilities\b|\bblocplan\b|\bsystematic\s+layout\s+planning\b|\blayout\s+of\s+shoe\s+production\b|\blayout\s+editor\s+configuration\b|\bmetaverse\s+beyond\s+the\s+hype\b|\bpatterns\s+2\.0\b|\blead[-\s]?user\s+theory\b|\bcommercially\s+attractive\s+user\s+innovations\b|\bweb\s+gis\s+in\s+practice\b|\bmicrosoft\s+kinect\b|\bintralogistics\s+processes\b|\bgreen\s+studio\s+handbook\b|\benvironmental\s+strategies\s+for\s+schematic\s+design\b|\bnational\s+design\s+studio\b|\ble\s+mans\s+prototype\b|\bin\s+living\s+color\s+sketches\b|\bsketch\s+comedy\b|\bcomedy\s+sketch(?:es)?\b|\btelevision\s+sketch(?:es)?\b|\barchitectural\s+education\b|\bcollaborative\s+learning\s+in\s+architectur(?:e|al)\b)/i;
 const USER_EXPERIENCE_TOPIC_ANCHORS = [
@@ -60,9 +60,10 @@ const USER_EXPERIENCE_TOPIC_ANCHORS = [
       /\b(?:material\s+driven\s+design|design\s+process|design\s+studio|critique|design\s+journals?|studio\s+workflow|service\s+design|co[-\s]?design)\b/i,
   },
   {
-    concept: /\b(?:interviews?|observations?|synthesis)\b/i,
+    concept:
+      /\b(?:interviews?|observations?|synthesis|contextual\s+inquiry|field\s*notes?|fieldnotes?|field\s+research)\b/i,
     source:
-      /\b(?:user\s+research|user\s+interviews?|research\s+interviews?|qualitative\s+interviews?|contextual\s+inquiry|observational\s+research|affinity\s+mapping|thematic\s+synthesis)\b/i,
+      /\b(?:user\s+research|user\s+interviews?|research\s+interviews?|qualitative\s+interviews?|contextual\s+inquiry|field\s*notes?|fieldnotes?|field\s+research|observational\s+research|affinity\s+mapping|thematic\s+synthesis)\b/i,
   },
   {
     concept: /\b(?:research\s+planning|research\s+objectives?|practice\s+sessions?|study\s+setup)\b/i,
@@ -92,6 +93,11 @@ const USER_EXPERIENCE_TOPIC_ANCHORS = [
     concept: /\b(?:test\s+plans?|task\s+scenarios?|findings)\b/i,
     source:
       /\b(?:usability\s+test(?:ing)?|a\/b\s+test(?:ing)?|split\s+test(?:ing)?|test\s+plans?|task\s+scenarios?|research\s+findings?)\b/i,
+  },
+  {
+    concept: /\b(?:evidence[-\s]+based\s+design\s+recommendations?|design\s+recommendations?)\b/i,
+    source:
+      /\b(?:user[-\s]?centered\s+design|human[-\s]?centered\s+design|user\s+research|design\s+research|research\s+findings?|usability\s+test(?:ing)?|design\s+rationale)\b/i,
   },
   {
     concept: /\b(?:inclusive\s+design|evaluation|remediation|accessibility)\b/i,
@@ -380,6 +386,8 @@ function inferProviderFromText(value) {
   if (text.includes('openlibrary.org') || /\bopen library\b/.test(text)) return 'openlibrary';
   if (text.includes('gutenberg.org') || /\bproject gutenberg\b/.test(text)) return 'gutenberg';
   if (text.includes('eric.ed.gov') || /\beric\b/.test(text)) return 'eric';
+  if (text.includes('doaj.org') || /\bdoaj\b/.test(text)) return 'doaj';
+  if (text.includes('europepmc.org') || /\beurope\s+pmc\b/.test(text)) return 'europe-pmc';
   if (text.includes('wikipedia.org') || /\bwikipedia\b/.test(text)) return 'wikipedia';
   if (text.includes('crossref.org') || /\bcrossref\b/.test(text)) return 'crossref';
   if (text.includes('dl.acm.org/doi') || extractDoi(text)) return 'crossref';
@@ -417,12 +425,20 @@ function isSourceLikeResource(resource = {}, provider = '') {
   return SOURCE_SIGNAL_RE.test(cleaned);
 }
 
+function collapseMetadataPunctuation(value = '') {
+  return String(value || '').replace(/(^|[^.])\.\.(?=[^.]|$)/g, '$1.');
+}
+
+function citationSegment(value = '') {
+  return collapseMetadataPunctuation(value).replace(/[.;:]+\s*$/g, '');
+}
+
 export function sourceCitationLabel(source = {}) {
-  const title = cleanText(source.title || source.citation || source.evidence || source.id, 220);
+  const title = citationSegment(cleanText(source.title || source.citation || source.evidence || source.id, 220));
   const authors = normalizeAuthors(source.authors).slice(0, 3).join(', ');
   const year = cleanText(source.year, 20);
   const ref = cleanText(source.doi ? `doi:${normalizeDoi(source.doi)}` : source.url, 240);
-  const lead = [authors, year ? `(${year})` : ''].filter(Boolean).join(' ');
+  const lead = citationSegment([authors, year ? `(${year})` : ''].filter(Boolean).join(' '));
   return [lead, title, ref].filter(Boolean).join(lead && title ? '. ' : ' — ');
 }
 
@@ -438,13 +454,15 @@ export function normalizeTrustedSource(entry = {}, { fallbackId = '', checkedAt 
     doi && /^https?:\/\/(?:dx\.)?doi\.org\//i.test(extractedUrl || '')
       ? `https://doi.org/${doi}`
       : extractedUrl || (doi ? `https://doi.org/${doi}` : '') || openStaxProof?.url || '';
-  const title = cleanText(entry.title || entry.displayTitle || entry.citation || entry.evidence || entry.scope, 260);
+  const title = collapseMetadataPunctuation(
+    cleanText(entry.title || entry.displayTitle || entry.citation || entry.evidence || entry.scope, 260),
+  );
   const explicitLicense = cleanText(entry.license || entry.rights || entry.licenseUrl, 180);
   const license = explicitLicense
     ? normalizeLicense(explicitLicense, { preserveUnknown: true })
     : extractLicense(sourceText) || openStaxProof?.license || '';
   const attribution =
-    cleanText(entry.attribution || entry.credit || '', 260) ||
+    citationSegment(cleanText(entry.attribution || entry.credit || '', 260)) ||
     (provider === 'wikipedia' ? 'Wikipedia contributors' : '');
   const sessionRefs = [
     ...new Set(

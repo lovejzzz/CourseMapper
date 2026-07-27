@@ -289,15 +289,21 @@ function attachResource(graph, session, resource) {
 }
 
 function providerForResolvedCitation(citation = {}) {
+  const direct = cleanText(citation.provider).toLowerCase();
+  if (direct) return direct;
   const text = [citation.url, citation.attribution, citation.citation].filter(Boolean).join(' ');
   if (/\bopenstax(?:\.org)?\b/i.test(text)) return 'openstax';
+  if (/\bdoaj(?:\.org|\s+(?:article\s+)?metadata)?\b/i.test(text)) return 'doaj';
+  if (/\beurope\s*pmc\b|europepmc\.org/i.test(text)) return 'europe-pmc';
   if (/\bwikipedia(?:\.org)?\b/i.test(text)) return 'wikipedia';
   if (/\bgutenberg(?:\.org)?\b/i.test(text)) return 'gutenberg';
   return '';
 }
 
 function originForResolvedCitation(citation = {}) {
-  return providerForResolvedCitation(citation) === 'wikipedia' ? 'algi-research' : 'genome';
+  return ['doaj', 'europe-pmc', 'wikipedia'].includes(providerForResolvedCitation(citation))
+    ? 'algi-research'
+    : 'genome';
 }
 
 /**

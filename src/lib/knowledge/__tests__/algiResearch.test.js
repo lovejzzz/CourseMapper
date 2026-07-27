@@ -11,13 +11,18 @@ import {
   directResearchTitles,
   cosine,
   buildKernelFromArticle,
+  buildDoajProvider,
+  buildEuropePmcProvider,
   buildWikipediaProvider,
   researchConcept,
   researchCourse,
   researchLessonKernels,
   researchLessonKernelSets,
+  researchLessonKernelSetsCascade,
+  isResearchCandidateDomainAligned,
   conciseDefinitionOption,
   contrastTargetFromSentence,
+  RESEARCH_ORIGIN,
   RELEVANCE_FLOOR,
 } from '../algiResearch.js';
 
@@ -199,6 +204,44 @@ describe('entity filter (topic drift by page KIND)', () => {
   });
 });
 
+describe('course-domain research alignment', () => {
+  it('rejects the architecture meaning of evidence-based design in a UX course', () => {
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'evidence-based design recommendations',
+        courseContext: 'User Experience Research Studio',
+        title: 'Evidence-based design',
+        extract:
+          'Evidence-based design is the process of constructing a building or physical environment based on scientific research.',
+        provider: 'wikipedia',
+      }),
+    ).toBe(false);
+  });
+
+  it('accepts contextual inquiry and user-research evidence for the same UX course', () => {
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'contextual inquiry and field notes',
+        courseContext: 'User Experience Research Studio',
+        title: 'Contextual inquiry',
+        extract:
+          'Contextual inquiry is a user-centered design research method that observes and interviews people in context.',
+        provider: 'wikipedia',
+      }),
+    ).toBe(true);
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'evidence-based design recommendations',
+        courseContext: 'User Experience Research Studio',
+        title: 'Design rationale',
+        extract:
+          'A design rationale records the reasons behind a design decision and connects the decision to user research evidence.',
+        provider: 'wikipedia',
+      }),
+    ).toBe(true);
+  });
+});
+
 describe('teaching atoms from the source (gap 3)', () => {
   const sentences = [
     'Weather is the state of the atmosphere at a given time and place over short periods.',
@@ -276,7 +319,7 @@ describe('relevance scoring', () => {
       expect.arrayContaining(['Microbial risk assessment', 'Microbial risk', 'risk assessment']),
     );
     expect(directResearchTitles('Waterborne pathogens', 'Environmental Microbiology')).toEqual(
-      expect.arrayContaining(['Waterborne disease', 'Waterborne diseases']),
+      expect.arrayContaining(['Waterborne disease', 'Waterborne diseases', 'Pathogenic bacteria', 'Water pollution']),
     );
     expect(directResearchTitles('Biofilms', 'Environmental Microbiology')).toEqual(
       expect.arrayContaining([
@@ -289,6 +332,9 @@ describe('relevance scoring', () => {
     );
     expect(directResearchTitles('Bioremediation', 'Environmental Microbiology')).toEqual(
       expect.arrayContaining(['Bioremediation', 'Phytoremediation', 'Mycoremediation', 'Biodegradation']),
+    );
+    expect(directResearchTitles('Contextual inquiry and field notes', 'User Experience Research Studio')).toEqual(
+      expect.arrayContaining(['Contextual inquiry', 'Fieldnotes', 'Field research']),
     );
   });
 
@@ -441,6 +487,211 @@ describe('Wikipedia request architecture', () => {
       revisionTimestamp: '2026-07-01T00:00:00Z',
     });
     expect(providerWithBatch.attributionFor('Photosynthesis')).toContain('Wikipedia contributors');
+  });
+});
+
+describe('open scholarly provider architecture', () => {
+  it('normalizes DOAJ CC0 article metadata into source-specific records', async () => {
+    const providerWithMetadata = buildDoajProvider(async (url) => {
+      expect(url).toContain('doaj.org/api/search/articles/');
+      return {
+        results: [
+          {
+            id: 'article-1',
+            last_updated: '2026-07-20T00:00:00Z',
+            bibjson: {
+              title: 'Biofilm removal in water systems',
+              abstract:
+                'Biofilm is a community of microorganisms attached to a surface. Biofilm removal requires evidence about attachment, flow, and treatment conditions. The study compares two removal methods under controlled water-system conditions.',
+              year: '2026',
+              keywords: ['biofilm', 'water systems'],
+              author: [{ name: 'A. Researcher' }],
+              identifier: [{ type: 'doi', id: '10.1000/example' }],
+              link: [{ type: 'fulltext', url: 'https://example.org/open-article' }],
+            },
+          },
+        ],
+      };
+    });
+
+    const records = await providerWithMetadata.searchArticles('biofilm', 5);
+    expect(records['Biofilm removal in water systems']).toMatchObject({
+      providerId: 'doaj',
+      sourceKind: 'open scholarly article',
+      sourceId: 'doaj:article-1',
+      sourceUrl: 'https://example.org/open-article',
+      license: 'CC0 1.0 (DOAJ article metadata)',
+      suggestedTerm: 'biofilm',
+      definitionMode: 'scholarly-abstract',
+    });
+    expect(records['Biofilm removal in water systems'].attribution).toContain('A. Researcher (2026)');
+  });
+
+  it('admits only explicitly licensed open Europe PMC abstracts', async () => {
+    const providerWithMetadata = buildEuropePmcProvider(async (url) => {
+      expect(url).toContain('europepmc/webservices/rest/search');
+      expect(decodeURIComponent(url)).toContain('OPEN_ACCESS:Y');
+      return {
+        resultList: {
+          result: [
+            {
+              id: '41976490',
+              pmcid: 'PMC13074090',
+              title: 'A Review of Quantitative Microbial Risk Assessment.',
+              abstractText:
+                'Quantitative microbial risk assessment is a framework for evaluating microbial hazards. Exposure assessment measures contact with a hazard because dose shapes the probability of harm. Risk characterization combines evidence and uncertainty into one bounded estimate.',
+              license: 'cc by',
+              isOpenAccess: 'Y',
+              authorString: 'A. Researcher, B. Reviewer',
+              pubYear: '2026',
+              journalTitle: 'Open Microbiology',
+              keywordList: {
+                keyword: ['Quantitative Microbial Risk Assessment', 'Exposure assessment'],
+              },
+            },
+            {
+              id: 'closed-1',
+              title: 'Closed microbial evidence.',
+              abstractText: 'This record has an abstract but does not state an open article license.',
+              license: '',
+              isOpenAccess: 'N',
+            },
+          ],
+        },
+      };
+    });
+    const records = await providerWithMetadata.searchArticles('microbial risk assessment', 5);
+    expect(Object.keys(records)).toEqual(['A Review of Quantitative Microbial Risk Assessment.']);
+    expect(records['A Review of Quantitative Microbial Risk Assessment.']).toMatchObject({
+      providerId: 'europe-pmc',
+      sourceKind: 'open biomedical article',
+      sourceId: 'europe-pmc:PMC13074090',
+      sourceUrl: 'https://europepmc.org/article/PMC/13074090',
+      license: 'CC BY',
+      definitionMode: 'scholarly-abstract',
+    });
+  });
+
+  it('uses the scholarly lane before the encyclopedia lane and preserves both receipts', async () => {
+    const articleText = (term, detail) =>
+      [
+        `${term} is a source-defined concept used to explain ${detail} in this lesson.`,
+        `${term} requires evidence that connects the observed condition to the stated mechanism.`,
+        `${term} includes a comparison that distinguishes the mechanism from a neighbouring explanation.`,
+        `${term} allows investigators to evaluate one bounded claim against an observable result.`,
+        `${term} provides a worked example that can be checked against the cited source passage.`,
+      ].join('\n');
+    const makeProvider = (id, records) => ({
+      id,
+      sourceKind: id === 'doaj' ? 'open scholarly article' : 'open encyclopedia',
+      supportsDirectTitles: false,
+      searchArticles: async () => records,
+      search: async () => Object.keys(records),
+      articles: async (titles) =>
+        Object.fromEntries(titles.map((title) => [title, records[title]]).filter(([, value]) => value)),
+      article: async (title) => records[title] || null,
+      license: id === 'doaj' ? 'CC0 1.0 (DOAJ article metadata)' : 'CC BY-SA 4.0',
+      attributionFor: (title) => `${id}, ${title}`,
+      sourceIdFor: (title) => `${id}:${title}`,
+    });
+    const scholarly = makeProvider('doaj', {
+      'Biofilm evidence': {
+        title: 'Biofilm evidence',
+        extract: articleText('Biofilm', 'surface attachment'),
+        sourceId: 'doaj:biofilm-evidence',
+        providerId: 'doaj',
+        sourceKind: 'open scholarly article',
+        license: 'CC0 1.0 (DOAJ article metadata)',
+        attribution: 'Researcher (2026). Biofilm evidence. DOAJ metadata.',
+        sourceUrl: 'https://example.org/biofilm-evidence',
+        suggestedTerm: 'Biofilm',
+        definitionMode: 'scholarly-abstract',
+      },
+    });
+    const encyclopediaRecords = Object.fromEntries(
+      ['Biofilm matrix', 'Microbial mat', 'Surface adhesion'].map((title) => [
+        title,
+        {
+          title,
+          extract: articleText(title, 'biofilm structure'),
+          sourceUrl: `https://example.org/${title}`,
+          providerId: 'wikipedia',
+          sourceKind: 'open encyclopedia',
+        },
+      ]),
+    );
+    const encyclopedia = makeProvider('wikipedia', encyclopediaRecords);
+
+    const result = await researchLessonKernelSetsCascade(['Biofilm'], {
+      providers: [
+        { id: 'doaj', provider: scholarly, options: { maxTargetedFallbacks: 0 } },
+        { id: 'wikipedia', provider: encyclopedia, options: { maxTargetedFallbacks: 0 } },
+      ],
+      want: 4,
+      minimum: 3,
+      floor: 0.2,
+    });
+
+    expect(result.providerStats.map((entry) => entry.providerId)).toEqual(['doaj', 'wikipedia']);
+    expect(result.providersUsed).toContain('doaj');
+    expect(result.byTopic.get('Biofilm').some((kernel) => kernel.provenance.providerId === 'doaj')).toBe(true);
+    expect(result.byTopic.get('Biofilm').every((kernel) => kernel.provenance.entailment?.status === 'passed')).toBe(
+      true,
+    );
+  });
+
+  it('continues to the next provider when a raw kernel count is not schema-ready', async () => {
+    const recordsFor = (providerId, prefix) =>
+      Object.fromEntries(
+        [1, 2, 3].map((index) => {
+          const title = `Biofilm ${prefix} ${index}`;
+          const extract = [
+            `${title} is a source-defined biofilm concept with a distinct role in an environmental system.`,
+            `${title} requires evidence because its mechanism depends on observable attachment conditions.`,
+            `${title} allows investigators to compare one bounded result with a neighbouring explanation.`,
+          ].join('\n');
+          return [
+            title,
+            {
+              title,
+              extract,
+              sourceId: `${providerId}:${prefix}-${index}`,
+              providerId,
+              sourceKind: 'open source',
+              sourceUrl: `https://example.org/${providerId}/${index}`,
+            },
+          ];
+        }),
+      );
+    const providerFor = (id, records) => ({
+      id,
+      supportsDirectTitles: false,
+      searchArticles: async () => records,
+      search: async () => Object.keys(records),
+      articles: async (titles) =>
+        Object.fromEntries(titles.map((title) => [title, records[title]]).filter(([, value]) => value)),
+      article: async (title) => records[title] || null,
+      license: 'CC BY 4.0',
+      attributionFor: (title) => `${id}, ${title}`,
+      sourceIdFor: (title) => `${id}:${title}`,
+    });
+    const first = providerFor('doaj', recordsFor('doaj', 'study'));
+    const second = providerFor('wikipedia', recordsFor('wikipedia', 'concept'));
+
+    const result = await researchLessonKernelSetsCascade(['Biofilm'], {
+      providers: [
+        { id: 'doaj', provider: first, options: { maxTargetedFallbacks: 0 } },
+        { id: 'wikipedia', provider: second, options: { maxTargetedFallbacks: 0 } },
+      ],
+      want: 4,
+      minimum: 3,
+      floor: 0.2,
+      isTopicReady: (_topic, kernels) => kernels.some((kernel) => kernel.provenance?.providerId === 'wikipedia'),
+    });
+
+    expect(result.providerStats.map((entry) => entry.providerId)).toEqual(['doaj', 'wikipedia']);
+    expect(result.byTopic.get('Biofilm')).toHaveLength(6);
+    expect(result.providersUsed).toEqual(['doaj', 'wikipedia']);
   });
 });
 
@@ -642,6 +893,45 @@ describe('lesson research admission', () => {
     expect(kernels.map((kernel) => kernel.term)).toEqual(
       expect.arrayContaining(['Biofilm', 'Microbial mat', 'Phototrophic biofilm']),
     );
+  });
+
+  it('composes waterborne pathogens from three admitted source concepts', async () => {
+    const pages = {
+      'Waterborne disease': {
+        hits: ['waterborne', 'pathogens'],
+        text: [
+          'Waterborne diseases are diseases caused by pathogenic microorganisms that are transmitted through contaminated water.',
+          'Waterborne diseases spread when contaminated water carries bacteria, viruses, protozoa, or parasitic worms.',
+          'Waterborne disease prevention depends on separating human waste from drinking-water supplies.',
+        ].join('\n'),
+      },
+      'Pathogenic bacteria': {
+        hits: ['pathogens'],
+        text: [
+          'Pathogenic bacteria are bacteria that can cause disease in humans or other organisms.',
+          'Pathogenic bacteria produce illness when their virulence mechanisms damage tissue or disrupt normal host functions.',
+          'Pathogenic bacteria differ from harmless bacteria because pathogenic species can establish infection.',
+        ].join('\n'),
+      },
+      'Water pollution': {
+        hits: ['waterborne'],
+        text: [
+          'Water pollution is the contamination of water bodies, which has a negative impact on how they can be used.',
+          'Water pollution results when contaminants mix with rivers, lakes, aquifers, reservoirs, or groundwater.',
+          'Water pollution can spread waterborne diseases when contaminated water exposes people to disease-causing organisms.',
+        ].join('\n'),
+      },
+    };
+    const kernels = await researchLessonKernels('Waterborne pathogens', {
+      provider: stubProvider(pages),
+      courseContext: 'Environmental Microbiology',
+      want: 5,
+    });
+    expect(kernels.map((kernel) => kernel.term)).toEqual(
+      expect.arrayContaining(['Waterborne disease', 'Pathogenic bacteria', 'Water pollution']),
+    );
+    expect(kernels.every((kernel) => kernel.provenance?.origin === RESEARCH_ORIGIN)).toBe(true);
+    expect(kernels.every((kernel) => kernel.provenance?.entailment?.status === 'passed')).toBe(true);
   });
 
   it('does not let weak related pages ride along below the relevance floor', async () => {

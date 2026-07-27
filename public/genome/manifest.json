@@ -1,7 +1,7 @@
 {
-  "version": "2026-07-26",
+  "version": "2026-07-27",
   "generator": "curriculumos-foundry-v1",
-  "conceptCount": 336,
+  "conceptCount": 338,
   "shards": [
     {
       "id": "anatomy-intro",
@@ -120,8 +120,8 @@
       "discipline": "nursing",
       "level": "intro",
       "path": "nursing-intro.json",
-      "conceptCount": 13,
-      "hash": "84c97d2003a9bc3a"
+      "conceptCount": 15,
+      "hash": "08908065515ca1a8"
     },
     {
       "id": "nutrition-intro",

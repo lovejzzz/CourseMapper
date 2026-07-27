@@ -36,6 +36,40 @@ function evidenceCourseBlueprint() {
 }
 
 describe('constructed-response compiler depth', () => {
+  it('quotes imperative misconception claims without creating broken “argues that” grammar', () => {
+    const blueprint = evidenceCourseBlueprint();
+    blueprint.lessons[0].enrichment = {
+      keyTerms: [
+        {
+          term: 'Research persona',
+          definition: 'A research persona summarizes recurring patterns grounded in observed user evidence.',
+          misconception: 'Decorate personas with names, stock photos, and preferences that were never observed.',
+          correction: 'Every persona detail should remain traceable to observed research evidence.',
+        },
+      ],
+      kernel: {
+        facts: [
+          'Research personas summarize recurring evidence patterns across participants.',
+          'Each persona claim should remain traceable to an observation or source record.',
+        ],
+      },
+    };
+    blueprint.enrichment = {
+      coverage: { requestedLessons: 1, enrichedLessons: 1, missingLessons: [] },
+      stageDecisions: { modelStage: 'ran' },
+    };
+
+    const misconceptionItem = buildQuizAtomsForLesson(blueprint.lessons[0], blueprint, {
+      assessment: {},
+    }).find((item) => item.misconceptionSourced === true);
+    const itemText = JSON.stringify(misconceptionItem);
+
+    expect(misconceptionItem).toBeDefined();
+    expect(itemText).not.toMatch(/argues that decorate personas/i);
+    expect(itemText).not.toMatch(/classmate is right:\s*decorate personas/i);
+    expect(itemText).toMatch(/claim|advice is sound/i);
+  });
+
   it('requires independent concept selection, evidence, and a claim boundary in the normal frame', () => {
     const blueprint = evidenceCourseBlueprint();
     const item = buildQuizAtomsForLesson(blueprint.lessons[0], blueprint, {

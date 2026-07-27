@@ -269,7 +269,7 @@ export function composeAlgiAdvisoryResponse({ messages = [], systemPrompt = '' }
     return [...outlineLabels.slice(0, 3), '…', ...outlineLabels.slice(-2)].join(' → ');
   })();
   if (/\b(download|model|privacy|offline)\b|source research|research mode/i.test(question)) {
-    return 'Algi uses no model weights and performs no inference. Private mode keeps course topics on this device; optional Source research sends only the course title and uncovered lesson topics to Wikipedia, and preserves source attribution in the package.';
+    return 'Algi uses no model weights and performs no inference. Private mode keeps course topics on this device; optional Source research sends only the course title and uncovered lesson topics to reusable open scholarly sources, then Wikipedia when needed, and preserves source attribution in the package.';
   }
   if (/\b(?:summari[sz]e|sequence|outline|progression|order)\b/i.test(question) && outlineLabels.length > 0) {
     return `${courseTitle} has ${outlineLabels.length} mapped lesson${outlineLabels.length === 1 ? '' : 's'}: ${sequenceLabel}. The sequence is the course’s structural spine; open Course Map to inspect each lesson’s objective, activity, evidence source, and assessment alignment.`;
@@ -349,24 +349,13 @@ export function researchCourseContext(userPrompt) {
 }
 
 /**
- * Opt-in, and deliberately so.
+ * Open-source research over the app's own fetch, throttled per provider.
  *
- * Research reaches a third-party corpus during generation and returns CC BY-SA
- * text. Genome attribution reaches the exported documents today (OpenStax
- * appears across eight families in a shipped package), but that runs through
- * the readings layer, and no course that SHIPS currently contains researched
- * content — so the same guarantee is unverified for Wikipedia-sourced atoms.
- * Shipping share-alike text whose attribution may not render is not a default
- * anyone should get without asking. Flip to 'on' to enable; the gate to making
- * it default is a shipped package with a researched lesson, checked for its
- * attribution.
- */
-/**
- * Wikipedia over the app's own fetch, throttled.
- *
- * Requests are spaced because an unspaced burst got the harness rate-limited
- * into a non-JSON block page, which surfaced as fifteen unexplained parse
- * errors. Politeness here is a correctness property, not just etiquette.
+ * Research remains opt-in because the course title and uncovered lesson topics
+ * leave the device. The cascade prefers explicitly licensed scholarly sources
+ * before Wikipedia, and every admitted claim must keep provider, URL, license,
+ * attribution, source passage, and entailment receipts through export.
+ * Requests are spaced because rate-limit safety is a correctness property.
  */
 function algiAbortError(reason = 'Algi research stopped') {
   if (reason instanceof Error) return reason;
@@ -404,8 +393,9 @@ export function buildResearchProvider({
 } = {}) {
   if (!readAlgiResearchEnabled(storage)) return null;
   if (typeof fetchImpl !== 'function') return null;
-  let last = 0;
   let requestCount = 0;
+  const requestCountByOrigin = {};
+  const lastByOrigin = new Map();
   const cache = new Map();
   const httpJson = async (url) => {
     throwIfAlgiAborted(signal);
@@ -414,11 +404,19 @@ export function buildResearchProvider({
     const request = (async () => {
       for (let attempt = 0; attempt < 2; attempt += 1) {
         if (requestCount >= maxRequests) throw new Error(`algi-research-budget-exhausted:${maxRequests}`);
-        const wait = last + gapMs - Date.now();
+        let origin = 'unknown';
+        try {
+          origin = new URL(url).origin;
+        } catch {}
+        // DOAJ asks automated clients to leave roughly half a second between
+        // calls; Wikipedia's batched read path is safe at the default gap.
+        const providerGapMs = origin.includes('doaj.org') ? Math.max(600, gapMs) : gapMs;
+        const wait = (lastByOrigin.get(origin) || 0) + providerGapMs - Date.now();
         await waitForResearchGap(wait, signal);
         throwIfAlgiAborted(signal);
-        last = Date.now();
+        lastByOrigin.set(origin, Date.now());
         requestCount += 1;
+        requestCountByOrigin[origin] = (requestCountByOrigin[origin] || 0) + 1;
 
         const controller = new AbortController();
         const onAbort = () => controller.abort(algiAbortError(signal?.reason));
@@ -461,6 +459,11 @@ export function buildResearchProvider({
   // Imported lazily by the composer; built here so the network surface has one owner.
   return {
     httpJson,
-    diagnostics: () => ({ requestCount, maxRequests, cachedRequestCount: cache.size }),
+    diagnostics: () => ({
+      requestCount,
+      maxRequests,
+      cachedRequestCount: cache.size,
+      requestCountByOrigin: { ...requestCountByOrigin },
+    }),
   };
 }

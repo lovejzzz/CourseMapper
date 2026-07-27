@@ -783,7 +783,33 @@ function appendMergedSourceRow(rows, keyIndex, row) {
   for (const key of keys) keyIndex.set(key, nextIndex);
 }
 
-function mergeSourceLedgerBundles(...bundles) {
+function sourceLedgerConceptKeys(row = {}) {
+  return (row?.conceptLinks || [])
+    .flatMap((link) =>
+      typeof link === 'string' ? [link] : [cleanSourceText(link?.id, 120), cleanSourceText(link?.label, 160)],
+    )
+    .map((value) => cleanSourceText(value, 160).toLowerCase())
+    .filter(Boolean);
+}
+
+function isGeneratedSyllabusReviewRow(row = {}) {
+  return (
+    cleanSourceText(row?.origin || row?.sourceOrigin, 80).toLowerCase() === 'syllabus' ||
+    /^syllabus-src-/i.test(cleanSourceText(row?.id, 120))
+  );
+}
+
+function reviewRowCoveredByTrustedSources(row, trustedRows) {
+  if (!isGeneratedSyllabusReviewRow(row)) return false;
+  const reviewKeys = sourceLedgerConceptKeys(row);
+  if (reviewKeys.length === 0) return false;
+  const trustedKeys = new Set(
+    trustedRows.filter(isTrustedConceptLinkedSourceLedgerRow).flatMap(sourceLedgerConceptKeys),
+  );
+  return reviewKeys.every((key) => trustedKeys.has(key));
+}
+
+export function mergeSourceLedgerBundles(...bundles) {
   const rows = [];
   const reviewRows = [];
   const rowKeyIndex = new Map();
@@ -795,6 +821,11 @@ function mergeSourceLedgerBundles(...bundles) {
   }
   for (const bundle of bundles) {
     for (const row of bundle?.reviewRows || []) {
+      // A derived/fallback graph can reintroduce a generated syllabus
+      // placeholder after the primary graph has already supplied trusted,
+      // concept-linked research proof. Do not export that covered placeholder
+      // as an unresolved review note.
+      if (reviewRowCoveredByTrustedSources(row, rows)) continue;
       const identityKeys = sourceLedgerIdentityKeys(row);
       if (identityKeys.some((key) => rowKeyIndex.has(key))) continue;
       appendMergedSourceRow(reviewRows, reviewKeyIndex, row);
