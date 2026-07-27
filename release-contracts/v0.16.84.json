@@ -1,0 +1,192 @@
+{
+  "version": "0.16.84",
+  "date": "July 27, 2026",
+  "title": "Three Routes, Two Kinds of Quality",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test",
+      "npm run lint",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:model-comparison:three-route -- --evidence evaluation/model-comparison/gpt54mini-scion-algi-v1.evidence.json",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification will rerun formatting, lint, unit, evaluation, build, bundle, and release-history gates after push."
+    },
+    "ciDeep": {
+      "status": "pending-push",
+      "note": "Deep proof remains a separate downstream workflow and is not represented as instructor or classroom evidence."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Deployment remains downstream of successful repository checks and merge."
+    },
+    "liveProvider": {
+      "status": "success",
+      "url": "docs/MODEL_COMPARISON_GPT54MINI_SCION_ALGI_2026-07-27.md",
+      "note": "Scion and Algi completed the full frozen panel. GPT-5.4 mini returned HTTP 429 Insufficient Funds before generation and remains unmeasured."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No instructor, expert, human-preference, accessibility, classroom, or student-outcome claim is made."
+    },
+    "manualBrowser": {
+      "status": "success",
+      "url": "docs/MODEL_COMPARISON_GPT54MINI_SCION_ALGI_2026-07-27.md",
+      "note": "Twelve complete Scion/Algi browser builds, exports, console logs, reports, ZIPs, and frame timelines were recorded; the GPT provider error was captured before model generation."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01684-frozen-three-route-protocol",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "A six-domain protocol freezes inputs, route policies, measurements, and hashed artifact descriptors for GPT-5.4 mini, Scion, and Algi.",
+      "anchors": [
+        "evaluation/model-comparison/gpt54mini-scion-algi-v1.json",
+        "scripts/threeRouteComparisonAudit.mjs",
+        "scripts/buildThreeRouteComparisonEvidence.mjs",
+        "scripts/crucible/courses.mjs"
+      ],
+      "proofCommands": ["npm run audit:model-comparison:three-route", "npm test"],
+      "proofScopes": ["unit", "static-audit", "browser-live"]
+    },
+    {
+      "id": "v01684-unavailable-is-not-loss",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "The failed GPT provider validation remains infrastructure-unavailable with null aggregates and cannot become a zero-score model loss.",
+      "anchors": [
+        "scripts/threeRouteComparisonAudit.mjs",
+        "scripts/__tests__/threeRouteComparisonAudit.test.js",
+        "evaluation/model-comparison/gpt54mini-scion-algi-v1.evidence.json",
+        "docs/MODEL_COMPARISON_GPT54MINI_SCION_ALGI_2026-07-27.md"
+      ],
+      "proofCommands": [
+        "npm test",
+        "npm run audit:model-comparison:three-route -- --evidence evaluation/model-comparison/gpt54mini-scion-algi-v1.evidence.json"
+      ],
+      "proofScopes": ["unit", "static-audit", "browser-live"]
+    },
+    {
+      "id": "v01684-operational-route-result",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Both measured routes export six of six packages; Algi leads the functional route score through lower latency and zero mandatory model bytes.",
+      "anchors": [
+        "evaluation/model-comparison/gpt54mini-scion-algi-v1.evidence.json",
+        "scripts/threeRouteComparisonAudit.mjs",
+        "docs/MODEL_COMPARISON_GPT54MINI_SCION_ALGI_2026-07-27.md",
+        "README.md"
+      ],
+      "proofCommands": [
+        "npm run audit:model-comparison:three-route -- --evidence evaluation/model-comparison/gpt54mini-scion-algi-v1.evidence.json"
+      ],
+      "proofScopes": ["browser-live", "compiled-output", "static-audit"]
+    },
+    {
+      "id": "v01684-blind-content-result",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Anonymous model-assisted review prefers Scion on all six sampled comparisons while retaining explicit non-human validation boundaries.",
+      "anchors": [
+        "scripts/threeRouteBlindReviewPacket.mjs",
+        "scripts/buildThreeRouteComparisonEvidence.mjs",
+        "evaluation/model-comparison/gpt54mini-scion-algi-v1.evidence.json",
+        "docs/MODEL_COMPARISON_GPT54MINI_SCION_ALGI_2026-07-27.md"
+      ],
+      "proofCommands": ["npm test"],
+      "proofScopes": ["static-audit", "doc"]
+    },
+    {
+      "id": "v01684-score-separation",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "Conformance, Automated Readiness, operational utility, and sampled content quality remain separate constructs.",
+      "anchors": [
+        "scripts/threeRouteComparisonAudit.mjs",
+        "evaluation/model-comparison/gpt54mini-scion-algi-v1.json",
+        "docs/MODEL_COMPARISON_GPT54MINI_SCION_ALGI_2026-07-27.md",
+        "README.md"
+      ],
+      "proofCommands": [
+        "npm test",
+        "npm run audit:model-comparison:three-route -- --evidence evaluation/model-comparison/gpt54mini-scion-algi-v1.evidence.json"
+      ],
+      "proofScopes": ["unit", "static-audit", "doc"]
+    },
+    {
+      "id": "v01684-algi-benchmark-repair",
+      "status": "verified-current",
+      "changelogHighlightIndex": 5,
+      "summary": "Evidence selection, bounded composition, researched-fact projection, and OpenStax provenance repairs move Algi from three to six complete benchmark cases.",
+      "anchors": [
+        "src/lib/knowledge/algiResearch.js",
+        "src/lib/algiKernelComposer.js",
+        "src/lib/nativeGraphAuthoring.js",
+        "src/lib/knowledge/sourceLedger.js"
+      ],
+      "proofCommands": ["npm test"],
+      "proofScopes": ["unit", "browser-live", "compiled-output"]
+    },
+    {
+      "id": "v01684-null-aggregate-truth",
+      "status": "verified-current",
+      "changelogHighlightIndex": 6,
+      "summary": "Unmeasured arm aggregates remain null and the comparison cannot name a winner until every frozen route is available.",
+      "anchors": [
+        "scripts/threeRouteComparisonAudit.mjs",
+        "scripts/__tests__/threeRouteComparisonAudit.test.js",
+        "evaluation/model-comparison/gpt54mini-scion-algi-v1.json"
+      ],
+      "proofCommands": [
+        "npm test",
+        "npm run audit:model-comparison:three-route -- --evidence evaluation/model-comparison/gpt54mini-scion-algi-v1.evidence.json"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01684-route-vision",
+      "status": "verified-current",
+      "changelogHighlightIndex": 7,
+      "summary": "Scion remains quality-first local authoring, Algi remains zero-weight research and composition, and the funded paid-model rerun remains future evidence.",
+      "anchors": [
+        "README.md",
+        "docs/MODEL_COMPARISON_GPT54MINI_SCION_ALGI_2026-07-27.md",
+        "evaluation/model-comparison/gpt54mini-scion-algi-v1.json",
+        "evaluation/scion-adapters/held-out-course-benchmark-v26.json",
+        "src/components/ExportSidePanel.jsx",
+        "src/components/__tests__/ExportSidePanel.readiness.test.jsx",
+        "src/lib/algiComposer.js",
+        "src/lib/__tests__/algiComposer.test.js"
+      ],
+      "proofCommands": ["npm run audit:release-history"],
+      "proofScopes": ["doc", "static-audit"]
+    }
+  ],
+  "carryForward": [
+    {
+      "item": "Fund and rerun GPT-5.4 mini on the exact frozen six-course same-commit panel.",
+      "status": "carry-forward"
+    },
+    {
+      "item": "Reject incomplete source fragments before Algi composition and require learner-visible claim-to-source bindings.",
+      "status": "carry-forward"
+    },
+    {
+      "item": "Replace recurring generic quiz distractors and instructional scaffolds with lesson-specific alternatives.",
+      "status": "carry-forward"
+    },
+    {
+      "item": "Expand blind review from two representative artifacts to complete anonymized packages.",
+      "status": "carry-forward"
+    },
+    {
+      "item": "Keep the optional Scion adapter inactive until it beats the public base on a frozen matched ruler.",
+      "status": "carry-forward"
+    }
+  ]
+}

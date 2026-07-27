@@ -372,7 +372,10 @@ describe('ExportSidePanel readiness repair timing', () => {
 
     const success = container.querySelector('[data-testid="export-success"]');
     expect(success?.textContent).toContain('1 safe fix applied');
-    expect(success?.className).toContain('emerald');
+    expect(success?.className).toContain('text-emerald-800');
+    expect(success?.className).toContain('border-emerald-200');
+    expect(success?.className).not.toContain('animate-spring-in');
+    expect(success?.getAttribute('role')).toBe('status');
     expect(container.querySelector('[data-testid="export-notice"]')).toBeNull();
   });
 

@@ -145,6 +145,14 @@ describe('Algi V0 prompt reading', () => {
 });
 
 describe('Algi V0 skeleton composition', () => {
+  it('keeps an exact-lesson instruction out of the workspace course title', () => {
+    const source =
+      'User Experience Evidence Studio, exactly five lessons: 1) research questions and study planning, 2) contextual inquiry and field notes, 3) affinity mapping and synthesis, 4) usability test design, and 5) evidence-based design recommendations.';
+    const skeleton = JSON.parse(composeAlgiSkeleton(promptFor(source, 5)));
+    expect(skeleton.course.name).toBe('User Experience Evidence Studio');
+    expect(skeleton.course.name).not.toContain('exactly five lessons');
+  });
+
   it('transcribes the instructor’s own weekly topics', () => {
     const topics = planSessionTopics(SYLLABUS, 6);
     expect(topics).toHaveLength(6);

@@ -1802,7 +1802,8 @@ export default function ExportSidePanel({
         {lastOk && (
           <p
             data-testid="export-success"
-            className="text-xs font-semibold text-emerald-600 bg-emerald-50 rounded-lg px-2 py-1.5 animate-spring-in"
+            role="status"
+            className="rounded-lg border border-emerald-200 bg-emerald-50 px-2 py-1.5 text-xs font-semibold text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-200"
           >
             ✓ {lastOk}
           </p>

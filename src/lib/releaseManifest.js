@@ -1,7 +1,7 @@
 import { APP_VERSION } from './appVersion.js';
 
-export const CURRENT_RELEASE = {
-  version: APP_VERSION,
+const V01683_RELEASE = {
+  version: '0.16.83',
   date: 'July 27, 2026',
   title: 'A Score That Knows What It Cannot Prove',
   landingTitle: 'Scion V0.16.83 Replaces 99/A with an Honest Readiness Signal',
@@ -30,6 +30,40 @@ export const CURRENT_RELEASE = {
     roadmap: 'docs/HONEST_READINESS_BENCHMARK_V01683.md',
     benchmark: 'evaluation/automated-readiness/v1/cases.json',
     browser: 'README.md',
+    auditCommand: 'npm run audit:release-history',
+  },
+};
+
+export const CURRENT_RELEASE = {
+  version: APP_VERSION,
+  date: 'July 27, 2026',
+  title: 'Three Routes, Two Kinds of Quality',
+  landingTitle: 'Scion V0.16.84 Measures Scion, Algi, and GPT Honestly',
+  highlights: [
+    'A frozen six-domain comparison now runs the same exact five-lesson briefs through GPT-5.4 mini, Scion, and Algi with one compiler contract, one-attempt accounting, hashed artifacts, route latency, provider work, source requests, repairs, retries, export state, and mandatory download bytes.',
+    'GPT-5.4 mini is reported as infrastructure-unavailable—not assigned a zero and not declared a loser—because the configured API account returned HTTP 429 Insufficient Funds before any model generation. The three-way comparison therefore remains incomplete and names no overall winner.',
+    'Scion and Algi each completed and exported all six courses with zero automated blockers or P0/P1 findings. Algi has the higher functional route score, 72.03 versus 70.89, because its median build is 12.4 seconds versus Scion’s 55.4 seconds and it requires no 3.35 GB model download.',
+    'Anonymous GPT-5.6-sol XHigh review of representative lesson-plan and quiz-bank excerpts preferred Scion in all six paired cases. Scion averages 5.38/10 across grounding, language, usability, and prompt fidelity versus Algi at 3.50/10; this is model-assisted review, not instructor, expert, or classroom validation.',
+    'The comparison proves why the old 99/A conformance result cannot rank teaching quality: every Scion and Algi package conformed at 99, while the bounded Automated Readiness signal ranged from 62 to 66 and the anonymous reviewer still found concrete language, sourcing, assessment, and prompt-fidelity defects.',
+    'Benchmark-driven Algi repairs preserve later admissible evidence, prefer exact topic phrases, broaden bounded synthesis only for true integrative lessons, retain researched facts through native projection, and keep valid OpenStax attribution from being demoted. Algi moved from 3/6 to 6/6 complete benchmark courses without model calls.',
+    'The comparison audit no longer converts missing measurements into zero scores. Empty GPT summaries remain null, infrastructure failures stay outside model losses, publishability stays separate from utility, and no winner can be named until every frozen arm has same-commit evidence.',
+    'Scion remains the quality-first local authoring route; Algi remains the zero-weight speed and evidence-research route. Held-out ruler V26 binds the changed transitive grader bytes without inheriting an adapter win. Frame-by-frame inspection removes the success animation that made the ZIP receipt briefly unreadable, gives the confirmation a persistent accessible status treatment, and stops Algi from using an “exactly five lessons” instruction as part of the workspace course title. The next quality work is explicit: better claim-to-source binding, fragment rejection, natural distractors, less template residue, and a funded same-commit GPT-5.4 mini rerun.',
+  ],
+  landingHighlights: [
+    'Six frozen domains compare the same exact course briefs.',
+    'Unavailable is not converted into a model loss.',
+    'Scion wins the anonymous content review 6–0.',
+    'Algi wins speed and download burden.',
+    '99 conformance is not teaching quality.',
+    'Algi improves from 3/6 to 6/6 complete courses.',
+    'Every score keeps its evidence boundary.',
+    'ZIP success stays readable at the handoff.',
+  ],
+  proof: {
+    contract: 'release-contracts/v0.16.84.json',
+    roadmap: 'docs/MODEL_COMPARISON_GPT54MINI_SCION_ALGI_2026-07-27.md',
+    benchmark: 'evaluation/model-comparison/gpt54mini-scion-algi-v1.json',
+    browser: 'docs/MODEL_COMPARISON_GPT54MINI_SCION_ALGI_2026-07-27.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -184,6 +218,62 @@ export const CURRENT_RELEASE_CHANGELOG = {
   date: CURRENT_RELEASE.date,
   title: CURRENT_RELEASE.title,
   highlights: CURRENT_RELEASE.highlights,
+  sections: [
+    {
+      label: 'Run one frozen comparison contract',
+      icon: 'PROOF',
+      color: 'blue',
+      items: [
+        'Six exact five-lesson briefs span UX, life science, quantum computing, business ethics, technology law, and public health.',
+        'Every route records readiness, evidence coverage, export state, defects, duration, model load, mandatory download, spend, calls, source requests, repairs, and retries.',
+        'Artifact descriptors bind console logs, run digests, quality reports, and package ZIPs.',
+        'One failed infrastructure dependency cannot silently become a model-quality score.',
+      ],
+    },
+    {
+      label: 'Separate utility from content quality',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'Scion and Algi both complete 6/6 packages with zero automated blockers and 100% publishability under the encoded package gate.',
+        'Algi scores 72.03 on functional route utility versus Scion at 70.89 because it is about 4.5× faster at the median and requires no model download.',
+        'Anonymous review prefers Scion in 6/6 paired cases and scores it 5.38/10 versus Algi at 3.50/10 on the four content dimensions.',
+        'Neither the utility score nor the model-assisted review is represented as instructor, expert, accessibility, or classroom validation.',
+      ],
+    },
+    {
+      label: 'Repair Algi at the evidence boundary',
+      icon: 'AI',
+      color: 'violet',
+      items: [
+        'Exact topic phrases outrank broad suggested concepts when the suggested term does not remain compact and lesson-relevant.',
+        'Later source kernels remain available after confidence consolidation instead of being discarded before composition.',
+        'True integrative lessons can use a bounded larger candidate set while non-integrative recommendation topics retain stricter admission.',
+        'Trusted researched facts and valid OpenStax provenance survive native projection and source-ledger normalization.',
+      ],
+    },
+    {
+      label: 'Keep the verdict honest',
+      icon: 'PROOF',
+      color: 'slate',
+      items: [
+        'GPT-5.4 mini remains unmeasured after an HTTP 429 Insufficient Funds response before generation.',
+        'The comparison names no overall winner until all three routes complete the frozen same-commit panel.',
+        'The anonymous judge found concrete defects in both local routes, including template residue, weak distractors, source gaps, fragments, and prompt-fidelity misses.',
+        'The next benchmark keeps these exact cases frozen and adds the paid arm only when the route can actually run.',
+        'Held-out Scion ruler V26 binds the updated transitive implementation receipt and inherits no prior score or adapter result.',
+        'The ZIP completion receipt no longer fades through a low-contrast entrance animation; it appears immediately as an accessible status with persistent light and dark contrast.',
+        'Algi extracts the named course title before an “exactly N lessons” instruction, so workspace identity and the exported package no longer inherit the prompt contract as title text.',
+      ],
+    },
+  ],
+};
+
+const V01683_RELEASE_CHANGELOG = {
+  version: V01683_RELEASE.version,
+  date: V01683_RELEASE.date,
+  title: V01683_RELEASE.title,
+  highlights: V01683_RELEASE.highlights,
   sections: [
     {
       label: 'Replace the generous score with a bounded signal',
@@ -622,6 +712,7 @@ const V01678_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  V01683_RELEASE_CHANGELOG,
   V01682_RELEASE_CHANGELOG,
   V01681_RELEASE_CHANGELOG,
   V01680_RELEASE_CHANGELOG,

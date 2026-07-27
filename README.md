@@ -1,9 +1,9 @@
 # Course Mapper
 
-AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
+AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — cross-checked, exportable, and fully editable. Then use the AI agent to inspect and revise the generated workspace through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.83
+**Current release:** v0.16.84
 
 ---
 
@@ -11,7 +11,7 @@ AI-powered instructional design platform running on **CurriculumOS** — a deter
 
 Course Mapper is a **purpose-built instructional design tool**, not a general chatbot. The difference is like using Excel for a budget vs. asking ChatGPT to "make me a budget" — one gives you a functional, editable, exportable artifact; the other gives you text you have to manually restructure.
 
-1. **Structured output, not chat.** Pasting a syllabus into ChatGPT gives you a blob of markdown. Course Mapper produces structured, editable tables and slide decks with defined schemas — ready to use immediately.
+1. **Structured output, not chat.** Pasting a syllabus into a general chatbot gives you prose. Course Mapper produces structured, editable tables and exportable documents with defined schemas—organized for instructor review rather than presented as automatically classroom-proven.
 2. **10 aligned deliverables.** Generate a Course Map, Syllabus, Lesson Plans, Slide Decks, Rubrics, Quiz Bank, Assignments, Discussion Prompts, Study Guides, and Course FAQ — all cross-referenced and pedagogically consistent.
 3. **Embedded AI agent with a 31-tool runtime.** A multi-step teaching assistant that can inspect your workspace, read deliverables, validate pedagogy, search academic literature, generate diagrams and charts, create reusable macros, and apply safe targeted edits from natural conversation.
 4. **Inline AI editing.** Right-click any cell to Improve, Expand, Simplify, or Rewrite with AI. No need to describe what you want changed — the agent sees the cell context automatically.
@@ -32,7 +32,7 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site presents **Provider: Scion**, a disabled API control because no key is needed, and two product models: **Scion V0.16.83** and **Algi V0**. Those are intentionally simple labels for EduTool's course-building systems; they are not a claim that EduTool trained or hosts a new foundation model. Scion pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its identity and metadata, and runs it through the packaged WebGPU runtime. Algi uses no model weights. Both produce compact typed knowledge that Course Mapper compiles into the selected deliverables.
+The hosted site presents **Provider: Scion**, a disabled API control because no key is needed, and two product models: **Scion V0.16.84** and **Algi V0**. Those are intentionally simple labels for EduTool's course-building systems; they are not a claim that EduTool trained or hosts a new foundation model. Scion pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its identity and metadata, and runs it through the packaged WebGPU runtime. Algi uses no model weights. Both produce compact typed knowledge that Course Mapper compiles into the selected deliverables.
 
 In plain language, **Scion Vx is the whole local authoring system, not just the base model**:
 
@@ -58,7 +58,37 @@ brief + files → Algi evidence → Scion adaptation → shared compiler → ver
 
 The complete architecture is in [docs/ALGI_RESEARCH_FIRST_ARCHITECTURE.md](docs/ALGI_RESEARCH_FIRST_ARCHITECTURE.md). The assessment, limitations, and browser evidence are in [docs/ALGI_V0_PIPELINE_ASSESSMENT.md](docs/ALGI_V0_PIPELINE_ASSESSMENT.md).
 
-### V0.16.83 current production proof — an honest score and ruler
+### V0.16.84 current production proof — Scion vs. Algi vs. GPT-5.4 mini
+
+V0.16.84 freezes six exact five-lesson course briefs across UX, environmental microbiology, quantum computing, business ethics, current technology policy, and public health. The comparison records route completion, Automated Readiness, evidence coverage, blockers, encoded findings, latency, model-load time, mandatory download bytes, cost, model calls, source requests, repairs, retries, console logs, quality reports, and package ZIP hashes.
+
+The honest result is not one simplistic leaderboard:
+
+| Route            | Completed/exported | Automated Readiness | Median build | Mandatory model download | Anonymous content review |
+| ---------------- | -----------------: | ------------------: | -----------: | -----------------------: | -----------------------: |
+| GPT-5.4 mini     |         Unmeasured |          Unmeasured |   Unmeasured |             Not measured |             Not measured |
+| Scion V0.16.84   |                6/6 |               65.3¹ |       55.4 s |                  3.35 GB |  5.38/10 · preferred 6/6 |
+| Algi V0 research |                6/6 |               65.3¹ |       12.4 s |                      0 B |  3.50/10 · preferred 0/6 |
+
+¹ Mean of the six bounded Automated Readiness results; individual runs range from 62 to 66 and remain below the 69-point independent-evidence boundary.
+
+GPT-5.4 mini is **not a loser in this result**. The configured API account returned HTTP 429 **Insufficient Funds** before model generation, so that route is marked infrastructure-unavailable and the overall three-way comparison remains incomplete. It receives `null`, not zero, in aggregate score and latency fields. A funded same-commit rerun is required before the benchmark can name a three-route winner.
+
+Scion and Algi both produced six downloadable packages with zero automated blockers and zero encoded P0/P1 findings. Algi wins the operational utility comparison: its mean functional route score is **72.03** versus Scion at **70.89**, primarily because Algi is roughly **4.5× faster at the median** and avoids the one-time 3.35 GB public-model download.
+
+Scion wins the anonymous content comparison. A fresh isolated `gpt-5.6-sol` XHigh judge saw only anonymous A/B excerpts from Lesson Plan 1 and Quiz Bank Lesson 3. It preferred Scion on all six courses. Across factual/source grounding, language, instructional usability, and prompt fidelity, Scion averaged **5.38/10** and Algi **3.50/10**. This is model-assisted review, not instructor, expert, accessibility, or classroom validation.
+
+The most important discovery is that **99/A cannot rank the routes**. Every Scion and Algi package scored 99 for deterministic package conformance, yet the bounded readiness ruler stayed at 62–66 and the anonymous judge found real defects in both: repetitive generic scaffolding, weak distractors, missing direct claim-to-source links, Algi source fragments, and prompt-fidelity failures in current-policy and public-health material. V0.16.84 therefore keeps package conformance, operational utility, Automated Readiness, and blind content quality as four separate constructs.
+
+The same benchmark drove causal Algi repairs. Exact topic phrases now outrank broad suggested terms when necessary; later admissible source kernels survive confidence consolidation; truly integrative lessons receive a bounded larger evidence set; researched facts survive native projection; and valid OpenStax attribution remains trusted. The initially failing Algi panel improved from **3/6 to 6/6 complete packages with zero model calls**, without weakening the evidence-admission boundary.
+
+Run `npm run audit:model-comparison:three-route -- --evidence evaluation/model-comparison/gpt54mini-scion-algi-v1.evidence.json` to reproduce the recorded aggregate result. The frozen protocol is [`evaluation/model-comparison/gpt54mini-scion-algi-v1.json`](evaluation/model-comparison/gpt54mini-scion-algi-v1.json); the full interpretation and case-level defects are in [`docs/MODEL_COMPARISON_GPT54MINI_SCION_ALGI_2026-07-27.md`](docs/MODEL_COMPARISON_GPT54MINI_SCION_ALGI_2026-07-27.md).
+
+Frame-by-frame browser inspection covered live compiler progress, the ready state, and the downloaded handoff. It found that the post-download receipt was briefly almost invisible during its entrance animation and that Algi carried the “exactly five lessons” instruction into the visible course title. V0.16.84 removes the fade from the critical success message, gives it a persistent bordered, high-contrast, accessible status treatment in light and dark themes, and deterministically separates the named course from the lesson-count instruction.
+
+Gemma weights remain unchanged and the optional Scion adapter remains inactive. Held-out ruler **V26** binds the updated transitive grader implementation without inheriting a V25 score or adapter result. This release improves the Algi evidence/composition path, shared compiler behavior, export handoff, and benchmark truthfulness. Compatible paid providers can benefit from shared compiler changes, but GPT-5.4 mini did not generate in this specific comparison.
+
+### V0.16.83 historical production proof — an honest score and ruler
 
 The old 99/A display was too generous because it measured deterministic package conformance and looked like a claim about real teaching quality. V0.16.83 separates those constructs:
 
