@@ -221,11 +221,11 @@ describe('runDigest', () => {
       featureId: 'quality',
       status: 'failed',
     });
-    expect(digest.gates.flaggedChecks[0].message).toContain('quality grade 74/100 (C)');
+    expect(digest.gates.flaggedChecks[0].message).toContain('package conformance 74/100 (C)');
     expect(digest.gates.flaggedChecks[0].message).toContain('prompt artifact labels');
     const text = formatRunDigest(digest);
     expect(text).toContain('gates: blocked');
-    expect(text).toContain('quality 74/100 C');
+    expect(text).toContain('conformance 74/100 C');
     expect(text).toContain('[failed] quality');
   });
 

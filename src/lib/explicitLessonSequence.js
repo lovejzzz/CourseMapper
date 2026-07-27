@@ -11,6 +11,7 @@ const COUNT_WORD =
 const LABELED_SEQUENCE_HEADER_RE = new RegExp(
   `\\b(?:` +
     `lessons?\\s+(?:cover|include)|` +
+    `(?:use|follow|preserve)\\s+(?:(?:this|the)\\s+)?(?:exact\\s+)?(?:lesson|session|module)\\s+sequence|` +
     `(?:build|create|generate|make)\\s+(?:exactly\\s+)?(?:${COUNT_WORD}\\s+)?(?:distinct\\s+)?(?:weekly\\s+)?(?:lessons?|sessions?|modules?)|` +
     `(?:with|use|cover|include)\\s+(?:(?:these|the)\\s+)?(?:${COUNT_WORD}\\s+)?(?:distinct\\s+)?(?:weekly\\s+)?(?:lessons?|focus(?:es)?|topics?|modules?)|` +
     `(?:distinct\\s+)?(?:weekly\\s+)?(?:lessons?|focus(?:es)?|topics?|modules?)` +

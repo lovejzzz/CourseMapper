@@ -550,7 +550,9 @@ function applyDeterministicRepairs({
 }
 
 export function buildEnrichmentCoverageIssues(enrichmentOutcome) {
-  if (!enrichmentOutcome || enrichmentOutcome.modelStage !== 'ran') return [];
+  if (!enrichmentOutcome) return [];
+  const required = enrichmentOutcome.required === true || enrichmentOutcome.route === 'algi-evidence';
+  if (!required && enrichmentOutcome.modelStage !== 'ran') return [];
   const requested = Number(enrichmentOutcome.requestedLessons) || 0;
   const enriched = Number(enrichmentOutcome.enrichedLessons) || 0;
   if (requested <= 0 || enriched >= requested) return [];
@@ -569,7 +571,9 @@ export function buildEnrichmentCoverageIssues(enrichmentOutcome) {
       severity: 'blocker',
       featureId: 'courseMap',
       label: 'Enrichment coverage',
-      message: `Enrichment covered ${enriched}/${requested} lessons; ${lessonText} fell back to template. Retry or repair enrichment before exporting a clean package.`,
+      message: required
+        ? `Course evidence covered ${enriched}/${requested} lessons; ${lessonText} could not be grounded. Research or attach sources before exporting.`
+        : `Enrichment covered ${enriched}/${requested} lessons; ${lessonText} fell back to template. Retry or repair enrichment before exporting a clean package.`,
       source: 'enrichmentCoverage',
       retryable: false,
       autoFixable: false,

@@ -202,6 +202,13 @@ describe('ExportSidePanel readiness repair timing', () => {
           grade: 'A',
           findingCounts: { p0: 0, p1: 3, p2: 1 },
           texture: { score: 92 },
+          readiness: {
+            score: 61,
+            maxScore: 100,
+            evidenceCeiling: 69,
+            band: 'strong-automated-signal',
+            claimBoundary: 'Automated signals cannot prove instructor validation.',
+          },
         },
       },
     });
@@ -219,7 +226,7 @@ describe('ExportSidePanel readiness repair timing', () => {
     expect(panel?.textContent).not.toContain('PPTX export generated');
     expect(container.querySelector('[data-testid="export-panel-title"]')?.textContent).toBe('Export package');
     const qualityStamp = container.querySelector('[data-testid="quality-stamp"]');
-    expect(qualityStamp?.textContent).toContain('96 · A');
+    expect(qualityStamp?.textContent).toContain('61/100');
     expect(qualityStamp?.className).toContain('sky');
     expect(qualityStamp?.className).not.toContain('amber');
     expect(container.querySelector('[data-testid="export-download-zip"]')?.disabled).toBe(false);
@@ -242,6 +249,17 @@ describe('ExportSidePanel readiness repair timing', () => {
           findingCounts: { p0: 0, p1: 1, p2: 0 },
           findings: [{ id: 'one', severity: 'P1', dimension: 'citations', detail: 'Review one citation.' }],
           dimensions: { citations: 90, structure: 100 },
+          readiness: {
+            score: 61,
+            maxScore: 100,
+            evidenceCeiling: 69,
+            band: 'strong-automated-signal',
+            claimBoundary: 'Automated signals cannot prove instructor validation.',
+            components: {
+              curriculumFidelity: { score: 100, weight: 25 },
+              evidenceGrounding: { score: 56, weight: 25 },
+            },
+          },
         },
       },
     });
@@ -256,7 +274,9 @@ describe('ExportSidePanel readiness repair timing', () => {
     expect(modal).not.toBeNull();
     expect(modal?.parentElement).toBe(document.body);
     expect(container.querySelector('[data-testid="quality-report-modal"]')).toBeNull();
-    expect(modal?.textContent).toContain('Package quality — 96/100 (A)');
+    expect(modal?.textContent).toContain('Automated readiness — 61/100');
+    expect(modal?.textContent).toContain('Package conformance 96/100 (A)');
+    expect(modal?.textContent).toContain('Scores from 70–100 require');
   });
 
   it('names the ZIP preparation work while the package is being assembled', async () => {

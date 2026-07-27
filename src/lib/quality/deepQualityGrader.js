@@ -83,6 +83,7 @@ import {
   comparativeAssessmentContractFinding,
 } from './deepQualitySubstanceDetails.js';
 import { parseClassSessionMinutes } from '../sourceBriefConstraints.js';
+import { computeAutomatedReadinessSignal } from './automatedReadinessSignal.js';
 import {
   CLIPPED_SLIDE_INSTRUCTION_RE,
   ENRICHED_DECK_TITLE_PATTERNS,
@@ -209,7 +210,10 @@ import {
 // of a decorative label serialized first.
 // 1.10.39 — the reconciled same-run digest owns final knowledge-backbone
 // honesty instead of being overwritten by earlier raw budget telemetry.
-export const GRADER_VERSION = '1.10.39';
+// 1.11.0 — deterministic package conformance and automated instructor-
+// readiness are reported as separate constructs. Readiness is calibrated on a
+// 0–69 ceiling; automation alone can no longer award a misleading 99/A.
+export const GRADER_VERSION = '1.11.0';
 
 // ── Dimension weights & letter bands (documented in the module header) ──────
 // v0.15.186: texture weight 10 → 25. At 10/120 a fully templated package
@@ -3772,10 +3776,29 @@ export async function grade({
   if (stats.p0 > 0) overallScore = Math.min(overallScore, 74);
   else if (stats.p1 > 0) overallScore = Math.min(overallScore, 89);
 
-  return {
+  const exportedLessonTitles = [...lessonTitles.entries()]
+    .sort(([left], [right]) => Number(left) - Number(right))
+    .map(([, entries]) => entries?.[0]?.title)
+    .filter(Boolean);
+  const conformance = {
     scores,
     grades,
     overall: { score: overallScore, grade: letterGrade(overallScore) },
+  };
+  const readiness = computeAutomatedReadinessSignal({
+    manifest: pkg.manifest,
+    course,
+    lessonTitles: exportedLessonTitles,
+    conformance,
+    texture,
+  });
+
+  return {
+    ...conformance,
+    evidenceClass: 'deterministic',
+    validationTier: 'automated-signal',
+    construct: 'encoded-package-defect-conformance',
+    readiness,
     findings: findings.list,
     stats,
     // Texture block — sub-scores, worst repeated-shingle evidence, and
@@ -3796,17 +3819,42 @@ export async function grade({
 
 export function renderReportMarkdown(result, { courseTitle = 'Course', baselineResult = null } = {}) {
   if (!result) return '';
+  const readiness = result.readiness;
   const lines = [
-    `# Crucible Deep Quality Report — ${courseTitle}`,
+    `# CourseMapper Quality Evidence Report — ${courseTitle}`,
     '',
-    `**Overall: ${result.overall.score}/100 (${result.overall.grade})** · ${result.stats.findingCount} findings (${result.stats.p0} P0 · ${result.stats.p1} P1 · ${result.stats.p2} P2) · ${result.stats.fileCount} files`,
+    ...(readiness
+      ? [
+          `**Automated readiness signal: ${readiness.score}/100 (${readiness.band}; automated ceiling ${readiness.evidenceCeiling})**`,
+          '',
+          `${readiness.claimBoundary} Scores from 70–100 require a higher evidence tier with independent review or observed use.`,
+          '',
+        ]
+      : []),
+    `**Package conformance: ${result.overall.score}/100 (${result.overall.grade})** · ${result.stats.findingCount} encoded findings (${result.stats.p0} P0 · ${result.stats.p1} P1 · ${result.stats.p2} P2) · ${result.stats.fileCount} files`,
     '',
   ];
+
+  if (readiness) {
+    lines.push('## Automated readiness components', '', '| Component | Weight | Signal |', '| --- | ---: | ---: |');
+    for (const [component, value] of Object.entries(readiness.components || {})) {
+      const label = component
+        .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+        .replace(/[-_]+/g, ' ')
+        .toLowerCase();
+      lines.push(`| ${label.charAt(0).toUpperCase()}${label.slice(1)} | ${value.weight} | ${value.score}/100 |`);
+    }
+    lines.push(
+      '',
+      `Raw automated signal: ${readiness.rawScore}/100. Reported score is capped at ${readiness.evidenceCeiling} for this evidence tier.`,
+      '',
+    );
+  }
 
   // Score table (with baseline delta when given).
   const hasBaseline = Boolean(baselineResult);
   lines.push(
-    '## Scores',
+    '## Package conformance checks',
     '',
     hasBaseline ? '| Dimension | Weight | Score | Grade | Δ baseline |' : '| Dimension | Weight | Score | Grade |',
     hasBaseline ? '| --- | ---: | ---: | :---: | ---: |' : '| --- | ---: | ---: | :---: |',

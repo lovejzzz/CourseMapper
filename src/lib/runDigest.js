@@ -84,6 +84,11 @@ export function buildRunDigest({ budget = {}, exportVerification = null, finish 
   const qualityP0 = Number(qualityCounts.p0) || 0;
   const qualityP1 = Number(qualityCounts.p1) || 0;
   const qualityP2 = Number(qualityCounts.p2) || 0;
+  const readinessScore = Number.isFinite(quality?.readiness?.score) ? quality.readiness.score : null;
+  const readinessMax = Number.isFinite(quality?.readiness?.maxScore) ? quality.readiness.maxScore : null;
+  const readinessCeiling = Number.isFinite(quality?.readiness?.evidenceCeiling)
+    ? quality.readiness.evidenceCeiling
+    : null;
   const qualityFindings = Array.isArray(quality?.findings) ? quality.findings : [];
   const checks = Array.isArray(exportVerification?.checks) ? exportVerification.checks : [];
   const flaggedChecks = checks
@@ -165,8 +170,14 @@ export function buildRunDigest({ budget = {}, exportVerification = null, finish 
       featureId: 'quality',
       status: qualityP0 > 0 ? 'failed' : 'warning',
       message:
-        `quality grade ${quality.score}/100 (${quality.grade}) — ${qualityP0} P0, ${qualityP1} P1, ${qualityP2} P2` +
+        `package conformance ${quality.score}/100 (${quality.grade}) — ${qualityP0} P0, ${qualityP1} P1, ${qualityP2} P2` +
         (findingText ? `; ${findingText.slice(0, 140)}` : ''),
+    });
+  } else if (quality?.status === 'graded' && readinessScore !== null) {
+    qualityChecks.push({
+      featureId: 'quality',
+      status: readinessScore < 45 ? 'warning' : 'info',
+      message: `automated readiness ${readinessScore}/${readinessMax} (ceiling ${readinessCeiling}); package conformance ${quality.score}/100 (${quality.grade})`,
     });
   } else if (quality?.status && quality.status !== 'graded') {
     qualityChecks.push({
@@ -221,6 +232,10 @@ export function buildRunDigest({ budget = {}, exportVerification = null, finish 
       qualityStatus: quality?.status || '',
       qualityScore: quality?.score ?? null,
       qualityGrade: quality?.grade || '',
+      automatedReadinessScore: readinessScore,
+      automatedReadinessMax: readinessMax,
+      automatedReadinessCeiling: readinessCeiling,
+      automatedReadinessBand: quality?.readiness?.band || '',
       qualityP0,
       qualityP1,
       qualityP2,
@@ -298,10 +313,14 @@ export function formatRunDigest(digest) {
     );
   }
   const qualityText = digest.gates.qualityStatus
-    ? ` · quality ${
+    ? ` · ${
         digest.gates.qualityStatus === 'graded'
-          ? `${digest.gates.qualityScore}/100 ${digest.gates.qualityGrade}`
-          : digest.gates.qualityStatus
+          ? `${
+              Number.isFinite(digest.gates.automatedReadinessScore)
+                ? `readiness ${digest.gates.automatedReadinessScore}/${digest.gates.automatedReadinessMax} · `
+                : ''
+            }conformance ${digest.gates.qualityScore}/100 ${digest.gates.qualityGrade}`
+          : `quality ${digest.gates.qualityStatus}`
       }`
     : '';
   lines.push(

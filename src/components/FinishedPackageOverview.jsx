@@ -78,6 +78,8 @@ export default function FinishedPackageOverview({
   const readyCount = materialRows.filter((row) => row.ready).length;
   const grade = packageQualityPass?.quality?.grade || 'A';
   const score = packageQualityPass?.quality?.score;
+  const readinessScore = packageQualityPass?.quality?.readiness?.score;
+  const readinessMax = packageQualityPass?.quality?.readiness?.maxScore || 100;
   const texture = packageQualityPass?.quality?.texture?.score;
   const qualityCaveats = summarizeQualityCaveats(packageQualityPass?.quality);
   const repairsApplied = Number(packageQualityPass?.repairsApplied || packageQualityPass?.receipt?.autoFixedCount || 0);
@@ -102,13 +104,26 @@ export default function FinishedPackageOverview({
             </div>
           </div>
           <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold text-slate-600">
-            {Number.isFinite(score) && (
+            {Number.isFinite(readinessScore) && (
               <button
                 type="button"
                 onClick={() => onOpenQualityReport?.(true)}
                 className="tactile rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-emerald-700"
               >
-                Quality {score} · {grade}
+                Readiness {readinessScore}/{readinessMax}
+              </button>
+            )}
+            {Number.isFinite(score) && (
+              <button
+                type="button"
+                onClick={() => onOpenQualityReport?.(true)}
+                className={`tactile rounded-full border px-3 py-1 ${
+                  Number.isFinite(readinessScore)
+                    ? 'border-slate-200 bg-slate-50 text-slate-600'
+                    : 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                }`}
+              >
+                Conformance {score} · {grade}
               </button>
             )}
             {Number.isFinite(texture) && (

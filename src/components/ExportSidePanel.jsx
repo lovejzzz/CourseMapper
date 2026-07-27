@@ -623,6 +623,9 @@ function ReadinessConfirm({
 // ZIP as QUALITY_REPORT.md.
 export function QualityStamp({ quality, onOpen, trustStatus = null, informational = false }) {
   if (quality?.status !== 'graded') return null;
+  const readinessScore = Number.isFinite(quality.readiness?.score) ? quality.readiness.score : null;
+  const readinessMax = Number.isFinite(quality.readiness?.maxScore) ? quality.readiness.maxScore : 100;
+  const readinessCeiling = Number.isFinite(quality.readiness?.evidenceCeiling) ? quality.readiness.evidenceCeiling : 69;
   const status = trustStatus || getPackageTrustStatus({ packageQualityPass: { status: 'ready', quality } });
   const tone = informational
     ? 'border-sky-200 bg-white/70 text-sky-700'
@@ -634,11 +637,19 @@ export function QualityStamp({ quality, onOpen, trustStatus = null, informationa
       type="button"
       data-testid="quality-stamp"
       onClick={onOpen}
-      title={`Deterministic package grade ${quality.score}/100 (${quality.grade}) — click for the full report`}
-      aria-label={`Package quality ${quality.score} out of 100, grade ${quality.grade} — open the quality report`}
+      title={`${
+        readinessScore !== null
+          ? `Automated readiness ${readinessScore}/${readinessMax} (ceiling ${readinessCeiling}); package conformance ${quality.score}/100 (${quality.grade})`
+          : `Package conformance ${quality.score}/100 (${quality.grade})`
+      } — click for the full report`}
+      aria-label={`Package quality ${
+        readinessScore !== null
+          ? `automated readiness ${readinessScore} out of ${readinessMax}`
+          : `${quality.score} out of 100, grade ${quality.grade}`
+      } — open the quality report`}
       className={`inline-flex items-center gap-0.5 rounded-full border px-1.5 py-0.5 font-mono text-[10px] font-bold transition-colors hover:brightness-95 ${tone}`}
     >
-      {quality.score} · {quality.grade}
+      {readinessScore !== null ? `${readinessScore}/${readinessMax}` : `${quality.score} · ${quality.grade}`}
     </button>
   );
 }
@@ -648,6 +659,15 @@ const QUALITY_SEVERITY_TONES = {
   P1: 'bg-amber-100 text-amber-700',
   P2: 'bg-slate-100 text-slate-600',
 };
+
+function humanizeReadinessLabel(value) {
+  const spaced = String(value || '')
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .replace(/[-_]+/g, ' ')
+    .trim()
+    .toLowerCase();
+  return spaced ? spaced.charAt(0).toUpperCase() + spaced.slice(1) : '';
+}
 
 function QualityReportModal({ quality, onClose }) {
   useEffect(() => {
@@ -661,6 +681,8 @@ function QualityReportModal({ quality, onClose }) {
 
   if (!quality || quality.status !== 'graded') return null;
   const dimensions = Object.entries(quality.dimensions || {});
+  const readiness = quality.readiness || null;
+  const readinessComponents = Object.entries(readiness?.components || {});
   const findings = Array.isArray(quality.findings) ? quality.findings : [];
   const counts = quality.findingCounts || {};
   const modal = (
@@ -681,10 +703,13 @@ function QualityReportModal({ quality, onClose }) {
           <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
             <div className="min-w-0">
               <p id="quality-report-title" className="text-sm font-bold text-slate-800">
-                Package quality — {quality.score}/100 ({quality.grade})
+                {readiness
+                  ? `Automated readiness — ${readiness.score}/100`
+                  : `Package conformance — ${quality.score}/100 (${quality.grade})`}
               </p>
               <p id="quality-report-summary" className="text-xs text-slate-400">
-                {counts.p0 || 0} P0 · {counts.p1 || 0} P1 · {counts.p2 || 0} P2 · grader v{quality.graderVersion}
+                Package conformance {quality.score}/100 ({quality.grade}) · {counts.p0 || 0} P0 · {counts.p1 || 0} P1 ·{' '}
+                {counts.p2 || 0} P2 · grader v{quality.graderVersion}
                 {quality.gradedAt ? ` · ${new Date(quality.gradedAt).toLocaleString()}` : ''}
               </p>
             </div>
@@ -701,8 +726,31 @@ function QualityReportModal({ quality, onClose }) {
             </button>
           </div>
           <div className="overflow-y-auto px-5 py-4 space-y-4">
+            {readiness && (
+              <div data-testid="automated-readiness-summary" className="rounded-lg border border-sky-100 bg-sky-50 p-3">
+                <p className="text-xs font-semibold text-sky-800">
+                  {humanizeReadinessLabel(readiness.band)} · automated ceiling {readiness.evidenceCeiling || 69}
+                </p>
+                <p className="mt-1 text-xs leading-relaxed text-sky-700">
+                  {readiness.claimBoundary} Scores from 70–100 require independent review or observed use.
+                </p>
+                {readinessComponents.length > 0 && (
+                  <div className="mt-2 grid grid-cols-2 gap-1">
+                    {readinessComponents.map(([component, value]) => (
+                      <div
+                        key={component}
+                        className="flex items-center justify-between rounded-md bg-white/70 px-2 py-1 text-xs"
+                      >
+                        <span className="truncate pr-2 text-sky-700">{humanizeReadinessLabel(component)}</span>
+                        <span className="font-bold text-sky-900">{value.score}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
             <div>
-              <p className="text-xs font-semibold text-slate-500 mb-1.5">Dimension scores</p>
+              <p className="text-xs font-semibold text-slate-500 mb-1.5">Package conformance checks</p>
               <div className="grid grid-cols-2 gap-1">
                 {dimensions.map(([dimension, score]) => (
                   <div

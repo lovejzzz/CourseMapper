@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.82
+**Current release:** v0.16.83
 
 ---
 
@@ -32,7 +32,7 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site presents **Provider: Scion**, a disabled API control because no key is needed, and two product models: **Scion V0.16.82** and **Algi V0**. Those are intentionally simple labels for EduTool's course-building systems; they are not a claim that EduTool trained or hosts a new foundation model. Scion pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its identity and metadata, and runs it through the packaged WebGPU runtime. Algi uses no model weights. Both produce compact typed knowledge that Course Mapper compiles into the selected deliverables.
+The hosted site presents **Provider: Scion**, a disabled API control because no key is needed, and two product models: **Scion V0.16.83** and **Algi V0**. Those are intentionally simple labels for EduTool's course-building systems; they are not a claim that EduTool trained or hosts a new foundation model. Scion pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its identity and metadata, and runs it through the packaged WebGPU runtime. Algi uses no model weights. Both produce compact typed knowledge that Course Mapper compiles into the selected deliverables.
 
 In plain language, **Scion Vx is the whole local authoring system, not just the base model**:
 
@@ -58,7 +58,37 @@ brief + files → Algi evidence → Scion adaptation → shared compiler → ver
 
 The complete architecture is in [docs/ALGI_RESEARCH_FIRST_ARCHITECTURE.md](docs/ALGI_RESEARCH_FIRST_ARCHITECTURE.md). The assessment, limitations, and browser evidence are in [docs/ALGI_V0_PIPELINE_ASSESSMENT.md](docs/ALGI_V0_PIPELINE_ASSESSMENT.md).
 
-### V0.16.82 current production proof
+### V0.16.83 current production proof — an honest score and ruler
+
+The old 99/A display was too generous because it measured deterministic package conformance and looked like a claim about real teaching quality. V0.16.83 separates those constructs:
+
+- **Automated Readiness (0–100)** is the primary signal. It combines curriculum fidelity, evidence grounding, instructional specificity, assessment coherence, and package integrity.
+- **Package conformance** is the old deterministic grade, now labeled honestly. It reports encoded structure, consistency, citation, format, and export defects; it is not a factual or classroom-quality score.
+- **69/100 is the automated ceiling.** Scores from 70–100 require a higher evidence tier with independent review or observed use. Automation cannot prove factual accuracy, teachability, accessibility, instructor validation, or classroom outcomes.
+
+The readiness evaluator is deliberately difficult to game. Populating internal `sourceRef` fields does not earn grounding credit unless the package contains trusted, concept-linked source evidence. A multi-lesson package supported by only one trusted source is reported as thin even if its internal references are complete.
+
+The locked V1 benchmark has three frozen cases:
+
+| Frozen case                                            |  Readiness | Separate conformance fixture | What it proves                                                                                    |
+| ------------------------------------------------------ | ---------: | ---------------------------: | ------------------------------------------------------------------------------------------------- |
+| Observed generic Algi shape with zero trusted evidence | **26/100** |                       89/100 | Polished structure and fake internal reference coverage cannot create a high readiness result.    |
+| Observed exact Scion package with thin source breadth  | **61/100** |                       99/100 | Strong brief fidelity and materials can score well while source evidence remains visibly limited. |
+| Exact, source-rich positive-control fixture            | **68/100** |                       99/100 | The automated system can approach—but cannot cross—the independent-evidence boundary.             |
+
+Run `npm run audit:automated-readiness` to verify the score windows, ordering, ceiling, claim boundary, and conformance separation. The cases live in [`evaluation/automated-readiness/v1/cases.json`](evaluation/automated-readiness/v1/cases.json); the executable audit is [`scripts/automatedReadinessBenchmarkAudit.mjs`](scripts/automatedReadinessBenchmarkAudit.mjs).
+
+A fresh real-browser **Urban Heat Resilience and Environmental Justice** test preserved the exact title, five requested lessons, and requested order. Algi research admitted useful evidence but could compose only **1/5** lesson kernels. The product therefore paused refinement and showed **54/100 Automated Readiness** instead of a green 99/A. The detailed report explained the result: curriculum fidelity 100, evidence grounding 28, instructional specificity 98, assessment coherence 90, and package integrity 92. Package conformance remained separately visible at 89/B.
+
+The same browser session downloaded a valid **56-entry ZIP**. A first export exposed a real consistency bug: the workspace showed 54/100 while a narrower ZIP regrade showed 51/100. V0.16.83 fixes that source-of-truth error. The finish receipt now seals one readiness result across the workspace chip, detailed modal, `PACKAGE_MANIFEST.json`, and `QUALITY_REPORT.md`; the verified second archive reports **54/100 everywhere**.
+
+Algi also explains research composition failures in more useful detail, can select a later exact anchored passage when an abstract lead is weak, rejects duplicate evidence excerpts as fake multiple-choice distractors, and narrows only wrapper-heavy research queries. These changes improve diagnosis and safe composition without weakening the fail-closed evidence boundary.
+
+Deep grader **v1.11.0** and held-out Scion ruler **V25** bind the complete readiness implementation through a 15-file transitive receipt. V25 is a new measurement boundary and inherits no V24 score, adapter win, or promotion. Gemma weights remain unchanged and the optional adapter remains inactive.
+
+The full local regression run passes **463 test files and 5,768 active tests**, with 16 files and 162 tests intentionally skipped. Lint, production build, the automated-readiness audit, and targeted real-browser score/report/ZIP checks pass. This release makes the measurement more honest; it does not claim that Scion, Algi, a paid provider, or a trained adapter has earned independent teaching-quality validation.
+
+### V0.16.82 historical production proof
 
 V0.16.82 turns Algi from a retrieval cascade into a research-first course intelligence pipeline. The requested lesson sequence becomes a bounded research plan before provider work starts. Each lesson records focused queries, missing schema fields, provider policy, and a stable local-cache identity. The Living Course Compiler then shows planning, cached coverage, provider retrieval, evidence admission, composition, compilation, verification, and export as one continuous build.
 
@@ -102,7 +132,7 @@ Gemma weights remain unchanged, and the research adapter remains inactive becaus
 
 ### Recent release history
 
-The sections below are historical release evidence. Their versions, timings, test counts, and measured packages describe the named release and are intentionally preserved; the V0.16.82 production proof above is the current authority.
+The sections below are historical release evidence. Their versions, timings, test counts, and measured packages describe the named release and are intentionally preserved; the V0.16.83 production proof above is the current authority. Historical 99/A statements refer to the deterministic conformance grader used by those releases, not to the new Automated Readiness construct.
 
 V0.16.77 makes experiential learning a first-class compiler capability instead of a one-course template. When—and only when—a lesson explicitly requests a simulation, laboratory investigation, studio critique, case exercise, structured debate, field exercise, or role-play, the existing lesson-authoring call returns one compact course-specific activity blueprint beside its knowledge kernel. There is no extra call for the lesson plan, slides, assignment, or export.
 

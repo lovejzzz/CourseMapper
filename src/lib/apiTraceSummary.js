@@ -169,6 +169,9 @@ export function buildApiTraceSummary(event = {}, budget = {}, { verbose = false 
             cache: event.researchReceipt.cache || null,
             providersUsed: event.researchReceipt.providersUsed || [],
             sourceRequests: Number(event.researchReceipt.sourceRequests) || 0,
+            compositionDeclines: Array.isArray(event.researchReceipt.compositionDeclines)
+              ? event.researchReceipt.compositionDeclines
+              : [],
           },
         }
       : {}),

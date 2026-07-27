@@ -46,10 +46,10 @@ export function detectExpectedLessons(text) {
   let source = '';
 
   // Pattern 1a: "X-week <anything>" — hyphenated adjective form, e.g. "12-week graduate seminar"
-  const weekAdjPat = /(\d{1,2})-week\b/i;
+  const weekAdjPat = new RegExp(`\\b(${SMALL_COUNT_TOKEN})-week\\b`, 'i');
   const m1a = text.match(weekAdjPat);
   if (m1a) {
-    const n = parseInt(m1a[1], 10);
+    const n = parseSmallCount(m1a[1]);
     if (n >= 4 && n <= 52) return { expected: n, confidence: 'high', source: `"${m1a[0]}"` };
   }
 

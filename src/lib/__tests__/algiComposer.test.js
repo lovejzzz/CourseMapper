@@ -22,6 +22,7 @@ import {
   composeLessonFromCandidateKernels,
   composeLessonFromKernels,
   constrainConceptIdsToDisciplines,
+  diagnoseKeyTermCandidate,
   expandResearchKernelsForComposition,
   fitSourceFact,
   fitSourceFacts,
@@ -131,6 +132,14 @@ describe('Algi V0 prompt reading', () => {
       ),
     ).toBe('Environmental Microbiology');
   });
+
+  it('removes the brief divider before a number-word week description', () => {
+    expect(
+      extractCourseName(
+        'Urban Heat Resilience and Environmental Justice — a five-week advanced undergraduate course for public policy students. Use this exact lesson sequence: 1) Heat measurement; 2) Environmental justice; 3) Public-health evidence; 4) Cooling interventions; 5) Community planning.',
+      ),
+    ).toBe('Urban Heat Resilience and Environmental Justice');
+  });
 });
 
 describe('Algi V0 skeleton composition', () => {
@@ -180,6 +189,21 @@ Session 6: Quantum error correction`;
       'Bioremediation',
       'Microbial risk assessment',
     ]);
+  });
+
+  it('preserves an exact semicolon-delimited lesson sequence from a production-style brief', () => {
+    const source =
+      'Urban Heat Resilience and Environmental Justice — a five-week advanced undergraduate course for public policy and public health students. Use this exact lesson sequence: 1) Urban heat island measurement and heat exposure data; 2) Unequal neighborhood heat exposure and environmental justice; 3) Heat-related health vulnerability and public-health evidence; 4) Cooling interventions, implementation trade-offs, and evaluation; 5) Community-engaged heat resilience planning. Use current open public-health and policy evidence.';
+    expect(planSessionTopics(source, 5)).toEqual([
+      'Urban heat island measurement and heat exposure data',
+      'Unequal neighborhood heat exposure and environmental justice',
+      'Heat-related health vulnerability and public-health evidence',
+      'Cooling interventions, implementation trade-offs, and evaluation',
+      'Community-engaged heat resilience planning',
+    ]);
+    const skeleton = JSON.parse(composeAlgiSkeleton(promptFor(source, 5)));
+    expect(skeleton.sessions.map((session) => session.title)).toEqual(planSessionTopics(source, 5));
+    expect(skeleton.sessions.some((session) => /Session \d+ topic/i.test(session.title))).toBe(false);
   });
 
   it('satisfies the same skeleton contract Scion is asked for', () => {
@@ -707,6 +731,20 @@ describe('Algi V0 source receipts', () => {
     expect(payload.keyTerms.map((entry) => entry.tr)).toContain('Concept 4');
   });
 
+  it('uses a later anchored claim when an abstract lead is too dense for a key-term definition', () => {
+    const source = kernel(1, true);
+    source.term = 'Heat exposure';
+    source.definition.text =
+      'Heat exposure across multiple urban settings, study populations, neighborhood conditions, seasonal windows, measurement protocols, reporting conventions, methodological boundaries, observational scales, sensor placements, demographic strata, occupational settings, indoor environments, outdoor environments, and several additional contextual qualifiers.';
+    source.facts[0].text = 'Heat exposure measures the environmental heat conditions experienced by a population.';
+
+    const diagnostic = diagnoseKeyTermCandidate(source);
+    expect(diagnostic.missing).not.toContain('definition');
+    expect(diagnostic.definition).toBe(
+      'Heat exposure measures the environmental heat conditions experienced by a population.',
+    );
+  });
+
   it('spreads a researched synthesis across lesson topics before reusing a topic', () => {
     const used = [kernel(1, true), kernel(2, true), kernel(3, true), kernel(4, true), kernel(5, true), kernel(6, true)];
     [
@@ -790,6 +828,52 @@ describe('Algi V0 source receipts', () => {
     expect(payload.keyTerms).toHaveLength(3);
     expect(payload.conceptProvenance.citations[0].sourceUrl).toContain('wikipedia.org');
     expect(JSON.stringify(payload)).not.toContain('unsupported factual claim');
+  });
+
+  it('derives a lesson phrase only when the exact phrase is anchored in a retained source claim', () => {
+    const source = kernel(1, true);
+    source.term = 'Environmental heat';
+    source.provenance.topic = 'Urban heat island measurement and heat exposure data';
+    source.definition.text = 'Environmental heat affects exposure patterns across built and natural settings.';
+    source.facts = [
+      'Urban heat island measurement compares surface or air temperatures across neighborhood locations.',
+      'Heat exposure data supports population-level analysis of environmental conditions.',
+      ...source.facts.slice(0, 3).map((fact) => fact.text),
+    ].map((text, index) => ({
+      text,
+      anchor: { ...source.definition.anchor, quote: text, loc: `Claim ${index + 1}` },
+      tier: 2,
+    }));
+
+    const expanded = expandResearchKernelsForComposition(
+      [source],
+      'Urban heat island measurement and heat exposure data',
+    );
+    expect(expanded.map((entry) => entry.term)).toEqual(
+      expect.arrayContaining(['Environmental heat', 'Urban heat island measurement', 'Heat exposure data']),
+    );
+    expect(expanded.map((entry) => entry.term)).not.toContain('Cooling interventions');
+  });
+
+  it('keeps source-backed quizzes composable when sibling excerpts collapse to the same short option', () => {
+    const kernels = [kernel(1, true), kernel(2, true), kernel(3, true)];
+    ['Heat exposure', 'Environmental heat', 'Thermal burden'].forEach((term, index) => {
+      kernels[index].term = term;
+      kernels[index].provenance.topic = 'Heat exposure';
+      kernels[index].definition.text =
+        `${term} is the measured environmental condition described in the admitted lesson source.`;
+    });
+    kernels[1].definition.text =
+      'Environmental heat is the measured environmental condition described in the admitted lesson source.';
+    kernels[2].definition.text =
+      'Thermal burden is the measured environmental condition described in the admitted lesson source.';
+
+    const payload = composeLessonFromCandidateKernels({ lessonId: 'lesson-1', title: 'Heat exposure' }, kernels, {
+      factCount: 5,
+    });
+    expect(payload).not.toBeNull();
+    expect(payload.mc).toHaveLength(2);
+    for (const item of payload.mc) expect(new Set(item.op).size).toBe(4);
   });
 
   it('turns exact source-object phrases into teachable terms when the article has only one headword', () => {

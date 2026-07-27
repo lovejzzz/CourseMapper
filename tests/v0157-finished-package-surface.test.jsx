@@ -29,6 +29,7 @@ const READY_PASS = {
     status: 'graded',
     score: 100,
     grade: 'A',
+    readiness: { score: 61, maxScore: 100, evidenceCeiling: 69 },
     texture: { score: 89 },
   },
 };
@@ -63,7 +64,8 @@ describe('v0.15.7 finished package surface', () => {
     expect(html).toContain('Finished package');
     expect(html).toContain('2 lessons');
     expect(html).toContain('4/4 materials ready');
-    expect(html).toContain('Quality 100');
+    expect(html).toContain('Readiness 61/100');
+    expect(html).toContain('Conformance 100');
     expect(html).toContain('Texture 89');
     expect(html).toContain('2 safe repairs');
     expect(html).toContain('10 exports checked');
@@ -106,7 +108,8 @@ describe('v0.15.7 finished package surface', () => {
       />,
     );
 
-    expect(html).toContain('Quality 98');
+    expect(html).toContain('Readiness 61/100');
+    expect(html).toContain('Conformance 98');
     expect(html).toContain('data-testid="finished-overview-quality-caveats"');
     expect(html).toContain('Review 1 quality caveat');
     expect(html).toContain('partial enrichment left 3 lessons');

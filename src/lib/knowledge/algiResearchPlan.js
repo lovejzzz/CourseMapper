@@ -50,6 +50,8 @@ const TIME_SENSITIVE =
   /\b(?:current|emerging|guideline|latest|law|policy|recent|regulation|standard|state of the art|technology|today|trend)\b/i;
 const APPLICATION =
   /\b(?:application|case|decision|design|diagnos\w*|field|intervention|law|policy|practice|project|regulation|risk|standard|strategy)\b/i;
+const SEARCH_WRAPPER =
+  /^(?:application|applications|comparison|comparisons|evaluation|evaluations|evidence|implementation|implications|introduction|overview|planning|practice|practices|trade-off|trade-offs)$/i;
 
 function clean(value = '') {
   return String(value || '')
@@ -89,11 +91,33 @@ function quoted(value = '') {
 }
 
 function queryForProvider({ providerId, title, domainTerms }) {
+  if (providerId === 'wikipedia') return clean(title);
+  // Scholarly indexes rarely contain an instructor's whole pedagogical label
+  // verbatim. Searching "Cooling interventions, implementation trade-offs,
+  // and evaluation" as one quoted phrase produced zero results even though
+  // the index held papers on cooling interventions. Preserve explicit concept
+  // sides, remove only instructional wrapper words, and let the downstream
+  // relevance/entailment gates decide which returned records are admissible.
   const titleTerms = new Set(tokens(title));
   const disambiguator = domainTerms.find((term) => !titleTerms.has(term)) || '';
-  if (providerId === 'wikipedia') return clean(title);
-  // One bounded query per lesson/provider. Relevance, admission, and
-  // claim-to-passage checks—not query fluency—decide what survives.
+  const wrapperHeavy =
+    /,\s*(?:implementation|practice|application|comparison|evaluation|trade-offs?)\b/i.test(title) ||
+    /\b(?:implementation|practice|evaluation|planning|trade-offs?)\s*$/i.test(title);
+  if (wrapperHeavy) {
+    const clauses = clean(title)
+      .split(/\s+(?:and|&)\s+|[,;:]/i)
+      .map((clause) =>
+        tokens(clause)
+          .filter((term) => !SEARCH_WRAPPER.test(term))
+          .slice(0, 4),
+      )
+      .filter((terms) => terms.length > 0)
+      .map((terms) => quoted(terms.join(' ')));
+    if (clauses.length > 0) {
+      const conceptQuery = clauses.length === 1 ? clauses[0] : `(${clauses.join(' OR ')})`;
+      return [conceptQuery, disambiguator].filter(Boolean).join(' AND ');
+    }
+  }
   return [quoted(title), disambiguator].filter(Boolean).join(' AND ');
 }
 

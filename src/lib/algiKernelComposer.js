@@ -534,10 +534,30 @@ export function diagnoseKeyTermCandidate(kernel, peerKernel = null) {
   const rawTermWords = wordsOf(kernel.term);
   const term =
     rawTermWords.length >= TERM_WORDS[0] && rawTermWords.length <= TERM_WORDS[1] ? rawTermWords.join(' ') : '';
-  const definition =
-    kernel?.provenance?.origin === 'algi-research'
-      ? fitSourceSentence(sentenceOf(kernel.definition), DEF_WORDS)
-      : fitWords(sentenceOf(kernel.definition), DEF_WORDS);
+  const definition = (() => {
+    if (kernel?.provenance?.origin !== 'algi-research') {
+      return fitWords(sentenceOf(kernel.definition), DEF_WORDS);
+    }
+    // A scholarly abstract can introduce the article's preferred label in one
+    // dense sentence, then define the same label more cleanly in a later
+    // anchored claim. Requiring the first sentence specifically discarded the
+    // whole source even though its retained fact ledger already contained a
+    // complete, verbatim definition. Prefer any admitted same-source sentence
+    // that names the exact key term and satisfies the compact contract.
+    const termPattern = String(kernel?.term || '')
+      .trim()
+      .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      .replace(/\s+/g, '[\\s-]+');
+    const candidates = [kernel.definition, ...(kernel.facts || [])].map(sentenceOf).filter(Boolean);
+    const named = termPattern
+      ? candidates.filter((candidate) => new RegExp(`\\b${termPattern}\\b`, 'i').test(candidate))
+      : [];
+    for (const candidate of [...named, ...candidates]) {
+      const fitted = fitSourceSentence(candidate, DEF_WORDS);
+      if (fitted && (!termPattern || new RegExp(`\\b${termPattern}\\b`, 'i').test(fitted))) return fitted;
+    }
+    return '';
+  })();
   const example = exampleFor(kernel);
   const originalMisconception = (kernel.misconceptions || [])[0];
   // Wikipedia frequently states no explicit misconception. The old fallback
@@ -765,16 +785,28 @@ function compactContrastDefinition(kernel) {
 
 function composeResearchMultipleChoice(kernels, factCount) {
   const items = [];
+  const honestAbsenceOptions = [
+    'A claim absent from the cited lesson sources.',
+    'A conclusion the cited evidence does not establish.',
+    'An interpretation outside the admitted source passages.',
+  ];
   for (const kernel of kernels) {
+    const correct = researchDefinitionOption(kernel) || researchEvidenceOption(kernel);
+    if (!correct) continue;
     const q = fitWords(
       (kernel.mcBank || [])[0]?.stem ||
         `A student is checking each lesson concept against the cited source rather than relying on memory. Which excerpt is directly associated with ${kernel.term} in the admitted evidence?`,
       MC_STEM_WORDS,
     );
-    const options = [kernel, ...kernels.filter((candidate) => candidate !== kernel)].map(
-      (candidate) => researchDefinitionOption(candidate) || researchEvidenceOption(candidate),
-    );
-    while (options.length < 4) options.push('A claim absent from the cited lesson sources.');
+    const options = [correct];
+    for (const candidate of kernels.filter((entry) => entry !== kernel)) {
+      const option = researchDefinitionOption(candidate) || researchEvidenceOption(candidate);
+      if (option && !options.includes(option)) options.push(option);
+    }
+    for (const option of honestAbsenceOptions) {
+      if (options.length >= 4) break;
+      if (!options.includes(option)) options.push(option);
+    }
     const chosen = options.slice(0, 4);
     const sourceClaims = [
       fitSourceSentence(sentenceOf(kernel.definition), [4, 35]),
@@ -790,7 +822,8 @@ function composeResearchMultipleChoice(kernels, factCount) {
       if (explanationWordCount >= MC_EXPLANATION_WORDS[0]) break;
     }
     const explanation = explanationWordCount >= MC_EXPLANATION_WORDS[0] ? explanationClaims.join(' ') : '';
-    if (!q || chosen.some((option) => !option) || new Set(chosen).size !== 4 || !explanation) continue;
+    if (!q || chosen.length !== 4 || chosen.some((option) => !option) || new Set(chosen).size !== 4 || !explanation)
+      continue;
     items.push({ q, op: chosen, ai: 0, fi: [Math.min(1, Math.max(0, factCount - 1))], ex: explanation });
     if (items.length === MC_REQUIRED) return items;
   }
@@ -1117,6 +1150,35 @@ export function composeLessonFromKernels(
  * happened upstream; this only selects which grounded set satisfies the schema.
  */
 export function composeLessonFromCandidateKernels(lesson, kernels, options = {}) {
+  const externalDiagnostics =
+    options?.diagnostics && typeof options.diagnostics === 'object' ? options.diagnostics : null;
+  const composeOptions = { ...options };
+  delete composeOptions.diagnostics;
+  const attempts = [];
+  const tryCompose = (candidateKernels) => {
+    const diagnostics = {};
+    const payload = composeLessonFromKernels(lesson, candidateKernels, {
+      ...composeOptions,
+      diagnostics,
+    });
+    attempts.push({
+      reason: diagnostics.reason || (payload ? 'composed' : 'unknown'),
+      selected: Array.isArray(diagnostics.selected) ? diagnostics.selected : [],
+      required: diagnostics.required,
+      kernelCount: candidateKernels.length,
+      terms: candidateKernels.map((kernel) => String(kernel?.term || '')).filter(Boolean),
+      keyTermDeclines: candidateKernels
+        .map((kernel, index) => ({
+          term: String(kernel?.term || ''),
+          missing: diagnoseKeyTermCandidate(
+            kernel,
+            candidateKernels.find((candidate, candidateIndex) => candidateIndex !== index),
+          ).missing,
+        }))
+        .filter((entry) => entry.missing.length > 0),
+    });
+    return payload;
+  };
   const topic = lessonTopic(lesson);
   const integrative = isIntegrativeLesson(lesson);
   const candidates = Array.isArray(kernels)
@@ -1137,20 +1199,44 @@ export function composeLessonFromCandidateKernels(lesson, kernels, options = {})
         })
         .slice(0, 12)
     : [];
-  const ranked = composeLessonFromKernels(lesson, candidates, options);
-  if (ranked || candidates.length <= KEY_TERMS_REQUIRED) return ranked;
+  const ranked = tryCompose(candidates);
+  if (ranked || candidates.length <= KEY_TERMS_REQUIRED) {
+    if (externalDiagnostics) {
+      Object.assign(externalDiagnostics, attempts.at(-1) || { reason: ranked ? 'composed' : 'unknown' }, {
+        attempts: attempts.length,
+      });
+    }
+    return ranked;
+  }
 
   for (let first = 0; first < candidates.length - 2; first += 1) {
     for (let second = first + 1; second < candidates.length - 1; second += 1) {
       for (let third = second + 1; third < candidates.length; third += 1) {
-        const payload = composeLessonFromKernels(
-          lesson,
-          [candidates[first], candidates[second], candidates[third]],
-          options,
-        );
-        if (payload) return payload;
+        const payload = tryCompose([candidates[first], candidates[second], candidates[third]]);
+        if (payload) {
+          if (externalDiagnostics) {
+            Object.assign(externalDiagnostics, attempts.at(-1), {
+              attempts: attempts.length,
+            });
+          }
+          return payload;
+        }
       }
     }
+  }
+  if (externalDiagnostics) {
+    const best = attempts.find((attempt) => attempt.reason === 'multiple-choice') ||
+      attempts.find((attempt) => attempt.reason === 'scenario') ||
+      attempts.find((attempt) => attempt.reason === 'facts') ||
+      attempts.find((attempt) => attempt.reason === 'key-terms') ||
+      attempts.at(-1) || { reason: 'unknown' };
+    Object.assign(externalDiagnostics, best, {
+      attempts: attempts.length,
+      reasons: attempts.reduce((counts, attempt) => {
+        counts[attempt.reason] = (counts[attempt.reason] || 0) + 1;
+        return counts;
+      }, {}),
+    });
   }
   return null;
 }
@@ -1220,6 +1306,45 @@ function claimObjectTerms(value = '') {
   return terms;
 }
 
+function topicPhrasesAnchoredInClaim(value = '', topic = '') {
+  const normalizedClaim = String(value || '')
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s-]/gu, ' ')
+    .replace(/-/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!normalizedClaim) return [];
+  const anchored = [];
+  for (const clause of String(topic || '').split(/\s+(?:and|&)\s+|[,;:]/i)) {
+    const words = clause
+      .toLowerCase()
+      .replace(/[^\p{L}\p{N}\s-]/gu, ' ')
+      .replace(/-/g, ' ')
+      .split(/\s+/)
+      .filter(
+        (word) =>
+          word.length >= 3 &&
+          !/^(?:and|application|comparison|evaluation|evidence|implementation|introduction|overview|planning|practice|the|tradeoffs?)$/i.test(
+            word,
+          ),
+      );
+    let best = '';
+    for (let length = Math.min(4, words.length); length >= 2 && !best; length -= 1) {
+      for (let start = 0; start <= words.length - length; start += 1) {
+        const phrase = words.slice(start, start + length).join(' ');
+        if (` ${normalizedClaim} `.includes(` ${phrase} `)) {
+          best = phrase;
+          break;
+        }
+      }
+    }
+    if (best && !anchored.includes(best)) {
+      anchored.push(`${best.charAt(0).toUpperCase()}${best.slice(1)}`);
+    }
+  }
+  return anchored;
+}
+
 /**
  * Turn source-anchored claims into compact concept kernels when one article
  * teaches several explicitly named ideas.
@@ -1255,7 +1380,12 @@ export function expandResearchKernelsForComposition(kernels = [], topic = '') {
     const sourceFacts = Array.isArray(kernel.facts) ? kernel.facts : [];
     const sourceClaims = [kernel.definition, ...sourceFacts].filter((entry) => sentenceOf(entry));
     for (const [claimIndex, claim] of sourceClaims.entries()) {
-      const terms = [claimSubjectTerm(sentenceOf(claim)), ...claimObjectTerms(sentenceOf(claim))].filter(Boolean);
+      const claimText = sentenceOf(claim);
+      const terms = [
+        claimSubjectTerm(claimText),
+        ...claimObjectTerms(claimText),
+        ...topicPhrasesAnchoredInClaim(claimText, topic),
+      ].filter(Boolean);
       for (const term of terms) {
         const key = term.toLowerCase();
         if (seenTerms.has(key)) continue;
@@ -1429,6 +1559,7 @@ export async function composeAlgiLessonKernels({
   let researched = 0;
   let cachedResearch = 0;
   let composeFailures = 0;
+  const composeFailureDiagnostics = [];
   let researchNote = '';
   let researchReceipt = null;
   const courseContext = String(
@@ -1805,6 +1936,7 @@ export async function composeAlgiLessonKernels({
             ),
           );
         }
+        const composeDiagnostics = {};
         const payload = composeLessonFromCandidateKernels(
           lesson,
           expandResearchKernelsForComposition([...kernels, ...uniqueSupport, ...support], topic),
@@ -1814,6 +1946,7 @@ export async function composeAlgiLessonKernels({
             offset,
             usedOut: used,
             sourceReferences,
+            diagnostics: composeDiagnostics,
           },
         );
         if (payload) {
@@ -1826,6 +1959,12 @@ export async function composeAlgiLessonKernels({
           researched += 1;
         } else {
           composeFailures += 1;
+          composeFailureDiagnostics.push({
+            lessonId: lesson?.lessonId || '',
+            topic,
+            admittedKernels: kernels.length,
+            ...composeDiagnostics,
+          });
         }
       }
       publishResearchProgress({
@@ -1866,6 +2005,7 @@ export async function composeAlgiLessonKernels({
         providers: researchBatch.providerStats || [],
         providersUsed: researchBatch.providersUsed || [],
         sourceRequests: Number(diagnostics?.requestCount) || 0,
+        compositionDeclines: composeFailureDiagnostics,
       };
       publishResearchProgress({
         phase: 'complete',

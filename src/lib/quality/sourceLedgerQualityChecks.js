@@ -344,6 +344,24 @@ function parseReportedOpenResourceCount(manifest) {
   return match ? Number(match[1]) : null;
 }
 
+function parseReportedLessonCount(manifest) {
+  const pipeline = manifest?.pipeline;
+  if (!pipeline || typeof pipeline !== 'object') return null;
+  const text = Object.values(pipeline)
+    .map((value) => (typeof value === 'string' ? value : JSON.stringify(value || '')))
+    .join(' ');
+  const fractionPatterns = [
+    /\bknowledge kernels? (?:admitted|covered|ready)\s+\d+\s*\/\s*(\d+)\b/i,
+    /\b(?:genome|course map|enrichment)[^.;|]{0,50}\b\d+\s*\/\s*(\d+)\s+(?:lessons?|sessions?)\b/i,
+    /\b\d+\s*\/\s*(\d+)\s+(?:lesson|session) kernels?\b/i,
+  ];
+  for (const pattern of fractionPatterns) {
+    const match = pattern.exec(text);
+    if (match) return Number(match[1]);
+  }
+  return null;
+}
+
 export function hasSourceLedgerProof(manifest) {
   return Boolean(
     rows(manifest).length ||
@@ -375,6 +393,7 @@ export function checkSourceLedger(findings, { files, manifest }) {
   const coverage = manifest?.courseIR?.sourceRefCoverage || manifest?.sourceReport?.sourceRefCoverage || null;
   const reportPath = manifest?.sourceReport?.path || 'SOURCE_REPORT.md';
   const reportedOpenResources = parseReportedOpenResourceCount(manifest);
+  const reportedLessonCount = parseReportedLessonCount(manifest);
   const exportedSourceRows = ledger.length + review.length;
   const coverageTotal = sourceCoverageTotal(coverage);
   const coverageLedgerRows = sourceCoverageLedgerRows(coverage);
@@ -521,17 +540,24 @@ export function checkSourceLedger(findings, { files, manifest }) {
     });
   }
 
-  if (coverageTotal >= 12 && trustedConceptLinkedBibliographyRows.length <= 1) {
+  if (
+    trustedConceptLinkedBibliographyRows.length <= 1 &&
+    (coverageTotal >= 12 || (Number.isFinite(reportedLessonCount) && reportedLessonCount >= 2))
+  ) {
     findings.add({
       severity: 'P1',
       dimension: 'citations',
       file: 'PACKAGE_MANIFEST.json',
-      detail: `sourceRef coverage is too thin: ${coverageTotal} atom(s) rely on ${trustedConceptLinkedBibliographyRows.length} trusted concept-linked source row(s)`,
+      detail:
+        coverageTotal >= 12
+          ? `sourceRef coverage is too thin: ${coverageTotal} atom(s) rely on ${trustedConceptLinkedBibliographyRows.length} trusted concept-linked source row(s)`
+          : `source evidence is too thin: ${reportedLessonCount} lesson(s) rely on ${trustedConceptLinkedBibliographyRows.length} trusted concept-linked source row(s)`,
       evidence: JSON.stringify({
         sourceLedgerRows: ledger.length,
         trustedSourceLedgerRows: trustedBibliographyRows.length,
         trustedConceptLinkedSourceLedgerRows: trustedConceptLinkedBibliographyRows.length,
         coverageTotal,
+        reportedLessonCount,
         providers: ledger.map((row) => row.provider).filter(Boolean),
       }).slice(0, 200),
     });

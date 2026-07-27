@@ -240,6 +240,36 @@ describe('packageFinalizer', () => {
     );
   });
 
+  it('blocks an Algi package when required evidence composition failed before enrichment', () => {
+    const result = runDeterministicPackageFinalizer({
+      courseMap: makeCourseMap(5),
+      selectedFeatures: ['courseMap'],
+      includeClassroomReadiness: false,
+      includePedagogicalValidation: false,
+      retryWarnings: false,
+      enrichmentOutcome: {
+        modelStage: 'failed: no usable kernels parsed',
+        route: 'algi-evidence',
+        required: true,
+        enrichedLessons: 0,
+        requestedLessons: 5,
+        missingLessons: [1, 2, 3, 4, 5],
+      },
+    });
+
+    expect(result.status).toBe('blocked');
+    expect(result.readiness.blockers).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          source: 'enrichmentCoverage',
+          severity: 'blocker',
+          message:
+            'Course evidence covered 0/5 lessons; lessons 1, 2, 3, 4, 5 could not be grounded. Research or attach sources before exporting.',
+        }),
+      ]),
+    );
+  });
+
   it('blocks final package readiness when a lesson misses the configured classroom clock', () => {
     const result = runDeterministicPackageFinalizer({
       courseMap: makeCourseMap(1),

@@ -22,6 +22,13 @@ describe('detectExpectedLessons', () => {
     expect(result.confidence).toBe('high');
   });
 
+  it('detects a number-word week scope before quick start defaults to eight lessons', () => {
+    const result = detectExpectedLessons(
+      'Urban Heat Resilience — a five-week advanced undergraduate course. Use this exact lesson sequence: 1) Heat measurement; 2) Environmental justice; 3) Public-health evidence; 4) Cooling interventions; 5) Community planning.',
+    );
+    expect(result).toMatchObject({ expected: 5, confidence: 'high' });
+  });
+
   it('detects "8-lesson" hyphenated form', () => {
     const result = detectExpectedLessons('Build an 8-lesson Spanish for Healthcare Professionals course.');
     expect(result.expected).toBe(8);
