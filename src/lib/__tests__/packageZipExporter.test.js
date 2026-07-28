@@ -638,6 +638,50 @@ describe('packageZipExporter', () => {
     expect(report).not.toContain('stale pre-repair finding');
   });
 
+  it('regrades a blocked export when the precomputed finish report omits its readiness blocker', async () => {
+    const result = await buildCourseMaterialsZip({
+      courseMap: makeCourseMap('Blocked Readiness Export'),
+      deliverables: {},
+      featureIds: ['courseMap'],
+      readiness: {
+        status: 'blocked',
+        blockers: [{ message: 'One generated assessment needs correction before sharing.' }],
+        warnings: [],
+        issues: [],
+      },
+      quality: {
+        timeoutMs: 5000,
+        precomputed: {
+          status: 'graded',
+          score: 99,
+          grade: 'A',
+          graderVersion: 'stale-readiness-precomputed',
+          findingCounts: { p0: 0, p1: 0, p2: 0 },
+          dimensions: {
+            identity: 100,
+            substance: 100,
+            citations: 100,
+            honesty: 100,
+            discipline: 100,
+            consistency: 100,
+            structure: 100,
+            format: 100,
+            texture: 100,
+          },
+          findings: [],
+        },
+      },
+    });
+
+    const zip = await JSZip.loadAsync(await result.blob.arrayBuffer());
+    const manifest = JSON.parse(await zip.file('PACKAGE_MANIFEST.json').async('string'));
+    const report = await zip.file('QUALITY_REPORT.md').async('string');
+
+    expect(manifest.quality.graderVersion).not.toBe('stale-readiness-precomputed');
+    expect(manifest.readiness).toMatchObject({ status: 'blocked', blockers: 1 });
+    expect(report).toContain('package readiness reports 1 blocker');
+  });
+
   it('keeps partial enrichment blockers in the exported manifest and readiness report', async () => {
     const result = await buildCourseMaterialsZip({
       courseMap: makeCourseMap('Partial Enrichment Proof'),

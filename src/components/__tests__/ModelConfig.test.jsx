@@ -340,7 +340,7 @@ describe('checkCredits', () => {
     container.remove();
   });
 
-  it('keeps Algi selected after public model discovery and exposes an explicit research boundary', async () => {
+  it('migrates a legacy Algi selection to Scion and exposes Scion’s explicit research boundary', async () => {
     vi.useFakeTimers();
     localStorage.setItem('coursemapper-provider', 'public');
     localStorage.setItem('coursemapper-modelid', 'algi-v0');
@@ -373,21 +373,22 @@ describe('checkCredits', () => {
       await Promise.resolve();
     });
 
-    expect(latestModelId).toBe('algi-v0');
-    expect(latestModelName).toBe('Algi V0');
-    expect(latestModelIds).toEqual(['scion-public', 'algi-v0']);
-    expect(container.textContent).toContain('Private source mode');
-    expect(container.textContent).toContain('No research requests are sent');
+    expect(latestModelId).toBe('scion-public');
+    expect(latestModelName).toMatch(/^Scion V/);
+    expect(latestModelIds).toEqual(['scion-public']);
+    expect(container.textContent).toContain('On-device evidence mode');
+    expect(container.textContent).toContain('No course-topic research requests are sent');
+    expect(container.textContent).not.toContain('Algi V0');
 
-    const researchSwitch = container.querySelector('[aria-label="Allow Algi source research"]');
+    const researchSwitch = container.querySelector('[aria-label="Allow Scion current-source research"]');
     expect(researchSwitch).not.toBeNull();
     await act(async () => {
       researchSwitch.click();
     });
     expect(researchSwitch.getAttribute('aria-checked')).toBe('true');
-    expect(localStorage.getItem('coursemapper-algi-research')).toBe('on');
+    expect(localStorage.getItem('coursemapper-scion-research')).toBe('on');
     expect(container.textContent).toContain('Only the course title and uncovered lesson topics are sent');
-    expect(container.textContent).toContain('verifies claims against passages');
+    expect(container.textContent).toContain('verifies admitted claims against source passages');
 
     act(() => {
       root.unmount();

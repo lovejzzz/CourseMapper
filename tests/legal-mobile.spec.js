@@ -8,7 +8,10 @@ for (const pageCase of [
     await page.setViewportSize({ width: 320, height: 700 });
     await page.goto(`/#/${pageCase.route}`);
 
-    await expect(page.getByRole('heading', { name: pageCase.heading, level: 1 })).toBeVisible();
+    // Static legal pages are lazy chunks. Under the full local eight-worker
+    // browser suite, a correct route can finish a fraction after the default
+    // five-second assertion window even though its request and DOM succeed.
+    await expect(page.getByRole('heading', { name: pageCase.heading, level: 1 })).toBeVisible({ timeout: 10000 });
     const policyPanel = page.locator('main .glass').first();
     const panelBox = await policyPanel.boundingBox();
     expect(panelBox.x).toBeGreaterThanOrEqual(8);

@@ -959,7 +959,13 @@ export function selectExperientialActivityBrief(sourceBrief = '', lesson = {}) {
     .slice(0, 700);
 }
 
-function summarizeLessonsForContent(courseMap, lessonIndices, sourceBrief = '', instructorProvidedFacts = []) {
+function summarizeLessonsForContent(
+  courseMap,
+  lessonIndices,
+  sourceBrief = '',
+  instructorProvidedFacts = [],
+  evidenceByLessonId = {},
+) {
   // Carry only course-level framing into every lesson. Repeating the complete
   // brief (including all fourteen lesson titles and all named readings) gave
   // a one-lesson model legal-looking context for the wrong work: Odyssey work
@@ -1034,9 +1040,13 @@ function summarizeLessonsForContent(courseMap, lessonIndices, sourceBrief = '', 
       // copy boundary and prevents one weak language response from blocking
       // an otherwise complete course.
       const compilerKnowledge = languageKnowledge || literatureKnowledge;
-      const sourceFacts = instructorFacts.length >= 3 ? instructorFacts : compilerKnowledge?.facts || [];
-      const sourceConcepts = instructorFacts.length >= 3 ? [] : compilerKnowledge?.concepts || [];
-      const compilerKnowledgeSource = instructorFacts.length >= 3 ? null : compilerKnowledge?.source || null;
+      const evidence = evidenceByLessonId?.[`lesson-${lessonIndex + 1}`] || null;
+      const sourceFacts =
+        instructorFacts.length >= 3 ? instructorFacts : compilerKnowledge?.facts || evidence?.sourceFacts || [];
+      const sourceConcepts =
+        instructorFacts.length >= 3 ? [] : compilerKnowledge?.concepts || evidence?.sourceConcepts || [];
+      const compilerKnowledgeSource =
+        instructorFacts.length >= 3 ? null : compilerKnowledge?.source || evidence?.sourceLedgerAttribution || null;
       return {
         lessonId: `lesson-${lessonIndex + 1}`,
         ...(sourceFacts.length >= 3
@@ -1049,6 +1059,7 @@ function summarizeLessonsForContent(courseMap, lessonIndices, sourceBrief = '', 
                 : {}),
               ...(sourceConcepts.length >= 3 ? { sourceConcepts } : {}),
               ...(compilerKnowledgeSource ? { sourceLedgerAttribution: compilerKnowledgeSource } : {}),
+              ...(evidence?.scionEvidenceReceipts ? { scionEvidenceReceipts: evidence.scionEvidenceReceipts } : {}),
             }
           : {}),
         title: truncateText(lesson.title || `Lesson ${lessonIndex + 1}`, 140),
@@ -1184,6 +1195,7 @@ export function buildLessonContentEnrichmentPrompt(courseMap, lessonIndices, opt
     lessonIndices,
     options.sourceBrief,
     options.instructorProvidedFacts,
+    options.evidenceByLessonId,
   );
 
   const itemPlan = buildQuizItemPlan(questionsPerLesson);
@@ -1637,6 +1649,7 @@ export function buildLessonKernelPrompt(courseMap, lessonIndices, options = {}) 
     lessonIndices,
     options.sourceBrief,
     options.instructorProvidedFacts,
+    options.evidenceByLessonId,
   );
   const activityLessonIds = experientialLessonIds(lessons);
   const activityLessons = lessons.filter((lesson) => activityLessonIds.includes(lesson.lessonId));

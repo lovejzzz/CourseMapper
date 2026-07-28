@@ -37,6 +37,40 @@ const V01683_RELEASE = {
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'July 27, 2026',
+  title: 'One Scion, Evidence Before Inference',
+  landingTitle: 'Scion V0.16.85 Grounds the Course Before It Writes',
+  highlights: [
+    'The hosted setup now presents one clear free product model: Scion. The experimental Algi route is no longer a landing-page choice, and projects or browser settings that saved its legacy model id migrate to the current Scion release.',
+    'Scion now runs a private evidence prepass for lessons not fully covered by the shipped Curriculum Genome. It reuses the strongest local source-consolidation work from the research prototype while keeping one product identity and adding no second model download.',
+    'Evidence must earn admission before inference: every retained lesson ledger needs three complete facts, three named concepts, a trusted citation, and fully anchored concept provenance. Malformed, thin, uncited, or partially anchored optional evidence is discarded without blocking the course.',
+    'Instructor-provided facts remain the highest authority, specialized language and literature ledgers remain next, and Scion evidence fills only the unresolved boundary. Admitted facts are bound to Scion’s numbered immutable source ledger before the browser-local model can adapt the lesson.',
+    'Current-source research stays off by default. An explicit Scion setting explains that only the course title and uncovered lesson topics may be sent to DOAJ, Europe PMC, and Wikipedia; private mode makes no course-topic research request.',
+    'When Scion research has already verified and cached lesson evidence, the compiler skips the older open-reading discovery pass. This removes duplicate network work and a confusing second research-progress sequence without reducing source receipts.',
+    'The landing forecast preserves instructional acronyms such as WCAG, UI, UX, SQL, and LMS, and the active configuration, forecast, progress events, Agent identity, workspace label, and export route all speak as Scion. A blocked ZIP now regrades stale finish evidence so its quality report, manifest, and readiness report cannot disagree.',
+    'The complete 5,796-test local regression suite, 151-test Chromium suite, 38-case evaluation, and 14-course PR compiler contract pass. The comparison boundary remains honest: Gemma weights are unchanged, the optional trained adapter is inactive, and V0.16.85 does not claim a new instructor, classroom, factual, accessibility, paid-model, or adapter victory without matched evidence.',
+  ],
+  landingHighlights: [
+    'One public free model: Scion.',
+    'Local evidence is prepared before inference.',
+    'Thin or uncited evidence fails closed.',
+    'Instructor facts keep priority.',
+    'Current-source research remains explicit and optional.',
+    'Duplicate research work is removed.',
+    'Visible Scion language and ZIP reports agree.',
+    'Quality claims stay inside the measured evidence.',
+  ],
+  proof: {
+    contract: 'release-contracts/v0.16.85.json',
+    roadmap: 'docs/SCION_V01685_EVIDENCE_BEFORE_INFERENCE_ROADMAP.md',
+    benchmark: 'evaluation/quality-benchmark/v1/manifest.json',
+    browser: 'README.md',
+    auditCommand: 'npm run audit:release-history',
+  },
+};
+
+const V01684_RELEASE = {
+  version: '0.16.84',
+  date: 'July 27, 2026',
   title: 'Three Routes, Two Kinds of Quality',
   landingTitle: 'Scion V0.16.84 Measures Scion, Algi, and GPT Honestly',
   highlights: [
@@ -218,6 +252,61 @@ export const CURRENT_RELEASE_CHANGELOG = {
   date: CURRENT_RELEASE.date,
   title: CURRENT_RELEASE.title,
   highlights: CURRENT_RELEASE.highlights,
+  sections: [
+    {
+      label: 'Present one Scion product',
+      icon: 'AI',
+      color: 'blue',
+      items: [
+        'The Scion provider exposes one model option, Scion V0.16.85; the experimental zero-weight route is no longer selectable on the landing page.',
+        'Legacy saved model ids migrate forward to Scion instead of restoring a retired public choice.',
+        'Provider, API, model, evidence forecast, compiler progress, workspace, Agent, and export surfaces retain one consistent product identity.',
+        'The public-model download remains the same pinned Gemma 4 E2B artifact; this release adds no second model package.',
+      ],
+    },
+    {
+      label: 'Ground before local inference',
+      icon: 'PROOF',
+      color: 'emerald',
+      items: [
+        'Unresolved lessons receive a private source-consolidation prepass before Scion writes their compact kernels.',
+        'Admission requires three complete facts, three concepts, trusted citations, and fully anchored provenance.',
+        'Instructor facts outrank specialized compiler ledgers, and both outrank the new evidence overlay.',
+        'Accepted evidence enters the immutable numbered source ledger so the local model adapts bounded facts instead of inventing a free-form subject summary.',
+      ],
+    },
+    {
+      label: 'Make research explicit and efficient',
+      icon: 'CHECK',
+      color: 'violet',
+      items: [
+        'Current-source research is disabled by default and makes no course-topic request in private mode.',
+        'The opt-in control names the data boundary and source order before generation.',
+        'Verified or cached Scion evidence suppresses duplicate legacy reading discovery and its second progress sequence.',
+        'Malformed optional evidence fails open at the pipeline level but fails closed at the evidence boundary: the course can continue, while unverified claims cannot earn source-backed status.',
+      ],
+    },
+    {
+      label: 'Keep the release measurable',
+      icon: 'PROOF',
+      color: 'slate',
+      items: [
+        'One hundred two focused evidence, configuration, forecast, and binding tests pass after the final refinement.',
+        'The full 5,796-test local suite, 151-test Chromium suite, 38-case evaluation profile, and 14-course PR compiler contract pass.',
+        'Common course acronyms remain correctly capitalized in the visible coverage forecast.',
+        'A blocked ZIP cannot reuse a finish-pass report that omits its current readiness blocker; the manifest, quality report, and readiness report now agree.',
+        'Gemma weights are unchanged and the optional trained adapter stays inactive.',
+        'No instructor, classroom, factual, accessibility, paid-model, or adapter superiority claim is inferred from automated gates.',
+      ],
+    },
+  ],
+};
+
+const V01684_RELEASE_CHANGELOG = {
+  version: V01684_RELEASE.version,
+  date: V01684_RELEASE.date,
+  title: V01684_RELEASE.title,
+  highlights: V01684_RELEASE.highlights,
   sections: [
     {
       label: 'Run one frozen comparison contract',
@@ -712,6 +801,7 @@ const V01678_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  V01684_RELEASE_CHANGELOG,
   V01683_RELEASE_CHANGELOG,
   V01682_RELEASE_CHANGELOG,
   V01681_RELEASE_CHANGELOG,

@@ -2569,6 +2569,7 @@ export function buildNativePassBPrompt(wireMap, lessonIndices, options = {}) {
     includeCourseLevel: options.includeCourseLevel === true,
     sourceBrief: options.sourceBrief,
     instructorProvidedFacts: options.instructorProvidedFacts,
+    evidenceByLessonId: options.evidenceByLessonId,
   });
   const contentSourced = asArray(options.contentSourcedLessonIds).filter(Boolean);
   const recoveryAttempt = Number(options.recoveryAttempt || 0);

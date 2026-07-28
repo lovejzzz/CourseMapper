@@ -88,8 +88,7 @@ import {
   preserveDeliverableLessonNumbers,
   resolveMaterializedSourceLessonFilter,
 } from '../lib/materializedLessonScope';
-import { isAlgiModel, resolveAlgiEnrichmentBatchSize, supportsModelVoicePass } from '../lib/algiIdentity';
-import { allowExternalKnowledgeLookups } from '../lib/algiResearchPolicy';
+import { resolveAlgiEnrichmentBatchSize, supportsModelVoicePass } from '../lib/algiIdentity';
 
 const PROVIDER_CALL_EVENT_TYPES = new Set([
   'deliverableChunkCall',
@@ -618,8 +617,14 @@ export default function useDeliverables({
       // plan now mirrors the actual adaptive batcher instead of over-quoting
       // provider calls for GPT-5.4-mini-class models.
       const enrichmentLessonCount = Array.isArray(scopeIndices) ? scopeIndices.length : lessonCount;
-      const algiRoute = provider === PUBLIC_SCION_PROVIDER_ID && isAlgiModel(modelId);
-      const allowExternalKnowledge = allowExternalKnowledgeLookups({ algiRoute });
+      // The privacy policy is generation-only. Keep it off the workspace
+      // control chunk and resolve consent once for the whole run so the
+      // evidence and reading paths cannot disagree mid-build.
+      const scionResearchEnabled =
+        provider === PUBLIC_SCION_PROVIDER_ID
+          ? (await import('../lib/scionResearchPolicy')).readScionResearchEnabled()
+          : false;
+      const allowExternalKnowledge = provider !== PUBLIC_SCION_PROVIDER_ID || scionResearchEnabled;
       const nativeBatchingPlan =
         readAuthoringMode() === 'native' && costMode !== 'finalizerRetry' && !Array.isArray(scopeIndices)
           ? await import('../lib/adaptiveProviderBatching')
@@ -645,11 +650,9 @@ export default function useDeliverables({
           : 1;
       const enrichmentRecoveryCallLimit = scionSourceLedgerRequested
         ? 0
-        : algiRoute
-          ? 0
-          : provider === PUBLIC_SCION_PROVIDER_ID
-            ? publicScionEnrichmentRecoveryCallLimit(enrichmentLessonCount)
-            : 2;
+        : provider === PUBLIC_SCION_PROVIDER_ID
+          ? publicScionEnrichmentRecoveryCallLimit(enrichmentLessonCount)
+          : 2;
       const plannedEnrichmentRecoveryReserve =
         blueprintEnrichmentRequested && generationOptions.lessonContentEnrichment !== false
           ? enrichmentRecoveryCallLimit
@@ -1235,6 +1238,27 @@ export default function useDeliverables({
           }
         }
 
+        let scionEvidenceHandoff = null;
+        if (provider === PUBLIC_SCION_PROVIDER_ID && !sourceBriefConstraints.instructorSourcesOnly) {
+          const { prepareScionEvidenceGenerationHandoff } = await import('../lib/scionEvidenceLayer');
+          scionEvidenceHandoff = await prepareScionEvidenceGenerationHandoff({
+            courseMap: blueprintCourseMap,
+            lessonIndices: allLessonIndices,
+            genomeLessonContent: genomeLink?.lessonContent,
+            genomePartialOverlays: genomeLink?.partialOverlays,
+            researchEnabled: scionResearchEnabled,
+            signal: controller.signal,
+            recordEvent: recordGenerationApiCallEvent,
+            appendLog,
+          });
+          stageDecisions.scionEvidence = scionEvidenceHandoff.stageDecision;
+          if (scionEvidenceHandoff.knowledgeBackboneEvent) {
+            stageDecisions.scionEvidenceReadingSkip = scionEvidenceHandoff.knowledgeBackboneEvent;
+          }
+        }
+        const bindScionEvidenceProvenance = scionEvidenceHandoff?.bindProvenance || ((_lessonId, payload) => payload);
+        const scionEvidencePromptOptions = scionEvidenceHandoff?.promptOptions || {};
+
         const genomeOnlyEnrichment = () => {
           abortMapRef.current.delete(abortKey);
           const linkedCount = genomeLink ? Object.keys(genomeLink.lessonContent).length : 0;
@@ -1444,6 +1468,7 @@ export default function useDeliverables({
                 ...(scionProvider && scionSourceLedgerRequested
                   ? { instructorProvidedFacts: sourceBriefConstraints.instructorProvidedFacts }
                   : {}),
+                ...(scionProvider ? scionEvidencePromptOptions : {}),
                 contentSourcedLessonIds: scionProvider ? [] : contentSourcedLessonIds,
                 recoveryAttempt,
                 expectedLessonIds,
@@ -1524,7 +1549,10 @@ export default function useDeliverables({
                 contentSourcedLessonIds,
               });
               for (const [lessonId, payload] of Object.entries(parsed.kernels)) {
-                lessonContent[lessonId] = pickNativeKernel(lessonContent[lessonId], payload);
+                lessonContent[lessonId] = bindScionEvidenceProvenance(
+                  lessonId,
+                  pickNativeKernel(lessonContent[lessonId], payload),
+                );
                 if (lessonKernelCache && kernelIsUsable(lessonContent[lessonId])) {
                   const lessonIdx = Number(String(lessonId).replace('lesson-', '')) - 1;
                   const lesson = blueprintCourseMap.lessons?.[lessonIdx];
@@ -1936,6 +1964,7 @@ export default function useDeliverables({
               ...((provider === 'local' || provider === PUBLIC_SCION_PROVIDER_ID) && scionSourceLedgerRequested
                 ? { instructorProvidedFacts: sourceBriefConstraints.instructorProvidedFacts }
                 : {}),
+              ...scionEvidencePromptOptions,
             });
             const scionMod =
               provider === 'local' || provider === PUBLIC_SCION_PROVIDER_ID ? await import('../lib/scionPassB') : null;
@@ -1980,6 +2009,9 @@ export default function useDeliverables({
               });
               if (parsedKernels) {
                 Object.assign(lessonContent, parsedKernels.lessons);
+                for (const lessonId of Object.keys(parsedKernels.lessons)) {
+                  lessonContent[lessonId] = bindScionEvidenceProvenance(lessonId, lessonContent[lessonId]);
+                }
                 semanticRepairs.push(...(parsedKernels.repairs || []));
                 if (isFirstChunk && parsedKernels.courseLevel) {
                   absorbedCourseLevel = normalizeAbsorbedCourseLevel(
@@ -2091,6 +2123,7 @@ export default function useDeliverables({
               ...((provider === 'local' || provider === PUBLIC_SCION_PROVIDER_ID) && scionSourceLedgerRequested
                 ? { instructorProvidedFacts: sourceBriefConstraints.instructorProvidedFacts }
                 : {}),
+              ...scionEvidencePromptOptions,
               ...(romanizationChunk.length > 0 ? { romanizationFocus } : {}),
             });
             const scionMod =
@@ -2165,6 +2198,7 @@ export default function useDeliverables({
                     lessonContent[lessonId] = payload;
                     restoredNumbers.push(lessonNumber);
                   }
+                  lessonContent[lessonId] = bindScionEvidenceProvenance(lessonId, lessonContent[lessonId]);
                   if (lessonKernelCache) {
                     const lesson = blueprintCourseMap.lessons?.[lessonNumber - 1];
                     if (lesson) lessonKernelCache.set(lesson, lessonContent[lessonId]);
@@ -2392,12 +2426,8 @@ export default function useDeliverables({
         // (digest pipeline line, PACKAGE_MANIFEST, finalizer warning).
         const enrichmentOutcome = {
           modelStage: blueprintEnrichment?.stageDecisions?.modelStage || 'none',
-          // Algi has no second authoring lane to fall back to: its admitted
-          // lesson kernels ARE the subject-matter boundary. Preserve that
-          // fact through finalization so a failed/empty research pass cannot
-          // compile generic templates and later look ready.
-          required: Boolean(algiRoute),
-          route: algiRoute ? 'algi-evidence' : 'model-enrichment',
+          required: false,
+          route: 'model-enrichment',
           enrichedLessons:
             blueprintEnrichment?.coverage?.enrichedLessons ??
             (blueprintEnrichment?.lessonContent ? Object.keys(blueprintEnrichment.lessonContent).length : 0),
@@ -2413,9 +2443,7 @@ export default function useDeliverables({
           stage: 'enrichmentModelStage',
           label: 'Enrichment decision',
           detail: blueprintEnrichment?.stageDecisions
-            ? algiRoute
-              ? `${formatEnrichmentOutcomeLabel(enrichmentOutcome)} · Algi source-and-genome composition, no model inference (linker: ${blueprintEnrichment.stageDecisions.genomeLinker})`
-              : `${formatEnrichmentOutcomeLabel(enrichmentOutcome)} (linker: ${blueprintEnrichment.stageDecisions.genomeLinker})`
+            ? `${formatEnrichmentOutcomeLabel(enrichmentOutcome)} (linker: ${blueprintEnrichment.stageDecisions.genomeLinker})`
             : 'deterministic compile only (no enrichment object)',
           outcome: enrichmentOutcome,
         });
@@ -2587,21 +2615,8 @@ export default function useDeliverables({
                 label: 'Private knowledge backbone',
                 detail: 'Private mode · shipped teaching genome only · no external course-topic requests',
               });
-            } else if (algiRoute) {
-              // Algi's enrichment transaction has already completed the
-              // bounded source search, admitted the selected concepts, and
-              // attached revision-aware receipts to the lesson kernels.
-              // Running the legacy Crossref/OpenAlex/Open Library discovery
-              // here duplicated network work, added up to twelve seconds,
-              // and exposed a confusing partial "3/6 lessons checked" frame
-              // even though Algi had already covered all six lessons.
-              recordGenerationApiCallEvent({
-                type: 'pipelineDecision',
-                stage: 'knowledgeBackbone',
-                label: 'Algi source receipts ready',
-                detail:
-                  'Skipped duplicate open-reading discovery · Algi research sources and revision receipts are already attached',
-              });
+            } else if (enrichmentForGraph?.stageDecisions?.scionEvidenceReadingSkip) {
+              recordGenerationApiCallEvent(enrichmentForGraph.stageDecisions.scionEvidenceReadingSkip);
             } else {
               recordGenerationApiCallEvent({
                 type: 'knowledgeBackboneLookup',

@@ -268,6 +268,17 @@ function precomputedQualityReferencesMissingPackageFiles(precomputed, fileConten
   });
 }
 
+function precomputedQualityMissesReadiness(precomputed, readiness) {
+  const blockerCount = Array.isArray(readiness?.blockers)
+    ? readiness.blockers.length
+    : Math.max(0, Number(readiness?.blockers) || 0);
+  if (blockerCount === 0) return false;
+  return !(precomputed?.findings || []).some((finding) => {
+    const detail = String(finding?.detail || finding?.message || '');
+    return /package readiness reports \d+ blocker/i.test(detail);
+  });
+}
+
 function renderPrecomputedQualityReport(precomputed, { courseTitle = 'Course' } = {}) {
   if (!precomputed?.block) return '';
   const quality = precomputed.block;
@@ -2109,6 +2120,7 @@ export async function buildCourseMaterialsZip({
     const precomputedQuality = normalizePrecomputedPackageQuality(qualityOptions.precomputed);
     if (
       precomputedQuality &&
+      !precomputedQualityMissesReadiness(precomputedQuality, effectiveReadiness) &&
       !precomputedQualityReferencesMissingPackageFiles(precomputedQuality, {
         ...fileContents,
         'PACKAGE_MANIFEST.json': JSON.stringify(manifest, null, 2),

@@ -9,7 +9,6 @@ import {
   publicScionModelOptionById,
   publicScionProviderModelOptions,
 } from '../lib/publicScionIdentity';
-import { ALGI_MODEL_ID, isAlgiModel } from '../lib/algiIdentity';
 import { isLocalProviderOptInEnabled } from '../lib/localProvider';
 
 const AIConfigContext = createContext(null);
@@ -104,11 +103,9 @@ export function AIConfigProvider({ children }) {
       const storedProvider = normalizeStoredProvider(localStorage.getItem('coursemapper-provider'));
       if (storedProvider === 'webllm' || storedProvider === 'free') return '';
       if (storedProvider === PUBLIC_SCION_PROVIDER_ID) {
-        // The provider now offers two models. Honour an explicit Algi V0
-        // selection; anything else (including legacy snapshots with no model
-        // metadata) canonicalizes to the downloaded Scion base.
-        const storedModelId = localStorage.getItem('coursemapper-modelid') || '';
-        return isAlgiModel(storedModelId) ? ALGI_MODEL_ID : PUBLIC_SCION_MODEL_ID;
+        // Scion is the sole public identity. Legacy Algi selections migrate
+        // here instead of leaving a hidden model choice in restored projects.
+        return PUBLIC_SCION_MODEL_ID;
       }
       return localStorage.getItem('coursemapper-modelid') || '';
     } catch {
