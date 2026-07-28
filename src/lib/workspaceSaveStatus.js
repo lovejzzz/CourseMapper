@@ -1,5 +1,5 @@
-export function getWorkspaceSavePresentation({ cloudStatus, localStatus, user, generationRunning } = {}) {
-  const localDeferred = localStatus === 'error' && generationRunning;
+export function getWorkspaceSavePresentation({ cloudStatus, localStatus, user, workflowRunning } = {}) {
+  const localDeferred = localStatus === 'error' && workflowRunning;
   const failed = cloudStatus === 'error' || (localStatus === 'error' && !localDeferred);
   const saving = cloudStatus === 'saving' || localStatus === 'saving';
   return {

@@ -3139,16 +3139,20 @@ export default function AppFlow({
     ? `${workspaceLessonCount} lesson${workspaceLessonCount === 1 ? '' : 's'} mapped so far`
     : `${workspaceLessonCount} lesson${workspaceLessonCount === 1 ? '' : 's'}`;
   const isPackageGenerationRunning = packageGenerationBusy || gen.isStreaming || deliv.isGenerating;
+  const workspaceWorkflowRunning =
+    isPackageGenerationRunning || Boolean(buildRibbonModel?.running) || syncRegradePending;
   // A large anonymous package can briefly exceed the synchronous browser
   // save quota while its graph and deliverables are still changing. The
   // persistence hook retries with progressively smaller recoverable
   // snapshots; do not present that recoverable, in-flight condition as a red
-  // workspace failure while the compiler is still running.
+  // workspace failure while generation, Smart Sync, verification, or grading
+  // is still running. A failure that remains after the full workflow settles
+  // is still presented as a real error.
   const workspaceSavePresentation = getWorkspaceSavePresentation({
     cloudStatus: cloudSaveStatus,
     localStatus: localSaveStatus,
     user,
-    generationRunning: isPackageGenerationRunning,
+    workflowRunning: workspaceWorkflowRunning,
   });
   const workspaceSaveFailed = workspaceSavePresentation.failed;
   const workspaceSaveText = workspaceSavePresentation.text;
