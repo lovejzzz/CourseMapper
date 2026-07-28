@@ -91,8 +91,10 @@ export function shouldUseScionEvidenceFallback(error, signal) {
  * Shared SSE stream reader with auto-retry and exponential backoff.
  * Streams directly from the selected provider in the static BYOK build.
  */
-export default function useStreamReader() {
+export default function useStreamReader({ scionResearchEnabledOverride = null } = {}) {
   const abortControllerRef = useRef(null);
+  const scionResearchEnabledOverrideRef = useRef(scionResearchEnabledOverride);
+  scionResearchEnabledOverrideRef.current = scionResearchEnabledOverride;
 
   const abort = useCallback(() => {
     abortControllerRef.current?.abort();
@@ -597,7 +599,7 @@ export default function useStreamReader() {
                 // pipeline. Do not fall back to Algi's legacy storage flag: Algi
                 // is no longer a public choice, while Scion's research boundary
                 // remains visible and user-controlled.
-                researchEnabled: readScionResearchEnabled(),
+                researchEnabled: scionResearchEnabledOverrideRef.current === true ? true : readScionResearchEnabled(),
                 signal: externalSignal,
                 onResearchProgress: (researchProgress = {}) => {
                   recordApiCallEvent({

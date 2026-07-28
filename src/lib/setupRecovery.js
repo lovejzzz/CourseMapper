@@ -15,7 +15,11 @@ function storage() {
 
 function normalizeAction(action) {
   const type = String(action?.type || '');
-  return RECOVERABLE_ACTIONS.has(type) ? { type } : null;
+  if (!RECOVERABLE_ACTIONS.has(type)) return null;
+  return {
+    type,
+    ...(type === 'quickStart' && action?.scionResearchEnabled === true ? { scionResearchEnabled: true } : {}),
+  };
 }
 
 export function stageSetupRecovery({ promptText = '', files = [], action = null } = {}) {

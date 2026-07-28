@@ -535,12 +535,15 @@ export default function Landing({
   const handleQuickStartClick = useCallback(() => {
     if (quickStartNeedsCurrentSources) {
       // The button names this network boundary before the click. Persist the
-      // choice synchronously so AppFlow's first build frame sees the same
-      // research route even though React state updates after navigation.
+      // choice for later runs, and also hand it to this run explicitly. The
+      // explicit handoff prevents a fresh-origin build from depending on a
+      // storage read across the lazy Landing -> AppFlow transition.
       saveScionResearchEnabled(true);
     }
-    onQuickStart(promptText);
-  }, [onQuickStart, promptText, quickStartNeedsCurrentSources]);
+    onQuickStart({
+      scionResearchEnabled: quickStartNeedsCurrentSources || scionResearchEnabled,
+    });
+  }, [onQuickStart, quickStartNeedsCurrentSources, scionResearchEnabled]);
   const providerLabel =
     { openai: 'OpenAI', anthropic: 'Anthropic', google: 'Google', deepseek: 'DeepSeek' }[provider] ||
     'selected provider';

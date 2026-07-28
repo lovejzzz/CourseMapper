@@ -2,7 +2,7 @@
   "version": "0.16.87",
   "date": "July 27, 2026",
   "title": "One Scion, Right-Sized for the Device",
-  "status": "verified-current",
+  "status": "historical",
   "proofSummary": {
     "local": [
       "npm test",
@@ -16,28 +16,31 @@
       "npm run audit:release-history"
     ],
     "ciFast": {
-      "status": "pending-push",
-      "note": "Fast verification must pass after the adaptive Scion route is pushed."
+      "status": "success",
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/30341780430",
+      "note": "The merged V0.16.87 Fast verification run passed."
     },
     "ciDeep": {
-      "status": "pending-push",
-      "note": "The release changes runtime admission and orchestration rather than training or benchmark promotion."
+      "status": "not-current",
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/30342449144",
+      "note": "The manual V0.16.87 Deep proof run failed; V0.16.88 must inspect and close that failure rather than inherit deep-proof status."
     },
     "deploy": {
-      "status": "pending-push",
-      "note": "Production deployment follows a green merge."
+      "status": "success",
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/30343273949",
+      "note": "V0.16.87 deployed successfully before its mandatory production browser audit."
     },
     "liveProvider": {
-      "status": "pending",
-      "note": "Production must complete one Scion adaptive build with zero model download in the observed adapter-less Chrome session."
+      "status": "not-current",
+      "note": "The production adaptive run entered private mode despite the consent-bearing action, prepared 0/4 lesson kernels, scored 33/100 Automated Readiness, and remained blocked. V0.16.88 carries the repair."
     },
     "manualHuman": {
       "status": "not-applicable",
       "note": "No instructor, expert, accessibility, classroom, or student-outcome claim is made."
     },
     "manualBrowser": {
-      "status": "verified-local",
-      "note": "Local Chrome passed two fresh adaptive generations, all ten public surfaces in dark mode, the completed workspace in light mode, a cross-lesson source-bound Agent question, slide contrast inspection, and a 35-file physical ZIP; responsive Chromium checks passed at 320px, phone, tablet, and compact-laptop sizes. Production-origin proof remains release-blocking."
+      "status": "local-only",
+      "note": "Local Chrome passed the adaptive acceptance, but the production-origin run exposed the consent handoff defect carried by V0.16.88."
     }
   },
   "claims": [

@@ -2075,13 +2075,23 @@ export async function buildCourseMaterialsZip({
   sourceManifestGraph = bridgedSourceProof.courseGraph;
   sourceLedgerBundle = bridgedSourceProof.sourceLedgerBundle;
   sourceRefCoverage = bridgedSourceProof.sourceRefCoverage;
-  const finalPipelineState = normalizePipelineStateWithSourceBackedJudgment(pipelineState, {
-    sourceRefCoverage,
-    sourceLedgerSummary: sourceLedgerBundle?.summary || null,
-    sourceLedger: sourceLedgerBundle?.rows || null,
-    courseGraph: sourceManifestGraph,
-    courseMap,
-  });
+  // Do not invent a source-pipeline claim for callers that supplied neither a
+  // pipeline receipt nor source proof. The old unconditional normalization
+  // emitted "not evaluated (0 genome-linked lessons)" for a plain headless
+  // compile; the grader then (correctly) interpreted the word "genome" as a
+  // promise of source-ledger evidence and capped an otherwise clean package at
+  // 89/B. Preserve an explicit limitation when a pipeline/source path exists,
+  // but keep evidence-free deterministic compiles honestly unclaimed.
+  const finalPipelineState =
+    pipelineState || sourceProofExpected
+      ? normalizePipelineStateWithSourceBackedJudgment(pipelineState, {
+          sourceRefCoverage,
+          sourceLedgerSummary: sourceLedgerBundle?.summary || null,
+          sourceLedger: sourceLedgerBundle?.rows || null,
+          courseGraph: sourceManifestGraph,
+          courseMap,
+        })
+      : null;
   // Persist the run digest's wider pipeline disclosure in the ZIP. The
   // normalized package state stays authoritative for overlapping fields, but
   // native-authoring fallbacks and grounding metrics must survive without the

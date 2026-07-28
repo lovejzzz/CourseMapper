@@ -98,8 +98,8 @@ const V01686_RELEASE = {
   },
 };
 
-export const CURRENT_RELEASE = {
-  version: APP_VERSION,
+const V01687_RELEASE = {
+  version: '0.16.87',
   date: 'July 27, 2026',
   title: 'One Scion, Right-Sized for the Device',
   landingTitle: 'Scion V0.16.87 Checks the Device Before It Downloads',
@@ -113,19 +113,44 @@ export const CURRENT_RELEASE = {
     'A fresh local Chrome acceptance build uses the explicit current-source action and completes a four-lesson Digital Accessibility course in nine seconds with 4/4 kernels, 9/9 material families, zero blockers or warnings, 65/100 Automated Readiness under the unchanged automation ceiling, 99/A package conformance, texture 97, and 38/38 physical ZIP checks across 35 files. The complete 5,873-test unit suite, 151-test Chromium suite, 40-case layered evaluation, 18-case PR contract, format, lint, build, bundle, and release-history gates pass. This is local engineering proof, not production or instructor validation.',
     'The acceptance pass repairs visible language and provenance at their source: stale W3C fragments and demonstrative reference debris fail concept admission; unfinished-product Week wording is removed; editable slide text keeps its intended dark-mode contrast; W3C/WAI attribution survives compilation; the Agent names the official Lesson 3 sources and explains the Lesson 4 remediation connection; and public Scion exports contain no internal Algi codename or contradictory model-cost claim.',
   ],
-  landingHighlights: [
-    'A real GPU adapter is proven before any model download.',
-    'Unsupported devices use Scion’s zero-download evidence lane.',
-    'Scion stays the only public model identity.',
-    'Native failures keep their real cause.',
-    'Large local reads remain defensively bounded.',
-    'Course-count instructions no longer leak into titles.',
-    'The complete local course and ZIP pass every encoded gate.',
-    'Content, sources, Agent, and public identity stay coherent.',
-  ],
   proof: {
     contract: 'release-contracts/v0.16.87.json',
     roadmap: 'docs/SCION_V01687_ADAPTIVE_DEVICE_ROUTE.md',
+    benchmark: 'evaluation/quality-benchmark/v1/manifest.json',
+    browser: 'README.md',
+    auditCommand: 'npm run audit:release-history',
+  },
+};
+
+export const CURRENT_RELEASE = {
+  version: APP_VERSION,
+  date: 'July 28, 2026',
+  title: 'The Button and the Build Now Mean the Same Thing',
+  landingTitle: 'Scion V0.16.88 Carries Source Consent into the Course',
+  highlights: [
+    'The mandatory V0.16.87 production audit rejected its own first live package. The primary action said “Use current sources & generate,” but a storage-dependent consent handoff reached the lazy generation flow as private mode. The honest result was 0/4 knowledge kernels and 33/100 Automated Readiness, so the release was not represented as professor-ready merely because the archive checks passed.',
+    'The source choice now travels as an explicit one-run value from Landing through startup recovery, AppFlow, Course Map authoring, lesson enrichment, and the browser-local fallback. Persistent preference remains useful for later runs, but ephemeral or storage-restricted browsers can no longer make the action and the build disagree.',
+    'A second production-shaped defect was an Oxford-comma parser that separated the final “testing and remediation” inside an exact four-lesson list, creating a phantom fifth item and discarding the entire topic contract. Scion now distinguishes the Oxford boundary from conjunctions inside a lesson title, preserving all four named topics in order.',
+    'The exact failed production prompt is now a locked regression across consent, setup recovery, local fallback, quick-start wiring, and the exact four-topic course skeleton. The release gates must exercise that path again instead of relying on a browser origin that already saved research consent.',
+    'A fresh replay on a clean local origin now forecasts one locally supported lesson and three source gaps, researches only those three uncovered topics after the explicit click, admits 4/4 source ledgers, compiles 9/9 material families, finishes with zero blockers or warnings in about 16 seconds, and reports 69/100 Automated Readiness, 99/A conformance, texture 97, and 38/38 export checks.',
+    'The CurriculumOS headless proof now carries linked evidence through the deterministic facade and physical export: 8/8 astronomy lessons, eight linked citations, seven source resources, 9/9 material families, 69 physical files, and 99/A conformance.',
+    'Scion remains one public product and downloads no model on the observed adapter-less device. The private research/consolidation implementation stays internal; the public UI, Agent, progress, and package speak only as Scion. Model requests, inference tokens, and rewrite cost remain zero on this route.',
+    'V0.16.87 remains useful architecture history, but its production failure is recorded explicitly in the release ledger. V0.16.88 is not professor-facing proof until the clean-origin workflow, Agent, every public deliverable, responsive layouts, console, and physical ZIP all pass again on the deployed origin.',
+    'This release changes orchestration, topic-contract parsing, and regression proof—not Gemma weights. Held-out ruler V28 binds the changed transitive grader bytes without inheriting a V27 score or adapter result. The optional trained adapter remains inactive, and no instructor, classroom, factual-certification, accessibility-certification, paid-model, or adapter-superiority claim is made.',
+  ],
+  landingHighlights: [
+    'The current-source action now governs the run it starts.',
+    'Ephemeral browser storage cannot erase one-run consent.',
+    'Exact named lesson lists survive internal conjunctions.',
+    'The failed production prompt is now a regression test.',
+    'Four of four source ledgers reach the compiler.',
+    'Scion stays the only public model identity.',
+    'Production proof must repeat every professor-facing surface.',
+    'Weights and quality-claim boundaries stay unchanged.',
+  ],
+  proof: {
+    contract: 'release-contracts/v0.16.88.json',
+    roadmap: 'docs/SCION_V01688_PROFESSOR_ACCEPTANCE.md',
     benchmark: 'evaluation/quality-benchmark/v1/manifest.json',
     browser: 'README.md',
     auditCommand: 'npm run audit:release-history',
@@ -316,6 +341,60 @@ export const CURRENT_RELEASE_CHANGELOG = {
   date: CURRENT_RELEASE.date,
   title: CURRENT_RELEASE.title,
   highlights: CURRENT_RELEASE.highlights,
+  sections: [
+    {
+      label: 'Carry the user’s source choice into the run',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'The production V0.16.87 action promised current sources while the lazy generation route later resolved private mode.',
+        'V0.16.88 passes one explicit consent value through Landing, setup recovery, AppFlow, Course Map generation, enrichment, and the browser-local fallback.',
+        'Storage still remembers the preference for a later course, but storage is no longer the sole authority for the run the user just started.',
+        'A clean browser origin is now part of acceptance so an old saved preference cannot hide this regression.',
+      ],
+    },
+    {
+      label: 'Preserve the exact lesson contract',
+      icon: 'PROOF',
+      color: 'violet',
+      items: [
+        'The accessibility prompt’s final topic contains its own conjunction: “testing and remediation.”',
+        'The exact-count parser now recognizes the Oxford-comma boundary without treating that internal conjunction as a fifth lesson.',
+        'The locked regression preserves WCAG, semantic HTML and keyboard accessibility, accessible forms, and testing and remediation as four ordered lessons.',
+        'The fix changes sequence parsing only; it does not add hard-coded course content.',
+      ],
+    },
+    {
+      label: 'Prove the repaired path on a clean origin',
+      icon: 'AI',
+      color: 'blue',
+      items: [
+        'A fresh local origin forecasts one locally supported lesson and three source gaps before the primary action is clicked.',
+        'The click researches the three uncovered topics, admits all four evidence ledgers, and compiles all nine material families.',
+        'The package finishes with zero blockers or warnings, 69/100 Automated Readiness, 99/A conformance, texture 97, and 38/38 export checks.',
+        'A separate headless proof carries evidence through 8/8 graph-linked astronomy lessons, eight citations, seven source resources, all nine material families, and a 69-file 99/A package.',
+        'The adaptive route records zero model requests, zero model bytes, and no public experimental-model identity.',
+      ],
+    },
+    {
+      label: 'Keep failed production proof in the ledger',
+      icon: 'CHECK',
+      color: 'slate',
+      items: [
+        'V0.16.87 remains documented as the adaptive-route architecture release, but its first production package is recorded as 0/4 kernels and 33/100 readiness.',
+        'Passing archive integrity did not overrule incomplete evidence or the visible blocker.',
+        'V0.16.88 requires deployed-origin generation, Agent, all deliverables, responsive presentation, console, and physical ZIP proof before release completion.',
+        'The release makes no instructor, factual, accessibility, classroom, paid-model, or adapter-superiority claim.',
+      ],
+    },
+  ],
+};
+
+const V01687_RELEASE_CHANGELOG = {
+  version: V01687_RELEASE.version,
+  date: V01687_RELEASE.date,
+  title: V01687_RELEASE.title,
+  highlights: V01687_RELEASE.highlights,
   sections: [
     {
       label: 'Prove the device before downloading the model',
@@ -993,6 +1072,7 @@ const V01678_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  V01687_RELEASE_CHANGELOG,
   V01686_RELEASE_CHANGELOG,
   V01685_RELEASE_CHANGELOG,
   V01684_RELEASE_CHANGELOG,

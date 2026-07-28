@@ -400,6 +400,7 @@ export default function useDeliverables({
   onApiCallEvent,
   onCourseMapRepair,
   courseGraph,
+  scionResearchEnabledOverride = null,
   // v0.13: receives the derived CourseGraph after each generation so the
   // app can persist it as the project's source of truth.
   onCourseGraph,
@@ -475,7 +476,9 @@ export default function useDeliverables({
       : new Set(lockedLessons)
     : null;
 
-  const { streamProvider, parsePartialJSON, getLastParseRecovery } = useStreamReader();
+  const { streamProvider, parsePartialJSON, getLastParseRecovery } = useStreamReader({
+    scionResearchEnabledOverride,
+  });
 
   const appendLog = useCallback((message, type = 'info') => {
     setGenerationLog((prev) => [...prev, { message, type, at: Date.now() }]);
@@ -622,7 +625,8 @@ export default function useDeliverables({
       // evidence and reading paths cannot disagree mid-build.
       const scionResearchEnabled =
         provider === PUBLIC_SCION_PROVIDER_ID
-          ? (await import('../lib/scionResearchPolicy')).readScionResearchEnabled()
+          ? scionResearchEnabledOverride === true ||
+            (await import('../lib/scionResearchPolicy')).readScionResearchEnabled()
           : false;
       const allowExternalKnowledge = provider !== PUBLIC_SCION_PROVIDER_ID || scionResearchEnabled;
       const nativeBatchingPlan =

@@ -38,6 +38,7 @@ import { createKernelLibrary } from '../lib/genome/kernelLibrary';
 import { runGenomeLinker } from '../lib/genome/runGenomeLinker';
 import { inferCourseDisciplines } from '../lib/genome/libraryShardLoader';
 import { runOnMissGenomeExtraction } from '../lib/knowledge/genomeExtraction';
+import { attachGenomeResources } from '../lib/knowledge/readingListEngine';
 import { buildCourseMaterialsZip } from '../lib/packageZipExporter';
 import {
   buildCourseIRFromCourseMap,
@@ -88,21 +89,33 @@ export function compileCourse({
         ],
   );
   let blueprint;
+  let courseGraph = null;
   if (enrichmentOverlay && typeof enrichmentOverlay === 'object') {
-    const graph = deriveCourseGraphFromCourseMap(courseMap);
-    attachEnrichmentToGraph(graph, enrichmentOverlay);
-    blueprint = compactBlueprintForStorage(buildBlueprintFromGraph(graph));
+    courseGraph = deriveCourseGraphFromCourseMap(courseMap);
+    attachEnrichmentToGraph(courseGraph, enrichmentOverlay);
+    // Provenance is part of the compiled course, not browser-only decoration.
+    // Promote the same verified genome citations the app attaches into graph
+    // Resource entities so headless clients can export SOURCE_REPORT.md and a
+    // trustworthy source ledger instead of losing evidence at the facade.
+    attachGenomeResources(courseGraph);
+    blueprint = compactBlueprintForStorage(buildBlueprintFromGraph(courseGraph));
   } else {
     blueprint = compactBlueprintForStorage(buildCourseBlueprint(courseMap));
   }
   const deliverables = compileBlueprintDeliverables(blueprint, compiledFeatureIds, { configMap });
-  return { blueprint, deliverables, compiledFeatureIds };
+  return { blueprint, deliverables, compiledFeatureIds, courseGraph };
 }
 
 /** Resolve a course's lessons against an in-memory kernel library. */
-export function linkGenome({ courseMap, library, lessonIndices = null, itemPlan = undefined } = {}) {
+export function linkGenome({
+  courseMap,
+  library,
+  lessonIndices = null,
+  itemPlan = undefined,
+  sourceReferences = {},
+} = {}) {
   const indices = Array.isArray(lessonIndices) ? lessonIndices : (courseMap?.lessons || []).map((_, index) => index);
-  return runGenomeLinker({ courseMap, lessonIndices: indices, library, itemPlan });
+  return runGenomeLinker({ courseMap, lessonIndices: indices, library, itemPlan, sourceReferences });
 }
 
 /** The flywheel verb — flag-gated, model + providers injected, never trusts citations. */

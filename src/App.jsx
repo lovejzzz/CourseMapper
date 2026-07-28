@@ -102,16 +102,23 @@ export default function App() {
   // v0.14.7 WS-F2: quick start from the primary landing — one decision to
   // first value. promptText/files live in shared context, so the flow reads
   // them after mount; the action just names the intent.
-  const handleQuickStart = useCallback(() => {
-    stageSetupRecovery({ promptText, files, action: { type: 'quickStart' } });
-    try {
-      localStorage.removeItem(STORAGE_KEY);
-    } catch {}
-    removeProjectIndexedDbAutosave().catch(() => {});
-    setHasSavedSession(false);
-    resetGeneratedProjectState();
-    startFlow({ type: 'quickStart' });
-  }, [files, promptText, resetGeneratedProjectState, startFlow]);
+  const handleQuickStart = useCallback(
+    (options = {}) => {
+      const action = {
+        type: 'quickStart',
+        ...(options?.scionResearchEnabled === true ? { scionResearchEnabled: true } : {}),
+      };
+      stageSetupRecovery({ promptText, files, action });
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+      } catch {}
+      removeProjectIndexedDbAutosave().catch(() => {});
+      setHasSavedSession(false);
+      resetGeneratedProjectState();
+      startFlow(action);
+    },
+    [files, promptText, resetGeneratedProjectState, startFlow],
+  );
 
   const handleRestoreSession = useCallback(() => {
     startFlow({ type: 'restore' });

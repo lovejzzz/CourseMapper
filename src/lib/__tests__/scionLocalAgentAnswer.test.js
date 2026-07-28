@@ -61,6 +61,39 @@ describe('buildScionLocalAgentAnswer', () => {
     expect(result.text).not.toContain('Lesson 1 uses');
   });
 
+  it('connects lessons named by topic when the question omits lesson numbers', async () => {
+    const result = await buildScionLocalAgentAnswer({
+      question:
+        'Which official sources support the accessible forms lesson, and how should evidence from that lesson inform the testing and remediation lesson?',
+      courseMap: {
+        lessons: [
+          { title: 'Lesson 1: WCAG principles and conformance', sections: [] },
+          { title: 'Lesson 2: Semantic HTML and keyboard accessibility', sections: [] },
+          {
+            title: 'Lesson 3: Accessible forms',
+            sections: [
+              {
+                supportingResources:
+                  '1. Accessible forms (official accessibility tutorial, W3C permissive license — https://www.w3.org/WAI/tutorials/forms/) 2. Labels (official accessibility tutorial, W3C permissive license — https://www.w3.org/WAI/tutorials/forms/labels/)',
+              },
+            ],
+          },
+          {
+            title: 'Lesson 4: Evidence-based accessibility testing and remediation',
+            sections: [],
+          },
+        ],
+      },
+      deliverables: {},
+    });
+
+    expect(result).toMatchObject({ kind: 'course-evidence', lessonNumber: 3 });
+    expect(result.text).toContain('https://www.w3.org/WAI/tutorials/forms/');
+    expect(result.text).toContain('https://www.w3.org/WAI/tutorials/forms/labels/');
+    expect(result.text).toContain('**Connection to Lesson 4: Evidence-based accessibility testing and remediation**');
+    expect(result.text).toContain('findings and unresolved barriers from Lesson 3');
+  });
+
   it('falls through conservatively when no compiled evidence can answer', async () => {
     await expect(
       buildScionLocalAgentAnswer({

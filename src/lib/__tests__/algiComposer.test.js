@@ -164,6 +164,19 @@ describe('Algi V0 skeleton composition', () => {
     ]);
   });
 
+  it('preserves the production accessibility quick-start lesson contract', () => {
+    const source =
+      'Digital Accessibility for Product Teams — create exactly 4 lessons: WCAG principles and conformance, semantic HTML and keyboard accessibility, accessible forms, and evidence-based accessibility testing and remediation. Make it practical for product designers and frontend developers, with source-grounded explanations, applied accessibility checks, and current open web evidence.';
+    expect(planSessionTopics(source, 4)).toEqual([
+      'WCAG principles and conformance',
+      'semantic HTML and keyboard accessibility',
+      'accessible forms',
+      'evidence-based accessibility testing and remediation',
+    ]);
+    const skeleton = JSON.parse(composeAlgiSkeleton(promptFor(source, 4)));
+    expect(skeleton.sessions.map((session) => session.title)).toEqual(planSessionTopics(source, 4));
+  });
+
   it('keeps an exact-lesson instruction out of the workspace course title', () => {
     const source =
       'User Experience Evidence Studio, exactly five lessons: 1) research questions and study planning, 2) contextual inquiry and field notes, 3) affinity mapping and synthesis, 4) usability test design, and 5) evidence-based design recommendations.';
