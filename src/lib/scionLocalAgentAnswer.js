@@ -4,7 +4,7 @@ const ASSIGNED_SOURCE_INTENT =
   /\b(?:assigned sources?|(?:official\s+)?sources?.{0,80}(?:supports?|establishes?|proves?))\b/i;
 const NAMED_READING_INTENT = /\b(?:compare|comparison|comparative|versus|vs\.?|paired?|both|connect)\b/i;
 
-export async function buildScionLocalAgentAnswer({ question, courseMap, deliverables } = {}) {
+export async function buildScionLocalAgentAnswer({ question, courseMap, courseGraph, deliverables } = {}) {
   if (COURSE_SEQUENCE_INTENT.test(question)) {
     const { buildScionCourseSequenceAnswer } = await import('./scionCourseSequenceAnswer');
     return buildScionCourseSequenceAnswer({ question, courseMap, deliverables });
@@ -12,7 +12,7 @@ export async function buildScionLocalAgentAnswer({ question, courseMap, delivera
 
   if (ASSIGNED_SOURCE_INTENT.test(question)) {
     const { buildScionAssignedSourceAnswer } = await import('./scionAssignedSourceAnswer');
-    const answer = buildScionAssignedSourceAnswer({ question, courseMap });
+    const answer = buildScionAssignedSourceAnswer({ question, courseMap, courseGraph });
     if (answer) return answer;
   }
 

@@ -94,6 +94,87 @@ describe('buildScionLocalAgentAnswer', () => {
     expect(result.text).toContain('findings and unresolved barriers from Lesson 3');
   });
 
+  it.each([
+    {
+      scenario: 'replaces display citations with classroom-resource prose',
+      displayResources: 'Prototype or wireframe tool, shared critique notes, and the assigned UX example.',
+    },
+    {
+      scenario: 'leaves a stale display link with the same source topic',
+      displayResources:
+        'Prototype or wireframe tool, shared critique notes, and an outdated Accessible forms link (https://example.invalid/forms).',
+    },
+  ])('answers from the canonical source ledger after sync $scenario', async ({ displayResources }) => {
+    const result = await buildScionLocalAgentAnswer({
+      question:
+        'Which official sources support accessible forms, and how should Lesson 3 evidence inform Lesson 4 testing and remediation?',
+      courseMap: {
+        lessons: [
+          { title: 'Lesson 1: WCAG principles and conformance decision-making', sections: [] },
+          { title: 'Lesson 2: Semantic HTML and keyboard accessibility', sections: [] },
+          {
+            title: 'Lesson 3: accessible forms',
+            sections: [
+              {
+                supportingResources: displayResources,
+              },
+            ],
+          },
+          {
+            title: 'Lesson 4: evidence-based accessibility testing and remediation',
+            sections: [],
+          },
+        ],
+      },
+      courseGraph: {
+        sessions: [
+          { id: 's1', number: 1 },
+          { id: 's2', number: 2 },
+          {
+            id: 's3',
+            number: 3,
+            sections: [{ topic: 'accessible forms', resourceRefs: ['kr7', 'kr8'] }],
+          },
+          { id: 's4', number: 4 },
+        ],
+        resources: [
+          {
+            id: 'kr7',
+            citation: 'Accessible forms',
+            origin: 'w3c-wai',
+            provider: 'w3c-wai',
+            kind: 'official accessibility tutorial',
+            url: 'https://www.w3.org/WAI/tutorials/forms/',
+            license: 'W3C permissive license',
+            sessionRefs: ['s3'],
+          },
+          {
+            id: 'kr8',
+            citation: 'Labels',
+            origin: 'w3c-wai',
+            provider: 'w3c-wai',
+            kind: 'official accessibility tutorial',
+            url: 'https://www.w3.org/WAI/tutorials/forms/labels/',
+            license: 'W3C permissive license',
+            sessionRefs: ['s3'],
+          },
+        ],
+        readings: [],
+      },
+      deliverables: {},
+    });
+
+    expect(result).toMatchObject({ kind: 'course-evidence', lessonNumber: 3 });
+    expect(result.text).toContain('**Accessible forms**');
+    expect(result.text).toContain('https://www.w3.org/WAI/tutorials/forms/');
+    expect(result.text).toContain('**Labels**');
+    expect(result.text).toContain('https://www.w3.org/WAI/tutorials/forms/labels/');
+    expect(result.text).not.toContain('https://example.invalid/forms');
+    expect(result.text).toContain('**Connection to Lesson 4: Evidence-based accessibility testing and remediation**');
+    expect(result.text).toContain('findings and unresolved barriers from Lesson 3');
+    expect(result.text).not.toContain('I couldn’t finish');
+  });
+
   it('falls through conservatively when no compiled evidence can answer', async () => {
     await expect(
       buildScionLocalAgentAnswer({

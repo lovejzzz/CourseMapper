@@ -1,0 +1,100 @@
+{
+  "version": "0.16.95",
+  "date": "July 28, 2026",
+  "title": "The Agent Reads the Evidence That Ships",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test",
+      "npm run lint",
+      "npm run format:check",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run test:e2e",
+      "npm run audit:evaluation:main",
+      "npm run audit:contract:pr",
+      "npm run curriculumos:proof",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification must pass on the exact V0.16.95 release commit."
+    },
+    "ciDeep": {
+      "status": "pending-push",
+      "note": "Deep Proof must repeat the Agent, persistence, Smart Sync, browser, and release gates."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Production deployment follows a green merge."
+    },
+    "liveProvider": {
+      "status": "not-applicable",
+      "note": "The canonical-ledger Agent route uses no provider and adds no model-quality claim."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No instructor, expert, accessibility, classroom, or student-outcome claim is made."
+    },
+    "manualBrowser": {
+      "status": "pending",
+      "note": "The deployed V0.16.95 project must stay synchronized, answer from the canonical W3C ledger, export, reload, and Resume."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01695-production-finding",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The V0.16.94 production replay passed its release boundary and then exposed a deterministic post-sync Agent source-answer failure.",
+      "anchors": ["README.md", "docs/SCION_V01695_AGENT_EVIDENCE_CONTINUITY.md"],
+      "proofCommands": ["npm run audit:release-history"],
+      "proofScopes": ["browser-live", "doc"]
+    },
+    {
+      "id": "v01695-root-cause",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Smart Sync preserved canonical evidence while replacing a mutable Course Map display citation, and the Agent incorrectly depended only on the display field.",
+      "anchors": ["src/lib/scionAssignedSourceAnswer.js", "docs/SCION_V01695_AGENT_EVIDENCE_CONTINUITY.md"],
+      "proofCommands": ["npm test -- --run src/lib/__tests__/scionLocalAgentAnswer.test.js"],
+      "proofScopes": ["unit", "browser-live"]
+    },
+    {
+      "id": "v01695-canonical-ledger-answer",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Assigned-source answers use the trusted canonical CourseGraph ledger also consumed by package export.",
+      "anchors": ["src/lib/scionAssignedSourceAnswer.js", "src/lib/knowledge/sourceLedger.js"],
+      "proofCommands": ["npm test -- --run src/lib/__tests__/scionLocalAgentAnswer.test.js"],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01695-live-graph-plumbing",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "The live CourseGraph travels from the workspace through the chat panel and router into Scion's local answer capability.",
+      "anchors": ["src/AppFlow.jsx", "src/components/chat/ChatPanel.jsx", "src/components/chat/useChatRouter.js"],
+      "proofCommands": ["npm test", "npm run lint"],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01695-post-sync-regression",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "A production-shaped regression requires both official Lesson 3 W3C links and the requested Lesson 4 remediation connection after display citations are absent.",
+      "anchors": ["src/lib/__tests__/scionLocalAgentAnswer.test.js", "docs/SCION_V01695_AGENT_EVIDENCE_CONTINUITY.md"],
+      "proofCommands": ["npm test -- --run src/lib/__tests__/scionLocalAgentAnswer.test.js"],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v01695-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 5,
+      "summary": "The patch changes Agent evidence continuity only and adds no model, compiler-output, instructor, factual, accessibility, classroom, or paid-model claim.",
+      "anchors": ["README.md", "docs/SCION_V01695_AGENT_EVIDENCE_CONTINUITY.md"],
+      "proofCommands": ["npm run audit:release-history"],
+      "proofScopes": ["doc", "static-audit"]
+    }
+  ]
+}

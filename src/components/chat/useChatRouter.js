@@ -91,6 +91,7 @@ export function buildAttachedFileDisplayText(text, files) {
 
 export default function useChatRouter({
   courseMap,
+  courseGraph,
   activeTab,
   slideTheme,
   onRevision,
@@ -245,6 +246,10 @@ export default function useChatRouter({
   useEffect(() => {
     courseMapRef.current = courseMap;
   });
+  const courseGraphRef = useRef(courseGraph);
+  useEffect(() => {
+    courseGraphRef.current = courseGraph;
+  });
   const optimisticUpdateRef = useRef(optimisticUpdate);
   useEffect(() => {
     optimisticUpdateRef.current = optimisticUpdate;
@@ -365,6 +370,7 @@ export default function useChatRouter({
         courseAnswer = await buildScionLocalAgentAnswer({
           question: trimmed,
           courseMap: courseMapRef.current,
+          courseGraph: courseGraphRef.current,
           deliverables: delivRef.current,
         });
       }

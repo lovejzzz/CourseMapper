@@ -4027,6 +4027,7 @@ export default function AppFlow({
                   isRevising={rev.isRevising}
                   activeTab={activeTab}
                   courseMap={courseMap}
+                  courseGraph={courseGraph}
                   slideTheme={slideTheme}
                   chatHistory={chatHistory}
                   onChatHistoryChange={setChatHistory}
