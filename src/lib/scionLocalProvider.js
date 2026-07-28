@@ -137,23 +137,7 @@ export async function runScionLocalCompletion({
   sleep = defaultSleep,
 } = {}) {
   if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
-  const runtimeApi = await runtimeLoader();
-  if (
-    typeof runtimeApi?.loadScionBrowserWllama !== 'function' ||
-    typeof runtimeApi?.completeScionBrowserWllama !== 'function'
-  ) {
-    throw localError('SCION_LOCAL_RUNTIME_API', 'The packaged Scion browser runtime is unavailable.');
-  }
-
   const taskFamily = scionAdapterTaskFamilyForProviderTask(task, { promptProtocol });
-  const recoveryAttempt =
-    Number(String(userPrompt || '').match(/(?:RECOVERY RETRY|Recovery attempt)\s+(\d+)/i)?.[1]) || 0;
-
-  await runtimeApi.loadScionBrowserWllama({ onProgress, signal });
-  const plannedRoute =
-    typeof runtimeApi.prepareScionBrowserWllamaTaskRoute === 'function'
-      ? await runtimeApi.prepareScionBrowserWllamaTaskRoute({ taskFamily, promptProtocol })
-      : null;
   const factLedgerOnly =
     taskFamily === SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL_SYNTHESIS &&
     promptProtocol === SCION_LESSON_KERNEL_SYNTHESIS_PROMPT_PROTOCOL;
@@ -170,10 +154,18 @@ export async function runScionLocalCompletion({
     const assessment = assessPublicScionKernelResponse(exactLedgerText, userPrompt, task, {
       exactSourceProjection: true,
     });
-    const route = plannedRoute
-      ? { ...plannedRoute, factLedgerOnly: true, exactSourceLedger: true, modelCalls: 0 }
-      : null;
-    if (route && typeof onAdapterRoute === 'function') onAdapterRoute(route);
+    const route = {
+      protocol: 'scion-compiler-exact-source-route-v1',
+      mode: 'base-only',
+      taskFamily,
+      reason: 'compiler-owned-exact-source-ledger',
+      adapterId: null,
+      nativeAdapterActive: false,
+      factLedgerOnly: true,
+      exactSourceLedger: true,
+      modelCalls: 0,
+    };
+    if (typeof onAdapterRoute === 'function') onAdapterRoute(route);
     return {
       fullText: exactLedgerText,
       rawText: exactLedgerText,
@@ -194,6 +186,19 @@ export async function runScionLocalCompletion({
       admissionIssues: assessment.issues || [],
       kernelShape: summarizeKernelShape(exactLedgerText, userPrompt),
     };
+  }
+
+  const runtimeApi = await runtimeLoader();
+  if (
+    typeof runtimeApi?.loadScionBrowserWllama !== 'function' ||
+    typeof runtimeApi?.completeScionBrowserWllama !== 'function'
+  ) {
+    throw localError('SCION_LOCAL_RUNTIME_API', 'The packaged Scion browser runtime is unavailable.');
+  }
+
+  await runtimeApi.loadScionBrowserWllama({ onProgress, signal });
+  if (typeof runtimeApi.prepareScionBrowserWllamaTaskRoute === 'function') {
+    await runtimeApi.prepareScionBrowserWllamaTaskRoute({ taskFamily, promptProtocol });
   }
   const requestedOutputLimit = Math.max(
     1,

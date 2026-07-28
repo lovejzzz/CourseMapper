@@ -122,8 +122,8 @@ const V01687_RELEASE = {
   },
 };
 
-export const CURRENT_RELEASE = {
-  version: APP_VERSION,
+const V01688_RELEASE = {
+  version: '0.16.88',
   date: 'July 28, 2026',
   title: 'The Button and the Build Now Mean the Same Thing',
   landingTitle: 'Scion V0.16.88 Carries Source Consent into the Course',
@@ -153,6 +153,38 @@ export const CURRENT_RELEASE = {
     roadmap: 'docs/SCION_V01688_PROFESSOR_ACCEPTANCE.md',
     benchmark: 'evaluation/quality-benchmark/v1/manifest.json',
     browser: 'README.md',
+    auditCommand: 'npm run audit:release-history',
+  },
+};
+
+export const CURRENT_RELEASE = {
+  version: APP_VERSION,
+  date: 'July 28, 2026',
+  title: 'Evidence Before Weights',
+  landingTitle: 'Scion V0.16.89 Compiles Complete Evidence Before Loading Gemma',
+  highlights: [
+    'The required V0.16.88 production audit passed the professor-facing course contract—four named accessibility lessons, 4/4 evidence kernels, 9/9 material families, zero findings, 69/100 Automated Readiness, 99/A conformance, and a physically valid ZIP—but exposed needless Gemma activation after the compiler already held a complete exact source ledger.',
+    'Scion now resolves the compiler-owned exact-source route before importing the browser model runtime, reading model storage, loading the 3.35 GB public base, preparing an adapter route, or starting inference. A complete immutable source ledger therefore reaches compilation with zero model activation rather than proving zero model calls only after the expensive runtime boundary.',
+    'The exact-source route emits its own `scion-compiler-exact-source-route-v1` receipt with `modelCalls: 0`, `exactSourceLedger: true`, and `browser-compiler` execution. Living Course Compiler telemetry can distinguish evidence projection from local Gemma work without presenting an internal research-system identity.',
+    'A focused regression injects a runtime loader that would reveal any browser-runtime touch and proves it is never called for a complete numbered source ledger. Non-exact tasks keep the existing Gemma and optional-adapter route, so Scion still has a neural fallback when evidence alone cannot satisfy the authoring contract.',
+    'The Kimi K3 review is applied as an orchestration lesson, not a model transplant: progressively disclose the smallest verified capability, freeze tool and evidence results into typed contracts, and spend model compute only after deterministic routes are exhausted. K3 weights, hidden reasoning, MoE topology, and wire protocol are not copied into the browser.',
+    'This patch changes route ordering and telemetry, not Gemma weights, the inactive optional adapter, the source-consent boundary, or the 69-point automated evidence ceiling. Held-out ruler V29 binds the new preflight bytes without inheriting a V28 score, adapter result, teaching-quality claim, or accessibility certification.',
+  ],
+  landingHighlights: [
+    'Complete source ledgers bypass model activation.',
+    'The runtime importer stays untouched on the compiler route.',
+    'Zero model calls receive a first-class route receipt.',
+    'Gemma remains available only when the contract needs it.',
+    'Scion stays the sole public product identity.',
+    'Current-source consent remains explicit.',
+    'The V0.16.88 production package remains auditable.',
+    'Weights and quality-claim boundaries stay unchanged.',
+  ],
+  proof: {
+    contract: 'release-contracts/v0.16.89.json',
+    roadmap: 'docs/SCION_V01689_EVIDENCE_BEFORE_WEIGHTS.md',
+    benchmark: 'evaluation/scion-adapters/held-out-course-benchmark-v29.json',
+    browser: 'docs/SCION_V01689_EVIDENCE_BEFORE_WEIGHTS.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -336,11 +368,11 @@ const V01678_RELEASE = {
 
 export { APP_VERSION };
 
-export const CURRENT_RELEASE_CHANGELOG = {
-  version: CURRENT_RELEASE.version,
-  date: CURRENT_RELEASE.date,
-  title: CURRENT_RELEASE.title,
-  highlights: CURRENT_RELEASE.highlights,
+const V01688_RELEASE_CHANGELOG = {
+  version: V01688_RELEASE.version,
+  date: V01688_RELEASE.date,
+  title: V01688_RELEASE.title,
+  highlights: V01688_RELEASE.highlights,
   sections: [
     {
       label: 'Carry the user’s source choice into the run',
@@ -385,6 +417,59 @@ export const CURRENT_RELEASE_CHANGELOG = {
         'Passing archive integrity did not overrule incomplete evidence or the visible blocker.',
         'V0.16.88 requires deployed-origin generation, Agent, all deliverables, responsive presentation, console, and physical ZIP proof before release completion.',
         'The release makes no instructor, factual, accessibility, classroom, paid-model, or adapter-superiority claim.',
+      ],
+    },
+  ],
+};
+
+export const CURRENT_RELEASE_CHANGELOG = {
+  version: CURRENT_RELEASE.version,
+  date: CURRENT_RELEASE.date,
+  title: CURRENT_RELEASE.title,
+  highlights: CURRENT_RELEASE.highlights,
+  sections: [
+    {
+      label: 'Choose the compiler route before touching Gemma',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'The V0.16.88 production package completed with zero model calls, but a capable browser still activated its cached Gemma runtime before returning the compiler-owned source projection.',
+        'V0.16.89 recognizes a complete numbered source ledger before importing Wllama, opening model storage, loading weights, preparing an adapter route, or starting inference.',
+        'Source-backed Scion now pays only for the capabilities the run needs; Gemma remains the fallback for incomplete or non-exact authoring contracts.',
+        'The change removes needless multi-gigabyte download risk from this route rather than hiding its progress or console output.',
+      ],
+    },
+    {
+      label: 'Give zero-model work an honest receipt',
+      icon: 'AI',
+      color: 'blue',
+      items: [
+        'Exact evidence projection has a compiler-owned route protocol instead of being labeled as a base-model action.',
+        'Telemetry records `exactSourceLedger: true`, `modelCalls: 0`, compiler stage ownership, and `browser-compiler` execution.',
+        'Living Course Compiler and exported provenance can therefore separate deterministic evidence work from local model inference.',
+        'The public interface continues to say Scion; the internal evidence implementation does not return as a model choice.',
+      ],
+    },
+    {
+      label: 'Lock the expensive boundary with a negative test',
+      icon: 'PROOF',
+      color: 'violet',
+      items: [
+        'The exact-ledger regression injects a monitored runtime loader and requires zero loader, weight-load, adapter-preparation, and completion calls.',
+        'The same test proves the source facts are projected unchanged with attempt 0, token count 0, and the compiler-owned route receipt.',
+        'Existing non-exact tests retain local Gemma loading, bounded retries, task-family routing, and optional-adapter behavior.',
+        'The production Digital Accessibility prompt remains the deployed browser and physical-ZIP acceptance case.',
+      ],
+    },
+    {
+      label: 'Apply Kimi’s architecture lesson without importing Kimi',
+      icon: 'CHECK',
+      color: 'slate',
+      items: [
+        'Scion progressively exposes the smallest verified capability and freezes evidence/tool results before expensive generation.',
+        'Kimi K3 weights, hidden reasoning, MoE design, and wire protocol are not browser dependencies.',
+        'Gemma weights, adapter state, source consent, readiness ceiling, and public identity remain unchanged.',
+        'Held-out V29 is a fresh executable boundary; it carries no inherited quality or adapter win.',
       ],
     },
   ],
@@ -1072,6 +1157,7 @@ const V01678_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  V01688_RELEASE_CHANGELOG,
   V01687_RELEASE_CHANGELOG,
   V01686_RELEASE_CHANGELOG,
   V01685_RELEASE_CHANGELOG,
