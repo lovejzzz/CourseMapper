@@ -106,24 +106,26 @@ The exact acceptance prompt was:
 
 Observed local results after the telemetry correction:
 
-| Measure                  | V0.16.89 production baseline |         V0.16.90 local candidate |
-| ------------------------ | ---------------------------: | -------------------------------: |
-| Full ready time          |                         32 s | 8 s first run; 4 s warm evidence |
-| Model request starts     |                            2 |                                0 |
-| Model weight requirement |            cached Gemma used |                             none |
-| Lessons                  |                          4/4 |                              4/4 |
-| Knowledge kernels        |                          4/4 |                              4/4 |
-| Material families        |                          9/9 |                              9/9 |
-| Automated Readiness      |                       69/100 |                           69/100 |
-| Package conformance      |                         99/A |                             99/A |
-| Texture                  |                           97 |                               97 |
-| Export checks            |                        38/38 |                            38/38 |
-| Trusted sources          |                            6 |                                6 |
-| Source references        |                        48/48 |                            48/48 |
+| Measure                  | V0.16.89 production baseline |           V0.16.90 local candidate |
+| ------------------------ | ---------------------------: | ---------------------------------: |
+| Full ready time          |                         32 s | 25 s first run; 16 s warm evidence |
+| Model request starts     |                            2 |                                  0 |
+| Model weight requirement |            cached Gemma used |                               none |
+| Lessons                  |                          4/4 |                                4/4 |
+| Knowledge kernels        |                          4/4 |                                4/4 |
+| Material families        |                          9/9 |                                9/9 |
+| Automated Readiness      |                       69/100 |                             69/100 |
+| Package conformance      |                         99/A |                               99/A |
+| Texture                  |                           97 |                                 97 |
+| Export checks            |                        38/38 |                              38/38 |
+| Trusted sources          |                            6 |                                  6 |
+| Source references        |                        48/48 |                              48/48 |
 
 The local archive passed outer ZIP integrity and all 34 nested Office containers. Its manifest recorded the evidence-compiler lane, `modelInference: false`, `modelWeightsDownloaded: false`, `sourceResearch: true`, the skipped voice pass, zero blockers/warnings, and the same sealed quality results.
 
 The time comparison is not a matched cold-network experiment: production and local source/cache conditions differ. The defensible claim is that the candidate route has zero model starts and no weight dependency while preserving the measured acceptance-package results.
+
+Frame-level inspection also found and removed one provisional-title defect. The opening workspace briefly rendered the action phrase “— create” as part of the course title before the typed skeleton arrived. The prompt-aware identity boundary now recognizes an imperative followed by an exact lesson-count contract. A fresh capture at 387 ms shows `Digital Accessibility for Product Teams`, and that exact title remains stable through the 16-second warm completion.
 
 ## Claim boundary
 

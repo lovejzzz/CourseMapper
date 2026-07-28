@@ -55,11 +55,13 @@
       "id": "v01690-explicit-sequence-route",
       "status": "verified-current",
       "changelogHighlightIndex": 1,
-      "summary": "A strict exact-count, explicitly named lesson sequence compiles into the typed native skeleton before the browser model runtime or storage boundary; ambiguous briefs retain Gemma.",
+      "summary": "A strict exact-count, explicitly named lesson sequence compiles into the typed native skeleton before the browser model runtime or storage boundary; its provisional workspace title remains exact from the first build frame, while ambiguous briefs retain Gemma.",
       "anchors": [
         "src/lib/scionCompilerRoute.js",
         "src/lib/nativeSkeletonGenerationRuntime.js",
         "src/hooks/useStreamReader.js",
+        "src/lib/promptAwarePreview.js",
+        "src/lib/__tests__/promptAwarePreview.test.js",
         "src/lib/__tests__/scionCompilerRoute.test.js"
       ],
       "proofCommands": ["npm test"],
