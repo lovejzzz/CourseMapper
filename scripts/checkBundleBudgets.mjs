@@ -53,9 +53,9 @@ const repositoryBudgets = {
   // These are evaluation/reproduction entry points, not product runtime work.
   // V0.16.91 adds one frozen five-domain grounded-surface acceptance gym.
   npmScripts: 384,
-  // v0.16.90 shipped the 276th release-contract ledger file; v0.16.91 may add
+  // v0.16.91 shipped the 277th release-contract ledger file; v0.16.92 may add
   // exactly one current-release contract.
-  releaseContractFiles: 276,
+  releaseContractFiles: 277,
   trackedWeightFiles: 62,
   trackedWeightBytes: 1_053_339_981,
   largeBinaryBytes: 1024 * 1024,
@@ -147,7 +147,11 @@ const lazyChunkBudgets = [
   // scope helpers now share the existing courseMapContinuation cache chunk,
   // reducing the hot workspace parse to 280.6/84.4 locally. Keep Linux zlib
   // variance bounded without moving any dependency onto landing.
-  { prefix: 'AppFlow-', rawKiB: 281, gzipKiB: 84.8 },
+  // v0.16.92 adds the bounded autosave-failure confirmation timer to the
+  // persistence owner. The workspace-only chunk measures 281.3/84.7 locally
+  // and 281.3/84.9 on CI's Node 22 zlib; grant 0.5/0.2 KiB for the feature and
+  // platform variance without moving any dependency onto landing.
+  { prefix: 'AppFlow-', rawKiB: 281.5, gzipKiB: 85 },
   // v0.16.47: the Living Course Compiler component and pure selector gained
   // an independently cacheable route boundary instead of raising AppFlow's
   // long-standing ratchet. Clean measurement: AppFlow 251.6/75.9; ribbon
