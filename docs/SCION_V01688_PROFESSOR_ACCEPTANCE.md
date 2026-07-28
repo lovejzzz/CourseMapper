@@ -35,9 +35,9 @@ five fragments failed the exact four-lesson contract.
 
 Observed V0.16.87 result:
 
-- 1/4 knowledge kernels;
+- 0/4 knowledge kernels;
 - no current-source research despite the named action;
-- 53/100 Automated Readiness;
+- 33/100 Automated Readiness;
 - archive verification passed, demonstrating why archive integrity cannot stand
   in for content readiness.
 
@@ -81,23 +81,23 @@ wiring. These tests fail on the deployed V0.16.87 behavior and pass on V0.16.88.
 The same storage-ephemeral browser and exact prompt were replayed against the
 V0.16.88 source tree.
 
-| Measure                       |     Result |
-| ----------------------------- | ---------: |
-| Named lessons forecast        |        4/4 |
-| Private-ready lessons         |        1/4 |
-| Explicitly researched lessons |        3/4 |
-| Admitted source ledgers       |        4/4 |
-| Course Map lessons            |        4/4 |
-| Lesson kernels                |        4/4 |
-| Material families             |        9/9 |
-| Blockers / warnings           |      0 / 0 |
-| Automated Readiness           |     69/100 |
-| Package conformance           |       99/A |
-| Texture                       |         97 |
-| Export checks                 |      38/38 |
-| Model download / requests     |    0 B / 0 |
-| Model tokens / rewrite cost   | 0 / $0.000 |
-| Observed completion time      | 10 seconds |
+| Measure                       |           Result |
+| ----------------------------- | ---------------: |
+| Named lessons forecast        |              4/4 |
+| Private-ready lessons         |              1/4 |
+| Explicitly researched lessons |              3/4 |
+| Admitted source ledgers       |              4/4 |
+| Course Map lessons            |              4/4 |
+| Lesson kernels                |              4/4 |
+| Material families             |              9/9 |
+| Blockers / warnings           |            0 / 0 |
+| Automated Readiness           |           69/100 |
+| Package conformance           |             99/A |
+| Texture                       |               97 |
+| Export checks                 |            38/38 |
+| Model download / requests     |          0 B / 0 |
+| Model tokens / rewrite cost   |       0 / $0.000 |
+| Observed completion time      | about 16 seconds |
 
 The source route disclosed `W3C/WAI → Wikipedia → DOAJ` before the click. The
 run recorded three researched lessons, eleven checked source candidates during
@@ -159,11 +159,10 @@ Before merge:
 
 The final local run passes 470 unit-test files and 5,878 active tests, with 16
 files and 162 tests intentionally skipped; 151/151 Chromium tests; the 40/40
-layered evaluation; the 18/40 PR compiler contract profile; 40/40 physical gold
-packages with zero blockers or warnings; 6/6 Firestore rules tests; format,
-lint, build, bundle, constitution, release-history, generated-runtime, and
-headless provenance checks. These are compiler-contract results, not instructor
-or classroom validation.
+layered evaluation; the 18/40 PR compiler contract profile; format, lint,
+build, bundle, release-history, generated-runtime, and headless provenance
+checks. These are compiler-contract results, not instructor or classroom
+validation.
 
 After deployment, the exact production prompt must be repeated from a fresh,
 cache-busted session. Acceptance requires:

@@ -32,7 +32,7 @@
     },
     "liveProvider": {
       "status": "not-current",
-      "note": "The production adaptive run entered private mode despite the consent-bearing action, prepared only 1/4 lesson kernels, scored 53/100 Automated Readiness, and remained blocked. V0.16.88 carries the repair."
+      "note": "The production adaptive run entered private mode despite the consent-bearing action, prepared 0/4 lesson kernels, scored 33/100 Automated Readiness, and remained blocked. V0.16.88 carries the repair."
     },
     "manualHuman": {
       "status": "not-applicable",

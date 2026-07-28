@@ -38,7 +38,7 @@
     },
     "manualBrowser": {
       "status": "verified-local",
-      "note": "The exact production prompt was replayed on a clean local origin: four named lessons, 4/4 kernels, 9/9 materials, zero blockers or warnings, readiness 69/100, conformance 99/A, texture 97, and 38/38 export checks in 10 seconds. The 35-file ZIP passed physical and offline regrade checks with complete 48/48 source-reference coverage."
+      "note": "The exact production prompt was replayed on a clean local origin: four named lessons, 4/4 kernels, 9/9 materials, zero blockers or warnings, readiness 69/100, conformance 99/A, texture 97, and 38/38 export checks in about 16 seconds."
     }
   },
   "claims": [
@@ -46,7 +46,7 @@
       "id": "v01688-production-failure-recorded",
       "status": "verified-current",
       "changelogHighlightIndex": 0,
-      "summary": "The first V0.16.87 production package was rejected because the consent-bearing action reached generation as private mode and prepared only one of four lesson kernels.",
+      "summary": "The first V0.16.87 production package was rejected because the consent-bearing action reached generation as private mode and prepared zero of four lesson kernels.",
       "anchors": ["README.md", "docs/SCION_V01688_PROFESSOR_ACCEPTANCE.md"],
       "proofCommands": ["npm run audit:release-history"],
       "proofScopes": ["doc", "static-audit"]
