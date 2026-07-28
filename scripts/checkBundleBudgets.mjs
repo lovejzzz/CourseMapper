@@ -36,7 +36,10 @@ const repositoryBudgets = {
   // policy-domain separation and concept-owned evidence binding. Source-
   // statement copy and prerequisite selection moved to a cacheable leaf; the
   // increase is regression-covered and contains no fixed course-copy corpus.
-  compilerLines: 28_000,
+  // V0.16.91 routes three historically weak surfaces through one canonical
+  // evidence packet. Most copy lives in compilerEvidenceCopy; eight controller
+  // lines remain for syllabus, lesson-plan, rubric, and study-guide wiring.
+  compilerLines: 28_010,
   // v0.16.81 adds one executable Algi→Scion hybrid benchmark audit. It freezes
   // evidence, route, quality, call, latency, and export promotion rules; this
   // is a release gate rather than product-side script sprawl.
@@ -47,7 +50,8 @@ const repositoryBudgets = {
   // V0.16.84 adds three bounded commands for the frozen three-route audit,
   // anonymous packet construction, and artifact-bound evidence construction.
   // These are evaluation/reproduction entry points, not product runtime work.
-  npmScripts: 383,
+  // V0.16.91 adds one frozen five-domain grounded-surface acceptance gym.
+  npmScripts: 384,
   // v0.16.90 shipped the 276th release-contract ledger file; v0.16.91 may add
   // exactly one current-release contract.
   releaseContractFiles: 276,
@@ -317,12 +321,11 @@ const lazyChunkBudgets = [
   // v0.16.65: varied assessment and material-polish copy moved out of the
   // compiler hot chunk. This compile-only leaf stays independently cacheable.
   { prefix: 'compilerPolish-', rawKiB: 8, gzipKiB: 3 },
-  // V0.16.82: synthesis-evidence copy, distinct prerequisite selection, and
-  // policy-signal scoring are pure, cacheable leaves instead of expanding the
-  // core compiler controller. Moving the duplicated policy patterns here
-  // reduces the hot compiler from 843.2/236.0 to 841.5/235.6 KiB; the leaf
-  // measures 3.4/1.4 and keeps only narrow platform-variance headroom.
-  { prefix: 'compilerEvidenceCopy-', rawKiB: 3.75, gzipKiB: 1.5 },
+  // V0.16.91 moves the canonical evidence packet, grounded syllabus summary,
+  // and study-guide evidence copy into this compile-only leaf. The main
+  // compiler remains under its shipped chunk ceiling; the leaf measures
+  // 7.4/3.0 KiB and retains only narrow platform-variance headroom.
+  { prefix: 'compilerEvidenceCopy-', rawKiB: 7.5, gzipKiB: 3.1 },
   // v0.16.73 learner-visible not-applicable states measured 163.8/35.2.
   // The editable activity briefing remains isolated from the main view.
   { prefix: 'DeliverableView-', rawKiB: 170, gzipKiB: 36.5 },

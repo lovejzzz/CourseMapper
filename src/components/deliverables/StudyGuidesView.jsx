@@ -79,6 +79,42 @@ export default function StudyGuidesView({
                   </div>
                 )}
 
+                {g.sourceEvidenceBrief?.claims?.length > 0 && (
+                  <div className="rounded-xl border border-teal-100 bg-teal-50/45 p-3">
+                    <SectionHeading>Evidence Ledger</SectionHeading>
+                    <ul className="mt-1.5 space-y-1.5">
+                      {g.sourceEvidenceBrief.claims.map((claim, j) => (
+                        <li key={j} className="flex gap-2 text-xs leading-relaxed text-slate-700">
+                          <span className="mt-0.5 shrink-0 text-teal-500">◆</span>
+                          <E value={claim} path={[key, i, 'sourceEvidenceBrief', 'claims', j]} onEdit={onEdit} />
+                        </li>
+                      ))}
+                    </ul>
+                    {g.sourceEvidenceBrief.sources?.length > 0 && (
+                      <p className="mt-2 text-xs leading-relaxed text-slate-500">
+                        <span className="font-semibold text-slate-600">Study from:</span>{' '}
+                        {g.sourceEvidenceBrief.sources.map((source, j) => (
+                          <React.Fragment key={`${source.url || source.title}-${j}`}>
+                            {j > 0 ? '; ' : ''}
+                            {source.url ? (
+                              <a
+                                href={source.url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="font-medium text-teal-700 underline decoration-teal-200 underline-offset-2"
+                              >
+                                {source.title}
+                              </a>
+                            ) : (
+                              source.title
+                            )}
+                          </React.Fragment>
+                        ))}
+                      </p>
+                    )}
+                  </div>
+                )}
+
                 {/* Key Terms */}
                 {g.keyTerms?.length > 0 && (
                   <div>

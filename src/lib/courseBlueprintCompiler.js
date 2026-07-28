@@ -92,12 +92,16 @@ import {
   slideDecisionMove,
 } from './courseCompilerPolish';
 import {
+  buildGroundedStudyGuideEvidenceCopy,
+  buildLessonEvidenceBrief,
   faqTermDefinitionSentence,
+  groundedSyllabusCourseDescription,
   hasPolicyAnalysisEvidence,
   integrativeStudyGuideCopy,
   policyAnalysisEvidenceScores,
   selectConceptEvidenceFact,
   selectDistinctPrerequisiteConcept,
+  sourceComposedStudySummary,
 } from './compilerEvidenceCopy';
 import { recordLegacyPathHit } from './legacyPathTelemetry';
 import {
@@ -17193,7 +17197,7 @@ function syllabusCourseDescription(blueprint) {
   if (isMusicIntervalBlueprint(blueprint)) {
     return `In ${blueprint.courseName}, students learn to classify written and heard intervals and explain how each label is verified. Across ${blueprint.totalLessons} connected lessons, they count letter names inclusively to determine interval number, check semitone distance to determine quality, reduce compound intervals, and apply inversion pairs whose numbers sum to nine. Notation, listening, and correction tasks require students to show the spelling, count, and verification behind every answer.`;
   }
-  return `In ${blueprint.courseName}, students work through ${blueprint.totalLessons} connected lessons that build from core concepts to applied decisions. ${blueprint.courseArc.throughline} The course emphasizes evidence use, structured practice, and feedback-informed improvement across the major assessments.`;
+  return groundedSyllabusCourseDescription(blueprint);
 }
 
 function compileSyllabus(blueprint) {
@@ -18409,6 +18413,7 @@ function compileRubrics(blueprint) {
       // path; legacy compiles are untouched.
       const isCodeLab = Boolean(assessment.registryId) && isCodeLabAssessment(assessment);
       const lesson = blueprint.lessons.find((item) => item.lessonNumber === assessment.lessonNumbers[0]);
+      const sourceEvidenceBrief = buildLessonEvidenceBrief(lesson, { claimLimit: 4, sourceLimit: 4 });
       const rubricSubmissionProfile = buildAssignmentSubmissionProfile({
         lesson,
         assessment,
@@ -18538,6 +18543,7 @@ function compileRubrics(blueprint) {
           criterionWeightPlan: effectiveWeightPlan,
         },
         bloomsLevel: assessment.bloomsLevel,
+        ...(sourceEvidenceBrief ? { sourceEvidenceBrief } : {}),
         blueprintGrounding: lessonSourceGrounding(lesson, {
           source: assessment.source,
           assessmentArtifact: assessment.artifact,
@@ -19215,6 +19221,15 @@ function compileStudyGuides(blueprint) {
         cleanText(primaryTeachingTerm?.term) || primaryConcept,
         primaryTeachingTerm?.definition,
       );
+      const sourceEvidenceBrief = buildLessonEvidenceBrief(lesson, { claimLimit: 4, sourceLimit: 4 });
+      const { secondaryAlignedFact, sourceComparisonQuestion, sourceEvidencePractice } =
+        buildGroundedStudyGuideEvidenceCopy({
+          lesson,
+          sourceEvidenceBrief,
+          primaryAlignedFact,
+          primaryConcept,
+          chooseVariant: (options) => lessonVariant(lesson, options),
+        });
       const prerequisiteConnection = integrativeCopy.prerequisite
         ? integrativeCopy.prerequisite
         : lesson.prerequisitePlan?.prerequisiteEvidence ||
@@ -19304,7 +19319,7 @@ function compileStudyGuides(blueprint) {
         // fallback for un-enriched lessons.
         summary:
           integrativeCopy.summary ||
-          cleanText(lesson.enrichment?.studyGuide?.summary) ||
+          sourceComposedStudySummary(lesson, lesson.enrichment?.studyGuide?.summary) ||
           (isDataScience
             ? `${lesson.title} focuses on ${conceptList}. Students should inspect ${datasetName}, read notebook outputs, use ${dataScienceEvidenceCue}, and explain how the evidence changes the modeling decision.`
             : musicTheoryGuides.length > 0
@@ -19315,6 +19330,7 @@ function compileStudyGuides(blueprint) {
                   `${lesson.title} turns ${conceptList} into a study lens for ${studyArtifact}. Students practice when they ${phrase.evidenceMove} before they ${phrase.decisionMove}.`,
                   `In this guide, ${conceptPair} anchors the review routine: ${phrase.evidenceMove}, connect it to ${studyArtifact}, and ${phrase.decisionMove}.`,
                 ])),
+        ...(sourceEvidenceBrief ? { sourceEvidenceBrief } : {}),
         sourceGrounding: lessonSourceGrounding(lesson, {
           anchorExampleSet: assessment.anchorExampleSet,
           learnerContextProfile: blueprint.learnerContextProfile,
@@ -19425,13 +19441,15 @@ function compileStudyGuides(blueprint) {
               ]
             : [
                 {
-                  question: studyGuideCoreQuestion({
-                    lessonNumber: lesson.lessonNumber,
-                    lessonFocus: stripLessonPrefix(lesson.title),
-                    week: specificity.week,
-                    evidenceNoun: lens.evidenceNoun,
-                    sourceCue: lessonSourceCue,
-                  }),
+                  question:
+                    sourceComparisonQuestion ||
+                    studyGuideCoreQuestion({
+                      lessonNumber: lesson.lessonNumber,
+                      lessonFocus: stripLessonPrefix(lesson.title),
+                      week: specificity.week,
+                      evidenceNoun: lens.evidenceNoun,
+                      sourceCue: lessonSourceCue,
+                    }),
                   bloomsLevel: 'Analyze',
                   hint: lessonVariant(lesson, [
                     `Name ${phrase.context}, then connect one source detail to the decision it changes.`,
@@ -19444,10 +19462,10 @@ function compileStudyGuides(blueprint) {
                 // review question asks about the SUBJECT, not the assessment
                 // process (the v0.13.1 audit's "what would strong work need
                 // to show" meta-question).
-                ...(primaryAlignedFact
+                ...(secondaryAlignedFact
                   ? [
                       {
-                        question: `For ${specificity.week}, explain why this ${specificity.concept} claim is true and what evidence supports it: “${stripTerminalPunctuation(primaryAlignedFact)}”`,
+                        question: `For ${specificity.week}, explain why this ${specificity.concept} claim is true and what evidence supports it: “${stripTerminalPunctuation(secondaryAlignedFact)}”`,
                         bloomsLevel: 'Analyze',
                         hint: lessonVariant(lesson, [
                           `Use ${conceptPair} in your explanation. Add one observable detail that supports the claim and explain how it changes the method decision.`,
@@ -19496,18 +19514,7 @@ function compileStudyGuides(blueprint) {
           // v0.15.187 atom routing: when the kernel names the actual material
           // students analyze, the first practice move works on THAT material
           // and rehearses a real authored fact — not a generic note format.
-          ...(cleanText(lesson.enrichment?.kernel?.scenario?.materials)
-            ? [
-                lessonVariant(lesson, [
-                  `Work directly with ${stripTerminalPunctuation(cleanText(lesson.enrichment.kernel.scenario.materials))}: mark the detail that best supports the ${primaryConcept} claim, the detail that complicates it, and the decision each one points to.${primaryAlignedFact ? ` Check your reading against this: ${stripTerminalPunctuation(primaryAlignedFact)}.` : ''}`,
-                  `Inspect ${stripTerminalPunctuation(cleanText(lesson.enrichment.kernel.scenario.materials))}. Identify the strongest ${primaryConcept} evidence, one counter-detail, and the judgment that follows.${primaryAlignedFact ? ` Test that judgment against this course statement: ${stripTerminalPunctuation(primaryAlignedFact)}.` : ''}`,
-                  `Annotate ${stripTerminalPunctuation(cleanText(lesson.enrichment.kernel.scenario.materials))} for one ${primaryConcept} signal and one complication. Explain which interpretation survives the comparison.${primaryAlignedFact ? ` Use this fact as the boundary check: ${stripTerminalPunctuation(primaryAlignedFact)}.` : ''}`,
-                  `Use ${stripTerminalPunctuation(cleanText(lesson.enrichment.kernel.scenario.materials))} to separate supporting evidence from uncertainty about ${primaryConcept}. Record the conclusion each detail permits.${primaryAlignedFact ? ` Reconcile your note with this statement: ${stripTerminalPunctuation(primaryAlignedFact)}.` : ''}`,
-                  `Compare the relevant details in ${stripTerminalPunctuation(cleanText(lesson.enrichment.kernel.scenario.materials))}. Choose the evidence that best warrants a ${primaryConcept} claim and name what could weaken it.${primaryAlignedFact ? ` Then check the claim against: ${stripTerminalPunctuation(primaryAlignedFact)}.` : ''}`,
-                  `Trace a ${primaryConcept} claim through ${stripTerminalPunctuation(cleanText(lesson.enrichment.kernel.scenario.materials))}: cite its strongest support, surface a limiting detail, and revise the judgment accordingly.${primaryAlignedFact ? ` Keep this admitted fact in view: ${stripTerminalPunctuation(primaryAlignedFact)}.` : ''}`,
-                ]),
-              ]
-            : []),
+          ...(sourceEvidencePractice ? [sourceEvidencePractice] : []),
           ...(isDataScience
             ? [
                 `Open the ${specificity.week} notebook or dataset card and identify the target/outcome, two important features, and one data-quality risk for ${stripLessonPrefix(lesson.title)}.`,
@@ -27418,6 +27425,7 @@ function compileLessonPlans(blueprint, options = {}) {
       });
       const admittedLanguageObjective = admittedLanguagePlan?.objective || '';
       const admittedLanguageMaterials = admittedLanguagePlan?.materials || materials;
+      const sourceEvidenceBrief = buildLessonEvidenceBrief(lesson, { claimLimit: 4, sourceLimit: 4 });
       const outlineMinutes = outline.reduce((sum, item) => sum + (Number.parseInt(item.time, 10) || 0), 0);
       const dryRunRow =
         compilerProofBundle.classroomDryRunPlan?.lessonRows?.find((row) => row.lessonNumber === lesson.lessonNumber) ||
@@ -27435,6 +27443,7 @@ function compileLessonPlans(blueprint, options = {}) {
         lessonTitle: lesson.title,
         weekNumber: `Week ${lesson.lessonNumber}`,
         duration: `${classSessionPlan.sessionMinutes} minutes`,
+        ...(sourceEvidenceBrief ? { sourceEvidenceBrief } : {}),
         ...(!experientialActivity && experientialActivityRequested
           ? {
               experientialActivityStatus: {
