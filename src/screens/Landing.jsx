@@ -10,7 +10,12 @@ import SetupProgress from '../components/SetupProgress';
 import { LATEST_RELEASE } from '../lib/latestRelease';
 import { formatCoverageTopicLabel } from '../lib/algiCoverageForecast';
 import { PUBLIC_SCION_MODEL_NAME, PUBLIC_SCION_PROVIDER_ID } from '../lib/publicScionIdentity';
-import { SCION_RESEARCH_CHANGE_EVENT, readScionResearchEnabled } from '../lib/scionResearchPolicy';
+import {
+  SCION_RESEARCH_CHANGE_EVENT,
+  readScionResearchEnabled,
+  saveScionResearchEnabled,
+} from '../lib/scionResearchPolicy';
+import useScionDeviceCapability from '../hooks/useScionDeviceCapability';
 
 const ACCEPTED_EXTENSIONS = [
   '.doc',
@@ -39,6 +44,7 @@ const PROJECT_EXTENSIONS = ['.coursemapper', '.json'];
 
 function formatResearchProviderOrder(providerOrder = []) {
   const labels = {
+    'w3c-wai': 'W3C/WAI',
     'europe-pmc': 'Europe PMC',
     doaj: 'DOAJ',
     wikipedia: 'Wikipedia',
@@ -373,6 +379,7 @@ export default function Landing({
     (name) => !files.some((file) => file?.name === name),
   );
   const scionSelected = provider === PUBLIC_SCION_PROVIDER_ID;
+  const scionDeviceCapability = useScionDeviceCapability(scionSelected);
 
   useEffect(() => {
     const handleResearchChange = (event) => {
@@ -518,6 +525,22 @@ export default function Landing({
     Boolean(onQuickStart) &&
     promptText.trim().length > 0 &&
     (providerIsKeyless ? apiStatus === 'connected' : Boolean(apiKey?.trim()));
+  const quickStartNeedsCurrentSources = Boolean(
+    scionSelected &&
+    scionDeviceCapability.evidenceCompiler &&
+    scionCoverageForecast?.status === 'ready' &&
+    scionCoverageForecast.externalNeeded > 0 &&
+    !scionResearchEnabled,
+  );
+  const handleQuickStartClick = useCallback(() => {
+    if (quickStartNeedsCurrentSources) {
+      // The button names this network boundary before the click. Persist the
+      // choice synchronously so AppFlow's first build frame sees the same
+      // research route even though React state updates after navigation.
+      saveScionResearchEnabled(true);
+    }
+    onQuickStart(promptText);
+  }, [onQuickStart, promptText, quickStartNeedsCurrentSources]);
   const providerLabel =
     { openai: 'OpenAI', anthropic: 'Anthropic', google: 'Google', deepseek: 'DeepSeek' }[provider] ||
     'selected provider';
@@ -819,7 +842,11 @@ export default function Landing({
                     <span className="font-semibold text-status-success">Connected</span>
                     {provider === PUBLIC_SCION_PROVIDER_ID && (
                       <span className="rounded-full border border-line-strong bg-surface px-2 py-1 text-label font-semibold text-ink-muted">
-                        On-device
+                        {scionDeviceCapability.phase === 'checking'
+                          ? 'Checking device'
+                          : scionDeviceCapability.evidenceCompiler
+                            ? 'Zero-download'
+                            : 'Local model'}
                       </span>
                     )}
                     <button
@@ -872,7 +899,7 @@ export default function Landing({
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <p className="text-xs font-semibold text-slate-800 dark:text-slate-100">
                           {scionCoverageForecast.externalNeeded === 0
-                            ? `On-device evidence ready for all ${scionCoverageForecast.requested} lessons`
+                            ? `Private evidence ready for all ${scionCoverageForecast.requested} lessons`
                             : `${scionCoverageForecast.privateCovered}/${scionCoverageForecast.requested} lessons ready on this device`}
                         </p>
                         <span
@@ -898,7 +925,11 @@ export default function Landing({
                             ? `Scion will check ${formatResearchProviderOrder(
                                 scionCoverageForecast.researchPlan?.providerOrder,
                               )}, verify admitted claims against source passages, and cache compact evidence on this device.`
-                            : 'Scion will stay on device and use the local model for unsupported lessons rather than sending course topics to a research service.'}
+                            : scionDeviceCapability.evidenceCompiler
+                              ? `Choose “Use current sources & generate” to send only the course title and ${scionCoverageForecast.externalNeeded} uncovered lesson topic${scionCoverageForecast.externalNeeded === 1 ? '' : 's'} to ${formatResearchProviderOrder(
+                                  scionCoverageForecast.researchPlan?.providerOrder,
+                                )}. Scion verifies admitted claims and saves compact evidence on this device.`
+                              : 'Scion will stay on device and use the local model for unsupported lessons rather than sending course topics to a research service.'}
                         {files.length > 0
                           ? ' Attached files are evaluated during the build and may close additional gaps.'
                           : ''}
@@ -937,12 +968,12 @@ export default function Landing({
                   <button
                     type="button"
                     data-testid="landing-quick-start"
-                    onClick={() => onQuickStart(promptText)}
+                    onClick={handleQuickStartClick}
                     disabled={isGenerating}
                     className="tactile btn-glow mt-5 w-full rounded-lg bg-slate-950 px-8 py-4 text-sm font-semibold tracking-wide text-white shadow-lg shadow-slate-950/15 transition-all duration-300 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-slate-950 dark:shadow-white/10"
                   >
                     <span className="flex items-center justify-center gap-2.5">
-                      Generate full course
+                      {quickStartNeedsCurrentSources ? 'Use current sources & generate' : 'Generate full course'}
                       <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path
                           strokeLinecap="round"

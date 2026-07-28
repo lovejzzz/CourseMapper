@@ -422,7 +422,8 @@ body {
 
 /* Generic white/light backgrounds → use custom properties */
 .dark .bg-white,
-.dark [class*='bg-white\/'] {
+.dark [class^='bg-white/'],
+.dark [class*=' bg-white/'] {
   background-color: var(--color-surface) !important;
 }
 .dark .bg-slate-50,
@@ -443,7 +444,8 @@ body {
    the user's theme. The whole 16:9 artboard is scaled by SlideDecksView, so
    this also keeps the browser preview faithful to the downloaded PPTX. */
 .dark .slide-preview-fixed-canvas .bg-white,
-.dark .slide-preview-fixed-canvas [class*='bg-white\/'] {
+.dark .slide-preview-fixed-canvas [class^='bg-white/'],
+.dark .slide-preview-fixed-canvas [class*=' bg-white/'] {
   background-color: #ffffff !important;
 }
 

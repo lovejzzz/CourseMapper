@@ -217,8 +217,18 @@ export function deriveDecisionScenario(kernel, { compactFactLedgerScenarios = tr
   if (factLedgerScenario) return factLedgerScenario;
 
   const exampleIdentity = scenarioTemplateIdentity(term.example);
-  const distinctFacts = facts.filter((candidate) => scenarioTemplateIdentity(candidate) !== exampleIdentity);
-  const fact = [...(distinctFacts.length > 0 ? distinctFacts : facts)].sort(
+  const distinctFacts = facts.filter((candidate) => {
+    const candidateIdentity = scenarioTemplateIdentity(candidate);
+    if (!candidateIdentity || candidateIdentity === exampleIdentity) return false;
+    // Research examples often quote a source fact and then add one explanatory
+    // clause. Repeating the shorter fact as "The record also states" is still
+    // an echo even though the two strings are not byte-identical.
+    return !(
+      (candidateIdentity.length >= 32 && exampleIdentity.includes(candidateIdentity)) ||
+      (exampleIdentity.length >= 32 && candidateIdentity.includes(exampleIdentity))
+    );
+  });
+  const fact = [...distinctFacts].sort(
     (left, right) =>
       overlap(`${term.term} ${term.definition} ${term.example}`, right) -
       overlap(`${term.term} ${term.definition} ${term.example}`, left),
@@ -257,9 +267,11 @@ export function deriveDecisionScenario(kernel, { compactFactLedgerScenarios = tr
     setup: [
       ensureSentence(caseSentence),
       ensureSentence(comparisonSentence),
-      ensureSentence(`The record also states: ${fact}`),
+      fact ? ensureSentence(`The record also states: ${fact}`) : '',
       ensureSentence(decisionSentence),
-    ].join(' '),
+    ]
+      .filter(Boolean)
+      .join(' '),
     // This label is rendered in lesson plans and study guides. Keep it useful
     // to a learner: implementation language such as "misconception-correction
     // pair" and repeating the term ("Connect X to the X case") made an

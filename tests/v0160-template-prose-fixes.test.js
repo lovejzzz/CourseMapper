@@ -73,8 +73,8 @@ describe('finalizer determiner collision (bug 1)', () => {
     expect(finalize('Norm scoring by contrasting two the Week 4 sets samples.')).toContain('two Week 4 sets samples');
   });
 
-  it('never reaches across a phrase boundary', () => {
-    expect(finalize('Bring a draft of the Week 4 sets to class.')).toContain('a draft of the Week 4 sets');
+  it('never reaches determiner cleanup across a phrase boundary while polishing completion language', () => {
+    expect(finalize('Bring a draft of the Week 4 sets to class.')).toContain('a working version of the Week 4 sets');
     expect(finalize('Students respond to the Week 4 sets feedback.')).toContain('to the Week 4 sets feedback');
   });
 });

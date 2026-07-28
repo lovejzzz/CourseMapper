@@ -44,6 +44,16 @@ describe('Algi course research planning', () => {
     expect(providerSupportsLesson(plan, 'Postcolonial narrative and voice', 'europe-pmc')).toBe(false);
   });
 
+  it('treats digital accessibility as a research domain and disambiguates encyclopedia queries', () => {
+    const plan = planAlgiCourseResearch({
+      courseName: 'Digital Accessibility for Product Teams',
+      lessons: [{ lessonId: 'lesson-1', title: 'accessible forms' }],
+    });
+    expect(plan.domain).toBe('social-science');
+    expect(plan.providerOrder).toEqual(['w3c-wai', 'wikipedia', 'doaj']);
+    expect(providerQueryForLesson(plan, 'accessible forms', 'wikipedia')).toBe('"accessible forms" digital');
+  });
+
   it('marks current policy lessons for a short cache lifetime', () => {
     const plan = planAlgiCourseResearch({
       courseName: 'Technology Policy',

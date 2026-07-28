@@ -7,6 +7,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const mocks = vi.hoisted(() => ({
   buildProviderTextRequest: vi.fn(),
   runScionLocalCompletion: vi.fn(),
+  composeAlgiResponse: vi.fn(),
+  readScionResearchEnabled: vi.fn(() => false),
+  buildPublicScionExactSourceLedgerResponse: vi.fn(() => ''),
 }));
 
 vi.mock('../src/lib/modelRequestBuilders', () => ({
@@ -15,6 +18,18 @@ vi.mock('../src/lib/modelRequestBuilders', () => ({
 
 vi.mock('../src/lib/scionLocalProvider', () => ({
   runScionLocalCompletion: mocks.runScionLocalCompletion,
+}));
+
+vi.mock('../src/lib/algiComposer', () => ({
+  composeAlgiResponse: mocks.composeAlgiResponse,
+}));
+
+vi.mock('../src/lib/scionResearchPolicy', () => ({
+  readScionResearchEnabled: mocks.readScionResearchEnabled,
+}));
+
+vi.mock('../src/lib/publicScionProvider', () => ({
+  buildPublicScionExactSourceLedgerResponse: mocks.buildPublicScionExactSourceLedgerResponse,
 }));
 
 import useStreamReader from '../src/hooks/useStreamReader';
@@ -43,6 +58,11 @@ afterEach(async () => {
   vi.restoreAllMocks();
   mocks.buildProviderTextRequest.mockReset();
   mocks.runScionLocalCompletion.mockReset();
+  mocks.composeAlgiResponse.mockReset();
+  mocks.readScionResearchEnabled.mockReset();
+  mocks.readScionResearchEnabled.mockReturnValue(false);
+  mocks.buildPublicScionExactSourceLedgerResponse.mockReset();
+  mocks.buildPublicScionExactSourceLedgerResponse.mockReturnValue('');
 });
 
 describe('useStreamReader Scion boundary', () => {
@@ -162,6 +182,137 @@ describe('useStreamReader Scion boundary', () => {
         execution: 'browser-local',
       }),
     );
+  });
+
+  it('adapts to the private evidence compiler when this browser cannot obtain a WebGPU adapter', async () => {
+    mocks.readScionResearchEnabled.mockReturnValue(true);
+    const capabilityError = Object.assign(new Error('This browser could not start a WebGPU adapter for Scion.'), {
+      code: 'SCION_WLLAMA_WEBGPU_ADAPTER',
+    });
+    mocks.runScionLocalCompletion.mockRejectedValue(capabilityError);
+    mocks.composeAlgiResponse.mockResolvedValue({
+      text: '{"courseName":"Digital Accessibility","lessons":[]}',
+      coverage: { covered: 3, requested: 3, researched: 0, cachedResearch: 0 },
+    });
+    const onChunk = vi.fn();
+    const onApiCallEvent = vi.fn();
+
+    let result;
+    await act(async () => {
+      result = await reader.streamProvider(
+        'public',
+        '',
+        'scion-public',
+        'System',
+        'Digital Accessibility, exactly three lessons.',
+        {
+          task: 'course-map',
+          structuredPrompt: { courseTitle: 'Digital Accessibility' },
+          onChunk,
+          onApiCallEvent,
+        },
+      );
+    });
+
+    expect(result).toEqual({
+      fullText: '{"courseName":"Digital Accessibility","lessons":[]}',
+      finishReason: 'stop',
+      adaptiveRoute: 'scion-evidence-compiler',
+      modelRequests: 0,
+    });
+    expect(mocks.composeAlgiResponse).toHaveBeenCalledWith(
+      expect.objectContaining({
+        task: 'course-map',
+        structuredPrompt: { courseTitle: 'Digital Accessibility' },
+        researchEnabled: true,
+      }),
+    );
+    expect(onChunk).toHaveBeenCalledWith('{"courseName":"Digital Accessibility","lessons":[]}', 1);
+    expect(onApiCallEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'scionAdaptiveRoute',
+        routeReason: 'SCION_WLLAMA_WEBGPU_ADAPTER',
+        modelRequests: 0,
+        execution: 'browser-compiler',
+      }),
+    );
+    expect(onApiCallEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'scionEvidenceComposed',
+        label: 'Scion evidence composition complete',
+        modelRequests: 0,
+      }),
+    );
+    expect(onApiCallEvent).not.toHaveBeenCalledWith(expect.objectContaining({ type: 'failedCall' }));
+  });
+
+  it('projects the preflight evidence ledger exactly instead of researching it a second time', async () => {
+    const capabilityError = Object.assign(new Error('This browser could not start a WebGPU adapter for Scion.'), {
+      code: 'SCION_WLLAMA_WEBGPU_ADAPTER',
+    });
+    mocks.runScionLocalCompletion.mockRejectedValue(capabilityError);
+    const exactText = JSON.stringify({
+      lessons: [
+        {
+          lessonId: 'lesson-1',
+          facts: [
+            'The first admitted source claim is preserved exactly.',
+            'The second admitted source claim is preserved exactly.',
+            'The third admitted source claim is preserved exactly.',
+          ],
+          keyTerms: [],
+        },
+      ],
+    });
+    mocks.buildPublicScionExactSourceLedgerResponse.mockReturnValue(exactText);
+    const onApiCallEvent = vi.fn();
+
+    let result;
+    await act(async () => {
+      result = await reader.streamProvider('public', '', 'scion-public', 'System', 'Course: Accessibility', {
+        task: 'blueprintEnrichment',
+        structuredPrompt: { lessons: [{ lessonId: 'lesson-1' }] },
+        onApiCallEvent,
+      });
+    });
+
+    expect(result.fullText).toBe(exactText);
+    expect(result.modelRequests).toBe(0);
+    expect(result.adapterRoutes).toEqual([
+      expect.objectContaining({
+        taskFamily: 'lesson-kernel-synthesis',
+        factLedgerOnly: true,
+        exactSourceLedger: true,
+        modelCalls: 0,
+      }),
+    ]);
+    expect(mocks.composeAlgiResponse).not.toHaveBeenCalled();
+    expect(onApiCallEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'scionAdapterRoute',
+        routeReason: 'compiler-owned-exact-source-ledger',
+        routeModelCalls: 0,
+        execution: 'browser-compiler',
+      }),
+    );
+  });
+
+  it('does not hide a semantic admission error behind the adaptive evidence lane', async () => {
+    const semanticError = Object.assign(new Error('Incomplete kernel'), {
+      code: 'SCION_LOCAL_INCOMPLETE',
+      admissionIssues: ['lesson-1:key-terms-count:1/3'],
+    });
+    mocks.runScionLocalCompletion.mockRejectedValue(semanticError);
+
+    await expect(
+      act(async () => {
+        await reader.streamProvider('public', '', 'scion-public', 'System', 'Course', {
+          task: 'blueprintEnrichment',
+        });
+      }),
+    ).rejects.toThrow('Incomplete kernel');
+
+    expect(mocks.composeAlgiResponse).not.toHaveBeenCalled();
   });
 
   it('records semantic issue and kernel-shape evidence on a local retry', async () => {

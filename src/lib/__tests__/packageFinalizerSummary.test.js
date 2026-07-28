@@ -140,6 +140,7 @@ describe('packageFinalizerSummary', () => {
       courseMap: { lessons: [{}, {}] },
       apiSpendSummary: { label: 'within budget' },
       compilerSummary: { compiledFeatureCount: 2 },
+      sourceGroundedLessonCount: 2,
       labelForFeature: (featureId) => ({ courseMap: 'Course Map', syllabus: 'Syllabus' })[featureId],
     });
 
@@ -147,6 +148,11 @@ describe('packageFinalizerSummary', () => {
     expect(receipt.lessonCount).toBe(2);
     expect(receipt.autoFixedCount).toBe(1);
     expect(receipt.humanDecisionCount).toBe(2);
+    expect(receipt.compactTrustReceipt.fields).toContainEqual({
+      id: 'source-grounded',
+      label: 'Source-grounded',
+      value: '2/2 lessons',
+    });
     expect(receipt.topIssues).toEqual([
       { severity: 'error', label: 'Course Map', message: 'Repair the course map.' },
       { severity: 'warning', label: 'Syllabus', message: 'Confirm the calendar.' },
@@ -155,6 +161,19 @@ describe('packageFinalizerSummary', () => {
       { label: 'Course Map', action: 'Repair the course map.' },
       { label: 'Syllabus', action: 'Confirm the calendar.' },
     ]);
+  });
+
+  it('does not claim zero source-grounded lessons when coverage was not measured', () => {
+    const receipt = buildQualityReceipt({
+      result: { readiness: { blockers: [], warnings: [] } },
+      exportVerification: { status: 'passed', checked: 4, failed: 0, warningCount: 0, checks: [] },
+      selectedFeatureIds: ['courseMap'],
+      courseMap: { lessons: [{}, {}, {}] },
+    });
+
+    expect(receipt.compactTrustReceipt.fields).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: 'source-grounded' })]),
+    );
   });
 
   it('classifies assumption and blocker states honestly for progress UI', () => {

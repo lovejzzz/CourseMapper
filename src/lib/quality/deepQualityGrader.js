@@ -2149,10 +2149,22 @@ function extractCitationStrings(file) {
   return out;
 }
 
+// Canonical standards sometimes publish under an acronym whose surface form
+// shares no token with the course that legitimately teaches it. Expand only
+// exact, well-known standards here; a generic acronym exemption would let an
+// unrelated reading bypass the relevance control.
+const WAI_ARIA_CITATION_RE = /\bWAI[\s-]?ARIA\b/i;
+
 // Tokenize a citation for relevance, splitting hyphenated compounds too so
-// "geology-geobiology" contributes the discipline token "geology".
+// "geology-geobiology" contributes the discipline token "geology". Canonical
+// expansions preserve honest overlap for standards such as WAI-ARIA while an
+// unknown acronym still has to match the course vocabulary on its own.
 function citationTokens(text) {
-  return contentTokens(String(text || '').replace(/[-–—/]/g, ' '));
+  const source = String(text || '');
+  const expansion = WAI_ARIA_CITATION_RE.test(source)
+    ? ' Web Accessibility Initiative Accessible Rich Internet Applications'
+    : '';
+  return contentTokens(`${source}${expansion}`.replace(/[-–—/]/g, ' '));
 }
 
 // Overlap with discipline vocab, tolerating simple inflection via a shared

@@ -44,7 +44,7 @@ export default function SetupHelpDialog({ onClose }) {
           role="dialog"
           aria-modal="true"
           aria-labelledby="setup-help-title"
-          className="w-full max-w-md rounded-2xl border border-slate-200/80 bg-white p-4 shadow-2xl dark:border-slate-700 dark:bg-slate-900 sm:p-6"
+          className="max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto overscroll-contain rounded-2xl border border-slate-200/80 bg-white p-4 shadow-2xl dark:border-slate-700 dark:bg-slate-900 sm:max-h-[calc(100dvh-3rem)] sm:p-6"
         >
           <div className="flex items-start justify-between gap-4">
             <div>
@@ -85,8 +85,9 @@ export default function SetupHelpDialog({ onClose }) {
           </ol>
 
           <p className="mt-4 text-xs leading-5 text-slate-500 dark:text-slate-400">
-            Scion is EduTool’s customized local course model: public Gemma weights plus the Scion compiler. Your course
-            stays in this browser unless you export or save it.
+            Scion is EduTool’s customized course system: a private evidence compiler plus local public Gemma weights
+            when the device supports them. Your course stays in this browser unless you explicitly enable source
+            research, export, or save it.
           </p>
 
           <button

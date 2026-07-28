@@ -18,8 +18,8 @@ ${condenseCourseMap(cm, scope, verifiedChanges, columns)}
 Return JSON in this exact structure:
 {"syllabus":{
   "courseTitle":"Full course name with department code and number",
-  "semester":"${cm.semester || '12-week term'}",
-  "credits":"Estimate from course scope, e.g. '3 credits'",
+  "semester":"${cm.semester || 'Term and dates: confirm in the course site'}",
+  "credits":"Preserve an explicit credit value from the course map. If none is supplied, use exactly 'Credit value: confirm in the course site'; never infer credits from lesson count or scope.",
   "meetingPattern":"Use the course map/profile meeting pattern if supplied; otherwise state a course-relative pattern such as 'Weekly mixed lecture/lab session'",
   "location":"Use the course map/profile room or modality if supplied; otherwise use finished language such as 'Official course site and assigned class meeting space'",
   "deliveryMode":"Derive from the course format, e.g. In-Person, Online, Hybrid, Mixed lecture/lab",

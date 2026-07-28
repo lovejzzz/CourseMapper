@@ -141,17 +141,44 @@ function buildGroundedAdapterLesson(lesson, facts) {
     : null;
 }
 
-export function buildScionGroundedRefinementPrompt({ rawText, prompt, expectedLessonIds = [] } = {}) {
+export function buildScionGroundedRefinementPrompt({
+  rawText,
+  prompt,
+  expectedLessonIds = [],
+  diagnostics = null,
+  exactSourceProjection = false,
+} = {}) {
   if (!prompt?.userPrompt || !Array.isArray(prompt?.lessons) || expectedLessonIds.length === 0) return null;
-  const repaired = repairPublicScionJson(rawText, { userPrompt: prompt.userPrompt });
+  // A compiler-owned exact projection already copied the immutable source
+  // ledger byte-for-byte. General model-output repair may collapse a repeated
+  // content word or choose one sentence from a long fact; either is useful for
+  // sampled prose but is a provenance violation here. Parse and assess this
+  // route without mutation so the frozen ledger remains the single identity
+  // from research admission through canonical kernel parsing.
+  const repaired = exactSourceProjection
+    ? {
+        text: String(rawText || '')
+          .replace(/^```json\s*/i, '')
+          .replace(/^```\s*/i, '')
+          .replace(/```\s*$/i, '')
+          .trim(),
+        repairs: [],
+      }
+    : repairPublicScionJson(rawText, { userPrompt: prompt.userPrompt });
   let parsed;
   try {
     parsed = JSON.parse(repaired.text);
   } catch {
+    if (diagnostics && typeof diagnostics === 'object') diagnostics.issues = ['invalid-json'];
     return null;
   }
-  const assessment = assessPublicScionKernelResponse(repaired.text, prompt.userPrompt, 'blueprintEnrichment');
-  if (publicScionFactContractIssues(assessment).length > 0) return null;
+  const assessment = assessPublicScionKernelResponse(repaired.text, prompt.userPrompt, 'blueprintEnrichment', {
+    applyCompilerRepairs: !exactSourceProjection,
+    exactSourceProjection,
+  });
+  const factIssues = publicScionFactContractIssues(assessment);
+  if (diagnostics && typeof diagnostics === 'object') diagnostics.issues = [...factIssues];
+  if (factIssues.length > 0) return null;
   const returned = new Map(
     (Array.isArray(parsed?.lessons) ? parsed.lessons : [])
       .filter((lesson) => lesson?.lessonId)
@@ -323,7 +350,14 @@ export async function runScionPasses({
     let hasBoundFactLedger = false;
     let factLedgerRouteBlocked = false;
     if (shouldBindScionFactLedgerRoute(runtimeRoutes)) {
-      const boundPrompt = buildScionGroundedRefinementPrompt({ rawText, prompt, expectedLessonIds });
+      const factLedgerDiagnostics = {};
+      const boundPrompt = buildScionGroundedRefinementPrompt({
+        rawText,
+        prompt,
+        expectedLessonIds,
+        diagnostics: factLedgerDiagnostics,
+        exactSourceProjection: runtimeRoutes.some((route) => route?.exactSourceLedger === true),
+      });
       if (boundPrompt) {
         hasBoundFactLedger = true;
         workingPrompt = boundPrompt;
@@ -350,7 +384,9 @@ export async function runScionPasses({
         recordEvent({
           type: 'pipelineDecision',
           label: 'Scion fact-ledger boundary',
-          detail: 'rejected · fact-only response did not satisfy the immutable ledger contract',
+          detail: `rejected · fact-only response did not satisfy the immutable ledger contract${
+            factLedgerDiagnostics.issues?.length ? ` · ${factLedgerDiagnostics.issues.slice(0, 4).join(' · ')}` : ''
+          }`,
           stage: 'scionFactLedgerStage',
           featureId: 'blueprintEnrichment',
           task: 'blueprintEnrichment',

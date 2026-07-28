@@ -48,7 +48,7 @@ function titleCase(text) {
   const value = String(text || '').trim();
   if (!value) return '';
   return (value.charAt(0).toUpperCase() + value.slice(1)).replace(
-    /\b(?:ai|api|ar|css|html|llm|lms|ml|sql|ui|ux|vr)\b/gi,
+    /\b(?:ai|api|ar|css|html|llm|lms|ml|sql|ui|ux|vr|wcag)\b/gi,
     (word) => word.toUpperCase(),
   );
 }
@@ -105,9 +105,11 @@ export function extractCourseName(source) {
       /\s+[—–-]\s+(?=(?:an?\s+)?(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|\d{1,2})[- ]week\b[^,.;]{0,48}\b(?:course|class|seminar|studio|workshop)\b)/i.exec(
         line,
       );
+    const commandDivider = /\s+[—–-]\s+(?=(?:build|compose|create|design|generate|make|produce)\b)/i.exec(line);
     const splitAt =
       briefDivider?.index ??
       timedBriefDivider?.index ??
+      commandDivider?.index ??
       exactLessonSuffix?.index ??
       briefSuffix?.index ??
       timedBriefSuffix?.index ??
@@ -431,6 +433,7 @@ export async function composeAlgiResponse({
   userPrompt,
   structuredPrompt,
   schema,
+  researchEnabled,
   signal,
   onResearchProgress = null,
 } = {}) {
@@ -443,7 +446,15 @@ export async function composeAlgiResponse({
   const result = await composeAlgiLessonKernels({
     structuredPrompt,
     factCount: factCountFromSchema(schema),
-    researchProvider: buildResearchProvider({ signal }),
+    // Public Scion owns a separate, explicit privacy toggle. Its adaptive
+    // evidence/compiler lane must pass that resolved consent through instead
+    // of accidentally consulting Algi's retired public-model flag. Without
+    // this handoff the setup UI could say "current-source research on" while
+    // every adaptive Pass B call still remained offline.
+    researchProvider: buildResearchProvider({
+      signal,
+      ...(typeof researchEnabled === 'boolean' ? { enabled: researchEnabled } : {}),
+    }),
     // The Pass B prompt object carries lessons, not a course title, so the
     // subject is read from the prose instead. Without it a lesson researches
     // its bare title ("information architecture" returned enterprise-software
@@ -530,9 +541,10 @@ export function buildResearchProvider({
   const requestCountByOrigin = {};
   const lastByOrigin = new Map();
   const cache = new Map();
-  const httpJson = async (url) => {
+  const requestPayload = async (url, { kind = 'json', accept = 'application/json' } = {}) => {
     throwIfAlgiAborted(signal);
-    if (cache.has(url)) return cache.get(url);
+    const cacheKey = `${kind}:${url}`;
+    if (cache.has(cacheKey)) return cache.get(cacheKey);
     if (requestCount >= maxRequests) throw new Error(`algi-research-budget-exhausted:${maxRequests}`);
     const request = (async () => {
       for (let attempt = 0; attempt < 2; attempt += 1) {
@@ -561,7 +573,7 @@ export function buildResearchProvider({
         );
         try {
           const response = await fetchImpl(url, {
-            headers: { Accept: 'application/json' },
+            headers: { Accept: accept },
             signal: controller.signal,
           });
           if (response.status === 429 && attempt === 0) {
@@ -573,7 +585,7 @@ export function buildResearchProvider({
             continue;
           }
           if (!response.ok) throw new Error(`research-http-${response.status}`);
-          return response.json();
+          return kind === 'text' ? response.text() : response.json();
         } finally {
           clearTimeout(timer);
           signal?.removeEventListener?.('abort', onAbort);
@@ -581,17 +593,20 @@ export function buildResearchProvider({
       }
       throw new Error('research-http-429');
     })();
-    cache.set(url, request);
+    cache.set(cacheKey, request);
     try {
       return await request;
     } catch (error) {
-      cache.delete(url);
+      cache.delete(cacheKey);
       throw error;
     }
   };
+  const httpJson = (url) => requestPayload(url);
+  const httpText = (url) => requestPayload(url, { kind: 'text', accept: 'text/html, text/plain;q=0.9' });
   // Imported lazily by the composer; built here so the network surface has one owner.
   return {
     httpJson,
+    httpText,
     diagnostics: () => ({
       requestCount,
       maxRequests,

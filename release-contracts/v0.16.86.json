@@ -2,7 +2,7 @@
   "version": "0.16.86",
   "date": "July 27, 2026",
   "title": "One Download, One Deliberate Start",
-  "status": "verified-current",
+  "status": "historical",
   "proofSummary": {
     "local": [
       "npm test",
@@ -28,24 +28,24 @@
       "note": "Production deployment follows a green merge."
     },
     "liveProvider": {
-      "status": "pending",
-      "note": "A production-origin Chrome generation must complete without a duplicate model download."
+      "status": "not-current",
+      "note": "Production Chrome proved duplicate-download containment but still failed activation because no WebGPU adapter was available; stale GLUE protocol bytes masked that cause. V0.16.87 carries the adapter preflight and adaptive Scion route."
     },
     "manualHuman": {
       "status": "not-applicable",
       "note": "No instructor, expert, accessibility, classroom, or student-outcome claim is made."
     },
     "manualBrowser": {
-      "status": "pending",
-      "note": "Generation, compiler frames, Agent, responsive UI, console, and physical ZIP remain release-blocking proof."
+      "status": "not-current",
+      "note": "The production run stopped at model activation, so generation, Agent, responsive, console, and physical ZIP proof did not close for this historical release."
     }
   },
   "claims": [
     {
       "id": "v01686-bounded-opfs-read",
-      "status": "verified-current",
+      "status": "historical",
       "changelogHighlightIndex": 0,
-      "summary": "The production activation failure is traced to and repaired at the OPFS destination-buffer boundary.",
+      "summary": "The first production activation failure was initially attributed to the OPFS destination-buffer boundary; follow-up production proof decoded stale GLUE protocol bytes and identified the unavailable WebGPU adapter addressed in V0.16.87.",
       "anchors": [
         "scripts/buildScionRuntime.mjs",
         "tests/scion-runtime-stream-cache.test.js",
@@ -56,7 +56,7 @@
     },
     {
       "id": "v01686-runtime-digest",
-      "status": "verified-current",
+      "status": "historical",
       "changelogHighlightIndex": 1,
       "summary": "The generated runtime digest changes while the pinned public Gemma model identity and shard manifest remain unchanged.",
       "anchors": [
@@ -69,7 +69,7 @@
     },
     {
       "id": "v01686-no-duplicate-download",
-      "status": "verified-current",
+      "status": "historical",
       "changelogHighlightIndex": 2,
       "summary": "Scion runtime startup failures stop native authoring instead of starting a second local-provider course-map attempt.",
       "anchors": [
@@ -83,7 +83,7 @@
     },
     {
       "id": "v01686-truthful-progress",
-      "status": "verified-current",
+      "status": "historical",
       "changelogHighlightIndex": 3,
       "summary": "Scion distinguishes download, activation, and clean-cache replacement without resetting terminal progress.",
       "anchors": [
@@ -96,7 +96,7 @@
     },
     {
       "id": "v01686-cleanup-diagnostics",
-      "status": "verified-current",
+      "status": "historical",
       "changelogHighlightIndex": 4,
       "summary": "Failed fresh activation exits before cache removal and retains a prompt-free diagnostic chain.",
       "anchors": ["src/lib/scionBrowserWllama.js", "tests/scion-browser-wllama.test.js"],
@@ -105,7 +105,7 @@
     },
     {
       "id": "v01686-claim-boundary",
-      "status": "verified-current",
+      "status": "historical",
       "changelogHighlightIndex": 5,
       "summary": "Runtime recovery is not represented as a model-weight, adapter, instructor, factual, accessibility, or classroom quality result.",
       "anchors": ["README.md", "docs/SCION_V01686_PRODUCTION_RUNTIME_RECOVERY.md", "src/lib/releaseManifest.js"],

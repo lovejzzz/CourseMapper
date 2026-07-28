@@ -167,6 +167,7 @@ describe('F1/F2 — source wiring (the header has ONE verb; the paths exist)', (
   it('Landing carries the quick-start affordance, gated on prompt + stored API key', () => {
     const landing = read('src/screens/Landing.jsx');
     expect(landing).toContain('Generate full course');
+    expect(landing).toContain('Use current sources & generate');
     expect(landing).toContain('data-testid="landing-setup-button"');
     expect(landing).toContain('data-testid="landing-quick-start"');
     expect(landing).toContain(
@@ -174,6 +175,14 @@ describe('F1/F2 — source wiring (the header has ONE verb; the paths exist)', (
       // provider readiness, not a typed API key.
       "(providerIsKeyless ? apiStatus === 'connected' : Boolean(apiKey?.trim()))",
     );
+    // A zero-download route with forecast source gaps makes the data boundary
+    // the primary CTA itself. The click persists that explicit choice before
+    // AppFlow starts, so the default full-course path cannot strand the user at
+    // 99% with template-only lesson kernels.
+    expect(landing).toContain('quickStartNeedsCurrentSources');
+    expect(landing).toContain('saveScionResearchEnabled(true)');
+    expect(landing).toContain('onClick={handleQuickStartClick}');
+    expect(landing).toContain('send only the course title');
     // The deliberate three-screen path stays — relabeled, not removed.
     expect(landing).toContain("canQuickStart ? 'Customize package' : 'Continue to materials'");
     expect(landing).toContain('onClick={onGenerate}');

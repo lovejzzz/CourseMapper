@@ -40,7 +40,9 @@ export default defineConfig({
             return 'livingCompilerRibbon';
           }
           if (/src\/lib\/buildRibbonFailureModel\.js$/.test(id)) return 'livingCompilerFailure';
-          if (/src\/lib\/courseMapContinuation\.js$/.test(id)) return 'courseMapContinuation';
+          if (/src\/lib\/(?:courseMapContinuation|generatedCourseMapHandoff|materializedLessonScope)\.js$/.test(id)) {
+            return 'courseMapContinuation';
+          }
           if (/src\/lib\/workspaceSaveStatus\.js$/.test(id)) return 'workspaceSaveStatus';
           if (/src\/lib\/notifyDone\.js$/.test(id)) return 'workspaceNotification';
           if (/src\/lib\/agentEvidenceCards\.js$/.test(id)) return 'agentEvidenceCards';

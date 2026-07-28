@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { deriveCourseGraphFromCourseMap } from '../courseGraph/deriveFromCourseMap.js';
 import { renderCourseMapFromGraph } from '../courseGraph/renderCourseMap.js';
 import {
+  backfillNativeAuthoringFromLessonContent,
   completeNativeKernelSurfaces,
   matchEntityIds,
   mergeNativePartialOverlays,
@@ -10,6 +11,7 @@ import {
   projectCumulativeAssessmentKernels,
   requireNativeAuthorshipForNamedReadings,
   repairCourseGraphResourceIds,
+  resolveNativeAssembly,
   restoreCourseGraphForProject,
 } from '../nativeGraphAuthoring.js';
 import { mergeLessonPayloads } from '../genome/composeLessonFromConcepts.js';
@@ -18,6 +20,7 @@ import { validateCourseGraph } from '../courseGraph/schema.js';
 import { findWorstPhraseRepetition } from '../exportRenderedTextAudit.js';
 import { normalizeFactLedgerFeedback } from '../factLedgerFeedback.js';
 import { assessTargetLanguagePresence } from '../languageIdentityGuard.js';
+import { repairCourseMapReadiness } from '../deliverableReadiness.js';
 
 function sourceBackedMap() {
   return {
@@ -37,6 +40,125 @@ function sourceBackedMap() {
     ],
   };
 }
+
+describe('source-grounded native authoring backfill', () => {
+  const skeleton = {
+    sessions: [{ id: 's1', order: 1, title: 'Accessible forms', sectionTitles: ['Accessible forms'] }],
+  };
+  const anchoredKernel = {
+    conceptProvenance: { source: 'algi-researched', fullyAnchored: true },
+    keyTerms: [
+      { term: 'Accessible forms', definition: 'Accessible forms expose instructions and controls to users.' },
+      { term: 'Labels', definition: 'Labels identify the purpose of a form control.' },
+      { term: 'Validation', definition: 'Validation identifies an error and explains how to correct it.' },
+    ],
+    kernel: {
+      facts: [
+        'Labels identify the purpose of a form control.',
+        'Instructions explain expected input before a user submits a form.',
+        'Validation identifies an error and explains how to correct it.',
+      ],
+    },
+  };
+
+  it('builds missing outcomes and activities only from admitted source terms', () => {
+    const authored = backfillNativeAuthoringFromLessonContent({
+      skeleton,
+      lessonContent: { 'lesson-1': anchoredKernel },
+    });
+
+    expect(authored['lesson-1']).toMatchObject({
+      source: 'scion-source-kernel-backfill',
+      outcomes: [
+        'Explain Accessible forms using evidence from the assigned sources.',
+        'Apply Labels to a practical Accessible forms example and justify one revision.',
+        'Evaluate a claim about Validation, then state the evidence boundary.',
+      ],
+    });
+    expect(authored['lesson-1'].goal).toContain('Accessible forms and Labels');
+    expect(authored['lesson-1'].asyncActivities[0]).toContain('one limitation');
+    expect(authored['lesson-1'].syncActivities[0]).toContain('using evidence about Labels');
+  });
+
+  it('preserves existing authored fields and refuses thin or unverified kernels', () => {
+    const existing = {
+      goal: 'Audit a supplied form against its documented requirements.',
+      outcomes: ['Repair one label-to-control association.'],
+      asyncActivities: ['Annotate the supplied form specification.'],
+      syncActivities: ['Run a paired keyboard and error-message audit.'],
+    };
+    const preserved = backfillNativeAuthoringFromLessonContent({
+      skeleton,
+      authoredBySession: { 'lesson-1': existing },
+      lessonContent: { 'lesson-1': anchoredKernel },
+    });
+    expect(preserved['lesson-1']).toMatchObject(existing);
+
+    const refused = backfillNativeAuthoringFromLessonContent({
+      skeleton,
+      lessonContent: {
+        'lesson-1': {
+          conceptProvenance: { source: 'algi-researched', fullyAnchored: false },
+          keyTerms: anchoredKernel.keyTerms.slice(0, 2),
+          kernel: { facts: anchoredKernel.kernel.facts.slice(0, 2) },
+        },
+      },
+    });
+    expect(refused).toEqual({});
+  });
+
+  it('preserves source-grounded authoring through CourseIR projection and graph assembly', () => {
+    const completeSkeleton = {
+      course: { name: 'Digital Accessibility for Product Teams', term: 'Summer', goals: [] },
+      sessions: skeleton.sessions,
+      assessments: [
+        {
+          id: 'a1',
+          title: 'Accessible forms audit',
+          kind: 'graded-artifact',
+          dueSession: 1,
+          weightPct: 100,
+        },
+      ],
+      readings: [],
+      resources: [],
+    };
+    const authored = backfillNativeAuthoringFromLessonContent({
+      skeleton: completeSkeleton,
+      lessonContent: { 'lesson-1': anchoredKernel },
+    });
+    const assembly = resolveNativeAssembly({
+      skeleton: completeSkeleton,
+      passBBySession: authored,
+    });
+
+    expect(assembly.ok).toBe(true);
+    expect(assembly.graph.outcomes).toHaveLength(3);
+    const section = assembly.courseMap.lessons[0].sections[0];
+    expect(section.learningGoals).toContain('source evidence about Accessible forms and Labels');
+    expect(section.learningObjectives).toContain('Explain Accessible forms using evidence');
+    expect(section.learningObjectives).toContain('Apply Labels to a practical Accessible forms example');
+    expect(section.learningObjectives).toContain('Evaluate a claim about Validation');
+    expect(section.asyncActivities).toContain('Annotate the assigned sources');
+    expect(section.syncActivities).toContain('using evidence about Labels');
+    expect(section.learningGoals).not.toContain('course-relevant decisions');
+
+    const readinessRepair = repairCourseMapReadiness({ courseMap: assembly.courseMap });
+    const repairedSection = readinessRepair.courseMap.lessons[0].sections[0];
+    expect(repairedSection.learningGoals).toContain('source evidence about Accessible forms and Labels');
+    expect(repairedSection.learningObjectives).toContain('Explain Accessible forms using evidence');
+    expect(repairedSection.asyncActivities).toContain('Annotate the assigned sources');
+    expect(repairedSection.syncActivities).toContain('using evidence about Labels');
+    expect(readinessRepair.repairedFields).not.toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/Learning Goals/),
+        expect.stringMatching(/Learning Objectives/),
+        expect.stringMatching(/Asynchronous Activities/),
+        expect.stringMatching(/Synchronous Activities/),
+      ]),
+    );
+  });
+});
 
 describe('nativeGraphAuthoring matchEntityIds', () => {
   it('preserves verified resource metadata when the display map is re-derived', () => {

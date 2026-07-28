@@ -353,6 +353,39 @@ describe('reading-list engine (P2)', () => {
     );
   });
 
+  it('preserves W3C/WAI provider identity and a clean source title', () => {
+    const graph = genomeLinkedGraph();
+    graph.enrichmentOverlay.lessonContent = {
+      'lesson-1': {
+        keyTerms: [],
+        conceptProvenance: {
+          source: 'algi-researched',
+          citations: [
+            {
+              key: 'Accessible forms',
+              displayTitle: 'Accessible forms',
+              sourceUrl: 'https://www.w3.org/WAI/tutorials/forms/',
+              providerId: 'w3c-wai',
+              license: 'W3C permissive license',
+              attribution: 'W3C Web Accessibility Initiative, “Accessible forms”',
+              kind: 'official accessibility standard and tutorial',
+              topic: 'accessible forms, testing, and remediation',
+              evidence: 'Accessible forms are easier to use for everyone, including people with disabilities.',
+            },
+          ],
+        },
+      },
+    };
+
+    expect(attachGenomeResources(graph)).toBe(1);
+    expect(graph.resources[0]).toMatchObject({
+      title: 'Accessible forms',
+      provider: 'w3c-wai',
+      origin: 'algi-research',
+      url: 'https://www.w3.org/WAI/tutorials/forms/',
+    });
+  });
+
   it('keeps shipped OpenStax receipts distinct inside a mixed Algi research lesson', () => {
     const graph = genomeLinkedGraph();
     graph.enrichmentOverlay.lessonContent = {
@@ -744,6 +777,34 @@ describe('reading-list engine (P2)', () => {
     expect(coverage.openResources).toBe(3);
     expect(coverage.resourcesByOrigin.genome).toBe(2);
     expect(coverage.resourcesByOrigin.openstax).toBe(1);
+  });
+
+  it('never counts stale resource session ids as extra researched lessons', () => {
+    const graph = genomeLinkedGraph();
+    graph.enrichmentOverlay = {
+      lessonContent: {
+        'lesson-1': { conceptProvenance: { source: 'algi-researched' } },
+        'lesson-2': { conceptProvenance: { source: 'algi-researched' } },
+        'lesson-stale': { conceptProvenance: { source: 'algi-researched' } },
+      },
+    };
+    graph.resources.push(
+      {
+        id: 'research-current',
+        origin: 'algi-research',
+        sessionRefs: ['s1', 's2'],
+      },
+      {
+        id: 'research-stale',
+        origin: 'algi-research',
+        sessionRefs: ['old-s1', 'old-s2'],
+      },
+    );
+
+    const coverage = knowledgeCoverage(graph);
+    expect(coverage.sessions).toBe(2);
+    expect(coverage.sessionsWithResources).toBe(2);
+    expect(coverage.researchedLessons).toBe(2);
   });
 });
 

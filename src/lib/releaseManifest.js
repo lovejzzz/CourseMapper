@@ -68,14 +68,14 @@ const V01685_RELEASE = {
   },
 };
 
-export const CURRENT_RELEASE = {
-  version: APP_VERSION,
+const V01686_RELEASE = {
+  version: '0.16.86',
   date: 'July 27, 2026',
   title: 'One Download, One Deliberate Start',
   landingTitle: 'Scion V0.16.86 Makes the Local Model Start Reliably',
   highlights: [
     'Production Chrome testing found a real cold-start defect after V0.16.85 deployment: all 3.35 GB downloaded, but the custom OPFS reader could request more bytes than the destination typed-array view could hold, causing activation to fail.',
-    'The generated pinned Scion runtime now caps every OPFS read by the requested length, remaining model bytes, destination view capacity, and backing-buffer capacity. The immutable public Gemma 4 weights and five-shard manifest remain unchanged.',
+    'The generated pinned Scion runtime capped each OPFS request by the requested length, remaining model bytes, destination view capacity, and backing-buffer capacity. A follow-up production run proved that the visible typed-array value was the stale binary marker `GLUE`, not a model-read length; V0.16.87 corrects that diagnosis and handles the unavailable WebGPU adapter before download. The immutable public Gemma 4 weights and five-shard manifest remain unchanged.',
     'A browser-runtime startup failure is now a hard orchestration boundary. Native authoring no longer hides it behind the prose fallback, so one failed activation cannot trigger a second complete model download or provider attempt.',
     'Cache recovery and progress language now distinguish download completion from model activation. If a saved copy is incomplete, Scion explains that it is replacing that copy once; terminal errors preserve the last honest progress instead of snapping backward to zero.',
     'Runtime diagnostics retain the classified public message and a prompt-free cause chain for engineering logs. Cleanup releases the runtime file handles before removing a failed fresh cache, preventing recovery work from racing an active OPFS handle.',
@@ -92,6 +92,40 @@ export const CURRENT_RELEASE = {
   proof: {
     contract: 'release-contracts/v0.16.86.json',
     roadmap: 'docs/SCION_V01686_PRODUCTION_RUNTIME_RECOVERY.md',
+    benchmark: 'evaluation/quality-benchmark/v1/manifest.json',
+    browser: 'README.md',
+    auditCommand: 'npm run audit:release-history',
+  },
+};
+
+export const CURRENT_RELEASE = {
+  version: APP_VERSION,
+  date: 'July 27, 2026',
+  title: 'One Scion, Right-Sized for the Device',
+  landingTitle: 'Scion V0.16.87 Checks the Device Before It Downloads',
+  highlights: [
+    'The mandatory V0.16.86 production audit decoded `1,163,217,991` as hexadecimal `0x45554c47`, or the stale request marker `GLUE`. Native logs then exposed the real cause: this Chrome session could expose `navigator.gpu` while `requestAdapter()` still returned null. The model cache was not corrupt.',
+    'Scion now proves that the browser can obtain a real WebGPU adapter before importing the runtime or downloading any of the 3.35 GB public base. A device that cannot start the adapter pays zero model-download cost.',
+    'Scion remains the sole public product identity. On capable devices it uses local Gemma; on incompatible or storage-constrained devices it automatically uses the private source-evidence and deterministic compiler lane inherited from the Algi research prototype. When that zero-download lane forecasts source gaps, its primary action explicitly offers current open sources, names the course-title/topic network boundary, and persists the choice before generation. The UI, Agent, progress, and export continue to speak as Scion, while model-request accounting stays honestly at zero.',
+    'The worker now rejects a null or impossible native response before allocating output, preserves the preceding native error, and no longer treats the stale `GLUE` marker as cache-corruption evidence. Native logs are visible through the filtered Scion logger, and V0.16.86’s no-duplicate-download boundary remains intact.',
+    'Large OPFS reads are additionally served through validated 64 MiB views as a defensive transport bound. A generated-worker regression proves consecutive destination and file cursors without claiming that this was the production root cause.',
+    'The live workspace title now removes count instructions such as “exactly three lessons” from the first frame. Held-out ruler V27 binds the changed transitive grader and source-ledger bytes without inheriting a V26 score or adapter result. Gemma weights and the inactive adapter remain unchanged; production generation, all compiler frames, Agent, responsive UI, console, and physical ZIP remain the release proof.',
+    'A fresh local Chrome acceptance build uses the explicit current-source action and completes a four-lesson Digital Accessibility course in nine seconds with 4/4 kernels, 9/9 material families, zero blockers or warnings, 65/100 Automated Readiness under the unchanged automation ceiling, 99/A package conformance, texture 97, and 38/38 physical ZIP checks across 35 files. The complete 5,873-test unit suite, 151-test Chromium suite, 40-case layered evaluation, 18-case PR contract, format, lint, build, bundle, and release-history gates pass. This is local engineering proof, not production or instructor validation.',
+    'The acceptance pass repairs visible language and provenance at their source: stale W3C fragments and demonstrative reference debris fail concept admission; unfinished-product Week wording is removed; editable slide text keeps its intended dark-mode contrast; W3C/WAI attribution survives compilation; the Agent names the official Lesson 3 sources and explains the Lesson 4 remediation connection; and public Scion exports contain no internal Algi codename or contradictory model-cost claim.',
+  ],
+  landingHighlights: [
+    'A real GPU adapter is proven before any model download.',
+    'Unsupported devices use Scion’s zero-download evidence lane.',
+    'Scion stays the only public model identity.',
+    'Native failures keep their real cause.',
+    'Large local reads remain defensively bounded.',
+    'Course-count instructions no longer leak into titles.',
+    'The complete local course and ZIP pass every encoded gate.',
+    'Content, sources, Agent, and public identity stay coherent.',
+  ],
+  proof: {
+    contract: 'release-contracts/v0.16.87.json',
+    roadmap: 'docs/SCION_V01687_ADAPTIVE_DEVICE_ROUTE.md',
     benchmark: 'evaluation/quality-benchmark/v1/manifest.json',
     browser: 'README.md',
     auditCommand: 'npm run audit:release-history',
@@ -284,14 +318,89 @@ export const CURRENT_RELEASE_CHANGELOG = {
   highlights: CURRENT_RELEASE.highlights,
   sections: [
     {
-      label: 'Fix the production cold start at the byte boundary',
+      label: 'Prove the device before downloading the model',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'The browser can expose `navigator.gpu` while still returning no usable adapter; the old boolean preflight could not detect that.',
+        'Scion now awaits a real high-performance or default WebGPU adapter before importing Wllama, opening storage, or starting a model transfer.',
+        'An unsupported device therefore downloads zero Gemma bytes and never reaches a doomed activation frame.',
+        'A focused regression proves the runtime importer and model loader are untouched when adapter acquisition fails.',
+      ],
+    },
+    {
+      label: 'Keep one Scion identity across two private lanes',
+      icon: 'AI',
+      color: 'blue',
+      items: [
+        'Capable devices retain the quality-first local Gemma route and immutable public model identity.',
+        'Devices without a safe local runtime automatically use Scion’s private source-evidence and deterministic compiler lane with no public Algi model option.',
+        'The adaptive route preserves the same task, structured prompt, source-research consent, CourseIR, compiler, Agent evidence, and exporters.',
+        'Telemetry identifies a zero-model Scion route without showing a red provider failure or pretending that inference occurred.',
+      ],
+    },
+    {
+      label: 'Expose the native cause and contain the failure',
+      icon: 'PROOF',
+      color: 'violet',
+      items: [
+        'The value `1,163,217,991` is recorded correctly as stale protocol bytes spelling `GLUE`, not as a legitimate model read request.',
+        'The worker validates the native response pointer and length before constructing output, so native exceptions cannot become giant-allocation errors.',
+        'Filtered native error logs remain visible, and the stale marker no longer causes a valid model cache to be deleted.',
+        'V0.16.86’s one-attempt boundary still prevents a hidden prose retry or second multi-gigabyte download.',
+      ],
+    },
+    {
+      label: 'Harden transport and polish the first frame',
+      icon: 'CHECK',
+      color: 'slate',
+      items: [
+        'OPFS reads use validated 64 MiB destination views as defense in depth, with a generated-worker cursor regression.',
+        'Temporary workspace identity strips explicit count instructions such as “exactly three lessons.”',
+        'A fresh three-lesson accessibility build completes locally in about seven seconds with 3/3 kernels, 9/9 materials, zero blockers or warnings, and 38/38 physical ZIP checks.',
+        'The public model revision, shard manifest, Gemma weights, adapter state, and research-consent boundary do not change; V27 only binds the updated grader dependency bytes.',
+      ],
+    },
+    {
+      label: 'Make the professor-facing content earn the green state',
+      icon: 'PROOF',
+      color: 'emerald',
+      items: [
+        'Acronyms, WCAG grammar, plural FAQ questions, glossary phrasing, and policy scope are normalized before they reach any deliverable.',
+        'W3C/WAI provider identity survives evidence selection and export instead of becoming a generic web citation.',
+        'The Scion Agent preserves the requested lesson sequence and returns concrete skills with the matching official sources.',
+        'Public Scion manifests and source reports use `scion-research`; the private prototype codename does not leak into the downloadable package.',
+      ],
+    },
+    {
+      label: 'Keep local proof separate from production proof',
+      icon: 'CHECK',
+      color: 'slate',
+      items: [
+        'Local Chrome verifies the complete adaptive build, all nine material tabs, light and dark presentation, Agent response, and physical ZIP agreement.',
+        'Automated Readiness remains 66/100 under the 69-point evidence ceiling while 99/A remains explicitly package conformance, not teaching quality.',
+        'The local pass does not claim instructor approval, factual certification, accessibility certification, or classroom outcomes.',
+        'Merged production completion still gates the final responsive, console, generation, Agent, and export audit.',
+      ],
+    },
+  ],
+};
+
+const V01686_RELEASE_CHANGELOG = {
+  version: V01686_RELEASE.version,
+  date: V01686_RELEASE.date,
+  title: V01686_RELEASE.title,
+  highlights: V01686_RELEASE.highlights,
+  sections: [
+    {
+      label: 'Bound the first production cold-start failure',
       icon: 'CHECK',
       color: 'emerald',
       items: [
         'The production audit reproduced a full download followed by an activation failure in both the controlled browser and the user’s real Chrome session.',
-        'The OPFS reader now bounds a read by the model remainder, the requested length, the typed-array view, and its backing buffer before constructing the destination view.',
-        'The public model revision, five shard sizes, and Gemma weight identity remain pinned and unchanged.',
-        'The generated runtime digest is updated so a stale or unreviewed runtime cannot pass the build contract.',
+        'The OPFS reader bounded a read by the model remainder, requested length, typed-array view, and backing buffer.',
+        'The public model revision, five shard sizes, and Gemma weight identity remained pinned and unchanged.',
+        'A later production audit decoded the visible integer as stale `GLUE` protocol bytes and exposed an unavailable WebGPU adapter; V0.16.87 corrects the diagnosis and preflights the real adapter.',
       ],
     },
     {
@@ -310,7 +419,7 @@ export const CURRENT_RELEASE_CHANGELOG = {
       icon: 'PROOF',
       color: 'violet',
       items: [
-        'One hundred percent downloaded now reads “Download complete · activating Scion” instead of claiming that the model is already ready.',
+        'One hundred percent downloaded reads “Download complete · activating Scion” instead of claiming that the model is already ready.',
         'A clean replacement is named explicitly at every progress update.',
         'An activation error keeps the last reached model progress and records a prompt-free diagnostic chain for troubleshooting.',
         'The six-stage Living Course Compiler remains the end-to-end progress authority from model preparation through grading.',
@@ -321,9 +430,9 @@ export const CURRENT_RELEASE_CHANGELOG = {
       icon: 'CHECK',
       color: 'slate',
       items: [
-        'This release repairs browser-local runtime delivery and orchestration; it does not claim a new content-quality score.',
-        'Gemma weights remain unchanged and the optional Scion adapter remains inactive.',
-        'The private Scion evidence layer and shared compiler from V0.16.85 remain intact.',
+        'V0.16.86 improved failure containment but did not complete production activation; V0.16.87 carries the remaining repair.',
+        'Gemma weights remained unchanged and the optional Scion adapter remained inactive.',
+        'The private Scion evidence layer and shared compiler from V0.16.85 remained intact.',
         'Automated and browser checks are engineering evidence, not instructor, factual, accessibility, or classroom validation.',
       ],
     },
@@ -884,6 +993,7 @@ const V01678_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  V01686_RELEASE_CHANGELOG,
   V01685_RELEASE_CHANGELOG,
   V01684_RELEASE_CHANGELOG,
   V01683_RELEASE_CHANGELOG,

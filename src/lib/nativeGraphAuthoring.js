@@ -2445,6 +2445,94 @@ export function sessionLessonId(session) {
   return `lesson-${session.order}`;
 }
 
+function sourceGroundedAuthoringTerms(payload) {
+  return asArray(payload?.keyTerms)
+    .map((entry) => ({
+      term: cleanText(entry?.term ?? entry?.tr, 80),
+      definition: cleanText(entry?.definition ?? entry?.df, 260),
+    }))
+    .filter((entry) => entry.term && entry.definition)
+    .filter(
+      (entry, index, entries) =>
+        entries.findIndex((candidate) => candidate.term.toLowerCase() === entry.term.toLowerCase()) === index,
+    )
+    .slice(0, 3);
+}
+
+function sourceGroundedAuthoringFacts(payload) {
+  return asArray(payload?.kernel?.facts ?? payload?.facts)
+    .map((fact) => cleanText(fact?.text ?? fact, 320))
+    .filter(Boolean);
+}
+
+function canBackfillSourceGroundedAuthoring(payload) {
+  const terms = sourceGroundedAuthoringTerms(payload);
+  const facts = sourceGroundedAuthoringFacts(payload);
+  const provenance = payload?.conceptProvenance || {};
+  const sourceAnchored =
+    hasExactSourceLedgerProvenance(payload) ||
+    (provenance.fullyAnchored === true &&
+      ['algi-researched', 'genome-linked'].includes(String(provenance.source || '').trim()));
+  return sourceAnchored && terms.length >= 3 && facts.length >= 3;
+}
+
+/**
+ * Give a source-grounded Scion kernel an instructional spine before native
+ * graph assembly when the runtime lane supplied knowledge but no Pass B
+ * authorship. This is deterministic and model-neutral: it uses only admitted
+ * term labels and never turns a source fact into a new claim.
+ *
+ * Existing authored fields always win. Thin or unverified kernels are left
+ * untouched so the normal CurriculumV1 fallback remains honest.
+ */
+export function backfillNativeAuthoringFromLessonContent({
+  skeleton,
+  authoredBySession = {},
+  lessonContent = {},
+} = {}) {
+  const result = { ...(authoredBySession || {}) };
+  for (const session of asArray(skeleton?.sessions)) {
+    const lessonId = sessionLessonId(session);
+    const payload = lessonContent?.[lessonId];
+    if (!canBackfillSourceGroundedAuthoring(payload)) continue;
+
+    const existing = result[lessonId] || {};
+    const [first, second, third] = sourceGroundedAuthoringTerms(payload).map((entry) => entry.term);
+    const lessonTitle =
+      cleanText(session?.title, 120).replace(/^lesson\s+\d+\s*[:.-]\s*/i, '') || first || 'the lesson focus';
+    const outcomes = cleanAtomList(existing.outcomes, { maxItems: 8, maxChars: 180 });
+    const asyncActivities = cleanAtomList(existing.asyncActivities, { maxItems: 4, maxChars: 160 });
+    const syncActivities = cleanAtomList(existing.syncActivities, { maxItems: 4, maxChars: 160 });
+
+    result[lessonId] = {
+      ...existing,
+      goal:
+        cleanText(existing.goal, 140) ||
+        `Use source evidence about ${first} and ${second} to justify one ${lessonTitle} decision.`,
+      outcomes:
+        outcomes.length > 0
+          ? outcomes
+          : [
+              `Explain ${first} using evidence from the assigned sources.`,
+              `Apply ${second} to a practical ${lessonTitle} example and justify one revision.`,
+              `Evaluate a claim about ${third}, then state the evidence boundary.`,
+            ],
+      asyncActivities:
+        asyncActivities.length > 0
+          ? asyncActivities
+          : [`Annotate the assigned sources for one claim about ${first}, its supporting detail, and one limitation.`],
+      syncActivities:
+        syncActivities.length > 0
+          ? syncActivities
+          : [
+              `Audit a practical ${lessonTitle} example in pairs, then revise one decision using evidence about ${second}.`,
+            ],
+      source: existing.source || 'scion-source-kernel-backfill',
+    };
+  }
+  return result;
+}
+
 /** Split items into `parts` contiguous slices, earlier slices larger. */
 function distributeAcross(items, parts) {
   const list = asArray(items);
@@ -2739,10 +2827,15 @@ function cellAtoms(value, { preserveString = false } = {}) {
     return value.map((atom) => cleanText(atom, 500).replace(/^\d+[.)]\s+/, '')).filter(Boolean);
   }
   if (typeof value === 'string') {
-    const text = cleanText(value, 1000);
-    if (!text) return [];
-    if (preserveString) return [text];
-    return text
+    if (preserveString) {
+      const text = cleanText(value, 1000);
+      return text ? [text] : [];
+    }
+    // Split the wire-format cell before cleanText collapses line breaks.
+    // renderCourseMapFromGraph serializes distinct outcomes and activities as
+    // numbered newline-delimited atoms; normalizing first silently fused all
+    // of them into one outcome and weakened both Bloom labels and alignment.
+    return String(value)
       .split(/;|\n/)
       .map((atom) => cleanText(atom, 500).replace(/^\d+[.)]\s+/, ''))
       .filter(Boolean);
@@ -2760,6 +2853,7 @@ function mergeCellAtoms(...values) {
 function mergeNativeSourceSurfaces(projectedCourseMap, nativeCourseMap) {
   const projectedLessons = asArray(projectedCourseMap?.lessons);
   const nativeLessons = asArray(nativeCourseMap?.lessons);
+  const nativeAuthoredKeys = ['learningGoals', 'learningObjectives', 'asyncActivities', 'syncActivities'];
   return {
     ...projectedCourseMap,
     lessons: projectedLessons.map((lesson, lessonIndex) => {
@@ -2774,8 +2868,21 @@ function mergeNativeSourceSurfaces(projectedCourseMap, nativeCourseMap) {
           delete sectionRest.readings;
           const readings = cellAtoms(nativeSection.readings, { preserveString: true });
           const supportingResources = mergeCellAtoms(nativeSection.supportingResources);
+          const nativeAuthored = Object.fromEntries(
+            nativeAuthoredKeys.flatMap((key) => {
+              const atoms = cellAtoms(nativeSection[key]);
+              return atoms.length > 0 ? [[key, atoms]] : [];
+            }),
+          );
           return {
             ...sectionRest,
+            // CourseIR validates and normalizes the native wire map, but it
+            // does not own Scion's lesson-language authorship. Keep the
+            // source-grounded goal, outcomes, and activities that entered
+            // assembly instead of replacing them with CourseIR's generic
+            // projection prose. The derived graph below still validates all
+            // resulting references and registry links.
+            ...nativeAuthored,
             ...(readings.length > 0 ? { readings } : {}),
             ...(supportingResources.length > 0 ? { supportingResources } : {}),
           };

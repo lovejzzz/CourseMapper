@@ -148,6 +148,7 @@ describe('flag off — the default path never voices anything', () => {
     // read as 38 silent 'no rewrite returned' fallbacks in the failed round).
     expect(source).toMatch(/admittedCompilerBlueprint\?\.enrichment\?\.lessonContent/);
     expect(source).toContain('maxOutputTokens: 4000');
+    expect(source).toContain('result?.modelRequests === 0');
   });
 });
 
@@ -490,7 +491,7 @@ describe('runVoicePass — honest budgets and the v2 variety/texture gates', () 
 
     expect(result.spentUsd).toBe(0);
     expect(result.costEstimated).toBe(false);
-    expect(events.find((event) => event.type === 'voicePassDone')?.detail).toContain('model cost $0.000');
+    expect(events.find((event) => event.type === 'voicePassDone')?.detail).toContain('rewrite cost $0.000');
     expect(events.find((event) => event.type === 'voicePassDone')?.detail).not.toContain('~$');
   });
 

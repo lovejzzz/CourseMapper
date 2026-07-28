@@ -61,6 +61,32 @@ function estimateCharsAsTokens(...values) {
   return Math.round(values.reduce((sum, value) => sum + String(value || '').length, 0) / 4);
 }
 
+const SCION_EVIDENCE_FALLBACK_CODE_RE =
+  /^(?:SCION_LOCAL_RUNTIME_API|SCION_WLLAMA_(?:WEBGPU(?:_ADAPTER)?|JSPI|STORAGE_FULL|CACHE_INCOMPLETE|LOAD|MODEL|BACKEND|IDENTITY|LOCATION|RECOVERY_REQUIRED|RUNTIME_UNSTABLE|ADAPTER_RUNTIME_STOPPED))$/;
+
+function errorCodes(error) {
+  const codes = [];
+  const visited = new Set();
+  let current = error;
+  while (current && !visited.has(current) && codes.length < 6) {
+    visited.add(current);
+    if (current.code) codes.push(String(current.code));
+    current = current.cause;
+  }
+  return codes;
+}
+
+/**
+ * Scion is one product with two private execution lanes. A browser that cannot
+ * safely start the local GGUF runtime uses Scion's evidence/compiler lane
+ * instead of downloading gigabytes and failing. Abort and content-admission
+ * errors never cross this boundary.
+ */
+export function shouldUseScionEvidenceFallback(error, signal) {
+  if (signal?.aborted || error?.name === 'AbortError') return false;
+  return errorCodes(error).some((code) => SCION_EVIDENCE_FALLBACK_CODE_RE.test(code));
+}
+
 /**
  * Shared SSE stream reader with auto-retry and exponential backoff.
  * Streams directly from the selected provider in the static BYOK build.
@@ -476,6 +502,177 @@ export default function useStreamReader() {
         return { fullText, finishReason: 'stop', adapterRoutes: observedAdapterRoutes };
       } catch (rawError) {
         if (rawError?.name === 'AbortError') throw rawError;
+        if (shouldUseScionEvidenceFallback(rawError, externalSignal)) {
+          const routeReason = errorCodes(rawError)[0] || 'SCION_WLLAMA_UNAVAILABLE';
+          recordApiCallEvent({
+            type: 'scionAdaptiveRoute',
+            label: 'Scion adapted to this device',
+            detail: 'Using the lightweight evidence compiler · no model download required',
+            stage: 'local-model',
+            ...buildProviderTraceBase(),
+            routeReason,
+            progress: 1,
+            modelRequests: 0,
+            spendUsd: 0,
+            execution: 'browser-compiler',
+          });
+
+          let fullText = '';
+          let coverage = null;
+          let composeError = null;
+          let exactSourceProjection = false;
+          let projectedTermNames = [];
+          try {
+            const [
+              { composeAlgiResponse },
+              { readScionResearchEnabled },
+              { buildPublicScionExactSourceLedgerResponse },
+            ] = await Promise.all([
+              import('../lib/algiComposer'),
+              import('../lib/scionResearchPolicy'),
+              import('../lib/publicScionProvider'),
+            ]);
+            // The evidence prepass already built an immutable, cited source
+            // ledger for this lesson. Re-running retrieval here can select a
+            // different valid subset, which the canonical frozen-ledger gate
+            // must then reject. Project the exact ledger just as the capable
+            // browser-local route does: zero model calls, zero second research
+            // pass, and one source identity all the way into the compiler.
+            const projected = buildPublicScionExactSourceLedgerResponse(userPrompt);
+            if (projected) {
+              fullText = projected;
+              exactSourceProjection = true;
+              const projectedLessons = (() => {
+                try {
+                  const parsed = JSON.parse(projected);
+                  projectedTermNames = (parsed?.lessons || [])
+                    .flatMap((lesson) => lesson?.keyTerms || lesson?.kt || [])
+                    .map((term) => String(term?.tr || term?.term || '').trim())
+                    .filter(Boolean);
+                  return Array.isArray(parsed?.lessons) ? parsed.lessons.length : 0;
+                } catch {
+                  return 0;
+                }
+              })();
+              coverage = {
+                covered: projectedLessons,
+                requested: projectedLessons,
+                researched: 0,
+                cachedResearch: 0,
+              };
+              const route = {
+                protocol: 'scion-adaptive-compiler-route-v1',
+                routeMode: 'base-only',
+                routeReason: 'compiler-owned-exact-source-ledger',
+                taskFamily: 'lesson-kernel-synthesis',
+                factLedgerOnly: true,
+                exactSourceLedger: true,
+                modelCalls: 0,
+              };
+              observedAdapterRoutes.push(route);
+              recordApiCallEvent({
+                type: 'scionAdapterRoute',
+                label: 'Scion exact evidence projected',
+                detail: 'lesson-kernel-synthesis · compiler-owned exact source ledger',
+                stage: 'local-model-route',
+                ...buildProviderTraceBase(),
+                routeProtocol: route.protocol,
+                routeMode: route.routeMode,
+                taskFamily: route.taskFamily,
+                routeReason: route.routeReason,
+                factLedgerOnly: true,
+                exactSourceLedger: true,
+                projectedTermCount: projectedTermNames.length,
+                projectedTermNames,
+                routeModelCalls: 0,
+                execution: 'browser-compiler',
+              });
+            } else {
+              const composed = await composeAlgiResponse({
+                task,
+                userPrompt,
+                structuredPrompt,
+                schema,
+                // This is the same explicit consent resolved by the generation
+                // pipeline. Do not fall back to Algi's legacy storage flag: Algi
+                // is no longer a public choice, while Scion's research boundary
+                // remains visible and user-controlled.
+                researchEnabled: readScionResearchEnabled(),
+                signal: externalSignal,
+                onResearchProgress: (researchProgress = {}) => {
+                  recordApiCallEvent({
+                    type: 'algiResearchProgress',
+                    label: researchProgress.label
+                      ? `Scion evidence · ${researchProgress.label}`
+                      : 'Scion is preparing course evidence',
+                    detail: researchProgress.detail || '',
+                    stage: 'algi-research',
+                    ...buildProviderTraceBase(),
+                    progress: Math.max(0, Math.min(1, Number(researchProgress.progress) || 0)),
+                    researchPhase: researchProgress.phase || '',
+                    providerId: researchProgress.providerId || '',
+                    modelRequests: 0,
+                    spendUsd: 0,
+                    execution: 'browser-compiler',
+                  });
+                },
+              });
+              fullText = composed?.text || '';
+              coverage = composed?.coverage || null;
+            }
+          } catch (error) {
+            if (error?.name === 'AbortError' || externalSignal?.aborted) throw error;
+            composeError = error;
+          }
+
+          recordApiCallEvent({
+            type: 'scionEvidenceComposed',
+            label: composeError
+              ? 'Scion evidence composition needs the deterministic compiler'
+              : exactSourceProjection
+                ? 'Scion exact evidence projection complete'
+                : fullText
+                  ? 'Scion evidence composition complete'
+                  : 'Scion continued with the deterministic compiler',
+            detail: composeError
+              ? `${task || 'request'} · ${composeError?.message || 'unknown composition error'}`
+              : coverage
+                ? `${task || 'request'} · ${coverage.covered}/${coverage.requested} lesson${
+                    coverage.requested === 1 ? '' : 's'
+                  } composed${coverage.researched ? ` · ${coverage.researched} researched` : ''}${
+                    coverage.cachedResearch ? ` · ${coverage.cachedResearch} reused` : ''
+                  }`
+                : `${task || 'request'} · no model download`,
+            stage: 'algi-compose',
+            ...buildProviderTraceBase(),
+            modelRequests: 0,
+            spendUsd: 0,
+            execution: 'browser-compiler',
+            ...(exactSourceProjection
+              ? {
+                  exactSourceLedger: true,
+                  projectedTermCount: projectedTermNames.length,
+                  projectedTermNames,
+                }
+              : {}),
+            ...(coverage?.researchReceipt
+              ? {
+                  researchReceipt: coverage.researchReceipt,
+                  researchPlan: coverage.researchReceipt.plan,
+                  evidenceGraph: coverage.researchReceipt.evidence,
+                }
+              : {}),
+          });
+          const composedText = existingText + fullText;
+          onChunk?.(composedText, 1);
+          return {
+            fullText: composedText,
+            finishReason: 'stop',
+            adaptiveRoute: 'scion-evidence-compiler',
+            modelRequests: 0,
+            ...(observedAdapterRoutes.length > 0 ? { adapterRoutes: observedAdapterRoutes } : {}),
+          };
+        }
         const error = toClassifiedError(rawError, { provider, modelId, task });
         recordApiCallEvent({
           type: 'failedCall',

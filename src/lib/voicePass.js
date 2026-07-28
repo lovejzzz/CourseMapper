@@ -486,7 +486,7 @@ export async function runVoicePass({
     const selfCheck = { pre: preTexture.score, post: preTexture.score, verdict: 'skipped' };
     emit({
       type: 'voicePassDone',
-      detail: `voiced 0 surface(s), 0 fallback(s) (model cost $0.000) — voice-surface texture ${preTexture.score} already meets target; skipped ${skipped.length} rewrite(s)`,
+      detail: `voiced 0 surface(s), 0 fallback(s) (rewrite cost $0.000) — voice-surface texture ${preTexture.score} already meets target; skipped ${skipped.length} rewrite(s)`,
     });
     return {
       deliverables,
@@ -610,7 +610,7 @@ export async function runVoicePass({
 
   emit({
     type: 'voicePassDone',
-    detail: `voiced ${voiced.length} surface(s), ${fallbacks.length} fallback(s) (model cost ${costEstimated ? 'estimated ' : ''}$${spentUsd.toFixed(3)})${
+    detail: `voiced ${voiced.length} surface(s), ${fallbacks.length} fallback(s) (rewrite cost ${costEstimated ? 'estimated ' : ''}$${spentUsd.toFixed(3)})${
       selfCheck ? ` — voice-surface texture ${selfCheck.pre}→${selfCheck.post} (${selfCheck.verdict})` : ''
     }${exhausted ? ' — budget exhausted' : ''}`,
   });

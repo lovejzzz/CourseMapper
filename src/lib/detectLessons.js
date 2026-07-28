@@ -86,6 +86,17 @@ export function detectExpectedLessons(text) {
   // "course" noun. Users commonly write briefs such as "one lesson: Pinyin
   // and Tones" or "two modules — onboarding and practice". Treat those as
   // exact scope instead of asking the model to infer a larger course.
+  const exactCompactUnitCountPat = new RegExp(
+    `\\bexactly\\s+(${SMALL_COUNT_TOKEN})\\s+(lesson|module|session)s?\\b`,
+    'i',
+  );
+  const exactCompactUnitCount = text.match(exactCompactUnitCountPat);
+  if (exactCompactUnitCount) {
+    const n = parseSmallCount(exactCompactUnitCount[1]);
+    if (n >= 1 && n <= 52) {
+      return { expected: n, confidence: 'high', source: `"${exactCompactUnitCount[0]}"` };
+    }
+  }
   const compactUnitCountPat = new RegExp(`\\b(${SMALL_COUNT_TOKEN})\\s+(lesson|module|session)s?\\b`, 'i');
   const compactUnitCount = text.match(compactUnitCountPat);
   if (compactUnitCount && SMALL_COUNT_WORDS[String(compactUnitCount[1]).toLowerCase()]) {

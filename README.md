@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — cross-checked, exportable, and fully editable. Then use the AI agent to inspect and revise the generated workspace through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.86
+**Current release:** v0.16.87
 
 ---
 
@@ -32,7 +32,7 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site presents **Provider: Scion**, a disabled API control because no key is needed, and one product model: **Scion V0.16.86**. That label names EduTool's complete course-building system; it is not a claim that EduTool trained or hosts a new foundation model. Scion pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its identity and metadata, and runs it through the packaged WebGPU runtime. Before local inference, Scion can prepare compact source-anchored evidence from uploaded material, the shipped Curriculum Genome, the local research cache, and—only after opt-in—current public sources. The resulting typed knowledge feeds one shared compiler and export contract.
+The hosted site presents **Provider: Scion**, a disabled API control because no key is needed, and one product model: **Scion V0.16.87**. That label names EduTool's complete course-building system; it is not a claim that EduTool trained or hosts a new foundation model. Scion pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its identity and metadata, and runs it through the packaged WebGPU runtime. Before local inference, Scion can prepare compact source-anchored evidence from uploaded material, the shipped Curriculum Genome, the local research cache, and—only after opt-in—current public sources. The resulting typed knowledge feeds one shared compiler and export contract.
 
 In plain language, **Scion Vx is the whole local authoring system, not just the base model**:
 
@@ -58,17 +58,39 @@ brief + files → Scion evidence → bounded local adaptation → shared compile
 
 The historical research architecture and limitations remain documented in [docs/ALGI_RESEARCH_FIRST_ARCHITECTURE.md](docs/ALGI_RESEARCH_FIRST_ARCHITECTURE.md) and [docs/ALGI_V0_PIPELINE_ASSESSMENT.md](docs/ALGI_V0_PIPELINE_ASSESSMENT.md).
 
-### V0.16.86 current production candidate — one download, one deliberate start
+### V0.16.87 current release candidate — one Scion, right-sized for the device
 
-V0.16.86 is a production-runtime reliability patch discovered through the required post-deploy browser audit. In Chrome, V0.16.85 could download the entire 3.35 GB public model, reach 100%, fail during activation, and silently enter the prose fallback—which started the same multi-gigabyte transfer again. The browser had sufficient storage, WebGPU and WebAssembly JSPI were available, and every remote shard size matched the immutable manifest. The defect was in the custom OPFS read boundary, not the course prompt or public weights.
+The required production-origin audit of V0.16.86 found the real activation boundary. `1,163,217,991` is hexadecimal `0x45554c47`, the little-endian bytes for **`GLUE`**—the binary request marker left in memory when native loading throws before returning a response. With native logs visible, the actual cause was clear: this Chrome session exposed `navigator.gpu`, but both WebGPU adapter requests returned `null`. The model cache was not corrupt and the integer was not a legitimate 1.16 GB file read.
 
-The generated pinned runtime now caps every OPFS read by four independent limits: the requested length, the remaining shard bytes, the destination typed-array capacity, and the backing-buffer capacity. This prevents the oversized destination view that caused the production activation failure. The public Gemma revision, five shard sizes, total download, and model-weight identity are unchanged.
+V0.16.87 checks the capability that matters before spending the user's bandwidth. Scion must obtain a real WebGPU adapter before it imports Wllama, opens the model cache, or starts the 3.35 GB public-base transfer. On a capable device, Scion keeps the local Gemma quality lane. On an incompatible or storage-constrained device, Scion automatically uses its private source-evidence and deterministic compiler lane with **zero model download and zero model requests**. There is still one public product choice—Scion—and the adaptive lane receives the same structured task, uploaded material, optional-research consent, CourseIR, compiler, Agent evidence, and export contract.
+
+The worker now rejects a null or impossible native response before allocating output, preserves the preceding native cause, and no longer treats stale `GLUE` bytes as evidence of a corrupt cache. Native errors pass through Scion's filtered logger. Large OPFS reads are also served through validated 64 MiB destination views as defense in depth; the generated-worker regression proves adjacent destination and file cursors without representing chunking as the production root-cause fix. The generated runtime digest is `4b43ed59785ae9aa89aae67ac504534d9bf7b65e6340969b7bd13550146a6433`.
+
+The first workspace frame now removes count instructions such as “exactly three lessons” from the course title. V0.16.86's duplicate-download containment remains active: an actual runtime failure cannot enter the hidden prose provider path or start a second multi-gigabyte transfer.
+
+A fresh local professor-facing acceptance build used **Digital Accessibility for Product Teams** with four lessons: **WCAG principles and conformance → semantic HTML and keyboard accessibility → accessible forms → evidence-based accessibility testing and remediation**. The adapter-less Chrome session forecast three evidence gaps, named the public catalogs and data boundary in the primary **Use current sources & generate** action, then selected Scion's zero-download research/compiler lane. It completed in **9 seconds**, mapped **4/4** lessons, prepared **4/4** lesson kernels, compiled **9/9** material families, and finished with **0 blockers and 0 warnings**. Automated Readiness was **65/100** under the unchanged automation-only evidence ceiling; package conformance was separately **99/A** and texture was **97**. The physical 35-file ZIP passed **38/38** export checks, carried six accessible concept-linked sources, and recorded zero model inference, zero downloaded weights, and `$0.000` rewrite cost.
+
+That browser pass drove reader-facing repairs before release: WCAG, WAI, ARIA, HTML, CSS, UI, and UX keep their acronym form; reference-clause debris such as “Conformance to this level” cannot become a course concept; unfinished-product verbs are removed from Week instructions; and a broad dark-mode selector no longer turns editable slide text white-on-white. The Agent progressively loads only the narrow answer capability needed for the question; in the final replay it named the official W3C Accessible Forms and Labels sources, explained how Lesson 3 evidence feeds Lesson 4 remediation, and preserved the claim boundary that one passing component check does not prove product conformance. A word-by-word scan across all ten public surfaces found no placeholder text, clipped source cue, stale count instruction, bad reference fragment, unfinished-product label, or public Algi identity. The exported manifest and reports likewise contain no internal Algi codename or contradictory model-cost claim.
+
+The final automated gates pass **5,873 active unit tests across 470 passing files** with 16 files and 162 tests intentionally skipped; the complete **151/151 Chromium suite**; the **40/40 layered evaluation**; the **18/40 PR compiler contract profile**; format, lint, build, bundle, and release-history audits; and a generated-runtime digest check. The evaluation claim remains `compiler-contract-only`: these results establish encoded behavior and regression coverage, not instructor approval or classroom effectiveness.
+
+Held-out ruler **V27** binds the changed transitive grader and source-ledger implementation without inheriting a V26 score, adapter result, or model-quality claim. The course fixtures, public Gemma base, inactive adapter, task boundary, and 69-point independent-evidence ceiling remain unchanged.
+
+This is strong local engineering and artifact evidence, not production or instructor validation. V0.16.87 is not release-proven until the merged production build repeats generation, every Living Course Compiler stage, Agent interaction, responsive inspection, a clean console, and the physical ZIP audit.
+
+The implementation and release-blocking proof contract are documented in [docs/SCION_V01687_ADAPTIVE_DEVICE_ROUTE.md](docs/SCION_V01687_ADAPTIVE_DEVICE_ROUTE.md).
+
+### V0.16.86 historical runtime containment — one download, one deliberate stop
+
+V0.16.86 is a production-runtime reliability patch discovered through the required post-deploy browser audit. In Chrome, V0.16.85 could download the entire 3.35 GB public model, reach 100%, fail during activation, and silently enter the prose fallback—which started the same multi-gigabyte transfer again. The browser had sufficient storage, `navigator.gpu` and WebAssembly JSPI were exposed, and every remote shard size matched the immutable manifest. The next audit proved that the visible integer was stale `GLUE` protocol memory after native loading failed because Chrome could not obtain a usable WebGPU adapter; it was not a 1.16 GB read request or evidence of corrupt public weights.
+
+The generated pinned runtime capped every OPFS read by four independent limits: the requested length, the remaining shard bytes, the destination typed-array capacity, and the backing-buffer capacity. The next production audit corrected the remaining diagnosis: the visible integer was the stale `GLUE` request marker after native loading failed because no WebGPU adapter was available. V0.16.87 validates the adapter before download and prevents the worker from masking a native exception.
 
 Scion also treats browser-runtime startup errors as a hard orchestration boundary. Native authoring cannot hide such a failure behind the prose fallback, so one activation failure cannot trigger a second provider attempt or full download. A failed fresh activation releases its runtime and OPFS handles before removing the cache. A known incomplete saved copy may still be replaced once; unrelated device failures do not clear a valid model.
 
 The progress language now separates transfer from activation. The 100% frame reads **“Download complete · activating Scion…”**, a clean replacement says so explicitly, and a terminal activation error preserves the last honest progress instead of snapping to zero. Engineering logs retain a prompt-free diagnostic cause chain while the visible message remains concise.
 
-This patch changes browser delivery and recovery, not course-quality scoring. Gemma weights are unchanged, the optional trained adapter remains inactive, and Scion retains the V0.16.85 internal evidence layer and shared compiler. Automated and production-browser gates demonstrate implementation behavior; they do not prove factual correctness, instructor approval, accessibility certification, student outcomes, or classroom effectiveness.
+This historical patch changed browser delivery and recovery, not course-quality scoring. It successfully stopped the hidden second provider path but did not complete model activation; V0.16.87 is the current repair. Gemma weights remained unchanged, the optional trained adapter remained inactive, and Scion retained the V0.16.85 internal evidence layer and shared compiler.
 
 The implementation and release-blocking production proof contract are documented in [docs/SCION_V01686_PRODUCTION_RUNTIME_RECOVERY.md](docs/SCION_V01686_PRODUCTION_RUNTIME_RECOVERY.md).
 
@@ -192,7 +214,7 @@ Gemma weights remain unchanged, and the research adapter remains inactive becaus
 
 ### Recent release history
 
-The sections below are historical release evidence. Their versions, timings, test counts, and measured packages describe the named release and are intentionally preserved; the V0.16.86 release section above is the current authority. Historical 99/A statements refer to the deterministic conformance grader used by those releases, not to the new Automated Readiness construct.
+The sections below are historical release evidence. Their versions, timings, test counts, and measured packages describe the named release and are intentionally preserved; the V0.16.87 release section above is the current authority. Historical 99/A statements refer to the deterministic conformance grader used by those releases, not to the new Automated Readiness construct.
 
 V0.16.77 makes experiential learning a first-class compiler capability instead of a one-course template. When—and only when—a lesson explicitly requests a simulation, laboratory investigation, studio critique, case exercise, structured debate, field exercise, or role-play, the existing lesson-authoring call returns one compact course-specific activity blueprint beside its knowledge kernel. There is no extra call for the lesson plan, slides, assignment, or export.
 
@@ -541,7 +563,7 @@ v0.16.37 gives that local system one transparent workspace story. The single pro
 
 The embedded Agent uses the same browser-local Scion runtime for concise advisory answers. It does not yet claim native tool execution or silently edit the workspace. v0.16.37 also repairs restored projects: legacy `free`/Scion snapshots are canonicalized to `public + scion-public`, marked connected without an API key, and reopen with the Agent composer enabled.
 
-No API key or model backend is required and Course Mapper prices the route at $0. First use downloads the approximately 3.35 GB public base directly from Hugging Face and caches it in browser storage; later runs reuse that local copy. Prompts and generated text stay in the browser. Current support requires WebGPU and WebAssembly JSPI, and AI output can still be wrong, so review every generated course before using it with students.
+No API key or model backend is required and Course Mapper prices the route at $0. Scion checks the device before downloading model weights. A browser with a usable WebGPU adapter and WebAssembly JSPI can download and cache the approximately 3.35 GB public Gemma base from Hugging Face; an incompatible or storage-constrained browser automatically uses Scion’s private zero-download evidence compiler. Course work stays in the browser unless current-source research is explicitly enabled. AI-generated and compiler-composed material can still be wrong, so review every generated course before using it with students.
 
 ### Where Scion Vx is going
 
@@ -882,8 +904,7 @@ The full architecture lives in [docs/CURRICULUMOS_V1_DESIGN.md](docs/CURRICULUMO
 
 Go to [edutool.dev](https://edutool.dev). On the landing page:
 
-- **Scion** — Generate without an API key using the pinned public Gemma 4 model in your browser. First use downloads about 3.35 GB of weights; prompts and generated text stay on the device.
-- **Algi V0** — Generate without a model download or inference from uploaded material and the shipped teaching genome. The preflight forecasts private lesson coverage before generation. Private mode makes no external course-topic request; optional source research is explicitly enabled and runs through DOAJ, licensed open-access Europe PMC records, and then Wikipedia only for unresolved lesson contracts.
+- **Scion** — Generate without an API key. Scion first checks the device, then uses either the pinned local Gemma 4 model or its private zero-download evidence compiler. The source-consolidation work developed in the former Algi prototype is now an internal Scion capability, not a public model choice. Private mode makes no external course-topic request; optional source research is explicitly enabled and checks DOAJ, licensed open-access Europe PMC records, then Wikipedia only for unresolved lesson contracts.
 - **Bring your own key** — Select your provider (OpenAI, Anthropic, Google, or DeepSeek) and paste your API key. The app auto-detects key format and switches the provider dropdown.
 - Restored workspaces can reconfigure a missing or expired key in place from the Agent header by clicking the current model/config label.
 

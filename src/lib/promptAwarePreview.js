@@ -14,6 +14,10 @@ const removeBriefQualifiers = (value) =>
     .replace(/\s+(?:course|class|seminar|workshop)$/i, '')
     .replace(/,\s*(?:with|for|that|where|covering|including)\b.*$/i, '')
     .replace(/\s+(?:with|in)\s+\d+\s+(?:lessons?|weeks?|modules?|sessions?)\b.*$/i, '')
+    .replace(
+      /\s*,?\s+(?:exactly|about|around)\s+(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|\d{1,2})\s+(?:lessons?|weeks?|modules?|sessions?)\b.*$/i,
+      '',
+    )
     .replace(/\s+(?:that|where|covering|including)\b.*$/i, '')
     .trim();
 

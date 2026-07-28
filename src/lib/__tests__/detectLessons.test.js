@@ -83,6 +83,17 @@ describe('detectExpectedLessons', () => {
     });
   });
 
+  it('treats a bare numeric mini-course count as an exact scope contract', () => {
+    expect(
+      detectExpectedLessons(
+        'Digital Accessibility for Product Teams, exactly 3 lessons: WCAG principles, semantic HTML, and accessible forms.',
+      ),
+    ).toMatchObject({
+      expected: 3,
+      confidence: 'high',
+    });
+  });
+
   // ── Pattern 1b: "X week course" ──
   it('detects "14 week semester"', () => {
     const result = detectExpectedLessons('This is a 14 week semester.');

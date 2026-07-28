@@ -1548,6 +1548,26 @@ export default function useDeliverables({
                 expectedLessonIds,
                 contentSourcedLessonIds,
               });
+              const missingKernelIds = expectedLessonIds.filter((lessonId) => !parsed.kernels?.[lessonId]);
+              if (missingKernelIds.length > 0 || parsed.issues?.length > 0) {
+                const issueSummary = (parsed.issues || [])
+                  .slice(0, 8)
+                  .map((issue) => {
+                    const problems = Array.isArray(issue?.problems) ? issue.problems.join('|') : issue?.reason || '';
+                    return `${issue?.lessonId || 'unknown'}:${issue?.surface || 'lesson'}:${problems}`;
+                  })
+                  .join(' · ');
+                recordGenerationApiCallEvent({
+                  type: 'pipelineDecision',
+                  stage: 'canonicalKernelAdmission',
+                  label: 'Scion canonical kernel admission',
+                  detail: `${missingKernelIds.length ? `missing ${missingKernelIds.join(', ')}` : 'all lesson ids present'}${
+                    issueSummary ? ` · ${issueSummary}` : ''
+                  }`,
+                  featureId: 'blueprintEnrichment',
+                  task: 'blueprintEnrichment',
+                });
+              }
               for (const [lessonId, payload] of Object.entries(parsed.kernels)) {
                 lessonContent[lessonId] = bindScionEvidenceProvenance(
                   lessonId,
@@ -2492,14 +2512,20 @@ export default function useDeliverables({
             stats: directCourseIRState.validation.stats,
           });
         } else if (nativeSkeleton) {
-          const { resolveNativeAssembly } = await import('../lib/nativeGraphAuthoring');
+          const { backfillNativeAuthoringFromLessonContent, resolveNativeAssembly } =
+            await import('../lib/nativeGraphAuthoring');
+          const effectiveNativeAuthored = backfillNativeAuthoringFromLessonContent({
+            skeleton: nativeSkeleton,
+            authoredBySession: blueprintEnrichment?.nativeAuthored || {},
+            lessonContent: blueprintEnrichment?.lessonContent || {},
+          });
           const resolution = resolveNativeAssembly({
             skeleton: nativeSkeleton,
-            passBBySession: blueprintEnrichment?.nativeAuthored || {},
+            passBBySession: effectiveNativeAuthored,
           });
           if (resolution.ok) {
             courseGraph = courseGraphLib.attachEnrichmentToGraph(resolution.graph, enrichmentForGraph);
-            const authoredSurfaceCount = Object.keys(blueprintEnrichment?.nativeAuthored || {}).length;
+            const authoredSurfaceCount = Object.keys(effectiveNativeAuthored).length;
             const admittedKernelCount = Math.max(0, Number(blueprintEnrichment?.coverage?.enrichedLessons) || 0);
             const nativeLessonCount = resolution.graph.sessions.length;
             const recoveredResourceDetail = resolution.resourceRecovery?.recoveredCount
@@ -2988,6 +3014,7 @@ export default function useDeliverables({
                   },
                   signal: controller.signal,
                 });
+                if (!usage && result?.modelRequests === 0) usage = { costUsd: 0 };
                 return { fullText: result?.fullText || '', usage };
               };
               // Voice only the features this run actually dispatched as done

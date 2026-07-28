@@ -45,7 +45,7 @@ const QUANTITATIVE =
 const HUMANITIES =
   /\b(?:art history|ethics|history|humanities|language|literature|music|philosoph|religion|writing)\b/i;
 const SOCIAL_SCIENCE =
-  /\b(?:anthropolog|business|communication|design|education|law|management|marketing|policy|politic|psycholog|sociolog|user experience|ux)\b/i;
+  /\b(?:accessib(?:le|ility)|anthropolog|business|communication|design|education|inclusive design|law|management|marketing|policy|politic|psycholog|sociolog|user experience|ux|web standards?)\b/i;
 const TIME_SENSITIVE =
   /\b(?:current|emerging|guideline|latest|law|policy|recent|regulation|standard|state of the art|technology|today|trend)\b/i;
 const APPLICATION =
@@ -91,7 +91,11 @@ function quoted(value = '') {
 }
 
 function queryForProvider({ providerId, title, domainTerms }) {
-  if (providerId === 'wikipedia') return clean(title);
+  if (providerId === 'wikipedia') {
+    const titleTerms = new Set(tokens(title));
+    const disambiguator = domainTerms.find((term) => !titleTerms.has(term)) || '';
+    return [quoted(title), disambiguator].filter(Boolean).join(' ');
+  }
   // Scholarly indexes rarely contain an instructor's whole pedagogical label
   // verbatim. Searching "Cooling interventions, implementation trade-offs,
   // and evaluation" as one quoted phrase produced zero results even though
@@ -129,7 +133,16 @@ export function planAlgiCourseResearch({ courseName = '', lessons = [], now = Da
     }))
     .filter((lesson) => lesson.title);
   const domain = inferAlgiResearchDomain(courseName, normalizedLessons);
-  const providerOrder = providerOrderForAlgiDomain(domain);
+  const researchContext = [courseName, ...normalizedLessons.map((lesson) => lesson.title)].join(' ');
+  // Standards-oriented accessibility lessons need the canonical concept and
+  // conformance vocabulary before a broad empirical paper. A DOAJ-first pass
+  // could satisfy the compact schema with a merely related article and stop
+  // the cascade before WCAG/HTML sources were checked.
+  const canonicalAccessibilityFirst =
+    /\b(?:accessib(?:le|ility)|wcag|semantic html|web standards?|screen readers?)\b/i.test(researchContext);
+  const providerOrder = canonicalAccessibilityFirst
+    ? ['w3c-wai', 'wikipedia', 'doaj']
+    : providerOrderForAlgiDomain(domain);
   const courseTerms = tokens(courseName);
   const fallbackDomainTerms = tokens(normalizedLessons.map((lesson) => lesson.title).join(' '));
   const domainTerms = unique([...courseTerms, ...fallbackDomainTerms]).slice(0, 5);

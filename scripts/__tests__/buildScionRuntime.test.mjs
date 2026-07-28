@@ -16,5 +16,8 @@ describe('Scion pinned wllama runtime patch', () => {
     expect(patched).toContain('await cacheDir.removeEntry(filename);');
     expect(patched).toContain('signal: refreshController.signal');
     expect(patched).toContain('await Promise.allSettled(promises);');
+    expect(patched).toContain('Wllama action \\"${argAction}\\" failed before producing a valid response');
+    expect(patched).toContain('outputLen > heapByteLength - outputHeapOffset');
+    expect(patched).not.toContain('const outputBuffer = new Uint8Array(outputLen);\\n      const outputHeapOffset');
   });
 });

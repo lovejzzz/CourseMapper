@@ -14,6 +14,7 @@
 import { buildConceptIndex, resolveLessonConcepts } from './genome/conceptResolver.js';
 import { getKernelLibrary } from './genome/kernelLibrary.js';
 import { inferCourseDisciplines, loadGenomeManifest, loadShardsIntoLibrary } from './genome/libraryShardLoader.js';
+import { lintEnrichedKeyTerm } from './blueprintEnrichmentPass.js';
 
 // Contract word bounds (scionContracts.compactLessonKernelSchemaProfile).
 const FACT_WORDS = [8, 20];
@@ -86,7 +87,7 @@ const CONTEXT_DEPENDENT_FACT_START =
 const DEICTIC_REFERENCE =
   /\b(?:this|that|these|those)\s+(?:article|case|diagram|example|figure|line|lines|section|situation|table)\b/i;
 const FINITE_PREDICATE =
-  /\b(?:is|are|was|were|be|been|has|have|had|can|could|may|might|will|would|should|must|ought|refer|refers|mean|means|occur|occurs|involve|involves|use|uses|allow|allows|include|includes|describe|describes|concern|concerns|represent|represents|form|forms|support|supports|provide|provides|require|requires|consist|consists|comprise|comprises|become|becomes|evolve|evolves|produce|produces|give|gives|ask|asks|follow|follows|contain|contains|compute|computes|measure|measures|operate|operates|appear|appears|apply|applies|change|changes|detect|detects|distinguish|distinguishes|enable|enables|explain|explains|group|groups|link|links|perform|performs|protect|protects|quantify|quantifies|remain|remains|run|runs|solve|solves|store|stores|evaluate|evaluates|identify|identifies|document|documents|eliminate|eliminates|govern|governs|prohibit|prohibits|implement|implements|establish|establishes|coordinate|coordinates|monitor|monitors|assess|assesses|define|defines|supersede|supersedes|address|addresses|develop|develops|propose|proposes|align|aligns|regulate|regulates|promote|promotes|limit|limits|reconcile|reconciles|diagnose|diagnoses|reflect|reflects|design|designs|conceptualize|conceptualizes|position|positions|bridge|bridges|uphold|upholds|underscore|underscores|adopt|adopts|introduced|developed|showed|demonstrated|placed)\b/i;
+  /\b(?:is|are|was|were|be|been|has|have|had|can|could|may|might|will|would|should|must|ought|need|needs|refer|refers|mean|means|occur|occurs|involve|involves|use|uses|allow|allows|include|includes|describe|describes|communicate|communicates|concern|concerns|represent|represents|form|forms|support|supports|provide|provides|require|requires|consist|consists|comprise|comprises|cover|covers|become|becomes|evolve|evolves|produce|produces|give|gives|ask|asks|follow|follows|contain|contains|compute|computes|measure|measures|operate|operates|appear|appears|apply|applies|change|changes|detect|detects|distinguish|distinguishes|enable|enables|explain|explains|group|groups|link|links|perform|performs|protect|protects|quantify|quantifies|remain|remains|run|runs|solve|solves|store|stores|evaluate|evaluates|identify|identifies|document|documents|eliminate|eliminates|govern|governs|prohibit|prohibits|implement|implements|establish|establishes|coordinate|coordinates|monitor|monitors|assess|assesses|define|defines|supersede|supersedes|address|addresses|develop|develops|propose|proposes|align|aligns|regulate|regulates|promote|promotes|limit|limits|reconcile|reconciles|diagnose|diagnoses|reflect|reflects|design|designs|conceptualize|conceptualizes|position|positions|bridge|bridges|uphold|upholds|underscore|underscores|adopt|adopts|introduced|developed|showed|demonstrated|placed)\b/i;
 const PREPOSITIONAL_FACT_START = /^(?:in|on|at|for|by|with|from)\b/i;
 const DEPENDENT_FACT_START = /^(?:given|together with|along with|including|such as)\b/i;
 
@@ -94,6 +95,14 @@ function hasIndependentPredicate(text) {
   const clause = String(text || '')
     .replace(/^(?:however|ideally|specifically|therefore|consequently|additionally|moreover),\s*/i, '')
     .replace(/^(?:in|on|at|for|by|with|from)\b[^,]{1,80},\s*/i, '')
+    // A source can name an exact alias inside the subject:
+    // "Web accessibility, or eAccessibility, is …". The commas mark an
+    // appositive, not a dependent fragment. Normalize only for the predicate
+    // check; the admitted sentence remains byte-for-byte source text.
+    .replace(
+      /^([^,]{2,80}),\s+(?:(?:also|otherwise)\s+known\s+as|or)\s+[^,]{1,60},\s+(?=(?:is|are|refers?|means?)\b)/i,
+      '$1 ',
+    )
     .trim();
   const predicate = FINITE_PREDICATE.exec(clause);
   if (!predicate || predicate.index <= 0) return false;
@@ -179,10 +188,16 @@ export function fitSourceSentence(text, bounds = FACT_WORDS) {
   const coordinationCandidates = [];
   const prepositionCandidates = [];
   for (const match of clauseSource.matchAll(/[,;:—]/g)) {
+    const before = clauseSource.slice(0, match.index);
+    if ((before.match(/\(/g) || []).length > (before.match(/\)/g) || []).length) continue;
     const prefix = clauseSource
       .slice(0, match.index)
       .replace(/[.!?]+$/, '')
       .trim();
+    const listContinuation =
+      match[0] === ',' &&
+      /\b[A-Z][\p{L}\p{N}-]*$/u.test(prefix) &&
+      /^(?:[A-Z][\p{L}\p{N}-]*)(?:\s*,|\s+and\b)/u.test(clauseSource.slice((match.index || 0) + 1).trim());
     const suffix = clauseSource
       .slice((match.index || 0) + match[0].length)
       .trim()
@@ -190,7 +205,7 @@ export function fitSourceSentence(text, bounds = FACT_WORDS) {
       .replace(/[.!?]+$/, '')
       .trim();
     for (const [clause, bucket] of [
-      [prefix, prefixCandidates],
+      [listContinuation ? '' : prefix, prefixCandidates],
       [suffix, suffixCandidates],
     ]) {
       const clauseWords = wordsOf(clause);
@@ -246,7 +261,12 @@ export function fitSourceSentence(text, bounds = FACT_WORDS) {
   const selected =
     prefixCandidates[0] || coordinationCandidates[0] || suffixCandidates[0] || prepositionCandidates[0] || '';
   if (!selected) return '';
-  const sentenceCased = `${selected.charAt(0).toUpperCase()}${selected.slice(1)}`;
+  const cleanSelected = selected.replace(/[,;:—-]+$/, '').trim();
+  // A punctuation edge can conceal the same dangling preposition the ordinary
+  // fact gate rejects ("interaction with,"). Strip the edge and check again
+  // before turning it into a polished-looking but incomplete sentence.
+  if (!isSelfContainedFact(cleanSelected)) return '';
+  const sentenceCased = `${cleanSelected.charAt(0).toUpperCase()}${cleanSelected.slice(1)}`;
   return `${sentenceCased}.`;
 }
 
@@ -275,6 +295,8 @@ export function fitSourceFacts(text) {
   const clauses = [primary];
   const clauseSource = normalized.replace(/^This means\s+/i, '');
   for (const match of clauseSource.matchAll(/[,;:—]/g)) {
+    const before = clauseSource.slice(0, match.index);
+    if ((before.match(/\(/g) || []).length > (before.match(/\)/g) || []).length) continue;
     const suffix = clauseSource
       .slice((match.index || 0) + match[0].length)
       .trim()
@@ -456,6 +478,21 @@ const CORRECTION_MAX_CHARS = 300;
 function composeCorrection(misconception, kernel) {
   const right = String(misconception?.corrective || sentenceOf(kernel.definition)).trim();
   if (!right) return '';
+  if (
+    /^A related idea can be labeled .+ without checking the source definition\.?$/i.test(
+      String(sentenceOf(misconception)).trim(),
+    ) &&
+    right.replace(/\s+/g, ' ').trim() === String(sentenceOf(kernel.definition)).replace(/\s+/g, ' ').trim()
+  ) {
+    const term = String(kernel?.term || '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (!term) return '';
+    // This correction is epistemic, not a new domain claim: it reverses the
+    // conservative source-boundary misconception without restating the
+    // definition or inventing a distinction between neighbouring concepts.
+    return `Use ${term} only when the source definition and stated conditions support that label.`;
+  }
   // `corrective` is already the positive, teachable replacement. Prefixing it
   // with "Not that students..." repeated a narrated error inside FAQs, quiz
   // keys, and instructor notes. Preserve the authored/source-backed correction
@@ -489,46 +526,7 @@ function exampleFor(kernel) {
   return '';
 }
 
-const GENERIC_SOURCE_BOUNDARY_MISCONCEPTION =
-  /^(?:Students stretch .+ beyond the boundary this source draws around it|Students treat .+ as interchangeable with what this source explicitly distinguishes it from)\.?$/i;
-
-function peerContrastMisconception(kernel, peerKernel) {
-  const term = String(kernel?.term || '').trim();
-  const peer = String(peerKernel?.term || '').trim();
-  if (!term || !peer || term.toLowerCase() === peer.toLowerCase()) return null;
-  let left = String(sentenceOf(kernel.definition)).replace(/\s+/g, ' ').trim();
-  let right = String(sentenceOf(peerKernel.definition)).replace(/\s+/g, ' ').trim();
-  if (!left || !right || left.toLowerCase() === right.toLowerCase()) return null;
-  // A useful contrast must identify both sides. The first implementation
-  // defined only the neighbouring term, so an answer could say Measurement
-  // problem and Superposition were different while explaining only
-  // Superposition. Preserve two complete source sentences whenever they fit;
-  // the explicit contrast makes the correction a different instructional
-  // move from either standalone definition.
-  left = compactContrastDefinition(kernel) || (left.length <= 118 ? left : fitSourceSentence(left, [7, 20]));
-  right = compactContrastDefinition(peerKernel) || (right.length <= 118 ? right : fitSourceSentence(right, [7, 20]));
-  const twoSided = `They are not interchangeable. ${left} ${right}`.trim();
-  const corrective =
-    left &&
-    right &&
-    twoSided.length <= CORRECTION_MAX_CHARS &&
-    // Downstream learner-copy normalization preserves roughly a 42-word
-    // correction. Sending a longer two-definition contrast caused the second
-    // definition to be clipped into artifacts such as "refers to the
-    // allocation." Prefer the explicit bounded distinction when both complete
-    // definitions cannot survive together.
-    wordsOf(twoSided).length <= 35
-      ? twoSided
-      : `The cited definitions treat ${term} and ${peer} as distinct concepts with different scope and evidence.`;
-  return {
-    text: `${term} and ${peer} are interchangeable descriptions of the same concept.`,
-    // Both source definitions remain visible so the learner can name the
-    // distinction rather than merely accept that one exists.
-    corrective,
-  };
-}
-
-export function diagnoseKeyTermCandidate(kernel, peerKernel = null) {
+export function diagnoseKeyTermCandidate(kernel) {
   // A key-term label is an identity, not prose: clipping a five-word article
   // title to four words produced labels such as “Application of biofilms in.”
   // Skip the candidate and let the next admitted concept fill the slot.
@@ -561,13 +559,12 @@ export function diagnoseKeyTermCandidate(kernel, peerKernel = null) {
   })();
   const example = exampleFor(kernel);
   const originalMisconception = (kernel.misconceptions || [])[0];
-  // Wikipedia frequently states no explicit misconception. The old fallback
-  // ("students stretch X beyond the boundary...") was honest but not useful
-  // pedagogy. When the lesson contains another admitted concept, turn the pair
-  // into an inspectable distinction built from both source definitions.
-  const misconception = GENERIC_SOURCE_BOUNDARY_MISCONCEPTION.test(sentenceOf(originalMisconception))
-    ? peerContrastMisconception(kernel, peerKernel) || originalMisconception
-    : originalMisconception;
+  // A source that does not state a contrast does not authorize us to invent
+  // one between neighbouring concepts. That shortcut once taught that “WCAG”
+  // and “Web Content Accessibility Guidelines” were distinct concepts. Keep
+  // the conservative source-boundary misconception instead; explicit source
+  // contrasts still travel through unchanged.
+  const misconception = originalMisconception;
   const mi = fitWords(sentenceOf(misconception), MI_WORDS);
   const cx = composeCorrection(misconception, kernel);
   return {
@@ -586,11 +583,60 @@ export function diagnoseKeyTermCandidate(kernel, peerKernel = null) {
   };
 }
 
-function composeKeyTerm(kernel, peerKernel = null) {
-  const diagnostic = diagnoseKeyTermCandidate(kernel, peerKernel);
+function composeKeyTerm(kernel) {
+  const diagnostic = diagnoseKeyTermCandidate(kernel);
   const { term, definition, example, misconception: mi, correction: cx } = diagnostic;
   if (diagnostic.missing.length > 0) return null;
   return { tr: term, df: definition, eg: example, mi, cx };
+}
+
+function researchDerivedDefinitionCentersTerm(keyTerm, kernel) {
+  if (kernel?.provenance?.evidenceKernel !== 'anchored-claim-phrase') return true;
+  if (!/^(?:Level\s+(?:A{1,3}|[1-5])|Content)$/i.test(String(keyTerm?.tr || '').trim())) return true;
+  const termPattern = String(keyTerm?.tr || '')
+    .trim()
+    .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    .replace(/\s+/g, '[\\s-]+');
+  if (!termPattern) return false;
+  // Generic level/content labels are especially prone to being modifiers
+  // buried inside someone else's claim. Reject “Level AA” extracted from “a
+  // Level AA conforming alternate version is provided” while leaving more
+  // specific source-object concepts to the ordinary canonical judge.
+  return new RegExp(
+    `^(?:the\\s+)?${termPattern}(?:\\s*\\([^)]{1,30}\\))?\\s*(?:[-—–:]\\s*)?(?:is|are|refers?\\s+to|means?|denotes?|describes?|comprises?|covers?|needs?|aims?|allows?|helps?|communicates?|identif(?:y|ies)|can|should|must)\\b`,
+    'i',
+  ).test(String(keyTerm?.df || '').trim());
+}
+
+function composeCanonicalResearchKeyTerm(kernel, lessonTitle) {
+  const base = composeKeyTerm(kernel);
+  if (!base) return { keyTerm: null, canonicalProblems: [] };
+  const knownFacts = [kernel?.definition, ...(kernel?.facts || [])].map(sentenceOf).filter(Boolean);
+  const exampleCandidates = [
+    base.eg,
+    ...(kernel?.examples || []).map(sentenceOf),
+    ...(kernel?.workedExamples || []).map(sentenceOf),
+    ...(kernel?.facts || []).map(sentenceOf),
+  ];
+  let lastProblems = [];
+  const seen = new Set();
+  for (const candidate of exampleCandidates) {
+    const example = fitSourceSentence(candidate, EG_WORDS);
+    const key = example.toLowerCase();
+    if (!example || seen.has(key)) continue;
+    seen.add(key);
+    const keyTerm = { ...base, eg: example };
+    const canonicalProblems = lintEnrichedKeyTerm(keyTerm, {
+      lessonTitle,
+      knownFacts,
+    });
+    if (!researchDerivedDefinitionCentersTerm(keyTerm, kernel)) {
+      canonicalProblems.push('definition-does-not-center-term');
+    }
+    if (canonicalProblems.length === 0) return { keyTerm, canonicalProblems };
+    lastProblems = canonicalProblems;
+  }
+  return { keyTerm: base, canonicalProblems: lastProblems };
 }
 
 function composeFacts(kernels, factCount, offset = 0) {
@@ -643,10 +689,39 @@ function fitCompleteSourceSentence(value, bounds) {
   return '';
 }
 
+function fitCompleteScenarioMove(value, bounds) {
+  const normalized = String(value || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const sentences = normalized.split(/(?<=[.!?])\s+(?=[A-Z"'(])/);
+  for (const sentence of sentences) {
+    const fitted = fitSourceSentence(sentence, bounds);
+    if (fitted) return fitted;
+    const clean = sentence.replace(/[.!?]+$/, '').trim();
+    const words = wordsOf(clean);
+    // Scenario moves are learner instructions, so a complete imperative has
+    // no explicit grammatical subject. The source-fact fitter correctly
+    // rejects that form; admit it here only when it is already inside the
+    // compact contract and ends on a concrete object rather than a clipped
+    // connector.
+    if (
+      words.length >= bounds[0] &&
+      words.length <= bounds[1] &&
+      /^(?:apply|check|choose|compare|decide|determine|evaluate|explain|identify|interpret|justify|name|review|select|state|test|use|verify)\b/i.test(
+        clean,
+      ) &&
+      !DANGLING_FACT_EDGE.test(clean)
+    ) {
+      return `${clean}.`;
+    }
+  }
+  return '';
+}
+
 function composeScenario(kernels) {
   for (const kernel of kernels) {
     const misconception = (kernel.misconceptions || [])[0];
-    const ma = fitCompleteSourceSentence(misconception?.corrective || sentenceOf(kernel.definition), MOVE_WORDS);
+    const ma = fitCompleteScenarioMove(misconception?.corrective || sentenceOf(kernel.definition), MOVE_WORDS);
     if (!ma) continue;
     const sources = [
       ...(kernel.workedExamples || []),
@@ -772,16 +847,6 @@ function researchEvidenceOption(kernel) {
     .replace(/^[,;:—-]+|[,;:—-]+$/g, '')
     .replace(/[.!?]+$/, '');
   return option ? `${option.charAt(0).toUpperCase()}${option.slice(1)}.` : '';
-}
-
-function compactContrastDefinition(kernel) {
-  const definition = String(sentenceOf(kernel?.definition)).replace(/\s+/g, ' ').trim();
-  if (!definition) return '';
-  // A contrast correction must preserve a complete source claim. Rebuilding
-  // it from a ten-word option window exported fragments such as "Public
-  // policy refers to … elements like." When the source has no safe compact
-  // clause, the caller uses its honest generic distinction instead.
-  return fitSourceSentence(definition, [7, 28]);
 }
 
 function composeResearchMultipleChoice(kernels, factCount) {
@@ -1044,18 +1109,18 @@ export function composeLessonFromKernels(
       ? [...rest.slice(offset % rest.length), ...rest.slice(0, offset % rest.length)]
       : rest;
   const orderedKernels = [...pinned, ...spun].filter(Boolean);
-  for (const [kernelIndex, kernel] of orderedKernels.entries()) {
-    const peerKernel = orderedKernels.find(
-      (candidate, candidateIndex) =>
-        candidateIndex !== kernelIndex &&
-        String(candidate?.term || '')
-          .trim()
-          .toLowerCase() !==
-          String(kernel?.term || '')
-            .trim()
-            .toLowerCase(),
-    );
-    const keyTerm = composeKeyTerm(kernel, peerKernel);
+  const candidateDecisions = [];
+  for (const kernel of orderedKernels) {
+    const candidateDiagnostic = diagnoseKeyTermCandidate(kernel);
+    const canonicalResearchCandidate = containsResearch
+      ? composeCanonicalResearchKeyTerm(kernel, lessonTopic(lesson))
+      : { keyTerm: composeKeyTerm(kernel), canonicalProblems: [] };
+    const keyTerm = canonicalResearchCandidate.keyTerm;
+    // A live-research hit is only a candidate. Run the same semantic contract
+    // used by final lesson admission before allowing its label into the frozen
+    // ledger. Scope the judge to this candidate's own cited claims so a strong
+    // neighbouring article cannot make a weak or meta concept appear valid.
+    const canonicalProblems = canonicalResearchCandidate.canonicalProblems;
     const termTokens = lessonSupportTokens(keyTerm?.tr);
     const containedByExisting =
       !containsResearch &&
@@ -1065,11 +1130,19 @@ export function composeLessonFromKernels(
           termTokens.size <= existingTokens.size ? [termTokens, existingTokens] : [existingTokens, termTokens];
         return smaller.size > 0 && smaller.size < larger.size && [...smaller].every((token) => larger.has(token));
       });
-    if (
-      keyTerm &&
-      !containedByExisting &&
-      !keyTerms.some((existing) => existing.tr.toLowerCase() === keyTerm.tr.toLowerCase())
-    ) {
+    const duplicate = Boolean(
+      keyTerm && keyTerms.some((existing) => existing.tr.toLowerCase() === keyTerm.tr.toLowerCase()),
+    );
+    candidateDecisions.push({
+      term: String(kernel?.term || ''),
+      composedTerm: String(keyTerm?.tr || ''),
+      missing: candidateDiagnostic.missing,
+      canonicalProblems,
+      containedByExisting,
+      duplicate,
+      accepted: Boolean(keyTerm && canonicalProblems.length === 0 && !containedByExisting && !duplicate),
+    });
+    if (keyTerm && canonicalProblems.length === 0 && !containedByExisting && !duplicate) {
       keyTerms.push(keyTerm);
       selectedKernels.push(kernel);
     }
@@ -1079,6 +1152,7 @@ export function composeLessonFromKernels(
     return decline('key-terms', {
       selected: keyTerms.map((entry) => entry.tr),
       required: KEY_TERMS_REQUIRED,
+      candidateDecisions,
     });
   }
   // Researched neighbors are candidates, not permission to leak their content
@@ -1095,7 +1169,16 @@ export function composeLessonFromKernels(
         if (activeKernels.includes(kernel)) return true;
         if (kernel?.provenance?.origin !== 'algi-research') return false;
         const sourceTopic = String(kernel?.provenance?.topic || '').trim();
-        return sourceTopic && sourceTopic.toLowerCase() === String(lessonTopic(lesson)).toLowerCase();
+        if (!sourceTopic || sourceTopic.toLowerCase() !== String(lessonTopic(lesson)).toLowerCase()) return false;
+        // Preserve all matched official vertical concepts, but do not let a
+        // broad open-reference neighbour inject facts merely because it was
+        // fetched for the same lesson. “Web accessibility” supplied a Wix
+        // adoption statistic to a semantic-HTML lesson even though neither
+        // its term nor definition named HTML or semantics.
+        if (kernel?.provenance?.providerId === 'w3c-wai') return true;
+        const topicTokens = lessonSupportTokens(lessonTopic(lesson));
+        const directTokens = lessonSupportTokens(`${kernel?.term || ''} ${sentenceOf(kernel?.definition)}`);
+        return [...topicTokens].some((token) => directTokens.has(token));
       })
     : activeKernels;
   const facts = composeFacts(evidenceKernels, factCount, offset);
@@ -1126,6 +1209,7 @@ export function composeLessonFromKernels(
     Object.assign(diagnostics, {
       reason: 'composed',
       selected: keyTerms.map((entry) => entry.tr),
+      candidateDecisions,
     });
   }
   return {
@@ -1168,6 +1252,7 @@ export function composeLessonFromCandidateKernels(lesson, kernels, options = {})
       required: diagnostics.required,
       kernelCount: candidateKernels.length,
       terms: candidateKernels.map((kernel) => String(kernel?.term || '')).filter(Boolean),
+      candidateDecisions: Array.isArray(diagnostics.candidateDecisions) ? diagnostics.candidateDecisions : [],
       keyTermDeclines: candidateKernels
         .map((kernel, index) => ({
           term: String(kernel?.term || ''),
@@ -1242,6 +1327,22 @@ export function composeLessonFromCandidateKernels(lesson, kernels, options = {})
   return null;
 }
 
+const NON_CONCEPT_TERM_START =
+  /^(?:although|because|few|generally|if|many|most|often|other|several|since|some|sometimes|typically|usually|various|when|where|while)\b/i;
+const TERM_PREDICATE =
+  /\b(?:allows?|are|defines?|enables?|governs?|has|have|includes?|is|limits?|means?|provides?|refers?|requires?|supports?|was|were)\b/i;
+
+function isConceptLikeClaimTerm(value = '') {
+  const term = String(value || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!term || NON_CONCEPT_TERM_START.test(term)) return false;
+  // A label names a concept; it is not a clipped proposition. This rejects
+  // source fragments such as “Often require non-standard devices” while
+  // preserving noun phrases such as “Web Accessibility Initiative”.
+  return !TERM_PREDICATE.test(term);
+}
+
 function claimSubjectTerm(value = '') {
   const sentence = String(value || '')
     .replace(/\s*\([^)]{1,48}\)/g, '')
@@ -1252,10 +1353,15 @@ function claimSubjectTerm(value = '') {
     /^(?:(?:the|an?)\s+)?(.{3,80}?)\s+(?:is|are|refers to|means|denotes|describes|comprises|has become|has moved|serves as|requires?|governs?|prohibits?|allows?|includes?|implements?|establishes?|provides?|coordinates?|monitors?|evaluates?|assesses?|defines?|supersedes?|protects?|addresses?|supports?|produces?|develops?|proposes?|aligns?|regulates?|promotes?|enables?|limits?)\b/i,
   )?.[1];
   if (!subject || /[,;:]/.test(subject)) return '';
-  const words = subject.trim().split(/\s+/).filter(Boolean);
+  const words = subject
+    .trim()
+    .replace(/[\s—–-]+$/g, '')
+    .split(/\s+/)
+    .filter(Boolean);
   if (
     words.length < 1 ||
     words.length > 4 ||
+    !isConceptLikeClaimTerm(words.join(' ')) ||
     words.some((word) => /^(?:it|this|that|these|those|they|there)$/i.test(word)) ||
     /^(?:it|this|that|these|those|they|there|which|who|what|article|study|paper|result|analysis|framework|law|legislation|regulations?|research)$/i.test(
       words[0],
@@ -1269,7 +1375,7 @@ function claimSubjectTerm(value = '') {
 const CLAIM_OBJECT_RELATION =
   /\b(?:requires?|governs?|prohibits?|allows?|includes?|implements?|establishes?|provides?|coordinates?|monitors?|evaluates?|assesses?|defines?|supersedes?|protects?|addresses?|supports?|produces?|develops?|proposes?|aligns?|regulates?|promotes?|enables?|limits?|diagnoses?|diagnosing|reflects?|reflecting|designs?|designing|reconciles?|eliminates?|affected by|result(?:s|ed)? from|lie(?:s)? with)\b/gi;
 const GENERIC_CLAIM_TERM =
-  /^(?:claim|concept|factor|issue|item|method|model|process|result|thing|approach|article|study|paper|analysis|framework|law|legislation|research|source|system|bias|collection|conflicts?|decisions?|experts?|investigators?|responsibilities|reviewers?|systems?)$/i;
+  /^(?:claim|concept|factor|issue|item|method|model|process|result|thing|approach|article|study|paper|analysis|framework|law|legislation|research|source|system|bias|collection|conflicts?|decisions?|designers?|developers?|experts?|investigators?|learners?|organizations?|participants?|people|practitioners?|researchers?|respondents?|responsibilities|reviewers?|students?|systems?|teams?|users?)$/i;
 
 function cleanClaimObjectPhrase(value = '') {
   const phrase = String(value || '')
@@ -1284,6 +1390,8 @@ function cleanClaimObjectPhrase(value = '') {
   if (
     words.length < 1 ||
     words.length > 4 ||
+    /^(?:all|any|better|different|less|many|more|most|several|some|various|worse)\b/i.test(words.join(' ')) ||
+    !isConceptLikeClaimTerm(words.join(' ')) ||
     words.some((word) => /^(?:it|this|that|these|those|they|there|itself|themselves)$/i.test(word)) ||
     GENERIC_CLAIM_TERM.test(words.join(' '))
   ) {
@@ -1346,6 +1454,73 @@ function topicPhrasesAnchoredInClaim(value = '', topic = '') {
   return anchored;
 }
 
+const EXPLICIT_CONCEPT_FAMILY =
+  /\b(?:[A-Z][A-Z0-9-]{1,10}|[A-Z][a-z]+)(?:[\s-]+[A-Za-z0-9-]+){0,2}[\s-]+(?:principles|criteria|guidelines|standards?|frameworks?|levels?|pillars|dimensions|components|stages)\b/g;
+const EXPLICIT_LOWERCASE_CONCEPT = /\b(?:acceptance|conformance|evaluation|success|selection)\s+criteria\b/gi;
+const EXPLICIT_LEVEL_CONCEPT = /\bLevel\s+(?:A{1,3}|[1-5])\b/g;
+const NAMED_CONCEPT_LIST =
+  /\b((?:[A-Z][A-Z0-9-]{1,10}|[A-Z][a-z]+)(?:[\s-]+[A-Za-z0-9-]+){0,2}[\s-]+(?:principles|criteria|guidelines|standards?|frameworks?|levels?|pillars|dimensions|components|stages))\s*[—–:]\s*([^.;]{3,160})/g;
+
+function cleanExplicitConceptTerm(value = '') {
+  const term = String(value || '')
+    .replace(/^[\s"'([{]+|[\s"'\])},:;.—–-]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const words = wordsOf(term);
+  if (
+    words.length < TERM_WORDS[0] ||
+    words.length > TERM_WORDS[1] ||
+    words.some((word) => /^(?:it|this|that|these|those|they|them|there)$/i.test(word)) ||
+    !isConceptLikeClaimTerm(term) ||
+    GENERIC_CLAIM_TERM.test(term)
+  ) {
+    return '';
+  }
+  return term;
+}
+
+/**
+ * Recover explicitly named concepts from an admitted source sentence.
+ *
+ * Research APIs commonly return one article whose abstract names a compact
+ * vocabulary inside a sentence — for example "POUR principles—Perceivable,
+ * Operable, Understandable, and Robust". Treating the article title as the
+ * only concept made a well-sourced lesson fail the three-term teaching
+ * contract. This extractor remains closed-book: every returned label must
+ * occur verbatim in the retained claim, and the full anchored claim becomes
+ * its definition. No acronym expansion or subject-matter fact is supplied by
+ * the compiler.
+ */
+function explicitConceptTermsInClaim(value = '') {
+  const claim = String(value || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!claim) return [];
+  const terms = [];
+  const add = (candidate) => {
+    const term = cleanExplicitConceptTerm(candidate);
+    if (!term || terms.some((entry) => entry.toLowerCase() === term.toLowerCase())) return;
+    terms.push(term);
+  };
+
+  for (const pattern of [EXPLICIT_CONCEPT_FAMILY, EXPLICIT_LOWERCASE_CONCEPT, EXPLICIT_LEVEL_CONCEPT]) {
+    pattern.lastIndex = 0;
+    for (const match of claim.matchAll(pattern)) add(match[0]);
+  }
+
+  NAMED_CONCEPT_LIST.lastIndex = 0;
+  for (const match of claim.matchAll(NAMED_CONCEPT_LIST)) {
+    add(match[1]);
+    const namedItems = String(match[2] || '')
+      .split(/\s*[—–]\s*|\s*,\s*|\s+\band\b\s+/i)
+      .map((item) => item.split(/\s+(?:as|for|to)\s+/i)[0])
+      .map((item) => item.trim())
+      .filter((item) => /^(?:[A-Z][\p{L}\p{N}-]*)(?:\s+[A-Z][\p{L}\p{N}-]*){0,3}$/u.test(item));
+    for (const item of namedItems) add(item);
+  }
+  return terms;
+}
+
 /**
  * Turn source-anchored claims into compact concept kernels when one article
  * teaches several explicitly named ideas.
@@ -1386,7 +1561,8 @@ export function expandResearchKernelsForComposition(kernels = [], topic = '') {
         claimSubjectTerm(claimText),
         ...claimObjectTerms(claimText),
         ...topicPhrasesAnchoredInClaim(claimText, topic),
-      ].filter(Boolean);
+        ...explicitConceptTermsInClaim(claimText),
+      ].filter((term) => term && isConceptLikeClaimTerm(term));
       for (const term of terms) {
         const key = term.toLowerCase();
         if (seenTerms.has(key)) continue;
@@ -1401,8 +1577,8 @@ export function expandResearchKernelsForComposition(kernels = [], topic = '') {
           facts: supportingFacts,
           misconceptions: [
             {
-              text: `Students stretch ${term} beyond the boundary this source draws around it.`,
-              corrective: sentenceOf(claim),
+              text: `Naming ${term} without identifying a supporting source detail is sufficient evidence.`,
+              corrective: `Cite the specific definition or fact that supports the ${term} claim, then state what that evidence does not establish.`,
             },
           ],
           examples: supportingFacts.slice(0, 2).map((entry) => ({
@@ -1667,6 +1843,7 @@ export async function composeAlgiLessonKernels({
         researchLessonKernelSetsCascade,
         buildDoajProvider,
         buildEuropePmcProvider,
+        buildWaiProvider,
         buildWikipediaProvider,
       } = await import('./knowledge/algiResearch.js');
       const { buildAlgiEvidenceGraph, consolidateAlgiLessonEvidence, summarizeAlgiEvidenceGraph } =
@@ -1720,6 +1897,18 @@ export async function composeAlgiLessonKernels({
             groupSize: 5,
             candidatesPerGroup: 24,
             maxTargetedFallbacks: 2,
+          },
+        },
+        'w3c-wai': {
+          id: 'w3c-wai',
+          provider:
+            !directProvider && typeof researchProvider.httpText === 'function'
+              ? buildWaiProvider(researchProvider.httpText)
+              : null,
+          options: {
+            groupSize: 3,
+            candidatesPerGroup: 7,
+            maxTargetedFallbacks: 3,
           },
         },
         wikipedia: {
@@ -1780,8 +1969,14 @@ export async function composeAlgiLessonKernels({
       }
       const researchItems = stillUncovered.filter(({ position }) => !composed[position]);
       const researchTargets = researchItems.map(({ lesson }) => lessonTopic(lesson)).filter(Boolean);
-      const researchReadiness = (topic, kernels) =>
-        Boolean(
+      const researchReadiness = (topic, kernels) => {
+        // A single authoritative article can still compose the final lesson,
+        // but it should not stop the source cascade before Scion has tried to
+        // obtain three independent head concepts. This is a retrieval effort
+        // rule, not an admission rule: if later providers add nothing, the
+        // original source-derived terms remain eligible.
+        if ((kernels || []).length < KEY_TERMS_REQUIRED) return false;
+        return Boolean(
           composeLessonFromCandidateKernels(
             researchLessons.get(topic),
             expandResearchKernelsForComposition(kernels, topic),
@@ -1793,6 +1988,7 @@ export async function composeAlgiLessonKernels({
             },
           ),
         );
+      };
       const providerProgress = (event = {}) => {
         const providerIndex = Math.max(0, researchPlan.providerOrder.indexOf(event.providerId));
         const providerSpan = researchPlan.providerOrder.length > 0 ? 0.48 / researchPlan.providerOrder.length : 0.48;

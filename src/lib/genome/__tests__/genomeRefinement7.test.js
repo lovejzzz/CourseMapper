@@ -279,4 +279,13 @@ describe('iteration 7 — discipline inference covers the new disciplines', () =
       }),
     ).toContain('cs');
   });
+
+  it('routes digital accessibility terminology to the UX evidence shard', () => {
+    expect(
+      inferCourseDisciplines({
+        courseName: 'Digital Accessibility for Product Teams',
+        lessons: [{ title: 'WCAG principles' }, { title: 'semantic HTML' }, { title: 'accessible forms' }],
+      }),
+    ).toContain('ux');
+  });
 });

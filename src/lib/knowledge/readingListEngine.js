@@ -151,6 +151,7 @@ function resolveGenomeCitation(entry, { abbreviateLicense = false } = {}) {
   let conceptLinks = [];
   let revisionId = '';
   let revisionTimestamp = '';
+  let explicitProvider = '';
   if (entry && typeof entry === 'object') {
     rawLabel = cleanText(entry.key || entry.text || entry.label || entry.source || '');
     displayTitle = cleanText(entry.displayTitle || '');
@@ -164,6 +165,7 @@ function resolveGenomeCitation(entry, { abbreviateLicense = false } = {}) {
     conceptLinks = Array.isArray(entry.conceptLinks) ? entry.conceptLinks : [];
     revisionId = cleanText(entry.revisionId || '');
     revisionTimestamp = cleanText(entry.revisionTimestamp || '');
+    explicitProvider = cleanText(entry.provider || entry.providerId || '').toLowerCase();
   } else {
     rawLabel = cleanText(entry);
   }
@@ -206,6 +208,8 @@ function resolveGenomeCitation(entry, { abbreviateLicense = false } = {}) {
       conceptLinks,
       revisionId,
       revisionTimestamp,
+      displayTitle,
+      ...(explicitProvider ? { provider: explicitProvider } : {}),
       licenseGroupKey: licenseGroupKey(href, license, kind),
     };
   }
@@ -295,13 +299,14 @@ function providerForResolvedCitation(citation = {}) {
   if (/\bopenstax(?:\.org)?\b/i.test(text)) return 'openstax';
   if (/\bdoaj(?:\.org|\s+(?:article\s+)?metadata)?\b/i.test(text)) return 'doaj';
   if (/\beurope\s*pmc\b|europepmc\.org/i.test(text)) return 'europe-pmc';
+  if (/\bw3c(?:\s+web\s+accessibility\s+initiative)?\b|w3\.org\/(?:TR|WAI)\//i.test(text)) return 'w3c-wai';
   if (/\bwikipedia(?:\.org)?\b/i.test(text)) return 'wikipedia';
   if (/\bgutenberg(?:\.org)?\b/i.test(text)) return 'gutenberg';
   return '';
 }
 
 function originForResolvedCitation(citation = {}) {
-  return ['doaj', 'europe-pmc', 'wikipedia'].includes(providerForResolvedCitation(citation))
+  return ['doaj', 'europe-pmc', 'w3c-wai', 'wikipedia'].includes(providerForResolvedCitation(citation))
     ? 'algi-research'
     : 'genome';
 }
@@ -351,7 +356,6 @@ export function attachGenomeResources(graph) {
     ].filter(
       (entry) => !isInternalKeyTermSourceMarker(entry) && ((entry && typeof entry === 'object') || cleanText(entry)),
     );
-    const resourceOrigin = payload.conceptProvenance?.source === 'algi-researched' ? 'algi-research' : 'genome';
     const resolved = [];
     const localKeys = new Set();
     for (const entry of rawEntries) {
@@ -385,6 +389,7 @@ export function attachGenomeResources(graph) {
         conceptLinks = [],
         revisionId,
         revisionTimestamp,
+        displayTitle,
       } = final;
       const citationOrigin = originForResolvedCitation(final);
       const citationProvider = providerForResolvedCitation(final);
@@ -407,6 +412,7 @@ export function attachGenomeResources(graph) {
       if (groupKey) seenLicenseGroups.add(groupKey);
       attachResource(graph, session, {
         id: nextId(),
+        ...(displayTitle ? { title: displayTitle } : {}),
         citation: contextualCitation,
         kind: kind || 'textbook section',
         sessionRefs: [],
@@ -1201,8 +1207,11 @@ export function knowledgeCoverage(graph) {
   const sessions = graph.sessions || [];
   const resources = graph.resources || [];
   const lessonContent = graph.enrichmentOverlay?.lessonContent || {};
+  const currentSessionIds = new Set(sessions.map((session) => session?.id).filter(Boolean));
   const sessionIdsWithResources = new Set(
-    resources.flatMap((resource) => (Array.isArray(resource.sessionRefs) ? resource.sessionRefs : [])),
+    resources
+      .flatMap((resource) => (Array.isArray(resource.sessionRefs) ? resource.sessionRefs : []))
+      .filter((sessionId) => currentSessionIds.has(sessionId)),
   );
   const genomeLessons = Object.values(lessonContent).filter(
     (payload) => payload?.conceptProvenance?.source === 'genome-linked',
@@ -1213,9 +1222,13 @@ export function knowledgeCoverage(graph) {
   const researchedResourceSessions = new Set(
     resources
       .filter((resource) => resource?.origin === 'algi-research')
-      .flatMap((resource) => (Array.isArray(resource?.sessionRefs) ? resource.sessionRefs : [])),
+      .flatMap((resource) => (Array.isArray(resource?.sessionRefs) ? resource.sessionRefs : []))
+      .filter((sessionId) => currentSessionIds.has(sessionId)),
   );
-  const researchedLessons = Math.max(researchedPayloadLessons, researchedResourceSessions.size);
+  const researchedLessons = Math.min(
+    sessions.length,
+    Math.max(researchedPayloadLessons, researchedResourceSessions.size),
+  );
   const citedResources = resources.filter((resource) =>
     ['genome', 'genome-prerequisite', 'algi-research', 'openalex', 'openlibrary', 'openstax', 'source-finder'].includes(
       resource.origin,

@@ -1,0 +1,169 @@
+{
+  "version": "0.16.87",
+  "date": "July 27, 2026",
+  "title": "One Scion, Right-Sized for the Device",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test",
+      "npm run lint",
+      "npm run format:check",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run test:e2e",
+      "npm run audit:evaluation:main",
+      "npm run audit:contract:pr",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification must pass after the adaptive Scion route is pushed."
+    },
+    "ciDeep": {
+      "status": "pending-push",
+      "note": "The release changes runtime admission and orchestration rather than training or benchmark promotion."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Production deployment follows a green merge."
+    },
+    "liveProvider": {
+      "status": "pending",
+      "note": "Production must complete one Scion adaptive build with zero model download in the observed adapter-less Chrome session."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No instructor, expert, accessibility, classroom, or student-outcome claim is made."
+    },
+    "manualBrowser": {
+      "status": "verified-local",
+      "note": "Local Chrome passed two fresh adaptive generations, all ten public surfaces in dark mode, the completed workspace in light mode, a cross-lesson source-bound Agent question, slide contrast inspection, and a 35-file physical ZIP; responsive Chromium checks passed at 320px, phone, tablet, and compact-laptop sizes. Production-origin proof remains release-blocking."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01687-root-cause-correction",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The stale GLUE request marker is distinguished from a model-read length, and native evidence identifies the unavailable WebGPU adapter.",
+      "anchors": ["README.md", "docs/SCION_V01687_ADAPTIVE_DEVICE_ROUTE.md", "scripts/buildScionRuntime.mjs"],
+      "proofCommands": ["npm test", "npm run audit:release-history"],
+      "proofScopes": ["unit", "doc", "static-audit"]
+    },
+    {
+      "id": "v01687-adapter-before-download",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Scion obtains a real WebGPU adapter before importing Wllama or starting the 3.35 GB model transfer.",
+      "anchors": ["src/lib/scionBrowserWllama.js", "tests/scion-browser-wllama.test.js"],
+      "proofCommands": ["npm test"],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01687-private-adaptive-scion-lane",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "An explicit runtime-capability or storage boundary uses Scion's private evidence/compiler lane with zero model requests and no public Algi choice; source gaps require a clearly labeled current-source action that discloses the course-title/topic network boundary before generation.",
+      "anchors": [
+        "src/hooks/useStreamReader.js",
+        "src/screens/Landing.jsx",
+        "src/lib/publicScionIdentity.js",
+        "src/lib/scionResearchPolicy.js",
+        "tests/scion-stream-reader-local.test.jsx"
+      ],
+      "proofCommands": ["npm test", "npm run test:e2e"],
+      "proofScopes": ["unit", "browser-smoke", "static-audit"]
+    },
+    {
+      "id": "v01687-native-error-envelope",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "A null or impossible native response is rejected before output allocation, real native errors remain visible, and stale GLUE bytes do not delete the model cache.",
+      "anchors": [
+        "scripts/buildScionRuntime.mjs",
+        "src/lib/scionBrowserWllama.js",
+        "tests/scion-runtime-stream-cache.test.js",
+        "src/lib/__tests__/scionBrowserWllama.test.js"
+      ],
+      "proofCommands": ["npm test", "npm run build"],
+      "proofScopes": ["unit", "build", "static-audit"]
+    },
+    {
+      "id": "v01687-defensive-opfs-bound",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "Large OPFS reads use validated 64 MiB views with consecutive destination and source cursors as defense in depth.",
+      "anchors": [
+        "scripts/buildScionRuntime.mjs",
+        "tests/scion-runtime-stream-cache.test.js",
+        "src/lib/scionBrowserConstants.js"
+      ],
+      "proofCommands": ["npm test", "npm run build"],
+      "proofScopes": ["unit", "build", "static-audit"]
+    },
+    {
+      "id": "v01687-title-and-claim-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 5,
+      "summary": "Explicit lesson-count instructions no longer leak into the live course title, while model weights, adapter state, research consent, and quality claims remain unchanged.",
+      "anchors": [
+        "src/lib/promptAwarePreview.js",
+        "src/lib/__tests__/promptAwarePreview.test.js",
+        "README.md",
+        "docs/SCION_V01687_ADAPTIVE_DEVICE_ROUTE.md"
+      ],
+      "proofCommands": ["npm test", "npm run audit:release-history"],
+      "proofScopes": ["unit", "doc", "static-audit"]
+    },
+    {
+      "id": "v01687-local-course-and-export-acceptance",
+      "status": "verified-current",
+      "changelogHighlightIndex": 6,
+      "summary": "A fresh local adaptive Scion build explicitly opts into current public sources from its primary action, completes 4/4 kernels and 9/9 materials in nine seconds with zero blockers or warnings, reports an honest 65/100 automated readiness signal, and its 35-file physical ZIP passes all 38 export checks.",
+      "anchors": [
+        "README.md",
+        "docs/SCION_V01687_ADAPTIVE_DEVICE_ROUTE.md",
+        "src/lib/packageZipExporter.js",
+        "src/lib/__tests__/packageZipExporter.test.js"
+      ],
+      "proofCommands": ["npm test", "npm run test:e2e", "npm run audit:release-history"],
+      "proofScopes": ["unit", "browser-smoke", "compiled-output", "doc"]
+    },
+    {
+      "id": "v01687-professor-facing-language-provenance",
+      "status": "verified-current",
+      "changelogHighlightIndex": 7,
+      "summary": "Reader-facing language, reference-fragment admission, dark-mode slide contrast, W3C provenance, cross-lesson local Agent answers, and public Scion export identity remain coherent without exposing the internal prototype codename or a contradictory model-cost claim.",
+      "anchors": [
+        "src/lib/compiledLanguageFinalizer.js",
+        "src/lib/courseCompilerCopyVariants.js",
+        "src/lib/knowledge/readingListEngine.js",
+        "src/lib/knowledge/sourceLedger.js",
+        "src/lib/packageZipExporter.js",
+        "src/lib/scionCourseSequenceAnswer.js",
+        "src/lib/scionLocalAgentAnswer.js",
+        "src/lib/scionAssignedSourceAnswer.js"
+      ],
+      "proofCommands": ["npm test", "npm run test:e2e"],
+      "proofScopes": ["unit", "browser-smoke", "compiled-output", "static-audit"]
+    }
+  ],
+  "carryForward": [
+    {
+      "item": "Record production-origin generation, Agent, console, responsive, and physical ZIP proof after deployment.",
+      "status": "release-blocking"
+    },
+    {
+      "item": "Record local-Gemma activation separately on a WebGPU-capable browser when that device is available.",
+      "status": "capability-gated"
+    },
+    {
+      "item": "Keep the optional trained adapter inactive until it beats the pinned public base on the frozen held-out ruler.",
+      "status": "carry-forward"
+    },
+    {
+      "item": "Seek independent instructor or classroom evidence before raising the Automated Readiness evidence tier.",
+      "status": "carry-forward"
+    }
+  ]
+}

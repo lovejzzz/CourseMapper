@@ -275,7 +275,7 @@ export function inferCourseDisciplines(courseMap) {
     ],
     [
       'ux',
-      /\buser experience\b|\bux design\b|\bhuman[- ]centered design\b|\buser research\b|\bpersona(?:s)?\b|\bjourney map(?:ping|s)?\b|\bservice blueprint(?:ing|s)?\b|\binformation architecture\b|\btask flow(?:s)?\b|\bwirefram(?:e|es|ing)\b|\busability test(?:ing)?\b|\bdesign handoff\b/,
+      /\buser experience\b|\bux design\b|\bhuman[- ]centered design\b|\buser research\b|\bpersona(?:s)?\b|\bjourney map(?:ping|s)?\b|\bservice blueprint(?:ing|s)?\b|\binformation architecture\b|\btask flow(?:s)?\b|\bwirefram(?:e|es|ing)\b|\busability test(?:ing)?\b|\bdesign handoff\b|\baccessib(?:le|ility)\b|\bwcag\b|\bsemantic html\b|\bwai[- ]aria\b/,
     ],
     ['cs', /\bcomputer science|\bquantum computing\b|algorithm|programming|data structure/],
     // v0.14.1 (4.2): geology + world-language inference. The v0.14 audit's

@@ -61,6 +61,28 @@ const SPLIT_BY_LESSON_FEATURES = new Set([
 ]);
 const PACKAGE_MANIFEST_VERSION = 2;
 
+function isScionRunDigest(digest) {
+  const provider = String(digest?.run?.provider || '').trim();
+  const models = (Array.isArray(digest?.run?.models) ? digest.run.models : []).map(String);
+  return (
+    !models.some((model) => isAlgiModel(model)) &&
+    (provider === 'public' || models.some((model) => /scion/i.test(model)))
+  );
+}
+
+function publicizeScionResearchVocabulary(value) {
+  if (typeof value === 'string') {
+    return value.replace(/\balgi-researched\b/gi, 'scion-researched').replace(/\balgi-research\b/gi, 'scion-research');
+  }
+  if (Array.isArray(value)) return value.map(publicizeScionResearchVocabulary);
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, entry]) => [key, publicizeScionResearchVocabulary(entry)]),
+    );
+  }
+  return value;
+}
+
 function buildManifestGenerator(digest, pipelineState) {
   const provider = String(digest?.run?.provider || '').trim();
   const models = [
@@ -95,20 +117,48 @@ function buildManifestGenerator(digest, pipelineState) {
 
   const declaredRuntime = digest?.scionRuntime || digest?.run?.scionRuntime || pipelineState?.scionRuntime || null;
   const declaredAdapter = declaredRuntime?.adapter || null;
+  const executionText = String(
+    pipelineState?.scionExecution || digest?.pipeline?.scionExecution || digest?.run?.scionExecution || '',
+  );
+  const usedEvidenceCompiler = /(?:evidence compiler|zero model (?:download|inference))/i.test(executionText);
   generator.scion = {
     product: `Scion V${appVersion}`,
     compiler: 'model-neutral Scion compiler',
     localOnly: true,
-    trainingBase: { ...SCION_BROWSER_GEMMA4_GGUF.trainingBase },
-    runtimeArtifact: { ...SCION_BROWSER_GEMMA4_GGUF.runtimeArtifact },
-    runtime: { ...SCION_BROWSER_GEMMA4_GGUF.runtime },
-    adapter: declaredAdapter
-      ? { ...declaredAdapter }
+    execution: usedEvidenceCompiler
+      ? {
+          lane: 'evidence-compiler',
+          modelInference: false,
+          modelWeightsDownloaded: false,
+          sourceResearch: /source-researched|scion evidence.*research|source research/i.test(
+            JSON.stringify(pipelineState || {}),
+          ),
+        }
       : {
-          status: 'base-only',
-          qualified: false,
-          reason: 'No qualified Scion adapter was declared for this generation run.',
+          lane: 'local-gemma',
+          modelInference: true,
+          modelWeightsDownloaded: 'cache-dependent',
         },
+    ...(usedEvidenceCompiler
+      ? {
+          adapter: {
+            status: 'not-used',
+            qualified: false,
+            reason: 'This run used Scion’s zero-download evidence compiler, so no neural adapter was active.',
+          },
+        }
+      : {
+          trainingBase: { ...SCION_BROWSER_GEMMA4_GGUF.trainingBase },
+          runtimeArtifact: { ...SCION_BROWSER_GEMMA4_GGUF.runtimeArtifact },
+          runtime: { ...SCION_BROWSER_GEMMA4_GGUF.runtime },
+          adapter: declaredAdapter
+            ? { ...declaredAdapter }
+            : {
+                status: 'base-only',
+                qualified: false,
+                reason: 'No qualified Scion adapter was declared for this generation run.',
+              },
+        }),
   };
   return generator;
 }
@@ -2046,7 +2096,9 @@ export async function buildCourseMaterialsZip({
   const sourceReportMarkdown = sanitizeInternalExportLanguage(
     buildSourceReportMarkdown({
       courseName: safeCourseName,
-      sourceLedger: sourceLedgerBundle,
+      sourceLedger: isScionRunDigest(qualityOptions.digest)
+        ? publicizeScionResearchVocabulary(sourceLedgerBundle)
+        : sourceLedgerBundle,
       sourceRefCoverage,
     }),
   );
@@ -2075,6 +2127,13 @@ export async function buildCourseMaterialsZip({
     // v0.16.1: the bridge scopes to the same lessons the compile used.
     lessonNumbers,
   });
+  const publicScionRun = isScionRunDigest(qualityOptions.digest);
+  const manifestPipelineState = publicScionRun
+    ? publicizeScionResearchVocabulary(disclosedPipelineState)
+    : disclosedPipelineState;
+  const manifestSourceLedgerBundle = publicScionRun
+    ? publicizeScionResearchVocabulary(sourceLedgerBundle)
+    : sourceLedgerBundle;
   const manifest = buildManifest({
     courseName: safeCourseName,
     lessonFilter,
@@ -2083,15 +2142,15 @@ export async function buildCourseMaterialsZip({
     files,
     requestedFeatureIds,
     requiredAssets,
-    pipelineState: disclosedPipelineState,
+    pipelineState: manifestPipelineState,
     assessments: manifestAssessments?.entries || null,
     assessmentSummary: manifestAssessments?.summary || null,
     readings: buildManifestReadings(readingsRegistry),
     courseGraph: sourceManifestGraph,
     generatedAt,
-    sourceLedger: sourceLedgerBundle?.rows || null,
-    sourceLedgerSummary: sourceLedgerBundle?.summary || null,
-    sourceReviewRows: sourceLedgerBundle?.reviewRows || null,
+    sourceLedger: manifestSourceLedgerBundle?.rows || null,
+    sourceLedgerSummary: manifestSourceLedgerBundle?.summary || null,
+    sourceReviewRows: manifestSourceLedgerBundle?.reviewRows || null,
     sourceReport,
     sourceRefCoverage,
     // v0.14.7 WS-D4: callers may pass the outcome on pipelineState; otherwise

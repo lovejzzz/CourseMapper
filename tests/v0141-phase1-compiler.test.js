@@ -315,11 +315,13 @@ describe('v0.14.1 phase 1 batch A compiler fixes', () => {
     expect(text).toContain('Move beyond summary');
     expect(text).toContain('annotated prototype or design artifact with user-evidence rationale');
     expect(text).toContain('before/after design artifact plus critique note and revision rationale');
-    expect(text).toContain('Clear limits make the');
-    expect(text).toContain('Students separate supported');
-    expect(text).toContain('evidence sets the boundary');
+    expect(text).toContain('Name its evidence boundary and the new evidence that could reverse it');
+    expect(text).toContain('show exactly where the weaker claim fails');
+    expect(text).toContain('qualify the claim, then revise the work accordingly');
     expect(text).toContain('which Project-based UX design cue students should track first');
     expect(text).toContain('Records one limitation');
+    expect(text).not.toContain('explain the design decision it.');
+    expect(text).not.toContain('helps students avoid.');
 
     const feedbackQuestions = compiled.courseFaq.faqs
       .map((faq) => faq.qs.find((item) => item.rc?.includes('feedback') && item.rc?.includes('revision'))?.q || '')
