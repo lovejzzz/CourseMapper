@@ -376,7 +376,7 @@ describe('checkCredits', () => {
     expect(latestModelId).toBe('scion-public');
     expect(latestModelName).toMatch(/^Scion V/);
     expect(latestModelIds).toEqual(['scion-public']);
-    expect(container.textContent).toContain('On-device evidence mode');
+    expect(container.textContent).toContain('Private evidence mode');
     expect(container.textContent).toContain('No course-topic research requests are sent');
     expect(container.textContent).not.toContain('Algi V0');
 

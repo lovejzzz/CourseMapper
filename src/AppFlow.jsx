@@ -69,6 +69,7 @@ import { PUBLIC_SCION_PROVIDER_ID } from './lib/publicScionIdentity';
 import { verifyPackageExports } from './lib/packageExportVerifier';
 import { generateCourseHealthReport } from './lib/pedagogicalValidator';
 import { resolveRequestedClassSessionMinutes } from './lib/sourceBriefConstraints';
+import { selectGeneratedCourseMapForFinalizer } from './lib/generatedCourseMapHandoff';
 import { prepareMaterializedPackageScope, remapLessonFilterToMaterializedScope } from './lib/materializedLessonScope';
 import { removeProjectIndexedDbAutosave } from './lib/projectIndexedDbAutosave';
 import { getWorkspaceSavePresentation } from './lib/workspaceSaveStatus';
@@ -108,7 +109,11 @@ import {
   summarizeApiUsageBudget,
   summarizeCompilerSavings,
 } from './lib/apiUsageCost';
-import { buildQualityReceipt, resolveProviderCallCount } from './lib/packageFinalizerSummary';
+import {
+  buildQualityReceipt,
+  resolveProviderCallCount,
+  sourceGroundedLessonCountForReceipt,
+} from './lib/packageFinalizerSummary';
 import { getChunkCount, pLimit } from './lib/parallelGenerator';
 import { buildHumanReviewRecommendation } from './lib/packageTrust';
 import { traceLog } from './lib/traceLog';
@@ -722,6 +727,7 @@ export default function AppFlow({
     const pipelineState = {
       enrichment,
       genomeLinker: budget.pipeline?.genomeLinker || 'not run',
+      ...(budget.pipeline?.scionExecution ? { scionExecution: budget.pipeline.scionExecution } : {}),
       ...(budget.pipeline?.planHealth ? { planHealth: budget.pipeline.planHealth } : {}),
       // v0.13: the package records the graph it was compiled from.
       ...(graphStats
@@ -908,9 +914,14 @@ export default function AppFlow({
       maxRetryPasses: 3,
     });
   }, []);
+  // Automatic finalization can begin before React commits the map emitted by
+  // graph assembly. Update this ref in the emission callback so the finalizer
+  // can synchronously consume the authoritative render.
+  const courseMapRef = useRef(courseMap);
   const handleGeneratedCourseMapRepair = useCallback(
     (repairedCourseMap, meta = {}) => {
       if (!repairedCourseMap?.lessons) return;
+      courseMapRef.current = repairedCourseMap;
       setCourseMap(repairedCourseMap);
       version.pushVersion(
         repairedCourseMap,
@@ -1011,7 +1022,6 @@ export default function AppFlow({
 
   // ── Cascade sync ──
   // Always-fresh ref to courseMap for useSmartSync (avoids stale closure)
-  const courseMapRef = useRef(courseMap);
   useEffect(() => {
     courseMapRef.current = courseMap;
   }, [courseMap]);
@@ -1021,6 +1031,7 @@ export default function AppFlow({
   const gen = useGeneration({
     provider,
     modelId,
+    modelName,
     apiKey,
     maxOutputTokens,
     modelCapabilities,
@@ -1849,16 +1860,22 @@ export default function AppFlow({
         const compilerSummary = summarizeCompilerSavings(receiptBudget, {
           labelForFeature: getReceiptFeatureLabel,
         });
+        const receiptCourseMap = result.courseMap || courseMapRef.current;
+        const receiptSourceGroundedLessonCount = sourceGroundedLessonCountForReceipt(
+          knowledgeCoverage(courseGraphRef.current),
+          receiptCourseMap?.lessons?.length || 0,
+        );
         let receipt = buildQualityReceipt({
           result,
           exportVerification,
           repairsApplied: totalRepairsApplied,
           retryCount,
           selectedFeatureIds: featureIds,
-          courseMap: result.courseMap || courseMapRef.current,
+          courseMap: receiptCourseMap,
           includeWarnings: finalStatus !== 'ready',
           apiSpendSummary,
           compilerSummary,
+          sourceGroundedLessonCount: receiptSourceGroundedLessonCount,
           labelForFeature: getReceiptFeatureLabel,
         });
         let receiptWithSpend = {
@@ -1994,6 +2011,7 @@ export default function AppFlow({
           includeWarnings: finalStatus !== 'ready',
           apiSpendSummary,
           compilerSummary,
+          sourceGroundedLessonCount: receiptSourceGroundedLessonCount,
           labelForFeature: getReceiptFeatureLabel,
         });
         receiptWithSpend = {
@@ -2452,6 +2470,8 @@ export default function AppFlow({
   async function finalizeGeneratedPackage(finalCourseMap, generatedDeliverables, generatedFeatureIds, scopeIndices) {
     const selectedForFinalizer = ['courseMap', ...generatedFeatureIds];
     if (selectedForFinalizer.length === 0) return null;
+    const finalizerCourseMap = selectGeneratedCourseMapForFinalizer(finalCourseMap, courseMapRef.current);
+    courseMapRef.current = finalizerCourseMap;
     return handleDeterministicPackageFinalization({
       selectedFeatureIds: selectedForFinalizer,
       lessonFilter: scopeIndices,
@@ -2459,7 +2479,7 @@ export default function AppFlow({
       maxRetryActions: 8,
       maxRetryCallBudget: 8,
       maxRetryPasses: 2,
-      courseMapOverride: finalCourseMap,
+      courseMapOverride: finalizerCourseMap,
       deliverablesOverride: generatedDeliverables || {},
       source: 'generation',
     });
@@ -4231,6 +4251,7 @@ export default function AppFlow({
                   onFinishPackage={handleFinishPackageFromExport}
                   canFinishPackage={canRunPackageFinalizer}
                   packageQualityPass={packageQualityPass}
+                  onPackageQualityPassUpdate={setPackageQualityPass}
                   courseGraph={courseGraph}
                   qualityModalOpen={qualityReportOpen}
                   onQualityModalOpenChange={setQualityReportOpen}

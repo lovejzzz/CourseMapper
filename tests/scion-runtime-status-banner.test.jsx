@@ -63,7 +63,7 @@ describe('Scion runtime status banner', () => {
     let loadPromise;
     await act(async () => {
       loadPromise = loadScionBrowserWllama({
-        navigatorLike: { gpu: {} },
+        navigatorLike: { gpu: { requestAdapter: async () => ({ info: { vendor: 'test' } }) } },
         globalLike: { WebAssembly: { Suspending: function Suspending() {} } },
         locationLike: { href: 'https://edutool.dev/' },
         runtimeLoader: async () => ({ Wllama: DeferredWllama }),

@@ -401,6 +401,106 @@ describe('compiledLanguageFinalizer', () => {
     expect(data.items[0].explanation).toMatch(/^A is correct/);
   });
 
+  it('repairs versioned WCAG subject-verb agreement on learner-facing surfaces', () => {
+    const data = {
+      items: [{ question: 'WCAG 2.0 consist of twelve guidelines organized under four principles.' }],
+    };
+    finalizeCompiledDeliverableLanguage('quizBank', data, { lessons: [] });
+    expect(data.items[0].question).toBe('WCAG 2.0 consists of twelve guidelines organized under four principles.');
+  });
+
+  it('preserves accessibility acronyms and bounds policy-specific web obligations', () => {
+    const data = {
+      items: [
+        {
+          question: 'How does Wcag connect Html semantics to a Ux artifact? How does Wcag principles actually work?',
+          answer:
+            "The W3C's Techniques for WCAG 2.0 is a list of techniques that help authors. " +
+            'All websites will need to adhere to the WCAG Principles. ' +
+            'For example: The regulations require compliance with WCAG 2.0.',
+        },
+      ],
+    };
+
+    finalizeCompiledDeliverableLanguage('courseFaq', data, { lessons: [] });
+
+    expect(data.items[0].question).toBe(
+      'How does WCAG connect HTML semantics to a UX artifact? How do WCAG principles actually work?',
+    );
+    expect(data.items[0].answer).toContain("W3C's Techniques for WCAG 2.0 lists techniques that help authors.");
+    expect(data.items[0].answer).toContain(
+      'In the cited policy context, covered websites are expected to follow the WCAG principles.',
+    );
+    expect(data.items[0].answer).toContain(
+      'For example, in that cited policy context, the regulations require compliance with WCAG 2.0.',
+    );
+    expect(data.items[0].answer).not.toMatch(/\bWcag\b|All websites will need|For example:/);
+  });
+
+  it('restores the article before assigned course materials in prepositional phrases', () => {
+    const data = {
+      items: [
+        {
+          answer:
+            'Ground the conclusion in assigned course materials, then cite evidence from assigned course materials.',
+        },
+      ],
+    };
+
+    finalizeCompiledDeliverableLanguage('courseFaq', data, { lessons: [] });
+
+    expect(data.items[0].answer).toBe(
+      'Ground the conclusion in the assigned course materials, then cite evidence from the assigned course materials.',
+    );
+  });
+
+  it('presents completed non-writing course materials without unfinished draft labels', () => {
+    const data = {
+      items: [
+        {
+          instruction:
+            'Draft the Week 1 explanation, point to a visible part of the draft, and show how the next draft responds to feedback.',
+        },
+      ],
+    };
+
+    finalizeCompiledDeliverableLanguage('assignments', data, {
+      courseName: 'Digital Accessibility for Product Teams',
+      lessons: [],
+    });
+
+    expect(data.items[0].instruction).toBe(
+      'Develop the Week 1 explanation, point to a visible part of the work, and show how the next revision responds to feedback.',
+    );
+    expect(data.items[0].instruction).not.toMatch(/\bdraft\b/i);
+  });
+
+  it('polishes a numbered assignment instruction that omits the article before Week', () => {
+    const data = {
+      items: [{ instruction: 'Draft Week 1 evidence explanation so each section addresses one criterion.' }],
+    };
+
+    finalizeCompiledDeliverableLanguage('assignments', data, {
+      courseName: 'Digital Accessibility for Product Teams',
+      lessons: [],
+    });
+
+    expect(data.items[0].instruction).toBe(
+      'Develop Week 1 evidence explanation so each section addresses one criterion.',
+    );
+  });
+
+  it('preserves drafting vocabulary when drafting is the course content', () => {
+    const data = { items: [{ instruction: 'Draft the poem, then revise the draft in workshop.' }] };
+
+    finalizeCompiledDeliverableLanguage('assignments', data, {
+      courseName: 'Poetry Writing Workshop',
+      lessons: [],
+    });
+
+    expect(data.items[0].instruction).toBe('Draft the poem, then revise the draft in workshop.');
+  });
+
   it('builds week-anchored short references by artifact kind', () => {
     expect(shortArtifactReference('Low-stakes check for understanding aligned to 2.1', 2)).toBe('the Week 2 check');
     expect(shortArtifactReference('Weekly autograded quizzes', 4)).toBe('the Week 4 quiz');

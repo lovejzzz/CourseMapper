@@ -390,7 +390,6 @@ export function buildLivingCompilerArtifacts({
   const finishStatus = packageQualityPass?.status || 'idle';
   const terminalReady = pipeline?.state === 'ready' && finishStatus === 'ready';
   const blockers = Math.max(0, Number(packageQualityPass?.blockers) || 0);
-  const grade = String(packageQualityPass?.quality?.grade || '').trim();
   const scionRuntime = generation.scionRuntimeStatus || {};
   const scionPreparing =
     generation.isScion && ['loading-runtime', 'loading-model'].includes(String(scionRuntime.phase || ''));
@@ -424,8 +423,10 @@ export function buildLivingCompilerArtifacts({
   let checksValue = 'Waiting';
   if (generationFailed) checksValue = 'Not run · course map incomplete';
   else if (finishStatus === 'blocked') checksValue = `${blockers || 1} item${blockers === 1 ? '' : 's'} to refine`;
-  else if (finishStatus === 'ready') checksValue = grade ? `Verified · Grade ${grade}` : 'Verified';
-  else if (pipeline?.state === 'grading') checksValue = 'Grading package';
+  else if (finishStatus === 'ready') {
+    const readiness = packageQualityPass?.quality?.readiness;
+    checksValue = `Verified${Number.isFinite(Number(readiness?.score)) ? ` · Readiness ${readiness.score}/${readiness.maxScore || 100}` : ''}`;
+  } else if (pipeline?.state === 'grading') checksValue = 'Grading package';
   else if (pipeline?.state === 'verifying') checksValue = 'Checking and repairing';
 
   return [

@@ -102,6 +102,17 @@ function localConfirmationValue(checklist = []) {
   return items.slice(0, 3).join('; ');
 }
 
+export function sourceGroundedLessonCountForReceipt(coverage, lessonCount = 0) {
+  if (!coverage || typeof coverage !== 'object') return null;
+  const total = Math.max(0, Number(lessonCount) || Number(coverage.sessions) || 0);
+  const observed = Math.max(
+    Number(coverage.researchedLessons) || 0,
+    Number(coverage.genomeLinkedLessons) || 0,
+    Number(coverage.resourcesByOrigin?.['algi-research']) > 0 ? Number(coverage.sessionsWithResources) || 0 : 0,
+  );
+  return total > 0 ? Math.min(total, observed) : observed;
+}
+
 export function buildCompactPackageTrustReceipt({
   lessonCount = 0,
   compilerSummary = null,
@@ -129,7 +140,10 @@ export function buildCompactPackageTrustReceipt({
     { id: 'review', label: 'Review needed', value: pluralize(count(reviewRequiredCount), 'lesson') },
   ];
 
-  if (Number.isFinite(sourceGroundedLessonCount) || count(lessonCount) > 0) {
+  // Unknown is not zero. Render this receipt only when graph coverage supplied
+  // an observed count; the former lesson-count fallback falsely displayed
+  // "0/N" for fully researched packages.
+  if (Number.isFinite(sourceGroundedLessonCount)) {
     fields.push({
       id: 'source-grounded',
       label: 'Source-grounded',
@@ -174,6 +188,7 @@ export function buildQualityReceipt({
   includeWarnings = true,
   apiSpendSummary = null,
   compilerSummary = null,
+  sourceGroundedLessonCount = null,
   labelForFeature,
 } = {}) {
   const readiness = result?.readiness || {};
@@ -216,6 +231,7 @@ export function buildQualityReceipt({
       selectedFeatureCount: checkedFeatureCount,
       deterministicRepairCount: repairsApplied,
       reviewRequiredCount,
+      sourceGroundedLessonCount,
       exportVerification,
       studentFacingCleanlinessStatus:
         exportVerification?.failed || exportVerification?.warningCount ? 'review flagged' : 'clean',

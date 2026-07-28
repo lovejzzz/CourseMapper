@@ -14,6 +14,7 @@ import {
   buildDoajProvider,
   buildEuropePmcProvider,
   buildWikipediaProvider,
+  buildWaiProvider,
   researchConcept,
   researchCourse,
   researchLessonKernels,
@@ -22,6 +23,8 @@ import {
   isResearchCandidateDomainAligned,
   conciseDefinitionOption,
   contrastTargetFromSentence,
+  extractWaiResearchText,
+  misconceptionFromContrast,
   RESEARCH_ORIGIN,
   RELEVANCE_FLOOR,
 } from '../algiResearch.js';
@@ -117,6 +120,26 @@ describe('teaching-atom phrasing', () => {
     ).toBe('ensembles of pure states with the same measurement statistics');
   });
 
+  it('turns an infinitive contrast into a grammatical misconception', () => {
+    const misconception = misconceptionFromContrast(
+      'Semantic HTML reinforces the meaning of web content rather than merely to define its presentation or look.',
+      'Semantic HTML',
+    );
+    expect(misconception.text).toBe('Semantic HTML is mainly about defining its presentation or look.');
+    expect(misconception.corrective).toBe(
+      'The source distinguishes Semantic HTML from defining its presentation or look.',
+    );
+  });
+
+  it('removes a redundant comparison preposition from an ARIA contrast', () => {
+    const misconception = misconceptionFromContrast(
+      'WAI-ARIA treats web pages as applications rather than as static documents.',
+      'WAI-ARIA',
+    );
+    expect(misconception.text).toBe('WAI-ARIA is mainly about static documents.');
+    expect(misconception.corrective).toBe('The source distinguishes WAI-ARIA from static documents.');
+  });
+
   it('turns a full definition into a complete compact quiz option', () => {
     expect(
       conciseDefinitionOption({
@@ -126,6 +149,48 @@ describe('teaching-atom phrasing', () => {
         },
       }),
     ).toBe('A basic unit of quantum information.');
+  });
+});
+
+describe('official W3C/WAI research provider', () => {
+  it('extracts main instructional prose without navigation or scripts', () => {
+    const text = extractWaiResearchText(`
+      <nav>Navigation should not appear.</nav>
+      <main>
+        <h1>Accessible forms</h1>
+        <p>Accessible forms are easier to use for everyone, including people with disabilities.</p>
+        <script>window.bad = true;</script>
+        <p>Labels identify the purpose of each form control.</p>
+      </main>
+    `);
+
+    expect(text).toContain('Accessible forms are easier to use for everyone');
+    expect(text).toContain('Labels identify the purpose of each form control.');
+    expect(text).not.toContain('Navigation should not appear');
+    expect(text).not.toContain('window.bad');
+  });
+
+  it('selects and attributes live WAI source pages by lesson topic', async () => {
+    const requested = [];
+    const provider = buildWaiProvider(async (url) => {
+      requested.push(url);
+      return `
+        <main>
+          <p>Accessible forms are interfaces that let people submit information without accessibility barriers.</p>
+          <p>Accessible forms associate labels with controls so assistive technologies can identify each input.</p>
+          <p>Accessible forms provide instructions and error feedback that help users complete required fields.</p>
+        </main>
+      `;
+    });
+    const records = await provider.searchArticles('accessible forms labels and validation', 3);
+
+    expect(Object.keys(records)).toEqual(expect.arrayContaining(['Accessible forms', 'Labels']));
+    expect(requested.every((url) => url.startsWith('https://www.w3.org/'))).toBe(true);
+    expect(records['Accessible forms']).toMatchObject({
+      providerId: 'w3c-wai',
+      sourceKind: 'official accessibility standard and tutorial',
+      license: 'W3C permissive license',
+    });
   });
 });
 
@@ -270,6 +335,29 @@ describe('course-domain research alignment', () => {
       }),
     ).toBe(true);
   });
+
+  it('rejects wrong-domain biology from a digital-accessibility lesson', () => {
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'accessible forms',
+        courseContext: 'Digital Accessibility for Product Teams',
+        title: 'Cellular respiration',
+        extract:
+          'Cellular respiration is a set of metabolic reactions that convert biochemical energy into adenosine triphosphate.',
+        provider: 'wikipedia',
+      }),
+    ).toBe(false);
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'accessible forms',
+        courseContext: 'Digital Accessibility for Product Teams',
+        title: 'Form (HTML)',
+        extract:
+          'An HTML form lets a web user enter data through labelled controls, and accessible forms expose those controls to assistive technology.',
+        provider: 'wikipedia',
+      }),
+    ).toBe(true);
+  });
 });
 
 describe('teaching atoms from the source (gap 3)', () => {
@@ -303,6 +391,105 @@ describe('teaching atoms from the source (gap 3)', () => {
     for (const fact of built.kernel.facts) expect(snapshot).toContain(fact.anchor.quote);
   });
 
+  it('uses a distinct source-boundary correction when the source states no misconception', () => {
+    const built = buildKernelFromArticle({
+      topic: 'accessible forms',
+      title: 'Web accessibility',
+      extract: [
+        'Web accessibility is the inclusive practice of removing barriers that prevent people with disabilities from using websites.',
+        'Accessible forms associate each visible label with the corresponding form control.',
+        'Form instructions help users understand the information each control requires.',
+      ].join('\n'),
+      provider,
+    });
+
+    expect(built.kernel.misconceptions[0]).toEqual({
+      text: 'Naming Web accessibility without identifying a supporting source detail is sufficient evidence.',
+      corrective:
+        'Cite the specific definition or fact that supports the Web accessibility claim, then state what that evidence does not establish.',
+    });
+    expect(built.kernel.misconceptions[0].corrective).not.toBe(built.kernel.definition.text);
+  });
+
+  it('rejects code-sample notes, publication road maps, and sweeping compliance predictions from accessibility facts', () => {
+    const built = buildKernelFromArticle({
+      topic: 'accessible forms',
+      title: 'Web accessibility',
+      extract: [
+        'Web accessibility is the inclusive practice of removing barriers that prevent people with disabilities from using websites.',
+        'Accessible forms associate each visible label with the corresponding form control.',
+        'Form instructions help users understand the information each control requires.',
+        'Note that interactive elements are still active when using this code.',
+        'A future update will provide a Quick Reference for this page.',
+        'The WCAG 2.2 Quick Reference will provide a way to group criteria.',
+        "W3C's Techniques for WCAG 2.0 lists techniques that help authors.",
+        'There are 12 guidelines and 65 testable success criteria.',
+        'All websites will need to adhere to these requirements.',
+      ].join('\n'),
+      provider,
+    });
+
+    const visibleKnowledge = [built.kernel.definition.text, ...built.kernel.facts.map((fact) => fact.text)].join(' ');
+    expect(visibleKnowledge).toContain(
+      'Form instructions help users understand the information each control requires.',
+    );
+    expect(visibleKnowledge).not.toMatch(
+      /Note that|Quick Reference|WCAG 2\.[01]|12 guidelines|All websites will need/i,
+    );
+  });
+
+  it('rejects historical and decontextualized facts from a current WCAG principles lesson', () => {
+    const built = buildKernelFromArticle({
+      topic: 'WCAG principles',
+      title: 'Web Content Accessibility Guidelines (WCAG) 2.2',
+      extract: [
+        'Web Content Accessibility Guidelines (WCAG) 2.2 covers a wide range of recommendations for making web content more accessible.',
+        'The guidelines are organized under four principles: perceivable, operable, understandable, and robust.',
+        'WCAG conformance is defined at levels A, AA, and AAA.',
+        'WCAG 2.1 is backwards-compatible with WCAG 2.0.',
+        'WCAG 2.0 consists of 12 guidelines.',
+        'This avoids the need to change the section number of success criteria from WCAG 2.',
+        'Then only the initial positions of user-movable content are considered for testing and conformance of this success criterion.',
+        'User agents - software that people use to access web content.',
+        'Authoring tools - software or services that people use to produce web content.',
+        'Web content - information and sensory experience communicated to the user.',
+        'satisfies all the Level A success criteria, or a conforming alternate version is provided.',
+        'A Level AAA conforming alternate version is provided.',
+        'Accessibility policies are listed in WAI Resources.',
+      ].join('\n'),
+      provider,
+    });
+
+    const visibleKnowledge = [built.kernel.definition.text, ...built.kernel.facts.map((fact) => fact.text)].join(' ');
+    expect(visibleKnowledge).toContain(
+      'The guidelines are organized under four principles: perceivable, operable, understandable, and robust.',
+    );
+    expect(visibleKnowledge).toContain('WCAG conformance is defined at levels A, AA, and AAA.');
+    expect(visibleKnowledge).not.toMatch(
+      /WCAG 2(?:\.[01])?|12 guidelines|initial positions|User agents|Authoring tools|Web content -|satisfies all|alternate version|Accessibility policies/i,
+    );
+  });
+
+  it('keeps robust-content facts focused on compatibility rather than neighboring principle sections', () => {
+    const built = buildKernelFromArticle({
+      topic: 'WCAG principles',
+      title: 'Accessibility principles',
+      extract: [
+        'Robust content is compatible with different browsers, assistive technologies, and other user agents.',
+        'Standards-based markup helps current and future user agents interpret the content reliably.',
+        'Meeting this requirement makes the content easier to use across a wide range of devices.',
+        'Flashing content is ideally avoided entirely or only used in a way that does not cause known risks.',
+        'People using assistive technologies may observe interference from prominent audio or visual content in the background.',
+      ].join('\n'),
+      provider,
+      sourceMeta: { suggestedTerm: 'Robust content' },
+    });
+
+    const visibleKnowledge = [built.kernel.definition.text, ...built.kernel.facts.map((fact) => fact.text)].join(' ');
+    expect(visibleKnowledge).toContain('Standards-based markup');
+    expect(visibleKnowledge).not.toMatch(/Flashing content|prominent audio or visual content/i);
+  });
+
   it('keeps a concise source with one explanatory fact for course-level composition', () => {
     const built = buildKernelFromArticle({
       topic: 'waterborne pathogens',
@@ -315,6 +502,70 @@ describe('teaching atoms from the source (gap 3)', () => {
     });
     expect(built).not.toBeNull();
     expect(built.kernel.facts).toHaveLength(1);
+  });
+
+  it('does not promote an unrelated sentence from a long canonical article', () => {
+    const built = buildKernelFromArticle({
+      topic: 'semantic HTML and keyboard accessibility',
+      title: 'Semantic HTML',
+      extract: [
+        'Semantic HTML is the use of HTML markup to reinforce the meaning of information in web pages.',
+        'Semantic HTML helps user agents and assistive technologies interpret page structure.',
+        'HTML headings and landmarks expose navigable structure to keyboard and screen-reader users.',
+        'A means of marking-up any arbitrary section of HTML would require a mechanism independent of the markup structure itself, such as XPointer.',
+        'Mashups and price comparison websites may be coming close.',
+      ].join('\n'),
+      provider,
+    });
+    expect(built).not.toBeNull();
+    const facts = built.kernel.facts.map((fact) => fact.text).join(' ');
+    expect(facts).not.toContain('Mashups and price comparison websites');
+    expect(facts).not.toMatch(/XPointer|arbitrary section of HTML/i);
+  });
+
+  it('keeps standards-specific WCAG facts that use a conformance label instead of repeating the acronym', () => {
+    const built = buildKernelFromArticle({
+      topic: 'WCAG principles and conformance',
+      title: 'Web Content Accessibility Guidelines',
+      extract: [
+        'Web Content Accessibility Guidelines are recommendations for making web content more accessible.',
+        'The guidelines organize accessibility around perceivable, operable, understandable, and robust principles.',
+        'Level AA is the conformance target adopted by many organizations for web content.',
+        'Success criteria provide testable statements for evaluating a page.',
+        'A sports league changed its schedule after a rain delay.',
+      ].join('\n'),
+      provider,
+    });
+    expect(built).not.toBeNull();
+    const facts = built.kernel.facts.map((fact) => fact.text).join(' ');
+    expect(facts).toContain('Level AA');
+    expect(facts).toContain('Success criteria');
+    expect(facts).not.toContain('sports league');
+  });
+
+  it('ranks the standard’s teachable structure ahead of a long adoption history', () => {
+    const built = buildKernelFromArticle({
+      topic: 'WCAG principles and conformance',
+      title: 'Web Content Accessibility Guidelines',
+      extract: [
+        'Web Content Accessibility Guidelines are recommendations for making web content more accessible.',
+        'A ministry published regulations requiring websites to comply with the Web Content Accessibility Guidelines.',
+        'A government rule adopted the Web Content Accessibility Guidelines for public mobile applications.',
+        'A directive requires public bodies to use the Web Content Accessibility Guidelines.',
+        'Several jurisdictions built legislation around the Web Content Accessibility Guidelines.',
+        'An accessibility act requires organizations to use the Web Content Accessibility Guidelines.',
+        'The guidelines are organized under four principles: perceivable, operable, understandable, and robust.',
+        'Each guideline has testable success criteria for evaluating conformance.',
+        'WCAG uses three levels of conformance: Level A, Level AA, and Level AAA.',
+      ].join('\n'),
+      provider,
+      factCount: 5,
+    });
+
+    const facts = built.kernel.facts.map((fact) => fact.text).join(' ');
+    expect(facts).toContain('perceivable, operable, understandable, and robust');
+    expect(facts).toContain('testable success criteria');
+    expect(facts).toContain('three levels of conformance');
   });
 
   it('prefers an exact compact lesson phrase visibly anchored in a scholarly title', () => {
@@ -443,6 +694,15 @@ describe('relevance scoring', () => {
     );
     expect(directResearchTitles('Algorithmic audits', 'Current Technology Policy')).toEqual(
       expect.arrayContaining(['Algorithmic accountability', 'Algorithmic bias', 'Algorithmic transparency']),
+    );
+    expect(directResearchTitles('WCAG principles', 'Digital Accessibility for Product Teams')).toEqual(
+      expect.arrayContaining(['Web Content Accessibility Guidelines', 'Web accessibility']),
+    );
+    expect(directResearchTitles('semantic HTML', 'Digital Accessibility for Product Teams')).toEqual(
+      expect.arrayContaining(['Semantic HTML', 'HTML', 'WAI-ARIA']),
+    );
+    expect(directResearchTitles('accessible forms', 'Digital Accessibility for Product Teams')).toEqual(
+      expect.arrayContaining(['Form (HTML)', 'Web accessibility', 'Web Accessibility Initiative']),
     );
   });
 
@@ -628,6 +888,34 @@ describe('Wikipedia request architecture', () => {
       revisionTimestamp: '2026-07-01T00:00:00Z',
     });
     expect(providerWithBatch.attributionFor('Photosynthesis')).toContain('Wikipedia contributors');
+  });
+
+  it('retrieves one selected page as a full extract after intro ranking', async () => {
+    const httpJson = async (url) => {
+      expect(url).toContain('titles=Semantic%20HTML');
+      expect(url).not.toContain('exintro=1');
+      expect(url).not.toContain('exlimit=max');
+      return {
+        query: {
+          pages: {
+            3: {
+              title: 'Semantic HTML',
+              extract: 'Semantic HTML is the use of markup to express meaning. '.repeat(20),
+              fullurl: 'https://en.wikipedia.org/wiki/Semantic_HTML',
+              revisions: [{ revid: 303, timestamp: '2026-07-03T00:00:00Z' }],
+            },
+          },
+        },
+      };
+    };
+    const providerWithFullExtract = buildWikipediaProvider(httpJson);
+    const record = await providerWithFullExtract.fullArticle('Semantic HTML');
+    expect(record).toMatchObject({
+      title: 'Semantic HTML',
+      revisionId: 303,
+      sourceUrl: 'https://en.wikipedia.org/wiki/Semantic_HTML',
+    });
+    expect(record.extract.length).toBeGreaterThan(500);
   });
 });
 
@@ -1069,6 +1357,50 @@ describe('lesson research admission', () => {
     expect(kernels.map((kernel) => kernel.term)).toEqual(
       expect.arrayContaining(['Biofilm', 'Microbial mat', 'Phototrophic biofilm']),
     );
+  });
+
+  it('hydrates canonical-family pages before ranking when the intro omits the exact lesson phrase', async () => {
+    const intro =
+      'The Web Accessibility Initiative is an effort by the World Wide Web Consortium to improve web access.';
+    const full = [
+      intro,
+      'The Web Accessibility Initiative develops the Web Content Accessibility Guidelines (WCAG) for accessible web content.',
+      'The Web Content Accessibility Guidelines define testable success criteria at multiple conformance levels.',
+      'Authoring Tool Accessibility Guidelines address software used to create web content.',
+      'User Agent Accessibility Guidelines address browsers and media players.',
+    ].join('\n');
+    let fullReads = 0;
+    const provider = {
+      id: 'wikipedia',
+      sourceKind: 'open encyclopedia',
+      license: 'CC BY-SA 4.0',
+      search: async () => ['Web Accessibility Initiative'],
+      articles: async () => ({
+        'Web Accessibility Initiative': {
+          title: 'Web Accessibility Initiative',
+          extract: intro,
+          sourceUrl: 'https://en.wikipedia.org/wiki/Web_Accessibility_Initiative',
+        },
+      }),
+      fullArticle: async () => {
+        fullReads += 1;
+        return {
+          title: 'Web Accessibility Initiative',
+          extract: full,
+          sourceUrl: 'https://en.wikipedia.org/wiki/Web_Accessibility_Initiative',
+        };
+      },
+      sourceIdFor: () => 'wikipedia:Web_Accessibility_Initiative',
+      attributionFor: () => 'Wikipedia contributors',
+    };
+    const kernels = await researchLessonKernels('WCAG principles', {
+      provider,
+      courseContext: 'Digital Accessibility for Product Teams',
+      floor: 0.15,
+    });
+    expect(fullReads).toBe(1);
+    expect(kernels.map((kernel) => kernel.term)).toContain('Web Accessibility Initiative');
+    expect(kernels[0].facts.map((fact) => fact.text).join(' ')).toContain('Web Content Accessibility Guidelines');
   });
 
   it('composes waterborne pathogens from three admitted source concepts', async () => {

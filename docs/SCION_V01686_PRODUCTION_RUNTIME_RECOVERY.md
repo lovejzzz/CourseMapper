@@ -1,5 +1,7 @@
 # Scion V0.16.86 — Production Runtime Recovery
 
+> **Historical outcome:** V0.16.86 successfully stopped the hidden prose fallback and duplicate multi-gigabyte transfer, but its production proof did not close. The next audit decoded `1,163,217,991` as the stale `GLUE` protocol marker and exposed the actual native cause: no WebGPU adapter was available. V0.16.87 validates the real adapter before download and adds a zero-download Scion evidence/compiler route; see `SCION_V01687_ADAPTIVE_DEVICE_ROUTE.md`.
+
 ## Goal
 
 Make Scion’s first production run reliable and legible: one bounded public-model download, one activation attempt, one explicit recovery path, and no silent second multi-gigabyte transfer.
@@ -21,7 +23,7 @@ The runtime builder patches the pinned, reviewed Wllama fork rather than editing
 - the remaining capacity in the destination typed-array view; and
 - the remaining capacity in the underlying `ArrayBuffer`.
 
-This preserves legal partial-read behavior and prevents the `Invalid typed array length` activation failure reproduced in production.
+This removed out-of-range destination views, but the required follow-up audit proved that the remaining integer was not a model-read length. It was the unchanged `GLUE` request header after native loading returned no response. V0.16.87 preserves that native cause and addresses the unavailable GPU adapter before any download.
 
 ### Lane 2 — Stop duplicate model work
 

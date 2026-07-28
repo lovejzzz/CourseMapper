@@ -23,7 +23,13 @@ export function compactCourseCopyFocus(focus) {
   const cleanFocus = cleanText(focus);
   const literalWordCount = (cleanFocus.match(/[A-Za-z0-9][A-Za-z0-9'-]*/g) || []).length;
   if (courseCopySurfaceWords(cleanFocus).length < 4 && literalWordCount < 5) return cleanFocus;
-  const subjectPrefix = stripTerminalPunctuation(cleanFocus.split(/\s+and\s+/i)[0]);
+  let subjectPrefix = stripTerminalPunctuation(cleanFocus.split(/\s+and\s+/i)[0]).replace(/,\s*$/, '');
+  // Splitting a serial list before its final `and` used to leave
+  // learner-facing fragments such as "accessible forms, testing,". Preserve a
+  // compact, grammatical compound instead of exposing the parser seam.
+  if ((subjectPrefix.match(/,/g) || []).length === 1) {
+    subjectPrefix = subjectPrefix.replace(/,\s*/, ' and ');
+  }
   if (courseCopySurfaceWords(subjectPrefix).length >= 2) return subjectPrefix;
   const methodPrefix = stripTerminalPunctuation(cleanFocus.split(/\s+using\s+/i)[0]);
   return methodPrefix && courseCopySurfaceWords(methodPrefix).length <= 4 ? methodPrefix : cleanFocus;

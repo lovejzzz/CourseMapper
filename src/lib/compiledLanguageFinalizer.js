@@ -152,6 +152,10 @@ function fixMechanicalSeams(value) {
       'follow the stated scope and length requirements',
     )
     .replace(/\bMake\s+([^.!?]{1,100}?)\s+defend\s+one\b/gi, 'Use $1 to defend one');
+  text = text.replace(
+    /\b(from|in|with|against|through)\s+assigned course materials\b/gi,
+    '$1 the assigned course materials',
+  );
   // v0.14.1 (5.1): markdown code spans render their backticks verbatim in
   // Office text ("`{'name': 'Ava', 'age': 19}` maps labels to data" shipped
   // on slides in the OUTPUT-V014 audit) — enriched key-term examples carry
@@ -196,6 +200,42 @@ function fixMechanicalSeams(value) {
   text = text.replace(/(^|[.!?]\s+)the(?=\s+[A-Za-z])/g, '$1The');
   text = text.replace(/\b(The key ideas in [^.!?]{2,60}) is only\b/g, '$1 are only');
   text = text.replace(/\bexplain the psychological explanation\b/gi, 'explain the psychological account');
+  // Some public standards prose treats the versioned acronym as a plural
+  // shorthand ("WCAG 2.0 consist of..."). On a learner-facing surface the
+  // named specification is singular. Repair this narrow agreement seam while
+  // leaving the immutable source-ledger quote unchanged for audit.
+  text = text.replace(/\b(WCAG\s+\d+(?:\.\d+)?)\s+consist of\b/gi, '$1 consists of');
+  // Sentence/title casing in compact-model source atoms must not degrade
+  // established accessibility and product-design acronyms on classroom
+  // surfaces ("Wcag principles", "Html semantics", "Ux artifact").
+  text = text
+    .replace(/\bWcag\b/g, 'WCAG')
+    .replace(/\bWai\b/g, 'WAI')
+    .replace(/\bAria\b/g, 'ARIA')
+    .replace(/\bHtml\b/g, 'HTML')
+    .replace(/\bCss\b/g, 'CSS')
+    .replace(/\bUi\b/g, 'UI')
+    .replace(/\bUx\b/g, 'UX');
+  text = text.replace(
+    /\bHow does ([A-Za-z][A-Za-z0-9 '&/-]{1,80}\b(?:forms|principles|guidelines|criteria|methods|techniques|standards|patterns|practices|requirements|roles)) actually work\?/gi,
+    'How do $1 actually work?',
+  );
+  // Research snippets can quote obligations that apply only inside one
+  // jurisdiction or policy. Learner-facing projections must retain that
+  // boundary instead of universalizing the rule to every website.
+  text = text
+    .replace(
+      /\bAll websites will need to adhere to the WCAG Principles\b/g,
+      'In the cited policy context, covered websites are expected to follow the WCAG principles',
+    )
+    .replace(
+      /\bFor example:\s+The regulations require compliance with\b/g,
+      'For example, in that cited policy context, the regulations require compliance with',
+    )
+    .replace(
+      /\bThe W3C's Techniques for WCAG 2\.0 is a list of techniques that\b/g,
+      "W3C's Techniques for WCAG 2.0 lists techniques that",
+    );
   // A due-window label can meet an artifact short reference after repetition
   // compaction ("Week 2" + "the Week 2 response"). Keep the one canonical
   // schedule label; this is an exact same-number seam, never a cross-week
@@ -507,6 +547,43 @@ function walkAndRewrite(node, rewrite, parentKey = '') {
     return node;
   }
   return node;
+}
+
+function preserveDraftingVocabulary(blueprint = {}) {
+  const identity = [
+    blueprint?.courseName,
+    blueprint?.description,
+    ...(Array.isArray(blueprint?.lessons) ? blueprint.lessons.map((lesson) => lesson?.title) : []),
+  ]
+    .filter(Boolean)
+    .join(' ');
+  return /\b(?:creative writing|fiction|poetry|screenwriting|playwriting|manuscript|writing workshop)\b/i.test(
+    identity,
+  );
+}
+
+function polishCompletionLanguage(value) {
+  let text = String(value || '');
+  // Outside courses where drafting is itself the discipline, present generated
+  // materials as complete course work. The editing cycle still exists, but
+  // learner-facing copy uses "work", "version", and "revision" rather than
+  // repeatedly labeling the package unfinished.
+  text = text
+    .replace(/\bnext draft\b/gi, 'next revision')
+    .replace(/\bfinal draft\b/gi, 'final submission')
+    .replace(/\bdraft planning weights?\b/gi, 'proposed planning weights')
+    .replace(/\bcompiler-distributed draft\b/gi, 'compiler-proposed')
+    .replace(/\bdraft feedback\b/gi, 'revision feedback')
+    .replace(/\bdraft detail\b/gi, 'artifact detail')
+    .replace(/\bdraft section\b/gi, 'work-in-progress section')
+    .replace(/\b(the Week \d+(?:\s+\w+)?) draft\b/gi, '$1 work')
+    .replace(/\bthe draft\b/gi, 'the work')
+    .replace(/\ba draft\b/gi, 'a working version')
+    .replace(/\bdrafting\b/gi, 'developing')
+    .replace(/\b(students|learners|teams|you) draft\b/gi, '$1 develop')
+    .replace(/\bDraft (?=(?:the|a|an|one|your|this|each|Week\s+\d+|Lesson\s+\d+)\b)/g, 'Develop ')
+    .replace(/\bdraft (?=(?:the|a|an|one|your|this|each|week\s+\d+|lesson\s+\d+)\b)/g, 'develop ');
+  return text;
 }
 
 // v0.14.1 round-2 (fix 2): name/title fields render canonical identities —
@@ -825,6 +902,9 @@ export function finalizeCompiledDeliverableLanguage(featureId, data, blueprint =
   const targets = buildReferenceTargets(blueprint);
   if (targets.length === 0) {
     walkAndRewrite(data, (value) => fixMechanicalSeams(value));
+    if (!preserveDraftingVocabulary(blueprint)) {
+      walkAndRewrite(data, (value) => polishCompletionLanguage(value));
+    }
     capLessonTitleMentions(featureId, data, blueprint);
     return data;
   }
@@ -843,5 +923,8 @@ export function finalizeCompiledDeliverableLanguage(featureId, data, blueprint =
     data[key] = value;
   }
   capLessonTitleMentions(featureId, data, blueprint);
+  if (!preserveDraftingVocabulary(blueprint)) {
+    walkAndRewrite(data, (value) => polishCompletionLanguage(value));
+  }
   return data;
 }

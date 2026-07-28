@@ -7,6 +7,7 @@ import {
 } from '../src/hooks/useGeneration.js';
 import { findDuplicateLessonTitleGroups, normalizeLessonTitleIdentity } from '../src/lib/lessonTitleIdentity.js';
 import { extractExplicitCoverageTopics } from '../src/lib/explicitLessonSequence.js';
+import { PUBLIC_SCION_MODEL_NAME } from '../src/lib/publicScionIdentity.js';
 
 describe('course-map continuation quality', () => {
   it('normalizes numbered titles and common acronym expansions before comparing topics', () => {
@@ -38,7 +39,7 @@ describe('course-map continuation quality', () => {
   });
 
   it('never exposes the internal public model identifier in progress copy', () => {
-    expect(displayGenerationModelName('public', 'scion-public')).toBe('Scion');
+    expect(displayGenerationModelName('public', 'scion-public')).toBe(PUBLIC_SCION_MODEL_NAME);
     expect(displayGenerationModelName('openai', 'GPT-5 mini')).toBe('GPT-5 mini');
   });
 

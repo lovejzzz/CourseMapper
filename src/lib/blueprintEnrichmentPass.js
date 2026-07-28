@@ -1830,7 +1830,7 @@ function normalizeComposedConceptProvenance(value) {
   };
 }
 
-export function lintKernelFact(fact) {
+export function lintKernelFact(fact, { exactSourceLedger = false } = {}) {
   const issues = [];
   const text = cleanText(fact);
   if (text.length < 20) issues.push('fact-too-short');
@@ -1838,7 +1838,11 @@ export function lintKernelFact(fact) {
   if (/\b(?:a|an|and|as|at|by|for|from|in|of|on|or|the|to|with|[a-z])\s*[.!?]?$/i.test(text)) {
     issues.push('fact-incomplete');
   }
-  if (META_SURFACE_RE.test(text)) issues.push('meta-fact');
+  // A compiler-owned exact ledger has already crossed source relevance,
+  // passage anchoring, and provenance checks. Domain terms such as WCAG
+  // “success criteria” can resemble CourseMapper's own rubric vocabulary,
+  // but rejecting an exact cited claim here silently erases real knowledge.
+  if (!exactSourceLedger && META_SURFACE_RE.test(text)) issues.push('meta-fact');
   return issues;
 }
 
@@ -2077,7 +2081,7 @@ export function parseLessonKernelResponse(text, { prompt, expectedLessonIds } = 
 
     const facts = [];
     const sourceFactsByIndex = asArray(entry?.facts).map((fact, index) => {
-      const problems = lintKernelFact(fact);
+      const problems = lintKernelFact(fact, { exactSourceLedger: preservesExactSourceLedger });
       if (problems.length > 0) {
         issues.push({ lessonId, surface: 'facts', index, problems });
         return null;

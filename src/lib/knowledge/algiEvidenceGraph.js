@@ -9,6 +9,10 @@
 export const ALGI_EVIDENCE_GRAPH_PROTOCOL = 'algi-claim-evidence-graph-v1';
 
 const PROVIDER_AUTHORITY = {
+  // The W3C/WAI vertical retrieves the governing accessibility standard and
+  // its official tutorials. Within that bounded domain it should outrank an
+  // encyclopedia summary when curricular fit and source support are equal.
+  'w3c-wai': 1,
   openstax: 0.98,
   'europe-pmc': 0.94,
   doaj: 0.9,
@@ -113,15 +117,56 @@ function relevanceScore(kernel = {}) {
   return Number.isFinite(score) ? Math.max(0, Math.min(1, score)) : 0.72;
 }
 
+function conceptTokens(value = '') {
+  return tokens(value).filter((token) => !['principle', 'principles', 'practice', 'practices'].includes(token));
+}
+
+function initialism(value = '') {
+  const words = conceptTokens(value);
+  return words.length >= 2 ? words.map((word) => word[0]).join('') : '';
+}
+
+/**
+ * Scholarly authority is not the same as curricular fit. A broad paper that
+ * mentions accessibility should not outrank the canonical WCAG page for a
+ * WCAG lesson merely because DOAJ has a higher provider prior. Reward sources
+ * whose own title/term names the lesson concept, including acronym expansions.
+ */
+function curricularFitScore(kernel = {}) {
+  const topic = clean(kernel?.provenance?.topic);
+  if (!topic) return 0.72;
+  const topicTokens = conceptTokens(topic);
+  const candidateLabel = clean(`${kernel?.term || ''} ${kernel?.provenance?.title || ''}`);
+  const candidateTokens = new Set(conceptTokens(candidateLabel));
+  if (topicTokens.length === 0 || candidateTokens.size === 0) return 0;
+  const acronyms = new Set(
+    topic
+      .toLowerCase()
+      .match(/\b[a-z]{2,8}\b/g)
+      ?.filter((word) => word === word.toUpperCase() || word.length <= 5) || [],
+  );
+  const candidateInitialism = initialism(kernel?.provenance?.title || kernel?.term);
+  if (candidateInitialism && (topicTokens.includes(candidateInitialism) || acronyms.has(candidateInitialism))) {
+    return 1;
+  }
+  const overlap = topicTokens.filter((token) => candidateTokens.has(token)).length;
+  return Math.max(0, Math.min(1, overlap / topicTokens.length));
+}
+
 function confidenceFor(kernel, now) {
   const components = {
     authority: authorityScore(kernel),
     currency: currencyScore(kernel, now),
     support: supportScore(kernel),
     relevance: relevanceScore(kernel),
+    curricularFit: curricularFitScore(kernel),
   };
   const score =
-    components.authority * 0.3 + components.currency * 0.15 + components.support * 0.35 + components.relevance * 0.2;
+    components.authority * 0.2 +
+    components.currency * 0.1 +
+    components.support * 0.3 +
+    components.relevance * 0.15 +
+    components.curricularFit * 0.25;
   return { score: Number(score.toFixed(3)), components };
 }
 

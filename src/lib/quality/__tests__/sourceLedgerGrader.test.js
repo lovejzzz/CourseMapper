@@ -3,6 +3,58 @@ import { grade, honestyFromDigest } from '../deepQualityGrader.js';
 import { createMemoryFileProvider } from '../fileProviders.js';
 
 describe('source-ledger quality checks', () => {
+  it('counts concept-linked W3C WAI rows as trusted accessibility sources', async () => {
+    const w3cRows = [
+      {
+        id: 'kr1',
+        title: 'Web Content Accessibility Guidelines',
+        provider: 'w3c-wai',
+        url: 'https://www.w3.org/TR/WCAG22/',
+        license: 'W3C permissive license',
+        conceptLinks: [{ id: 'c1', label: 'WCAG principles' }],
+      },
+      {
+        id: 'kr2',
+        title: 'Accessible forms',
+        provider: 'w3c-wai',
+        url: 'https://www.w3.org/WAI/tutorials/forms/',
+        license: 'W3C permissive license',
+        conceptLinks: [{ id: 'c2', label: 'accessible forms' }],
+      },
+    ];
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'Digital Accessibility for Product Teams',
+          lessonScope: 'all',
+          requestedFeatures: [],
+          readiness: { status: 'ready', blockers: 0, warnings: 0, checkedSections: 18 },
+          sourceLedger: w3cRows,
+          courseIR: {
+            sourceRefCoverage: {
+              sourceLedgerRows: 2,
+              totals: { total: 18, withRefs: 18, missing: 0, danglingRefs: 0 },
+              categories: {
+                outcomes: { total: 6, withRefs: 6, missing: 0, danglingRefs: 0 },
+                factualClaims: { total: 6, withRefs: 6, missing: 0, danglingRefs: 0 },
+                rubricCriteria: { total: 6, withRefs: 6, missing: 0, danglingRefs: 0 },
+              },
+            },
+          },
+          sourceReport: { path: 'SOURCE_REPORT.md', sourceCount: 2 },
+          files: [{ path: 'SOURCE_REPORT.md', feature: 'sourceReport' }],
+        }),
+        'SOURCE_REPORT.md': '# Source Report\n\n- WCAG 2.2\n- Accessible forms\n',
+      }),
+      course: { title: 'Digital Accessibility for Product Teams', featureIds: [] },
+    });
+
+    expect(result.findings.map((finding) => finding.detail)).not.toContain(
+      'sourceRef coverage is too thin: 18 atom(s) rely on 0 trusted concept-linked source row(s)',
+    );
+    expect(result.findings.filter((finding) => finding.dimension === 'citations')).toEqual([]);
+  });
+
   it('rejects a many-lesson package that hides thin evidence behind missing sourceRef coverage', async () => {
     const result = await grade({
       fileProvider: createMemoryFileProvider({
@@ -2008,6 +2060,44 @@ describe('source-ledger quality checks', () => {
           finding.detail === 'citation shares zero vocabulary with the course discipline (possible off-topic reading)',
       ),
     ).toBe(false);
+  });
+
+  it('expands the canonical WAI-ARIA standard without exempting unrelated acronyms', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'Digital Accessibility for Product Teams',
+          lessonScope: 'all',
+          requestedFeatures: ['syllabus'],
+          readiness: { status: 'ready', blockers: 0, warnings: 0, checkedSections: null },
+          files: [
+            {
+              path: 'Syllabus/Digital Accessibility for Product Teams - Syllabus.txt',
+              feature: 'syllabus',
+            },
+          ],
+        }),
+        'Syllabus/Digital Accessibility for Product Teams - Syllabus.txt': [
+          'DIGITAL ACCESSIBILITY FOR PRODUCT TEAMS — SYLLABUS',
+          'WEEKLY READINGS',
+          'Week 2: Wikipedia contributors. WAI-ARIA. Wikipedia: https://en.wikipedia.org/wiki/WAI-ARIA (CC BY-SA 4.0)',
+          'Week 3: Wikipedia contributors. QFT handbook. Wikipedia: https://en.wikipedia.org/wiki/QFT_handbook (CC BY-SA 4.0)',
+        ].join('\n'),
+      }),
+      course: {
+        title: 'Digital Accessibility for Product Teams',
+        prompt: 'Teach WCAG, semantic HTML, keyboard accessibility, and accessible forms.',
+        featureIds: ['syllabus'],
+      },
+    });
+
+    const zeroOverlap = result.findings.filter(
+      (finding) =>
+        finding.dimension === 'citations' &&
+        finding.detail === 'citation shares zero vocabulary with the course discipline (possible off-topic reading)',
+    );
+    expect(zeroOverlap.some((finding) => /WAI-ARIA/i.test(finding.evidence || ''))).toBe(false);
+    expect(zeroOverlap.some((finding) => /QFT handbook/i.test(finding.evidence || ''))).toBe(true);
   });
 
   it('recognizes questionnaire and informed-consent readings in a social-science research-methods course', async () => {

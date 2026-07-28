@@ -94,7 +94,7 @@ class FakeWllama {
 }
 
 const browser = {
-  navigatorLike: { gpu: {} },
+  navigatorLike: { gpu: { requestAdapter: vi.fn(async () => ({ info: { vendor: 'test' } })) } },
   globalLike: { crossOriginIsolated: true, WebAssembly: { Suspending: function Suspending() {} } },
   locationLike: { href: 'https://edutool.dev/workspace' },
   runtimeLoader: vi.fn(async () => ({ Wllama: FakeWllama })),
@@ -126,7 +126,7 @@ describe('Scion WebGPU GGUF runtime', () => {
     });
     expect(FakeWllama.last.config).toMatchObject({
       backend: 'webgpu',
-      suppressNativeLog: true,
+      suppressNativeLog: false,
       logger: expect.objectContaining({ warn: expect.any(Function), error: expect.any(Function) }),
     });
     expect(FakeWllama.last.options.signal).toBe(controller.signal);
@@ -232,7 +232,7 @@ describe('Scion WebGPU GGUF runtime', () => {
     );
   });
 
-  it('releases the runtime before clearing a failed fresh download and does not start it twice', async () => {
+  it('preserves an activation failure without misclassifying the GLUE marker as a corrupt cache', async () => {
     const modelUrl = 'https://example.test/fresh-model.gguf';
     const order = [];
     let loads = 0;
@@ -274,10 +274,10 @@ describe('Scion WebGPU GGUF runtime', () => {
         runtimeLoader: vi.fn(async () => ({ Wllama: FreshActivationFailureWllama })),
         onProgress: (entry) => progress.push(entry),
       }),
-    ).rejects.toMatchObject({ code: 'SCION_WLLAMA_CACHE_INCOMPLETE' });
+    ).rejects.toMatchObject({ code: 'SCION_WLLAMA_LOAD' });
 
     expect(loads).toBe(1);
-    expect(order).toEqual(['exit', 'remove']);
+    expect(order).toEqual(['exit']);
     expect(progress).toContainEqual(
       expect.objectContaining({
         phase: 'loading-model',
@@ -474,6 +474,25 @@ describe('Scion WebGPU GGUF runtime', () => {
     await expect(loadScionBrowserWllama({ ...browser, navigatorLike: {} })).rejects.toMatchObject({
       code: 'SCION_WLLAMA_WEBGPU',
     });
+  });
+
+  it('fails before runtime import or model download when WebGPU exposes no usable adapter', async () => {
+    const runtimeLoader = vi.fn(async () => ({ Wllama: FakeWllama }));
+    const requestAdapter = vi.fn(async () => null);
+
+    await expect(
+      loadScionBrowserWllama({
+        ...browser,
+        navigatorLike: { gpu: { requestAdapter } },
+        runtimeLoader,
+      }),
+    ).rejects.toMatchObject({
+      code: 'SCION_WLLAMA_WEBGPU_ADAPTER',
+      message: 'This browser could not start a WebGPU adapter for Scion.',
+    });
+
+    expect(requestAdapter).toHaveBeenCalledTimes(2);
+    expect(runtimeLoader).not.toHaveBeenCalled();
   });
 
   it('quarantines a native adapter that has no verified installed identity', async () => {

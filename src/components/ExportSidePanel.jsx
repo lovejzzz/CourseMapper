@@ -859,6 +859,7 @@ export default function ExportSidePanel({
   onFinishPackage,
   canFinishPackage = false,
   packageQualityPass,
+  onPackageQualityPassUpdate = null,
   courseGraph = null,
   // v0.14.4 WS-B2: the findings modal can be driven by the workspace header
   // chip — when the parent passes an open-state handler the modal runs in
@@ -1287,6 +1288,24 @@ export default function ExportSidePanel({
             // QUALITY_REPORT.md ride the download).
             quality: qualityContext,
           });
+          if (
+            typeof onPackageQualityPassUpdate === 'function' &&
+            zipResult.quality?.status === 'graded' &&
+            zipResult.qualityResult
+          ) {
+            const exportedQuality = {
+              ...zipResult.quality,
+              grades: zipResult.qualityResult.grades || {},
+              findings: zipResult.qualityResult.findings || [],
+              findingCount: zipResult.qualityResult.stats?.findingCount ?? 0,
+              fileCount: zipResult.qualityResult.stats?.fileCount ?? null,
+              texture: zipResult.qualityResult.texture || zipResult.quality.texture || null,
+            };
+            onPackageQualityPassUpdate((previous) => ({
+              ...previous,
+              quality: exportedQuality,
+            }));
+          }
           setLastOk(
             `ZIP downloaded with ${zipResult.files.length} file${
               zipResult.files.length === 1 ? '' : 's'

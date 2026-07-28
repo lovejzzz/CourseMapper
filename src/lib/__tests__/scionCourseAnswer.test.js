@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { buildScionCourseAnswer, __private__ } from '../scionCourseAnswer';
+import { buildScionAssignedSourceAnswer } from '../scionAssignedSourceAnswer';
 import { buildScionCourseSequenceAnswer } from '../scionCourseSequenceAnswer';
 import { buildScionNamedReadingAnswer } from '../scionNamedReadingAnswer';
 
@@ -66,6 +67,37 @@ describe('buildScionCourseAnswer', () => {
     expect(result?.text).not.toContain('Students may assume that more samples');
     expect(result?.text).toContain('Lesson 2: Water Quality · Study Guides');
     expect(result).toMatchObject({ kind: 'course-evidence', lessonNumber: 2 });
+  });
+
+  it('answers assigned-source questions locally with links and honest claim boundaries', () => {
+    const result = buildScionAssignedSourceAnswer({
+      question: 'Which assigned sources support accessible forms, and what can each source establish?',
+      courseMap: {
+        courseName: 'Digital Accessibility for Product Teams',
+        lessons: [
+          {
+            title: 'Lesson 1: WCAG principles',
+            sections: [],
+          },
+          {
+            title: 'Lesson 2: accessible forms',
+            sections: [
+              {
+                supportingResources:
+                  '1. Accessible forms (official accessibility standard and tutorial, W3C permissive license — https://www.w3.org/WAI/tutorials/forms/) 2. Labels (official accessibility standard and tutorial, W3C permissive license — https://www.w3.org/WAI/tutorials/forms/labels/)',
+              },
+            ],
+          },
+        ],
+      },
+      deliverables: {},
+    });
+
+    expect(result).toMatchObject({ kind: 'course-evidence', lessonNumber: 2 });
+    expect(result?.text).toContain('**Accessible forms**');
+    expect(result?.text).toContain('**Labels**');
+    expect(result?.text).toContain('https://www.w3.org/WAI/tutorials/forms/');
+    expect(result?.text).toContain('do not by themselves prove');
   });
 
   it('falls through for edits and unsupported synthesis questions', () => {
@@ -287,6 +319,53 @@ describe('buildScionCourseAnswer', () => {
     expect(result?.text).not.toContain('likely');
     expect(result?.text).not.toMatch(/Prerequisite concept|Wikipedia|CC BY-SA/i);
     expect(result).toMatchObject({ kind: 'course-evidence', sources: ['Syllabus', 'Course Map'] });
+  });
+
+  it('answers a sequence request with one concrete compiled skill per lesson', () => {
+    const result = buildScionCourseSequenceAnswer({
+      question: 'Summarize the three-lesson sequence and name one concrete skill students practice in each lesson.',
+      courseMap: {
+        lessons: [
+          {
+            title: 'Lesson 1: WCAG principles',
+            sections: [{ learningObjectives: 'Audit one interface against a named WCAG success criterion.' }],
+          },
+          {
+            title: 'Lesson 2: Keyboard access',
+            sections: [
+              { learningObjectives: 'Test a prototype using only the keyboard and document focus-order defects.' },
+            ],
+          },
+          {
+            title: 'Lesson 3: Remediation',
+            sections: [
+              {
+                learningObjectives:
+                  'Repair an accessible form and verify its error feedback with assistive technology.',
+              },
+            ],
+          },
+        ],
+      },
+      deliverables: {
+        syllabus: {
+          data: {
+            syllabus: {
+              weeklySchedule: [
+                { week: 'Week 1', topic: 'WCAG principles' },
+                { week: 'Week 2', topic: 'Keyboard access' },
+                { week: 'Week 3', topic: 'Remediation' },
+              ],
+            },
+          },
+        },
+      },
+    });
+
+    expect(result?.text.match(/Concrete skill:/g)).toHaveLength(3);
+    expect(result?.text).toContain('Audit one interface against a named WCAG success criterion.');
+    expect(result?.text).toContain('Test a prototype using only the keyboard');
+    expect(result?.text).toContain('Repair an accessible form');
   });
 
   it('keeps quoted words inside a smart-quoted Mandarin lesson fact', () => {

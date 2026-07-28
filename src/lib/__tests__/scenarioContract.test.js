@@ -205,6 +205,26 @@ describe('evidence-to-decision scenario contract', () => {
     expect(analyzeDecisionScenario(scenario).ready).toBe(true);
   });
 
+  it('does not repeat a source fact already contained inside the case example', () => {
+    const fact = 'People can better understand the form and how to complete it.';
+    const scenario = deriveDecisionScenario({
+      facts: [fact],
+      keyTerms: [
+        {
+          term: 'Accessible forms',
+          definition: 'Accessible forms provide labels, instructions, validation, and clear feedback.',
+          example: `${fact} Clear layout, instructions, and feedback also make recovery easier.`,
+          misconception: 'Any related interface can be labeled an accessible form without checking its behavior.',
+          correction: 'The form must provide the source-backed access features.',
+        },
+      ],
+    });
+
+    expect((scenario.setup.match(/better understand the form and how to complete it/gi) || []).length).toBe(1);
+    expect(scenario.setup).not.toContain('The record also states');
+    expect(analyzeDecisionScenario(scenario).ready).toBe(true);
+  });
+
   it('uses peer contrasts once in the quiz and turns the scenario into a claim-boundary case', () => {
     const misconception = 'Biofilm and microbial mat are interchangeable descriptions of the same concept.';
     const scenario = deriveDecisionScenario({

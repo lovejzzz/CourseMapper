@@ -516,6 +516,18 @@ export function applyApiCallBudgetEvent(currentBudget, event = {}) {
   if (event.type === 'nativeAuthoringFellBack') {
     next.pipeline = { ...next.pipeline, nativeAuthoring: `fell back to prose: ${event.detail || 'unknown reason'}` };
   }
+  if (event.type === 'scionAdaptiveRoute') {
+    next.pipeline = {
+      ...next.pipeline,
+      scionExecution: 'private evidence compiler · zero model download · zero model inference',
+    };
+  }
+  if (event.type === 'providerResponseDone' && event.provider === 'public' && event.execution === 'browser-local') {
+    next.pipeline = {
+      ...next.pipeline,
+      scionExecution: 'browser-local Gemma 4 · public weights · local inference',
+    };
+  }
   if (event.type === 'pipelineDecision') {
     const stage = event.stage || 'stage';
     let shouldRecordPipelineDecision = true;

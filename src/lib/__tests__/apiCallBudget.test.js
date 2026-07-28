@@ -136,6 +136,28 @@ describe('apiCallBudget', () => {
     expect(budget.recentEvents[0]).toMatchObject({ routeModelCalls: 3, execution: 'local-server' });
   });
 
+  it('retains the actual adaptive Scion execution lane in the privacy-safe receipt', () => {
+    let budget = createApiCallBudget();
+    budget = applyApiCallBudgetEvent(budget, {
+      type: 'scionAdaptiveRoute',
+      provider: 'public',
+      modelId: 'scion-public',
+      execution: 'browser-compiler',
+    });
+
+    expect(budget.pipeline.scionExecution).toContain('zero model download');
+    expect(budget.modelRequestStarts).toBe(0);
+    expect(buildApiCallBudgetReceipt(budget).pipeline.scionExecution).toContain('zero model inference');
+
+    budget = applyApiCallBudgetEvent(budget, {
+      type: 'providerResponseDone',
+      provider: 'public',
+      modelId: 'scion-public',
+      execution: 'browser-local',
+    });
+    expect(budget.pipeline.scionExecution).toContain('browser-local Gemma 4');
+  });
+
   it('drains model setup calls into the next generation run', () => {
     recordPendingApiCallEvent({ type: 'modelDiscoveryCall', label: 'Fetch models' });
     recordPendingApiCallEvent({ type: 'creditCheckCall', label: 'Check credits' });

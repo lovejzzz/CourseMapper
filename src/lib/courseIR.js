@@ -2212,15 +2212,27 @@ export function compileCourseIR(rawIR = {}, { featureIds, configMap = {}, allowI
   };
 }
 
+function courseMapCellAtoms(value, limit = 6) {
+  return uniqueStrings(
+    asArray(value).flatMap((entry) =>
+      String(entry || '')
+        .split(/;|\n/)
+        .map((atom) => cleanText(atom, 600))
+        .filter(Boolean),
+    ),
+    limit,
+  );
+}
+
 export function buildCourseIRFromCourseMap(courseMap = {}) {
   const lessons = asArray(courseMap.lessons).map((lesson, index) => {
     const section = asArray(lesson.sections)[0] || {};
     const conceptId = `C${index + 1}`;
     const assessmentId = `A${index + 1}`;
-    const objectives = uniqueStrings(String(section.learningObjectives || '').split(/;|\n/), 6);
+    const objectives = courseMapCellAtoms(section.learningObjectives, 6);
     const topic = cleanText(section.topicSection || lesson.title || `Lesson ${index + 1}`, 160);
-    const asyncActivities = uniqueStrings(String(section.asyncActivities || '').split(/;|\n/), 4);
-    const syncActivities = uniqueStrings(String(section.syncActivities || '').split(/;|\n/), 4);
+    const asyncActivities = courseMapCellAtoms(section.asyncActivities, 4);
+    const syncActivities = courseMapCellAtoms(section.syncActivities, 4);
     return {
       id: `L${index + 1}`,
       title: cleanText(lesson.title || `Lesson ${index + 1}`, 180),
@@ -2276,19 +2288,18 @@ export function buildCourseIRFromCourseMap(courseMap = {}) {
           sourceRefs: ['SL1'],
         },
       ],
-      factualAnchors: uniqueStrings(
-        String(section.supportingResources || section.learningGoals || '').split(/;|\n/),
-        4,
-      ).map((claim) => ({ claim, status: 'source-provided', sourceRefs: ['SL1'], risk: 'low' })),
+      factualAnchors: courseMapCellAtoms(section.supportingResources || section.learningGoals, 4).map((claim) => ({
+        claim,
+        status: 'source-provided',
+        sourceRefs: ['SL1'],
+        risk: 'low',
+      })),
       workedExamples: [
         {
           id: `L${index + 1}-E1`,
           skill: `Apply ${cleanText(section.topicSection || lesson.title || 'lesson concept', 100)}`,
           setup: cleanText(section.syncActivities || section.asyncActivities || section.topicSection, 240),
-          solutionSteps: uniqueStrings(
-            String(section.syncActivities || section.asyncActivities || '').split(/;|\n/),
-            4,
-          ),
+          solutionSteps: courseMapCellAtoms(section.syncActivities || section.asyncActivities, 4),
           result: cleanText(section.weeklyAssessments || 'Completed evidence-based response.', 160),
           sourceRefs: ['SL1'],
         },
@@ -2299,7 +2310,7 @@ export function buildCourseIRFromCourseMap(courseMap = {}) {
           correction: `Require students to connect ${cleanText(section.topicSection || lesson.title || 'the topic', 100)} to observable evidence and feedback.`,
         },
       ],
-      practiceItems: uniqueStrings(String(section.asyncActivities || section.syncActivities || '').split(/;|\n/), 6),
+      practiceItems: courseMapCellAtoms(section.asyncActivities || section.syncActivities, 6),
       assessmentIds: [assessmentId],
     };
   });

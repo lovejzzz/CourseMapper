@@ -19,6 +19,11 @@ const LABELED_SEQUENCE_HEADER_RE = new RegExp(
   'i',
 );
 
+const EXACT_COUNTED_SEQUENCE_HEADER_RE = new RegExp(
+  `\\b(?:exactly\\s+)?(${COUNT_WORD})\\s+(?:distinct\\s+)?(?:lessons?|sessions?|modules?)\\s*:\\s*`,
+  'i',
+);
+
 function cleanSequenceItem(value) {
   return cleanText(
     String(value || '')
@@ -46,14 +51,63 @@ function inlineNumberedSequenceItems(block = '') {
     .filter(Boolean);
 }
 
+function exactCountedCommaSequence(text, expectedCount) {
+  const header = EXACT_COUNTED_SEQUENCE_HEADER_RE.exec(String(text || ''));
+  if (!header) return [];
+  const countWords = [
+    'one',
+    'two',
+    'three',
+    'four',
+    'five',
+    'six',
+    'seven',
+    'eight',
+    'nine',
+    'ten',
+    'eleven',
+    'twelve',
+    'thirteen',
+    'fourteen',
+    'fifteen',
+    'sixteen',
+    'seventeen',
+    'eighteen',
+    'nineteen',
+    'twenty',
+  ];
+  const declaredCount = /^\d+$/.test(header[1]) ? Number(header[1]) : countWords.indexOf(header[1].toLowerCase()) + 1;
+  if (!(declaredCount >= 2 && declaredCount <= 52)) return [];
+  if (Number.isInteger(expectedCount) && declaredCount !== expectedCount) return [];
+  const listStart = header.index + header[0].length;
+  const listBlock = String(text)
+    .slice(listStart)
+    .split(/\n\s*\n|[.!?](?:\s|$)/)[0];
+  // Semicolons are the stronger item boundary, especially when one lesson
+  // title contains its own commas ("accessible forms, testing, and
+  // remediation"). Let the labelled-sequence parser below handle that form;
+  // comma splitting here collapsed the first two numbered lessons together
+  // and then mistook the third lesson's internal commas for new lessons.
+  if (listBlock.includes(';')) return [];
+  const normalized = listBlock.replace(/\s*,\s*and\s+/gi, ', ').replace(/\s+and\s+([^,]+)$/i, ', $1');
+  if (!normalized.includes(',')) return [];
+  const items = normalized
+    .split(/\s*,\s*/)
+    .map(cleanSequenceItem)
+    .filter((item) => item.length >= 3 && item.length <= 120);
+  return items.length === declaredCount ? items : [];
+}
+
 /**
  * Extract a user-authored, ordered one-topic-per-lesson contract. Admission is
  * deliberately narrow: a labelled header plus semicolon-delimited or inline
- * numbered items, or at least two numbered lines. Ordinary prose lists never
- * become a schedule.
+ * numbered items, an exact counted colon list, or at least two numbered lines.
+ * Ordinary prose lists never become a schedule.
  */
 export function extractExplicitLessonSequence(source = '', { expectedCount = null } = {}) {
   const text = String(source || '');
+  const exactCounted = exactCountedCommaSequence(text, expectedCount);
+  if (exactCounted.length > 0) return exactCounted;
   const header = LABELED_SEQUENCE_HEADER_RE.exec(text);
   if (header) {
     const listStart = header.index + header[0].length;

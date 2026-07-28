@@ -1548,6 +1548,26 @@ export default function useDeliverables({
                 expectedLessonIds,
                 contentSourcedLessonIds,
               });
+              const missingKernelIds = expectedLessonIds.filter((lessonId) => !parsed.kernels?.[lessonId]);
+              if (missingKernelIds.length > 0 || parsed.issues?.length > 0) {
+                const issueSummary = (parsed.issues || [])
+                  .slice(0, 8)
+                  .map((issue) => {
+                    const problems = Array.isArray(issue?.problems) ? issue.problems.join('|') : issue?.reason || '';
+                    return `${issue?.lessonId || 'unknown'}:${issue?.surface || 'lesson'}:${problems}`;
+                  })
+                  .join(' · ');
+                recordGenerationApiCallEvent({
+                  type: 'pipelineDecision',
+                  stage: 'canonicalKernelAdmission',
+                  label: 'Scion canonical kernel admission',
+                  detail: `${missingKernelIds.length ? `missing ${missingKernelIds.join(', ')}` : 'all lesson ids present'}${
+                    issueSummary ? ` · ${issueSummary}` : ''
+                  }`,
+                  featureId: 'blueprintEnrichment',
+                  task: 'blueprintEnrichment',
+                });
+              }
               for (const [lessonId, payload] of Object.entries(parsed.kernels)) {
                 lessonContent[lessonId] = bindScionEvidenceProvenance(
                   lessonId,
@@ -2492,14 +2512,20 @@ export default function useDeliverables({
             stats: directCourseIRState.validation.stats,
           });
         } else if (nativeSkeleton) {
-          const { resolveNativeAssembly } = await import('../lib/nativeGraphAuthoring');
+          const { backfillNativeAuthoringFromLessonContent, resolveNativeAssembly } =
+            await import('../lib/nativeGraphAuthoring');
+          const effectiveNativeAuthored = backfillNativeAuthoringFromLessonContent({
+            skeleton: nativeSkeleton,
+            authoredBySession: blueprintEnrichment?.nativeAuthored || {},
+            lessonContent: blueprintEnrichment?.lessonContent || {},
+          });
           const resolution = resolveNativeAssembly({
             skeleton: nativeSkeleton,
-            passBBySession: blueprintEnrichment?.nativeAuthored || {},
+            passBBySession: effectiveNativeAuthored,
           });
           if (resolution.ok) {
             courseGraph = courseGraphLib.attachEnrichmentToGraph(resolution.graph, enrichmentForGraph);
-            const authoredSurfaceCount = Object.keys(blueprintEnrichment?.nativeAuthored || {}).length;
+            const authoredSurfaceCount = Object.keys(effectiveNativeAuthored).length;
             const admittedKernelCount = Math.max(0, Number(blueprintEnrichment?.coverage?.enrichedLessons) || 0);
             const nativeLessonCount = resolution.graph.sessions.length;
             const recoveredResourceDetail = resolution.resourceRecovery?.recoveredCount
@@ -2956,9 +2982,22 @@ export default function useDeliverables({
           // D4 single-run disclosure stash: cleared every compile so a
           // toggled-off run never inherits a stale "voice pass ran" claim.
           voicePassLib.clearVoicePassOutcome();
+          let scionVoiceModelAvailable = true;
+          if (provider === PUBLIC_SCION_PROVIDER_ID) {
+            try {
+              const { detectScionDeviceCapability } = await import('../lib/scionDeviceCapability');
+              const scionCapability = await detectScionDeviceCapability();
+              scionVoiceModelAvailable = Boolean(scionCapability?.localModel);
+            } catch {
+              // A capability probe that cannot prove the local model keeps
+              // Scion on the compiler-only path. Voice polish is optional.
+              scionVoiceModelAvailable = false;
+            }
+          }
           if (
             voicePassLib.readVoicePassMode() === 'on' &&
             supportsModelVoicePass(modelId) &&
+            scionVoiceModelAvailable &&
             blueprintEnrichmentRequested &&
             enrichmentModelAvailable &&
             !enrichmentOutcome.missingLessons?.length
@@ -3079,6 +3118,18 @@ export default function useDeliverables({
             } finally {
               abortMapRef.current.delete(voiceAbortKey);
             }
+          } else if (
+            voicePassLib.readVoicePassMode() === 'on' &&
+            provider === PUBLIC_SCION_PROVIDER_ID &&
+            !scionVoiceModelAvailable
+          ) {
+            recordGenerationApiCallEvent({
+              type: 'pipelineDecision',
+              stage: 'voicePass',
+              label: 'Voice pass',
+              detail:
+                'skipped: zero-download evidence compiler kept the verified compiled language ($0.000; no model inference)',
+            });
           }
         } catch (voiceErr) {
           if (voiceErr?.name === 'AbortError') throw voiceErr;

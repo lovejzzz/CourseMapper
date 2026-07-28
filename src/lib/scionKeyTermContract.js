@@ -696,7 +696,11 @@ export function assessScionKeyTermContract(
     issues.push('circular-definition');
   }
   if (preciseCircularDefinitionAdmission) {
-    const completeDefinitionSentences = normalized.definition.match(/[^.!?]+[.!?]+/g) || [];
+    // Decimal versions are not sentence boundaries. Treating “WCAG 2.2
+    // covers…” as two sentences rejected an otherwise canonical definition
+    // and let weaker claim fragments replace the official standard concept.
+    const sentenceCountText = normalized.definition.replace(/(\d)\.(?=\d)/g, '$1\u2060');
+    const completeDefinitionSentences = sentenceCountText.match(/[^.!?]+[.!?]+/g) || [];
     if (!/[.!?][\])}"']?$/.test(normalized.definition)) issues.push('truncated-definition');
     if (completeDefinitionSentences.length > 1) issues.push('definition-multiple-sentences');
   }

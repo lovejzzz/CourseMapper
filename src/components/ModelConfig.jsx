@@ -23,6 +23,7 @@ import { PUBLIC_SCION_MODEL_NAME, PUBLIC_SCION_PROVIDER_ID } from '../lib/public
 import { readScionResearchEnabled, saveScionResearchEnabled } from '../lib/scionResearchPolicy';
 import { isLocalProviderOptInEnabled } from '../lib/localProvider';
 import useScionRuntimeStatus from '../hooks/useScionRuntimeStatus';
+import useScionDeviceCapability from '../hooks/useScionDeviceCapability';
 import { SCION_BROWSER_GEMMA4_DOWNLOAD_LABEL } from '../lib/scionBrowserConstants';
 
 /**
@@ -221,6 +222,7 @@ export default function ModelConfig({ reserveTrailingActionSpace = false }) {
   } = useAIConfig();
   const selectedScionModelName = PUBLIC_SCION_MODEL_NAME;
   const scionRuntimeStatus = useScionRuntimeStatus(provider === PUBLIC_SCION_PROVIDER_ID);
+  const scionDeviceCapability = useScionDeviceCapability(provider === PUBLIC_SCION_PROVIDER_ID);
   const debounceRef = useRef(null);
   const prevProviderValueRef = useRef(provider);
   const prevApiKeyRef = useRef(apiKey);
@@ -989,13 +991,17 @@ export default function ModelConfig({ reserveTrailingActionSpace = false }) {
           data-testid="scion-model-boundary"
         >
           <p>
-            Scion is EduTool&apos;s customized local course-building AI. It combines a compact Gemma 4 model, a
-            source-grounded evidence layer, and a teaching-focused compiler to create aligned course materials.
+            Scion is EduTool&apos;s customized course-building AI. It combines source-grounded evidence, a
+            teaching-focused compiler, and—when supported—a compact local Gemma 4 model.
           </p>
           <p className="mt-1.5 text-slate-600 dark:text-slate-300">
             {scionRuntimeStatus.phase === 'ready'
               ? 'Scion is ready on this device. Prompts and generated text stay in this browser.'
-              : `First use downloads ${SCION_BROWSER_GEMMA4_DOWNLOAD_LABEL} of public model weights and keeps them in browser storage. Prompts and generated text stay on this device.`}
+              : scionDeviceCapability.phase === 'checking'
+                ? 'Checking this device before choosing the safest Scion path…'
+                : scionDeviceCapability.evidenceCompiler
+                  ? 'This browser will use Scion’s zero-download evidence compiler. No model weights are downloaded, and private course work stays in this browser.'
+                  : `This browser can run Scion’s local model. First use downloads ${SCION_BROWSER_GEMMA4_DOWNLOAD_LABEL} of public weights and keeps them in browser storage.`}
           </p>
           <div
             className="mt-3 flex flex-col gap-2 rounded-squircle-xs border border-indigo-200/70 bg-white/65 p-2.5 dark:border-indigo-300/20 dark:bg-slate-950/30"
@@ -1004,7 +1010,7 @@ export default function ModelConfig({ reserveTrailingActionSpace = false }) {
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="font-semibold text-slate-800 dark:text-slate-100">
-                  {scionResearchEnabled ? 'Current-source research on' : 'On-device evidence mode'}
+                  {scionResearchEnabled ? 'Current-source research on' : 'Private evidence mode'}
                 </p>
                 <p className="mt-0.5 text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
                   {scionResearchEnabled

@@ -13,10 +13,18 @@ const TRUSTED_PROVIDERS = new Set([
   'instructor',
   'instructor-provided',
   'source-finder',
+  'w3c-wai',
 ]);
 
 const ACADEMIC_PROVIDERS = new Set(['openalex', 'eric', 'crossref', 'doaj', 'europe-pmc']);
-const OER_PROVIDERS = new Set(['openstax', 'open-music-theory', 'gutenberg', 'genome', 'genome-prerequisite']);
+const OER_PROVIDERS = new Set([
+  'openstax',
+  'open-music-theory',
+  'gutenberg',
+  'genome',
+  'genome-prerequisite',
+  'w3c-wai',
+]);
 const METADATA_ONLY_PROVIDERS = new Set(['openlibrary']);
 const LICENSED_BACKGROUND_PROVIDERS = new Set(['wikipedia']);
 const REVIEW_ONLY_PROVIDERS = new Set(['courseir', 'instructor', 'instructor-provided', 'openlibrary']);

@@ -201,6 +201,31 @@ export function directResearchTitles(topic = '', courseContext = '') {
   // strategy of borrowing any same-course page merely because it contained
   // "microbial".
   const conceptFamilyTitles = (() => {
+    const accessibilityCourse =
+      /\b(?:accessib(?:le|ility)|inclusive design|web standards?|user experience|ux\b)\b/i.test(courseContext);
+    if (accessibilityCourse && /\bwcag\b|\bweb content accessibility guidelines?\b/i.test(baseTopic)) {
+      return [
+        'Web Content Accessibility Guidelines',
+        'Web accessibility',
+        'Web Accessibility Initiative',
+        'Accessibility',
+      ];
+    }
+    if (accessibilityCourse && /\bsemantic html\b|\bhtml semantics?\b/i.test(baseTopic)) {
+      return ['Semantic HTML', 'HTML', 'HTML element', 'WAI-ARIA', 'Web accessibility'];
+    }
+    if (
+      accessibilityCourse &&
+      /\baccessible (?:forms?|inputs?|controls?)\b|\b(?:html|web) forms? accessibility\b/i.test(baseTopic)
+    ) {
+      return [
+        'Form (HTML)',
+        'Web accessibility',
+        'Web Accessibility Initiative',
+        'WAI-ARIA',
+        'Web Content Accessibility Guidelines',
+      ];
+    }
     if (/^waterborne\s+pathogens?$/i.test(normalized)) {
       // The lesson is a relationship, not a single encyclopedia headword:
       // Waterborne disease defines transmission, Pathogenic bacteria defines
@@ -354,8 +379,10 @@ export function lexicalRelevance(topic, candidateText) {
   const a = new Set(contentTokens(topic));
   const b = new Set(contentTokens(candidateText));
   if (a.size === 0 || b.size === 0) return 0;
+  const sameConceptStem = (left, right) =>
+    left === right || (Math.min(left.length, right.length) >= 6 && (left.startsWith(right) || right.startsWith(left)));
   let shared = 0;
-  for (const token of a) if (b.has(token)) shared += 1;
+  for (const token of a) if ([...b].some((candidate) => sameConceptStem(token, candidate))) shared += 1;
   return shared / a.size;
 }
 
@@ -411,7 +438,7 @@ export function sentencesFrom(extract = '') {
 }
 
 const EXPLANATORY =
-  /\b(is|are|refers to|means|consists of|involves|describes|occurs|because|when|if|therefore|results? in|allows?|requires?)\b/i;
+  /\b(is|are|has|have|uses?|refers to|means|consists? of|involves|describes|occurs|because|when|if|therefore|results? in|allows?|requires?|provides?)\b/i;
 /** Narration, not instruction: origin stories date a concept without teaching it. */
 const NARRATIVE =
   /\b(coined|named after|founded|born|died|in \d{4}|since \d{4}|century|first (?:used|described|published)|history of)\b/i;
@@ -485,8 +512,12 @@ export function headOf(title = '') {
     .trim();
 }
 
+function escapeResearchRegExp(value = '') {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 const COPULA =
-  /\b(is|are|refers to|is defined as|describes|means|denotes|comprises|includes|encompasses|has become|serves as)\b/i;
+  /\b(is|are|refers to|is defined as|describes|means|denotes|comprises|includes|encompasses|covers|needs?|aims?|communicates?|identif(?:y|ies)|allows?|helps?|has become|serves as)\b/i;
 
 /**
  * The lead sentence of an encyclopedia article is nearly always the definition,
@@ -494,11 +525,11 @@ const COPULA =
  * comparative ("what distinguishes Kantian deontologism from divine command
  * deontology is...") from being served as the definition of the concept.
  */
-export function definitionSentence(sentences, head) {
+export function definitionSentence(sentences, head, searchLimit = 12) {
   const term = headOf(head).toLowerCase();
   const termTokens = contentTokens(term);
   const ranked = [];
-  for (let index = 0; index < Math.min(sentences.length, 12); index += 1) {
+  for (let index = 0; index < Math.min(sentences.length, Math.max(1, Number(searchLimit) || 12)); index += 1) {
     const sentence = sentences[index];
     const at = sentence.toLowerCase().indexOf(term);
     // Wikipedia often introduces a subject after a short field qualifier and
@@ -514,7 +545,16 @@ export function definitionSentence(sentences, head) {
     // literature on deontology is inconsistent") still qualified as a definition.
     if ((at < 0 || at > 40) && !tokenSubjectMatch) continue;
     if (!COPULA.test(sentence)) continue;
-    ranked.push({ sentence, score: -index * 2 - Math.max(0, at) / 20 });
+    // Prefer a sentence whose grammatical subject is the requested concept.
+    // A loose mention inside "<label> element" used to outrank the later,
+    // direct sentence "Labels need to describe the purpose..." purely because
+    // it appeared one line earlier.
+    const exactSubject =
+      at === 0 || new RegExp(`^(?:the\\s+)?${escapeResearchRegExp(term)}\\b`, 'i').test(normalizedLead);
+    ranked.push({
+      sentence,
+      score: (exactSubject ? 12 : tokenSubjectMatch ? 8 : 0) - index * 2 - Math.max(0, at) / 20,
+    });
   }
   ranked.sort((left, right) => right.score - left.score);
   return ranked[0]?.sentence || null;
@@ -532,6 +572,14 @@ export function contrastSentences(sentences) {
   return sentences.filter((sentence) => CONTRAST.test(sentence));
 }
 
+function sentenceNamesConcept(sentence = '', term = '') {
+  const phrase = String(term || '')
+    .trim()
+    .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    .replace(/[\s-]+/g, '[\\s-]+');
+  return Boolean(phrase && new RegExp(`\\b${phrase}\\b`, 'i').test(String(sentence || '')));
+}
+
 export function exampleSentences(sentences, head) {
   return sentences
     .filter((sentence) => EXEMPLIFY.test(sentence))
@@ -543,12 +591,19 @@ export function exampleSentences(sentences, head) {
  * read it: the article says these two are confused, so students confuse them.
  */
 export function misconceptionFromContrast(sentence, term) {
-  const target = contrastTargetFromSentence(sentence);
+  const target = contrastTargetFromSentence(sentence).replace(/^(?:merely|simply|just)\s+/i, '');
+  const frame = String(sentence || '').match(
+    /\b(rather than|as opposed to|does not (?:mean|imply|require)|not to be confused with|often confused with|commonly confused with|should not be confused with|in contrast to|unlike|differs? from|is not the same as)\b/i,
+  )?.[1];
   return {
-    text: target
-      ? `${term} and ${target} are interchangeable descriptions of the same concept.`
-      : `Students stretch ${term} beyond the boundary this source draws around it.`,
-    corrective: sentence,
+    text: !target
+      ? `A related idea can be labeled ${term} without checking the source definition.`
+      : /rather than|as opposed to/i.test(frame || '')
+        ? `${term} is mainly about ${target}.`
+        : /does not (?:mean|imply|require)/i.test(frame || '')
+          ? `${term} necessarily means ${target}.`
+          : `${term} is the same as ${target}.`,
+    corrective: target ? `The source distinguishes ${term} from ${target}.` : sentence,
   };
 }
 
@@ -565,6 +620,14 @@ export function contrastTargetFromSentence(sentence = '') {
   if (!match?.[1]) return '';
   const words = match[1]
     .replace(/\([^)]*\)/g, ' ')
+    .replace(/^(?:merely|simply|just)\s+/i, '')
+    .replace(/^to\s+([a-z]+)\b/i, (_match, verb) => {
+      const normalized = String(verb).toLowerCase();
+      if (normalized.endsWith('ie')) return `${normalized.slice(0, -2)}ying`;
+      if (normalized.endsWith('e') && !normalized.endsWith('ee')) return `${normalized.slice(0, -1)}ing`;
+      return `${normalized}ing`;
+    })
+    .replace(/^(?:as|a|an)\s+/i, '')
     .replace(/\b(?:because|although|while|whereas|when|which|that)\b[\s\S]*$/i, '')
     .replace(/\s+/g, ' ')
     .trim()
@@ -663,6 +726,18 @@ export function buildWikipediaProvider(httpJson) {
     }
     return records;
   };
+  const loadFullArticle = async (title) => {
+    const requested = String(title || '').trim();
+    if (!requested) return null;
+    // Intro extracts are ideal for broad candidate ranking, but a lesson
+    // ledger needs enough independent source sentences for facts, examples,
+    // misconceptions, and assessment explanations. Once ranking has selected
+    // a page, fetch that one page's complete plain-text extract. Keeping this
+    // single-title respects MediaWiki's whole-extract exlimit=1 boundary.
+    const url = `${WIKI_API}?action=query&prop=extracts%7Cinfo%7Crevisions&explaintext=1&exsectionformat=plain&inprop=url&rvprop=ids%7Ctimestamp&redirects=1&titles=${encodeURIComponent(requested)}&format=json&origin=*`;
+    const records = recordsFromQuery(await httpJson(url));
+    return records[requested] || Object.values(records)[0] || null;
+  };
   return {
     id: 'wikipedia',
     sourceKind: 'open encyclopedia',
@@ -686,10 +761,185 @@ export function buildWikipediaProvider(httpJson) {
       const records = await loadArticles([title]);
       return records[title] || Object.values(records)[0] || null;
     },
+    fullArticle: loadFullArticle,
     articles: loadArticles,
     license: 'CC BY-SA 4.0',
     attributionFor: (title) => `Wikipedia contributors, “${title}”`,
     sourceIdFor: (title) => `wikipedia:${title}`,
+  };
+}
+
+const WAI_SOURCE_CATALOG = Object.freeze([
+  {
+    title: 'Web Content Accessibility Guidelines',
+    suggestedTerm: 'Web Content Accessibility Guidelines',
+    url: 'https://www.w3.org/TR/WCAG22/',
+    keywords: 'wcag principles conformance success criteria web content accessibility guidelines standard',
+  },
+  {
+    title: 'Accessibility principles',
+    suggestedTerm: 'Robust content',
+    url: 'https://www.w3.org/WAI/fundamentals/accessibility-principles/',
+    definitionWindow: 160,
+    keywords:
+      'wcag accessibility principles perceivable operable understandable robust content assistive technology web',
+  },
+  {
+    title: 'Accessible forms',
+    suggestedTerm: 'Accessible forms',
+    url: 'https://www.w3.org/WAI/tutorials/forms/',
+    keywords: 'accessible forms form controls labels instructions validation errors accessibility',
+  },
+  {
+    title: 'Labels',
+    suggestedTerm: 'Labels',
+    url: 'https://www.w3.org/WAI/tutorials/forms/labels/',
+    keywords: 'accessible forms labels labeling controls form control input accessible name',
+  },
+  {
+    title: 'Input validation',
+    suggestedTerm: 'Validation',
+    url: 'https://www.w3.org/WAI/tutorials/forms/validation/',
+    keywords: 'accessible forms input validation errors required fields feedback instructions',
+  },
+  {
+    title: 'Page structure',
+    suggestedTerm: 'Well-structured content',
+    url: 'https://www.w3.org/WAI/tutorials/page-structure/',
+    keywords: 'semantic html page structure meaningful elements regions landmarks accessibility',
+  },
+  {
+    title: 'Headings',
+    suggestedTerm: 'Headings',
+    url: 'https://www.w3.org/WAI/tutorials/page-structure/headings/',
+    keywords: 'semantic html headings heading ranks page sections structure accessibility',
+  },
+  {
+    title: 'Page regions',
+    suggestedTerm: 'Page regions',
+    url: 'https://www.w3.org/WAI/tutorials/page-structure/regions/',
+    keywords: 'semantic html page regions landmarks main navigation structure accessibility',
+  },
+]);
+
+function decodeResearchHtmlEntities(value = '') {
+  const named = {
+    amp: '&',
+    apos: "'",
+    gt: '>',
+    hellip: '…',
+    laquo: '«',
+    ldquo: '“',
+    lsquo: '‘',
+    lt: '<',
+    mdash: '—',
+    nbsp: ' ',
+    ndash: '–',
+    quot: '"',
+    raquo: '»',
+    rdquo: '”',
+    rsquo: '’',
+  };
+  return String(value).replace(/&(#x?[0-9a-f]+|[a-z]+);/gi, (match, entity) => {
+    const token = String(entity).toLowerCase();
+    if (token.startsWith('#x')) return String.fromCodePoint(Number.parseInt(token.slice(2), 16));
+    if (token.startsWith('#')) return String.fromCodePoint(Number.parseInt(token.slice(1), 10));
+    return named[token] ?? match;
+  });
+}
+
+/**
+ * Reduce an official WAI HTML page to its main prose while preserving paragraph
+ * boundaries. No browser DOM API is required, so the same provider can be
+ * exercised in Vitest and in the production browser.
+ */
+export function extractWaiResearchText(html = '') {
+  const source = String(html || '');
+  const main = source.match(/<main\b[^>]*>([\s\S]*?)<\/main>/i)?.[1] || source;
+  return decodeResearchHtmlEntities(
+    main
+      .replace(
+        /<(?:script|style|svg|template|noscript)\b[^>]*>[\s\S]*?<\/(?:script|style|svg|template|noscript)>/gi,
+        ' ',
+      )
+      .replace(/<(?:br|hr)\b[^>]*>/gi, '\n')
+      .replace(/<\/(?:p|li|h[1-6]|section|article|div|pre|blockquote|dt|dd)>/gi, '\n')
+      .replace(/<[^>]+>/g, ' '),
+  )
+    .split(/\n+/)
+    .map((line) => line.replace(/\s+/g, ' ').trim())
+    .filter(Boolean)
+    .join('\n')
+    .slice(0, 180_000);
+}
+
+function waiCatalogEntriesForQuery(query = '', limit = 12) {
+  const queryTokens = new Set(contentTokens(query));
+  return WAI_SOURCE_CATALOG.map((entry, index) => {
+    const entryTokens = new Set(contentTokens(`${entry.title} ${entry.keywords}`));
+    const overlap = [...queryTokens].filter((token) => entryTokens.has(token)).length;
+    const exactPhrase = String(query).toLowerCase().includes(entry.title.toLowerCase()) ? 4 : 0;
+    return { entry, index, score: overlap + exactPhrase };
+  })
+    .filter(({ score }) => score > 0)
+    .sort((left, right) => right.score - left.score || left.index - right.index)
+    .slice(0, Math.max(1, Number(limit) || 12))
+    .map(({ entry }) => entry);
+}
+
+/**
+ * Official W3C/WAI research vertical.
+ *
+ * This is a bounded source catalog, not hard-coded course content. The live
+ * pages remain the source of every admitted sentence, and the ordinary
+ * relevance, entailment, and frozen-ledger gates still decide what survives.
+ */
+export function buildWaiProvider(httpText) {
+  const load = async (entry) => {
+    const html = await httpText(entry.url);
+    const extract = extractWaiResearchText(html);
+    if (!extract) return null;
+    return {
+      title: entry.title,
+      extract,
+      sourceUrl: entry.url,
+      sourceId: `w3c-wai:${entry.url}`,
+      providerId: 'w3c-wai',
+      sourceKind: 'official accessibility standard and tutorial',
+      license: 'W3C permissive license',
+      attribution: `W3C Web Accessibility Initiative, “${entry.title}”`,
+      suggestedTerm: entry.suggestedTerm,
+      definitionWindow: entry.definitionWindow || 24,
+      topicHints: entry.keywords,
+    };
+  };
+  const byTitle = new Map(WAI_SOURCE_CATALOG.map((entry) => [entry.title, entry]));
+  const loadEntries = async (entries) => {
+    const records = {};
+    const loaded = await Promise.all(entries.map(load));
+    for (const record of loaded.filter(Boolean)) records[record.title] = record;
+    return records;
+  };
+  return {
+    id: 'w3c-wai',
+    sourceKind: 'official accessibility standard and tutorial',
+    supportsDirectTitles: false,
+    async search(query, limit = 12) {
+      return waiCatalogEntriesForQuery(query, limit).map((entry) => entry.title);
+    },
+    async searchArticles(query, limit = 12) {
+      return loadEntries(waiCatalogEntriesForQuery(query, limit));
+    },
+    async articles(titles = []) {
+      return loadEntries([...new Set(titles)].map((title) => byTitle.get(title)).filter(Boolean));
+    },
+    async article(title) {
+      const entry = byTitle.get(String(title || ''));
+      return entry ? load(entry) : null;
+    },
+    license: 'W3C permissive license',
+    attributionFor: (title) => `W3C Web Accessibility Initiative, “${title}”`,
+    sourceIdFor: (title, sourceMeta = {}) => sourceMeta.sourceId || `w3c-wai:${title}`,
   };
 }
 
@@ -967,6 +1217,8 @@ function normalizeArticleResult(article) {
     attribution: String(article.attribution || ''),
     suggestedTerm: String(article.suggestedTerm || ''),
     definitionMode: String(article.definitionMode || ''),
+    definitionWindow: Number(article.definitionWindow) || 0,
+    topicHints: String(article.topicHints || ''),
   };
 }
 
@@ -1004,10 +1256,62 @@ export function buildKernelFromArticle({ topic, title, extract, provider, factCo
     compactRelevantSuggestedTerm || sourceAnchoredTopicTerm(topic, title) || sourceMeta.suggestedTerm || articleTitle,
   );
   const scholarlyAbstract = sourceMeta.definitionMode === 'scholarly-abstract';
+  const sentenceRelevance = (sentence) => Math.max(lexicalRelevance(head, sentence), lexicalRelevance(topic, sentence));
+  const isSourcePageNoise = (sentence) => {
+    const lesson = String(topic || '').toLowerCase();
+    const accessibilityLesson =
+      /\b(?:accessib(?:le|ility)|wcag|web content accessibility guidelines?|semantic html|keyboard)\b/.test(lesson);
+    if (!accessibilityLesson) return false;
+    const wcagPrinciplesLesson = /\bwcag\b|\bweb content accessibility guidelines?\b/.test(lesson);
+    const historicalWcagLesson = /\b(?:history|historical|evolution|version comparison|migration)\b/.test(lesson);
+    const robustContentKernel = /\brobust content\b/i.test(head);
+    return (
+      // Broken list extraction can emit a sentence fragment beginning with a
+      // lowercase continuation ("satisfies all..."). It is not publishable
+      // classroom prose even when the underlying standard is authoritative.
+      /^[a-z]/.test(sentence) ||
+      // Documentation notes attached to code samples describe the sample UI,
+      // not a transferable course claim.
+      /^note that\b/i.test(sentence) ||
+      /\binteractive elements? (?:is|are) still active\b/i.test(sentence) ||
+      // Road-map and publication-status prose ages quickly and does not teach
+      // the current standard.
+      /\b(?:will|would) provide\b.*\bquick reference\b/i.test(sentence) ||
+      /\bquick reference\b.*\b(?:will|would) provide\b/i.test(sentence) ||
+      // Do not mix historical WCAG 2.0/2.1 implementation or count language
+      // into a lesson that explicitly retrieved the current WCAG 2.2 standard.
+      (accessibilityLesson && !historicalWcagLesson && /\bwcag\s+2\.(?:0|1)\b/i.test(sentence)) ||
+      (accessibilityLesson && /\bwcag\s+2\b(?!\.\d)/i.test(sentence)) ||
+      /\b12 guidelines\b.*\b65 (?:testable )?success criteria\b/i.test(sentence) ||
+      /\bonly the initial positions of user-movable content\b/i.test(sentence) ||
+      /\b(?:a )?level\s+(?:a|aa|aaa)\s+conforming alternate version is provided\b/i.test(sentence) ||
+      /\baccessibility policies are listed in wai resources\b/i.test(sentence) ||
+      // A principles lesson needs the standard's broad structure, not one
+      // decontextualized condition from a deeply nested success criterion or
+      // a glossary definition selected only because it shares topic tokens.
+      (wcagPrinciplesLesson &&
+        /\bsuccess criterion\b/i.test(sentence) &&
+        !/\b(?:wcag|guideline|conformance|perceivable|operable|understandable|robust|level\s+(?:a|aa|aaa))\b/i.test(
+          sentence,
+        )) ||
+      /^(?:user agents?|authoring tools?|web content)\s*[-–—]/i.test(sentence) ||
+      (robustContentKernel &&
+        /\b(?:flashing content|prominent audio or visual content in the background)\b/i.test(sentence)) ||
+      (/\bsemantic html\b/.test(lesson) &&
+        /\b(?:xpointer|arbitrary section of html|mechanism independent of the markup structure)\b/i.test(sentence)) ||
+      // Sweeping compliance predictions are jurisdiction-dependent and do not
+      // belong in a source-grounded standards lesson.
+      /\ball websites? will need to (?:adhere|comply)\b/i.test(sentence)
+    );
+  };
+  // Noise filtering must happen before definition selection as well as fact
+  // ranking. Otherwise a deeply nested success-criterion sentence can become
+  // the kernel's definition and bypass the later fact-only filter.
+  const teachableSentences = sentences.filter((sentence) => !isSourcePageNoise(sentence));
   const definition =
-    definitionSentence(sentences, head) ||
+    definitionSentence(teachableSentences, head, sourceMeta.definitionWindow) ||
     (scholarlyAbstract
-      ? sentences
+      ? teachableSentences
           .map((sentence, index) => ({
             sentence,
             index,
@@ -1022,12 +1326,86 @@ export function buildKernelFromArticle({ topic, title, extract, provider, factCo
       : null);
   if (!definition) return null;
 
-  const contrasts = contrastSentences(sentences);
-  const examples = exampleSentences(sentences, head);
-  const facts = sentences
+  const sourceSpecificTopicScore = (sentence) => {
+    const lesson = String(topic || '').toLowerCase();
+    if (/\bwcag\b|\bweb content accessibility guidelines?\b/.test(lesson)) {
+      let score = 0;
+      if (/\bperceivable\b.*\boperable\b.*\bunderstandable\b.*\brobust\b/i.test(sentence)) score += 5;
+      if (/\bsuccess criteri\w*\b/i.test(sentence)) score += 4;
+      if (/\b(?:conformance|level\s+(?:a|aa|aaa))\b/i.test(sentence)) score += 3;
+      if (/\baccessibility guidelines?\b/i.test(sentence)) score += 1;
+      // A standards lesson should teach the standard before cataloguing which
+      // jurisdiction adopted it. These sentences remain eligible evidence,
+      // but they rank behind POUR, success criteria, and conformance itself.
+      if (
+        /\b(?:accessibility act|directive|jurisdiction|legislation|ministry|regulation|rule|act,\s*\d{4}|government bod\w*)\b/i.test(
+          sentence,
+        )
+      ) {
+        score -= 3;
+      }
+      return score;
+    }
+    if (/\bsemantic html\b|\bkeyboard accessibility\b/.test(lesson)) {
+      return /\b(?:html|semantic|keyboard|focus|landmark|heading|assistive technolog\w*|screen reader\w*)\b/i.test(
+        sentence,
+      )
+        ? 1
+        : 0;
+    }
+    if (/\baccessible forms?\b|\bforms?.*(?:testing|remediation)\b/.test(lesson)) {
+      const formMechanism =
+        /\b(?:labels?|inputs?|controls?|fields?|fieldset|legend|instructions?|validat\w*|error messages?|required attribute|feedback|assistive technolog\w*|screen reader\w*)\b/i.test(
+          sentence,
+        );
+      // "Other forms of perception" is about the ordinary noun, not an HTML
+      // form. Likewise a generic WCAG revision note does not become form
+      // evidence merely because it shares the same source bundle.
+      if (
+        /\bforms? of (?:perception|presentation|communication|evidence)\b/i.test(sentence) ||
+        (/\b(?:wcag|guidelines?|success criteria)\b/i.test(sentence) && !formMechanism)
+      ) {
+        return -8;
+      }
+      if (formMechanism) return 3;
+      return /\bforms?\b/i.test(sentence) ? 1 : 0;
+    }
+    return 0;
+  };
+  // A related subsection can contain a perfectly valid contrast that is not
+  // about this kernel's head concept. The WAI article, for example, explains
+  // that ARIA treats pages as applications rather than static documents; using
+  // that sentence as WAI's misconception taught the wrong relationship. A
+  // contrast may author a term's misconception only when it names that exact
+  // term in the same anchored sentence.
+  const contrasts = contrastSentences(teachableSentences).filter(
+    (sentence) => sentenceRelevance(sentence) > 0 && sentenceNamesConcept(sentence, head),
+  );
+  const examples = exampleSentences(teachableSentences, head).filter((sentence) => sentenceRelevance(sentence) > 0);
+  const facts = teachableSentences
     .filter((sentence) => sentence !== definition && !contrasts.includes(sentence))
-    .sort((left, right) => explanatoryScore(right, head) - explanatoryScore(left, head))
-    .filter((sentence) => explanatoryScore(sentence, head) > 0)
+    .map((sentence, index) => ({
+      sentence,
+      index,
+      relevance: sentenceRelevance(sentence),
+      explanatory: explanatoryScore(sentence, head),
+      instructional: sourceSpecificTopicScore(sentence),
+    }))
+    // A full encyclopedia page contains many true but off-topic sentences.
+    // Source admission proves a quote exists; it does not prove that the quote
+    // belongs in this lesson. Require each retained fact to name the source
+    // concept or the lesson topic before ranking it.
+    .filter(
+      (entry) => entry.explanatory > 0 && entry.instructional > -5 && (entry.relevance > 0 || entry.instructional > 0),
+    )
+    .sort(
+      (left, right) =>
+        right.instructional - left.instructional ||
+        right.relevance - left.relevance ||
+        right.explanatory - left.explanatory ||
+        left.index - right.index,
+    )
+    .map((entry) => entry.sentence)
     .slice(0, factCount);
   // One strong explanatory fact plus the anchored definition is enough for a
   // candidate. Course-level composition combines three concepts and still
@@ -1082,8 +1460,8 @@ export function buildKernelFromArticle({ topic, title, extract, provider, factCo
           ? contrasts.slice(0, 2).map((sentence) => misconceptionFromContrast(sentence, head))
           : [
               {
-                text: `Students stretch ${head} beyond the boundary this source draws around it.`,
-                corrective: definition,
+                text: `Naming ${head} without identifying a supporting source detail is sufficient evidence.`,
+                corrective: `Cite the specific definition or fact that supports the ${head} claim, then state what that evidence does not establish.`,
               },
             ],
       examples:
@@ -1110,6 +1488,7 @@ export function buildKernelFromArticle({ topic, title, extract, provider, factCo
             : ''),
         ...(sourceMeta.revisionId ? { revisionId: sourceMeta.revisionId } : {}),
         ...(sourceMeta.revisionTimestamp ? { revisionTimestamp: sourceMeta.revisionTimestamp } : {}),
+        ...(sourceMeta.topicHints ? { topicHints: sourceMeta.topicHints } : {}),
       },
     },
   };
@@ -1131,7 +1510,30 @@ export function isResearchCandidateDomainAligned({
 } = {}) {
   if (!String(courseContext || '').trim()) return true;
   const courseAndTopic = `${courseContext} ${topic}`.toLowerCase();
-  const candidate = `${title} ${definition || extract}`.toLowerCase();
+  // A compact definition may omit the domain word that the same official page
+  // states in its surrounding passage ("Labels" → assistive technology,
+  // "Headings" → page navigation). Use both for the coarse domain boundary;
+  // claim admission still validates only the exact selected sentences.
+  const candidate = `${title} ${definition} ${String(extract).slice(0, 2400)}`.toLowerCase();
+  const digitalAccessibilityCourse =
+    /\b(?:accessib(?:le|ility)|inclusive design|web standards?|wcag|semantic html)\b/.test(courseAndTopic);
+  if (
+    digitalAccessibilityCourse &&
+    !/\b(?:accessib(?:le|ility)|aria|assistive|html|inclusive design|interface|semantic|user|wai|wcag|web)\b/.test(
+      candidate,
+    )
+  ) {
+    // Ambiguous words such as "forms" and "principles" otherwise admit
+    // medically or biologically unrelated sources. The guard is a retrieval
+    // boundary, not authored course knowledge: a candidate must visibly live
+    // in the same digital-accessibility domain before its claims are judged.
+    return false;
+  }
+  // The W3C/WAI vertical is a bounded catalog of official accessibility
+  // standards and tutorials. Once its page visibly clears the digital-domain
+  // guard above, do not ask the generic open-web weak-source heuristic to
+  // rediscover that "Headings" and "Labels" are accessibility concepts.
+  if (digitalAccessibilityCourse && provider === 'w3c-wai') return true;
   const technologyPolicyCourse =
     /\b(?:technology|digital|internet|platform|algorithmic|artificial intelligence|ai)\b/.test(courseAndTopic) &&
     /\b(?:policy|governance|regulation|accountability|audit|oversight)\b/.test(courseAndTopic);
@@ -1401,8 +1803,40 @@ export async function researchLessonKernels(
     ),
   );
   const records = await articleRecords(provider, titles, signal);
+  let directFullExtracts = 0;
+  const directlyHydratedTitles = new Set();
   for (const title of titles) {
-    const article = records.get(title) || { extract: '' };
+    let article = records.get(title) || { extract: '' };
+    const titleKey = String(article.title || title)
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, ' ')
+      .trim();
+    // Canonical-family pages can explain the lesson relationship later in
+    // the article even when their lead does not repeat the instructor's exact
+    // phrase. Ranking an intro-only candidate first made “Web Accessibility
+    // Initiative” disappear before the full extract could expose its WCAG
+    // sections. Hydrate at most three explicit family titles before ranking;
+    // this is still a bounded title lookup and every retained claim must pass
+    // the ordinary relevance, source-admission, and entailment gates.
+    if (
+      directFullExtracts < 3 &&
+      directTitleKeys.has(titleKey) &&
+      String(article.extract || '').length < 4000 &&
+      typeof provider.fullArticle === 'function'
+    ) {
+      try {
+        const fullArticle = normalizeArticleResult(await provider.fullArticle(article.title || title));
+        if (fullArticle.extract) {
+          article = fullArticle;
+          directFullExtracts += 1;
+          directlyHydratedTitles.add(titleKey);
+        }
+      } catch (error) {
+        if (error?.name === 'AbortError' || signal?.aborted) throw error;
+        // Keep the already-batched introduction when the optional full read
+        // is unavailable. Research can still succeed from another candidate.
+      }
+    }
     const extract = article.extract;
     if (!extract) continue;
     const canonicalTitle = article.title || title;
@@ -1489,14 +1923,30 @@ export async function researchLessonKernels(
         const titleTopicMatches = [...topicTokens].filter((token) => titleTokens.includes(token)).length;
         const definitionTopicMatches = [...topicTokens].filter((token) => definitionTokens.has(token)).length;
         const evidenceTopicMatches = [...topicTokens].filter((token) => evidenceTokens.has(token)).length;
-        const directTitleMatch = directTitleKeys.has(
+        const explicitDirectTitleMatch = directTitleKeys.has(
           String(entry.title || '')
             .toLowerCase()
             .replace(/[^a-z0-9]+/g, ' ')
             .trim(),
         );
+        // Official verticals declare bounded catalog hints before retrieval.
+        // Treating that catalog mapping like a direct canonical title lets a
+        // source page named "Headings" support "semantic HTML" without
+        // weakening admission for arbitrary search results. The page still
+        // has to repeat a lesson token in its admitted evidence below.
+        const catalogHintTokens = new Set(contentTokens(entry.candidate.kernel?.provenance?.topicHints || ''));
+        const catalogHintMatches = [...topicTokens].filter((token) => catalogHintTokens.has(token)).length;
+        const curatedCatalogMatch =
+          entry.candidate.kernel?.provenance?.providerId === 'w3c-wai' &&
+          catalogHintMatches >= Math.min(2, Math.max(1, topicTokens.size));
+        const directTitleMatch = explicitDirectTitleMatch || curatedCatalogMatch;
         const evidenceScore = lexicalRelevance(relevanceQuery, evidenceTokenSequence.join(' '));
-        const relevance = Math.max(titleScore, defScore, directTitleMatch ? evidenceScore : 0);
+        const relevance = Math.max(
+          titleScore,
+          defScore,
+          directTitleMatch ? evidenceScore : 0,
+          curatedCatalogMatch ? LEXICAL_FLOOR : 0,
+        );
         const topicSequenceMatch =
           containsTokenSequence(topicTokenSequence, titleTokens) ||
           containsTokenSequence(topicTokenSequence, definitionTokenSequence) ||
@@ -1522,6 +1972,7 @@ export async function researchLessonKernels(
           evidenceTopicMatches,
           topicSequenceMatch,
           directTitleMatch,
+          curatedCatalogMatch,
           rankingScore: Math.min(titleScore, defScore) + relevance * 0.25,
           domainMatch:
             !courseDomainToken || titleTokens.includes(courseDomainToken) || definitionTokens.has(courseDomainToken),
@@ -1537,6 +1988,11 @@ export async function researchLessonKernels(
   const kept = ranked
     .filter(
       (entry) =>
+        // A bounded official catalog declares which lesson families each page
+        // serves. Do not let one very long standard page drift into a sibling
+        // lesson merely because it mentions that sibling somewhere deep in
+        // the document.
+        (entry.candidate.kernel?.provenance?.providerId !== 'w3c-wai' || entry.curatedCatalogMatch) &&
         (entry.relevance >= effectiveFloor ||
           // A curated concept-family title may explain one necessary side of
           // a multi-concept lesson without repeating the full instructor
@@ -1545,25 +2001,25 @@ export async function researchLessonKernels(
           // must still clear 75% of the ordinary lexical floor.
           (typeof embed !== 'function' &&
             entry.directTitleMatch &&
-            entry.evidenceTopicMatches >= 1 &&
+            (entry.evidenceTopicMatches >= 1 || entry.curatedCatalogMatch) &&
             entry.relevance >= effectiveFloor * 0.75)) &&
         (typeof embed === 'function' ||
           domainAlignedCount < 3 ||
           entry.domainMatch ||
           entry.titleTopicMatches >= Math.min(2, entry.topicTokenCount) ||
-          (entry.directTitleMatch && entry.evidenceTopicMatches >= 1)) &&
+          (entry.directTitleMatch && (entry.evidenceTopicMatches >= 1 || entry.curatedCatalogMatch))) &&
         (typeof embed === 'function' ||
           ((entry.secondaryRelevance >= effectiveFloor * 0.25 ||
             // A curated canonical family title can legitimately name the
             // neighbouring concept rather than repeat the lesson label
             // ("Microbial mat" for Biofilms). It remains admissible only when
             // its definition explicitly supplies the lesson topic.
-            (entry.directTitleMatch && entry.evidenceTopicMatches >= 1) ||
+            (entry.directTitleMatch && (entry.evidenceTopicMatches >= 1 || entry.curatedCatalogMatch)) ||
             entry.definitionTopicMatches >= 2 ||
             (entry.compoundTopic && entry.definitionCoversClause)) &&
             (entry.topicTokenCount <= 1 ||
               entry.topicSequenceMatch ||
-              (entry.directTitleMatch && entry.evidenceTopicMatches >= 1) ||
+              (entry.directTitleMatch && (entry.evidenceTopicMatches >= 1 || entry.curatedCatalogMatch)) ||
               entry.titleTopicMatches >= Math.min(2, entry.topicTokenCount) ||
               // For an explicitly compound lesson, one related named concept
               // may explain the relationship between both sides without
@@ -1581,7 +2037,53 @@ export async function researchLessonKernels(
   if (kept.length === 0) return [];
 
   const admittedKernels = [];
-  for (const entry of kept) {
+  for (const [entryIndex, originalEntry] of kept.entries()) {
+    let entry = originalEntry;
+    const currentExtractLength = Object.values(entry.candidate?.snapshot || {}).reduce(
+      (total, value) => total + String(value || '').length,
+      0,
+    );
+    const entryTitleKey = String(entry.title || '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, ' ')
+      .trim();
+    if (
+      entryIndex < 3 &&
+      currentExtractLength < 4000 &&
+      !directlyHydratedTitles.has(entryTitleKey) &&
+      typeof provider.fullArticle === 'function'
+    ) {
+      try {
+        const fullArticle = normalizeArticleResult(await provider.fullArticle(entry.title));
+        if (fullArticle.extract) {
+          const rebuilt = buildKernelFromArticle({
+            topic,
+            title: fullArticle.title || entry.title,
+            extract: fullArticle.extract,
+            provider,
+            factCount: 8,
+            sourceMeta: fullArticle,
+          });
+          if (
+            rebuilt &&
+            isResearchCandidateDomainAligned({
+              topic,
+              courseContext,
+              title: fullArticle.title || entry.title,
+              extract: fullArticle.extract,
+              definition: rebuilt.kernel.definition?.text,
+              provider: rebuilt.kernel.provenance?.providerId,
+            })
+          ) {
+            entry = { ...entry, title: fullArticle.title || entry.title, candidate: rebuilt };
+          }
+        }
+      } catch (error) {
+        if (error?.name === 'AbortError' || signal?.aborted) throw error;
+        // Full extracts are a bounded quality upgrade. The already-ranked
+        // introduction remains available if the source refuses or times out.
+      }
+    }
     const candidateKernel = {
       ...entry.candidate.kernel,
       provenance: {
@@ -1612,6 +2114,7 @@ function providerFromArticleRecords(provider, records, candidateTitles) {
         titles.map((title) => [title, records.get(title)]).filter(([, article]) => article && article.extract),
       ),
     article: async (title) => records.get(title) || null,
+    ...(typeof provider.fullArticle === 'function' ? { fullArticle: (title) => provider.fullArticle(title) } : {}),
     license: provider.license,
     attributionFor: provider.attributionFor,
     sourceIdFor: provider.sourceIdFor,

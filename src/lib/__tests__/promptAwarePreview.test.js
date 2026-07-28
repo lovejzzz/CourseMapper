@@ -50,6 +50,11 @@ describe('prompt-aware setup previews', () => {
         'World Literature: Epic, Drama, Poetry, and Global Fiction. Build an 8-week survey using Borges’s “The Library of Babel.”',
       ),
     ).toBe('World Literature: Epic, Drama, Poetry, and Global Fiction');
+    expect(
+      derivePromptPreviewTitle(
+        'Digital Accessibility for Product Teams, exactly three lessons: 1) WCAG principles; 2) semantic HTML; 3) accessible forms.',
+      ),
+    ).toBe('Digital Accessibility for Product Teams');
   });
 
   it('uses the active course in every built-in material preview', () => {

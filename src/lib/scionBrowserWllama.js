@@ -10,6 +10,7 @@ import {
 import { formatScionGemma4Messages } from './scionGemma4Prompt';
 import { sha256Hex } from './scionAdapterRegistry';
 import { normalizeScionAdapterTaskFamily, resolveScionAdapterTaskRoute } from './scionAdapterTaskScope';
+import { requireScionLocalModelCapability } from './scionDeviceCapability';
 
 const ACTIVATION_CANARY =
   'Return strict JSON only. Write one music-theory multiple-choice item about 4/4 meter with q, op containing exactly four options, ai, and ex. Add no other fields.';
@@ -29,7 +30,7 @@ const SCION_MODEL_STORAGE_HEADROOM_BYTES = 512 * 1024 * 1024;
 const SCION_MODEL_STORAGE_ERROR_RE =
   /(?:browser storage is full|quotaexceeded|not enough space|no space|4294967288|wrote -8 of)/i;
 const SCION_MODEL_CACHE_ERROR_RE =
-  /(?:model file not found|failed to open file|model may be invalid|cached \d+ bytes but expected|opfs worker: wrote|filesystemsyncaccesshandle.+failed to read|invalid typed array length)/i;
+  /(?:model file not found|failed to open file|model may be invalid|cached \d+ bytes but expected|opfs worker: wrote|filesystemsyncaccesshandle.+failed to read)/i;
 
 // wllama emits CPU-thread fallback warnings before it applies its WebGPU
 // backend choice. Scion deliberately ships only the JSPI single-thread WASM
@@ -239,15 +240,6 @@ async function exitRuntime(candidate) {
   }
 }
 
-function requireBrowserCapabilities({ navigatorLike, globalLike }) {
-  if (!navigatorLike?.gpu) {
-    throw runtimeError('SCION_WLLAMA_WEBGPU', 'Scion GGUF inference requires WebGPU.');
-  }
-  if (typeof globalLike?.WebAssembly?.Suspending !== 'function') {
-    throw runtimeError('SCION_WLLAMA_JSPI', 'Scion GGUF inference requires WebAssembly JSPI.');
-  }
-}
-
 function absoluteAsset(path, locationLike) {
   if (!locationLike?.href) throw runtimeError('SCION_WLLAMA_LOCATION', 'Scion runtime requires a page URL.');
   return new URL(path, locationLike.href).href;
@@ -262,7 +254,10 @@ function createRuntimeCandidate(Wllama, wasmUrl) {
     { 'jspi/single-thread/wllama.wasm': wasmUrl },
     {
       backend: 'webgpu',
-      suppressNativeLog: true,
+      // Preserve native load errors. The logger already filters the expected
+      // single-thread WebGPU warnings, so suppressing every native message
+      // only hides the cause of a real activation failure.
+      suppressNativeLog: false,
       logger: scionRuntimeLogger,
       // The pinned runtime gives all shard workers one abort boundary and
       // settles them before cleanup, so parallel transfer stays both fast
@@ -316,7 +311,6 @@ export async function loadScionBrowserWllama({
   modelUrl = SCION_BROWSER_GEMMA4_GGUF_URL,
   contextSize = 8192,
 } = {}) {
-  requireBrowserCapabilities({ navigatorLike, globalLike });
   runtimeLoadOptions = { runtimeLoader, navigatorLike, globalLike, locationLike, modelUrl, contextSize };
   if (status.phase === 'recovery-required') {
     throw runtimeError(
@@ -326,6 +320,7 @@ export async function loadScionBrowserWllama({
   }
   if (isScionBrowserWllamaReady()) return { runtime, status: cloneStatus() };
   if (loadPromise) return loadPromise;
+  await requireScionLocalModelCapability({ navigatorLike, globalLike });
 
   loadPromise = (async () => {
     publish(

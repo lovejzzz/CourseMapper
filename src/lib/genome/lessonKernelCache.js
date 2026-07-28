@@ -14,18 +14,21 @@
  * See docs/CURRICULUMOS_V1_DESIGN.md §10 Phase A.
  */
 
-// v7 deliberately ignores v1-v6 entries. v5-v6 predate provenance-priority and
-// relation-aware completion for compiler-owned exact source ledgers, so a
-// returning browser could keep serving the same one-fact Mandarin payload
-// after the current compiler had earned and preserved all three facts. A
-// one-time cache miss is cheaper than silently compiling a stale learner
-// artifact forever.
-export const LESSON_KERNEL_CACHE_KEY = 'coursemapper-lesson-kernels-v7';
-export const LESSON_KERNEL_CONTRACT_VERSION = 'scion-kernel-v7';
+// v10 deliberately ignores v1-v9 entries. v8 moved source-page noise rejection
+// ahead of definition selection and elects real open sources as classroom
+// evidence cues; v9 applies the live W3C fragment filters to whole-lesson
+// payloads as well; v10 rejects authoritative but instructionally weak
+// navigation, alternate-version, and obsolete markup-aside fragments. Replaying
+// an older payload would bypass those fixes before research even runs.
+export const LESSON_KERNEL_CACHE_KEY = 'coursemapper-lesson-kernels-v10';
+export const LESSON_KERNEL_CONTRACT_VERSION = 'scion-kernel-v10';
 const LEGACY_LESSON_KERNEL_CACHE_KEYS = [
   'coursemapper-lesson-kernels-v4',
   'coursemapper-lesson-kernels-v5',
   'coursemapper-lesson-kernels-v6',
+  'coursemapper-lesson-kernels-v7',
+  'coursemapper-lesson-kernels-v8',
+  'coursemapper-lesson-kernels-v9',
 ];
 const MAX_ENTRIES = 400;
 const WEAK_CACHE_WORDS = new Set([

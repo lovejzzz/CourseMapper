@@ -33,6 +33,15 @@ describe('Scion browser model storage recovery', () => {
     });
   });
 
+  it('does not treat the stale GLUE protocol marker as proof that model bytes are corrupt', () => {
+    expect(classifyScionBrowserModelLoadError(new RangeError('Invalid typed array length: 1163217991'))).toMatchObject({
+      code: 'SCION_WLLAMA_LOAD',
+      kind: 'other',
+      clearCache: false,
+      message: 'Invalid typed array length: 1163217991',
+    });
+  });
+
   it('reports usable quota and includes working headroom in the requirement', async () => {
     const estimate = vi.fn().mockResolvedValue({ quota: 10_000_000_000, usage: 2_000_000_000 });
 

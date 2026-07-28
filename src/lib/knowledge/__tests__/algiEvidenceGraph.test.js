@@ -115,4 +115,86 @@ describe('Algi claim evidence graph', () => {
       }),
     ).toMatchObject({ admitted: false, reason: 'blocking-evidence-conflict' });
   });
+
+  it('prefers a canonical lesson concept over a broader higher-authority mention', () => {
+    const topic = 'WCAG principles and conformance';
+    const plan = planAlgiCourseResearch({
+      courseName: 'Digital Accessibility for Product Teams',
+      lessons: [{ lessonId: 'lesson-1', title: topic }],
+    });
+    const broadPaper = kernel(1, 'doaj', {
+      term: 'Accessibility assessment',
+      definition: 'Accessibility assessment is a process used to review access barriers in online education tools.',
+    });
+    broadPaper.provenance.title = 'Accessibility Assessment for Online Education Tools';
+    broadPaper.provenance.topic = topic;
+    const canonical = kernel(2, 'wikipedia', {
+      term: 'Web Content Accessibility Guidelines',
+      definition: 'Web Content Accessibility Guidelines are recommendations for making web content more accessible.',
+    });
+    canonical.provenance.title = 'Web Content Accessibility Guidelines';
+    canonical.provenance.topic = topic;
+    const graph = buildAlgiEvidenceGraph({
+      courseName: 'Digital Accessibility for Product Teams',
+      plan,
+      kernelsByTopic: new Map([[topic, [broadPaper, canonical]]]),
+      now: Date.UTC(2026, 6, 27),
+    });
+    const consolidated = consolidateAlgiLessonEvidence({
+      topic,
+      kernels: [broadPaper, canonical],
+      evidenceGraph: graph,
+      minimum: 1,
+    });
+    expect(consolidated.kernels[0].term).toBe('Web Content Accessibility Guidelines');
+    const canonicalClaim = graph.claims.find((claim) => claim.kernelId === canonical.id);
+    expect(canonicalClaim.confidence.components.curricularFit).toBe(1);
+  });
+
+  it('prefers an official W3C accessibility source over an equally fitted encyclopedia summary', () => {
+    const topic = 'Accessible forms';
+    const plan = planAlgiCourseResearch({
+      courseName: 'Digital Accessibility for Product Teams',
+      lessons: [{ lessonId: 'lesson-1', title: topic }],
+    });
+    const encyclopedia = kernel(1, 'wikipedia', {
+      term: 'Accessible forms',
+      definition: 'Accessible forms are web forms whose controls can be understood and operated by users.',
+    });
+    encyclopedia.provenance.title = 'Web accessibility';
+    encyclopedia.provenance.topic = topic;
+    const official = kernel(2, 'w3c-wai', {
+      term: 'Accessible forms',
+      definition: 'Accessible forms provide labels and instructions that help users understand each control.',
+    });
+    official.provenance.title = 'Accessible forms';
+    official.provenance.topic = topic;
+    official.facts.push({
+      text: 'Validation identifies an error and explains how to correct it.',
+      anchor: {
+        src: 'w3c-wai:source-2',
+        loc: 'Source 2',
+        quote: 'Validation identifies an error and explains how to correct it.',
+      },
+    });
+    const graph = buildAlgiEvidenceGraph({
+      courseName: 'Digital Accessibility for Product Teams',
+      plan,
+      kernelsByTopic: new Map([[topic, [encyclopedia, official]]]),
+      now: Date.UTC(2026, 6, 27),
+    });
+    const consolidated = consolidateAlgiLessonEvidence({
+      topic,
+      kernels: [encyclopedia, official],
+      evidenceGraph: graph,
+      minimum: 1,
+      want: 2,
+    });
+
+    expect(consolidated.kernels[0].provenance.providerId).toBe('w3c-wai');
+    const officialClaim = graph.claims.find((claim) => claim.kernelId === official.id);
+    const encyclopediaClaim = graph.claims.find((claim) => claim.kernelId === encyclopedia.id);
+    expect(officialClaim.confidence.components.authority).toBe(1);
+    expect(officialClaim.confidence.score).toBeGreaterThan(encyclopediaClaim.confidence.score);
+  });
 });

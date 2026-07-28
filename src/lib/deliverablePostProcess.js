@@ -4345,9 +4345,17 @@ export function normalizeSyllabusPublishability(data) {
     syllabus = result.syllabus;
     patchedFields += result.patched;
   };
+  const patchOrFill = (key, fallback) => {
+    if (!String(syllabus?.[key] || '').trim()) {
+      syllabus = { ...syllabus, [key]: fallback };
+      patchedFields += 1;
+      return;
+    }
+    patch(key, fallback);
+  };
 
-  patch('semester', '12-week term');
-  patch('credits', '3 credits');
+  patchOrFill('semester', 'Term and dates: confirm in the course site');
+  patchOrFill('credits', 'Credit value: confirm in the course site');
   patch('meetingPattern', 'Weekly course meeting pattern listed in the official course schedule.');
   patch('location', 'Official course site and assigned class meeting space.');
   patch('prerequisites', 'No formal prerequisites listed; students should review program requirements.');

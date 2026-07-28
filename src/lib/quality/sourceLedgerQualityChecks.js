@@ -35,6 +35,7 @@ const TRUST_ELIGIBLE_PROVIDERS = new Set([
   'doaj',
   'europe-pmc',
   'wikipedia',
+  'w3c-wai',
 ]);
 
 const REVIEW_ONLY_PROVIDERS = new Set(['courseir', 'instructor', 'instructor-provided', 'openlibrary']);

@@ -1310,6 +1310,7 @@ describe('Syllabus post-processing', () => {
     expect(result.patchedFields).toBeGreaterThan(0);
     expect(findPublishabilityPlaceholders(serialized, { limit: 10 })).toEqual([]);
     expect(result.data.syllabus.instructor).toBe('Course instructor');
+    expect(result.data.syllabus.credits).toBe('Credit value: confirm in the course site');
     expect(result.data.syllabus.requiredTexts[0].isbn).toBe('');
     expect(result.data.syllabus.weeklySchedule[0].dates).toBe('Week 1');
     expect(result.data.syllabus).not.toHaveProperty('contentOwnerGroup');

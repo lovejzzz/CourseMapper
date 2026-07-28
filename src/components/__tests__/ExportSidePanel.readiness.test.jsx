@@ -64,6 +64,7 @@ function ExportPanelHarness({
   preferPackageScope = false,
   courseMapInput = courseMapWithObjectiveStem,
   packageQualityPass = { status: 'idle', message: '' },
+  onPackageQualityPassUpdate = null,
 }) {
   const { courseMap, setCourseMap, setSelectedFeatures, setColumns } = useCourse();
   const [ready, setReady] = useState(false);
@@ -96,6 +97,7 @@ function ExportPanelHarness({
       onFinishPackage={onFinishPackage}
       canFinishPackage={canFinishPackage}
       packageQualityPass={packageQualityPass}
+      onPackageQualityPassUpdate={onPackageQualityPassUpdate}
       isPackageGenerationRunning={isPackageGenerationRunning}
       preferPackageScope={preferPackageScope}
     />
@@ -624,5 +626,60 @@ describe('ExportSidePanel readiness repair timing', () => {
     const readiness = downloadCourseMaterialsZip.mock.calls[0][0].readiness;
     expect(readiness.status).toBe('blocked');
     expect(readiness.blockers.length).toBeGreaterThan(0);
+  });
+
+  it('updates the visible quality receipt to the score embedded in the downloaded ZIP', async () => {
+    const onPackageQualityPassUpdate = vi.fn();
+    downloadCourseMaterialsZip.mockResolvedValueOnce({
+      fileName: 'Review Surface Course - Course Materials.zip',
+      files: ['PACKAGE_MANIFEST.json', 'QUALITY_REPORT.md'],
+      quality: {
+        status: 'graded',
+        score: 87,
+        grade: 'B',
+        findingCounts: { p0: 0, p1: 1, p2: 0 },
+        readiness: { score: 52, maxScore: 100 },
+      },
+      qualityResult: {
+        grades: { substance: 'B' },
+        findings: [{ severity: 'P1', message: 'Review one source gap.' }],
+        stats: { findingCount: 1, fileCount: 27 },
+        texture: { score: 94 },
+      },
+    });
+
+    await renderPanel({
+      courseMapInput: cleanCourseMap,
+      preferPackageScope: true,
+      onPackageQualityPassUpdate,
+      packageQualityPass: {
+        status: 'ready',
+        blockers: 0,
+        warnings: 0,
+        receipt: { finalStatus: 'ready', exportStatus: 'passed', exportChecked: 38, exportFailed: 0 },
+        quality: { status: 'graded', score: 89, grade: 'B', readiness: { score: 56, maxScore: 100 } },
+      },
+    });
+
+    await act(async () => {
+      container
+        .querySelector('[data-testid="export-download-zip"]')
+        ?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      await vi.runAllTimersAsync();
+      await Promise.resolve();
+    });
+
+    expect(onPackageQualityPassUpdate).toHaveBeenCalledTimes(1);
+    const updater = onPackageQualityPassUpdate.mock.calls[0][0];
+    expect(updater({ status: 'ready', receipt: { finalStatus: 'ready' } })).toMatchObject({
+      status: 'ready',
+      receipt: { finalStatus: 'ready' },
+      quality: {
+        score: 87,
+        readiness: { score: 52 },
+        findings: [{ severity: 'P1' }],
+        fileCount: 27,
+      },
+    });
   });
 });

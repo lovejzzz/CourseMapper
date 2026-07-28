@@ -135,7 +135,13 @@ function readyPass(overrides = {}) {
     warnings: 0,
     blockers: 0,
     receipt: { exportWarningCount: 1 },
-    quality: { status: 'graded', score: 100, grade: 'A', findingCounts: { p0: 0, p1: 0, p2: 0 } },
+    quality: {
+      status: 'graded',
+      score: 100,
+      grade: 'A',
+      readiness: { score: 66, maxScore: 100 },
+      findingCounts: { p0: 0, p1: 0, p2: 0 },
+    },
     ...overrides,
   };
 }
@@ -666,7 +672,7 @@ describe('B1 — buildRibbonModel selector', () => {
     ]);
   });
 
-  it('shows observed repairs, blockers, and grades without turning readiness into a warning', () => {
+  it('shows honest readiness, repairs, and blockers without presenting conformance as quality', () => {
     const base = {
       pipeline: { state: 'ready', done: { map: true, enrich: true, compile: true, verify: true, grade: true } },
       generation: { lessonCount: 15 },
@@ -674,12 +680,16 @@ describe('B1 — buildRibbonModel selector', () => {
     };
     const ready = buildLivingCompilerArtifacts({
       ...base,
-      packageQualityPass: { status: 'ready', blockers: 0, quality: { grade: 'A' } },
+      packageQualityPass: {
+        status: 'ready',
+        blockers: 0,
+        quality: { grade: 'A', readiness: { score: 66, maxScore: 100 } },
+      },
     });
     expect(ready.find((artifact) => artifact.id === 'checks')).toEqual({
       id: 'checks',
       label: 'Checks',
-      value: 'Verified · Grade A',
+      value: 'Verified · Readiness 66/100',
       status: 'done',
     });
 
@@ -1468,7 +1478,7 @@ describe('B1 — BuildRibbon render', () => {
     expect(html).toContain('Genome 6/13');
     expect(html).toContain('data-state="complete"');
     expect(html).toContain('Ready to export');
-    expect(html).toContain('Verified · Grade A');
+    expect(html).toContain('Verified · Readiness 66/100');
     expect(html).toContain('Sequence check passed');
     expect(html).toContain('Knowledge 13/13');
     expect(html).toMatch(/Ready in \d+s/);

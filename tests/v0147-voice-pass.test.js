@@ -132,6 +132,7 @@ describe('flag off — the default path never voices anything', () => {
     expect(guardIndex).toBeGreaterThan(-1);
     expect(source.indexOf('blueprintEnrichmentRequested', guardIndex)).toBeGreaterThan(guardIndex);
     expect(source.indexOf('enrichmentModelAvailable', guardIndex)).toBeGreaterThan(guardIndex);
+    expect(source.indexOf('scionVoiceModelAvailable', guardIndex)).toBeGreaterThan(guardIndex);
     expect(source.indexOf('!enrichmentOutcome.missingLessons?.length', guardIndex)).toBeGreaterThan(guardIndex);
     const callMatches = source.match(/\.runVoicePass\(/g) || [];
     // v0.14.9 C2: TWO call sites — the in-pipeline pass (behind the guard
@@ -148,6 +149,9 @@ describe('flag off — the default path never voices anything', () => {
     // read as 38 silent 'no rewrite returned' fallbacks in the failed round).
     expect(source).toMatch(/admittedCompilerBlueprint\?\.enrichment\?\.lessonContent/);
     expect(source).toContain('maxOutputTokens: 4000');
+    expect(source).toContain(
+      'skipped: zero-download evidence compiler kept the verified compiled language ($0.000; no model inference)',
+    );
   });
 });
 

@@ -24,6 +24,18 @@ describe('Algi pre-generation coverage forecast', () => {
     ).toBe(5);
   });
 
+  it('keeps semicolon-numbered lessons intact when a lesson title contains commas', async () => {
+    const source =
+      'Digital Accessibility for Product Teams, exactly three lessons: 1) WCAG principles and conformance; 2) semantic HTML and keyboard accessibility; 3) accessible forms, testing, and remediation. Project-based professional course.';
+    const forecast = await forecastAlgiCoverage({ source, researchEnabled: true });
+    expect(forecast.lessons.map((lesson) => lesson.title)).toEqual([
+      'WCAG principles and conformance',
+      'semantic HTML and keyboard accessibility',
+      'accessible forms, testing, and remediation',
+    ]);
+    expect(forecast.researchPlan.lessonCount).toBe(forecast.externalNeeded);
+  });
+
   it('forecasts the private genome without making a provider request', async () => {
     const forecast = await forecastAlgiCoverage({
       source:

@@ -505,7 +505,7 @@ describe('lessonKernelCache', () => {
       courseMap,
       provider: 'scion-public',
       modelId: 'scion-public',
-      contractVersion: 'scion-kernel-v7',
+      contractVersion: 'scion-kernel-v9',
     });
     expect(current.get(lesson)).toBeNull();
   });
@@ -567,12 +567,16 @@ describe('lessonKernelCache', () => {
     storage.setItem('coursemapper-lesson-kernels-v4', JSON.stringify({ stale: { payload: 'legacy' } }));
     storage.setItem('coursemapper-lesson-kernels-v5', JSON.stringify({ stale: { payload: 'legacy' } }));
     storage.setItem('coursemapper-lesson-kernels-v6', JSON.stringify({ stale: { payload: 'legacy' } }));
+    storage.setItem('coursemapper-lesson-kernels-v7', JSON.stringify({ stale: { payload: 'legacy' } }));
+    storage.setItem('coursemapper-lesson-kernels-v8', JSON.stringify({ stale: { payload: 'legacy' } }));
 
     createLessonKernelCache({ storage });
 
     expect(storage.getItem('coursemapper-lesson-kernels-v4')).toBeNull();
     expect(storage.getItem('coursemapper-lesson-kernels-v5')).toBeNull();
     expect(storage.getItem('coursemapper-lesson-kernels-v6')).toBeNull();
+    expect(storage.getItem('coursemapper-lesson-kernels-v7')).toBeNull();
+    expect(storage.getItem('coursemapper-lesson-kernels-v8')).toBeNull();
   });
 
   it('does not cache generic Week N lessons that can collide across courses', () => {

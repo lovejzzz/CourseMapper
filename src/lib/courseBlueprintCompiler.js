@@ -19,6 +19,19 @@ import {
   unique,
   wordCount,
 } from './compilerText';
+import {
+  conceptWorkQuestion,
+  containsWeakPlaceholder,
+  hasMeaningfulAssessment,
+  normalizeActivityInstructions,
+  publishableCourseCredits,
+  publishableCourseTerm,
+} from './compilerSurfaceCopy';
+import {
+  appendOpenCourseSourceTexts,
+  firstOpenCourseSourceTitle,
+  isCompilerMintedEvidenceBrief,
+} from './compilerOpenCourseSources';
 import { compactCompilerOwnedAssessmentIdentity } from './compilerAssessmentIdentity';
 import { finalizeCompiledDeliverableLanguage, shortArtifactReference } from './compiledLanguageFinalizer';
 import { getChunkCount } from './parallelGenerator';
@@ -941,10 +954,10 @@ function trimDanglingTail(value) {
 
 function isUnsafeSourceCuePhrase(value) {
   const text = stripTerminalPunctuation(cleanText(value));
-  // Evidence plans sometimes leak a clipped objective ("Compare source
-  // evidence historical interpretations of") into the source-cue slot. A
-  // source label is a noun/title, not an instruction; fall back to the
-  // lesson's honest source label rather than projecting the broken clause.
+  const instructionLead =
+    /^(?:analy[sz]e|annotate|apply|bring|choose|compare|complete|draft|explain|identify|mark|prepare|practice|review|revise|run|share|state|test|use)\s+/i;
+  // Evidence plans sometimes leak a clipped objective into the source-cue slot. A
+  // A source label is a noun/title, not an instruction; use the honest fallback.
   return (
     !text ||
     isInternalSourceCue(text) ||
@@ -959,6 +972,7 @@ function isUnsafeSourceCuePhrase(value) {
     // Short named classroom resources can legitimately begin with a verb
     // ("Design brief", "Use case", "Model card"). Only quarantine the
     // long, sentence-shaped form that can actually be a clipped objective.
+    (wordCount(text) >= 4 && instructionLead.test(text) && !/["':]/.test(text)) ||
     (wordCount(text) >= 7 && OBJECTIVE_LIKE_ASSESSMENT_LABEL_RE.test(text) && !/["':]/.test(text))
   );
 }
@@ -3080,31 +3094,8 @@ function successCriteriaForLesson(title, concepts) {
   ];
 }
 
-function containsWeakPlaceholder(value) {
-  return /\b(?:tbd|to be determined|none|n\/a|not applicable)\b/i.test(cleanText(value));
-}
-
-function publishableCourseTerm(value) {
-  const text = cleanText(value);
-  if (
-    !text ||
-    /\b(?:tbd|to be determined|unknown|placeholder|replace with|semester year|course term|not specified|none|n\/a)\b/i.test(
-      text,
-    )
-  ) {
-    return 'Term and dates: confirm in the course site';
-  }
-  return text;
-}
-
 function meaningfulEntries(values) {
   return values.filter((value) => !isWeakConcept(value));
-}
-
-function hasMeaningfulAssessment(value) {
-  const text = cleanText(value).toLowerCase();
-  if (!text) return false;
-  return !/^(none|n\/a|no assessment|not assessed|tbd|to be determined)$/i.test(text);
 }
 
 function fieldConfidence(source, derived = false) {
@@ -3229,10 +3220,13 @@ function buildSectionCoverageTrace(sourceSections = [], lesson = {}) {
   const sections = Array.isArray(sourceSections) ? sourceSections : [];
   return sections.map((section, index) => {
     const allFields = SECTION_COVERAGE_COLUMNS.map(([sourceColumn, label]) => {
+      const sourceValue = section?.[sourceColumn];
       const rawText =
         sourceColumn === 'supportingResources'
-          ? normalizeLessonPlanMaterial(section?.[sourceColumn], lesson)
-          : cleanText(section?.[sourceColumn]);
+          ? normalizeLessonPlanMaterial(sourceValue, lesson)
+          : sourceColumn === 'syncActivities' || sourceColumn === 'asyncActivities'
+            ? normalizeActivityInstructions(sourceValue)
+            : cleanText(sourceValue);
       return {
         sourceColumn,
         label,
@@ -5391,14 +5385,16 @@ function buildLessonThroughlineCase(context, lesson) {
           )
       : null;
   const fallbackEvidencePacket = compactFallbackEvidencePacket(lessonTitle, lesson.lessonNumber);
+  const openCourseSource = firstOpenCourseSourceTitle(lesson);
   const lessonResourceIsNamedReading =
     Boolean(lessonResource) && registryReadingTitles.has(cleanText(lessonResource).toLowerCase());
   const evidencePacket =
-    context.sourceMode === 'instructor-provided'
+    openCourseSource ||
+    (context.sourceMode === 'instructor-provided'
       ? lessonResourceIsNamedReading
         ? lessonResource
         : compactSourceCue(lessonResource || fallbackEvidencePacket, fallbackEvidencePacket)
-      : `${context.casePacketName}: Lesson ${lesson.lessonNumber} ${lessonTitle}`;
+      : `${context.casePacketName}: Lesson ${lesson.lessonNumber} ${lessonTitle}`);
   const isDataScienceCase = /\b(model|analytics|dataset|notebook|data science|machine learning|triage)\b/i.test(
     [context.projectName, context.clientName, context.datasetName, context.casePacketName, context.setting].join(' '),
   );
@@ -5424,28 +5420,50 @@ function attachThroughlineCaseToLesson(lesson, context) {
   const throughlineCase = buildLessonThroughlineCase(context, lesson);
   const concept = lesson.keyConcepts?.[0] || stripLessonPrefix(lesson.title);
   const artifact = stripTerminalPunctuation(lesson.studentArtifact || 'the lesson artifact');
-  const sourceCue = throughlineCase.evidencePacket;
+  const existingSourceCue = cleanText(lesson.evidencePlan?.sourceCue);
+  const existingCueIsAdmitted =
+    Boolean(existingSourceCue) &&
+    !isUnsafeSourceCuePhrase(existingSourceCue) &&
+    asArray(lesson.readings).some((reading) => cleanText(reading) === existingSourceCue) &&
+    asArray(lesson.sourceUsePlan?.approvedSources).some((source) => cleanText(source) === existingSourceCue) &&
+    (context.registryReadingTitles?.includes(existingSourceCue.toLowerCase()) ||
+      (context.resourceCounts?.[existingSourceCue.toLowerCase()] ?? 1) <= 2);
+  const openCourseSource = firstOpenCourseSourceTitle(lesson);
+  const sourceCue = openCourseSource || (existingCueIsAdmitted ? existingSourceCue : throughlineCase.evidencePacket);
   // v0.14.1 round-2 (fix 3): the packet cue is a supporting item, not the
   // week's lead material — the live World Lit syllabus listed "The Lesson N
   // evidence packet" as the FIRST named material in 7 week rows. Real
   // readings lead; the cue trails (deduped in place when it IS a real
   // reading already present in the list).
-  const readings = unique([...(lesson.readings || []), sourceCue], 8);
+  const baseReadings = openCourseSource
+    ? asArray(lesson.readings).filter((reading) => !isCompilerMintedEvidenceBrief(reading, lesson))
+    : asArray(lesson.readings);
+  const readings = unique(openCourseSource ? baseReadings : [...baseReadings, sourceCue], 8);
   const evidencePlan = {
     ...(lesson.evidencePlan || {}),
     sourceCue,
-    evidenceRequirement: lessonVariant(lesson, [
-      `Use a concrete detail from ${sourceCue} to explain ${concept} for ${context.clientName}.`,
-      `Ground the ${concept} explanation in ${sourceCue}, then name the decision it supports for ${context.clientName}.`,
-      `Choose one source detail from ${sourceCue} and show how it changes the ${concept} recommendation for ${context.clientName}.`,
-      `Use ${sourceCue} as the evidence base: identify the relevant ${concept} clue, limit, and next decision for ${context.clientName}.`,
-    ]),
+    evidenceRequirement:
+      existingCueIsAdmitted && cleanText(lesson.evidencePlan?.evidenceRequirement)
+        ? lesson.evidencePlan.evidenceRequirement
+        : lessonVariant(lesson, [
+            `Use a concrete detail from ${sourceCue} to explain ${concept} for ${context.clientName}.`,
+            `Ground the ${concept} explanation in ${sourceCue}, then name the decision it supports for ${context.clientName}.`,
+            `Choose one source detail from ${sourceCue} and show how it changes the ${concept} recommendation for ${context.clientName}.`,
+          ]),
     limitationCue:
       lesson.evidencePlan?.limitationCue ||
       `Name one limitation, assumption, or boundary condition before applying ${concept}.`,
     artifactConnection: throughlineCase.artifactConnection,
   };
-  const approvedSources = unique([sourceCue, ...asArray(lesson.sourceUsePlan?.approvedSources)], 6);
+  const approvedSources = unique(
+    [
+      sourceCue,
+      ...asArray(lesson.sourceUsePlan?.approvedSources).filter(
+        (candidate) => !openCourseSource || !isCompilerMintedEvidenceBrief(candidate, lesson),
+      ),
+    ],
+    6,
+  );
   const sourceUsePlan = {
     ...(lesson.sourceUsePlan || {}),
     approvedSources,
@@ -5480,7 +5498,12 @@ function attachThroughlineCaseToLesson(lesson, context) {
     ],
     sourceAnchors: [
       ...(lesson.sourceAnchors || []),
-      sourceAnchor('throughline case', 'course-created-case', sourceCue, 'medium'),
+      sourceAnchor(
+        openCourseSource ? 'assigned open source' : 'throughline case',
+        openCourseSource ? 'assigned-open-source' : 'course-created-case',
+        sourceCue,
+        openCourseSource ? 'high' : 'medium',
+      ),
     ],
   };
 }
@@ -12552,7 +12575,7 @@ function deriveRoutineFieldsForLesson(lesson = {}, index = 0, context = {}) {
     Array.isArray(lesson.readings) && lesson.readings.length > 0
       ? lesson.readings
       : ['Class notes and assigned source materials'];
-  const readingFallback = `${stripLessonPrefix(title)} assigned course materials`;
+  const readingFallback = `the assigned course materials for ${stripLessonPrefix(title)}`;
   const normalizedReadingCues = unique(
     rawCandidateReadings
       .map((reading) => stripTerminalPunctuation(cleanText(reading)))
@@ -12571,7 +12594,8 @@ function deriveRoutineFieldsForLesson(lesson = {}, index = 0, context = {}) {
   ).filter((title) => readings.some((reading) => cleanText(reading) === cleanText(title)));
   const protectedSourceCue = instructorNamedReadings[0] || '';
   const protectedCueNeedsRepair =
-    Boolean(protectedSourceCue) && cleanText(lesson.evidencePlan?.sourceCue) !== cleanText(protectedSourceCue);
+    Boolean(protectedSourceCue) &&
+    !readings.some((reading) => cleanText(reading) === cleanText(lesson.evidencePlan?.sourceCue));
   const activityPattern =
     lesson.activityPattern ||
     `Concept model, applied practice, peer discussion, and individual reflection for ${stripLessonPrefix(title)}.`;
@@ -13465,6 +13489,7 @@ export function compactBlueprintForStorage(blueprint = {}) {
     source: blueprint.source || 'deterministic-course-map',
     courseName: blueprint.courseName,
     semester: blueprint.semester,
+    credits: blueprint.credits,
     sessionMinutes: normalizeClassSessionMinutes(
       blueprint.sessionMinutes || blueprint.lessons?.[0]?.classSessionPlan?.sessionMinutes,
     ),
@@ -14215,8 +14240,8 @@ function extractLessonBlueprint(
   const topicText = extractColumn(lesson, 'topicSection');
   const readingText = extractColumn(lesson, 'readings');
   const resourceText = extractColumn(lesson, 'supportingResources');
-  const asyncActivityText = extractColumn(lesson, 'asyncActivities');
-  const syncActivityText = extractColumn(lesson, 'syncActivities');
+  const asyncActivityText = normalizeActivityInstructions(extractColumn(lesson, 'asyncActivities'));
+  const syncActivityText = normalizeActivityInstructions(extractColumn(lesson, 'syncActivities'));
   const objectiveEntries = meaningfulEntries(splitList(objectiveText).map((item) => normalizeObjectiveText(item)));
   const goalEntries = meaningfulEntries(splitList(goalText));
   const hasObjectives = objectiveEntries.length > 0;
@@ -14283,18 +14308,14 @@ function extractLessonBlueprint(
   const hasAssessment = hasWeeklyAssessment || hasEvaluationDesign;
   // v0.16 C3 (Prof classroom catch — 12/14 lessons overflowed the median
   // student's intake capacity): a lesson TEACHES a focused core, not eight
-  // concepts. Title concepts and real topics come first; derived word-mining
-  // only pads when the source gives fewer than two. The old limit-8 list was
-  // mostly wordsFromConcepts filler that every downstream surface (and the
-  // pacing model) then treated as new content to absorb.
+  // concepts. Title concepts and topics come first; objective mining runs only
+  // when the source gives no usable concept. Padding one valid
+  // concept let substring dedupe replace it with a longer action fragment.
   const sourcedConcepts = normalizeConceptCandidates([...titleConcepts, ...topics], { title, limit: 4 });
   const concepts =
-    sourcedConcepts.length >= 2
+    sourcedConcepts.length > 0
       ? sourcedConcepts
-      : normalizeConceptCandidates(
-          [...titleConcepts, ...topics, ...wordsFromConcepts([...titleConcepts, ...topics, ...objectives], 5)],
-          { title, limit: 4 },
-        );
+      : normalizeConceptCandidates(wordsFromConcepts(objectives, 5), { title, limit: 4 });
   const keyConcepts =
     concepts.length > 0
       ? concepts
@@ -16374,6 +16395,7 @@ export function buildCourseBlueprint(courseMap, options = {}) {
     courseName,
     coursePromises,
     semester: publishableCourseTerm(options.localization?.termLabel || courseMap?.semester),
+    credits: publishableCourseCredits(options.localization?.credits || courseMap?.credits),
     sessionMinutes,
     totalLessons: lessons.length,
     lessons,
@@ -17077,6 +17099,7 @@ function buildRequiredTextsFromKnowledge(blueprint) {
       });
     }
   }
+  appendOpenCourseSourceTexts(blueprint, texts, seen);
   return texts;
 }
 
@@ -17136,8 +17159,9 @@ function syllabusWeeklyReadings(lesson, readingsRegistry = null) {
   if (registered.length > 0) return registered;
   const readings = Array.isArray(lesson.readings) ? lesson.readings : [];
   const isMintedPacket = (reading) =>
-    /\bfor Lesson \d+\s*:|:\s*Lesson \d+\b/i.test(cleanText(reading)) &&
-    cleanText(reading).toLowerCase() === cleanText(lesson.throughlineCase?.evidencePacket).toLowerCase();
+    isCompilerMintedEvidenceBrief(reading, lesson) ||
+    (/\bfor Lesson \d+\s*:|:\s*Lesson \d+\b/i.test(cleanText(reading)) &&
+      cleanText(reading).toLowerCase() === cleanText(lesson.throughlineCase?.evidencePacket).toLowerCase());
   const publicReadings = readings.filter((reading) => !isInternalSourceCue(reading));
   const real = publicReadings.filter((reading) => !isMintedPacket(reading));
   return real.length > 0 ? real : publicReadings;
@@ -17227,7 +17251,7 @@ function compileSyllabus(blueprint) {
     syllabus: {
       courseTitle: blueprint.courseName,
       semester: blueprint.semester,
-      credits: '3 credits',
+      credits: blueprint.credits,
       meetingPattern:
         blueprint.localization?.meetingPattern ||
         'Weekly course sessions with applied practice and feedback checkpoints',
@@ -22631,7 +22655,14 @@ function slideConceptCandidates(lesson) {
       lesson?.activityPattern,
     ]
       .map(normalizeSlidePhrase)
-      .filter((phrase) => !isWeakSlidePhrase(phrase)),
+      // Keep objective-like evidence out; slide concepts stay noun-like and bounded.
+      .filter(
+        (phrase) =>
+          !isWeakSlidePhrase(phrase) &&
+          !isObjectiveLikeConcept(phrase) &&
+          !isOverlongConceptCandidate(phrase) &&
+          !isUnsafeLessonConceptPhrase(phrase),
+      ),
     6,
   );
 }
@@ -26373,7 +26404,7 @@ function compileCourseFaq(blueprint, config = {}) {
       if (!term) return null;
       const correction = cleanText(term.correction || '');
       return {
-        q: `I thought ${faqMisconceptionBelief(term.misconception)}. Is that wrong? How does ${term.term} actually work?`,
+        q: `I thought ${faqMisconceptionBelief(term.misconception)}. Is that wrong? ${conceptWorkQuestion(term.term)}`,
         an: `${correction ? `${stripTerminalPunctuation(correction)}. ` : ''}${
           term.definition ? faqTermDefinitionSentence(term) : ''
         }${term.example ? ` For example: ${faqExampleLead(term.example)}.` : ''}`.trim(),
@@ -26761,6 +26792,7 @@ function normalizeLessonPlanMaterial(material, lesson) {
   const text = cleanText(material);
   if (!text) return '';
   if (isInternalSourceCue(text)) return '';
+  if (isCompilerMintedEvidenceBrief(text, lesson)) return '';
   // Publication checks and compiler constraints are reviewer instructions,
   // never classroom materials. Letting one into `readings` also made it the
   // evidence source for UDL copy ("visual organizer tied to grading policy
@@ -26787,22 +26819,22 @@ function buildLessonPlanMaterials(lesson) {
         ? lesson.readings.map((reading) => normalizeLessonPlanMaterial(reading, lesson))
         : []),
       lessonVariant(lesson, [
-        `${focus} agenda and instructor handout`,
-        `Class plan plus ${focus} reference sheet`,
-        `${focus} preparation brief and activity directions`,
-        `Instructor notes and example materials for ${focus}`,
+        `Instructor display or whiteboard for ${focus} modeling`,
+        `Course display plus the ${focus} source examples`,
+        `Instructor workspace for the ${focus} demonstration`,
+        `Display surface for the ${focus} worked example`,
       ]),
       lessonVariant(lesson, [
-        `Shared critique notes for ${focus}`,
-        `${focus} collaboration notes document`,
-        `Peer review workspace for ${artifact}`,
-        `Group evidence log for ${focus}`,
+        `Shared critique-notes space for ${focus}`,
+        `Shared collaboration space for ${focus}`,
+        `Peer-review workspace for ${artifact}`,
+        `Shared evidence log for ${focus}`,
       ]),
       lessonVariant(lesson, [
-        `${artifact} submission guide`,
-        `Course-site upload guide for ${artifact}`,
-        `${artifact} evidence template`,
-        `Final review guide for ${artifact}`,
+        `Course-site submission space for ${artifact}`,
+        `Course-site upload space for ${artifact}`,
+        `Student workspace for ${artifact} evidence`,
+        `Final review workspace for ${artifact}`,
       ]),
     ],
     6,

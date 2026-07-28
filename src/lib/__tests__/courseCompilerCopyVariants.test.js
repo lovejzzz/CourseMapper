@@ -3,6 +3,7 @@ import { buildGenericCriterionPerformanceBand } from '../courseCompilerRubricCop
 import { assignmentSelfAssessmentEvidenceCheck } from '../courseCompilerSelfAssessmentCopy';
 import {
   compactAssignmentBriefBodyReferences,
+  compactCourseCopyFocus,
   compactRepeatedCourseFocusReferences,
 } from '../courseCompilerCopyVariants';
 import { examAtomPaddingOptions } from '../courseCompilerExamCopy';
@@ -11,6 +12,10 @@ import { finalizeCompiledDeliverableLanguage } from '../compiledLanguageFinalize
 import { isAppliedQuizStem } from '../quality/quizItemDepth';
 
 describe('course compiler copy variants', () => {
+  it('compacts a serial-list lesson title without leaving a dangling comma', () => {
+    expect(compactCourseCopyFocus('accessible forms, testing, and remediation')).toBe('accessible forms and testing');
+  });
+
   it('keeps the canonical assignment heading but compacts its week-prefixed body alias', () => {
     const canonicalTitle =
       'Review of statistical inference application check: choose evidence that supports one course decision.';
@@ -519,5 +524,19 @@ describe('course compiler copy variants', () => {
 
     expect(text).toContain('the phrase “Dominant and recessive alleles”');
     expect(text).not.toMatch(/Dominant and recessive alleles (?:is|covers|requires|needs)\b/i);
+  });
+
+  it('does not splice an imperative activity into a padded quiz option', () => {
+    const options = examAtomPaddingOptions({
+      concept: 'WCAG',
+      lessonFocus: 'WCAG principles and conformance',
+      sourceCue: 'Run critique round that tests how',
+      lessonNumber: 1,
+      questionIndex: 1,
+    });
+    const text = options.join(' ');
+
+    expect(text).not.toContain('Run critique round that tests how');
+    expect(text).toContain('the assigned source evidence');
   });
 });

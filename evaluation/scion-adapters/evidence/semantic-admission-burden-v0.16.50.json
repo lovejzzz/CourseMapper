@@ -124,8 +124,8 @@
       },
       {
         "path": "src/lib/scionKeyTermContract.js",
-        "bytes": 41085,
-        "sha256": "906ea61925d4f35d61423067fdc07520fa661d87a84da5e93f4c92c347e3fbd4"
+        "bytes": 41402,
+        "sha256": "a6b91df621f5bad26730f1f8f1d5be0cd63888fb966718f940ae4cc30dbd065f"
       },
       {
         "path": "scripts/lib/scionSourceCapture.mjs",

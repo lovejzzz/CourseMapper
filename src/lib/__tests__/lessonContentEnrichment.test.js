@@ -284,7 +284,7 @@ describe('lesson content enrichment contracts', () => {
   it('retains an exact source ledger when every generated teaching atom is quarantined', () => {
     const sourceFacts = [
       'A usability test observes representative users attempting realistic tasks with a product or service.',
-      'A test script gives each session a repeatable structure without turning the moderator into a teacher.',
+      'Usability success criteria give each session a repeatable standard without turning the moderator into a teacher.',
       'Recruitment identifies appropriate users and obtains consent before the session.',
     ];
     const prompt = {
@@ -312,6 +312,11 @@ describe('lesson content enrichment contracts', () => {
     });
     expect(parsed.issues).toEqual(
       expect.arrayContaining([expect.objectContaining({ reason: 'source-ledger-facts-only' })]),
+    );
+    expect(parsed.issues).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ surface: 'facts', problems: expect.arrayContaining(['meta-fact']) }),
+      ]),
     );
   });
 
@@ -445,6 +450,24 @@ describe('lesson content enrichment contracts', () => {
     );
     expect(titleAsTerm).toContain('meta-definition');
     expect(titleAsTerm).not.toContain('term-is-lesson-title');
+  });
+
+  it('does not count a decimal standard version as a second definition sentence', () => {
+    const problems = lintEnrichedKeyTerm(
+      {
+        term: 'Web Content Accessibility Guidelines',
+        definition:
+          'Web Content Accessibility Guidelines (WCAG) 2.2 covers a wide range of recommendations for making web content more accessible.',
+        example:
+          'Text alternatives let non-text content be changed into large print, braille, speech, symbols, or simpler language.',
+        misconception:
+          'Any related claim can be labeled Web Content Accessibility Guidelines without checking its meaning.',
+        correction:
+          'Use Web Content Accessibility Guidelines only when the cited definition and stated conditions support that label.',
+      },
+      { lessonTitle: 'WCAG principles' },
+    );
+    expect(problems).not.toContain('definition-multiple-sentences');
   });
 
   it('requests the short-key contract and parses it identically to full keys (v0.9.11 P2)', () => {

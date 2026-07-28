@@ -140,9 +140,30 @@ describe('Algi V0 prompt reading', () => {
       ),
     ).toBe('Urban Heat Resilience and Environmental Justice');
   });
+
+  it('keeps an imperative build instruction out of the course title', () => {
+    expect(
+      extractCourseName(
+        'Digital Accessibility for Product Teams — create exactly 3 lessons: WCAG principles, semantic HTML, and accessible forms.',
+      ),
+    ).toBe('Digital Accessibility for Product Teams');
+  });
 });
 
 describe('Algi V0 skeleton composition', () => {
+  it('turns an exact counted comma list into the requested lesson sequence', () => {
+    const source =
+      'Digital Accessibility for Product Teams, exactly 3 lessons: WCAG principles, semantic HTML, and accessible forms. Create a practical course.';
+    expect(planSessionTopics(source, 3)).toEqual(['WCAG principles', 'semantic HTML', 'accessible forms']);
+    const skeleton = JSON.parse(composeAlgiSkeleton(promptFor(source, 3)));
+    expect(skeleton.course.name).toBe('Digital Accessibility for Product Teams');
+    expect(skeleton.sessions.map((session) => session.title)).toEqual([
+      'WCAG principles',
+      'semantic HTML',
+      'accessible forms',
+    ]);
+  });
+
   it('keeps an exact-lesson instruction out of the workspace course title', () => {
     const source =
       'User Experience Evidence Studio, exactly five lessons: 1) research questions and study planning, 2) contextual inquiry and field notes, 3) affinity mapping and synthesis, 4) usability test design, and 5) evidence-based design recommendations.';
@@ -522,6 +543,12 @@ describe('Algi V0 source sentence compaction', () => {
         [5, 12],
       ),
     ).toBe('Cluster states support measurement-based quantum computing.');
+    expect(
+      fitSourceSentence(
+        'Web accessibility is the inclusive practice of ensuring there are no barriers that prevent interaction with, or access to, websites by people with disabilities.',
+        [5, 18],
+      ),
+    ).not.toMatch(/\bwith[,;:.]*$/i);
   });
 
   it('rejects a punctuated prepositional phrase with no finite predicate', () => {
@@ -557,7 +584,7 @@ describe('Algi V0 source receipts', () => {
       }),
       misconceptions: [
         {
-          text: `Students stretch ${title} beyond the boundary this source draws around it.`,
+          text: `A related idea can be labeled ${title} without checking the source definition.`,
           corrective: `${title} has a bounded source definition, so learners should distinguish its purpose, conditions, evidence, and consequences from neighbouring concepts.`,
         },
       ],
@@ -600,11 +627,11 @@ describe('Algi V0 source receipts', () => {
       { factCount: 5 },
     );
     expect(payload.enrichmentSource).toBe('algi-researched');
-    expect(payload.keyTerms.map((entry) => entry.mi).join(' ')).not.toMatch(/stretch|boundary this source/i);
-    expect(payload.keyTerms[0].mi).toContain('Concept 1 and Concept 2');
-    expect(payload.keyTerms[0].cx).toContain('not interchangeable');
-    expect(payload.keyTerms[0].cx).toContain('Concept 1 is');
-    expect(payload.keyTerms[0].cx).toContain('Concept 2 is');
+    expect(payload.keyTerms[0].mi).toBe(
+      'A related idea can be labeled Concept 1 without checking the source definition.',
+    );
+    expect(payload.keyTerms[0].cx).toContain('Concept 1 has a bounded source definition');
+    expect(payload.keyTerms.map((entry) => entry.mi).join(' ')).not.toMatch(/interchangeable descriptions/i);
     expect(payload.keyTerms[0].cx).not.toMatch(/^Not that/i);
     expect(payload.conceptProvenance.citations[0]).toMatchObject({
       sourceUrl: 'https://en.wikipedia.org/wiki/Concept_1',
@@ -622,6 +649,37 @@ describe('Algi V0 source receipts', () => {
       'https://en.wikipedia.org/wiki/Concept_1',
     );
     expect(parsed.lessons['lesson-1'].keyTerms).toHaveLength(3);
+  });
+
+  it('never invents a distinction between an acronym and its expanded name', () => {
+    const wcag = kernel(1, true);
+    wcag.term = 'WCAG';
+    wcag.definition.text =
+      'WCAG is the common initialism for the Web Content Accessibility Guidelines used for web accessibility.';
+    wcag.misconceptions[0] = {
+      text: 'A related idea can be labeled WCAG without checking the source definition.',
+      corrective: wcag.definition.text,
+    };
+    const expanded = kernel(2, true);
+    expanded.term = 'Web Content Accessibility Guidelines';
+    expanded.definition.text =
+      'Web Content Accessibility Guidelines are recommendations for making web content more accessible.';
+    expanded.misconceptions[0] = {
+      text: 'A related idea can be labeled Web Content Accessibility Guidelines without checking the source definition.',
+      corrective: expanded.definition.text,
+    };
+    const payload = composeLessonFromKernels(
+      { lessonId: 'lesson-1', title: 'WCAG principles and conformance' },
+      [wcag, expanded, kernel(3, true)],
+      { factCount: 5 },
+    );
+    const text = JSON.stringify(payload);
+    expect(text).not.toMatch(/WCAG and Web Content Accessibility Guidelines are interchangeable/i);
+    expect(text).not.toMatch(/treat WCAG and Web Content Accessibility Guidelines as distinct/i);
+    expect(payload.keyTerms.every((term) => term.cx !== term.df)).toBe(true);
+    expect(payload.keyTerms.map((term) => term.cx).join(' ')).toContain(
+      'only when the source definition and stated conditions support that label',
+    );
   });
 
   it('preserves a terminal pronoun when compacting a coordinated quiz option', () => {
@@ -857,6 +915,76 @@ describe('Algi V0 source receipts', () => {
     expect(JSON.stringify(payload)).not.toContain('unsupported factual claim');
   });
 
+  it('rejects quantified subjects and clipped propositions as research key terms', () => {
+    const source = kernel(1, true);
+    source.term = 'Web accessibility';
+    source.provenance.topic = 'Accessible forms';
+    source.definition.text =
+      'Web accessibility is the inclusive practice of making websites usable by disabled people.';
+    source.facts = [
+      'Some jurisdictions are moving to build legislation around accessibility guidelines.',
+      'Since they often require non-standard devices and browsers, accessible websites support more user agents.',
+      'Conformance to this level is defined by satisfying the applicable success criteria.',
+      'Accessible forms include labels that identify the purpose of each control.',
+      ...source.facts.slice(0, 2).map((fact) => fact.text),
+    ].map((text, index) => ({
+      text,
+      anchor: { ...source.definition.anchor, quote: text, loc: `Claim ${index + 1}` },
+      tier: 2,
+    }));
+    const terms = expandResearchKernelsForComposition([source], 'Accessible forms').map((entry) => entry.term);
+    expect(terms).toContain('Web accessibility');
+    expect(terms).toContain('Accessible forms');
+    expect(terms).not.toContain('Some jurisdictions');
+    expect(terms).not.toContain('Conformance to this level');
+    expect(terms.join(' ')).not.toMatch(/Often require|Since they/i);
+  });
+
+  it('recovers explicitly named WCAG concepts from an anchored source sentence', () => {
+    const source = kernel(1, true);
+    source.term = 'Web Content Accessibility Guidelines';
+    source.provenance.topic = 'WCAG principles';
+    source.definition.text =
+      'Web Content Accessibility Guidelines are recommendations for making web content more accessible.';
+    source.facts = [
+      'Accessibility evaluation can use the POUR principles—Perceivable, Operable, Understandable, and Robust—as a guiding framework for reviewing web content.',
+      'WCAG conformance at Level AA requires teams to satisfy the applicable success criteria.',
+      'Conformance testing compares implemented content with the requirements stated by the standard.',
+      'Evaluation records preserve the tested page, result, and supporting evidence for later review.',
+      'Accessible content supports people who use different input, display, and assistive technologies.',
+    ].map((text, index) => ({
+      text,
+      anchor: { ...source.definition.anchor, quote: text, loc: `Claim ${index + 1}` },
+      tier: 2,
+    }));
+
+    const expanded = expandResearchKernelsForComposition([source], 'WCAG principles');
+    const terms = expanded.map((entry) => entry.term);
+    expect(terms).toEqual(expect.arrayContaining(['POUR principles', 'Perceivable', 'Level AA', 'success criteria']));
+    expect(terms).not.toContain('Enhancement');
+
+    const selected = ['Web Content Accessibility Guidelines', 'POUR principles', 'Perceivable'].map((term) =>
+      expanded.find((entry) => entry.term === term),
+    );
+    expect(selected.every(Boolean)).toBe(true);
+    expect(selected.map((entry) => diagnoseKeyTermCandidate(entry).missing)).toEqual([[], [], []]);
+    expect(selected.every((entry) => JSON.stringify(source).toLowerCase().includes(entry.term.toLowerCase()))).toBe(
+      true,
+    );
+  });
+
+  it('preserves WCAG casing when a natural-language coverage brief feeds the topic planner', () => {
+    const source =
+      'Digital Accessibility for Product Teams, a 4-lesson graduate workshop. Cover WCAG principles and conformance, semantic HTML and keyboard accessibility, accessible forms, and evidence-based accessibility testing and remediation.';
+
+    expect(planSessionTopics(source, 4)).toEqual([
+      'WCAG principles and conformance',
+      'Semantic HTML and keyboard accessibility',
+      'Accessible forms',
+      'Evidence-based accessibility testing and remediation',
+    ]);
+  });
+
   it('derives a lesson phrase only when the exact phrase is anchored in a retained source claim', () => {
     const source = kernel(1, true);
     source.term = 'Environmental heat';
@@ -1014,7 +1142,7 @@ describe('Algi V0 source receipts', () => {
     expect(payload.mc.flatMap((item) => item.op).join('\n')).not.toMatch(/\b(?:like|political)\.$/m);
   });
 
-  it('uses a bounded distinction when two full source definitions exceed correction limits', () => {
+  it('does not invent a peer distinction when source definitions are long', () => {
     const kernels = [kernel(1, true), kernel(2, true), kernel(3, true)];
     const definitions = [
       [
@@ -1044,7 +1172,8 @@ describe('Algi V0 source receipts', () => {
     const correctionText = payload.keyTerms.map((entry) => entry.cx).join(' ');
 
     expect(correctionText).not.toContain('Algorithmic accountability refers to the allocation.');
-    expect(correctionText).toContain('distinct concepts with different scope and evidence');
+    expect(correctionText).not.toContain('distinct concepts with different scope and evidence');
+    expect(payload.keyTerms.every((entry) => !/interchangeable descriptions/i.test(entry.mi))).toBe(true);
   });
 
   it('composes microbial risk assessment only from risk-matched grounded concepts', () => {

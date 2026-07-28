@@ -180,6 +180,39 @@ describe('packageZipExporter', () => {
     });
   });
 
+  it('records the adaptive Scion evidence lane without claiming model inference or downloaded weights', async () => {
+    const result = await buildCourseMaterialsZip({
+      courseMap: makeCourseMap('Adaptive Scion Course'),
+      featureIds: ['courseMap'],
+      pipelineState: {
+        scionExecution: 'private evidence compiler · zero model download · zero model inference',
+        knowledgeBackbone: 'Private mode · shipped teaching genome only',
+      },
+      quality: {
+        digest: {
+          appVersion: APP_VERSION,
+          runId: 'run-adaptive-scion',
+          run: { provider: 'public', models: ['scion-public'], providerCalls: 0 },
+          gates: { exportStatus: 'passed', exportChecked: 1, exportFailed: 0, exportWarnings: 0 },
+        },
+      },
+    });
+
+    expect(result.manifest.generator.scion).toMatchObject({
+      product: `Scion V${APP_VERSION}`,
+      execution: {
+        lane: 'evidence-compiler',
+        modelInference: false,
+        modelWeightsDownloaded: false,
+        sourceResearch: false,
+      },
+      adapter: { status: 'not-used', qualified: false },
+    });
+    expect(result.manifest.generator.scion.trainingBase).toBeUndefined();
+    expect(result.manifest.generator.scion.runtimeArtifact).toBeUndefined();
+    expect(result.manifest.generator.scion.runtime).toBeUndefined();
+  });
+
   it('records Algi as a no-inference compiler instead of mislabeling it as Scion', async () => {
     const result = await buildCourseMaterialsZip({
       courseMap: makeCourseMap('Algi Manifest Course'),
@@ -279,6 +312,74 @@ describe('packageZipExporter', () => {
     ]);
     const zip = await JSZip.loadAsync(await result.blob.arrayBuffer());
     expect(await zip.file('SOURCE_REPORT.md').async('string')).toContain('sessions=s1');
+  });
+
+  it('presents the private research layer as Scion in Scion package receipts', async () => {
+    const courseGraph = {
+      version: 1,
+      course: { name: 'Scion Research Receipt Course' },
+      concepts: [{ id: 'c1', term: 'Accessible forms' }],
+      outcomes: [],
+      assessments: [],
+      sessions: [
+        {
+          id: 's1',
+          number: 1,
+          title: 'Accessible forms',
+          sections: [{ id: 'sec1', topic: 'Accessible forms', conceptRefs: ['c1'], resourceRefs: ['kr1'] }],
+        },
+      ],
+      resources: [
+        {
+          id: 'kr1',
+          title: 'Accessible forms',
+          citation: 'Accessible forms (official accessibility tutorial)',
+          origin: 'algi-research',
+          provider: 'w3c-wai',
+          url: 'https://www.w3.org/WAI/tutorials/forms/',
+          license: 'W3C permissive license',
+          attribution: 'W3C Web Accessibility Initiative',
+          sessionRefs: ['s1'],
+        },
+      ],
+      readings: [],
+      edges: {
+        teaches: [{ from: 's1', to: 'c1' }],
+        assesses: [],
+        requires: [],
+        practicedIn: [],
+        instanceOf: [],
+        genomeLink: [],
+      },
+    };
+    const result = await buildCourseMaterialsZip({
+      courseMap: {
+        courseName: 'Scion Research Receipt Course',
+        lessons: [{ title: 'Lesson 1: Accessible forms', sections: [{ topicSection: 'Accessible forms' }] }],
+      },
+      courseGraph,
+      featureIds: ['courseMap'],
+      pipelineState: {
+        scionExecution: 'private evidence compiler · zero model download · zero model inference',
+        knowledgeBackbone: '1/1 lessons source-researched · 1 cited open resource (algi-research: 1)',
+      },
+      quality: {
+        digest: {
+          appVersion: APP_VERSION,
+          runId: 'run-scion-research-receipt',
+          run: { provider: 'public', models: ['scion-public'], providerCalls: 0 },
+          gates: { exportStatus: 'passed', exportChecked: 1, exportFailed: 0, exportWarnings: 0 },
+        },
+      },
+    });
+
+    expect(result.manifest.sourceLedger[0]).toMatchObject({
+      origin: 'scion-research',
+      provider: 'w3c-wai',
+    });
+    expect(JSON.stringify(result.manifest)).not.toMatch(/\bAlgi\b|algi-research/i);
+    const zip = await JSZip.loadAsync(await result.blob.arrayBuffer());
+    expect(await zip.file('SOURCE_REPORT.md').async('string')).not.toMatch(/\bAlgi\b|algi-research/i);
   });
 
   it('builds a ZIP with selected files and a package manifest', async () => {

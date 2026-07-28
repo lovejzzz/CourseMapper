@@ -331,6 +331,62 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     expect(grounded.lessons[0].topics).toBe(facts.map((fact, index) => `Claim ${index}: ${fact}`).join(' '));
   });
 
+  it('D1: exposes the exact immutable-ledger issue when fact binding fails', () => {
+    const lessons = JSON.parse(SCION_LESSON_KERNEL_PILOT_PROMPT.match(/Lessons:\n(\[.*\])\nReturn/s)[1]);
+    const prompt = {
+      courseName: 'Geology Inference and Feedback Audit',
+      lessons,
+      userPrompt: SCION_LESSON_KERNEL_PILOT_PROMPT,
+      systemPrompt: 'Write a compact knowledge kernel.',
+    };
+    const repeatedFact = SCION_LESSON_KERNEL_REFERENCE_PILOT_RESPONSE.lessons[0].facts[0];
+    const diagnostics = {};
+    const grounded = buildScionGroundedRefinementPrompt({
+      rawText: JSON.stringify({
+        lessons: [
+          { lessonId: 'lesson-3', facts: [repeatedFact, repeatedFact, repeatedFact, repeatedFact, repeatedFact] },
+        ],
+      }),
+      prompt,
+      expectedLessonIds: ['lesson-3'],
+      diagnostics,
+    });
+
+    expect(grounded).toBeNull();
+    expect(diagnostics.issues).toContain('lesson-3:duplicate-facts');
+  });
+
+  it('D1: never repairs a compiler-owned exact source ledger before binding it', () => {
+    const lessons = JSON.parse(SCION_LESSON_KERNEL_PILOT_PROMPT.match(/Lessons:\n(\[.*\])\nReturn/s)[1]);
+    const facts = [
+      'Classical allusion and allusion can identify a repeated source phrase.',
+      ...SCION_LESSON_KERNEL_REFERENCE_PILOT_RESPONSE.lessons[0].facts.slice(1),
+    ];
+    const sourceLesson = {
+      ...lessons[0],
+      sourceFactPolicy: 'numbered-source-ledger-v1',
+      sourceFacts: facts,
+    };
+    const prompt = {
+      courseName: 'Geology Inference and Feedback Audit',
+      lessons: [sourceLesson],
+      userPrompt: `Course: Geology Inference and Feedback Audit\nLessons:\n${JSON.stringify([
+        sourceLesson,
+      ])}\nReturn ONLY valid JSON matching the kernel shape from the instructions.`,
+      systemPrompt: 'Write a compact knowledge kernel.',
+    };
+    const rawText = JSON.stringify({ lessons: [{ lessonId: 'lesson-3', facts }] });
+    const grounded = buildScionGroundedRefinementPrompt({
+      rawText,
+      prompt,
+      expectedLessonIds: ['lesson-3'],
+      exactSourceProjection: true,
+    });
+
+    expect(grounded).not.toBeNull();
+    expect(grounded.lessons[0].topics).toContain(`Claim 0: ${facts[0]}`);
+  });
+
   it('D1: binds a declared base-only fact ledger and skips same-model teaching-surface repairs', async () => {
     const lessons = JSON.parse(SCION_LESSON_KERNEL_PILOT_PROMPT.match(/Lessons:\n(\[.*\])\nReturn/s)[1]);
     const facts = SCION_LESSON_KERNEL_REFERENCE_PILOT_RESPONSE.lessons[0].facts;

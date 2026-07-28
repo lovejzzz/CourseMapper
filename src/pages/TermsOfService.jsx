@@ -39,9 +39,10 @@ export default function TermsOfService() {
                 provider. You are responsible for any costs incurred through your own API key usage.
               </li>
               <li>
-                Scion requires no API key and runs a pinned public model in supported browsers. First use downloads
-                approximately 3.35 GB of model weights from Hugging Face. Availability and speed depend on browser,
-                device memory, storage, WebGPU support, and the public weight host.
+                Scion requires no API key. Browsers with a usable WebGPU adapter can run its pinned public model
+                locally; first use then downloads approximately 3.35 GB of model weights from Hugging Face. Browsers
+                without a usable adapter use Scion’s zero-download evidence compiler instead. Availability and speed
+                depend on browser and device capabilities.
               </li>
               <li>
                 Course Mapper is not affiliated with OpenAI, Anthropic, Google, DeepSeek, or OpenRouter. Your use of

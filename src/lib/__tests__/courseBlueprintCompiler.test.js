@@ -30,6 +30,60 @@ vi.mock('../customDeliverableLibrary', () => ({
   getCustomDeliverable: vi.fn((id) => customDeliverables[id] || null),
 }));
 
+describe('focused lesson concept extraction', () => {
+  it('keeps one clean source concept instead of padding it with objective fragments', () => {
+    const blueprint = buildCourseBlueprint({
+      courseName: 'Digital Accessibility for Product Teams',
+      lessons: [
+        {
+          title: 'Lesson 1: WCAG principles',
+          sections: [
+            {
+              topicSection: 'WCAG principles',
+              learningObjectives: 'Apply WCAG principles to a UX artifact and explain the design decision it changes.',
+              weeklyAssessments: 'Accessibility review.',
+            },
+          ],
+        },
+        {
+          title: 'Lesson 2: semantic HTML',
+          sections: [
+            {
+              topicSection: 'semantic HTML',
+              learningObjectives: 'Apply semantic HTML to a portfolio case section and justify one revision.',
+              weeklyAssessments: 'Markup audit.',
+            },
+          ],
+        },
+        {
+          title: 'Lesson 3: accessible forms',
+          sections: [
+            {
+              topicSection: 'accessible forms',
+              learningObjectives: 'Interpret a user signal in accessible forms and name the design implication.',
+              weeklyAssessments: 'Form audit.',
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(blueprint.lessons.map((lesson) => lesson.keyConcepts)).toEqual([
+      ['WCAG principles'],
+      ['semantic HTML'],
+      ['accessible forms'],
+    ]);
+    expect(blueprint.courseConcepts).not.toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/to a UX artifact/i),
+        expect.stringMatching(/portfolio case section/i),
+        expect.stringMatching(/a user signal/i),
+        expect.stringMatching(/design decision it changes/i),
+      ]),
+    );
+  });
+});
+
 describe('quiz Bloom inference', () => {
   it('recognizes synthesis and evidence-rich case reasoning without treating domain nouns as recall verbs', () => {
     expect(
@@ -7820,6 +7874,71 @@ describe('courseBlueprintCompiler', () => {
     expect(quizText).not.toMatch(/evidence explanation quantum reasoning decision/i);
   });
 
+  it('does not promote a clipped activity instruction into the source-cue slot', () => {
+    const blueprint = buildCourseBlueprint({
+      courseName: 'Digital Accessibility for Product Teams',
+      lessons: [
+        {
+          title: 'Lesson 1: WCAG principles and conformance',
+          sections: [
+            {
+              topicSection: 'WCAG principles and conformance',
+              learningObjectives: 'Apply WCAG to a product accessibility decision.',
+              weeklyAssessments: 'Accessibility conformance explanation.',
+              syncActivities: 'Run critique round that tests how WCAG changes the artifact.',
+              supportingResources: '',
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(blueprint.lessons[0].evidencePlan.sourceCue).not.toMatch(/^Run critique round that tests how/i);
+    const deliverables = JSON.stringify(
+      compileBlueprintDeliverables(blueprint, ['lessonPlans', 'slideDecks', 'rubrics']),
+    );
+    expect(deliverables).not.toMatch(/Run critique round that tests how/i);
+    expect(deliverables).toMatch(/Run a critique round that tests how/i);
+  });
+
+  it('preserves hyphenated named resources while rejecting sentence-shaped source cues', () => {
+    const blueprint = buildCourseBlueprint({
+      courseName: 'Applied Social Research Methods',
+      lessons: [
+        {
+          title: 'Lesson 1: Testing Associations and Group Differences',
+          sections: [
+            {
+              topicSection: 'Testing Associations and Group Differences',
+              learningObjectives: 'Compare tests and justify the best option for a research question.',
+              weeklyAssessments: 'Test-selection worksheet with interpretation.',
+              supportingResources: 'Test-selection decision tree; interpretation examples; assumptions checklist',
+            },
+          ],
+        },
+      ],
+    });
+    const expected = 'Use Testing Associations Group Differences evidence brief to support the decision.';
+    blueprint.lessons[0].readings = [
+      'Test-selection decision tree',
+      'interpretation examples',
+      'assumptions checklist',
+      'Testing Associations Group Differences evidence brief',
+    ];
+    blueprint.lessons[0].evidencePlan = {
+      sourceCue: 'Testing Associations Group Differences evidence brief',
+      evidenceRequirement: expected,
+      limitationCue: 'Name one assumption before applying the test.',
+    };
+    blueprint.lessons[0].sourceUsePlan.approvedSources = [...blueprint.lessons[0].readings];
+
+    const compiled = compileBlueprintDeliverables(blueprint, ['lessonPlans']);
+    expect(compiled.lessonPlans.lessonPlans[0].blueprintGrounding.evidencePlan.evidenceRequirement).toBe(expected);
+    expect(compiled.lessonPlans.lessonPlans[0].blueprintGrounding.evidencePlan.sourceCue).toBe(
+      'Testing Associations Group Differences evidence brief',
+    );
+  });
+
   it('does not misclassify disciplinary models as AI course design', () => {
     const blueprint = buildCourseBlueprint({
       courseName: 'Community Health Program Evaluation',
@@ -8331,7 +8450,7 @@ describe('courseBlueprintCompiler', () => {
 
   it('replaces placeholder course terms with local confirmation language in compiled syllabi', () => {
     const sparseMap = makeCourseMap(4);
-    sparseMap.semester = 'TBD';
+    sparseMap.semester = 'Term';
 
     const blueprint = buildCourseBlueprint(sparseMap);
     const compiled = compileBlueprintDeliverables(blueprint, ['syllabus']);
@@ -8340,9 +8459,63 @@ describe('courseBlueprintCompiler', () => {
 
     expect(blueprint.semester).toBe('Term and dates: confirm in the course site');
     expect(syllabus.semester).toBe('Term and dates: confirm in the course site');
-    expect(serialized).not.toMatch(/\bTBD\b|to be determined|\[semester year\]/i);
+    expect(blueprint.credits).toBe('Credit value: confirm in the course site');
+    expect(syllabus.credits).toBe('Credit value: confirm in the course site');
+    expect(serialized).not.toMatch(/\bTBD\b|to be determined|\[semester year\]|"credits":"3 credits"/i);
     expect(syllabus.classroomHandoffPlan.publishBoundary).toMatch(/official dates/i);
     expect(syllabus.blueprintQualityReceipt.compilerPath.reviewPolicy).toMatch(/official dates|source inputs/i);
+  });
+
+  it('lists real open lesson sources and does not publish compiler-minted evidence briefs as materials', () => {
+    const courseMap = makeCourseMap(1);
+    courseMap.courseName = 'Digital Accessibility for Product Teams';
+    courseMap.lessons[0] = {
+      title: 'Lesson 1: WCAG principles',
+      sections: [
+        {
+          topicSection: 'WCAG principles',
+          learningObjectives: [
+            'Explain WCAG principles using evidence from the assigned sources.',
+            'Apply WCAG principles to one product decision.',
+          ],
+          weeklyAssessments: 'Accessibility evidence explanation.',
+          supportingResources:
+            'Web Content Accessibility Guidelines (official accessibility standard and tutorial, W3C permissive license — https://www.w3.org/TR/WCAG22/)',
+        },
+      ],
+    };
+
+    const blueprint = buildCourseBlueprint(courseMap);
+    const compiled = compileBlueprintDeliverables(blueprint, ['syllabus', 'lessonPlans']);
+    const syllabus = compiled.syllabus.syllabus;
+    const lessonPlan = compiled.lessonPlans.lessonPlans[0];
+    const visibleMaterials = JSON.stringify({
+      requiredTexts: syllabus.requiredTexts,
+      weeklySchedule: syllabus.weeklySchedule,
+      lessonPlanMaterials: lessonPlan.materials,
+    });
+
+    expect(syllabus.requiredTexts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          title: 'Web Content Accessibility Guidelines',
+          author: 'W3C Web Accessibility Initiative',
+          note: expect.stringContaining('https://www.w3.org/TR/WCAG22/'),
+        }),
+      ]),
+    );
+    expect(visibleMaterials).not.toMatch(/\bWCAG principles evidence brief\b/i);
+    expect(visibleMaterials).not.toMatch(/Instructor-provided course reading packet/i);
+    expect(lessonPlan.materials.join(' ')).toMatch(/display|whiteboard|workspace|shared/i);
+    expect(blueprint.lessons[0].evidencePlan.sourceCue).toBe('Web Content Accessibility Guidelines');
+    expect(
+      JSON.stringify({
+        readings: blueprint.lessons[0].readings,
+        throughlineCase: blueprint.lessons[0].throughlineCase,
+        evidencePlan: blueprint.lessons[0].evidencePlan,
+        sourceUsePlan: blueprint.lessons[0].sourceUsePlan,
+      }),
+    ).not.toMatch(/\bWCAG principles evidence brief\b/i);
   });
 
   it('groups repeated open-resource attribution once while preserving every cited section', () => {

@@ -29,9 +29,9 @@ const budgets = {
 // caught an unaccounted increase, and the fix is to re-freeze at the released
 // state, not to widen the allowance. Every future release must do the same.
 const repositoryBudgets = {
-  // v0.16.86 advances the frozen state through the shipped v0.16.85 contract;
-  // its own v0.16.86 contract consumes the single declared-release allowance.
-  baselineVersion: '0.16.85',
+  // v0.16.87 advances the frozen state through the shipped v0.16.86 contract;
+  // its own v0.16.87 contract consumes the single declared-release allowance.
+  baselineVersion: '0.16.86',
   // v0.16.82 adds 29 net lines of reusable compiler control logic for
   // policy-domain separation and concept-owned evidence binding. Source-
   // statement copy and prerequisite selection moved to a cacheable leaf; the
@@ -48,8 +48,8 @@ const repositoryBudgets = {
   // anonymous packet construction, and artifact-bound evidence construction.
   // These are evaluation/reproduction entry points, not product runtime work.
   npmScripts: 383,
-  // v0.16.85 shipped the 271st release contract; v0.16.86 may add exactly one.
-  releaseContractFiles: 271,
+  // v0.16.86 shipped the 272nd release contract; v0.16.87 may add exactly one.
+  releaseContractFiles: 272,
   trackedWeightFiles: 62,
   trackedWeightBytes: 1_053_339_981,
   largeBinaryBytes: 1024 * 1024,
@@ -136,7 +136,11 @@ const lazyChunkBudgets = [
   // handoff split measures 281.8/84.8 locally and 281.9/85.0 on CI's Node 22
   // zlib. Keep the 0.25 KiB compression-only allowance as platform variance,
   // not product-growth room; raw remains capped at the measured architecture.
-  { prefix: 'AppFlow-', rawKiB: 282.5, gzipKiB: 85.25 },
+  // v0.16.87 carries observed source coverage into the sealed receipt and
+  // synchronizes post-export quality. The synchronous generated-map handoff
+  // prevents finalization from racing React state. Measured 283.4/85.3; freeze
+  // at the next tenth without moving either dependency onto landing.
+  { prefix: 'AppFlow-', rawKiB: 283.5, gzipKiB: 85.4 },
   // v0.16.47: the Living Course Compiler component and pure selector gained
   // an independently cacheable route boundary instead of raising AppFlow's
   // long-standing ratchet. Clean measurement: AppFlow 251.6/75.9; ribbon
@@ -148,7 +152,9 @@ const lazyChunkBudgets = [
   // 69.6 KiB raw. The one-field post-build marker did not grow this chunk;
   // move the stale ratchet to 70/22 without granting feature-growth room.
   // v0.16.73 measured 70.0/21.7; retain only sub-KiB raw variance.
-  { prefix: 'livingCompilerRibbon-', rawKiB: 70.5, gzipKiB: 22 },
+  // v0.16.87 replaces the generous letter grade with the real automated
+  // readiness score. Measured 70.9/22.0; freeze at 71/22.1.
+  { prefix: 'livingCompilerRibbon-', rawKiB: 71, gzipKiB: 22.1 },
   { prefix: 'livingCompilerFailure-', rawKiB: 3, gzipKiB: 2 },
   { prefix: 'courseMapContinuation-', rawKiB: 5, gzipKiB: 3 },
   // Anonymous-save presentation is route-only state. It stays isolated so
@@ -242,7 +248,10 @@ const lazyChunkBudgets = [
   // v0.16.80's source-before-synthesis boundary, mixed-source provenance, and
   // evidence-analysis seat add 1.3 KiB raw while gzip remains under the prior
   // ceiling. Measured 843.1/235.9; keep the increase off landing and below 844.
-  { prefix: 'courseBlueprintCompiler-', rawKiB: 844, gzipKiB: 236 },
+  // v0.16.87 admits browser-researched open sources into required-text and
+  // weekly-reading surfaces while filtering compiler-minted evidence briefs.
+  // Raw stays below 844; measured gzip 236.4 and is frozen at the next tenth.
+  { prefix: 'courseBlueprintCompiler-', rawKiB: 844, gzipKiB: 236.5 },
   // Experiential-activity mechanics are compiler-owned and independently
   // cacheable beside the lazy compiler. The chunk projects the canonical
   // activity clock, evidence, constraints, decisions, artifact, and debrief

@@ -28,6 +28,26 @@ function lessonReadingsFromCourseMap(lesson = {}) {
   ];
 }
 
+function firstConcreteSkill(lesson = {}) {
+  const sections = Array.isArray(lesson.sections) ? lesson.sections : [];
+  const candidates = sections.flatMap((section) => [
+    section?.learningObjectives,
+    section?.syncActivities,
+    section?.asyncActivities,
+  ]);
+  for (const candidate of candidates) {
+    const values = Array.isArray(candidate) ? candidate : [candidate];
+    for (const value of values) {
+      const text = cleanText(value)
+        .replace(/^\s*(?:\d+[.)]|[-*•])\s*/, '')
+        .split(/(?<=[.!?])\s+/)[0]
+        .trim();
+      if (text.length >= 12) return /[.!?]$/.test(text) ? text : `${text}.`;
+    }
+  }
+  return '';
+}
+
 function readingIdentity(value) {
   return cleanText(value)
     .toLowerCase()
@@ -53,6 +73,7 @@ export function buildScionCourseSequenceAnswer({ question, courseMap, deliverabl
   if (rowCount < 2) return null;
 
   const includeReadings = /\b(?:assigned|reading|readings|text|texts|work|works)\b/i.test(question);
+  const includeSkills = /\b(?:skill|skills|practice|practise|can do|perform|demonstrate)\b/i.test(question);
   const lines = [];
   for (let index = 0; index < rowCount; index += 1) {
     const scheduleRow = schedule[index] || {};
@@ -69,7 +90,17 @@ export function buildScionCourseSequenceAnswer({ question, courseMap, deliverabl
       readings.length > 0
         ? `Assigned reading${readings.length === 1 ? '' : 's'}: ${readings.join('; ')}.`
         : 'The compiled syllabus does not name a reading for this week.';
-    lines.push(`- **${week}: ${topic}.**${includeReadings || readings.length > 0 ? ` ${readingText}` : ''}`);
+    const skill = firstConcreteSkill(lesson);
+    const skillText = includeSkills
+      ? skill
+        ? `Concrete skill: ${skill}`
+        : 'The compiled Course Map does not name a concrete skill for this lesson.'
+      : '';
+    lines.push(
+      `- **${week}: ${topic}.**${skillText ? ` ${skillText}` : ''}${
+        includeReadings || readings.length > 0 ? ` ${readingText}` : ''
+      }`,
+    );
   }
 
   return {

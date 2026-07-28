@@ -26,7 +26,7 @@ import {
 import { validateCourseMap } from '../lib/validateCourseMap';
 import { preserveMaterializedLessonNumbers } from '../lib/materializedLessonScope';
 import { getScionReviewFailureMessage } from '../lib/scionUserFacingError';
-import { PUBLIC_SCION_PROVIDER_ID } from '../lib/publicScionIdentity';
+import { PUBLIC_SCION_MODEL_NAME, PUBLIC_SCION_PROVIDER_ID } from '../lib/publicScionIdentity';
 import { ALGI_MODEL_NAME, isAlgiModel } from '../lib/algiIdentity';
 import { applyPublicScionBriefDirectives, projectPublicScionCourseMapContinuations } from '../lib/publicScionProvider';
 import { admitCourseMapContinuationLessons, buildCourseMapContinuationPrompt } from '../lib/courseMapContinuation';
@@ -143,7 +143,7 @@ export function constrainHighConfidenceLessonCount(courseMap, expectedInfo) {
 
 export function displayGenerationModelName(provider, modelName, modelId = '') {
   if (provider !== PUBLIC_SCION_PROVIDER_ID && modelName !== 'scion-public') return modelName;
-  return isAlgiModel(modelId) || /^Algi\b/i.test(String(modelName || '')) ? ALGI_MODEL_NAME : 'Scion';
+  return isAlgiModel(modelId) || /^Algi\b/i.test(String(modelName || '')) ? ALGI_MODEL_NAME : PUBLIC_SCION_MODEL_NAME;
 }
 
 export function getCourseMapContinuationPolicy(provider, actualCount, expectedCount) {
@@ -177,6 +177,7 @@ function recordClassifiedFailedCall(recordApiCallEvent, err, event = {}, context
 export default function useGeneration({
   provider,
   modelId,
+  modelName,
   apiKey,
   maxOutputTokens,
   modelCapabilities,
@@ -837,7 +838,7 @@ export default function useGeneration({
         setGenerationLog([]);
 
         // Resolve model display name
-        const currentModelName = modelId;
+        const currentModelName = displayGenerationModelName(provider, modelName || modelId, modelId);
 
         // Step 1: Parse files
         setStatus('parsing');
@@ -1588,6 +1589,7 @@ export default function useGeneration({
   }, [
     provider,
     modelId,
+    modelName,
     apiKey,
     maxOutputTokens,
     modelCapabilities,

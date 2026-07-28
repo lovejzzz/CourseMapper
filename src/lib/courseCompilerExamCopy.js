@@ -51,11 +51,25 @@ export function examAtomPaddingOptions({ concept, lessonFocus, sourceCue, lesson
   const lessonOrdinal = Number.isFinite(Number(lessonNumber)) ? Math.max(1, Math.trunc(Number(lessonNumber))) : 1;
   const questionOrdinal = Number.isFinite(Number(questionIndex)) ? Math.max(0, Math.trunc(Number(questionIndex))) : 0;
   const start = Math.abs(lessonOrdinal + questionOrdinal - 2) % EXAM_ATOM_PADDING_TEMPLATES.length;
+  const normalizedSourceCue = cleanExamSourceCue(sourceCue);
   return Array.from({ length: 3 }, (_, offset) =>
     EXAM_ATOM_PADDING_TEMPLATES[(start + offset) % EXAM_ATOM_PADDING_TEMPLATES.length]({
       concept,
       lessonFocus,
-      sourceCue,
+      sourceCue: normalizedSourceCue,
     }),
   );
+}
+
+const IMPERATIVE_SOURCE_CUE =
+  /^(?:analy[sz]e|annotate|apply|build|choose|compare|complete|create|defend|draft|evaluate|explain|identify|interpret|prepare|review|revise|run|select|test|trace|use)\b/i;
+
+function cleanExamSourceCue(value) {
+  const cue = String(value || '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/[,:;]\s*$/, '');
+  const wordCount = (cue.match(/[A-Za-z0-9][A-Za-z0-9'-]*/g) || []).length;
+  if (!cue || wordCount > 10 || IMPERATIVE_SOURCE_CUE.test(cue)) return 'the assigned source evidence';
+  return cue;
 }

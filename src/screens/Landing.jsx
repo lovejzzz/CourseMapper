@@ -11,6 +11,7 @@ import { LATEST_RELEASE } from '../lib/latestRelease';
 import { formatCoverageTopicLabel } from '../lib/algiCoverageForecast';
 import { PUBLIC_SCION_MODEL_NAME, PUBLIC_SCION_PROVIDER_ID } from '../lib/publicScionIdentity';
 import { SCION_RESEARCH_CHANGE_EVENT, readScionResearchEnabled } from '../lib/scionResearchPolicy';
+import useScionDeviceCapability from '../hooks/useScionDeviceCapability';
 
 const ACCEPTED_EXTENSIONS = [
   '.doc',
@@ -373,6 +374,7 @@ export default function Landing({
     (name) => !files.some((file) => file?.name === name),
   );
   const scionSelected = provider === PUBLIC_SCION_PROVIDER_ID;
+  const scionDeviceCapability = useScionDeviceCapability(scionSelected);
 
   useEffect(() => {
     const handleResearchChange = (event) => {
@@ -819,7 +821,11 @@ export default function Landing({
                     <span className="font-semibold text-status-success">Connected</span>
                     {provider === PUBLIC_SCION_PROVIDER_ID && (
                       <span className="rounded-full border border-line-strong bg-surface px-2 py-1 text-label font-semibold text-ink-muted">
-                        On-device
+                        {scionDeviceCapability.phase === 'checking'
+                          ? 'Checking device'
+                          : scionDeviceCapability.evidenceCompiler
+                            ? 'Zero-download'
+                            : 'Local model'}
                       </span>
                     )}
                     <button
@@ -872,7 +878,7 @@ export default function Landing({
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <p className="text-xs font-semibold text-slate-800 dark:text-slate-100">
                           {scionCoverageForecast.externalNeeded === 0
-                            ? `On-device evidence ready for all ${scionCoverageForecast.requested} lessons`
+                            ? `Private evidence ready for all ${scionCoverageForecast.requested} lessons`
                             : `${scionCoverageForecast.privateCovered}/${scionCoverageForecast.requested} lessons ready on this device`}
                         </p>
                         <span
@@ -898,7 +904,9 @@ export default function Landing({
                             ? `Scion will check ${formatResearchProviderOrder(
                                 scionCoverageForecast.researchPlan?.providerOrder,
                               )}, verify admitted claims against source passages, and cache compact evidence on this device.`
-                            : 'Scion will stay on device and use the local model for unsupported lessons rather than sending course topics to a research service.'}
+                            : scionDeviceCapability.evidenceCompiler
+                              ? 'Scion will stay private and use its zero-download evidence compiler for unsupported lessons rather than sending course topics to a research service.'
+                              : 'Scion will stay on device and use the local model for unsupported lessons rather than sending course topics to a research service.'}
                         {files.length > 0
                           ? ' Attached files are evaluated during the build and may close additional gaps.'
                           : ''}
