@@ -896,6 +896,7 @@ Return ONLY valid JSON.`;
       nativeAdapterActive: false,
     };
     const runtime = runtimeWith([], { plannedRoute: route });
+    const runtimeLoader = vi.fn(async () => runtime);
     const onAdapterRoute = vi.fn();
     const prompt = `Course: Design\nLessons:\n${JSON.stringify([
       {
@@ -911,14 +912,23 @@ Return ONLY valid JSON.`;
       task: 'blueprintEnrichment',
       promptProtocol: 'production-lesson-kernel-synthesis-prompt-v1',
       onAdapterRoute,
-      runtimeLoader: async () => runtime,
+      runtimeLoader,
     });
 
     expect(result).toMatchObject({ attempt: 0, retryCount: 0, maxRetries: 0, tokenCount: 0 });
     expect(JSON.parse(result.fullText)).toEqual({ lessons: [{ lessonId: 'lesson-1', facts: sourceFacts }] });
+    expect(runtimeLoader).not.toHaveBeenCalled();
+    expect(runtime.loadScionBrowserWllama).not.toHaveBeenCalled();
+    expect(runtime.prepareScionBrowserWllamaTaskRoute).not.toHaveBeenCalled();
     expect(runtime.completeScionBrowserWllama).not.toHaveBeenCalled();
     expect(onAdapterRoute).toHaveBeenCalledWith(
-      expect.objectContaining({ factLedgerOnly: true, exactSourceLedger: true, modelCalls: 0 }),
+      expect.objectContaining({
+        protocol: 'scion-compiler-exact-source-route-v1',
+        reason: 'compiler-owned-exact-source-ledger',
+        factLedgerOnly: true,
+        exactSourceLedger: true,
+        modelCalls: 0,
+      }),
     );
   });
 

@@ -177,9 +177,12 @@ describe('useStreamReader Scion boundary', () => {
     expect(onApiCallEvent).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'scionAdapterRoute',
+        label: 'Scion exact evidence projected',
+        stage: 'local-compiler',
         factLedgerOnly: true,
+        exactSourceLedger: true,
         routeModelCalls: 0,
-        execution: 'browser-local',
+        execution: 'browser-compiler',
       }),
     );
   });

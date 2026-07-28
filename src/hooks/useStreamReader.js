@@ -380,23 +380,31 @@ export default function useStreamReader({ scionResearchEnabledOverride = null } 
             });
           },
           onAdapterRoute: (route) => {
+            const exactSourceProjection = route?.exactSourceLedger === true && Number(route?.modelCalls) === 0;
             const routeEvent = {
               type: 'scionAdapterRoute',
-              label: route?.mode === 'adapter' ? 'Scion adapter used' : 'Scion base used',
-              detail: `${route?.taskFamily || 'unclassified'} · ${route?.reason || 'unknown route'}`,
-              stage: 'local-model-route',
+              label: exactSourceProjection
+                ? 'Scion exact evidence projected'
+                : route?.mode === 'adapter'
+                  ? 'Scion adapter used'
+                  : 'Scion base used',
+              detail: exactSourceProjection
+                ? `${route?.taskFamily || 'lesson-kernel-synthesis'} · no model activation`
+                : `${route?.taskFamily || 'unclassified'} · ${route?.reason || 'unknown route'}`,
+              stage: exactSourceProjection ? 'local-compiler' : 'local-model-route',
               ...buildProviderTraceBase(),
               routeProtocol: route?.protocol || '',
               routeMode: route?.mode || 'base-only',
               taskFamily: route?.taskFamily || 'unclassified',
               routeReason: route?.reason || '',
               factLedgerOnly: route?.factLedgerOnly === true,
+              exactSourceLedger: route?.exactSourceLedger === true,
               adapterId: route?.adapterId || null,
               adapterManifestSha256: route?.manifestSha256 || null,
               adapterScopeIdentitySha256: route?.scopeIdentitySha256 || null,
               nativeAdapterActive: route?.nativeAdapterActive === true,
               routeModelCalls: Number.isFinite(Number(route?.modelCalls)) ? Math.max(0, Number(route.modelCalls)) : 1,
-              execution: 'browser-local',
+              execution: exactSourceProjection ? 'browser-compiler' : 'browser-local',
             };
             observedAdapterRoutes.push(routeEvent);
             recordApiCallEvent(routeEvent);
