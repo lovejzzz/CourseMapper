@@ -1289,6 +1289,11 @@ describe('B1 — buildRibbonModel selector', () => {
   it('keeps the completed build duration frozen while the user chats with Agent', () => {
     const now = Date.now();
     const buildFinishedAt = now - 100_000;
+    const packageFinishedAt = now - 80_000;
+    const quality = {
+      ...readyPass().quality,
+      gradedAt: new Date(packageFinishedAt).toISOString(),
+    };
     const budget = createApiCallBudget({
       startedAt: now - 200_000,
       updatedAt: buildFinishedAt,
@@ -1299,7 +1304,7 @@ describe('B1 — buildRibbonModel selector', () => {
       budget,
       generation: DONE_GENERATION,
       deliverables: { isGenerating: false, doneCount: 5, totalCount: 5 },
-      packageQualityPass: readyPass(),
+      packageQualityPass: readyPass({ quality }),
     });
     const afterAgent = applyApiCallBudgetEvent(budget, {
       type: 'agentLoopCall',
@@ -1310,12 +1315,34 @@ describe('B1 — buildRibbonModel selector', () => {
       budget: afterAgent,
       generation: DONE_GENERATION,
       deliverables: { isGenerating: false, doneCount: 5, totalCount: 5 },
-      packageQualityPass: readyPass(),
+      packageQualityPass: readyPass({ quality }),
     });
 
     expect(afterAgent.updatedAt).toBeGreaterThan(afterAgent.buildUpdatedAt);
-    expect(modelBeforeAgent.elapsedDisplay).toBe('Ready in 100s');
+    expect(modelBeforeAgent.elapsedDisplay).toBe('Ready in 120s');
     expect(modelAfterAgent.elapsedDisplay).toBe(modelBeforeAgent.elapsedDisplay);
+  });
+
+  it('measures readiness through export verification and grading, not only generation', () => {
+    const budget = createApiCallBudget({
+      startedAt: 1_000,
+      updatedAt: 11_000,
+      buildUpdatedAt: 11_000,
+      courseMapCalls: 1,
+    });
+    const model = buildBuildRibbonModel({
+      budget,
+      generation: DONE_GENERATION,
+      deliverables: { isGenerating: false, doneCount: 9, totalCount: 9 },
+      packageQualityPass: readyPass({
+        quality: {
+          ...readyPass().quality,
+          gradedAt: new Date(21_000).toISOString(),
+        },
+      }),
+    });
+
+    expect(model.elapsedDisplay).toBe('Ready in 20s');
   });
 
   it('chips render only when their pipeline data exists', () => {
