@@ -1,0 +1,100 @@
+{
+  "version": "0.16.94",
+  "date": "July 28, 2026",
+  "title": "One Save Truth Through the Final Green Frame",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test",
+      "npm run lint",
+      "npm run format:check",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run test:e2e",
+      "npm run audit:evaluation:main",
+      "npm run audit:contract:pr",
+      "npm run curriculumos:proof",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification must pass on the exact V0.16.94 release commit."
+    },
+    "ciDeep": {
+      "status": "pending-push",
+      "note": "Deep Proof must repeat the persistence, Smart Sync, and browser gates."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Production deployment follows a green merge."
+    },
+    "liveProvider": {
+      "status": "not-applicable",
+      "note": "This save-status patch adds no provider or model-quality claim."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No instructor, expert, accessibility, classroom, or student-outcome claim is made."
+    },
+    "manualBrowser": {
+      "status": "pending",
+      "note": "The deployed V0.16.94 course must remain resumable, synchronized without false red frames, Agent-readable, and exportable."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01694-production-finding",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The V0.16.93 production Smart Sync replay exposed a recoverable local-save retry that was briefly presented as a permanent failure during deterministic grading.",
+      "anchors": ["README.md", "docs/SCION_V01694_WORKFLOW_SAVE_TRUTH.md"],
+      "proofCommands": ["npm run audit:release-history"],
+      "proofScopes": ["browser-live", "doc"]
+    },
+    {
+      "id": "v01694-complete-workflow-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Save presentation now follows generation, Smart Sync, the settle-aware regrade handoff, verification, and grading.",
+      "anchors": ["src/AppFlow.jsx", "src/lib/buildRibbonModel.js"],
+      "proofCommands": ["npm test"],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01694-honest-local-failure",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "An active local retry remains neutral, while a local error that survives the complete workflow still becomes a visible failure.",
+      "anchors": ["src/lib/workspaceSaveStatus.js", "src/lib/__tests__/workspaceSaveStatus.test.js"],
+      "proofCommands": ["npm test -- --run src/lib/__tests__/workspaceSaveStatus.test.js"],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v01694-cloud-failure-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Compiler activity never defers a cloud save failure, and focused tests pin all persistence presentation boundaries.",
+      "anchors": ["src/lib/workspaceSaveStatus.js", "src/lib/__tests__/workspaceSaveStatus.test.js"],
+      "proofCommands": ["npm test -- --run src/lib/__tests__/workspaceSaveStatus.test.js"],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v01694-sync-action-completion",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The header resolves an existing durable Agent suggestion through the shared sync router, so completed work cannot retain live duplicate actions.",
+      "anchors": ["src/AppFlow.jsx", "tests/v015-sync-durable.test.jsx", "docs/SCION_V01694_WORKFLOW_SAVE_TRUTH.md"],
+      "proofCommands": ["npm test -- --run tests/v015-sync-durable.test.jsx"],
+      "proofScopes": ["unit", "browser-live"]
+    },
+    {
+      "id": "v01694-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 5,
+      "summary": "The patch changes save-status truth and sync-action completion only and adds no model, compiler-quality, instructor, factual, accessibility, classroom, or paid-model claim.",
+      "anchors": ["README.md", "docs/SCION_V01694_WORKFLOW_SAVE_TRUTH.md"],
+      "proofCommands": ["npm run audit:release-history"],
+      "proofScopes": ["doc", "static-audit"]
+    }
+  ]
+}
