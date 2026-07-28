@@ -517,13 +517,14 @@ function waitForResearchGap(ms, signal) {
 
 export function buildResearchProvider({
   storage = globalThis.localStorage,
+  enabled = readAlgiResearchEnabled(storage),
   gapMs = 300,
   signal,
   timeoutMs = 8000,
   maxRequests = 20,
   fetchImpl = globalThis.fetch,
 } = {}) {
-  if (!readAlgiResearchEnabled(storage)) return null;
+  if (!enabled) return null;
   if (typeof fetchImpl !== 'function') return null;
   let requestCount = 0;
   const requestCountByOrigin = {};

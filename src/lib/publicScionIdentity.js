@@ -4,7 +4,6 @@
 // provider name and model option.
 import { APP_VERSION } from './appVersion.js';
 import { SCION_BROWSER_GEMMA4_GGUF } from './scionBrowserConstants.js';
-import { ALGI_MODEL_ID, algiModelOption } from './algiIdentity.js';
 
 export const PUBLIC_SCION_PROVIDER_ID = 'public';
 export const PUBLIC_SCION_MODEL_ID = 'scion-public';
@@ -12,17 +11,14 @@ export const PUBLIC_SCION_MODEL_NAME = `Scion V${APP_VERSION}`;
 export const PUBLIC_SCION_BACKING_MODEL = SCION_BROWSER_GEMMA4_GGUF.runtimeArtifact.modelId;
 export const PUBLIC_SCION_MAX_COMPLETION_TOKENS = 2400;
 
-/**
- * Every model selectable inside the Scion provider, in display order: the
- * downloaded Gemma base first, then Algi V0, which downloads nothing.
- */
+/** Scion is the sole public model identity. Internal evidence engines are not choices. */
 export function publicScionProviderModelOptions() {
-  return [publicScionModelOption(), algiModelOption()];
+  return [publicScionModelOption()];
 }
 
-/** Resolve a stored model id to its option, defaulting to the Scion base. */
-export function publicScionModelOptionById(modelId) {
-  return String(modelId || '') === ALGI_MODEL_ID ? algiModelOption() : publicScionModelOption();
+/** Resolve every public or legacy stored model id to the current Scion release. */
+export function publicScionModelOptionById() {
+  return publicScionModelOption();
 }
 
 export function publicScionModelOption() {

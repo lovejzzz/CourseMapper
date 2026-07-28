@@ -1,10 +1,15 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { estimateAlgiSessionCount, forecastAlgiCoverage } from '../algiCoverageForecast.js';
+import { estimateAlgiSessionCount, forecastAlgiCoverage, formatCoverageTopicLabel } from '../algiCoverageForecast.js';
 import { resetAlgiGenomeCacheForTests } from '../algiKernelComposer.js';
 
 describe('Algi pre-generation coverage forecast', () => {
+  it('preserves common course acronyms in visible lesson labels', () => {
+    expect(formatCoverageTopicLabel('Wcag principles for ui and ux')).toBe('WCAG principles for UI and UX');
+    expect(formatCoverageTopicLabel('SQL and LMS integration')).toBe('SQL and LMS integration');
+  });
+
   it('uses an explicit duration before the shorter coverage list', () => {
     expect(
       estimateAlgiSessionCount(

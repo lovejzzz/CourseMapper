@@ -6,6 +6,19 @@ import { planAlgiCourseResearch, summarizeAlgiResearchPlan } from './knowledge/a
 const MIN_SESSIONS = 1;
 const MAX_SESSIONS = 20;
 const DEFAULT_SESSIONS = 8;
+const COURSE_TOPIC_ACRONYMS = new Map(
+  ['ai', 'api', 'css', 'dc', 'gis', 'html', 'lms', 'sql', 'ui', 'ux', 'wcag'].map((value) => [
+    value,
+    value.toUpperCase(),
+  ]),
+);
+
+export function formatCoverageTopicLabel(value = '') {
+  return String(value || '').replace(
+    /\b[A-Za-z]{2,5}\b/g,
+    (word) => COURSE_TOPIC_ACRONYMS.get(word.toLowerCase()) || word,
+  );
+}
 
 function clampSessions(value) {
   if (value === null || value === undefined || value === '') return null;

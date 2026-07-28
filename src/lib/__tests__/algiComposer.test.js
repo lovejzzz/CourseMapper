@@ -85,12 +85,10 @@ function validateAgainstSchema(skeleton, sessionCount) {
 }
 
 describe('Algi V0 identity', () => {
-  it('is offered inside the Scion provider, listed after the downloaded base', () => {
+  it('keeps Algi internal while Scion remains the sole public model identity', () => {
     const options = publicScionProviderModelOptions();
-    expect(options).toHaveLength(2);
+    expect(options).toHaveLength(1);
     expect(options[0].id).toBe('scion-public');
-    expect(options[1].id).toBe('algi-v0');
-    expect(options[1].name).toBe('Algi V0');
   });
 
   it('claims no sampling capability, because nothing is sampled', () => {

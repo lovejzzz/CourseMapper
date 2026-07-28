@@ -168,6 +168,56 @@ describe('lesson content enrichment contracts', () => {
     expect(prompt.lessons[0]).not.toHaveProperty('sourceLedgerAttribution');
   });
 
+  it('binds the internal Scion evidence overlay into the immutable per-lesson ledger', () => {
+    const sourceFacts = [
+      'Greenhouse gases absorb outgoing longwave radiation and re-emit energy in multiple directions.',
+      'Historical emissions and uneven exposure contribute to unequal climate risks among communities.',
+      'A climate-justice analysis examines both physical hazards and the distribution of decision-making power.',
+    ];
+    const evidenceByLessonId = {
+      'lesson-1': {
+        sourceFacts,
+        sourceConcepts: [
+          {
+            tr: 'Radiative forcing',
+            df: 'A change in Earth’s energy balance.',
+            eg: 'Added carbon dioxide.',
+            mi: 'It is direct heat.',
+            cx: 'It changes radiative balance.',
+          },
+          {
+            tr: 'Exposure',
+            df: 'Contact with a hazard.',
+            eg: 'Coastal flooding.',
+            mi: 'It equals vulnerability.',
+            cx: 'Exposure and vulnerability differ.',
+          },
+          {
+            tr: 'Climate justice',
+            df: 'Analysis of unequal climate burdens and power.',
+            eg: 'Adaptation funding.',
+            mi: 'It is only climate science.',
+            cx: 'It joins climate evidence and distribution.',
+          },
+        ],
+        sourceLedgerAttribution: {
+          title: 'Scion evidence ledger',
+          author: 'Open source contributors',
+          license: 'CC BY 4.0',
+          url: 'https://example.edu/climate',
+        },
+        scionEvidenceReceipts: [{ displayTitle: 'Climate evidence', sourceUrl: 'https://example.edu/climate' }],
+      },
+    };
+    const prompt = buildLessonContentEnrichmentPrompt(COURSE_MAP, [0], { evidenceByLessonId });
+    expect(prompt.lessons[0]).toMatchObject({
+      sourceFactPolicy: 'numbered-source-ledger-v1',
+      sourceFacts,
+      sourceLedgerAttribution: evidenceByLessonId['lesson-1'].sourceLedgerAttribution,
+      scionEvidenceReceipts: evidenceByLessonId['lesson-1'].scionEvidenceReceipts,
+    });
+  });
+
   it('lint accepts a well-formed disciplinary item and rejects meta/process items', () => {
     expect(lintEnrichedQuizItem(GOOD_ITEM, { groundingText: '' })).toHaveLength(0);
     const meta = {
