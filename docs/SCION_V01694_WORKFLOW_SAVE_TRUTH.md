@@ -22,6 +22,8 @@ During that active grading frame, the exact browser save queue was recovering fr
 
 The persistence layer's five-second confirmation contract was working as designed. The presentation layer had a smaller phase model: it deferred a recoverable local failure during initial generation, but did not recognize Smart Sync, the sync-to-regrade handoff, verification, or grading as active workflow states.
 
+The replay also exposed a second surface disagreement after the green frame. The header's **Sync all stale** action regenerated every material directly, while the Agent's durable suggestion message remained pending. The package had zero stale materials, but the Agent still said **9 Deliverables Need Syncing** and offered active **Sync All** and **Skip** actions.
+
 ## Fix
 
 The workspace now derives an in-flight persistence boundary from:
@@ -34,6 +36,8 @@ While that complete workflow is active, a local persistence error reads **Saving
 
 Cloud failures remain immediate because local compiler activity cannot repair a remote save.
 
+When a durable Agent sync suggestion exists, the header now approves it through the shared Agent sync router. That single path executes the plan and marks the message terminal. Direct regeneration remains available only as the fallback for a restored stale workspace that has no durable suggestion.
+
 ## Regression proof
 
 `src/lib/__tests__/workspaceSaveStatus.test.js` pins four boundaries:
@@ -43,11 +47,13 @@ Cloud failures remain immediate because local compiler activity cannot repair a 
 3. a settled local failure remains visible; and
 4. a cloud failure is never deferred.
 
+`tests/v015-sync-durable.test.jsx` also pins that the header discovers the durable Agent suggestion and routes it through the same execute-and-complete owner used by the Agent card and review queue.
+
 The release browser proof must replay the deployed V0.16.93 Digital Accessibility project, create a real stale dependency set, select **Sync all stale**, and sample the sync, handoff, verification, grading, and ready frames. No false red persistence state may appear, and the final exact project must remain resumable and exportable.
 
 ## Release Boundary
 
-No course-generation, compiler-output, evidence, model, adapter, readiness, or export-format behavior changes in V0.16.94.
+No course-generation, compiler-output, evidence, model, adapter, readiness, or export-format behavior changes in V0.16.94. The release changes persistence presentation and makes the completed state of an existing sync plan agree across the header and Agent.
 
 ## Required release proof
 

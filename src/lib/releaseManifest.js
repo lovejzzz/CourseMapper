@@ -330,7 +330,8 @@ export const CURRENT_RELEASE = {
     'Workspace persistence presentation now follows the complete Living Course Compiler workflow—generation, Smart Sync, the settle-aware regrade handoff, verification, and grading—instead of treating initial generation as the only in-flight state.',
     'A recoverable local save error remains calm as “Saving locally…” while that workflow is active. The application does not fabricate success: if the error remains after the compiler settles, the existing permanent “Local save failed” state still appears.',
     'Cloud failures are never deferred by local compiler activity, and focused regression tests pin active-workflow deferral, settled local failure, and immediate cloud-failure behavior.',
-    'This release changes save-status truth and frame-level UX only. It does not change Gemma weights, adapter state, source research, evidence admission, compiler output, model routing, readiness scoring, export format, or any instructor, factual, accessibility, classroom, or paid-model claim.',
+    'The same frame replay found a second completed-state contradiction: the header synchronized every stale material while the Agent retained the old “9 Deliverables Need Syncing” card with live Sync All and Skip actions. The header now approves the durable Agent suggestion through the shared sync router, so the plan executes once and its card becomes terminal; restored stale workspaces without a suggestion keep the direct-regeneration fallback.',
+    'This release changes save-status truth, sync-action completion, and frame-level UX only. It does not change Gemma weights, adapter state, source research, evidence admission, compiler output, model routing, readiness scoring, export format, or any instructor, factual, accessibility, classroom, or paid-model claim.',
   ],
   landingHighlights: [
     'Save status follows the complete compiler workflow.',
@@ -338,6 +339,7 @@ export const CURRENT_RELEASE = {
     'Recoverable retries read “Saving locally…”.',
     'Settled local failures remain visible and honest.',
     'Cloud failures still surface immediately.',
+    'Completed sync cards cannot offer the same action twice.',
     'Scion output, routes, and model weights stay unchanged.',
   ],
   proof: {
@@ -921,11 +923,22 @@ export const CURRENT_RELEASE_CHANGELOG = {
       ],
     },
     {
+      label: 'Finish the sync action on every surface',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'The header Sync all stale action checks for the durable Agent suggestion before using its restored-workspace fallback.',
+        'When the suggestion exists, the shared Agent router executes the plan and marks its card terminal.',
+        'A completed package cannot keep offering the same Sync All and Skip actions.',
+        'A stale restored project without an Agent suggestion can still regenerate directly.',
+      ],
+    },
+    {
       label: 'Keep Scion quality and routing unchanged',
       icon: 'CHECK',
       color: 'slate',
       items: [
-        'V0.16.94 changes save-status presentation, not course generation or compilation.',
+        'V0.16.94 changes save-status presentation and sync-action completion, not course generation or compilation.',
         'The pinned Gemma base, inactive adapter, evidence layer, consent boundary, and readiness ceiling are unchanged.',
         'The compiler-before-model path still performs zero model work when exact structure and evidence satisfy the contract.',
         'No teaching-quality, factual, accessibility, classroom, or paid-model claim is added.',

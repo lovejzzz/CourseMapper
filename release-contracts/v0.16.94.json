@@ -79,10 +79,19 @@
       "proofScopes": ["unit"]
     },
     {
-      "id": "v01694-boundary",
+      "id": "v01694-sync-action-completion",
       "status": "verified-current",
       "changelogHighlightIndex": 4,
-      "summary": "The patch changes save-status truth only and adds no model, compiler-quality, instructor, factual, accessibility, classroom, or paid-model claim.",
+      "summary": "The header resolves an existing durable Agent suggestion through the shared sync router, so completed work cannot retain live duplicate actions.",
+      "anchors": ["src/AppFlow.jsx", "tests/v015-sync-durable.test.jsx", "docs/SCION_V01694_WORKFLOW_SAVE_TRUTH.md"],
+      "proofCommands": ["npm test -- --run tests/v015-sync-durable.test.jsx"],
+      "proofScopes": ["unit", "browser-live"]
+    },
+    {
+      "id": "v01694-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 5,
+      "summary": "The patch changes save-status truth and sync-action completion only and adds no model, compiler-quality, instructor, factual, accessibility, classroom, or paid-model claim.",
       "anchors": ["README.md", "docs/SCION_V01694_WORKFLOW_SAVE_TRUTH.md"],
       "proofCommands": ["npm run audit:release-history"],
       "proofScopes": ["doc", "static-audit"]

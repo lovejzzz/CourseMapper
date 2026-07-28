@@ -74,4 +74,10 @@ describe('host wiring (source scans)', () => {
     expect(chatPanel).toContain('chatSendRef.current.approveSyncSuggestion');
     expect(chatPanel).toContain('chat.handleApproveSyncSuggestion(suggestionId, selectedPlan)');
   });
+
+  it('the header Sync all stale action resolves the durable Agent suggestion when one exists', () => {
+    const appFlow = read('src/AppFlow.jsx');
+    expect(appFlow).toContain('if (smartSync.pendingSyncSuggestion || pendingSyncFromChat)');
+    expect(appFlow).toContain('handleExecuteSyncFromQueue();');
+  });
 });

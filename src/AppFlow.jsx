@@ -3523,6 +3523,16 @@ export default function AppFlow({
                   return (
                     <button
                       onClick={() => {
+                        // The Agent owns the durable suggestion message. When
+                        // that plan exists, approve it through the same router
+                        // as the card/review queue so the work executes AND the
+                        // old action becomes terminal. Direct regeneration is
+                        // only the restored-workspace fallback when there is
+                        // no suggestion to resolve.
+                        if (smartSync.pendingSyncSuggestion || pendingSyncFromChat) {
+                          handleExecuteSyncFromQueue();
+                          return;
+                        }
                         const staleIds = selectedFeatures.filter(
                           (f) => f !== 'courseMap' && deliv.deliverables[f]?.stale === true,
                         );
