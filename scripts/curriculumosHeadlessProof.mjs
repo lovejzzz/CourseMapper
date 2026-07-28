@@ -26,25 +26,25 @@ function log(message) {
 }
 
 const COURSE = {
-  courseName: 'Beginning Korean I',
+  courseName: 'Introductory Astronomy',
   lessons: [
-    ['Hangul Foundations', 'hangul consonants vowels syllable blocks alphabet'],
-    ['Pronunciation and Sound Patterns', 'korean pronunciation sound rules'],
-    ['Greetings and Introductions', 'basic greetings self-introduction'],
-    ['Numbers and Counting', 'korean numbers counting systems counters'],
-    ['Particles and Sentence Basics', 'subject markers particles sentence structure'],
-    ['Present Tense Verbs', 'present tense verb conjugation non-past forms'],
-    ['Honorifics and Politeness', 'honorifics politeness levels speech levels'],
-    ['Asking Questions', 'question forms interrogatives question endings'],
+    ['Diurnal Motion', 'diurnal motion Earth rotation rise and set'],
+    ['The Celestial Sphere', 'celestial sphere sky coordinates'],
+    ['Seasons and Axial Tilt', 'seasons axial tilt sunlight angle'],
+    ['Phases of the Moon', 'moon phases illumination geometry'],
+    ["Kepler's Third Law", 'Kepler third law orbital period semimajor axis'],
+    ['The Electromagnetic Spectrum', 'electromagnetic spectrum wavelength frequency'],
+    ['Spectral Lines', 'spectral lines atoms composition'],
+    ['Telescope Aperture', 'telescope aperture light gathering power'],
   ].map(([title, topics], index) => ({
     title: `Lesson ${index + 1}: ${title}`,
     sections: [
       {
         topicSection: `${index + 1}.1: ${topics}`,
-        learningObjectives: `Students will be able to:\n1. Apply ${topics} in short dialogues`,
-        weeklyAssessments: `Speaking check ${index + 1}: short dialogue`,
-        asyncActivities: 'Listen to the drills.',
-        syncActivities: 'Pair practice.',
+        learningObjectives: `Students will be able to:\n1. Apply ${topics} to interpret an astronomical observation`,
+        weeklyAssessments: `Observation analysis ${index + 1}: explain one evidence-based conclusion`,
+        asyncActivities: 'Annotate a sky map, spectrum, or orbital diagram and record one inference.',
+        syncActivities: 'Compare interpretations in pairs, then defend the stronger evidence chain.',
         supportingResources: '',
       },
     ],
@@ -66,27 +66,46 @@ async function main() {
 
   // 2. Infer + link.
   const disciplines = inferCourseDisciplines(COURSE);
-  const linked = linkGenome({ courseMap: COURSE, library });
+  const linked = linkGenome({
+    courseMap: COURSE,
+    library,
+    sourceReferences: manifest.references || {},
+  });
   const resolved = linked.telemetry.resolvedFromGenome + linked.telemetry.resolvedFromCache;
   log(
     `disciplines ${JSON.stringify(disciplines)} · linked ${resolved}/${COURSE.lessons.length} lessons (${linked.telemetry.conceptHits} concepts)`,
   );
-  if (!disciplines.includes('lang')) throw new Error('lang not inferred');
+  if (!disciplines.includes('astro')) throw new Error('astro not inferred');
   if (resolved < 6) throw new Error(`linked ${resolved} < 6`);
 
   // 3. Compile the full package from the linked kernels.
-  const { deliverables, compiledFeatureIds } = compileCourse({
+  const { deliverables, compiledFeatureIds, courseGraph } = compileCourse({
     courseMap: COURSE,
     enrichmentOverlay: { lessonContent: linked.lessonContent },
   });
   const compiledCount = compiledFeatureIds.filter((id) => deliverables[id]).length;
-  log(`compiled ${compiledCount}/${compiledFeatureIds.length} deliverables`);
+  const linkedCitationCount = Object.values(linked.lessonContent || {}).reduce(
+    (sum, payload) => sum + (payload?.conceptProvenance?.citations?.length || 0),
+    0,
+  );
+  log(
+    `compiled ${compiledCount}/${compiledFeatureIds.length} deliverables · ${linkedCitationCount} linked citations · ${courseGraph?.resources?.length || 0} source resources`,
+  );
   if (compiledCount !== compiledFeatureIds.length) throw new Error('compile incomplete');
 
   // 4. Assemble the real export files and deep-grade them.
   const deliverableState = Object.fromEntries(
     compiledFeatureIds.map((id) => [id, { status: 'done', data: deliverables[id] }]),
   );
+  const judgment = linked.prerequisiteJudgment || {};
+  const judgmentReceipt =
+    Number(judgment.total) > 0
+      ? `${Number(judgment.total)} prerequisite gaps (${Number(judgment.bridgeable) || 0} bridgeable with cited primers, ${
+          Number(judgment.assumedBackground) || 0
+        } assumed background) · ${Number(judgment.outOfOrder) || 0} out-of-order · ${
+          Number(judgment.primersBuilt) || 0
+        } primers built`
+      : `no gaps across ${Number(linked.telemetry.conceptHits) || resolved} linked concepts`;
   // v0.15.1 C3: ALL NINE features assemble and grade headless — the slide
   // text-fit measurer gained a heuristic tier for canvas-less runtimes,
   // and the last named browser exception died here.
@@ -94,6 +113,8 @@ async function main() {
     courseMap: COURSE,
     deliverables: deliverableState,
     featureIds: ['courseMap', ...compiledFeatureIds],
+    courseGraph,
+    pipelineState: { judgment: judgmentReceipt },
   });
   const quality = graded.quality || {};
   log(
@@ -101,6 +122,18 @@ async function main() {
   );
   if (quality.status !== 'graded') throw new Error(`not graded: ${quality.reason || 'unknown'}`);
   if (!(quality.score >= 95) || (quality.findingCounts?.p0 || 0) > 0) {
+    const findings = Array.isArray(graded.qualityResult?.findings)
+      ? graded.qualityResult.findings.map(({ severity, featureId, message, dimension, detail, evidence }) => ({
+          severity,
+          featureId,
+          message,
+          dimension,
+          detail,
+          evidence,
+        }))
+      : [];
+    log(`quality dimensions: ${JSON.stringify(graded.qualityResult?.scores || {})}`);
+    log(`quality findings: ${JSON.stringify(findings)}`);
     throw new Error(`grade below bar: ${quality.score}, P0 ${quality.findingCounts?.p0}`);
   }
 

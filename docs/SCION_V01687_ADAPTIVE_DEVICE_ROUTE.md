@@ -165,3 +165,19 @@ The adaptive path is a valid production outcome, not a disguised model success: 
 ## Release Boundary
 
 V0.16.87 changes runtime admission, adaptive orchestration, error fidelity, defensive byte transport, prompt-derived title identity, source attribution, and language finalization. It binds those grader dependencies under V27 but does not change Gemma weights, activate the optional trained adapter, relax evidence admission, inherit or raise a benchmark score, or establish instructor, factual, accessibility, or classroom validation.
+
+## Production Result
+
+Fast verification and deployment passed, but the mandatory production-origin
+course did not satisfy this acceptance contract. The primary action disclosed
+current-source research, yet the lazy application handoff later resolved the
+run as private mode. The resulting Digital Accessibility course prepared only
+1/4 lesson kernels, reported 53/100 Automated Readiness, and correctly remained
+blocked. A manually dispatched Deep proof run also failed its app/runtime job
+because the quota-pressure autosave fixture reached the recovered workspace
+after the old ten-second runner threshold.
+
+V0.16.87 is therefore retained as the adaptive-device architecture release,
+not represented as professor-ready production proof. V0.16.88 carries the
+explicit one-run consent handoff, the exact lesson-sequence parser repair, and a
+runner-independent autosave recovery assertion.

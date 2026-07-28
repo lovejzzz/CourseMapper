@@ -181,6 +181,7 @@ describe('F1/F2 — source wiring (the header has ONE verb; the paths exist)', (
     // 99% with template-only lesson kernels.
     expect(landing).toContain('quickStartNeedsCurrentSources');
     expect(landing).toContain('saveScionResearchEnabled(true)');
+    expect(landing).toContain('scionResearchEnabled: quickStartNeedsCurrentSources || scionResearchEnabled');
     expect(landing).toContain('onClick={handleQuickStartClick}');
     expect(landing).toContain('send only the course title');
     // The deliberate three-screen path stays — relabeled, not removed.
@@ -190,7 +191,8 @@ describe('F1/F2 — source wiring (the header has ONE verb; the paths exist)', (
 
   it('AppFlow quick start mirrors select-all and calls the SAME generate path as Config', () => {
     const appFlow = read('src/AppFlow.jsx');
-    expect(appFlow).toContain('function handleQuickStart()');
+    expect(appFlow).toContain('function handleQuickStart(options = {})');
+    expect(appFlow).toContain('scionResearchEnabledOverride');
     expect(appFlow).toContain('onQuickStart={handleQuickStart}');
     // Select-all mirror: built-ins (minus syllabus with a syllabus file) + customs.
     expect(appFlow).toMatch(/hasSyllabusFile \? FEATURES\.filter\(\(f\) => f\.id !== 'syllabus'\) : FEATURES/);

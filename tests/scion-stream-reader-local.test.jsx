@@ -40,8 +40,8 @@ let container;
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
-function Harness() {
-  reader = useStreamReader();
+function Harness({ scionResearchEnabledOverride = null } = {}) {
+  reader = useStreamReader({ scionResearchEnabledOverride });
   return null;
 }
 
@@ -244,6 +244,31 @@ describe('useStreamReader Scion boundary', () => {
       }),
     );
     expect(onApiCallEvent).not.toHaveBeenCalledWith(expect.objectContaining({ type: 'failedCall' }));
+  });
+
+  it('uses explicit run consent even when persistent research storage is still off', async () => {
+    const capabilityError = Object.assign(new Error('This browser could not start a WebGPU adapter for Scion.'), {
+      code: 'SCION_WLLAMA_WEBGPU_ADAPTER',
+    });
+    mocks.runScionLocalCompletion.mockRejectedValue(capabilityError);
+    mocks.readScionResearchEnabled.mockReturnValue(false);
+    mocks.composeAlgiResponse.mockResolvedValue({
+      text: '{"courseName":"Digital Accessibility","lessons":[]}',
+      coverage: { covered: 3, requested: 3, researched: 3, cachedResearch: 0 },
+    });
+    await act(async () => root.render(<Harness scionResearchEnabledOverride />));
+
+    await act(async () => {
+      await reader.streamProvider('public', '', 'scion-public', 'System', 'Digital Accessibility', {
+        task: 'course-map',
+      });
+    });
+
+    expect(mocks.composeAlgiResponse).toHaveBeenCalledWith(
+      expect.objectContaining({
+        researchEnabled: true,
+      }),
+    );
   });
 
   it('projects the preflight evidence ledger exactly instead of researching it a second time', async () => {

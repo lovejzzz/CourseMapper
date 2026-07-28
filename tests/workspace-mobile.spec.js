@@ -1,117 +1,123 @@
 import { expect, test } from '@playwright/test';
 
-async function restoreGeneratedWorkspace(page, { activeTab = 'lessonPlans' } = {}) {
+async function restoreGeneratedWorkspace(
+  page,
+  { activeTab = 'lessonPlans', courseName = 'Mobile Layout Course' } = {},
+) {
   await page.goto('/');
-  await page.evaluate((restoredActiveTab) => {
-    localStorage.clear();
-    sessionStorage.clear();
-    localStorage.setItem(
-      'coursemapper-project',
-      JSON.stringify({
-        formatVersion: 1,
-        hasGenerated: true,
-        provider: 'openai',
-        modelId: 'gpt-4o-mini',
-        modelName: 'GPT-4o mini',
-        courseMap: {
-          courseName: 'Mobile Layout Course',
-          semester: 'Spring 2026',
-          lessons: [
-            {
-              title: 'Lesson 1',
-              learningGoals: ['Goal 1'],
-              topics: ['Topic 1'],
-              learningObjectives: ['Objective 1'],
-              weeklyAssessments: ['Assessment 1'],
-              asynchronousActivities: ['Activity 1'],
-              synchronousActivities: ['Discussion 1'],
-            },
-          ],
-        },
-        columns: [],
-        userEdits: [],
-        chatHistory: [],
-        fileNames: [],
-        versionHistory: [],
-        selectedFeatures: ['courseMap', 'lessonPlans', 'slideDecks', 'quizBank'],
-        deliverableConfig: { lessonPlans: {}, slideDecks: { slideCount: 3 } },
-        lessonScope: { type: 'all' },
-        promptText: 'Mobile layout course',
-        activeTab: restoredActiveTab,
-        deliverables: {
-          lessonPlans: {
-            status: 'done',
-            data: {
-              lessonPlans: [
-                {
-                  lessonTitle: 'Lesson 1',
-                  overview: 'A practical lesson plan for mobile layout testing.',
-                  activities: ['Discuss responsive workspace patterns.'],
-                  outline: [
-                    {
-                      time: '10 min',
-                      activity: 'Review lab',
-                      description: 'Inspect the exported course and record one concrete handoff risk.',
-                      grouping: 'Pairs',
-                      type: 'Practice',
-                      bloomsLevel: 'Evaluate',
-                      instructorNotes: 'Ask for evidence from a real file.',
-                    },
-                  ],
-                },
-              ],
-            },
-            error: null,
-            stale: false,
+  await page.evaluate(
+    ({ restoredActiveTab, restoredCourseName }) => {
+      localStorage.clear();
+      sessionStorage.clear();
+      localStorage.setItem(
+        'coursemapper-project',
+        JSON.stringify({
+          formatVersion: 1,
+          hasGenerated: true,
+          provider: 'openai',
+          modelId: 'gpt-4o-mini',
+          modelName: 'GPT-4o mini',
+          courseMap: {
+            courseName: restoredCourseName,
+            semester: 'Spring 2026',
+            lessons: [
+              {
+                title: 'Lesson 1',
+                learningGoals: ['Goal 1'],
+                topics: ['Topic 1'],
+                learningObjectives: ['Objective 1'],
+                weeklyAssessments: ['Assessment 1'],
+                asynchronousActivities: ['Activity 1'],
+                synchronousActivities: ['Discussion 1'],
+              },
+            ],
           },
-          slideDecks: {
-            status: 'done',
-            data: {
-              decks: [
-                {
-                  lessonTitle: 'Lesson 1',
-                  slides: [
-                    { title: 'Intro', bullets: ['A'] },
-                    { title: 'Practice', bullets: ['B'] },
-                  ],
-                },
-              ],
+          columns: [],
+          userEdits: [],
+          chatHistory: [],
+          fileNames: [],
+          versionHistory: [],
+          selectedFeatures: ['courseMap', 'lessonPlans', 'slideDecks', 'quizBank'],
+          deliverableConfig: { lessonPlans: {}, slideDecks: { slideCount: 3 } },
+          lessonScope: { type: 'all' },
+          promptText: 'Mobile layout course',
+          activeTab: restoredActiveTab,
+          deliverables: {
+            lessonPlans: {
+              status: 'done',
+              data: {
+                lessonPlans: [
+                  {
+                    lessonTitle: 'Lesson 1',
+                    overview: 'A practical lesson plan for mobile layout testing.',
+                    activities: ['Discuss responsive workspace patterns.'],
+                    outline: [
+                      {
+                        time: '10 min',
+                        activity: 'Review lab',
+                        description: 'Inspect the exported course and record one concrete handoff risk.',
+                        grouping: 'Pairs',
+                        type: 'Practice',
+                        bloomsLevel: 'Evaluate',
+                        instructorNotes: 'Ask for evidence from a real file.',
+                      },
+                    ],
+                  },
+                ],
+              },
+              error: null,
+              stale: false,
             },
-            error: null,
-            stale: false,
-          },
-          quizBank: {
-            status: 'done',
-            data: {
-              quizzes: [
-                {
-                  lt: 'Lesson 1: Evidence Checks',
-                  bc: ['Apply'],
-                  qs: [
-                    {
-                      ty: 'multiple_choice',
-                      bl: 'Apply',
-                      df: 'Medium',
-                      pt: 2,
-                      em: 3,
-                      oa: 'Choose evidence that supports the claim.',
-                      q: 'Which observation most directly supports the proposed revision?',
-                      op: ['A. Repeated task failure', 'B. Preferred color', 'C. Team size', 'D. Meeting time'],
-                      an: 'A',
-                      ex: 'Repeated task failure is direct evidence about whether the interaction succeeds.',
-                    },
-                  ],
-                },
-              ],
+            slideDecks: {
+              status: 'done',
+              data: {
+                decks: [
+                  {
+                    lessonTitle: 'Lesson 1',
+                    slides: [
+                      { title: 'Intro', bullets: ['A'] },
+                      { title: 'Practice', bullets: ['B'] },
+                    ],
+                  },
+                ],
+              },
+              error: null,
+              stale: false,
             },
-            error: null,
-            stale: false,
+            quizBank: {
+              status: 'done',
+              data: {
+                quizzes: [
+                  {
+                    lt: 'Lesson 1: Evidence Checks',
+                    bc: ['Apply'],
+                    qs: [
+                      {
+                        ty: 'multiple_choice',
+                        bl: 'Apply',
+                        df: 'Medium',
+                        pt: 2,
+                        em: 3,
+                        oa: 'Choose evidence that supports the claim.',
+                        q: 'Which observation most directly supports the proposed revision?',
+                        op: ['A. Repeated task failure', 'B. Preferred color', 'C. Team size', 'D. Meeting time'],
+                        an: 'A',
+                        ex: 'Repeated task failure is direct evidence about whether the interaction succeeds.',
+                      },
+                    ],
+                  },
+                ],
+              },
+              error: null,
+              stale: false,
+            },
           },
-        },
-        savedAt: Date.now(),
-      }),
-    );
-  }, activeTab);
+          savedAt: Date.now(),
+        }),
+      );
+    },
+    { restoredActiveTab: activeTab, restoredCourseName: courseName },
+  );
   await page.reload();
   await expect(page.locator('button:has-text("Resume")')).toBeVisible({ timeout: 10000 });
   const savedSessionDismissButton = page.getByRole('button', { name: 'Dismiss saved session' });
@@ -201,7 +207,9 @@ test.describe('Generated workspace mobile layout', () => {
   ]) {
     test(`keeps content, agent, and export panels within a ${viewport.label} viewport`, async ({ page }) => {
       await page.setViewportSize({ width: viewport.width, height: viewport.height });
-      await restoreGeneratedWorkspace(page);
+      await restoreGeneratedWorkspace(page, {
+        courseName: viewport.label === 'phone' ? 'Digital Accessibility for Product Teams' : 'Mobile Layout Course',
+      });
 
       await expect(page.getByTestId('mobile-workspace-switcher')).toBeVisible();
       await expect(page.getByTestId('workspace-content-panel')).toBeVisible();
@@ -247,9 +255,18 @@ test.describe('Generated workspace mobile layout', () => {
       expect(Math.min(...switcherTargetHeights)).toBeGreaterThanOrEqual(44);
 
       const courseTitleWhiteSpace = await page
-        .getByRole('heading', { level: 1 })
+        .getByTestId('workspace-course-title')
         .evaluate((heading) => window.getComputedStyle(heading).whiteSpace);
       expect(courseTitleWhiteSpace).toBe('normal');
+      if (viewport.label === 'phone') {
+        const titleLayout = await page.getByTestId('workspace-course-title').evaluate((heading) => ({
+          clientHeight: heading.clientHeight,
+          scrollHeight: heading.scrollHeight,
+          renderedText: heading.innerText,
+        }));
+        expect(titleLayout.renderedText).toBe('Digital Accessibility for Product Teams');
+        expect(titleLayout.scrollHeight).toBeLessThanOrEqual(titleLayout.clientHeight + 1);
+      }
 
       const workspaceFooterStyle = await page.locator('footer').evaluate((footer) => {
         const text = footer.querySelector('p');

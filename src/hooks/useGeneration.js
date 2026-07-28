@@ -194,6 +194,7 @@ export default function useGeneration({
   pedagogicalMode, // Feature 4.2 — e.g. 'lecture' | 'flipped' | 'pbl' | 'seminar' | 'competency'
   courseMapConfig, // Optional config for the course map deliverable (referenceFile, extraInstructions)
   onApiCallEvent,
+  scionResearchEnabledOverride = null,
 }) {
   const [status, setStatus] = useState('idle');
   const [progressStep, setProgressStep] = useState(null);
@@ -219,7 +220,9 @@ export default function useGeneration({
   const lastGoodParseRef = useRef(null);
   const workingModelRef = useRef({ provider: null, apiKey: null, modelId: null }); // tracks which model to use for examine
 
-  const { streamProvider, parsePartialJSON, abort, abortControllerRef } = useStreamReader();
+  const { streamProvider, parsePartialJSON, abort, abortControllerRef } = useStreamReader({
+    scionResearchEnabledOverride,
+  });
 
   const recordApiCallEvent = useCallback(
     (event) => {

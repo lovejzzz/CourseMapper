@@ -89,7 +89,16 @@ function exactCountedCommaSequence(text, expectedCount) {
   // comma splitting here collapsed the first two numbered lessons together
   // and then mistook the third lesson's internal commas for new lessons.
   if (listBlock.includes(';')) return [];
-  const normalized = listBlock.replace(/\s*,\s*and\s+/gi, ', ').replace(/\s+and\s+([^,]+)$/i, ', $1');
+  const hasOxfordBoundary = /\s*,\s*and\s+/i.test(listBlock);
+  const withoutOxfordBoundary = listBlock.replace(/\s*,\s*and\s+/gi, ', ');
+  // Once an Oxford-comma boundary has already separated the final item, a
+  // later "and" belongs to that item's title ("testing and remediation").
+  // Treating it as another delimiter silently turns an exact N-item contract
+  // into N+1 items and makes the whole sequence fall back to "Session N
+  // topic". The second replacement is only for non-Oxford "A, B and C".
+  const normalized = hasOxfordBoundary
+    ? withoutOxfordBoundary
+    : withoutOxfordBoundary.replace(/\s+and\s+([^,]+)$/i, ', $1');
   if (!normalized.includes(',')) return [];
   const items = normalized
     .split(/\s*,\s*/)

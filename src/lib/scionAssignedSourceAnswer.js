@@ -65,12 +65,34 @@ function connectedLessonFromQuestion(question, courseMap, sourceIndex) {
     ),
   ];
   const connectedIndex = mentioned.find((index) => index !== sourceIndex);
-  if (connectedIndex == null) return null;
-  const lesson = lessons[connectedIndex];
+  if (connectedIndex != null) {
+    const lesson = lessons[connectedIndex];
+    return {
+      index: connectedIndex,
+      lesson,
+      title: cleanText(lesson?.title).replace(/^lesson\s*\d+\s*[:.\-–—]?\s*/i, ''),
+    };
+  }
+
+  const questionTokens = new Set(sourceQuestionTokens(question));
+  const ranked = lessons
+    .map((lesson, index) => {
+      const title = cleanText(lesson?.title).replace(/^lesson\s*\d+\s*[:.\-–—]?\s*/i, '');
+      return {
+        index,
+        lesson,
+        title,
+        score: sourceQuestionTokens(title).filter((token) => questionTokens.has(token)).length,
+      };
+    })
+    .filter(({ index }) => index !== sourceIndex)
+    .sort((left, right) => right.score - left.score || left.index - right.index);
+  const connectedTarget = ranked[0];
+  if (!connectedTarget || connectedTarget.score < 2) return null;
   return {
-    index: connectedIndex,
-    lesson,
-    title: cleanText(lesson?.title).replace(/^lesson\s*\d+\s*[:.\-–—]?\s*/i, ''),
+    index: connectedTarget.index,
+    lesson: connectedTarget.lesson,
+    title: connectedTarget.title,
   };
 }
 

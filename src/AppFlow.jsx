@@ -490,6 +490,9 @@ export default function AppFlow({
   // before the return-to-landing guard below, which must not bounce the
   // flow back to App's landing during the one-render quick-start window.
   const [quickStartPending, setQuickStartPending] = useState(false);
+  const [scionResearchEnabledOverride, setScionResearchEnabledOverride] = useState(() =>
+    startupAction?.type === 'quickStart' && startupAction?.scionResearchEnabled === true ? true : null,
+  );
 
   useEffect(() => {
     if (screen === 'landing' && !isHandlingStartupAction && !startupAction && !quickStartPending) {
@@ -1048,6 +1051,7 @@ export default function AppFlow({
     lessonScope: lessonScope.type === 'specific' ? lessonScope.indices : null,
     courseMapConfig: deliverableConfig['courseMap'],
     onApiCallEvent: recordApiCallEvent,
+    scionResearchEnabledOverride,
   });
 
   const { handleDownload, resetExport } = useExport(courseMap, columns, gen.setError);
@@ -1087,6 +1091,7 @@ export default function AppFlow({
     columns,
     sourceBrief: promptText,
     courseGraph,
+    scionResearchEnabledOverride,
     onApiCallEvent: recordApiCallEvent,
     onCourseMapRepair: handleGeneratedCourseMapRepair,
     onCourseGraph: handleCourseGraph,
@@ -2773,7 +2778,10 @@ export default function AppFlow({
   // "Select all" (built-ins minus syllabus when a syllabus file is attached,
   // plus custom deliverables), keeps model/config defaults untouched, then
   // runs the SAME generation path the Config screen's CTA calls.
-  function handleQuickStart() {
+  function handleQuickStart(options = {}) {
+    if (options?.scionResearchEnabled === true) {
+      setScionResearchEnabledOverride(true);
+    }
     // Seed the agent context + the instant lesson-count scan, exactly as the
     // deliberate path does on continue — quick start skips screens, not context.
     setChatHistory((prev) => upsertLandingAgentContextMessages(prev, { promptText, files }));
@@ -2943,7 +2951,9 @@ export default function AppFlow({
           // v0.14.7 WS-F2: the PRIMARY landing (App.jsx) enters the flow
           // here — select-all + defaults + the same onGenerate the Config
           // CTA calls (via the quickStartPending one-render deferral).
-          handleQuickStart();
+          handleQuickStart({
+            scionResearchEnabled: startupAction.scionResearchEnabled === true,
+          });
         }
       } catch (err) {
         warn('[Startup] action failed:', err);
@@ -3194,13 +3204,16 @@ export default function AppFlow({
             className="workspace-header-row rounded-lg border border-slate-200/70 bg-white px-4 py-3 shadow-sm"
           >
             <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-              <div className="flex min-w-0 items-center gap-3">
+              <div className="grid min-w-0 grid-cols-1 gap-3 sm:flex sm:items-center">
                 <a href="#/" className="hidden shrink-0 items-center sm:flex" aria-label="EduTool.dev home">
                   <AppLogo className="h-9 w-auto object-contain" />
                 </a>
                 <div className="min-w-0">
                   <p className="text-xs font-semibold text-slate-400">Workspace</p>
-                  <h1 className="mt-0.5 max-w-[min(640px,78vw)] line-clamp-2 text-lg font-bold tracking-tight text-slate-950 dark:text-slate-100 sm:line-clamp-1">
+                  <h1
+                    data-testid="workspace-course-title"
+                    className="line-clamp-2 text-lg font-bold text-slate-950 dark:text-slate-100 sm:max-w-2xl sm:line-clamp-1"
+                  >
                     {workspaceCourseTitle}
                   </h1>
                   <div className="mt-1 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-xs font-semibold text-slate-500">

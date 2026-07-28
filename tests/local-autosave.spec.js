@@ -219,7 +219,13 @@ test('local autosave moves an exact project to IndexedDB when the origin storage
   await page.reload();
 
   await page.getByRole('button', { name: 'Resume' }).click();
-  await expect(page.getByTestId('workspace-shell')).toBeVisible({ timeout: 10000 });
+  // A quota-saturated 15-lesson project must hydrate nine material families
+  // and open its IndexedDB fallback before the workspace mounts. Shared CI
+  // runners can take longer than the old 10-second assertion even though the
+  // trace shows the exact workspace immediately afterward. Keep the user
+  // contract strict, but wait for the real recovery boundary rather than a
+  // runner-speed threshold.
+  await expect(page.getByTestId('workspace-shell')).toBeVisible({ timeout: 30000 });
   await expect
     .poll(
       () =>

@@ -118,6 +118,17 @@ describe('packageZipExporter', () => {
     expect(sanitizeFilePart('   ')).toBe('Course');
   });
 
+  it('does not invent a source-pipeline claim for an evidence-free deterministic compile', async () => {
+    const result = await buildCourseMaterialsZip({
+      courseMap: makeCourseMap('Headless Compiler Proof'),
+      featureIds: ['courseMap'],
+      quality: false,
+    });
+
+    expect(result.manifest.pipeline).toBeUndefined();
+    expect(JSON.stringify(result.manifest)).not.toContain('not evaluated (0 genome-linked lessons)');
+  });
+
   it('embeds truthful run, Scion base, and export-verification provenance in the manifest', async () => {
     const result = await buildCourseMaterialsZip({
       courseMap: makeCourseMap('Scion Provenance Course'),

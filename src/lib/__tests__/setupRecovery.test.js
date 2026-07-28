@@ -49,6 +49,18 @@ describe('setup recovery across stale app bundles', () => {
     expect(sessionStorage.getItem(SETUP_RECOVERY_KEY)).not.toContain('do-not-store');
   });
 
+  it('preserves explicit Scion research consent for a recovered quick start', () => {
+    stageSetupRecovery({
+      promptText: 'Build a current-source accessibility course.',
+      action: { type: 'quickStart', scionResearchEnabled: true },
+    });
+
+    expect(readSetupRecovery()).toMatchObject({
+      promptText: 'Build a current-source accessibility course.',
+      action: { type: 'quickStart', scionResearchEnabled: true },
+    });
+  });
+
   it('rejects stale, corrupt, and unsupported recovery records', () => {
     stageSetupRecovery({ promptText: 'Old brief', action: { type: 'continue' } });
     vi.advanceTimersByTime(31 * 60 * 1000);
