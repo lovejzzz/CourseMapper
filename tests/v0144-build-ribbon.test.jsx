@@ -689,7 +689,7 @@ describe('B1 — buildRibbonModel selector', () => {
     expect(ready.find((artifact) => artifact.id === 'checks')).toEqual({
       id: 'checks',
       label: 'Checks',
-      value: 'Verified · Readiness 66/100',
+      value: 'Readiness 66/100',
       status: 'done',
     });
 
@@ -1478,7 +1478,7 @@ describe('B1 — BuildRibbon render', () => {
     expect(html).toContain('Genome 6/13');
     expect(html).toContain('data-state="complete"');
     expect(html).toContain('Ready to export');
-    expect(html).toContain('Verified · Readiness 66/100');
+    expect(html).toContain('Readiness 66/100');
     expect(html).toContain('Sequence check passed');
     expect(html).toContain('Knowledge 13/13');
     expect(html).toMatch(/Ready in \d+s/);
