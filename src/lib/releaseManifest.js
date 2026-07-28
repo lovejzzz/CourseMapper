@@ -260,8 +260,8 @@ const V01691_RELEASE = {
   },
 };
 
-export const CURRENT_RELEASE = {
-  version: APP_VERSION,
+const V01692_RELEASE = {
+  version: '0.16.92',
   date: 'July 28, 2026',
   title: 'Confirmed Autosave Without a Transient Red Frame',
   landingTitle: 'Scion V0.16.92 Confirms a Save Failure Before Showing Red',
@@ -286,6 +286,36 @@ export const CURRENT_RELEASE = {
     roadmap: 'docs/SCION_V01692_CONFIRMED_AUTOSAVE.md',
     benchmark: 'tests/local-autosave.spec.js',
     browser: 'docs/SCION_V01692_CONFIRMED_AUTOSAVE.md',
+    auditCommand: 'npm run audit:release-history',
+  },
+};
+
+export const CURRENT_RELEASE = {
+  version: APP_VERSION,
+  date: 'July 28, 2026',
+  title: 'Exact Resume Without a Pointer',
+  landingTitle: 'Scion V0.16.93 Finds the Exact Saved Course',
+  highlights: [
+    'The deployed V0.16.92 Digital Accessibility acceptance built a complete four-lesson package, stayed free of save-error frames through a real edit, and reported a clean browser console. Reload then exposed a separate recovery gap: the exact IndexedDB project could survive while the tiny localStorage resume pointer was absent, leaving the Landing shell with no Resume action.',
+    'The root Landing shell checked only the synchronous localStorage pointer. The deeper workspace restore already fell back to the exact IndexedDB payload, but users could not reach that restore path when the pointer was missing.',
+    'Landing recovery now checks the local pointer first and then checks the exact IndexedDB autosave. A malformed, unavailable, removed, or browser-evicted localStorage entry can no longer hide a valid project that the persistence layer can restore.',
+    'Returning from a workspace to Landing uses the same two-belt detection instead of reverting to the old pointer-only test.',
+    'A real Chromium regression stores a complete project only in IndexedDB, reloads with no local pointer, proves that Previous session found appears, selects Resume, and restores the exact named workspace.',
+    'This release changes saved-session discovery only. It does not change Gemma weights, adapter state, evidence research, compiler output, model routing, readiness scoring, or any instructor, factual, accessibility, classroom, or paid-model claim.',
+  ],
+  landingHighlights: [
+    'Landing checks both browser persistence belts.',
+    'An absent local pointer cannot hide the exact project.',
+    'Malformed local metadata falls through safely.',
+    'Return to Landing uses the same recovery contract.',
+    'A pointerless IndexedDB browser replay restores exactly.',
+    'Scion output, routes, and model weights stay unchanged.',
+  ],
+  proof: {
+    contract: 'release-contracts/v0.16.93.json',
+    roadmap: 'docs/SCION_V01693_EXACT_RESUME.md',
+    benchmark: 'tests/local-autosave.spec.js',
+    browser: 'docs/SCION_V01693_EXACT_RESUME.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -716,11 +746,11 @@ const V01691_RELEASE_CHANGELOG = {
   ],
 };
 
-export const CURRENT_RELEASE_CHANGELOG = {
-  version: CURRENT_RELEASE.version,
-  date: CURRENT_RELEASE.date,
-  title: CURRENT_RELEASE.title,
-  highlights: CURRENT_RELEASE.highlights,
+const V01692_RELEASE_CHANGELOG = {
+  version: V01692_RELEASE.version,
+  date: V01692_RELEASE.date,
+  title: V01692_RELEASE.title,
+  highlights: V01692_RELEASE.highlights,
   sections: [
     {
       label: 'Confirm a failure before showing red',
@@ -761,6 +791,59 @@ export const CURRENT_RELEASE_CHANGELOG = {
       color: 'slate',
       items: [
         'V0.16.92 changes persistence-status arbitration, not course generation or compilation.',
+        'The pinned Gemma base, inactive adapter, evidence layer, consent boundary, and readiness ceiling are unchanged.',
+        'The V0.16.90 compiler-before-model path still performs zero model work when exact structure and evidence satisfy the contract.',
+        'No teaching-quality, factual, accessibility, classroom, or paid-model claim is added.',
+      ],
+    },
+  ],
+};
+
+export const CURRENT_RELEASE_CHANGELOG = {
+  version: CURRENT_RELEASE.version,
+  date: CURRENT_RELEASE.date,
+  title: CURRENT_RELEASE.title,
+  highlights: CURRENT_RELEASE.highlights,
+  sections: [
+    {
+      label: 'Find the exact project without its pointer',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'Landing keeps the fast localStorage resume check, then opens the exact IndexedDB autosave as a fallback.',
+        'A valid exact snapshot produces the same Previous session found action whether or not its tiny pointer survived.',
+        'Malformed or unavailable local metadata no longer prevents the independent exact-project check.',
+        'The workspace restore path remains the single owner of project hydration and compilation.',
+      ],
+    },
+    {
+      label: 'Keep every return path recoverable',
+      icon: 'AI',
+      color: 'blue',
+      items: [
+        'Returning to Landing repeats the two-belt saved-session check.',
+        'Dismiss still removes both the local pointer and the exact IndexedDB payload.',
+        'Starting a genuinely new course still clears both persistence belts before resetting generated state.',
+        'No storage inspection, project mutation, or model activation happens until the user selects Resume.',
+      ],
+    },
+    {
+      label: 'Reproduce the missing-pointer failure in Chromium',
+      icon: 'PROOF',
+      color: 'violet',
+      items: [
+        'The browser fixture writes a complete four-lesson package only to the production IndexedDB schema.',
+        'It deliberately leaves localStorage empty, reloads, and requires the saved-session banner.',
+        'Selecting Resume must restore the exact course title and visible workspace shell.',
+        'The existing oversized and quota-saturated exact-autosave scenarios remain part of the same suite.',
+      ],
+    },
+    {
+      label: 'Keep Scion quality and routing unchanged',
+      icon: 'CHECK',
+      color: 'slate',
+      items: [
+        'V0.16.93 changes saved-session discovery, not course generation or compilation.',
         'The pinned Gemma base, inactive adapter, evidence layer, consent boundary, and readiness ceiling are unchanged.',
         'The V0.16.90 compiler-before-model path still performs zero model work when exact structure and evidence satisfy the contract.',
         'No teaching-quality, factual, accessibility, classroom, or paid-model claim is added.',
@@ -1451,6 +1534,7 @@ const V01678_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  V01692_RELEASE_CHANGELOG,
   V01691_RELEASE_CHANGELOG,
   V01690_RELEASE_CHANGELOG,
   V01689_RELEASE_CHANGELOG,

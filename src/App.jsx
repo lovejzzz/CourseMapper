@@ -6,7 +6,7 @@ import { useAIConfig } from './contexts/AIConfigContext';
 import { useCourse } from './contexts/CourseContext';
 import { useUI } from './contexts/UIContext';
 import { PUBLIC_SCION_PROVIDER_ID } from './lib/publicScionIdentity';
-import { removeProjectIndexedDbAutosave } from './lib/projectIndexedDbAutosave';
+import { loadProjectIndexedDbAutosave, removeProjectIndexedDbAutosave } from './lib/projectIndexedDbAutosave';
 import { clearSetupRecovery, readSetupRecovery, stageSetupRecovery } from './lib/setupRecovery';
 import useScionRuntimeStatus from './hooks/useScionRuntimeStatus';
 
@@ -20,6 +20,23 @@ const STORAGE_KEY = 'coursemapper-project';
 function readDeveloperMode() {
   try {
     return localStorage.getItem('coursemapper-developer-mode') === 'true';
+  } catch {
+    return false;
+  }
+}
+
+async function hasResumableLocalProject() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw && JSON.parse(raw)?.courseMap) return true;
+  } catch {
+    // A malformed or unavailable localStorage entry must not hide the exact
+    // IndexedDB snapshot that the persistence layer can still restore.
+  }
+
+  try {
+    const raw = await loadProjectIndexedDbAutosave();
+    return Boolean(raw && JSON.parse(raw)?.courseMap);
   } catch {
     return false;
   }
@@ -45,14 +62,13 @@ export default function App() {
   const showScionRuntimeBanner = scionEnabled && (!flowActive || screen !== 'workspace');
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return;
-      const saved = JSON.parse(raw);
-      if (saved.courseMap) setHasSavedSession(true);
-    } catch {
-      // Ignore unreadable saved sessions; the dismiss action can clear them.
-    }
+    let cancelled = false;
+    hasResumableLocalProject().then((resumable) => {
+      if (!cancelled) setHasSavedSession(resumable);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // Keep the landing bundle lean, then warm the main flow while the user is
@@ -152,12 +168,8 @@ export default function App() {
     setFlowActive(false);
     setShowProjectPicker(false);
     setScreen('landing');
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      setHasSavedSession(Boolean(raw && JSON.parse(raw)?.courseMap));
-    } catch {
-      setHasSavedSession(false);
-    }
+    setHasSavedSession(false);
+    hasResumableLocalProject().then(setHasSavedSession);
   }, [setScreen, setShowProjectPicker]);
 
   const handleDismissSavedSession = useCallback(() => {

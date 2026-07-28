@@ -292,3 +292,46 @@ test('local autosave moves an exact project to IndexedDB when the origin storage
   await page.getByRole('button', { name: 'Resume' }).click();
   await expect(page.getByRole('heading', { name: 'IndexedDB Autosave Recovery' })).toBeVisible({ timeout: 10000 });
 });
+
+test('landing resumes the exact IndexedDB project when its local pointer is missing', async ({ page }) => {
+  const project = quotaPressureProject();
+  project.courseMap.courseName = 'Pointerless IndexedDB Recovery';
+  project.courseMap.lessons = project.courseMap.lessons.slice(0, 4);
+
+  await page.goto('/');
+  await page.evaluate(async (savedProject) => {
+    localStorage.clear();
+    sessionStorage.clear();
+    await new Promise((resolve, reject) => {
+      const request = indexedDB.open('coursemapper-project-autosave-v1', 1);
+      request.onerror = () => reject(request.error);
+      request.onupgradeneeded = () => {
+        const database = request.result;
+        if (!database.objectStoreNames.contains('projects')) {
+          database.createObjectStore('projects', { keyPath: 'id' });
+        }
+      };
+      request.onsuccess = () => {
+        const database = request.result;
+        const transaction = database.transaction('projects', 'readwrite');
+        transaction.objectStore('projects').put({
+          id: 'current',
+          payload: JSON.stringify(savedProject),
+          savedAt: Date.now(),
+        });
+        transaction.oncomplete = () => {
+          database.close();
+          resolve();
+        };
+        transaction.onerror = () => reject(transaction.error);
+        transaction.onabort = () => reject(transaction.error);
+      };
+    });
+  }, project);
+
+  await page.reload();
+  await expect(page.getByTestId('saved-session-banner')).toBeVisible({ timeout: 10000 });
+  await page.getByRole('button', { name: 'Resume' }).click();
+  await expect(page.getByRole('heading', { name: 'Pointerless IndexedDB Recovery' })).toBeVisible({ timeout: 10000 });
+  await expect(page.getByTestId('workspace-shell')).toBeVisible();
+});
