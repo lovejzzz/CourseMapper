@@ -29,16 +29,18 @@
       "note": "Production deployment follows a green merge."
     },
     "liveProvider": {
-      "status": "pending",
-      "note": "Production must repeat the exact failed accessibility prompt and prove the consent-bearing route."
+      "status": "success",
+      "url": "https://edutool.dev/?v=0.16.88&audit=professor-production-20260728",
+      "note": "The exact production accessibility prompt preserved all four named lessons, admitted 4/4 source ledgers, compiled 9/9 material families, and finished with zero blockers or warnings, 69/100 Automated Readiness, and 99/A package conformance."
     },
     "manualHuman": {
       "status": "not-applicable",
       "note": "No instructor, expert, accessibility, classroom, or student-outcome claim is made."
     },
     "manualBrowser": {
-      "status": "verified-local",
-      "note": "The exact production prompt was replayed on a clean local origin: four named lessons, 4/4 kernels, 9/9 materials, zero blockers or warnings, readiness 69/100, conformance 99/A, texture 97, and 38/38 export checks in 10 seconds. The 35-file ZIP passed physical and offline regrade checks with complete 48/48 source-reference coverage."
+      "status": "success",
+      "url": "docs/SCION_V01688_PROFESSOR_ACCEPTANCE.md",
+      "note": "Production Chrome covered every compiler frame, all ten public surfaces, Agent, light/dark, desktop/tablet/mobile, a clean console, and the one ZIP action. The 35-file archive passed physical and offline regrade checks with complete 48/48 source-reference coverage. The audit also caught the generation-only Ready in timer; the release now binds it to full package completion."
     }
   },
   "claims": [
@@ -94,13 +96,13 @@
       "proofScopes": ["unit", "static-audit"]
     },
     {
-      "id": "v01688-local-professor-replay",
+      "id": "v01688-professor-replay",
       "status": "verified-current",
       "changelogHighlightIndex": 4,
-      "summary": "The corrected local replay preserves four named lessons, admits 4/4 source ledgers, compiles 9/9 material families, reports zero blockers or warnings, and passes 38/38 export checks.",
+      "summary": "The corrected production replay preserves four named lessons, admits 4/4 source ledgers, compiles 9/9 material families, reports zero blockers or warnings, and its physical ZIP passes 38/38 export checks and offline regrading.",
       "anchors": ["README.md", "docs/SCION_V01688_PROFESSOR_ACCEPTANCE.md"],
       "proofCommands": ["npm test", "npm run test:e2e", "npm run audit:release-history"],
-      "proofScopes": ["unit", "browser-smoke", "compiled-output", "doc"]
+      "proofScopes": ["unit", "browser-live", "browser-smoke", "compiled-output", "doc"]
     },
     {
       "id": "v01688-evidence-bearing-headless-proof",
@@ -126,13 +128,23 @@
       "proofScopes": ["unit", "browser-smoke", "doc"]
     },
     {
-      "id": "v01688-production-proof-boundary",
+      "id": "v01688-production-browser-and-timer-proof",
       "status": "verified-current",
       "changelogHighlightIndex": 7,
-      "summary": "V0.16.87's failed production result remains explicit, and V0.16.88 requires a fresh deployed-origin course, Agent, deliverable, responsive, console, and ZIP audit before release completion.",
-      "anchors": ["README.md", "docs/SCION_V01688_PROFESSOR_ACCEPTANCE.md", "release-contracts/v0.16.87.json"],
-      "proofCommands": ["npm run audit:release-history"],
-      "proofScopes": ["doc", "static-audit"]
+      "summary": "The production audit covers every public deliverable, the source-bound Agent, responsive and color-mode frames, a clean console, and the physical ZIP; its generation-only timing defect is corrected so readiness ends after export verification and grading.",
+      "anchors": [
+        "README.md",
+        "docs/SCION_V01688_PROFESSOR_ACCEPTANCE.md",
+        "src/AppFlow.jsx",
+        "src/lib/buildRibbonModel.js",
+        "tests/v0144-build-ribbon.test.jsx"
+      ],
+      "proofCommands": [
+        "npx vitest run tests/v0144-build-ribbon.test.jsx src/components/__tests__/BuildRibbon.test.jsx",
+        "npm run test:e2e",
+        "npm run audit:release-history"
+      ],
+      "proofScopes": ["unit", "browser-live", "browser-smoke", "compiled-output", "doc", "static-audit"]
     },
     {
       "id": "v01688-claim-boundary",
@@ -152,7 +164,7 @@
   ],
   "carryForward": [
     {
-      "item": "Repeat the exact accessibility prompt on the production origin and inspect every public surface, Agent response, console, responsive frame, and physical ZIP.",
+      "item": "Spot-check the corrected full-workflow Ready in duration on the final deployed commit.",
       "status": "release-blocking"
     },
     {

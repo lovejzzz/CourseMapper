@@ -97,7 +97,7 @@ V0.16.88 source tree.
 | Export checks                 |      38/38 |
 | Model download / requests     |    0 B / 0 |
 | Model tokens / rewrite cost   | 0 / $0.000 |
-| Observed completion time      | 10 seconds |
+| Generation settled            | 10 seconds |
 
 The source route disclosed `W3C/WAI → Wikipedia → DOAJ` before the click. The
 run recorded three researched lessons, eleven checked source candidates during
@@ -110,6 +110,10 @@ six trusted concept-linked sources and complete 48/48 source-reference coverage
 across outcomes, activities, examples, assessments, rubric criteria, and factual
 claims. SHA-256:
 `aa82ab7eb8f9c95efc090441a1026aacd26fa1d473c94335bc97e0527496d0a4`.
+
+That local timing was originally presented as a complete-build duration. The
+production replay below proved it covered generation only, so it is retained
+here with the narrower label instead of being represented as ZIP-ready time.
 
 The headless CurriculumOS proof was also repaired so an evidence-bearing
 pipeline cannot accidentally grade an evidence-free fixture. It now compiles an
@@ -157,7 +161,7 @@ Before merge:
 8. release-history and contract audits.
 9. headless CurriculumOS source-provenance proof.
 
-The final local run passes 470 unit-test files and 5,878 active tests, with 16
+The final local run passes 470 unit-test files and 5,879 active tests, with 16
 files and 162 tests intentionally skipped; 151/151 Chromium tests; the 40/40
 layered evaluation; the 18/40 PR compiler contract profile; 40/40 physical gold
 packages with zero blockers or warnings; 6/6 Firestore rules tests; format,
@@ -165,8 +169,52 @@ lint, build, bundle, constitution, release-history, generated-runtime, and
 headless provenance checks. These are compiler-contract results, not instructor
 or classroom validation.
 
-After deployment, the exact production prompt must be repeated from a fresh,
-cache-busted session. Acceptance requires:
+## Production browser and physical-package replay
+
+The exact prompt was repeated from a fresh, cache-busted production session.
+The source forecast showed one locally supported lesson and three gaps, then
+named `W3C/WAI → Wikipedia → DOAJ` and waited for the explicit **Use current
+sources & generate** action. The result preserved all four named lessons in
+order, prepared 4/4 knowledge kernels, compiled all 9/9 material families and
+10/10 package parts, and finished with zero blockers and zero warnings.
+
+The frame-by-frame audit covered:
+
+- the forecast, consent, Map, Enrich, Compile, Verify, and Grade states;
+- Course Map, Syllabus, Lesson Plans, Slide Decks, Assignment Briefs, Rubrics,
+  Discussion Prompts, Quiz & Exam Bank, Study Guides, and Course FAQ;
+- the source-bound Agent response;
+- desktop, tablet, and 390×844 mobile layouts;
+- light and dark presentation;
+- the final console, with zero errors and zero warnings; and
+- the sole ZIP action and the resulting physical archive.
+
+The Agent named the assigned W3C Accessible Forms and Labels sources, connected
+Lesson 3 evidence to Lesson 4 testing and remediation, and retained the
+whole-product boundary: a passing component check is not proof of complete
+product conformance.
+
+The downloaded production archive contains 35 manifest files (47 ZIP entries),
+passes `unzip -t` and all 38 export checks, and offline-regrades to 99/A with
+zero P0/P1/P2 findings. Its manifest records 69/100 Automated Readiness, texture
+97, six trusted sources, 48/48 source-reference coverage, zero model requests,
+zero downloaded weights, zero model tokens, and zero cost. SHA-256:
+`be9c3206ed19de45e089aa813d154a8cad64e21484e7979967cb4d050f2a0bed`.
+
+### Full-workflow timing correction
+
+The production frames exposed one final reporting defect. Generation settled
+near ten seconds, but export verification and grading kept the ZIP unavailable
+until roughly twenty seconds. The ribbon nevertheless displayed **Ready in
+10s** because it ended at the last generation-budget event.
+
+V0.16.88 now uses the immutable package-quality `gradedAt` timestamp recorded
+after finishing, physical export verification, and grading. The ribbon uses
+that endpoint while continuing to ignore later Agent activity. A focused
+regression binds both properties: the displayed duration includes the complete
+ready-to-download workflow and remains frozen after chat.
+
+The final exact-commit deployment spot check must confirm:
 
 - named topics in the forecast and Course Map;
 - a visible current-source consent boundary;
