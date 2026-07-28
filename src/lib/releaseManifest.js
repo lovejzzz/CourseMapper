@@ -34,8 +34,8 @@ const V01683_RELEASE = {
   },
 };
 
-export const CURRENT_RELEASE = {
-  version: APP_VERSION,
+const V01685_RELEASE = {
+  version: '0.16.85',
   date: 'July 27, 2026',
   title: 'One Scion, Evidence Before Inference',
   landingTitle: 'Scion V0.16.85 Grounds the Course Before It Writes',
@@ -62,6 +62,36 @@ export const CURRENT_RELEASE = {
   proof: {
     contract: 'release-contracts/v0.16.85.json',
     roadmap: 'docs/SCION_V01685_EVIDENCE_BEFORE_INFERENCE_ROADMAP.md',
+    benchmark: 'evaluation/quality-benchmark/v1/manifest.json',
+    browser: 'README.md',
+    auditCommand: 'npm run audit:release-history',
+  },
+};
+
+export const CURRENT_RELEASE = {
+  version: APP_VERSION,
+  date: 'July 27, 2026',
+  title: 'One Download, One Deliberate Start',
+  landingTitle: 'Scion V0.16.86 Makes the Local Model Start Reliably',
+  highlights: [
+    'Production Chrome testing found a real cold-start defect after V0.16.85 deployment: all 3.35 GB downloaded, but the custom OPFS reader could request more bytes than the destination typed-array view could hold, causing activation to fail.',
+    'The generated pinned Scion runtime now caps every OPFS read by the requested length, remaining model bytes, destination view capacity, and backing-buffer capacity. The immutable public Gemma 4 weights and five-shard manifest remain unchanged.',
+    'A browser-runtime startup failure is now a hard orchestration boundary. Native authoring no longer hides it behind the prose fallback, so one failed activation cannot trigger a second complete model download or provider attempt.',
+    'Cache recovery and progress language now distinguish download completion from model activation. If a saved copy is incomplete, Scion explains that it is replacing that copy once; terminal errors preserve the last honest progress instead of snapping backward to zero.',
+    'Runtime diagnostics retain the classified public message and a prompt-free cause chain for engineering logs. Cleanup releases the runtime file handles before removing a failed fresh cache, preventing recovery work from racing an active OPFS handle.',
+    'This patch changes browser delivery and failure recovery—not Gemma weights, the inactive optional adapter, evidence admission, compiler scoring, or the independent-evidence ceiling. Automated and browser proof do not imply instructor approval, factual certification, accessibility certification, or classroom outcomes.',
+  ],
+  landingHighlights: [
+    'Scion starts from one bounded local-model download.',
+    'OPFS reads cannot exceed the destination buffer.',
+    'Runtime failures cannot trigger a hidden second download.',
+    'Download and activation are reported as different stages.',
+    'Recovery releases file handles before cache cleanup.',
+    'Model weights and quality-claim boundaries stay unchanged.',
+  ],
+  proof: {
+    contract: 'release-contracts/v0.16.86.json',
+    roadmap: 'docs/SCION_V01686_PRODUCTION_RUNTIME_RECOVERY.md',
     benchmark: 'evaluation/quality-benchmark/v1/manifest.json',
     browser: 'README.md',
     auditCommand: 'npm run audit:release-history',
@@ -252,6 +282,59 @@ export const CURRENT_RELEASE_CHANGELOG = {
   date: CURRENT_RELEASE.date,
   title: CURRENT_RELEASE.title,
   highlights: CURRENT_RELEASE.highlights,
+  sections: [
+    {
+      label: 'Fix the production cold start at the byte boundary',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'The production audit reproduced a full download followed by an activation failure in both the controlled browser and the user’s real Chrome session.',
+        'The OPFS reader now bounds a read by the model remainder, the requested length, the typed-array view, and its backing buffer before constructing the destination view.',
+        'The public model revision, five shard sizes, and Gemma weight identity remain pinned and unchanged.',
+        'The generated runtime digest is updated so a stale or unreviewed runtime cannot pass the build contract.',
+      ],
+    },
+    {
+      label: 'Guarantee one deliberate recovery path',
+      icon: 'AI',
+      color: 'blue',
+      items: [
+        'Scion runtime startup errors cross native authoring without entering the prose fallback.',
+        'A failed fresh activation exits its runtime before removing the incomplete cache, then stops with one actionable error.',
+        'A known incomplete saved copy may be replaced once; unrelated WebGPU errors never clear a valid model cache.',
+        'Focused tests prove one provider attempt and one cleanup sequence for the former duplicate-download failure.',
+      ],
+    },
+    {
+      label: 'Make model progress truthful',
+      icon: 'PROOF',
+      color: 'violet',
+      items: [
+        'One hundred percent downloaded now reads “Download complete · activating Scion” instead of claiming that the model is already ready.',
+        'A clean replacement is named explicitly at every progress update.',
+        'An activation error keeps the last reached model progress and records a prompt-free diagnostic chain for troubleshooting.',
+        'The six-stage Living Course Compiler remains the end-to-end progress authority from model preparation through grading.',
+      ],
+    },
+    {
+      label: 'Keep the patch inside its evidence',
+      icon: 'CHECK',
+      color: 'slate',
+      items: [
+        'This release repairs browser-local runtime delivery and orchestration; it does not claim a new content-quality score.',
+        'Gemma weights remain unchanged and the optional Scion adapter remains inactive.',
+        'The private Scion evidence layer and shared compiler from V0.16.85 remain intact.',
+        'Automated and browser checks are engineering evidence, not instructor, factual, accessibility, or classroom validation.',
+      ],
+    },
+  ],
+};
+
+const V01685_RELEASE_CHANGELOG = {
+  version: V01685_RELEASE.version,
+  date: V01685_RELEASE.date,
+  title: V01685_RELEASE.title,
+  highlights: V01685_RELEASE.highlights,
   sections: [
     {
       label: 'Present one Scion product',
@@ -801,6 +884,7 @@ const V01678_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  V01685_RELEASE_CHANGELOG,
   V01684_RELEASE_CHANGELOG,
   V01683_RELEASE_CHANGELOG,
   V01682_RELEASE_CHANGELOG,

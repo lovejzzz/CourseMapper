@@ -101,8 +101,21 @@ function errorMessage(error) {
   return String(error?.message || error || '');
 }
 
+function diagnosticMessage(error) {
+  const messages = [];
+  const visited = new Set();
+  let current = error;
+  while (current && !visited.has(current) && messages.length < 4) {
+    visited.add(current);
+    const message = errorMessage(current).trim();
+    if (message && !messages.includes(message)) messages.push(message);
+    current = current.cause;
+  }
+  return messages.join(' → ');
+}
+
 export function classifyScionBrowserModelLoadError(error) {
-  const detail = errorMessage(error);
+  const detail = diagnosticMessage(error);
   if (SCION_MODEL_STORAGE_ERROR_RE.test(detail)) {
     return {
       code: 'SCION_WLLAMA_STORAGE_FULL',
@@ -336,11 +349,16 @@ export async function loadScionBrowserWllama({
       );
     }
     let repairedCache = false;
+    let cleanRedownload = false;
     for (;;) {
       publish(
         {
           phase: 'loading-model',
-          message: cachedModel ? 'Preparing Scion from this device…' : 'Downloading the public Gemma 4 base…',
+          message: cachedModel
+            ? 'Preparing Scion from this device…'
+            : cleanRedownload
+              ? 'Downloading a clean copy of the public Gemma 4 base…'
+              : 'Downloading the public Gemma 4 base…',
         },
         onProgress,
       );
@@ -360,8 +378,10 @@ export async function loadScionBrowserWllama({
                 message:
                   total > 0
                     ? progress >= 1
-                      ? 'Model ready on this device · preparing Scion…'
-                      : `Downloading the public Gemma 4 base (${Math.floor(progress * 100)}%)…`
+                      ? 'Download complete · activating Scion…'
+                      : cleanRedownload
+                        ? `Downloading a clean copy of the public Gemma 4 base (${Math.floor(progress * 100)}%)…`
+                        : `Downloading the public Gemma 4 base (${Math.floor(progress * 100)}%)…`
                     : status.message,
               },
               onProgress,
@@ -373,7 +393,9 @@ export async function loadScionBrowserWllama({
         const classified = classifyScionBrowserModelLoadError(error);
         const canRepair = classified.kind === 'cache-incomplete' && cachedModel && !repairedCache && !signal?.aborted;
         if (!canRepair) {
+          await exitRuntime(candidate);
           if (classified.clearCache) await removeCandidateModelCache(candidate, modelUrl);
+          if (loadingRuntime === candidate) loadingRuntime = null;
           throw runtimeError(classified.code, classified.message, error);
         }
 
@@ -381,8 +403,8 @@ export async function loadScionBrowserWllama({
         publish(
           {
             phase: 'repairing-cache',
-            progress: 0,
-            message: 'Repairing the local Scion model cache…',
+            progress: status.progress,
+            message: 'The saved model copy is incomplete · replacing it once…',
             error: null,
           },
           onProgress,
@@ -392,6 +414,7 @@ export async function loadScionBrowserWllama({
         candidate = createRuntimeCandidate(runtimeModule.Wllama, wasmUrl);
         loadingRuntime = candidate;
         cachedModel = false;
+        cleanRedownload = true;
       }
     }
     const metadata = validateLoadedBase(candidate);
@@ -425,8 +448,21 @@ export async function loadScionBrowserWllama({
       runtime = null;
       activeAdapter = null;
       pendingProbe = null;
+      const diagnostic = diagnosticMessage(error);
+      if (diagnostic) {
+        console.error('[Scion runtime] Local model activation failed', {
+          code: error?.code || 'SCION_WLLAMA_LOAD',
+          diagnostic,
+        });
+      }
       publish(
-        { phase: 'error', progress: 0, message: 'Scion local Gemma 4 could not start.', error: error.message },
+        {
+          phase: 'error',
+          progress: status.progress,
+          message: 'Scion local Gemma 4 could not start.',
+          error: error.message,
+          diagnostic,
+        },
         onProgress,
       );
       throw error;

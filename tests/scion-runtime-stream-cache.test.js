@@ -38,4 +38,15 @@ describe('Scion browser runtime stream cache', () => {
     expect(patched).not.toContain('async function writeFile(buf) {\\n  accessHandle.write(buf);\\n}');
     expect(sha256(patched)).toBe(SCION_BROWSER_GEMMA4_GGUF.runtime.moduleSha256);
   });
+
+  it('caps every OPFS read to both the typed view and its backing buffer', async () => {
+    const source = await fs.readFile(sourcePath, 'utf8');
+    const patched = patchScionRuntime(source);
+
+    expect(patched).toContain('const destinationCapacity = Math.max(0, buffer.byteLength - destinationOffset);');
+    expect(patched).toContain('buffer.buffer.byteLength - buffer.byteOffset - destinationOffset');
+    expect(patched).toContain('destinationCapacity,\\n        backingCapacity');
+    expect(patched).toContain('buffer.byteOffset + destinationOffset');
+    expect(patched).not.toContain('const toRead = Math.min(length, size - position);');
+  });
 });

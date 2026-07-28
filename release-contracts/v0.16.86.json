@@ -1,0 +1,130 @@
+{
+  "version": "0.16.86",
+  "date": "July 27, 2026",
+  "title": "One Download, One Deliberate Start",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test",
+      "npm run lint",
+      "npm run format:check",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run test:e2e",
+      "npm run audit:evaluation:main",
+      "npm run audit:contract:pr",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification must pass after the runtime patch is pushed."
+    },
+    "ciDeep": {
+      "status": "pending-push",
+      "note": "The patch changes runtime delivery rather than training or benchmark promotion."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Production deployment follows a green merge."
+    },
+    "liveProvider": {
+      "status": "pending",
+      "note": "A production-origin Chrome generation must complete without a duplicate model download."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No instructor, expert, accessibility, classroom, or student-outcome claim is made."
+    },
+    "manualBrowser": {
+      "status": "pending",
+      "note": "Generation, compiler frames, Agent, responsive UI, console, and physical ZIP remain release-blocking proof."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01686-bounded-opfs-read",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The production activation failure is traced to and repaired at the OPFS destination-buffer boundary.",
+      "anchors": [
+        "scripts/buildScionRuntime.mjs",
+        "tests/scion-runtime-stream-cache.test.js",
+        "scripts/__tests__/buildScionRuntime.test.mjs"
+      ],
+      "proofCommands": ["npm test", "npm run build"],
+      "proofScopes": ["unit", "build", "static-audit"]
+    },
+    {
+      "id": "v01686-runtime-digest",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "The generated runtime digest changes while the pinned public Gemma model identity and shard manifest remain unchanged.",
+      "anchors": [
+        "src/lib/scionBrowserConstants.js",
+        "scripts/buildScionRuntime.mjs",
+        "tests/scion-runtime-stream-cache.test.js"
+      ],
+      "proofCommands": ["npm run build", "npm test"],
+      "proofScopes": ["build", "unit", "static-audit"]
+    },
+    {
+      "id": "v01686-no-duplicate-download",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Scion runtime startup failures stop native authoring instead of starting a second local-provider course-map attempt.",
+      "anchors": [
+        "src/lib/scionRuntimeErrors.js",
+        "src/lib/nativeSkeletonGenerationRuntime.js",
+        "src/lib/courseIRAuthoringRuntime.js",
+        "tests/scion-runtime-failure-boundary.test.js"
+      ],
+      "proofCommands": ["npm test"],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01686-truthful-progress",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Scion distinguishes download, activation, and clean-cache replacement without resetting terminal progress.",
+      "anchors": [
+        "src/lib/scionBrowserWllama.js",
+        "src/components/ScionRuntimeStatusBanner.jsx",
+        "tests/scion-browser-wllama.test.js"
+      ],
+      "proofCommands": ["npm test", "npm run test:e2e"],
+      "proofScopes": ["unit", "browser-smoke"]
+    },
+    {
+      "id": "v01686-cleanup-diagnostics",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "Failed fresh activation exits before cache removal and retains a prompt-free diagnostic chain.",
+      "anchors": ["src/lib/scionBrowserWllama.js", "tests/scion-browser-wllama.test.js"],
+      "proofCommands": ["npm test"],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01686-claim-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 5,
+      "summary": "Runtime recovery is not represented as a model-weight, adapter, instructor, factual, accessibility, or classroom quality result.",
+      "anchors": ["README.md", "docs/SCION_V01686_PRODUCTION_RUNTIME_RECOVERY.md", "src/lib/releaseManifest.js"],
+      "proofCommands": ["npm run audit:release-history"],
+      "proofScopes": ["doc", "static-audit"]
+    }
+  ],
+  "carryForward": [
+    {
+      "item": "Record production-origin generation, Agent, console, responsive, and physical ZIP proof after deployment.",
+      "status": "release-blocking"
+    },
+    {
+      "item": "Keep the optional trained adapter inactive until it beats the pinned public base on the frozen held-out ruler.",
+      "status": "carry-forward"
+    },
+    {
+      "item": "Seek independent instructor or classroom evidence before raising the Automated Readiness evidence tier.",
+      "status": "carry-forward"
+    }
+  ]
+}

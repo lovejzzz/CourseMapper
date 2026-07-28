@@ -1,4 +1,5 @@
 import { completeCourseMapGeneration } from './generationCompletionRuntime.js';
+import { isNonFallbackScionRuntimeError } from './scionRuntimeErrors.js';
 
 export async function runNativeSkeletonGenerationFlow(input = [], output = []) {
   const [
@@ -182,6 +183,10 @@ export async function runNativeSkeletonGenerationFlow(input = [], output = []) {
     );
   } catch (nativeErr) {
     if (nativeErr?.name === 'AbortError') throw nativeErr;
+    if (provider === 'public' && isNonFallbackScionRuntimeError(nativeErr)) {
+      nativeAuthoring?.stashNativeSkeleton?.(null);
+      throw nativeErr;
+    }
     const reason =
       nativeErr?.name === 'NativeAuthoringError' ||
       (nativeAuthoring?.NativeAuthoringError && nativeErr instanceof nativeAuthoring.NativeAuthoringError)
