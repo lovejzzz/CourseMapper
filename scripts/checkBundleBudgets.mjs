@@ -29,9 +29,9 @@ const budgets = {
 // caught an unaccounted increase, and the fix is to re-freeze at the released
 // state, not to widen the allowance. Every future release must do the same.
 const repositoryBudgets = {
-  // v0.16.89 advances the frozen state through the shipped v0.16.88 contract;
-  // its own v0.16.89 contract consumes the single declared-release allowance.
-  baselineVersion: '0.16.88',
+  // v0.16.90 advances the frozen state through the shipped v0.16.89 contract;
+  // its own v0.16.90 contract consumes the single declared-release allowance.
+  baselineVersion: '0.16.89',
   // v0.16.82 adds 29 net lines of reusable compiler control logic for
   // policy-domain separation and concept-owned evidence binding. Source-
   // statement copy and prerequisite selection moved to a cacheable leaf; the
@@ -48,9 +48,9 @@ const repositoryBudgets = {
   // anonymous packet construction, and artifact-bound evidence construction.
   // These are evaluation/reproduction entry points, not product runtime work.
   npmScripts: 383,
-  // v0.16.88 shipped the 274th release-contract ledger file; v0.16.89 may add
+  // v0.16.89 shipped the 275th release-contract ledger file; v0.16.90 may add
   // exactly one current-release contract.
-  releaseContractFiles: 274,
+  releaseContractFiles: 275,
   trackedWeightFiles: 62,
   trackedWeightBytes: 1_053_339_981,
   largeBinaryBytes: 1024 * 1024,

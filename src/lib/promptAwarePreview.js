@@ -61,12 +61,13 @@ export function derivePromptPreviewTitle(promptText) {
   }
 
   // A compact course identity is often followed by an em-dash and the
-  // requested package shape ("Elementary Mandarin — one lesson: ...").
+  // requested package shape ("Elementary Mandarin — one lesson: ..." or
+  // "Digital Accessibility — create exactly four lessons: ...").
   // Treat that dash as a brief boundary only when the right-hand side starts
   // with an explicit lesson/week/module/session count; ordinary hyphenated
   // course titles remain untouched.
   const beforeDashedCourseShape = text.match(
-    /^(.{4,72}?)\s+[—–-]\s+(?:one|two|three|four|five|six|seven|eight|nine|ten|\d+)\s+(?:lessons?|weeks?|modules?|sessions?)\b/i,
+    /^(.{4,72}?)\s+[—–-]\s+(?:(?:build|create|design|generate|make|prepare)\s+)?(?:exactly\s+)?(?:one|two|three|four|five|six|seven|eight|nine|ten|\d+)\s+(?:lessons?|weeks?|modules?|sessions?)\b/i,
   );
   if (beforeDashedCourseShape?.[1]) return beforeDashedCourseShape[1].trim();
 

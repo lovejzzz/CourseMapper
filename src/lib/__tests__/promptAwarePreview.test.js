@@ -55,6 +55,11 @@ describe('prompt-aware setup previews', () => {
         'Digital Accessibility for Product Teams, exactly three lessons: 1) WCAG principles; 2) semantic HTML; 3) accessible forms.',
       ),
     ).toBe('Digital Accessibility for Product Teams');
+    expect(
+      derivePromptPreviewTitle(
+        'Digital Accessibility for Product Teams — create exactly 4 lessons: WCAG principles, semantic HTML, accessible forms, and evidence-based testing.',
+      ),
+    ).toBe('Digital Accessibility for Product Teams');
   });
 
   it('uses the active course in every built-in material preview', () => {
