@@ -45,6 +45,7 @@ import {
   removeProjectIndexedDbAutosave,
   saveProjectIndexedDbAutosave,
 } from '../lib/projectIndexedDbAutosave';
+import { runAutosaveWithRetry, settleLatestAutosaveAttempt } from '../lib/autosaveAttemptState';
 import { prepareProjectSnapshotForRestore, sanitizeProjectSnapshot } from '../lib/projectSnapshotSanitizer';
 import { restorePersistedPackageEvidence, selectPersistablePackageEvidence } from '../lib/packageQualityPersistence';
 import { compileCompactProjectDeliverables } from '../lib/projectRestoreCompiler';
@@ -123,6 +124,7 @@ export default function useProjectPersistence({
   const localStatusTimerRef = useRef(null);
   const saveTimerRef = useRef(null);
   const indexedDbSaveQueueRef = useRef(Promise.resolve());
+  const localSaveAttemptIdRef = useRef(0);
   const [isStartingNewProject, setIsStartingNewProject] = useState(false);
   const [newProjectError, setNewProjectError] = useState('');
   const [newProjectCloudSaveFailed, setNewProjectCloudSaveFailed] = useState(false);
@@ -452,13 +454,29 @@ export default function useProjectPersistence({
   const saveLocalProjectSnapshot = useCallback(
     (extra = {}) => {
       if (!hasGenerated || !courseMap) return false;
+      const saveAttemptId = ++localSaveAttemptIdRef.current;
+      clearTimeout(localStatusTimerRef.current);
+      setLocalSaveStatus('saving');
+      const settleLocalSaveAttempt = (status, idleDelay) => {
+        const settled = settleLatestAutosaveAttempt(
+          saveAttemptId,
+          localSaveAttemptIdRef.current,
+          status,
+          setLocalSaveStatus,
+        );
+        if (!settled) return false;
+        clearTimeout(localStatusTimerRef.current);
+        localStatusTimerRef.current = setTimeout(() => {
+          settleLatestAutosaveAttempt(saveAttemptId, localSaveAttemptIdRef.current, 'idle', setLocalSaveStatus);
+        }, idleDelay);
+        return true;
+      };
       const fullSnapshot = buildProjectSnapshot(extra);
       const compactSnapshot = buildCloudProjectSnapshot({
         ...extra,
         localSaveMode: 'compact-autosave',
       });
       try {
-        setLocalSaveStatus('saving');
         const { mode, payload } = buildLocalAutosavePayload({
           fullSnapshot,
           compactSnapshot,
@@ -474,27 +492,23 @@ export default function useProjectPersistence({
             .catch(() => {})
             .then(async () => {
               const { persistOversizedProjectSnapshot } = await import('../lib/projectExactAutosave');
-              await persistOversizedProjectSnapshot({
-                fullSnapshot,
-                compactSnapshot,
-                compactPayload: payload,
-              });
-              setLocalSaveStatus('saved');
-              clearTimeout(localStatusTimerRef.current);
-              localStatusTimerRef.current = setTimeout(() => setLocalSaveStatus('idle'), 3000);
+              await runAutosaveWithRetry(() =>
+                persistOversizedProjectSnapshot({
+                  fullSnapshot,
+                  compactSnapshot,
+                  compactPayload: payload,
+                }),
+              );
+              settleLocalSaveAttempt('saved', 3000);
             })
             .catch((autosaveError) => {
               warn('Save failed:', autosaveError);
-              setLocalSaveStatus('error');
-              clearTimeout(localStatusTimerRef.current);
-              localStatusTimerRef.current = setTimeout(() => setLocalSaveStatus('idle'), 5000);
+              settleLocalSaveAttempt('error', 5000);
             });
           return true;
         }
         localStorage.setItem(STORAGE_KEY, payload);
-        setLocalSaveStatus('saved');
-        clearTimeout(localStatusTimerRef.current);
-        localStatusTimerRef.current = setTimeout(() => setLocalSaveStatus('idle'), 3000);
+        settleLocalSaveAttempt('saved', 3000);
         return true;
       } catch (e) {
         // localStorage is an origin-wide ~5 MB bucket shared with caches and
@@ -503,7 +517,8 @@ export default function useProjectPersistence({
         indexedDbSaveQueueRef.current = indexedDbSaveQueueRef.current
           .catch(() => {})
           .then(async () => {
-            await saveProjectIndexedDbAutosave(JSON.stringify(fullSnapshot));
+            const exactPayload = JSON.stringify(fullSnapshot);
+            await runAutosaveWithRetry(() => saveProjectIndexedDbAutosave(exactPayload));
             try {
               localStorage.removeItem(STORAGE_KEY);
               localStorage.setItem(STORAGE_KEY, buildIndexedDbAutosaveMarker(fullSnapshot));
@@ -511,9 +526,7 @@ export default function useProjectPersistence({
               // IndexedDB remains the source of truth even if an unusually
               // saturated origin cannot accept the small resume pointer.
             }
-            setLocalSaveStatus('saved');
-            clearTimeout(localStatusTimerRef.current);
-            localStatusTimerRef.current = setTimeout(() => setLocalSaveStatus('idle'), 3000);
+            settleLocalSaveAttempt('saved', 3000);
           })
           .catch(async (indexedDbError) => {
             // Older/private browsers can disable IndexedDB. Keep the former
@@ -521,14 +534,10 @@ export default function useProjectPersistence({
             try {
               localStorage.removeItem(STORAGE_KEY);
               localStorage.setItem(STORAGE_KEY, buildCourseMapRecoveryAutosavePayload(compactSnapshot));
-              setLocalSaveStatus('saved');
-              clearTimeout(localStatusTimerRef.current);
-              localStatusTimerRef.current = setTimeout(() => setLocalSaveStatus('idle'), 3000);
+              settleLocalSaveAttempt('saved', 3000);
             } catch (fallbackError) {
               warn('Save failed:', fallbackError, indexedDbError);
-              setLocalSaveStatus('error');
-              clearTimeout(localStatusTimerRef.current);
-              localStatusTimerRef.current = setTimeout(() => setLocalSaveStatus('idle'), 5000);
+              settleLocalSaveAttempt('error', 5000);
             }
           });
         return true;
@@ -854,6 +863,7 @@ export default function useProjectPersistence({
     clearTimeout(cloudSaveTimerRef.current);
     clearTimeout(cloudStatusTimerRef.current);
     clearTimeout(localStatusTimerRef.current);
+    localSaveAttemptIdRef.current += 1;
     // 3. Remove persisted data before resetting state
     //    (prevents save-effects from re-writing stale data)
     try {

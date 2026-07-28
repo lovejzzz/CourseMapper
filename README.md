@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — cross-checked, exportable, and fully editable. Then use the AI agent to inspect and revise the generated workspace through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.90
+**Current release:** v0.16.91
 
 ---
 
@@ -32,7 +32,7 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site presents **Provider: Scion**, a disabled API control because no key is needed, and one product model: **Scion V0.16.90**. That label names EduTool's complete course-building system; it is not a claim that EduTool trained or hosts a new foundation model. Scion pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its identity and metadata, and runs it through the packaged WebGPU runtime only when the task needs neural authoring. Before that boundary, Scion can preserve an exact instructor-provided lesson sequence and prepare compact source-anchored evidence from uploaded material, the shipped Curriculum Genome, the local research cache, and—only after opt-in—current public sources. A complete explicit structure plus exact source ledger now reaches the shared compiler without importing or activating the model runtime; incomplete or ambiguous contracts retain the browser-local Gemma fallback.
+The hosted site presents **Provider: Scion**, a disabled API control because no key is needed, and one product model: **Scion V0.16.91**. That label names EduTool's complete course-building system; it is not a claim that EduTool trained or hosts a new foundation model. Scion pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its identity and metadata, and runs it through the packaged WebGPU runtime only when the task needs neural authoring. Before that boundary, Scion can preserve an exact instructor-provided lesson sequence and prepare compact source-anchored evidence from uploaded material, the shipped Curriculum Genome, the local research cache, and—only after opt-in—current public sources. A complete explicit structure plus exact source ledger now reaches the shared compiler without importing or activating the model runtime; incomplete or ambiguous contracts retain the browser-local Gemma fallback.
 
 In plain language, **Scion Vx is the whole local authoring system, not just the base model**:
 
@@ -59,7 +59,17 @@ brief + files → explicit structure + Scion evidence → bounded local adaptati
 
 The historical research architecture and limitations remain documented in [docs/ALGI_RESEARCH_FIRST_ARCHITECTURE.md](docs/ALGI_RESEARCH_FIRST_ARCHITECTURE.md) and [docs/ALGI_V0_PIPELINE_ASSESSMENT.md](docs/ALGI_V0_PIPELINE_ASSESSMENT.md).
 
-### V0.16.90 current release — compiler before model
+### V0.16.91 current release — autosave without a false red frame
+
+The required V0.16.90 production acceptance built the exact four-lesson Digital Accessibility course in 18 seconds with 4/4 knowledge kernels, 9/9 material families, zero findings, 69/100 Automated Readiness, 99/A conformance, texture 97, and zero model calls. The header nevertheless flashed **Local save failed** before recovering to **Autosaved locally**. The project was not lost, but the frame was wrong.
+
+V0.16.91 attaches every asynchronous browser save to a monotonically increasing attempt identity. Only the newest attempt can paint saved, failed, or idle; a new save clears the older timer, and a workspace reset invalidates every queued callback. Exact IndexedDB writes also retry once after a transient transaction abort. A permanent current-attempt failure still surfaces with both causes preserved—this is persistence ordering and bounded recovery, not cosmetic error hiding.
+
+Focused unit tests lock stale-failure suppression, reset invalidation, transient recovery, and permanent-error reporting. Real Chromium tests preserve an oversized completed project exactly in IndexedDB and restore a quota-saturated 15-lesson package without a visible save failure. The complete gates and deployed-origin replay remain the release boundary documented in [docs/SCION_V01691_AUTOSAVE_STATE_MACHINE.md](docs/SCION_V01691_AUTOSAVE_STATE_MACHINE.md).
+
+This patch changes browser persistence orchestration only. It does not change Gemma weights, the inactive optional adapter, source admission, research consent, compiler output, readiness scoring, or V0.16.90’s compiler-before-model route.
+
+### V0.16.90 historical release — compiler before model
 
 V0.16.89 passed its required production audit with the exact four-lesson Digital Accessibility brief, 4/4 evidence kernels, 9/9 material families, all ten public surfaces, zero findings, 69/100 Automated Readiness, 99/A package conformance, texture 97, and a physically valid ZIP. Its exact evidence enrichment no longer activated the browser runtime. But the run still took **32 seconds** and made **two cached-Gemma calls** because Scion asked the model to restate the instructor’s already explicit ordered lesson sequence and later sampled a cosmetic voice rewrite.
 
@@ -257,7 +267,7 @@ Gemma weights remain unchanged, and the research adapter remains inactive becaus
 
 ### Recent release history
 
-The sections below are historical release evidence. Their versions, timings, test counts, and measured packages describe the named release and are intentionally preserved; the V0.16.90 release section above is the current authority. Historical 99/A statements refer to the deterministic conformance grader used by those releases, not to the new Automated Readiness construct.
+The sections below are historical release evidence. Their versions, timings, test counts, and measured packages describe the named release and are intentionally preserved; the V0.16.91 release section above is the current authority. Historical 99/A statements refer to the deterministic conformance grader used by those releases, not to the new Automated Readiness construct.
 
 V0.16.77 makes experiential learning a first-class compiler capability instead of a one-course template. When—and only when—a lesson explicitly requests a simulation, laboratory investigation, studio critique, case exercise, structured debate, field exercise, or role-play, the existing lesson-authoring call returns one compact course-specific activity blueprint beside its knowledge kernel. There is no extra call for the lesson plan, slides, assignment, or export.
 

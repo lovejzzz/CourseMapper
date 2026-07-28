@@ -48,9 +48,9 @@ const repositoryBudgets = {
   // anonymous packet construction, and artifact-bound evidence construction.
   // These are evaluation/reproduction entry points, not product runtime work.
   npmScripts: 383,
-  // v0.16.89 shipped the 275th release-contract ledger file; v0.16.90 may add
+  // v0.16.90 shipped the 276th release-contract ledger file; v0.16.91 may add
   // exactly one current-release contract.
-  releaseContractFiles: 275,
+  releaseContractFiles: 276,
   trackedWeightFiles: 62,
   trackedWeightBytes: 1_053_339_981,
   largeBinaryBytes: 1024 * 1024,
