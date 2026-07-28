@@ -2153,12 +2153,7 @@ function extractCitationStrings(file) {
 // shares no token with the course that legitimately teaches it. Expand only
 // exact, well-known standards here; a generic acronym exemption would let an
 // unrelated reading bypass the relevance control.
-const CANONICAL_CITATION_EXPANSIONS = [
-  {
-    pattern: /\bWAI[\s-]?ARIA\b/i,
-    expansion: 'Web Accessibility Initiative Accessible Rich Internet Applications',
-  },
-];
+const WAI_ARIA_CITATION_RE = /\bWAI[\s-]?ARIA\b/i;
 
 // Tokenize a citation for relevance, splitting hyphenated compounds too so
 // "geology-geobiology" contributes the discipline token "geology". Canonical
@@ -2166,10 +2161,10 @@ const CANONICAL_CITATION_EXPANSIONS = [
 // unknown acronym still has to match the course vocabulary on its own.
 function citationTokens(text) {
   const source = String(text || '');
-  const expansion = CANONICAL_CITATION_EXPANSIONS.filter(({ pattern }) => pattern.test(source))
-    .map(({ expansion: value }) => value)
-    .join(' ');
-  return contentTokens(`${source} ${expansion}`.replace(/[-–—/]/g, ' '));
+  const expansion = WAI_ARIA_CITATION_RE.test(source)
+    ? ' Web Accessibility Initiative Accessible Rich Internet Applications'
+    : '';
+  return contentTokens(`${source}${expansion}`.replace(/[-–—/]/g, ' '));
 }
 
 // Overlap with discipline vocab, tolerating simple inflection via a shared

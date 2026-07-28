@@ -2982,22 +2982,9 @@ export default function useDeliverables({
           // D4 single-run disclosure stash: cleared every compile so a
           // toggled-off run never inherits a stale "voice pass ran" claim.
           voicePassLib.clearVoicePassOutcome();
-          let scionVoiceModelAvailable = true;
-          if (provider === PUBLIC_SCION_PROVIDER_ID) {
-            try {
-              const { detectScionDeviceCapability } = await import('../lib/scionDeviceCapability');
-              const scionCapability = await detectScionDeviceCapability();
-              scionVoiceModelAvailable = Boolean(scionCapability?.localModel);
-            } catch {
-              // A capability probe that cannot prove the local model keeps
-              // Scion on the compiler-only path. Voice polish is optional.
-              scionVoiceModelAvailable = false;
-            }
-          }
           if (
             voicePassLib.readVoicePassMode() === 'on' &&
             supportsModelVoicePass(modelId) &&
-            scionVoiceModelAvailable &&
             blueprintEnrichmentRequested &&
             enrichmentModelAvailable &&
             !enrichmentOutcome.missingLessons?.length
@@ -3027,6 +3014,7 @@ export default function useDeliverables({
                   },
                   signal: controller.signal,
                 });
+                if (!usage && result?.modelRequests === 0) usage = { costUsd: 0 };
                 return { fullText: result?.fullText || '', usage };
               };
               // Voice only the features this run actually dispatched as done
@@ -3118,18 +3106,6 @@ export default function useDeliverables({
             } finally {
               abortMapRef.current.delete(voiceAbortKey);
             }
-          } else if (
-            voicePassLib.readVoicePassMode() === 'on' &&
-            provider === PUBLIC_SCION_PROVIDER_ID &&
-            !scionVoiceModelAvailable
-          ) {
-            recordGenerationApiCallEvent({
-              type: 'pipelineDecision',
-              stage: 'voicePass',
-              label: 'Voice pass',
-              detail:
-                'skipped: zero-download evidence compiler kept the verified compiled language ($0.000; no model inference)',
-            });
           }
         } catch (voiceErr) {
           if (voiceErr?.name === 'AbortError') throw voiceErr;

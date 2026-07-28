@@ -102,25 +102,26 @@ The V0.16.86 orchestration repair remains active. An actual runtime startup erro
 A fresh Chrome run exercised the complete adapter-less route with this brief:
 
 ```text
-Digital Accessibility for Product Teams — create exactly 3 lessons:
-WCAG principles, semantic HTML, and accessible forms. Make it practical
-for product designers and frontend developers, with source-grounded
-explanations, applied accessibility checks, and current open web evidence.
+Digital Accessibility for Product Teams, a 4-lesson graduate workshop for UX
+designers and product managers. Cover WCAG principles and conformance, semantic
+HTML and keyboard accessibility, accessible forms, and evidence-based
+accessibility testing and remediation. Each lesson must produce a concrete
+product-team artifact and use current official W3C/WAI sources where available.
 ```
 
-The first frame showed the correct course identity without the count instruction. Scion selected the private evidence/compiler lane before any model transfer and completed in about seven seconds with:
+The first frame showed the correct course identity. Scion forecast three evidence gaps and changed the primary action to **Use current sources & generate**, naming the public catalogs and the exact course-title/topic boundary before the click. That explicit action selected the zero-download research/compiler lane before any model transfer and completed in nine seconds with:
 
-- 3/3 lessons mapped;
-- 3/3 lesson kernels;
+- 4/4 lessons mapped;
+- 4/4 lesson kernels;
 - 9/9 material families;
 - zero model requests and zero model bytes downloaded;
 - zero blockers and zero warnings;
-- 69/100 Automated Readiness at the unchanged automation-only evidence ceiling;
+- 65/100 Automated Readiness under the unchanged automation-only evidence ceiling;
 - 99/A deterministic package conformance;
-- texture 96; and
-- 38/38 physical export checks with zero failures or warnings across 27 files.
+- texture 97; and
+- 38/38 physical export checks with zero failures or warnings across 35 files.
 
-The browser audit inspected all ten public surfaces in the final light-mode course workspace: Course Map, Syllabus, Lesson Plans, Slide Decks, Assignment Briefs, Rubrics, Discussion Prompts, Quiz & Exam Bank, Study Guides, and Course FAQ. Separate responsive Chromium checks cover 320-pixel setup, phone, tablet, and compact-laptop workspace frames. The Agent replay asked which assigned sources support semantic HTML; Scion named both the Semantic HTML and W3C Page structure sources, explained the bounded use of each, and stated that citations alone do not prove product conformance.
+The browser audit inspected all ten public surfaces in dark mode and repeated the completed workspace in light mode: Course Map, Syllabus, Lesson Plans, Slide Decks, Assignment Briefs, Rubrics, Discussion Prompts, Quiz & Exam Bank, Study Guides, and Course FAQ. Separate responsive Chromium checks cover 320-pixel setup, phone, tablet, and compact-laptop workspace frames. The Agent replay asked which official source supports Lesson 3 and how that lesson connects to Lesson 4. Scion named the W3C Accessible Forms and Labels sources, explained how form findings feed evidence-based remediation, and stated that one passing component check does not prove product conformance.
 
 The same pass drove content repairs rather than merely recording success:
 
@@ -130,10 +131,15 @@ The same pass drove content repairs rather than merely recording success:
 - general policy statements are bounded to the cited source context;
 - source cues remain concise and do not become activity commands;
 - authoritative but instructionally weak W3C navigation, alternate-version, and obsolete markup-aside fragments fail source admission;
+- demonstrative reference debris such as “Conformance to this level” cannot become a lesson concept;
+- unfinished-product wording is removed from Week instructions;
+- editable slide text retains its intended transparent background in dark mode instead of inheriting a white hover background;
 - research-provider identity survives compilation, including `w3c-wai`; and
 - public Scion ZIP receipts use `scion-research` provenance without exposing the internal prototype codename.
 
-The resulting ZIP contains six accessible, concept-linked source rows. Its manifest, readiness report, quality report, source report, and UI receipt agree. A nested Office-XML scan found no stale W3C fragments or internal Algi identity. This local acceptance is release evidence, but it does not replace the required post-deploy production audit or establish instructor, factual, accessibility, or classroom validation.
+The resulting ZIP contains six accessible, concept-linked source rows. Its manifest, quality report, source report, and UI receipt agree: the evidence-compiler lane records zero model inference, zero downloaded weights, and `$0.000` rewrite cost. The archive contains no bad reference fragment, unfinished-product label, or internal Algi identity. This local acceptance is release evidence, but it does not replace the required post-deploy production audit or establish instructor, factual, accessibility, or classroom validation.
+
+The final local gate set passes 5,873 active unit tests across 470 passing files, 151/151 Chromium tests, the 40/40 layered evaluation, the 18/40 PR compiler contract profile, format, lint, build, bundle, release-history, and generated-runtime digest checks. The evaluation remains explicitly `compiler-contract-only`.
 
 Because source-ledger attribution and downstream quality checks changed, held-out ruler V27 binds the new transitive grader receipt. It preserves V26's five fixtures and task boundary but inherits no V26 score, adapter result, or quality claim.
 

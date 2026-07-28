@@ -37,7 +37,7 @@
     },
     "manualBrowser": {
       "status": "verified-local",
-      "note": "Local Chrome passed fresh generation, all ten public surfaces, a source-bound Agent question, and a 27-file physical ZIP; responsive Chromium checks passed at 320px, phone, tablet, and compact-laptop sizes. Production-origin proof remains release-blocking."
+      "note": "Local Chrome passed two fresh adaptive generations, all ten public surfaces in dark mode, the completed workspace in light mode, a cross-lesson source-bound Agent question, slide contrast inspection, and a 35-file physical ZIP; responsive Chromium checks passed at 320px, phone, tablet, and compact-laptop sizes. Production-origin proof remains release-blocking."
     }
   },
   "claims": [
@@ -63,10 +63,12 @@
       "id": "v01687-private-adaptive-scion-lane",
       "status": "verified-current",
       "changelogHighlightIndex": 2,
-      "summary": "An explicit runtime-capability or storage boundary uses Scion's private evidence/compiler lane with zero model requests and no public Algi choice.",
+      "summary": "An explicit runtime-capability or storage boundary uses Scion's private evidence/compiler lane with zero model requests and no public Algi choice; source gaps require a clearly labeled current-source action that discloses the course-title/topic network boundary before generation.",
       "anchors": [
         "src/hooks/useStreamReader.js",
+        "src/screens/Landing.jsx",
         "src/lib/publicScionIdentity.js",
+        "src/lib/scionResearchPolicy.js",
         "tests/scion-stream-reader-local.test.jsx"
       ],
       "proofCommands": ["npm test", "npm run test:e2e"],
@@ -117,7 +119,7 @@
       "id": "v01687-local-course-and-export-acceptance",
       "status": "verified-current",
       "changelogHighlightIndex": 6,
-      "summary": "A fresh local adaptive Scion build completes 3/3 kernels and 9/9 materials with zero blockers or warnings, reaches the honest 69-point automation ceiling, and its 27-file physical ZIP passes all 38 export checks.",
+      "summary": "A fresh local adaptive Scion build explicitly opts into current public sources from its primary action, completes 4/4 kernels and 9/9 materials in nine seconds with zero blockers or warnings, reports an honest 65/100 automated readiness signal, and its 35-file physical ZIP passes all 38 export checks.",
       "anchors": [
         "README.md",
         "docs/SCION_V01687_ADAPTIVE_DEVICE_ROUTE.md",
@@ -131,7 +133,7 @@
       "id": "v01687-professor-facing-language-provenance",
       "status": "verified-current",
       "changelogHighlightIndex": 7,
-      "summary": "Reader-facing language, source-fragment admission, W3C provenance, progressive local Agent answers, and public Scion export identity remain coherent without exposing the internal prototype codename.",
+      "summary": "Reader-facing language, reference-fragment admission, dark-mode slide contrast, W3C provenance, cross-lesson local Agent answers, and public Scion export identity remain coherent without exposing the internal prototype codename or a contradictory model-cost claim.",
       "anchors": [
         "src/lib/compiledLanguageFinalizer.js",
         "src/lib/courseCompilerCopyVariants.js",

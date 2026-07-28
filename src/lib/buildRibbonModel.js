@@ -424,8 +424,8 @@ export function buildLivingCompilerArtifacts({
   if (generationFailed) checksValue = 'Not run · course map incomplete';
   else if (finishStatus === 'blocked') checksValue = `${blockers || 1} item${blockers === 1 ? '' : 's'} to refine`;
   else if (finishStatus === 'ready') {
-    const readiness = packageQualityPass?.quality?.readiness;
-    checksValue = `Verified${Number.isFinite(Number(readiness?.score)) ? ` · Readiness ${readiness.score}/${readiness.maxScore || 100}` : ''}`;
+    const { score, maxScore = 100 } = packageQualityPass?.quality?.readiness || {};
+    checksValue = Number.isFinite(score) ? `Verified · Readiness ${score}/${maxScore}` : 'Verified';
   } else if (pipeline?.state === 'grading') checksValue = 'Grading package';
   else if (pipeline?.state === 'verifying') checksValue = 'Checking and repairing';
 
