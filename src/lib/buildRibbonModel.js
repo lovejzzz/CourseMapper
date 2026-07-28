@@ -722,7 +722,12 @@ export function buildBuildRibbonModel({
 
   let elapsedDisplay = '';
   if (stage === 'ready' && finishStatus === 'ready' && getApiCallBudgetTotal(budget) > 0) {
-    const elapsedMs = (budget.buildUpdatedAt || budget.updatedAt || 0) - (budget.startedAt || 0);
+    // `buildUpdatedAt` intentionally freezes before post-build Agent activity,
+    // but the workflow is not complete until verification and grading finish.
+    // The quality result's immutable gradedAt is that later endpoint.
+    const gradedAt = Date.parse(packageQualityPass?.quality?.gradedAt || '') || 0;
+    const buildFinishedAt = Number(budget.buildUpdatedAt || budget.updatedAt || 0);
+    const elapsedMs = Math.max(gradedAt, buildFinishedAt) - (budget.startedAt || 0);
     if (elapsedMs > 1000) elapsedDisplay = `Ready in ${Math.round(elapsedMs / 1000)}s`;
   }
 

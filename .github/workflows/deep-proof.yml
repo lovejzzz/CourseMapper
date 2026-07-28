@@ -89,7 +89,12 @@ jobs:
       - name: Scope reason
         run: echo "${{ needs.detect-scope.outputs.reason }}"
 
+      # Bundle budgets compare tracked large binaries with origin/main. A
+      # shallow dispatch checkout has no origin/main ref and therefore makes
+      # every historical adapter checkpoint look newly added.
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v6
         with:
