@@ -81,6 +81,20 @@ export async function runNativeSkeletonGenerationFlow(input = [], output = []) {
       expectedLessons: detected?.confidence === 'high' ? detected?.expected || null : null,
       sourceText: skeletonSource,
     });
+    if (skeletonResult?.adaptiveRoute === 'scion-explicit-sequence-compiler') {
+      const { attachScionCompilerRoute } = await import('./scionCompilerRoute.js');
+      const route =
+        (Array.isArray(skeletonResult.adapterRoutes) &&
+          skeletonResult.adapterRoutes.find((entry) => entry?.exactLessonSequence === true)) ||
+        null;
+      attachScionCompilerRoute(skeleton, route);
+      recordApiCallEvent?.({
+        type: 'pipelineDecision',
+        stage: 'courseIRAuthoring',
+        label: 'Scion structure compiler',
+        detail: `${skeleton.sessions.length} instructor-listed lessons projected into the typed skeleton · zero model download · zero model inference`,
+      });
+    }
     if (skeleton.responseRecovery) {
       recordApiCallEvent?.({
         type: 'nativeSkeletonRecovered',

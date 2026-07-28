@@ -350,6 +350,23 @@ export default function useStreamReader({ scionResearchEnabledOverride = null } 
     // remain before buildProviderTextRequest so a saved `public` provider can
     // never fall through to a remote prompt endpoint.
     if (provider === PUBLIC_SCION_PROVIDER_ID) {
+      // Kimi-derived capability routing: an instructor-pinned lesson sequence
+      // is already a complete typed structure contract. Compile that contract
+      // before importing Wllama; ambiguous briefs still continue to Gemma.
+      if (task === 'nativeSkeleton') {
+        const { runScionExplicitSequencePreflight } = await import('../lib/scionCompilerRoute');
+        const preflight = runScionExplicitSequencePreflight({
+          userPrompt,
+          existingText,
+          onChunk,
+          traceBase: buildProviderTraceBase(),
+          recordApiCallEvent,
+        });
+        if (preflight) {
+          observedAdapterRoutes.push(preflight.routeEvent);
+          return { ...preflight.response, adapterRoutes: observedAdapterRoutes };
+        }
+      }
       const { runScionLocalCompletion } = await import('../lib/scionLocalProvider');
       let lastProgressKey = '';
       try {
@@ -443,6 +460,13 @@ export default function useStreamReader({ scionResearchEnabledOverride = null } 
           },
         });
         const fullText = existingText + result.fullText;
+        const compilerOnlyResult =
+          result.attempt === 0 &&
+          observedAdapterRoutes.some(
+            (route) => route?.exactSourceLedger === true && Number(route?.routeModelCalls) === 0,
+          ) &&
+          !observedAdapterRoutes.some((route) => Number(route?.routeModelCalls) > 0);
+        const resultExecution = compilerOnlyResult ? 'browser-compiler' : 'browser-local';
         if (onChunk) onChunk(fullText, result.tokenCount + 1);
         for (const repair of result.repairs || []) {
           const repairLabels = {
@@ -469,7 +493,7 @@ export default function useStreamReader({ scionResearchEnabledOverride = null } 
             retainedCharacters: repair.recoveryEvidence?.retainedCharacters,
             removedCharacters: repair.recoveryEvidence?.removedCharacters,
             removedTail: repair.recoveryEvidence?.removedTail,
-            execution: 'browser-local',
+            execution: resultExecution,
           });
         }
         if (result.contractIncomplete) {
@@ -483,33 +507,42 @@ export default function useStreamReader({ scionResearchEnabledOverride = null } 
             ...buildProviderTraceBase(),
             admissionIssues: result.admissionIssues || [],
             kernelShape: result.kernelShape || [],
-            execution: 'browser-local',
+            execution: resultExecution,
           });
         }
         recordApiCallEvent({
           type: 'providerResponseDone',
-          label: 'Scion local response complete',
-          detail: `${result.fullText.length} chars on device`,
-          stage: 'provider-response',
+          label: compilerOnlyResult ? 'Scion evidence compiler response complete' : 'Scion local response complete',
+          detail: compilerOnlyResult
+            ? `${result.fullText.length} source-ledger chars projected on device`
+            : `${result.fullText.length} chars on device`,
+          stage: compilerOnlyResult ? 'local-compiler' : 'provider-response',
           ...buildProviderTraceBase(),
           attempt: result.attempt,
           maxRetries: result.maxRetries,
           outputChars: result.fullText.length,
           streamChunkCount: result.tokenCount,
           finishReason: 'stop',
-          execution: 'browser-local',
+          execution: resultExecution,
         });
-        const compactPrompt = result.messages.map((message) => message.content).join('\n');
-        recordUsage(
-          {
-            inputTokens: estimateCharsAsTokens(compactPrompt),
-            outputTokens: estimateCharsAsTokens(result.fullText),
-            source: 'local-estimate',
-          },
-          result.fullText,
-          'Scion local usage',
-        );
-        return { fullText, finishReason: 'stop', adapterRoutes: observedAdapterRoutes };
+        if (!compilerOnlyResult) {
+          const compactPrompt = result.messages.map((message) => message.content).join('\n');
+          recordUsage(
+            {
+              inputTokens: estimateCharsAsTokens(compactPrompt),
+              outputTokens: estimateCharsAsTokens(result.fullText),
+              source: 'local-estimate',
+            },
+            result.fullText,
+            'Scion local usage',
+          );
+        }
+        return {
+          fullText,
+          finishReason: 'stop',
+          adapterRoutes: observedAdapterRoutes,
+          ...(compilerOnlyResult ? { modelRequests: 0, adaptiveRoute: 'scion-exact-evidence-compiler' } : {}),
+        };
       } catch (rawError) {
         if (rawError?.name === 'AbortError') throw rawError;
         if (shouldUseScionEvidenceFallback(rawError, externalSignal)) {

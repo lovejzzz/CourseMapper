@@ -71,7 +71,6 @@ import { buildApiCostPlan, isNonRetryableFailureClass } from '../lib/apiCostCont
 import {
   buildJudgmentStageEvent,
   buildSourceBackedJudgmentStageEvent,
-  formatEnrichmentOutcomeLabel,
   normalizeEnrichmentOutcome,
 } from '../lib/apiCallBudget';
 import { classifyError } from '../lib/failureClassification';
@@ -2351,16 +2350,16 @@ export default function useDeliverables({
         // still an UN-authored skeleton with no stash is a real fallback —
         // and that one is loud, never silent.
         const authoringNative = readAuthoringMode() === 'native' && costMode !== 'finalizerRetry';
-        let directCourseIRResult = null;
+        let directCourseIRResult;
         if (authoringNative) {
           const { takeDirectCourseIRCompileState } = await import('../lib/courseIRAuthoringRuntime');
           directCourseIRResult = takeDirectCourseIRCompileState(courseMap, [recordGenerationApiCallEvent, appendLog]);
         }
-        const directCourseIR = directCourseIRResult?.courseIR || null;
+        const directCourseIR = directCourseIRResult?.courseIR;
         const nativeSkeleton =
-          authoringNative && !directCourseIR
-            ? (await import('../lib/nativeGraphAuthoring')).takeNativeSkeleton(courseMap)
-            : null;
+          authoringNative &&
+          !directCourseIR &&
+          (await import('../lib/nativeGraphAuthoring')).takeNativeSkeleton(courseMap);
         if (authoringNative && !directCourseIR && !nativeSkeleton) {
           const mapLooksUnauthored = !(courseMap.lessons || []).some((lesson) =>
             (lesson?.sections || []).some((section) => {
@@ -2448,29 +2447,12 @@ export default function useDeliverables({
         // missing lesson numbers) so partial enrichment reads as
         // "ran (12/14 — lessons 13, 14 fell back to template)" everywhere
         // (digest pipeline line, PACKAGE_MANIFEST, finalizer warning).
-        const enrichmentOutcome = {
-          modelStage: blueprintEnrichment?.stageDecisions?.modelStage || 'none',
-          required: false,
-          route: 'model-enrichment',
-          enrichedLessons:
-            blueprintEnrichment?.coverage?.enrichedLessons ??
-            (blueprintEnrichment?.lessonContent ? Object.keys(blueprintEnrichment.lessonContent).length : 0),
-          ...(blueprintEnrichment?.coverage
-            ? {
-                requestedLessons: blueprintEnrichment.coverage.requestedLessons,
-                missingLessons: blueprintEnrichment.coverage.missingLessons,
-              }
-            : {}),
-        };
-        recordGenerationApiCallEvent({
-          type: 'pipelineDecision',
-          stage: 'enrichmentModelStage',
-          label: 'Enrichment decision',
-          detail: blueprintEnrichment?.stageDecisions
-            ? `${formatEnrichmentOutcomeLabel(enrichmentOutcome)} (linker: ${blueprintEnrichment.stageDecisions.genomeLinker})`
-            : 'deterministic compile only (no enrichment object)',
-          outcome: enrichmentOutcome,
+        const { buildEnrichmentDecisionEvent } = await import('../lib/enrichmentDecisionEvent');
+        const { outcome: enrichmentOutcome, event: enrichmentDecisionEvent } = buildEnrichmentDecisionEvent({
+          blueprintEnrichment,
+          compilerRoute: nativeSkeleton?.scionRoute,
         });
+        recordGenerationApiCallEvent(enrichmentDecisionEvent);
         const instructorPreferenceProfile = await loadInstructorPreferenceProfile();
         if (instructorPreferenceProfile?.signalCount > 0) {
           appendLog(
@@ -2991,7 +2973,8 @@ export default function useDeliverables({
             supportsModelVoicePass(modelId) &&
             blueprintEnrichmentRequested &&
             enrichmentModelAvailable &&
-            !enrichmentOutcome.missingLessons?.length
+            !enrichmentOutcome.missingLessons?.length &&
+            !nativeSkeleton?.scionRoute
           ) {
             const voiceAbortKey = 'voicePass';
             const controller = new AbortController();

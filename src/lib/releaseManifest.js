@@ -157,8 +157,8 @@ const V01688_RELEASE = {
   },
 };
 
-export const CURRENT_RELEASE = {
-  version: APP_VERSION,
+const V01689_RELEASE = {
+  version: '0.16.89',
   date: 'July 28, 2026',
   title: 'Evidence Before Weights',
   landingTitle: 'Scion V0.16.89 Compiles Complete Evidence Before Loading Gemma',
@@ -185,6 +185,39 @@ export const CURRENT_RELEASE = {
     roadmap: 'docs/SCION_V01689_EVIDENCE_BEFORE_WEIGHTS.md',
     benchmark: 'evaluation/scion-adapters/held-out-course-benchmark-v29.json',
     browser: 'docs/SCION_V01689_EVIDENCE_BEFORE_WEIGHTS.md',
+    auditCommand: 'npm run audit:release-history',
+  },
+};
+
+export const CURRENT_RELEASE = {
+  version: APP_VERSION,
+  date: 'July 28, 2026',
+  title: 'Compiler Before Model',
+  landingTitle: 'Scion V0.16.90 Compiles Explicit Courses Without Downloading Gemma',
+  highlights: [
+    'The required V0.16.89 production audit passed the complete professor-facing contract—four named accessibility lessons, 4/4 evidence kernels, 9/9 material families, zero findings, 69/100 Automated Readiness, 99/A conformance, texture 97, and a valid ZIP—but still spent 32 seconds and two cached-Gemma calls because the instructor’s exact ordered lesson sequence was sent to the model before evidence compilation.',
+    'Scion now recognizes a strict exact-count, explicitly named lesson sequence before importing the browser runtime or touching model storage. It compiles a typed course skeleton with `scion-compiler-explicit-sequence-route-v1`, preserves the instructor’s order, and fails closed to the existing Gemma route when the brief is incomplete, ambiguous, or does not match its declared count. The first workspace frame uses the same identity boundary, so “— create exactly 4 lessons” cannot leak into the course title.',
+    'When the explicit-sequence route meets the complete exact-source route introduced in V0.16.89, the entire observed authoring path needs zero model downloads and zero inference. The sampled voice pass is skipped on that route so a cosmetic rewrite cannot silently reactivate Gemma after deterministic work already satisfies the contract.',
+    'Telemetry now treats compiler projections as compiler work rather than model responses. Exact evidence events no longer synthesize token usage, overwrite Scion execution as local Gemma, or inflate model-request counts; the run digest and exported manifest can report zero model starts, zero tokens, zero weights, and source research truthfully.',
+    'A fresh final local browser replay produced the same four-lesson Digital Accessibility package in 25 seconds on the first run and 16 seconds with the evidence cache warm, with 0 provider starts, 0 model calls, 4/4 kernels, 9/9 materials, 69/100 readiness, 99/A conformance, texture 97, 38/38 export checks, six trusted sources, and complete 48/48 source-reference coverage. The exact course title was stable in the first captured build frame at 387 ms. This is route evidence, not a perfectly controlled cold-latency comparison.',
+    'The Kimi K3 review is applied as progressive capability routing: preserve explicit user structure in a typed result, exhaust verified compiler capabilities first, and invoke the model only for unresolved authoring work. Scion does not copy Kimi weights, hidden reasoning, MoE topology, or protocol.',
+    'This release changes course-map routing, voice-pass admission, and telemetry—not Gemma weights, the inactive optional adapter, evidence admission, research consent, or the 69-point automated evidence ceiling. Held-out ruler V30 binds the new route bytes without inheriting a V29 score, adapter result, teaching-quality claim, or accessibility certification.',
+  ],
+  landingHighlights: [
+    'Exact instructor lesson sequences compile before model loading.',
+    'Ambiguous briefs still fall back safely to Gemma.',
+    'Complete structure plus evidence needs zero model calls.',
+    'The voice pass cannot reactivate the model on that route.',
+    'Compiler projections no longer masquerade as inference.',
+    'Local proof preserves the measured package quality.',
+    'Scion remains the sole public product identity.',
+    'Weights and quality-claim boundaries stay unchanged.',
+  ],
+  proof: {
+    contract: 'release-contracts/v0.16.90.json',
+    roadmap: 'docs/SCION_V01690_COMPILER_BEFORE_MODEL.md',
+    benchmark: 'evaluation/scion-adapters/held-out-course-benchmark-v30.json',
+    browser: 'docs/SCION_V01690_COMPILER_BEFORE_MODEL.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -422,11 +455,11 @@ const V01688_RELEASE_CHANGELOG = {
   ],
 };
 
-export const CURRENT_RELEASE_CHANGELOG = {
-  version: CURRENT_RELEASE.version,
-  date: CURRENT_RELEASE.date,
-  title: CURRENT_RELEASE.title,
-  highlights: CURRENT_RELEASE.highlights,
+const V01689_RELEASE_CHANGELOG = {
+  version: V01689_RELEASE.version,
+  date: V01689_RELEASE.date,
+  title: V01689_RELEASE.title,
+  highlights: V01689_RELEASE.highlights,
   sections: [
     {
       label: 'Choose the compiler route before touching Gemma',
@@ -470,6 +503,60 @@ export const CURRENT_RELEASE_CHANGELOG = {
         'Kimi K3 weights, hidden reasoning, MoE design, and wire protocol are not browser dependencies.',
         'Gemma weights, adapter state, source consent, readiness ceiling, and public identity remain unchanged.',
         'Held-out V29 is a fresh executable boundary; it carries no inherited quality or adapter win.',
+      ],
+    },
+  ],
+};
+
+export const CURRENT_RELEASE_CHANGELOG = {
+  version: CURRENT_RELEASE.version,
+  date: CURRENT_RELEASE.date,
+  title: CURRENT_RELEASE.title,
+  highlights: CURRENT_RELEASE.highlights,
+  sections: [
+    {
+      label: 'Compile explicit structure before loading a model',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'The production V0.16.89 audit showed that the instructor had already supplied all four ordered lesson titles, yet Scion still asked Gemma to restate them.',
+        'V0.16.90 admits only a strict exact-count, explicit sequence and turns it into the typed native skeleton before importing Wllama or opening model storage.',
+        'The route preserves title order and scope; missing, mismatched, or ambiguous sequences fail closed to the existing Gemma authoring path.',
+        'This is a general structure compiler, not hard-coded accessibility course content.',
+      ],
+    },
+    {
+      label: 'Keep the complete route at zero model work',
+      icon: 'AI',
+      color: 'blue',
+      items: [
+        'The explicit skeleton and exact evidence compiler can jointly own the observed course from map through enrichment.',
+        'The sampled voice rewrite is skipped only when that zero-download structure route already satisfies the authoring contract.',
+        'No runtime import, model activation, adapter preparation, or inference event is required on the complete compiler route.',
+        'Gemma and its optional adapter remain available for unresolved structure or authoring tasks.',
+      ],
+    },
+    {
+      label: 'Measure compiler work as compiler work',
+      icon: 'PROOF',
+      color: 'violet',
+      items: [
+        'Compiler evidence projections no longer create estimated model-token usage or count as provider requests.',
+        'Run telemetry records the structure receipt, evidence-compiler ownership, skipped voice pass, zero tokens, and zero downloaded weights.',
+        'The final local browser replay reached ready in 25 seconds on its first run and 16 seconds with warm evidence while preserving every measured package result.',
+        'The provisional title stayed exact from the first captured 387 ms build frame instead of briefly appending “— create.”',
+        'The timing is reported as observed engineering evidence, not as a matched cold-network benchmark.',
+      ],
+    },
+    {
+      label: 'Apply Kimi’s capability lesson with strict boundaries',
+      icon: 'CHECK',
+      color: 'slate',
+      items: [
+        'Scion progressively selects the smallest verified capability that satisfies the typed contract.',
+        'Kimi weights, hidden reasoning, MoE architecture, and wire protocol are not copied or downloaded.',
+        'Gemma weights, adapter state, research consent, source admission, and readiness ceiling remain unchanged.',
+        'Held-out V30 is a fresh executable boundary and carries no inherited quality or adapter victory.',
       ],
     },
   ],
@@ -1157,6 +1244,7 @@ const V01678_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  V01689_RELEASE_CHANGELOG,
   V01688_RELEASE_CHANGELOG,
   V01687_RELEASE_CHANGELOG,
   V01686_RELEASE_CHANGELOG,
