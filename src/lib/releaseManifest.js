@@ -189,8 +189,8 @@ const V01689_RELEASE = {
   },
 };
 
-export const CURRENT_RELEASE = {
-  version: APP_VERSION,
+const V01690_RELEASE = {
+  version: '0.16.90',
   date: 'July 28, 2026',
   title: 'Compiler Before Model',
   landingTitle: 'Scion V0.16.90 Compiles Explicit Courses Without Downloading Gemma',
@@ -218,6 +218,37 @@ export const CURRENT_RELEASE = {
     roadmap: 'docs/SCION_V01690_COMPILER_BEFORE_MODEL.md',
     benchmark: 'evaluation/scion-adapters/held-out-course-benchmark-v30.json',
     browser: 'docs/SCION_V01690_COMPILER_BEFORE_MODEL.md',
+    auditCommand: 'npm run audit:release-history',
+  },
+};
+
+export const CURRENT_RELEASE = {
+  version: APP_VERSION,
+  date: 'July 28, 2026',
+  title: 'Autosave Without a False Red Frame',
+  landingTitle: 'Scion V0.16.91 Keeps Browser Saves Calm and Current',
+  highlights: [
+    'The required V0.16.90 production acceptance completed the exact four-lesson Digital Accessibility course in 18 seconds with 4/4 knowledge kernels, 9/9 material families, zero findings, 69/100 Automated Readiness, 99/A conformance, texture 97, and zero model calls—but the header briefly showed “Local save failed” before recovering to “Autosaved locally.” A successful later save does not excuse a false red production frame.',
+    'The root cause was an ordering defect in background persistence status. Exact project writes are serialized through IndexedDB, but an older queued write could settle after a newer save intent had started and overwrite the current status with stale success or failure UI.',
+    'Every local save now receives a monotonically increasing attempt identity. Only the newest attempt may settle the visible status or its idle timer; starting another save immediately invalidates older callbacks, and resetting the workspace invalidates every queued callback.',
+    'Transient browser-storage transaction aborts receive one bounded retry before the interface escalates them. A permanent failure still surfaces with both causes preserved, while a successful retry remains a truthful save rather than a hidden error.',
+    'Focused state-machine tests prove stale failures are ignored, workspace reset invalidates queued callbacks, one-time storage aborts recover, and permanent failures preserve both errors. The real Chromium autosave scenarios also pass for an oversized exact project and a quota-saturated 15-lesson package restored from IndexedDB.',
+    'This release changes browser persistence orchestration and status truth only. It does not change Gemma weights, adapter state, compiler output, source admission, research consent, readiness scoring, the V0.16.90 zero-model route, or any instructor, factual, accessibility, classroom, or paid-model claim.',
+  ],
+  landingHighlights: [
+    'Only the newest autosave may control the header.',
+    'Older queued failures cannot flash over a current save.',
+    'Transient IndexedDB aborts retry once.',
+    'Permanent failures still surface honestly.',
+    'Workspace reset invalidates every queued callback.',
+    'Oversized and quota-saturated browser restores pass.',
+    'Scion course output and model weights stay unchanged.',
+  ],
+  proof: {
+    contract: 'release-contracts/v0.16.91.json',
+    roadmap: 'docs/SCION_V01691_AUTOSAVE_STATE_MACHINE.md',
+    benchmark: 'tests/local-autosave.spec.js',
+    browser: 'docs/SCION_V01691_AUTOSAVE_STATE_MACHINE.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -508,11 +539,11 @@ const V01689_RELEASE_CHANGELOG = {
   ],
 };
 
-export const CURRENT_RELEASE_CHANGELOG = {
-  version: CURRENT_RELEASE.version,
-  date: CURRENT_RELEASE.date,
-  title: CURRENT_RELEASE.title,
-  highlights: CURRENT_RELEASE.highlights,
+const V01690_RELEASE_CHANGELOG = {
+  version: V01690_RELEASE.version,
+  date: V01690_RELEASE.date,
+  title: V01690_RELEASE.title,
+  highlights: V01690_RELEASE.highlights,
   sections: [
     {
       label: 'Compile explicit structure before loading a model',
@@ -557,6 +588,59 @@ export const CURRENT_RELEASE_CHANGELOG = {
         'Kimi weights, hidden reasoning, MoE architecture, and wire protocol are not copied or downloaded.',
         'Gemma weights, adapter state, research consent, source admission, and readiness ceiling remain unchanged.',
         'Held-out V30 is a fresh executable boundary and carries no inherited quality or adapter victory.',
+      ],
+    },
+  ],
+};
+
+export const CURRENT_RELEASE_CHANGELOG = {
+  version: CURRENT_RELEASE.version,
+  date: CURRENT_RELEASE.date,
+  title: CURRENT_RELEASE.title,
+  highlights: CURRENT_RELEASE.highlights,
+  sections: [
+    {
+      label: 'Let only the current save speak',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'Each local save intent receives a monotonically increasing identity before its browser write begins.',
+        'A queued callback must still own the latest identity before it can paint saved, failed, or idle.',
+        'A newer save clears the prior status timer, and a workspace reset invalidates every outstanding callback.',
+        'The header can no longer show the verdict from a save that the current project state has already superseded.',
+      ],
+    },
+    {
+      label: 'Recover one transient storage abort',
+      icon: 'AI',
+      color: 'blue',
+      items: [
+        'Exact IndexedDB persistence retries once before escalating a background error.',
+        'The retry is bounded: a second failure still reaches the existing honest red state.',
+        'Both failure causes survive in an AggregateError for diagnosis instead of being replaced by generic copy.',
+        'The saved project payload and the tiny resume marker keep their existing exact-restore contract.',
+      ],
+    },
+    {
+      label: 'Prove the real browser-storage boundary',
+      icon: 'PROOF',
+      color: 'violet',
+      items: [
+        'Unit tests lock stale-attempt suppression, reset invalidation, transient recovery, and permanent failure reporting.',
+        'Chromium preserves an oversized generated package exactly in IndexedDB and restores its material payload.',
+        'A quota-saturated 15-lesson project moves to IndexedDB, shows no local-save failure, reloads, and restores the exact course.',
+        'The production acceptance course remains the final deployed-origin proof before this patch is called ready.',
+      ],
+    },
+    {
+      label: 'Keep the quality boundary unchanged',
+      icon: 'CHECK',
+      color: 'slate',
+      items: [
+        'V0.16.91 changes persistence ordering and recovery, not course authoring or compilation.',
+        'The pinned Gemma base, inactive adapter, source admission, consent, and readiness ceiling are unchanged.',
+        'The V0.16.90 zero-download compiler route remains intact.',
+        'No teaching-quality, factual, accessibility, classroom, or paid-model claim is added.',
       ],
     },
   ],
@@ -1244,6 +1328,7 @@ const V01678_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  V01690_RELEASE_CHANGELOG,
   V01689_RELEASE_CHANGELOG,
   V01688_RELEASE_CHANGELOG,
   V01687_RELEASE_CHANGELOG,

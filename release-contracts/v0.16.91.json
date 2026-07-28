@@ -1,0 +1,112 @@
+{
+  "version": "0.16.91",
+  "date": "July 28, 2026",
+  "title": "Autosave Without a False Red Frame",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test",
+      "npm run lint",
+      "npm run format:check",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run test:e2e",
+      "npm run audit:evaluation:main",
+      "npm run audit:contract:pr",
+      "npm run curriculumos:proof",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification must pass on the exact V0.16.91 release commit."
+    },
+    "ciDeep": {
+      "status": "pending-push",
+      "note": "The app/runtime Deep Proof gate must repeat the quota-saturated IndexedDB scenario from the user-reported failure family."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Production deployment follows a green merge."
+    },
+    "liveProvider": {
+      "status": "not-applicable",
+      "note": "This persistence patch adds no provider or model-quality claim."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No instructor, expert, accessibility, classroom, or student-outcome claim is made."
+    },
+    "manualBrowser": {
+      "status": "pending",
+      "note": "The deployed V0.16.91 Digital Accessibility course must remain green through generation, autosave, reload, Agent, and ZIP acceptance."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01691-production-finding",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The V0.16.90 production course completed correctly but briefly showed a stale local-save failure before recovering.",
+      "anchors": ["README.md", "docs/SCION_V01691_AUTOSAVE_STATE_MACHINE.md"],
+      "proofCommands": ["npm run audit:release-history"],
+      "proofScopes": ["browser-live", "doc"]
+    },
+    {
+      "id": "v01691-latest-attempt-state",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Only the newest autosave attempt may settle visible saved, failed, or idle state.",
+      "anchors": [
+        "src/hooks/useProjectPersistence.js",
+        "src/lib/autosaveAttemptState.js",
+        "src/lib/__tests__/autosaveAttemptState.test.js"
+      ],
+      "proofCommands": ["npm test"],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01691-reset-invalidation",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Starting another save or resetting the workspace invalidates callbacks from older persistence attempts.",
+      "anchors": [
+        "src/hooks/useProjectPersistence.js",
+        "src/lib/autosaveAttemptState.js",
+        "src/lib/__tests__/autosaveAttemptState.test.js"
+      ],
+      "proofCommands": ["npm test"],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01691-transient-retry",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Exact browser persistence retries one transient storage abort and preserves both causes if the retry also fails.",
+      "anchors": [
+        "src/hooks/useProjectPersistence.js",
+        "src/lib/autosaveAttemptState.js",
+        "src/lib/__tests__/autosaveAttemptState.test.js"
+      ],
+      "proofCommands": ["npm test"],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v01691-browser-autosave-proof",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "Chromium preserves oversized exact projects and restores a quota-saturated 15-lesson package from IndexedDB without a visible local-save failure.",
+      "anchors": ["tests/local-autosave.spec.js", "docs/SCION_V01691_AUTOSAVE_STATE_MACHINE.md"],
+      "proofCommands": ["npm run test:e2e"],
+      "proofScopes": ["browser-smoke"]
+    },
+    {
+      "id": "v01691-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 5,
+      "summary": "The patch changes persistence orchestration only and adds no model, compiler-quality, instructor, factual, accessibility, classroom, or paid-model claim.",
+      "anchors": ["README.md", "docs/SCION_V01691_AUTOSAVE_STATE_MACHINE.md"],
+      "proofCommands": ["npm run audit:release-history"],
+      "proofScopes": ["doc", "static-audit"]
+    }
+  ]
+}

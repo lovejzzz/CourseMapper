@@ -218,6 +218,20 @@ test('local autosave moves an exact project to IndexedDB when the origin storage
   }, quotaPressureProject());
   await page.reload();
 
+  await page.evaluate(() => {
+    window.__coursemapperLocalSaveFailureFrames = [];
+    const captureVisibleFailure = () => {
+      if (document.body?.innerText.includes('Local save failed')) {
+        window.__coursemapperLocalSaveFailureFrames.push(performance.now());
+      }
+    };
+    new MutationObserver(captureVisibleFailure).observe(document.documentElement, {
+      childList: true,
+      subtree: true,
+      characterData: true,
+    });
+    captureVisibleFailure();
+  });
   await page.getByRole('button', { name: 'Resume' }).click();
   // A quota-saturated 15-lesson project must hydrate nine material families
   // and open its IndexedDB fallback before the workspace mounts. Shared CI
@@ -244,6 +258,7 @@ test('local autosave moves an exact project to IndexedDB when the origin storage
       localSaveMode: 'indexeddb-autosave',
       saveFailureVisible: false,
     });
+  expect(await page.evaluate(() => window.__coursemapperLocalSaveFailureFrames)).toEqual([]);
 
   const indexedDbPayload = await page.evaluate(
     () =>
