@@ -45,7 +45,11 @@ import {
   removeProjectIndexedDbAutosave,
   saveProjectIndexedDbAutosave,
 } from '../lib/projectIndexedDbAutosave';
-import { runAutosaveWithRetry, settleLatestAutosaveAttempt } from '../lib/autosaveAttemptState';
+import {
+  deferLatestAutosaveFailure,
+  runAutosaveWithRetry,
+  settleLatestAutosaveAttempt,
+} from '../lib/autosaveAttemptState';
 import { prepareProjectSnapshotForRestore, sanitizeProjectSnapshot } from '../lib/projectSnapshotSanitizer';
 import { restorePersistedPackageEvidence, selectPersistablePackageEvidence } from '../lib/packageQualityPersistence';
 import { compileCompactProjectDeliverables } from '../lib/projectRestoreCompiler';
@@ -471,6 +475,19 @@ export default function useProjectPersistence({
         }, idleDelay);
         return true;
       };
+      const deferLocalSaveFailure = () => {
+        clearTimeout(localStatusTimerRef.current);
+        localStatusTimerRef.current = deferLatestAutosaveFailure({
+          attemptId: saveAttemptId,
+          getLatestAttemptId: () => localSaveAttemptIdRef.current,
+          applyStatus: setLocalSaveStatus,
+          onVisibleFailure: () => {
+            localStatusTimerRef.current = setTimeout(() => {
+              settleLatestAutosaveAttempt(saveAttemptId, localSaveAttemptIdRef.current, 'idle', setLocalSaveStatus);
+            }, 5000);
+          },
+        });
+      };
       const fullSnapshot = buildProjectSnapshot(extra);
       const compactSnapshot = buildCloudProjectSnapshot({
         ...extra,
@@ -503,7 +520,7 @@ export default function useProjectPersistence({
             })
             .catch((autosaveError) => {
               warn('Save failed:', autosaveError);
-              settleLocalSaveAttempt('error', 5000);
+              deferLocalSaveFailure();
             });
           return true;
         }
@@ -537,7 +554,7 @@ export default function useProjectPersistence({
               settleLocalSaveAttempt('saved', 3000);
             } catch (fallbackError) {
               warn('Save failed:', fallbackError, indexedDbError);
-              settleLocalSaveAttempt('error', 5000);
+              deferLocalSaveFailure();
             }
           });
         return true;

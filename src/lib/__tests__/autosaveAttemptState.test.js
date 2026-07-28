@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { runAutosaveWithRetry, settleLatestAutosaveAttempt } from '../autosaveAttemptState';
+import { deferLatestAutosaveFailure, runAutosaveWithRetry, settleLatestAutosaveAttempt } from '../autosaveAttemptState';
 
 describe('settleLatestAutosaveAttempt', () => {
   it('ignores an older queued failure after a newer autosave starts', () => {
@@ -18,6 +18,46 @@ describe('settleLatestAutosaveAttempt', () => {
 
     expect(settleLatestAutosaveAttempt(4, 5, 'saved', applyStatus)).toBe(false);
     expect(applyStatus).not.toHaveBeenCalled();
+  });
+});
+
+describe('deferLatestAutosaveFailure', () => {
+  it('suppresses a transient failure when a follow-on save starts during the confirmation window', () => {
+    vi.useFakeTimers();
+    const applyStatus = vi.fn();
+    let latestAttemptId = 1;
+
+    deferLatestAutosaveFailure({
+      attemptId: 1,
+      getLatestAttemptId: () => latestAttemptId,
+      applyStatus,
+    });
+    latestAttemptId = 2;
+    vi.advanceTimersByTime(5000);
+
+    expect(applyStatus).not.toHaveBeenCalled();
+    vi.useRealTimers();
+  });
+
+  it('still exposes a permanent failure after the bounded confirmation window', () => {
+    vi.useFakeTimers();
+    const applyStatus = vi.fn();
+    const onVisibleFailure = vi.fn();
+
+    deferLatestAutosaveFailure({
+      attemptId: 3,
+      getLatestAttemptId: () => 3,
+      applyStatus,
+      onVisibleFailure,
+    });
+    vi.advanceTimersByTime(4999);
+    expect(applyStatus).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(1);
+
+    expect(applyStatus).toHaveBeenCalledOnce();
+    expect(applyStatus).toHaveBeenCalledWith('error');
+    expect(onVisibleFailure).toHaveBeenCalledOnce();
+    vi.useRealTimers();
   });
 });
 

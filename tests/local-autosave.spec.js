@@ -191,6 +191,7 @@ test('local autosave preserves an oversized restored project exactly in IndexedD
 });
 
 test('local autosave moves an exact project to IndexedDB when the origin storage bucket is full', async ({ page }) => {
+  test.setTimeout(60000);
   await page.goto('/');
   await page.evaluate(async (project) => {
     localStorage.clear();
@@ -259,6 +260,17 @@ test('local autosave moves an exact project to IndexedDB when the origin storage
       saveFailureVisible: false,
     });
   expect(await page.evaluate(() => window.__coursemapperLocalSaveFailureFrames)).toEqual([]);
+
+  await page.getByText('Lesson 1: Recovery concept 1', { exact: true }).click();
+  await page.getByRole('textbox', { name: 'Edit cell content' }).fill('Lesson 1: Recovery concept 1 — revised');
+  await page.getByRole('textbox', { name: 'Edit cell content' }).press('Enter');
+  await expect(page.getByText('Lesson 1: Recovery concept 1 — revised', { exact: true })).toBeVisible();
+  // Production exposed a late red frame several seconds after an edit while a
+  // follow-on exact save was already queued. Observe beyond both the 3-second
+  // autosave debounce and the 5-second confirmation window.
+  await page.waitForTimeout(12000);
+  expect(await page.evaluate(() => window.__coursemapperLocalSaveFailureFrames)).toEqual([]);
+  await expect(page.getByText('Autosaved locally', { exact: true }).last()).toBeVisible();
 
   const indexedDbPayload = await page.evaluate(
     () =>

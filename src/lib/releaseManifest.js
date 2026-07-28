@@ -222,8 +222,8 @@ const V01690_RELEASE = {
   },
 };
 
-export const CURRENT_RELEASE = {
-  version: APP_VERSION,
+const V01691_RELEASE = {
+  version: '0.16.91',
   date: 'July 28, 2026',
   title: 'Autosave Without a False Red Frame',
   landingTitle: 'Scion V0.16.91 Keeps Browser Saves Calm and Current',
@@ -249,6 +249,36 @@ export const CURRENT_RELEASE = {
     roadmap: 'docs/SCION_V01691_AUTOSAVE_STATE_MACHINE.md',
     benchmark: 'tests/local-autosave.spec.js',
     browser: 'docs/SCION_V01691_AUTOSAVE_STATE_MACHINE.md',
+    auditCommand: 'npm run audit:release-history',
+  },
+};
+
+export const CURRENT_RELEASE = {
+  version: APP_VERSION,
+  date: 'July 28, 2026',
+  title: 'Confirmed Autosave Without a Transient Red Frame',
+  landingTitle: 'Scion V0.16.92 Confirms a Save Failure Before Showing Red',
+  highlights: [
+    'The deployed V0.16.91 Digital Accessibility replay exposed a second persistence state: a real course-map edit saved, a current follow-on exact snapshot briefly exhausted both browser-storage belts, “Local save failed” appeared for about 4.5 seconds, and the next queued save recovered. The V0.16.91 attempt identity was correct; the missing contract was failure confirmation.',
+    'A current-attempt persistence failure now waits through a bounded five-second confirmation window before it may paint red. A newer exact save invalidates the pending verdict, so a transient storage rejection cannot interrupt a workspace that is already recovering.',
+    'Permanent failure remains honest. If no newer save starts during the confirmation window, the current attempt still becomes “Local save failed” and returns through the existing idle treatment after five seconds.',
+    'Unit tests pin both sides of the boundary: a follow-on attempt suppresses the provisional failure, while a permanent current attempt becomes visible at exactly five seconds.',
+    'The quota-saturated Chromium proof now performs a real Course Map edit, observes past the three-second autosave debounce and five-second confirmation window, rejects every failure frame, verifies “Autosaved locally,” reloads, and restores the revised course title from IndexedDB.',
+    'This release changes persistence-status arbitration only. It does not change Gemma weights, adapter state, source research, evidence admission, compiler output, model routing, readiness scoring, or any instructor, factual, accessibility, classroom, or paid-model claim.',
+  ],
+  landingHighlights: [
+    'Transient storage failures get a bounded confirmation window.',
+    'A recovering follow-on save cancels the pending red state.',
+    'Permanent failures still surface after five seconds.',
+    'The stress test now edits, waits, reloads, and restores.',
+    'The exact IndexedDB package remains the source of truth.',
+    'Scion output, routes, and model weights stay unchanged.',
+  ],
+  proof: {
+    contract: 'release-contracts/v0.16.92.json',
+    roadmap: 'docs/SCION_V01692_CONFIRMED_AUTOSAVE.md',
+    benchmark: 'tests/local-autosave.spec.js',
+    browser: 'docs/SCION_V01692_CONFIRMED_AUTOSAVE.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -593,11 +623,11 @@ const V01690_RELEASE_CHANGELOG = {
   ],
 };
 
-export const CURRENT_RELEASE_CHANGELOG = {
-  version: CURRENT_RELEASE.version,
-  date: CURRENT_RELEASE.date,
-  title: CURRENT_RELEASE.title,
-  highlights: CURRENT_RELEASE.highlights,
+const V01691_RELEASE_CHANGELOG = {
+  version: V01691_RELEASE.version,
+  date: V01691_RELEASE.date,
+  title: V01691_RELEASE.title,
+  highlights: V01691_RELEASE.highlights,
   sections: [
     {
       label: 'Let only the current save speak',
@@ -640,6 +670,59 @@ export const CURRENT_RELEASE_CHANGELOG = {
         'V0.16.91 changes persistence ordering and recovery, not course authoring or compilation.',
         'The pinned Gemma base, inactive adapter, source admission, consent, and readiness ceiling are unchanged.',
         'The V0.16.90 zero-download compiler route remains intact.',
+        'No teaching-quality, factual, accessibility, classroom, or paid-model claim is added.',
+      ],
+    },
+  ],
+};
+
+export const CURRENT_RELEASE_CHANGELOG = {
+  version: CURRENT_RELEASE.version,
+  date: CURRENT_RELEASE.date,
+  title: CURRENT_RELEASE.title,
+  highlights: CURRENT_RELEASE.highlights,
+  sections: [
+    {
+      label: 'Confirm a failure before showing red',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'A current save failure enters a bounded five-second confirmation window instead of painting red immediately.',
+        'If a follow-on exact snapshot starts during that window, its newer attempt identity cancels the provisional verdict.',
+        'The last known exact IndexedDB snapshot stays intact while the serialized queue recovers.',
+        'The workspace therefore communicates the durable persistence state, not one recoverable transaction frame.',
+      ],
+    },
+    {
+      label: 'Keep permanent failures honest',
+      icon: 'AI',
+      color: 'blue',
+      items: [
+        'The confirmation window is finite and does not convert a permanent failure into success.',
+        'With no newer attempt, the current save still becomes “Local save failed” after exactly five seconds.',
+        'The existing five-second return to idle remains intact after a confirmed error.',
+        'New saves and workspace reset continue to invalidate every older timer and callback.',
+      ],
+    },
+    {
+      label: 'Exercise the production-shaped edit path',
+      icon: 'PROOF',
+      color: 'violet',
+      items: [
+        'The quota-saturated Chromium fixture restores a complete 15-lesson, nine-material-family workspace from browser persistence.',
+        'The test edits a real Course Map title and watches every DOM mutation beyond both save timing boundaries.',
+        'No “Local save failed” frame may appear; the UI must return to “Autosaved locally.”',
+        'Reload and Resume must restore the revised title from the exact IndexedDB payload.',
+      ],
+    },
+    {
+      label: 'Keep Scion quality and routing unchanged',
+      icon: 'CHECK',
+      color: 'slate',
+      items: [
+        'V0.16.92 changes persistence-status arbitration, not course generation or compilation.',
+        'The pinned Gemma base, inactive adapter, evidence layer, consent boundary, and readiness ceiling are unchanged.',
+        'The V0.16.90 compiler-before-model path still performs zero model work when exact structure and evidence satisfy the contract.',
         'No teaching-quality, factual, accessibility, classroom, or paid-model claim is added.',
       ],
     },
@@ -1328,6 +1411,7 @@ const V01678_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  V01691_RELEASE_CHANGELOG,
   V01690_RELEASE_CHANGELOG,
   V01689_RELEASE_CHANGELOG,
   V01688_RELEASE_CHANGELOG,
