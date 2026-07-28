@@ -212,3 +212,32 @@ export async function prepareScionEvidenceForGeneration({
     bindProvenance: (lessonId, payload) => bindScionEvidenceProvenance(overlay, lessonId, payload),
   };
 }
+
+export async function prepareScionEvidenceGenerationHandoff(options = {}) {
+  try {
+    const result = await prepareScionEvidenceForGeneration(options);
+    const evidenceByLessonId = result.overlay?.byLessonId;
+    return {
+      stageDecision: result.stageDecision,
+      promptOptions: evidenceByLessonId && Object.keys(evidenceByLessonId).length > 0 ? { evidenceByLessonId } : {},
+      bindProvenance: result.bindProvenance,
+      knowledgeBackboneEvent: result.researchReady
+        ? {
+            type: 'pipelineDecision',
+            stage: 'knowledgeBackbone',
+            label: 'Scion source receipts ready',
+            detail:
+              'Skipped duplicate open-reading discovery · Scion research sources and verification receipts are already attached',
+          }
+        : null,
+    };
+  } catch (error) {
+    if (error?.name === 'AbortError') throw error;
+    return {
+      stageDecision: `failed open: ${error?.message || 'unknown'}`,
+      promptOptions: {},
+      bindProvenance: (_lessonId, payload) => payload,
+      knowledgeBackboneEvent: null,
+    };
+  }
+}

@@ -45,7 +45,6 @@ export {
   PUBLIC_SCION_PROVIDER_ID,
   publicScionModelOption,
 } from './publicScionIdentity.js';
-export { readScionResearchEnabled } from './scionResearchPolicy.js';
 
 const PUBLIC_SCION_TEMPLATE_RESIDUE_RE =
   /\b(?:two lesson concepts?|lesson concept to this concrete case|replace with (?:one complete distinction question|one concrete case question|a plausible subject-specific|a plausible case-specific)|plausible methodological claim or action|plausible case interpretation or action|state the subject evidence supporting the answer,? then correct the closest distractor|then correct the closest distractor)\b/i;

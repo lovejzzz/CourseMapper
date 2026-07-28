@@ -47,7 +47,7 @@ export const CURRENT_RELEASE = {
     'Current-source research stays off by default. An explicit Scion setting explains that only the course title and uncovered lesson topics may be sent to DOAJ, Europe PMC, and Wikipedia; private mode makes no course-topic research request.',
     'When Scion research has already verified and cached lesson evidence, the compiler skips the older open-reading discovery pass. This removes duplicate network work and a confusing second research-progress sequence without reducing source receipts.',
     'The landing forecast preserves instructional acronyms such as WCAG, UI, UX, SQL, and LMS, and the active configuration, forecast, progress events, Agent identity, workspace label, and export route all speak as Scion. A blocked ZIP now regrades stale finish evidence so its quality report, manifest, and readiness report cannot disagree.',
-    'The complete 5,795-test local regression suite, 151-test Chromium suite, 38-case evaluation, and 14-course PR compiler contract pass. The comparison boundary remains honest: Gemma weights are unchanged, the optional trained adapter is inactive, and V0.16.85 does not claim a new instructor, classroom, factual, accessibility, paid-model, or adapter victory without matched evidence.',
+    'The complete 5,796-test local regression suite, 151-test Chromium suite, 38-case evaluation, and 14-course PR compiler contract pass. The comparison boundary remains honest: Gemma weights are unchanged, the optional trained adapter is inactive, and V0.16.85 does not claim a new instructor, classroom, factual, accessibility, paid-model, or adapter victory without matched evidence.',
   ],
   landingHighlights: [
     'One public free model: Scion.',
@@ -291,8 +291,8 @@ export const CURRENT_RELEASE_CHANGELOG = {
       icon: 'PROOF',
       color: 'slate',
       items: [
-        'One hundred one focused evidence, configuration, forecast, and binding tests pass after the final refinement.',
-        'The full 5,795-test local suite, 151-test Chromium suite, 38-case evaluation profile, and 14-course PR compiler contract pass.',
+        'One hundred two focused evidence, configuration, forecast, and binding tests pass after the final refinement.',
+        'The full 5,796-test local suite, 151-test Chromium suite, 38-case evaluation profile, and 14-course PR compiler contract pass.',
         'Common course acronyms remain correctly capitalized in the visible coverage forecast.',
         'A blocked ZIP cannot reuse a finish-pass report that omits its current readiness blocker; the manifest, quality report, and readiness report now agree.',
         'Gemma weights are unchanged and the optional trained adapter stays inactive.',

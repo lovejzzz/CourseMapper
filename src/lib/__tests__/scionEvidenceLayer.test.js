@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   createScionEvidenceOverlay,
+  prepareScionEvidenceGenerationHandoff,
   prepareScionEvidenceForGeneration,
   prepareScionEvidenceLayer,
   scionEvidenceLessonFromComposedPayload,
@@ -152,5 +153,20 @@ describe('Scion evidence layer', () => {
       }),
     );
     expect(JSON.stringify(events)).not.toMatch(/Algi/);
+  });
+
+  it('keeps the AppFlow handoff compact when no optional evidence is admitted', async () => {
+    const result = await prepareScionEvidenceGenerationHandoff({
+      courseMap: {
+        courseName: 'Novel Local Course',
+        lessons: [{ title: 'Counterfactual lattice gardening' }],
+      },
+      lessonIndices: [0],
+    });
+
+    expect(result.stageDecision).toBe('ran (0/1 ledgers, on-device)');
+    expect(result.promptOptions).toEqual({});
+    expect(result.knowledgeBackboneEvent).toBeNull();
+    expect(result.bindProvenance('lesson-1', { facts: ['kept'] })).toEqual({ facts: ['kept'] });
   });
 });

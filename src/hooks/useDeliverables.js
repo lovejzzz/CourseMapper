@@ -81,7 +81,6 @@ import {
   PUBLIC_SCION_KERNEL_LESSONS_PER_CALL,
   PUBLIC_SCION_PROVIDER_ID,
   publicScionEnrichmentRecoveryCallLimit,
-  readScionResearchEnabled,
 } from '../lib/publicScionProvider';
 import { analyzeSourceBriefConstraints, resolveRequestedClassSessionMinutes } from '../lib/sourceBriefConstraints';
 import {
@@ -621,7 +620,10 @@ export default function useDeliverables({
       // The privacy policy is generation-only. Keep it off the workspace
       // control chunk and resolve consent once for the whole run so the
       // evidence and reading paths cannot disagree mid-build.
-      const scionResearchEnabled = provider === PUBLIC_SCION_PROVIDER_ID ? readScionResearchEnabled() : false;
+      const scionResearchEnabled =
+        provider === PUBLIC_SCION_PROVIDER_ID
+          ? (await import('../lib/scionResearchPolicy')).readScionResearchEnabled()
+          : false;
       const allowExternalKnowledge = provider !== PUBLIC_SCION_PROVIDER_ID || scionResearchEnabled;
       const nativeBatchingPlan =
         readAuthoringMode() === 'native' && costMode !== 'finalizerRetry' && !Array.isArray(scopeIndices)
@@ -1236,38 +1238,26 @@ export default function useDeliverables({
           }
         }
 
-        // Scion evidence prepass: reuse the source-consolidation engine behind
-        // the Algi experiment as an internal trust layer, not a public model
-        // route. It runs only for lessons the shipped genome did not already
-        // resolve. Offline composition costs no model call; optional network
-        // research obeys Scion's explicit current-source setting.
-        let scionEvidenceOverlay = null;
-        let bindScionEvidenceProvenance = (_lessonId, payload) => payload;
+        let scionEvidenceHandoff = null;
         if (provider === PUBLIC_SCION_PROVIDER_ID && !sourceBriefConstraints.instructorSourcesOnly) {
-          try {
-            const { prepareScionEvidenceForGeneration } = await import('../lib/scionEvidenceLayer');
-            const evidenceResult = await prepareScionEvidenceForGeneration({
-              courseMap: blueprintCourseMap,
-              lessonIndices: allLessonIndices,
-              genomeLessonContent: genomeLink?.lessonContent,
-              genomePartialOverlays: genomeLink?.partialOverlays,
-              researchEnabled: scionResearchEnabled,
-              signal: controller.signal,
-              recordEvent: recordGenerationApiCallEvent,
-              appendLog,
-            });
-            scionEvidenceOverlay = evidenceResult.overlay;
-            bindScionEvidenceProvenance = evidenceResult.bindProvenance;
-            stageDecisions.scionEvidence = evidenceResult.stageDecision;
-            stageDecisions.scionEvidenceResearchReady = evidenceResult.researchReady;
-          } catch (evidenceError) {
-            if (evidenceError?.name === 'AbortError') throw evidenceError;
-            stageDecisions.scionEvidence = `failed open: ${evidenceError?.message || 'unknown'}`;
+          const { prepareScionEvidenceGenerationHandoff } = await import('../lib/scionEvidenceLayer');
+          scionEvidenceHandoff = await prepareScionEvidenceGenerationHandoff({
+            courseMap: blueprintCourseMap,
+            lessonIndices: allLessonIndices,
+            genomeLessonContent: genomeLink?.lessonContent,
+            genomePartialOverlays: genomeLink?.partialOverlays,
+            researchEnabled: scionResearchEnabled,
+            signal: controller.signal,
+            recordEvent: recordGenerationApiCallEvent,
+            appendLog,
+          });
+          stageDecisions.scionEvidence = scionEvidenceHandoff.stageDecision;
+          if (scionEvidenceHandoff.knowledgeBackboneEvent) {
+            stageDecisions.scionEvidenceReadingSkip = scionEvidenceHandoff.knowledgeBackboneEvent;
           }
         }
-        const scionEvidencePromptOptions = scionEvidenceOverlay?.byLessonId
-          ? { evidenceByLessonId: scionEvidenceOverlay.byLessonId }
-          : {};
+        const bindScionEvidenceProvenance = scionEvidenceHandoff?.bindProvenance || ((_lessonId, payload) => payload);
+        const scionEvidencePromptOptions = scionEvidenceHandoff?.promptOptions || {};
 
         const genomeOnlyEnrichment = () => {
           abortMapRef.current.delete(abortKey);
@@ -2625,21 +2615,8 @@ export default function useDeliverables({
                 label: 'Private knowledge backbone',
                 detail: 'Private mode · shipped teaching genome only · no external course-topic requests',
               });
-            } else if (enrichmentForGraph?.stageDecisions?.scionEvidenceResearchReady) {
-              // Scion's evidence transaction has already completed the
-              // bounded source search, admitted verified claims, and attached
-              // revision-aware receipts to the lesson kernels.
-              // Running the legacy Crossref/OpenAlex/Open Library discovery
-              // here duplicated network work, added up to twelve seconds,
-              // and exposed a confusing second research-progress frame after
-              // Scion had already checked the uncovered lessons.
-              recordGenerationApiCallEvent({
-                type: 'pipelineDecision',
-                stage: 'knowledgeBackbone',
-                label: 'Scion source receipts ready',
-                detail:
-                  'Skipped duplicate open-reading discovery · Scion research sources and verification receipts are already attached',
-              });
+            } else if (enrichmentForGraph?.stageDecisions?.scionEvidenceReadingSkip) {
+              recordGenerationApiCallEvent(enrichmentForGraph.stageDecisions.scionEvidenceReadingSkip);
             } else {
               recordGenerationApiCallEvent({
                 type: 'knowledgeBackboneLookup',
