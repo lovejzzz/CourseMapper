@@ -245,7 +245,9 @@ describe('evidence-to-decision scenario contract', () => {
 
     expect(scenario.setup).not.toContain(misconception);
     expect(scenario.setup).toMatch(/bounded|documented scope|supplied evidence/i);
-    expect(scenario.materials).toBe('the source-backed case example, related claim, and claim-boundary note');
+    expect(scenario.materials).toBe(
+      'the cited passage, the two competing interpretations, and the documented limit of the evidence',
+    );
     expect(analyzeDecisionScenario(scenario).ready).toBe(true);
   });
 

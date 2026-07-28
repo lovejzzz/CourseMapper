@@ -1,7 +1,7 @@
 {
   "version": "0.16.91",
   "date": "July 28, 2026",
-  "title": "Autosave Without a False Red Frame",
+  "title": "Grounded Teaching Surfaces and Calm Browser State",
   "status": "verified-current",
   "proofSummary": {
     "local": [
@@ -11,6 +11,7 @@
       "npm run build",
       "npm run bundle:check",
       "npm run test:e2e",
+      "npm run audit:scion:grounded-surfaces",
       "npm run audit:evaluation:main",
       "npm run audit:contract:pr",
       "npm run curriculumos:proof",
@@ -30,15 +31,15 @@
     },
     "liveProvider": {
       "status": "not-applicable",
-      "note": "This persistence patch adds no provider or model-quality claim."
+      "note": "The grounded-surface route is compiler-owned and adds no live-provider or model-quality claim."
     },
     "manualHuman": {
       "status": "not-applicable",
       "note": "No instructor, expert, accessibility, classroom, or student-outcome claim is made."
     },
     "manualBrowser": {
-      "status": "pending",
-      "note": "The deployed V0.16.91 Digital Accessibility course must remain green through generation, autosave, reload, Agent, and ZIP acceptance."
+      "status": "verified-current",
+      "note": "The local exact V0.16.91 Digital Accessibility course remained green through generation and physical ZIP acceptance; deployed-origin acceptance remains required after merge."
     }
   },
   "claims": [
@@ -52,10 +53,10 @@
       "proofScopes": ["browser-live", "doc"]
     },
     {
-      "id": "v01691-latest-attempt-state",
+      "id": "v01691-stale-save-root-cause",
       "status": "verified-current",
       "changelogHighlightIndex": 1,
-      "summary": "Only the newest autosave attempt may settle visible saved, failed, or idle state.",
+      "summary": "A serialized IndexedDB write could settle after a newer save intent and overwrite the current header with stale status.",
       "anchors": [
         "src/hooks/useProjectPersistence.js",
         "src/lib/autosaveAttemptState.js",
@@ -65,10 +66,10 @@
       "proofScopes": ["unit", "static-audit"]
     },
     {
-      "id": "v01691-reset-invalidation",
+      "id": "v01691-latest-attempt-state",
       "status": "verified-current",
       "changelogHighlightIndex": 2,
-      "summary": "Starting another save or resetting the workspace invalidates callbacks from older persistence attempts.",
+      "summary": "Only the newest autosave attempt may settle visible saved, failed, or idle state, and workspace reset invalidates queued callbacks.",
       "anchors": [
         "src/hooks/useProjectPersistence.js",
         "src/lib/autosaveAttemptState.js",
@@ -100,11 +101,71 @@
       "proofScopes": ["browser-smoke"]
     },
     {
-      "id": "v01691-boundary",
+      "id": "v01691-canonical-evidence-brief",
       "status": "verified-current",
       "changelogHighlightIndex": 5,
-      "summary": "The patch changes persistence orchestration only and adds no model, compiler-quality, instructor, factual, accessibility, classroom, or paid-model claim.",
-      "anchors": ["README.md", "docs/SCION_V01691_AUTOSAVE_STATE_MACHINE.md"],
+      "summary": "One typed source-evidence brief is reused across the syllabus, lesson plans, rubrics, study guides, Agent context, and DOCX export.",
+      "anchors": [
+        "src/lib/compilerEvidenceCopy.js",
+        "src/lib/courseBlueprintCompiler.js",
+        "src/lib/exporters/docxExporter.js",
+        "src/lib/__tests__/scionEvidencePropagation.test.js"
+      ],
+      "proofCommands": ["npm test", "npm run audit:scion:grounded-surfaces"],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01691-reader-facing-grounding",
+      "status": "verified-current",
+      "changelogHighlightIndex": 6,
+      "summary": "Lesson Plans, Rubrics, and Study Guides expose source claims and links while internal compiler labels are rejected from learner-facing output.",
+      "anchors": [
+        "src/components/deliverables/LessonPlansView.jsx",
+        "src/components/deliverables/RubricsView.jsx",
+        "src/components/deliverables/StudyGuidesView.jsx",
+        "src/lib/scenarioContract.js",
+        "scripts/scionGroundedSurfaceGym.mjs"
+      ],
+      "proofCommands": ["npm test", "npm run audit:scion:grounded-surfaces"],
+      "proofScopes": ["unit", "compiled-output", "browser-smoke"]
+    },
+    {
+      "id": "v01691-research-switch",
+      "status": "verified-current",
+      "changelogHighlightIndex": 7,
+      "summary": "The current-source research switch keeps its thumb inside a fixed visual track across desktop, mobile, light, dark, pointer, and keyboard states.",
+      "anchors": ["src/components/ModelConfig.jsx", "src/components/__tests__/ModelConfig.test.jsx"],
+      "proofCommands": ["npm test"],
+      "proofScopes": ["unit", "browser-smoke"]
+    },
+    {
+      "id": "v01691-grounded-surface-gym",
+      "status": "verified-current",
+      "changelogHighlightIndex": 8,
+      "summary": "Five frozen domains prove mechanical evidence propagation across teaching surfaces without converting that result into instructor, truth, accessibility, or classroom quality.",
+      "anchors": [
+        "evaluation/scion-grounded-surface-gym-v1.json",
+        "scripts/scionGroundedSurfaceGym.mjs",
+        "docs/SCION_V01691_GROUNDED_SURFACES.md"
+      ],
+      "proofCommands": ["npm run audit:scion:grounded-surfaces"],
+      "proofScopes": ["compiled-output", "doc"]
+    },
+    {
+      "id": "v01691-physical-export",
+      "status": "verified-current",
+      "changelogHighlightIndex": 9,
+      "summary": "The exact local Digital Accessibility export contains 47 entries, 34 valid Office containers, grounded evidence headings, improved learner wording, and zero rejected internal phrases.",
+      "anchors": ["README.md", "docs/SCION_V01691_GROUNDED_SURFACES.md"],
+      "proofCommands": ["npm run test:e2e", "npm run curriculumos:proof"],
+      "proofScopes": ["browser-smoke", "compiled-output", "doc"]
+    },
+    {
+      "id": "v01691-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 10,
+      "summary": "The release changes persistence, compiler projection, evidence presentation, and toggle geometry while adding no weights, adapter, factual, instructor, accessibility, classroom, or paid-model claim.",
+      "anchors": ["README.md", "docs/SCION_V01691_AUTOSAVE_STATE_MACHINE.md", "docs/SCION_V01691_GROUNDED_SURFACES.md"],
       "proofCommands": ["npm run audit:release-history"],
       "proofScopes": ["doc", "static-audit"]
     }

@@ -569,6 +569,22 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           children.push(makeSubHeading('Learning Objectives'));
           p.objectives.forEach((o) => children.push(makeBullet(o)));
         }
+        if (p.sourceEvidenceBrief?.claims?.length) {
+          children.push(makeSubHeading('Source Evidence for This Lesson'));
+          p.sourceEvidenceBrief.claims.forEach((claim) => children.push(makeBullet(claim)));
+          if (p.sourceEvidenceBrief.sources?.length) {
+            children.push(makeBold('Retained Sources', ''));
+            p.sourceEvidenceBrief.sources.forEach((source) =>
+              children.push(
+                makeBullet(
+                  [source.title, source.url, source.license ? `License: ${source.license}` : '']
+                    .filter(Boolean)
+                    .join(' — '),
+                ),
+              ),
+            );
+          }
+        }
         if (p.experientialActivityStatus?.status === 'standard-lesson-fallback') {
           children.push(makeCallout('Activity readiness', p.experientialActivityStatus.note));
         }
@@ -770,6 +786,19 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           continue;
         }
         if (r.taskDirections) children.push(makeBold('Task Directions', r.taskDirections));
+        if (r.sourceEvidenceBrief?.claims?.length) {
+          children.push(makeSubHeading('Content Evidence Used for Scoring'));
+          r.sourceEvidenceBrief.claims.forEach((claim) => children.push(makeBullet(claim)));
+          if (r.sourceEvidenceBrief.sources?.length) {
+            children.push(
+              makeItalic(
+                `Retained sources: ${r.sourceEvidenceBrief.sources
+                  .map((source) => [source.title, source.url].filter(Boolean).join(' — '))
+                  .join('; ')}`,
+              ),
+            );
+          }
+        }
         if (Array.isArray(r.submissionRequirements) && r.submissionRequirements.length > 0) {
           children.push(makeSubHeading('Submission Requirements (unweighted)'));
           if (r.submissionRequirementPolicy) children.push(makeItalic(r.submissionRequirementPolicy));
@@ -1213,6 +1242,16 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         if (g.summary) {
           children.push(makeSubHeading('Concept Summary'));
           children.push(makeText(g.summary));
+        }
+        if (g.sourceEvidenceBrief?.claims?.length) {
+          children.push(makeSubHeading('Evidence Ledger'));
+          g.sourceEvidenceBrief.claims.forEach((claim) => children.push(makeBullet(claim)));
+          if (g.sourceEvidenceBrief.sources?.length) {
+            children.push(makeBold('Study from', ''));
+            g.sourceEvidenceBrief.sources.forEach((source) =>
+              children.push(makeBullet([source.title, source.url].filter(Boolean).join(' — '))),
+            );
+          }
         }
         if (g.keyTerms?.length) {
           children.push(makeSubHeading('Key Terms'));
