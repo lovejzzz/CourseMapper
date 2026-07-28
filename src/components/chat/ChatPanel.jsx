@@ -1200,6 +1200,7 @@ export default function ChatPanel({
   isRevising,
   activeTab,
   courseMap,
+  courseGraph,
   slideTheme,
   // Chat state
   chatHistory,
@@ -1294,6 +1295,7 @@ export default function ChatPanel({
 
   const chat = useChatRouter({
     courseMap,
+    courseGraph,
     activeTab,
     onRevision,
     onDeliverableRevision,

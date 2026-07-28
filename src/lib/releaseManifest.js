@@ -320,8 +320,8 @@ const V01693_RELEASE = {
   },
 };
 
-export const CURRENT_RELEASE = {
-  version: APP_VERSION,
+const V01694_RELEASE = {
+  version: '0.16.94',
   date: 'July 28, 2026',
   title: 'One Save Truth Through the Final Green Frame',
   landingTitle: 'Scion V0.16.94 Keeps Active Compiler Saves Calm',
@@ -347,6 +347,38 @@ export const CURRENT_RELEASE = {
     roadmap: 'docs/SCION_V01694_WORKFLOW_SAVE_TRUTH.md',
     benchmark: 'src/lib/__tests__/workspaceSaveStatus.test.js',
     browser: 'docs/SCION_V01694_WORKFLOW_SAVE_TRUTH.md',
+    auditCommand: 'npm run audit:release-history',
+  },
+};
+
+export const CURRENT_RELEASE = {
+  version: APP_VERSION,
+  date: 'July 28, 2026',
+  title: 'The Agent Reads the Evidence That Ships',
+  landingTitle: 'Scion V0.16.95 Keeps Source Answers Grounded After Sync',
+  highlights: [
+    'The required V0.16.94 deployed-origin replay passed Resume, a real Course Map edit, nine-family Smart Sync, frame-by-frame save-state truth, final grading, and ZIP export. It then exposed a separate Agent defect: the same source question that worked before sync failed twice after sync with “I couldn’t finish that request.”',
+    'Smart Sync correctly preserved the canonical CourseGraph and exported source ledger, but replaced Course Map display citations with classroom-resource instructions. The local Agent read only the mutable display field, found no URL, and incorrectly fell through to a model-dependent action path.',
+    'Scion source answers now read the same trusted, concept-linked canonical source ledger used by PACKAGE_MANIFEST.json and SOURCE_REPORT.md. Lesson matching prefers stable session references and falls back to exact concept links, while display citations remain a compatible secondary source.',
+    'The Agent receives the live CourseGraph through the workspace, chat panel, and router. A synced or edited Course Map can no longer sever source access while its canonical evidence is still present.',
+    'A production-shaped regression uses the exact post-sync display shape, a Lesson 3 W3C ledger, and the original Lesson 3 → Lesson 4 question. It requires both official links, their bounded use, the cross-lesson remediation connection, and no generic failure.',
+    'This patch changes Agent evidence continuity only. It does not change course generation, compiler output, the exported evidence ledger, Gemma weights, adapter state, source research, evidence admission, model routing, readiness scoring, or any instructor, factual, accessibility, classroom, or paid-model claim.',
+  ],
+  landingHighlights: [
+    'Agent answers use the canonical source ledger.',
+    'Smart Sync cannot detach official-source evidence.',
+    'Session references bind sources to the right lesson.',
+    'Concept links provide a conservative fallback.',
+    'Display citations remain compatible but are not authoritative.',
+    'The exported ledger and Agent share one evidence truth.',
+    'The exact post-sync failure is regression-locked.',
+    'Scion output, routes, and model weights stay unchanged.',
+  ],
+  proof: {
+    contract: 'release-contracts/v0.16.95.json',
+    roadmap: 'docs/SCION_V01695_AGENT_EVIDENCE_CONTINUITY.md',
+    benchmark: 'src/lib/__tests__/scionLocalAgentAnswer.test.js',
+    browser: 'docs/SCION_V01695_AGENT_EVIDENCE_CONTINUITY.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -883,11 +915,11 @@ const V01693_RELEASE_CHANGELOG = {
   ],
 };
 
-export const CURRENT_RELEASE_CHANGELOG = {
-  version: CURRENT_RELEASE.version,
-  date: CURRENT_RELEASE.date,
-  title: CURRENT_RELEASE.title,
-  highlights: CURRENT_RELEASE.highlights,
+const V01694_RELEASE_CHANGELOG = {
+  version: V01694_RELEASE.version,
+  date: V01694_RELEASE.date,
+  title: V01694_RELEASE.title,
+  highlights: V01694_RELEASE.highlights,
   sections: [
     {
       label: 'Follow the whole workflow, not only generation',
@@ -941,6 +973,59 @@ export const CURRENT_RELEASE_CHANGELOG = {
         'V0.16.94 changes save-status presentation and sync-action completion, not course generation or compilation.',
         'The pinned Gemma base, inactive adapter, evidence layer, consent boundary, and readiness ceiling are unchanged.',
         'The compiler-before-model path still performs zero model work when exact structure and evidence satisfy the contract.',
+        'No teaching-quality, factual, accessibility, classroom, or paid-model claim is added.',
+      ],
+    },
+  ],
+};
+
+export const CURRENT_RELEASE_CHANGELOG = {
+  version: CURRENT_RELEASE.version,
+  date: CURRENT_RELEASE.date,
+  title: CURRENT_RELEASE.title,
+  highlights: CURRENT_RELEASE.highlights,
+  sections: [
+    {
+      label: 'Keep one evidence truth after sync',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'The exported source ledger remains the canonical record after Course Map edits and Smart Sync.',
+        'The Agent now reads that canonical CourseGraph evidence instead of depending only on mutable display citations.',
+        'PACKAGE_MANIFEST.json, SOURCE_REPORT.md, and source-bound Agent answers therefore use the same source identity and URL.',
+        'Existing Course Map citations still work as a compatible secondary source when no graph is available.',
+      ],
+    },
+    {
+      label: 'Bind evidence to the intended lesson',
+      icon: 'AI',
+      color: 'blue',
+      items: [
+        'Stable session references such as `s3` are the first lesson-match authority.',
+        'Explicit lesson scope is recognized when the ledger carries it.',
+        'Exact concept-label matching is the conservative fallback when session references are absent.',
+        'Unrelated course sources cannot answer a lesson-specific question merely because they exist in the package.',
+      ],
+    },
+    {
+      label: 'Reproduce the deployed failure shape',
+      icon: 'PROOF',
+      color: 'violet',
+      items: [
+        'The regression replaces Lesson 3 display citations with the same classroom-resource prose produced by Smart Sync.',
+        'Its CourseGraph retains the official W3C Accessible Forms and Labels rows with Lesson 3 references.',
+        'The exact source-and-connection question must return both links and explain how Lesson 3 evidence informs Lesson 4 remediation.',
+        'A generic Agent failure cannot satisfy the contract.',
+      ],
+    },
+    {
+      label: 'Keep the release boundary narrow',
+      icon: 'CHECK',
+      color: 'slate',
+      items: [
+        'V0.16.95 changes Agent evidence continuity, not course generation or compiler output.',
+        'The pinned Gemma base, inactive adapter, research consent, evidence admission, and readiness ceiling are unchanged.',
+        'The compiler-before-model path and exported package format remain unchanged.',
         'No teaching-quality, factual, accessibility, classroom, or paid-model claim is added.',
       ],
     },
@@ -1629,6 +1714,7 @@ const V01678_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  V01694_RELEASE_CHANGELOG,
   V01693_RELEASE_CHANGELOG,
   V01692_RELEASE_CHANGELOG,
   V01691_RELEASE_CHANGELOG,

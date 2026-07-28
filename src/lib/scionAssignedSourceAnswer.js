@@ -1,3 +1,5 @@
+import { buildSourceLedgerFromCourseGraph } from './knowledge/sourceLedger';
+
 const SOURCE_QUESTION_STOP_WORDS = new Set([
   'and',
   'assigned',
@@ -99,7 +101,8 @@ function connectedLessonFromQuestion(question, courseMap, sourceIndex) {
 function sourceToLessonConnection(sourceTarget, connectedTarget) {
   if (!connectedTarget) return '';
   const sourceTitle = sourceTarget.title || `Lesson ${sourceTarget.index + 1}`;
-  const connectedTitle = connectedTarget.title || `Lesson ${connectedTarget.index + 1}`;
+  const rawConnectedTitle = connectedTarget.title || `Lesson ${connectedTarget.index + 1}`;
+  const connectedTitle = `${rawConnectedTitle.charAt(0).toUpperCase()}${rawConnectedTitle.slice(1)}`;
   return `\n\n**Connection to Lesson ${connectedTarget.index + 1}: ${connectedTitle}** — The sequence moves from source-backed work on ${sourceTitle} to ${connectedTitle}. Carry the concrete findings and unresolved barriers from Lesson ${sourceTarget.index + 1} forward as evidence to test, prioritize, and revise in Lesson ${connectedTarget.index + 1}; a passing check on one form or component does not by itself prove whole-product conformance.`;
 }
 
@@ -156,6 +159,58 @@ function assignedLessonSources(lesson = {}) {
   });
 }
 
+function normalizedSessionRefsForTarget(courseGraph, target) {
+  const lessonNumber = target.index + 1;
+  const graphSession = Array.isArray(courseGraph?.sessions) ? courseGraph.sessions[target.index] : null;
+  return new Set(
+    [`s${lessonNumber}`, String(lessonNumber), graphSession?.id, graphSession?.number]
+      .map((value) => cleanText(value).toLowerCase())
+      .filter(Boolean),
+  );
+}
+
+function sourceLedgerLessonMatch(row, target, courseGraph) {
+  const lessonNumber = target.index + 1;
+  const targetSessionRefs = normalizedSessionRefsForTarget(courseGraph, target);
+  const rowSessionRefs = Array.isArray(row?.sessionRefs)
+    ? row.sessionRefs.map((value) => cleanText(value).toLowerCase()).filter(Boolean)
+    : [];
+  if (rowSessionRefs.some((value) => targetSessionRefs.has(value))) return true;
+  if (new RegExp(`\\blesson[-_\\s]*${lessonNumber}\\b`, 'i').test(cleanText(row?.scope))) return true;
+
+  const targetTokens = new Set(sourceQuestionTokens(target.title));
+  if (targetTokens.size === 0) return false;
+  return (Array.isArray(row?.conceptLinks) ? row.conceptLinks : []).some((link) => {
+    const linkTokens = sourceQuestionTokens(link?.label || link?.id);
+    return linkTokens.length > 0 && linkTokens.every((token) => targetTokens.has(token));
+  });
+}
+
+function assignedLessonSourcesFromCourseGraph(courseGraph, target) {
+  const ledger = buildSourceLedgerFromCourseGraph(courseGraph);
+  const rows = Array.isArray(ledger?.rows) ? ledger.rows : [];
+  return rows
+    .filter((row) => sourceLedgerLessonMatch(row, target, courseGraph))
+    .map((row) => ({
+      title: cleanText(row?.title || row?.citation || row?.evidence || row?.id),
+      url: cleanText(row?.url || (row?.doi ? `https://doi.org/${row.doi}` : '')),
+    }))
+    .filter(({ title, url }) => title && /^https?:\/\//i.test(url));
+}
+
+function mergeAssignedLessonSources(...sourceGroups) {
+  const seenTitles = new Set();
+  const seenUrls = new Set();
+  return sourceGroups.flat().filter(({ title, url }) => {
+    const titleKey = cleanText(title).toLowerCase();
+    const urlKey = cleanText(url).toLowerCase();
+    if (!titleKey || !urlKey || seenTitles.has(titleKey) || seenUrls.has(urlKey)) return false;
+    seenTitles.add(titleKey);
+    seenUrls.add(urlKey);
+    return true;
+  });
+}
+
 function sourceUseBoundary(title = '', lessonTitle = '') {
   if (/\blabels?\b/i.test(title)) {
     return 'Use it for claims about label purpose and the association between a label and its form control.';
@@ -181,11 +236,14 @@ export function isScionAssignedSourceQuestion(question = '') {
   );
 }
 
-export function buildScionAssignedSourceAnswer({ question, courseMap } = {}) {
+export function buildScionAssignedSourceAnswer({ question, courseMap, courseGraph } = {}) {
   if (!isScionAssignedSourceQuestion(question)) return null;
   const target = sourceQuestionLesson(question, courseMap);
   if (!target) return null;
-  const sources = assignedLessonSources(target.lesson);
+  const canonicalSources = assignedLessonSourcesFromCourseGraph(courseGraph, target);
+  const sources = mergeAssignedLessonSources(
+    canonicalSources.length > 0 ? canonicalSources : assignedLessonSources(target.lesson),
+  );
   if (sources.length === 0) return null;
   const selected = sources.slice(0, 5);
   const rows = selected
