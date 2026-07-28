@@ -1007,14 +1007,14 @@ export default function ModelConfig({ reserveTrailingActionSpace = false }) {
             className="mt-3 flex flex-col gap-2 rounded-squircle-xs border border-indigo-200/70 bg-white/65 p-2.5 dark:border-indigo-300/20 dark:bg-slate-950/30"
             data-testid="scion-research-mode"
           >
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex items-start justify-between gap-3 sm:items-center">
               <div>
                 <p className="font-semibold text-slate-800 dark:text-slate-100">
                   {scionResearchEnabled ? 'Current-source research on' : 'Private evidence mode'}
                 </p>
                 <p className="mt-0.5 text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
                   {scionResearchEnabled
-                    ? 'Only the course title and uncovered lesson topics are sent to open-source catalogs. Scion verifies admitted claims against source passages and saves compact evidence on this device.'
+                    ? 'Only the course title and uncovered lesson topics are sent to open-source catalogs. Scion verifies source claims against original passages and saves compact evidence on this device.'
                     : 'No course-topic research requests are sent. Scion uses your materials and EduTool’s source-anchored teaching library on this device.'}
                 </p>
               </div>
@@ -1024,15 +1024,25 @@ export default function ModelConfig({ reserveTrailingActionSpace = false }) {
                 aria-checked={scionResearchEnabled}
                 aria-label="Allow Scion current-source research"
                 onClick={() => handleScionResearchMode(!scionResearchEnabled)}
-                className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
-                  scionResearchEnabled ? 'bg-indigo-600' : 'bg-slate-300 dark:bg-slate-600'
-                }`}
+                className="group inline-flex h-7 w-12 shrink-0 items-center justify-center rounded-full focus-visible:outline-none"
+                data-state={scionResearchEnabled ? 'on' : 'off'}
               >
                 <span
-                  className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${
-                    scionResearchEnabled ? 'translate-x-5' : 'translate-x-1'
+                  aria-hidden="true"
+                  data-testid="scion-research-switch-track"
+                  className={`inline-flex h-7 w-12 shrink-0 items-center overflow-hidden rounded-full p-1 shadow-inner transition-colors duration-200 group-focus-visible:ring-2 group-focus-visible:ring-indigo-500 group-focus-visible:ring-offset-2 group-focus-visible:ring-offset-white dark:group-focus-visible:ring-indigo-300 dark:group-focus-visible:ring-offset-slate-900 ${
+                    scionResearchEnabled
+                      ? 'bg-indigo-600 group-hover:bg-indigo-500'
+                      : 'bg-slate-300 group-hover:bg-slate-400 dark:bg-slate-600 dark:group-hover:bg-slate-500'
                   }`}
-                />
+                >
+                  <span
+                    data-testid="scion-research-switch-thumb"
+                    className={`h-5 w-5 shrink-0 rounded-full bg-[#fff] shadow-[0_1px_3px_rgba(15,23,42,0.35)] ring-1 ring-slate-900/5 transition-transform duration-200 ease-out group-active:scale-95 ${
+                      scionResearchEnabled ? 'translate-x-5' : 'translate-x-0'
+                    }`}
+                  />
+                </span>
               </button>
             </div>
           </div>

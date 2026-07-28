@@ -382,13 +382,26 @@ describe('checkCredits', () => {
 
     const researchSwitch = container.querySelector('[aria-label="Allow Scion current-source research"]');
     expect(researchSwitch).not.toBeNull();
+    expect(researchSwitch.getAttribute('role')).toBe('switch');
+    expect(researchSwitch.getAttribute('aria-checked')).toBe('false');
+    expect(researchSwitch.getAttribute('data-state')).toBe('off');
+    expect(researchSwitch.querySelector('[data-testid="scion-research-switch-track"]').className).toContain(
+      'overflow-hidden',
+    );
+    expect(researchSwitch.querySelector('[data-testid="scion-research-switch-thumb"]').className).toContain(
+      'translate-x-0',
+    );
     await act(async () => {
       researchSwitch.click();
     });
     expect(researchSwitch.getAttribute('aria-checked')).toBe('true');
+    expect(researchSwitch.getAttribute('data-state')).toBe('on');
+    expect(researchSwitch.querySelector('[data-testid="scion-research-switch-thumb"]').className).toContain(
+      'translate-x-5',
+    );
     expect(localStorage.getItem('coursemapper-scion-research')).toBe('on');
     expect(container.textContent).toContain('Only the course title and uncovered lesson topics are sent');
-    expect(container.textContent).toContain('verifies admitted claims against source passages');
+    expect(container.textContent).toContain('verifies source claims against original passages');
 
     act(() => {
       root.unmount();

@@ -57,17 +57,23 @@ Admission is intentionally strict. A lesson evidence ledger needs at least three
 brief + files → explicit structure + Scion evidence → bounded local adaptation only when needed → shared compiler → verified package
 ```
 
+V0.16.91 gives each admitted lesson one canonical evidence brief and reuses that same typed object across the syllabus, lesson plans, rubrics, study guides, the Agent's course context, and DOCX export. This is deliberately different from asking each deliverable to paraphrase its own evidence: the source claims and links remain stable while each surface adds only the teaching structure it needs.
+
 The historical research architecture and limitations remain documented in [docs/ALGI_RESEARCH_FIRST_ARCHITECTURE.md](docs/ALGI_RESEARCH_FIRST_ARCHITECTURE.md) and [docs/ALGI_V0_PIPELINE_ASSESSMENT.md](docs/ALGI_V0_PIPELINE_ASSESSMENT.md).
 
-### V0.16.91 current release — autosave without a false red frame
+### V0.16.91 current release — grounded teaching surfaces and calm browser state
 
 The required V0.16.90 production acceptance built the exact four-lesson Digital Accessibility course in 18 seconds with 4/4 knowledge kernels, 9/9 material families, zero findings, 69/100 Automated Readiness, 99/A conformance, texture 97, and zero model calls. The header nevertheless flashed **Local save failed** before recovering to **Autosaved locally**. The project was not lost, but the frame was wrong.
 
 V0.16.91 attaches every asynchronous browser save to a monotonically increasing attempt identity. Only the newest attempt can paint saved, failed, or idle; a new save clears the older timer, and a workspace reset invalidates every queued callback. Exact IndexedDB writes also retry once after a transient transaction abort. A permanent current-attempt failure still surfaces with both causes preserved—this is persistence ordering and bounded recovery, not cosmetic error hiding.
 
-Focused unit tests lock stale-failure suppression, reset invalidation, transient recovery, and permanent-error reporting. Real Chromium tests preserve an oversized completed project exactly in IndexedDB and restore a quota-saturated 15-lesson package without a visible save failure. The complete gates and deployed-origin replay remain the release boundary documented in [docs/SCION_V01691_AUTOSAVE_STATE_MACHINE.md](docs/SCION_V01691_AUTOSAVE_STATE_MACHINE.md).
+The compiler now builds one source-evidence brief per admitted lesson and carries it into the public teaching surfaces instead of leaving source detail concentrated in the Study Guide. Lesson Plans render **Source Evidence for This Lesson**, Rubrics render **Content evidence used for scoring**, and Study Guides render an **Evidence Ledger** with distinct source-claim comparison questions. The DOCX exporter preserves the same sections and links. Duplicate summaries and implementation labels such as “source-backed case example” are rejected before learner-facing artifacts are assembled.
 
-This patch changes browser persistence orchestration only. It does not change Gemma weights, the inactive optional adapter, source admission, research consent, compiler output, readiness scoring, or V0.16.90’s compiler-before-model route.
+The Landing research switch is now a 48×28 visual control inside a separate mobile-safe 48×44 hit area. Its 20-pixel thumb has an explicit anchor and bounded 20-pixel travel, remains white in both themes, exposes on/off state, and keeps a visible keyboard focus treatment. The control no longer escapes its track or grows vertically under the global mobile target rule.
+
+A frozen five-domain grounded-surface gym proves the same evidence packet reaches Lesson Plans, Rubrics, and Study Guides without awarding an instructor, truth, accessibility, or classroom score. A fresh local browser replay of the exact four-lesson Digital Accessibility brief completed in 12 seconds with 4/4 knowledge kernels, 9/9 material families, 69/100 Automated Readiness, texture 96, one ZIP action, and a continuously green autosave state. Its 671,524-byte export contains 47 entries and 34 structurally valid Office files; 12 files carry the new evidence headings, 28 carry the improved evidence-material wording, and zero inspected text or Office XML surfaces contain the rejected internal phrases. SHA-256: `9442759588494258c9f6d4ec55c8d8a8f63b3689fe2a322f882cc8df9eccbadd`.
+
+These changes improve compiler output; they do not change Gemma weights, activate the optional adapter, relax source admission or research consent, or claim factual correctness, accessibility certification, instructor approval, or classroom outcomes. The autosave contract remains documented in [docs/SCION_V01691_AUTOSAVE_STATE_MACHINE.md](docs/SCION_V01691_AUTOSAVE_STATE_MACHINE.md); the grounded-output, toggle, browser, and physical-export evidence is documented in [docs/SCION_V01691_GROUNDED_SURFACES.md](docs/SCION_V01691_GROUNDED_SURFACES.md).
 
 ### V0.16.90 historical release — compiler before model
 

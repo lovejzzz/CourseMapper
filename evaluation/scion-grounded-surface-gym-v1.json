@@ -1,0 +1,157 @@
+{
+  "schemaVersion": 1,
+  "id": "scion-grounded-surface-gym-v1",
+  "purpose": "Frozen mechanical evaluation of canonical source-evidence propagation across syllabus, lesson-plan, rubric, and study-guide surfaces. It tests application/compiler behavior, not independent factual truth or classroom outcomes.",
+  "cases": [
+    {
+      "id": "accessibility-forms",
+      "domain": "digital-accessibility",
+      "courseName": "Digital Accessibility for Product Teams",
+      "lessonTitle": "Accessible Forms",
+      "topics": "Accessible forms; explicit labels; validation",
+      "assessment": "Accessible forms remediation brief",
+      "facts": [
+        "Explicit labels are better supported by assistive technology.",
+        "People with cognitive disabilities can better understand a form when instructions and feedback are clear.",
+        "Data still needs to be validated on the server side.",
+        "Labels should describe the purpose of their form control."
+      ],
+      "summary": "Accessible forms are easier to use for everyone, including people with disabilities. Accessible forms are easier to use for everyone, including people with disabilities.",
+      "keyTerms": [
+        {
+          "term": "Accessible forms",
+          "definition": "Accessible forms are easier to use for everyone, including people with disabilities.",
+          "example": "Clear instructions and feedback help people understand how to complete a form."
+        }
+      ],
+      "sources": [
+        {
+          "displayTitle": "W3C Accessible Forms Tutorial",
+          "sourceUrl": "https://www.w3.org/WAI/tutorials/forms/",
+          "license": "W3C permissive license"
+        },
+        {
+          "displayTitle": "W3C Labels Tutorial",
+          "sourceUrl": "https://www.w3.org/WAI/tutorials/forms/labels/",
+          "license": "W3C permissive license"
+        }
+      ]
+    },
+    {
+      "id": "geology-seismic-waves",
+      "domain": "physical-geology",
+      "courseName": "Physical Geology",
+      "lessonTitle": "Seismic Waves and Earth Structure",
+      "topics": "P waves; S waves; seismic evidence",
+      "assessment": "Seismic evidence interpretation",
+      "facts": [
+        "P waves can travel through solids and fluids.",
+        "S waves travel through solids but not through fluids.",
+        "Changes in seismic-wave speed and direction provide evidence about boundaries inside Earth.",
+        "A seismic shadow zone is a region where particular direct seismic waves are not recorded."
+      ],
+      "summary": "Seismic waves reveal Earth structure. Seismic waves reveal Earth structure.",
+      "keyTerms": [
+        {
+          "term": "S wave",
+          "definition": "An S wave is a shear wave that does not travel through fluids.",
+          "example": "The absence of direct S waves across part of Earth supports the inference of a liquid outer core."
+        }
+      ],
+      "sources": [
+        {
+          "displayTitle": "USGS Earthquake Glossary",
+          "sourceUrl": "https://www.usgs.gov/programs/earthquake-hazards/science/earthquake-glossary",
+          "license": "U.S. Government Work"
+        }
+      ]
+    },
+    {
+      "id": "social-research-operationalization",
+      "domain": "social-science-research",
+      "courseName": "Research Methods in the Social Sciences",
+      "lessonTitle": "Operationalization and Causal Claims",
+      "topics": "Operational definitions; measurement; causation",
+      "assessment": "Measurement and inference memo",
+      "facts": [
+        "An operational definition states how a concept will be measured or observed.",
+        "Reliability concerns whether a measurement produces consistent results.",
+        "Validity concerns whether a measurement captures the concept it is intended to represent.",
+        "An observed association alone does not establish a causal relationship."
+      ],
+      "summary": "Operationalization connects concepts to observations. Operationalization connects concepts to observations.",
+      "keyTerms": [
+        {
+          "term": "Operational definition",
+          "definition": "An operational definition specifies the observable procedure used to represent a concept.",
+          "example": "A study defines civic participation by the activities counted and the time window measured."
+        }
+      ],
+      "sources": [
+        {
+          "displayTitle": "OpenStax Introduction to Sociology 3e — Sociological Research",
+          "sourceUrl": "https://openstax.org/books/introduction-sociology-3e/pages/2-introduction-to-sociological-research",
+          "license": "CC BY 4.0"
+        }
+      ]
+    },
+    {
+      "id": "python-collections",
+      "domain": "computer-science",
+      "courseName": "Python Programming Foundations",
+      "lessonTitle": "Lists, Dictionaries, and Comprehensions",
+      "topics": "Python lists; dictionaries; comprehensions",
+      "assessment": "Collection transformation lab",
+      "facts": [
+        "A Python list is mutable and can contain items of different types.",
+        "A dictionary stores values associated with unique keys.",
+        "A list comprehension provides a concise way to create a list from an iterable.",
+        "Iterating over a dictionary directly yields its keys."
+      ],
+      "summary": "Python collections organize related values. Python collections organize related values.",
+      "keyTerms": [
+        {
+          "term": "List comprehension",
+          "definition": "A list comprehension constructs a list by evaluating an expression for items from an iterable.",
+          "example": "Squares can be produced from a range with one expression and an optional filter."
+        }
+      ],
+      "sources": [
+        {
+          "displayTitle": "Python Tutorial — Data Structures",
+          "sourceUrl": "https://docs.python.org/3/tutorial/datastructures.html",
+          "license": "Python Software Foundation License"
+        }
+      ]
+    },
+    {
+      "id": "music-intervals",
+      "domain": "music-theory",
+      "courseName": "Music Theory Foundations",
+      "lessonTitle": "Written Intervals and Inversions",
+      "topics": "Generic interval; interval quality; inversion",
+      "assessment": "Interval analysis set",
+      "facts": [
+        "The generic size of a written interval counts letter names inclusively.",
+        "Specific interval quality depends on both generic size and semitone distance.",
+        "The generic sizes of inversion pairs sum to nine.",
+        "Under inversion, major pairs with minor while perfect remains perfect."
+      ],
+      "summary": "Interval labels combine size and quality. Interval labels combine size and quality.",
+      "keyTerms": [
+        {
+          "term": "Interval inversion",
+          "definition": "An interval is inverted when one note is displaced by an octave so the notes exchange their vertical order.",
+          "example": "A written third inverts to a written sixth."
+        }
+      ],
+      "sources": [
+        {
+          "displayTitle": "Open Music Theory — Intervals",
+          "sourceUrl": "https://viva.pressbooks.pub/openmusictheory/chapter/intervals/",
+          "license": "CC BY-SA"
+        }
+      ]
+    }
+  ]
+}

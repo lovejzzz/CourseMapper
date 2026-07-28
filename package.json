@@ -302,6 +302,7 @@
     "audit:scion:codex-cross-revision-evidence": "node scripts/scionCodexCrossRevisionEvidence.mjs",
     "audit:scion:key-term-gate-evidence": "node scripts/scionCodexKeyTermGateEvidence.mjs",
     "audit:scion:compiler-burden": "node scripts/scionCompilerBurdenAudit.mjs",
+    "audit:scion:grounded-surfaces": "node scripts/scionGroundedSurfaceGym.mjs --write",
     "build:scion:mc-recovery": "node scripts/scionMcContractRecoveryAudit.mjs --write",
     "audit:scion:mc-recovery": "node scripts/scionMcContractRecoveryAudit.mjs",
     "build:scion:compiler-lift": "node scripts/scionCompilerLiftReplayAudit.mjs --write",

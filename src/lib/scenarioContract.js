@@ -276,7 +276,7 @@ export function deriveDecisionScenario(kernel, { compactFactLedgerScenarios = tr
     // to a learner: implementation language such as "misconception-correction
     // pair" and repeating the term ("Connect X to the X case") made an
     // otherwise strong source-grounded activity sound machine-assembled.
-    materials: 'the source-backed case example, related claim, and claim-boundary note',
+    materials: 'the cited passage, the two competing interpretations, and the documented limit of the evidence',
     source: 'derived-kernel-fallback',
   };
   return analyzeDecisionScenario(derived).ready ? derived : null;
