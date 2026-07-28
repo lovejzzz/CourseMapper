@@ -754,7 +754,7 @@ describe('B1 — buildRibbonModel selector', () => {
           detail: 'passBudget:lesson-2 bounded [5/5-calls-used-before-keyTermAdmission]',
         },
       ]),
-    ).toBe('Lesson checks complete · compiling locally');
+    ).toBe('Lesson checks complete · compiling');
     expect(
       latestKnowledgeActivity([
         { type: 'pipelineDecision', label: 'Scion pass call', detail: 'key_term_admission_batch' },
@@ -1211,7 +1211,7 @@ describe('B1 — buildRibbonModel selector', () => {
       status: 'error',
     });
     expect(model.compilerArtifacts.find((artifact) => artifact.id === 'checks')?.value).toBe(
-      'Not run · course map incomplete',
+      'Not run · map incomplete',
     );
   });
 

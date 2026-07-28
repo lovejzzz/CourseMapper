@@ -137,10 +137,11 @@ const lazyChunkBudgets = [
   // zlib. Keep the 0.25 KiB compression-only allowance as platform variance,
   // not product-growth room; raw remains capped at the measured architecture.
   // v0.16.87 carries observed source coverage into the sealed receipt and
-  // synchronizes post-export quality. The synchronous generated-map handoff
-  // prevents finalization from racing React state. Measured 283.4/85.3; freeze
-  // at the next tenth without moving either dependency onto landing.
-  { prefix: 'AppFlow-', rawKiB: 283.5, gzipKiB: 85.4 },
+  // synchronizes post-export quality. Pure map-continuity and materialized-
+  // scope helpers now share the existing courseMapContinuation cache chunk,
+  // reducing the hot workspace parse to 280.6/84.4 locally. Keep Linux zlib
+  // variance bounded without moving any dependency onto landing.
+  { prefix: 'AppFlow-', rawKiB: 281, gzipKiB: 84.8 },
   // v0.16.47: the Living Course Compiler component and pure selector gained
   // an independently cacheable route boundary instead of raising AppFlow's
   // long-standing ratchet. Clean measurement: AppFlow 251.6/75.9; ribbon
@@ -153,10 +154,15 @@ const lazyChunkBudgets = [
   // move the stale ratchet to 70/22 without granting feature-growth room.
   // v0.16.73 measured 70.0/21.7; retain only sub-KiB raw variance.
   // v0.16.87 replaces the generous letter grade with the real automated
-  // readiness score. Measured 70.9/22.0; freeze at 71/22.1.
-  { prefix: 'livingCompilerRibbon-', rawKiB: 71, gzipKiB: 22.1 },
+  // readiness score. Moving shared scope helpers into the continuity chunk
+  // reduces this UI/model pair to 67.9/21.1 locally.
+  { prefix: 'livingCompilerRibbon-', rawKiB: 68.5, gzipKiB: 21.5 },
   { prefix: 'livingCompilerFailure-', rawKiB: 3, gzipKiB: 2 },
-  { prefix: 'courseMapContinuation-', rawKiB: 5, gzipKiB: 3 },
+  // Continuation, generated-map handoff, and compact materialized-scope
+  // normalization are one pure course-map continuity boundary. Reusing its
+  // existing request measures 8.5/3.3 while the combined AppFlow + ribbon +
+  // continuity ceilings fall by 1.25 KiB raw and 0.7 KiB gzip.
+  { prefix: 'courseMapContinuation-', rawKiB: 8.75, gzipKiB: 3.5 },
   // Anonymous-save presentation is route-only state. It stays isolated so
   // quota fallback wording cannot grow the AppFlow control chunk.
   { prefix: 'workspaceSaveStatus-', rawKiB: 1, gzipKiB: 1 },

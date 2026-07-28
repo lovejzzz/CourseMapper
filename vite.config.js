@@ -40,7 +40,7 @@ export default defineConfig({
             return 'livingCompilerRibbon';
           }
           if (/src\/lib\/buildRibbonFailureModel\.js$/.test(id)) return 'livingCompilerFailure';
-          if (/src\/lib\/(?:courseMapContinuation|generatedCourseMapHandoff)\.js$/.test(id)) {
+          if (/src\/lib\/(?:courseMapContinuation|generatedCourseMapHandoff|materializedLessonScope)\.js$/.test(id)) {
             return 'courseMapContinuation';
           }
           if (/src\/lib\/workspaceSaveStatus\.js$/.test(id)) return 'workspaceSaveStatus';

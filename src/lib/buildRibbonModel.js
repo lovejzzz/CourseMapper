@@ -315,7 +315,7 @@ export function latestKnowledgeActivity(events = []) {
     }`;
   }
   if (activity?.type === 'scionCompilerRepair') {
-    const label = String(activity.label || 'Scion applied a conservative compiler repair').trim();
+    const label = String(activity.label || 'Scion applied a safe repair').trim();
     const detail = String(activity.detail || '').trim();
     return detail ? `${label} · ${detail}` : label;
   }
@@ -330,7 +330,7 @@ export function latestKnowledgeActivity(events = []) {
   }
   if (activity?.label === 'Scion quality passes') {
     const detail = String(activity.detail);
-    if (detail.includes('passBudget:')) return 'Lesson checks complete · compiling locally';
+    if (detail.includes('passBudget:')) return 'Lesson checks complete · compiling';
     if (detail.includes('identityRepair:')) return 'Linking lesson to course map';
     if (detail.includes('keyTermAdmission:')) return 'Key terms checked';
     if (detail.includes('appliedDepth:')) return 'Applied questions checked';
@@ -338,7 +338,7 @@ export function latestKnowledgeActivity(events = []) {
     if (detail.includes('admissionGate:')) return 'Quiz choices checked';
     if (detail.includes('mcVerify:')) return 'Answer keys checked';
     if (detail.includes('polish:')) return 'Lesson language polished';
-    return 'Applying source-grounded quality decisions';
+    return 'Applying source-grounded checks';
   }
   if (activity?.type === 'streamRetryCall') {
     const attempt = Math.max(0, Number(activity.attempt) || 0);
@@ -418,16 +418,16 @@ export function buildLivingCompilerArtifacts({
   const knowledgeValue =
     pipeline?.state === 'enriching'
       ? [latestKnowledgeActivity(budget?.recentEvents), ...knowledgeParts].join(' · ')
-      : knowledgeParts.join(' · ') || (pipeline?.done?.enrich ? 'Knowledge pass complete' : 'Waiting');
+      : knowledgeParts.join(' · ') || (pipeline?.done?.enrich ? 'Knowledge ready' : 'Waiting');
 
   let checksValue = 'Waiting';
-  if (generationFailed) checksValue = 'Not run · course map incomplete';
+  if (generationFailed) checksValue = 'Not run · map incomplete';
   else if (finishStatus === 'blocked') checksValue = `${blockers || 1} item${blockers === 1 ? '' : 's'} to refine`;
   else if (finishStatus === 'ready') {
     const score = packageQualityPass?.quality?.readiness?.score;
     checksValue = score == null ? 'Verified' : `Readiness ${score}/100`;
   } else if (pipeline?.state === 'grading') checksValue = 'Grading package';
-  else if (pipeline?.state === 'verifying') checksValue = 'Checking and repairing';
+  else if (pipeline?.state === 'verifying') checksValue = 'Checking repairs';
 
   return [
     {
