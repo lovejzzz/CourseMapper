@@ -143,9 +143,10 @@ const lazyChunkBudgets = [
   // reducing the hot workspace parse to 280.6/84.4 locally. Keep Linux zlib
   // variance bounded without moving any dependency onto landing.
   // v0.16.92 adds the bounded autosave-failure confirmation timer to the
-  // persistence owner. The workspace-only chunk measures 281.3/84.7; grant
-  // 0.5 KiB raw while keeping the gzip ceiling locked.
-  { prefix: 'AppFlow-', rawKiB: 281.5, gzipKiB: 84.8 },
+  // persistence owner. The workspace-only chunk measures 281.3/84.7 locally
+  // and 281.3/84.9 on CI's Node 22 zlib; grant 0.5/0.2 KiB for the feature and
+  // platform variance without moving any dependency onto landing.
+  { prefix: 'AppFlow-', rawKiB: 281.5, gzipKiB: 85 },
   // v0.16.47: the Living Course Compiler component and pure selector gained
   // an independently cacheable route boundary instead of raising AppFlow's
   // long-standing ratchet. Clean measurement: AppFlow 251.6/75.9; ribbon
