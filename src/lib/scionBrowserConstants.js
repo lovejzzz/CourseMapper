@@ -56,7 +56,7 @@ export const SCION_BROWSER_GEMMA4_GGUF = Object.freeze({
   runtime: Object.freeze({
     id: SCION_BROWSER_WLLAMA_RUNTIME_ID,
     modulePath: SCION_BROWSER_WLLAMA_MODULE_PATH,
-    moduleSha256: '4d38e780dd1ce19cd3904039f7926ee07df0d8f413499a3d2db810a0e9e86eb5',
+    moduleSha256: 'fe163d45c4490884979620a10c9eba916e1537a0cc759ebd1520f9a7e669c9b8',
     wasmPath: SCION_BROWSER_WLLAMA_WASM_PATH,
     wasmSha256: '732bac4661d613461cee0b3132660beab159b926910c8431181ee01608e44229',
     upstreamRevision: '58903000dbea6acfc0eb9c738d8be50d1052cf23',

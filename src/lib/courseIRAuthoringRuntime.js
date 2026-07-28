@@ -1,5 +1,6 @@
 import { assessCourseIRDirectAuthoring, courseIRToCourseGraph, takeCourseIR, validateCourseIR } from './courseIR';
 import { isAlgiModel } from './algiIdentity';
+import { isNonFallbackScionRuntimeError } from './scionRuntimeErrors';
 
 export async function tryAuthorDirectCourseIR({ expectedLessonCount, streamProvider, recordApiCallEvent } = {}) {
   if (!expectedLessonCount || !streamProvider) return { ok: false, skipped: true };
@@ -180,6 +181,7 @@ export async function runDirectCourseIRGenerationFlow(input = [], output = []) {
     });
   } catch (courseIRErr) {
     if (courseIRErr?.name === 'AbortError') throw courseIRErr;
+    if (provider === 'public' && isNonFallbackScionRuntimeError(courseIRErr)) throw courseIRErr;
     recordApiCallEvent?.({
       type: 'courseIRAuthoringFellBack',
       label: 'CourseIR direct authoring fell back',

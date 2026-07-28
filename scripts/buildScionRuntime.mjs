@@ -13,6 +13,40 @@ const expectedSourceSha256 = 'ca1b99d084b649a89400d8a839f3e772a46d1f65f145b80d9a
 
 const patches = [
   {
+    name: 'bound OPFS reads to the destination buffer',
+    before: [
+      '      const { syncHandle, size } = opfsHandles[name];',
+      '      const toRead = Math.min(length, size - position);',
+      '      if (toRead <= 0) return 0;',
+      '      const view = new Uint8Array(',
+      '        buffer.buffer,',
+      '        buffer.byteOffset + offset,',
+      '        toRead',
+      '      );',
+    ].join('\\n'),
+    after: [
+      '      const { syncHandle, size } = opfsHandles[name];',
+      '      const destinationOffset = Number(offset);',
+      '      const destinationCapacity = Math.max(0, buffer.byteLength - destinationOffset);',
+      '      const backingCapacity = Math.max(',
+      '        0,',
+      '        buffer.buffer.byteLength - buffer.byteOffset - destinationOffset',
+      '      );',
+      '      const toRead = Math.min(',
+      '        Number(length),',
+      '        Number(size) - Number(position),',
+      '        destinationCapacity,',
+      '        backingCapacity',
+      '      );',
+      '      if (toRead <= 0) return 0;',
+      '      const view = new Uint8Array(',
+      '        buffer.buffer,',
+      '        buffer.byteOffset + destinationOffset,',
+      '        toRead',
+      '      );',
+    ].join('\\n'),
+  },
+  {
     name: 'track the active OPFS file and write cursor',
     before: 'let accessHandle;\\nlet abortController = new AbortController();',
     after: [

@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — cross-checked, exportable, and fully editable. Then use the AI agent to inspect and revise the generated workspace through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.85
+**Current release:** v0.16.86
 
 ---
 
@@ -32,7 +32,7 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site presents **Provider: Scion**, a disabled API control because no key is needed, and one product model: **Scion V0.16.85**. That label names EduTool's complete course-building system; it is not a claim that EduTool trained or hosts a new foundation model. Scion pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its identity and metadata, and runs it through the packaged WebGPU runtime. Before local inference, Scion can prepare compact source-anchored evidence from uploaded material, the shipped Curriculum Genome, the local research cache, and—only after opt-in—current public sources. The resulting typed knowledge feeds one shared compiler and export contract.
+The hosted site presents **Provider: Scion**, a disabled API control because no key is needed, and one product model: **Scion V0.16.86**. That label names EduTool's complete course-building system; it is not a claim that EduTool trained or hosts a new foundation model. Scion pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its identity and metadata, and runs it through the packaged WebGPU runtime. Before local inference, Scion can prepare compact source-anchored evidence from uploaded material, the shipped Curriculum Genome, the local research cache, and—only after opt-in—current public sources. The resulting typed knowledge feeds one shared compiler and export contract.
 
 In plain language, **Scion Vx is the whole local authoring system, not just the base model**:
 
@@ -58,7 +58,21 @@ brief + files → Scion evidence → bounded local adaptation → shared compile
 
 The historical research architecture and limitations remain documented in [docs/ALGI_RESEARCH_FIRST_ARCHITECTURE.md](docs/ALGI_RESEARCH_FIRST_ARCHITECTURE.md) and [docs/ALGI_V0_PIPELINE_ASSESSMENT.md](docs/ALGI_V0_PIPELINE_ASSESSMENT.md).
 
-### V0.16.85 current production candidate — one Scion, evidence before inference
+### V0.16.86 current production candidate — one download, one deliberate start
+
+V0.16.86 is a production-runtime reliability patch discovered through the required post-deploy browser audit. In Chrome, V0.16.85 could download the entire 3.35 GB public model, reach 100%, fail during activation, and silently enter the prose fallback—which started the same multi-gigabyte transfer again. The browser had sufficient storage, WebGPU and WebAssembly JSPI were available, and every remote shard size matched the immutable manifest. The defect was in the custom OPFS read boundary, not the course prompt or public weights.
+
+The generated pinned runtime now caps every OPFS read by four independent limits: the requested length, the remaining shard bytes, the destination typed-array capacity, and the backing-buffer capacity. This prevents the oversized destination view that caused the production activation failure. The public Gemma revision, five shard sizes, total download, and model-weight identity are unchanged.
+
+Scion also treats browser-runtime startup errors as a hard orchestration boundary. Native authoring cannot hide such a failure behind the prose fallback, so one activation failure cannot trigger a second provider attempt or full download. A failed fresh activation releases its runtime and OPFS handles before removing the cache. A known incomplete saved copy may still be replaced once; unrelated device failures do not clear a valid model.
+
+The progress language now separates transfer from activation. The 100% frame reads **“Download complete · activating Scion…”**, a clean replacement says so explicitly, and a terminal activation error preserves the last honest progress instead of snapping to zero. Engineering logs retain a prompt-free diagnostic cause chain while the visible message remains concise.
+
+This patch changes browser delivery and recovery, not course-quality scoring. Gemma weights are unchanged, the optional trained adapter remains inactive, and Scion retains the V0.16.85 internal evidence layer and shared compiler. Automated and production-browser gates demonstrate implementation behavior; they do not prove factual correctness, instructor approval, accessibility certification, student outcomes, or classroom effectiveness.
+
+The implementation and release-blocking production proof contract are documented in [docs/SCION_V01686_PRODUCTION_RUNTIME_RECOVERY.md](docs/SCION_V01686_PRODUCTION_RUNTIME_RECOVERY.md).
+
+### V0.16.85 historical release — one Scion, evidence before inference
 
 V0.16.85 simplifies the public product without discarding the strongest result from the previous comparison. The landing configuration now exposes one free model, **Scion V0.16.85**. A saved experimental model id migrates to Scion, so old browser state cannot silently restore a retired public route. Provider, model, source forecast, Living Course Compiler events, workspace, Agent, and export all keep the same Scion identity.
 
@@ -68,7 +82,7 @@ The privacy boundary remains visible. Current-source research is off by default 
 
 The implementation passes **5,796 active unit tests across 466 files**, with 16 files and 162 tests intentionally skipped. The frozen **38-case main evaluation** and **14-course PR compiler contract** both pass; focused evidence, configuration, forecast, and binding coverage passes **102/102** after the final efficiency refinement.
 
-The complete automated Chromium suite passes **151/151** tests across landing, configuration, accessibility, responsive layouts, restored Scion projects, Agent behavior, finalization, and physical export paths. That pass exposed one real source-of-truth defect: a reused finish-pass quality report could omit a blocker that the ZIP manifest and readiness report correctly recorded. V0.16.85 now regrades that blocked archive so `QUALITY_REPORT.md`, `PACKAGE_MANIFEST.json`, and `READINESS_REPORT.txt` agree. The production-origin browser-local generation, Agent, console, and physical ZIP proof remains intentionally post-deploy so the existing public-model cache can be reused.
+The complete automated Chromium suite passes **151/151** tests across landing, configuration, accessibility, responsive layouts, restored Scion projects, Agent behavior, finalization, and physical export paths. That pass exposed one real source-of-truth defect: a reused finish-pass quality report could omit a blocker that the ZIP manifest and readiness report correctly recorded. V0.16.85 regrades that blocked archive so `QUALITY_REPORT.md`, `PACKAGE_MANIFEST.json`, and `READINESS_REPORT.txt` agree. The production-origin audit then exposed the separate cold-start activation and duplicate-download defect repaired in V0.16.86; V0.16.85 is therefore preserved as architecture history, not represented as the current reliable runtime.
 
 This release changes orchestration and the compiler boundary, not Gemma weights. The optional trained adapter remains inactive because it has not beaten the pinned public base on the frozen held-out ruler. Automated gates prove encoded contracts and regressions; they do not establish factual correctness, instructor approval, accessibility certification, classroom outcomes, paid-model superiority, or an adapter win.
 
@@ -178,7 +192,7 @@ Gemma weights remain unchanged, and the research adapter remains inactive becaus
 
 ### Recent release history
 
-The sections below are historical release evidence. Their versions, timings, test counts, and measured packages describe the named release and are intentionally preserved; the V0.16.85 release section above is the current authority. Historical 99/A statements refer to the deterministic conformance grader used by those releases, not to the new Automated Readiness construct.
+The sections below are historical release evidence. Their versions, timings, test counts, and measured packages describe the named release and are intentionally preserved; the V0.16.86 release section above is the current authority. Historical 99/A statements refer to the deterministic conformance grader used by those releases, not to the new Automated Readiness construct.
 
 V0.16.77 makes experiential learning a first-class compiler capability instead of a one-course template. When—and only when—a lesson explicitly requests a simulation, laboratory investigation, studio critique, case exercise, structured debate, field exercise, or role-play, the existing lesson-authoring call returns one compact course-specific activity blueprint beside its knowledge kernel. There is no extra call for the lesson plan, slides, assignment, or export.
 

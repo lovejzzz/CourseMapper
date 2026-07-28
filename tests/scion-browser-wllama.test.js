@@ -143,7 +143,7 @@ describe('Scion WebGPU GGUF runtime', () => {
         (entry) =>
           entry.phase === 'loading-model' &&
           entry.progress === 1 &&
-          /Model ready on this device · preparing Scion/.test(entry.message),
+          /Download complete · activating Scion/.test(entry.message),
       ),
     ).toBe(true);
     expect(published.map((entry) => entry.phase)).toContain('loading-runtime');
@@ -221,9 +221,75 @@ describe('Scion WebGPU GGUF runtime', () => {
       expect.objectContaining({
         phase: 'repairing-cache',
         progress: 0,
-        message: 'Repairing the local Scion model cache…',
+        message: 'The saved model copy is incomplete · replacing it once…',
       }),
     );
+    expect(progress).toContainEqual(
+      expect.objectContaining({
+        phase: 'loading-model',
+        message: 'Downloading a clean copy of the public Gemma 4 base…',
+      }),
+    );
+  });
+
+  it('releases the runtime before clearing a failed fresh download and does not start it twice', async () => {
+    const modelUrl = 'https://example.test/fresh-model.gguf';
+    const order = [];
+    let loads = 0;
+    class FreshActivationFailureWllama extends FakeWllama {
+      constructor(paths, config) {
+        super(paths, config);
+        this.modelManager = {
+          getModels: vi.fn(async ({ includeInvalid } = {}) =>
+            includeInvalid
+              ? [
+                  {
+                    url: modelUrl,
+                    size: 2048,
+                    remove: vi.fn(async () => order.push('remove')),
+                  },
+                ]
+              : [],
+          ),
+        };
+      }
+
+      async loadModelFromUrl(_url, options) {
+        loads += 1;
+        options.progressCallback({ loaded: 100, total: 100 });
+        throw new RangeError('Invalid typed array length: 16777216');
+      }
+
+      async exit() {
+        order.push('exit');
+        return super.exit();
+      }
+    }
+    const progress = [];
+
+    await expect(
+      loadScionBrowserWllama({
+        ...browser,
+        modelUrl,
+        runtimeLoader: vi.fn(async () => ({ Wllama: FreshActivationFailureWllama })),
+        onProgress: (entry) => progress.push(entry),
+      }),
+    ).rejects.toMatchObject({ code: 'SCION_WLLAMA_CACHE_INCOMPLETE' });
+
+    expect(loads).toBe(1);
+    expect(order).toEqual(['exit', 'remove']);
+    expect(progress).toContainEqual(
+      expect.objectContaining({
+        phase: 'loading-model',
+        progress: 1,
+        message: 'Download complete · activating Scion…',
+      }),
+    );
+    expect(progress.at(-1)).toMatchObject({
+      phase: 'error',
+      progress: 1,
+      diagnostic: expect.stringContaining('Invalid typed array length'),
+    });
   });
 
   it('does not redownload or clear the model for an unrelated load failure', async () => {
