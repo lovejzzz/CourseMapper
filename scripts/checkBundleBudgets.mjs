@@ -37,9 +37,10 @@ const repositoryBudgets = {
   // statement copy and prerequisite selection moved to a cacheable leaf; the
   // increase is regression-covered and contains no fixed course-copy corpus.
   // V0.16.91 routes three historically weak surfaces through one canonical
-  // evidence packet. Most copy lives in compilerEvidenceCopy; eight controller
-  // lines remain for syllabus, lesson-plan, rubric, and study-guide wiring.
-  compilerLines: 28_010,
+  // evidence packet. Most copy lives in compilerEvidenceCopy; the final
+  // learner-language guard leaves 20 controller lines for syllabus,
+  // lesson-plan, rubric, study-guide, and shared scenario wiring.
+  compilerLines: 28_020,
   // v0.16.81 adds one executable Algi→Scion hybrid benchmark audit. It freezes
   // evidence, route, quality, call, latency, and export promotion rules; this
   // is a release gate rather than product-side script sprawl.
@@ -323,9 +324,9 @@ const lazyChunkBudgets = [
   { prefix: 'compilerPolish-', rawKiB: 8, gzipKiB: 3 },
   // V0.16.91 moves the canonical evidence packet, grounded syllabus summary,
   // and study-guide evidence copy into this compile-only leaf. The main
-  // compiler remains under its shipped chunk ceiling; the leaf measures
-  // 7.4/3.0 KiB and retains only narrow platform-variance headroom.
-  { prefix: 'compilerEvidenceCopy-', rawKiB: 7.5, gzipKiB: 3.1 },
+  // compiler remains under its shipped chunk ceiling; the final learner-copy
+  // guard measures 7.9/3.2 KiB and retains narrow platform-variance headroom.
+  { prefix: 'compilerEvidenceCopy-', rawKiB: 8, gzipKiB: 3.3 },
   // v0.16.73 learner-visible not-applicable states measured 163.8/35.2.
   // The editable activity briefing remains isolated from the main view.
   { prefix: 'DeliverableView-', rawKiB: 170, gzipKiB: 36.5 },

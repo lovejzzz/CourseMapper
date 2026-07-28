@@ -1,5 +1,7 @@
 import { asArray, cleanText, stripTerminalPunctuation } from './compilerText';
 
+const SOURCE_PLACEHOLDER_RE = /\bsource-backed case example\b|\brelated claim\b|\bclaim-boundary note\b/i;
+
 function sentence(value = '') {
   const text = String(value || '').trim();
   if (!text) return '';
@@ -192,9 +194,17 @@ export function sourceComposedStudySummary(lesson = {}, authoredSummary = '') {
     .split(/(?<=[.!?])\s+/)
     .map((item) => sentence(stripTerminalPunctuation(item)))
     .filter(Boolean);
-  const distinctAuthored = distinctSentenceSequence(authoredSummary);
+  const distinctAuthored = distinctSentenceSequence(authoredSummary).filter(
+    (item) => !SOURCE_PLACEHOLDER_RE.test(item),
+  );
   const keys = segments.map((item) => evidenceClaimKey(item)).filter(Boolean);
-  if (distinctAuthored.length > 0 && new Set(keys).size === keys.length) return cleanText(authoredSummary);
+  if (
+    distinctAuthored.length > 0 &&
+    new Set(keys).size === keys.length &&
+    !SOURCE_PLACEHOLDER_RE.test(authoredSummary)
+  ) {
+    return cleanText(authoredSummary);
+  }
   const seen = new Set();
   return [...distinctAuthored, ...distinctLessonEvidenceClaims(lesson, 4)]
     .filter((item) => {
@@ -206,6 +216,20 @@ export function sourceComposedStudySummary(lesson = {}, authoredSummary = '') {
     .slice(0, 3)
     .map((item) => sentence(stripTerminalPunctuation(item)))
     .join(' ');
+}
+
+export function sourceComposedReviewStrategy({
+  sourceEvidenceBrief,
+  authoredStrategy = '',
+  primaryConcept = 'the lesson concept',
+  studyArtifact = 'the lesson artifact',
+}) {
+  const authored = cleanText(authoredStrategy);
+  if (!SOURCE_PLACEHOLDER_RE.test(authored)) return authored;
+  const claims = sourceEvidenceBrief?.claims || [];
+  return claims.length >= 2
+    ? `Rehearse ${primaryConcept} by explaining the first source claim, then compare it with the second. Record what the pair supports, what remains unproven, and the revision it requires in ${studyArtifact}.`
+    : `Rehearse ${primaryConcept} with one retained source claim. Record what it supports, what remains unproven, and the revision it requires in ${studyArtifact}.`;
 }
 
 export function groundedSyllabusCourseDescription(blueprint = {}) {
@@ -247,10 +271,7 @@ export function buildGroundedStudyGuideEvidenceCopy({
         )}.” What ${primaryConcept} decision follows from reading them together, and what remains unproven?`
       : '';
   const materials = stripTerminalPunctuation(cleanText(lesson.enrichment?.kernel?.scenario?.materials));
-  if (
-    claims.length >= 2 &&
-    (!materials || /\bsource-backed case example\b|\brelated claim\b|\bclaim-boundary note\b/i.test(materials))
-  ) {
+  if (claims.length >= 2 && (!materials || SOURCE_PLACEHOLDER_RE.test(materials))) {
     return {
       secondaryAlignedFact,
       sourceComparisonQuestion,

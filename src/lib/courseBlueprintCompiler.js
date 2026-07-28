@@ -101,6 +101,7 @@ import {
   policyAnalysisEvidenceScores,
   selectConceptEvidenceFact,
   selectDistinctPrerequisiteConcept,
+  sourceComposedReviewStrategy,
   sourceComposedStudySummary,
 } from './compilerEvidenceCopy';
 import { recordLegacyPathHit } from './legacyPathTelemetry';
@@ -929,7 +930,12 @@ function isGenericArtifactLabel(value) {
 
 function isUnsafeLessonArtifactPhrase(value) {
   const text = cleanText(value);
-  return isPromptArtifactEvidenceCue(text) || isCompactNumberedArtifactList(text) || isGenericArtifactLabel(text);
+  return (
+    isPromptArtifactEvidenceCue(text) ||
+    isCompactNumberedArtifactList(text) ||
+    isGenericArtifactLabel(text) ||
+    /\bsource-backed case example\b|\brelated claim\b|\bclaim-boundary note\b/i.test(text)
+  );
 }
 
 const COURSE_FAQ_INTERNAL_SCAFFOLD_RE =
@@ -19193,8 +19199,10 @@ function compileStudyGuides(blueprint) {
       const conceptPair = safeConcepts.slice(0, 2).join(' and ') || 'the lesson concepts';
       const casePacket = safeLessonEvidenceCue(lesson, lens);
       const primaryConcept = safeLessonPrimaryConcept(lesson);
-      const specificity = lessonSpecificityAnchor(lesson);
-      const studyArtifact = specificity.artifact;
+      const assessment = assessmentForBlueprintLesson(blueprint, lesson, index);
+      const defaultSpecificity = lessonSpecificityAnchor(lesson);
+      const studyArtifact = lessonDisplayArtifact(assessment?.artifact || lesson.studentArtifact, lesson);
+      const specificity = { ...defaultSpecificity, artifact: studyArtifact };
       const lessonSourceCue = safeLessonEvidenceCue(lesson, lens);
       const keyTerms = studyGuideTermsForLesson(lesson);
       const teachingTerms = lessonPrimaryTeachingKeyTerms(lesson);
@@ -19293,7 +19301,6 @@ function compileStudyGuides(blueprint) {
               : Array.isArray(lesson.misconceptionMap)
                 ? lesson.misconceptionMap
                 : [];
-      const assessment = assessmentForBlueprintLesson(blueprint, lesson, index);
       const musicReviewQuestions = musicIntervalStudyReviewQuestions(lesson, lessonSourceCue);
       const musicPracticeActivities = musicIntervalStudyPracticeActivities(lesson);
       const musicConceptConnections = musicIntervalStudyConnections(lesson, studyArtifact);
@@ -19552,7 +19559,12 @@ function compileStudyGuides(blueprint) {
             // v0.15.187: authored review strategy names the actual concepts
             // to rehearse; the verb-rotation template is the fallback.
             integrativeCopy.reviewStrategy ||
-            cleanText(lesson.enrichment?.studyGuide?.reviewStrategy) ||
+            sourceComposedReviewStrategy({
+              sourceEvidenceBrief,
+              authoredStrategy: lesson.enrichment?.studyGuide?.reviewStrategy,
+              primaryConcept,
+              studyArtifact,
+            }) ||
             (isMusicTheory
               ? useVerifiedMusicIntervalFrame && /\b(?:simple|compound|invert|inversion)\b/i.test(phrase.context)
                 ? `Classify examples from ${lessonSourceCue}: reduce any compound interval, pair inversion numbers so they sum to nine, exchange major with minor or augmented with diminished, and verify the final label from the pitch spelling.`
@@ -24769,7 +24781,7 @@ function applyKernelSubjectMatterSlides(slides, lesson) {
   targets.slice(0, authored.length).forEach((slide, index) => {
     slide.title = authored[index].title;
     slide.bullets = authored[index].bullets;
-    slide.notes = `Teach from the admitted lesson knowledge: ${authored[index].bullets
+    slide.notes = `Teach from the verified lesson evidence: ${authored[index].bullets
       .map(stripTerminalPunctuation)
       .join('. ')}. ${kernelSlideEvidenceDiscussionCopy({
       lessonNumber: lesson?.lessonNumber,

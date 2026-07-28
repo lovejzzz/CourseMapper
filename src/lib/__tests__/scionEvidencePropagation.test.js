@@ -65,7 +65,9 @@ function accessibilityBlueprint() {
     ],
     studyGuide: {
       summary:
-        'Accessible forms are easier to use for everyone, including people with disabilities. Accessible forms are easier to use for everyone, including people with disabilities.',
+        'Accessible forms are easier to use for everyone, including people with disabilities. Accessible forms are easier to use for everyone, including people with disabilities. Connect Accessible forms to the source-backed case example, related claim, and claim-boundary note.',
+      reviewStrategy:
+        'Rehearse Accessible forms, then test the explanation against the source-backed case example, related claim, and claim-boundary note.',
     },
   };
   return blueprint;

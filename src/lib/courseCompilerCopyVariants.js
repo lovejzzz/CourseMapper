@@ -426,7 +426,7 @@ export function titleSlideNote({ lessonNumber, displayTitle, safeAnchor, concept
 
 export function kernelFactInstructorNote({ lessonNumber, kernelFactLedger }) {
   return selectVariant(lessonNumber, [
-    `Teach from the admitted source-grounded fact set: ${kernelFactLedger} Keep the claims visible during the model; students identify the fact behind each practice decision.`,
+    `Teach from the verified source fact set: ${kernelFactLedger} Keep the claims visible during the model; students identify the fact behind each practice decision.`,
     `Build the model from these admitted facts: ${kernelFactLedger} After each reasoning move, ask which numbered fact makes it defensible.`,
     `Use this source-grounded fact ledger for the demonstration: ${kernelFactLedger} Students annotate where each fact changes the worked decision.`,
     `Keep the admitted evidence in view while modeling: ${kernelFactLedger} Pause so students can connect every practice choice to its supporting fact.`,
