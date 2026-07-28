@@ -1457,7 +1457,10 @@ test.describe('Model Configuration', () => {
 test.describe('Static Pages', () => {
   test('changelog page has version entries', async ({ page }) => {
     await page.goto('/#/changelog');
-    await page.waitForTimeout(1000);
+    // The changelog is a large, lazy route. Wait for its semantic ready
+    // boundary instead of sampling body text after an arbitrary second; a
+    // busy CI runner can still be showing the landing/suspense shell then.
+    await expect(page.locator('h1:has-text("Changelog")')).toBeVisible({ timeout: 15000 });
     const body = await page.locator('body').textContent();
     expect(body).toContain('0.16.24');
     expect(body).toContain('Eight Small Readings');
@@ -1472,7 +1475,7 @@ test.describe('Static Pages', () => {
 
   test('privacy page has required content', async ({ page }) => {
     await page.goto('/#/privacy');
-    await page.waitForTimeout(1000);
+    await expect(page.locator('h1:has-text("Privacy")')).toBeVisible({ timeout: 10000 });
     const body = await page.locator('body').textContent();
     expect(body).toContain('Privacy');
     expect(body).toContain('data');
@@ -1480,7 +1483,7 @@ test.describe('Static Pages', () => {
 
   test('terms page has required content', async ({ page }) => {
     await page.goto('/#/terms');
-    await page.waitForTimeout(1000);
+    await expect(page.locator('h1:has-text("Terms")')).toBeVisible({ timeout: 10000 });
     const body = await page.locator('body').textContent();
     expect(body).toContain('Terms');
   });
