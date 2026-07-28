@@ -53,9 +53,9 @@ const repositoryBudgets = {
   // These are evaluation/reproduction entry points, not product runtime work.
   // V0.16.91 adds one frozen five-domain grounded-surface acceptance gym.
   npmScripts: 384,
-  // v0.16.91 shipped the 277th release-contract ledger file; v0.16.92 may add
+  // v0.16.92 shipped the 278th release-contract ledger file; v0.16.93 may add
   // exactly one current-release contract.
-  releaseContractFiles: 277,
+  releaseContractFiles: 278,
   trackedWeightFiles: 62,
   trackedWeightBytes: 1_053_339_981,
   largeBinaryBytes: 1024 * 1024,
