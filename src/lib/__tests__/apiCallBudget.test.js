@@ -6,6 +6,7 @@ import {
   createApiCallBudgetFromReceipt,
   getApiCallBudgetTotal,
   getModelRequestTotal,
+  reconcileGenomePipelineEvidence,
   recordPendingApiCallEvent,
 } from '../apiCallBudget';
 import { resolveProviderCallCount } from '../packageFinalizerSummary';
@@ -121,6 +122,40 @@ describe('apiCallBudget', () => {
     expect(receipt.modelRequestStarts).toBe(1);
     expect(getModelRequestTotal(restored)).toBe(1);
     expect(JSON.stringify(receipt)).not.toContain('do not retain');
+  });
+
+  it('reconciles candidate linker telemetry to the admitted graph evidence', () => {
+    const pipeline = reconcileGenomePipelineEvidence({
+      genomeLinker: '2 genome + 0 cached (0 genome-backed) of 6 lessons (2 concepts, 2 citations, 0 bridges)',
+      knowledgeBackbone: '1/6 lessons genome-linked · 2 cited open resources (genome: 2)',
+    });
+
+    expect(pipeline.genomeLinker).toBe(
+      '1 genome + 0 cached (0 genome-backed) of 6 lessons (2 concepts, 2 citations, 0 bridges)',
+    );
+    expect(pipeline.knowledgeBackbone).toBe('1/6 lessons genome-linked · 2 cited open resources (genome: 2)');
+  });
+
+  it('preserves cache disclosure while reconciling genome-backed cache coverage', () => {
+    const pipeline = reconcileGenomePipelineEvidence({
+      genomeLinker: '1 genome + 3 cached (2 genome-backed) of 5 lessons (3 concepts, 4 citations, 0 bridges)',
+      knowledgeBackbone: '2/5 lessons genome-linked · 4 cited open resources (genome: 4)',
+    });
+
+    expect(pipeline.genomeLinker).toContain('0 genome + 3 cached (2 genome-backed) of 5 lessons');
+  });
+
+  it('applies the same reconciliation to persisted receipts', () => {
+    const receipt = buildApiCallBudgetReceipt(
+      createApiCallBudget({
+        pipeline: {
+          genomeLinker: '2 genome + 0 cached (0 genome-backed) of 6 lessons (2 concepts, 2 citations, 0 bridges)',
+          knowledgeBackbone: '1/6 lessons genome-linked · 2 cited open resources (genome: 2)',
+        },
+      }),
+    );
+
+    expect(receipt.pipeline.genomeLinker).toContain('1 genome + 0 cached (0 genome-backed) of 6 lessons');
   });
 
   it('adds localhost-native retries hidden behind one transport request', () => {

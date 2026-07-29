@@ -363,6 +363,26 @@ function parseReportedLessonCount(manifest) {
   return null;
 }
 
+function normalizedSourceSessionRef(value) {
+  const text = String(value || '')
+    .trim()
+    .toLowerCase();
+  if (!text) return '';
+  const numbered = text.match(/(?:^|\b)(?:s|session|lesson|week)?\s*0*(\d{1,3})(?:\b|$)/i);
+  return numbered ? `s${Number(numbered[1])}` : text;
+}
+
+function sourceScopedLessonCount(sourceRows = []) {
+  const refs = new Set();
+  for (const row of sourceRows) {
+    for (const ref of Array.isArray(row?.sessionRefs) ? row.sessionRefs : []) {
+      const normalized = normalizedSourceSessionRef(ref);
+      if (normalized) refs.add(normalized);
+    }
+  }
+  return refs.size;
+}
+
 export function hasSourceLedgerProof(manifest) {
   return Boolean(
     rows(manifest).length ||
@@ -400,6 +420,9 @@ export function checkSourceLedger(findings, { files, manifest }) {
   const coverageLedgerRows = sourceCoverageLedgerRows(coverage);
   const trustedBibliographyRows = ledger.filter(isTrustedBibliographyRow);
   const trustedConceptLinkedBibliographyRows = ledger.filter(isTrustedConceptLinkedBibliographyRow);
+  const sourceScopedLessons = sourceScopedLessonCount(trustedConceptLinkedBibliographyRows);
+  const evidenceClaimedLessonCount =
+    sourceScopedLessons > 0 ? sourceScopedLessons : Number.isFinite(reportedLessonCount) ? reportedLessonCount : 0;
 
   if (ledger.length === 0 && review.length === 0 && !coverage) {
     findings.add({
@@ -541,10 +564,7 @@ export function checkSourceLedger(findings, { files, manifest }) {
     });
   }
 
-  if (
-    trustedConceptLinkedBibliographyRows.length <= 1 &&
-    (coverageTotal >= 12 || (Number.isFinite(reportedLessonCount) && reportedLessonCount >= 2))
-  ) {
+  if (trustedConceptLinkedBibliographyRows.length <= 1 && (coverageTotal >= 12 || evidenceClaimedLessonCount >= 2)) {
     findings.add({
       severity: 'P1',
       dimension: 'citations',
@@ -552,13 +572,14 @@ export function checkSourceLedger(findings, { files, manifest }) {
       detail:
         coverageTotal >= 12
           ? `sourceRef coverage is too thin: ${coverageTotal} atom(s) rely on ${trustedConceptLinkedBibliographyRows.length} trusted concept-linked source row(s)`
-          : `source evidence is too thin: ${reportedLessonCount} lesson(s) rely on ${trustedConceptLinkedBibliographyRows.length} trusted concept-linked source row(s)`,
+          : `source evidence is too thin: ${evidenceClaimedLessonCount} lesson(s) rely on ${trustedConceptLinkedBibliographyRows.length} trusted concept-linked source row(s)`,
       evidence: JSON.stringify({
         sourceLedgerRows: ledger.length,
         trustedSourceLedgerRows: trustedBibliographyRows.length,
         trustedConceptLinkedSourceLedgerRows: trustedConceptLinkedBibliographyRows.length,
         coverageTotal,
         reportedLessonCount,
+        sourceScopedLessons,
         providers: ledger.map((row) => row.provider).filter(Boolean),
       }).slice(0, 200),
     });

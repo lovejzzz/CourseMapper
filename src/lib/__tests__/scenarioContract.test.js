@@ -246,8 +246,33 @@ describe('evidence-to-decision scenario contract', () => {
     expect(scenario.setup).not.toContain(misconception);
     expect(scenario.setup).toMatch(/bounded|documented scope|supplied evidence/i);
     expect(scenario.materials).toBe(
-      'the cited passage, the two competing interpretations, and the documented limit of the evidence',
+      'the source record, two competing interpretations, and the documented evidence boundary',
     );
+    expect(analyzeDecisionScenario(scenario).ready).toBe(true);
+  });
+
+  it('uses a data evidence packet instead of passage or claim-card boilerplate for data-story kernels', () => {
+    const scenario = deriveDecisionScenario({
+      facts: [
+        'The public-transit dataset records scheduled and observed arrival times.',
+        'The cleaning log documents how missing arrival values were handled.',
+        'The uncertainty note limits the claim to the observed service window.',
+      ],
+      keyTerms: [
+        {
+          term: 'Handling missing values',
+          definition: 'A documented cleaning decision preserves the evidence boundary of a data story.',
+          example: 'A data journalist compares a chart before and after excluding records with missing arrival times.',
+          misconception: 'Removing every missing record always produces the most honest chart.',
+          correction: 'The source ledger and cleaning log must justify how missing records affect the claim.',
+          source: 'fact-ledger-projection',
+        },
+      ],
+    });
+
+    expect(scenario.setup).toMatch(/Claim A:|Claim B:/);
+    expect(scenario.materials).toMatch(/data records|transformation log|claim under review/i);
+    expect(scenario.materials).not.toMatch(/claim cards|cited passage/i);
     expect(analyzeDecisionScenario(scenario).ready).toBe(true);
   });
 

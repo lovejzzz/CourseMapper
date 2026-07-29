@@ -82,6 +82,16 @@ export default defineConfig({
           // Keep it independently cacheable so adding texture does not make
           // the disciplinary frame chunk pay the parsing/invalidation cost.
           if (/src\/lib\/courseCompilerCopyVariants\.js$/.test(id)) return 'compilerCopyVariants';
+          if (/src\/lib\/courseCompilerRealization\.js$/.test(id)) return 'compilerRealization';
+          if (/src\/lib\/courseCompilerTextureCopy\.js$/.test(id)) return 'compilerTextureCopy';
+          if (/src\/lib\/courseCompilerAssessmentRegistry\.js$/.test(id)) return 'compilerAssessmentRegistry';
+          if (/src\/lib\/courseCompilerTechnicalSessionPlans\.js$/.test(id)) {
+            return 'compilerTechnicalSessionPlans';
+          }
+          if (/src\/lib\/courseCompilerSlideDiscussionCopy\.js$/.test(id)) {
+            return 'compilerSlideDiscussionCopy';
+          }
+          if (/src\/lib\/courseCompilerLensProfiles\.js$/.test(id)) return 'compilerSlideDiscussionCopy';
           if (/src\/lib\/courseCompilerInstructionalCopy\.js$/.test(id)) return 'compilerInstructionalCopy';
           if (/src\/lib\/courseCompilerSelfAssessmentCopy\.js$/.test(id)) return 'compilerSelfAssessmentCopy';
           if (/src\/lib\/courseCompilerReadingProfiles\.js$/.test(id)) return 'compilerReadingProfiles';
@@ -93,6 +103,7 @@ export default defineConfig({
           if (/src\/lib\/compilerFactLedgerVisuals\.js$/.test(id)) return 'compilerFactLedgerVisuals';
           if (/src\/lib\/quality\/deepQualitySubstanceDetails\.js$/.test(id)) return 'deepQualitySubstanceDetails';
           if (/src\/lib\/quality\/deepQualityFormatDetails\.js$/.test(id)) return 'deepQualityFormatDetails';
+          if (/src\/lib\/quality\/sourceLedgerCitationSupport\.js$/.test(id)) return 'sourceLedgerCitationSupport';
         },
       },
     },

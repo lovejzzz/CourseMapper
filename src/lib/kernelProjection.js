@@ -409,7 +409,7 @@ function composeFactLedgerComparisonAnswer(term, facts, scenario, seed = 0) {
     : [];
   if (cleanText(term?.source) !== 'fact-ledger-projection' || !termName || claims.length < 3) return '';
 
-  if (/\btwo supplied claim cards\b/i.test(cleanText(scenario?.materials))) {
+  if (isCompactFactLedgerScenario(term, scenario)) {
     return projectionVariant(seed, [
       `The relevant concept is ${termName}. Claim A provides its direct definition: ${claims[0]}. Claim B adds this related proposition: ${claims[1]}. The bounded conclusion is that Claim A supplies the definition while Claim B introduces a second claim to analyze alongside it. The cards do not establish that one follows from the other; that relationship requires an argument or evidence.`,
       `Use ${termName} to organize the response. The definition card is Claim A: ${claims[0]}. Claim B contributes a separate but related claim: ${claims[1]}. These statements can be compared, but neither card demonstrates how the second follows from the first. A defensible synthesis must remain provisional until an argument or evidence links them.`,
@@ -431,6 +431,16 @@ function composeFactLedgerComparisonAnswer(term, facts, scenario, seed = 0) {
     .replace(/\.{2,}/g, '.')
     .replace(/\s{2,}/g, ' ')
     .trim();
+}
+
+function isCompactFactLedgerScenario(term, scenario) {
+  const setup = cleanText(scenario?.setup);
+  return (
+    cleanText(term?.source) === 'fact-ledger-projection' &&
+    /\bClaim A:/i.test(setup) &&
+    /\bClaim B:/i.test(setup) &&
+    !/\bClaim C:/i.test(setup)
+  );
 }
 
 const FACT_RELATION_VERB_RE =
@@ -671,8 +681,7 @@ function buildShortAnswerItem(kernel, index, seed = 0, { compactFactLedgerAnswer
       scoringGuidance: `Score four visible moves: locatable passage evidence, a named formal feature, an interpretive warrant, and a tested counter-reading or evidence boundary. Plot summary alone is incomplete.`,
     };
   }
-  const compactFactLedgerScenario =
-    cleanText(term?.source) === 'fact-ledger-projection' && /\btwo supplied claim cards\b/i.test(materials);
+  const compactFactLedgerScenario = isCompactFactLedgerScenario(term, kernel?.scenario);
   const evidenceRequirement = scenarioEvidenceRequirement(
     setup || exampleAnchor,
     compactFactLedgerScenario ? 'claim-card' : setup ? 'case' : 'example',

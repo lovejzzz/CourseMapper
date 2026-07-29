@@ -29,9 +29,9 @@ const budgets = {
 // caught an unaccounted increase, and the fix is to re-freeze at the released
 // state, not to widen the allowance. Every future release must do the same.
 const repositoryBudgets = {
-  // v0.16.96 advances the frozen state through the shipped v0.16.95 contract;
-  // its own v0.16.96 contract consumes the single declared-release allowance.
-  baselineVersion: '0.16.95',
+  // v0.16.97 advances the frozen state through the shipped v0.16.96 contract;
+  // its own v0.16.97 contract consumes the single declared-release allowance.
+  baselineVersion: '0.16.96',
   // v0.16.82 adds 29 net lines of reusable compiler control logic for
   // policy-domain separation and concept-owned evidence binding. Source-
   // statement copy and prerequisite selection moved to a cacheable leaf; the
@@ -40,7 +40,11 @@ const repositoryBudgets = {
   // evidence packet. Most copy lives in compilerEvidenceCopy; the final
   // learner-language guard leaves 20 controller lines for syllabus,
   // lesson-plan, rubric, study-guide, and shared scenario wiring.
-  compilerLines: 28_020,
+  // V0.16.97 adds data-storytelling modality recognition, source-to-story
+  // artifact routing, and final-assessment identity repair. Three technical
+  // session planners moved to a cacheable leaf, cutting the release candidate
+  // from 28,246 to 28,065 lines before this exact state was frozen.
+  compilerLines: 28_065,
   // v0.16.81 adds one executable Algi→Scion hybrid benchmark audit. It freezes
   // evidence, route, quality, call, latency, and export promotion rules; this
   // is a release gate rather than product-side script sprawl.
@@ -52,10 +56,13 @@ const repositoryBudgets = {
   // anonymous packet construction, and artifact-bound evidence construction.
   // These are evaluation/reproduction entry points, not product runtime work.
   // V0.16.91 adds one frozen five-domain grounded-surface acceptance gym.
-  npmScripts: 384,
-  // v0.16.95 shipped the 281st release-contract ledger file; v0.16.96 may add
+  // V0.16.97 adds one cross-package texture audit entry point. Thin and
+  // retained-real panels share the same implementation and arguments rather
+  // than multiplying scripts for every profile.
+  npmScripts: 385,
+  // v0.16.96 shipped the 282nd release-contract ledger file; v0.16.97 may add
   // exactly one current-release contract.
-  releaseContractFiles: 281,
+  releaseContractFiles: 282,
   trackedWeightFiles: 62,
   trackedWeightBytes: 1_053_339_981,
   largeBinaryBytes: 1024 * 1024,
@@ -151,7 +158,10 @@ const lazyChunkBudgets = [
   // persistence owner. The workspace-only chunk measures 281.3/84.7 locally
   // and 281.3/84.9 on CI's Node 22 zlib; grant 0.5/0.2 KiB for the feature and
   // platform variance without moving any dependency onto landing.
-  { prefix: 'AppFlow-', rawKiB: 281.5, gzipKiB: 85 },
+  // V0.16.97's two compiler-only cache leaves add only their dynamic-import
+  // dependency metadata to AppFlow. The measured shell moves by 0.2 KiB raw
+  // while gzip and landing stay flat; content bytes remain outside this chunk.
+  { prefix: 'AppFlow-', rawKiB: 282, gzipKiB: 85 },
   // v0.16.47: the Living Course Compiler component and pure selector gained
   // an independently cacheable route boundary instead of raising AppFlow's
   // long-standing ratchet. Clean measurement: AppFlow 251.6/75.9; ribbon
@@ -166,7 +176,7 @@ const lazyChunkBudgets = [
   // v0.16.87 replaces the generous letter grade with the real automated
   // readiness score. Moving shared scope helpers into the continuity chunk
   // reduces this UI/model pair to 67.9/21.1 locally.
-  { prefix: 'livingCompilerRibbon-', rawKiB: 68.5, gzipKiB: 21.5 },
+  { prefix: 'livingCompilerRibbon-', rawKiB: 69, gzipKiB: 21.5 },
   { prefix: 'livingCompilerFailure-', rawKiB: 3, gzipKiB: 2 },
   // Continuation, generated-map handoff, and compact materialized-scope
   // normalization are one pure course-map continuity boundary. Reusing its
@@ -203,6 +213,9 @@ const lazyChunkBudgets = [
   // v0.16.73 adds evidence ranking and choreography rejection so the Agent can
   // answer locally without exposing lesson-plan internals (8.0/3.5 measured).
   { prefix: 'scionCourseAnswer-', rawKiB: 8.5, gzipKiB: 3.75 },
+  // Cross-lesson evidence handoffs are loaded only for questions naming two
+  // lessons, so the ordinary course-answer path remains below its old cap.
+  { prefix: 'scionCourseHandoffAnswer-', rawKiB: 5.25, gzipKiB: 2.5 },
   // V0.16.74 keeps full-course schedule/readings answers behind their own
   // question-triggered leaf instead of charging every Agent question for it.
   { prefix: 'scionCourseSequenceAnswer-', rawKiB: 3, gzipKiB: 1.5 },
@@ -303,6 +316,17 @@ const lazyChunkBudgets = [
   // gzip at the existing 8 KiB ceiling; it eliminates the live exported-docx
   // mail-merge repetition that motivated the new branch.
   { prefix: 'compilerCopyVariants-', rawKiB: 23, gzipKiB: 8.25 },
+  // New teaching-prose families are data, not controller logic. Isolating them
+  // preserves the long-standing core compiler ratchet and makes subsequent
+  // texture repairs independently cacheable.
+  { prefix: 'compilerTextureCopy-', rawKiB: 18, gzipKiB: 6 },
+  { prefix: 'compilerAssessmentRegistry-', rawKiB: 6, gzipKiB: 3 },
+  // Technical session plans are domain-specific data and stay outside the
+  // core compiler controller.
+  { prefix: 'compilerTechnicalSessionPlans-', rawKiB: 7, gzipKiB: 2.25 },
+  // Course-aware slide discussion composition is independently cacheable and
+  // should not invalidate the broader instructional-copy library.
+  { prefix: 'compilerSlideDiscussionCopy-', rawKiB: 7, gzipKiB: 3 },
   // V0.16.76 moves the unchanged exam-answer and distractor rotations into a
   // pure compile-only leaf. This gives the broader copy chunk deterministic
   // headroom across Node/zlib platforms without raising its existing budget.
@@ -310,7 +334,10 @@ const lazyChunkBudgets = [
   // v0.16.72: lesson-rotated assessment, prerequisite, close-reading, and
   // FAQ language is data rather than compiler control flow. Keep it in a
   // compile-only leaf so deeper examples do not inflate the core compiler.
-  { prefix: 'compilerInstructionalCopy-', rawKiB: 16, gzipKiB: 5 },
+  // V0.16.97 replaces a lesson-number-only slide pairing with a stable,
+  // context-keyed lead/tail selector. Rolldown coalesces that shared helper
+  // here, keeping one cacheable compiler-only leaf instead of a micro-chunk.
+  { prefix: 'compilerInstructionalCopy-', rawKiB: 16.5, gzipKiB: 6.5 },
   // v0.16.72: assignment self-check rotations are another compile-only data
   // leaf; rubric performance bands remain cacheable without carrying them.
   { prefix: 'compilerSelfAssessmentCopy-', rawKiB: 6, gzipKiB: 2.5 },
@@ -382,7 +409,9 @@ const lazyChunkBudgets = [
   // 69-point evidence ceiling, anti-gaming source checks, and separate report
   // language. This finalize-only chunk measures 71.9/24.9 KiB and remains off
   // landing; the narrow ceiling records the new ruler rather than hiding it.
-  { prefix: 'deepQualityGrader-', rawKiB: 72.25, gzipKiB: 25.25 },
+  { prefix: 'deepQualityGrader-', rawKiB: 72.5, gzipKiB: 25.25 },
+  // Citation-to-ledger matching is independently cacheable and finalize-only.
+  { prefix: 'sourceLedgerCitationSupport-', rawKiB: 0.75, gzipKiB: 0.5 },
   // High-signal format patterns stay finalize-only and independently
   // cacheable from the grader control-flow chunk.
   { prefix: 'deepQualityFormatDetails-', rawKiB: 4, gzipKiB: 2 },
@@ -405,8 +434,13 @@ const forbiddenInitialChunks = [
   /courseMapContinuation/i,
   /compilerFrames/i,
   /compilerCopyVariants/i,
+  /compilerRealization/i,
+  /compilerTextureCopy/i,
+  /compilerAssessmentRegistry/i,
+  /compilerTechnicalSessionPlans/i,
   /compilerExamCopy/i,
   /scionCourseSequenceAnswer/i,
+  /scionCourseHandoffAnswer/i,
   /compilerInstructionalCopy/i,
   /compilerSelfAssessmentCopy/i,
   /compilerReadingProfiles/i,
@@ -417,6 +451,7 @@ const forbiddenInitialChunks = [
   /compilerFactLedgerVisuals/i,
   /webllm/i,
   /deepQualityGrader/i,
+  /sourceLedgerCitationSupport/i,
   /deepQualityFormatDetails/i,
   /deepQualitySubstanceDetails/i,
   /finalizeQualityGate/i,

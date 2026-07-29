@@ -997,6 +997,40 @@ describe('Pass A skeleton contract (B1)', () => {
     ]);
   });
 
+  it('merges a generic final-portfolio echo into the named portfolio assessment', () => {
+    const sourceText =
+      'Community Data Storytelling has six lessons and one final portfolio: the Annotated Public-Transit Data Story Portfolio.';
+    const parsed = parseNativeSkeletonResponse(
+      JSON.stringify({
+        course: { name: 'Community Data Storytelling' },
+        sessions: Array.from({ length: 6 }, (_, index) => ({
+          order: index + 1,
+          title: `Data Story Lesson ${index + 1}`,
+        })),
+        assessments: [
+          { title: 'final portfolio', kind: 'graded-artifact', dueSession: 6 },
+          {
+            title: 'Annotated Public-Transit Data Story Portfolio',
+            kind: 'graded-artifact',
+            dueSession: 6,
+          },
+        ],
+      }),
+      { expectedLessons: 6, sourceText },
+    );
+
+    expect(parsed.assessments).toHaveLength(1);
+    expect(parsed.assessments[0]).toMatchObject({
+      title: 'Annotated Public-Transit Data Story Portfolio',
+      kind: 'graded-artifact',
+      dueSession: 6,
+    });
+    expect(parsed.assessments[0].compilerMergedAssessmentTitles).toEqual([
+      'final portfolio',
+      'Annotated Public-Transit Data Story Portfolio',
+    ]);
+  });
+
   it('synthesizes one weighted assessment per session when Pass A omits assessments', () => {
     const skeleton = parseNativeSkeletonResponse(
       JSON.stringify({
@@ -1596,7 +1630,8 @@ describe('Pass B contract (B2)', () => {
         studyGuide: factsOnly.studyGuide,
       }),
     ).not.toMatch(/named reading or activity/i);
-    expect(factsOnly.discussionPrompt.prompt).toContain('two supplied claim cards');
+    expect(factsOnly.discussionPrompt.prompt).toContain('source records behind Claim A and Claim B');
+    expect(factsOnly.discussionPrompt.prompt).not.toContain('supplied claim cards');
     expect(factsOnly.quizItems).toHaveLength(2);
     expect(factsOnly.coreFallbacks).toEqual(
       expect.arrayContaining([

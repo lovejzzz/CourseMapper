@@ -232,9 +232,9 @@ export default function AssignmentsView({
 
               {/* Format requirements */}
               {a.formatRequirements && (
-                <div className="bg-slate-50/60 rounded-lg p-3 border border-slate-100 grid grid-cols-2 gap-x-4 gap-y-1.5">
+                <div className="bg-slate-50/60 rounded-lg p-3 border border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5">
                   <SectionHeading>Format &amp; Submission</SectionHeading>
-                  <div className="col-span-2" />
+                  <div className="hidden sm:block sm:col-span-2" />
                   {a.formatRequirements.length && (
                     <div>
                       <span className="text-xs font-bold text-slate-500">Length:</span>
@@ -284,7 +284,7 @@ export default function AssignmentsView({
                     </div>
                   )}
                   {a.formatRequirements.latePolicy && (
-                    <div className="col-span-2 bg-red-50/40 rounded p-1.5">
+                    <div className="sm:col-span-2 bg-red-50/40 rounded p-1.5">
                       <span className="text-xs font-bold text-red-600">Late Policy:</span>
                       <p className="text-xs text-slate-700">
                         <E
@@ -324,10 +324,10 @@ export default function AssignmentsView({
                     {a.scaffoldingMilestones.map((m, j) => (
                       <div
                         key={j}
-                        className="flex gap-3 items-start bg-indigo-50/30 rounded-lg px-3 py-2 border border-indigo-100/40"
+                        className="flex flex-col gap-2 items-stretch bg-indigo-50/30 rounded-lg px-3 py-2 border border-indigo-100/40 sm:flex-row sm:gap-3 sm:items-start"
                       >
-                        <div className="flex-shrink-0 text-center">
-                          <span className="text-xs font-bold text-indigo-600 block">{m.dueDate}</span>
+                        <div className="flex flex-wrap items-baseline gap-x-2 text-left sm:block sm:flex-shrink-0 sm:max-w-[11rem] sm:text-center">
+                          <span className="text-xs font-bold text-indigo-600 block break-words">{m.dueDate}</span>
                           {typeof m.points === 'number' && (
                             <span className="text-xs text-indigo-400 block mt-0.5 font-mono">{m.points} pt</span>
                           )}
@@ -350,7 +350,7 @@ export default function AssignmentsView({
                             </p>
                           )}
                           {m.feedback && (
-                            <div className="mt-1 inline-flex items-center gap-1 text-xs text-violet-600/80 bg-violet-50/60 rounded px-1.5 py-0.5">
+                            <div className="mt-1 flex w-full items-start gap-1 text-xs text-violet-600/80 bg-violet-50/60 rounded px-1.5 py-0.5 sm:inline-flex sm:w-auto">
                               <svg
                                 className="w-2.5 h-2.5"
                                 fill="none"
@@ -365,7 +365,7 @@ export default function AssignmentsView({
                                   d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
                                 />
                               </svg>
-                              <span>{m.feedback}</span>
+                              <span className="min-w-0 break-words">{m.feedback}</span>
                             </div>
                           )}
                           {Array.isArray(m.uploadChecklist) && m.uploadChecklist.length > 0 && (

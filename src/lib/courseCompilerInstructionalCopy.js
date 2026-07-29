@@ -1,5 +1,5 @@
 import { cleanText, sentenceCase, stripTerminalPunctuation } from './compilerText';
-import { compactSlideInstructionLabel, selectVariant } from './courseCompilerCopyVariants';
+import { selectVariant } from './courseCompilerCopyVariants';
 
 function lowercaseSentenceLead(value) {
   const text = cleanText(value);
@@ -14,75 +14,6 @@ function joinTermDefinition(term, definition) {
   if (!cleanDefinition) return cleanTerm;
   if (cleanDefinition.toLowerCase().startsWith(cleanTerm.toLowerCase())) return cleanDefinition;
   return `${cleanTerm} means ${lowercaseSentenceLead(cleanDefinition)}`;
-}
-
-export function slideDiscussionDecisionBullets({
-  lessonNumber,
-  concept,
-  secondary,
-  sourceCue,
-  artifact,
-  successCriterion,
-}) {
-  const conceptLabel = compactSlideInstructionLabel(concept, 'lesson concept');
-  const alternativeLabel = compactSlideInstructionLabel(secondary, 'alternative evidence', {
-    rejectInstruction: true,
-  });
-  const sourceLabel = compactSlideInstructionLabel(sourceCue, 'assigned evidence');
-  const artifactLabel = compactSlideInstructionLabel(artifact, 'course artifact', {
-    rejectInstruction: true,
-  });
-  const criterionLabel = compactSlideInstructionLabel(successCriterion, 'the success criterion');
-  return selectVariant(lessonNumber, [
-    [
-      `Compare two ${conceptLabel} claims. Keep the claim with stronger evidence.`,
-      `Name its evidence boundary and the new evidence that could reverse it.`,
-    ],
-    [
-      `Test two competing ${conceptLabel} claims against the lesson evidence.`,
-      `Criterion — ${criterionLabel}: show exactly where the weaker claim fails.`,
-    ],
-    [
-      `Artifact — ${artifactLabel}: rank two responses by their source support.`,
-      `Cite the deciding detail and name the uncertainty the ranking leaves unresolved.`,
-    ],
-    [
-      `Alternative evidence — ${alternativeLabel}: decide whether it changes the current choice.`,
-      `Explain the change, then state what further evidence would reverse it.`,
-    ],
-    [
-      `Compare a ${conceptLabel} interpretation with one plausible alternative.`,
-      `Point to the source detail that separates them, then state the limit on the stronger interpretation.`,
-    ],
-    [
-      `For ${artifactLabel}, audit two evidence paths against the criterion.`,
-      `Keep the path with an inspectable evidence link; diagnose what the other path is missing.`,
-    ],
-    [
-      `Evidence cue — ${alternativeLabel}: decide whether it strengthens or limits the claim.`,
-      `Identify the exact artifact decision that should change after that evidence test.`,
-    ],
-    [
-      `Source — ${sourceLabel}: contrast a supported response with a vocabulary-only one.`,
-      `Show why one evidence-backed response warrants a conclusion and the other does not.`,
-    ],
-    [
-      `Challenge the current ${artifactLabel} choice with a competing explanation.`,
-      `Name the evidence that survives the challenge and the assumption that still needs checking.`,
-    ],
-    [
-      `Place the strongest and weakest ${conceptLabel} evidence side by side.`,
-      `Connect the difference to the criterion, then propose one defensible revision.`,
-    ],
-    [
-      `Source — ${sourceLabel}: decide which detail matters most.`,
-      `Defend that choice with its evidence link and one credible counterexample.`,
-    ],
-    [
-      `Compare two plausible next steps for ${conceptLabel}.`,
-      `Use ${alternativeLabel} as counterevidence; choose the step warranted now.`,
-    ],
-  ]);
 }
 
 export function prerequisiteDiagnosticCopy({ lessonNumber, previousConcept, concept }) {

@@ -91,6 +91,61 @@ describe('source-ledger quality checks', () => {
     expect(result.overall.score).toBeLessThanOrEqual(89);
   });
 
+  it('does not claim every lesson relies on one source when that source is explicitly scoped to one lesson', async () => {
+    const citation =
+      'Wikipedia contributors. Bullwhip effect. https://en.wikipedia.org/wiki/Bullwhip_effect (CC BY-SA 4.0)';
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'Supply Chain Resilience',
+          lessonScope: 'all',
+          requestedFeatures: ['syllabus'],
+          readiness: { status: 'ready', blockers: 0, warnings: 0, checkedSections: null },
+          pipeline: {
+            enrichmentModelStage: 'knowledge kernels admitted 4/4 lessons',
+            knowledgeBackbone: '0/4 lessons genome-linked · 1 cited open resource · 1/4 lessons with readings',
+          },
+          sourceLedger: [
+            {
+              id: 'wikipedia-bullwhip-effect',
+              title: 'Bullwhip effect',
+              provider: 'wikipedia',
+              url: 'https://en.wikipedia.org/wiki/Bullwhip_effect',
+              license: 'CC BY-SA 4.0',
+              sessionRefs: ['s2'],
+              conceptLinks: [{ id: 'demand-uncertainty', label: 'Demand uncertainty and forecasting limits' }],
+              evidence:
+                'The bullwhip effect describes how small demand changes can create larger order variability across a supply chain.',
+            },
+          ],
+          sourceReport: { path: 'SOURCE_REPORT.md', sourceCount: 1, sourceRefCoverage: null },
+          files: [
+            { path: 'SOURCE_REPORT.md', feature: 'sourceReport' },
+            { path: 'Syllabus/Supply Chain Resilience - Syllabus.txt', feature: 'syllabus' },
+          ],
+        }),
+        'SOURCE_REPORT.md': '# Source Report',
+        'Syllabus/Supply Chain Resilience - Syllabus.txt': [
+          'SUPPLY CHAIN RESILIENCE — SYLLABUS',
+          'WEEKLY READINGS',
+          `Week 2: ${citation}`,
+        ].join('\n'),
+      }),
+      course: { title: 'Supply Chain Resilience', featureIds: ['syllabus'] },
+    });
+
+    expect(result.findings.map((finding) => finding.detail)).not.toContain(
+      'source evidence is too thin: 4 lesson(s) rely on 1 trusted concept-linked source row(s)',
+    );
+    expect(
+      result.findings.some(
+        (finding) =>
+          finding.dimension === 'citations' &&
+          finding.detail === 'citation shares zero vocabulary with the course discipline (possible off-topic reading)',
+      ),
+    ).toBe(false);
+  });
+
   it('lets the reconciled digest override stale budget pipeline labels', () => {
     const honesty = honestyFromDigest(
       {

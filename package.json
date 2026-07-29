@@ -1,6 +1,6 @@
 {
   "name": "course-mapper",
-  "version": "0.16.96",
+  "version": "0.16.97",
   "type": "module",
   "description": "AI-powered course syllabus to course map generator",
   "scripts": {
@@ -28,6 +28,7 @@
     "genome:build": "vite-node scripts/foundry/buildShards.mjs",
     "knowledge:audit": "npx vite-node scripts/knowledgeAudit.mjs",
     "audit:constitution": "node scripts/constitutionAudit.mjs",
+    "audit:texture:cross-package": "node scripts/crossPackageTextureAudit.mjs",
     "audit:release-history": "node scripts/auditReleaseHistory.mjs",
     "audit:pipeline": "node scripts/hybridPipelineAudit.mjs",
     "audit:algi:hybrid": "node scripts/algiScionHybridBenchmarkAudit.mjs",

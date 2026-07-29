@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildPromptAwarePreview,
   derivePromptPreviewTitle,
+  repairGeneratedCourseTitle,
   resolvePreviewLessonCount,
   resolveWorkspaceCourseTitle,
   scopePromptAwarePreviewItems,
@@ -60,6 +61,26 @@ describe('prompt-aware setup previews', () => {
         'Digital Accessibility for Product Teams — create exactly 4 lessons: WCAG principles, semantic HTML, accessible forms, and evidence-based testing.',
       ),
     ).toBe('Digital Accessibility for Product Teams');
+    expect(
+      derivePromptPreviewTitle(
+        'Build a 6-week undergraduate Community Data Storytelling studio for journalism and public-policy students. Use exactly these six lessons in order: 1) Framing a data question; 2) Data provenance.',
+      ),
+    ).toBe('Community Data Storytelling Studio');
+  });
+
+  it('replaces an instruction-shaped model title with the prompt-derived course identity', () => {
+    const prompt =
+      'Build a 6-week undergraduate Community Data Storytelling studio for journalism and public-policy students. Use exactly these six lessons in order: 1) Framing a data question; 2) Data provenance.';
+
+    expect(
+      repairGeneratedCourseTitle(
+        'Build a 6-week undergraduate Community Data Storytelling studio for journalism and public-policy students. Use exactly',
+        prompt,
+      ),
+    ).toBe('Community Data Storytelling Studio');
+    expect(repairGeneratedCourseTitle('Community Data Storytelling Studio', prompt)).toBe(
+      'Community Data Storytelling Studio',
+    );
   });
 
   it('uses the active course in every built-in material preview', () => {

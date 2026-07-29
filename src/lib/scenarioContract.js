@@ -165,8 +165,71 @@ function scenarioSeed(parts) {
   return hash;
 }
 
-function deriveFactLedgerComparisonScenario(term, facts, { compactFactLedgerScenarios = true } = {}) {
+function scenarioEvidencePacket(kernel, term, facts) {
+  const context = [
+    term?.term,
+    term?.definition,
+    term?.example,
+    term?.correction,
+    ...facts,
+    kernel?.discussionPrompt,
+    kernel?.assignmentTask,
+  ]
+    .map(text)
+    .join(' ');
+
+  if (
+    /\b(?:data story|data storytelling|data journalism|dataset|data set|data cleaning|cleaning log|source ledger|data provenance|missing values?|visual encodings?|chart|dashboard|uncertainty note|spreadsheet|csv)\b/i.test(
+      context,
+    )
+  ) {
+    return {
+      compact:
+        'the supplied data records behind Claim A and Claim B, the transformation log, and the claim under review',
+      general: 'the supplied dataset record, transformation log, competing claims, and documented uncertainty',
+    };
+  }
+  if (
+    /\b(?:prototype|wireframe|interface|usability|accessibility|interaction design|user research|journey map|screen|component)\b/i.test(
+      context,
+    )
+  ) {
+    return {
+      compact:
+        'the supplied observation records behind Claim A and Claim B, the current prototype, and the design constraint',
+      general: 'the observation record, current prototype, competing design interpretations, and documented constraint',
+    };
+  }
+  if (
+    /\b(?:literature|literary|poetry|poem|novel|short story|close reading|textual evidence|passage|scene|translation)\b/i.test(
+      context,
+    )
+  ) {
+    return {
+      compact: 'the two supplied textual claims labeled Claim A and Claim B and the locatable passage evidence',
+      general: 'the cited passage, the two competing interpretations, and the documented limit of the evidence',
+    };
+  }
+  if (
+    /\b(?:equation|calculation|formula|measurement|statistical|probability|geometry|algebra|physics|chemistry)\b/i.test(
+      context,
+    )
+  ) {
+    return {
+      compact:
+        'the two supplied solution claims labeled Claim A and Claim B, the recorded quantities, and the answer check',
+      general: 'the problem record, competing solution paths, intermediate evidence, and documented answer check',
+    };
+  }
+  return {
+    compact: 'the source records behind Claim A and Claim B and the documented evidence boundary',
+    general: 'the source record, two competing interpretations, and the documented evidence boundary',
+  };
+}
+
+function deriveFactLedgerComparisonScenario(kernel, term, facts, { compactFactLedgerScenarios = true } = {}) {
   if (term?.source !== 'fact-ledger-projection' || facts.length < 3) return null;
+  const evidencePacket = scenarioEvidencePacket(kernel, term, facts);
   if (compactFactLedgerScenarios) {
     const [claimA, claimB] = facts;
     const derived = {
@@ -177,7 +240,7 @@ function deriveFactLedgerComparisonScenario(term, facts, { compactFactLedgerScen
           'Identify the course concept that best organizes these claims, explain how the claims differ or connect, and state what they do not establish',
         ),
       ].join(' '),
-      materials: 'the two supplied claim cards labeled Claim A and Claim B',
+      materials: evidencePacket.compact,
       source: 'derived-kernel-fallback',
     };
     return analyzeDecisionScenario(derived).ready ? derived : null;
@@ -213,7 +276,9 @@ export function deriveDecisionScenario(kernel, { compactFactLedgerScenarios = tr
   const facts = Array.isArray(kernel?.facts) ? kernel.facts.map(text).filter(Boolean) : [];
   if (!term || facts.length === 0) return null;
 
-  const factLedgerScenario = deriveFactLedgerComparisonScenario(term, facts, { compactFactLedgerScenarios });
+  const factLedgerScenario = deriveFactLedgerComparisonScenario(kernel, term, facts, {
+    compactFactLedgerScenarios,
+  });
   if (factLedgerScenario) return factLedgerScenario;
 
   const exampleIdentity = scenarioTemplateIdentity(term.example);
@@ -262,6 +327,7 @@ export function deriveDecisionScenario(kernel, { compactFactLedgerScenarios = tr
     'The team must choose the defensible interpretation and name the boundary of the supplied evidence',
     'The analyst must determine which reading is supported and what additional evidence would still be needed',
   ][variant];
+  const evidencePacket = scenarioEvidencePacket(kernel, term, facts);
 
   const derived = {
     setup: [
@@ -276,7 +342,7 @@ export function deriveDecisionScenario(kernel, { compactFactLedgerScenarios = tr
     // to a learner: implementation language such as "misconception-correction
     // pair" and repeating the term ("Connect X to the X case") made an
     // otherwise strong source-grounded activity sound machine-assembled.
-    materials: 'the cited passage, the two competing interpretations, and the documented limit of the evidence',
+    materials: evidencePacket.general,
     source: 'derived-kernel-fallback',
   };
   return analyzeDecisionScenario(derived).ready ? derived : null;

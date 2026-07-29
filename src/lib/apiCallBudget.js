@@ -81,6 +81,43 @@ export function normalizeEnrichmentOutcome(outcome = null) {
   return { ...outcome, requestedLessons: requested, enrichedLessons, ...(hasMissingLedger ? { missingLessons } : {}) };
 }
 
+/**
+ * Keep the linker telemetry and the admitted Course Graph coverage on one
+ * evidence contract. The linker line describes candidates; the knowledge
+ * backbone line is computed from the graph that is actually exported. When
+ * those differ, preserve the raw cache count and explanatory suffix while
+ * reconciling the linked lesson count to the shipping graph.
+ */
+export function reconcileGenomePipelineEvidence(pipeline = {}) {
+  const next = { ...(pipeline || {}) };
+  const linkerLine = String(next.genomeLinker || '');
+  const backboneLine = String(next.knowledgeBackbone || '');
+  const linkerMatch =
+    /([0-9]+)\s+genome\s*\+\s*([0-9]+)\s+cached(?:\s*\(\s*([0-9]+)\s+genome-backed\s*\))?\s+of\s+([0-9]+)\s+lessons/i.exec(
+      linkerLine,
+    );
+  const backboneMatch = /([0-9]+)\s*\/\s*([0-9]+)\s+lessons?\s+genome-linked/i.exec(backboneLine);
+  if (!linkerMatch || !backboneMatch) return next;
+
+  const admittedLinkedLessons = Math.max(0, Number(backboneMatch[1]) || 0);
+  const admittedLessonCount = Math.max(admittedLinkedLessons, Number(backboneMatch[2]) || 0);
+  const cachedLessons = Math.max(0, Number(linkerMatch[2]) || 0);
+  const declaredGenomeBackedCache =
+    linkerMatch[3] == null ? Math.max(0, Number(linkerMatch[2]) || 0) : Math.max(0, Number(linkerMatch[3]) || 0);
+  const genomeBackedCache = Math.min(admittedLinkedLessons, cachedLessons, declaredGenomeBackedCache);
+  const directGenomeLessons = Math.max(0, admittedLinkedLessons - genomeBackedCache);
+  const declaredLinkedLessons = Math.max(0, Number(linkerMatch[1]) || 0) + declaredGenomeBackedCache;
+  const declaredLessonCount = Math.max(0, Number(linkerMatch[4]) || 0);
+
+  if (declaredLinkedLessons === admittedLinkedLessons && declaredLessonCount === admittedLessonCount) return next;
+
+  next.genomeLinker = linkerLine.replace(
+    linkerMatch[0],
+    `${directGenomeLessons} genome + ${cachedLessons} cached (${genomeBackedCache} genome-backed) of ${admittedLessonCount} lessons`,
+  );
+  return next;
+}
+
 function normalizeFeatureIds(value) {
   if (Array.isArray(value)) return value.filter(Boolean);
   if (value) return [value];
@@ -216,11 +253,13 @@ export function buildApiCallBudgetReceipt(budget = {}) {
   const counters = Object.fromEntries(
     PERSISTED_BUDGET_COUNTERS.map((key) => [key, Math.max(0, Number(budget?.[key]) || 0)]),
   );
-  const pipeline = Object.fromEntries(
-    Object.entries(budget?.pipeline || {})
-      .filter(([key, value]) => key && typeof value === 'string')
-      .slice(0, 32)
-      .map(([key, value]) => [String(key).slice(0, 80), value.slice(0, 500)]),
+  const pipeline = reconcileGenomePipelineEvidence(
+    Object.fromEntries(
+      Object.entries(budget?.pipeline || {})
+        .filter(([key, value]) => key && typeof value === 'string')
+        .slice(0, 32)
+        .map(([key, value]) => [String(key).slice(0, 80), value.slice(0, 500)]),
+    ),
   );
 
   return {

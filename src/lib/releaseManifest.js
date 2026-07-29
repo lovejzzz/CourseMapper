@@ -1,4 +1,23 @@
 import { APP_VERSION } from './appVersion.js';
+import { CURRENT_RELEASE } from './currentRelease.js';
+
+export { CURRENT_RELEASE };
+
+const V01696_RELEASE = {
+  version: '0.16.96',
+  date: 'July 29, 2026',
+  title: 'Evidence Need, Not Device Class',
+  highlights: [
+    'Scion offers the explicit current-source path whenever its coverage forecast finds unsupported lessons, including on devices capable of running the local Gemma base. Device capability chooses the authoring route; it no longer suppresses evidence acquisition.',
+    'The consent boundary stays exact and visible. Before generation, Scion names the open-source providers and explains that only the course title and uncovered lesson topics leave the device; verified passages are cached locally and passed to the browser-local course writer.',
+    'The W3C/WAI source catalog routes WCAG, page-structure, forms, and evaluation pages by lesson family, survives an individual page fetch failure, and requires method evidence for testing or remediation lessons.',
+    'Admitted research provenance survives as one exact fact-and-citation transaction. Provider, topic, source tier, concept links, revisions, source kind, and support receipts remain attached.',
+    'The Agent and exported source ledger read every exact lesson-overlay citation before capped classroom-resource projections, preserving the complete acceptance evidence ledger.',
+    'Package notes preserve exact actionable grader findings, while the shared compiler repairs malformed imperative frames and unfinished wording. The setup card leads with Scion’s fully-free promise.',
+    'A clean four-lesson browser acceptance completed in 4 seconds on the warm exact-source route with 4/4 knowledge kernels, 9/9 material families, 69/100 Automated Readiness, 99/A package conformance, texture 96, zero encoded findings, one ZIP action, and no inspected application-console errors or warnings. The physical ZIP and nested Office containers passed integrity.',
+    'V0.16.96 changed evidence orchestration, provenance continuity, review-note specificity, and deterministic language repair. Gemma weights stayed unchanged and the optional adapter stayed inactive.',
+  ],
+};
 
 const V01683_RELEASE = {
   version: '0.16.83',
@@ -379,40 +398,6 @@ const V01695_RELEASE = {
     roadmap: 'docs/SCION_V01695_AGENT_EVIDENCE_CONTINUITY.md',
     benchmark: 'src/lib/__tests__/scionLocalAgentAnswer.test.js',
     browser: 'docs/SCION_V01695_AGENT_EVIDENCE_CONTINUITY.md',
-    auditCommand: 'npm run audit:release-history',
-  },
-};
-
-export const CURRENT_RELEASE = {
-  version: APP_VERSION,
-  date: 'July 29, 2026',
-  title: 'Evidence Need, Not Device Class',
-  landingTitle: 'Scion V0.16.96 Grounds Every Unsupported Lesson Before It Writes',
-  highlights: [
-    'Scion now offers the explicit current-source path whenever its coverage forecast finds unsupported lessons, including on devices capable of running the local Gemma base. Device capability chooses the authoring route; it no longer suppresses evidence acquisition.',
-    'The consent boundary stays exact and visible. Before generation, Scion names the open-source providers and explains that only the course title and uncovered lesson topics leave the device; verified passages are cached locally and passed to the browser-local course writer.',
-    'The W3C/WAI source catalog now routes WCAG, page-structure, forms, and evaluation pages by lesson family, survives an individual page fetch failure, and adds Understanding Conformance, Evaluating web accessibility, Easy Checks, and WCAG-EM. A testing or remediation lesson must now carry method evidence instead of passing on broad accessibility background alone.',
-    'Admitted research provenance now survives as one exact fact-and-citation transaction. Provider, topic, source tier, concept links, revisions, source kind, and support receipts remain attached; older partial overlays cannot overwrite current research or rebind current citations to stale facts.',
-    'The Agent and exported source ledger read every exact lesson-overlay citation before capped classroom-resource projections. The acceptance package retains 14 source receipts, and Lesson 4 keeps the distinct evaluation overview, Easy Checks limitation, and WCAG-EM methodology in both Agent answers and the physical ZIP.',
-    'Package notes preserve exact actionable grader findings, affected evidence, and severity. The shared compiler repairs malformed imperative frames and unfinished “draft” language; cache contracts prevent stale pre-fix content from returning. The expanded setup card now leads with “Scion is fully free—and always will be” instead of implementation jargon.',
-    'A clean four-lesson browser acceptance completed in 4 seconds on the warm exact-source route with 4/4 knowledge kernels, 9/9 material families, 69/100 Automated Readiness, 99/A package conformance, texture 96, zero encoded findings, one ZIP action, and no inspected application-console errors or warnings. The physical ZIP and every nested Office container passed integrity.',
-    'The release changes evidence orchestration, provenance continuity, review-note specificity, and deterministic language repair. Gemma weights remain unchanged, the optional adapter remains inactive, and no instructor, classroom, factual-certification, accessibility-certification, paid-model, or adapter-superiority claim is made.',
-  ],
-  landingHighlights: [
-    'Evidence gaps trigger research on every Scion device.',
-    'The network boundary is named before consent.',
-    'Official W3C sources stay with the right lesson family.',
-    'Facts and citations survive as one exact transaction.',
-    'Agent and export retain the complete evidence ledger.',
-    'Review notes, instructional wording, and Scion’s free promise are clear.',
-    'Fresh browser and physical-ZIP proof are recorded.',
-    'Model weights and quality-claim boundaries stay unchanged.',
-  ],
-  proof: {
-    contract: 'release-contracts/v0.16.96.json',
-    roadmap: 'docs/SCION_V01696_EVIDENCE_FIRST_END_TO_END.md',
-    benchmark: 'src/lib/__tests__/scionEvidenceForecastAction.test.js',
-    browser: 'docs/SCION_V01696_EVIDENCE_FIRST_END_TO_END.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -1066,11 +1051,11 @@ const V01695_RELEASE_CHANGELOG = {
   ],
 };
 
-export const CURRENT_RELEASE_CHANGELOG = {
-  version: CURRENT_RELEASE.version,
-  date: CURRENT_RELEASE.date,
-  title: CURRENT_RELEASE.title,
-  highlights: CURRENT_RELEASE.highlights,
+const V01696_RELEASE_CHANGELOG = {
+  version: V01696_RELEASE.version,
+  date: V01696_RELEASE.date,
+  title: V01696_RELEASE.title,
+  highlights: V01696_RELEASE.highlights,
   sections: [
     {
       label: 'Let evidence need drive research',
@@ -1078,9 +1063,8 @@ export const CURRENT_RELEASE_CHANGELOG = {
       color: 'emerald',
       items: [
         'The coverage forecast, not WebGPU capability, decides whether Scion offers current-source research.',
-        'A capable local-model device therefore sees the same explicit source option when one or more lessons lack trusted evidence.',
-        'Private mode remains available, and the choice still travels as an explicit one-run value into generation.',
-        'Device capability continues to choose the authoring runtime without silently deciding the evidence policy.',
+        'A capable local-model device sees the same explicit source option when one or more lessons lack trusted evidence.',
+        'Private mode remains available, and device capability chooses the authoring runtime without silently deciding the evidence policy.',
       ],
     },
     {
@@ -1090,8 +1074,7 @@ export const CURRENT_RELEASE_CHANGELOG = {
       items: [
         'Official W3C/WAI evaluation, Easy Checks, and WCAG-EM pages extend the accessibility source catalog.',
         'Provider, topic, source tier, concept links, revisions, source kind, and support receipt survive evidence normalization.',
-        'The native compiler recognizes the public Scion research-origin label and preserves every admitted source fact.',
-        'The CourseGraph, Agent, manifest, and source report can therefore share the same typed evidence identity.',
+        'The CourseGraph, Agent, manifest, and source report share the same typed evidence identity.',
       ],
     },
     {
@@ -1099,10 +1082,61 @@ export const CURRENT_RELEASE_CHANGELOG = {
       icon: 'PROOF',
       color: 'violet',
       items: [
-        'Agent package notes show the grader’s exact finding instead of generic review language.',
-        'The affected file or evidence detail stays attached when the grader supplies it.',
+        'Agent package notes show the grader’s exact finding and retain the affected file or evidence detail.',
         'Evidence, feedback, and instructor routines use grammatically valid imperative-first sentences.',
-        'Focused regressions pin the exact malformed phrase and the exact package-note contract.',
+        'Focused regressions pin the exact malformed phrase and package-note contract.',
+      ],
+    },
+    {
+      label: 'Keep the quality claim inside the proof',
+      icon: 'CHECK',
+      color: 'slate',
+      items: [
+        'The browser proof began from a clean origin, inspected compiler phases, questioned the source-bound Agent, and downloaded the archive.',
+        'Gemma weights remained unchanged and the optional trained adapter remained inactive.',
+        'Automated proof did not imply instructor approval, classroom outcomes, factual certification, accessibility certification, or paid-model superiority.',
+      ],
+    },
+  ],
+};
+
+export const CURRENT_RELEASE_CHANGELOG = {
+  version: CURRENT_RELEASE.version,
+  date: CURRENT_RELEASE.date,
+  title: CURRENT_RELEASE.title,
+  highlights: CURRENT_RELEASE.highlights,
+  sections: [
+    {
+      label: 'Measure cross-course texture honestly',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'The evaluator classifies scaffolding, intentional alignment, and teaching prose across all nine visible material families.',
+        'Support burden, reader exposure, cross-package excess, and within-package excess remain separate measures.',
+        'Raw, input-masked, path-free, path-aware, and same-position views expose the actual source of reuse.',
+        'Unclassified visible paths fail the retained baseline instead of disappearing from the denominator.',
+      ],
+    },
+    {
+      label: 'Receipt realization without changing output',
+      icon: 'AI',
+      color: 'blue',
+      items: [
+        'Tracing is opt-in, bounded, and attached through a non-enumerable symbol.',
+        'Receipts identify owner, pool, selected index, lesson, selected text, and consumed lesson slots.',
+        'Trace-on and trace-off compiler results serialize to identical ordinary JSON.',
+        'The retained pre-repair baseline stays separate from volatile runtime envelopes.',
+      ],
+    },
+    {
+      label: 'Repair the measured owners',
+      icon: 'PROOF',
+      color: 'violet',
+      items: [
+        'Assignment, study-guide, lesson-plan, slide, and discussion owners compose stable context-keyed teaching moves.',
+        'The 12-course cold-floor panel eliminates 31 universal teaching-prose clusters and reduces cross-package excess by 15.4%.',
+        'The retained 10-course real fixture panel reduces support burden by 10.9% and cross-package excess by 10.6%.',
+        'Deep Proof recompiles both panels and rejects a regression beyond frozen tolerances.',
       ],
     },
     {
@@ -1111,7 +1145,7 @@ export const CURRENT_RELEASE_CHANGELOG = {
       color: 'slate',
       items: [
         'The full unit, lint, format, build, bundle, Chromium, release-history, and physical-ZIP gates remain required.',
-        'The browser proof must begin from a clean origin, exercise explicit research consent, inspect every compiler phase, question the source-bound Agent, and download the archive.',
+        'The browser proof must exercise generation, every compiler phase, the Agent, export, and archive integrity.',
         'Gemma weights remain unchanged and the optional trained adapter remains inactive.',
         'Automated proof does not imply instructor approval, classroom outcomes, factual certification, accessibility certification, or paid-model superiority.',
       ],
@@ -1801,6 +1835,7 @@ const V01678_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  V01696_RELEASE_CHANGELOG,
   V01695_RELEASE_CHANGELOG,
   V01694_RELEASE_CHANGELOG,
   V01693_RELEASE_CHANGELOG,

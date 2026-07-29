@@ -850,6 +850,61 @@ describe('repairCourseMapReadiness', () => {
     expect(serialized).not.toMatch(/interpreter or notebook/i);
   });
 
+  it('repairs data-storytelling gaps without misclassifying narrative work as literature', () => {
+    const result = repairCourseMapReadiness({
+      courseMap: {
+        courseName: 'Community Data Storytelling',
+        lessons: [
+          {
+            title: 'Lesson 1: Cleaning a Public-Transit Reliability Dataset',
+            sections: [
+              {
+                topicSection: 'Handling Missing Values',
+                learningGoals: 'Use Handling Missing Values to make course-relevant decisions.',
+                learningObjectives: 'Apply the main concepts from Handling Missing Values to a course task or example.',
+                weeklyAssessments: 'Handling Missing Values evidence check.',
+                asyncActivities: '',
+                syncActivities: '',
+                technologyNeeded: '',
+                presentationFormat: '',
+                supportingResources: '',
+                evaluateDesign: '',
+              },
+            ],
+          },
+          {
+            title: 'Lesson 2: Narrative Sequence and Uncertainty',
+            sections: [
+              {
+                topicSection: 'Communicating Uncertainty',
+                learningGoals: '',
+                learningObjectives: '',
+                weeklyAssessments: '',
+                asyncActivities: '',
+                syncActivities: '',
+                technologyNeeded: '',
+                presentationFormat: '',
+                supportingResources: '',
+                evaluateDesign: '',
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    const serialized = JSON.stringify(result.courseMap);
+    expect(serialized).toMatch(/dataset|data-story|source ledger|cleaning log|annotated chart/i);
+    expect(serialized).not.toMatch(/passage|selected writers|close-reading|literary|assigned text/i);
+    expect(serialized).not.toMatch(/wireframe|assigned UX example|worked UX example|portfolio case excerpt/i);
+    expect(result.courseMap.lessons[0].sections[0].learningObjectives).toMatch(
+      /data evidence|public-transit dataset|source provenance|data-story claim/i,
+    );
+    expect(result.courseMap.lessons[1].sections[0].weeklyAssessments).toMatch(
+      /portfolio checkpoint|audit|decision memo/i,
+    );
+  });
+
   it('keeps Python notebooks and qualitative coding as research tools instead of programming-course identity', () => {
     const result = repairCourseMapReadiness({
       courseMap: {

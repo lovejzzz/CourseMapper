@@ -197,6 +197,13 @@ describe('constructed-response compiler depth', () => {
     expect(items.every((item) => item.sourceReviewRequired !== true)).toBe(true);
     expect(multipleChoice).toHaveLength(3);
     expect(multipleChoice.filter((item) => isAppliedQuizStem(item.question))).toHaveLength(2);
+    expect(items[2]).toMatchObject({
+      type: 'multiple_choice',
+      enrichmentSource: 'admitted-kernel-assessment',
+      quizPlan: { role: 'admitted-kernel-evidence-interpretation' },
+    });
+    expect(items[2].question).toMatch(/evidence|source-backed|course fact/i);
+    expect(isAppliedQuizStem(items[2].question)).toBe(true);
     expect(items.some((item) => item.quizPlan?.role === 'admitted-kernel-evidence-analysis')).toBe(true);
     expect(
       multipleChoice.flatMap((item) =>

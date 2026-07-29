@@ -56,6 +56,18 @@ function linkMusicCourse() {
 }
 
 describe('source-backed music quiz bank', () => {
+  it('does not mistake visual-encoding scales for musical scales', () => {
+    const disciplines = inferCourseDisciplines({
+      courseName: 'Community Data Storytelling Studio',
+      lessons: [
+        { title: 'Choosing honest visual encodings and scales' },
+        { title: 'Building a narrative sequence that communicates uncertainty' },
+      ],
+    });
+
+    expect(disciplines).not.toContain('music');
+  });
+
   it('is reachable through the same discipline inference and manifest selection used in production', () => {
     const disciplines = inferCourseDisciplines({
       courseName: 'Music Theory I',

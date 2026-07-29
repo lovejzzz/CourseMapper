@@ -315,9 +315,12 @@ describe('v0.14.1 phase 1 batch A compiler fixes', () => {
     expect(text).toContain('Move beyond summary');
     expect(text).toContain('annotated prototype or design artifact with user-evidence rationale');
     expect(text).toContain('before/after design artifact plus critique note and revision rationale');
-    expect(text).toContain('Name its evidence boundary and the new evidence that could reverse it');
-    expect(text).toContain('show exactly where the weaker claim fails');
-    expect(text).toContain('qualify the claim, then revise the work accordingly');
+    // The v0.16.97 realization layer composes these moves from independent
+    // lead/tail pools. Assert the teaching intent rather than one historical
+    // pairing so the test still rejects generic copy without freezing prose.
+    expect(text).toMatch(/(?:evidence boundary|evidence limit|what the source does not establish)/i);
+    expect(text).toMatch(/(?:weaker (?:claim|one|evidence link)|claim that exceeds)/i);
+    expect(text).toMatch(/(?:qualify the claim|bounded conclusion|claim's limitation|claim within)/i);
     expect(text).toContain('which Project-based UX design cue students should track first');
     expect(text).toContain('Records one limitation');
     expect(text).not.toContain('explain the design decision it.');

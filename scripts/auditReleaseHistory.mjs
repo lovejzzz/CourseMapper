@@ -340,8 +340,8 @@ async function main() {
   );
   const latestReleaseSource = await readText('src/lib/latestRelease.js');
   assert(
-    latestReleaseSource.includes("from './releaseManifest.js'"),
-    'latestRelease.js must derive from releaseManifest.js',
+    latestReleaseSource.includes("from './currentRelease.js'"),
+    'latestRelease.js must derive from the first-paint currentRelease.js record',
     failures,
   );
 

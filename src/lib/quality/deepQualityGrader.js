@@ -84,6 +84,7 @@ import {
 } from './deepQualitySubstanceDetails.js';
 import { parseClassSessionMinutes } from '../sourceBriefConstraints.js';
 import { computeAutomatedReadinessSignal } from './automatedReadinessSignal.js';
+import { sourceLedgerSupportForCitation } from './sourceLedgerCitationSupport.js';
 import {
   CLIPPED_SLIDE_INSTRUCTION_RE,
   ENRICHED_DECK_TITLE_PATTERNS,
@@ -2012,7 +2013,8 @@ function checkCitations(findings, { files, manifest }, course) {
       });
       continue;
     }
-    if (!overlapsVocab(cTokens, disciplineVocab)) {
+    const ledgerSupportTokens = contentTokens(sourceLedgerSupportForCitation(cite, manifest).replace(/[-–—/]/g, ' '));
+    if (!overlapsVocab(cTokens, disciplineVocab) && !overlapsVocab(ledgerSupportTokens, disciplineVocab)) {
       seenRelevance.add(dedupeKey);
       findings.add({
         severity: 'P1',

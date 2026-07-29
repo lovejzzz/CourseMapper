@@ -1,4 +1,5 @@
 import { completeCourseMapGeneration } from './generationCompletionRuntime.js';
+import { repairGeneratedCourseTitle } from './promptAwarePreview.js';
 import { isNonFallbackScionRuntimeError } from './scionRuntimeErrors.js';
 
 export async function runNativeSkeletonGenerationFlow(input = [], output = []) {
@@ -81,6 +82,9 @@ export async function runNativeSkeletonGenerationFlow(input = [], output = []) {
       expectedLessons: detected?.confidence === 'high' ? detected?.expected || null : null,
       sourceText: skeletonSource,
     });
+    if (skeleton?.course) {
+      skeleton.course.name = repairGeneratedCourseTitle(skeleton.course.name, skeletonSource);
+    }
     if (skeletonResult?.adaptiveRoute === 'scion-explicit-sequence-compiler') {
       const { attachScionCompilerRoute } = await import('./scionCompilerRoute.js');
       const route =

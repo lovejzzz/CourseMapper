@@ -162,7 +162,10 @@ jobs:
       - name: Educational quality gates
         env:
           DEEP_PROOF_QUALITY_MODE: strict
-        run: npm run audit:deep-quality -- --mode "$DEEP_PROOF_QUALITY_MODE"
+        run: |
+          npm run audit:deep-quality -- --mode "$DEEP_PROOF_QUALITY_MODE"
+          npm run audit:texture:cross-package -- --profile thin --compare-baseline
+          npm run audit:texture:cross-package -- --profile gold --compare-baseline
 
       - name: Upload quality reports
         if: always()
@@ -177,4 +180,5 @@ jobs:
             verification-output/production-canary/**
             verification-output/expert-review-quality-audit/latest.*
             verification-output/external-quality-proof-packet/latest.*
+            verification-output/cross-package-texture/**
           if-no-files-found: ignore

@@ -33,6 +33,9 @@ import {
   isCompilerMintedEvidenceBrief,
 } from './compilerOpenCourseSources';
 import { compactCompilerOwnedAssessmentIdentity } from './compilerAssessmentIdentity';
+import { finalArtifactLabel, mergeFinalRegistryEntries } from './courseCompilerAssessmentRegistry';
+import { alignLensToCourseModality, pluralizeLensPhrase } from './courseCompilerLensProfiles';
+import { buildTechnicalSessionSegments } from './courseCompilerTechnicalSessionPlans';
 import { finalizeCompiledDeliverableLanguage, shortArtifactReference } from './compiledLanguageFinalizer';
 import { getChunkCount } from './parallelGenerator';
 import { getCustomDeliverable } from './customDeliverableLibrary';
@@ -57,8 +60,15 @@ import {
   prerequisiteDiagnosticCopy,
   shortAnswerGuidanceCopy,
   shortAnswerSampleCopy,
-  slideDiscussionDecisionBullets,
 } from './courseCompilerInstructionalCopy';
+import { slideDiscussionDecisionBullets } from './courseCompilerSlideDiscussionCopy';
+import {
+  BLUEPRINT_REALIZATION_TRACE,
+  beginBlueprintRealizationTrace,
+  restoreBlueprintRealizationTrace,
+  selectLessonVariant as lessonVariant,
+} from './courseCompilerRealization';
+import * as textureCopy from './courseCompilerTextureCopy';
 import {
   compactAssignmentBriefBodyReferences,
   compactCourseCopyEmbeddedReference,
@@ -183,6 +193,7 @@ import { requestsExperientialActivity } from './experientialActivityContract';
 import { buildEvidenceTableVisualDescriptor, slideAgendaDecisionCue } from './compilerFactLedgerVisuals';
 
 export { humanSourceCueLabel };
+export { BLUEPRINT_REALIZATION_TRACE };
 
 export const BLUEPRINT_COMPILED_FEATURES = new Set(STANDARD_BLUEPRINT_COMPILED_FEATURE_IDS);
 
@@ -1272,7 +1283,7 @@ function hasProgrammingLabEvidence(text = '') {
 
 function hasDataScienceLabEvidence(text = '') {
   const hasDataDomain =
-    /\b(data science|data analytics|business analytics|analytics lab|applied machine learning|machine learning|machine learning lab|statistical learning|data mining|predictive modeling|predictive analytics|model evaluation|data visualization|analytics dashboard|jupyter notebook|r notebook|notebook analysis|dataframe)\b/.test(
+    /\b(data science|data analytics|business analytics|analytics lab|applied machine learning|machine learning|machine learning lab|statistical learning|data mining|predictive modeling|predictive analytics|model evaluation|data visualization|data storytelling|data journalism|data story studio|analytics dashboard|jupyter notebook|r notebook|notebook analysis|dataframe)\b/.test(
       text,
     ) ||
     (/\b(dataset|data set|csv|spreadsheet|data table|dataframe)\b/.test(text) &&
@@ -1280,7 +1291,7 @@ function hasDataScienceLabEvidence(text = '') {
         text,
       ));
   const hasAnalyticsPractice =
-    /\b(data cleaning|data wrangling|exploratory data analysis|eda|visualization|dashboard|model validation|train[-\s]?test|cross[-\s]?validation|feature engineering|predictive model|classification model|regression model|confusion matrix|validation metric|bias audit|fairness audit|data story|reproducible analysis|notebook report)\b/.test(
+    /\b(data cleaning|data wrangling|exploratory data analysis|eda|visualization|visual encoding|chart|dashboard|model validation|train[-\s]?test|cross[-\s]?validation|feature engineering|predictive model|classification model|regression model|confusion matrix|validation metric|bias audit|fairness audit|data story|source ledger|uncertainty note|reproducible analysis|notebook report)\b/.test(
       text,
     );
   return hasDataDomain && hasAnalyticsPractice;
@@ -1890,128 +1901,6 @@ function inferDisciplineLens(courseName, concepts = []) {
     'course practitioner',
     'applied case',
   );
-}
-
-function appendLensPhrase(value, addition, joiner = 'and') {
-  const base = cleanText(value);
-  const extra = cleanText(addition);
-  if (!base) return extra;
-  if (!extra) return base;
-  const normalizedBase = base.toLowerCase();
-  const normalizedExtra = extra.toLowerCase();
-  if (normalizedBase.includes(normalizedExtra) || normalizedExtra.includes(normalizedBase)) return base;
-  return `${base} ${joiner} ${extra}`;
-}
-
-function prefixLensPhrase(value, prefix, fallback) {
-  const base = cleanText(value, fallback);
-  const normalizedBase = base.toLowerCase();
-  const normalizedPrefix = cleanText(prefix).toLowerCase();
-  if (!normalizedPrefix || normalizedBase.startsWith(`${normalizedPrefix} `)) return base;
-  return `${prefix} ${base}`;
-}
-
-function pluralizeLensPhrase(value) {
-  const text = cleanText(value);
-  if (!text) return '';
-  const pluralizePart = (part) => {
-    const cleaned = cleanText(part);
-    if (!cleaned || /s$/i.test(cleaned)) return cleaned;
-    if (/\bdecision$/i.test(cleaned)) return cleaned.replace(/\bdecision$/i, 'decisions');
-    if (/\by$/i.test(cleaned)) return cleaned.replace(/y$/i, 'ies');
-    return `${cleaned}s`;
-  };
-  if (/\s+or\s+/i.test(text))
-    return text
-      .split(/\s+or\s+/i)
-      .map(pluralizePart)
-      .join(' or ');
-  if (/\s+and\s+/i.test(text))
-    return text
-      .split(/\s+and\s+/i)
-      .map(pluralizePart)
-      .join(' and ');
-  return pluralizePart(text);
-}
-
-function alignLensToCourseModality(lens = {}, courseModalityProfile = {}) {
-  const primaryMode = courseModalityProfile?.primaryMode || '';
-  if (primaryMode === 'data-science-lab') {
-    const dataScienceLensText = [lens.domain, lens.evidenceNoun, lens.decisionNoun, lens.learnerRole, lens.exampleNoun]
-      .join(' ')
-      .toLowerCase();
-    if (
-      /\b(data science|analytics|machine learning|model|validation|dataset|notebook|data analyst)\b/.test(
-        dataScienceLensText,
-      )
-    ) {
-      return {
-        ...lens,
-        evidenceNoun: /validation|model-performance|data-quality|fairness/.test(
-          cleanText(lens.evidenceNoun).toLowerCase(),
-        )
-          ? lens.evidenceNoun
-          : 'validation and model-performance evidence',
-        decisionNoun: /model|analytic|threshold/.test(cleanText(lens.decisionNoun).toLowerCase())
-          ? lens.decisionNoun
-          : 'modeling decision',
-        exampleNoun: /dataset|notebook|analytics/.test(cleanText(lens.exampleNoun).toLowerCase())
-          ? lens.exampleNoun
-          : 'dataset and notebook scenario',
-      };
-    }
-
-    return {
-      ...lens,
-      domain: 'applied machine learning and data science lab',
-      evidenceNoun: 'validation and model-performance evidence',
-      decisionNoun: 'modeling decision',
-      learnerRole: 'data science practitioner',
-      exampleNoun: 'dataset and notebook scenario',
-    };
-  }
-  if (primaryMode === 'clinical-placement-practicum') {
-    const placementLensText = [lens.domain, lens.evidenceNoun, lens.decisionNoun, lens.learnerRole, lens.exampleNoun]
-      .join(' ')
-      .toLowerCase();
-    if (
-      /\b(clinical placement|preceptor|supervised clinical|clinical site|placement practitioner)\b/.test(
-        placementLensText,
-      )
-    ) {
-      return lens;
-    }
-
-    return {
-      ...lens,
-      domain: prefixLensPhrase(lens.domain, 'clinical placement', 'clinical placement practice'),
-      evidenceNoun: appendLensPhrase(lens.evidenceNoun, 'supervised clinical evidence'),
-      decisionNoun: appendLensPhrase(lens.decisionNoun, 'clinical placement decision', 'or'),
-      learnerRole: prefixLensPhrase(lens.learnerRole, 'clinical placement', 'clinical placement practitioner'),
-      exampleNoun: appendLensPhrase(lens.exampleNoun, 'patient-care placement scenario'),
-    };
-  }
-  if (primaryMode !== 'clinical-simulation') return lens;
-
-  const clinicalLensText = [lens.domain, lens.evidenceNoun, lens.decisionNoun, lens.learnerRole, lens.exampleNoun]
-    .join(' ')
-    .toLowerCase();
-  if (
-    /\b(clinical|healthcare|health care|patient|role[-\s]?play|simulation|interpreter|communication)\b/.test(
-      clinicalLensText,
-    )
-  ) {
-    return lens;
-  }
-
-  return {
-    ...lens,
-    domain: prefixLensPhrase(lens.domain, 'clinical', 'healthcare communication'),
-    evidenceNoun: appendLensPhrase(lens.evidenceNoun, 'role-play evidence'),
-    decisionNoun: appendLensPhrase(lens.decisionNoun, 'clinical communication decision', 'or'),
-    learnerRole: prefixLensPhrase(lens.learnerRole, 'clinical', 'healthcare communicator'),
-    exampleNoun: appendLensPhrase(lens.exampleNoun, 'patient-care simulation'),
-  };
 }
 
 function normalizeEnrichmentTeachingMoves(value = {}) {
@@ -3748,8 +3637,13 @@ function buildClassSessionPlan({ lesson, modalityDecode, sessionMinutes = DEFAUL
   const isCounselingPractice = modality.mode === 'counseling-practice';
   const isClinicalPlacement = modality.mode === 'clinical-placement-practicum';
   const isClinicalJudgment = modality.mode === 'clinical-judgment-simulation';
-  const isDataScienceLab = modality.mode === 'data-science-lab';
-  const isProgrammingLab = modality.mode === 'programming-lab';
+  const technicalSessionSegments = buildTechnicalSessionSegments({
+    lesson,
+    modality,
+    concept,
+    artifact,
+    sessionMinutes,
+  });
   const segments = isOnlineHybrid
     ? [
         {
@@ -4800,191 +4694,67 @@ function buildClassSessionPlan({ lesson, modalityDecode, sessionMinutes = DEFAUL
                                             `Students submit or state one defensible clinical care decision, one safety risk to monitor, and one remaining patient-data question.`,
                                         },
                                       ]
-                                    : isDataScienceLab
-                                      ? [
-                                          {
-                                            phase: 'dataset readiness and provenance check',
-                                            minutes: 10,
-                                            purpose:
-                                              lesson.prerequisitePlan?.diagnosticCheck ||
-                                              `Check whether students can open the dataset, name its source, and identify one data-quality risk for ${concept}.`,
-                                            evidenceOfLearning:
-                                              lesson.readinessSupport?.readinessEvidence ||
-                                              `Students document dataset provenance, a missingness or quality cue, and one analysis question before modeling.`,
-                                          },
-                                          {
-                                            phase: 'analysis or model demonstration',
-                                            minutes: 15,
-                                            purpose:
-                                              lesson.teachingIntent?.modelingIntent ||
-                                              `Model one notebook step that turns raw data into an interpretable ${concept} output for ${artifact}.`,
-                                            evidenceOfLearning:
-                                              lesson.modelContrast?.contrastQuestion ||
-                                              `Students can explain why one cleaning, visualization, or model choice is more defensible than another.`,
-                                          },
-                                          {
-                                            phase: 'guided notebook build',
-                                            minutes: 20,
-                                            purpose:
-                                              modality.signaturePractice ||
-                                              lesson.teachingIntent?.guidedPracticeIntent ||
-                                              `Students build the next analysis step with visible dataset, code, output, and interpretation evidence.`,
-                                            evidenceOfLearning:
-                                              modality.evidenceRoutine ||
-                                              lesson.evidencePlan?.evidenceRequirement ||
-                                              `Students produce a notebook cell, data table, visualization, or model output tied to the question.`,
-                                          },
-                                          {
-                                            phase: 'validation and interpretation check',
-                                            minutes: 25,
-                                            purpose: `Students test whether the output in ${artifact} supports the interpretation, metric, or recommendation.`,
-                                            evidenceOfLearning:
-                                              lesson.feedbackCycle?.formativeEvidence ||
-                                              `Students record a validation metric, comparison, or interpretation check before revising the analysis.`,
-                                          },
-                                          {
-                                            phase: 'bias limitation and decision review',
-                                            minutes: 25,
-                                            purpose: `Students review ${artifact} for data limitations, bias or fairness risk, and decision consequences.`,
-                                            evidenceOfLearning:
-                                              lesson.assessmentLink ||
-                                              lesson.studentArtifact ||
-                                              `Students document one limitation, bias check, or alternate interpretation with a revised analytic decision.`,
-                                          },
-                                          {
-                                            phase: 'insight handoff',
-                                            minutes: Math.max(10, sessionMinutes - 95),
-                                            purpose:
-                                              lesson.learningTransferPlan?.transferTask ||
-                                              `Students prepare the notebook, dashboard, or data story evidence that carries into the next analytics task.`,
-                                            evidenceOfLearning:
-                                              lesson.feedbackCycle?.closureCheck ||
-                                              `Students submit or state one validation or model-performance evidence claim, one limitation, and one next analysis risk.`,
-                                          },
-                                        ]
-                                      : isProgrammingLab
-                                        ? [
-                                            {
-                                              phase: 'environment and test setup',
-                                              minutes: 10,
-                                              purpose:
-                                                lesson.prerequisitePlan?.diagnosticCheck ||
-                                                `Check whether students can open the repository, run the starter code, and execute the test harness for ${concept}.`,
-                                              evidenceOfLearning:
-                                                lesson.readinessSupport?.readinessEvidence ||
-                                                `Students produce one setup check, failing test, or environment note before implementation begins.`,
-                                            },
-                                            {
-                                              phase: 'live code model',
-                                              minutes: 15,
-                                              purpose:
-                                                lesson.teachingIntent?.modelingIntent ||
-                                                `Model one small implementation decision for ${artifact}, including the code, test, and reasoning trace.`,
-                                              evidenceOfLearning:
-                                                lesson.modelContrast?.contrastQuestion ||
-                                                `Students can explain why one code path is clearer, safer, or better tested than another.`,
-                                            },
-                                            {
-                                              phase: 'guided implementation',
-                                              minutes: 20,
-                                              purpose:
-                                                modality.signaturePractice ||
-                                                lesson.teachingIntent?.guidedPracticeIntent ||
-                                                `Students implement the next ${concept} step with visible code evidence and instructor check-ins.`,
-                                              evidenceOfLearning:
-                                                modality.evidenceRoutine ||
-                                                lesson.evidencePlan?.evidenceRequirement ||
-                                                `Students produce a code diff, function, notebook cell, or script segment tied to the requirement.`,
-                                            },
-                                            {
-                                              phase: 'debugging and test loop',
-                                              minutes: 25,
-                                              purpose: `Students run tests, inspect failures, debug the implementation, and revise ${artifact}.`,
-                                              evidenceOfLearning:
-                                                lesson.feedbackCycle?.formativeEvidence ||
-                                                `Students capture a failing or passing test, debugging trace, and one corrected implementation choice.`,
-                                            },
-                                            {
-                                              phase: 'code review and refactor',
-                                              minutes: 25,
-                                              purpose: `Students review ${artifact} for correctness, readability, edge cases, and refactor opportunities.`,
-                                              evidenceOfLearning:
-                                                lesson.assessmentLink ||
-                                                lesson.studentArtifact ||
-                                                `Students document one code review note plus a refactor, test, or edge-case improvement.`,
-                                            },
-                                            {
-                                              phase: 'commit handoff',
-                                              minutes: Math.max(10, sessionMinutes - 95),
-                                              purpose:
-                                                lesson.learningTransferPlan?.transferTask ||
-                                                `Students prepare the repository, notebook, or pull-request evidence that carries into the next coding task.`,
-                                              evidenceOfLearning:
-                                                lesson.feedbackCycle?.closureCheck ||
-                                                `Students submit or state one commit, test result, and next implementation risk.`,
-                                            },
-                                          ]
-                                        : [
-                                            {
-                                              phase: 'readiness diagnostic',
-                                              minutes: 10,
-                                              purpose:
-                                                lesson.prerequisitePlan?.diagnosticCheck ||
-                                                `Check whether students can connect prior knowledge to ${stripLessonPrefix(lesson.title)}.`,
-                                              evidenceOfLearning:
-                                                lesson.readinessSupport?.readinessEvidence ||
-                                                `Students can name one usable ${concept} cue.`,
-                                            },
-                                            {
-                                              phase: 'focused model',
-                                              minutes: 15,
-                                              purpose:
-                                                lesson.teachingIntent?.modelingIntent ||
-                                                `Model how ${concept} changes one visible choice in ${artifact}.`,
-                                              evidenceOfLearning:
-                                                lesson.modelContrast?.contrastQuestion ||
-                                                `Students can explain why the stronger ${artifact} is stronger.`,
-                                            },
-                                            {
-                                              phase: 'guided practice',
-                                              minutes: 20,
-                                              purpose:
-                                                modality.signaturePractice ||
-                                                lesson.teachingIntent?.guidedPracticeIntent ||
-                                                `Students practice applying ${concept} with instructor support.`,
-                                              evidenceOfLearning:
-                                                modality.evidenceRoutine ||
-                                                lesson.evidencePlan?.evidenceRequirement ||
-                                                `Students cite evidence for ${concept}.`,
-                                            },
-                                            {
-                                              phase: 'collaborative application',
-                                              minutes: 25,
-                                              purpose: `Students compare evidence choices and improve ${artifact} with peers.`,
-                                              evidenceOfLearning:
-                                                lesson.feedbackCycle?.formativeEvidence ||
-                                                `Students identify one evidence-backed revision for ${artifact}.`,
-                                            },
-                                            {
-                                              phase: 'independent artifact sprint',
-                                              minutes: 25,
-                                              purpose: `Students draft, rehearse, or revise ${artifact} using the lesson success criteria.`,
-                                              evidenceOfLearning:
-                                                lesson.assessmentLink ||
-                                                lesson.studentArtifact ||
-                                                `Students produce a visible ${artifact} checkpoint.`,
-                                            },
-                                            {
-                                              phase: 'debrief and transfer',
-                                              minutes: Math.max(10, sessionMinutes - 95),
-                                              purpose:
-                                                lesson.learningTransferPlan?.transferTask ||
-                                                `Students name how today's ${concept} work carries into the next synthesis artifact.`,
-                                              evidenceOfLearning:
-                                                lesson.feedbackCycle?.closureCheck ||
-                                                `Students submit or state one feedback-based revision to ${artifact}.`,
-                                            },
-                                          ];
+                                    : technicalSessionSegments || [
+                                        {
+                                          phase: 'readiness diagnostic',
+                                          minutes: 10,
+                                          purpose:
+                                            lesson.prerequisitePlan?.diagnosticCheck ||
+                                            `Check whether students can connect prior knowledge to ${stripLessonPrefix(lesson.title)}.`,
+                                          evidenceOfLearning:
+                                            lesson.readinessSupport?.readinessEvidence ||
+                                            `Students can name one usable ${concept} cue.`,
+                                        },
+                                        {
+                                          phase: 'focused model',
+                                          minutes: 15,
+                                          purpose:
+                                            lesson.teachingIntent?.modelingIntent ||
+                                            `Model how ${concept} changes one visible choice in ${artifact}.`,
+                                          evidenceOfLearning:
+                                            lesson.modelContrast?.contrastQuestion ||
+                                            `Students can explain why the stronger ${artifact} is stronger.`,
+                                        },
+                                        {
+                                          phase: 'guided practice',
+                                          minutes: 20,
+                                          purpose:
+                                            modality.signaturePractice ||
+                                            lesson.teachingIntent?.guidedPracticeIntent ||
+                                            `Students practice applying ${concept} with instructor support.`,
+                                          evidenceOfLearning:
+                                            modality.evidenceRoutine ||
+                                            lesson.evidencePlan?.evidenceRequirement ||
+                                            `Students cite evidence for ${concept}.`,
+                                        },
+                                        {
+                                          phase: 'collaborative application',
+                                          minutes: 25,
+                                          purpose: `Students compare evidence choices and improve ${artifact} with peers.`,
+                                          evidenceOfLearning:
+                                            lesson.feedbackCycle?.formativeEvidence ||
+                                            `Students identify one evidence-backed revision for ${artifact}.`,
+                                        },
+                                        {
+                                          phase: 'independent artifact sprint',
+                                          minutes: 25,
+                                          purpose: `Students draft, rehearse, or revise ${artifact} using the lesson success criteria.`,
+                                          evidenceOfLearning:
+                                            lesson.assessmentLink ||
+                                            lesson.studentArtifact ||
+                                            `Students produce a visible ${artifact} checkpoint.`,
+                                        },
+                                        {
+                                          phase: 'debrief and transfer',
+                                          minutes: Math.max(10, sessionMinutes - 95),
+                                          purpose:
+                                            lesson.learningTransferPlan?.transferTask ||
+                                            `Students name how today's ${concept} work carries into the next synthesis artifact.`,
+                                          evidenceOfLearning:
+                                            lesson.feedbackCycle?.closureCheck ||
+                                            `Students submit or state one feedback-based revision to ${artifact}.`,
+                                        },
+                                      ];
   const fittedSegments = fitSegmentsToSessionMinutes(segments, sessionMinutes);
   const plannedClassMinutes = fittedSegments.reduce((sum, segment) => sum + Number(segment.minutes || 0), 0);
   const overageMinutes = Math.max(0, plannedClassMinutes - sessionMinutes);
@@ -5227,6 +4997,22 @@ function selectThroughlineProfile({ courseName = '', courseConcepts = [], lens =
     [courseName, lens.domain, lens.exampleNoun, courseModalityProfile.primaryMode, ...courseConcepts].join(' '),
   ).toLowerCase();
   if (
+    courseModalityProfile?.primaryMode === 'data-storytelling-studio' ||
+    /\b(data storytelling|data journalism|data story studio)\b/.test(text)
+  ) {
+    return {
+      projectName: `${cleanText(courseName, 'Community Data Storytelling')} Portfolio`,
+      clientName: 'the intended public audience and represented community',
+      datasetName: 'the instructor-supplied course dataset',
+      casePacketName: 'Source Ledger and Data Story Evidence Packet',
+      stakeholderGroup:
+        'represented community members, missing voices, data stewards, editors, accessibility reviewers, and public readers',
+      setting:
+        'a public-interest data story where students must make the source, transformation, visual, uncertainty, and revision trail inspectable',
+      sourceMode: 'data-storytelling-studio',
+    };
+  }
+  if (
     courseModalityProfile?.primaryMode === 'data-science-lab' ||
     /\b(applied machine learning|machine learning|data science|data analytics|predictive modeling|model evaluation|classification model|regression model|jupyter|notebook analysis|dataframe)\b/.test(
       text,
@@ -5347,10 +5133,9 @@ function buildCourseThroughlineContext({
       first && last
         ? `${profile.projectName} starts with ${firstFocus} and returns through ${lastFocus} as students revise evidence, tradeoffs, and recommendations.`
         : `${profile.projectName} gives the course a recurring evidence case across lessons.`,
-    evidenceBoundary:
-      profile.sourceMode === 'data-science-lab'
-        ? 'This fictional course-created case is for practice; replace it with official sources when the instructor requires a case, dataset, or policy document.'
-        : 'Use instructor-provided readings, examples, cases, media, notes, or local materials. Do not invent source titles, datasets, authors, URLs, or official facts.',
+    evidenceBoundary: ['data-science-lab', 'data-storytelling-studio'].includes(profile.sourceMode)
+      ? 'This fictional course-created case is for practice; replace it with official sources when the instructor requires a case, dataset, or policy document.'
+      : 'Use instructor-provided readings, examples, cases, media, notes, or local materials. Do not invent source titles, datasets, authors, URLs, or official facts.',
   };
 }
 
@@ -6986,13 +6771,13 @@ function buildCourseModalityProfile({ courseName, lessons }) {
   const ethicsArgumentScore = ethicsArgumentCoreScore + ethicsArgumentPracticeScore;
   const dataScienceCoreScore = hasDataScienceLabEvidence(text)
     ? countPattern(
-        /\b(data science|data analytics|business analytics|analytics lab|applied machine learning|machine learning|machine learning lab|statistical learning|data mining|predictive modeling|predictive analytics|model evaluation|model validation|data visualization|analytics dashboard|jupyter notebook|r notebook|notebook analysis|dataframe)\b/g,
+        /\b(data science|data analytics|business analytics|analytics lab|applied machine learning|machine learning|machine learning lab|statistical learning|data mining|predictive modeling|predictive analytics|model evaluation|model validation|data visualization|data storytelling|data journalism|data story studio|analytics dashboard|jupyter notebook|r notebook|notebook analysis|dataframe)\b/g,
       )
     : 0;
   const dataSciencePracticeScore =
     dataScienceCoreScore > 0
       ? countPattern(
-          /\b(data cleaning|data wrangling|exploratory data analysis|eda|visualization|dashboard|model validation|train[-\s]?test|cross[-\s]?validation|feature engineering|predictive model|classification model|regression model|confusion matrix|validation metric|bias audit|fairness audit|data story|reproducible analysis|notebook report)\b/g,
+          /\b(data cleaning|data wrangling|exploratory data analysis|eda|visualization|visual encoding|chart|dashboard|model validation|train[-\s]?test|cross[-\s]?validation|feature engineering|predictive model|classification model|regression model|confusion matrix|validation metric|bias audit|fairness audit|data story|source ledger|uncertainty note|reproducible analysis|notebook report)\b/g,
         )
       : 0;
   const dataScienceScore = dataScienceCoreScore + dataSciencePracticeScore;
@@ -7067,6 +6852,8 @@ function buildCourseModalityProfile({ courseName, lessons }) {
       /\b(applied machine learning|machine learning|predictive modeling|model evaluation|classification model|regression model|jupyter|notebook)\b/.test(
         courseNameText,
       ));
+  const explicitDataStorytellingShouldWin =
+    /\b(data storytelling|data journalism|data story studio)\b/.test(courseNameText) && dataScienceScore >= 2;
   const lectureExamShouldWin =
     lectureExamScore >= 3 &&
     !hasOnline &&
@@ -7076,66 +6863,68 @@ function buildCourseModalityProfile({ courseName, lessons }) {
   const primaryMode =
     worldLanguageScore >= 3 && clinicalScore < 2 && !hasOnline
       ? 'world-language'
-      : accountingFinanceScore >= 3 && !hasOnline
-        ? 'accounting-finance-analysis'
-        : policyAnalysisScore >= 3 && !hasOnline
-          ? 'policy-analysis'
-          : economicsAnalysisScore >= 3 && !hasOnline
-            ? 'economics-analysis'
-            : ethicsArgumentScore >= 3 && !hasOnline
-              ? 'ethics-argumentation'
-              : informationLiteracyScore >= 3 && hasExplicitInformationLiteracySignal
-                ? 'information-literacy'
-                : teacherPreparationScore >= 3
-                  ? 'teacher-preparation'
-                  : counselingPracticeScore >= 3
-                    ? 'counseling-practice'
-                    : statisticsInferenceScore >= 3 && !hasOnline
-                      ? 'statistics-inference'
-                      : dataScienceLabShouldWin
-                        ? 'data-science-lab'
-                        : lectureExamShouldWin
-                          ? 'lecture-exam'
-                          : clinicalPlacementScore >= 3 && clinicalPlacementStrongScore >= 2
-                            ? 'clinical-placement-practicum'
-                            : clinicalJudgmentScore >= 3
-                              ? 'clinical-judgment-simulation'
-                              : clinicalScore >= 2
-                                ? 'clinical-simulation'
-                                : capstoneDominatesStudio
-                                  ? 'capstone-project'
-                                  : competencyScore >= 2 &&
-                                      competencyScore >= Math.max(labScore, fieldScore, studioScore)
-                                    ? 'competency-based'
-                                    : performingArtsScore >= 3 && !hasOnline
-                                      ? 'performing-arts'
-                                      : creativeScore >= 2 && !hasOnline
-                                        ? 'creative-studio'
-                                        : caseScore >= 2
-                                          ? 'case-method'
-                                          : legalScore >= 2
-                                            ? 'legal-doctrinal'
-                                            : proofScore >= 3
-                                              ? 'proof-seminar'
-                                              : engineeringScore >= 3
-                                                ? 'engineering-design-lab'
-                                                : dataScienceScore >= 3
-                                                  ? 'data-science-lab'
-                                                  : programmingScore >= 3
-                                                    ? 'programming-lab'
-                                                    : humanitiesScore >= 3 && !hasOnline
-                                                      ? 'interpretive-humanities'
-                                                      : studioScore >= 2 &&
-                                                          studioScore >= fieldScore &&
-                                                          studioScore >= labScore
-                                                        ? 'studio-lab'
-                                                        : fieldScore >= 2 && fieldScore >= labScore
-                                                          ? 'field-applied'
-                                                          : labScore >= 2
-                                                            ? 'applied-lab'
-                                                            : hasOnline
-                                                              ? 'online-hybrid'
-                                                              : 'weekly-applied-seminar';
+      : explicitDataStorytellingShouldWin
+        ? 'data-storytelling-studio'
+        : accountingFinanceScore >= 3 && !hasOnline
+          ? 'accounting-finance-analysis'
+          : policyAnalysisScore >= 3 && !hasOnline
+            ? 'policy-analysis'
+            : economicsAnalysisScore >= 3 && !hasOnline
+              ? 'economics-analysis'
+              : ethicsArgumentScore >= 3 && !hasOnline
+                ? 'ethics-argumentation'
+                : informationLiteracyScore >= 3 && hasExplicitInformationLiteracySignal
+                  ? 'information-literacy'
+                  : teacherPreparationScore >= 3
+                    ? 'teacher-preparation'
+                    : counselingPracticeScore >= 3
+                      ? 'counseling-practice'
+                      : statisticsInferenceScore >= 3 && !hasOnline
+                        ? 'statistics-inference'
+                        : dataScienceLabShouldWin
+                          ? 'data-science-lab'
+                          : lectureExamShouldWin
+                            ? 'lecture-exam'
+                            : clinicalPlacementScore >= 3 && clinicalPlacementStrongScore >= 2
+                              ? 'clinical-placement-practicum'
+                              : clinicalJudgmentScore >= 3
+                                ? 'clinical-judgment-simulation'
+                                : clinicalScore >= 2
+                                  ? 'clinical-simulation'
+                                  : capstoneDominatesStudio
+                                    ? 'capstone-project'
+                                    : competencyScore >= 2 &&
+                                        competencyScore >= Math.max(labScore, fieldScore, studioScore)
+                                      ? 'competency-based'
+                                      : performingArtsScore >= 3 && !hasOnline
+                                        ? 'performing-arts'
+                                        : creativeScore >= 2 && !hasOnline
+                                          ? 'creative-studio'
+                                          : caseScore >= 2
+                                            ? 'case-method'
+                                            : legalScore >= 2
+                                              ? 'legal-doctrinal'
+                                              : proofScore >= 3
+                                                ? 'proof-seminar'
+                                                : engineeringScore >= 3
+                                                  ? 'engineering-design-lab'
+                                                  : dataScienceScore >= 3
+                                                    ? 'data-science-lab'
+                                                    : programmingScore >= 3
+                                                      ? 'programming-lab'
+                                                      : humanitiesScore >= 3 && !hasOnline
+                                                        ? 'interpretive-humanities'
+                                                        : studioScore >= 2 &&
+                                                            studioScore >= fieldScore &&
+                                                            studioScore >= labScore
+                                                          ? 'studio-lab'
+                                                          : fieldScore >= 2 && fieldScore >= labScore
+                                                            ? 'field-applied'
+                                                            : labScore >= 2
+                                                              ? 'applied-lab'
+                                                              : hasOnline
+                                                                ? 'online-hybrid'
+                                                                : 'weekly-applied-seminar';
   if (primaryMode === 'weekly-applied-seminar') {
     // v0.15.187 fallback telemetry: no modality score cleared its bar — the
     // course runs the generic weekly-applied-seminar teaching pattern.
@@ -7467,6 +7256,29 @@ function buildCourseModalityProfile({ courseName, lessons }) {
           'model one objection-and-reply move, then ask students what principle, case detail, or stakeholder effect would change the moral decision',
         studentProduct:
           'ethical argument brief, argument map, dilemma analysis, framework comparison note, objection/reply memo, thought-experiment response, or case-application judgment',
+      },
+    },
+    'data-storytelling-studio': {
+      sessionPattern:
+        'source and stakeholder check, data cleaning, chart construction, uncertainty review, critique, and public-story revision',
+      environment: 'data journalism, public-interest visualization, or community data-story studio setting',
+      interactionPattern:
+        'source-ledger inspection, cleaning decisions, visual-encoding critique, uncertainty annotation, audience testing, and visible portfolio revision',
+      artifactEnvironment:
+        'source ledgers, datasets, cleaning logs, annotated chart sets, uncertainty notes, accessibility checks, narrative sequences, and revision memos',
+      riskToMonitor:
+        'Do not let data stories become decorative charts or unsupported narratives; source provenance, transformations, visual choices, uncertainty, accessibility, and revision must stay inspectable.',
+      teachingPattern: {
+        signaturePractice:
+          'run a source-to-public-story cycle where students inspect provenance, document transformations, build and critique a chart, communicate uncertainty, and revise for an audience',
+        evidenceRoutine:
+          'collect source provenance, consent or missing-voice decisions, cleaning records, chart choices, uncertainty limits, accessibility checks, and revision evidence before accepting the story',
+        feedbackRoutine:
+          'review claim-source fit, transformation transparency, visual honesty, uncertainty language, accessibility, audience fit, and one visible portfolio revision',
+        instructorMove:
+          'model one source-to-chart decision, then ask what source detail, transformation, scale, or missing voice would change the public claim',
+        studentProduct:
+          'source ledger, data-cleaning log, annotated chart set, uncertainty note, accessibility check, data-story sequence, or revision memo',
       },
     },
     'data-science-lab': {
@@ -8096,6 +7908,7 @@ const MODALITY_EVIDENCE_ROUTINE_LABELS = {
   'teacher-preparation': 'the way this course collects teaching-practice evidence',
   'counseling-practice': 'the way this course collects practice-session evidence',
   'statistics-inference': 'the way this course collects statistical-reasoning evidence',
+  'data-storytelling-studio': 'the way this course collects source-to-story evidence',
   'data-science-lab': 'the way this course collects notebook and model evidence',
   'programming-lab': 'the way this course collects code and test evidence',
   'lecture-exam': 'the way this course collects exam and retrieval evidence',
@@ -8513,16 +8326,18 @@ function buildArtifactGenreDecode(lesson = {}, profile = {}, modalityDecode = {}
       ))
   ) {
     genre = 'case-conceptualization';
+  } else if (profile.primaryMode === 'data-storytelling-studio') {
+    genre = 'data-story-portfolio';
   } else if (
     artifactMatches(
       /\b(data science notebook|analytics notebook|jupyter notebook|model evaluation|validation report|bias audit|fairness audit|confusion matrix|predictive model|model card)\b/,
     ) ||
     (profile.primaryMode === 'data-science-lab' &&
       (artifactMatches(
-        /\b(dataset|data set|dataframe|csv|notebook|visualization|dashboard|model|metric|validation|train[-\s]?test|cross[-\s]?validation|bias|fairness|feature|prediction|classification|regression|data story)\b/,
+        /\b(dataset|data set|dataframe|csv|notebook|visualization|visual encoding|chart|dashboard|model|metric|validation|train[-\s]?test|cross[-\s]?validation|bias|fairness|feature|prediction|classification|regression|data story|source ledger|cleaning log|uncertainty note)\b/,
       ) ||
         contextMatches(
-          /\b(dataset|data set|dataframe|csv|notebook|visualization|dashboard|model|metric|validation|train[-\s]?test|cross[-\s]?validation|bias|fairness|feature|prediction|classification|regression|data story)\b/,
+          /\b(dataset|data set|dataframe|csv|notebook|visualization|visual encoding|chart|dashboard|model|metric|validation|train[-\s]?test|cross[-\s]?validation|bias|fairness|feature|prediction|classification|regression|data story|source ledger|cleaning log|uncertainty note)\b/,
         )))
   ) {
     genre = 'data-science-notebook';
@@ -8580,12 +8395,14 @@ function buildArtifactGenreDecode(lesson = {}, profile = {}, modalityDecode = {}
     )
   ) {
     genre = 'source-evaluation-dossier';
-  } else if (artifactMatches(/\b(literature|matrix|source|annotated bibliography|gap statement)\b/)) {
-    genre = 'literature-synthesis';
   } else if (
     artifactMatches(/\b(dataset|data set|data|statistics|analysis|coding|log|instrument|survey|observation)\b/)
   ) {
     genre = 'analysis-log';
+  } else if (
+    artifactMatches(/\b(literature|literature matrix|source synthesis|annotated bibliography|gap statement)\b/)
+  ) {
+    genre = 'literature-synthesis';
   } else if (artifactMatches(/\b(field note|field|stakeholder|community|implementation|program|placement)\b/)) {
     genre = 'field-evidence';
   } else if (artifactMatches(/\b(presentation|slide|pitch)\b/)) {
@@ -8935,6 +8752,18 @@ function buildArtifactGenreDecode(lesson = {}, profile = {}, modalityDecode = {}
         'inspect the dataset source and cleaning steps, run or review the notebook output, compare the validation metric to the claim, check one bias or limitation risk, and require a revised analytic conclusion',
       commonFailure:
         'students present a polished chart or model result without proving data provenance, cleaning choices, validation, interpretation limits, or bias risk',
+    },
+    'data-story-portfolio': {
+      outputFormat:
+        'source ledger, data-cleaning log, annotated chart set, uncertainty note, accessibility check, data-story sequence, or revision memo',
+      evidenceRequirement:
+        'source provenance, documented transformation, claim-to-chart fit, visual-encoding rationale, uncertainty boundary, accessibility check, audience consideration, and visible revision',
+      qualityFocus:
+        'source integrity, transformation transparency, visual honesty, uncertainty communication, accessibility, audience fit, and revision quality',
+      reviewProtocol:
+        'trace the claim to its source and transformation record, inspect the visual encoding and scale, test the uncertainty and accessibility notes, and require one visible portfolio revision',
+      commonFailure:
+        'students publish a persuasive chart or narrative without an inspectable source ledger, cleaning record, uncertainty boundary, accessibility check, or revision trail',
     },
     'statistical-inference-report': {
       outputFormat:
@@ -13640,6 +13469,7 @@ function assignmentTypeForArtifactGenre(artifactGenre = {}, assessment = {}) {
     'source-evaluation-dossier': 'Source evaluation dossier',
     'teaching-plan-portfolio': 'Teaching plan portfolio',
     'case-conceptualization': 'Case conceptualization and helping-skills record',
+    'data-story-portfolio': 'Data story portfolio',
     'data-science-notebook': 'Data science notebook and validation evidence',
     'code-lab': 'Code lab and test evidence',
     'lab-report': 'Lab report and notebook entry',
@@ -13959,25 +13789,17 @@ function assignmentDeliverablesForLesson({ lesson = {}, assessment = {}, submiss
   const relatedLesson = assessment.relatedLessons?.[0] || lesson.title || 'the lesson materials';
   const firstLine = lessonVariant(lesson, [
     `Completed ${artifact} as ${assignmentTypeWithArticle(type)} with clear headings.`,
-    `Final ${artifact} in ${type} format, organized so the evidence and decision are easy to locate.`,
+    `${finalArtifactLabel(artifact)} in ${type} format, organized so the evidence and decision are easy to locate.`,
     `${artifact} submitted in the expected ${type} structure with labeled sections for the main task.`,
     `Finished ${artifact} package: response, evidence trail, and revision note arranged for review.`,
   ]);
-  const evidenceLine = lessonVariant(lesson, [
-    `${evidenceNoun} or citation notes tied to ${relatedLesson} course materials.`,
-    `Source notes that identify the ${relatedLesson} evidence used in the response.`,
-    `Brief evidence log naming the reading, activity, case, data, or course note that supports ${assessmentTitle}.`,
-    `Source notes showing where the main claim gets its support.`,
-  ]);
-  const revisionLine = lessonVariant(lesson, [
-    `Brief reflection naming one revision decision for ${assessmentTitle}.`,
-    `One-sentence revision log explaining what changed before submission.`,
-    `Short self-check naming the weakest evidence link and the edit made to strengthen it.`,
-    `Final note identifying the feedback, limitation, or criterion that shaped the last revision.`,
-    `Submission note explaining which rubric signal or source detail changed the final draft.`,
-    `Brief revision trace naming the evidence, peer comment, or criterion students acted on.`,
-    `Final self-review line showing what was clarified, narrowed, or corrected before upload.`,
-  ]);
+  const evidenceLine = textureCopy.assignmentEvidenceLine({
+    lesson,
+    evidenceNoun,
+    relatedLesson,
+    assessmentTitle,
+  });
+  const revisionLine = textureCopy.assignmentRevisionLine({ lesson, assessmentTitle, artifact });
   return [firstLine, evidenceLine, revisionLine];
 }
 
@@ -15582,7 +15404,8 @@ function normalizeAssessmentRegistry(registry) {
         weightPct: Number.isFinite(entry.weightPct) ? entry.weightPct : null,
       };
     });
-  return entries.length > 0 ? entries : null;
+  const mergedEntries = mergeFinalRegistryEntries(entries);
+  return mergedEntries.length > 0 ? mergedEntries : null;
 }
 
 function reconcileAssessmentRegistryLessonCoverage(registry, lessons = []) {
@@ -18091,14 +17914,11 @@ function compileAssignments(blueprint) {
                 `Before uploading the Week ${assessment.lessonNumbers[0]} artifact`,
                 `During the Week ${assessment.lessonNumbers[0]} revision window`,
               ]),
-              description: lessonVariant(lesson, [
-                `Identify the concept, ${lens.evidenceNoun}, and decision ${assessmentTitle} will address.`,
-                `Name the source detail, claim, and decision path that ${assessmentTitle} will make visible.`,
-                `Check that ${assessmentTitle} has one inspectable evidence cue and one defensible action or judgment.`,
-                `Connect the lesson concept to the support, limitation, and decision the submission will show.`,
-                `Mark the evidence students will use and the criterion it should help a reader verify.`,
-                `Confirm that the draft links concept, support, and revision target before final polishing.`,
-              ]),
+              description: textureCopy.assignmentMilestoneDescription({
+                lesson,
+                evidenceNoun: lens.evidenceNoun,
+                assessmentTitle,
+              }),
               feedback:
                 assessment.feedbackCycle?.feedbackMethod ||
                 `Use instructor, peer, or self-review feedback to focus ${assessmentArtifact}.`,
@@ -18953,12 +18773,6 @@ function lessonSpecificityAnchor(lesson = {}) {
   return { week, concept, artifact };
 }
 
-function lessonVariant(lesson = {}, variants = []) {
-  if (!variants.length) return '';
-  const lessonNumber = Number(lesson.lessonNumber || 1);
-  return variants[(Math.max(1, lessonNumber) - 1) % variants.length];
-}
-
 /**
  * v0.9.1 subject-matter enrichment: model-written key terms (real
  * disciplinary definitions with examples and misconceptions) replace the
@@ -19458,12 +19272,13 @@ function compileStudyGuides(blueprint) {
                       sourceCue: lessonSourceCue,
                     }),
                   bloomsLevel: 'Analyze',
-                  hint: lessonVariant(lesson, [
-                    `Name ${phrase.context}, then connect one source detail to the decision it changes.`,
-                    `Use one inspectable detail from ${lessonSourceCue} and state what it lets you decide.`,
-                    `Anchor the answer in ${phrase.context}, a source cue, and the artifact move it supports.`,
-                    `Point to the evidence first, then explain the choice or revision it makes defensible.`,
-                  ]),
+                  hint: textureCopy.studyGuidePrimaryHint({
+                    lesson,
+                    context: phrase.context,
+                    lessonSourceCue,
+                    concept: specificity.concept,
+                    artifact: specificity.artifact,
+                  }),
                 },
                 // v0.13.3: when the lesson carries kernel facts, the second
                 // review question asks about the SUBJECT, not the assessment
@@ -19529,12 +19344,14 @@ function compileStudyGuides(blueprint) {
                 `Self-check ${specificity.artifact} for a ${specificity.week} model-card style limitation, a fairness or subgroup question, and one concrete revision based on notebook evidence.`,
               ]
             : [
-                lessonVariant(lesson, [
-                  `Create a ${specificity.week} three-column note with concept, ${lens.evidenceNoun}, and decision for ${stripLessonPrefix(lesson.title)}.`,
-                  `Build a ${specificity.week} evidence card that names the concept, source detail, and decision it supports in ${stripLessonPrefix(lesson.title)}.`,
-                  `Sketch a two-row ${specificity.week} study table: one row for the claim, one row for the evidence that changes it.`,
-                  `Write a ${specificity.week} source-to-decision note showing how one ${lens.evidenceNoun} detail changes the lesson claim.`,
-                ]),
+                textureCopy.studyGuideEvidenceNote({
+                  lesson,
+                  week: specificity.week,
+                  evidenceNoun: lens.evidenceNoun,
+                  title: stripLessonPrefix(lesson.title),
+                  concept: specificity.concept,
+                  artifact: specificity.artifact,
+                }),
                 lessonVariant(lesson, [
                   `Self-check ${specificity.artifact} against this ${specificity.week} criterion: ${lesson.successCriteria[0]}`,
                   `Review one paragraph or step in ${specificity.artifact} and mark where it satisfies the Week ${lesson.lessonNumber} success criterion: ${lesson.successCriteria[0]}`,
@@ -21447,7 +21264,7 @@ function buildAdmittedKernelEvidenceItem({ lesson, blueprint, quizPlan, index, o
           `Full-credit work uses ${concept} to separate the warranted conclusion from the extension, explains the limitation, and identifies the missing evidence.`,
           `The response must connect the quoted fact to ${concept}, bound the inference it supports, and specify what new evidence could justify going further.`,
           `A successful answer interprets the fact through ${concept}, rejects the unsupported generalization, and names the source-backed support the broader claim still needs.`,
-          `Strong work gives the narrowest defensible conclusion, explains its ${concept} boundary, and identifies evidence capable of addressing the remaining gap.`,
+          `Strong work gives the narrowest defensible conclusion, explains the boundary imposed by ${concept}, and identifies evidence capable of addressing the remaining gap.`,
           `To earn full credit, cite the decisive detail, apply ${concept} accurately, state the present limit, and describe the evidence required for the wider conclusion.`,
         ])
       : `A complete answer accurately connects the quoted statement to ${concept}, explains the relationship it establishes, and keeps the conclusion within the supplied evidence.`;
@@ -21585,6 +21402,13 @@ function buildAdmittedKernelAssessmentFillers({ lesson, blueprint, quizPlan, ass
   fillers[0] = build(buildExamDefinitionItem, 0) || build(buildExamFactItem, 0);
   fillers[1] = build(buildExamMisconceptionItem, 1) || build(buildExamFactItem, 1, 1);
   fillers[2] =
+    buildAdmittedKernelEvidenceBoundaryMc({
+      lesson,
+      quizPlan,
+      assessment: weeklyAssessment,
+      index: 2,
+      offset: 1,
+    }) ||
     build(buildExamFactItem, 2) ||
     build(buildExamDefinitionItem, 2, 1) ||
     buildAdmittedKernelEvidenceItem({
@@ -21614,6 +21438,71 @@ function buildAdmittedKernelAssessmentFillers({ lesson, blueprint, quizPlan, ass
   fillers[3] = weeklyize(buildExamShortAnswerItem({ ...examArgs, ordinal: 4 }), 3);
   fillers[5] = weeklyize(buildExamEssayItem({ ...examArgs, ordinal: 6 }), 5);
   return fillers;
+}
+
+function buildAdmittedKernelEvidenceBoundaryMc({ lesson, quizPlan, assessment, index = 2, offset = 0 }) {
+  const sourceLesson = rotateAdmittedAssessmentKnowledge(lesson, offset);
+  const term = examLessonTerm(sourceLesson);
+  const fact = examLessonFactForConcept(
+    sourceLesson,
+    cleanText(term?.term) || primaryConceptForLesson(sourceLesson),
+    cleanText(term?.definition),
+  );
+  if (!fact) return null;
+
+  const lessonFocus = compactLessonFocusReference(lesson);
+  const concept = cleanText(term?.term) || primaryConceptForLesson(lesson);
+  const quotedFact = `${stripTerminalPunctuation(fact)}.`;
+  const answer = correctLetterForQuestion(lesson, index);
+  const correct = `Use the statement to support the ${concept} relationship it names, while leaving broader causes and outcomes unproven.`;
+  const distractors = [
+    `Dismiss the statement because one admitted ${concept} fact cannot support any conclusion about ${lessonFocus}.`,
+    `Treat the statement as proof that ${concept} produces the same outcome in every ${lessonFocus} context.`,
+    `Use the statement to make ${concept} the only cause of the result, without checking another explanation.`,
+  ];
+  let distractorIndex = 0;
+  const options = QUIZ_ANSWER_LETTERS.map((letter) =>
+    labelQuizOption(letter, letter === answer ? correct : distractors[distractorIndex++]),
+  );
+  const plan = quizPlan[index] || quizPlan[0] || {};
+  return withQuizPlan(
+    {
+      id: quizQuestionId(lesson, index),
+      type: 'multiple_choice',
+      bloomsLevel: 'Analyze',
+      difficulty: plan.difficulty || 'Medium',
+      estimatedMinutes: 3,
+      points: 2,
+      objectiveAligned: plan.objective || lesson.outcomes?.[0] || '',
+      intendedUse: `Evidence-bound interpretation check for ${assessment.title}; students test four claims against one quoted lesson fact.`,
+      question: lessonVariant(lesson, [
+        `The lesson evidence states: “${quotedFact}” Which interpretation stays within that evidence?`,
+        `A review team is given this source-backed statement: “${quotedFact}” Which conclusion is defensible without adding an unsupported claim?`,
+        `Use this admitted course fact as the evidence: “${quotedFact}” Which option preserves what the fact actually establishes?`,
+        `A classmate checks four interpretations against this lesson evidence: “${quotedFact}” Which interpretation survives the source check?`,
+      ]),
+      options,
+      answer,
+      distractorRationale: `The keyed option preserves the admitted ${concept} fact; distractors reproduce documented misconceptions or add a claim the quotation does not support.`,
+      explanation: `${answer} is correct because it keeps the conclusion inside the quoted ${concept} evidence instead of extending it beyond the admitted fact.`,
+      enrichmentSource: 'admitted-kernel-assessment',
+      tags: unique(['quiz', 'multiple choice', concept, 'source evidence', 'claim boundary'], 8),
+    },
+    {
+      ...plan,
+      source: 'source-grounded-quiz-plan',
+      role: 'admitted-kernel-evidence-interpretation',
+      bloom: 'Analyze',
+      difficulty: plan.difficulty || 'Medium',
+      use: 'weekly source-grounded evidence check',
+      questionIndex: index,
+      bloomSource: 'quoted admitted lesson fact',
+      sourceSignal: quotedFact,
+      objectiveAlignmentStrategy: plan.objectiveAlignmentStrategy || 'lesson-primary-objective',
+      objectiveAlignmentRationale:
+        plan.objectiveAlignmentRationale || 'Question asks students to keep an interpretation within an admitted fact.',
+    },
+  );
 }
 
 // Misconception vs corrective: the stem quotes the documented wrong claim;
@@ -23071,6 +22960,11 @@ function slideVisual(lesson, slide) {
             ...lessonTeachingKeyTerms(lesson).map((term) => cleanText(term.term)),
             ...(lesson.keyConcepts || []).map((term) => cleanText(term)),
             cleanText(secondary),
+            // Sparse local-model kernels may admit only one key term. Keep
+            // the map grounded and renderable by connecting that term to two
+            // lesson anchors already authored elsewhere in the same graph.
+            conciseClause(source, 'Source evidence', 26),
+            conciseClause(artifactGenre.label || artifact, 'Course artifact', 26),
           ].filter((term) => term && term.length <= 26 && term.toLowerCase() !== hub.toLowerCase()),
           // v0.14.5 (C1): the exporter's fixed slot table now seats up to six
           // spokes (ellipse grid, deterministic positions by count).
@@ -24030,6 +23924,13 @@ function buildDiscussionProtocol({ lesson = {}, blueprint = {}, phrase = {}, len
       artifactUse: `Students inspect the dataset, notebook output, visualization or model evidence, and validation logic in ${artifact}.`,
       reviewFocus: `data integrity, reproducibility, validation evidence, interpretation accuracy, bias or fairness risk, and analytic usefulness for ${concept}`,
     },
+    'data-story-portfolio': {
+      format: 'Public Data Story Critique',
+      participationPattern:
+        'source-ledger check, transformation trace, chart and scale critique, uncertainty annotation, accessibility review, and visible revision',
+      artifactUse: `Students trace the public claim in ${artifact} back to its source, transformation record, visual choice, uncertainty boundary, and revision note.`,
+      reviewFocus: `source integrity, transformation transparency, visual honesty, uncertainty, accessibility, audience fit, and visible revision for ${concept}`,
+    },
     'code-lab': {
       format: 'Code Review Clinic',
       participationPattern:
@@ -24229,13 +24130,15 @@ function buildDiscussionProtocol({ lesson = {}, blueprint = {}, phrase = {}, len
                                     ? protocolByGenre['policy-brief']
                                     : mode === 'proof-seminar'
                                       ? protocolByGenre['proof-portfolio']
-                                      : mode === 'data-science-lab'
-                                        ? protocolByGenre['data-science-notebook']
-                                        : mode === 'programming-lab'
-                                          ? protocolByGenre['code-lab']
-                                          : mode === 'studio-lab' && genre === 'applied-artifact'
-                                            ? protocolByGenre['design-prototype']
-                                            : null;
+                                      : mode === 'data-storytelling-studio'
+                                        ? protocolByGenre['data-story-portfolio']
+                                        : mode === 'data-science-lab'
+                                          ? protocolByGenre['data-science-notebook']
+                                          : mode === 'programming-lab'
+                                            ? protocolByGenre['code-lab']
+                                            : mode === 'studio-lab' && genre === 'applied-artifact'
+                                              ? protocolByGenre['design-prototype']
+                                              : null;
   // v0.15.187 dictionary retirement (slice 1): a complete kernel-authored
   // course protocol beats the 34-genre dictionary — the dictionary (and its
   // mode overrides) become the fallback for unauthored courses.
@@ -25715,7 +25618,7 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
             `Debrief against this criterion: ${successCriterion}`,
             next
               ? `Carry forward to ${primarySlideConcept(next)}.`
-              : 'Carry forward to final synthesis and revision planning.',
+              : textureCopy.slideFinalCarryForward({ lesson, concept, artifact }),
           ],
           minutes: 2,
           bloom: null,
@@ -25750,7 +25653,12 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
             // continuity reference in the first session reads as unproofed.
             previous
               ? `Last time: ${primarySlideConcept(previous)}`
-              : `This course: ${blueprint.courseName} — what we'll build across the semester`,
+              : textureCopy.slideCourseThroughline({
+                  lesson,
+                  courseName: blueprint.courseName,
+                  concept,
+                  artifact,
+                }),
             `Today: ${sentenceCase(phrase.decisionMove)}`,
             next ? `Next: ${primarySlideConcept(next)}` : `Next: final synthesis and revision planning`,
           ],
@@ -25923,6 +25831,7 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
           bullets: [
             ...slideDiscussionDecisionBullets({
               lessonNumber: lesson.lessonNumber,
+              courseName: blueprint.courseName,
               concept,
               secondary,
               sourceCue,
@@ -27043,15 +26952,7 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
             `Post a quick claim test. ${ensureSentenceCompiler(readableMisconception(kernelMisconception.misconception))} Students mark agree, revise, or reject. Then they explain the evidence.`,
             `Use this claim as the launch prompt. ${ensureSentenceCompiler(readableMisconception(kernelMisconception.misconception))} Students predict what would prove or disprove it before the lesson evidence arrives.`,
           ])
-        : lessonVariant(lesson, [
-            `Students respond to a short prompt that asks them to ${phrase.decisionMove} using prior source evidence before the day's lesson work begins.`,
-            `Students mark one prior source detail and explain how it could support today's ${concept} decision.`,
-            `Students write a quick evidence note: what from earlier work might change the next move in ${artifact}?`,
-            `Students choose one remembered example, name the evidence it contains, and predict how it will matter today.`,
-            `Students revisit one prior claim, identify the evidence behind it, and decide whether it still applies to ${concept}.`,
-            `Students select an earlier course detail and explain how it could strengthen or complicate today's work on ${artifact}.`,
-            `Students jot one remembered example, one missing detail, and one question that should guide the ${concept} lesson.`,
-          ]),
+        : textureCopy.lessonPlanWarmupDescription({ lesson, concept, artifact }),
       instructorNotes: kernelMisconception
         ? `Reveal the correction only after the vote. Correction: ${readableCorrection(kernelMisconception.correction || kernelMisconception.definition)}. Link the discussion to this objective: ${lesson.outcomes[0]}.`
         : `Collect two fast examples about ${concept}, name the evidence move worth imitating, and connect the prompt to ${lesson.outcomes[0]}.`,
@@ -27184,14 +27085,12 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
               ? `Seed the two camps if teams converge: “${stripTerminalPunctuation(kernelDiscussion.positions[0])}” versus “${stripTerminalPunctuation(kernelDiscussion.positions[1])}.” `
               : ''
           }A claim counts only when it uses ${kernelTermA?.term || concept} precisely. ${modality.artifactCheck}`
-        : lessonVariant(lesson, [
-            `Require each group to cite one reading, example, or class note about ${concept} before reporting out. ${modality.artifactCheck}`,
-            `Ask teams to underline the evidence behind their ${concept} choice and show where it changes ${artifact}.`,
-            `Before the share-out, have each group name its claim, strongest source detail, and one limitation.`,
-            `Press every team to distinguish observed ${concept} evidence from assumptions before accepting the recommendation.`,
-            `Use the report-out to test whether the group can trace a source detail through reasoning to a visible ${artifact} move.`,
-            `Have listeners challenge one evidence gap, then give the presenting team a minute to revise its ${concept} decision.`,
-          ]),
+        : textureCopy.lessonPlanCollaborativeNotes({
+            lesson,
+            concept,
+            artifact,
+            artifactCheck: modality.artifactCheck,
+          }),
       instructorRole: `Moderate the ${stripLessonPrefix(lesson.title)} tradeoff discussion and calibrate ${artifact} against ${modality.studentProduct}.`,
       grouping: lessonVariant(lesson, [
         'Small groups then share-out',
@@ -27515,14 +27414,12 @@ function compileLessonPlans(blueprint, options = {}) {
         courseModalityProfile: blueprint.courseModalityProfile,
         studentFacingSummary: admittedLanguagePlan?.studentFacingSummary || {
           beforeClass: `Review ${materials[0]} and arrive ready to ${phrase.evidenceMove}.`,
-          duringClass: lessonVariant(lesson, [
-            `Use class discussion and practice time to ${phrase.decisionMove} with peers before developing your own response.`,
-            `Test ${phrase.evidenceMove} with a partner, then ${phrase.decisionMove} in an individual response.`,
-            `Compare two evidence choices in class, explain which one is stronger, and use that decision in your own response.`,
-            `Rehearse the ${concept} reasoning with peers, note where the evidence changes the decision, and then work independently.`,
-            `Use the guided example and peer check to refine one ${concept} claim before completing your own work.`,
-            `Work through the lesson evidence in class, challenge one assumption with peers, and carry the stronger reasoning into your response.`,
-          ]),
+          duringClass: textureCopy.lessonPlanDuringClass({
+            lesson,
+            evidenceNoun: lens.evidenceNoun,
+            concept,
+            artifact,
+          }),
           afterClass: hasStandaloneAssessment
             ? lesson.feedbackCycle?.studentRevisionAction ||
               `Revise your work using the feedback notes and submit the final ${artifact}.`
@@ -27987,16 +27884,29 @@ function compileFeatureInto(result, compileErrors, featureId, compilerBlueprint,
 }
 
 export function compileBlueprintDeliverables(blueprint, featureIds = [], options = {}) {
-  const compilerBlueprint = prepareBlueprintForCompilation(blueprint, options);
-  assertBlueprintCompilerContract(compilerBlueprint, options);
-  const result = {};
-  const compileErrors = [];
-  for (const featureId of getBlueprintCompiledFeatures(featureIds, options)) {
-    compileFeatureInto(result, compileErrors, featureId, compilerBlueprint, options);
+  const realizationState = beginBlueprintRealizationTrace(options.traceRealization, blueprint?.courseName);
+  try {
+    const compilerBlueprint = prepareBlueprintForCompilation(blueprint, options);
+    assertBlueprintCompilerContract(compilerBlueprint, options);
+    const result = {};
+    const compileErrors = [];
+    for (const featureId of getBlueprintCompiledFeatures(featureIds, options)) {
+      compileFeatureInto(result, compileErrors, featureId, compilerBlueprint, options);
+    }
+    result[BLUEPRINT_COMPILE_CONTEXT] = compilerBlueprint;
+    if (compileErrors.length > 0) result[BLUEPRINT_COMPILE_ERRORS] = compileErrors;
+    if (realizationState.trace) {
+      Object.defineProperty(result, BLUEPRINT_REALIZATION_TRACE, {
+        configurable: false,
+        enumerable: false,
+        value: realizationState.trace,
+        writable: false,
+      });
+    }
+    return result;
+  } finally {
+    restoreBlueprintRealizationTrace(realizationState);
   }
-  result[BLUEPRINT_COMPILE_CONTEXT] = compilerBlueprint;
-  if (compileErrors.length > 0) result[BLUEPRINT_COMPILE_ERRORS] = compileErrors;
-  return result;
 }
 
 // v0.15.187: the measured compile is 775-815ms of synchronous work for a

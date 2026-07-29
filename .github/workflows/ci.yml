@@ -53,6 +53,8 @@ jobs:
           npm run audit:scion:codex-paired-order-evidence
           npm run audit:scion:adapter:corpus-readiness
           npm run audit:scion:adapter:exact-lineage
+          npm run audit:texture:cross-package -- --profile thin --verify-baseline
+          npm run audit:texture:cross-package -- --profile gold --verify-baseline
 
       - name: Proof smoke
         run: |
@@ -76,6 +78,7 @@ jobs:
             verification-output/gold-sample-quality-audit/latest.*
             verification-output/independent-benchmark/**
             verification-output/production-canary/**
+            verification-output/cross-package-texture/**
           if-no-files-found: ignore
 
   unit:

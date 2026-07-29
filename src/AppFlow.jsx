@@ -91,6 +91,7 @@ import {
   createApiCallBudget,
   createApiCallBudgetFromReceipt,
   formatEnrichmentOutcomeLabel,
+  reconcileGenomePipelineEvidence,
 } from './lib/apiCallBudget';
 import { buildBuildRibbonModel } from './lib/buildRibbonModel';
 import { clearSetupRecovery } from './lib/setupRecovery';
@@ -727,7 +728,7 @@ export default function AppFlow({
     const coverage = knowledgeCoverage(currentGraph);
     const sourceLedgerSummary = currentGraph?.courseIR?.sourceLedgerSummary || null;
     const knowledgeBackbone = buildKnowledgeBackboneLabel(coverage, sourceLedgerSummary);
-    const pipelineState = {
+    const pipelineState = reconcileGenomePipelineEvidence({
       enrichment,
       genomeLinker: budget.pipeline?.genomeLinker || 'not run',
       ...(budget.pipeline?.scionExecution ? { scionExecution: budget.pipeline.scionExecution } : {}),
@@ -744,7 +745,7 @@ export default function AppFlow({
       // v0.14 P3: the judgment surface — what the genome reasoned about this
       // course (prerequisite gaps found, bridged, or flagged).
       ...(budget.pipeline?.judgment ? { judgment: budget.pipeline.judgment } : {}),
-    };
+    });
     return normalizePipelineStateWithSourceBackedJudgment(pipelineState, {
       sourceRefCoverage: currentGraph?.courseIR?.sourceRefCoverage || null,
       sourceLedgerSummary,

@@ -271,7 +271,7 @@ export function inferCourseDisciplines(courseMap) {
     ['lit', /\bliterat|literary|poetry|poem|novel|fiction|close reading|rhetoric|composition/],
     [
       'music',
-      /\bmusic theory\b|\bmusicianship\b|\bear training\b|\bsight singing\b|\bsolf[eè]ge\b|\b(?:staff|clef|interval|scale|triad|seventh chord|rhythm|meter|harmony|chord progression|musical form)s?\b/,
+      /\bmusic theory\b|\bmusicianship\b|\bear training\b|\bsight singing\b|\bsolf[eè]ge\b|\b(?:staff|clef|interval|triad|seventh chord|rhythm|harmony|chord progression|musical form)s?\b|\b(?:musical|major|minor|chromatic|diatonic)\s+scales?\b|\bscale degrees?\b|\bkey signatures?\b|\b(?:duple|triple|compound|musical)\s+meters?\b/,
     ],
     [
       'ux',

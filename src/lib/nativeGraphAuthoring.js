@@ -425,7 +425,7 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
   const anchorClause = anchorFact.replace(/[.!?]+$/, '');
   const interpretiveReadingLesson =
     namedReadings.length > 0 &&
-    /\b(?:literature|literary|poetry|poem|epic|drama|novel|fiction|narrative|realism|fantastic|close reading|textual interpretation)\b/i.test(
+    /\b(?:literature|literary|poetry|poem|epic|drama|novel|fiction|realism|fantastic|close reading|textual interpretation)\b/i.test(
       [title, ...topics, ...sections.flatMap((section) => [section?.learningGoals, section?.learningObjectives])]
         .filter(Boolean)
         .join(' '),
@@ -1883,6 +1883,58 @@ function assessmentRegistryDeduplicationKey(entry) {
   return `${entry?.dueSession}:${identity}`;
 }
 
+function mergeGenericFinalAssessmentPairs(entries = []) {
+  const rows = entries.map((entry) => ({ ...entry }));
+  const consumed = new Set();
+  const merged = [];
+  rows.forEach((entry, index) => {
+    if (consumed.has(index)) return;
+    const title = cleanText(entry?.title, 240);
+    const generic = title.match(/^final\s+(?:course\s+)?(portfolio|project|paper|presentation|report|performance)$/i);
+    if (!generic) {
+      merged.push(entry);
+      return;
+    }
+    const family = generic[1].toLowerCase();
+    const partnerIndex = rows.findIndex((candidate, candidateIndex) => {
+      if (candidateIndex === index || consumed.has(candidateIndex)) return false;
+      if (Number(candidate?.dueSession) !== Number(entry?.dueSession)) return false;
+      const candidateTitle = cleanText(candidate?.title, 240);
+      return (
+        candidateTitle.length > title.length + 4 &&
+        new RegExp(`\\b${family}\\b`, 'i').test(candidateTitle) &&
+        !/^final\s+(?:course\s+)?(?:portfolio|project|paper|presentation|report|performance)$/i.test(candidateTitle)
+      );
+    });
+    if (partnerIndex < 0) {
+      merged.push(entry);
+      return;
+    }
+    const partner = rows[partnerIndex];
+    consumed.add(partnerIndex);
+    rows.forEach((candidate, candidateIndex) => {
+      if (
+        candidateIndex !== index &&
+        Number(candidate?.dueSession) === Number(entry?.dueSession) &&
+        cleanText(candidate?.title, 240).toLowerCase() === title.toLowerCase()
+      ) {
+        consumed.add(candidateIndex);
+      }
+    });
+    const weights = [entry.weightPct, partner.weightPct].filter(Number.isFinite);
+    merged.push({
+      ...entry,
+      ...partner,
+      title: cleanText(partner.title, 240),
+      kind: partner.kind || entry.kind,
+      dueSession: partner.dueSession,
+      ...(weights.length > 0 ? { weightPct: weights.reduce((sum, weight) => sum + weight, 0) } : {}),
+      compilerMergedAssessmentTitles: [title, cleanText(partner.title, 240)],
+    });
+  });
+  return merged;
+}
+
 function splitFusedWeightedAssessmentTitle(value) {
   let text = cleanText(value, 500);
   const hasLeadingOne = /^1[.)]\s+/.test(text);
@@ -2291,7 +2343,7 @@ export function parseNativeSkeletonResponse(text, { expectedLessons = null, sour
       return !recoveredKeys.has(key);
     });
     const seen = new Set();
-    assessments = [...recurring, ...oneOff, ...retained]
+    assessments = mergeGenericFinalAssessmentPairs([...recurring, ...oneOff, ...retained])
       .filter((entry) => {
         const key = assessmentRegistryDeduplicationKey(entry);
         if (seen.has(key)) return false;
@@ -2318,7 +2370,7 @@ export function parseNativeSkeletonResponse(text, { expectedLessons = null, sour
     const seen = new Set();
     // Recovered source identities lead so their source-grounded title and
     // placement win over a model-expanded duplicate.
-    const sourceBoundAssessments = [...recoveredOneOff, ...sourceBoundParsed]
+    const sourceBoundAssessments = mergeGenericFinalAssessmentPairs([...recoveredOneOff, ...sourceBoundParsed])
       .filter((entry) => {
         const key = assessmentRegistryDeduplicationKey(entry);
         if (seen.has(key)) return false;

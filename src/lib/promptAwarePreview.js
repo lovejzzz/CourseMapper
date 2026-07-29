@@ -21,6 +21,12 @@ const removeBriefQualifiers = (value) =>
     .replace(/\s+(?:that|where|covering|including)\b.*$/i, '')
     .trim();
 
+const capitalizeCourseTypeSuffix = (value) =>
+  String(value || '').replace(/\b(course|class|seminar|studio|workshop)$/i, (courseType) => {
+    const lower = courseType.toLowerCase();
+    return lower.charAt(0).toUpperCase() + lower.slice(1);
+  });
+
 export function derivePromptPreviewTitle(promptText) {
   const rawText = String(promptText || '').trim();
   const text = clean(promptText);
@@ -76,6 +82,18 @@ export function derivePromptPreviewTitle(promptText) {
   );
   if (beforeCourseShape?.[1]) return beforeCourseShape[1].trim();
 
+  // Imperative briefs often place duration and level before the real course
+  // identity: "Build a 6-week undergraduate Community Data Storytelling
+  // studio for journalism students." Treat the typed course noun as the end
+  // of the title instead of letting the whole instruction become workspace
+  // identity.
+  const imperativeTypedCourse = text.match(
+    /^(?:build|create|generate|design|make|draft|prepare)\s+(?:an?\s+)?(?:(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|\d{1,2})[-\s](?:lesson|week|module|session)\s+)?(?:(?:introductory|advanced|undergraduate|graduate|upper[-\s]division|first[-\s]year)\s+)*(.{4,90}?\b(?:course|class|seminar|studio|workshop))\b(?=\s+(?:for|with|that|where|covering|including)\b|[.,;!?])/i,
+  );
+  if (imperativeTypedCourse?.[1]) {
+    return capitalizeCourseTypeSuffix(removeBriefQualifiers(imperativeTypedCourse[1]));
+  }
+
   const cleaned = removeBriefQualifiers(
     text
       .replace(/^(?:build|create|generate|design|make|draft|prepare)\s+(?:an?\s+)?/i, '')
@@ -90,11 +108,23 @@ export function derivePromptPreviewTitle(promptText) {
   return cleaned.length > 72 ? `${cleaned.slice(0, 69).trim()}...` : cleaned;
 }
 
+export function repairGeneratedCourseTitle(courseMapTitle, promptText) {
+  const mappedTitle = clean(courseMapTitle);
+  const promptTitle = clean(promptText) ? derivePromptPreviewTitle(promptText) : '';
+  const looksLikeInstruction =
+    /^(?:build|create|generate|design|make|draft|prepare)\b/i.test(mappedTitle) ||
+    /\b(?:use|follow|preserve)\s+(?:exactly\s+)?(?:these|the)?\s*(?:\w+\s+)?(?:lessons?|sessions?|modules?)\s+in\s+(?:this\s+)?order\b/i.test(
+      mappedTitle,
+    ) ||
+    mappedTitle.length > 100;
+  return looksLikeInstruction && promptTitle ? promptTitle : mappedTitle || promptTitle || 'Untitled course';
+}
+
 export function resolveWorkspaceCourseTitle({ courseMapTitle, promptText, mappingInProgress } = {}) {
   const mappedTitle = clean(courseMapTitle);
   const promptTitle = clean(promptText) ? derivePromptPreviewTitle(promptText) : '';
   if (mappingInProgress && promptTitle) return promptTitle;
-  return mappedTitle || promptTitle || 'Untitled course';
+  return repairGeneratedCourseTitle(mappedTitle, promptText);
 }
 
 export function resolvePreviewLessonCount({ lessonScope, courseMap, lessonCount } = {}) {

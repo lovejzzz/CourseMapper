@@ -8,7 +8,7 @@ import { projectKernelToSurfaces } from '../src/lib/kernelProjection.js';
 import { findPromptArtifactContamination } from '../src/lib/quality/artifactDefectPatterns.js';
 import { buildEvidenceTableVisualDescriptor, slideAgendaDecisionCue } from '../src/lib/compilerFactLedgerVisuals.js';
 import { compactSlideInstructionLabel } from '../src/lib/courseCompilerCopyVariants.js';
-import { slideDiscussionDecisionBullets } from '../src/lib/courseCompilerInstructionalCopy.js';
+import { slideDiscussionDecisionBullets } from '../src/lib/courseCompilerSlideDiscussionCopy.js';
 import {
   isClaimEvidenceBoundaryShortAnswer,
   isConceptCuedCompilerShortAnswer,
@@ -273,6 +273,35 @@ describe('v0.16.3 compiler texture', () => {
       /reproduce its key form|detail that changes the|before choosing the next|…/,
     );
     expect([...agendas, ...discussions].every((line) => !/[:;,–—-]$/.test(line))).toBe(true);
+    const unrelatedDiscussionSets = [
+      'Marine Biology',
+      'Corporate Tax',
+      'Baroque Counterpoint',
+      'Epidemiology',
+      'Civil Procedure',
+      'Materials Science',
+      'Language Pedagogy',
+      'Urban Planning',
+      'Medical Ethics',
+      'Database Systems',
+      'Art History',
+      'Sports Physiology',
+    ].map(
+      (courseName) =>
+        new Set(
+          Array.from({ length: 12 }, (_, index) =>
+            slideDiscussionDecisionBullets({
+              lessonNumber: index + 1,
+              courseName,
+              ...hostileInputs,
+            }),
+          ).flat(),
+        ),
+    );
+    const universalDiscussionLines = [...unrelatedDiscussionSets[0]].filter((line) =>
+      unrelatedDiscussionSets.slice(1).every((set) => set.has(line)),
+    );
+    expect(universalDiscussionLines).toEqual([]);
     expect(
       compactSlideInstructionLabel(
         "Environmental Justice to the week's work and explain one supporting evidence source",

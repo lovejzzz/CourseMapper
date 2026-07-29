@@ -1,4 +1,4 @@
-import { CURRENT_RELEASE } from './releaseManifest.js';
+import { CURRENT_RELEASE } from './currentRelease.js';
 
 export const LATEST_RELEASE = {
   version: CURRENT_RELEASE.version,

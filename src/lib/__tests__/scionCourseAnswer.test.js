@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { buildScionCourseAnswer, __private__ } from '../scionCourseAnswer';
+import { buildScionCourseHandoffAnswer } from '../scionCourseHandoffAnswer';
 import { buildScionAssignedSourceAnswer } from '../scionAssignedSourceAnswer';
 import { buildScionCourseSequenceAnswer } from '../scionCourseSequenceAnswer';
 import { buildScionNamedReadingAnswer } from '../scionNamedReadingAnswer';
@@ -183,6 +184,100 @@ describe('buildScionCourseAnswer', () => {
         deliverables,
       }),
     ).toBeNull();
+  });
+
+  it('grounds a cross-lesson handoff in both lessons and explicit portfolio components', () => {
+    const result = buildScionCourseHandoffAnswer({
+      question:
+        'How does Lesson 3 cleaning evidence support the honest visual-encoding decision in Lesson 4, and which final portfolio components should show that connection?',
+      courseMap: {
+        courseName: 'Community Data Storytelling',
+        lessons: [
+          { title: 'Lesson 1: Framing the Question', sections: [] },
+          { title: 'Lesson 2: Provenance and Consent', sections: [] },
+          {
+            title: 'Lesson 3: Cleaning Reliability Data',
+            sections: [
+              {
+                learningObjectives:
+                  'Document each missing-value and outlier decision in a cleaning log, then verify the cleaned table against the source ledger.',
+              },
+            ],
+          },
+          {
+            title: 'Lesson 4: Honest Visual Encodings',
+            sections: [
+              {
+                learningObjectives:
+                  'Choose a visual encoding and scale whose claim remains supported by the cleaned data and visible uncertainty.',
+              },
+            ],
+          },
+        ],
+      },
+      deliverables: {
+        assignments: {
+          status: 'done',
+          data: {
+            assignments: [
+              { title: 'Stakeholder framing note', deliverables: ['Stakeholder map'] },
+              { title: 'Provenance review', deliverables: ['Source ledger'] },
+              { title: 'Cleaning checkpoint', deliverables: ['Data-cleaning log'] },
+              {
+                title: 'Final public-transit data story portfolio',
+                deliverables: [
+                  'Source ledger',
+                  'Data-cleaning log',
+                  'Annotated chart set',
+                  'Uncertainty note',
+                  'Accessibility check',
+                  'Revision memo',
+                ],
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    expect(result).toMatchObject({
+      kind: 'course-evidence',
+      lessonNumber: 3,
+      lessonNumbers: [3, 4],
+    });
+    expect(result?.text).toContain('Lesson 3: Cleaning Reliability Data establishes the evidence side');
+    expect(result?.text).toContain('Lesson 4: Honest Visual Encodings carries that evidence');
+    expect(result?.text).toContain('**Data-cleaning log**');
+    expect(result?.text).toContain('**Annotated chart set**');
+    expect(result?.text).not.toMatch(/Final final|Week 3 reflection|community evidence/i);
+    expect(result?.sources).toEqual([
+      'Lesson 3: Cleaning Reliability Data · Course Map',
+      'Lesson 4: Honest Visual Encodings · Course Map',
+    ]);
+  });
+
+  it('does not invent a portfolio component when a cross-lesson package names none', () => {
+    const result = buildScionCourseHandoffAnswer({
+      question: 'How does Lesson 1 source evidence support the decision in Lesson 2, and which component shows it?',
+      courseMap: {
+        lessons: [
+          {
+            title: 'Lesson 1: Source Review',
+            sections: [{ objective: 'Verify one source claim against a locatable passage and record the evidence.' }],
+          },
+          {
+            title: 'Lesson 2: Editorial Decision',
+            sections: [
+              { objective: 'Choose an editorial decision that can be traced to the verified source evidence.' },
+            ],
+          },
+        ],
+      },
+      deliverables: {},
+    });
+
+    expect(result?.text).toContain('does not explicitly name a final-portfolio component');
+    expect(result?.text).not.toContain('revision memo');
   });
 
   it('answers why-and-where questions from the strongest compiled lesson fact', () => {

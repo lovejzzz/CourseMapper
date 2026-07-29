@@ -7476,6 +7476,91 @@ describe('courseBlueprintCompiler', () => {
     });
   });
 
+  it('keeps a data-storytelling studio in the data evidence pipeline instead of literature or UX', () => {
+    const courseMap = {
+      courseName: 'Community Data Storytelling Studio',
+      semester: 'Fall 2026',
+      learningOutcomes:
+        'Build an annotated public-transit data story from a source ledger, cleaning log, honest visual encodings, uncertainty note, and documented revision.',
+      lessons: [
+        {
+          title: 'Lesson 1: Data Provenance and Missing Voices',
+          sections: [
+            {
+              topicSection: 'Dataset provenance, consent, missing voices, source ledger',
+              learningGoals: 'Connect stakeholder stakes to inspectable data provenance.',
+              learningObjectives: 'Document one source-ledger decision and its limitation.',
+              weeklyAssessments: 'Source-ledger checkpoint with a bounded data-story claim.',
+              asyncActivities: 'Audit the public-transit dataset provenance.',
+              syncActivities: 'Compare stakeholder evidence and revise the source ledger.',
+              supportingResources: 'Public-transit dataset; source-ledger template',
+            },
+          ],
+        },
+        {
+          title: 'Lesson 2: Cleaning Public-Transit Reliability Data',
+          sections: [
+            {
+              topicSection: 'Missing values, data cleaning, transformation log',
+              learningGoals: 'Make a cleaning decision readers can verify.',
+              learningObjectives: 'Explain how one transformation changes the data-story claim.',
+              weeklyAssessments: 'Data-cleaning log with before/after evidence and an uncertainty note.',
+              asyncActivities: 'Inspect missing values in the public-transit dataset.',
+              syncActivities: 'Run a cleaning clinic and peer evidence check.',
+              supportingResources: 'Dataset dictionary; cleaning-log template',
+            },
+          ],
+        },
+        {
+          title: 'Lesson 3: Visual Encoding and Narrative Sequence',
+          sections: [
+            {
+              topicSection: 'Visual encoding, chart scale, narrative sequence, uncertainty',
+              learningGoals: 'Build an honest chart sequence for a public audience.',
+              learningObjectives: 'Justify a visual encoding and communicate uncertainty.',
+              weeklyAssessments: 'Annotated chart set with an uncertainty note and revision memo.',
+              asyncActivities: 'Compare two chart scales against the source ledger.',
+              syncActivities: 'Critique the chart sequence and document one portfolio revision.',
+              supportingResources: 'Chart checklist; annotated-chart examples',
+            },
+          ],
+        },
+      ],
+    };
+
+    const blueprint = buildCourseBlueprint(courseMap);
+    const compiled = compileBlueprintDeliverables(blueprint, ['assignments', 'lessonPlans', 'slideDecks']);
+    const serialized = JSON.stringify(compiled);
+
+    expect(blueprint.courseModalityProfile.primaryMode).toBe('data-storytelling-studio');
+    expect(blueprint.lessons.map((lesson) => lesson.artifactGenre.genre)).toEqual(
+      Array(3).fill('data-story-portfolio'),
+    );
+    expect(serialized).toMatch(/dataset provenance|data-cleaning log|visual encoding|data story/i);
+    expect(serialized).not.toMatch(
+      /literature synthesis|literature matrix|cited passage|selected writers|wireframe|assigned UX example/i,
+    );
+    expect(
+      JSON.stringify(
+        compiled.assignments.assignments.map((assignment) => ({
+          assignmentType: assignment.assignmentType,
+          submissionProfile: assignment.submissionProfile,
+        })),
+      ),
+    ).not.toMatch(/model-performance|validation metric|notebook output|model card/i);
+    expect(
+      compiled.slideDecks.decks.every((deck) =>
+        deck.slides.some(
+          (slide) =>
+            slide.type === 'keyTerm' &&
+            slide.visual?.kind === 'concept map' &&
+            Array.isArray(slide.visual?.spokes) &&
+            slide.visual.spokes.length >= 2,
+        ),
+      ),
+    ).toBe(true);
+  });
+
   it('keeps applied machine learning in data-science lab mode despite quizzes and study guides', () => {
     const blueprint = buildCourseBlueprint(makeAppliedMachineLearningCourseMap());
     const compiled = compileBlueprintDeliverables(blueprint, [
