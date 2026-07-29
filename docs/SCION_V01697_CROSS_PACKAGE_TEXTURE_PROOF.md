@@ -123,6 +123,13 @@ Storytelling workspace, listed all six requested weeks in order, and cited the
 Syllabus weekly schedule and Course Map rather than inventing a parallel
 sequence.
 
+The exact release bundle was also rebuilt under Linux-compatible Node 22
+compression after CI exposed a 0.1 KiB shell overage hidden by the release
+machine's newer zlib. Research/genome status wording now shares the existing
+workspace-presentation cache leaf. The Node 22 result is 281.1 KiB raw /
+84.8 KiB gzip for AppFlow and 1.4 / 0.7 KiB for the already-requested
+presentation leaf, so the 85 KiB hot-shell ratchet remains unchanged.
+
 The panel found and repaired real defects that the proposed texture plan alone
 would not have caught:
 

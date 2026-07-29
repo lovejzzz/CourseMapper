@@ -72,7 +72,7 @@ import { resolveRequestedClassSessionMinutes } from './lib/sourceBriefConstraint
 import { selectGeneratedCourseMapForFinalizer } from './lib/generatedCourseMapHandoff';
 import { prepareMaterializedPackageScope, remapLessonFilterToMaterializedScope } from './lib/materializedLessonScope';
 import { removeProjectIndexedDbAutosave } from './lib/projectIndexedDbAutosave';
-import { getWorkspaceSavePresentation } from './lib/workspaceSaveStatus';
+import { buildKnowledgeBackboneLabel, getWorkspaceSavePresentation } from './lib/workspaceSaveStatus';
 // HelpDrawer removed — merged into ChatPanel
 import { requestNotificationPermission } from './lib/notifyDone';
 import { parseFiles } from './lib/fileParser';
@@ -132,56 +132,6 @@ import { knowledgeCoverage } from './lib/knowledge';
 import { normalizePipelineStateWithSourceBackedJudgment } from './lib/sourceBackedJudgment';
 
 const PACKAGE_READY_MESSAGE = 'All required files passed export checks and the package is ready to download.';
-
-function formatOriginCounts(counts = {}) {
-  return Object.entries(counts || {})
-    .filter(([, count]) => Number(count) > 0)
-    .map(([origin, count]) => `${origin}: ${count}`)
-    .join(', ');
-}
-
-function pluralizeCount(count, singular, plural = `${singular}s`) {
-  return `${count} ${count === 1 ? singular : plural}`;
-}
-
-function buildKnowledgeBackboneLabel(coverage, sourceLedgerSummary = null) {
-  if (!coverage || Number(coverage.openResources || 0) <= 0) return null;
-  const sessionCount = Number(coverage.sessions) || 0;
-  const genomeLinkedLessons = Number(coverage.genomeLinkedLessons) || 0;
-  const researchedLessons = Number(coverage.researchedLessons) || 0;
-  const researchedResourceCount = Number(coverage.resourcesByOrigin?.['algi-research']) || 0;
-  const openResources = Number(coverage.openResources) || 0;
-  const sessionsWithResources = Number(coverage.sessionsWithResources) || 0;
-  const displayedSessionsWithResources =
-    sessionCount > 0 && sessionsWithResources > sessionCount ? sessionCount : Math.max(0, sessionsWithResources);
-  // A legacy/repaired graph can carry the researched Resource rows before its
-  // derived coverage receipt has rebuilt `researchedLessons`. When that
-  // happens, the graph's explicit Algi origin plus per-session resource
-  // coverage is the authoritative evidence; do not mislabel it as genome-only.
-  const displayedResearchedLessons =
-    researchedLessons > 0
-      ? researchedLessons
-      : researchedResourceCount > 0
-        ? Math.min(sessionCount, displayedSessionsWithResources)
-        : 0;
-  const trustedSourceRows = Number(sourceLedgerSummary?.trustedConceptLinkedCount) || 0;
-  const originText = formatOriginCounts(coverage.resourcesByOrigin);
-  const parts = [
-    displayedResearchedLessons > 0
-      ? `${displayedResearchedLessons}/${sessionCount} lessons source-researched`
-      : `${genomeLinkedLessons}/${sessionCount} lessons genome-linked`,
-  ];
-  if (trustedSourceRows > 0) {
-    parts.push(pluralizeCount(trustedSourceRows, 'trusted source-ledger row'));
-    if (openResources !== trustedSourceRows) {
-      parts.push(`${pluralizeCount(openResources, 'graph reading resource')}${originText ? ` (${originText})` : ''}`);
-    }
-  } else {
-    parts.push(`${pluralizeCount(openResources, 'cited open resource')}${originText ? ` (${originText})` : ''}`);
-  }
-  parts.push(`${displayedSessionsWithResources}/${sessionCount} lessons with readings`);
-  return parts.join(' · ');
-}
 
 function summarizeReceiptIssue(issue) {
   if (!issue) return null;

@@ -158,9 +158,11 @@ const lazyChunkBudgets = [
   // persistence owner. The workspace-only chunk measures 281.3/84.7 locally
   // and 281.3/84.9 on CI's Node 22 zlib; grant 0.5/0.2 KiB for the feature and
   // platform variance without moving any dependency onto landing.
-  // V0.16.97's two compiler-only cache leaves add only their dynamic-import
-  // dependency metadata to AppFlow. The measured shell moves by 0.2 KiB raw
-  // while gzip and landing stay flat; content bytes remain outside this chunk.
+  // V0.16.97's compiler-only cache leaves add only their dynamic-import
+  // dependency metadata to AppFlow. The workspace knowledge-backbone label
+  // now shares the existing workspaceSaveStatus presentation leaf: this keeps
+  // the Linux/Node 22 shell below the unchanged 85 KiB ceiling instead of
+  // treating compressor variance as permission to raise the hot-path ratchet.
   { prefix: 'AppFlow-', rawKiB: 282, gzipKiB: 85 },
   // v0.16.47: the Living Course Compiler component and pure selector gained
   // an independently cacheable route boundary instead of raising AppFlow's
@@ -183,9 +185,11 @@ const lazyChunkBudgets = [
   // existing request measures 8.5/3.3 while the combined AppFlow + ribbon +
   // continuity ceilings fall by 1.25 KiB raw and 0.7 KiB gzip.
   { prefix: 'courseMapContinuation-', rawKiB: 8.75, gzipKiB: 3.5 },
-  // Anonymous-save presentation is route-only state. It stays isolated so
-  // quota fallback wording cannot grow the AppFlow control chunk.
-  { prefix: 'workspaceSaveStatus-', rawKiB: 1, gzipKiB: 1 },
+  // Workspace status prose is route-only presentation. Save fallback wording
+  // and the research/genome coverage label share this already-loaded cache
+  // leaf, reducing AppFlow without adding another request. V0.16.97 measures
+  // 1.4/0.7 KiB on Linux/Node 22; the aggregate route bytes do not increase.
+  { prefix: 'workspaceSaveStatus-', rawKiB: 2, gzipKiB: 1 },
   // Completion notifications and registry-scale grouping are pure,
   // independently cacheable workspace leaves.
   { prefix: 'workspaceNotification-', rawKiB: 2, gzipKiB: 1 },

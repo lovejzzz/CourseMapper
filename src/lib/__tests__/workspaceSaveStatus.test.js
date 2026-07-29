@@ -1,5 +1,29 @@
 import { describe, expect, it } from 'vitest';
-import { getWorkspaceSavePresentation } from '../workspaceSaveStatus';
+import { buildKnowledgeBackboneLabel, getWorkspaceSavePresentation } from '../workspaceSaveStatus';
+
+describe('buildKnowledgeBackboneLabel', () => {
+  it('uses explicit research provenance while a recovered coverage receipt catches up', () => {
+    expect(
+      buildKnowledgeBackboneLabel(
+        {
+          sessions: 4,
+          genomeLinkedLessons: 0,
+          researchedLessons: 0,
+          openResources: 5,
+          sessionsWithResources: 6,
+          resourcesByOrigin: { 'algi-research': 5 },
+        },
+        { trustedConceptLinkedCount: 3 },
+      ),
+    ).toBe(
+      '4/4 lessons source-researched · 3 trusted source-ledger rows · 5 graph reading resources (algi-research: 5) · 4/4 lessons with readings',
+    );
+  });
+
+  it('returns no label when the workspace has no open resources', () => {
+    expect(buildKnowledgeBackboneLabel({ sessions: 4, openResources: 0 })).toBeNull();
+  });
+});
 
 describe('getWorkspaceSavePresentation', () => {
   it('keeps an in-flight quota fallback calm while generation continues', () => {
