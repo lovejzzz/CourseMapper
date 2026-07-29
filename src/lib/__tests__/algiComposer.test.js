@@ -31,6 +31,7 @@ import {
   integrativeKernels,
   isIntegrativeLesson,
   kernelTopicOverlapScore,
+  needsAuthoritativeSourceResearch,
 } from '../algiKernelComposer.js';
 import { parseLessonKernelResponse } from '../blueprintEnrichmentPass.js';
 
@@ -575,6 +576,11 @@ describe('Algi V0 source sentence compaction', () => {
     ).toBe('In quantum information theory, a quantum circuit represents a sequence of gates and measurements.');
     expect(fitSourceFact('The toric code, and surface codes more generally.')).toBe('');
     expect(fitSourceFact('-qubit Hilbert space can be approximated by a sequence of universal gates.')).toBe('');
+    expect(
+      fitSourceFact(
+        'With these simple steps, you can get an idea whether or not accessibility is addressed in even the most basic way.',
+      ),
+    ).not.toBe('With these simple steps, you can get an idea whether.');
   });
 });
 
@@ -996,6 +1002,41 @@ describe('Algi V0 source receipts', () => {
       'Accessible forms',
       'Evidence-based accessibility testing and remediation',
     ]);
+  });
+
+  it('requires evaluation-specific evidence for accessibility testing and remediation', () => {
+    const lesson = {
+      lessonId: 'lesson-4',
+      title: 'Evidence-based accessibility testing and remediation',
+    };
+    const payloadWithWcagBackground = {
+      conceptProvenance: {
+        citations: [
+          {
+            displayTitle: 'Web Content Accessibility Guidelines (WCAG) 2.2 §Introduction',
+            sourceUrl: 'https://www.w3.org/TR/WCAG22/',
+            evidence: 'WCAG provides a shared standard for accessible web content.',
+          },
+        ],
+      },
+    };
+    const payloadWithEvaluationMethod = {
+      conceptProvenance: {
+        citations: [
+          {
+            displayTitle: 'WCAG-EM overview',
+            sourceUrl: 'https://www.w3.org/WAI/test-evaluate/conformance/wcag-em/',
+            evidence: 'WCAG-EM defines a methodology for evaluating conformance.',
+          },
+        ],
+      },
+    };
+
+    expect(needsAuthoritativeSourceResearch(lesson, payloadWithWcagBackground)).toBe(true);
+    expect(needsAuthoritativeSourceResearch(lesson, payloadWithEvaluationMethod)).toBe(false);
+    expect(
+      needsAuthoritativeSourceResearch({ title: 'WCAG principles and conformance' }, payloadWithWcagBackground),
+    ).toBe(false);
   });
 
   it('derives a lesson phrase only when the exact phrase is anchored in a retained source claim', () => {

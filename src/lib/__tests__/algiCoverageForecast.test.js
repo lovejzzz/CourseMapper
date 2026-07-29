@@ -97,4 +97,32 @@ describe('Algi pre-generation coverage forecast', () => {
       resetAlgiGenomeCacheForTests();
     }
   });
+
+  it('does not call general WCAG background sufficient for accessibility evaluation and remediation', async () => {
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = async (input) => {
+      const relative = String(input)
+        .replace(/^https?:\/\/[^/]+/, '')
+        .replace(/^\//, '');
+      return new Response(readFileSync(join(process.cwd(), 'public', relative), 'utf8'), { status: 200 });
+    };
+    resetAlgiGenomeCacheForTests();
+    try {
+      const forecast = await forecastAlgiCoverage({
+        source:
+          'Digital Accessibility for Product Teams, exactly four lessons: WCAG principles and conformance; semantic HTML and keyboard accessibility; accessible forms; evidence-based accessibility testing and remediation.',
+        researchEnabled: false,
+      });
+
+      expect(forecast.lessons.at(-1)).toMatchObject({
+        title: 'evidence-based accessibility testing and remediation',
+        status: 'source-gap',
+        route: 'unsupported-private',
+      });
+      expect(forecast.externalNeeded).toBe(4);
+    } finally {
+      globalThis.fetch = originalFetch;
+      resetAlgiGenomeCacheForTests();
+    }
+  });
 });

@@ -100,6 +100,64 @@ describe('buildScionCourseAnswer', () => {
     expect(result?.text).toContain('do not by themselves prove');
   });
 
+  it('answers from every exact evidence receipt before the graph reading cap', () => {
+    const result = buildScionAssignedSourceAnswer({
+      question:
+        "Which official sources support Lesson 4's accessibility testing method, and what do they say about the limits of preliminary checks?",
+      courseMap: {
+        courseName: 'Digital Accessibility for Product Teams',
+        lessons: [
+          { title: 'Lesson 1: WCAG principles', sections: [] },
+          { title: 'Lesson 2: semantic HTML', sections: [] },
+          { title: 'Lesson 3: accessible forms', sections: [] },
+          { title: 'Lesson 4: evidence-based accessibility testing and remediation', sections: [] },
+        ],
+      },
+      courseGraph: {
+        enrichmentOverlay: {
+          lessonContent: {
+            'lesson-4': {
+              conceptProvenance: {
+                source: 'algi-researched',
+                citations: [
+                  {
+                    displayTitle: 'Evaluating web accessibility',
+                    sourceUrl: 'https://www.w3.org/WAI/test-evaluate/',
+                  },
+                  {
+                    displayTitle: 'Easy Checks',
+                    sourceUrl: 'https://www.w3.org/WAI/test-evaluate/preliminary/',
+                  },
+                  {
+                    displayTitle: 'WCAG-EM overview',
+                    sourceUrl: 'https://www.w3.org/WAI/test-evaluate/conformance/wcag-em/',
+                  },
+                ],
+              },
+            },
+          },
+        },
+        resources: [
+          {
+            id: 'reading-l4-1',
+            sourceRefId: 'wai-evaluate',
+            title: 'Evaluating web accessibility',
+            url: 'https://www.w3.org/WAI/test-evaluate/',
+            provider: 'w3c-wai',
+            sessionRefs: ['s4'],
+          },
+        ],
+      },
+    });
+
+    expect(result?.text).toContain('**Evaluating web accessibility**');
+    expect(result?.text).toContain('**Easy Checks**');
+    expect(result?.text).toContain('**WCAG-EM overview**');
+    expect(result?.text).toContain('does not establish comprehensive accessibility or conformance');
+    expect(result?.text).toContain('knowledgeable human judgment');
+    expect(result?.sources).toHaveLength(3);
+  });
+
   it('falls through for edits and unsupported synthesis questions', () => {
     expect(
       buildScionCourseAnswer({

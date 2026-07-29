@@ -2570,4 +2570,90 @@ describe('trusted source ledger', () => {
       providers: ['doaj', 'wikipedia'],
     });
   });
+
+  it('retains every lesson evidence receipt even when classroom resources are capped', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'Digital Accessibility for Product Teams' },
+        sessions: [
+          {
+            id: 's1',
+            number: 1,
+            title: 'Evidence-based accessibility testing and remediation',
+            sections: [{ topic: 'Accessibility evaluation', conceptRefs: ['c1'], resourceRefs: ['kr1', 'kr2'] }],
+          },
+        ],
+        concepts: [{ id: 'c1', term: 'Accessibility evaluation' }],
+        enrichmentOverlay: {
+          lessonContent: {
+            'lesson-1': {
+              conceptProvenance: {
+                source: 'algi-researched',
+                citations: [
+                  {
+                    displayTitle: 'Evaluating web accessibility',
+                    sourceUrl: 'https://www.w3.org/WAI/test-evaluate/',
+                    provider: 'w3c-wai',
+                    kind: 'official accessibility standard and tutorial',
+                    license: 'W3C permissive license',
+                    attribution: 'W3C Web Accessibility Initiative',
+                    evidence: 'Evaluation combines appropriate tools with knowledgeable human review.',
+                  },
+                  {
+                    displayTitle: 'Easy Checks',
+                    sourceUrl: 'https://www.w3.org/WAI/test-evaluate/preliminary/',
+                    provider: 'w3c-wai',
+                    kind: 'official accessibility standard and tutorial',
+                    license: 'W3C permissive license',
+                    attribution: 'W3C Web Accessibility Initiative',
+                    evidence: 'More robust assessment is needed to evaluate accessibility comprehensively.',
+                  },
+                  {
+                    displayTitle: 'WCAG-EM overview',
+                    sourceUrl: 'https://www.w3.org/WAI/test-evaluate/conformance/wcag-em/',
+                    provider: 'w3c-wai',
+                    kind: 'official accessibility standard and tutorial',
+                    license: 'W3C permissive license',
+                    attribution: 'W3C Web Accessibility Initiative',
+                    evidence: 'WCAG-EM provides an approach for evaluating how websites conform to WCAG.',
+                  },
+                ],
+              },
+            },
+          },
+        },
+        resources: [
+          {
+            id: 'kr1',
+            provider: 'w3c-wai',
+            title: 'Evaluating web accessibility',
+            url: 'https://www.w3.org/WAI/test-evaluate/',
+            license: 'W3C permissive license',
+            sessionRefs: ['s1'],
+            conceptLinks: [{ id: 'c1', label: 'Accessibility evaluation' }],
+          },
+          {
+            id: 'kr2',
+            provider: 'w3c-wai',
+            title: 'Easy Checks',
+            url: 'https://www.w3.org/WAI/test-evaluate/preliminary/',
+            license: 'W3C permissive license',
+            sessionRefs: ['s1'],
+            conceptLinks: [{ id: 'c1', label: 'Accessibility evaluation' }],
+          },
+        ],
+      },
+      { checkedAt: '2026-07-29T00:00:00.000Z' },
+    );
+
+    expect(ledger.rows.map((row) => row.title)).toEqual([
+      'Evaluating web accessibility',
+      'Easy Checks',
+      'WCAG-EM overview',
+    ]);
+    expect(ledger.rows.every((row) => row.sessionRefs.includes('s1'))).toBe(true);
+    expect(buildSourceReportMarkdown({ sourceLedger: ledger })).toContain(
+      'https://www.w3.org/WAI/test-evaluate/conformance/wcag-em/',
+    );
+  });
 });

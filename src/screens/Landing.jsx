@@ -9,6 +9,7 @@ import AppLogo from '../components/AppLogo';
 import SetupProgress from '../components/SetupProgress';
 import { LATEST_RELEASE } from '../lib/latestRelease';
 import { formatCoverageTopicLabel } from '../lib/algiCoverageForecast';
+import { shouldOfferCurrentSourceResearch } from '../lib/scionEvidenceForecastAction';
 import { PUBLIC_SCION_MODEL_NAME, PUBLIC_SCION_PROVIDER_ID } from '../lib/publicScionIdentity';
 import {
   SCION_RESEARCH_CHANGE_EVENT,
@@ -525,13 +526,11 @@ export default function Landing({
     Boolean(onQuickStart) &&
     promptText.trim().length > 0 &&
     (providerIsKeyless ? apiStatus === 'connected' : Boolean(apiKey?.trim()));
-  const quickStartNeedsCurrentSources = Boolean(
-    scionSelected &&
-    scionDeviceCapability.evidenceCompiler &&
-    scionCoverageForecast?.status === 'ready' &&
-    scionCoverageForecast.externalNeeded > 0 &&
-    !scionResearchEnabled,
-  );
+  const quickStartNeedsCurrentSources = shouldOfferCurrentSourceResearch({
+    scionSelected,
+    researchEnabled: scionResearchEnabled,
+    forecast: scionCoverageForecast,
+  });
   const handleQuickStartClick = useCallback(() => {
     if (quickStartNeedsCurrentSources) {
       // The button names this network boundary before the click. Persist the
@@ -927,12 +926,10 @@ export default function Landing({
                           : scionResearchEnabled
                             ? `Scion will check ${formatResearchProviderOrder(
                                 scionCoverageForecast.researchPlan?.providerOrder,
-                              )}, verify admitted claims against source passages, and cache compact evidence on this device.`
-                            : scionDeviceCapability.evidenceCompiler
-                              ? `Choose “Use current sources & generate” to send only the course title and ${scionCoverageForecast.externalNeeded} uncovered lesson topic${scionCoverageForecast.externalNeeded === 1 ? '' : 's'} to ${formatResearchProviderOrder(
-                                  scionCoverageForecast.researchPlan?.providerOrder,
-                                )}. Scion verifies admitted claims and saves compact evidence on this device.`
-                              : 'Scion will stay on device and use the local model for unsupported lessons rather than sending course topics to a research service.'}
+                              )}, verify admitted claims against source passages, cache compact evidence on this device, and keep course authoring local.`
+                            : `Choose “Use current sources & generate” to send only the course title and ${scionCoverageForecast.externalNeeded} uncovered lesson topic${scionCoverageForecast.externalNeeded === 1 ? '' : 's'} to ${formatResearchProviderOrder(
+                                scionCoverageForecast.researchPlan?.providerOrder,
+                              )}. Scion verifies source passages, saves compact evidence on this device, and gives that evidence to the local course writer.`}
                         {files.length > 0
                           ? ' Attached files are evaluated during the build and may close additional gaps.'
                           : ''}

@@ -161,6 +161,8 @@ test.describe('Landing Page', () => {
     await expect(page.getByText('AI Configuration')).toHaveCount(0);
     await page.getByRole('button', { name: 'Edit' }).click();
     await expect(page.getByText('AI Configuration')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByTestId('scion-model-boundary')).toContainText('It is fully free—and always will be.');
+    await expect(page.getByText(/It combines source-grounded evidence/)).toHaveCount(0);
   });
 
   test('provider picker offers public Scion and cloud providers', async ({ page }) => {

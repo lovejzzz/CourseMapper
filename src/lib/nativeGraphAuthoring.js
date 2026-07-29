@@ -316,9 +316,17 @@ export function mergeNativePartialOverlays(lessonContent = {}, partialOverlays =
   const mergedLessonIds = [];
   for (const [lessonId, partial] of Object.entries(partialOverlays || {})) {
     const modelPayload = lessonContent?.[lessonId];
+    const currentSource = cleanText(
+      modelPayload?.conceptProvenance?.source || modelPayload?.enrichmentSource,
+      80,
+    ).toLowerCase();
+    const ownsCurrentEvidence =
+      ['algi-researched', 'scion-source-researched', 'scion-source-library'].includes(currentSource) ||
+      hasExactSourceLedgerProvenance(modelPayload);
     if (
       !modelPayload ||
       modelPayload === partial ||
+      ownsCurrentEvidence ||
       ['genome-linked', 'genome-augmented'].includes(modelPayload.enrichmentSource)
     ) {
       continue;
@@ -389,8 +397,9 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
     .map((fact) => cleanTextAtBoundary(fact, 220))
     .filter(Boolean);
   const researchCitations = asArray(payload?.conceptProvenance?.citations);
+  const researchOrigin = cleanText(payload?.enrichmentSource, 80);
   const sourceBoundResearch =
-    cleanText(payload?.enrichmentSource, 80) === 'algi-researched' &&
+    ['algi-researched', 'scion-source-researched'].includes(researchOrigin) &&
     researchCitations.length > 0 &&
     researchCitations.every(
       (citation) =>

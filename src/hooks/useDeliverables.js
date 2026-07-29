@@ -1260,6 +1260,10 @@ export default function useDeliverables({
           }
         }
         const bindScionEvidenceProvenance = scionEvidenceHandoff?.bindProvenance || ((_lessonId, payload) => payload);
+        const selectScionEvidenceCandidate =
+          scionEvidenceHandoff?.selectCandidate ||
+          ((_lessonId, previous, candidate, fallbackPick) => fallbackPick(previous, candidate));
+        const scionEvidenceContentSourceOverrides = new Set(scionEvidenceHandoff?.contentSourceOverrideLessonIds || []);
         const scionEvidencePromptOptions = scionEvidenceHandoff?.promptOptions || {};
 
         const genomeOnlyEnrichment = () => {
@@ -1412,6 +1416,14 @@ export default function useDeliverables({
               selectNativeContentSources(allLessonIndices, lessonContent, partialOverlays),
             );
             const scionProvider = provider === 'local' || provider === PUBLIC_SCION_PROVIDER_ID;
+            if (scionProvider) {
+              // A newly admitted Scion evidence ledger is the lesson's current
+              // trust boundary. Re-project it through the exact compiler even
+              // when an older genome payload is already usable; otherwise the
+              // content-source optimization silently wins and leaves current
+              // citations attached to yesterday's instructional facts.
+              for (const lessonId of scionEvidenceContentSourceOverrides) contentSourcedSet.delete(lessonId);
+            }
             const { subjectLessonIndices, cumulativeAssessmentLessonIndices } = partitionCumulativeAssessmentLessons(
               blueprintCourseMap.lessons,
               allLessonIndices,
@@ -1572,10 +1584,13 @@ export default function useDeliverables({
                 });
               }
               for (const [lessonId, payload] of Object.entries(parsed.kernels)) {
-                lessonContent[lessonId] = bindScionEvidenceProvenance(
+                const selectedPayload = selectScionEvidenceCandidate(
                   lessonId,
-                  pickNativeKernel(lessonContent[lessonId], payload),
+                  lessonContent[lessonId],
+                  payload,
+                  pickNativeKernel,
                 );
+                lessonContent[lessonId] = bindScionEvidenceProvenance(lessonId, selectedPayload);
                 if (lessonKernelCache && kernelIsUsable(lessonContent[lessonId])) {
                   const lessonIdx = Number(String(lessonId).replace('lesson-', '')) - 1;
                   const lesson = blueprintCourseMap.lessons?.[lessonIdx];

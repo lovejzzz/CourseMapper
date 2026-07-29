@@ -14,14 +14,13 @@
  * See docs/CURRICULUMOS_V1_DESIGN.md §10 Phase A.
  */
 
-// v10 deliberately ignores v1-v9 entries. v8 moved source-page noise rejection
-// ahead of definition selection and elects real open sources as classroom
-// evidence cues; v9 applies the live W3C fragment filters to whole-lesson
-// payloads as well; v10 rejects authoritative but instructionally weak
-// navigation, alternate-version, and obsolete markup-aside fragments. Replaying
-// an older payload would bypass those fixes before research even runs.
-export const LESSON_KERNEL_CACHE_KEY = 'coursemapper-lesson-kernels-v10';
-export const LESSON_KERNEL_CONTRACT_VERSION = 'scion-kernel-v10';
+// v11 deliberately ignores v1-v10 entries. The evidence-first compiler now
+// rejects dangling source clauses, routes WAI pages by exact lesson family,
+// and keeps the admitted source ledger authoritative through native assembly.
+// Replaying an older lesson payload would bypass those fixes before research
+// and could restore stale facts or receipts after a successful source pass.
+export const LESSON_KERNEL_CACHE_KEY = 'coursemapper-lesson-kernels-v11';
+export const LESSON_KERNEL_CONTRACT_VERSION = 'scion-kernel-v11';
 const LEGACY_LESSON_KERNEL_CACHE_KEYS = [
   'coursemapper-lesson-kernels-v4',
   'coursemapper-lesson-kernels-v5',
@@ -29,6 +28,7 @@ const LEGACY_LESSON_KERNEL_CACHE_KEYS = [
   'coursemapper-lesson-kernels-v7',
   'coursemapper-lesson-kernels-v8',
   'coursemapper-lesson-kernels-v9',
+  'coursemapper-lesson-kernels-v10',
 ];
 const MAX_ENTRIES = 400;
 const WEAK_CACHE_WORDS = new Set([

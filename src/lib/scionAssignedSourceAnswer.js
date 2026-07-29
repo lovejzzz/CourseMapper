@@ -198,6 +198,18 @@ function assignedLessonSourcesFromCourseGraph(courseGraph, target) {
     .filter(({ title, url }) => title && /^https?:\/\//i.test(url));
 }
 
+function assignedLessonSourcesFromEvidenceOverlay(courseGraph, target) {
+  const lessonId = `lesson-${target.index + 1}`;
+  const payload = courseGraph?.enrichmentOverlay?.lessonContent?.[lessonId];
+  const citations = Array.isArray(payload?.conceptProvenance?.citations) ? payload.conceptProvenance.citations : [];
+  return citations
+    .map((citation) => ({
+      title: cleanText(citation?.displayTitle || citation?.title || citation?.key),
+      url: cleanText(citation?.sourceUrl || citation?.url),
+    }))
+    .filter(({ title, url }) => title && /^https?:\/\//i.test(url));
+}
+
 function mergeAssignedLessonSources(...sourceGroups) {
   const seenTitles = new Set();
   const seenUrls = new Set();
@@ -212,6 +224,15 @@ function mergeAssignedLessonSources(...sourceGroups) {
 }
 
 function sourceUseBoundary(title = '', lessonTitle = '') {
+  if (/\beasy checks?\b|\bpreliminary checks?\b/i.test(title)) {
+    return 'Use it for a first review of basic accessibility barriers; it explicitly does not establish comprehensive accessibility or conformance.';
+  }
+  if (/\bwcag[-\s]?em\b|\bevaluation methodology\b/i.test(title)) {
+    return 'Use it for a structured conformance-evaluation method, including defining scope and applying WCAG-EM steps rather than treating a quick check as complete proof.';
+  }
+  if (/\bevaluating web accessibility\b/i.test(title)) {
+    return 'Use it for choosing evaluation approaches and for the boundary that tools assist evaluation but do not replace knowledgeable human judgment.';
+  }
   if (/\blabels?\b/i.test(title)) {
     return 'Use it for claims about label purpose and the association between a label and its form control.';
   }
@@ -240,9 +261,12 @@ export function buildScionAssignedSourceAnswer({ question, courseMap, courseGrap
   if (!isScionAssignedSourceQuestion(question)) return null;
   const target = sourceQuestionLesson(question, courseMap);
   if (!target) return null;
+  const evidenceSources = assignedLessonSourcesFromEvidenceOverlay(courseGraph, target);
   const canonicalSources = assignedLessonSourcesFromCourseGraph(courseGraph, target);
   const sources = mergeAssignedLessonSources(
-    canonicalSources.length > 0 ? canonicalSources : assignedLessonSources(target.lesson),
+    evidenceSources,
+    canonicalSources,
+    evidenceSources.length === 0 && canonicalSources.length === 0 ? assignedLessonSources(target.lesson) : [],
   );
   if (sources.length === 0) return null;
   const selected = sources.slice(0, 5);

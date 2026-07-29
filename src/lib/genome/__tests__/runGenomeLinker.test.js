@@ -569,6 +569,7 @@ describe('lessonKernelCache', () => {
     storage.setItem('coursemapper-lesson-kernels-v6', JSON.stringify({ stale: { payload: 'legacy' } }));
     storage.setItem('coursemapper-lesson-kernels-v7', JSON.stringify({ stale: { payload: 'legacy' } }));
     storage.setItem('coursemapper-lesson-kernels-v8', JSON.stringify({ stale: { payload: 'legacy' } }));
+    storage.setItem('coursemapper-lesson-kernels-v10', JSON.stringify({ stale: { payload: 'legacy' } }));
 
     createLessonKernelCache({ storage });
 
@@ -577,6 +578,7 @@ describe('lessonKernelCache', () => {
     expect(storage.getItem('coursemapper-lesson-kernels-v6')).toBeNull();
     expect(storage.getItem('coursemapper-lesson-kernels-v7')).toBeNull();
     expect(storage.getItem('coursemapper-lesson-kernels-v8')).toBeNull();
+    expect(storage.getItem('coursemapper-lesson-kernels-v10')).toBeNull();
   });
 
   it('does not cache generic Week N lessons that can collide across courses', () => {

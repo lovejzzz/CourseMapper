@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — cross-checked, exportable, and fully editable. Then use the AI agent to inspect and revise the generated workspace through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.95
+**Current release:** v0.16.96
 
 ---
 
@@ -32,7 +32,7 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site presents **Provider: Scion**, a disabled API control because no key is needed, and one product model: **Scion V0.16.95**. That label names EduTool's complete course-building system; it is not a claim that EduTool trained or hosts a new foundation model. Scion pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its identity and metadata, and runs it through the packaged WebGPU runtime only when the task needs neural authoring. Before that boundary, Scion can preserve an exact instructor-provided lesson sequence and prepare compact source-anchored evidence from uploaded material, the shipped Curriculum Genome, the local research cache, and—only after opt-in—current public sources. A complete explicit structure plus exact source ledger now reaches the shared compiler without importing or activating the model runtime; incomplete or ambiguous contracts retain the browser-local Gemma fallback.
+The hosted site presents **Provider: Scion**, a disabled API control because no key is needed, and one product model: **Scion V0.16.96**. Scion is fully free—and always will be. That label names EduTool's complete course-building system; it is not a claim that EduTool trained or hosts a new foundation model. Scion pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its identity and metadata, and runs it through the packaged WebGPU runtime only when the task needs neural authoring. Before that boundary, Scion can preserve an exact instructor-provided lesson sequence and prepare compact source-anchored evidence from uploaded material, the shipped Curriculum Genome, the local research cache, and—only after opt-in—current public sources. A complete explicit structure plus exact source ledger now reaches the shared compiler without importing or activating the model runtime; incomplete or ambiguous contracts retain the browser-local Gemma fallback.
 
 In plain language, **Scion Vx is the whole local authoring system, not just the base model**:
 
@@ -61,7 +61,25 @@ V0.16.91 gives each admitted lesson one canonical evidence brief and reuses that
 
 The historical research architecture and limitations remain documented in [docs/ALGI_RESEARCH_FIRST_ARCHITECTURE.md](docs/ALGI_RESEARCH_FIRST_ARCHITECTURE.md) and [docs/ALGI_V0_PIPELINE_ASSESSMENT.md](docs/ALGI_V0_PIPELINE_ASSESSMENT.md).
 
-### V0.16.95 current release — the Agent reads the evidence that ships
+### V0.16.96 current release — evidence need, not device class
+
+Scion previously offered **Use current sources & generate** only when the device was routed to its zero-download deterministic lane. A WebGPU-capable device could have the same unsupported lessons, yet the setup sent those lessons directly to the local Gemma writer without offering the source path. That made hardware capability an accidental evidence-policy decision.
+
+V0.16.96 makes the coverage forecast authoritative. Whenever Scion finds unsupported lessons and research is still off, it offers the same explicit opt-in source action on every device. The copy names the providers and explains that only the course title and uncovered lesson topics leave the device; verified passages are cached locally and supplied to the browser-local writer. Private mode remains available, and device capability still chooses whether the authoring step uses Gemma or the exact-source compiler.
+
+The expanded Scion card now leads with the durable product promise—**Scion is fully free, and always will be**—instead of describing the underlying Gemma/compiler composition in the primary setup journey. The technical boundary remains documented here for users who want it.
+
+The evidence itself now keeps its identity through the full pipeline. Provider, topic, source tier, concept links, revision metadata, source kind, and support receipts survive normalization. A researched ledger can displace an older genome kernel only when the candidate copies its admitted facts exactly; stale partial overlays cannot overwrite current research. The official W3C/WAI catalog routes WCAG, structure, forms, and evaluation sources by lesson family, tolerates an individual page fetch failure, and requires actual evaluation-method evidence when a lesson promises audit, testing, or remediation.
+
+The Agent, `PACKAGE_MANIFEST.json`, and `SOURCE_REPORT.md` now read the complete exact evidence overlay before any compact classroom-resource projection. In the release acceptance course, all three Lesson 4 receipts—Evaluating web accessibility, Easy Checks, and WCAG-EM—remain available with distinct use boundaries. Package-review notes retain exact grader findings and affected evidence instead of reducing them to a generic warning. Research cache V17 and lesson-kernel contract V11 prevent older, weaker evidence projections from silently returning.
+
+One deterministic language defect found in real output is fixed for every compatible provider: evidence, feedback, and instructor routines now use a valid imperative-first form such as “Trace whose evidence is represented during Urban biodiversity surveys,” instead of the malformed “During Urban biodiversity surveys trace…”. Unfinished-sounding “draft” labels found in generated instructional surfaces were replaced with submission/current-work language.
+
+The exact browser acceptance completed the four-lesson Digital Accessibility course in 4 seconds on the warm exact-source route with 4/4 knowledge kernels, 9/9 material families, 69/100 Automated Readiness, 99/A package conformance, texture 96, zero encoded findings, one ZIP action, and no inspected application-console errors or warnings. The 689,702-byte physical ZIP and every nested Office container passed integrity; its exported ledger retained 14 source receipts and complete source-reference coverage. These are automated route and artifact results—not factual, accessibility, teaching, or classroom certification.
+
+This release improves Scion's research trigger, source adequacy, fact/citation continuity, Agent and export evidence, compiler language, and review-action clarity. It does **not** change Gemma weights, activate the optional adapter, or prove instructor approval, classroom outcomes, factual certification, accessibility certification, or superiority over a paid model. The implementation and release boundary are documented in [docs/SCION_V01696_EVIDENCE_FIRST_END_TO_END.md](docs/SCION_V01696_EVIDENCE_FIRST_END_TO_END.md).
+
+### V0.16.95 historical release — the Agent reads the evidence that ships
 
 The required V0.16.94 production replay passed the original failure boundary: the exact Digital Accessibility project resumed, a real Course Map title edit made all nine material families stale, **Sync all** completed without a false red save frame, the Agent suggestion became terminal, deterministic checks returned green, and ZIP export stayed available. A fresh source question then exposed a different defect. Before Smart Sync, Scion could name the official W3C sources; after Smart Sync, the same question failed twice with **“I couldn’t finish that request.”**
 
@@ -313,7 +331,7 @@ Gemma weights remain unchanged, and the research adapter remains inactive becaus
 
 ### Recent release history
 
-The sections below are historical release evidence. Their versions, timings, test counts, and measured packages describe the named release and are intentionally preserved; the V0.16.95 release section above is the current authority. Historical 99/A statements refer to the deterministic conformance grader used by those releases, not to the new Automated Readiness construct.
+The sections below are historical release evidence. Their versions, timings, test counts, and measured packages describe the named release and are intentionally preserved; the V0.16.96 release section above is the current authority. Historical 99/A statements refer to the deterministic conformance grader used by those releases, not to the new Automated Readiness construct.
 
 V0.16.77 makes experiential learning a first-class compiler capability instead of a one-course template. When—and only when—a lesson explicitly requests a simulation, laboratory investigation, studio critique, case exercise, structured debate, field exercise, or role-play, the existing lesson-authoring call returns one compact course-specific activity blueprint beside its knowledge kernel. There is no extra call for the lesson plan, slides, assignment, or export.
 

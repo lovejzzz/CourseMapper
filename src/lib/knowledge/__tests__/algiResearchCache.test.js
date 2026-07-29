@@ -100,4 +100,32 @@ describe('Algi local research cache', () => {
   it('uses course and lesson identity in the cache key', () => {
     expect(algiResearchCacheEntryKey('Physics', 'Waves')).not.toBe(algiResearchCacheEntryKey('Music Theory', 'Waves'));
   });
+
+  it('fails closed when a stored payload uses an older composition protocol', () => {
+    const storage = memoryStorage();
+    const topic = 'Accessibility testing and remediation';
+    const key = algiResearchCacheEntryKey('Digital Accessibility', topic);
+    storage.setItem(
+      ALGI_RESEARCH_CACHE_KEY,
+      JSON.stringify({
+        protocol: 'algi-local-research-cache-v16',
+        entries: {
+          [key]: {
+            topic,
+            expiresAt: Date.UTC(2026, 7, 27),
+            kernels: [admittedKernel()],
+          },
+        },
+      }),
+    );
+
+    expect(
+      readAlgiResearchCache({
+        courseName: 'Digital Accessibility',
+        topics: [topic],
+        storage,
+        now: Date.UTC(2026, 6, 27),
+      }),
+    ).toMatchObject({ hits: 0, expired: 0 });
+  });
 });

@@ -7822,7 +7822,7 @@ function rotatedLessonTemplate(templates = [], lesson = {}, offset = 0) {
   return templates[lessonRotationIndex(lesson, offset) % templates.length];
 }
 
-function contextualizeModalityRoutine(kind, base, { lesson = {}, concept = '', artifact = '', mode = '' } = {}) {
+export function contextualizeModalityRoutine(kind, base, { lesson = {}, concept = '', artifact = '', mode = '' } = {}) {
   let routine = stripTerminalPunctuation(base);
   if (!routine) return '';
   const title = stripLessonPrefix(lesson.title) || `Lesson ${lesson.lessonNumber || 1}`;
@@ -8052,19 +8052,19 @@ function contextualizeModalityRoutine(kind, base, { lesson = {}, concept = '', a
       `${title} adapts the course pattern: ${routine}, focused on ${concept}.`,
     ],
     evidenceRoutine: [
-      `${ensureSentenceCompiler(`During ${title} ${routine}`)} Students submit one visible ${concept} evidence check before moving on. Record it in ${artifact}.`,
-      `${ensureSentenceCompiler(`During ${title} ${routine}`)} Students label the ${secondary} detail that makes ${artifact} credible.`,
-      `${ensureSentenceCompiler(`During ${title} ${routine}`)} Students show which ${concept} evidence changes the ${artifact} decision.`,
+      `${ensureSentenceCompiler(`${sentenceCase(routine)} during ${title}`)} Students submit one visible ${concept} evidence check before moving on. Record it in ${artifact}.`,
+      `${ensureSentenceCompiler(`${sentenceCase(routine)} during ${title}`)} Students label the ${secondary} detail that makes ${artifact} credible.`,
+      `${ensureSentenceCompiler(`${sentenceCase(routine)} during ${title}`)} Students show which ${concept} evidence changes the ${artifact} decision.`,
     ],
     feedbackRoutine: [
-      `${ensureSentenceCompiler(`During ${title} ${routine}`)} Check feedback against ${concept}, ${secondary}, and ${artifact}.`,
-      `${ensureSentenceCompiler(`During ${title} ${routine}`)} Target the weakest evidence link in ${artifact}.`,
-      `${ensureSentenceCompiler(`During ${title} ${routine}`)} Require one revision that makes ${concept} reasoning inspectable.`,
+      `${ensureSentenceCompiler(`${sentenceCase(routine)} during ${title}`)} Check feedback against ${concept}, ${secondary}, and ${artifact}.`,
+      `${ensureSentenceCompiler(`${sentenceCase(routine)} during ${title}`)} Target the weakest evidence link in ${artifact}.`,
+      `${ensureSentenceCompiler(`${sentenceCase(routine)} during ${title}`)} Require one revision that makes ${concept} reasoning inspectable.`,
     ],
     instructorMove: [
-      `${ensureSentenceCompiler(`During ${title} ${routine}`)} Ask which ${concept} evidence changes ${artifact}.`,
+      `${ensureSentenceCompiler(`${sentenceCase(routine)} during ${title}`)} Ask which ${concept} evidence changes ${artifact}.`,
       `Model the ${title} decision. Use the routine to test ${secondary} evidence before students revise ${artifact}.`,
-      `${ensureSentenceCompiler(`During ${title} ${routine}`)} Close by having students name the next ${concept} move in ${artifact}.`,
+      `${ensureSentenceCompiler(`${sentenceCase(routine)} during ${title}`)} Close by having students name the next ${concept} move in ${artifact}.`,
     ],
   };
   return rotatedLessonTemplate(templates[kind] || [`${sentenceCase(routine)} for ${title}.`], lesson, kind.length);
@@ -18051,7 +18051,7 @@ function compileAssignments(blueprint) {
                 'Prerequisite readiness check',
                 'Starting evidence check',
                 'Entry concept check',
-                'Draft-readiness scan',
+                'Submission-readiness scan',
                 'Baseline evidence check',
                 'Launch preparation check',
               ]),
@@ -24948,7 +24948,7 @@ function applyCommonPitfallsSlide(slides, lesson, { concept, objective }) {
   const closePrompt = lessonVariant(lesson, [
     'Close by asking students which pitfall they are most likely to make and what check would catch it.',
     'End with each student naming one pitfall they will watch for and the evidence cue that would reveal it.',
-    'Have students choose the tempting claim that fits their draft and write the correction check beside it.',
+    'Have students choose the tempting claim that fits their current work and write the correction check beside it.',
     'Finish by asking teams to turn one pitfall into a self-check they can apply before submitting.',
   ]);
   slides.splice(insertAt, 0, {

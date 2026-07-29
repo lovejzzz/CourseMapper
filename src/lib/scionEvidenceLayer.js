@@ -18,6 +18,46 @@ function validFact(value) {
   return text.length >= 20 && text.length <= 400 && /[.!?]$/.test(text);
 }
 
+function factsFromKernelPayload(payload = {}) {
+  const values = Array.isArray(payload?.kernel?.facts)
+    ? payload.kernel.facts
+    : Array.isArray(payload?.facts)
+      ? payload.facts
+      : [];
+  return values.map((fact) => clean(typeof fact === 'string' ? fact : fact?.text)).filter(Boolean);
+}
+
+export function scionPayloadMatchesEvidence(evidence = null, payload = null) {
+  const expected = (Array.isArray(evidence?.sourceFacts) ? evidence.sourceFacts : []).map(clean).filter(Boolean);
+  const actual = factsFromKernelPayload(payload);
+  return (
+    expected.length >= 3 && actual.length === expected.length && expected.every((fact, index) => fact === actual[index])
+  );
+}
+
+/**
+ * A researched ledger may displace a generally related shipped ledger only
+ * when the candidate copies its immutable facts exactly. This keeps the
+ * research decision and the final lesson payload in one trust transaction:
+ * citations are never rebound onto older facts merely because both payloads
+ * look structurally complete.
+ */
+export function selectScionEvidenceCandidate(
+  overlay,
+  lessonId,
+  previous,
+  candidate,
+  fallbackPick = (_previous, next) => next,
+) {
+  const evidence = overlay?.byLessonId?.[lessonId];
+  if (!evidence || evidence.evidenceOrigin !== 'verified-open-research') {
+    return fallbackPick(previous, candidate);
+  }
+  if (scionPayloadMatchesEvidence(evidence, candidate)) return candidate;
+  if (scionPayloadMatchesEvidence(evidence, previous)) return previous;
+  return fallbackPick(previous, candidate);
+}
+
 function normalizeCitation(entry = {}) {
   const sourceUrl = clean(entry.sourceUrl);
   const displayTitle = clean(entry.displayTitle || entry.key);
@@ -27,8 +67,14 @@ function normalizeCitation(entry = {}) {
     sourceUrl,
     license: clean(entry.license),
     attribution: clean(entry.attribution),
-    kind: clean(entry.kind || 'open source'),
+    kind: clean(entry.kind || entry.sourceKind || 'open source'),
     evidence: clean(entry.evidence),
+    ...(clean(entry.provider || entry.providerId) ? { provider: clean(entry.provider || entry.providerId) } : {}),
+    ...(clean(entry.topic) ? { topic: clean(entry.topic) } : {}),
+    ...(Number.isFinite(Number(entry.sourceTier)) ? { sourceTier: Number(entry.sourceTier) } : {}),
+    ...(Array.isArray(entry.conceptLinks) ? { conceptLinks: entry.conceptLinks } : {}),
+    ...(clean(entry.revisionId) ? { revisionId: clean(entry.revisionId) } : {}),
+    ...(clean(entry.revisionTimestamp) ? { revisionTimestamp: clean(entry.revisionTimestamp) } : {}),
     ...(entry.supportReceipt ? { supportReceipt: entry.supportReceipt } : {}),
   };
 }
@@ -133,9 +179,19 @@ export function summarizeScionEvidenceOverlay(overlay = null) {
   };
 }
 
+export function scionEvidenceLessonIds(overlay = null) {
+  return Object.keys(overlay?.byLessonId || {}).filter((lessonId) => clean(lessonId));
+}
+
 export function bindScionEvidenceProvenance(overlay, lessonId, payload) {
   const evidence = overlay?.byLessonId?.[lessonId];
-  if (!evidence?.conceptProvenance || !payload) return payload;
+  if (
+    !evidence?.conceptProvenance ||
+    !payload ||
+    (evidence.evidenceOrigin === 'verified-open-research' && !scionPayloadMatchesEvidence(evidence, payload))
+  ) {
+    return payload;
+  }
   return {
     ...payload,
     enrichmentSource:
@@ -154,9 +210,15 @@ export async function prepareScionEvidenceForGeneration({
   recordEvent,
   appendLog,
 } = {}) {
+  const { needsAuthoritativeSourceResearch } = await import('./algiKernelComposer');
   const unresolvedLessonIndices = lessonIndices.filter((lessonIndex) => {
     const lessonId = `lesson-${lessonIndex + 1}`;
-    return !genomeLessonContent?.[lessonId] || Boolean(genomePartialOverlays?.[lessonId]);
+    const existing = genomeLessonContent?.[lessonId];
+    return (
+      !existing ||
+      Boolean(genomePartialOverlays?.[lessonId]) ||
+      needsAuthoritativeSourceResearch(courseMap?.lessons?.[lessonIndex], existing)
+    );
   });
   if (unresolvedLessonIndices.length === 0) {
     return {
@@ -220,7 +282,10 @@ export async function prepareScionEvidenceGenerationHandoff(options = {}) {
     return {
       stageDecision: result.stageDecision,
       promptOptions: evidenceByLessonId && Object.keys(evidenceByLessonId).length > 0 ? { evidenceByLessonId } : {},
+      contentSourceOverrideLessonIds: scionEvidenceLessonIds(result.overlay),
       bindProvenance: result.bindProvenance,
+      selectCandidate: (lessonId, previous, candidate, fallbackPick) =>
+        selectScionEvidenceCandidate(result.overlay, lessonId, previous, candidate, fallbackPick),
       knowledgeBackboneEvent: result.researchReady
         ? {
             type: 'pipelineDecision',
@@ -236,7 +301,10 @@ export async function prepareScionEvidenceGenerationHandoff(options = {}) {
     return {
       stageDecision: `failed open: ${error?.message || 'unknown'}`,
       promptOptions: {},
+      contentSourceOverrideLessonIds: [],
       bindProvenance: (_lessonId, payload) => payload,
+      selectCandidate: (_lessonId, previous, candidate, fallbackPick) =>
+        typeof fallbackPick === 'function' ? fallbackPick(previous, candidate) : candidate || previous,
       knowledgeBackboneEvent: null,
     };
   }

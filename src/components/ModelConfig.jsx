@@ -990,10 +990,7 @@ export default function ModelConfig({ reserveTrailingActionSpace = false }) {
           className="mt-4 rounded-squircle-xs border border-indigo-100/80 bg-indigo-50/50 px-3.5 py-3 text-xs leading-relaxed text-slate-700 dark:border-indigo-400/20 dark:bg-indigo-400/10 dark:text-slate-200"
           data-testid="scion-model-boundary"
         >
-          <p>
-            Scion is EduTool&apos;s customized course-building AI. It combines source-grounded evidence, a
-            teaching-focused compiler, and—when supported—a compact local Gemma 4 model.
-          </p>
+          <p>Scion is EduTool&apos;s customized course-building AI. It is fully free—and always will be.</p>
           <p className="mt-1.5 text-slate-600 dark:text-slate-300">
             {scionRuntimeStatus.phase === 'ready'
               ? 'Scion is ready on this device. Prompts and generated text stay in this browser.'

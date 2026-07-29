@@ -4,7 +4,10 @@ import {
   prepareScionEvidenceGenerationHandoff,
   prepareScionEvidenceForGeneration,
   prepareScionEvidenceLayer,
+  scionPayloadMatchesEvidence,
   scionEvidenceLessonFromComposedPayload,
+  scionEvidenceLessonIds,
+  selectScionEvidenceCandidate,
   summarizeScionEvidenceOverlay,
 } from '../scionEvidenceLayer';
 
@@ -51,6 +54,9 @@ function payload(overrides = {}) {
           sourceUrl: 'https://example.edu/contextual-inquiry',
           license: 'CC BY 4.0',
           attribution: 'Example University',
+          provider: 'doaj',
+          topic: 'Contextual inquiry',
+          sourceTier: 1,
           evidence: 'The admitted passage.',
         },
       ],
@@ -71,6 +77,11 @@ describe('Scion evidence layer', () => {
     expect(lesson.sourceConcepts).toHaveLength(3);
     expect(lesson.sourceLedgerAttribution.author).toBe('Example University');
     expect(lesson.scionEvidenceReceipts[0].sourceUrl).toBe('https://example.edu/contextual-inquiry');
+    expect(lesson.scionEvidenceReceipts[0]).toMatchObject({
+      provider: 'doaj',
+      topic: 'Contextual inquiry',
+      sourceTier: 1,
+    });
   });
 
   it('rejects evidence without complete anchoring instead of laundering it through Scion', () => {
@@ -114,6 +125,37 @@ describe('Scion evidence layer', () => {
     });
   });
 
+  it('names every admitted lesson that must override the older content-source shortcut', () => {
+    expect(
+      scionEvidenceLessonIds({
+        byLessonId: {
+          'lesson-1': payload({ lessonId: 'lesson-1' }),
+          'lesson-4': payload({ lessonId: 'lesson-4' }),
+        },
+      }),
+    ).toEqual(['lesson-1', 'lesson-4']);
+  });
+
+  it('selects researched facts over a richer-looking older ledger and binds only exact provenance', () => {
+    const evidence = scionEvidenceLessonFromComposedPayload(payload());
+    const overlay = { byLessonId: { 'lesson-2': evidence } };
+    const oldPayload = {
+      kernel: {
+        facts: [
+          'An older generally related claim remains well formed but does not come from the current research ledger.',
+          'A second older claim also has enough words and punctuation to look structurally complete.',
+          'A third older claim proves why structure alone cannot decide provenance identity.',
+        ],
+      },
+    };
+    const researchedPayload = { kernel: { facts: [...evidence.sourceFacts] } };
+    const picked = selectScionEvidenceCandidate(overlay, 'lesson-2', oldPayload, researchedPayload, () => oldPayload);
+
+    expect(picked).toBe(researchedPayload);
+    expect(scionPayloadMatchesEvidence(evidence, researchedPayload)).toBe(true);
+    expect(scionPayloadMatchesEvidence(evidence, oldPayload)).toBe(false);
+  });
+
   it('stays offline and reports uncovered lessons when no local evidence is available', async () => {
     const structuredPrompt = {
       courseName: 'Principles of Economics',
@@ -155,6 +197,41 @@ describe('Scion evidence layer', () => {
     expect(JSON.stringify(events)).not.toMatch(/Algi/);
   });
 
+  it('researches an authoritative-method gap even when the shipped genome payload is structurally complete', async () => {
+    const result = await prepareScionEvidenceForGeneration({
+      courseMap: {
+        courseName: 'Digital Accessibility for Product Teams',
+        lessons: [{ title: 'Evidence-based accessibility testing and remediation' }],
+      },
+      lessonIndices: [0],
+      genomeLessonContent: {
+        'lesson-1': {
+          kernel: {
+            facts: [
+              'WCAG organizes accessibility around perceivable, operable, understandable, and robust principles.',
+              'Usability sessions can reveal barriers that a conformance review does not expose.',
+              'A reviewer should bound conclusions to the evidence collected from participants.',
+            ],
+          },
+          conceptProvenance: {
+            citations: [
+              {
+                displayTitle: 'WCAG 2.2',
+                sourceUrl: 'https://www.w3.org/TR/WCAG22/',
+                evidence: 'WCAG principles provide general accessibility guidance.',
+                topic: 'WCAG principles',
+              },
+            ],
+          },
+        },
+      },
+      researchEnabled: false,
+    });
+
+    expect(result.stageDecision).toBe('ran (0/1 ledgers, on-device)');
+    expect(result.summary).toMatchObject({ requested: 1 });
+  });
+
   it('keeps the AppFlow handoff compact when no optional evidence is admitted', async () => {
     const result = await prepareScionEvidenceGenerationHandoff({
       courseMap: {
@@ -166,7 +243,11 @@ describe('Scion evidence layer', () => {
 
     expect(result.stageDecision).toBe('ran (0/1 ledgers, on-device)');
     expect(result.promptOptions).toEqual({});
+    expect(result.contentSourceOverrideLessonIds).toEqual([]);
     expect(result.knowledgeBackboneEvent).toBeNull();
     expect(result.bindProvenance('lesson-1', { facts: ['kept'] })).toEqual({ facts: ['kept'] });
+    expect(result.selectCandidate('lesson-1', { facts: ['old'] }, { facts: ['new'] }, (previous) => previous)).toEqual({
+      facts: ['old'],
+    });
   });
 });

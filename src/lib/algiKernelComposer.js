@@ -81,7 +81,7 @@ function fitWords(text, [min, max], filler = '') {
 }
 
 const DANGLING_FACT_EDGE =
-  /\b(?:a|an|and|are|as|at|be|because|by|different|each|for|from|if|in|is|of|on|or|precise|that|the|this|to|when|which|whose|with)\.?$/i;
+  /\b(?:a|an|and|are|as|at|be|because|by|different|each|for|from|if|in|is|of|on|or|precise|that|the|this|to|when|whether|which|whose|with)\.?$/i;
 const CONTEXT_DEPENDENT_FACT_START =
   /^(?:(?:sometimes|often|typically|generally)\s+)?(?:it|its|this|that|these|those|they|their|there(?!\s+(?:is|are|was|were)\b)|such|when|where|why|how|an example|another example|one example|examples include)\b/i;
 const DEICTIC_REFERENCE =
@@ -1738,6 +1738,35 @@ export function lessonTopic(lesson) {
     .trim();
 }
 
+/**
+ * A generally related genome citation is not enough when a lesson explicitly
+ * promises an accessibility evaluation method. WCAG background and usability
+ * concepts can produce a structurally complete kernel while leaving testing,
+ * audit, and remediation unsupported. Decline that private composition so the
+ * normal consented W3C/WAI research route can retrieve evaluation guidance.
+ */
+export function needsAuthoritativeSourceResearch(lesson, payload) {
+  const topic = lessonTopic(lesson);
+  const accessibilityEvaluation =
+    /\b(?:accessib(?:le|ility)|wcag)\b/i.test(topic) && /\b(?:audit\w*|evaluat\w*|remediat\w*|test\w*)\b/i.test(topic);
+  if (!accessibilityEvaluation || !payload) return false;
+
+  const citationText = (payload?.conceptProvenance?.citations || [])
+    .map((citation) =>
+      [citation?.sourceUrl, citation?.displayTitle, citation?.key, citation?.topic, citation?.evidence]
+        .filter(Boolean)
+        .join(' '),
+    )
+    .join(' ');
+
+  return !(
+    /\bw3\.org\/WAI\/test-evaluate(?:\/|\b)/i.test(citationText) ||
+    /\bwcag-em\b/i.test(citationText) ||
+    /\b(?:accessibility|wcag).{0,48}(?:audit\w*|evaluat\w*|remediat\w*|test\w*)\b/i.test(citationText) ||
+    /\b(?:audit\w*|evaluat\w*|remediat\w*|test\w*).{0,48}(?:accessibility|wcag)\b/i.test(citationText)
+  );
+}
+
 export async function composeAlgiLessonKernels({
   structuredPrompt,
   factCount = 5,
@@ -1780,6 +1809,8 @@ export async function composeAlgiLessonKernels({
     // 0 and the rotation silently never happens. Lesson 3 must rotate like
     // lesson 3 whether it arrived alone or in a group of twelve.
     const offset = lessonOffset(lesson, position);
+    const claimedBefore = new Set(claimed);
+    const usedBefore = used.length;
     const payload = composeLessonKernelFromGenome(lesson, index, {
       factCount,
       claimed,
@@ -1788,7 +1819,11 @@ export async function composeAlgiLessonKernels({
       sourceReferences,
       allowedDisciplines: courseDisciplines,
     });
-    if (payload) composed[position] = payload;
+    if (payload && needsAuthoritativeSourceResearch(lesson, payload)) {
+      for (const id of claimed) if (!claimedBefore.has(id)) claimed.delete(id);
+      used.splice(usedBefore);
+      stillUncovered.push({ lesson, position, offset });
+    } else if (payload) composed[position] = payload;
     // Integrative lessons wait for the whole course to be composed, because
     // what they integrate is precisely the concepts the other lessons used.
     else if (isIntegrativeLesson(lesson)) deferred.push({ lesson, position, offset });
@@ -1814,13 +1849,17 @@ export async function composeAlgiLessonKernels({
         ),
       ];
     }
+    const claimedBefore = new Set(claimed);
     const payload = composeLessonFromCandidateKernels(lesson, integrative, {
       factCount,
       claimed,
       offset,
       sourceReferences,
     });
-    if (payload) composed[position] = payload;
+    if (payload && needsAuthoritativeSourceResearch(lesson, payload)) {
+      for (const id of claimed) if (!claimedBefore.has(id)) claimed.delete(id);
+      stillUncovered.push({ lesson, position, offset });
+    } else if (payload) composed[position] = payload;
     // With research enabled, wait until the substantive lessons have supplied
     // their admitted kernels before declaring the synthesis lesson uncovered.
     // This turns a capstone into a zero-request consolidation pass.

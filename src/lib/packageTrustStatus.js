@@ -16,7 +16,30 @@ export function countQualityFindings(quality) {
 }
 
 export function buildQualityReviewIssue(quality) {
-  if (quality?.status !== 'graded') return null;
+  return buildQualityReviewIssues(quality)[0] || null;
+}
+
+function findingLabel(finding = {}) {
+  const dimension = String(finding?.dimension || '')
+    .replace(/[-_]+/g, ' ')
+    .trim();
+  if (!dimension) return 'Package note';
+  return `${dimension.charAt(0).toUpperCase()}${dimension.slice(1)}`;
+}
+
+function findingMessage(finding = {}) {
+  return String(finding?.detail || finding?.message || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
+ * Preserve the grader's actionable findings in the Agent instead of replacing
+ * them with a generic "review generated content" sentence. The compact quality
+ * badge still reports one aggregate count; this list owns the exact human task.
+ */
+export function buildQualityReviewIssues(quality) {
+  if (quality?.status !== 'graded') return [];
   const counts = quality.findingCounts || {};
   const p0 = compactCount(counts.p0);
   const findingCount = countQualityFindings(quality);
@@ -30,17 +53,32 @@ export function buildQualityReviewIssue(quality) {
   // 99/A package into an amber "review" state even after every export check
   // passed. Preserve the score as transparent evidence, but reserve warning
   // language for an actual finding or a genuinely low grade.
-  if (findingCount === 0 && !lowGradeNeedsReview) return null;
+  if (findingCount === 0 && !lowGradeNeedsReview) return [];
 
-  return {
-    label: 'Package notes',
-    message:
-      p0 > 0
-        ? 'One content issue needs a fix before this package is ready to share.'
-        : 'Some generated content should get a quick instructor review before publishing.',
-    count: Math.max(1, findingCount || Number(lowGradeNeedsReview)),
-    severity: p0 > 0 ? 'blocker' : 'warning',
-  };
+  const findings = (Array.isArray(quality?.findings) ? quality.findings : [])
+    .filter((finding) => findingMessage(finding))
+    .slice(0, 5);
+  if (findings.length > 0) {
+    return findings.map((finding, index) => ({
+      label: findingLabel(finding),
+      message: findingMessage(finding),
+      detail: [finding?.file, finding?.evidence].filter(Boolean).join(' · '),
+      count: index === 0 ? Math.max(1, findingCount) : 1,
+      severity: finding?.severity === 'P0' ? 'blocker' : 'warning',
+    }));
+  }
+
+  return [
+    {
+      label: 'Package notes',
+      message:
+        p0 > 0
+          ? 'One content issue needs a fix before this package is ready to share.'
+          : 'The package score is below the publishing threshold; open the quality report for the exact checks.',
+      count: Math.max(1, findingCount || Number(lowGradeNeedsReview)),
+      severity: p0 > 0 ? 'blocker' : 'warning',
+    },
+  ];
 }
 
 export function buildExportWarningIssues(packageReceipt, featureLabels = {}) {
@@ -151,7 +189,8 @@ export function getPackageTrustStatus({
   const finishStatus = finishStatusOf(packageQualityPass);
   const packageReceipt = receipt || packageQualityPass?.receipt || null;
   const packageQuality = quality || packageQualityPass?.quality || null;
-  const qualityIssue = buildQualityReviewIssue(packageQuality);
+  const qualityIssues = buildQualityReviewIssues(packageQuality);
+  const qualityIssue = qualityIssues[0] || null;
   const qualityProofIssue = qualityIssue ? null : buildQualityProofIssue(packageQuality, finishStatus);
   const exportFailureIssue = buildExportFailureIssue(packageReceipt, featureLabels);
   const exportIssues = buildExportWarningIssues(packageReceipt, featureLabels);
@@ -203,9 +242,12 @@ export function getPackageTrustStatus({
     exportFailureIssue,
     exportIssues,
     sourceIssues,
-    reviewIssues: [qualityIssue || qualityProofIssue, exportFailureIssue, ...exportIssues, ...sourceIssues].filter(
-      Boolean,
-    ),
+    reviewIssues: [
+      ...(qualityIssues.length > 0 ? qualityIssues : qualityProofIssue ? [qualityProofIssue] : []),
+      exportFailureIssue,
+      ...exportIssues,
+      ...sourceIssues,
+    ].filter(Boolean),
     blockerCount,
     warningCount,
     reviewMeta: summarizePackageReviewMeta({

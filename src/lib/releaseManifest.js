@@ -351,8 +351,8 @@ const V01694_RELEASE = {
   },
 };
 
-export const CURRENT_RELEASE = {
-  version: APP_VERSION,
+const V01695_RELEASE = {
+  version: '0.16.95',
   date: 'July 28, 2026',
   title: 'The Agent Reads the Evidence That Ships',
   landingTitle: 'Scion V0.16.95 Keeps Source Answers Grounded After Sync',
@@ -379,6 +379,40 @@ export const CURRENT_RELEASE = {
     roadmap: 'docs/SCION_V01695_AGENT_EVIDENCE_CONTINUITY.md',
     benchmark: 'src/lib/__tests__/scionLocalAgentAnswer.test.js',
     browser: 'docs/SCION_V01695_AGENT_EVIDENCE_CONTINUITY.md',
+    auditCommand: 'npm run audit:release-history',
+  },
+};
+
+export const CURRENT_RELEASE = {
+  version: APP_VERSION,
+  date: 'July 29, 2026',
+  title: 'Evidence Need, Not Device Class',
+  landingTitle: 'Scion V0.16.96 Grounds Every Unsupported Lesson Before It Writes',
+  highlights: [
+    'Scion now offers the explicit current-source path whenever its coverage forecast finds unsupported lessons, including on devices capable of running the local Gemma base. Device capability chooses the authoring route; it no longer suppresses evidence acquisition.',
+    'The consent boundary stays exact and visible. Before generation, Scion names the open-source providers and explains that only the course title and uncovered lesson topics leave the device; verified passages are cached locally and passed to the browser-local course writer.',
+    'The W3C/WAI source catalog now routes WCAG, page-structure, forms, and evaluation pages by lesson family, survives an individual page fetch failure, and adds Understanding Conformance, Evaluating web accessibility, Easy Checks, and WCAG-EM. A testing or remediation lesson must now carry method evidence instead of passing on broad accessibility background alone.',
+    'Admitted research provenance now survives as one exact fact-and-citation transaction. Provider, topic, source tier, concept links, revisions, source kind, and support receipts remain attached; older partial overlays cannot overwrite current research or rebind current citations to stale facts.',
+    'The Agent and exported source ledger read every exact lesson-overlay citation before capped classroom-resource projections. The acceptance package retains 14 source receipts, and Lesson 4 keeps the distinct evaluation overview, Easy Checks limitation, and WCAG-EM methodology in both Agent answers and the physical ZIP.',
+    'Package notes preserve exact actionable grader findings, affected evidence, and severity. The shared compiler repairs malformed imperative frames and unfinished “draft” language; cache contracts prevent stale pre-fix content from returning. The expanded setup card now leads with “Scion is fully free—and always will be” instead of implementation jargon.',
+    'A clean four-lesson browser acceptance completed in 4 seconds on the warm exact-source route with 4/4 knowledge kernels, 9/9 material families, 69/100 Automated Readiness, 99/A package conformance, texture 96, zero encoded findings, one ZIP action, and no inspected application-console errors or warnings. The physical ZIP and every nested Office container passed integrity.',
+    'The release changes evidence orchestration, provenance continuity, review-note specificity, and deterministic language repair. Gemma weights remain unchanged, the optional adapter remains inactive, and no instructor, classroom, factual-certification, accessibility-certification, paid-model, or adapter-superiority claim is made.',
+  ],
+  landingHighlights: [
+    'Evidence gaps trigger research on every Scion device.',
+    'The network boundary is named before consent.',
+    'Official W3C sources stay with the right lesson family.',
+    'Facts and citations survive as one exact transaction.',
+    'Agent and export retain the complete evidence ledger.',
+    'Review notes, instructional wording, and Scion’s free promise are clear.',
+    'Fresh browser and physical-ZIP proof are recorded.',
+    'Model weights and quality-claim boundaries stay unchanged.',
+  ],
+  proof: {
+    contract: 'release-contracts/v0.16.96.json',
+    roadmap: 'docs/SCION_V01696_EVIDENCE_FIRST_END_TO_END.md',
+    benchmark: 'src/lib/__tests__/scionEvidenceForecastAction.test.js',
+    browser: 'docs/SCION_V01696_EVIDENCE_FIRST_END_TO_END.md',
     auditCommand: 'npm run audit:release-history',
   },
 };
@@ -979,11 +1013,11 @@ const V01694_RELEASE_CHANGELOG = {
   ],
 };
 
-export const CURRENT_RELEASE_CHANGELOG = {
-  version: CURRENT_RELEASE.version,
-  date: CURRENT_RELEASE.date,
-  title: CURRENT_RELEASE.title,
-  highlights: CURRENT_RELEASE.highlights,
+const V01695_RELEASE_CHANGELOG = {
+  version: V01695_RELEASE.version,
+  date: V01695_RELEASE.date,
+  title: V01695_RELEASE.title,
+  highlights: V01695_RELEASE.highlights,
   sections: [
     {
       label: 'Keep one evidence truth after sync',
@@ -1027,6 +1061,59 @@ export const CURRENT_RELEASE_CHANGELOG = {
         'The pinned Gemma base, inactive adapter, research consent, evidence admission, and readiness ceiling are unchanged.',
         'The compiler-before-model path and exported package format remain unchanged.',
         'No teaching-quality, factual, accessibility, classroom, or paid-model claim is added.',
+      ],
+    },
+  ],
+};
+
+export const CURRENT_RELEASE_CHANGELOG = {
+  version: CURRENT_RELEASE.version,
+  date: CURRENT_RELEASE.date,
+  title: CURRENT_RELEASE.title,
+  highlights: CURRENT_RELEASE.highlights,
+  sections: [
+    {
+      label: 'Let evidence need drive research',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'The coverage forecast, not WebGPU capability, decides whether Scion offers current-source research.',
+        'A capable local-model device therefore sees the same explicit source option when one or more lessons lack trusted evidence.',
+        'Private mode remains available, and the choice still travels as an explicit one-run value into generation.',
+        'Device capability continues to choose the authoring runtime without silently deciding the evidence policy.',
+      ],
+    },
+    {
+      label: 'Carry admitted provenance end to end',
+      icon: 'AI',
+      color: 'blue',
+      items: [
+        'Official W3C/WAI evaluation, Easy Checks, and WCAG-EM pages extend the accessibility source catalog.',
+        'Provider, topic, source tier, concept links, revisions, source kind, and support receipt survive evidence normalization.',
+        'The native compiler recognizes the public Scion research-origin label and preserves every admitted source fact.',
+        'The CourseGraph, Agent, manifest, and source report can therefore share the same typed evidence identity.',
+      ],
+    },
+    {
+      label: 'Make review and language actionable',
+      icon: 'PROOF',
+      color: 'violet',
+      items: [
+        'Agent package notes show the grader’s exact finding instead of generic review language.',
+        'The affected file or evidence detail stays attached when the grader supplies it.',
+        'Evidence, feedback, and instructor routines use grammatically valid imperative-first sentences.',
+        'Focused regressions pin the exact malformed phrase and the exact package-note contract.',
+      ],
+    },
+    {
+      label: 'Keep the quality claim inside the proof',
+      icon: 'CHECK',
+      color: 'slate',
+      items: [
+        'The full unit, lint, format, build, bundle, Chromium, release-history, and physical-ZIP gates remain required.',
+        'The browser proof must begin from a clean origin, exercise explicit research consent, inspect every compiler phase, question the source-bound Agent, and download the archive.',
+        'Gemma weights remain unchanged and the optional trained adapter remains inactive.',
+        'Automated proof does not imply instructor approval, classroom outcomes, factual certification, accessibility certification, or paid-model superiority.',
       ],
     },
   ],
@@ -1714,6 +1801,7 @@ const V01678_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  V01695_RELEASE_CHANGELOG,
   V01694_RELEASE_CHANGELOG,
   V01693_RELEASE_CHANGELOG,
   V01692_RELEASE_CHANGELOG,

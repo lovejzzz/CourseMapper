@@ -6,6 +6,7 @@ import {
   bloomLevelFromStemVerb,
   compileBlueprintDeliverable,
   compileBlueprintDeliverables,
+  contextualizeModalityRoutine,
   estimateBlueprintCompilerSavings,
   getBlueprintCompiledFeatures,
   hydrateBlueprintForCompilation,
@@ -81,6 +82,26 @@ describe('focused lesson concept extraction', () => {
         expect.stringMatching(/design decision it changes/i),
       ]),
     );
+  });
+});
+
+describe('modality routine grammar', () => {
+  it('places imperative field-evidence routines before the lesson context', () => {
+    const result = contextualizeModalityRoutine(
+      'evidenceRoutine',
+      'trace whose evidence is represented, whose is missing, and what local constraint changes the decision',
+      {
+        lesson: { lessonNumber: 1, title: 'Lesson 1: Urban biodiversity surveys' },
+        concept: 'urban biodiversity',
+        artifact: 'field observation memo',
+        mode: 'field-applied',
+      },
+    );
+
+    expect(result).toMatch(/^Trace whose evidence is represented/i);
+    expect(result).toContain('during Urban biodiversity surveys.');
+    expect(result).not.toMatch(/^During Urban biodiversity surveys trace/i);
+    expect(result).not.toContain('whose evidence is.');
   });
 });
 

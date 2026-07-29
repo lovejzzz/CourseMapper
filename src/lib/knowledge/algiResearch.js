@@ -785,6 +785,14 @@ const WAI_SOURCE_CATALOG = Object.freeze([
       'wcag accessibility principles perceivable operable understandable robust content assistive technology web',
   },
   {
+    title: 'Understanding Conformance',
+    suggestedTerm: 'WCAG conformance',
+    url: 'https://www.w3.org/WAI/WCAG22/Understanding/conformance',
+    keywords:
+      'wcag principles conformance requirements claims levels a aa aaa success criteria testing accessibility support',
+    definitionMode: 'explanatory-page',
+  },
+  {
     title: 'Accessible forms',
     suggestedTerm: 'Accessible forms',
     url: 'https://www.w3.org/WAI/tutorials/forms/',
@@ -819,6 +827,29 @@ const WAI_SOURCE_CATALOG = Object.freeze([
     suggestedTerm: 'Page regions',
     url: 'https://www.w3.org/WAI/tutorials/page-structure/regions/',
     keywords: 'semantic html page regions landmarks main navigation structure accessibility',
+  },
+  {
+    title: 'Evaluating web accessibility',
+    suggestedTerm: 'Accessibility evaluation',
+    url: 'https://www.w3.org/WAI/test-evaluate/',
+    keywords:
+      'accessibility evaluation assessment audit testing remediation early development tools human evaluation conformance reports',
+  },
+  {
+    title: 'Easy Checks',
+    suggestedTerm: 'Accessibility assessment',
+    url: 'https://www.w3.org/WAI/test-evaluate/preliminary/',
+    keywords:
+      'accessibility testing easy checks preliminary review page title headings contrast keyboard focus forms labels limitations comprehensive assessment',
+    definitionMode: 'explanatory-page',
+  },
+  {
+    title: 'WCAG-EM overview',
+    suggestedTerm: 'WCAG Evaluation Methodology',
+    url: 'https://www.w3.org/WAI/test-evaluate/conformance/wcag-em/',
+    keywords:
+      'accessibility testing conformance evaluation methodology wcag-em scope sampling audit findings reports remediation',
+    definitionMode: 'explanatory-page',
   },
 ]);
 
@@ -887,6 +918,50 @@ function waiCatalogEntriesForQuery(query = '', limit = 12) {
     .map(({ entry }) => entry);
 }
 
+const WAI_SOURCE_FAMILIES = Object.freeze({
+  wcag: new Set(['Web Content Accessibility Guidelines', 'Accessibility principles', 'Understanding Conformance']),
+  structure: new Set(['Page structure', 'Headings', 'Page regions']),
+  forms: new Set(['Accessible forms', 'Labels', 'Input validation']),
+  evaluation: new Set(['Evaluating web accessibility', 'Easy Checks', 'WCAG-EM overview']),
+});
+
+/**
+ * Keep a bounded official source catalog bound to the lesson family that
+ * selected it. Shared words such as "accessibility", "keyboard", and
+ * "conformance" occur across most WAI pages; lexical overlap alone therefore
+ * cannot decide whether a page belongs to a lesson. The family boundary is
+ * source routing metadata, not hard-coded instructional content: every claim
+ * still comes from the live page and clears the ordinary quote/admission gates.
+ */
+export function isWaiSourceFamilyAligned(topic = '', title = '') {
+  const lesson = String(topic || '').toLowerCase();
+  const sourceTitle = String(title || '').trim();
+  if (!sourceTitle) return false;
+
+  const evaluationLesson =
+    /\b(?:audit(?:ing|s)?|evaluat(?:e|es|ed|ing|ion)|test(?:s|ed|ing)?|assessment|remediat(?:e|es|ed|ing|ion)|wcag-em)\b/.test(
+      lesson,
+    );
+  const formsLesson = /\bforms?\b|\bform controls?\b|\binput validation\b/.test(lesson);
+  const structureLesson =
+    /\bsemantic html\b|\bkeyboard accessibility\b|\bpage structure\b|\bheadings?\b|\blandmarks?\b|\bpage regions?\b/.test(
+      lesson,
+    );
+  const wcagLesson =
+    /\bwcag\b|\bweb content accessibility guidelines?\b|\bperceivable\b|\boperable\b|\bunderstandable\b|\brobust\b|\bconformance\b/.test(
+      lesson,
+    );
+
+  // Evaluate the most specific lesson families first. A remediation lesson
+  // can mention forms, keyboard, and WCAG as things to inspect, but its
+  // authoritative method still comes from the evaluation family.
+  if (evaluationLesson) return WAI_SOURCE_FAMILIES.evaluation.has(sourceTitle);
+  if (formsLesson) return WAI_SOURCE_FAMILIES.forms.has(sourceTitle);
+  if (structureLesson) return WAI_SOURCE_FAMILIES.structure.has(sourceTitle);
+  if (wcagLesson) return WAI_SOURCE_FAMILIES.wcag.has(sourceTitle);
+  return true;
+}
+
 /**
  * Official W3C/WAI research vertical.
  *
@@ -910,14 +985,20 @@ export function buildWaiProvider(httpText) {
       attribution: `W3C Web Accessibility Initiative, “${entry.title}”`,
       suggestedTerm: entry.suggestedTerm,
       definitionWindow: entry.definitionWindow || 24,
+      ...(entry.definitionMode ? { definitionMode: entry.definitionMode } : {}),
       topicHints: entry.keywords,
     };
   };
   const byTitle = new Map(WAI_SOURCE_CATALOG.map((entry) => [entry.title, entry]));
   const loadEntries = async (entries) => {
     const records = {};
-    const loaded = await Promise.all(entries.map(load));
-    for (const record of loaded.filter(Boolean)) records[record.title] = record;
+    // Official WAI pages do not all expose identical cross-origin behavior.
+    // One page that declines a browser fetch must not erase the other
+    // independently verified pages in the same bounded catalog batch.
+    const settled = await Promise.allSettled(entries.map(load));
+    for (const result of settled) {
+      if (result.status === 'fulfilled' && result.value) records[result.value.title] = result.value;
+    }
     return records;
   };
   return {
@@ -1256,6 +1337,7 @@ export function buildKernelFromArticle({ topic, title, extract, provider, factCo
     compactRelevantSuggestedTerm || sourceAnchoredTopicTerm(topic, title) || sourceMeta.suggestedTerm || articleTitle,
   );
   const scholarlyAbstract = sourceMeta.definitionMode === 'scholarly-abstract';
+  const explanatoryPage = sourceMeta.definitionMode === 'explanatory-page';
   const sentenceRelevance = (sentence) => Math.max(lexicalRelevance(head, sentence), lexicalRelevance(topic, sentence));
   const isSourcePageNoise = (sentence) => {
     const lesson = String(topic || '').toLowerCase();
@@ -1273,6 +1355,8 @@ export function buildKernelFromArticle({ topic, title, extract, provider, factCo
       // Documentation notes attached to code samples describe the sample UI,
       // not a transferable course claim.
       /^note that\b/i.test(sentence) ||
+      /^this video is (?:also )?available\b/i.test(sentence) ||
+      /^alternatives for video\b/i.test(sentence) ||
       /\binteractive elements? (?:is|are) still active\b/i.test(sentence) ||
       // Road-map and publication-status prose ages quickly and does not teach
       // the current standard.
@@ -1310,7 +1394,7 @@ export function buildKernelFromArticle({ topic, title, extract, provider, factCo
   const teachableSentences = sentences.filter((sentence) => !isSourcePageNoise(sentence));
   const definition =
     definitionSentence(teachableSentences, head, sourceMeta.definitionWindow) ||
-    (scholarlyAbstract
+    (scholarlyAbstract || explanatoryPage
       ? teachableSentences
           .map((sentence, index) => ({
             sentence,
@@ -1531,9 +1615,13 @@ export function isResearchCandidateDomainAligned({
   }
   // The W3C/WAI vertical is a bounded catalog of official accessibility
   // standards and tutorials. Once its page visibly clears the digital-domain
-  // guard above, do not ask the generic open-web weak-source heuristic to
-  // rediscover that "Headings" and "Labels" are accessibility concepts.
-  if (digitalAccessibilityCourse && provider === 'w3c-wai') return true;
+  // guard above, bind it to the exact lesson family before bypassing the
+  // generic open-web weak-source heuristic. This prevents an evaluation page
+  // from drifting into a semantic-HTML lesson (or vice versa) merely because
+  // both pages repeat broad accessibility vocabulary.
+  if (digitalAccessibilityCourse && provider === 'w3c-wai') {
+    return isWaiSourceFamilyAligned(topic, title);
+  }
   const technologyPolicyCourse =
     /\b(?:technology|digital|internet|platform|algorithmic|artificial intelligence|ai)\b/.test(courseAndTopic) &&
     /\b(?:policy|governance|regulation|accountability|audit|oversight)\b/.test(courseAndTopic);

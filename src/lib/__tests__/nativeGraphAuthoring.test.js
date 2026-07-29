@@ -445,56 +445,59 @@ describe('nativeGraphAuthoring matchEntityIds', () => {
 });
 
 describe('completeNativeKernelSurfaces', () => {
-  it('retains source-researched facts whose topical receipt already passed Algi admission', () => {
-    const completed = completeNativeKernelSurfaces(
-      {
-        enrichmentSource: 'algi-researched',
-        conceptProvenance: {
-          citations: [
+  it.each(['algi-researched', 'scion-source-researched'])(
+    'retains source-researched facts whose topical receipt already passed admission (%s)',
+    (enrichmentSource) => {
+      const completed = completeNativeKernelSurfaces(
+        {
+          enrichmentSource,
+          conceptProvenance: {
+            citations: [
+              {
+                topic: 'duties to workers',
+                evidence: 'Labour laws mediate relationships between workers, employers, unions, and government.',
+                sourceUrl: 'https://en.wikipedia.org/wiki/Labour_law',
+              },
+            ],
+          },
+          keyTerms: [
             {
-              topic: 'duties to workers',
-              evidence: 'Labour laws mediate relationships between workers, employers, unions, and government.',
-              sourceUrl: 'https://en.wikipedia.org/wiki/Labour_law',
+              term: 'Employment standards',
+              definition: 'Employment standards define minimum socially acceptable conditions for work.',
+              example: 'A workplace rule establishes a minimum condition for employees.',
+              misconception: 'Employment standards and labour law always have identical scope.',
+              correction: 'The source treats them as related concepts with different scope and evidence.',
             },
           ],
-        },
-        keyTerms: [
-          {
-            term: 'Employment standards',
-            definition: 'Employment standards define minimum socially acceptable conditions for work.',
-            example: 'A workplace rule establishes a minimum condition for employees.',
-            misconception: 'Employment standards and labour law always have identical scope.',
-            correction: 'The source treats them as related concepts with different scope and evidence.',
-          },
-        ],
-        quizItems: [
-          { index: 0, type: 'multiple_choice' },
-          { index: 1, type: 'multiple_choice' },
-        ],
-        kernel: {
-          facts: [
-            'Employment standards define minimum socially acceptable conditions for work.',
-            'Individual labour law concerns employee rights under a contract for work.',
-            'Labour laws mediate relationships between workers, employers, unions, and government.',
-            'Occupational safety addresses hazards experienced while performing work duties.',
-            'Workplace prevention programs address incidents and occupational disease.',
+          quizItems: [
+            { index: 0, type: 'multiple_choice' },
+            { index: 1, type: 'multiple_choice' },
           ],
-          scenario: {
-            setup: 'A reviewer compares employee protections across one workplace case and its cited rules.',
-            materials: 'the admitted labour-law and occupational-safety source passages',
+          kernel: {
+            facts: [
+              'Employment standards define minimum socially acceptable conditions for work.',
+              'Individual labour law concerns employee rights under a contract for work.',
+              'Labour laws mediate relationships between workers, employers, unions, and government.',
+              'Occupational safety addresses hazards experienced while performing work duties.',
+              'Workplace prevention programs address incidents and occupational disease.',
+            ],
+            scenario: {
+              setup: 'A reviewer compares employee protections across one workplace case and its cited rules.',
+              materials: 'the admitted labour-law and occupational-safety source passages',
+            },
           },
         },
-      },
-      {
-        lessonNumber: 2,
-        title: 'Lesson 2: duties to workers',
-        sections: [{ topicSection: '2.1: duties to workers', weeklyAssessments: 'Worked example' }],
-      },
-    );
+        {
+          lessonNumber: 2,
+          title: 'Lesson 2: duties to workers',
+          sections: [{ topicSection: '2.1: duties to workers', weeklyAssessments: 'Worked example' }],
+        },
+      );
 
-    expect(completed.slideContent.length).toBeGreaterThanOrEqual(1);
-    expect(assessProjectedKernelCoverage(completed).usable).toBe(true);
-  });
+      expect(completed.slideContent.length).toBeGreaterThanOrEqual(1);
+      expect(assessProjectedKernelCoverage(completed).usable).toBe(true);
+    },
+  );
 
   it('keeps the admitted cross-lesson ledger for an explicit cumulative projection', () => {
     const completed = completeNativeKernelSurfaces(
@@ -818,6 +821,73 @@ describe('completeNativeKernelSurfaces', () => {
     expect(completed.kernel.facts).toContain(
       'Declination measures angular distance north or south of the celestial equator.',
     );
+  });
+
+  it('does not let an older genome partial replace current researched provenance', () => {
+    const researched = {
+      enrichmentSource: 'scion-source-researched',
+      kernel: {
+        facts: [
+          'Accessibility evaluation combines appropriate tools with knowledgeable human review.',
+          'Preliminary checks cannot establish comprehensive accessibility conformance.',
+          'An evaluation scope defines what the review includes before sampling begins.',
+        ],
+      },
+      conceptProvenance: {
+        source: 'algi-researched',
+        citations: [{ sourceUrl: 'https://www.w3.org/WAI/test-evaluate/' }],
+      },
+    };
+    const lessonContent = { 'lesson-4': researched };
+    const partialOverlays = {
+      'lesson-4': {
+        enrichmentSource: 'genome-linked',
+        kernel: { facts: ['Older general accessibility background remains useful in a different lesson.'] },
+        conceptProvenance: {
+          source: 'genome-linked',
+          citations: [{ sourceUrl: 'https://www.w3.org/TR/WCAG22/' }],
+        },
+      },
+    };
+
+    expect(mergeNativePartialOverlays(lessonContent, partialOverlays, mergeLessonPayloads)).toEqual([]);
+    expect(lessonContent['lesson-4']).toBe(researched);
+    expect(lessonContent['lesson-4'].conceptProvenance.citations[0].sourceUrl).toContain('/WAI/test-evaluate/');
+  });
+
+  it('does not fold an older partial into a compiler-owned exact source ledger before provenance binding', () => {
+    const exactLedger = {
+      enrichmentSource: 'compiler-owned-exact-source-ledger',
+      kernel: {
+        facts: [
+          'Accessibility evaluation combines appropriate tools with knowledgeable human review.',
+          'Preliminary checks cannot establish comprehensive accessibility conformance.',
+          'An evaluation scope defines what the review includes before sampling begins.',
+        ],
+        provenance: {
+          source: 'compiler-owned-exact-source-ledger',
+          copiedFactsVerbatim: true,
+          factCount: 3,
+        },
+      },
+      conceptProvenance: {
+        source: 'algi-researched',
+        citations: [{ sourceUrl: 'https://www.w3.org/WAI/test-evaluate/' }],
+      },
+    };
+    const lessonContent = { 'lesson-4': exactLedger };
+    const partialOverlays = {
+      'lesson-4': {
+        kernel: { facts: ['An older broad source claim must not re-enter this ledger.'] },
+        conceptProvenance: {
+          source: 'genome-linked',
+          citations: [{ sourceUrl: 'https://www.w3.org/TR/WCAG22/' }],
+        },
+      },
+    };
+
+    expect(mergeNativePartialOverlays(lessonContent, partialOverlays, mergeLessonPayloads)).toEqual([]);
+    expect(lessonContent['lesson-4']).toBe(exactLedger);
   });
 
   it('keeps fact-ledger misconception feedback lesson-specific across a full course', () => {

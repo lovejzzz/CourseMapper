@@ -28,6 +28,41 @@ describe('buildScionLocalAgentAnswer', () => {
     expect(result.text).toContain('do not by themselves prove');
   });
 
+  it('routes list-every-official-source wording to the evidence answer', async () => {
+    const result = await buildScionLocalAgentAnswer({
+      question:
+        'List every official source assigned to Lesson 1, including the evaluation methodology, and explain why Easy Checks cannot prove conformance.',
+      courseMap: {
+        lessons: [{ title: 'Lesson 1: accessibility testing and remediation', sections: [] }],
+      },
+      courseGraph: {
+        enrichmentOverlay: {
+          lessonContent: {
+            'lesson-1': {
+              conceptProvenance: {
+                citations: [
+                  {
+                    displayTitle: 'Easy Checks',
+                    sourceUrl: 'https://www.w3.org/WAI/test-evaluate/preliminary/',
+                  },
+                  {
+                    displayTitle: 'WCAG-EM overview',
+                    sourceUrl: 'https://www.w3.org/WAI/test-evaluate/conformance/wcag-em/',
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+    });
+
+    expect(result).toMatchObject({ kind: 'course-evidence', lessonNumber: 1 });
+    expect(result.text).toContain('**Easy Checks**');
+    expect(result.text).toContain('**WCAG-EM overview**');
+    expect(result.text).toContain('does not establish comprehensive accessibility or conformance');
+  });
+
   it('answers an official-source question and explains the requested cross-lesson connection', async () => {
     const result = await buildScionLocalAgentAnswer({
       question: 'What official source supports Lesson 3 accessible forms, and how does it connect to Lesson 4?',

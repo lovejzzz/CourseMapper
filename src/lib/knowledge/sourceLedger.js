@@ -1052,6 +1052,44 @@ export function buildSourceLedgerFromCourseGraph(courseGraph, { checkedAt = '' }
     else appendCourseAwareSource(rows, reviewRows, normalized, courseGraph);
   });
 
+  // The enrichment overlay is the immutable lesson-evidence boundary. Graph
+  // readings intentionally cap classroom display resources, but that cap must
+  // never truncate provenance in the manifest or SOURCE_REPORT.md. Admit every
+  // retained overlay citation first; graph resources below can enrich or
+  // deduplicate the same URL without becoming the source of truth.
+  for (const [lessonId, payload] of Object.entries(courseGraph.enrichmentOverlay?.lessonContent || {})) {
+    const lessonNumber = Math.max(0, Number(String(lessonId).match(/(\d+)$/)?.[1]) || 0);
+    const session = lessonNumber > 0 ? courseGraph.sessions?.[lessonNumber - 1] : null;
+    const lessonTitle = cleanText(session?.title || `Lesson ${lessonNumber}`, 180);
+    const citations = Array.isArray(payload?.conceptProvenance?.citations) ? payload.conceptProvenance.citations : [];
+    citations.forEach((citation, citationIndex) => {
+      const normalized = normalizeTrustedSource(
+        {
+          ...citation,
+          id: citation.id || citation.sourceRefId || `overlay-${lessonNumber || 'course'}-${citationIndex + 1}`,
+          title: citation.displayTitle || citation.title || citation.key,
+          url: citation.sourceUrl || citation.url,
+          provider: citation.provider || citation.providerId,
+          sourceType: citation.kind || citation.sourceKind || 'lesson evidence source',
+          status: 'source-provided',
+          origin: citation.origin || 'scion-evidence-overlay',
+          evidence: citation.evidence,
+          scope: lessonNumber > 0 ? `lesson-${lessonNumber}` : 'course',
+          sessionRefs: lessonNumber > 0 ? [session?.id || `s${lessonNumber}`] : [],
+        },
+        {
+          fallbackId: `overlay-${lessonNumber || 'course'}-${citationIndex + 1}`,
+          checkedAt,
+          conceptLinks: [
+            ...(lessonNumber > 0 ? [{ id: `c${lessonNumber}`, label: lessonTitle }] : []),
+            ...(Array.isArray(citation.conceptLinks) ? citation.conceptLinks : []),
+          ],
+        },
+      );
+      appendCourseAwareSource(rows, reviewRows, normalized, courseGraph);
+    });
+  }
+
   for (const resource of courseGraph.resources || []) {
     if (!resource || typeof resource !== 'object') continue;
     const provider = resource.provider || resource.origin || 'course-resource';

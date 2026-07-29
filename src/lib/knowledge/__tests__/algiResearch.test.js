@@ -21,6 +21,7 @@ import {
   researchLessonKernelSets,
   researchLessonKernelSetsCascade,
   isResearchCandidateDomainAligned,
+  isWaiSourceFamilyAligned,
   conciseDefinitionOption,
   contrastTargetFromSentence,
   extractWaiResearchText,
@@ -191,6 +192,117 @@ describe('official W3C/WAI research provider', () => {
       sourceKind: 'official accessibility standard and tutorial',
       license: 'W3C permissive license',
     });
+  });
+
+  it('keeps usable WAI pages when one catalog page rejects a browser fetch', async () => {
+    const provider = buildWaiProvider(async (url) => {
+      if (url.includes('/Understanding/conformance')) throw new TypeError('Failed to fetch');
+      return `
+        <main>
+          <p>Web Content Accessibility Guidelines organize requirements for making web content accessible.</p>
+          <p>WCAG conformance uses testable success criteria and defined levels.</p>
+        </main>
+      `;
+    });
+    const records = await provider.searchArticles('WCAG principles and conformance', 6);
+
+    expect(records['Web Content Accessibility Guidelines']).toBeDefined();
+    expect(records['Accessibility principles']).toBeDefined();
+    expect(records['Understanding Conformance']).toBeUndefined();
+  });
+
+  it('routes accessibility testing and remediation lessons to official WAI evaluation guidance', async () => {
+    const provider = buildWaiProvider(async () => '<main><p>Evaluation identifies accessibility problems.</p></main>');
+    const titles = await provider.search('evidence-based accessibility testing and remediation', 5);
+
+    expect(titles).toEqual(expect.arrayContaining(['Evaluating web accessibility', 'Easy Checks', 'WCAG-EM overview']));
+  });
+
+  it('keeps each official WAI source inside its lesson family', () => {
+    expect(isWaiSourceFamilyAligned('WCAG principles and conformance', 'Understanding Conformance')).toBe(true);
+    expect(isWaiSourceFamilyAligned('WCAG principles and conformance', 'Easy Checks')).toBe(false);
+    expect(isWaiSourceFamilyAligned('semantic HTML and keyboard accessibility', 'Page structure')).toBe(true);
+    expect(isWaiSourceFamilyAligned('semantic HTML and keyboard accessibility', 'Easy Checks')).toBe(false);
+    expect(isWaiSourceFamilyAligned('accessible forms', 'Input validation')).toBe(true);
+    expect(isWaiSourceFamilyAligned('accessible forms', 'Headings')).toBe(false);
+    expect(isWaiSourceFamilyAligned('evidence-based accessibility testing and remediation', 'WCAG-EM overview')).toBe(
+      true,
+    );
+    expect(
+      isWaiSourceFamilyAligned('evidence-based accessibility testing and remediation', 'Accessibility principles'),
+    ).toBe(false);
+  });
+
+  it('applies WAI lesson-family routing at the domain admission boundary', () => {
+    const base = {
+      courseContext: 'Digital Accessibility for Product Teams',
+      extract:
+        'Easy Checks supports accessibility evaluation with keyboard, headings, forms, and other preliminary checks.',
+      definition: 'Accessibility assessment is a preliminary review of selected accessibility checks.',
+      provider: 'w3c-wai',
+    };
+    expect(
+      isResearchCandidateDomainAligned({
+        ...base,
+        topic: 'semantic HTML and keyboard accessibility',
+        title: 'Easy Checks',
+      }),
+    ).toBe(false);
+    expect(
+      isResearchCandidateDomainAligned({
+        ...base,
+        topic: 'evidence-based accessibility testing and remediation',
+        title: 'Easy Checks',
+      }),
+    ).toBe(true);
+  });
+
+  it('composes distinct evaluation concepts from official WAI guidance', async () => {
+    const provider = buildWaiProvider(async (url) => {
+      if (url.includes('wcag-em')) {
+        return `<main>
+          <p>WCAG Evaluation Methodology is a structured approach for evaluating conformance to Web Content Accessibility Guidelines.</p>
+          <p>WCAG-EM defines the evaluation scope before a representative sample of pages is selected.</p>
+          <p>Evaluators audit each selected page against the applicable WCAG success criteria.</p>
+          <p>The methodology records findings so teams can prioritize remediation work.</p>
+          <p>Evaluation reports state the tested scope, results, and evidence.</p>
+        </main>`;
+      }
+      if (url.includes('preliminary')) {
+        return `<main>
+          <p>Accessibility assessment is a first review of selected accessibility checks.</p>
+          <p>Easy Checks examines page titles, headings, contrast, keyboard focus, form labels, and alternatives.</p>
+          <p>A page can pass preliminary checks and still contain significant accessibility barriers.</p>
+          <p>More robust assessment is required for a comprehensive accessibility evaluation.</p>
+          <p>Teams use the initial results to choose the next evaluation and remediation steps.</p>
+        </main>`;
+      }
+      return `<main>
+        <p>Accessibility evaluation is also called assessment, audit, and testing.</p>
+        <p>Teams evaluate accessibility early and throughout design and development.</p>
+        <p>No automated tool alone can determine whether a site meets accessibility standards.</p>
+        <p>Knowledgeable human evaluation is required to determine whether a site is accessible.</p>
+        <p>Evaluation findings help teams identify accessibility problems and plan repairs.</p>
+      </main>`;
+    });
+
+    const topic = 'evidence-based accessibility testing and remediation';
+    const result = await researchLessonKernelSets([topic], {
+      provider,
+      providerId: 'w3c-wai',
+      courseContext: 'Digital Accessibility for Product Teams',
+      want: 5,
+      candidatesPerGroup: 7,
+      maxTargetedFallbacks: 0,
+    });
+    const kernels = result.byTopic.get(topic) || [];
+
+    expect(kernels.map((kernel) => kernel.term)).toEqual(
+      expect.arrayContaining(['Accessibility evaluation', 'Accessibility assessment', 'WCAG Evaluation Methodology']),
+    );
+    expect(
+      kernels.every((kernel) => kernel.provenance.sourceUrl.startsWith('https://www.w3.org/WAI/test-evaluate')),
+    ).toBe(true);
   });
 });
 

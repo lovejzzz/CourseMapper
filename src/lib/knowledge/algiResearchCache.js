@@ -7,11 +7,12 @@
  * storage into a shadow corpus.
  */
 
-// V15 invalidates kernels composed before the live W3C-specific fragment
-// filters covered WCAG 2 section-number history, initial-position clauses,
-// broken lowercase list continuations, and neighboring principle text.
-export const ALGI_RESEARCH_CACHE_KEY = 'coursemapper-algi-research-cache-v16';
-export const ALGI_RESEARCH_CACHE_PROTOCOL = 'algi-local-research-cache-v16';
+// V17 invalidates kernels composed before Scion enforced WAI source-family
+// routing, exact evidence-ledger selection, and dangling-clause rejection.
+// Keeping the protocol in both the storage key and payload makes stale
+// evidence fail closed even if a caller migrates storage manually.
+export const ALGI_RESEARCH_CACHE_KEY = 'coursemapper-algi-research-cache-v17';
+export const ALGI_RESEARCH_CACHE_PROTOCOL = 'algi-local-research-cache-v17';
 const MAX_ENTRIES = 60;
 const MAX_SERIALIZED_CHARS = 1_800_000;
 
