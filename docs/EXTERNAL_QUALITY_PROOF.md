@@ -28,7 +28,7 @@ The strict gate also needs at least one proof-eligible external `assumptionLedge
 
 ## Fixture Shape
 
-Use [expert-review-fixture.template.json](/Users/tianxing/Documents/NYU/NYUsliver/CourseMapper/docs/expert-review-fixture.template.json) as a compact shape reference. For strict A-quality proof, prefer the generated combined templates from `npm run audit:expert:packet`, especially `verification-output/external-quality-proof-packet/fixtures/external-project.combined-fixtures.template.json` for real course maps.
+Use [expert-review-fixture.template.json](./expert-review-fixture.template.json) as a compact shape reference. For strict A-quality proof, prefer the generated combined templates from `npm run audit:expert:packet`, especially `verification-output/external-quality-proof-packet/fixtures/external-project.combined-fixtures.template.json` for real course maps.
 
 Copy the template to a private review file, replace the example values with real reviewer evidence, and remove `templateOnly` before running the audit. Unchanged template fixtures are blocked and do not count as proof.
 

@@ -6,9 +6,14 @@
 //   node trellis/tendril/distill/webBlendBench.mjs
 // on the 60 blend held-outs — if q8 ONNX holds near mlx's 83.3%, the
 // browser path is proven with the identical runtime the web uses.
-process.chdir('/Users/tianxing/Documents/NYU/NYUsliver/CourseMapper');
+import path from 'node:path';
 import { readFile, writeFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
 import { pipeline, env } from '@huggingface/transformers';
+
+const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
+process.chdir(repositoryRoot);
+
 env.localModelPath = 'trellis/tendril/models';
 env.allowLocalModels = true;
 const BLEND_SYSTEM =

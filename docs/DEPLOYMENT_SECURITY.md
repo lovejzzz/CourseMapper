@@ -37,7 +37,7 @@ while IFS='=' read -r key value; do
   case "$key" in
     OPENAI_API_KEY) export "$key=$value" ;;
   esac
-done < /Users/tianxing/Documents/NYU/NYUsliver/CourseMapper/API-dontComit/api.ev
+done < "$PWD/API-dontComit/api.ev"
 OPENAI_MODEL=${OPENAI_MODEL:-gpt-5.4-mini} npm run audit:agent:openai
 ```
 
