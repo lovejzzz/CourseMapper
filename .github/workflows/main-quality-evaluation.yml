@@ -1,0 +1,53 @@
+name: Main quality evaluation
+
+# The complete 40-fixture quality ruler is intentionally separate from Fast
+# verification. It runs after a green main check, every night, and on demand
+# without making routine commits or production deployment wait about 17 extra
+# minutes.
+on:
+  workflow_run:
+    workflows: [Fast verification]
+    types: [completed]
+    branches: [main]
+  schedule:
+    - cron: '17 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: main-quality-evaluation-${{ github.event.workflow_run.head_branch || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  evaluate:
+    name: Main quality evaluation
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run the complete evaluation ruler
+        run: npm run audit:evaluation:main
+
+      - name: Upload evaluation reports
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: main-quality-evaluation-reports
+          path: verification-output/evaluation-system/**
+          if-no-files-found: ignore
