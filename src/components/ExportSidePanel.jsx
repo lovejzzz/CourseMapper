@@ -386,19 +386,16 @@ function ReadinessPanel({
   });
   const packageReviewIssues = trustStatus.reviewIssues;
   const packageBlockerIssues = packageReviewIssues.filter((issue) => issue?.severity === 'blocker');
+  const structuralReadinessBlockers = readiness.blockers.filter((issue) => issue?.source !== 'qualityGate');
+  const readinessBlockersForDisplay =
+    packageBlockerIssues.length > 0 ? structuralReadinessBlockers : readiness.blockers;
   const isBlocked = readiness.blockers.length > 0 || trustStatus.blocked;
   const hasWarnings = readiness.warnings.length > 0 || trustStatus.review || packageReviewIssues.length > 0;
-  const issuesToShow = isBlocked ? [...readiness.blockers, ...packageBlockerIssues].slice(0, 3) : [];
-  const affectedItemCount = Math.max(
-    isBlocked ? 1 : 0,
-    readiness.blockers.length +
-      packageBlockerIssues.reduce((total, issue) => total + Math.max(1, Number(issue?.count) || 1), 0),
-  );
-  const packageRefinementCount = Math.max(
-    isBlocked ? 1 : 0,
-    readiness.blockers.length + packageBlockerIssues.length,
-    Number(packageQualityPass?.blockers) || 0,
-  );
+  const issuesToShow = isBlocked ? [...readinessBlockersForDisplay, ...packageBlockerIssues].slice(0, 3) : [];
+  // Counts come from the canonical trust selector. Issue rows explain the
+  // blockers; they are not independent counters and may include one collapsed
+  // qualityGate row plus several detailed P0 findings.
+  const packageRefinementCount = Math.max(isBlocked ? 1 : 0, trustStatus.blockerCount);
   const hasPackageOnlyReview = packageReviewIssues.length > 0 && readiness.warnings.length === 0;
   const helperText = isBlocked
     ? 'Finish package fixes safe items and stops for decisions.'
@@ -410,10 +407,7 @@ function ReadinessPanel({
         wrap: 'border-red-100 bg-red-50/70 text-red-700 dark:border-red-800/50 dark:bg-red-950/30 dark:text-red-200',
         icon: 'bg-red-100 text-red-600 dark:bg-red-900/70 dark:text-red-200',
         title: 'Finish package',
-        meta:
-          affectedItemCount > packageRefinementCount
-            ? `${packageRefinementCount} item${packageRefinementCount === 1 ? '' : 's'} to refine · ${affectedItemCount} affected items`
-            : `${packageRefinementCount} item${packageRefinementCount === 1 ? '' : 's'} to refine`,
+        meta: `${packageRefinementCount} item${packageRefinementCount === 1 ? '' : 's'} to refine`,
       }
     : hasPackageOnlyReview
       ? {

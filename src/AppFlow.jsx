@@ -1869,11 +1869,8 @@ export default function AppFlow({
               finish: {
                 finalStatus,
                 blockers,
-                // v0.16.1: the digest reports the REAL warning count. The UI
-                // `warnings` is zeroed on ready (calm pass), which made the
-                // Linear Algebra digest claim "0 warnings" while its own
-                // flaggedChecks listed one — gates must not disagree with
-                // themselves.
+                // The digest and visible package record share the same real
+                // warning count; calm styling must not erase saved evidence.
                 warnings: reviewWarningCount,
                 repairsApplied: totalRepairsApplied,
                 retryCallCount,
@@ -1944,19 +1941,38 @@ export default function AppFlow({
         // panel consumes; recompute the visible package receipt after grading.
         result = applyQualityToFinalizerResult(result, packageQuality);
         packageQuality = result.quality || packageQuality;
-        blockers = (result.readiness?.blockers?.length || 0) + exportFailures;
         // Finish-evidence accounting is needed once per completed package, not
         // on the workspace hot path. Keep its policy leaf with the other
         // finalize-time lazy work so the Linux AppFlow gzip ratchet holds.
-        const { buildPackageWarningDomains } = await import('./lib/packageFinishEvidence');
-        const warningDomains = buildPackageWarningDomains({
-          readinessWarningCount: result.readiness?.warnings?.length || 0,
-          retryWarningCount: unresolvedRetryCount,
-          exportWarningCount: exportWarnings,
-          quality: packageQuality,
-          sourceEvidence: packageQuality?.sourceEvidence,
-        });
-        reviewWarningCount = warningDomains.total;
+        let warningDomains = null;
+        let blockerDomains = null;
+        try {
+          const { buildPackageBlockerDomains, buildPackageWarningDomains } =
+            await import('./lib/packageFinishEvidence');
+          warningDomains = buildPackageWarningDomains({
+            readinessWarningCount: result.readiness?.warnings?.length || 0,
+            retryWarningCount: unresolvedRetryCount,
+            exportWarningCount: exportWarnings,
+            quality: packageQuality,
+            sourceEvidence: packageQuality?.sourceEvidence,
+          });
+          blockerDomains = buildPackageBlockerDomains({
+            readiness: result.readiness,
+            exportFailureCount: exportFailures,
+            quality: packageQuality,
+          });
+        } catch {
+          // Evidence accounting must never turn a completed local package into
+          // a thrown finish. The fallback remains conservative; consumers use
+          // legacy blocker views when the blocker ledger is unavailable.
+        }
+        blockers = blockerDomains?.total ?? (result.readiness?.blockers?.length || 0) + exportFailures;
+        reviewWarningCount =
+          warningDomains?.total ??
+          (result.readiness?.warnings?.length || 0) +
+            unresolvedRetryCount +
+            exportWarnings +
+            (packageQuality?.status === 'graded' ? Math.max(0, Number(packageQuality?.findingCount) || 0) : 1);
         finalStatus = blockers > 0 ? 'blocked' : 'ready';
         warnings = reviewWarningCount;
         finalizerMessage =
@@ -2015,6 +2031,7 @@ export default function AppFlow({
           blockers,
           receipt: receiptWithSpend,
           warningDomains,
+          blockerDomains,
           sourceEvidence: packageQuality?.sourceEvidence || null,
           // v0.14.3 WS-A A3: the quality badge data (score, grade, findings)
           // for the export panel chip + modal.
@@ -2023,8 +2040,7 @@ export default function AppFlow({
         tracePackageFinish(finishRunId, 'finish_complete', {
           finalStatus,
           blockers,
-          // v0.16.1: honest count in telemetry (UI `warnings` is calmed to 0
-          // on ready; the trace must not be).
+          // Honest count in telemetry and the visible package record.
           warnings: reviewWarningCount,
           retryCount,
           retryPassCount,
@@ -2061,6 +2077,8 @@ export default function AppFlow({
           blockers,
           receipt: receiptWithSpend,
           quality: packageQuality,
+          warningDomains,
+          blockerDomains,
           courseGraph: courseGraphRef.current || null,
           ...(apiSpendSummary ? { apiSpendSummary } : {}),
           ...(apiFeatureSpendSummary.length > 0 ? { apiFeatureSpendSummary } : {}),

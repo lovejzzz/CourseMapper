@@ -524,6 +524,50 @@ describe('ExportSidePanel readiness repair timing', () => {
     expect(downloadCourseMaterialsZip).not.toHaveBeenCalled();
   });
 
+  it('uses the canonical blocker total instead of recombining quality-gate and finding rows', async () => {
+    await renderPanel({
+      courseMapInput: cleanCourseMap,
+      preferPackageScope: true,
+      packageQualityPass: {
+        status: 'blocked',
+        blockers: 1,
+        warnings: 1,
+        blockerDomains: {
+          schemaVersion: 1,
+          readiness: 0,
+          quality: 2,
+          export: 0,
+          total: 2,
+        },
+        warningDomains: {
+          schemaVersion: 1,
+          readiness: 0,
+          retry: 0,
+          export: 0,
+          quality: 1,
+          source: 0,
+          total: 1,
+        },
+        receipt: { finalStatus: 'blocked', exportStatus: 'passed', exportFailed: 0 },
+        quality: {
+          status: 'graded',
+          findingCount: 3,
+          findingCounts: { p0: 2, p1: 1, p2: 0 },
+          findings: [
+            { severity: 'P0', dimension: 'safety', detail: 'First blocker.' },
+            { severity: 'P0', dimension: 'identity', detail: 'Second blocker.' },
+            { severity: 'P1', dimension: 'format', detail: 'Advisory note.' },
+          ],
+        },
+      },
+    });
+
+    const panelText = container.querySelector('[data-testid="readiness-panel"]')?.textContent || '';
+    expect(panelText).toContain('2 items to refine');
+    expect(panelText).not.toContain('affected items');
+    expect(panelText).not.toContain('3 items to refine');
+  });
+
   it('keeps a terminal quality finding honest while allowing a verified ZIP', async () => {
     const onFinishPackage = vi.fn(async () => {
       throw new Error('finish should not rerun for a terminal reviewed package');

@@ -36,7 +36,13 @@ export function isBlockingQualityFinding(quality, finding) {
 export function countBlockingQualityFindings(quality) {
   if (quality?.status !== 'graded') return 0;
   if (Array.isArray(quality?.findings)) {
-    return quality.findings.filter((finding) => isBlockingQualityFinding(quality, finding)).length;
+    const detailedP0 = quality.findings.filter((finding) => finding?.severity === 'P0').length;
+    const detailedBlocking = quality.findings.filter((finding) => isBlockingQualityFinding(quality, finding)).length;
+    const summaryP0 = Math.max(0, Number(quality?.findingCounts?.p0) || 0);
+    // Saved or external records can carry an empty/truncated detail array.
+    // Reconcile unseen summary P0s conservatively while preserving the known
+    // partial-scope exemption for detailed discipline-density findings.
+    return detailedBlocking + Math.max(0, summaryP0 - detailedP0);
   }
   const count = Number(quality?.findingCounts?.p0) || 0;
   return Number.isFinite(count) ? Math.max(0, count) : 0;
@@ -45,7 +51,11 @@ export function countBlockingQualityFindings(quality) {
 export function countAdvisoryQualityFindings(quality) {
   if (quality?.status !== 'graded') return 0;
   if (Array.isArray(quality?.findings)) {
-    return quality.findings.filter((finding) => !isBlockingQualityFinding(quality, finding)).length;
+    const counts = quality?.findingCounts || {};
+    const summaryTotal =
+      Math.max(0, Number(counts.p0) || 0) + Math.max(0, Number(counts.p1) || 0) + Math.max(0, Number(counts.p2) || 0);
+    const total = Math.max(quality.findings.length, summaryTotal);
+    return Math.max(0, total - countBlockingQualityFindings(quality));
   }
   const counts = quality?.findingCounts || {};
   const p0 = Number(counts.p0) || 0;

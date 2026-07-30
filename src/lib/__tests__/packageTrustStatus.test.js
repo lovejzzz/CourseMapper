@@ -103,6 +103,29 @@ describe('package trust quality notes', () => {
     });
   });
 
+  it('keeps summary-only P0 evidence visible when detail records are truncated', () => {
+    const status = getPackageTrustStatus({
+      packageQualityPass: {
+        status: 'ready',
+        blockers: 0,
+        warnings: 0,
+        quality: {
+          status: 'graded',
+          findingCount: 0,
+          findingCounts: { p0: 1, p1: 0, p2: 0 },
+          findings: [],
+        },
+        receipt: { exportFailed: 0, exportWarningCount: 0 },
+      },
+    });
+
+    expect(status.blockerCount).toBe(1);
+    expect(status.reviewIssues[0]).toMatchObject({
+      label: 'Package notes',
+      severity: 'blocker',
+    });
+  });
+
   it('retains a late P0 in the bounded visible issue list', () => {
     const findings = Array.from({ length: 6 }, (_, index) => ({
       severity: 'P1',
@@ -216,5 +239,170 @@ describe('package trust quality notes', () => {
       status.reviewIssues.filter((issue) => issue.message === 'One factual claim still needs a source reference.'),
     ).toHaveLength(1);
     expect(status.sourceIssues[0]).toMatchObject({ domain: 'source' });
+    expect(status.reviewMeta).toBe('1 content note · 1 export note · 2 source notes');
+  });
+
+  it('uses non-overlapping blocker domains for export, readiness, and multiple quality P0s', () => {
+    const status = getPackageTrustStatus({
+      packageQualityPass: {
+        status: 'blocked',
+        blockers: 3,
+        blockerDomains: {
+          schemaVersion: 1,
+          readiness: 1,
+          quality: 2,
+          export: 1,
+          total: 99,
+        },
+        quality: {
+          status: 'graded',
+          findingCount: 2,
+          findingCounts: { p0: 2, p1: 0, p2: 0 },
+          findings: [
+            { severity: 'P0', dimension: 'safety', detail: 'First blocker.' },
+            { severity: 'P0', dimension: 'identity', detail: 'Second blocker.' },
+          ],
+        },
+        receipt: { exportFailed: 1 },
+      },
+    });
+
+    expect(status.blockerCount).toBe(4);
+    expect(status.canDownload).toBe(false);
+  });
+
+  it('never appends an export failure to a legacy inclusive blocker scalar', () => {
+    const status = getPackageTrustStatus({
+      packageQualityPass: {
+        status: 'blocked',
+        blockers: 2,
+        receipt: { exportFailed: 1 },
+      },
+    });
+
+    expect(status.blockerCount).toBe(2);
+  });
+
+  it('reconstructs independent content and export blockers when a legacy scalar is absent', () => {
+    const status = getPackageTrustStatus({
+      packageQualityPass: {
+        status: 'blocked',
+        blockers: 0,
+        quality: {
+          status: 'graded',
+          findingCounts: { p0: 1, p1: 0, p2: 0 },
+          findings: [{ severity: 'P0', dimension: 'safety', detail: 'Fix the unsafe instruction.' }],
+        },
+        receipt: { exportFailed: 1 },
+      },
+    });
+
+    expect(status.blockerCount).toBe(2);
+  });
+
+  it('recomputes versioned warning totals from named domains', () => {
+    const status = getPackageTrustStatus({
+      packageQualityPass: {
+        status: 'ready',
+        blockers: 0,
+        warnings: 0,
+        warningDomains: {
+          schemaVersion: 1,
+          readiness: 1,
+          retry: 0,
+          export: 0,
+          quality: 0,
+          source: 1,
+          total: 0,
+        },
+        sourceEvidence: {
+          schemaVersion: 1,
+          reviewRequiredCount: 1,
+          findings: [],
+        },
+        quality: {
+          status: 'graded',
+          findingCounts: { p0: 0, p1: 0, p2: 0 },
+          findings: [],
+        },
+        receipt: { exportFailed: 0, exportWarningCount: 0 },
+      },
+    });
+
+    expect(status.warningCount).toBe(2);
+    expect(status.state).toBe('review');
+  });
+
+  it('shows structured source debt alongside exact source findings without a duplicate content meta count', () => {
+    const sourceFinding = {
+      domain: 'source',
+      severity: 'P1',
+      dimension: 'citations',
+      detail: 'One source row has ambiguous license proof.',
+    };
+    const status = getPackageTrustStatus({
+      packageQualityPass: {
+        status: 'ready',
+        blockers: 0,
+        warnings: 2,
+        warningDomains: {
+          schemaVersion: 1,
+          readiness: 0,
+          retry: 0,
+          export: 0,
+          quality: 0,
+          source: 2,
+          total: 2,
+        },
+        quality: {
+          status: 'graded',
+          findingCount: 1,
+          findingCounts: { p0: 0, p1: 1, p2: 0 },
+          findings: [sourceFinding],
+        },
+        sourceEvidence: {
+          schemaVersion: 1,
+          reviewRequiredCount: 1,
+          refCoverage: { total: 2, withRefs: 1, missing: 1, danglingRefs: 0 },
+          findings: [sourceFinding],
+        },
+        receipt: { exportFailed: 0, exportWarningCount: 0 },
+      },
+    });
+
+    expect(status.sourceIssues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ message: 'One source row has ambiguous license proof.' }),
+        expect.objectContaining({ label: 'Source review' }),
+        expect.objectContaining({ label: 'Source coverage' }),
+      ]),
+    );
+    expect(status.qualityIssue).toBeNull();
+    expect(status.reviewMeta).toBe('3 source notes');
+    expect(status.warningCount).toBe(2);
+  });
+
+  it('does not add a quality-proof note on top of its canonical warning domain', () => {
+    const status = getPackageTrustStatus({
+      packageQualityPass: {
+        status: 'ready',
+        blockers: 0,
+        warnings: 1,
+        warningDomains: {
+          schemaVersion: 1,
+          readiness: 0,
+          retry: 0,
+          export: 0,
+          quality: 1,
+          source: 0,
+          total: 1,
+        },
+        quality: { status: 'not-graded', reason: 'grader unavailable' },
+        receipt: { exportFailed: 0, exportWarningCount: 0 },
+      },
+    });
+
+    expect(status.warningCount).toBe(1);
+    expect(status.state).toBe('not-graded');
   });
 });

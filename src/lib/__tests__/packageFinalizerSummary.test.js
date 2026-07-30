@@ -72,6 +72,35 @@ describe('packageFinalizerSummary', () => {
     ]);
   });
 
+  it('preserves canonical trust evidence for chat and progress consumers', () => {
+    const warningDomains = {
+      schemaVersion: 1,
+      readiness: 1,
+      retry: 0,
+      export: 0,
+      quality: 1,
+      source: 0,
+      total: 2,
+    };
+    const blockerDomains = { schemaVersion: 1, readiness: 0, quality: 1, export: 1, total: 2 };
+    const sourceEvidence = { schemaVersion: 1, sourceCount: 3, findings: [] };
+    const quality = { status: 'graded', findingCounts: { p0: 1, p1: 1, p2: 0 }, sourceEvidence };
+
+    expect(
+      normalizePackageSummary({
+        warningDomains,
+        blockerDomains,
+        sourceEvidence,
+        quality,
+      }),
+    ).toMatchObject({
+      warningDomains,
+      blockerDomains,
+      sourceEvidence,
+      quality,
+    });
+  });
+
   it('builds compact trust boundary rows for package handoff', () => {
     expect(
       buildPackageTrustBoundarySummary({

@@ -70,13 +70,17 @@ downloadable because a P1 was inserted first or because display truncation hid
 it. The deliberate partial-scope discipline-density exemption remains
 advisory and is pinned by regression tests.
 
-The same finish now retains the source and warning evidence it used to make the
-decision. Finalize grading carries a compact `sourceEvidence` snapshot from the
-assembled ZIP manifest, including source-ledger summary, review counts,
-source-reference coverage, and exact source-specific findings. A versioned
-`warningDomains` ledger gives readiness, retry, export, quality, and source
-warnings one owner each; source findings are not counted again inside the
-quality subtotal, and ready receipts no longer discard their warning details.
+The same finish now retains the source, warning, and blocker evidence it used
+to make the decision. Finalize grading carries a compact `sourceEvidence`
+snapshot from the assembled ZIP manifest, including source-ledger summary,
+review counts, source-reference coverage, and exact source-specific findings.
+A versioned `warningDomains` ledger gives readiness, retry, export, quality,
+and source warnings one owner each; source findings are not counted again
+inside the quality subtotal, and ready receipts no longer discard their warning
+details. A matching `blockerDomains` ledger assigns structural readiness,
+actual blocking quality findings, and export failures exactly once. Consumers
+recompute canonical totals from the named domains instead of trusting a stale
+stored total.
 
 The export card recognizes completion from the verified receipt rather than
 requiring a pristine-green package. Safe-repair and export-warning summaries
@@ -85,8 +89,9 @@ matches the real finalizer shape.
 
 This is a deterministic package-trust stabilization release. The model weights,
 inactive adapter, research-consent boundary, and automated-readiness claim
-ceiling are unchanged. The complete audit, implementation disposition, and
-deferred workflow-state recommendations are in
+ceiling are unchanged. The complete six-round audit, separate five-round PR
+#110 follow-up, implementation disposition, and deferred workflow-state
+recommendations are in
 [docs/ROUNDTABLE_PROJECT_REVIEW_2026-07-30.md](docs/ROUNDTABLE_PROJECT_REVIEW_2026-07-30.md).
 
 ### V0.16.99 historical release — discipline-safe sparse briefs

@@ -177,33 +177,49 @@ function countResultValue(value, fallback = 0) {
   return Number.isFinite(numeric) ? numeric : fallback;
 }
 
+function packageTrustEvidence(result = {}, normalized = {}) {
+  const quality = result.quality || normalized.quality || null;
+  return {
+    quality,
+    warningDomains: result.warningDomains || normalized.warningDomains || null,
+    blockerDomains: result.blockerDomains || normalized.blockerDomains || null,
+    sourceEvidence: result.sourceEvidence || normalized.sourceEvidence || quality?.sourceEvidence || null,
+  };
+}
+
+function buildPackageTrustPass(result = {}, normalized = {}, overrides = {}) {
+  return {
+    status:
+      overrides.status ?? result.packageQualityStatus ?? result.status ?? (normalized.ready ? 'ready' : 'blocked'),
+    repairsApplied: overrides.repairsApplied ?? countResultValue(result.repairsApplied, normalized.repairsApplied || 0),
+    warnings: overrides.warnings ?? countResultValue(result.warnings, normalized.warningCount || 0),
+    blockers: overrides.blockers ?? countResultValue(result.blockers, normalized.blockerCount || 0),
+    receipt: overrides.receipt ??
+      result.receipt ?? {
+        checkedItems: normalized.checkedItems,
+        checkedSections: normalized.checkedSections,
+        lessonCount: normalized.lessonCount,
+        exportChecked: normalized.exportChecked,
+        exportFailed: normalized.exportFailed,
+        exportWarningCount: normalized.exportWarningCount,
+        apiSpendSummary: normalized.apiSpendSummary,
+        apiFeatureSpendSummary: normalized.apiFeatureSpendSummary,
+        compilerSummary: normalized.compilerSummary,
+        trustBoundary: normalized.trustBoundary,
+        repairSummary: normalized.repairSummary,
+        reviewRecommendation: normalized.reviewRecommendation,
+        topIssues: normalized.topIssues,
+      },
+    ...packageTrustEvidence(result, normalized),
+  };
+}
+
 function buildPackageFinishSummaryMessage(result = {}, courseMap, selectedFeatures = []) {
   const normalized = normalizePackageSummary({
     ...result,
     lessonCount: result.lessonCount || courseMap?.lessons?.length || 0,
   });
-  const packageQualityPass = {
-    status: result.packageQualityStatus || result.status || (normalized.ready ? 'ready' : 'blocked'),
-    repairsApplied: countResultValue(result.repairsApplied, normalized.repairsApplied || 0),
-    warnings: countResultValue(result.warnings, normalized.warningCount || 0),
-    blockers: countResultValue(result.blockers, normalized.blockerCount || 0),
-    receipt: result.receipt || {
-      checkedItems: normalized.checkedItems,
-      checkedSections: normalized.checkedSections,
-      lessonCount: normalized.lessonCount,
-      exportChecked: normalized.exportChecked,
-      exportFailed: normalized.exportFailed,
-      exportWarningCount: normalized.exportWarningCount,
-      apiSpendSummary: normalized.apiSpendSummary,
-      apiFeatureSpendSummary: normalized.apiFeatureSpendSummary,
-      compilerSummary: normalized.compilerSummary,
-      trustBoundary: normalized.trustBoundary,
-      repairSummary: normalized.repairSummary,
-      reviewRecommendation: normalized.reviewRecommendation,
-      topIssues: normalized.topIssues,
-    },
-    quality: result.quality || null,
-  };
+  const packageQualityPass = buildPackageTrustPass(result, normalized);
   return buildPackageReceiptMessage(
     buildPackageReceiptSummary(
       packageQualityPass,
@@ -221,24 +237,18 @@ function getWorkspacePlanIntent(action) {
   return action.intent?.type || '';
 }
 
-function summarizeDirectPackageFinish(result) {
+export function summarizeDirectPackageFinish(result) {
   const status = result?.packageQualityStatus || result?.status || '';
   const normalized = normalizePackageSummary(result || {});
   const readiness = result?.readiness || {};
   const blockerCount = Number(readiness.blockers?.length ?? readiness.blockerCount ?? result?.blockers ?? 0);
   const warningCount = Number(readiness.warnings?.length ?? readiness.warningCount ?? result?.warnings ?? 0);
   const trustStatus = getPackageTrustStatus({
-    packageQualityPass: {
+    packageQualityPass: buildPackageTrustPass(result, normalized, {
       status: status || (normalized.ready ? 'ready' : 'blocked'),
       blockers: blockerCount || normalized.blockerCount,
       warnings: warningCount || normalized.warningCount,
-      receipt: result?.receipt || {
-        exportFailed: normalized.exportFailed,
-        exportWarningCount: normalized.exportWarningCount,
-        topIssues: normalized.topIssues,
-      },
-      quality: result?.quality || null,
-    },
+    }),
   });
   if ((status === 'ready' || (blockerCount === 0 && warningCount === 0 && result)) && trustStatus.clean) {
     return 'Package is ready. Safe checks passed and the export panel is ready.';
@@ -655,17 +665,10 @@ function buildPackageAuditReceipt(summary = {}) {
 function buildPackageFinishReceipt(result = {}) {
   const summary = normalizePackageSummary(result);
   const trustStatus = getPackageTrustStatus({
-    packageQualityPass: {
-      status: result?.packageQualityStatus || result?.status || (summary.ready ? 'ready' : 'blocked'),
+    packageQualityPass: buildPackageTrustPass(result, summary, {
       blockers: summary.blockerCount,
       warnings: summary.warningCount,
-      receipt: result?.receipt || {
-        exportFailed: summary.exportFailed,
-        exportWarningCount: summary.exportWarningCount,
-        topIssues: summary.topIssues,
-      },
-      quality: result?.quality || null,
-    },
+    }),
   });
   const fallbackStatus = packageReceiptStatus({
     ...summary,
@@ -952,17 +955,10 @@ function buildPackageFinishProgressSteps(result = {}) {
   const summary = normalizePackageSummary(result);
   const repairIssueCount = Number(summary.repairsFailed || 0);
   const trustStatus = getPackageTrustStatus({
-    packageQualityPass: {
-      status: result?.packageQualityStatus || result?.status || (summary.ready ? 'ready' : 'blocked'),
+    packageQualityPass: buildPackageTrustPass(result, summary, {
       blockers: summary.blockerCount,
       warnings: summary.warningCount,
-      receipt: result?.receipt || {
-        exportFailed: summary.exportFailed,
-        exportWarningCount: summary.exportWarningCount,
-        topIssues: summary.topIssues,
-      },
-      quality: result?.quality || null,
-    },
+    }),
   });
   const finalStatus = trustStatus.clean
     ? 'done'

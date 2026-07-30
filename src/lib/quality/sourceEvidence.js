@@ -4,9 +4,10 @@ function compactCount(value) {
 }
 
 const SOURCE_TEXT_PATTERN =
-  /\b(?:bibliograph|citation|doi|license|provenance|source(?:ref| ref| ledger| report| review| coverage)?|trusted concept-linked)\b/i;
+  /\b(?:bibliograph|citation|doi|license|provenance|source(?:ref| ref| ledger| report| review| coverage)|trusted concept-linked)\b/i;
 
 export function isSourceQualityFinding(finding = {}) {
+  if (finding?.domain === 'source') return true;
   const dimension = String(finding?.dimension || '');
   if (/\bcitations?\b/i.test(dimension) || /\bsource\b/i.test(dimension)) return true;
   return SOURCE_TEXT_PATTERN.test([finding?.file, finding?.detail, finding?.message].filter(Boolean).join(' '));
@@ -14,6 +15,7 @@ export function isSourceQualityFinding(finding = {}) {
 
 function compactFinding(finding = {}) {
   return {
+    domain: 'source',
     severity: finding?.severity || 'P2',
     dimension: finding?.dimension || 'citations',
     detail: finding?.detail || finding?.message || '',
@@ -66,13 +68,17 @@ export function buildFinalizeSourceEvidence(manifest = null, findings = []) {
 }
 
 export function countSourceAdvisoryFindings(sourceEvidence) {
-  const findingCount = (Array.isArray(sourceEvidence?.findings) ? sourceEvidence.findings : []).filter(
-    (finding) => finding?.severity !== 'P0',
-  ).length;
+  const findingCount = countSourceQualityAdvisoryFindings(sourceEvidence);
   const refCoverage = sourceEvidence?.refCoverage || {};
   const structuredCount =
     compactCount(sourceEvidence?.reviewRequiredCount) +
     compactCount(refCoverage.missing) +
     compactCount(refCoverage.danglingRefs);
   return Math.max(findingCount, structuredCount);
+}
+
+export function countSourceQualityAdvisoryFindings(sourceEvidence) {
+  return (Array.isArray(sourceEvidence?.findings) ? sourceEvidence.findings : []).filter(
+    (finding) => finding?.severity !== 'P0',
+  ).length;
 }

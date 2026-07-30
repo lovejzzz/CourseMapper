@@ -4,6 +4,7 @@ import {
   countBlockingQualityFindings,
   isBlockingQualityFinding,
 } from './qualityFindingPolicy';
+import { countSourceAdvisoryFindings, countSourceQualityAdvisoryFindings } from './quality/sourceEvidence';
 
 function compactCount(value) {
   const number = Number(value || 0);
@@ -15,9 +16,14 @@ function plural(count, singular, pluralValue = `${singular}s`) {
 }
 
 export function countQualityFindings(quality) {
-  if (Number.isFinite(quality?.findingCount)) return compactCount(quality.findingCount);
   const counts = quality?.findingCounts || {};
-  return compactCount(counts.p0) + compactCount(counts.p1) + compactCount(counts.p2);
+  const summaryCount = compactCount(counts.p0) + compactCount(counts.p1) + compactCount(counts.p2);
+  const detailCount = Array.isArray(quality?.findings) ? quality.findings.length : 0;
+  return Math.max(
+    summaryCount,
+    detailCount,
+    Number.isFinite(quality?.findingCount) ? compactCount(quality.findingCount) : 0,
+  );
 }
 
 export function buildQualityReviewIssue(quality) {
@@ -108,6 +114,7 @@ export function buildExportWarningIssues(packageReceipt, featureLabels = {}) {
         label: 'Export check',
         message: 'One exported file needs a quick visual scan before publishing.',
         detail: packageReceipt.exportWarning,
+        count: 1,
         severity: 'warning',
       },
     ];
@@ -118,6 +125,7 @@ export function buildExportWarningIssues(packageReceipt, featureLabels = {}) {
       label: warning.label || featureLabels[warning.featureId] || 'Export check',
       message: 'One exported file needs a quick visual scan before publishing.',
       detail: warning.message || '',
+      count: 1,
       severity: 'warning',
     }));
   }
@@ -127,6 +135,7 @@ export function buildExportWarningIssues(packageReceipt, featureLabels = {}) {
     {
       label: 'Export check',
       message: `${plural(warningCount, 'export note')} saved for review before publishing.`,
+      count: warningCount,
       severity: 'warning',
     },
   ];
@@ -151,11 +160,19 @@ function sourceFindingIssues(sourceEvidence) {
   const findings = Array.isArray(sourceEvidence?.findings) ? sourceEvidence.findings : [];
   return findings
     .filter((finding) => findingMessage(finding))
+    .map((finding, index) => ({ finding, index }))
+    .sort(
+      (left, right) =>
+        (left.finding?.severity === 'P0' ? 0 : left.finding?.severity === 'P1' ? 1 : 2) -
+          (right.finding?.severity === 'P0' ? 0 : right.finding?.severity === 'P1' ? 1 : 2) || left.index - right.index,
+    )
+    .map(({ finding }) => finding)
     .slice(0, 5)
     .map((finding) => ({
       label: findingLabel(finding),
       message: findingMessage(finding),
       detail: [finding?.file, finding?.evidence].filter(Boolean).join(' · '),
+      count: 1,
       severity: finding?.severity === 'P0' ? 'blocker' : 'warning',
       domain: 'source',
     }));
@@ -163,15 +180,14 @@ function sourceFindingIssues(sourceEvidence) {
 
 function buildSourceLedgerIssues(packageReceipt, sourceEvidence = null) {
   const evidenceIssues = sourceFindingIssues(sourceEvidence);
-  if (evidenceIssues.length > 0) return evidenceIssues;
-
-  const issues = [];
+  const issues = [...evidenceIssues];
   const reviewRequiredCount = compactCount(sourceEvidence?.reviewRequiredCount);
   if (reviewRequiredCount > 0) {
     issues.push({
       label: 'Source review',
       message: `${plural(reviewRequiredCount, 'source row')} saved for instructor confirmation.`,
       detail: sourceEvidence?.reportPath || '',
+      count: reviewRequiredCount,
       severity: 'warning',
       domain: 'source',
     });
@@ -181,6 +197,7 @@ function buildSourceLedgerIssues(packageReceipt, sourceEvidence = null) {
     issues.push({
       label: 'Source coverage',
       message: `${plural(missingRefCount, 'content item')} still needs a source reference.`,
+      count: missingRefCount,
       severity: 'warning',
       domain: 'source',
     });
@@ -190,11 +207,12 @@ function buildSourceLedgerIssues(packageReceipt, sourceEvidence = null) {
     issues.push({
       label: 'Source coverage',
       message: `${plural(danglingRefCount, 'source reference')} does not resolve to the source ledger.`,
+      count: danglingRefCount,
       severity: 'warning',
       domain: 'source',
     });
   }
-  if (issues.length > 0) return issues;
+  if (issues.length > 0) return dedupeReviewIssues(issues);
 
   // Legacy receipts used several experimental names. Keep reading them for
   // saved courses, but new finishes use packageQuality.sourceEvidence.
@@ -211,6 +229,7 @@ function buildSourceLedgerIssues(packageReceipt, sourceEvidence = null) {
       issues.push({
         label,
         message: `${plural(count, 'source note')} saved for instructor confirmation.`,
+        count,
         severity: 'warning',
       });
     }
@@ -223,6 +242,7 @@ function buildSourceLedgerIssues(packageReceipt, sourceEvidence = null) {
       label,
       message: 'A package note was saved for instructor confirmation.',
       detail: message,
+      count: 1,
       severity: 'warning',
     });
   });
@@ -242,9 +262,16 @@ function dedupeReviewIssues(issues) {
 
 function canonicalWarningCount(warningDomains) {
   if (compactCount(warningDomains?.schemaVersion) !== 1) return null;
-  if (Number.isFinite(Number(warningDomains?.total))) return compactCount(warningDomains.total);
   return ['readiness', 'retry', 'export', 'quality', 'source'].reduce(
     (total, domain) => total + compactCount(warningDomains?.[domain]),
+    0,
+  );
+}
+
+function canonicalBlockerCount(blockerDomains) {
+  if (compactCount(blockerDomains?.schemaVersion) !== 1) return null;
+  return ['readiness', 'quality', 'export'].reduce(
+    (total, domain) => total + compactCount(blockerDomains?.[domain]),
     0,
   );
 }
@@ -285,7 +312,8 @@ export function getPackageTrustStatus({
   const sourceIssues = buildSourceLedgerIssues(packageReceipt, sourceEvidence);
   const sourceIssueMessages = new Set(sourceIssues.map((issue) => issue.message));
   const qualityIssue =
-    qualityIssues.find((issue) => !sourceIssueMessages.has(issue.message)) || qualityIssues[0] || null;
+    qualityIssues.find((issue) => !sourceIssueMessages.has(issue.message)) ||
+    (sourceIssues.length === 0 ? qualityIssues[0] || null : null);
   const qualityProofIssue = qualityIssue ? null : buildQualityProofIssue(packageQuality, finishStatus);
   const readinessBlockers = Array.isArray(readiness?.blockers) ? readiness.blockers : [];
   const readinessWarnings = Array.isArray(readiness?.warnings) ? readiness.warnings : [];
@@ -299,16 +327,25 @@ export function getPackageTrustStatus({
       ? Math.max(1, countAdvisoryQualityFindings(packageQuality))
       : 0;
   const warningDomainCount = canonicalWarningCount(packageQualityPass?.warningDomains);
-  // `packageQualityPass.blockers`, readiness blockers, and quality P0s are
-  // three views of the same unresolved content gates after the finalizer.
-  // Summing them made one P0 read as five blockers in the workspace crown.
-  // Count the largest content view once, then add truly separate export
-  // failures.
-  const blockerCount = Math.max(packageBlockerCount, readinessBlockers.length, qualityBlockerCount) + exportFailedCount;
-  const warningCount =
-    warningDomainCount === null
-      ? packageWarningCount + readinessWarnings.length + qualityWarningCount + exportIssues.length + sourceIssues.length
-      : warningDomainCount + Number(Boolean(qualityProofIssue));
+  const blockerDomainCount = canonicalBlockerCount(packageQualityPass?.blockerDomains);
+  // Legacy AppFlow scalars already included readiness plus export failures.
+  // Treat that scalar as an inclusive floor, while still reconstructing the
+  // independent content and export domains when a restored record omitted it.
+  // New records use the versioned, non-overlapping blockerDomains ledger.
+  const inferredLegacyBlockerCount = Math.max(readinessBlockers.length, qualityBlockerCount) + exportFailedCount;
+  const blockerCount =
+    blockerDomainCount === null ? Math.max(packageBlockerCount, inferredLegacyBlockerCount) : blockerDomainCount;
+  const operationalWarningCount = Math.max(
+    packageWarningCount,
+    readinessWarnings.length + exportIssues.reduce((total, issue) => total + compactCount(issue?.count || 1), 0),
+  );
+  const sourceQualityWarningCount = countSourceQualityAdvisoryFindings(sourceEvidence);
+  const sourceWarningCount = sourceEvidence
+    ? countSourceAdvisoryFindings(sourceEvidence)
+    : sourceIssues.reduce((total, issue) => total + compactCount(issue?.count || 1), 0);
+  const legacyWarningCount =
+    operationalWarningCount + Math.max(0, qualityWarningCount - sourceQualityWarningCount) + sourceWarningCount;
+  const warningCount = warningDomainCount === null ? legacyWarningCount : warningDomainCount;
   const hasNotGradedQuality = Boolean(qualityProofIssue || (packageQuality && packageQuality.status !== 'graded'));
   const isRunning = finishStatus === 'running';
   const isGenerationRunning = isRunning && packageQualityPass?.phase === 'generation';

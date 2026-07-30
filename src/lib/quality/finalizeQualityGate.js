@@ -75,8 +75,15 @@ export async function gradePackageAtFinalize({
     if (raced.error) throw raced.error;
     const result = raced.value;
     const quality = result.quality || { status: 'not-graded', reason: 'grading did not run' };
-    if (quality.status !== 'graded') return quality;
     const findings = result.qualityResult?.findings || [];
+    const sourceEvidence = buildFinalizeSourceEvidence(result.manifest, findings);
+    if (quality.status !== 'graded') {
+      return {
+        ...quality,
+        featureIds: Array.isArray(featureIds) ? [...featureIds] : null,
+        sourceEvidence,
+      };
+    }
     return {
       ...quality,
       featureIds: Array.isArray(featureIds) ? [...featureIds] : null,
@@ -87,7 +94,7 @@ export async function gradePackageAtFinalize({
       findings,
       findingCount: result.qualityResult?.stats?.findingCount ?? 0,
       fileCount: result.qualityResult?.stats?.fileCount ?? null,
-      sourceEvidence: buildFinalizeSourceEvidence(result.manifest, findings),
+      sourceEvidence,
       // Full texture block (sub-scores + worst-tail evidence) for the Seal and
       // report modal. The manifest carries the slim summary.
       texture: result.qualityResult?.texture || quality.texture || null,

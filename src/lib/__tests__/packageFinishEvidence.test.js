@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildPackageWarningDomains } from '../packageFinishEvidence';
+import { buildPackageBlockerDomains, buildPackageWarningDomains } from '../packageFinishEvidence';
 
 describe('package finish warning evidence', () => {
   it('assigns every warning to one named domain without double-counting source findings', () => {
@@ -38,9 +38,50 @@ describe('package finish warning evidence', () => {
       readiness: 2,
       retry: 1,
       export: 1,
-      quality: 0,
+      quality: 1,
       source: 2,
-      total: 6,
+      total: 7,
+    });
+  });
+
+  it('owns structural, quality, and export blockers exactly once', () => {
+    const quality = {
+      status: 'graded',
+      findingCounts: { p0: 2, p1: 0, p2: 0 },
+      findings: [
+        { severity: 'P0', dimension: 'safety', detail: 'First blocker.' },
+        { severity: 'P0', dimension: 'identity', detail: 'Second blocker.' },
+      ],
+    };
+    const readiness = {
+      blockers: [
+        { source: 'structure', message: 'A required file is missing.' },
+        { source: 'qualityGate', message: 'The package has two P0 findings.' },
+      ],
+    };
+
+    expect(buildPackageBlockerDomains({ readiness, quality, exportFailureCount: 1 })).toEqual({
+      schemaVersion: 1,
+      readiness: 1,
+      quality: 2,
+      export: 1,
+      total: 4,
+    });
+  });
+
+  it('owns a not-graded proof note inside the warning ledger', () => {
+    expect(
+      buildPackageWarningDomains({
+        quality: { status: 'not-graded', reason: 'grader unavailable' },
+      }),
+    ).toEqual({
+      schemaVersion: 1,
+      readiness: 0,
+      retry: 0,
+      export: 0,
+      quality: 1,
+      source: 0,
+      total: 1,
     });
   });
 });

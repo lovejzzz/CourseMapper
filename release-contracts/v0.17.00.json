@@ -72,12 +72,13 @@
       "id": "v01700-warning-domain-ownership",
       "status": "verified-current",
       "changelogHighlightIndex": 2,
-      "summary": "New finish records publish non-overlapping warning domains and retain ready-package warning evidence.",
+      "summary": "New finish records publish non-overlapping warning and blocker domains, recompute canonical totals from named owners, and retain ready-package evidence.",
       "anchors": [
         "src/lib/packageFinishEvidence.js",
         "src/AppFlow.jsx",
         "src/lib/packageTrustStatus.js",
-        "src/lib/__tests__/packageFinishEvidence.test.js"
+        "src/lib/__tests__/packageFinishEvidence.test.js",
+        "src/lib/__tests__/packageTrustStatus.test.js"
       ],
       "proofCommands": [
         "npm test -- --run src/lib/__tests__/packageFinishEvidence.test.js src/lib/__tests__/packageTrustStatus.test.js"
@@ -97,11 +98,12 @@
       "id": "v01700-roundtable-audit",
       "status": "verified-current",
       "changelogHighlightIndex": 4,
-      "summary": "The retained six-round audit distinguishes code-verified findings, implemented fixes, and deferred architecture work.",
+      "summary": "The retained six-round audit and five-round PR #110 follow-up distinguish code-verified findings, implemented fixes, migration behavior, and deferred architecture work.",
       "anchors": [
         "docs/ROUNDTABLE_PROJECT_REVIEW_2026-07-30.md",
         "src/lib/packageTrustStatus.js",
-        "src/lib/quality/finalizeQualityGate.js"
+        "src/lib/quality/finalizeQualityGate.js",
+        "src/components/chat/__tests__/ChatPanel.trustCounts.test.jsx"
       ],
       "proofCommands": ["npm run audit:release-history"],
       "proofScopes": ["doc", "static-audit"]

@@ -103,4 +103,42 @@ describe('gradePackageAtFinalize', () => {
       }),
     ]);
   });
+
+  it('preserves assembled manifest source proof when grading returns not-graded', async () => {
+    buildCourseMaterialsZip.mockResolvedValueOnce({
+      quality: {
+        status: 'not-graded',
+        reason: 'grader timed out after assembly',
+      },
+      qualityResult: {
+        findings: [],
+      },
+      manifest: {
+        sourceLedgerSummary: { sourceCount: 2, trustedCount: 1, reviewRequiredCount: 1 },
+        sourceReviewRows: [{ id: 'review-1' }],
+        sourceReport: { path: 'SOURCE_REPORT.md', sourceCount: 2, sourceReviewCount: 1 },
+        courseIR: {
+          sourceRefCoverage: { totals: { total: 3, withRefs: 2, missing: 1, danglingRefs: 0 } },
+        },
+      },
+    });
+
+    const result = await gradePackageAtFinalize({
+      courseMap: { courseName: 'Source-backed course', lessons: [] },
+      featureIds: ['courseMap'],
+    });
+
+    expect(result).toMatchObject({
+      status: 'not-graded',
+      reason: 'grader timed out after assembly',
+      featureIds: ['courseMap'],
+      sourceEvidence: {
+        schemaVersion: 1,
+        sourceCount: 2,
+        reviewRequiredCount: 1,
+        reportPath: 'SOURCE_REPORT.md',
+        refCoverage: { total: 3, withRefs: 2, missing: 1, danglingRefs: 0 },
+      },
+    });
+  });
 });

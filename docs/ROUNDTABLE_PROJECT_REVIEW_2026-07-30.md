@@ -1,13 +1,17 @@
-# EDUTOOL Code Review — Six-Round Roundtable
+# EDUTOOL Code Review — Six-Round Review and PR #110 Follow-up
 
 **Date:** 2026-07-30
 
 **Reviewed revision:** `eb59946` (`main`)
 
+**Follow-up revision:** `df606cc` (`codex/v0.17.00-trust-boundary`, PR #110)
+
 **Reviewers:** Codex CLI, Claude CLI, and Antigravity CLI
 
 **Method:** Six discussion rounds across two Roundtable sessions, followed by
-independent verification in the working tree.
+independent verification in the working tree. PR #110 then received a separate
+five-round, 15-turn review in Roundtable v0.0.0.25, followed by another
+independent implementation audit.
 
 ## Evidence policy
 
@@ -258,7 +262,7 @@ clean-room rewrite.
 
 ## V0.17.00 implementation disposition
 
-I agree with the four findings at the package trust boundary, and V0.17.00
+I agree with the findings at the package trust boundary, and V0.17.00
 implements them together because they describe one producer-to-consumer
 contract:
 
@@ -268,6 +272,33 @@ contract:
 | Finalize drops structured source evidence             | Fixed. Finalize grading now returns a compact `sourceEvidence` snapshot from the assembled manifest, stores it on the finish record, and lets trust surfaces consume exact source findings with legacy fallback support.           |
 | Warning evidence is lossy and overlapping             | Fixed. Ready receipts retain their warnings, and new finishes publish one versioned `warningDomains` ledger. Source findings are removed from the general quality subtotal so they are counted once.                               |
 | Repair/export summaries disappear when warnings exist | Fixed. A completed receipt—not a pristine-green predicate—controls summary availability, and the warning-bearing component fixture now matches the producer shape.                                                                 |
+
+### PR #110 follow-up audit
+
+The follow-up discussion was explicitly steered to inspect implementation and
+tests rather than release prose. The agents traced
+`AppFlow → packageFinishEvidence → packageTrustStatus`, then challenged one
+another with concrete producer and restored-record shapes. I rechecked every
+accepted point against the branch before changing code.
+
+| Code-backed finding                                                                 | Disposition                                                                                                                                                                                                                                         |
+| ----------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Export blockers could be represented by a readiness row, a quality P0, and a scalar | Added versioned `blockerDomains` ownership for structural readiness, actual blocking quality findings, and export failures. The collapsed `qualityGate` readiness row remains explanatory but is excluded from the structural count.                |
+| Source warning ownership subtracted unrelated quality advisories                    | Source-owned subtraction now uses only source-classified quality findings. Structured review/missing/dangling counts cannot remove format, accessibility, or content advisories.                                                                    |
+| Versioned ledgers still trusted a stored `total`                                    | Canonical warning and blocker totals are recomputed from their named domains. Persisted `total` is informational and cannot override the ledger.                                                                                                    |
+| Successful non-graded assembly lost manifest source evidence                        | Finalize returns compact source evidence and selected feature IDs after any successful assembly, even when grading returns `not-graded`.                                                                                                            |
+| The source classifier matched the bare word “source”                                | Classification now requires an explicit source domain or source-specific terms such as citation, provenance, source ref, ledger, report, review, or coverage.                                                                                       |
+| One exact source finding suppressed all structured source debt                      | Trust review now retains exact source findings alongside review-required, missing-reference, and dangling-reference evidence, with stable severity order and duplicate suppression.                                                                 |
+| The pending quality-proof warning had no ledger owner                               | A successful but non-graded finish owns exactly one quality-domain advisory; the trust selector no longer adds a second synthetic count.                                                                                                            |
+| ChatPanel rebuilt several lossy package-pass shapes                                 | All direct-finish, receipt, and progress adapters now share one trust-preserving builder carrying warning domains, blocker domains, quality, and source evidence.                                                                                   |
+| ExportSidePanel recombined explanatory rows into false item counts                  | The panel uses the canonical trust blocker count, removes the collapsed quality-gate row when detailed P0s exist, and no longer labels blocker arithmetic as “affected items.”                                                                      |
+| Truncated finding arrays could fail open against `findingCounts`                    | Blocking and advisory policies reconcile summary counts with available detail. Known partial-scope discipline-density exemptions remain advisory, while unseen summary P0s fail closed.                                                             |
+| Legacy reconstruction could collapse independent content and export blockers        | Independent audit fix. When a legacy inclusive scalar is absent, trust reconstructs `max(readiness, quality) + export`; when the scalar exists, it is treated as an inclusive floor and is never appended to the same export failure a second time. |
+
+The resulting contract is intentionally migration-safe. New finishes use
+versioned, non-overlapping ledgers. Restored legacy finishes use conservative
+reconciliation without pretending their overlapping scalars have exact domain
+ownership.
 
 The workflow-state migration and the positional native-generation API are real
 architecture concerns, but I do not think they belong in the same release.
@@ -279,17 +310,17 @@ into those areas would make the trust correction harder to verify and revert.
 
 | Check                         |                            Result |
 | ----------------------------- | --------------------------------: |
-| Unit/component suite          |         5,990 passed, 162 skipped |
-| Test files                    |            481 passed, 16 skipped |
+| Unit/component suite          |         6,007 passed, 162 skipped |
+| Test files                    |            484 passed, 16 skipped |
 | Fast blueprint quality matrix |                         24 passed |
-| PR compiler contract          |             18/18 fixtures passed |
+| PR compiler contract          |     14/40 profile fixtures passed |
 | Layered PR evaluation         | Passed (`compiler-contract-only`) |
 | Production build              |                            Passed |
 | Lint and format               |                            Passed |
 | Bundle/repository ratchets    |                            Passed |
 | Release-history claims        |                      6/6 verified |
 
-## What the six rounds changed
+## What the review rounds changed
 
 - **Rounds 1–3:** identified the overall compiler/evidence strength, incomplete
   state ownership, and lack of user-workflow instrumentation. The owner then
@@ -302,6 +333,14 @@ into those areas would make the trust correction harder to verify and revert.
 - **Round 6:** traced real source evidence through ZIP assembly and deep grading
   to the exact boundary where structure is lost, then found the
   insertion-order-dependent P0 classification.
+
+The separate five-round PR #110 follow-up concentrated on adversarial migration
+shapes: stale totals, truncated details, non-graded success, double-owned
+quality-gate rows, and the three ChatPanel reconstruction paths. It also exposed
+two Roundtable problems during real use: a completed room could retain the
+default ports, and disposable copies lacked a safe branch-diff substitute for
+the omitted `.git` directory. Those are corrected in Roundtable v0.0.0.26 with
+per-launch free ports and sanitized `.roundtable-context` evidence.
 
 The discussion did not reach full consensus on whether the final model needs
 two or three readiness predicates, the exact finish-record schema, or how the
@@ -336,6 +375,7 @@ report.
 ## Scope note
 
 This report began as a review-only artifact. V0.17.00 subsequently implemented
-the four package-trust findings listed above and added focused producer,
-consumer, and component regressions. The workflow-state and positional-API
-findings remain recommendations rather than implied completed work.
+the package-trust findings listed above, completed a separate 15-turn PR audit,
+and added producer, migration, consumer, adapter, and component regressions.
+The workflow-state and positional-API findings remain recommendations rather
+than implied completed work.
