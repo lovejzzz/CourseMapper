@@ -1,5 +1,120 @@
 import { cleanText } from './compilerText';
 
+const PRECISE_DISCIPLINE_LENSES = [
+  [
+    /\b(?:oral history|oral histories|oral historian|narrator interviews?|interview protocols?|audio recording protocols?|transcript(?:ion|s)?|thematic coding of transcripts?)\b/,
+    'oral-history fieldwork and interpretation',
+    'narrator, consent, recording, transcript, and contextual evidence',
+    'ethical interpretation or public-history decision',
+    'oral historian',
+    'interview, transcript, archive, or public-history scenario',
+  ],
+  [
+    /\b(?:marine biology|marine ecology|ocean systems|intertidal transects?|seagrass|coral health)\b/,
+    'marine field ecology',
+    'field observation, sample, and ecological evidence',
+    'ecological interpretation',
+    'marine field researcher',
+    'transect, sample, or habitat case',
+  ],
+  [
+    /\b(?:corporate tax|tax strategy|corporate taxable income|stock redemptions?|consolidated returns?|transfer pricing)\b/,
+    'corporate taxation and transaction planning',
+    'statutory, transaction, and tax-calculation evidence',
+    'tax-position decision',
+    'corporate tax analyst',
+    'corporate transaction or return scenario',
+  ],
+  [
+    /\b(?:baroque counterpoint|species counterpoint|two voice invention|fugue subject|stretto|tonal answer)\b/,
+    'counterpoint and score analysis',
+    'notated voice-leading and harmonic evidence',
+    'contrapuntal design decision',
+    'composer-analyst',
+    'score excerpt or contrapuntal passage',
+  ],
+  [
+    /\b(?:applied epidemiology|disease frequency|outbreak case definitions?|cohort study design|case control study|screening test performance)\b/,
+    'applied epidemiology',
+    'population, study-design, and surveillance evidence',
+    'epidemiologic inference',
+    'epidemiologist',
+    'outbreak, screening, or study-design case',
+  ],
+  [
+    /\b(?:civil procedure|subject matter jurisdiction|personal jurisdiction|pleading standards|claim preclusion|class actions)\b/,
+    'civil procedure and litigation analysis',
+    'procedural rule, record, and precedent evidence',
+    'procedural legal conclusion',
+    'litigation analyst',
+    'case record or procedural hypothetical',
+  ],
+  [
+    /\b(?:materials science|crystal lattices?|phase diagrams?|mechanical testing|fracture and fatigue|material selection)\b/,
+    'materials science laboratory',
+    'microstructure, property, and test evidence',
+    'material-selection or failure-analysis decision',
+    'materials engineer',
+    'sample, test, or design-failure scenario',
+  ],
+  [
+    /\b(?:second[-\s]language pedagogy|language acquisition perspectives?|communicative competence|corrective feedback|language assessment)\b/,
+    'second-language teaching practice',
+    'learner-language and classroom evidence',
+    'language-instruction decision',
+    'language teacher',
+    'learner-language sample or classroom task',
+  ],
+  [
+    /\b(?:urban planning|land use analysis|transportation networks?|housing affordability|zoning alternatives?|planning proposal)\b/,
+    'urban planning studio',
+    'spatial, demographic, and stakeholder evidence',
+    'planning decision',
+    'urban planner',
+    'site, map, or planning scenario',
+  ],
+  [
+    /\b(?:clinical and medical ethics|medical ethics|informed consent|decision-making capacity|ethics consultation)\b/,
+    'clinical ethics deliberation',
+    'case facts, stakeholder values, and moral argument evidence',
+    'clinical ethics judgment',
+    'clinical ethicist',
+    'patient-care ethics case',
+  ],
+  [
+    /\b(?:database systems?|relational data models?|entity relationship design|sql queries|normalization|query optimization)\b/,
+    'database design and implementation',
+    'schema, query, transaction, and performance evidence',
+    'database design decision',
+    'database engineer',
+    'schema, query, or transaction scenario',
+  ],
+  [
+    /\b(?:modern art history|visual culture|impressionism|cubism|abstract expressionism|curatorial argument)\b/,
+    'modern art-historical interpretation',
+    'formal, contextual, and comparative visual evidence',
+    'art-historical interpretation',
+    'art historian',
+    'artwork, exhibition, or visual comparison',
+  ],
+  [
+    /\b(?:exercise and sports physiology|sports physiology|energy systems|neuromuscular function|performance testing|training program design)\b/,
+    'exercise physiology and performance analysis',
+    'physiological, workload, and performance evidence',
+    'training or performance decision',
+    'exercise physiologist',
+    'athlete test or training-response scenario',
+  ],
+];
+
+export function resolvePreciseDisciplineLens(value) {
+  const text = cleanText(value).toLowerCase();
+  const matched = PRECISE_DISCIPLINE_LENSES.find(([pattern]) => pattern.test(text));
+  if (!matched) return null;
+  const [, domain, evidenceNoun, decisionNoun, learnerRole, exampleNoun] = matched;
+  return { domain, evidenceNoun, decisionNoun, learnerRole, exampleNoun };
+}
+
 function appendLensPhrase(value, addition, joiner = 'and') {
   const base = cleanText(value);
   const extra = cleanText(addition);

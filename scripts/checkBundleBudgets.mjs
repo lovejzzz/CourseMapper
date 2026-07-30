@@ -29,9 +29,9 @@ const budgets = {
 // caught an unaccounted increase, and the fix is to re-freeze at the released
 // state, not to widen the allowance. Every future release must do the same.
 const repositoryBudgets = {
-  // v0.16.98 advances the frozen state through the shipped v0.16.97 contract;
-  // its own v0.16.98 contract consumes the single declared-release allowance.
-  baselineVersion: '0.16.97',
+  // v0.16.99 advances the frozen state through the shipped v0.16.98 contract;
+  // its own v0.16.99 contract consumes the single declared-release allowance.
+  baselineVersion: '0.16.98',
   // v0.16.82 adds 29 net lines of reusable compiler control logic for
   // policy-domain separation and concept-owned evidence binding. Source-
   // statement copy and prerequisite selection moved to a cacheable leaf; the
@@ -50,7 +50,11 @@ const repositoryBudgets = {
   // monolith-only counter report a false reduction. The 69-line post-release
   // increase is the opt-in finalized-string realization receipt required to
   // measure causal texture; it is inactive on ordinary product compiles.
-  compilerFamilyLines: 30_690,
+  // V0.16.99 adds 267 measured lines for sparse-brief discipline lenses,
+  // course-aware realization, and sentence-level texture selection. These
+  // replace generic fallback behavior, are regression-covered across retained
+  // and fresh-domain panels, and remain compile-only.
+  compilerFamilyLines: 30_957,
   // v0.16.81 adds one executable Algi→Scion hybrid benchmark audit. It freezes
   // evidence, route, quality, call, latency, and export promotion rules; this
   // is a release gate rather than product-side script sprawl.
@@ -66,9 +70,9 @@ const repositoryBudgets = {
   // retained-real panels share the same implementation and arguments rather
   // than multiplying scripts for every profile.
   npmScripts: 385,
-  // v0.16.97 shipped the 283rd release-contract ledger file; v0.16.98 may add
-  // exactly one current-release contract.
-  releaseContractFiles: 283,
+  // v0.16.98 shipped 284 tracked release-ledger files (contracts plus the
+  // directory README); v0.16.99 may add exactly one current-release contract.
+  releaseContractFiles: 284,
   trackedWeightFiles: 62,
   trackedWeightBytes: 1_053_339_981,
   largeBinaryBytes: 1024 * 1024,
@@ -290,7 +294,10 @@ const lazyChunkBudgets = [
   // v0.16.87 admits browser-researched open sources into required-text and
   // weekly-reading surfaces while filtering compiler-minted evidence briefs.
   // Raw stays below 844; measured gzip 236.4 and is frozen at the next tenth.
-  { prefix: 'courseBlueprintCompiler-', rawKiB: 844, gzipKiB: 236.5 },
+  // V0.16.99 adds the sparse-only dispatch seam for discipline-aware fallback
+  // realization. It remains lazy and measures 236.6 KiB gzip; keep only
+  // sub-KiB platform variance instead of widening the raw ceiling.
+  { prefix: 'courseBlueprintCompiler-', rawKiB: 844, gzipKiB: 236.75 },
   // Experiential-activity mechanics are compiler-owned and independently
   // cacheable beside the lazy compiler. The chunk projects the canonical
   // activity clock, evidence, constraints, decisions, artifact, and debrief
@@ -334,9 +341,11 @@ const lazyChunkBudgets = [
   // Technical session plans are domain-specific data and stay outside the
   // core compiler controller.
   { prefix: 'compilerTechnicalSessionPlans-', rawKiB: 7, gzipKiB: 2.25 },
-  // Course-aware slide discussion composition is independently cacheable and
-  // should not invalidate the broader instructional-copy library.
-  { prefix: 'compilerSlideDiscussionCopy-', rawKiB: 7, gzipKiB: 3 },
+  // Course-aware slide discussion composition and its compact discipline-lens
+  // table are independently cacheable and should not invalidate the broader
+  // instructional-copy library. V0.16.99 adds 13 measured sparse-brief lenses
+  // (9.9/3.7 KiB) while preserving the landing and workspace hot paths.
+  { prefix: 'compilerSlideDiscussionCopy-', rawKiB: 10, gzipKiB: 3.75 },
   // V0.16.76 moves the unchanged exam-answer and distractor rotations into a
   // pure compile-only leaf. This gives the broader copy chunk deterministic
   // headroom across Node/zlib platforms without raising its existing budget.

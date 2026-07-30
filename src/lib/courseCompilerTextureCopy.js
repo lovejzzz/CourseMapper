@@ -1,4 +1,4 @@
-import { selectComposedLessonVariant } from './courseCompilerRealization.js';
+import { selectComposedLessonVariant, selectContextualLessonVariant } from './courseCompilerRealization.js';
 
 export function assignmentEvidenceLine({ lesson, evidenceNoun, relatedLesson, assessmentTitle }) {
   return selectComposedLessonVariant(
@@ -162,6 +162,40 @@ export function slideCourseThroughline({ lesson, courseName, concept, artifact }
   );
 }
 
+export function slideDisciplinaryReasoningLine({ lesson, lens, concept, artifact }) {
+  return selectContextualLessonVariant(
+    lesson,
+    [
+      `Use ${concept} as a ${lens.domain} lens: identify which ${lens.evidenceNoun} matters before defending the ${lens.decisionNoun}.`,
+      `As a ${lens.learnerRole}, trace one inspectable ${lens.evidenceNoun} detail through ${concept} into the ${lens.decisionNoun}.`,
+      `Start the ${artifact} analysis with ${concept}, separating the observed ${lens.evidenceNoun} from the inference it supports.`,
+      `Make ${concept} operational in ${artifact} by showing exactly where the ${lens.evidenceNoun} changes the ${lens.decisionNoun}.`,
+      `Inspect the ${lens.evidenceNoun} through ${concept}, then state the ${lens.decisionNoun} a ${lens.learnerRole} can defend.`,
+      `In ${artifact}, connect ${concept} to one visible ${lens.evidenceNoun} clue and explain the resulting ${lens.decisionNoun}.`,
+      `Treat ${concept} as a working method: test the ${lens.evidenceNoun} before committing to the ${lens.decisionNoun}.`,
+      `Test ${concept} against an inspectable ${lens.exampleNoun}, then mark the evidence that changes ${artifact}.`,
+    ],
+    'slideDecks.content.disciplinaryReasoning',
+  );
+}
+
+export function slideEvidenceBoundaryLine({ lesson, lens, concept, artifact }) {
+  return selectContextualLessonVariant(
+    lesson,
+    [
+      `Before accepting the ${lens.decisionNoun}, distinguish what the ${lens.evidenceNoun} supports from what still needs testing in ${artifact}.`,
+      `Test the boundary of ${concept} against the ${lens.evidenceNoun}; identify which condition would change the ${lens.decisionNoun}.`,
+      `Separate the supported ${concept} claim from the assumption behind ${artifact}, and mark the uncertainty a reviewer should not miss.`,
+      `Ask what the ${lens.evidenceNoun} can establish for ${artifact}, then state what evidence would warrant a different conclusion.`,
+      `Qualify the ${concept} claim by naming what the ${lens.evidenceNoun} cannot yet establish for the ${lens.decisionNoun}.`,
+      `Pressure-test the ${lens.decisionNoun}: identify the weakest ${lens.evidenceNoun} link and the next check it requires.`,
+      `Mark the limit on ${concept} before revising ${artifact}; explain which missing detail could reverse the current decision.`,
+      `Keep ${artifact} honest by separating the defensible ${lens.decisionNoun} from the conclusion the evidence does not support.`,
+    ],
+    'slideDecks.content.evidenceBoundary',
+  );
+}
+
 export function lessonPlanWarmupDescription({ lesson, concept, artifact }) {
   return selectComposedLessonVariant(
     lesson,
@@ -181,6 +215,44 @@ export function lessonPlanWarmupDescription({ lesson, concept, artifact }) {
       "they test whether the earlier reasoning still applies to today's case.",
       'they turn the retrieval into one question that should guide the lesson.',
       `they explain which assumption the new ${concept} evidence must challenge.`,
+    ],
+  );
+}
+
+export function lessonPlanWarmupPurpose({ lesson, lens, concept, artifact }) {
+  return selectComposedLessonVariant(
+    lesson,
+    'lessonPlans.warmUp.purpose',
+    [
+      `Frame the ${lens.domain} problem around ${concept}`,
+      `Surface the prior ${lens.evidenceNoun} students can reuse`,
+      `Move one remembered ${lens.exampleNoun} into the ${concept} work`,
+      `Name what students already know before they revisit ${artifact}`,
+    ],
+    [
+      `identify what the ${lens.decisionNoun} still requires.`,
+      'mark one evidence gap the lesson must resolve.',
+      'state which assumption still needs testing.',
+      `turn the opening evidence into a question for ${artifact}.`,
+    ],
+  );
+}
+
+export function lessonPlanWarmupFacilitation({ lesson, lens, teachingMoves, artifact }) {
+  return selectComposedLessonVariant(
+    lesson,
+    'lessonPlans.warmUp.facilitation',
+    [
+      teachingMoves.openingMove,
+      `Start from one inspectable ${lens.exampleNoun}`,
+      `Open with a concrete ${lens.exampleNoun}`,
+      `Use the first minutes to notice ${lens.evidenceNoun}`,
+    ],
+    [
+      `name the ${lens.domain} quality cue students should carry into ${artifact}.`,
+      `ask which ${lens.evidenceNoun} can be trusted before students commit.`,
+      `connect the strongest detail to the ${lens.decisionNoun}.`,
+      `close by stating what a defensible ${lens.decisionNoun} in ${artifact} must show.`,
     ],
   );
 }

@@ -6,7 +6,7 @@ import {
 
 export const CROSS_PACKAGE_TEXTURE_AUDIT_VERSION = '1.0.0';
 export const CROSS_PACKAGE_TEXTURE_EXTRACTION_VERSION = '1.0.0';
-export const CROSS_PACKAGE_TEXTURE_MASK_VERSION = '1.0.0';
+export const CROSS_PACKAGE_TEXTURE_MASK_VERSION = '1.1.0';
 export const CROSS_PACKAGE_TEXTURE_MIN_WORDS = 8;
 
 const ARRAY_MARKER = '#';
@@ -214,6 +214,15 @@ function viewText(unit, maskView) {
   throw new Error(`Unknown cross-package mask view: ${maskView}`);
 }
 
+function hasComparableFrameText(value) {
+  return Boolean(
+    String(value || '')
+      .replaceAll(SLOT_MARKER, ' ')
+      .replace(new RegExp(`\\b${NUMBER_MARKER}\\b`, 'gi'), ' ')
+      .match(/[\p{L}\p{N}]/u),
+  );
+}
+
 function comparisonKey(unit, comparisonView, text) {
   if (comparisonView === 'pathFree') return text;
   if (comparisonView === 'pathAware') return `${unit.normalizedPath}\u0000${text}`;
@@ -226,7 +235,11 @@ function roundRate(value) {
 }
 
 function summarizeClusters(units, { maskView, comparisonView }) {
-  const eligible = units.filter((unit) => viewText(unit, maskView));
+  // A sentence fully derived from consumed course material can collapse to
+  // "§". That is proof of source use, not a reusable compiler frame. Keeping
+  // pure placeholders in the denominator and clustering every one together
+  // turns successful grounding into an apparent generic-prose defect.
+  const eligible = units.filter((unit) => hasComparableFrameText(viewText(unit, maskView)));
   const grouped = new Map();
   for (const unit of eligible) {
     const text = viewText(unit, maskView);

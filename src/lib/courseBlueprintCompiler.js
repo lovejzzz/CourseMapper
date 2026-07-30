@@ -34,7 +34,11 @@ import {
 } from './compilerOpenCourseSources';
 import { compactCompilerOwnedAssessmentIdentity } from './compilerAssessmentIdentity';
 import { finalArtifactLabel, mergeFinalRegistryEntries } from './courseCompilerAssessmentRegistry';
-import { alignLensToCourseModality, pluralizeLensPhrase } from './courseCompilerLensProfiles';
+import {
+  alignLensToCourseModality,
+  pluralizeLensPhrase,
+  resolvePreciseDisciplineLens,
+} from './courseCompilerLensProfiles';
 import { buildTechnicalSessionSegments } from './courseCompilerTechnicalSessionPlans';
 import { finalizeCompiledDeliverableLanguage, shortArtifactReference } from './compiledLanguageFinalizer';
 import { getChunkCount } from './parallelGenerator';
@@ -1472,6 +1476,8 @@ function disciplineLens(domain, evidenceNoun, decisionNoun, learnerRole, example
 
 function inferDisciplineLens(courseName, concepts = []) {
   const text = `${courseName} ${concepts.join(' ')}`.toLowerCase();
+  const preciseLens = resolvePreciseDisciplineLens(text);
+  if (preciseLens) return preciseLens;
   if (/\b(astronomy|celestial|stellar|hubble(?:'s)? law|solar nebula|moon phases?)\b/.test(text)) {
     return disciplineLens(
       'observational and quantitative astronomy',
@@ -5713,6 +5719,13 @@ function lessonPrimaryTeachingKeyTerms(lesson = {}) {
     (entry) => entry?.supplemental !== true && cleanText(entry?.augmentationRole) !== 'genome-supplement',
   );
   return primary.length > 0 ? primary : terms;
+}
+
+function lessonNeedsSparseReasoningFrame(lesson = {}) {
+  return (
+    Number(lesson?.sourceEvidenceTrace?.directCourseMapFieldCount || 0) < 4 ||
+    cleanText(lesson?.confidence?.level).toLowerCase() !== 'high'
+  );
 }
 
 // Repeated teaching prose should name the artifact, not recite a long lesson
@@ -15384,9 +15397,16 @@ function normalizeAssessmentRegistry(registry) {
       // "Final Exam", and other exam heads belong in Quiz & Exam Bank.
       // All other explicit oral/graded identities remain authoritative.
       const inferredKind = classifyAssessmentKind(title);
+      const staleOralHistoryKind =
+        storedKind === 'oral' &&
+        inferredKind === 'graded-artifact' &&
+        /\boral[\s-]+histor(?:y|ies)\b/i.test(title) &&
+        !/\b(?:oral\s+(?:exam|examination|defen[cs]e|presentation|performance)|speaking|presentation|performance)\b/i.test(
+          title,
+        );
       const kind = compilerGeneratedFormative
         ? 'in-class'
-        : ['in-class', 'exam'].includes(inferredKind)
+        : ['in-class', 'exam'].includes(inferredKind) || staleOralHistoryKind
           ? inferredKind
           : storedKind;
       // Scion-authored formative map rows deliberately explain the complete
@@ -19905,7 +19925,9 @@ function buildShortAnswerQuestion({ lesson, index, bloom, objective, concept, le
       points: 4,
       objectiveAligned: objective,
       intendedUse: `Formative written check after ${lessonFocus}; use responses to identify review needs before ${artifact}.`,
-      question: `In 2-3 sentences, name the course concept or method that should shape ${artifact}. Cite one evidence detail from ${sourceCue}. State one limit or next piece of evidence.`,
+      question: lessonNeedsSparseReasoningFrame(lesson)
+        ? `In 2-3 sentences, explain how a ${lens.learnerRole} should use ${concept} to make the ${lens.decisionNoun} in ${artifact}. Cite one inspectable ${lens.evidenceNoun} detail from ${sourceCue}, then state a boundary or next check.`
+        : `In 2-3 sentences, name the course concept or method that should shape ${artifact}. Cite one evidence detail from ${sourceCue}. State one limit or next piece of evidence.`,
       answer: guidance.answer,
       sampleAnswer,
       explanation: guidance.explanation,
@@ -19933,7 +19955,9 @@ function buildEssayQuestion({ lesson, index, bloom, objective, concept, lens, pl
   ]);
   const explanation = lessonVariant(lesson, [
     `The essay is scored for synthesis: students must turn ${concept} and evidence into a defensible ${lens.decisionNoun}, not merely list lesson facts.`,
-    `Strong essay work uses ${concept} to make a decision, support it with evidence, and explain the limit on the claim.`,
+    lessonNeedsSparseReasoningFrame(lesson)
+      ? `Strong ${lens.domain} work uses ${concept} to make the ${lens.decisionNoun}, support it with ${lens.evidenceNoun}, and explain the limit on the claim.`
+      : `Strong essay work uses ${concept} to make a decision, support it with evidence, and explain the limit on the claim.`,
     `This essay tests whether students can convert lesson evidence into a reasoned ${lens.decisionNoun} for ${artifact}.`,
     `The response should synthesize ${concept}, evidence, decision logic, and limitation language rather than catalogue terms.`,
   ]);
@@ -19968,7 +19992,9 @@ function buildEssayQuestion({ lesson, index, bloom, objective, concept, lens, pl
         `Full credit for ${lessonFocus} requires concept accuracy, evidence use, a justified next step, and a limitation. Partial credit is appropriate when the response has ${concept} evidence but weak decision logic. Flag responses that ignore ${artifact}.`,
         `Award full credit when the essay uses ${concept} correctly, names evidence, explains the next step, and keeps the claim bounded. Evidence without decision logic earns partial credit.`,
         `Score the response for accurate ${concept} use, source-grounded reasoning, a feasible action, and a stated limit; work that never addresses ${artifact} should be revised.`,
-        `A full-credit answer makes the ${concept} decision inspectable: evidence, action, consequence, and limitation all appear in the reasoning.`,
+        lessonNeedsSparseReasoningFrame(lesson)
+          ? `A full-credit ${lens.domain} answer makes the ${concept} reasoning inspectable: ${lens.evidenceNoun}, the ${lens.decisionNoun}, its consequence, and a limitation all appear.`
+          : `A full-credit answer makes the ${concept} decision inspectable: evidence, action, consequence, and limitation all appear in the reasoning.`,
       ]),
       tags: quizTags(lesson, 'essay', bloom, 'exam synthesis'),
     },
@@ -20107,6 +20133,7 @@ function buildSourceBoundRecoveryQuizAtoms({ lesson, blueprint, quizPlan, concep
 // Authored kernel items still overlay these frames later in the normal path.
 export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
   const lens = blueprintLens(blueprint);
+  const sparseReasoningFrame = lessonNeedsSparseReasoningFrame(lesson);
   const useVerifiedMusicIntervalFrame = isMusicIntervalLesson(lesson);
   const concept = primaryConceptForLesson(lesson);
   const secondary =
@@ -20168,8 +20195,12 @@ export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
               objective: quizPlan[0].objective,
               concept,
               use: quizPlan[0].use,
-              prompt: `Which statement best explains why ${concept} matters when making ${decisionWithArticle} for ${quizArtifactDefinite}?`,
-              correct: `${sentenceCase(concept)} helps a team choose relevant evidence and justify the ${decisionNoun}.`,
+              prompt: sparseReasoningFrame
+                ? `Which statement correctly identifies the role of ${concept} when making ${decisionWithArticle} for ${quizArtifactDefinite}?`
+                : `Which statement best explains why ${concept} matters when making ${decisionWithArticle} for ${quizArtifactDefinite}?`,
+              correct: sparseReasoningFrame
+                ? `${sentenceCase(concept)} helps a ${lens.learnerRole} choose relevant ${lens.evidenceNoun} and justify the ${decisionNoun}.`
+                : `${sentenceCase(concept)} helps a team choose relevant evidence and justify the ${decisionNoun}.`,
               plan: quizPlan[0],
               artifactOverride: quizArtifact,
             }),
@@ -20187,12 +20218,22 @@ export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
                 `Which preparation choice best uses ${concept} before recommending ${decisionWithArticle}?`,
                 `${sentenceCase(quizArtifactDefinite)} needs stronger ${concept} evidence. Which action should happen next?`,
               ]),
-              correct: lessonVariant(lesson, [
-                `Use ${concept} to select a concrete example, connect it to the objective, and revise the ${decisionNoun}.`,
-                `Choose evidence that shows ${concept} in action, explain why it fits the objective, and revise the ${decisionNoun}.`,
-                `Apply ${concept} by testing one source detail against the objective before making the ${decisionNoun}.`,
-                `Connect ${concept} to an inspectable example, then use the result to improve the ${decisionNoun}.`,
-              ]),
+              correct: lessonVariant(
+                lesson,
+                sparseReasoningFrame
+                  ? [
+                      `Use ${concept} to select concrete ${lens.evidenceNoun}, connect it to the objective, and revise the ${decisionNoun}.`,
+                      `Choose ${lens.evidenceNoun} that shows ${concept} in action, explain why it fits the objective, and revise the ${decisionNoun}.`,
+                      `Apply ${concept} by testing one ${lens.evidenceNoun} detail against the objective before making the ${decisionNoun}.`,
+                      `Connect ${concept} to an inspectable ${lens.exampleNoun}, then use the result to improve the ${decisionNoun}.`,
+                    ]
+                  : [
+                      `Use ${concept} to select a concrete example, connect it to the objective, and revise the ${decisionNoun}.`,
+                      `Choose evidence that shows ${concept} in action, explain why it fits the objective, and revise the ${decisionNoun}.`,
+                      `Apply ${concept} by testing one source detail against the objective before making the ${decisionNoun}.`,
+                      `Connect ${concept} to an inspectable example, then use the result to improve the ${decisionNoun}.`,
+                    ],
+              ),
               plan: quizPlan[1],
               artifactOverride: quizArtifact,
             }),
@@ -21480,7 +21521,7 @@ function buildAdmittedKernelEvidenceBoundaryMc({ lesson, quizPlan, assessment, i
         `The lesson evidence states: “${quotedFact}” Which interpretation stays within that evidence?`,
         `A review team is given this source-backed statement: “${quotedFact}” Which conclusion is defensible without adding an unsupported claim?`,
         `Use this admitted course fact as the evidence: “${quotedFact}” Which option preserves what the fact actually establishes?`,
-        `A classmate checks four interpretations against this lesson evidence: “${quotedFact}” Which interpretation survives the source check?`,
+        `A classmate checks four claims against this lesson evidence: “${quotedFact}” Which option stays within the quoted claim?`,
       ]),
       options,
       answer,
@@ -25552,6 +25593,7 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
   const hasStandaloneAssessment = Boolean(assessment?.id || assessment?.registryId || assessment?.title);
   const displayTitle = slideLessonTitle(lesson);
   const concept = primarySlideConcept(lesson);
+  const sparseReasoningFrame = lessonNeedsSparseReasoningFrame(lesson);
   // v0.12.1: a slide must never cite the unresolved source placeholder —
   // "Instructor-provided course materials" shipped on 112 slides in the
   // v0.12 audit. With no real source, drop the citation clause instead.
@@ -25690,8 +25732,12 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
           type: 'content',
           title: `Evidence that can actually support ${artifact}`,
           bullets: [
-            `${concept} focuses attention on evidence quality, not just topic coverage.`,
-            `${secondary} helps students avoid unsupported claims in ${artifact}.`,
+            sparseReasoningFrame
+              ? textureCopy.slideDisciplinaryReasoningLine({ lesson, lens, concept, artifact })
+              : `${concept} focuses attention on evidence quality, not just topic coverage.`,
+            sparseReasoningFrame
+              ? textureCopy.slideEvidenceBoundaryLine({ lesson, lens, concept, artifact })
+              : `${secondary} helps students avoid unsupported claims in ${artifact}.`,
             `Success criterion: ${lowercaseClauseLead(successCriterion)}`,
           ],
           minutes: 6,
@@ -25716,7 +25762,16 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
             hasRealSource
               ? `Identify the ${concept} evidence students can actually inspect in ${sourceCue}.`
               : `Identify the ${concept} evidence students can actually inspect.`,
-            `Strong answers explain how evidence changes ${artifact}.`,
+            sparseReasoningFrame
+              ? lessonVariant(lesson, [
+                  `Strong answers show the ${lens.domain} reasoning chain: ${lens.evidenceNoun}, the ${lens.decisionNoun}, and one justified change to ${artifact}.`,
+                  `A defensible ${lens.decisionNoun} points from inspectable ${lens.evidenceNoun} to the exact ${artifact} move it warrants.`,
+                  `Ask what a ${lens.learnerRole} can conclude from the ${lens.evidenceNoun}, then mark where that conclusion changes ${artifact}.`,
+                  `The worked example is complete when ${concept}, the ${lens.evidenceNoun}, and the resulting ${lens.decisionNoun} are all visible.`,
+                  `Trace one ${lens.evidenceNoun} detail through the ${concept} reasoning before revising ${artifact}.`,
+                  `Separate the observed evidence from the inference, then explain why the ${lens.decisionNoun} follows for ${artifact}.`,
+                ])
+              : `Strong answers explain how evidence changes ${artifact}.`,
           ],
           minutes: 7,
           bloom: 'Analyze',
@@ -27260,6 +27315,7 @@ function compileLessonPlans(blueprint, options = {}) {
       const phrase = lessonPhrase(blueprint, lesson);
       const artifact = safeLessonPlanArtifact(lesson);
       const concept = safeLessonPrimaryConcept(lesson);
+      const sparseReasoningFrame = lessonNeedsSparseReasoningFrame(lesson);
       const experientialActivity = resolveExperientialActivity(lesson);
       const experientialActivityRequested = requestsExperientialActivity(lesson);
       const activityProfile = experientialActivity
@@ -27443,11 +27499,17 @@ function compileLessonPlans(blueprint, options = {}) {
                 (item) =>
                   `${ensureSentenceCompiler(readableMisconception(item.misconception))} Correction: ${ensureSentenceCompiler(readableCorrection(item.correction))}`,
               )
-            : [
-                `Treating ${concept} as summary work instead of a decision-making process.`,
-                `Listing evidence without explaining why it matters for ${artifact}.`,
-                `Using generic claims instead of course-specific examples or criteria for ${concept}.`,
-              ]),
+            : sparseReasoningFrame
+              ? [
+                  `Treating ${concept} as a label instead of using it to make the ${lens.decisionNoun}.`,
+                  `Listing ${lens.evidenceNoun} without explaining how it changes ${artifact}.`,
+                  `Ignoring the assumption or boundary that would weaken the ${lens.decisionNoun}.`,
+                ]
+              : [
+                  `Treating ${concept} as summary work instead of a decision-making process.`,
+                  `Listing evidence without explaining why it matters for ${artifact}.`,
+                  `Using generic claims instead of course-specific examples or criteria for ${concept}.`,
+                ]),
         weeklySubmissionCriteria:
           admittedLanguagePlan?.weeklySubmissionCriteria ||
           (hasStandaloneAssessment
@@ -27502,18 +27564,27 @@ function compileLessonPlans(blueprint, options = {}) {
                   lesson.learningTransferPlan?.retrievalCue ||
                   `What evidence best helps you ${stripTerminalPunctuation(phrase.decisionMove)}?`,
               ),
-              purpose: lessonVariant(lesson, [
-                `Activate prior knowledge and focus students on the central ${concept} decision.`,
-                `Surface prior evidence students can reuse before the ${concept} work becomes more specific.`,
-                `Move students from remembered examples into one inspectable ${concept} evidence choice.`,
-                `Set up the lesson by naming what students already know and what the ${artifact} decision still needs.`,
-              ]),
-              facilitation: lessonVariant(lesson, [
-                `${teachingMoves.openingMove} Then name the quality cue students should carry into ${artifact}.`,
-                `Start from one inspectable example, ask students which evidence they can trust, then name the quality cue for ${artifact}.`,
-                `Open with a concrete case, have students mark the evidence worth using, and connect that mark to ${artifact}.`,
-                `Use the first minutes for evidence noticing; close the warm-up by naming what strong ${artifact} work must show.`,
-              ]),
+              purpose: sparseReasoningFrame
+                ? textureCopy.lessonPlanWarmupPurpose({ lesson, lens, concept, artifact })
+                : lessonVariant(lesson, [
+                    `Activate prior knowledge and focus students on the central ${concept} decision.`,
+                    `Surface prior evidence students can reuse before the ${concept} work becomes more specific.`,
+                    `Move students from remembered examples into one inspectable ${concept} evidence choice.`,
+                    `Set up the lesson by naming what students already know and what the ${artifact} decision still needs.`,
+                  ]),
+              facilitation: sparseReasoningFrame
+                ? textureCopy.lessonPlanWarmupFacilitation({
+                    lesson,
+                    lens,
+                    teachingMoves,
+                    artifact,
+                  })
+                : lessonVariant(lesson, [
+                    `${teachingMoves.openingMove} Then name the quality cue students should carry into ${artifact}.`,
+                    `Start from one inspectable example, ask students which evidence they can trust, then name the quality cue for ${artifact}.`,
+                    `Open with a concrete case, have students mark the evidence worth using, and connect that mark to ${artifact}.`,
+                    `Use the first minutes for evidence noticing; close the warm-up by naming what strong ${artifact} work must show.`,
+                  ]),
             },
         outline,
         // v0.14.5 (F2): language-course dialogue practice — rendered by the

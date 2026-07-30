@@ -98,6 +98,24 @@ describe('cross-package texture', () => {
     expect(result.views.consumedSlot.pathFree.eligibleUnitCount).toBe(0);
   });
 
+  it('T4b excludes fully consumed source copy while retaining a real compiler frame', () => {
+    const result = buildCrossPackageTextureResult([
+      {
+        packageId: 'a',
+        units: [
+          unit('a', 'the complete instructor sentence is reused in the generated package', {
+            consumedMaskedText: '§',
+          }),
+          unit('a', 'compare the complete instructor sentence before making a decision', {
+            consumedMaskedText: 'compare § before making a decision',
+          }),
+        ],
+      },
+    ]);
+
+    expect(result.views.consumedSlot.pathFree.eligibleUnitCount).toBe(1);
+  });
+
   it('T5 finds the same prose across different paths in the path-free view only', () => {
     const text = 'students compare the evidence and explain the stronger instructional decision';
     const result = buildCrossPackageTextureResult([

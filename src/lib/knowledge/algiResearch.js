@@ -203,6 +203,98 @@ export function directResearchTitles(topic = '', courseContext = '') {
   const conceptFamilyTitles = (() => {
     const accessibilityCourse =
       /\b(?:accessib(?:le|ility)|inclusive design|web standards?|user experience|ux\b)\b/i.test(courseContext);
+    const oralHistoryCourse =
+      /\b(?:oral history|oral histories|oral historian|community memory|narrator interviews?)\b/i.test(courseContext);
+    const databaseCourse =
+      /\b(?:database systems?|database management|relational databases?|\bsql\b|data management systems?)\b/i.test(
+        courseContext,
+      );
+    if (oralHistoryCourse && /\b(?:foundations?|defining|scope)\b/i.test(baseTopic)) {
+      return ['Oral history', 'Public history', 'Oral tradition', 'Archival science'];
+    }
+    if (oralHistoryCourse && /\b(?:interview|open[-\s]?ended questions?|question design)\b/i.test(baseTopic)) {
+      return ['Open-ended question', 'Interview (research)', 'Semi-structured interview', 'Questionnaire'];
+    }
+    if (oralHistoryCourse && /\b(?:recording|transcription|audio protocols?)\b/i.test(baseTopic)) {
+      return [
+        'Sound recording and reproduction',
+        'Transcription (linguistics)',
+        'Digital preservation',
+        'Oral history',
+      ];
+    }
+    if (
+      oralHistoryCourse &&
+      /\b(?:thematic coding|data analysis|interpretation|qualitative coding)\b/i.test(baseTopic)
+    ) {
+      return [
+        'Thematic analysis',
+        'Coding (social sciences)',
+        'Qualitative research',
+        'Content analysis',
+        'Oral history',
+      ];
+    }
+    if (oralHistoryCourse && /\b(?:presenting|visual storytelling|public presentation)\b/i.test(baseTopic)) {
+      return [
+        'Visual narrative',
+        'Visual communication',
+        'Digital storytelling',
+        'Presentation',
+        'Public history',
+        'Storytelling',
+        'Oral history',
+      ];
+    }
+    if (oralHistoryCourse && /\b(?:project development|proposal formulation|research proposal)\b/i.test(baseTopic)) {
+      return ['Research proposal', 'Research design', 'Informed consent', 'Oral history'];
+    }
+    // Database lesson labels are unusually collision-prone: “transaction
+    // management” retrieves enterprise monitoring, “normalization” retrieves
+    // statistics, and “performance” retrieves almost anything. Canonical
+    // title families keep retrieval in the DBMS domain without authoring facts
+    // into Scion; every returned page still passes relevance, exact source
+    // admission, and entailment.
+    if (databaseCourse && /\b(?:data models?|relational algebra|entity[-\s]relationship)\b/i.test(baseTopic)) {
+      return ['Relational algebra', 'Database model', 'Entity–relationship model'];
+    }
+    if (databaseCourse && /\b(?:sql|relational database implementation)\b/i.test(baseTopic)) {
+      return ['SQL', 'Data definition language', 'Data manipulation language'];
+    }
+    if (databaseCourse && /\b(?:normalization|functional dependenc|normal forms?)\b/i.test(baseTopic)) {
+      return [
+        'Database normalization',
+        'Functional dependency',
+        'First normal form',
+        'Second normal form',
+        'Third normal form',
+      ];
+    }
+    if (databaseCourse && /\b(?:query optimization|query plans?|database indexing)\b/i.test(baseTopic)) {
+      return ['Query optimization', 'Query plan', 'Database index'];
+    }
+    if (
+      databaseCourse &&
+      /\b(?:transaction management|database transactions?|concurrency control)\b/i.test(baseTopic)
+    ) {
+      return ['Database transaction', 'ACID', 'Concurrency control'];
+    }
+    if (databaseCourse && /\b(?:database security|access control|authorization)\b/i.test(baseTopic)) {
+      return [
+        'Data integrity',
+        'Database activity monitoring',
+        'Database security',
+        'Access-control list',
+        'Role-based access control',
+        'Principle of least privilege',
+      ];
+    }
+    if (databaseCourse && /\b(?:nosql|key[-\s]?value|document database)\b/i.test(baseTopic)) {
+      return ['NoSQL', 'Key–value database', 'Document-oriented database'];
+    }
+    if (databaseCourse && /\b(?:database performance|performance analysis|performance tuning)\b/i.test(baseTopic)) {
+      return ['Database index', 'Query optimization', 'Database caching'];
+    }
     if (accessibilityCourse && /\bwcag\b|\bweb content accessibility guidelines?\b/i.test(baseTopic)) {
       return [
         'Web Content Accessibility Guidelines',
@@ -328,10 +420,14 @@ export function directResearchTitles(topic = '', courseContext = '') {
   const named = [
     normalized,
     ...(baseTopic !== normalized ? [baseTopic] : []),
+    // Explicit course-aware source families are more reliable than fragments
+    // extracted from pedagogical titles. Keep them ahead of generic clauses
+    // and phrase windows so the eight-title request budget cannot be consumed
+    // by ambiguous candidates such as "Integrity" before "Data integrity".
+    ...conceptFamilyTitles,
     ...(clauses.length === 2 ? clauses : []),
     ...phraseWindows,
     ...pathogenOutcomeAliases,
-    ...conceptFamilyTitles,
   ];
   const domain = contentTokens(courseContext)[0] || '';
   const qualified = domain
@@ -426,7 +522,21 @@ export function sentencesFrom(extract = '') {
     // A heading: short and unpunctuated. Dropping it is what stops
     // "History User experience design is..." from being emitted as prose.
     if (!/[.!?]/.test(line) && line.length < 80) continue;
-    for (const piece of line.split(/(?<=[.!?])\s+(?=[A-Z"'(])/)) {
+    const rawPieces = line.split(/(?<=[.!?])\s+(?=[A-Z"'(])/);
+    const pieces = [];
+    for (let index = 0; index < rawPieces.length; index += 1) {
+      let piece = rawPieces[index];
+      // Do not turn a middle initial or the tail of an abbreviation into a
+      // learner-facing dangling definition (“defined by Edgar F.”). Rejoin it
+      // to the following capitalized fragment before applying length/quality
+      // filters.
+      while (/\b[A-Z]\.$/.test(piece.trim()) && index + 1 < rawPieces.length) {
+        piece = `${piece} ${rawPieces[index + 1]}`;
+        index += 1;
+      }
+      pieces.push(piece);
+    }
+    for (const piece of pieces) {
       const sentence = piece.replace(/\s+/g, ' ').trim();
       if (sentence.length < 45 || sentence.length > 320) continue;
       if (!/[.!?]$/.test(sentence)) continue;

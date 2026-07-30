@@ -276,6 +276,54 @@ describe('evidence-to-decision scenario contract', () => {
     expect(analyzeDecisionScenario(scenario).ready).toBe(true);
   });
 
+  it('treats relational algebra as database evidence instead of a math answer-check frame', () => {
+    const scenario = deriveDecisionScenario({
+      facts: [
+        'Relational algebra selection filters tuples based on specified conditions within a relation.',
+        'Projection chooses named attributes from the result relation.',
+        'A query plan records the operations used to retrieve database rows.',
+      ],
+      keyTerms: [
+        {
+          term: 'Relational Algebra Operations',
+          definition:
+            'Relational algebra operations include selection, projection, union, set difference, and Cartesian product.',
+          example: 'A database query selects active accounts and projects only the account identifier.',
+          misconception: 'Every SQL query has only one valid relational algebra expression.',
+          correction: 'Equivalent expressions can produce the same result while using different execution plans.',
+          source: 'fact-ledger-projection',
+        },
+      ],
+    });
+
+    expect(scenario.materials).toMatch(/database claims|schema or query artifact|constraint evidence/i);
+    expect(scenario.materials).not.toMatch(/recorded quantities|answer check/i);
+    expect(analyzeDecisionScenario(scenario).ready).toBe(true);
+  });
+
+  it('uses interview, context, and consent evidence for oral-history scenarios', () => {
+    const scenario = deriveDecisionScenario({
+      facts: [
+        'The interview recording preserves the narrator’s words and vocal delivery.',
+        'The transcript makes the interview searchable while retaining links to the recording.',
+        'The consent record documents the agreed access and reuse boundary.',
+      ],
+      keyTerms: [
+        {
+          term: 'Oral-history transcription',
+          definition: 'Oral-history transcription creates a written record linked to a recorded interview.',
+          example: 'A local-history team checks a transcript against the recording before depositing both files.',
+          misconception: 'A transcript can replace the recording and narrator-context record in every use.',
+          correction: 'Interpretation should retain the recording, context, and consent boundary.',
+        },
+      ],
+    });
+
+    expect(scenario.materials).toMatch(/interview or transcript record|narrator context|consent status/i);
+    expect(scenario.materials).not.toMatch(/map|timeline|recorded quantities|answer check/i);
+    expect(analyzeDecisionScenario(scenario).ready).toBe(true);
+  });
+
   it('preserves an authored scenario and uses fallback for a weak or missing one', () => {
     const authored = {
       setup:

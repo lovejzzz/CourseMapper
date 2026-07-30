@@ -9,6 +9,7 @@ import {
 } from '../lessonKernelCache.js';
 import { buildQuizItemPlan } from '../../blueprintEnrichmentPass.js';
 import { completeNativeLessonSurfaces, selectNativeContentSources } from '../../nativeGraphAuthoring.js';
+import { inferCourseDisciplines, strictGenomeDisciplineBoundary } from '../libraryShardLoader.js';
 import NUTRITION_SHARD from '../../../../public/genome/nutrition-intro.json';
 
 const ELASTICITY = {
@@ -136,6 +137,51 @@ describe('runGenomeLinker', () => {
     expect(result.missingIndices).toEqual([0, 1]);
     expect(result.telemetry.disciplineRejects).toBe(2);
     expect(describeGenomeLinkTelemetry(result.telemetry, 2)).toContain('2 cross-discipline links rejected');
+  });
+
+  it('does not import retained psychology or business-ethics kernels into a database course', () => {
+    const library = createKernelLibrary({ storage: memoryStorage() });
+    library.addKernel({
+      ...ELASTICITY,
+      id: 'psych/observational-learning',
+      term: 'Observational learning',
+      aliases: ['relational algebra operations'],
+      discipline: 'psych',
+    });
+    library.addKernel({
+      ...ELASTICITY,
+      id: 'bizethics/integrity',
+      term: 'Integrity',
+      aliases: ['database integrity'],
+      discipline: 'bizethics',
+    });
+    const databaseCourse = {
+      courseName: 'Database Systems',
+      lessons: [
+        {
+          title: 'Lesson 1: Introduction to Data Models',
+          sections: [{ topicSection: 'Relational algebra operations' }],
+        },
+        {
+          title: 'Lesson 2: Database Security and Integrity',
+          sections: [{ topicSection: 'Database integrity' }],
+        },
+      ],
+    };
+    const allowedDisciplines = strictGenomeDisciplineBoundary(inferCourseDisciplines(databaseCourse));
+
+    const result = runGenomeLinker({
+      courseMap: databaseCourse,
+      lessonIndices: [0, 1],
+      library,
+      itemPlan,
+      allowedDisciplines,
+    });
+
+    expect(allowedDisciplines).toEqual(['cs']);
+    expect(result.lessonContent).toEqual({});
+    expect(result.missingIndices).toEqual([0, 1]);
+    expect(result.telemetry.disciplineRejects).toBe(2);
   });
 
   it('preserves verified genome URLs and licenses in lesson provenance', () => {

@@ -1040,7 +1040,7 @@ export default function useDeliverables({
           try {
             const [
               { getKernelLibrary },
-              { hydrateLibraryForDisciplines, inferCourseDisciplines },
+              { hydrateLibraryForDisciplines, inferCourseDisciplines, strictGenomeDisciplineBoundary },
               { createLessonKernelCache },
               { runGenomeLinker, describeGenomeLinkTelemetry },
               { buildQuizItemPlan },
@@ -1053,6 +1053,7 @@ export default function useDeliverables({
             ]);
             const library = getKernelLibrary();
             const inferredDisciplines = inferCourseDisciplines(blueprintCourseMap);
+            const allowedGenomeDisciplines = strictGenomeDisciplineBoundary(inferredDisciplines);
             const hydration = await hydrateLibraryForDisciplines(library, inferredDisciplines, {
               signal: controller.signal,
             });
@@ -1074,7 +1075,7 @@ export default function useDeliverables({
               // The library is a long-lived browser singleton and may retain
               // shards loaded by an earlier project. Resolution must stay
               // inside the current course's inferred disciplines.
-              allowedDisciplines: inferredDisciplines,
+              allowedDisciplines: allowedGenomeDisciplines,
             });
             genomeLink = {
               lessonContent: linked.lessonContent,

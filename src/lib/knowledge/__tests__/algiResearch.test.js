@@ -65,6 +65,16 @@ describe('sentence selection (gap 2)', () => {
     expect(sentences[0]).toMatch(/^User experience design is a conceptual/);
   });
 
+  it('keeps a middle initial attached to the source sentence', () => {
+    const sentences = sentencesFrom(
+      'First normal form is a level of database normalization defined by English computer scientist Edgar F. Codd. It requires each table cell to contain one value.',
+    );
+    expect(sentences[0]).toContain('Edgar F. Codd.');
+    expect(sentences).not.toContain(
+      'First normal form is a level of database normalization defined by English computer scientist Edgar F.',
+    );
+  });
+
   it('drops fragments that are too short or unterminated', () => {
     expect(sentencesFrom('Too short.\nAlso short')).toEqual([]);
   });
@@ -389,6 +399,47 @@ describe('entity filter (topic drift by page KIND)', () => {
 });
 
 describe('course-domain research alignment', () => {
+  it('routes ambiguous database lessons to canonical DBMS source families', () => {
+    expect(directResearchTitles('Transaction Management and Concurrency Control', 'Database Systems')).toEqual(
+      expect.arrayContaining(['Database transaction', 'ACID', 'Concurrency control']),
+    );
+    expect(directResearchTitles('Transaction Management and Concurrency Control', 'Database Systems')).not.toContain(
+      'Business transaction management',
+    );
+    expect(directResearchTitles('Database Normalization Theory', 'Database Systems')).toEqual(
+      expect.arrayContaining(['Database normalization', 'Functional dependency', 'First normal form']),
+    );
+    const securityTitles = directResearchTitles('Database Security and Integrity', 'Database Systems');
+    expect(securityTitles).toEqual(
+      expect.arrayContaining([
+        'Data integrity',
+        'Database activity monitoring',
+        'Access-control list',
+        'Role-based access control',
+      ]),
+    );
+    expect(securityTitles).not.toContain('Integrity');
+  });
+
+  it('routes oral-history methods to interview, transcript, analysis, and public-history sources', () => {
+    expect(directResearchTitles('Developing Open-Ended Questions', 'Community Oral History Methods')).toEqual(
+      expect.arrayContaining(['Open-ended question', 'Interview (research)', 'Semi-structured interview']),
+    );
+    expect(directResearchTitles('Audio Recording Protocols', 'Community Oral History Methods')).toEqual(
+      expect.arrayContaining([
+        'Sound recording and reproduction',
+        'Transcription (linguistics)',
+        'Digital preservation',
+      ]),
+    );
+    expect(directResearchTitles('Thematic Coding of Transcripts', 'Community Oral History Methods')).toEqual(
+      expect.arrayContaining(['Thematic analysis', 'Coding (social sciences)', 'Content analysis']),
+    );
+    expect(directResearchTitles('Visual Storytelling in Presentation', 'Community Oral History Methods')).toEqual(
+      expect.arrayContaining(['Visual narrative', 'Visual communication', 'Digital storytelling', 'Presentation']),
+    );
+  });
+
   it('rejects the architecture meaning of evidence-based design in a UX course', () => {
     expect(
       isResearchCandidateDomainAligned({
@@ -444,6 +495,78 @@ describe('course-domain research alignment', () => {
         extract:
           'Governance of artificial intelligence develops rules and institutions for accountability, oversight, and regulation.',
         provider: 'wikipedia',
+      }),
+    ).toBe(true);
+  });
+
+  it('rejects enterprise BTM from a database transaction lesson', () => {
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'Transaction Management and Concurrency Control',
+        courseContext: 'Database Systems',
+        title: 'Business transaction management',
+        extract:
+          'Business transaction management is a category of application performance management for monitoring business transactions across enterprise systems.',
+        provider: 'wikipedia',
+      }),
+    ).toBe(false);
+    expect(
+      isResearchCandidateDomainAligned({
+        topic: 'Transaction Management and Concurrency Control',
+        courseContext: 'Database Systems',
+        title: 'Database transaction',
+        extract:
+          'A database transaction is a unit of work in a database management system that follows atomicity, consistency, isolation, and durability.',
+        provider: 'wikipedia',
+      }),
+    ).toBe(true);
+  });
+
+  it('rejects moral integrity but retains data integrity for a database security lesson', () => {
+    const lesson = {
+      topic: 'Database Security and Integrity',
+      courseContext: 'Database Systems',
+      provider: 'wikipedia',
+    };
+    expect(
+      isResearchCandidateDomainAligned({
+        ...lesson,
+        title: 'Integrity',
+        extract: 'Integrity is the quality of being honest and adhering to strong moral and ethical principles.',
+        definition: 'Integrity is the quality of being honest and adhering to strong moral and ethical principles.',
+      }),
+    ).toBe(false);
+    expect(
+      isResearchCandidateDomainAligned({
+        ...lesson,
+        title: 'Data integrity',
+        extract:
+          'Data integrity is the maintenance and assurance of data accuracy and consistency over its life-cycle in systems that store, process, or retrieve data.',
+        definition:
+          'Data integrity is the maintenance and assurance of data accuracy and consistency over its life-cycle.',
+      }),
+    ).toBe(true);
+  });
+
+  it('rejects unrelated data-analysis papers from an oral-history lesson', () => {
+    const lesson = {
+      topic: 'Thematic Coding of Transcripts',
+      courseContext: 'Community Oral History Methods',
+      provider: 'doaj',
+    };
+    expect(
+      isResearchCandidateDomainAligned({
+        ...lesson,
+        title: 'Where Does Wastewater-Based Epidemiology Fall in Medical Student Education?',
+        extract: 'This article studies wastewater-based epidemiology and its place in medical student education.',
+      }),
+    ).toBe(false);
+    expect(
+      isResearchCandidateDomainAligned({
+        ...lesson,
+        title: 'Thematic analysis',
+        extract:
+          'Thematic analysis is a method of analysing qualitative data such as interview transcripts by identifying patterns of meaning.',
       }),
     ).toBe(true);
   });

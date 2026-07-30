@@ -161,6 +161,7 @@ export function selectLessonVariant(lesson = {}, variants = [], ownerId = '') {
 function contextualVariantIndex(lesson = {}, ownerId = '', channel = '', size = 1) {
   if (size <= 1) return 0;
   const key = [
+    activeCourseKey,
     ownerId,
     channel,
     lesson.lessonNumber,
@@ -172,6 +173,14 @@ function contextualVariantIndex(lesson = {}, ownerId = '', channel = '', size = 
     .map(cleanRealizationText)
     .join('|');
   return stableRealizationIndex(key, size);
+}
+
+export function selectContextualLessonVariant(lesson = {}, variants = [], ownerId = '') {
+  if (!variants.length) return '';
+  const index = contextualVariantIndex(lesson, ownerId, 'whole-sentence', variants.length);
+  const selected = variants[index];
+  recordLessonVariantTrace({ lesson, variants, selected, index, ownerId });
+  return selected;
 }
 
 function greatestCommonDivisor(left, right) {

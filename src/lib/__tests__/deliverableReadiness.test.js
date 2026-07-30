@@ -1210,6 +1210,43 @@ describe('repairCourseMapReadiness', () => {
     expect(repaired).toMatch(/historical|primary-source|source|map|timeline/i);
   });
 
+  it('keeps oral-history methods out of the Western-civilization fallback profile', () => {
+    const result = repairCourseMapReadiness({
+      courseMap: {
+        courseName: 'Community Oral History Methods',
+        lessons: [
+          {
+            title: 'Lesson 2: Interviewing Techniques',
+            sections: [
+              {
+                topicSection: 'Developing Open-Ended Questions',
+                learningGoals: 'Use Developing Open-Ended Questions to make course-relevant decisions.',
+                learningObjectives:
+                  'Connect Developing Open-Ended Questions to broader patterns in Western civilization before 1500.',
+                weeklyAssessments: 'Developing Open-Ended Questions evidence check.',
+                asyncActivities:
+                  'Prepare a design-journal note connecting Developing Open-Ended Questions to one artifact decision.',
+                syncActivities: '',
+                technologyNeeded: 'LMS access plus the UX example, research notes, and studio artifact workspace.',
+                presentationFormat: '',
+                supportingResources:
+                  'Research-note excerpt, prototype sample, and rationale model for Developing Open-Ended Questions.',
+                evaluateDesign: '',
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    const repaired = JSON.stringify(result.courseMap);
+    expect(repaired).toMatch(/interview|narrator|consent|transcript|oral-history/i);
+    expect(repaired).not.toMatch(
+      /Western civilization|before 1500|map or timeline|historical claim|UX example|prototype|portfolio|design-journal|studio artifact/i,
+    );
+    expect(result.repairedFields.join(' ')).toMatch(/\(semantic\)/);
+  });
+
   it('uses world-language repairs for a sparse Mandarin course map', () => {
     const result = repairCourseMapReadiness({
       courseMap: {

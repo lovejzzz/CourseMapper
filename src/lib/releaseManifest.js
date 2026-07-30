@@ -3,6 +3,20 @@ import { CURRENT_RELEASE } from './currentRelease.js';
 
 export { CURRENT_RELEASE };
 
+const V01698_RELEASE = {
+  version: '0.16.98',
+  date: 'July 30, 2026',
+  title: 'Causal Texture, Enforced Ratchets',
+  highlights: [
+    'The cross-package summary exposes total clusters, the K=2 pair-local bucket, support distribution, exact provenance coverage, and input-mask versus consumed-slot divergence.',
+    'The no-regression comparator keeps broad improvement rates against the immutable pre-repair baseline while freezing V0.16.97’s post-repair support shape.',
+    'Opt-in finalized-string realization receipts raise causal teaching-prose coverage above 90% on both retained panels without changing ordinary package JSON.',
+    'The causal view reveals sparse-brief fallback pressure instead of presenting a broad input-mask result as a production repetition rate.',
+    'Fast verification recompiles both retained panels and applies the real comparator before merge.',
+    'Repository growth accounting freezes the entire course compiler family so code extraction cannot masquerade as a compiler reduction.',
+  ],
+};
+
 const V01697_RELEASE = {
   version: '0.16.97',
   date: 'July 29, 2026',
@@ -1067,6 +1081,59 @@ const V01695_RELEASE_CHANGELOG = {
   ],
 };
 
+const V01698_RELEASE_CHANGELOG = {
+  version: V01698_RELEASE.version,
+  date: V01698_RELEASE.date,
+  title: V01698_RELEASE.title,
+  highlights: V01698_RELEASE.highlights,
+  sections: [
+    {
+      label: 'Make the summary match the receipt',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'Total K≥2 clusters, the K=2 bucket, and the full support distribution are first-class report fields.',
+        'Compiler-frame coverage is printed as an exact numerator, denominator, and percentage.',
+        'Input-mask and consumed-slot exposure remain separate, with their divergence stated explicitly.',
+        'The retained canonical receipt and the human-readable summary describe the same qualified result.',
+      ],
+    },
+    {
+      label: 'Measure causal realization',
+      icon: 'AI',
+      color: 'blue',
+      items: [
+        'Finalized-string receipts raise retained-panel causal coverage above 90% without entering ordinary JSON.',
+        'Existing variant-owner receipts stay authoritative; the compiler boundary supplies path ownership for remaining finalized strings.',
+        'Trace-on and trace-off complete packages serialize byte-identically.',
+        'The sparse thin panel exposes a 28.70-point causal reader-exposure gap for targeted follow-up.',
+      ],
+    },
+    {
+      label: 'Make regressions unmergeable',
+      icon: 'PROOF',
+      color: 'violet',
+      items: [
+        'The original baseline governs broad support, exposure, excess, universal-cluster, and classification measures.',
+        'The post-repair V8 snapshot freezes K=2, existing-cluster support and occurrences, and new universal high-salience frames.',
+        'Fast verification recompiles both profiles and applies the real comparator before merge.',
+        'The protected branch requires the aggregate Fast verification status while Deep Proof remains defense in depth.',
+      ],
+    },
+    {
+      label: 'Freeze the real ownership boundary',
+      icon: 'CHECK',
+      color: 'slate',
+      items: [
+        'The repository ratchet counts the monolith and every courseCompiler*.js leaf as one compiler family.',
+        'Moving code into a cacheable module can no longer register as a false compiler reduction.',
+        'Trellis status text agrees with the experiment ledger: E1 green, E2 not run, E3 and E5 partial.',
+        'No production repetition rate, model-weight improvement, instructor approval, or classroom outcome is claimed.',
+      ],
+    },
+  ],
+};
+
 const V01697_RELEASE_CHANGELOG = {
   version: V01697_RELEASE.version,
   date: V01697_RELEASE.date,
@@ -1176,47 +1243,47 @@ export const CURRENT_RELEASE_CHANGELOG = {
   highlights: CURRENT_RELEASE.highlights,
   sections: [
     {
-      label: 'Make the summary match the receipt',
+      label: 'Turn causal measurement into a quality repair',
       icon: 'CHECK',
       color: 'emerald',
       items: [
-        'Total K≥2 clusters, the K=2 bucket, and the full support distribution are first-class report fields.',
-        'Compiler-frame coverage is printed as an exact numerator, denominator, and percentage.',
-        'Input-mask and consumed-slot exposure remain separate, with their divergence stated explicitly.',
-        'The retained canonical receipt and the human-readable summary describe the same qualified result.',
+        'Sparse course maps now select a precise discipline lens before assignment, quiz, slide, example, misconception, and classroom-copy realization.',
+        'Contextual variants compose from the course, lesson, evidence, learner role, and requested decision instead of rotating a small whole-sentence pool.',
+        'Thin-panel input-mask clusters fall from 536 to 502, K=2 clusters from 195 to 181, reader exposure from 9.78% to 9.01%, and cross-package excess from 6.75% to 6.23%.',
+        'The strong-source gold panel passes unchanged comparator policy with 18.87% reader exposure, 12.93% cross-package excess, and 92.13% provenance coverage.',
       ],
     },
     {
-      label: 'Measure causal realization',
+      label: 'Fail closed at the discipline boundary',
       icon: 'AI',
       color: 'blue',
       items: [
-        'Finalized-string receipts raise retained-panel causal coverage above 90% without entering ordinary JSON.',
-        'Existing variant-owner receipts stay authoritative; the compiler boundary supplies path ownership for remaining finalized strings.',
-        'Trace-on and trace-off complete packages serialize byte-identically.',
-        'The sparse thin panel now exposes a 28.70-point causal reader-exposure gap for targeted follow-up.',
+        'Unclassified courses cannot silently borrow an unrelated Curriculum Genome shard.',
+        'Database source families separate transactions from enterprise BTM, data integrity from moral integrity, and DBMS relational algebra from a math answer-check frame.',
+        'Oral-history source families cover interview design, recording and transcription, thematic coding, presentation, and project planning while rejecting unrelated generic data-analysis papers.',
+        'Research cache V19, middle-initial sentence repair, and compact exact-subset evidence binding keep weak or stale source shapes from returning.',
       ],
     },
     {
-      label: 'Make regressions unmergeable',
+      label: 'Fix the green-but-wrong browser package',
       icon: 'PROOF',
       color: 'violet',
       items: [
-        'The original baseline still governs broad support, exposure, excess, universal-cluster, and classification measures.',
-        'The post-repair V8 snapshot freezes K=2, existing-cluster support and occurrences, and new universal high-salience frames.',
-        'Fast verification recompiles both profiles and applies the real comparator before merge.',
-        'The protected branch requires the aggregate Fast verification status while Deep Proof remains defense in depth.',
+        'Database Systems reaches 8/8 grounded lessons, 9/9 material families, 65/100 readiness, 100/100 evidence grounding, 22 source receipts, and complete source-reference coverage in a 35-second physical-ZIP run.',
+        'Community Oral History improves from 48 to 29 seconds, readiness 58 to 62, grounding 61 to 84, specificity 97 to 98, and texture 95 to 96 on the identical brief.',
+        'Western-civilization, wastewater, UX prototype/portfolio, and pronunciation/fluency false friends are absent from the final oral-history UI and ZIP.',
+        'Both fresh packages retain 99/A structural conformance and zero encoded findings without presenting those engineering checks as instructor validation.',
       ],
     },
     {
-      label: 'Freeze the real ownership boundary',
+      label: 'Keep model and evidence claims honest',
       icon: 'CHECK',
       color: 'slate',
       items: [
-        'The repository ratchet counts the monolith and every courseCompiler*.js leaf as one compiler family.',
-        'Moving code into a cacheable module can no longer register as a false compiler reduction.',
-        'Trellis status text now agrees with the experiment ledger: E1 green, E2 not run, E3 and E5 partial.',
-        'No production repetition rate, model-weight improvement, instructor approval, or classroom outcome is claimed.',
+        '“Oral History” no longer classifies as an oral performance, while actual presentations, speaking tasks, performances, defenses, and exams keep their speaking-rubric behavior.',
+        'The shared compiler/source-admission improvements benefit compatible paid routes; Scion additionally owns the public browser-local runtime and evidence-before-inference route.',
+        'Gemma weights remain unchanged and the optional trained adapter remains inactive.',
+        'No factual certification, instructor approval, accessibility certification, classroom outcome, or paid-model superiority is claimed.',
       ],
     },
   ],
@@ -1904,6 +1971,7 @@ const V01678_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  V01698_RELEASE_CHANGELOG,
   V01697_RELEASE_CHANGELOG,
   V01696_RELEASE_CHANGELOG,
   V01695_RELEASE_CHANGELOG,

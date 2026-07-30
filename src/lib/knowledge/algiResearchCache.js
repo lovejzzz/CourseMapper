@@ -7,12 +7,13 @@
  * storage into a shadow corpus.
  */
 
-// V17 invalidates kernels composed before Scion enforced WAI source-family
-// routing, exact evidence-ledger selection, and dangling-clause rejection.
+// V18 invalidates kernels composed before Scion enforced database source-family
+// routing, rejected the enterprise-BTM false friend, and repaired abbreviation
+// splits such as “Edgar F. Codd.”
 // Keeping the protocol in both the storage key and payload makes stale
 // evidence fail closed even if a caller migrates storage manually.
-export const ALGI_RESEARCH_CACHE_KEY = 'coursemapper-algi-research-cache-v17';
-export const ALGI_RESEARCH_CACHE_PROTOCOL = 'algi-local-research-cache-v17';
+export const ALGI_RESEARCH_CACHE_KEY = 'coursemapper-algi-research-cache-v19';
+export const ALGI_RESEARCH_CACHE_PROTOCOL = 'algi-local-research-cache-v19';
 const MAX_ENTRIES = 60;
 const MAX_SERIALIZED_CHARS = 1_800_000;
 

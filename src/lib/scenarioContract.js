@@ -179,6 +179,18 @@ function scenarioEvidencePacket(kernel, term, facts) {
     .join(' ');
 
   if (
+    /\b(?:oral history|oral histories|oral historian|narrators?|interview protocols?|open-ended questions?|audio recording|transcript(?:ion|s)?|informed consent|release forms?|thematic coding|public history)\b/i.test(
+      context,
+    )
+  ) {
+    return {
+      compact:
+        'the supplied interview claims labeled Claim A and Claim B, the recording or transcript excerpt, the narrator-context note, and the consent boundary',
+      general:
+        'the interview or transcript record, competing interpretations, narrator context, consent status, and documented evidence limit',
+    };
+  }
+  if (
     /\b(?:data story|data storytelling|data journalism|dataset|data set|data cleaning|cleaning log|source ledger|data provenance|missing values?|visual encodings?|chart|dashboard|uncertainty note|spreadsheet|csv)\b/i.test(
       context,
     )
@@ -208,6 +220,21 @@ function scenarioEvidencePacket(kernel, term, facts) {
     return {
       compact: 'the two supplied textual claims labeled Claim A and Claim B and the locatable passage evidence',
       general: 'the cited passage, the two competing interpretations, and the documented limit of the evidence',
+    };
+  }
+  // Relational algebra is database language here, not a mathematics signal.
+  // Route it before the broad equation/algebra frame so database assignments
+  // inspect schemas, queries, execution evidence, and constraints.
+  if (
+    /\b(?:database systems?|database management|\bdbms\b|relational algebra|relational databases?|\bsql\b|schemas?|queries?|query plans?|transactions?|\bacid\b|normalization|functional dependencies|nosql|key-value stores?)\b/i.test(
+      context,
+    )
+  ) {
+    return {
+      compact:
+        'the two supplied database claims labeled Claim A and Claim B, the schema or query artifact, and the execution or constraint evidence',
+      general:
+        'the schema or query record, competing database interpretations, execution evidence, and documented constraint',
     };
   }
   if (

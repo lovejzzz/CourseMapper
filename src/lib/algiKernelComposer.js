@@ -13,7 +13,12 @@
 // enrichment-coverage gate keeps its meaning.
 import { buildConceptIndex, resolveLessonConcepts } from './genome/conceptResolver.js';
 import { getKernelLibrary } from './genome/kernelLibrary.js';
-import { inferCourseDisciplines, loadGenomeManifest, loadShardsIntoLibrary } from './genome/libraryShardLoader.js';
+import {
+  inferCourseDisciplines,
+  loadGenomeManifest,
+  loadShardsIntoLibrary,
+  strictGenomeDisciplineBoundary,
+} from './genome/libraryShardLoader.js';
 import { lintEnrichedKeyTerm } from './blueprintEnrichmentPass.js';
 
 // Contract word bounds (scionContracts.compactLessonKernelSchemaProfile).
@@ -1803,6 +1808,7 @@ export async function composeAlgiLessonKernels({
     courseName: courseContext,
     lessons: lessons.map((lesson) => ({ title: lessonTopic(lesson) })),
   });
+  const allowedGenomeDisciplines = strictGenomeDisciplineBoundary(courseDisciplines);
   for (const [position, lesson] of lessons.entries()) {
     // The offset must be stable per LESSON, not per position in the batch:
     // enrichment often arrives one lesson at a time, so a batch index is always
@@ -1817,7 +1823,7 @@ export async function composeAlgiLessonKernels({
       offset,
       usedOut: used,
       sourceReferences,
-      allowedDisciplines: courseDisciplines,
+      allowedDisciplines: allowedGenomeDisciplines,
     });
     if (payload && needsAuthoritativeSourceResearch(lesson, payload)) {
       for (const id of claimed) if (!claimedBefore.has(id)) claimed.delete(id);

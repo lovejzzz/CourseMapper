@@ -125,6 +125,22 @@ const COMPUTER_SCIENCE_FALSE_FRIEND_RE =
   /\b(?:correlation|statistical\s+variables?|dependent\s+variables?|independent\s+variables?|random\s+variables?|lists?\s+of\s+(?:american\s+colleges|box\s+office|universities|films|songs|albums|people)|list\s+of\s+dictionaries\s+by\s+number\s+of\s+words|session\s+\(software\)|signal\s+foundation|encrypted\s+messag(?:e|ing)|no\s+strings\s+attached|n'?sync|string\s+theory|trigonometric\s+functions?|function\s+\(mathematics\)|continuous\s+or\s+discrete\s+variable|frontiers\s+of\s+flow\s+control|file\s+explorer|file\s+manager|environment\s+variable|conditional\s+sentences?|english\s+conditional\s+sentences?|natural\s+language|subordinate\s+clause|protasis|apodosis|game\s+loops?|game\s+design\s+loops?|game\s+terakoya|ludic\s+language\s+pedagogy|module\s+\(mathematics\)|module\s+theory|modules?\s+over\s+(?:a\s+)?rings?|abstract\s+algebra|exception\s+\(law\)|legal\s+exceptions?|exception\s+clauses?|exceptions?\s+to\s+(?:rules?|laws?))\b/i;
 const COMPUTER_SCIENCE_AMBIGUOUS_CONCEPT_RE =
   /\b(?:variables?|types?|data\s+types?|control\s+flow|conditionals?|loops?|functions?|lists?|dictionar(?:y|ies)|strings?|file\s+(?:input|output|i\/o)|files?|modules?|exceptions?|testing|debugging|algorithms?)\b/i;
+const DATABASE_COURSE_RE =
+  /\b(?:database systems?|database management|relational databases?|\bsql\b|data management systems?)\b/i;
+const DATABASE_TRANSACTION_TOPIC_RE =
+  /\b(?:database transactions?|transaction management|transaction processing|concurrency control)\b/i;
+const DATABASE_TRANSACTION_FALSE_FRIEND_RE =
+  /\b(?:business transaction management|\bbtm\b|application performance management|business activity monitoring)\b/i;
+const DATABASE_TRANSACTION_SOURCE_ANCHOR_RE =
+  /\b(?:databases?|database management systems?|\bdbms\b|transaction processing|\bacid\b|atomicity|consistency|isolation|durability|concurrency control|serializ(?:able|ability|ation)|locking|commit|rollback)\b/i;
+const DATABASE_SECURITY_TOPIC_RE =
+  /\b(?:database security|data integrity|access control|authorization|database auditing)\b/i;
+const DATABASE_SECURITY_SOURCE_ANCHOR_RE =
+  /\b(?:databases?|data integrity|data security|information security|computer security|access control|authorization|permissions?|privileges?|role[-\s]?based access|least privilege|database activity monitoring|database auditing|confidentiality|availability)\b/i;
+const ORAL_HISTORY_COURSE_RE =
+  /\b(?:oral history|oral histories|oral historian|community memory|narrator interviews?)\b/i;
+const ORAL_HISTORY_SOURCE_ANCHOR_RE =
+  /\b(?:oral history|oral histories|oral tradition|public history|archives?|archival|interviews?|interviewing|open[-\s]?ended questions?|questionnaires?|narrators?|recordings?|sound recording|audio|transcripts?|transcription|qualitative research|thematic analysis|content analysis|coding|storytelling|visual narratives?|visual communication|presentations?|research proposals?|research design|informed consent|release forms?|digital preservation|metadata)\b/i;
 const COMPUTER_SCIENCE_TOPIC_ANCHORS = [
   {
     concept: /\b(?:variables?|types?|data\s+types?)\b/i,
@@ -812,6 +828,33 @@ export function isComputerScienceWeakSource(source, courseGraph) {
   return !COMPUTER_SCIENCE_SOURCE_ANCHOR_RE.test(text) && !hasComputerScienceTopicAnchor(source);
 }
 
+/**
+ * “Transaction management” has a high-ranking enterprise-monitoring false
+ * friend whose page is source-valid but teaches the wrong discipline. Keep the
+ * guard narrow: only database transaction lessons require a visible DBMS,
+ * ACID, concurrency, or transaction-processing anchor.
+ */
+export function isDatabaseWeakSource(source, courseGraph) {
+  if (!DATABASE_COURSE_RE.test(courseText(courseGraph))) return false;
+  const conceptText = sourceConceptText(source);
+  const text = sourceSearchText(source);
+  if (DATABASE_TRANSACTION_TOPIC_RE.test(conceptText)) {
+    return DATABASE_TRANSACTION_FALSE_FRIEND_RE.test(text) && !DATABASE_TRANSACTION_SOURCE_ANCHOR_RE.test(text);
+  }
+  // “Integrity” by itself most often resolves to a moral or philosophical
+  // definition. A database security lesson may retain it only when the source
+  // visibly discusses data, computing, access, or the security triad.
+  if (DATABASE_SECURITY_TOPIC_RE.test(conceptText)) {
+    return !DATABASE_SECURITY_SOURCE_ANCHOR_RE.test(text);
+  }
+  return false;
+}
+
+export function isOralHistoryWeakSource(source, courseGraph) {
+  if (!ORAL_HISTORY_COURSE_RE.test(courseText(courseGraph))) return false;
+  return !ORAL_HISTORY_SOURCE_ANCHOR_RE.test(sourceSearchText(source));
+}
+
 export function isMusicTheoryIntervalWeakSource(source, courseGraph) {
   return isMusicIntervalWeakSource(sourceSearchText(source), courseText(courseGraph), sourceConceptText(source));
 }
@@ -830,6 +873,8 @@ export function isCourseAwareWeakSource(source, courseGraph) {
   return (
     hasOnlyArtifactConceptLinks(source) ||
     isUserExperienceWeakSource(source, courseGraph) ||
+    isOralHistoryWeakSource(source, courseGraph) ||
+    isDatabaseWeakSource(source, courseGraph) ||
     isComputerScienceWeakSource(source, courseGraph) ||
     isWorldLiteratureWeakSource(source, courseGraph) ||
     isBusinessEthicsWeakSource(source, courseGraph) ||

@@ -46,7 +46,11 @@ const BLOOM_VERB_RE =
 // Performance" is an oral), and explicit in-class activity words beat the
 // graded-artifact default unless the title carries an explicit grade weight.
 const ASSESSMENT_KIND_RULES = [
-  ['oral', /\b(oral|speaking|presentation|performance)\b/i],
+  // “Oral History” names a discipline and source method, not a speaking
+  // assessment. A bare oral cue remains meaningful everywhere else, while
+  // explicit presentation/performance/speaking identities still compile the
+  // prompt sheet and speaking rubric.
+  ['oral', /\boral\b(?![\s-]+histor(?:y|ies)\b)|\b(?:speaking|presentation|performance)\b/i],
   [
     'in-class',
     /\b(role[\s-]?play|drill|poll|exit ticket|exit reflection|warm[\s-]?up|sketch|pair work|think[\s-]?pair|gallery walk|map activity|in[\s-]?class|participation|cold call|discussion(?!\s+post)|quick evidence check|evidence check|practice response)\b/i,

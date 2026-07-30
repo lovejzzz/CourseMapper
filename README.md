@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — cross-checked, exportable, and fully editable. Then use the AI agent to inspect and revise the generated workspace through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.98
+**Current release:** v0.16.99
 
 ---
 
@@ -32,7 +32,7 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site presents **Provider: Scion**, a disabled API control because no key is needed, and one product model: **Scion V0.16.98**. Scion is fully free—and always will be. That label names EduTool's complete course-building system; it is not a claim that EduTool trained or hosts a new foundation model. Scion pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its identity and metadata, and runs it through the packaged WebGPU runtime only when the task needs neural authoring. Before that boundary, Scion can preserve an exact instructor-provided lesson sequence and prepare compact source-anchored evidence from uploaded material, the shipped Curriculum Genome, the local research cache, and—only after opt-in—current public sources. A complete explicit structure plus exact source ledger reaches the shared compiler without importing or activating the model runtime; incomplete or ambiguous contracts retain the browser-local Gemma fallback.
+The hosted site presents **Provider: Scion**, a disabled API control because no key is needed, and one product model: **Scion V0.16.99**. Scion is fully free—and always will be. That label names EduTool's complete course-building system; it is not a claim that EduTool trained or hosts a new foundation model. Scion pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its identity and metadata, and runs it through the packaged WebGPU runtime only when the task needs neural authoring. Before that boundary, Scion can preserve an exact instructor-provided lesson sequence and prepare compact source-anchored evidence from uploaded material, the shipped Curriculum Genome, the local research cache, and—only after opt-in—current public sources. A complete explicit structure plus exact source ledger reaches the shared compiler without importing or activating the model runtime; incomplete or ambiguous contracts retain the browser-local Gemma fallback.
 
 In plain language, **Scion Vx is the whole local authoring system, not just the base model**:
 
@@ -61,7 +61,33 @@ V0.16.91 gives each admitted lesson one canonical evidence brief and reuses that
 
 The historical research architecture and limitations remain documented in [docs/ALGI_RESEARCH_FIRST_ARCHITECTURE.md](docs/ALGI_RESEARCH_FIRST_ARCHITECTURE.md) and [docs/ALGI_V0_PIPELINE_ASSESSMENT.md](docs/ALGI_V0_PIPELINE_ASSESSMENT.md).
 
-### V0.16.98 current release — causal texture, enforced ratchets
+### V0.16.99 current release — discipline-safe sparse briefs
+
+V0.16.99 turns V0.16.98’s causal measurement into a measured generated-course quality repair. Sparse briefs now use course-aware teaching lenses and lesson context instead of relying on a small generic sentence inventory.
+
+On the frozen 12-course thin panel, input-mask/path-free repeated clusters fall from **536 to 502**, pair-local K=2 clusters from **195 to 181**, reader exposure from **9.78% to 9.01%**, and cross-package excess from **6.75% to 6.23%**. The strong-source gold panel also holds: reader exposure is **18.87%**, cross-package excess is **12.93%**, no retained cluster grows, and no new universal high-salience frame appears. Both panels pass the V0.16.98 comparator.
+
+The most important changes are semantic, not cosmetic:
+
+- unclassified courses can no longer borrow an unrelated Curriculum Genome shard;
+- Database Systems distinguishes transactions from enterprise BTM, data integrity from moral integrity, and relational algebra from mathematics answer-check language;
+- Community Oral History uses interviews, narrator context, consent, recordings, transcripts, archives, and public-history decisions instead of Western-civilization survey, UX prototype, or spoken-language rubric fallbacks;
+- exact compact subsets of a larger verified evidence ledger retain source receipts, while paraphrases and added facts still fail closed;
+- current-source title families prioritize canonical disciplinary pages before ambiguous lesson-title fragments;
+- research cache V19 removes previously admitted weak candidates.
+
+The browser proof uses fresh sparse briefs, real current-source requests, and physical ZIP downloads:
+
+- **Database Systems:** ready in **35 seconds**, 8/8 grounded lessons, 9/9 material families, **65/100 Automated Readiness**, **100/100 evidence grounding**, **99/A package conformance**, zero encoded findings, 22 trusted source receipts, and complete source-reference coverage across outcomes, activities, examples, assessments, rubric criteria, and factual claims.
+- **Community Oral History Methods:** on the identical brief, ready time improves **48→29 seconds**, Automated Readiness **58→62**, evidence grounding **61→84**, specificity **97→98**, and texture **95→96**. The final 51-file ZIP has zero encoded findings and none of the observed Western-civilization, wastewater, UX prototype/portfolio, pronunciation, or fluency false friends.
+
+The oral-history run is especially important because its first package looked structurally green while being semantically wrong. V0.16.99 fixes the owners that created those errors and adds regression tests for each collision instead of suppressing the warning or inflating the score.
+
+This is a shared compiler and evidence-routing improvement, so compatible paid providers also benefit from the discipline repair, scenario framing, source admission, assessment classification, and export path. Scion additionally owns the free browser-local model/runtime and its evidence-before-inference route. Gemma weights remain unchanged, the optional adapter remains inactive, and the release does not claim factual certification, instructor approval, accessibility certification, classroom outcomes, or paid-model superiority.
+
+The exact measurements, browser runs, source reports, remaining evidence boundary, and reproduction commands are documented in [docs/SCION_V01699_DISCIPLINE_SAFE_SPARSE_BRIEFS.md](docs/SCION_V01699_DISCIPLINE_SAFE_SPARSE_BRIEFS.md).
+
+### V0.16.98 historical release — causal texture, enforced ratchets
 
 V0.16.98 turns V0.16.97’s useful evaluator into an honest merge gate. The generated report now shows total repeated clusters, the K=2 pair-local bucket, the complete support distribution, exact compiler-frame coverage, the consumed-slot causal view, and its divergence from broad input masking.
 
@@ -376,7 +402,7 @@ Gemma weights remain unchanged, and the research adapter remains inactive becaus
 
 ### Recent release history
 
-The sections below are historical release evidence. Their versions, timings, test counts, and measured packages describe the named release and are intentionally preserved; the V0.16.98 release section above is the current authority. Historical 99/A statements refer to the deterministic conformance grader used by those releases, not to the new Automated Readiness construct.
+The sections below are historical release evidence. Their versions, timings, test counts, and measured packages describe the named release and are intentionally preserved; the V0.16.99 release section above is the current authority. Historical 99/A statements refer to the deterministic conformance grader used by those releases, not to the new Automated Readiness construct.
 
 V0.16.77 makes experiential learning a first-class compiler capability instead of a one-course template. When—and only when—a lesson explicitly requests a simulation, laboratory investigation, studio critique, case exercise, structured debate, field exercise, or role-play, the existing lesson-authoring call returns one compact course-specific activity blueprint beside its knowledge kernel. There is no extra call for the lesson plan, slides, assignment, or export.
 

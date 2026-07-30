@@ -156,6 +156,22 @@ describe('Scion evidence layer', () => {
     expect(scionPayloadMatchesEvidence(evidence, oldPayload)).toBe(false);
   });
 
+  it('binds a compact exact subset but rejects one invented or paraphrased fact', () => {
+    const evidence = scionEvidenceLessonFromComposedPayload(payload());
+    const compact = { kernel: { facts: evidence.sourceFacts.slice(0, 4) } };
+    const mixed = {
+      kernel: {
+        facts: [
+          ...evidence.sourceFacts.slice(0, 3),
+          'A plausible but unverified extra claim must not inherit the source citations.',
+        ],
+      },
+    };
+
+    expect(scionPayloadMatchesEvidence(evidence, compact)).toBe(true);
+    expect(scionPayloadMatchesEvidence(evidence, mixed)).toBe(false);
+  });
+
   it('stays offline and reports uncovered lessons when no local evidence is available', async () => {
     const structuredPrompt = {
       courseName: 'Principles of Economics',

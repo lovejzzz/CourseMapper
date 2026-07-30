@@ -159,6 +159,9 @@ describe('3.1 — registry schema (derive)', () => {
     expect(lessonSeven[2].kind).toBe('exam');
     expect(lessonSeven[3].kind).toBe('in-class');
     expect(classifyAssessmentKind('Final Oral Performance')).toBe('oral');
+    expect(classifyAssessmentKind('Evidence explanation: Foundations of Oral History')).toBe('graded-artifact');
+    expect(classifyAssessmentKind('Evidence explanation: Presenting Oral Histories')).toBe('graded-artifact');
+    expect(classifyAssessmentKind('Oral History Presentation')).toBe('oral');
     expect(classifyAssessmentKind('Final Exam: comprehensive assessment')).toBe('exam');
     expect(classifyAssessmentKind('Lesson 1 evidence check: Learning (25%)')).toBe('graded-artifact');
     expect(classifyAssessmentKind('Quick evidence check: apply conditioning to a new example.')).toBe('in-class');

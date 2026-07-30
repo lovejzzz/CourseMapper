@@ -14,7 +14,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { createKernelLibrary } from '../kernelLibrary.js';
 import { runGenomeLinker } from '../runGenomeLinker.js';
-import { inferCourseDisciplines } from '../libraryShardLoader.js';
+import { inferCourseDisciplines, strictGenomeDisciplineBoundary } from '../libraryShardLoader.js';
 import { buildQuizItemPlan } from '../../blueprintEnrichmentPass.js';
 import { buildCourseBlueprint, compileBlueprintDeliverables } from '../../courseBlueprintCompiler.js';
 
@@ -278,6 +278,24 @@ describe('iteration 7 — discipline inference covers the new disciplines', () =
         lessons: [{ title: 'Superposition and measurement' }, { title: 'Quantum gates and circuits' }],
       }),
     ).toContain('cs');
+  });
+
+  it('routes database-system vocabulary to computer science', () => {
+    expect(
+      inferCourseDisciplines({
+        courseName: 'Database Systems',
+        lessons: [
+          { title: 'Relational Database Implementation' },
+          { title: 'Database Normalization' },
+          { title: 'Query Optimization' },
+        ],
+      }),
+    ).toEqual(['cs']);
+  });
+
+  it('fails closed when no course discipline can be inferred', () => {
+    expect(strictGenomeDisciplineBoundary([])).toEqual(['__unclassified__']);
+    expect(strictGenomeDisciplineBoundary([' CS ', 'cs'])).toEqual(['cs']);
   });
 
   it('routes digital accessibility terminology to the UX evidence shard', () => {

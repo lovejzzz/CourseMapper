@@ -88,6 +88,29 @@ export function selectShardsForDisciplines(manifest, disciplines = []) {
 }
 
 /**
+ * The kernel library is a browser-session singleton, so it can retain shards
+ * from an earlier course. An empty inference must therefore mean "admit no
+ * shipped discipline" rather than "search every retained shard."
+ *
+ * Callers that deliberately test an unrestricted resolver can omit the
+ * boundary. Product composition should always pass this strict form.
+ */
+export function strictGenomeDisciplineBoundary(disciplines = []) {
+  const normalized = [
+    ...new Set(
+      (Array.isArray(disciplines) ? disciplines : [])
+        .map((discipline) =>
+          String(discipline || '')
+            .trim()
+            .toLowerCase(),
+        )
+        .filter(Boolean),
+    ),
+  ];
+  return normalized.length > 0 ? normalized : ['__unclassified__'];
+}
+
+/**
  * v0.14.1 P2.7: which inferred disciplines have NO shard in the manifest.
  * selectShardsForDisciplines returns [] silently on a coverage miss, so the
  * v0.14 audit's 0-link courses (cs, geo, lang) gave no hint the discipline
@@ -277,7 +300,10 @@ export function inferCourseDisciplines(courseMap) {
       'ux',
       /\buser experience\b|\bux design\b|\bhuman[- ]centered design\b|\buser research\b|\bpersona(?:s)?\b|\bjourney map(?:ping|s)?\b|\bservice blueprint(?:ing|s)?\b|\binformation architecture\b|\btask flow(?:s)?\b|\bwirefram(?:e|es|ing)\b|\busability test(?:ing)?\b|\bdesign handoff\b|\baccessib(?:le|ility)\b|\bwcag\b|\bsemantic html\b|\bwai[- ]aria\b/,
     ],
-    ['cs', /\bcomputer science|\bquantum computing\b|algorithm|programming|data structure/],
+    [
+      'cs',
+      /\bcomputer science|\bquantum computing\b|algorithm|programming|data structure|\bdatabase systems?\b|\brelational databases?\b|\bsql\b|\bdatabase normalization\b|\bquery optimization\b|\btransaction management\b|\bnosql\b/,
+    ],
     // v0.14.1 (4.2): geology + world-language inference. The v0.14 audit's
     // Physical Geology and Mandarin courses inferred NOTHING — no regex
     // existed, so the 0-link runs looked like linker failures. The 'lang'

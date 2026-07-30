@@ -88,6 +88,9 @@ async function fileHash(relativePath) {
 async function implementationFingerprint() {
   const files = [
     'src/lib/courseBlueprintCompiler.js',
+    'src/lib/courseCompilerLensProfiles.js',
+    'src/lib/courseCompilerRealization.js',
+    'src/lib/courseCompilerTextureCopy.js',
     'src/lib/quality/crossPackageTexture.js',
     'src/lib/quality/crossPackageTextureUnitClass.js',
     'scripts/crossPackageTextureAudit.mjs',
@@ -171,7 +174,7 @@ function markdownSummary(canonical, envelope) {
     '',
     '## Headline teaching-prose measures',
     '',
-    '| View | Eligible units | Clusters K≥2 | K=2 clusters | Support burden | Reader exposure | Cross-package excess |',
+    '| View | Comparable frame units | Clusters K≥2 | K=2 clusters | Support burden | Reader exposure | Cross-package excess |',
     '| --- | ---: | ---: | ---: | ---: | ---: | ---: |',
     `| Raw / path-free | ${rawPathFree.eligibleUnitCount} | ${rawPathFree.clusterCount} | ${pairLocalCount(rawPathFree)} | ${(rawPathFree.metrics.supportBurdenRate * 100).toFixed(2)}% | ${(rawPathFree.metrics.readerExposureRate * 100).toFixed(2)}% | ${(rawPathFree.metrics.crossPackageExcessRate * 100).toFixed(2)}% |`,
     `| Input-mask / path-free | ${inputPathFree.eligibleUnitCount} | ${inputPathFree.clusterCount} | ${pairLocalCount(inputPathFree)} | ${(inputPathFree.metrics.supportBurdenRate * 100).toFixed(2)}% | ${(inputPathFree.metrics.readerExposureRate * 100).toFixed(2)}% | ${(inputPathFree.metrics.crossPackageExcessRate * 100).toFixed(2)}% |`,
@@ -193,6 +196,7 @@ function markdownSummary(canonical, envelope) {
     `- Unknown-provenance teaching units: ${canonical.result.provenance.unknown}`,
     `- Compiler-frame provenance coverage: ${(provenanceCoverage * 100).toFixed(2)}%`,
     `- Input-mask → consumed-slot reader-exposure divergence: ${((consumedPathFree.metrics.readerExposureRate - inputPathFree.metrics.readerExposureRate) * 100).toFixed(2)} percentage points`,
+    `- Mask semantics: ${canonical.result.versions?.mask || 'legacy'}; placeholder-only source slots are excluded because they contain no comparable compiler frame.`,
     ...(envelope.ratchet
       ? [
           '',

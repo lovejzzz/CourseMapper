@@ -156,7 +156,7 @@ const AMBIGUOUS_BEHAVIOR_RE =
 const CORROBORATING_CONTEXT_RE =
   /(?:\b(?:said|reported|explained|because|citing|according to|follow-up|second observation|task result|completion rate|error rate)\b|\d+\s*%)/i;
 const EVIDENCE_LIMIT_OPTION_RE =
-  /\b(?:cannot (?:be )?(?:determined|inferred)|insufficient evidence|not enough evidence|requires? (?:more|additional) (?:context|evidence)|needs? (?:more|additional) (?:context|evidence)|ask (?:the )?(?:user|participant)|record (?:the )?behavior|multiple (?:possible )?(?:causes|explanations)|avoid (?:assuming|inferring))\b/i;
+  /\b(?:cannot (?:be )?(?:determined|inferred)|insufficient evidence|not enough evidence|requires? (?:more|additional) (?:context|evidence)|needs? (?:more|additional) (?:context|evidence)|ask (?:the )?(?:user|participant)|record (?:the )?behavior|multiple (?:possible )?(?:causes|explanations)|avoid (?:assuming|inferring)|(?:leav(?:e|es|ing)|remain(?:s|ing)?)\b[^.;]{0,80}\bunproven|does not establish)\b/i;
 
 /**
  * A pause, laugh, glance, or repeated click can support a follow-up question,

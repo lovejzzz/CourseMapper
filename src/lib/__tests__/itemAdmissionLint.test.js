@@ -187,6 +187,20 @@ describe('itemAdmissionLint (test-wiseness battery)', () => {
         'A participant laughed, then explained that the unexpected label was funny. Which interpretation is most defensible?',
     };
     expect(hasUnsupportedBehaviorInference(corroborated)).toBe(false);
+
+    const admittedDatabaseFact = {
+      question:
+        'A classmate checks four interpretations against this lesson evidence: “Query execution plans detail the sequence of operations the database engine uses to retrieve data.” Which interpretation survives the source check?',
+      options: [
+        'Use the statement to support the Query Execution Plans relationship it names, while leaving broader causes and outcomes unproven.',
+        'Dismiss the statement because one admitted Query Execution Plans fact cannot support any conclusion.',
+        'Treat the statement as proof that Query Execution Plans produces the same outcome in every context.',
+        'Use the statement to make Query Execution Plans the only cause of the result.',
+      ],
+      answerIndex: 0,
+    };
+    expect(hasUnsupportedBehaviorInference(admittedDatabaseFact)).toBe(false);
+    expect(lintItemAdmission(admittedDatabaseFact)).not.toContain('unsupported-behavior-inference');
   });
 
   it('rejects unexplained causal guesses from outcome metrics', () => {

@@ -30,14 +30,17 @@ function factsFromKernelPayload(payload = {}) {
 export function scionPayloadMatchesEvidence(evidence = null, payload = null) {
   const expected = (Array.isArray(evidence?.sourceFacts) ? evidence.sourceFacts : []).map(clean).filter(Boolean);
   const actual = factsFromKernelPayload(payload);
-  return (
-    expected.length >= 3 && actual.length === expected.length && expected.every((fact, index) => fact === actual[index])
-  );
+  if (expected.length < 3 || actual.length < 3 || actual.length > expected.length) return false;
+  const admitted = new Set(expected);
+  // Scion's compact contract may select four of a five-fact evidence ledger.
+  // A bounded exact subset remains source-immutable; any paraphrase or added
+  // claim still fails the transaction and cannot inherit the citations.
+  return new Set(actual).size === actual.length && actual.every((fact) => admitted.has(fact));
 }
 
 /**
  * A researched ledger may displace a generally related shipped ledger only
- * when the candidate copies its immutable facts exactly. This keeps the
+ * when the candidate copies only immutable facts exactly. This keeps the
  * research decision and the final lesson payload in one trust transaction:
  * citations are never rebound onto older facts merely because both payloads
  * look structurally complete.

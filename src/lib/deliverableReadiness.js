@@ -845,6 +845,9 @@ function getCourseMapProgressionTopic(courseMap, lessonIndex) {
   return '';
 }
 
+const ORAL_HISTORY_COURSE_MAP_RE =
+  /\b(?:oral history|oral histories|oral historian|community memory|narrator interviews?|interview protocols?|audio recording protocols?|transcript(?:ion|s)?|thematic coding of transcripts?)\b/i;
+
 const HISTORY_COURSE_MAP_RE =
   /\b(?:western civilization|civilization|world history|history|historical|ancient|medieval|middle ages|renaissance|reformation|mesopotamia|egypt|egyptian|greece|greek|rome|roman|byzantine|islamic|crusade|feudal|charlemagne|carolingian|empire|kingdom|primary[- ]source|source analysis)\b/i;
 
@@ -902,7 +905,11 @@ const COMPUTER_SCIENCE_COURSE_MAP_RE = {
 };
 
 const GENERIC_COURSE_MAP_FALLBACK_RE =
-  /\b(?:course problem|course applications|next assessment|quick evidence check|application check|exit ticket using|practice response|review assigned materials|prepare notes|new example|one course decision|visible product|observe, label, calculate, or decide|course task or example|course activities|evidence of learning|lab materials|discipline-specific tools)\b/i;
+  /\b(?:course problem|course applications|course-relevant decisions?|next assessment|quick evidence check|application check|exit ticket using|practice response|review assigned materials|prepare notes|new example|one course decision|visible product|observe, label, calculate, or decide|course task or example|course activities|evidence of learning|lab materials|discipline-specific tools)\b/i;
+const ORAL_HISTORY_MISROUTED_HISTORY_RE =
+  /\b(?:Western civilization|before 1500|historical causation|historical interpretations?|historical claim|historical map|map or timeline|chronology handout|Renaissance|Reformation)\b/i;
+const ORAL_HISTORY_MISROUTED_UX_RE =
+  /\b(?:UX example|prototype sample|prototype or portfolio|portfolio case|design-journal|design rationale|studio artifact|studio feedback|user-evidence claim)\b/i;
 const GENERIC_ASSESSMENT_SCAFFOLD_RE =
   /\b(?:quick evidence check|evidence check|application check|exit ticket using|practice response(?:\s+that\s+names)?|prepared response|applied response|practice checkpoint|review note|transfer task)\b/i;
 const GENERIC_ASSESSMENT_NEW_EXAMPLE_RE = /\bapply\b[^.?!\n]{0,120}\bto a new example\b/i;
@@ -921,6 +928,7 @@ function inferCourseMapFallbackProfile(courseMap, lesson, section) {
   ]
     .map(text)
     .join(' ');
+  if (ORAL_HISTORY_COURSE_MAP_RE.test(text(courseMap?.courseName))) return 'oral-history';
   if (PROJECT_MANAGEMENT_COURSE_RE.test(context)) return 'project-management';
   if (DATA_STORY_COURSE_MAP_RE.test(context)) return 'data-storytelling';
   if (UX_DESIGN_COURSE_MAP_RE.test(context)) return 'ux-design';
@@ -929,6 +937,8 @@ function inferCourseMapFallbackProfile(courseMap, lesson, section) {
     return 'computer-science';
   }
   if (LITERATURE_COURSE_MAP_RE.test(context) || LITERATURE_NARRATIVE_CONTEXT_RE.test(context)) return 'literature';
+  // A lesson-level oral-history cue still protects incomplete course titles.
+  if (ORAL_HISTORY_COURSE_MAP_RE.test(context)) return 'oral-history';
   if (
     /\b(?:music theory|aural skills?|ear training|interval quality|semitones?|pitch(?:es)?|notated|notation|inversion number|compound intervals?)\b/i.test(
       context,
@@ -942,6 +952,54 @@ function inferCourseMapFallbackProfile(courseMap, lesson, section) {
 function displayCourseMapTopic(topic) {
   const value = text(topic);
   return value ? `${value.slice(0, 1).toUpperCase()}${value.slice(1)}` : 'Project decision';
+}
+
+function getOralHistoryCourseMapFallbacks(topic, pick) {
+  return {
+    learningGoals: pick([
+      `Use ${topic} to plan, document, and interpret an ethical oral-history project.`,
+      `Connect ${topic} to narrator context, informed consent, and a traceable interview record.`,
+      `Evaluate how ${topic} shapes the credibility, accessibility, and reuse of an oral-history collection.`,
+    ]),
+    topicSection: topic,
+    learningObjectives: pick([
+      `Apply ${topic} to an interview, recording, transcript, or public-history decision and explain the evidence used.`,
+      `Evaluate ${topic} against narrator consent, source context, and preservation requirements.`,
+      `Produce a documented ${topic} decision that another oral historian could audit or revise.`,
+      `Interpret ${topic} using a locatable interview excerpt, contextual note, and stated evidence limit.`,
+    ]),
+    weeklyAssessments: pick([
+      `${topic} fieldwork memo: submit the interview artifact, consent or context record, and one justified revision.`,
+      `${topic} evidence check: connect a locatable recording or transcript detail to one interpretation and one limit.`,
+      `${topic} project checkpoint: document the method decision, supporting record, and next preservation step.`,
+    ]),
+    asyncActivities: pick([
+      `Annotate a sample interview, transcript, or release form for evidence, context, consent, and access decisions about ${topic}.`,
+      `Draft the interview, recording, transcription, or metadata artifact needed to practice ${topic}.`,
+      `Review an oral-history excerpt and record one supported interpretation, one missing context detail, and one follow-up question about ${topic}.`,
+    ]),
+    syncActivities: pick([
+      `Rehearse ${topic} with a partner, compare the resulting records, and revise one method decision.`,
+      `Audit an interview or transcript excerpt for ${topic}, then distinguish narrator evidence from researcher inference.`,
+      `Critique a ${topic} workflow for consent, recording quality, contextual accuracy, accessibility, and preservation.`,
+    ]),
+    technologyNeeded: pick([
+      'Audio recorder or recording app, headphones, transcription workspace, and secure course storage.',
+      'Course site, consent and metadata templates, recording equipment, and an accessible transcript editor.',
+      'Playback and transcription tools plus secure storage for interview files, releases, and field notes.',
+    ]),
+    presentationFormat: pick([
+      'Method demonstration, interview or transcript analysis, guided practice, and evidence-led revision.',
+      'Ethics and context briefing, artifact workshop, peer audit, and preservation check.',
+      'Oral-history case, modeled workflow, student rehearsal, and documented reflection.',
+    ]),
+    supportingResources: pick([
+      `Consent and release template, interview or recording protocol, sample transcript, and metadata guide for ${topic}.`,
+      `Annotated oral-history excerpt, equipment or transcription checklist, and preservation guidance for ${topic}.`,
+      `Narrator-context record, accessible transcript example, and project workflow aligned to ${topic}.`,
+    ]),
+    evaluateDesign: `Check that ${topic} preserves narrator consent and context while linking the interview record, interpretation, and public artifact.`,
+  };
 }
 
 function getHistoryCourseMapFallbacks(topic, pick) {
@@ -1493,77 +1551,79 @@ function getCourseMapFallbackValue(key, courseMap, lesson, section, lessonIndex)
   const formativeAssessmentPrefix = sectionIndex > 0 ? 'In-class ' : '';
   const profile = inferCourseMapFallbackProfile(courseMap, lesson, section);
   const fieldFallbacks =
-    profile === 'history'
-      ? getHistoryCourseMapFallbacks(topic, pick)
-      : profile === 'literature'
-        ? getLiteratureCourseMapFallbacks(topic, pick)
-        : profile === 'data-storytelling'
-          ? getDataStoryCourseMapFallbacks(topic, pick)
-          : profile === 'world-language'
-            ? getWorldLanguageCourseMapFallbacks(topic, pick)
-            : profile === 'project-management'
-              ? getProjectManagementCourseMapFallbacks(topic, pick)
-              : profile === 'ux-design'
-                ? getUxDesignCourseMapFallbacks(topic, pick)
-                : profile === 'computer-science'
-                  ? getComputerScienceCourseMapFallbacks(topic, pick)
-                  : profile === 'music-theory'
-                    ? getMusicTheoryCourseMapFallbacks(topic, pick, lesson, section, courseMap)
-                    : {
-                        learningGoals: pick([
-                          `Use ${topic} to explain a course problem and prepare evidence for the next assessment.`,
-                          `Trace how ${topic} changes what students can observe, label, calculate, or decide.`,
-                          `Develop an evidence-backed account of ${topic} for course applications.`,
-                        ]),
-                        topicSection: topic,
-                        learningObjectives: pick([
-                          `Explain the key ideas in ${topic} and apply them in course activities.`,
-                          `Apply the main concepts from ${topic} to a course task or example.`,
-                          `Connect ${topic} to the week's work and explain one supporting evidence source.`,
-                          `Analyze ${topic} using course evidence and name one limitation or open question.`,
-                        ]),
-                        weeklyAssessments: pick([
-                          `${formativeAssessmentPrefix}${displayCourseMapTopic(topic)} evidence check: state one supported, bounded conclusion.`,
-                          `${formativeAssessmentPrefix}Apply ${displayCourseMapTopic(topic)} to one example and name one limitation.`,
-                          `${formativeAssessmentPrefix}${displayCourseMapTopic(topic)} exit reflection: connect evidence to the lesson task.`,
-                          `${formativeAssessmentPrefix}${displayCourseMapTopic(topic)} short analysis: claim, evidence, and next question.`,
-                        ]),
-                        asyncActivities: pick([
-                          `Annotate the lesson resource for ${topic} and bring one usable example.`,
-                          `Prepare a source note that names one claim, example, or question about ${topic}.`,
-                          `Compare the lesson resource with a sample response and mark where ${topic} appears.`,
-                          `Draft one question about ${topic} that can be answered with course evidence.`,
-                        ]),
-                        syncActivities: pick([
-                          `Compare two examples of ${topic} and explain which evidence is stronger.`,
-                          `Practice applying ${topic} in pairs, then revise one response from feedback.`,
-                          `Use a guided case, text, dataset, or demonstration to test ${topic}.`,
-                          `Share one ${topic} claim and identify the evidence that would make it stronger.`,
-                        ]),
-                        technologyNeeded: pick([
-                          'Course site, lesson resource, and the response workspace used for the lesson activity.',
-                          'Shared reading, example file, or activity handout plus a workspace for responses.',
-                          'Lesson materials and the classroom tool named for the lesson task.',
-                          'Course platform, accessible resource file, and response workspace for the checkpoint.',
-                        ]),
-                        presentationFormat: pick([
-                          'Instructor framing, guided student work, and a short synthesis.',
-                          'Brief setup, worked example or demonstration, then student application.',
-                          'Opening question, structured practice, and a closing artifact review.',
-                        ]),
-                        supportingResources: pick([
-                          `Source packet for ${topic}: annotated excerpt plus activity prompt.`,
-                          `Practice guide for ${topic}: reading, worked model, and response handout.`,
-                          `Worked example for ${topic} with a student response guide.`,
-                          `Activity guide for ${topic} with reference notes and feedback cues.`,
-                        ]),
-                        evaluateDesign: pick([
-                          `Check that the ${topic} resource, activity, and assessment all ask for one visible product.`,
-                          `Confirm students use the same source detail or example for ${topic} practice and assessment.`,
-                          `Align the ${topic} activity with one observable response, artifact, or explanation.`,
-                          `Make the ${topic} practice task produce evidence students can reuse in the assessment.`,
-                        ]),
-                      };
+    profile === 'oral-history'
+      ? getOralHistoryCourseMapFallbacks(topic, pick)
+      : profile === 'history'
+        ? getHistoryCourseMapFallbacks(topic, pick)
+        : profile === 'literature'
+          ? getLiteratureCourseMapFallbacks(topic, pick)
+          : profile === 'data-storytelling'
+            ? getDataStoryCourseMapFallbacks(topic, pick)
+            : profile === 'world-language'
+              ? getWorldLanguageCourseMapFallbacks(topic, pick)
+              : profile === 'project-management'
+                ? getProjectManagementCourseMapFallbacks(topic, pick)
+                : profile === 'ux-design'
+                  ? getUxDesignCourseMapFallbacks(topic, pick)
+                  : profile === 'computer-science'
+                    ? getComputerScienceCourseMapFallbacks(topic, pick)
+                    : profile === 'music-theory'
+                      ? getMusicTheoryCourseMapFallbacks(topic, pick, lesson, section, courseMap)
+                      : {
+                          learningGoals: pick([
+                            `Use ${topic} to explain a course problem and prepare evidence for the next assessment.`,
+                            `Trace how ${topic} changes what students can observe, label, calculate, or decide.`,
+                            `Develop an evidence-backed account of ${topic} for course applications.`,
+                          ]),
+                          topicSection: topic,
+                          learningObjectives: pick([
+                            `Explain the key ideas in ${topic} and apply them in course activities.`,
+                            `Apply the main concepts from ${topic} to a course task or example.`,
+                            `Connect ${topic} to the week's work and explain one supporting evidence source.`,
+                            `Analyze ${topic} using course evidence and name one limitation or open question.`,
+                          ]),
+                          weeklyAssessments: pick([
+                            `${formativeAssessmentPrefix}${displayCourseMapTopic(topic)} evidence check: state one supported, bounded conclusion.`,
+                            `${formativeAssessmentPrefix}Apply ${displayCourseMapTopic(topic)} to one example and name one limitation.`,
+                            `${formativeAssessmentPrefix}${displayCourseMapTopic(topic)} exit reflection: connect evidence to the lesson task.`,
+                            `${formativeAssessmentPrefix}${displayCourseMapTopic(topic)} short analysis: claim, evidence, and next question.`,
+                          ]),
+                          asyncActivities: pick([
+                            `Annotate the lesson resource for ${topic} and bring one usable example.`,
+                            `Prepare a source note that names one claim, example, or question about ${topic}.`,
+                            `Compare the lesson resource with a sample response and mark where ${topic} appears.`,
+                            `Draft one question about ${topic} that can be answered with course evidence.`,
+                          ]),
+                          syncActivities: pick([
+                            `Compare two examples of ${topic} and explain which evidence is stronger.`,
+                            `Practice applying ${topic} in pairs, then revise one response from feedback.`,
+                            `Use a guided case, text, dataset, or demonstration to test ${topic}.`,
+                            `Share one ${topic} claim and identify the evidence that would make it stronger.`,
+                          ]),
+                          technologyNeeded: pick([
+                            'Course site, lesson resource, and the response workspace used for the lesson activity.',
+                            'Shared reading, example file, or activity handout plus a workspace for responses.',
+                            'Lesson materials and the classroom tool named for the lesson task.',
+                            'Course platform, accessible resource file, and response workspace for the checkpoint.',
+                          ]),
+                          presentationFormat: pick([
+                            'Instructor framing, guided student work, and a short synthesis.',
+                            'Brief setup, worked example or demonstration, then student application.',
+                            'Opening question, structured practice, and a closing artifact review.',
+                          ]),
+                          supportingResources: pick([
+                            `Source packet for ${topic}: annotated excerpt plus activity prompt.`,
+                            `Practice guide for ${topic}: reading, worked model, and response handout.`,
+                            `Worked example for ${topic} with a student response guide.`,
+                            `Activity guide for ${topic} with reference notes and feedback cues.`,
+                          ]),
+                          evaluateDesign: pick([
+                            `Check that the ${topic} resource, activity, and assessment all ask for one visible product.`,
+                            `Confirm students use the same source detail or example for ${topic} practice and assessment.`,
+                            `Align the ${topic} activity with one observable response, artifact, or explanation.`,
+                            `Make the ${topic} practice task produce evidence students can reuse in the assessment.`,
+                          ]),
+                        };
   let value = fieldFallbacks[key] || `Instructor-confirmed material for ${topic}.`;
   // Every missing check after the lesson's first section is formative. This
   // applies after the domain profile is selected so literature, history, UX,
@@ -1644,7 +1704,13 @@ function needsCourseMapSemanticRepair(key, value, courseMap, lesson, section) {
     }
     if (key === 'presentationFormat' && /^Workshop\s*\+\s*guided practice\.?$/i.test(raw)) return true;
   }
-  if (profile === 'history') {
+  if (profile === 'oral-history' || profile === 'history') {
+    if (
+      profile === 'oral-history' &&
+      (ORAL_HISTORY_MISROUTED_HISTORY_RE.test(raw) || ORAL_HISTORY_MISROUTED_UX_RE.test(raw))
+    ) {
+      return true;
+    }
     if (GENERIC_COURSE_MAP_FALLBACK_RE.test(raw)) return true;
     return key === 'weeklyAssessments' && isShortCourseMapListCell(raw);
   }
