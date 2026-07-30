@@ -1944,20 +1944,13 @@ export default function AppFlow({
         // Finish-evidence accounting is needed once per completed package, not
         // on the workspace hot path. Keep its policy leaf with the other
         // finalize-time lazy work so the Linux AppFlow gzip ratchet holds.
-        let warningDomains = null;
-        let blockerDomains = null;
+        let finishDomains = {};
         try {
-          const { buildPackageBlockerDomains, buildPackageWarningDomains } =
-            await import('./lib/packageFinishEvidence');
-          warningDomains = buildPackageWarningDomains({
-            readinessWarningCount: result.readiness?.warnings?.length || 0,
+          const { buildPackageFinishDomains } = await import('./lib/packageFinishEvidence');
+          finishDomains = buildPackageFinishDomains({
+            readiness: result.readiness,
             retryWarningCount: unresolvedRetryCount,
             exportWarningCount: exportWarnings,
-            quality: packageQuality,
-            sourceEvidence: packageQuality?.sourceEvidence,
-          });
-          blockerDomains = buildPackageBlockerDomains({
-            readiness: result.readiness,
             exportFailureCount: exportFailures,
             quality: packageQuality,
           });
@@ -1966,13 +1959,9 @@ export default function AppFlow({
           // a thrown finish. The fallback remains conservative; consumers use
           // legacy blocker views when the blocker ledger is unavailable.
         }
+        const { warningDomains, blockerDomains } = finishDomains;
         blockers = blockerDomains?.total ?? (result.readiness?.blockers?.length || 0) + exportFailures;
-        reviewWarningCount =
-          warningDomains?.total ??
-          (result.readiness?.warnings?.length || 0) +
-            unresolvedRetryCount +
-            exportWarnings +
-            (packageQuality?.status === 'graded' ? Math.max(0, Number(packageQuality?.findingCount) || 0) : 1);
+        reviewWarningCount = warningDomains?.total ?? reviewWarningCount + 1;
         finalStatus = blockers > 0 ? 'blocked' : 'ready';
         warnings = reviewWarningCount;
         finalizerMessage =

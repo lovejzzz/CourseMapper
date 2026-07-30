@@ -310,7 +310,7 @@ into those areas would make the trust correction harder to verify and revert.
 
 | Check                         |                            Result |
 | ----------------------------- | --------------------------------: |
-| Unit/component suite          |         6,007 passed, 162 skipped |
+| Unit/component suite          |         6,008 passed, 162 skipped |
 | Test files                    |            484 passed, 16 skipped |
 | Fast blueprint quality matrix |                         24 passed |
 | PR compiler contract          |     14/40 profile fixtures passed |

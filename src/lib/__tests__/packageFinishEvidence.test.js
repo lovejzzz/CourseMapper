@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { buildPackageBlockerDomains, buildPackageWarningDomains } from '../packageFinishEvidence';
+import {
+  buildPackageBlockerDomains,
+  buildPackageFinishDomains,
+  buildPackageWarningDomains,
+} from '../packageFinishEvidence';
 
 describe('package finish warning evidence', () => {
   it('assigns every warning to one named domain without double-counting source findings', () => {
@@ -82,6 +86,42 @@ describe('package finish warning evidence', () => {
       quality: 1,
       source: 0,
       total: 1,
+    });
+  });
+
+  it('assembles both canonical ledgers from the finalizer shape', () => {
+    expect(
+      buildPackageFinishDomains({
+        readiness: {
+          warnings: [{ source: 'structure' }],
+          blockers: [{ source: 'qualityGate' }],
+        },
+        retryWarningCount: 1,
+        exportWarningCount: 1,
+        exportFailureCount: 0,
+        quality: {
+          status: 'graded',
+          findingCounts: { p0: 1, p1: 0, p2: 0 },
+          findings: [{ severity: 'P0', dimension: 'safety', detail: 'Fix this.' }],
+        },
+      }),
+    ).toEqual({
+      warningDomains: {
+        schemaVersion: 1,
+        readiness: 1,
+        retry: 1,
+        export: 1,
+        quality: 0,
+        source: 0,
+        total: 3,
+      },
+      blockerDomains: {
+        schemaVersion: 1,
+        readiness: 0,
+        quality: 1,
+        export: 0,
+        total: 1,
+      },
     });
   });
 });

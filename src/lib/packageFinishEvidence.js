@@ -50,3 +50,26 @@ export function buildPackageBlockerDomains({ readiness = null, exportFailureCoun
     total: Object.values(domains).reduce((sum, count) => sum + count, 0),
   };
 }
+
+export function buildPackageFinishDomains({
+  readiness = null,
+  retryWarningCount = 0,
+  exportWarningCount = 0,
+  exportFailureCount = 0,
+  quality = null,
+} = {}) {
+  return {
+    warningDomains: buildPackageWarningDomains({
+      readinessWarningCount: readiness?.warnings?.length || 0,
+      retryWarningCount,
+      exportWarningCount,
+      quality,
+      sourceEvidence: quality?.sourceEvidence,
+    }),
+    blockerDomains: buildPackageBlockerDomains({
+      readiness,
+      exportFailureCount,
+      quality,
+    }),
+  };
+}
