@@ -629,10 +629,17 @@ describe('packageFinalizer', () => {
       },
     });
 
-    expect(result.readiness.issues).toEqual([]);
+    expect(result.readiness.issues).toEqual([
+      expect.objectContaining({
+        featureId: 'quizBank',
+        message: expect.stringContaining('fewer than 5 questions'),
+        retryable: true,
+        severity: 'warning',
+      }),
+    ]);
     expect(result.repairsApplied).toBeGreaterThanOrEqual(2);
-    expect(result.status).toBe('ready');
-    expect(result.deliverables.quizBank.data.quizzes[0].questions).toHaveLength(5);
+    expect(result.status).toBe('needs_retry');
+    expect(result.deliverables.quizBank.data.quizzes[0].questions).toHaveLength(2);
     expect(result.deliverables.courseFaq.data.faqs[0].questions).toHaveLength(5);
   });
 

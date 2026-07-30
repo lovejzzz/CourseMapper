@@ -1,0 +1,119 @@
+{
+  "version": "0.17.01",
+  "date": "July 30, 2026",
+  "title": "Evidence Before Completeness",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test",
+      "npm run test:blueprint:quality:fast",
+      "npm run audit:contract:pr",
+      "npm run audit:evaluation:pr",
+      "npm run audit:texture:cross-package:untuned",
+      "npm run format:check",
+      "npm run lint",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification must pass on the exact V0.17.01 release commit."
+    },
+    "ciDeep": {
+      "status": "pending-push",
+      "note": "Deep Proof remains the slower defense-in-depth lane."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Production deployment follows repository policy after review."
+    },
+    "liveProvider": {
+      "status": "not-applicable",
+      "note": "This release changes deterministic output integrity and report-only measurement; it makes no live-provider claim."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No instructor, learner, classroom, factual-certification, or accessibility-certification claim is made."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01701-local-source-fallbacks",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "CourseIR repair no longer assigns an arbitrary first ledger row or hard-coded SL1 to unsupported semantic atoms.",
+      "anchors": ["src/lib/courseIR.js", "src/lib/__tests__/courseIR.test.js"],
+      "proofCommands": ["npx vitest run src/lib/__tests__/courseIR.test.js"],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01701-adversarial-source-coverage",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "A two-lesson adversarial fixture keeps unsupported lesson coverage missing and validation blocking.",
+      "anchors": [
+        "src/lib/courseIR.js",
+        "src/lib/__tests__/courseIR.test.js",
+        "src/lib/quality/automatedReadinessSignal.js"
+      ],
+      "proofCommands": ["npx vitest run src/lib/__tests__/courseIR.test.js"],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01701-draft-fallback-faq",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "A deterministic fallback FAQ is marked draft-review and cannot pass generation validation.",
+      "anchors": ["src/lib/deliverablePostProcess.js", "src/lib/__tests__/deliverablePostProcess.test.js"],
+      "proofCommands": ["npx vitest run src/lib/__tests__/deliverablePostProcess.test.js"],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v01701-quiz-underfill",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Underfilled quizzes remain underfilled and retryable instead of receiving generic short-answer padding.",
+      "anchors": [
+        "src/lib/deliverablePostProcess.js",
+        "src/lib/deliverableReadiness.js",
+        "src/lib/__tests__/deliverablePostProcess.test.js"
+      ],
+      "proofCommands": ["npx vitest run src/lib/__tests__/deliverablePostProcess.test.js"],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v01701-semantic-skeleton",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "Deep grader V1.11.1 detects a repeated semantic frame even when each document interpolates a different lesson title.",
+      "anchors": [
+        "src/lib/quality/deepQualityGrader.js",
+        "src/lib/quality/__tests__/deepQualityStructure.test.js",
+        "tests/v0147-texture-metric.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run src/lib/quality/__tests__/deepQualityStructure.test.js tests/v0147-texture-metric.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01701-untuned-panel",
+      "status": "verified-current",
+      "changelogHighlightIndex": 5,
+      "summary": "A disjoint untuned panel reports lens-default telemetry and texture measures while keeping the release claim inside observed evidence.",
+      "anchors": [
+        "scripts/panels/crossPackageUntunedBriefs.mjs",
+        "scripts/crossPackageTextureAudit.mjs",
+        "scripts/hybridPipelineAudit.mjs",
+        "tests/v01701-output-quality.test.js",
+        "docs/V0.17.01_OUTPUT_QUALITY_AUDIT.md"
+      ],
+      "proofCommands": [
+        "npm run audit:texture:cross-package:untuned",
+        "npx vitest run tests/v01701-output-quality.test.js"
+      ],
+      "proofScopes": ["unit", "gold-audit", "doc"]
+    }
+  ]
+}

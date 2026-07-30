@@ -3,6 +3,7 @@ import { compileCourse, gradePackage } from '../../curriculumos/index';
 import {
   COURSE_IR_VERSION,
   assessCourseIRDirectAuthoring,
+  buildCourseIRSourceRefCoverage,
   buildCourseIRFromCourseMap,
   buildCourseIRPromptPayload,
   compileCourseIR,
@@ -705,6 +706,73 @@ describe('CourseIR v1', () => {
     );
   });
 
+  it('does not manufacture source coverage from an unrelated first ledger row', () => {
+    const base = makeCalculusIR();
+    const lessonOne = {
+      ...base.lessons[0],
+      factualAnchors: base.lessons[0].factualAnchors.map((anchor) => ({ ...anchor, sourceRefs: ['SL1'] })),
+      outcomes: base.lessons[0].outcomes.map((outcome) => ({ ...outcome, sourceRefs: ['SL1'] })),
+      activities: base.lessons[0].activities.map((activity) => ({ ...activity, sourceRefs: ['SL1'] })),
+      workedExamples: base.lessons[0].workedExamples.map((example) => ({ ...example, sourceRefs: ['SL1'] })),
+    };
+    const lessonTwo = {
+      ...base.lessons[1],
+      factualAnchors: base.lessons[1].factualAnchors.map((anchor) => ({ ...anchor, sourceRefs: [] })),
+      constraints: base.lessons[1].constraints.map((constraint) => ({ ...constraint, sourceRefs: [] })),
+      outcomes: base.lessons[1].outcomes.map((outcome) => ({ ...outcome, sourceRefs: [] })),
+      activities: base.lessons[1].activities.map((activity) => ({ ...activity, sourceRefs: [] })),
+      workedExamples: base.lessons[1].workedExamples.map((example) => ({ ...example, sourceRefs: [] })),
+    };
+    const lessonTwoConceptIds = new Set(lessonTwo.conceptIds);
+    const unsupported = {
+      ...base,
+      sourceLedger: [{ ...base.sourceLedger[0], id: 'SL1' }],
+      concepts: base.concepts.map((concept) =>
+        lessonTwoConceptIds.has(concept.id)
+          ? {
+              ...concept,
+              factualAnchors: concept.factualAnchors.map((anchor) => ({ ...anchor, sourceRefs: [] })),
+            }
+          : {
+              ...concept,
+              factualAnchors: concept.factualAnchors.map((anchor) => ({ ...anchor, sourceRefs: ['SL1'] })),
+            },
+      ),
+      lessons: [lessonOne, lessonTwo],
+      assessments: base.assessments.map((assessment, index) =>
+        index === 0
+          ? {
+              ...assessment,
+              sourceRefs: ['SL1'],
+              rubricCriteria: assessment.rubricCriteria.map((criterion) => ({
+                ...criterion,
+                sourceRefs: ['SL1'],
+              })),
+            }
+          : {
+              ...assessment,
+              sourceRefs: [],
+              rubricCriteria: assessment.rubricCriteria.map((criterion) => ({
+                ...criterion,
+                sourceRefs: [],
+              })),
+            },
+      ),
+    };
+
+    const repair = repairCourseIRStructure(unsupported);
+    const coverage = buildCourseIRSourceRefCoverage(repair.ir);
+
+    expect(repair.ir.lessons[1].outcomes.every((outcome) => outcome.sourceRefs.length === 0)).toBe(true);
+    expect(repair.ir.lessons[1].activities.every((activity) => activity.sourceRefs.length === 0)).toBe(true);
+    expect(repair.ir.assessments[1].sourceRefs).toEqual([]);
+    expect(repair.ir.assessments[1].rubricCriteria.every((criterion) => criterion.sourceRefs.length === 0)).toBe(true);
+    expect(coverage.totals.withRefs).toBeLessThan(coverage.totals.total);
+    expect(coverage.totals.missing).toBeGreaterThan(0);
+    expect(coverage.totals.danglingRefs).toBe(0);
+    expect(validateCourseIR(repair.ir).valid).toBe(false);
+  });
+
   it('rejects repaired atom source refs as direct provider authoring', () => {
     const unlinked = {
       ...makeCalculusIR(),
@@ -899,18 +967,9 @@ describe('CourseIR v1', () => {
     });
     expect(repair.ir.handoffNotes[0].scope).toBe('sourceLedger');
     expect(repair.ir.lessons[0].conceptIds).toHaveLength(1);
-    expect(repairedValidation.valid).toBe(true);
+    expect(repairedValidation.valid).toBe(false);
 
-    const compiled = compileCourseIR(broken, { featureIds: ['syllabus'] });
-    expect(compiled.courseIRProof).toMatchObject({
-      valid: true,
-      repairedBeforeCompile: true,
-      graphValid: true,
-    });
-    expect(compiled.courseIRProof.initialIssueCodes).toEqual(
-      expect.arrayContaining(['missing-source-ledger', 'missing-lesson-concepts']),
-    );
-    expect(compiled.deliverables.syllabus).toBeTruthy();
+    expect(() => compileCourseIR(broken, { featureIds: ['syllabus'] })).toThrow(/source references/i);
   });
 
   it('projects CourseIR into the existing course map and enrichment surfaces', () => {

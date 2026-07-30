@@ -1047,7 +1047,7 @@ function nextConceptId(usedIds, ordinal) {
   return candidate;
 }
 
-function lessonConceptFromTopic(lesson, index, id, sourceRef = 'SL1') {
+function lessonConceptFromTopic(lesson, index, id, sourceRef = '') {
   const topic = cleanText(lesson.topic || lesson.title || `Lesson ${index + 1}`, 140);
   return {
     id,
@@ -1061,7 +1061,7 @@ function lessonConceptFromTopic(lesson, index, id, sourceRef = 'SL1') {
             {
               claim: `Students need evidence for ${topic}.`,
               status: 'assumption',
-              sourceRefs: [sourceRef],
+              sourceRefs: sourceRef ? [sourceRef] : [],
               risk: 'medium',
             },
           ],
@@ -1191,14 +1191,17 @@ function validSourceRefs(ir, sourceRefs = []) {
 function fallbackSourceRefsForLesson(ir, lesson) {
   const concepts = conceptByIdMap(ir);
   const linkedConcepts = lesson.conceptIds.map((id) => concepts.get(id)).filter(Boolean);
+  const lessonScopedConstraints = [
+    ...(lesson.constraints || []),
+    ...(ir.constraints || []).filter((constraint) => constraint.scope === lesson.id),
+  ];
   const candidateRefs = [
     ...lesson.factualAnchors.flatMap((anchor) => anchor.sourceRefs),
-    ...constraintsForLesson(ir, lesson).flatMap((constraint) => constraint.sourceRefs || []),
+    ...lessonScopedConstraints.flatMap((constraint) => constraint.sourceRefs || []),
     ...linkedConcepts.flatMap((concept) => concept.factualAnchors.flatMap((anchor) => anchor.sourceRefs)),
   ];
   const validRefs = validSourceRefs(ir, candidateRefs);
-  if (validRefs.length > 0) return validRefs;
-  return ir.sourceLedger[0]?.id ? [ir.sourceLedger[0].id] : [];
+  return validRefs;
 }
 
 function fallbackSourceRefsForAssessment(ir, assessment) {
@@ -1207,8 +1210,7 @@ function fallbackSourceRefsForAssessment(ir, assessment) {
     ir,
     linkedLessons.flatMap((lesson) => fallbackSourceRefsForLesson(ir, lesson)),
   );
-  if (validRefs.length > 0) return validRefs;
-  return ir.sourceLedger[0]?.id ? [ir.sourceLedger[0].id] : [];
+  return validRefs;
 }
 
 function sourceRefsNeedRepair(ir, refs = []) {
@@ -1379,11 +1381,11 @@ export function repairCourseIRStructure(rawIR = {}) {
   if (ir.lessons.some((lesson) => lesson.conceptIds.length === 0)) {
     const usedConceptIds = new Set(ir.concepts.map((concept) => concept.id));
     const nextConcepts = [...ir.concepts];
-    const sourceRef = ir.sourceLedger[0]?.id || 'SL1';
     const missingConceptLessonCount = ir.lessons.filter((lesson) => lesson.conceptIds.length === 0).length;
     const nextLessons = ir.lessons.map((lesson, index) => {
       if (lesson.conceptIds.length > 0) return lesson;
       const conceptId = nextConceptId(usedConceptIds, index + 1);
+      const sourceRef = fallbackSourceRefsForLesson(ir, lesson)[0] || '';
       nextConcepts.push(lessonConceptFromTopic(lesson, index, conceptId, sourceRef));
       return {
         ...lesson,

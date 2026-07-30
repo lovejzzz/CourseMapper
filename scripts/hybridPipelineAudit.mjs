@@ -91,6 +91,7 @@ export async function loadHybridPipelineAuditRuntime() {
     // partially initialized CJS export and strand the audit before fixture 1.
     const apiCostControl = await server.ssrLoadModule('/src/lib/apiCostControl.js');
     const courseBlueprintCompiler = await server.ssrLoadModule('/src/lib/courseBlueprintCompiler.js');
+    const contentFallbackTelemetry = await server.ssrLoadModule('/src/lib/contentFallbackTelemetry.js');
     const classroomReadiness = await server.ssrLoadModule('/src/lib/classroomReadiness.js');
     const deliverableReadiness = await server.ssrLoadModule('/src/lib/deliverableReadiness.js');
     const deliverableQualityScorer = await server.ssrLoadModule('/src/lib/deliverableQualityScorer.js');
@@ -101,6 +102,8 @@ export async function loadHybridPipelineAuditRuntime() {
       buildApiCostPlan: apiCostControl.buildApiCostPlan,
       buildCourseBlueprint: courseBlueprintCompiler.buildCourseBlueprint,
       compileBlueprintDeliverables: courseBlueprintCompiler.compileBlueprintDeliverables,
+      getContentFallbackTelemetry: contentFallbackTelemetry.getContentFallbackTelemetry,
+      resetContentFallbackTelemetry: contentFallbackTelemetry.resetContentFallbackTelemetry,
       estimateBlueprintCompilerSavings: courseBlueprintCompiler.estimateBlueprintCompilerSavings,
       getBlueprintCompiledFeatures: courseBlueprintCompiler.getBlueprintCompiledFeatures,
       evaluateClassroomReadiness: classroomReadiness.evaluateClassroomReadiness,

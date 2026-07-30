@@ -3,6 +3,20 @@ import { CURRENT_RELEASE } from './currentRelease.js';
 
 export { CURRENT_RELEASE };
 
+const V01700_RELEASE = {
+  version: '0.17.00',
+  date: 'July 30, 2026',
+  title: 'One Finish Record',
+  highlights: [
+    'Package blocking is derived from every quality finding through one shared policy, not from whichever finding happens to appear first. Severity ordering keeps late P0 findings visible while preserving the deliberate partial-scope discipline-density exemption.',
+    'Finalize grading carries a compact structured source-evidence snapshot from the assembled ZIP manifest into the finish record. Trust surfaces can now show exact source findings instead of reading receipt fields that no producer writes.',
+    'New finishes publish versioned, non-overlapping warning and blocker ledgers. Readiness, retry, export, quality, and source advisories each have one owner; structural readiness, actual blocking quality findings, and export failures do too. Canonical totals are recomputed from named domains, while legacy saved passes use conservative reconciliation.',
+    'Completed repair and export summaries remain visible on warning-bearing downloadable packages. The component regression now uses the same warning shape the finalizer produces.',
+    'The six-round Roundtable audit and separate five-round, 15-turn PR #110 follow-up are retained as a code-backed report with verified findings, implementation disposition, migration tests, and intentionally deferred workflow-state work.',
+    'V0.17.00 is a package-trust stabilization release. It does not claim new model weights, adapter promotion, factual certification, instructor validation, accessibility certification, or classroom outcomes.',
+  ],
+};
+
 const V01699_RELEASE = {
   version: '0.16.99',
   date: 'July 30, 2026',
@@ -1259,6 +1273,45 @@ export const CURRENT_RELEASE_CHANGELOG = {
   highlights: CURRENT_RELEASE.highlights,
   sections: [
     {
+      label: 'Keep evidence gaps visible',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'CourseIR repair no longer borrows the first source-ledger row or a hard-coded SL1 for unsupported semantic atoms.',
+        'A source supporting one lesson cannot manufacture coverage for another lesson.',
+        'Missing and dangling source structure remains available to the existing retry and blocking path.',
+      ],
+    },
+    {
+      label: 'Fail closed on learner-facing fallbacks',
+      icon: 'AI',
+      color: 'blue',
+      items: [
+        'A deterministically recovered Course FAQ is marked draft-review and cannot pass publishability checks.',
+        'Underfilled quizzes remain underfilled and retryable instead of receiving generic short-answer padding.',
+        'Validation enforces the configured evidence-bound question count for each lesson.',
+      ],
+    },
+    {
+      label: 'Measure repetition beyond tuned courses',
+      icon: 'PROOF',
+      color: 'violet',
+      items: [
+        'Deep grader V1.11.1 masks lesson-title interpolation before semantic-frame comparison.',
+        'A disjoint 12-course untuned panel records lens-default telemetry and cross-package texture without changing product output.',
+        'The release reports the observed generalization boundary without claiming factual, pedagogical, provider, accessibility, or classroom validation.',
+      ],
+    },
+  ],
+};
+
+const V01700_RELEASE_CHANGELOG = {
+  version: V01700_RELEASE.version,
+  date: V01700_RELEASE.date,
+  title: V01700_RELEASE.title,
+  highlights: V01700_RELEASE.highlights,
+  sections: [
+    {
       label: 'Make the package gate order-independent',
       icon: 'CHECK',
       color: 'emerald',
@@ -2026,6 +2079,7 @@ const V01678_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  V01700_RELEASE_CHANGELOG,
   V01699_RELEASE_CHANGELOG,
   V01698_RELEASE_CHANGELOG,
   V01697_RELEASE_CHANGELOG,

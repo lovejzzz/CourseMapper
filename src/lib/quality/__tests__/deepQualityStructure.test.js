@@ -95,7 +95,7 @@ describe('deep quality package structure', () => {
     });
 
     expect(result.findings.some((finding) => /classroom clock/i.test(finding.detail))).toBe(false);
-    expect(GRADER_VERSION).toBe('1.11.0');
+    expect(GRADER_VERSION).toBe('1.11.1');
   });
 
   it('treats typed-object leaks and mirrored assessment identities as scored export defects', async () => {
@@ -450,5 +450,51 @@ describe('deep quality package structure', () => {
     expect(
       result.findings.some((finding) => /experiential activity lessonPlans is missing/i.test(finding.detail)),
     ).toBe(false);
+  });
+
+  it('catches lesson-title interpolation that hides a repeated semantic skeleton', async () => {
+    const lessons = ['Object Intake', 'Location Control', 'Loan Files', 'Inventory Review'];
+    const manifestFiles = lessons.map((title, index) => ({
+      path: `Course FAQ/Lesson ${String(index + 1).padStart(2, '0')} - ${title} - Course FAQ.txt`,
+      featureId: 'courseFaq',
+      lessonNumber: index + 1,
+    }));
+    const renderedFiles = Object.fromEntries(
+      manifestFiles.map((file, index) => [
+        file.path,
+        Array.from(
+          { length: 8 },
+          () =>
+            `For ${lessons[index]}, name the concept, choose evidence, and explain why the evidence supports the decision.`,
+        ).join('\n'),
+      ]),
+    );
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'Museum Registration Workflows',
+          lessonScope: 'all',
+          assessments: [],
+          files: manifestFiles,
+          readiness: { status: 'ready', blockers: 0 },
+        }),
+        ...renderedFiles,
+      }),
+      course: {
+        id: 'museum-registration-workflows',
+        title: 'Museum Registration Workflows',
+        featureIds: ['courseFaq'],
+      },
+    });
+
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          severity: 'P0',
+          dimension: 'substance',
+          detail: expect.stringMatching(/courseFaq: 100% of lines are shared/i),
+        }),
+      ]),
+    );
   });
 });

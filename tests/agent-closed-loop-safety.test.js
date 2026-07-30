@@ -2127,7 +2127,7 @@ describe('agent closed-loop safety guards', () => {
       assert: ({ harness, result, receiptMessage }) => {
         expect(result.applied).toBe(1);
         expect(harness.state.snapshots).toHaveLength(1);
-        expect(harness.state.deliverables.quizBank.data.quizzes[0].qs).toHaveLength(5);
+        expect(harness.state.deliverables.quizBank.data.quizzes[0].qs).toHaveLength(1);
         expect(receiptMessage.receipt.stateDiffs[0]).toMatchObject({
           status: 'changed',
           action: 'repair_package_readiness',
@@ -2233,7 +2233,7 @@ describe('agent closed-loop safety guards', () => {
       },
       assert: ({ harness, result, receiptMessage }) => {
         expect(result.repairsApplied).toBe(1);
-        expect(harness.state.deliverables.quizBank.data.quizzes[0].qs).toHaveLength(5);
+        expect(harness.state.deliverables.quizBank.data.quizzes[0].qs).toHaveLength(1);
         expect(receiptMessage.receipt.verification.status).toBe('verified');
         expect(receiptMessage.receipt.stateDiffs[0]).toMatchObject({
           action: 'finalize_package',
@@ -2253,7 +2253,7 @@ describe('agent closed-loop safety guards', () => {
       },
       assert: ({ harness, result, receiptMessage }) => {
         expect(result.repairsApplied).toBe(1);
-        expect(harness.state.deliverables.quizBank.data.quizzes[0].qs).toHaveLength(5);
+        expect(harness.state.deliverables.quizBank.data.quizzes[0].qs).toHaveLength(1);
         expect(receiptMessage.receipt.planning.status).toBe('planned');
         expect(receiptMessage.receipt.verification.status).toBe('verified');
       },

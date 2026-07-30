@@ -29,9 +29,9 @@ const budgets = {
 // caught an unaccounted increase, and the fix is to re-freeze at the released
 // state, not to widen the allowance. Every future release must do the same.
 const repositoryBudgets = {
-  // v0.17.00 advances the frozen state through the shipped v0.16.99 contract;
-  // its own v0.17.00 contract consumes the single declared-release allowance.
-  baselineVersion: '0.16.99',
+  // v0.17.01 advances the frozen state through the shipped v0.17.00 contract;
+  // its own v0.17.01 contract consumes the single declared-release allowance.
+  baselineVersion: '0.17.00',
   // v0.16.82 adds 29 net lines of reusable compiler control logic for
   // policy-domain separation and concept-owned evidence binding. Source-
   // statement copy and prerequisite selection moved to a cacheable leaf; the
@@ -69,10 +69,13 @@ const repositoryBudgets = {
   // V0.16.97 adds one cross-package texture audit entry point. Thin and
   // retained-real panels share the same implementation and arguments rather
   // than multiplying scripts for every profile.
-  npmScripts: 385,
-  // v0.16.99 shipped 285 tracked release-ledger files (contracts plus the
-  // directory README); v0.17.00 may add exactly one current-release contract.
-  releaseContractFiles: 285,
+  // V0.17.01 adds one report-only entry point for the untuned course panel.
+  // It reuses the cross-package audit implementation rather than introducing
+  // another runner.
+  npmScripts: 386,
+  // v0.17.00 shipped 286 tracked release-ledger files (contracts plus the
+  // directory README); v0.17.01 may add exactly one current-release contract.
+  releaseContractFiles: 286,
   trackedWeightFiles: 62,
   trackedWeightBytes: 1_053_339_981,
   largeBinaryBytes: 1024 * 1024,
@@ -428,7 +431,10 @@ const lazyChunkBudgets = [
   // 69-point evidence ceiling, anti-gaming source checks, and separate report
   // language. This finalize-only chunk measures 71.9/24.9 KiB and remains off
   // landing; the narrow ceiling records the new ruler rather than hiding it.
-  { prefix: 'deepQualityGrader-', rawKiB: 72.5, gzipKiB: 25.25 },
+  // V0.17.01 adds lesson-title masking before semantic-frame comparison.
+  // The measured lazy chunk is 72.50 KiB raw and remains below the unchanged
+  // gzip ceiling; retain only a quarter-KiB raw margin.
+  { prefix: 'deepQualityGrader-', rawKiB: 72.75, gzipKiB: 25.25 },
   // Citation-to-ledger matching is independently cacheable and finalize-only.
   { prefix: 'sourceLedgerCitationSupport-', rawKiB: 0.75, gzipKiB: 0.5 },
   // High-signal format patterns stay finalize-only and independently

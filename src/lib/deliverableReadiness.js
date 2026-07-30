@@ -2126,7 +2126,12 @@ function repairFeatureData(featureId, data, { courseMap, config, deliverables } 
       break;
     case 'quizBank':
       current = applyRepair(current, summaries, 'normalized quiz question metadata', normalizeQuizBankQuestions);
-      current = applyRepair(current, summaries, 'filled quiz question counts', normalizeQuizBankQuestionCounts);
+      current = applyRepair(
+        current,
+        summaries,
+        'checked evidence-bound quiz question counts',
+        normalizeQuizBankQuestionCounts,
+      );
       current = applyRepair(current, summaries, 'filled quiz answer guidance', normalizeQuizBankRationales);
       current = applyRepair(current, summaries, 'fixed quiz point totals', normalizeQuizBankPointTotals);
       current = applyRepair(current, summaries, 'cleaned quiz publishability', normalizeQuizBankPublishability);

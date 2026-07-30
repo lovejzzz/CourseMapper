@@ -24,6 +24,11 @@ import {
   CROSS_PACKAGE_THIN_BRIEFS,
   buildThinBriefCourseMap,
 } from './panels/crossPackageThinBriefs.mjs';
+import {
+  CROSS_PACKAGE_UNTUNED_BRIEF_PANEL_VERSION,
+  CROSS_PACKAGE_UNTUNED_BRIEFS,
+  buildUntunedBriefCourseMap,
+} from './panels/crossPackageUntunedBriefs.mjs';
 
 const ROOT = process.cwd();
 const DEFAULT_OUTPUT_DIR = path.join(ROOT, 'verification-output', 'cross-package-texture');
@@ -64,7 +69,7 @@ function parseArgs(argv) {
     else if (arg === '--output') options.output = path.resolve(argv[++index]);
     else throw new Error(`Unknown cross-package texture argument: ${arg}`);
   }
-  if (!['thin', 'gold'].includes(options.profile)) {
+  if (!['thin', 'untuned', 'gold'].includes(options.profile)) {
     throw new Error(`Unknown cross-package texture profile: ${options.profile}`);
   }
   if (options.snapshot && !/^[a-z0-9][a-z0-9-]*$/i.test(options.snapshot)) {
@@ -95,6 +100,8 @@ async function implementationFingerprint() {
     'src/lib/quality/crossPackageTextureUnitClass.js',
     'scripts/crossPackageTextureAudit.mjs',
     'scripts/panels/crossPackageThinBriefs.mjs',
+    'scripts/panels/crossPackageUntunedBriefs.mjs',
+    'src/lib/contentFallbackTelemetry.js',
   ];
   const entries = [];
   for (const file of files) entries.push([file, await fileHash(file)]);
@@ -113,6 +120,13 @@ async function panelEntries(profile) {
     return CROSS_PACKAGE_THIN_BRIEFS.map((brief) => ({
       id: brief.id,
       courseMap: buildThinBriefCourseMap(brief),
+      enrichment: {},
+    }));
+  }
+  if (profile === 'untuned') {
+    return CROSS_PACKAGE_UNTUNED_BRIEFS.map((brief) => ({
+      id: brief.id,
+      courseMap: buildUntunedBriefCourseMap(brief),
       enrichment: {},
     }));
   }
@@ -170,6 +184,7 @@ function markdownSummary(canonical, envelope) {
     `- App version: **${canonical.appVersion}**`,
     `- Canonical SHA-256: \`${envelope.canonicalSha256}\``,
     `- Runtime: **${envelope.runtimeMs} ms**`,
+    `- Lens-default hits: **${canonical.contentFallbackTelemetry.lensDefaultHits}** across **${canonical.contentFallbackTelemetry.packagesWithLensDefault}/${canonical.result.packageCount}** packages`,
     ...(envelope.ratchet ? [`- Pre-repair ratchet: **${envelope.ratchet.passed ? 'PASS' : 'FAIL'}**`] : []),
     '',
     '## Headline teaching-prose measures',
@@ -246,8 +261,10 @@ export async function buildCrossPackageTextureAudit(options = {}) {
   const entries = await panelEntries(profile);
   const packages = [];
   const inputHashes = {};
+  const fallbackTelemetryByPackage = {};
   for (const [index, entry] of entries.entries()) {
     onProgress?.({ type: 'package:start', index: index + 1, total: entries.length, packageId: entry.id });
+    runtime.resetContentFallbackTelemetry();
     const blueprint = runtime.buildCourseBlueprint(entry.courseMap, { enrichment: entry.enrichment });
     // The audit opts into the non-enumerable receipt on its one compile.
     // Product output and normal compile latency remain unchanged.
@@ -266,9 +283,17 @@ export async function buildCrossPackageTextureAudit(options = {}) {
       units: extracted.units,
       unclassifiedPaths: extracted.unclassifiedPaths,
     });
+    fallbackTelemetryByPackage[entry.id] = runtime.getContentFallbackTelemetry();
     onProgress?.({ type: 'package:done', index: index + 1, total: entries.length, packageId: entry.id });
   }
   const result = trimCanonicalResult(buildCrossPackageTextureResult(packages));
+  const lensDefaultHits = Object.values(fallbackTelemetryByPackage).reduce(
+    (sum, telemetry) => sum + Number(telemetry?.['lens-default']?.hits || 0),
+    0,
+  );
+  const packagesWithLensDefault = Object.values(fallbackTelemetryByPackage).filter(
+    (telemetry) => Number(telemetry?.['lens-default']?.hits || 0) > 0,
+  ).length;
   return {
     schema: 'coursemapper.cross-package-texture.canonical.v1',
     auditVersion: result.auditVersion,
@@ -276,9 +301,19 @@ export async function buildCrossPackageTextureAudit(options = {}) {
     implementationFingerprint: await implementationFingerprint(),
     panel: {
       id: profile,
-      version: profile === 'thin' ? CROSS_PACKAGE_THIN_BRIEF_PANEL_VERSION : 'gold-v1',
+      version:
+        profile === 'thin'
+          ? CROSS_PACKAGE_THIN_BRIEF_PANEL_VERSION
+          : profile === 'untuned'
+            ? CROSS_PACKAGE_UNTUNED_BRIEF_PANEL_VERSION
+            : 'gold-v1',
       packageIds: entries.map((entry) => entry.id),
       inputHashes,
+    },
+    contentFallbackTelemetry: {
+      lensDefaultHits,
+      packagesWithLensDefault,
+      byPackage: fallbackTelemetryByPackage,
     },
     result,
   };
@@ -352,7 +387,7 @@ async function main() {
     }
     const headline = canonical.result.views.inputMask.pathFree;
     process.stdout.write(
-      `[audit:texture:cross-package] complete profile=${options.profile} packages=${canonical.result.packageCount} clusters=${headline.clusterCount} supportBurden=${(headline.metrics.supportBurdenRate * 100).toFixed(2)}% exposure=${(headline.metrics.readerExposureRate * 100).toFixed(2)}% excess=${(headline.metrics.crossPackageExcessRate * 100).toFixed(2)}% unclassified=${canonical.result.unclassifiedPaths.length}${ratchet ? ` ratchet=${ratchet.passed ? 'pass' : 'fail'}` : ''} sha256=${envelope.canonicalSha256}\n`,
+      `[audit:texture:cross-package] complete profile=${options.profile} packages=${canonical.result.packageCount} clusters=${headline.clusterCount} supportBurden=${(headline.metrics.supportBurdenRate * 100).toFixed(2)}% exposure=${(headline.metrics.readerExposureRate * 100).toFixed(2)}% excess=${(headline.metrics.crossPackageExcessRate * 100).toFixed(2)}% lensDefaultHits=${canonical.contentFallbackTelemetry.lensDefaultHits} lensDefaultPackages=${canonical.contentFallbackTelemetry.packagesWithLensDefault} unclassified=${canonical.result.unclassifiedPaths.length}${ratchet ? ` ratchet=${ratchet.passed ? 'pass' : 'fail'}` : ''} sha256=${envelope.canonicalSha256}\n`,
     );
     if (ratchet && !ratchet.passed) {
       throw new Error(`Cross-package texture ratchet failed for profile ${options.profile}.`);

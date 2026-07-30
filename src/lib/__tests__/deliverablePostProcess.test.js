@@ -599,7 +599,7 @@ describe('Course FAQ post-processing', () => {
     expect(repairedText).toContain('course activities. Write one question');
   });
 
-  it('builds a valid course-map fallback FAQ when model output is unusable', () => {
+  it('keeps a course-map fallback FAQ visibly draft when model output is unusable', () => {
     const fallback = buildFallbackCourseFaq(faqCourseMap);
 
     expect(fallback.faqs).toHaveLength(2);
@@ -609,7 +609,11 @@ describe('Course FAQ post-processing', () => {
     expect(JSON.stringify(fallback)).not.toMatch(/\b(TBD|placeholder)\b/i);
 
     const validation = validateDeliverableGeneration('courseFaq', fallback, { expectedLessonCount: 2 });
-    expect(validation.valid).toBe(true);
+    expect(fallback.fallbackStatus).toMatchObject({ status: 'draft-review' });
+    expect(validation.valid).toBe(false);
+    expect(validation.blockers).toEqual(
+      expect.arrayContaining([expect.stringMatching(/must be regenerated or reviewed before publication/i)]),
+    );
   });
 
   it('varies fallback FAQ sentence families across a full course', () => {
@@ -686,7 +690,10 @@ describe('Course FAQ post-processing', () => {
       expectedLessonCount: 1,
       config: { questionsPerLesson: 3 },
     });
-    expect(validation.valid).toBe(true);
+    expect(validation.valid).toBe(false);
+    expect(validation.blockers).toEqual(
+      expect.arrayContaining([expect.stringMatching(/must be regenerated or reviewed before publication/i)]),
+    );
   });
 });
 
@@ -1113,7 +1120,7 @@ describe('Quiz Bank post-processing', () => {
     expect(result.data.bankIndex[0].id).toBe(question.id);
   });
 
-  it('fills underfilled quiz lessons with formative retrieval questions', () => {
+  it('leaves underfilled quiz lessons visible for evidence-bound retry', () => {
     const data = {
       quizzes: [
         {
@@ -1132,10 +1139,17 @@ describe('Quiz Bank post-processing', () => {
 
     const result = normalizeQuizBankQuestionCounts(data);
 
-    expect(result.addedQuestions).toBe(4);
-    expect(result.data.quizzes[0].questions).toHaveLength(5);
-    expect(result.data.quizzes[0].questions[4].intendedUse).toContain('Retrieval practice');
-    expect(result.data.quizzes[0].totalQuestions).toBe(5);
+    expect(result.addedQuestions).toBe(0);
+    expect(result.underfilledIndices).toEqual([0]);
+    expect(result.data.quizzes[0].questions).toHaveLength(1);
+
+    const validation = validateDeliverableGeneration('quizBank', result.data, {
+      expectedLessonCount: 1,
+      config: { questionsPerLesson: 5 },
+    });
+    expect(validation.valid).toBe(false);
+    expect(validation.retryableLessonIndices).toEqual([0]);
+    expect(validation.blockers).toContain('Quiz lesson 1 has 1/5 evidence-bound question(s).');
   });
 
   it('repairs quiz point totals and emits a point-plan math check', () => {

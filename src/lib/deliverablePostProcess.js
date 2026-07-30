@@ -832,6 +832,11 @@ export function buildFallbackCourseFaq(courseMap, config = {}, scopeIndices = nu
   });
 
   const fallback = {
+    fallbackStatus: {
+      status: 'draft-review',
+      reason:
+        'The model response was unusable, so this FAQ was derived deterministically from the course map and must be regenerated or reviewed before publication.',
+    },
     faqGuide: {
       purpose: 'First-pass student support FAQ generated from the course map when the model output could not be used.',
       reviewGuidance:
@@ -944,62 +949,6 @@ function buildQuizObjective(quiz, question) {
     .trim();
   const bloom = normalizeBloomLevel(question?.bloomsLevel || question?.bl, normalizeQuizType(question)).toLowerCase();
   return `Use ${lessonTitle || 'the lesson'} concepts to ${bloom} the scenario, choose defensible evidence, and explain the method decision.`;
-}
-
-function buildFallbackQuizQuestion(quiz, questionIndex, compact = false) {
-  const lessonTitle = String(quiz?.lessonTitle || quiz?.lt || 'this lesson')
-    .replace(/^Lesson\s+\d+:\s*/i, '')
-    .trim();
-  const focus = lessonTitle || 'the lesson concept';
-  const prompts = [
-    `Apply ${focus} to a brief course scenario. What decision would you make, and what evidence supports it?`,
-    `Identify one likely misconception about ${focus}, then explain how you would correct it using course evidence.`,
-    `Compare two possible interpretations of ${focus}. Which is stronger, and what limitation should be named?`,
-    `Use ${focus} to explain a current example, case, or student-facing problem from the lesson.`,
-    `What evidence would show that a student can transfer ${focus} to a new context?`,
-  ];
-  const answers = [
-    `A strong answer names the relevant concept, applies it to the scenario, cites concrete lesson evidence, and explains why that evidence supports the decision.`,
-    `A strong answer identifies the misconception, states the accurate concept, and gives a targeted correction strategy grounded in the lesson materials.`,
-    `A strong answer compares both interpretations, selects the better-supported one, and names at least one limitation or uncertainty.`,
-    `A strong answer connects the concept to a specific example and explains the reasoning rather than only defining the term.`,
-    `A strong answer describes observable evidence of transfer, such as accurate concept use, justified method choices, and explanation in a new example.`,
-  ];
-  const bloom = questionIndex % 3 === 0 ? 'Apply' : questionIndex % 3 === 1 ? 'Analyze' : 'Evaluate';
-  const difficulty = questionIndex % 2 === 0 ? 'Medium' : 'Hard';
-  const prompt = prompts[questionIndex % prompts.length];
-  const answer = answers[questionIndex % answers.length];
-  const explanation = `Use this as retrieval practice after ${focus}. The response should include a claim, lesson evidence, and reasoning that connects the evidence to the prompt.`;
-
-  if (compact) {
-    return {
-      q: prompt,
-      ty: 'short_answer',
-      df: difficulty,
-      em: 4,
-      bl: bloom,
-      an: answer,
-      ex: explanation,
-      pt: 4,
-      oa: `Apply and explain ${focus} with evidence.`,
-      iu: `Retrieval practice and formative check after ${focus}.`,
-      tg: [focus, 'retrieval practice', bloom],
-    };
-  }
-
-  return {
-    question: prompt,
-    type: 'short_answer',
-    difficulty,
-    estimatedMinutes: 4,
-    bloomsLevel: bloom,
-    answer,
-    explanation,
-    points: 4,
-    objectiveAligned: `Apply and explain ${focus} with evidence.`,
-    intendedUse: `Retrieval practice and formative check after ${focus}.`,
-    tags: [focus, 'retrieval practice', bloom],
-  };
 }
 
 function normalizeQuizType(question = {}) {
@@ -1242,41 +1191,23 @@ export function normalizeQuizBankQuestionCounts(data, minimumQuestions = 5) {
   const target = Math.max(1, Number(minimumQuestions) || 5);
 
   if (!Array.isArray(quizzes) || quizzes.length === 0) {
-    return { data, arrayKey, target, addedQuestions: 0 };
+    return { data, arrayKey, target, addedQuestions: 0, underfilledIndices: [] };
   }
 
-  let addedQuestions = 0;
-  const nextQuizzes = quizzes.map((quiz) => {
-    const questionKey = Array.isArray(quiz?.questions)
-      ? 'questions'
-      : Array.isArray(quiz?.qs)
-        ? 'qs'
-        : quiz?.qs !== undefined
-          ? 'qs'
-          : 'questions';
-    const compact = questionKey === 'qs';
-    let questions = Array.isArray(quiz?.[questionKey]) ? quiz[questionKey] : [];
-    if (questions.length >= target) return quiz;
-
-    while (questions.length < target) {
-      questions = [...questions, buildFallbackQuizQuestion(quiz, questions.length, compact)];
-      addedQuestions++;
-    }
-
-    const totalKey =
-      quiz.totalQuestions !== undefined
-        ? 'totalQuestions'
-        : quiz.tq !== undefined || questionKey === 'qs'
-          ? 'tq'
-          : 'totalQuestions';
-    return { ...quiz, [questionKey]: questions, [totalKey]: questions.length };
-  });
+  const underfilledIndices = quizzes
+    .map((quiz, index) => {
+      const questionKey = Array.isArray(quiz?.questions) ? 'questions' : Array.isArray(quiz?.qs) ? 'qs' : null;
+      const questions = questionKey ? quiz[questionKey] : [];
+      return questions.length < target ? index : null;
+    })
+    .filter((index) => index !== null);
 
   return {
-    data: addedQuestions > 0 ? { ...data, [arrayKey]: nextQuizzes } : data,
+    data,
     arrayKey,
     target,
-    addedQuestions,
+    addedQuestions: 0,
+    underfilledIndices,
   };
 }
 
@@ -1375,6 +1306,13 @@ export function validateDeliverableGeneration(featureId, data, options = {}) {
     return { valid: false, blockers, warnings, retryableLessonIndices, arrayKey: null, itemCount: 0 };
   }
 
+  if (data?.fallbackStatus?.status === 'draft-review') {
+    blockers.push(
+      data.fallbackStatus.reason ||
+        `The ${featureId} deliverable contains deterministic fallback content that requires review.`,
+    );
+  }
+
   if (!ARRAY_DELIVERABLES.has(featureId)) {
     return { valid: true, blockers, warnings, retryableLessonIndices, arrayKey: null, itemCount: 0 };
   }
@@ -1422,9 +1360,14 @@ export function validateDeliverableGeneration(featureId, data, options = {}) {
   }
 
   if (featureId === 'quizBank') {
+    const target = Math.max(1, Number(config.questionsPerLesson) || 5);
     items.forEach((quiz, index) => {
       const questionKey = getQuestionKey(quiz);
       const questions = questionKey ? quiz[questionKey] : [];
+      if (questions.length < target) {
+        blockers.push(`Quiz lesson ${index + 1} has ${questions.length}/${target} evidence-bound question(s).`);
+        retryableLessonIndices.push(index);
+      }
       const points = questions.map(getQuestionPoints);
       const hasMissingPoints = points.some((point) => point === null || point <= 0);
       const pointSum = points.reduce((sum, point) => sum + Number(point || 0), 0);
