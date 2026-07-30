@@ -3,6 +3,22 @@ import { CURRENT_RELEASE } from './currentRelease.js';
 
 export { CURRENT_RELEASE };
 
+const V01697_RELEASE = {
+  version: '0.16.97',
+  date: 'July 29, 2026',
+  title: 'Measured Texture, Receipted Realization',
+  highlights: [
+    'Scion now has a reproducible cross-package texture evaluator instead of relying on one package’s “Texture” badge. It extracts learner-visible units from all nine material families, classifies scaffolding, intentional alignment, and teaching prose explicitly, and reports every unclassified visible path.',
+    'The ruler separates support burden, reader exposure, cross-package excess, and within-package excess. Raw, input-masked, path-free, path-aware, and same-position views prevent a single percentage from hiding whether repetition comes from user input, one template position, or actual cross-course reuse.',
+    'Compiler realization tracing is opt-in, bounded, non-enumerable, and excluded from normal JSON. Receipts identify the pool owner, selected index, pool size, lesson, selected text, and consumed lesson slots while regression proof confirms that traced and ordinary compilation serialize identically.',
+    'Repairs target proven high-salience owners instead of adding global synonyms. Assignment, study-guide, lesson-plan, slide, and discussion moves now compose from stable lesson context. Browser acceptance also fixed exact imperative titles and ordered sequences, Data Storytelling identity, duplicate terminal assessments, cross-lesson Agent grounding, source-scope citation grading, evidence-bound quiz depth, and narrow assignment cards at their actual owners.',
+    'On the frozen 12-course cold-floor panel, support burden falls from 6.29% to 5.84%, reader exposure from 10.91% to 9.78%, cross-package excess from 7.97% to 6.75%, and within-package excess from 2.71% to 1.82%. Universal teaching-prose clusters fall from 31 to zero. On the retained 10-course real fixture panel, support burden falls from 10.22% to 9.11% and cross-package excess from 14.94% to 13.35%.',
+    'The pre-repair baselines are immutable compressed artifacts with deterministic input hashes and canonical result bytes. Thin and retained-real profiles use the same evaluator; fast CI verifies their receipts, while Deep Proof recompiles both panels and fails any regression beyond the frozen tolerances.',
+    'Release metadata is split from the historical changelog, so the landing route loads one small current-release record instead of the full archive. Provenance mechanics and new teaching-copy families live in compiler-only cache leaves. The workspace status label also shares its existing presentation leaf, keeping Linux/Node 22 below the unchanged hot-shell ratchet without another request or a larger landing bundle.',
+    'Six new browser courses across data storytelling, music, UX, astronomy, supply chain, and environmental ethics all reach the requested lesson count, complete every kernel and material family, report zero encoded findings, and download integrity-clean ZIPs in 3–29 seconds. This remains automated engineering evidence: Gemma weights and the inactive adapter are unchanged, and no factual, instructor, accessibility, classroom, or paid-model superiority claim is made.',
+  ],
+};
+
 const V01696_RELEASE = {
   version: '0.16.96',
   date: 'July 29, 2026',
@@ -1051,6 +1067,59 @@ const V01695_RELEASE_CHANGELOG = {
   ],
 };
 
+const V01697_RELEASE_CHANGELOG = {
+  version: V01697_RELEASE.version,
+  date: V01697_RELEASE.date,
+  title: V01697_RELEASE.title,
+  highlights: V01697_RELEASE.highlights,
+  sections: [
+    {
+      label: 'Measure cross-course texture honestly',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'The evaluator classifies scaffolding, intentional alignment, and teaching prose across all nine visible material families.',
+        'Support burden, reader exposure, cross-package excess, and within-package excess remain separate measures.',
+        'Raw, input-masked, path-free, path-aware, and same-position views expose the actual source of reuse.',
+        'Unclassified visible paths fail the retained baseline instead of disappearing from the denominator.',
+      ],
+    },
+    {
+      label: 'Receipt realization without changing output',
+      icon: 'AI',
+      color: 'blue',
+      items: [
+        'Tracing is opt-in, bounded, and attached through a non-enumerable symbol.',
+        'Receipts identify owner, pool, selected index, lesson, selected text, and consumed lesson slots.',
+        'Trace-on and trace-off compiler results serialize to identical ordinary JSON.',
+        'The retained pre-repair baseline stays separate from volatile runtime envelopes.',
+      ],
+    },
+    {
+      label: 'Repair the measured owners',
+      icon: 'PROOF',
+      color: 'violet',
+      items: [
+        'Assignment, study-guide, lesson-plan, slide, and discussion owners compose stable context-keyed teaching moves.',
+        'The 12-course cold-floor panel eliminates 31 universal teaching-prose clusters and reduces cross-package excess by 15.4%.',
+        'The retained 10-course real fixture panel reduces support burden by 10.9% and cross-package excess by 10.6%.',
+        'Deep Proof recompiles both panels and rejects a regression beyond frozen tolerances.',
+      ],
+    },
+    {
+      label: 'Keep the quality claim inside the proof',
+      icon: 'CHECK',
+      color: 'slate',
+      items: [
+        'The full unit, lint, format, build, bundle, Chromium, release-history, and physical-ZIP gates remain required.',
+        'The browser proof must exercise generation, every compiler phase, the Agent, export, and archive integrity.',
+        'Gemma weights remain unchanged and the optional trained adapter remains inactive.',
+        'Automated proof does not imply instructor approval, classroom outcomes, factual certification, accessibility certification, or paid-model superiority.',
+      ],
+    },
+  ],
+};
+
 const V01696_RELEASE_CHANGELOG = {
   version: V01696_RELEASE.version,
   date: V01696_RELEASE.date,
@@ -1107,47 +1176,47 @@ export const CURRENT_RELEASE_CHANGELOG = {
   highlights: CURRENT_RELEASE.highlights,
   sections: [
     {
-      label: 'Measure cross-course texture honestly',
+      label: 'Make the summary match the receipt',
       icon: 'CHECK',
       color: 'emerald',
       items: [
-        'The evaluator classifies scaffolding, intentional alignment, and teaching prose across all nine visible material families.',
-        'Support burden, reader exposure, cross-package excess, and within-package excess remain separate measures.',
-        'Raw, input-masked, path-free, path-aware, and same-position views expose the actual source of reuse.',
-        'Unclassified visible paths fail the retained baseline instead of disappearing from the denominator.',
+        'Total K≥2 clusters, the K=2 bucket, and the full support distribution are first-class report fields.',
+        'Compiler-frame coverage is printed as an exact numerator, denominator, and percentage.',
+        'Input-mask and consumed-slot exposure remain separate, with their divergence stated explicitly.',
+        'The retained canonical receipt and the human-readable summary describe the same qualified result.',
       ],
     },
     {
-      label: 'Receipt realization without changing output',
+      label: 'Measure causal realization',
       icon: 'AI',
       color: 'blue',
       items: [
-        'Tracing is opt-in, bounded, and attached through a non-enumerable symbol.',
-        'Receipts identify owner, pool, selected index, lesson, selected text, and consumed lesson slots.',
-        'Trace-on and trace-off compiler results serialize to identical ordinary JSON.',
-        'The retained pre-repair baseline stays separate from volatile runtime envelopes.',
+        'Finalized-string receipts raise retained-panel causal coverage above 90% without entering ordinary JSON.',
+        'Existing variant-owner receipts stay authoritative; the compiler boundary supplies path ownership for remaining finalized strings.',
+        'Trace-on and trace-off complete packages serialize byte-identically.',
+        'The sparse thin panel now exposes a 28.70-point causal reader-exposure gap for targeted follow-up.',
       ],
     },
     {
-      label: 'Repair the measured owners',
+      label: 'Make regressions unmergeable',
       icon: 'PROOF',
       color: 'violet',
       items: [
-        'Assignment, study-guide, lesson-plan, slide, and discussion owners compose stable context-keyed teaching moves.',
-        'The 12-course cold-floor panel eliminates 31 universal teaching-prose clusters and reduces cross-package excess by 15.4%.',
-        'The retained 10-course real fixture panel reduces support burden by 10.9% and cross-package excess by 10.6%.',
-        'Deep Proof recompiles both panels and rejects a regression beyond frozen tolerances.',
+        'The original baseline still governs broad support, exposure, excess, universal-cluster, and classification measures.',
+        'The post-repair V8 snapshot freezes K=2, existing-cluster support and occurrences, and new universal high-salience frames.',
+        'Fast verification recompiles both profiles and applies the real comparator before merge.',
+        'The protected branch requires the aggregate Fast verification status while Deep Proof remains defense in depth.',
       ],
     },
     {
-      label: 'Keep the quality claim inside the proof',
+      label: 'Freeze the real ownership boundary',
       icon: 'CHECK',
       color: 'slate',
       items: [
-        'The full unit, lint, format, build, bundle, Chromium, release-history, and physical-ZIP gates remain required.',
-        'The browser proof must exercise generation, every compiler phase, the Agent, export, and archive integrity.',
-        'Gemma weights remain unchanged and the optional trained adapter remains inactive.',
-        'Automated proof does not imply instructor approval, classroom outcomes, factual certification, accessibility certification, or paid-model superiority.',
+        'The repository ratchet counts the monolith and every courseCompiler*.js leaf as one compiler family.',
+        'Moving code into a cacheable module can no longer register as a false compiler reduction.',
+        'Trellis status text now agrees with the experiment ledger: E1 green, E2 not run, E3 and E5 partial.',
+        'No production repetition rate, model-weight improvement, instructor approval, or classroom outcome is claimed.',
       ],
     },
   ],
@@ -1835,6 +1904,7 @@ const V01678_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  V01697_RELEASE_CHANGELOG,
   V01696_RELEASE_CHANGELOG,
   V01695_RELEASE_CHANGELOG,
   V01694_RELEASE_CHANGELOG,

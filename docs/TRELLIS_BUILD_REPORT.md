@@ -22,13 +22,11 @@ first or second run:
 | **E4 mechanics · replan drill**    | **GREEN** — locked weeks untouched, registry keys verbatim, 2 of 7 lessons re-authored                         | `trellis/runs/cli-mock-smoke/replan.summary.json` |
 | Live smoke (cs-python, draft tier) | **WORKS end to end** — attempts 3+4 graded 98/A and 97/A live; judge 7 and 8 vs current pipeline's 5 (§5, §5b) | `trellis/runs/live-cs-python-*/`                  |
 
-The §17 pivot experiments E1–E3 and E5 are **NOT claimed** — they need
-fresh paired A/B rounds against the current pipeline under the aggregate
-protocol, at spend that requires the owner's go-ahead. What this session
-proves is narrower and real: the architecture works end to end, the
-existing instruments grade it without modification, and the judgment layer
-catches the disease classes it was designed for — including in our own code
-(§6).
+The original build session did not claim E1–E3 or E5. The later experiment
+ledger in §7 supersedes that session-bound status: E1 is now **GREEN**, E3 and
+E5 are **PARTIAL**, and E2 remains **NOT RUN**. No Trellis pivot claim follows
+from those results; the remaining gates and single-seat advisory caveats still
+apply.
 
 ## 2. What was built
 
@@ -977,8 +975,8 @@ Item 4 (multi-seat judging) stays key-gated; item 6 stays the verdict._
 | E4 replan drill                  | **MECHANICS GREEN**                                                                                     | Token-free half proven; incremental-$ half needs an E2 package        |
 | E5 Prof battery                  | **PARTIAL — a2 zero-token ran on Trellis (repair 39.5% vs 0% baseline, below the 70% bar; §5e item 5)** | a1/a2mouth/a4 arenas remain                                           |
 
-No pivot claim is made or implied by this report. The next decision point
-is E1, and it is the owner's call to spend.
+No pivot claim is made or implied by this report. E1 is complete; the next
+paid decision point is E2, and it remains the owner's call to spend.
 
 ## 8. Session ledger
 

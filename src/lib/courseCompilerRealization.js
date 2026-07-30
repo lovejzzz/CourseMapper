@@ -60,8 +60,7 @@ function normalizeRealizationFrame(value, slots) {
     .toLowerCase();
 }
 
-export function recordLessonVariantTrace({ lesson, variants, selected, index, ownerId, poolSize = variants.length }) {
-  if (!activeTrace || typeof selected !== 'string') return;
+function realizationSlotsForLesson(lesson) {
   let lessonSlots = activeSlotCache?.get(lesson);
   if (!lessonSlots) {
     lessonSlots = [...new Set(realizationTraceStrings(lesson))].sort(
@@ -69,10 +68,20 @@ export function recordLessonVariantTrace({ lesson, variants, selected, index, ow
     );
     activeSlotCache?.set(lesson, lessonSlots);
   }
-  const slots = lessonSlots
+  return lessonSlots;
+}
+
+function consumedRealizationSlots(lesson, selected) {
+  return realizationSlotsForLesson(lesson)
     .filter((value) => value.length >= 3 && selected.toLowerCase().includes(value.toLowerCase()))
     .sort((left, right) => right.length - left.length || left.localeCompare(right))
     .slice(0, 16);
+}
+
+export function recordLessonVariantTrace({ lesson, variants, selected, index, ownerId, poolSize = variants.length }) {
+  if (!activeTrace || typeof selected !== 'string') return;
+  const lessonSlots = realizationSlotsForLesson(lesson);
+  const slots = consumedRealizationSlots(lesson, selected);
   const frame = variants.map((variant) => normalizeRealizationFrame(variant, lessonSlots)).join('\u241e');
   activeTrace.push({
     ownerId: ownerId || null,
@@ -83,6 +92,62 @@ export function recordLessonVariantTrace({ lesson, variants, selected, index, ow
     selectedText: selected,
     consumedSlots: slots,
   });
+}
+
+function realizationWordCount(value) {
+  return String(value || '').match(/\p{Script=Han}|[\p{L}\p{N}]+(?:['’ʼ-][\p{L}\p{N}]+)*/gu)?.length || 0;
+}
+
+function normalizedRealizationPath(path = []) {
+  return path.map((part) => (typeof part === 'number' ? '#' : String(part))).join('.');
+}
+
+export function recordCompiledFeatureRealizationTrace(featureId, compiled, blueprint = {}) {
+  if (!activeTrace || !compiled || typeof compiled !== 'object') return;
+  const lessonsByNumber = new Map(
+    (Array.isArray(blueprint.lessons) ? blueprint.lessons : []).map((lesson, index) => [
+      Number(lesson?.lessonNumber || index + 1),
+      lesson,
+    ]),
+  );
+  const fallbackLessons = new Map();
+
+  function lessonForNumber(lessonNumber) {
+    const normalizedNumber = Number(lessonNumber || 1);
+    if (lessonsByNumber.has(normalizedNumber)) return lessonsByNumber.get(normalizedNumber);
+    if (!fallbackLessons.has(normalizedNumber)) {
+      fallbackLessons.set(normalizedNumber, { ...blueprint, lessonNumber: normalizedNumber });
+    }
+    return fallbackLessons.get(normalizedNumber);
+  }
+
+  function walk(value, path = [], lessonNumber = null, seen = new WeakSet()) {
+    if (typeof value === 'string') {
+      if (realizationWordCount(value) < 8) return;
+      const lesson = lessonForNumber(lessonNumber);
+      const ownerId = `compiled:${featureId}:${normalizedRealizationPath(path)}`;
+      activeTrace.push({
+        ownerId,
+        poolId: ownerId,
+        lessonNumber: Number(lesson?.lessonNumber || 1),
+        poolSize: 1,
+        index: 0,
+        selectedText: value,
+        consumedSlots: consumedRealizationSlots(lesson, value),
+      });
+      return;
+    }
+    if (!value || typeof value !== 'object' || seen.has(value)) return;
+    seen.add(value);
+    const nextLessonNumber = Number(value.lessonNumber || value.weekNumber || 0) || lessonNumber;
+    if (Array.isArray(value)) {
+      value.forEach((entry, index) => walk(entry, [...path, index], nextLessonNumber, seen));
+      return;
+    }
+    Object.entries(value).forEach(([key, entry]) => walk(entry, [...path, key], nextLessonNumber, seen));
+  }
+
+  walk(compiled);
 }
 
 export function selectLessonVariant(lesson = {}, variants = [], ownerId = '') {

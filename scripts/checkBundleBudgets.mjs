@@ -29,9 +29,9 @@ const budgets = {
 // caught an unaccounted increase, and the fix is to re-freeze at the released
 // state, not to widen the allowance. Every future release must do the same.
 const repositoryBudgets = {
-  // v0.16.97 advances the frozen state through the shipped v0.16.96 contract;
-  // its own v0.16.97 contract consumes the single declared-release allowance.
-  baselineVersion: '0.16.96',
+  // v0.16.98 advances the frozen state through the shipped v0.16.97 contract;
+  // its own v0.16.98 contract consumes the single declared-release allowance.
+  baselineVersion: '0.16.97',
   // v0.16.82 adds 29 net lines of reusable compiler control logic for
   // policy-domain separation and concept-owned evidence binding. Source-
   // statement copy and prerequisite selection moved to a cacheable leaf; the
@@ -45,6 +45,12 @@ const repositoryBudgets = {
   // session planners moved to a cacheable leaf, cutting the release candidate
   // from 28,246 to 28,065 lines before this exact state was frozen.
   compilerLines: 28_065,
+  // V0.16.97 moved compiler logic into cacheable courseCompiler*.js leaves.
+  // Freeze the whole ownership family so extracting modules cannot make the
+  // monolith-only counter report a false reduction. The 69-line post-release
+  // increase is the opt-in finalized-string realization receipt required to
+  // measure causal texture; it is inactive on ordinary product compiles.
+  compilerFamilyLines: 30_690,
   // v0.16.81 adds one executable Algi→Scion hybrid benchmark audit. It freezes
   // evidence, route, quality, call, latency, and export promotion rules; this
   // is a release gate rather than product-side script sprawl.
@@ -60,9 +66,9 @@ const repositoryBudgets = {
   // retained-real panels share the same implementation and arguments rather
   // than multiplying scripts for every profile.
   npmScripts: 385,
-  // v0.16.96 shipped the 282nd release-contract ledger file; v0.16.97 may add
+  // v0.16.97 shipped the 283rd release-contract ledger file; v0.16.98 may add
   // exactly one current-release contract.
-  releaseContractFiles: 282,
+  releaseContractFiles: 283,
   trackedWeightFiles: 62,
   trackedWeightBytes: 1_053_339_981,
   largeBinaryBytes: 1024 * 1024,
@@ -525,6 +531,14 @@ async function checkRepositoryBudgets(packageJson, failures) {
   const weightBytes = weightStats.reduce((sum, stat) => sum + stat.size, 0);
   const compilerPath = path.resolve(process.cwd(), 'src/lib/courseBlueprintCompiler.js');
   const compilerLines = lineCount(await fs.readFile(compilerPath, 'utf8'));
+  const compilerFamilyFiles = files.filter(
+    (file) => file === 'src/lib/courseBlueprintCompiler.js' || /^src\/lib\/courseCompiler[^/]*\.js$/.test(file),
+  );
+  const compilerFamilyLines = (
+    await Promise.all(
+      compilerFamilyFiles.map(async (file) => lineCount(await fs.readFile(path.resolve(process.cwd(), file), 'utf8'))),
+    )
+  ).reduce((sum, count) => sum + count, 0);
   const npmScripts = Object.keys(packageJson.scripts || {}).length;
   const releaseContracts = files.filter((file) => file.startsWith('release-contracts/')).length;
   const declaredRelease =
@@ -545,6 +559,11 @@ async function checkRepositoryBudgets(packageJson, failures) {
   if (compilerLines > repositoryBudgets.compilerLines) {
     failures.push(
       `courseBlueprintCompiler.js: ${compilerLines} lines exceeds frozen ${repositoryBudgets.compilerLines}`,
+    );
+  }
+  if (compilerFamilyLines > repositoryBudgets.compilerFamilyLines) {
+    failures.push(
+      `Course compiler family: ${compilerFamilyLines} lines exceeds frozen ${repositoryBudgets.compilerFamilyLines}`,
     );
   }
   if (npmScripts > repositoryBudgets.npmScripts) {
@@ -585,6 +604,7 @@ async function checkRepositoryBudgets(packageJson, failures) {
       `weights ${weightFiles.length}/${repositoryBudgets.trackedWeightFiles} files`,
       `${weightBytes}/${repositoryBudgets.trackedWeightBytes} bytes`,
       `compiler ${compilerLines}/${repositoryBudgets.compilerLines} lines`,
+      `compiler family ${compilerFamilyLines}/${repositoryBudgets.compilerFamilyLines} lines`,
       `scripts ${npmScripts}/${repositoryBudgets.npmScripts}`,
       `release contracts ${releaseContracts}/${releaseContractLimit}`,
     ].join(' · '),

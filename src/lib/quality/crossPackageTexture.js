@@ -369,10 +369,11 @@ export function buildCrossPackageTextureResult(packages = [], options = {}) {
   };
 }
 
-export function compareCrossPackageTextureResults(current, baseline) {
+export function compareCrossPackageTextureResults(current, baseline, supportReference = baseline) {
   const currentView = current?.views?.inputMask?.pathFree;
   const baselineView = baseline?.views?.inputMask?.pathFree;
-  if (!currentView || !baselineView) {
+  const supportReferenceView = supportReference?.views?.inputMask?.pathFree;
+  if (!currentView || !baselineView || !supportReferenceView) {
     throw new Error('Cross-package texture comparison requires inputMask.pathFree results.');
   }
   const universalCount = (result, view) =>
@@ -397,12 +398,61 @@ export function compareCrossPackageTextureResults(current, baseline) {
     baseline: universalHighSalienceCount(baseline, baselineView),
     current: universalHighSalienceCount(current, currentView),
   };
+  const pairLocalCount = (view) => Number(view.supportDistribution?.[2] || 0);
+  const pairLocal = {
+    reference: pairLocalCount(supportReferenceView),
+    current: pairLocalCount(currentView),
+  };
+  const supportReferenceClusters = new Map(supportReferenceView.clusters.map((cluster) => [cluster.key, cluster]));
+  const existingClusterGrowth = currentView.clusters
+    .map((cluster) => {
+      const reference = supportReferenceClusters.get(cluster.key);
+      if (
+        !reference ||
+        (cluster.packageSupport <= reference.packageSupport && cluster.occurrenceCount <= reference.occurrenceCount)
+      ) {
+        return null;
+      }
+      return {
+        key: cluster.key,
+        representativeRawText: cluster.representativeRawText,
+        referencePackageSupport: reference.packageSupport,
+        currentPackageSupport: cluster.packageSupport,
+        referenceOccurrenceCount: reference.occurrenceCount,
+        currentOccurrenceCount: cluster.occurrenceCount,
+      };
+    })
+    .filter(Boolean);
+  const newUniversalHighSalience = currentView.clusters
+    .filter(
+      (cluster) =>
+        cluster.packageSupport === current.packageCount &&
+        cluster.salience === 'high' &&
+        !supportReferenceClusters.has(cluster.key),
+    )
+    .map((cluster) => ({
+      key: cluster.key,
+      representativeRawText: cluster.representativeRawText,
+      packageSupport: cluster.packageSupport,
+      occurrenceCount: cluster.occurrenceCount,
+    }));
+  const provenanceCoverage = {
+    threshold: 0.5,
+    current:
+      current.teachingUnitCount > 0
+        ? roundRate(Number(current.provenance?.compilerFrame || 0) / current.teachingUnitCount)
+        : 0,
+  };
   const unclassifiedPaths = current.unclassifiedPaths || [];
   return {
     passed:
       measures.every((measure) => measure.passed) &&
       universal.current <= universal.baseline &&
       universalHighSalience.current <= universalHighSalience.baseline &&
+      pairLocal.current <= pairLocal.reference &&
+      existingClusterGrowth.length === 0 &&
+      newUniversalHighSalience.length === 0 &&
+      provenanceCoverage.current >= provenanceCoverage.threshold &&
       unclassifiedPaths.length === 0,
     measures,
     universal: {
@@ -412,6 +462,24 @@ export function compareCrossPackageTextureResults(current, baseline) {
     universalHighSalience: {
       ...universalHighSalience,
       passed: universalHighSalience.current <= universalHighSalience.baseline,
+    },
+    pairLocal: {
+      ...pairLocal,
+      passed: pairLocal.current <= pairLocal.reference,
+    },
+    existingClusterGrowth: {
+      count: existingClusterGrowth.length,
+      passed: existingClusterGrowth.length === 0,
+      clusters: existingClusterGrowth,
+    },
+    newUniversalHighSalience: {
+      count: newUniversalHighSalience.length,
+      passed: newUniversalHighSalience.length === 0,
+      clusters: newUniversalHighSalience,
+    },
+    provenanceCoverage: {
+      ...provenanceCoverage,
+      passed: provenanceCoverage.current >= provenanceCoverage.threshold,
     },
     unclassified: {
       count: unclassifiedPaths.length,

@@ -38,6 +38,33 @@ describe('blueprint realization trace', () => {
     expect(traced[BLUEPRINT_REALIZATION_TRACE].length).toBeGreaterThan(0);
   });
 
+  it('keeps the complete material package byte-identical when tracing is enabled', () => {
+    const featureIds = [
+      'syllabus',
+      'lessonPlans',
+      'slideDecks',
+      'assignments',
+      'rubrics',
+      'discussions',
+      'quizBank',
+      'studyGuides',
+      'courseFaq',
+    ];
+    const blueprint = buildCourseBlueprint(traceCourseMap());
+    const ordinary = compileBlueprintDeliverables(blueprint, featureIds, { configMap: {} });
+    const traced = compileBlueprintDeliverables(blueprint, featureIds, {
+      configMap: {},
+      traceRealization: true,
+    });
+
+    expect(JSON.stringify(traced)).toBe(JSON.stringify(ordinary));
+    expect(Object.keys(traced)).toEqual(Object.keys(ordinary));
+    expect(traced[BLUEPRINT_REALIZATION_TRACE].length).toBeGreaterThan(0);
+    expect(
+      traced[BLUEPRINT_REALIZATION_TRACE].some((event) => event.ownerId?.startsWith('compiled:lessonPlans:')),
+    ).toBe(true);
+  });
+
   it('records the lesson-number-selected pool index and matched consumed slots', () => {
     const blueprint = buildCourseBlueprint(traceCourseMap());
     const traced = compileBlueprintDeliverables(blueprint, ['lessonPlans'], {

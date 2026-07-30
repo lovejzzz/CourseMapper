@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — cross-checked, exportable, and fully editable. Then use the AI agent to inspect and revise the generated workspace through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.97
+**Current release:** v0.16.98
 
 ---
 
@@ -32,7 +32,7 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site presents **Provider: Scion**, a disabled API control because no key is needed, and one product model: **Scion V0.16.97**. Scion is fully free—and always will be. That label names EduTool's complete course-building system; it is not a claim that EduTool trained or hosts a new foundation model. Scion pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its identity and metadata, and runs it through the packaged WebGPU runtime only when the task needs neural authoring. Before that boundary, Scion can preserve an exact instructor-provided lesson sequence and prepare compact source-anchored evidence from uploaded material, the shipped Curriculum Genome, the local research cache, and—only after opt-in—current public sources. A complete explicit structure plus exact source ledger reaches the shared compiler without importing or activating the model runtime; incomplete or ambiguous contracts retain the browser-local Gemma fallback.
+The hosted site presents **Provider: Scion**, a disabled API control because no key is needed, and one product model: **Scion V0.16.98**. Scion is fully free—and always will be. That label names EduTool's complete course-building system; it is not a claim that EduTool trained or hosts a new foundation model. Scion pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its identity and metadata, and runs it through the packaged WebGPU runtime only when the task needs neural authoring. Before that boundary, Scion can preserve an exact instructor-provided lesson sequence and prepare compact source-anchored evidence from uploaded material, the shipped Curriculum Genome, the local research cache, and—only after opt-in—current public sources. A complete explicit structure plus exact source ledger reaches the shared compiler without importing or activating the model runtime; incomplete or ambiguous contracts retain the browser-local Gemma fallback.
 
 In plain language, **Scion Vx is the whole local authoring system, not just the base model**:
 
@@ -61,7 +61,24 @@ V0.16.91 gives each admitted lesson one canonical evidence brief and reuses that
 
 The historical research architecture and limitations remain documented in [docs/ALGI_RESEARCH_FIRST_ARCHITECTURE.md](docs/ALGI_RESEARCH_FIRST_ARCHITECTURE.md) and [docs/ALGI_V0_PIPELINE_ASSESSMENT.md](docs/ALGI_V0_PIPELINE_ASSESSMENT.md).
 
-### V0.16.97 current release — measured texture, receipted realization
+### V0.16.98 current release — causal texture, enforced ratchets
+
+V0.16.98 turns V0.16.97’s useful evaluator into an honest merge gate. The generated report now shows total repeated clusters, the K=2 pair-local bucket, the complete support distribution, exact compiler-frame coverage, the consumed-slot causal view, and its divergence from broad input masking.
+
+The comparator now uses two explicit references. The immutable pre-repair baseline still governs the broad rates and universal-cluster improvement. The retained V0.16.97 V8 snapshot freezes the repaired support shape, so a change fails if K=2 rises, an existing cluster gains package support or occurrences, a new universal high-salience frame appears, or a visible path goes unclassified. This avoids the dishonest alternative of comparing K=2 to the older baseline, which would make the already-shipped repaired state fail immediately.
+
+Opt-in finalized-string receipts raise causal teaching-prose coverage from **3.7% to 90.01%** on the 12-course thin panel and from **1.3% to 92.13%** on the 10-course gold panel. Complete trace-on and trace-off material packages remain byte-identical in ordinary JSON; the website does not enable these receipts during normal generation.
+
+The causal result changes the next quality decision:
+
+- thin-panel reader exposure is **38.47%** when only source slots the compiler actually consumed are masked, versus **9.78%** under broad input masking—a **28.70-point** gap;
+- gold-panel exposure is **19.40%** versus **19.32%**, a **0.08-point** gap.
+
+That thin-panel result is evidence of generic fallback pressure under sparse briefs. It is not a real-production repetition rate, and V0.16.98 does not claim that wording quality improved. It gives the next repair a causal target instead of rewarding a larger template inventory.
+
+Fast verification now recompiles both retained panels and applies the real comparator before merge. The repository ratchet also counts `courseBlueprintCompiler.js` and every `courseCompiler*.js` leaf as one compiler family, so moving code into a cacheable module cannot register as a false reduction. The exact implementation, measured results, and remaining production-panel work are documented in [docs/SCION_V01698_CAUSAL_TEXTURE_ENFORCEMENT.md](docs/SCION_V01698_CAUSAL_TEXTURE_ENFORCEMENT.md).
+
+### V0.16.97 historical release — measured texture, receipted realization
 
 V0.16.97 adds the missing cross-package quality ruler. The workspace Texture badge describes one package; it cannot reveal whether the same teaching prose appears in unrelated courses. The new evaluator extracts learner-visible units from all nine standard material families, classifies structural scaffolding, intentional alignment, and teaching prose explicitly, and refuses to hide unclassified visible paths.
 
@@ -359,7 +376,7 @@ Gemma weights remain unchanged, and the research adapter remains inactive becaus
 
 ### Recent release history
 
-The sections below are historical release evidence. Their versions, timings, test counts, and measured packages describe the named release and are intentionally preserved; the V0.16.97 release section above is the current authority. Historical 99/A statements refer to the deterministic conformance grader used by those releases, not to the new Automated Readiness construct.
+The sections below are historical release evidence. Their versions, timings, test counts, and measured packages describe the named release and are intentionally preserved; the V0.16.98 release section above is the current authority. Historical 99/A statements refer to the deterministic conformance grader used by those releases, not to the new Automated Readiness construct.
 
 V0.16.77 makes experiential learning a first-class compiler capability instead of a one-course template. When—and only when—a lesson explicitly requests a simulation, laboratory investigation, studio critique, case exercise, structured debate, field exercise, or role-play, the existing lesson-authoring call returns one compact course-specific activity blueprint beside its knowledge kernel. There is no extra call for the lesson plan, slides, assignment, or export.
 

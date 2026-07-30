@@ -65,6 +65,7 @@ import { slideDiscussionDecisionBullets } from './courseCompilerSlideDiscussionC
 import {
   BLUEPRINT_REALIZATION_TRACE,
   beginBlueprintRealizationTrace,
+  recordCompiledFeatureRealizationTrace,
   restoreBlueprintRealizationTrace,
   selectLessonVariant as lessonVariant,
 } from './courseCompilerRealization';
@@ -27872,7 +27873,10 @@ function compileFeatureInto(result, compileErrors, featureId, compilerBlueprint,
       skipCompilerContractCheck: true,
       skipPrepareBlueprint: true,
     });
-    if (data) result[featureId] = data;
+    if (data) {
+      result[featureId] = data;
+      recordCompiledFeatureRealizationTrace(featureId, data, compilerBlueprint);
+    }
   } catch (error) {
     const message = error?.message || String(error);
     console.error(`[CM] ${featureId} compile failed: ${message}`, error);

@@ -25,7 +25,7 @@ function unit(packageId, text, overrides = {}) {
     classId: 'C',
     salience: 'high',
     owner: 'test-owner',
-    provenance: overrides.provenance || 'unknown',
+    provenance: overrides.provenance || 'compiler-frame',
     poolId: overrides.poolId || null,
     variantIndex: overrides.variantIndex ?? null,
     rawText: text,
@@ -202,5 +202,64 @@ describe('cross-package texture', () => {
 
     expect(compareCrossPackageTextureResults(improved, baseline).passed).toBe(true);
     expect(compareCrossPackageTextureResults(regression, baseline).passed).toBe(false);
+  });
+
+  it('requires causal provenance on a majority of teaching units', () => {
+    const text = 'students compare the evidence and explain the stronger instructional decision';
+    const untraced = buildCrossPackageTextureResult([
+      { packageId: 'a', units: [unit('a', text, { provenance: 'unknown' })] },
+      { packageId: 'b', units: [unit('b', text, { provenance: 'unknown' })] },
+    ]);
+    const comparison = compareCrossPackageTextureResults(untraced, untraced, untraced);
+
+    expect(comparison.provenanceCoverage).toMatchObject({
+      threshold: 0.5,
+      current: 0,
+      passed: false,
+    });
+    expect(comparison.passed).toBe(false);
+  });
+
+  it('rejects pair-local growth even when aggregate exposure rates improve', () => {
+    const universal = 'students compare the evidence and explain the stronger instructional decision';
+    const pairOne = 'partners inspect one bounded example and explain the evidence choice';
+    const pairTwo = 'teams test one bounded example and explain the resulting decision';
+    const unique = (packageId) => `students in package ${packageId} produce a distinct course-specific artifact`;
+    const baseline = buildCrossPackageTextureResult(
+      ['a', 'b', 'c', 'd'].map((packageId) => ({ packageId, units: [unit(packageId, universal)] })),
+    );
+    const current = buildCrossPackageTextureResult(
+      ['a', 'b', 'c', 'd'].map((packageId, index) => ({
+        packageId,
+        units: [unit(packageId, index < 2 ? pairOne : pairTwo), unit(packageId, unique(packageId))],
+      })),
+    );
+    const comparison = compareCrossPackageTextureResults(current, baseline, baseline);
+
+    expect(current.views.inputMask.pathFree.metrics.readerExposureRate).toBeLessThan(
+      baseline.views.inputMask.pathFree.metrics.readerExposureRate,
+    );
+    expect(comparison.pairLocal).toMatchObject({ reference: 0, current: 2, passed: false });
+    expect(comparison.passed).toBe(false);
+  });
+
+  it('rejects growth in an existing cluster and a new universal high-salience frame', () => {
+    const existing = 'students compare two sources and explain one bounded evidence decision';
+    const universal = 'learners rehearse a generic teaching move before revising their response';
+    const reference = buildCrossPackageTextureResult([
+      { packageId: 'a', units: [unit('a', existing)] },
+      { packageId: 'b', units: [unit('b', existing)] },
+      { packageId: 'c', units: [unit('c', 'a distinct course-specific practice for package c')] },
+    ]);
+    const current = buildCrossPackageTextureResult([
+      { packageId: 'a', units: [unit('a', existing), unit('a', universal)] },
+      { packageId: 'b', units: [unit('b', existing), unit('b', universal)] },
+      { packageId: 'c', units: [unit('c', existing), unit('c', universal)] },
+    ]);
+    const comparison = compareCrossPackageTextureResults(current, current, reference);
+
+    expect(comparison.existingClusterGrowth).toMatchObject({ count: 1, passed: false });
+    expect(comparison.newUniversalHighSalience).toMatchObject({ count: 1, passed: false });
+    expect(comparison.passed).toBe(false);
   });
 });

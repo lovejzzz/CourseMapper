@@ -26,7 +26,6 @@ import {
 } from './panels/crossPackageThinBriefs.mjs';
 
 const ROOT = process.cwd();
-const REALIZATION_TRACE = Symbol.for('coursemapper.blueprintRealizationTrace');
 const DEFAULT_OUTPUT_DIR = path.join(ROOT, 'verification-output', 'cross-package-texture');
 const GOLD_PANEL_IDS = [
   'gold-biology-lab-8',
@@ -153,7 +152,13 @@ function trimCanonicalResult(result) {
 function markdownSummary(canonical, envelope) {
   const inputPathFree = canonical.result.views.inputMask.pathFree;
   const inputSamePosition = canonical.result.views.inputMask.samePosition;
+  const consumedPathFree = canonical.result.views.consumedSlot.pathFree;
   const rawPathFree = canonical.result.views.raw.pathFree;
+  const pairLocalCount = (view) => Number(view.supportDistribution?.[2] || 0);
+  const provenanceCoverage =
+    canonical.result.teachingUnitCount > 0
+      ? canonical.result.provenance.compilerFrame / canonical.result.teachingUnitCount
+      : 0;
   const lines = [
     '# Cross-Package Texture Audit',
     '',
@@ -166,11 +171,12 @@ function markdownSummary(canonical, envelope) {
     '',
     '## Headline teaching-prose measures',
     '',
-    '| View | Eligible units | Clusters K≥2 | Support burden | Reader exposure | Cross-package excess |',
-    '| --- | ---: | ---: | ---: | ---: | ---: |',
-    `| Raw / path-free | ${rawPathFree.eligibleUnitCount} | ${rawPathFree.clusterCount} | ${(rawPathFree.metrics.supportBurdenRate * 100).toFixed(2)}% | ${(rawPathFree.metrics.readerExposureRate * 100).toFixed(2)}% | ${(rawPathFree.metrics.crossPackageExcessRate * 100).toFixed(2)}% |`,
-    `| Input-mask / path-free | ${inputPathFree.eligibleUnitCount} | ${inputPathFree.clusterCount} | ${(inputPathFree.metrics.supportBurdenRate * 100).toFixed(2)}% | ${(inputPathFree.metrics.readerExposureRate * 100).toFixed(2)}% | ${(inputPathFree.metrics.crossPackageExcessRate * 100).toFixed(2)}% |`,
-    `| Input-mask / same-position | ${inputSamePosition.eligibleUnitCount} | ${inputSamePosition.clusterCount} | ${(inputSamePosition.metrics.supportBurdenRate * 100).toFixed(2)}% | ${(inputSamePosition.metrics.readerExposureRate * 100).toFixed(2)}% | ${(inputSamePosition.metrics.crossPackageExcessRate * 100).toFixed(2)}% |`,
+    '| View | Eligible units | Clusters K≥2 | K=2 clusters | Support burden | Reader exposure | Cross-package excess |',
+    '| --- | ---: | ---: | ---: | ---: | ---: | ---: |',
+    `| Raw / path-free | ${rawPathFree.eligibleUnitCount} | ${rawPathFree.clusterCount} | ${pairLocalCount(rawPathFree)} | ${(rawPathFree.metrics.supportBurdenRate * 100).toFixed(2)}% | ${(rawPathFree.metrics.readerExposureRate * 100).toFixed(2)}% | ${(rawPathFree.metrics.crossPackageExcessRate * 100).toFixed(2)}% |`,
+    `| Input-mask / path-free | ${inputPathFree.eligibleUnitCount} | ${inputPathFree.clusterCount} | ${pairLocalCount(inputPathFree)} | ${(inputPathFree.metrics.supportBurdenRate * 100).toFixed(2)}% | ${(inputPathFree.metrics.readerExposureRate * 100).toFixed(2)}% | ${(inputPathFree.metrics.crossPackageExcessRate * 100).toFixed(2)}% |`,
+    `| Input-mask / same-position | ${inputSamePosition.eligibleUnitCount} | ${inputSamePosition.clusterCount} | ${pairLocalCount(inputSamePosition)} | ${(inputSamePosition.metrics.supportBurdenRate * 100).toFixed(2)}% | ${(inputSamePosition.metrics.readerExposureRate * 100).toFixed(2)}% | ${(inputSamePosition.metrics.crossPackageExcessRate * 100).toFixed(2)}% |`,
+    `| Consumed-slot / path-free | ${consumedPathFree.eligibleUnitCount} | ${consumedPathFree.clusterCount} | ${pairLocalCount(consumedPathFree)} | ${(consumedPathFree.metrics.supportBurdenRate * 100).toFixed(2)}% | ${(consumedPathFree.metrics.readerExposureRate * 100).toFixed(2)}% | ${(consumedPathFree.metrics.crossPackageExcessRate * 100).toFixed(2)}% |`,
     '',
     '## Support distribution',
     '',
@@ -185,6 +191,20 @@ function markdownSummary(canonical, envelope) {
     `- Unclassified visible paths: ${canonical.result.unclassifiedPaths.length}`,
     `- Compiler-frame matched units: ${canonical.result.provenance.compilerFrame}`,
     `- Unknown-provenance teaching units: ${canonical.result.provenance.unknown}`,
+    `- Compiler-frame provenance coverage: ${(provenanceCoverage * 100).toFixed(2)}%`,
+    `- Input-mask → consumed-slot reader-exposure divergence: ${((consumedPathFree.metrics.readerExposureRate - inputPathFree.metrics.readerExposureRate) * 100).toFixed(2)} percentage points`,
+    ...(envelope.ratchet
+      ? [
+          '',
+          '## No-regression ratchet',
+          '',
+          `- Aggregate pre-repair comparison: ${envelope.ratchet.measures.every((measure) => measure.passed) ? 'PASS' : 'FAIL'}`,
+          `- K=2 ceiling from post-repair reference: ${envelope.ratchet.pairLocal.current}/${envelope.ratchet.pairLocal.reference} (${envelope.ratchet.pairLocal.passed ? 'PASS' : 'FAIL'})`,
+          `- Existing clusters with support or occurrence growth: ${envelope.ratchet.existingClusterGrowth.count}`,
+          `- New universal high-salience clusters: ${envelope.ratchet.newUniversalHighSalience.count}`,
+          `- Causal provenance coverage floor: ${(envelope.ratchet.provenanceCoverage.current * 100).toFixed(2)}% / ${(envelope.ratchet.provenanceCoverage.threshold * 100).toFixed(0)}% (${envelope.ratchet.provenanceCoverage.passed ? 'PASS' : 'FAIL'})`,
+        ]
+      : []),
     '',
     '> This report characterizes deterministic compiler output. It is not instructor validation or a real Scion production rate.',
     '',
@@ -225,19 +245,11 @@ export async function buildCrossPackageTextureAudit(options = {}) {
   for (const [index, entry] of entries.entries()) {
     onProgress?.({ type: 'package:start', index: index + 1, total: entries.length, packageId: entry.id });
     const blueprint = runtime.buildCourseBlueprint(entry.courseMap, { enrichment: entry.enrichment });
-    const compiled = runtime.compileBlueprintDeliverables(blueprint, PIPELINE_FEATURES, { configMap: {} });
-    // V0.16.97 begins with truthful, bounded provenance for the highest-
-    // salience repair surface. Tracing every renderer at once creates a large
-    // research receipt without improving the first repair decision.
-    const tracedLessonPlans = runtime.compileBlueprintDeliverables(blueprint, ['lessonPlans'], {
+    // The audit opts into the non-enumerable receipt on its one compile.
+    // Product output and normal compile latency remain unchanged.
+    const compiled = runtime.compileBlueprintDeliverables(blueprint, PIPELINE_FEATURES, {
       configMap: {},
       traceRealization: true,
-    });
-    Object.defineProperty(compiled, REALIZATION_TRACE, {
-      configurable: false,
-      enumerable: false,
-      value: tracedLessonPlans[REALIZATION_TRACE] || [],
-      writable: false,
     });
     const input = { courseMap: entry.courseMap, enrichment: entry.enrichment };
     inputHashes[entry.id] = sha256(stableJson(input));
@@ -290,6 +302,11 @@ async function main() {
       ? compareCrossPackageTextureResults(
           canonical.result,
           (await readCompressedCanonical(path.join(options.output, `baseline-v1-${options.profile}.json.gz`))).result,
+          (
+            await readCompressedCanonical(
+              path.join(options.output, `snapshot-post-repair-v8-${options.profile}.json.gz`),
+            )
+          ).result,
         )
       : null;
     const envelope = {
