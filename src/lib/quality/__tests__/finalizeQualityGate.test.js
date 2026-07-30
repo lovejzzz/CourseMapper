@@ -46,4 +46,61 @@ describe('gradePackageAtFinalize', () => {
       }),
     );
   });
+
+  it('preserves manifest source proof and source-specific findings for the final trust record', async () => {
+    buildCourseMaterialsZip.mockResolvedValueOnce({
+      quality: {
+        status: 'graded',
+        score: 91,
+        grade: 'A',
+        findingCounts: { p0: 0, p1: 1, p2: 0 },
+      },
+      qualityResult: {
+        grades: {},
+        findings: [
+          {
+            severity: 'P1',
+            dimension: 'citations',
+            file: 'PACKAGE_MANIFEST.json',
+            detail: 'factualClaims sourceRef coverage is incomplete (2/3)',
+          },
+          {
+            severity: 'P2',
+            dimension: 'format',
+            file: 'slides.pptx',
+            detail: 'one slide has a dense text block',
+          },
+        ],
+        stats: { findingCount: 2, fileCount: 3 },
+      },
+      manifest: {
+        sourceLedgerSummary: { sourceCount: 4, trustedCount: 3, reviewRequiredCount: 1 },
+        sourceReviewRows: [{ id: 'review-1' }],
+        sourceReport: { path: 'SOURCE_REPORT.md', sourceCount: 4, sourceReviewCount: 1 },
+        courseIR: {
+          sourceRefCoverage: { totals: { total: 3, withRefs: 2, missing: 1, danglingRefs: 0 } },
+        },
+      },
+    });
+
+    const result = await gradePackageAtFinalize({
+      courseMap: { courseName: 'Source-backed course', lessons: [] },
+      featureIds: ['courseMap'],
+    });
+
+    expect(result.sourceEvidence).toMatchObject({
+      schemaVersion: 1,
+      sourceCount: 4,
+      reviewRequiredCount: 1,
+      reportPath: 'SOURCE_REPORT.md',
+      refCoverage: { total: 3, withRefs: 2, missing: 1, danglingRefs: 0 },
+    });
+    expect(result.sourceEvidence.findings).toEqual([
+      expect.objectContaining({
+        severity: 'P1',
+        dimension: 'citations',
+        detail: expect.stringContaining('sourceRef coverage is incomplete'),
+      }),
+    ]);
+  });
 });

@@ -1,4 +1,9 @@
 import { finishStatusOf } from './pipelineMachine';
+import {
+  countAdvisoryQualityFindings,
+  countBlockingQualityFindings,
+  isBlockingQualityFinding,
+} from './qualityFindingPolicy';
 
 function compactCount(value) {
   const number = Number(value || 0);
@@ -33,6 +38,14 @@ function findingMessage(finding = {}) {
     .trim();
 }
 
+function qualityFindingRank(quality, finding) {
+  if (isBlockingQualityFinding(quality, finding)) return 0;
+  if (finding?.severity === 'P0') return 1;
+  if (finding?.severity === 'P1') return 2;
+  if (finding?.severity === 'P2') return 3;
+  return 4;
+}
+
 /**
  * Preserve the grader's actionable findings in the Agent instead of replacing
  * them with a generic "review generated content" sentence. The compact quality
@@ -57,6 +70,13 @@ export function buildQualityReviewIssues(quality) {
 
   const findings = (Array.isArray(quality?.findings) ? quality.findings : [])
     .filter((finding) => findingMessage(finding))
+    .map((finding, index) => ({ finding, index }))
+    .sort(
+      (left, right) =>
+        qualityFindingRank(quality, left.finding) - qualityFindingRank(quality, right.finding) ||
+        left.index - right.index,
+    )
+    .map(({ finding }) => finding)
     .slice(0, 5);
   if (findings.length > 0) {
     return findings.map((finding, index) => ({
@@ -64,7 +84,7 @@ export function buildQualityReviewIssues(quality) {
       message: findingMessage(finding),
       detail: [finding?.file, finding?.evidence].filter(Boolean).join(' · '),
       count: index === 0 ? Math.max(1, findingCount) : 1,
-      severity: finding?.severity === 'P0' ? 'blocker' : 'warning',
+      severity: isBlockingQualityFinding(quality, finding) ? 'blocker' : 'warning',
     }));
   }
 
@@ -127,8 +147,57 @@ export function buildExportFailureIssue(packageReceipt, featureLabels = {}) {
   };
 }
 
-function buildSourceLedgerIssues(packageReceipt) {
+function sourceFindingIssues(sourceEvidence) {
+  const findings = Array.isArray(sourceEvidence?.findings) ? sourceEvidence.findings : [];
+  return findings
+    .filter((finding) => findingMessage(finding))
+    .slice(0, 5)
+    .map((finding) => ({
+      label: findingLabel(finding),
+      message: findingMessage(finding),
+      detail: [finding?.file, finding?.evidence].filter(Boolean).join(' · '),
+      severity: finding?.severity === 'P0' ? 'blocker' : 'warning',
+      domain: 'source',
+    }));
+}
+
+function buildSourceLedgerIssues(packageReceipt, sourceEvidence = null) {
+  const evidenceIssues = sourceFindingIssues(sourceEvidence);
+  if (evidenceIssues.length > 0) return evidenceIssues;
+
   const issues = [];
+  const reviewRequiredCount = compactCount(sourceEvidence?.reviewRequiredCount);
+  if (reviewRequiredCount > 0) {
+    issues.push({
+      label: 'Source review',
+      message: `${plural(reviewRequiredCount, 'source row')} saved for instructor confirmation.`,
+      detail: sourceEvidence?.reportPath || '',
+      severity: 'warning',
+      domain: 'source',
+    });
+  }
+  const missingRefCount = compactCount(sourceEvidence?.refCoverage?.missing);
+  if (missingRefCount > 0) {
+    issues.push({
+      label: 'Source coverage',
+      message: `${plural(missingRefCount, 'content item')} still needs a source reference.`,
+      severity: 'warning',
+      domain: 'source',
+    });
+  }
+  const danglingRefCount = compactCount(sourceEvidence?.refCoverage?.danglingRefs);
+  if (danglingRefCount > 0) {
+    issues.push({
+      label: 'Source coverage',
+      message: `${plural(danglingRefCount, 'source reference')} does not resolve to the source ledger.`,
+      severity: 'warning',
+      domain: 'source',
+    });
+  }
+  if (issues.length > 0) return issues;
+
+  // Legacy receipts used several experimental names. Keep reading them for
+  // saved courses, but new finishes use packageQuality.sourceEvidence.
   const fields = [
     ['sourceLedgerWarningCount', 'Source ledger'],
     ['sourceWarningCount', 'Source ledger'],
@@ -160,6 +229,26 @@ function buildSourceLedgerIssues(packageReceipt) {
   return issues;
 }
 
+function dedupeReviewIssues(issues) {
+  const seen = new Set();
+  return issues.filter((issue) => {
+    if (!issue) return false;
+    const key = [issue.severity, issue.message, issue.detail].join('\u0000');
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function canonicalWarningCount(warningDomains) {
+  if (compactCount(warningDomains?.schemaVersion) !== 1) return null;
+  if (Number.isFinite(Number(warningDomains?.total))) return compactCount(warningDomains.total);
+  return ['readiness', 'retry', 'export', 'quality', 'source'].reduce(
+    (total, domain) => total + compactCount(warningDomains?.[domain]),
+    0,
+  );
+}
+
 export function summarizePackageReviewMeta({ qualityIssue = null, exportIssues = [], sourceIssues = [] } = {}) {
   const parts = [];
   if (qualityIssue) parts.push(plural(qualityIssue.count, 'content note'));
@@ -189,21 +278,27 @@ export function getPackageTrustStatus({
   const finishStatus = finishStatusOf(packageQualityPass);
   const packageReceipt = receipt || packageQualityPass?.receipt || null;
   const packageQuality = quality || packageQualityPass?.quality || null;
+  const sourceEvidence = packageQualityPass?.sourceEvidence || packageQuality?.sourceEvidence || null;
   const qualityIssues = buildQualityReviewIssues(packageQuality);
-  const qualityIssue = qualityIssues[0] || null;
-  const qualityProofIssue = qualityIssue ? null : buildQualityProofIssue(packageQuality, finishStatus);
   const exportFailureIssue = buildExportFailureIssue(packageReceipt, featureLabels);
   const exportIssues = buildExportWarningIssues(packageReceipt, featureLabels);
-  const sourceIssues = buildSourceLedgerIssues(packageReceipt);
+  const sourceIssues = buildSourceLedgerIssues(packageReceipt, sourceEvidence);
+  const sourceIssueMessages = new Set(sourceIssues.map((issue) => issue.message));
+  const qualityIssue =
+    qualityIssues.find((issue) => !sourceIssueMessages.has(issue.message)) || qualityIssues[0] || null;
+  const qualityProofIssue = qualityIssue ? null : buildQualityProofIssue(packageQuality, finishStatus);
   const readinessBlockers = Array.isArray(readiness?.blockers) ? readiness.blockers : [];
   const readinessWarnings = Array.isArray(readiness?.warnings) ? readiness.warnings : [];
   const packageBlockerCount = compactCount(packageQualityPass?.blockers);
   const packageWarningCount = compactCount(packageQualityPass?.warnings);
   const exportFailedCount = exportFailureIssue ? exportFailureIssue.count : compactCount(packageReceipt?.exportFailed);
-  const qualityBlockerCount =
-    qualityIssue?.severity === 'blocker' ? Math.max(1, compactCount(packageQuality?.findingCounts?.p0)) : 0;
-  const qualityWarningCount =
-    qualityIssue && qualityIssue.severity !== 'blocker' ? Math.max(1, qualityIssue.count) : qualityProofIssue ? 1 : 0;
+  const qualityBlockerCount = countBlockingQualityFindings(packageQuality);
+  const qualityWarningCount = qualityProofIssue
+    ? 1
+    : qualityIssues.some((issue) => issue.severity !== 'blocker')
+      ? Math.max(1, countAdvisoryQualityFindings(packageQuality))
+      : 0;
+  const warningDomainCount = canonicalWarningCount(packageQualityPass?.warningDomains);
   // `packageQualityPass.blockers`, readiness blockers, and quality P0s are
   // three views of the same unresolved content gates after the finalizer.
   // Summing them made one P0 read as five blockers in the workspace crown.
@@ -211,7 +306,9 @@ export function getPackageTrustStatus({
   // failures.
   const blockerCount = Math.max(packageBlockerCount, readinessBlockers.length, qualityBlockerCount) + exportFailedCount;
   const warningCount =
-    packageWarningCount + readinessWarnings.length + qualityWarningCount + exportIssues.length + sourceIssues.length;
+    warningDomainCount === null
+      ? packageWarningCount + readinessWarnings.length + qualityWarningCount + exportIssues.length + sourceIssues.length
+      : warningDomainCount + Number(Boolean(qualityProofIssue));
   const hasNotGradedQuality = Boolean(qualityProofIssue || (packageQuality && packageQuality.status !== 'graded'));
   const isRunning = finishStatus === 'running';
   const isGenerationRunning = isRunning && packageQualityPass?.phase === 'generation';
@@ -242,12 +339,12 @@ export function getPackageTrustStatus({
     exportFailureIssue,
     exportIssues,
     sourceIssues,
-    reviewIssues: [
+    reviewIssues: dedupeReviewIssues([
       ...(qualityIssues.length > 0 ? qualityIssues : qualityProofIssue ? [qualityProofIssue] : []),
       exportFailureIssue,
       ...exportIssues,
       ...sourceIssues,
-    ].filter(Boolean),
+    ]),
     blockerCount,
     warningCount,
     reviewMeta: summarizePackageReviewMeta({

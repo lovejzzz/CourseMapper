@@ -21,6 +21,7 @@
  */
 
 import { buildCourseMaterialsZip, DEFAULT_PACKAGE_QUALITY_TIMEOUT_MS } from '../packageZipExporter.js';
+import { buildFinalizeSourceEvidence } from './sourceEvidence.js';
 
 export const PACKAGE_FINALIZE_QUALITY_TIMEOUT_MS = DEFAULT_PACKAGE_QUALITY_TIMEOUT_MS;
 
@@ -75,6 +76,7 @@ export async function gradePackageAtFinalize({
     const result = raced.value;
     const quality = result.quality || { status: 'not-graded', reason: 'grading did not run' };
     if (quality.status !== 'graded') return quality;
+    const findings = result.qualityResult?.findings || [];
     return {
       ...quality,
       featureIds: Array.isArray(featureIds) ? [...featureIds] : null,
@@ -82,9 +84,10 @@ export async function gradePackageAtFinalize({
       // the chat markdown renderer lives in the ChatPanel chunk and is too
       // heavy to pull into the export panel).
       grades: result.qualityResult?.grades || {},
-      findings: result.qualityResult?.findings || [],
+      findings,
       findingCount: result.qualityResult?.stats?.findingCount ?? 0,
       fileCount: result.qualityResult?.stats?.fileCount ?? null,
+      sourceEvidence: buildFinalizeSourceEvidence(result.manifest, findings),
       // Full texture block (sub-scores + worst-tail evidence) for the Seal and
       // report modal. The manifest carries the slim summary.
       texture: result.qualityResult?.texture || quality.texture || null,

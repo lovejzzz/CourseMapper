@@ -1828,7 +1828,6 @@ export default function AppFlow({
           retryCount,
           selectedFeatureIds: featureIds,
           courseMap: receiptCourseMap,
-          includeWarnings: finalStatus !== 'ready',
           apiSpendSummary,
           compilerSummary,
           sourceGroundedLessonCount: receiptSourceGroundedLessonCount,
@@ -1944,8 +1943,20 @@ export default function AppFlow({
         // P0 quality findings update the same readiness object the export
         // panel consumes; recompute the visible package receipt after grading.
         result = applyQualityToFinalizerResult(result, packageQuality);
+        packageQuality = result.quality || packageQuality;
         blockers = (result.readiness?.blockers?.length || 0) + exportFailures;
-        reviewWarningCount = (result.readiness?.warnings?.length || 0) + unresolvedRetryCount + exportWarnings;
+        // Finish-evidence accounting is needed once per completed package, not
+        // on the workspace hot path. Keep its policy leaf with the other
+        // finalize-time lazy work so the Linux AppFlow gzip ratchet holds.
+        const { buildPackageWarningDomains } = await import('./lib/packageFinishEvidence');
+        const warningDomains = buildPackageWarningDomains({
+          readinessWarningCount: result.readiness?.warnings?.length || 0,
+          retryWarningCount: unresolvedRetryCount,
+          exportWarningCount: exportWarnings,
+          quality: packageQuality,
+          sourceEvidence: packageQuality?.sourceEvidence,
+        });
+        reviewWarningCount = warningDomains.total;
         finalStatus = blockers > 0 ? 'blocked' : 'ready';
         warnings = reviewWarningCount;
         finalizerMessage =
@@ -1964,7 +1975,6 @@ export default function AppFlow({
           retryCount,
           selectedFeatureIds: featureIds,
           courseMap: result.courseMap || courseMapRef.current,
-          includeWarnings: finalStatus !== 'ready',
           apiSpendSummary,
           compilerSummary,
           sourceGroundedLessonCount: receiptSourceGroundedLessonCount,
@@ -2004,6 +2014,8 @@ export default function AppFlow({
           warnings,
           blockers,
           receipt: receiptWithSpend,
+          warningDomains,
+          sourceEvidence: packageQuality?.sourceEvidence || null,
           // v0.14.3 WS-A A3: the quality badge data (score, grade, findings)
           // for the export panel chip + modal.
           quality: packageQuality,

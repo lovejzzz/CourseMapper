@@ -12,19 +12,7 @@ import { repairMisappliedObservationProtocols } from './observationProtocols';
 import { normalizeReadinessIssue, normalizeReadinessIssues } from './readinessIssueSchema';
 import { compactCompilerOwnedAssessmentIdentity } from './compilerAssessmentIdentity';
 import { compactAssignmentBriefBodyReferences } from './courseCompilerCopyVariants';
-
-const FULL_PACKAGE_QUALITY_FEATURES = [
-  'courseMap',
-  'syllabus',
-  'lessonPlans',
-  'slideDecks',
-  'assignments',
-  'rubrics',
-  'discussions',
-  'quizBank',
-  'studyGuides',
-  'courseFaq',
-];
+import { countBlockingQualityFindings } from './qualityFindingPolicy';
 
 function featureLabel(featureId) {
   return READINESS_FEATURE_LABELS[featureId] || (featureId?.startsWith('custom_') ? 'Custom Deliverable' : featureId);
@@ -590,24 +578,7 @@ export function buildEnrichmentCoverageIssues(enrichmentOutcome) {
  */
 export function buildQualityGateIssues(quality) {
   if (quality?.status !== 'graded') return [];
-  const p0Findings = Array.isArray(quality?.findings)
-    ? quality.findings.filter((finding) => finding?.severity === 'P0')
-    : null;
-  const p0 = p0Findings ? p0Findings.length : Number(quality?.findingCounts?.p0) || 0;
-  if (p0 <= 0) return [];
-  const featureIds = Array.isArray(quality?.featureIds) ? quality.featureIds.filter(Boolean) : null;
-  const isFullPackage =
-    featureIds && FULL_PACKAGE_QUALITY_FEATURES.every((featureId) => featureIds.includes(featureId));
-  const blockingP0Findings = p0Findings
-    ? p0Findings.filter((finding) => {
-        const isScopeSensitiveDensityProbe =
-          !isFullPackage &&
-          finding?.dimension === 'discipline' &&
-          /\bterm density is low\b/i.test(String(finding?.detail || ''));
-        return !isScopeSensitiveDensityProbe;
-      })
-    : null;
-  const blockingP0 = blockingP0Findings ? blockingP0Findings.length : p0;
+  const blockingP0 = countBlockingQualityFindings(quality);
   if (blockingP0 <= 0) return [];
   return [
     normalizeReadinessIssue({

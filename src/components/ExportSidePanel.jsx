@@ -467,7 +467,7 @@ function ReadinessPanel({
           {/* v0.14.4 WS-B3: the repairs/warnings receipt folded into the
               download card's detail line — the only place this info lives
               now that the in-panel stage narration is gone. */}
-          {!isBlocked && !hasWarnings && finishSummary && (
+          {!isBlocked && finishSummary && (
             <p data-testid="readiness-finish-summary" className="mt-0.5 text-xs leading-snug opacity-70">
               {finishSummary}
             </p>
@@ -907,7 +907,7 @@ export default function ExportSidePanel({
   // finish-pass receipt details that exist nowhere else once the in-panel
   // stage narration card is removed (the ribbon narrates stages, not these).
   const finishSummary = useMemo(() => {
-    if (!isPackageReady(packageQualityPass)) return '';
+    if (!hasFinishedPackageReceipt(packageQualityPass)) return '';
     const repairs = Number(packageQualityPass?.repairsApplied) || 0;
     const exportWarnings = Number(packageQualityPass?.receipt?.exportWarningCount) || 0;
     const parts = [];

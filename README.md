@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — cross-checked, exportable, and fully editable. Then use the AI agent to inspect and revise the generated workspace through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.99
+**Current release:** v0.17.00
 
 ---
 
@@ -32,7 +32,7 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site presents **Provider: Scion**, a disabled API control because no key is needed, and one product model: **Scion V0.16.99**. Scion is fully free—and always will be. That label names EduTool's complete course-building system; it is not a claim that EduTool trained or hosts a new foundation model. Scion pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its identity and metadata, and runs it through the packaged WebGPU runtime only when the task needs neural authoring. Before that boundary, Scion can preserve an exact instructor-provided lesson sequence and prepare compact source-anchored evidence from uploaded material, the shipped Curriculum Genome, the local research cache, and—only after opt-in—current public sources. A complete explicit structure plus exact source ledger reaches the shared compiler without importing or activating the model runtime; incomplete or ambiguous contracts retain the browser-local Gemma fallback.
+The hosted site presents **Provider: Scion**, a disabled API control because no key is needed, and one product model: **Scion V0.17.00**. Scion is fully free—and always will be. That label names EduTool's complete course-building system; it is not a claim that EduTool trained or hosts a new foundation model. Scion pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its identity and metadata, and runs it through the packaged WebGPU runtime only when the task needs neural authoring. Before that boundary, Scion can preserve an exact instructor-provided lesson sequence and prepare compact source-anchored evidence from uploaded material, the shipped Curriculum Genome, the local research cache, and—only after opt-in—current public sources. A complete explicit structure plus exact source ledger reaches the shared compiler without importing or activating the model runtime; incomplete or ambiguous contracts retain the browser-local Gemma fallback.
 
 In plain language, **Scion Vx is the whole local authoring system, not just the base model**:
 
@@ -61,7 +61,35 @@ V0.16.91 gives each admitted lesson one canonical evidence brief and reuses that
 
 The historical research architecture and limitations remain documented in [docs/ALGI_RESEARCH_FIRST_ARCHITECTURE.md](docs/ALGI_RESEARCH_FIRST_ARCHITECTURE.md) and [docs/ALGI_V0_PIPELINE_ASSESSMENT.md](docs/ALGI_V0_PIPELINE_ASSESSMENT.md).
 
-### V0.16.99 current release — discipline-safe sparse briefs
+### V0.17.00 current release — one finish record
+
+V0.17.00 stabilizes the package-trust boundary identified in a six-round,
+code-only Roundtable audit. Blocking quality findings are now evaluated across
+the complete finding set through one shared policy, so a P0 cannot become
+downloadable because a P1 was inserted first or because display truncation hid
+it. The deliberate partial-scope discipline-density exemption remains
+advisory and is pinned by regression tests.
+
+The same finish now retains the source and warning evidence it used to make the
+decision. Finalize grading carries a compact `sourceEvidence` snapshot from the
+assembled ZIP manifest, including source-ledger summary, review counts,
+source-reference coverage, and exact source-specific findings. A versioned
+`warningDomains` ledger gives readiness, retry, export, quality, and source
+warnings one owner each; source findings are not counted again inside the
+quality subtotal, and ready receipts no longer discard their warning details.
+
+The export card recognizes completion from the verified receipt rather than
+requiring a pristine-green package. Safe-repair and export-warning summaries
+therefore remain visible alongside review notes, and the component fixture now
+matches the real finalizer shape.
+
+This is a deterministic package-trust stabilization release. The model weights,
+inactive adapter, research-consent boundary, and automated-readiness claim
+ceiling are unchanged. The complete audit, implementation disposition, and
+deferred workflow-state recommendations are in
+[docs/ROUNDTABLE_PROJECT_REVIEW_2026-07-30.md](docs/ROUNDTABLE_PROJECT_REVIEW_2026-07-30.md).
+
+### V0.16.99 historical release — discipline-safe sparse briefs
 
 V0.16.99 turns V0.16.98’s causal measurement into a measured generated-course quality repair. Sparse briefs now use course-aware teaching lenses and lesson context instead of relying on a small generic sentence inventory.
 
@@ -402,7 +430,7 @@ Gemma weights remain unchanged, and the research adapter remains inactive becaus
 
 ### Recent release history
 
-The sections below are historical release evidence. Their versions, timings, test counts, and measured packages describe the named release and are intentionally preserved; the V0.16.99 release section above is the current authority. Historical 99/A statements refer to the deterministic conformance grader used by those releases, not to the new Automated Readiness construct.
+The sections below are historical release evidence. Their versions, timings, test counts, and measured packages describe the named release and are intentionally preserved; the V0.17.00 release section above is the current authority. Historical 99/A statements refer to the deterministic conformance grader used by those releases, not to the new Automated Readiness construct.
 
 V0.16.77 makes experiential learning a first-class compiler capability instead of a one-course template. When—and only when—a lesson explicitly requests a simulation, laboratory investigation, studio critique, case exercise, structured debate, field exercise, or role-play, the existing lesson-authoring call returns one compact course-specific activity blueprint beside its knowledge kernel. There is no extra call for the lesson plan, slides, assignment, or export.
 

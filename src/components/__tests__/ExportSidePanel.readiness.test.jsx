@@ -193,7 +193,7 @@ describe('ExportSidePanel readiness repair timing', () => {
         status: 'ready',
         blockers: 0,
         warnings: 0,
-        repairsApplied: 0,
+        repairsApplied: 2,
         receipt: {
           exportWarningCount: 1,
           exportWarning: 'PPTX export generated, but rendered text repeats one phrase 22 times.',
@@ -223,7 +223,7 @@ describe('ExportSidePanel readiness repair timing', () => {
     expect(panel?.textContent).not.toContain('Download is ready. Review notes are saved');
     expect(panel?.textContent).not.toContain('Show notes');
     expect(panel?.textContent).not.toContain('4 quality issues');
-    expect(panel?.textContent).not.toContain('1 export warning');
+    expect(panel?.textContent).toContain('2 safe repairs applied · 1 export warning');
     expect(panel?.textContent).not.toContain('3 P1 · 1 P2');
     expect(panel?.textContent).not.toContain('PPTX export generated');
     expect(container.querySelector('[data-testid="export-panel-title"]')?.textContent).toBe('Export package');

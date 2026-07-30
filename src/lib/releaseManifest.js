@@ -3,6 +3,22 @@ import { CURRENT_RELEASE } from './currentRelease.js';
 
 export { CURRENT_RELEASE };
 
+const V01699_RELEASE = {
+  version: '0.16.99',
+  date: 'July 30, 2026',
+  title: 'Discipline-Safe Sparse Briefs',
+  highlights: [
+    'The measured sparse-brief repair replaces generic whole-sentence fallbacks with course-aware teaching lenses and contextual realization. On the 12-course thin panel, input-mask/path-free clusters fall from 536 to 502, K=2 clusters from 195 to 181, reader exposure from 9.78% to 9.01%, and cross-package excess from 6.75% to 6.23%.',
+    'The strong-source gold panel holds while the real no-regression comparator passes: reader exposure is 18.87%, cross-package excess is 12.93%, no retained cluster grows, no new universal high-salience frame appears, and compiler-frame provenance coverage remains 92.13%.',
+    'Knowledge now fails closed at discipline boundaries. Unclassified courses cannot silently borrow an unrelated genome shard, and canonical source families plus course-aware gates reject database and oral-history false friends before they reach a lesson ledger.',
+    'Database retrieval now distinguishes enterprise BTM from transactions, moral integrity from data integrity, and relational algebra from a mathematics answer-check frame. Compact exact subsets of a verified fact ledger retain their citations without admitting paraphrases or new claims.',
+    'A fresh Database Systems browser course finishes in 35 seconds with 8/8 grounded lessons, 9/9 material families, 65/100 Automated Readiness, 100/100 evidence grounding, 99/A package conformance, zero encoded findings, 22 source receipts, and complete source-reference coverage in the physical ZIP.',
+    'A same-brief Community Oral History course improves from 48 to 29 seconds, readiness 58 to 62, evidence grounding 61 to 84, specificity 97 to 98, and texture 95 to 96. The final UI and ZIP remove Western-civilization, wastewater, UX prototype, and pronunciation/fluency false friends while retaining zero encoded findings.',
+    '“Oral History” no longer means “oral performance.” Real presentations, speaking tasks, performances, defenses, and exams keep their speaking rubric; oral-history assignments compile as interview/transcript evidence work with narrator context and consent boundaries.',
+    'This release changes the shared compiler, evidence router, source admission, and assessment classifier. Gemma weights remain unchanged, the optional adapter remains inactive, and no factual, instructor, accessibility, classroom, or paid-model superiority claim is made.',
+  ],
+};
+
 const V01698_RELEASE = {
   version: '0.16.98',
   date: 'July 30, 2026',
@@ -1243,6 +1259,45 @@ export const CURRENT_RELEASE_CHANGELOG = {
   highlights: CURRENT_RELEASE.highlights,
   sections: [
     {
+      label: 'Make the package gate order-independent',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'One shared policy counts blocking quality findings in both the finalizer and trust status.',
+        'Severity-stable display ordering keeps blocking P0 findings inside the bounded review list.',
+        'The partial-package discipline-density exemption remains advisory and has an explicit regression.',
+      ],
+    },
+    {
+      label: 'Keep finish evidence structured',
+      icon: 'PROOF',
+      color: 'violet',
+      items: [
+        'Finalize grading returns source ledger summary, review counts, source-reference coverage, and source-specific findings from the ZIP manifest.',
+        'The finish record owns one versioned warning-domain ledger instead of asking each surface to add overlapping views.',
+        'Ready receipts retain warning detail, while legacy saved passes remain readable through a separate fallback.',
+      ],
+    },
+    {
+      label: 'Show the receipt users actually earned',
+      icon: 'AI',
+      color: 'blue',
+      items: [
+        'A completed package receipt controls finish-summary availability independently from pristine-green readiness.',
+        'Repair and export-warning evidence remains visible alongside review notes.',
+        'The regression fixture now matches the finalizer producer shape.',
+      ],
+    },
+  ],
+};
+
+const V01699_RELEASE_CHANGELOG = {
+  version: V01699_RELEASE.version,
+  date: V01699_RELEASE.date,
+  title: V01699_RELEASE.title,
+  highlights: V01699_RELEASE.highlights,
+  sections: [
+    {
       label: 'Turn causal measurement into a quality repair',
       icon: 'CHECK',
       color: 'emerald',
@@ -1971,6 +2026,7 @@ const V01678_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  V01699_RELEASE_CHANGELOG,
   V01698_RELEASE_CHANGELOG,
   V01697_RELEASE_CHANGELOG,
   V01696_RELEASE_CHANGELOG,
