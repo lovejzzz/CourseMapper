@@ -92,6 +92,7 @@ import {
   endsMidClause,
   formatScanUnits,
 } from './deepQualityFormatDetails.js';
+import { normalizeLessonSpecificTokens } from './semanticSkeletonMask.js';
 
 // v0.14.3 WS-A A3: the grader version stamped into manifest.quality. Bump on
 // any change to checks, weights, or severity penalties so a package's quality
@@ -216,7 +217,7 @@ import {
 // 0–69 ceiling; automation alone can no longer award a misleading 99/A.
 // 1.11.1 — cross-lesson boilerplate comparison masks each document's full
 // lesson title, so title interpolation cannot hide a repeated semantic frame.
-export const GRADER_VERSION = '1.11.1';
+export const GRADER_VERSION = '1.11.2';
 
 // ── Dimension weights & letter bands (documented in the module header) ──────
 // v0.15.186: texture weight 10 → 25. At 10/120 a fully templated package
@@ -2484,30 +2485,14 @@ function countContentBearingSlides(deck, domainTokens) {
   }).length;
 }
 
-function normalizeLessonSpecificTokens(line, lessonTitle = '') {
-  let normalized = String(line);
-  const title = String(lessonTitle || '')
-    .replace(/^(?:Lesson|Week)\s+\d+\s*[:.-]\s*/i, '')
-    .trim();
-  if (title.length >= 4) {
-    const escapedTitle = title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    normalized = normalized.replace(new RegExp(escapedTitle, 'gi'), '[lesson topic]');
-  }
-  return normalized
-    .replace(/\bWeek\s+\d+\b/gi, 'Week N')
-    .replace(/\bLesson\s+\d+\b/gi, 'Lesson N')
-    .replace(/\b\d+\b/g, '#')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .toLowerCase();
-}
-
 function boilerplateRatio(lessonFiles) {
+  const lessonTitles = lessonFiles
+    .map((file) => lessonTitleFromPath(file.path) || inferDocumentLessonTitle(file) || '')
+    .filter(Boolean);
   const lineSets = lessonFiles.map((file) => {
     const set = new Set();
-    const lessonTitle = lessonTitleFromPath(file.path) || inferDocumentLessonTitle(file) || '';
     for (const line of file.paragraphs || []) {
-      const norm = normalizeLessonSpecificTokens(line, lessonTitle);
+      const norm = normalizeLessonSpecificTokens(line, lessonTitles);
       if (norm.length >= 16) set.add(norm);
     }
     return set;

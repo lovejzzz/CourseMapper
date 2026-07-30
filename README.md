@@ -65,23 +65,21 @@ The historical research architecture and limitations remain documented in [docs/
 
 V0.17.01 is a focused generated-output quality release shaped by a six-turn,
 code-only Roundtable audit and an independent implementation review. CourseIR
-repair no longer assigns the first source-ledger row, or a hard-coded `SL1`, to
-unsupported semantic atoms. If a lesson has no lesson-, concept-, constraint-,
-or anchor-bound source, its outcomes, activities, examples, assessment, and
-rubric criteria remain visibly unreferenced and follow the existing retry or
-blocking path.
+repair no longer invents a source ledger, assigns its first row, or uses a
+hard-coded `SL1` for unsupported semantic atoms. Source recovery is lesson- and
+criterion-local, and a no-op recovery no longer produces a repair receipt.
 
-The same fail-closed rule now applies to learner-facing fallbacks. A Course FAQ
-created after unusable model output is labeled `draft-review` and cannot pass
-publishability merely by reaching a question count. Underfilled quizzes are no
-longer padded with five generic short-answer templates; validation reports the
-configured evidence-bound count and returns the affected lessons for retry.
+The same fail-closed rule now applies to learner-facing artifacts. Unusable
+Course FAQ generation stays failed and retryable; CourseMapper creates no
+deterministic fallback FAQ and pads no missing questions. Quiz retry, readiness,
+and repair observations all use the configured question target.
 
-Deep grader V1.11.1 masks each document's own lesson title before comparing
-cross-lesson prose. Repeated semantic frames therefore cannot evade the
-boilerplate gate by swapping only the title. A new report-only untuned panel
+Deep grader V1.11.2 masks every known lesson title in every compared document
+using token-safe boundaries. Repeated semantic frames therefore cannot evade
+the boilerplate gate by swapping titles, while words such as `database` remain
+intact when a lesson is named `Data`. A new report-only untuned panel
 also tests 12 course families outside the frozen thin and gold panels. Its
-first characterization records **30 lens-default hits across 10/12 packages**,
+frozen canonical receipt records **30 lens-default hits across 10/12 packages**,
 **468 clusters**, and **11.91% reader exposure**. Those numbers expose a
 generalization boundary; they are not presented as a quality win.
 

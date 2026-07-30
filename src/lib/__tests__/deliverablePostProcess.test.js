@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import {
-  buildFallbackCourseFaq,
   getCourseFaqQuestionTarget,
   normalizeAssignmentGradeWeights,
   normalizeAssignmentAssessmentAlignment,
@@ -110,7 +109,7 @@ describe('Course FAQ post-processing', () => {
     expect(result.data.faqs[1].qs).toHaveLength(4);
   });
 
-  it('fills underfilled FAQ lessons from the course map when repairing for export', () => {
+  it('reports underfilled FAQ lessons without inventing questions from the course map', () => {
     const data = {
       faqs: [
         {
@@ -125,10 +124,9 @@ describe('Course FAQ post-processing', () => {
 
     const result = normalizeCourseFaqQuestionCounts(data, {}, faqCourseMap);
 
-    expect(result.addedQuestions).toBe(3);
-    expect(result.underfilledIndices).toEqual([]);
-    expect(result.data.faqs[0].questions).toHaveLength(5);
-    expect(result.data.faqs[0].questions[4].category).toBeTruthy();
+    expect(result.addedQuestions).toBe(0);
+    expect(result.underfilledIndices).toEqual([0]);
+    expect(result.data.faqs[0].questions).toHaveLength(2);
   });
 
   it('repairs prose-style FAQ categories to supported labels', () => {
@@ -597,103 +595,6 @@ describe('Course FAQ post-processing', () => {
     expect(result.rewrittenQuestions).toBe(3);
     expect(repairedText).not.toMatch(/\.\./);
     expect(repairedText).toContain('course activities. Write one question');
-  });
-
-  it('keeps a course-map fallback FAQ visibly draft when model output is unusable', () => {
-    const fallback = buildFallbackCourseFaq(faqCourseMap);
-
-    expect(fallback.faqs).toHaveLength(2);
-    expect(fallback.faqs[0].qs).toHaveLength(5);
-    expect(fallback.faqs[1].qs).toHaveLength(5);
-    expect(fallback.faqs[0].lt).toBe('Lesson 1: Foundations of Research Design');
-    expect(JSON.stringify(fallback)).not.toMatch(/\b(TBD|placeholder)\b/i);
-
-    const validation = validateDeliverableGeneration('courseFaq', fallback, { expectedLessonCount: 2 });
-    expect(fallback.fallbackStatus).toMatchObject({ status: 'draft-review' });
-    expect(validation.valid).toBe(false);
-    expect(validation.blockers).toEqual(
-      expect.arrayContaining([expect.stringMatching(/must be regenerated or reviewed before publication/i)]),
-    );
-  });
-
-  it('varies fallback FAQ sentence families across a full course', () => {
-    const courseMap = {
-      lessons: Array.from({ length: 12 }, (_, index) => ({
-        title: `Lesson ${index + 1}: Studio Decision ${index + 1}`,
-        sections: [
-          {
-            topicSection: `Evidence pattern ${index + 1}`,
-            learningObjectives: `Students evaluate evidence pattern ${index + 1} and justify a design decision.`,
-            weeklyAssessments: `Decision memo ${index + 1}.`,
-            asyncActivities: `Inspect case ${index + 1} and draft a recommendation.`,
-          },
-        ],
-      })),
-    };
-
-    const fallback = buildFallbackCourseFaq(courseMap, { questionsPerLesson: 8 });
-    const answers = fallback.faqs.flatMap((lesson) => lesson.qs.map((question) => question.an));
-    const technicalAnswers = fallback.faqs.map(
-      (lesson) => lesson.qs.find((question) => question.ca === 'Technical Help')?.an || '',
-    );
-    const technicalQuestions = fallback.faqs.map(
-      (lesson) => lesson.qs.find((question) => question.ca === 'Technical Help')?.q || '',
-    );
-    const assessmentActions = fallback.faqs.map(
-      (lesson) => lesson.qs.find((question) => question.ca === 'Assessment Prep' && question.sa)?.sa || '',
-    );
-    const text = answers.join(' ');
-
-    expect(fallback.faqs.every((lesson) => lesson.qs.length === 8)).toBe(true);
-    expect(new Set(technicalAnswers).size).toBeGreaterThanOrEqual(3);
-    expect(
-      new Set(technicalQuestions.map((question) => question.replace(/Studio Decision \d+/g, '[lesson]'))).size,
-    ).toBe(4);
-    expect(new Set(assessmentActions).size).toBeGreaterThanOrEqual(4);
-    expect(text).not.toMatch(/return to the assigned learning materials/i);
-    expect(text).not.toMatch(/carry forward the vocabulary, examples, and evidence habits/i);
-    expect(text).not.toMatch(/common mistake is to memorize isolated terms/i);
-  });
-
-  it('uses only the first numbered assessment item in fallback FAQ prep questions', () => {
-    const courseMap = {
-      lessons: [
-        {
-          title: 'Lesson 1: Analytics Foundations',
-          sections: [
-            {
-              topicSection: 'Analytics decisions',
-              learningObjectives: 'Students explain how evidence supports a decision.',
-              weeklyAssessments: '1. Memo: Recommend a decision metric. 2. Quiz: Identify descriptive statistics.',
-            },
-          ],
-        },
-      ],
-    };
-
-    const fallback = buildFallbackCourseFaq(courseMap);
-    const prepQuestion = fallback.faqs[0].qs.find((question) => question.ca === 'Assessment Prep');
-
-    expect(prepQuestion.q).toContain('Memo: Recommend a decision metric');
-    expect(prepQuestion.q).not.toContain('2.');
-    expect(prepQuestion.q).not.toContain('Quiz');
-  });
-
-  it('respects configured fallback question counts for scoped Course FAQ generation', () => {
-    const fallback = buildFallbackCourseFaq(faqCourseMap, { questionsPerLesson: 3 }, [1]);
-
-    expect(fallback.faqs).toHaveLength(1);
-    expect(fallback.faqs[0].lt).toBe('Lesson 2: Sampling and Measurement');
-    expect(fallback.faqs[0].qs).toHaveLength(3);
-
-    const validation = validateDeliverableGeneration('courseFaq', fallback, {
-      expectedLessonCount: 1,
-      config: { questionsPerLesson: 3 },
-    });
-    expect(validation.valid).toBe(false);
-    expect(validation.blockers).toEqual(
-      expect.arrayContaining([expect.stringMatching(/must be regenerated or reviewed before publication/i)]),
-    );
   });
 });
 

@@ -965,7 +965,7 @@ describe('D1(3)+(4) — weight-0 invariance and the report row on a real package
   });
 
   it('keeps every pre-texture weight and gives texture a score-bearing weight that can cost the A band', () => {
-    expect(GRADER_VERSION).toBe('1.11.1');
+    expect(GRADER_VERSION).toBe('1.11.2');
     expect(DIMENSION_WEIGHTS).toEqual({
       identity: 20,
       substance: 20,

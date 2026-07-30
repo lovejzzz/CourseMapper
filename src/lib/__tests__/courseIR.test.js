@@ -771,6 +771,56 @@ describe('CourseIR v1', () => {
     expect(coverage.totals.missing).toBeGreaterThan(0);
     expect(coverage.totals.danglingRefs).toBe(0);
     expect(validateCourseIR(repair.ir).valid).toBe(false);
+    const secondRepair = repairCourseIRStructure(repair.ir);
+    expect(secondRepair.changed).toBe(false);
+    expect(secondRepair.repairs).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: 'added-atom-source-refs' })]),
+    );
+  });
+
+  it('repairs rubric criteria from their linked outcomes instead of the assessment-wide source union', () => {
+    const base = makeCalculusIR();
+    const localized = {
+      ...base,
+      concepts: base.concepts.map((concept, index) => ({
+        ...concept,
+        factualAnchors: concept.factualAnchors.map((anchor) => ({
+          ...anchor,
+          sourceRefs: [index === 0 ? 'SL1' : 'SL2'],
+        })),
+      })),
+      lessons: base.lessons.map((lesson, index) => ({
+        ...lesson,
+        factualAnchors: lesson.factualAnchors.map((anchor) => ({
+          ...anchor,
+          sourceRefs: [index === 0 ? 'SL1' : 'SL2'],
+        })),
+        outcomes: lesson.outcomes.map((outcome) => ({
+          ...outcome,
+          sourceRefs: [index === 0 ? 'SL1' : 'SL2'],
+        })),
+      })),
+      assessments: base.assessments.map((assessment, index) =>
+        index === 0
+          ? {
+              ...assessment,
+              lessonIds: ['L1', 'L2'],
+              sourceRefs: [],
+              rubricCriteria: [
+                { ...assessment.rubricCriteria[0], outcomeIds: ['L1-O1'], sourceRefs: [] },
+                { ...assessment.rubricCriteria[1], outcomeIds: ['L2-O1'], sourceRefs: [] },
+              ],
+            }
+          : assessment,
+      ),
+    };
+
+    const repair = repairCourseIRStructure(localized);
+    const criteria = repair.ir.assessments[0].rubricCriteria;
+
+    expect(criteria[0].sourceRefs).toEqual(['SL1']);
+    expect(criteria[1].sourceRefs).toEqual(['SL2']);
+    expect(criteria.every((criterion) => criterion.sourceRefs.length === 1)).toBe(true);
   });
 
   it('rejects repaired atom source refs as direct provider authoring', () => {
@@ -931,7 +981,7 @@ describe('CourseIR v1', () => {
     }
   });
 
-  it('repairs missing source ledger and lesson concept coverage before compile', () => {
+  it('does not invent a source ledger while repairing lesson concept coverage', () => {
     const base = makeCalculusIR();
     const broken = {
       ...base,
@@ -956,16 +1006,12 @@ describe('CourseIR v1', () => {
     const repairedValidation = validateCourseIR(repair.ir);
     expect(repair.changed).toBe(true);
     expect(repair.repairs).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ code: 'added-assumption-source-ledger', before: 0, after: 1 }),
-        expect.objectContaining({ code: 'added-lesson-concepts', count: 1 }),
-      ]),
+      expect.arrayContaining([expect.objectContaining({ code: 'added-lesson-concepts', count: 1 })]),
     );
-    expect(repair.ir.sourceLedger[0]).toMatchObject({
-      status: 'assumption',
-      scope: 'course',
-    });
-    expect(repair.ir.handoffNotes[0].scope).toBe('sourceLedger');
+    expect(repair.repairs).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: 'added-assumption-source-ledger' })]),
+    );
+    expect(repair.ir.sourceLedger).toEqual([]);
     expect(repair.ir.lessons[0].conceptIds).toHaveLength(1);
     expect(repairedValidation.valid).toBe(false);
 

@@ -115,6 +115,43 @@ describe('evaluateWorkspaceReadiness', () => {
     expect(readiness.blockers).toHaveLength(0);
   });
 
+  it('uses configured quiz and FAQ question targets in readiness checks', () => {
+    const readiness = evaluateWorkspaceReadiness({
+      courseMap,
+      lessonFilter: [0],
+      selectedFeatures: ['quizBank', 'courseFaq'],
+      deliverableConfig: {
+        quizBank: { questionsPerLesson: 8 },
+        courseFaq: { questionsPerLesson: 3 },
+      },
+      deliverables: {
+        quizBank: {
+          status: 'done',
+          data: { quizzes: [{ lessonTitle: 'Lesson 1: Questions', questions: makeQuestions(6) }] },
+        },
+        courseFaq: {
+          status: 'done',
+          data: {
+            faqs: [
+              {
+                lessonTitle: 'Lesson 1: Questions',
+                questions: Array.from({ length: 3 }, (_, index) => ({
+                  question: `FAQ ${index + 1}?`,
+                  answer: `Answer ${index + 1}.`,
+                  category: 'Concept Explanation',
+                })),
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    const messages = readiness.warnings.map((issue) => issue.message).join(' ');
+    expect(messages).toContain('fewer than 8 questions');
+    expect(messages).not.toContain('FAQ has fewer');
+  });
+
   it('treats a compiler-routed empty Assignment Brief as complete', () => {
     const readiness = evaluateWorkspaceReadiness({
       courseMap,
@@ -1318,6 +1355,48 @@ describe('repairCourseMapReadiness', () => {
 });
 
 describe('repairWorkspaceReadiness', () => {
+  it('preserves underfilled quiz and FAQ observations without claiming a repair', () => {
+    const result = repairWorkspaceReadiness({
+      courseMap,
+      lessonFilter: [0],
+      selectedFeatures: ['quizBank', 'courseFaq'],
+      deliverableConfig: {
+        quizBank: { questionsPerLesson: 8 },
+        courseFaq: { questionsPerLesson: 5 },
+      },
+      deliverables: {
+        quizBank: {
+          status: 'done',
+          data: { quizzes: [{ lessonTitle: 'Lesson 1: Questions', questions: makeQuestions(6) }] },
+        },
+        courseFaq: {
+          status: 'done',
+          data: {
+            faqs: [
+              {
+                lessonTitle: 'Lesson 1: Questions',
+                questions: Array.from({ length: 3 }, (_, index) => ({
+                  question: `FAQ ${index + 1}?`,
+                  answer: `Answer ${index + 1}.`,
+                  category: 'Concept Explanation',
+                })),
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    expect(result.observations).toEqual([
+      expect.objectContaining({ featureId: 'quizBank', lessonIndices: [0], target: 8 }),
+      expect.objectContaining({ featureId: 'courseFaq', lessonIndices: [0], target: 5 }),
+    ]);
+    expect(
+      result.repairs.some((repair) => repair.changes.includes('checked evidence-bound quiz question counts')),
+    ).toBe(false);
+    expect(result.deliverables.courseFaq.data.faqs[0].questions).toHaveLength(3);
+  });
+
   it('marks synthesized later-section checks as in-class so they do not promise extra briefs', () => {
     const result = repairCourseMapReadiness({
       courseMap: {

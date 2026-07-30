@@ -53,6 +53,7 @@ function parseArgs(argv) {
     verifyBaseline: false,
     progress: false,
     snapshot: '',
+    receipt: '',
     compareBaseline: false,
   };
   for (let index = 0; index < argv.length; index += 1) {
@@ -67,6 +68,8 @@ function parseArgs(argv) {
     else if (arg === '--profile') options.profile = argv[++index];
     else if (arg.startsWith('--output=')) options.output = path.resolve(arg.slice('--output='.length));
     else if (arg === '--output') options.output = path.resolve(argv[++index]);
+    else if (arg.startsWith('--receipt=')) options.receipt = path.resolve(arg.slice('--receipt='.length));
+    else if (arg === '--receipt') options.receipt = path.resolve(argv[++index]);
     else throw new Error(`Unknown cross-package texture argument: ${arg}`);
   }
   if (!['thin', 'untuned', 'gold'].includes(options.profile)) {
@@ -250,6 +253,29 @@ async function verifyBaseline(output, profile) {
   );
 }
 
+async function verifyReleaseReceipt(receiptPath, canonical, canonicalSha256) {
+  const receipt = JSON.parse(await fs.readFile(receiptPath, 'utf8'));
+  const headline = canonical.result.views.inputMask.pathFree;
+  const observed = {
+    schema: 'coursemapper.cross-package-texture.release-receipt.v1',
+    appVersion: canonical.appVersion,
+    profile: canonical.panel.id,
+    panelVersion: canonical.panel.version,
+    canonicalSha256,
+    packageCount: canonical.result.packageCount,
+    clusterCount: headline.clusterCount,
+    supportBurdenRate: headline.metrics.supportBurdenRate,
+    readerExposureRate: headline.metrics.readerExposureRate,
+    crossPackageExcessRate: headline.metrics.crossPackageExcessRate,
+    lensDefaultHits: canonical.contentFallbackTelemetry.lensDefaultHits,
+    packagesWithLensDefault: canonical.contentFallbackTelemetry.packagesWithLensDefault,
+    unclassifiedPathCount: canonical.result.unclassifiedPaths.length,
+  };
+  if (stableJson(observed) !== stableJson(receipt)) {
+    throw new Error(`Cross-package texture release receipt mismatch: ${receiptPath}`);
+  }
+}
+
 async function readCompressedCanonical(filePath) {
   return JSON.parse(gunzipSync(await fs.readFile(filePath)).toString('utf8'));
 }
@@ -337,6 +363,10 @@ async function main() {
         : null,
     });
     const canonicalText = stableJson(canonical);
+    const canonicalSha256 = sha256(canonicalText);
+    if (options.receipt) {
+      await verifyReleaseReceipt(options.receipt, canonical, canonicalSha256);
+    }
     const ratchet = options.compareBaseline
       ? compareCrossPackageTextureResults(
           canonical.result,
@@ -353,7 +383,7 @@ async function main() {
       generatedAt: new Date().toISOString(),
       runtimeMs: Date.now() - startedAt,
       node: process.version,
-      canonicalSha256: sha256(canonicalText),
+      canonicalSha256,
       canonicalFile: `latest-${options.profile}.json`,
       ratchet,
     };

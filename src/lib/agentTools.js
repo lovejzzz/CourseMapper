@@ -606,6 +606,7 @@ function applyReadinessRepairsToContext(ctx) {
     selectedFeatures: ctx.selectedFeatures,
     columns: ctx.columns,
     lessonFilter: ctx.lessonFilter,
+    deliverableConfig: ctx.deliverableConfig,
   });
   const currentClassroomReadiness = evaluateClassroomReadiness({
     courseMap: ctx.courseMap,
@@ -626,6 +627,7 @@ function applyReadinessRepairsToContext(ctx) {
       applied: 0,
       failed: 0,
       repairs: [],
+      observations: [],
       deliverables: ctx.deliverables,
       message: 'No safe deterministic package repairs were needed.',
     };
@@ -643,8 +645,12 @@ function applyReadinessRepairsToContext(ctx) {
       applied: 0,
       failed: 0,
       repairs: [],
+      observations: result.observations || [],
       deliverables: ctx.deliverables,
-      message: 'No safe deterministic package repairs were needed.',
+      message:
+        result.observations?.length > 0
+          ? `No safe deterministic repairs were applied; ${result.observations.length} configured count gap(s) remain visible for retry or review.`
+          : 'No safe deterministic package repairs were needed.',
     };
   }
 
@@ -675,6 +681,7 @@ function applyReadinessRepairsToContext(ctx) {
     applied,
     failed,
     repairs: details,
+    observations: result.observations || [],
     deliverables: result.deliverables,
     message:
       applied > 0
@@ -1008,6 +1015,7 @@ export const AGENT_TOOLS = {
         selectedFeatures: ctx.selectedFeatures,
         columns: ctx.columns,
         lessonFilter: ctx.lessonFilter,
+        deliverableConfig: ctx.deliverableConfig,
       });
       const generated = features.filter((feature) => feature.hasData && feature.featureId !== 'courseMap');
       const stale = features.filter((feature) => feature.stale);
@@ -1054,6 +1062,7 @@ export const AGENT_TOOLS = {
         selectedFeatures: ctx.selectedFeatures,
         columns: ctx.columns,
         lessonFilter: ctx.lessonFilter,
+        deliverableConfig: ctx.deliverableConfig,
       });
       const classroomReadiness = evaluateClassroomReadiness({
         courseMap: ctx.courseMap,
@@ -1124,6 +1133,7 @@ export const AGENT_TOOLS = {
         selectedFeatures: ctx.selectedFeatures,
         columns: ctx.columns,
         lessonFilter: ctx.lessonFilter,
+        deliverableConfig: ctx.deliverableConfig,
       });
       const classroomReadiness = await runClassroomReadiness({
         courseMap: ctx.courseMap,
@@ -1138,6 +1148,7 @@ export const AGENT_TOOLS = {
         selectedFeatures: ctx.selectedFeatures,
         columns: ctx.columns,
         lessonFilter: ctx.lessonFilter,
+        deliverableConfig: ctx.deliverableConfig,
         slideTheme: ctx.slideTheme,
       }).catch((err) => ({
         status: 'failed',
@@ -1191,6 +1202,7 @@ export const AGENT_TOOLS = {
         repairsApplied: repairResult.applied || 0,
         repairsFailed: repairResult.failed || 0,
         repairs: repairResult.repairs || [],
+        repairObservations: repairResult.observations || [],
         repairSummary,
         reviewRecommendation,
         readiness: {
@@ -1252,6 +1264,7 @@ export const AGENT_TOOLS = {
         selectedFeatures: ctx.selectedFeatures,
         columns: ctx.columns,
         lessonFilter: ctx.lessonFilter,
+        deliverableConfig: ctx.deliverableConfig,
         slideTheme: ctx.slideTheme,
       });
       return {
@@ -1276,6 +1289,7 @@ export const AGENT_TOOLS = {
         selectedFeatures: ctx.selectedFeatures,
         columns: ctx.columns,
         lessonFilter: ctx.lessonFilter,
+        deliverableConfig: ctx.deliverableConfig,
       });
       const classroomReadiness = await runClassroomReadiness({
         courseMap: ctx.courseMap,
@@ -1341,6 +1355,7 @@ export const AGENT_TOOLS = {
         selectedFeatures: ctx.selectedFeatures,
         columns: ctx.columns,
         lessonFilter: ctx.lessonFilter,
+        deliverableConfig: ctx.deliverableConfig,
       });
       const classroomReadiness = await runClassroomReadiness({
         courseMap: ctx.courseMap,

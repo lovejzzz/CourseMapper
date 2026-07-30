@@ -2574,6 +2574,7 @@ export default function AppFlow({
         selectedFeatures: featureIds,
         columns,
         lessonFilter: scopeIndices,
+        deliverableConfig,
       });
       const classroomReadiness = evaluateClassroomReadiness({
         courseMap: finalizerCourseMap,

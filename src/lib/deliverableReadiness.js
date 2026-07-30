@@ -8,6 +8,7 @@ import {
   normalizeAssignmentAssessmentAlignment,
   normalizeAssignmentGradeWeights,
   normalizeAssignmentLessonAlignment,
+  getCourseFaqQuestionTarget,
   normalizeCourseFaqCategories,
   normalizeCourseFaqQuestionCounts,
   normalizeCourseFaqQuestionVariety,
@@ -2126,12 +2127,6 @@ function repairFeatureData(featureId, data, { courseMap, config, deliverables } 
       break;
     case 'quizBank':
       current = applyRepair(current, summaries, 'normalized quiz question metadata', normalizeQuizBankQuestions);
-      current = applyRepair(
-        current,
-        summaries,
-        'checked evidence-bound quiz question counts',
-        normalizeQuizBankQuestionCounts,
-      );
       current = applyRepair(current, summaries, 'filled quiz answer guidance', normalizeQuizBankRationales);
       current = applyRepair(current, summaries, 'fixed quiz point totals', normalizeQuizBankPointTotals);
       current = applyRepair(current, summaries, 'cleaned quiz publishability', normalizeQuizBankPublishability);
@@ -2185,14 +2180,42 @@ export function repairWorkspaceReadiness({
   );
   let nextDeliverables = deliverables;
   const repairs = [];
+  const observations = [];
 
   for (const featureId of featureIds) {
     const entry = deliverables?.[featureId];
     if (entry?.status !== 'done' || !entry.data) continue;
+    const config = deliverableConfig?.[featureId] || {};
+
+    if (featureId === 'quizBank') {
+      const target = Math.max(1, Number(config.questionsPerLesson) || 5);
+      const countCheck = normalizeQuizBankQuestionCounts(entry.data, target);
+      if (countCheck.underfilledIndices.length > 0) {
+        observations.push({
+          featureId,
+          label: labelFor(featureId),
+          lessonIndices: countCheck.underfilledIndices,
+          target,
+          message: `${labelFor(featureId)} has ${countCheck.underfilledIndices.length} lesson(s) below the configured ${target}-question target.`,
+        });
+      }
+    }
+    if (featureId === 'courseFaq') {
+      const countCheck = normalizeCourseFaqQuestionCounts(entry.data, config);
+      if (countCheck.underfilledIndices.length > 0) {
+        observations.push({
+          featureId,
+          label: labelFor(featureId),
+          lessonIndices: countCheck.underfilledIndices,
+          target: countCheck.target,
+          message: `${labelFor(featureId)} has ${countCheck.underfilledIndices.length} lesson(s) below the configured ${countCheck.target}-question target.`,
+        });
+      }
+    }
 
     const { data, summaries } = repairFeatureData(featureId, entry.data, {
       courseMap,
-      config: deliverableConfig?.[featureId] || {},
+      config,
       deliverables: nextDeliverables,
     });
     if (summaries.length === 0 || stableJson(data) === stableJson(entry.data)) continue;
@@ -2211,6 +2234,7 @@ export function repairWorkspaceReadiness({
     changed: repairs.length > 0,
     applied: repairs.length,
     repairs,
+    observations,
     repairedFeatureIds: repairs.map((repair) => repair.featureId),
     deliverables: nextDeliverables,
   };
@@ -2479,7 +2503,7 @@ function checkCourseMapPlaceholders(courseMap, columns, lessonIndices, issues) {
   }
 }
 
-function checkPerLessonFeature(featureId, data, courseMap, lessonIndices, issues) {
+function checkPerLessonFeature(featureId, data, courseMap, lessonIndices, issues, config = {}) {
   const items = getFeatureArray(featureId, data);
   if (items.length === 0) {
     issues.push(makeIssue(READINESS_BLOCKER, featureId, `${labelFor(featureId)} has no generated lesson items.`));
@@ -2527,8 +2551,11 @@ function checkPerLessonFeature(featureId, data, courseMap, lessonIndices, issues
 
     if (featureId === 'quizBank') {
       const questions = asArray(item.questions || item.qs);
-      if (questions.length < 5) {
-        issues.push(makeIssue(READINESS_WARNING, featureId, `${lessonTitle} quiz bank has fewer than 5 questions.`));
+      const target = Math.max(1, Number(config.questionsPerLesson) || 5);
+      if (questions.length < target) {
+        issues.push(
+          makeIssue(READINESS_WARNING, featureId, `${lessonTitle} quiz bank has fewer than ${target} questions.`),
+        );
       }
       const metadataDrift = questions.filter((question) => !hasQuizMetadata(question)).length;
       if (metadataDrift > 0) {
@@ -2550,10 +2577,9 @@ function checkPerLessonFeature(featureId, data, courseMap, lessonIndices, issues
 
     if (featureId === 'courseFaq') {
       const questions = asArray(item.questions || item.qs);
-      if (questions.length < 3) {
-        issues.push(makeIssue(READINESS_WARNING, featureId, `${lessonTitle} FAQ has fewer than 3 questions.`));
-      } else if (questions.length < 5) {
-        issues.push(makeIssue(READINESS_WARNING, featureId, `${lessonTitle} FAQ has fewer than 5 questions.`));
+      const target = getCourseFaqQuestionTarget(config);
+      if (questions.length < target) {
+        issues.push(makeIssue(READINESS_WARNING, featureId, `${lessonTitle} FAQ has fewer than ${target} questions.`));
       }
       const badCategories = questions.filter(
         (question) => !FAQ_CATEGORIES.has(text(question.category || question.ca)),
@@ -2707,6 +2733,7 @@ export function evaluateWorkspaceReadiness({
   selectedFeatures = null,
   columns = [],
   lessonFilter = null,
+  deliverableConfig = {},
 } = {}) {
   const issues = [];
   const featureIds = getSelectedFeatureIds(selectedFeatures, deliverables);
@@ -2755,7 +2782,14 @@ export function evaluateWorkspaceReadiness({
     checkPublishabilityPlaceholders(featureId, scopedData, issues);
 
     if (PER_LESSON_FEATURES.has(featureId)) {
-      checkPerLessonFeature(featureId, scopedData, courseMap, lessonIndices, issues);
+      checkPerLessonFeature(
+        featureId,
+        scopedData,
+        courseMap,
+        lessonIndices,
+        issues,
+        deliverableConfig?.[featureId] || {},
+      );
     } else if (featureId === 'rubrics') {
       checkRubrics(scopedData, courseMap, lessonIndices, issues);
     } else if (featureId === 'assignments') {

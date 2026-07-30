@@ -35,6 +35,7 @@ export default function useWorkspaceRepairs({
         selectedFeatures: selectedFeatureIds,
         columns,
         lessonFilter,
+        deliverableConfig,
       });
       const currentClassroomReadiness = evaluateClassroomReadiness({
         courseMap,

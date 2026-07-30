@@ -629,18 +629,32 @@ describe('packageFinalizer', () => {
       },
     });
 
-    expect(result.readiness.issues).toEqual([
-      expect.objectContaining({
-        featureId: 'quizBank',
-        message: expect.stringContaining('fewer than 5 questions'),
-        retryable: true,
-        severity: 'warning',
-      }),
-    ]);
+    expect(result.readiness.issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          featureId: 'quizBank',
+          message: expect.stringContaining('fewer than 5 questions'),
+          retryable: true,
+          severity: 'warning',
+        }),
+        expect.objectContaining({
+          featureId: 'courseFaq',
+          message: expect.stringContaining('fewer than 5 questions'),
+          retryable: true,
+          severity: 'warning',
+        }),
+      ]),
+    );
     expect(result.repairsApplied).toBeGreaterThanOrEqual(2);
     expect(result.status).toBe('needs_retry');
     expect(result.deliverables.quizBank.data.quizzes[0].questions).toHaveLength(2);
-    expect(result.deliverables.courseFaq.data.faqs[0].questions).toHaveLength(5);
+    expect(result.deliverables.courseFaq.data.faqs[0].questions).toHaveLength(1);
+    expect(result.repairObservations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ featureId: 'quizBank', lessonIndices: [0], target: 5 }),
+        expect.objectContaining({ featureId: 'courseFaq', lessonIndices: [0, 1], target: 5 }),
+      ]),
+    );
   });
 
   it('finishes deterministic export issues without requiring a review dead-end', () => {

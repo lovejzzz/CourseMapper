@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { GRADER_VERSION, grade } from '../deepQualityGrader.js';
 import { createMemoryFileProvider } from '../fileProviders.js';
+import { normalizeLessonSpecificTokens } from '../semanticSkeletonMask.js';
 
 describe('deep quality package structure', () => {
   it('does not count custom deliverables against every built-in feature', async () => {
@@ -95,7 +96,7 @@ describe('deep quality package structure', () => {
     });
 
     expect(result.findings.some((finding) => /classroom clock/i.test(finding.detail))).toBe(false);
-    expect(GRADER_VERSION).toBe('1.11.1');
+    expect(GRADER_VERSION).toBe('1.11.2');
   });
 
   it('treats typed-object leaks and mirrored assessment identities as scored export defects', async () => {
@@ -465,7 +466,7 @@ describe('deep quality package structure', () => {
         Array.from(
           { length: 8 },
           () =>
-            `For ${lessons[index]}, name the concept, choose evidence, and explain why the evidence supports the decision.`,
+            `For ${lessons[(index + 1) % lessons.length]}, name the concept, choose evidence, and explain why the evidence supports the decision.`,
         ).join('\n'),
       ]),
     );
@@ -496,5 +497,16 @@ describe('deep quality package structure', () => {
         }),
       ]),
     );
+  });
+
+  it('masks short and punctuation-bearing lesson titles without changing larger words', () => {
+    const titles = ['Data', 'SQL', 'Git', 'RNA', 'C++'];
+    const normalized = normalizeLessonSpecificTokens(
+      'Data and SQL use Git while RNA and C++ remain distinct from database design.',
+      titles,
+    );
+
+    expect(normalized.match(/\[lesson topic\]/g)).toHaveLength(5);
+    expect(normalized).toContain('database design');
   });
 });

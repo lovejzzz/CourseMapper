@@ -42,7 +42,7 @@
       "id": "v01701-local-source-fallbacks",
       "status": "verified-current",
       "changelogHighlightIndex": 0,
-      "summary": "CourseIR repair no longer assigns an arbitrary first ledger row or hard-coded SL1 to unsupported semantic atoms.",
+      "summary": "CourseIR repair no longer invents a ledger or assigns an arbitrary first row or hard-coded SL1 to unsupported semantic atoms, and no-op recovery emits no receipt.",
       "anchors": ["src/lib/courseIR.js", "src/lib/__tests__/courseIR.test.js"],
       "proofCommands": ["npx vitest run src/lib/__tests__/courseIR.test.js"],
       "proofScopes": ["unit", "static-audit"]
@@ -51,7 +51,7 @@
       "id": "v01701-adversarial-source-coverage",
       "status": "verified-current",
       "changelogHighlightIndex": 1,
-      "summary": "A two-lesson adversarial fixture keeps unsupported lesson coverage missing and validation blocking.",
+      "summary": "Adversarial fixtures keep unsupported lesson coverage missing and restrict rubric recovery to criterion-linked outcomes and lessons.",
       "anchors": [
         "src/lib/courseIR.js",
         "src/lib/__tests__/courseIR.test.js",
@@ -61,36 +61,50 @@
       "proofScopes": ["unit", "compiled-output"]
     },
     {
-      "id": "v01701-draft-fallback-faq",
+      "id": "v01701-fail-closed-faq",
       "status": "verified-current",
       "changelogHighlightIndex": 2,
-      "summary": "A deterministic fallback FAQ is marked draft-review and cannot pass generation validation.",
-      "anchors": ["src/lib/deliverablePostProcess.js", "src/lib/__tests__/deliverablePostProcess.test.js"],
-      "proofCommands": ["npx vitest run src/lib/__tests__/deliverablePostProcess.test.js"],
-      "proofScopes": ["unit"]
+      "summary": "Unusable FAQ generation remains failed and retryable; CourseMapper creates no fallback artifact and pads no missing questions.",
+      "anchors": [
+        "src/hooks/useDeliverables.js",
+        "src/lib/deliverablePostProcess.js",
+        "src/hooks/__tests__/useDeliverables.outputQualityContracts.test.js",
+        "src/lib/__tests__/deliverablePostProcess.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run src/hooks/__tests__/useDeliverables.outputQualityContracts.test.js src/lib/__tests__/deliverablePostProcess.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
     },
     {
       "id": "v01701-quiz-underfill",
       "status": "verified-current",
       "changelogHighlightIndex": 3,
-      "summary": "Underfilled quizzes remain underfilled and retryable instead of receiving generic short-answer padding.",
+      "summary": "Quiz retry, readiness, and non-repair observations all enforce the configured per-lesson question target.",
       "anchors": [
         "src/lib/deliverablePostProcess.js",
         "src/lib/deliverableReadiness.js",
-        "src/lib/__tests__/deliverablePostProcess.test.js"
+        "src/hooks/useDeliverables.js",
+        "src/lib/__tests__/deliverablePostProcess.test.js",
+        "src/lib/__tests__/deliverableReadiness.test.js",
+        "src/hooks/__tests__/useDeliverables.outputQualityContracts.test.js"
       ],
-      "proofCommands": ["npx vitest run src/lib/__tests__/deliverablePostProcess.test.js"],
-      "proofScopes": ["unit"]
+      "proofCommands": [
+        "npx vitest run src/lib/__tests__/deliverablePostProcess.test.js src/lib/__tests__/deliverableReadiness.test.js src/hooks/__tests__/useDeliverables.outputQualityContracts.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
     },
     {
       "id": "v01701-semantic-skeleton",
       "status": "verified-current",
       "changelogHighlightIndex": 4,
-      "summary": "Deep grader V1.11.1 detects a repeated semantic frame even when each document interpolates a different lesson title.",
+      "summary": "Deep grader V1.11.2 detects title-swapped semantic frames using document-invariant, token-safe lesson-title masking.",
       "anchors": [
         "src/lib/quality/deepQualityGrader.js",
+        "src/lib/quality/semanticSkeletonMask.js",
         "src/lib/quality/__tests__/deepQualityStructure.test.js",
-        "tests/v0147-texture-metric.test.js"
+        "tests/v0147-texture-metric.test.js",
+        "evaluation/scion-adapters/held-out-course-benchmark-v33.json"
       ],
       "proofCommands": [
         "npx vitest run src/lib/quality/__tests__/deepQualityStructure.test.js tests/v0147-texture-metric.test.js"
@@ -101,11 +115,12 @@
       "id": "v01701-untuned-panel",
       "status": "verified-current",
       "changelogHighlightIndex": 5,
-      "summary": "A disjoint untuned panel reports lens-default telemetry and texture measures while keeping the release claim inside observed evidence.",
+      "summary": "A disjoint untuned panel binds its observed lens-default and texture figures to a frozen canonical release receipt.",
       "anchors": [
         "scripts/panels/crossPackageUntunedBriefs.mjs",
         "scripts/crossPackageTextureAudit.mjs",
         "scripts/hybridPipelineAudit.mjs",
+        "evaluation/cross-package-texture/untuned-v0.17.01-receipt.json",
         "tests/v01701-output-quality.test.js",
         "docs/V0.17.01_OUTPUT_QUALITY_AUDIT.md"
       ],

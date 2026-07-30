@@ -395,6 +395,7 @@ function applyDeterministicRepairs({
   let nextCourseMap = courseMap;
   let nextDeliverables = deliverables;
   const repairs = [];
+  const observations = [];
 
   let workspaceReadiness = evaluateWorkspaceReadiness({
     courseMap: nextCourseMap,
@@ -402,6 +403,7 @@ function applyDeterministicRepairs({
     selectedFeatures,
     columns,
     lessonFilter,
+    deliverableConfig,
   });
   let classroomReadiness = includeClassroomReadiness
     ? evaluateClassroomReadiness({
@@ -433,6 +435,7 @@ function applyDeterministicRepairs({
         selectedFeatures,
         columns,
         lessonFilter,
+        deliverableConfig,
       });
       classroomReadiness = includeClassroomReadiness
         ? evaluateClassroomReadiness({
@@ -454,6 +457,7 @@ function applyDeterministicRepairs({
       selectedFeatures: deliverableFeatureIds,
       deliverableConfig,
     });
+    observations.push(...(deliverableRepair.observations || []));
     if (deliverableRepair.changed) {
       nextDeliverables = deliverableRepair.deliverables;
       repairs.push(...deliverableRepair.repairs);
@@ -532,6 +536,7 @@ function applyDeterministicRepairs({
     changed: repairs.length > 0,
     applied: repairs.length,
     repairs,
+    observations,
     courseMap: nextCourseMap,
     deliverables: nextDeliverables,
   };
@@ -1015,6 +1020,7 @@ export function runDeterministicPackageFinalizer({
     changed: repairResult.changed,
     repairsApplied: repairResult.applied,
     repairs: repairResult.repairs,
+    repairObservations: repairResult.observations || [],
     courseMap: finalCourseMap,
     deliverables: finalDeliverables,
     readiness,

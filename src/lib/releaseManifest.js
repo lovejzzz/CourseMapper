@@ -1277,9 +1277,9 @@ export const CURRENT_RELEASE_CHANGELOG = {
       icon: 'CHECK',
       color: 'emerald',
       items: [
-        'CourseIR repair no longer borrows the first source-ledger row or a hard-coded SL1 for unsupported semantic atoms.',
-        'A source supporting one lesson cannot manufacture coverage for another lesson.',
-        'Missing and dangling source structure remains available to the existing retry and blocking path.',
+        'CourseIR repair neither invents a source ledger nor borrows the first row or a hard-coded SL1.',
+        'A source supporting one lesson cannot manufacture coverage for another lesson or unrelated rubric criterion.',
+        'No-op source recovery emits no repair receipt; missing structure remains available to retry and blocking.',
       ],
     },
     {
@@ -1287,9 +1287,9 @@ export const CURRENT_RELEASE_CHANGELOG = {
       icon: 'AI',
       color: 'blue',
       items: [
-        'A deterministically recovered Course FAQ is marked draft-review and cannot pass publishability checks.',
-        'Underfilled quizzes remain underfilled and retryable instead of receiving generic short-answer padding.',
-        'Validation enforces the configured evidence-bound question count for each lesson.',
+        'Unusable Course FAQ generation stays failed and retryable; no deterministic fallback artifact is created.',
+        'Underfilled FAQs and quizzes remain underfilled instead of receiving invented padding.',
+        'Retry, readiness, and observations enforce the configured evidence-bound question count per lesson.',
       ],
     },
     {
@@ -1297,8 +1297,8 @@ export const CURRENT_RELEASE_CHANGELOG = {
       icon: 'PROOF',
       color: 'violet',
       items: [
-        'Deep grader V1.11.1 masks lesson-title interpolation before semantic-frame comparison.',
-        'A disjoint 12-course untuned panel records lens-default telemetry and cross-package texture without changing product output.',
+        'Deep grader V1.11.2 masks all known lesson titles with token-safe boundaries before semantic-frame comparison.',
+        'A disjoint 12-course untuned panel records lens-default telemetry and cross-package texture under a frozen canonical receipt.',
         'The release reports the observed generalization boundary without claiming factual, pedagogical, provider, accessibility, or classroom validation.',
       ],
     },

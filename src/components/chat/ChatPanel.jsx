@@ -1438,6 +1438,7 @@ export default function ChatPanel({
               selectedFeatures,
               columns,
               lessonFilter,
+              deliverableConfig,
             });
             packageQualityPassUpdateRef.current?.({
               status: readiness.status,
@@ -1457,6 +1458,7 @@ export default function ChatPanel({
               selectedFeatures,
               columns,
               lessonFilter,
+              deliverableConfig,
             });
             packageQualityPassUpdateRef.current?.({
               status: readiness.status,

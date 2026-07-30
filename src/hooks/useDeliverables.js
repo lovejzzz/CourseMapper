@@ -39,7 +39,6 @@ import {
 } from '../lib/modelAwareConfig';
 import {
   normalizeAssignmentAssessmentAlignment,
-  buildFallbackCourseFaq,
   normalizeAssignmentGradeWeights,
   normalizeAssignmentLessonAlignment,
   normalizeCourseFaqCategories,
@@ -48,6 +47,7 @@ import {
   normalizeDiscussionPromptFields,
   normalizeLessonPlanPublishability,
   normalizeQuizBankIndex,
+  normalizeQuizBankQuestionCounts,
   normalizeQuizBankPointTotals,
   normalizeQuizBankPublishability,
   normalizeQuizBankQuestions,
@@ -935,59 +935,6 @@ export default function useDeliverables({
             },
           },
         }));
-      };
-
-      const completeFallbackCourseFaq = (featureId, reason, expectedCount) => {
-        if (featureId !== 'courseFaq') return false;
-
-        const label = getFeatureLabel(featureId);
-        const config = getGenerationConfig(featureId);
-        let fallback = buildFallbackCourseFaq(courseMap, config, scopeIndices);
-        fallback = patchScopeNumbering(fallback, featureId, scopeIndices, courseMap);
-
-        const validation = validateDeliverableGeneration(featureId, fallback, {
-          expectedLessonCount: expectedCount,
-          config,
-        });
-        if (!validation.valid) {
-          appendLog(
-            `✗ ${label}: fallback FAQ could not satisfy readiness checks: ${validation.blockers.join(' ')}`,
-            'error',
-          );
-          return false;
-        }
-
-        markFeatureDone(featureId, fallback);
-        try {
-          const quality = scoreHeuristic(featureId, fallback);
-          setQualityScores((prev) => ({ ...prev, [featureId]: quality }));
-        } catch {
-          /* ignore */
-        }
-        const delivEndTime = Date.now();
-        setDelivTimings((prev) => ({
-          ...prev,
-          [featureId]: {
-            startedAt: featureStartTimes[featureId] || generationStartTime,
-            endedAt: delivEndTime,
-            durationMs: delivEndTime - (featureStartTimes[featureId] || generationStartTime),
-          },
-        }));
-        setProgress((prev) => ({
-          ...prev,
-          perFeature: {
-            ...prev.perFeature,
-            [featureId]: {
-              ...(prev.perFeature?.[featureId] || {}),
-              status: 'done',
-            },
-          },
-        }));
-        appendLog(
-          `⚠ ${label}: model output was not usable (${reason}); created a course-map-based FAQ instead`,
-          'warn',
-        );
-        return true;
       };
 
       // v0.14.5 WS-B (B2): on the native authoring path the second argument
@@ -3850,9 +3797,6 @@ export default function useDeliverables({
         }
 
         if (chunks.size === 0) {
-          if (completeFallbackCourseFaq(fid, 'all model chunks failed', expectedCount)) {
-            continue;
-          }
           // No chunks completed — set error
           markFeatureError(fid, 'All chunks failed');
           setProgress((prev) => ({
@@ -3874,9 +3818,6 @@ export default function useDeliverables({
         });
         let merged = mergeChunkResults(fid, chunks);
         if (!merged) {
-          if (completeFallbackCourseFaq(fid, 'completed chunks could not be merged', expectedCount)) {
-            continue;
-          }
           markFeatureError(fid, 'Failed to merge chunks');
           continue;
         }
@@ -4146,27 +4087,20 @@ export default function useDeliverables({
           }
         }
 
-        // Per-lesson completeness: for quiz bank, detect lessons with fewer than 5 questions
+        // Per-lesson completeness: retry any quiz that misses the configured target.
         if (fid === 'quizBank' && mergedArr.length > 0) {
-          const minQuestions = 5;
-          const truncatedQuizIndices = [];
-          mergedArr.forEach((quiz, i) => {
-            const qCount = getQuizBankQuestionCount(quiz);
-            if (qCount > 0 && qCount < minQuestions) {
-              truncatedQuizIndices.push(lessonIndices[i]);
-            }
-          });
+          const configuredQuizTarget = Math.max(1, Number(getGenerationConfig(fid)?.questionsPerLesson) || 5);
+          const quizCountCheck = normalizeQuizBankQuestionCounts(merged, configuredQuizTarget);
+          const truncatedQuizIndices = quizCountCheck.underfilledIndices.map((index) => lessonIndices[index] ?? index);
           if (truncatedQuizIndices.length > 0) {
             const label = getFeatureLabel(fid);
             appendLog(
-              `⚠ ${label}: ${truncatedQuizIndices.length} lesson(s) have < ${minQuestions} questions — retrying`,
+              `⚠ ${label}: ${truncatedQuizIndices.length} lesson(s) have < ${configuredQuizTarget} questions — retrying`,
               'warn',
             );
             // Remove truncated lessons so the retry loop below will re-generate them
-            mergedArr = mergedArr.filter((quiz) => {
-              const qCount = getQuizBankQuestionCount(quiz);
-              return qCount === 0 || qCount >= minQuestions;
-            });
+            const underfilled = new Set(quizCountCheck.underfilledIndices);
+            mergedArr = mergedArr.filter((_, index) => !underfilled.has(index));
             merged = { ...merged, [arrayKey]: mergedArr };
           }
         }
@@ -4608,9 +4542,6 @@ export default function useDeliverables({
 
               if (retryError) {
                 console.error(`[CM] ${fid} coverage retry aborted due to API error:`, retryError.message);
-                if (completeFallbackCourseFaq(fid, 'coverage retry could not complete', expectedCount)) {
-                  continue;
-                }
                 markFeatureError(fid, 'API budget exhausted or rate limit hit during retry.');
                 setProgress((prev) => ({
                   ...prev,
@@ -4925,15 +4856,6 @@ export default function useDeliverables({
           config,
         });
         if (!finalValidation.valid) {
-          if (
-            completeFallbackCourseFaq(
-              fid,
-              `readiness checks failed: ${finalValidation.blockers.join(' ')}`,
-              expectedCount,
-            )
-          ) {
-            continue;
-          }
           appendLog(`✗ ${getFeatureLabel(fid)}: ${finalValidation.blockers.join(' ')}`, 'error');
           traceGeneration(
             generationRunId,

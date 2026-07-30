@@ -1213,6 +1213,24 @@ function fallbackSourceRefsForAssessment(ir, assessment) {
   return validRefs;
 }
 
+function fallbackSourceRefsForRubricCriterion(ir, assessment, criterion) {
+  const linkedLessons = ir.lessons.filter((lesson) => assessment.lessonIds.includes(lesson.id));
+  const outcomeIds = new Set(criterion.outcomeIds || []);
+  const outcomeRefs = validSourceRefs(
+    ir,
+    linkedLessons.flatMap((lesson) =>
+      lesson.outcomes.filter((outcome) => outcomeIds.has(outcome.id)).flatMap((outcome) => outcome.sourceRefs || []),
+    ),
+  );
+  if (outcomeRefs.length > 0) return outcomeRefs;
+  return validSourceRefs(
+    ir,
+    linkedLessons
+      .filter((lesson) => lesson.outcomes.some((outcome) => outcomeIds.has(outcome.id)))
+      .flatMap((lesson) => fallbackSourceRefsForLesson(ir, lesson)),
+  );
+}
+
 function sourceRefsNeedRepair(ir, refs = []) {
   const validRefs = validSourceRefs(ir, refs);
   return refs.length === 0 || validRefs.length !== refs.length;
@@ -1317,31 +1335,6 @@ export function repairCourseIRStructure(rawIR = {}) {
   let ir = normalizeCourseIR(rawIR);
   const repairs = [];
   let changed = false;
-
-  if (ir.sourceLedger.length === 0 && ir.lessons.length > 0) {
-    ir = normalizeCourseIR({
-      ...ir,
-      sourceLedger: [
-        {
-          id: 'SL1',
-          scope: 'course',
-          status: 'assumption',
-          evidence: 'No source ledger was supplied; repaired package requires instructor source review.',
-        },
-      ],
-      handoffNotes: [
-        ...ir.handoffNotes,
-        {
-          id: 'HN1',
-          scope: 'sourceLedger',
-          severity: 'review',
-          note: 'CourseIR source ledger was missing and was repaired as an instructor-review assumption.',
-        },
-      ],
-    });
-    repairs.push({ code: 'added-assumption-source-ledger', before: 0, after: ir.sourceLedger.length });
-    changed = true;
-  }
 
   if (ir.constraints.length === 0 && ir.lessons.length > 0) {
     ir = normalizeCourseIR({
@@ -1513,69 +1506,61 @@ export function repairCourseIRStructure(rawIR = {}) {
   }
 
   if (needsAtomSourceRepair(ir)) {
-    const repairedOutcomeCount = ir.lessons.reduce(
-      (sum, lesson) => sum + lesson.outcomes.filter((outcome) => sourceRefsNeedRepair(ir, outcome.sourceRefs)).length,
-      0,
-    );
-    const repairedActivityCount = ir.lessons.reduce(
-      (sum, lesson) =>
-        sum + lesson.activities.filter((activity) => sourceRefsNeedRepair(ir, activity.sourceRefs)).length,
-      0,
-    );
-    const repairedExampleCount = ir.lessons.reduce(
-      (sum, lesson) =>
-        sum + lesson.workedExamples.filter((example) => sourceRefsNeedRepair(ir, example.sourceRefs || [])).length,
-      0,
-    );
-    const repairedAssessmentSourceCount = ir.assessments.filter((assessment) =>
-      sourceRefsNeedRepair(ir, assessment.sourceRefs || []),
-    ).length;
-    const repairedRubricCount = ir.assessments.reduce(
-      (sum, assessment) =>
-        sum + assessment.rubricCriteria.filter((criterion) => sourceRefsNeedRepair(ir, criterion.sourceRefs)).length,
-      0,
-    );
-    ir = normalizeCourseIR({
+    const repairedCounts = {
+      outcomes: 0,
+      activities: 0,
+      workedExamples: 0,
+      assessments: 0,
+      rubricCriteria: 0,
+    };
+    const sourceRefsDiffer = (before, after) => JSON.stringify(before || []) !== JSON.stringify(after || []);
+    const repairedIR = normalizeCourseIR({
       ...ir,
       lessons: ir.lessons.map((lesson) => {
         const fallbackRefs = fallbackSourceRefsForLesson(ir, lesson);
         return {
           ...lesson,
-          outcomes: lesson.outcomes.map((outcome) => ({
-            ...outcome,
-            sourceRefs: repairedAtomSourceRefs(ir, outcome.sourceRefs, fallbackRefs),
-          })),
-          activities: lesson.activities.map((activity) => ({
-            ...activity,
-            sourceRefs: repairedAtomSourceRefs(ir, activity.sourceRefs, fallbackRefs),
-          })),
-          workedExamples: lesson.workedExamples.map((example) => ({
-            ...example,
-            sourceRefs: repairedAtomSourceRefs(ir, example.sourceRefs || [], fallbackRefs),
-          })),
+          outcomes: lesson.outcomes.map((outcome) => {
+            const sourceRefs = repairedAtomSourceRefs(ir, outcome.sourceRefs, fallbackRefs);
+            if (sourceRefsDiffer(outcome.sourceRefs, sourceRefs)) repairedCounts.outcomes += 1;
+            return { ...outcome, sourceRefs };
+          }),
+          activities: lesson.activities.map((activity) => {
+            const sourceRefs = repairedAtomSourceRefs(ir, activity.sourceRefs, fallbackRefs);
+            if (sourceRefsDiffer(activity.sourceRefs, sourceRefs)) repairedCounts.activities += 1;
+            return { ...activity, sourceRefs };
+          }),
+          workedExamples: lesson.workedExamples.map((example) => {
+            const sourceRefs = repairedAtomSourceRefs(ir, example.sourceRefs || [], fallbackRefs);
+            if (sourceRefsDiffer(example.sourceRefs || [], sourceRefs)) repairedCounts.workedExamples += 1;
+            return { ...example, sourceRefs };
+          }),
         };
       }),
       assessments: ir.assessments.map((assessment) => {
         const fallbackRefs = fallbackSourceRefsForAssessment(ir, assessment);
+        const assessmentSourceRefs = repairedAtomSourceRefs(ir, assessment.sourceRefs || [], fallbackRefs);
+        if (sourceRefsDiffer(assessment.sourceRefs || [], assessmentSourceRefs)) repairedCounts.assessments += 1;
         return {
           ...assessment,
-          sourceRefs: repairedAtomSourceRefs(ir, assessment.sourceRefs || [], fallbackRefs),
-          rubricCriteria: assessment.rubricCriteria.map((criterion) => ({
-            ...criterion,
-            sourceRefs: repairedAtomSourceRefs(ir, criterion.sourceRefs, fallbackRefs),
-          })),
+          sourceRefs: assessmentSourceRefs,
+          rubricCriteria: assessment.rubricCriteria.map((criterion) => {
+            const criterionFallbackRefs = fallbackSourceRefsForRubricCriterion(ir, assessment, criterion);
+            const sourceRefs = repairedAtomSourceRefs(ir, criterion.sourceRefs, criterionFallbackRefs);
+            if (sourceRefsDiffer(criterion.sourceRefs, sourceRefs)) repairedCounts.rubricCriteria += 1;
+            return { ...criterion, sourceRefs };
+          }),
         };
       }),
     });
-    repairs.push({
-      code: 'added-atom-source-refs',
-      outcomes: repairedOutcomeCount,
-      activities: repairedActivityCount,
-      workedExamples: repairedExampleCount,
-      assessments: repairedAssessmentSourceCount,
-      rubricCriteria: repairedRubricCount,
-    });
-    changed = true;
+    ir = repairedIR;
+    if (Object.values(repairedCounts).some((count) => count > 0)) {
+      repairs.push({
+        code: 'added-atom-source-refs',
+        ...repairedCounts,
+      });
+      changed = true;
+    }
   }
 
   return { changed, ir, repairs };
