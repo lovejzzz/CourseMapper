@@ -29,6 +29,7 @@
       "conformanceScore": 89,
       "textureScore": 75,
       "expected": {
+        "score": 26,
         "minimum": 20,
         "maximum": 29,
         "band": "major-verification"
@@ -53,6 +54,7 @@
       "conformanceScore": 99,
       "textureScore": 96,
       "expected": {
+        "score": 59,
         "minimum": 55,
         "maximum": 63,
         "band": "bounded-review"
@@ -85,6 +87,7 @@
       "conformanceScore": 99,
       "textureScore": 96,
       "expected": {
+        "score": 68,
         "minimum": 67,
         "maximum": 69,
         "band": "strong-automated-signal"

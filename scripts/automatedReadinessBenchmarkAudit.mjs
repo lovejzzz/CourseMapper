@@ -76,7 +76,12 @@ function runCase(entry) {
   });
   const failures = [];
   if (result.protocol !== AUTOMATED_READINESS_PROTOCOL) failures.push(`protocol ${result.protocol}`);
-  if (result.score < entry.expected.minimum || result.score > entry.expected.maximum) {
+  if (Number.isFinite(entry.expected.score) && result.score !== entry.expected.score) {
+    failures.push(`score ${result.score} != frozen ${entry.expected.score}`);
+  } else if (
+    !Number.isFinite(entry.expected.score) &&
+    (result.score < entry.expected.minimum || result.score > entry.expected.maximum)
+  ) {
     failures.push(`score ${result.score} outside ${entry.expected.minimum}-${entry.expected.maximum}`);
   }
   if (result.band !== entry.expected.band) failures.push(`band ${result.band} != ${entry.expected.band}`);
