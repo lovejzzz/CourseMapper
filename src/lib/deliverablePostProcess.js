@@ -2,6 +2,8 @@ import { getArrayKey } from './syncDependencies';
 import { findPublishabilityPlaceholders } from './publishabilityPlaceholders';
 import { getNotApplicableDisposition } from './deliverableApplicability';
 import { classifyAssessmentKind } from './courseGraph/deriveFromCourseMap';
+import { resolveQuizQuestionTarget } from './quizQuestionTarget';
+import { getDeliverableLessonNumberCandidates } from './materializedLessonScope';
 
 export const COURSE_FAQ_CATEGORIES = [
   'Course Logistics',
@@ -977,18 +979,30 @@ export function normalizeQuizBankQuestions(data) {
 export function normalizeQuizBankQuestionCounts(data, minimumQuestions = 8) {
   const arrayKey = getArrayKey('quizBank', data) || (data?.quizzes ? 'quizzes' : data?.quizBank ? 'quizBank' : null);
   const quizzes = arrayKey ? data?.[arrayKey] : null;
-  const target = Math.max(1, Math.min(8, Number(minimumQuestions) || 8));
+  const target = resolveQuizQuestionTarget(minimumQuestions);
 
   if (!Array.isArray(quizzes) || quizzes.length === 0) {
-    return { data, arrayKey, target, addedQuestions: 0, underfilledIndices: [] };
+    return {
+      data,
+      arrayKey,
+      target,
+      addedQuestions: 0,
+      underfilledIndices: [],
+      overfilledIndices: [],
+      mismatchedIndices: [],
+    };
   }
 
-  const underfilledIndices = quizzes
-    .map((quiz, index) => {
-      const questionKey = Array.isArray(quiz?.questions) ? 'questions' : Array.isArray(quiz?.qs) ? 'qs' : null;
-      const questions = questionKey ? quiz[questionKey] : [];
-      return questions.length < target ? index : null;
-    })
+  const counts = quizzes.map((quiz, index) => {
+    const questionKey = Array.isArray(quiz?.questions) ? 'questions' : Array.isArray(quiz?.qs) ? 'qs' : null;
+    const questions = questionKey ? quiz[questionKey] : [];
+    return { index, count: questions.length };
+  });
+  const underfilledIndices = counts
+    .map(({ index, count }) => (count < target ? index : null))
+    .filter((index) => index !== null);
+  const overfilledIndices = counts
+    .map(({ index, count }) => (count > target ? index : null))
     .filter((index) => index !== null);
 
   return {
@@ -997,6 +1011,8 @@ export function normalizeQuizBankQuestionCounts(data, minimumQuestions = 8) {
     target,
     addedQuestions: 0,
     underfilledIndices,
+    overfilledIndices,
+    mismatchedIndices: [...underfilledIndices, ...overfilledIndices].sort((a, b) => a - b),
   };
 }
 
@@ -1062,6 +1078,15 @@ export function normalizeQuizBankPointTotals(data) {
 
 export function validateDeliverableGeneration(featureId, data, options = {}) {
   const expectedLessonCount = Number(options.expectedLessonCount) || 0;
+  const expectedLessonNumbers = Array.isArray(options.expectedLessonNumbers)
+    ? [
+        ...new Set(
+          options.expectedLessonNumbers
+            .map(Number)
+            .filter((lessonNumber) => Number.isInteger(lessonNumber) && lessonNumber > 0),
+        ),
+      ]
+    : [];
   const config = options.config || {};
   const blockers = [];
   const warnings = [];
@@ -1136,6 +1161,72 @@ export function validateDeliverableGeneration(featureId, data, options = {}) {
     warnings.push(`${missingCount} lesson item(s) need retry.`);
   }
 
+  if ((featureId === 'quizBank' || featureId === 'courseFaq') && expectedLessonNumbers.length > 0) {
+    const expectedSet = new Set(expectedLessonNumbers);
+    const seen = new Map();
+    const unidentified = [];
+    const conflicting = [];
+    const outOfScope = [];
+    items.forEach((item, index) => {
+      const candidates = getDeliverableLessonNumberCandidates(item) || [];
+      if (candidates.length > 1) {
+        conflicting.push({ index, candidates });
+        return;
+      }
+      const lessonNumber = candidates[0] || null;
+      if (!lessonNumber) {
+        unidentified.push(index);
+        return;
+      }
+      if (!expectedSet.has(lessonNumber)) {
+        outOfScope.push({ index, lessonNumber });
+        return;
+      }
+      const indices = seen.get(lessonNumber) || [];
+      indices.push(index);
+      seen.set(lessonNumber, indices);
+    });
+    const duplicateNumbers = [...seen.entries()]
+      .filter(([, indices]) => indices.length > 1)
+      .map(([lessonNumber]) => lessonNumber);
+    const missingNumbers = expectedLessonNumbers.filter((lessonNumber) => !seen.has(lessonNumber));
+    if (unidentified.length > 0) {
+      blockers.push(
+        `${unidentified.length} ${featureId === 'quizBank' ? 'quiz' : 'FAQ'} item(s) lack an explicit lesson identity.`,
+      );
+      retryableLessonIndices.push(...unidentified);
+    }
+    if (conflicting.length > 0) {
+      blockers.push(
+        `${conflicting.length} ${featureId === 'quizBank' ? 'quiz' : 'FAQ'} item(s) contain conflicting lesson identities: ${conflicting
+          .map(({ candidates }) => candidates.join('/'))
+          .join(', ')}.`,
+      );
+      retryableLessonIndices.push(...conflicting.map(({ index }) => index));
+    }
+    if (outOfScope.length > 0) {
+      blockers.push(
+        `${outOfScope.length} ${featureId === 'quizBank' ? 'quiz' : 'FAQ'} item(s) target out-of-scope lesson(s): ${[
+          ...new Set(outOfScope.map(({ lessonNumber }) => lessonNumber)),
+        ].join(', ')}.`,
+      );
+      retryableLessonIndices.push(...outOfScope.map(({ index }) => index));
+    }
+    if (duplicateNumbers.length > 0) {
+      blockers.push(`Duplicate lesson coverage for lesson(s): ${duplicateNumbers.join(', ')}.`);
+      duplicateNumbers.forEach((lessonNumber) =>
+        retryableLessonIndices.push(...(seen.get(lessonNumber) || []).slice(1)),
+      );
+    }
+    if (missingNumbers.length > 0) {
+      blockers.push(`Missing lesson coverage for lesson(s): ${missingNumbers.join(', ')}.`);
+      missingNumbers.forEach((lessonNumber) => {
+        const expectedIndex = expectedLessonNumbers.indexOf(lessonNumber);
+        if (expectedIndex >= 0) retryableLessonIndices.push(expectedIndex);
+      });
+    }
+  }
+
   if (featureId === 'courseFaq') {
     const target = getCourseFaqQuestionTarget(config);
     items.forEach((lesson, index) => {
@@ -1149,12 +1240,14 @@ export function validateDeliverableGeneration(featureId, data, options = {}) {
   }
 
   if (featureId === 'quizBank') {
-    const target = Math.max(1, Number(config.questionsPerLesson) || 5);
+    const target = resolveQuizQuestionTarget(config);
     items.forEach((quiz, index) => {
       const questionKey = getQuestionKey(quiz);
       const questions = questionKey ? quiz[questionKey] : [];
-      if (questions.length < target) {
-        blockers.push(`Quiz lesson ${index + 1} has ${questions.length}/${target} evidence-bound question(s).`);
+      if (questions.length !== target) {
+        blockers.push(
+          `Quiz lesson ${index + 1} has ${questions.length}/${target} evidence-bound question(s); the count must be exact.`,
+        );
         retryableLessonIndices.push(index);
       }
       const points = questions.map(getQuestionPoints);

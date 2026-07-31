@@ -121,7 +121,8 @@ export function buildScionLanguageAssessmentFrames({ lesson, quizPlan = [], admi
   if (!hanzi || !pinyin || !english || facts.length < 3) return [];
 
   const objective = `Recognize, pronounce, interpret, and use ${hanzi} to communicate “${english}” in the beginner lesson context.`;
-  const tags = (type, bloom) => unique(['quiz', type, bloom, 'target language', hanzi, pinyin], 8);
+  const tags = (type, bloom, index = 0) =>
+    unique(['quiz', type, bloom, 'target language', hanzi, ...(index < 6 ? [pinyin] : [])], 8);
   const planFor = (index, bloom, difficulty, role) => ({
     ...(quizPlan[index] || {}),
     source: 'compiler-owned-language-ledger',
@@ -131,7 +132,10 @@ export function buildScionLanguageAssessmentFrames({ lesson, quizPlan = [], admi
     use: role,
     questionIndex: index,
     bloomSource: 'explicit target-language task demand',
-    sourceSignal: `${hanzi} — ${english}; use the pronunciation in the admitted lesson pair`,
+    sourceSignal:
+      index < 6
+        ? `${hanzi} — ${english}; use the pronunciation in the admitted lesson pair`
+        : 'Use the admitted target-language pair and keep transfer within the verified lesson facts.',
     objectiveAlignmentStrategy: 'exact-form-pronunciation-meaning-match',
     objectiveAlignmentRationale:
       'The item directly assesses the admitted written form, Pinyin, meaning, and cited lesson facts.',
@@ -162,7 +166,7 @@ export function buildScionLanguageAssessmentFrames({ lesson, quizPlan = [], admi
         distractorRationale:
           'The distractors deliberately swap the written form, pronunciation guide, and English meaning or claim the admitted match is absent.',
         explanation: `${answer} is correct. ${explanation}`,
-        tags: tags('multiple choice', bloom),
+        tags: tags('multiple choice', bloom, index),
         enrichmentSource: 'admitted-language-assessment',
       },
       planFor(index, bloom, difficulty, role),
@@ -192,7 +196,7 @@ export function buildScionLanguageAssessmentFrames({ lesson, quizPlan = [], admi
               ],
             }
           : {}),
-        tags: tags(type === 'essay' ? 'essay' : 'short answer', bloom),
+        tags: tags(type === 'essay' ? 'essay' : 'short answer', bloom, index),
         enrichmentSource: 'admitted-language-assessment',
       },
       planFor(index, bloom, difficulty, role),
@@ -265,6 +269,32 @@ export function buildScionLanguageAssessmentFrames({ lesson, quizPlan = [], admi
       answer: `${exactTriple}. ${facts[1]} ${facts[2]} An appropriate context is one in which the speaker needs to communicate “${english}”; the performance does not add any unverified Mandarin form.`,
       guidance:
         'Score for the exact written-form, pronunciation, and meaning match; accurate use of two admitted facts; a plausible English-language use context; and no unsupported Mandarin.',
+    }),
+    mc({
+      index: 6,
+      bloom: 'Evaluate',
+      difficulty: 'Hard',
+      role: 'evidence-bound language evaluation',
+      question: `A learner writes the admitted expression, gives its verified pronunciation and meaning, then adds a new Mandarin phrase not present in the lesson. Which evaluation is most accurate?`,
+      correct:
+        'The admitted written form, pronunciation, and meaning are supported, but the added Mandarin phrase must be removed until a source verifies it.',
+      distractors: [
+        'The entire response is unsupported because a lesson can never verify pronunciation.',
+        'The new phrase is acceptable whenever its English context is plausible.',
+        'The written form alone proves every added Mandarin phrase is correct.',
+      ],
+      explanation:
+        'The exact admitted triple is supported, while an additional target-language form crosses the evidence boundary.',
+    }),
+    response({
+      index: 7,
+      bloom: 'Create',
+      difficulty: 'Hard',
+      role: 'bounded language revision',
+      question: `Revise a beginner practice card so it transfers the admitted expression to a new English-language situation without inventing Mandarin. Preserve the exact meaning “${english},” use one admitted lesson fact, and label the boundary on what the lesson has not established.`,
+      answer: `Preserve the exact admitted written-form, pronunciation, and “${english}” meaning match plus one cited lesson fact. The new English-language situation may change, but the card adds no unverified Mandarin form and does not claim that another expression follows the same rule.`,
+      guidance:
+        'Full credit preserves the exact written-form, pronunciation, and meaning match, uses an admitted fact accurately, changes only the English-language context, and explicitly rejects unsupported transfer to another Mandarin form.',
     }),
   ];
 }

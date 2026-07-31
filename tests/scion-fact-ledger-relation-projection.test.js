@@ -64,7 +64,7 @@ describe('fact-ledger relation projection', () => {
     expect(learnerText).not.toMatch(/Claim A|Claim B|supplied claim cards|one claim is treated as conclusive/i);
   });
 
-  it('survives the final six-item quiz compiler instead of being replaced by generic frames', () => {
+  it('survives the final eight-item quiz compiler instead of being replaced by generic frames', () => {
     const projected = projectKernelToSurfaces(MANDARIN_TRANSPORT_KERNEL, { itemPlan: ITEM_PLAN });
     const blueprint = buildCourseBlueprint({
       courseName: 'Elementary Mandarin Chinese I',

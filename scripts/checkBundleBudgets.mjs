@@ -29,9 +29,9 @@ const budgets = {
 // caught an unaccounted increase, and the fix is to re-freeze at the released
 // state, not to widen the allowance. Every future release must do the same.
 const repositoryBudgets = {
-  // v0.17.01 advances the frozen state through the shipped v0.17.00 contract;
-  // its own v0.17.01 contract consumes the single declared-release allowance.
-  baselineVersion: '0.17.00',
+  // v0.17.02 advances the frozen state through the shipped v0.17.01 contract;
+  // its own v0.17.02 contract consumes the single declared-release allowance.
+  baselineVersion: '0.17.01',
   // v0.16.82 adds 29 net lines of reusable compiler control logic for
   // policy-domain separation and concept-owned evidence binding. Source-
   // statement copy and prerequisite selection moved to a cacheable leaf; the
@@ -44,7 +44,13 @@ const repositoryBudgets = {
   // artifact routing, and final-assessment identity repair. Three technical
   // session planners moved to a cacheable leaf, cutting the release candidate
   // from 28,246 to 28,065 lines before this exact state was frozen.
-  compilerLines: 28_065,
+  // V0.17.02 makes the public 3–8 quiz contract executable instead of leaving
+  // slots seven and eight as configuration-only promises. The 104-line
+  // increase owns exact planning, evidence-limitation/revision-transfer
+  // frames, authored-bank replacement, and review-week collision recovery.
+  // These paths are regression-covered and replace underfilled output; freeze
+  // the measured implementation rather than granting speculative headroom.
+  compilerLines: 28_169,
   // V0.16.97 moved compiler logic into cacheable courseCompiler*.js leaves.
   // Freeze the whole ownership family so extracting modules cannot make the
   // monolith-only counter report a false reduction. The 69-line post-release
@@ -54,7 +60,11 @@ const repositoryBudgets = {
   // course-aware realization, and sentence-level texture selection. These
   // replace generic fallback behavior, are regression-covered across retained
   // and fresh-domain panels, and remain compile-only.
-  compilerFamilyLines: 30_957,
+  // V0.17.01's shipped compiler-family changes were never rebased into this
+  // family ratchet. V0.17.02 freezes the full measured family after its exact
+  // question/lesson contract; extracting files cannot masquerade as a future
+  // reduction.
+  compilerFamilyLines: 31_121,
   // v0.16.81 adds one executable Algi→Scion hybrid benchmark audit. It freezes
   // evidence, route, quality, call, latency, and export promotion rules; this
   // is a release gate rather than product-side script sprawl.
@@ -73,9 +83,9 @@ const repositoryBudgets = {
   // It reuses the cross-package audit implementation rather than introducing
   // another runner.
   npmScripts: 386,
-  // v0.17.00 shipped 286 tracked release-ledger files (contracts plus the
-  // directory README); v0.17.01 may add exactly one current-release contract.
-  releaseContractFiles: 286,
+  // v0.17.01 shipped 287 tracked release-ledger files (contracts plus the
+  // directory README); v0.17.02 may add exactly one current-release contract.
+  releaseContractFiles: 287,
   trackedWeightFiles: 62,
   trackedWeightBytes: 1_053_339_981,
   largeBinaryBytes: 1024 * 1024,
@@ -176,7 +186,10 @@ const lazyChunkBudgets = [
   // now shares the existing workspaceSaveStatus presentation leaf: this keeps
   // the Linux/Node 22 shell below the unchanged 85 KiB ceiling instead of
   // treating compressor variance as permission to raise the hot-path ratchet.
-  { prefix: 'AppFlow-', rawKiB: 282, gzipKiB: 85 },
+  // V0.17.02 carries one canonical expected-source-lesson set through all
+  // generation validation sites. The workspace-only shell measures 282.3 KiB
+  // raw while gzip remains below the existing ceiling; freeze at 282.5/85.
+  { prefix: 'AppFlow-', rawKiB: 282.5, gzipKiB: 85 },
   // v0.16.47: the Living Course Compiler component and pure selector gained
   // an independently cacheable route boundary instead of raising AppFlow's
   // long-standing ratchet. Clean measurement: AppFlow 251.6/75.9; ribbon
@@ -197,7 +210,10 @@ const lazyChunkBudgets = [
   // normalization are one pure course-map continuity boundary. Reusing its
   // existing request measures 8.5/3.3 while the combined AppFlow + ribbon +
   // continuity ceilings fall by 1.25 KiB raw and 0.7 KiB gzip.
-  { prefix: 'courseMapContinuation-', rawKiB: 8.75, gzipKiB: 3.5 },
+  // V0.17.02 keeps compact lesson scopes and final quiz/FAQ validation on the
+  // same source identity. The pure continuity leaf measures 9.2/3.5 KiB; keep
+  // only sub-quarter-KiB raw and one-tenth gzip variance.
+  { prefix: 'courseMapContinuation-', rawKiB: 9.25, gzipKiB: 3.6 },
   // Workspace status prose is route-only presentation. Save fallback wording
   // and the research/genome coverage label share this already-loaded cache
   // leaf, reducing AppFlow without adding another request. V0.16.97 measures
@@ -300,7 +316,11 @@ const lazyChunkBudgets = [
   // V0.16.99 adds the sparse-only dispatch seam for discipline-aware fallback
   // realization. It remains lazy and measures 236.6 KiB gzip; keep only
   // sub-KiB platform variance instead of widening the raw ceiling.
-  { prefix: 'courseBlueprintCompiler-', rawKiB: 844, gzipKiB: 236.75 },
+  // V0.17.02 adds the two promised high-depth quiz slots, exact 3–8 slicing,
+  // authored-bank slot replacement, and collision-safe review selection. This
+  // is lazy compiler-only quality work; measured 848.3/238.1 KiB. Freeze with
+  // less than 0.7/0.15 KiB headroom.
+  { prefix: 'courseBlueprintCompiler-', rawKiB: 849, gzipKiB: 238.25 },
   // Experiential-activity mechanics are compiler-owned and independently
   // cacheable beside the lazy compiler. The chunk projects the canonical
   // activity clock, evidence, constraints, decisions, artifact, and debrief
@@ -317,7 +337,10 @@ const lazyChunkBudgets = [
   // Exact target-language assessment and lesson-plan frames are substantial
   // compile-only data. They remain cacheable beside the compiler without
   // weakening the compiler's long-standing size ratchet.
-  { prefix: 'scionLanguageCompilerFrames-', rawKiB: 17, gzipKiB: 6.25 },
+  // V0.17.02 gives exact-language courses the same evidence-limitation and
+  // revision-transfer slots as generic courses. The leaf measures 18.0/6.3
+  // KiB and remains compile-only.
+  { prefix: 'scionLanguageCompilerFrames-', rawKiB: 18.25, gzipKiB: 6.5 },
   // v0.16.49: Bayesian and music-interval assessment frames are workspace-only
   // data and independently cacheable. The same boundary now owns the music
   // interval admission, discussion, FAQ, quiz, and study-guide rules so the

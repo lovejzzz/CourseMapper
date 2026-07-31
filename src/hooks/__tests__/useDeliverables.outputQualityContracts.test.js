@@ -14,9 +14,11 @@ describe('useDeliverables output-quality contracts', () => {
 
   it('retries quiz lessons against the configured question target', () => {
     expect(source).not.toContain('const minQuestions = 5');
-    expect(source).toContain('Number(getGenerationConfig(fid).questionsPerLesson) || 8');
+    expect(source).toContain('resolveQuizQuestionTarget(getGenerationConfig(fid))');
     expect(source).toContain('normalizeQuizBankQuestionCounts(merged, configuredQuizTarget)');
-    expect(source).toContain('quizCountCheck.underfilledIndices');
+    expect(source).toContain('quizCountCheck.mismatchedIndices');
+    expect(source).toContain('validateDeliverableGeneration(featureId, initialValidationData');
+    expect(source).toContain('expectedLessonNumbers,');
     expect(source).toContain('removedUnderfilledForRetry');
     expect(source).toContain('questionRetryBaseline = merged');
     expect(source).toContain('getGenerationConfig(fid).questionsPerLesson');

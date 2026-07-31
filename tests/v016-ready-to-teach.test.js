@@ -193,7 +193,7 @@ describe('A1 — subject-safe deterministic fallback', () => {
       decisionNoun: 'posterior decision',
       learnerRole: 'Bayesian decision analyst',
     });
-    expect(atoms).toHaveLength(6);
+    expect(atoms).toHaveLength(8);
     expect(audit).toMatchObject({ meta: 0, metaShare: 0 });
     expect(atoms.map((item) => item.question).join(' ')).toMatch(/prior odds|likelihood ratio|weak evidence/i);
     expect(atoms.map((item) => item.question).join(' ')).not.toMatch(/lesson|artifact|professional decision/i);
@@ -204,6 +204,8 @@ describe('A1 — subject-safe deterministic fallback', () => {
       'Understand',
       'Evaluate',
       'Analyze',
+      'Evaluate',
+      'Apply',
     ]);
 
     const oddsItem = atoms.find((item) => /posterior odds when prior odds are 1:1/i.test(item.question));
@@ -257,7 +259,7 @@ describe('A1 — subject-safe deterministic fallback', () => {
       learnerRole: 'musician',
       exampleNoun: 'notated or recorded excerpt',
     });
-    expect(atoms).toHaveLength(6);
+    expect(atoms).toHaveLength(8);
     expect(atoms.every((item) => item.type === 'multiple_choice')).toBe(true);
     expect(atoms.every((item) => item.enrichmentSource === 'compiler-domain-fallback')).toBe(true);
     expect(atoms.every((item) => item.fallbackSource === 'discipline-verified-music-theory-frame')).toBe(true);
@@ -534,7 +536,7 @@ describe('A1 — subject-safe deterministic fallback', () => {
     expect(`${JSON.stringify(lessonOneQuiz)} ${JSON.stringify(lessonTwoQuiz)}`).not.toMatch(
       /two lesson concepts|relationships between points|methodological claim|start point of 2|continuous span|F♯ and A as a major sixth/i,
     );
-    expect(new Set([...lessonOneQuiz, ...lessonTwoQuiz].map((item) => item.distractorRationale)).size).toBe(12);
+    expect(new Set([...lessonOneQuiz, ...lessonTwoQuiz].map((item) => item.distractorRationale)).size).toBe(16);
     const packageText = JSON.stringify(packageOutputs);
     const lessonTwoDeck = packageOutputs.slideDecks.decks[1];
     const lessonTwoConceptMap = lessonTwoDeck.slides.find(

@@ -106,9 +106,21 @@ describe('constructed-response compiler depth', () => {
       assessment: {},
     }).filter((candidate) => candidate.type === 'short_answer');
 
-    expect(items).toHaveLength(5);
-    expect(items.map((item) => item.bloomsLevel)).toEqual(['Apply', 'Analyze', 'Analyze', 'Analyze', 'Evaluate']);
-    expect(items.every((item) => item.quizPlan?.bloom === item.bloomsLevel)).toBe(true);
+    expect(items).toHaveLength(7);
+    expect(items.map((item) => item.bloomsLevel)).toEqual([
+      'Apply',
+      'Analyze',
+      'Analyze',
+      'Analyze',
+      'Evaluate',
+      'Analyze',
+      'Evaluate',
+    ]);
+    expect(items.every((item) => item.quizPlan?.bloom)).toBe(true);
+    expect(items[5]).toMatchObject({
+      bloomsLevel: 'Analyze',
+      quizPlan: { bloom: 'Create' },
+    });
     expect(items.every((item) => item.sourceReviewRequired === true)).toBe(true);
     expect(items.every((item) => !isConceptCuedCompilerShortAnswer(item.question))).toBe(true);
     expect(items.every((item) => !/one named example from/i.test(item.question))).toBe(true);
@@ -191,8 +203,8 @@ describe('constructed-response compiler depth', () => {
     const compilerItems = items.filter((item) => item.enrichmentSource === 'admitted-kernel-assessment');
     const multipleChoice = items.filter((item) => item.type === 'multiple_choice');
 
-    expect(items).toHaveLength(6);
-    expect(compilerItems).toHaveLength(6);
+    expect(items).toHaveLength(8);
+    expect(compilerItems).toHaveLength(8);
     expect(items.every((item) => item.enrichmentSource !== 'source-bound-recovery')).toBe(true);
     expect(items.every((item) => item.sourceReviewRequired !== true)).toBe(true);
     expect(multipleChoice).toHaveLength(3);
@@ -253,7 +265,7 @@ describe('constructed-response compiler depth', () => {
         .trim(),
     );
 
-    expect(items).toHaveLength(6);
+    expect(items).toHaveLength(8);
     expect(new Set(normalizedStems).size).toBe(items.length);
     expect(items[4]).toMatchObject({
       type: 'short_answer',
@@ -537,7 +549,7 @@ describe('constructed-response compiler depth', () => {
     };
 
     const items = buildQuizAtomsForLesson(blueprint.lessons[0], blueprint, { assessment: {} });
-    expect(items).toHaveLength(6);
+    expect(items).toHaveLength(8);
     expect(items.every((item) => item.enrichmentSource !== 'source-bound-recovery')).toBe(true);
     expect(items.every((item) => item.sourceReviewRequired !== true)).toBe(true);
     expect(items.some((item) => item.enrichmentSource === 'admitted-kernel-assessment')).toBe(true);
@@ -626,7 +638,7 @@ describe('constructed-response compiler depth', () => {
 
     const items = buildQuizAtomsForLesson(blueprint.lessons[0], blueprint, { assessment: {} });
 
-    expect(items).toHaveLength(6);
+    expect(items).toHaveLength(8);
     expect(items.every((item) => item.enrichmentSource !== 'source-bound-recovery')).toBe(true);
     expect(items.every((item) => item.sourceReviewRequired !== true)).toBe(true);
     expect(items.some((item) => item.enrichmentSource === 'admitted-kernel-assessment')).toBe(true);

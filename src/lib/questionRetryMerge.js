@@ -1,4 +1,5 @@
 import { getArrayKey } from './syncDependencies';
+import { resolveDeliverableLessonNumber } from './materializedLessonScope';
 
 function getQuestionCount(item) {
   const questions = Array.isArray(item?.questions) ? item.questions : Array.isArray(item?.qs) ? item.qs : [];
@@ -6,19 +7,8 @@ function getQuestionCount(item) {
 }
 
 function getLessonKey(item) {
-  const numericIdentity =
-    item?.lessonNumber ??
-    item?.weekNumber ??
-    (Number.isInteger(item?.lessonIndex) ? item.lessonIndex + 1 : null) ??
-    (typeof item?.lesson === 'number' ? item.lesson : null) ??
-    (typeof item?.week === 'number' ? item.week : null);
-  if (Number.isInteger(numericIdentity) && numericIdentity > 0) return `lesson_${numericIdentity}`;
-  const labels = [item?.lessonTitle, item?.lt, item?.title, item?.t, item?.lesson, item?.week, item?.wk, item?.name];
-  for (const label of labels) {
-    const match = String(label || '').match(/(?:Lesson|Week)\s*(\d+)/i);
-    if (match) return `lesson_${match[1]}`;
-  }
-  return '';
+  const lessonNumber = resolveDeliverableLessonNumber(item);
+  return lessonNumber ? `lesson_${lessonNumber}` : '';
 }
 
 /**
@@ -66,13 +56,13 @@ export function mergeQuestionRetryResults(
     }
   }
 
-  const numberedItems = nextItems.map((item) => getLessonKey(item).match(/^lesson_(\d+)$/));
-  if (numberedItems.every(Boolean)) {
-    nextItems.sort((left, right) => {
-      const leftMatch = getLessonKey(left).match(/^lesson_(\d+)$/);
-      const rightMatch = getLessonKey(right).match(/^lesson_(\d+)$/);
-      return Number(leftMatch[1]) - Number(rightMatch[1]);
-    });
-  }
+  nextItems.sort((left, right) => {
+    const leftNumber = resolveDeliverableLessonNumber(left);
+    const rightNumber = resolveDeliverableLessonNumber(right);
+    if (leftNumber && rightNumber) return leftNumber - rightNumber;
+    if (leftNumber) return -1;
+    if (rightNumber) return 1;
+    return 0;
+  });
   return { ...cleanedBaseline, [arrayKey]: nextItems };
 }

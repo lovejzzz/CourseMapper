@@ -8,9 +8,9 @@
  * D2: rubric criteria quote the brief's structured parameters (cap 3) plus
  *     the two most defensible generic criteria; weights keep the rubric's
  *     existing total; parameterless briefs keep today's rubric untouched.
- * D3: weekly quizzes extend 6 → 8 ONLY from unused bank items (no new
- *     frames), with the answer-key spread invariant re-run across all 8 and
- *     header totals derived from the final item list.
+ * D3: weekly quizzes use admitted bank items for slots 7–8 where available;
+ *     deterministic evidence-limitation and transfer frames now guarantee
+ *     the selected eight-item contract when the bank is thin.
  *
  * All deterministic — zero new AI calls; every assertion below runs against
  * recomposed authored atoms, never invented content.
@@ -441,7 +441,7 @@ describe('D2 — construct-valid rubric criteria', () => {
   });
 });
 
-// ── (4) D3: quizzes 6 → 8 where the bank affords ────────────────────────────
+// ── (4) D3: authored bank replacements for guaranteed slots 7–8 ────────────
 
 describe('D3 — weekly quiz extension from unused bank items', () => {
   const blueprint = buildRichBlueprint();
@@ -456,6 +456,8 @@ describe('D3 — weekly quiz extension from unused bank items', () => {
     expect(extensionItems.map((item) => item.type)).toEqual(['multiple_choice', 'multiple_choice']);
     expect(extensionItems[0].question).toContain('red-brown streak');
     expect(extensionItems[1].question).toContain('luster readings');
+    expect(extensionItems.map((item) => item.id)).toEqual(['lesson-1-q7', 'lesson-1-q8']);
+    expect(extensionItems.map((item) => item.quizPlan.questionIndex)).toEqual([6, 7]);
     for (const item of extensionItems) {
       expect(item.enrichmentSource).toBe('kernel-bank-extension');
       expect(item.options).toHaveLength(4);
@@ -465,10 +467,14 @@ describe('D3 — weekly quiz extension from unused bank items', () => {
     }
   });
 
-  it('keeps the thin-bank lesson at 6 items with no frames in slots 7-8', () => {
-    expect(thinQuiz.totalQuestions).toBe(6);
-    expect(thinQuiz.questions).toHaveLength(6);
+  it('keeps the thin-bank lesson at 8 honest items without pretending bank enrichment exists', () => {
+    expect(thinQuiz.totalQuestions).toBe(8);
+    expect(thinQuiz.questions).toHaveLength(8);
     expect(thinQuiz.questions.some((item) => item.quizPlan?.role === 'bank-extension-retrieval')).toBe(false);
+    expect(thinQuiz.questions.slice(6).map((item) => item.quizPlan?.role)).toEqual([
+      'evidence-limitation',
+      'revision-transfer',
+    ]);
   });
 
   it('never duplicates a stem anywhere in the bank (weekly + extension + exams)', () => {

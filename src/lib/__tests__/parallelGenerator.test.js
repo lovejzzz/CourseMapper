@@ -300,7 +300,7 @@ describe('mergeChunkResults', () => {
     expect(result.quizzes).toEqual([]);
   });
 
-  it('preserves all baseline positions when identified and course-wide items are mixed', () => {
+  it('canonicalizes identified lessons ahead of unkeyed course-wide items', () => {
     const unidentified = {
       title: 'Course-wide review',
       questions: [{ question: 'Review question' }],
@@ -319,9 +319,9 @@ describe('mergeChunkResults', () => {
     });
 
     expect(result.quizzes.map((quiz) => quiz.lessonTitle || quiz.title)).toEqual([
-      'Course-wide review',
-      'Lesson 2: Evidence',
       'Lesson 1: Foundations',
+      'Lesson 2: Evidence',
+      'Course-wide review',
     ]);
   });
 

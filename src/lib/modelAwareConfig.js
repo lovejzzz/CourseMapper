@@ -166,9 +166,9 @@ export function createModelAwareConfigPlan(modelCapabilities = {}, generationPla
     plan.features.slideDecks.slidesPerLesson = 14;
     plan.features.slideDecks.speakerNotes = signals.maxOutputTokens >= 64000 ? 'Full script' : 'Standard';
     plan.features.rubrics.criteriaCount = 5;
-    // The deterministic compiler guarantees six core items and can add at
-    // most two admitted bank extensions. Never advertise a default the
-    // package generator cannot satisfy.
+    // The deterministic compiler guarantees all eight evidence-bound slots;
+    // admitted bank extensions replace the final two frames when available.
+    // Never advertise a default the package generator cannot satisfy.
     plan.features.quizBank.questionsPerLesson = 8;
     plan.features.studyGuides.keyTermsCount = 10;
     plan.features.courseFaq.questionsPerLesson = 6;

@@ -13,6 +13,7 @@
  */
 
 import { getArrayKey } from './syncDependencies';
+import { resolveDeliverableLessonNumber } from './materializedLessonScope';
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 
@@ -298,10 +299,8 @@ export function findMissingIndices(mergedArray, expectedIndices) {
   if (mergedArray?.length > 0) {
     const presentNums = new Set();
     for (const item of mergedArray) {
-      for (const title of getLessonLabelCandidates(item)) {
-        const m = title.match(/(?:Lesson|Week)\s*(\d+)/i);
-        if (m) presentNums.add(parseInt(m[1], 10));
-      }
+      const lessonNumber = resolveDeliverableLessonNumber(item);
+      if (lessonNumber) presentNums.add(lessonNumber);
     }
     // Only use content-based matching if we found parseable lesson numbers
     if (presentNums.size > 0) {

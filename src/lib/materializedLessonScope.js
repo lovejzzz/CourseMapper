@@ -49,6 +49,17 @@ export function resolveMaterializedSourceLessonFilter(courseMap, lessonFilter, s
   return lessonFilter;
 }
 
+/** Resolve the exact source lesson identities expected from a generation run. */
+export function resolveExpectedDeliverableLessonNumbers(courseMap, lessonFilter) {
+  const lessons = Array.isArray(courseMap?.lessons) ? courseMap.lessons : [];
+  const compactFilter = Array.isArray(lessonFilter)
+    ? lessonFilter
+    : Array.from({ length: lessons.length }, (_, index) => index);
+  const inferredSourceFilter = inferMaterializedSourceLessonFilter(courseMap, {}, null);
+  const sourceFilter = resolveMaterializedSourceLessonFilter(courseMap, compactFilter, inferredSourceFilter);
+  return Array.isArray(sourceFilter) ? sourceFilter.filter(Number.isInteger).map((index) => index + 1) : [];
+}
+
 /** Stamp source lesson identity onto compiled per-lesson array items. */
 export function preserveDeliverableLessonNumbers(parsed, arrayKey, lessonFilter, courseMap) {
   if (!parsed || !arrayKey || !Array.isArray(lessonFilter) || lessonFilter.length === 0) return parsed;
@@ -58,38 +69,59 @@ export function preserveDeliverableLessonNumbers(parsed, arrayKey, lessonFilter,
   if (items.length !== lessonFilter.length) return parsed;
   const alreadyMaterialized =
     lessonFilter.length === lessons.length && lessonFilter.some((index) => index >= lessons.length);
+  const allowedSourceNumbers = new Set(lessonFilter.map((index) => index + 1));
   const patched = items.map((item, index) => {
     const sourceIndex = lessonFilter[index];
     if (!item || !Number.isInteger(sourceIndex)) return item;
     const sourceNumber = sourceIndex + 1;
+    if (!allowedSourceNumbers.has(sourceNumber)) return item;
     const mapLesson = lessons[alreadyMaterialized ? index : sourceIndex];
     const mapTitle = String(mapLesson?.title || '').trim();
     const lessonTitle = /^lesson\s+\d+\b/i.test(mapTitle)
       ? mapTitle.replace(/^lesson\s+\d+\b/i, `Lesson ${sourceNumber}`)
       : `Lesson ${sourceNumber}${mapTitle ? `: ${mapTitle}` : ''}`;
     const updates = {};
+    if ('sourceLessonNumber' in item) updates.sourceLessonNumber = sourceNumber;
     if ('lessonTitle' in item) updates.lessonTitle = lessonTitle;
     if ('lt' in item) updates.lt = lessonTitle;
     if ('weekNumber' in item) updates.weekNumber = `Week ${sourceNumber}`;
     if ('lessonNumber' in item) updates.lessonNumber = sourceNumber;
     if ('ln' in item) updates.ln = sourceNumber;
+    if ('lessonIndex' in item) updates.lessonIndex = sourceNumber - 1;
+    if (typeof item.lesson === 'number') updates.lesson = sourceNumber;
+    if (typeof item.week === 'number') updates.week = sourceNumber;
+    for (const key of ['lesson', 'week', 'wk', 'title', 'name']) {
+      if (typeof item[key] !== 'string') continue;
+      updates[key] = item[key].replace(/\b(lesson|week|module)\s*\d{1,3}\b/i, (_, label) => `${label} ${sourceNumber}`);
+    }
     return Object.keys(updates).length > 0 ? { ...item, ...updates } : item;
   });
   return { ...parsed, [arrayKey]: patched };
 }
 
-function itemLessonNumber(item) {
+export function getDeliverableLessonNumberCandidates(item) {
   if (!item || typeof item !== 'object') return null;
   const candidates = [];
-  for (const value of [item.sourceLessonNumber, item.lessonNumber, item.ln]) {
+  for (const value of [
+    item.sourceLessonNumber,
+    item.lessonNumber,
+    item.ln,
+    Number.isInteger(item.lessonIndex) ? item.lessonIndex + 1 : null,
+    typeof item.lesson === 'number' ? item.lesson : null,
+    typeof item.week === 'number' ? item.week : null,
+  ]) {
     const number = Number(value);
     if (Number.isInteger(number) && number > 0) candidates.push(number);
   }
-  for (const value of [item.weekNumber, item.week, item.lessonTitle, item.lt, item.title]) {
+  for (const value of [item.weekNumber, item.week, item.wk, item.lessonTitle, item.lt, item.title, item.name]) {
     const number = Number(String(value || '').match(/\b(?:lesson|week|module)\s*(\d{1,3})\b/i)?.[1]);
     if (Number.isInteger(number) && number > 0) candidates.push(number);
   }
-  return candidates.length > 0 ? Math.max(...candidates) : null;
+  return [...new Set(candidates)];
+}
+
+export function resolveDeliverableLessonNumber(item) {
+  return getDeliverableLessonNumberCandidates(item)?.[0] || null;
 }
 
 /** Recover source scope from saved compact workspaces whose scope state is old. */
@@ -105,12 +137,12 @@ export function inferMaterializedSourceLessonFilter(courseMap, deliverables, exp
   }
 
   const sourceIndices = lessons.map((lesson, lessonIndex) => {
-    const candidates = [itemLessonNumber(lesson)];
+    const candidates = [...(getDeliverableLessonNumberCandidates(lesson) || [])];
     for (const entry of Object.values(deliverables || {})) {
       const data = entry?.data;
       if (!data || typeof data !== 'object') continue;
       for (const items of Object.values(data).filter(Array.isArray)) {
-        candidates.push(itemLessonNumber(items?.[lessonIndex]));
+        candidates.push(...(getDeliverableLessonNumberCandidates(items?.[lessonIndex]) || []));
       }
     }
     const numbers = candidates.filter(Number.isInteger);

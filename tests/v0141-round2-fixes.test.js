@@ -867,9 +867,9 @@ describe('fix 7 — review-week weekly quizzes draw from PRIOR lessons, not the 
   const reviewQuiz = weekly[7];
   const exam = quizzes.find((quiz) => quiz.kind === 'exam');
 
-  it('keeps the standard 6-item weekly shape under the review lesson identity', () => {
+  it('keeps the configured 8-item weekly shape under the review lesson identity', () => {
     expect(reviewQuiz.lessonTitle).toBe('Lesson 8: Midterm Review and Exam');
-    expect(reviewQuiz.questions).toHaveLength(6);
+    expect(reviewQuiz.questions).toHaveLength(8);
     const types = reviewQuiz.questions.map((question) => question.type);
     expect(types.filter((type) => type === 'multiple_choice')).toHaveLength(4);
     expect(types).toContain('short_answer');

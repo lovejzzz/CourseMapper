@@ -889,6 +889,35 @@ const BASIC_INTERVAL_FRAMES = [
       'Each alternative confuses presentation order with quality, notation medium, or octave span; melodic versus harmonic describes whether the pitches sound successively or together.',
     explanation: 'Presentation describes when the pitches sound, not their number, quality, notation, or octave span.',
   },
+  {
+    bloom: 'Evaluate',
+    prompt:
+      'A student labels B3–F4 a perfect fifth because the endpoints are five letter names apart. Which correction is best?',
+    correct: 'Keep the generic fifth, but count six semitones and relabel it a diminished fifth.',
+    distractors: [
+      'Relabel it an augmented fourth because every six-semitone span uses that spelling.',
+      'Keep perfect fifth because letter-name count determines both number and quality.',
+      'Relabel it a minor fifth because six semitones is one below a perfect fifth.',
+    ],
+    distractorRationale:
+      'The augmented-fourth option ignores B–F spelling, the perfect-fifth option ignores chromatic size, and “minor fifth” is not a standard interval quality.',
+    explanation:
+      'B–C–D–E–F is a generic fifth, but its six-semitone span is one smaller than a perfect fifth, so it is diminished.',
+  },
+  {
+    bloom: 'Create',
+    prompt: 'Which pitch above C4 creates a minor sixth while preserving the required generic spelling?',
+    correct: 'A♭4, because C–D–E–F–G–A is a sixth and C4 to A♭4 spans eight semitones.',
+    distractors: [
+      'G♯4, because eight semitones alone determine a minor sixth.',
+      'A4, because every C-to-A spelling is minor.',
+      'B♭♭4, because lowering the upper note always preserves the interval number.',
+    ],
+    distractorRationale:
+      'G-sharp spells an augmented fifth, A-natural is a major sixth, and B-double-flat uses a generic seventh despite sounding like A-flat.',
+    explanation:
+      'The letter spelling C through A establishes a sixth; lowering A to A-flat makes its chromatic size eight semitones, a minor sixth.',
+  },
 ];
 
 const INVERSION_FRAMES = [
@@ -954,6 +983,29 @@ const INVERSION_FRAMES = [
     distractorRationale:
       'Minor second keeps the wrong quality, major seventh keeps the wrong number, and perfect second assigns a quality that seconds do not use.',
     explanation: 'Seven inverts to two because the numbers sum to nine, and minor exchanges with major.',
+  },
+  {
+    bloom: 'Evaluate',
+    prompt: 'A student says the inversion of a diminished fifth is a perfect fourth. Which correction is best?',
+    correct: 'The inversion is an augmented fourth: five inverts to four, and diminished exchanges with augmented.',
+    distractors: [
+      'The inversion is a diminished fourth because quality never changes.',
+      'The inversion is a perfect fifth because tritones resolve to perfect intervals.',
+      'The inversion is an augmented fifth because only quality changes.',
+    ],
+    distractorRationale:
+      'The alternatives preserve the wrong quality, invent a resolution rule, or keep the wrong interval number.',
+    explanation:
+      'Inversion numbers sum to nine and diminished exchanges with augmented, so a diminished fifth becomes an augmented fourth.',
+  },
+  {
+    bloom: 'Create',
+    prompt: 'Which compound interval reduces to a perfect fourth and then inverts to a perfect fifth?',
+    correct: 'A perfect eleventh.',
+    distractors: ['A major tenth.', 'A perfect twelfth.', 'A minor thirteenth.'],
+    distractorRationale:
+      'A tenth reduces to a third, a twelfth reduces to a fifth, and a thirteenth reduces to a sixth.',
+    explanation: 'Subtracting seven from eleven gives the simple fourth; a perfect fourth inverts to a perfect fifth.',
   },
 ];
 

@@ -668,8 +668,9 @@ export default function useStreamReader({ scionResearchEnabledOverride = null } 
             composeError = error;
           }
 
+          const adaptiveComposition = composeError ? 'failed' : fullText ? 'composed' : 'empty';
           recordApiCallEvent({
-            type: 'scionEvidenceComposed',
+            type: 'scionEvidenceComposition',
             label: composeError
               ? 'Scion evidence composition needs the deterministic compiler'
               : exactSourceProjection
@@ -691,6 +692,7 @@ export default function useStreamReader({ scionResearchEnabledOverride = null } 
             modelRequests: 0,
             spendUsd: 0,
             execution: 'browser-compiler',
+            outcome: adaptiveComposition,
             ...(exactSourceProjection
               ? {
                   exactSourceLedger: true,
@@ -710,8 +712,9 @@ export default function useStreamReader({ scionResearchEnabledOverride = null } 
           onChunk?.(composedText, 1);
           return {
             fullText: composedText,
-            finishReason: 'stop',
+            finishReason: fullText ? 'stop' : 'fallback',
             adaptiveRoute: 'scion-evidence-compiler',
+            adaptiveComposition,
             modelRequests: 0,
             ...(observedAdapterRoutes.length > 0 ? { adapterRoutes: observedAdapterRoutes } : {}),
           };

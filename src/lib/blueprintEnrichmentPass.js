@@ -35,6 +35,7 @@ import {
   normalizeExperientialActivityBlueprint,
   requestedExperientialActivityKinds,
 } from './experientialActivityContract';
+import { resolveQuizQuestionTarget } from './quizQuestionTarget';
 
 const DEFAULT_MAX_LESSONS = 12;
 const MAX_TEXT_CHARS = 320;
@@ -1101,7 +1102,7 @@ function summarizeLessonsForContent(
 }
 
 export function buildQuizItemPlan(questionsPerLesson) {
-  const count = Math.max(5, Math.min(7, Number(questionsPerLesson) || 6));
+  const count = resolveQuizQuestionTarget(questionsPerLesson);
   return [
     { index: 0, type: 'multiple_choice', bloom: 'Remember', note: 'foundational fact or definition' },
     {
@@ -1124,6 +1125,18 @@ export function buildQuizItemPlan(questionsPerLesson) {
       note: 'judge a claim or method using concrete case evidence',
     },
     { index: 5, type: 'essay', bloom: 'Create', note: 'synthesis task with sample answer and scoring guidance' },
+    {
+      index: 6,
+      type: 'multiple_choice',
+      bloom: 'Evaluate',
+      note: 'identify the evidence limitation that most changes the conclusion',
+    },
+    {
+      index: 7,
+      type: 'short_answer',
+      bloom: 'Create',
+      note: 'revise or transfer the lesson decision using bounded evidence',
+    },
   ].slice(0, count);
 }
 
@@ -1188,7 +1201,7 @@ export function assessProjectedKernelCoverage(payload, { requiredMcCount = 4 } =
 }
 
 export function buildLessonContentEnrichmentPrompt(courseMap, lessonIndices, options = {}) {
-  const questionsPerLesson = Math.max(5, Math.min(7, Number(options.questionsPerLesson) || 6));
+  const questionsPerLesson = resolveQuizQuestionTarget(options.questionsPerLesson);
   const keyTermsPerLesson = Math.max(3, Math.min(6, Number(options.keyTermsPerLesson) || 4));
   const lessons = summarizeLessonsForContent(
     courseMap,
@@ -1920,7 +1933,7 @@ export function parseLessonKernelResponse(text, { prompt, expectedLessonIds } = 
   const parsed = expandKeys('enrichment', parseJsonObject(text));
   if (!parsed || !Array.isArray(parsed.lessons)) return null;
   const groundingText = JSON.stringify(prompt?.lessons || []);
-  const itemPlan = Array.isArray(prompt?.itemPlan) ? prompt.itemPlan : buildQuizItemPlan(6);
+  const itemPlan = Array.isArray(prompt?.itemPlan) ? prompt.itemPlan : buildQuizItemPlan();
   const chunkLessonIds = new Set(
     (Array.isArray(expectedLessonIds) && expectedLessonIds.length > 0
       ? expectedLessonIds

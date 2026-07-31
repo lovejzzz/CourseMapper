@@ -74,6 +74,33 @@ const BAYESIAN_FALLBACK_QUIZ_FRAMES = [
     explanation:
       'The same evidence multiplies each team’s starting odds, so different priors can yield different posteriors.',
   },
+  {
+    bloom: 'Evaluate',
+    prompt:
+      'Evaluate this claim: “The posterior is high, so the evidence must have been strong.” Which response identifies the key limitation?',
+    correct:
+      'A high posterior can result from a strong prior even when the new evidence has a likelihood ratio near 1.',
+    distractors: [
+      'A high posterior always proves that the newest experiment was decisive.',
+      'The posterior contains no information from the prior odds.',
+      'Evidence strength is measured only by the posterior percentage.',
+    ],
+    explanation:
+      'Posterior odds combine prior odds and the likelihood ratio, so the posterior alone does not isolate the diagnostic strength of the new evidence.',
+  },
+  {
+    bloom: 'Create',
+    prompt:
+      'A second reliable experiment produces a 1:4 likelihood ratio against the hypothesis. How should a team revise posterior odds of 8:1 before transferring the decision to a new market?',
+    correct: 'Update to 2:1, then state that the new market still requires its own likelihood evidence.',
+    distractors: [
+      'Replace 8:1 with 1:4 and treat the new market as identical.',
+      'Keep 8:1 because a posterior cannot be updated twice.',
+      'Subtract four from eight to get 4:1 and apply it to every market.',
+    ],
+    explanation:
+      'Sequential Bayesian updating multiplies 8:1 by 1:4 to yield 2:1, while transfer to a different market requires evidence that the likelihood relationship still holds.',
+  },
 ];
 
 export function hasBayesianDecisionEvidence(text = '') {

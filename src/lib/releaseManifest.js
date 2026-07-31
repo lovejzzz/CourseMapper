@@ -3,6 +3,20 @@ import { CURRENT_RELEASE } from './currentRelease.js';
 
 export { CURRENT_RELEASE };
 
+const V01701_RELEASE = {
+  version: '0.17.01',
+  date: 'July 30, 2026',
+  title: 'Evidence Before Completeness',
+  highlights: [
+    'CourseIR repair no longer creates a source ledger, borrows its first row, or assigns a hard-coded SL1 to unsupported semantic atoms. Repair receipts are emitted only when references actually change.',
+    'Source recovery stays local: a lesson cannot lend coverage to another, and each rubric criterion can recover only from its linked outcomes and lessons.',
+    'Unusable Course FAQ generation now fails closed and remains retryable. CourseMapper neither builds a deterministic fallback artifact nor pads an underfilled FAQ with invented questions.',
+    'Quiz retry, readiness, and repair observations all use the configured question target. Underfilled lessons stay visible without being counted as deterministic repairs.',
+    'Deep grader V1.11.3 keeps document-invariant semantic-skeleton checks and emits stable policy codes for discipline density.',
+    'A frozen canonical receipt binds the observed 12-course untuned panel: 30 lens-default hits across 10 packages, 468 clusters, and 11.91% reader exposure. These characterize a boundary, not a quality win.',
+  ],
+};
+
 const V01700_RELEASE = {
   version: '0.17.00',
   date: 'July 30, 2026',
@@ -1273,6 +1287,45 @@ export const CURRENT_RELEASE_CHANGELOG = {
   highlights: CURRENT_RELEASE.highlights,
   sections: [
     {
+      label: 'Make the question target exact',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'One bounded resolver owns requested quiz counts from three through eight.',
+        'Planning, deterministic compilation, retry, validation, and readiness consume the same value.',
+        'The last two eight-question slots assess evidence limitations and revision transfer instead of repeating earlier frames.',
+      ],
+    },
+    {
+      label: 'Keep lesson coverage exact',
+      icon: 'AI',
+      color: 'blue',
+      items: [
+        'Compact materialized scopes preserve their original lesson numbers.',
+        'Retry merges use canonical lesson identity and restore numerical order.',
+        'Final quiz and FAQ validation blocks unkeyed, duplicate, missing, and out-of-scope lesson rows.',
+      ],
+    },
+    {
+      label: 'Report adaptive fallback honestly',
+      icon: 'PROOF',
+      color: 'violet',
+      items: [
+        'Successful evidence composition records a composed outcome and a normal stop.',
+        'Empty or failed composition records a fallback outcome while retaining zero model requests.',
+        'An empty adaptive response cannot parse as a completed lesson kernel.',
+      ],
+    },
+  ],
+};
+
+const V01701_RELEASE_CHANGELOG = {
+  version: V01701_RELEASE.version,
+  date: V01701_RELEASE.date,
+  title: V01701_RELEASE.title,
+  highlights: V01701_RELEASE.highlights,
+  sections: [
+    {
       label: 'Keep evidence gaps visible',
       icon: 'CHECK',
       color: 'emerald',
@@ -2079,6 +2132,7 @@ const V01678_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  V01701_RELEASE_CHANGELOG,
   V01700_RELEASE_CHANGELOG,
   V01699_RELEASE_CHANGELOG,
   V01698_RELEASE_CHANGELOG,

@@ -1043,6 +1043,8 @@ describe('Quiz Bank post-processing', () => {
     expect(result.addedQuestions).toBe(0);
     expect(result.target).toBe(8);
     expect(result.underfilledIndices).toEqual([0]);
+    expect(result.overfilledIndices).toEqual([]);
+    expect(result.mismatchedIndices).toEqual([0]);
     expect(result.data.quizzes[0].questions).toHaveLength(1);
 
     const validation = validateDeliverableGeneration('quizBank', result.data, {
@@ -1051,7 +1053,19 @@ describe('Quiz Bank post-processing', () => {
     });
     expect(validation.valid).toBe(false);
     expect(validation.retryableLessonIndices).toEqual([0]);
-    expect(validation.blockers).toContain('Quiz lesson 1 has 1/5 evidence-bound question(s).');
+    expect(validation.blockers).toContain('Quiz lesson 1 has 1/5 evidence-bound question(s); the count must be exact.');
+  });
+
+  it('reports overfilled quiz lessons as outside the exact target', () => {
+    const questions = Array.from({ length: 9 }, (_, index) => ({ question: `Question ${index + 1}` }));
+    const data = { quizzes: [{ lessonNumber: 1, questions }] };
+
+    const result = normalizeQuizBankQuestionCounts(data, 8);
+
+    expect(result.underfilledIndices).toEqual([]);
+    expect(result.overfilledIndices).toEqual([0]);
+    expect(result.mismatchedIndices).toEqual([0]);
+    expect(result.data).toBe(data);
   });
 
   it('repairs quiz point totals and emits a point-plan math check', () => {

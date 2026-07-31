@@ -221,6 +221,7 @@ describe('useStreamReader Scion boundary', () => {
       fullText: '{"courseName":"Digital Accessibility","lessons":[]}',
       finishReason: 'stop',
       adaptiveRoute: 'scion-evidence-compiler',
+      adaptiveComposition: 'composed',
       modelRequests: 0,
     });
     expect(mocks.composeAlgiResponse).toHaveBeenCalledWith(
@@ -241,12 +242,57 @@ describe('useStreamReader Scion boundary', () => {
     );
     expect(onApiCallEvent).toHaveBeenCalledWith(
       expect.objectContaining({
-        type: 'scionEvidenceComposed',
+        type: 'scionEvidenceComposition',
         label: 'Scion evidence composition complete',
+        outcome: 'composed',
         modelRequests: 0,
       }),
     );
     expect(onApiCallEvent).not.toHaveBeenCalledWith(expect.objectContaining({ type: 'failedCall' }));
+  });
+
+  it.each([
+    ['throws', () => mocks.composeAlgiResponse.mockRejectedValue(new Error('evidence composition failed')), 'failed'],
+    [
+      'returns empty text',
+      () =>
+        mocks.composeAlgiResponse.mockResolvedValue({
+          text: '',
+          coverage: { covered: 0, requested: 1, researched: 0, cachedResearch: 0 },
+        }),
+      'empty',
+    ],
+  ])('marks adaptive composition as fallback when the evidence composer %s', async (_label, arrange, state) => {
+    const capabilityError = Object.assign(new Error('This browser could not start a WebGPU adapter for Scion.'), {
+      code: 'SCION_WLLAMA_WEBGPU_ADAPTER',
+    });
+    mocks.runScionLocalCompletion.mockRejectedValue(capabilityError);
+    arrange();
+    const onApiCallEvent = vi.fn();
+
+    let result;
+    await act(async () => {
+      result = await reader.streamProvider('public', '', 'scion-public', 'System', 'Course: Design', {
+        task: 'blueprintEnrichment',
+        onApiCallEvent,
+      });
+    });
+
+    expect(result).toMatchObject({
+      fullText: '',
+      finishReason: 'fallback',
+      adaptiveRoute: 'scion-evidence-compiler',
+      adaptiveComposition: state,
+      modelRequests: 0,
+    });
+    expect(onApiCallEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'scionEvidenceComposition',
+        execution: 'browser-compiler',
+        outcome: state,
+      }),
+    );
+    expect(onApiCallEvent).not.toHaveBeenCalledWith(expect.objectContaining({ type: 'providerResponseDone' }));
   });
 
   it('uses explicit run consent even when persistent research storage is still off', async () => {

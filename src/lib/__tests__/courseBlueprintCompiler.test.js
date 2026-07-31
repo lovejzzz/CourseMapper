@@ -6545,7 +6545,7 @@ describe('courseBlueprintCompiler', () => {
     expect(compiled.quizBank.quizzes[0].blueprintGrounding.courseModalityProfile.primaryMode).toBe('policy-analysis');
     expect(compiled.quizBank.quizzes[0].learningTransferPlan.spacedPracticeCue).toContain('low-stakes quiz item');
     expect(compiled.quizBank.quizzes[0].teachingIntent.evidenceOfLearning).toContain('Use a concrete detail');
-    expect(compiled.quizBank.quizzes[0].questions).toHaveLength(6);
+    expect(compiled.quizBank.quizzes[0].questions).toHaveLength(8);
     expect(compiled.quizBank.quizzes[0].quizBlueprint).toMatchObject({
       source: 'source-grounded-quiz-plan',
       lessonBloom: 'Evaluate',
@@ -6561,7 +6561,13 @@ describe('courseBlueprintCompiler', () => {
     // (stem-verb derived), deduped and in taxonomy order. The prerequisite
     // diagnostic now asks a genuine recall question, so Remember belongs in
     // the coverage instead of being disguised as Understand.
-    expect(compiled.quizBank.quizzes[0].bloomsCoverage).toEqual(['Remember', 'Understand', 'Apply', 'Create']);
+    expect(compiled.quizBank.quizzes[0].bloomsCoverage).toEqual([
+      'Remember',
+      'Understand',
+      'Apply',
+      'Evaluate',
+      'Create',
+    ]);
     expect(compiled.quizBank.quizzes[0].quizBlueprint.questionPlan).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -6598,6 +6604,10 @@ describe('courseBlueprintCompiler', () => {
         role: 'transfer-synthesis',
       }),
     });
+    expect(compiled.quizBank.quizzes[0].questions.slice(6).map((question) => question.quizPlan?.role)).toEqual([
+      'evidence-limitation',
+      'revision-transfer',
+    ]);
     // v0.14.1 (5.4) Bloom honesty: every quiz's coverage line must equal the
     // set of its items' actual tags (the old pin demanded all five levels in
     // every quiz — the audited verbatim-coverage defect).
@@ -6609,7 +6619,7 @@ describe('courseBlueprintCompiler', () => {
         );
       }),
     ).toBe(true);
-    expect(compiled.quizBank.bankIndex).toHaveLength(36);
+    expect(compiled.quizBank.bankIndex).toHaveLength(48);
     expect(compiled.studyGuides.studyGuides).toHaveLength(6);
     expect(compiled.studyGuides.studyGuides[0].sourceGrounding.workloadEstimate).toBeTruthy();
     expect(compiled.studyGuides.studyGuides[0].learnerContextCue).toContain('Policy Topic 1');

@@ -42,6 +42,7 @@ import {
 import { buildTechnicalSessionSegments } from './courseCompilerTechnicalSessionPlans';
 import { finalizeCompiledDeliverableLanguage, shortArtifactReference } from './compiledLanguageFinalizer';
 import { getChunkCount } from './parallelGenerator';
+import { MAX_QUIZ_QUESTIONS_PER_LESSON, resolveQuizQuestionTarget } from './quizQuestionTarget';
 import { getCustomDeliverable } from './customDeliverableLibrary';
 import { buildObservationProtocol, detectSkyObservationCourse } from './observationProtocols';
 import {
@@ -19560,6 +19561,30 @@ function buildQuizQuestionPlan({ lesson, assessment = {}, targetCount = 6 }) {
       sourceSignal: lesson.learningTransferPlan?.transferTask || sourceSignal,
       use: 'exam synthesis',
     },
+    {
+      role: 'evidence-limitation',
+      bloom: evaluationBloom,
+      difficulty: 'Hard',
+      bloomSource: 'evidence boundary and success criteria',
+      sourceSignal:
+        lesson.evidencePlan?.evidenceRequirement ||
+        assessment.calibrationPlan?.biasCheck ||
+        lesson.successCriteria?.join('; ') ||
+        sourceSignal,
+      use: 'evidence limitation check',
+    },
+    {
+      role: 'revision-transfer',
+      bloom: transferBloom,
+      difficulty: 'Hard',
+      bloomSource: 'feedback, revision, and transfer plan',
+      sourceSignal:
+        lesson.learningTransferPlan?.transferTask ||
+        assessment.feedbackPlan?.revisionUse ||
+        lesson.successCriteria?.join('; ') ||
+        sourceSignal,
+      use: 'revision and transfer check',
+    },
   ];
 
   const usedObjectiveKeys = new Set();
@@ -19696,7 +19721,7 @@ function quizCorrectExplanation({ answer, concept, artifact, objective, lesson, 
   return variants[(lessonNumber + index) % variants.length];
 }
 
-function buildMultipleChoiceOptions({ lesson, index, concept, artifact, use, correct }) {
+function buildMultipleChoiceOptions({ lesson, index, concept, artifact, use, correct, includeMisconception = true }) {
   const correctLetter = correctLetterForQuestion(lesson, index);
   const sourceCue = humanizeClassroomSourceCue(lesson?.evidencePlan?.sourceCue, 'the assigned course materials');
   const lessonFocus = compactLessonFocusReference(lesson);
@@ -19746,7 +19771,7 @@ function buildMultipleChoiceOptions({ lesson, index, concept, artifact, use, cor
   // (Prof measured 9% catch vs a 60% bar). When the kernel authored a
   // misconception for the exact concept this stem asks about, lead the
   // distractor list with it, phrased as a plausible wrong choice.
-  const misconceptionDistractor = kernelMisconceptionDistractor(lesson, concept);
+  const misconceptionDistractor = includeMisconception ? kernelMisconceptionDistractor(lesson, concept) : '';
   const distractors = unique(misconceptionDistractor ? [misconceptionDistractor, ...rotated] : rotated, 3);
   let distractorIndex = 0;
   return {
@@ -19827,6 +19852,7 @@ function buildMultipleChoiceQuestion({
   correct,
   plan,
   artifactOverride = '',
+  includeMisconception = true,
 }) {
   const id = quizQuestionId(lesson, index);
   const artifact = stripTerminalPunctuation(artifactOverride || lesson.studentArtifact);
@@ -19837,6 +19863,7 @@ function buildMultipleChoiceQuestion({
     artifact,
     use,
     correct,
+    includeMisconception,
   });
   const specificity = lessonSpecificityAnchor(lesson);
   return withQuizPlan(
@@ -20050,6 +20077,16 @@ function buildSourceBoundRecoveryQuizAtoms({ lesson, blueprint, quizPlan, concep
           make: (objective) =>
             `Create a brief case for "${objective}" using only a relationship stated in ${sourceLabel}. Separate supplied details from your assumptions, explain the decision, and mark what still requires evidence.`,
         },
+        {
+          bloom: 'Evaluate',
+          make: (objective) =>
+            `Evaluate the strongest conclusion ${sourceLabel} can support about "${objective}." Quote the decisive wording, reject one tempting overclaim, and explain exactly where the supplied evidence stops.`,
+        },
+        {
+          bloom: 'Create',
+          make: (objective) =>
+            `Revise a claim about "${objective}" after a reviewer challenges its evidence. Use one exact statement from ${sourceLabel}, narrow the claim to what that statement supports, and specify the next fact needed before transferring it to a new case.`,
+        },
       ]
     : [
         {
@@ -20081,6 +20118,16 @@ function buildSourceBoundRecoveryQuizAtoms({ lesson, blueprint, quizPlan, concep
           bloom: 'Create',
           make: (objective) =>
             `Create a new worked example for "${objective}" using only a relationship, rule, or method stated in ${sourceLabel}. Show the inputs, reasoning, and result; mark every assumption the source does not supply; then compare your example with one source example.`,
+        },
+        {
+          bloom: 'Evaluate',
+          make: (objective) =>
+            `Evaluate the strongest conclusion ${sourceLabel} supports about "${objective}." Cite the decisive worked step, reject one plausible overclaim, and identify the evidence boundary that controls the judgment.`,
+        },
+        {
+          bloom: 'Create',
+          make: (objective) =>
+            `Revise a solution or explanation for "${objective}" after receiving evidence-based feedback. Preserve the supported rule from ${sourceLabel}, correct one unsupported step, and describe the new evidence required before transferring the method to a different case.`,
         },
       ];
 
@@ -20142,7 +20189,7 @@ export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
       limit: 1,
     })[0] || concept;
   const artifact = compactLessonArtifactReference(lesson);
-  const targetCount = Math.max(5, Math.min(7, Number(options.questionsPerLesson) || 6));
+  const targetCount = resolveQuizQuestionTarget(options.questionsPerLesson);
   const assessment =
     options.assessment ||
     blueprint.assessments?.find((item) => (item.lessonNumbers || []).includes(lesson.lessonNumber)) ||
@@ -20167,7 +20214,7 @@ export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
   const quizPlan = buildQuizQuestionPlan({
     lesson,
     assessment,
-    targetCount: 6,
+    targetCount: MAX_QUIZ_QUESTIONS_PER_LESSON,
   });
   const hasCompleteAuthoredMc = (lesson?.enrichment?.quizItems || []).some(
     (item) => item?.extension !== true && enrichedItemIsCompleteMC(item),
@@ -20321,6 +20368,34 @@ export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
                   lens,
                   plan: quizPlan[5],
                 }),
+            buildMultipleChoiceQuestion({
+              lesson,
+              index: 6,
+              bloom: quizPlan[6].bloom,
+              difficulty: quizPlan[6].difficulty,
+              objective: quizPlan[6].objective,
+              concept,
+              use: quizPlan[6].use,
+              prompt: `In ${lessonFocus}, a conclusion about ${concept} is based on ${evidenceCue}. Which revision best keeps the claim within the available evidence?`,
+              correct: `State the conclusion that the cited ${evidenceCue} detail supports, identify what it does not establish, and name the evidence needed to extend the claim.`,
+              plan: quizPlan[6],
+              artifactOverride: quizArtifact,
+              includeMisconception: false,
+            }),
+            buildMultipleChoiceQuestion({
+              lesson,
+              index: 7,
+              bloom: quizPlan[7].bloom,
+              difficulty: quizPlan[7].difficulty,
+              objective: quizPlan[7].objective,
+              concept: secondary,
+              use: quizPlan[7].use,
+              prompt: `After feedback in ${lessonFocus}, which next step best transfers ${secondary} from ${quizArtifactDefinite} to a new case without overclaiming?`,
+              correct: `Apply ${secondary} to one inspectable detail in the new case, explain the resulting ${decisionNoun}, and state the boundary of the comparison.`,
+              plan: quizPlan[7],
+              artifactOverride: quizArtifact,
+              includeMisconception: false,
+            }),
           ];
   const framed = atoms.slice(0, targetCount).map((atom, index) => ({ ...atom, id: quizQuestionId(lesson, index) }));
   // v0.14.1 (5.4) Bloom honesty: the tag follows the stem verb of the FINAL
@@ -20389,19 +20464,19 @@ export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
       tags: (atom.tags || []).map((tag) => (tag === atom.bloomsLevel ? stemLevel : tag)),
     };
   });
-  // v0.14.3 D3: 6 → 8 items where the bank affords it.
-  return appendBankExtensionQuizAtoms(bloomAligned, lesson);
+  // Prefer admitted authored bank items for the final two slots, while the
+  // deterministic frames guarantee the configured count when no bank exists.
+  return appendBankExtensionQuizAtoms(bloomAligned, lesson, targetCount);
 }
 
-// ── v0.14.3 D3: extension quiz items from genuinely unused bank items ──────
+// ── Authored bank items for the final configured slots ──────────────────────
 // The kernel projection flags up to two unused mcBank items (`extension:
-// true`, indices after the 6-slot plan) once the planned slots and the
-// D1(b) walkthrough are served — the linker's course-level cursor already
-// counted them as consumed, so nothing here can duplicate another lesson.
-// NO new frames exist: with no flagged items the quiz stays at 6, and the
-// header totals (points, minutes, Bloom coverage) derive from the final
-// question list as always.
-function appendBankExtensionQuizAtoms(atoms, lesson) {
+// true`, indices after the six historical core slots). When the configured
+// target is seven or eight, those admitted items replace the deterministic
+// limitation/transfer frames. The result always has exactly the selected
+// count: authored enrichment improves texture without changing the contract.
+function appendBankExtensionQuizAtoms(atoms, lesson, targetCount) {
+  const extensionSlots = Math.max(0, Math.min(2, resolveQuizQuestionTarget(targetCount) - 6));
   const extensions = (lesson?.enrichment?.quizItems || [])
     .filter(
       (item) =>
@@ -20412,16 +20487,16 @@ function appendBankExtensionQuizAtoms(atoms, lesson) {
         Array.isArray(item.options) &&
         item.options.length === 4,
     )
-    .slice(0, 2);
-  if (extensions.length === 0) return atoms;
+    .slice(0, extensionSlots);
+  if (extensions.length === 0) return atoms.slice(0, resolveQuizQuestionTarget(targetCount));
   const lessonObjectives = (lesson.outcomes || [])
     .map((objective) => normalizeObjectiveText(objective))
     .filter(Boolean);
-  const extended = [...atoms];
+  const extended = atoms.slice(0, resolveQuizQuestionTarget(targetCount));
   extensions.forEach((enriched, ordinal) => {
-    const index = Number.isInteger(enriched.index) ? enriched.index : atoms.length + ordinal;
+    const replacementIndex = 6 + ordinal;
     // Preserve the deterministic answer-letter rotation the framed items use.
-    const answer = correctLetterForQuestion(lesson, index);
+    const answer = correctLetterForQuestion(lesson, replacementIndex);
     const targetSlot = QUIZ_ANSWER_LETTERS.indexOf(answer);
     const answerIndex = Number(enriched.answerIndex) || 0;
     const keyText = enriched.options[answerIndex] || enriched.options[0];
@@ -20438,47 +20513,47 @@ function appendBankExtensionQuizAtoms(atoms, lesson) {
         }))
         .sort((a, b) => b.score - a.score || a.objectiveIndex - b.objectiveIndex)[0]?.candidate ||
       objectiveForLesson(lesson.title, lesson.keyConcepts);
-    extended.push(
-      withQuizPlan(
-        {
-          id: quizQuestionId(lesson, index),
-          type: 'multiple_choice',
-          bloomsLevel: bloom,
-          difficulty: 'Medium',
-          estimatedMinutes: 2,
-          points: 2,
-          objectiveAligned: objective,
-          intendedUse: `Retrieval practice extension for ${lesson.title}; drawn from the lesson's unused authored item bank.`,
-          question: humanizeQuizText(enriched.question),
-          options: ordered.map((text, optionIndex) => labelQuizOption(QUIZ_ANSWER_LETTERS[optionIndex], text)),
-          answer,
-          ...(enriched.distractorRationales?.length > 0
-            ? {
-                distractorRationale: humanizeQuizText(enriched.distractorRationales.join(' ')),
-              }
-            : {}),
-          ...(enriched.explanation
-            ? {
-                explanation: humanizeQuizText(`${answer}. ${enriched.explanation}`),
-              }
-            : {}),
-          tags: quizTags(lesson, 'multiple_choice', bloom, 'retrieval practice'),
-          enrichmentSource: 'kernel-bank-extension',
-        },
-        {
-          source: 'source-grounded-quiz-plan',
-          role: 'bank-extension-retrieval',
-          bloom,
-          difficulty: 'Medium',
-          use: 'retrieval practice extension',
-          questionIndex: index,
-          bloomSource: 'authored bank item stem',
-          sourceSignal: enriched.question,
-          objectiveAlignmentStrategy: 'stem-objective-lexical-match',
-          objectiveAlignmentRationale:
-            'Extension item aligns to the lesson objective sharing the most content terms with its authored stem.',
-        },
-      ),
+    extended[replacementIndex] = withQuizPlan(
+      {
+        id: quizQuestionId(lesson, replacementIndex),
+        type: 'multiple_choice',
+        bloomsLevel: bloom,
+        difficulty: 'Medium',
+        estimatedMinutes: 2,
+        points: 2,
+        objectiveAligned: objective,
+        intendedUse: `Retrieval practice extension for ${lesson.title}; drawn from the lesson's unused authored item bank.`,
+        question: humanizeQuizText(enriched.question),
+        options: ordered.map((text, optionIndex) => labelQuizOption(QUIZ_ANSWER_LETTERS[optionIndex], text)),
+        answer,
+        ...(enriched.distractorRationales?.length > 0
+          ? {
+              distractorRationale: humanizeQuizText(enriched.distractorRationales.join(' ')),
+            }
+          : {}),
+        ...(enriched.explanation
+          ? {
+              explanation: humanizeQuizText(`${answer}. ${enriched.explanation}`),
+            }
+          : {}),
+        tags: quizTags(lesson, 'multiple_choice', bloom, 'retrieval practice'),
+        enrichmentSource: 'kernel-bank-extension',
+      },
+      {
+        source: 'source-grounded-quiz-plan',
+        role: 'bank-extension-retrieval',
+        bloom,
+        difficulty: 'Medium',
+        use: 'retrieval practice extension',
+        questionIndex: replacementIndex,
+        bloomSource: 'authored bank item stem',
+        sourceSignal: Number.isInteger(enriched.index)
+          ? `Authored bank item ${enriched.index + 1}: ${enriched.question}`
+          : enriched.question,
+        objectiveAlignmentStrategy: 'stem-objective-lexical-match',
+        objectiveAlignmentRationale:
+          'Extension item aligns to the lesson objective sharing the most content terms with its authored stem.',
+      },
     );
   });
   // D3 invariant: re-run the deterministic answer-key spread guard across the
@@ -21479,6 +21554,44 @@ function buildAdmittedKernelAssessmentFillers({ lesson, blueprint, quizPlan, ass
   };
   fillers[3] = weeklyize(buildExamShortAnswerItem({ ...examArgs, ordinal: 4 }), 3);
   fillers[5] = weeklyize(buildExamEssayItem({ ...examArgs, ordinal: 6 }), 5);
+  const limitationItem = buildAdmittedKernelEvidenceItem({
+    lesson,
+    blueprint,
+    quizPlan,
+    index: 6,
+    offset: 3,
+  });
+  fillers[6] = limitationItem
+    ? {
+        ...limitationItem,
+        bloomsLevel: 'Evaluate',
+        question: `Evaluate the evidence boundary before revising this ${lesson.title} claim. ${limitationItem.question}`,
+        quizPlan: {
+          ...limitationItem.quizPlan,
+          role: 'admitted-kernel-evidence-limitation',
+          bloom: 'Evaluate',
+        },
+      }
+    : null;
+  const transferItem = buildAdmittedKernelEvidenceItem({
+    lesson,
+    blueprint,
+    quizPlan,
+    index: 7,
+    offset: 4,
+  });
+  fillers[7] = transferItem
+    ? {
+        ...transferItem,
+        bloomsLevel: 'Create',
+        question: `Revise and transfer the supported ${lesson.title} conclusion to a new case without widening it. ${transferItem.question}`,
+        quizPlan: {
+          ...transferItem.quizPlan,
+          role: 'admitted-kernel-revision-transfer',
+          bloom: 'Create',
+        },
+      }
+    : null;
   return fillers;
 }
 
@@ -21849,11 +21962,12 @@ function buildReviewWeekQuizAtoms(lesson, blueprint, options = {}) {
   const usedStems = options.usedStems instanceof Set ? options.usedStems : new Set();
   const reviewFocus = stripLessonPrefix(lesson.title);
   const reviewArtifact = safeLessonArtifact(lesson);
+  const targetCount = resolveQuizQuestionTarget(options.questionsPerLesson);
   const sampled = sampleLessonsAcrossRange(covered, 4);
   const quizPlan = buildQuizQuestionPlan({
     lesson,
     assessment: options.assessment || {},
-    targetCount: 6,
+    targetCount: MAX_QUIZ_QUESTIONS_PER_LESSON,
   });
   const planFor = (slot, sourceLesson) => ({
     ...quizPlan[slot],
@@ -21964,6 +22078,48 @@ function buildReviewWeekQuizAtoms(lesson, blueprint, options = {}) {
       },
       planFor(5, covered[covered.length - 1]),
     ),
+    withQuizPlan(
+      {
+        id: quizQuestionId(lesson, 6),
+        type: 'short_answer',
+        bloomsLevel: 'Evaluate',
+        difficulty: 'Hard',
+        estimatedMinutes: 5,
+        points: 4,
+        objectiveAligned: pairB.outcomes?.[0] || quizPlan[6].objective,
+        intendedUse: `Evidence-bound review check for ${reviewFocus}; use the response to identify overconfident transfer before ${reviewArtifact}.`,
+        question: `Choose one conclusion from ${span} that your current review evidence does not fully support. Name the evidence boundary, then state the narrower conclusion you can defend before ${reviewArtifact}.`,
+        answer: `A complete answer identifies a specific covered conclusion, names the missing or limited evidence, and revises the claim so it stays within material actually reviewed.`,
+        sampleAnswer: `My review supports applying ${conceptB} to the covered example, but it does not yet support transferring the same result to a new case. I would keep the claim tied to the covered evidence until I verify the new case.`,
+        explanation:
+          'The item separates confident retrieval from warranted transfer by requiring an explicit evidence boundary.',
+        scoringGuidance:
+          'Full credit requires a specific conclusion, an accurate evidence limitation, and a narrower defensible revision.',
+        tags: unique(['review', 'evidence limitation', conceptB, 'short answer'], 8),
+      },
+      planFor(6, pairB),
+    ),
+    withQuizPlan(
+      {
+        id: quizQuestionId(lesson, 7),
+        type: 'essay',
+        bloomsLevel: 'Create',
+        difficulty: 'Hard',
+        estimatedMinutes: 10,
+        points: 8,
+        objectiveAligned: covered[covered.length - 1].outcomes?.[0] || quizPlan[7].objective,
+        intendedUse: `Revision-transfer synthesis for ${reviewFocus}; use the plan to guide the final preparation cycle for ${reviewArtifact}.`,
+        question: `Revise your preparation plan for ${reviewArtifact} after receiving feedback that one comparison across ${span} overreaches the evidence. Preserve one supported connection, narrow one unsupported claim, and design one new check that would justify transfer to a fresh case.`,
+        rubricHints:
+          'Strong responses preserve an accurate covered connection, identify and narrow an overclaim, and propose a concrete evidence check before transfer.',
+        sampleAnswer: `I would preserve the supported connection between ${conceptA} and ${conceptB} in the covered examples, narrow the claim to those examples, and test the same reasoning on a fresh course case before using it in ${reviewArtifact}.`,
+        explanation:
+          'The task makes revision visible: supported reasoning remains, unsupported scope is removed, and new evidence is planned.',
+        scoringGuidance: `Full credit requires one preserved connection, one bounded revision, and one feasible transfer check tied to ${lens.evidenceNoun}.`,
+        tags: unique(['review', 'revision', 'transfer', conceptA, conceptB], 8),
+      },
+      planFor(7, covered[covered.length - 1]),
+    ),
   ];
   // Re-id under the review lesson's own namespace (the MC builder minted ids
   // under each SOURCE lesson, which would collide with that lesson's weekly
@@ -21972,12 +22128,19 @@ function buildReviewWeekQuizAtoms(lesson, blueprint, options = {}) {
   // Finally, the deterministic answer-key spread guard re-rotates degenerate
   // keys (hard requirement: no review quiz ships with nearly all MC items on
   // one letter, whatever the lesson configuration).
-  return spreadReviewQuizAnswerKeys(
-    atoms
-      .map((atom, index) => ({ ...atom, id: quizQuestionId(lesson, index) }))
-      .filter((atom) => !usedStems.has(atom.question)),
-    lesson,
-  );
+  const selected = [];
+  const selectedStems = new Set(usedStems);
+  for (const atom of atoms) {
+    if (selected.length >= targetCount) break;
+    let question = atom.question;
+    if (selectedStems.has(question)) {
+      const role = cleanText(atom.quizPlan?.role || atom.intendedUse || 'the covered evidence');
+      question = `${stripTerminalPunctuation(question)} In your response, emphasize ${lowercaseSentenceLead(role)} for ${reviewFocus}.`;
+    }
+    selectedStems.add(question);
+    selected.push({ ...atom, question, id: quizQuestionId(lesson, selected.length) });
+  }
+  return spreadReviewQuizAnswerKeys(selected, lesson);
 }
 
 // ── v0.14.1 round 2 (bug 1): review-quiz answer-key degeneration guard ──────
@@ -22463,6 +22626,7 @@ function compileQuizBank(blueprint, config = {}) {
             covered: reviewSources,
             assessment,
             usedStems,
+            questionsPerLesson: config.questionsPerLesson,
           })
         : buildQuizAtomsForLesson(lesson, blueprint, { ...config, assessment })
     ).map((question) => makeQuizQuestionLearnerReadable(question));

@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — cross-checked, exportable, and fully editable. Then use the AI agent to inspect and revise the generated workspace through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.17.01
+**Current release:** v0.17.02
 
 ---
 
@@ -32,7 +32,7 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site presents **Provider: Scion**, a disabled API control because no key is needed, and one product model: **Scion V0.17.01**. Scion is fully free—and always will be. That label names EduTool's complete course-building system; it is not a claim that EduTool trained or hosts a new foundation model. Scion pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its identity and metadata, and runs it through the packaged WebGPU runtime only when the task needs neural authoring. Before that boundary, Scion can preserve an exact instructor-provided lesson sequence and prepare compact source-anchored evidence from uploaded material, the shipped Curriculum Genome, the local research cache, and—only after opt-in—current public sources. A complete explicit structure plus exact source ledger reaches the shared compiler without importing or activating the model runtime; incomplete or ambiguous contracts retain the browser-local Gemma fallback.
+The hosted site presents **Provider: Scion**, a disabled API control because no key is needed, and one product model: **Scion V0.17.02**. Scion is fully free—and always will be. That label names EduTool's complete course-building system; it is not a claim that EduTool trained or hosts a new foundation model. Scion pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its identity and metadata, and runs it through the packaged WebGPU runtime only when the task needs neural authoring. Before that boundary, Scion can preserve an exact instructor-provided lesson sequence and prepare compact source-anchored evidence from uploaded material, the shipped Curriculum Genome, the local research cache, and—only after opt-in—current public sources. A complete explicit structure plus exact source ledger reaches the shared compiler without importing or activating the model runtime; incomplete or ambiguous contracts retain the browser-local Gemma fallback.
 
 In plain language, **Scion Vx is the whole local authoring system, not just the base model**:
 
@@ -61,7 +61,32 @@ V0.16.91 gives each admitted lesson one canonical evidence brief and reuses that
 
 The historical research architecture and limitations remain documented in [docs/ALGI_RESEARCH_FIRST_ARCHITECTURE.md](docs/ALGI_RESEARCH_FIRST_ARCHITECTURE.md) and [docs/ALGI_V0_PIPELINE_ASSESSMENT.md](docs/ALGI_V0_PIPELINE_ASSESSMENT.md).
 
-### V0.17.01 current release — evidence before completeness
+### V0.17.02 current release — exact questions, exact lessons
+
+V0.17.02 resolves two output-contract contradictions exposed by a code-only
+Roundtable audit. The configured quiz target is now one bounded value across
+planning, compilation, retry, validation, and readiness. Requests from three
+through eight produce exactly that many questions, and the final two slots are
+distinct evidence-limitation and revision-transfer tasks rather than generic
+padding. Specialized Bayesian, music-theory, language, source-bound, and
+review-week routes carry the same eight-question contract.
+
+Per-lesson delivery is exact too. Materialized lesson identity survives compact
+scopes and retry merges, while final quiz and FAQ validation rejects unkeyed,
+duplicate, missing, and out-of-scope coverage even when the aggregate row count
+looks correct. Adaptive evidence composition also reports empty or failed
+composition as a fallback; empty text cannot masquerade as a completed lesson
+kernel.
+
+This is deterministic engineering evidence, not a claim that automation proved
+factual or pedagogical quality. Gemma weights and the inactive adapter are
+unchanged, and the release does not claim browser-runtime digest enforcement,
+instructor validation, accessibility certification, or classroom outcomes.
+The discussion, independent audit, implementation decisions, and executable
+proof are recorded in
+[docs/V0.17.02_SCION_QUALITY_AUDIT.md](docs/V0.17.02_SCION_QUALITY_AUDIT.md).
+
+### V0.17.01 historical release — evidence before completeness
 
 V0.17.01 is a focused generated-output quality release shaped by a six-turn,
 code-only Roundtable audit and an independent implementation review. CourseIR

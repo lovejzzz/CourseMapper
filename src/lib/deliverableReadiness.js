@@ -4,6 +4,7 @@ import { isDeliverableNotApplicable } from './deliverableApplicability';
 import { deriveEvaluateDesign } from './leanCourseMap.js';
 import { findPublishabilityPlaceholders } from './publishabilityPlaceholders';
 import { normalizeReadinessIssue, normalizeReadinessIssues } from './readinessIssueSchema';
+import { resolveQuizQuestionTarget } from './quizQuestionTarget';
 import {
   normalizeAssignmentAssessmentAlignment,
   normalizeAssignmentGradeWeights,
@@ -2188,15 +2189,15 @@ export function repairWorkspaceReadiness({
     const config = deliverableConfig?.[featureId] || {};
 
     if (featureId === 'quizBank') {
-      const target = Math.max(1, Math.min(8, Number(config.questionsPerLesson) || 8));
+      const target = resolveQuizQuestionTarget(config);
       const countCheck = normalizeQuizBankQuestionCounts(entry.data, target);
-      if (countCheck.underfilledIndices.length > 0) {
+      if (countCheck.mismatchedIndices.length > 0) {
         observations.push({
           featureId,
           label: labelFor(featureId),
-          lessonIndices: countCheck.underfilledIndices,
+          lessonIndices: countCheck.mismatchedIndices,
           target,
-          message: `${labelFor(featureId)} has ${countCheck.underfilledIndices.length} lesson(s) below the configured ${target}-question target.`,
+          message: `${labelFor(featureId)} has ${countCheck.mismatchedIndices.length} lesson(s) outside the exact configured ${target}-question target.`,
         });
       }
     }
@@ -2551,7 +2552,7 @@ function checkPerLessonFeature(featureId, data, courseMap, lessonIndices, issues
 
     if (featureId === 'quizBank') {
       const questions = asArray(item.questions || item.qs);
-      const target = Math.max(1, Math.min(8, Number(config.questionsPerLesson) || 8));
+      const target = resolveQuizQuestionTarget(config);
       if (questions.length < target) {
         issues.push(
           makeIssue(READINESS_WARNING, featureId, `${lessonTitle} quiz bank has fewer than ${target} questions.`),

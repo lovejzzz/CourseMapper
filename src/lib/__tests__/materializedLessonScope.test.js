@@ -5,6 +5,7 @@ import {
   preserveMaterializedLessonNumbers,
   preserveDeliverableLessonNumbers,
   remapLessonFilterToMaterializedScope,
+  resolveExpectedDeliverableLessonNumbers,
   resolveMaterializedSourceLessonFilter,
 } from '../materializedLessonScope';
 
@@ -103,6 +104,35 @@ describe('preserveDeliverableLessonNumbers', () => {
       expect.objectContaining({ lessonTitle: 'Lesson 5: Topic 5', lessonNumber: 5 }),
     );
   });
+
+  it('canonicalizes every identity-bearing field in a compact scoped result', () => {
+    const parsed = {
+      items: [
+        {
+          sourceLessonNumber: 2,
+          lessonNumber: 2,
+          lessonIndex: 1,
+          lessonTitle: 'Lesson 3: Contradictory title',
+          weekNumber: 'Week 4',
+          title: 'Quiz for Lesson 3',
+        },
+      ],
+    };
+    const courseMap = {
+      lessons: Array.from({ length: 6 }, (_, index) => ({ title: `Lesson ${index + 1}: Topic ${index + 1}` })),
+    };
+
+    expect(preserveDeliverableLessonNumbers(parsed, 'items', [4], courseMap).items[0]).toEqual(
+      expect.objectContaining({
+        sourceLessonNumber: 5,
+        lessonNumber: 5,
+        lessonIndex: 4,
+        lessonTitle: 'Lesson 5: Topic 5',
+        weekNumber: 'Week 5',
+        title: 'Quiz for Lesson 5',
+      }),
+    );
+  });
 });
 
 describe('prepareMaterializedPackageScope', () => {
@@ -167,6 +197,26 @@ describe('prepareMaterializedPackageScope', () => {
 
     expect(result.sourceLessonFilter).toEqual([4]);
     expect(result.courseMap.lessons[0].sourceLessonNumber).toBe(5);
+  });
+});
+
+describe('resolveExpectedDeliverableLessonNumbers', () => {
+  it('uses source identities for a compact materialized workspace', () => {
+    const courseMap = {
+      lessons: [{ title: 'Lesson 5: Marketing Concept', sourceLessonNumber: 5 }],
+    };
+
+    expect(resolveExpectedDeliverableLessonNumbers(courseMap, null)).toEqual([5]);
+    expect(resolveExpectedDeliverableLessonNumbers(courseMap, [0])).toEqual([5]);
+  });
+
+  it('keeps ordinary full-course and explicit subset identities', () => {
+    const courseMap = {
+      lessons: Array.from({ length: 6 }, (_, index) => ({ title: `Lesson ${index + 1}: Topic` })),
+    };
+
+    expect(resolveExpectedDeliverableLessonNumbers(courseMap, null)).toEqual([1, 2, 3, 4, 5, 6]);
+    expect(resolveExpectedDeliverableLessonNumbers(courseMap, [1, 4])).toEqual([2, 5]);
   });
 });
 

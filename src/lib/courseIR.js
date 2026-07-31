@@ -8,6 +8,7 @@ import { classifyAssessmentKind } from './courseGraph/deriveFromCourseMap.js';
 import { dedupeNumberedAssessmentEcho, stripListPrefix } from './compilerText.js';
 import { validateCourseGraph } from './courseGraph/schema.js';
 import { buildQuizItemPlan } from './blueprintEnrichmentPass.js';
+import { resolveQuizQuestionTarget } from './quizQuestionTarget.js';
 import { projectKernelToSurfaces } from './kernelProjection.js';
 import { resolveProviderMaxOutputTokens } from './adaptiveProviderBatching.js';
 import { estimateTokens, getModelLimit } from './tokenEstimator.js';
@@ -2119,7 +2120,7 @@ function lessonKernelFromIR(ir, lesson, fallbackIndex = 0) {
 export function courseIRToEnrichmentOverlay(rawIR = {}) {
   const ir = normalizeCourseIR(rawIR);
   const lessonContent = {};
-  const itemPlan = buildQuizItemPlan(6);
+  const itemPlan = buildQuizItemPlan(resolveQuizQuestionTarget());
   for (const [index, lesson] of ir.lessons.entries()) {
     const kernel = lessonKernelFromIR(ir, lesson, index);
     const payload = projectKernelToSurfaces(kernel, { itemPlan });

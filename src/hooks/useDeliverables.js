@@ -83,11 +83,11 @@ import {
 } from '../lib/publicScionProvider';
 import { analyzeSourceBriefConstraints, resolveRequestedClassSessionMinutes } from '../lib/sourceBriefConstraints';
 import {
-  inferMaterializedSourceLessonFilter,
   preserveDeliverableLessonNumbers,
-  resolveMaterializedSourceLessonFilter,
+  resolveExpectedDeliverableLessonNumbers,
 } from '../lib/materializedLessonScope';
 import { resolveAlgiEnrichmentBatchSize, supportsModelVoicePass } from '../lib/algiIdentity';
+import { resolveQuizQuestionTarget } from '../lib/quizQuestionTarget';
 
 const PROVIDER_CALL_EVENT_TYPES = new Set([
   'deliverableChunkCall',
@@ -132,8 +132,7 @@ async function loadInstructorPreferenceProfile() {
 // This function patches each item to use the correct original lesson numbers.
 function patchScopeNumbering(parsed, featureId, scopeIndices, courseMap) {
   const k = getArrayKey(featureId, parsed);
-  const inferredSourceScope = inferMaterializedSourceLessonFilter(courseMap, {}, null);
-  const sourceScope = resolveMaterializedSourceLessonFilter(courseMap, scopeIndices, inferredSourceScope);
+  const sourceScope = resolveExpectedDeliverableLessonNumbers(courseMap, scopeIndices).map((number) => number - 1);
   return preserveDeliverableLessonNumbers(parsed, k, sourceScope, courseMap);
 }
 
@@ -607,6 +606,7 @@ export default function useDeliverables({
 
       const lessonCount = (courseMap.lessons || []).length;
       const lessonIndices = scopeIndices ?? Array.from({ length: lessonCount }, (_, i) => i);
+      const expectedLessonNumbers = resolveExpectedDeliverableLessonNumbers(courseMap, scopeIndices);
       const repairRoundLimit = getRepairRoundLimit(generationPlan);
       const repairRetryCallsUsed = new Map();
       const retryBlockedFeatures = new Map();
@@ -2864,6 +2864,7 @@ export default function useDeliverables({
           }
           const validation = validateDeliverableGeneration(fid, data, {
             expectedLessonCount: lessonIndices.length,
+            expectedLessonNumbers,
             config: getGenerationConfig(fid),
           });
           if (!validation.valid) {
@@ -3325,9 +3326,14 @@ export default function useDeliverables({
               }
             }
 
+            const initialValidationData =
+              featureId === 'quizBank' || featureId === 'courseFaq'
+                ? patchScopeNumbering(parsedForChunk, featureId, scopeIndices, courseMap)
+                : parsedForChunk;
             const initialValidation = isWholeCourse
-              ? validateDeliverableGeneration(featureId, parsedForChunk, {
+              ? validateDeliverableGeneration(featureId, initialValidationData, {
                   expectedLessonCount: lessonIndices.length,
+                  expectedLessonNumbers,
                   config,
                 })
               : { valid: true, blockers: [] };
@@ -3572,6 +3578,7 @@ export default function useDeliverables({
           let finalData = mergeChunkResults(fid, chunks);
           let validation = validateDeliverableGeneration(fid, finalData, {
             expectedLessonCount: expectedCount,
+            expectedLessonNumbers,
             config,
           });
           let retryRound = 0;
@@ -3670,6 +3677,7 @@ export default function useDeliverables({
                 }
                 const candidateValidation = validateDeliverableGeneration(fid, candidate, {
                   expectedLessonCount: expectedCount,
+                  expectedLessonNumbers,
                   config,
                 });
                 if (candidateValidation.valid) {
@@ -4100,20 +4108,20 @@ export default function useDeliverables({
 
         // Per-lesson completeness: retry any quiz that misses the configured target.
         if (fid === 'quizBank' && mergedArr.length > 0) {
-          const configuredQuizTarget = Math.max(1, Number(getGenerationConfig(fid).questionsPerLesson) || 8);
+          const configuredQuizTarget = resolveQuizQuestionTarget(getGenerationConfig(fid));
           const quizCountCheck = normalizeQuizBankQuestionCounts(merged, configuredQuizTarget);
           questionRetryBaseline = merged;
-          const truncatedQuizIndices = quizCountCheck.underfilledIndices.map((index) => lessonIndices[index] ?? index);
+          const truncatedQuizIndices = quizCountCheck.mismatchedIndices.map((index) => lessonIndices[index] ?? index);
           if (truncatedQuizIndices.length > 0) {
             removedUnderfilledForRetry = true;
             const label = getFeatureLabel(fid);
             appendLog(
-              `⚠ ${label}: ${truncatedQuizIndices.length} lesson(s) have < ${configuredQuizTarget} questions — retrying`,
+              `⚠ ${label}: ${truncatedQuizIndices.length} lesson(s) do not have exactly ${configuredQuizTarget} questions — retrying`,
               'warn',
             );
             // Remove truncated lessons so the retry loop below will re-generate them
-            const underfilled = new Set(quizCountCheck.underfilledIndices);
-            mergedArr = mergedArr.filter((_, index) => !underfilled.has(index));
+            const mismatched = new Set(quizCountCheck.mismatchedIndices);
+            mergedArr = mergedArr.filter((_, index) => !mismatched.has(index));
             merged = { ...merged, [arrayKey]: mergedArr };
           }
         }
@@ -4904,6 +4912,7 @@ export default function useDeliverables({
         const config = getGenerationConfig(fid);
         const finalValidation = validateDeliverableGeneration(fid, finalData, {
           expectedLessonCount: expectedCount,
+          expectedLessonNumbers,
           config,
         });
         if (!finalValidation.valid) {
