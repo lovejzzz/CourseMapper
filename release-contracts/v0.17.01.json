@@ -9,6 +9,7 @@
       "npm run test:blueprint:quality:fast",
       "npm run audit:contract:pr",
       "npm run audit:evaluation:pr",
+      "npm run audit:automated-readiness",
       "npm run audit:texture:cross-package:untuned",
       "npm run format:check",
       "npm run lint",
@@ -58,11 +59,14 @@
         "src/lib/quality/sourceEvidence.js",
         "src/lib/quality/automatedReadinessSignal.js",
         "src/lib/quality/__tests__/automatedReadinessSignal.test.js",
+        "scripts/automatedReadinessBenchmarkAudit.mjs",
+        "evaluation/automated-readiness/v1/cases.json",
         "src/lib/sourceBackedJudgment.js",
         "src/lib/__tests__/sourceBackedJudgment.test.js"
       ],
       "proofCommands": [
-        "npx vitest run src/lib/__tests__/courseIR.test.js src/lib/quality/__tests__/sourceEvidence.test.js src/lib/quality/__tests__/automatedReadinessSignal.test.js src/lib/__tests__/sourceBackedJudgment.test.js"
+        "npx vitest run src/lib/__tests__/courseIR.test.js src/lib/quality/__tests__/sourceEvidence.test.js src/lib/quality/__tests__/automatedReadinessSignal.test.js src/lib/__tests__/sourceBackedJudgment.test.js",
+        "npm run audit:automated-readiness"
       ],
       "proofScopes": ["unit", "compiled-output"]
     },

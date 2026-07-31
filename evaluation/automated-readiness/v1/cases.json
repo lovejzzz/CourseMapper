@@ -55,7 +55,7 @@
       "expected": {
         "minimum": 55,
         "maximum": 63,
-        "band": "strong-automated-signal"
+        "band": "bounded-review"
       }
     },
     {
@@ -75,6 +75,10 @@
       },
       "trustedSourceCount": 5,
       "sourceCoverage": {
+        "total": 50,
+        "withRefs": 47
+      },
+      "trustedSourceCoverage": {
         "total": 50,
         "withRefs": 47
       },

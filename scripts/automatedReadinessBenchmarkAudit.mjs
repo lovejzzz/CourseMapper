@@ -54,6 +54,14 @@ function runCase(entry) {
           sourceReport: {
             sourceRefCoverage: {
               totals: entry.sourceCoverage,
+              ...(entry.trustedSourceCoverage
+                ? {
+                    trusted: {
+                      sourceLedgerRows: entry.trustedSourceCount,
+                      totals: entry.trustedSourceCoverage,
+                    },
+                  }
+                : {}),
             },
           },
         }
