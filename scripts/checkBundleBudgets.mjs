@@ -194,7 +194,10 @@ const lazyChunkBudgets = [
   // V0.17.02 carries one canonical expected-source-lesson set through all
   // generation validation sites. The workspace-only shell measures 282.3 KiB
   // raw while gzip remains below the existing ceiling; freeze at 282.5/85.
-  { prefix: 'AppFlow-', rawKiB: 282.5, gzipKiB: 85 },
+  // v0.17.04 keeps the same 282.4 KiB raw chunk. Node 24/CI zlib measures
+  // 85.031 KiB versus Node 26's 84.878 KiB, so 85.05 records the hosted floor
+  // with less than 0.02 KiB headroom instead of making the ratchet runtime-dependent.
+  { prefix: 'AppFlow-', rawKiB: 282.5, gzipKiB: 85.05 },
   // v0.16.47: the Living Course Compiler component and pure selector gained
   // an independently cacheable route boundary instead of raising AppFlow's
   // long-standing ratchet. Clean measurement: AppFlow 251.6/75.9; ribbon
@@ -325,7 +328,9 @@ const lazyChunkBudgets = [
   // authored-bank slot replacement, and collision-safe review selection. This
   // is lazy compiler-only quality work; measured 848.3/238.1 KiB. Freeze with
   // less than 0.7/0.15 KiB headroom.
-  { prefix: 'courseBlueprintCompiler-', rawKiB: 849, gzipKiB: 238.25 },
+  // v0.17.04 remains 848.7 KiB raw. Node 24/CI zlib measures 238.283 KiB
+  // versus Node 26's 238.247 KiB; 238.3 is the narrow cross-runtime floor.
+  { prefix: 'courseBlueprintCompiler-', rawKiB: 849, gzipKiB: 238.3 },
   // Experiential-activity mechanics are compiler-owned and independently
   // cacheable beside the lazy compiler. The chunk projects the canonical
   // activity clock, evidence, constraints, decisions, artifact, and debrief
