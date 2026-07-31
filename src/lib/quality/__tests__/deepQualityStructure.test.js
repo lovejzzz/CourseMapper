@@ -121,7 +121,7 @@ describe('deep quality package structure', () => {
     });
 
     expect(result.findings.some((finding) => /classroom clock/i.test(finding.detail))).toBe(false);
-    expect(GRADER_VERSION).toBe('1.11.3');
+    expect(GRADER_VERSION).toBe('1.11.4');
   });
 
   it('treats typed-object leaks and mirrored assessment identities as scored export defects', async () => {
@@ -374,6 +374,38 @@ describe('deep quality package structure', () => {
           severity: 'P2',
           dimension: 'format',
           detail: expect.stringContaining('local-confirmation placeholder'),
+        }),
+      ]),
+    );
+  });
+
+  it('scores finished-looking assignment logistics that defer to missing instructor configuration', async () => {
+    const assignmentPath = 'Assignment Briefs/Lesson 03 - Evidence Memo - Assignment Briefs.txt';
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          lessonScope: [3],
+          readiness: { status: 'ready', blockers: 0 },
+          files: [{ path: assignmentPath, featureId: 'assignments' }],
+        }),
+        [assignmentPath]: [
+          'Evidence Memo',
+          'Write a supported recommendation for the supplied case.',
+          'Submission: upload the memo through the Official course site.',
+          'Citation style: apply the course citation format.',
+        ].join('\n'),
+      }),
+      course: { title: 'Evidence-Bounded Decision Making', featureIds: ['assignments'] },
+      honesty: { pipeline: { judgment: 'compiler-verified fixture' } },
+    });
+
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: 'assignment-instructor-configuration-deferral',
+          severity: 'P1',
+          dimension: 'format',
+          file: assignmentPath,
         }),
       ]),
     );

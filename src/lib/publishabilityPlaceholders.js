@@ -21,6 +21,20 @@ export const PUBLISHABILITY_PLACEHOLDER_PATTERNS = [
   /Ask yourself:\s*Is everything in this row aligned and coherent\?/i,
 ];
 
+// Finished-looking prose can still defer essential assignment logistics to a
+// value that was never configured. Keep this separate from the repairable
+// placeholder family above: these phrases need an instructor decision, not a
+// deterministic text substitution.
+export const INSTRUCTOR_CONFIGURATION_DEFERRAL_PATTERNS = [
+  /\b(?:submission )?format (?:listed|specified|named) (?:for|in)\b/i,
+  /\bmedium listed for (?:the|this) task\b/i,
+  /\bformat and channel listed for (?:the|this) task\b/i,
+  /\b(?:document, presentation, or recording form|product form) listed for (?:the|this) task\b/i,
+  /\b(?:word, page, or time|length or time|length or duration|task-specific length or time) (?:limit|requirement|expectation|guidance|constraint)?\s*(?:listed|specified|provided)\b/i,
+  /\b(?:course|local) citation (?:format|style|convention|rule|expectations?)\b/i,
+  /\b(?:instructor|local) length (?:guidance|requirement|target)\b/i,
+];
+
 function globalize(pattern) {
   const flags = pattern.flags.includes('g') ? pattern.flags : `${pattern.flags}g`;
   return new RegExp(pattern.source, flags);
@@ -36,16 +50,12 @@ function stringifyForScan(value) {
   }
 }
 
-export function findPublishabilityPlaceholder(value) {
-  return findPublishabilityPlaceholders(value, { limit: 1 })[0] || null;
-}
-
-export function findPublishabilityPlaceholders(value, { limit = 3 } = {}) {
+function findPatternMatches(value, patterns, { limit = 3 } = {}) {
   const haystack = stringifyForScan(value);
   const matches = [];
   const seen = new Set();
 
-  for (const pattern of PUBLISHABILITY_PLACEHOLDER_PATTERNS) {
+  for (const pattern of patterns) {
     for (const match of haystack.matchAll(globalize(pattern))) {
       const found = match[0];
       const key = found.toLowerCase();
@@ -57,4 +67,16 @@ export function findPublishabilityPlaceholders(value, { limit = 3 } = {}) {
   }
 
   return matches;
+}
+
+export function findPublishabilityPlaceholder(value) {
+  return findPublishabilityPlaceholders(value, { limit: 1 })[0] || null;
+}
+
+export function findPublishabilityPlaceholders(value, { limit = 3 } = {}) {
+  return findPatternMatches(value, PUBLISHABILITY_PLACEHOLDER_PATTERNS, { limit });
+}
+
+export function findInstructorConfigurationDeferrals(value, { limit = 3 } = {}) {
+  return findPatternMatches(value, INSTRUCTOR_CONFIGURATION_DEFERRAL_PATTERNS, { limit });
 }

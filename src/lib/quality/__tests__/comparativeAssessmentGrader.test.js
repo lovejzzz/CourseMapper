@@ -8,7 +8,7 @@ const readings = [
   { id: 'R5.1', title: 'The Thousand and One Nights', dueSession: 5 },
 ];
 
-async function gradeComparativeBrief(text) {
+async function gradeComparativeBrief(text, assessments = null) {
   const path = 'Assignment Briefs/Lesson 02 - The Odyssey - Assignment Briefs.txt';
   return grade({
     fileProvider: createMemoryFileProvider({
@@ -16,7 +16,7 @@ async function gradeComparativeBrief(text) {
         lessonScope: [2],
         readiness: { status: 'ready', blockers: 0 },
         readings,
-        assessments: [
+        assessments: assessments || [
           {
             id: 'A2.1',
             title: 'Comparative Reading Responses',
@@ -74,5 +74,26 @@ describe('comparative assessment quality contract', () => {
     );
 
     expect(result.findings.some((finding) => /two explicit text pairings/i.test(finding.detail))).toBe(false);
+  });
+
+  it('reports one artifact defect when several assessment rows share the same brief', async () => {
+    const path = 'Assignment Briefs/Lesson 02 - The Odyssey - Assignment Briefs.txt';
+    const result = await gradeComparativeBrief(
+      [
+        'Final comparative paper',
+        'Course Map L2',
+        'Write a paper about The Odyssey, apply the course citation format, and submit it through the official course site.',
+      ].join('\n'),
+      [
+        { id: 'A2.1', title: 'Reading response: Final comparative paper', kind: 'graded-artifact', artifact: path },
+        { id: 'A2.2', title: 'Proposal: Final comparative paper', kind: 'graded-artifact', artifact: path },
+        { id: 'A2.3', title: 'Final comparative paper', kind: 'graded-artifact', artifact: path },
+      ],
+    );
+
+    expect(result.findings.filter((finding) => /final comparative paper lacks/i.test(finding.detail))).toHaveLength(1);
+    expect(
+      result.findings.filter((finding) => finding.code === 'assignment-instructor-configuration-deferral'),
+    ).toHaveLength(1);
   });
 });

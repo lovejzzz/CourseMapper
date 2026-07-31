@@ -81,6 +81,43 @@ describe('verifyPackageExports', () => {
     expect(result.checks.map((check) => check.format)).toEqual(['xlsx', 'pdf', 'content', 'csv', 'docx', 'pdf']);
   });
 
+  it('does not report a clean export when assignment logistics defer to missing instructor configuration', async () => {
+    const result = await verifyPackageExports({
+      courseMap: {
+        courseName: 'Research Methods',
+        lessons: [{ title: 'Lesson 1', sections: [{ learningObjectives: 'Compare sampling plans.' }] }],
+      },
+      deliverables: {
+        assignments: {
+          status: 'done',
+          data: {
+            assignments: [
+              {
+                lessonTitle: 'Lesson 1',
+                instructions: ['Compare two sampling plans and defend one choice.'],
+                formatRequirements: {
+                  length: 'Follow the instructor length guidance when provided.',
+                  format: 'Use the submission format listed for the memo in the course site.',
+                  citationStyle: 'Apply the course citation format.',
+                },
+              },
+            ],
+          },
+        },
+      },
+      selectedFeatures: ['assignments'],
+    });
+
+    expect(result.status).toBe('warnings');
+    expect(result.checks.find((check) => check.format === 'content')).toMatchObject({
+      featureId: 'assignments',
+      status: 'warning',
+    });
+    expect(result.checks.find((check) => check.format === 'content')?.findings).toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: 'instructor-configuration-deferral' })]),
+    );
+  });
+
   it('treats compiler-routed non-applicable materials as complete without empty CSV or PDF warnings', async () => {
     const result = await verifyPackageExports({
       courseMap: {

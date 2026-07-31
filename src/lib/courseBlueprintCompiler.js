@@ -13626,6 +13626,44 @@ function buildAssignmentSubmissionProfile({ lesson = {}, assessment = {}, lens =
   };
 }
 
+function assignmentExtentRequirement({ submissionProfile = {}, assessment = {} } = {}) {
+  const format = cleanText(
+    [
+      submissionProfile.assignmentType,
+      submissionProfile.artifactGenre,
+      submissionProfile.expectedFormat,
+      assessment.title,
+      assessment.artifact,
+    ].join(' '),
+  ).toLowerCase();
+  if (/\b(?:oral|performance|recording|language-performance)\b/.test(format)) {
+    return 'Prepare 5–8 minutes of recorded or live work plus a one-page evidence and revision note.';
+  }
+  if (/\b(?:presentation|pitch|slide)\b/.test(format)) {
+    return 'Prepare 6–10 slides with speaker notes and a final source-list slide.';
+  }
+  if (/\b(?:code|notebook|lab|problem-set|proof|prototype|design-test|portfolio)\b/.test(format)) {
+    return 'Use 3–5 labeled sections and include the evidence, test, or revision record needed for every rubric criterion.';
+  }
+  const minutes = Number(submissionProfile.workload?.outOfClassMinutes || 0);
+  if (minutes > 0 && minutes <= 60)
+    return 'Write 500–800 words in a PDF document with labeled evidence and limitation sections.';
+  if (minutes > 120) return 'Write 1,000–1,600 words in a PDF document with labeled evidence and limitation sections.';
+  return 'Write 750–1,250 words in a PDF document with labeled evidence and limitation sections.';
+}
+
+function assignmentCitationRequirement({ lesson = {}, assessment = {} } = {}) {
+  const title = stripTerminalPunctuation(assessment.title || 'the assignment');
+  return lessonVariant(lesson, [
+    'Credit each source in the artifact and source list with author or creator, title, year, and a page, section, timestamp, or stable URL; omit unavailable fields rather than inventing them.',
+    `For ${title}, name the author or creator and title at each point of use, then give the year and page, section, timestamp, or stable URL in a source list.`,
+    `Use short author-title citations in ${title}; finish with a source list containing creator, full title, year, and the most precise page, section, timestamp, or stable URL available.`,
+    `Number sources in order of first use in ${title}; each numbered source note must include creator, title, year, and a page, section, timestamp, or stable URL.`,
+    `Attach an evidence log to ${title} with one row per source: creator, title, year, exact page, section, timestamp, or stable URL, and the claim it supports.`,
+    `Cite every quotation, paraphrase, dataset, image, or media excerpt in ${title} with creator and title at the point of use plus a complete source-list entry.`,
+  ]);
+}
+
 const GENERIC_ASSIGNMENT_CRITIQUE_REVIEW_RE =
   /\bcompare\s+the\s+before\/after\s+artifact\b.*\binspect\s+critique\s+evidence\b.*\brequire\s+one\s+named\s+next\s+iteration\b/i;
 
@@ -17854,35 +17892,13 @@ function compileAssignments(blueprint) {
             ]),
           ],
           formatRequirements: {
-            length: lessonVariant(lesson, [
-              'Enough detail to address each criterion; follow instructor length guidance when provided.',
-              'Use enough detail for each scoring criterion, and defer to any local length requirement.',
-              'Write to the depth needed for the rubric rather than a fixed word count unless the instructor supplies one.',
-              'Include enough evidence for every criterion while following the instructor-provided length target.',
-              'Use the space needed to make the claim, evidence, limitation, and revision decision inspectable.',
-              'Prioritize complete evidence and reasoning over word count; apply any course-specific length rule last.',
-              'Write enough for a scorer to verify each criterion, then trim repetition before submission.',
-            ]),
+            length: assignmentExtentRequirement({ submissionProfile, assessment }),
             format: submissionProfile.expectedFormat,
             reviewProtocol: `For ${stripLessonPrefix(lesson.title)}, ${submissionProfile.reviewProtocol}.`,
             workloadFit: submissionProfile.workload.outOfClassEstimate,
-            citationStyle: lessonVariant(lesson, [
-              `Use the citation style specified for ${assessmentTitle} or the course assignment prompt.`,
-              `Follow the citation convention named in the ${assessmentTitle} directions or local course guide.`,
-              `Apply the course citation format for ${assessmentTitle}; ask for review if a source detail is incomplete.`,
-              `Credit sources using the required course style for ${assessmentTitle} and keep uncertain details marked.`,
-              `Use the instructor's citation rule for ${assessmentTitle}, including any tool or source-use disclosure.`,
-              `Match the local citation expectations for ${assessmentTitle} before uploading the final file.`,
-            ]),
-            submissionPlatform: 'Official course site',
-            latePolicy: lessonVariant(lesson, [
-              `For ${assessmentTitle}, follow the course late work policy and contact the instructor before the deadline when needed.`,
-              `Submit ${assessmentTitle} by the posted deadline; if timing becomes a problem, use the course late-work process before the due date.`,
-              `Late work for ${assessmentTitle} follows the local course policy. Students should flag conflicts early through the official course channel.`,
-              `Apply the course deadline rules to ${assessmentTitle}; unresolved access, illness, or scheduling issues should be raised before submission closes.`,
-              `Use the instructor's posted late-work procedure for ${assessmentTitle}, including any required notice before the deadline.`,
-              `If ${assessmentTitle} may be late, students should consult the course policy and contact the instructor through the approved channel while there is still time to adjust.`,
-            ]),
+            citationStyle: assignmentCitationRequirement({ lesson, assessment }),
+            submissionPlatform: `Course-site assignment area for ${assessmentTitle}; if it is unavailable, attach the same file to a message in the official course contact channel.`,
+            latePolicy: `No automatic late-work extension is assumed for ${assessmentTitle}. Contact the instructor before the deadline and retain written confirmation of any exception.`,
           },
           deliverables: assignmentDeliverablesForLesson({
             lesson,

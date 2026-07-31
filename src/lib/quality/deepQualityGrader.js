@@ -93,6 +93,7 @@ import {
   formatScanUnits,
 } from './deepQualityFormatDetails.js';
 import { normalizeLessonSpecificTokens } from './semanticSkeletonMask.js';
+import { findInstructorConfigurationDeferrals } from '../publishabilityPlaceholders.js';
 
 // v0.14.3 WS-A A3: the grader version stamped into manifest.quality. Bump on
 // any change to checks, weights, or severity penalties so a package's quality
@@ -217,7 +218,9 @@ import { normalizeLessonSpecificTokens } from './semanticSkeletonMask.js';
 // 0–69 ceiling; automation alone can no longer award a misleading 99/A.
 // 1.11.1 — cross-lesson boilerplate comparison masks each document's full
 // lesson title, so title interpolation cannot hide a repeated semantic frame.
-export const GRADER_VERSION = '1.11.3';
+// 1.11.4 — assignment format, length, and citation deferrals are score-bearing;
+// exact duplicate findings for one artifact are emitted and penalized once.
+export const GRADER_VERSION = '1.11.4';
 
 // ── Dimension weights & letter bands (documented in the module header) ──────
 // v0.15.186: texture weight 10 → 25. At 10/120 a fully templated package
@@ -619,9 +622,14 @@ function isTokenSubset(needleTokens, haystackTokenSet) {
 
 function createFindings() {
   const list = [];
+  const seen = new Set();
   let counter = 0;
   return {
     add({ code, severity, dimension, file = '', detail, evidence = '' }) {
+      const quotedEvidence = quote(evidence);
+      const dedupeKey = JSON.stringify([code || '', severity, dimension, file, detail, quotedEvidence]);
+      if (seen.has(dedupeKey)) return;
+      seen.add(dedupeKey);
       counter += 1;
       list.push({
         id: `F${String(counter).padStart(3, '0')}`,
@@ -630,7 +638,7 @@ function createFindings() {
         dimension,
         file,
         detail,
-        evidence: quote(evidence),
+        evidence: quotedEvidence,
       });
     },
     list,
@@ -3531,6 +3539,20 @@ function checkFormat(findings, { files }) {
           'assignment directions expose a compiler-era local-confirmation placeholder instead of polished task language',
         evidence: legacyLocalPlaceholder[0],
       });
+    }
+    if (file.featureId === 'assignments') {
+      const instructorConfigurationDeferral = findInstructorConfigurationDeferrals(file.text, { limit: 1 })[0];
+      if (instructorConfigurationDeferral) {
+        findings.add({
+          code: 'assignment-instructor-configuration-deferral',
+          severity: 'P1',
+          dimension: 'format',
+          file: file.path,
+          detail:
+            'assignment directions defer required submission logistics to instructor configuration that is not present in the artifact',
+          evidence: instructorConfigurationDeferral,
+        });
+      }
     }
     // FORMAT text patterns are scanned PER paragraph/cell line, never on the
     // flattened blob, so a regex can't span a line/paragraph/cell boundary

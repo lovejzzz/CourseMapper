@@ -79,6 +79,40 @@ describe('auditDeliverableContentQuality', () => {
     expect(findings.some((finding) => finding.code === 'instructor-voice-in-student-surface')).toBe(true);
   });
 
+  it('flags assignment logistics deferred to missing instructor configuration', () => {
+    const { findings } = auditDeliverableContentQuality('assignments', {
+      assignments: [
+        {
+          parameters: ['Submission format: organize the memo in the medium listed for the task.'],
+          formatRequirements: {
+            citationStyle: 'Apply the course citation format before uploading.',
+            submissionPlatform: 'Official course site',
+            latePolicy: 'Late work follows the local course policy.',
+          },
+        },
+      ],
+    });
+
+    expect(findings.filter((finding) => finding.code === 'instructor-configuration-deferral')).toHaveLength(2);
+  });
+
+  it('does not flag concrete assignment logistics', () => {
+    const { findings } = auditDeliverableContentQuality('assignments', {
+      assignments: [
+        {
+          parameters: ['Submit a 1,200-word PDF memo.'],
+          formatRequirements: {
+            citationStyle: 'APA 7',
+            submissionPlatform: 'Canvas assignment: Evidence memo',
+            latePolicy: 'A 48-hour grace period applies; request longer extensions by email before the deadline.',
+          },
+        },
+      ],
+    });
+
+    expect(findings.some((finding) => finding.code === 'instructor-configuration-deferral')).toBe(false);
+  });
+
   it('flags a uniform multiple-choice answer key across lessons', () => {
     const quiz = (lessonNumber) => ({
       lessonNumber,

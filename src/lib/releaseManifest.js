@@ -3,6 +3,20 @@ import { CURRENT_RELEASE } from './currentRelease.js';
 
 export { CURRENT_RELEASE };
 
+const V01702_RELEASE = {
+  version: '0.17.02',
+  date: 'July 31, 2026',
+  title: 'Exact Questions, Exact Lessons',
+  highlights: [
+    'One bounded resolver now owns the per-lesson quiz target from prompt planning through deterministic compilation, retry, validation, and readiness. Requests from three through eight produce that exact count.',
+    'The eight-question contract is substantive rather than padded: its final slots test evidence limitations and revision transfer, with distinct verified frames for generic, source-bound, Bayesian, music-theory, language, and review-week paths.',
+    'Materialized lesson identity now survives compact scopes and retry merges. Final quiz and FAQ validation rejects unkeyed, duplicate, missing, and out-of-scope lesson coverage instead of accepting a matching row count.',
+    'Scion evidence composition now distinguishes a composed result from an empty or failed fallback. An empty composition cannot be reported as a normal stop or parsed as a completed lesson kernel.',
+    'A fresh code-only Roundtable audit reviewed the implementation rather than release prose, and the complete unit, lint, format, build, browser-base, and release-history gates provide the executable release evidence.',
+    'The release improves deterministic output contracts and diagnostics. It does not claim new model weights, cryptographic browser-runtime digest enforcement, factual certification, instructor validation, accessibility certification, or classroom outcomes.',
+  ],
+};
+
 const V01701_RELEASE = {
   version: '0.17.01',
   date: 'July 30, 2026',
@@ -1287,6 +1301,45 @@ export const CURRENT_RELEASE_CHANGELOG = {
   highlights: CURRENT_RELEASE.highlights,
   sections: [
     {
+      label: 'Make assignments actionable by default',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'Native fallbacks specify concrete PDF, slide, or recording forms and bounded extents.',
+        'The shared compiler selects extent from artifact type and workload and supplies an inspectable source-credit rule.',
+        'Submission and exception defaults stay usable without pretending a missing local policy was verified.',
+      ],
+    },
+    {
+      label: 'Keep unresolved handoffs visible',
+      icon: 'AI',
+      color: 'blue',
+      items: [
+        'Assignment content verification warns on missing format, length, or citation configuration.',
+        'Deep grader V1.11.4 scores the same unresolved handoff as a P1 format defect.',
+        'The narrow detector leaves concrete course-site and late-policy language alone.',
+      ],
+    },
+    {
+      label: 'Measure one artifact once',
+      icon: 'PROOF',
+      color: 'violet',
+      items: [
+        'Exact duplicate findings for the same artifact are reported and penalized once.',
+        'The 132-course compiler matrix verifies that current generated assignments remain clean.',
+        'A retained World Literature package calibrates the rule without turning historical defects into a current quality claim.',
+      ],
+    },
+  ],
+};
+
+const V01702_RELEASE_CHANGELOG = {
+  version: V01702_RELEASE.version,
+  date: V01702_RELEASE.date,
+  title: V01702_RELEASE.title,
+  highlights: V01702_RELEASE.highlights,
+  sections: [
+    {
       label: 'Make the question target exact',
       icon: 'CHECK',
       color: 'emerald',
@@ -2132,6 +2185,7 @@ const V01678_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  V01702_RELEASE_CHANGELOG,
   V01701_RELEASE_CHANGELOG,
   V01700_RELEASE_CHANGELOG,
   V01699_RELEASE_CHANGELOG,

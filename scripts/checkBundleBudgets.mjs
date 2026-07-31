@@ -29,9 +29,9 @@ const budgets = {
 // caught an unaccounted increase, and the fix is to re-freeze at the released
 // state, not to widen the allowance. Every future release must do the same.
 const repositoryBudgets = {
-  // v0.17.02 advances the frozen state through the shipped v0.17.01 contract;
-  // its own v0.17.02 contract consumes the single declared-release allowance.
-  baselineVersion: '0.17.01',
+  // v0.17.03 advances the frozen state through the shipped v0.17.02 contract;
+  // its own v0.17.03 contract consumes the single declared-release allowance.
+  baselineVersion: '0.17.02',
   // v0.16.82 adds 29 net lines of reusable compiler control logic for
   // policy-domain separation and concept-owned evidence binding. Source-
   // statement copy and prerequisite selection moved to a cacheable leaf; the
@@ -50,7 +50,10 @@ const repositoryBudgets = {
   // frames, authored-bank replacement, and review-week collision recovery.
   // These paths are regression-covered and replace underfilled output; freeze
   // the measured implementation rather than granting speculative headroom.
-  compilerLines: 28_169,
+  // V0.17.03 adds 16 measured lines for artifact- and workload-aware extent
+  // defaults plus concrete source-credit rules. The 132-course matrix proves
+  // the replacement removes unresolved learner handoffs across shared output.
+  compilerLines: 28_185,
   // V0.16.97 moved compiler logic into cacheable courseCompiler*.js leaves.
   // Freeze the whole ownership family so extracting modules cannot make the
   // monolith-only counter report a false reduction. The 69-line post-release
@@ -64,7 +67,9 @@ const repositoryBudgets = {
   // family ratchet. V0.17.02 freezes the full measured family after its exact
   // question/lesson contract; extracting files cannot masquerade as a future
   // reduction.
-  compilerFamilyLines: 31_121,
+  // V0.17.03's 16-line compiler increase is inside the same measured family;
+  // freeze the exact state with no extraction allowance.
+  compilerFamilyLines: 31_137,
   // v0.16.81 adds one executable Algi→Scion hybrid benchmark audit. It freezes
   // evidence, route, quality, call, latency, and export promotion rules; this
   // is a release gate rather than product-side script sprawl.
@@ -83,9 +88,9 @@ const repositoryBudgets = {
   // It reuses the cross-package audit implementation rather than introducing
   // another runner.
   npmScripts: 386,
-  // v0.17.01 shipped 287 tracked release-ledger files (contracts plus the
-  // directory README); v0.17.02 may add exactly one current-release contract.
-  releaseContractFiles: 287,
+  // v0.17.02 shipped 288 tracked release-ledger files (contracts plus the
+  // directory README); v0.17.03 may add exactly one current-release contract.
+  releaseContractFiles: 288,
   trackedWeightFiles: 62,
   trackedWeightBytes: 1_053_339_981,
   largeBinaryBytes: 1024 * 1024,
@@ -457,7 +462,9 @@ const lazyChunkBudgets = [
   // V0.17.01 adds lesson-title masking before semantic-frame comparison.
   // The measured lazy chunk is 72.50 KiB raw and remains below the unchanged
   // gzip ceiling; retain only a quarter-KiB raw margin.
-  { prefix: 'deepQualityGrader-', rawKiB: 72.75, gzipKiB: 25.25 },
+  // V0.17.03 adds score-bearing assignment-deferral detection and exact
+  // finding deduplication. The finalize-only chunk measures 72.83/25.34 KiB.
+  { prefix: 'deepQualityGrader-', rawKiB: 73, gzipKiB: 25.5 },
   // Citation-to-ledger matching is independently cacheable and finalize-only.
   { prefix: 'sourceLedgerCitationSupport-', rawKiB: 0.75, gzipKiB: 0.5 },
   // High-signal format patterns stay finalize-only and independently

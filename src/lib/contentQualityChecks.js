@@ -10,6 +10,7 @@
  */
 
 import { isProvenanceMirrorKey } from './compiledLanguageFinalizer.js';
+import { findInstructorConfigurationDeferrals } from './publishabilityPlaceholders.js';
 
 const DANGLING_CLAUSE_RE = /\b(?:and|or|for|in|of|to|the|with|before|after|around|aligned to|into|from)\s*[.]\s*$/i;
 const DANGLING_EXEMPT_RE = /\b(?:etc|e\.g|i\.e)[.]\s*$/i;
@@ -78,6 +79,16 @@ function checkStudentVoice(findings, featureId, data) {
   }
 }
 
+function checkInstructorConfigurationDeferrals(findings, featureId, data) {
+  if (featureId !== 'assignments') return;
+  for (const [path, value] of walkStrings(data)) {
+    if (!/\.(?:formatRequirements|parameters|instructions)\b/i.test(path)) continue;
+    for (const deferral of findInstructorConfigurationDeferrals(value, { limit: 3 })) {
+      pushFinding(findings, 'instructor-configuration-deferral', path, deferral);
+    }
+  }
+}
+
 function checkQuizAnswerKeyUniformity(findings, featureId, data) {
   if (featureId !== 'quizBank') return;
   const quizzes = data?.quizzes || data?.quizBank || [];
@@ -106,6 +117,7 @@ export function auditDeliverableContentQuality(featureId, data) {
   if (data && typeof data === 'object') {
     checkSentenceIntegrity(findings, featureId, data);
     checkStudentVoice(findings, featureId, data);
+    checkInstructorConfigurationDeferrals(findings, featureId, data);
     checkQuizAnswerKeyUniformity(findings, featureId, data);
   }
   const codes = [...new Set(findings.map((finding) => finding.code))];

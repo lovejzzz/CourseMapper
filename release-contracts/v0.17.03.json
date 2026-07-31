@@ -1,0 +1,111 @@
+{
+  "version": "0.17.03",
+  "date": "July 31, 2026",
+  "title": "Actionable Before Clean",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test",
+      "npm run lint",
+      "npm run format:check",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification must pass on the exact V0.17.03 release commit."
+    },
+    "ciDeep": {
+      "status": "pending-push",
+      "note": "Deep Proof remains the slower defense-in-depth lane."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Production deployment follows repository policy after review."
+    },
+    "liveProvider": {
+      "status": "not-applicable",
+      "note": "The release changes deterministic assignment checks, package verification, and deep grading; it makes no live-provider claim."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No instructor, learner, classroom, factual-certification, or accessibility-certification claim is made."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01703-actionable-assignment-defaults",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "Native fallback and shared assignment compilation provide concrete file, extent, citation, submission, and exception defaults instead of unresolved configuration handoffs.",
+      "anchors": [
+        "src/lib/nativeGraphAuthoring.js",
+        "src/lib/courseBlueprintCompiler.js",
+        "tests/v0145-native-authoring.test.js",
+        "tests/blueprint-quality-matrix.test.js"
+      ],
+      "proofCommands": ["npx vitest run tests/v0145-native-authoring.test.js tests/blueprint-quality-matrix.test.js"],
+      "proofScopes": ["unit", "compiled-output", "static-audit"]
+    },
+    {
+      "id": "v01703-visible-score-bearing-deferrals",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Assignment content verification warns on unresolved format, length, or citation configuration, and deep grader V1.11.4 scores the same defect as P1.",
+      "anchors": [
+        "src/lib/publishabilityPlaceholders.js",
+        "src/lib/contentQualityChecks.js",
+        "src/lib/quality/deepQualityGrader.js",
+        "src/lib/__tests__/contentQualityChecks.test.js",
+        "src/lib/__tests__/packageExportVerifier.test.js",
+        "src/lib/quality/__tests__/deepQualityStructure.test.js",
+        "tests/v0147-texture-metric.test.js",
+        "evaluation/scion-adapters/held-out-course-benchmark-v35.json"
+      ],
+      "proofCommands": [
+        "npx vitest run src/lib/__tests__/contentQualityChecks.test.js src/lib/__tests__/packageExportVerifier.test.js src/lib/quality/__tests__/deepQualityStructure.test.js tests/v0147-texture-metric.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01703-calibrated-detector-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "The deferral detector is restricted to strong unresolved format, length, and citation language; concrete submission logistics remain clean.",
+      "anchors": [
+        "src/lib/publishabilityPlaceholders.js",
+        "src/lib/__tests__/contentQualityChecks.test.js",
+        "docs/V0.17.03_OUTPUT_TRUTH_AUDIT.md"
+      ],
+      "proofCommands": ["npx vitest run src/lib/__tests__/contentQualityChecks.test.js"],
+      "proofScopes": ["unit", "static-audit", "doc"]
+    },
+    {
+      "id": "v01703-code-and-artifact-audit",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "The Roundtable candidate was reproduced across the compiler matrix, and the retained World Literature package exposed the duplicate-finding case now reported once per artifact.",
+      "anchors": [
+        "src/lib/nativeGraphAuthoring.js",
+        "src/lib/courseBlueprintCompiler.js",
+        "docs/instructor-review/world-lit-package.zip",
+        "docs/V0.17.03_OUTPUT_TRUTH_AUDIT.md",
+        "src/lib/quality/__tests__/comparativeAssessmentGrader.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run src/lib/quality/__tests__/comparativeAssessmentGrader.test.js src/lib/__tests__/packageExportVerifier.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit", "doc"]
+    },
+    {
+      "id": "v01703-claim-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The release limits its claims to deterministic output review and reporting and does not imply model-weight changes or human validation.",
+      "anchors": ["README.md", "docs/V0.17.03_OUTPUT_TRUTH_AUDIT.md", "src/lib/currentRelease.js"],
+      "proofCommands": ["npm run audit:release-history"],
+      "proofScopes": ["static-audit", "doc"]
+    }
+  ]
+}

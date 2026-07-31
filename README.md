@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — cross-checked, exportable, and fully editable. Then use the AI agent to inspect and revise the generated workspace through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.17.02
+**Current release:** v0.17.03
 
 ---
 
@@ -32,7 +32,7 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site presents **Provider: Scion**, a disabled API control because no key is needed, and one product model: **Scion V0.17.02**. Scion is fully free—and always will be. That label names EduTool's complete course-building system; it is not a claim that EduTool trained or hosts a new foundation model. Scion pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its identity and metadata, and runs it through the packaged WebGPU runtime only when the task needs neural authoring. Before that boundary, Scion can preserve an exact instructor-provided lesson sequence and prepare compact source-anchored evidence from uploaded material, the shipped Curriculum Genome, the local research cache, and—only after opt-in—current public sources. A complete explicit structure plus exact source ledger reaches the shared compiler without importing or activating the model runtime; incomplete or ambiguous contracts retain the browser-local Gemma fallback.
+The hosted site presents **Provider: Scion**, a disabled API control because no key is needed, and one product model: **Scion V0.17.03**. Scion is fully free—and always will be. That label names EduTool's complete course-building system; it is not a claim that EduTool trained or hosts a new foundation model. Scion pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its identity and metadata, and runs it through the packaged WebGPU runtime only when the task needs neural authoring. Before that boundary, Scion can preserve an exact instructor-provided lesson sequence and prepare compact source-anchored evidence from uploaded material, the shipped Curriculum Genome, the local research cache, and—only after opt-in—current public sources. A complete explicit structure plus exact source ledger reaches the shared compiler without importing or activating the model runtime; incomplete or ambiguous contracts retain the browser-local Gemma fallback.
 
 In plain language, **Scion Vx is the whole local authoring system, not just the base model**:
 
@@ -61,7 +61,31 @@ V0.16.91 gives each admitted lesson one canonical evidence brief and reuses that
 
 The historical research architecture and limitations remain documented in [docs/ALGI_RESEARCH_FIRST_ARCHITECTURE.md](docs/ALGI_RESEARCH_FIRST_ARCHITECTURE.md) and [docs/ALGI_V0_PIPELINE_ASSESSMENT.md](docs/ALGI_V0_PIPELINE_ASSESSMENT.md).
 
-### V0.17.02 current release — exact questions, exact lessons
+### V0.17.03 current release — actionable before clean
+
+V0.17.03 closes a false-clean output path found in a code-only Roundtable
+review and reproduced independently across the 132-course compiler matrix. New
+assignment briefs now provide concrete file, extent, citation, submission, and
+exception defaults instead of directing learners to configuration that may not
+exist. Imported or provider-authored directions can no longer pass content
+verification cleanly when they still defer required submission format, length,
+or citation rules. The package can still export for instructor review, but the
+unresolved handoff remains visible as a warning.
+
+Deep grader V1.11.4 makes the same defect a score-bearing P1 finding and reports
+one exact artifact defect once, even when several assessment-registry rows point
+to that file. A retained World Literature package was regraded as a regression
+corpus. That calibration also rejected broader rules that would have mislabeled
+concrete course-site or late-policy language as missing configuration.
+
+This is deterministic review and report-truth evidence. It does not certify
+factual accuracy, instructional quality, accessibility, instructor approval, or
+classroom outcomes; Gemma weights and the inactive adapter are unchanged. The
+discussion, real-artifact audit, implementation boundary, and executable proof
+are recorded in
+[docs/V0.17.03_OUTPUT_TRUTH_AUDIT.md](docs/V0.17.03_OUTPUT_TRUTH_AUDIT.md).
+
+### V0.17.02 historical release — exact questions, exact lessons
 
 V0.17.02 resolves two output-contract contradictions exposed by a code-only
 Roundtable audit. The configured quiz target is now one bounded value across
