@@ -84,7 +84,7 @@ describe('automated readiness signal', () => {
 
     expect(result.score).toBeGreaterThanOrEqual(55);
     expect(result.score).toBeLessThanOrEqual(63);
-    expect(result.band).toBe('strong-automated-signal');
+    expect(result.band).toBe('bounded-review');
     expect(result.components.evidenceGrounding.score).toBeLessThan(60);
     expect(result.claimBoundary).toMatch(/cannot prove/i);
   });
@@ -145,5 +145,33 @@ describe('automated readiness signal', () => {
 
     expect(result.components.evidenceGrounding.evidence.groundingRatio).toBe(0);
     expect(result.components.evidenceGrounding.score).toBeLessThan(50);
+  });
+
+  it('does not recover grounding points from prose when bridged coverage has no trusted proof', () => {
+    const result = computeAutomatedReadinessSignal({
+      manifest: {
+        pipeline: {
+          enrichmentModelStage: 'knowledge kernels admitted 5/5 lessons',
+          groundingMetrics: 'overall grounded fraction: 100%',
+        },
+        sourceLedger: [sourceRow(1)],
+        sourceReport: {
+          sourceRefCoverage: {
+            bridge: {
+              status: 'legacy-source-ledger-replaced',
+            },
+            totals: { total: 8, withRefs: 8, missing: 0, danglingRefs: 0 },
+          },
+        },
+      },
+      course: { prompt: PROMPT },
+      lessonTitles: TITLES,
+      conformance: conformance(99),
+      texture: { score: 96 },
+    });
+
+    expect(result.components.evidenceGrounding.evidence.groundingRatio).toBe(0);
+    expect(result.components.evidenceGrounding.evidence.sourceCoverageRetained).toBe(false);
+    expect(result.components.evidenceGrounding.score).toBe(42);
   });
 });

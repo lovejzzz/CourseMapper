@@ -89,16 +89,6 @@ function parseFraction(text, patterns) {
   return null;
 }
 
-function parsePercent(text, patterns) {
-  for (const pattern of patterns) {
-    const match = pattern.exec(text);
-    if (!match) continue;
-    const value = Number(match[1]);
-    if (Number.isFinite(value)) return clamp(value, 0, 100) / 100;
-  }
-  return null;
-}
-
 function sourceCoverageRatio(manifest) {
   const coverage = manifest?.courseIR?.sourceRefCoverage || manifest?.sourceReport?.sourceRefCoverage;
   if (!coverage || typeof coverage !== 'object') return null;
@@ -168,10 +158,6 @@ function evidenceGroundingScore(manifest, lessonCount) {
     /\benrichment (?:ran|covered|ready)\s+(\d+)\s*\/\s*(\d+)\b/i,
     /\b(\d+)\s*\/\s*(\d+)\s+(?:lesson|session) kernels?\b/i,
   ]);
-  const groundingFraction = parsePercent(pipelineText, [
-    /\boverall(?: grounded fraction)?\s*[:=]?\s*(\d+(?:\.\d+)?)\s*%/i,
-    /\bgrounded fraction\s*[:=]?\s*(\d+(?:\.\d+)?)\s*%/i,
-  ]);
   const coverageRatio = sourceCoverageRatio(manifest);
   const trustedRows = (Array.isArray(manifest?.sourceLedger) ? manifest.sourceLedger : []).filter(
     isTrustedConceptLinkedSourceLedgerRow,
@@ -182,7 +168,10 @@ function evidenceGroundingScore(manifest, lessonCount) {
   // Internal sourceRef coverage proves wiring, not external grounding. A
   // package with zero trusted concept-linked sources must not turn 80/80
   // self-references into a positive evidence score.
-  const groundedRatio = trustedRows.length > 0 ? (coverageRatio ?? groundingFraction ?? 0) : 0;
+  // Prose grounding percentages measure an enrichment-stage byte heuristic,
+  // not atom-to-source proof. Only trusted per-reference totals can award the
+  // grounding portion of readiness; missing or legacy coverage fails closed.
+  const groundedRatio = trustedRows.length > 0 ? (coverageRatio ?? 0) : 0;
 
   return {
     score: rounded((kernelRatio * 0.35 + sourceDiversityRatio * 0.35 + groundedRatio * 0.3) * 100),
