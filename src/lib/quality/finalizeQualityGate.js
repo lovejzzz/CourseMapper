@@ -23,7 +23,10 @@
 import { buildCourseMaterialsZip, DEFAULT_PACKAGE_QUALITY_TIMEOUT_MS } from '../packageZipExporter.js';
 import { buildFinalizeSourceEvidence } from './sourceEvidence.js';
 
-export const PACKAGE_FINALIZE_QUALITY_TIMEOUT_MS = DEFAULT_PACKAGE_QUALITY_TIMEOUT_MS;
+export const PACKAGE_FINALIZE_ASSEMBLY_GRACE_MS = 15000;
+export const PACKAGE_FINALIZE_GRADING_TIMEOUT_MS = DEFAULT_PACKAGE_QUALITY_TIMEOUT_MS;
+export const PACKAGE_FINALIZE_QUALITY_TIMEOUT_MS =
+  PACKAGE_FINALIZE_GRADING_TIMEOUT_MS + PACKAGE_FINALIZE_ASSEMBLY_GRACE_MS;
 
 export async function gradePackageAtFinalize({
   courseMap,
@@ -39,12 +42,13 @@ export async function gradePackageAtFinalize({
   courseId = '',
   coursePrompt = '',
   expectedSessionMinutes = null,
-  timeoutMs = PACKAGE_FINALIZE_QUALITY_TIMEOUT_MS,
+  timeoutMs = PACKAGE_FINALIZE_GRADING_TIMEOUT_MS,
 } = {}) {
   try {
-    // The timeout bounds the WHOLE assemble+grade pass (file building plus
-    // the grader's own internal timeout) — the badge shows "not graded"
-    // rather than ever delaying the finish.
+    // The grader owns `timeoutMs`; the outer pass additionally allows bounded
+    // assembly/import overhead. Equal nested deadlines made the outer timer
+    // deterministically win and discard the grader's own terminal result.
+    const wholePassTimeoutMs = Math.max(0, timeoutMs) + PACKAGE_FINALIZE_ASSEMBLY_GRACE_MS;
     const assembleAndGrade = buildCourseMaterialsZip({
       deliverables,
       courseMap,
@@ -59,7 +63,7 @@ export async function gradePackageAtFinalize({
       quality: { budget, digest, courseId, coursePrompt, expectedSessionMinutes, timeoutMs },
     });
     const raced = await new Promise((resolve) => {
-      const timer = setTimeout(() => resolve({ timedOut: true }), Math.max(0, timeoutMs));
+      const timer = setTimeout(() => resolve({ timedOut: true }), wholePassTimeoutMs);
       assembleAndGrade.then(
         (value) => {
           clearTimeout(timer);
@@ -71,7 +75,9 @@ export async function gradePackageAtFinalize({
         },
       );
     });
-    if (raced.timedOut) return { status: 'not-graded', reason: `grading timed out after ${timeoutMs}ms` };
+    if (raced.timedOut) {
+      return { status: 'not-graded', reason: `package assembly and grading timed out after ${wholePassTimeoutMs}ms` };
+    }
     if (raced.error) throw raced.error;
     const result = raced.value;
     const quality = result.quality || { status: 'not-graded', reason: 'grading did not run' };

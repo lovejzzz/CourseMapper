@@ -1,7 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { buildCourseMaterialsZip, DEFAULT_PACKAGE_QUALITY_TIMEOUT_MS } from '../../packageZipExporter.js';
-import { gradePackageAtFinalize, PACKAGE_FINALIZE_QUALITY_TIMEOUT_MS } from '../finalizeQualityGate.js';
+import {
+  gradePackageAtFinalize,
+  PACKAGE_FINALIZE_ASSEMBLY_GRACE_MS,
+  PACKAGE_FINALIZE_GRADING_TIMEOUT_MS,
+  PACKAGE_FINALIZE_QUALITY_TIMEOUT_MS,
+} from '../finalizeQualityGate.js';
 
 vi.mock('../../packageZipExporter.js', () => ({
   DEFAULT_PACKAGE_QUALITY_TIMEOUT_MS: 60000,
@@ -26,7 +31,7 @@ describe('gradePackageAtFinalize', () => {
     vi.clearAllMocks();
   });
 
-  it('uses the shared package quality timeout so finalize grading does not time out before ZIP grading', async () => {
+  it('gives the inner grader its full budget plus bounded outer assembly grace', async () => {
     const result = await gradePackageAtFinalize({
       courseMap: { courseName: 'Project Management', lessons: [] },
       deliverables: {},
@@ -35,16 +40,50 @@ describe('gradePackageAtFinalize', () => {
     });
 
     expect(result.status).toBe('graded');
-    expect(PACKAGE_FINALIZE_QUALITY_TIMEOUT_MS).toBe(DEFAULT_PACKAGE_QUALITY_TIMEOUT_MS);
-    expect(PACKAGE_FINALIZE_QUALITY_TIMEOUT_MS).toBe(60000);
+    expect(PACKAGE_FINALIZE_GRADING_TIMEOUT_MS).toBe(DEFAULT_PACKAGE_QUALITY_TIMEOUT_MS);
+    expect(PACKAGE_FINALIZE_QUALITY_TIMEOUT_MS).toBe(
+      DEFAULT_PACKAGE_QUALITY_TIMEOUT_MS + PACKAGE_FINALIZE_ASSEMBLY_GRACE_MS,
+    );
     expect(buildCourseMaterialsZip).toHaveBeenCalledWith(
       expect.objectContaining({
         quality: expect.objectContaining({
-          timeoutMs: PACKAGE_FINALIZE_QUALITY_TIMEOUT_MS,
+          timeoutMs: PACKAGE_FINALIZE_GRADING_TIMEOUT_MS,
           coursePrompt: 'Use the instructor project brief as the grading scope.',
         }),
       }),
     );
+  });
+
+  it('does not discard a terminal inner result at the grader deadline', async () => {
+    buildCourseMaterialsZip.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          setTimeout(
+            () =>
+              resolve({
+                quality: {
+                  status: 'graded',
+                  score: 100,
+                  grade: 'A',
+                  findingCounts: { p0: 0, p1: 0, p2: 0 },
+                },
+                qualityResult: {
+                  grades: {},
+                  findings: [],
+                  stats: { findingCount: 0, fileCount: 1 },
+                },
+              }),
+            11,
+          );
+        }),
+    );
+
+    const result = await gradePackageAtFinalize({
+      courseMap: { courseName: 'Deadline Boundary', lessons: [] },
+      timeoutMs: 10,
+    });
+
+    expect(result.status).toBe('graded');
   });
 
   it('preserves manifest source proof and source-specific findings for the final trust record', async () => {

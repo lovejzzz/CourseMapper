@@ -1,0 +1,129 @@
+{
+  "version": "0.17.05",
+  "date": "July 31, 2026",
+  "title": "Fail-Closed Quality Checkpoint",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test",
+      "npm run lint",
+      "npm run format:check",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:evaluation:pr",
+      "npm run audit:scion:factual-canaries",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification must pass on the exact V0.17.05 release commit."
+    },
+    "ciDeep": {
+      "status": "pending-push",
+      "note": "Deep Proof remains the slower defense-in-depth lane."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Production deployment follows repository policy after review."
+    },
+    "liveProvider": {
+      "status": "not-applicable",
+      "note": "This checkpoint changes deterministic finalization, grading, evidence, and compiler-output policy; it makes no new live-provider claim."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No instructor, learner, classroom, factual-certification, accessibility-certification, or efficacy claim is made."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01705-fail-closed-quality-proof",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "An unavailable finalize-time grade owns one quality blocker, sets package status blocked, disables download, and cannot produce the ready-to-download message.",
+      "anchors": [
+        "src/lib/packageFinalizer.js",
+        "src/lib/packageFinishEvidence.js",
+        "src/lib/packageTrustStatus.js",
+        "src/components/WorkspaceQualityChip.jsx",
+        "src/components/ExportSidePanel.jsx",
+        "src/lib/__tests__/packageFinalizer.test.js",
+        "src/lib/__tests__/packageFinishEvidence.test.js",
+        "src/lib/__tests__/packageTrustStatus.test.js",
+        "src/components/__tests__/ExportSidePanel.readiness.test.jsx",
+        "tests/v0143-quality-badge.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run src/lib/__tests__/packageFinalizer.test.js src/lib/__tests__/packageFinishEvidence.test.js src/lib/__tests__/packageTrustStatus.test.js src/components/__tests__/ExportSidePanel.readiness.test.jsx tests/v0143-quality-badge.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01705-portable-ungraded-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Timeout and grader-error attempts retain a recoverable blob while adding an explicit ungraded quality report and manifest readiness blocker; attempted non-graded ZIPs are not physically saved, and same-click finishes cannot reuse stale proof.",
+      "anchors": [
+        "src/lib/packageZipExporter.js",
+        "src/components/ExportSidePanel.jsx",
+        "src/lib/__tests__/packageZipExporter.test.js",
+        "src/components/__tests__/ExportSidePanel.readiness.test.jsx",
+        "tests/v0143-quality-badge.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run src/lib/__tests__/packageZipExporter.test.js src/components/__tests__/ExportSidePanel.readiness.test.jsx tests/v0143-quality-badge.test.js"
+      ],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01705-distinct-grader-deadlines",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "The whole finalize pass has a 15-second assembly margin beyond the inner grader budget, and a boundary regression proves a terminal inner result is retained.",
+      "anchors": ["src/lib/quality/finalizeQualityGate.js", "src/lib/quality/__tests__/finalizeQualityGate.test.js"],
+      "proofCommands": ["npx vitest run src/lib/quality/__tests__/finalizeQualityGate.test.js"],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01705-three-family-texture-policy",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Deep grader V1.11.6 applies visible-unit policy V2 to lesson plans, assignments, and rubrics with ordinary-course floors and a strongest-family penalty cap; the expanded guard also drove Trellis's golden package from repeated directions at 89/B to varied output at 98/A.",
+      "anchors": [
+        "src/lib/quality/textureMetric.js",
+        "src/lib/quality/deepQualityGrader.js",
+        "tests/v0147-texture-metric.test.js",
+        "trellis/render/deliverables.mjs",
+        "trellis/__tests__/e0-golden-compile.test.mjs",
+        "trellis/__tests__/pipeline-mock.test.mjs",
+        "evaluation/scion-adapters/held-out-course-benchmark-v37.json"
+      ],
+      "proofCommands": [
+        "npx vitest run tests/v0147-texture-metric.test.js trellis/__tests__/e0-golden-compile.test.mjs trellis/__tests__/pipeline-mock.test.mjs tests/scion-adapter-tooling.test.js"
+      ],
+      "proofScopes": ["unit", "compiled-output", "static-audit"]
+    },
+    {
+      "id": "v01705-compressor-tolerance-separation",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "AppFlow and compiler gzip content ceilings are restored while a separately named 64-byte tolerance accounts for observed Node/zlib variance.",
+      "anchors": ["scripts/checkBundleBudgets.mjs"],
+      "proofCommands": ["npm run build", "npm run bundle:check"],
+      "proofScopes": ["build", "static-audit"]
+    },
+    {
+      "id": "v01705-checkpoint-claim-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 5,
+      "summary": "The named checkpoint is limited to reproducible deterministic compiler, grader, export, and evidence behavior and explicitly excludes factual, accessibility, pedagogical, instructor, and classroom certification.",
+      "anchors": [
+        "docs/V0.17.05_SCION_CHECKPOINT_AUDIT.md",
+        "src/lib/currentRelease.js",
+        "release-contracts/v0.17.05.json"
+      ],
+      "proofCommands": ["npm run audit:release-history"],
+      "proofScopes": ["static-audit", "doc"]
+    }
+  ]
+}

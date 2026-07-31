@@ -1170,6 +1170,33 @@ describe('packageFinalizer', () => {
     expect(full.readiness.blockers[0].message).toContain('blocking P0 finding');
   });
 
+  it('blocks package readiness when the finalize-time quality proof is unavailable', () => {
+    const baseResult = {
+      readiness: {
+        status: 'ready',
+        isBlocked: false,
+        blockers: [],
+        warnings: [],
+        issues: [],
+      },
+    };
+
+    const result = applyQualityToFinalizerResult(baseResult, {
+      status: 'not-graded',
+      reason: 'quality grading timed out after 20000ms',
+    });
+
+    expect(result.readiness.status).toBe('blocked');
+    expect(result.readiness.isBlocked).toBe(true);
+    expect(result.readiness.blockers).toHaveLength(1);
+    expect(result.readiness.blockers[0]).toMatchObject({
+      label: 'Quality proof unavailable',
+      source: 'qualityGate',
+      severity: 'blocker',
+    });
+    expect(result.readiness.blockers[0].message).toMatch(/timed out.*run finalization again/i);
+  });
+
   it('returns exact retry actions for localized weak sections', () => {
     const result = runDeterministicPackageFinalizer({
       courseMap: makeCourseMap(2),

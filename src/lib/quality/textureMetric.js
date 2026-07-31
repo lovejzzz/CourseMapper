@@ -43,24 +43,32 @@
  * Calibration (tests/v0147-texture-metric.test.js): a 10-doc slot-varied
  * template set must score ≥20 points below the same facts written with
  * varied structures, and per-doc DISTINCT real reading anchors must outrank
- * identical generic anchors. The grader gives the metric a small weight and
- * turns low texture into an actionable finding.
+ * identical generic anchors. The grader gives texture weight 25 in the
+ * 135-point dimension policy and turns low texture into family-specific
+ * actionable findings.
  */
 
-export const TEXTURE_VERSION = '1.3.0';
+export const TEXTURE_VERSION = '1.4.0';
 
-// V1 is intentionally narrow. The retained two-package calibration established
-// a stable lesson-plan failure mode, but not a safe cross-family threshold.
-// Keep the policy beside the metric so reports name the exact denominator,
-// family, eligibility floor, and severity boundary that affected the score.
-export const VISIBLE_UNIT_TEXTURE_POLICY = Object.freeze({
-  version: 'visible-units.v1',
-  family: 'lessonPlans',
-  signal: 'skeleton.extraDuplicateRate',
-  minEligibleUnits: 40,
-  thresholds: Object.freeze({ P2: 0.15, P1: 0.3 }),
-  penalties: Object.freeze({ P2: 3, P1: 8 }),
-});
+// V2 covers the three long-form surfaces with stable visible-unit extraction.
+// The family floors evaluate an ordinary four-lesson course while avoiding a
+// penalty from one duplicated pair. Short-form families remain reportable
+// until their distinct structures have dedicated calibration.
+export const VISIBLE_UNIT_TEXTURE_POLICIES = Object.freeze(
+  [
+    { family: 'lessonPlans', minEligibleUnits: 12 },
+    { family: 'assignments', minEligibleUnits: 8 },
+    { family: 'rubrics', minEligibleUnits: 12 },
+  ].map((policy) =>
+    Object.freeze({
+      version: 'visible-units.v2',
+      signal: 'skeleton.extraDuplicateRate',
+      thresholds: Object.freeze({ P2: 0.15, P1: 0.3 }),
+      penalties: Object.freeze({ P2: 3, P1: 8 }),
+      ...policy,
+    }),
+  ),
+);
 
 export const TEXTURE_SUBSCORE_WEIGHTS = { sameness: 0.5, openers: 0.25, tails: 0.25 };
 export const VISIBLE_UNIT_MIN_WORDS = 8;
@@ -264,82 +272,110 @@ export function computeVisibleUnitTexture(docs = [], slotValues = []) {
   };
 }
 
-/**
- * Evaluate the one calibrated score-bearing visible-unit rule. Other families
- * remain measured and reportable but deliberately do not affect conformance.
- */
+function severityRank(severity) {
+  return severity === 'P1' ? 2 : severity === 'P2' ? 1 : 0;
+}
+
+/** Evaluate every calibrated score-bearing visible-unit family. */
 export function evaluateVisibleUnitTexture(visibleUnits) {
-  const policy = VISIBLE_UNIT_TEXTURE_POLICY;
-  const family = visibleUnits?.families?.find((entry) => entry?.feature === policy.family) || null;
-  const eligibleUnitCount = Number(family?.skeleton?.eligibleUnitCount || 0);
-  const observedRate = Number(family?.skeleton?.extraDuplicateRate || 0);
-  let severity = null;
-  if (eligibleUnitCount >= policy.minEligibleUnits) {
-    if (observedRate >= policy.thresholds.P1) severity = 'P1';
-    else if (observedRate >= policy.thresholds.P2) severity = 'P2';
-  }
-  const topCluster = family?.skeleton?.topClusters?.[0] || null;
+  const families = VISIBLE_UNIT_TEXTURE_POLICIES.map((policy) => {
+    const family = visibleUnits?.families?.find((entry) => entry?.feature === policy.family) || null;
+    const eligibleUnitCount = Number(family?.skeleton?.eligibleUnitCount || 0);
+    const observedRate = Number(family?.skeleton?.extraDuplicateRate || 0);
+    let severity = null;
+    if (eligibleUnitCount >= policy.minEligibleUnits) {
+      if (observedRate >= policy.thresholds.P1) severity = 'P1';
+      else if (observedRate >= policy.thresholds.P2) severity = 'P2';
+    }
+    return {
+      policyVersion: policy.version,
+      family: policy.family,
+      signal: policy.signal,
+      minEligibleUnits: policy.minEligibleUnits,
+      thresholds: policy.thresholds,
+      eligibleUnitCount,
+      observedRate,
+      evaluated: eligibleUnitCount >= policy.minEligibleUnits,
+      severity,
+      scorePenalty: severity ? policy.penalties[severity] : 0,
+      topCluster: family?.skeleton?.topClusters?.[0] || null,
+    };
+  });
+  const evaluatedFamilies = families.filter((family) => family.evaluated);
+  const eligibleUnitCount = evaluatedFamilies.reduce((sum, family) => sum + family.eligibleUnitCount, 0);
+  const worst = [...families].sort((a, b) => severityRank(b.severity) - severityRank(a.severity))[0] || null;
   return {
-    policyVersion: policy.version,
-    family: policy.family,
-    signal: policy.signal,
-    minEligibleUnits: policy.minEligibleUnits,
-    thresholds: policy.thresholds,
+    policyVersion: 'visible-units.v2',
+    signal: 'skeleton.extraDuplicateRate',
     eligibleUnitCount,
-    observedRate,
-    evaluated: eligibleUnitCount >= policy.minEligibleUnits,
-    severity,
-    scorePenalty: severity ? policy.penalties[severity] : 0,
-    topCluster,
+    observedRate:
+      eligibleUnitCount > 0
+        ? evaluatedFamilies.reduce((sum, family) => sum + family.observedRate * family.eligibleUnitCount, 0) /
+          eligibleUnitCount
+        : 0,
+    evaluated: evaluatedFamilies.length > 0,
+    evaluatedFamilyCount: evaluatedFamilies.length,
+    severity: worst?.severity || null,
+    // One repeated frame may cross artifact families. Keep each family finding
+    // visible, but charge only the strongest family penalty once so the same
+    // boilerplate cannot consume 24 of the texture dimension's 25 points.
+    scorePenalty: Math.max(0, ...families.map((family) => family.scorePenalty)),
+    topCluster: worst?.topCluster || null,
+    families,
   };
 }
 
 export function addVisibleUnitTextureFinding(findings, evaluation) {
-  if (!evaluation?.severity) return;
-  const ratePercent = Math.round(evaluation.observedRate * 1000) / 10;
-  findings.add({
-    severity: evaluation.severity,
-    dimension: 'texture',
-    file: `${evaluation.family} artifacts`,
-    detail: `${evaluation.family} repeat reader-visible prose skeletons at ${ratePercent}% extra duplicates (${evaluation.eligibleUnitCount} eligible units; ${evaluation.policyVersion})`,
-    evidence: evaluation.topCluster?.representative || 'repeated reader-visible lesson-plan skeleton',
-  });
+  for (const family of evaluation?.families || []) {
+    if (!family.severity) continue;
+    const ratePercent = Math.round(family.observedRate * 1000) / 10;
+    findings.add({
+      severity: family.severity,
+      dimension: 'texture',
+      file: `${family.family} artifacts`,
+      detail: `${family.family} repeat reader-visible prose skeletons at ${ratePercent}% extra duplicates (${family.eligibleUnitCount} eligible units; ${family.policyVersion})`,
+      evidence: family.topCluster?.representative || `repeated reader-visible ${family.family} skeleton`,
+    });
+  }
 }
 
 export function renderVisibleUnitPolicyReceiptMarkdown(texture = {}) {
   const policy = texture.visibleUnitPolicy;
   if (!policy) return [];
-  const ratePercent = Math.round(policy.observedRate * 1000) / 10;
-  const p2Percent = Math.round(policy.thresholds.P2 * 1000) / 10;
-  const p1Percent = Math.round(policy.thresholds.P1 * 1000) / 10;
-  const evaluation = policy.evaluated ? `evaluated (${policy.severity || 'no finding'})` : 'not evaluated';
-  const effect = `${policy.scorePenalty} texture points`;
   const lines = [
     '## Reader-visible texture policy receipt',
     '',
-    `Policy \`${policy.policyVersion}\` · signal \`${policy.family}.${policy.signal}\` · ${evaluation}.`,
+    `Policy \`${policy.policyVersion}\` · signal \`${policy.signal}\` · ${policy.evaluatedFamilyCount || 0}/${policy.families?.length || 0} calibrated families evaluated.`,
     '',
-    `Observed ${policy.eligibleUnitCount} eligible units at ${ratePercent}% extra duplicates. Minimum sample: ${policy.minEligibleUnits}; P2 threshold: ${p2Percent}%; P1 threshold: ${p1Percent}%. Score effect: ${effect}. Under global policy, any P1 finding caps package conformance at 89.`,
+    '| Family | Eligible units | Minimum | Extra duplicates | Result | Score effect |',
+    '| --- | ---: | ---: | ---: | --- | ---: |',
   ];
-  if (policy.topCluster?.representative) {
-    lines.push('', `Top repeated frame: \`${policy.topCluster.representative.replace(/`/g, "'")}\``);
+  for (const family of policy.families || []) {
+    const ratePercent = Math.round(family.observedRate * 1000) / 10;
+    const result = family.evaluated ? family.severity || 'no finding' : 'not evaluated';
+    lines.push(
+      `| ${family.family} | ${family.eligibleUnitCount} | ${family.minEligibleUnits} | ${ratePercent}% | ${result} | ${family.scorePenalty} |`,
+    );
   }
-  lines.push('');
+  lines.push(
+    '',
+    `Combined score effect: ${policy.scorePenalty} texture points. Any P1 finding caps package conformance at 89.`,
+    '',
+  );
   return lines;
 }
 
 export function buildVisibleUnitTextureAdvisories(evaluation) {
-  if (!evaluation || evaluation.evaluated || evaluation.eligibleUnitCount <= 0) return [];
-  return [
-    {
+  return (evaluation?.families || [])
+    .filter((family) => !family.evaluated && family.eligibleUnitCount > 0)
+    .map((family) => ({
       severity: 'P2',
       dimension: 'texture',
       advisory: true,
-      file: `${evaluation.family} artifacts`,
-      detail: `advisory: ${evaluation.policyVersion} was not evaluated because ${evaluation.eligibleUnitCount} eligible units are below its ${evaluation.minEligibleUnits}-unit floor`,
-      evidence: evaluation.topCluster?.representative || '',
-    },
-  ];
+      file: `${family.family} artifacts`,
+      detail: `advisory: ${family.policyVersion} did not evaluate ${family.family} because ${family.eligibleUnitCount} eligible units are below its ${family.minEligibleUnits}-unit floor`,
+      evidence: family.topCluster?.representative || '',
+    }));
 }
 
 function isStructuralLedgerLine(line) {

@@ -15,6 +15,17 @@ import { buildNotApplicableDisposition } from '../deliverableApplicability';
 import { APP_VERSION } from '../appVersion';
 import { buildFinalizeSourceEvidence } from '../quality/sourceEvidence';
 
+const qualityGraderOverride = vi.hoisted(() => ({ grade: null }));
+
+vi.mock('../quality/deepQualityGrader.js', async () => {
+  const actual = await vi.importActual('../quality/deepQualityGrader.js');
+  return {
+    ...actual,
+    grade: (...args) =>
+      typeof qualityGraderOverride.grade === 'function' ? qualityGraderOverride.grade(...args) : actual.grade(...args),
+  };
+});
+
 vi.mock('../customDeliverableLibrary', () => ({
   getCustomDeliverable: vi.fn((id) => (id === 'custom_weeklyReflection' ? { name: 'Weekly Reflection' } : null)),
 }));
@@ -93,6 +104,7 @@ describe('packageZipExporter', () => {
 
   beforeEach(async () => {
     vi.clearAllMocks();
+    qualityGraderOverride.grade = null;
 
     buildXlsxBuffer.mockResolvedValue(
       await makeOfficeXmlBuffer(
@@ -3055,6 +3067,32 @@ describe('packageZipExporter', () => {
     ).rejects.toBeInstanceOf(PackageZipExportError);
 
     expect(saveAs).not.toHaveBeenCalled();
+  });
+
+  it('keeps an assembled ZIP recoverable but does not save it when an attempted grade times out', async () => {
+    qualityGraderOverride.grade = () => new Promise(() => {});
+    const result = await downloadCourseMaterialsZip({
+      courseMap: makeCourseMap(),
+      featureIds: ['courseMap'],
+      quality: { timeoutMs: 1 },
+    });
+
+    expect(result.downloaded).toBe(false);
+    expect(result.quality).toMatchObject({ status: 'not-graded' });
+    expect(result.blob.size).toBeGreaterThan(0);
+    expect(result.qualityReportMarkdown.toLowerCase()).toContain('quality proof unavailable');
+    expect(saveAs).not.toHaveBeenCalled();
+  });
+
+  it('still saves an explicitly ungraded diagnostic export when grading was deliberately disabled', async () => {
+    const result = await downloadCourseMaterialsZip({
+      courseMap: makeCourseMap(),
+      featureIds: ['courseMap'],
+      quality: false,
+    });
+
+    expect(result.downloaded).toBe(true);
+    expect(saveAs).toHaveBeenCalledWith(result.blob, result.fileName);
   });
 
   it('fails closed when a selected ZIP document leaks internal proof language', async () => {

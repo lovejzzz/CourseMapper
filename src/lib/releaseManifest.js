@@ -3,6 +3,20 @@ import { CURRENT_RELEASE } from './currentRelease.js';
 
 export { CURRENT_RELEASE };
 
+const V01704_RELEASE = {
+  version: '0.17.04',
+  date: 'July 31, 2026',
+  title: 'Lesson-Plan Repetition Guard',
+  highlights: [
+    'Deep grader V1.11.5 adds a calibrated score-bearing regression guard for reader-visible lesson-plan skeleton repetition instead of leaving that known-bad pattern advisory-only.',
+    'The policy seals its exact family, denominator, minimum sample, thresholds, severity, and evidence. Other artifact families remain measured but cannot lower the score until they have their own calibration.',
+    'The dominant independent-work instructor sentence now composes from lesson concept, evidence, decision, artifact, and revision context rather than stamping one submission-readiness frame across courses.',
+    'The tracked two-package measurement settlement places known-bad lesson-plan skeleton excess at 16.4–17.0%, supporting a 15% regression boundary without inventing one global threshold for every artifact family.',
+    'The release improves deterministic output variation and conformance truthfulness. It does not certify factual accuracy, instructional quality, accessibility, instructor approval, or classroom outcomes, and it changes no model weights.',
+    'Assignment extent and citation requirements now name the specific brief, preserving concrete defaults without repeating one reader-visible sentence across a course.',
+  ],
+};
+
 const V01703_RELEASE = {
   version: '0.17.03',
   date: 'July 31, 2026',
@@ -1314,34 +1328,52 @@ export const CURRENT_RELEASE_CHANGELOG = {
   highlights: CURRENT_RELEASE.highlights,
   sections: [
     {
-      label: 'Make visible repetition score-bearing',
+      label: 'Make quality proof fail closed',
       icon: 'CHECK',
       color: 'emerald',
       items: [
-        'Deep grader V1.11.5 evaluates lesson-plan skeleton excess after visible-unit extraction.',
-        'The score receipt names the policy version, family, signal, eligible-unit floor, thresholds, rate, severity, and penalty.',
-        'Uncalibrated artifact families remain measured and score-neutral.',
+        'A missing, timed-out, or errored finalize grade owns one quality blocker instead of an advisory.',
+        'The package cannot say ready or enable download until deterministic grading completes.',
+        'Recoverable assembled work remains available for a new finalization attempt.',
       ],
     },
     {
-      label: 'Repair the dominant compiler owner',
+      label: 'Carry failure evidence into the ZIP',
       icon: 'AI',
       color: 'blue',
       items: [
-        'Independent-work instructor guidance composes from 36 deterministic lead-tail combinations.',
-        'Lesson concept, evidence noun, decision noun, artifact, limitation, and next revision replace the generic readiness stamp.',
-        'The repair targets the proven lesson-plan owner instead of adding a global synonym pass.',
-        'Assignment extent and citation requirements identify their brief instead of repeating identical surface copy across a course.',
+        'Ungraded exports include QUALITY_REPORT.md with reason, attempt time, and claim boundary.',
+        'Manifest readiness carries the same quality blocker shown in the workspace.',
+        'A separate assembly margin prevents the outer finalizer timer from discarding the inner grader result.',
       ],
     },
     {
-      label: 'Keep the quality claim bounded',
+      label: 'Calibrate three long-form families',
       icon: 'PROOF',
       color: 'violet',
       items: [
-        'The retained golden package and two-package settlement pin the safe and known-bad lesson-plan rates.',
-        'The rule requires 40 eligible lesson-plan units and does not gate downloads.',
-        'No model, factual, instructor, accessibility, or classroom-quality claim is made.',
+        'Lesson plans, assignments, and rubrics receive score-bearing reader-visible repetition checks.',
+        'A four-lesson compiled package evaluates all three families at an exact 97 texture score.',
+        'The named checkpoint certifies deterministic encoded checks, not factual or classroom quality.',
+      ],
+    },
+  ],
+};
+
+const V01704_RELEASE_CHANGELOG = {
+  version: V01704_RELEASE.version,
+  date: V01704_RELEASE.date,
+  title: V01704_RELEASE.title,
+  highlights: V01704_RELEASE.highlights,
+  sections: [
+    {
+      label: 'Guard the proven lesson-plan repetition mode',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'Visible-unit policy V1 scores lesson-plan skeleton excess above its retained calibration boundary.',
+        'Independent-work guidance composes from lesson context instead of one repeated submission frame.',
+        'Assignment requirement defaults remain concrete while avoiding exact repeated surface copy.',
       ],
     },
   ],
@@ -2218,6 +2250,7 @@ const V01678_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  V01704_RELEASE_CHANGELOG,
   V01703_RELEASE_CHANGELOG,
   V01702_RELEASE_CHANGELOG,
   V01701_RELEASE_CHANGELOG,

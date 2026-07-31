@@ -425,8 +425,8 @@ describe('A5(3) — seeded P0 reaches the manifest and the readiness channel', (
   }, 120000);
 });
 
-describe('A5(4) — timeout path never blocks the package', () => {
-  it('quality reports not-graded on timeout while the zip stays complete', async () => {
+describe('A5(4) — timeout keeps a recoverable ZIP but cannot certify package readiness', () => {
+  it('records not-graded proof while preserving the assembled ZIP for recovery', async () => {
     const result = await buildPackage({ quality: { timeoutMs: 0 } });
     expect(result.quality.status).toBe('not-graded');
     expect(result.quality.reason).toMatch(/timed out/);
@@ -434,8 +434,17 @@ describe('A5(4) — timeout path never blocks the package', () => {
     const zip = await JSZip.loadAsync(await result.blob.arrayBuffer());
     const manifest = JSON.parse(await zip.file('PACKAGE_MANIFEST.json').async('string'));
     expect(manifest.quality).toEqual(result.quality);
-    // No report without a grade, and every regular file still ships.
-    expect(zip.file('QUALITY_REPORT.md')).toBeNull();
+    expect(manifest.readiness).toMatchObject({ status: 'blocked' });
+    expect(manifest.readiness.blockers).toEqual(
+      expect.arrayContaining([expect.objectContaining({ source: 'qualityGate' })]),
+    );
+    // The finalizer fails readiness closed; the lower-level assembly result is
+    // intentionally retained so a retry does not destroy already-built work.
+    const report = await zip.file('QUALITY_REPORT.md').async('string');
+    expect(report).toContain('Status: NOT GRADED');
+    expect(report).toContain(result.quality.reason);
+    expect(report).toContain('Absence of encoded findings is not proof');
+    // Every regular package file remains available for recovery.
     const names = Object.keys(zip.files).filter((name) => !zip.files[name].dir);
     expect(names).toContain('PACKAGE_MANIFEST.json');
     for (const featureFolder of ['Course Map', 'Lesson Plans', 'Slide Decks', 'Quiz & Exam Bank']) {
@@ -552,15 +561,17 @@ describe('B2 — WorkspaceQualityChip header states', () => {
     expect(html).not.toContain('emerald');
   });
 
-  it('renders the slate "Not graded" state with the reason in the tooltip', () => {
+  it('renders unavailable proof as a red, report-opening blocked state', () => {
     const html = render({
       status: 'ready',
       quality: { status: 'not-graded', reason: 'quality grading timed out after 20000ms' },
     });
     expect(html).toContain('workspace-quality-chip-not-graded');
-    expect(html).toContain('Not graded');
-    expect(html).toContain('slate');
-    expect(html).toContain('title="Quality grading did not run: quality grading timed out after 20000ms"');
+    expect(html).toContain('Quality proof unavailable');
+    expect(html).toContain('border-red-200');
+    expect(html).toContain('<button');
+    expect(html).toContain('Export is paused');
+    expect(html).toContain('quality grading timed out after 20000ms');
   });
 });
 

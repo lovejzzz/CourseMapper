@@ -15,8 +15,7 @@ export function buildPackageWarningDomains({
 } = {}) {
   const source = countSourceAdvisoryFindings(sourceEvidence);
   const sourceQualityAdvisories = countSourceQualityAdvisoryFindings(sourceEvidence);
-  const qualityProofAdvisories = quality && quality.status !== 'graded' ? 1 : 0;
-  const qualityAdvisories = countAdvisoryQualityFindings(quality) + qualityProofAdvisories;
+  const qualityAdvisories = countAdvisoryQualityFindings(quality);
   const domains = {
     readiness: compactCount(readinessWarningCount),
     retry: compactCount(retryWarningCount),
@@ -36,12 +35,13 @@ export function buildPackageWarningDomains({
 
 export function buildPackageBlockerDomains({ readiness = null, exportFailureCount = 0, quality = null } = {}) {
   const readinessBlockers = Array.isArray(readiness?.blockers) ? readiness.blockers : [];
+  const unavailableQualityProofs = quality && quality.status !== 'graded' ? 1 : 0;
   const domains = {
     // applyQualityToFinalizerResult adds one collapsed qualityGate readiness
     // row. The quality domain owns the actual P0 count, so exclude that row
     // from structural readiness ownership.
     readiness: readinessBlockers.filter((issue) => issue?.source !== 'qualityGate').length,
-    quality: countBlockingQualityFindings(quality),
+    quality: countBlockingQualityFindings(quality) + unavailableQualityProofs,
     export: compactCount(exportFailureCount),
   };
   return {

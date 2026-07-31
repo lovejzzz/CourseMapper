@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import { buildPackageFinishDomains } from '../packageFinishEvidence';
+import { applyQualityToFinalizerResult } from '../packageFinalizer';
 import { buildQualityReviewIssue, buildQualityReviewIssues, getPackageTrustStatus } from '../packageTrustStatus';
 
 describe('package trust quality notes', () => {
@@ -382,19 +384,26 @@ describe('package trust quality notes', () => {
     expect(status.warningCount).toBe(2);
   });
 
-  it('does not add a quality-proof note on top of its canonical warning domain', () => {
+  it('uses the canonical blocker domain to fail closed when quality proof is unavailable', () => {
     const status = getPackageTrustStatus({
       packageQualityPass: {
-        status: 'ready',
-        blockers: 0,
-        warnings: 1,
+        status: 'blocked',
+        blockers: 1,
+        warnings: 0,
         warningDomains: {
           schemaVersion: 1,
           readiness: 0,
           retry: 0,
           export: 0,
-          quality: 1,
+          quality: 0,
           source: 0,
+          total: 0,
+        },
+        blockerDomains: {
+          schemaVersion: 1,
+          readiness: 0,
+          quality: 1,
+          export: 0,
           total: 1,
         },
         quality: { status: 'not-graded', reason: 'grader unavailable' },
@@ -402,7 +411,60 @@ describe('package trust quality notes', () => {
       },
     });
 
-    expect(status.warningCount).toBe(1);
-    expect(status.state).toBe('not-graded');
+    expect(status.warningCount).toBe(0);
+    expect(status.blockerCount).toBe(1);
+    expect(status.state).toBe('blocked');
+    expect(status.canDownload).toBe(false);
+  });
+
+  it('fails restored pre-ledger records closed when they explicitly preserve an unavailable grade', () => {
+    const status = getPackageTrustStatus({
+      packageQualityPass: {
+        status: 'ready',
+        blockers: 0,
+        warnings: 0,
+        quality: { status: 'not-graded', reason: 'restored timeout' },
+        receipt: { exportStatus: 'passed', exportFailed: 0 },
+      },
+    });
+
+    expect(status.blockerCount).toBe(1);
+    expect(status.state).toBe('blocked');
+    expect(status.canDownload).toBe(false);
+  });
+
+  it('derives blocked trust through the real finalizer and finish-ledger seams', () => {
+    const quality = { status: 'not-graded', reason: 'grader unavailable' };
+    const finalized = applyQualityToFinalizerResult(
+      {
+        readiness: {
+          status: 'ready',
+          isBlocked: false,
+          blockers: [],
+          warnings: [],
+          issues: [],
+        },
+      },
+      quality,
+    );
+    const domains = buildPackageFinishDomains({ readiness: finalized.readiness, quality });
+    const status = getPackageTrustStatus({
+      packageQualityPass: {
+        status: finalized.readiness.status,
+        blockers: domains.blockerDomains.total,
+        warnings: domains.warningDomains.total,
+        ...domains,
+        quality,
+        receipt: { exportStatus: 'passed', exportFailed: 0 },
+      },
+      readiness: finalized.readiness,
+    });
+
+    expect(finalized.readiness.blockers).toEqual([
+      expect.objectContaining({ source: 'qualityGate', label: 'Quality proof unavailable' }),
+    ]);
+    expect(status.blockerCount).toBe(1);
+    expect(status.state).toBe('blocked');
+    expect(status.canDownload).toBe(false);
   });
 });

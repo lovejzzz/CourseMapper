@@ -56,11 +56,13 @@ describe('E0 golden compile through the unmodified deep grader', () => {
     const p0 = findings.filter((f) => f.severity === 'P0');
     // The E0 bar from §17: the ruler runs and yields a score; we additionally
     // hold the package to zero P0s (a P0 here means the compat layer is
-    // structurally wrong, not that the mock prose is unliterary) and lock a
-    // ≥90 overall as the compat regression floor.
+    // structurally wrong, not that the mock prose is unliterary) and pin the
+    // exact V1.11.6 checkpoint result. Any score drift must be reviewed rather
+    // than silently spending the eight-point margin above the old floor.
     expect(typeof result.overall?.score).toBe('number');
     expect(p0, JSON.stringify(p0, null, 2)).toEqual([]);
-    expect(result.overall.score).toBeGreaterThanOrEqual(90);
+    expect(result.overall).toEqual({ score: 98, grade: 'A' });
+    expect(result.texture?.score).toBe(88);
 
     // eslint-disable-next-line no-console
     console.log(

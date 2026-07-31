@@ -9,7 +9,8 @@
  *     ceiling of 69; technical conformance remains available in the report)
  *     any P0 landed or the grade is C or below; click opens the full
  *     findings report modal hosted by ExportSidePanel)
- *   - Not graded (grading skipped/failed — slate, reason in the tooltip)
+ *   - Quality proof unavailable (grading failed — blocked red control that
+ *     opens the report, with the reason in its accessible text and tooltip)
  *
  * Data source is the SAME packageQualityPass state the export panel reads
  * (AppFlow's finalize pass attaches the grade result as `quality`) — no new
@@ -51,6 +52,22 @@ export default function WorkspaceQualityChip({ packageQualityPass, onOpenReport 
   }
 
   if (!quality) return null;
+
+  if (quality.status !== 'graded' && trustStatus.blocked) {
+    const reason = quality.reason || 'unknown reason';
+    return (
+      <button
+        type="button"
+        data-testid="workspace-quality-chip-not-graded"
+        onClick={onOpenReport}
+        aria-label={`Package quality proof unavailable — ${reason}; export paused — open the quality report`}
+        title={`Quality proof is unavailable: ${reason}. Export is paused; click to review the report and retry finalization.`}
+        className={`${CHIP_BASE} border-red-200 bg-red-50 text-red-700 tactile transition-colors hover:brightness-95`}
+      >
+        Quality proof unavailable
+      </button>
+    );
+  }
 
   if (quality.status !== 'graded') {
     const reason = quality.reason || 'unknown reason';

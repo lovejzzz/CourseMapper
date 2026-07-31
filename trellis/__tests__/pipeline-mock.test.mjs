@@ -24,7 +24,8 @@ describe('runPipeline (mockVoice)', () => {
     expect(result.ledger.totals().calls).toBe(0);
     expect(result.ledger.totals().usd).toBe(0);
     // The borrowed ruler graded it (ground rule #6: never our own grader).
-    expect(result.grade.overall.score).toBeGreaterThanOrEqual(90);
+    expect(result.grade.overall).toEqual({ score: 98, grade: 'A' });
+    expect(result.grade.texture?.score).toBe(89);
     expect(result.grade.stats.p0).toBe(0);
 
     const ledgerFile = JSON.parse(await readFile('trellis/runs/test-pipeline-mock/ledger.json', 'utf8'));

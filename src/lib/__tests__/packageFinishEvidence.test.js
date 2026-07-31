@@ -73,7 +73,7 @@ describe('package finish warning evidence', () => {
     });
   });
 
-  it('owns a not-graded proof note inside the warning ledger', () => {
+  it('does not misclassify an unavailable quality proof as an advisory', () => {
     expect(
       buildPackageWarningDomains({
         quality: { status: 'not-graded', reason: 'grader unavailable' },
@@ -83,8 +83,25 @@ describe('package finish warning evidence', () => {
       readiness: 0,
       retry: 0,
       export: 0,
-      quality: 1,
+      quality: 0,
       source: 0,
+      total: 0,
+    });
+  });
+
+  it('owns an unavailable quality proof exactly once inside the blocker ledger', () => {
+    expect(
+      buildPackageBlockerDomains({
+        readiness: {
+          blockers: [{ source: 'qualityGate', message: 'Quality proof unavailable.' }],
+        },
+        quality: { status: 'not-graded', reason: 'grader unavailable' },
+      }),
+    ).toEqual({
+      schemaVersion: 1,
+      readiness: 0,
+      quality: 1,
+      export: 0,
       total: 1,
     });
   });

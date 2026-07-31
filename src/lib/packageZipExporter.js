@@ -240,6 +240,26 @@ function countQualityFindings(findings = []) {
 const AUTOMATED_QUALITY_CLAIM_BOUNDARY =
   'Absence of encoded findings is not proof of factual accuracy, accessibility, teachability, or independent validation.';
 
+function renderUnavailableQualityReport(quality, { courseTitle = 'Course' } = {}) {
+  const reason = String(quality?.reason || 'quality grading did not complete')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return [
+    `# CourseMapper Quality Evidence Report - ${courseTitle}`,
+    '',
+    '**Status: NOT GRADED — quality proof unavailable**',
+    '',
+    `**Reason:** ${reason}`,
+    '',
+    `**Attempted:** ${quality?.attemptedAt || 'timestamp unavailable'}`,
+    '',
+    AUTOMATED_QUALITY_CLAIM_BOUNDARY,
+    '',
+    'This package has not earned an automated conformance result. Run package finalization again before downloading or sharing it as ready.',
+    '',
+  ].join('\n');
+}
+
 function normalizePrecomputedPackageQuality(quality) {
   if (!quality || quality.status !== 'graded') return null;
   const score = Number(quality.score);
@@ -1685,7 +1705,21 @@ function mergeManifestReadinessIssue(readiness, issue) {
 }
 
 function qualityIssueFromManifestQuality(qualityBlock) {
-  if (qualityBlock?.status !== 'graded') return null;
+  if (!qualityBlock) return null;
+  if (qualityBlock.status !== 'graded') {
+    const reason = String(qualityBlock.reason || 'quality grading did not complete')
+      .replace(/\s+/g, ' ')
+      .trim();
+    return {
+      severity: 'blocker',
+      featureId: 'courseMap',
+      label: 'Quality proof unavailable',
+      message: `Package quality proof is unavailable (${reason}) — run finalization again before downloading`,
+      source: 'qualityGate',
+      retryable: false,
+      autoFixable: false,
+    };
+  }
   const p0 = Number(qualityBlock?.findingCounts?.p0) || 0;
   const p1 = Number(qualityBlock?.findingCounts?.p1) || 0;
   const p2 = Number(qualityBlock?.findingCounts?.p2) || 0;
@@ -2281,9 +2315,17 @@ export async function buildCourseMaterialsZip({
           );
         });
         if (raced.timedOut) {
-          qualityBlock = { status: 'not-graded', reason: `grading timed out after ${timeoutMs}ms` };
+          qualityBlock = {
+            status: 'not-graded',
+            reason: `grading timed out after ${timeoutMs}ms`,
+            attemptedAt: new Date().toISOString(),
+          };
         } else if (raced.error) {
-          qualityBlock = { status: 'not-graded', reason: raced.error?.message || 'grading failed' };
+          qualityBlock = {
+            status: 'not-graded',
+            reason: raced.error?.message || 'grading failed',
+            attemptedAt: new Date().toISOString(),
+          };
         } else {
           qualityResult = raced.value;
           qualityBlock = {
@@ -2314,8 +2356,15 @@ export async function buildCourseMaterialsZip({
           qualityReportMarkdown = renderReportMarkdown(qualityResult, { courseTitle: safeCourseName });
         }
       } catch (err) {
-        qualityBlock = { status: 'not-graded', reason: err?.message || 'grader unavailable' };
+        qualityBlock = {
+          status: 'not-graded',
+          reason: err?.message || 'grader unavailable',
+          attemptedAt: new Date().toISOString(),
+        };
       }
+    }
+    if (qualityBlock?.status !== 'graded' && !qualityReportMarkdown) {
+      qualityReportMarkdown = renderUnavailableQualityReport(qualityBlock, { courseTitle: safeCourseName });
     }
     manifest.quality = qualityBlock;
     const qualityIssue = qualityIssueFromManifestQuality(qualityBlock);
@@ -2391,6 +2440,14 @@ export async function buildCourseMaterialsZip({
 export async function downloadCourseMaterialsZip(options = {}) {
   const { saveAs } = await safeImport(() => import('file-saver'));
   const result = await buildCourseMaterialsZip(options);
+  // Building the artifact is recoverable work; releasing it to the user's
+  // Downloads folder is the trust boundary. When grading was requested, an
+  // explicit timeout/error must pause that release even though the ZIP and
+  // its unavailable-quality report were assembled successfully. Callers keep
+  // the result so they can present/retry without losing the expensive build.
+  if (options.quality !== false && result.quality?.status !== 'graded') {
+    return { ...result, downloaded: false };
+  }
   saveAs(result.blob, result.fileName);
-  return result;
+  return { ...result, downloaded: true };
 }

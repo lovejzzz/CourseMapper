@@ -230,7 +230,10 @@ import { findInstructorConfigurationDeferrals } from '../publishabilityPlacehold
 // exact duplicate findings for one artifact are emitted and penalized once.
 // 1.11.5 — calibrated lesson-plan visible-unit skeleton repetition affects the
 // texture score, with its family, denominator, threshold, and evidence sealed.
-export const GRADER_VERSION = '1.11.5';
+// 1.11.6 — the calibrated score-bearing policy expands to assignments and
+// rubrics, reports each family separately, and caps a shared cross-family
+// boilerplate penalty at the strongest single family.
+export const GRADER_VERSION = '1.11.6';
 
 // ── Dimension weights & letter bands (documented in the module header) ──────
 // v0.15.186: texture weight 10 → 25. At 10/120 a fully templated package
@@ -3796,8 +3799,8 @@ export async function grade({
     scores[dimension] = score;
     grades[dimension] = letterGrade(score);
   }
-  // texture's score comes from the metric and contributes through its light
-  // dimension weight; the finding above exists to make the report actionable.
+  // Texture's score comes from the metric and contributes through its declared
+  // dimension weight; the family findings above make the report actionable.
   scores.texture = texture.score;
   grades.texture = letterGrade(texture.score);
 

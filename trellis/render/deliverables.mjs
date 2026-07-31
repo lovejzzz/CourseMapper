@@ -33,6 +33,33 @@ function lessonFileBase(number, title) {
   return `Lesson ${String(number).padStart(2, '0')} - ${safeName(title)}`;
 }
 
+function assignmentFormatLines({ number, lesson, course }) {
+  const formats = [
+    `- Deliverable: a 1–2 page evidence memo on ${lesson.title}; use one citation style consistently.`,
+    `- Prepare a concise two-page analysis of ${lesson.title}, with source references in a consistent style.`,
+    `- Submit a 1–2 page worked explanation that applies ${lesson.title}; identify every borrowed source.`,
+    `- Produce a short evidence brief (about two pages) connecting ${lesson.title} to the assigned material.`,
+  ];
+  const deadlines = [
+    `- Upload the memo before Week ${Math.min(lesson.week + 1, course.weeks)} begins.`,
+    `- Bring the completed analysis to the next session in Week ${Math.min(lesson.week + 1, course.weeks)}.`,
+    `- Post the worked explanation before the Week ${Math.min(lesson.week + 1, course.weeks)} class meeting.`,
+    `- Turn in the evidence brief by the start of Week ${Math.min(lesson.week + 1, course.weeks)}.`,
+  ];
+  const variant = (number - 1) % formats.length;
+  return [formats[variant], deadlines[variant]];
+}
+
+function rubricInterpretationLine(number, lesson) {
+  const variants = [
+    `Read the bands as evidence standards for ${lesson.title}: the strongest work applies the concept with a concrete example, while the lowest band identifies the documented error.`,
+    `Score what is visible in the ${lesson.title} submission. Higher bands require an accurate application and example; lower bands name the specific missing or mistaken move.`,
+    `Use observable features of the work, not praise words. For ${lesson.title}, distinguish demonstrated reasoning from an unsupported or reversed claim.`,
+    `Apply each band to the submitted evidence about ${lesson.title}; reserve the top level for a supported example and the lowest for the stated misconception.`,
+  ];
+  return variants[(number - 1) % variants.length];
+}
+
 function weekDate(course, week) {
   if (!course.termStart) return null;
   const start = new Date(`${course.termStart}T00:00:00Z`);
@@ -249,8 +276,7 @@ export function renderPackage({
         readingLine ? `Cite at least once: ${readingLine}` : '',
         '',
         '## Format',
-        `- Length: 1–2 pages; any citation style, used consistently.`,
-        `- Submit before the next session (Week ${Math.min(lesson.week + 1, course.weeks)}).`,
+        ...assignmentFormatLines({ number, lesson, course }),
       ].join('\n'),
       'assignments',
     );
@@ -266,7 +292,7 @@ export function renderPackage({
         '| --- | --- |',
         ...art.assignment.rubricBands.map((b) => `| ${b.band} | ${b.observableBehavior} |`),
         '',
-        `Bands describe observable work, not adverbs: the top band applies the definition with an example; the lowest names the documented error.`,
+        rubricInterpretationLine(number, lesson),
       ].join('\n'),
       'rubrics',
     );

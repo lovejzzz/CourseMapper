@@ -353,6 +353,13 @@ function hasPackageExportFailure(packageQualityPass) {
 export function hasDownloadableVerifiedPackage(packageQualityPass, finishOutcome = null) {
   const verification = finishOutcome?.exportVerification || null;
   const receipt = finishOutcome?.receipt || packageQualityPass?.receipt || {};
+  const completedQuality = finishOutcome ? finishOutcome.quality : packageQualityPass?.quality;
+  const qualityStatus = String(completedQuality?.status || '').toLowerCase();
+  // A verified file map is recoverable evidence, but it is not a download
+  // override when an attempted package grade explicitly failed or timed out.
+  // Preserve legacy receipts that predate embedded quality; fail closed only
+  // on an explicit non-graded state.
+  if ((finishOutcome && qualityStatus !== 'graded') || (qualityStatus && qualityStatus !== 'graded')) return false;
   const checked = Number(verification?.checked ?? receipt.exportChecked ?? 0);
   const warningCount = Number(verification?.warningCount ?? receipt.exportWarningCount ?? 0);
   const explicitStatus = String(verification?.status || receipt.exportStatus || '').toLowerCase();
@@ -1268,8 +1275,12 @@ export default function ExportSidePanel({
         // All mode: only ZIP is available
         if (format === 'zip') {
           const qualityContext = typeof getQualityContext === 'function' ? { ...(getQualityContext() || {}) } : {};
-          if (packageQualityPass?.quality?.status === 'graded') {
-            qualityContext.precomputed = packageQualityPass.quality;
+          // A same-click finish produces fresher proof than the captured
+          // React prop. Carry that exact proof into ZIP assembly so the
+          // download cannot race a second grader or export stale evidence.
+          const completedQuality = finishOutcome ? finishOutcome.quality : packageQualityPass?.quality;
+          if (completedQuality?.status === 'graded') {
+            qualityContext.precomputed = completedQuality;
           }
           const zipResult = await downloadCourseMaterialsZip({
             deliverables: exportDeliverables || {},
@@ -1287,6 +1298,31 @@ export default function ExportSidePanel({
             // QUALITY_REPORT.md ride the download).
             quality: qualityContext,
           });
+          if (zipResult.downloaded === false) {
+            if (typeof onPackageQualityPassUpdate === 'function' && zipResult.quality) {
+              onPackageQualityPassUpdate((previous) => ({
+                ...previous,
+                status: 'blocked',
+                blockers: Math.max(1, Number(previous?.blockers) || 0),
+                quality: zipResult.quality,
+                ...(previous?.blockerDomains
+                  ? {
+                      blockerDomains: {
+                        ...previous.blockerDomains,
+                        quality: Math.max(1, Number(previous.blockerDomains.quality) || 0),
+                        total:
+                          (Number(previous.blockerDomains.readiness) || 0) +
+                          Math.max(1, Number(previous.blockerDomains.quality) || 0) +
+                          (Number(previous.blockerDomains.export) || 0),
+                      },
+                    }
+                  : {}),
+              }));
+            }
+            const reason = zipResult.quality?.reason || zipResult.quality?.error || 'the quality check did not finish';
+            setLastError(`ZIP download paused because quality proof is unavailable: ${reason}. Retry Finish package.`);
+            return;
+          }
           if (
             typeof onPackageQualityPassUpdate === 'function' &&
             zipResult.quality?.status === 'graded' &&

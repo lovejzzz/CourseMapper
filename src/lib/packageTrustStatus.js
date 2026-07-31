@@ -321,6 +321,7 @@ export function getPackageTrustStatus({
   const packageWarningCount = compactCount(packageQualityPass?.warnings);
   const exportFailedCount = exportFailureIssue ? exportFailureIssue.count : compactCount(packageReceipt?.exportFailed);
   const qualityBlockerCount = countBlockingQualityFindings(packageQuality);
+  const unavailableQualityProofCount = packageQuality && packageQuality.status !== 'graded' ? 1 : 0;
   const qualityWarningCount = qualityProofIssue
     ? 1
     : qualityIssues.some((issue) => issue.severity !== 'blocker')
@@ -332,7 +333,8 @@ export function getPackageTrustStatus({
   // Treat that scalar as an inclusive floor, while still reconstructing the
   // independent content and export domains when a restored record omitted it.
   // New records use the versioned, non-overlapping blockerDomains ledger.
-  const inferredLegacyBlockerCount = Math.max(readinessBlockers.length, qualityBlockerCount) + exportFailedCount;
+  const inferredLegacyBlockerCount =
+    Math.max(readinessBlockers.length, qualityBlockerCount + unavailableQualityProofCount) + exportFailedCount;
   const blockerCount =
     blockerDomainCount === null ? Math.max(packageBlockerCount, inferredLegacyBlockerCount) : blockerDomainCount;
   const operationalWarningCount = Math.max(

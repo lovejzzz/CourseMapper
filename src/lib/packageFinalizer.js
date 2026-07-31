@@ -582,7 +582,21 @@ export function buildEnrichmentCoverageIssues(enrichmentOutcome) {
  * reads frozen compiled output.
  */
 export function buildQualityGateIssues(quality) {
-  if (quality?.status !== 'graded') return [];
+  if (!quality) return [];
+  if (quality.status !== 'graded') {
+    const reason = String(quality.reason || '').trim();
+    return [
+      normalizeReadinessIssue({
+        severity: 'blocker',
+        featureId: 'courseMap',
+        label: 'Quality proof unavailable',
+        message: `Package quality proof is unavailable${reason ? ` (${reason})` : ''} — run finalization again before downloading`,
+        source: 'qualityGate',
+        retryable: false,
+        autoFixable: false,
+      }),
+    ];
+  }
   const blockingP0 = countBlockingQualityFindings(quality);
   if (blockingP0 <= 0) return [];
   return [
