@@ -55,7 +55,7 @@ const BASE_RANGES = {
     criteriaCount: { min: 3, max: 8 },
   },
   quizBank: {
-    questionsPerLesson: { min: 3, max: 20 },
+    questionsPerLesson: { min: 3, max: 8 },
   },
   studyGuides: {
     keyTermsCount: { min: 4, max: 20 },
@@ -152,7 +152,7 @@ export function createModelAwareConfigPlan(modelCapabilities = {}, generationPla
     plan.features.courseFaq.questionsPerLesson = 4;
     plan.features.courseFaq.answerDepth = 'Standard';
     plan.ranges.slideDecks.slidesPerLesson.max = 16;
-    plan.ranges.quizBank.questionsPerLesson.max = 12;
+    plan.ranges.quizBank.questionsPerLesson.max = 8;
     plan.ranges.studyGuides.keyTermsCount.max = 12;
   } else if (signals.expansive || signals.reasoning) {
     plan.mode = 'expanded';
@@ -166,12 +166,15 @@ export function createModelAwareConfigPlan(modelCapabilities = {}, generationPla
     plan.features.slideDecks.slidesPerLesson = 14;
     plan.features.slideDecks.speakerNotes = signals.maxOutputTokens >= 64000 ? 'Full script' : 'Standard';
     plan.features.rubrics.criteriaCount = 5;
-    plan.features.quizBank.questionsPerLesson = 10;
+    // The deterministic compiler guarantees six core items and can add at
+    // most two admitted bank extensions. Never advertise a default the
+    // package generator cannot satisfy.
+    plan.features.quizBank.questionsPerLesson = 8;
     plan.features.studyGuides.keyTermsCount = 10;
     plan.features.courseFaq.questionsPerLesson = 6;
     plan.features.courseFaq.answerDepth = 'Detailed';
     plan.ranges.slideDecks.slidesPerLesson.max = 24;
-    plan.ranges.quizBank.questionsPerLesson.max = 24;
+    plan.ranges.quizBank.questionsPerLesson.max = 8;
     plan.ranges.studyGuides.keyTermsCount.max = 24;
   }
 
@@ -220,10 +223,22 @@ export function applyModelAwareDeliverableDefaults(featureId, config = {}, model
     ...cloneDefaults(universalDefaults),
     ...cloneDefaults(featureDefaults),
   };
-  return {
+  const resolved = {
     ...defaults,
     ...Object.fromEntries(definedEntries(config)),
   };
+  if (featureId === 'quizBank') {
+    const range = modelConfigPlan?.ranges?.quizBank?.questionsPerLesson || BASE_RANGES.quizBank.questionsPerLesson;
+    const requested = Number(resolved.questionsPerLesson);
+    if (Number.isFinite(requested)) {
+      resolved.questionsPerLesson = Math.max(range.min, Math.min(range.max, Math.round(requested)));
+    }
+  }
+  return resolved;
+}
+
+export function getEffectiveDeliverableConfig(featureId, configMap = {}, modelConfigPlan = buildBasePlan()) {
+  return applyModelAwareDeliverableDefaults(featureId, configMap?.[featureId] || {}, modelConfigPlan);
 }
 
 export function applyModelAwareConfigMap(configMap = {}, modelConfigPlan = buildBasePlan()) {

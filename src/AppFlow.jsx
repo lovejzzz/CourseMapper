@@ -1047,6 +1047,10 @@ export default function AppFlow({
     onCourseMapRepair: handleGeneratedCourseMapRepair,
     onCourseGraph: handleCourseGraph,
   });
+  const effectiveDeliverableConfig = useMemo(
+    () => Object.fromEntries(selectedFeatures.map((featureId) => [featureId, deliv.getGenerationConfig(featureId)])),
+    [deliverableConfig, deliv.getGenerationConfig, selectedFeatures],
+  );
   const expectedSessionMinutes = useMemo(
     () =>
       resolveRequestedClassSessionMinutes({
@@ -1069,7 +1073,7 @@ export default function AppFlow({
     modelId,
     apiKey,
     maxOutputTokens,
-    deliverableConfig,
+    deliverableConfig: effectiveDeliverableConfig,
     pedagogicalMode: 'lecture',
     columns,
   });
@@ -1145,7 +1149,7 @@ export default function AppFlow({
     courseMap,
     setCourseMap,
     columns,
-    deliverableConfig,
+    deliverableConfig: effectiveDeliverableConfig,
     selectedFeatures,
     deliv,
     delivUndo,
@@ -1270,7 +1274,7 @@ export default function AppFlow({
             selectedFeatures: featureIds,
             columns,
             lessonFilter: effectiveLessonFilter,
-            deliverableConfig,
+            deliverableConfig: effectiveDeliverableConfig,
             includeClassroomReadiness: true,
             blockOnClassroomWarnings: false,
             includePedagogicalValidation: true,
@@ -2088,7 +2092,7 @@ export default function AppFlow({
       canFinishPackageWithAgent,
       columns,
       commitFinalizerResult,
-      deliverableConfig,
+      effectiveDeliverableConfig,
       expectedSessionMinutes,
       getManifestPipelineState,
       lessonScope.indices,
@@ -2574,7 +2578,7 @@ export default function AppFlow({
         selectedFeatures: featureIds,
         columns,
         lessonFilter: scopeIndices,
-        deliverableConfig,
+        deliverableConfig: effectiveDeliverableConfig,
       });
       const classroomReadiness = evaluateClassroomReadiness({
         courseMap: finalizerCourseMap,
@@ -2686,7 +2690,15 @@ export default function AppFlow({
         },
       };
     },
-    [columns, expectedSessionMinutes, lessonScope.indices, lessonScope.type, selectedFeatures, slideTheme],
+    [
+      columns,
+      effectiveDeliverableConfig,
+      expectedSessionMinutes,
+      lessonScope.indices,
+      lessonScope.type,
+      selectedFeatures,
+      slideTheme,
+    ],
   );
 
   async function onGenerate() {
@@ -3966,7 +3978,7 @@ export default function AppFlow({
                   deliverables={deliv.deliverables}
                   selectedFeatures={selectedFeatures}
                   columns={columns}
-                  deliverableConfig={deliverableConfig}
+                  deliverableConfig={effectiveDeliverableConfig}
                   lessonScope={lessonScope}
                   onLessonScopeChange={setLessonScope}
                   delivProgress={deliv.progress}
@@ -4243,6 +4255,7 @@ export default function AppFlow({
                   activeTab={activeTab}
                   activeTabLabel={workspaceTabs.find((f) => f.id === activeTab)?.label || activeTab}
                   deliverables={deliv.deliverables}
+                  readinessDeliverableConfig={effectiveDeliverableConfig}
                   onCourseMapExport={handleDownload}
                   onSaveProject={handleSaveProject}
                   onReadinessIssueClick={focusCourseMapTarget}

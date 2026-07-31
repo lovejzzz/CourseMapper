@@ -2188,7 +2188,7 @@ export function repairWorkspaceReadiness({
     const config = deliverableConfig?.[featureId] || {};
 
     if (featureId === 'quizBank') {
-      const target = Math.max(1, Number(config.questionsPerLesson) || 5);
+      const target = Math.max(1, Number(config.questionsPerLesson) || 8);
       const countCheck = normalizeQuizBankQuestionCounts(entry.data, target);
       if (countCheck.underfilledIndices.length > 0) {
         observations.push({
@@ -2551,7 +2551,7 @@ function checkPerLessonFeature(featureId, data, courseMap, lessonIndices, issues
 
     if (featureId === 'quizBank') {
       const questions = asArray(item.questions || item.qs);
-      const target = Math.max(1, Number(config.questionsPerLesson) || 5);
+      const target = Math.max(1, Number(config.questionsPerLesson) || 8);
       if (questions.length < target) {
         issues.push(
           makeIssue(READINESS_WARNING, featureId, `${lessonTitle} quiz bank has fewer than ${target} questions.`),

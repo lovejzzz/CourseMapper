@@ -846,6 +846,7 @@ export default function ExportSidePanel({
   activeTab,
   activeTabLabel,
   deliverables,
+  readinessDeliverableConfig = null,
   onCourseMapExport, // handleDownload from useExport
   onSaveProject, // save full session as .coursemapper
   onReadinessIssueClick,
@@ -879,7 +880,8 @@ export default function ExportSidePanel({
   // v0.14.7 WS-G4: the pending sync approval executor.
   onExecuteSync = null,
 }) {
-  const { courseMap, columns, selectedFeatures, slideTheme } = useCourse();
+  const { courseMap, columns, selectedFeatures, deliverableConfig: storedDeliverableConfig, slideTheme } = useCourse();
+  const deliverableConfig = readinessDeliverableConfig || storedDeliverableConfig;
   const [scope, setScope] = useState('current'); // 'current' | 'all'
   const [scopeWasChosen, setScopeWasChosen] = useState(false);
   const [busy, setBusy] = useState(null); // format string or 'zip'
@@ -986,10 +988,11 @@ export default function ExportSidePanel({
           selectedFeatures,
           columns,
           lessonFilter: effectiveLessonFilter,
+          deliverableConfig,
         },
         { includeClassroomReadiness: true, blockOnClassroomWarnings: false },
       ),
-    [columns, courseMap, deliverables, effectiveLessonFilter, selectedFeatures],
+    [columns, courseMap, deliverableConfig, deliverables, effectiveLessonFilter, selectedFeatures],
   );
   const currentReadiness = useMemo(
     () =>
@@ -999,8 +1002,9 @@ export default function ExportSidePanel({
         selectedFeatures: [activeTab],
         columns,
         lessonFilter: null,
+        deliverableConfig,
       }),
-    [activeTab, columns, courseMap, deliverables],
+    [activeTab, columns, courseMap, deliverableConfig, deliverables],
   );
   const activeReadiness = scope === 'all' ? workspaceReadiness : currentReadiness;
   const zipPendingReadiness = pendingReadinessExport?.format === 'zip';
@@ -1097,6 +1101,7 @@ export default function ExportSidePanel({
         selectedFeatures: getExportFeatureIds(exportScope),
         columns,
         lessonFilter: exportScope === 'all' ? effectiveLessonFilter : null,
+        deliverableConfig,
       },
       { includeClassroomReadiness: exportScope === 'all', blockOnClassroomWarnings: false },
     );

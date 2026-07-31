@@ -11,6 +11,7 @@ import {
   createChunkPlan,
   getFeatureOutputBudget,
 } from '../parallelGenerator';
+import { mergeQuestionRetryResults } from '../questionRetryMerge';
 
 describe('mergeChunkResults', () => {
   it('merges two chunks in order', () => {
@@ -91,6 +92,237 @@ describe('mergeChunkResults', () => {
 
     expect(result.guides).toHaveLength(2);
     expect(result.guides.find((guide) => /Lesson 2/.test(guide.lt)).su).toBe('Retry compact draft');
+  });
+
+  it('preserves richer quiz and FAQ lessons when retries are absent or worse', () => {
+    const originalQuiz = {
+      lessonTitle: 'Lesson 1: Evidence',
+      questions: Array.from({ length: 5 }, (_, index) => ({ question: `Original ${index + 1}` })),
+    };
+    const worseQuizRetry = {
+      lessonTitle: 'Lesson 1: Evidence (Retry)',
+      questions: Array.from({ length: 3 }, (_, index) => ({ question: `Worse ${index + 1}` })),
+    };
+    const originalFaq = {
+      lessonTitle: 'Lesson 1: Evidence',
+      questions: [{ question: 'Original FAQ 1' }, { question: 'Original FAQ 2' }],
+    };
+    const worseFaqRetry = {
+      lessonTitle: 'Lesson 1: Evidence (Retry)',
+      questions: [{ question: 'Worse FAQ' }],
+    };
+
+    expect(mergeQuestionRetryResults('quizBank', { quizzes: [originalQuiz] }).quizzes[0]).toBe(originalQuiz);
+    expect(
+      mergeQuestionRetryResults(
+        'quizBank',
+        { quizzes: [originalQuiz] },
+        new Map([[100, { quizzes: [worseQuizRetry] }]]),
+        { minItemWords: 0, maxQuestions: 8 },
+      ).quizzes[0],
+    ).toBe(originalQuiz);
+    expect(
+      mergeQuestionRetryResults('courseFaq', { faqs: [originalFaq] }, new Map([[100, { faqs: [worseFaqRetry] }]]), {
+        minItemWords: 0,
+        maxQuestions: 3,
+      }).faqs[0],
+    ).toBe(originalFaq);
+  });
+
+  it('accepts a quiz or FAQ retry when it strictly improves question coverage', () => {
+    const quizBaseline = {
+      quizzes: [
+        {
+          lessonTitle: 'Lesson 1: Evidence',
+          questions: Array.from({ length: 5 }, (_, index) => ({ question: `Original ${index + 1}` })),
+        },
+      ],
+    };
+    const quizRetries = new Map([
+      [
+        100,
+        {
+          quizzes: [
+            {
+              lessonTitle: 'Lesson 1: Evidence (Retry)',
+              questions: Array.from({ length: 8 }, (_, index) => ({ question: `Improved ${index + 1}` })),
+            },
+          ],
+        },
+      ],
+    ]);
+    const faqBaseline = {
+      faqs: [
+        {
+          lessonTitle: 'Lesson 1: Evidence',
+          questions: [{ question: 'Original FAQ 1' }, { question: 'Original FAQ 2' }],
+        },
+      ],
+    };
+    const faqRetries = new Map([
+      [
+        100,
+        {
+          faqs: [
+            {
+              lessonTitle: 'Lesson 1: Evidence (Retry)',
+              questions: [
+                { question: 'Improved FAQ 1' },
+                { question: 'Improved FAQ 2' },
+                { question: 'Improved FAQ 3' },
+              ],
+            },
+          ],
+        },
+      ],
+    ]);
+
+    expect(
+      mergeQuestionRetryResults('quizBank', quizBaseline, quizRetries, {
+        minItemWords: 0,
+        maxQuestions: 8,
+      }).quizzes[0].questions,
+    ).toHaveLength(8);
+    expect(
+      mergeQuestionRetryResults('courseFaq', faqBaseline, faqRetries, {
+        minItemWords: 0,
+        maxQuestions: 3,
+      }).faqs[0].questions,
+    ).toHaveLength(3);
+  });
+
+  it('merges retries against the cleaned baseline without resurrecting removed raw artifacts', () => {
+    const preservedQuiz = {
+      lessonTitle: 'Lesson 2: Evidence',
+      questions: Array.from({ length: 5 }, (_, index) => ({ question: `Preserved ${index + 1}` })),
+    };
+    const worseRetry = {
+      lessonTitle: 'Lesson 2: Evidence (Retry)',
+      questions: Array.from({ length: 3 }, (_, index) => ({ question: `Retry ${index + 1}` })),
+    };
+    const cleanedBaseline = { quizzes: [preservedQuiz] };
+
+    const withoutRetry = mergeQuestionRetryResults('quizBank', cleanedBaseline);
+    const withWorseRetry = mergeQuestionRetryResults(
+      'quizBank',
+      cleanedBaseline,
+      new Map([[100, { quizzes: [worseRetry] }]]),
+    );
+
+    expect(withoutRetry.quizzes).toEqual([preservedQuiz]);
+    expect(withWorseRetry.quizzes).toEqual([preservedQuiz]);
+    expect(withWorseRetry.quizzes.some((quiz) => /Lesson 1/.test(quiz.lessonTitle))).toBe(false);
+  });
+
+  it('admits only renderable question retries at or below the configured target', () => {
+    const oversizedRetry = {
+      lessonTitle: 'Lesson 1: Oversized',
+      questions: Array.from({ length: 36 }, (_, index) => ({
+        question: `Oversized question ${index + 1}`,
+        explanation: 'Evidence-backed explanation with enough instructional detail for review.',
+      })),
+    };
+    const thinRetry = {
+      lessonTitle: 'Lesson 2: Thin',
+      questions: Array.from({ length: 8 }, (_, index) => ({ question: `Thin ${index + 1}` })),
+    };
+    const validRetry = {
+      lessonTitle: 'Lesson 2: Valid',
+      questions: Array.from({ length: 8 }, (_, index) => ({
+        question: `Valid question ${index + 1}`,
+        explanation:
+          'This evidence-backed explanation identifies the relevant concept, distinguishes the alternatives, and gives an instructor enough detail to review the answer before publishing it.',
+      })),
+    };
+
+    const rejected = mergeQuestionRetryResults(
+      'quizBank',
+      { quizzes: [] },
+      new Map([
+        [100, { quizzes: [oversizedRetry] }],
+        [101, { quizzes: [thinRetry] }],
+      ]),
+      { maxQuestions: 8, minItemWords: 30 },
+    );
+    const accepted = mergeQuestionRetryResults(
+      'quizBank',
+      { quizzes: [] },
+      new Map([[102, { quizzes: [validRetry] }]]),
+      { maxQuestions: 8, minItemWords: 30 },
+    );
+
+    expect(rejected.quizzes).toEqual([]);
+    expect(accepted.quizzes).toEqual([validRetry]);
+  });
+
+  it('rejects an unlabeled retry instead of duplicating or growing the lesson set', () => {
+    const baseline = {
+      quizzes: [
+        {
+          lessonTitle: 'Lesson 1: Evidence',
+          questions: Array.from({ length: 5 }, (_, index) => ({ question: `Original ${index + 1}` })),
+        },
+      ],
+    };
+    const unlabeledRetry = {
+      title: 'Midterm Review',
+      questions: Array.from({ length: 8 }, (_, index) => ({
+        question: `Unlabeled retry ${index + 1}`,
+        explanation:
+          'This retry is intentionally detailed enough to pass the renderability check, but it lacks a lesson identity and therefore must not enter the package.',
+      })),
+    };
+
+    const result = mergeQuestionRetryResults('quizBank', baseline, new Map([[100, { quizzes: [unlabeledRetry] }]]), {
+      maxQuestions: 8,
+      minItemWords: 30,
+    });
+
+    expect(result.quizzes).toEqual(baseline.quizzes);
+    expect(result.quizzes).toHaveLength(1);
+  });
+
+  it('rejects a retry above a configured target below the compiler ceiling', () => {
+    const retry = {
+      lessonTitle: 'Lesson 1: Evidence',
+      questions: Array.from({ length: 8 }, (_, index) => ({
+        question: `Retry question ${index + 1}`,
+        explanation:
+          'This detailed explanation makes the candidate renderable, but the candidate must still respect the configured five-question target.',
+      })),
+    };
+
+    const result = mergeQuestionRetryResults('quizBank', { quizzes: [] }, new Map([[100, { quizzes: [retry] }]]), {
+      maxQuestions: 5,
+      minItemWords: 30,
+    });
+
+    expect(result.quizzes).toEqual([]);
+  });
+
+  it('sorts lesson-identified items before preserving unidentified baseline items', () => {
+    const unidentified = {
+      title: 'Course-wide review',
+      questions: [{ question: 'Review question' }],
+    };
+    const baseline = {
+      quizzes: [
+        unidentified,
+        { lessonTitle: 'Lesson 2: Evidence', questions: [{ question: 'Lesson 2 question' }] },
+        { lessonTitle: 'Lesson 1: Foundations', questions: [{ question: 'Lesson 1 question' }] },
+      ],
+    };
+
+    const result = mergeQuestionRetryResults('quizBank', baseline, new Map(), {
+      minItemWords: 0,
+      maxQuestions: 8,
+    });
+
+    expect(result.quizzes.map((quiz) => quiz.lessonTitle || quiz.title)).toEqual([
+      'Lesson 1: Foundations',
+      'Lesson 2: Evidence',
+      'Course-wide review',
+    ]);
   });
 
   it('handles items without lesson numbers (rubric assessment titles)', () => {

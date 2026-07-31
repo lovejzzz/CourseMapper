@@ -9,6 +9,20 @@ import ExportSidePanel from '../ExportSidePanel.jsx';
 import { CourseProvider, useCourse } from '../../contexts/CourseContext.jsx';
 import { downloadCourseMaterialsZip } from '../../lib/packageZipExporter.js';
 
+const readinessProbe = vi.hoisted(() => vi.fn());
+
+vi.mock('../../lib/packageFinalizer', async () => {
+  const actual = await vi.importActual('../../lib/packageFinalizer');
+  return {
+    ...actual,
+    evaluateStrictPackageReadiness: (...args) => {
+      const result = actual.evaluateStrictPackageReadiness(...args);
+      readinessProbe(args[0], result);
+      return result;
+    },
+  };
+});
+
 vi.mock('../../lib/packageZipExporter.js', () => ({
   downloadCourseMaterialsZip: vi.fn(async () => ({
     fileName: 'Review Surface Course - Course Materials.zip',
@@ -56,6 +70,10 @@ const cleanCourseMap = {
   ],
 };
 
+const EMPTY_DELIVERABLES = {};
+const EMPTY_DELIVERABLE_CONFIG = {};
+const COURSE_MAP_FEATURES = ['courseMap'];
+
 function ExportPanelHarness({
   isPackageGenerationRunning = false,
   onAutoRepairReadiness = vi.fn(),
@@ -63,15 +81,22 @@ function ExportPanelHarness({
   canFinishPackage = false,
   preferPackageScope = false,
   courseMapInput = courseMapWithObjectiveStem,
+  activeTab = 'courseMap',
+  activeTabLabel = 'Course Map',
+  deliverablesInput = EMPTY_DELIVERABLES,
+  deliverableConfigInput = EMPTY_DELIVERABLE_CONFIG,
+  readinessDeliverableConfigInput = null,
+  selectedFeaturesInput = COURSE_MAP_FEATURES,
   packageQualityPass = { status: 'idle', message: '' },
   onPackageQualityPassUpdate = null,
 }) {
-  const { courseMap, setCourseMap, setSelectedFeatures, setColumns } = useCourse();
+  const { courseMap, setCourseMap, setSelectedFeatures, setDeliverableConfig, setColumns } = useCourse();
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
     setCourseMap(courseMapInput);
-    setSelectedFeatures(['courseMap']);
+    setSelectedFeatures(selectedFeaturesInput);
+    setDeliverableConfig(deliverableConfigInput);
     setColumns([
       { key: 'learningGoals', label: 'Learning Goals', enabled: true },
       { key: 'topicSection', label: 'Topic', enabled: true },
@@ -81,15 +106,24 @@ function ExportPanelHarness({
       { key: 'syncActivities', label: 'Sync Activities', enabled: true },
     ]);
     setReady(true);
-  }, [courseMapInput, setColumns, setCourseMap, setSelectedFeatures]);
+  }, [
+    courseMapInput,
+    deliverableConfigInput,
+    selectedFeaturesInput,
+    setColumns,
+    setCourseMap,
+    setDeliverableConfig,
+    setSelectedFeatures,
+  ]);
 
   if (!ready || !courseMap) return null;
 
   return (
     <ExportSidePanel
-      activeTab="courseMap"
-      activeTabLabel="Course Map"
-      deliverables={{}}
+      activeTab={activeTab}
+      activeTabLabel={activeTabLabel}
+      deliverables={deliverablesInput}
+      readinessDeliverableConfig={readinessDeliverableConfigInput}
       onCourseMapExport={vi.fn()}
       onSaveProject={vi.fn()}
       onReadinessIssueClick={vi.fn()}
@@ -110,6 +144,7 @@ describe('ExportSidePanel readiness repair timing', () => {
 
   beforeEach(() => {
     vi.useFakeTimers();
+    readinessProbe.mockClear();
     downloadCourseMaterialsZip.mockReset().mockResolvedValue({
       fileName: 'Review Surface Course - Course Materials.zip',
       files: ['PACKAGE_MANIFEST.json', 'QUALITY_REPORT.md'],
@@ -174,6 +209,142 @@ describe('ExportSidePanel readiness repair timing', () => {
       selectedFeatureIds: ['courseMap'],
       lessonFilter: null,
     });
+  });
+
+  it('passes configured question targets into rendered export readiness', async () => {
+    const quizDeliverables = {
+      quizBank: {
+        status: 'done',
+        data: {
+          quizzes: [
+            {
+              lessonTitle: 'Lesson 1: Export Readiness',
+              questions: Array.from({ length: 5 }, (_, index) => ({
+                question: `Which readiness check applies to case ${index + 1}?`,
+                options: ['Evidence fit', 'Guessing', 'Omission', 'Duplication'],
+                answer: 'Evidence fit',
+                explanation: 'Evidence fit is the only option that checks the generated package against its brief.',
+                type: 'multiple_choice',
+                difficulty: 'Medium',
+                points: 2,
+              })),
+            },
+          ],
+        },
+      },
+    };
+
+    await renderPanel({
+      activeTab: 'quizBank',
+      activeTabLabel: 'Quiz & Exam Bank',
+      courseMapInput: cleanCourseMap,
+      deliverablesInput: quizDeliverables,
+      selectedFeaturesInput: ['quizBank'],
+      deliverableConfigInput: { quizBank: { questionsPerLesson: 5 } },
+      readinessDeliverableConfigInput: { quizBank: { questionsPerLesson: 8 } },
+    });
+
+    const quizEvaluation = [...readinessProbe.mock.calls]
+      .reverse()
+      .find(([options]) => options.selectedFeatures?.length === 1 && options.selectedFeatures[0] === 'quizBank');
+    expect(quizEvaluation?.[0].deliverableConfig).toEqual({ quizBank: { questionsPerLesson: 8 } });
+    expect(quizEvaluation?.[1].warnings.map((issue) => issue.message).join(' ')).toContain('fewer than 8 questions');
+  });
+
+  it('does not apply the default FAQ target to a configured three-question export', async () => {
+    const faqDeliverables = {
+      courseFaq: {
+        status: 'done',
+        data: {
+          faqs: [
+            {
+              lessonTitle: 'Lesson 1: Export Readiness',
+              questions: [
+                {
+                  question: 'Where is the checklist?',
+                  answer: 'Open the lesson workspace and select the readiness checklist.',
+                  category: 'Course Logistics',
+                },
+                {
+                  question: 'How is readiness evaluated?',
+                  answer: 'Compare each package artifact with the requested course brief.',
+                  category: 'Concept Explanation',
+                },
+                {
+                  question: 'What should I submit?',
+                  answer: 'Submit the package named in the Course Map assessment.',
+                  category: 'Assignment Clarification',
+                },
+              ],
+            },
+          ],
+        },
+      },
+    };
+
+    await renderPanel({
+      activeTab: 'courseFaq',
+      activeTabLabel: 'Course FAQ',
+      courseMapInput: cleanCourseMap,
+      deliverablesInput: faqDeliverables,
+      selectedFeaturesInput: ['courseFaq'],
+      deliverableConfigInput: { courseFaq: { questionsPerLesson: 3 } },
+    });
+
+    const faqEvaluation = [...readinessProbe.mock.calls]
+      .reverse()
+      .find(([options]) => options.selectedFeatures?.length === 1 && options.selectedFeatures[0] === 'courseFaq');
+    expect(faqEvaluation?.[0].deliverableConfig).toEqual({ courseFaq: { questionsPerLesson: 3 } });
+    expect(faqEvaluation?.[1].warnings.map((issue) => issue.message).join(' ')).not.toMatch(
+      /FAQ has fewer than [35] questions/i,
+    );
+  });
+
+  it('uses the configured target in the click-time ZIP readiness snapshot', async () => {
+    const onFinishPackage = vi.fn(async () => false);
+    const quizDeliverables = {
+      quizBank: {
+        status: 'done',
+        data: {
+          quizzes: [
+            {
+              lessonTitle: 'Lesson 1: Export Readiness',
+              questions: Array.from({ length: 5 }, (_, index) => ({
+                question: `Which evidence check applies to case ${index + 1}?`,
+                options: ['Trace the claim', 'Guess', 'Skip', 'Duplicate'],
+                answer: 'Trace the claim',
+                explanation: 'Tracing the claim checks the generated artifact against its evidence.',
+                type: 'multiple_choice',
+                difficulty: 'Medium',
+                points: 2,
+              })),
+            },
+          ],
+        },
+      },
+    };
+
+    await renderPanel({
+      activeTab: 'quizBank',
+      activeTabLabel: 'Quiz & Exam Bank',
+      courseMapInput: cleanCourseMap,
+      deliverablesInput: quizDeliverables,
+      selectedFeaturesInput: ['quizBank'],
+      deliverableConfigInput: { quizBank: { questionsPerLesson: 8 } },
+      preferPackageScope: true,
+      canFinishPackage: true,
+      onFinishPackage,
+    });
+
+    const zipButton = container.querySelector('[data-testid="export-download-zip"]');
+    await act(async () => {
+      zipButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      await Promise.resolve();
+    });
+
+    expect(onFinishPackage).toHaveBeenCalledTimes(1);
+    const readiness = onFinishPackage.mock.calls[0][0].readiness;
+    expect(readiness.warnings.map((issue) => issue.message).join(' ')).toContain('fewer than 8 questions');
   });
 
   it('names download formats for people while retaining the exact extensions', async () => {

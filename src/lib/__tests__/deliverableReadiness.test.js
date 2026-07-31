@@ -103,8 +103,8 @@ describe('evaluateWorkspaceReadiness', () => {
           status: 'done',
           data: {
             quizzes: [
-              { lessonTitle: 'Lesson 1: Questions', questions: makeQuestions(5) },
-              { lessonTitle: 'Lesson 2: Sampling', questions: makeQuestions(5) },
+              { lessonTitle: 'Lesson 1: Questions', questions: makeQuestions(8) },
+              { lessonTitle: 'Lesson 2: Sampling', questions: makeQuestions(8) },
             ],
           },
         },
@@ -150,6 +150,40 @@ describe('evaluateWorkspaceReadiness', () => {
     const messages = readiness.warnings.map((issue) => issue.message).join(' ');
     expect(messages).toContain('fewer than 8 questions');
     expect(messages).not.toContain('FAQ has fewer');
+
+    const underfilledFaq = evaluateWorkspaceReadiness({
+      courseMap,
+      lessonFilter: [0],
+      selectedFeatures: ['courseFaq'],
+      deliverableConfig: {
+        courseFaq: { questionsPerLesson: 3 },
+      },
+      deliverables: {
+        courseFaq: {
+          status: 'done',
+          data: {
+            faqs: [
+              {
+                lessonTitle: 'Lesson 1: Questions',
+                questions: [
+                  {
+                    question: 'FAQ 1?',
+                    answer: 'Answer 1.',
+                    category: 'Concept Explanation',
+                  },
+                  {
+                    question: 'FAQ 2?',
+                    answer: 'Answer 2.',
+                    category: 'Concept Explanation',
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      },
+    });
+    expect(underfilledFaq.warnings.map((issue) => issue.message).join(' ')).toContain('FAQ has fewer than 3 questions');
   });
 
   it('treats a compiler-routed empty Assignment Brief as complete', () => {
@@ -257,7 +291,7 @@ describe('evaluateWorkspaceReadiness', () => {
 
     expect(readiness.status).toBe('warnings');
     expect(readiness.isBlocked).toBe(false);
-    expect(readiness.warnings[0].message).toContain('fewer than 5 questions');
+    expect(readiness.warnings[0].message).toContain('fewer than 8 questions');
   });
 
   it('does not warn on complete compact quiz metadata', () => {
@@ -270,8 +304,8 @@ describe('evaluateWorkspaceReadiness', () => {
           status: 'done',
           data: {
             quizzes: [
-              { lt: 'Lesson 1: Questions', qs: makeCompactQuestions(5) },
-              { lt: 'Lesson 2: Sampling', qs: makeCompactQuestions(5) },
+              { lt: 'Lesson 1: Questions', qs: makeCompactQuestions(8) },
+              { lt: 'Lesson 2: Sampling', qs: makeCompactQuestions(8) },
             ],
           },
         },
@@ -711,7 +745,7 @@ describe('evaluateWorkspaceReadiness', () => {
     expect(report).toContain('Readiness Course - Readiness Report');
     expect(report).toContain('Warnings');
     expect(report).toContain('Quiz & Exam Bank');
-    expect(report).toContain('fewer than 5 questions');
+    expect(report).toContain('fewer than 8 questions');
   });
 });
 
@@ -1355,6 +1389,23 @@ describe('repairCourseMapReadiness', () => {
 });
 
 describe('repairWorkspaceReadiness', () => {
+  it('uses the eight-question product default when quiz configuration is omitted', () => {
+    const result = repairWorkspaceReadiness({
+      courseMap,
+      selectedFeatures: ['quizBank'],
+      deliverables: {
+        quizBank: {
+          status: 'done',
+          data: { quizzes: [{ lessonTitle: 'Lesson 1: Questions', questions: makeQuestions(5) }] },
+        },
+      },
+    });
+
+    expect(result.observations).toEqual([
+      expect.objectContaining({ featureId: 'quizBank', lessonIndices: [0], target: 8 }),
+    ]);
+  });
+
   it('preserves underfilled quiz and FAQ observations without claiming a repair', () => {
     const result = repairWorkspaceReadiness({
       courseMap,

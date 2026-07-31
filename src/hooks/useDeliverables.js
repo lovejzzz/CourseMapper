@@ -33,8 +33,8 @@ import { expandKeys } from '../lib/keyMaps';
 import { log, warn } from '../lib/logger';
 import { buildDeliverableTimeoutError, runDeliverableFeatureWithTimeout } from '../lib/deliverableTimeouts';
 import {
-  applyModelAwareDeliverableDefaults,
   createModelAwareConfigPlan,
+  getEffectiveDeliverableConfig,
   getCurrentModelCapabilityProfile,
 } from '../lib/modelAwareConfig';
 import {
@@ -457,8 +457,7 @@ export default function useDeliverables({
     [modelCapabilities, provider, modelId, generationPlan],
   );
   const getGenerationConfig = useCallback(
-    (featureId) =>
-      applyModelAwareDeliverableDefaults(featureId, deliverableConfigRef.current?.[featureId] || {}, modelConfigPlan),
+    (featureId) => getEffectiveDeliverableConfig(featureId, deliverableConfigRef.current, modelConfigPlan),
     [modelConfigPlan],
   );
   const pedagogicalModeRef = useRef(pedagogicalMode || 'lecture');
@@ -3825,6 +3824,16 @@ export default function useDeliverables({
         // Completeness check + retry
         const arrayKey = getArrayKey(fid, merged);
         let mergedArr = arrayKey ? merged[arrayKey] || [] : [];
+        let removedUnderfilledForRetry = false;
+        let questionRetryBaseline = null;
+        const questionRetryResults = new Map();
+        const mergeWithQuestionRetryBaseline = async () => {
+          if (!questionRetryBaseline) return mergeChunkResults(fid, chunkResults[fid]);
+          const { mergeQuestionRetryResults } = await import('../lib/questionRetryMerge');
+          return mergeQuestionRetryResults(fid, questionRetryBaseline, questionRetryResults, {
+            maxQuestions: getGenerationConfig(fid).questionsPerLesson,
+          });
+        };
         log(
           `${fid}: merged ${mergedArr.length}/${expectedCount} items (key: ${arrayKey})`,
           mergedArr.map((it) => ({
@@ -4020,7 +4029,9 @@ export default function useDeliverables({
             );
           }
 
+          questionRetryBaseline = merged;
           if (normalized.underfilledIndices.length > 0) {
+            removedUnderfilledForRetry = true;
             const underfilledLessonIndices = normalized.underfilledIndices.map((i) => lessonIndices[i] ?? i);
             appendLog(
               `⚠ ${getFeatureLabel(fid)}: ${underfilledLessonIndices.length} lesson(s) have fewer than ${normalized.target} FAQ questions — retrying`,
@@ -4089,10 +4100,12 @@ export default function useDeliverables({
 
         // Per-lesson completeness: retry any quiz that misses the configured target.
         if (fid === 'quizBank' && mergedArr.length > 0) {
-          const configuredQuizTarget = Math.max(1, Number(getGenerationConfig(fid)?.questionsPerLesson) || 5);
+          const configuredQuizTarget = Math.max(1, Number(getGenerationConfig(fid).questionsPerLesson) || 8);
           const quizCountCheck = normalizeQuizBankQuestionCounts(merged, configuredQuizTarget);
+          questionRetryBaseline = merged;
           const truncatedQuizIndices = quizCountCheck.underfilledIndices.map((index) => lessonIndices[index] ?? index);
           if (truncatedQuizIndices.length > 0) {
+            removedUnderfilledForRetry = true;
             const label = getFeatureLabel(fid);
             appendLog(
               `⚠ ${label}: ${truncatedQuizIndices.length} lesson(s) have < ${configuredQuizTarget} questions — retrying`,
@@ -4103,6 +4116,10 @@ export default function useDeliverables({
             mergedArr = mergedArr.filter((_, index) => !underfilled.has(index));
             merged = { ...merged, [arrayKey]: mergedArr };
           }
+        }
+
+        if ((fid === 'quizBank' || fid === 'courseFaq') && questionRetryBaseline === null) {
+          questionRetryBaseline = merged;
         }
 
         // Post-merge grade normalization: ensure assignment percentOfGrade sums to 100%
@@ -4253,9 +4270,16 @@ export default function useDeliverables({
                   const parsed = expandKeys(fid, parsePartialJSON(text));
                   logIfRecovered(fid, `(retry round ${retryRound})`);
                   if (parsed) {
-                    chunkResults[fid].set(retryChunkIndex, parsed);
-                    const _rk = getArrayKey(fid, parsed);
-                    const _ritems = _rk ? parsed[_rk] || [] : [];
+                    const retryData =
+                      fid === 'quizBank' || fid === 'courseFaq'
+                        ? patchScopeNumbering(parsed, fid, retryScope, courseMap)
+                        : parsed;
+                    chunkResults[fid].set(retryChunkIndex, retryData);
+                    if (fid === 'quizBank' || fid === 'courseFaq') {
+                      questionRetryResults.set(retryChunkIndex, retryData);
+                    }
+                    const _rk = getArrayKey(fid, retryData);
+                    const _ritems = _rk ? retryData[_rk] || [] : [];
                     log(
                       `✓ ${retryLabel}: parsed ${_ritems.length} items`,
                       _ritems.map((it) => ({
@@ -4317,7 +4341,7 @@ export default function useDeliverables({
             await Promise.allSettled(retryPromises);
 
             // Re-merge with retry results
-            merged = mergeChunkResults(fid, chunkResults[fid]);
+            merged = await mergeWithQuestionRetryBaseline();
             mergedArr = merged && arrayKey ? merged[arrayKey] || [] : [];
 
             if (fid === 'courseFaq' && mergedArr.length > 0) {
@@ -4332,6 +4356,26 @@ export default function useDeliverables({
               merged = normalizedVariety.data;
               mergedArr = normalizedVariety.arrayKey ? merged[normalizedVariety.arrayKey] || [] : mergedArr;
             }
+          }
+        }
+
+        // Filtering underfilled lessons is only a way to identify retry
+        // scopes. The original complete lesson must remain the fallback when
+        // the retry budget is unavailable or a retry cannot improve it.
+        if (removedUnderfilledForRetry) {
+          merged = await mergeWithQuestionRetryBaseline();
+          mergedArr = merged && arrayKey ? merged[arrayKey] || [] : [];
+          if (fid === 'courseFaq' && mergedArr.length > 0) {
+            const config = getGenerationConfig(fid);
+            const normalized = normalizeCourseFaqQuestionCounts(merged, config);
+            merged = normalized.data;
+            mergedArr = normalized.arrayKey ? merged[normalized.arrayKey] || [] : mergedArr;
+            const normalizedCategories = normalizeCourseFaqCategories(merged);
+            merged = normalizedCategories.data;
+            mergedArr = normalizedCategories.arrayKey ? merged[normalizedCategories.arrayKey] || [] : mergedArr;
+            const normalizedVariety = normalizeCourseFaqQuestionVariety(merged, courseMap);
+            merged = normalizedVariety.data;
+            mergedArr = normalizedVariety.arrayKey ? merged[normalizedVariety.arrayKey] || [] : mergedArr;
           }
         }
 
@@ -4475,9 +4519,16 @@ export default function useDeliverables({
                     const parsed = expandKeys(fid, parsePartialJSON(text));
                     logIfRecovered(fid, '(coverage retry)');
                     if (parsed) {
-                      chunkResults[fid].set(retryChunkIndex, parsed);
-                      const _rk = getArrayKey(fid, parsed);
-                      const _ritems = _rk ? parsed[_rk] || [] : [];
+                      const retryData =
+                        fid === 'quizBank' || fid === 'courseFaq'
+                          ? patchScopeNumbering(parsed, fid, [idx], courseMap)
+                          : parsed;
+                      chunkResults[fid].set(retryChunkIndex, retryData);
+                      if (fid === 'quizBank' || fid === 'courseFaq') {
+                        questionRetryResults.set(retryChunkIndex, retryData);
+                      }
+                      const _rk = getArrayKey(fid, retryData);
+                      const _ritems = _rk ? retryData[_rk] || [] : [];
                       log(`✓ ${retryLabel}: parsed ${_ritems.length} items`);
                       appendLog(`✓ ${retryLabel} complete`, 'done');
                       traceGeneration(generationRunId, 'coverage_retry_parsed', {
@@ -4554,7 +4605,7 @@ export default function useDeliverables({
                 continue;
               }
 
-              merged = mergeChunkResults(fid, chunkResults[fid]);
+              merged = await mergeWithQuestionRetryBaseline();
               mergedArr = merged && arrayKey ? merged[arrayKey] || [] : [];
 
               if (fid === 'courseFaq' && mergedArr.length > 0) {

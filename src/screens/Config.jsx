@@ -1649,8 +1649,11 @@ function DeliverableConfigContent({
             value={effectiveConfig.questionsPerLesson || 8}
             onChange={(v) => set('questionsPerLesson', v)}
             min={ranges.questionsPerLesson?.min || 3}
-            max={ranges.questionsPerLesson?.max || 20}
-            description={modelDefaultNote('questionsPerLesson')}
+            max={ranges.questionsPerLesson?.max || 8}
+            description={modelDefaultNote(
+              'questionsPerLesson',
+              'Supports up to 8 evidence-bound questions per lesson. Saved targets above 8 are normalized to 8.',
+            )}
           />
           <MultiToggle
             label="Question types"

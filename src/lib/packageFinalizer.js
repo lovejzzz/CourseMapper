@@ -924,6 +924,7 @@ export function runDeterministicPackageFinalizer({
       selectedFeatures,
       columns,
       lessonFilter,
+      deliverableConfig,
     },
     {
       includeClassroomReadiness,

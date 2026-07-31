@@ -587,7 +587,7 @@ describe('packageFinalizer', () => {
     expect(readiness.warnings.map((issue) => issue.message).join(' ')).toContain('overloaded');
   });
 
-  it('applies deterministic repairs before reporting readiness', () => {
+  it('applies deterministic repairs and the eight-question default before reporting readiness', () => {
     const courseMap = makeCourseMap(2);
     const result = runDeterministicPackageFinalizer({
       courseMap,
@@ -633,7 +633,7 @@ describe('packageFinalizer', () => {
       expect.arrayContaining([
         expect.objectContaining({
           featureId: 'quizBank',
-          message: expect.stringContaining('fewer than 5 questions'),
+          message: expect.stringContaining('fewer than 8 questions'),
           retryable: true,
           severity: 'warning',
         }),
@@ -651,10 +651,94 @@ describe('packageFinalizer', () => {
     expect(result.deliverables.courseFaq.data.faqs[0].questions).toHaveLength(1);
     expect(result.repairObservations).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ featureId: 'quizBank', lessonIndices: [0], target: 5 }),
+        expect.objectContaining({ featureId: 'quizBank', lessonIndices: [0, 1], target: 8 }),
         expect.objectContaining({ featureId: 'courseFaq', lessonIndices: [0, 1], target: 5 }),
       ]),
     );
+  });
+
+  it('keeps configured question targets in final status and retry decisions', () => {
+    const courseMap = makeCourseMap(1);
+    const underfilledQuiz = runDeterministicPackageFinalizer({
+      courseMap,
+      selectedFeatures: ['quizBank'],
+      includeClassroomReadiness: false,
+      includePedagogicalValidation: false,
+      deliverableConfig: {
+        quizBank: { questionsPerLesson: 8 },
+      },
+      deliverables: {
+        quizBank: {
+          status: 'done',
+          data: {
+            quizzes: [
+              {
+                lessonTitle: 'Lesson 1: Research Topic 1',
+                questions: makeQuestions(5),
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    expect(underfilledQuiz.status).toBe('needs_retry');
+    expect(underfilledQuiz.readiness.warnings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          featureId: 'quizBank',
+          message: expect.stringContaining('fewer than 8 questions'),
+        }),
+      ]),
+    );
+    expect(underfilledQuiz.retryActions).toEqual(
+      expect.arrayContaining([expect.objectContaining({ featureId: 'quizBank', lessonIndex: 0 })]),
+    );
+
+    const configuredFaq = runDeterministicPackageFinalizer({
+      courseMap,
+      selectedFeatures: ['courseFaq'],
+      includeClassroomReadiness: false,
+      includePedagogicalValidation: false,
+      retryWarnings: false,
+      deliverableConfig: {
+        courseFaq: { questionsPerLesson: 3 },
+      },
+      deliverables: {
+        courseFaq: {
+          status: 'done',
+          data: {
+            faqs: [
+              {
+                lessonTitle: 'Lesson 1: Research Topic 1',
+                questions: [
+                  {
+                    question: 'Where is the evidence checklist?',
+                    answer: 'Open the lesson workspace and select the evidence checklist.',
+                    category: 'Course Logistics',
+                  },
+                  {
+                    question: 'How should I compare methods?',
+                    answer: 'Use the stated criteria to compare evidence fit and limitations.',
+                    category: 'Concept Explanation',
+                  },
+                  {
+                    question: 'What should I submit?',
+                    answer: 'Submit the analysis memo described in the Course Map.',
+                    category: 'Assignment Clarification',
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    expect(configuredFaq.readiness.issues.map((issue) => issue.message).join(' ')).not.toMatch(
+      /FAQ has fewer than [35] questions/i,
+    );
+    expect(configuredFaq.retryActions.filter((action) => action.featureId === 'courseFaq')).toEqual([]);
   });
 
   it('finishes deterministic export issues without requiring a review dead-end', () => {

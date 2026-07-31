@@ -14,8 +14,15 @@ describe('useDeliverables output-quality contracts', () => {
 
   it('retries quiz lessons against the configured question target', () => {
     expect(source).not.toContain('const minQuestions = 5');
-    expect(source).toContain('Number(getGenerationConfig(fid)?.questionsPerLesson) || 5');
+    expect(source).toContain('Number(getGenerationConfig(fid).questionsPerLesson) || 8');
     expect(source).toContain('normalizeQuizBankQuestionCounts(merged, configuredQuizTarget)');
     expect(source).toContain('quizCountCheck.underfilledIndices');
+    expect(source).toContain('removedUnderfilledForRetry');
+    expect(source).toContain('questionRetryBaseline = merged');
+    expect(source).toContain('getGenerationConfig(fid).questionsPerLesson');
+    expect(source).toContain('maxQuestions: getGenerationConfig(fid).questionsPerLesson');
+    expect(source).toContain('questionRetryResults.set(retryChunkIndex, retryData)');
+    expect(source).toContain('patchScopeNumbering(parsed, fid, retryScope, courseMap)');
+    expect(source).toContain('mergeQuestionRetryResults(fid, questionRetryBaseline, questionRetryResults, {');
   });
 });

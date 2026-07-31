@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   applyModelAwareDeliverableDefaults,
   createModelAwareConfigPlan,
+  getEffectiveDeliverableConfig,
   getCurrentModelCapabilityProfile,
   hasExplicitConfigValue,
 } from '../modelAwareConfig';
@@ -32,6 +33,8 @@ describe('modelAwareConfig', () => {
     expect(plan.features.lessonPlans.detailLevel).toBe('Detailed');
     expect(plan.features.slideDecks.speakerNotes).toBe('Full script');
     expect(plan.features.rubrics.criteriaCount).toBe(5);
+    expect(plan.features.quizBank.questionsPerLesson).toBe(8);
+    expect(plan.ranges.quizBank.questionsPerLesson.max).toBe(8);
     expect(plan.tags).toEqual(expect.arrayContaining(['Long output', 'Reasoning controls']));
   });
 
@@ -53,6 +56,21 @@ describe('modelAwareConfig', () => {
     expect(hasExplicitConfigValue({ tone: null }, 'tone')).toBe(false);
     expect(hasExplicitConfigValue({ style: '' }, 'style')).toBe(false);
     expect(hasExplicitConfigValue({ outputLength: 'Detailed' }, 'outputLength')).toBe(true);
+  });
+
+  it('normalizes legacy quiz targets to the supported compiler capacity', () => {
+    const plan = createModelAwareConfigPlan({}, { chunkStrategy: 'expanded', maxOutputTokens: 65536 });
+
+    expect(getEffectiveDeliverableConfig('quizBank', {}, plan).questionsPerLesson).toBe(8);
+    expect(
+      getEffectiveDeliverableConfig(
+        'quizBank',
+        {
+          quizBank: { questionsPerLesson: 12 },
+        },
+        plan,
+      ).questionsPerLesson,
+    ).toBe(8);
   });
 
   it('falls back to the active generation plan when stored capabilities belong to another model', () => {
