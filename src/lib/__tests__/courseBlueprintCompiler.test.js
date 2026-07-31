@@ -6318,7 +6318,10 @@ describe('courseBlueprintCompiler', () => {
     ).toBeGreaterThan(1);
     expect(
       new Set(compiled.assignments.assignments.map((assignment) => assignment.formatRequirements.citationStyle)).size,
-    ).toBeGreaterThan(1);
+    ).toBe(compiled.assignments.assignments.length);
+    expect(
+      new Set(compiled.assignments.assignments.map((assignment) => assignment.formatRequirements.length)).size,
+    ).toBe(compiled.assignments.assignments.length);
     expect(
       new Set(compiled.assignments.assignments.map((assignment) => assignment.scaffoldingMilestones[0].milestone)).size,
     ).toBeGreaterThan(1);

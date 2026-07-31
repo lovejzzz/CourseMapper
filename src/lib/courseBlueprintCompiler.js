@@ -13655,7 +13655,7 @@ function assignmentExtentRequirement({ submissionProfile = {}, assessment = {} }
 function assignmentCitationRequirement({ lesson = {}, assessment = {} } = {}) {
   const title = stripTerminalPunctuation(assessment.title || 'the assignment');
   return lessonVariant(lesson, [
-    'Credit each source in the artifact and source list with author or creator, title, year, and a page, section, timestamp, or stable URL; omit unavailable fields rather than inventing them.',
+    `For ${title}, credit each source in the artifact and source list with author or creator, title, year, and a page, section, timestamp, or stable URL; omit unavailable fields rather than inventing them.`,
     `For ${title}, name the author or creator and title at each point of use, then give the year and page, section, timestamp, or stable URL in a source list.`,
     `Use short author-title citations in ${title}; finish with a source list containing creator, full title, year, and the most precise page, section, timestamp, or stable URL available.`,
     `Number sources in order of first use in ${title}; each numbered source note must include creator, title, year, and a page, section, timestamp, or stable URL.`,
@@ -17892,7 +17892,7 @@ function compileAssignments(blueprint) {
             ]),
           ],
           formatRequirements: {
-            length: assignmentExtentRequirement({ submissionProfile, assessment }),
+            length: `${assessmentTitle}: ${assignmentExtentRequirement({ submissionProfile, assessment })}`,
             format: submissionProfile.expectedFormat,
             reviewProtocol: `For ${stripLessonPrefix(lesson.title)}, ${submissionProfile.reviewProtocol}.`,
             workloadFit: submissionProfile.workload.outOfClassEstimate,

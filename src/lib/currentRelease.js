@@ -15,6 +15,7 @@ export const CURRENT_RELEASE = {
     'The dominant independent-work instructor sentence now composes from lesson concept, evidence, decision, artifact, and revision context rather than stamping one submission-readiness frame across courses.',
     'The tracked two-package measurement settlement places known-bad lesson-plan skeleton excess at 16.4–17.0%, supporting a 15% regression boundary without inventing one global threshold for every artifact family.',
     'The release improves deterministic output variation and conformance truthfulness. It does not certify factual accuracy, instructional quality, accessibility, instructor approval, or classroom outcomes, and it changes no model weights.',
+    'Assignment extent and citation requirements now name the specific brief, preserving concrete defaults without repeating one reader-visible sentence across a course.',
   ],
   landingHighlights: [
     'Known-bad lesson-plan repetition is guarded.',
@@ -23,6 +24,7 @@ export const CURRENT_RELEASE = {
     'Instructor coaching varies with lesson context.',
     'Retained packages calibrate the boundary.',
     'Claims stay inside deterministic evidence.',
+    'Assignment requirements stay concrete and specific.',
   ],
   proof: {
     contract: 'release-contracts/v0.17.04.json',

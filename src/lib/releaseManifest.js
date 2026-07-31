@@ -1331,6 +1331,7 @@ export const CURRENT_RELEASE_CHANGELOG = {
         'Independent-work instructor guidance composes from 36 deterministic lead-tail combinations.',
         'Lesson concept, evidence noun, decision noun, artifact, limitation, and next revision replace the generic readiness stamp.',
         'The repair targets the proven lesson-plan owner instead of adding a global synonym pass.',
+        'Assignment extent and citation requirements identify their brief instead of repeating identical surface copy across a course.',
       ],
     },
     {
