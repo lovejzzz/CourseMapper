@@ -19674,11 +19674,8 @@ function labelQuizOption(letter, text) {
 
 function quizCorrectExplanation({ answer, concept, artifact, objective, lesson, index }) {
   const lessonNumber = Number(lesson?.lessonNumber || 1);
-  // v0.15.187 compose-flip: when the kernel authored a definition for the
-  // EXACT concept this stem asks about, the explanation quotes it — the atom
-  // is the subject, the frame is connective. Deliberately narrow: attaching
-  // unrelated facts to frame stems is the mismatch defect the July 1 field
-  // audit flagged, so anything but an exact concept match keeps the frame.
+  // Quote a kernel definition only when it matches the exact concept; an
+  // unrelated fact would recreate the mismatch defect this branch prevents.
   const matchedTerm = lessonTeachingKeyTerms(lesson).find(
     (term) =>
       cleanText(term?.term) &&
@@ -19707,9 +19704,7 @@ function quizCorrectExplanation({ answer, concept, artifact, objective, lesson, 
   const fullObjective = stripTerminalPunctuation(cleanText(objective, 'the lesson objective'));
   const clipped = conciseClause(objective, 'the lesson objective', 90);
   const compactObjective = clipped.length < fullObjective.length ? `${clipped}…` : clipped;
-  // Six variants, each anchored to the artifact or quoted objective: with six
-  // questions per lesson no two same-lesson questions share a variant, and
-  // cross-lesson collisions differ through the artifact reference.
+  // Preserve the historical six-slot rotation byte-for-byte.
   const variants = [
     `${answer} is correct because it connects ${concept} to ${artifact}, uses lesson evidence, and supports the objective "${objective}".`,
     `${answer} is the strongest move: it grounds ${concept} in inspectable source evidence and advances the objective behind ${artifact}.`,
@@ -19718,6 +19713,8 @@ function quizCorrectExplanation({ answer, concept, artifact, objective, lesson, 
     `${answer} holds up because it treats ${concept} as a working tool for ${artifact}, not a definition to restate.`,
     `${answer} earns the point by pairing ${concept} evidence with the specific decision required by ${artifact}.`,
   ];
+  const extension = textureCopy.quizExtensionCopy(answer, concept, artifact, lesson, index);
+  if (extension) return extension;
   return variants[(lessonNumber + index) % variants.length];
 }
 

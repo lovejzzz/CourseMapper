@@ -65,11 +65,16 @@
         "src/lib/bayesianQuizFrames.js",
         "src/lib/musicTheoryQuizFrames.js",
         "src/lib/scionLanguageCompilerFrames.js",
+        "src/lib/courseCompilerTextureCopy.js",
+        "src/lib/quizExplanationCopy.js",
+        "evaluation/cross-package-texture/untuned-v0.17.02-receipt.json",
+        "package.json",
         "src/lib/__tests__/quizConstructedDepthCompiler.test.js",
         "tests/v01702-scion-quality.test.js"
       ],
       "proofCommands": [
-        "npx vitest run tests/v01702-scion-quality.test.js src/lib/__tests__/quizConstructedDepthCompiler.test.js tests/scion-fact-ledger-relation-projection.test.js"
+        "npx vitest run tests/v01702-scion-quality.test.js src/lib/__tests__/quizConstructedDepthCompiler.test.js tests/scion-fact-ledger-relation-projection.test.js",
+        "npm run audit:texture:cross-package:untuned"
       ],
       "proofScopes": ["unit", "compiled-output", "static-audit"]
     },

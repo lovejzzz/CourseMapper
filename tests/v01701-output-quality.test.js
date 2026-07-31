@@ -56,9 +56,8 @@ describe('V0.17.01 output-quality evidence', () => {
     resetContentFallbackTelemetry();
   });
 
-  it('binds the shipped untuned figures to a frozen canonical receipt', () => {
+  it('keeps the shipped v0.17.01 untuned figures in a frozen historical receipt', () => {
     const receipt = JSON.parse(readFileSync('evaluation/cross-package-texture/untuned-v0.17.01-receipt.json', 'utf8'));
-    const scripts = JSON.parse(readFileSync('package.json', 'utf8')).scripts;
 
     expect(receipt).toMatchObject({
       schema: 'coursemapper.cross-package-texture.release-receipt.v1',
@@ -71,9 +70,6 @@ describe('V0.17.01 output-quality evidence', () => {
       unclassifiedPathCount: 0,
     });
     expect(receipt.canonicalSha256).toMatch(/^[a-f0-9]{64}$/);
-    expect(scripts['audit:texture:cross-package:untuned']).toContain(
-      '--receipt evaluation/cross-package-texture/untuned-v0.17.01-receipt.json',
-    );
   });
 
   it('hash-binds every exact automated-readiness benchmark score', () => {

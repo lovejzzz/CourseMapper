@@ -1,4 +1,5 @@
 import { selectComposedLessonVariant, selectContextualLessonVariant } from './courseCompilerRealization.js';
+export { quizExtensionCopy } from './quizExplanationCopy';
 
 export function assignmentEvidenceLine({ lesson, evidenceNoun, relatedLesson, assessmentTitle }) {
   return selectComposedLessonVariant(

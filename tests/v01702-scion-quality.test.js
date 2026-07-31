@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
 
 import { buildQuizItemPlan, parseLessonKernelResponse } from '../src/lib/blueprintEnrichmentPass';
 import { buildCourseBlueprint, compileBlueprintDeliverable } from '../src/lib/courseBlueprintCompiler';
@@ -56,6 +57,20 @@ describe('v0.17.02 Scion output-quality contracts', () => {
       'evidence-limitation',
       'revision-transfer',
     ]);
+    expect(quiz.questions[6].explanation).toMatch(/bounds|limits|supports|checks/);
+    expect(quiz.questions[7].explanation).toMatch(/transfers|tests|cautiously|bounds/);
+    expect(
+      quiz.questions
+        .slice(0, 6)
+        .map((question) => question.explanation)
+        .includes(quiz.questions[6].explanation),
+    ).toBe(false);
+    expect(
+      quiz.questions
+        .slice(0, 6)
+        .map((question) => question.explanation)
+        .includes(quiz.questions[7].explanation),
+    ).toBe(false);
 
     const validation = validateDeliverableGeneration('quizBank', quizBank, {
       expectedLessonCount: 1,
@@ -168,5 +183,25 @@ describe('v0.17.02 Scion output-quality contracts', () => {
 
   it('does not parse an empty adaptive Scion composition as a completed lesson kernel', () => {
     expect(parseLessonKernelResponse('', { prompt: { lessons: [], itemPlan: buildQuizItemPlan(8) } })).toBeNull();
+  });
+
+  it('binds the active untuned audit to the v0.17.02 output receipt', () => {
+    const receipt = JSON.parse(readFileSync('evaluation/cross-package-texture/untuned-v0.17.02-receipt.json', 'utf8'));
+    const scripts = JSON.parse(readFileSync('package.json', 'utf8')).scripts;
+
+    expect(receipt).toMatchObject({
+      schema: 'coursemapper.cross-package-texture.release-receipt.v1',
+      appVersion: '0.17.02',
+      profile: 'untuned',
+      packageCount: 12,
+      clusterCount: 472,
+      lensDefaultHits: 30,
+      packagesWithLensDefault: 10,
+      unclassifiedPathCount: 0,
+    });
+    expect(receipt.canonicalSha256).toMatch(/^[a-f0-9]{64}$/);
+    expect(scripts['audit:texture:cross-package:untuned']).toContain(
+      '--receipt evaluation/cross-package-texture/untuned-v0.17.02-receipt.json',
+    );
   });
 });
