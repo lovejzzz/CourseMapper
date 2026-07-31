@@ -100,10 +100,12 @@
       "anchors": [
         "src/lib/courseBlueprintCompiler.js",
         "src/lib/__tests__/courseBlueprintCompiler.test.js",
+        "evaluation/cross-package-texture/untuned-v0.17.04-receipt.json",
         "docs/V0.17.04_READER_VISIBLE_TEXTURE_AUDIT.md"
       ],
       "proofCommands": [
         "npx vitest run src/lib/__tests__/courseBlueprintCompiler.test.js",
+        "npm run audit:texture:cross-package:untuned",
         "npm run audit:evaluation:pr"
       ],
       "proofScopes": ["unit", "compiled-output", "static-audit"]

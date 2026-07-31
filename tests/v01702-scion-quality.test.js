@@ -185,11 +185,14 @@ describe('v0.17.02 Scion output-quality contracts', () => {
     expect(parseLessonKernelResponse('', { prompt: { lessons: [], itemPlan: buildQuizItemPlan(8) } })).toBeNull();
   });
 
-  it('binds the active untuned audit to the v0.17.02 output receipt', () => {
-    const receipt = JSON.parse(readFileSync('evaluation/cross-package-texture/untuned-v0.17.02-receipt.json', 'utf8'));
+  it('retains the v0.17.02 receipt while binding the active audit to the current output receipt', () => {
+    const historical = JSON.parse(
+      readFileSync('evaluation/cross-package-texture/untuned-v0.17.02-receipt.json', 'utf8'),
+    );
+    const current = JSON.parse(readFileSync('evaluation/cross-package-texture/untuned-v0.17.04-receipt.json', 'utf8'));
     const scripts = JSON.parse(readFileSync('package.json', 'utf8')).scripts;
 
-    expect(receipt).toMatchObject({
+    expect(historical).toMatchObject({
       schema: 'coursemapper.cross-package-texture.release-receipt.v1',
       appVersion: '0.17.02',
       profile: 'untuned',
@@ -199,9 +202,20 @@ describe('v0.17.02 Scion output-quality contracts', () => {
       packagesWithLensDefault: 10,
       unclassifiedPathCount: 0,
     });
-    expect(receipt.canonicalSha256).toMatch(/^[a-f0-9]{64}$/);
+    expect(historical.canonicalSha256).toMatch(/^[a-f0-9]{64}$/);
+    expect(current).toMatchObject({
+      schema: 'coursemapper.cross-package-texture.release-receipt.v1',
+      appVersion: '0.17.04',
+      profile: 'untuned',
+      packageCount: 12,
+      clusterCount: 476,
+      lensDefaultHits: 30,
+      packagesWithLensDefault: 10,
+      unclassifiedPathCount: 0,
+    });
+    expect(current.canonicalSha256).toMatch(/^[a-f0-9]{64}$/);
     expect(scripts['audit:texture:cross-package:untuned']).toContain(
-      '--receipt evaluation/cross-package-texture/untuned-v0.17.02-receipt.json',
+      '--receipt evaluation/cross-package-texture/untuned-v0.17.04-receipt.json',
     );
   });
 });
