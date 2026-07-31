@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -11,6 +12,21 @@ import {
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const FIXTURE_PATH = path.join(ROOT, 'evaluation/automated-readiness/v1/cases.json');
 const OUTPUT_PATH = path.join(ROOT, 'verification-output/automated-readiness-v1/latest.json');
+
+function stableJson(value) {
+  if (Array.isArray(value)) return `[${value.map((item) => stableJson(item)).join(',')}]`;
+  if (value && typeof value === 'object') {
+    return `{${Object.keys(value)
+      .sort()
+      .map((key) => `${JSON.stringify(key)}:${stableJson(value[key])}`)
+      .join(',')}}`;
+  }
+  return JSON.stringify(value);
+}
+
+function sha256(value) {
+  return crypto.createHash('sha256').update(value).digest('hex');
+}
 
 function conformance(score) {
   return {
@@ -76,13 +92,10 @@ function runCase(entry) {
   });
   const failures = [];
   if (result.protocol !== AUTOMATED_READINESS_PROTOCOL) failures.push(`protocol ${result.protocol}`);
-  if (Number.isFinite(entry.expected.score) && result.score !== entry.expected.score) {
+  if (!Number.isFinite(entry.expected.score)) {
+    failures.push('missing finite frozen expected.score');
+  } else if (result.score !== entry.expected.score) {
     failures.push(`score ${result.score} != frozen ${entry.expected.score}`);
-  } else if (
-    !Number.isFinite(entry.expected.score) &&
-    (result.score < entry.expected.minimum || result.score > entry.expected.maximum)
-  ) {
-    failures.push(`score ${result.score} outside ${entry.expected.minimum}-${entry.expected.maximum}`);
   }
   if (result.band !== entry.expected.band) failures.push(`band ${result.band} != ${entry.expected.band}`);
   if (result.score > AUTOMATED_READINESS_CEILING) failures.push(`score exceeds ${AUTOMATED_READINESS_CEILING}`);
@@ -99,6 +112,13 @@ function runCase(entry) {
 const fixture = JSON.parse(await fs.readFile(FIXTURE_PATH, 'utf8'));
 if (fixture.protocol !== AUTOMATED_READINESS_PROTOCOL) {
   throw new Error(`Fixture protocol ${fixture.protocol} does not match ${AUTOMATED_READINESS_PROTOCOL}`);
+}
+const { canonicalSha256, ...fixtureCanonical } = fixture;
+const observedFixtureSha256 = sha256(stableJson(fixtureCanonical));
+if (!/^[a-f0-9]{64}$/.test(canonicalSha256 || '') || canonicalSha256 !== observedFixtureSha256) {
+  throw new Error(
+    `Fixture canonical SHA-256 mismatch: expected ${canonicalSha256 || '(missing)'}, observed ${observedFixtureSha256}`,
+  );
 }
 const cases = fixture.cases.map(runCase);
 const report = {

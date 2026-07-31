@@ -1,6 +1,7 @@
 {
   "version": "1.0.0",
   "protocol": "coursemapper-automated-readiness-v1",
+  "canonicalSha256": "fdc8b032e676ae7a7e9307731036b51a845eebe6eece68952f56d243c7d50d8a",
   "purpose": "Calibrate the deterministic readiness signal against observed failure shapes without allowing automation to impersonate instructor validation.",
   "cases": [
     {
