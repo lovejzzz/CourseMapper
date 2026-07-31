@@ -302,3 +302,26 @@ export function lessonPlanDuringClass({ lesson, evidenceNoun, concept, artifact 
     ],
   );
 }
+
+export function lessonPlanIndependentInstructorRole({ lesson, lens, concept, artifact }) {
+  return selectComposedLessonVariant(
+    lesson,
+    'lessonPlans.outline.independent.instructorRole',
+    [
+      `Conference on one ${artifact} decision and ask students to point to the ${lens.evidenceNoun} behind it`,
+      `Use spot coaching to test the weakest ${concept} link in each student's ${artifact}`,
+      `Ask students to name the evidence that makes one ${artifact} revision defensible`,
+      `Check one visible ${artifact} move against the ${concept} criterion before students continue`,
+      `Invite students to explain which ${lens.evidenceNoun} detail changed their ${lens.decisionNoun}`,
+      `Review the most uncertain ${artifact} claim and identify the next evidence check it needs`,
+    ],
+    [
+      'leave one concrete revision question instead of approving the whole submission.',
+      'confirm readiness only after the evidence-to-decision link is visible.',
+      'record the remaining limitation students should address before submission.',
+      'redirect the next edit to the criterion the current evidence does not yet satisfy.',
+      'ask what counterexample would require a different revision.',
+      'have the student state the next change before ending the conference.',
+    ],
+  );
+}

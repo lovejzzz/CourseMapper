@@ -3,6 +3,19 @@ import { CURRENT_RELEASE } from './currentRelease.js';
 
 export { CURRENT_RELEASE };
 
+const V01703_RELEASE = {
+  version: '0.17.03',
+  date: 'July 31, 2026',
+  title: 'Actionable Before Clean',
+  highlights: [
+    'Newly compiled assignments carry concrete file, extent, citation, submission, and exception defaults instead of sending learners to configuration that may not exist.',
+    'Assignment exports no longer receive a clean content-verification result when learner-facing directions still defer required format, length, or citation rules. Deep grader V1.11.4 makes the same defect a score-bearing P1 finding.',
+    'The detector is deliberately narrow: a real historical package was used to reject broad rules that would have mislabeled concrete course-site or late-policy language as missing configuration.',
+    'The code-only Roundtable finding was independently reproduced across the 132-course compiler matrix. A regrade of the retained World Literature package also exposed and closed duplicate comparative-paper findings, so one artifact defect is penalized once.',
+    'The release strengthens deterministic output review and report truthfulness without claiming factual, instructional, accessibility, instructor, or classroom validation.',
+  ],
+};
+
 const V01702_RELEASE = {
   version: '0.17.02',
   date: 'July 31, 2026',
@@ -1301,33 +1314,52 @@ export const CURRENT_RELEASE_CHANGELOG = {
   highlights: CURRENT_RELEASE.highlights,
   sections: [
     {
+      label: 'Make visible repetition score-bearing',
+      icon: 'CHECK',
+      color: 'emerald',
+      items: [
+        'Deep grader V1.11.5 evaluates lesson-plan skeleton excess after visible-unit extraction.',
+        'The score receipt names the policy version, family, signal, eligible-unit floor, thresholds, rate, severity, and penalty.',
+        'Uncalibrated artifact families remain measured and score-neutral.',
+      ],
+    },
+    {
+      label: 'Repair the dominant compiler owner',
+      icon: 'AI',
+      color: 'blue',
+      items: [
+        'Independent-work instructor guidance composes from 36 deterministic lead-tail combinations.',
+        'Lesson concept, evidence noun, decision noun, artifact, limitation, and next revision replace the generic readiness stamp.',
+        'The repair targets the proven lesson-plan owner instead of adding a global synonym pass.',
+      ],
+    },
+    {
+      label: 'Keep the quality claim bounded',
+      icon: 'PROOF',
+      color: 'violet',
+      items: [
+        'The retained golden package and two-package settlement pin the safe and known-bad lesson-plan rates.',
+        'The rule requires 40 eligible lesson-plan units and does not gate downloads.',
+        'No model, factual, instructor, accessibility, or classroom-quality claim is made.',
+      ],
+    },
+  ],
+};
+
+const V01703_RELEASE_CHANGELOG = {
+  version: V01703_RELEASE.version,
+  date: V01703_RELEASE.date,
+  title: V01703_RELEASE.title,
+  highlights: V01703_RELEASE.highlights,
+  sections: [
+    {
       label: 'Make assignments actionable by default',
       icon: 'CHECK',
       color: 'emerald',
       items: [
-        'Native fallbacks specify concrete PDF, slide, or recording forms and bounded extents.',
-        'The shared compiler selects extent from artifact type and workload and supplies an inspectable source-credit rule.',
-        'Submission and exception defaults stay usable without pretending a missing local policy was verified.',
-      ],
-    },
-    {
-      label: 'Keep unresolved handoffs visible',
-      icon: 'AI',
-      color: 'blue',
-      items: [
-        'Assignment content verification warns on missing format, length, or citation configuration.',
-        'Deep grader V1.11.4 scores the same unresolved handoff as a P1 format defect.',
-        'The narrow detector leaves concrete course-site and late-policy language alone.',
-      ],
-    },
-    {
-      label: 'Measure one artifact once',
-      icon: 'PROOF',
-      color: 'violet',
-      items: [
-        'Exact duplicate findings for the same artifact are reported and penalized once.',
-        'The 132-course compiler matrix verifies that current generated assignments remain clean.',
-        'A retained World Literature package calibrates the rule without turning historical defects into a current quality claim.',
+        'Native and shared compiler fallbacks supply bounded format, extent, citation, submission, and exception defaults.',
+        'Unresolved learner-facing configuration handoffs become score-bearing findings.',
+        'One artifact defect is reported and penalized once.',
       ],
     },
   ],
@@ -2185,6 +2217,7 @@ const V01678_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  V01703_RELEASE_CHANGELOG,
   V01702_RELEASE_CHANGELOG,
   V01701_RELEASE_CHANGELOG,
   V01700_RELEASE_CHANGELOG,

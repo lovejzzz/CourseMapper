@@ -1,0 +1,100 @@
+{
+  "version": "0.17.04",
+  "date": "July 31, 2026",
+  "title": "Lesson-Plan Repetition Guard",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test",
+      "npm run lint",
+      "npm run format:check",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification must pass on the exact V0.17.04 release commit."
+    },
+    "ciDeep": {
+      "status": "pending-push",
+      "note": "Deep Proof remains the slower defense-in-depth lane."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Production deployment follows repository policy after review."
+    },
+    "liveProvider": {
+      "status": "not-applicable",
+      "note": "The release changes deterministic compilation and grading and makes no live-provider claim."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No instructor, learner, classroom, factual-certification, or accessibility-certification claim is made."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01704-visible-unit-score-policy",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "Deep grader V1.11.5 adds a calibrated score-bearing regression guard for reader-visible lesson-plan skeleton repetition; a P1 also invokes the existing package-conformance cap at 89.",
+      "anchors": [
+        "src/lib/quality/textureMetric.js",
+        "src/lib/quality/deepQualityGrader.js",
+        "evaluation/scion-adapters/held-out-course-benchmark-v36.json",
+        "tests/v0147-texture-metric.test.js"
+      ],
+      "proofCommands": ["npx vitest run tests/v0147-texture-metric.test.js"],
+      "proofScopes": ["unit", "compiled-output", "static-audit"]
+    },
+    {
+      "id": "v01704-explicit-calibration-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "The versioned policy names its family, signal, denominator, eligibility floor, thresholds, severity, penalty, and evidence while leaving uncalibrated families score-neutral.",
+      "anchors": [
+        "src/lib/quality/textureMetric.js",
+        "docs/V0.17.04_READER_VISIBLE_TEXTURE_AUDIT.md",
+        "tests/v0147-texture-metric.test.js"
+      ],
+      "proofCommands": ["npx vitest run tests/v0147-texture-metric.test.js"],
+      "proofScopes": ["unit", "static-audit", "doc"]
+    },
+    {
+      "id": "v01704-instructor-role-composition",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Independent lesson-plan coaching uses deterministic course-sensitive composition instead of one repeated submission-readiness sentence.",
+      "anchors": [
+        "src/lib/courseCompilerTextureCopy.js",
+        "src/lib/courseBlueprintCompiler.js",
+        "tests/v0147-texture-metric.test.js"
+      ],
+      "proofCommands": ["npx vitest run tests/v0147-texture-metric.test.js"],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01704-retained-output-calibration",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Retained package reports distinguish the current 8.16% lesson-plan rate from known-bad 16.4–17.0% settlement rates.",
+      "anchors": [
+        "trellis/runs/e0-golden/report.json",
+        "docs/QUALITY_MEASUREMENT_SETTLEMENT_2026-07-24.md",
+        "docs/V0.17.04_READER_VISIBLE_TEXTURE_AUDIT.md"
+      ],
+      "proofCommands": ["npm run audit:release-history"],
+      "proofScopes": ["compiled-output", "static-audit", "doc"]
+    },
+    {
+      "id": "v01704-claim-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The release limits its claims to deterministic output variation and conformance and does not imply model-weight or human-validation gains.",
+      "anchors": ["docs/V0.17.04_READER_VISIBLE_TEXTURE_AUDIT.md", "src/lib/currentRelease.js"],
+      "proofCommands": ["npm run audit:release-history"],
+      "proofScopes": ["static-audit", "doc"]
+    }
+  ]
+}

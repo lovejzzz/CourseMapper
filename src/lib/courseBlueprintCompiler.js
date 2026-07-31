@@ -27113,9 +27113,7 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
     artifact,
   );
   const labWorkflow = lessonLabWorkflow(blueprint, lesson);
-  // v0.13.3: kernel-aware teaching script — when this lesson carries authored
-  // or genome-linked subject matter, the script teaches THAT content instead
-  // of the generic process frame (the v0.13.1 live audit's weakest surface).
+  // Kernel-aware plans teach authored subject matter instead of a generic process frame.
   const kernelPayload = lesson.enrichment || null;
   const kernelMisconception = (kernelPayload?.keyTerms || []).find((term) => term.misconception) || null;
   const instructorFacts = Array.isArray(blueprint?.instructorSourceFactsByLesson?.[lesson.id])
@@ -27137,13 +27135,7 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
     cleanText(modality.evidenceRoutine).replace(/^For [^,]{2,70},\s*/i, ''),
     { concept, artifact },
   );
-  // v0.15.3 D1: DEEP mode carries the kernel inside the back-half steps too —
-  // the collaborative debate runs the kernel's tension, the sprint checks
-  // drafts against the worked example's moves and the term corrections, and
-  // the exit ticket closes the warm-up misconception loop — with the genome
-  // citation named in the step that uses it. Every deep line falls back to
-  // the flat frame when its atom is missing, so deep mode on a kernel-less
-  // course compiles byte-identical to flat.
+  // Deep back-half steps use kernel atoms and fall back to flat when none exist.
   const deep = depth === 'deep';
   const kernelDiscussion =
     deep && cleanText(kernelPayload?.discussionPrompt?.prompt) ? kernelPayload.discussionPrompt : null;
@@ -27234,11 +27226,7 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
               `Tie the example to ${evidencePlan?.sourceCue || 'one source cue'} and ask students to write the reasoning move in ${artifact} language.`,
               `Make ${evidencePlan?.sourceCue || 'one source cue'} visible, then mark the inference students can reuse when developing ${artifact}.`,
             ]),
-      // v0.16 C2 (Prof classroom catch — realistic reading compliance cost
-      // the cohort 25-36% of mastery): the mini-lesson explicitly re-teaches
-      // the reading's core idea in class, so students who arrived without
-      // the reading can still do today's work. The recap is the reading's
-      // content, compressed — not a replacement for it.
+      // Re-teach the reading's core idea briefly; the recap does not replace it.
       catchUpPlan: kernelFact
         ? lessonVariant(lesson, [
             `For ${concept}, start with a two-minute recap for students who missed the reading. State this fact: ${ensureSentenceCompiler(stripTerminalPunctuation(kernelFact))} Give one concrete example before the model begins.`,
@@ -27352,9 +27340,7 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
                 'Solo transfer work',
               ]),
       type: 'Workshop',
-      // v0.16 A3: the sprint verb follows the assessment genre — quizzes get
-      // retrieval PRACTICE, labs get BUILD/debug, written artifacts keep
-      // draft/revise. Nobody "drafts" an autograded quiz.
+      // Sprint verbs follow the assessment genre; nobody drafts an autograded quiz.
       description:
         lessonArtifactGenre(lesson) === 'autograded-quiz'
           ? lessonVariant(lesson, [
@@ -27410,7 +27396,7 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
               `When the work repeats this idea, require one evidence-based correction. Misconception: ${ensureSentenceCompiler(readableMisconception(kernelMisconception.misconception))} Correction: ${ensureSentenceCompiler(readableCorrection(kernelMisconception.correction || kernelMisconception.definition))} ${modality.artifactCheck}`,
             ])
           : `Conference with students who need support on ${artifact}; redirect them to the exact ${concept} criterion and this modality check: ${modality.artifactCheck}`,
-      instructorRole: `Provide targeted feedback on ${artifact} and confirm readiness for submission.`,
+      instructorRole: textureCopy.lessonPlanIndependentInstructorRole({ lesson, lens, concept, artifact }),
       grouping: lessonVariant(lesson, [
         'Independent work with spot coaching',
         'Solo development with targeted conferences',
@@ -27476,9 +27462,7 @@ function compileLessonPlans(blueprint, options = {}) {
   const lens = blueprintLens(blueprint);
   const preference = featurePreference(blueprint, 'lessonPlans');
   const compilerProofBundle = blueprint.compilerProofBundle || buildCompilerProofBundle(blueprint);
-  // v0.15.3 D1: the depth slice rides the per-feature configMap so the
-  // compiler stays pure — the app injects the flag via
-  // applyLessonDepthToConfigMap; headless A/B harnesses pass it explicitly.
+  // The per-feature config map keeps the depth slice pure and testable.
   const lessonDepth = options.configMap?.lessonPlans?.depth === 'deep' ? 'deep' : 'flat';
   return {
     lessonPlans: blueprint.lessons.map((lesson, index) => {
@@ -28107,13 +28091,8 @@ function compileBlueprintDeliverableRaw(featureId, compilerBlueprint, options = 
 export const BLUEPRINT_COMPILE_ERRORS = Symbol.for('coursemapper.blueprintCompileErrors');
 export const BLUEPRINT_COMPILE_CONTEXT = Symbol.for('coursemapper.blueprintCompileContext');
 
-// Per-feature fault isolation (v0.15.187): a throw inside one deliverable's
-// renderer used to escape to the caller, which marked every feature errored
-// — one malformed lesson field voided all nine deliverables. A single
-// renderer's failure is now its own: loud (console + error channel +
-// optional callback), never silent, and the remaining deliverables still
-// compile. Blueprint-level failures (prepare/contract in the callers) still
-// fail the whole compile — those mean the INPUT is bad, not one renderer.
+// Renderer failures stay loud and per-feature; blueprint contract failures still
+// fail the whole compile because they indicate invalid shared input.
 function compileFeatureInto(result, compileErrors, featureId, compilerBlueprint, options) {
   try {
     const data = compileBlueprintDeliverable(featureId, compilerBlueprint, {
@@ -28161,12 +28140,8 @@ export function compileBlueprintDeliverables(blueprint, featureIds = [], options
   }
 }
 
-// v0.15.187: the measured compile is 775-815ms of synchronous work for a
-// 14-lesson × 9-feature course (slideDecks alone ~300ms) — one solid
-// main-thread block inside the generation hook. Same contract as the sync
-// version, but the thread yields between deliverables so the UI keeps
-// painting; the browser generation path uses this, audits/scripts keep the
-// sync entry.
+// The async contract matches sync compilation but yields between deliverables so
+// browser generation can paint; audits retain the synchronous entry.
 export async function compileBlueprintDeliverablesYielding(blueprint, featureIds = [], options = {}) {
   const compilerBlueprint = prepareBlueprintForCompilation(blueprint, options);
   assertBlueprintCompilerContract(compilerBlueprint, options);

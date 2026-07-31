@@ -121,7 +121,7 @@ describe('deep quality package structure', () => {
     });
 
     expect(result.findings.some((finding) => /classroom clock/i.test(finding.detail))).toBe(false);
-    expect(GRADER_VERSION).toBe('1.11.4');
+    expect(GRADER_VERSION).toBe('1.11.5');
   });
 
   it('treats typed-object leaks and mirrored assessment identities as scored export defects', async () => {

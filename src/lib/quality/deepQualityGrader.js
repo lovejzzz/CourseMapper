@@ -73,8 +73,16 @@ import {
   blacklistYieldsToTopicalOverlap as offenderYieldsToTopicalOverlap,
 } from './artifactDefectPatterns.js';
 // V0.14.7 WS-D D1 introduced the texture metric; v0.15.6 makes it score-bearing.
-import { computeTexture, computeVisibleUnitTexture, textureDocsFromFiles } from './textureMetric.js';
-import { buildTextureAdvisories, TEXTURE_VERSION } from './textureMetric.js';
+import {
+  addVisibleUnitTextureFinding,
+  buildTextureAdvisories,
+  computeTexture,
+  computeVisibleUnitTexture,
+  evaluateVisibleUnitTexture,
+  renderVisibleUnitPolicyReceiptMarkdown,
+  textureDocsFromFiles,
+  TEXTURE_VERSION,
+} from './textureMetric.js';
 import { addPackageQuizDepthFindings } from './quizItemDepth.js';
 import { detectForeignLanguageTeachingContent, mandarinTargetLanguageRequirements } from '../languageIdentityGuard.js';
 import {
@@ -220,7 +228,9 @@ import { findInstructorConfigurationDeferrals } from '../publishabilityPlacehold
 // lesson title, so title interpolation cannot hide a repeated semantic frame.
 // 1.11.4 — assignment format, length, and citation deferrals are score-bearing;
 // exact duplicate findings for one artifact are emitted and penalized once.
-export const GRADER_VERSION = '1.11.4';
+// 1.11.5 — calibrated lesson-plan visible-unit skeleton repetition affects the
+// texture score, with its family, denominator, threshold, and evidence sealed.
+export const GRADER_VERSION = '1.11.5';
 
 // ── Dimension weights & letter bands (documented in the module header) ──────
 // v0.15.186: texture weight 10 → 25. At 10/120 a fully templated package
@@ -3764,8 +3774,15 @@ export async function grade({
     ...(Array.isArray(pkg.manifest?.readings) ? pkg.manifest.readings.map((entry) => entry?.title) : []),
   ].filter(Boolean);
   const textureDocs = textureDocsFromFiles(pkg.files);
-  const texture = computeTexture(textureDocs, { slotValues: textureSlotValues });
-  checkTextureFindings(findings, texture);
+  const baseTexture = computeTexture(textureDocs, { slotValues: textureSlotValues });
+  const visibleUnits = computeVisibleUnitTexture(textureDocs, textureSlotValues);
+  const visibleUnitPolicy = evaluateVisibleUnitTexture(visibleUnits);
+  checkTextureFindings(findings, baseTexture);
+  addVisibleUnitTextureFinding(findings, visibleUnitPolicy);
+  const texture = {
+    ...baseTexture,
+    score: Math.max(0, baseTexture.score - visibleUnitPolicy.scorePenalty),
+  };
 
   // Score each dimension.
   const scores = {};
@@ -3846,8 +3863,10 @@ export async function grade({
       subScores: texture.subScores,
       evidence: texture.evidence,
       groups: texture.groups,
-      visibleUnits: computeVisibleUnitTexture(textureDocs, textureSlotValues),
-      advisories: buildTextureAdvisories(texture),
+      baseScore: baseTexture.score,
+      visibleUnits,
+      visibleUnitPolicy,
+      advisories: buildTextureAdvisories(baseTexture, visibleUnitPolicy),
     },
   };
 }
@@ -3919,6 +3938,8 @@ export function renderReportMarkdown(result, { courseTitle = 'Course', baselineR
     );
   }
   lines.push('');
+
+  lines.push(...renderVisibleUnitPolicyReceiptMarkdown(result.texture));
 
   // Findings grouped by severity.
   lines.push(`## Findings`);

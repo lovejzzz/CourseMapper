@@ -296,6 +296,13 @@ async function main() {
       'CURRENT_RELEASE.proof.roadmap must point to an existing roadmap',
       failures,
     );
+    for (const proofKey of ['benchmark', 'browser']) {
+      assert(
+        CURRENT_RELEASE.proof?.[proofKey] && (await pathExists(CURRENT_RELEASE.proof[proofKey])),
+        `CURRENT_RELEASE.proof.${proofKey} must point to existing evidence`,
+        failures,
+      );
+    }
     assert(
       CURRENT_RELEASE.proof?.auditCommand === 'npm run audit:release-history',
       'CURRENT_RELEASE.proof.auditCommand must be npm run audit:release-history',

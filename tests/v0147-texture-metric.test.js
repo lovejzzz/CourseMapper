@@ -32,12 +32,15 @@ import JSZip from 'jszip';
 import {
   computeTexture,
   computeVisibleUnitTexture,
+  evaluateVisibleUnitTexture,
   maskSlots,
   buildTextureAdvisories,
+  buildVisibleUnitTextureAdvisories,
   normalizeTextureText,
   VISIBLE_UNIT_MIN_WORDS,
 } from '../src/lib/quality/textureMetric.js';
 import { buildCourseBlueprint, compileBlueprintDeliverables } from '../src/lib/courseBlueprintCompiler';
+import { lessonPlanIndependentInstructorRole } from '../src/lib/courseCompilerTextureCopy.js';
 import {
   buildBlueprintFromGraph,
   deriveCourseGraphFromCourseMap,
@@ -443,6 +446,118 @@ describe('D1(1b) — reader-visible unit occurrence metric', () => {
         { file: 'assignments-1.docx', unit: 1 },
         { file: 'discussions-2.docx', unit: 1 },
       ]),
+    );
+  });
+
+  it('makes calibrated lesson-plan repetition score-bearing', () => {
+    const repeated = 'Provide targeted feedback on the weekly analysis and confirm readiness for submission.';
+    const docs = asDocs([
+      ...Array.from({ length: 16 }, () => repeated),
+      ...Array.from(
+        { length: 34 },
+        (_, index) =>
+          `Coach learners to test marker${String.fromCharCode(97 + Math.floor(index / 26))}${String.fromCharCode(97 + (index % 26))} as an evidence boundary and record the resulting revision decision.`,
+      ),
+    ]);
+    const evaluation = evaluateVisibleUnitTexture(computeVisibleUnitTexture(docs));
+
+    expect(evaluation).toMatchObject({
+      policyVersion: 'visible-units.v1',
+      family: 'lessonPlans',
+      evaluated: true,
+      severity: 'P1',
+      scorePenalty: 8,
+    });
+    expect(evaluation.observedRate).toBeCloseTo(15 / 50);
+  });
+
+  it('keeps uncalibrated families measured but out of the score', () => {
+    const repeated = 'Use the grading criteria to revise one decision and explain the evidence behind it.';
+    const evaluation = evaluateVisibleUnitTexture(
+      computeVisibleUnitTexture(
+        asDocs(
+          Array.from({ length: 50 }, () => repeated),
+          'rubrics',
+        ),
+      ),
+    );
+
+    expect(evaluation).toMatchObject({
+      family: 'lessonPlans',
+      eligibleUnitCount: 0,
+      evaluated: false,
+      severity: null,
+      scorePenalty: 0,
+    });
+  });
+
+  it('does not penalize lesson-plan families below the calibrated rate', () => {
+    const repeated = 'Provide targeted feedback on the weekly analysis and confirm readiness for submission.';
+    const docs = asDocs([
+      ...Array.from({ length: 7 }, () => repeated),
+      ...Array.from(
+        { length: 43 },
+        (_, index) =>
+          `Ask learners to inspect marker${String.fromCharCode(97 + Math.floor(index / 26))}${String.fromCharCode(97 + (index % 26))} as a source cue and justify one bounded next step.`,
+      ),
+    ]);
+    const evaluation = evaluateVisibleUnitTexture(computeVisibleUnitTexture(docs));
+
+    expect(evaluation.evaluated).toBe(true);
+    expect(evaluation.observedRate).toBeCloseTo(6 / 50);
+    expect(evaluation.severity).toBeNull();
+    expect(evaluation.scorePenalty).toBe(0);
+  });
+
+  it('pins the eligibility and severity boundaries', () => {
+    const evaluationFor = (eligible, repeated) => {
+      const repeatedLine = 'Provide targeted feedback on the weekly analysis and confirm readiness for submission.';
+      const docs = asDocs([
+        ...Array.from({ length: repeated }, () => repeatedLine),
+        ...Array.from({ length: eligible - repeated }, (_, index) => {
+          const marker = `marker${String.fromCharCode(97 + Math.floor(index / 26))}${String.fromCharCode(97 + (index % 26))}`;
+          return `Ask learners to inspect ${marker} as a source cue and justify one bounded next step.`;
+        }),
+      ]);
+      return evaluateVisibleUnitTexture(computeVisibleUnitTexture(docs));
+    };
+
+    const belowFloor = evaluationFor(39, 20);
+    expect(belowFloor).toMatchObject({ evaluated: false, severity: null, scorePenalty: 0 });
+    expect(buildVisibleUnitTextureAdvisories(belowFloor)).toEqual([
+      expect.objectContaining({
+        advisory: true,
+        severity: 'P2',
+        detail: expect.stringMatching(/39 eligible units.*40-unit floor/),
+      }),
+    ]);
+    expect(evaluationFor(40, 7)).toMatchObject({ evaluated: true, observedRate: 0.15, severity: 'P2' });
+    expect(evaluationFor(40, 12)).toMatchObject({ observedRate: 0.275, severity: 'P2' });
+    expect(evaluationFor(40, 13)).toMatchObject({ observedRate: 0.3, severity: 'P1' });
+  });
+});
+
+describe('V0.17.04 — lesson-plan instructor-role realization', () => {
+  it('composes course-sensitive coaching instead of stamping one submission sentence', () => {
+    const lens = {
+      evidenceNoun: 'source evidence',
+      decisionNoun: 'interpretive decision',
+    };
+    const outputs = Array.from({ length: 16 }, (_, index) =>
+      lessonPlanIndependentInstructorRole({
+        lesson: { id: `L${index + 1}`, lessonNumber: index + 1, title: `Evidence boundary ${index + 1}` },
+        lens,
+        concept: `concept ${index + 1}`,
+        artifact: `analysis ${index + 1}`,
+      }),
+    );
+
+    expect(new Set(outputs).size).toBeGreaterThanOrEqual(8);
+    expect(
+      outputs.some((line) => /^Provide targeted feedback on .* and confirm readiness for submission\.$/.test(line)),
+    ).toBe(false);
+    expect(outputs.every((line) => /evidence|criterion|claim|decision|revision|limitation|coach/i.test(line))).toBe(
+      true,
     );
   });
 });
@@ -965,7 +1080,7 @@ describe('D1(3)+(4) — weight-0 invariance and the report row on a real package
   });
 
   it('keeps every pre-texture weight and gives texture a score-bearing weight that can cost the A band', () => {
-    expect(GRADER_VERSION).toBe('1.11.4');
+    expect(GRADER_VERSION).toBe('1.11.5');
     expect(DIMENSION_WEIGHTS).toEqual({
       identity: 20,
       substance: 20,
@@ -1022,13 +1137,21 @@ describe('D1(3)+(4) — weight-0 invariance and the report row on a real package
       result.texture.visibleUnits.exact.eligibleUnitCount,
     );
     expect(result.texture.visibleUnits.families.length).toBeGreaterThan(0);
+    expect(result.texture.visibleUnitPolicy).toMatchObject({
+      policyVersion: 'visible-units.v1',
+      family: 'lessonPlans',
+      signal: 'skeleton.extraDuplicateRate',
+    });
+    expect(result.texture.score).toBe(
+      Math.max(0, result.texture.baseScore - result.texture.visibleUnitPolicy.scorePenalty),
+    );
 
     const textureFindings = result.findings.filter((finding) => finding.dimension === 'texture');
     expect(result.stats.byDimension.texture).toBe(textureFindings.length);
-    if (result.scores.texture < 90) {
+    if (result.texture.baseScore < 90) {
       expect(textureFindings.length).toBeGreaterThanOrEqual(1);
-      expect(textureFindings[0].detail).toContain(`Texture score ${result.scores.texture}/100`);
-    } else {
+      expect(textureFindings[0].detail).toContain(`Texture score ${result.texture.baseScore}/100`);
+    } else if (!result.texture.visibleUnitPolicy.severity) {
       expect(textureFindings).toEqual([]);
     }
     const severities = { p0: 'P0', p1: 'P1', p2: 'P2' };
@@ -1039,6 +1162,11 @@ describe('D1(3)+(4) — weight-0 invariance and the report row on a real package
       expect(advisory.severity).toBe('P2');
       expect(advisory.dimension).toBe('texture');
       expect(advisory.advisory).toBe(true);
+    }
+    if (!result.texture.visibleUnitPolicy.evaluated && result.texture.visibleUnitPolicy.eligibleUnitCount > 0) {
+      expect(result.texture.advisories).toEqual(
+        expect.arrayContaining([expect.objectContaining({ detail: expect.stringMatching(/was not evaluated/) })]),
+      );
     }
     expect(result.texture.evidence.length).toBeLessThanOrEqual(5);
   });
@@ -1051,5 +1179,12 @@ describe('D1(3)+(4) — weight-0 invariance and the report row on a real package
     expect(md).toContain('| format | 5 |');
     expect(md).toContain(`| texture | 25 | ${result.scores.texture} | ${result.grades.texture} |`);
     expect(md).toContain(`| **overall** | 135 | **${result.overall.score}** | **${result.overall.grade}** |`);
+    expect(md).toContain('## Reader-visible texture policy receipt');
+    expect(md).toContain('`visible-units.v1`');
+    expect(md).toContain('`lessonPlans.skeleton.extraDuplicateRate`');
+    expect(md).toContain(`Observed ${result.texture.visibleUnitPolicy.eligibleUnitCount} eligible units`);
+    expect(md).toContain('P2 threshold: 15%');
+    expect(md).toContain('P1 threshold: 30%');
+    expect(md).toContain('any P1 finding caps package conformance at 89');
   });
 });
