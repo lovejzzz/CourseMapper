@@ -9,7 +9,7 @@
       "npm run lint",
       "npm run build",
       "npm run bundle:check",
-      "npm run audit:automated-readiness",
+      "npx vitest run tests/v01701-output-quality.test.js",
       "npm run audit:release-history"
     ],
     "ciFast": {
@@ -70,7 +70,7 @@
     },
     {
       "id": "v01683-locked-readiness-benchmark",
-      "status": "verified-current",
+      "status": "historical",
       "changelogHighlightIndex": 2,
       "summary": "A frozen three-case benchmark constrains generous, source-thin, and source-rich score behavior without claiming independent validation.",
       "anchors": [
@@ -79,12 +79,12 @@
         "package.json",
         "src/lib/quality/__tests__/automatedReadinessSignal.test.js"
       ],
-      "proofCommands": ["npm run audit:automated-readiness", "npm test"],
+      "proofCommands": ["npx vitest run tests/v01701-output-quality.test.js"],
       "proofScopes": ["unit", "static-audit", "doc"]
     },
     {
       "id": "v01683-grounding-anti-gaming",
-      "status": "verified-current",
+      "status": "historical",
       "changelogHighlightIndex": 3,
       "summary": "Internal sourceRef coverage earns no grounding credit without trusted concept-linked sources, and source-thin multi-lesson packages are reported.",
       "anchors": [
@@ -93,7 +93,9 @@
         "src/lib/quality/__tests__/sourceLedgerGrader.test.js",
         "evaluation/automated-readiness/v1/cases.json"
       ],
-      "proofCommands": ["npm test", "npm run audit:automated-readiness"],
+      "proofCommands": [
+        "npx vitest run src/lib/quality/__tests__/automatedReadinessSignal.test.js tests/v01701-output-quality.test.js"
+      ],
       "proofScopes": ["unit", "static-audit"]
     },
     {

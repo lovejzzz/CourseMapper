@@ -76,10 +76,14 @@ describe('V0.17.01 output-quality evidence', () => {
   });
 
   it('hash-binds every exact automated-readiness benchmark score', () => {
+    const historicalV1 = readFileSync('evaluation/automated-readiness/v1/cases.json', 'utf8');
     const fixture = JSON.parse(readFileSync('evaluation/automated-readiness/v2/cases.json', 'utf8'));
     const { canonicalSha256, ...canonical } = fixture;
     const observedSha256 = createHash('sha256').update(stableJson(canonical)).digest('hex');
 
+    expect(createHash('sha256').update(historicalV1).digest('hex')).toBe(
+      '3be0cd50211a96618cf31d65b005e635cfba35c8563be39e86386389a490a2c9',
+    );
     expect(canonicalSha256).toBe('eb3ad5d153738cb79962c7f906bf3626e3e9a9d5180e5f56932234eca4e22cd9');
     expect(observedSha256).toBe(canonicalSha256);
     expect(fixture.cases.map((entry) => entry.id)).toEqual([
@@ -89,5 +93,11 @@ describe('V0.17.01 output-quality evidence', () => {
     ]);
     expect(fixture.cases.map((entry) => entry.expected.score)).toEqual([26, 59, 68]);
     expect(fixture.cases.every((entry) => Number.isFinite(entry.expected.score))).toBe(true);
+    expect(fixture.cases.map((entry) => entry.trustedSourceCount)).toEqual([0, 1, 5]);
+    expect(fixture.cases.map((entry) => entry.trustedSourceCoverage || null)).toEqual([
+      null,
+      null,
+      { total: 50, withRefs: 47 },
+    ]);
   });
 });

@@ -1669,10 +1669,10 @@ const V01683_RELEASE_CHANGELOG = {
       icon: 'PROOF',
       color: 'violet',
       items: [
-        'The observed generic zero-evidence Algi fixture must remain in the low range and currently scores 26/100.',
-        'The observed exact but source-thin Scion fixture currently scores 61/100.',
-        'An exact source-rich positive-control fixture currently scores 68/100 and cannot cross the independent-evidence boundary.',
-        'The executable audit checks ordering, ceiling, claim boundary, conformance separation, and case-specific score windows.',
+        'The historical V1 generic zero-evidence Algi fixture scored 26/100.',
+        'The historical V1 exact but source-thin Scion fixture scored 61/100 before the V2 trusted-evidence ruler.',
+        'The historical V1 exact source-rich positive-control fixture scored 68/100 below the independent-evidence boundary.',
+        'The historical V1 receipt preserves its score windows; the current V2 audit enforces exact trusted-evidence scores.',
       ],
     },
     {

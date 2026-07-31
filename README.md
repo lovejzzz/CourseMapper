@@ -400,7 +400,7 @@ The old 99/A display was too generous because it measured deterministic package 
 
 The readiness evaluator is deliberately difficult to game. Populating internal `sourceRef` fields does not earn grounding credit unless the package contains trusted, concept-linked source evidence. A multi-lesson package supported by only one trusted source is reported as thin even if its internal references are complete.
 
-The locked V1 benchmark has three frozen cases:
+The historical locked V1 benchmark has three frozen cases:
 
 | Frozen case                                            |  Readiness | Separate conformance fixture | What it proves                                                                                    |
 | ------------------------------------------------------ | ---------: | ---------------------------: | ------------------------------------------------------------------------------------------------- |
