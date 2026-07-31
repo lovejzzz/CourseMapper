@@ -974,10 +974,10 @@ export function normalizeQuizBankQuestions(data) {
   };
 }
 
-export function normalizeQuizBankQuestionCounts(data, minimumQuestions = 5) {
+export function normalizeQuizBankQuestionCounts(data, minimumQuestions = 8) {
   const arrayKey = getArrayKey('quizBank', data) || (data?.quizzes ? 'quizzes' : data?.quizBank ? 'quizBank' : null);
   const quizzes = arrayKey ? data?.[arrayKey] : null;
-  const target = Math.max(1, Number(minimumQuestions) || 5);
+  const target = Math.max(1, Math.min(8, Number(minimumQuestions) || 8));
 
   if (!Array.isArray(quizzes) || quizzes.length === 0) {
     return { data, arrayKey, target, addedQuestions: 0, underfilledIndices: [] };

@@ -115,13 +115,13 @@ describe('evaluateWorkspaceReadiness', () => {
     expect(readiness.blockers).toHaveLength(0);
   });
 
-  it('uses configured quiz and FAQ question targets in readiness checks', () => {
+  it('uses configured FAQ targets and clamps legacy quiz targets to eight', () => {
     const readiness = evaluateWorkspaceReadiness({
       courseMap,
       lessonFilter: [0],
       selectedFeatures: ['quizBank', 'courseFaq'],
       deliverableConfig: {
-        quizBank: { questionsPerLesson: 8 },
+        quizBank: { questionsPerLesson: 12 },
         courseFaq: { questionsPerLesson: 3 },
       },
       deliverables: {

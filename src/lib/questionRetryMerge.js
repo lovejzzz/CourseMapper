@@ -66,13 +66,13 @@ export function mergeQuestionRetryResults(
     }
   }
 
-  nextItems.sort((left, right) => {
-    const leftMatch = getLessonKey(left).match(/^lesson_(\d+)$/);
-    const rightMatch = getLessonKey(right).match(/^lesson_(\d+)$/);
-    if (!leftMatch && !rightMatch) return 0;
-    if (!leftMatch) return 1;
-    if (!rightMatch) return -1;
-    return Number(leftMatch[1]) - Number(rightMatch[1]);
-  });
+  const numberedItems = nextItems.map((item) => getLessonKey(item).match(/^lesson_(\d+)$/));
+  if (numberedItems.every(Boolean)) {
+    nextItems.sort((left, right) => {
+      const leftMatch = getLessonKey(left).match(/^lesson_(\d+)$/);
+      const rightMatch = getLessonKey(right).match(/^lesson_(\d+)$/);
+      return Number(leftMatch[1]) - Number(rightMatch[1]);
+    });
+  }
   return { ...cleanedBaseline, [arrayKey]: nextItems };
 }

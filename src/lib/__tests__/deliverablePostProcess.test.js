@@ -1041,6 +1041,7 @@ describe('Quiz Bank post-processing', () => {
     const result = normalizeQuizBankQuestionCounts(data);
 
     expect(result.addedQuestions).toBe(0);
+    expect(result.target).toBe(8);
     expect(result.underfilledIndices).toEqual([0]);
     expect(result.data.quizzes[0].questions).toHaveLength(1);
 
