@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { buildCourseBlueprint, compileBlueprintDeliverables } from '../src/lib/courseBlueprintCompiler.js';
 import { resolvePreciseDisciplineLens } from '../src/lib/courseCompilerLensProfiles.js';
 import { getContentFallbackTelemetry, resetContentFallbackTelemetry } from '../src/lib/contentFallbackTelemetry.js';
+import { HISTORICAL_RELEASE_CHANGELOGS } from '../src/lib/releaseManifest.js';
 import { PIPELINE_FEATURES } from '../scripts/hybridPipelineAudit.mjs';
 import { CROSS_PACKAGE_THIN_BRIEFS } from '../scripts/panels/crossPackageThinBriefs.mjs';
 import {
@@ -99,5 +100,16 @@ describe('V0.17.01 output-quality evidence', () => {
       null,
       { total: 50, withRefs: 47 },
     ]);
+  });
+
+  it('keeps the historical V1 score distinct from the current V2 score in rendered changelog data', () => {
+    const release = HISTORICAL_RELEASE_CHANGELOGS.find((entry) => entry.version === '0.16.83');
+    const benchmarkHighlight = release?.highlights?.[2] || '';
+
+    expect(benchmarkHighlight).toContain('historical V1');
+    expect(benchmarkHighlight).toContain('61/100');
+    expect(benchmarkHighlight).toContain('current V2');
+    expect(benchmarkHighlight).toContain('59/100');
+    expect(benchmarkHighlight).not.toContain('Scion package scores 61/100');
   });
 });
