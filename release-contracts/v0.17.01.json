@@ -60,7 +60,7 @@
         "src/lib/quality/automatedReadinessSignal.js",
         "src/lib/quality/__tests__/automatedReadinessSignal.test.js",
         "scripts/automatedReadinessBenchmarkAudit.mjs",
-        "evaluation/automated-readiness/v1/cases.json",
+        "evaluation/automated-readiness/v2/cases.json",
         "src/lib/sourceBackedJudgment.js",
         "src/lib/__tests__/sourceBackedJudgment.test.js"
       ],

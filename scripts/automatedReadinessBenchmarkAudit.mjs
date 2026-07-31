@@ -10,8 +10,13 @@ import {
 } from '../src/lib/quality/automatedReadinessSignal.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const FIXTURE_PATH = path.join(ROOT, 'evaluation/automated-readiness/v1/cases.json');
-const OUTPUT_PATH = path.join(ROOT, 'verification-output/automated-readiness-v1/latest.json');
+const FIXTURE_PATH = path.join(ROOT, 'evaluation/automated-readiness/v2/cases.json');
+const OUTPUT_PATH = path.join(ROOT, 'verification-output/automated-readiness-v2/latest.json');
+const EXPECTED_CASE_IDS = [
+  'observed-algi-v01682-generic-zero-evidence',
+  'observed-scion-v01682-exact-but-thin-evidence',
+  'exact-source-rich-positive-control',
+];
 
 function stableJson(value) {
   if (Array.isArray(value)) return `[${value.map((item) => stableJson(item)).join(',')}]`;
@@ -120,6 +125,14 @@ if (!/^[a-f0-9]{64}$/.test(canonicalSha256 || '') || canonicalSha256 !== observe
     `Fixture canonical SHA-256 mismatch: expected ${canonicalSha256 || '(missing)'}, observed ${observedFixtureSha256}`,
   );
 }
+const fixtureCaseIds = Array.isArray(fixture.cases) ? fixture.cases.map((entry) => entry?.id) : [];
+if (stableJson(fixtureCaseIds) !== stableJson(EXPECTED_CASE_IDS)) {
+  throw new Error(
+    `Fixture case set mismatch: expected ${EXPECTED_CASE_IDS.join(', ')}, observed ${
+      fixtureCaseIds.join(', ') || '(empty)'
+    }`,
+  );
+}
 const cases = fixture.cases.map(runCase);
 const report = {
   protocol: AUTOMATED_READINESS_PROTOCOL,
@@ -135,7 +148,7 @@ if (process.argv.includes('--write')) {
   await fs.writeFile(OUTPUT_PATH, `${JSON.stringify(report, null, 2)}\n`);
 }
 
-console.log('Automated readiness benchmark v1');
+console.log('Automated readiness benchmark v2');
 for (const entry of cases) {
   console.log(
     `${entry.passed ? 'PASS' : 'FAIL'} ${entry.id}: ${entry.actual.score}/100 (${entry.actual.band}; ceiling ${entry.actual.evidenceCeiling}); conformance fixture ${fixture.cases.find((item) => item.id === entry.id)?.conformanceScore}/100`,

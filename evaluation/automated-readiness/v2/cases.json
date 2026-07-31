@@ -1,7 +1,8 @@
 {
-  "version": "1.0.0",
+  "version": "2.0.0",
   "protocol": "coursemapper-automated-readiness-v1",
-  "purpose": "Calibrate the deterministic readiness signal against observed failure shapes without allowing automation to impersonate instructor validation.",
+  "canonicalSha256": "eb3ad5d153738cb79962c7f906bf3626e3e9a9d5180e5f56932234eca4e22cd9",
+  "purpose": "Freeze fail-closed trusted-evidence readiness behavior without rewriting the historical V1 benchmark.",
   "cases": [
     {
       "id": "observed-algi-v01682-generic-zero-evidence",
@@ -29,8 +30,7 @@
       "conformanceScore": 89,
       "textureScore": 75,
       "expected": {
-        "minimum": 20,
-        "maximum": 29,
+        "score": 26,
         "band": "major-verification"
       }
     },
@@ -53,9 +53,8 @@
       "conformanceScore": 99,
       "textureScore": 96,
       "expected": {
-        "minimum": 55,
-        "maximum": 63,
-        "band": "strong-automated-signal"
+        "score": 59,
+        "band": "bounded-review"
       }
     },
     {
@@ -78,11 +77,14 @@
         "total": 50,
         "withRefs": 47
       },
+      "trustedSourceCoverage": {
+        "total": 50,
+        "withRefs": 47
+      },
       "conformanceScore": 99,
       "textureScore": 96,
       "expected": {
-        "minimum": 67,
-        "maximum": 69,
+        "score": 68,
         "band": "strong-automated-signal"
       }
     }

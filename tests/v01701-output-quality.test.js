@@ -76,12 +76,17 @@ describe('V0.17.01 output-quality evidence', () => {
   });
 
   it('hash-binds every exact automated-readiness benchmark score', () => {
-    const fixture = JSON.parse(readFileSync('evaluation/automated-readiness/v1/cases.json', 'utf8'));
+    const fixture = JSON.parse(readFileSync('evaluation/automated-readiness/v2/cases.json', 'utf8'));
     const { canonicalSha256, ...canonical } = fixture;
     const observedSha256 = createHash('sha256').update(stableJson(canonical)).digest('hex');
 
-    expect(canonicalSha256).toBe('fdc8b032e676ae7a7e9307731036b51a845eebe6eece68952f56d243c7d50d8a');
+    expect(canonicalSha256).toBe('eb3ad5d153738cb79962c7f906bf3626e3e9a9d5180e5f56932234eca4e22cd9');
     expect(observedSha256).toBe(canonicalSha256);
+    expect(fixture.cases.map((entry) => entry.id)).toEqual([
+      'observed-algi-v01682-generic-zero-evidence',
+      'observed-scion-v01682-exact-but-thin-evidence',
+      'exact-source-rich-positive-control',
+    ]);
     expect(fixture.cases.map((entry) => entry.expected.score)).toEqual([26, 59, 68]);
     expect(fixture.cases.every((entry) => Number.isFinite(entry.expected.score))).toBe(true);
   });
