@@ -650,7 +650,10 @@ export function auditHybridPipelineCase({ project, scope, runtime, features = PI
   const savedCalls = runtime.estimateBlueprintCompilerSavings(compiledFeatures, lessonCount);
   const blueprint = runtime.buildCourseBlueprint(courseMap);
   const compiled = runtime.compileBlueprintDeliverables(blueprint, compiledFeatures, {
-    configMap: { courseFaq: { questionsPerLesson: 5 } },
+    configMap: {
+      quizBank: { questionsPerLesson: 5 },
+      courseFaq: { questionsPerLesson: 5 },
+    },
   });
   const deliverables = Object.fromEntries(
     Object.entries(compiled).map(([featureId, data]) => [featureId, { status: 'done', data }]),
@@ -660,7 +663,12 @@ export function auditHybridPipelineCase({ project, scope, runtime, features = PI
     const data = compiled[featureId];
     const validation = runtime.validateDeliverableGeneration(featureId, data, {
       expectedLessonCount: lessonCount,
-      config: featureId === 'courseFaq' ? { questionsPerLesson: 5 } : {},
+      config:
+        featureId === 'quizBank'
+          ? { questionsPerLesson: 5 }
+          : featureId === 'courseFaq'
+            ? { questionsPerLesson: 5 }
+            : {},
     });
     const quality = runtime.scoreHeuristic(featureId, data);
     const qualityAvg = runtime.computeAvgScore(quality);
@@ -697,6 +705,10 @@ export function auditHybridPipelineCase({ project, scope, runtime, features = PI
     deliverables,
     selectedFeatures,
     columns: DEFAULT_COLUMNS,
+    deliverableConfig: {
+      quizBank: { questionsPerLesson: 5 },
+      courseFaq: { questionsPerLesson: 5 },
+    },
   });
   const classroomReadiness = runtime.evaluateClassroomReadiness({
     courseMap,

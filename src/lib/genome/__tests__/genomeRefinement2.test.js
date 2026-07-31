@@ -99,7 +99,9 @@ describe('iteration 2 — genome-linked package through the deterministic finali
     const enrichment = { source: 'genome-test', lessonContent: linked.lessonContent };
     const blueprint = JSON.parse(JSON.stringify(buildCourseBlueprint(STATS_COURSE, { enrichment })));
     const features = ['syllabus', 'lessonPlans', 'slideDecks', 'quizBank', 'studyGuides', 'discussions', 'assignments'];
-    const compiled = compileBlueprintDeliverables(blueprint, features, {});
+    const compiled = compileBlueprintDeliverables(blueprint, features, {
+      configMap: { quizBank: { questionsPerLesson: 6 } },
+    });
     const deliverables = Object.fromEntries(
       features.map((featureId) => [featureId, { status: 'done', data: compiled[featureId] }]),
     );
@@ -112,6 +114,7 @@ describe('iteration 2 — genome-linked package through the deterministic finali
       courseMap: JSON.parse(JSON.stringify(STATS_COURSE)),
       deliverables,
       selectedFeatures: ['courseMap', ...features],
+      deliverableConfig: { quizBank: { questionsPerLesson: 6 } },
       includeClassroomReadiness: true,
       blockOnClassroomWarnings: false,
       includePedagogicalValidation: true,
@@ -128,6 +131,7 @@ describe('iteration 2 — genome-linked package through the deterministic finali
       courseMap: JSON.parse(JSON.stringify(STATS_COURSE)),
       deliverables,
       selectedFeatures: ['courseMap', ...features],
+      deliverableConfig: { quizBank: { questionsPerLesson: 6 } },
       includeClassroomReadiness: true,
       blockOnClassroomWarnings: false,
       includePedagogicalValidation: false,

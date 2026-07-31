@@ -851,6 +851,7 @@ describe('Tool execute: package readiness', () => {
       },
     };
     mockCtx.selectedFeatures = ['discussions', 'quizBank'];
+    mockCtx.deliverableConfig = { quizBank: { questionsPerLesson: 5 } };
 
     const result = await AGENT_TOOLS.repair_package_readiness.execute({}, mockCtx);
 
