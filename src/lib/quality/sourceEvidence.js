@@ -24,14 +24,29 @@ function compactFinding(finding = {}) {
   };
 }
 
-function compactCoverage(coverage) {
+function trustedConceptLinkedCount(ledgerSummary = null) {
+  if (!ledgerSummary || !Object.prototype.hasOwnProperty.call(ledgerSummary, 'trustedConceptLinkedCount')) {
+    return 0;
+  }
+  return compactCount(ledgerSummary.trustedConceptLinkedCount);
+}
+
+function compactCoverage(coverage, ledgerSummary = null) {
   if (!coverage || typeof coverage !== 'object') return null;
-  const totals = coverage.totals || {};
+  const structuralTotals = coverage.totals || {};
+  const trustedTotals = coverage.trusted?.totals || null;
+  const trustedCoverageRows = compactCount(coverage.trusted?.sourceLedgerRows);
+  const hasTrustedRows =
+    trustedConceptLinkedCount(ledgerSummary) > 0 && trustedCoverageRows > 0 && Boolean(trustedTotals);
+  const total = compactCount(trustedTotals?.total ?? structuralTotals.total);
   return {
-    total: compactCount(totals.total),
-    withRefs: compactCount(totals.withRefs),
-    missing: compactCount(totals.missing),
-    danglingRefs: compactCount(totals.danglingRefs),
+    total,
+    withRefs: hasTrustedRows ? compactCount(trustedTotals.withRefs) : 0,
+    missing: hasTrustedRows ? compactCount(trustedTotals.missing) : total,
+    // A ref to a review-only row lacks trusted evidence, but it is not
+    // structurally dangling. Preserve that distinction for UI copy.
+    danglingRefs: compactCount(structuralTotals.danglingRefs),
+    basis: 'trusted-concept-linked',
   };
 }
 
@@ -50,7 +65,7 @@ export function buildFinalizeSourceEvidence(manifest = null, findings = []) {
   const reviewRequiredCount = compactCount(
     manifest.sourceReport?.sourceReviewCount ?? ledgerSummary?.reviewRequiredCount ?? reviewRows.length,
   );
-  const refCoverage = compactCoverage(coverage);
+  const refCoverage = compactCoverage(coverage, ledgerSummary);
 
   if (!ledgerSummary && reviewRows.length === 0 && !manifest.sourceReport && !coverage && sourceFindings.length === 0) {
     return null;

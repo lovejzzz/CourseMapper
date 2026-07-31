@@ -1265,6 +1265,9 @@ export function buildSourceReportMarkdown({
   }
   if (sourceRefCoverage) {
     lines.push('## SourceRef Coverage');
+    lines.push(
+      'These counts describe structural sourceRef wiring. Trusted grounding is reported separately and requires concept-linked bibliography rows.',
+    );
     for (const [category, coverage] of Object.entries(sourceRefCoverage.categories || {})) {
       lines.push(
         `- ${category}: ${coverage.withRefs}/${coverage.total} with sourceRefs${
@@ -1272,6 +1275,21 @@ export function buildSourceReportMarkdown({
         }`,
       );
       if (coverage.missingIds?.length > 0) lines.push(`  - missing=${coverage.missingIds.join(', ')}`);
+    }
+    lines.push('');
+    if (sourceRefCoverage.trusted) {
+      lines.push('## Trusted SourceRef Coverage');
+      for (const [category, coverage] of Object.entries(sourceRefCoverage.trusted.categories || {})) {
+        lines.push(
+          `- ${category}: ${coverage.withRefs}/${coverage.total} with trusted sourceRefs${
+            coverage.danglingRefs ? `; nonTrustedRefs=${coverage.danglingRefs}` : ''
+          }`,
+        );
+        if (coverage.missingIds?.length > 0) lines.push(`  - missing=${coverage.missingIds.join(', ')}`);
+      }
+    } else {
+      lines.push('## Trusted SourceRef Coverage');
+      lines.push('- unavailable: this package does not include trusted per-reference coverage proof');
     }
     lines.push('');
   }

@@ -13,6 +13,7 @@ import { buildXlsxBuffer } from '../xlsxGenerator';
 import { saveAs } from 'file-saver';
 import { buildNotApplicableDisposition } from '../deliverableApplicability';
 import { APP_VERSION } from '../appVersion';
+import { buildFinalizeSourceEvidence } from '../quality/sourceEvidence';
 
 vi.mock('../customDeliverableLibrary', () => ({
   getCustomDeliverable: vi.fn((id) => (id === 'custom_weeklyReflection' ? { name: 'Weekly Reflection' } : null)),
@@ -1188,7 +1189,16 @@ describe('packageZipExporter', () => {
       sourceLedgerRows: 3,
       totals: { total: 12, withRefs: 12, missing: 0, danglingRefs: 0 },
     });
+    expect(manifest.courseIR.sourceRefCoverage.trusted).toBeUndefined();
+    expect(buildFinalizeSourceEvidence(manifest, []).refCoverage).toEqual({
+      total: 12,
+      withRefs: 0,
+      missing: 12,
+      danglingRefs: 0,
+      basis: 'trusted-concept-linked',
+    });
     expect(sourceReport).toContain('Source Ledger');
+    expect(sourceReport).toContain('unavailable: this package does not include trusted per-reference coverage proof');
     expect(sourceReport).not.toContain('Source Review Notes');
   });
 
@@ -2636,13 +2646,15 @@ describe('packageZipExporter', () => {
       ]),
     );
     expect(manifest.sourceReport).toMatchObject({ path: 'SOURCE_REPORT.md', sourceCount: 0, sourceReviewCount: 1 });
-    expect(manifest.courseIR.sourceRefCoverage.totals.total).toBeGreaterThan(0);
+    expect(manifest.courseIR.sourceRefCoverage).toBeUndefined();
+    expect(manifest.courseIR.valid).toBe(false);
     expect(manifest.courseIR.sourceProofFallback).toMatchObject({
       source: 'export-course-map',
       projectedThrough: 'curriculumv1',
+      valid: false,
     });
     expect(sourceReport).toContain('Source Review Notes');
-    expect(sourceReport).toContain('SourceRef Coverage');
+    expect(sourceReport).not.toContain('SourceRef Coverage');
   });
 
   it('never injects Python proof into a UX course that mentions iteration, testing, functions, objects, and classes', async () => {
@@ -2840,7 +2852,14 @@ describe('packageZipExporter', () => {
               conceptLinks: [{ id: 'c2', label: 'loops' }],
             },
           ],
-          sourceRefCoverage,
+          sourceRefCoverage: {
+            ...sourceRefCoverage,
+            trusted: {
+              sourceLedgerRows: 2,
+              totals: sourceRefCoverage.totals,
+              categories: sourceRefCoverage.categories,
+            },
+          },
         },
       },
       pipelineState: {

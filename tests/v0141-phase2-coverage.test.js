@@ -346,6 +346,10 @@ describe('judgment stage event in all three states (P2.4)', () => {
     const sourceBacked = buildSourceBackedJudgmentStageEvent({
       sourceRefCoverage: {
         totals: { total: 255, withRefs: 255, missing: 0, danglingRefs: 0 },
+        trusted: {
+          sourceLedgerRows: 11,
+          totals: { total: 255, withRefs: 255, missing: 0, danglingRefs: 0 },
+        },
       },
       citedResourceCount: 11,
       lessonsWithResources: 15,
@@ -367,6 +371,10 @@ describe('judgment stage event in all three states (P2.4)', () => {
     const sourceBacked = buildSourceBackedJudgmentStageEvent({
       sourceRefCoverage: {
         totals: { total: 182, withRefs: 182, missing: 0, danglingRefs: 0 },
+        trusted: {
+          sourceLedgerRows: 4,
+          totals: { total: 182, withRefs: 182, missing: 0, danglingRefs: 0 },
+        },
       },
       citedResourceCount: 4,
       lessonsWithResources: 19,

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  buildFinalizeSourceEvidence,
   countSourceAdvisoryFindings,
   countSourceQualityAdvisoryFindings,
   isSourceQualityFinding,
@@ -40,5 +41,62 @@ describe('finalize source evidence policy', () => {
 
     expect(countSourceQualityAdvisoryFindings(evidence)).toBe(1);
     expect(countSourceAdvisoryFindings(evidence)).toBe(2);
+  });
+
+  it('does not promote resolved placeholder refs into trusted source coverage', () => {
+    const evidence = buildFinalizeSourceEvidence({
+      sourceLedgerSummary: {
+        sourceCount: 0,
+        trustedCount: 0,
+        conceptLinkedCount: 0,
+        trustedConceptLinkedCount: 0,
+        reviewRequiredCount: 1,
+      },
+      sourceReviewRows: [{ id: 'SL1', title: 'Existing course map fields.' }],
+      sourceReport: { path: 'SOURCE_REPORT.md', sourceCount: 0, sourceReviewCount: 1 },
+      courseIR: {
+        sourceRefCoverage: {
+          totals: { total: 8, withRefs: 8, missing: 0, danglingRefs: 0 },
+          trusted: {
+            sourceLedgerRows: 0,
+            totals: { total: 8, withRefs: 0, missing: 8, danglingRefs: 8 },
+          },
+        },
+      },
+    });
+
+    expect(evidence.refCoverage).toEqual({
+      total: 8,
+      withRefs: 0,
+      missing: 8,
+      danglingRefs: 0,
+      basis: 'trusted-concept-linked',
+    });
+    expect(countSourceAdvisoryFindings(evidence)).toBe(9);
+  });
+
+  it('fails closed when a legacy manifest lacks trusted per-reference coverage', () => {
+    const evidence = buildFinalizeSourceEvidence({
+      sourceLedgerSummary: {
+        sourceCount: 2,
+        trustedCount: 1,
+        conceptLinkedCount: 1,
+        trustedConceptLinkedCount: 1,
+      },
+      courseIR: {
+        sourceRefCoverage: {
+          sourceLedgerRows: 2,
+          totals: { total: 5, withRefs: 5, missing: 0, danglingRefs: 0 },
+        },
+      },
+    });
+
+    expect(evidence.refCoverage).toEqual({
+      total: 5,
+      withRefs: 0,
+      missing: 5,
+      danglingRefs: 0,
+      basis: 'trusted-concept-linked',
+    });
   });
 });

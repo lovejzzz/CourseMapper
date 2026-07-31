@@ -730,6 +730,12 @@ describe('trusted source ledger', () => {
         categories: {
           outcomes: { total: 1, withRefs: 1, missing: 0, danglingRefs: 0, missingIds: [] },
         },
+        trusted: {
+          sourceLedgerRows: 1,
+          categories: {
+            outcomes: { total: 1, withRefs: 1, missing: 0, danglingRefs: 0, missingIds: [] },
+          },
+        },
       },
     });
     expect(report).toContain('Source Ledger');
@@ -740,6 +746,7 @@ describe('trusted source ledger', () => {
     expect(report).toContain('revisionTimestamp=2026-06-19T00:00:00Z');
     expect(report).toContain('trustedBibliography=false');
     expect(report).toContain('outcomes: 1/1 with sourceRefs');
+    expect(report).toContain('outcomes: 1/1 with trusted sourceRefs');
   });
 
   it('recovers concept-linked source rows from a source-finder mini-shard when resource cells are sparse', () => {

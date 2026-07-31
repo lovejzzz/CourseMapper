@@ -1297,7 +1297,7 @@ export const CURRENT_RELEASE_CHANGELOG = {
       icon: 'PROOF',
       color: 'violet',
       items: [
-        'Deep grader V1.11.2 masks all known lesson titles with token-safe boundaries before semantic-frame comparison.',
+        'Deep grader V1.11.3 keeps token-safe semantic-frame comparison and emits stable discipline-density policy codes.',
         'A disjoint 12-course untuned panel records lens-default telemetry and cross-package texture under a frozen canonical receipt.',
         'The release reports the observed generalization boundary without claiming factual, pedagogical, provider, accessibility, or classroom validation.',
       ],

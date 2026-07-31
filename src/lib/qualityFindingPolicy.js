@@ -21,11 +21,15 @@ export function isFullPackageQualityScope(quality) {
 }
 
 export function isScopeSensitiveQualityFinding(quality, finding) {
+  const isDisciplineDensityFinding =
+    finding?.code === 'discipline-term-density-low' ||
+    // Persisted v1.11.2 and earlier findings did not carry a stable code.
+    /\bterm density is low\b/i.test(String(finding?.detail || ''));
   return Boolean(
     finding?.severity === 'P0' &&
     !isFullPackageQualityScope(quality) &&
     finding?.dimension === 'discipline' &&
-    /\bterm density is low\b/i.test(String(finding?.detail || '')),
+    isDisciplineDensityFinding,
   );
 }
 

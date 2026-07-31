@@ -14,13 +14,8 @@ function sourceProofLessonCount({ courseGraph = null, courseMap = null, totalLes
 }
 
 function sourceProofResourceCount({ sourceLedgerSummary = null, sourceLedger = null, sourceRefCoverage = null } = {}) {
-  const trustedConceptLinked = Number(sourceLedgerSummary?.trustedConceptLinkedCount) || 0;
-  if (trustedConceptLinked > 0) return trustedConceptLinked;
-  const sourceCount = Number(sourceLedgerSummary?.sourceCount) || 0;
-  const trustedCount = Number(sourceLedgerSummary?.trustedCount) || 0;
-  const conceptLinkedCount = Number(sourceLedgerSummary?.conceptLinkedCount) || 0;
-  if (sourceCount > 0 && trustedCount > 0 && conceptLinkedCount > 0) {
-    return Math.min(sourceCount, trustedCount, conceptLinkedCount);
+  if (sourceLedgerSummary && Object.prototype.hasOwnProperty.call(sourceLedgerSummary, 'trustedConceptLinkedCount')) {
+    return Math.max(0, Number(sourceLedgerSummary.trustedConceptLinkedCount) || 0);
   }
   const rows = Array.isArray(sourceLedger) ? sourceLedger : [];
   const trustedRows = rows.filter(isTrustedConceptLinkedSourceLedgerRow).length;

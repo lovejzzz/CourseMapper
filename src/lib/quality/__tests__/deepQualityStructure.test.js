@@ -5,6 +5,31 @@ import { createMemoryFileProvider } from '../fileProviders.js';
 import { normalizeLessonSpecificTokens } from '../semanticSkeletonMask.js';
 
 describe('deep quality package structure', () => {
+  it('carries stable discipline policy codes through graded findings', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          lessonScope: [1],
+          readiness: { status: 'ready', blockers: 0 },
+          files: [{ path: 'Lesson Plans/Lesson 01 - Rocks.txt', featureId: 'lessonPlans' }],
+        }),
+        'Lesson Plans/Lesson 01 - Rocks.txt': 'A generic lesson with discussion and reflection.',
+      }),
+      course: { title: 'Introduction to Geology', featureIds: ['lessonPlans'] },
+      honesty: { pipeline: { judgment: 'compiler-verified fixture' } },
+    });
+
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: 'discipline-term-density-low',
+          dimension: 'discipline',
+          detail: expect.stringContaining('geology term density is low'),
+        }),
+      ]),
+    );
+  });
+
   it('does not count custom deliverables against every built-in feature', async () => {
     const lessonPath = 'Lesson Plans/Lesson 01 - Evidence - Lesson Plans.txt';
     const customPath = 'Trip plan/Trip plan.txt';
@@ -96,7 +121,7 @@ describe('deep quality package structure', () => {
     });
 
     expect(result.findings.some((finding) => /classroom clock/i.test(finding.detail))).toBe(false);
-    expect(GRADER_VERSION).toBe('1.11.2');
+    expect(GRADER_VERSION).toBe('1.11.3');
   });
 
   it('treats typed-object leaks and mirrored assessment identities as scored export defects', async () => {

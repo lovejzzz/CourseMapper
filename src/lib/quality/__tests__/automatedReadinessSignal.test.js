@@ -100,6 +100,10 @@ describe('automated readiness signal', () => {
         sourceReport: {
           sourceRefCoverage: {
             totals: { total: 50, withRefs: 47 },
+            trusted: {
+              sourceLedgerRows: 5,
+              totals: { total: 50, withRefs: 47 },
+            },
           },
         },
       },
@@ -114,5 +118,32 @@ describe('automated readiness signal', () => {
     expect(result.maxScore).toBe(100);
     expect(result.evidenceCeiling).toBe(AUTOMATED_READINESS_CEILING);
     expect(result.rawScore).toBeGreaterThan(95);
+  });
+
+  it('does not promote review-only structural refs when one unrelated trusted row exists', () => {
+    const result = computeAutomatedReadinessSignal({
+      manifest: {
+        pipeline: {
+          enrichmentModelStage: 'knowledge kernels admitted 5/5 lessons',
+        },
+        sourceLedger: [sourceRow(1)],
+        sourceReport: {
+          sourceRefCoverage: {
+            totals: { total: 8, withRefs: 8, missing: 0, danglingRefs: 0 },
+            trusted: {
+              sourceLedgerRows: 1,
+              totals: { total: 8, withRefs: 0, missing: 8, danglingRefs: 8 },
+            },
+          },
+        },
+      },
+      course: { prompt: PROMPT },
+      lessonTitles: TITLES,
+      conformance: conformance(99),
+      texture: { score: 96 },
+    });
+
+    expect(result.components.evidenceGrounding.evidence.groundingRatio).toBe(0);
+    expect(result.components.evidenceGrounding.score).toBeLessThan(50);
   });
 });

@@ -721,7 +721,16 @@ function buildManifestCourseIRProof(courseGraph, { sourceRefCoverage = null } = 
         source: courseGraph.courseIR.sourceProofFallback.source || '',
         projectedThrough: courseGraph.courseIR.sourceProofFallback.projectedThrough || '',
         reason: courseGraph.courseIR.sourceProofFallback.reason || '',
+        ...(typeof courseGraph.courseIR.sourceProofFallback.valid === 'boolean'
+          ? { valid: courseGraph.courseIR.sourceProofFallback.valid }
+          : {}),
+        ...(Array.isArray(courseGraph.courseIR.sourceProofFallback.issueCodes)
+          ? { issueCodes: courseGraph.courseIR.sourceProofFallback.issueCodes }
+          : {}),
       };
+    }
+    if (typeof courseGraph.courseIR.valid === 'boolean') {
+      proof.valid = courseGraph.courseIR.valid;
     }
   }
   if (courseGraph?.nativeRepair) {
@@ -986,8 +995,9 @@ function bridgeCourseIRSourceProofToTrustedLedger(courseGraph, sourceLedgerBundl
       bridged: false,
     };
   }
+  const { trusted: _staleTrustedCoverage, ...structuralCoverage } = sourceRefCoverage;
   const nextCoverage = {
-    ...sourceRefCoverage,
+    ...structuralCoverage,
     sourceLedgerRows: trustedConceptLinkedRows.length,
     bridge: {
       source: 'coursegraph-concept-linked-ledger',
@@ -1025,6 +1035,32 @@ async function buildCourseIRSourceProofFallback(courseMap) {
     );
     const courseIR = buildCourseIRFromCourseMap(courseMap);
     const validation = validateCourseIR(courseIR);
+    if (!validation.valid) {
+      const issueCodes = (validation.issues || [])
+        .filter((issue) => issue?.severity === 'blocker')
+        .map((issue) => issue.code)
+        .filter(Boolean);
+      return {
+        graph: null,
+        reviewCourseIR: {
+          version: validation.ir?.version || courseIR.version || '',
+          lessonIds: (validation.ir?.lessons || []).map((lesson) => lesson.id),
+          conceptIds: (validation.ir?.concepts || []).map((concept) => concept.id),
+          assessmentIds: (validation.ir?.assessments || []).map((assessment) => assessment.id),
+          sourceLedger: validation.ir?.sourceLedger || courseIR.sourceLedger || [],
+          stats: validation.stats || null,
+          valid: false,
+          sourceProofFallback: {
+            source: 'export-course-map',
+            projectedThrough: 'curriculumv1',
+            reason: 'source-backed pipeline proof was missing and the fallback CourseIR failed validation',
+            valid: false,
+            issueCodes,
+          },
+        },
+        sourceRefCoverage: null,
+      };
+    }
     const projection = courseIRToCourseGraph(validation.ir || courseIR);
     return {
       graph: {
@@ -2012,17 +2048,22 @@ export async function buildCourseMaterialsZip({
   let sourceManifestGraph = courseGraph;
   if (pipelineSourceProofExpected && !hasSourceLedgerRows(sourceLedgerBundle)) {
     const courseIRFallback = await buildCourseIRSourceProofFallback(courseMap);
-    if (courseIRFallback?.graph) {
+    const fallbackSourceGraph = courseIRFallback?.graph
+      ? courseIRFallback.graph
+      : courseIRFallback?.reviewCourseIR
+        ? { courseIR: courseIRFallback.reviewCourseIR }
+        : null;
+    if (fallbackSourceGraph) {
       sourceLedgerBundle = mergeSourceLedgerBundles(
         sourceLedgerBundle,
-        buildSourceLedgerFromCourseGraph(courseIRFallback.graph, { checkedAt: generatedAt }),
+        buildSourceLedgerFromCourseGraph(fallbackSourceGraph, { checkedAt: generatedAt }),
       );
       sourceRefCoverage = sourceRefCoverage || courseIRFallback.sourceRefCoverage || null;
       sourceManifestGraph = {
-        ...(courseGraph || fallbackCourseGraph || courseIRFallback.graph),
+        ...(courseGraph || fallbackCourseGraph || courseIRFallback.graph || {}),
         courseIR: {
           ...(courseGraph?.courseIR || fallbackCourseGraph?.courseIR || {}),
-          ...(courseIRFallback.graph.courseIR || {}),
+          ...(courseIRFallback.graph?.courseIR || courseIRFallback.reviewCourseIR || {}),
         },
       };
     }

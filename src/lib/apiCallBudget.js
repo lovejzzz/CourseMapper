@@ -713,7 +713,9 @@ export function buildSourceBackedJudgmentStageEvent({
   genomeLinkedLessons = 0,
 } = {}) {
   if ((Number(genomeLinkedLessons) || 0) > 0) return null;
-  const totals = sourceRefCoverage?.totals || {};
+  const trustedCoverage = sourceRefCoverage?.trusted;
+  if (!trustedCoverage || Number(trustedCoverage.sourceLedgerRows) <= 0) return null;
+  const totals = trustedCoverage.totals || {};
   const totalAtoms = Number(totals.total) || 0;
   const coveredAtoms = Number(totals.withRefs) || 0;
   const missingAtoms = Number(totals.missing) || 0;

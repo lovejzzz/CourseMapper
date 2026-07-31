@@ -31,4 +31,23 @@ describe('quality finding count reconciliation', () => {
     expect(countBlockingQualityFindings(quality)).toBe(0);
     expect(countAdvisoryQualityFindings(quality)).toBe(1);
   });
+
+  it('uses the grader finding code instead of depending on mutable detail prose', () => {
+    const quality = {
+      status: 'graded',
+      featureIds: ['lessonPlans'],
+      findingCounts: { p0: 1, p1: 0, p2: 0 },
+      findings: [
+        {
+          code: 'discipline-term-density-low',
+          severity: 'P0',
+          dimension: 'discipline',
+          detail: 'Only three discipline anchors were detected.',
+        },
+      ],
+    };
+
+    expect(countBlockingQualityFindings(quality)).toBe(0);
+    expect(countAdvisoryQualityFindings(quality)).toBe(1);
+  });
 });

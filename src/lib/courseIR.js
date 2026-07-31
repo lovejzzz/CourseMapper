@@ -11,7 +11,11 @@ import { buildQuizItemPlan } from './blueprintEnrichmentPass.js';
 import { projectKernelToSurfaces } from './kernelProjection.js';
 import { resolveProviderMaxOutputTokens } from './adaptiveProviderBatching.js';
 import { estimateTokens, getModelLimit } from './tokenEstimator.js';
-import { normalizeTrustedSource, sourceCitationLabel } from './knowledge/sourceLedger.js';
+import {
+  isTrustedConceptLinkedSourceLedgerRow,
+  normalizeTrustedSource,
+  sourceCitationLabel,
+} from './knowledge/sourceLedger.js';
 
 export const COURSE_IR_VERSION = 'courseir.v1';
 export const COURSE_IR_SCHEMA_NAME = 'course_ir_v1';
@@ -1692,6 +1696,9 @@ function sourceRefCategory(items, sourceIds) {
 export function buildCourseIRSourceRefCoverage(rawIR = {}) {
   const ir = rawIR.version === COURSE_IR_VERSION ? rawIR : normalizeCourseIR(rawIR);
   const sourceIds = new Set((ir.sourceLedger || []).map((entry) => entry.id));
+  const trustedSourceIds = new Set(
+    (ir.sourceLedger || []).filter(isTrustedConceptLinkedSourceLedgerRow).map((entry) => entry.id),
+  );
   const factualClaims = [
     ...ir.concepts.flatMap((concept) =>
       concept.factualAnchors.map((anchor, index) => ({
@@ -1735,11 +1742,45 @@ export function buildCourseIRSourceRefCoverage(rawIR = {}) {
     }),
     { total: 0, withRefs: 0, missing: 0, danglingRefs: 0 },
   );
+  const trustedCategories = {
+    outcomes: sourceRefCategory(
+      ir.lessons.flatMap((lesson) => lesson.outcomes),
+      trustedSourceIds,
+    ),
+    activities: sourceRefCategory(
+      ir.lessons.flatMap((lesson) => lesson.activities),
+      trustedSourceIds,
+    ),
+    examples: sourceRefCategory(
+      ir.lessons.flatMap((lesson) => lesson.workedExamples),
+      trustedSourceIds,
+    ),
+    assessments: sourceRefCategory(ir.assessments, trustedSourceIds),
+    rubricCriteria: sourceRefCategory(
+      ir.assessments.flatMap((assessment) => assessment.rubricCriteria),
+      trustedSourceIds,
+    ),
+    factualClaims: sourceRefCategory(factualClaims, trustedSourceIds),
+  };
+  const trustedTotals = Object.values(trustedCategories).reduce(
+    (sum, category) => ({
+      total: sum.total + category.total,
+      withRefs: sum.withRefs + category.withRefs,
+      missing: sum.missing + category.missing,
+      danglingRefs: sum.danglingRefs + category.danglingRefs,
+    }),
+    { total: 0, withRefs: 0, missing: 0, danglingRefs: 0 },
+  );
   return {
     version: COURSE_IR_VERSION,
     sourceLedgerRows: ir.sourceLedger.length,
     totals,
     categories,
+    trusted: {
+      sourceLedgerRows: trustedSourceIds.size,
+      totals: trustedTotals,
+      categories: trustedCategories,
+    },
   };
 }
 

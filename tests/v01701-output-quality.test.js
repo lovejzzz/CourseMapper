@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { buildCourseBlueprint } from '../src/lib/courseBlueprintCompiler.js';
+import { buildCourseBlueprint, compileBlueprintDeliverables } from '../src/lib/courseBlueprintCompiler.js';
 import { resolvePreciseDisciplineLens } from '../src/lib/courseCompilerLensProfiles.js';
 import { getContentFallbackTelemetry, resetContentFallbackTelemetry } from '../src/lib/contentFallbackTelemetry.js';
+import { PIPELINE_FEATURES } from '../scripts/hybridPipelineAudit.mjs';
 import { CROSS_PACKAGE_THIN_BRIEFS } from '../scripts/panels/crossPackageThinBriefs.mjs';
 import {
   CROSS_PACKAGE_UNTUNED_BRIEFS,
@@ -20,19 +21,24 @@ describe('V0.17.01 output-quality evidence', () => {
 
   it('measures real lens-default fallthrough instead of matching precise panel lenses', () => {
     let packagesWithLensDefault = 0;
-    let lensDefaultHits = 0;
+    let blueprintLensDefaultHits = 0;
+    let deliverableCompileLensDefaultHits = 0;
     for (const brief of CROSS_PACKAGE_UNTUNED_BRIEFS) {
       const evidence = [brief.courseName, ...brief.lessonTitles].join(' ');
       expect(resolvePreciseDisciplineLens(evidence)).toBeNull();
 
       resetContentFallbackTelemetry();
-      buildCourseBlueprint(buildUntunedBriefCourseMap(brief));
-      const telemetry = getContentFallbackTelemetry();
-      const hits = Number(telemetry['lens-default']?.hits || 0);
-      lensDefaultHits += hits;
-      if (hits > 0) packagesWithLensDefault++;
+      const blueprint = buildCourseBlueprint(buildUntunedBriefCourseMap(brief));
+      const blueprintHits = Number(getContentFallbackTelemetry()['lens-default']?.hits || 0);
+      compileBlueprintDeliverables(blueprint, PIPELINE_FEATURES, { configMap: {} });
+      const totalHits = Number(getContentFallbackTelemetry()['lens-default']?.hits || 0);
+      blueprintLensDefaultHits += blueprintHits;
+      deliverableCompileLensDefaultHits += totalHits - blueprintHits;
+      if (totalHits > 0) packagesWithLensDefault++;
     }
-    expect(lensDefaultHits).toBe(20);
+    expect(blueprintLensDefaultHits).toBe(20);
+    expect(deliverableCompileLensDefaultHits).toBe(10);
+    expect(blueprintLensDefaultHits + deliverableCompileLensDefaultHits).toBe(30);
     expect(packagesWithLensDefault).toBe(10);
     resetContentFallbackTelemetry();
   });

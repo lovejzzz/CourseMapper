@@ -74,11 +74,23 @@ describe('gradePackageAtFinalize', () => {
         stats: { findingCount: 2, fileCount: 3 },
       },
       manifest: {
-        sourceLedgerSummary: { sourceCount: 4, trustedCount: 3, reviewRequiredCount: 1 },
+        sourceLedgerSummary: {
+          sourceCount: 4,
+          trustedCount: 3,
+          conceptLinkedCount: 3,
+          trustedConceptLinkedCount: 3,
+          reviewRequiredCount: 1,
+        },
         sourceReviewRows: [{ id: 'review-1' }],
         sourceReport: { path: 'SOURCE_REPORT.md', sourceCount: 4, sourceReviewCount: 1 },
         courseIR: {
-          sourceRefCoverage: { totals: { total: 3, withRefs: 2, missing: 1, danglingRefs: 0 } },
+          sourceRefCoverage: {
+            totals: { total: 3, withRefs: 2, missing: 1, danglingRefs: 0 },
+            trusted: {
+              sourceLedgerRows: 3,
+              totals: { total: 3, withRefs: 2, missing: 1, danglingRefs: 0 },
+            },
+          },
         },
       },
     });
@@ -93,7 +105,13 @@ describe('gradePackageAtFinalize', () => {
       sourceCount: 4,
       reviewRequiredCount: 1,
       reportPath: 'SOURCE_REPORT.md',
-      refCoverage: { total: 3, withRefs: 2, missing: 1, danglingRefs: 0 },
+      refCoverage: {
+        total: 3,
+        withRefs: 2,
+        missing: 1,
+        danglingRefs: 0,
+        basis: 'trusted-concept-linked',
+      },
     });
     expect(result.sourceEvidence.findings).toEqual([
       expect.objectContaining({
@@ -114,11 +132,23 @@ describe('gradePackageAtFinalize', () => {
         findings: [],
       },
       manifest: {
-        sourceLedgerSummary: { sourceCount: 2, trustedCount: 1, reviewRequiredCount: 1 },
+        sourceLedgerSummary: {
+          sourceCount: 2,
+          trustedCount: 1,
+          conceptLinkedCount: 1,
+          trustedConceptLinkedCount: 1,
+          reviewRequiredCount: 1,
+        },
         sourceReviewRows: [{ id: 'review-1' }],
         sourceReport: { path: 'SOURCE_REPORT.md', sourceCount: 2, sourceReviewCount: 1 },
         courseIR: {
-          sourceRefCoverage: { totals: { total: 3, withRefs: 2, missing: 1, danglingRefs: 0 } },
+          sourceRefCoverage: {
+            totals: { total: 3, withRefs: 2, missing: 1, danglingRefs: 0 },
+            trusted: {
+              sourceLedgerRows: 1,
+              totals: { total: 3, withRefs: 2, missing: 1, danglingRefs: 0 },
+            },
+          },
         },
       },
     });
@@ -137,7 +167,13 @@ describe('gradePackageAtFinalize', () => {
         sourceCount: 2,
         reviewRequiredCount: 1,
         reportPath: 'SOURCE_REPORT.md',
-        refCoverage: { total: 3, withRefs: 2, missing: 1, danglingRefs: 0 },
+        refCoverage: {
+          total: 3,
+          withRefs: 2,
+          missing: 1,
+          danglingRefs: 0,
+          basis: 'trusted-concept-linked',
+        },
       },
     });
   });

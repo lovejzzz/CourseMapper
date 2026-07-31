@@ -217,7 +217,7 @@ import { normalizeLessonSpecificTokens } from './semanticSkeletonMask.js';
 // 0–69 ceiling; automation alone can no longer award a misleading 99/A.
 // 1.11.1 — cross-lesson boilerplate comparison masks each document's full
 // lesson title, so title interpolation cannot hide a repeated semantic frame.
-export const GRADER_VERSION = '1.11.2';
+export const GRADER_VERSION = '1.11.3';
 
 // ── Dimension weights & letter bands (documented in the module header) ──────
 // v0.15.186: texture weight 10 → 25. At 10/120 a fully templated package
@@ -621,10 +621,11 @@ function createFindings() {
   const list = [];
   let counter = 0;
   return {
-    add({ severity, dimension, file = '', detail, evidence = '' }) {
+    add({ code, severity, dimension, file = '', detail, evidence = '' }) {
       counter += 1;
       list.push({
         id: `F${String(counter).padStart(3, '0')}`,
+        ...(code ? { code } : {}),
         severity,
         dimension,
         file,
@@ -3292,6 +3293,7 @@ function checkDiscipline(findings, { files }, course) {
     });
     if (present.length < 8) {
       findings.add({
+        code: 'discipline-term-density-low',
         severity: present.length < 4 ? 'P0' : 'P1',
         dimension: 'discipline',
         file: 'package',
@@ -3429,6 +3431,7 @@ function checkDiscipline(findings, { files }, course) {
     const density = present.length;
     if (density < 8) {
       findings.add({
+        code: 'discipline-term-density-low',
         severity: density < 4 ? 'P0' : 'P1',
         dimension: 'discipline',
         file: 'package',

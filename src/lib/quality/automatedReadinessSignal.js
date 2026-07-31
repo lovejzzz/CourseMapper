@@ -102,18 +102,15 @@ function parsePercent(text, patterns) {
 function sourceCoverageRatio(manifest) {
   const coverage = manifest?.courseIR?.sourceRefCoverage || manifest?.sourceReport?.sourceRefCoverage;
   if (!coverage || typeof coverage !== 'object') return null;
-  const total = Number(coverage?.totals?.total);
-  const withRefs = Number(coverage?.totals?.withRefs);
-  if (Number.isFinite(total) && total > 0 && Number.isFinite(withRefs)) {
-    return clamp(withRefs / total, 0, 1);
-  }
-  let categoryTotal = 0;
-  let categoryWithRefs = 0;
-  for (const proof of Object.values(coverage.categories || {})) {
-    categoryTotal += Number(proof?.total) || 0;
-    categoryWithRefs += Number(proof?.withRefs) || 0;
-  }
-  return categoryTotal > 0 ? clamp(categoryWithRefs / categoryTotal, 0, 1) : null;
+  const trustedCoverage = coverage.trusted;
+  const total = Number(trustedCoverage?.totals?.total);
+  const withRefs = Number(trustedCoverage?.totals?.withRefs);
+  return Number(trustedCoverage?.sourceLedgerRows) > 0 &&
+    Number.isFinite(total) &&
+    total > 0 &&
+    Number.isFinite(withRefs)
+    ? clamp(withRefs / total, 0, 1)
+    : null;
 }
 
 function readinessBand(score) {

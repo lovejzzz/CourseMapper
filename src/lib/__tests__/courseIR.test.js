@@ -1184,6 +1184,37 @@ describe('CourseIR v1', () => {
     expect(compiled.courseIRProof.providerCallsDuringCompile).toBe(0);
   });
 
+  it('distinguishes resolvable sourceRef wiring from trusted evidence coverage', () => {
+    const placeholderIR = buildCourseIRFromCourseMap(courseIRToCourseMap(makeCalculusIR()));
+    const placeholderCoverage = buildCourseIRSourceRefCoverage(placeholderIR);
+
+    expect(placeholderCoverage.totals.withRefs).toBeGreaterThan(0);
+    expect(placeholderCoverage.trusted).toMatchObject({
+      sourceLedgerRows: 0,
+      totals: {
+        total: placeholderCoverage.totals.total,
+        withRefs: 0,
+        missing: placeholderCoverage.totals.total,
+      },
+    });
+
+    const trustedIR = {
+      ...makeCalculusIR(),
+      sourceLedger: makeCalculusIR().sourceLedger.map((entry, index) => ({
+        ...entry,
+        provider: 'openstax',
+        title: index === 0 ? 'Calculus Volume 1' : 'Calculus Volume 2',
+        url: `https://openstax.org/books/calculus-volume-${index + 1}`,
+        license: 'CC BY 4.0',
+        conceptLinks: [{ id: `C${index + 1}`, label: index === 0 ? 'Limit' : 'Derivative' }],
+      })),
+    };
+    const trustedCoverage = buildCourseIRSourceRefCoverage(trustedIR);
+
+    expect(trustedCoverage.trusted.sourceLedgerRows).toBe(2);
+    expect(trustedCoverage.trusted.totals).toEqual(trustedCoverage.totals);
+  });
+
   it('rotates lesson alignment constraints instead of stamping one sentence across a course', () => {
     const ir = buildCourseIRFromCourseMap({
       courseName: 'Evidence Seminar',

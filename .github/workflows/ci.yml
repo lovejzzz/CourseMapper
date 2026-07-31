@@ -55,6 +55,7 @@ jobs:
           npm run audit:scion:adapter:exact-lineage
           npm run audit:texture:cross-package -- --profile thin --compare-baseline
           npm run audit:texture:cross-package -- --profile gold --compare-baseline
+          npm run audit:texture:cross-package:untuned
 
       - name: Proof smoke
         run: |
