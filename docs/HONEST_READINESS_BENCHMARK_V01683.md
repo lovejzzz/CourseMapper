@@ -37,15 +37,19 @@ Automated Readiness is shown on a 0–100 scale. The current automated evidence 
 
 Package conformance remains a separate deterministic result. It is valuable for detecting encoded defects, but it is not presented as the readiness or teaching-quality score.
 
-## Locked benchmark V1
+## Historical locked benchmark V1
 
-The benchmark cases are frozen in `evaluation/automated-readiness/v1/cases.json`. The executable audit is `npm run audit:automated-readiness`.
+The V0.16.83 benchmark cases remain frozen in
+`evaluation/automated-readiness/v1/cases.json` as historical evidence. The
+current `npm run audit:automated-readiness` command executes the successor V2
+fixture in `evaluation/automated-readiness/v2/cases.json`; it does not re-score
+or relabel V1.
 
-| Case                                | Allowed window | Current result | Purpose                                                                                  |
-| ----------------------------------- | -------------: | -------------: | ---------------------------------------------------------------------------------------- |
-| Generic Algi, zero trusted evidence |          20–35 |             26 | Prevent polished templates and internal references from earning a generous score         |
-| Exact Scion, source-thin            |          55–64 |             61 | Reward real fidelity and specific materials while keeping weak source breadth visible    |
-| Exact, source-rich positive control |          65–69 |             68 | Verify that stronger automated evidence approaches but cannot cross the independent tier |
+| Case                                | Allowed window | V1 recorded result | Purpose                                                                                  |
+| ----------------------------------- | -------------: | -----------------: | ---------------------------------------------------------------------------------------- |
+| Generic Algi, zero trusted evidence |          20–35 |                 26 | Prevent polished templates and internal references from earning a generous score         |
+| Exact Scion, source-thin            |          55–64 |                 61 | Reward real fidelity and specific materials while keeping weak source breadth visible    |
+| Exact, source-rich positive control |          65–69 |                 68 | Verify that stronger automated evidence approaches but cannot cross the independent tier |
 
 The audit also requires correct ordering, the 69-point ceiling, the claim-boundary text, a score distinct from the conformance fixture, and case-specific component behavior.
 
