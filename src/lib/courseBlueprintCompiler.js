@@ -23185,7 +23185,7 @@ function slideVisual(lesson, slide) {
           ].filter((term) => term && term.length <= 26 && term.toLowerCase() !== hub.toLowerCase()),
           6,
         );
-        return spokes.length >= 2 ? { hub, spokes } : {};
+        return spokes.length >= 2 ? { hub, spokes } : { kind: 'concept definition panel' };
       })(),
     },
     content: /worked example/i.test(title)

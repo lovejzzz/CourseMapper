@@ -107,12 +107,18 @@ async function qualityArtifactBytes(value) {
   return new TextEncoder().encode(stableQualityStringify(value));
 }
 
-const EVIDENCE_ENVELOPE_PATHS = new Set(['PACKAGE_MANIFEST.json', 'SCORE_LEDGER.json', 'QUALITY_REPORT.md']);
+const EVIDENCE_ENVELOPE_PATHS = new Set([
+  'PACKAGE_MANIFEST.json',
+  'SCORE_LEDGER.json',
+  'QUALITY_FINDINGS.json',
+  'PACKAGE_READINESS.json',
+  'QUALITY_REPORT.md',
+]);
 
 /**
  * Bind the exact teaching and support artifacts without creating a circular
  * hash dependency on the evidence envelope that describes them. Auditors can
- * pass every extracted ZIP entry directly; these three protocol-defined
+ * pass every extracted ZIP entry directly; these five protocol-defined
  * envelope files are excluded by the algorithm rather than reconstructed from
  * an undocumented pre-grading state.
  */
@@ -2364,14 +2370,21 @@ export async function buildCourseMaterialsZip({
   let qualityResult = null;
   let qualityReportMarkdown = null;
   let scoreLedger = null;
+  let qualityFindings = [];
   if (quality !== false) {
     const gradedFileMap = { ...fileContents, 'PACKAGE_MANIFEST.json': JSON.stringify(manifest, null, 2) };
     const evidenceArtifactsBinding = await buildEvidenceArtifactBinding(gradedFileMap);
     const precomputedQuality = normalizePrecomputedPackageQuality(qualityOptions.precomputed);
+    const packageReadinessReceipt = {
+      protocol: 'coursemapper-package-readiness-receipt-v1',
+      readiness: buildPackageReadinessBinding(effectiveReadiness),
+    };
     const precomputedVerification = precomputedQuality
       ? await verifyScoreLedger({
           ledger: precomputedQuality.scoreLedger,
           quality: precomputedQuality.block,
+          findings: precomputedQuality.findings,
+          packageReadinessReceipt,
           currentGraderVersion: GRADER_VERSION,
           gradingScope: qualityScopeBinding,
           evidenceArtifacts: evidenceArtifactsBinding,
@@ -2391,6 +2404,7 @@ export async function buildCourseMaterialsZip({
       })
     ) {
       qualityBlock = precomputedQuality.block;
+      qualityFindings = precomputedQuality.findings;
       scoreLedger = {
         ...precomputedQuality.scoreLedger,
         bindings: {
@@ -2454,6 +2468,7 @@ export async function buildCourseMaterialsZip({
           };
         } else {
           qualityResult = raced.value;
+          qualityFindings = Array.isArray(qualityResult.findings) ? qualityResult.findings : [];
           scoreLedger = qualityResult.scoreLedger || null;
           if (scoreLedger) {
             scoreLedger.bindings = {
@@ -2502,6 +2517,50 @@ export async function buildCourseMaterialsZip({
       qualityReportMarkdown = renderUnavailableQualityReport(qualityBlock, { courseTitle: safeCourseName });
     }
     if (qualityBlock?.status === 'graded' && scoreLedger) {
+      const packageReadinessText = JSON.stringify(packageReadinessReceipt, null, 2);
+      const packageReadinessSha256 = await sha256QualityText(packageReadinessText);
+      scoreLedger.bindings = {
+        ...(scoreLedger.bindings || {}),
+        packageReadiness: packageReadinessReceipt.readiness,
+        packageReadinessReceipt: {
+          algorithm: 'sha256',
+          path: 'PACKAGE_READINESS.json',
+          sha256: packageReadinessSha256,
+        },
+      };
+      zip.file('PACKAGE_READINESS.json', packageReadinessText);
+      fileContents['PACKAGE_READINESS.json'] = packageReadinessText;
+      files.push({
+        path: 'PACKAGE_READINESS.json',
+        featureId: 'qualityEvidence',
+        format: 'json',
+        size: getExportPartSize(packageReadinessText),
+      });
+      const qualityFindingsReceipt = {
+        protocol: 'coursemapper-quality-findings-v1',
+        graderVersion: qualityBlock.graderVersion,
+        findingCount: qualityFindings.length,
+        findings: qualityFindings,
+      };
+      const qualityFindingsText = JSON.stringify(qualityFindingsReceipt, null, 2);
+      const qualityFindingsSha256 = await sha256QualityText(qualityFindingsText);
+      scoreLedger.bindings = {
+        ...(scoreLedger.bindings || {}),
+        qualityFindings: {
+          algorithm: 'sha256',
+          path: 'QUALITY_FINDINGS.json',
+          sha256: qualityFindingsSha256,
+          count: qualityFindings.length,
+        },
+      };
+      zip.file('QUALITY_FINDINGS.json', qualityFindingsText);
+      fileContents['QUALITY_FINDINGS.json'] = qualityFindingsText;
+      files.push({
+        path: 'QUALITY_FINDINGS.json',
+        featureId: 'qualityEvidence',
+        format: 'json',
+        size: getExportPartSize(qualityFindingsText),
+      });
       const scoreLedgerText = JSON.stringify(scoreLedger, null, 2);
       const scoreLedgerSha256 = await sha256QualityText(scoreLedgerText);
       qualityBlock.scoreLedger = {

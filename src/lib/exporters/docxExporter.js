@@ -972,8 +972,10 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
                 // "A. Lava cooling…" or "A is correct…". The callout label
                 // already carries it, so strip that exact prefix before the
                 // rendered text can read "ANSWER — A A ...".
+                const escapedAnswer = answerText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                const prefixBoundary = /^[A-D]$/.test(answerText) ? '(?:[.)]\\s*|\\s+)' : '[.)]\\s*';
                 const explanationText = String(q.explanation)
-                  .replace(new RegExp(`^\\s*${answerText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?:[.)]\\s*|\\s+)`), '')
+                  .replace(new RegExp(`^\\s*${escapedAnswer}${prefixBoundary}`), '')
                   .trim();
                 children.push(makeCallout(`Answer — ${answerText}`, explanationText || q.explanation));
               } else {

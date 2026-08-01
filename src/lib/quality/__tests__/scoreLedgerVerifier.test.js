@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { computeAutomatedReadinessSignal } from '../automatedReadinessSignal.js';
-import { ENCODED_DEFECT_CONFORMANCE_DIMENSION_WEIGHTS } from '../conformanceScoreLedger.js';
+import {
+  buildEncodedDefectConformanceLedger,
+  ENCODED_DEFECT_CONFORMANCE_DIMENSION_WEIGHTS,
+} from '../conformanceScoreLedger.js';
+import { grade, GRADER_VERSION } from '../deepQualityGrader.js';
+import { createMemoryFileProvider } from '../fileProviders.js';
 import { verifyScoreLedger } from '../scoreLedgerVerifier.js';
 
 function fixture() {
@@ -81,6 +86,54 @@ function fixture() {
       deterministicPackageEvidence: readiness.ledger,
       encodedDefectConformance,
       bindings: { gradingScope, evidenceArtifacts },
+    },
+  };
+}
+
+function fixtureWithIdentityFinding() {
+  const value = fixture();
+  const finding = {
+    id: 'identity-p1-1',
+    ruleId: 'DQC.IDENTITY.EXAMPLE',
+    ruleVersion: '1.15.0',
+    dimension: 'identity',
+    severity: 'P1',
+    pointsLost: 8,
+    evidenceTier: 'deterministic-text-pattern',
+    reason: 'A reproduced identity defect is present.',
+    action: 'Repair the identity defect and regrade.',
+    file: 'Assignment Briefs/Lesson 01.docx',
+    evidence: 'forged identity',
+  };
+  const dimensions = { ...value.quality.dimensions, identity: 92 };
+  const readiness = computeAutomatedReadinessSignal({
+    course: { prompt: 'Use this exact lesson sequence: 1) Evidence; 2) Decision.' },
+    lessonTitles: ['Evidence', 'Decision'],
+    conformance: { scores: dimensions },
+    texture: { score: 90 },
+  });
+  const conformance = buildEncodedDefectConformanceLedger({
+    scores: dimensions,
+    findings: [finding],
+    texture: { score: 90, evidence: null },
+    stats: { p0: 0, p1: 1, p2: 0 },
+    dimensionWeights: ENCODED_DEFECT_CONFORMANCE_DIMENSION_WEIGHTS,
+    graderVersion: '1.15.0',
+  });
+  return {
+    ...value,
+    findings: [finding],
+    quality: {
+      score: conformance.overall.score,
+      grade: 'B',
+      findingCounts: { p0: 0, p1: 1, p2: 0 },
+      dimensions,
+      readiness,
+    },
+    ledger: {
+      ...value.ledger,
+      deterministicPackageEvidence: readiness.ledger,
+      encodedDefectConformance: conformance,
     },
   };
 }
@@ -243,6 +296,61 @@ describe('score ledger verification', () => {
     const forgedCounts = fixture();
     forgedCounts.quality.findingCounts.p1 = 1;
     expect((await verifyScoreLedger({ ...forgedCounts, currentGraderVersion: '1.15.0' })).status).toBe('invalid');
+  });
+
+  it('requires every encoded deduction to match an independent canonical finding', async () => {
+    const value = fixtureWithIdentityFinding();
+    expect((await verifyScoreLedger({ ...value, currentGraderVersion: '1.15.0' })).status).toBe('verified');
+
+    const removedFindingDeduction = structuredClone(value);
+    const identity = removedFindingDeduction.ledger.encodedDefectConformance.dimensions.identity;
+    identity.deductions = [];
+    identity.coverage.encodedFindings = 0;
+    expect((await verifyScoreLedger({ ...removedFindingDeduction, currentGraderVersion: '1.15.0' })).status).toBe(
+      'invalid',
+    );
+  });
+
+  it('self-verifies a real grader result containing a texture finding', async () => {
+    const assignmentPath = 'Assignment Briefs/Lesson 02 - Meiosis and Gamete Formation - Assignment Briefs.txt';
+    const repeatedTitle = 'Meiosis and Gamete Formation';
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          lessonScope: [2],
+          readiness: { status: 'ready', blockers: 0 },
+          files: [{ path: assignmentPath, featureId: 'assignments' }],
+        }),
+        [assignmentPath]: [
+          'Course Map L2',
+          ...Array.from({ length: 10 }, (_, index) => `${repeatedTitle} instruction ${index + 1} uses evidence.`),
+        ].join('\n'),
+      }),
+      course: { title: 'Introduction to Genetics', featureIds: ['assignments'] },
+      honesty: { pipeline: { judgment: 'compiler-verified fixture' } },
+    });
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ dimension: 'texture', severity: 'P2' }),
+        expect.objectContaining({ dimension: 'texture', severity: 'P1' }),
+      ]),
+    );
+    expect(result.texture.score).toBeLessThan(60);
+
+    const verified = await verifyScoreLedger({
+      ledger: result.scoreLedger,
+      quality: {
+        score: result.overall.score,
+        grade: result.overall.grade,
+        findingCounts: { p0: result.stats.p0, p1: result.stats.p1, p2: result.stats.p2 },
+        dimensions: result.scores,
+        readiness: result.readiness,
+        texture: { score: result.texture.score },
+      },
+      findings: result.findings,
+      currentGraderVersion: GRADER_VERSION,
+    });
+    expect(verified.status, verified.reason).toBe('verified');
   });
 
   it('distinguishes stale grader scope from unverifiable legacy data', async () => {

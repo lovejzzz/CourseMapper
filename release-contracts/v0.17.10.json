@@ -56,11 +56,13 @@
       "id": "v01710-derived-score-ledger-projection",
       "status": "verified-current",
       "changelogHighlightIndex": 1,
-      "summary": "The verifier pins and replays the exact deterministic and conformance rule protocols, derives every aggregate, and checks the displayed component projection before a verified result is emitted.",
+      "summary": "The verifier pins and replays the exact deterministic and conformance rule protocols, binds the independent finding and readiness receipts, derives every aggregate, and checks the displayed component projection before a verified result is emitted.",
       "anchors": [
         "src/lib/quality/automatedReadinessSignal.js",
         "src/lib/quality/scoreLedgerVerifier.js",
         "src/lib/quality/conformanceScoreLedger.js",
+        "src/lib/packageZipExporter.js",
+        "src/lib/__tests__/packageZipExporter.test.js",
         "src/lib/quality/__tests__/scoreLedgerVerifier.test.js"
       ],
       "proofCommands": [
@@ -99,7 +101,7 @@
       "id": "v01710-readiness-bound-precomputed-quality",
       "status": "verified-current",
       "changelogHighlightIndex": 4,
-      "summary": "Cached quality is reusable only when its canonical structured readiness binding exactly matches the current export; blocker-shaped finding prose cannot authorize reuse.",
+      "summary": "Cached quality is reusable only when its canonical structured readiness binding exactly matches the current export, and the shipped ledger directly binds a separately exported readiness receipt.",
       "anchors": [
         "src/lib/packageZipExporter.js",
         "src/components/ExportSidePanel.jsx",
@@ -128,7 +130,7 @@
       "id": "v01710-roundtable-and-render-audit",
       "status": "verified-current",
       "changelogHighlightIndex": 6,
-      "summary": "A six-round code-and-package Roundtable audit, a separate three-round adversarial code audit, and direct representative DOCX/PPTX rendering record reproduced defects, verifier exploits, rejected shortcuts, implemented owners, and unresolved boundaries.",
+      "summary": "A six-round code-and-package Roundtable audit, two exact-commit three-round adversarial code audits, and direct representative DOCX/PPTX rendering record reproduced defects, verifier exploits, rejected shortcuts, implemented owners, and unresolved boundaries.",
       "anchors": ["docs/V0.17.10_ROUNDTABLE_OUTPUT_QUALITY_AUDIT.md"],
       "proofCommands": [
         "npx vitest run src/lib/__tests__/nativeGraphAuthoring.test.js src/lib/__tests__/rubricAssignmentIntegrity.test.js src/lib/quality/__tests__/deepQualityStructure.test.js"

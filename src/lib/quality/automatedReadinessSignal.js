@@ -34,7 +34,8 @@ export const AUTOMATED_EVIDENCE_RULE_CONTRACTS = Object.freeze([
     constructId: 'curriculumFidelity',
     max: 25,
     evaluatedPolarity: 'positive-metric',
-    predicateOperator: 'weighted-ordered-coverage',
+    evaluatedPredicateOperator: 'weighted-ordered-coverage',
+    unobservedPredicateOperator: 'ordered-topic-alignment',
     evidence: [
       ['course.explicit-lesson-sequence', 'PACKAGE_MANIFEST.json', '/generationConstraints/explicitLessonSequence'],
       ['package.lesson-titles-for-sequence', 'PACKAGE_MANIFEST.json', '/lessons/*/title'],
@@ -45,7 +46,7 @@ export const AUTOMATED_EVIDENCE_RULE_CONTRACTS = Object.freeze([
     constructId: 'evidenceGrounding',
     max: 25,
     evaluatedPolarity: null,
-    predicateOperator: 'rendered-claim-to-source-entailment',
+    unobservedPredicateOperator: 'rendered-claim-to-source-entailment',
     evidence: [['package.source-support-receipts', 'PACKAGE_MANIFEST.json', '/sourceLedger']],
   },
   {
@@ -53,7 +54,8 @@ export const AUTOMATED_EVIDENCE_RULE_CONTRACTS = Object.freeze([
     constructId: 'instructionalTexture',
     max: 20,
     evaluatedPolarity: 'positive-metric',
-    predicateOperator: 'proportional-texture-score',
+    evaluatedPredicateOperator: 'proportional-texture-score',
+    unobservedPredicateOperator: 'texture-metric',
     evidence: [['grader.texture-score', 'SCORE_LEDGER.json', '/conformance/texture']],
   },
   {
@@ -61,7 +63,7 @@ export const AUTOMATED_EVIDENCE_RULE_CONTRACTS = Object.freeze([
     constructId: 'assessmentCoherence',
     max: 15,
     evaluatedPolarity: null,
-    predicateOperator: 'assessment-objective-rubric-coherence',
+    unobservedPredicateOperator: 'assessment-objective-rubric-coherence',
     evidence: [['grader.assessment-coherence-checks', 'SCORE_LEDGER.json', '/conformance/checks/assessment']],
   },
   {
@@ -69,7 +71,8 @@ export const AUTOMATED_EVIDENCE_RULE_CONTRACTS = Object.freeze([
     constructId: 'packageIntegrity',
     max: 15,
     evaluatedPolarity: 'negative-evidence-only',
-    predicateOperator: 'weighted-structural-conformance',
+    evaluatedPredicateOperator: 'weighted-structural-conformance',
+    unobservedPredicateOperator: 'weighted-structural-conformance',
     evidence: [
       ['grader.structure-conformance', 'SCORE_LEDGER.json', '/conformance/dimensions/structure'],
       ['grader.format-conformance', 'SCORE_LEDGER.json', '/conformance/dimensions/format'],
@@ -132,6 +135,8 @@ export function replayAutomatedEvidenceRule(rule = {}) {
   if (!contract) throw new Error(`${rule.ruleId || 'rule'} is not part of the deterministic evidence protocol`);
   let status = 'unobserved';
   let points = { max: contract.max, earned: 0, lost: 0, unobserved: contract.max };
+  let predicateOperator;
+  let predicateExpected;
   let predicateActual;
   let antiGamingInput;
 
@@ -148,9 +153,17 @@ export function replayAutomatedEvidenceRule(rule = {}) {
       const countParity = Math.min(titles.length, sequence.length) / Math.max(titles.length, sequence.length);
       status = 'evaluated';
       points = replayedPoints(contract.max, (orderedCoverage * 0.8 + countParity * 0.2) * 100);
+      predicateOperator = contract.evaluatedPredicateOperator;
+      predicateExpected = { minimumTokenOverlap: 0.34, exactCountParity: 1 };
       predicateActual = { orderedMatched, orderedCoverage, countParity };
-    } else predicateActual = 0;
+    } else {
+      predicateOperator = contract.unobservedPredicateOperator;
+      predicateExpected = 'explicit sequence with at least 2 lessons';
+      predicateActual = 0;
+    }
   } else if (rule.ruleId === 'DPK.EVIDENCE.RENDERED_CLAIM_SUPPORT') {
+    predicateOperator = contract.unobservedPredicateOperator;
+    predicateExpected = 'independently validated semantic support for rendered instructional claims';
     predicateActual = 'not implemented by this deterministic protocol';
     antiGamingInput = ruleEvidenceObserved(rule, 'package.source-support-receipts');
   } else if (rule.ruleId === 'DPK.INSTRUCTION.TEXTURE') {
@@ -160,9 +173,17 @@ export function replayAutomatedEvidenceRule(rule = {}) {
     if (Number.isFinite(Number(textureScore))) {
       status = 'evaluated';
       points = replayedPoints(contract.max, textureScore);
+      predicateOperator = contract.evaluatedPredicateOperator;
+      predicateExpected = 100;
       predicateActual = rounded(textureScore);
-    } else predicateActual = null;
+    } else {
+      predicateOperator = contract.unobservedPredicateOperator;
+      predicateExpected = 'finite score from masked visible-unit analysis';
+      predicateActual = null;
+    }
   } else if (rule.ruleId === 'DPK.ASSESSMENT.COHERENCE') {
+    predicateOperator = contract.unobservedPredicateOperator;
+    predicateExpected = 'assessment-specific checks with objective and rubric linkage';
     predicateActual = 'not isolated from broad substance and consistency checks';
     antiGamingInput = ruleEvidenceObserved(rule, 'grader.assessment-coherence-checks');
   } else if (rule.ruleId === 'DPK.PACKAGE.INTEGRITY') {
@@ -172,14 +193,18 @@ export function replayAutomatedEvidenceRule(rule = {}) {
       identity: ruleEvidenceObserved(rule, 'grader.identity-conformance'),
     };
     antiGamingInput = observed;
+    predicateOperator = Object.values(observed).every((value) => Number.isFinite(Number(value)))
+      ? contract.evaluatedPredicateOperator
+      : contract.unobservedPredicateOperator;
     predicateActual = observed;
     if (Object.values(observed).every((value) => Number.isFinite(Number(value)))) {
       status = 'evaluated';
+      predicateExpected = { structure: 100, format: 100, identity: 100 };
       points = replayedPoints(
         contract.max,
         observed.structure * 0.45 + observed.format * 0.3 + observed.identity * 0.25,
       );
-    }
+    } else predicateExpected = 'three finite dimension scores';
   }
 
   return {
@@ -187,6 +212,8 @@ export function replayAutomatedEvidenceRule(rule = {}) {
     status,
     evidencePolarity: status === 'unobserved' ? 'unobserved' : contract.evaluatedPolarity,
     points,
+    predicateOperator,
+    predicateExpected,
     predicateActual,
     antiGamingInputFingerprint: stableFingerprint(antiGamingInput),
     evidenceInputFingerprints: Object.fromEntries(

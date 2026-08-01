@@ -52,7 +52,7 @@ export function isCodeLabAssessmentIdentity(value, kind = '') {
   const identity = String(value || '')
     .replace(/\s+/g, ' ')
     .trim();
-  if (EXPLICIT_CODE_LAB_IDENTITY_RE.test(identity)) return true;
   if (DOCUMENT_ARTIFACT_RE.test(identity) && !EXECUTABLE_ARTIFACT_RE.test(identity)) return false;
+  if (EXPLICIT_CODE_LAB_IDENTITY_RE.test(identity)) return true;
   return CODE_LAB_SIGNAL_PATTERNS.filter((pattern) => pattern.test(identity)).length >= 2;
 }

@@ -486,6 +486,33 @@ describe('buildDeliverableDocxBlob', () => {
     expect(text).not.toContain('ANSWERA defensible position');
   });
 
+  it('does not strip a short-answer word from the start of its explanation', async () => {
+    const filePath = 'Quiz & Exam Bank/Lesson 02 - Elasticity - Quiz & Exam Bank.docx';
+    const blob = await buildDeliverableDocxBlob(
+      'quizBank',
+      {
+        quizzes: [
+          {
+            lessonTitle: 'Lesson 2: Elasticity',
+            questions: [
+              {
+                type: 'short_answer',
+                question: 'Which demand pattern is most responsive to price?',
+                answer: 'Elastic',
+                explanation: 'Elastic demand means quantity responds proportionally more than price.',
+              },
+            ],
+          },
+        ],
+      },
+      'Principles of Microeconomics',
+    );
+
+    const text = (await extractedDocxParagraphs(blob, filePath)).join('\n');
+    expect(text).toContain('Elastic demand means quantity responds proportionally more than price.');
+    expect(text).not.toContain('ANSWER ELASTIC demand means');
+  });
+
   it('prints exact assigned-reading identities in quiz and study-guide DOCX files', async () => {
     const reading = 'Textbook Chapter: DNA Structure and Replication';
     const quizBlob = await buildDeliverableDocxBlob(

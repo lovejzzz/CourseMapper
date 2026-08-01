@@ -18,6 +18,7 @@ import { APP_VERSION } from '../appVersion';
 import { buildFinalizeSourceEvidence } from '../quality/sourceEvidence';
 import { GRADER_VERSION } from '../quality/graderVersion';
 import { TEXTURE_VERSION } from '../quality/textureMetric';
+import { verifyScoreLedger } from '../quality/scoreLedgerVerifier';
 
 const qualityGraderOverride = vi.hoisted(() => ({ grade: null }));
 
@@ -727,6 +728,49 @@ describe('packageZipExporter', () => {
     );
     expect(await zip.file('SCORE_LEDGER.json').async('string')).toContain('coursemapper-score-ledger-v1');
     const scoreLedger = JSON.parse(await zip.file('SCORE_LEDGER.json').async('string'));
+    const qualityFindings = JSON.parse(await zip.file('QUALITY_FINDINGS.json').async('string'));
+    const packageReadiness = JSON.parse(await zip.file('PACKAGE_READINESS.json').async('string'));
+    expect(qualityFindings).toMatchObject({
+      protocol: 'coursemapper-quality-findings-v1',
+      graderVersion: GRADER_VERSION,
+      findingCount:
+        manifest.quality.findingCounts.p0 + manifest.quality.findingCounts.p1 + manifest.quality.findingCounts.p2,
+    });
+    expect(scoreLedger.bindings.qualityFindings).toMatchObject({
+      algorithm: 'sha256',
+      path: 'QUALITY_FINDINGS.json',
+      count: qualityFindings.findingCount,
+    });
+    expect(packageReadiness).toMatchObject({
+      protocol: 'coursemapper-package-readiness-receipt-v1',
+      readiness: scoreLedger.bindings.packageReadiness,
+    });
+    expect(scoreLedger.bindings.packageReadinessReceipt).toMatchObject({
+      algorithm: 'sha256',
+      path: 'PACKAGE_READINESS.json',
+    });
+    const replay = await verifyScoreLedger({
+      ledger: scoreLedger,
+      quality: manifest.quality,
+      findings: qualityFindings.findings,
+      packageReadinessReceipt: packageReadiness,
+      currentGraderVersion: GRADER_VERSION,
+      evidenceArtifacts: scoreLedger.bindings.evidenceArtifacts,
+    });
+    expect(replay.status, replay.reason).toBe('verified');
+    const forgedReadiness = structuredClone(packageReadiness);
+    forgedReadiness.readiness.status = 'ready';
+    expect(
+      (
+        await verifyScoreLedger({
+          ledger: scoreLedger,
+          quality: manifest.quality,
+          findings: qualityFindings.findings,
+          packageReadinessReceipt: forgedReadiness,
+          currentGraderVersion: GRADER_VERSION,
+        })
+      ).status,
+    ).toBe('invalid');
     const extractedFileMap = {};
     for (const entry of Object.values(zip.files)) {
       if (!entry.dir) extractedFileMap[entry.name] = await entry.async('uint8array');
@@ -735,10 +779,22 @@ describe('packageZipExporter', () => {
     expect(directBinding).toMatchObject({
       algorithm: 'sha256-sorted-teaching-artifact-bytes-inventory-v2',
       rootSha256: scoreLedger.bindings.evidenceArtifacts.rootSha256,
-      excludedPaths: expect.arrayContaining(['PACKAGE_MANIFEST.json', 'SCORE_LEDGER.json', 'QUALITY_REPORT.md']),
+      excludedPaths: expect.arrayContaining([
+        'PACKAGE_MANIFEST.json',
+        'SCORE_LEDGER.json',
+        'QUALITY_FINDINGS.json',
+        'PACKAGE_READINESS.json',
+        'QUALITY_REPORT.md',
+      ]),
     });
     expect(directBinding.entries.map((entry) => entry.path)).not.toEqual(
-      expect.arrayContaining(['PACKAGE_MANIFEST.json', 'SCORE_LEDGER.json', 'QUALITY_REPORT.md']),
+      expect.arrayContaining([
+        'PACKAGE_MANIFEST.json',
+        'SCORE_LEDGER.json',
+        'QUALITY_FINDINGS.json',
+        'PACKAGE_READINESS.json',
+        'QUALITY_REPORT.md',
+      ]),
     );
     expect(report).toContain('Deterministic package evidence: 35/100 earned');
     expect(report).toContain('Package conformance: 89/100 (B)');

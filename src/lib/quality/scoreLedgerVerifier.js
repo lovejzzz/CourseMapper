@@ -30,6 +30,26 @@ function sameJson(left, right) {
   return JSON.stringify(left) === JSON.stringify(right);
 }
 
+async function sha256Text(value) {
+  const bytes = new TextEncoder().encode(String(value || ''));
+  const digest = await globalThis.crypto.subtle.digest('SHA-256', bytes);
+  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
+}
+
+async function verifyJsonReceipt(binding, receipt, { path, count = null } = {}) {
+  if (!binding) return { status: 'verified' };
+  if (!receipt || typeof receipt !== 'object') return invalid(`${path} receipt is missing`);
+  if (
+    binding.algorithm !== 'sha256' ||
+    binding.path !== path ||
+    (count !== null && binding.count !== count) ||
+    binding.sha256 !== (await sha256Text(JSON.stringify(receipt, null, 2)))
+  ) {
+    return invalid(`${path} receipt does not match its ledger binding`);
+  }
+  return { status: 'verified' };
+}
+
 function conformanceGrade(score) {
   if (score >= 90) return 'A';
   if (score >= 80) return 'B';
@@ -49,8 +69,7 @@ function verifyDeterministicRuleContract(rules) {
     if (
       rule.ruleVersion !== AUTOMATED_EVIDENCE_RULE_VERSION ||
       rule.constructId !== contract.constructId ||
-      Number(rule.points?.max) !== contract.max ||
-      rule.predicate?.operator !== contract.predicateOperator
+      Number(rule.points?.max) !== contract.max
     ) {
       return invalid(`${contract.ruleId} does not match its canonical rule contract`);
     }
@@ -77,6 +96,8 @@ function verifyDeterministicRuleContract(rules) {
       rule.status !== replay.status ||
       rule.evidencePolarity !== replay.evidencePolarity ||
       !sameJson(rule.points, replay.points) ||
+      rule.predicate?.operator !== replay.predicateOperator ||
+      !sameJson(rule.predicate?.expected, replay.predicateExpected) ||
       !sameJson(rule.predicate?.actual, replay.predicateActual) ||
       rule.antiGaming?.inputFingerprint !== replay.antiGamingInputFingerprint
     ) {
@@ -200,7 +221,7 @@ function verifyDeterministicEvidence(section, quality) {
   return { status: 'verified', totals, evidenceSummary, band };
 }
 
-function verifyConformance(section, quality) {
+function verifyConformance(section, quality, findings = null) {
   if (
     section?.protocol !== 'coursemapper-encoded-defect-conformance-ledger-v1' ||
     section?.construct !== 'encoded-package-defect-conformance'
@@ -214,9 +235,18 @@ function verifyConformance(section, quality) {
   }
   let weighted = 0;
   let totalWeight = 0;
-  let highestSeverity = null;
+  const suppliedFindings = Array.isArray(findings) ? findings : null;
+  let highestSeverity = suppliedFindings?.some((finding) => finding?.severity === 'P0')
+    ? 'P0'
+    : suppliedFindings?.some((finding) => finding?.severity === 'P1')
+      ? 'P1'
+      : null;
   const severityCounts = { p0: 0, p1: 0, p2: 0 };
   const findingIds = new Set();
+  for (const finding of suppliedFindings || []) {
+    const key = String(finding?.severity || '').toLowerCase();
+    if (key in severityCounts) severityCounts[key] += 1;
+  }
   for (const [dimension, row] of rows) {
     const points = row?.points || {};
     const expectedWeight = ENCODED_DEFECT_CONFORMANCE_DIMENSION_WEIGHTS[dimension];
@@ -238,6 +268,16 @@ function verifyConformance(section, quality) {
       return invalid(`${dimension} conformance points do not equal their potential`);
     }
     if (row.status === 'negative-evidence-only') {
+      const expectedFindings = suppliedFindings
+        ?.filter((finding) => finding?.dimension === dimension)
+        .slice()
+        .sort((left, right) => `${left?.ruleId}:${left?.id}`.localeCompare(`${right?.ruleId}:${right?.id}`));
+      if (!suppliedFindings && (row.deductions || []).length > 0) {
+        return invalid(`${dimension} conformance deductions have no independent finding receipt`);
+      }
+      if (expectedFindings && expectedFindings.length !== (row.deductions || []).length) {
+        return invalid(`${dimension} conformance deductions do not match the independent findings`);
+      }
       if (
         row.coverage?.mode !== 'negative-evidence-only' ||
         row.coverage?.positiveValidation !== false ||
@@ -246,7 +286,8 @@ function verifyConformance(section, quality) {
         return invalid(`${dimension} conformance coverage does not match its deductions`);
       }
       let before = 100;
-      for (const deduction of row.deductions || []) {
+      for (const [deductionIndex, deduction] of (row.deductions || []).entries()) {
+        const finding = expectedFindings?.[deductionIndex] || null;
         const nominalPointsLost = Number(deduction.nominalPointsLost);
         const after = Math.max(0, before - nominalPointsLost);
         if (
@@ -267,10 +308,26 @@ function verifyConformance(section, quality) {
         ) {
           return invalid(`${deduction.ruleId} conformance deduction cannot be replayed`);
         }
+        if (
+          finding &&
+          (deduction.ruleId !== finding.ruleId ||
+            deduction.ruleVersion !== finding.ruleVersion ||
+            deduction.findingId !== finding.id ||
+            deduction.nominalPointsLost !== Number(finding.pointsLost || 0) ||
+            deduction.severity !== finding.severity ||
+            deduction.evidenceTier !== finding.evidenceTier ||
+            deduction.reason !== finding.reason ||
+            deduction.action !== finding.action ||
+            !sameJson(deduction.evidence, { file: finding.file, quote: finding.evidence }))
+        ) {
+          return invalid(`${deduction.ruleId} conformance deduction was not derived from its finding`);
+        }
         findingIds.add(deduction.findingId);
-        severityCounts[deduction.severity.toLowerCase()] += 1;
-        if (deduction.severity === 'P0') highestSeverity = 'P0';
-        else if (deduction.severity === 'P1' && highestSeverity !== 'P0') highestSeverity = 'P1';
+        if (!suppliedFindings) {
+          severityCounts[deduction.severity.toLowerCase()] += 1;
+          if (deduction.severity === 'P0') highestSeverity = 'P0';
+          else if (deduction.severity === 'P1' && highestSeverity !== 'P0') highestSeverity = 'P1';
+        }
         before = after;
       }
       if (before !== points.earned) return invalid(`${dimension} deductions do not reproduce the score`);
@@ -336,7 +393,7 @@ function verifyConformance(section, quality) {
       return invalid('displayed conformance dimensions do not match the ledger');
     }
     if (!sameJson(quality.findingCounts, severityCounts)) {
-      return invalid('displayed finding counts do not match conformance deductions');
+      return invalid('displayed finding counts do not match the canonical findings');
     }
     if (quality.grade !== conformanceGrade(score)) {
       return invalid('displayed conformance grade does not match the verified score');
@@ -348,6 +405,8 @@ function verifyConformance(section, quality) {
 export async function verifyScoreLedger({
   ledger,
   quality = null,
+  findings = null,
+  packageReadinessReceipt = null,
   currentGraderVersion = '',
   gradingScope = null,
   evidenceArtifacts = null,
@@ -369,10 +428,56 @@ export async function verifyScoreLedger({
   if (evidenceArtifacts && !sameArtifactBinding(ledger.bindings?.evidenceArtifacts, evidenceArtifacts)) {
     return invalid('graded artifact bytes changed');
   }
+  const findingRows = Array.isArray(findings) ? findings : null;
+  const qualityFindingsReceipt = findingRows
+    ? {
+        protocol: 'coursemapper-quality-findings-v1',
+        graderVersion: ledgerGrader,
+        findingCount: findingRows.length,
+        findings: findingRows,
+      }
+    : null;
+  const findingsReceiptResult = await verifyJsonReceipt(ledger.bindings?.qualityFindings, qualityFindingsReceipt, {
+    path: 'QUALITY_FINDINGS.json',
+    count: findingRows?.length ?? null,
+  });
+  if (findingsReceiptResult.status !== 'verified') return findingsReceiptResult;
+  if (packageReadinessReceipt) {
+    if (
+      packageReadinessReceipt.protocol !== 'coursemapper-package-readiness-receipt-v1' ||
+      !sameJson(packageReadinessReceipt.readiness, ledger.bindings?.packageReadiness)
+    ) {
+      return invalid('package readiness receipt does not match the ledger');
+    }
+  }
+  const readinessReceiptResult = await verifyJsonReceipt(
+    ledger.bindings?.packageReadinessReceipt,
+    packageReadinessReceipt,
+    { path: 'PACKAGE_READINESS.json' },
+  );
+  if (readinessReceiptResult.status !== 'verified') return readinessReceiptResult;
   const evidenceResult = verifyDeterministicEvidence(ledger.deterministicPackageEvidence, quality);
   if (evidenceResult.status !== 'verified') return evidenceResult;
-  const conformanceResult = verifyConformance(ledger.encodedDefectConformance, quality);
+  const conformanceResult = verifyConformance(ledger.encodedDefectConformance, quality, findings);
   if (conformanceResult.status !== 'verified') return conformanceResult;
+  const integrityRule = ledger.deterministicPackageEvidence?.rules?.find(
+    (rule) => rule?.ruleId === 'DPK.PACKAGE.INTEGRITY',
+  );
+  const integrityObservations = Object.fromEntries(
+    (integrityRule?.evidence || []).map((entry) => [entry.evidenceId, entry.observed]),
+  );
+  for (const [evidenceId, dimension] of [
+    ['grader.structure-conformance', 'structure'],
+    ['grader.format-conformance', 'format'],
+    ['grader.identity-conformance', 'identity'],
+  ]) {
+    if (
+      Number(integrityObservations[evidenceId]) !==
+      Number(ledger.encodedDefectConformance?.dimensions?.[dimension]?.points?.earned)
+    ) {
+      return invalid(`${dimension} conformance diverges between the deterministic and conformance ledgers`);
+    }
+  }
   const projection = deepFreeze({
     deterministicPackageEvidence: {
       ...evidenceResult.totals,

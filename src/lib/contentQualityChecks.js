@@ -20,7 +20,7 @@ const VALID_TERMINAL_PARTICLE_RE =
   /\b(?:watch for|look for|listen for|account for|prepare for|plan for|wait for|care for|ask for|search for|pay for|hope for|wish for|settle for|stand for|call for|aim for|work with|start with|begin with|end with|follow with|connect with|engage with|align with|agree with|meet with|share with|(?:come|comes|came|coming) from|result from|learn from|benefit from|move into|fit into|enter into|look into|go into|check in|turn in|hand in|participate in|belong to|lead to|refer to|listen to|respond to|contribute to|talk to|look around|move around|(?:day|week|night|hour|minute|month|year|session|class) before)[.]\s*$/i;
 const LEADING_COLON_RE = /^\s*:/;
 const ARTICLE_A_VOWEL_RE = /\ba\s+[AEIOU][a-z]{3,}/;
-const ARTICLE_COLLISION_RE = /\b(?:a|an)\s+(?:a|an|the)\b/i;
+const ARTICLE_COLLISION_RE = /\b(?:a|an|the)\s+(?:a|an|the)\b/i;
 const DOUBLE_PERIOD_RE = /[a-z]\.\.(?!\.)/;
 const CLIPPED_FORMAL_CHOICE_RE = /\b(?:explain how one formal choice|one formal choice shapes)\s*[.!?]\s*$/i;
 const RUN_TOGETHER_RE = /\b(?:work|criteria) (?:Names|Uses|Explains|Shows|Cites)\b/;

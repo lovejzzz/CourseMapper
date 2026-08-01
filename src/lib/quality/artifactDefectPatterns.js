@@ -29,7 +29,7 @@ import { MALFORMED_CLEAR_PLURAL_POSSESSIVE_PATTERN } from '../compilerText.js';
 // Every entry mirrors a defect class shipped in the v0.12 production audit.
 export const ARTIFACT_PATTERNS = [
   {
-    regex: /\b(?:a|an)\s+(?:a|an|the)\b/i,
+    regex: /\b(?:a|an|the)\s+(?:a|an|the)\b/i,
     label: 'adjacent article collision such as "a the policy example"',
     name: 'slot-grammar-adjacent-articles',
     severity: 'P2',

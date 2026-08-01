@@ -128,6 +128,7 @@ describe('assessment identity and concept-label boundaries', () => {
   it.each([
     ['Python lab: clean a public dataset', true],
     ['Computational project with a verification run', true],
+    ['Python assignment: policy memo on public datasets', false],
     ['Policy implementation memo using Python evidence', false],
     ['Repository test plan for stakeholder review', false],
     ['Field-note coding exercise', false],

@@ -359,7 +359,10 @@ const lazyChunkBudgets = [
   // the separately declared 64-byte compressor tolerance on gzip.
   // V0.17.09's role-indexed fact/term routing and canonical-ledger seam are
   // compile-only. The lazy chunk measures 850.0/238.8 KiB.
-  { prefix: 'courseBlueprintCompiler-', rawKiB: 850.1, gzipKiB: 238.85, gzipSlackBytes: 64 },
+  // V0.17.10's honest <2-spoke concept-map fallback adds 7 measured raw bytes
+  // to this lazy chunk. Keep the ratchet within 4 bytes of the 870,509-byte
+  // artifact rather than adding speculative headroom.
+  { prefix: 'courseBlueprintCompiler-', rawKiB: 850.11, gzipKiB: 238.85, gzipSlackBytes: 64 },
   // Experiential-activity mechanics are compiler-owned and independently
   // cacheable beside the lazy compiler. The chunk projects the canonical
   // activity clock, evidence, constraints, decisions, artifact, and debrief
