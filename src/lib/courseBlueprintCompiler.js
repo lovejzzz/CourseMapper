@@ -72,6 +72,7 @@ import {
   beginBlueprintRealizationTrace,
   recordCompiledFeatureRealizationTrace,
   restoreBlueprintRealizationTrace,
+  selectContextualLessonVariant as contextualLessonVariant,
   selectLessonVariant as lessonVariant,
 } from './courseCompilerRealization';
 import * as textureCopy from './courseCompilerTextureCopy';
@@ -23957,7 +23958,21 @@ function compactSlideDisplayBullet(slide, bullet, index, lesson) {
   const concept = primarySlideConcept(lesson);
   const artifact = slideArtifact(lesson);
   if (type === 'activity' && index === 0 && /\badapts the course pattern\b/i.test(cleanText(bullet))) {
-    return punctuateDisplayBullet(`${label}: Justify one decision with the strongest lesson evidence`, bullet);
+    return punctuateDisplayBullet(
+      contextualLessonVariant(
+        lesson,
+        [
+          `${label}: Justify one decision with the strongest lesson evidence`,
+          `${label}: Defend one choice using the clearest evidence in this lesson`,
+          `${label}: Revise one decision after weighing the available evidence`,
+          `${label}: Connect one source detail to a defensible decision`,
+          `${label}: Test one decision against the lesson's strongest evidence`,
+          `${label}: Choose and justify the next evidence-backed move`,
+        ],
+        'slide-activity-course-pattern-display',
+      ),
+      bullet,
+    );
   }
   const compact = collapseRepeatedSlideLead(
     conciseClause(bullet, fallback, maxLength, { ellipsis: true })
