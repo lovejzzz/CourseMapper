@@ -20,10 +20,8 @@ import {
 import { openTabNow, saveToGoogleSlides } from '../lib/googleDrive';
 import { exportSlideDeckPptx, buildSlideDeckPptxBlob } from '../lib/exporters/pptxExporter';
 import { buildPackageReadinessBinding, downloadCourseMaterialsZip } from '../lib/packageZipExporter';
-import { getPackageTrustStatus } from '../lib/packageTrustStatus';
+import { CURRENT_FINALIZER_REVISION, getPackageTrustStatus } from '../lib/packageTrustStatus';
 import { buildPackageFinishDomains } from '../lib/packageFinishEvidence';
-
-export const CURRENT_FINALIZER_REVISION = 1;
 
 // ── Which formats each deliverable supports ─────────────────────────────────
 // courseMap handled separately via useExport (xlsx, csv, pdf, docx, gsheets, gdocs)
@@ -334,13 +332,11 @@ function getDownloadReadiness(readiness) {
 
 function hasFinishedPackageReceipt(packageQualityPass) {
   const receiptRevision = Number(packageQualityPass?.receipt?.finalizerRevision) || 0;
-  const blockingQualityCount = Math.max(0, Number(packageQualityPass?.quality?.findingCounts?.p0) || 0);
   // A current revision binds the terminal receipt to the finalizer repair
-  // contract that produced it. Legacy receipts remain usable unless they
-  // contain P0 findings: those packages must pass through the current repair
-  // logic once before Download may reuse their verified file map.
-  if (receiptRevision && receiptRevision !== CURRENT_FINALIZER_REVISION) return false;
-  if (!receiptRevision && blockingQualityCount > 0) return false;
+  // contract that produced it. Every missing or mismatched revision is
+  // obsolete: trusting a legacy grader's stored P0 count would let packages
+  // created before a finding rule existed bypass the migration entirely.
+  if (receiptRevision !== CURRENT_FINALIZER_REVISION) return false;
   if (isPackageReady(packageQualityPass)) return true;
   // A terminal ready package may retain calm review notes. Those notes are
   // carried in `warnings`, so isPackageReady() (which intentionally means
@@ -1558,16 +1554,18 @@ export default function ExportSidePanel({
     featureLabels: FEATURE_LABELS,
   });
   const zipHasTerminalTrustBlocker = scope === 'all' && terminalPackageTrust.blocked;
+  const zipNeedsFinalizerMigration =
+    scope === 'all' && !!packageQualityPass?.receipt && !hasFinishedPackageReceipt(packageQualityPass);
   const zipHasVerifiedReceipt = scope === 'all' && hasDownloadableVerifiedPackage(packageQualityPass);
   const zipCanDownloadReviewedPackage = scope === 'all' && zipHasTerminalTrustBlocker && zipHasVerifiedReceipt;
   const zipPendingNeedsAttention = zipPendingReadiness && pendingReadinessExport?.canFinishPackageAgain === false;
   const zipCanFinishPackage =
     scope === 'all' &&
-    activeHasReadinessIssues &&
+    (activeHasReadinessIssues || zipNeedsFinalizerMigration) &&
     canFinishPackage &&
     !zipPendingNeedsAttention &&
     !zipHasExportFailure &&
-    !zipHasTerminalTrustBlocker &&
+    (!zipHasTerminalTrustBlocker || zipNeedsFinalizerMigration) &&
     !zipHasVerifiedReceipt;
   const zipButtonLabel =
     busy === 'zip'
@@ -1589,7 +1587,7 @@ export default function ExportSidePanel({
     isPackageQualityRunning ||
     finishPackageBusy ||
     zipHasExportFailure ||
-    (zipHasTerminalTrustBlocker && !zipCanDownloadReviewedPackage) ||
+    (zipHasTerminalTrustBlocker && !zipCanDownloadReviewedPackage && !zipCanFinishPackage) ||
     (zipPendingReadiness && !canFinishPackage) ||
     zipPendingNeedsAttention ||
     allReadyCount === 0 ||

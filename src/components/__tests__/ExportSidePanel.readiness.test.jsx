@@ -5,9 +5,10 @@ import React, { useEffect, useState } from 'react';
 import { act } from 'react';
 import { createRoot } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import ExportSidePanel, { CURRENT_FINALIZER_REVISION, hasDownloadableVerifiedPackage } from '../ExportSidePanel.jsx';
+import ExportSidePanel, { hasDownloadableVerifiedPackage } from '../ExportSidePanel.jsx';
 import { CourseProvider, useCourse } from '../../contexts/CourseContext.jsx';
 import { downloadCourseMaterialsZip } from '../../lib/packageZipExporter.js';
+import { CURRENT_FINALIZER_REVISION } from '../../lib/packageTrustStatus.js';
 
 const readinessProbe = vi.hoisted(() => vi.fn());
 
@@ -431,6 +432,7 @@ describe('ExportSidePanel readiness repair timing', () => {
         warnings: 0,
         repairsApplied: 2,
         receipt: {
+          finalizerRevision: CURRENT_FINALIZER_REVISION,
           exportStatus: 'warnings',
           exportChecked: 38,
           exportFailed: 0,
@@ -588,6 +590,66 @@ describe('ExportSidePanel readiness repair timing', () => {
       },
     });
     expect(finishQuality).not.toHaveProperty('packageReadinessBinding');
+  });
+
+  it('prepares an obsolete P0 receipt once and binds the refreshed package into the same click', async () => {
+    const repairedDeliverables = {
+      slideDecks: { status: 'done', data: { decks: [{ lessonTitle: 'Repaired lesson', slides: [] }] } },
+    };
+    const refreshedQuality = {
+      status: 'graded',
+      score: 91,
+      grade: 'A',
+      graderVersion: 'revision-2-proof',
+      findingCounts: { p0: 0, p1: 0, p2: 1 },
+    };
+    const onFinishPackage = vi.fn(async () => ({
+      courseMap: cleanCourseMap,
+      deliverables: repairedDeliverables,
+      readiness: { status: 'ready', blockers: [], warnings: [], issues: [], featureCount: 1 },
+      quality: refreshedQuality,
+      exportVerification: { status: 'passed', checked: 38, failed: 0, warningCount: 0 },
+      receipt: {
+        finalizerRevision: CURRENT_FINALIZER_REVISION,
+        finalStatus: 'ready',
+        exportStatus: 'passed',
+        exportChecked: 38,
+        exportFailed: 0,
+      },
+    }));
+
+    await renderPanel({
+      courseMapInput: cleanCourseMap,
+      preferPackageScope: true,
+      canFinishPackage: true,
+      onFinishPackage,
+      packageQualityPass: {
+        status: 'blocked',
+        blockers: 1,
+        warnings: 0,
+        receipt: { finalStatus: 'blocked', exportStatus: 'passed', exportChecked: 38, exportFailed: 0 },
+        quality: {
+          status: 'graded',
+          score: 34,
+          grade: 'F',
+          findingCounts: { p0: 5, p1: 1, p2: 6 },
+        },
+      },
+    });
+
+    const zipButton = container.querySelector('[data-testid="export-download-zip"]');
+    expect(zipButton?.textContent).toContain('Prepare package');
+    expect(zipButton?.disabled).toBe(false);
+
+    await act(async () => {
+      zipButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      await vi.runAllTimersAsync();
+    });
+
+    expect(onFinishPackage).toHaveBeenCalledTimes(1);
+    expect(downloadCourseMaterialsZip).toHaveBeenCalledTimes(1);
+    expect(downloadCourseMaterialsZip.mock.calls[0][0].deliverables).toBe(repairedDeliverables);
+    expect(downloadCourseMaterialsZip.mock.calls[0][0].quality.precomputed).toMatchObject(refreshedQuality);
   });
 
   it('keeps review warnings in ZIP evidence while Export presents a calm ready state', async () => {
@@ -850,6 +912,7 @@ describe('ExportSidePanel readiness repair timing', () => {
         warnings: 0,
         repairsApplied: 1,
         receipt: {
+          finalizerRevision: CURRENT_FINALIZER_REVISION,
           finalStatus: 'ready',
           exportStatus: 'passed',
           exportChecked: 38,
@@ -905,6 +968,7 @@ describe('ExportSidePanel readiness repair timing', () => {
         blockers: 1,
         warnings: 0,
         receipt: {
+          finalizerRevision: CURRENT_FINALIZER_REVISION,
           finalStatus: 'blocked',
           exportStatus: 'passed',
           exportChecked: 38,
@@ -955,6 +1019,7 @@ describe('ExportSidePanel readiness repair timing', () => {
         // the already-verified physical export is unfinished.
         warnings: 1,
         receipt: {
+          finalizerRevision: CURRENT_FINALIZER_REVISION,
           finalStatus: 'ready',
           exportStatus: 'passed',
           exportChecked: 38,
@@ -1201,7 +1266,12 @@ describe('ExportSidePanel readiness repair timing', () => {
         warnings: 0,
         // Legacy v0.16.61-0.16.63 receipt: exportStatus was omitted even
         // though the verifier persisted its counters.
-        receipt: { finalStatus: 'blocked', exportChecked: 38, exportFailed: 0 },
+        receipt: {
+          finalizerRevision: CURRENT_FINALIZER_REVISION,
+          finalStatus: 'blocked',
+          exportChecked: 38,
+          exportFailed: 0,
+        },
         quality: {
           status: 'graded',
           score: 89,

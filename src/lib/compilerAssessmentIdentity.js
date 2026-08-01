@@ -31,6 +31,8 @@ export function compactCompilerOwnedAssessmentIdentity(value) {
       /\s+transfer task:\s*explain one example, one source detail, and one limitation\.?$/i,
       ' evidence application',
     )
+    .replace(/\s+code review card:\s*identify one readability issue and one correctness risk\.?$/i, ' code review')
+    .replace(/\s+code review card:\s*identify one readability issue and one correctness risk\b/gi, ' code review')
     .replace(/\s+exit note connecting the activity to one visible product\.?$/i, ' exit reflection')
     .replace(/\s+short response that names the claim, example, and next question\.?$/i, ' short analysis');
 }

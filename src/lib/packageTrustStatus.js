@@ -6,8 +6,13 @@ import {
 } from './qualityFindingPolicy';
 import { countSourceAdvisoryFindings, countSourceQualityAdvisoryFindings } from './quality/sourceEvidence';
 
+// One migration boundary for both receipt production and Export consumption.
+// A one-sided revision bump would otherwise classify every fresh receipt as
+// stale or let obsolete packages bypass the current deterministic finalizer.
+export const CURRENT_FINALIZER_REVISION = 2;
+
 function compactCount(value) {
-  const number = Number(value || 0);
+  const number = Number(value);
   return Number.isFinite(number) ? Math.max(0, number) : 0;
 }
 

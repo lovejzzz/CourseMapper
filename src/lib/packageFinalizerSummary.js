@@ -1,4 +1,5 @@
 import { buildHumanReviewRecommendation, summarizeRepairEvidence } from './packageTrust.js';
+import { CURRENT_FINALIZER_REVISION } from './packageTrustStatus.js';
 
 const CONFIDENCE_TONES = {
   Excellent: 'excellent',
@@ -212,7 +213,7 @@ export function buildQualityReceipt({
         ? 'exportable-needs-review'
         : 'publishable';
   return {
-    finalizerRevision: 1,
+    finalizerRevision: CURRENT_FINALIZER_REVISION,
     handoffStatus,
     checkedSections: checkedFeatureCount > 0 ? `${checkedFeatureCount}/${checkedFeatureCount}` : '',
     lessonCount,

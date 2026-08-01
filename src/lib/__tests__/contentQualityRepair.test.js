@@ -203,6 +203,79 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
     expect(repeatedLeaks.repeatedPhraseCount).toBe(0);
   });
 
+  it('does not let generic lesson overlap rescue a known off-topic source leak', () => {
+    const data = {
+      decks: [
+        {
+          slides: [
+            {
+              bullets: [
+                'Case: Mars provides Fiji/ImageJ2 commands written in Java for common single-molecule analysis tasks using a Molecule Archive architecture that is easily adapted to complex, multistep reproducible analysis pipelines.',
+              ],
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = repairDeliverableContentQuality('slideDecks', data, {
+      courseName: 'Python for Public Policy Analysis',
+      courseScope: 'Reproducible Analysis Pipeline Statistical Modeling and Uncertainty Quantification',
+    });
+
+    expect(result.changed).toBe(true);
+    expect(JSON.stringify(result.data)).not.toMatch(/ImageJ|Molecule Archive/i);
+
+    const moleculeArchiveOnly = repairDeliverableContentQuality(
+      'courseFaq',
+      {
+        faqs: [
+          {
+            answer:
+              'Connect the lesson decision to Mars, a molecule archive suite for reproducible analysis and reporting of single-molecule properties from bioimages.',
+          },
+        ],
+      },
+      {
+        courseName: 'Python for Public Policy Analysis',
+        courseScope: 'Reproducible Analysis Pipeline Statistical Modeling and Uncertainty Quantification',
+      },
+    );
+    expect(JSON.stringify(moleculeArchiveOnly.data)).not.toMatch(/Molecule Archive/i);
+  });
+
+  it('compacts the legacy compiler-owned code-review direction across saved surfaces', () => {
+    const phrase =
+      'Defining Reusable Code Blocks code review card: identify one readability issue and one correctness risk';
+    const data = {
+      decks: [
+        {
+          assessmentTitle: phrase,
+          slides: [
+            {
+              notes: `Concept map highlights how students use the evidence for ${phrase}.`,
+              visual: `Concept map connecting lesson evidence to ${phrase}.`,
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = repairDeliverableContentQuality('slideDecks', data, {
+      courseName: 'Python for Public Policy Analysis',
+    });
+
+    expect(result.changed).toBe(true);
+    expect(JSON.stringify(result.data)).not.toContain('identify one readability issue');
+    expect(result.data.decks[0].assessmentTitle).toBe('Defining Reusable Code Blocks code review');
+    expect(result.data.decks[0].slides[0].notes).toBe(
+      'Concept map highlights how students use the evidence for Defining Reusable Code Blocks code review',
+    );
+    expect(result.data.decks[0].slides[0].visual).toBe(
+      'Concept map connecting lesson evidence to Defining Reusable Code Blocks code review',
+    );
+  });
+
   it('turns circular fallback glossary prose into an honest definition-review notice', () => {
     const data = {
       studyGuides: [

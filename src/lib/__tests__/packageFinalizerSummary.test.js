@@ -7,6 +7,7 @@ import {
   formatPackageSummaryForHistory,
   normalizePackageSummary,
 } from '../packageFinalizerSummary';
+import { CURRENT_FINALIZER_REVISION } from '../packageTrustStatus';
 
 describe('packageFinalizerSummary', () => {
   it('normalizes excellent finalizer results into a user-facing summary', () => {
@@ -174,6 +175,7 @@ describe('packageFinalizerSummary', () => {
     });
 
     expect(receipt.checkedSections).toBe('2/2');
+    expect(receipt.finalizerRevision).toBe(CURRENT_FINALIZER_REVISION);
     expect(receipt.handoffStatus).toBe('blocked');
     expect(receipt.lessonCount).toBe(2);
     expect(receipt.autoFixedCount).toBe(1);

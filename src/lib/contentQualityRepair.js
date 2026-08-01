@@ -12,13 +12,10 @@
  */
 
 import { isProvenanceMirrorKey } from './compiledLanguageFinalizer.js';
+import { compactCompilerOwnedAssessmentIdentity } from './compilerAssessmentIdentity.js';
 import { hasDanglingClauseSeam } from './contentQualityChecks.js';
 import { semanticIdentityTokens } from './lessonSemanticRelevance.js';
-import {
-  blacklistYieldsToTopicalOverlap,
-  knownOffenderFitsScope,
-  matchesKnownOffender,
-} from './quality/knownOffenderScope.js';
+import { knownOffenderFitsScope, matchesKnownOffender } from './quality/knownOffenderScope.js';
 
 // Mirrors of the detector regexes in contentQualityChecks.js — each fixer
 // must make its detector pass, never merely shuffle the defect.
@@ -121,6 +118,11 @@ function repairString(value, featureId, parentKey = '') {
   }
   text = text.replace(DUPLICATED_STUDENT_SUBJECT_RE, 'A common assumption is that people ');
   text = text.replace(MALFORMED_CONCEPT_DETAIL_RE, 'a strong detail about $1');
+  // Current compiler-owned assessment directions are compacted at creation
+  // time. Apply the same exact-signature compactor to saved deliverables so a
+  // legacy package does not repeat the complete direction in every note,
+  // accessibility cue, rubric link, and study prompt.
+  text = compactCompilerOwnedAssessmentIdentity(text);
   if (featureId === 'assignments') text = repairAssignmentDeferrals(text);
   return text;
 }
@@ -161,10 +163,13 @@ function knownOffenderIsOutOfScope(value, context = {}) {
   }
   const scopeTokens = new Set(semanticIdentityTokens(scope));
   if (knownOffenderFitsScope(offender, scopeTokens)) return false;
-  return !blacklistYieldsToTopicalOverlap(new Set(semanticIdentityTokens(value)), scopeTokens, {
-    disciplineNameTokens: semanticIdentityTokens(context.courseName || ''),
-    minShared: 2,
-  });
+  // A known source leak must not become admissible merely because its prose
+  // also contains generic lesson words. The rejected production sentence
+  // paired ImageJ2/Molecule Archive evidence with “reproducible analysis” and
+  // “pipeline”, which created superficial overlap with an unrelated public-
+  // policy lesson. Explicit source-brief mention and the calibrated offender
+  // scope hints above remain the two safe ways to preserve this material.
+  return true;
 }
 
 function removeOutOfScopeOffenderSentences(value, context = {}) {
