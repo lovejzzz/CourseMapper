@@ -20,7 +20,7 @@
       "sourceCompilerReceipt": {
         "path": "evaluation/scion-adapters/evidence/source-compiler-replay-v0.16.47.json",
         "bytes": 19998,
-        "sha256": "fc7bc021b7b1208008bcd8a639b5694148ea707a4d766ee77ecc315402f485ce",
+        "sha256": "7074a40e7fe73cdf74e053d19deed61b26ee3176494183f6240d7357f55b8a95",
         "release": "v0.16.47",
         "projectCount": 12
       },
@@ -28,84 +28,84 @@
         {
           "path": "evaluation/scion-source-compiler-replay-v0.16.47/python-control-flow-workshop-local.json",
           "bytes": 76765,
-          "sha256": "8547227d5e9175f8e3ee8e1ac631abaa9ed7daf09db40f6a14220ec82485bbc2",
+          "sha256": "7f1d0f0ece773ccb3bb297eac0fa239b8c632b85baf8f91cc0e4acf0a273cd91",
           "courseGroupId": "python-control-flow-workshop",
           "domain": "computer-science"
         },
         {
           "path": "evaluation/scion-source-compiler-replay-v0.16.47/python-data-structures-lab-local.json",
           "bytes": 73594,
-          "sha256": "4e8596e6a11c30987d7a879bb2187b54ea6187722462066a2f2e67c9eeaacd4b",
+          "sha256": "de744068e5c04edb12e81aee0198743661c0ec30ca1cd14b77f9a3681d2f2a54",
           "courseGroupId": "python-data-structures-lab",
           "domain": "computer-science"
         },
         {
           "path": "evaluation/scion-source-compiler-replay-v0.16.47/igneous-volcanic-processes-local.json",
           "bytes": 46619,
-          "sha256": "412c8f352c5b0cd45edf4f4d7740395136dcfe1ce2e3bc7885b5d58f4e91be34",
+          "sha256": "2a411cf4ee8bd3d4283c03003ade046b0acb036be8c5f52e22c45c2999f6c4be",
           "courseGroupId": "igneous-volcanic-processes",
           "domain": "geology"
         },
         {
           "path": "evaluation/scion-source-compiler-replay-v0.16.47/tectonics-seismology-field-lab-local.json",
           "bytes": 85118,
-          "sha256": "475655bed3b0aaf46a044f6f2963214f154f4a177f3aac568ab059c6565340b0",
+          "sha256": "37874babe86ec9814ff28f0612599285e951f8e1072e9e15001b26da67a65162",
           "courseGroupId": "tectonics-seismology-field-lab",
           "domain": "geology"
         },
         {
           "path": "evaluation/scion-source-compiler-replay-v0.16.47/music-notation-ear-training-local.json",
           "bytes": 53563,
-          "sha256": "349d7b36b9b36367c1be02fd4b36880fdebe48d5bf6b48bdf0f46d1a2678b093",
+          "sha256": "4f6e4b29303d7eee37c1d4bab2fd658ca0d2987018dcb9e2121b9b50a7f7aae4",
           "courseGroupId": "music-notation-ear-training",
           "domain": "music-theory"
         },
         {
           "path": "evaluation/scion-source-compiler-replay-v0.16.47/harmony-form-analysis-local.json",
           "bytes": 82397,
-          "sha256": "40402634f7fb57be5e69f6deec57a444616ce55bf111bf0c7a0e24e258d1dcc8",
+          "sha256": "6fea675ac1af706ae3bbab33c096192f5520edf13337195c5a24a7b9dacf000e",
           "courseGroupId": "harmony-form-analysis",
           "domain": "music-theory"
         },
         {
           "path": "evaluation/scion-source-compiler-replay-v0.16.47/ux-research-synthesis-studio-local.json",
           "bytes": 72425,
-          "sha256": "9f3063a2fc4b1122ffb642e133c8ab311c320faddb066991392baac69ccf81f7",
+          "sha256": "b42c5f7b3584ec92fc163a14918e711dfed6ce25ec5175efe73b27f9e5aeb3bf",
           "courseGroupId": "ux-research-synthesis-studio",
           "domain": "user-experience-design"
         },
         {
           "path": "evaluation/scion-source-compiler-replay-v0.16.47/ux-prototyping-accessibility-lab-local.json",
           "bytes": 62400,
-          "sha256": "f9a1fc71a76478e49fca1ad1db8a5da4a165e7ae585f87dd2272fbe8d4db4add",
+          "sha256": "f64cb6c35fe25aa53c01834143845d7f711d8c5e494c90f1e75816e74ef5be2c",
           "courseGroupId": "ux-prototyping-accessibility-lab",
           "domain": "user-experience-design"
         },
         {
           "path": "evaluation/scion-source-compiler-replay-v0.16.47/python-program-architecture-studio-local.json",
           "bytes": 136462,
-          "sha256": "47fe20e266600739eee05bba62874c74853b265c943ec1ab0427a3e3183eabaa",
+          "sha256": "773645a4c9ca156a628a31059ecee1e0107a96073fbe0d66e7ddb8bc75f3a245",
           "courseGroupId": "python-program-architecture-studio",
           "domain": "computer-science"
         },
         {
           "path": "evaluation/scion-source-compiler-replay-v0.16.47/earth-materials-history-lab-local.json",
           "bytes": 138406,
-          "sha256": "f08f7b2b25b47200a1db4a9c589bfc0eb6ff54a54fd141f8aee73deabc0e8d3b",
+          "sha256": "55c4219ad98afacfe64a41e4d1bbe38491062735ce53b1b2dccceeffc3e94753",
           "courseGroupId": "earth-materials-history-lab",
           "domain": "geology"
         },
         {
           "path": "evaluation/scion-source-compiler-replay-v0.16.47/tonal-analysis-integration-studio-local.json",
           "bytes": 139227,
-          "sha256": "33c8a0d753ec5604384911c54d6bad30960369363ccba6490d5476da2fb563d8",
+          "sha256": "9a1f8a3cfb31d6753a2a9686b978f737c09703d1c491fd9b99b04a94c478a07b",
           "courseGroupId": "tonal-analysis-integration-studio",
           "domain": "music-theory"
         },
         {
           "path": "evaluation/scion-source-compiler-replay-v0.16.47/ux-evidence-to-prototype-capstone-local.json",
           "bytes": 164395,
-          "sha256": "e351859ceecc5021e20b56f7888b90041d546dc5c99ae2022f2465389186ef79",
+          "sha256": "efeffd73f64a924720e57ef5baa2bd01267ca0db4230a27b3780ac3e32ff3c46",
           "courseGroupId": "ux-evidence-to-prototype-capstone",
           "domain": "user-experience-design"
         }
