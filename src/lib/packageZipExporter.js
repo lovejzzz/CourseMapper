@@ -2758,14 +2758,14 @@ export async function downloadCourseMaterialsZip(options = {}) {
   // its unavailable-quality report were assembled successfully. Callers keep
   // the result so they can present/retry without losing the expensive build.
   if (options.quality !== false && result.quality?.status !== 'graded') {
-    return { ...result, downloaded: false };
+    return { ...result, downloaded: false, downloadFailure: { code: 'quality-proof-unavailable' } };
   }
   // The save call is the final trust boundary, so it must independently
   // enforce the exact receipt-v2 export proof. UI eligibility is advisory and
   // legacy receipts may enter the rebuild path; only the newly assembled
   // package receipt can authorize a user-facing download.
   if (options.quality !== false && !hasVerifiedPackageDownloadReceipt(result.packageReadinessReceipt)) {
-    return { ...result, downloaded: false };
+    return { ...result, downloaded: false, downloadFailure: { code: 'package-safety-unverified' } };
   }
   saveAs(result.blob, result.fileName);
   return { ...result, downloaded: true };

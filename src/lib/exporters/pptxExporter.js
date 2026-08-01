@@ -999,7 +999,7 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
     // a bare concept or comma-separated concept dump here; omitting that weak
     // line is more polished than presenting an orphan under the title.
     const titleSubtitle = String(s.bullets?.[0] || '').trim();
-    if (isSubstantiveSlideSubtitle(titleSubtitle)) {
+    if (isSubstantiveSlideSubtitle(titleSubtitle, { title: deck.lessonTitle || s.title })) {
       const subBoxW = W - 4.2,
         subBoxH = 0.6;
       const subFontSize = autoFitFontSize(titleSubtitle, subBoxW, subBoxH, FONT_BODY, 16, 12, 1.5);

@@ -99,6 +99,21 @@ it('requires actual export checks and honors receipt-v2 download safety', () => 
       },
     }),
   ).toBe(false);
+
+  const freshFinish = {
+    quality: { status: 'graded', score: 95, grade: 'A' },
+    exportVerification: { status: 'passed', checked: 8, failed: 0 },
+    readiness: {
+      blockers: [{ source: 'classroomReadiness', message: 'Resolve the structural package gap.' }],
+    },
+  };
+  expect(hasDownloadableVerifiedPackage(base, freshFinish)).toBe(false);
+  expect(
+    hasDownloadableVerifiedPackage(base, {
+      ...freshFinish,
+      readiness: { blockers: [{ source: 'qualityGate', message: 'Review content quality in Agent.' }] },
+    }),
+  ).toBe(true);
 });
 
 function ExportPanelHarness({
@@ -636,7 +651,7 @@ describe('ExportSidePanel readiness repair timing', () => {
     expect(downloadCourseMaterialsZip.mock.calls[0][0].quality.precomputed).toBeUndefined();
   });
 
-  it('shows a blocked retry state when ZIP-time quality proof becomes unavailable', async () => {
+  it('returns calmly to preparation while Agent receives a ZIP-time quality-proof failure', async () => {
     const onPackageQualityPassUpdate = vi.fn();
     vi.spyOn(globalThis, 'requestAnimationFrame').mockImplementation((callback) => {
       callback(0);
@@ -644,6 +659,7 @@ describe('ExportSidePanel readiness repair timing', () => {
     });
     downloadCourseMaterialsZip.mockResolvedValueOnce({
       downloaded: false,
+      downloadFailure: { code: 'quality-proof-unavailable' },
       files: ['PACKAGE_MANIFEST.json', 'QUALITY_REPORT.md'],
       quality: { status: 'not-graded', reason: 'quality check timed out' },
     });
@@ -669,7 +685,8 @@ describe('ExportSidePanel readiness repair timing', () => {
       await Promise.resolve();
     });
 
-    expect(container.textContent).toContain('The package could not be prepared because quality proof is unavailable');
+    expect(container.querySelector('[data-testid="export-error"]')).toBeNull();
+    expect(container.querySelector('[data-testid="export-notice"]')).toBeNull();
     expect(container.querySelector('[data-testid="export-success"]')).toBeNull();
     expect(onPackageQualityPassUpdate).toHaveBeenCalledTimes(1);
     const blockedPass = onPackageQualityPassUpdate.mock.calls[0][0]({
@@ -682,6 +699,107 @@ describe('ExportSidePanel readiness repair timing', () => {
       blockers: 1,
       blockerDomains: { readiness: 0, quality: 1, export: 0, total: 1 },
       quality: { status: 'not-graded' },
+    });
+  });
+
+  it('stops a same-click structural blocker before ZIP assembly and keeps Export calm', async () => {
+    const structuralBlocker = {
+      severity: 'blocker',
+      source: 'classroomReadiness',
+      featureId: 'lessonPlans',
+      message: 'Add the missing lesson-plan evidence before export.',
+    };
+    const onFinishPackage = vi.fn(async () => ({
+      courseMap: cleanCourseMap,
+      deliverables: {},
+      readiness: {
+        status: 'blocked',
+        blockers: [structuralBlocker],
+        warnings: [],
+        issues: [structuralBlocker],
+        featureCount: 1,
+      },
+      quality: { status: 'graded', score: 92, grade: 'A', findingCounts: { p0: 0, p1: 1, p2: 0 } },
+      exportVerification: { status: 'passed', checked: 38, failed: 0, warningCount: 0 },
+      receipt: { finalStatus: 'ready', exportStatus: 'passed', exportChecked: 38, exportFailed: 0 },
+    }));
+    await renderPanel({
+      courseMapInput: cleanCourseMap,
+      preferPackageScope: true,
+      canFinishPackage: true,
+      onFinishPackage,
+      packageQualityPass: { status: 'idle', message: '' },
+    });
+
+    await act(async () => {
+      container
+        .querySelector('[data-testid="export-download-zip"]')
+        ?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      await vi.runAllTimersAsync();
+    });
+
+    expect(onFinishPackage).toHaveBeenCalledTimes(1);
+    expect(downloadCourseMaterialsZip).not.toHaveBeenCalled();
+    expect(container.querySelector('[data-testid="readiness-confirm"]')).not.toBeNull();
+    expect(container.querySelector('[data-testid="export-error"]')).toBeNull();
+    expect(container.querySelector('[data-testid="export-notice"]')).toBeNull();
+  });
+
+  it('routes a graded structural download block to readiness without a false quality warning', async () => {
+    const onPackageQualityPassUpdate = vi.fn();
+    vi.spyOn(globalThis, 'requestAnimationFrame').mockImplementation((callback) => {
+      callback(0);
+      return 1;
+    });
+    downloadCourseMaterialsZip.mockResolvedValueOnce({
+      downloaded: false,
+      downloadFailure: { code: 'package-safety-unverified' },
+      quality: { status: 'graded', score: 92, grade: 'A', findingCounts: { p0: 0, p1: 1, p2: 0 } },
+      packageReadinessReceipt: {
+        protocol: 'coursemapper-package-readiness-receipt-v2',
+        downloadSafety: { status: 'blocked', blockerCount: 1, structuralBlockerCount: 1 },
+      },
+    });
+    await renderPanel({
+      courseMapInput: cleanCourseMap,
+      preferPackageScope: true,
+      onPackageQualityPassUpdate,
+      packageQualityPass: {
+        status: 'ready',
+        blockers: 0,
+        blockerDomains: { schemaVersion: 1, readiness: 0, quality: 0, export: 0, total: 0 },
+        receipt: { finalStatus: 'ready', exportStatus: 'passed', exportChecked: 38, exportFailed: 0 },
+        quality: { status: 'graded', score: 92, grade: 'A', findingCounts: { p0: 0, p1: 1, p2: 0 } },
+      },
+    });
+
+    await act(async () => {
+      container
+        .querySelector('[data-testid="export-download-zip"]')
+        ?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      await vi.advanceTimersByTimeAsync(1);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(container.querySelector('[data-testid="export-error"]')).toBeNull();
+    expect(container.querySelector('[data-testid="export-notice"]')).toBeNull();
+    const blockedPass = onPackageQualityPassUpdate.mock.calls[0][0]({
+      status: 'ready',
+      blockers: 0,
+      blockerDomains: { schemaVersion: 1, readiness: 0, quality: 0, export: 0, total: 0 },
+      quality: { status: 'graded', score: 92, grade: 'A' },
+    });
+    expect(blockedPass).toMatchObject({
+      status: 'blocked',
+      blockers: 1,
+      blockerDomains: { readiness: 1, quality: 0, export: 0, total: 1 },
+      quality: { status: 'graded', score: 92 },
+      receipt: {
+        packageReadinessReceipt: {
+          downloadSafety: { status: 'blocked', blockerCount: 1, structuralBlockerCount: 1 },
+        },
+      },
     });
   });
 

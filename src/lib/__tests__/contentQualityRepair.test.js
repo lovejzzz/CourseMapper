@@ -132,7 +132,7 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
     expect(JSON.stringify(result.data)).not.toMatch(/ImageJ|Molecule Archives/i);
     expect(result.data.decks[0].slides[0].bullets).toEqual([
       'Use policy evidence to bound the recommendation.',
-      'Use a course-aligned example and verify its source before publishing.',
+      'Item 2: add course-aligned, instructor-approved evidence.',
     ]);
     expect(result.data.decks[0].slides[0].notes).toBe(
       'Compare the policy evidence first. Name one limitation before revising.',
@@ -185,8 +185,22 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
     expect(wholeFieldLeak.changed).toBe(true);
     expect(wholeFieldLeak.data.lessonPlans[0].lessonTitle).toBe('Course-aligned source review');
     expect(wholeFieldLeak.data.lessonPlans[0].objectives).toEqual([
-      'Use a course-aligned example and verify its source before publishing.',
+      'Item 1: add course-aligned, instructor-approved evidence.',
     ]);
+
+    const repeatedLeaks = repairDeliverableContentQuality(
+      'lessonPlans',
+      {
+        objectives: Array.from(
+          { length: 12 },
+          (_, index) => `ImageJ2 and Molecule Archive claim ${index + 1} needs review.`,
+        ),
+      },
+      { courseName: 'Python for Public Policy Analysis' },
+    );
+    expect(repeatedLeaks.data.objectives).toHaveLength(12);
+    expect(new Set(repeatedLeaks.data.objectives).size).toBe(12);
+    expect(repeatedLeaks.repeatedPhraseCount).toBe(0);
   });
 
   it('turns circular fallback glossary prose into an honest definition-review notice', () => {

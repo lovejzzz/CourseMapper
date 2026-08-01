@@ -314,6 +314,10 @@ function hasBlockingReadinessIssues(readiness) {
   return (readiness?.blockers?.length || 0) > 0;
 }
 
+function hasStructuralReadinessIssues(readiness) {
+  return (readiness?.blockers || []).some((issue) => issue?.source !== 'qualityGate');
+}
+
 function getDownloadReadiness(readiness) {
   if (!readiness || hasBlockingReadinessIssues(readiness)) return readiness;
   return {
@@ -361,6 +365,7 @@ export function hasDownloadableVerifiedPackage(packageQualityPass, finishOutcome
   const embeddedVerification = receipt.packageReadinessReceipt?.exportVerification || {};
   const completedQuality = finishOutcome ? finishOutcome.quality : packageQualityPass?.quality;
   const qualityStatus = String(completedQuality?.status || '').toLowerCase();
+  if (finishOutcome && hasStructuralReadinessIssues(finishOutcome.readiness)) return false;
   // A verified file map is recoverable evidence, but it is not a download
   // override when an attempted package grade explicitly failed or timed out.
   // Preserve legacy receipts that predate embedded quality; fail closed only
@@ -1054,17 +1059,18 @@ export default function ExportSidePanel({
 
   useEffect(() => {
     if (!pendingReadinessExport) return;
-    if (
-      pendingReadinessExport.scope === scope &&
-      ((activeReadiness?.blockers?.length || 0) === 0 || verifiedPackageReceipt)
-    ) {
+    // A same-click finalizer can return a fresher blocker snapshot than the
+    // parent props. Do not erase that authoritative result merely because
+    // the pre-finish readiness snapshot was clean; a verified receipt or an
+    // explicit user action clears it.
+    if (pendingReadinessExport.scope === scope && verifiedPackageReceipt) {
       setPendingReadinessExport(null);
       setLastNotice('');
       setLastError('');
       return;
     }
     readinessConfirmRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-  }, [activeReadiness, pendingReadinessExport, scope, verifiedPackageReceipt]);
+  }, [pendingReadinessExport, scope, verifiedPackageReceipt]);
 
   useEffect(() => {
     if (!verifiedPackageReceipt) return;
@@ -1255,15 +1261,8 @@ export default function ExportSidePanel({
       });
       setLastError('');
       setLastOk('');
-      setLastNotice(
-        finishOutcome && !canFinishPackageAgain
-          ? `${repairsApplied > 0 ? `Auto-fixed ${repairsApplied} safe issue${repairsApplied === 1 ? '' : 's'}. ` : ''}Automatic finishing ran. Open the remaining issue before exporting.`
-          : `${repairsApplied > 0 ? `Auto-fixed ${repairsApplied} safe issue${repairsApplied === 1 ? '' : 's'}. ` : ''}${
-              format === 'zip'
-                ? 'Finish the issues above before downloading the ZIP.'
-                : 'Finish the issues above before exporting.'
-            }`,
-      );
+      // The blue preparation card owns this state; reasons stay in Agent.
+      setLastNotice('');
       return;
     }
 
@@ -1326,30 +1325,43 @@ export default function ExportSidePanel({
             quality: qualityContext,
           });
           if (zipResult.downloaded === false) {
-            if (typeof onPackageQualityPassUpdate === 'function' && zipResult.quality) {
-              onPackageQualityPassUpdate((previous) => ({
-                ...previous,
-                status: 'blocked',
-                blockers: Math.max(1, Number(previous?.blockers) || 0),
-                quality: zipResult.quality,
-                ...(previous?.blockerDomains
-                  ? {
-                      blockerDomains: {
-                        ...previous.blockerDomains,
-                        quality: Math.max(1, Number(previous.blockerDomains.quality) || 0),
-                        total:
-                          (Number(previous.blockerDomains.readiness) || 0) +
-                          Math.max(1, Number(previous.blockerDomains.quality) || 0) +
-                          (Number(previous.blockerDomains.export) || 0),
-                      },
-                    }
-                  : {}),
-              }));
+            const failureCode = zipResult.downloadFailure?.code || 'package-safety-unverified';
+            const failureDomain =
+              failureCode === 'quality-proof-unavailable'
+                ? 'quality'
+                : Number(zipResult.packageReadinessReceipt?.downloadSafety?.structuralBlockerCount) > 0
+                  ? 'readiness'
+                  : 'export';
+            if (typeof onPackageQualityPassUpdate === 'function') {
+              onPackageQualityPassUpdate((previous) => {
+                const previousDomains = previous?.blockerDomains || {};
+                const blockerDomains = {
+                  schemaVersion: previousDomains.schemaVersion || 1,
+                  readiness: Number(previousDomains.readiness) || 0,
+                  quality: Number(previousDomains.quality) || 0,
+                  export: Number(previousDomains.export) || 0,
+                };
+                blockerDomains[failureDomain] = Math.max(1, blockerDomains[failureDomain]);
+                blockerDomains.total = blockerDomains.readiness + blockerDomains.quality + blockerDomains.export;
+                return {
+                  ...previous,
+                  status: 'blocked',
+                  blockers: Math.max(1, Number(previous?.blockers) || 0),
+                  quality: zipResult.quality || previous?.quality,
+                  receipt: {
+                    ...(previous?.receipt || {}),
+                    ...(zipResult.packageReadinessReceipt
+                      ? { packageReadinessReceipt: zipResult.packageReadinessReceipt }
+                      : {}),
+                  },
+                  blockerDomains,
+                };
+              });
             }
-            const reason = zipResult.quality?.reason || zipResult.quality?.error || 'the quality check did not finish';
-            setLastError(
-              `The package could not be prepared because quality proof is unavailable: ${reason}. Try again.`,
-            );
+            // Export returns to its calm preparation state. Honest score and
+            // exact failure reasons belong in Agent, not a warning banner.
+            setLastError('');
+            setLastNotice('');
             return;
           }
           if (typeof onPackageQualityPassUpdate === 'function' && zipResult.quality?.status === 'graded') {

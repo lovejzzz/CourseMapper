@@ -98,7 +98,7 @@ export async function exportSlideDeckPdf(data, courseName) {
         doc.rect(margin + 4, ruleY, 42, 1.6, 'F');
 
         const subtitle = String((slide.bullets || slide.content || [])[0] || '').trim();
-        if (isSubstantiveSlideSubtitle(subtitle)) {
+        if (isSubstantiveSlideSubtitle(subtitle, { title: deck.lessonTitle || slide.title })) {
           doc.setFont('helvetica', 'italic');
           doc.setFontSize(12);
           doc.setTextColor(220, 230, 245);

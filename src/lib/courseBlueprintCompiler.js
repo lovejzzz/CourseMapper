@@ -25771,8 +25771,7 @@ function applyMusicIntervalSlideIntegrity(slides, lesson, { objectiveOne, object
 }
 
 function buildSlideDeckIrForLesson(blueprint, lesson, index) {
-  // v0.16 exam-day fix: exam sessions get a short review/logistics deck —
-  // never a 13-slide teaching deck for a day with no instruction.
+  // Exam sessions get a short review/logistics deck, never a teaching deck.
   if (isExamDayLesson(lesson, blueprint)) {
     return buildExamDaySlideDeckIr(blueprint, lesson);
   }
@@ -25787,17 +25786,13 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
   const displayTitle = slideLessonTitle(lesson);
   const concept = primarySlideConcept(lesson);
   const sparseReasoningFrame = lessonNeedsSparseReasoningFrame(lesson);
-  // v0.12.1: a slide must never cite the unresolved source placeholder —
-  // "Instructor-provided course materials" shipped on 112 slides in the
-  // v0.12 audit. With no real source, drop the citation clause instead.
-  const hasRealSource = !/(?:instructor-provided\s+)?course materials(?:\s+and notes)?$/i.test(
-    cleanText(slideSourceCue(lesson)),
-  );
+  const sourceCue = slideSourceCue(lesson);
+  // Never cite the unresolved source placeholder in learner-facing slides.
+  const hasRealSource = !/(?:instructor-provided\s+)?course materials(?:\s+and notes)?$/i.test(cleanText(sourceCue));
   const secondary = secondarySlideConcept(lesson, concept);
   const artifact = slideArtifact(lesson);
   const compactArtifact = noteArtifactReference(lesson);
   const titleContext = `Use ${secondary} in ${compactArtifact}.`;
-  const sourceCue = slideSourceCue(lesson);
   const successCriterion = slideSuccessCriterion(lesson);
   const modality = sanitizeLessonModalityDecode(
     lesson.modalityDecode || buildLessonModalityDecode(blueprint.courseModalityProfile || {}, lesson),
@@ -25847,7 +25842,14 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
           type: 'agenda',
           title: 'Session Plan',
           bullets: [
-            hasRealSource ? `Frame ${concept} through ${sourceCue}.` : `Frame ${concept} with one inspectable example.`,
+            hasRealSource
+              ? lessonVariant(lesson, [
+                  `Frame ${concept} through ${sourceCue}.`,
+                  `Open ${concept} by inspecting ${sourceCue}.`,
+                  `Trace ${concept} from the evidence in ${sourceCue}.`,
+                  `Anchor the ${concept} question in ${sourceCue}.`,
+                ])
+              : `Frame ${concept} with one inspectable example.`,
             slideAgendaDecisionCue({
               lessonNumber: lesson.lessonNumber,
               concept,
@@ -25986,9 +25988,7 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
                 `${learnerFacingMode}: choose the evidence ${compactArtifact} needs next`,
                 `${learnerFacingMode}: turn critique into a defensible revision`,
               ]),
-              // v0.12.1: signaturePractice and practiceMove both derive from the
-              // modality routine — when they open with the same phrase, keep only
-              // the move ("Annotated example. Annotated example: annotate…").
+              // Avoid repeating the shared modality lead from signaturePractice and practiceMove.
               bullets: [
                 cleanText(sentenceCase(modality.signaturePractice)).slice(0, 24).toLowerCase() ===
                 cleanText(teachingMoves.practiceMove).slice(0, 24).toLowerCase()

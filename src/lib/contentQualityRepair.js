@@ -177,14 +177,19 @@ function removeOutOfScopeOffenderSentences(value, context = {}) {
     .trim();
 }
 
-function sourceReviewReplacement(parentKey = '') {
+function sourceReviewReplacement(parentKey = '', ordinal = null) {
+  const itemNumber = Number.isInteger(ordinal) ? ordinal + 1 : null;
   if (/^(?:title|name|term|lessonTitle|assessmentTitle|assignmentTitle|rubricTitle)$/i.test(parentKey)) {
-    return 'Course-aligned source review';
+    return itemNumber ? `Course-aligned source review ${itemNumber}` : 'Course-aligned source review';
   }
   if (/definition/i.test(parentKey)) {
-    return 'Add an instructor-approved, course-aligned definition and source before publishing.';
+    return itemNumber
+      ? `Item ${itemNumber}: add a verified, course-aligned definition.`
+      : 'Add an instructor-approved, course-aligned definition and source before publishing.';
   }
-  return 'Use a course-aligned example and verify its source before publishing.';
+  return itemNumber
+    ? `Item ${itemNumber}: add course-aligned, instructor-approved evidence.`
+    : 'Use a course-aligned example and verify its source before publishing.';
 }
 
 function worstRepeatedPhrase(node) {
@@ -218,7 +223,7 @@ function repairNode(node, stats, featureId, parentKey = '', context = {}) {
   }
   if (Array.isArray(node)) {
     let changed = false;
-    const next = node.flatMap((item) => {
+    const next = node.flatMap((item, index) => {
       if (typeof item === 'string' && knownOffenderIsOutOfScope(item, context)) {
         stats.repairedStrings += 1;
         changed = true;
@@ -226,7 +231,7 @@ function repairNode(node, stats, featureId, parentKey = '', context = {}) {
         // Preserve collection cardinality and make the intervention explicit.
         // Silently deleting one list item could make a required section look
         // complete while hiding that its source was quarantined.
-        return [repairString(remaining || sourceReviewReplacement(parentKey), featureId, parentKey)];
+        return [repairString(remaining || sourceReviewReplacement(parentKey, index), featureId, parentKey)];
       }
       const repaired = repairNode(item, stats, featureId, parentKey, context);
       if (repaired !== item) changed = true;

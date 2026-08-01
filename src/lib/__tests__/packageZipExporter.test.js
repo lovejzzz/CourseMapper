@@ -3427,6 +3427,7 @@ describe('packageZipExporter', () => {
     });
 
     expect(result.downloaded).toBe(false);
+    expect(result.downloadFailure).toEqual({ code: 'quality-proof-unavailable' });
     expect(result.quality).toMatchObject({ status: 'not-graded' });
     expect(result.packageReadinessReceipt.contentReadiness).toMatchObject({
       status: 'not-graded',
@@ -3451,6 +3452,7 @@ describe('packageZipExporter', () => {
       downloadSafety: { status: 'unverified', blockerCount: 0 },
     });
     expect(result.downloaded).toBe(false);
+    expect(result.downloadFailure).toEqual({ code: 'package-safety-unverified' });
     expect(saveAs).not.toHaveBeenCalled();
   });
 
@@ -3479,6 +3481,7 @@ describe('packageZipExporter', () => {
       structuralBlockerCount: 1,
     });
     expect(result.downloaded).toBe(false);
+    expect(result.downloadFailure).toEqual({ code: 'package-safety-unverified' });
     expect(saveAs).not.toHaveBeenCalled();
   });
 
