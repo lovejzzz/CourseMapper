@@ -622,11 +622,14 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
         term,
         definition: fact,
         example: `Compare this ${term} claim with the admitted statement: ${comparisonFact}`,
-        // Keep the misconception bound to this exact admitted fact. A shared
-        // ten-word suffix was previously copied through every deliverable
-        // family and became the package's worst repeated phrase.
-        misconception: `Mistake: treating ${term} as support beyond this admitted statement — ${cleanTextAtBoundary(fact, 140)}`,
-        correction: `Correction for ${term}: stay within “${cleanTextAtBoundary(fact, 140)}”; name what remains unproven.`,
+        // The definition already preserves the exact admitted fact. Repeating
+        // that full sentence inside both the misconception and correction
+        // multiplied one claim through every quiz, guide, plan, and deck.
+        // Keep this pair term-specific and scope-specific without cloning the
+        // fact: the false move is overreach; the repair points back to the
+        // adjacent admitted definition as the explicit ceiling.
+        misconception: `Mistake: treating ${term} as proof of a broader cause or outcome.`,
+        correction: `Correction for ${term}: use its admitted fact as the limit; mark the unsupported extension.`,
         source: 'fact-subject-projection',
         tier: 1,
         derivedFromFactIndex: factIndex,

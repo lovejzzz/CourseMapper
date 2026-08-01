@@ -15,10 +15,11 @@ function sentenceCase(value = '') {
 
 const policyDomainPattern =
   /\b(public policy|policy analysis|policy design|policy evaluation|policy implementation|public administration|public affairs|urban policy|social policy|education policy|health policy|environmental policy|regulatory policy|governance)\b/;
-const policyPracticeGatePattern =
-  /\b(policy memo|decision memo|policy brief|policy choice|policy choices|policy proposal|policy proposals|policy option|policy options|policy evidence|policy lab|policy studio|platform accountability|algorithmic audit|algorithmic audits|stakeholder analysis|stakeholder mapping|stakeholder map|equity analysis|environmental justice|implementation context|implementation plan|implementation planning|implementation constraint|feasibility|cost[-\s]?benefit|impact assessment|regulation|regulatory analysis|regulatory impact|regulatory impact analysis|public comment|benefit[-\s]?cost|logic model|theory of change|program evaluation|administrative burden|public value|policy trade[-\s]?off)\b/;
 const policyPracticeScorePattern =
   /\b(policy memo|decision memo|policy brief|policy choice|policy choices|policy proposal|policy proposals|policy option|policy options|policy evidence|platform accountability|algorithmic audit|algorithmic audits|stakeholder analysis|stakeholder mapping|stakeholder map|equity analysis|implementation plan|implementation constraint|feasibility|cost[-\s]?benefit|impact assessment|regulation|regulatory analysis|regulatory impact|public comment|benefit[-\s]?cost|logic model|theory of change|program evaluation|administrative burden|public value|policy trade[-\s]?off)\b/;
+const policyPracticeGatePattern = new RegExp(
+  `${policyPracticeScorePattern.source}|\\b(?:policy lab|policy studio|environmental justice|implementation context|implementation planning)\\b`,
+);
 
 function matchCount(text, pattern) {
   return (String(text || '').match(new RegExp(pattern.source, 'g')) || []).length;
@@ -226,8 +227,13 @@ export function sourceComposedReviewStrategy({
   studyArtifact = 'the lesson artifact',
 }) {
   const authored = cleanText(authoredStrategy);
-  if (!SOURCE_PLACEHOLDER_RE.test(authored)) return authored;
   const claims = sourceEvidenceBrief?.claims || [];
+  const authoredKey = evidenceClaimKey(authored);
+  const repeatsLedgerClaim = claims.some((claim) => {
+    const key = evidenceClaimKey(claim);
+    return key.length >= 20 && authoredKey.includes(key);
+  });
+  if (!SOURCE_PLACEHOLDER_RE.test(authored) && !repeatsLedgerClaim) return authored;
   return claims.length >= 2
     ? `Rehearse ${primaryConcept} by explaining the first source claim, then compare it with the second. Record what the pair supports, what remains unproven, and the revision it requires in ${studyArtifact}.`
     : `Rehearse ${primaryConcept} with one retained source claim. Record what it supports, what remains unproven, and the revision it requires in ${studyArtifact}.`;

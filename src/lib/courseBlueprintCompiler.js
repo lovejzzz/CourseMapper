@@ -20460,7 +20460,9 @@ export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
       ? overlaid.map((atom, index) => admittedLanguageFillers[index] || atom)
       : admittedKernelFillers.length > 0 || sourceBoundFillers.length > 0
         ? overlaid.map((atom, index) =>
-            atom.enrichmentSource ? atom : admittedKernelFillers[index] || sourceBoundFillers[index] || atom,
+            atom.enrichmentSource && !atom.misconceptionSourced
+              ? atom
+              : admittedKernelFillers[index] || sourceBoundFillers[index] || atom,
           )
         : overlaid;
   const bloomAligned = knowledgeSafe.map((atom) => {
@@ -21331,35 +21333,22 @@ function rotateAdmittedAssessmentKnowledge(lesson, offset = 0) {
   };
 }
 
-// A complete, admitted kernel must never fall through to source-bound
-// recovery merely because one generated MC option set fails admission. This
-// constructed-response atom quotes the admitted fact directly, connects it to
-// an admitted term, and asks students to bound the claim. It is intentionally
-// simpler than trying to synthesize another plausible distractor set from a
-// one-lesson evidence pool: the answer remains inspectable without pretending
-// the lesson's knowledge is missing.
+// When an MC set fails admission, retain inspectable kernel evidence through a
+// simpler constructed-response item instead of falling back to generic copy.
 function buildAdmittedKernelEvidenceItem({ lesson, blueprint, quizPlan, index, offset = 0 }) {
-  const terms = examLessonTerms(lesson);
-  // Genome-authored terms carry the lesson concept. Quiz-projected terms
-  // (for example, an answer option promoted as "water") are useful retrieval
-  // atoms but can have a definition whose scope is broader than the label.
-  // Prefer the primary, non-projected term for a cross-fact analysis prompt.
-  const term =
-    terms.find(
-      (candidate) =>
-        candidate?.derivedFromQuizIndex == null && cleanText(candidate?.source) !== 'verified-quiz-projection',
-    ) ||
-    terms[0] ||
-    null;
+  // Rotate the admitted view so evidence-bound seats do not all quote the first fact.
+  const sourceLesson = rotateAdmittedAssessmentKnowledge(lesson, offset);
+  const terms = examLessonTerms(sourceLesson);
+  // Prefer authored terms; quiz projections can be broader than their labels.
+  const authoredTerms = terms.filter(
+    (candidate) => candidate?.derivedFromQuizIndex == null && candidate?.source !== 'verified-quiz-projection',
+  );
+  const termPool = authoredTerms.length > 0 ? authoredTerms : terms;
+  const term = termPool.length > 0 ? termPool[offset % termPool.length] : null;
   const concept = cleanText(term?.term) || primaryConceptForLesson(lesson);
   const definition = cleanText(term?.definition);
-  // Integrative kernels contain exact facts from several source topics. A
-  // title-level token overlap ("technology", "policy", "algorithmic") is not
-  // enough to assign an arbitrary cross-topic fact to the primary key term.
-  // Reuse the same term-owned evidence selector as the exam synthesis path;
-  // if no aligned source example or fact exists, the definition is the honest
-  // fallback instead of an unrelated ledger row.
-  const fact = examLessonFactForConcept(lesson, concept, definition) || definition;
+  // Use term-owned evidence; its definition is the honest fallback.
+  const fact = examLessonFactForConcept(sourceLesson, concept, definition) || definition;
   if (!concept || !fact) return null;
 
   const plan = quizPlan[index] || quizPlan[0] || {};
@@ -24881,7 +24870,10 @@ function applyKernelSubjectMatterSlides(slides, lesson) {
   const terms = lessonPrimaryTeachingKeyTerms(lesson).filter(
     (term) => cleanText(term?.term) && cleanText(term?.definition),
   );
-  const facts = unique(asArray(lesson?.enrichment?.kernel?.facts).map(cleanText).filter(Boolean), 6);
+  const facts = unique(
+    asArray(lesson?.enrichment?.kernel?.canonicalFacts || lesson?.enrichment?.kernel?.facts).map(cleanText),
+    6,
+  );
   const primaryTerm = terms[0] || null;
   const concept = cleanText(primaryTerm?.term) || primarySlideConcept(lesson);
   const definition = cleanText(primaryTerm?.definition);
@@ -24920,9 +24912,9 @@ function applyKernelSubjectMatterSlides(slides, lesson) {
     if (slide.type === 'content' && authored[index].bullets.length < 2) return;
     slide.title = authored[index].title;
     slide.bullets = authored[index].bullets;
-    slide.notes = `Teach from the verified lesson evidence: ${authored[index].bullets
-      .map(stripTerminalPunctuation)
-      .join('. ')}. ${kernelSlideEvidenceDiscussionCopy({
+    // Keep one rotating evidence anchor instead of duplicating every visible bullet.
+    const noteEvidence = facts[index % facts.length] || authored[index].bullets[index % authored[index].bullets.length];
+    slide.notes = `Verified evidence: ${stripTerminalPunctuation(noteEvidence)}. ${kernelSlideEvidenceDiscussionCopy({
       lessonNumber: lesson?.lessonNumber,
       slideIndex: index,
     })}`;

@@ -10000,12 +10000,87 @@ describe('courseBlueprintCompiler', () => {
     const rendered = JSON.stringify(quiz).toLowerCase();
     const exactClaimCount = rendered.split(sharedMisconception.toLowerCase()).length - 1;
     const misconceptionItems = quiz.questions.filter((question) => question.misconceptionSourced);
+    const renderedQuestions = quiz.questions.map((question) => question.question).join('\n');
+    const admittedEvidence = quiz.questions.filter(
+      (question) => question.enrichmentSource === 'admitted-kernel-assessment',
+    );
+    const evidenceSignals = admittedEvidence
+      .filter((question) => /admitted-kernel-evidence/.test(question.quizPlan?.role || ''))
+      .map((question) => question.quizPlan?.sourceSignal)
+      .filter(Boolean);
 
     expect(exactClaimCount).toBeLessThanOrEqual(2);
     expect(misconceptionItems).toHaveLength(1);
     expect(quiz.questions.some((question) => question.quizPlan?.role === 'admitted-kernel-evidence-analysis')).toBe(
       true,
     );
+    expect(renderedQuestions).not.toContain('Which statement best explains why');
+    expect(renderedQuestions).not.toContain('Which action best applies');
+    expect(new Set(evidenceSignals).size).toBeGreaterThanOrEqual(3);
+  });
+
+  it('does not stamp one fact-projected definition through a complete weekly quiz', () => {
+    const blueprint = buildCourseBlueprint(makeCourseMap(1), {
+      enrichment: {
+        coverage: { requestedLessons: 1, enrichedLessons: 1, missingLessons: [] },
+        stageDecisions: { modelStage: 'ran' },
+        lessonContent: {
+          'lesson-1': {
+            keyTerms: [
+              {
+                term: 'Python',
+                definition: 'Python supports reproducible analysis of large public datasets.',
+                example: 'Pandas data frames preserve labelled rows and columns for inspection.',
+                misconception: 'Python proves every conclusion produced by a script.',
+                correction: 'Python executes the analysis but does not validate the conclusion by itself.',
+              },
+              {
+                term: 'Data cleaning',
+                definition: 'Data cleaning identifies and manages missing or inconsistent observations.',
+                example: 'A cleaning log records every transformation applied to the source data.',
+                misconception: 'Deleting every missing row always improves a public dataset.',
+                correction: 'A missing-data decision must follow the variable meaning and analysis purpose.',
+                source: 'fact-subject-projection',
+              },
+              {
+                term: 'Reproducible notebooks',
+                definition: 'Reproducible notebooks preserve code, outputs, and reasoning in sequence.',
+                example: 'A rerun notebook exposes whether the same inputs produce the reported result.',
+                misconception: 'A notebook is reproducible merely because it contains visible code.',
+                correction: 'Reproducibility also requires stable inputs, dependencies, and execution order.',
+                source: 'fact-subject-projection',
+              },
+            ],
+            kernel: {
+              facts: [
+                'Python supports reproducible analysis of large public datasets.',
+                'Pandas data frames preserve labelled rows and columns for inspection.',
+                'Data cleaning identifies and manages missing or inconsistent observations.',
+                'A cleaning log records every transformation applied to the source data.',
+                'Reproducible notebooks preserve code, outputs, and reasoning in sequence.',
+              ],
+            },
+            studyGuide: {
+              reviewStrategy:
+                'Rehearse Python by explaining why Python supports reproducible analysis of large public datasets.',
+            },
+          },
+        },
+      },
+    });
+
+    const compiled = compileBlueprintDeliverables(blueprint, ['quizBank', 'studyGuides']);
+    const quiz = compiled.quizBank.quizzes[0];
+    const guide = compiled.studyGuides.studyGuides[0];
+    const rendered = JSON.stringify(quiz).toLowerCase();
+    const factCounts = blueprint.lessons[0].enrichment.kernel.facts.map(
+      (fact) => rendered.split(fact.toLowerCase()).length - 1,
+    );
+
+    expect(Math.max(...factCounts)).toBeLessThanOrEqual(10);
+    expect(factCounts.filter((count) => count > 0).length).toBeGreaterThanOrEqual(3);
+    expect(blueprint.lessons[0].enrichment.kernel.facts.filter((fact) => guide.summary.includes(fact))).toHaveLength(3);
+    expect(guide.examPrep.reviewStrategy).not.toContain(blueprint.lessons[0].enrichment.kernel.facts[0]);
   });
 
   it('does not insert a leading article after “the relevant” in synthesized success criteria', () => {
