@@ -213,10 +213,21 @@ export function recomputeAutomatedEvidenceLedger(rules = []) {
   return totals;
 }
 
-function curriculumRule(course, lessonTitles) {
-  const explicitSequence = extractExplicitLessonSequence(course?.prompt || course?.sourceBrief || '');
+function curriculumRule(manifest, course, lessonTitles) {
+  const manifestSequence = Array.isArray(manifest?.generationConstraints?.explicitLessonSequence)
+    ? manifest.generationConstraints.explicitLessonSequence.map((title) => String(title || '').trim()).filter(Boolean)
+    : [];
+  const explicitSequence =
+    manifestSequence.length >= 2
+      ? manifestSequence
+      : extractExplicitLessonSequence(course?.prompt || course?.sourceBrief || '');
   const evidence = [
-    evidenceRef('course.explicit-lesson-sequence', 'PACKAGE_MANIFEST.json', '/course/prompt', explicitSequence),
+    evidenceRef(
+      'course.explicit-lesson-sequence',
+      'PACKAGE_MANIFEST.json',
+      '/generationConstraints/explicitLessonSequence',
+      explicitSequence,
+    ),
     evidenceRef('package.lesson-titles-for-sequence', 'PACKAGE_MANIFEST.json', '/lessons/*/title', lessonTitles),
   ];
   if (explicitSequence.length < 2) {
@@ -494,7 +505,7 @@ export function computeAutomatedReadinessSignal({
     .map((title) => String(title || '').trim())
     .filter(Boolean);
   const rules = [
-    curriculumRule(course, titles),
+    curriculumRule(manifest, course, titles),
     groundingRule(manifest, titles.length),
     textureRule(texture?.score),
     assessmentRule(),

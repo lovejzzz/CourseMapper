@@ -218,6 +218,28 @@ describe('automated readiness signal', () => {
     expect(result.points.unobserved).toBe(65);
   });
 
+  it('scores curriculum fidelity from the exported manifest without retaining the full prompt', () => {
+    const result = computeAutomatedReadinessSignal({
+      manifest: {
+        generationConstraints: { explicitLessonSequence: TITLES },
+        sourceLedger: [],
+      },
+      course: {},
+      lessonTitles: TITLES,
+      conformance: conformance(100),
+      texture: { score: 100 },
+    });
+
+    expect(result.components.curriculumFidelity.status).toBe('evaluated');
+    expect(result.components.curriculumFidelity.points).toEqual({ max: 25, earned: 25, lost: 0, unobserved: 0 });
+    const curriculumLedgerRule = result.ledger.rules.find((rule) => rule.ruleId === 'DPK.CURRICULUM.ORDERED_SEQUENCE');
+    expect(curriculumLedgerRule.evidence[0]).toMatchObject({
+      artifactPath: 'PACKAGE_MANIFEST.json',
+      jsonPointer: '/generationConstraints/explicitLessonSequence',
+      observed: { expectedLessons: TITLES.length, sequence: TITLES },
+    });
+  });
+
   it('discloses deterministic reconstruction as provenance rather than evidence', () => {
     const result = computeAutomatedReadinessSignal({
       manifest: {

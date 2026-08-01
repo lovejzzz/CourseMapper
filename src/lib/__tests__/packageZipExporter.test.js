@@ -732,6 +732,41 @@ describe('packageZipExporter', () => {
     expect(report).toContain('| **overall** | 135 |');
   });
 
+  it('exports the ordered lesson constraint needed to reproduce curriculum scoring offline', async () => {
+    const lessonTitles = [
+      'Python and pandas for public datasets',
+      'Data cleaning, missing values, and reproducible notebooks',
+      'Data visualization with matplotlib for policy audiences',
+      'Correlation versus causation in policy analysis',
+      'Evidence-based policy memo with limitations and recommendations',
+    ];
+    const courseMap = {
+      courseName: 'Python for Public Policy',
+      lessons: lessonTitles.map((title, index) => ({
+        title: `Lesson ${index + 1}: ${title}`,
+        sections: [{ learningObjectives: `Apply ${title}.` }],
+      })),
+    };
+    const coursePrompt =
+      `Beginner undergraduate course: Python for Public Policy. Use this exact five-lesson sequence: ` +
+      lessonTitles.map((title, index) => `${index + 1}) ${title}`).join('; ') +
+      '. Include a CSV public-policy dataset, data dictionary, runnable Jupyter notebook, and Python script.';
+
+    const result = await buildCourseMaterialsZip({
+      courseMap,
+      deliverables: {},
+      featureIds: ['courseMap'],
+      quality: { timeoutMs: 5000, coursePrompt },
+      assembleOnly: true,
+    });
+
+    expect(result.manifest.generationConstraints).toMatchObject({ explicitLessonSequence: lessonTitles });
+    expect(result.quality.readiness.components.curriculumFidelity).toMatchObject({
+      status: 'evaluated',
+      points: { max: 25, earned: 25, lost: 0, unobserved: 0 },
+    });
+  });
+
   it('regrades when a full-course finish receipt is reused for a lesson subset', async () => {
     const courseMap = makeCourseMap('Scope Bound Export Course');
     const full = await buildCourseMaterialsZip({
@@ -2797,6 +2832,16 @@ describe('packageZipExporter', () => {
       expect.arrayContaining(['course-dataset', 'data-dictionary', 'starter-notebook', 'starter-script']),
     );
     expect(zip.file('Required Assets/Python for Public Policy - Required Lab Assets.md')).not.toBeNull();
+    expect(zip.file('Required Assets/policy_outcomes_sample.csv')).not.toBeNull();
+    expect(zip.file('Required Assets/DATA_DICTIONARY.md')).not.toBeNull();
+    expect(zip.file('Required Assets/starter_policy_analysis.ipynb')).not.toBeNull();
+    expect(zip.file('Required Assets/starter_policy_analysis.py')).not.toBeNull();
+    expect(manifest.requiredAssets).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: 'course-dataset', status: 'bundled-starter' }),
+        expect.objectContaining({ id: 'starter-notebook', status: 'bundled-starter' }),
+      ]),
+    );
   });
 
   it('never assumes a quantum-computing course uses Python', async () => {
@@ -3136,13 +3181,22 @@ describe('packageZipExporter', () => {
     expect(report).toContain('Course dataset');
     expect(report).toContain('Starter lab notebook');
     expect(report).toContain('Model card or validation template');
+    expect(report).toContain('Bundled starter assets');
+    expect(report).toContain('Instructor-provided assets still required');
+    expect(zip.file('Required Assets/policy_outcomes_sample.csv')).toBeNull();
+    expect(zip.file('Required Assets/starter_policy_analysis.ipynb')).toBeNull();
+    expect(zip.file('Required Assets/MODEL_CARD_TEMPLATE.md')).not.toBeNull();
 
     const manifest = JSON.parse(await zip.file('PACKAGE_MANIFEST.json').async('string'));
     expect(manifest.requiredAssets).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ id: 'course-dataset', label: 'Course dataset' }),
-        expect.objectContaining({ id: 'starter-notebook', label: 'Starter lab notebook' }),
-        expect.objectContaining({ id: 'model-card-template', label: 'Model card or validation template' }),
+        expect.objectContaining({ id: 'course-dataset', label: 'Course dataset', status: 'unresolved' }),
+        expect.objectContaining({ id: 'starter-notebook', label: 'Starter lab notebook', status: 'unresolved' }),
+        expect.objectContaining({
+          id: 'model-card-template',
+          label: 'Model card or validation template',
+          status: 'bundled-starter',
+        }),
       ]),
     );
   });

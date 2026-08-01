@@ -4321,6 +4321,11 @@ export default function AppFlow({
                     // run in this mounted session, so fall back to state or the
                     // resumed ZIP silently loses its passed export receipt.
                     digest: lastRunDigestRef.current || lastRunDigest,
+                    // The finalizer and ZIP exporter must grade the same
+                    // instructor-authored sequence. Omitting the brief here
+                    // made the downloaded score ledger lose curriculum
+                    // evidence that the workspace had already verified.
+                    coursePrompt: promptText,
                     expectedSessionMinutes,
                   })}
                   reviewQueue={reviewQueue}

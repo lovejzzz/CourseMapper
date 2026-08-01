@@ -22,6 +22,7 @@ import { isAlgiModel } from './algiIdentity.js';
 import { GRADER_VERSION } from './quality/graderVersion.js';
 import { TEXTURE_VERSION } from './quality/textureMetric.js';
 import { verifyScoreLedger } from './quality/scoreLedgerVerifier.js';
+import { extractExplicitLessonSequence } from './explicitLessonSequence.js';
 
 const MIN_EXPORT_BYTES = 128;
 // A full package pass assembles the same DOCX/PPTX/XLSX payload that users
@@ -1772,6 +1773,7 @@ function buildManifest({
   courseName,
   lessonFilter,
   lessonNumbers = null,
+  lessons = [],
   readiness,
   files,
   requestedFeatureIds,
@@ -1806,6 +1808,7 @@ function buildManifest({
       Array.isArray(lessonFilter) || lessonNumbers?.some((number, index) => number !== index + 1)
         ? lessonNumbers || lessonFilter.map((index) => index + 1)
         : 'all',
+    lessons,
     ...(generationConstraints ? { generationConstraints } : {}),
     // v0.12.1: how the content was produced (enrichment / genome linker /
     // plan health) so downloaded packages are auditable without console logs.
@@ -2038,11 +2041,29 @@ export async function buildCourseMaterialsZip({
 
   if (failures.length > 0) throw new PackageZipExportError(failures);
 
-  const { collectRequiredLabAssets, buildRequiredLabAssetsReport, buildPronunciationReference } = await safeImport(
-    () => import('./requiredLabAssets'),
-  );
-  const requiredAssets = collectRequiredLabAssets({ courseMap, deliverables, requestedFeatureIds });
+  const {
+    collectRequiredLabAssets,
+    buildBundledRequiredLabAssets,
+    buildRequiredLabAssetsReport,
+    buildPronunciationReference,
+  } = await safeImport(() => import('./requiredLabAssets'));
+  let requiredAssets = collectRequiredLabAssets({ courseMap, deliverables, requestedFeatureIds });
   if (requiredAssets.length > 0) {
+    const bundledAssets = buildBundledRequiredLabAssets(requiredAssets, { courseName: safeCourseName });
+    const bundledByRequirement = new Map();
+    for (const asset of bundledAssets) {
+      addRequiredFile(zip, files, failures, asset.path, asset.content, {
+        featureId: 'requiredAssets',
+        format: asset.format,
+        minBytes: 32,
+        fileContents,
+      });
+      bundledByRequirement.set(asset.requirementId, asset.path);
+    }
+    requiredAssets = requiredAssets.map((requirement) => {
+      const path = bundledByRequirement.get(requirement.id);
+      return path ? { ...requirement, status: 'bundled-starter', path } : { ...requirement, status: 'unresolved' };
+    });
     const reportPath = `Required Assets/${safeCourseName} - Required Lab Assets.md`;
     const report = buildRequiredLabAssetsReport(requiredAssets, { courseName: safeCourseName });
     addRequiredFile(zip, files, failures, reportPath, report, {
@@ -2246,6 +2267,10 @@ export async function buildCourseMaterialsZip({
     courseName: safeCourseName,
     lessonFilter,
     lessonNumbers,
+    lessons: lessonIndices.map((lessonIndex, index) => ({
+      lessonNumber: lessonNumbers[index],
+      title: String(courseMap?.lessons?.[lessonIndex]?.title || '').trim(),
+    })),
     readiness: effectiveReadiness,
     files,
     requestedFeatureIds,
@@ -2265,9 +2290,15 @@ export async function buildCourseMaterialsZip({
     // the generation run's single-run stash discloses it (cleared each compile).
     voicePass: finalPipelineState?.voicePass || peekVoicePassOutcome(),
     digest: qualityOptions.digest || null,
-    generationConstraints: Number.isFinite(Number(qualityOptions.expectedSessionMinutes))
-      ? { sessionMinutes: Number(qualityOptions.expectedSessionMinutes) }
-      : null,
+    generationConstraints: (() => {
+      const explicitLessonSequence = extractExplicitLessonSequence(qualityOptions.coursePrompt || '');
+      const sessionMinutes = Number(qualityOptions.expectedSessionMinutes);
+      const constraints = {
+        ...(Number.isFinite(sessionMinutes) ? { sessionMinutes } : {}),
+        ...(explicitLessonSequence.length >= 2 ? { explicitLessonSequence } : {}),
+      };
+      return Object.keys(constraints).length > 0 ? constraints : null;
+    })(),
     evidenceDependencies,
   });
 

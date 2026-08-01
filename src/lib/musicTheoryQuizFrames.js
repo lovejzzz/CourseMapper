@@ -156,7 +156,7 @@ export function disciplineSafeReadingsForLesson(lesson = {}, readings = []) {
       MUSIC_INTERVAL_GENERIC_MATERIAL_RE.test(text)
     );
   });
-  if (safe.length === 0) return ['Class notes and assigned source materials'];
+  if (safe.length === 0) return ['Instructor notes and in-class materials'];
   return safe.length === readings.length ? readings : safe;
 }
 

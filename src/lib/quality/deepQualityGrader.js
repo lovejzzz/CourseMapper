@@ -3882,10 +3882,16 @@ export async function grade({
   if (stats.p0 > 0) overallScore = Math.min(overallScore, 74);
   else if (stats.p1 > 0) overallScore = Math.min(overallScore, 89);
 
-  const exportedLessonTitles = [...lessonTitles.entries()]
-    .sort(([left], [right]) => Number(left) - Number(right))
-    .map(([, entries]) => entries?.[0]?.title)
+  const manifestLessonTitles = (Array.isArray(pkg.manifest?.lessons) ? pkg.manifest.lessons : [])
+    .map((lesson) => String(lesson?.title || '').trim())
     .filter(Boolean);
+  const exportedLessonTitles =
+    manifestLessonTitles.length > 0
+      ? manifestLessonTitles
+      : [...lessonTitles.entries()]
+          .sort(([left], [right]) => Number(left) - Number(right))
+          .map(([, entries]) => entries?.[0]?.title)
+          .filter(Boolean);
   const conformance = {
     scores,
     grades,

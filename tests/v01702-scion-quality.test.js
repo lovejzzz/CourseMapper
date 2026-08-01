@@ -32,6 +32,11 @@ function qualityCourseMap() {
 }
 
 describe('v0.17.02 Scion output-quality contracts', () => {
+  it('carries the instructor brief from finalize grading into ZIP grading', () => {
+    const appFlowSource = readFileSync('src/AppFlow.jsx', 'utf8');
+    expect(appFlowSource).toMatch(/getQualityContext=\{\(\) => \(\{[\s\S]*coursePrompt:\s*promptText/);
+  });
+
   it('uses one exact quiz target from prompt planning through deterministic compilation and readiness', () => {
     const courseMap = qualityCourseMap();
     const blueprint = buildCourseBlueprint(courseMap);

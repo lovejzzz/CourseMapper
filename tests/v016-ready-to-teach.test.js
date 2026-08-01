@@ -296,7 +296,7 @@ describe('A1 — subject-safe deterministic fallback', () => {
       disciplineSafeReadingsForLesson(lesson, [
         'Immunogenicity of standard and extended dosing intervals of BNT162b2 mRNA vaccine',
       ]),
-    ).toEqual(['Class notes and assigned source materials']);
+    ).toEqual(['Instructor notes and in-class materials']);
   });
 
   it('keeps admitted atoms but source-binds every empty quiz slot and missing lesson in a partial run', () => {

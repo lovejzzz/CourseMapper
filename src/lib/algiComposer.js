@@ -83,6 +83,21 @@ export function extractCourseName(source) {
     const value = clamp(labelled.replace(/^(course|title)\s*[:\-—]\s*/i, ''), MAX_COURSE_NAME, 3);
     if (value) return value;
   }
+  const describedCourse = lines.find((line) =>
+    /^(?:(?:beginner|introductory|intermediate|advanced|undergraduate|graduate|doctoral|professional)\s+){0,4}(?:course|class|seminar|studio|workshop)\s*[:\-—]/i.test(
+      line,
+    ),
+  );
+  if (describedCourse) {
+    const descriptionPrefix =
+      /^(?:(?:beginner|introductory|intermediate|advanced|undergraduate|graduate|doctoral|professional)\s+){0,4}(?:course|class|seminar|studio|workshop)\s*[:\-—]\s*/i;
+    const candidate = describedCourse
+      .replace(descriptionPrefix, '')
+      .split(/\.\s+(?=(?:use|include|generate|create|build|compose|design|make|produce)\b)/i)[0]
+      .trim();
+    const value = clamp(candidate, MAX_COURSE_NAME, 3);
+    if (value) return value;
+  }
   for (const line of lines) {
     if (/^(week|lesson|session|unit|module)\b/i.test(line)) break;
     const briefDivider =

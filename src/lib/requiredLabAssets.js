@@ -310,6 +310,242 @@ export function collectRequiredLabAssets({ courseMap }) {
   }
 }
 
+const SYNTHETIC_POLICY_DATASET = [
+  'jurisdiction,year,program_participation,baseline_index,outcome_index,reported_missing',
+  'District A,2022,120,48.2,51.4,false',
+  'District A,2023,138,49.1,53.0,false',
+  'District A,2024,151,50.0,54.2,false',
+  'District B,2022,98,46.7,47.9,false',
+  'District B,2023,104,47.3,,true',
+  'District B,2024,117,48.4,50.1,false',
+  'District C,2022,143,52.0,52.8,false',
+  'District C,2023,149,51.6,53.1,false',
+  'District C,2024,162,52.4,54.0,false',
+  'District D,2022,87,44.8,46.2,false',
+  'District D,2023,93,45.4,47.0,false',
+  'District D,2024,101,46.1,48.3,false',
+].join('\n');
+
+function policyDataDictionary(courseName) {
+  return [
+    '# Synthetic Policy Outcomes Dataset',
+    '',
+    `Starter data for ${courseName || 'this course'}.`,
+    '',
+    '> This is a synthetic instructional dataset. It does not describe real jurisdictions, programs, people, or policy effects and must not be cited as empirical evidence.',
+    '',
+    '| Field | Type | Meaning |',
+    '| --- | --- | --- |',
+    '| jurisdiction | text | Fictional district label used for grouping. |',
+    '| year | integer | Synthetic reporting year. |',
+    '| program_participation | integer | Constructed participation count. |',
+    '| baseline_index | decimal | Constructed pre-program comparison index. |',
+    '| outcome_index | decimal / missing | Constructed outcome index; one value is intentionally missing for cleaning practice. |',
+    '| reported_missing | boolean | Whether the outcome value was deliberately omitted. |',
+    '',
+    '## Intended use',
+    '',
+    '- Practice loading, validating, cleaning, summarizing, and visualizing tabular data.',
+    '- Discuss why descriptive associations do not establish a causal policy effect.',
+    '- Replace this scaffold with an instructor-approved public dataset before making real policy claims.',
+    '',
+    'License: CC0 for this synthetic scaffold.',
+  ].join('\n');
+}
+
+function starterNotebook(courseName) {
+  return JSON.stringify(
+    {
+      cells: [
+        {
+          cell_type: 'markdown',
+          metadata: {},
+          source: [
+            `# ${courseName || 'Policy analysis'} starter notebook\n`,
+            '\n',
+            '**Evidence boundary:** the bundled CSV is synthetic. Use it to practice the workflow, not to make real policy claims.',
+          ],
+        },
+        {
+          cell_type: 'code',
+          execution_count: null,
+          metadata: {},
+          outputs: [],
+          source: [
+            'from pathlib import Path\n',
+            'import pandas as pd\n',
+            'import matplotlib.pyplot as plt\n',
+            '\n',
+            'DATA_PATH = Path("policy_outcomes_sample.csv")\n',
+            'df = pd.read_csv(DATA_PATH)\n',
+            'df.head()',
+          ],
+        },
+        {
+          cell_type: 'code',
+          execution_count: null,
+          metadata: {},
+          outputs: [],
+          source: [
+            '# Inspect types and missingness before changing the data.\n',
+            'display(df.dtypes)\n',
+            'display(df.isna().sum())',
+          ],
+        },
+        {
+          cell_type: 'code',
+          execution_count: null,
+          metadata: {},
+          outputs: [],
+          source: [
+            '# Keep the missing observation visible; summarize only observed outcomes.\n',
+            'summary = df.groupby("jurisdiction", as_index=False).agg(\n',
+            '    participation=("program_participation", "mean"),\n',
+            '    observed_outcome=("outcome_index", "mean"),\n',
+            ')\n',
+            'summary',
+          ],
+        },
+        {
+          cell_type: 'code',
+          execution_count: null,
+          metadata: {},
+          outputs: [],
+          source: [
+            'ax = summary.plot.bar(x="jurisdiction", y="observed_outcome", legend=False)\n',
+            'ax.set_ylabel("Synthetic outcome index")\n',
+            'ax.set_title("Descriptive comparison — not a causal estimate")\n',
+            'plt.tight_layout()',
+          ],
+        },
+        {
+          cell_type: 'markdown',
+          metadata: {},
+          source: [
+            '## Interpretation checkpoint\n',
+            '\n',
+            'Write one descriptive finding, one limitation, and one additional piece of evidence needed before recommending a policy action.',
+          ],
+        },
+      ],
+      metadata: {
+        kernelspec: { display_name: 'Python 3', language: 'python', name: 'python3' },
+        language_info: { name: 'python', version: '3' },
+      },
+      nbformat: 4,
+      nbformat_minor: 5,
+    },
+    null,
+    2,
+  );
+}
+
+const STARTER_POLICY_SCRIPT = [
+  '"""Summarize the bundled synthetic policy dataset.',
+  '',
+  'The data are instructional only and cannot support real policy claims.',
+  '"""',
+  'from pathlib import Path',
+  '',
+  'import pandas as pd',
+  '',
+  'DATA_PATH = Path(__file__).with_name("policy_outcomes_sample.csv")',
+  '',
+  '',
+  'def main() -> None:',
+  '    data = pd.read_csv(DATA_PATH)',
+  '    print("Missing values by field:")',
+  '    print(data.isna().sum().to_string())',
+  '    print("\\nObserved outcome means by jurisdiction:")',
+  '    print(data.groupby("jurisdiction")["outcome_index"].mean().round(2).to_string())',
+  '',
+  '',
+  'if __name__ == "__main__":',
+  '    main()',
+  '',
+].join('\n');
+
+function modelCardTemplate(courseName) {
+  return [
+    '# Model / Analysis Card',
+    '',
+    `Course: ${courseName || 'Course'}`,
+    '',
+    '## Intended decision and non-goals',
+    '- Intended use:',
+    '- Decisions this analysis must not make:',
+    '',
+    '## Data and provenance',
+    '- Dataset owner and license:',
+    '- Population and time period:',
+    '- Missingness and exclusions:',
+    '',
+    '## Evaluation',
+    '- Metric and why it fits the decision:',
+    '- Baseline or comparison:',
+    '- Subgroup or equity checks:',
+    '',
+    '## Limitations and review',
+    '- Known limitations:',
+    '- Human review required before use:',
+  ].join('\n');
+}
+
+/**
+ * Deterministic starter files for computational requirements the exporter can
+ * satisfy honestly. Physical kits, licensed readings, and institution-owned
+ * resources remain unresolved requirements and are never fabricated.
+ */
+export function buildBundledRequiredLabAssets(requirements = [], { courseName = 'Course' } = {}) {
+  const requestedIds = new Set((Array.isArray(requirements) ? requirements : []).map((item) => item?.id));
+  const assets = [];
+  // The bundled dataset encodes a public-policy exercise. Do not silently put
+  // that domain-specific scaffold into an unrelated machine-learning or data
+  // course merely because both require a CSV and notebook.
+  const supportsPolicyStarter = /\b(?:policy|public administration|civic|government)\b/i.test(courseName);
+  if (supportsPolicyStarter && requestedIds.has('course-dataset')) {
+    assets.push({
+      requirementId: 'course-dataset',
+      path: 'Required Assets/policy_outcomes_sample.csv',
+      format: 'csv',
+      content: `${SYNTHETIC_POLICY_DATASET}\n`,
+    });
+  }
+  if (supportsPolicyStarter && requestedIds.has('data-dictionary')) {
+    assets.push({
+      requirementId: 'data-dictionary',
+      path: 'Required Assets/DATA_DICTIONARY.md',
+      format: 'md',
+      content: policyDataDictionary(courseName),
+    });
+  }
+  if (supportsPolicyStarter && requestedIds.has('starter-notebook')) {
+    assets.push({
+      requirementId: 'starter-notebook',
+      path: 'Required Assets/starter_policy_analysis.ipynb',
+      format: 'ipynb',
+      content: starterNotebook(courseName),
+    });
+  }
+  if (supportsPolicyStarter && requestedIds.has('starter-script')) {
+    assets.push({
+      requirementId: 'starter-script',
+      path: 'Required Assets/starter_policy_analysis.py',
+      format: 'py',
+      content: STARTER_POLICY_SCRIPT,
+    });
+  }
+  if (requestedIds.has('model-card-template')) {
+    assets.push({
+      requirementId: 'model-card-template',
+      path: 'Required Assets/MODEL_CARD_TEMPLATE.md',
+      format: 'md',
+      content: modelCardTemplate(courseName),
+    });
+  }
+  return assets;
+}
+
 // ── v0.14.5 (F1): generated pronunciation reference for language courses ────
 // Language-genre packages gain a generated markdown asset built from data the
 // package already carries: the compiled study guides' key terms, whose
@@ -438,18 +674,41 @@ export function buildPronunciationReference({ courseMap, deliverables } = {}) {
 }
 
 export function buildRequiredLabAssetsReport(requirements, { courseName }) {
+  const bundled = requirements.filter((requirement) => requirement?.status === 'bundled-starter');
+  const unresolved = requirements.filter((requirement) => requirement?.status !== 'bundled-starter');
   const lines = [
     '# Required Lab Assets',
     '',
-    `${courseName} references course assets that are not bundled as generated Office documents.`,
-    'Attach or replace these assets before teaching or publishing the lessons that depend on them.',
+    `${courseName} uses the computational or physical assets listed below.`,
     '',
-    ...requirements.flatMap((requirement) => [
-      `- ${requirement.label} (${requirement.formats.join(', ')})`,
-      `  ${requirement.note}`,
-    ]),
+    ...(bundled.length > 0
+      ? [
+          '## Bundled starter assets',
+          '',
+          ...bundled.flatMap((requirement) => [
+            `- ${requirement.label}: \`${requirement.path}\``,
+            `  ${requirement.note}`,
+          ]),
+          '',
+          'Bundled computational files are transparent starter scaffolds. Replace the synthetic dataset with an instructor-approved source before making real-world claims.',
+          '',
+        ]
+      : []),
+    ...(unresolved.length > 0
+      ? [
+          '## Instructor-provided assets still required',
+          '',
+          ...unresolved.flatMap((requirement) => [
+            `- ${requirement.label} (${requirement.formats.join(', ')})`,
+            `  ${requirement.note}`,
+          ]),
+          '',
+          'Attach or replace these assets before teaching or publishing the lessons that depend on them.',
+          '',
+        ]
+      : []),
     '',
-    'This marker is included so kits, datasets, templates, and other non-generated materials are visible package dependencies rather than hidden assumptions.',
+    'This handoff keeps bundled starter files and unresolved instructor dependencies visibly distinct.',
   ];
   return lines.join('\n');
 }

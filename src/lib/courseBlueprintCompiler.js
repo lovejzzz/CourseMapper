@@ -759,7 +759,7 @@ function compactList(values, fallback = 'source evidence', limit = 3) {
   return items.length > 0 ? items.join(', ') : fallback;
 }
 
-function compactSourceCue(value, fallback = 'assigned source materials', maxWords = 6) {
+function compactSourceCue(value, fallback = 'instructor notes and in-class materials', maxWords = 6) {
   const text = stripTerminalPunctuation(cleanText(value, fallback));
   if (!text) return fallback;
   if (isPromptArtifactEvidenceCue(text) || isCompactNumberedArtifactList(text) || isUnsafeSourceCuePhrase(text)) {
@@ -4882,7 +4882,7 @@ function buildSourceUsePlan({ title, concepts, resources, evidencePlan, artifact
   const approvedSources =
     Array.isArray(resources) && resources.length > 0
       ? resources.slice(0, 4)
-      : ['Class notes and assigned source materials'];
+      : ['Instructor notes and in-class materials'];
   return {
     approvedSources,
     citationExpectation: lessonVariant(lessonStubFromTitle(title, artifactName), [
@@ -12424,7 +12424,7 @@ function deriveRoutineFieldsForLesson(lesson = {}, index = 0, context = {}) {
   const rawCandidateReadings =
     Array.isArray(lesson.readings) && lesson.readings.length > 0
       ? lesson.readings
-      : ['Class notes and assigned source materials'];
+      : ['Instructor notes and in-class materials'];
   const readingFallback = `the assigned course materials for ${stripLessonPrefix(title)}`;
   const normalizedReadingCues = unique(
     rawCandidateReadings
@@ -14304,7 +14304,7 @@ function extractLessonBlueprint(
     sourceAnchor(
       'resources',
       hasResources ? 'course-map' : 'compiler-inferred',
-      resources.join('; ') || 'Class notes and assigned source materials',
+      resources.join('; ') || 'Instructor notes and in-class materials',
       confidence.fields.resources.confidence,
     ),
   ];
@@ -14326,7 +14326,7 @@ function extractLessonBlueprint(
   const evidencePlan = buildEvidencePlan({
     title,
     concepts: keyConcepts,
-    resources: resources.length > 0 ? resources : ['Class notes and assigned source materials'],
+    resources: resources.length > 0 ? resources : ['Instructor notes and in-class materials'],
     activities,
     artifact: studentArtifact,
     protectedSourceCue: registryReadingTitles[0] || '',
@@ -14334,7 +14334,7 @@ function extractLessonBlueprint(
   const sourceUsePlan = buildSourceUsePlan({
     title,
     concepts: keyConcepts,
-    resources: resources.length > 0 ? resources : ['Class notes and assigned source materials'],
+    resources: resources.length > 0 ? resources : ['Instructor notes and in-class materials'],
     evidencePlan,
     artifact: studentArtifact,
     protectedSourceCue: registryReadingTitles[0] || '',
@@ -14382,7 +14382,7 @@ function extractLessonBlueprint(
     activities.join('; '),
     `Concept model, applied practice, peer discussion, and individual reflection for ${stripLessonPrefix(title)}.`,
   );
-  const readings = resources.length > 0 ? resources : ['Class notes and assigned source materials'];
+  const readings = resources.length > 0 ? resources : ['Instructor notes and in-class materials'];
   const sourceEvidenceTrace = buildSourceEvidenceTrace({
     lessonNumber,
     title,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { collectRequiredLabAssets } from '../requiredLabAssets';
+import { buildBundledRequiredLabAssets, collectRequiredLabAssets } from '../requiredLabAssets';
 
 describe('collectRequiredLabAssets', () => {
   it('does not infer lab assets for non-data courses from generated deliverable wording', () => {
@@ -59,6 +59,9 @@ describe('collectRequiredLabAssets', () => {
     expect(requirements.map((item) => item.id)).toEqual(
       expect.arrayContaining(['course-dataset', 'data-dictionary', 'starter-notebook', 'model-card-template']),
     );
+    const bundled = buildBundledRequiredLabAssets(requirements, { courseName: 'Applied Machine Learning' });
+    expect(bundled.map((asset) => asset.requirementId)).toEqual(['model-card-template']);
+    expect(bundled.map((asset) => asset.path).join(' ')).not.toMatch(/policy|outcomes_sample/i);
   });
 
   it('requires datasets and notebooks for a Python/pandas policy-analysis course', () => {
@@ -76,6 +79,18 @@ describe('collectRequiredLabAssets', () => {
     expect(requirements.map((item) => item.id)).toEqual(
       expect.arrayContaining(['course-dataset', 'data-dictionary', 'starter-notebook', 'starter-script']),
     );
+
+    const bundled = buildBundledRequiredLabAssets(requirements, { courseName: 'Python for Public Policy' });
+    expect(bundled.map((asset) => asset.path)).toEqual(
+      expect.arrayContaining([
+        'Required Assets/policy_outcomes_sample.csv',
+        'Required Assets/DATA_DICTIONARY.md',
+        'Required Assets/starter_policy_analysis.ipynb',
+        'Required Assets/starter_policy_analysis.py',
+      ]),
+    );
+    expect(JSON.parse(bundled.find((asset) => asset.format === 'ipynb').content).nbformat).toBe(4);
+    expect(bundled.find((asset) => asset.format === 'csv').content).toContain('reported_missing');
   });
 
   it('does not treat computational Linear Algebra labs as physical wet-lab work', () => {

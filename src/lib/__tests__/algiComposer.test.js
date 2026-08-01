@@ -149,6 +149,14 @@ describe('Algi V0 prompt reading', () => {
       ),
     ).toBe('Digital Accessibility for Product Teams');
   });
+
+  it('stops a described course title before the next brief command', () => {
+    expect(
+      extractCourseName(
+        'Beginner undergraduate course: Python for Public Policy. Use this exact five-lesson sequence: 1) Python and pandas; 2) Data cleaning.',
+      ),
+    ).toBe('Python for Public Policy');
+  });
 });
 
 describe('Algi V0 skeleton composition', () => {
