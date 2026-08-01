@@ -55,18 +55,27 @@ const KNOWN_OFFENDER_PATTERNS = [
 const OFFENDER_SCOPE_HINTS = [
   [/mnist|document recognition/, ['vision', 'recognition', 'digit', 'handwriting']],
   [/cancer statistics/, ['cancer', 'oncology', 'tumor', 'tumour']],
-  [/quantum espresso|shelx/, ['quantum', 'materials', 'crystallography', 'crystal', 'chemistry', 'physics']],
-  [/prisma/, ['systematic', 'synthesis', 'meta-analysis', 'metaanalysis']],
+  [/quantum espresso|shelx/, ['quantum', 'materials science', 'crystallography', 'crystal', 'chemistry', 'physics']],
+  [/prisma/, ['systematic', 'synthesis', 'syntheses', 'meta-analysis', 'meta-analyses', 'metaanalysis']],
   [/r:\s*a language/, ['programming', 'rstats']],
   [/lowry|protein measurement/, ['protein', 'biochemistry', 'biochemical', 'assay']],
-  [/xgboost|gradient boosting/, ['boosting', 'classification', 'regression']],
-  [/imagej|molecule archive/, ['microscopy', 'bioimage', 'scijava', 'molecule']],
-  [/\bfsl\b/, ['neuroimaging', 'neuroscience', 'brain']],
+  [
+    /xgboost|gradient boosting/,
+    ['boosting', 'classification', 'regression', 'machine learning foundation', 'applied machine learning'],
+  ],
+  [
+    /imagej|molecule archive/,
+    ['microscopy', 'bioimage', 'scijava', 'molecule', 'biomedical image', 'bioimage analysis'],
+  ],
+  [/\bfsl\b/, ['neuroimaging', 'neuroscience', 'brain', 'brain imaging']],
   [/pascal voc|iot vision/, ['vision', 'detection', 'imaging', 'iot', 'robotics']],
-  [/data clustering/, ['clustering', 'cluster', 'unsupervised', 'segmentation']],
-  [/nia-aa|alzheimer/, ['alzheimer', 'dementia', 'neurology', 'gerontology']],
-  [/hypertension/, ['hypertension', 'cardiovascular']],
-  [/ces-d/, ['depression', 'depressive']],
+  [/data clustering/, ['clustering', 'cluster', 'unsupervised', 'segmentation', 'machine learning foundation']],
+  [
+    /nia-aa|alzheimer/,
+    ['alzheimer', 'dementia', 'neurology', 'gerontology', 'cognitive aging', 'cognitive neuroscience'],
+  ],
+  [/hypertension/, ['hypertension', 'cardiovascular', 'blood pressure']],
+  [/ces-d/, ['depression', 'depressive', 'mental health']],
 ];
 
 const CALIBRATED_OFFENDER_SCOPE_HINTS = OFFENDER_SCOPE_HINTS.map(([pattern, hints]) => [
@@ -92,7 +101,18 @@ export function matchesKnownOffender(title) {
 export function knownOffenderFitsScope(offender, conceptTokenSet) {
   const normalized = String(offender || '').toLowerCase();
   const inputTokens = conceptTokenSet instanceof Set ? [...conceptTokenSet] : conceptTokenSet || [];
-  const tokens = new Set(inputTokens.flatMap((token) => semanticIdentityTokens(token)));
+  // Callers pass token sets produced by several established tokenizers. Keep
+  // their existing identities as well as the shared semantic normalization:
+  // re-stemming an already stemmed plural (for example `analys`) is not
+  // idempotent and would otherwise erase a valid calibrated match.
+  const tokens = new Set(
+    inputTokens.flatMap((token) => {
+      const literal = String(token || '')
+        .trim()
+        .toLowerCase();
+      return literal ? [literal, ...semanticIdentityTokens(literal)] : [];
+    }),
+  );
   const row = CALIBRATED_OFFENDER_SCOPE_HINTS.find(([pattern]) => pattern.test(normalized));
   if (!row) return false;
   return row[1].some((hintTokens) => hintTokens.every((token) => tokens.has(token)));
@@ -146,8 +166,8 @@ const OFFENDER_YIELD_GENERIC_TOKENS = new Set(
 
 for (const [, hints] of CALIBRATED_OFFENDER_SCOPE_HINTS) {
   for (const hintTokens of hints) {
-    if (hintTokens.length === 1 && OFFENDER_YIELD_GENERIC_TOKENS.has(hintTokens[0])) {
-      throw new Error(`Known-offender scope hint cannot be generic: ${hintTokens[0]}`);
+    if (hintTokens.every((token) => OFFENDER_YIELD_GENERIC_TOKENS.has(token))) {
+      throw new Error(`Known-offender scope hint cannot be entirely generic: ${hintTokens.join(' ')}`);
     }
   }
 }

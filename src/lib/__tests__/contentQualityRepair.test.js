@@ -10,10 +10,17 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
 
     expect(knownOffenderFitsScope('PRISMA', scope('Systematic Review Methods'))).toBe(true);
     expect(knownOffenderFitsScope('PRISMA', scope('Meta-Analysis Methods'))).toBe(true);
+    expect(knownOffenderFitsScope('PRISMA', scope('Meta-Analyses Methods'))).toBe(true);
+    expect(knownOffenderFitsScope('PRISMA', scope('Evidence Syntheses in Public Health'))).toBe(true);
     expect(knownOffenderFitsScope('PRISMA', scope('Python for Public Policy Analysis'))).toBe(false);
     expect(knownOffenderFitsScope('R: A Language', scope('R Programming'))).toBe(true);
     expect(knownOffenderFitsScope('R: A Language', scope('Computing Ethics'))).toBe(false);
     expect(knownOffenderFitsScope('MNIST', scope('Machine Learning Policy'))).toBe(false);
+    expect(knownOffenderFitsScope('XGBoost', scope('Machine Learning Foundations'))).toBe(true);
+    expect(knownOffenderFitsScope('ImageJ', scope('Biomedical Image Analysis'))).toBe(true);
+    expect(knownOffenderFitsScope('ImageJ', scope('Image Policy'))).toBe(false);
+    expect(knownOffenderFitsScope('CES-D', scope('Mental Health Screening'))).toBe(true);
+    expect(knownOffenderFitsScope('CES-D', scope('Psychology Policy'))).toBe(false);
   });
 
   it('fixes every mechanical finding class so the detector passes afterwards', () => {
@@ -156,6 +163,11 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
     });
     expect(imageCourse.changed).toBe(false);
 
+    const biomedicalImageCourse = repairDeliverableContentQuality('slideDecks', data, {
+      courseName: 'Biomedical Image Analysis',
+    });
+    expect(biomedicalImageCourse.changed).toBe(false);
+
     const explicitlyRequested = repairDeliverableContentQuality('slideDecks', data, {
       courseName: 'Biomedical Imaging Studio',
       sourceBrief: 'Teach ImageJ2 workflows and require students to compare Molecule Archives.',
@@ -175,6 +187,20 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
       { courseName: 'Meta-Analysis Methods' },
     );
     expect(metaAnalysisCourse.changed).toBe(false);
+
+    const metaAnalysesCourse = repairDeliverableContentQuality(
+      'studyGuides',
+      { reviewNotes: ['Use PRISMA to report the evidence synthesis.'] },
+      { courseName: 'Meta-Analyses Methods' },
+    );
+    expect(metaAnalysesCourse.changed).toBe(false);
+
+    const evidenceSynthesesCourse = repairDeliverableContentQuality(
+      'studyGuides',
+      { reviewNotes: ['Use PRISMA to report the evidence synthesis.'] },
+      { courseName: 'Evidence Syntheses in Public Health' },
+    );
+    expect(evidenceSynthesesCourse.changed).toBe(false);
 
     const policyAnalysisCourse = repairDeliverableContentQuality(
       'studyGuides',
@@ -199,6 +225,20 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
     );
     expect(machineLearningPolicyCourse.changed).toBe(true);
     expect(JSON.stringify(machineLearningPolicyCourse.data)).not.toMatch(/MNIST/i);
+
+    const machineLearningFoundationsCourse = repairDeliverableContentQuality(
+      'studyGuides',
+      { reviewNotes: ['Use XGBoost to compare boosted classification models.'] },
+      { courseName: 'Machine Learning Foundations' },
+    );
+    expect(machineLearningFoundationsCourse.changed).toBe(false);
+
+    const mentalHealthCourse = repairDeliverableContentQuality(
+      'studyGuides',
+      { reviewNotes: ['Use CES-D as a depression screening measure.'] },
+      { courseName: 'Mental Health Screening' },
+    );
+    expect(mentalHealthCourse.changed).toBe(false);
 
     const artHistoryCourse = repairDeliverableContentQuality(
       'studyGuides',

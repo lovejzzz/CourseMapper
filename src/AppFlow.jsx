@@ -15,8 +15,8 @@ import UserMenu from './components/UserMenu';
 const Config = lazy(() => import('./screens/Config'));
 const FeatureSelect = lazy(() => import('./screens/FeatureSelect'));
 const CourseMapPreview = lazy(() => import('./components/CourseMapPreview'));
-const WorkspaceQualityChip = lazy(() => import('./components/WorkspaceQualityChip'));
 const ChatPanel = lazy(() => import('./components/chat/ChatPanel'));
+const AgentQualityControl = lazy(() => import('./components/chat/AgentQualityControl'));
 const ResizeHandle = lazy(() => import('./components/chat/ResizeHandle'));
 const DeliverableView = lazy(() => import('./components/DeliverableView'));
 const DependencyMap = lazy(() => import('./components/DependencyMap'));
@@ -3271,20 +3271,6 @@ export default function AppFlow({
                     />
                   </div>
                 </div>
-                {/* v0.14.4 WS-B2: the package grade in the crown — primary
-                    placement, immediately right of the title cluster. Click
-                    opens the findings modal hosted by ExportSidePanel; on
-                    mobile the export view is brought forward first so the
-                    modal's subtree is visible. */}
-                <Suspense fallback={null}>
-                  <WorkspaceQualityChip
-                    packageQualityPass={packageQualityPass}
-                    onOpenReport={() => {
-                      setMobileWorkspaceView('export');
-                      setQualityReportOpen(true);
-                    }}
-                  />
-                </Suspense>
               </div>
 
               <div className="flex min-w-0 flex-wrap items-center gap-2">
@@ -4001,6 +3987,15 @@ export default function AppFlow({
               className={`workspace-chat-panel min-w-0 ${mobileWorkspaceView === 'agent' ? 'block' : 'hidden'} xl:block xl:flex-shrink-0 xl:sticky xl:top-4`}
               style={{ '--workspace-chat-width': `${chatWidth}px` }}
             >
+              {packageQualityPass?.quality && (
+                <Suspense fallback={null}>
+                  <AgentQualityControl
+                    quality={packageQualityPass.quality}
+                    trustStatus={packageTrustStatus}
+                    onOpen={() => setQualityReportOpen(true)}
+                  />
+                </Suspense>
+              )}
               <ErrorBoundary>
                 <ChatPanel
                   viewportRef={viewportRef}
