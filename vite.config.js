@@ -44,6 +44,7 @@ export default defineConfig({
             return 'courseMapContinuation';
           }
           if (/src\/lib\/workspaceSaveStatus\.js$/.test(id)) return 'workspaceSaveStatus';
+          if (/src\/components\/PackageTrustStrip\.jsx$/.test(id)) return 'packageTrustStrip';
           if (/src\/lib\/notifyDone\.js$/.test(id)) return 'workspaceNotification';
           if (/src\/lib\/agentEvidenceCards\.js$/.test(id)) return 'agentEvidenceCards';
           if (/src\/components\/deliverables\/shared\/lessonGrouping\.js$/.test(id)) {

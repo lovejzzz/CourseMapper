@@ -3987,15 +3987,11 @@ export default function AppFlow({
               className={`workspace-chat-panel min-w-0 ${mobileWorkspaceView === 'agent' ? 'block' : 'hidden'} xl:block xl:flex-shrink-0 xl:sticky xl:top-4`}
               style={{ '--workspace-chat-width': `${chatWidth}px` }}
             >
-              {packageQualityPass?.quality && (
-                <Suspense fallback={null}>
-                  <AgentQualityControl
-                    quality={packageQualityPass.quality}
-                    trustStatus={packageTrustStatus}
-                    onOpen={() => setQualityReportOpen(true)}
-                  />
-                </Suspense>
-              )}
+              <AgentQualityControl
+                quality={packageQualityPass?.quality}
+                trustStatus={packageTrustStatus}
+                onOpen={setQualityReportOpen}
+              />
               <ErrorBoundary>
                 <ChatPanel
                   viewportRef={viewportRef}

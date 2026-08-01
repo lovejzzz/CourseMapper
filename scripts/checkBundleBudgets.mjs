@@ -249,6 +249,11 @@ const lazyChunkBudgets = [
   // leaf, reducing AppFlow without adding another request. V0.16.97 measures
   // 1.4/0.7 KiB on Linux/Node 22; the aggregate route bytes do not increase.
   { prefix: 'workspaceSaveStatus-', rawKiB: 2, gzipKiB: 1 },
+  // The calm workspace trust receipt changes independently from the route
+  // shell and is already needed only after AppFlow loads. Keep it as a small
+  // static dependency of that route instead of spending the route's Linux
+  // compressor margin on presentation-only copy.
+  { prefix: 'packageTrustStrip-', rawKiB: 4, gzipKiB: 2 },
   // Completion notifications and registry-scale grouping are pure,
   // independently cacheable workspace leaves.
   { prefix: 'workspaceNotification-', rawKiB: 2, gzipKiB: 1 },
