@@ -11,7 +11,7 @@ export const AUTOMATED_READINESS_ATTAINABLE_MAX = 100;
 export const AUTOMATED_READINESS_CLAIM_BOUNDARY =
   'This deterministic evidence score is not a readiness probability. It cannot prove factual accuracy, teachability, accessibility, or instructor validation.';
 
-const RULE_VERSION = '1.0.0';
+export const AUTOMATED_EVIDENCE_RULE_VERSION = '1.0.0';
 const COMPONENT_WEIGHTS = {
   curriculumFidelity: 25,
   evidenceGrounding: 25,
@@ -20,7 +20,7 @@ const COMPONENT_WEIGHTS = {
   packageIntegrity: 15,
 };
 
-const COMPONENT_LABELS = {
+export const AUTOMATED_EVIDENCE_COMPONENT_LABELS = {
   curriculumFidelity: 'Ordered lesson-title sequence match',
   evidenceGrounding: 'Rendered claim support',
   instructionalTexture: 'Masked visible-unit variation',
@@ -28,13 +28,55 @@ const COMPONENT_LABELS = {
   packageIntegrity: 'Encoded package-defect conformance',
 };
 
-const RULE_POLARITY = {
-  'DPK.CURRICULUM.ORDERED_SEQUENCE': 'positive-metric',
-  'DPK.EVIDENCE.RENDERED_CLAIM_SUPPORT': 'unobserved',
-  'DPK.INSTRUCTION.TEXTURE': 'positive-metric',
-  'DPK.ASSESSMENT.COHERENCE': 'unobserved',
-  'DPK.PACKAGE.INTEGRITY': 'negative-evidence-only',
-};
+export const AUTOMATED_EVIDENCE_RULE_CONTRACTS = Object.freeze([
+  {
+    ruleId: 'DPK.CURRICULUM.ORDERED_SEQUENCE',
+    constructId: 'curriculumFidelity',
+    max: 25,
+    evaluatedPolarity: 'positive-metric',
+    predicateOperator: 'weighted-ordered-coverage',
+    evidence: [
+      ['course.explicit-lesson-sequence', 'PACKAGE_MANIFEST.json', '/generationConstraints/explicitLessonSequence'],
+      ['package.lesson-titles-for-sequence', 'PACKAGE_MANIFEST.json', '/lessons/*/title'],
+    ],
+  },
+  {
+    ruleId: 'DPK.EVIDENCE.RENDERED_CLAIM_SUPPORT',
+    constructId: 'evidenceGrounding',
+    max: 25,
+    evaluatedPolarity: null,
+    predicateOperator: 'rendered-claim-to-source-entailment',
+    evidence: [['package.source-support-receipts', 'PACKAGE_MANIFEST.json', '/sourceLedger']],
+  },
+  {
+    ruleId: 'DPK.INSTRUCTION.TEXTURE',
+    constructId: 'instructionalTexture',
+    max: 20,
+    evaluatedPolarity: 'positive-metric',
+    predicateOperator: 'proportional-texture-score',
+    evidence: [['grader.texture-score', 'SCORE_LEDGER.json', '/conformance/texture']],
+  },
+  {
+    ruleId: 'DPK.ASSESSMENT.COHERENCE',
+    constructId: 'assessmentCoherence',
+    max: 15,
+    evaluatedPolarity: null,
+    predicateOperator: 'assessment-objective-rubric-coherence',
+    evidence: [['grader.assessment-coherence-checks', 'SCORE_LEDGER.json', '/conformance/checks/assessment']],
+  },
+  {
+    ruleId: 'DPK.PACKAGE.INTEGRITY',
+    constructId: 'packageIntegrity',
+    max: 15,
+    evaluatedPolarity: 'negative-evidence-only',
+    predicateOperator: 'weighted-structural-conformance',
+    evidence: [
+      ['grader.structure-conformance', 'SCORE_LEDGER.json', '/conformance/dimensions/structure'],
+      ['grader.format-conformance', 'SCORE_LEDGER.json', '/conformance/dimensions/format'],
+      ['grader.identity-conformance', 'SCORE_LEDGER.json', '/conformance/dimensions/identity'],
+    ],
+  },
+]);
 
 function clamp(value, min = 0, max = 100) {
   const numeric = Number(value);
@@ -74,6 +116,83 @@ function topicAlignment(expected, actual) {
   const actualTokens = new Set(textTokens(actual));
   if (expectedTokens.length === 0 || actualTokens.size === 0) return 0;
   return expectedTokens.filter((token) => actualTokens.has(token)).length / expectedTokens.length;
+}
+
+function ruleEvidenceObserved(rule, evidenceId) {
+  return rule?.evidence?.find((entry) => entry?.evidenceId === evidenceId)?.observed;
+}
+
+function replayedPoints(max, componentScore) {
+  const earned = Math.min(max, Math.max(0, Math.round((clamp(componentScore) / 100) * max)));
+  return { max, earned, lost: max - earned, unobserved: 0 };
+}
+
+export function replayAutomatedEvidenceRule(rule = {}) {
+  const contract = AUTOMATED_EVIDENCE_RULE_CONTRACTS.find((entry) => entry.ruleId === rule.ruleId);
+  if (!contract) throw new Error(`${rule.ruleId || 'rule'} is not part of the deterministic evidence protocol`);
+  let status = 'unobserved';
+  let points = { max: contract.max, earned: 0, lost: 0, unobserved: contract.max };
+  let predicateActual;
+  let antiGamingInput;
+
+  if (rule.ruleId === 'DPK.CURRICULUM.ORDERED_SEQUENCE') {
+    const sequenceObserved = ruleEvidenceObserved(rule, 'course.explicit-lesson-sequence');
+    const titlesObserved = ruleEvidenceObserved(rule, 'package.lesson-titles-for-sequence');
+    const sequence = Array.isArray(sequenceObserved) ? sequenceObserved : sequenceObserved?.sequence || [];
+    const titles = Array.isArray(titlesObserved) ? titlesObserved : titlesObserved?.titles || [];
+    antiGamingInput = [sequence, titles];
+    if (sequence.length >= 2) {
+      const comparisons = sequence.map((expected, index) => topicAlignment(expected, titles[index] || ''));
+      const orderedMatched = comparisons.filter((ratio) => ratio >= 0.34).length;
+      const orderedCoverage = orderedMatched / sequence.length;
+      const countParity = Math.min(titles.length, sequence.length) / Math.max(titles.length, sequence.length);
+      status = 'evaluated';
+      points = replayedPoints(contract.max, (orderedCoverage * 0.8 + countParity * 0.2) * 100);
+      predicateActual = { orderedMatched, orderedCoverage, countParity };
+    } else predicateActual = 0;
+  } else if (rule.ruleId === 'DPK.EVIDENCE.RENDERED_CLAIM_SUPPORT') {
+    predicateActual = 'not implemented by this deterministic protocol';
+    antiGamingInput = ruleEvidenceObserved(rule, 'package.source-support-receipts');
+  } else if (rule.ruleId === 'DPK.INSTRUCTION.TEXTURE') {
+    const observed = ruleEvidenceObserved(rule, 'grader.texture-score');
+    const textureScore = observed?.textureScore;
+    antiGamingInput = observed;
+    if (Number.isFinite(Number(textureScore))) {
+      status = 'evaluated';
+      points = replayedPoints(contract.max, textureScore);
+      predicateActual = rounded(textureScore);
+    } else predicateActual = null;
+  } else if (rule.ruleId === 'DPK.ASSESSMENT.COHERENCE') {
+    predicateActual = 'not isolated from broad substance and consistency checks';
+    antiGamingInput = ruleEvidenceObserved(rule, 'grader.assessment-coherence-checks');
+  } else if (rule.ruleId === 'DPK.PACKAGE.INTEGRITY') {
+    const observed = {
+      structure: ruleEvidenceObserved(rule, 'grader.structure-conformance'),
+      format: ruleEvidenceObserved(rule, 'grader.format-conformance'),
+      identity: ruleEvidenceObserved(rule, 'grader.identity-conformance'),
+    };
+    antiGamingInput = observed;
+    predicateActual = observed;
+    if (Object.values(observed).every((value) => Number.isFinite(Number(value)))) {
+      status = 'evaluated';
+      points = replayedPoints(
+        contract.max,
+        observed.structure * 0.45 + observed.format * 0.3 + observed.identity * 0.25,
+      );
+    }
+  }
+
+  return {
+    contract,
+    status,
+    evidencePolarity: status === 'unobserved' ? 'unobserved' : contract.evaluatedPolarity,
+    points,
+    predicateActual,
+    antiGamingInputFingerprint: stableFingerprint(antiGamingInput),
+    evidenceInputFingerprints: Object.fromEntries(
+      contract.evidence.map(([evidenceId]) => [evidenceId, stableFingerprint(ruleEvidenceObserved(rule, evidenceId))]),
+    ),
+  };
 }
 
 function passedSupportReceipt(row = {}) {
@@ -140,7 +259,7 @@ function evaluatedRule({
   const earned = Math.min(max, Math.max(0, Math.round((clamp(componentScore) / 100) * max)));
   return {
     ruleId,
-    ruleVersion: RULE_VERSION,
+    ruleVersion: AUTOMATED_EVIDENCE_RULE_VERSION,
     constructId,
     status: 'evaluated',
     recoverability: 'author-recoverable',
@@ -177,7 +296,7 @@ function unobservedRule({
 }) {
   return {
     ruleId,
-    ruleVersion: RULE_VERSION,
+    ruleVersion: AUTOMATED_EVIDENCE_RULE_VERSION,
     constructId,
     status: 'unobserved',
     recoverability,
@@ -245,8 +364,8 @@ export function deriveAutomatedEvidenceSummary(rules = []) {
     negativeEvidenceLost: 0,
   };
   for (const rule of rules) {
-    const expectedPolarity = rule?.status === 'unobserved' ? 'unobserved' : RULE_POLARITY[rule?.ruleId];
-    if (!expectedPolarity || rule?.evidencePolarity !== expectedPolarity) {
+    const replay = replayAutomatedEvidenceRule(rule);
+    if (rule.status !== replay.status || rule?.evidencePolarity !== replay.evidencePolarity) {
       throw new Error(`${rule?.ruleId || 'rule'} has an invalid evidence polarity`);
     }
     if (rule.status !== 'evaluated') continue;
@@ -326,13 +445,13 @@ function curriculumRule(manifest, course, lessonTitles) {
     constructId: 'curriculumFidelity',
     max: COMPONENT_WEIGHTS.curriculumFidelity,
     componentScore,
-    evidence: evidence.map((entry) => ({
-      ...entry,
-      observed:
+    evidence: evidence.map((entry) => {
+      const observed =
         entry.evidenceId === 'course.explicit-lesson-sequence'
           ? { expectedLessons: explicitSequence.length, sequence: explicitSequence }
-          : { exportedLessons: lessonTitles.length, titles: lessonTitles, alignmentRatios: comparisons },
-    })),
+          : { exportedLessons: lessonTitles.length, titles: lessonTitles, alignmentRatios: comparisons };
+      return { ...entry, observed, inputFingerprint: stableFingerprint(observed) };
+    }),
     predicate: {
       operator: 'weighted-ordered-coverage',
       expected: { minimumTokenOverlap: 0.34, exactCountParity: 1 },
@@ -577,7 +696,7 @@ export function computeAutomatedReadinessSignal({
       rule.constructId,
       {
         status: rule.status,
-        label: COMPONENT_LABELS[rule.constructId],
+        label: AUTOMATED_EVIDENCE_COMPONENT_LABELS[rule.constructId],
         evidencePolarity: rule.evidencePolarity,
         weight: rule.points.max,
         score: rule.status === 'evaluated' ? Math.round((rule.points.earned / rule.points.max) * 100) : null,
@@ -614,7 +733,7 @@ export function computeAutomatedReadinessSignal({
     reconstructionDisclosure: reconstructionDisclosure(manifest),
     ledger: {
       protocol: AUTOMATED_READINESS_PROTOCOL,
-      ruleVersion: RULE_VERSION,
+      ruleVersion: AUTOMATED_EVIDENCE_RULE_VERSION,
       points,
       rules,
     },

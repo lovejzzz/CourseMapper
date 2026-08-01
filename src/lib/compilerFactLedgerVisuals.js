@@ -49,7 +49,14 @@ export function selectCompleteConceptMapHub(candidates = [], maxLength = 36) {
   const seen = new Set();
   return candidates.map(cleanText).find((candidate) => {
     const key = candidate.toLowerCase();
-    if (!candidate || candidate.length > maxLength || seen.has(key)) return false;
+    if (
+      !candidate ||
+      candidate.length > maxLength ||
+      seen.has(key) ||
+      /\b(?:a|an|and|as|at|by|for|from|in|of|on|or|the|to|with|without)$/i.test(candidate) ||
+      /^(?:and|or)\b/i.test(candidate)
+    )
+      return false;
     seen.add(key);
     return true;
   });

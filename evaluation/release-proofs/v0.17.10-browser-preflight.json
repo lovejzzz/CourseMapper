@@ -1,28 +1,28 @@
 {
   "schemaVersion": 1,
   "release": "0.17.10",
-  "recordedAt": "2026-08-01T14:00:52Z",
+  "recordedAt": "2026-08-01T14:47:42Z",
   "status": "bounded-predeploy",
   "claimBoundary": "This tracked predeploy receipt proves the focused compiler, quality-reporting, and score-verifier regressions passed before deployment. It is not a live production course-quality result, pixel-render certification, semantic-grounding result, assessment-coherence score, or instructor validation.",
   "checks": [
     {
-      "command": "npx vitest run src/lib/quality/__tests__/automatedReadinessSignal.test.js src/lib/quality/__tests__/scoreLedgerVerifier.test.js src/lib/quality/__tests__/deepQualityStructure.test.js src/lib/__tests__/nativeGraphAuthoring.test.js src/lib/__tests__/rubricAssignmentIntegrity.test.js",
+      "command": "npx vitest run src/lib/quality/__tests__/automatedReadinessSignal.test.js src/lib/quality/__tests__/scoreLedgerVerifier.test.js src/lib/__tests__/packageZipExporter.test.js src/components/__tests__/ExportSidePanel.readiness.test.jsx",
       "status": "pass",
-      "testFiles": 5,
-      "tests": 89
+      "testFiles": 4,
+      "tests": 95
     },
     {
-      "command": "npx vitest run src/components/__tests__/ExportSidePanel.readiness.test.jsx src/lib/__tests__/packageZipExporter.test.js",
+      "command": "npx vitest run tests/output-artifact-gate.test.js tests/v0141-round2-fixes.test.js",
       "status": "pass",
       "testFiles": 2,
-      "tests": 75
+      "tests": 79
     },
     {
       "command": "npm run test:unit",
       "status": "pass",
       "testFilesPassed": 489,
       "testFilesSkipped": 16,
-      "testsPassed": 6132,
+      "testsPassed": 6146,
       "testsSkipped": 162
     },
     {
@@ -32,6 +32,7 @@
     {
       "command": "npm run audit:automated-readiness && npm run audit:texture:cross-package:untuned && npm run audit:contract:pr",
       "status": "pass",
+      "contractFixtures": 12,
       "contractBlockers": 0
     },
     {
@@ -53,6 +54,16 @@
       "rounds": 6,
       "participantTurns": 18,
       "completionBriefAuditConcerns": 4,
+      "report": "docs/V0.17.10_ROUNDTABLE_OUTPUT_QUALITY_AUDIT.md"
+    },
+    {
+      "mode": "roundtable-post-push-adversarial-code-audit",
+      "status": "pass-with-findings-remediated-locally",
+      "auditedCommit": "a1226931",
+      "rounds": 3,
+      "participantTurns": 9,
+      "completionBriefAuditConcerns": 4,
+      "transcript": "roundtable-2026-08-01 (3).md",
       "report": "docs/V0.17.10_ROUNDTABLE_OUTPUT_QUALITY_AUDIT.md"
     }
   ],

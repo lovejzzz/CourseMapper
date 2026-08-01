@@ -294,7 +294,8 @@ describe('automated readiness signal', () => {
     expect(withSequence.maxScore).toBe(100);
     expect(withoutSequence.maxScore).toBe(100);
     expect(withoutSequence.score).toBeLessThanOrEqual(withSequence.score);
-    expect(withoutSequence.band).not.toBe('substantial-deterministic-evidence');
+    expect(withSequence.band).toBe('partial-positive-deterministic-evidence');
+    expect(withoutSequence.band).toBe('limited-positive-deterministic-evidence');
   });
 
   it('recomputes every displayed point from stable rule rows with reasons and actions', () => {

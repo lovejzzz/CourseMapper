@@ -375,9 +375,11 @@ const lazyChunkBudgets = [
   // Source-bound answer exemplars are isolated from the compiler monolith and
   // remain compile-only; freeze the measured leaf with narrow headroom.
   { prefix: 'compilerAssessmentEvidenceCopy-', rawKiB: 7, gzipKiB: 3.25 },
-  // V0.17.10 selects a complete concept-map identity instead of truncating a
-  // hub into a plausible fragment. Freeze the measured compile-only leaf.
-  { prefix: 'compilerFactLedgerVisuals-', rawKiB: 3.1, gzipKiB: 1.5 },
+  // V0.17.10 selects a complete grammatical concept-map identity instead of
+  // truncating a hub into a plausible fragment or accepting a dangling
+  // function word. The measured compile-only leaf is 3218/1629 bytes; freeze
+  // it at 3.15/1.6 KiB with only the standard compressor-variance allowance.
+  { prefix: 'compilerFactLedgerVisuals-', rawKiB: 3.15, gzipKiB: 1.6, gzipSlackBytes: 64 },
   // Exact target-language assessment and lesson-plan frames are substantial
   // compile-only data. They remain cacheable beside the compiler without
   // weakening the compiler's long-standing size ratchet.

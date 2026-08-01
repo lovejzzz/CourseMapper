@@ -27,6 +27,8 @@
 import { describe, expect, it } from 'vitest';
 
 import { compileBlueprintDeliverables } from '../courseBlueprintCompiler';
+import { isCodeLabAssessmentIdentity } from '../compilerAssessmentIdentity';
+import { selectCompleteConceptMapHub } from '../compilerFactLedgerVisuals';
 import { buildBlueprintFromGraph, deriveCourseGraphFromCourseMap } from '../courseGraph';
 import {
   normalizeAssignmentGradeWeights,
@@ -121,6 +123,25 @@ function compilePythonPolicyFixture() {
 }
 
 const { compiled: pythonPolicyCompiled } = compilePythonPolicyFixture();
+
+describe('assessment identity and concept-label boundaries', () => {
+  it.each([
+    ['Python lab: clean a public dataset', true],
+    ['Computational project with a verification run', true],
+    ['Policy implementation memo using Python evidence', false],
+    ['Repository test plan for stakeholder review', false],
+    ['Field-note coding exercise', false],
+    ['Jupyter notebook with unit tests', true],
+  ])('classifies %s as code-lab=%s', (identity, expected) => {
+    expect(isCodeLabAssessmentIdentity(identity)).toBe(expected);
+  });
+
+  it('skips clipped-looking hubs and selects the next complete concept identity', () => {
+    expect(selectCompleteConceptMapHub(['Policy evidence and', 'Analysis for', 'Python and pandas'])).toBe(
+      'Python and pandas',
+    );
+  });
+});
 
 const rubricLessonOf = (rubric) => rubric.lessonNumber;
 const assessmentLessonOf = (assessmentId) => Number(String(assessmentId).match(/^A(\d+)\./)?.[1]);

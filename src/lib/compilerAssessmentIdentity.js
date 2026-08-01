@@ -34,7 +34,11 @@ export function compactCompilerOwnedAssessmentIdentity(value) {
     .replace(/\s+exit note connecting the activity to one visible product\.?$/i, ' exit reflection')
     .replace(/\s+short response that names the claim, example, and next question\.?$/i, ' short analysis');
 }
-const EXPLICIT_CODE_LAB_IDENTITY_RE = /\b(?:programming|computational)\s+(?:lab|assignment|exercise|project)\b/i;
+const EXPLICIT_CODE_LAB_IDENTITY_RE =
+  /\b(?:programming|computational|python|jupyter)\s+(?:lab|assignment|exercise|project)\b/i;
+const DOCUMENT_ARTIFACT_RE = /\b(?:memo|brief|report|essay|proposal|plan|reflection|presentation)\b/i;
+const EXECUTABLE_ARTIFACT_RE =
+  /\b(?:notebooks?|scripts?|source code|unit tests?|test suite|assertions?|debugging|refactor(?:ing)?)\b/i;
 const CODE_LAB_SIGNAL_PATTERNS = [
   /\b(?:computational|programming|coding)\b/i,
   /\b(?:python|jupyter)\b/i,
@@ -49,5 +53,6 @@ export function isCodeLabAssessmentIdentity(value, kind = '') {
     .replace(/\s+/g, ' ')
     .trim();
   if (EXPLICIT_CODE_LAB_IDENTITY_RE.test(identity)) return true;
+  if (DOCUMENT_ARTIFACT_RE.test(identity) && !EXECUTABLE_ARTIFACT_RE.test(identity)) return false;
   return CODE_LAB_SIGNAL_PATTERNS.filter((pattern) => pattern.test(identity)).length >= 2;
 }

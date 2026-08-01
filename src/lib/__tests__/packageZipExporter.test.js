@@ -3,6 +3,7 @@ import JSZip from 'jszip';
 import {
   buildEvidenceArtifactBinding,
   buildCourseMaterialsZip,
+  buildPackageReadinessBinding,
   downloadCourseMaterialsZip,
   mergeSourceLedgerBundles,
   PackageZipExportError,
@@ -1019,6 +1020,63 @@ describe('packageZipExporter', () => {
     expect(manifest.quality.graderVersion).not.toBe('stale-readiness-precomputed');
     expect(manifest.readiness).toMatchObject({ status: 'blocked', blockers: 1 });
     expect(report).toContain('package readiness reports 1 blocker');
+  });
+
+  it('does not let blocker-shaped finding prose substitute for the structured readiness binding', async () => {
+    const courseMap = makeCourseMap('Structured Readiness Binding');
+    const initial = await buildCourseMaterialsZip({
+      courseMap,
+      deliverables: {},
+      featureIds: ['courseMap'],
+      quality: { timeoutMs: 5000 },
+      assembleOnly: true,
+    });
+    const forgedTimestamp = '2000-01-01T00:00:00.000Z';
+    const result = await buildCourseMaterialsZip({
+      courseMap,
+      deliverables: {},
+      featureIds: ['courseMap'],
+      readiness: {
+        status: 'blocked',
+        blockers: [{ severity: 'blocker', source: 'readiness', message: 'Current blocker identity' }],
+        warnings: [],
+        issues: [],
+      },
+      quality: {
+        timeoutMs: 5000,
+        precomputed: {
+          ...initial.quality,
+          gradedAt: forgedTimestamp,
+          grades: initial.qualityResult.grades,
+          findings: [
+            {
+              severity: 'P1',
+              dimension: 'substance',
+              detail: 'package readiness reports 1 blocker',
+            },
+          ],
+          scoreLedger: initial.qualityResult.scoreLedger,
+          packageReadinessBinding: buildPackageReadinessBinding({
+            status: 'blocked',
+            blockers: [{ severity: 'blocker', source: 'readiness', message: 'Forged blocker identity' }],
+            warnings: [],
+            issues: [],
+          }),
+        },
+      },
+      assembleOnly: true,
+    });
+
+    expect(result.quality.gradedAt).not.toBe(forgedTimestamp);
+    expect(result.manifest.readiness).toMatchObject({ status: 'blocked', blockers: 1 });
+    expect(JSON.parse(result.fileContents['SCORE_LEDGER.json']).bindings.packageReadiness).toEqual(
+      buildPackageReadinessBinding({
+        status: 'blocked',
+        blockers: [{ severity: 'blocker', source: 'readiness', message: 'Current blocker identity' }],
+        warnings: [],
+        issues: [],
+      }),
+    );
   });
 
   it('keeps partial enrichment blockers in the exported manifest and readiness report', async () => {

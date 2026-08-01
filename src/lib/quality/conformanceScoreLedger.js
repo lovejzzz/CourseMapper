@@ -2,6 +2,18 @@ function clampScore(value) {
   return Math.max(0, Math.min(100, Math.round(Number(value) || 0)));
 }
 
+export const ENCODED_DEFECT_CONFORMANCE_DIMENSION_WEIGHTS = Object.freeze({
+  identity: 20,
+  substance: 20,
+  citations: 15,
+  honesty: 15,
+  discipline: 15,
+  consistency: 10,
+  structure: 10,
+  format: 5,
+  texture: 25,
+});
+
 export function buildEncodedDefectConformanceLedger({
   scores,
   findings,
@@ -10,6 +22,9 @@ export function buildEncodedDefectConformanceLedger({
   dimensionWeights,
   graderVersion,
 }) {
+  if (JSON.stringify(dimensionWeights) !== JSON.stringify(ENCODED_DEFECT_CONFORMANCE_DIMENSION_WEIGHTS)) {
+    throw new Error('Conformance dimension weights do not match the protocol');
+  }
   const dimensionIds = Object.keys(dimensionWeights);
   const dimensions = {};
   for (const dimension of dimensionIds) {

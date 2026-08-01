@@ -26,7 +26,7 @@ export function quizExtensionCopy(answer, concept, artifact, lesson, index) {
       [
         `${answer} transfers ${concept}`,
         `${answer} tests ${concept}`,
-        `${answer} applies ${concept} cautiously`,
+        `${answer} uses ${concept} cautiously`,
         `${answer} bounds the next ${concept} step`,
       ],
       [

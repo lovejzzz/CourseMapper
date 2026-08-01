@@ -452,6 +452,7 @@ function normalizePrecomputedPackageQuality(quality) {
     findings,
     grades: quality.grades && typeof quality.grades === 'object' ? quality.grades : {},
     fileCount: Number.isFinite(quality.fileCount) ? quality.fileCount : null,
+    packageReadinessBinding: quality.packageReadinessBinding || null,
     scoreLedger:
       quality.scoreLedger && typeof quality.scoreLedger === 'object'
         ? quality.scoreLedger
@@ -462,6 +463,50 @@ function normalizePrecomputedPackageQuality(quality) {
               encodedDefectConformance: quality.conformanceLedger || null,
             }
           : null,
+  };
+}
+
+export function buildPackageReadinessBinding(readiness = null) {
+  const canonicalValue = (value) => {
+    if (Array.isArray(value)) return value.map(canonicalValue);
+    if (value && typeof value === 'object') {
+      return Object.fromEntries(
+        Object.keys(value)
+          .sort()
+          .filter((key) => value[key] !== undefined && typeof value[key] !== 'function')
+          .map((key) => [key, canonicalValue(value[key])]),
+      );
+    }
+    if (typeof value === 'number') return Number.isFinite(value) ? value : null;
+    return value == null || ['string', 'boolean'].includes(typeof value) ? value : String(value);
+  };
+  const compactIssue = (issue) => (typeof issue === 'string' ? issue.trim() : canonicalValue(issue));
+  const issueRows =
+    Array.isArray(readiness?.issues) && readiness.issues.length > 0
+      ? readiness.issues
+      : [
+          ...(Array.isArray(readiness?.blockers) ? readiness.blockers : []),
+          ...(Array.isArray(readiness?.warnings) ? readiness.warnings : []),
+        ];
+  const issuesByIdentity = new Map(
+    issueRows
+      .map(compactIssue)
+      .filter(Boolean)
+      .map((issue) => [JSON.stringify(issue), issue]),
+  );
+  const issues = [...issuesByIdentity.entries()]
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([, issue]) => issue);
+  return {
+    protocol: 'coursemapper-package-readiness-binding-v1',
+    status: String(readiness?.status || 'unknown'),
+    blockerCount: Array.isArray(readiness?.blockers)
+      ? readiness.blockers.length
+      : Math.max(0, Number(readiness?.blockers) || 0),
+    warningCount: Array.isArray(readiness?.warnings)
+      ? readiness.warnings.length
+      : Math.max(0, Number(readiness?.warnings) || 0),
+    issues,
   };
 }
 
@@ -497,14 +542,10 @@ function precomputedQualityReferencesMissingPackageFiles(precomputed, fileConten
 }
 
 function precomputedQualityMissesReadiness(precomputed, readiness) {
-  const blockerCount = Array.isArray(readiness?.blockers)
-    ? readiness.blockers.length
-    : Math.max(0, Number(readiness?.blockers) || 0);
-  if (blockerCount === 0) return false;
-  return !(precomputed?.findings || []).some((finding) => {
-    const detail = String(finding?.detail || finding?.message || '');
-    return /package readiness reports \d+ blocker/i.test(detail);
-  });
+  return (
+    JSON.stringify(precomputed?.packageReadinessBinding || null) !==
+    JSON.stringify(buildPackageReadinessBinding(readiness))
+  );
 }
 
 function precomputedQualityMissesCurrentGrader(precomputed) {
@@ -2350,7 +2391,13 @@ export async function buildCourseMaterialsZip({
       })
     ) {
       qualityBlock = precomputedQuality.block;
-      scoreLedger = precomputedQuality.scoreLedger;
+      scoreLedger = {
+        ...precomputedQuality.scoreLedger,
+        bindings: {
+          ...(precomputedQuality.scoreLedger?.bindings || {}),
+          packageReadiness: buildPackageReadinessBinding(effectiveReadiness),
+        },
+      };
       qualityReportMarkdown = renderPrecomputedQualityReport(precomputedQuality, { courseTitle: safeCourseName });
     } else {
       const timeoutMs = Number.isFinite(qualityOptions.timeoutMs)
@@ -2412,6 +2459,7 @@ export async function buildCourseMaterialsZip({
             scoreLedger.bindings = {
               gradingScope: qualityScopeBinding,
               evidenceArtifacts: evidenceArtifactsBinding,
+              packageReadiness: buildPackageReadinessBinding(effectiveReadiness),
             };
           }
           qualityBlock = {

@@ -29,6 +29,13 @@ import { MALFORMED_CLEAR_PLURAL_POSSESSIVE_PATTERN } from '../compilerText.js';
 // Every entry mirrors a defect class shipped in the v0.12 production audit.
 export const ARTIFACT_PATTERNS = [
   {
+    regex: /\b(?:a|an)\s+(?:a|an|the)\b/i,
+    label: 'adjacent article collision such as "a the policy example"',
+    name: 'slot-grammar-adjacent-articles',
+    severity: 'P2',
+    roadmap: 'v0.17.10',
+  },
+  {
     regex: /\[object Object\]/i,
     label: 'structured object coerced into visible text',
     name: 'object-object-text-leak',

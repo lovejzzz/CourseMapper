@@ -23,12 +23,16 @@ vi.mock('../../lib/packageFinalizer', async () => {
   };
 });
 
-vi.mock('../../lib/packageZipExporter.js', () => ({
-  downloadCourseMaterialsZip: vi.fn(async () => ({
-    fileName: 'Review Surface Course - Course Materials.zip',
-    files: ['PACKAGE_MANIFEST.json', 'QUALITY_REPORT.md'],
-  })),
-}));
+vi.mock('../../lib/packageZipExporter.js', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    downloadCourseMaterialsZip: vi.fn(async () => ({
+      fileName: 'Review Surface Course - Course Materials.zip',
+      files: ['PACKAGE_MANIFEST.json', 'QUALITY_REPORT.md'],
+    })),
+  };
+});
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -516,7 +520,16 @@ describe('ExportSidePanel readiness repair timing', () => {
 
     expect(onFinishPackage).toHaveBeenCalledTimes(1);
     expect(downloadCourseMaterialsZip).toHaveBeenCalledTimes(1);
-    expect(downloadCourseMaterialsZip.mock.calls[0][0].quality.precomputed).toBe(finishQuality);
+    expect(downloadCourseMaterialsZip.mock.calls[0][0].quality.precomputed).toMatchObject(finishQuality);
+    expect(downloadCourseMaterialsZip.mock.calls[0][0].quality.precomputed).toMatchObject({
+      packageReadinessBinding: {
+        protocol: 'coursemapper-package-readiness-binding-v1',
+        blockerCount: 0,
+        warningCount: 0,
+        issues: [],
+      },
+    });
+    expect(finishQuality).not.toHaveProperty('packageReadinessBinding');
   });
 
   it('does not fall back to stale proof when a same-click finish returns no current grade', async () => {

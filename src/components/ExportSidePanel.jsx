@@ -19,7 +19,7 @@ import {
 } from '../lib/deliverableExporters';
 import { openTabNow, saveToGoogleSlides } from '../lib/googleDrive';
 import { exportSlideDeckPptx, buildSlideDeckPptxBlob } from '../lib/exporters/pptxExporter';
-import { downloadCourseMaterialsZip } from '../lib/packageZipExporter';
+import { buildPackageReadinessBinding, downloadCourseMaterialsZip } from '../lib/packageZipExporter';
 import { getPackageTrustStatus } from '../lib/packageTrustStatus';
 
 // ── Which formats each deliverable supports ─────────────────────────────────
@@ -1300,7 +1300,10 @@ export default function ExportSidePanel({
           // download cannot race a second grader or export stale evidence.
           const completedQuality = finishOutcome ? finishOutcome.quality : packageQualityPass?.quality;
           if (completedQuality?.status === 'graded') {
-            qualityContext.precomputed = completedQuality;
+            qualityContext.precomputed = {
+              ...completedQuality,
+              packageReadinessBinding: buildPackageReadinessBinding(downloadReadiness),
+            };
           }
           const zipResult = await downloadCourseMaterialsZip({
             deliverables: exportDeliverables || {},

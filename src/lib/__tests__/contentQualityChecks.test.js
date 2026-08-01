@@ -80,6 +80,13 @@ describe('auditDeliverableContentQuality', () => {
     expect(findings.some((finding) => finding.code === 'article-agreement')).toBe(true);
   });
 
+  it('flags adjacent article collisions like "a the policy example"', () => {
+    const { findings } = auditDeliverableContentQuality('assignments', {
+      assignments: [{ instructions: 'Audit a the policy example before submission.' }],
+    });
+    expect(findings.some((finding) => finding.code === 'article-collision')).toBe(true);
+  });
+
   it('flags run-together criteria sentences like "Strong work Names the relevant"', () => {
     const { findings } = auditDeliverableContentQuality('syllabus', {
       syllabus: { description: 'Strong work Names the relevant Climate concept accurately.' },

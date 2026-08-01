@@ -1,4 +1,12 @@
-import { deriveAutomatedEvidenceBand, deriveAutomatedEvidenceSummary } from './automatedReadinessSignal.js';
+import {
+  AUTOMATED_EVIDENCE_COMPONENT_LABELS,
+  AUTOMATED_EVIDENCE_RULE_CONTRACTS,
+  AUTOMATED_EVIDENCE_RULE_VERSION,
+  deriveAutomatedEvidenceBand,
+  deriveAutomatedEvidenceSummary,
+  replayAutomatedEvidenceRule,
+} from './automatedReadinessSignal.js';
+import { ENCODED_DEFECT_CONFORMANCE_DIMENSION_WEIGHTS } from './conformanceScoreLedger.js';
 
 function sameBinding(left, right) {
   return Boolean(left && right && left.algorithm === right.algorithm && left.sha256 === right.sha256);
@@ -18,9 +26,103 @@ function invalid(reason) {
   return { status: 'invalid', reason, projection: null };
 }
 
+function sameJson(left, right) {
+  return JSON.stringify(left) === JSON.stringify(right);
+}
+
+function conformanceGrade(score) {
+  if (score >= 90) return 'A';
+  if (score >= 80) return 'B';
+  if (score >= 70) return 'C';
+  if (score >= 60) return 'D';
+  return 'F';
+}
+
+function verifyDeterministicRuleContract(rules) {
+  if (rules.length !== AUTOMATED_EVIDENCE_RULE_CONTRACTS.length) {
+    return invalid('deterministic evidence rule set does not match the protocol');
+  }
+  const rulesById = new Map(rules.map((rule) => [rule?.ruleId, rule]));
+  for (const contract of AUTOMATED_EVIDENCE_RULE_CONTRACTS) {
+    const rule = rulesById.get(contract.ruleId);
+    if (!rule) return invalid(`${contract.ruleId} is missing from the deterministic evidence protocol`);
+    if (
+      rule.ruleVersion !== AUTOMATED_EVIDENCE_RULE_VERSION ||
+      rule.constructId !== contract.constructId ||
+      Number(rule.points?.max) !== contract.max ||
+      rule.predicate?.operator !== contract.predicateOperator
+    ) {
+      return invalid(`${contract.ruleId} does not match its canonical rule contract`);
+    }
+    const expectedEvidence = contract.evidence;
+    const actualEvidence = (rule.evidence || []).map((entry) => [
+      entry?.evidenceId,
+      entry?.artifactPath,
+      entry?.jsonPointer,
+    ]);
+    if (!sameJson(actualEvidence, expectedEvidence)) {
+      return invalid(`${contract.ruleId} evidence bindings do not match the protocol`);
+    }
+    const expectedDependsOn = expectedEvidence.map(([evidenceId]) => evidenceId);
+    if (!sameJson(rule.dependsOn, expectedDependsOn)) {
+      return invalid(`${contract.ruleId} score-bearing evidence ownership was forged`);
+    }
+    let replay;
+    try {
+      replay = replayAutomatedEvidenceRule(rule);
+    } catch (error) {
+      return invalid(error?.message || `${contract.ruleId} could not be replayed`);
+    }
+    if (
+      rule.status !== replay.status ||
+      rule.evidencePolarity !== replay.evidencePolarity ||
+      !sameJson(rule.points, replay.points) ||
+      !sameJson(rule.predicate?.actual, replay.predicateActual) ||
+      rule.antiGaming?.inputFingerprint !== replay.antiGamingInputFingerprint
+    ) {
+      return invalid(`${contract.ruleId} status, points, predicate, or polarity cannot be replayed`);
+    }
+    for (const evidence of rule.evidence || []) {
+      if (evidence.inputFingerprint !== replay.evidenceInputFingerprints[evidence.evidenceId]) {
+        return invalid(`${evidence.evidenceId} observation fingerprint cannot be replayed`);
+      }
+    }
+  }
+  return { status: 'verified' };
+}
+
+function verifyDisplayedComponents(components, rules) {
+  if (!components || typeof components !== 'object') return invalid('displayed evidence components are missing');
+  const expected = Object.fromEntries(
+    rules.map((rule) => [
+      rule.constructId,
+      {
+        status: rule.status,
+        label: AUTOMATED_EVIDENCE_COMPONENT_LABELS[rule.constructId],
+        evidencePolarity: rule.evidencePolarity,
+        weight: rule.points.max,
+        score: rule.status === 'evaluated' ? Math.round((rule.points.earned / rule.points.max) * 100) : null,
+        points: rule.points,
+        reason: rule.reason,
+        action: rule.action?.instruction,
+        evidence: Object.fromEntries((rule.evidence || []).map((entry) => [entry.evidenceId, entry.observed])),
+        ruleId: rule.ruleId,
+      },
+    ]),
+  );
+  return sameJson(components, expected)
+    ? { status: 'verified' }
+    : invalid('displayed evidence components do not match the canonical rule projection');
+}
+
 function verifyDeterministicEvidence(section, quality) {
   const rules = Array.isArray(section?.rules) ? section.rules : [];
   if (rules.length === 0) return invalid('deterministic evidence rules are missing');
+  if (section?.ruleVersion !== AUTOMATED_EVIDENCE_RULE_VERSION) {
+    return invalid('deterministic evidence rule version does not match the protocol');
+  }
+  const contractResult = verifyDeterministicRuleContract(rules);
+  if (contractResult.status !== 'verified') return contractResult;
   const totals = { potential: 0, earned: 0, lost: 0, unobserved: 0 };
   const ruleIds = new Set();
   const scoreBearingEvidence = new Map();
@@ -92,51 +194,154 @@ function verifyDeterministicEvidence(section, quality) {
         return invalid(`displayed deterministic evidence ${field} does not match the ledger`);
       }
     }
+    const componentResult = verifyDisplayedComponents(quality.readiness.components, rules);
+    if (componentResult.status !== 'verified') return componentResult;
   }
   return { status: 'verified', totals, evidenceSummary, band };
 }
 
 function verifyConformance(section, quality) {
+  if (
+    section?.protocol !== 'coursemapper-encoded-defect-conformance-ledger-v1' ||
+    section?.construct !== 'encoded-package-defect-conformance'
+  ) {
+    return invalid('conformance ledger does not match the canonical protocol');
+  }
   const dimensions = section?.dimensions || {};
   const rows = Object.entries(dimensions);
-  if (rows.length === 0) return invalid('conformance dimensions are missing');
+  if (!sameJson(Object.keys(dimensions), Object.keys(ENCODED_DEFECT_CONFORMANCE_DIMENSION_WEIGHTS))) {
+    return invalid('conformance dimensions do not match the canonical protocol');
+  }
   let weighted = 0;
   let totalWeight = 0;
+  let highestSeverity = null;
+  const severityCounts = { p0: 0, p1: 0, p2: 0 };
+  const findingIds = new Set();
   for (const [dimension, row] of rows) {
     const points = row?.points || {};
-    if (points.earned + points.lost + points.unobserved !== points.potential) {
+    const expectedWeight = ENCODED_DEFECT_CONFORMANCE_DIMENSION_WEIGHTS[dimension];
+    const expectedStatus = dimension === 'texture' ? 'evaluated-metric' : 'negative-evidence-only';
+    if (
+      row.constructId !== `encodedDefectConformance.${dimension}` ||
+      row.status !== expectedStatus ||
+      row.weight !== expectedWeight ||
+      points.potential !== 100 ||
+      points.unobserved !== 0 ||
+      !Number.isInteger(points.earned) ||
+      !Number.isInteger(points.lost) ||
+      points.earned < 0 ||
+      points.earned > 100 ||
+      points.lost < 0 ||
+      points.lost > 100 ||
+      points.earned + points.lost !== 100
+    ) {
       return invalid(`${dimension} conformance points do not equal their potential`);
     }
     if (row.status === 'negative-evidence-only') {
+      if (
+        row.coverage?.mode !== 'negative-evidence-only' ||
+        row.coverage?.positiveValidation !== false ||
+        row.coverage?.encodedFindings !== (row.deductions || []).length
+      ) {
+        return invalid(`${dimension} conformance coverage does not match its deductions`);
+      }
       let before = 100;
       for (const deduction of row.deductions || []) {
-        const after = Math.max(0, before - Number(deduction.nominalPointsLost || 0));
-        if (deduction.before !== before || deduction.after !== after) {
+        const nominalPointsLost = Number(deduction.nominalPointsLost);
+        const after = Math.max(0, before - nominalPointsLost);
+        if (
+          !deduction.ruleId ||
+          !deduction.findingId ||
+          findingIds.has(deduction.findingId) ||
+          deduction.type !== 'encoded-defect-deduction' ||
+          deduction.ruleVersion !== section.graderVersion ||
+          deduction.predicate?.operator !== 'finding-present' ||
+          deduction.predicate?.expected !== false ||
+          deduction.predicate?.actual !== true ||
+          !['P0', 'P1', 'P2'].includes(deduction.severity) ||
+          !Number.isFinite(nominalPointsLost) ||
+          nominalPointsLost < 0 ||
+          deduction.before !== before ||
+          deduction.after !== after ||
+          deduction.effectivePointsLost !== before - after
+        ) {
           return invalid(`${deduction.ruleId} conformance deduction cannot be replayed`);
         }
+        findingIds.add(deduction.findingId);
+        severityCounts[deduction.severity.toLowerCase()] += 1;
+        if (deduction.severity === 'P0') highestSeverity = 'P0';
+        else if (deduction.severity === 'P1' && highestSeverity !== 'P0') highestSeverity = 'P1';
         before = after;
       }
       if (before !== points.earned) return invalid(`${dimension} deductions do not reproduce the score`);
+    } else {
+      const [metric] = row.deductions || [];
+      if (
+        row.coverage?.mode !== 'positive-and-negative-metric' ||
+        row.coverage?.positiveValidation !== true ||
+        row.deductions?.length !== 1 ||
+        metric?.ruleId !== 'DQC.TEXTURE.VISIBLE_UNIT_METRIC' ||
+        metric?.ruleVersion !== section.graderVersion ||
+        metric?.type !== 'metric-result' ||
+        metric?.predicate?.operator !== 'texture-score' ||
+        metric?.predicate?.actual !== points.earned ||
+        metric?.before !== 100 ||
+        metric?.after !== points.earned ||
+        metric?.effectivePointsLost !== points.lost
+      ) {
+        return invalid('texture metric cannot be replayed from its canonical row');
+      }
     }
-    const weight = Number(row.weight);
-    if (!Number.isFinite(weight) || weight <= 0) return invalid(`${dimension} has an invalid weight`);
-    weighted += points.earned * weight;
-    totalWeight += weight;
+    weighted += points.earned * expectedWeight;
+    totalWeight += expectedWeight;
   }
-  let score = Math.round(weighted / totalWeight);
-  for (const gate of section?.overall?.adjustments || []) {
+  const weightedExact = weighted / totalWeight;
+  let score = Math.round(weightedExact);
+  const expectedGate =
+    highestSeverity === 'P0'
+      ? { ruleId: 'DQC.OVERALL.P0_CAP', maximum: 74 }
+      : highestSeverity === 'P1'
+        ? { ruleId: 'DQC.OVERALL.P1_CAP', maximum: 89 }
+        : null;
+  const adjustments = section?.overall?.adjustments || [];
+  if (adjustments.length !== (expectedGate ? 1 : 0)) {
+    return invalid('conformance aggregate gates do not match the encoded finding severities');
+  }
+  for (const gate of adjustments) {
     if (gate.before !== score || gate.transform?.operator !== 'cap') {
       return invalid(`${gate.ruleId} aggregate gate cannot be replayed`);
+    }
+    if (gate.ruleId !== expectedGate.ruleId || gate.transform.maximum !== expectedGate.maximum) {
+      return invalid(`${gate.ruleId} is not the canonical aggregate gate`);
     }
     const after = Math.min(score, Number(gate.transform.maximum));
     if (gate.after !== after || gate.delta !== after - score)
       return invalid(`${gate.ruleId} aggregate result was forged`);
     score = after;
   }
+  if (
+    section?.overall?.totalWeight !== totalWeight ||
+    section?.overall?.weightedExact !== Number(weightedExact.toFixed(6)) ||
+    section?.overall?.beforeAdjustments !== Math.round(weightedExact)
+  ) {
+    return invalid('conformance aggregate metadata cannot be replayed');
+  }
   if (score !== section?.overall?.score)
     return invalid('conformance aggregate does not match its dimensions and gates');
   if (quality && Number(quality.score) !== score)
     return invalid('displayed conformance score does not match the ledger');
+  if (quality) {
+    const projectedDimensions = Object.fromEntries(rows.map(([dimension, row]) => [dimension, row.points.earned]));
+    if (!sameJson(quality.dimensions, projectedDimensions)) {
+      return invalid('displayed conformance dimensions do not match the ledger');
+    }
+    if (!sameJson(quality.findingCounts, severityCounts)) {
+      return invalid('displayed finding counts do not match conformance deductions');
+    }
+    if (quality.grade !== conformanceGrade(score)) {
+      return invalid('displayed conformance grade does not match the verified score');
+    }
+  }
   return { status: 'verified', score };
 }
 

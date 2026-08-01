@@ -398,6 +398,7 @@ describe('deep quality package structure', () => {
           'Make the Week 8 assignment defend one interpretation.',
           'Transfer the feedback-based the Comparative Reading focus revision into the next task.',
           'Audit a practical the pandas workflow example with a partner.',
+          'Audit a the policy example before submission.',
           'Format: present the response in the locally approved submission form.',
         ].join('\n'),
       }),
@@ -421,6 +422,11 @@ describe('deep quality package structure', () => {
           severity: 'P2',
           dimension: 'format',
           detail: expect.stringContaining('a practical the pandas example'),
+        }),
+        expect.objectContaining({
+          severity: 'P2',
+          dimension: 'format',
+          detail: expect.stringContaining('a the policy example'),
         }),
       ]),
     );

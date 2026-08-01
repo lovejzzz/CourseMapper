@@ -23174,7 +23174,7 @@ function slideVisual(lesson, slide) {
           ...(lesson.keyConcepts || []),
           secondary,
         ]);
-        if (!hub) return {};
+        if (!hub) return { kind: 'concept definition panel' };
         const spokes = unique(
           [
             ...lessonTeachingKeyTerms(lesson).map((term) => cleanText(term.term)),

@@ -56,10 +56,11 @@
       "id": "v01710-derived-score-ledger-projection",
       "status": "verified-current",
       "changelogHighlightIndex": 1,
-      "summary": "Attainable ceiling, evidence ceiling, coverage, polarity totals, and band are derived from rule rows and independently checked before a verified projection is emitted.",
+      "summary": "The verifier pins and replays the exact deterministic and conformance rule protocols, derives every aggregate, and checks the displayed component projection before a verified result is emitted.",
       "anchors": [
         "src/lib/quality/automatedReadinessSignal.js",
         "src/lib/quality/scoreLedgerVerifier.js",
+        "src/lib/quality/conformanceScoreLedger.js",
         "src/lib/quality/__tests__/scoreLedgerVerifier.test.js"
       ],
       "proofCommands": [
@@ -80,10 +81,12 @@
       "id": "v01710-compiler-composition-integrity",
       "status": "verified-current",
       "changelogHighlightIndex": 3,
-      "summary": "Native authoring avoids determiner collisions, compact labels retain internal conjunctions, and concept-map hubs use complete candidates rather than word-boundary-truncated prefixes.",
+      "summary": "Native authoring avoids article collisions, compact labels retain internal conjunctions, concept-map hubs are complete and grammatical, and duplicated quiz-answer prefixes are removed at the DOCX boundary.",
       "anchors": [
         "src/lib/nativeGraphAuthoring.js",
         "src/lib/courseBlueprintCompiler.js",
+        "src/lib/compilerFactLedgerVisuals.js",
+        "src/lib/exporters/docxExporter.js",
         "src/lib/__tests__/nativeGraphAuthoring.test.js",
         "src/lib/__tests__/rubricAssignmentIntegrity.test.js"
       ],
@@ -93,16 +96,19 @@
       "proofScopes": ["unit", "compiled-output"]
     },
     {
-      "id": "v01710-grammar-regression-gate",
+      "id": "v01710-readiness-bound-precomputed-quality",
       "status": "verified-current",
       "changelogHighlightIndex": 4,
-      "summary": "The shared artifact defect table and live deep grader detect the conservative framing-adjective/determiner collision reproduced from the production DOCX.",
+      "summary": "Cached quality is reusable only when its canonical structured readiness binding exactly matches the current export; blocker-shaped finding prose cannot authorize reuse.",
       "anchors": [
-        "src/lib/quality/artifactDefectPatterns.js",
-        "src/lib/quality/deepQualityGrader.js",
-        "src/lib/quality/__tests__/deepQualityStructure.test.js"
+        "src/lib/packageZipExporter.js",
+        "src/components/ExportSidePanel.jsx",
+        "src/lib/__tests__/packageZipExporter.test.js",
+        "src/components/__tests__/ExportSidePanel.readiness.test.jsx"
       ],
-      "proofCommands": ["npx vitest run src/lib/quality/__tests__/deepQualityStructure.test.js"],
+      "proofCommands": [
+        "npx vitest run src/lib/__tests__/packageZipExporter.test.js src/components/__tests__/ExportSidePanel.readiness.test.jsx"
+      ],
       "proofScopes": ["unit", "compiled-output"]
     },
     {
@@ -122,7 +128,7 @@
       "id": "v01710-roundtable-and-render-audit",
       "status": "verified-current",
       "changelogHighlightIndex": 6,
-      "summary": "A six-round code-and-package Roundtable audit and direct representative DOCX/PPTX rendering record reproduced defects, rejected shortcuts, implemented owners, and unresolved boundaries.",
+      "summary": "A six-round code-and-package Roundtable audit, a separate three-round adversarial code audit, and direct representative DOCX/PPTX rendering record reproduced defects, verifier exploits, rejected shortcuts, implemented owners, and unresolved boundaries.",
       "anchors": ["docs/V0.17.10_ROUNDTABLE_OUTPUT_QUALITY_AUDIT.md"],
       "proofCommands": [
         "npx vitest run src/lib/__tests__/nativeGraphAuthoring.test.js src/lib/__tests__/rubricAssignmentIntegrity.test.js src/lib/quality/__tests__/deepQualityStructure.test.js"
