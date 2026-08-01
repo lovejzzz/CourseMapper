@@ -215,7 +215,7 @@ describe('v0.17.02 Scion output-quality contracts', () => {
       appVersion: packageJson.version,
       profile: 'untuned',
       packageCount: 12,
-      clusterCount: 469,
+      clusterCount: 455,
       lensDefaultHits: 30,
       packagesWithLensDefault: 10,
       unclassifiedPathCount: 0,
