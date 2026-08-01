@@ -256,7 +256,7 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
     const rProgramming = repairDeliverableContentQuality(
       'studyGuides',
       { notes: 'R: A Language and Environment for Statistical Computing is the reference manual.' },
-      { courseName: 'R Programming for Statistical Computing' },
+      { courseName: 'R Programming' },
     );
     expect(rProgramming.changed).toBe(false);
     expect(rProgramming.data.notes).toContain('R: A Language');

@@ -1,6 +1,6 @@
-// Narrow shared source-scope guard. Keep this module dependency-free so the
-// compiler and repair pipeline can reject known cross-discipline evidence
-// without pulling the complete grader pattern table into generation chunks.
+// Narrow shared source-scope guard. Use the same semantic-token normalization
+// as callers so calibrated hints cannot drift from stemmed course tokens.
+import { semanticIdentityTokens } from '../lessonSemanticRelevance.js';
 
 export const KNOWN_OFFENDER_CITATIONS = [
   'MNIST',
@@ -80,10 +80,11 @@ export function matchesKnownOffender(title) {
 
 export function knownOffenderFitsScope(offender, conceptTokenSet) {
   const normalized = String(offender || '').toLowerCase();
-  const tokens = conceptTokenSet instanceof Set ? conceptTokenSet : new Set(conceptTokenSet || []);
+  const inputTokens = conceptTokenSet instanceof Set ? [...conceptTokenSet] : conceptTokenSet || [];
+  const tokens = new Set(inputTokens.flatMap((token) => semanticIdentityTokens(token)));
   const row = OFFENDER_SCOPE_HINTS.find(([pattern]) => pattern.test(normalized));
   if (!row) return false;
-  return row[1].some((token) => tokens.has(token));
+  return row[1].flatMap((token) => semanticIdentityTokens(token)).some((token) => tokens.has(token));
 }
 
 const OFFENDER_YIELD_GENERIC_TOKENS = new Set([
