@@ -313,7 +313,6 @@ export function lessonPlanIndependentInstructorRole({ lesson, lens, concept, art
       `Ask students to name the evidence that makes one ${artifact} revision defensible`,
       `Check one visible ${artifact} move against the ${concept} criterion before students continue`,
       `Invite students to explain which ${lens.evidenceNoun} detail changed their ${lens.decisionNoun}`,
-      `Review the most uncertain ${artifact} claim and identify the next evidence check it needs`,
     ],
     [
       'leave one concrete revision question instead of approving the whole submission.',

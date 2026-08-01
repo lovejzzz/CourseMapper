@@ -19723,7 +19723,7 @@ function quizCorrectExplanation({ answer, concept, artifact, objective, lesson, 
   const compactObjective = clipped.length < fullObjective.length ? `${clipped}…` : clipped;
   // Preserve the historical six-slot rotation byte-for-byte.
   const variants = [
-    `${answer} is correct because it connects ${concept} to ${artifact}, uses lesson evidence, and supports the objective "${objective}".`,
+    `${answer} is correct because it connects ${concept} to ${artifact}, uses lesson evidence, and supports the objective "${stripTerminalPunctuation(objective)}".`,
     `${answer} is the strongest move: it grounds ${concept} in inspectable source evidence and advances the objective behind ${artifact}.`,
     `${answer} works because it ties ${concept} evidence to a visible decision in ${artifact} instead of stopping at recall.`,
     `${answer} best fits the objective (${compactObjective}): it selects relevant evidence and explains why the evidence changes ${artifact}.`,
@@ -23966,8 +23966,6 @@ function compactSlideDisplayBullet(slide, bullet, index, lesson) {
           `${label}: Defend one choice using the clearest evidence in this lesson`,
           `${label}: Revise one decision after weighing the available evidence`,
           `${label}: Connect one source detail to a defensible decision`,
-          `${label}: Test one decision against the lesson's strongest evidence`,
-          `${label}: Choose and justify the next evidence-backed move`,
         ],
         'slide-activity-course-pattern-display',
       ),
@@ -24567,7 +24565,7 @@ function buildDiscussionFollowUps(lesson, phrase) {
         ])
       : lessonVariant(lesson, [
           `Which alternative reading of the same evidence about ${concept} would challenge your claim, and why might another student prefer it for ${artifact}?`,
-          `What source detail could weaken your ${concept} interpretation, and how would that change the next ${artifact} move?`,
+          `What source detail could weaken the current interpretation of ${concept}, and how would that change the next ${artifact} move?`,
           `Which peer claim would force you to qualify your evidence about ${concept} before revising ${artifact}?`,
           `Where could another student reasonably read the evidence differently, and what would that mean for ${artifact}?`,
         ]),

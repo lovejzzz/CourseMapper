@@ -12,6 +12,7 @@
       "npm run bundle:check",
       "npm run audit:gold:smoke",
       "npm run audit:texture:cross-package -- --profile thin --compare-baseline",
+      "npm run audit:texture:cross-package -- --profile gold --compare-baseline",
       "npm run audit:evaluation:pr",
       "npm run audit:scion:factual-canaries",
       "npm run audit:release-history"
@@ -86,6 +87,7 @@
       "proofCommands": [
         "npm run audit:gold:smoke",
         "npm run audit:texture:cross-package -- --profile thin --compare-baseline",
+        "npm run audit:texture:cross-package -- --profile gold --compare-baseline",
         "npx vitest run src/lib/__tests__/contentQualityChecks.test.js src/lib/__tests__/contentQualityRepair.test.js src/lib/__tests__/courseBlueprintCompiler.test.js"
       ],
       "proofScopes": ["unit", "compiled-output"]

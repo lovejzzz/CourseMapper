@@ -69,10 +69,10 @@ const repositoryBudgets = {
   // reduction.
   // V0.17.03's 16-line compiler increase is inside the same measured family;
   // freeze the exact state with no extraction allowance.
-  // V0.17.06 adds 21 net family lines for grammatical compound-concept slide
-  // copy plus six course-contextual activity frames that prevent a new
+  // V0.17.06 adds 18 net family lines for grammatical compound-concept slide
+  // copy plus four course-contextual activity frames that prevent a new
   // universal high-salience sentence. Freeze the exact measured family.
-  compilerFamilyLines: 31_158,
+  compilerFamilyLines: 31_155,
   // v0.16.81 adds one executable Algi→Scion hybrid benchmark audit. It freezes
   // evidence, route, quality, call, latency, and export promotion rules; this
   // is a release gate rather than product-side script sprawl.
@@ -337,9 +337,9 @@ const lazyChunkBudgets = [
   // compressor tolerance absorbs runtime variance without raising the ratchet.
   // V0.17.06 adds lesson-specific quiz variation, source-backed slide concept
   // selection, and concise grammatical display copy. The measured release is
-  // 849.4/238.5 KiB; freeze it with less than 0.1 KiB raw headroom and only
+  // 849.3/238.5 KiB; freeze it with less than 0.1 KiB raw headroom and only
   // the separately declared 64-byte compressor tolerance on gzip.
-  { prefix: 'courseBlueprintCompiler-', rawKiB: 849.5, gzipKiB: 238.5, gzipSlackBytes: 64 },
+  { prefix: 'courseBlueprintCompiler-', rawKiB: 849.4, gzipKiB: 238.5, gzipSlackBytes: 64 },
   // Experiential-activity mechanics are compiler-owned and independently
   // cacheable beside the lazy compiler. The chunk projects the canonical
   // activity clock, evidence, constraints, decisions, artifact, and debrief
