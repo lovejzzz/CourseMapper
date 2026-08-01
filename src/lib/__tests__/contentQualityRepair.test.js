@@ -1,8 +1,21 @@
 import { describe, expect, it } from 'vitest';
 import { repairDeliverableContentQuality } from '../contentQualityRepair';
 import { auditDeliverableContentQuality } from '../contentQualityChecks';
+import { semanticIdentityTokens } from '../lessonSemanticRelevance';
+import { knownOffenderFitsScope } from '../quality/knownOffenderScope';
 
 describe('contentQualityRepair (v0.12.1 P2)', () => {
+  it('requires exact calibrated scope signals, including every token in phrase hints', () => {
+    const scope = (value) => new Set(semanticIdentityTokens(value));
+
+    expect(knownOffenderFitsScope('PRISMA', scope('Systematic Review Methods'))).toBe(true);
+    expect(knownOffenderFitsScope('PRISMA', scope('Meta-Analysis Methods'))).toBe(true);
+    expect(knownOffenderFitsScope('PRISMA', scope('Python for Public Policy Analysis'))).toBe(false);
+    expect(knownOffenderFitsScope('R: A Language', scope('R Programming'))).toBe(true);
+    expect(knownOffenderFitsScope('R: A Language', scope('Computing Ethics'))).toBe(false);
+    expect(knownOffenderFitsScope('MNIST', scope('Machine Learning Policy'))).toBe(false);
+  });
+
   it('fixes every mechanical finding class so the detector passes afterwards', () => {
     const data = {
       faq: [
@@ -155,6 +168,37 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
       { courseName: 'Systematic Review Methods' },
     );
     expect(systematicReviewCourse.changed).toBe(false);
+
+    const metaAnalysisCourse = repairDeliverableContentQuality(
+      'studyGuides',
+      { reviewNotes: ['Use PRISMA to report the evidence synthesis.'] },
+      { courseName: 'Meta-Analysis Methods' },
+    );
+    expect(metaAnalysisCourse.changed).toBe(false);
+
+    const policyAnalysisCourse = repairDeliverableContentQuality(
+      'studyGuides',
+      { reviewNotes: ['Use PRISMA to report the evidence synthesis.'] },
+      { courseName: 'Python for Public Policy Analysis' },
+    );
+    expect(policyAnalysisCourse.changed).toBe(true);
+    expect(JSON.stringify(policyAnalysisCourse.data)).not.toMatch(/PRISMA/i);
+
+    const computingEthicsCourse = repairDeliverableContentQuality(
+      'studyGuides',
+      { reviewNotes: ['R: A Language and Environment for Statistical Computing is the reference manual.'] },
+      { courseName: 'Computing Ethics' },
+    );
+    expect(computingEthicsCourse.changed).toBe(true);
+    expect(JSON.stringify(computingEthicsCourse.data)).not.toMatch(/R: A Language/i);
+
+    const machineLearningPolicyCourse = repairDeliverableContentQuality(
+      'studyGuides',
+      { reviewNotes: ['MNIST supports handwritten digit recognition benchmarks.'] },
+      { courseName: 'Machine Learning Policy' },
+    );
+    expect(machineLearningPolicyCourse.changed).toBe(true);
+    expect(JSON.stringify(machineLearningPolicyCourse.data)).not.toMatch(/MNIST/i);
 
     const artHistoryCourse = repairDeliverableContentQuality(
       'studyGuides',

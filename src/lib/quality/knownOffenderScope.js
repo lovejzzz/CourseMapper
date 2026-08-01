@@ -53,21 +53,32 @@ const KNOWN_OFFENDER_PATTERNS = [
 ];
 
 const OFFENDER_SCOPE_HINTS = [
-  [/mnist|document recognition/, ['machine', 'learning', 'vision', 'recognition', 'digit', 'handwriting']],
+  [/mnist|document recognition/, ['vision', 'recognition', 'digit', 'handwriting']],
   [/cancer statistics/, ['cancer', 'oncology', 'tumor', 'tumour']],
   [/quantum espresso|shelx/, ['quantum', 'materials', 'crystallography', 'crystal', 'chemistry', 'physics']],
-  [/prisma/, ['systematic', 'synthesis', 'metaanalysis', 'meta-analysis']],
-  [/r:\s*a language/, ['programming', 'statistical', 'computing', 'rstats']],
+  [/prisma/, ['systematic', 'synthesis', 'meta-analysis', 'metaanalysis']],
+  [/r:\s*a language/, ['programming', 'rstats']],
   [/lowry|protein measurement/, ['protein', 'biochemistry', 'biochemical', 'assay']],
-  [/xgboost|gradient boosting/, ['boosting', 'machine', 'learning', 'classification', 'regression']],
-  [/imagej|molecule archive/, ['image', 'imaging', 'microscopy', 'biomedical', 'bioimage', 'scijava', 'molecule']],
-  [/\bfsl\b/, ['neuroimaging', 'neuroscience', 'brain', 'imaging']],
+  [/xgboost|gradient boosting/, ['boosting', 'classification', 'regression']],
+  [/imagej|molecule archive/, ['microscopy', 'bioimage', 'scijava', 'molecule']],
+  [/\bfsl\b/, ['neuroimaging', 'neuroscience', 'brain']],
   [/pascal voc|iot vision/, ['vision', 'detection', 'imaging', 'iot', 'robotics']],
-  [/data clustering/, ['clustering', 'cluster', 'unsupervised', 'machine', 'learning', 'segmentation']],
-  [/nia-aa|alzheimer/, ['alzheimer', 'dementia', 'cognitive', 'neurology', 'gerontology']],
-  [/hypertension/, ['hypertension', 'cardiovascular', 'blood', 'pressure']],
-  [/ces-d/, ['depression', 'depressive', 'mental', 'psychology', 'screening']],
+  [/data clustering/, ['clustering', 'cluster', 'unsupervised', 'segmentation']],
+  [/nia-aa|alzheimer/, ['alzheimer', 'dementia', 'neurology', 'gerontology']],
+  [/hypertension/, ['hypertension', 'cardiovascular']],
+  [/ces-d/, ['depression', 'depressive']],
 ];
+
+const CALIBRATED_OFFENDER_SCOPE_HINTS = OFFENDER_SCOPE_HINTS.map(([pattern, hints]) => [
+  pattern,
+  hints.map((hint) => {
+    const tokens = semanticIdentityTokens(hint);
+    if (tokens.length === 0) {
+      throw new Error(`Known-offender scope hint must normalize to at least one token: ${hint}`);
+    }
+    return tokens;
+  }),
+]);
 
 export function matchesKnownOffender(title) {
   const text = String(title || '');
@@ -82,54 +93,64 @@ export function knownOffenderFitsScope(offender, conceptTokenSet) {
   const normalized = String(offender || '').toLowerCase();
   const inputTokens = conceptTokenSet instanceof Set ? [...conceptTokenSet] : conceptTokenSet || [];
   const tokens = new Set(inputTokens.flatMap((token) => semanticIdentityTokens(token)));
-  const row = OFFENDER_SCOPE_HINTS.find(([pattern]) => pattern.test(normalized));
+  const row = CALIBRATED_OFFENDER_SCOPE_HINTS.find(([pattern]) => pattern.test(normalized));
   if (!row) return false;
-  return row[1].flatMap((token) => semanticIdentityTokens(token)).some((token) => tokens.has(token));
+  return row[1].some((hintTokens) => hintTokens.every((token) => tokens.has(token)));
 }
 
-const OFFENDER_YIELD_GENERIC_TOKENS = new Set([
-  'statistics',
-  'statistical',
-  'statistic',
-  'analysis',
-  'analyses',
-  'analytic',
-  'study',
-  'studies',
-  'data',
-  'dataset',
-  'review',
-  'research',
-  'method',
-  'methods',
-  'methodology',
-  'model',
-  'models',
-  'modeling',
-  'modelling',
-  'evidence',
-  'finding',
-  'findings',
-  'result',
-  'results',
-  'approach',
-  'survey',
-  'introduction',
-  'global',
-  'world',
-  'general',
-  'application',
-  'applications',
-  'applied',
-  'system',
-  'systems',
-  'theory',
-  'framework',
-  'measurement',
-  'estimate',
-  'estimates',
-  'estimation',
-]);
+const OFFENDER_YIELD_GENERIC_TOKENS = new Set(
+  [
+    'statistics',
+    'statistical',
+    'statistic',
+    'analysis',
+    'analyses',
+    'analytic',
+    'study',
+    'studies',
+    'data',
+    'dataset',
+    'review',
+    'research',
+    'method',
+    'methods',
+    'methodology',
+    'model',
+    'models',
+    'modeling',
+    'modelling',
+    'evidence',
+    'finding',
+    'findings',
+    'result',
+    'results',
+    'approach',
+    'survey',
+    'introduction',
+    'global',
+    'world',
+    'general',
+    'application',
+    'applications',
+    'applied',
+    'system',
+    'systems',
+    'theory',
+    'framework',
+    'measurement',
+    'estimate',
+    'estimates',
+    'estimation',
+  ].flatMap((token) => semanticIdentityTokens(token)),
+);
+
+for (const [, hints] of CALIBRATED_OFFENDER_SCOPE_HINTS) {
+  for (const hintTokens of hints) {
+    if (hintTokens.length === 1 && OFFENDER_YIELD_GENERIC_TOKENS.has(hintTokens[0])) {
+      throw new Error(`Known-offender scope hint cannot be generic: ${hintTokens[0]}`);
+    }
+  }
+}
 
 export function blacklistYieldsToTopicalOverlap(
   titleTokenSet,
