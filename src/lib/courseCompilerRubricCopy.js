@@ -1,3 +1,64 @@
+export function buildCodeLabCriterionPerformanceBand({ artifact, criterion, criteria = [], evidenceEntry }) {
+  const codeLabCriteria = criteria.map((entry) => String(entry || '').trim()).join(' | ');
+  if (!/\bcode clarity\b/i.test(codeLabCriteria) || !/\btest evidence\b|\bverification\b/i.test(codeLabCriteria)) {
+    return null;
+  }
+  const name = String(criterion || 'criterion').trim();
+  let bands;
+  if (/\bcorrectness\b|\bcomputed\b/i.test(name)) {
+    bands = {
+      exemplary: `All required outputs in ${artifact} are correct, reproducible, and interpreted against the task conditions.`,
+      proficient: `Required outputs in ${artifact} are substantially correct, with only a minor error that does not change the main conclusion.`,
+      developing: `Some outputs in ${artifact} are correct, but a material computation or interpretation error remains.`,
+      beginning: `${artifact} does not produce the required outputs or the submitted results cannot be reproduced.`,
+      commonPitfall:
+        'Do not award correctness credit for polished explanation when the submitted computation is absent or wrong.',
+    };
+  } else if (/\bcode clarity\b|\borganization\b/i.test(name)) {
+    bands = {
+      exemplary: `${artifact} uses named steps, readable structure, and concise comments that make the computation easy to inspect and rerun.`,
+      proficient: `${artifact} is readable and organized enough to rerun, with only minor naming or comment gaps.`,
+      developing: `${artifact} runs only with effort because important steps, names, or comments are unclear.`,
+      beginning: `${artifact} is missing, disorganized, or too opaque for a reviewer to trace the computation.`,
+      commonPitfall:
+        'Do not award clarity credit solely because the output looks polished; inspect the submitted code structure.',
+    };
+  } else if (/\btest evidence\b|\bverification\b|\bassertion\b/i.test(name)) {
+    bands = {
+      exemplary: `${artifact} includes a relevant verification run, assertion, or hand-checked comparison; the expected and observed results agree and are explained.`,
+      proficient: `${artifact} includes a relevant verification with visible expected and observed results, but the explanation is brief.`,
+      developing: `${artifact} mentions testing or shows a run, but the expected result, observed result, or interpretation is incomplete.`,
+      beginning: `${artifact} supplies no inspectable verification evidence, or the shown check does not test the submitted computation.`,
+      commonPitfall:
+        'Do not award test-evidence credit for organization, citations, or format; require an inspectable verification result.',
+    };
+  } else if (/\bfeedback\b|\brevision\b|\brefactor\b/i.test(name)) {
+    bands = {
+      exemplary: `${artifact} identifies feedback, implements a substantive code or analysis revision, and shows the before-and-after effect.`,
+      proficient: `${artifact} implements a relevant revision and identifies the feedback that prompted it.`,
+      developing: `${artifact} mentions feedback but the resulting code or analysis change is minor or difficult to locate.`,
+      beginning: `${artifact} shows no inspectable feedback-informed revision in the submitted work.`,
+      commonPitfall:
+        'Do not award revision credit for stating that feedback was used without showing the resulting change.',
+    };
+  } else return null;
+  return {
+    exemplary: bands.exemplary,
+    proficient: bands.proficient,
+    developing: bands.developing,
+    beginning: bands.beginning,
+    performanceBandEvidence: {
+      priority: name,
+      evidenceSignal:
+        evidenceEntry?.evidenceNeeded ||
+        `Inspect the submitted code, outputs, and verification evidence for "${name}".`,
+      scorerQuestion: `Can two scorers point to the same submitted code or output evidence for "${name}"?`,
+      commonPitfall: bands.commonPitfall,
+      revisionTarget: `Revise ${artifact} so the code, output, or verification evidence for "${name}" is directly inspectable.`,
+    },
+  };
+}
+
 export function buildGenericCriterionPerformanceBand({
   priority,
   concept,

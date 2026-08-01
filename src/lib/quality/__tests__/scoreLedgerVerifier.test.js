@@ -69,6 +69,27 @@ describe('score ledger verification', () => {
     ).toBe('invalid');
   });
 
+  it('rejects forged bands, ceilings, decomposition, and evidence polarity', async () => {
+    for (const [field, value] of [
+      ['band', 'strong-positive-deterministic-evidence'],
+      ['attainableMaxScore', 100],
+      ['evidenceCeiling', 100],
+      ['positiveValidationEarned', 59],
+      ['negativeEvidenceEarned', 0],
+    ]) {
+      const tampered = fixture();
+      tampered.quality.readiness[field] = value;
+      expect((await verifyScoreLedger({ ...tampered, currentGraderVersion: '1.15.0' })).status).toBe('invalid');
+    }
+
+    const polarityTamper = fixture();
+    const integrityRule = polarityTamper.ledger.deterministicPackageEvidence.rules.find(
+      (rule) => rule.ruleId === 'DPK.PACKAGE.INTEGRITY',
+    );
+    integrityRule.evidencePolarity = 'positive-metric';
+    expect((await verifyScoreLedger({ ...polarityTamper, currentGraderVersion: '1.15.0' })).status).toBe('invalid');
+  });
+
   it('distinguishes stale grader scope from unverifiable legacy data', async () => {
     const value = fixture();
     expect((await verifyScoreLedger({ ...value, currentGraderVersion: '1.16.0' })).status).toBe(

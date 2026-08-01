@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "release": "0.17.10",
+  "recordedAt": "2026-08-01T14:00:52Z",
+  "status": "bounded-predeploy",
+  "claimBoundary": "This tracked predeploy receipt proves the focused compiler, quality-reporting, and score-verifier regressions passed before deployment. It is not a live production course-quality result, pixel-render certification, semantic-grounding result, assessment-coherence score, or instructor validation.",
+  "checks": [
+    {
+      "command": "npx vitest run src/lib/quality/__tests__/automatedReadinessSignal.test.js src/lib/quality/__tests__/scoreLedgerVerifier.test.js src/lib/quality/__tests__/deepQualityStructure.test.js src/lib/__tests__/nativeGraphAuthoring.test.js src/lib/__tests__/rubricAssignmentIntegrity.test.js",
+      "status": "pass",
+      "testFiles": 5,
+      "tests": 89
+    },
+    {
+      "command": "npx vitest run src/components/__tests__/ExportSidePanel.readiness.test.jsx src/lib/__tests__/packageZipExporter.test.js",
+      "status": "pass",
+      "testFiles": 2,
+      "tests": 75
+    },
+    {
+      "command": "npm run test:unit",
+      "status": "pass",
+      "testFilesPassed": 489,
+      "testFilesSkipped": 16,
+      "testsPassed": 6132,
+      "testsSkipped": 162
+    },
+    {
+      "command": "npm run lint && npm run format:check && npm run build && npm run bundle:check",
+      "status": "pass"
+    },
+    {
+      "command": "npm run audit:automated-readiness && npm run audit:texture:cross-package:untuned && npm run audit:contract:pr",
+      "status": "pass",
+      "contractBlockers": 0
+    },
+    {
+      "command": "npm run audit:scion:browser-base && npm run audit:release-history",
+      "status": "pass",
+      "baseIntegrity": "full-file-digest-verified",
+      "releaseClaimsVerified": 7
+    },
+    {
+      "command": "npm run audit:gold:smoke",
+      "status": "pass",
+      "samples": 3,
+      "blockers": 0,
+      "warnings": 0
+    },
+    {
+      "mode": "roundtable-code-and-package-audit",
+      "status": "pass-with-findings",
+      "rounds": 6,
+      "participantTurns": 18,
+      "completionBriefAuditConcerns": 4,
+      "report": "docs/V0.17.10_ROUNDTABLE_OUTPUT_QUALITY_AUDIT.md"
+    }
+  ],
+  "knownMissingEvidence": [
+    "A live production v0.17.10 package cannot exist until deployment succeeds and will be generated and audited after push.",
+    "Rendered-claim grounding and objective-task-rubric coherence intentionally remain unobserved.",
+    "No stable pixel/OCR footer regression or external instructor review is claimed."
+  ]
+}

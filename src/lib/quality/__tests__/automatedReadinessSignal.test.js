@@ -78,7 +78,7 @@ describe('automated readiness signal', () => {
     });
 
     expect(result.score).toBeLessThan(35);
-    expect(result.band).toBe('partial-deterministic-evidence');
+    expect(result.band).toBe('limited-positive-deterministic-evidence');
     expect(result.components.curriculumFidelity.score).toBeLessThan(15);
     expect(result.components.evidenceGrounding.score).toBeNull();
     expect(result.components.evidenceGrounding.points.unobserved).toBe(25);
@@ -100,7 +100,7 @@ describe('automated readiness signal', () => {
     });
 
     expect(result.score).toBe(59);
-    expect(result.band).toBe('substantial-deterministic-evidence');
+    expect(result.band).toBe('partial-positive-deterministic-evidence');
     expect(result.components.evidenceGrounding.score).toBeNull();
     expect(result.claimBoundary).toMatch(/cannot prove/i);
   });
@@ -132,8 +132,14 @@ describe('automated readiness signal', () => {
     expect(result.score).toBe(59);
     expect(result.score).toBeLessThanOrEqual(AUTOMATED_READINESS_CEILING);
     expect(result.maxScore).toBe(AUTOMATED_READINESS_ATTAINABLE_MAX);
-    expect(result.band).toBe('substantial-deterministic-evidence');
-    expect(result.evidenceCeiling).toBe(AUTOMATED_READINESS_CEILING);
+    expect(result.band).toBe('partial-positive-deterministic-evidence');
+    expect(result.evidenceCeiling).toBe(60);
+    expect(result.attainableMaxScore).toBe(60);
+    expect(result.evaluatedCoverage).toBe(60);
+    expect(result.positiveValidationCoverage).toBe(45);
+    expect(result.positiveValidationEarned).toBe(44);
+    expect(result.negativeEvidenceCoverage).toBe(15);
+    expect(result.negativeEvidenceEarned).toBe(15);
     expect(result.rawScore).toBe(59);
     expect(result.points).toEqual({ potential: 100, earned: 59, lost: 1, unobserved: 40 });
     expect(result.components.evidenceGrounding.score).toBeNull();
@@ -214,7 +220,10 @@ describe('automated readiness signal', () => {
     expect(result.components.curriculumFidelity.status).toBe('unobserved');
     expect(result.components.curriculumFidelity.points).toEqual({ max: 25, earned: 0, lost: 0, unobserved: 25 });
     expect(result.maxScore).toBe(100);
-    expect(result.attainableMaxScore).toBe(100);
+    expect(result.attainableMaxScore).toBe(35);
+    expect(result.evidenceCeiling).toBe(35);
+    expect(result.positiveValidationCoverage).toBe(20);
+    expect(result.negativeEvidenceCoverage).toBe(15);
     expect(result.points.unobserved).toBe(65);
   });
 

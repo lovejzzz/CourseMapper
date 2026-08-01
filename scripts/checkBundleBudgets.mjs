@@ -29,9 +29,9 @@ const budgets = {
 // caught an unaccounted increase, and the fix is to re-freeze at the released
 // state, not to widen the allowance. Every future release must do the same.
 const repositoryBudgets = {
-  // v0.17.09 advances the frozen state through the shipped v0.17.08 contract;
-  // its own v0.17.09 contract consumes the single declared-release allowance.
-  baselineVersion: '0.17.08',
+  // v0.17.10 advances the frozen state through the shipped v0.17.09 contract;
+  // its own v0.17.10 contract consumes the single declared-release allowance.
+  baselineVersion: '0.17.09',
   // v0.16.82 adds 29 net lines of reusable compiler control logic for
   // policy-domain separation and concept-owned evidence binding. Source-
   // statement copy and prerequisite selection moved to a cacheable leaf; the
@@ -77,7 +77,11 @@ const repositoryBudgets = {
   // universal high-salience sentence. Freeze the exact measured family.
   // The same V0.17.09 diversity seam plus canonical-evidence preservation is
   // 45 net lines across the compiler ownership family.
-  compilerFamilyLines: 31_200,
+  // V0.17.10 adds 24 measured family lines for code-lab-specific performance
+  // evidence while moving identity classification and visual selection into
+  // focused leaves. Policy, qualitative-coding, and genuine-programming
+  // regressions freeze the exact state without speculative headroom.
+  compilerFamilyLines: 31_224,
   // v0.16.81 adds one executable Algi→Scion hybrid benchmark audit. It freezes
   // evidence, route, quality, call, latency, and export promotion rules; this
   // is a release gate rather than product-side script sprawl.
@@ -96,9 +100,9 @@ const repositoryBudgets = {
   // It reuses the cross-package audit implementation rather than introducing
   // another runner.
   npmScripts: 386,
-  // v0.17.08 shipped 294 tracked release-ledger files (contracts plus the
-  // directory README); v0.17.09 may add exactly one current-release contract.
-  releaseContractFiles: 294,
+  // v0.17.09 shipped 295 tracked release-ledger files (contracts plus the
+  // directory README); v0.17.10 may add exactly one current-release contract.
+  releaseContractFiles: 295,
   trackedWeightFiles: 62,
   trackedWeightBytes: 1_053_339_981,
   largeBinaryBytes: 1024 * 1024,
@@ -367,7 +371,9 @@ const lazyChunkBudgets = [
   // Source-bound answer exemplars are isolated from the compiler monolith and
   // remain compile-only; freeze the measured leaf with narrow headroom.
   { prefix: 'compilerAssessmentEvidenceCopy-', rawKiB: 7, gzipKiB: 3.25 },
-  { prefix: 'compilerFactLedgerVisuals-', rawKiB: 3, gzipKiB: 1.5 },
+  // V0.17.10 selects a complete concept-map identity instead of truncating a
+  // hub into a plausible fragment. Freeze the measured compile-only leaf.
+  { prefix: 'compilerFactLedgerVisuals-', rawKiB: 3.1, gzipKiB: 1.5 },
   // Exact target-language assessment and lesson-plan frames are substantial
   // compile-only data. They remain cacheable beside the compiler without
   // weakening the compiler's long-standing size ratchet.
@@ -425,7 +431,10 @@ const lazyChunkBudgets = [
   { prefix: 'compilerReadingProfiles-', rawKiB: 30, gzipKiB: 9 },
   // v0.16.71: evidence-check rotations and criterion-level performance bands
   // are a separate compile-only leaf (measured 9.1/3.2 KiB).
-  { prefix: 'compilerRubricCopy-', rawKiB: 10, gzipKiB: 3.5 },
+  // V0.17.10 adds inspectable correctness, clarity, verification, and revision
+  // bands for true code labs. Policy memos remain excluded by identity tests;
+  // freeze the measured 11.7/3.8 KiB result without broad headroom.
+  { prefix: 'compilerRubricCopy-', rawKiB: 11.8, gzipKiB: 3.9 },
   // v0.16.74: assessment-specific comparative literature bands are compile-
   // only instructional data, kept out of the compiler control-flow chunk.
   { prefix: 'compilerComparativeRubricBands-', rawKiB: 10, gzipKiB: 3.5 },

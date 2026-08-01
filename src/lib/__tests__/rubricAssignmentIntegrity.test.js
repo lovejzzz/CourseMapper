@@ -90,6 +90,38 @@ function compileFixture() {
 
 const { courseMap, graph, blueprint, compiled } = compileFixture();
 
+function compilePythonPolicyFixture() {
+  const policyMap = {
+    courseName: 'Python for Public Policy',
+    semester: 'Fall 2026',
+    lessons: [
+      {
+        title: 'Lesson 1: Python and pandas for public datasets',
+        sections: [
+          {
+            topicSection: 'Python and pandas for public datasets',
+            learningGoals: 'Evaluate a public dataset and explain a policy-relevant evidence boundary.',
+            learningObjectives:
+              'Interpret dataset provenance and limitations.\nExplain a policy implication supported by the dataset.',
+            weeklyAssessments: 'Evidence explanation: Python and pandas for public datasets',
+            asyncActivities: 'Review the public dataset evidence brief.',
+            syncActivities: 'Compare two policy interpretations of the dataset.',
+            supportingResources: 'Public dataset evidence brief; policy memo guide',
+          },
+        ],
+      },
+    ],
+  };
+  const policyGraph = deriveCourseGraphFromCourseMap(policyMap);
+  const policyBlueprint = buildBlueprintFromGraph(policyGraph);
+  return {
+    blueprint: policyBlueprint,
+    compiled: compileBlueprintDeliverables(policyBlueprint, ['assignments', 'rubrics', 'slideDecks']),
+  };
+}
+
+const { compiled: pythonPolicyCompiled } = compilePythonPolicyFixture();
+
 const rubricLessonOf = (rubric) => rubric.lessonNumber;
 const assessmentLessonOf = (assessmentId) => Number(String(assessmentId).match(/^A(\d+)\./)?.[1]);
 
@@ -229,6 +261,12 @@ describe('code-lab twin distinctness (Lesson 2 proof + lab)', () => {
     expect(labCriteria).toMatch(/code clarity/i);
     expect(labCriteria).toMatch(/test evidence|verification/i);
     expect(proofCriteria).not.toMatch(/code clarity/i);
+    const testEvidenceRow = labRubric.criteria.find((row) => /test evidence|verification/i.test(row.criterion));
+    expect(testEvidenceRow.exemplary).toMatch(/verification run|assertion|hand-checked comparison/i);
+    expect(testEvidenceRow.beginning).toMatch(/no inspectable verification evidence/i);
+    expect(testEvidenceRow.performanceBandEvidence.commonPitfall).toMatch(
+      /require an inspectable verification result/i,
+    );
   });
 
   it('lab brief carries a distinct scaffold: environment, task, verification milestone', () => {
@@ -271,6 +309,32 @@ describe('code-lab twin distinctness (Lesson 2 proof + lab)', () => {
   it('the twins are not byte-level clones', () => {
     expect(JSON.stringify(labRubric)).not.toBe(JSON.stringify(proofRubric));
     expect(JSON.stringify(labBrief)).not.toBe(JSON.stringify(proofBrief));
+  });
+});
+
+describe('Python topic identity is not enough to classify a policy assessment as a code lab', () => {
+  const brief = pythonPolicyCompiled.assignments.assignments[0];
+  const rubric = pythonPolicyCompiled.rubrics.rubrics[0];
+
+  it('keeps the policy brief free of injected programming milestones', () => {
+    expect(brief.title).toMatch(/Evidence explanation: Python and pandas/i);
+    expect(JSON.stringify(brief)).not.toMatch(/computing environment|test or verification milestone|assertion/i);
+    expect(rubric.criteria.map((row) => row.criterion).join(' | ')).not.toMatch(
+      /correctness of computed|code clarity|test evidence/i,
+    );
+  });
+
+  it('preserves conjunctions in compact evidence labels and never emits a truncated concept-map prefix', () => {
+    const deck = pythonPolicyCompiled.slideDecks.decks[0];
+    const deckText = JSON.stringify(deck);
+    expect(deckText).not.toMatch(/Python pandas for public evidence brief/i);
+    const conceptMap = deck.slides.find(
+      (slide) => slide.visual?.kind === 'concept map' && Array.isArray(slide.visual?.spokes),
+    );
+    expect(conceptMap).toBeTruthy();
+    expect(conceptMap.visual.hub).not.toBe('Python and pandas for public');
+    expect(conceptMap.visual.hub).not.toMatch(/\b(?:and|or|for|of|the|a|an)$/i);
+    expect(conceptMap.visual.hub.length).toBeLessThanOrEqual(36);
   });
 });
 

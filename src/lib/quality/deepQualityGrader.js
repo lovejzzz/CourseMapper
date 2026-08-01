@@ -3979,6 +3979,12 @@ export function renderReportMarkdown(result, { courseTitle = 'Course', baselineR
         '',
       );
     }
+    if (Number.isFinite(readiness.positiveValidationEarned)) {
+      lines.push(
+        `**Evidence decomposition:** ${readiness.positiveValidationEarned}/${readiness.positiveValidationCoverage} from narrow positive metrics · ${readiness.negativeEvidenceEarned}/${readiness.negativeEvidenceCoverage} from negative-evidence-only conformance · ${readiness.points.unobserved}/100 unobserved.`,
+        '',
+      );
+    }
     lines.push(
       '## Deterministic package evidence rules',
       '',
@@ -3986,12 +3992,13 @@ export function renderReportMarkdown(result, { courseTitle = 'Course', baselineR
       '| --- | --- | ---: | ---: | ---: | --- | --- |',
     );
     for (const [component, value] of Object.entries(readiness.components || {})) {
-      const label = component
+      const fallbackLabel = component
         .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
         .replace(/[-_]+/g, ' ')
         .toLowerCase();
+      const label = value.label || `${fallbackLabel.charAt(0).toUpperCase()}${fallbackLabel.slice(1)}`;
       lines.push(
-        `| ${label.charAt(0).toUpperCase()}${label.slice(1)} | ${value.status} | ${value.points.earned}/${value.points.max} | ${value.points.lost} | ${value.points.unobserved} | ${String(value.reason || '').replace(/\|/g, '\\|')} | ${String(value.action || '').replace(/\|/g, '\\|')} |`,
+        `| ${label} | ${value.status} | ${value.points.earned}/${value.points.max} | ${value.points.lost} | ${value.points.unobserved} | ${String(value.reason || '').replace(/\|/g, '\\|')} | ${String(value.action || '').replace(/\|/g, '\\|')} |`,
       );
     }
     lines.push(

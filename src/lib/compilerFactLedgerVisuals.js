@@ -45,6 +45,16 @@ export function preferredSlideTerm(terms = [], lessonNumber = 1) {
   );
 }
 
+export function selectCompleteConceptMapHub(candidates = [], maxLength = 36) {
+  const seen = new Set();
+  return candidates.map(cleanText).find((candidate) => {
+    const key = candidate.toLowerCase();
+    if (!candidate || candidate.length > maxLength || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 export function prepareEnrichedSlideCopy({ content = {}, kernel = {}, concept = 'Lesson concept' }) {
   const authoredTitle = stripTerminalPunctuation(cleanText(content.title));
   const titleIsLedgerFact = preferredKernelFacts(kernel).some(

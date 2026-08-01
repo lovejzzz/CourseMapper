@@ -735,6 +735,13 @@ function QualityReportModal({ quality, onClose }) {
                   {humanizeReadinessLabel(readiness.band)} · {readiness.points?.earned ?? readiness.score} earned ·{' '}
                   {readiness.points?.lost ?? 'unknown'} lost · {readiness.points?.unobserved ?? 'unknown'} unobserved
                 </p>
+                {Number.isFinite(readiness.positiveValidationEarned) && (
+                  <p className="mt-1 text-xs leading-relaxed text-sky-800">
+                    {readiness.positiveValidationEarned}/{readiness.positiveValidationCoverage} from narrow positive
+                    metrics · {readiness.negativeEvidenceEarned}/{readiness.negativeEvidenceCoverage} from no encoded
+                    defect firing · {readiness.points?.unobserved ?? 'unknown'}/100 unobserved
+                  </p>
+                )}
                 <p className="mt-1 text-xs leading-relaxed text-sky-700">
                   {readiness.claimBoundary} Missing evidence stays in the fixed 100-point potential and never improves
                   the score.
@@ -744,7 +751,9 @@ function QualityReportModal({ quality, onClose }) {
                     {readinessComponents.map(([component, value]) => (
                       <div key={component} className="rounded-md bg-white/70 px-2 py-1.5 text-xs">
                         <div className="flex items-center justify-between gap-2">
-                          <span className="truncate text-sky-700">{humanizeReadinessLabel(component)}</span>
+                          <span className="truncate text-sky-700">
+                            {value.label || humanizeReadinessLabel(component)}
+                          </span>
                           <span className="font-bold text-sky-900">
                             {value.points?.earned ?? '—'}/{value.points?.max ?? value.weight} earned
                           </span>

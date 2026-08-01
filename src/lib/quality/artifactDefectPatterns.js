@@ -76,6 +76,17 @@ export const ARTIFACT_PATTERNS = [
     roadmap: 'v0.16.72',
   },
   {
+    // Conservative compiler-slot collision: a framing adjective cannot be
+    // followed by a second determiner in the same noun phrase. This pins the
+    // production "Audit a practical the pandas..." defect without deleting
+    // articles from legitimate reduced relative clauses elsewhere.
+    regex: /\b(?:practical|concrete|worked|real-world)\s+(?:the|a|an)\b/i,
+    label: 'slot grammar such as "a practical the pandas example"',
+    name: 'slot-grammar-framing-adjective-determiner',
+    severity: 'P2',
+    roadmap: 'v0.17.10',
+  },
+  {
     regex: MALFORMED_CLEAR_PLURAL_POSSESSIVE_PATTERN,
     label: 'malformed possessive such as "Seasons\'s"',
     name: 'malformed-plural-possessive',

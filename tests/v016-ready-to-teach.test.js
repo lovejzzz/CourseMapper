@@ -549,7 +549,7 @@ describe('A1 — subject-safe deterministic fallback', () => {
     expect(lessonTwoConceptMap).toBeTruthy();
     expect(lessonTwoConceptMap.visual.hub.length).toBeLessThanOrEqual(48);
     expect(lessonTwoConceptMap.visual.spokes.length).toBeGreaterThanOrEqual(2);
-    expect(lessonTwoConceptMap.visual.spokes).toEqual(
+    expect([lessonTwoConceptMap.visual.hub, ...lessonTwoConceptMap.visual.spokes]).toEqual(
       expect.arrayContaining(['Simple interval', 'Compound interval', 'Interval inversion']),
     );
     expect(lessonTwoSlideText).toMatch(/Reduce, invert, then exchange quality/);

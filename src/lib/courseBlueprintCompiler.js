@@ -32,7 +32,7 @@ import {
   firstOpenCourseSourceTitle,
   isCompilerMintedEvidenceBrief,
 } from './compilerOpenCourseSources';
-import { compactCompilerOwnedAssessmentIdentity } from './compilerAssessmentIdentity';
+import { compactCompilerOwnedAssessmentIdentity, isCodeLabAssessmentIdentity } from './compilerAssessmentIdentity';
 import { finalArtifactLabel, mergeFinalRegistryEntries } from './courseCompilerAssessmentRegistry';
 import {
   alignLensToCourseModality,
@@ -54,7 +54,7 @@ import {
   buildRequiredTextsFromReadingRegistry,
   buildWeeklyReadingResponseProfile,
 } from './courseCompilerReadingProfiles';
-import { buildGenericCriterionPerformanceBand } from './courseCompilerRubricCopy';
+import { buildCodeLabCriterionPerformanceBand, buildGenericCriterionPerformanceBand } from './courseCompilerRubricCopy';
 import { buildComparativeLiteraturePerformanceBand } from './courseCompilerComparativeRubricBands';
 import { assignmentSelfAssessmentEvidenceCheck } from './courseCompilerSelfAssessmentCopy';
 import {
@@ -203,6 +203,7 @@ import {
   prepareEnrichedSlideCopy,
   preferredKernelFacts,
   preferredSlideTerm,
+  selectCompleteConceptMapHub,
   slideAgendaDecisionCue,
 } from './compilerFactLedgerVisuals';
 import {
@@ -825,7 +826,7 @@ function compactSourceCue(value, fallback = 'instructor notes and in-class mater
     .replace(/[^\w\s.'’\-]+/g, ' ')
     .split(/\s+/)
     .map((word) => word.trim())
-    .filter((word) => word && !/^(?:and|or|the|a|an)$/i.test(word));
+    .filter((word) => word && !/^(?:the|a|an)$/i.test(word));
   const compact = trimDanglingTail((words.length <= maxWords ? words : words.slice(0, maxWords)).join(' '));
   return compact && !isUnsafeSourceCuePhrase(compact) ? compact : fallback;
 }
@@ -15290,6 +15291,15 @@ function buildCriterionPerformanceBand({
   lens,
   submissionProfile = null,
 }) {
+  const codeLabBand = isCodeLabAssessment(assessment)
+    ? buildCodeLabCriterionPerformanceBand({
+        artifact: stripTerminalPunctuation(cleanText(assessment.artifact || assessment.title, 'the code lab')),
+        criterion,
+        criteria: assessment.criteria,
+        evidenceEntry,
+      })
+    : null;
+  if (codeLabBand) return codeLabBand;
   const musicProfile = musicIntervalRubricProfile(lesson);
   const musicCriterion = musicProfile?.find((entry) => entry.criterion === criterion);
   if (musicCriterion) {
@@ -15676,15 +15686,8 @@ function registryWeightProvenance(entry, lesson) {
 // from the LESSON's studentArtifact, so the second twin used to ship as a
 // byte-level clone of the first with a partial title swap ("the Week N
 // sets" residue in lab documents). Code-lab twins now get (a) their own
-// criteria rows (correctness, code clarity, test evidence) and (b) a
-// deterministic relabel of every machinery string so no sibling-artifact
-// residue survives. No AI calls — pure template work.
-const CODE_LAB_ASSESSMENT_TITLE_RE =
-  /\b(?:computational|coding|programming|python|jupyter|notebooks?|script(?:s|ing)?|code)\b/i;
-
 function isCodeLabAssessment(assessment = {}) {
-  if (assessment.kind === 'exam' || assessment.kind === 'oral') return false;
-  return CODE_LAB_ASSESSMENT_TITLE_RE.test(cleanText(assessment.title || assessment.artifact));
+  return isCodeLabAssessmentIdentity(assessment.title || assessment.artifact, assessment.kind);
 }
 
 function buildCodeLabAssessmentCriteria(lesson, labTitle) {
@@ -23164,24 +23167,22 @@ function slideVisual(lesson, slide) {
       kind: 'concept map',
       purpose: `Define ${concept} as a decision tool, not a vocabulary-only term.`,
       evidenceUse: `Link ${concept} to evidence cues and decision cues students will use in ${artifact}.`,
-      // v0.13.3: explicit hub/spokes from the lesson's kernel key terms —
-      // short disciplinary terms the exporter can render as a native
-      // hub-and-spoke group (full-sentence bullets always failed its guard).
       ...(() => {
-        const hub = conciseClause(concept, concept, 36);
+        const hub = selectCompleteConceptMapHub([
+          concept,
+          ...lessonTeachingKeyTerms(lesson).map((term) => term.term),
+          ...(lesson.keyConcepts || []),
+          secondary,
+        ]);
+        if (!hub) return {};
         const spokes = unique(
           [
             ...lessonTeachingKeyTerms(lesson).map((term) => cleanText(term.term)),
             ...(lesson.keyConcepts || []).map((term) => cleanText(term)),
             cleanText(secondary),
-            // Sparse local-model kernels may admit only one key term. Keep
-            // the map grounded and renderable by connecting that term to two
-            // lesson anchors already authored elsewhere in the same graph.
             conciseClause(source, 'Source evidence', 26),
             conciseClause(artifactGenre.label || artifact, 'Course artifact', 26),
           ].filter((term) => term && term.length <= 26 && term.toLowerCase() !== hub.toLowerCase()),
-          // v0.14.5 (C1): the exporter's fixed slot table now seats up to six
-          // spokes (ellipse grid, deterministic positions by count).
           6,
         );
         return spokes.length >= 2 ? { hub, spokes } : {};

@@ -2626,13 +2626,13 @@ export function backfillNativeAuthoringFromLessonContent({
       ...existing,
       goal:
         cleanText(existing.goal, 140) ||
-        `Use source evidence about ${first} and ${second} to justify one ${lessonTitle} decision.`,
+        `Use source evidence about ${first} and ${second} to justify one decision in ${lessonTitle}.`,
       outcomes:
         outcomes.length > 0
           ? outcomes
           : [
               `Explain ${first} using the available course evidence.`,
-              `Apply ${second} to a practical ${lessonTitle} example and justify one revision.`,
+              `Apply ${second} in one practical example from ${lessonTitle} and justify one revision.`,
               `Evaluate a claim about ${third}, then state the evidence boundary.`,
             ],
       asyncActivities:
@@ -2645,7 +2645,7 @@ export function backfillNativeAuthoringFromLessonContent({
         syncActivities.length > 0
           ? syncActivities
           : [
-              `Audit a practical ${lessonTitle} example in pairs, then revise one decision using evidence about ${second}.`,
+              `Audit one practical example from ${lessonTitle} in pairs, then revise one decision using evidence about ${second}.`,
             ],
       source: existing.source || 'scion-source-kernel-backfill',
     };

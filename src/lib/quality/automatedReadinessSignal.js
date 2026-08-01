@@ -5,6 +5,8 @@ export const AUTOMATED_READINESS_PROTOCOL = 'coursemapper-deterministic-package-
 // Compatibility exports retained for callers that previously rendered a
 // moving readiness ruler. The v2 ledger always has a fixed 100-point potential.
 export const AUTOMATED_READINESS_CEILING = 100;
+// Maximum fixed potential retained for compatibility. A package-specific
+// attainable maximum is derived from the evaluated rule rows below.
 export const AUTOMATED_READINESS_ATTAINABLE_MAX = 100;
 export const AUTOMATED_READINESS_CLAIM_BOUNDARY =
   'This deterministic evidence score is not a readiness probability. It cannot prove factual accuracy, teachability, accessibility, or instructor validation.';
@@ -16,6 +18,22 @@ const COMPONENT_WEIGHTS = {
   instructionalTexture: 20,
   assessmentCoherence: 15,
   packageIntegrity: 15,
+};
+
+const COMPONENT_LABELS = {
+  curriculumFidelity: 'Ordered lesson-title sequence match',
+  evidenceGrounding: 'Rendered claim support',
+  instructionalTexture: 'Masked visible-unit variation',
+  assessmentCoherence: 'Objective-task-rubric coherence',
+  packageIntegrity: 'Encoded package-defect conformance',
+};
+
+const RULE_POLARITY = {
+  'DPK.CURRICULUM.ORDERED_SEQUENCE': 'positive-metric',
+  'DPK.EVIDENCE.RENDERED_CLAIM_SUPPORT': 'unobserved',
+  'DPK.INSTRUCTION.TEXTURE': 'positive-metric',
+  'DPK.ASSESSMENT.COHERENCE': 'unobserved',
+  'DPK.PACKAGE.INTEGRITY': 'negative-evidence-only',
 };
 
 function clamp(value, min = 0, max = 100) {
@@ -117,6 +135,7 @@ function evaluatedRule({
   action,
   antiGaming,
   evidenceTier = 'deterministic-structural',
+  evidencePolarity = 'positive-metric',
 }) {
   const earned = Math.min(max, Math.max(0, Math.round((clamp(componentScore) / 100) * max)));
   return {
@@ -129,6 +148,7 @@ function evaluatedRule({
     predicate,
     points: { max, earned, lost: max - earned, unobserved: 0 },
     evidenceTier,
+    evidencePolarity,
     confidence: {
       level: 'bounded',
       basis: 'Deterministic observations replay the declared predicate; no expert judgment is implied.',
@@ -165,6 +185,7 @@ function unobservedRule({
     predicate,
     points: { max, earned: 0, lost: 0, unobserved: max },
     evidenceTier,
+    evidencePolarity: 'unobserved',
     confidence: {
       level: 'none',
       basis: reason,
@@ -211,6 +232,47 @@ export function recomputeAutomatedEvidenceLedger(rules = []) {
     }
   }
   return totals;
+}
+
+export function deriveAutomatedEvidenceSummary(rules = []) {
+  const summary = {
+    evaluatedCoverage: 0,
+    positiveValidationCoverage: 0,
+    positiveValidationEarned: 0,
+    positiveValidationLost: 0,
+    negativeEvidenceCoverage: 0,
+    negativeEvidenceEarned: 0,
+    negativeEvidenceLost: 0,
+  };
+  for (const rule of rules) {
+    const expectedPolarity = rule?.status === 'unobserved' ? 'unobserved' : RULE_POLARITY[rule?.ruleId];
+    if (!expectedPolarity || rule?.evidencePolarity !== expectedPolarity) {
+      throw new Error(`${rule?.ruleId || 'rule'} has an invalid evidence polarity`);
+    }
+    if (rule.status !== 'evaluated') continue;
+    summary.evaluatedCoverage += Number(rule.points.max);
+    if (rule.evidencePolarity === 'positive-metric') {
+      summary.positiveValidationCoverage += Number(rule.points.max);
+      summary.positiveValidationEarned += Number(rule.points.earned);
+      summary.positiveValidationLost += Number(rule.points.lost);
+    } else if (rule.evidencePolarity === 'negative-evidence-only') {
+      summary.negativeEvidenceCoverage += Number(rule.points.max);
+      summary.negativeEvidenceEarned += Number(rule.points.earned);
+      summary.negativeEvidenceLost += Number(rule.points.lost);
+    }
+  }
+  return summary;
+}
+
+export function deriveAutomatedEvidenceBand(summary = {}, points = {}) {
+  const positiveCoverage = Number(summary.positiveValidationCoverage) || 0;
+  const positiveEarned = Number(summary.positiveValidationEarned) || 0;
+  const unobserved = Number(points.unobserved) || 0;
+  if (unobserved === 0 && positiveCoverage === 100 && positiveEarned >= 80) {
+    return 'strong-positive-deterministic-evidence';
+  }
+  if (positiveCoverage >= 45 && positiveEarned >= 30) return 'partial-positive-deterministic-evidence';
+  return 'limited-positive-deterministic-evidence';
 }
 
 function curriculumRule(manifest, course, lessonTitles) {
@@ -485,13 +547,8 @@ function integrityRule(conformance) {
       controls: ['overall conformance is not reused', 'only structure, format, and identity own these points'],
       inputFingerprint: stableFingerprint(observed),
     },
+    evidencePolarity: 'negative-evidence-only',
   });
-}
-
-function evidenceBand(earned) {
-  if (earned >= 55) return 'substantial-deterministic-evidence';
-  if (earned >= 30) return 'partial-deterministic-evidence';
-  return 'limited-deterministic-evidence';
 }
 
 export function computeAutomatedReadinessSignal({
@@ -512,6 +569,7 @@ export function computeAutomatedReadinessSignal({
     integrityRule(conformance),
   ];
   const points = recomputeAutomatedEvidenceLedger(rules);
+  const evidenceSummary = deriveAutomatedEvidenceSummary(rules);
   if (points.potential !== 100)
     throw new Error(`Automated evidence ledger potential must be 100, received ${points.potential}`);
   const components = Object.fromEntries(
@@ -519,6 +577,8 @@ export function computeAutomatedReadinessSignal({
       rule.constructId,
       {
         status: rule.status,
+        label: COMPONENT_LABELS[rule.constructId],
+        evidencePolarity: rule.evidencePolarity,
         weight: rule.points.max,
         score: rule.status === 'evaluated' ? Math.round((rule.points.earned / rule.points.max) * 100) : null,
         points: rule.points,
@@ -538,10 +598,17 @@ export function computeAutomatedReadinessSignal({
     score: points.earned,
     maxScore: 100,
     potentialPoints: 100,
-    attainableMaxScore: 100,
-    evidenceCeiling: 100,
+    attainableMaxScore: evidenceSummary.evaluatedCoverage,
+    evidenceCeiling: evidenceSummary.evaluatedCoverage,
+    evaluatedCoverage: evidenceSummary.evaluatedCoverage,
+    positiveValidationCoverage: evidenceSummary.positiveValidationCoverage,
+    positiveValidationEarned: evidenceSummary.positiveValidationEarned,
+    positiveValidationLost: evidenceSummary.positiveValidationLost,
+    negativeEvidenceCoverage: evidenceSummary.negativeEvidenceCoverage,
+    negativeEvidenceEarned: evidenceSummary.negativeEvidenceEarned,
+    negativeEvidenceLost: evidenceSummary.negativeEvidenceLost,
     rawScore: points.earned,
-    band: evidenceBand(points.earned),
+    band: deriveAutomatedEvidenceBand(evidenceSummary, points),
     points,
     claimBoundary: AUTOMATED_READINESS_CLAIM_BOUNDARY,
     reconstructionDisclosure: reconstructionDisclosure(manifest),

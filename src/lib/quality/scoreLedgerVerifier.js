@@ -1,3 +1,5 @@
+import { deriveAutomatedEvidenceBand, deriveAutomatedEvidenceSummary } from './automatedReadinessSignal.js';
+
 function sameBinding(left, right) {
   return Boolean(left && right && left.algorithm === right.algorithm && left.sha256 === right.sha256);
 }
@@ -58,6 +60,14 @@ function verifyDeterministicEvidence(section, quality) {
   if (JSON.stringify(totals) !== JSON.stringify(section.points)) {
     return invalid('deterministic evidence aggregate does not match its rule rows');
   }
+  let evidenceSummary;
+  let band;
+  try {
+    evidenceSummary = deriveAutomatedEvidenceSummary(rules);
+    band = deriveAutomatedEvidenceBand(evidenceSummary, totals);
+  } catch (error) {
+    return invalid(error?.message || 'deterministic evidence polarity is invalid');
+  }
   if (quality?.readiness) {
     if (quality.readiness.score !== totals.earned || quality.readiness.maxScore !== 100) {
       return invalid('displayed deterministic evidence score does not match the ledger');
@@ -65,8 +75,25 @@ function verifyDeterministicEvidence(section, quality) {
     if (JSON.stringify(quality.readiness.points) !== JSON.stringify(totals)) {
       return invalid('displayed deterministic evidence buckets do not match the ledger');
     }
+    const derivedDisplay = {
+      attainableMaxScore: evidenceSummary.evaluatedCoverage,
+      evidenceCeiling: evidenceSummary.evaluatedCoverage,
+      evaluatedCoverage: evidenceSummary.evaluatedCoverage,
+      positiveValidationCoverage: evidenceSummary.positiveValidationCoverage,
+      positiveValidationEarned: evidenceSummary.positiveValidationEarned,
+      positiveValidationLost: evidenceSummary.positiveValidationLost,
+      negativeEvidenceCoverage: evidenceSummary.negativeEvidenceCoverage,
+      negativeEvidenceEarned: evidenceSummary.negativeEvidenceEarned,
+      negativeEvidenceLost: evidenceSummary.negativeEvidenceLost,
+      band,
+    };
+    for (const [field, expected] of Object.entries(derivedDisplay)) {
+      if (quality.readiness[field] !== expected) {
+        return invalid(`displayed deterministic evidence ${field} does not match the ledger`);
+      }
+    }
   }
-  return { status: 'verified', totals };
+  return { status: 'verified', totals, evidenceSummary, band };
 }
 
 function verifyConformance(section, quality) {
@@ -144,7 +171,10 @@ export async function verifyScoreLedger({
   const projection = deepFreeze({
     deterministicPackageEvidence: {
       ...evidenceResult.totals,
-      band: quality?.readiness?.band || null,
+      ...evidenceResult.evidenceSummary,
+      attainableMaxScore: evidenceResult.evidenceSummary.evaluatedCoverage,
+      evidenceCeiling: evidenceResult.evidenceSummary.evaluatedCoverage,
+      band: evidenceResult.band,
       protocol: ledger.deterministicPackageEvidence?.protocol || null,
     },
     encodedDefectConformance: {

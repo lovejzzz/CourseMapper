@@ -34,3 +34,20 @@ export function compactCompilerOwnedAssessmentIdentity(value) {
     .replace(/\s+exit note connecting the activity to one visible product\.?$/i, ' exit reflection')
     .replace(/\s+short response that names the claim, example, and next question\.?$/i, ' short analysis');
 }
+const EXPLICIT_CODE_LAB_IDENTITY_RE = /\b(?:programming|computational)\s+(?:lab|assignment|exercise|project)\b/i;
+const CODE_LAB_SIGNAL_PATTERNS = [
+  /\b(?:computational|programming|coding)\b/i,
+  /\b(?:python|jupyter)\b/i,
+  /\b(?:notebooks?|scripts?|source code)\b/i,
+  /\b(?:repository|commits?|pull request|implementation|debugging|refactor)\b/i,
+  /\b(?:unit tests?|test suite|assertions?|verification run)\b/i,
+];
+
+export function isCodeLabAssessmentIdentity(value, kind = '') {
+  if (kind === 'exam' || kind === 'oral') return false;
+  const identity = String(value || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (EXPLICIT_CODE_LAB_IDENTITY_RE.test(identity)) return true;
+  return CODE_LAB_SIGNAL_PATTERNS.filter((pattern) => pattern.test(identity)).length >= 2;
+}

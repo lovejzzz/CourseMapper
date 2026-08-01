@@ -146,13 +146,38 @@ describe('source-grounded native authoring backfill', () => {
       source: 'scion-source-kernel-backfill',
       outcomes: [
         'Explain Accessible forms using the available course evidence.',
-        'Apply Labels to a practical Accessible forms example and justify one revision.',
+        'Apply Labels in one practical example from Accessible forms and justify one revision.',
         'Evaluate a claim about Validation, then state the evidence boundary.',
       ],
     });
     expect(authored['lesson-1'].goal).toContain('Accessible forms and Labels');
     expect(authored['lesson-1'].asyncActivities[0]).toContain('one limitation');
     expect(authored['lesson-1'].syncActivities[0]).toContain('using evidence about Labels');
+  });
+
+  it('composes determiner-led lesson titles without article collisions', () => {
+    const authored = backfillNativeAuthoringFromLessonContent({
+      skeleton: {
+        sessions: [
+          {
+            id: 's1',
+            order: 1,
+            title: 'The pandas workflow for public datasets',
+            sectionTitles: ['The pandas workflow for public datasets'],
+          },
+        ],
+      },
+      lessonContent: { 'lesson-1': anchoredKernel },
+    });
+
+    expect(authored['lesson-1'].goal).toContain('one decision in The pandas workflow for public datasets');
+    expect(authored['lesson-1'].outcomes[1]).toContain(
+      'one practical example from The pandas workflow for public datasets',
+    );
+    expect(authored['lesson-1'].syncActivities[0]).toContain(
+      'one practical example from The pandas workflow for public datasets',
+    );
+    expect(JSON.stringify(authored)).not.toMatch(/\ba practical the\b/i);
   });
 
   it('preserves existing authored fields and refuses thin or unverified kernels', () => {
@@ -212,7 +237,7 @@ describe('source-grounded native authoring backfill', () => {
     const section = assembly.courseMap.lessons[0].sections[0];
     expect(section.learningGoals).toContain('source evidence about Accessible forms and Labels');
     expect(section.learningObjectives).toContain('Explain Accessible forms using the available course evidence');
-    expect(section.learningObjectives).toContain('Apply Labels to a practical Accessible forms example');
+    expect(section.learningObjectives).toContain('Apply Labels in one practical example from Accessible forms');
     expect(section.learningObjectives).toContain('Evaluate a claim about Validation');
     expect(section.asyncActivities).toContain('Annotate the available course evidence');
     expect(section.syncActivities).toContain('using evidence about Labels');

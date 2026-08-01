@@ -570,17 +570,24 @@ function renderPrecomputedQualityReport(precomputed, { courseTitle = 'Course' } 
   );
   lines.push('');
   if (quality.readiness?.components) {
+    if (Number.isFinite(quality.readiness.positiveValidationEarned)) {
+      lines.push(
+        `**Evidence decomposition:** ${quality.readiness.positiveValidationEarned}/${quality.readiness.positiveValidationCoverage} from narrow positive metrics · ${quality.readiness.negativeEvidenceEarned}/${quality.readiness.negativeEvidenceCoverage} from negative-evidence-only conformance · ${quality.readiness.points?.unobserved ?? 0}/100 unobserved.`,
+      );
+      lines.push('');
+    }
     lines.push('## Deterministic package evidence rules');
     lines.push('');
     lines.push('| Component | Status | Earned | Lost | Unobserved | Why | How to improve |');
     lines.push('| --- | --- | ---: | ---: | ---: | --- | --- |');
     for (const [component, value] of Object.entries(quality.readiness.components)) {
-      const label = component
+      const fallbackLabel = component
         .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
         .replace(/[-_]+/g, ' ')
         .toLowerCase();
+      const label = value.label || `${fallbackLabel.charAt(0).toUpperCase()}${fallbackLabel.slice(1)}`;
       lines.push(
-        `| ${label.charAt(0).toUpperCase()}${label.slice(1)} | ${value.status || 'unverifiable-legacy'} | ${value.points?.earned ?? '-'} / ${value.points?.max ?? value.weight} | ${value.points?.lost ?? '-'} | ${value.points?.unobserved ?? '-'} | ${String(value.reason || 'Legacy result has no serialized rule reason.').replace(/\|/g, '\\|')} | ${String(value.action || 'Regrade with the current protocol.').replace(/\|/g, '\\|')} |`,
+        `| ${label} | ${value.status || 'unverifiable-legacy'} | ${value.points?.earned ?? '-'} / ${value.points?.max ?? value.weight} | ${value.points?.lost ?? '-'} | ${value.points?.unobserved ?? '-'} | ${String(value.reason || 'Legacy result has no serialized rule reason.').replace(/\|/g, '\\|')} | ${String(value.action || 'Regrade with the current protocol.').replace(/\|/g, '\\|')} |`,
       );
     }
     lines.push('');

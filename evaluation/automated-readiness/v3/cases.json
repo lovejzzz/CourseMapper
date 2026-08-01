@@ -1,7 +1,7 @@
 {
   "version": "3.0.0",
   "protocol": "coursemapper-deterministic-package-evidence-v2",
-  "canonicalSha256": "0a422b14d9e67cec63cd74d6835b96502a7c2ddb0e9a3b6c76f968b962c80b91",
+  "canonicalSha256": "979d288d27a927a04739125ef75c68acc7b66c727d99d3c89260487b1cf58438",
   "purpose": "Freeze fixed-potential, auditable deterministic package evidence after the moving-denominator monotonicity defect was removed, without rewriting historical readiness benchmarks.",
   "cases": [
     {
@@ -26,7 +26,7 @@
       "sourceCoverage": { "total": 80, "withRefs": 80 },
       "conformanceScore": 89,
       "textureScore": 75,
-      "expected": { "score": 31, "band": "partial-deterministic-evidence" }
+      "expected": { "score": 31, "band": "limited-positive-deterministic-evidence" }
     },
     {
       "id": "observed-scion-v01682-exact-but-thin-evidence",
@@ -46,7 +46,7 @@
       "trustedSourceCount": 1,
       "conformanceScore": 99,
       "textureScore": 96,
-      "expected": { "score": 59, "band": "substantial-deterministic-evidence" }
+      "expected": { "score": 59, "band": "partial-positive-deterministic-evidence" }
     },
     {
       "id": "exact-source-rich-extraction-only-control",
@@ -68,7 +68,7 @@
       "trustedSourceCoverage": { "total": 50, "withRefs": 47 },
       "conformanceScore": 99,
       "textureScore": 96,
-      "expected": { "score": 59, "band": "substantial-deterministic-evidence" }
+      "expected": { "score": 59, "band": "partial-positive-deterministic-evidence" }
     }
   ]
 }
