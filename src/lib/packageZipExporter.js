@@ -578,6 +578,21 @@ export function buildPackageReadinessReceipt({ readiness = null, quality = null,
   };
 }
 
+export function hasVerifiedPackageDownloadReceipt(receipt) {
+  if (receipt?.protocol !== 'coursemapper-package-readiness-receipt-v2') return false;
+  const verification = receipt.exportVerification || {};
+  const checked = Math.max(0, Number(verification.checked) || 0);
+  const failed = Math.max(0, Number(verification.failed) || 0);
+  const status = String(verification.status || '').toLowerCase();
+  return (
+    receipt.downloadSafety?.status === 'verified' &&
+    Math.max(0, Number(receipt.downloadSafety?.blockerCount) || 0) === 0 &&
+    checked > 0 &&
+    ['passed', 'warnings'].includes(status) &&
+    failed === 0
+  );
+}
+
 function normalizePackagePathForQuality(value) {
   return String(value || '')
     .replace(/\\/g, '/')
@@ -2743,6 +2758,13 @@ export async function downloadCourseMaterialsZip(options = {}) {
   // its unavailable-quality report were assembled successfully. Callers keep
   // the result so they can present/retry without losing the expensive build.
   if (options.quality !== false && result.quality?.status !== 'graded') {
+    return { ...result, downloaded: false };
+  }
+  // The save call is the final trust boundary, so it must independently
+  // enforce the exact receipt-v2 export proof. UI eligibility is advisory and
+  // legacy receipts may enter the rebuild path; only the newly assembled
+  // package receipt can authorize a user-facing download.
+  if (options.quality !== false && !hasVerifiedPackageDownloadReceipt(result.packageReadinessReceipt)) {
     return { ...result, downloaded: false };
   }
   saveAs(result.blob, result.fileName);

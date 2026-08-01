@@ -86,6 +86,25 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
     expect(auditDeliverableContentQuality('lessonPlans', result.data).findings).toHaveLength(0);
   });
 
+  it('keeps prefixed assessment titles and body references synchronized', () => {
+    const data = {
+      assignments: [
+        {
+          assessmentTitle: 'Unit 3: Apply Conditional Branching Logic to one example and name one limitation.',
+          instructions:
+            'Use Unit 3: Apply Conditional Branching Logic to one example and name one limitation before submission.',
+        },
+      ],
+    };
+
+    const result = repairDeliverableContentQuality('assignments', data);
+
+    expect(result.data.assignments[0]).toEqual({
+      assessmentTitle: 'Unit 3: Conditional Branching Logic application check',
+      instructions: 'Use Unit 3: Conditional Branching Logic application check before submission.',
+    });
+  });
+
   it('removes a known off-topic source sentence from saved teaching copy without erasing surrounding guidance', () => {
     const data = {
       decks: [
@@ -111,7 +130,10 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
 
     expect(result.changed).toBe(true);
     expect(JSON.stringify(result.data)).not.toMatch(/ImageJ|Molecule Archives/i);
-    expect(result.data.decks[0].slides[0].bullets).toEqual(['Use policy evidence to bound the recommendation.']);
+    expect(result.data.decks[0].slides[0].bullets).toEqual([
+      'Use policy evidence to bound the recommendation.',
+      'Use a course-aligned example and verify its source before publishing.',
+    ]);
     expect(result.data.decks[0].slides[0].notes).toBe(
       'Compare the policy evidence first. Name one limitation before revising.',
     );
@@ -133,6 +155,20 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
       { courseName: 'Systematic Review Methods' },
     );
     expect(systematicReviewCourse.changed).toBe(false);
+
+    const artHistoryCourse = repairDeliverableContentQuality(
+      'studyGuides',
+      { reviewNotes: ['Compare L. S. Lowry with other painters of industrial life.'] },
+      { courseName: 'Modern British Art History' },
+    );
+    expect(artHistoryCourse.changed).toBe(false);
+
+    const prismaticLanguage = repairDeliverableContentQuality(
+      'studyGuides',
+      { reviewNotes: ['Describe the prismatic color structure in the painting.'] },
+      { courseName: 'Color and Composition Studio' },
+    );
+    expect(prismaticLanguage.changed).toBe(false);
 
     const wholeFieldLeak = repairDeliverableContentQuality(
       'lessonPlans',

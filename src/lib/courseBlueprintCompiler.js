@@ -14175,11 +14175,11 @@ function extractLessonBlueprint(
     ],
     6,
   );
+  const fallbackReading = `${stripLessonPrefix(title)} lesson materials`;
   const asyncActivities = meaningfulEntries(splitList(asyncActivityText));
   const syncActivities = meaningfulEntries(splitList(syncActivityText));
   const activities = [...syncActivities, ...asyncActivities];
-  const hasActivities = activities.length > 0;
-  const hasResources = resources.length > 0;
+  const [hasActivities, hasResources] = [activities.length > 0, resources.length > 0];
   const weeklyAssessmentText = extractColumn(lesson, 'weeklyAssessments');
   const evaluationDesignText = extractColumn(lesson, 'evaluateDesign');
   // Normalize identity echoes at the Course Map boundary too. The registry
@@ -14315,7 +14315,7 @@ function extractLessonBlueprint(
     sourceAnchor(
       'resources',
       hasResources ? 'course-map' : 'compiler-inferred',
-      resources.join('; ') || 'Instructor notes and in-class materials',
+      resources.join('; ') || fallbackReading,
       confidence.fields.resources.confidence,
     ),
   ];
@@ -14337,7 +14337,7 @@ function extractLessonBlueprint(
   const evidencePlan = buildEvidencePlan({
     title,
     concepts: keyConcepts,
-    resources: resources.length > 0 ? resources : ['Instructor notes and in-class materials'],
+    resources: resources.length > 0 ? resources : [fallbackReading],
     activities,
     artifact: studentArtifact,
     protectedSourceCue: registryReadingTitles[0] || '',
@@ -14345,7 +14345,7 @@ function extractLessonBlueprint(
   const sourceUsePlan = buildSourceUsePlan({
     title,
     concepts: keyConcepts,
-    resources: resources.length > 0 ? resources : ['Instructor notes and in-class materials'],
+    resources: resources.length > 0 ? resources : [fallbackReading],
     evidencePlan,
     artifact: studentArtifact,
     protectedSourceCue: registryReadingTitles[0] || '',
@@ -14393,7 +14393,7 @@ function extractLessonBlueprint(
     activities.join('; '),
     `Concept model, applied practice, peer discussion, and individual reflection for ${stripLessonPrefix(title)}.`,
   );
-  const readings = resources.length > 0 ? resources : ['Instructor notes and in-class materials'];
+  const readings = resources.length > 0 ? resources : [fallbackReading];
   const sourceEvidenceTrace = buildSourceEvidenceTrace({
     lessonNumber,
     title,

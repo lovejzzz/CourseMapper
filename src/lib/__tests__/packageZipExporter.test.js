@@ -6,6 +6,7 @@ import {
   buildPackageReadinessBinding,
   buildPackageReadinessReceipt,
   downloadCourseMaterialsZip,
+  hasVerifiedPackageDownloadReceipt,
   mergeSourceLedgerBundles,
   PackageZipExportError,
   sanitizeFilePart,
@@ -48,6 +49,31 @@ it('preserves exporter warning evidence without turning an otherwise verified do
     exportVerification: { status: 'warnings', checked: 38, failed: 0, warningCount: 2 },
     downloadSafety: { status: 'verified', blockerCount: 0 },
   });
+});
+
+it('requires an exact verified v2 receipt at the final download boundary', () => {
+  const verified = buildPackageReadinessReceipt({
+    readiness: { status: 'ready', blockers: 0, warnings: 0 },
+    quality: { status: 'graded', score: 89, grade: 'B', findingCounts: { p0: 0, p1: 1, p2: 0 } },
+    exportVerification: { status: 'warnings', checked: 4, failed: 0, warningCount: 1 },
+  });
+  expect(hasVerifiedPackageDownloadReceipt(verified)).toBe(true);
+  expect(
+    hasVerifiedPackageDownloadReceipt({ ...verified, protocol: 'coursemapper-package-readiness-receipt-v1' }),
+  ).toBe(false);
+  expect(
+    hasVerifiedPackageDownloadReceipt({
+      ...verified,
+      exportVerification: { ...verified.exportVerification, checked: 0, status: 'unverified' },
+      downloadSafety: { ...verified.downloadSafety, status: 'unverified' },
+    }),
+  ).toBe(false);
+  expect(
+    hasVerifiedPackageDownloadReceipt({
+      ...verified,
+      downloadSafety: { ...verified.downloadSafety, status: 'blocked', blockerCount: 1 },
+    }),
+  ).toBe(false);
 });
 
 vi.mock('../quality/deepQualityGrader.js', async () => {
@@ -3410,6 +3436,68 @@ describe('packageZipExporter', () => {
     expect(result.blob.size).toBeGreaterThan(0);
     expect(result.qualityReportMarkdown.toLowerCase()).toContain('quality proof unavailable');
     expect(saveAs).not.toHaveBeenCalled();
+  });
+
+  it('keeps a graded ZIP recoverable but does not save it without positive export verification', async () => {
+    const result = await downloadCourseMaterialsZip({
+      courseMap: makeCourseMap(),
+      featureIds: ['courseMap'],
+    });
+
+    expect(result.quality).toMatchObject({ status: 'graded' });
+    expect(result.packageReadinessReceipt).toMatchObject({
+      protocol: 'coursemapper-package-readiness-receipt-v2',
+      exportVerification: { status: 'unverified', checked: 0, failed: 0 },
+      downloadSafety: { status: 'unverified', blockerCount: 0 },
+    });
+    expect(result.downloaded).toBe(false);
+    expect(saveAs).not.toHaveBeenCalled();
+  });
+
+  it('does not save when current structural blockers invalidate otherwise passing export checks', async () => {
+    const blocker = {
+      severity: 'blocker',
+      source: 'readiness',
+      featureId: 'courseMap',
+      message: 'Course map preparation is incomplete.',
+    };
+    const result = await downloadCourseMaterialsZip({
+      courseMap: makeCourseMap(),
+      featureIds: ['courseMap'],
+      readiness: { status: 'blocked', blockers: [blocker], warnings: [], issues: [blocker] },
+      quality: {
+        digest: {
+          gates: { exportStatus: 'passed', exportChecked: 4, exportFailed: 0, exportWarnings: 0 },
+        },
+      },
+    });
+
+    expect(result.quality).toMatchObject({ status: 'graded' });
+    expect(result.packageReadinessReceipt.downloadSafety).toMatchObject({
+      status: 'blocked',
+      blockerCount: 1,
+      structuralBlockerCount: 1,
+    });
+    expect(result.downloaded).toBe(false);
+    expect(saveAs).not.toHaveBeenCalled();
+  });
+
+  it('saves only after the rebuilt package carries positive verified-v2 export evidence', async () => {
+    const result = await downloadCourseMaterialsZip({
+      courseMap: makeCourseMap(),
+      featureIds: ['courseMap'],
+      readiness: { status: 'ready', blockers: [], warnings: [], issues: [] },
+      quality: {
+        digest: {
+          gates: { exportStatus: 'passed', exportChecked: 4, exportFailed: 0, exportWarnings: 0 },
+        },
+      },
+    });
+
+    expect(result.quality).toMatchObject({ status: 'graded' });
+    expect(result.packageReadinessReceipt.downloadSafety).toMatchObject({ status: 'verified', blockerCount: 0 });
+    expect(result.downloaded).toBe(true);
+    expect(saveAs).toHaveBeenCalledWith(result.blob, result.fileName);
   });
 
   it('still saves an explicitly ungraded diagnostic export when grading was deliberately disabled', async () => {

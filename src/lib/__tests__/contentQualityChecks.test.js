@@ -90,6 +90,16 @@ describe('auditDeliverableContentQuality', () => {
     },
   );
 
+  it.each(['the a priori assumption', 'the a posteriori result', 'the a.m. session', 'the A/B test', 'an A grade'])(
+    'does not treat the fixed expression "%s" as an article collision',
+    (expression) => {
+      const { findings } = auditDeliverableContentQuality('assignments', {
+        assignments: [{ instructions: `Compare ${expression} before submission.` }],
+      });
+      expect(findings.some((finding) => finding.code === 'article-collision')).toBe(false);
+    },
+  );
+
   it('flags run-together criteria sentences like "Strong work Names the relevant"', () => {
     const { findings } = auditDeliverableContentQuality('syllabus', {
       syllabus: { description: 'Strong work Names the relevant Climate concept accurately.' },

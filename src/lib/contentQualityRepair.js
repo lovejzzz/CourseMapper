@@ -107,8 +107,8 @@ function repairString(value, featureId, parentKey = '') {
   text = text.replace(FRAMING_ADJECTIVE_DETERMINER_RE, '$1 ');
   if (ASSESSMENT_IDENTITY_KEY_RE.test(parentKey)) {
     text = text.replace(
-      /^Apply\s+([^.!?\n]{3,100}?)\s+to one example and name one limitation[.!?]?$/i,
-      (_, topic) => `${topic.trim()} application check`,
+      /^((?:(?:Unit|Week|Lesson)\s+\d+\s*:\s*)?)Apply\s+([^.!?\n]{3,100}?)\s+to one example and name one limitation[.!?]?$/i,
+      (_, prefix, topic) => `${prefix}${topic.trim()} application check`,
     );
   } else {
     text = text.replace(LEGACY_APPLY_ASSESSMENT_IDENTITY_RE, (_, topic) => `${topic.trim()} application check`);
@@ -223,15 +223,15 @@ function repairNode(node, stats, featureId, parentKey = '', context = {}) {
         stats.repairedStrings += 1;
         changed = true;
         const remaining = removeOutOfScopeOffenderSentences(item, context);
-        return remaining ? [repairString(remaining, featureId, parentKey)] : [];
+        // Preserve collection cardinality and make the intervention explicit.
+        // Silently deleting one list item could make a required section look
+        // complete while hiding that its source was quarantined.
+        return [repairString(remaining || sourceReviewReplacement(parentKey), featureId, parentKey)];
       }
       const repaired = repairNode(item, stats, featureId, parentKey, context);
       if (repaired !== item) changed = true;
       return [repaired];
     });
-    if (changed && next.length === 0 && node.length > 0) {
-      return [sourceReviewReplacement(parentKey)];
-    }
     return changed ? next : node;
   }
   if (node && typeof node === 'object') {

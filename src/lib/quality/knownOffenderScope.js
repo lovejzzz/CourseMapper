@@ -26,7 +26,29 @@ export const KNOWN_OFFENDER_CITATIONS = [
   'CES-D',
 ];
 
-const KNOWN_OFFENDER_LOWER = KNOWN_OFFENDER_CITATIONS.map((entry) => entry.toLowerCase());
+const KNOWN_OFFENDER_PATTERNS = [
+  /\bMNIST\b/i,
+  /\bGradient-Based Learning Applied to Document Recognition\b/i,
+  /\bGlobal cancer statistics\b/i,
+  /\bQUANTUM ESPRESSO\b/i,
+  /\bPRISMA\b/i,
+  /\bR:\s*A Language\b/i,
+  /\bSHELX\b/i,
+  /\bLowry\b(?=[^.!?]{0,80}\b(?:protein|assay|measurement|biochem))/i,
+  /\bprotein measurement\b/i,
+  /\bxgboost\b/i,
+  /\bXGBoost\b/i,
+  /\bImageJ(?:2)?\b/i,
+  /\bFSL\b/i,
+  /\bPascal VOC\b/i,
+  /\bIoT vision\b/i,
+  /\bgradient boosting\b/i,
+  /\bdata clustering\b/i,
+  /\bNIA-AA\b/i,
+  /\bAlzheimer(?:'s)?\b/i,
+  /\bhypertension guidelines\b/i,
+  /\bCES-D\b/i,
+];
 
 const OFFENDER_SCOPE_HINTS = [
   [/mnist|document recognition/, ['machine', 'learning', 'vision', 'recognition', 'digit', 'handwriting']],
@@ -44,10 +66,10 @@ const OFFENDER_SCOPE_HINTS = [
 ];
 
 export function matchesKnownOffender(title) {
-  const text = String(title || '').toLowerCase();
+  const text = String(title || '');
   if (!text) return null;
-  for (let index = 0; index < KNOWN_OFFENDER_LOWER.length; index += 1) {
-    if (text.includes(KNOWN_OFFENDER_LOWER[index])) return KNOWN_OFFENDER_CITATIONS[index];
+  for (let index = 0; index < KNOWN_OFFENDER_PATTERNS.length; index += 1) {
+    if (KNOWN_OFFENDER_PATTERNS[index].test(text)) return KNOWN_OFFENDER_CITATIONS[index];
   }
   return null;
 }

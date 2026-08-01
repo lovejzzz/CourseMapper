@@ -1270,7 +1270,11 @@ export default function ExportSidePanel({
     // Preserve review items in a verified package. PACKAGE_MANIFEST.json and
     // QUALITY_REPORT.md must explain why it needs refinement before publishing
     // even though its physical files passed export verification.
-    const downloadReadiness = verifiedPackageAvailable ? exportReadiness : getDownloadReadiness(exportReadiness);
+    // Presentation may collapse review notes into a calm "ready" state, but
+    // the ZIP trust ledger must receive the original readiness verbatim.
+    // Otherwise PACKAGE_READINESS.json would erase warnings that remain
+    // visible in Agent and certify a different package history.
+    const downloadReadiness = exportReadiness;
     setPendingReadinessExport(null);
     // Safe automatic repairs are a successful system outcome, not an amber
     // attention state. The completed download receipt below reports them in

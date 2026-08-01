@@ -9,9 +9,10 @@
  * (src/lib/quality/artifactDefectPatterns.js). Any course whose lessons
  * carry no resource-shaped readings hit it on every assignment surface.
  *
- * The fallback family is now "Instructor notes and in-class materials…" — what a
- * student actually uses when no reading list ships — and this file pins a
- * full compile of a readings-less course at ZERO flagged occurrences.
+ * The fallback family now names the assigned materials for the specific
+ * lesson — honest when no reading list ships, but not repeated as generic
+ * template copy across unrelated courses. This file pins a full compile of a
+ * readings-less course at ZERO flagged occurrences.
  */
 import { describe, expect, it } from 'vitest';
 import {
@@ -63,9 +64,11 @@ describe('F1 — a readings-less compile carries no flagged placeholder', () => 
     }
   });
 
-  it('the honest fallback names class notes instead', () => {
+  it('the honest fallback names lesson-specific assigned materials', () => {
     const everything = JSON.stringify(compiled);
-    expect(everything).toMatch(/Instructor notes and in-class materials/);
+    expect(everything).toMatch(/The pinyin system and the four tones lesson materials/i);
+    expect(everything).toMatch(/Greetings and self-introduction lesson materials/i);
+    expect(everything).not.toMatch(/Instructor notes and in-class materials/);
     expect(everything).not.toMatch(/assigned source materials/i);
   });
 
