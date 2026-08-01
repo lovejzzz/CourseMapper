@@ -1466,7 +1466,7 @@
       {
         "path": "scripts/lib/scionSourceCapture.mjs",
         "bytes": 51221,
-        "sha256": "b73bf283bc8a335614a2ad9b8b7b3e6096ba37a2666107ff953e78d0dbb18961"
+        "sha256": "95e24486c36152317d4ff403aec7e20fa589538ad0b5c4c9d78a0c7f39acabe5"
       },
       {
         "path": "scripts/scionSourceCompilerReplay.mjs",
@@ -1510,7 +1510,7 @@
     "claimBoundary": "This derived project replays exact retained local response bytes through conservative compiler repairs. It adds no model text, supplies no preference label, and proves no adapter or paid-reference quality win.",
     "identity": {
       "algorithm": "sha256-canonical-source-compiler-replay-v1",
-      "sha256": "cc6e71e8d037c742de249a9b7abafb8ab639ea28ae28779e2e1a7c6f5e240708"
+      "sha256": "eaf103785c010293af8245d569e298f6c72e488fe2207d6400448532b0799cc3"
     }
   }
 }
