@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import EditProposalPanel from '../EditProposalPanel';
+import { renderedDeliverableCollectionKey } from '../../lib/renderedDeliverableCollection.js';
 import {
   QualityBadge,
   updatePath,
@@ -34,8 +35,8 @@ export default function LessonPlansView({
 }) {
   const [localTiers, setLocalTiers] = useState({});
   if (!data) return isStreaming ? <StreamingBanner /> : <EmptyState />;
-  const key = data.plans ? 'plans' : 'lessonPlans';
-  const plans = data[key] || [];
+  const key = renderedDeliverableCollectionKey('lessonPlans', data);
+  const plans = key ? data[key] : [];
   if (plans.length === 0 && !isStreaming) return <EmptyState />;
   return (
     <div className="space-y-3 p-4">

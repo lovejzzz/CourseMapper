@@ -16,6 +16,7 @@ import { isInternalExportMetadataKey } from './exporters/exporterUtils';
 import { recordLegacyPathHit } from './legacyPathTelemetry';
 import { artifactKindOf, shortArtifactReference, shortReferenceForKind, titleHeadNoun } from './artifactReference';
 import { collapseMechanicalContentWordEchoes } from './mechanicalTextSeams.js';
+import { renderedDeliverableCollection, renderedDeliverableContentRoot } from './renderedDeliverableRoot.js';
 
 export { shortArtifactReference } from './artifactReference';
 
@@ -859,85 +860,79 @@ function capLessonTitleMentions(featureId, data, blueprint) {
   ]
     .map((entry) => String(entry?.title || '').trim())
     .filter(Boolean);
-  for (const value of Object.values(data)) {
-    if (!Array.isArray(value)) continue;
-    for (const item of value) {
-      if (!item || typeof item !== 'object') continue;
-      const lessonNumber = itemLessonNumberOf(item);
-      const focus = focusByNumber.get(lessonNumber);
-      if (!focus) continue;
-      const identitySpans = [
-        fullTitleByNumber.get(lessonNumber) || '',
-        ...registryTitles.filter((title) => title.toLowerCase().includes(focus.toLowerCase())),
-      ].filter(Boolean);
-      // TOP-LEVEL string fields only: compiled items share nested structures
-      // (evidence plans, grounding traces) across features — recursing into
-      // them once leaked "this lesson" into Lesson Plans that were never a
-      // target. Top-level fields are the item's own prose and the only text
-      // the section renderers stamp repeatedly.
-      const regex = new RegExp(`\\b${escapeRegExp(focus)}(?![A-Za-z0-9])`, 'gi');
-      let used = 0;
-      for (const [key, fieldValue] of Object.entries(item)) {
-        if (typeof fieldValue !== 'string' || TITLE_MENTION_SKIP_KEYS.has(key)) continue;
-        const masked = [];
-        let working = fieldValue;
-        for (const span of identitySpans) {
-          const spanRegex = new RegExp(escapeRegExp(span), 'gi');
-          working = working.replace(spanRegex, (match) => {
-            masked.push(match);
-            return `\u0000${masked.length - 1}\u0000`;
-          });
-        }
-        working = working.replace(regex, (match, offset, whole) => {
-          used += 1;
-          if (used <= TITLE_MENTION_BUDGET) return match;
-          const before = whole.slice(0, offset);
-          // Position-aware compression so every capped mention stays
-          // grammatical: sentence subjects become "This lesson", positions
-          // already inside a determiner phrase ("the revised <Title>
-          // evidence") become bare "lesson", everything else takes
-          // "the lesson".
-          if (offset === 0 || /[.!?]\s+$|\n\s*$/.test(before)) return 'This lesson';
-          if (/\b(?:the|a|an|your|their|its|our|this|each|every)\b[^.!?\n]{0,24}$/i.test(before)) return 'lesson';
-          return 'the lesson';
+  const items = renderedDeliverableCollection(featureId, data);
+  for (const item of items) {
+    if (!item || typeof item !== 'object') continue;
+    const lessonNumber = itemLessonNumberOf(item);
+    const focus = focusByNumber.get(lessonNumber);
+    if (!focus) continue;
+    const identitySpans = [
+      fullTitleByNumber.get(lessonNumber) || '',
+      ...registryTitles.filter((title) => title.toLowerCase().includes(focus.toLowerCase())),
+    ].filter(Boolean);
+    // TOP-LEVEL string fields only: compiled items share nested structures
+    // (evidence plans, grounding traces) across features — recursing into
+    // them once leaked "this lesson" into Lesson Plans that were never a
+    // target. Top-level fields are the item's own prose and the only text
+    // the section renderers stamp repeatedly.
+    const regex = new RegExp(`\\b${escapeRegExp(focus)}(?![A-Za-z0-9])`, 'gi');
+    let used = 0;
+    for (const [key, fieldValue] of Object.entries(item)) {
+      if (typeof fieldValue !== 'string' || TITLE_MENTION_SKIP_KEYS.has(key)) continue;
+      const masked = [];
+      let working = fieldValue;
+      for (const span of identitySpans) {
+        const spanRegex = new RegExp(escapeRegExp(span), 'gi');
+        working = working.replace(spanRegex, (match) => {
+          masked.push(match);
+          return `\u0000${masked.length - 1}\u0000`;
         });
-        item[key] = masked.length
-          ? working.replace(/\u0000(\d+)\u0000/g, (_, maskIndex) => masked[Number(maskIndex)])
-          : working;
       }
+      working = working.replace(regex, (match, offset, whole) => {
+        used += 1;
+        if (used <= TITLE_MENTION_BUDGET) return match;
+        const before = whole.slice(0, offset);
+        // Position-aware compression so every capped mention stays
+        // grammatical: sentence subjects become "This lesson", positions
+        // already inside a determiner phrase ("the revised <Title>
+        // evidence") become bare "lesson", everything else takes
+        // "the lesson".
+        if (offset === 0 || /[.!?]\s+$|\n\s*$/.test(before)) return 'This lesson';
+        if (/\b(?:the|a|an|your|their|its|our|this|each|every)\b[^.!?\n]{0,24}$/i.test(before)) return 'lesson';
+        return 'the lesson';
+      });
+      item[key] = masked.length
+        ? working.replace(/\u0000(\d+)\u0000/g, (_, maskIndex) => masked[Number(maskIndex)])
+        : working;
     }
   }
 }
 
 export function finalizeCompiledDeliverableLanguage(featureId, data, blueprint = {}) {
   if (!data || typeof data !== 'object') return data;
+  const content = renderedDeliverableContentRoot(featureId, data);
 
   const targets = buildReferenceTargets(blueprint);
   if (targets.length === 0) {
-    walkAndRewrite(data, (value) => fixMechanicalSeams(value));
+    walkAndRewrite(content, (value) => fixMechanicalSeams(value));
     if (!preserveDraftingVocabulary(blueprint)) {
-      walkAndRewrite(data, (value) => polishCompletionLanguage(value));
+      walkAndRewrite(content, (value) => polishCompletionLanguage(value));
     }
     capLessonTitleMentions(featureId, data, blueprint);
     return data;
   }
   const rewriteItem =
     featureId === 'slideDecks' ? rewriteDeckScope : featureId === 'studyGuides' ? rewriteStudyGuideScope : rewriteScope;
-  const rootResidue = {};
-  for (const [key, value] of Object.entries(data)) {
-    if (Array.isArray(value) && value.every((item) => item && typeof item === 'object')) {
-      for (const item of value) rewriteItem(item, targets, itemLessonNumberOf(item));
-    } else {
-      rootResidue[key] = value;
+  if (Array.isArray(content)) {
+    for (const item of content) {
+      if (item && typeof item === 'object') rewriteItem(item, targets, itemLessonNumberOf(item));
     }
-  }
-  rewriteScope(rootResidue, targets, 0);
-  for (const [key, value] of Object.entries(rootResidue)) {
-    data[key] = value;
+  } else if (content && typeof content === 'object') {
+    rewriteScope(content, targets, 0);
   }
   capLessonTitleMentions(featureId, data, blueprint);
   if (!preserveDraftingVocabulary(blueprint)) {
-    walkAndRewrite(data, (value) => polishCompletionLanguage(value));
+    walkAndRewrite(content, (value) => polishCompletionLanguage(value));
   }
   return data;
 }

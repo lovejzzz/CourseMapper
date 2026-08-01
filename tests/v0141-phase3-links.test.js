@@ -557,6 +557,37 @@ describe('3.6 — agent addressing resolves "A7.2"-style references', () => {
     expect(exam.lessonIndex).toBe(2);
   });
 
+  it('replaceItem by assessment id replaces the addressed flat assignment', () => {
+    const deliverables = makeDeliverables();
+    let updated = null;
+    const ctx = {
+      courseMap,
+      deliverables,
+      optimisticUpdate: (featureId, data) => {
+        updated = { featureId, data };
+      },
+    };
+    const action = {
+      type: 'replaceItem',
+      assessmentId: 'A3.2',
+      item: { title: 'Revised lab report', overview: 'A stronger evidence brief.' },
+    };
+
+    expect(applyAssessmentAddressing(action, ctx)).toMatchObject({
+      featureId: 'assignments',
+      lessonIndex: 3,
+      itemIndex: 3,
+    });
+    expect(preValidateAction(action, ctx).valid).toBe(true);
+    expect(executeAction(action, ctx).success).toBe(true);
+    expect(updated.featureId).toBe('assignments');
+    expect(updated.data.assignments[3]).toMatchObject({
+      title: 'Revised lab report',
+      overview: 'A stronger evidence brief.',
+    });
+    expect(updated.data.assignments[2].assessmentId).toBe('A3.1');
+  });
+
   it('edit_course_map patches address the weeklyAssessments cell by registry reference', () => {
     const executed = [];
     const ctx = {

@@ -20,6 +20,7 @@
 import { autoFitFontSize, autoFitBullets, createElementTracker, SLIDE_W, SLIDE_H } from './slideTextFit.js';
 import { containsLatex, deckDataContainsLatex, processSlideText } from '../latexRenderer.js';
 import { expandKeys } from '../keyMaps.js';
+import { renderedDeliverableCollection } from '../renderedDeliverableRoot.js';
 import { assertOfficeExportHasNoInternalText } from '../exportTextInspector.js';
 import { safeImport } from '../safeImport.js';
 import { isSubstantiveSlideSubtitle } from './slideTitleSubtitle.js';
@@ -221,19 +222,30 @@ function buildFallbackSpeakerNotes(deck, slide, slideIndex, totalSlides) {
   const lessonTitle = deck.lessonTitle || deck.title || `Lesson ${deck._deckIndex + 1 || 1}`;
   const slideTitle = slide.title || `Slide ${slideIndex + 1}`;
   const rawBullets = Array.isArray(slide.bullets) ? slide.bullets : Array.isArray(slide.content) ? slide.content : [];
-  // Bullets are clause fragments inside this sentence — strip their terminal
-  // periods (v0.14.3 punctuates long display bullets) so the join never
-  // produces ".; " or ".." seams.
-  const bullets = rawBullets
-    .slice(0, 3)
-    .map((bullet) => String(bullet).trim().replace(/\.+$/, ''))
-    .filter(Boolean)
-    .join('; ');
-  const focus = bullets || 'the central concept on this slide';
+  const pointCount = rawBullets.filter((bullet) => String(bullet || '').trim()).length;
+  const focus =
+    pointCount === 1 ? 'displayed point' : pointCount > 1 ? `${pointCount} displayed points` : 'central idea';
+  // Notes should help an instructor teach the projected content, not copy it.
+  // Verbatim bullet echoes both inflate the honest package repetition score and
+  // encourage reading the slide aloud. Slide-indexed variants keep the fallback
+  // natural across a full course without stamping one long template everywhere.
+  const guidance = [
+    `Guide learners through the ${focus} in sequence, pausing to distinguish the claim, evidence, and implication.`,
+    `Treat the ${focus} as a comparison: clarify the premise first, then ask what changes in practice.`,
+    `Unpack the ${focus} one at a time; name the reasoning move and check where learners need evidence.`,
+    `Connect the ${focus} to the lesson objective, then test understanding with a concrete counterexample.`,
+  ];
+  const checks = [
+    'Invite one implication or misconception before moving forward.',
+    'Ask for a concise application before advancing to the next slide.',
+    'Check one learner explanation and correct the most consequential gap.',
+    'Close by asking what evidence would change the conclusion.',
+  ];
+  const variant = slideIndex % guidance.length;
   return [
     `Use this slide in ${lessonTitle} to frame "${slideTitle}" as part ${slideIndex + 1} of ${totalSlides}.`,
-    `Connect the visual message to the lesson objective, then walk through ${focus}.`,
-    'Ask students to name one implication, misconception, or application before moving to the next slide.',
+    guidance[variant],
+    checks[variant],
   ].join(' ');
 }
 
@@ -2418,8 +2430,7 @@ async function createPptxWithDecks(data, courseName, themeIndex) {
   pptx.title = courseName || 'Slide Decks';
   pptx.theme = { headFontFace: FONT_HEADING, bodyFontFace: FONT_BODY };
 
-  const key = expanded.decks ? 'decks' : 'slideDecks';
-  const decks = (expanded[key] || []).map((d, i) => ({ ...d, _deckIndex: i }));
+  const decks = renderedDeliverableCollection('slideDecks', expanded).map((d, i) => ({ ...d, _deckIndex: i }));
 
   // One-time LaTeX scan across all decks
   const hasLatex = deckDataContainsLatex(expanded);

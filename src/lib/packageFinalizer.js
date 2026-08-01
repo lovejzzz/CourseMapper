@@ -6,7 +6,7 @@ import {
 } from './deliverableReadiness';
 import { buildPackageRepairQueue, evaluateClassroomReadiness } from './classroomReadiness';
 import { auditDeliverableContentQuality } from './contentQualityChecks';
-import { repairDeliverableContentQuality } from './contentQualityRepair';
+import { collectDeliverableSourceFacts, repairDeliverableContentQuality } from './contentQualityRepair';
 import { generateCourseHealthReport } from './pedagogicalValidator';
 import { repairMisappliedObservationProtocols } from './observationProtocols';
 import { normalizeReadinessIssue, normalizeReadinessIssues } from './readinessIssueSchema';
@@ -519,6 +519,7 @@ function applyDeterministicRepairs({
     .flat(Infinity)
     .filter((value) => typeof value === 'string' && value.trim())
     .join(' ');
+  const sourceFacts = collectDeliverableSourceFacts(nextDeliverables, contentFeatureIds);
   for (const featureId of contentFeatureIds) {
     let entry = nextDeliverables?.[featureId];
     if (entry?.status !== 'done' || !entry.data) continue;
@@ -545,6 +546,7 @@ function applyDeterministicRepairs({
       courseName: nextCourseMap?.courseName || '',
       sourceBrief,
       courseScope: trustedCourseScope,
+      sourceFacts,
     });
     if (!contentRepair.changed) continue;
     if (nextDeliverables === deliverables) nextDeliverables = { ...deliverables };

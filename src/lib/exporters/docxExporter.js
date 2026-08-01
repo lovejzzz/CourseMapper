@@ -1,6 +1,7 @@
 import { loadPdfLibs, getDocx, getSaveAs, isInternalExportMetadataKey, resolveFeatureLabel } from './exporterUtils.js';
 import { expandKeys } from '../keyMaps.js';
 import { assertOfficeExportHasNoInternalText } from '../exportTextInspector.js';
+import { renderedDeliverableCollection } from '../renderedDeliverableRoot.js';
 import { formatRequiredText, normalizeCourseRequirements } from './syllabusExportUtils.js';
 
 // DOCX EXPORT
@@ -579,8 +580,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
     // ─── LESSON PLANS ───────────────────────────────────────────
     case 'lessonPlans': {
       const expanded = expandKeys('lessonPlans', data);
-      const key = expanded.plans ? 'plans' : 'lessonPlans';
-      const lessonPlans = expanded[key] || [];
+      const lessonPlans = renderedDeliverableCollection('lessonPlans', expanded);
       for (const [planIndex, p] of lessonPlans.entries()) {
         children.push(makeHeading(p.lessonTitle || p.title || 'Lesson'));
         // Meta line
@@ -770,6 +770,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
     // ─── RUBRICS ────────────────────────────────────────────────
     case 'rubrics': {
       const expanded = expandKeys('rubrics', data);
+      const rubrics = renderedDeliverableCollection('rubrics', expanded);
       // Keep the numeric weight column wide enough for its heading to remain
       // on one line in Word/LibreOffice while preserving the full 9360-DXA
       // landscape text width.
@@ -778,7 +779,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
       // where the exam lesson compiled no rubric) must never ship as a
       // title-only shell — emit the same instructor handoff pattern the
       // assignments case uses.
-      if ((expanded.rubrics || []).length === 0) {
+      if (rubrics.length === 0) {
         const lesson = inferLessonFromExportTitle(exportTitle);
         const lessonRef = lesson.lessonNumber ? `Lesson ${lesson.lessonNumber}` : 'this lesson';
         children.push(makeHeading('No criterion rubric scheduled'));
@@ -791,7 +792,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         );
         break;
       }
-      for (const r of expanded.rubrics || []) {
+      for (const r of rubrics) {
         const gradedWork = r.gradedWork || r.assignmentTitle || r.title || '';
         children.push(makeHeading(r.lessonTitle || r.title || 'Rubric'));
         if (gradedWork) children.push(makeBold('Graded Student Work', gradedWork));
@@ -866,8 +867,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
     // ─── SLIDE DECKS ────────────────────────────────────────────
     case 'slideDecks': {
       const expanded = expandKeys('slideDecks', data);
-      const key = expanded.decks ? 'decks' : 'slideDecks';
-      for (const d of expanded[key] || []) {
+      for (const d of renderedDeliverableCollection('slideDecks', expanded)) {
         children.push(makeHeading(d.lessonTitle || 'Deck'));
         for (let j = 0; j < (d.slides || []).length; j++) {
           const s = d.slides[j];
@@ -890,7 +890,6 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
     // per-question repeated metadata.
     case 'quizBank': {
       const expanded = expandKeys('quizBank', data);
-      const key = expanded.quizzes ? 'quizzes' : 'quizBank';
       const stripOptionLetter = (option) => String(option ?? '').replace(/^[A-Z][.)]\s+/, '');
       // Tags are rendered as a comma-separated metadata list, so a sentence
       // terminator retained from a target-language example creates the
@@ -901,7 +900,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           .trim()
           .replace(/[.!?。！？]+$/u, '')
           .trim();
-      const quizzes = expanded[key] || [];
+      const quizzes = renderedDeliverableCollection('quizBank', expanded);
       for (const [quizIndex, quiz] of quizzes.entries()) {
         children.push(makeHeading(quiz.lessonTitle || 'Quiz'));
         // v0.14.1 round 2 (bug 1): registry exam entries carry an examScope
@@ -1016,7 +1015,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
     // ─── DISCUSSIONS ────────────────────────────────────────────
     case 'discussions': {
       const expanded = expandKeys('discussions', data);
-      for (const d of expanded.discussions || []) {
+      for (const d of renderedDeliverableCollection('discussions', expanded)) {
         children.push(makeHeading(d.lessonTitle || 'Discussion'));
         const dMeta = [d.bloomsLevel, d.format, d.estimatedDuration].filter(Boolean);
         if (dMeta.length) children.push(makeMeta(dMeta.join('  ·  ')));
@@ -1066,7 +1065,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
     // ─── ASSIGNMENTS ────────────────────────────────────────────
     case 'assignments': {
       const expanded = expandKeys('assignments', data);
-      const assignments = expanded.assignments || [];
+      const assignments = renderedDeliverableCollection('assignments', expanded);
       if (assignments.length === 0) {
         const lesson = inferLessonFromExportTitle(exportTitle);
         const lessonRef = lesson.lessonNumber ? `Course Map L${lesson.lessonNumber}` : 'Course Map';
@@ -1262,8 +1261,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
     // ─── STUDY GUIDES ───────────────────────────────────────────
     case 'studyGuides': {
       const expanded = expandKeys('studyGuides', data);
-      const key = expanded.guides ? 'guides' : 'studyGuides';
-      const studyGuides = expanded[key] || [];
+      const studyGuides = renderedDeliverableCollection('studyGuides', expanded);
       for (const [guideIndex, g] of studyGuides.entries()) {
         children.push(makeHeading(g.lessonTitle || 'Study Guide'));
         if (g.examScope) children.push(makeText(g.examScope));
@@ -1677,7 +1675,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
     // ─── COURSE FAQ ───────────────────────────────────────────────
     case 'courseFaq': {
       const expanded = expandKeys('courseFaq', data);
-      const faqs = expanded.faqs || expanded.courseFaq || [];
+      const faqs = renderedDeliverableCollection('courseFaq', expanded);
       for (const lesson of faqs) {
         const title = lesson.lessonTitle || lesson.title || 'FAQ';
         children.push(makeHeading(title));

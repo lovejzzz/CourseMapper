@@ -42,6 +42,16 @@ describe('buildQualityScorePrompt', () => {
     expect(result).toContain('What is 2+2?');
   });
 
+  it('samples canonical quiz content instead of a stale legacy alias', () => {
+    const result = buildQualityScorePrompt('quizBank', {
+      quizBank: [{ questions: [{ question: 'Canonical scoring question' }] }],
+      quizzes: [{ questions: [{ question: 'Stale scoring question' }] }],
+    });
+
+    expect(result).toContain('Canonical scoring question');
+    expect(result).not.toContain('Stale scoring question');
+  });
+
   it('falls back to generic JSON for unknown featureId', () => {
     const data = { custom: 'some data' };
     const result = buildQualityScorePrompt('customThing', data);

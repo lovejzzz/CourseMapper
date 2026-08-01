@@ -21,6 +21,7 @@ import SyllabusView from './deliverables/SyllabusView';
 import CourseFaqView from './deliverables/CourseFaqView';
 import { normalizeRubricCoverage, normalizeRubricSupport } from '../lib/deliverablePostProcess';
 import { classifyAssessmentKind } from '../lib/courseGraph/deriveFromCourseMap';
+import { renderedDeliverableCollection } from '../lib/renderedDeliverableRoot.js';
 
 // ── v0.14.1 (3.5): assessment focus helpers ─────────────────────────────────
 // "Lesson 7" / "Week 7" mentions on a deliverable item resolve its lesson
@@ -154,14 +155,7 @@ export default function DeliverableView({
     if (!data) return false;
     const TIERED_DELIVERABLES = ['lessonPlans', 'quizBank', 'discussions', 'assignments', 'studyGuides'];
     if (!TIERED_DELIVERABLES.includes(featureId)) return false;
-    const arrays = {
-      lessonPlans: data.lessonPlans,
-      quizBank: data.quizzes || data.quizBank,
-      discussions: data.discussions,
-      assignments: data.assignments,
-      studyGuides: data.studyGuides || data.guides,
-    };
-    const arr = arrays[featureId];
+    const arr = renderedDeliverableCollection(featureId, data);
     return Array.isArray(arr) && arr.length > 0 && arr[0]?.tiers != null;
   }, [data, featureId]);
   const isStreaming = status === 'streaming';

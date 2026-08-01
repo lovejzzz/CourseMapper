@@ -8,6 +8,7 @@
 import { generateCourseHealthReport } from './pedagogicalValidator';
 import { executeResearch } from './academicSearch';
 import { getArrayKey } from './syncDependencies';
+import { isRenderedDeliverableCollectionFeature } from './renderedDeliverableCollection.js';
 import {
   applyAssessmentAddressing,
   preValidateAction,
@@ -182,7 +183,7 @@ function courseFaqQuestionScore(question = {}) {
 
 function findCourseFaqCloudExportTargets(ctx = {}, requestedLessonIndex = null) {
   const data = ctx.deliverables?.courseFaq?.data;
-  const arrKey = getArrayKey('courseFaq', data) || (Array.isArray(data?.faqs) ? 'faqs' : null);
+  const arrKey = getArrayKey('courseFaq', data);
   const faqs = arrKey ? data?.[arrKey] : null;
   if (!Array.isArray(faqs)) return [];
 
@@ -292,6 +293,7 @@ function countDeliverableItems(featureId, entry) {
   if (!entry?.data) return 0;
   const { items } = getDeliverableArray(featureId, entry.data);
   if (items.length > 0) return items.length;
+  if (isRenderedDeliverableCollectionFeature(featureId)) return 0;
   if (entry.data && typeof entry.data === 'object') return Object.keys(entry.data).length > 0 ? 1 : 0;
   return 0;
 }
@@ -693,20 +695,9 @@ function applyReadinessRepairsToContext(ctx) {
 function getDeliverableArray(featureId, data) {
   const key = getArrayKey(featureId, data);
   if (key && Array.isArray(data?.[key])) return { key, items: data[key] };
-  const fallbackKeys = [
-    'items',
-    'plans',
-    'lessonPlans',
-    'decks',
-    'rubrics',
-    'quizzes',
-    'guides',
-    'faqs',
-    'assignments',
-  ];
-  for (const fallbackKey of fallbackKeys) {
-    if (Array.isArray(data?.[fallbackKey])) return { key: fallbackKey, items: data[fallbackKey] };
-  }
+  if (isRenderedDeliverableCollectionFeature(featureId)) return { key: null, items: [] };
+  const fallbackKey = Object.keys(data || {}).find((candidate) => Array.isArray(data[candidate]));
+  if (fallbackKey) return { key: fallbackKey, items: data[fallbackKey] };
   return { key: null, items: [] };
 }
 
@@ -899,7 +890,7 @@ async function makeImageUrlExportReady(url, signal) {
 }
 
 function collectSlideImageCandidates(data, { lessonIndex, force, maxImages }) {
-  const arrayKey = getArrayKey('slideDecks', data) || 'decks';
+  const arrayKey = getArrayKey('slideDecks', data);
   const decks = Array.isArray(data?.[arrayKey]) ? data[arrayKey] : [];
   const candidates = [];
   const max = Math.max(1, Math.min(12, Number(maxImages) || 4));
@@ -1969,7 +1960,7 @@ export const AGENT_TOOLS = {
               path: {
                 type: 'array',
                 description:
-                  'Path from data root to field. Prefer expanded examples: ["decks",0,"slides",2,"notes"] for slide notes, ["decks",0,"slides",2,"visual","kind"] for a slide visual, ["quizzes",0,"questions",1,"question"] for a quiz question. Shorthand aliases are accepted: ["slideDecks",0,"sl",2,"no"], ["quizzes",0,"qs",1,"q"]. Format: [rootKey, lessonIdx, subArrayKey?, itemIdx?, field]',
+                  'Path from data root to field. Prefer canonical examples: ["slideDecks",0,"slides",2,"notes"] for slide notes, ["slideDecks",0,"slides",2,"visual","kind"] for a slide visual, ["quizBank",0,"questions",1,"question"] for a quiz question. Legacy and shorthand roots are accepted and resolved to rendered authority. Format: [rootKey, lessonIdx, subArrayKey?, itemIdx?, field]',
                 items: {},
               },
               value: { description: 'New value to set (for editItem)' },
@@ -2345,7 +2336,7 @@ export const AGENT_TOOLS = {
       if (!entry?.data) return { error: 'Slide Decks not generated yet.' };
 
       const data = entry.data;
-      const arrayKey = getArrayKey('slideDecks', data) || 'decks';
+      const arrayKey = getArrayKey('slideDecks', data);
       const decks = Array.isArray(data?.[arrayKey]) ? data[arrayKey] : [];
       if (args.lessonIndex != null && (args.lessonIndex < 0 || args.lessonIndex >= decks.length)) {
         return {
@@ -2423,7 +2414,7 @@ export const AGENT_TOOLS = {
       if (!entry?.data) return { error: 'Slide Decks not generated yet.' };
 
       const sourceData = entry.data;
-      const arrayKey = getArrayKey('slideDecks', sourceData) || 'decks';
+      const arrayKey = getArrayKey('slideDecks', sourceData);
       const decks = Array.isArray(sourceData?.[arrayKey]) ? sourceData[arrayKey] : [];
       if (args.lessonIndex != null && (args.lessonIndex < 0 || args.lessonIndex >= decks.length)) {
         return {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { repairDeliverableContentQuality } from '../contentQualityRepair';
+import { collectDeliverableSourceFacts, repairDeliverableContentQuality } from '../contentQualityRepair';
 import { auditDeliverableContentQuality } from '../contentQualityChecks';
 import { semanticIdentityTokens } from '../lessonSemanticRelevance';
 import { knownOffenderFitsScope } from '../quality/knownOffenderScope';
@@ -126,6 +126,7 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
   });
 
   it('removes a known off-topic source sentence from saved teaching copy without erasing surrounding guidance', () => {
+    const studyGuideWithReviewNote = (note) => ({ studyGuides: [{ reviewNotes: [note] }] });
     const data = {
       decks: [
         {
@@ -176,35 +177,35 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
 
     const systematicReviewCourse = repairDeliverableContentQuality(
       'studyGuides',
-      { reviewNotes: ['Use PRISMA to report the evidence synthesis.'] },
+      studyGuideWithReviewNote('Use PRISMA to report the evidence synthesis.'),
       { courseName: 'Systematic Review Methods' },
     );
     expect(systematicReviewCourse.changed).toBe(false);
 
     const metaAnalysisCourse = repairDeliverableContentQuality(
       'studyGuides',
-      { reviewNotes: ['Use PRISMA to report the evidence synthesis.'] },
+      studyGuideWithReviewNote('Use PRISMA to report the evidence synthesis.'),
       { courseName: 'Meta-Analysis Methods' },
     );
     expect(metaAnalysisCourse.changed).toBe(false);
 
     const metaAnalysesCourse = repairDeliverableContentQuality(
       'studyGuides',
-      { reviewNotes: ['Use PRISMA to report the evidence synthesis.'] },
+      studyGuideWithReviewNote('Use PRISMA to report the evidence synthesis.'),
       { courseName: 'Meta-Analyses Methods' },
     );
     expect(metaAnalysesCourse.changed).toBe(false);
 
     const evidenceSynthesesCourse = repairDeliverableContentQuality(
       'studyGuides',
-      { reviewNotes: ['Use PRISMA to report the evidence synthesis.'] },
+      studyGuideWithReviewNote('Use PRISMA to report the evidence synthesis.'),
       { courseName: 'Evidence Syntheses in Public Health' },
     );
     expect(evidenceSynthesesCourse.changed).toBe(false);
 
     const policyAnalysisCourse = repairDeliverableContentQuality(
       'studyGuides',
-      { reviewNotes: ['Use PRISMA to report the evidence synthesis.'] },
+      studyGuideWithReviewNote('Use PRISMA to report the evidence synthesis.'),
       { courseName: 'Python for Public Policy Analysis' },
     );
     expect(policyAnalysisCourse.changed).toBe(true);
@@ -212,7 +213,7 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
 
     const computingEthicsCourse = repairDeliverableContentQuality(
       'studyGuides',
-      { reviewNotes: ['R: A Language and Environment for Statistical Computing is the reference manual.'] },
+      studyGuideWithReviewNote('R: A Language and Environment for Statistical Computing is the reference manual.'),
       { courseName: 'Computing Ethics' },
     );
     expect(computingEthicsCourse.changed).toBe(true);
@@ -220,7 +221,7 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
 
     const machineLearningPolicyCourse = repairDeliverableContentQuality(
       'studyGuides',
-      { reviewNotes: ['MNIST supports handwritten digit recognition benchmarks.'] },
+      studyGuideWithReviewNote('MNIST supports handwritten digit recognition benchmarks.'),
       { courseName: 'Machine Learning Policy' },
     );
     expect(machineLearningPolicyCourse.changed).toBe(true);
@@ -228,28 +229,28 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
 
     const machineLearningFoundationsCourse = repairDeliverableContentQuality(
       'studyGuides',
-      { reviewNotes: ['Use XGBoost to compare boosted classification models.'] },
+      studyGuideWithReviewNote('Use XGBoost to compare boosted classification models.'),
       { courseName: 'Machine Learning Foundations' },
     );
     expect(machineLearningFoundationsCourse.changed).toBe(false);
 
     const mentalHealthCourse = repairDeliverableContentQuality(
       'studyGuides',
-      { reviewNotes: ['Use CES-D as a depression screening measure.'] },
+      studyGuideWithReviewNote('Use CES-D as a depression screening measure.'),
       { courseName: 'Mental Health Screening' },
     );
     expect(mentalHealthCourse.changed).toBe(false);
 
     const artHistoryCourse = repairDeliverableContentQuality(
       'studyGuides',
-      { reviewNotes: ['Compare L. S. Lowry with other painters of industrial life.'] },
+      studyGuideWithReviewNote('Compare L. S. Lowry with other painters of industrial life.'),
       { courseName: 'Modern British Art History' },
     );
     expect(artHistoryCourse.changed).toBe(false);
 
     const prismaticLanguage = repairDeliverableContentQuality(
       'studyGuides',
-      { reviewNotes: ['Describe the prismatic color structure in the painting.'] },
+      studyGuideWithReviewNote('Describe the prismatic color structure in the painting.'),
       { courseName: 'Color and Composition Studio' },
     );
     expect(prismaticLanguage.changed).toBe(false);
@@ -275,15 +276,19 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
     const repeatedLeaks = repairDeliverableContentQuality(
       'lessonPlans',
       {
-        objectives: Array.from(
-          { length: 12 },
-          (_, index) => `ImageJ2 and Molecule Archive claim ${index + 1} needs review.`,
-        ),
+        lessonPlans: [
+          {
+            objectives: Array.from(
+              { length: 12 },
+              (_, index) => `ImageJ2 and Molecule Archive claim ${index + 1} needs review.`,
+            ),
+          },
+        ],
       },
       { courseName: 'Python for Public Policy Analysis' },
     );
-    expect(repeatedLeaks.data.objectives).toHaveLength(12);
-    expect(new Set(repeatedLeaks.data.objectives).size).toBe(12);
+    expect(repeatedLeaks.data.lessonPlans[0].objectives).toHaveLength(12);
+    expect(new Set(repeatedLeaks.data.lessonPlans[0].objectives).size).toBe(12);
     expect(repeatedLeaks.repeatedPhraseCount).toBe(0);
   });
 
@@ -326,6 +331,29 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
       },
     );
     expect(JSON.stringify(moleculeArchiveOnly.data)).not.toMatch(/Molecule Archive/i);
+  });
+
+  it('quarantines an unsafe repeated source fact before fan-out compaction can leave orphan references', () => {
+    const unsafeFact =
+      'ImageJ2 and Molecule Archive provide a reproducible architecture for complex single-molecule bioimage analysis pipelines.';
+    const data = {
+      lessonPlans: [
+        {
+          sourceEvidenceBrief: { claims: [unsafeFact] },
+          notes: Array.from({ length: 6 }, () => `Teach this admitted fact: ${unsafeFact}`),
+        },
+      ],
+    };
+
+    const result = repairDeliverableContentQuality('lessonPlans', data, {
+      courseName: 'Python for Public Policy Analysis',
+      courseScope: 'Policy analysis, functions, data cleaning, and reproducible reporting',
+      sourceFacts: [unsafeFact],
+    });
+    const text = JSON.stringify(result.data);
+
+    expect(text).not.toMatch(/ImageJ|Molecule Archive/i);
+    expect(text).not.toContain('the cited source claim');
   });
 
   it('preserves calibrated in-discipline uses of broadly named offender citations', () => {
@@ -381,8 +409,12 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
   it('compacts the generic compiler-owned evidence-check direction across saved surfaces', () => {
     const topic = 'Statistical Modeling and Uncertainty Quantification';
     const data = {
-      assessmentTitle: `${topic} evidence check: state one supported, bounded conclusion`,
-      notes: [`Students revise ${topic} evidence check: state one supported, bounded conclusion before transfer.`],
+      lessonPlans: [
+        {
+          assessmentTitle: `${topic} evidence check: state one supported, bounded conclusion`,
+          notes: [`Students revise ${topic} evidence check: state one supported, bounded conclusion before transfer.`],
+        },
+      ],
     };
 
     const result = repairDeliverableContentQuality('lessonPlans', data, {
@@ -390,7 +422,7 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
     });
 
     expect(result.changed).toBe(true);
-    expect(result.data).toEqual({
+    expect(result.data.lessonPlans[0]).toEqual({
       assessmentTitle: `${topic} evidence check`,
       notes: [`Students revise ${topic} evidence check before transfer.`],
     });
@@ -416,6 +448,475 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
     expect(JSON.stringify(result.data)).not.toContain('allow for the creation of');
     expect(JSON.stringify(result.data)).toContain('Python functions create reusable code for analysis');
     expect(result.repeatedPhraseCount).toBe(0);
+  });
+
+  it('caps every explicit long source fact per exported artifact instead of chasing one sentence at a time', () => {
+    const branchingFact =
+      'Conditional branching logic allows programs to execute different blocks of code based on specified conditions.';
+    const iterationFact =
+      'Iterative structures enable the systematic processing of sequential data elements within a program.';
+    const data = {
+      lessonPlans: [
+        {
+          sourceEvidenceBrief: { claims: [branchingFact, iterationFact] },
+          outline: [
+            {
+              description: `Start with the anchor fact. ${branchingFact} Model one decision path.`,
+              instructorNotes: `Use these admitted facts: 1) ${branchingFact} 2) ${iterationFact}`,
+              catchUpPlan: `Put this anchor on the board: ${branchingFact} Ask for one prediction.`,
+            },
+          ],
+          formativeCheck: {
+            prompt: `Claim A: ${branchingFact} Claim B: ${iterationFact} Compare the claims.`,
+            answer: `Claim A states ${branchingFact} Claim B states ${iterationFact}`,
+          },
+          evidencePlan: {
+            sourceCue: `Provenance mirror remains byte-faithful: ${branchingFact}`,
+          },
+        },
+      ],
+    };
+    const sourceFacts = collectDeliverableSourceFacts({ lessonPlans: { status: 'done', data } });
+
+    expect(sourceFacts).toEqual(expect.arrayContaining([branchingFact.slice(0, -1), iterationFact.slice(0, -1)]));
+
+    const result = repairDeliverableContentQuality('lessonPlans', data, { sourceFacts });
+    const visible = JSON.stringify({
+      ...result.data.lessonPlans[0],
+      evidencePlan: undefined,
+    }).toLowerCase();
+
+    expect(result.changed).toBe(true);
+    expect(result.repairedStrings).toBeGreaterThan(0);
+    expect(
+      visible.match(/conditional branching logic allows programs to execute different blocks of code/g),
+    ).toHaveLength(1);
+    expect(
+      visible.match(/iterative structures enable the systematic processing of sequential data elements/g),
+    ).toHaveLength(1);
+    expect(visible).toContain('the cited source claim');
+    expect(result.data.lessonPlans[0].evidencePlan.sourceCue).toContain(branchingFact);
+
+    const replay = repairDeliverableContentQuality('lessonPlans', result.data, { sourceFacts });
+    expect(replay.changed).toBe(false);
+    expect(replay.repairedStrings).toBe(0);
+    expect(replay.data).toBe(result.data);
+  });
+
+  it('inventories facts only from selected, completed rendered roots', () => {
+    const canonicalFact =
+      'Canonical evidence explains how conditional branching selects one policy path from several alternatives.';
+    const staleAliasFact =
+      'Stale alias evidence should never become authoritative for a canonical rendered lesson plan document.';
+    const failedFact =
+      'Failed deliverable evidence must not rewrite content from a completed package artifact during finalization.';
+    const unselectedFact =
+      'Unselected deliverable evidence must not influence the content authority of the requested export package.';
+    const faqFact =
+      'Canonical FAQ evidence remains part of the package-wide fact union across selected completed features.';
+    const missingRootFact =
+      'Metadata without a declared rendered collection must never become source authority for another artifact.';
+    const missingRootData = { metadata: { sourceEvidenceBrief: { claims: [missingRootFact] } } };
+    const facts = collectDeliverableSourceFacts(
+      {
+        lessonPlans: {
+          status: 'done',
+          data: {
+            lessonPlans: [{ sourceEvidenceBrief: { claims: [canonicalFact] } }],
+            plans: [{ sourceEvidenceBrief: { claims: [staleAliasFact] } }],
+          },
+        },
+        studyGuides: {
+          status: 'failed',
+          data: { guides: [{ sourceEvidenceBrief: { claims: [failedFact] } }] },
+        },
+        assignments: {
+          status: 'done',
+          data: { assignments: [{ sourceEvidenceBrief: { claims: [unselectedFact] } }] },
+        },
+        courseFaq: {
+          status: 'done',
+          data: { courseFaq: [{ sourceEvidenceBrief: { claims: [faqFact] } }] },
+        },
+        discussions: {
+          status: 'done',
+          data: missingRootData,
+        },
+      },
+      ['lessonPlans', 'studyGuides', 'courseFaq', 'discussions'],
+    );
+
+    expect(facts).toEqual([canonicalFact.slice(0, -1), faqFact.slice(0, -1)]);
+    const missingRootRepair = repairDeliverableContentQuality('discussions', missingRootData, {
+      sourceFacts: [missingRootFact],
+    });
+    expect(missingRootRepair.changed).toBe(false);
+    expect(missingRootRepair.data).toBe(missingRootData);
+  });
+
+  it('keeps two full visible uses when an artifact has no standalone source-fact ledger', () => {
+    const fact =
+      'Conditional branching logic allows programs to execute different blocks of code based on specified conditions.';
+    const data = {
+      quizzes: [
+        {
+          questions: [
+            { question: `Which conclusion follows from this statement: ${fact}`, options: [`A. ${fact}`] },
+            { question: `Claim A: ${fact} What remains unproven?`, answer: `Claim A means ${fact}` },
+          ],
+        },
+      ],
+    };
+
+    const result = repairDeliverableContentQuality('quizBank', data, { sourceFacts: [fact] });
+    const text = JSON.stringify(result.data);
+    const occurrences =
+      text.match(/Conditional branching logic allows programs to execute different blocks of code/g) || [];
+
+    expect(occurrences).toHaveLength(2);
+    expect(text).toContain('the cited source claim');
+  });
+
+  it('keeps a 42-copy production fan-out below the package grader limit across seven artifacts', () => {
+    const fact =
+      'Conditional branching logic allows programs to execute different blocks of code based on specified conditions.';
+    const featureShapes = {
+      lessonPlans: {
+        lessonPlans: [
+          {
+            sourceEvidenceBrief: { claims: [fact] },
+            notes: Array.from({ length: 6 }, () => `Teach from this admitted fact: ${fact}`),
+          },
+        ],
+      },
+      slideDecks: {
+        decks: [
+          {
+            slides: [
+              { bullets: [fact] },
+              ...Array.from({ length: 5 }, () => ({ notes: `Explain this source evidence: ${fact}` })),
+            ],
+          },
+        ],
+      },
+      quizBank: { quizzes: [{ questions: Array.from({ length: 6 }, () => ({ question: `Claim A: ${fact}` })) }] },
+      studyGuides: {
+        studyGuides: [
+          {
+            sourceEvidenceBrief: { claims: [fact] },
+            prompts: Array.from({ length: 5 }, () => `Test this explanation against ${fact}`),
+          },
+        ],
+      },
+      courseFaq: { faqs: [{ questions: Array.from({ length: 6 }, () => ({ answer: `For example: ${fact}` })) }] },
+      syllabus: {
+        metadata: ['saved-project receipt'],
+        syllabus: {
+          definitions: [fact],
+          examples: Array.from({ length: 5 }, () => `Use this course statement: ${fact}`),
+        },
+      },
+      rubrics: {
+        rubrics: [
+          {
+            sourceEvidenceBrief: { claims: [fact] },
+            criteria: Array.from({ length: 5 }, () => `Evaluate the response against ${fact}`),
+          },
+        ],
+      },
+    };
+    let packageOccurrences = 0;
+
+    for (const [featureId, data] of Object.entries(featureShapes)) {
+      const result = repairDeliverableContentQuality(featureId, data, { sourceFacts: [fact] });
+      packageOccurrences += (
+        JSON.stringify(result.data).match(
+          /Conditional branching logic allows programs to execute different blocks of code/g,
+        ) || []
+      ).length;
+    }
+
+    expect(packageOccurrences).toBeLessThan(24);
+    expect(packageOccurrences).toBe(22);
+  });
+
+  it('does not rewrite repeated standalone facts that may carry answer or definition meaning', () => {
+    const fact =
+      'Conditional branching logic allows programs to execute different blocks of code based on specified conditions.';
+    const data = {
+      quizzes: [
+        {
+          questions: Array.from({ length: 6 }, () => ({ options: [fact] })),
+        },
+      ],
+    };
+
+    const result = repairDeliverableContentQuality('quizBank', data, { sourceFacts: [fact] });
+
+    expect(result.changed).toBe(false);
+    expect(result.repairedStrings).toBe(0);
+    expect(result.data).toBe(data);
+  });
+
+  it('keeps visible embedded copies when the only standalone fact is in speaker notes', () => {
+    const fact =
+      'Conditional branching logic allows programs to execute different blocks of code based on specified conditions.';
+    const data = {
+      decks: [
+        {
+          slides: [
+            { notes: fact },
+            ...Array.from({ length: 4 }, () => ({ bullets: [`Apply this source statement: ${fact}`] })),
+          ],
+        },
+      ],
+    };
+
+    const result = repairDeliverableContentQuality('slideDecks', data, { sourceFacts: [fact] });
+    const text = JSON.stringify(result.data);
+    const occurrences =
+      text.match(/Conditional branching logic allows programs to execute different blocks of code/g) || [];
+
+    expect(occurrences).toHaveLength(5);
+    expect(result.data.decks[0].slides[1].bullets[0]).toContain(fact);
+    expect(result.data.decks[0].slides[2].bullets[0]).toContain(fact);
+    expect(result.data.decks[0].slides[3].bullets[0]).toContain(fact);
+  });
+
+  it('capitalizes a compacted source reference at a sentence boundary', () => {
+    const fact =
+      'Conditional branching logic allows programs to execute different blocks of code based on specified conditions.';
+    const data = {
+      lessonPlans: [
+        {
+          sourceEvidenceBrief: { claims: [fact] },
+          description: `Start with the anchor. ${fact} Model one decision path.`,
+          catchUpPlan: `Put this anchor on the board: ${fact} Ask for one prediction.`,
+        },
+      ],
+    };
+
+    const result = repairDeliverableContentQuality('lessonPlans', data, { sourceFacts: [fact] });
+
+    expect(result.data.lessonPlans[0].description).toContain('Start with the anchor. The cited source claim.');
+    expect(result.data.lessonPlans[0].catchUpPlan).toContain('board: the cited source claim');
+  });
+
+  it.each(['whether', 'if', 'when'])('keeps a compacted reference grammatical after %s', (conjunction) => {
+    const fact =
+      'Conditional branching logic allows programs to execute different blocks of code based on specified conditions.';
+    const data = {
+      lessonPlans: [
+        {
+          sourceEvidenceBrief: { claims: [fact] },
+          description: `${fact} ${fact} Ask ${conjunction} ${fact}`,
+        },
+      ],
+    };
+
+    const result = repairDeliverableContentQuality('lessonPlans', data, { sourceFacts: [fact] });
+
+    expect(result.data.lessonPlans[0].description).toContain(`${conjunction} the cited source claim applies`);
+  });
+
+  it('matches the grader across NFKC, internal punctuation, and whitespace differences', () => {
+    const fact =
+      'Conditional branching logic allows programs to execute different blocks of code based on specified conditions.';
+    const variant =
+      'Ｃｏｎｄｉｔｉｏｎａｌ  branching logic—allows programs to execute different blocks of code, based on specified conditions.';
+    const data = {
+      lessonPlans: [
+        {
+          sourceEvidenceBrief: { claims: [fact] },
+          descriptions: Array.from({ length: 4 }, () => `Model this admitted statement: ${variant}`),
+        },
+      ],
+    };
+
+    const result = repairDeliverableContentQuality('lessonPlans', data, { sourceFacts: [fact] });
+    const text = JSON.stringify(result.data);
+
+    expect(result.changed).toBe(true);
+    expect(text.match(/Ｃｏｎｄｉｔｉｏｎａｌ/g) || []).toHaveLength(0);
+    expect(text).toContain('the cited source claim');
+  });
+
+  it('protects a longer standalone fact when another inventoried fact is its prefix', () => {
+    const shortFact =
+      'Conditional branching logic allows programs to execute different blocks of code based on specified conditions.';
+    const longFact =
+      'Conditional branching logic allows programs to execute different blocks of code based on specified conditions and policy constraints.';
+    const data = {
+      studyGuides: [
+        {
+          sourceEvidenceBrief: { claims: [shortFact, longFact] },
+          keyTerms: [{ term: 'Branching', definition: longFact }],
+          prompts: Array.from({ length: 4 }, () => `Compare this source statement: ${shortFact}`),
+        },
+      ],
+    };
+
+    const result = repairDeliverableContentQuality('studyGuides', data, {
+      sourceFacts: [shortFact, longFact],
+    });
+
+    expect(result.data.studyGuides[0].sourceEvidenceBrief.claims).toEqual([shortFact, longFact]);
+    expect(result.data.studyGuides[0].keyTerms[0].definition).toBe(longFact);
+  });
+
+  it('selects the feature collection instead of an earlier metadata array', () => {
+    const fact =
+      'Conditional branching logic allows programs to execute different blocks of code based on specified conditions.';
+    const metadata = Array.from({ length: 4 }, () => `Metadata mirror: ${fact}`);
+    const data = {
+      metadata,
+      lessonPlans: [
+        {
+          sourceEvidenceBrief: { claims: [fact] },
+          descriptions: Array.from({ length: 4 }, () => `Teach this admitted statement: ${fact}`),
+        },
+      ],
+    };
+
+    const result = repairDeliverableContentQuality('lessonPlans', data, { sourceFacts: [fact] });
+
+    expect(result.data.metadata).toBe(metadata);
+    expect(JSON.stringify(result.data.lessonPlans)).toContain('the cited source claim');
+  });
+
+  it('repairs the canonical collection selected by the renderer when dual roots coexist', () => {
+    const fact =
+      'Conditional branching logic allows programs to execute different blocks of code based on specified conditions.';
+    const canonical = [
+      {
+        sourceEvidenceBrief: { claims: [fact] },
+        notes: Array.from({ length: 5 }, () => `Canonical statement: ${fact}`),
+      },
+    ];
+    const plans = [
+      {
+        sourceEvidenceBrief: { claims: [fact] },
+        notes: Array.from({ length: 5 }, () => `Rendered plan statement: ${fact}`),
+      },
+    ];
+    const data = { lessonPlans: canonical, plans };
+
+    const result = repairDeliverableContentQuality('lessonPlans', data, { sourceFacts: [fact] });
+
+    expect(result.data.lessonPlans).not.toBe(canonical);
+    expect(result.data.plans).toBe(plans);
+    expect(
+      JSON.stringify(result.data.lessonPlans).match(
+        /Conditional branching logic allows programs to execute different blocks of code/g,
+      ) || [],
+    ).toHaveLength(1);
+  });
+
+  it('leaves a stale dual root byte-identical during mechanical seam repair', () => {
+    const stalePlans = [{ notes: 'Stale alias text..' }];
+    const data = {
+      lessonPlans: [{ notes: 'Canonical text..' }],
+      plans: stalePlans,
+    };
+    const staleJson = JSON.stringify(stalePlans);
+
+    const result = repairDeliverableContentQuality('lessonPlans', data);
+
+    expect(result.changed).toBe(true);
+    expect(result.data.lessonPlans[0].notes).toBe('Canonical text.');
+    expect(result.data.plans).toBe(stalePlans);
+    expect(JSON.stringify(result.data.plans)).toBe(staleJson);
+  });
+
+  it('repairs a valid alias after a malformed canonical field without touching the malformed root', () => {
+    const malformedCanonical = { notes: 'Malformed canonical metadata..' };
+    const data = {
+      lessonPlans: malformedCanonical,
+      lessons: [{ notes: 'Rendered alias text..' }],
+    };
+
+    const result = repairDeliverableContentQuality('lessonPlans', data);
+
+    expect(result.changed).toBe(true);
+    expect(result.data.lessonPlans).toBe(malformedCanonical);
+    expect(result.data.lessonPlans.notes).toBe('Malformed canonical metadata..');
+    expect(result.data.lessons[0].notes).toBe('Rendered alias text.');
+  });
+
+  it('leaves known-feature metadata unchanged when no declared collection can render', () => {
+    const data = {
+      lessonPlans: { malformed: true },
+      metadata: ['Unrendered metadata..'],
+    };
+
+    const result = repairDeliverableContentQuality('lessonPlans', data);
+
+    expect(result.changed).toBe(false);
+    expect(result.data).toBe(data);
+  });
+
+  it('falls back to a valid canonical collection when a truthy alias is malformed', () => {
+    const fact =
+      'Conditional branching logic allows programs to execute different blocks of code based on specified conditions.';
+    const lessonPlans = [
+      {
+        sourceEvidenceBrief: { claims: [fact] },
+        notes: Array.from({ length: 5 }, () => `Rendered plan statement: ${fact}`),
+      },
+    ];
+    const data = { plans: { malformed: true }, lessonPlans };
+
+    const result = repairDeliverableContentQuality('lessonPlans', data, { sourceFacts: [fact] });
+
+    expect(result.data.plans).toBe(data.plans);
+    expect(result.data.lessonPlans).not.toBe(lessonPlans);
+    expect(JSON.stringify(result.data.lessonPlans)).toContain('the cited source claim');
+  });
+
+  it('repairs an object-rooted syllabus without treating metadata as its artifact collection', () => {
+    const fact =
+      'Conditional branching logic allows programs to execute different blocks of code based on specified conditions.';
+    const metadata = Array.from({ length: 4 }, () => `Unrendered metadata mirror: ${fact}`);
+    const data = {
+      metadata,
+      syllabus: {
+        definitions: [fact],
+        examples: Array.from({ length: 5 }, () => `Use this course statement: ${fact}`),
+      },
+    };
+
+    const result = repairDeliverableContentQuality('syllabus', data, { sourceFacts: [fact] });
+    const text = JSON.stringify(result.data.syllabus);
+
+    expect(result.changed).toBe(true);
+    expect(result.data.metadata).toBe(metadata);
+    expect(
+      text.match(/Conditional branching logic allows programs to execute different blocks of code/g) || [],
+    ).toHaveLength(1);
+    expect(text).toContain('the cited source claim');
+  });
+
+  it('keeps a local proposition when a question only carries it in an explanation', () => {
+    const fact =
+      'Conditional branching logic allows programs to execute different blocks of code based on specified conditions.';
+    const data = {
+      quizzes: [
+        {
+          sourceEvidenceBrief: { claims: [fact] },
+          questions: Array.from({ length: 4 }, (_, index) => ({
+            question: `Which policy outcome follows in scenario ${index + 1}?`,
+            explanation: `The decision is justified by this source statement: ${fact}`,
+          })),
+        },
+      ],
+    };
+
+    const result = repairDeliverableContentQuality('quizBank', data, { sourceFacts: [fact] });
+
+    for (const question of result.data.quizzes[0].questions) {
+      expect(question.explanation).toContain(fact);
+      expect(question.explanation).not.toContain('the cited source claim');
+    }
   });
 
   it('leaves unrelated paragraph and list whitespace byte-for-byte unchanged', () => {

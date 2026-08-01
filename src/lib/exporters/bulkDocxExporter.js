@@ -1,5 +1,5 @@
 import { getDocx, resolveFeatureLabel } from './exporterUtils.js';
-import { getArrayKey } from '../syncDependencies.js';
+import { renderedDeliverableCollection } from '../renderedDeliverableRoot.js';
 import { _buildDocxContentShared, buildDocxDocument, buildDocxTitleChildren } from './docxExporter.js';
 
 // Cover-meta noun per feature. v0.14.1 (1.11): assignments/rubrics/courseFaq
@@ -36,10 +36,7 @@ export async function buildDeliverableDocxBlob(featureId, data, courseName) {
   // Cover page when the document bundles several top-level entries.
   // v0.10.1 fix: count the feature's ROOT array, not the largest nested
   // array — a single-lesson quiz with 48 questions printed "48 lessons".
-  const rootKey = getArrayKey(featureId, data);
-  const rootArray = Array.isArray(data?.[rootKey])
-    ? data[rootKey]
-    : Object.values(data || {}).find((value) => Array.isArray(value)) || [];
+  const rootArray = renderedDeliverableCollection(featureId, data);
   const itemCount = rootArray.length;
   const coverNoun = COVER_NOUNS[featureId] || 'sections';
   const children = buildDocxTitleChildren(docx, courseName, label, {

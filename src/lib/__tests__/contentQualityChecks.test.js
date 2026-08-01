@@ -165,6 +165,27 @@ describe('auditDeliverableContentQuality', () => {
     expect(findings.some((finding) => finding.code === 'uniform-quiz-answer-key')).toBe(true);
   });
 
+  it('audits only the canonical rendered root when stale aliases coexist', () => {
+    const quiz = (answers) => ({
+      questions: answers.map((answer) => ({ type: 'multiple_choice', answer })),
+    });
+    const { findings } = auditDeliverableContentQuality('quizBank', {
+      quizBank: [quiz(['A', 'B']), quiz(['B', 'C']), quiz(['C', 'D'])],
+      quizzes: [quiz(['B', 'C']), quiz(['B', 'C']), quiz(['B', 'C'])],
+    });
+
+    expect(findings.some((finding) => finding.code === 'uniform-quiz-answer-key')).toBe(false);
+  });
+
+  it('does not report defects found only in a stale lesson-plan alias', () => {
+    const { findings } = auditDeliverableContentQuality('lessonPlans', {
+      lessonPlans: [{ notes: 'Canonical content is a complete sentence.' }],
+      plans: [{ notes: 'Stale content ends in.' }],
+    });
+
+    expect(findings.some((finding) => finding.code === 'dangling-clause')).toBe(false);
+  });
+
   it('ignores internal receipt metadata that exports never render', () => {
     const { findings } = auditDeliverableContentQuality('lessonPlans', {
       lessonPlans: [{ blueprintGrounding: { sourceAnchors: [{ anchor: ': Course Framing and Core Concepts' }] } }],
@@ -361,7 +382,7 @@ describe('compiledLanguageFinalizer', () => {
 
   it('shortens repeated artifact titles after the first mentions', () => {
     const data = {
-      items: [
+      assignments: [
         {
           overview:
             'Introductory discussion post and short diagnostic quiz is due this week. Prepare Introductory discussion post and short diagnostic quiz early. Revise Introductory discussion post and short diagnostic quiz with feedback. Submit Introductory discussion post and short diagnostic quiz online.',
@@ -369,7 +390,7 @@ describe('compiledLanguageFinalizer', () => {
       ],
     };
     finalizeCompiledDeliverableLanguage('assignments', data, blueprint);
-    const text = data.items[0].overview;
+    const text = data.assignments[0].overview;
     const fullMentions = text.match(/Introductory discussion post and short diagnostic quiz/g) || [];
     expect(fullMentions.length).toBeLessThanOrEqual(2);
     expect(text).toContain('Week 1');
@@ -435,7 +456,7 @@ describe('compiledLanguageFinalizer', () => {
 
   it('repairs article agreement and double periods at template seams', () => {
     const data = {
-      items: [
+      assignments: [
         {
           note:
             'Explains a Energy decision about the work.. Next step follows. ' +
@@ -444,21 +465,21 @@ describe('compiledLanguageFinalizer', () => {
       ],
     };
     finalizeCompiledDeliverableLanguage('assignments', data, { lessons: [] });
-    expect(data.items[0].note).toContain('an Energy decision');
-    expect(data.items[0].note).not.toContain('..');
-    expect(data.items[0].note).not.toContain('Define project management: Define project management');
+    expect(data.assignments[0].note).toContain('an Energy decision');
+    expect(data.assignments[0].note).not.toContain('..');
+    expect(data.assignments[0].note).not.toContain('Define project management: Define project management');
   });
 
   it('collapses identical week labels created where schedule and artifact references meet', () => {
     const data = {
-      items: [
+      assignments: [
         {
           note: 'Submit the Week 2 Week 2 oral response, then revise the Week 2 the Week 2 evidence memo.',
         },
       ],
     };
     finalizeCompiledDeliverableLanguage('assignments', data, { lessons: [] });
-    expect(data.items[0].note).toBe('Submit the Week 2 oral response, then revise the Week 2 evidence memo.');
+    expect(data.assignments[0].note).toBe('Submit the Week 2 oral response, then revise the Week 2 evidence memo.');
   });
 
   it('repairs assignment parameter scaffolds before prompt-artifact grading', () => {
@@ -497,22 +518,22 @@ describe('compiledLanguageFinalizer', () => {
   });
 
   it('leaves multiple-choice answer letters alone', () => {
-    const data = { items: [{ explanation: 'A is correct because it cites evidence.' }] };
+    const data = { quizBank: [{ explanation: 'A is correct because it cites evidence.' }] };
     finalizeCompiledDeliverableLanguage('quizBank', data, { lessons: [] });
-    expect(data.items[0].explanation).toMatch(/^A is correct/);
+    expect(data.quizBank[0].explanation).toMatch(/^A is correct/);
   });
 
   it('repairs versioned WCAG subject-verb agreement on learner-facing surfaces', () => {
     const data = {
-      items: [{ question: 'WCAG 2.0 consist of twelve guidelines organized under four principles.' }],
+      quizBank: [{ question: 'WCAG 2.0 consist of twelve guidelines organized under four principles.' }],
     };
     finalizeCompiledDeliverableLanguage('quizBank', data, { lessons: [] });
-    expect(data.items[0].question).toBe('WCAG 2.0 consists of twelve guidelines organized under four principles.');
+    expect(data.quizBank[0].question).toBe('WCAG 2.0 consists of twelve guidelines organized under four principles.');
   });
 
   it('preserves accessibility acronyms and bounds policy-specific web obligations', () => {
     const data = {
-      items: [
+      courseFaq: [
         {
           question: 'How does Wcag connect Html semantics to a Ux artifact? How does Wcag principles actually work?',
           answer:
@@ -525,22 +546,22 @@ describe('compiledLanguageFinalizer', () => {
 
     finalizeCompiledDeliverableLanguage('courseFaq', data, { lessons: [] });
 
-    expect(data.items[0].question).toBe(
+    expect(data.courseFaq[0].question).toBe(
       'How does WCAG connect HTML semantics to a UX artifact? How do WCAG principles actually work?',
     );
-    expect(data.items[0].answer).toContain("W3C's Techniques for WCAG 2.0 lists techniques that help authors.");
-    expect(data.items[0].answer).toContain(
+    expect(data.courseFaq[0].answer).toContain("W3C's Techniques for WCAG 2.0 lists techniques that help authors.");
+    expect(data.courseFaq[0].answer).toContain(
       'In the cited policy context, covered websites are expected to follow the WCAG principles.',
     );
-    expect(data.items[0].answer).toContain(
+    expect(data.courseFaq[0].answer).toContain(
       'For example, in that cited policy context, the regulations require compliance with WCAG 2.0.',
     );
-    expect(data.items[0].answer).not.toMatch(/\bWcag\b|All websites will need|For example:/);
+    expect(data.courseFaq[0].answer).not.toMatch(/\bWcag\b|All websites will need|For example:/);
   });
 
   it('restores the article before assigned course materials in prepositional phrases', () => {
     const data = {
-      items: [
+      courseFaq: [
         {
           answer:
             'Ground the conclusion in assigned course materials, then cite evidence from assigned course materials.',
@@ -550,14 +571,14 @@ describe('compiledLanguageFinalizer', () => {
 
     finalizeCompiledDeliverableLanguage('courseFaq', data, { lessons: [] });
 
-    expect(data.items[0].answer).toBe(
+    expect(data.courseFaq[0].answer).toBe(
       'Ground the conclusion in the assigned course materials, then cite evidence from the assigned course materials.',
     );
   });
 
   it('presents completed non-writing course materials without unfinished draft labels', () => {
     const data = {
-      items: [
+      assignments: [
         {
           instruction:
             'Draft the Week 1 explanation, point to a visible part of the draft, and show how the next draft responds to feedback.',
@@ -570,15 +591,15 @@ describe('compiledLanguageFinalizer', () => {
       lessons: [],
     });
 
-    expect(data.items[0].instruction).toBe(
+    expect(data.assignments[0].instruction).toBe(
       'Develop the Week 1 explanation, point to a visible part of the work, and show how the next revision responds to feedback.',
     );
-    expect(data.items[0].instruction).not.toMatch(/\bdraft\b/i);
+    expect(data.assignments[0].instruction).not.toMatch(/\bdraft\b/i);
   });
 
   it('polishes a numbered assignment instruction that omits the article before Week', () => {
     const data = {
-      items: [{ instruction: 'Draft Week 1 evidence explanation so each section addresses one criterion.' }],
+      assignments: [{ instruction: 'Draft Week 1 evidence explanation so each section addresses one criterion.' }],
     };
 
     finalizeCompiledDeliverableLanguage('assignments', data, {
@@ -586,20 +607,20 @@ describe('compiledLanguageFinalizer', () => {
       lessons: [],
     });
 
-    expect(data.items[0].instruction).toBe(
+    expect(data.assignments[0].instruction).toBe(
       'Develop Week 1 evidence explanation so each section addresses one criterion.',
     );
   });
 
   it('preserves drafting vocabulary when drafting is the course content', () => {
-    const data = { items: [{ instruction: 'Draft the poem, then revise the draft in workshop.' }] };
+    const data = { assignments: [{ instruction: 'Draft the poem, then revise the draft in workshop.' }] };
 
     finalizeCompiledDeliverableLanguage('assignments', data, {
       courseName: 'Poetry Writing Workshop',
       lessons: [],
     });
 
-    expect(data.items[0].instruction).toBe('Draft the poem, then revise the draft in workshop.');
+    expect(data.assignments[0].instruction).toBe('Draft the poem, then revise the draft in workshop.');
   });
 
   it('builds week-anchored short references by artifact kind', () => {

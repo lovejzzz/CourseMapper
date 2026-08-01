@@ -1,4 +1,4 @@
-import { getArrayKey } from './syncDependencies';
+import { renderedDeliverableCollectionKey as getArrayKey } from './renderedDeliverableCollection.js';
 import { findPublishabilityPlaceholders } from './publishabilityPlaceholders';
 import { getNotApplicableDisposition } from './deliverableApplicability';
 import { classifyAssessmentKind } from './courseGraph/deriveFromCourseMap';
@@ -120,7 +120,7 @@ export function getCourseFaqQuestionTarget(config = {}) {
 }
 
 export function normalizeCourseFaqQuestionCounts(data, config = {}) {
-  const arrayKey = getArrayKey('courseFaq', data) || (data?.faqs ? 'faqs' : data?.courseFaq ? 'courseFaq' : null);
+  const arrayKey = getArrayKey('courseFaq', data);
   const lessons = arrayKey ? data?.[arrayKey] : null;
   const target = getCourseFaqQuestionTarget(config);
 
@@ -199,7 +199,7 @@ function inferFaqCategory(question = {}) {
 }
 
 export function normalizeCourseFaqCategories(data) {
-  const arrayKey = getArrayKey('courseFaq', data) || (data?.faqs ? 'faqs' : data?.courseFaq ? 'courseFaq' : null);
+  const arrayKey = getArrayKey('courseFaq', data);
   const lessons = arrayKey ? data?.[arrayKey] : null;
 
   if (!Array.isArray(lessons) || lessons.length === 0) {
@@ -349,11 +349,8 @@ const UNSAFE_FAQ_ASSESSMENT_RE =
 function faqAssignmentTitleFromDeliverables(deliverables = null, lessonIndex = 0) {
   const entry = deliverables?.assignments;
   const data = entry?.data || entry;
-  const assignments = Array.isArray(data?.assignments)
-    ? data.assignments
-    : Array.isArray(data?.assignmentBriefs)
-      ? data.assignmentBriefs
-      : [];
+  const assignmentsKey = getArrayKey('assignments', data);
+  const assignments = assignmentsKey ? data[assignmentsKey] : [];
   const lessonNumber = lessonIndex + 1;
   const assignment =
     assignments.find(
@@ -516,7 +513,7 @@ function buildFaqQuestionRepair({
 }
 
 export function normalizeCourseFaqQuestionVariety(data, courseMap = null, deliverables = null) {
-  const arrayKey = getArrayKey('courseFaq', data) || (data?.faqs ? 'faqs' : data?.courseFaq ? 'courseFaq' : null);
+  const arrayKey = getArrayKey('courseFaq', data);
   const lessons = arrayKey ? data?.[arrayKey] : null;
   const courseLessons = Array.isArray(courseMap?.lessons) ? courseMap.lessons : [];
 
@@ -846,7 +843,7 @@ function sameStringArray(left, right) {
 }
 
 export function normalizeQuizBankQuestions(data) {
-  const arrayKey = getArrayKey('quizBank', data) || (data?.quizzes ? 'quizzes' : data?.quizBank ? 'quizBank' : null);
+  const arrayKey = getArrayKey('quizBank', data);
   const quizzes = arrayKey ? data?.[arrayKey] : null;
 
   if (!Array.isArray(quizzes) || quizzes.length === 0) {
@@ -978,7 +975,7 @@ export function normalizeQuizBankQuestions(data) {
 }
 
 export function normalizeQuizBankQuestionCounts(data, minimumQuestions = 8) {
-  const arrayKey = getArrayKey('quizBank', data) || (data?.quizzes ? 'quizzes' : data?.quizBank ? 'quizBank' : null);
+  const arrayKey = getArrayKey('quizBank', data);
   const quizzes = arrayKey ? data?.[arrayKey] : null;
   const target = resolveQuizQuestionTarget(minimumQuestions);
 
@@ -1018,7 +1015,7 @@ export function normalizeQuizBankQuestionCounts(data, minimumQuestions = 8) {
 }
 
 export function normalizeQuizBankPointTotals(data) {
-  const arrayKey = getArrayKey('quizBank', data) || (data?.quizzes ? 'quizzes' : data?.quizBank ? 'quizBank' : null);
+  const arrayKey = getArrayKey('quizBank', data);
   const quizzes = arrayKey ? data?.[arrayKey] : null;
 
   if (!Array.isArray(quizzes) || quizzes.length === 0) {
@@ -1276,7 +1273,7 @@ export function validateDeliverableGeneration(featureId, data, options = {}) {
 }
 
 export function normalizeQuizBankRationales(data) {
-  const arrayKey = getArrayKey('quizBank', data) || (data?.quizzes ? 'quizzes' : data?.quizBank ? 'quizBank' : null);
+  const arrayKey = getArrayKey('quizBank', data);
   const quizzes = arrayKey ? data?.[arrayKey] : null;
 
   if (!Array.isArray(quizzes) || quizzes.length === 0) {
@@ -1400,7 +1397,7 @@ export function normalizeQuizBankRationales(data) {
 }
 
 export function normalizeQuizBankPublishability(data) {
-  const arrayKey = getArrayKey('quizBank', data) || (data?.quizzes ? 'quizzes' : data?.quizBank ? 'quizBank' : null);
+  const arrayKey = getArrayKey('quizBank', data);
   const quizzes = arrayKey ? data?.[arrayKey] : null;
 
   if (!Array.isArray(quizzes) || quizzes.length === 0) {
@@ -1478,7 +1475,7 @@ function slugifyId(value, fallback = 'item') {
 }
 
 export function normalizeQuizBankIndex(data) {
-  const arrayKey = getArrayKey('quizBank', data) || (data?.quizzes ? 'quizzes' : data?.quizBank ? 'quizBank' : null);
+  const arrayKey = getArrayKey('quizBank', data);
   const quizzes = arrayKey ? data?.[arrayKey] : null;
 
   if (!Array.isArray(quizzes) || quizzes.length === 0) {
@@ -1750,7 +1747,7 @@ function buildFallbackRubric(lesson, lessonIndex) {
 }
 
 export function normalizeRubricCoverage(data, courseMap) {
-  const arrayKey = getArrayKey('rubrics', data) || (data?.rubrics ? 'rubrics' : null);
+  const arrayKey = getArrayKey('rubrics', data);
   const rubrics = arrayKey ? data?.[arrayKey] : null;
   const lessons = Array.isArray(courseMap?.lessons) ? courseMap.lessons : [];
 
@@ -1801,7 +1798,7 @@ function moveAlias(source, target, aliases) {
 }
 
 export function normalizeRubricSupport(data) {
-  const arrayKey = getArrayKey('rubrics', data) || (data?.rubrics ? 'rubrics' : null);
+  const arrayKey = getArrayKey('rubrics', data);
   const rubrics = arrayKey ? data?.[arrayKey] : null;
 
   if (!Array.isArray(rubrics) || rubrics.length === 0) {
@@ -1997,8 +1994,7 @@ function compactGradedWorkTitle(value, fallback = 'Lesson Assessment') {
 }
 
 function getAssignmentsByLesson(assignmentsData, courseMap) {
-  const assignmentKey =
-    getArrayKey('assignments', assignmentsData) || (assignmentsData?.assignments ? 'assignments' : null);
+  const assignmentKey = getArrayKey('assignments', assignmentsData);
   const assignments = assignmentKey ? assignmentsData?.[assignmentKey] : null;
   const byLesson = new Map();
   if (!Array.isArray(assignments) || assignments.length === 0) return byLesson;
@@ -2427,7 +2423,7 @@ function patchRubricToAnchor(rubric, anchor) {
 }
 
 export function normalizeRubricAssessmentAlignment(data, courseMap, assignmentsData = null) {
-  const arrayKey = getArrayKey('rubrics', data) || (data?.rubrics ? 'rubrics' : null);
+  const arrayKey = getArrayKey('rubrics', data);
   const rubrics = arrayKey ? data?.[arrayKey] : null;
   const anchors = buildRubricAssessmentAnchors(courseMap, assignmentsData).filter((anchor) =>
     lessonHasRubricWorthyAssessment(courseMap?.lessons?.[anchor.lessonIndex]),
@@ -2573,7 +2569,7 @@ function gradingCriteriaNeedsSupport(value) {
 }
 
 export function normalizeAssignmentAssessmentAlignment(data, courseMap) {
-  const arrayKey = getArrayKey('assignments', data) || (data?.assignments ? 'assignments' : null);
+  const arrayKey = getArrayKey('assignments', data);
   const assignments = arrayKey ? data?.[arrayKey] : null;
   const anchors = buildAssessmentAnchors(courseMap);
 
@@ -2641,7 +2637,7 @@ function inferQuizLessonIndex(quiz, courseMap, quizIndex, quizCount) {
 }
 
 export function normalizeQuizAssessmentAlignment(data, courseMap) {
-  const arrayKey = getArrayKey('quizBank', data) || (data?.quizzes ? 'quizzes' : null);
+  const arrayKey = getArrayKey('quizBank', data);
   const quizzes = arrayKey ? data?.[arrayKey] : null;
   const anchors = buildAssessmentAnchors(courseMap);
 
@@ -2824,7 +2820,7 @@ function distributePercentWeights(values) {
 }
 
 export function normalizeAssignmentGradeWeights(data) {
-  const arrayKey = getArrayKey('assignments', data) || (data?.assignments ? 'assignments' : null);
+  const arrayKey = getArrayKey('assignments', data);
   const assignments = arrayKey ? data?.[arrayKey] : null;
 
   if (!Array.isArray(assignments) || assignments.length === 0) {
@@ -2870,7 +2866,7 @@ export function normalizeAssignmentGradeWeights(data) {
 }
 
 export function normalizeAssignmentLessonAlignment(data, courseMap) {
-  const arrayKey = getArrayKey('assignments', data) || (data?.assignments ? 'assignments' : null);
+  const arrayKey = getArrayKey('assignments', data);
   const assignments = arrayKey ? data?.[arrayKey] : null;
   const lessons = Array.isArray(courseMap?.lessons) ? courseMap.lessons : [];
 
@@ -2932,7 +2928,7 @@ function buildFallbackSlideNotes(deck, slide, index) {
 }
 
 export function normalizeSlideDeckSpeakerNotes(data) {
-  const arrayKey = getArrayKey('slideDecks', data) || (data?.decks ? 'decks' : data?.slideDecks ? 'slideDecks' : null);
+  const arrayKey = getArrayKey('slideDecks', data);
   const decks = arrayKey ? data?.[arrayKey] : null;
 
   if (!Array.isArray(decks) || decks.length === 0) {
@@ -3046,7 +3042,7 @@ function repairGenericSlideNotes(note, deck, slide, index) {
 }
 
 export function normalizeSlideDeckAccessibility(data) {
-  const arrayKey = getArrayKey('slideDecks', data) || (data?.decks ? 'decks' : data?.slideDecks ? 'slideDecks' : null);
+  const arrayKey = getArrayKey('slideDecks', data);
   const decks = arrayKey ? data?.[arrayKey] : null;
 
   if (!Array.isArray(decks) || decks.length === 0) {
@@ -3198,8 +3194,7 @@ export function normalizeSlideDeckAccessibility(data) {
 }
 
 export function normalizeStudyGuideQuestions(data) {
-  const arrayKey =
-    getArrayKey('studyGuides', data) || (data?.guides ? 'guides' : data?.studyGuides ? 'studyGuides' : null);
+  const arrayKey = getArrayKey('studyGuides', data);
   const guides = arrayKey ? data?.[arrayKey] : null;
 
   if (!Array.isArray(guides) || guides.length === 0) {
@@ -3444,8 +3439,7 @@ function buildStudyGuideSupport(guide) {
 }
 
 export function normalizeStudyGuideSupport(data) {
-  const arrayKey =
-    getArrayKey('studyGuides', data) || (data?.guides ? 'guides' : data?.studyGuides ? 'studyGuides' : null);
+  const arrayKey = getArrayKey('studyGuides', data);
   const guides = arrayKey ? data?.[arrayKey] : null;
 
   if (!Array.isArray(guides) || guides.length === 0) {
@@ -3664,9 +3658,7 @@ function normalizeDiscussionArtifactsForItem(discussion) {
 }
 
 export function normalizeDiscussionPromptFields(data) {
-  const arrayKey =
-    getArrayKey('discussions', data) ||
-    (data?.discussions ? 'discussions' : data?.discussionPrompts ? 'discussionPrompts' : null);
+  const arrayKey = getArrayKey('discussions', data);
   const discussions = arrayKey ? data?.[arrayKey] : null;
 
   if (!Array.isArray(discussions) || discussions.length === 0) {
@@ -3869,8 +3861,7 @@ function buildReadyToTeachSupport(plan, index) {
 }
 
 export function normalizeLessonPlanTeachingSupport(data) {
-  const arrayKey =
-    getArrayKey('lessonPlans', data) || (data?.plans ? 'plans' : data?.lessonPlans ? 'lessonPlans' : null);
+  const arrayKey = getArrayKey('lessonPlans', data);
   const plans = arrayKey ? data?.[arrayKey] : null;
 
   if (!Array.isArray(plans) || plans.length === 0) {
@@ -3932,8 +3923,7 @@ export function normalizeLessonPlanTeachingSupport(data) {
 }
 
 export function normalizeLessonPlanPublishability(data) {
-  const arrayKey =
-    getArrayKey('lessonPlans', data) || (data?.plans ? 'plans' : data?.lessonPlans ? 'lessonPlans' : null);
+  const arrayKey = getArrayKey('lessonPlans', data);
   const plans = arrayKey ? data?.[arrayKey] : null;
 
   if (!Array.isArray(plans) || plans.length === 0) {

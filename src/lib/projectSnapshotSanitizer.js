@@ -1,4 +1,5 @@
 import { detectRequestedClassSessionMinutes, parseClassSessionMinutes } from './sourceBriefConstraints';
+import { renderedDeliverableCollection } from './renderedDeliverableRoot.js';
 
 const SECRET_FIELD_NAMES = new Set([
   'apikey',
@@ -95,10 +96,7 @@ function getSavedLessonPlans(snapshot) {
   const data = snapshot?.deliverables?.lessonPlans?.data;
   if (Array.isArray(data)) return data;
   if (!data || typeof data !== 'object') return [];
-  for (const key of ['lessonPlans', 'plans', 'lessons']) {
-    if (Array.isArray(data[key])) return data[key];
-  }
-  return [];
+  return renderedDeliverableCollection('lessonPlans', data);
 }
 
 /**

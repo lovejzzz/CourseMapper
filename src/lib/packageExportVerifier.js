@@ -8,6 +8,7 @@ import {
   sanitizeInternalExportLanguage,
 } from './exportTextInspector';
 import { expandKeys } from './keyMaps';
+import { renderedDeliverableCollection } from './renderedDeliverableRoot.js';
 import { resolveFeatureLabel } from './exporters/exporterUtils.js';
 
 const DEFAULT_FEATURES = [
@@ -143,7 +144,7 @@ function buildCourseMapPdfRows(courseMap, columns) {
 
 function buildSlideDeckPdfRows(data) {
   const expanded = expandKeys('slideDecks', data);
-  const decks = expanded.slideDecks || expanded.decks || [];
+  const decks = renderedDeliverableCollection('slideDecks', expanded);
   const rows = [];
   decks.forEach((deck, deckIndex) => {
     rows.push(['Lesson', deck.lessonTitle || deck.title || `Lesson ${deckIndex + 1}`]);

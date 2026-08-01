@@ -38,6 +38,7 @@ import { buildAgentQualityScorecard } from '../../lib/agentQualityScorecard';
 import { stripInternalAgentMarkers } from './agentResponseText';
 import { getScionAgentFailureMessage } from '../../lib/scionUserFacingError';
 import { findDuplicateLessonTitleGroups } from '../../lib/lessonTitleIdentity';
+import { renderedDeliverableCollectionKey } from '../../lib/renderedDeliverableCollection.js';
 
 export { stripInternalAgentMarkers } from './agentResponseText';
 
@@ -264,7 +265,9 @@ function buildDirectApplyProposalRecoveryHint(message = '') {
 }
 
 function countQuizQuestions(deliverables = {}) {
-  const quizzes = deliverables?.quizBank?.data?.quizzes;
+  const data = deliverables?.quizBank?.data;
+  const key = renderedDeliverableCollectionKey('quizBank', data);
+  const quizzes = key ? data[key] : null;
   if (!Array.isArray(quizzes) || quizzes.length === 0) return null;
   const perLesson = quizzes.map((quiz) => {
     const questions = quiz?.qs || quiz?.questions || [];
@@ -419,25 +422,26 @@ function directFaqQuestionScore(question = {}) {
   return score;
 }
 
-function buildDirectCourseFaqCloudExportEdit(message = '', deliverables = {}) {
+export function buildDirectCourseFaqCloudExportEdit(message = '', deliverables = {}) {
   const text = String(message || '');
   if (!isDirectApplyMutationRequest(text) || !/\b(course\s*)?faq\b/i.test(text) || !/\bcloud\s+export\b/i.test(text)) {
     return null;
   }
   const entry = deliverables?.courseFaq;
-  const faqs = entry?.data?.faqs;
+  const rootKey = renderedDeliverableCollectionKey('courseFaq', entry?.data);
+  const faqs = rootKey ? entry.data[rootKey] : null;
   if (!entry?.data || !Array.isArray(faqs) || faqs.length === 0) return null;
 
   const requestedLessonIndex = inferDirectLessonIndex(text);
   const lessonIndexes = Number.isInteger(requestedLessonIndex) ? [requestedLessonIndex] : faqs.map((_, index) => index);
-  const nextData = structuredClone(entry.data);
+  const nextData = { ...entry.data, [rootKey]: structuredClone(faqs) };
   const answer =
     'Use the local ZIP first if cloud export fails, then retry cloud export after confirming the package opens.';
   let changed = 0;
   const touchedLessons = [];
 
   for (const lessonIndex of lessonIndexes) {
-    const lessonFaq = nextData.faqs?.[lessonIndex];
+    const lessonFaq = nextData[rootKey]?.[lessonIndex];
     const questions = lessonFaq?.questions || lessonFaq?.qs;
     if (!Array.isArray(questions) || questions.length === 0) continue;
     let bestIndex = -1;

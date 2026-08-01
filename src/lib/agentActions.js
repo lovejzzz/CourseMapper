@@ -6,6 +6,7 @@
  */
 
 import { getArrayKey } from './syncDependencies';
+import { isRenderedDeliverableCollectionFeature } from './renderedDeliverableCollection.js';
 import { isInternalExportMetadataKey } from './exporters/exporterUtils';
 import { KEY_MAPS } from './keyMaps';
 import { deriveCourseGraphFromCourseMap } from './courseGraph/deriveFromCourseMap.js';
@@ -282,6 +283,34 @@ const SUB_ARRAY_KEYS = {
   assignments: null, // flat array — push to root
   syllabus: null, // single object — not per-lesson
 };
+
+export function resolveDeliverableSubArray(featureId, lessonItem, requestedSubKey) {
+  const requestedKey = requestedSubKey || SUB_ARRAY_KEYS[featureId];
+  if (!requestedKey || !lessonItem || typeof lessonItem !== 'object') return { key: null, items: null };
+  const key = resolveSegment(featureId, lessonItem, requestedKey, { final: true });
+  const items = key ? lessonItem[key] : null;
+  return { key, items: Array.isArray(items) ? items : null };
+}
+
+export function resolveDeliverableReplacementTarget(featureId, data, lessonIndex, itemIndex, subKey) {
+  const arrayKey = getArrayKey(featureId, data);
+  const rootItems = arrayKey ? data?.[arrayKey] : null;
+  if (!Array.isArray(rootItems)) return null;
+
+  if (featureId === 'assignments') {
+    if (Number.isInteger(lessonIndex) && Number.isInteger(itemIndex) && lessonIndex !== itemIndex) return null;
+    const targetIndex = Number.isInteger(lessonIndex) ? lessonIndex : itemIndex;
+    if (!Number.isInteger(targetIndex) || targetIndex < 0 || targetIndex >= rootItems.length) return null;
+    return { items: rootItems, index: targetIndex, item: rootItems[targetIndex] };
+  }
+
+  if (!Number.isInteger(lessonIndex) || lessonIndex < 0 || lessonIndex >= rootItems.length) return null;
+  const lessonItem = rootItems[lessonIndex];
+  if (!Number.isInteger(itemIndex)) return { items: rootItems, index: lessonIndex, item: lessonItem };
+  const { items } = resolveDeliverableSubArray(featureId, lessonItem, subKey);
+  if (!items || itemIndex < 0 || itemIndex >= items.length) return null;
+  return { items, index: itemIndex, item: items[itemIndex] };
+}
 
 function inferAddItemSubArrayKey(featureId, item, requestedSubKey) {
   if (requestedSubKey) return requestedSubKey;
@@ -658,16 +687,15 @@ function execRemoveItem({ featureId, lessonIndex, itemIndex, subKey }, ctx) {
   }
 
   const lessonItem = arr[lessonIndex];
-  const requestedSubArrayKey = subKey || SUB_ARRAY_KEYS[featureId];
-  const subArrayKey = resolveSegment(featureId, lessonItem, requestedSubArrayKey, { final: true });
+  const { key: subArrayKey, items: subItems } = resolveDeliverableSubArray(featureId, lessonItem, subKey);
 
-  if (subArrayKey && Array.isArray(lessonItem[subArrayKey])) {
-    if (itemIndex < 0 || itemIndex >= lessonItem[subArrayKey].length) {
+  if (subArrayKey && subItems) {
+    if (itemIndex < 0 || itemIndex >= subItems.length) {
       return { success: false, message: 'Item index out of range' };
     }
-    const removed = lessonItem[subArrayKey].splice(itemIndex, 1)[0];
-    if ('tq' in lessonItem) lessonItem.tq = lessonItem[subArrayKey].length;
-    if ('ts' in lessonItem) lessonItem.ts = lessonItem[subArrayKey].length;
+    const removed = subItems.splice(itemIndex, 1)[0];
+    if ('tq' in lessonItem) lessonItem.tq = subItems.length;
+    if ('ts' in lessonItem) lessonItem.ts = subItems.length;
     optimisticUpdate(featureId, data);
     return { success: true, message: `Removed item from ${featureId}` };
   }
@@ -709,14 +737,23 @@ function execEditItem({ featureId, path: rawPath, value }, ctx) {
 
   const data = structuredClone(entry.data);
 
-  // Resolve the first path segment: the agent may send "slideDecks" but data uses "decks"
-  // Use getArrayKey to find the actual root array key and substitute if needed
+  // Resolve the first path segment through renderer authority. For declared
+  // collection features, always replace a supplied canonical or alias key:
+  // a stale but present alias must never capture an edit.
   const resolvedPath = [...path];
-  if (resolvedPath.length >= 1 && typeof resolvedPath[0] === 'string' && data[resolvedPath[0]] == null) {
+  if (resolvedPath.length >= 1 && typeof resolvedPath[0] === 'string') {
     const actualKey = getArrayKey(featureId, data);
-    if (actualKey && data[actualKey] != null) {
+    if (isRenderedDeliverableCollectionFeature(featureId)) {
+      if (!actualKey) {
+        return {
+          success: false,
+          message: `Invalid path — no renderable collection found in ${featureId} data. Available keys: ${Object.keys(data).join(', ')}`,
+        };
+      }
       resolvedPath[0] = actualKey;
-    } else {
+    } else if (data[resolvedPath[0]] == null && actualKey && data[actualKey] != null) {
+      resolvedPath[0] = actualKey;
+    } else if (data[resolvedPath[0]] == null) {
       return {
         success: false,
         message: `Invalid path — "${resolvedPath[0]}" not found in ${featureId} data. Available keys: ${Object.keys(data).join(', ')}`,
@@ -768,9 +805,8 @@ function execReplaceItem({ featureId, lessonIndex, itemIndex, item, subKey }, ct
   const arrKey = getArrayKey(featureId, data);
   const arr = data[arrKey];
   if (!Array.isArray(arr)) return { success: false, message: `No item array found for ${featureId}` };
-  if (!Number.isInteger(lessonIndex) || lessonIndex < 0 || lessonIndex >= arr.length) {
-    return { success: false, message: `lessonIndex ${lessonIndex} out of range (0-${arr.length - 1})` };
-  }
+  const target = resolveDeliverableReplacementTarget(featureId, data, lessonIndex, itemIndex, subKey);
+  if (!target) return { success: false, message: `Replacement target is out of range for ${featureId}` };
 
   const normalized = normalizeDeliverableItem(featureId, item);
   const mergeReplace = (oldItem, nextItem) => {
@@ -782,22 +818,14 @@ function execReplaceItem({ featureId, lessonIndex, itemIndex, item, subKey }, ct
     return { ...nextItem, ...preserved };
   };
 
-  if (Number.isInteger(itemIndex)) {
-    const lessonItem = arr[lessonIndex];
-    const requestedSubArrayKey = subKey || SUB_ARRAY_KEYS[featureId];
-    const subArrayKey = resolveSegment(featureId, lessonItem, requestedSubArrayKey, { final: true });
-    const subArr = subArrayKey ? lessonItem?.[subArrayKey] : null;
-    if (!Array.isArray(subArr)) return { success: false, message: `No sub-array to replace in for ${featureId}` };
-    if (itemIndex < 0 || itemIndex >= subArr.length) {
-      return { success: false, message: `itemIndex ${itemIndex} out of range (0-${subArr.length - 1})` };
-    }
-    subArr[itemIndex] = mergeReplace(subArr[itemIndex], normalized);
-    optimisticUpdate(featureId, data);
+  target.items[target.index] = mergeReplace(target.item, normalized);
+  optimisticUpdate(featureId, data);
+  if (featureId === 'assignments') {
+    return { success: true, message: `Replaced assignment ${target.index + 1}` };
+  }
+  if (featureId !== 'assignments' && Number.isInteger(itemIndex)) {
     return { success: true, message: `Replaced item ${itemIndex + 1} in ${featureId} lesson ${lessonIndex + 1}` };
   }
-
-  arr[lessonIndex] = mergeReplace(arr[lessonIndex], normalized);
-  optimisticUpdate(featureId, data);
   return { success: true, message: `Replaced ${featureId} item for lesson ${lessonIndex + 1}` };
 }
 
@@ -899,6 +927,21 @@ export function preValidateAction(action, ctx) {
   if (action.type === 'replaceItem' && (!action.item || typeof action.item !== 'object')) {
     return { valid: false, reason: 'replaceItem requires an item object with the full replacement content' };
   }
+  if (action.type === 'replaceItem') {
+    const entry = deliverables?.[action.featureId];
+    if (
+      entry?.data &&
+      !resolveDeliverableReplacementTarget(
+        action.featureId,
+        entry.data,
+        action.lessonIndex,
+        action.itemIndex,
+        action.subKey,
+      )
+    ) {
+      return { valid: false, reason: `Replacement target is out of range for ${action.featureId}` };
+    }
+  }
 
   // Duplicate detection for addItem
   if (action.type === 'addItem' && action.item && action.featureId) {
@@ -911,12 +954,10 @@ export function preValidateAction(action, ctx) {
         const arr = entry.data[arrKey];
         if (Array.isArray(arr) && action.lessonIndex !== undefined && arr[action.lessonIndex]) {
           const lessonItem = arr[action.lessonIndex];
-          const subArrayKey = resolveSegment(action.featureId, lessonItem, SUB_ARRAY_KEYS[action.featureId], {
-            final: true,
-          });
-          if (subArrayKey && Array.isArray(lessonItem[subArrayKey])) {
+          const { items: subItems } = resolveDeliverableSubArray(action.featureId, lessonItem);
+          if (subItems) {
             const newText = getDedupeText(normalizedItem, dupField);
-            const isDupe = lessonItem[subArrayKey].some((existing) => getDedupeText(existing, dupField) === newText);
+            const isDupe = subItems.some((existing) => getDedupeText(existing, dupField) === newText);
             if (isDupe) {
               return {
                 valid: false,

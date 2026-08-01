@@ -14,6 +14,8 @@
  * falling back to an AI scoring call when a stream provider is available.
  */
 
+import { renderedDeliverableCollection } from './renderedDeliverableRoot.js';
+
 export const QUALITY_SCORER_SYSTEM_PROMPT = `You are an instructional-design diagnostic assistant inspecting a small sample of a course deliverable. Report provisional content signals on four dimensions, each 0-10. Do not claim that this is a full quality, factual-accuracy, accessibility, teachability, or Quality Matters review. Return ONLY valid JSON with no explanation or markdown:
 {
   "bloomsAlignment": number,
@@ -41,7 +43,7 @@ export function buildQualityScorePrompt(featureId, data) {
     // Extract a representative sample from the deliverable data
     switch (featureId) {
       case 'lessonPlans': {
-        const plans = data.lessonPlans || [];
+        const plans = renderedDeliverableCollection('lessonPlans', data);
         const plan = plans[0]?.tiers?.standard || plans[0] || {};
         sample = `LESSON PLAN SAMPLE:\nObjectives: ${(plan.learningObjectives || []).slice(0, 3).join('; ')}\nActivities: ${(plan.activities || []).slice(0, 3).join('; ')}\nAssessment: ${plan.assessment || ''}`;
         break;
@@ -56,7 +58,7 @@ export function buildQualityScorePrompt(featureId, data) {
         break;
       }
       case 'quizBank': {
-        const quizzes = data.quizzes || data.quizBank || [];
+        const quizzes = renderedDeliverableCollection('quizBank', data);
         const lesson = quizzes[0] || {};
         const qs = (lesson.tiers?.standard || lesson.questions || []).slice(0, 3);
         sample = `QUIZ SAMPLE:\n${qs.map((q) => `Q: ${q.question?.slice(0, 80) || ''}`).join('\n')}`;

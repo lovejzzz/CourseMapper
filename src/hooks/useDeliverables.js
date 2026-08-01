@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo, useRef, useContext, useEffect } from 'react';
 import useStreamReader from './useStreamReader';
 import { getArrayKey } from '../lib/syncDependencies';
+import { isRenderedDeliverableCollectionFeature } from '../lib/renderedDeliverableCollection.js';
 import {
   PER_ASSESSMENT_REGEN_FEATURES,
   addTargetLessonIdentity,
@@ -229,6 +230,7 @@ function getRepairRetryCallLimit(featureId, expectedCount, repairRoundLimit) {
 function getDeliverableItemCount(featureId, data) {
   const key = getArrayKey(featureId, data);
   if (key) return Array.isArray(data?.[key]) ? data[key].length : 0;
+  if (isRenderedDeliverableCollectionFeature(featureId)) return 0;
   return data && Object.keys(data).length > 0 ? 1 : 0;
 }
 
@@ -278,7 +280,7 @@ function buildSlideImagePrompt(deck, slide, visual) {
 async function enrichSlideDeckImages(data, config, { apiKey, appendLog, signal, onApiCallEvent }) {
   const maxTotal = Math.max(1, Math.min(4, Number(config?.aiImagesTotal) || 2));
   const maxPerLesson = Math.max(1, Math.min(2, Number(config?.aiImagesPerLesson) || 1));
-  const arrayKey = getArrayKey('slideDecks', data) || 'decks';
+  const arrayKey = getArrayKey('slideDecks', data);
   const decks = data?.[arrayKey] || [];
   if (!Array.isArray(decks) || decks.length === 0) return data;
 

@@ -5,39 +5,21 @@
  * deliverables are affected so we can surgically regenerate only those.
  */
 
+import {
+  isRenderedDeliverableCollectionFeature,
+  renderedDeliverableCollectionKey,
+} from './renderedDeliverableCollection.js';
+
 /**
  * Returns the key in a parsed deliverable JSON object that holds the main array.
  * e.g. lessonPlans → "lessonPlans", quizBank → "quizzes", etc.
  */
 export function getArrayKey(featureId, parsed) {
   if (!parsed || typeof parsed !== 'object') return null;
-  const KNOWN_KEYS = {
-    lessonPlans: 'lessonPlans',
-    slideDecks: 'slideDecks',
-    rubrics: 'rubrics',
-    quizBank: 'quizzes',
-    discussions: 'discussions',
-    assignments: 'assignments',
-    studyGuides: 'studyGuides',
-    courseFaq: 'faqs',
-  };
-  // Common AI aliases — models sometimes use shortened key names
-  const ALIASES = {
-    slideDecks: ['decks', 'slides'],
-    lessonPlans: ['plans', 'lessons'],
-    studyGuides: ['guides'],
-    courseFaq: ['faq', 'courseFAQ'],
-  };
-  const known = KNOWN_KEYS[featureId];
-  if (known && parsed[known]) return known;
-  // Try aliases before falling back to generic detection
-  const aliases = ALIASES[featureId];
-  if (aliases) {
-    for (const alias of aliases) {
-      if (parsed[alias] && Array.isArray(parsed[alias])) return alias;
-    }
+  if (isRenderedDeliverableCollectionFeature(featureId)) {
+    return renderedDeliverableCollectionKey(featureId, parsed);
   }
-  // Fall back: find the first array key in the object
+  // Unknown/custom features retain their document-owned generic fallback.
   for (const k of Object.keys(parsed)) {
     if (Array.isArray(parsed[k])) return k;
   }

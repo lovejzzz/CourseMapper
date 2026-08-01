@@ -1,5 +1,6 @@
 import { loadPdfLibs, getDocx, getSaveAs, isInternalExportMetadataKey, resolveFeatureLabel } from './exporterUtils.js';
 import { expandKeys } from '../keyMaps.js';
+import { renderedDeliverableCollection } from '../renderedDeliverableRoot.js';
 import { buildSyllabusCsvRows } from './syllabusExportUtils.js';
 import { assertCsvRowsHaveNoInternalExportLanguage } from '../exportTextInspector.js';
 
@@ -30,8 +31,7 @@ export function deliverableToCsvRows(featureId, data) {
   switch (featureId) {
     case 'lessonPlans': {
       const expanded = expandKeys('lessonPlans', data);
-      const key = expanded.plans ? 'plans' : 'lessonPlans';
-      const plans = expanded[key] || [];
+      const plans = renderedDeliverableCollection('lessonPlans', expanded);
       const headers = [
         'Lesson',
         'Duration',
@@ -88,7 +88,7 @@ export function deliverableToCsvRows(featureId, data) {
     }
     case 'rubrics': {
       const expanded = expandKeys('rubrics', data);
-      const rubrics = expanded.rubrics || [];
+      const rubrics = renderedDeliverableCollection('rubrics', expanded);
       const headers = [
         'Rubric',
         'Lesson',
@@ -124,8 +124,7 @@ export function deliverableToCsvRows(featureId, data) {
     }
     case 'slideDecks': {
       const expanded = expandKeys('slideDecks', data);
-      const key = expanded.decks ? 'decks' : 'slideDecks';
-      const decks = expanded[key] || [];
+      const decks = renderedDeliverableCollection('slideDecks', expanded);
       const headers = ['Lesson', 'Slide #', 'Title', 'Bullets', 'Speaker Notes'];
       const rows = [];
       for (const d of decks) {
@@ -144,8 +143,7 @@ export function deliverableToCsvRows(featureId, data) {
     }
     case 'quizBank': {
       const expanded = expandKeys('quizBank', data);
-      const key = expanded.quizzes ? 'quizzes' : 'quizBank';
-      const quizzes = expanded[key] || [];
+      const quizzes = renderedDeliverableCollection('quizBank', expanded);
       const headers = [
         'Lesson',
         'Assigned Readings',
@@ -181,7 +179,7 @@ export function deliverableToCsvRows(featureId, data) {
     }
     case 'discussions': {
       const expanded = expandKeys('discussions', data);
-      const discussions = expanded.discussions || [];
+      const discussions = renderedDeliverableCollection('discussions', expanded);
       const headers = [
         'Lesson',
         "Bloom's",
@@ -225,7 +223,7 @@ export function deliverableToCsvRows(featureId, data) {
     }
     case 'assignments': {
       const expanded = expandKeys('assignments', data);
-      const assignments = expanded.assignments || [];
+      const assignments = renderedDeliverableCollection('assignments', expanded);
       const headers = [
         'Title',
         'Type',
@@ -270,8 +268,7 @@ export function deliverableToCsvRows(featureId, data) {
     }
     case 'studyGuides': {
       const expanded = expandKeys('studyGuides', data);
-      const key = expanded.guides ? 'guides' : 'studyGuides';
-      const guides = expanded[key] || [];
+      const guides = renderedDeliverableCollection('studyGuides', expanded);
       const headers = [
         'Lesson',
         'Assigned Readings',
@@ -318,7 +315,7 @@ export function deliverableToCsvRows(featureId, data) {
     }
     case 'courseFaq': {
       const expanded = expandKeys('courseFaq', data);
-      const faqs = expanded.faqs || expanded.courseFaq || [];
+      const faqs = renderedDeliverableCollection('courseFaq', expanded);
       const headers = ['Lesson', 'Category', 'Question', 'Answer', 'Related Concepts', 'Difficulty'];
       const rows = [];
       for (const lesson of faqs) {

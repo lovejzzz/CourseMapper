@@ -437,6 +437,14 @@ describe('G2 — recompile-and-diff blast radius', () => {
     expect(changes[0].summary).toContain('A2.1');
     expect(changes[0].lessonNumber).toBe(2);
   });
+
+  it('diffs only the canonical rendered collection when a stale alias changes', () => {
+    const canonical = [{ lessonNumber: 1, lessonTitle: 'Canonical plan', body: 'unchanged' }];
+    const prev = { lessonPlans: canonical, plans: [{ lessonNumber: 1, body: 'old stale text' }] };
+    const next = { lessonPlans: canonical, plans: [{ lessonNumber: 1, body: 'new stale text' }] };
+
+    expect(diffCompiledFeature('lessonPlans', prev, next)).toEqual([]);
+  });
 });
 
 describe('G4 — the sync plan classes into the review queue with its diff preview', () => {

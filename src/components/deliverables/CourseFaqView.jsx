@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { normalizeCourseFaqCategories } from '../../lib/deliverablePostProcess';
+import { renderedDeliverableCollectionKey } from '../../lib/renderedDeliverableCollection.js';
 import { CollapsibleCard, E, EmptyState, SectionHeading, StreamingBanner } from './shared/SharedComponents';
 
 const CATEGORY_STYLES = {
@@ -34,7 +35,7 @@ function pickQuestionField(question, keys, fallback = '') {
 }
 
 function normalizeCourseFaq(data) {
-  const rootKey = data?.faqs ? 'faqs' : data?.courseFaq ? 'courseFaq' : 'faqs';
+  const rootKey = renderedDeliverableCollectionKey('courseFaq', data);
   const lessons = asArray(data?.[rootKey]);
 
   return lessons.map((lesson, lessonIndex) => {

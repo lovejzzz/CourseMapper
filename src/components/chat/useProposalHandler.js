@@ -10,9 +10,48 @@
  */
 
 import { useRef } from 'react';
-import { preValidateAction } from '../../lib/agentActions';
+import {
+  preValidateAction,
+  resolveDeliverableReplacementTarget,
+  resolveDeliverableSubArray,
+} from '../../lib/agentActions';
 import { getArrayKey } from '../../lib/syncDependencies';
 import { recordEditPattern } from '../../lib/agentMemory';
+import { isRenderedDeliverableCollectionFeature } from '../../lib/renderedDeliverableCollection.js';
+
+export function resolveProposalArrayKey(featureId, data) {
+  const key = getArrayKey(featureId, data);
+  if (key || isRenderedDeliverableCollectionFeature(featureId)) return key;
+  return Object.keys(data || {}).find((candidate) => Array.isArray(data[candidate])) || null;
+}
+
+export function resolveProposalEditPath(featureId, data, path) {
+  const parts = Array.isArray(path) ? [...path] : String(path || '').split('.');
+  if (parts.length < 1 || typeof parts[0] !== 'string') return parts;
+  const actualKey = getArrayKey(featureId, data);
+  if (isRenderedDeliverableCollectionFeature(featureId)) {
+    if (!actualKey) return null;
+    parts[0] = actualKey;
+  } else if (data?.[parts[0]] == null && actualKey) {
+    parts[0] = actualKey;
+  }
+  return parts;
+}
+
+export function resolveProposalReplacementItem(featureId, data, lessonIndex, itemIndex, subKey) {
+  return resolveDeliverableReplacementTarget(featureId, data, lessonIndex, itemIndex, subKey)?.item ?? null;
+}
+
+export function resolveProposalRemovedItem(featureId, data, lessonIndex, itemIndex, subKey) {
+  if (!Number.isInteger(itemIndex)) return null;
+  const arrayKey = resolveProposalArrayKey(featureId, data);
+  if (!arrayKey) return null;
+  const rootItems = data?.[arrayKey];
+  if (featureId === 'assignments') return rootItems?.[itemIndex] ?? null;
+  const lessonItem = rootItems?.[lessonIndex];
+  const { items } = resolveDeliverableSubArray(featureId, lessonItem, subKey);
+  return items?.[itemIndex] ?? null;
+}
 
 /**
  * @param {Object} params
@@ -51,41 +90,38 @@ export default function useProposalHandler({
         const deliv = delivRef.current;
         const entry = deliv?.[action.featureId];
         if (entry?.data) {
-          const arrKey = Object.keys(entry.data).find((k) => Array.isArray(entry.data[k]));
-          if (arrKey) {
-            const lessonItems = entry.data[arrKey]?.[action.lessonIndex];
-            const items = Array.isArray(lessonItems) ? lessonItems : lessonItems?.items;
-            preview.removedItem = items?.[action.itemIndex] ?? null;
-          }
+          preview.removedItem = resolveProposalRemovedItem(
+            action.featureId,
+            entry.data,
+            action.lessonIndex,
+            action.itemIndex,
+            action.subKey,
+          );
         }
       } else if (type === 'editItem') {
         const deliv = delivRef.current;
         const entry = deliv?.[action.featureId];
         if (entry?.data && action.path) {
           let val = entry.data;
-          const parts = Array.isArray(action.path) ? [...action.path] : String(action.path).split('.');
-          // Resolve root key: agent may send "slideDecks" but data uses "decks" etc.
-          if (parts.length >= 1 && typeof parts[0] === 'string' && val[parts[0]] == null) {
-            const actualKey = getArrayKey(action.featureId, val);
-            if (actualKey) parts[0] = actualKey;
-          }
-          for (const p of parts) {
+          const parts = resolveProposalEditPath(action.featureId, val, action.path);
+          for (const p of parts || []) {
             if (val == null) break;
             val = val[p];
           }
+          if (!parts) val = null;
           preview.oldValue = val ?? '';
         }
       } else if (type === 'replaceItem') {
         const deliv = delivRef.current;
         const entry = deliv?.[action.featureId];
         if (entry?.data) {
-          const arrKey =
-            getArrayKey(action.featureId, entry.data) ||
-            Object.keys(entry.data).find((k) => Array.isArray(entry.data[k]));
-          const lessonItem = entry.data?.[arrKey]?.[action.lessonIndex];
-          preview.replacedItem = Number.isInteger(action.itemIndex)
-            ? ((Object.values(lessonItem || {}).find(Array.isArray) || [])[action.itemIndex] ?? null)
-            : (lessonItem ?? null);
+          preview.replacedItem = resolveProposalReplacementItem(
+            action.featureId,
+            entry.data,
+            action.lessonIndex,
+            action.itemIndex,
+            action.subKey,
+          );
         }
       } else if (type === 'deleteLesson') {
         const lesson = courseMap?.lessons?.[action.lessonIndex];

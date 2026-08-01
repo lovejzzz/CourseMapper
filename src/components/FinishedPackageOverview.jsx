@@ -1,5 +1,9 @@
 import React from 'react';
 import { FEATURES } from '../lib/featureCatalog';
+import {
+  isRenderedDeliverableCollectionFeature,
+  renderedDeliverableCollection,
+} from '../lib/renderedDeliverableRoot.js';
 
 const FEATURE_LABELS = new Map(FEATURES.map((feature) => [feature.id, feature.label]));
 
@@ -34,6 +38,9 @@ function getFeatureCount(featureId, deliverables) {
   const data = deliverables?.[featureId]?.data;
   if (Array.isArray(data)) return data.length;
   if (data && typeof data === 'object') {
+    if (isRenderedDeliverableCollectionFeature(featureId)) {
+      return renderedDeliverableCollection(featureId, data).length;
+    }
     const firstArray = Object.values(data).find(Array.isArray);
     if (firstArray) return firstArray.length;
     return 1;

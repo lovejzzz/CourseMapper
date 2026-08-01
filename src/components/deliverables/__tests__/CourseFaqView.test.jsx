@@ -145,6 +145,35 @@ describe('CourseFaqView', () => {
     expect(container.querySelector('[data-testid="course-faq-category-assignment-clarification"]')).not.toBeNull();
   });
 
+  it('prefers canonical FAQ content when a stale legacy alias coexists', () => {
+    renderView({
+      data: {
+        courseFaq: [
+          {
+            lessonTitle: 'Canonical FAQ',
+            questions: [
+              {
+                question: 'Canonical question?',
+                answer: 'Canonical answer.',
+                category: 'Course Logistics',
+              },
+            ],
+          },
+        ],
+        faqs: [
+          {
+            lessonTitle: 'Stale FAQ',
+            questions: [{ question: 'Stale question?', answer: 'Stale answer.', category: 'General' }],
+          },
+        ],
+      },
+    });
+
+    expect(container.textContent).toContain('Canonical FAQ');
+    expect(container.textContent).toContain('Canonical question?');
+    expect(container.textContent).not.toContain('Stale FAQ');
+  });
+
   it('displays repaired FAQ category labels instead of model rationale text', () => {
     renderView({
       data: {

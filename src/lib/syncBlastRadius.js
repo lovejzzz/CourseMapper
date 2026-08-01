@@ -26,7 +26,7 @@ import {
   isBlueprintCompiledFeature,
 } from './courseBlueprintCompiler';
 import { attachEnrichmentToGraph, buildBlueprintFromGraph, deriveCourseGraphFromCourseMap } from './courseGraph';
-import { getArrayKey } from './syncDependencies';
+import { renderedDeliverableContentRoot } from './renderedDeliverableRoot.js';
 
 const FEATURE_LABELS = {
   syllabus: 'Syllabus',
@@ -146,18 +146,11 @@ function diffSyllabusObject(prevDoc, nextDoc) {
   return changes;
 }
 
-// getArrayKey only resolves ARRAY roots; single-document features (the
-// syllabus object) come back null — unwrap the lone root value instead so
-// the document still diffs (this exact null made the first version blind
-// to the syllabus, the very hole G2 exists to close).
+// Diff the same content authority used by rendering and export. Raw arrays
+// remain supported for old custom snapshots.
 function rootValueOf(featureId, data) {
-  const key = getArrayKey(featureId, data);
-  if (key) return data?.[key];
-  if (data && typeof data === 'object') {
-    const values = Object.values(data);
-    if (values.length === 1) return values[0];
-  }
-  return data ?? null;
+  if (Array.isArray(data)) return data;
+  return renderedDeliverableContentRoot(featureId, data) ?? null;
 }
 
 export function diffCompiledFeature(featureId, prevData, nextData) {

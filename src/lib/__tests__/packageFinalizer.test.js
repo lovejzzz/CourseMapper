@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { buildCourseBlueprint, compileBlueprintDeliverable } from '../courseBlueprintCompiler';
+import { buildDeliverableDocxBlob } from '../exporters/bulkDocxExporter';
 import {
   applyQualityToFinalizerResult,
   evaluateStrictPackageReadiness,
   runDeterministicPackageFinalizer,
 } from '../packageFinalizer';
+import { extractPackage } from '../quality/deepQualityGrader';
+import { createMemoryFileProvider } from '../quality/fileProviders';
 
 function makeCourseMap(lessonCount = 2) {
   return {
@@ -79,6 +82,224 @@ function makeIntroPsychCourseMap(lessonCount = 15) {
 }
 
 describe('packageFinalizer', () => {
+  it('does not let stale aliases or failed and unselected ledgers rewrite canonical rendered content', async () => {
+    const fact =
+      'Conditional branching logic allows programs to execute different blocks of code based on specified conditions.';
+    const failedFact =
+      'Failed study guide evidence must not become authoritative for a completed canonical lesson plan export.';
+    const unselectedFact =
+      'Unselected assignment evidence must not influence a requested lesson plan package during finalization.';
+    const canonicalPlan = {
+      lessonTitle: 'Lesson 1: Conditional branching',
+      duration: '75 minutes',
+      outline: [
+        {
+          time: '20 minutes',
+          activity: 'Policy path comparison',
+          description: `First application: ${fact}`,
+          instructorNotes: `Second application: ${fact}`,
+          catchUpPlan: `Third application: ${fact}`,
+        },
+      ],
+      formativeCheck: {
+        type: 'Exit ticket',
+        prompt: `Fourth application: ${fact}`,
+      },
+    };
+    const result = runDeterministicPackageFinalizer({
+      courseMap: makeCourseMap(1),
+      selectedFeatures: ['lessonPlans', 'studyGuides', 'quizBank'],
+      includeClassroomReadiness: false,
+      includePedagogicalValidation: false,
+      retryWarnings: false,
+      deliverables: {
+        lessonPlans: {
+          status: 'done',
+          data: {
+            lessonPlans: [canonicalPlan],
+            plans: [{ sourceEvidenceBrief: { claims: [fact] } }],
+          },
+        },
+        studyGuides: {
+          status: 'done',
+          data: { metadata: { sourceEvidenceBrief: { claims: [fact] } } },
+        },
+        quizBank: {
+          status: 'failed',
+          data: { quizzes: [{ sourceEvidenceBrief: { claims: [failedFact] } }] },
+        },
+        assignments: {
+          status: 'done',
+          data: { assignments: [{ sourceEvidenceBrief: { claims: [unselectedFact] } }] },
+        },
+      },
+    });
+    const renderedData = result.deliverables.lessonPlans.data;
+    const canonicalJson = JSON.stringify(renderedData.lessonPlans);
+
+    expect(canonicalJson.split(fact)).toHaveLength(5);
+    expect(canonicalJson).not.toContain('the cited source claim');
+    expect(renderedData.plans[0].sourceEvidenceBrief.claims).toEqual([fact]);
+    expect(result.deliverables.studyGuides.data).toEqual({
+      metadata: { sourceEvidenceBrief: { claims: [fact] } },
+    });
+
+    const blob = await buildDeliverableDocxBlob('lessonPlans', renderedData, 'Research Methods');
+    const pkg = await extractPackage(
+      createMemoryFileProvider({ 'Lesson Plans/Lesson 1 - Conditional branching.docx': blob }),
+    );
+    expect(pkg.files[0].text.split(fact)).toHaveLength(5);
+    expect(pkg.files[0].text).not.toContain('the cited source claim');
+  });
+
+  it('uses a valid rendered alias when the canonical lesson-plan root is malformed', () => {
+    const data = {
+      lessonPlans: { malformed: true, note: 'Malformed canonical metadata..' },
+      lessons: [
+        {
+          lessonTitle: 'Lesson 1: Research Topic 1',
+          notes: 'Rendered alias note..',
+          objectives: ['Analyze research topic 1 using evidence and method criteria.'],
+          outline: [
+            {
+              time: '25 minutes',
+              activity: 'Compare two research designs',
+              description: 'Students compare the evidence, tradeoffs, and likely limitations of each design.',
+            },
+          ],
+          formativeCheck: {
+            type: 'Exit ticket',
+            prompt: 'Select one design and justify the choice with two specific pieces of evidence.',
+            instructorAction: 'Use the response to identify one reasoning gap for the next lesson.',
+          },
+        },
+      ],
+    };
+    const result = runDeterministicPackageFinalizer({
+      courseMap: makeCourseMap(1),
+      selectedFeatures: ['lessonPlans'],
+      includeClassroomReadiness: true,
+      includePedagogicalValidation: false,
+      retryWarnings: false,
+      deliverables: { lessonPlans: { status: 'done', data } },
+    });
+
+    expect(result.readiness.blockers.map((issue) => issue.message).join(' ')).not.toContain(
+      'Lesson Plans has no generated lesson items.',
+    );
+    expect(result.deliverables.lessonPlans.data.lessonPlans).toEqual({
+      malformed: true,
+      note: 'Malformed canonical metadata..',
+    });
+    expect(result.deliverables.lessonPlans.data.lessons).toHaveLength(1);
+    expect(result.deliverables.lessonPlans.data.lessons[0].notes).toBe('Rendered alias note.');
+  });
+
+  it('does not repair metadata when a known feature has no renderable collection', () => {
+    const data = {
+      lessonPlans: { malformed: true, note: 'Malformed canonical metadata..' },
+      metadata: ['Unrendered metadata..'],
+    };
+    const before = JSON.stringify(data);
+
+    const result = runDeterministicPackageFinalizer({
+      courseMap: makeCourseMap(1),
+      selectedFeatures: ['lessonPlans'],
+      includeClassroomReadiness: false,
+      includePedagogicalValidation: false,
+      retryWarnings: false,
+      deliverables: { lessonPlans: { status: 'done', data } },
+    });
+
+    expect(JSON.stringify(result.deliverables.lessonPlans.data)).toBe(before);
+    expect(result.repairs.filter((repair) => repair.featureId === 'lessonPlans')).toHaveLength(0);
+  });
+
+  it('repairs observation protocols only in the authoritative lesson-plan collection', () => {
+    const protocol = {
+      logFields: ['Sky conditions and limiting magnitude', 'Instrument: telescope or binoculars'],
+      cloudyAlternative: 'Cloudy night: use Stellarium.',
+    };
+    const canonicalPlan = {
+      lessonTitle: 'Lesson 1: Research Topic 1',
+      objectives: ['Analyze research topic 1 using evidence and method criteria.'],
+      outline: [
+        {
+          time: '25 minutes',
+          activity: 'Compare two research designs',
+          description: 'Students compare evidence, tradeoffs, and likely limitations.',
+        },
+      ],
+      formativeCheck: {
+        type: 'Exit ticket',
+        prompt: 'Select one design and justify the choice with two pieces of evidence.',
+      },
+      observationProtocol: protocol,
+    };
+    const stalePlans = [{ lessonTitle: 'Stale plans alias', observationProtocol: protocol }];
+    const staleLessons = [{ lessonTitle: 'Stale lessons alias', observationProtocol: protocol }];
+    const stalePlansJson = JSON.stringify(stalePlans);
+    const staleLessonsJson = JSON.stringify(staleLessons);
+
+    const result = runDeterministicPackageFinalizer({
+      courseMap: makeCourseMap(1),
+      selectedFeatures: ['lessonPlans'],
+      includeClassroomReadiness: false,
+      includePedagogicalValidation: false,
+      retryWarnings: false,
+      deliverables: {
+        lessonPlans: {
+          status: 'done',
+          data: { lessonPlans: [canonicalPlan], plans: stalePlans, lessons: staleLessons },
+        },
+      },
+    });
+
+    const repaired = result.deliverables.lessonPlans.data;
+    expect(repaired.lessonPlans[0].observationProtocol).toBeUndefined();
+    expect(JSON.stringify(repaired.plans)).toBe(stalePlansJson);
+    expect(JSON.stringify(repaired.lessons)).toBe(staleLessonsJson);
+    expect(result.repairs).toContainEqual(
+      expect.objectContaining({
+        featureId: 'lessonPlans',
+        changes: ['removed 1 misapplied sky-observation protocol(s)'],
+      }),
+    );
+  });
+
+  it('repairs mechanical seams only in the authoritative lesson-plan collection', () => {
+    const canonicalPlans = [
+      {
+        lessonTitle: 'Lesson 1: Research Topic 1',
+        objectives: ['Analyze research topic 1 using evidence and method criteria.'],
+        notes: 'Canonical instructor note..',
+      },
+    ];
+    const stalePlans = [{ lessonTitle: 'Stale plans alias', notes: 'Stale plans note..' }];
+    const staleLessons = [{ lessonTitle: 'Stale lessons alias', notes: 'Stale lessons note..' }];
+    const stalePlansJson = JSON.stringify(stalePlans);
+    const staleLessonsJson = JSON.stringify(staleLessons);
+
+    const result = runDeterministicPackageFinalizer({
+      courseMap: makeCourseMap(1),
+      selectedFeatures: ['lessonPlans'],
+      includeClassroomReadiness: false,
+      includePedagogicalValidation: false,
+      retryWarnings: false,
+      deliverables: {
+        lessonPlans: {
+          status: 'done',
+          data: { lessonPlans: canonicalPlans, plans: stalePlans, lessons: staleLessons },
+        },
+      },
+    });
+
+    const repaired = result.deliverables.lessonPlans.data;
+    expect(repaired.lessonPlans[0].notes).toBe('Canonical instructor note.');
+    expect(JSON.stringify(repaired.plans)).toBe(stalePlansJson);
+    expect(JSON.stringify(repaired.lessons)).toBe(staleLessonsJson);
+  });
+
   it('applies current assignment copy compaction to a legacy saved project without changing canonical identity', () => {
     const fullFocus = 'Borges’s “The Library of Babel”';
     const courseMap = {
@@ -1385,8 +1606,11 @@ describe('packageFinalizer', () => {
     const courseMap = makeCourseMap(2);
     const blueprint = buildCourseBlueprint(courseMap);
     const faq = compileBlueprintDeliverable('courseFaq', blueprint);
-    // Seed the exact defect class from the v0.12 production log.
+    // Seed the exact defect class in both rendered content and adjacent
+    // non-rendered metadata. Only the rendered FAQ collection is authoritative.
     faq.faqGuide.purpose = 'Student-facing support FAQ compiled from the shared course blueprint..';
+    const originalAnswer = faq.faqs[0].qs[0].an;
+    faq.faqs[0].qs[0].an = `${originalAnswer}.`;
 
     const result = runDeterministicPackageFinalizer({
       courseMap,
@@ -1396,8 +1620,9 @@ describe('packageFinalizer', () => {
 
     expect(result.repairs.some((repair) => /content-quality seam/.test(repair.message))).toBe(true);
     expect(result.deliverables.courseFaq.data.faqGuide.purpose).toBe(
-      'Student-facing support FAQ compiled from the shared course blueprint.',
+      'Student-facing support FAQ compiled from the shared course blueprint..',
     );
+    expect(result.deliverables.courseFaq.data.faqs[0].qs[0].an).toBe(originalAnswer);
     expect((result.readiness.warnings || []).filter((warning) => /double-period/.test(warning.message))).toHaveLength(
       0,
     );

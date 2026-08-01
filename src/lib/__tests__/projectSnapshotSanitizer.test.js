@@ -162,6 +162,26 @@ describe('prepareProjectSnapshotForRestore', () => {
     expect(restored.deliverableConfig.lessonPlans.sessionLength).toBe('110 min');
   });
 
+  it('infers the saved clock from the canonical lesson-plan root when a stale alias coexists', () => {
+    const plan = (minutes) => ({
+      duration: `${minutes} minutes`,
+      classSessionPlan: { sessionMinutes: minutes },
+      outlineTiming: { sessionMinutes: minutes },
+    });
+    const snapshot = {
+      deliverables: {
+        lessonPlans: {
+          data: {
+            lessonPlans: [plan(75)],
+            plans: [plan(110)],
+          },
+        },
+      },
+    };
+
+    expect(inferSavedLessonPlanSessionMinutes(snapshot)).toBe(75);
+  });
+
   it('keeps an explicit saved generation clock authoritative over defective artifacts', () => {
     const restored = prepareProjectSnapshotForRestore({
       courseMap: { lessons: [{ title: 'Lesson 1' }] },

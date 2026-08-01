@@ -254,6 +254,12 @@ describe('getArrayKey', () => {
     expect(getArrayKey('lessonPlans', { plans: [] })).toBe('plans');
   });
 
+  it('shares canonical precedence and array validation with export rendering', () => {
+    expect(getArrayKey('quizBank', { quizBank: [], quizzes: [] })).toBe('quizBank');
+    expect(getArrayKey('courseFaq', { courseFaq: [], faqs: [] })).toBe('courseFaq');
+    expect(getArrayKey('lessonPlans', { lessonPlans: {}, lessons: [] })).toBe('lessons');
+  });
+
   it('falls back to first array key', () => {
     expect(getArrayKey('unknownFeature', { myItems: [], name: 'test' })).toBe('myItems');
   });

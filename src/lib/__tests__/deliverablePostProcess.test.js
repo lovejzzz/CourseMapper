@@ -71,6 +71,20 @@ describe('Course FAQ post-processing', () => {
     expect(getCourseFaqQuestionTarget({ questionsPerLesson: 4.6 })).toBe(5);
   });
 
+  it('normalizes the canonical FAQ collection without mutating a competing legacy alias', () => {
+    const canonicalQuestions = Array.from({ length: 6 }, (_, index) => ({ question: `Canonical ${index + 1}` }));
+    const legacyQuestions = Array.from({ length: 6 }, (_, index) => ({ question: `Legacy ${index + 1}` }));
+    const data = {
+      courseFaq: [{ lessonTitle: 'Lesson 1', questions: canonicalQuestions }],
+      faqs: [{ lessonTitle: 'Lesson 1', questions: legacyQuestions }],
+    };
+
+    const result = normalizeCourseFaqQuestionCounts(data);
+
+    expect(result.data.courseFaq[0].questions).toHaveLength(5);
+    expect(result.data.faqs[0].questions).toBe(legacyQuestions);
+  });
+
   it('trims overfilled FAQ lessons and reports underfilled lessons for retry', () => {
     const data = {
       faqs: [
@@ -1351,6 +1365,26 @@ describe('Lesson plan post-processing', () => {
     expect(result.data.plans[0].fc.ia).toContain('Success criteria');
     expect(result.data.plans[0].fc.ia).toContain('Model-work guidance');
     expect(result.data.plans[0].rts.workedExample).toContain('strong work');
+  });
+
+  it('normalizes a valid lesson alias when the canonical root is malformed', () => {
+    const data = {
+      lessonPlans: { malformed: true },
+      lessons: [
+        {
+          lessonTitle: 'Lesson 1: Museum Interpretation',
+          objectives: ['Analyze a museum label'],
+          outline: [{ activity: 'Discuss examples', description: 'Students compare two labels.' }],
+        },
+      ],
+    };
+
+    const result = normalizeLessonPlanTeachingSupport(data);
+
+    expect(result.arrayKey).toBe('lessons');
+    expect(result.patchedTeachingSupport).toBe(1);
+    expect(result.data.lessonPlans).toEqual({ malformed: true });
+    expect(result.data.lessons[0].readyToTeachSupport.workedExample).toContain('strong work');
   });
 });
 

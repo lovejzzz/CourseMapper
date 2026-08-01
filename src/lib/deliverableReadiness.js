@@ -1,4 +1,3 @@
-import { getArrayKey } from './syncDependencies';
 import { classifyAssessmentKind } from './courseGraph/deriveFromCourseMap.js';
 import { compactCompilerOwnedEvidenceCheckIdentity } from './compilerAssessmentIdentity.js';
 import { isDeliverableNotApplicable } from './deliverableApplicability';
@@ -6,6 +5,10 @@ import { deriveEvaluateDesign } from './leanCourseMap.js';
 import { findPublishabilityPlaceholders } from './publishabilityPlaceholders';
 import { normalizeReadinessIssue, normalizeReadinessIssues } from './readinessIssueSchema';
 import { resolveQuizQuestionTarget } from './quizQuestionTarget';
+import {
+  renderedDeliverableCollectionKey,
+  renderedDeliverableCollectionKeys,
+} from './renderedDeliverableCollection.js';
 import {
   normalizeAssignmentAssessmentAlignment,
   normalizeAssignmentGradeWeights,
@@ -238,24 +241,8 @@ function text(value) {
 
 function getFeatureArray(featureId, data) {
   if (!data || typeof data !== 'object') return [];
-  const directKey = getArrayKey(featureId, data);
-  if (directKey && Array.isArray(data[directKey])) return data[directKey];
-
-  const aliases = {
-    lessonPlans: ['lessonPlans', 'plans'],
-    slideDecks: ['decks', 'slideDecks'],
-    discussions: ['discussions'],
-    quizBank: ['quizzes', 'quizBank'],
-    studyGuides: ['studyGuides', 'guides'],
-    courseFaq: ['faqs', 'courseFaq'],
-    assignments: ['assignments'],
-    rubrics: ['rubrics'],
-  };
-
-  for (const key of aliases[featureId] || []) {
-    if (Array.isArray(data[key])) return data[key];
-  }
-  return [];
+  const key = renderedDeliverableCollectionKey(featureId, data);
+  return key ? data[key] : [];
 }
 
 function getSelectedFeatureIds(selectedFeatures, deliverables = {}) {
@@ -342,19 +329,8 @@ export function scopeCourseMapToLessons(courseMap, lessonFilter) {
 export function scopeDeliverableDataToLessons(featureId, data, lessonFilter, courseMap = null) {
   if (!Array.isArray(lessonFilter) || !data || typeof data !== 'object') return data;
 
-  const scopedArrayKeys = {
-    lessonPlans: ['lessonPlans', 'plans'],
-    slideDecks: ['decks', 'slideDecks'],
-    rubrics: ['rubrics'],
-    quizBank: ['quizzes', 'quizBank'],
-    discussions: ['discussions'],
-    assignments: ['assignments'],
-    studyGuides: ['studyGuides', 'guides'],
-    courseFaq: ['faqs', 'courseFaq'],
-  };
-
-  const keys = scopedArrayKeys[featureId];
-  if (!keys) return data;
+  const keys = renderedDeliverableCollectionKeys(featureId);
+  if (keys.length === 0) return data;
 
   let scopedData = data;
   let changed = false;

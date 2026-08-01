@@ -1,4 +1,5 @@
 import { buildCourseContentIndex } from './courseContentIndex';
+import { renderedDeliverableCollectionKey } from './renderedDeliverableCollection.js';
 
 const EDIT_INTENT =
   /\b(?:add|apply|change|create|delete|edit|fix|generate|improve|insert|make|move|remove|rename|replace|rewrite|sync|update)\b/i;
@@ -53,7 +54,9 @@ function isReadOnlyCourseQuestion(question) {
 }
 
 function quizQuestionsFromDeliverables(deliverables = {}) {
-  const quizzes = deliverables?.quizBank?.data?.quizzes;
+  const data = deliverables?.quizBank?.data;
+  const key = renderedDeliverableCollectionKey('quizBank', data);
+  const quizzes = key ? data[key] : null;
   if (!Array.isArray(quizzes)) return [];
   return quizzes.flatMap((quiz) => {
     const questions = quiz?.qs || quiz?.questions || [];
@@ -391,4 +394,5 @@ export const __private__ = {
   isReadOnlyCourseQuestion,
   lessonNumberFromQuestion,
   buildGroundedExplanationAnswer,
+  quizQuestionsFromDeliverables,
 };

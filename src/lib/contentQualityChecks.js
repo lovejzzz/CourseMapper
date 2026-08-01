@@ -12,6 +12,7 @@
 import { isProvenanceMirrorKey } from './compiledLanguageFinalizer.js';
 import { findInstructorConfigurationDeferrals } from './publishabilityPlaceholders.js';
 import { hasAdjacentArticleCollision } from './quality/articleCollision.js';
+import { renderedDeliverableCollection, renderedDeliverableContentRoot } from './renderedDeliverableRoot.js';
 
 const DANGLING_CLAUSE_RE = /\b(?:and|or|for|in|of|to|the|with|before|after|around|aligned to|into|from)\s*[.]\s*$/i;
 const DANGLING_EXEMPT_RE = /\b(?:etc|e\.g|i\.e)[.]\s*$/i;
@@ -119,7 +120,7 @@ function checkInstructorConfigurationDeferrals(findings, featureId, data) {
 
 function checkQuizAnswerKeyUniformity(findings, featureId, data) {
   if (featureId !== 'quizBank') return;
-  const quizzes = data?.quizzes || data?.quizBank || [];
+  const quizzes = Array.isArray(data) ? data : renderedDeliverableCollection('quizBank', data);
   const keys = [];
   for (const quiz of quizzes) {
     const questions = Array.isArray(quiz?.questions) ? quiz.questions : [];
@@ -143,11 +144,12 @@ function checkQuizAnswerKeyUniformity(findings, featureId, data) {
 export function auditDeliverableContentQuality(featureId, data) {
   const findings = [];
   if (data && typeof data === 'object') {
-    checkSentenceIntegrity(findings, featureId, data);
-    checkStudentVoice(findings, featureId, data);
-    checkInstructorConfigurationDeferrals(findings, featureId, data);
-    checkQuizAnswerKeyUniformity(findings, featureId, data);
-    checkSemanticDefinitions(findings, featureId, data);
+    const content = renderedDeliverableContentRoot(featureId, data);
+    checkSentenceIntegrity(findings, featureId, content);
+    checkStudentVoice(findings, featureId, content);
+    checkInstructorConfigurationDeferrals(findings, featureId, content);
+    checkQuizAnswerKeyUniformity(findings, featureId, content);
+    checkSemanticDefinitions(findings, featureId, content);
   }
   const codes = [...new Set(findings.map((finding) => finding.code))];
   return {
@@ -173,7 +175,8 @@ const CIRCULAR_DEFINITION_RE =
 
 function quizSurfaceStrings(data) {
   const surfaces = [];
-  for (const quiz of data?.quizzes || data?.quizBank || []) {
+  const quizzes = Array.isArray(data) ? data : renderedDeliverableCollection('quizBank', data);
+  for (const quiz of quizzes) {
     for (const question of Array.isArray(quiz?.questions) ? quiz.questions : []) {
       if (question?.question) surfaces.push({ kind: 'stem', text: String(question.question) });
       for (const option of Array.isArray(question?.options) ? question.options : []) {
@@ -186,7 +189,8 @@ function quizSurfaceStrings(data) {
 
 function keyTermSurfaceStrings(data) {
   const surfaces = [];
-  for (const guide of data?.studyGuides || []) {
+  const guides = Array.isArray(data) ? data : renderedDeliverableCollection('studyGuides', data);
+  for (const guide of guides) {
     for (const term of Array.isArray(guide?.keyTerms) ? guide.keyTerms : []) {
       const text = typeof term === 'string' ? term : `${term?.term || ''}: ${term?.definition || term?.df || ''}`;
       surfaces.push({ kind: 'keyTerm', text });

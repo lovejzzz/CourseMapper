@@ -573,6 +573,62 @@ describe('evaluateWorkspaceReadiness', () => {
     );
   });
 
+  it.each([
+    ['lessonPlans', 'lessons'],
+    ['courseFaq', 'faq'],
+    ['courseFaq', 'courseFAQ'],
+  ])('scopes the shared %s legacy root %s to the requested lesson', (featureId, key) => {
+    const data = {
+      [key]: [
+        { lessonTitle: 'Lesson 1: Questions', marker: 'lesson-one' },
+        { lessonTitle: 'Lesson 2: Sampling', marker: 'lesson-two' },
+      ],
+    };
+    const scoped = scopeDeliverableDataToLessons(featureId, data, [0], courseMap);
+
+    expect(scoped[key]).toEqual([expect.objectContaining({ marker: 'lesson-one' })]);
+  });
+
+  it('scopes every declared collection array while retaining canonical precedence', () => {
+    const data = {
+      lessonPlans: [
+        { lessonTitle: 'Lesson 1: Questions', marker: 'canonical-one' },
+        { lessonTitle: 'Lesson 2: Sampling', marker: 'canonical-two' },
+      ],
+      lessons: [
+        { lessonTitle: 'Lesson 1: Questions', marker: 'alias-one' },
+        { lessonTitle: 'Lesson 2: Sampling', marker: 'alias-two' },
+      ],
+    };
+    const scoped = scopeDeliverableDataToLessons('lessonPlans', data, [0], courseMap);
+
+    expect(scoped.lessonPlans).toEqual([expect.objectContaining({ marker: 'canonical-one' })]);
+    expect(scoped.lessons).toEqual([expect.objectContaining({ marker: 'alias-one' })]);
+  });
+
+  it('falls through a malformed canonical root to a valid alias for readiness and lesson scoping', () => {
+    const data = {
+      lessonPlans: { malformed: true },
+      lessons: [
+        { lessonTitle: 'Lesson 1: Questions', marker: 'lesson-one' },
+        { lessonTitle: 'Lesson 2: Sampling', marker: 'lesson-two' },
+      ],
+    };
+    const scoped = scopeDeliverableDataToLessons('lessonPlans', data, [0], courseMap);
+    const readiness = evaluateWorkspaceReadiness({
+      courseMap,
+      columns,
+      selectedFeatures: ['lessonPlans'],
+      lessonFilter: [0],
+      deliverables: { lessonPlans: { status: 'done', data } },
+    });
+
+    expect(scoped.lessons).toEqual([expect.objectContaining({ marker: 'lesson-one' })]);
+    expect(readiness.blockers.map((issue) => issue.message).join(' ')).not.toContain(
+      'Lesson Plans has no generated lesson items.',
+    );
+  });
+
   it('never leaks an explicitly labeled fallback rubric into another lesson by array position', () => {
     const data = {
       rubrics: [

@@ -10,6 +10,7 @@
 import { safeImport } from '../safeImport';
 import { assertTableRowsHaveNoInternalExportLanguage } from '../exportTextInspector';
 import { expandKeys } from '../keyMaps';
+import { renderedDeliverableCollection } from '../renderedDeliverableRoot.js';
 import { loadPdfRuntime } from '../pdfRuntime';
 import { THEMES } from './pptxExporter.js';
 import { isSubstantiveSlideSubtitle } from './slideTitleSubtitle.js';
@@ -28,7 +29,7 @@ function isTitleSlide(slide, slideIdx) {
 
 export async function exportSlideDeckPdf(data, courseName) {
   const expanded = expandKeys('slideDecks', data);
-  const decks = expanded.slideDecks || expanded.decks || [];
+  const decks = renderedDeliverableCollection('slideDecks', expanded);
   const inspectionRows = [];
   decks.forEach((deck, deckIdx) => {
     const lessonLabel = deck.lessonTitle || deck.title || `Lesson ${deckIdx + 1}`;

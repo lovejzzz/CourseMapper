@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
+import { renderedDeliverableCollectionKey } from '../../lib/renderedDeliverableCollection.js';
 import EditProposalPanel from '../EditProposalPanel';
 import { getNativeConceptMap } from '../../lib/nativeConceptMapPreview';
 import {
@@ -1292,8 +1293,8 @@ export default function SlideDecksView({ data, isStreaming, onEdit, slideTheme, 
   const deckTabRef = useRef(null);
 
   // ── All hooks MUST come before any early returns (Rules of Hooks) ──
-  const key = data?.decks ? 'decks' : 'slideDecks';
-  const decks = data?.[key] || [];
+  const key = renderedDeliverableCollectionKey('slideDecks', data);
+  const decks = key ? data[key] : [];
 
   const commitDeckTitle = useCallback(
     (i) => {

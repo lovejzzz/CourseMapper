@@ -237,4 +237,23 @@ describe('inferMaterializedSourceLessonFilter', () => {
 
     expect(inferred).toEqual([4]);
   });
+
+  it('ignores stale aliases and metadata arrays when recovering source scope', () => {
+    const inferred = inferMaterializedSourceLessonFilter(
+      { lessons: [{ title: 'Lesson 1: Marketing Concept' }] },
+      {
+        lessonPlans: {
+          status: 'done',
+          data: {
+            metadata: [{ lessonTitle: 'Lesson 99: Stale metadata' }],
+            lessonPlans: [{ lessonTitle: 'Lesson 5: Marketing Concept' }],
+            plans: [{ lessonTitle: 'Lesson 8: Stale plan' }],
+          },
+        },
+      },
+      null,
+    );
+
+    expect(inferred).toEqual([4]);
+  });
 });

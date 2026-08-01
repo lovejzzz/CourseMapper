@@ -1,7 +1,7 @@
-import { getArrayKey } from './syncDependencies';
 import { READINESS_BLOCKER, READINESS_FEATURE_LABELS, READINESS_WARNING } from './deliverableReadiness';
 import { isDeliverableNotApplicable } from './deliverableApplicability';
 import { normalizeReadinessIssue, normalizeReadinessIssues } from './readinessIssueSchema';
+import { renderedDeliverableCollectionKey } from './renderedDeliverableCollection.js';
 
 const DEFAULT_FEATURES = [
   'courseMap',
@@ -38,17 +38,6 @@ const RETRYABLE_FEATURES = new Set([
 ]);
 
 const AUTO_FIX_VALIDATION_CATEGORIES = new Set(['difficulty', 'grammar']);
-
-const ARRAY_ALIASES = {
-  lessonPlans: ['lessonPlans', 'plans'],
-  slideDecks: ['decks', 'slideDecks'],
-  discussions: ['discussions'],
-  quizBank: ['quizzes', 'quizBank'],
-  studyGuides: ['studyGuides', 'guides'],
-  courseFaq: ['faqs', 'courseFaq'],
-  assignments: ['assignments'],
-  rubrics: ['rubrics'],
-};
 
 const QUALITY_CUE_RE =
   /\b(success criteria|criteria|checklist|exemplar|model answer|sample answer|evidence|rubric|strong work|quality|feedback|revision|misconception|transfer|exit ticket)\b/i;
@@ -220,13 +209,8 @@ function hasMeaningfulValue(value) {
 
 function getFeatureArray(featureId, data) {
   if (!data || typeof data !== 'object') return [];
-  const directKey = getArrayKey(featureId, data);
-  if (directKey && Array.isArray(data[directKey])) return data[directKey];
-
-  for (const key of ARRAY_ALIASES[featureId] || []) {
-    if (Array.isArray(data[key])) return data[key];
-  }
-  return [];
+  const key = renderedDeliverableCollectionKey(featureId, data);
+  return key ? data[key] : [];
 }
 
 function getSelectedFeatureIds(selectedFeatures, deliverables = {}) {

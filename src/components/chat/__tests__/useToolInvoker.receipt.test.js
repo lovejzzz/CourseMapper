@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   buildAgentStateDiffsFromToolResult,
+  buildDirectCourseFaqCloudExportEdit,
   buildLocalReadOnlyFallback,
   buildModelAgentReceiptFromProgress,
   buildToolResultFallbackChatReply,
@@ -373,6 +374,36 @@ describe('chooseAgentFallbackText', () => {
 });
 
 describe('buildLocalReadOnlyFallback — verified course facts', () => {
+  it('counts questions from the canonical quiz collection instead of a stale alias', () => {
+    const reply = buildLocalReadOnlyFallback('How many quiz questions are ready?', {
+      deliverables: {
+        quizBank: {
+          data: {
+            quizBank: [{ questions: [{ question: 'Canonical question?' }] }],
+            quizzes: [{ questions: [{ question: 'Stale one?' }, { question: 'Stale two?' }] }],
+          },
+        },
+      },
+    });
+
+    expect(reply).toContain('There are 1 quiz question ready');
+  });
+
+  it('counts a valid quiz alias when the canonical field is malformed', () => {
+    const reply = buildLocalReadOnlyFallback('How many quiz questions are ready?', {
+      deliverables: {
+        quizBank: {
+          data: {
+            quizBank: { malformed: true },
+            quizzes: [{ questions: [{ question: 'Recovered one?' }, { question: 'Recovered two?' }] }],
+          },
+        },
+      },
+    });
+
+    expect(reply).toContain('There are 2 quiz questions ready');
+  });
+
   it('answers duplicate-topic checks from compiler-owned normalized identities', () => {
     const cleanReply = buildLocalReadOnlyFallback('Check for duplicate or renamed lesson topics.', {
       courseMap: {
@@ -438,6 +469,46 @@ describe('buildLocalReadOnlyFallback — verified course facts', () => {
     expect(reply).toMatch(/^No\. A major third inverts to a minor sixth:/);
     expect(reply).toContain('3 + 6 = 9');
     expect(reply).toContain('major quality changes to minor');
+  });
+});
+
+describe('buildDirectCourseFaqCloudExportEdit — rendered authority', () => {
+  const message =
+    'Update the Course FAQ cloud export failure answer so it says to use the local ZIP first. Apply it directly.';
+  const canonicalFaq = [
+    {
+      questions: [
+        {
+          question: 'What should I do if cloud export fails?',
+          answer: 'Retry later.',
+          category: 'Technical Help',
+        },
+      ],
+    },
+  ];
+
+  it('edits the canonical FAQ collection and leaves a stale alias byte-identical', () => {
+    const staleFaqs = [{ questions: [{ question: 'Stale cloud export question', answer: 'Stale answer.' }] }];
+    const staleJson = JSON.stringify(staleFaqs);
+    const result = buildDirectCourseFaqCloudExportEdit(message, {
+      courseFaq: { data: { courseFaq: canonicalFaq, faqs: staleFaqs } },
+    });
+
+    expect(result.changed).toBe(1);
+    expect(result.data.courseFaq[0].questions[0].answer).toContain('Use the local ZIP first');
+    expect(result.data.faqs).toBe(staleFaqs);
+    expect(JSON.stringify(result.data.faqs)).toBe(staleJson);
+  });
+
+  it('edits a valid FAQ alias after a malformed canonical field', () => {
+    const malformedCanonical = { malformed: true, note: 'Do not edit.' };
+    const result = buildDirectCourseFaqCloudExportEdit(message, {
+      courseFaq: { data: { courseFaq: malformedCanonical, faqs: canonicalFaq } },
+    });
+
+    expect(result.changed).toBe(1);
+    expect(result.data.courseFaq).toBe(malformedCanonical);
+    expect(result.data.faqs[0].questions[0].answer).toContain('Use the local ZIP first');
   });
 });
 

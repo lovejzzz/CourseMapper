@@ -699,6 +699,65 @@ describe('executeAction edge cases', () => {
       expect(data.decks[0].sl[0].t).toBe('Renamed Slide');
     });
 
+    it('redirects a present stale quiz alias to the canonical rendered root', () => {
+      const staleQuizzes = [{ questions: [{ question: 'Stale question' }] }];
+      const ctx = makeCtx({
+        deliverables: {
+          ...makeMockDeliverables(),
+          quizBank: {
+            status: 'done',
+            data: {
+              quizBank: [{ questions: [{ question: 'Canonical question' }] }],
+              quizzes: staleQuizzes,
+            },
+          },
+        },
+      });
+      const result = executeAction(
+        {
+          type: 'editItem',
+          featureId: 'quizBank',
+          path: ['quizzes', 0, 'questions', 0, 'question'],
+          value: 'Updated canonical question',
+        },
+        ctx,
+      );
+
+      expect(result.success).toBe(true);
+      const data = ctx.optimisticUpdate.mock.calls[0][1];
+      expect(data.quizBank[0].questions[0].question).toBe('Updated canonical question');
+      expect(data.quizzes).toEqual(staleQuizzes);
+    });
+
+    it('redirects a malformed canonical-root path to the valid rendered alias', () => {
+      const ctx = makeCtx({
+        deliverables: {
+          ...makeMockDeliverables(),
+          quizBank: {
+            status: 'done',
+            data: {
+              quizBank: { malformed: true },
+              quizzes: [{ questions: [{ question: 'Recovered question' }] }],
+            },
+          },
+        },
+      });
+      const result = executeAction(
+        {
+          type: 'editItem',
+          featureId: 'quizBank',
+          path: ['quizBank', 0, 'questions', 0, 'question'],
+          value: 'Updated recovered question',
+        },
+        ctx,
+      );
+
+      expect(result.success).toBe(true);
+      const data = ctx.optimisticUpdate.mock.calls[0][1];
+      expect(data.quizBank).toEqual({ malformed: true });
+      expect(data.quizzes[0].questions[0].question).toBe('Updated recovered question');
+    });
+
     it('resolves shorthand slide paths against expanded preview data', () => {
       const ctx = makeCtx({
         deliverables: {

@@ -115,6 +115,32 @@ describe('v0.15.7 finished package surface', () => {
     expect(html).toContain('partial enrichment left 3 lessons');
   });
 
+  it('counts the same canonical collection that package exports render', () => {
+    const html = renderToStaticMarkup(
+      <FinishedPackageOverview
+        courseMap={COURSE_MAP}
+        selectedFeatures={['courseMap', 'lessonPlans']}
+        deliverables={{
+          lessonPlans: {
+            status: 'done',
+            data: {
+              lessonPlans: [{ lessonTitle: 'Canonical plan' }],
+              plans: [{ lessonTitle: 'Stale one' }, { lessonTitle: 'Stale two' }],
+            },
+          },
+        }}
+        packageQualityPass={READY_PASS}
+        onEditCourseMap={() => {}}
+        onOpenFeature={() => {}}
+        onOpenQualityReport={() => {}}
+      />,
+    );
+
+    expect(html).toContain('Lesson Plans');
+    expect(html).toContain('1 item');
+    expect(html).not.toContain('2 items');
+  });
+
   it('keeps the Course Map tab as the centered preview even when the package is ready', () => {
     const appFlow = read('src/AppFlow.jsx');
 

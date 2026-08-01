@@ -138,12 +138,12 @@ export function inferMaterializedSourceLessonFilter(courseMap, deliverables, exp
 
   const sourceIndices = lessons.map((lesson, lessonIndex) => {
     const candidates = [...(getDeliverableLessonNumberCandidates(lesson) || [])];
-    for (const entry of Object.values(deliverables || {})) {
+    for (const [featureId, entry] of Object.entries(deliverables || {})) {
       const data = entry?.data;
       if (!data || typeof data !== 'object') continue;
-      for (const items of Object.values(data).filter(Array.isArray)) {
-        candidates.push(...(getDeliverableLessonNumberCandidates(items?.[lessonIndex]) || []));
-      }
+      const arrayKey = getArrayKey(featureId, data);
+      const items = Array.isArray(data) ? data : arrayKey ? data[arrayKey] : null;
+      if (Array.isArray(items)) candidates.push(...(getDeliverableLessonNumberCandidates(items[lessonIndex]) || []));
     }
     const numbers = candidates.filter(Number.isInteger);
     const sourceNumber = numbers.find((number) => number > lessons.length) || numbers[0] || lessonIndex + 1;

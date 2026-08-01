@@ -268,6 +268,117 @@ describe('WS-D — deliverable views at registry scale', () => {
     });
   }
 
+  it('uses the same array-valid authority as export when the canonical lesson-plan root is malformed', () => {
+    renderDeliverable('lessonPlans', {
+      lessonPlans: { malformed: true },
+      lessons: [
+        {
+          lessonTitle: 'Alias plan that is actually rendered',
+          objectives: ['Use the valid lesson-plan alias.'],
+          outline: [],
+        },
+      ],
+    });
+
+    expect(container.textContent).toContain('Alias plan that is actually rendered');
+  });
+
+  it('renders canonical roots across aliased deliverable views when stale aliases coexist', () => {
+    renderDeliverable('lessonPlans', {
+      lessonPlans: [{ lessonTitle: 'Canonical lesson plan', objectives: [], outline: [] }],
+      plans: [{ lessonTitle: 'Stale lesson plan' }],
+    });
+    expect(container.textContent).toContain('Canonical lesson plan');
+    expect(container.textContent).not.toContain('Stale lesson plan');
+
+    renderDeliverable('quizBank', {
+      quizBank: [{ lessonTitle: 'Canonical quiz', questions: [] }],
+      quizzes: [{ lessonTitle: 'Stale quiz', questions: [] }],
+    });
+    expect(container.textContent).toContain('Canonical quiz');
+    expect(container.textContent).not.toContain('Stale quiz');
+
+    renderDeliverable('courseFaq', {
+      courseFaq: [
+        {
+          lessonTitle: 'Canonical FAQ lesson',
+          questions: [
+            {
+              question: 'Which FAQ is authoritative?',
+              answer: 'The canonical FAQ.',
+              category: 'Course Logistics',
+            },
+          ],
+        },
+      ],
+      faqs: [
+        {
+          lessonTitle: 'Stale FAQ lesson',
+          questions: [{ question: 'Stale question', answer: 'Stale answer', category: 'General' }],
+        },
+      ],
+    });
+    expect(container.textContent).toContain('Canonical FAQ lesson');
+    expect(container.textContent).toContain('Which FAQ is authoritative?');
+    expect(container.textContent).not.toContain('Stale FAQ lesson');
+
+    renderDeliverable('slideDecks', {
+      slideDecks: [
+        {
+          lessonTitle: 'Canonical slide deck',
+          slides: [{ title: 'Canonical slide title', type: 'content', bullets: ['Canonical slide bullet'] }],
+        },
+      ],
+      decks: [
+        {
+          lessonTitle: 'Stale slide deck',
+          slides: [{ title: 'Stale slide title', type: 'content', bullets: ['Stale slide bullet'] }],
+        },
+      ],
+    });
+    expect(container.textContent).toContain('Canonical slide title');
+    expect(container.textContent).not.toContain('Stale slide title');
+
+    renderDeliverable('studyGuides', {
+      studyGuides: [{ lessonTitle: 'Canonical study guide', summary: 'Canonical guide summary.' }],
+      guides: [{ lessonTitle: 'Stale study guide', summary: 'Stale guide summary.' }],
+    });
+    expect(container.textContent).toContain('Canonical study guide');
+    expect(container.textContent).not.toContain('Stale study guide');
+  });
+
+  it('writes title edits back through the authoritative lesson-plan root', () => {
+    const onDataChange = vi.fn();
+    renderDeliverable(
+      'lessonPlans',
+      {
+        lessonPlans: [{ lessonTitle: 'Canonical editable plan', objectives: [], outline: [] }],
+        plans: [{ lessonTitle: 'Stale plan' }],
+      },
+      { onDataChange },
+    );
+
+    const title = container.querySelector('.deliverable-editable-title');
+    expect(title).not.toBeNull();
+    act(() => title.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true })));
+    const input = container.querySelector('input');
+    expect(input).not.toBeNull();
+    const valueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+    act(() => {
+      valueSetter.call(input, 'Edited canonical plan');
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+    });
+
+    expect(onDataChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        lessonPlans: [expect.objectContaining({ lessonTitle: 'Edited canonical plan' })],
+        plans: [{ lessonTitle: 'Stale plan' }],
+      }),
+      ['lessonPlans', 0, 'lessonTitle'],
+    );
+  });
+
   it('D1 — assignments render 51 items in lesson groups with sticky headers, counts, and an Ungrouped tail', () => {
     const data = registryAssignmentsFixture();
     expect(data.assignments).toHaveLength(52);

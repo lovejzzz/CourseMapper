@@ -9,6 +9,7 @@
  */
 
 import { loadHtml2CanvasRuntime, loadKatexRuntime } from './katexRuntime.js';
+import { renderedDeliverableCollection } from './renderedDeliverableRoot.js';
 import { sanitizeMathHtml } from './sanitizeMathHtml.js';
 
 // ── LaTeX Detection ───────────────────────────────────────────────────────
@@ -38,8 +39,7 @@ export function containsLatex(text) {
  * @returns {boolean}
  */
 export function deckDataContainsLatex(data) {
-  const key = data.decks ? 'decks' : 'slideDecks';
-  const decks = data[key] || [];
+  const decks = renderedDeliverableCollection('slideDecks', data);
   for (const deck of decks) {
     for (const slide of deck.slides || []) {
       if (containsLatex(slide.title)) return true;

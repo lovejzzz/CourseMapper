@@ -16,8 +16,18 @@ describe('getArrayKey', () => {
 
   it('returns alias key when primary is missing', () => {
     expect(getArrayKey('slideDecks', { decks: [1] })).toBe('decks');
-    expect(getArrayKey('slideDecks', { slides: [1] })).toBe('slides');
     expect(getArrayKey('courseFaq', { faq: [1] })).toBe('faq');
+  });
+
+  it('uses canonical precedence and falls through malformed canonical values to valid aliases', () => {
+    expect(getArrayKey('quizBank', { quizBank: [1], quizzes: [2] })).toBe('quizBank');
+    expect(getArrayKey('courseFaq', { courseFaq: [1], faqs: [2] })).toBe('courseFaq');
+    expect(getArrayKey('lessonPlans', { lessonPlans: { malformed: true }, lessons: [1] })).toBe('lessons');
+  });
+
+  it('does not guess an undeclared array for a known collection feature', () => {
+    expect(getArrayKey('slideDecks', { slides: [1] })).toBeNull();
+    expect(getArrayKey('lessonPlans', { metadata: [1] })).toBeNull();
   });
 
   it('falls back to first array key in object', () => {

@@ -1389,6 +1389,50 @@ describe('Tool execute: edit_deliverables', () => {
     );
   });
 
+  it('routes a public stale-alias quiz edit to canonical rendered content', () => {
+    const staleQuizzes = [{ questions: [{ question: 'Stale question' }] }];
+    const ctx = {
+      ...mockCtx,
+      deliverables: {
+        quizBank: {
+          status: 'done',
+          data: {
+            quizBank: [{ questions: [{ question: 'Canonical question' }] }],
+            quizzes: staleQuizzes,
+          },
+        },
+      },
+      optimisticUpdate: vi.fn(),
+    };
+    ctx.executeAction = vi.fn((action, overrides = {}) =>
+      executeAction(action, {
+        ...ctx,
+        ...overrides,
+        deliverables: overrides.deliverables || ctx.deliverables,
+      }),
+    );
+
+    const result = AGENT_TOOLS.edit_deliverables.execute(
+      {
+        actions: [
+          {
+            type: 'editItem',
+            featureId: 'quizBank',
+            path: ['quizzes', 0, 'questions', 0, 'question'],
+            value: 'Updated canonical question',
+            syncPolicy: 'localOnly',
+          },
+        ],
+      },
+      ctx,
+    );
+
+    expect(result).toMatchObject({ applied: 1, failed: 0 });
+    const updated = ctx.optimisticUpdate.mock.calls.at(-1)[1];
+    expect(updated.quizBank[0].questions[0].question).toBe('Updated canonical question');
+    expect(updated.quizzes).toEqual(staleQuizzes);
+  });
+
   it('marks explicit local-only edits so chat does not raise sync state', () => {
     mockCtx.projectDeliverableActionToCanonicalPatch = vi.fn(() => ({
       patch: {

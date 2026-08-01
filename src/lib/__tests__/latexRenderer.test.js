@@ -126,6 +126,14 @@ describe('deckDataContainsLatex', () => {
     expect(deckDataContainsLatex(data)).toBe(true);
   });
 
+  it('scans only the canonical deck collection when a stale alias coexists', () => {
+    const data = {
+      slideDecks: [{ slides: [{ title: 'Canonical title without math', bullets: [] }] }],
+      decks: [{ slides: [{ title: 'Stale title with $x^2$', bullets: [] }] }],
+    };
+    expect(deckDataContainsLatex(data)).toBe(false);
+  });
+
   it('handles empty deck data', () => {
     expect(deckDataContainsLatex({})).toBe(false);
     expect(deckDataContainsLatex({ decks: [] })).toBe(false);

@@ -14,13 +14,14 @@
  * shadowing) get their own profiles when their disciplines join the genome.
  */
 
+import { renderedDeliverableCollectionKey } from './renderedDeliverableCollection.js';
+
 const SKY_CONTEXT_RE =
   /\b(?:astronom(?:y|ical)?|night[\s-]?sky|sky[\s-]?watch|celestial|planetarium|telescope|stargaz(?:e|ing)?|naked[\s-]?eye|moon|lunar|constellation|star\s+chart|stars?|solar system|galax(?:y|ies)|cosmolog(?:y|ical)?)\b/i;
 const OBSERVING_INTENT_RE =
   /\b(?:observ(?:e|ing|ation)|log(?:s|ging)?|field\s+note|sky\s+chart|planetarium|telescope|stargaz(?:e|ing)?|naked[\s-]?eye)\b/i;
 const SKY_PROTOCOL_LEAK_RE =
   /\b(?:Stellarium|planetarium|night[\s-]?sky|naked[\s-]?eye|light[\s-]?pollution|limiting magnitude|telescope|binoculars|dark adaptation|red light|sky conditions|star chart|celestial|constellation|altitude-in-fists)\b/i;
-const LESSON_PLAN_CONTAINER_KEYS = ['lessonPlans', 'plans', 'lessons'];
 
 function cleanText(value) {
   return String(value ?? '')
@@ -176,6 +177,7 @@ function repairLessonPlanArray(plans, stats) {
  * detector required both sky context and observing intent.
  */
 export function repairMisappliedObservationProtocols({
+  featureId = 'lessonPlans',
   courseName = '',
   lessons = [],
   sourceText = '',
@@ -193,23 +195,9 @@ export function repairMisappliedObservationProtocols({
     return { data: repairedPlans, changed: repairedPlans !== data, removedCount: stats.removedCount };
   }
 
-  let changed = false;
-  let nextData = data;
-
-  for (const key of LESSON_PLAN_CONTAINER_KEYS) {
-    if (!Array.isArray(data?.[key])) continue;
-    const repairedPlans = repairLessonPlanArray(data[key], stats);
-    if (repairedPlans === data[key]) continue;
-    if (nextData === data) nextData = { ...data };
-    nextData[key] = repairedPlans;
-    changed = true;
-  }
-
-  const repairedRoot = repairLessonPlanObservationProtocol(nextData, stats);
-  if (repairedRoot !== nextData) {
-    nextData = repairedRoot;
-    changed = true;
-  }
-
-  return { data: nextData, changed, removedCount: stats.removedCount };
+  const key = renderedDeliverableCollectionKey(featureId, data);
+  if (!key) return { data, changed: false, removedCount: 0 };
+  const repairedPlans = repairLessonPlanArray(data[key], stats);
+  if (repairedPlans === data[key]) return { data, changed: false, removedCount: 0 };
+  return { data: { ...data, [key]: repairedPlans }, changed: true, removedCount: stats.removedCount };
 }

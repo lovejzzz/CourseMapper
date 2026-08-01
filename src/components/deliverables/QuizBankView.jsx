@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import EditProposalPanel from '../EditProposalPanel';
+import { renderedDeliverableCollectionKey } from '../../lib/renderedDeliverableCollection.js';
 import {
   QualityBadge,
   updatePath,
@@ -62,8 +63,8 @@ export default function QuizBankView({
 }) {
   const [localTiers, setLocalTiers] = useState({});
   if (!data) return isStreaming ? <StreamingBanner /> : <EmptyState />;
-  const key = data.quizzes ? 'quizzes' : 'quizBank';
-  const quizzes = data[key] || [];
+  const key = renderedDeliverableCollectionKey('quizBank', data);
+  const quizzes = key ? data[key] : [];
   if (quizzes.length === 0 && !isStreaming) return <EmptyState />;
   // v0.14.4 (D2): presentation-only reorder — the compiler appends exam
   // entries at the end of the array; on screen each exam sits right after its

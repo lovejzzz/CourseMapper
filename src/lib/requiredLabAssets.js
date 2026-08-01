@@ -1,4 +1,5 @@
 import { expandKeys } from './keyMaps';
+import { renderedDeliverableCollection } from './renderedDeliverableRoot.js';
 
 function collectCourseMapSourceText(courseMap) {
   const parts = [
@@ -591,7 +592,7 @@ function studyGuideEntries(deliverables) {
   if (!data || typeof data !== 'object') return [];
   // Same tolerance as the exporters: expand compact keys, accept either root.
   const expanded = expandKeys('studyGuides', data) || {};
-  const guides = expanded.guides || expanded.studyGuides;
+  const guides = renderedDeliverableCollection('studyGuides', expanded);
   return Array.isArray(guides) ? guides : [];
 }
 

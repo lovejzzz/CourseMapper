@@ -64,18 +64,32 @@ describe('1.1 — week numbers resolve from the enclosing lesson, not the first 
     expect(data.lessonPlans[2].overview).not.toContain('Week 2');
   });
 
-  it('uses week-neutral phrasing for course-level documents when the title is multi-lesson', () => {
+  it('rewrites only the authoritative collection when stale aliases coexist', () => {
+    const data = {
+      lessonPlans: [{ lessonNumber: 2, overview: mentionBlock }],
+      plans: [{ lessonNumber: 2, overview: mentionBlock }],
+    };
+    const staleJson = JSON.stringify(data.plans);
+
+    finalizeCompiledDeliverableLanguage('lessonPlans', data, blueprint);
+
+    expect(data.lessonPlans[0].overview).toContain('the Week 2 quiz');
+    expect(JSON.stringify(data.plans)).toBe(staleJson);
+  });
+
+  it('does not rewrite non-rendered course-level metadata beside lesson plans', () => {
     const data = {
       lessonPlans: [{ lessonNumber: 2, overview: mentionBlock }],
       courseOverview: `${sharedTitle} anchors practice. Each week revisit ${sharedTitle} for feedback. The ${sharedTitle} recurs every week.`,
     };
     finalizeCompiledDeliverableLanguage('lessonPlans', data, blueprint);
 
-    expect(data.courseOverview).toContain('weekly quiz');
-    expect(data.courseOverview).not.toMatch(/Week \d/);
+    expect(data.courseOverview).toBe(
+      `${sharedTitle} anchors practice. Each week revisit ${sharedTitle} for feedback. The ${sharedTitle} recurs every week.`,
+    );
   });
 
-  it('keeps the correct week for distinct titles, including in course-level scopes', () => {
+  it('keeps the correct week in rendered plans without rewriting adjacent metadata', () => {
     const labTitle = 'Mineral identification lab report';
     const mentions = `Draft ${labTitle} early. Refine ${labTitle} with feedback. Submit ${labTitle} before class ends.`;
     const geoBlueprint = {
@@ -89,8 +103,7 @@ describe('1.1 — week numbers resolve from the enclosing lesson, not the first 
     finalizeCompiledDeliverableLanguage('lessonPlans', data, geoBlueprint);
 
     expect(data.lessonPlans[0].overview).toContain('the Week 7 lab work');
-    // Unique title: a lesson-less scope falls back to the artifact's own lesson.
-    expect(data.syllabusNote).toContain('the Week 7 lab work');
+    expect(data.syllabusNote).toBe(mentions);
     expect(JSON.stringify(data)).not.toContain('Week 2');
   });
 });

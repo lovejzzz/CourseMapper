@@ -16,6 +16,11 @@ import { compactCompilerOwnedAssessmentIdentity } from './compilerAssessmentIden
 import { hasDanglingClauseSeam } from './contentQualityChecks.js';
 import { semanticIdentityTokens } from './lessonSemanticRelevance.js';
 import { knownOffenderFitsScope, matchesKnownOffender } from './quality/knownOffenderScope.js';
+import {
+  isRenderedDeliverableCollectionFeature,
+  renderedDeliverableCollectionKey,
+  renderedDeliverableContentRoot,
+} from './renderedDeliverableRoot.js';
 
 // Mirrors of the detector regexes in contentQualityChecks.js — each fixer
 // must make its detector pass, never merely shuffle the defect.
@@ -37,6 +42,9 @@ const HIGH_CONFIDENCE_DANGLING_CLAUSE_RE =
 const DANGLING_EXEMPT_RE = /\b(?:etc|e\.g|i\.e)[.]\s*$/i;
 const PHRASE_SHINGLE_SIZE = 8;
 const PHRASE_REPAIR_LIMIT = 10;
+const SOURCE_FACT_MIN_WORDS = 10;
+const SOURCE_FACT_FULL_OCCURRENCE_LIMIT = 2;
+const SOURCE_FACT_REFERENCE = 'the cited source claim';
 const DUPLICATED_STUDENT_SUBJECT_RE = /\bstudents?\s+may\s+assume\s+students?\s+(?:often\s+)?/gi;
 const MALFORMED_CONCEPT_DETAIL_RE =
   /\ba\s+(?:solid|strong|clear|specific)\s+([^.!?]{1,80}\b(?:principles|criteria|standards|guidelines|requirements)\b[^.!?]{0,30})\s+detail\b/gi;
@@ -84,6 +92,315 @@ const VERBOSE_SOURCE_FACT_REPAIRS = [
     'Python functions create reusable code for analysis',
   ],
 ];
+
+function sourceFactWords(value) {
+  return (
+    String(value || '')
+      .normalize('NFKC')
+      .toLowerCase()
+      .match(/[a-z0-9]+(?:['’-][a-z0-9]+)*/g) || []
+  );
+}
+
+function normalizedSourceFact(value) {
+  return sourceFactWords(value).join(' ');
+}
+
+function sourceFactCore(value) {
+  return String(value || '')
+    .trim()
+    .replace(/[.!?]+$/g, '')
+    .trim();
+}
+
+function collectSourceFactCandidates(node, result, context = {}) {
+  if (Array.isArray(node)) {
+    if (
+      (context.inSourceEvidenceBrief && context.parentKey === 'claims') ||
+      (context.inKernel && context.parentKey === 'facts')
+    ) {
+      node.forEach((value) => {
+        if (typeof value !== 'string') return;
+        const core = sourceFactCore(value);
+        const normalized = normalizedSourceFact(core);
+        if (sourceFactWords(core).length < SOURCE_FACT_MIN_WORDS || normalized.length === 0) return;
+        if (!result.has(normalized)) result.set(normalized, core);
+      });
+    }
+    node.forEach((value) => collectSourceFactCandidates(value, result, context));
+    return;
+  }
+  if (!node || typeof node !== 'object') return;
+  for (const [key, value] of Object.entries(node)) {
+    collectSourceFactCandidates(value, result, {
+      parentKey: key,
+      inSourceEvidenceBrief: context.inSourceEvidenceBrief || key === 'sourceEvidenceBrief',
+      inKernel: context.inKernel || key === 'kernel',
+    });
+  }
+}
+
+/**
+ * Collect only explicit fact-ledger claims, never arbitrary repeated prose.
+ * The finalizer uses this package-wide inventory to keep every exported
+ * artifact self-contained while preventing one long admitted fact from being
+ * stamped into notes, questions, answers, slides, and study prompts dozens of
+ * times. Provenance mirrors remain byte-faithful during the repair itself.
+ */
+export function collectDeliverableSourceFacts(deliverables = {}, featureIds = null) {
+  const facts = new Map();
+  const selected = Array.isArray(featureIds) ? new Set(featureIds) : null;
+  for (const [featureId, entry] of Object.entries(deliverables || {})) {
+    if (selected && !selected.has(featureId)) continue;
+    if (entry?.status !== 'done' || !entry.data) continue;
+    collectSourceFactCandidates(renderedDeliverableContentRoot(featureId, entry.data), facts);
+  }
+  return [...facts.values()];
+}
+
+function sourceFactFieldPriority(parentKey = '') {
+  if (
+    /^(?:question|prompt|options|bullets|definition|definitions|summary|description|claims|facts|positionMap)$/i.test(
+      parentKey,
+    )
+  ) {
+    return 0;
+  }
+  if (/^(?:answer|sampleAnswer|example|rows)$/i.test(parentKey)) return 1;
+  if (/^(?:explanation|notes|speakerNotes|instructorNotes)$/i.test(parentKey)) return 3;
+  return 2;
+}
+
+function sourceFactPathKey(path = []) {
+  return path.map((part) => `${typeof part}:${String(part)}`).join('/');
+}
+
+function normalizedOffsetMap(value) {
+  const boundaries = [0];
+  for (let index = 0; index < value.length; ) {
+    const point = value.codePointAt(index);
+    index += point > 0xffff ? 2 : 1;
+    boundaries.push(index);
+  }
+  const lengths = boundaries.map((boundary) => value.slice(0, boundary).normalize('NFKC').length);
+  return {
+    start(normalizedOffset) {
+      let result = 0;
+      for (let index = 0; index < lengths.length && lengths[index] <= normalizedOffset; index += 1) {
+        result = boundaries[index];
+      }
+      return result;
+    },
+    end(normalizedOffset) {
+      for (let index = 0; index < lengths.length; index += 1) {
+        if (lengths[index] >= normalizedOffset) return boundaries[index];
+      }
+      return value.length;
+    },
+  };
+}
+
+function sourceFactMatches(value, fact) {
+  const expected = sourceFactWords(fact);
+  if (expected.length === 0) return [];
+  const normalized = String(value || '').normalize('NFKC');
+  const tokenPattern = /[a-z0-9]+(?:['’-][a-z0-9]+)*/gi;
+  const tokens = [];
+  let match;
+  while ((match = tokenPattern.exec(normalized)) !== null) {
+    tokens.push({ token: match[0].toLowerCase(), start: match.index, end: match.index + match[0].length });
+  }
+  if (tokens.length < expected.length) return [];
+  const offsets = normalizedOffsetMap(String(value || ''));
+  const matches = [];
+  for (let index = 0; index + expected.length <= tokens.length; index += 1) {
+    if (!expected.every((token, tokenIndex) => tokens[index + tokenIndex].token === token)) continue;
+    const last = tokens[index + expected.length - 1];
+    matches.push({ start: offsets.start(tokens[index].start), end: offsets.end(last.end) });
+  }
+  return matches;
+}
+
+function sourceFactLocalUnit(path = []) {
+  for (let index = 0; index + 1 < path.length; index += 1) {
+    if (!/^(?:questions|slides)$/i.test(String(path[index]))) continue;
+    if (!Number.isInteger(path[index + 1])) continue;
+    return sourceFactPathKey(path.slice(0, index + 2));
+  }
+  return '';
+}
+
+function collectSourceFactOccurrences(
+  node,
+  fact,
+  protectedFacts,
+  occurrences,
+  path = [],
+  parentKey = '',
+  order = { value: 0 },
+) {
+  if (typeof node === 'string') {
+    const whole = protectedFacts.has(normalizedSourceFact(node));
+    const localUnit = sourceFactLocalUnit(path);
+    sourceFactMatches(node, fact).forEach((_match, occurrenceIndex) => {
+      occurrences.push({
+        id: `${sourceFactPathKey(path)}#${occurrenceIndex}`,
+        whole,
+        localUnit,
+        priority: sourceFactFieldPriority(parentKey),
+        order: order.value,
+      });
+      order.value += 1;
+    });
+    return;
+  }
+  if (Array.isArray(node)) {
+    node.forEach((value, index) =>
+      collectSourceFactOccurrences(value, fact, protectedFacts, occurrences, [...path, index], parentKey, order),
+    );
+    return;
+  }
+  if (!node || typeof node !== 'object') return;
+  for (const [key, value] of Object.entries(node)) {
+    if (isProvenanceMirrorKey(key)) continue;
+    collectSourceFactOccurrences(value, fact, protectedFacts, occurrences, [...path, key], key, order);
+  }
+}
+
+function sourceFactReplacement(value, offset) {
+  const prefix = value.slice(Math.max(0, offset - 16), offset);
+  if (/\b(?:why|because|that|whether|if|when)\s*$/i.test(prefix)) return `${SOURCE_FACT_REFERENCE} applies`;
+  const fullPrefix = value.slice(0, offset);
+  const startsSentence = !fullPrefix.trim() || /[.!?]\s*(?:["'“”‘’]\s*)?$/.test(fullPrefix);
+  return startsSentence
+    ? `${SOURCE_FACT_REFERENCE.charAt(0).toUpperCase()}${SOURCE_FACT_REFERENCE.slice(1)}`
+    : SOURCE_FACT_REFERENCE;
+}
+
+function rewriteSourceFactOccurrences(node, fact, keep, stats, path = [], parentKey = '') {
+  if (typeof node === 'string') {
+    const matches = sourceFactMatches(node, fact);
+    if (matches.length === 0) return node;
+    let cursor = 0;
+    let rewritten = '';
+    matches.forEach((match, occurrenceIndex) => {
+      const id = `${sourceFactPathKey(path)}#${occurrenceIndex}`;
+      rewritten += node.slice(cursor, match.start);
+      rewritten += keep.has(id) ? node.slice(match.start, match.end) : sourceFactReplacement(node, match.start);
+      cursor = match.end;
+    });
+    rewritten += node.slice(cursor);
+    if (rewritten !== node) stats.changedPaths.add(sourceFactPathKey(path));
+    return rewritten;
+  }
+  if (Array.isArray(node)) {
+    let changed = false;
+    const next = node.map((value, index) => {
+      const rewritten = rewriteSourceFactOccurrences(value, fact, keep, stats, [...path, index], parentKey);
+      if (rewritten !== value) changed = true;
+      return rewritten;
+    });
+    return changed ? next : node;
+  }
+  if (node && typeof node === 'object') {
+    let changed = false;
+    const next = {};
+    for (const [key, value] of Object.entries(node)) {
+      if (isProvenanceMirrorKey(key)) {
+        next[key] = value;
+        continue;
+      }
+      const rewritten = rewriteSourceFactOccurrences(value, fact, keep, stats, [...path, key], key);
+      if (rewritten !== value) changed = true;
+      next[key] = rewritten;
+    }
+    return changed ? next : node;
+  }
+  return node;
+}
+
+function repairRepeatedSourceFactFanOut(featureId, data, sourceFacts, stats) {
+  const facts = [
+    ...new Map(
+      (Array.isArray(sourceFacts) ? sourceFacts : [])
+        .map((fact) => [normalizedSourceFact(fact), sourceFactCore(fact)])
+        .filter(([normalized, fact]) => normalized && sourceFactWords(fact).length >= SOURCE_FACT_MIN_WORDS),
+    ).values(),
+  ].sort(
+    (left, right) =>
+      sourceFactWords(right).length - sourceFactWords(left).length ||
+      right.length - left.length ||
+      left.localeCompare(right),
+  );
+  if (facts.length === 0) return data;
+  const protectedFacts = new Set(facts.map(normalizedSourceFact));
+
+  const repairRoot = (root, rootPath = []) => {
+    let repaired = root;
+    for (const fact of facts) {
+      const occurrences = [];
+      collectSourceFactOccurrences(repaired, fact, protectedFacts, occurrences, rootPath);
+      if (occurrences.length <= SOURCE_FACT_FULL_OCCURRENCE_LIMIT) continue;
+      const standalone = occurrences.filter((occurrence) => occurrence.whole);
+      const candidates = occurrences
+        .filter((occurrence) => !occurrence.whole)
+        .sort((left, right) => left.priority - right.priority || left.order - right.order);
+      // Standalone facts can be definitions, quiz options, claim cards, or
+      // visible slide evidence. Rewriting those would change instructional
+      // meaning or answer correctness. Preserve every standalone occurrence;
+      // when the artifact has no standalone ledger, keep two prioritized
+      // embedded copies so it remains self-contained. If standalone facts
+      // alone exceed the grader threshold, leave the honest P1 in place for a
+      // compiler fix rather than hiding it with a lossy rewrite.
+      const keep = new Set(standalone.map((occurrence) => occurrence.id));
+      const visibleStandaloneUnits = new Set(
+        standalone
+          .filter((occurrence) => occurrence.priority <= 1 && occurrence.localUnit)
+          .map((occurrence) => occurrence.localUnit),
+      );
+      const keptLocalUnits = new Set();
+      for (const occurrence of candidates) {
+        if (!occurrence.localUnit || visibleStandaloneUnits.has(occurrence.localUnit)) continue;
+        if (keptLocalUnits.has(occurrence.localUnit)) continue;
+        keep.add(occurrence.id);
+        keptLocalUnits.add(occurrence.localUnit);
+      }
+      const hasVisibleStandalone = standalone.some((occurrence) => occurrence.priority <= 1);
+      if (!hasVisibleStandalone) {
+        const keptEmbeddedCount = [...keep].filter(
+          (id) => !standalone.some((occurrence) => occurrence.id === id),
+        ).length;
+        candidates
+          .filter((occurrence) => !keep.has(occurrence.id))
+          .slice(0, Math.max(0, SOURCE_FACT_FULL_OCCURRENCE_LIMIT - keptEmbeddedCount))
+          .forEach((occurrence) => keep.add(occurrence.id));
+      }
+      repaired = rewriteSourceFactOccurrences(repaired, fact, keep, stats, rootPath);
+    }
+    return repaired;
+  };
+
+  // Only exporter-declared feature collections are independent artifact
+  // roots. Object-rooted payloads such as syllabus (and unknown/custom
+  // payloads without a declared collection) must be repaired as one document;
+  // an incidental metadata array must never capture the traversal.
+  if (featureId === 'syllabus' && data?.syllabus && typeof data.syllabus === 'object') {
+    const repairedSyllabus = repairRoot(data.syllabus, ['syllabus']);
+    return repairedSyllabus === data.syllabus ? data : { ...data, syllabus: repairedSyllabus };
+  }
+  const collectionKey = renderedDeliverableCollectionKey(featureId, data);
+  const collection = collectionKey ? data?.[collectionKey] : null;
+  if (!Array.isArray(collection)) {
+    return isRenderedDeliverableCollectionFeature(featureId) ? data : repairRoot(data);
+  }
+  let changed = false;
+  const repairedCollection = collection.map((item, index) => {
+    const repaired = repairRoot(item, [collectionKey, index]);
+    if (repaired !== item) changed = true;
+    return repaired;
+  });
+  return changed ? { ...data, [collectionKey]: repairedCollection } : data;
+}
 
 export const MECHANICAL_FINDING_CODES = [
   'double-period',
@@ -231,22 +548,22 @@ function worstRepeatedPhrase(node) {
   return worst.count >= PHRASE_REPAIR_LIMIT ? worst : null;
 }
 
-function repairNode(node, stats, featureId, parentKey = '', context = {}) {
+function repairNode(node, stats, featureId, parentKey = '', context = {}, path = []) {
   if (typeof node === 'string') {
     if (knownOffenderIsOutOfScope(node, context)) {
-      stats.repairedStrings += 1;
+      stats.changedPaths.add(sourceFactPathKey(path));
       const remaining = removeOutOfScopeOffenderSentences(node, context);
       return repairString(remaining || sourceReviewReplacement(parentKey), featureId, parentKey);
     }
     const repaired = repairString(node, featureId, parentKey);
-    if (repaired !== node) stats.repairedStrings += 1;
+    if (repaired !== node) stats.changedPaths.add(sourceFactPathKey(path));
     return repaired;
   }
   if (Array.isArray(node)) {
     let changed = false;
     const next = node.flatMap((item, index) => {
       if (typeof item === 'string' && knownOffenderIsOutOfScope(item, context)) {
-        stats.repairedStrings += 1;
+        stats.changedPaths.add(sourceFactPathKey([...path, index]));
         changed = true;
         const remaining = removeOutOfScopeOffenderSentences(item, context);
         // Preserve collection cardinality and make the intervention explicit.
@@ -254,7 +571,7 @@ function repairNode(node, stats, featureId, parentKey = '', context = {}) {
         // complete while hiding that its source was quarantined.
         return [repairString(remaining || sourceReviewReplacement(parentKey, index), featureId, parentKey)];
       }
-      const repaired = repairNode(item, stats, featureId, parentKey, context);
+      const repaired = repairNode(item, stats, featureId, parentKey, context, [...path, index]);
       if (repaired !== item) changed = true;
       return [repaired];
     });
@@ -268,7 +585,7 @@ function repairNode(node, stats, featureId, parentKey = '', context = {}) {
       typeof node.definition === 'string' &&
       PROCEDURAL_TERM_DEFINITION_RE.test(node.definition)
     ) {
-      stats.repairedStrings += 1;
+      stats.changedPaths.add(sourceFactPathKey([...path, 'definition']));
       return {
         ...node,
         definition: `The course map names ${node.term} but does not supply a disciplinary definition. Add an instructor-approved, source-backed definition before publishing.`,
@@ -282,13 +599,38 @@ function repairNode(node, stats, featureId, parentKey = '', context = {}) {
         next[key] = value;
         continue;
       }
-      const repaired = repairNode(value, stats, featureId, key, scopedContext);
+      const repaired = repairNode(value, stats, featureId, key, scopedContext, [...path, key]);
       if (repaired !== value) changed = true;
       next[key] = repaired;
     }
     return changed ? next : node;
   }
   return node;
+}
+
+function repairRenderedContentAuthority(featureId, data, stats, context) {
+  if (
+    featureId === 'syllabus' &&
+    data?.syllabus &&
+    typeof data.syllabus === 'object' &&
+    !Array.isArray(data.syllabus)
+  ) {
+    const repaired = repairNode(data.syllabus, stats, featureId, 'syllabus', context, ['syllabus']);
+    return repaired === data.syllabus ? data : { ...data, syllabus: repaired };
+  }
+
+  const collectionKey = renderedDeliverableCollectionKey(featureId, data);
+  if (collectionKey) {
+    const collection = data[collectionKey];
+    const repaired = repairNode(collection, stats, featureId, collectionKey, context, [collectionKey]);
+    return repaired === collection ? data : { ...data, [collectionKey]: repaired };
+  }
+
+  // Declared collection features render nothing when every declared root is
+  // missing or malformed. Their adjacent metadata and stale fields are not a
+  // repair authority. Unknown/custom payloads remain whole-document roots.
+  if (isRenderedDeliverableCollectionFeature(featureId)) return data;
+  return repairNode(data, stats, featureId, '', context);
 }
 
 /**
@@ -298,9 +640,14 @@ function repairNode(node, stats, featureId, parentKey = '', context = {}) {
  */
 export function repairDeliverableContentQuality(featureId, data, context = {}) {
   if (!data || typeof data !== 'object') return { data, changed: false, repairedStrings: 0 };
-  const stats = { repairedStrings: 0, repairedPhrases: 0 };
-  const seamRepaired = repairNode(data, stats, featureId, '', context);
-  const repeated = worstRepeatedPhrase(seamRepaired);
+  const stats = { changedPaths: new Set(), repairedPhrases: 0 };
+  // Quarantine unsafe source material before deduplicating valid claims. If
+  // the order were reversed, excess copies of an unsafe fact could become
+  // generic "cited source claim" references and survive after the only full
+  // offender was removed.
+  const seamRepaired = repairRenderedContentAuthority(featureId, data, stats, context);
+  const sourceFactRepaired = repairRepeatedSourceFactFanOut(featureId, seamRepaired, context.sourceFacts, stats);
+  const repeated = worstRepeatedPhrase(renderedDeliverableContentRoot(featureId, sourceFactRepaired));
   // Repetition is a diagnostic for the compiler or a targeted regeneration,
   // not a safe string-rewrite target. Replacing an eight-word shingle inside
   // arbitrary prose corrupted grammar and domain criteria (for example,
@@ -308,9 +655,9 @@ export function repairDeliverableContentQuality(featureId, data, context = {}) {
   // "Review note-and-quality agreement"). Mechanical repair must be
   // meaning-preserving, so report the phrase but leave semantic prose intact.
   return {
-    data: seamRepaired,
-    changed: seamRepaired !== data,
-    repairedStrings: stats.repairedStrings,
+    data: sourceFactRepaired,
+    changed: sourceFactRepaired !== data,
+    repairedStrings: stats.changedPaths.size,
     repairedPhrases: 0,
     repeatedPhrase: repeated?.phrase || '',
     repeatedPhraseCount: repeated?.count || 0,

@@ -19,6 +19,7 @@ import { useAIConfig } from '../contexts/AIConfigContext';
 import { fetchOpenAIImageModels, OPENAI_IMAGE_MODEL_FALLBACKS, OPENAI_SLIDE_IMAGE_MODEL } from '../lib/imageSearch';
 import { APP_VERSION } from '../lib/appVersion';
 import { PUBLIC_SCION_PROVIDER_ID } from '../lib/publicScionIdentity';
+import { renderedDeliverableCollection } from '../lib/renderedDeliverableRoot.js';
 import {
   applyModelAwareDeliverableDefaults,
   createModelAwareConfigPlan,
@@ -535,7 +536,15 @@ const FEATURE_LABELS = {
   syllabus: 'Syllabus',
 };
 
-function DeliverablePreview({ featureId, delivData, courseMap, columns, promptText, lessonCount, lessonTitles = [] }) {
+export function DeliverablePreview({
+  featureId,
+  delivData,
+  courseMap,
+  columns,
+  promptText,
+  lessonCount,
+  lessonTitles = [],
+}) {
   const [fullscreen, setFullscreen] = useState(false);
   const label = FEATURE_LABELS[featureId] || featureId;
 
@@ -563,40 +572,46 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns, promptTe
     }
     if (delivData) {
       let parsed = null;
+      const renderedItems = renderedDeliverableCollection(featureId, delivData);
       switch (featureId) {
         case 'lessonPlans': {
-          const plans = delivData.plans || delivData.lessonPlans || [];
+          const plans = renderedItems;
           if (plans.length > 0) parsed = { type: 'lessonPlans', items: plans.slice(0, 3), total: plans.length };
           break;
         }
         case 'slideDecks': {
-          const decks = delivData.decks || delivData.slideDecks || [];
+          const decks = renderedItems;
           if (decks.length > 0) parsed = { type: 'slideDecks', items: decks.slice(0, 3), total: decks.length };
           break;
         }
         case 'rubrics': {
-          const rubrics = delivData.rubrics || [];
+          const rubrics = renderedItems;
           if (rubrics.length > 0) parsed = { type: 'rubrics', items: rubrics.slice(0, 3), total: rubrics.length };
           break;
         }
         case 'quizBank': {
-          const quizzes = delivData.quizzes || delivData.quizBank || [];
+          const quizzes = renderedItems;
           if (quizzes.length > 0) parsed = { type: 'quizBank', items: quizzes.slice(0, 2), total: quizzes.length };
           break;
         }
         case 'discussions': {
-          const discs = delivData.discussions || [];
+          const discs = renderedItems;
           if (discs.length > 0) parsed = { type: 'discussions', items: discs.slice(0, 2), total: discs.length };
           break;
         }
         case 'assignments': {
-          const asgn = delivData.assignments || [];
+          const asgn = renderedItems;
           if (asgn.length > 0) parsed = { type: 'assignments', items: asgn.slice(0, 2), total: asgn.length };
           break;
         }
         case 'studyGuides': {
-          const guides = delivData.studyGuides || delivData.guides || [];
+          const guides = renderedItems;
           if (guides.length > 0) parsed = { type: 'studyGuides', items: guides.slice(0, 2), total: guides.length };
+          break;
+        }
+        case 'courseFaq': {
+          const faqs = renderedItems;
+          if (faqs.length > 0) parsed = { type: 'courseFaq', items: faqs.slice(0, 2), total: faqs.length };
           break;
         }
         case 'syllabus': {
@@ -690,7 +705,8 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns, promptTe
         );
       }
       case 'lessonPlans': {
-        const items = expanded && !isExample ? delivData?.plans || delivData?.lessonPlans || [] : realContent.items;
+        const items =
+          expanded && !isExample ? renderedDeliverableCollection('lessonPlans', delivData) : realContent.items;
         return (
           <div className="space-y-2">
             {items.map((plan, i) => {
@@ -734,7 +750,8 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns, promptTe
         );
       }
       case 'slideDecks': {
-        const items = expanded && !isExample ? delivData?.decks || delivData?.slideDecks || [] : realContent.items;
+        const items =
+          expanded && !isExample ? renderedDeliverableCollection('slideDecks', delivData) : realContent.items;
         // Subtle tint per slide type so the deck shape reads at a glance.
         const typeTone = {
           title: 'bg-indigo-50/60 border-indigo-200/50',
@@ -816,7 +833,7 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns, promptTe
         );
       }
       case 'rubrics': {
-        const items = expanded && !isExample ? delivData?.rubrics || [] : realContent.items;
+        const items = expanded && !isExample ? renderedDeliverableCollection('rubrics', delivData) : realContent.items;
         return (
           <div className="space-y-2">
             {items.map((rubric, i) => {
@@ -891,7 +908,7 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns, promptTe
         );
       }
       case 'quizBank': {
-        const items = expanded && !isExample ? delivData?.quizzes || delivData?.quizBank || [] : realContent.items;
+        const items = expanded && !isExample ? renderedDeliverableCollection('quizBank', delivData) : realContent.items;
         // Short-form type labels for the badge — keeps the row compact.
         const typeShort = { multiple_choice: 'MC', short_answer: 'SA', essay: 'Essay' };
         const diffTone = {
@@ -968,7 +985,8 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns, promptTe
         );
       }
       case 'discussions': {
-        const items = expanded && !isExample ? delivData?.discussions || [] : realContent.items;
+        const items =
+          expanded && !isExample ? renderedDeliverableCollection('discussions', delivData) : realContent.items;
         return (
           <div className="space-y-2">
             {items.map((disc, i) => {
@@ -1023,7 +1041,8 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns, promptTe
         );
       }
       case 'assignments': {
-        const items = expanded && !isExample ? delivData?.assignments || [] : realContent.items;
+        const items =
+          expanded && !isExample ? renderedDeliverableCollection('assignments', delivData) : realContent.items;
         return (
           <div className="space-y-2">
             {items.map((asgn, i) => {
@@ -1115,7 +1134,8 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns, promptTe
         );
       }
       case 'studyGuides': {
-        const items = expanded && !isExample ? delivData?.studyGuides || delivData?.guides || [] : realContent.items;
+        const items =
+          expanded && !isExample ? renderedDeliverableCollection('studyGuides', delivData) : realContent.items;
         return (
           <div className="space-y-2">
             {items.map((guide, i) => {
@@ -1171,7 +1191,8 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns, promptTe
         // FAQ had no preview case — if a user selected "Course FAQ" in the
         // Configure page before, the card would render the "Example" badge
         // but no body. Now shows Q/A pairs with a category tag.
-        const items = expanded && !isExample ? delivData?.faqs || delivData?.courseFaq || [] : realContent.items;
+        const items =
+          expanded && !isExample ? renderedDeliverableCollection('courseFaq', delivData) : realContent.items;
         return (
           <div className="space-y-1.5">
             {items.map((f, i) => (

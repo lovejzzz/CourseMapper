@@ -56,6 +56,22 @@ const deliverables = {
 };
 
 describe('buildScionCourseAnswer', () => {
+  it('reads quiz questions from canonical authority with malformed-canonical alias recovery', () => {
+    const canonical = [{ questions: [{ question: 'Canonical question?' }] }];
+    const stale = [{ questions: [{ question: 'Stale one?' }, { question: 'Stale two?' }] }];
+
+    expect(
+      __private__.quizQuestionsFromDeliverables({
+        quizBank: { data: { quizBank: canonical, quizzes: stale } },
+      }),
+    ).toEqual(canonical[0].questions);
+    expect(
+      __private__.quizQuestionsFromDeliverables({
+        quizBank: { data: { quizBank: { malformed: true }, quizzes: stale } },
+      }),
+    ).toEqual(stale[0].questions);
+  });
+
   it('answers an explicit comparison from lesson-scoped compiled evidence', () => {
     const result = buildScionCourseAnswer({
       question: 'Which two water-quality measurements should students compare in Lesson 2, and why?',

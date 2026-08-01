@@ -54,9 +54,9 @@ const MISBOUND_LENS = {
 
 describe('finalizer determiner collision (bug 1)', () => {
   const finalize = (text) => {
-    const data = { entries: [{ body: text }] };
+    const data = { lessonPlans: [{ body: text }] };
     finalizeCompiledDeliverableLanguage('lessonPlans', data, {});
-    return data.entries[0].body;
+    return data.lessonPlans[0].body;
   };
 
   it('drops the minted article after a possessive', () => {
@@ -81,9 +81,9 @@ describe('finalizer determiner collision (bug 1)', () => {
 
 describe('finalizer article agreement guard (bug 5)', () => {
   const finalize = (text) => {
-    const data = { entries: [{ body: text }] };
+    const data = { quizBank: [{ body: text }] };
     finalizeCompiledDeliverableLanguage('quizBank', data, {});
-    return data.entries[0].body;
+    return data.quizBank[0].body;
   };
 
   it('leaves a mid-sentence capital "A" (matrix symbol) alone', () => {
