@@ -1,5 +1,6 @@
 import { getArrayKey } from './syncDependencies';
 import { classifyAssessmentKind } from './courseGraph/deriveFromCourseMap.js';
+import { compactCompilerOwnedEvidenceCheckIdentity } from './compilerAssessmentIdentity.js';
 import { isDeliverableNotApplicable } from './deliverableApplicability';
 import { deriveEvaluateDesign } from './leanCourseMap.js';
 import { findPublishabilityPlaceholders } from './publishabilityPlaceholders';
@@ -1585,7 +1586,7 @@ function getCourseMapFallbackValue(key, courseMap, lesson, section, lessonIndex)
                             `Analyze ${topic} using course evidence and name one limitation or open question.`,
                           ]),
                           weeklyAssessments: pick([
-                            `${formativeAssessmentPrefix}${displayCourseMapTopic(topic)} evidence check: state one supported, bounded conclusion.`,
+                            `${formativeAssessmentPrefix}${displayCourseMapTopic(topic)} evidence check.`,
                             `${formativeAssessmentPrefix}${displayCourseMapTopic(topic)} application check: apply one example and name one limitation.`,
                             `${formativeAssessmentPrefix}${displayCourseMapTopic(topic)} exit reflection: connect evidence to the lesson task.`,
                             `${formativeAssessmentPrefix}${displayCourseMapTopic(topic)} short analysis: claim, evidence, and next question.`,
@@ -1786,6 +1787,7 @@ function normalizeCourseMapCellValue(key, value, lessonCount) {
   let next = key === 'learningObjectives' ? normalizeCourseMapObjectives(value) : value;
   if (key === 'weeklyAssessments' && typeof next === 'string') {
     next = next.replace(/^\s*character writing homework\b/i, 'Character Writing Homework');
+    next = compactCompilerOwnedEvidenceCheckIdentity(next);
   }
   next = normalizeLessonRangeReferences(next, lessonCount);
   return next;

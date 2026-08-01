@@ -1470,6 +1470,24 @@ describe('repairWorkspaceReadiness', () => {
     expect(classifyAssessmentKind(formative.weeklyAssessments)).toBe('in-class');
   });
 
+  it('mints the generic evidence-check fallback as a compact in-class identity', () => {
+    const result = repairCourseMapReadiness({
+      courseMap: {
+        courseName: 'Applied Statistics',
+        lessons: [
+          {
+            title: 'Lesson 1: Statistical Modeling',
+            sections: [{ topicSection: 'Uncertainty Quantification', weeklyAssessments: '' }],
+          },
+        ],
+      },
+    });
+
+    const assessment = result.courseMap.lessons[0].sections[0].weeklyAssessments;
+    expect(assessment).toBe('Uncertainty Quantification evidence check.');
+    expect(classifyAssessmentKind(assessment)).toBe('in-class');
+  });
+
   it('applies the in-class safeguard after literature-specific repair copy is selected', () => {
     const result = repairCourseMapReadiness({
       courseMap: {
@@ -1738,14 +1756,17 @@ describe('repairWorkspaceReadiness', () => {
       { lessonNumber: 4, lessonTitle: 'Lesson 4: Capacitance Mechanisms', title: 'Capacitance Rubric' },
     ];
     const deliverables = { rubrics: { status: 'done', data: { rubrics: originalRubrics } } };
+    const repairedCourseMap = repairCourseMapReadiness({ courseMap: physicsCourseMap }).courseMap;
 
     const repaired = repairWorkspaceReadiness({
-      courseMap: physicsCourseMap,
+      courseMap: repairedCourseMap,
       selectedFeatures: ['rubrics'],
       deliverables,
     });
 
     expect(repaired.deliverables.rubrics.data.rubrics).toHaveLength(2);
     expect(repaired.deliverables.rubrics.data.rubrics.some((rubric) => rubric.lessonNumber === 5)).toBe(false);
+    expect(repairedCourseMap.lessons[4].sections[0].weeklyAssessments).toBe('Current and Resistance evidence check.');
+    expect(classifyAssessmentKind(repairedCourseMap.lessons[4].sections[0].weeklyAssessments)).toBe('in-class');
   });
 });

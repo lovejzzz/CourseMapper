@@ -558,6 +558,57 @@ describe('v0.15.6 anatomy and texture quality regressions', () => {
     expect(result.overall.score).toBeLessThan(90);
   });
 
+  it('catches one compiler-owned assessment identity repeated 20 times across six exported files', async () => {
+    const repeated =
+      'Statistical Modeling and Uncertainty Quantification evidence check: state one supported, bounded conclusion';
+    const paths = [
+      'Lesson Plans/Lesson 01.md',
+      'Lesson Plans/Lesson 02.md',
+      'Slide Decks/Lesson 01.md',
+      'Slide Decks/Lesson 02.md',
+      'Study Guides/Lesson 01.md',
+      'Course Map/Course Map.md',
+    ];
+    const files = Object.fromEntries(
+      paths.map((path, index) => [
+        path,
+        Array.from(
+          { length: index === 0 ? 15 : 1 },
+          (_, occurrence) => `${repeated}. Surface ${index + 1}, occurrence ${occurrence + 1}.`,
+        ).join('\n'),
+      ]),
+    );
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'Python for Public Policy Analysis',
+          lessonScope: 'all',
+          assessments: [{ title: repeated }],
+          files: [],
+          readiness: { status: 'ready', blockers: 0 },
+        }),
+        ...files,
+      }),
+      course: {
+        id: 'python-public-policy',
+        title: 'Python for Public Policy Analysis',
+        featureIds: ['lessonPlans', 'slideDecks', 'studyGuides', 'courseMap'],
+      },
+    });
+
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          severity: 'P1',
+          dimension: 'substance',
+          file: 'package (6 files)',
+          detail: expect.stringMatching(/12-word instructional phrase repeats 20 times/i),
+          evidence: repeated,
+        }),
+      ]),
+    );
+  });
+
   it('grades generic lab/STEM fallback language as a history discipline defect', async () => {
     const result = await grade({
       fileProvider: createMemoryFileProvider({

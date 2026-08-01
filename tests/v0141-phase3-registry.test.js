@@ -165,6 +165,10 @@ describe('3.1 — registry schema (derive)', () => {
     expect(classifyAssessmentKind('Final Exam: comprehensive assessment')).toBe('exam');
     expect(classifyAssessmentKind('Lesson 1 evidence check: Learning (25%)')).toBe('graded-artifact');
     expect(classifyAssessmentKind('Quick evidence check: apply conditioning to a new example.')).toBe('in-class');
+    expect(
+      classifyAssessmentKind('Statistical Modeling evidence check: state one supported, bounded conclusion.'),
+    ).toBe('in-class');
+    expect(classifyAssessmentKind('Statistical Modeling evidence check.')).toBe('in-class');
     expect(classifyAssessmentKind('Exit ticket using encoding to justify one course-relevant decision.')).toBe(
       'in-class',
     );

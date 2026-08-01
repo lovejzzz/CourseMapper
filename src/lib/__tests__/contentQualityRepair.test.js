@@ -244,6 +244,24 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
     expect(JSON.stringify(moleculeArchiveOnly.data)).not.toMatch(/Molecule Archive/i);
   });
 
+  it('preserves calibrated in-discipline uses of broadly named offender citations', () => {
+    const clustering = repairDeliverableContentQuality(
+      'lessonPlans',
+      { notes: 'Data clustering separates observations into coherent groups.' },
+      { courseName: 'Clustering and Dimensionality Reduction' },
+    );
+    expect(clustering.changed).toBe(false);
+    expect(clustering.data.notes).toBe('Data clustering separates observations into coherent groups.');
+
+    const rProgramming = repairDeliverableContentQuality(
+      'studyGuides',
+      { notes: 'R: A Language and Environment for Statistical Computing is the reference manual.' },
+      { courseName: 'R Programming for Statistical Computing' },
+    );
+    expect(rProgramming.changed).toBe(false);
+    expect(rProgramming.data.notes).toContain('R: A Language');
+  });
+
   it('compacts the legacy compiler-owned code-review direction across saved surfaces', () => {
     const phrase =
       'Defining Reusable Code Blocks code review card: identify one readability issue and one correctness risk';
@@ -274,6 +292,37 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
     expect(result.data.decks[0].slides[0].visual).toBe(
       'Concept map connecting lesson evidence to Defining Reusable Code Blocks code review',
     );
+  });
+
+  it('compacts the generic compiler-owned evidence-check direction across saved surfaces', () => {
+    const topic = 'Statistical Modeling and Uncertainty Quantification';
+    const data = {
+      assessmentTitle: `${topic} evidence check: state one supported, bounded conclusion`,
+      notes: [`Students revise ${topic} evidence check: state one supported, bounded conclusion before transfer.`],
+    };
+
+    const result = repairDeliverableContentQuality('lessonPlans', data, {
+      courseName: 'Python for Public Policy Analysis',
+    });
+
+    expect(result.changed).toBe(true);
+    expect(result.data).toEqual({
+      assessmentTitle: `${topic} evidence check`,
+      notes: [`Students revise ${topic} evidence check before transfer.`],
+    });
+  });
+
+  it('leaves unrelated paragraph and list whitespace byte-for-byte unchanged', () => {
+    const notes = 'Paragraph one.\n\nParagraph two.\n  - indented item';
+    const result = repairDeliverableContentQuality(
+      'lessonPlans',
+      { notes },
+      { courseName: 'Python for Public Policy Analysis' },
+    );
+
+    expect(result.changed).toBe(false);
+    expect(result.repairedStrings).toBe(0);
+    expect(result.data.notes).toBe(notes);
   });
 
   it('turns circular fallback glossary prose into an honest definition-review notice', () => {

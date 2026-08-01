@@ -6,10 +6,15 @@
  * This stays separate from compilerText.js so small compiler-copy chunks that
  * only need generic text primitives do not inherit this specialized matcher.
  */
+export function compactCompilerOwnedEvidenceCheckIdentity(value) {
+  return String(value ?? '').replace(
+    /\s+evidence check:\s*state one supported, bounded conclusion\b/gi,
+    ' evidence check',
+  );
+}
+
 export function compactCompilerOwnedAssessmentIdentity(value) {
-  return String(value ?? '')
-    .replace(/\s+/g, ' ')
-    .trim()
+  return compactCompilerOwnedEvidenceCheckIdentity(value)
     .replace(
       /\s+comparative close-reading:\s*compare two passages by the selected writers(?:,\s*synthesize one claim(?:,\s*and support it with(?:\s+quoted(?:\s+details)?)?)?)?\.?$/i,
       ' close-reading check',
@@ -35,6 +40,11 @@ export function compactCompilerOwnedAssessmentIdentity(value) {
     .replace(/\s+code review card:\s*identify one readability issue and one correctness risk\b/gi, ' code review')
     .replace(/\s+exit note connecting the activity to one visible product\.?$/i, ' exit reflection')
     .replace(/\s+short response that names the claim, example, and next question\.?$/i, ' short analysis');
+}
+
+export function isCompilerOwnedFormativeAssessmentIdentity(value) {
+  const original = String(value ?? '');
+  return compactCompilerOwnedAssessmentIdentity(original) !== original;
 }
 const EXPLICIT_CODE_LAB_IDENTITY_RE =
   /\b(?:programming|computational|python|jupyter)\s+(?:lab|assignment|exercise|project)\b/i;

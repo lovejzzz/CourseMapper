@@ -4,6 +4,7 @@ import { getNotApplicableDisposition } from './deliverableApplicability';
 import { classifyAssessmentKind } from './courseGraph/deriveFromCourseMap';
 import { resolveQuizQuestionTarget } from './quizQuestionTarget';
 import { getDeliverableLessonNumberCandidates } from './materializedLessonScope';
+import { isCompilerOwnedFormativeAssessmentIdentity } from './compilerAssessmentIdentity';
 
 export const COURSE_FAQ_CATEGORIES = [
   'Course Logistics',
@@ -1621,7 +1622,7 @@ function lessonHasRubricWorthyAssessment(lesson) {
   const isCompilerFormativeItem = (item) =>
     classifyAssessmentKind(item) === 'in-class' ||
     /^\s*in[-\s]?class\b/i.test(item) ||
-    /\bevidence check:\s*state one supported,\s*bounded conclusion\b/i.test(item);
+    isCompilerOwnedFormativeAssessmentIdentity(item);
   // Native authoring deliberately places these checks in the lesson plan as
   // ungraded practice. A generic word such as "analysis" inside the prompt
   // must not make the finalizer invent a standalone rubric for it.

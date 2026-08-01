@@ -15,6 +15,7 @@
 
 import { createEmptyCourseGraph, createIdFactory } from './schema.js';
 import { dedupeNumberedAssessmentEcho } from '../compilerText.js';
+import { isCompilerOwnedFormativeAssessmentIdentity } from '../compilerAssessmentIdentity.js';
 
 // Cells handled as first-class entities; everything else is extras.
 const ENTITY_KEYS = new Set([
@@ -80,16 +81,6 @@ const BARE_MIDTERM_FINAL_RE = /^\s*(?:midterm|final)s?\s*(?:\(\s*\d+(?:\.\d+)?\s
 const NON_EXAM_ASSESSMENT_HEAD_RE =
   /\b(problem set|computational lab|lab|notebook|worksheet|project|report|essay|assignment|brief|reflection|study guide|checklist|practice set)\b/i;
 
-// Readiness repair used these exact literature-specific frames to fill an
-// otherwise empty section-level check. They are practice inside a lesson,
-// not extra graded submissions. Older saved projects predate the explicit
-// "In-class" prefix, so recognize the compiler-owned sentence signatures at
-// the graph boundary as well as at compile time. The suffixes are deliberately
-// precise: ordinary instructor-named responses, memos, and comparisons keep
-// their normal graded-artifact classification.
-const SYNTHESIZED_FORMATIVE_ASSESSMENT_RE =
-  /(?:\bcomparative close-reading:\s*compare two passages by the selected writers, synthesize one claim, and support it with quoted details|\bcomparison:\s*connect two passages, authors, or traditions through a defensible claim|\bevidence memo:\s*explain how form, language, or context changes the reading|\binterpretive response:\s*test one reading against a specific passage and one alternative)\.?$/i;
-
 function nonExamAssessmentHead(title) {
   const head = String(title || '')
     .split(':')[0]
@@ -106,7 +97,7 @@ export function classifyAssessmentKind(title) {
     return 'graded-artifact';
   }
   if (EXAM_HEAD_RE.test(text)) return 'exam';
-  if (SYNTHESIZED_FORMATIVE_ASSESSMENT_RE.test(text)) return 'in-class';
+  if (isCompilerOwnedFormativeAssessmentIdentity(text)) return 'in-class';
   const bareMidtermOrFinal = BARE_MIDTERM_FINAL_RE.test(text);
   const explicitPercent = parseExplicitPercent(text) !== null;
   for (const [kind, pattern] of ASSESSMENT_KIND_RULES) {
