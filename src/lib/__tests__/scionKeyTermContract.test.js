@@ -14,6 +14,21 @@ function completeTerm(overrides = {}) {
 }
 
 describe('Scion key-term composite integrity', () => {
+  it('admits a complete seven-word concept that exceeds the former 60-character limit', () => {
+    const assessment = assessScionKeyTermContract(
+      completeTerm({
+        tr: 'Evidence-based policy memo with limitations and recommendations',
+        df: 'A policy memo connects bounded evidence, affected stakeholders, limitations, and a feasible recommendation.',
+        eg: 'An analyst cites a public dataset, states what it cannot prove, and recommends one feasible action.',
+        mi: 'A polished recommendation is sufficient even when its evidence boundary and affected stakeholders are missing.',
+        cx: 'The memo must connect the recommendation to bounded evidence, limitations, stakeholders, and feasibility.',
+      }),
+      { lessonTitle: 'Policy memo synthesis', semanticProfile: 'strict-v6' },
+    );
+
+    expect(assessment.issues).not.toContain('tr-length');
+  });
+
   it('rejects a tone-marked Pinyin syllable mislabeled as an initial', () => {
     const assessment = assessScionKeyTermContract(
       completeTerm({

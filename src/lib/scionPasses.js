@@ -806,7 +806,7 @@ async function keyTermAdmissionGate(lesson, promptLesson, generateJson, events, 
           additionalProperties: false,
           properties: {
             index: { type: 'integer', enum: indices },
-            tr: { type: 'string', minLength: 3, maxLength: 60 },
+            tr: { type: 'string', minLength: 3, maxLength: 80 },
             df: { type: 'string', minLength: 45, maxLength: 380 },
             eg: { type: 'string', minLength: 12, maxLength: 300 },
             mi: { type: 'string', minLength: 12, maxLength: 300 },

@@ -128,6 +128,7 @@ describe('source-grounded native authoring backfill', () => {
 
     expect(completed.keyTerms.map((term) => term.term)).toContain(longConcept);
     expect(JSON.stringify(completed)).not.toContain('recommendati"');
+    expect(JSON.stringify(completed)).not.toContain('only for the relationship stated in its admitted fact');
   });
 
   it('builds missing outcomes and activities only from admitted source terms', () => {

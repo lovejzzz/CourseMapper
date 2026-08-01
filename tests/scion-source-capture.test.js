@@ -308,7 +308,7 @@ describe('Scion source-grounded atom capture', () => {
     expect(mc.q).toMatchObject({ minLength: 25, maxLength: 300 });
     expect(mc.op.items).toMatchObject({ minLength: 5, maxLength: 95 });
     expect(mc.ex).toMatchObject({ minLength: 20, maxLength: 300 });
-    expect(term.tr).toMatchObject({ minLength: 3, maxLength: 60 });
+    expect(term.tr).toMatchObject({ minLength: 3, maxLength: 80 });
     expect(term.df).toMatchObject({ minLength: 45, maxLength: 380 });
     for (const field of ['eg', 'mi', 'cx']) expect(term[field]).toMatchObject({ minLength: 12, maxLength: 300 });
     expect(SOURCE_RECOVERY_SCHEMA.properties.mcItems).toMatchObject({ minItems: 1, maxItems: 1 });

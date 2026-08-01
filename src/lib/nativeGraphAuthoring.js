@@ -499,7 +499,7 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
   for (const term of keyTerms) {
     if (wordCount(term.example) >= 5 || wordCount(scenarioExample) < 5) continue;
     term.example = scenarioExample;
-    keyTermFallbacks.push({ type: 'example', term: cleanText(term.term, 60), source: 'admitted-scenario' });
+    keyTermFallbacks.push({ type: 'example', term: cleanText(term.term, 80), source: 'admitted-scenario' });
   }
   // If every adapter term was quarantined, preserve the admitted fact ledger
   // as a minimal terminology core instead of regenerating the entire lesson.
@@ -517,7 +517,7 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
       ? `Name a formal feature in a locatable passage, explain its interpretive effect, and test a counter-reading.`
       : factLedgerFeedback.correction;
     const fallbackTerm = {
-      term: cleanText(concept, 60),
+      term: cleanTextAtBoundary(concept, 80),
       definition: anchorFact,
       example: scenarioExample || cleanTextAtBoundary(comparisonExample, 300),
       // Put the lesson identity before the reusable reasoning frame. Besides
@@ -538,7 +538,7 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
       });
     }
   }
-  const seenTerms = new Set(keyTerms.map((term) => cleanText(term?.term, 60).toLowerCase()).filter(Boolean));
+  const seenTerms = new Set(keyTerms.map((term) => cleanText(term?.term, 80).toLowerCase()).filter(Boolean));
   if (keyTerms.filter(substantiveTerm).length < 3) {
     for (const item of asArray(payload.quizItems)) {
       if (item?.type !== 'multiple_choice' || !Array.isArray(item.options)) continue;
@@ -550,7 +550,7 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
       const termWords = wordCount(term);
       if (
         term.length < 3 ||
-        term.length > 60 ||
+        term.length > 80 ||
         termWords < 1 ||
         termWords > 6 ||
         /^\d/.test(term) ||
@@ -626,7 +626,7 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
         // ten-word suffix was previously copied through every deliverable
         // family and became the package's worst repeated phrase.
         misconception: `Mistake: treating ${term} as support beyond this admitted statement — ${cleanTextAtBoundary(fact, 140)}`,
-        correction: `Use ${term} only for the relationship stated in its admitted fact, then name what remains unproven.`,
+        correction: `Correction for ${term}: stay within “${cleanTextAtBoundary(fact, 140)}”; name what remains unproven.`,
         source: 'fact-subject-projection',
         tier: 1,
         derivedFromFactIndex: factIndex,

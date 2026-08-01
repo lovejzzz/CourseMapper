@@ -667,7 +667,7 @@ export function assessScionKeyTermContract(
   const minTermLength = NON_LATIN_SCRIPT_RE.test(normalized.term) ? 1 : 3;
   const meaningfulMin = (value, latinMinimum) => (NON_LATIN_SCRIPT_RE.test(value) ? 4 : latinMinimum);
   for (const [field, value, min, max] of [
-    ['tr', normalized.term, minTermLength, 60],
+    ['tr', normalized.term, minTermLength, 80],
     ['df', normalized.definition, meaningfulMin(normalized.definition, definitionMin), maxLength],
     ['eg', normalized.example, meaningfulMin(normalized.example, 12), 300],
     ['mi', normalized.misconception, meaningfulMin(normalized.misconception, 12), 300],
