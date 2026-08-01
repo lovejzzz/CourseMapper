@@ -440,7 +440,17 @@ function rubricBoilerplateText(rubric) {
 
 function getBoilerplateSentences(featureId, item) {
   const text = featureId === 'rubrics' ? rubricBoilerplateText(item) : itemBoilerplateText(item);
-  return splitSentences(text).filter((sentence) => featureId !== 'rubrics' || !RUBRIC_SHARED_SUPPORT_RE.test(sentence));
+  return splitSentences(text).filter(
+    (sentence) =>
+      (featureId !== 'rubrics' || !RUBRIC_SHARED_SUPPORT_RE.test(sentence)) &&
+      // This is a standardized honesty notice, not lesson content. Count the
+      // absent verified terms in the study-value check below, but do not also
+      // mislabel the disclosure itself as teaching boilerplate.
+      (featureId !== 'studyGuides' ||
+        !/(?:scion could not verify disciplinary definitions|confirm key terms against the named source before publishing)/i.test(
+          sentence,
+        )),
+  );
 }
 
 function addBoilerplateWarning(featureId, items, issues) {

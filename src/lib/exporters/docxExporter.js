@@ -389,7 +389,23 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
   // v0.12.1: borderless two-column layout table for label/value blocks
   // (study-guide key terms, lesson-plan assessment and homework, FAQ
   // see-also) — real structure instead of glued label paragraphs.
-  const makeKeyValueTable = (pairs) => {
+  const makeKeyValueTable = (pairs, { headers = ['Field', 'Details'] } = {}) => {
+    const headerRow = new TableRow({
+      tableHeader: true,
+      children: headers.map(
+        (header, index) =>
+          new TableCell({
+            width: { size: index === 0 ? 2400 : 6960, type: WidthType.DXA },
+            shading: { type: ShadingType.CLEAR, fill: theme.accent },
+            margins: { top: 70, bottom: 70, left: 120, right: 120 },
+            children: [
+              new Paragraph({
+                children: [new TextRun({ text: String(header), bold: true, size: 20, font: FONT, color: 'FFFFFF' })],
+              }),
+            ],
+          }),
+      ),
+    });
     const rows = pairs
       .filter(([k, v]) => k && v)
       .map(
@@ -441,13 +457,14 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         insideHorizontal: { style: BorderStyle.SINGLE, size: 2, color: 'FFFFFF' },
         insideVertical: NO_BORDER,
       },
-      rows,
+      rows: [headerRow, ...rows],
     });
   };
   const makeBullet = (text) =>
     new Paragraph({
+      keepLines: true,
       spacing: { line: SINGLE_SP, before: 20, after: 50 },
-      indent: { left: 360 },
+      indent: { left: 360, hanging: 180 },
       bullet: { level: 0 },
       children: [new TextRun({ text: text || '', size: BODY_SIZE, font: FONT, color: '333333' })],
     });
@@ -489,7 +506,11 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
     });
   const NO_BORDER = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' };
   const HAIRLINE = { style: BorderStyle.SINGLE, size: 4, color: theme.ruleColor };
-  const makeTableFn = (colDXA, headerTexts, dataRows, { cantSplit = false, centeredColumns = [] } = {}) => {
+  // Student-facing semantic rows must remain readable as units. Word may
+  // still split a row that is taller than a page, but ordinary schedule,
+  // grading, alignment, and competency rows should never strand continuation
+  // text under blank leading cells on the next page.
+  const makeTableFn = (colDXA, headerTexts, dataRows, { cantSplit = true, centeredColumns = [] } = {}) => {
     const centeredColumnSet = new Set(centeredColumns);
     const hdr = new TableRow({
       tableHeader: true,
@@ -1232,7 +1253,8 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
     case 'studyGuides': {
       const expanded = expandKeys('studyGuides', data);
       const key = expanded.guides ? 'guides' : 'studyGuides';
-      for (const g of expanded[key] || []) {
+      const studyGuides = expanded[key] || [];
+      for (const [guideIndex, g] of studyGuides.entries()) {
         children.push(makeHeading(g.lessonTitle || 'Study Guide'));
         if (g.examScope) children.push(makeText(g.examScope));
         if (g.assignedReadings?.length) {
@@ -1267,6 +1289,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
                 if (t.source) parts.push(`Source: ${t.source}`);
                 return [t.term || '', parts.join(' — ')];
               }),
+              { headers: ['Term', 'Definition'] },
             ),
           );
         }
@@ -1374,7 +1397,11 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         if (g.examTips && !g.examPrep) children.push(makeBold('Exam Tips', g.examTips));
         // Connection to next
         if (g.connectionToNext) children.push(makeBold('Connection to Next Lesson', g.connectionToNext));
-        children.push(new Paragraph({ spacing: { before: 200, after: 100 }, children: [] }));
+        // A final empty spacer can be pushed onto a new page when a guide
+        // finishes near the boundary, producing an otherwise blank last page.
+        if (guideIndex < studyGuides.length - 1) {
+          children.push(new Paragraph({ spacing: { before: 200, after: 100 }, children: [] }));
+        }
       }
       break;
     }
@@ -1453,9 +1480,14 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
             syl.outcomeAlignmentMatrix.map((row) => [
               row.outcome || '',
               row.bloomsLevel || '',
-              Array.isArray(row.practicedIn) ? row.practicedIn.join('; ') : row.practicedIn || '',
-              Array.isArray(row.assessedBy) ? row.assessedBy.join('; ') : row.assessedBy || '',
+              Array.isArray(row.practicedIn)
+                ? row.practicedIn.map((value) => String(value || '').replace(/[.;:,]+$/g, '')).join('; ')
+                : row.practicedIn || '',
+              Array.isArray(row.assessedBy)
+                ? row.assessedBy.map((value) => String(value || '').replace(/[.;:,]+$/g, '')).join('; ')
+                : row.assessedBy || '',
             ]),
+            { cantSplit: true },
           ),
         );
       }
@@ -1501,7 +1533,6 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
       }
       // Course Schedule
       if (syl.weeklySchedule?.length) {
-        children.push(new Paragraph({ children: [new PageBreak()] }));
         children.push(makeHeading('Course Schedule'));
         // v0.12.1: a Dates column that merely repeats the Week label rendered
         // as "Week 1 || Week 1" — only keep it when it adds information.
@@ -1536,14 +1567,11 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           ),
         );
       }
-      // Policies — start the policy block on a fresh page.
-      let policyPageBroken = false;
+      // Let Word use the remaining page space before the policy block. The
+      // heading already keeps with its first paragraph, so a forced break only
+      // created sparse pages in long syllabi.
       const policySection = (heading, text) => {
         if (text) {
-          if (!policyPageBroken) {
-            children.push(new Paragraph({ children: [new PageBreak()] }));
-            policyPageBroken = true;
-          }
           children.push(makeHeading(heading));
           children.push(makeText(text));
         }
@@ -1564,7 +1592,6 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
       // v0.13.5 P3: the accreditor-facing Methods Statement — the course's
       // evidence-based design patterns with full peer-reviewed references.
       if (syl.methodsStatement?.methods?.length) {
-        children.push(new Paragraph({ children: [new PageBreak()] }));
         children.push(makeHeading(syl.methodsStatement.title || 'Evidence-Based Course Design'));
         if (syl.methodsStatement.summary) children.push(makeText(syl.methodsStatement.summary));
         syl.methodsStatement.methods.forEach((method) => {

@@ -26,6 +26,39 @@ const HIGH_CONFIDENCE_DANGLING_CLAUSE_RE =
 const DANGLING_EXEMPT_RE = /\b(?:etc|e\.g|i\.e)[.]\s*$/i;
 const PHRASE_SHINGLE_SIZE = 8;
 const PHRASE_REPAIR_LIMIT = 10;
+const DUPLICATED_STUDENT_SUBJECT_RE = /\bstudents?\s+may\s+assume\s+students?\s+(?:often\s+)?/gi;
+const MALFORMED_CONCEPT_DETAIL_RE =
+  /\ba\s+(?:solid|strong|clear|specific)\s+([^.!?]{1,80}\b(?:principles|criteria|standards|guidelines|requirements)\b[^.!?]{0,30})\s+detail\b/gi;
+const ASSIGNMENT_DEFERRAL_REPAIRS = [
+  [
+    /(?:use|follow|submit in|organize (?:the|your) [^.!?]{1,50}? in) the submission format (?:listed|specified|named) (?:for|in) [^.!?]+/gi,
+    'Submit one clearly labeled artifact that preserves the required evidence, reasoning, revision, and citations',
+  ],
+  [
+    /organize (the|your) ([a-z][a-z -]{0,40}) in the medium listed for (?:the|this) task/gi,
+    'organize $1 $2 with descriptive headings and an evidence list',
+  ],
+  [
+    /(?:use|follow) the (?:medium listed|format and channel listed|product form listed) for (?:the|this) task/gi,
+    'submit one clearly labeled artifact that preserves the required evidence, reasoning, revision, and citations',
+  ],
+  [
+    /(?:use|follow) the (?:document, presentation, or recording form) listed for (?:the|this) task/gi,
+    'choose a document, presentation, or recording and keep every required evidence item directly inspectable',
+  ],
+  [
+    /(?:follow|use|meet) the (?:word, page, or time|length or time|length or duration|task-specific length or time) (?:limit|requirement|expectation|guidance|constraint)?\s*(?:listed|specified|provided)(?:[^.!?]*)/gi,
+    'use enough space to present the required evidence, reasoning, and revision without padding',
+  ],
+  [
+    /(?:follow|use) (?:the )?(?:course|local) citation (?:format|style|convention|rule|expectations?)(?:[^.!?]*)/gi,
+    'use one consistent citation style and include enough information for readers to locate every source',
+  ],
+  [
+    /(?:follow|use) (?:the )?(?:instructor|local) length (?:guidance|requirement|target)(?:[^.!?]*)/gi,
+    'use enough space to present the required evidence, reasoning, and revision without padding',
+  ],
+];
 
 export const MECHANICAL_FINDING_CODES = [
   'double-period',
@@ -43,7 +76,14 @@ function repairPeriodBeforeComma(value) {
   });
 }
 
-function repairString(value) {
+function repairAssignmentDeferrals(value) {
+  return ASSIGNMENT_DEFERRAL_REPAIRS.reduce(
+    (text, [pattern, replacement]) => text.replace(pattern, replacement),
+    value,
+  );
+}
+
+function repairString(value, featureId) {
   let text = value;
   text = text.replace(DOUBLE_PERIOD_RE, '$1.');
   text = text.replace(ARTICLE_A_VOWEL_RE, 'an$1$2');
@@ -53,6 +93,9 @@ function repairString(value) {
     // "…aligned to ." → "…." — drop the stranded connective, keep the period.
     text = text.replace(HIGH_CONFIDENCE_DANGLING_CLAUSE_RE, '$1');
   }
+  text = text.replace(DUPLICATED_STUDENT_SUBJECT_RE, 'A common assumption is that people ');
+  text = text.replace(MALFORMED_CONCEPT_DETAIL_RE, 'a strong detail about $1');
+  if (featureId === 'assignments') text = repairAssignmentDeferrals(text);
   return text;
 }
 
@@ -100,16 +143,16 @@ function worstRepeatedPhrase(node) {
   return worst.count >= PHRASE_REPAIR_LIMIT ? worst : null;
 }
 
-function repairNode(node, stats) {
+function repairNode(node, stats, featureId) {
   if (typeof node === 'string') {
-    const repaired = repairString(node);
+    const repaired = repairString(node, featureId);
     if (repaired !== node) stats.repairedStrings += 1;
     return repaired;
   }
   if (Array.isArray(node)) {
     let changed = false;
     const next = node.map((item) => {
-      const repaired = repairNode(item, stats);
+      const repaired = repairNode(item, stats, featureId);
       if (repaired !== item) changed = true;
       return repaired;
     });
@@ -124,7 +167,7 @@ function repairNode(node, stats) {
         next[key] = value;
         continue;
       }
-      const repaired = repairNode(value, stats);
+      const repaired = repairNode(value, stats, featureId);
       if (repaired !== value) changed = true;
       next[key] = repaired;
     }
@@ -141,7 +184,7 @@ function repairNode(node, stats) {
 export function repairDeliverableContentQuality(featureId, data) {
   if (!data || typeof data !== 'object') return { data, changed: false, repairedStrings: 0 };
   const stats = { repairedStrings: 0, repairedPhrases: 0 };
-  const seamRepaired = repairNode(data, stats);
+  const seamRepaired = repairNode(data, stats, featureId);
   const repeated = worstRepeatedPhrase(seamRepaired);
   // Repetition is a diagnostic for the compiler or a targeted regeneration,
   // not a safe string-rewrite target. Replacing an eight-word shingle inside

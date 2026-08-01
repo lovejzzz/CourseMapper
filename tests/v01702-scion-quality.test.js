@@ -189,7 +189,7 @@ describe('v0.17.02 Scion output-quality contracts', () => {
     const historical = JSON.parse(
       readFileSync('evaluation/cross-package-texture/untuned-v0.17.02-receipt.json', 'utf8'),
     );
-    const current = JSON.parse(readFileSync('evaluation/cross-package-texture/untuned-v0.17.05-receipt.json', 'utf8'));
+    const current = JSON.parse(readFileSync('evaluation/cross-package-texture/untuned-v0.17.06-receipt.json', 'utf8'));
     const scripts = JSON.parse(readFileSync('package.json', 'utf8')).scripts;
 
     expect(historical).toMatchObject({
@@ -205,17 +205,17 @@ describe('v0.17.02 Scion output-quality contracts', () => {
     expect(historical.canonicalSha256).toMatch(/^[a-f0-9]{64}$/);
     expect(current).toMatchObject({
       schema: 'coursemapper.cross-package-texture.release-receipt.v1',
-      appVersion: '0.17.05',
+      appVersion: '0.17.06',
       profile: 'untuned',
       packageCount: 12,
-      clusterCount: 476,
+      clusterCount: 483,
       lensDefaultHits: 30,
       packagesWithLensDefault: 10,
       unclassifiedPathCount: 0,
     });
     expect(current.canonicalSha256).toMatch(/^[a-f0-9]{64}$/);
     expect(scripts['audit:texture:cross-package:untuned']).toContain(
-      '--receipt evaluation/cross-package-texture/untuned-v0.17.05-receipt.json',
+      '--receipt evaluation/cross-package-texture/untuned-v0.17.06-receipt.json',
     );
   });
 });

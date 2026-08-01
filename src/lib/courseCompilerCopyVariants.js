@@ -490,11 +490,9 @@ export function titleSlideExpectation({ lessonNumber, displayTitle, concept, art
   ]);
 }
 
-export function slideFeedbackFallbackCopy({ lessonNumber, focus, hasDeterminer }) {
+export function slideFeedbackFallbackCopy({ lessonNumber, focus }) {
   return selectVariant(lessonNumber, [
-    hasDeterminer
-      ? `Name one source detail about ${focus}, one limitation, and the revision it supports.`
-      : `Name one ${focus} source detail, one limitation, and the revision it supports.`,
+    `Name one source detail about ${focus}, one limitation, and the revision it supports.`,
     `Identify a source detail about ${focus}, explain one limit on what it establishes, and make the corresponding revision.`,
     `Point to evidence concerning ${focus}; qualify the claim, then revise the work accordingly.`,
     `Choose one inspectable detail for ${focus}, state what it cannot prove, and use that boundary to improve the artifact.`,

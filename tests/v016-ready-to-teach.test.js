@@ -764,6 +764,32 @@ describe('A1 — subject-safe deterministic fallback', () => {
     expect(guide.sourceReviewRequired).toMatch(/no definitions were invented/i);
     expect(JSON.stringify(guide)).not.toMatch(/names the evidence focus|weekly artifact|as a self-check/i);
   });
+
+  it('does not invent glossary definitions when a lesson has no enrichment payload', () => {
+    const blueprint = buildCourseBlueprint({
+      courseName: 'Local Methods Workshop',
+      lessons: [
+        {
+          title: 'Lesson 1: Locally Defined Review Method',
+          sections: [
+            {
+              topicSection: 'Locally defined review method',
+              learningObjectives: 'Apply the supplied method to one local case.',
+              supportingResources: 'Instructor source packet',
+            },
+          ],
+        },
+      ],
+    });
+
+    const guide = compileBlueprintDeliverables(blueprint, ['studyGuides'], {}).studyGuides.studyGuides[0];
+
+    expect(guide.keyTerms).toEqual([]);
+    expect(guide.sourceReviewRequired).toMatch(/no definitions were invented/i);
+    expect(JSON.stringify(guide)).not.toMatch(
+      /names the evidence focus|helps students separate description|weekly artifact|as a self-check/i,
+    );
+  });
 });
 
 describe('A2 — the autograding spec is printable fact', () => {

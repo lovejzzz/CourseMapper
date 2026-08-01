@@ -720,7 +720,9 @@ function compressStudyGuideTitleMentions(guide) {
       // Possessive determiners read as the lesson's own attribute:
       // "self-check your <title> evidence" → "self-check this lesson's
       // evidence" (plain articles are simply consumed, as in 5.3).
-      if (determiner && /^(?:your|their|its|our)\s+$/i.test(determiner)) compressed = `${compressed}'s`;
+      if (determiner && /^(?:your|their|its|our)\s+$/i.test(determiner)) {
+        compressed = /s$/i.test(compressed) ? `${compressed}'` : `${compressed}'s`;
+      }
       return isSentenceStart(full, offset) ? compressed.charAt(0).toUpperCase() + compressed.slice(1) : compressed;
     });
     return text;

@@ -12,6 +12,23 @@ import { findPromptArtifactContamination } from '../quality/artifactDefectPatter
 // Defect fixtures lifted verbatim from the June 2026 four-course v0.8.6
 // export audit — these are the exact failure shapes the checks must catch.
 describe('auditDeliverableContentQuality', () => {
+  it('flags procedural glossary copy that does not define the subject term', () => {
+    const { findings } = auditDeliverableContentQuality('studyGuides', {
+      studyGuides: [
+        {
+          keyTerms: [
+            {
+              term: 'Conformance',
+              definition: 'Conformance names the evidence focus students use when deciding what counts as support.',
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(findings).toEqual(expect.arrayContaining([expect.objectContaining({ code: 'procedural-term-definition' })]));
+  });
+
   it('flags leading-colon labels from unstripped section numbering', () => {
     const { findings } = auditDeliverableContentQuality('studyGuides', {
       studyGuides: [{ keyTerms: [{ term: ': Course Framing and Core Concepts', definition: 'x' }] }],

@@ -86,11 +86,14 @@ export function finalMilestoneFeedback({ lessonNumber, assessmentTitle, feedback
 }
 
 export function slideDecisionMove({ lessonNumber, concept, decision, artifact }) {
+  const visibleArtifact = /^(?:evidence|artifact|course work|submission)$/i.test(cleanText(artifact))
+    ? 'lesson artifact'
+    : artifact;
   return selectVariant(lessonNumber, [
-    `choose how ${concept} evidence should shape the ${decision} for ${artifact}`,
-    `defend the ${decision} that ${concept} supports in ${artifact}`,
-    `identify which ${concept} finding changes the ${decision} for ${artifact} next`,
-    `use ${concept} to set the next ${decision} in ${artifact}`,
+    `choose how ${concept} evidence should shape the ${decision} for ${visibleArtifact}`,
+    `defend the ${decision} that ${concept} supports in ${visibleArtifact}`,
+    `identify which ${concept} finding changes the ${decision} for ${visibleArtifact} next`,
+    `use ${concept} to set the next ${decision} in ${visibleArtifact}`,
   ]);
 }
 

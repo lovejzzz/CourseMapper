@@ -14,6 +14,7 @@ import { saveAs } from 'file-saver';
 import { buildNotApplicableDisposition } from '../deliverableApplicability';
 import { APP_VERSION } from '../appVersion';
 import { buildFinalizeSourceEvidence } from '../quality/sourceEvidence';
+import { GRADER_VERSION } from '../quality/graderVersion';
 
 const qualityGraderOverride = vi.hoisted(() => ({ grade: null }));
 
@@ -632,7 +633,7 @@ describe('packageZipExporter', () => {
           status: 'graded',
           score: 89,
           grade: 'B',
-          graderVersion: 'test-precomputed',
+          graderVersion: GRADER_VERSION,
           findingCounts: { p0: 0, p1: 1, p2: 0 },
           readiness: {
             protocol: 'coursemapper-automated-readiness-v1',
@@ -691,7 +692,7 @@ describe('packageZipExporter', () => {
         status: 'graded',
         score: 89,
         grade: 'B',
-        graderVersion: 'test-precomputed',
+        graderVersion: GRADER_VERSION,
         readiness: expect.objectContaining({ score: 54, evidenceCeiling: 69 }),
         texture: expect.objectContaining({ score: 95 }),
       }),
@@ -703,6 +704,89 @@ describe('packageZipExporter', () => {
     expect(report).toContain('lesson knowledge did not clear admission');
     expect(report).toContain('| texture | 25 | 95 | A |');
     expect(report).toContain('| **overall** | 135 |');
+  });
+
+  it('regrades a persisted finish result produced by an older grader version', async () => {
+    const result = await buildCourseMaterialsZip({
+      courseMap: makeCourseMap('Persisted Browser Export Course'),
+      deliverables: {},
+      featureIds: ['courseMap'],
+      quality: {
+        timeoutMs: 5000,
+        precomputed: {
+          status: 'graded',
+          score: 99,
+          grade: 'A',
+          graderVersion: '1.11.0',
+          findingCounts: { p0: 0, p1: 0, p2: 0 },
+          dimensions: {
+            identity: 100,
+            substance: 100,
+            citations: 100,
+            honesty: 100,
+            discipline: 100,
+            consistency: 100,
+            structure: 100,
+            format: 100,
+            texture: 96,
+          },
+          findings: [],
+        },
+      },
+    });
+
+    const zip = await JSZip.loadAsync(await result.blob.arrayBuffer());
+    const manifest = JSON.parse(await zip.file('PACKAGE_MANIFEST.json').async('string'));
+    const report = await zip.file('QUALITY_REPORT.md').async('string');
+
+    expect(manifest.quality.graderVersion).toBe(GRADER_VERSION);
+    expect(manifest.quality.graderVersion).not.toBe('1.11.0');
+    expect(report).not.toContain('verified finish-pass quality result');
+  });
+
+  it('records unresolved lesson evidence dependencies in the package manifest', async () => {
+    const result = await buildCourseMaterialsZip({
+      courseMap: {
+        courseName: 'Oral History Methods',
+        lessons: [
+          {
+            title: 'Lesson 1: Interview Evidence',
+            sections: [{ learningObjectives: 'Evaluate interview evidence.' }],
+          },
+        ],
+      },
+      courseGraph: {
+        sessions: [{ id: 's1', number: 1, sections: [{ topic: 'Interview evidence', resourceRefs: [] }] }],
+        resources: [],
+      },
+      deliverables: {
+        assignments: {
+          status: 'done',
+          data: {
+            assignments: [
+              {
+                lessonNumber: 1,
+                title: 'Interview Evidence Brief',
+                instructions: [
+                  'Analyze the supplied recording/transcript and cite the narrator-context note before making a claim.',
+                ],
+              },
+            ],
+          },
+        },
+      },
+      featureIds: ['courseMap', 'assignments'],
+      quality: false,
+    });
+
+    expect(result.manifest.evidenceDependencies).toMatchObject({
+      status: 'unresolved',
+      lessonCount: 1,
+      unresolvedCount: 1,
+    });
+    expect(result.manifest.evidenceDependencies.lessons[0].requirements).toEqual(
+      expect.arrayContaining([expect.objectContaining({ kind: 'recording-or-transcript', status: 'unresolved' })]),
+    );
   });
 
   it('falls back to final ZIP grading when precomputed findings reference repaired-away files', async () => {
@@ -1210,7 +1294,9 @@ describe('packageZipExporter', () => {
       basis: 'trusted-concept-linked',
     });
     expect(sourceReport).toContain('Source Ledger');
-    expect(sourceReport).toContain('unavailable: this package does not include trusted per-reference coverage proof');
+    expect(sourceReport).toContain(
+      'not established: 3 trusted, concept-linked source ledger rows are included, but this package does not map individual CourseIR sourceRefs to those trusted rows',
+    );
     expect(sourceReport).not.toContain('Source Review Notes');
   });
 

@@ -7,11 +7,23 @@ import {
   compactRepeatedCourseFocusReferences,
 } from '../courseCompilerCopyVariants';
 import { examAtomPaddingOptions } from '../courseCompilerExamCopy';
-import { assessmentRevisionCriterion, examFactCopy } from '../courseCompilerPolish';
+import { assessmentRevisionCriterion, examFactCopy, slideDecisionMove } from '../courseCompilerPolish';
 import { finalizeCompiledDeliverableLanguage } from '../compiledLanguageFinalizer';
 import { isAppliedQuizStem } from '../quality/quizItemDepth';
 
 describe('course compiler copy variants', () => {
+  it('does not expose a generic Evidence artifact label on slides', () => {
+    const copy = slideDecisionMove({
+      lessonNumber: 1,
+      concept: 'WCAG principles and conformance',
+      decision: 'design decision',
+      artifact: 'Evidence',
+    });
+
+    expect(copy).toContain('lesson artifact');
+    expect(copy).not.toMatch(/\bfor Evidence\b/);
+  });
+
   it('compacts a serial-list lesson title without leaving a dangling comma', () => {
     expect(compactCourseCopyFocus('accessible forms, testing, and remediation')).toBe('accessible forms and testing');
   });

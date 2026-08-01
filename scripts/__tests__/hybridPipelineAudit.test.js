@@ -32,7 +32,7 @@ describe('hybrid pipeline audit', () => {
       expect(payload.summary.compiledFeatureCount).toBe(9);
       expect(payload.summary.modelFeatureCount).toBe(0);
       expect(payload.summary.minQuality).toBeGreaterThanOrEqual(6);
-      expect(payload.results.every((result) => result.summary.warningCount === 0)).toBe(true);
+      expect(payload.results.every((result) => result.summary.warningCount === 1)).toBe(true);
       expect(payload.results[0].compiledFeatures).toEqual([
         'syllabus',
         'lessonPlans',
@@ -48,7 +48,9 @@ describe('hybrid pipeline audit', () => {
       expect(payload.summary.savedPercent).toBeGreaterThan(70);
       expect(payload.nextActions.some((action) => /audit:pipeline/.test(action.title))).toBe(true);
       expect(payload.nextActions.some((action) => /Lesson Plans/.test(action.title))).toBe(false);
-      expect(payload.nextActions.some((action) => /subject-specific phrasing/i.test(action.title))).toBe(false);
+      expect(payload.nextActions.some((action) => /subject-specific phrasing|study guide/i.test(action.title))).toBe(
+        true,
+      );
 
       const paths = await writeHybridPipelineAudit(payload, outputDir);
       const markdown = await fs.readFile(paths.markdownPath, 'utf8');
@@ -71,9 +73,7 @@ describe('hybrid pipeline audit', () => {
         '| research-methods | 5 | syllabus, lessonPlans, slideDecks, assignments, rubrics, discussions, quizBank, studyGuides, courseFaq |  |',
       );
       expect(markdown).toContain('| research-methods | 5 | 0 | none | 9 compiled / 0 model-generated |');
-      expect(markdown).toContain(
-        'Spot-check institution-specific facts, official dates, and copyrighted readings before handoff.',
-      );
+      expect(markdown).toContain('Review flagged warnings before treating the package as classroom-ready.');
       expect(markdown).toContain('Cost comparison');
       await expect(fs.stat(paths.jsonPath)).resolves.toMatchObject({ isFile: expect.any(Function) });
     } finally {
@@ -118,13 +118,13 @@ describe('hybrid pipeline audit', () => {
       expect(result.trustEvidence.repairSummary).toContain('+2 more');
       expect(result.trustEvidence.deliveryPath).toBe('9 compiled / 0 model-generated');
       expect(result.reviewRecommendation).toBe(
-        'Spot-check repaired course-map fields plus institution-specific facts before handoff.',
+        'Review flagged warnings before treating the package as classroom-ready.',
       );
 
       const markdown = renderHybridPipelineAuditMarkdown({
         meta: { generatedAt: '2026-05-26T00:00:00.000Z' },
         summary: {
-          status: 'pass',
+          status: 'warnings',
           releaseCaseCount: 1,
           stressCaseCount: 0,
           baselineCalls: result.cost.baselineDeliverableCalls,
@@ -136,7 +136,7 @@ describe('hybrid pipeline audit', () => {
           minQuality: result.summary.minQuality,
           sparseRepairFields: result.courseMapRepair.repairedFieldCount,
           blockers: 0,
-          warnings: 0,
+          warnings: 1,
         },
         nextActions: [],
         results: [result],
@@ -144,9 +144,7 @@ describe('hybrid pipeline audit', () => {
 
       expect(markdown).toContain('| repair-evidence-fixture | 5 | 4 | Lesson 1 title;');
       expect(markdown).toContain('+2 more | 9 compiled / 0 model-generated |');
-      expect(markdown).toContain(
-        'Spot-check repaired course-map fields plus institution-specific facts before handoff.',
-      );
+      expect(markdown).toContain('Review flagged warnings before treating the package as classroom-ready.');
     } finally {
       await closeHybridPipelineAuditRuntime();
     }
@@ -166,11 +164,11 @@ describe('hybrid pipeline audit', () => {
       expect(result.stressFocus).toBe('Messy imported clinical studio map');
       // v0.15.154: varied generic Course Map fallbacks keep even the
       // duplicated 14-lesson stress scope out of boilerplate warnings.
-      expect(result.summary.status).toBe('pass');
+      expect(result.summary.status).toBe('warnings');
       expect(result.courseMapRepair.changed).toBe(true);
       expect(result.courseMapRepair.repairedFieldCount).toBeGreaterThanOrEqual(6);
       expect(result.reviewRecommendation).toBe(
-        'Spot-check repaired course-map fields plus institution-specific facts before handoff.',
+        'Review flagged warnings before treating the package as classroom-ready.',
       );
       expect(result.findings.some((finding) => /repeats the same boilerplate/.test(finding.message))).toBe(false);
 
@@ -183,14 +181,14 @@ describe('hybrid pipeline audit', () => {
 
       expect(payload.summary.stressCaseCount).toBe(6);
       expect(markdown).toContain('## Stress Case Matrix');
-      expect(markdown).toContain('| messy-import-stress | 5 | pass |');
-      expect(markdown).toContain('| messy-import-stress | 8 | pass |');
-      expect(markdown).toContain('| messy-import-stress | 14 | pass |');
+      expect(markdown).toContain('| messy-import-stress | 5 | warnings |');
+      expect(markdown).toContain('| messy-import-stress | 8 | warnings |');
+      expect(markdown).toContain('| messy-import-stress | 14 | warnings |');
       expect(markdown).toContain('Messy imported clinical studio map');
       expect(
         payload.results.filter((entry) => entry.projectId === 'messy-import-stress').map((entry) => entry.scope),
       ).toEqual([5, 8, 14]);
-      expect(payload.nextActions.some((action) => /messy-import stress cases/i.test(action.title))).toBe(false);
+      expect(payload.nextActions.some((action) => /messy-import stress cases/i.test(action.title))).toBe(true);
     } finally {
       await closeHybridPipelineAuditRuntime();
     }

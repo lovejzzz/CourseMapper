@@ -1493,6 +1493,24 @@ describe('round-3 polish 3 — study guides stop chanting the lesson title', () 
     expect(data.studyGuides[0].conceptConnections[1]).toContain("self-check Tang Poetry's evidence");
   });
 
+  it('uses an apostrophe-only possessive when a compressed study-guide topic ends in s', () => {
+    const pluralFixture = l4Guide();
+    pluralFixture.studyGuides[0].lessonTitle = 'Lesson 4: WCAG Principles and Conformance';
+    pluralFixture.studyGuides[0].conceptConnections = [
+      'WCAG Principles and Conformance begins the source review.',
+      'WCAG Principles and Conformance sets the claim boundary.',
+      'Review the strong and partial samples, then self-check your WCAG Principles and Conformance evidence.',
+    ];
+    const pluralBlueprint = {
+      ...blueprint,
+      lessons: [{ ...blueprint.lessons[0], title: pluralFixture.studyGuides[0].lessonTitle }],
+    };
+
+    const data = finalizeCompiledDeliverableLanguage('studyGuides', pluralFixture, pluralBlueprint);
+    expect(data.studyGuides[0].conceptConnections[2]).toMatch(/self-check WCAG Principles' evidence/i);
+    expect(data.studyGuides[0].conceptConnections[2]).not.toMatch(/Principles's/i);
+  });
+
   it('non-study-guide deliverables keep the existing behavior (no document budget)', () => {
     const lessonPlans = {
       lessonPlans: [
