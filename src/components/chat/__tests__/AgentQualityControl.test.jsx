@@ -90,4 +90,29 @@ describe('AgentQualityControl', () => {
     expect(container.textContent).not.toContain('undefined');
     expect(container.querySelector('button')).toBeNull();
   });
+
+  it.each([
+    ['missing score', { status: 'graded', grade: 'B' }],
+    ['missing grade', { status: 'graded', score: 89 }],
+    ['whitespace-only grade', { status: 'graded', score: 89, grade: '   ' }],
+    ['readiness-only result', { status: 'graded', readiness: { score: 34, maxScore: 100 } }],
+  ])('fails closed for a %s', (_label, quality) => {
+    const onOpen = vi.fn();
+    act(() => {
+      root.render(
+        <AgentQualityControl
+          quality={{ ...quality, reason: '   ' }}
+          trustStatus={{ blocked: false, clean: false }}
+          onOpen={onOpen}
+        />,
+      );
+    });
+
+    expect(container.querySelector('[data-testid="agent-quality-unavailable"]')).not.toBeNull();
+    expect(container.textContent).toContain('The quality grader did not return a complete result.');
+    expect(container.textContent).toContain('Run Prepare package again.');
+    expect(container.textContent).not.toContain('undefined');
+    expect(container.querySelector('button')).toBeNull();
+    expect(onOpen).not.toHaveBeenCalled();
+  });
 });

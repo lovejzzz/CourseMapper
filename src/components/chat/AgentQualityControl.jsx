@@ -2,7 +2,8 @@ export default function AgentQualityControl({ quality, trustStatus, onOpen }) {
   if (!quality) return null;
 
   const hasReadinessScore = Number.isFinite(quality.readiness?.score);
-  const hasConformanceScore = Number.isFinite(quality.score) && Boolean(quality.grade);
+  const grade = typeof quality.grade === 'string' ? quality.grade.trim() : '';
+  const hasConformanceScore = Number.isFinite(quality.score) && Boolean(grade);
   const hasGradedScore = quality.status === 'graded' && hasConformanceScore;
   const tone = trustStatus?.blocked
     ? 'border-red-200 bg-red-50 text-red-700'
@@ -11,7 +12,7 @@ export default function AgentQualityControl({ quality, trustStatus, onOpen }) {
       : 'border-amber-200 bg-amber-50 text-amber-700';
   const scoreLabel = hasReadinessScore
     ? `Evidence ${quality.readiness.score}/${quality.readiness.maxScore || 100}`
-    : `Conformance ${quality.score} · ${quality.grade}`;
+    : `Conformance ${quality.score} · ${grade}`;
 
   if (!hasGradedScore) {
     const reason = String(quality.reason || '').trim() || 'The quality grader did not return a complete result.';

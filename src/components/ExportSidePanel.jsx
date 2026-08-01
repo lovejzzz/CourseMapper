@@ -621,7 +621,8 @@ function ReadinessConfirm({
 // heavier than the data it formats; the full markdown report ships in the
 // ZIP as QUALITY_REPORT.md.
 export function QualityStamp({ quality, onOpen, trustStatus = null, informational = false }) {
-  if (quality?.status !== 'graded') return null;
+  const grade = typeof quality?.grade === 'string' ? quality.grade.trim() : '';
+  if (quality?.status !== 'graded' || !Number.isFinite(quality.score) || !grade) return null;
   const readinessScore = Number.isFinite(quality.readiness?.score) ? quality.readiness.score : null;
   const readinessMax = Number.isFinite(quality.readiness?.maxScore) ? quality.readiness.maxScore : 100;
   const unobservedPoints = Number.isFinite(quality.readiness?.points?.unobserved)
@@ -640,17 +641,17 @@ export function QualityStamp({ quality, onOpen, trustStatus = null, informationa
       onClick={onOpen}
       title={`${
         readinessScore !== null
-          ? `Deterministic package evidence ${readinessScore}/${readinessMax} earned${unobservedPoints !== null ? `, ${unobservedPoints} unobserved` : ''}; package conformance ${quality.score}/100 (${quality.grade})`
-          : `Package conformance ${quality.score}/100 (${quality.grade})`
+          ? `Deterministic package evidence ${readinessScore}/${readinessMax} earned${unobservedPoints !== null ? `, ${unobservedPoints} unobserved` : ''}; package conformance ${quality.score}/100 (${grade})`
+          : `Package conformance ${quality.score}/100 (${grade})`
       } — click for the full report`}
       aria-label={`Package quality ${
         readinessScore !== null
           ? `deterministic package evidence ${readinessScore} earned out of ${readinessMax}`
-          : `${quality.score} out of 100, grade ${quality.grade}`
+          : `${quality.score} out of 100, grade ${grade}`
       } — open the quality report`}
       className={`inline-flex items-center gap-0.5 rounded-full border px-1.5 py-0.5 font-mono text-[10px] font-bold transition-colors hover:brightness-95 ${tone}`}
     >
-      {readinessScore !== null ? `${readinessScore}/${readinessMax}` : `${quality.score} · ${quality.grade}`}
+      {readinessScore !== null ? `${readinessScore}/${readinessMax}` : `${quality.score} · ${grade}`}
     </button>
   );
 }
@@ -671,16 +672,18 @@ function humanizeReadinessLabel(value) {
 }
 
 function QualityReportModal({ quality, onClose }) {
+  const grade = typeof quality?.grade === 'string' ? quality.grade.trim() : '';
+  const hasReportableQuality = quality?.status === 'graded' && Number.isFinite(quality.score) && Boolean(grade);
   useEffect(() => {
-    if (!quality || quality.status !== 'graded') return undefined;
+    if (!hasReportableQuality) return undefined;
     const handleKeyDown = (event) => {
       if (event.key === 'Escape') onClose?.();
     };
     globalThis.addEventListener?.('keydown', handleKeyDown);
     return () => globalThis.removeEventListener?.('keydown', handleKeyDown);
-  }, [onClose, quality]);
+  }, [hasReportableQuality, onClose]);
 
-  if (!quality || quality.status !== 'graded') return null;
+  if (!hasReportableQuality) return null;
   const dimensions = Object.entries(quality.dimensions || {});
   const readiness = quality.readiness || null;
   const readinessComponents = Object.entries(readiness?.components || {});
@@ -706,10 +709,10 @@ function QualityReportModal({ quality, onClose }) {
               <p id="quality-report-title" className="text-sm font-bold text-slate-800">
                 {readiness
                   ? `Deterministic package evidence — ${readiness.points?.earned ?? readiness.score}/100 earned`
-                  : `Package conformance — ${quality.score}/100 (${quality.grade})`}
+                  : `Package conformance — ${quality.score}/100 (${grade})`}
               </p>
               <p id="quality-report-summary" className="text-xs text-slate-400">
-                Package conformance {quality.score}/100 ({quality.grade}) · {counts.p0 || 0} P0 · {counts.p1 || 0} P1 ·{' '}
+                Package conformance {quality.score}/100 ({grade}) · {counts.p0 || 0} P0 · {counts.p1 || 0} P1 ·{' '}
                 {counts.p2 || 0} P2 · grader v{quality.graderVersion}
                 {quality.gradedAt ? ` · ${new Date(quality.gradedAt).toLocaleString()}` : ''}
               </p>

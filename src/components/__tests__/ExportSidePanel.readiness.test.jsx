@@ -516,6 +516,27 @@ describe('ExportSidePanel readiness repair timing', () => {
     expect(modal?.textContent).toContain('Missing evidence stays in the fixed 100-point potential');
   });
 
+  it.each([
+    ['a missing score', { status: 'graded', grade: 'A' }],
+    ['a missing grade', { status: 'graded', score: 96 }],
+    ['a whitespace-only grade', { status: 'graded', score: 96, grade: '   ' }],
+  ])('fails closed instead of opening the quality modal for %s', async (_label, quality) => {
+    await renderPanel({
+      courseMapInput: cleanCourseMap,
+      preferPackageScope: true,
+      packageQualityPass: {
+        status: 'ready',
+        blockers: 0,
+        warnings: 0,
+        receipt: { exportWarningCount: 0 },
+        quality,
+      },
+      qualityReportOpen: true,
+    });
+
+    expect(document.body.querySelector('[data-testid="quality-report-modal"]')).toBeNull();
+  });
+
   it('names the ZIP preparation work while the package is being assembled', async () => {
     downloadCourseMaterialsZip.mockImplementationOnce(() => new Promise(() => {}));
     await renderPanel({
