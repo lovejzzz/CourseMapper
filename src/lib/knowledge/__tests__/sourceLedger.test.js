@@ -2605,6 +2605,14 @@ describe('trusted source ledger', () => {
                     license: 'W3C permissive license',
                     attribution: 'W3C Web Accessibility Initiative',
                     evidence: 'Evaluation combines appropriate tools with knowledgeable human review.',
+                    supportReceipt: {
+                      status: 'passed',
+                      checkedClaims: 4,
+                      minimumScore: 0.91,
+                      method: 'deterministic-lexical-v1',
+                      semanticSupport: false,
+                      readinessEligible: false,
+                    },
                   },
                   {
                     displayTitle: 'Easy Checks',
@@ -2659,6 +2667,15 @@ describe('trusted source ledger', () => {
       'WCAG-EM overview',
     ]);
     expect(ledger.rows.every((row) => row.sessionRefs.includes('s1'))).toBe(true);
+    expect(ledger.rows[0].supportReceipt).toMatchObject({
+      status: 'passed',
+      checkedClaims: 4,
+      minimumScore: 0.91,
+      method: 'deterministic-lexical-v1',
+      construct: 'source-extraction-integrity',
+      semanticSupport: false,
+      readinessEligible: false,
+    });
     expect(buildSourceReportMarkdown({ sourceLedger: ledger })).toContain(
       'https://www.w3.org/WAI/test-evaluate/conformance/wcag-em/',
     );

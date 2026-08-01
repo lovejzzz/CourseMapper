@@ -73,6 +73,10 @@ export default defineConfig({
           if (/src\/lib\/courseCompilerExamCopy\.js$/.test(id)) return 'compilerExamCopy';
           if (/src\/lib\/courseCompilerPolish\.js$/.test(id)) return 'compilerPolish';
           if (/src\/lib\/compilerEvidenceCopy\.js$/.test(id)) return 'compilerEvidenceCopy';
+          if (/src\/lib\/artifactDisplayReference\.js$/.test(id)) return 'compilerCopyVariants';
+          if (/src\/lib\/quality\/repeatedInstructionalPhrase\.js$/.test(id)) {
+            return 'repeatedInstructionalPhrase';
+          }
           // Fact-ledger feedback normalization is shared by native authoring
           // and compilation. Keep that pure helper independently cacheable
           // instead of duplicating its bytes inside the compiler control-flow

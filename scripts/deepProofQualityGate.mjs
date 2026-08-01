@@ -6,6 +6,7 @@ import process from 'node:process';
 
 const ROOT = process.cwd();
 const DEFAULT_OUTPUT_DIR = path.join(ROOT, 'verification-output', 'deep-proof-quality-gate');
+const EXTERNAL_PROOF_FIXTURES = String(process.env.EXTERNAL_QUALITY_PROOF_FIXTURES || '').trim();
 
 const QUALITY_GATES = [
   {
@@ -33,11 +34,15 @@ const QUALITY_GATES = [
     label: 'Independent instructor benchmark',
     command: 'npm',
     args: ['run', 'audit:benchmark:strict'],
-    blocking: false,
     reports: [
       'verification-output/independent-benchmark/latest.md',
       'verification-output/independent-benchmark/latest.json',
     ],
+  },
+  {
+    label: 'Grounded authoring benchmark evidence',
+    command: 'npm',
+    args: ['run', 'audit:algi:hybrid'],
   },
   {
     label: 'Production canary audit',
@@ -46,9 +51,13 @@ const QUALITY_GATES = [
     reports: ['verification-output/production-canary/latest.md', 'verification-output/production-canary/latest.json'],
   },
   {
-    label: 'Internal expert-style audit',
+    label: 'External instructor proof preflight',
     command: 'npm',
-    args: ['run', 'audit:expert'],
+    args: [
+      'run',
+      'audit:expert:preflight',
+      ...(EXTERNAL_PROOF_FIXTURES ? ['--', '--fixtures', EXTERNAL_PROOF_FIXTURES] : []),
+    ],
     reports: [
       'verification-output/expert-review-quality-audit/latest.md',
       'verification-output/expert-review-quality-audit/latest.json',
@@ -58,6 +67,7 @@ const QUALITY_GATES = [
     label: 'Optional proof packet build',
     command: 'npm',
     args: ['run', 'audit:expert:packet'],
+    blocking: false,
     reports: [
       'verification-output/external-quality-proof-packet/latest.md',
       'verification-output/external-quality-proof-packet/latest.json',

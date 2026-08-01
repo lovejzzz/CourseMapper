@@ -79,8 +79,8 @@ describe('constructed-response compiler depth', () => {
     expect(item).toBeDefined();
     expect(isConceptCuedCompilerShortAnswer(item.question)).toBe(false);
     expect(isClaimEvidenceBoundaryShortAnswer(item.question)).toBe(true);
-    expect(item.sampleAnswer).toMatch(/exact source detail/i);
-    expect(item.sampleAnswer).toMatch(/does not establish a broader conclusion/i);
+    expect(item.sampleAnswer).toMatch(/specific detail/i);
+    expect(item.sampleAnswer).toMatch(/without claiming a broader conclusion/i);
     expect(item.scoringGuidance).toMatch(/limitation|cannot establish|next source|bounded claim/i);
   });
 

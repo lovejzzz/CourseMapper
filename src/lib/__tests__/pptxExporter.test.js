@@ -430,6 +430,8 @@ describe('pptxExporter', () => {
       const runSizes = [...xml.matchAll(/<a:rPr[^>]*\bsz="(\d+)"/g)].map((match) => Number(match[1]));
       expect(runSizes).toContain(1400);
       expect(runSizes).not.toContain(1600);
+      expect(xml.match(/—/g) || []).toHaveLength(3);
+      expect(xml).not.toContain('<a:buChar char="&#x2714;"/>');
     });
 
     it('shrinks long key-concept explanations above the progress rail', async () => {

@@ -12,7 +12,13 @@ describe('claim-to-passage entailment admission', () => {
         claim: 'Biofilms are communities of microorganisms attached to a surface.',
         passage: 'Biofilms are communities of microorganisms attached to a surface.',
       }),
-    ).toMatchObject({ entailed: true, score: 1, reason: 'verbatim-support' });
+    ).toMatchObject({
+      entailed: true,
+      semanticSupport: false,
+      score: 1,
+      reason: 'verbatim-support',
+      construct: 'lexical-extraction-integrity',
+    });
     expect(
       evaluateClaimEntailment({
         claim: 'Biofilm communities attach microorganisms to surfaces.',
@@ -20,6 +26,19 @@ describe('claim-to-passage entailment admission', () => {
         minimumScore: 0.7,
       }).entailed,
     ).toBe(true);
+  });
+
+  it('does not misrepresent lexical overlap as semantic support', () => {
+    const roleSwap = evaluateClaimEntailment({
+      claim: 'The student evaluates the teacher during the observation.',
+      passage: 'The teacher evaluates the student during the observation.',
+    });
+    expect(roleSwap).toMatchObject({
+      entailed: true,
+      semanticSupport: false,
+      reason: 'lexical-support',
+      construct: 'lexical-extraction-integrity',
+    });
   });
 
   it('rejects polarity changes and unsupported numbers', () => {
@@ -50,6 +69,8 @@ describe('claim-to-passage entailment admission', () => {
       status: 'passed',
       checkedClaims: 1,
       minimumScore: 1,
+      semanticSupport: false,
+      readinessEligible: false,
     });
   });
 });

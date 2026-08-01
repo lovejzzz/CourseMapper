@@ -15,6 +15,7 @@ import { buildNotApplicableDisposition } from '../deliverableApplicability';
 import { APP_VERSION } from '../appVersion';
 import { buildFinalizeSourceEvidence } from '../quality/sourceEvidence';
 import { GRADER_VERSION } from '../quality/graderVersion';
+import { TEXTURE_VERSION } from '../quality/textureMetric';
 
 const qualityGraderOverride = vi.hoisted(() => ({ grade: null }));
 
@@ -624,8 +625,16 @@ describe('packageZipExporter', () => {
   });
 
   it('uses precomputed finish quality for ZIP reports instead of requiring a second grade pass', async () => {
+    const courseMap = makeCourseMap('Browser Export Course');
+    const binding = await buildCourseMaterialsZip({
+      courseMap,
+      deliverables: {},
+      featureIds: ['courseMap'],
+      quality: false,
+      assembleOnly: true,
+    });
     const result = await buildCourseMaterialsZip({
-      courseMap: makeCourseMap('Browser Export Course'),
+      courseMap,
       deliverables: {},
       featureIds: ['courseMap'],
       quality: {
@@ -634,6 +643,7 @@ describe('packageZipExporter', () => {
           score: 89,
           grade: 'B',
           graderVersion: GRADER_VERSION,
+          scopeBinding: binding.qualityScopeBinding,
           findingCounts: { p0: 0, p1: 1, p2: 0 },
           readiness: {
             protocol: 'coursemapper-automated-readiness-v1',
@@ -670,7 +680,7 @@ describe('packageZipExporter', () => {
             format: 'A',
             texture: 'A',
           },
-          texture: { score: 95, version: 'test-texture' },
+          texture: { score: 95, version: TEXTURE_VERSION },
           findings: [
             {
               severity: 'P1',
@@ -704,6 +714,60 @@ describe('packageZipExporter', () => {
     expect(report).toContain('lesson knowledge did not clear admission');
     expect(report).toContain('| texture | 25 | 95 | A |');
     expect(report).toContain('| **overall** | 135 |');
+  });
+
+  it('regrades when a full-course finish receipt is reused for a lesson subset', async () => {
+    const courseMap = makeCourseMap('Scope Bound Export Course');
+    const full = await buildCourseMaterialsZip({
+      courseMap,
+      deliverables: {},
+      featureIds: ['courseMap'],
+      quality: { timeoutMs: 5000 },
+      assembleOnly: true,
+    });
+
+    const subset = await buildCourseMaterialsZip({
+      courseMap,
+      deliverables: {},
+      featureIds: ['courseMap'],
+      lessonFilter: [0],
+      quality: {
+        timeoutMs: 5000,
+        precomputed: { ...full.quality, gradedAt: '2000-01-01T00:00:00.000Z' },
+      },
+      assembleOnly: true,
+    });
+
+    expect(subset.quality.scopeBinding.sha256).not.toBe(full.quality.scopeBinding.sha256);
+    expect(subset.quality.gradedAt).not.toBe('2000-01-01T00:00:00.000Z');
+    expect(subset.manifest.lessonScope).toEqual([1]);
+  });
+
+  it('regrades when a precomputed receipt carries an older texture policy', async () => {
+    const courseMap = makeCourseMap('Texture Bound Export Course');
+    const current = await buildCourseMaterialsZip({
+      courseMap,
+      deliverables: {},
+      featureIds: ['courseMap'],
+      quality: { timeoutMs: 5000 },
+      assembleOnly: true,
+    });
+    const stale = {
+      ...current.quality,
+      gradedAt: '2000-01-01T00:00:00.000Z',
+      texture: { ...current.quality.texture, version: '1.3.0' },
+    };
+
+    const result = await buildCourseMaterialsZip({
+      courseMap,
+      deliverables: {},
+      featureIds: ['courseMap'],
+      quality: { timeoutMs: 5000, precomputed: stale },
+      assembleOnly: true,
+    });
+
+    expect(result.quality.texture.version).toBe(TEXTURE_VERSION);
+    expect(result.quality.gradedAt).not.toBe(stale.gradedAt);
   });
 
   it('regrades a persisted finish result produced by an older grader version', async () => {

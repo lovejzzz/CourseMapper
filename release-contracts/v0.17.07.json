@@ -1,0 +1,132 @@
+{
+  "version": "0.17.07",
+  "date": "August 1, 2026",
+  "title": "Truth Before Quality Claims",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm run test:unit",
+      "npm run lint",
+      "npm run format:check",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification must pass on the exact V0.17.07 release commit."
+    },
+    "ciDeep": {
+      "status": "pending-push",
+      "note": "Deep Proof now fails closed until the independent evidence gates are satisfied."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Production deployment follows repository policy after review."
+    },
+    "liveProvider": {
+      "status": "not-applicable",
+      "note": "This release changes compiler, receipt, grading, export, and release-gate behavior; it makes no new provider-performance claim."
+    },
+    "manualHuman": {
+      "status": "pending",
+      "note": "Independent instructor evidence is intentionally missing and now blocks any classroom-quality checkpoint claim."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01707-exact-package-proof-binding",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "Precomputed package proof is reusable only when its canonical scope and current app, grader, and texture policy bindings match the export being finalized.",
+      "anchors": [
+        "src/lib/packageZipExporter.js",
+        "src/lib/__tests__/packageZipExporter.test.js",
+        "src/lib/quality/graderVersion.js"
+      ],
+      "proofCommands": ["npx vitest run src/lib/__tests__/packageZipExporter.test.js"],
+      "proofScopes": ["unit", "compiled-output", "static-audit"]
+    },
+    {
+      "id": "v01707-readiness-evidence-disqualification",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Readiness ignores pipeline prose and internal sourceRef counts, preserves extraction traceability, and assigns extraction-only receipts no semantic-grounding credit.",
+      "anchors": [
+        "src/lib/quality/automatedReadinessSignal.js",
+        "src/lib/knowledge/claimEntailment.js",
+        "src/lib/knowledge/sourceLedger.js",
+        "src/lib/quality/__tests__/automatedReadinessSignal.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run src/lib/quality/__tests__/automatedReadinessSignal.test.js src/lib/knowledge/__tests__/claimEntailment.test.js src/lib/knowledge/__tests__/sourceLedger.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01707-no-semantic-substitution",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Repeated authored misconception shells and missing definitions remain detectable instead of being replaced with compiler-invented semantic claims.",
+      "anchors": [
+        "src/lib/courseBlueprintCompiler.js",
+        "src/lib/contentQualityChecks.js",
+        "src/lib/contentQualityRepair.js",
+        "src/lib/__tests__/courseBlueprintCompiler.test.js",
+        "src/lib/__tests__/contentQualityRepair.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run src/lib/__tests__/courseBlueprintCompiler.test.js src/lib/__tests__/contentQualityRepair.test.js"
+      ],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01707-reader-visible-regressions",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Reader-visible repetition, identity leakage, ambiguous DOCX headers, long titles, quiz explanation sameness, and bounded learner-copy defects are covered at their implementation owners.",
+      "anchors": [
+        "src/lib/quality/deepQualityGrader.js",
+        "src/lib/exporters/docxExporter.js",
+        "src/lib/courseBlueprintCompiler.js",
+        "src/lib/__tests__/bulkDocxExporter.test.js",
+        "src/lib/quality/__tests__/deepQualityStructure.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run src/lib/__tests__/bulkDocxExporter.test.js src/lib/quality/__tests__/deepQualityStructure.test.js src/lib/__tests__/quizConstructedDepthCompiler.test.js"
+      ],
+      "proofScopes": ["unit", "compiled-output", "doc"]
+    },
+    {
+      "id": "v01707-binding-independent-evidence-gates",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "Deep Proof treats independent instructor preflight and the strict Algi/Scion/hybrid evidence benchmark as blocking; missing benchmark evidence cannot exit green.",
+      "anchors": [
+        "scripts/deepProofQualityGate.mjs",
+        "scripts/algiScionHybridBenchmarkAudit.mjs",
+        "scripts/__tests__/algiScionHybridBenchmarkAudit.test.js",
+        "evaluation/algi/algi-scion-hybrid-benchmark-v1.json"
+      ],
+      "proofCommands": [
+        "npx vitest run scripts/__tests__/algiScionHybridBenchmarkAudit.test.js",
+        "node scripts/algiScionHybridBenchmarkAudit.mjs --strict"
+      ],
+      "proofScopes": ["unit", "static-audit", "manual-human"]
+    },
+    {
+      "id": "v01707-architecture-claim-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 5,
+      "summary": "The retained architecture audit documents proven Gemma defects, compiler and release-loop failures, unresolved causal attribution, and the explicit decision not to call this a classroom-quality checkpoint.",
+      "anchors": [
+        "docs/V0.17.07_OUTPUT_QUALITY_ARCHITECTURE_AUDIT.md",
+        "evaluation/scion-adapters/held-out-course-benchmark-v40.json",
+        "src/lib/currentRelease.js",
+        "release-contracts/v0.17.07.json"
+      ],
+      "proofCommands": ["npm run audit:release-history"],
+      "proofScopes": ["doc", "static-audit"]
+    }
+  ]
+}

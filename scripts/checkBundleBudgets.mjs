@@ -29,9 +29,9 @@ const budgets = {
 // caught an unaccounted increase, and the fix is to re-freeze at the released
 // state, not to widen the allowance. Every future release must do the same.
 const repositoryBudgets = {
-  // v0.17.06 advances the frozen state through the shipped v0.17.05 contract;
-  // its own v0.17.06 contract consumes the single declared-release allowance.
-  baselineVersion: '0.17.05',
+  // v0.17.07 advances the frozen state through the shipped v0.17.06 contract;
+  // its own v0.17.07 contract consumes the single declared-release allowance.
+  baselineVersion: '0.17.06',
   // v0.16.82 adds 29 net lines of reusable compiler control logic for
   // policy-domain separation and concept-owned evidence binding. Source-
   // statement copy and prerequisite selection moved to a cacheable leaf; the
@@ -91,9 +91,9 @@ const repositoryBudgets = {
   // It reuses the cross-package audit implementation rather than introducing
   // another runner.
   npmScripts: 386,
-  // v0.17.05 shipped 291 tracked release-ledger files (contracts plus the
-  // directory README); v0.17.06 may add exactly one current-release contract.
-  releaseContractFiles: 291,
+  // v0.17.06 shipped 292 tracked release-ledger files (contracts plus the
+  // directory README); v0.17.07 may add exactly one current-release contract.
+  releaseContractFiles: 292,
   trackedWeightFiles: 62,
   trackedWeightBytes: 1_053_339_981,
   largeBinaryBytes: 1024 * 1024,
@@ -422,6 +422,9 @@ const lazyChunkBudgets = [
   // compiler remains under its shipped chunk ceiling; the final learner-copy
   // guard measures 7.9/3.2 KiB and retains narrow platform-variance headroom.
   { prefix: 'compilerEvidenceCopy-', rawKiB: 8, gzipKiB: 3.3 },
+  // Cross-artifact repetition analysis is grader-only and independently
+  // cacheable from the quality controller.
+  { prefix: 'repeatedInstructionalPhrase-', rawKiB: 5, gzipKiB: 2 },
   // v0.16.73 learner-visible not-applicable states measured 163.8/35.2.
   // The editable activity briefing remains isolated from the main view.
   { prefix: 'DeliverableView-', rawKiB: 170, gzipKiB: 36.5 },
@@ -518,6 +521,7 @@ const forbiddenInitialChunks = [
   /compilerRubricCopy/i,
   /compilerComparativeRubricBands/i,
   /compilerPolish/i,
+  /repeatedInstructionalPhrase/i,
   /compilerExperientialActivity/i,
   /compilerFactLedgerVisuals/i,
   /webllm/i,

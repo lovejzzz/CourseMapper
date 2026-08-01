@@ -736,7 +736,16 @@ function addConceptMapGroup(pptx, slide, theme, plan, tracker) {
   }
 
   for (const spoke of spokes) {
-    const spokeSize = autoFitFontSize(spoke.text, spoke.w - 0.3, spokeH - 0.25, FONT_BODY, 11, 8, 1.15);
+    // LibreOffice can split the final letter from an otherwise unbroken
+    // 11+ character label even when the rough line-width estimate fits.
+    // Start those tokens smaller so words such as "Conformance" stay whole.
+    const longestToken = Math.max(
+      ...String(spoke.text)
+        .split(/\s+/)
+        .map((token) => token.length),
+    );
+    const spokeMaxSize = longestToken >= 11 ? 9 : 11;
+    const spokeSize = autoFitFontSize(spoke.text, spoke.w - 0.3, spokeH - 0.25, FONT_BODY, spokeMaxSize, 8, 1.15);
     slide.addText(spoke.text, {
       shape: pptx.ShapeType.ellipse,
       x: spoke.x,
@@ -1901,9 +1910,10 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
         // trailing newline creates a second visual line inside that paragraph
         // in PowerPoint/LibreOffice and was the actual source of the footer
         // collision found by rendered-package QA.
-        text: b,
+        // Use a font-safe literal marker. LibreOffice can omit DrawingML
+        // buChar and checkmark glyphs on short single-line siblings.
+        text: `— ${b}`,
         options: {
-          bullet: { code: '2714' },
           fontSize: summaryFontSize,
           color: 'D0E8FF',
           breakLine: true,

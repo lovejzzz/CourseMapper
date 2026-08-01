@@ -101,6 +101,9 @@ describe('buildDeliverableDocxBlob', () => {
 
     const xml = await docxDocumentXml(blob);
     expect(xml.match(/<w:tblHeader\/>/g)?.length || 0).toBeGreaterThanOrEqual(2);
+    expect(xml).toContain('Course detail');
+    expect(xml).not.toContain('>Field<');
+    expect(xml).not.toContain('>Details<');
     expect(xml).toContain('<w:cantSplit/>');
     expect(xml).toContain('The Week 1 assignment; Final source memo');
     expect(xml).not.toContain('assignment.;');

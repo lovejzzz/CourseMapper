@@ -29,14 +29,25 @@ function conformance(score = 99) {
   };
 }
 
-function sourceRow(index) {
+function sourceRow(index, { receipt = true } = {}) {
   return {
     id: `source-${index}`,
     title: `Urban heat evidence ${index}`,
     provider: 'wikipedia',
     url: `https://en.wikipedia.org/wiki/Urban_heat_island?source=${index}`,
     license: 'CC BY-SA 4.0',
+    sessionRefs: [`s${index}`],
     conceptLinks: [{ id: `lesson-${index}`, label: TITLES[index - 1] }],
+    ...(receipt
+      ? {
+          supportReceipt: {
+            status: 'passed',
+            checkedClaims: 4,
+            minimumScore: 0.9,
+            method: 'deterministic-lexical-v1',
+          },
+        }
+      : {}),
   };
 }
 
@@ -67,7 +78,7 @@ describe('automated readiness signal', () => {
     expect(result.components.evidenceGrounding.score).toBe(0);
   });
 
-  it('rates exact but one-source Scion output as bounded evidence, not 99/A quality', () => {
+  it('does not award semantic grounding credit to one extraction-only source receipt', () => {
     const result = computeAutomatedReadinessSignal({
       manifest: {
         pipeline: {
@@ -82,14 +93,14 @@ describe('automated readiness signal', () => {
       texture: { score: 96 },
     });
 
-    expect(result.score).toBeGreaterThanOrEqual(55);
-    expect(result.score).toBeLessThanOrEqual(63);
+    expect(result.score).toBeGreaterThanOrEqual(45);
+    expect(result.score).toBeLessThanOrEqual(52);
     expect(result.band).toBe('bounded-review');
-    expect(result.components.evidenceGrounding.score).toBeLessThan(60);
+    expect(result.components.evidenceGrounding.score).toBe(0);
     expect(result.claimBoundary).toMatch(/cannot prove/i);
   });
 
-  it('lets an exact, source-rich package approach but never exceed the automated ceiling', () => {
+  it('gives extraction receipts zero semantic grounding credit even for a source-rich package', () => {
     const result = computeAutomatedReadinessSignal({
       manifest: {
         pipeline: {
@@ -113,11 +124,18 @@ describe('automated readiness signal', () => {
       texture: { score: 96 },
     });
 
-    expect(result.score).toBeGreaterThanOrEqual(67);
+    expect(result.score).toBe(51);
     expect(result.score).toBeLessThanOrEqual(AUTOMATED_READINESS_CEILING);
     expect(result.maxScore).toBe(100);
     expect(result.evidenceCeiling).toBe(AUTOMATED_READINESS_CEILING);
-    expect(result.rawScore).toBeGreaterThan(95);
+    expect(result.rawScore).toBe(74);
+    expect(result.components.evidenceGrounding.score).toBe(0);
+    expect(result.components.evidenceGrounding.evidence).toMatchObject({
+      construct: 'source-extraction-traceability',
+      downstreamClaimSupport: false,
+      scoreEligible: false,
+      disqualificationReason: 'rendered-claim-semantic-support-not-validated',
+    });
   });
 
   it('does not promote review-only structural refs when one unrelated trusted row exists', () => {
@@ -126,7 +144,7 @@ describe('automated readiness signal', () => {
         pipeline: {
           enrichmentModelStage: 'knowledge kernels admitted 5/5 lessons',
         },
-        sourceLedger: [sourceRow(1)],
+        sourceLedger: [sourceRow(1, { receipt: false })],
         sourceReport: {
           sourceRefCoverage: {
             totals: { total: 8, withRefs: 8, missing: 0, danglingRefs: 0 },
@@ -144,7 +162,7 @@ describe('automated readiness signal', () => {
     });
 
     expect(result.components.evidenceGrounding.evidence.groundingRatio).toBe(0);
-    expect(result.components.evidenceGrounding.score).toBeLessThan(50);
+    expect(result.components.evidenceGrounding.score).toBe(0);
   });
 
   it('does not recover grounding points from prose when bridged coverage has no trusted proof', () => {
@@ -154,7 +172,7 @@ describe('automated readiness signal', () => {
           enrichmentModelStage: 'knowledge kernels admitted 5/5 lessons',
           groundingMetrics: 'overall grounded fraction: 100%',
         },
-        sourceLedger: [sourceRow(1)],
+        sourceLedger: [sourceRow(1, { receipt: false })],
         sourceReport: {
           sourceRefCoverage: {
             bridge: {
@@ -172,6 +190,6 @@ describe('automated readiness signal', () => {
 
     expect(result.components.evidenceGrounding.evidence.groundingRatio).toBe(0);
     expect(result.components.evidenceGrounding.evidence.sourceCoverageRetained).toBe(false);
-    expect(result.components.evidenceGrounding.score).toBe(42);
+    expect(result.components.evidenceGrounding.score).toBe(0);
   });
 });

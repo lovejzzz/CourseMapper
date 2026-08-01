@@ -57,31 +57,68 @@ export function evaluateClaimEntailment({ claim = '', passage = '', minimumScore
   const normalizedClaim = normalizedText(claim);
   const normalizedPassage = normalizedText(passage);
   if (!normalizedClaim || !normalizedPassage) {
-    return { entailed: false, score: 0, reason: 'empty-claim-or-passage', method: 'deterministic-lexical-v1' };
+    return {
+      entailed: false,
+      semanticSupport: false,
+      score: 0,
+      reason: 'empty-claim-or-passage',
+      method: 'deterministic-lexical-v1',
+      construct: 'lexical-extraction-integrity',
+    };
   }
   if (normalizedPassage.includes(normalizedClaim)) {
-    return { entailed: true, score: 1, reason: 'verbatim-support', method: 'deterministic-lexical-v1' };
+    return {
+      entailed: true,
+      semanticSupport: false,
+      score: 1,
+      reason: 'verbatim-support',
+      method: 'deterministic-lexical-v1',
+      construct: 'lexical-extraction-integrity',
+    };
   }
   if (NEGATION.test(claim) !== NEGATION.test(passage)) {
-    return { entailed: false, score: 0, reason: 'negation-mismatch', method: 'deterministic-lexical-v1' };
+    return {
+      entailed: false,
+      semanticSupport: false,
+      score: 0,
+      reason: 'negation-mismatch',
+      method: 'deterministic-lexical-v1',
+      construct: 'lexical-extraction-integrity',
+    };
   }
   const claimNumbers = [...String(claim).matchAll(NUMBER)].map((match) => match[0]);
   const passageNumbers = new Set([...String(passage).matchAll(NUMBER)].map((match) => match[0]));
   if (claimNumbers.some((number) => !passageNumbers.has(number))) {
-    return { entailed: false, score: 0, reason: 'number-mismatch', method: 'deterministic-lexical-v1' };
+    return {
+      entailed: false,
+      semanticSupport: false,
+      score: 0,
+      reason: 'number-mismatch',
+      method: 'deterministic-lexical-v1',
+      construct: 'lexical-extraction-integrity',
+    };
   }
   const claimTokens = [...new Set(supportTokens(claim))];
   const passageTokens = new Set(supportTokens(passage));
   if (claimTokens.length < 3) {
-    return { entailed: false, score: 0, reason: 'claim-too-thin', method: 'deterministic-lexical-v1' };
+    return {
+      entailed: false,
+      semanticSupport: false,
+      score: 0,
+      reason: 'claim-too-thin',
+      method: 'deterministic-lexical-v1',
+      construct: 'lexical-extraction-integrity',
+    };
   }
   const overlap = claimTokens.filter((token) => passageTokens.has(token)).length;
   const score = overlap / claimTokens.length;
   return {
     entailed: score >= minimumScore,
+    semanticSupport: false,
     score: Number(score.toFixed(3)),
     reason: score >= minimumScore ? 'lexical-support' : 'insufficient-support',
     method: 'deterministic-lexical-v1',
+    construct: 'lexical-extraction-integrity',
   };
 }
 
@@ -99,6 +136,8 @@ export function evaluateKernelEntailment(kernel = {}, sources = {}) {
     const quoteInSnapshot = Boolean(sourceText && quote && normalizedText(sourceText).includes(normalizedText(quote)));
     const claimCheck = evaluateClaimEntailment({ claim: entry.text, passage: quote });
     return {
+      claim: String(entry.text),
+      quote,
       sourceId: String(entry.anchor.src),
       locator: String(entry.anchor.loc || ''),
       quoteInSnapshot,
@@ -112,6 +151,8 @@ export function evaluateKernelEntailment(kernel = {}, sources = {}) {
     checkedClaims: checks.length,
     minimumScore: checks.length > 0 ? Math.min(...checks.map((check) => Number(check.score) || 0)) : 0,
     method: 'deterministic-lexical-v1',
+    construct: 'source-extraction-integrity',
+    semanticSupport: false,
     checks,
   };
 }
@@ -131,6 +172,12 @@ export function attachKernelEntailmentReceipt(kernel = {}, sources = {}) {
           checkedClaims: entailment.checkedClaims,
           minimumScore: entailment.minimumScore,
           method: entailment.method,
+          construct: 'source-extraction-integrity',
+          semanticSupport: false,
+          readinessEligible: false,
+          claimBoundary:
+            'This receipt proves that extracted kernel text remains attached to its recorded source passage; it does not validate downstream paraphrases or teaching claims.',
+          checks: entailment.checks.map((check) => ({ ...check })),
         },
       },
     },

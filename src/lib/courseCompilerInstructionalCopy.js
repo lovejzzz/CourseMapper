@@ -42,7 +42,7 @@ export function kernelSlideEvidenceDiscussionCopy({ lessonNumber, slideIndex = 0
 
 export function shortAnswerSampleCopy({ lessonNumber, lessonFocus, concept, sourceCue, artifact, decisionNoun }) {
   return selectVariant(lessonNumber, [
-    `For ${lessonFocus}, I would select ${concept}. One exact source detail from ${sourceCue} supports my proposed change to ${artifact}. It supports the ${decisionNoun}, but does not establish a broader conclusion. I would inspect one more source before extending the claim.`,
+    `For ${lessonFocus}, a strong response selects ${concept}, quotes or accurately paraphrases one specific detail from ${sourceCue}, and explains how that detail changes ${artifact}. The evidence should support the ${decisionNoun} without claiming a broader conclusion, and the response should name one more source to inspect before extending the claim.`,
     `I would apply ${concept} to ${artifact} because a specific observation in ${sourceCue} points to the proposed ${decisionNoun}. That observation is useful in this context, but it cannot show that the same pattern holds elsewhere. I would compare it with an independent source before generalizing.`,
     `My ${artifact} choice would use ${concept} and cite a concrete detail from ${sourceCue}. The detail warrants this ${decisionNoun} under the conditions shown; it does not prove a universal rule. The next step is to check whether another source shows the same pattern.`,
     `A defensible response connects ${concept} to one inspectable clue in ${sourceCue}, then uses that clue to revise ${artifact}. The clue narrows the immediate ${decisionNoun}, but evidence beyond this case is still missing. I would seek a contrasting example before widening the claim.`,

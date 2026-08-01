@@ -29,6 +29,8 @@ const PHRASE_REPAIR_LIMIT = 10;
 const DUPLICATED_STUDENT_SUBJECT_RE = /\bstudents?\s+may\s+assume\s+students?\s+(?:often\s+)?/gi;
 const MALFORMED_CONCEPT_DETAIL_RE =
   /\ba\s+(?:solid|strong|clear|specific)\s+([^.!?]{1,80}\b(?:principles|criteria|standards|guidelines|requirements)\b[^.!?]{0,30})\s+detail\b/gi;
+const PROCEDURAL_TERM_DEFINITION_RE =
+  /(?:names the evidence focus|is the part of the lesson students must apply|as a self-check|helps students separate description from|helps students choose relevant evidence)/i;
 const ASSIGNMENT_DEFERRAL_REPAIRS = [
   [
     /(?:use|follow|submit in|organize (?:the|your) [^.!?]{1,50}? in) the submission format (?:listed|specified|named) (?:for|in) [^.!?]+/gi,
@@ -66,6 +68,7 @@ export const MECHANICAL_FINDING_CODES = [
   'leading-colon-label',
   'period-before-comma',
   'dangling-clause',
+  'procedural-term-definition',
 ];
 
 function repairPeriodBeforeComma(value) {
@@ -159,6 +162,18 @@ function repairNode(node, stats, featureId) {
     return changed ? next : node;
   }
   if (node && typeof node === 'object') {
+    if (
+      featureId === 'studyGuides' &&
+      typeof node.term === 'string' &&
+      typeof node.definition === 'string' &&
+      PROCEDURAL_TERM_DEFINITION_RE.test(node.definition)
+    ) {
+      stats.repairedStrings += 1;
+      return {
+        ...node,
+        definition: `The course map names ${node.term} but does not supply a disciplinary definition. Add an instructor-approved, source-backed definition before publishing.`,
+      };
+    }
     let changed = false;
     const next = {};
     for (const [key, value] of Object.entries(node)) {

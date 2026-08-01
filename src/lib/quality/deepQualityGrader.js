@@ -103,6 +103,7 @@ import {
 import { normalizeLessonSpecificTokens } from './semanticSkeletonMask.js';
 import { findInstructorConfigurationDeferrals } from '../publishabilityPlaceholders.js';
 import { GRADER_VERSION } from './graderVersion.js';
+import { addRepeatedInstructionalPhraseFinding } from './repeatedInstructionalPhrase.js';
 
 // v0.14.3 WS-A A3: the grader version stamped into manifest.quality. Bump on
 // any change to checks, weights, or severity penalties so a package's quality
@@ -3540,7 +3541,7 @@ function checkDeckVisuals(findings, { files }) {
   }
 }
 
-function checkFormat(findings, { files }) {
+function checkFormat(findings, { files, manifest }) {
   const TEXT_TABLES = [
     ...ARTIFACT_PATTERNS,
     ...JSON_SYNTAX_PATTERNS,
@@ -3712,6 +3713,11 @@ function checkFormat(findings, { files }) {
       });
     }
   }
+
+  addRepeatedInstructionalPhraseFinding(findings, files, manifest, {
+    documentLessonTitle: inferDocumentLessonTitle,
+    lessonTitleFromPath,
+  });
 }
 
 function checkTextureFindings(findings, texture) {

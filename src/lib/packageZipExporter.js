@@ -20,6 +20,7 @@ import { SCION_BROWSER_GEMMA4_GGUF } from './scionBrowserConstants.js';
 import { resolveScionLiteratureSourceProfiles } from './scionLiteratureKnowledge.js';
 import { isAlgiModel } from './algiIdentity.js';
 import { GRADER_VERSION } from './quality/graderVersion.js';
+import { TEXTURE_VERSION } from './quality/textureMetric.js';
 
 const MIN_EXPORT_BYTES = 128;
 // A full package pass assembles the same DOCX/PPTX/XLSX payload that users
@@ -61,6 +62,96 @@ const SPLIT_BY_LESSON_FEATURES = new Set([
   'courseFaq',
 ]);
 const PACKAGE_MANIFEST_VERSION = 2;
+const PACKAGE_QUALITY_SCOPE_ALGORITHM = 'sha256-canonical-package-input-v1';
+
+function stableQualityStringify(value, seen = new WeakSet()) {
+  if (value === null || typeof value !== 'object') return JSON.stringify(value) ?? 'null';
+  if (seen.has(value)) return '"[Circular]"';
+  seen.add(value);
+  if (Array.isArray(value)) {
+    const serialized = `[${value.map((item) => stableQualityStringify(item, seen)).join(',')}]`;
+    seen.delete(value);
+    return serialized;
+  }
+  const serialized = `{${Object.keys(value)
+    .filter((key) => value[key] !== undefined && typeof value[key] !== 'function')
+    .sort()
+    .map((key) => `${JSON.stringify(key)}:${stableQualityStringify(value[key], seen)}`)
+    .join(',')}}`;
+  seen.delete(value);
+  return serialized;
+}
+
+async function sha256QualityText(value) {
+  const bytes = new TextEncoder().encode(value);
+  const digest = await globalThis.crypto.subtle.digest(
+    'SHA-256',
+    bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength),
+  );
+  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
+}
+
+async function buildPackageQualityScopeBinding({
+  courseMap,
+  deliverables,
+  columns,
+  lessonFilter,
+  slideTheme,
+  requestedFeatureIds,
+  lessonNumbers,
+  pipelineState,
+  courseGraph,
+  effectiveReadiness,
+  qualityOptions,
+}) {
+  const requestedDeliverableIds = requestedFeatureIds.filter((featureId) => featureId !== 'courseMap');
+  const scopedDeliverables = Object.fromEntries(
+    requestedDeliverableIds.map((featureId) => {
+      const entry = deliverables?.[featureId] || null;
+      return [
+        featureId,
+        entry
+          ? {
+              status: entry.status || null,
+              data: scopeDeliverableDataToLessons(featureId, entry.data, lessonFilter, courseMap),
+            }
+          : null,
+      ];
+    }),
+  );
+  const payload = {
+    algorithm: PACKAGE_QUALITY_SCOPE_ALGORITHM,
+    appVersion: APP_VERSION,
+    graderVersion: GRADER_VERSION,
+    textureVersion: TEXTURE_VERSION,
+    requestedFeatureIds,
+    lessonNumbers,
+    lessonFilter: Array.isArray(lessonFilter) ? [...lessonFilter] : null,
+    slideTheme,
+    courseMap: scopeCourseMapToLessons(courseMap, lessonFilter),
+    deliverables: scopedDeliverables,
+    columns,
+    pipelineState,
+    courseGraph,
+    readiness: effectiveReadiness,
+    qualityInputs: {
+      budget: qualityOptions?.budget || null,
+      digest: qualityOptions?.digest || null,
+      courseId: qualityOptions?.courseId || '',
+      coursePrompt: qualityOptions?.coursePrompt || '',
+      expectedSessionMinutes: qualityOptions?.expectedSessionMinutes || null,
+    },
+  };
+  return {
+    algorithm: PACKAGE_QUALITY_SCOPE_ALGORITHM,
+    sha256: await sha256QualityText(stableQualityStringify(payload)),
+    appVersion: APP_VERSION,
+    graderVersion: GRADER_VERSION,
+    textureVersion: TEXTURE_VERSION,
+    featureIds: requestedFeatureIds.map(publicFeatureId),
+    lessonNumbers: [...lessonNumbers],
+  };
+}
 
 function isScionRunDigest(digest) {
   const provider = String(digest?.run?.provider || '').trim();
@@ -297,6 +388,7 @@ function normalizePrecomputedPackageQuality(quality) {
     findingCounts,
     dimensions,
     gradedAt: quality.gradedAt || new Date().toISOString(),
+    ...(quality.scopeBinding ? { scopeBinding: quality.scopeBinding } : {}),
     ...(readiness ? { readiness } : {}),
     ...(texture ? { texture } : {}),
   };
@@ -352,6 +444,21 @@ function precomputedQualityMissesReadiness(precomputed, readiness) {
 
 function precomputedQualityMissesCurrentGrader(precomputed) {
   return precomputed?.block?.graderVersion !== GRADER_VERSION;
+}
+
+function precomputedQualityMissesCurrentTexture(precomputed) {
+  return precomputed?.block?.texture?.version !== TEXTURE_VERSION;
+}
+
+function precomputedQualityMissesScope(precomputed, scopeBinding) {
+  const prior = precomputed?.block?.scopeBinding;
+  return (
+    !prior ||
+    prior.algorithm !== scopeBinding?.algorithm ||
+    prior.sha256 !== scopeBinding?.sha256 ||
+    prior.graderVersion !== scopeBinding?.graderVersion ||
+    prior.textureVersion !== scopeBinding?.textureVersion
+  );
 }
 
 function renderPrecomputedQualityReport(precomputed, { courseTitle = 'Course' } = {}) {
@@ -2119,6 +2226,19 @@ export async function buildCourseMaterialsZip({
   const failures = [];
   const qualityOptions = quality && typeof quality === 'object' ? quality : {};
   const effectiveReadiness = buildEffectiveReadiness(readiness, pipelineState, qualityOptions.digest || null);
+  const qualityScopeBinding = await buildPackageQualityScopeBinding({
+    courseMap,
+    deliverables,
+    columns,
+    lessonFilter,
+    slideTheme,
+    requestedFeatureIds,
+    lessonNumbers,
+    pipelineState,
+    courseGraph,
+    effectiveReadiness,
+    qualityOptions,
+  });
   // v0.14.3 A1/A2: the in-memory file map (path → string | ArrayBuffer) the
   // grader reads through createMemoryFileProvider — the same bytes the zip
   // receives, captured at assembly time.
@@ -2525,6 +2645,8 @@ export async function buildCourseMaterialsZip({
     if (
       precomputedQuality &&
       !precomputedQualityMissesCurrentGrader(precomputedQuality) &&
+      !precomputedQualityMissesCurrentTexture(precomputedQuality) &&
+      !precomputedQualityMissesScope(precomputedQuality, qualityScopeBinding) &&
       !precomputedQualityMissesReadiness(precomputedQuality, effectiveReadiness) &&
       !precomputedQualityReferencesMissingPackageFiles(precomputedQuality, {
         ...fileContents,
@@ -2601,6 +2723,7 @@ export async function buildCourseMaterialsZip({
             findingCounts: { p0: qualityResult.stats.p0, p1: qualityResult.stats.p1, p2: qualityResult.stats.p2 },
             dimensions: qualityResult.scores,
             gradedAt: new Date().toISOString(),
+            scopeBinding: qualityScopeBinding,
             ...(qualityResult.readiness ? { readiness: qualityResult.readiness } : {}),
             // v0.15.6: the score-bearing texture meter rides the manifest
             // and the in-app Seal; the full evidence stays in QUALITY_REPORT.md.
@@ -2671,6 +2794,7 @@ export async function buildCourseMaterialsZip({
       quality: qualityBlock,
       qualityResult,
       qualityReportMarkdown,
+      qualityScopeBinding,
       // v0.15.187 Project Prof: assemble-only callers (headless harnesses)
       // get the in-memory file map so they can run the grader's own
       // extraction over the REAL export binaries — the Artifact Bridge.
@@ -2695,6 +2819,7 @@ export async function buildCourseMaterialsZip({
     quality: qualityBlock,
     qualityResult,
     qualityReportMarkdown,
+    qualityScopeBinding,
   };
 }
 

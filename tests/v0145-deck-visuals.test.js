@@ -495,7 +495,7 @@ const RENDER_FIXTURE = {
               'Flow velocity',
               'Stage height',
               'Gauging station flood record',
-              'Flood recurrence',
+              'Conformance',
             ],
           },
         },
@@ -582,6 +582,7 @@ describe('C1/C2 — native rendering through the real exporter', () => {
     expect(xml).toContain('Stream discharge');
     expect(xml).toContain('Cross-section area');
     expect(xml).toContain('Gauging station flood record');
+    expect(xml).toMatch(/<a:rPr[^>]*\bsz="900"[^>]*>[\s\S]*?<a:t>Conformance<\/a:t>/);
   });
 
   it('keeps every cmViz shape inside the slide bounds (geometry from the XML)', () => {

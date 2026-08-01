@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import fs from 'node:fs';
 import { auditAlgiScionHybridBenchmark } from '../algiScionHybridBenchmarkAudit.mjs';
 
 describe('Algi → Scion frozen promotion benchmark', () => {
@@ -12,5 +13,13 @@ describe('Algi → Scion frozen promotion benchmark', () => {
       blockers: ['paired-evidence-not-recorded'],
     });
     expect(report.claimBoundary).toContain('not a result');
+  });
+
+  it('makes missing paired evidence fail the normal release command', () => {
+    const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+    const deepGate = fs.readFileSync('scripts/deepProofQualityGate.mjs', 'utf8');
+    expect(packageJson.scripts['audit:algi:hybrid']).toContain('--strict');
+    expect(deepGate).toContain("label: 'Grounded authoring benchmark evidence'");
+    expect(deepGate).toContain("args: ['run', 'audit:algi:hybrid']");
   });
 });

@@ -518,6 +518,42 @@ export function normalizeTrustedSource(entry = {}, { fallbackId = '', checkedAt 
   const sessionRefs = [
     ...new Set((Array.isArray(entry.sessionRefs) ? entry.sessionRefs : []).map(normalizeSessionRef).filter(Boolean)),
   ];
+  const rawSupportReceipt = entry?.supportReceipt;
+  const supportReceipt =
+    rawSupportReceipt?.status === 'passed' &&
+    Number.isFinite(Number(rawSupportReceipt.checkedClaims)) &&
+    Number(rawSupportReceipt.checkedClaims) > 0 &&
+    Number.isFinite(Number(rawSupportReceipt.minimumScore))
+      ? {
+          status: 'passed',
+          checkedClaims: Math.max(1, Math.floor(Number(rawSupportReceipt.checkedClaims))),
+          minimumScore: Math.max(0, Math.min(1, Number(rawSupportReceipt.minimumScore))),
+          method: cleanText(rawSupportReceipt.method || 'source-anchor', 80),
+          construct: cleanText(rawSupportReceipt.construct || 'source-extraction-integrity', 80),
+          semanticSupport: rawSupportReceipt.semanticSupport === true,
+          readinessEligible: rawSupportReceipt.readinessEligible === true,
+          claimBoundary: cleanText(
+            rawSupportReceipt.claimBoundary ||
+              'This receipt proves source extraction integrity, not support for downstream teaching claims.',
+            240,
+          ),
+          checks: (Array.isArray(rawSupportReceipt.checks) ? rawSupportReceipt.checks : [])
+            .slice(0, 16)
+            .map((check) => ({
+              claim: cleanText(check?.claim, 400),
+              quote: cleanText(check?.quote, 500),
+              sourceId: cleanText(check?.sourceId, 160),
+              locator: cleanText(check?.locator, 200),
+              quoteInSnapshot: check?.quoteInSnapshot === true,
+              entailed: check?.entailed === true,
+              score: Math.max(0, Math.min(1, Number(check?.score) || 0)),
+              reason: cleanText(check?.reason, 80),
+              method: cleanText(check?.method, 80),
+              construct: cleanText(check?.construct || 'lexical-extraction-integrity', 80),
+              semanticSupport: check?.semanticSupport === true,
+            })),
+        }
+      : null;
   const source = {
     id: sourceId(entry, fallbackId, 0),
     title,
@@ -538,6 +574,7 @@ export function normalizeTrustedSource(entry = {}, { fallbackId = '', checkedAt 
       : {}),
     ...(cleanText(entry.revisionTimestamp, 100) ? { revisionTimestamp: cleanText(entry.revisionTimestamp, 100) } : {}),
     ...(sessionRefs.length > 0 ? { sessionRefs } : {}),
+    ...(supportReceipt ? { supportReceipt } : {}),
     conceptLinks: normalizeConceptLinks([...(conceptLinks || []), ...(entry.conceptLinks || [])]),
     checkedAt: cleanText(entry.checkedAt || checkedAt, 80),
     accessStatus: isSourceAccessible({ url, doi }) ? 'reference-present' : 'no-url-or-doi',

@@ -1115,7 +1115,7 @@ describe('D1(3)+(4) — weight-0 invariance and the report row on a real package
   });
 
   it('keeps every pre-texture weight and gives texture a score-bearing weight that can cost the A band', () => {
-    expect(GRADER_VERSION).toBe('1.12.0');
+    expect(GRADER_VERSION).toBe('1.14.0');
     expect(DIMENSION_WEIGHTS).toEqual({
       identity: 20,
       substance: 20,
@@ -1183,7 +1183,7 @@ describe('D1(3)+(4) — weight-0 invariance and the report row on a real package
       Object.fromEntries(
         result.texture.visibleUnitPolicy.families.map((family) => [family.family, family.eligibleUnitCount]),
       ),
-    ).toEqual({ lessonPlans: 70, assignments: 134, rubrics: 84 });
+    ).toEqual({ lessonPlans: 66, assignments: 134, rubrics: 84 });
     expect(result.texture.score).toBe(
       Math.max(0, result.texture.baseScore - result.texture.visibleUnitPolicy.scorePenalty),
     );

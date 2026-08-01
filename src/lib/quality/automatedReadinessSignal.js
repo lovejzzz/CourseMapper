@@ -69,38 +69,31 @@ function topicAlignment(expected, actual) {
   return overlap / expectedTokens.length;
 }
 
-function flattenText(value, output = []) {
-  if (typeof value === 'string') output.push(value);
-  else if (Array.isArray(value)) value.forEach((item) => flattenText(item, output));
-  else if (value && typeof value === 'object') Object.values(value).forEach((item) => flattenText(item, output));
-  return output;
-}
-
-function parseFraction(text, patterns) {
-  for (const pattern of patterns) {
-    const match = pattern.exec(text);
-    if (!match) continue;
-    const numerator = Number(match[1]);
-    const denominator = Number(match[2]);
-    if (Number.isFinite(numerator) && Number.isFinite(denominator) && denominator > 0) {
-      return { numerator, denominator, ratio: clamp(numerator / denominator, 0, 1) };
-    }
+function passedSupportReceipt(row = {}) {
+  const receipt = row?.supportReceipt;
+  const checkedClaims = Number(receipt?.checkedClaims);
+  const minimumScore = Number(receipt?.minimumScore);
+  if (
+    receipt?.status !== 'passed' ||
+    !Number.isFinite(checkedClaims) ||
+    checkedClaims < 1 ||
+    !Number.isFinite(minimumScore) ||
+    minimumScore < 0.78
+  ) {
+    return null;
   }
-  return null;
+  return { checkedClaims, minimumScore: clamp(minimumScore, 0, 1), method: String(receipt.method || '') };
 }
 
-function sourceCoverageRatio(manifest) {
-  const coverage = manifest?.courseIR?.sourceRefCoverage || manifest?.sourceReport?.sourceRefCoverage;
-  if (!coverage || typeof coverage !== 'object') return null;
-  const trustedCoverage = coverage.trusted;
-  const total = Number(trustedCoverage?.totals?.total);
-  const withRefs = Number(trustedCoverage?.totals?.withRefs);
-  return Number(trustedCoverage?.sourceLedgerRows) > 0 &&
-    Number.isFinite(total) &&
-    total > 0 &&
-    Number.isFinite(withRefs)
-    ? clamp(withRefs / total, 0, 1)
-    : null;
+function lessonNumbersForSource(row = {}) {
+  const values = [...(Array.isArray(row?.sessionRefs) ? row.sessionRefs : []), ...(row?.conceptLinks || [])];
+  const lessons = new Set();
+  for (const value of values) {
+    const text = typeof value === 'string' ? value : `${value?.id || ''} ${value?.label || ''}`;
+    const match = String(text).match(/(?:lesson|session|^s)\s*[-:]?\s*(\d+)/i);
+    if (match) lessons.add(Number(match[1]));
+  }
+  return lessons;
 }
 
 function readinessBand(score) {
@@ -152,36 +145,51 @@ function curriculumFidelityScore(course, lessonTitles) {
 }
 
 function evidenceGroundingScore(manifest, lessonCount) {
-  const pipelineText = flattenText(manifest?.pipeline || {}).join(' ');
-  const kernelCoverage = parseFraction(pipelineText, [
-    /\bknowledge kernels? (?:admitted|covered|ready)\s+(\d+)\s*\/\s*(\d+)\b/i,
-    /\benrichment (?:ran|covered|ready)\s+(\d+)\s*\/\s*(\d+)\b/i,
-    /\b(\d+)\s*\/\s*(\d+)\s+(?:lesson|session) kernels?\b/i,
-  ]);
-  const coverageRatio = sourceCoverageRatio(manifest);
-  const trustedRows = (Array.isArray(manifest?.sourceLedger) ? manifest.sourceLedger : []).filter(
-    isTrustedConceptLinkedSourceLedgerRow,
-  );
+  // Traceability credit comes only from compact receipts produced by the
+  // claim-to-passage extraction boundary. Pipeline prose (for example,
+  // "knowledge kernels admitted 8/8") and internal sourceRef wiring are
+  // deliberately ignored: both can change while the exported lesson bytes
+  // remain identical. These receipts commonly prove only that an extracted
+  // sentence still matches its source snapshot. They are retained as a
+  // traceability diagnostic, but receive zero evidence-grounding credit until
+  // rendered instructional claims have independently validated semantic
+  // support. This avoids laundering extraction checks into a readiness gate.
+  const receiptRows = (Array.isArray(manifest?.sourceLedger) ? manifest.sourceLedger : [])
+    .filter(isTrustedConceptLinkedSourceLedgerRow)
+    .map((row) => ({ row, receipt: passedSupportReceipt(row) }))
+    .filter((entry) => entry.receipt);
+  const receiptBackedLessons = new Set();
+  for (const { row } of receiptRows) {
+    for (const lesson of lessonNumbersForSource(row)) receiptBackedLessons.add(lesson);
+  }
+  const lessonCoverageRatio =
+    lessonCount > 0 ? clamp(receiptBackedLessons.size / lessonCount, 0, 1) : receiptRows.length > 0 ? 1 : 0;
   const sourceDiversityRatio =
-    lessonCount > 0 ? clamp(trustedRows.length / lessonCount, 0, 1) : trustedRows.length > 0 ? 1 : 0;
-  const kernelRatio = kernelCoverage?.ratio || 0;
-  // Internal sourceRef coverage proves wiring, not external grounding. A
-  // package with zero trusted concept-linked sources must not turn 80/80
-  // self-references into a positive evidence score.
-  // Prose grounding percentages measure an enrichment-stage byte heuristic,
-  // not atom-to-source proof. Only trusted per-reference totals can award the
-  // grounding portion of readiness; missing or legacy coverage fails closed.
-  const groundedRatio = trustedRows.length > 0 ? (coverageRatio ?? 0) : 0;
+    lessonCount > 0 ? clamp(receiptRows.length / lessonCount, 0, 1) : receiptRows.length > 0 ? 1 : 0;
+  const supportQuality =
+    receiptRows.length > 0
+      ? receiptRows.reduce((sum, entry) => sum + entry.receipt.minimumScore, 0) / receiptRows.length
+      : 0;
+  const checkedClaims = receiptRows.reduce((sum, entry) => sum + entry.receipt.checkedClaims, 0);
 
   return {
-    score: rounded((kernelRatio * 0.35 + sourceDiversityRatio * 0.35 + groundedRatio * 0.3) * 100),
+    score: 0,
     evidence: {
-      kernelsCovered: kernelCoverage?.numerator ?? 0,
-      kernelsExpected: kernelCoverage?.denominator ?? lessonCount,
-      trustedConceptLinkedSources: trustedRows.length,
+      protocol: 'source-extraction-receipt-coverage-v1',
+      construct: 'source-extraction-traceability',
+      downstreamClaimSupport: false,
+      scoreEligible: false,
+      disqualificationReason: 'rendered-claim-semantic-support-not-validated',
+      kernelsCovered: receiptBackedLessons.size,
+      kernelsExpected: lessonCount,
+      receiptBackedLessons: receiptBackedLessons.size,
+      verifiedClaims: checkedClaims,
+      trustedConceptLinkedSources: receiptRows.length,
       lessons: lessonCount,
-      groundingRatio: Number(groundedRatio.toFixed(3)),
-      sourceCoverageRetained: coverageRatio !== null,
+      groundingRatio: Number(lessonCoverageRatio.toFixed(3)),
+      sourceDiversityRatio: Number(sourceDiversityRatio.toFixed(3)),
+      extractionSupportQuality: Number(supportQuality.toFixed(3)),
+      sourceCoverageRetained: receiptRows.length > 0,
     },
   };
 }

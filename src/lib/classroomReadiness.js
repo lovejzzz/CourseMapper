@@ -469,7 +469,10 @@ function addBoilerplateWarning(featureId, items, issues) {
 
   const minimumRepeatCount =
     featureId === 'rubrics' ? (items.length < 6 ? items.length : Math.max(6, Math.ceil(items.length * 0.7))) : 3;
-  const repeatRatio = featureId === 'rubrics' ? 0.7 : 0.4;
+  // On short packages, three shared sentences can be the legitimate common
+  // course protocol rather than a dominant template. Require four of five
+  // items before warning; larger packages keep the more sensitive 40% gate.
+  const repeatRatio = featureId === 'rubrics' || items.length <= 5 ? 0.7 : 0.4;
   const repeated = [...counts.entries()].find(
     ([, count]) => count >= minimumRepeatCount && count >= Math.ceil(items.length * repeatRatio),
   );

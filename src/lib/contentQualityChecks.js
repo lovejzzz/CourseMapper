@@ -27,6 +27,8 @@ const INSTRUCTOR_VOICE_RE = /\b(?:Ask students\b|Share the .{0,80}\bbefore stude
 const DUPLICATED_STUDENT_SUBJECT_RE = /\bstudents?\s+(?:may\s+assume|often\s+(?:assume|think|believe))\s+students?\b/i;
 const MALFORMED_CONCEPT_DETAIL_RE =
   /\ba\s+(?:solid|strong|clear|specific)\s+[^.!?]{0,80}\b(?:principles|criteria|standards|guidelines|requirements)\b[^.!?]{0,30}\bdetail\b/i;
+const MISSING_DISCIPLINARY_DEFINITION_RE =
+  /does not supply a disciplinary definition|source-backed disciplinary definition (?:is )?(?:needed|required)|add an instructor-approved, source-backed definition/i;
 
 function* walkStrings(node, path = '$') {
   if (typeof node === 'string') {
@@ -82,6 +84,9 @@ function checkSemanticDefinitions(findings, featureId, data) {
   for (const surface of keyTermSurfaceStrings(data)) {
     if (CIRCULAR_DEFINITION_RE.test(surface.text)) {
       pushFinding(findings, 'procedural-term-definition', 'studyGuides.keyTerms', surface.text);
+    }
+    if (MISSING_DISCIPLINARY_DEFINITION_RE.test(surface.text)) {
+      pushFinding(findings, 'missing-disciplinary-definition', 'studyGuides.keyTerms', surface.text);
     }
   }
 }

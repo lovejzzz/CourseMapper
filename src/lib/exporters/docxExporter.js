@@ -389,7 +389,10 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
   // v0.12.1: borderless two-column layout table for label/value blocks
   // (study-guide key terms, lesson-plan assessment and homework, FAQ
   // see-also) — real structure instead of glued label paragraphs.
-  const makeKeyValueTable = (pairs, { headers = ['Field', 'Details'] } = {}) => {
+  const makeKeyValueTable = (pairs, { headers } = {}) => {
+    if (!Array.isArray(headers) || headers.length !== 2 || headers.some((header) => !String(header || '').trim())) {
+      throw new Error('Key/value tables require two explicit semantic headers.');
+    }
     const headerRow = new TableRow({
       tableHeader: true,
       children: headers.map(
@@ -717,7 +720,9 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
             ['Type', p.formativeCheck.type],
             ['Aligns to', p.formativeCheck.objectiveAligned],
           ].filter(([, v]) => v);
-          if (fcPairs.length) children.push(makeKeyValueTable(fcPairs));
+          if (fcPairs.length) {
+            children.push(makeKeyValueTable(fcPairs, { headers: ['Assessment field', 'Lesson detail'] }));
+          }
           if (p.formativeCheck.prompt) children.push(makeItalic(`"${p.formativeCheck.prompt}"`));
           if (p.formativeCheck.instructorAction)
             children.push(makeItalic(`Instructor Action: ${p.formativeCheck.instructorAction}`));
@@ -1190,7 +1195,9 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
             ['Submission', fr.submissionPlatform],
             ['Late Policy', fr.latePolicy],
           ].filter(([, v]) => v);
-          if (frPairs.length) children.push(makeKeyValueTable(frPairs));
+          if (frPairs.length) {
+            children.push(makeKeyValueTable(frPairs, { headers: ['Requirement', 'Course expectation'] }));
+          }
         }
         if (a.deliverables?.length) {
           children.push(makeSubHeading('Deliverables'));
@@ -1425,7 +1432,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         ['Delivery', syl.deliveryMode],
         ['Prerequisites', syl.prerequisites],
       ].filter(([, v]) => v);
-      if (infoPairs.length) children.push(makeKeyValueTable(infoPairs));
+      if (infoPairs.length) children.push(makeKeyValueTable(infoPairs, { headers: ['Course detail', 'Value'] }));
       // Instructor info
       const instrPairs = [
         ['Instructor', syl.instructor],
@@ -1435,7 +1442,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
       ].filter(([, v]) => v);
       if (instrPairs.length) {
         children.push(makeHeading('Instructor Information'));
-        children.push(makeKeyValueTable(instrPairs));
+        children.push(makeKeyValueTable(instrPairs, { headers: ['Instructor detail', 'Value'] }));
       }
       if (syl.instructorBio) {
         children.push(makeSubHeading('Instructor Bio'));

@@ -41,6 +41,7 @@ import {
 } from './courseCompilerLensProfiles';
 import { buildTechnicalSessionSegments } from './courseCompilerTechnicalSessionPlans';
 import { finalizeCompiledDeliverableLanguage, shortArtifactReference } from './compiledLanguageFinalizer';
+import { compactLongArtifactMentionsInValue, compactLongArtifactTitle } from './artifactDisplayReference';
 import { getChunkCount } from './parallelGenerator';
 import { MAX_QUIZ_QUESTIONS_PER_LESSON, resolveQuizQuestionTarget } from './quizQuestionTarget';
 import { getCustomDeliverable } from './customDeliverableLibrary';
@@ -5730,23 +5731,17 @@ function lessonNeedsSparseReasoningFrame(lesson = {}) {
   );
 }
 
-// Repeated teaching prose should name the artifact, not recite a long lesson
-// title every time it mentions that artifact. Keep the canonical artifact on
-// the blueprint/export heading, but collapse an exact long-title prefix for
-// sentence-level references: "Tang Poetry using Li Bai and Du Fu
-// interpretive claim" becomes "interpretive claim". Short disciplinary
-// labels such as "Design research memo" remain intact.
 function compactLessonArtifactReference(lesson = {}, fallbackKind = 'artifact') {
   const artifact = safeLessonArtifact(lesson, fallbackKind);
   const focus = lessonFocusFallback(lesson);
-  if (courseCopySurfaceWords(focus).length < 4) return artifact;
+  if (courseCopySurfaceWords(focus).length < 4) return compactLongArtifactTitle(artifact);
   const remainder = stripTerminalPunctuation(
     artifact.replace(new RegExp(`^${escapeRegExpCompiler(focus)}(?:\\s*[:–—-]\\s*|\\s+)`, 'i'), ''),
   );
   if (!remainder || remainder.toLowerCase() === artifact.toLowerCase() || genericLessonPhrase(remainder)) {
-    return artifact;
+    return compactLongArtifactTitle(artifact);
   }
-  return remainder.replace(/^(?:an?|the)\s+/i, '');
+  return compactLongArtifactTitle(remainder.replace(/^(?:an?|the)\s+/i, ''));
 }
 
 function safeLessonConcepts(lesson = {}, { limit = 8 } = {}) {
@@ -5875,7 +5870,7 @@ function safeLessonPlanArtifact(lesson = {}, fallbackKind = 'artifact') {
 
 function safeLessonPlanProseArtifact(lesson = {}, fallbackKind = 'artifact') {
   if (lessonArtifactGenre(lesson) === 'lab') return weekScopedArtifactReference(lesson, 'lab analysis');
-  return safeLessonPlanArtifact(lesson, fallbackKind);
+  return compactLongArtifactTitle(safeLessonPlanArtifact(lesson, fallbackKind));
 }
 
 function safeLessonEvidenceCue(lesson = {}, lens = null) {
@@ -18781,24 +18776,23 @@ function generalTermGuide(term, lesson = {}, lens = {}, termIndex = 0) {
   const cleanTerm = cleanText(term, 'lesson concept');
   const lessonTitle = stripLessonPrefix(lesson.title || 'this lesson');
   const artifact = safeLessonArtifact(lesson);
-  const evidenceNoun = lens.evidenceNoun || 'source evidence';
   const decisionNoun = lens.decisionNoun || 'course decision';
   const sourceCue = safeLessonEvidenceCue(lesson, lens);
   const patterns = [
     {
-      definition: `${cleanTerm} names the evidence focus students use when deciding what counts as support for ${artifact}.`,
+      definition: `The course map names ${cleanTerm} but does not define it. Add an instructor-approved definition from ${sourceCue} before sharing this guide.`,
       example: `In ${lessonTitle}, students connect ${cleanTerm} to one detail from ${sourceCue} before explaining the ${decisionNoun}.`,
     },
     {
-      definition: `${cleanTerm} helps students separate description from evidence-backed reasoning in ${lessonTitle}.`,
+      definition: `No disciplinary definition for ${cleanTerm} was supplied. Confirm one against ${sourceCue} before students use this guide.`,
       example: `A strong ${artifact} response uses ${cleanTerm} to compare evidence, state a limitation, and choose the next step.`,
     },
     {
-      definition: `Use ${cleanTerm} as a self-check: the claim should name context, cite ${evidenceNoun}, and avoid overstatement.`,
+      definition: `${cleanTerm} needs a verified definition from ${sourceCue}; the current course map provides only the term.`,
       example: `During ${lessonTitle}, students test whether ${cleanTerm} changes the evidence they select for ${artifact}.`,
     },
     {
-      definition: `${cleanTerm} is the part of the lesson students must apply to the weekly artifact, not just define from memory.`,
+      definition: `Definition pending local review: verify ${cleanTerm} with ${sourceCue} before publication.`,
       example: `For ${artifact}, students show ${cleanTerm} by explaining why one evidence choice supports the ${decisionNoun}.`,
     },
   ];
@@ -19707,10 +19701,10 @@ function quizCorrectExplanation({ answer, concept, artifact, objective, lesson, 
     // confronts it explicitly.
     const corrective = cleanText(matchedTerm.correction || matchedTerm.corrective || '');
     const misconceptionClause = cleanText(matchedTerm.misconception)
-      ? ` A common wrong turn: ${lowercaseSentenceLead(stripTerminalPunctuation(matchedTerm.misconception))} — ${
+      ? ` A common wrong turn is to assume ${lowercaseSentenceLead(stripTerminalPunctuation(matchedTerm.misconception))}; ${
           corrective
             ? lowercaseSentenceLead(stripTerminalPunctuation(corrective))
-            : `the definition above is why that fails`
+            : 'the definition above is why that fails'
         }.`
       : '';
     return `${answer} is correct: ${joinTermDefinition(matchedTerm.term, matchedTerm.definition, {
@@ -19763,7 +19757,7 @@ function buildMultipleChoiceOptions({ lesson, index, concept, artifact, use, cor
       `Average the group's opinions about ${concept} rather than weighing what ${sourceCue} shows.`,
       `Quote ${sourceCue} at length without explaining what it changes for ${artifact}.`,
       `Rely on the single strongest number in ${sourceCue} and ignore the conditions around it.`,
-      `Postpone the ${artifact} decision until more evidence appears, leaving the claim untested.`,
+      `Postpone the ${artifact} decision about ${concept} until more evidence appears, leaving the claim untested.`,
     ],
     [
       `Restate the ${concept} definition in new words and treat that as the analysis for ${artifact}.`,
@@ -24009,7 +24003,12 @@ function compactSlideDisplayBullet(slide, bullet, index, lesson) {
     needsLessonCue && lessonCueCandidate.length <= maxLength
       ? lessonCueCandidate
       : conciseClause(compact, fallback, maxLength, { ellipsis: true });
-  if (type !== 'activity') return punctuateDisplayBullet(lessonSpecific, bullet);
+  if (type !== 'activity') {
+    const display = punctuateDisplayBullet(lessonSpecific, bullet);
+    return type === 'summary' && /\?\s*$/.test(cleanText(bullet)) && !/\?$/.test(display)
+      ? `${stripTerminalPunctuation(display)}?`
+      : display;
+  }
   const activityCueCandidate =
     index === 1
       ? `${concept} evidence for ${artifact}`
@@ -24918,6 +24917,7 @@ function applyKernelSubjectMatterSlides(slides, lesson) {
   ].filter((entry) => entry.bullets.length > 0);
 
   targets.slice(0, authored.length).forEach((slide, index) => {
+    if (slide.type === 'content' && authored[index].bullets.length < 2) return;
     slide.title = authored[index].title;
     slide.bullets = authored[index].bullets;
     slide.notes = `Teach from the verified lesson evidence: ${authored[index].bullets
@@ -26109,11 +26109,11 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
             `${sentenceCase(concept)} artifact self-check`,
           ]),
           bullets: [
-            `Can you now ${stripTerminalPunctuation(objectiveOne).toLowerCase()}?`,
-            `Can you explain how evidence about ${concept} can strengthen ${artifact}?`,
+            `Can you now ${lowercaseClauseLead(stripTerminalPunctuation(objectiveOne))}?`,
+            `Can you explain how evidence about ${concept} can strengthen ${compactArtifact}?`,
             hasStandaloneAssessment
-              ? `Can you name one feedback action for ${stripTerminalPunctuation(artifact)} before the next submission?`
-              : `Can you name one feedback action to carry from ${stripTerminalPunctuation(artifact)} into the next lesson?`,
+              ? `Which feedback action will you apply to ${stripTerminalPunctuation(compactArtifact)} before submitting it?`
+              : `Which feedback action will you carry from ${stripTerminalPunctuation(compactArtifact)} into the next lesson?`,
           ],
           minutes: 4,
           bloom: 'Evaluate',
@@ -26125,8 +26125,8 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
           title: 'Carry Forward',
           bullets: [
             hasStandaloneAssessment
-              ? `Prepare or submit ${artifact}; timing is set by the instructor in the local LMS.`
-              : `Complete ${artifact} as formative practice; there is no separate submission.`,
+              ? `Prepare or submit ${compactArtifact}; timing is set by the instructor in the local LMS.`
+              : `Complete ${compactArtifact} as formative practice; there is no separate submission.`,
             next ? `Preview: ${primarySlideConcept(next)}.` : `Preview: portfolio synthesis and final reflection.`,
             `Use feedback from ${displayTitle} to strengthen the next course task.`,
           ],
@@ -26454,7 +26454,11 @@ function compileSlideDecks(blueprint) {
         anchorExampleSet: deck.sequenceGuide?.anchorExampleSet || null,
         tags: deck.tags,
       };
-      return scrubNonDataSlideAssets(compiledDeck, blueprint);
+      const proseArtifact = compactLongArtifactTitle(slideArtifact(lesson));
+      return scrubNonDataSlideAssets(
+        compactLongArtifactMentionsInValue(compiledDeck, slideArtifact(lesson), proseArtifact),
+        blueprint,
+      );
     }),
   };
 }
@@ -27048,12 +27052,7 @@ const LESSON_PLAN_VISIBLE_REPEAT_FIELDS = [
 function compactLessonPlanBodyReferences(plan, lesson) {
   const focus = stripLessonPrefix(lesson?.title);
   if (!focus) return plan;
-  // The experiential compiler already controls terminology and repetition
-  // across its briefing, roles, update, artifact, and debrief phases. Running
-  // the generic lesson-title reducer afterward corrupts concrete activity
-  // language ("Maritime Crisis simulation" becomes "the Maritime Crisis
-  // focus") and can obscure reveal sequencing. Preserve the activity
-  // projection exactly as compiled.
+  // Preserve the experiential compiler's controlled terminology and reveal sequence.
   if (resolveExperientialActivity(lesson)) return plan;
   const originalMaterials = Array.isArray(plan.materials) ? [...plan.materials] : [];
   const protectedReadingTitles = (Array.isArray(lesson?.instructorNamedReadings) ? lesson.instructorNamedReadings : [])
@@ -27135,9 +27134,8 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
     artifact,
   );
   const labWorkflow = lessonLabWorkflow(blueprint, lesson);
-  // Kernel-aware plans teach authored subject matter instead of a generic process frame.
   const kernelPayload = lesson.enrichment || null;
-  const kernelMisconception = (kernelPayload?.keyTerms || []).find((term) => term.misconception) || null;
+  const kernelMisconception = lessonTeachingKeyTerms(lesson).find((term) => term.misconception) || null;
   const instructorFacts = Array.isArray(blueprint?.instructorSourceFactsByLesson?.[lesson.id])
     ? blueprint.instructorSourceFactsByLesson[lesson.id]
     : [];
@@ -27157,7 +27155,6 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
     cleanText(modality.evidenceRoutine).replace(/^For [^,]{2,70},\s*/i, ''),
     { concept, artifact },
   );
-  // Deep back-half steps use kernel atoms and fall back to flat when none exist.
   const deep = depth === 'deep';
   const kernelDiscussion =
     deep && cleanText(kernelPayload?.discussionPrompt?.prompt) ? kernelPayload.discussionPrompt : null;
@@ -27289,7 +27286,7 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
             `Students test the available evidence against the next ${artifact} decision.`,
           ])}`,
       instructorNotes: `${ensureSentenceCompiler(readableSentences(modality.instructorMove))} Press for ${artifact} evidence about ${concept}. Watch for this misconception. ${ensureSentenceCompiler(sentenceCase(readableMisconception(kernelMisconception?.misconception || misconception?.misconception || `students may use ${concept} without evidence`)))}`,
-      instructorRole: `Coach ${modalityEvidenceRoutineLabel(modality.mode)} and press for specificity in ${artifact}.`,
+      instructorRole: `Coach ${concept} through ${modalityEvidenceRoutineLabel(modality.mode)} and press for specificity in ${artifact}.`,
       grouping: lessonVariant(lesson, [
         'Pairs with instructor check-ins',
         'Partner analysis with rotating checkpoints',
@@ -27496,7 +27493,8 @@ function compileLessonPlans(blueprint, options = {}) {
       }
       const teachingMoves = lessonTeachingMoves(blueprint, lesson);
       const phrase = lessonPhrase(blueprint, lesson);
-      const artifact = safeLessonPlanArtifact(lesson);
+      const artifact = safeLessonPlanProseArtifact(lesson);
+      const artifactLabel = cleanText(artifact).replace(/^(?:an?|the)\s+/i, '') || 'lesson artifact';
       const concept = safeLessonPrimaryConcept(lesson);
       const sparseReasoningFrame = lessonNeedsSparseReasoningFrame(lesson);
       const experientialActivity = resolveExperientialActivity(lesson);
@@ -27669,7 +27667,7 @@ function compileLessonPlans(blueprint, options = {}) {
         artifactLength:
           admittedLanguagePlan?.artifactLength ||
           (hasStandaloneAssessment
-            ? `One focused ${stripLessonPrefix(lesson.title)} artifact, usually 350-500 words or an equivalent applied format that demonstrates ${concept}. Artifact genre format: ${artifactGenre.outputFormat || 'course-specific applied artifact with evidence and revision trace'}.`
+            ? `One focused ${artifactLabel}, usually 350-500 words or an equivalent applied format, that demonstrates ${concept} through inspectable evidence and revision.`
             : `One focused in-class response that demonstrates ${concept}; no standalone take-home artifact is assigned.`),
         prerequisiteKnowledge:
           admittedLanguagePlan?.prerequisiteKnowledge ||
@@ -27696,7 +27694,7 @@ function compileLessonPlans(blueprint, options = {}) {
         weeklySubmissionCriteria:
           admittedLanguagePlan?.weeklySubmissionCriteria ||
           (hasStandaloneAssessment
-            ? `Submit ${artifact} with concrete evidence, a clear claim or recommendation, and one explicit revision move based on feedback. ${artifactGenre.evidenceRequirement || ''} Quality focus: ${artifactGenre.qualityFocus || 'concept accuracy, evidence specificity, decision logic, and revision quality'}.`.trim()
+            ? `Submit ${artifact} with concrete ${concept} evidence, a bounded claim or recommendation, and one explicit feedback-based revision.`
             : `Complete the in-class check with accurate ${concept} evidence and clear reasoning. No separate take-home submission is due.`),
         localCaseReplacementNote:
           admittedLanguagePlan?.localCaseReplacementNote ||
@@ -28049,10 +28047,12 @@ function compileLessonPlans(blueprint, options = {}) {
             `Keep the ${stripLessonPrefix(lesson.title)} directions chunked, provide plain-language criteria, and let students choose an equivalent response format that still demonstrates ${concept}.`,
         },
       };
-      return sanitizeGenericArtifactLabelsInValue(
+      const compactedPlan = compactLongArtifactMentionsInValue(
         sanitizeLessonPlanPublicationConstraints(compactLessonPlanBodyReferences(plan, lesson)),
+        safeLessonArtifact(lesson),
         artifact,
       );
+      return sanitizeGenericArtifactLabelsInValue(compactedPlan, artifact);
     }),
   };
 }

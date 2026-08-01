@@ -639,6 +639,57 @@ describe('pitfalls-slide sentence integrity', () => {
 });
 
 describe('learner-readable compiler projection', () => {
+  it('preserves acronym casing, uses compact artifact labels, and does not replace a complete slide with one fact', () => {
+    const blueprint = buildCourseBlueprint({
+      courseName: 'Digital Accessibility for Product Teams',
+      lessons: [
+        {
+          title: 'Lesson 1: WCAG principles and conformance',
+          sections: [
+            {
+              topicSection: 'WCAG principles and conformance',
+              learningObjectives:
+                'WCAG reviewers evaluate a product decision, cite the applicable requirement, and bound the conclusion.',
+              weeklyAssessments:
+                'WCAG principles and conformance evidence brief with criterion identity, observation, remediation, retest, and claim boundary.',
+              supportingResources: 'WCAG 2.2',
+            },
+          ],
+        },
+      ],
+    });
+    blueprint.lessons[0].enrichment = {
+      keyTerms: [
+        {
+          term: 'Conformance',
+          definition:
+            'Conformance satisfies every applicable WCAG requirement at a stated level for a complete web page.',
+        },
+      ],
+      kernel: { facts: [] },
+    };
+
+    const deck = compileBlueprintDeliverable('slideDecks', blueprint, {
+      skipPrepareBlueprint: true,
+      skipCompilerContractCheck: true,
+      skipLanguageFinalizer: true,
+    }).decks[0];
+    const summary = deck.slides.find((slide) => slide.type === 'summary');
+    const closing = deck.slides.find((slide) => slide.type === 'closing');
+    const evidenceSlide = deck.slides.find((slide) => /what the evidence shows/i.test(slide.title));
+    const visibleEnding = [...summary.bullets, ...closing.bullets].join(' ');
+
+    expect(summary.bullets[0]).toContain('WCAG');
+    expect(summary.bullets[0]).not.toContain('wcag');
+    expect(summary.bullets.every((bullet) => bullet.endsWith('?'))).toBe(true);
+    expect(visibleEnding).not.toContain('criterion identity, observation, remediation, retest, and claim boundary');
+    expect(visibleEnding).not.toMatch(/criterion identity, observation[,.]/i);
+    expect(evidenceSlide).toBeUndefined();
+    expect(deck.slides.filter((slide) => slide.type === 'content').every((slide) => slide.bullets.length >= 2)).toBe(
+      true,
+    );
+  });
+
   it('drops a visibly clipped summary tail and splits dense study-guide clauses without losing content', () => {
     const blueprint = buildCourseBlueprint({
       courseName: 'Introduction to Psychology',
@@ -3304,7 +3355,7 @@ describe('courseBlueprintCompiler', () => {
     const quizSampleAnswers = compiled.quizBank.quizzes
       .flatMap((quiz) => quiz.questions.map((question) => question.sampleAnswer || ''))
       .join(' ');
-    expect(quizSampleAnswers).toContain('exact source detail');
+    expect(quizSampleAnswers).toContain('specific detail');
     expect(quizSampleAnswers).not.toMatch(/\bproof packet\b/i);
   });
 
@@ -10144,7 +10195,15 @@ describe('courseBlueprintCompiler', () => {
     ];
 
     const ir = buildSlideDeckIntermediateRepresentation(blueprint).decks[0];
-    const compiled = compileBlueprintDeliverables(blueprint, ['syllabus', 'assignments', 'slideDecks']);
+    const compiled = compileBlueprintDeliverables(blueprint, [
+      'syllabus',
+      'assignments',
+      'slideDecks',
+      'lessonPlans',
+      'studyGuides',
+      'quizBank',
+      'courseFaq',
+    ]);
     const visibleSlideText = JSON.stringify(ir.slides.map(({ title, bullets }) => ({ title, bullets })));
 
     expect(ir.slides.find((slide) => slide.type === 'bridge')?.title).toBe(
@@ -10178,6 +10237,120 @@ describe('courseBlueprintCompiler', () => {
         'Cite the applicable requirement',
         'Separate observed evidence from the limit of the conclusion.',
       ]),
+    );
+    const longArtifact =
+      'WCAG principles and conformance evidence brief with criterion identity, observation, remediation, retest, and claim boundary';
+    const packageText = JSON.stringify(compiled);
+    expect(packageText).not.toContain('One exact source detail from W3C WCAG 2.2 supports');
+    const renderedSlideCopy = JSON.stringify(
+      compiled.slideDecks.decks[0].slides.map(({ title, bullets, notes, visual }) => ({
+        title,
+        bullets,
+        notes,
+        visual,
+      })),
+    );
+    expect(renderedSlideCopy).not.toContain(longArtifact);
+
+    const quiz = compiled.quizBank.quizzes[0];
+    expect(JSON.stringify(quiz)).toMatch(/evidence brief/i);
+    expect(JSON.stringify(quiz.questions)).not.toContain(longArtifact);
+    const lessonPlan = compiled.lessonPlans.lessonPlans[0];
+    const lessonPlanArtifactMentions = JSON.stringify({
+      assessmentBlock: lessonPlan.assessmentBlock,
+      studentFacingSummary: lessonPlan.studentFacingSummary,
+      weeklySubmissionCriteria: lessonPlan.weeklySubmissionCriteria,
+      warmUp: lessonPlan.warmUp,
+      outline: lessonPlan.outline,
+      formativeCheck: lessonPlan.formativeCheck,
+      udlNotes: lessonPlan.udlNotes,
+      homework: lessonPlan.homework,
+      closingActivity: lessonPlan.closingActivity,
+      readyToTeachSupport: lessonPlan.readyToTeachSupport,
+    }).match(new RegExp(longArtifact, 'g'));
+    expect(lessonPlanArtifactMentions || []).toHaveLength(0);
+    expect(JSON.stringify(compiled.studyGuides.studyGuides[0].reviewQuestions)).not.toContain(longArtifact);
+    const explanations = quiz.questions
+      .filter((question) => question.type === 'multiple_choice')
+      .map((question) => question.explanation);
+    expect(new Set(explanations).size).toBe(explanations.length);
+    expect(explanations.filter((explanation) => /A common wrong turn:/i.test(explanation))).toHaveLength(0);
+  });
+
+  it('preserves repeated model correction shells so quality checks can reject them instead of laundering them', () => {
+    const blueprint = buildCourseBlueprint({
+      courseName: 'Accessible Product Review',
+      semester: 'Fall 2026',
+      lessons: [
+        {
+          title: 'Lesson 1: Accessibility evidence',
+          sections: [
+            {
+              topicSection: 'Accessibility evidence',
+              learningObjectives: 'Evaluate accessibility evidence and bound the conclusion.',
+              weeklyAssessments: 'Accessibility evidence brief',
+              supportingResources: 'W3C WCAG 2.2',
+            },
+          ],
+        },
+      ],
+    });
+    blueprint.lessons[0].enrichment = {
+      keyTerms: [
+        ['Perceivable', 'Information must be presentable in ways users can perceive.'],
+        ['Focus order', 'Operable elements receive focus in a sequence that preserves meaning.'],
+        ['Retest', 'The relevant evaluation method is repeated after remediation.'],
+      ].map(([term, definition]) => ({
+        term,
+        definition,
+        misconception: `${term} is established by one automated signal.`,
+        correction: `${term} requires its stated condition, applicable scope, and inspectable interface evidence.`,
+        source: 'W3C WCAG 2.2',
+      })),
+    };
+
+    const compiled = compileBlueprintDeliverables(blueprint, [
+      'lessonPlans',
+      'slideDecks',
+      'quizBank',
+      'studyGuides',
+      'courseFaq',
+    ]);
+    const lessonPlan = compiled.lessonPlans.lessonPlans[0];
+    const studyGuide = compiled.studyGuides.studyGuides[0];
+    const visibleCopy = JSON.stringify({
+      lessonPlan: {
+        studentFacingSummary: lessonPlan.studentFacingSummary,
+        warmUp: lessonPlan.warmUp,
+        outline: lessonPlan.outline,
+        formativeCheck: lessonPlan.formativeCheck,
+        closingActivity: lessonPlan.closingActivity,
+        readyToTeachSupport: lessonPlan.readyToTeachSupport,
+      },
+      slides: compiled.slideDecks.decks[0].slides.map(({ title, bullets, notes, visual }) => ({
+        title,
+        bullets,
+        notes,
+        visual,
+      })),
+      quizQuestions: compiled.quizBank.quizzes[0].questions,
+      studyGuide: {
+        summary: studyGuide.summary,
+        keyTerms: studyGuide.keyTerms,
+        commonMisconceptions: studyGuide.commonMisconceptions,
+        reviewQuestions: studyGuide.reviewQuestions,
+        practiceActivities: studyGuide.practiceActivities,
+        conceptConnections: studyGuide.conceptConnections,
+      },
+      faq: compiled.courseFaq.faqs[0].qs,
+    });
+
+    expect(visibleCopy).toContain('requires its stated condition, applicable scope');
+    expect(visibleCopy).toMatch(
+      /Information must be presentable|sequence that preserves meaning|repeated after remediation/i,
+    );
+    expect(visibleCopy).not.toMatch(
+      /Accept only when observed evidence|isolated signal is not enough|Keep the conclusion within/i,
     );
   });
 });

@@ -59,6 +59,33 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
     expect(auditDeliverableContentQuality('slideDecks', result.data).findings).toHaveLength(0);
   });
 
+  it('turns circular fallback glossary prose into an honest definition-review notice', () => {
+    const data = {
+      studyGuides: [
+        {
+          keyTerms: [
+            {
+              term: 'Accessibility evidence',
+              definition:
+                'Accessibility evidence names the evidence focus students use when deciding what counts as support.',
+            },
+          ],
+        },
+      ],
+    };
+
+    expect(auditDeliverableContentQuality('studyGuides', data).findings).toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: 'procedural-term-definition' })]),
+    );
+    const result = repairDeliverableContentQuality('studyGuides', data);
+
+    expect(result.changed).toBe(true);
+    expect(result.data.studyGuides[0].keyTerms[0].definition).toMatch(/does not supply a disciplinary definition/i);
+    expect(auditDeliverableContentQuality('studyGuides', result.data).findings).toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: 'missing-disciplinary-definition' })]),
+    );
+  });
+
   it('preserves identity when nothing needs fixing and leaves ellipses alone', () => {
     const data = { notes: ['All good here.', 'Thinking… more thoughts...'] };
     const { data: repaired, changed } = repairDeliverableContentQuality('studyGuides', data);

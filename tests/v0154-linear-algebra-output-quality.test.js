@@ -515,6 +515,49 @@ describe('v0.15.6 anatomy and texture quality regressions', () => {
     expect(result.overall.score).toBeLessThan(80);
   });
 
+  it('catches a repeated instructional shingle embedded in otherwise different prose', async () => {
+    const repeated = 'evidence brief with criterion identity observation remediation retest and claim boundary';
+    const files = Object.fromEntries(
+      Array.from({ length: 4 }, (_, lessonIndex) => [
+        `Quiz Banks/Lesson ${String(lessonIndex + 1).padStart(2, '0')}.md`,
+        Array.from(
+          { length: 7 },
+          (_, itemIndex) =>
+            `Question ${itemIndex + 1} for lesson ${lessonIndex + 1} uses ${repeated} before making a distinct decision ${itemIndex + 1}.`,
+        ).join('\n'),
+      ]),
+    );
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'Digital Accessibility',
+          lessonScope: 'all',
+          assessments: [],
+          files: [],
+          readiness: { status: 'ready', blockers: 0 },
+        }),
+        ...files,
+      }),
+      course: {
+        id: 'digital-accessibility',
+        title: 'Digital Accessibility',
+        featureIds: ['quizBank'],
+      },
+    });
+
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          severity: 'P1',
+          dimension: 'substance',
+          detail: expect.stringMatching(/10-word instructional phrase repeats 28 times/i),
+          evidence: expect.stringContaining('evidence brief with criterion identity'),
+        }),
+      ]),
+    );
+    expect(result.overall.score).toBeLessThan(90);
+  });
+
   it('grades generic lab/STEM fallback language as a history discipline defect', async () => {
     const result = await grade({
       fileProvider: createMemoryFileProvider({
