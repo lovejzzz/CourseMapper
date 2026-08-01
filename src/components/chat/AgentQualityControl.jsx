@@ -14,7 +14,7 @@ export default function AgentQualityControl({ quality, trustStatus, onOpen }) {
     : `Conformance ${quality.score} · ${quality.grade}`;
 
   if (!hasGradedScore) {
-    const reason = String(quality.reason || 'The quality grader did not return a complete result.').trim();
+    const reason = String(quality.reason || '').trim() || 'The quality grader did not return a complete result.';
     return (
       <div
         data-testid="agent-quality-control"

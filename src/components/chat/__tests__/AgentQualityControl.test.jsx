@@ -78,7 +78,7 @@ describe('AgentQualityControl', () => {
     act(() => {
       root.render(
         <AgentQualityControl
-          quality={{ status: 'graded', readiness: { score: 34, maxScore: 100 } }}
+          quality={{ status: 'graded', readiness: { score: 34, maxScore: 100 }, reason: '   ' }}
           trustStatus={{ blocked: false, clean: false }}
           onOpen={() => {}}
         />,
