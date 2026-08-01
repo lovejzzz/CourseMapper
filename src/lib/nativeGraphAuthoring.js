@@ -344,7 +344,11 @@ function admittedFactSubject(fact) {
   const match = text.match(
     /^(.{3,80}?)\s+(?:is|are|was|were|can|could|may|might|must|provides?|involves?|allows?|enables?|requires?|records?|uses?|applies?|identifies?|connects?|supports?|contains?|includes?|helps?|means?)\b/i,
   );
-  const subject = cleanText(match?.[1], 60).replace(/^(?:the|a|an)\s+/i, '');
+  // Preserve a complete seven-word concept. The former 60-character slice
+  // turned valid subjects such as "Evidence-based policy memo with
+  // limitations and recommendations" into the visible fragment
+  // "...recommendati" throughout the exported course map.
+  const subject = cleanTextAtBoundary(match?.[1], 80).replace(/^(?:the|a|an)\s+/i, '');
   const words = subject.match(/[\p{L}\p{N}]+(?:['’-][\p{L}\p{N}]+)*/gu) || [];
   if (words.length < 1 || words.length > 7 || /^(?:it|this|that|these|those|they|we|students?)$/i.test(subject)) {
     return '';
@@ -618,7 +622,10 @@ export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
         term,
         definition: fact,
         example: `Compare this ${term} claim with the admitted statement: ${comparisonFact}`,
-        misconception: `${term} can be applied without checking the scope or conditions stated in the lesson evidence.`,
+        // Keep the misconception bound to this exact admitted fact. A shared
+        // ten-word suffix was previously copied through every deliverable
+        // family and became the package's worst repeated phrase.
+        misconception: `Mistake: treating ${term} as support beyond this admitted statement — ${cleanTextAtBoundary(fact, 140)}`,
         correction: `Use ${term} only for the relationship stated in its admitted fact, then name what remains unproven.`,
         source: 'fact-subject-projection',
         tier: 1,
@@ -2621,14 +2628,16 @@ export function backfillNativeAuthoringFromLessonContent({
         outcomes.length > 0
           ? outcomes
           : [
-              `Explain ${first} using evidence from the assigned sources.`,
+              `Explain ${first} using the available course evidence.`,
               `Apply ${second} to a practical ${lessonTitle} example and justify one revision.`,
               `Evaluate a claim about ${third}, then state the evidence boundary.`,
             ],
       asyncActivities:
         asyncActivities.length > 0
           ? asyncActivities
-          : [`Annotate the assigned sources for one claim about ${first}, its supporting detail, and one limitation.`],
+          : [
+              `Annotate the available course evidence for one claim about ${first}, its supporting detail, and one limitation.`,
+            ],
       syncActivities:
         syncActivities.length > 0
           ? syncActivities

@@ -685,10 +685,7 @@ export function buildRequiredLabAssetsReport(requirements, { courseName }) {
       ? [
           '## Bundled starter assets',
           '',
-          ...bundled.flatMap((requirement) => [
-            `- ${requirement.label}: \`${requirement.path}\``,
-            `  ${requirement.note}`,
-          ]),
+          ...bundled.flatMap((requirement) => [`- ${requirement.label}: ${requirement.path}`, `  ${requirement.note}`]),
           '',
           'Bundled computational files are transparent starter scaffolds. Replace the synthetic dataset with an instructor-approved source before making real-world claims.',
           '',

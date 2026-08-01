@@ -96,6 +96,38 @@ describe('source-grounded native authoring backfill', () => {
     expect(completed.keyTermFallbacks).toEqual(
       expect.arrayContaining([expect.objectContaining({ source: 'fact-subject-projection' })]),
     );
+    expect(JSON.stringify(completed)).not.toContain('can be applied without checking the scope or conditions stated');
+  });
+
+  it('preserves a complete seven-word admitted-fact subject instead of cutting a word', () => {
+    const longConcept = 'Evidence-based policy memo with limitations and recommendations';
+    const facts = [
+      `${longConcept} requires a bounded claim and a named evidence limit.`,
+      'Policy memo evidence connects a public problem to a feasible recommendation.',
+      'Limitations identify what the available evidence cannot establish.',
+      'Stakeholder analysis records who benefits and who bears implementation risk.',
+    ];
+    const completed = completeNativeKernelSurfaces(
+      {
+        keyTerms: [
+          {
+            term: 'Policy evidence',
+            definition: facts[1],
+            example: facts[2],
+            misconception: 'A polished memo proves its recommendation.',
+            correction: facts[3],
+          },
+        ],
+        kernel: { facts },
+      },
+      {
+        title: `Lesson 5: ${longConcept}`,
+        sections: [{ topicSection: longConcept, weeklyAssessments: 'Policy memo' }],
+      },
+    );
+
+    expect(completed.keyTerms.map((term) => term.term)).toContain(longConcept);
+    expect(JSON.stringify(completed)).not.toContain('recommendati"');
   });
 
   it('builds missing outcomes and activities only from admitted source terms', () => {
@@ -107,7 +139,7 @@ describe('source-grounded native authoring backfill', () => {
     expect(authored['lesson-1']).toMatchObject({
       source: 'scion-source-kernel-backfill',
       outcomes: [
-        'Explain Accessible forms using evidence from the assigned sources.',
+        'Explain Accessible forms using the available course evidence.',
         'Apply Labels to a practical Accessible forms example and justify one revision.',
         'Evaluate a claim about Validation, then state the evidence boundary.',
       ],
@@ -173,18 +205,20 @@ describe('source-grounded native authoring backfill', () => {
     expect(assembly.graph.outcomes).toHaveLength(3);
     const section = assembly.courseMap.lessons[0].sections[0];
     expect(section.learningGoals).toContain('source evidence about Accessible forms and Labels');
-    expect(section.learningObjectives).toContain('Explain Accessible forms using evidence');
+    expect(section.learningObjectives).toContain('Explain Accessible forms using the available course evidence');
     expect(section.learningObjectives).toContain('Apply Labels to a practical Accessible forms example');
     expect(section.learningObjectives).toContain('Evaluate a claim about Validation');
-    expect(section.asyncActivities).toContain('Annotate the assigned sources');
+    expect(section.asyncActivities).toContain('Annotate the available course evidence');
     expect(section.syncActivities).toContain('using evidence about Labels');
     expect(section.learningGoals).not.toContain('course-relevant decisions');
 
     const readinessRepair = repairCourseMapReadiness({ courseMap: assembly.courseMap });
     const repairedSection = readinessRepair.courseMap.lessons[0].sections[0];
     expect(repairedSection.learningGoals).toContain('source evidence about Accessible forms and Labels');
-    expect(repairedSection.learningObjectives).toContain('Explain Accessible forms using evidence');
-    expect(repairedSection.asyncActivities).toContain('Annotate the assigned sources');
+    expect(repairedSection.learningObjectives).toContain(
+      'Explain Accessible forms using the available course evidence',
+    );
+    expect(repairedSection.asyncActivities).toContain('Annotate the available course evidence');
     expect(repairedSection.syncActivities).toContain('using evidence about Labels');
     expect(readinessRepair.repairedFields).not.toEqual(
       expect.arrayContaining([

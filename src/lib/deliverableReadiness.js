@@ -1024,9 +1024,9 @@ function getHistoryCourseMapFallbacks(topic, pick) {
       `Short historical argument naming the evidence needed to interpret ${topic}.`,
     ]),
     asyncActivities: pick([
-      `Annotate the assigned reading or source excerpt for claims, context, and evidence about ${topic}.`,
+      `Annotate the course reading or source excerpt for claims, context, and evidence about ${topic}.`,
       `Prepare a brief chronology, map note, or source note for ${topic}.`,
-      `Review the assigned background reading and write one evidence question about ${topic}.`,
+      `Review the course background reading and write one evidence question about ${topic}.`,
     ]),
     syncActivities: pick([
       `Compare source evidence and historical interpretations of ${topic} in discussion.`,
@@ -1035,7 +1035,7 @@ function getHistoryCourseMapFallbacks(topic, pick) {
     ]),
     technologyNeeded: pick([
       'Course LMS, slide deck, digital reader, and map or timeline tool used for the lesson.',
-      'LMS access plus assigned source excerpts, historical maps, and note-taking tools.',
+      'LMS access plus course source excerpts, historical maps, and note-taking tools.',
       'Course platform, instructor-provided readings, and shared discussion workspace.',
     ]),
     presentationFormat: pick([
@@ -1074,9 +1074,9 @@ function getLiteratureCourseMapFallbacks(topic, pick) {
       `${displayTopic} interpretive response: test one reading against a specific passage and one alternative.`,
     ]),
     asyncActivities: pick([
-      `Annotate the assigned text for a recurring image, formal pattern, or interpretive tension in ${topic}.`,
+      `Annotate the course text for a recurring image, formal pattern, or interpretive tension in ${topic}.`,
       `Prepare two passage notes that could support different readings of ${topic}.`,
-      `Read the assigned selection and mark one formal choice that changes how ${topic} can be interpreted.`,
+      `Read the course selection and mark one formal choice that changes how ${topic} can be interpreted.`,
     ]),
     syncActivities: pick([
       `Compare passage evidence for ${topic}, then revise one claim after hearing an alternative reading.`,
@@ -1084,7 +1084,7 @@ function getLiteratureCourseMapFallbacks(topic, pick) {
       `Test two interpretations of ${topic} against the language and structure of the assigned text.`,
     ]),
     technologyNeeded: pick([
-      'Course LMS, accessible assigned text, annotation workspace, and shared discussion notes.',
+      'Course LMS, accessible course text, annotation workspace, and shared discussion notes.',
       'Digital or print course reader, passage-marking tools, and a workspace for comparative notes.',
       'Course platform, accessible reading files, and a shared space for evidence-backed discussion.',
     ]),
@@ -1094,7 +1094,7 @@ function getLiteratureCourseMapFallbacks(topic, pick) {
       'Opening passage question, annotation workshop, comparison, and short interpretive response.',
     ]),
     supportingResources: pick([
-      `Assigned text or excerpt, contextual note, and close-reading guide for ${topic}.`,
+      `Course text or excerpt, contextual note, and close-reading guide for ${topic}.`,
       `Course-reader selection, passage annotation guide, and interpretive model aligned to ${topic}.`,
       `Primary literary text, brief context source, and evidence checklist for ${topic}.`,
     ]),
@@ -1123,7 +1123,7 @@ function getDataStoryCourseMapFallbacks(topic, pick) {
       `${displayTopic} decision memo: justify one data-story choice and state what the available evidence cannot establish.`,
     ]),
     asyncActivities: pick([
-      `Inspect the assigned data and source materials for ${topic}; record one provenance, cleaning, or uncertainty note before class.`,
+      `Inspect the course data and source materials for ${topic}; record one provenance, cleaning, or uncertainty note before class.`,
       `Prepare the ${topic} evidence needed for an annotated chart, claim, or revision decision.`,
       `Review one ${topic} example and mark where its source, transformation, visual choice, and limitation are documented.`,
     ]),
@@ -1133,7 +1133,7 @@ function getDataStoryCourseMapFallbacks(topic, pick) {
       `Run a studio review of ${topic}, tracing each claim or chart choice back to an inspectable source or cleaning decision.`,
     ]),
     technologyNeeded: pick([
-      'Course workspace, accessible spreadsheet or notebook tools, the assigned dataset, and an annotation or charting environment.',
+      'Course workspace, accessible spreadsheet or notebook tools, the course dataset, and an annotation or charting environment.',
       'Shared source ledger, data-cleaning workspace, accessible visualization tool, and portfolio revision space.',
       'Course platform plus the public-transit dataset, evidence log, charting tool, and peer-feedback workspace.',
     ]),
@@ -1143,7 +1143,7 @@ function getDataStoryCourseMapFallbacks(topic, pick) {
       'Public-claim setup, inspectable data work, peer feedback, and a visible before-and-after artifact.',
     ]),
     supportingResources: pick([
-      `Assigned dataset, source ledger, cleaning log, and evidence checklist aligned to ${topic}.`,
+      `Course dataset, source ledger, cleaning log, and evidence checklist aligned to ${topic}.`,
       `Instructor-verified ${topic} example, accessible chart guide, uncertainty checklist, and revision template.`,
       `Public-transit data files, provenance notes, visual-encoding guidance, and portfolio evidence record for ${topic}.`,
     ]),

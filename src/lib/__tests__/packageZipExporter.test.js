@@ -3183,6 +3183,7 @@ describe('packageZipExporter', () => {
     expect(report).toContain('Model card or validation template');
     expect(report).toContain('Bundled starter assets');
     expect(report).toContain('Instructor-provided assets still required');
+    expect(report).not.toMatch(/`[^`]+`/);
     expect(zip.file('Required Assets/policy_outcomes_sample.csv')).toBeNull();
     expect(zip.file('Required Assets/starter_policy_analysis.ipynb')).toBeNull();
     expect(zip.file('Required Assets/MODEL_CARD_TEMPLATE.md')).not.toBeNull();
