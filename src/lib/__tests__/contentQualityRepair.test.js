@@ -396,6 +396,28 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
     });
   });
 
+  it('compacts a production-observed verbose source fact before it fans out across exports', () => {
+    const verboseFact = 'Functions in Python allow for the creation of reusable blocks of code for analysis';
+    const data = {
+      lessonPlans: [
+        {
+          sourceEvidence: [verboseFact],
+          activities: Array.from({ length: 10 }, () => verboseFact),
+        },
+      ],
+    };
+
+    const result = repairDeliverableContentQuality('lessonPlans', data, {
+      courseName: 'Python for Public Policy Analysis',
+    });
+
+    expect(result.changed).toBe(true);
+    expect(result.repairedStrings).toBe(11);
+    expect(JSON.stringify(result.data)).not.toContain('allow for the creation of');
+    expect(JSON.stringify(result.data)).toContain('Python functions create reusable code for analysis');
+    expect(result.repeatedPhraseCount).toBe(0);
+  });
+
   it('leaves unrelated paragraph and list whitespace byte-for-byte unchanged', () => {
     const notes = 'Paragraph one.\n\nParagraph two.\n  - indented item';
     const result = repairDeliverableContentQuality(

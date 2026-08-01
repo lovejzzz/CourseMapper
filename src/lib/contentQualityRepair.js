@@ -73,6 +73,18 @@ const ASSIGNMENT_DEFERRAL_REPAIRS = [
   ],
 ];
 
+// Source facts can be sound and still become a package-level defect when the
+// compiler fans one verbose sentence into notes, prompts, slides, questions,
+// and answer keys. Keep these repairs deliberately exact and
+// meaning-preserving: they shorten a production-observed claim without
+// inventing evidence or rewriting arbitrary instructor prose.
+const VERBOSE_SOURCE_FACT_REPAIRS = [
+  [
+    /\bFunctions in Python allow for the creation of reusable blocks of code for analysis\b/gi,
+    'Python functions create reusable code for analysis',
+  ],
+];
+
 export const MECHANICAL_FINDING_CODES = [
   'double-period',
   'article-agreement',
@@ -123,6 +135,10 @@ function repairString(value, featureId, parentKey = '') {
   // legacy package does not repeat the complete direction in every note,
   // accessibility cue, rubric link, and study prompt.
   text = compactCompilerOwnedAssessmentIdentity(text);
+  text = VERBOSE_SOURCE_FACT_REPAIRS.reduce(
+    (current, [pattern, replacement]) => current.replace(pattern, replacement),
+    text,
+  );
   if (featureId === 'assignments') text = repairAssignmentDeferrals(text);
   return text;
 }
