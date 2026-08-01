@@ -107,29 +107,29 @@ async function qualityArtifactBytes(value) {
   return new TextEncoder().encode(stableQualityStringify(value));
 }
 
-async function buildEvidenceArtifactBinding(fileMap = {}) {
+const EVIDENCE_ENVELOPE_PATHS = new Set(['PACKAGE_MANIFEST.json', 'SCORE_LEDGER.json', 'QUALITY_REPORT.md']);
+
+/**
+ * Bind the exact teaching and support artifacts without creating a circular
+ * hash dependency on the evidence envelope that describes them. Auditors can
+ * pass every extracted ZIP entry directly; these three protocol-defined
+ * envelope files are excluded by the algorithm rather than reconstructed from
+ * an undocumented pre-grading state.
+ */
+export async function buildEvidenceArtifactBinding(fileMap = {}) {
   const entries = [];
   const paths = Object.keys(fileMap)
     .map((sourcePath) => ({ sourcePath, path: sourcePath.replace(/\\/g, '/') }))
+    .filter(({ path }) => !EVIDENCE_ENVELOPE_PATHS.has(path))
     .sort((left, right) => left.path.localeCompare(right.path));
   for (const { sourcePath, path } of paths) {
-    let value = fileMap[sourcePath];
-    if (/PACKAGE_MANIFEST\.json$/i.test(path) && typeof value === 'string') {
-      try {
-        const manifest = JSON.parse(value);
-        delete manifest.quality;
-        value = stableQualityStringify(manifest);
-      } catch {
-        // Preserve the exact invalid bytes; the grader will independently
-        // report that the manifest did not parse.
-      }
-    }
-    const bytes = await qualityArtifactBytes(value);
+    const bytes = await qualityArtifactBytes(fileMap[sourcePath]);
     entries.push({ path, byteLength: bytes.byteLength, sha256: await sha256QualityBytes(bytes) });
   }
   return {
-    algorithm: 'sha256-sorted-path-bytes-inventory-v1',
+    algorithm: 'sha256-sorted-teaching-artifact-bytes-inventory-v2',
     rootSha256: await sha256QualityText(stableQualityStringify(entries)),
+    excludedPaths: [...EVIDENCE_ENVELOPE_PATHS],
     entries,
   };
 }

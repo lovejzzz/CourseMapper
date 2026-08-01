@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import JSZip from 'jszip';
 import {
+  buildEvidenceArtifactBinding,
   buildCourseMaterialsZip,
   downloadCourseMaterialsZip,
   mergeSourceLedgerBundles,
@@ -724,6 +725,20 @@ describe('packageZipExporter', () => {
       }),
     );
     expect(await zip.file('SCORE_LEDGER.json').async('string')).toContain('coursemapper-score-ledger-v1');
+    const scoreLedger = JSON.parse(await zip.file('SCORE_LEDGER.json').async('string'));
+    const extractedFileMap = {};
+    for (const entry of Object.values(zip.files)) {
+      if (!entry.dir) extractedFileMap[entry.name] = await entry.async('uint8array');
+    }
+    const directBinding = await buildEvidenceArtifactBinding(extractedFileMap);
+    expect(directBinding).toMatchObject({
+      algorithm: 'sha256-sorted-teaching-artifact-bytes-inventory-v2',
+      rootSha256: scoreLedger.bindings.evidenceArtifacts.rootSha256,
+      excludedPaths: expect.arrayContaining(['PACKAGE_MANIFEST.json', 'SCORE_LEDGER.json', 'QUALITY_REPORT.md']),
+    });
+    expect(directBinding.entries.map((entry) => entry.path)).not.toEqual(
+      expect.arrayContaining(['PACKAGE_MANIFEST.json', 'SCORE_LEDGER.json', 'QUALITY_REPORT.md']),
+    );
     expect(report).toContain('Deterministic package evidence: 35/100 earned');
     expect(report).toContain('Package conformance: 89/100 (B)');
     expect(report).not.toContain('verified finish-pass quality result');
