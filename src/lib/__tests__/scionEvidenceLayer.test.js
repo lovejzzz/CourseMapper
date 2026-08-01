@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildScionEvidenceLessonPrompt,
   createScionEvidenceOverlay,
   prepareScionEvidenceGenerationHandoff,
   prepareScionEvidenceForGeneration,
@@ -66,6 +67,34 @@ function payload(overrides = {}) {
 }
 
 describe('Scion evidence layer', () => {
+  it('gives evidence discovery the lesson topic, objectives, and assessment context', () => {
+    expect(
+      buildScionEvidenceLessonPrompt(
+        {
+          lessons: [
+            {
+              title: 'Policy implementation evidence',
+              sections: [
+                {
+                  topicSection: 'Administrative data and causal claims',
+                  learningGoals: 'Distinguish implementation from outcome evidence',
+                  learningObjectives: 'Audit one policy claim against its supporting dataset',
+                  weeklyAssessments: 'Write a bounded evidence memo',
+                },
+              ],
+            },
+          ],
+        },
+        0,
+      ),
+    ).toEqual({
+      lessonId: 'lesson-1',
+      title: 'Policy implementation evidence',
+      topics: ['Administrative data and causal claims', 'Distinguish implementation from outcome evidence'],
+      objectives: ['Audit one policy claim against its supporting dataset', 'Write a bounded evidence memo'],
+    });
+  });
+
   it('translates fully anchored composed evidence into Scion’s immutable source-ledger contract', () => {
     const lesson = scionEvidenceLessonFromComposedPayload(payload());
     expect(lesson).toMatchObject({

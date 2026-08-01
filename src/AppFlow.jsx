@@ -1807,11 +1807,11 @@ export default function AppFlow({
                 ? `Automatic retry already ran without progress; not spending another model call on the same weak area. `
                 : `Stopped after retrying the same weak area without progress. `
               : retryPassLimitReached
-                ? `Reached the ${retryPassLimit}-pass finishing limit with ${unresolvedRetryCount} weak area${unresolvedRetryCount === 1 ? '' : 's'} still needing attention. `
+                ? `Reached the ${retryPassLimit}-pass finishing limit with ${unresolvedRetryCount} weak area${unresolvedRetryCount === 1 ? '' : 's'} remaining. `
                 : retryBudgetExhausted
-                  ? `Reached the ${maxRetryCallBudget}-call finishing budget with ${unresolvedRetryCount} weak area${unresolvedRetryCount === 1 ? '' : 's'} still needing attention. `
+                  ? `Reached the ${maxRetryCallBudget}-call finishing budget with ${unresolvedRetryCount} weak area${unresolvedRetryCount === 1 ? '' : 's'} remaining. `
                   : skippedRetryActionCount > 0
-                    ? `Skipped ${skippedRetryActionCount} broad retry action${skippedRetryActionCount === 1 ? '' : 's'} to stay within the ${maxRetryCallBudget}-call retry budget. `
+                    ? `Skipped ${skippedRetryActionCount} broad retry action${skippedRetryActionCount === 1 ? '' : 's'} within the ${maxRetryCallBudget}-call budget. `
                     : '';
         const repairText =
           totalRepairsApplied > 0

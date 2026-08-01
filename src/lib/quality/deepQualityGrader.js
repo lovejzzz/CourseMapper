@@ -68,6 +68,7 @@ import {
   isTruncatedBulletLine,
   scanText,
   matchesKnownOffender,
+  knownOffenderFitsScope,
   findPromptArtifactContamination,
   isInstructionalDesignPackage,
   blacklistYieldsToTopicalOverlap as offenderYieldsToTopicalOverlap,
@@ -101,6 +102,7 @@ import {
 } from './deepQualityFormatDetails.js';
 import { normalizeLessonSpecificTokens } from './semanticSkeletonMask.js';
 import { findInstructorConfigurationDeferrals } from '../publishabilityPlaceholders.js';
+import { stripStructuralMetadata } from '../exportRenderedTextAudit.js';
 import { GRADER_VERSION } from './graderVersion.js';
 import { addRepeatedInstructionalPhraseFinding } from './repeatedInstructionalPhrase.js';
 
@@ -626,6 +628,39 @@ function checkPromptArtifactContamination(findings, { files, manifest }, course)
     detail: 'prompt artifact labels used as lesson concepts',
     evidence: evidenceHit.evidence,
   });
+}
+
+function checkKnownOffenderTeachingContent(findings, { files, manifest }, course) {
+  const courseContext = `${course?.title || ''} ${course?.prompt || ''} ${manifest?.courseName || ''}`;
+  const courseTokens = new Set(contentTokens(courseContext));
+  for (const file of files) {
+    if (
+      !['lessonPlans', 'slideDecks', 'assignments', 'quizBank', 'studyGuides', 'discussions', 'courseFaq'].includes(
+        file.featureId,
+      )
+    ) {
+      continue;
+    }
+    for (const unit of formatScanUnits(file)) {
+      const offender = matchesKnownOffender(unit);
+      if (!offender) continue;
+      const explicitlyRequested = courseContext.toLowerCase().includes(String(offender).toLowerCase());
+      const disciplineFit = knownOffenderFitsScope(offender, courseTokens);
+      const topical = offenderYieldsToTopicalOverlap(new Set(contentTokens(unit)), courseTokens, {
+        disciplineNameTokens: contentTokens(course?.title || ''),
+        minShared: 2,
+      });
+      if (explicitlyRequested || disciplineFit || topical) continue;
+      findings.add({
+        severity: 'P0',
+        dimension: 'substance',
+        file: file.path,
+        detail: 'known off-topic source fact leaked into learner-facing teaching content',
+        evidence: quote(unit),
+      });
+      break;
+    }
+  }
 }
 
 // Normalize a title to tokens for subset matching (mirrors packageFinalizer).
@@ -1987,7 +2022,7 @@ function disciplineNameTokens(course) {
 // number) it's checked against the union of all lesson concepts. ZERO topical
 // overlap (the Mandarin/MNIST case, or the stats cancer-statistics case whose
 // only tie is the generic "statistics") keeps the blacklist absolute.
-function blacklistYieldsForCitation(cite, lessonConceptTokenSets, disciplineTokens) {
+function blacklistYieldsForCitation(cite, lessonConceptTokenSets, disciplineTokens, offender = null) {
   const titleTokenSet = citationTitleTokens(cite.text);
   if (titleTokenSet.size === 0) return false;
   const lessonNumber = cite.sourceFile?.lessonNumber;
@@ -1995,7 +2030,10 @@ function blacklistYieldsForCitation(cite, lessonConceptTokenSets, disciplineToke
     lessonNumber != null && lessonConceptTokenSets.has(lessonNumber)
       ? lessonConceptTokenSets.get(lessonNumber)
       : lessonConceptTokenSets.get('*');
-  return offenderYieldsToTopicalOverlap(titleTokenSet, conceptSet, { disciplineNameTokens: disciplineTokens });
+  return (
+    knownOffenderFitsScope(offender, conceptSet) ||
+    offenderYieldsToTopicalOverlap(titleTokenSet, conceptSet, { disciplineNameTokens: disciplineTokens })
+  );
 }
 
 function checkCitations(findings, { files, manifest }, course) {
@@ -2023,7 +2061,7 @@ function checkCitations(findings, { files, manifest }, course) {
   for (const cite of citationStrings) {
     const offender = matchesKnownOffender(cite.text);
     if (offender) {
-      if (blacklistYieldsForCitation(cite, lessonConceptTokenSets, courseDisciplineTokens)) continue;
+      if (blacklistYieldsForCitation(cite, lessonConceptTokenSets, courseDisciplineTokens, offender)) continue;
       findings.add({
         severity: 'P0',
         dimension: 'citations',
@@ -3563,8 +3601,7 @@ function checkDeckVisuals(findings, { files }) {
 }
 
 function checkFormat(findings, { files, manifest }) {
-  const TEXT_TABLES = [
-    ...ARTIFACT_PATTERNS,
+  const STRUCTURAL_TEXT_TABLES = [
     ...JSON_SYNTAX_PATTERNS,
     ...FUSED_TITLE_PATTERNS,
     ...INTERNAL_VOCAB_PATTERNS,
@@ -3621,7 +3658,15 @@ function checkFormat(findings, { files, manifest }) {
       const seen = new Set();
       const coverScope = SHOULD_BE_LESSON_ROOTED.includes(file.featureId);
       for (const unit of units) {
-        for (const hit of scanText(TEXT_TABLES, unit)) {
+        // Quiz callout labels and item metadata are layout structure, not
+        // prose. Normalize them before prose-defect patterns run so the
+        // answer key boundary "ANSWER — A" + "The explanation…" cannot be
+        // misread as the adjacent articles "a the". Other format contracts
+        // continue to inspect the unmodified rendered unit.
+        for (const hit of [
+          ...scanText(ARTIFACT_PATTERNS, stripStructuralMetadata(unit)),
+          ...scanText(STRUCTURAL_TEXT_TABLES, unit),
+        ]) {
           if (seen.has(hit.name)) continue;
           seen.add(hit.name);
           findings.add({
@@ -3811,6 +3856,7 @@ export async function grade({
   checkUnevaluatedCourseJudgment(findings, pkg, course, consoleLogText, honesty);
   checkCitations(findings, pkg, course);
   checkPromptArtifactContamination(findings, pkg, course);
+  checkKnownOffenderTeachingContent(findings, pkg, course);
   checkSubstance(findings, pkg, course);
   addPackageQuizDepthFindings(findings, pkg.files);
   checkDiscipline(findings, pkg, course);

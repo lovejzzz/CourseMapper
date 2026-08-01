@@ -498,6 +498,27 @@ function applyDeterministicRepairs({
   const contentFeatureIds = contentRepairFeatureIds(selectedFeatures, nextDeliverables).filter(
     (featureId) => featureId !== 'courseMap',
   );
+  const trustedCourseScope = selectedCourseMapLessons(nextCourseMap, lessonFilter)
+    .flatMap((lesson) => [
+      lesson?.title,
+      lesson?.topic,
+      lesson?.topics,
+      lesson?.objective,
+      lesson?.objectives,
+      ...(Array.isArray(lesson?.sections)
+        ? lesson.sections.flatMap((section) => [
+            section?.title,
+            section?.topic,
+            section?.topics,
+            section?.learningGoals,
+            section?.learningObjectives,
+            section?.objectives,
+          ])
+        : []),
+    ])
+    .flat(Infinity)
+    .filter((value) => typeof value === 'string' && value.trim())
+    .join(' ');
   for (const featureId of contentFeatureIds) {
     let entry = nextDeliverables?.[featureId];
     if (entry?.status !== 'done' || !entry.data) continue;
@@ -520,7 +541,11 @@ function applyDeterministicRepairs({
         });
       }
     }
-    const contentRepair = repairDeliverableContentQuality(featureId, entry.data);
+    const contentRepair = repairDeliverableContentQuality(featureId, entry.data, {
+      courseName: nextCourseMap?.courseName || '',
+      sourceBrief,
+      courseScope: trustedCourseScope,
+    });
     if (!contentRepair.changed) continue;
     if (nextDeliverables === deliverables) nextDeliverables = { ...deliverables };
     nextDeliverables[featureId] = { ...entry, data: contentRepair.data };

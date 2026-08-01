@@ -1557,7 +1557,7 @@ test.describe('Export smoke', () => {
     });
 
     await page.getByTestId('export-scope-all').click();
-    await expect(page.getByTestId('readiness-status')).toContainText('Finish package');
+    await expect(page.getByTestId('readiness-status')).toContainText('Prepare package');
     await expect(page.getByTestId('readiness-panel')).toContainText('Course FAQ failed to generate');
     await expect(page.getByTestId('export-download-zip')).toBeEnabled();
 
@@ -1625,11 +1625,11 @@ test.describe('Export smoke', () => {
     });
 
     await page.getByTestId('export-scope-all').click();
-    await expect(page.getByTestId('readiness-status')).toContainText('Finish package');
+    await expect(page.getByTestId('readiness-status')).toContainText('Prepare package');
     await expect(page.getByTestId('readiness-panel')).not.toContainText('fewer than 5 questions');
     await expect(page.getByTestId('readiness-panel')).not.toContainText('missing answer guidance');
     await expect(page.getByTestId('readiness-panel')).toContainText('Lesson 2 quiz keys every multiple-choice answer');
-    await expect(page.getByTestId('export-download-zip')).toContainText('Finish package');
+    await expect(page.getByTestId('export-download-zip')).toContainText('Prepare package');
     await page.getByTestId('export-download-zip').click();
     await expect(page.getByTestId('export-download-zip')).toContainText('Download ZIP');
     await expect(page.getByTestId('export-side-panel')).not.toContainText(/draft/i);
@@ -1818,7 +1818,7 @@ test.describe('Export smoke', () => {
     await expect(page.getByTestId('readiness-status')).toContainText('Ready');
     await uncheckAllExportLessons(page);
     await expect(page.getByText('0 of 2 lessons selected')).toBeVisible();
-    await expect(page.getByTestId('readiness-status')).toContainText('Finish package');
+    await expect(page.getByTestId('readiness-status')).toContainText('Prepare package');
     await expect(page.getByTestId('readiness-panel')).toContainText('Select at least one lesson before exporting.');
     await expect(page.getByTestId('export-download-zip')).toBeDisabled();
   });

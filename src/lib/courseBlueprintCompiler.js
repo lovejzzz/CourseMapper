@@ -25780,7 +25780,6 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
   const teachingMoves = lessonTeachingMoves(blueprint, lesson);
   const preference = featurePreference(blueprint, 'slideDecks');
   const phrase = slideDeckPhrase(blueprint, lesson);
-  const titleContext = sentenceCase(collapseRepeatedSlideLead(phrase.context));
   const previous = blueprint.lessons[index - 1];
   const next = blueprint.lessons[index + 1];
   const assessment = assessmentForBlueprintLesson(blueprint, lesson, index);
@@ -25797,6 +25796,7 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
   const secondary = secondarySlideConcept(lesson, concept);
   const artifact = slideArtifact(lesson);
   const compactArtifact = noteArtifactReference(lesson);
+  const titleContext = `Use ${secondary} in ${compactArtifact}.`;
   const sourceCue = slideSourceCue(lesson);
   const successCriterion = slideSuccessCriterion(lesson);
   const modality = sanitizeLessonModalityDecode(

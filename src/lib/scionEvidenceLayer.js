@@ -203,6 +203,22 @@ export function bindScionEvidenceProvenance(overlay, lessonId, payload) {
   };
 }
 
+export function buildScionEvidenceLessonPrompt(courseMap = {}, lessonIndex = 0) {
+  const lesson = courseMap?.lessons?.[lessonIndex] || {};
+  const sections = Array.isArray(lesson.sections) ? lesson.sections : [];
+  const columnValues = (...keys) =>
+    keys
+      .flatMap((key) => [lesson?.[key], ...sections.map((section) => section?.[key])])
+      .map(clean)
+      .filter(Boolean);
+  return {
+    lessonId: `lesson-${lessonIndex + 1}`,
+    title: clean(lesson.title) || `Lesson ${lessonIndex + 1}`,
+    topics: columnValues('topicSection', 'learningGoals'),
+    objectives: columnValues('learningObjectives', 'weeklyAssessments'),
+  };
+}
+
 export async function prepareScionEvidenceForGeneration({
   courseMap,
   lessonIndices = [],
@@ -234,10 +250,7 @@ export async function prepareScionEvidenceForGeneration({
   }
   const structuredPrompt = {
     courseName: courseMap?.courseName || '',
-    lessons: unresolvedLessonIndices.map((lessonIndex) => ({
-      lessonId: `lesson-${lessonIndex + 1}`,
-      title: courseMap?.lessons?.[lessonIndex]?.title || `Lesson ${lessonIndex + 1}`,
-    })),
+    lessons: unresolvedLessonIndices.map((lessonIndex) => buildScionEvidenceLessonPrompt(courseMap, lessonIndex)),
   };
   const overlay = await prepareScionEvidenceLayer({
     structuredPrompt,

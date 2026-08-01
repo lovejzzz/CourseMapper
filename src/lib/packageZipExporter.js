@@ -516,6 +516,68 @@ export function buildPackageReadinessBinding(readiness = null) {
   };
 }
 
+function structuralReadinessForReceipt(readiness = null) {
+  const withoutQualityGate = (issues) =>
+    Array.isArray(issues)
+      ? issues.filter((issue) => issue?.source !== 'qualityGate')
+      : Math.max(0, Number(issues) || 0);
+  const blockers = withoutQualityGate(readiness?.blockers);
+  const warnings = withoutQualityGate(readiness?.warnings);
+  const blockerCount = Array.isArray(blockers) ? blockers.length : blockers;
+  const warningCount = Array.isArray(warnings) ? warnings.length : warnings;
+  return {
+    ...(readiness || {}),
+    blockers,
+    warnings,
+    issues: [...(Array.isArray(blockers) ? blockers : []), ...(Array.isArray(warnings) ? warnings : [])],
+    status: blockerCount > 0 ? 'blocked' : warningCount > 0 ? 'warnings' : 'ready',
+  };
+}
+
+export function buildPackageReadinessReceipt({ readiness = null, quality = null, exportVerification = null } = {}) {
+  const structural = buildPackageReadinessBinding(structuralReadinessForReceipt(readiness));
+  const graded = quality?.status === 'graded';
+  const p0 = Math.max(0, Number(quality?.findingCounts?.p0) || 0);
+  const p1 = Math.max(0, Number(quality?.findingCounts?.p1) || 0);
+  const p2 = Math.max(0, Number(quality?.findingCounts?.p2) || 0);
+  const checked = Math.max(0, Number(exportVerification?.checked) || 0);
+  const failed = Math.max(0, Number(exportVerification?.failed) || 0);
+  const warningCount = Math.max(0, Number(exportVerification?.warningCount ?? exportVerification?.warnings) || 0);
+  const exportStatus = String(exportVerification?.status || '').toLowerCase();
+  const exportVerified = checked > 0 && ['passed', 'warnings'].includes(exportStatus) && failed === 0;
+  const downloadBlockerCount = structural.blockerCount + failed;
+  return {
+    protocol: 'coursemapper-package-readiness-receipt-v2',
+    purpose: 'post-grade-package-handoff',
+    claimBoundary:
+      'Download safety proves structural preparation and export verification only. It does not claim factual accuracy, source validation, classroom readiness, or pedagogical quality.',
+    readiness: buildPackageReadinessBinding(readiness),
+    contentReadiness: {
+      status: graded ? (p0 > 0 ? 'blocked' : p1 + p2 > 0 ? 'review' : 'clear') : 'not-graded',
+      score: graded && Number.isFinite(Number(quality?.score)) ? Number(quality.score) : null,
+      grade: graded ? String(quality?.grade || '') || null : null,
+      blockerCount: p0,
+      reviewFindingCount: p1 + p2,
+      evidenceClass: graded ? quality?.evidenceClass || 'deterministic' : null,
+    },
+    exportVerification: {
+      status: exportStatus || 'unverified',
+      checked,
+      failed,
+      warningCount,
+      ...(Array.isArray(exportVerification?.formatsVerified)
+        ? { formatsVerified: exportVerification.formatsVerified.filter(Boolean) }
+        : {}),
+    },
+    downloadSafety: {
+      status: downloadBlockerCount > 0 ? 'blocked' : exportVerified ? 'verified' : 'unverified',
+      blockerCount: downloadBlockerCount,
+      structuralBlockerCount: structural.blockerCount,
+      exportFailureCount: failed,
+    },
+  };
+}
+
 function normalizePackagePathForQuality(value) {
   return String(value || '')
     .replace(/\\/g, '/')
@@ -2371,14 +2433,16 @@ export async function buildCourseMaterialsZip({
   let qualityReportMarkdown = null;
   let scoreLedger = null;
   let qualityFindings = [];
+  let packageReadinessReceipt = null;
   if (quality !== false) {
     const gradedFileMap = { ...fileContents, 'PACKAGE_MANIFEST.json': JSON.stringify(manifest, null, 2) };
     const evidenceArtifactsBinding = await buildEvidenceArtifactBinding(gradedFileMap);
     const precomputedQuality = normalizePrecomputedPackageQuality(qualityOptions.precomputed);
-    const packageReadinessReceipt = {
-      protocol: 'coursemapper-package-readiness-receipt-v1',
-      readiness: buildPackageReadinessBinding(effectiveReadiness),
-    };
+    packageReadinessReceipt = buildPackageReadinessReceipt({
+      readiness: effectiveReadiness,
+      quality: precomputedQuality?.block || null,
+      exportVerification: manifest.exportVerification || null,
+    });
     const precomputedVerification = precomputedQuality
       ? await verifyScoreLedger({
           ledger: precomputedQuality.scoreLedger,
@@ -2516,7 +2580,22 @@ export async function buildCourseMaterialsZip({
     if (qualityBlock?.status !== 'graded' && !qualityReportMarkdown) {
       qualityReportMarkdown = renderUnavailableQualityReport(qualityBlock, { courseTitle: safeCourseName });
     }
+    if (qualityBlock?.status !== 'graded') {
+      // A rejected cached grade is verification input, never fallback truth.
+      // If fresh grading fails or times out, replace its provisional receipt
+      // so callers cannot display the rejected score as current evidence.
+      packageReadinessReceipt = buildPackageReadinessReceipt({
+        readiness: effectiveReadiness,
+        quality: qualityBlock,
+        exportVerification: manifest.exportVerification || null,
+      });
+    }
     if (qualityBlock?.status === 'graded' && scoreLedger) {
+      packageReadinessReceipt = buildPackageReadinessReceipt({
+        readiness: effectiveReadiness,
+        quality: qualityBlock,
+        exportVerification: manifest.exportVerification || null,
+      });
       const packageReadinessText = JSON.stringify(packageReadinessReceipt, null, 2);
       const packageReadinessSha256 = await sha256QualityText(packageReadinessText);
       scoreLedger.bindings = {
@@ -2625,6 +2704,7 @@ export async function buildCourseMaterialsZip({
       qualityResult,
       qualityReportMarkdown,
       qualityScopeBinding,
+      packageReadinessReceipt,
       // v0.15.187 Project Prof: assemble-only callers (headless harnesses)
       // get the in-memory file map so they can run the grader's own
       // extraction over the REAL export binaries — the Artifact Bridge.
@@ -2650,6 +2730,7 @@ export async function buildCourseMaterialsZip({
     qualityResult,
     qualityReportMarkdown,
     qualityScopeBinding,
+    packageReadinessReceipt,
   };
 }
 

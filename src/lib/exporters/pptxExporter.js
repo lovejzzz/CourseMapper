@@ -22,6 +22,7 @@ import { containsLatex, deckDataContainsLatex, processSlideText } from '../latex
 import { expandKeys } from '../keyMaps.js';
 import { assertOfficeExportHasNoInternalText } from '../exportTextInspector.js';
 import { safeImport } from '../safeImport.js';
+import { isSubstantiveSlideSubtitle } from './slideTitleSubtitle.js';
 
 let _PptxGenJS;
 
@@ -993,12 +994,16 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
       altText: 'Decorative',
     });
 
-    // Subtitle / first bullet (auto-fit from 16pt down to 12pt)
-    if (s.bullets?.length > 0) {
+    // Subtitle / first bullet (auto-fit from 16pt down to 12pt). A title
+    // subtitle must be a real framing clause. Legacy decks sometimes stored
+    // a bare concept or comma-separated concept dump here; omitting that weak
+    // line is more polished than presenting an orphan under the title.
+    const titleSubtitle = String(s.bullets?.[0] || '').trim();
+    if (isSubstantiveSlideSubtitle(titleSubtitle)) {
       const subBoxW = W - 4.2,
         subBoxH = 0.6;
-      const subFontSize = autoFitFontSize(s.bullets[0], subBoxW, subBoxH, FONT_BODY, 16, 12, 1.5);
-      const subResult = await maybeProcessLatex(s.bullets[0], hasLatex, { color: 'D0DCF0', fontSizePt: subFontSize });
+      const subFontSize = autoFitFontSize(titleSubtitle, subBoxW, subBoxH, FONT_BODY, 16, 12, 1.5);
+      const subResult = await maybeProcessLatex(titleSubtitle, hasLatex, { color: 'D0DCF0', fontSizePt: subFontSize });
       slide.addText(subResult.text, {
         x: 0.7,
         y: 3.65,

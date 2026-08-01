@@ -21,6 +21,7 @@ import { openTabNow, saveToGoogleSlides } from '../lib/googleDrive';
 import { exportSlideDeckPptx, buildSlideDeckPptxBlob } from '../lib/exporters/pptxExporter';
 import { buildPackageReadinessBinding, downloadCourseMaterialsZip } from '../lib/packageZipExporter';
 import { getPackageTrustStatus } from '../lib/packageTrustStatus';
+import { buildPackageFinishDomains } from '../lib/packageFinishEvidence';
 
 // ── Which formats each deliverable supports ─────────────────────────────────
 // courseMap handled separately via useExport (xlsx, csv, pdf, docx, gsheets, gdocs)
@@ -339,8 +340,12 @@ function hasFinishedPackageReceipt(packageQualityPass) {
 
 function hasPackageExportFailure(packageQualityPass) {
   const receipt = packageQualityPass?.receipt || {};
-  const failed = Number(receipt.exportFailed || 0);
-  return (Number.isFinite(failed) && failed > 0) || String(receipt.exportStatus || '').toLowerCase() === 'failed';
+  const exportReceipt = receipt.packageReadinessReceipt?.exportVerification || {};
+  const failed = Number(exportReceipt.failed ?? receipt.exportFailed ?? 0);
+  return (
+    (Number.isFinite(failed) && failed > 0) ||
+    String(exportReceipt.status || receipt.exportStatus || '').toLowerCase() === 'failed'
+  );
 }
 
 /**
@@ -353,6 +358,7 @@ function hasPackageExportFailure(packageQualityPass) {
 export function hasDownloadableVerifiedPackage(packageQualityPass, finishOutcome = null) {
   const verification = finishOutcome?.exportVerification || null;
   const receipt = finishOutcome?.receipt || packageQualityPass?.receipt || {};
+  const embeddedVerification = receipt.packageReadinessReceipt?.exportVerification || {};
   const completedQuality = finishOutcome ? finishOutcome.quality : packageQualityPass?.quality;
   const qualityStatus = String(completedQuality?.status || '').toLowerCase();
   // A verified file map is recoverable evidence, but it is not a download
@@ -360,82 +366,84 @@ export function hasDownloadableVerifiedPackage(packageQualityPass, finishOutcome
   // Preserve legacy receipts that predate embedded quality; fail closed only
   // on an explicit non-graded state.
   if ((finishOutcome && qualityStatus !== 'graded') || (qualityStatus && qualityStatus !== 'graded')) return false;
-  const checked = Number(verification?.checked ?? receipt.exportChecked ?? 0);
-  const warningCount = Number(verification?.warningCount ?? receipt.exportWarningCount ?? 0);
-  const explicitStatus = String(verification?.status || receipt.exportStatus || '').toLowerCase();
+  const checked = Number(verification?.checked ?? embeddedVerification.checked ?? receipt.exportChecked ?? 0);
+  const warningCount = Number(
+    verification?.warningCount ?? embeddedVerification.warningCount ?? receipt.exportWarningCount ?? 0,
+  );
+  const explicitStatus = String(
+    verification?.status || embeddedVerification.status || receipt.exportStatus || '',
+  ).toLowerCase();
   // v0.16.61-0.16.63 receipts persisted the checked/failed counters but
   // accidentally omitted exportStatus. Recover those already-finished
   // projects without making the user regenerate a course.
   const status = explicitStatus || (checked > 0 ? (warningCount > 0 ? 'warnings' : 'passed') : '');
-  const failed = Number(verification?.failed ?? receipt.exportFailed ?? 0);
+  const failed = Number(verification?.failed ?? embeddedVerification.failed ?? receipt.exportFailed ?? 0);
   const finished = Boolean(finishOutcome) || hasFinishedPackageReceipt(packageQualityPass);
-  return finished && ['passed', 'warnings'].includes(status) && Number.isFinite(failed) && failed === 0;
+  const receiptV2 = receipt.packageReadinessReceipt;
+  const v2DownloadSafetyVerified =
+    !receiptV2 ||
+    receiptV2.protocol !== 'coursemapper-package-readiness-receipt-v2' ||
+    (receiptV2.downloadSafety?.status === 'verified' && Number(receiptV2.downloadSafety?.blockerCount) === 0);
+  return (
+    finished &&
+    checked > 0 &&
+    ['passed', 'warnings'].includes(status) &&
+    Number.isFinite(failed) &&
+    failed === 0 &&
+    v2DownloadSafetyVerified
+  );
 }
 
 function ReadinessPanel({
   readiness,
   onIssueClick,
-  quality = null,
-  onOpenQuality = null,
   finishSummary = '',
   packageReceipt = null,
   packageQualityPass = null,
+  exportPrepared = false,
+  packageScope = false,
 }) {
   const [detailsOpen, setDetailsOpen] = useState(false);
   if (!readiness || readiness.featureCount === 0) return null;
 
-  const trustStatus = getPackageTrustStatus({
-    quality,
-    receipt: packageReceipt,
-    readiness,
-    packageQualityPass: packageQualityPass || { status: 'ready', quality, receipt: packageReceipt },
-    featureLabels: FEATURE_LABELS,
-  });
-  const packageReviewIssues = trustStatus.reviewIssues;
-  const packageBlockerIssues = packageReviewIssues.filter((issue) => issue?.severity === 'blocker');
   const structuralReadinessBlockers = readiness.blockers.filter((issue) => issue?.source !== 'qualityGate');
-  const readinessBlockersForDisplay =
-    packageBlockerIssues.length > 0 ? structuralReadinessBlockers : readiness.blockers;
-  const isBlocked = readiness.blockers.length > 0 || trustStatus.blocked;
-  const hasWarnings = readiness.warnings.length > 0 || trustStatus.review || packageReviewIssues.length > 0;
-  const issuesToShow = isBlocked ? [...readinessBlockersForDisplay, ...packageBlockerIssues].slice(0, 3) : [];
-  // Counts come from the canonical trust selector. Issue rows explain the
-  // blockers; they are not independent counters and may include one collapsed
-  // qualityGate row plus several detailed P0 findings.
-  const packageRefinementCount = Math.max(isBlocked ? 1 : 0, trustStatus.blockerCount);
-  const hasPackageOnlyReview = packageReviewIssues.length > 0 && readiness.warnings.length === 0;
+  const exportFailureIssue = getPackageTrustStatus({
+    receipt: packageReceipt,
+    packageQualityPass,
+    featureLabels: FEATURE_LABELS,
+  }).exportFailureIssue;
+  const operationalBlockers = [...structuralReadinessBlockers, exportFailureIssue].filter(Boolean);
+  // Export answers one operational question: are verified bytes prepared for
+  // download? Content quality is a separate, honest review surface in Agent.
+  // A verified receipt therefore owns this card even when Agent correctly
+  // retains quality findings for the instructor.
+  const isBlocked = !exportPrepared && operationalBlockers.length > 0;
+  const issuesToShow = isBlocked ? operationalBlockers.slice(0, 3) : [];
   const helperText = isBlocked
-    ? 'Finish package fixes safe items and stops for decisions.'
+    ? 'Preparation fixes safe items automatically; decisions and quality reasons stay in Agent.'
     : summarizeReadiness(readiness);
   const showIssueDetails = isBlocked && issuesToShow.length > 0;
   const canNavigate = (issue) => typeof onIssueClick === 'function' && issue?.target;
-  const tone = isBlocked
+  const tone = exportPrepared
     ? {
-        wrap: 'border-red-100 bg-red-50/70 text-red-700 dark:border-red-800/50 dark:bg-red-950/30 dark:text-red-200',
-        icon: 'bg-red-100 text-red-600 dark:bg-red-900/70 dark:text-red-200',
-        title: 'Finish package',
-        meta: `${packageRefinementCount} item${packageRefinementCount === 1 ? '' : 's'} to refine`,
+        wrap: 'border-emerald-100 bg-emerald-50/70 text-emerald-700 dark:border-emerald-800/50 dark:bg-emerald-950/30 dark:text-emerald-200',
+        icon: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/70 dark:text-emerald-200',
+        title: 'Ready to download',
+        meta: `${readiness.doneFeatureCount}/${readiness.featureCount} materials checked`,
       }
-    : hasPackageOnlyReview
+    : packageScope || isBlocked
       ? {
           wrap: 'border-sky-100 bg-sky-50/70 text-sky-800 dark:border-sky-800/50 dark:bg-sky-950/30 dark:text-sky-200',
           icon: 'bg-sky-100 text-sky-700 dark:bg-sky-900/70 dark:text-sky-200',
-          title: 'Exportable with review notes',
-          meta: 'Review notes in Agent',
+          title: 'Prepare package',
+          meta: 'Safe fixes run before download',
         }
-      : hasWarnings
-        ? {
-            wrap: 'border-sky-100 bg-sky-50/70 text-sky-800 dark:border-sky-800/50 dark:bg-sky-950/30 dark:text-sky-200',
-            icon: 'bg-sky-100 text-sky-700 dark:bg-sky-900/70 dark:text-sky-200',
-            title: 'Exportable with review notes',
-            meta: 'Notes saved in Agent',
-          }
-        : {
-            wrap: 'border-emerald-100 bg-emerald-50/70 text-emerald-700 dark:border-emerald-800/50 dark:bg-emerald-950/30 dark:text-emerald-200',
-            icon: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/70 dark:text-emerald-200',
-            title: 'Ready to download',
-            meta: `${readiness.doneFeatureCount}/${readiness.featureCount} materials checked`,
-          };
+      : {
+          wrap: 'border-emerald-100 bg-emerald-50/70 text-emerald-700 dark:border-emerald-800/50 dark:bg-emerald-950/30 dark:text-emerald-200',
+          icon: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/70 dark:text-emerald-200',
+          title: 'Ready to export',
+          meta: `${readiness.doneFeatureCount}/${readiness.featureCount} materials checked`,
+        };
 
   return (
     <div data-testid="readiness-panel" className={`rounded-lg border px-3 py-2.5 ${tone.wrap}`}>
@@ -443,7 +451,7 @@ function ReadinessPanel({
         <span
           className={`mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full text-xs ${tone.icon}`}
         >
-          {isBlocked ? '!' : hasPackageOnlyReview || hasWarnings ? 'i' : '✓'}
+          {exportPrepared || (!packageScope && !isBlocked) ? '✓' : 'i'}
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
@@ -451,16 +459,8 @@ function ReadinessPanel({
               {tone.title}
             </p>
             <span className="text-xs font-semibold opacity-70">{tone.meta}</span>
-            {/* v0.14.4 WS-B2: the download card carries the compact grade
-                stamp; the full chip lives in the workspace header. */}
-            {!isBlocked && (
-              <QualityStamp
-                quality={quality}
-                onOpen={onOpenQuality}
-                trustStatus={trustStatus}
-                informational={hasPackageOnlyReview || hasWarnings}
-              />
-            )}
+            {/* Quality scores and reasons live in Agent/Quality. Export stays
+                action-only and reports only preparation/download state. */}
           </div>
           {/* v0.14.6 calm pass: when everything is green the ✓ + meta already
               say it — restating "All selected materials passed…" was noise. */}
@@ -521,29 +521,16 @@ function ReadinessConfirm({
   const firstNavigableIssue = issues.find((issue) => issue?.target);
   const canRetryPackage = canFinishPackage && pendingExport.canFinishPackageAgain !== false;
   const canNavigate = (issue) => typeof onIssueClick === 'function' && issue?.target;
-  const tone = (() => {
-    if (!canRetryPackage) {
-      return {
-        wrap: isBlocked ? 'border-red-200 bg-red-50/80 text-red-800' : 'border-amber-200 bg-amber-50/80 text-amber-800',
-        reviewButton: isBlocked ? 'border-red-200 text-red-700' : 'border-amber-200 text-amber-700',
-        title: 'Package refinement',
-        description: 'Automatic finishing ran. Open the remaining issue, then export again.',
-      };
-    }
-    return isBlocked
-      ? {
-          wrap: 'border-red-200 bg-red-50/80 text-red-800',
-          reviewButton: 'border-red-200 text-red-700',
-          title: 'Finish package before export',
-          description: isZipExport ? 'Repair safe issues and re-check the ZIP.' : 'Repair safe issues and re-check.',
-        }
-      : {
-          wrap: 'border-amber-200 bg-amber-50/80 text-amber-800',
-          reviewButton: 'border-amber-200 text-amber-700',
-          title: 'Finish package before export',
-          description: isZipExport ? 'Retry safe fixes and prepare the ZIP.' : 'Retry safe fixes and prepare export.',
-        };
-  })();
+  const tone = {
+    wrap: 'border-sky-200 bg-sky-50/80 text-sky-800 dark:border-sky-800/60 dark:bg-sky-950/30 dark:text-sky-200',
+    reviewButton: 'border-sky-200 text-sky-700 dark:border-sky-700 dark:text-sky-200',
+    title: canRetryPackage ? 'Prepare package' : 'Preparation needs attention',
+    description: canRetryPackage
+      ? isZipExport
+        ? 'Safe fixes and verification run before the ZIP is offered.'
+        : 'Safe fixes and verification run before export.'
+      : 'Automatic preparation ran. Open the first remaining issue or review the full reasons in Agent.',
+  };
 
   return (
     <div ref={confirmRef} data-testid="readiness-confirm" className={`rounded-lg border px-3 py-3 ${tone.wrap}`}>
@@ -591,7 +578,7 @@ function ReadinessConfirm({
             disabled={finishPackageBusy}
             className={`rounded-lg border bg-white/70 px-2 py-1.5 text-xs font-bold hover:bg-white disabled:cursor-not-allowed disabled:opacity-60 ${tone.reviewButton}`}
           >
-            {finishPackageBusy ? 'Finishing package...' : 'Finish package'}
+            {finishPackageBusy ? 'Preparing package...' : 'Prepare package'}
           </button>
         ) : firstNavigableIssue ? (
           <button
@@ -926,16 +913,14 @@ export default function ExportSidePanel({
   const readinessConfirmRef = useRef(null);
   const isPackageQualityRunning = isFinishPassActive(packageQualityPass);
   const isPackageWorkflowRunning = isPackageGenerationRunning || isPackageQualityRunning;
-  // v0.14.4 WS-B3: "5 safe repairs applied · 1 export warning" — the
-  // finish-pass receipt details that exist nowhere else once the in-panel
-  // stage narration card is removed (the ribbon narrates stages, not these).
+  // Export reports completed preparation only. Export warnings and quality
+  // reasons remain available in Agent, where they can be explained without
+  // turning the delivery surface into a second audit panel.
   const finishSummary = useMemo(() => {
     if (!hasFinishedPackageReceipt(packageQualityPass)) return '';
     const repairs = Number(packageQualityPass?.repairsApplied) || 0;
-    const exportWarnings = Number(packageQualityPass?.receipt?.exportWarningCount) || 0;
     const parts = [];
     if (repairs > 0) parts.push(`${repairs} safe repair${repairs === 1 ? '' : 's'} applied`);
-    if (exportWarnings > 0) parts.push(`${exportWarnings} export warning${exportWarnings === 1 ? '' : 's'}`);
     return parts.join(' · ');
   }, [packageQualityPass]);
 
@@ -1037,6 +1022,7 @@ export default function ExportSidePanel({
   const zipPendingReadiness = pendingReadinessExport?.format === 'zip';
   const displayedReadiness =
     pendingReadinessExport?.scope === scope ? pendingReadinessExport.readiness : getDownloadReadiness(activeReadiness);
+  const verifiedPackageReceipt = scope === 'all' && hasDownloadableVerifiedPackage(packageQualityPass);
   const activeExportFeatureIds = useMemo(
     () => (scope === 'all' ? selectedFeatures : [activeTab]),
     [activeTab, scope, selectedFeatures],
@@ -1068,13 +1054,27 @@ export default function ExportSidePanel({
 
   useEffect(() => {
     if (!pendingReadinessExport) return;
-    if (pendingReadinessExport.scope === scope && (activeReadiness?.blockers?.length || 0) === 0) {
+    if (
+      pendingReadinessExport.scope === scope &&
+      ((activeReadiness?.blockers?.length || 0) === 0 || verifiedPackageReceipt)
+    ) {
       setPendingReadinessExport(null);
       setLastNotice('');
+      setLastError('');
       return;
     }
     readinessConfirmRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-  }, [activeReadiness, pendingReadinessExport, scope]);
+  }, [activeReadiness, pendingReadinessExport, scope, verifiedPackageReceipt]);
+
+  useEffect(() => {
+    if (!verifiedPackageReceipt) return;
+    // A newer immutable export receipt supersedes any warning/error left by
+    // an earlier preparation attempt. Quality findings remain untouched and
+    // visible in Agent; only stale export narration is cleared here.
+    setPendingReadinessExport(null);
+    setLastError('');
+    setLastNotice('');
+  }, [verifiedPackageReceipt, packageQualityPass?.receipt]);
 
   useEffect(() => {
     if (!canAutoRepairReadiness || isPackageWorkflowRunning || finishPackageBusy) {
@@ -1343,26 +1343,60 @@ export default function ExportSidePanel({
               }));
             }
             const reason = zipResult.quality?.reason || zipResult.quality?.error || 'the quality check did not finish';
-            setLastError(`ZIP download paused because quality proof is unavailable: ${reason}. Retry Finish package.`);
+            setLastError(
+              `The package could not be prepared because quality proof is unavailable: ${reason}. Try again.`,
+            );
             return;
           }
-          if (
-            typeof onPackageQualityPassUpdate === 'function' &&
-            zipResult.quality?.status === 'graded' &&
-            zipResult.qualityResult
-          ) {
+          if (typeof onPackageQualityPassUpdate === 'function' && zipResult.quality?.status === 'graded') {
             const exportedQuality = {
               ...zipResult.quality,
-              grades: zipResult.qualityResult.grades || {},
-              findings: zipResult.qualityResult.findings || [],
-              findingCount: zipResult.qualityResult.stats?.findingCount ?? 0,
-              fileCount: zipResult.qualityResult.stats?.fileCount ?? null,
-              texture: zipResult.qualityResult.texture || zipResult.quality.texture || null,
+              grades: zipResult.qualityResult?.grades || completedQuality?.grades || {},
+              findings: zipResult.qualityResult?.findings || completedQuality?.findings || [],
+              findingCount: zipResult.qualityResult?.stats?.findingCount ?? completedQuality?.findingCount ?? 0,
+              fileCount: zipResult.qualityResult?.stats?.fileCount ?? completedQuality?.fileCount ?? null,
+              texture:
+                zipResult.qualityResult?.texture || zipResult.quality.texture || completedQuality?.texture || null,
             };
-            onPackageQualityPassUpdate((previous) => ({
-              ...previous,
-              quality: exportedQuality,
-            }));
+            const exportReceipt = zipResult.packageReadinessReceipt?.exportVerification || {};
+            onPackageQualityPassUpdate((previous) => {
+              const previousReceipt = previous?.receipt || {};
+              const receiptCount = (key, fallbackKey) => {
+                const value = exportReceipt?.[key];
+                return value == null || value === ''
+                  ? Math.max(0, Number(previousReceipt?.[fallbackKey]) || 0)
+                  : Math.max(0, Number(value) || 0);
+              };
+              const exportChecked = receiptCount('checked', 'exportChecked');
+              const exportFailed = receiptCount('failed', 'exportFailed');
+              const exportWarningCount = receiptCount('warningCount', 'exportWarningCount');
+              const finishDomains = buildPackageFinishDomains({
+                readiness: downloadReadiness,
+                retryWarningCount: previous?.warningDomains?.retry || 0,
+                exportWarningCount,
+                exportFailureCount: exportFailed,
+                quality: exportedQuality,
+              });
+              return {
+                ...previous,
+                status: finishDomains.blockerDomains.total > 0 ? 'blocked' : 'ready',
+                phase: 'complete',
+                blockers: finishDomains.blockerDomains.total,
+                warnings: finishDomains.warningDomains.total,
+                ...finishDomains,
+                receipt: {
+                  ...previousReceipt,
+                  ...(zipResult.packageReadinessReceipt
+                    ? { packageReadinessReceipt: zipResult.packageReadinessReceipt }
+                    : {}),
+                  exportStatus: exportReceipt.status || previousReceipt.exportStatus || '',
+                  exportChecked,
+                  exportFailed,
+                  exportWarningCount,
+                },
+                quality: exportedQuality,
+              };
+            });
           }
           setLastOk(
             `ZIP downloaded with ${zipResult.files.length} file${
@@ -1515,13 +1549,13 @@ export default function ExportSidePanel({
       : finishPackageBusy
         ? 'Finishing package'
         : zipCanFinishPackage
-          ? 'Finish package'
+          ? 'Prepare package'
           : zipCanDownloadReviewedPackage
             ? 'Download ZIP'
             : zipPendingNeedsAttention || zipHasExportFailure || zipHasTerminalTrustBlocker
-              ? 'Refine package'
+              ? 'Prepare package'
               : zipPendingReadiness
-                ? 'Finish package'
+                ? 'Prepare package'
                 : 'Download ZIP';
   // The export panel is the single ZIP owner.
   const zipDownloadDisabled =
@@ -1535,11 +1569,7 @@ export default function ExportSidePanel({
     allReadyCount === 0 ||
     !courseMap ||
     (selectedLessons !== null && selectedLessons.length === 0);
-  const panelTitle = isPackageGenerationRunning
-    ? 'Building package'
-    : ['Download ZIP', 'Preparing ZIP…'].includes(zipButtonLabel)
-      ? 'Export package'
-      : 'Refine package';
+  const panelTitle = isPackageGenerationRunning ? 'Building package' : 'Export package';
   return (
     <div
       data-testid="export-side-panel"
@@ -1637,11 +1667,11 @@ export default function ExportSidePanel({
           <ReadinessPanel
             readiness={displayedReadiness}
             onIssueClick={onReadinessIssueClick}
-            quality={packageQualityPass?.quality || null}
-            onOpenQuality={() => setQualityModalOpen(true)}
             finishSummary={finishSummary}
             packageReceipt={packageQualityPass?.receipt || null}
             packageQualityPass={packageQualityPass}
+            exportPrepared={zipHasVerifiedReceipt}
+            packageScope={scope === 'all'}
           />
         )}
 
@@ -1888,9 +1918,10 @@ export default function ExportSidePanel({
         {lastError && (
           <p
             data-testid="export-error"
-            className="text-xs font-semibold text-red-500 bg-red-50 rounded-lg px-2 py-1.5 animate-spring-in"
+            role="alert"
+            className="rounded-lg border border-amber-200 bg-amber-50 px-2 py-1.5 text-xs font-semibold text-amber-800 animate-spring-in dark:border-amber-800 dark:bg-amber-950/50 dark:text-amber-200"
           >
-            ✗ {lastError}
+            {lastError}
           </p>
         )}
         {lastNotice && !lastError && (

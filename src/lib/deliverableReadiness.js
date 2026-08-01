@@ -1586,7 +1586,7 @@ function getCourseMapFallbackValue(key, courseMap, lesson, section, lessonIndex)
                           ]),
                           weeklyAssessments: pick([
                             `${formativeAssessmentPrefix}${displayCourseMapTopic(topic)} evidence check: state one supported, bounded conclusion.`,
-                            `${formativeAssessmentPrefix}Apply ${displayCourseMapTopic(topic)} to one example and name one limitation.`,
+                            `${formativeAssessmentPrefix}${displayCourseMapTopic(topic)} application check: apply one example and name one limitation.`,
                             `${formativeAssessmentPrefix}${displayCourseMapTopic(topic)} exit reflection: connect evidence to the lesson task.`,
                             `${formativeAssessmentPrefix}${displayCourseMapTopic(topic)} short analysis: claim, evidence, and next question.`,
                           ]),

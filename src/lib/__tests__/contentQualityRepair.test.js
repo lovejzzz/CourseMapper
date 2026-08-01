@@ -59,6 +59,100 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
     expect(auditDeliverableContentQuality('slideDecks', result.data).findings).toHaveLength(0);
   });
 
+  it('repairs legacy framing collisions and sentence-shaped assessment identities before export', () => {
+    const data = {
+      lessonPlans: [
+        {
+          objective: 'Audit a practical the Pandas Tabular Data focus example and explain one risk.',
+          title: 'Apply Conditional Branching Logic to one example and name one limitation.',
+          overview:
+            'Use Apply Conditional Branching Logic to one example and name one limitation as the weekly checkpoint.',
+        },
+      ],
+    };
+
+    expect(auditDeliverableContentQuality('lessonPlans', data).findings).toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: 'article-collision' })]),
+    );
+
+    const result = repairDeliverableContentQuality('lessonPlans', data);
+
+    expect(result.changed).toBe(true);
+    expect(result.data.lessonPlans[0]).toEqual({
+      objective: 'Audit a practical Pandas Tabular Data focus example and explain one risk.',
+      title: 'Conditional Branching Logic application check',
+      overview: 'Use Conditional Branching Logic application check as the weekly checkpoint.',
+    });
+    expect(auditDeliverableContentQuality('lessonPlans', result.data).findings).toHaveLength(0);
+  });
+
+  it('removes a known off-topic source sentence from saved teaching copy without erasing surrounding guidance', () => {
+    const data = {
+      decks: [
+        {
+          lessonTitle: 'Lesson 6: Capstone Policy Memo',
+          slides: [
+            {
+              bullets: [
+                'Use policy evidence to bound the recommendation.',
+                'The interoperability of ImageJ2 ensures Molecule Archives can easily be opened in multiple environments.',
+              ],
+              notes:
+                'Compare the policy evidence first. The interoperability of ImageJ2 ensures Molecule Archives can easily be opened in multiple environments. Name one limitation before revising.',
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = repairDeliverableContentQuality('slideDecks', data, {
+      courseName: 'Python for Public Policy Analysis',
+    });
+
+    expect(result.changed).toBe(true);
+    expect(JSON.stringify(result.data)).not.toMatch(/ImageJ|Molecule Archives/i);
+    expect(result.data.decks[0].slides[0].bullets).toEqual(['Use policy evidence to bound the recommendation.']);
+    expect(result.data.decks[0].slides[0].notes).toBe(
+      'Compare the policy evidence first. Name one limitation before revising.',
+    );
+
+    const imageCourse = repairDeliverableContentQuality('slideDecks', data, {
+      courseName: 'Biomedical Image Analysis with ImageJ2',
+    });
+    expect(imageCourse.changed).toBe(false);
+
+    const explicitlyRequested = repairDeliverableContentQuality('slideDecks', data, {
+      courseName: 'Biomedical Imaging Studio',
+      sourceBrief: 'Teach ImageJ2 workflows and require students to compare Molecule Archives.',
+    });
+    expect(explicitlyRequested.changed).toBe(false);
+
+    const systematicReviewCourse = repairDeliverableContentQuality(
+      'studyGuides',
+      { reviewNotes: ['Use PRISMA to report the evidence synthesis.'] },
+      { courseName: 'Systematic Review Methods' },
+    );
+    expect(systematicReviewCourse.changed).toBe(false);
+
+    const wholeFieldLeak = repairDeliverableContentQuality(
+      'lessonPlans',
+      {
+        lessonPlans: [
+          {
+            lessonTitle: 'The interoperability of ImageJ2 with SciJava.',
+            objectives: ['The interoperability of ImageJ2 supports Molecule Archives.'],
+          },
+        ],
+      },
+      { courseName: 'Python for Public Policy Analysis' },
+    );
+    expect(wholeFieldLeak.changed).toBe(true);
+    expect(wholeFieldLeak.data.lessonPlans[0].lessonTitle).toBe('Course-aligned source review');
+    expect(wholeFieldLeak.data.lessonPlans[0].objectives).toEqual([
+      'Use a course-aligned example and verify its source before publishing.',
+    ]);
+  });
+
   it('turns circular fallback glossary prose into an honest definition-review notice', () => {
     const data = {
       studyGuides: [

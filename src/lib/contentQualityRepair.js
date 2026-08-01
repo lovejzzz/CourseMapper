@@ -13,11 +13,25 @@
 
 import { isProvenanceMirrorKey } from './compiledLanguageFinalizer.js';
 import { hasDanglingClauseSeam } from './contentQualityChecks.js';
+import { semanticIdentityTokens } from './lessonSemanticRelevance.js';
+import {
+  blacklistYieldsToTopicalOverlap,
+  knownOffenderFitsScope,
+  matchesKnownOffender,
+} from './quality/knownOffenderScope.js';
 
 // Mirrors of the detector regexes in contentQualityChecks.js — each fixer
 // must make its detector pass, never merely shuffle the defect.
 const DOUBLE_PERIOD_RE = /([a-z])\.\.(?!\.)/g;
 const ARTICLE_A_VOWEL_RE = /\ba(\s+)([AEIOU][a-z]{3,})/g;
+const FRAMING_ADJECTIVE_DETERMINER_RE = /\b(practical|concrete|worked|real-world)\s+(?:the|a|an)\s+(?=[A-Za-z0-9])/gi;
+// An older compiler fallback used a complete direction as the assessment
+// identity. Saved projects may still carry that sentence through many
+// artifacts. Convert only this exact compiler-owned shape to a noun identity
+// during package preparation; instructor-authored directions remain intact.
+const LEGACY_APPLY_ASSESSMENT_IDENTITY_RE = /\bApply\s+([^.!?\n]{3,100}?)\s+to one example and name one limitation\b/g;
+const ASSESSMENT_IDENTITY_KEY_RE =
+  /^(?:title|t|name|artifact|assessmentTitle|assignmentTitle|rubricTitle|lessonTitle|relatedLessons|courseMapRef|registryId|assessmentId)$/i;
 const LEADING_COLON_RE = /^\s*:\s*/;
 const PERIOD_BEFORE_COMMA_RE = /[.。](?=,|[”"’'],)/g;
 const PERIOD_COMMA_EXEMPT_RE = /\b(?:e\.g|i\.e|etc)\.$/i;
@@ -86,10 +100,19 @@ function repairAssignmentDeferrals(value) {
   );
 }
 
-function repairString(value, featureId) {
+function repairString(value, featureId, parentKey = '') {
   let text = value;
   text = text.replace(DOUBLE_PERIOD_RE, '$1.');
   text = text.replace(ARTICLE_A_VOWEL_RE, 'an$1$2');
+  text = text.replace(FRAMING_ADJECTIVE_DETERMINER_RE, '$1 ');
+  if (ASSESSMENT_IDENTITY_KEY_RE.test(parentKey)) {
+    text = text.replace(
+      /^Apply\s+([^.!?\n]{3,100}?)\s+to one example and name one limitation[.!?]?$/i,
+      (_, topic) => `${topic.trim()} application check`,
+    );
+  } else {
+    text = text.replace(LEGACY_APPLY_ASSESSMENT_IDENTITY_RE, (_, topic) => `${topic.trim()} application check`);
+  }
   text = text.replace(LEADING_COLON_RE, '');
   text = repairPeriodBeforeComma(text);
   if (!DANGLING_EXEMPT_RE.test(text) && hasDanglingClauseSeam(text)) {
@@ -128,6 +151,42 @@ function collectStrings(node, strings) {
   }
 }
 
+function knownOffenderIsOutOfScope(value, context = {}) {
+  const offender = matchesKnownOffender(value);
+  if (!offender) return false;
+  const scope = `${context.courseName || ''} ${context.courseScope || ''} ${context.sourceBrief || ''}`.trim();
+  if (!scope) return false;
+  if (scope.toLowerCase().includes(String(offender).toLowerCase())) {
+    return false;
+  }
+  const scopeTokens = new Set(semanticIdentityTokens(scope));
+  if (knownOffenderFitsScope(offender, scopeTokens)) return false;
+  return !blacklistYieldsToTopicalOverlap(new Set(semanticIdentityTokens(value)), scopeTokens, {
+    disciplineNameTokens: semanticIdentityTokens(context.courseName || ''),
+    minShared: 2,
+  });
+}
+
+function removeOutOfScopeOffenderSentences(value, context = {}) {
+  if (!knownOffenderIsOutOfScope(value, context)) return value;
+  const sentences = String(value).match(/[^.!?]+[.!?]?/g) || [String(value)];
+  return sentences
+    .filter((sentence) => !knownOffenderIsOutOfScope(sentence, context))
+    .join(' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function sourceReviewReplacement(parentKey = '') {
+  if (/^(?:title|name|term|lessonTitle|assessmentTitle|assignmentTitle|rubricTitle)$/i.test(parentKey)) {
+    return 'Course-aligned source review';
+  }
+  if (/definition/i.test(parentKey)) {
+    return 'Add an instructor-approved, course-aligned definition and source before publishing.';
+  }
+  return 'Use a course-aligned example and verify its source before publishing.';
+}
+
 function worstRepeatedPhrase(node) {
   const strings = [];
   collectStrings(node, strings);
@@ -146,22 +205,37 @@ function worstRepeatedPhrase(node) {
   return worst.count >= PHRASE_REPAIR_LIMIT ? worst : null;
 }
 
-function repairNode(node, stats, featureId) {
+function repairNode(node, stats, featureId, parentKey = '', context = {}) {
   if (typeof node === 'string') {
-    const repaired = repairString(node, featureId);
+    if (knownOffenderIsOutOfScope(node, context)) {
+      stats.repairedStrings += 1;
+      const remaining = removeOutOfScopeOffenderSentences(node, context);
+      return repairString(remaining || sourceReviewReplacement(parentKey), featureId, parentKey);
+    }
+    const repaired = repairString(node, featureId, parentKey);
     if (repaired !== node) stats.repairedStrings += 1;
     return repaired;
   }
   if (Array.isArray(node)) {
     let changed = false;
-    const next = node.map((item) => {
-      const repaired = repairNode(item, stats, featureId);
+    const next = node.flatMap((item) => {
+      if (typeof item === 'string' && knownOffenderIsOutOfScope(item, context)) {
+        stats.repairedStrings += 1;
+        changed = true;
+        const remaining = removeOutOfScopeOffenderSentences(item, context);
+        return remaining ? [repairString(remaining, featureId, parentKey)] : [];
+      }
+      const repaired = repairNode(item, stats, featureId, parentKey, context);
       if (repaired !== item) changed = true;
-      return repaired;
+      return [repaired];
     });
+    if (changed && next.length === 0 && node.length > 0) {
+      return [sourceReviewReplacement(parentKey)];
+    }
     return changed ? next : node;
   }
   if (node && typeof node === 'object') {
+    const scopedContext = context;
     if (
       featureId === 'studyGuides' &&
       typeof node.term === 'string' &&
@@ -182,7 +256,7 @@ function repairNode(node, stats, featureId) {
         next[key] = value;
         continue;
       }
-      const repaired = repairNode(value, stats, featureId);
+      const repaired = repairNode(value, stats, featureId, key, scopedContext);
       if (repaired !== value) changed = true;
       next[key] = repaired;
     }
@@ -196,10 +270,10 @@ function repairNode(node, stats, featureId) {
  * Returns { data, changed, repairedStrings }. Identity-preserving when
  * nothing needed fixing, so callers can cheap-compare.
  */
-export function repairDeliverableContentQuality(featureId, data) {
+export function repairDeliverableContentQuality(featureId, data, context = {}) {
   if (!data || typeof data !== 'object') return { data, changed: false, repairedStrings: 0 };
   const stats = { repairedStrings: 0, repairedPhrases: 0 };
-  const seamRepaired = repairNode(data, stats, featureId);
+  const seamRepaired = repairNode(data, stats, featureId, '', context);
   const repeated = worstRepeatedPhrase(seamRepaired);
   // Repetition is a diagnostic for the compiler or a targeted regeneration,
   // not a safe string-rewrite target. Replacing an eight-word shingle inside

@@ -378,6 +378,92 @@ describe('Crucible grader — seeded defects each produce their exact P0 finding
     }
   }, 120000);
 
+  it('does not treat an answer-key letter followed by a sentence as adjacent articles', async () => {
+    const dir = await freshDir('crucible-answer-label-boundary-');
+    try {
+      const docx = findDocx(dir, 'Quiz & Exam Bank');
+      await injectParagraphsIntoDocx(docx, ['ANSWER — A The evidence-backed correction is A.']);
+      const result = await grade({
+        extractedDir: dir,
+        consoleLogText: healthyConsoleLog(),
+        digest: healthyDigest(),
+        course: GEO_COURSE,
+      });
+      const finding = result.findings.find(
+        (entry) =>
+          entry.dimension === 'format' &&
+          /adjacent article collision/i.test(entry.detail) &&
+          /ANSWER\s+—\s+A\s+The/i.test(entry.evidence || ''),
+      );
+      expect(finding).toBeUndefined();
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  }, 120000);
+
+  it('does not treat a priori, A/B, or an A grade as adjacent articles', async () => {
+    const dir = await freshDir('crucible-article-terms-');
+    try {
+      const docx = findDocx(dir, 'Lesson Plans');
+      await injectParagraphsIntoDocx(docx, [
+        'Compare the a priori assumption with observed evidence.',
+        'Use the A/B test to compare two policy messages.',
+        'An A grade requires clear evidence and reasoning.',
+      ]);
+      const result = await grade({
+        extractedDir: dir,
+        consoleLogText: healthyConsoleLog(),
+        digest: healthyDigest(),
+        course: GEO_COURSE,
+      });
+      const findings = result.findings.filter(
+        (entry) => entry.dimension === 'format' && /adjacent article collision/i.test(entry.detail),
+      );
+      expect(findings, findings.map((entry) => entry.evidence).join('\n')).toEqual([]);
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  }, 120000);
+
+  it('blocks a known off-topic source fact in teaching content but permits an explicitly requested course', async () => {
+    const dir = await freshDir('crucible-known-offender-');
+    try {
+      const docx = findDocx(dir, 'Lesson Plans');
+      await injectParagraphsIntoDocx(docx, [
+        'The interoperability of ImageJ2 with the SciJava ecosystem supports access to the Molecule Archive Suite.',
+      ]);
+      const unrelated = await grade({
+        extractedDir: dir,
+        consoleLogText: healthyConsoleLog(),
+        digest: healthyDigest(),
+        course: { id: 'public-policy', title: 'Python for Public Policy Analysis', featureIds: GEO_FEATURES },
+      });
+      expect(unrelated.findings).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            severity: 'P0',
+            dimension: 'substance',
+            detail: 'known off-topic source fact leaked into learner-facing teaching content',
+          }),
+        ]),
+      );
+
+      const requested = await grade({
+        extractedDir: dir,
+        consoleLogText: healthyConsoleLog(),
+        digest: healthyDigest(),
+        course: { id: 'imagej', title: 'ImageJ2 and Molecule Archive Workflows', featureIds: GEO_FEATURES },
+      });
+      expect(
+        requested.findings.filter(
+          (finding) => finding.detail === 'known off-topic source fact leaked into learner-facing teaching content',
+        ),
+      ).toEqual([]);
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  }, 120000);
+
   it('FP-2: boilerplate header + on-topic Scheherazade reading must NOT flag, but the diabetes reading MUST (graded as world-lit)', async () => {
     const dir = await freshDir('crucible-fp2-');
     try {

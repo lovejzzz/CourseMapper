@@ -143,7 +143,7 @@ function compactRepeatedLessonFocus(value, fullFocus, state) {
       const before = source.slice(Math.max(0, offset - 24), offset);
       const after = source.slice(offset + match.length, offset + match.length + 28);
       const topic = state.topicKeyword || 'lesson';
-      const determinerAlreadyPresent = /\b(?:a|an|the|this|that)\s*$/i.test(before);
+      const hasDeterminer = /\b(?:a|an|the|this|that)(?:\s+[a-z-]+){0,2}\s*$/i.test(before);
       // Compiler-owned assessment identities use a label + topic form
       // ("Evidence explanation: Qubits and quantum states"). Appending the
       // generic local-reference suffix after that colon produced awkward
@@ -157,7 +157,7 @@ function compactRepeatedLessonFocus(value, fullFocus, state) {
       ) {
         return topic;
       }
-      if (/^\s+focus\b/i.test(after)) return `${determinerAlreadyPresent ? '' : 'the '}${topic}`;
+      if (/^\s+(?:focus|example|case|scenario)\b/i.test(after)) return `${hasDeterminer ? '' : 'the '}${topic}`;
       if (/^\s+course materials\b/i.test(after)) return `${topic} lesson's`;
       if (/^\s+(?:materials?|notes?|resources?|readings?|packet)\b/i.test(after)) return topic;
       if (
@@ -168,9 +168,9 @@ function compactRepeatedLessonFocus(value, fullFocus, state) {
         return `${topic}${topic.includes(' ') ? '–' : '-'}specific`;
       }
       if (/(?:\bfor|\bin|\bfrom|\babout|\bon|\bof|\bto|\bwith|\busing|\baround)\s*$/i.test(before)) {
-        return `${determinerAlreadyPresent ? '' : 'the '}${topic} work`;
+        return `${hasDeterminer ? '' : 'the '}${topic} work`;
       }
-      return `${determinerAlreadyPresent ? '' : 'the '}${topic} focus`;
+      return `${hasDeterminer ? '' : 'the '}${topic} focus`;
     });
   }
   if (Array.isArray(value)) return value.map((item) => compactRepeatedLessonFocus(item, fullFocus, state));

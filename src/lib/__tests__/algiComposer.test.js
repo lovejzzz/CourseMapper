@@ -833,6 +833,29 @@ describe('Algi V0 source receipts', () => {
     expect(compositionCandidatesFromEvidence(consolidated, admitted, 4)).toHaveLength(4);
   });
 
+  it('rejects a known off-topic research kernel before a capstone can reuse its facts', () => {
+    const relevant = kernel(1, true);
+    relevant.term = 'Policy memo evidence';
+    const offender = kernel(2, true);
+    offender.term = 'Data cleansing';
+    offender.provenance = { title: 'Molecule Archives with ImageJ2', sourceUrl: 'https://example.test/imagej2' };
+    offender.facts[0].text =
+      'The interoperability of ImageJ2 ensures Molecule Archives can be opened in multiple environments.';
+
+    const candidates = compositionCandidatesFromEvidence([relevant, offender], [], 16, {
+      topic: 'Capstone Policy Memo',
+      courseContext: 'Python for Public Policy Analysis',
+    });
+
+    expect(candidates.map((entry) => entry.id)).toEqual([relevant.id]);
+    expect(
+      compositionCandidatesFromEvidence([offender], [], 16, {
+        topic: 'Reproducible imaging workflows',
+        courseContext: 'Biomedical Image Analysis. The course request explicitly requires ImageJ2 interoperability.',
+      }).map((entry) => entry.id),
+    ).toEqual([offender.id]);
+  });
+
   it('uses a later anchored claim when an abstract lead is too dense for a key-term definition', () => {
     const source = kernel(1, true);
     source.term = 'Heat exposure';

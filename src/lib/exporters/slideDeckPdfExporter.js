@@ -12,6 +12,7 @@ import { assertTableRowsHaveNoInternalExportLanguage } from '../exportTextInspec
 import { expandKeys } from '../keyMaps';
 import { loadPdfRuntime } from '../pdfRuntime';
 import { THEMES } from './pptxExporter.js';
+import { isSubstantiveSlideSubtitle } from './slideTitleSubtitle.js';
 
 function hexToRgb(hex) {
   const h = String(hex || '000000').replace('#', '');
@@ -96,8 +97,8 @@ export async function exportSlideDeckPdf(data, courseName) {
         doc.setFillColor(...accent);
         doc.rect(margin + 4, ruleY, 42, 1.6, 'F');
 
-        const subtitle = (slide.bullets || slide.content || [])[0];
-        if (subtitle) {
+        const subtitle = String((slide.bullets || slide.content || [])[0] || '').trim();
+        if (isSubstantiveSlideSubtitle(subtitle)) {
           doc.setFont('helvetica', 'italic');
           doc.setFontSize(12);
           doc.setTextColor(220, 230, 245);

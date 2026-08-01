@@ -33,7 +33,11 @@ import { inferCourseDisciplines } from '../genome/libraryShardLoader.js';
 // engine still attached it — e.g. the stats cancer-statistics paper that passes
 // the Medicine/Health-Science topic field and the "statistics" token gate).
 // Plain ESM, no node builtins — safe to import here.
-import { matchesKnownOffender, blacklistYieldsToTopicalOverlap } from '../quality/artifactDefectPatterns.js';
+import {
+  matchesKnownOffender,
+  blacklistYieldsToTopicalOverlap,
+  knownOffenderFitsScope,
+} from '../quality/artifactDefectPatterns.js';
 
 function cleanText(value) {
   return (
@@ -1059,6 +1063,7 @@ export async function attachOpenReadings(graph, { providers = {}, signal, maxSes
       const offender = matchesKnownOffender(work?.title);
       if (
         offender &&
+        !knownOffenderFitsScope(offender, terms.conceptTokens) &&
         !blacklistYieldsToTopicalOverlap(new Set(significantTokens(work?.title)), terms.conceptTokens, {
           disciplineNameTokens: offenderDisciplineTokens,
         })

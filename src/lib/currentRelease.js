@@ -13,10 +13,10 @@ export const CURRENT_RELEASE = {
     'The deterministic evidence report now separates narrow positive metrics, negative-evidence-only conformance, and unobserved constructs instead of presenting every earned point as positive teaching-quality evidence.',
     'Package-specific attainable and evidence ceilings are derived from evaluated rules. The verifier replays the canonical protocols, binds the detailed finding and readiness receipts, and checks every displayed component instead of trusting balanced totals.',
     'Python in a policy topic no longer misclassifies a memo as a code lab. Genuine code labs retain dedicated computational directions and now receive matching correctness, code-clarity, verification, and revision performance bands.',
-    'Compiler-owned language fixes prevent article collisions, preserve conjunctions in compact evidence labels, stop dangling concept-map identities, and remove duplicated answer-key prefixes at the DOCX boundary.',
-    'Every P0/P1/P2 score has a structured reason-and-evidence receipt, and cached quality is reusable only when its hash-bound package-readiness receipt matches the current export.',
+    'Compiler-owned language fixes prevent article collisions, compact repeated assessment directions, require complete slide framing, and reject known off-course source facts before they reach learner-facing materials.',
+    'Export now prepares and verifies before presenting Download, while Agent/Quality retains the honest score and exact reasons. The post-grade readiness receipt separately reports content review, export verification, and blockers-only download safety.',
     'Rendered-claim grounding and objective-task-rubric coherence remain unobserved until post-render, calibrated protocols exist; this release does not turn structural receipts or one regression fix into semantic credit.',
-    'A six-round code-and-package audit plus two exact-commit three-round adversarial audits record reproduced defects, verifier exploits, rejected shortcuts, implemented owners, and remaining limits.',
+    'A six-round code-and-package audit, two exact-commit adversarial audits, and a fresh production-package Roundtable audit record reproduced defects, verifier exploits, cross-course source leakage, rejected shortcuts, implemented owners, and remaining limits.',
   ],
   landingHighlights: [
     'Positive metrics and no-defect credit are separate.',

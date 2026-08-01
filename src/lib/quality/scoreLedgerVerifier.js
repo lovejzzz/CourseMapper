@@ -444,7 +444,9 @@ export async function verifyScoreLedger({
   if (findingsReceiptResult.status !== 'verified') return findingsReceiptResult;
   if (packageReadinessReceipt) {
     if (
-      packageReadinessReceipt.protocol !== 'coursemapper-package-readiness-receipt-v1' ||
+      !['coursemapper-package-readiness-receipt-v1', 'coursemapper-package-readiness-receipt-v2'].includes(
+        packageReadinessReceipt.protocol,
+      ) ||
       !sameJson(packageReadinessReceipt.readiness, ledger.bindings?.packageReadiness)
     ) {
       return invalid('package readiness receipt does not match the ledger');

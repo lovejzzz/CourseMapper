@@ -4,6 +4,7 @@ import {
   buildEvidenceArtifactBinding,
   buildCourseMaterialsZip,
   buildPackageReadinessBinding,
+  buildPackageReadinessReceipt,
   downloadCourseMaterialsZip,
   mergeSourceLedgerBundles,
   PackageZipExportError,
@@ -21,6 +22,33 @@ import { TEXTURE_VERSION } from '../quality/textureMetric';
 import { verifyScoreLedger } from '../quality/scoreLedgerVerifier';
 
 const qualityGraderOverride = vi.hoisted(() => ({ grade: null }));
+
+it('preserves compact numeric structural blockers in download-safety receipts', () => {
+  expect(
+    buildPackageReadinessReceipt({
+      readiness: { status: 'blocked', blockers: 2, warnings: 1 },
+      quality: { status: 'graded', score: 92, grade: 'A', findingCounts: { p0: 0, p1: 1, p2: 0 } },
+      exportVerification: { status: 'passed', checked: 4, failed: 0, warningCount: 0 },
+    }),
+  ).toMatchObject({
+    contentReadiness: { status: 'review' },
+    downloadSafety: { status: 'blocked', blockerCount: 2, structuralBlockerCount: 2 },
+  });
+});
+
+it('preserves exporter warning evidence without turning an otherwise verified download red', () => {
+  expect(
+    buildPackageReadinessReceipt({
+      readiness: { status: 'ready', blockers: 0, warnings: 0 },
+      quality: { status: 'graded', score: 89, grade: 'B', findingCounts: { p0: 0, p1: 1, p2: 1 } },
+      exportVerification: { status: 'warnings', checked: 38, failed: 0, warnings: 2 },
+    }),
+  ).toMatchObject({
+    contentReadiness: { status: 'review', reviewFindingCount: 2 },
+    exportVerification: { status: 'warnings', checked: 38, failed: 0, warningCount: 2 },
+    downloadSafety: { status: 'verified', blockerCount: 0 },
+  });
+});
 
 vi.mock('../quality/deepQualityGrader.js', async () => {
   const actual = await vi.importActual('../quality/deepQualityGrader.js');
@@ -742,8 +770,13 @@ describe('packageZipExporter', () => {
       count: qualityFindings.findingCount,
     });
     expect(packageReadiness).toMatchObject({
-      protocol: 'coursemapper-package-readiness-receipt-v1',
+      protocol: 'coursemapper-package-readiness-receipt-v2',
+      purpose: 'post-grade-package-handoff',
+      claimBoundary: expect.stringMatching(/does not claim.*classroom readiness/i),
       readiness: scoreLedger.bindings.packageReadiness,
+      contentReadiness: expect.objectContaining({ status: 'review', score: 89, grade: 'B', blockerCount: 0 }),
+      exportVerification: expect.objectContaining({ status: 'unverified', checked: 0, failed: 0 }),
+      downloadSafety: expect.objectContaining({ status: 'unverified', blockerCount: 0 }),
     });
     expect(scoreLedger.bindings.packageReadinessReceipt).toMatchObject({
       algorithm: 'sha256',
@@ -3355,11 +3388,25 @@ describe('packageZipExporter', () => {
     const result = await downloadCourseMaterialsZip({
       courseMap: makeCourseMap(),
       featureIds: ['courseMap'],
-      quality: { timeoutMs: 1 },
+      quality: {
+        timeoutMs: 1,
+        precomputed: {
+          status: 'graded',
+          score: 99,
+          grade: 'A',
+          graderVersion: 'rejected-cached-grade',
+          findingCounts: { p0: 0, p1: 0, p2: 0 },
+        },
+      },
     });
 
     expect(result.downloaded).toBe(false);
     expect(result.quality).toMatchObject({ status: 'not-graded' });
+    expect(result.packageReadinessReceipt.contentReadiness).toMatchObject({
+      status: 'not-graded',
+      score: null,
+      grade: null,
+    });
     expect(result.blob.size).toBeGreaterThan(0);
     expect(result.qualityReportMarkdown.toLowerCase()).toContain('quality proof unavailable');
     expect(saveAs).not.toHaveBeenCalled();

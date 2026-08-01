@@ -24,12 +24,19 @@
  */
 
 import { MALFORMED_CLEAR_PLURAL_POSSESSIVE_PATTERN } from '../compilerText.js';
+import { ADJACENT_ARTICLE_COLLISION_RE } from './articleCollision.js';
+export {
+  KNOWN_OFFENDER_CITATIONS,
+  blacklistYieldsToTopicalOverlap,
+  knownOffenderFitsScope,
+  matchesKnownOffender,
+} from './knownOffenderScope.js';
 
 // ── v0.12.1 deterministic text artifacts (the original gate table) ──────────
 // Every entry mirrors a defect class shipped in the v0.12 production audit.
 export const ARTIFACT_PATTERNS = [
   {
-    regex: /\b(?:a|an|the)\s+(?:a|an|the)\b/i,
+    regex: ADJACENT_ARTICLE_COLLISION_RE,
     label: 'adjacent article collision such as "a the policy example"',
     name: 'slot-grammar-adjacent-articles',
     severity: 'P2',
@@ -468,153 +475,6 @@ export function findPromptArtifactContamination(line) {
   );
   const match = nearbyTopicMatch || null;
   return match ? { evidence: value, label: String(match[1] || '').toLowerCase() } : null;
-}
-
-// ── Known-offender citation blacklist (single source of truth) ──────────────
-// The v0.14 four-course audit's most credibility-damaging defect class: the
-// most-cited paper in a field attached as a weekly student reading for a bare
-// keyword overlap (MNIST for geologic time, "Global cancer statistics" for an
-// intro-stats sampling lesson, QUANTUM ESPRESSO for a chemistry intro …). The
-// title fragments below identify those famous off-discipline works.
-//
-// This list + matchesKnownOffender() previously lived ONLY grader-side
-// (deepQualityGrader.checkCitations), so the grader caught the offender at
-// GRADING while the reading-list engine still ATTACHED it (the v0.14.3
-// discipline calibration legitimately allows Medicine/Health-Science topic
-// fields for stats — STROBE is a real stats reading — and the token gate
-// passes a cancer-statistics title on the word "statistics"). Single-sourcing
-// here lets the engine REJECT a matching candidate at attach time AND the
-// grader keep its defense-in-depth check, off the same list with the same
-// yield rule.
-export const KNOWN_OFFENDER_CITATIONS = [
-  'MNIST',
-  'Gradient-Based Learning Applied to Document Recognition',
-  'Global cancer statistics',
-  'QUANTUM ESPRESSO',
-  'PRISMA',
-  'R: A Language',
-  'SHELX',
-  'Lowry',
-  'protein measurement',
-  'xgboost',
-  'XGBoost',
-  'ImageJ',
-  'FSL',
-  'Pascal VOC',
-  'IoT vision',
-  'gradient boosting',
-  'data clustering',
-  'NIA-AA',
-  'Alzheimer',
-  'hypertension guidelines',
-  'CES-D',
-];
-
-const KNOWN_OFFENDER_LOWER = KNOWN_OFFENDER_CITATIONS.map((entry) => entry.toLowerCase());
-
-/**
- * The first offender fragment a citation/title contains (case-insensitive),
- * or null. Returns the matched fragment so callers can name it in the
- * finding/decision ("rejected known-offender: <title>").
- */
-export function matchesKnownOffender(title) {
-  const text = String(title || '').toLowerCase();
-  if (!text) return null;
-  for (let i = 0; i < KNOWN_OFFENDER_LOWER.length; i += 1) {
-    if (text.includes(KNOWN_OFFENDER_LOWER[i])) return KNOWN_OFFENDER_CITATIONS[i];
-  }
-  return null;
-}
-
-/**
- * Tokens that must NOT count as topical overlap when deciding whether a
- * known-offender citation yields to the lesson (FP-1's
- * blacklistYieldsToTopicalOverlap). Two classes are stripped:
- *   - GENERIC research/structure words ("statistics", "analysis", "study",
- *     "data", "review", "research", "method", "model", "evidence", …) — the
- *     stats cancer-statistics offender's only overlap with a sampling lesson is
- *     the discipline's own generic term "statistics", which must not rescue it;
- *   - the DISCIPLINE'S OWN NAME tokens (passed by the caller) — a biostatistics
- *     reading sharing "statistics"/"statistical" with a stats course, or a
- *     nursing reading sharing "nursing", is sharing the field label, not the
- *     lesson topic.
- * A nursing immunity lesson still KEEPS its "innate immunity in Alzheimer's"
- * paper because the overlap tokens "innate"/"immunity" are neither generic nor
- * the discipline name.
- */
-const OFFENDER_YIELD_GENERIC_TOKENS = new Set([
-  'statistics',
-  'statistical',
-  'statistic',
-  'analysis',
-  'analyses',
-  'analytic',
-  'study',
-  'studies',
-  'data',
-  'dataset',
-  'review',
-  'research',
-  'method',
-  'methods',
-  'methodology',
-  'model',
-  'models',
-  'modeling',
-  'modelling',
-  'evidence',
-  'finding',
-  'findings',
-  'result',
-  'results',
-  'approach',
-  'survey',
-  'introduction',
-  'global',
-  'world',
-  'general',
-  'application',
-  'applications',
-  'applied',
-  'system',
-  'systems',
-  'theory',
-  'framework',
-  'measurement',
-  'estimate',
-  'estimates',
-  'estimation',
-]);
-
-/**
- * Shared yield rule (single source for the grader and the reading-list engine):
- * a known-offender citation is NOT off-discipline when its TITLE shares STRONG
- * topical overlap with the lesson concept it's attached to — at least
- * `minShared` (default 2) DISTINCT content tokens that are neither generic
- * research words nor the discipline's own name.
- *
- * @param titleTokenSet   Set<string> of the citation title's content tokens.
- * @param conceptTokenSet Set<string> of the lesson's concept tokens.
- * @param disciplineNameTokens iterable of the discipline's own name tokens to
- *   ignore (e.g. ['statistics','statistical'] for a stats course); optional.
- * @returns boolean — true ⇒ the offender yields (keep it).
- */
-export function blacklistYieldsToTopicalOverlap(
-  titleTokenSet,
-  conceptTokenSet,
-  { disciplineNameTokens = [], minShared = 2 } = {},
-) {
-  if (!titleTokenSet || titleTokenSet.size === 0) return false;
-  if (!conceptTokenSet || conceptTokenSet.size === 0) return false;
-  const ignored = new Set(OFFENDER_YIELD_GENERIC_TOKENS);
-  for (const token of disciplineNameTokens) ignored.add(String(token || '').toLowerCase());
-  let shared = 0;
-  for (const token of titleTokenSet) {
-    if (ignored.has(token)) continue;
-    if (conceptTokenSet.has(token)) shared += 1;
-    if (shared >= minShared) return true;
-  }
-  return false;
 }
 
 // ── Back-compat tuple views for the existing output-artifact gate ───────────

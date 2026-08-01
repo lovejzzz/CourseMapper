@@ -1402,4 +1402,32 @@ describe('packageFinalizer', () => {
       0,
     );
   });
+
+  it('uses the original source brief to preserve explicitly requested known-offender content', () => {
+    const courseMap = makeCourseMap(1);
+    courseMap.courseName = 'Biomedical Imaging Studio';
+    const slideDecks = {
+      decks: [
+        {
+          lessonTitle: 'Lesson 1: Reproducible Imaging Workflows',
+          slides: [
+            {
+              title: 'Tool interoperability',
+              bullets: ['ImageJ2 supports the Molecule Archive workflow used in this exercise.'],
+            },
+          ],
+        },
+      ],
+    };
+    const result = runDeterministicPackageFinalizer({
+      courseMap,
+      sourceBrief: 'Teach ImageJ2 and ask students to compare Molecule Archive workflows.',
+      deliverables: { slideDecks: { status: 'done', data: slideDecks } },
+      selectedFeatures: ['slideDecks'],
+      includeClassroomReadiness: false,
+      includePedagogicalValidation: false,
+    });
+
+    expect(JSON.stringify(result.deliverables.slideDecks.data)).toContain('ImageJ2');
+  });
 });

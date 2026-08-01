@@ -272,7 +272,7 @@ describe('pptxExporter', () => {
               {
                 title: 'Welcome',
                 type: 'title',
-                bullets: ['A course subtitle line'],
+                bullets: ['A clear course subtitle frames the lesson.'],
                 notes: 'Open the course.',
               },
             ],
@@ -304,6 +304,40 @@ describe('pptxExporter', () => {
       expect(xmlB).toContain(accentFamilyForCourse(nameB).accent);
       expect(xmlA).not.toContain(accentFamilyForCourse(nameB).accent);
     });
+  });
+
+  it('omits weak title-slide concept dumps while keeping a complete framing subtitle', async () => {
+    const deck = (subtitle) => ({
+      decks: [
+        {
+          lessonTitle: 'Lesson 6: Capstone Policy Memo',
+          slides: [{ title: 'Lesson 6: Capstone Policy Memo', type: 'title', bullets: [subtitle], notes: '' }],
+        },
+      ],
+    });
+
+    const weakBlob = await buildSlideDeckPptxBlob(
+      deck('Capstone Policy Memo, Correlation vs. Causation Distinction, Data cleansing'),
+      'Python for Public Policy Analysis',
+      0,
+    );
+    const strongBlob = await buildSlideDeckPptxBlob(
+      deck('Use causal evidence to strengthen the final policy memo.'),
+      'Python for Public Policy Analysis',
+      0,
+    );
+    const serialListBlob = await buildSlideDeckPptxBlob(
+      deck('Compare collection, analysis, and presentation choices in the final memo.'),
+      'Python for Public Policy Analysis',
+      0,
+    );
+    const weakXml = await (await loadPptxZip(weakBlob)).file('ppt/slides/slide1.xml').async('string');
+    const strongXml = await (await loadPptxZip(strongBlob)).file('ppt/slides/slide1.xml').async('string');
+    const serialListXml = await (await loadPptxZip(serialListBlob)).file('ppt/slides/slide1.xml').async('string');
+
+    expect(weakXml).not.toContain('Data cleansing');
+    expect(strongXml).toContain('Use causal evidence to strengthen the final policy memo.');
+    expect(serialListXml).toContain('Compare collection, analysis, and presentation choices in the final memo.');
   });
 
   describe('auto-fit text (v0.12.1)', () => {

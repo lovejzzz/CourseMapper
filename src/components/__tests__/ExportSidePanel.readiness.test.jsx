@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react';
 import { act } from 'react';
 import { createRoot } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import ExportSidePanel from '../ExportSidePanel.jsx';
+import ExportSidePanel, { hasDownloadableVerifiedPackage } from '../ExportSidePanel.jsx';
 import { CourseProvider, useCourse } from '../../contexts/CourseContext.jsx';
 import { downloadCourseMaterialsZip } from '../../lib/packageZipExporter.js';
 
@@ -78,6 +78,29 @@ const EMPTY_DELIVERABLES = {};
 const EMPTY_DELIVERABLE_CONFIG = {};
 const COURSE_MAP_FEATURES = ['courseMap'];
 
+it('requires actual export checks and honors receipt-v2 download safety', () => {
+  const base = {
+    status: 'ready',
+    receipt: { finalStatus: 'ready', exportStatus: 'passed', exportFailed: 0 },
+    quality: { status: 'graded', score: 95, grade: 'A' },
+  };
+  expect(hasDownloadableVerifiedPackage(base)).toBe(false);
+  expect(
+    hasDownloadableVerifiedPackage({
+      ...base,
+      receipt: {
+        ...base.receipt,
+        exportChecked: 8,
+        packageReadinessReceipt: {
+          protocol: 'coursemapper-package-readiness-receipt-v2',
+          exportVerification: { status: 'passed', checked: 8, failed: 0 },
+          downloadSafety: { status: 'blocked', blockerCount: 1 },
+        },
+      },
+    }),
+  ).toBe(false);
+});
+
 function ExportPanelHarness({
   isPackageGenerationRunning = false,
   onAutoRepairReadiness = vi.fn(),
@@ -93,6 +116,7 @@ function ExportPanelHarness({
   selectedFeaturesInput = COURSE_MAP_FEATURES,
   packageQualityPass = { status: 'idle', message: '' },
   onPackageQualityPassUpdate = null,
+  qualityReportOpen = false,
 }) {
   const { courseMap, setCourseMap, setSelectedFeatures, setDeliverableConfig, setColumns } = useCourse();
   const [ready, setReady] = useState(false);
@@ -136,6 +160,8 @@ function ExportPanelHarness({
       canFinishPackage={canFinishPackage}
       packageQualityPass={packageQualityPass}
       onPackageQualityPassUpdate={onPackageQualityPassUpdate}
+      qualityModalOpen={qualityReportOpen}
+      onQualityModalOpenChange={vi.fn()}
       isPackageGenerationRunning={isPackageGenerationRunning}
       preferPackageScope={preferPackageScope}
     />
@@ -360,7 +386,7 @@ describe('ExportSidePanel readiness repair timing', () => {
     expect(container.querySelector('[data-testid="export-format-csv"]')?.textContent).toContain('CSV (.csv)');
   });
 
-  it('uses a neutral information state when a downloadable package has quality and export caveats', async () => {
+  it('shows a calm ready state and keeps honest quality details out of Export', async () => {
     await renderPanel({
       courseMapInput: cleanCourseMap,
       preferPackageScope: true,
@@ -370,6 +396,9 @@ describe('ExportSidePanel readiness repair timing', () => {
         warnings: 0,
         repairsApplied: 2,
         receipt: {
+          exportStatus: 'warnings',
+          exportChecked: 38,
+          exportFailed: 0,
           exportWarningCount: 1,
           exportWarning: 'PPTX export generated, but rendered text repeats one phrase 22 times.',
         },
@@ -391,21 +420,20 @@ describe('ExportSidePanel readiness repair timing', () => {
     });
 
     const panel = container.querySelector('[data-testid="readiness-panel"]');
-    expect(panel?.textContent).toContain('Exportable with review notes');
-    expect(panel?.textContent).toContain('Review notes in Agent');
-    expect(panel?.className).toContain('sky');
+    expect(panel?.textContent).toContain('Ready to download');
+    expect(panel?.className).toContain('emerald');
     expect(panel?.textContent).not.toContain('Download available');
     expect(panel?.textContent).not.toContain('Download is ready. Review notes are saved');
     expect(panel?.textContent).not.toContain('Show notes');
     expect(panel?.textContent).not.toContain('4 quality issues');
-    expect(panel?.textContent).toContain('2 safe repairs applied · 1 export warning');
+    expect(panel?.textContent).toContain('2 safe repairs applied');
+    expect(panel?.textContent).not.toContain('export warning');
     expect(panel?.textContent).not.toContain('3 P1 · 1 P2');
     expect(panel?.textContent).not.toContain('PPTX export generated');
     expect(container.querySelector('[data-testid="export-panel-title"]')?.textContent).toBe('Export package');
-    const qualityStamp = container.querySelector('[data-testid="quality-stamp"]');
-    expect(qualityStamp?.textContent).toContain('61/100');
-    expect(qualityStamp?.className).toContain('sky');
-    expect(qualityStamp?.className).not.toContain('amber');
+    expect(container.querySelector('[data-testid="quality-stamp"]')).toBeNull();
+    expect(panel?.textContent).not.toContain('61/100');
+    expect(panel?.textContent).not.toContain('96');
     expect(container.querySelector('[data-testid="export-download-zip"]')?.disabled).toBe(false);
   });
 
@@ -439,12 +467,7 @@ describe('ExportSidePanel readiness repair timing', () => {
           },
         },
       },
-    });
-
-    await act(async () => {
-      container
-        .querySelector('[data-testid="quality-stamp"]')
-        ?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      qualityReportOpen: true,
     });
 
     const modal = document.body.querySelector('[data-testid="quality-report-modal"]');
@@ -601,7 +624,7 @@ describe('ExportSidePanel readiness repair timing', () => {
       await Promise.resolve();
     });
 
-    expect(container.textContent).toContain('ZIP download paused because quality proof is unavailable');
+    expect(container.textContent).toContain('The package could not be prepared because quality proof is unavailable');
     expect(container.querySelector('[data-testid="export-success"]')).toBeNull();
     expect(onPackageQualityPassUpdate).toHaveBeenCalledTimes(1);
     const blockedPass = onPackageQualityPassUpdate.mock.calls[0][0]({
@@ -811,12 +834,13 @@ describe('ExportSidePanel readiness repair timing', () => {
     });
 
     const panel = container.querySelector('[data-testid="readiness-panel"]');
-    expect(panel?.textContent).toContain('Finish package');
-    expect(panel?.textContent).toContain('2 items to refine');
+    expect(panel?.textContent).toContain('Prepare package');
+    expect(panel?.className).toContain('sky');
+    expect(panel?.className).not.toContain('red');
     expect(panel?.textContent).toContain('Quiz & Exam Bank: 1 export issue must be fixed before the ZIP is available.');
 
     const zipButton = container.querySelector('[data-testid="export-download-zip"]');
-    expect(zipButton?.textContent).toContain('Refine package');
+    expect(zipButton?.textContent).toContain('Prepare package');
     expect(zipButton?.disabled).toBe(true);
 
     await act(async () => {
@@ -829,7 +853,7 @@ describe('ExportSidePanel readiness repair timing', () => {
     expect(downloadCourseMaterialsZip).not.toHaveBeenCalled();
   });
 
-  it('uses the canonical blocker total instead of recombining quality-gate and finding rows', async () => {
+  it('keeps blocker counts and quality reasons in Agent instead of the Export card', async () => {
     await renderPanel({
       courseMapInput: cleanCourseMap,
       preferPackageScope: true,
@@ -853,7 +877,7 @@ describe('ExportSidePanel readiness repair timing', () => {
           source: 0,
           total: 1,
         },
-        receipt: { finalStatus: 'blocked', exportStatus: 'passed', exportFailed: 0 },
+        receipt: { finalStatus: 'blocked', exportStatus: 'passed', exportChecked: 38, exportFailed: 0 },
         quality: {
           status: 'graded',
           findingCount: 3,
@@ -868,9 +892,11 @@ describe('ExportSidePanel readiness repair timing', () => {
     });
 
     const panelText = container.querySelector('[data-testid="readiness-panel"]')?.textContent || '';
-    expect(panelText).toContain('2 items to refine');
+    expect(panelText).toContain('Ready to download');
     expect(panelText).not.toContain('affected items');
-    expect(panelText).not.toContain('3 items to refine');
+    expect(panelText).not.toContain('items to refine');
+    expect(panelText).not.toContain('First blocker');
+    expect(panelText).not.toContain('Second blocker');
   });
 
   it('keeps a terminal quality finding honest while allowing a verified ZIP', async () => {
@@ -891,6 +917,7 @@ describe('ExportSidePanel readiness repair timing', () => {
           exportWarningCount: 0,
           finalStatus: 'blocked',
           exportStatus: 'passed',
+          exportChecked: 38,
           exportFailed: 0,
         },
         quality: {
@@ -917,7 +944,7 @@ describe('ExportSidePanel readiness repair timing', () => {
     await act(async () => {});
 
     const zipButton = container.querySelector('[data-testid="export-download-zip"]');
-    expect(container.querySelector('[data-testid="readiness-panel"]')?.textContent).toContain('Finish package');
+    expect(container.querySelector('[data-testid="readiness-panel"]')?.textContent).toContain('Ready to download');
     expect(zipButton?.textContent).toContain('Download ZIP');
     expect(container.textContent).not.toMatch(/draft zip/i);
     expect(zipButton?.disabled).toBe(false);
@@ -962,7 +989,7 @@ describe('ExportSidePanel readiness repair timing', () => {
     });
 
     const zipButton = container.querySelector('[data-testid="export-download-zip"]');
-    expect(zipButton?.textContent).toContain('Refine package');
+    expect(zipButton?.textContent).toContain('Prepare package');
     expect(zipButton?.disabled).toBe(true);
     expect(downloadCourseMaterialsZip).not.toHaveBeenCalled();
   });
@@ -1029,6 +1056,11 @@ describe('ExportSidePanel readiness repair timing', () => {
         stats: { findingCount: 1, fileCount: 27 },
         texture: { score: 94 },
       },
+      packageReadinessReceipt: {
+        protocol: 'coursemapper-package-readiness-receipt-v2',
+        exportVerification: { status: 'warnings', checked: 38, failed: 0, warningCount: 2 },
+        downloadSafety: { status: 'verified', blockerCount: 0 },
+      },
     });
 
     await renderPanel({
@@ -1054,9 +1086,24 @@ describe('ExportSidePanel readiness repair timing', () => {
 
     expect(onPackageQualityPassUpdate).toHaveBeenCalledTimes(1);
     const updater = onPackageQualityPassUpdate.mock.calls[0][0];
-    expect(updater({ status: 'ready', receipt: { finalStatus: 'ready' } })).toMatchObject({
+    expect(
+      updater({
+        status: 'ready',
+        receipt: { finalStatus: 'ready', exportWarningCount: 3 },
+        warningDomains: { schemaVersion: 1, retry: 1 },
+      }),
+    ).toMatchObject({
       status: 'ready',
-      receipt: { finalStatus: 'ready' },
+      warnings: 4,
+      warningDomains: { schemaVersion: 1, retry: 1, export: 2, quality: 1, total: 4 },
+      blockerDomains: { schemaVersion: 1, readiness: 0, quality: 0, export: 0, total: 0 },
+      receipt: {
+        finalStatus: 'ready',
+        exportStatus: 'warnings',
+        exportChecked: 38,
+        exportFailed: 0,
+        exportWarningCount: 2,
+      },
       quality: {
         score: 87,
         readiness: { score: 52 },

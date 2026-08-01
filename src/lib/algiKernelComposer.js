@@ -20,6 +20,11 @@ import {
   strictGenomeDisciplineBoundary,
 } from './genome/libraryShardLoader.js';
 import { lintEnrichedKeyTerm } from './blueprintEnrichmentPass.js';
+import {
+  blacklistYieldsToTopicalOverlap,
+  knownOffenderFitsScope,
+  matchesKnownOffender,
+} from './quality/knownOffenderScope.js';
 
 // Contract word bounds (scionContracts.compactLessonKernelSchemaProfile).
 const FACT_WORDS = [8, 20];
@@ -1620,12 +1625,38 @@ export function compositionCandidatesFromEvidence(
   consolidated = [],
   admitted = [],
   limit = MAX_COMPOSITION_CANDIDATES,
+  { topic = '', courseContext = '' } = {},
 ) {
   const candidates = [];
   const seen = new Set();
   for (const kernel of [...(consolidated || []), ...(admitted || [])]) {
     const id = String(kernel?.id || '').trim();
     if (!id || seen.has(id)) continue;
+    const offenderSurface = [
+      kernel?.term,
+      kernel?.provenance?.title,
+      kernel?.provenance?.sourceUrl,
+      kernel?.definition?.text,
+      ...(kernel?.facts || []).map((fact) => sentenceOf(fact)),
+    ]
+      .filter(Boolean)
+      .join(' ');
+    const offender = matchesKnownOffender(offenderSurface);
+    if (offender) {
+      const topicTokens = lessonSupportTokens(`${courseContext} ${topic}`);
+      const sourceTokens = lessonSupportTokens(offenderSurface);
+      const explicitlyRequested = `${courseContext} ${topic}`.toLowerCase().includes(String(offender).toLowerCase());
+      if (
+        !explicitlyRequested &&
+        !knownOffenderFitsScope(offender, topicTokens) &&
+        !blacklistYieldsToTopicalOverlap(sourceTokens, topicTokens, {
+          disciplineNameTokens: lessonSupportTokens(courseContext),
+          minShared: 2,
+        })
+      ) {
+        continue;
+      }
+    }
     seen.add(id);
     candidates.push(kernel);
     if (candidates.length >= Math.max(1, Number(limit) || MAX_COMPOSITION_CANDIDATES)) break;
@@ -2151,7 +2182,17 @@ export async function composeAlgiLessonKernels({
           if (rawKernels.length > 0) composeFailures += 1;
           continue;
         }
-        const kernels = compositionCandidatesFromEvidence(consolidated.kernels, rawKernels);
+        const kernels = compositionCandidatesFromEvidence(
+          consolidated.kernels,
+          rawKernels,
+          MAX_COMPOSITION_CANDIDATES,
+          {
+            topic,
+            courseContext: [courseContext, ...(lesson?.topics || []), ...(lesson?.objectives || [])]
+              .filter(Boolean)
+              .join(' '),
+          },
+        );
         // A narrow source page can yield one or two excellent concepts while
         // the compact lesson contract requires three. Top up only from sources
         // admitted elsewhere in this same course transaction, keeping the
