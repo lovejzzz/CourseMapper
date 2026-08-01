@@ -271,27 +271,27 @@ export function buildGroundedStudyGuideEvidenceCopy({
   const claims = sourceEvidenceBrief?.claims || [];
   const secondaryAlignedFact =
     claims.find((claim) => evidenceClaimKey(claim) !== evidenceClaimKey(primaryAlignedFact)) || primaryAlignedFact;
+  const secondaryClaimNumber = Math.max(
+    1,
+    claims.findIndex((claim) => evidenceClaimKey(claim) === evidenceClaimKey(secondaryAlignedFact)) + 1,
+  );
   const sourceComparisonQuestion =
     claims.length >= 2
-      ? `Compare these two source claims: “${stripTerminalPunctuation(claims[0])}” and “${stripTerminalPunctuation(
-          claims[1],
-        )}.” What ${primaryConcept} decision follows from reading them together, and what remains unproven?`
+      ? `Compare Source Claim 1 and Source Claim 2 in the evidence brief. What ${primaryConcept} decision follows from reading them together, and what remains unproven?`
       : '';
   const materials = stripTerminalPunctuation(cleanText(lesson.enrichment?.kernel?.scenario?.materials));
   if (claims.length >= 2 && (!materials || SOURCE_PLACEHOLDER_RE.test(materials))) {
     return {
       secondaryAlignedFact,
+      secondaryClaimNumber,
       sourceComparisonQuestion,
-      sourceEvidencePractice: `Compare these source claims: “${stripTerminalPunctuation(
-        claims[0],
-      )}” and “${stripTerminalPunctuation(
-        claims[1],
-      )}.” Mark the detail each claim supports, identify any tension or dependency between them, and write one bounded ${primaryConcept} conclusion.`,
+      sourceEvidencePractice: `Annotate Source Claim 1 and Source Claim 2 in the evidence brief. Mark the detail each claim supports, identify any tension or dependency between them, and write one bounded ${primaryConcept} conclusion.`,
     };
   }
   const boundary = primaryAlignedFact ? stripTerminalPunctuation(primaryAlignedFact) : '';
   return {
     secondaryAlignedFact,
+    secondaryClaimNumber,
     sourceComparisonQuestion,
     sourceEvidencePractice: materials
       ? chooseVariant([

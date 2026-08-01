@@ -209,7 +209,9 @@ const lazyChunkBudgets = [
   // V0.17.09 carries the final trust state and complete domain ledgers into
   // both the saved run digest and downloadable package handoff. The measured
   // workspace-only shell is 283.2/85.2 KiB; retain sub-tenth-KiB headroom.
-  { prefix: 'AppFlow-', rawKiB: 283.25, gzipKiB: 85.25, gzipSlackBytes: 128 },
+  // The assessment-evidence split adds one lazy preload edge (68 raw bytes)
+  // while reducing the compiler chunk; keep the landing gzip ceiling fixed.
+  { prefix: 'AppFlow-', rawKiB: 283.5, gzipKiB: 85.25, gzipSlackBytes: 128 },
   // v0.16.47: the Living Course Compiler component and pure selector gained
   // an independently cacheable route boundary instead of raising AppFlow's
   // long-standing ratchet. Clean measurement: AppFlow 251.6/75.9; ribbon
@@ -362,6 +364,9 @@ const lazyChunkBudgets = [
   // the ceiling within 2.0/0.8 KiB instead of fragmenting the same bytes into
   // arbitrary chunks.
   { prefix: 'compilerExperientialActivity-', rawKiB: 38, gzipKiB: 12 },
+  // Source-bound answer exemplars are isolated from the compiler monolith and
+  // remain compile-only; freeze the measured leaf with narrow headroom.
+  { prefix: 'compilerAssessmentEvidenceCopy-', rawKiB: 7, gzipKiB: 3.25 },
   { prefix: 'compilerFactLedgerVisuals-', rawKiB: 3, gzipKiB: 1.5 },
   // Exact target-language assessment and lesson-plan frames are substantial
   // compile-only data. They remain cacheable beside the compiler without
@@ -535,6 +540,7 @@ const forbiddenInitialChunks = [
   /compilerPolish/i,
   /repeatedInstructionalPhrase/i,
   /compilerExperientialActivity/i,
+  /compilerAssessmentEvidenceCopy/i,
   /compilerFactLedgerVisuals/i,
   /webllm/i,
   /deepQualityGrader/i,

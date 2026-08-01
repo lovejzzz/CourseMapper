@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { ARTIFACT_PATTERNS } from '../quality/artifactDefectPatterns';
-import { constructedResponseRelationshipSampleCopy } from '../courseCompilerInstructionalCopy';
+import {
+  admittedEvidenceDefinitionCue,
+  constructedResponseRelationshipSampleCopy,
+} from '../compilerAssessmentEvidenceCopy';
 
 describe('constructedResponseRelationshipSampleCopy', () => {
   it('does not create an X: X evidence echo when a source fact starts with the concept name', () => {
@@ -19,5 +22,21 @@ describe('constructedResponseRelationshipSampleCopy', () => {
     expect(copy).not.toContain('Evidence for Personas: Personas');
     expect(echoPattern).toBeDefined();
     expect(echoPattern.regex.test(copy)).toBe(false);
+  });
+
+  it('does not repeat a fact-projected definition as a second evidence quotation', () => {
+    const fact = 'Missing values require a documented treatment decision.';
+    const copy = constructedResponseRelationshipSampleCopy({
+      lessonNumber: 2,
+      conceptA: 'Missing values',
+      conceptB: 'Cleaning logs',
+      definitionA: fact,
+      definitionB: 'Cleaning logs record transformations.',
+      factA: fact,
+      factB: 'Cleaning logs record transformations.',
+    });
+
+    expect(copy.split(fact).length - 1).toBe(1);
+    expect(admittedEvidenceDefinitionCue({ concept: 'Missing values', definition: fact, fact })).not.toContain(fact);
   });
 });

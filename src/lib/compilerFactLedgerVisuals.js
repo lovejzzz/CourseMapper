@@ -1,4 +1,4 @@
-import { cleanText } from './compilerText';
+import { cleanText, stripTerminalPunctuation } from './compilerText';
 import { compactSlideInstructionLabel, selectVariant } from './courseCompilerCopyVariants';
 
 function compactFact(value, limit = 124) {
@@ -20,6 +20,58 @@ function factLedgerLead(rows) {
   const firstEvidence = cleanText(rows?.[0]?.[1]);
   if (!firstEvidence) return '';
   return `Test this admitted claim before deciding: ${firstEvidence}`;
+}
+
+export function preferredKernelFacts(kernel = {}) {
+  const canonical = Array.isArray(kernel.canonicalFacts) ? kernel.canonicalFacts : [];
+  const facts = Array.isArray(kernel.facts) ? kernel.facts : [];
+  return [...new Set([...canonical, ...facts].map(cleanText).filter(Boolean))];
+}
+
+export function preferredSlideTerm(terms = [], lessonNumber = 1) {
+  const authored = terms.find((term) => !/-projection$/.test(cleanText(term?.source)));
+  const leadDefinition = cleanText(terms[0]?.definition).toLowerCase();
+  const differentiated = terms.find(
+    (term) => cleanText(term?.definition) && cleanText(term?.definition).toLowerCase() !== leadDefinition,
+  );
+  // When every term was projected from the fact ledger, avoid making the
+  // ledger's first (and most reused) claim the deck's default as well.
+  return (
+    authored ||
+    differentiated ||
+    terms[terms.length - 1] ||
+    terms[(Math.max(1, Number(lessonNumber) || 1) - 1) % terms.length] ||
+    null
+  );
+}
+
+export function prepareEnrichedSlideCopy({ content = {}, kernel = {}, concept = 'Lesson concept' }) {
+  const authoredTitle = stripTerminalPunctuation(cleanText(content.title));
+  const titleIsLedgerFact = preferredKernelFacts(kernel).some(
+    (fact) => stripTerminalPunctuation(fact).toLowerCase() === authoredTitle.toLowerCase(),
+  );
+  const seen = new Set();
+  const notes = cleanText(content.notes)
+    .split(/(?<=[.!?])\s+/)
+    .filter((item) => {
+      const key = stripTerminalPunctuation(item).toLowerCase();
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .join(' ');
+  return {
+    title: titleIsLedgerFact ? `${stripTerminalPunctuation(concept)}: source claim` : content.title,
+    titleKey: authoredTitle.toLowerCase(),
+    notes,
+  };
+}
+
+export function displayedEvidenceNotePrefix(bullets = [], noteEvidence = '') {
+  const evidenceKey = stripTerminalPunctuation(cleanText(noteEvidence)).toLowerCase();
+  return bullets.some((bullet) => stripTerminalPunctuation(cleanText(bullet)).toLowerCase() === evidenceKey)
+    ? 'Discuss the displayed evidence.'
+    : `Verified evidence: ${stripTerminalPunctuation(noteEvidence)}.`;
 }
 
 export function slideAgendaDecisionCue({ lessonNumber, concept, secondary, sourceCue, artifact, successCriterion }) {

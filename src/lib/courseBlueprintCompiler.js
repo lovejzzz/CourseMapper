@@ -60,7 +60,6 @@ import { assignmentSelfAssessmentEvidenceCheck } from './courseCompilerSelfAsses
 import {
   additionalEvidenceRequirementCopy,
   closeReadingDiscussionCopy,
-  constructedResponseRelationshipSampleCopy,
   faqCoreClaimsCopy,
   kernelSlideEvidenceDiscussionCopy,
   prerequisiteDiagnosticCopy,
@@ -198,7 +197,18 @@ import {
   resolveExperientialActivity,
 } from './compilerExperientialActivity';
 import { requestsExperientialActivity } from './experientialActivityContract';
-import { buildEvidenceTableVisualDescriptor, slideAgendaDecisionCue } from './compilerFactLedgerVisuals';
+import {
+  buildEvidenceTableVisualDescriptor,
+  displayedEvidenceNotePrefix,
+  prepareEnrichedSlideCopy,
+  preferredKernelFacts,
+  preferredSlideTerm,
+  slideAgendaDecisionCue,
+} from './compilerFactLedgerVisuals';
+import {
+  admittedEvidenceDefinitionCue,
+  constructedResponseRelationshipSampleCopy,
+} from './compilerAssessmentEvidenceCopy';
 
 export { humanSourceCueLabel };
 export { BLUEPRINT_REALIZATION_TRACE };
@@ -19077,7 +19087,7 @@ function compileStudyGuides(blueprint) {
         primaryTeachingTerm?.definition,
       );
       const sourceEvidenceBrief = buildLessonEvidenceBrief(lesson, { claimLimit: 4, sourceLimit: 4 });
-      const { secondaryAlignedFact, sourceComparisonQuestion, sourceEvidencePractice } =
+      const { secondaryAlignedFact, secondaryClaimNumber, sourceComparisonQuestion, sourceEvidencePractice } =
         buildGroundedStudyGuideEvidenceCopy({
           lesson,
           sourceEvidenceBrief,
@@ -19320,7 +19330,9 @@ function compileStudyGuides(blueprint) {
                 ...(secondaryAlignedFact
                   ? [
                       {
-                        question: `For ${specificity.week}, explain why this ${specificity.concept} claim is true and what evidence supports it: “${stripTerminalPunctuation(secondaryAlignedFact)}”`,
+                        question: sourceEvidenceBrief
+                          ? `For ${specificity.week}, explain why Source Claim ${secondaryClaimNumber} in the evidence brief is supported and what it establishes about ${specificity.concept}.`
+                          : `For ${specificity.week}, explain why this ${specificity.concept} claim is true and what evidence supports it: “${stripTerminalPunctuation(secondaryAlignedFact)}”`,
                         bloomsLevel: 'Analyze',
                         hint: lessonVariant(lesson, [
                           `Use ${conceptPair} in your explanation. Add one observable detail that supports the claim and explain how it changes the method decision.`,
@@ -20937,7 +20949,7 @@ function buildExamShortAnswerItem({ blueprint, assessment, covered, lens, examSl
         ? grounded
           ? compositeGrounded
             ? `A complete answer distinguishes ${conceptA} from ${conceptB} using the authored course definition. ${sentenceCase(stripTerminalPunctuation(compositeDefinition))}. It then cites one relevant course detail for each concept, names the relationship, and bounds the conclusion.`
-            : `A complete answer uses both definitions accurately. ${sentenceCase(stripTerminalPunctuation(joinTermDefinition(conceptA, termA.definition)))}. ${sentenceCase(stripTerminalPunctuation(joinTermDefinition(conceptB, termB.definition)))}. It then cites one relevant course detail for each concept, names the relationship, and bounds the conclusion.`
+            : `A complete answer uses both definitions accurately, cites one relevant course detail for each concept, names the relationship, and bounds the conclusion.`
           : `A complete answer independently identifies both concepts, cites a relevant course detail for each, names a concrete relationship between ${conceptA} and ${conceptB}, and bounds the conclusion.`
         : `A complete answer independently identifies ${conceptA}, cites a specific course detail, explains one decision the evidence supports, and states one limitation.`,
       sampleAnswer: distinctConcepts
@@ -21338,13 +21350,13 @@ function rotateAdmittedAssessmentKnowledge(lesson, offset = 0) {
 function buildAdmittedKernelEvidenceItem({ lesson, blueprint, quizPlan, index, offset = 0 }) {
   // Rotate the admitted view so evidence-bound seats do not all quote the first fact.
   const sourceLesson = rotateAdmittedAssessmentKnowledge(lesson, offset);
-  const terms = examLessonTerms(sourceLesson);
+  const terms = examLessonTerms(lesson);
   // Prefer authored terms; quiz projections can be broader than their labels.
   const authoredTerms = terms.filter(
     (candidate) => candidate?.derivedFromQuizIndex == null && candidate?.source !== 'verified-quiz-projection',
   );
   const termPool = authoredTerms.length > 0 ? authoredTerms : terms;
-  const term = termPool.length > 0 ? termPool[offset % termPool.length] : null;
+  const term = termPool.length > 0 ? termPool[(offset + 1) % termPool.length] : null;
   const concept = cleanText(term?.term) || primaryConceptForLesson(lesson);
   const definition = cleanText(term?.definition);
   // Use term-owned evidence; its definition is the honest fallback.
@@ -21353,9 +21365,7 @@ function buildAdmittedKernelEvidenceItem({ lesson, blueprint, quizPlan, index, o
 
   const plan = quizPlan[index] || quizPlan[0] || {};
   const quotedFact = stripTerminalPunctuation(fact);
-  const definitionCue = definition
-    ? `${sentenceCase(concept)} is the relevant concept. ${sentenceCase(stripTerminalPunctuation(definition))}.`
-    : `${sentenceCase(concept)} is the concept students should use to interpret the quoted evidence.`;
+  const definitionCue = admittedEvidenceDefinitionCue({ concept, definition, fact });
   const additionalEvidence = additionalEvidenceRequirementCopy({
     lessonNumber: lesson.lessonNumber,
     mode: cleanText(lesson?.modalityDecode?.mode || blueprint?.courseModalityProfile?.primaryMode).toLowerCase(),
@@ -21385,14 +21395,14 @@ function buildAdmittedKernelEvidenceItem({ lesson, blueprint, quizPlan, index, o
   const sampleAnswer =
     index === 4
       ? lessonVariant(lesson, [
-          `${definitionCue} The statement supports a bounded conclusion because ${lowercaseSentenceLead(quotedFact)}. Accepting a broader claim would require ${additionalEvidence}.`,
-          `${definitionCue} Here, ${lowercaseSentenceLead(quotedFact)} supplies the support. The conclusion must stop at that relationship until the reader adds ${additionalEvidence}.`,
-          `${definitionCue} The decisive evidence is that ${lowercaseSentenceLead(quotedFact)}. It warrants only the stated relationship; extending the interpretation requires ${additionalEvidence}.`,
-          `${definitionCue} Because ${lowercaseSentenceLead(quotedFact)}, the concept supports a limited inference rather than the proposed generalization. The missing support is ${additionalEvidence}.`,
-          `${definitionCue} This fact establishes the bounded claim: ${lowercaseSentenceLead(quotedFact)}. The wider conclusion remains unproven without ${additionalEvidence}.`,
-          `${definitionCue} Read the evidence narrowly: ${lowercaseSentenceLead(quotedFact)}. That detail justifies the present conclusion, while ${additionalEvidence} would be needed to defend the broader one.`,
+          `${definitionCue} The quote supports a bounded conclusion; a broader claim requires ${additionalEvidence}.`,
+          `${definitionCue} The quotation supplies support, but the conclusion stops there until the reader adds ${additionalEvidence}.`,
+          `${definitionCue} The decisive detail is quoted in the prompt. Extending it requires ${additionalEvidence}.`,
+          `${definitionCue} The quoted evidence supports a limited inference. The missing support is ${additionalEvidence}.`,
+          `${definitionCue} This quotation establishes the bounded claim. The wider conclusion requires ${additionalEvidence}.`,
+          `${definitionCue} Read the quote narrowly; ${additionalEvidence} would be needed to defend a broader conclusion.`,
         ])
-      : `${definitionCue} The evidence supports that concept by showing that ${lowercaseSentenceLead(quotedFact)}. It does not support a conclusion that adds a cause, mechanism, population, or outcome not stated in the quotation.`;
+      : `${definitionCue} The quoted statement supports the named relationship. It does not support a conclusion that adds a cause, mechanism, population, or outcome not stated in the quotation.`;
   const scoringGuidance =
     index === 4
       ? lessonVariant(lesson, [
@@ -24830,12 +24840,6 @@ function buildDiscussionGuidelinesForFormat(lesson, protocol) {
   return `${preparationCue} Use this ${protocol.artifactGenre} protocol for ${lessonFocus}: ${protocol.participationPattern}. ${contributionCue} ${participationAccessCue} ${reviewCue}`;
 }
 
-/**
- * v0.9.1 subject-matter enrichment: replace the scaffold bullets of the
- * teaching slides (keyTerm, content, example) with model-written assertion
- * titles and evidence-bearing bullets. Deck shape, timing, objectives, and
- * activity slides stay compiler-owned.
- */
 function overlayEnrichedSlideContent(slides, lesson) {
   const enriched = lesson?.enrichment?.slideContent;
   if (!Array.isArray(enriched) || enriched.length === 0) return;
@@ -24843,9 +24847,13 @@ function overlayEnrichedSlideContent(slides, lesson) {
   targets.forEach((slide, index) => {
     const content = enriched[index];
     if (!content || !content.title || !Array.isArray(content.bullets) || content.bullets.length === 0) return;
-    slide.title = content.title;
+    const prepared = prepareEnrichedSlideCopy({
+      content,
+      kernel: lesson?.enrichment?.kernel,
+      concept: safeLessonPrimaryConcept(lesson),
+    });
+    slide.title = prepared.title;
     const concept = cleanText(primarySlideConcept(lesson)).toLowerCase();
-    const titleKey = stripTerminalPunctuation(cleanText(content.title)).toLowerCase();
     slide.bullets = content.bullets
       .slice(0, 4)
       .map((bullet) => {
@@ -24855,9 +24863,9 @@ function overlayEnrichedSlideContent(slides, lesson) {
       // Model slide atoms sometimes repeat the assertion title verbatim as
       // the final bullet. The exporter treats that seat as a takeaway, so the
       // echo becomes a giant empty example plus a duplicated claim.
-      .filter((bullet) => stripTerminalPunctuation(bullet).toLowerCase() !== titleKey);
+      .filter((bullet) => stripTerminalPunctuation(bullet).toLowerCase() !== prepared.titleKey);
     if (slide.bullets.length === 0) slide.bullets = [sentenceCase(content.title)];
-    if (content.notes) slide.notes = content.notes;
+    if (prepared.notes) slide.notes = prepared.notes;
     slide.enrichmentSource = 'lesson-content-enrichment';
   });
 }
@@ -24870,11 +24878,8 @@ function applyKernelSubjectMatterSlides(slides, lesson) {
   const terms = lessonPrimaryTeachingKeyTerms(lesson).filter(
     (term) => cleanText(term?.term) && cleanText(term?.definition),
   );
-  const facts = unique(
-    asArray(lesson?.enrichment?.kernel?.canonicalFacts || lesson?.enrichment?.kernel?.facts).map(cleanText),
-    6,
-  );
-  const primaryTerm = terms[0] || null;
+  const facts = unique(preferredKernelFacts(lesson?.enrichment?.kernel).map(cleanText), 6);
+  const primaryTerm = preferredSlideTerm(terms, lesson?.lessonNumber);
   const concept = cleanText(primaryTerm?.term) || primarySlideConcept(lesson);
   const definition = cleanText(primaryTerm?.definition);
   const example =
@@ -24914,10 +24919,12 @@ function applyKernelSubjectMatterSlides(slides, lesson) {
     slide.bullets = authored[index].bullets;
     // Keep one rotating evidence anchor instead of duplicating every visible bullet.
     const noteEvidence = facts[index % facts.length] || authored[index].bullets[index % authored[index].bullets.length];
-    slide.notes = `Verified evidence: ${stripTerminalPunctuation(noteEvidence)}. ${kernelSlideEvidenceDiscussionCopy({
-      lessonNumber: lesson?.lessonNumber,
-      slideIndex: index,
-    })}`;
+    slide.notes = `${displayedEvidenceNotePrefix(authored[index].bullets, noteEvidence)} ${kernelSlideEvidenceDiscussionCopy(
+      {
+        lessonNumber: lesson?.lessonNumber,
+        slideIndex: index,
+      },
+    )}`;
     slide.enrichmentSource = 'kernel-subject-matter';
   });
 }

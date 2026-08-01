@@ -111,10 +111,14 @@ describe('Scion canonical evidence propagation', () => {
 
     expect(summary.split(repeatedClaim)).toHaveLength(2);
     expect(summary).toContain('explicit labels are better supported by assistive technology');
-    expect(guide.reviewQuestions[0].question).toContain('Compare these two source claims');
-    expect(guide.reviewQuestions[0].question).toContain('Explicit labels');
-    expect(guide.reviewQuestions[0].question).toContain('People with cognitive disabilities');
-    expect(guide.practiceActivities[0]).toContain('Compare these source claims');
+    expect(guide.sourceEvidenceBrief.claims).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('Explicit labels'),
+        expect.stringContaining('People with cognitive disabilities'),
+      ]),
+    );
+    expect(guide.reviewQuestions[0].question).toContain('Compare Source Claim 1 and Source Claim 2');
+    expect(guide.practiceActivities[0]).toContain('Source Claim 1 and Source Claim 2');
     expect(JSON.stringify(guide)).not.toMatch(
       /\bsource-backed case example\b|\brelated claim\b|\bclaim-boundary note\b/i,
     );

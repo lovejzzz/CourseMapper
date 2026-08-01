@@ -104,6 +104,7 @@ export default defineConfig({
             return 'compilerComparativeRubricBands';
           }
           if (/src\/lib\/compilerExperientialActivity\.js$/.test(id)) return 'compilerExperientialActivity';
+          if (/src\/lib\/compilerAssessmentEvidenceCopy\.js$/.test(id)) return 'compilerAssessmentEvidenceCopy';
           if (/src\/lib\/compilerFactLedgerVisuals\.js$/.test(id)) return 'compilerFactLedgerVisuals';
           if (/src\/lib\/quality\/deepQualitySubstanceDetails\.js$/.test(id)) return 'deepQualitySubstanceDetails';
           if (/src\/lib\/quality\/deepQualityFormatDetails\.js$/.test(id)) return 'deepQualityFormatDetails';

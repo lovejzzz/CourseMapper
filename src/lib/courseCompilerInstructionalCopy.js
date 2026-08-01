@@ -1,21 +1,6 @@
 import { cleanText, sentenceCase, stripTerminalPunctuation } from './compilerText';
 import { selectVariant } from './courseCompilerCopyVariants';
 
-function lowercaseSentenceLead(value) {
-  const text = cleanText(value);
-  if (!text || /^[A-Z]{2}/.test(text) || /^[A-Z][a-z]*[A-Z0-9]/.test(text)) return text;
-  return text.charAt(0).toLowerCase() + text.slice(1);
-}
-
-function joinTermDefinition(term, definition) {
-  const cleanTerm = cleanText(term);
-  const cleanDefinition = stripTerminalPunctuation(cleanText(definition));
-  if (!cleanTerm) return cleanDefinition;
-  if (!cleanDefinition) return cleanTerm;
-  if (cleanDefinition.toLowerCase().startsWith(cleanTerm.toLowerCase())) return cleanDefinition;
-  return `${cleanTerm} means ${lowercaseSentenceLead(cleanDefinition)}`;
-}
-
 export function prerequisiteDiagnosticCopy({ lessonNumber, previousConcept, concept }) {
   return selectVariant(lessonNumber, [
     `Ask students to explain one relationship and one difference between ${previousConcept} and ${concept}.`,
@@ -72,28 +57,6 @@ export function shortAnswerGuidanceCopy({ lessonNumber, concept, artifact, sourc
       `Score concept accuracy, evidence, decision use, and claim boundaries. The response must show what ${sourceCue} adds to ${artifact}. It must also name what still needs confirmation.`,
     ]),
   };
-}
-
-export function constructedResponseRelationshipSampleCopy({
-  lessonNumber,
-  conceptA,
-  conceptB,
-  definitionA,
-  definitionB,
-  factA,
-  factB,
-}) {
-  const definitions = `${sentenceCase(stripTerminalPunctuation(joinTermDefinition(conceptA, definitionA)))}. ${sentenceCase(stripTerminalPunctuation(joinTermDefinition(conceptB, definitionB)))}.`;
-  const firstEvidence = factA ? sentenceCase(stripTerminalPunctuation(factA)) : '';
-  const secondEvidence = factB ? sentenceCase(stripTerminalPunctuation(factB)) : '';
-  return `${definitions} ${selectVariant(lessonNumber, [
-    `${firstEvidence ? `The first detail—${firstEvidence}—` : `One cited course detail `}supports ${conceptA}; ${secondEvidence ? `the second—${secondEvidence}—` : `a different detail `}supports ${conceptB}. Together, the evidence distinguishes what each concept explains, while neither detail alone establishes the other concept's conclusion.`,
-    `For ${conceptA}, the decisive detail is this: ${firstEvidence || `cite a specific course fact`}. By contrast, ${secondEvidence || `a second fact is needed`} grounds ${conceptB}. The comparison shows their different roles without treating either fact as proof of the other claim.`,
-    `For the first concept, the source states: ${firstEvidence || `one relevant course detail`}. For the second, it states: ${secondEvidence || `one different course detail`}. Reading the facts together clarifies the relationship, but the pair still does not establish that the concepts are interchangeable.`,
-    `${firstEvidence || `A first course detail`}. This demonstrates ${conceptA}. ${secondEvidence || `A second course detail`}. This demonstrates ${conceptB}. Their relationship is comparative rather than substitutive: each concept explains a different feature of the evidence.`,
-    `The ${conceptA} claim rests on ${lowercaseSentenceLead(firstEvidence || `a specifically cited course detail`)}. The ${conceptB} claim rests on ${lowercaseSentenceLead(secondEvidence || `a separate cited detail`)}. That contrast supports a relationship between the concepts but not a conclusion that one concept entails the other.`,
-    `Start with ${lowercaseSentenceLead(firstEvidence || `a course fact aligned to ${conceptA}`)}; it supplies the evidence for ${conceptA}. Then use ${lowercaseSentenceLead(secondEvidence || `a different admitted fact`)} to support ${conceptB}. The two-part comparison makes the roles visible and leaves the unsupported broader conclusion outside the answer.`,
-  ])}`;
 }
 
 export function additionalEvidenceRequirementCopy({ lessonNumber, mode }) {
